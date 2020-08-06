@@ -64,7 +64,7 @@ const backoff = require("backoff");
 const debugLog = make_debugLog(__filename);
 const errorLog = make_errorLog(__filename);
 const doDebug = checkDebugFlag(__filename);
-const checkChunks = false;
+const checkChunks = doDebug && false;
 const doDebug1 = false;
 
 const doTraceMessage = process.env.NODEOPCUADEBUG && (process.env.NODEOPCUADEBUG.indexOf("TRACE") >= 0);
@@ -72,7 +72,7 @@ const doTraceRequestContent = process.env.NODEOPCUADEBUG && (process.env.NODEOPC
 const doTraceResponseContent = process.env.NODEOPCUADEBUG && (process.env.NODEOPCUADEBUG.indexOf("RESPONSE") >= 0);
 const doTraceStatistics = process.env.NODEOPCUADEBUG && (process.env.NODEOPCUADEBUG.indexOf("STATS") >= 0);
 const doPerfMonitoring = process.env.NODEOPCUADEBUG && (process.env.NODEOPCUADEBUG.indexOf("PERF") >= 0);
-
+const dumpSecurityHeader = process.env.NODEOPCUADEBUG && (process.env.NODEOPCUADEBUG.indexOf("SECURITY") >= 0);
 
 import { ICertificateKeyPairProvider, Request, Response } from "../common";
 import async = require("async");
@@ -1317,7 +1317,7 @@ export class ClientSecureChannelLayer extends EventEmitter {
 
         /* istanbul ignore next */
         if (doDebug) {
-            debugLog("Ajusted timeout = ", request.requestHeader.timeoutHint);
+            debugLog("Adjusted timeout = ", request.requestHeader.timeoutHint);
         }
         let timerId: any = null;
 
@@ -1488,7 +1488,7 @@ export class ClientSecureChannelLayer extends EventEmitter {
             this.emit("send_chunk", chunk);
 
             /* istanbul ignore next */
-            if (doDebug && checkChunks) {
+            if (checkChunks) {
                 verify_message_chunk(chunk);
                 debugLog(chalk.yellow("CLIENT SEND chunk "));
                 debugLog(chalk.yellow(messageHeaderToString(chunk)));
@@ -1502,7 +1502,7 @@ export class ClientSecureChannelLayer extends EventEmitter {
             // last chunk ....
 
             /* istanbul ignore next */
-            if (doDebug && checkChunks) {
+            if (checkChunks) {
                 debugLog(chalk.yellow("CLIENT SEND done."));
             }
             if (requestData) {
@@ -1534,6 +1534,9 @@ export class ClientSecureChannelLayer extends EventEmitter {
                     senderCertificate: this.getCertificateChain()  // certificate of the private key used to sign the message
                 });
 
+                if (dumpSecurityHeader) {
+                    console.log("HEADER !!!! ", securityHeader.toString());
+                }
                 break;
             }
             default:
