@@ -1,6 +1,6 @@
 {
     "name": "node-opcua-service-call",
-    "version": "2.8.1",
+    "version": "2.9.0",
     "description": "pure nodejs OPCUA SDK - module -service-call",
     "scripts": {
         "test": "mocha test",
@@ -11,19 +11,19 @@
     "types": "./dist/index.d.ts",
     "dependencies": {
         "node-opcua-assert": "^2.6.1",
-        "node-opcua-basic-types": "^2.8.1",
+        "node-opcua-basic-types": "^2.9.0",
         "node-opcua-binary-stream": "^2.8.1",
-        "node-opcua-factory": "^2.8.1",
-        "node-opcua-nodeid": "^2.8.1",
-        "node-opcua-service-secure-channel": "^2.8.1",
-        "node-opcua-types": "^2.8.1",
-        "node-opcua-variant": "^2.8.1",
+        "node-opcua-factory": "^2.9.0",
+        "node-opcua-nodeid": "^2.9.0",
+        "node-opcua-service-secure-channel": "^2.9.0",
+        "node-opcua-types": "^2.9.0",
+        "node-opcua-variant": "^2.9.0",
         "underscore": "^1.10.2"
     },
     "devDependencies": {
-        "node-opcua-generator": "^2.8.1",
-        "node-opcua-packet-analyzer": "^2.8.1",
-        "node-opcua-status-code": "^2.8.1",
+        "node-opcua-generator": "^2.9.0",
+        "node-opcua-packet-analyzer": "^2.9.0",
+        "node-opcua-status-code": "^2.9.0",
         "should": "^13.2.3"
     },
     "author": "Etienne Rossignon",
