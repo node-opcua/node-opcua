@@ -67,6 +67,7 @@ export class ClientMonitoredItemGroupImpl extends EventEmitter implements Client
 
         this.timestampsToReturn = timestampsToReturn;
         this.monitoringMode = MonitoringMode.Reporting;
+
     }
 
     public toString(): string {
@@ -92,13 +93,11 @@ export class ClientMonitoredItemGroupImpl extends EventEmitter implements Client
     public terminate(...args: any[]): any {
         const done = args[0] as ErrorCallback;
         assert(!done || _.isFunction(done));
-        /**
-         * Notify the observer that this monitored item has been terminated.
-         * @event terminated
-         */
-        this.emit("terminated");
         const subscription = this.subscription as ClientSubscriptionImpl;
         subscription._delete_monitored_items(this.monitoredItems, (err?: Error) => {
+
+            subscription._removeGroup(this);
+            
             if (done) {
                 done(err);
             }
@@ -197,6 +196,8 @@ export class ClientMonitoredItemGroupImpl extends EventEmitter implements Client
                 } else {
                     this.emit("initialized");
                     // set the event handler
+                    const priv_subscription = (this.subscription as ClientSubscriptionImpl);
+                    priv_subscription._add_monitored_items_group(this);
                 }
 
                 if (done) {
@@ -227,8 +228,8 @@ ClientMonitoredItemGroup.create = (
         monitoringParameters,
         timestampsToReturn
     );
-
-    (subscription as ClientSubscriptionImpl)._wait_for_subscription_to_be_ready((err?: Error) => {
+    const priv_subscription = (subscription as ClientSubscriptionImpl);
+    priv_subscription._wait_for_subscription_to_be_ready((err?: Error) => {
         if (err) {
             return;
         }

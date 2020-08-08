@@ -27,7 +27,7 @@ import {
     NotificationMessage,
     StatusChangeNotification,
     NotificationData,
-    EventNotificationList
+    EventNotificationList,
 } from "node-opcua-service-subscription";
 
 import { StatusCode, StatusCodes } from "node-opcua-status-code";
@@ -37,14 +37,14 @@ import { promoteOpaqueStructure } from "node-opcua-client-dynamic-extension-obje
 import { DataType, Variant } from "node-opcua-variant";
 import { IBasicSession } from "node-opcua-pseudo-session";
 
-import { ClientMonitoredItemBase } from "../client_monitored_item_base";
+import { ClientMonitoredItemBase, ClientMonitoredItemOrGroupAction } from "../client_monitored_item_base";
 import { ClientMonitoredItemGroup } from "../client_monitored_item_group";
 import { ClientSession, MonitoredItemData, SubscriptionId } from "../client_session";
 import {
     ClientHandle,
     ClientMonitoredItemBaseMap,
     ClientSubscription,
-    ClientSubscriptionOptions
+    ClientSubscriptionOptions,
 } from "../client_subscription";
 import { ClientMonitoredItemGroupImpl } from "./client_monitored_item_group_impl";
 import { ClientMonitoredItemImpl } from "./client_monitored_item_impl";
@@ -55,12 +55,14 @@ const debugLog = make_debugLog(__filename);
 const doDebug = checkDebugFlag(__filename);
 const warningLog = debugLog;
 
-const PENDING_SUBSCRIPTON_ID = 0xC0CAC01A;
-const TERMINTATED_SUBSCRIPTION_ID = 0xC0CAC01B;
-const TERMINATING_SUBSCRIPTION_ID = 0xC0CAC01C;
+const PENDING_SUBSCRIPTON_ID = 0xc0cac01a;
+const TERMINTATED_SUBSCRIPTION_ID = 0xc0cac01b;
+const TERMINATING_SUBSCRIPTION_ID = 0xc0cac01c;
 
-async function promoteOpaqueStructureInNotificationData(session: IBasicSession, notificationData: NotificationData[]): Promise<void> {
-
+async function promoteOpaqueStructureInNotificationData(
+    session: IBasicSession,
+    notificationData: NotificationData[]
+): Promise<void> {
     const dataValuesToPromote: { value: Variant }[] = [];
     for (const notification of notificationData) {
         if (!notification) {
@@ -92,7 +94,6 @@ async function promoteOpaqueStructureInNotificationData(session: IBasicSession, 
 }
 
 export class ClientSubscriptionImpl extends EventEmitter implements ClientSubscription {
-
     /**
      * the associated session
      * @property session
@@ -106,9 +107,11 @@ export class ClientSubscriptionImpl extends EventEmitter implements ClientSubscr
         return !!this.publishEngine.session;
     }
     public get isActive(): boolean {
-        return !(this.subscriptionId === PENDING_SUBSCRIPTON_ID
-            || this.subscriptionId === TERMINTATED_SUBSCRIPTION_ID
-            || this.subscriptionId === TERMINATING_SUBSCRIPTION_ID);
+        return !(
+            this.subscriptionId === PENDING_SUBSCRIPTON_ID ||
+            this.subscriptionId === TERMINTATED_SUBSCRIPTION_ID ||
+            this.subscriptionId === TERMINATING_SUBSCRIPTION_ID
+        );
     }
 
     public subscriptionId: SubscriptionId;
@@ -119,6 +122,7 @@ export class ClientSubscriptionImpl extends EventEmitter implements ClientSubscr
     public publishingEnabled: boolean;
     public priority: number;
     public monitoredItems: ClientMonitoredItemBaseMap;
+    public monitoredItemGroups: ClientMonitoredItemGroup[] = [];
 
     public timeoutHint = 0;
     public publishEngine: ClientSidePublishEngine;
@@ -130,7 +134,6 @@ export class ClientSubscriptionImpl extends EventEmitter implements ClientSubscr
     private pendingMonitoredItemsToRegister: ClientMonitoredItemBaseMap;
 
     constructor(session: ClientSession, options: ClientSubscriptionOptions) {
-
         super();
 
         const sessionImpl = session as ClientSessionImpl;
@@ -175,11 +178,8 @@ export class ClientSubscriptionImpl extends EventEmitter implements ClientSubscr
         this.pendingMonitoredItemsToRegister = {};
 
         setImmediate(() => {
-
             this.__create_subscription((err?: Error) => {
-
                 if (!err) {
-
                     setImmediate(() => {
                         /**
                          * notify the observers that the subscription has now started
@@ -193,18 +193,18 @@ export class ClientSubscriptionImpl extends EventEmitter implements ClientSubscr
     }
 
     public terminate(...args: any[]): any {
-
         const callback = args[0];
         assert(_.isFunction(callback), "expecting a callback function");
 
-        if (this.subscriptionId === TERMINTATED_SUBSCRIPTION_ID
-            || this.subscriptionId === TERMINATING_SUBSCRIPTION_ID) {
+        if (
+            this.subscriptionId === TERMINTATED_SUBSCRIPTION_ID ||
+            this.subscriptionId === TERMINATING_SUBSCRIPTION_ID
+        ) {
             // already terminated... just ignore
             return callback(new Error("Already Terminated"));
         }
 
         if (_.isFinite(this.subscriptionId)) {
-
             const subscriptionId = this.subscriptionId;
             this.subscriptionId = TERMINATING_SUBSCRIPTION_ID;
             this.publishEngine.unregisterSubscription(subscriptionId);
@@ -216,23 +216,25 @@ export class ClientSubscriptionImpl extends EventEmitter implements ClientSubscr
             if (!session) {
                 return callback(new Error("no session"));
             }
-            session.deleteSubscriptions({
-                subscriptionIds: [subscriptionId]
-            }, (err: Error | null, response?: DeleteSubscriptionsResponse) => {
-                if (response && response!.results![0] !== StatusCodes.Good) {
-                    debugLog("warning: deleteSubscription returned ", response.results);
+            session.deleteSubscriptions(
+                {
+                    subscriptionIds: [subscriptionId],
+                },
+                (err: Error | null, response?: DeleteSubscriptionsResponse) => {
+                    if (response && response!.results![0] !== StatusCodes.Good) {
+                        debugLog("warning: deleteSubscription returned ", response.results);
+                    }
+                    if (err) {
+                        /**
+                         * notify the observers that an error has occurred
+                         * @event internal_error
+                         * @param err the error
+                         */
+                        this.emit("internal_error", err);
+                    }
+                    this._terminate_step2(callback);
                 }
-                if (err) {
-                    /**
-                     * notify the observers that an error has occurred
-                     * @event internal_error
-                     * @param err the error
-                     */
-                    this.emit("internal_error", err);
-                }
-                this._terminate_step2(callback);
-            });
-
+            );
         } else {
             debugLog("subscriptionId is not value ", this.subscriptionId);
             assert(this.subscriptionId === PENDING_SUBSCRIPTON_ID);
@@ -260,7 +262,6 @@ export class ClientSubscriptionImpl extends EventEmitter implements ClientSubscr
         done: Callback<ClientMonitoredItemBase>
     ): void;
     public monitor(...args: any[]): any {
-
         const itemToMonitor = args[0] as ReadValueIdOptions;
         const requestedParameters = args[1] as MonitoringParametersOptions;
         const timestampsToReturn = args[2] as TimestampsToReturn;
@@ -286,7 +287,7 @@ export class ClientSubscriptionImpl extends EventEmitter implements ClientSubscr
         // xx return monitoredItem;
     }
 
-    public monitorItems(
+    public async monitorItems(
         itemsToMonitor: ReadValueIdOptions[],
         requestedParameters: MonitoringParametersOptions,
         timestampsToReturn: TimestampsToReturn
@@ -305,7 +306,11 @@ export class ClientSubscriptionImpl extends EventEmitter implements ClientSubscr
         const done = args[3] as Callback<ClientMonitoredItemGroup>;
 
         const monitoredItemGroup = new ClientMonitoredItemGroupImpl(
-            this, itemsToMonitor, requestedParameters, timestampsToReturn);
+            this,
+            itemsToMonitor,
+            requestedParameters,
+            timestampsToReturn
+        );
 
         this._wait_for_subscription_to_be_ready((err?: Error) => {
             if (err) {
@@ -320,11 +325,7 @@ export class ClientSubscriptionImpl extends EventEmitter implements ClientSubscr
         });
     }
 
-    public _delete_monitored_items(
-        monitoredItems: ClientMonitoredItemBase[],
-        callback: ErrorCallback
-    ) {
-
+    public _delete_monitored_items(monitoredItems: ClientMonitoredItemBase[], callback: ErrorCallback) {
         assert(_.isFunction(callback));
         assert(_.isArray(monitoredItems));
 
@@ -334,12 +335,15 @@ export class ClientSubscriptionImpl extends EventEmitter implements ClientSubscr
             this._remove(monitoredItem);
         }
         const session = this.session as ClientSessionImpl;
-        session.deleteMonitoredItems({
-            monitoredItemIds: monitoredItems.map((monitoredItem) => monitoredItem.monitoredItemId),
-            subscriptionId: this.subscriptionId,
-        }, (err: Error | null, response?: DeleteMonitoredItemsResponse) => {
-            callback(err!);
-        });
+        session.deleteMonitoredItems(
+            {
+                monitoredItemIds: monitoredItems.map((monitoredItem) => monitoredItem.monitoredItemId),
+                subscriptionId: this.subscriptionId,
+            },
+            (err: Error | null, response?: DeleteMonitoredItemsResponse) => {
+                callback(err!);
+            }
+        );
     }
 
     public async setPublishingMode(publishingEnabled: boolean): Promise<StatusCode>;
@@ -354,20 +358,18 @@ export class ClientSubscriptionImpl extends EventEmitter implements ClientSubscr
             return callback(new Error("no session"));
         }
         const subscriptionId = this.subscriptionId as SubscriptionId;
-        session.setPublishingMode(
-            publishingEnabled,
-            subscriptionId, (err: Error | null, statusCode?: StatusCode) => {
-                if (err) {
-                    return callback(err);
-                }
-                if (!statusCode) {
-                    return callback(new Error("Internal Error"));
-                }
-                if (statusCode !== StatusCodes.Good) {
-                    return callback(null, statusCode);
-                }
-                callback(null, StatusCodes.Good);
-            });
+        session.setPublishingMode(publishingEnabled, subscriptionId, (err: Error | null, statusCode?: StatusCode) => {
+            if (err) {
+                return callback(err);
+            }
+            if (!statusCode) {
+                return callback(new Error("Internal Error"));
+            }
+            if (statusCode !== StatusCodes.Good) {
+                return callback(null, statusCode);
+            }
+            callback(null, StatusCodes.Good);
+        });
     }
 
     public getMonitoredItems(): Promise<MonitoredItemData>;
@@ -376,90 +378,11 @@ export class ClientSubscriptionImpl extends EventEmitter implements ClientSubscr
         this.session.getMonitoredItems(this.subscriptionId, args[0]);
     }
 
-    //
-    // /**
-    //  * @internal
-    //  * @param itemsToMonitor
-    //  * @param innerCallback
-    //  * @private
-    //  */
-    // public _createMonitoredItem(itemsToMonitor: ClientMonitoredItemBase[], innerCallback: ErrorCallback) {
-    //
-    //     const itemsToCreate: MonitoredItemCreateRequestOptions[] = [];
-    //
-    //     _.forEach(itemsToMonitor, (monitoredItem: ClientMonitoredItemBase /*, clientHandle*/) => {
-    //         assert(monitoredItem.monitoringParameters.clientHandle > 0);
-    //         itemsToCreate.push({
-    //             itemToMonitor: monitoredItem.itemToMonitor,
-    //             monitoringMode: monitoredItem.monitoringMode,
-    //             requestedParameters: monitoredItem.monitoringParameters
-    //         });
-    //     });
-    //
-    //     const createMonitorItemsRequest = new CreateMonitoredItemsRequest({
-    //         itemsToCreate,
-    //         subscriptionId: this.subscriptionId,
-    //         timestampsToReturn: TimestampsToReturn.Both
-    //     });
-    //
-    //     const session = this.session;
-    //     if (!session) {
-    //         return innerCallback(new Error("no session"));
-    //     }
-    //     session.createMonitoredItems(
-    //         createMonitorItemsRequest,
-    //         (err: Error | null, response?: CreateMonitoredItemsResponse) => {
-    //
-    //             if (err) {
-    //                 return innerCallback(err);
-    //             }
-    //             if (!response) {
-    //                 return innerCallback(new Error("Internal Error"));
-    //             }
-    //             const monitoredItemResults = response.results || [];
-    //
-    //             monitoredItemResults.forEach((monitoredItemResult: MonitoredItemCreateResult, index: number) => {
-    //
-    //                 const itemToCreate = itemsToCreate[index];
-    //                 if (!itemToCreate || !itemToCreate.requestedParameters) {
-    //                     throw new Error("Internal Error");
-    //                 }
-    //                 const clientHandle = itemToCreate.requestedParameters.clientHandle;
-    //                 if (!clientHandle) {
-    //                     throw new Error("Internal Error");
-    //                 }
-    //                 const monitoredItem = this.monitoredItems[clientHandle];
-    //
-    //                 if (monitoredItemResult.statusCode === StatusCodes.Good) {
-    //
-    //                     monitoredItem.result = monitoredItemResult;
-    //                     monitoredItem.monitoredItemId = monitoredItemResult.monitoredItemId;
-    //                     monitoredItem.monitoringParameters.samplingInterval =
-    //                         monitoredItemResult.revisedSamplingInterval;
-    //                     monitoredItem.monitoringParameters.queueSize = monitoredItemResult.revisedQueueSize;
-    //                     monitoredItem.filterResult = monitoredItemResult.filterResult || undefined;
-    //
-    //                     // istanbul ignore next
-    //                     if (doDebug) {
-    //                         debugLog("monitoredItemResult.statusCode = ", monitoredItemResult.toString());
-    //                     }
-    //
-    //                 } else {
-    //                     // TODO: what should we do ?
-    //                     debugLog("monitoredItemResult.statusCode = ",
-    //                         monitoredItemResult.statusCode.toString());
-    //                 }
-    //             });
-    //             innerCallback();
-    //         });
-    // }
-
     /**
      *  utility function to recreate new subscription
      *  @method recreateSubscriptionAndMonitoredItem
      */
     public recreateSubscriptionAndMonitoredItem(callback: ErrorCallback) {
-
         debugLog("ClientSubscription#recreateSubscriptionAndMonitoredItem");
 
         if (this.subscriptionId === TERMINTATED_SUBSCRIPTION_ID) {
@@ -471,79 +394,77 @@ export class ClientSubscriptionImpl extends EventEmitter implements ClientSubscr
 
         this.publishEngine.unregisterSubscription(this.subscriptionId);
 
-        async.series([
+        async.series(
+            [
+                (innerCallback: ErrorCallback) => {
+                    this.__create_subscription(innerCallback);
+                },
+                (innerCallback: ErrorCallback) => {
+                    const test = this.publishEngine.getSubscription(this.subscriptionId);
+                    assert(test === this);
 
-            (innerCallback: ErrorCallback) => {
-                this.__create_subscription(innerCallback);
-            },
-            (innerCallback: ErrorCallback) => {
+                    // re-create monitored items
 
-                const test = this.publishEngine.getSubscription(this.subscriptionId);
-                assert(test === this);
+                    const itemsToCreate: MonitoredItemCreateRequestOptions[] = [];
 
-                // re-create monitored items
-
-                const itemsToCreate: MonitoredItemCreateRequestOptions[] = [];
-
-                _.forEach(oldMonitoredItems, (monitoredItem: ClientMonitoredItemBase /*, clientHandle*/) => {
-                    assert(monitoredItem.monitoringParameters.clientHandle > 0);
-                    itemsToCreate.push({
-                        itemToMonitor: monitoredItem.itemToMonitor,
-                        monitoringMode: monitoredItem.monitoringMode,
-                        requestedParameters: monitoredItem.monitoringParameters
-                    });
-                });
-
-                const createMonitorItemsRequest = new CreateMonitoredItemsRequest({
-                    itemsToCreate,
-                    subscriptionId: this.subscriptionId,
-                    timestampsToReturn: TimestampsToReturn.Both, // this.timestampsToReturn,
-                });
-
-                const session = this.session;
-                if (!session) {
-                    return innerCallback(new Error("no session"));
-                }
-
-                debugLog("Recreating ", itemsToCreate.length, " monitored items");
-
-                session.createMonitoredItems(
-                    createMonitorItemsRequest,
-                    (err: Error | null, response?: CreateMonitoredItemsResponse) => {
-
-                        if (err) {
-                            debugLog("Recreating monitored item has failed with ", err.message);
-                            return innerCallback(err);
-                        }
-                        /* istanbul ignore next */
-                        if (!response) {
-                            return innerCallback(new Error("Internal Error"));
-                        }
-                        const monitoredItemResults = response.results || [];
-
-                        monitoredItemResults.forEach((monitoredItemResult, index) => {
-
-                            const itemToCreate = itemsToCreate[index];
-                            /* istanbul ignore next */
-                            if (!itemToCreate || !itemToCreate.requestedParameters) {
-                                throw new Error("Internal Error");
-                            }
-                            const clientHandle = itemToCreate.requestedParameters.clientHandle;
-                            /* istanbul ignore next */
-                            if (!clientHandle) {
-                                throw new Error("Internal Error");
-                            }
-                            const monitoredItem = this.monitoredItems[clientHandle] as ClientMonitoredItemImpl;
-                            monitoredItem._applyResult(monitoredItemResult);
-
+                    _.forEach(oldMonitoredItems, (monitoredItem: ClientMonitoredItemBase /*, clientHandle*/) => {
+                        assert(monitoredItem.monitoringParameters.clientHandle > 0);
+                        itemsToCreate.push({
+                            itemToMonitor: monitoredItem.itemToMonitor,
+                            monitoringMode: monitoredItem.monitoringMode,
+                            requestedParameters: monitoredItem.monitoringParameters,
                         });
-                        innerCallback();
                     });
 
+                    const createMonitorItemsRequest = new CreateMonitoredItemsRequest({
+                        itemsToCreate,
+                        subscriptionId: this.subscriptionId,
+                        timestampsToReturn: TimestampsToReturn.Both, // this.timestampsToReturn,
+                    });
+
+                    const session = this.session;
+                    if (!session) {
+                        return innerCallback(new Error("no session"));
+                    }
+
+                    debugLog("Recreating ", itemsToCreate.length, " monitored items");
+
+                    session.createMonitoredItems(
+                        createMonitorItemsRequest,
+                        (err: Error | null, response?: CreateMonitoredItemsResponse) => {
+                            if (err) {
+                                debugLog("Recreating monitored item has failed with ", err.message);
+                                return innerCallback(err);
+                            }
+                            /* istanbul ignore next */
+                            if (!response) {
+                                return innerCallback(new Error("Internal Error"));
+                            }
+                            const monitoredItemResults = response.results || [];
+
+                            monitoredItemResults.forEach((monitoredItemResult, index) => {
+                                const itemToCreate = itemsToCreate[index];
+                                /* istanbul ignore next */
+                                if (!itemToCreate || !itemToCreate.requestedParameters) {
+                                    throw new Error("Internal Error");
+                                }
+                                const clientHandle = itemToCreate.requestedParameters.clientHandle;
+                                /* istanbul ignore next */
+                                if (!clientHandle) {
+                                    throw new Error("Internal Error");
+                                }
+                                const monitoredItem = this.monitoredItems[clientHandle] as ClientMonitoredItemImpl;
+                                monitoredItem._applyResult(monitoredItemResult);
+                            });
+                            innerCallback();
+                        }
+                    );
+                },
+            ],
+            (err) => {
+                callback(err!);
             }
-        ], (err) => {
-            callback(err!);
-        });
+        );
     }
 
     public toString(): string {
@@ -554,16 +475,17 @@ export class ClientSubscriptionImpl extends EventEmitter implements ClientSubscr
         str += "maxKeepAliveCount   : " + this.maxKeepAliveCount + "\n";
         str += "hasTimedOut         : " + this.hasTimedOut + "\n";
 
-        const timeToleave = this.lifetimeCount * this.publishingInterval;
-        str += "timeToleave         : " + timeToleave + "\n";
+        const timeToLive = this.lifetimeCount * this.publishingInterval;
+        str += "timeToLive          : " + timeToLive + "\n";
         str += "lastRequestSentTime : " + this.lastRequestSentTime.toString() + "\n";
-        const durat = Date.now() - this.lastRequestSentTime.getTime();
-        const extra = (durat - timeToleave) > 0
-            ? chalk.red(" expired since " + (durat - timeToleave) / 1000 + " seconds")
-            : chalk.green(" valid for " + (-((durat - timeToleave))) / 1000 + " seconds");
+        const duration = Date.now() - this.lastRequestSentTime.getTime();
+        const extra =
+            duration - timeToLive > 0
+                ? chalk.red(" expired since " + (duration - timeToLive) / 1000 + " seconds")
+                : chalk.green(" valid for " + -(duration - timeToLive) / 1000 + " seconds");
 
-        str += "timeSinceLast PR    : " + durat + "ms" + extra + "\n";
-        str += "has expired         : " + (durat > timeToleave) + "\n";
+        str += "timeSinceLast PR    : " + duration + "ms" + extra + "\n";
+        str += "has expired         : " + (duration > timeToLive) + "\n";
         return str;
     }
 
@@ -574,11 +496,10 @@ export class ClientSubscriptionImpl extends EventEmitter implements ClientSubscr
         const now = Date.now();
         const timeout = this.publishingInterval * this.lifetimeCount;
         const expiryTime = this.lastRequestSentTime.getTime() + timeout;
-        return Math.max(0, (expiryTime - now));
+        return Math.max(0, expiryTime - now);
     }
 
     public _add_monitored_item(clientHandle: ClientHandle, monitoredItem: ClientMonitoredItemBase) {
-
         assert(this.isActive, "subscription must be active and not terminated");
         assert(monitoredItem.monitoringParameters.clientHandle === clientHandle);
         this.monitoredItems[clientHandle] = monitoredItem;
@@ -590,19 +511,21 @@ export class ClientSubscriptionImpl extends EventEmitter implements ClientSubscr
          */
         this.emit("item_added", monitoredItem);
     }
-    public _wait_for_subscription_to_be_ready(done: ErrorCallback) {
 
+    public _add_monitored_items_group(monitoredItemGroup: ClientMonitoredItemGroupImpl) {
+        this.monitoredItemGroups.push(monitoredItemGroup);
+    }
+
+    public _wait_for_subscription_to_be_ready(done: ErrorCallback) {
         let _watchDogCount = 0;
 
         const waitForSubscriptionAndMonitor = () => {
-
             _watchDogCount++;
 
             if (this.subscriptionId === PENDING_SUBSCRIPTON_ID) {
                 // the subscriptionID is not yet known because the server hasn't replied yet
                 // let postpone this call, a little bit, to let things happen
                 setImmediate(waitForSubscriptionAndMonitor);
-
             } else if (this.subscriptionId === TERMINTATED_SUBSCRIPTION_ID) {
                 // the subscription has been terminated in the meantime
                 // this indicates a potential issue in the code using this api.
@@ -615,11 +538,9 @@ export class ClientSubscriptionImpl extends EventEmitter implements ClientSubscr
         };
 
         setImmediate(waitForSubscriptionAndMonitor);
-
     }
 
     private __create_subscription(callback: ErrorCallback) {
-
         assert(_.isFunction(callback));
 
         if (!this.hasSession) {
@@ -639,7 +560,6 @@ export class ClientSubscriptionImpl extends EventEmitter implements ClientSubscr
         });
 
         session.createSubscription(request, (err: Error | null, response?: CreateSubscriptionResponse) => {
-
             if (err) {
                 /* istanbul ignore next */
                 this.emit("internal_error", err);
@@ -682,33 +602,34 @@ export class ClientSubscriptionImpl extends EventEmitter implements ClientSubscr
     }
 
     private __on_publish_response_DataChangeNotification(notification: DataChangeNotification) {
-
         assert(notification.schema.name === "DataChangeNotification");
 
         const monitoredItems = notification.monitoredItems || [];
 
         for (const monitoredItem of monitoredItems) {
-
             const monitorItemObj = this.monitoredItems[monitoredItem.clientHandle];
             if (monitorItemObj) {
                 if (monitorItemObj.itemToMonitor.attributeId === AttributeIds.EventNotifier) {
-                    warningLog(chalk.yellow("Warning"),
-                        chalk.cyan(" Server send a DataChangeNotification for an EventNotifier." +
-                            " EventNotificationList was expected"));
-                    warningLog(chalk.cyan("         the Server may not be fully OPCUA compliant"),
-                        chalk.yellow(". This notification will be ignored."));
+                    warningLog(
+                        chalk.yellow("Warning"),
+                        chalk.cyan(
+                            " Server send a DataChangeNotification for an EventNotifier." +
+                                " EventNotificationList was expected"
+                        )
+                    );
+                    warningLog(
+                        chalk.cyan("         the Server may not be fully OPCUA compliant"),
+                        chalk.yellow(". This notification will be ignored.")
+                    );
                 } else {
-
                     const monitoredItemImpl = monitorItemObj as ClientMonitoredItemImpl;
                     monitoredItemImpl._notify_value_change(monitoredItem.value);
                 }
             }
         }
-
     }
 
     private __on_publish_response_StatusChangeNotification(notification: StatusChangeNotification) {
-
         assert(notification.schema.name === "StatusChangeNotification");
 
         debugLog("Client has received a Status Change Notification ", notification.status.toString());
@@ -720,7 +641,8 @@ export class ClientSubscriptionImpl extends EventEmitter implements ClientSubscr
             // Good_SubscriptionTransferred to the old Session.
             debugLog("ClientSubscription#__on_publish_response_StatusChangeNotification : GoodSubscriptionTransferred");
             this.hasTimedOut = true;
-            this.terminate(() => { /* empty*/
+            this.terminate(() => {
+                /* empty*/
             });
         }
         if (notification.status === StatusCodes.BadTimeout) {
@@ -740,7 +662,8 @@ export class ClientSubscriptionImpl extends EventEmitter implements ClientSubscr
             //    notificationMessage with the status code BadTimeout.
             //
             this.hasTimedOut = true;
-            this.terminate(() => { /* empty */
+            this.terminate(() => {
+                /* empty */
             });
         }
         /**
@@ -748,11 +671,9 @@ export class ClientSubscriptionImpl extends EventEmitter implements ClientSubscr
          * @event status_changed
          */
         this.emit("status_changed", notification.status, notification.diagnosticInfo);
-
     }
 
     private __on_publish_response_EventNotificationList(notification: EventNotificationList) {
-
         assert(notification.schema.name === "EventNotificationList");
         const events = notification.events || [];
         for (const event of events) {
@@ -765,7 +686,6 @@ export class ClientSubscriptionImpl extends EventEmitter implements ClientSubscr
     }
 
     private onNotificationMessage(notificationMessage: NotificationMessage) {
-
         this.lastRequestSentTime = new Date(Date.now());
 
         assert(notificationMessage.hasOwnProperty("sequenceNumber"));
@@ -784,9 +704,7 @@ export class ClientSubscriptionImpl extends EventEmitter implements ClientSubscr
              * @event keepalive
              */
             this.emit("keepalive");
-
         } else {
-
             /**
              * notify the observers that some notifications has been received from the server in  a PublishResponse
              * each modified monitored Item
@@ -798,7 +716,6 @@ export class ClientSubscriptionImpl extends EventEmitter implements ClientSubscr
             promoteOpaqueStructureInNotificationData(this.session, notificationData).then(() => {
                 // now process all notifications
                 for (const notification of notificationData) {
-
                     if (!notification) {
                         continue;
                     }
@@ -810,7 +727,9 @@ export class ClientSubscriptionImpl extends EventEmitter implements ClientSubscr
                             this.__on_publish_response_DataChangeNotification(notification as DataChangeNotification);
                             break;
                         case "StatusChangeNotification":
-                            this.__on_publish_response_StatusChangeNotification(notification as StatusChangeNotification);
+                            this.__on_publish_response_StatusChangeNotification(
+                                notification as StatusChangeNotification
+                            );
                             break;
                         case "EventNotificationList":
                             this.__on_publish_response_EventNotificationList(notification as EventNotificationList);
@@ -824,6 +743,18 @@ export class ClientSubscriptionImpl extends EventEmitter implements ClientSubscr
     }
 
     private _terminate_step2(callback: (err?: Error) => void) {
+        const monitoredItems = Object.values(this.monitoredItems);
+        for (const monitoredItem of monitoredItems) {
+            this._remove(monitoredItem);
+        }
+
+        const monitoredItemGroups = this.monitoredItemGroups;
+        for (const monitoredItemGroup of monitoredItemGroups) {
+            this._removeGroup(monitoredItemGroup);
+        }
+
+        assert(Object.values(this.monitoredItems).length === 0);
+
         setImmediate(() => {
             /**
              * notify the observers tha the client subscription has terminated
@@ -842,10 +773,19 @@ export class ClientSubscriptionImpl extends EventEmitter implements ClientSubscr
             return; // may be monitoredItem failed to be created  ....
         }
         assert(this.monitoredItems.hasOwnProperty(clientHandle));
+        /**
+         * Notify the observer that this monitored item has been terminated.
+         * @event terminated
+         */
+        monitoredItem.emit("terminated");
         monitoredItem.removeAllListeners();
         delete this.monitoredItems[clientHandle];
     }
 
+    public _removeGroup(monitoredItemGroup: ClientMonitoredItemGroup) {
+        monitoredItemGroup.emit("terminated");
+        this.monitoredItemGroups = this.monitoredItemGroups.filter((obj) => obj !== monitoredItemGroup);
+    }
 }
 
 // tslint:disable:no-var-requires
@@ -853,13 +793,18 @@ export class ClientSubscriptionImpl extends EventEmitter implements ClientSubscr
 const thenify = require("thenify");
 const opts = { multiArgs: false };
 
-ClientSubscriptionImpl.prototype.setPublishingMode = thenify.withCallback(ClientSubscriptionImpl.prototype.setPublishingMode);
+ClientSubscriptionImpl.prototype.setPublishingMode = thenify.withCallback(
+    ClientSubscriptionImpl.prototype.setPublishingMode
+);
 ClientSubscriptionImpl.prototype.monitor = thenify.withCallback(ClientSubscriptionImpl.prototype.monitor);
 ClientSubscriptionImpl.prototype.monitorItems = thenify.withCallback(ClientSubscriptionImpl.prototype.monitorItems);
-ClientSubscriptionImpl.prototype.recreateSubscriptionAndMonitoredItem =
-    thenify.withCallback(ClientSubscriptionImpl.prototype.recreateSubscriptionAndMonitoredItem);
+ClientSubscriptionImpl.prototype.recreateSubscriptionAndMonitoredItem = thenify.withCallback(
+    ClientSubscriptionImpl.prototype.recreateSubscriptionAndMonitoredItem
+);
 ClientSubscriptionImpl.prototype.terminate = thenify.withCallback(ClientSubscriptionImpl.prototype.terminate);
-ClientSubscriptionImpl.prototype.getMonitoredItems = thenify.withCallback(ClientSubscriptionImpl.prototype.getMonitoredItems);
+ClientSubscriptionImpl.prototype.getMonitoredItems = thenify.withCallback(
+    ClientSubscriptionImpl.prototype.getMonitoredItems
+);
 
 ClientSubscription.create = (clientSession: ClientSession, options: ClientSubscriptionOptions) => {
     return new ClientSubscriptionImpl(clientSession, options);
