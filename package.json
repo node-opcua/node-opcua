@@ -25,7 +25,7 @@
         "eslint-fix": "eslint --fix packages/*/src/**.js packages/*/__tests__/ utils/*.js scripts/*.js",
         "generate_doc": "make doc",
         "generate_autodoc": "npx autodoc -o _tmp_generated_doc bin/binaryStream.js",
-        "ncuold": "ncu -u && node  ./node_modules/lerna/cli.js exec --sort --stream ncu -- -u  --packageFile package.json",
+        "ncuold": "ncu -u -x mkdirp -x @types/mkdirp --semverLevel=minor && node  ./node_modules/lerna/cli.js exec --sort --stream ncu -- -u  -x mkdirp -x @types/mkdirp  --semverLevel=minor --packageFile package.json ",
         "ncu": "npx npm-check --skip-unused -ayu && node  ./node_modules/lerna/cli.js exec --sort --concurrency 1 --stream -- npx npm-check --skip-unused -ayu",
         "prettier-watch": "onchange \"packages/*/(src|test|source)/**/*.(js|ts)\" -v -p -- prettier --write {{changed}}",
         "lebab-let": "node  ./node_modules/lerna/cli.js exec lebab  --replace index.js  --transform let && node  ./node_modules/lerna/cli.js exec lebab  --replace test  --transform let && node  ./node_modules/lerna/cli.js exec lebab  --replace src  --transform let",
