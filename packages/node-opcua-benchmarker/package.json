@@ -1,6 +1,6 @@
 {
 	"name": "node-opcua-benchmarker",
-	"version": "2.8.1",
+	"version": "2.10.0",
 	"description": "pure nodejs OPCUA SDK - module -benchmarker",
 	"main": "./dist/index.js",
 	"types": "./dist/index.d.ts",
@@ -12,7 +12,7 @@
 	"dependencies": {
 		"async": "^3.2.0",
 		"browser-process-hrtime": "^1.0.0",
-		"node-opcua-assert": "2.6.1"
+		"node-opcua-assert": "2.10.0"
 	},
 	"author": "Etienne Rossignon",
 	"license": "MIT",
@@ -29,7 +29,5 @@
 		"internet of things"
 	],
 	"homepage": "http://node-opcua.github.io/",
-	"devDependencies": {
-	},
 	"gitHead": "e4d73afdfcccb3491423149d9b9785888f4ebb3c"
 }
