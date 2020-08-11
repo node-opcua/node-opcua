@@ -28,7 +28,7 @@ async function parse_xml(nodeset_files) {
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("testing custom nodeset", function() {
 
-    this.timeout(Math.min(30000, this._timeout));
+    this.timeout(Math.min(30000, this.timeout()));
 
     xit("should parse a custom nodeset", async () => {
 

@@ -11,7 +11,7 @@ let clock: any = null;
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("testing add TwoStateVariable ", function (this: any) {
 
-    this.timeout(Math.max(this._timeout, 10000));
+    this.timeout(Math.max(this.timeout(), 10000));
 
     let addressSpace: AddressSpace;
     let namespace: Namespace;

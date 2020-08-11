@@ -16,7 +16,7 @@ const debugLog = require("node-opcua-debug").make_debugLog(__filename);
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("testing Client-Server - Event", function() {
 
-    this.timeout(Math.max(600000, this._timeout));
+    this.timeout(Math.max(600000, this.timeout()));
 
     const port = 2225;
     let server;

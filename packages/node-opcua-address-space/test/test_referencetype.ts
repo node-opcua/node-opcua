@@ -402,7 +402,7 @@ describe("testing ReferenceType", () => {
         // tslint:disable:no-console
         const Benchmarker = require("node-opcua-benchmarker").Benchmarker;
 
-        this.timeout(Math.max(this._timeout, 100000));
+        this.timeout(Math.max(this.timeout(), 100000));
 
         const bench = new Benchmarker();
 
@@ -491,7 +491,7 @@ describe(" improving performance of isSupertypeOf", () => {
     it("should ensure that optimized version of isSupertypeOf is really faster that brute force version",
       function(this: any, done: any) {
 
-          this.timeout(Math.max(this._timeout, 100000));
+          this.timeout(Math.max(this.timeout(), 100000));
 
           const bench = new Benchmarker();
 

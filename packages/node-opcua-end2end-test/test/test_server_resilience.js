@@ -25,7 +25,7 @@ describe("testing Server resilience to unsupported request", function () {
     let endpointUrl, g_session;
 
 
-    this.timeout(Math.max(20000, this._timeout));
+    this.timeout(Math.max(20000, this.timeout()));
 
     before(function (done) {
 
@@ -83,7 +83,7 @@ describe("testing Server resilience with bad internet connection", function () {
     let server, client;
     let endpointUrl;
 
-    this.timeout(Math.max(20000, this._timeout));
+    this.timeout(Math.max(20000, this.timeout()));
 
     before(function (done) {
 

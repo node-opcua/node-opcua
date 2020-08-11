@@ -46,7 +46,7 @@ describe("testing Server resilience to DDOS attacks", function () {
 
     let port = 2000;
 
-    this.timeout(Math.max(30000, this._timeout));
+    this.timeout(Math.max(30000, this.timeout()));
 
     beforeEach(function (done) {
 

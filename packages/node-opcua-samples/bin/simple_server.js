@@ -565,22 +565,22 @@ const paths = envPaths(productUri);
     });
   });
 
-  server.on("serverRegistered", function() {
+  server.on("serverRegistered", ()  => {
     console.log("server has been registered");
   });
-  server.on("serverUnregistered", function() {
+  server.on("serverUnregistered", ()  =>{
     console.log("server has been unregistered");
   });
-  server.on("serverRegistrationRenewed", function() {
+  server.on("serverRegistrationRenewed", ()  => {
     console.log("server registration has been renewed");
   });
-  server.on("serverRegistrationPending", function() {
+  server.on("serverRegistrationPending", ()  => {
     console.log("server registration is still pending (is Local Discovery Server up and running ?)");
   });
-  server.on("newChannel", function(channel) {
-    console.log(chalk.bgYellow("Client connected with address = "), channel.remoteAddress, " port = ", channel.remotePort);
+  server.on("newChannel", (channel)  => {
+    console.log(chalk.bgYellow("Client connected with address = "), channel.remoteAddress, " port = ", channel.remotePort, "timeout=", channel.timeout);
   });
-  server.on("closeChannel", function(channel) {
+  server.on("closeChannel", (channel)  => {
     console.log(chalk.bgCyan("Client disconnected with address = "), channel.remoteAddress, " port = ", channel.remotePort);
     if (global.gc) {
       global.gc();

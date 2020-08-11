@@ -25,7 +25,7 @@ const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("testing monitoring Executable flags on methods", function() {
 
 
-    this.timeout(Math.max(60000, this._timeout));
+    this.timeout(Math.max(60000, this.timeout()));
 
     let server, client, endpointUrl;
 

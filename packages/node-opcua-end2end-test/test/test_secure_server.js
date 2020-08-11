@@ -35,7 +35,7 @@ describe("testing behavior of secure Server ( server that only accept SIGN or SI
     let server, client;
     let endpointUrl;
 
-    this.timeout(Math.max(20000, this._timeout));
+    this.timeout(Math.max(20000, this.timeout()));
 
     before(function (done) {
 

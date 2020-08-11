@@ -30,7 +30,7 @@ const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("Functional test : one server with many concurrent clients", function() {
     let server, temperatureVariableId, endpointUrl;
 
-    this.timeout(Math.max(20000, this._timeout));
+    this.timeout(Math.max(20000, this.timeout()));
 
     let serverCertificateChain = null;
     before(function(done) {

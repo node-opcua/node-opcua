@@ -59,7 +59,7 @@ describe("KJH1 testing basic Client-Server communication", function () {
     let server, client, temperatureVariableId, endpointUrl;
 
 
-    this.timeout(Math.max(20000, this._timeout));
+    this.timeout(Math.max(20000, this.timeout()));
 
 
 
@@ -349,7 +349,7 @@ describe("KJH1 testing basic Client-Server communication", function () {
 
 describe("KJH2 testing ability for client to reconnect when server close connection", function () {
 
-    this.timeout(Math.max(60000, this._timeout));
+    this.timeout(Math.max(60000, this.timeout()));
 
     let server = null;
     let endpointUrl = null;

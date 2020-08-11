@@ -503,7 +503,7 @@ const makeNodeId = require("node-opcua-nodeid").makeNodeId;
 
 describe("Variant - Analyser", function() {
     // increase timeout to cope with istanbul
-    this.timeout(Math.max(400000, this._timeout));
+    this.timeout(Math.max(400000, this.timeout()));
 
     const manyValues = [];
     for (let i = 0; i < 1000; i++) {
@@ -1254,7 +1254,7 @@ xdescribe("benchmarking variant encode", () => {
 });
 
 describe("benchmarking float Array encode/decode", function() {
-    this.timeout(Math.max(200000, this._timeout));
+    this.timeout(Math.max(200000, this.timeout()));
 
     function test_1(stream, arr) {
         stream.writeUInt32(arr.length);

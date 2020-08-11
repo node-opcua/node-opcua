@@ -50,7 +50,7 @@ function debugLog(...args: [any, ... any[]]) {
 // tslint:disable-next-line:no-var-requires
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("testing address space namespace loading", function (this: any) {
-    this.timeout(Math.max(300000, this._timeout));
+    this.timeout(Math.max(300000, this.timeout()));
 
     let addressSpace: AddressSpace;
     let namespace: Namespace;

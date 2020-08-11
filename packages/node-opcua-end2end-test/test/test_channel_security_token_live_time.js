@@ -24,7 +24,7 @@ let port = 4000;
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("Testing ChannelSecurityToken lifetime", function () {
 
-    this.timeout(Math.max(100000, this._timeout));
+    this.timeout(Math.max(100000, this.timeout()));
 
     let server, client;
     let endpointUrl;

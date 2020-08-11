@@ -56,7 +56,7 @@ describe("ADI - Testing a server that exposes Analyser Devices", function () {
 
     let server, client, endpointUrl;
 
-    this.timeout(Math.max(50000, this._timeout));
+    this.timeout(Math.max(50000, this.timeout()));
 
     const server_options = {
         port: 2000,

@@ -20,7 +20,7 @@ const UAProxyManager = require("node-opcua-client-proxy").UAProxyManager;
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("testing client Proxy", function () {
 
-    this.timeout(Math.max(600000,this._timeout));
+    this.timeout(Math.max(600000,this.timeout()));
 
     let server, client, temperatureVariableId, endpointUrl;
 
@@ -212,7 +212,7 @@ describe("testing client Proxy", function () {
 
     it("AA one can subscribe to proxy object property change", function (done) {
 
-        this.timeout(Math.max(20000,this._timeout));
+        this.timeout(Math.max(20000,this.timeout()));
         let proxyManager;
         perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
 

@@ -3464,7 +3464,7 @@ module.exports = function(test) {
 
         it("#subscription operations should extend subscription lifetime", function(done) {
 
-            this.timeout(Math.max(200000, this._timeout));
+            this.timeout(Math.max(200000, this.timeout()));
 
             // see CTT test063
 

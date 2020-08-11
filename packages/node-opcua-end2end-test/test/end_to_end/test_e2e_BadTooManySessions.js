@@ -19,7 +19,7 @@ const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("testing the server ability to deny client session request (server with maxAllowedSessionNumber = 1)", function () {
 
 
-    this.timeout(Math.max(300000, this._timeout));
+    this.timeout(Math.max(300000, this.timeout()));
 
     let server, client1, client2;
 

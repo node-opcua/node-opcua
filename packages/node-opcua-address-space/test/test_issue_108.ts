@@ -51,7 +51,7 @@ function createCustomType(addressSpace: AddressSpace): MyCustomType {
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("testing add new DataType ", function (this: any) {
 
-    this.timeout(Math.max(300000, this._timeout));
+    this.timeout(Math.max(300000, this.timeout()));
 
     let addressSpace: AddressSpace;
 

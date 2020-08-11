@@ -3,8 +3,6 @@
  */
 // tslint:disable:no-bitwise
 
-import * as  _ from "underscore";
-
 import { assert } from "node-opcua-assert";
 import { BinaryStream, OutputBinaryStream } from "node-opcua-binary-stream";
 
@@ -17,12 +15,11 @@ function warnLog(...args: [any?, ...any[]]) {
 /**
  * StatusCode Special bits
  */
-export const extraStatusCodeBits: any = {
-
-    /** 
-     *  **StructureChanged** 15:15  
+export const extraStatusCodeBits: { [key: string]: number } = {
+    /**
+     *  **StructureChanged** 15:15
      *   Indicates that the structure of the associated data value has changed since the last
-     *   Notification. 
+     *   Notification.
      *  - Clients should not process the data value unless they re-read the metadata.
      *  - Servers shall set this bit if the DataTypeEncoding used for a Variable changes.
      *  - Servers shall also set this bit if the EnumStrings Property of the DataType of the Variable changes.
@@ -31,7 +28,7 @@ export const extraStatusCodeBits: any = {
      *  - This bit has meaning only for StatusCodes returned as part of a data change Notification
      *    or the HistoryRead. StatusCodes used in other contexts shall always set this bit to zero.
      */
-    StructureChanged: (0x1 << 15),
+    StructureChanged: 0x1 << 15,
 
     /**
      * **SemanticsChanged** 14:14  Semantics of the associated data value have changed. Clients should not process the data
@@ -40,25 +37,25 @@ export const extraStatusCodeBits: any = {
      * - Client does not re-read the metadata. For example, a change to the engineering units
      *   could create problems if the Client uses the value to perform calculations.
      * - Part 8 defines the conditions where a Server shall set this bit for a DA Variable.
-     * - Other specifications may define additional conditions. 
+     * - Other specifications may define additional conditions.
      * - A Server may define other conditions that cause this bit to be set. This bit has meaning only for StatusCodes returned as part of a data change Notification
      *   or the HistoryRead. StatusCodes used in other contexts shall always set this bit to zero.
      */
-    SemanticChanged: (0x1 << 14),
+    SemanticChanged: 0x1 << 14,
 
     // Reserved         12:13  Reserved for future use. Shall always be zero.
 
-    /** 
-     * **InfoType**         10:11  
+    /**
+     * **InfoType**         10:11
      * The type of information contained in the info bits. These bits have the following meanings:
-     * 
+     *
      * | Meaning                           |value | description|
      * |-----------------------------------|------|----------------------------------------------------|
      * |                         NotUsed   | 00   | The info bits are not used and shall be set to zero. |
      * |                         DataValue | 01   | The StatusCode and its info bits are associated with a data value returned from the Server. This flag is only used in combination with StatusCodes defined in Part 8. |
      * |                         Reserved  |1X    | Reserved for future use. The info bits shall be ignored.|
      */
-    InfoTypeDataValue: (0x1 << 10), // 0x0400,
+    InfoTypeDataValue: 0x1 << 10, // 0x0400,
 
     // InfoBits         0:9    Additional information bits that qualify the StatusCode.
     //                         The structure of these bits depends on the Info Type field.
@@ -70,20 +67,20 @@ export const extraStatusCodeBits: any = {
     //                         Low       01     The value is at the lower limit for the data source.
     //                         High      10     The value is at the higher limit for the data source.
     //                         Constant  11     The value is constant and cannot change.
-    LimitLow: (0x1 << 8),
+    LimitLow: 0x1 << 8,
 
-    LimitHigh: (0x2 << 8),
+    LimitHigh: 0x2 << 8,
 
-    LimitConstant: (0x3 << 8),
+    LimitConstant: 0x3 << 8,
 
     /**
-     * **Overflow**         7:7    
+     * **Overflow**         7:7
      * - This bit shall only be set if the MonitoredItem queue size is greater than 1.
      * - If this bit is set, not every detected change has been returned since the Server’s
      *  queue buffer for the MonitoredItem reached its limit and had to purge out data.
-     * 
+     *
      */
-    Overflow: (0x1 << 7), // 1 << 7
+    Overflow: 0x1 << 7, // 1 << 7
 
     // Reserved         5:6    Reserved for future use. Shall always be zero.
 
@@ -113,24 +110,18 @@ export const extraStatusCodeBits: any = {
     HistorianExtraData: 0x1 << 3,
 
     /** Multiple values match the Aggregate criteria (i.e. multiple minimum values at different timestamps within the same interval). */
-    HistorianMultiValue: 0x1 << 4
-
+    HistorianMultiValue: 0x1 << 4,
 };
-
 
 /**
  * a particular StatusCode , with it's value , name and description
  */
 
 export abstract class StatusCode {
-
     /**
      *  returns a status code that can be modified
      */
-    public static makeStatusCode(
-        statusCode: StatusCode | string,
-        optionalBits: string | number): StatusCode {
-
+    public static makeStatusCode(statusCode: StatusCode | string, optionalBits: string | number): StatusCode {
         const _base = coerceStatusCode(statusCode);
         const tmp = new ModifiableStatusCode({ _base });
         if (optionalBits || typeof optionalBits === "number") {
@@ -206,21 +197,20 @@ Object.defineProperty(StatusCode.prototype, "name", { enumerable: true });
 
 // tslint:disable:max-classes-per-file
 export class ConstantStatusCode extends StatusCode {
-
     private readonly _value: number;
     private readonly _description: string;
     private readonly _name: string;
 
     /**
-     * 
-     * @param options 
+     *
+     * @param options
      * @param options
      * @param options.value
      * @param options.description
      * @param options.name
      *
      */
-    constructor(options: { value: number, description: string, name: string }) {
+    constructor(options: { value: number; description: string; name: string }) {
         super();
         this._value = options.value;
         this._description = options.description;
@@ -238,7 +228,6 @@ export class ConstantStatusCode extends StatusCode {
     public get description(): string {
         return this._description;
     }
-
 }
 
 Object.defineProperty(ConstantStatusCode.prototype, "_value", { enumerable: false, writable: true });
@@ -258,21 +247,25 @@ const statusCodesReversedMap: any = {};
 /**
  * returns the StatusCode corresponding to the provided value, if any
  * @note: if code is not known , then StatusCodes.Bad will be returned
- * @param code 
+ * @param code
  */
 export function getStatusCodeFromCode(code: number) {
-
-    const codeWithoutInfoBits = (code & 0xFFFF0000) >>> 0;
-    const infoBits = code & 0x0000FFFF;
+    const codeWithoutInfoBits = (code & 0xffff0000) >>> 0;
+    const infoBits = code & 0x0000ffff;
     let sc = statusCodesReversedMap[codeWithoutInfoBits];
 
     /* istanbul ignore if */
     if (!sc) {
         sc = StatusCodes.Bad;
-        console.log("expecting a known StatusCode but got 0x" + codeWithoutInfoBits.toString(16),
-            " code was 0x" + code.toString(16));
-        warnLog("expecting a known StatusCode but got 0x" + codeWithoutInfoBits.toString(16),
-            " code was 0x" + code.toString(16));
+        // tslint:disable-next-line: no-console
+        console.log(
+            "expecting a known StatusCode but got 0x" + codeWithoutInfoBits.toString(16),
+            " code was 0x" + code.toString(16)
+        );
+        warnLog(
+            "expecting a known StatusCode but got 0x" + codeWithoutInfoBits.toString(16),
+            " code was 0x" + code.toString(16)
+        );
     }
     if (infoBits) {
         const tmp = new ModifiableStatusCode({ _base: sc });
@@ -285,11 +278,9 @@ export function getStatusCodeFromCode(code: number) {
 export function decodeStatusCode(stream: BinaryStream) {
     const code = stream.readUInt32();
     return getStatusCodeFromCode(code);
-
 }
 
 export class ModifiableStatusCode extends StatusCode {
-
     private readonly _base: StatusCode;
     private _extraBits: number;
 
@@ -316,7 +307,6 @@ export class ModifiableStatusCode extends StatusCode {
     }
 
     public set(bit: string | number): void {
-
         if (typeof bit === "string") {
             const bitsArray = bit.split(" | ");
             if (bitsArray.length > 1) {
@@ -337,9 +327,7 @@ export class ModifiableStatusCode extends StatusCode {
     }
 
     public unset(bit: string | number): void {
-
         if (typeof bit === "string") {
-
             const bitsArray = bit.split(" | ");
             if (bitsArray.length > 1) {
                 for (const bitArray of bitsArray) {
@@ -356,18 +344,16 @@ export class ModifiableStatusCode extends StatusCode {
             bit = tmp;
         }
         this._extraBits = this._extraBits & (~bit >>> 0);
-
     }
 
     private _getExtraName() {
-
         const self = this;
         const str: string[] = [];
-        _.forEach(extraStatusCodeBits, (value: number, key: string) => {
+        for (const [key, value] of Object.entries(extraStatusCodeBits)) {
             if ((self._extraBits & value) === value) {
                 str.push(key);
             }
-        });
+        }
 
         /* istanbul ignore next */
         if (str.length === 0) {
@@ -394,17 +380,16 @@ export function coerceStatusCode(statusCode: any): StatusCode {
     if (typeof statusCode === "number") {
         return getStatusCodeFromCode(statusCode);
     }
-    const _StatusCodes = StatusCodes as any
+    const _StatusCodes = StatusCodes as any;
     if (!_StatusCodes[statusCode as string]) {
         throw new Error("Cannot find StatusCode " + statusCode);
     }
     return _StatusCodes[statusCode as string];
 }
 
-
-_.forEach(Object.keys(StatusCodes), (name) => {
+for (const name of Object.keys(StatusCodes)) {
     const code = (StatusCodes as any)[name];
     statusCodesReversedMap[code.value.toString()] = code;
-});
-(StatusCodes as any).makeStatusCode = StatusCode.makeStatusCode;
+}
 
+(StatusCodes as any).makeStatusCode = StatusCode.makeStatusCode;

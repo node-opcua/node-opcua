@@ -28,7 +28,7 @@ const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("testing server with low maxNodesPerRead and maxNodesPerBrowse", function() {
 
 
-    this.timeout(Math.max(this._timeout, 10000));
+    this.timeout(Math.max(this.timeout(), 10000));
 
     let server;
 

@@ -50,7 +50,7 @@ describe("testing NodeSet XML file loading", function (this: any) {
 
     it("should load a large nodeset xml file", async () => {
         // set a large timeout ( loading the large nodeset xml file could be very slow on RPI)
-        this.timeout(Math.max(400000, this._timeout));
+        this.timeout(Math.max(400000, this.timeout()));
 
         const xml_file = nodesets.standard;
 
@@ -97,7 +97,7 @@ describe("testing NodeSet XML file loading", function (this: any) {
     });
 
     it("should read accessLevel and userAccessLevel attributes", async () => {
-        this.timeout(Math.max(400000, this._timeout));
+        this.timeout(Math.max(400000, this.timeout()));
 
         const xml_file = getFixture("fixture_node_with_various_access_level_nodeset.xml");
 
@@ -121,7 +121,7 @@ describe("testing NodeSet XML file loading", function (this: any) {
     });
 
     it("should read predefined values for variables", async () => {
-        this.timeout(Math.max(400000, this._timeout));
+        this.timeout(Math.max(400000, this.timeout()));
 
         const xml_file = getFixture("fixture_node_with_predefined_variable.xml");
 

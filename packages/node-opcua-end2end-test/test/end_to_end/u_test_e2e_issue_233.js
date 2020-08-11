@@ -33,9 +33,9 @@ module.exports = function (test) {
 
     describe("Testing issue#253 ", function () {
 
-        this.timeout(Math.max(3000, this._timeout));
+        this.timeout(Math.max(3000, this.timeout()));
 
-        console.log(" timeout =",this._timeout);
+        console.log(" timeout =",this.timeout());
 
         // let's reduce the minimumSamplingInterval of ServerStatus to a small value, to speed up the test
         let oldMinimumSamplingInterval = 0;

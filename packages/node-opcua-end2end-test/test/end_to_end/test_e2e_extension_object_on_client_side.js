@@ -20,7 +20,7 @@ const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 
 describe("testing extension object with client residing on a different process than the server process", function () {
 
-    this.timeout(Math.max(600000, this._timeout));
+    this.timeout(Math.max(600000, this.timeout()));
 
     let serverHandle = null;
 

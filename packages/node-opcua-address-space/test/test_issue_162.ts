@@ -48,7 +48,7 @@ function findOrCreateCustomObjectType(
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("Issue 162 : demonstrate how to modify an instantiate object variable", function (this: any) {
 
-    this.timeout(Math.max(300000, this._timeout));
+    this.timeout(Math.max(300000, this.timeout()));
 
     let addressSpace: AddressSpace;
 

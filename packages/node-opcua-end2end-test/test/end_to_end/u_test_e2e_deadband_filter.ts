@@ -90,7 +90,7 @@ export function t(test: any) {
 
         const options = {};
 
-        this.timeout(Math.max(200000, this._timeout));
+        this.timeout(Math.max(200000, this.timeout()));
 
         let client: OPCUAClient;
         let endpointUrl: string;

@@ -9,8 +9,7 @@ import { TimestampsToReturn } from "node-opcua-data-value";
 const Dequeue = require("dequeue");
 import * as chalk from "chalk";
 import { EventEmitter } from "events";
-import * as _ from "underscore";
-import * as util from "util";
+import { isFunction, isNumber, isObject, isArray } from "util";
 
 import { AddressSpace, BaseNode, Duration, UAObjectType, UAVariable } from "node-opcua-address-space";
 import { checkSelectClauses } from "node-opcua-address-space";
@@ -121,7 +120,7 @@ function _adjust_lifeTimeCount(
   return lifeTimeCount;
 }
 
-function _adjust_publishinEnable(
+function _adjust_publishingEnable(
   publishingEnabled?: boolean | null
 ): boolean {
   return (publishingEnabled === null || publishingEnabled === undefined) ? true : !!publishingEnabled;
@@ -131,7 +130,7 @@ function _adjust_maxNotificationsPerPublish(
   maxNotificationsPerPublish?: number
 ): number {
   maxNotificationsPerPublish = maxNotificationsPerPublish === undefined ? 0 : maxNotificationsPerPublish;
-  assert(_.isNumber(maxNotificationsPerPublish));
+  assert(isNumber(maxNotificationsPerPublish));
   return (maxNotificationsPerPublish >= 0) ? maxNotificationsPerPublish : 0;
 }
 
@@ -149,11 +148,11 @@ function t(d: Date): string {
 // verify that the injected publishEngine provides the expected services
 // regarding the Subscription requirements...
 function _assert_valid_publish_engine(publishEngine: any) {
-  assert(_.isObject(publishEngine));
-  assert(_.isNumber(publishEngine.pendingPublishRequestCount));
-  assert(_.isFunction(publishEngine.send_notification_message));
-  assert(_.isFunction(publishEngine.send_keep_alive_response));
-  assert(_.isFunction(publishEngine.on_close_subscription));
+  assert(isObject(publishEngine));
+  assert(isNumber(publishEngine.pendingPublishRequestCount));
+  assert(isFunction(publishEngine.send_notification_message));
+  assert(isFunction(publishEngine.send_keep_alive_response));
+  assert(isFunction(publishEngine.on_close_subscription));
 }
 
 function assert_validNotificationData(n: any) {
@@ -453,7 +452,7 @@ export class Subscription extends EventEmitter {
   private _sent_notifications: InternalNotification[];
   private readonly _sequence_number_generator: SequenceNumberGenerator;
   private publishIntervalCount: number;
-  private readonly monitoredItems: any;
+  private readonly monitoredItems: { [key:string]: MonitoredItem };
   /**
    *  number of monitored Item
    */
@@ -509,7 +508,7 @@ export class Subscription extends EventEmitter {
 
     this.monitoredItemIdCounter = 0;
 
-    this.publishingEnabled = _adjust_publishinEnable(options.publishingEnabled);
+    this.publishingEnabled = _adjust_publishingEnable(options.publishingEnabled);
 
     this.subscriptionDiagnostics = createSubscriptionDiagnostics(this);
 
@@ -752,7 +751,7 @@ export class Subscription extends EventEmitter {
    * number of disabled monitored items.
    */
   public get disabledMonitoredItemCount(): number {
-    return _.reduce(_.values(this.monitoredItems), (cumul: any, monitoredItem: MonitoredItem) => {
+    return Object.values(this.monitoredItems).reduce((cumul: any, monitoredItem: MonitoredItem) => {
       return cumul + ((monitoredItem.monitoringMode === MonitoringMode.Disabled) ? 1 : 0);
     }, 0);
   }
@@ -907,8 +906,7 @@ export class Subscription extends EventEmitter {
    * @return the monitored item matching monitoredItemId
    */
   public getMonitoredItem(monitoredItemId: number | string): MonitoredItem {
-    assert(_.isFinite(monitoredItemId));
-    return this.monitoredItems[monitoredItemId];
+    return this.monitoredItems[monitoredItemId.toString()];
   }
 
   /**
@@ -918,13 +916,11 @@ export class Subscription extends EventEmitter {
   public removeMonitoredItem(monitoredItemId: number | string): StatusCode {
 
     debugLog("Removing monitoredIem ", monitoredItemId);
-
-    assert(_.isFinite(monitoredItemId));
-    if (!this.monitoredItems.hasOwnProperty(monitoredItemId)) {
+    if (!this.monitoredItems.hasOwnProperty(monitoredItemId.toString())) {
       return StatusCodes.BadMonitoredItemIdInvalid;
     }
 
-    const monitoredItem = this.monitoredItems[monitoredItemId];
+    const monitoredItem = this.monitoredItems[monitoredItemId.toString()];
 
     monitoredItem.terminate();
 
@@ -937,7 +933,7 @@ export class Subscription extends EventEmitter {
      */
     this.emit("removeMonitoredItem", monitoredItem);
 
-    delete this.monitoredItems[monitoredItemId];
+    delete this.monitoredItems[monitoredItemId.toString()];
 
     return StatusCodes.Good;
 
@@ -969,11 +965,7 @@ export class Subscription extends EventEmitter {
 
   public getMessageForSequenceNumber(sequenceNumber: number) {
 
-    function filter_func(e: any): boolean {
-      return e.sequenceNumber === sequenceNumber;
-    }
-
-    const notification_message = _.find(this._sent_notifications, filter_func);
+    const notification_message = this._sent_notifications.find(e => e.sequenceNumber === sequenceNumber);
 
     if (!notification_message) {
       return null;
@@ -988,7 +980,7 @@ export class Subscription extends EventEmitter {
    */
   public notificationHasExpired(notification: any): boolean {
     assert(notification.hasOwnProperty("start_tick"));
-    assert(_.isFinite(notification.start_tick + this.maxKeepAliveCount));
+    assert(isFinite(notification.start_tick + this.maxKeepAliveCount));
     return (notification.start_tick + this.maxKeepAliveCount) < this.publishIntervalCount;
   }
 
@@ -1007,7 +999,7 @@ export class Subscription extends EventEmitter {
   public acknowledgeNotification(sequenceNumber: number): StatusCode {
 
     let foundIndex = -1;
-    _.find(this._sent_notifications, (e: any, index: number) => {
+    this._sent_notifications.forEach((e: InternalNotification, index: number) => {
       if (e.sequenceNumber === sequenceNumber) {
         foundIndex = index;
       }
@@ -1064,9 +1056,9 @@ export class Subscription extends EventEmitter {
    * @private
    */
   public resendInitialValues(): void {
-    _.forEach(this.monitoredItems, (monitoredItem: MonitoredItem/*,monitoredItemId*/) => {
+    for (const monitoredItem of Object.values(this.monitoredItems)) {
       monitoredItem.resendInitialValues();
-    });
+    }
   }
 
   /**
@@ -1131,7 +1123,7 @@ export class Subscription extends EventEmitter {
 
     this.emit("notificationMessage", notificationMessage);
 
-    assert(_.isArray(notificationMessage.notificationData));
+    assert(isArray(notificationMessage.notificationData));
 
     notificationMessage.notificationData!.forEach(
       (notificationData: ExtensionObject | null) => {
@@ -1445,7 +1437,7 @@ export class Subscription extends EventEmitter {
     notificationData: Notification[]
   ) {
 
-    assert(_.isArray(notificationData));
+    assert(isArray(notificationData));
     assert(notificationData.length === 1 || notificationData.length === 2); // as per spec part 3.
 
     // istanbul ignore next
@@ -1454,7 +1446,7 @@ export class Subscription extends EventEmitter {
         notificationData.toString());
     }
     const subscription = this;
-    assert(_.isObject(notificationData[0]));
+    assert(isObject(notificationData[0]));
 
     assert_validNotificationData(notificationData[0]);
     if (notificationData.length === 2) {
@@ -1564,7 +1556,7 @@ export class Subscription extends EventEmitter {
     monitoredItem.$subscription = this;
 
     assert(monitoredItem.monitoredItemId === monitoredItemId);
-    this.monitoredItems[monitoredItemId] = monitoredItem;
+    this.monitoredItems[monitoredItemId.toString()] = monitoredItem;
 
     const filterResult = _process_filter(node, requestedParameters.filter);
 
@@ -1590,7 +1582,7 @@ export class Subscription extends EventEmitter {
   ): void {
 
     assert(monitoredItem.monitoringMode === MonitoringMode.Invalid);
-    assert(_.isFunction(monitoredItem.samplingFunc));
+    assert(isFunction(monitoredItem.samplingFunc));
     const monitoringMode = monitoredItemCreateRequest.monitoringMode; // Disabled, Sampling, Reporting
     monitoredItem.setMonitoringMode(monitoringMode);
   }

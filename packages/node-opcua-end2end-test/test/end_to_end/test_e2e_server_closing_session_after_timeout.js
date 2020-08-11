@@ -13,7 +13,7 @@ const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("testing server dropping session after timeout if no activity has been recorded", function () {
 
 
-    this.timeout(Math.max(200000, this._timeout));
+    this.timeout(Math.max(200000, this.timeout()));
 
     let server;
 

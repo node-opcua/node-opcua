@@ -550,7 +550,8 @@ export class NodeCrawlerBase extends EventEmitter implements NodeCrawlerEvents {
                 return callback(err);
             }
 
-            for (const pair of _.zip(selectedPendingReadTasks, dataValues)) {
+            for (const pair of _.zip(selectedPendingReadTasks, dataValues!)) {
+
                 const readTask: TaskReadNode = pair[0];
                 const dataValue: DataValue = pair[1];
                 assert(dataValue.hasOwnProperty("statusCode"));

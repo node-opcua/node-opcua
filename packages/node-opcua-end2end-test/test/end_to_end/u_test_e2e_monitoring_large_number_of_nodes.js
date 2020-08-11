@@ -92,7 +92,7 @@ module.exports = function (test) {
                     });
 
                     subscription.once("started", function (subscriptionId) {
-                        setTimeout(function () {
+                        setTimeout( () => {
                             subscription.terminate(inner_done);
                             Object.keys(changeByNodes).length.should.eql(ids.length);
                         }, 3000);

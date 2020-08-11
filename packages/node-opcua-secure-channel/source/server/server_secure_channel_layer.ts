@@ -347,9 +347,9 @@ export class ServerSecureChannelLayer extends EventEmitter {
         this.lastTokenId = 0;
 
         this.timeout = options.timeout || 30000; // connection timeout
-        debugLog("server secure channel layer tiemput = ", this.timeout);
 
         this.defaultSecureTokenLifetime = options.defaultSecureTokenLifetime || 600000;
+        debugLog("server secure channel layer timeout = ", this.timeout, "defaultSecureTokenLifetime = ", this.defaultSecureTokenLifetime);
 
         // uninitialized securityToken
         this.securityToken = new ChannelSecurityToken({
@@ -357,6 +357,7 @@ export class ServerSecureChannelLayer extends EventEmitter {
             revisedLifetime: 0,
             tokenId: 0
         });
+        
         assert(this.securityToken.channelId > 0);
 
         this.serverNonce = null; // will be created when needed

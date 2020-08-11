@@ -13,7 +13,7 @@ const opcua = require("node-opcua");
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("testing client Proxy State Machine", function () {
 
-    this.timeout(Math.max(200000, this._timeout));
+    this.timeout(Math.max(200000, this.timeout()));
 
     const server_options = {
         port: 2000,

@@ -114,7 +114,7 @@ describe("testing  address space namespace loading", function (this: any) {
     });
 
     // increase test timeout as test may take time on slow arm computers
-    this.timeout(Math.max(100000, this._timeout));
+    this.timeout(Math.max(100000, this.timeout()));
 
     it("should process namespaces with DI", async () => {
 
