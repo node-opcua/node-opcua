@@ -10,18 +10,18 @@
     "main": "./dist/index.js",
     "types": "./dist/index.d.ts",
     "dependencies": {
-        "node-opcua-assert": "^2.6.1",
-        "node-opcua-basic-types": "^2.9.0",
-        "node-opcua-binary-stream": "^2.8.1",
-        "node-opcua-enum": "^2.8.1",
-        "node-opcua-factory": "^2.9.0",
-        "node-opcua-nodeid": "^2.9.0",
-        "node-opcua-status-code": "^2.9.0",
-        "node-opcua-utils": "^2.8.1",
+        "node-opcua-assert": "2.6.1",
+        "node-opcua-basic-types": "2.9.0",
+        "node-opcua-binary-stream": "2.8.1",
+        "node-opcua-enum": "2.8.1",
+        "node-opcua-factory": "2.9.0",
+        "node-opcua-nodeid": "2.9.0",
+        "node-opcua-status-code": "2.9.0",
+        "node-opcua-utils": "2.8.1",
         "underscore": "^1.10.2"
     },
     "devDependencies": {
-        "node-opcua-packet-analyzer": "^2.9.0",
+        "node-opcua-packet-analyzer": "2.9.0",
         "should": "^13.2.3",
         "source-map-support": "^0.5.19"
     },

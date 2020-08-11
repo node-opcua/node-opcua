@@ -11,13 +11,13 @@
     "test": "echo no test"
   },
   "dependencies": {
-    "chalk": "^4.0.0",
-    "node-opcua-assert": "^2.6.1",
-    "node-opcua-basic-types": "^2.9.0",
-    "node-opcua-binary-stream": "^2.8.1",
-    "node-opcua-debug": "^2.8.1",
-    "node-opcua-factory": "^2.9.0",
-    "node-opcua-nodeid": "^2.9.0"
+    "chalk": "^4.1.0",
+    "node-opcua-assert": "2.6.1",
+    "node-opcua-basic-types": "2.9.0",
+    "node-opcua-binary-stream": "2.8.1",
+    "node-opcua-debug": "2.8.1",
+    "node-opcua-factory": "2.9.0",
+    "node-opcua-nodeid": "2.9.0"
   },
   "author": "Etienne Rossignon",
   "license": "MIT",

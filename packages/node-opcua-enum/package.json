@@ -11,11 +11,11 @@
     "main": "./dist/index.js",
     "@types": "./dist/index.d.ts",
     "dependencies": {
-        "node-opcua-assert": "^2.6.1"
+        "node-opcua-assert": "2.6.1"
     },
     "devDependencies": {
         "enum": "3.0.4",
-        "node-opcua-benchmarker": "^2.8.1",
+        "node-opcua-benchmarker": "2.8.1",
         "should": "^13.2.3",
         "underscore": "^1.10.2"
     },

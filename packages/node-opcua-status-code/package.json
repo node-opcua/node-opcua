@@ -10,12 +10,12 @@
         "test": "mocha test"
     },
     "dependencies": {
-        "node-opcua-assert": "^2.6.1",
-        "node-opcua-constants": "^2.9.0",
+        "node-opcua-assert": "2.6.1",
+        "node-opcua-constants": "2.9.0",
         "underscore": "^1.10.2"
     },
     "devDependencies": {
-        "node-opcua-binary-stream": "^2.8.1",
+        "node-opcua-binary-stream": "2.8.1",
         "should": "^13.2.3"
     },
     "author": "Etienne Rossignon",

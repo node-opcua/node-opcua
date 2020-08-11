@@ -11,13 +11,13 @@
     },
     "dependencies": {
         "browser-process-hrtime": "^1.0.0",
-        "node-opcua-assert": "^2.6.1",
+        "node-opcua-assert": "2.6.1",
         "underscore": "^1.10.2"
     },
     "devDependencies": {
-        "@types/node": "^14.0.1",
-        "@types/underscore": "^1.10.0",
-        "chalk": "^4.0.0",
+        "@types/node": "^14.0.27",
+        "@types/underscore": "^1.10.20",
+        "chalk": "^4.1.0",
         "should": "^13.2.3",
         "sinon": "^9.0.2"
     },

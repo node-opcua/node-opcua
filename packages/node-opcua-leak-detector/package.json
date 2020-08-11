@@ -12,9 +12,9 @@
     "license": "MIT",
     "dependencies": {
         "colors": "^1.4.0",
-        "node-opcua-assert": "^2.6.1",
-        "node-opcua-debug": "^2.8.1",
-        "node-opcua-object-registry": "^2.8.1",
+        "node-opcua-assert": "2.6.1",
+        "node-opcua-debug": "2.8.1",
+        "node-opcua-object-registry": "2.8.1",
         "underscore": "^1.10.2"
     },
     "repository": {

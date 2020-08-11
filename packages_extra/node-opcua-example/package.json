@@ -10,7 +10,7 @@
     "test": "echo no"
   },
   "dependencies": {
-    "node-opcua": "^2.9.1"
+    "node-opcua": "2.9.1"
   },
   "devDependencies": {
     "should": "^13.2.3"

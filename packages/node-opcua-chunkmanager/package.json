@@ -11,19 +11,19 @@
         "lint": "tslint source/**/*.ts"
     },
     "dependencies": {
-        "chalk": "^4.0.0",
-        "node-opcua-assert": "^2.6.1",
-        "node-opcua-basic-types": "^2.9.0",
-        "node-opcua-binary-stream": "^2.8.1",
-        "node-opcua-buffer-utils": "^2.8.1",
-        "node-opcua-factory": "^2.9.0",
-        "node-opcua-packet-assembler": "^2.6.1",
+        "chalk": "^4.1.0",
+        "node-opcua-assert": "2.6.1",
+        "node-opcua-basic-types": "2.9.0",
+        "node-opcua-binary-stream": "2.8.1",
+        "node-opcua-buffer-utils": "2.8.1",
+        "node-opcua-factory": "2.9.0",
+        "node-opcua-packet-assembler": "2.6.1",
         "underscore": "^1.10.2"
     },
     "devDependencies": {
-        "@types/node": "^14.0.1",
-        "@types/underscore": "^1.10.0",
-        "node-opcua-debug": "^2.8.1",
+        "@types/node": "^14.0.27",
+        "@types/underscore": "^1.10.20",
+        "node-opcua-debug": "2.8.1",
         "should": "^13.2.3",
         "source-map-support": "^0.5.19"
     },

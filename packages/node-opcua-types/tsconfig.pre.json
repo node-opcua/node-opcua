@@ -16,6 +16,9 @@
             "path": "../node-opcua-basic-types"
         },
         {
+            "path": "../node-opcua-benchmarker"
+        },
+        {
             "path": "../node-opcua-binary-stream"
         },
         {

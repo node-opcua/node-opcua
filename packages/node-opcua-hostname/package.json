@@ -11,7 +11,7 @@
 		"test": "mocha test"
 	},
 	"dependencies": {
-		"node-opcua-assert": "^2.6.1"
+		"node-opcua-assert": "2.6.1"
 	},
 	"author": "Etienne Rossignon",
 	"license": "MIT",
