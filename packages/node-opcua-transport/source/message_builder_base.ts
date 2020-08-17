@@ -7,13 +7,14 @@ import { assert } from "node-opcua-assert";
 import { BinaryStream } from "node-opcua-binary-stream";
 import { createFastUninitializedBuffer } from "node-opcua-buffer-utils";
 import { readMessageHeader, SequenceHeader } from "node-opcua-chunkmanager";
-import { make_errorLog } from "node-opcua-debug";
+import { make_errorLog, make_debugLog } from "node-opcua-debug";
 import { PacketAssembler, PacketInfo } from "node-opcua-packet-assembler";
 import { get_clock_tick } from "node-opcua-utils";
 
 const doPerfMonitoring = process.env.NODEOPCUADEBUG && (process.env.NODEOPCUADEBUG.indexOf("PERF")) >= 0;
 
 const errorLog = make_errorLog("MessageBuilder");
+const debugLog = make_debugLog("MessageBuilder");
 
 export function readRawMessageHeader(data: Buffer): PacketInfo {
     const messageHeader = readMessageHeader(new BinaryStream(data));
@@ -150,7 +151,7 @@ export class MessageBuilderBase extends EventEmitter {
          * @event error
          * @param error the error to raise
          */
-        errorLog("Error  ", this.id, errorMessage);
+        debugLog("Error  ", this.id, errorMessage);
         // xx errorLog(new Error());
         this.emit("error", new Error(errorMessage), this.sequenceHeader ? this.sequenceHeader.requestId : null);
         return false;

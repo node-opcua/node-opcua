@@ -453,7 +453,7 @@ export class ClientBaseImpl extends OPCUASecureObject implements OPCUAClientBase
                         return callback(err);
                     }
                     if (err.message.match("Backoff aborted.")) {
-                        return failAndRetry(err!, "cannot create secure channel");
+                        return failAndRetry(err!, "cannot create secure channel (backoff aborted)");
                     }
                     if (true || err!.message.match("BadCertificateInvalid")) {
                         errorLog(" _internal_create_secure_channel err = ", err.message);
@@ -990,6 +990,7 @@ export class ClientBaseImpl extends OPCUASecureObject implements OPCUAClientBase
                 return callback(err);
             }
 
+            // istanbul ignore next
             if (!result) {
                 const err1 = new Error("internal error");
                 this.emit("connection_failed", err1);
@@ -999,7 +1000,9 @@ export class ClientBaseImpl extends OPCUASecureObject implements OPCUAClientBase
             const endpoint = result.selectedEndpoint;
             if (!endpoint) {
                 // no matching end point can be found ...
-                const err1 = new Error("cannot find endpoint");
+                const err1 = new Error("cannot find endpoint for securityMode=" +
+                     MessageSecurityMode[this.securityMode] +
+                     " policy = " + this.securityPolicy);
                 this.emit("connection_failed", err1);
                 return callback(err1);
             }

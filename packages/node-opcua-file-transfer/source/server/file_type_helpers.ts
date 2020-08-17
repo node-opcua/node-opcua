@@ -115,7 +115,7 @@ export class FileTypeData {
                 const stat = await promisify(fs.stat)(self.filename);
                 self._fileSize = stat.size;
                 debugLog("original file size ", self.filename, " size = ", self._fileSize);
-            } catch {
+            } catch(err) {
                 self._fileSize = 0;
                 debugLog("Cannot access file ", self.filename);
             }
