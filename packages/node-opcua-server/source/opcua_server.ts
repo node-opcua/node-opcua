@@ -172,6 +172,8 @@ import { OPCUAServerEndPoint } from "./server_end_point";
 import { ServerEngine } from "./server_engine";
 import { ServerSession } from "./server_session";
 import { Subscription } from "./server_subscription";
+import { ISocketData } from "./i_socket_data";
+import { IChannelData } from "./i_channel_data";
 
 declare type ResponseCallback<T> = (err: Error | null, result?: T) => void;
 
@@ -3464,7 +3466,7 @@ export interface OPCUAServer extends EventEmitter {
 
   on(event: "session_closed", eventHandler: (session: ServerSession, reason: string) => void): this;
 
-  on(event: "post_initialize", eventHandler: () => void): void;
+  on(event: "post_initialize", eventHandler: () => void): this;
 
   /**
    * emitted when the server is trying to registered the LDS
@@ -3473,52 +3475,62 @@ export interface OPCUAServer extends EventEmitter {
    * connection process is raised
    * @event serverRegistrationPending
    */
-  on(event: "serverRegistrationPending", eventHandler: () => void): void;
+  on(event: "serverRegistrationPending", eventHandler: () => void): this;
 
   /**
    * event raised when server  has been successfully registered on the local discovery server
    * @event serverRegistered
    */
-  on(event: "serverRegistered", eventHandler: () => void): void;
+  on(event: "serverRegistered", eventHandler: () => void): this;
 
   /**
    * event raised when server registration has been successfully renewed on the local discovery server
    * @event serverRegistered
    */
-  on(event: "serverRegistrationRenewed", eventHandler: () => void): void;
+  on(event: "serverRegistrationRenewed", eventHandler: () => void): this;
 
   /**
    * event raised when server  has been successfully unregistered from the local discovery server
    * @event serverUnregistered
    */
-  on(event: "serverUnregistered", eventHandler: () => void): void;
+  on(event: "serverUnregistered", eventHandler: () => void): this;
 
   /**
    * event raised after the server has raised an OPCUA event toward a client
    */
-  on(event: "event", eventHandler: (eventData: any) => void): void;
+  on(event: "event", eventHandler: (eventData: any) => void): this;
 
   /**
    * event raised when the server received a request from one of its connected client.
    * useful for trace purpose.
    */
-  on(event: "request", eventHandler: (request: Request, channel: ServerSecureChannelLayer) => void): void;
+  on(event: "request", eventHandler: (request: Request, channel: ServerSecureChannelLayer) => void): this;
 
   /**
    * event raised when the server send an response to a request to one of its connected client.
    * useful for trace purpose.
    */
-  on(event: "response", eventHandler: (request: Response, channel: ServerSecureChannelLayer) => void): void;
+  on(event: "response", eventHandler: (request: Response, channel: ServerSecureChannelLayer) => void): this;
 
   /**
    * event raised when a new secure channel is opened
    */
-  on(event: "newChannel", eventHandler: (channel: ServerSecureChannelLayer) => void): void;
+  on(event: "newChannel", eventHandler: (channel: ServerSecureChannelLayer, endpoint: OPCUAServerEndPoint) => void): this;
 
   /**
    * event raised when a new secure channel is closed
    */
-  on(event: "closeChannel", eventHandler: (channel: ServerSecureChannelLayer) => void): void;
+  on(event: "closeChannel", eventHandler: (channel: ServerSecureChannelLayer, endpoint: OPCUAServerEndPoint) => void): this;
+
+  /**
+   * event raised when the server refused a tcp connection from a client. ( for instance because too any connections)
+   */
+  on(event: "connectionRefused", eventHandler: (socketData: ISocketData, endpoint: OPCUAServerEndPoint) => void): this;
+
+  /**
+   * event raised when a OpenSecureChannel has failed, it could be a invalid certificate or malformed message
+   */
+  on(event: "openSecureChannelFailure", eventHandler: (socketData: ISocketData,  channelData: IChannelData, endpoint: OPCUAServerEndPoint) => void): this;
 
   on(event: string, eventHandler: (...args: [any?, ...any[]]) => void): this;
 

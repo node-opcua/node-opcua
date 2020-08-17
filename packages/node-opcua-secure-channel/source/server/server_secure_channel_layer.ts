@@ -195,6 +195,8 @@ export function nonceAlreadyBeenUsed(nonce?: Buffer): boolean {
  */
 export class ServerSecureChannelLayer extends EventEmitter {
 
+    public static  throttleTime: number= 1000;
+
     public get securityTokenCount() {
         assert(_.isNumber(this.lastTokenId));
         return this.lastTokenId;
@@ -528,6 +530,9 @@ export class ServerSecureChannelLayer extends EventEmitter {
             if (err) {
                 callback(err);
             } else {
+
+                this._rememberClientAddressAndPort();
+
                 // bind low level TCP transport to messageBuilder
                 this.transport.on("message", (messageChunk: Buffer) => {
                     assert(this.messageBuilder);
@@ -644,20 +649,16 @@ export class ServerSecureChannelLayer extends EventEmitter {
         callback: ErrorCallback
     ) {
         this.transport.abortWithError(statusCode, description, () => {
-            this.close(callback);
+            this.close(() => {
+                callback(new Error(description + " statusCode = " + statusCode.toString()));
+            });
         });
     }
     /**
      *
-     * send a ServiceFault response
-     * @method send_error_and_abort
-     * @async
-     * @param statusCode  {StatusCode} the status code
-     * @param description {String}
-     * @param message     {String}
-     * @param callback
+     * send a ServiceFault response abd abort the connection
      */
-    public send_error_and_abort(
+    private _send_ServiceFault_and_abort(
         statusCode: StatusCode,
         description: string,
         message: Message,
@@ -673,9 +674,11 @@ export class ServerSecureChannelLayer extends EventEmitter {
         });
 
         response.responseHeader.stringTable = [description];
-        this.send_response("MSG", response, message, () => {
-            this.close(callback);
-        });
+        setTimeout(()=>{ // Throttle
+            this.send_response("MSG", response, message, () => {
+                this.close(callback);
+            });
+        }, ServerSecureChannelLayer.throttleTime); // Throttling keep connection on hold for a while.
     }
 
     /**
@@ -843,8 +846,10 @@ export class ServerSecureChannelLayer extends EventEmitter {
         }
 
         assert(_.isFunction(callback));
+
+        /* istanbul ignore next */
         if (!(this.messageBuilder && this.messageBuilder.sequenceHeader && this.messageBuilder.securityHeader)) {
-            throw new Error("internal Error");
+            return callback(new Error("internal Error"));
         }
 
         // check that the request is a OpenSecureChannelRequest
@@ -1312,7 +1317,7 @@ export class ServerSecureChannelLayer extends EventEmitter {
 
                 /**
                  * notify the observer that a OPCUA message has been received.
-                 * It is up to one observer to call send_response or send_error_and_abort to complete
+                 * It is up to one observer to call send_response or _send_ServiceFault_and_abort to complete
                  * the transaction.
                  *
                  * @event message
@@ -1374,14 +1379,16 @@ export class ServerSecureChannelLayer extends EventEmitter {
     // Bad_SecureChannelIdInvalid
     // Bad_NonceInvalid
 
-    private _send_error(statusCode: StatusCode, description: string, message: Message, callback: ErrorCallback) {
+    private _on_OpenSecureChannelRequestError(statusCode: StatusCode, description: string, message: Message, callback: ErrorCallback) {
+
+        debugLog("ServerSecureChannel sendError: ", statusCode.toString(), description, message.request.constructor.name);
 
         // turn of security mode as we haven't manage to set it to
         this.securityMode = MessageSecurityMode.None;
 
         // unexpected message type ! let close the channel
         const err = new Error(description);
-        this.send_error_and_abort(statusCode, description, message, () => {
+        this._send_ServiceFault_and_abort(statusCode, description, message, () => {
             callback(err); // OK
         });
     }
@@ -1405,7 +1412,7 @@ export class ServerSecureChannelLayer extends EventEmitter {
                 chalk.red("ERROR"),
                 "BadCommunicationError: expecting a OpenChannelRequest as first communication message"
             );
-            return this._send_error(StatusCodes.BadCommunicationError, description, message, callback);
+            return this._on_OpenSecureChannelRequestError(StatusCodes.BadCommunicationError, description, message, callback);
         }
 
         const asymmetricSecurityHeader = this.messageBuilder.securityHeader as AsymmetricAlgorithmSecurityHeader;
@@ -1413,10 +1420,10 @@ export class ServerSecureChannelLayer extends EventEmitter {
         const securityPolicy = message.securityHeader ? fromURI(asymmetricSecurityHeader.securityPolicyUri) : SecurityPolicy.Invalid;
 
         // check security header
-        const securityPolicyStatus = isValidSecurityPolicy(securityPolicy);
+        const securityPolicyStatus: StatusCode = isValidSecurityPolicy(securityPolicy);
         if (securityPolicyStatus !== StatusCodes.Good) {
             description = " Unsupported securityPolicyUri " + asymmetricSecurityHeader.securityPolicyUri;
-            return this._send_error(securityPolicyStatus, description, message, callback);
+            return this._on_OpenSecureChannelRequestError(securityPolicyStatus, description, message, callback);
         }
         // check certificate
 
@@ -1431,7 +1438,7 @@ export class ServerSecureChannelLayer extends EventEmitter {
             // there is no
             description =
                 " This server doesn't not support  " + securityPolicy.toString() + " " + this.securityMode.toString();
-            return this._send_error(StatusCodes.BadSecurityPolicyRejected, description, message, callback);
+            return this._on_OpenSecureChannelRequestError(StatusCodes.BadSecurityPolicyRejected, description, message, callback);
         }
 
         this.endpoint = this.getEndpointDescription(this.securityMode, securityPolicy)!;
@@ -1450,16 +1457,15 @@ export class ServerSecureChannelLayer extends EventEmitter {
         // handle initial OpenSecureChannelRequest
         this._process_certificates(message, (err: Error | null, statusCode?: StatusCode) => {
 
-            if (err) {
-                description = "Internal Error " + err.message;
-                return this._send_error(StatusCodes.BadInternalError, description, message, callback);
+            // istanbul ignore next
+            if (err || !statusCode) {
+                description = "Internal Error " + err?.message;
+                return this._on_OpenSecureChannelRequestError(StatusCodes.BadInternalError, description, message, callback);
             }
-            if (!statusCode) {
-                assert(false);
-            }
+
             if (statusCode !== StatusCodes.Good) {
                 const description = "Sender Certificate Error";
-                console.log(chalk.cyan(description), chalk.bgCyan.yellow(statusCode!.toString()));
+                debugLog(chalk.cyan(description), chalk.bgCyan.yellow(statusCode!.toString()));
                 // OPCUA specification v1.02 part 6 page 42 $6.7.4
                 // If an error occurs after the  Server  has verified  Message  security  it  shall  return a  ServiceFault  instead
                 // of a OpenSecureChannel  response. The  ServiceFault  Message  is described in  Part  4,   7.28.
@@ -1471,7 +1477,8 @@ export class ServerSecureChannelLayer extends EventEmitter {
                 ) {
                     statusCode = StatusCodes.BadSecurityChecksFailed;
                 }
-                return this.send_fatal_error_and_abort(statusCode!, "", message, callback);
+                // return this.send_fatal_error_and_abort(statusCode!, "", message, callback);
+                return this._on_OpenSecureChannelRequestError(statusCode, description, message, callback);
             }
 
             this._handle_OpenSecureChannelRequest(statusCode!, message, callback);

@@ -18,21 +18,20 @@ const chalk = require("chalk");
 const debugLog = require("node-opcua-debug").make_debugLog(__filename);
 const doDebug = require("node-opcua-debug").checkDebugFlag(__filename);
 
-const opcua = require("node-opcua");
-const is_valid_endpointUrl = opcua.is_valid_endpointUrl;
-const MessageSecurityMode = opcua.MessageSecurityMode;
-const SecurityPolicy = opcua.SecurityPolicy;
-
-const OPCUAServer = require("node-opcua-server").OPCUAServer;
-const OPCUAClient = require("node-opcua-client").OPCUAClient;
-const ClientSecureChannelLayer = require("node-opcua-client").ClientSecureChannelLayer;
+const {
+    is_valid_endpointUrl,
+    MessageSecurityMode,
+    SecurityPolicy,
+    OPCUAServer,
+    OPCUAClient,
+    ClientSecureChannelLayer
+} = require("node-opcua");
 
 const fail_fast_connectionStrategy = {
     maxRetry: 0  // << NO RETRY !!
 };
 
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
-
 describe("testing Server resilience to DDOS attacks", function () {
 
     let server;

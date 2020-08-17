@@ -122,8 +122,10 @@ function process_request_callback(requestData: RequestData, err?: Error | null, 
     if (response && response instanceof ServiceFault) {
         response.responseHeader.stringTable = response.responseHeader.stringTable || [];
         response.responseHeader.stringTable = [response.responseHeader.stringTable.join("\n")];
-        err = new Error(" serviceResult = " + response.responseHeader.serviceResult.toString() + "  returned by server \n response:" + response.toString() + "\n  request: " + request.toString());
+        err = new Error(" serviceResult = " + response.responseHeader.serviceResult.toString());
+        //  "  returned by server \n response:" + response.toString() + "\n  request: " + request.toString());
         (err as any).response = response;
+        (err as any).request = request,
         response = undefined;
     }
 
@@ -995,7 +997,7 @@ export class ClientSecureChannelLayer extends EventEmitter {
         });
 
         this._performMessageTransaction(msgType, msg, (err?: Error | null, response?: Response) => {
-
+            // istanbul ignore next
             if (response && response.responseHeader && response.responseHeader.serviceResult !== StatusCodes.Good) {
                 console.log("xxxxx => response.responseHeader.serviceResult", response.responseHeader.serviceResult.toString());
                 err = new Error(response.responseHeader.serviceResult.toString());
