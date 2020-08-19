@@ -12,17 +12,17 @@ const perform_operation_on_client_session = require("../../test_helpers/perform_
 
 
 const users = [
-    {username: "user1", password: "1", role: "admin"},
-    {username: "user1", password: "1", role: "operator"},
-    {username: "anonymous", password: "0", role: "guest"},
+    { username: "user1", password: "1", role: "admin" },
+    { username: "user1", password: "1", role: "operator" },
+    { username: "anonymous", password: "0", role: "guest" },
 
 ];
 
 // simplistic user manager for test purpose only ( do not use in production !)
 const userManager = {
 
-    isValidUser: function (username, password) {
-        const uIndex = users.findIndex(function (u) {
+    isValidUser: function(username, password) {
+        const uIndex = users.findIndex(function(u) {
             return u.username === username;
         });
         if (uIndex < 0) {
@@ -34,8 +34,8 @@ const userManager = {
         return true;
     },
 
-    getUserRole: function (username) {
-        const uIndex = users.findIndex(function (x) {
+    getUserRole: function(username) {
+        const uIndex = users.findIndex(function(x) {
             return x.username === username;
         });
         if (uIndex < 0) {
@@ -48,21 +48,21 @@ const userManager = {
 };
 
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
-describe("testing Client-Server with UserName/Password identity token", function () {
+describe("testing Client-Server with UserName/Password identity token", function() {
 
     let server, client, endpointUrl;
     let node1;
 
     const port = 2002;
 
-    before(function (done) {
+    before(function(done) {
 
         const options = {
             port: port,
-//xx            allowAnonymous: false
+            //xx            allowAnonymous: false
         };
 
-        server = build_server_with_temperature_device(options, function (err) {
+        server = build_server_with_temperature_device(options, function(err) {
 
             const permissionType1 = {
                 CurrentRead: ["*", "!guest"], // accept all, except guest
@@ -81,7 +81,7 @@ describe("testing Client-Server with UserName/Password identity token", function
                 browseName: "v1",
                 organizedBy: addressSpace.rootFolder.objects,
                 dataType: "Double",
-                value: {dataType: "Double", value: 3.14},
+                value: { dataType: "Double", value: 3.14 },
 
                 permissions: permissionType1
             });
@@ -91,21 +91,21 @@ describe("testing Client-Server with UserName/Password identity token", function
         });
     });
 
-    beforeEach(function (done) {
+    beforeEach(function(done) {
         client = null;
         done();
     });
 
-    afterEach(function (done) {
+    afterEach(function(done) {
         client = null;
         done();
     });
 
-    after(function (done) {
+    after(function(done) {
         server.shutdown(done);
     });
 
-    it("Anonymous user should not be able to read or to write V1 node value", function (done) {
+    it("Anonymous user should not be able to read or to write V1 node value", function(done) {
 
         const client = OPCUAClient.create();
 
@@ -116,7 +116,7 @@ describe("testing Client-Server with UserName/Password identity token", function
                 indexRange: null,
                 dataEncoding: null
             };
-            session.read(nodeToRead, function (err, dataValue) {
+            session.read(nodeToRead, function(err, dataValue) {
                 if (err) {
                     return callback(err);
                 }
@@ -133,11 +133,11 @@ describe("testing Client-Server with UserName/Password identity token", function
                     nodeId: node1.nodeId.toString(),
                     attributeId: opcua.AttributeIds.Value,
                     value: /*new DataValue(*/{
-                        value: {/* Variant */dataType: opcua.DataType.Double, value: _the_value}
+                        value: {/* Variant */dataType: opcua.DataType.Double, value: _the_value }
                     }
                 }
             ];
-            session.write(nodesToWrite, function (err, results) {
+            session.write(nodesToWrite, function(err, results) {
                 if (err) {
                     return callback(err);
                 }
@@ -145,7 +145,7 @@ describe("testing Client-Server with UserName/Password identity token", function
             });
         }
 
-        perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
+        perform_operation_on_client_session(client, endpointUrl, function(session, inner_done) {
 
             async.series([
 
@@ -153,8 +153,8 @@ describe("testing Client-Server with UserName/Password identity token", function
                 // As Anonymous user
                 // ---------------------------------------------------------------------------------
 
-                function (callback) {
-                    read(session, function (err, statusCode) {
+                function(callback) {
+                    read(session, function(err, statusCode) {
                         if (err) {
                             return callback(err);
                         }
@@ -162,8 +162,8 @@ describe("testing Client-Server with UserName/Password identity token", function
                         callback();
                     })
                 },
-                function (callback) {
-                    write(session, function (err, statusCode) {
+                function(callback) {
+                    write(session, function(err, statusCode) {
                         if (err) {
                             return callback(err);
                         }
@@ -175,11 +175,11 @@ describe("testing Client-Server with UserName/Password identity token", function
                 // ---------------------------------------------------------------------------------
                 // As admin user
                 // ---------------------------------------------------------------------------------
-                function (callback) {
+                function(callback) {
                     console.log("    impersonate user user1 on existing session");
-                    const userIdentity = {userName: "user1", password: "1"};
+                    const userIdentity = { userName: "user1", password: "1" };
 
-                    client.changeSessionIdentity(session, userIdentity, function (err) {
+                    client.changeSessionIdentity(session, userIdentity, function(err) {
                         if (err) {
                             return callback(err);
                         }
@@ -187,8 +187,8 @@ describe("testing Client-Server with UserName/Password identity token", function
                     });
                 },
 
-                function (callback) {
-                    read(session, function (err, statusCode) {
+                function(callback) {
+                    read(session, function(err, statusCode) {
                         if (err) {
                             return callback(err);
                         }
@@ -196,8 +196,8 @@ describe("testing Client-Server with UserName/Password identity token", function
                         callback();
                     });
                 },
-                function (callback) {
-                    write(session, function (err, statusCode) {
+                function(callback) {
+                    write(session, function(err, statusCode) {
                         if (err) {
                             return callback(err);
                         }

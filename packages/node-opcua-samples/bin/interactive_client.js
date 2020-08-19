@@ -18,7 +18,7 @@ const DataType = opcua.DataType;
 
 const utils = opcua.utils;
 
-const assert = require("node-opcua-assert").assert;
+const { assert } = require("node-opcua-assert");
 
 console.log(" Version ", opcua.version);
 

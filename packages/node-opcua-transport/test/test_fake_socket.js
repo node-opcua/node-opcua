@@ -3,16 +3,16 @@ const DirectTransport = require("../dist/test_helpers").DirectTransport;
 const SocketTransport = require("../dist/test_helpers").SocketTransport;
 
 const should = require("should");
-const assert = require("node-opcua-assert").assert;
+const { assert } = require("node-opcua-assert");
 
 
 function installTestFor(Transport) {
 
-    describe("Testing behavior of  " + Transport.name + "  to emulate client/server communication in tests", function () {
+    describe("Testing behavior of  " + Transport.name + "  to emulate client/server communication in tests", function() {
 
         let transport = null;
 
-        beforeEach(function (done) {
+        beforeEach(function(done) {
             transport = new Transport();
             transport.initialize(() => {
                 assert(transport.client);
@@ -21,22 +21,22 @@ function installTestFor(Transport) {
             });
 
         });
-        afterEach(function (done) {
+        afterEach(function(done) {
             transport.shutdown(done);
             transport = null;
         });
 
-        it("server side should receive data send by the client only", function (done) {
+        it("server side should receive data send by the client only", function(done) {
 
-            transport.client.on("data", function (data) {
+            transport.client.on("data", function(data) {
                 data.toString().should.equal("Some Data");
                 done();
             });
             transport.server.write("Some Data");
         });
 
-        it("client side should receive data send by the server only", function (done) {
-            transport.server.on("data", function (data) {
+        it("client side should receive data send by the server only", function(done) {
+            transport.server.on("data", function(data) {
                 data.toString().should.equal("Some Data");
                 done();
             });
@@ -44,18 +44,18 @@ function installTestFor(Transport) {
         });
 
 
-        it("server side should receive 'end' event when connection ends  on the client side", function (done) {
+        it("server side should receive 'end' event when connection ends  on the client side", function(done) {
 
-            transport.server.on("end", function (err) {
+            transport.server.on("end", function(err) {
                 should.not.exist(err);
                 done();
             });
             transport.client.end();
 
         });
-        it("client side should receive 'end' event when connection ends  on the server side", function (done) {
+        it("client side should receive 'end' event when connection ends  on the server side", function(done) {
 
-            transport.client.on("end", function (err) {
+            transport.client.on("end", function(err) {
                 should.not.exist(err);
                 done();
             });
@@ -63,9 +63,9 @@ function installTestFor(Transport) {
 
         });
 
-        it("client side should receive 'end' event when connection ends  on the client side", function (done) {
+        it("client side should receive 'end' event when connection ends  on the client side", function(done) {
 
-            transport.client.on("end", function (err) {
+            transport.client.on("end", function(err) {
                 should.not.exist(err);
                 done();
             });
@@ -73,9 +73,9 @@ function installTestFor(Transport) {
 
         });
 
-        it("server side should receive 'end' event when connection ends  on the server side", function (done) {
+        it("server side should receive 'end' event when connection ends  on the server side", function(done) {
 
-            transport.server.on("end", function (err) {
+            transport.server.on("end", function(err) {
                 should.not.exist(err);
                 done();
             });

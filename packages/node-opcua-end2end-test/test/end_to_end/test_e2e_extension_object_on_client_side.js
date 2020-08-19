@@ -5,9 +5,9 @@ const fs = require("fs");
 const should = require("should");
 const path = require("path");
 
-const { 
+const {
     start_simple_server,
-    stop_simple_server 
+    stop_simple_server
 } = require("../../test_helpers/external_server_fixture");
 const perform_operation_on_client_session = require("../../test_helpers/perform_operation_on_client_session").perform_operation_on_client_session;
 
@@ -18,7 +18,7 @@ const OPCUAClient = opcua.OPCUAClient;
 
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 
-describe("testing extension object with client residing on a different process than the server process", function () {
+describe("testing extension object with client residing on a different process than the server process", function() {
 
     this.timeout(Math.max(600000, this.timeout()));
 
@@ -30,22 +30,22 @@ describe("testing extension object with client residing on a different process t
     };
     fs.existsSync(options.server_sourcefile).should.eql(true, "cannot find simple_server_with_custom_extension_objects script");
 
-    before(function (done) {
-        start_simple_server(options, function (err, data) {
+    before(function(done) {
+        start_simple_server(options, function(err, data) {
             if (!err) {
                 serverHandle = data;
             }
             done(err);
         });
     });
-    after(function (done) {
-        stop_simple_server(serverHandle, function (err) {
+    after(function(done) {
+        stop_simple_server(serverHandle, function(err) {
             done(err);
         });
     });
 
     const os = require("os");
-    it("should read the MyStructureDataType definition", function (done) {
+    it("should read the MyStructureDataType definition", function(done) {
 
         const client = OPCUAClient.create({
             endpoint_must_exist: false
@@ -53,18 +53,18 @@ describe("testing extension object with client residing on a different process t
         const endpointUrl = "opc.tcp://localhost:23232";
 
         const nodeId = "ns=2;i=6001";
-        perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
+        perform_operation_on_client_session(client, endpointUrl, function(session, inner_done) {
 
 
             async.series([
 
-                function (callback) {
+                function(callback) {
 
                     const nodesToRead = [
-                        new opcua.ReadValueId({nodeId: nodeId, attributeId: AttributeIds.Value})
+                        new opcua.ReadValueId({ nodeId: nodeId, attributeId: AttributeIds.Value })
                     ];
 
-                    session.read(nodesToRead, function (err, dataValues) {
+                    session.read(nodesToRead, function(err, dataValues) {
 
                         should.not.exist(err);
                         dataValues.length.should.eql(1);
@@ -84,14 +84,14 @@ describe("testing extension object with client residing on a different process t
 
                 },
 
-                function (callback) {
+                function(callback) {
 
                     const nodeToRead = {
                         nodeId: nodeId,
                         attributeId: 13,
                         indexRange: new opcua.NumericRange() // "0:16777235"
                     };
-                    session.read(nodeToRead, function (err, dataValue) {
+                    session.read(nodeToRead, function(err, dataValue) {
 
                         if (!err) {
                             //xx console.log(" input,",nodesToRead[0].toString());

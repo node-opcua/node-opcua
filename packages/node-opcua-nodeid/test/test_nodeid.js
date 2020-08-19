@@ -6,7 +6,7 @@ const NodeId = require("..").NodeId;
 const sameNodeId = require("..").sameNodeId;
 
 const should = require("should");
-const assert = require("node-opcua-assert").assert;
+const { assert } = require("node-opcua-assert");
 const Benchmarker = require("node-opcua-benchmarker").Benchmarker;
 
 describe("testing NodeIds", function() {
@@ -89,8 +89,8 @@ describe("testing coerceNodeId", function() {
             should.exist(err);
         }
     });
-    
-    it("should coerce a string of a form `ns=2;s=45QAZE2323||XC86@5`" , function() {
+
+    it("should coerce a string of a form `ns=2;s=45QAZE2323||XC86@5`", function() {
         const ref_nodeId = new NodeId(NodeIdType.STRING, "45QAZE2323||XC86@5", 2);
         coerceNodeId("ns=2;s=45QAZE2323||XC86@5").should.eql(ref_nodeId);
         try {

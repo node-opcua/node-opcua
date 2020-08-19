@@ -31,13 +31,13 @@ the SecureChannel and report an error.
 
  */
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
-describe("testing behavior of secure Server ( server that only accept SIGN or SIGNANDENCRYPT channel", function () {
+describe("testing behavior of secure Server ( server that only accept SIGN or SIGNANDENCRYPT channel", function() {
     let server, client;
     let endpointUrl;
 
     this.timeout(Math.max(20000, this.timeout()));
 
-    before(function (done) {
+    before(function(done) {
 
         server = new OPCUAServer({
             port: 2000,
@@ -51,39 +51,39 @@ describe("testing behavior of secure Server ( server that only accept SIGN or SI
             disableDiscovery: false
         });
 
-        server.start((err)=> {
+        server.start((err) => {
             endpointUrl = server.endpoints[0].endpointDescriptions()[0].endpointUrl;
             done(err);
         });
     });
 
-    after(function (done) {
+    after(function(done) {
         server.shutdown(done);
     });
 
-    it("it should not be possible to create a session on a secure server using a unsecure channel", function (done) {
+    it("it should not be possible to create a session on a secure server using a unsecure channel", function(done) {
 
         // ask for a very short session timeout
-        client = OPCUAClient.create({requestedSessionTimeout: 200});
+        client = OPCUAClient.create({ requestedSessionTimeout: 200 });
 
         let the_session;
 
         async.series([
             // assert that server has 0 session
-            function (callback) {
+            function(callback) {
                 server.currentSessionCount.should.eql(0);
                 callback();
             },
 
             // connect
-            function (callback) {
-                client.connect(endpointUrl, function (err) {
+            function(callback) {
+                client.connect(endpointUrl, function(err) {
                     callback(err);
                 });
             },
 
             // create session
-            function (callback) {
+            function(callback) {
 
                 client._serverEndpoints.length.should.eql(1);
 
@@ -100,7 +100,7 @@ describe("testing behavior of secure Server ( server that only accept SIGN or SI
                 client._serverEndpoints.push(unsecureEndpoint);
 
 
-                client.createSession(function (err, session) {
+                client.createSession(function(err, session) {
 
                     if (!err) {
                         return callback(new Error("Should expect an error here and no session ! session id = " + session.sessionId));
@@ -111,42 +111,42 @@ describe("testing behavior of secure Server ( server that only accept SIGN or SI
             },
 
             // assert that server has 0 sessions
-            function (callback) {
+            function(callback) {
                 server.currentSessionCount.should.eql(0);
                 callback();
             },
-            function (callback) {
+            function(callback) {
                 client.disconnect(callback);
             }
         ], done);
 
     });
 
-    it("it should be possible to get endpoint of a secure channel using a unsecure channel", function (done) {
+    it("it should be possible to get endpoint of a secure channel using a unsecure channel", function(done) {
 
         // ask for a very short session timeout
-        client = OPCUAClient.create({requestedSessionTimeout: 200});
+        client = OPCUAClient.create({ requestedSessionTimeout: 200 });
 
         let the_session;
 
         async.series([
             // assert that server has 0 session
-            function (callback) {
+            function(callback) {
                 server.currentSessionCount.should.eql(0);
                 callback();
             },
 
             // connect
-            function (callback) {
+            function(callback) {
 
-                client.connect(endpointUrl, function (err) {
+                client.connect(endpointUrl, function(err) {
                     callback(err);
                 });
             },
 
             // create session
-            function (callback) {
-                client.getEndpoints(function (err, endpoints) {
+            function(callback) {
+                client.getEndpoints(function(err, endpoints) {
                     if (!err) {
                         //xx console.log(endpoints);
                         endpoints.length.should.eql(1);
@@ -158,11 +158,11 @@ describe("testing behavior of secure Server ( server that only accept SIGN or SI
             },
 
             // assert that server has no more session
-            function (callback) {
+            function(callback) {
                 server.currentSessionCount.should.eql(0);
                 callback();
             },
-            function (callback) {
+            function(callback) {
                 client.disconnect(callback);
             }
 
@@ -171,7 +171,7 @@ describe("testing behavior of secure Server ( server that only accept SIGN or SI
 
 });
 
-xdescribe("It should be possible to create server with disabled discovery service", function () {
+xdescribe("It should be possible to create server with disabled discovery service", function() {
 
     // in this case client shall be given valid end point , manually !
     // to do ...

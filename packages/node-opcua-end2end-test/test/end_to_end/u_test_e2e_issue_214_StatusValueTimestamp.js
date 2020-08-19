@@ -1,6 +1,6 @@
 /*global describe, it, require*/
 
-const assert = require("node-opcua-assert").assert;
+const { assert } = require("node-opcua-assert");
 const async = require("async");
 const should = require("should");
 
@@ -13,7 +13,7 @@ const perform_operation_on_client_session = require("../../test_helpers/perform_
 const perform_operation_on_subscription = require("../../test_helpers/perform_operation_on_client_session")
     .perform_operation_on_subscription;
 
-const debugLog = function() {};
+const debugLog = function() { };
 
 module.exports = function(test) {
     describe("NXX1 Testing issue  #214 -  DataChangeTrigger.StatusValueTimestamp", function() {

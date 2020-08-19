@@ -1,11 +1,11 @@
 const async = require("async");
 const chalk = require("chalk");
 const path = require("path");
-const { 
+const {
     start_simple_server,
-    stop_simple_server 
+    stop_simple_server
 } = require("../../test_helpers/external_server_fixture");
-  
+
 const doDebug = true;
 const debugLog = require("node-opcua-debug").make_debugLog("TEST");
 
@@ -23,7 +23,7 @@ async function start_external_opcua_server() {
     };
 
     await new Promise((resolve, reject) => {
-        start_simple_server(options, function (err, data) {
+        start_simple_server(options, function(err, data) {
             if (err) {
                 return reject(err);
             }
@@ -44,7 +44,7 @@ async function crash_external_opcua_server() {
         return;
     }
     const promise = new Promise((resolve) => {
-        server_data.process.once("exit", function (err) {
+        server_data.process.once("exit", function(err) {
             debugLog("process killed");
             resolve();
         });
@@ -58,8 +58,7 @@ const opcua = require("node-opcua");
 // ---------------------------------------------------------------------------------------------------------------------
 let client, session, subscription, intervalId, monitoredItem;
 
-async function start_active_client(connectionStrategy) 
-{
+async function start_active_client(connectionStrategy) {
 
     const endpointUrl = server_data.endpointUrl;
 
@@ -73,23 +72,23 @@ async function start_active_client(connectionStrategy)
     const nodeId = opcua.coerceNodeId("ns=1;s=MyCounter");
 
     await client.connect(endpointUrl);
-    client.on("connection_reestablished", function () {
+    client.on("connection_reestablished", function() {
         debugLog(chalk.bgWhite.red(" !!!!!!!!!!!!!!!!!!!!!!!!  CONNECTION RE-ESTABLISHED !!!!!!!!!!!!!!!!!!!"));
     });
-    client.on("backoff", function (number, delay) {
+    client.on("backoff", function(number, delay) {
         debugLog(chalk.bgWhite.yellow("backoff  attempt #"), number, " retrying in ", delay / 1000.0, " seconds");
     });
 
     session = await client.createSession();
     debugLog("session timeout = ", session.timeout);
-    session.on("keepalive", (state)  => {
+    session.on("keepalive", (state) => {
         if (doDebug) {
             debugLog(chalk.yellow("KeepAlive state="),
                 state.toString(), " pending request on server = ",
                 subscription.publish_engine.nbPendingPublishRequests);
         }
     });
-    session.on("session_closed", (statusCode)  =>{
+    session.on("session_closed", (statusCode) => {
         debugLog(chalk.yellow("Session has closed : statusCode = "), statusCode ? statusCode.toString() : "????");
     });
     const parameters = {
@@ -103,24 +102,24 @@ async function start_active_client(connectionStrategy)
 
     subscription = await opcua.ClientSubscription.create(session, parameters);
 
-    subscription.on("initialized",()=> {
+    subscription.on("initialized", () => {
         debugLog("started subscription :", subscription.subscriptionId);
         debugLog(" revised parameters ");
         debugLog("  revised maxKeepAliveCount  ", subscription.maxKeepAliveCount, " ( requested ", parameters.requestedMaxKeepAliveCount + ")");
         debugLog("  revised lifetimeCount      ", subscription.lifetimeCount, " ( requested ", parameters.requestedLifetimeCount + ")");
         debugLog("  revised publishingInterval ", subscription.publishingInterval, " ( requested ", parameters.requestedPublishingInterval + ")");
-        debugLog("  suggested timeout hint     ", subscription.publish_engine.timeoutHint);    
+        debugLog("  suggested timeout hint     ", subscription.publish_engine.timeoutHint);
     });
 
-    subscription.on("internal_error", function (err) {
+    subscription.on("internal_error", function(err) {
         debugLog(" received internal error", err.message);
-    }).on("keepalive", function () {
+    }).on("keepalive", function() {
 
         debugLog(chalk.cyan("keepalive "),
-         chalk.cyan(" pending request on server = "),
-         subscription.publish_engine.nbPendingPublishRequests);
+            chalk.cyan(" pending request on server = "),
+            subscription.publish_engine.nbPendingPublishRequests);
 
-    }).on("terminated", function (err) {
+    }).on("terminated", function(err) {
         debugLog("Session Terminated", err.message);
     });
 
@@ -134,16 +133,16 @@ async function start_active_client(connectionStrategy)
     const item = { nodeId: nodeId, attributeId: opcua.AttributeIds.Value };
 
     monitoredItem = await opcua.ClientMonitoredItem.create(subscription, item, requestedParameters, opcua.TimestampsToReturn.Both);
-    monitoredItem.on("err", function (errMessage) {
+    monitoredItem.on("err", function(errMessage) {
         throw new Error(errMessage);
     });
-    monitoredItem.on("changed", function (dataValue) {
+    monitoredItem.on("changed", function(dataValue) {
         if (doDebug) {
             debugLog(chalk.cyan(" ||||||||||| VALUE CHANGED !!!!"), dataValue.statusCode.toString(), dataValue.value.toString());
         }
         result.push(dataValue);
     });
-    monitoredItem.on("initialized", function () {
+    monitoredItem.on("initialized", function() {
         if (doDebug) {
             debugLog(" MonitoredItem initialized");
         }
@@ -151,7 +150,7 @@ async function start_active_client(connectionStrategy)
 
 
     let counter = 0;
-    intervalId = setInterval(function () {
+    intervalId = setInterval(function() {
         if (doDebug) {
 
             debugLog(" Session OK ? ", session.isChannelValid(),
@@ -176,7 +175,7 @@ async function start_active_client(connectionStrategy)
                 }
             }
         };
-        session.write([nodeToWrite], function (err, statusCode) {
+        session.write([nodeToWrite], function(err, statusCode) {
             if (err) {
                 if (doDebug) {
                     debugLog(chalk.red("       writing Failed "), err.message);
@@ -191,13 +190,13 @@ async function start_active_client(connectionStrategy)
         });
 
     }, 250);
-    await new Promise((resolve) => setTimeout(resolve,1000));
+    await new Promise((resolve) => setTimeout(resolve, 1000));
 }
 
 async function terminate_active_client() {
 
     if (!client) {
-        return ;
+        return;
     }
     if (intervalId) {
         clearInterval(intervalId);
@@ -209,13 +208,13 @@ async function terminate_active_client() {
 }
 
 async function f(func) {
-    await async function () {
+    await async function() {
         debugLog("       * " + func.name.replace(/_/g, " ").replace(/(given|when|then)/, chalk.green("**$1**")));
         await func();
     }();
 }
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
-describe("Testing client reconnection with crashing server that do not implement transferSubscription server (such as Siemens S7)", function () {
+describe("Testing client reconnection with crashing server that do not implement transferSubscription server (such as Siemens S7)", function() {
 
     this.timeout(100000);
 
@@ -235,8 +234,8 @@ describe("Testing client reconnection with crashing server that do not implement
     }
 
     async function when_the_server_restart_after_some_very_long_time() {
-       await new Promise((resolve) => setTimeout(resolve, 10000));
-       await when_the_server_restart();
+        await new Promise((resolve) => setTimeout(resolve, 10000));
+        await when_the_server_restart();
     }
 
     async function given_a_active_client_with_subscription_and_monitored_items() {
@@ -265,7 +264,7 @@ describe("Testing client reconnection with crashing server that do not implement
                 }
             }
             client.on("backoff", backoff_detector);
-    
+
         });
 
     }
@@ -291,7 +290,7 @@ describe("Testing client reconnection with crashing server that do not implement
     }
 
     function a(_serverScript) {
-        before(()=> serverScript = _serverScript);
+        before(() => serverScript = _serverScript);
         it(_serverScript + "HZZE2 - should reconnection and restore subscriptions when server becomes available again", async () => {
             await f(given_a_running_opcua_server);
             await f(given_a_active_client_with_subscription_and_monitored_items);
@@ -301,7 +300,7 @@ describe("Testing client reconnection with crashing server that do not implement
             await f(then_client_should_reconnect_and_restore_subscription);
         });
         it(_serverScript + "HZZE3 - testing reconnection with failFastReconnection strategy #606", async () => {
-    
+
             // rationale:
             //  even if the OPCUAClient  uses a fail fast reconnection strategy, a lost of connection
             //  should cause an infinite retry to connect again
@@ -312,9 +311,9 @@ describe("Testing client reconnection with crashing server that do not implement
             await f(when_the_server_restart_after_some_very_long_time);
             await f(then_client_should_reconnect_and_restore_subscription);
         });
-    
+
     }
- 
+
     a(serverScript1);
     a(serverScript2);
 

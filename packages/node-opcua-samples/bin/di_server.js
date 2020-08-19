@@ -11,7 +11,7 @@ function constructFilename(filename) {
     return path.join(__dirname, "../", filename);
 }
 
-const assert = require("node-opcua-assert").assert;
+const { assert } = require("node-opcua-assert");
 const argv = require("yargs")
     .wrap(132)
 

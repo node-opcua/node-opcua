@@ -11,7 +11,7 @@ const UAProxyManager = require("node-opcua-client-proxy").UAProxyManager;
 const opcua = require("node-opcua");
 
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
-describe("testing client Proxy State Machine", function () {
+describe("testing client Proxy State Machine", function() {
 
     this.timeout(Math.max(200000, this.timeout()));
 
@@ -25,9 +25,9 @@ describe("testing client Proxy State Machine", function () {
     let g_session;
     let client_server;
 
-    before(function (done) {
+    before(function(done) {
 
-        client_server = build_client_server_session(server_options,function (err) {
+        client_server = build_client_server_session(server_options, function(err) {
             if (!err) {
                 g_session = client_server.g_session;
 
@@ -44,7 +44,7 @@ describe("testing client Proxy State Machine", function () {
         console.log("transactionsPerformed  ", client.transactionsPerformed, " ");
 
     }
-    after(function (done) {
+    after(function(done) {
         dumpStats();
         client_server.shutdown(done);
     });
@@ -64,20 +64,20 @@ describe("testing client Proxy State Machine", function () {
 
      @enduml
      */
-    it("Z1a should read a state machine", function (done) {
+    it("Z1a should read a state machine", function(done) {
 
         dumpStats();
 
         const proxyManager = new UAProxyManager(g_session);
 
         async.series([
-            function (callback) {
+            function(callback) {
                 proxyManager.start(callback);
             },
-            function (callback) {
+            function(callback) {
                 const exclusiveLimitStateMachineType = "ExclusiveLimitStateMachineType";
 
-                proxyManager.getStateMachineType(exclusiveLimitStateMachineType, function (err, obj) {
+                proxyManager.getStateMachineType(exclusiveLimitStateMachineType, function(err, obj) {
 
                     dumpStats();
 
@@ -85,10 +85,10 @@ describe("testing client Proxy State Machine", function () {
 
                         console.log("InitialState = ", obj.initialState ? obj.initialState.toString() : "<null>");
 
-                        console.log("States       = ", obj.states.map(function (state) {
+                        console.log("States       = ", obj.states.map(function(state) {
                             return state.browseName.toString();
                         }));
-                        console.log("Transitions  = ", obj.transitions.map(function (transition) {
+                        console.log("Transitions  = ", obj.transitions.map(function(transition) {
                             return transition.browseName.toString();
                         }));
 
@@ -96,33 +96,33 @@ describe("testing client Proxy State Machine", function () {
                     callback(err);
                 });
             },
-            function (callback) {
+            function(callback) {
                 proxyManager.stop(callback);
             }
         ], done);
     });
-    it("Z1b should read a state machine", function (done) {
+    it("Z1b should read a state machine", function(done) {
 
 
         const proxyManager = new UAProxyManager(g_session);
 
         async.series([
-            function (callback) {
+            function(callback) {
                 proxyManager.start(callback);
             },
-            function (callback) {
+            function(callback) {
                 const ShelvedStateMachineType = "ShelvedStateMachineType";
 
-                proxyManager.getStateMachineType(ShelvedStateMachineType, function (err, obj) {
+                proxyManager.getStateMachineType(ShelvedStateMachineType, function(err, obj) {
 
                     if (!err) {
 
                         console.log("InitialState = ", obj.initialState ? obj.initialState.toString() : "<null>");
 
-                        console.log("States       = ", obj.states.map(function (state) {
+                        console.log("States       = ", obj.states.map(function(state) {
                             return state.browseName.toString();
                         }));
-                        console.log("Transitions  = ", obj.transitions.map(function (transition) {
+                        console.log("Transitions  = ", obj.transitions.map(function(transition) {
                             return transition.browseName.toString();
                         }));
 
@@ -130,7 +130,7 @@ describe("testing client Proxy State Machine", function () {
                     callback(err);
                 });
             },
-            function (callback) {
+            function(callback) {
                 proxyManager.stop(callback);
             }
         ], done);

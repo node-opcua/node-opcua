@@ -3,7 +3,7 @@
 /**
  * @module node-opcua-address-space.types
  */
-const assert = require("node-opcua-assert").assert;
+const { assert } = require("node-opcua-assert");
 const util = require("util");
 const _ = require("underscore");
 const schema_helpers = require("node-opcua-factory/src/factories_schema_helpers");

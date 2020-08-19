@@ -11,7 +11,7 @@ const debugLog = require("node-opcua-debug").make_debugLog(__filename);
 const doDebug = require("node-opcua-debug").checkDebugFlag(__filename);
 
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
-describe("NodeRed -  testing frequent server restart within same process", function () {
+describe("NodeRed -  testing frequent server restart within same process", function() {
     /**
      * This test simulates the way node-red will frequently start and restart
      * a opcua server and a opcua client when the user is modifying and redeploying its project
@@ -30,8 +30,8 @@ describe("NodeRed -  testing frequent server restart within same process", funct
 
     function startDiscoveryServer(callback) {
         // note : only one discovery server shall be run per machine
-        discoveryServer = new opcua.OPCUADiscoveryServer({port: discoveryServerPort});
-        discoveryServer.start(function (err) {
+        discoveryServer = new opcua.OPCUADiscoveryServer({ port: discoveryServerPort });
+        discoveryServer.start(function(err) {
             debugLog(" Discovery server listening on ", discoveryServerEndpointUrl);
             discoveryServerEndpointUrl = discoveryServer._get_endpoints()[0].endpointUrl;
             callback(err);
@@ -40,7 +40,7 @@ describe("NodeRed -  testing frequent server restart within same process", funct
 
     function stopDiscoveryServer(callback) {
         if (!discoveryServer) return callback();
-        discoveryServer.shutdown(function (err) {
+        discoveryServer.shutdown(function(err) {
             debugLog("discovery server stopped!", err);
             callback(err);
         });
@@ -56,23 +56,23 @@ describe("NodeRed -  testing frequent server restart within same process", funct
             discoveryServerEndpointUrl: discoveryServerEndpointUrl
         });
         // start server with many node
-        server.on("serverRegistrationPending", function () {
+        server.on("serverRegistrationPending", function() {
             debugLog("serverRegistrationPending");
         });
-        server.on("serverRegistrationRenewed", function () {
+        server.on("serverRegistrationRenewed", function() {
             debugLog("serverRegistrationRenewed");
         });
-        server.on("serverRegistered", function () {
+        server.on("serverRegistered", function() {
             debugLog("serverRegistered");
         });
-        server.on("serverUnregistered", function () {
+        server.on("serverUnregistered", function() {
             debugLog("serverUnregistered");
         });
-        server.on("serverUnregistered", function () {
+        server.on("serverUnregistered", function() {
             debugLog("serverUnregistered");
         });
 
-        server.start(function (err) {
+        server.start(function(err) {
             if (err) {
                 return callback(err);
             }
@@ -90,7 +90,7 @@ describe("NodeRed -  testing frequent server restart within same process", funct
     }
 
     function shutdownServer(callback) {
-        g_server.shutdown(function () {
+        g_server.shutdown(function() {
             g_server = null;
             if (doDebug) {
                 debugLog("Server has been shot down");
@@ -109,9 +109,9 @@ describe("NodeRed -  testing frequent server restart within same process", funct
                 debugLog(" creating client");
             }
             let client = opcua.OPCUAClient.create();
-            client.connect(endpointUrl, function (err) {
+            client.connect(endpointUrl, function(err) {
                 if (err) return callback(err);
-                client.createSession(function (err, session) {
+                client.createSession(function(err, session) {
                     if (err) return callback(err);
                     client.session = session;
                     clients.push(client);
@@ -124,19 +124,19 @@ describe("NodeRed -  testing frequent server restart within same process", funct
                         publishingEnabled: true,
                         priority: 10
                     });
-                    client.subscription.on("started", function () {
+                    client.subscription.on("started", function() {
                         if (doDebug) {
                             debugLog("subscription started for 2 seconds - subscriptionId=", client.subscription.subscriptionId);
                         }
-                    }).on("keepalive", function () {
+                    }).on("keepalive", function() {
                         debugLog("keepalive");
-                    }).on("terminated", function () {
+                    }).on("terminated", function() {
                     });
 
-                    client.monitoredItem = opcua.ClientMonitoredItem.create(client.subscription,{
-                            nodeId: opcua.resolveNodeId("ns=0;i=2258"),
-                            attributeId: opcua.AttributeIds.Value
-                        },
+                    client.monitoredItem = opcua.ClientMonitoredItem.create(client.subscription, {
+                        nodeId: opcua.resolveNodeId("ns=0;i=2258"),
+                        attributeId: opcua.AttributeIds.Value
+                    },
                         {
                             samplingInterval: 100,
                             discardOldest: true,
@@ -144,7 +144,7 @@ describe("NodeRed -  testing frequent server restart within same process", funct
                         },
                         opcua.TimestampsToReturn.Both
                     );
-                    client.monitoredItem.on("changed", function (dataValue) {
+                    client.monitoredItem.on("changed", function(dataValue) {
                         if (doDebug) {
                             debugLog(dataValue.toString());
                         }
@@ -169,12 +169,12 @@ describe("NodeRed -  testing frequent server restart within same process", funct
         function removeClient(callback) {
             const client = clients.pop();
 
-            client.subscription.terminate(function (err) {
+            client.subscription.terminate(function(err) {
 
-                client.session.close(function (err) {
+                client.session.close(function(err) {
                     if (err) return callback(err);
-                    setImmediate(function () {
-                        client.disconnect(function (err) {
+                    setImmediate(function() {
+                        client.disconnect(function(err) {
                             if (err) return callback(err);
 
                             if (doDebug) {
@@ -206,15 +206,15 @@ describe("NodeRed -  testing frequent server restart within same process", funct
         setTimeout(callback, 6000);
     }
 
-    before(function (done) {
+    before(function(done) {
         startDiscoveryServer(done);
     });
 
-    after(function (done) {
+    after(function(done) {
         stopDiscoveryServer(done);
     });
 
-    it("T0a- should perform start/stop cycle efficiently ", function (done) {
+    it("T0a- should perform start/stop cycle efficiently ", function(done) {
 
         async.series([
 
@@ -224,7 +224,7 @@ describe("NodeRed -  testing frequent server restart within same process", funct
         ], done);
     });
 
-    it("T0b- should perform start/stop cycle efficiently ", function (done) {
+    it("T0b- should perform start/stop cycle efficiently ", function(done) {
 
         async.series([
             createServer,
@@ -232,13 +232,13 @@ describe("NodeRed -  testing frequent server restart within same process", funct
         ], done);
     });
 
-    it("T0c- should cancel a client that is attempting a connection on an existing server", function (done) {
+    it("T0c- should cancel a client that is attempting a connection on an existing server", function(done) {
 
         let client = opcua.OPCUAClient.create();
         const endpoint = discoveryServerEndpointUrl;
         async.series([
             function create_client_do_not_wait(callback) {
-                client.connect(endpoint, function () {
+                client.connect(endpoint, function() {
                 });
                 setImmediate(callback);
             },
@@ -250,7 +250,7 @@ describe("NodeRed -  testing frequent server restart within same process", funct
         ], done);
     });
 
-    xit("T0d- should cancel a client that cannot connect - on standard LocalDiscoveryServer", function (done) {
+    xit("T0d- should cancel a client that cannot connect - on standard LocalDiscoveryServer", function(done) {
 
         let server = new opcua.OPCUAServer({
             port: serverPort,
@@ -269,7 +269,7 @@ describe("NodeRed -  testing frequent server restart within same process", funct
         ], done);
     });
 
-    it("T0f- should cancel a client that cannot connect - on specific LocalDiscoveryServer", function (done) {
+    it("T0f- should cancel a client that cannot connect - on specific LocalDiscoveryServer", function(done) {
 
 
         let server;
@@ -296,7 +296,7 @@ describe("NodeRed -  testing frequent server restart within same process", funct
         ], done);
     });
 
-    it("T0g- registration manager as a standalone object", function (done) {
+    it("T0g- registration manager as a standalone object", function(done) {
 
         const registrationManager = new RegisterServerManager(
             {
@@ -309,17 +309,17 @@ describe("NodeRed -  testing frequent server restart within same process", funct
             }
         );
         async.series([
-            function (callback) {
-                registrationManager.start(function () {
+            function(callback) {
+                registrationManager.start(function() {
                 });
                 callback();// setImmediate(callback);
             },
-            function (callback) {
+            function(callback) {
                 registrationManager.stop(callback);
             }
         ], done);
     });
-    it("T0h- registration manager as a standalone object", function (done) {
+    it("T0h- registration manager as a standalone object", function(done) {
 
         const registrationManager = new RegisterServerManager(
             {
@@ -332,19 +332,19 @@ describe("NodeRed -  testing frequent server restart within same process", funct
             }
         );
         async.series([
-            function (callback) {
-                registrationManager.start(function () {
+            function(callback) {
+                registrationManager.start(function() {
                 });
                 callback();// setImmediate(callback);
             },
-            function (callback) {
+            function(callback) {
                 registrationManager.stop(callback);
             }
         ], done);
     });
 
 
-    it("T1- should perform start/stop cycle efficiently ", function (done) {
+    it("T1- should perform start/stop cycle efficiently ", function(done) {
 
         async.series([
 
@@ -371,7 +371,7 @@ describe("NodeRed -  testing frequent server restart within same process", funct
     });
 
 
-    it("T2- should perform start/stop cycle efficiently even with many connected clients and server close before clients", function (done) {
+    it("T2- should perform start/stop cycle efficiently even with many connected clients and server close before clients", function(done) {
 
         async.series([
 
@@ -408,7 +408,7 @@ describe("NodeRed -  testing frequent server restart within same process", funct
         ], done);
     });
 
-    it("T3- should perform start/stop cycle efficiently even with many connected clients and clients close before server", function (done) {
+    it("T3- should perform start/stop cycle efficiently even with many connected clients and clients close before server", function(done) {
 
         async.series([
 
@@ -435,7 +435,7 @@ describe("NodeRed -  testing frequent server restart within same process", funct
         ], done);
     });
 
-    it("T4- should perform start/stop long cycle efficiently even with many connected clients and clients close before server", function (done) {
+    it("T4- should perform start/stop long cycle efficiently even with many connected clients and clients close before server", function(done) {
 
         async.series([
 
@@ -461,23 +461,23 @@ describe("NodeRed -  testing frequent server restart within same process", funct
         ], done);
     });
 
-    it("T5- NR2 should not crash when a server that failed to start is shot down", function (done) {
+    it("T5- NR2 should not crash when a server that failed to start is shot down", function(done) {
 
         let server1, server2;
 
         async.series([
 
             function create_server_1(callback) {
-                server1 = new opcua.OPCUAServer({port: 2222});
-                server1.start(function (err) {
+                server1 = new opcua.OPCUAServer({ port: 2222 });
+                server1.start(function(err) {
                     callback(err);
                 });
             },
             function create_server_2(callback) {
                 // we start a second server on the same port !
                 // this server will fail to start
-                server2 = new opcua.OPCUAServer({port: 2222});
-                server2.start(function (err) {
+                server2 = new opcua.OPCUAServer({ port: 2222 });
+                server2.start(function(err) {
                     if (!err) {
                         debugLog(" expecting a error here !");
                     }
@@ -489,7 +489,7 @@ describe("NodeRed -  testing frequent server restart within same process", funct
                 server1.shutdown(callback);
             },
             function shutdown_server_2(callback) {
-                server2.shutdown(function (err) {
+                server2.shutdown(function(err) {
                     if (!err) {
                         debugLog("expecting a error here as well");
                     }
@@ -500,18 +500,18 @@ describe("NodeRed -  testing frequent server restart within same process", funct
         ], done);
     });
 
-    it("T6- should not crash when we start two servers and stop the second server first", function (done) {
+    it("T6- should not crash when we start two servers and stop the second server first", function(done) {
 
         let server1, server2;
 
         async.series([
 
             function create_server_1(callback) {
-                server1 = new opcua.OPCUAServer({port: 2004});
+                server1 = new opcua.OPCUAServer({ port: 2004 });
                 server1.start(callback);
             },
             function create_server_2(callback) {
-                server2 = new opcua.OPCUAServer({port: 2018});
+                server2 = new opcua.OPCUAServer({ port: 2018 });
                 server2.start(callback);
             },
             function shutdown_server_2(callback) {
@@ -523,18 +523,18 @@ describe("NodeRed -  testing frequent server restart within same process", funct
         ], done);
     });
 
-    it("T7- should not crash when we start two servers and stop at the same order as we started", function (done) {
+    it("T7- should not crash when we start two servers and stop at the same order as we started", function(done) {
 
         let server1, server2;
 
         async.series([
 
             function create_server_1(callback) {
-                server1 = new opcua.OPCUAServer({port: 2014});
+                server1 = new opcua.OPCUAServer({ port: 2014 });
                 server1.start(callback);
             },
             function create_server_2(callback) {
-                server2 = new opcua.OPCUAServer({port: 2016});
+                server2 = new opcua.OPCUAServer({ port: 2016 });
                 server2.start(callback);
             },
             function shutdown_server_1(callback) {

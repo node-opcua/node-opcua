@@ -1,6 +1,6 @@
 /*global describe, it, require*/
 
-const assert = require("node-opcua-assert").assert;
+const { assert } = require("node-opcua-assert");
 const async = require("async");
 const should = require("should");
 
@@ -15,12 +15,12 @@ const DataType = opcua.DataType;
 const perform_operation_on_client_session = require("../../test_helpers/perform_operation_on_client_session").perform_operation_on_client_session;
 
 
-module.exports = function (test) {
+module.exports = function(test) {
 
 
-    describe("Testing bug #146 - reopenning Anonymous Session with Username password",function() {
+    describe("Testing bug #146 - reopenning Anonymous Session with Username password", function() {
 
-        it("should reopen a Anonymous Session with UserName password ",function(done) {
+        it("should reopen a Anonymous Session with UserName password ", function(done) {
 
             const client1 = OPCUAClient.create();
             const endpointUrl = test.endpointUrl;
@@ -28,14 +28,14 @@ module.exports = function (test) {
             let the_session;
             async.series([
 
-                function (callback) {
+                function(callback) {
                     client1.connect(endpointUrl, callback);
                 },
 
                 // create a session using client1
-                function (callback) {
+                function(callback) {
                     console.log("    create a session as a anonymous use");
-                    client1.createSession(function (err, session) {
+                    client1.createSession(function(err, session) {
                         if (err) {
                             return callback(err);
                         }
@@ -45,12 +45,12 @@ module.exports = function (test) {
                 },
 
                 // change user
-                function (callback) {
+                function(callback) {
 
                     console.log("    impersonate user user2 on existing session");
-                    const userIdentity = {userName: "user2", password:"password2"};
+                    const userIdentity = { userName: "user2", password: "password2" };
 
-                    client1.changeSessionIdentity(the_session,userIdentity,function (err) {
+                    client1.changeSessionIdentity(the_session, userIdentity, function(err) {
                         if (err) {
                             return callback(err);
                         }
@@ -58,12 +58,12 @@ module.exports = function (test) {
                     });
                 },
 
-                function (callback) {
+                function(callback) {
                     the_session.close(callback);
                 }
 
             ], function final(err) {
-                client1.disconnect(function () {
+                client1.disconnect(function() {
                     done(err);
                 });
             });

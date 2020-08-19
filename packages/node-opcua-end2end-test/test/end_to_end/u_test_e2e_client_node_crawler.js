@@ -1,7 +1,7 @@
 
 const chalk = require("chalk");
 const should = require("should");
-const assert = require("node-opcua-assert").assert;
+const { assert } = require("node-opcua-assert");
 const async = require("async");
 const _ = require("underscore");
 const util = require("util");

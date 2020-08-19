@@ -1,6 +1,6 @@
 /*global describe, it, require*/
 
-const assert = require("node-opcua-assert").assert;
+const { assert } = require("node-opcua-assert");
 const async = require("async");
 const should = require("should");
 
@@ -16,13 +16,13 @@ const ClientSubscription = opcua.ClientSubscription;
 const perform_operation_on_client_session = require("../../test_helpers/perform_operation_on_client_session").perform_operation_on_client_session;
 
 
-module.exports = function (test) {
+module.exports = function(test) {
 
 
-    describe("Testing bug #156 - monitoring a variable with a sampling rate which is faster that the time taken to acquire the variable value", function () {
+    describe("Testing bug #156 - monitoring a variable with a sampling rate which is faster that the time taken to acquire the variable value", function() {
 
 
-        it("test",function(done) {
+        it("test", function(done) {
 
             const server = test.server;
 
@@ -36,11 +36,11 @@ module.exports = function (test) {
                 browseName: "SlowVariable",
                 dataType: "UInt32",
                 value: {
-                    refreshFunc: function (callback) {
+                    refreshFunc: function(callback) {
                         // simulate a asynchronous behaviour
-                        setTimeout(function () {
+                        setTimeout(function() {
                             counter += 1;
-                            callback(null, new opcua.DataValue({value: { dataType: "UInt32", value: counter } }));
+                            callback(null, new opcua.DataValue({ value: { dataType: "UInt32", value: counter } }));
                         }, refreshRate);
                     }
                 }
@@ -53,13 +53,13 @@ module.exports = function (test) {
 
             async.series([
 
-                function (callback) {
+                function(callback) {
                     client1.connect(endpointUrl, callback);
                 },
 
                 // create a session using client1
-                function (callback) {
-                    client1.createSession(function (err, session) {
+                function(callback) {
+                    client1.createSession(function(err, session) {
                         if (err) {
                             return callback(err);
                         }
@@ -69,21 +69,21 @@ module.exports = function (test) {
                 },
 
 
-                function (callback) {
+                function(callback) {
 
                     const subscription = ClientSubscription.create(the_session, {
-                        requestedPublishingInterval:  150,
-                        requestedLifetimeCount:       10 * 60 * 10,
-                        requestedMaxKeepAliveCount:   10,
-                        maxNotificationsPerPublish:   2,
+                        requestedPublishingInterval: 150,
+                        requestedLifetimeCount: 10 * 60 * 10,
+                        requestedMaxKeepAliveCount: 10,
+                        maxNotificationsPerPublish: 2,
                         publishingEnabled: true,
                         priority: 6
                     });
 
-                    subscription.once("terminated", function () {
+                    subscription.once("terminated", function() {
                         //xx console.log("subscription terminated");
                     });
-                    subscription.once("started",function() {
+                    subscription.once("started", function() {
                         //xx console.log("publishingInterval",subscription.publishingInterval);
 
                     });
@@ -91,29 +91,29 @@ module.exports = function (test) {
 
                     const monitoredItem = opcua.ClientMonitoredItem.create(
                         subscription,
-                        {nodeId: slowVar.nodeId, attributeId: AttributeIds.Value},
+                        { nodeId: slowVar.nodeId, attributeId: AttributeIds.Value },
                         {
-                            samplingInterval: refreshRate/2, // sampling twice as fast as variable refresh rate
+                            samplingInterval: refreshRate / 2, // sampling twice as fast as variable refresh rate
                             discardOldest: true,
                             queueSize: 100
                         });
 
-                    monitoredItem.on("changed",function(dataValue){
+                    monitoredItem.on("changed", function(dataValue) {
                         //xx console.log("DataValue = ",dataValue.value.toString());
                     });
 
 
-                    setTimeout(function(){
+                    setTimeout(function() {
                         subscription.terminate(callback);
-                    },3000);
+                    }, 3000);
                 },
 
-                function (callback) {
+                function(callback) {
                     the_session.close(callback);
                 }
 
             ], function final(err) {
-                client1.disconnect(function () {
+                client1.disconnect(function() {
                     //xx console.log(" Client disconnected ",(err ? err.message : "null"));
                     done(err);
                 });

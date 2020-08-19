@@ -1,4 +1,4 @@
-const assert = require("node-opcua-assert").assert;
+const { assert } = require("node-opcua-assert");
 const path = require("path");
 const fs = require("fs");
 

@@ -1,6 +1,6 @@
 /*global describe, it, require*/
 
-const assert = require("node-opcua-assert").assert;
+const { assert } = require("node-opcua-assert");
 const async = require("async");
 const should = require("should");
 
@@ -8,17 +8,17 @@ const opcua = require("node-opcua");
 
 const OPCUAClient = opcua.OPCUAClient;
 const VariantArrayType = opcua.VariantArrayType;
-const DataType         = opcua.DataType;
+const DataType = opcua.DataType;
 const StatusCodes = opcua.StatusCodes;
 
 const perform_operation_on_client_session = require("../../test_helpers/perform_operation_on_client_session").perform_operation_on_client_session;
 
 
-module.exports = function (test) {
+module.exports = function(test) {
 
-    describe("Testing issue  #223 -  Demonstrating how to use call service from client", function () {
+    describe("Testing issue  #223 -  Demonstrating how to use call service from client", function() {
 
-        it("#223 - calling a method with one input argument", function (done) {
+        it("#223 - calling a method with one input argument", function(done) {
 
             const client1 = OPCUAClient.create();
             const endpointUrl = test.endpointUrl;
@@ -28,13 +28,13 @@ module.exports = function (test) {
 
             async.series([
 
-                function (callback) {
+                function(callback) {
                     client1.connect(endpointUrl, callback);
                 },
 
                 // create a session using client1
-                function (callback) {
-                    client1.createSession(function (err, session) {
+                function(callback) {
+                    client1.createSession(function(err, session) {
                         if (err) {
                             return callback(err);
                         }
@@ -46,16 +46,16 @@ module.exports = function (test) {
                 // ------------------------- Call method without arguments
 
 
-                function (callback) {
+                function(callback) {
 
-                    const path  = opcua.makeBrowsePath("RootFolder","/Objects/2:Simulation/2:ObjectWithMethods");
-                    the_session.translateBrowsePath(path,function(err,results){
+                    const path = opcua.makeBrowsePath("RootFolder", "/Objects/2:Simulation/2:ObjectWithMethods");
+                    the_session.translateBrowsePath(path, function(err, results) {
                         if (!err) {
-                            if (results.targets.length > 0){
+                            if (results.targets.length > 0) {
                                 objectWithMethodsNodeId = results.targets[0].targetId;
                             } else {
                                 // cannot find objectWithMethodNodeId
-                                console.log("cannot find objectWithMethods",results.toString());
+                                console.log("cannot find objectWithMethods", results.toString());
                                 err = new Error(" cannot find objectWithMethods");
                             }
                         }
@@ -64,15 +64,15 @@ module.exports = function (test) {
                 },
 
 
-                function (callback) {
-                    const path  = opcua.makeBrowsePath(objectWithMethodsNodeId,".2:MethodIO");
-                    the_session.translateBrowsePath(path,function(err,results) {
+                function(callback) {
+                    const path = opcua.makeBrowsePath(objectWithMethodsNodeId, ".2:MethodIO");
+                    the_session.translateBrowsePath(path, function(err, results) {
                         if (!err) {
-                            if (results.targets.length > 0){
+                            if (results.targets.length > 0) {
                                 methodIONodeId = results.targets[0].targetId;
                             } else {
                                 // cannot find objectWithMethodNodeId
-                                console.log("cannot find MethodIO",results.toString());
+                                console.log("cannot find MethodIO", results.toString());
                                 err = new Error(" cannot find MethodIO");
                             }
                         }
@@ -83,7 +83,7 @@ module.exports = function (test) {
                 },
                 // ------------------------- Call method
 
-                function (callback) {
+                function(callback) {
 
                     const methodsToCall = [];
                     methodsToCall.push({
@@ -92,10 +92,11 @@ module.exports = function (test) {
                         inputArguments: [{
                             dataType: DataType.UInt32,
                             arrayType: VariantArrayType.Scalar,
-                            value:  32 }
+                            value: 32
+                        }
                         ] //OK
                     });
-                    the_session.call(methodsToCall,function(err,results){
+                    the_session.call(methodsToCall, function(err, results) {
                         results.length.should.eql(1);
                         results[0].statusCode.should.eql(StatusCodes.Good);
                         ///xx console.log(results[0].toString());
@@ -103,12 +104,12 @@ module.exports = function (test) {
                     });
                 },
 
-                function (callback) {
+                function(callback) {
                     the_session.close(callback);
                 },
 
-                function (callback) {
-                    client1.disconnect(function () {
+                function(callback) {
+                    client1.disconnect(function() {
                         callback();
                     });
                 }
