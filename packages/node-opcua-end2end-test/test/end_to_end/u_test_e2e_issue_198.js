@@ -6,15 +6,15 @@ const opcua = require("node-opcua");
 const OPCUAClient = opcua.OPCUAClient;
 
 
-module.exports = function (test) {
+module.exports = function(test) {
 
 
-    describe("Testing server when client sessionName  is not defined   #198", function () {
+    describe("Testing server when client sessionName  is not defined   #198", function() {
 
         // as a server,
         // I need to receive an event when a new connection is established
 
-        it("#198 Server should handle client createSession without complaining if client's provided sessionName is null or undefined", function (done) {
+        it("#198 Server should handle client createSession without complaining if client's provided sessionName is null or undefined", function(done) {
 
             const server = test.server;
             let the_session;
@@ -31,13 +31,13 @@ module.exports = function (test) {
 
             async.series([
 
-                function (callback) {
+                function(callback) {
                     client1.connect(endpointUrl, callback);
                 },
 
                 // create a session using client1
-                function (callback) {
-                    client1.createSession(function (err, session) {
+                function(callback) {
+                    client1.createSession(function(err, session) {
                         if (err) {
                             return callback(err);
                         }
@@ -45,24 +45,24 @@ module.exports = function (test) {
                         callback();
                     });
                 },
-                function (callback) {
+                function(callback) {
                     the_session.close(callback);
                 },
 
-                function (callback) {
-                    client1.disconnect(function () {
+                function(callback) {
+                    client1.disconnect(function() {
                         //xx console.log(" Client disconnected ", (err ? err.message : "null"));
 
                         callback();
                     });
-                },function(callback) {
+                }, function(callback) {
 
                     callback();
                 }
             ], done);
 
         })
-        ;
+            ;
 
     });
 

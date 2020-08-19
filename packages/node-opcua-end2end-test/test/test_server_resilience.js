@@ -16,34 +16,34 @@ const empty_nodeset_filename = opcua.get_empty_nodeset_filename();
 
 
 
-const ServerSideUnimplementedRequest  =require("../test_helpers/unimplementedRequest").ServerSideUnimplementedRequest;
+const ServerSideUnimplementedRequest = require("../test_helpers/unimplementedRequest").ServerSideUnimplementedRequest;
 
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 
-describe("testing Server resilience to unsupported request", function () {
+describe("testing Server resilience to unsupported request", function() {
     let server, client;
     let endpointUrl, g_session;
 
 
     this.timeout(Math.max(20000, this.timeout()));
 
-    before(function (done) {
+    before(function(done) {
 
-        server = new OPCUAServer({port: 2000, nodeset_filename: empty_nodeset_filename});
+        server = new OPCUAServer({ port: 2000, nodeset_filename: empty_nodeset_filename });
 
         client = OPCUAClient.create();
 
-        server.start(function () {
+        server.start(function() {
 
             // we will connect to first server end point
             endpointUrl = server.endpoints[0].endpointDescriptions()[0].endpointUrl;
             debugLog("endpointUrl", endpointUrl);
             opcua.is_valid_endpointUrl(endpointUrl).should.equal(true);
 
-            setImmediate(function () {
-                client.connect(endpointUrl, function (err) {
+            setImmediate(function() {
+                client.connect(endpointUrl, function(err) {
                     should.not.exist(err);
-                    client.createSession(function (err, session) {
+                    client.createSession(function(err, session) {
                         should.not.exist(err);
                         g_session = session;
                         done();
@@ -53,20 +53,20 @@ describe("testing Server resilience to unsupported request", function () {
         });
     });
 
-    after(function (done) {
-        client.disconnect(function () {
-            server.shutdown(function () {
+    after(function(done) {
+        client.disconnect(function() {
+            server.shutdown(function() {
                 done();
             });
         });
 
     });
 
-    it("server should return a ServiceFault if receiving a unsupported MessageType", function (done) {
+    it("server should return a ServiceFault if receiving a unsupported MessageType", function(done) {
 
         const bad_request = new ServerSideUnimplementedRequest(); // intentionally send a bad request
 
-        g_session.performMessageTransaction(bad_request, function (err, response) {
+        g_session.performMessageTransaction(bad_request, function(err, response) {
             err.should.be.instanceOf(Error);
             done();
         });
@@ -79,50 +79,50 @@ function abrupty_disconnect_client(client, callback) {
 
 }
 
-describe("testing Server resilience with bad internet connection", function () {
+describe("testing Server resilience with bad internet connection", function() {
     let server, client;
     let endpointUrl;
 
     this.timeout(Math.max(20000, this.timeout()));
 
-    before(function (done) {
+    before(function(done) {
 
-        server = new OPCUAServer({port: 2000, nodeset_filename: empty_nodeset_filename});
+        server = new OPCUAServer({ port: 2000, nodeset_filename: empty_nodeset_filename });
         server.start((err) => {
             endpointUrl = server.endpoints[0].endpointDescriptions()[0].endpointUrl;
             done(err);
         });
     });
 
-    after(function (done) {
+    after(function(done) {
         server.shutdown(done);
     });
 
-    it("server should discard session from abruptly disconnected client after the timeout has expired", function (done) {
+    it("server should discard session from abruptly disconnected client after the timeout has expired", function(done) {
 
         // ask for a very short session timeout
-        client = OPCUAClient.create({requestedSessionTimeout: 200});
+        client = OPCUAClient.create({ requestedSessionTimeout: 200 });
 
         let the_session;
 
         async.series([
             // assert that server has 0 session
-            function (callback) {
+            function(callback) {
                 server.currentSessionCount.should.eql(0);
                 callback();
             },
 
             // connect
-            function (callback) {
+            function(callback) {
 
-                client.connect(endpointUrl, function (err) {
+                client.connect(endpointUrl, function(err) {
                     callback(err);
                 });
             },
 
             // create session
-            function (callback) {
-                client.createSession(function (err, session) {
+            function(callback) {
+                client.createSession(function(err, session) {
                     if (!err) {
                         the_session = session;
                         the_session.timeout.should.eql(client.requestedSessionTimeout);
@@ -132,32 +132,32 @@ describe("testing Server resilience with bad internet connection", function () {
             },
 
             // assert that server has 1 sessions
-            function (callback) {
+            function(callback) {
                 server.currentSessionCount.should.eql(1);
                 callback();
             },
 
-            function (callback) {
+            function(callback) {
                 abrupty_disconnect_client(client, callback);
             },
 
             // assert that server has 1 sessions
-            function (callback) {
+            function(callback) {
                 server.currentSessionCount.should.eql(1);
                 callback();
             },
 
             // wait for time out
-            function (callback) {
+            function(callback) {
                 setTimeout(callback, 4000);
             },
 
             // assert that server has no more session
-            function (callback) {
+            function(callback) {
                 server.currentSessionCount.should.eql(0);
                 callback();
             },
-            function (callback) {
+            function(callback) {
                 client.disconnect(callback);
             }
 

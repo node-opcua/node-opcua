@@ -54,7 +54,7 @@ const f = require("../../test_helpers/display_function_name").f.bind(null, doDeb
 
 
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
-describe("KJH1 testing basic Client-Server communication", function () {
+describe("KJH1 testing basic Client-Server communication", function() {
 
     let server, client, temperatureVariableId, endpointUrl;
 
@@ -63,15 +63,15 @@ describe("KJH1 testing basic Client-Server communication", function () {
 
 
 
-    before(function (done) {
-        server = build_server_with_temperature_device({ port: port }, function (err) {
+    before(function(done) {
+        server = build_server_with_temperature_device({ port: port }, function(err) {
             endpointUrl = server.endpoints[0].endpointDescriptions()[0].endpointUrl;
             temperatureVariableId = server.temperatureVariableId;
             done(err);
         });
     });
 
-    beforeEach(function (done) {
+    beforeEach(function(done) {
 
         // use fail fast connectionStrategy
         const options = {
@@ -79,49 +79,49 @@ describe("KJH1 testing basic Client-Server communication", function () {
             endpoint_must_exist: false
         };
         client = OPCUAClient.create(options);
-        client.on("connection_reestablished", function () {
+        client.on("connection_reestablished", function() {
             debugLog(chalk.bgWhite.black(" !!!!!!!!!!!!!!!!!!!!!!!!  CONNECTION RE-ESTABLISHED !!!!!!!!!!!!!!!!!!!"));
         });
-        client.on("backoff", function (number, delay) {
+        client.on("backoff", function(number, delay) {
             debugLog(chalk.bgWhite.yellow("backoff  attempt #"), number, " retrying in ", delay / 1000.0, " seconds");
         });
-        client.on("start_reconnection", function () {
+        client.on("start_reconnection", function() {
             debugLog(chalk.bgWhite.black(" !!!!!!!!!!!!!!!!!!!!!!!!  Starting Reconnection !!!!!!!!!!!!!!!!!!!"));
         });
         done();
     });
 
-    afterEach(function (done) {
-        client.disconnect(function (err) {
+    afterEach(function(done) {
+        client.disconnect(function(err) {
             client = null;
             done(err);
         });
     });
 
-    after(function (done) {
+    after(function(done) {
         should.not.exist(client, "client still running");
-        server.shutdown(function (err) {
+        server.shutdown(function(err) {
             done(err);
         });
     });
 
 
-    it("T1 - a client should connect to a server and disconnect ", function (done) {
+    it("T1 - a client should connect to a server and disconnect ", function(done) {
 
         server.currentChannelCount.should.equal(0);
 
         client.protocolVersion = 0;
 
         async.series([
-            function (callback) {
+            function(callback) {
                 client.connect(endpointUrl, callback);
             },
-            function (callback) {
+            function(callback) {
                 server.currentChannelCount.should.equal(1);
                 client.disconnect(callback);
             }
 
-        ], function (err) {
+        ], function(err) {
             setImmediate(() => {
                 server.currentChannelCount.should.equal(0);
                 done(err);
@@ -130,16 +130,16 @@ describe("KJH1 testing basic Client-Server communication", function () {
 
     });
 
-    it("T2 - a server should not accept a connection when the protocol version is incompatible", function (done) {
+    it("T2 - a server should not accept a connection when the protocol version is incompatible", function(done) {
 
         client.protocolVersion = 0xDEADBEEF; // set a invalid protocol version
         server.currentChannelCount.should.equal(0);
 
         async.series([
-            function (callback) {
+            function(callback) {
                 debugLog(" connect");
 
-                client.connect(endpointUrl, function (err) {
+                client.connect(endpointUrl, function(err) {
 
                     debugLog(chalk.yellow.bold(" Error ="), err);
 
@@ -147,52 +147,52 @@ describe("KJH1 testing basic Client-Server communication", function () {
 
                 });
             }
-        ], function (err) {
+        ], function(err) {
             server.currentChannelCount.should.equal(0);
             done(err);
         });
 
     });
 
-    it("T3 - a client shall be able to create a session with a anonymous token", function (done) {
+    it("T3 - a client shall be able to create a session with a anonymous token", function(done) {
 
         server.currentChannelCount.should.equal(0);
 
         let g_session;
         async.series([
-            function (callback) {
+            function(callback) {
                 debugLog(" connect");
-                client.connect(endpointUrl, function (err) {
+                client.connect(endpointUrl, function(err) {
                     debugLog(chalk.yellow.bold(" Error ="), err);
                     callback(err);
                 });
             },
-            function (callback) {
+            function(callback) {
                 debugLog(" createSession");
-                client.createSession(function (err, session) {
+                client.createSession(function(err, session) {
                     g_session = session;
                     debugLog(chalk.yellow.bold(" Error ="), err);
                     callback(err);
                 });
 
             },
-            function (callback) {
+            function(callback) {
                 debugLog("closing session");
                 g_session.close(callback);
             },
-            function (callback) {
+            function(callback) {
                 debugLog("Disconnecting client");
                 client.disconnect(callback);
             },
-            function (callback) {
+            function(callback) {
                 // relax a little bit so that server can complete pending operations
                 setImmediate(callback);
             },
-            function (callback) {
+            function(callback) {
                 // relax a little bit so that server can complete pending operations
                 setImmediate(callback);
             }
-        ], function (err) {
+        ], function(err) {
 
             debugLog("finally");
             server.currentChannelCount.should.equal(0);
@@ -202,7 +202,7 @@ describe("KJH1 testing basic Client-Server communication", function () {
 
     });
 
-    it("T4 - a client shall be able to reconnect if the first connection has failed", function (done) {
+    it("T4 - a client shall be able to reconnect if the first connection has failed", function(done) {
 
         server.currentChannelCount.should.equal(0);
 
@@ -212,26 +212,26 @@ describe("KJH1 testing basic Client-Server communication", function () {
         const bad_endpointUrl = "opc.tcp://" + "localhost" + ":" + unused_port;
 
         async.series([
-            function (callback) {
-                client.connect(bad_endpointUrl, function (err) {
+            function(callback) {
+                client.connect(bad_endpointUrl, function(err) {
                     err.message.should.match(/connect ECONNREFUSED/);
                     callback();
                 });
             },
-            function (callback) {
-                client.connect(endpointUrl, function (err) {
+            function(callback) {
+                client.connect(endpointUrl, function(err) {
                     //xx assert(!err);
                     callback(err);
                 });
             },
-            function (callback) {
+            function(callback) {
                 client.disconnect(callback);
             }
         ], done);
 
     });
 
-    it("T5 - a client shall be able to connect & disconnect many times", function (done) {
+    it("T5 - a client shall be able to connect & disconnect many times", function(done) {
 
         server.currentChannelCount.should.equal(0);
 
@@ -241,50 +241,50 @@ describe("KJH1 testing basic Client-Server communication", function () {
 
         async.series([
 
-            function (callback) {
+            function(callback) {
                 client.connect(endpointUrl, callback);
             },
-            function (callback) {
+            function(callback) {
                 server.currentChannelCount.should.equal(1);
                 callback();
             },
-            function (callback) {
+            function(callback) {
                 client.disconnect(callback);
             },
             relax_for_a_little_while,
-            function (callback) {
+            function(callback) {
                 server.currentChannelCount.should.equal(0);
                 callback();
             },
 
-            function (callback) {
+            function(callback) {
                 client.connect(endpointUrl, callback);
             },
-            function (callback) {
+            function(callback) {
                 server.currentChannelCount.should.equal(1);
                 callback();
             },
-            function (callback) {
+            function(callback) {
                 client.disconnect(callback);
             },
             relax_for_a_little_while,
-            function (callback) {
+            function(callback) {
                 server.currentChannelCount.should.equal(0);
                 callback();
             },
 
-            function (callback) {
+            function(callback) {
                 client.connect(endpointUrl, callback);
             },
-            function (callback) {
+            function(callback) {
                 server.currentChannelCount.should.equal(1);
                 callback();
             },
-            function (callback) {
+            function(callback) {
                 client.disconnect(callback);
             },
             relax_for_a_little_while,
-            function (callback) {
+            function(callback) {
                 server.currentChannelCount.should.equal(0);
                 callback();
             }
@@ -293,7 +293,7 @@ describe("KJH1 testing basic Client-Server communication", function () {
 
     });
 
-    it("T6 - a client shall raise an error when trying to create a session on an invalid endpoint", function (done) {
+    it("T6 - a client shall raise an error when trying to create a session on an invalid endpoint", function(done) {
 
         // this is explained here : see OPCUA Part 4 Version 1.02 $5.4.1 page 12:
         //   A  Client  shall verify the  HostName  specified in the  Server Certificate  is the same as the  HostName
@@ -301,45 +301,45 @@ describe("KJH1 testing basic Client-Server communication", function () {
         //   Client  shall report the difference and may close the  SecureChannel.
         async.series([
 
-            function (callback) {
+            function(callback) {
                 client.endpoint_must_exist = true;
                 client.connect(endpointUrl + "/somecrap", callback);
             },
 
-            function (callback) {
-                client.createSession(function (err, session) {
+            function(callback) {
+                client.createSession(function(err, session) {
                     should.not.exist(session);
                     should.exist(err);
                     callback(err ? null : new Error("Expecting a failure"));
                 });
             },
 
-            function (callback) {
+            function(callback) {
                 client.disconnect(callback);
             }
 
         ], done);
 
     });
-    it("T7 - calling connect on the client twice shall return a error the second time", function (done) {
+    it("T7 - calling connect on the client twice shall return a error the second time", function(done) {
         server.currentChannelCount.should.equal(0);
 
         client.protocolVersion = 0;
 
         async.series([
-            function (callback) {
+            function(callback) {
                 client.connect(endpointUrl, callback);
             },
-            function (callback) {
+            function(callback) {
 
-                client.connect(endpointUrl, function (err) {
+                client.connect(endpointUrl, function(err) {
 
                     err.should.be.instanceOf(Error);
 
                     callback();
                 });
             },
-            function (callback) {
+            function(callback) {
                 client.disconnect(callback);
             }
         ], done);
@@ -347,7 +347,7 @@ describe("KJH1 testing basic Client-Server communication", function () {
 
 });
 
-describe("KJH2 testing ability for client to reconnect when server close connection", function () {
+describe("KJH2 testing ability for client to reconnect when server close connection", function() {
 
     this.timeout(Math.max(60000, this.timeout()));
 
@@ -372,7 +372,7 @@ describe("KJH2 testing ability for client to reconnect when server close connect
 
     function start_demo_server(done) {
 
-        server = build_server_with_temperature_device({ port: port }, function (err) {
+        server = build_server_with_temperature_device({ port: port }, function(err) {
 
             if (err) {
                 console.log(err.message);
@@ -391,7 +391,7 @@ describe("KJH2 testing ability for client to reconnect when server close connect
                     dataType: "UInt32",
                     value: new Variant({ dataType: opcua.DataType.UInt32, value: c })
                 });
-                timerId = setInterval(function () {
+                timerId = setInterval(function() {
                     c = c + 1;
                     counterNode.setValueFromSource(new Variant({ dataType: "UInt32", value: c }), StatusCodes.Good);
                 }, 100);
@@ -408,7 +408,7 @@ describe("KJH2 testing ability for client to reconnect when server close connect
             clearInterval(timerId);
             timerId = null;
         }
-        server.shutdown(function (err) {
+        server.shutdown(function(err) {
             server = null;
             done(err);
         });
@@ -433,7 +433,7 @@ describe("KJH2 testing ability for client to reconnect when server close connect
     }
 
     function wait_for(duration, done) {
-        setTimeout(function () {
+        setTimeout(function() {
             done();
         }, duration);
     }
@@ -451,10 +451,10 @@ describe("KJH2 testing ability for client to reconnect when server close connect
     let backoff_counter = 0;
     let requestedSessionTimeout = 30000;
 
-    beforeEach(function () {
+    beforeEach(function() {
         requestedSessionTimeout = 30000;
     });
-    afterEach(function (done) {
+    afterEach(function(done) {
         should.not.exist(client, "client must have been disposed");
         done();
     });
@@ -479,7 +479,7 @@ describe("KJH2 testing ability for client to reconnect when server close connect
 
         client = OPCUAClient.create(options);
 
-        client.on("keepalive", function () {
+        client.on("keepalive", function() {
             debugLog("keep alive");
         });
         client_has_received_close_event = 0;
@@ -487,34 +487,34 @@ describe("KJH2 testing ability for client to reconnect when server close connect
         client_has_received_connection_reestablished_event = 0;
         client_has_received_connection_lost_event = 0;
 
-        client.on("close", function (err) {
+        client.on("close", function(err) {
             if (err) {
                 //xx console.log("err=", err.message);
             }
             client_has_received_close_event += 1;
         });
 
-        client.on("start_reconnection", function () {
+        client.on("start_reconnection", function() {
             client_has_received_start_reconnection_event += 1;
             debugLog(chalk.whiteBright(" !!!!!!!!!!!!!!!!!!!!!!!!  Starting Reconnection !!!!!!!!!!!!!!!!!!!"));
             debugLog("starting reconnection");
         });
-        client.on("backoff", function (number, delay) {
+        client.on("backoff", function(number, delay) {
             debugLog(chalk.bgWhite.yellow("backoff  attempt #"), number, " retrying in ", delay / 1000.0, " seconds");
             backoff_counter += 1;
         });
-        client.on("connection_reestablished", function () {
+        client.on("connection_reestablished", function() {
             client_has_received_connection_reestablished_event += 1;
             debugLog(chalk.whiteBright(" !!!!!!!!!!!!!!!!!!!!!!!!  CONNECTION RE-ESTABLISHED !!!!!!!!!!!!!!!!!!!"));
         });
-        client.on("connection_lost", function () {
+        client.on("connection_lost", function() {
             client_has_received_connection_lost_event += 1;
             debugLog(chalk.whiteBright(" !!!!!!!!!!!!!!!!!!!!!!!!  CONNECTION LOST !!!!!!!!!!!!!!!!!!!"));
         });
 
-        trustClientCertificateOnServer(client, server, function () {
+        trustClientCertificateOnServer(client, server, function() {
 
-            client.connect(endpointUrl, function (err) {
+            client.connect(endpointUrl, function(err) {
                 if (!_options.doNotWaitForConnection) {
                     done(err);
                 }
@@ -551,8 +551,8 @@ describe("KJH2 testing ability for client to reconnect when server close connect
 
     function verify_that_client_fails_to_connect(connectivity_strategy, done) {
 
-        create_client_and_create_a_connection_to_server({}, connectivity_strategy, function (err) {
-            disconnect_client(function () {
+        create_client_and_create_a_connection_to_server({}, connectivity_strategy, function(err) {
+            disconnect_client(function() {
                 done(err ? null : new Error("Expecting an error here"));
             });
         });
@@ -586,7 +586,7 @@ describe("KJH2 testing ability for client to reconnect when server close connect
     function verify_that_client_is_trying_to_connect(done) {
 
         // wait a little bit and check that client has started the reconnection process
-        setTimeout(function () {
+        setTimeout(function() {
             try {
                 client.isReconnecting.should.eql(true, "verify_that_client_is_trying_to_reconnect");
             } catch (err) {
@@ -605,7 +605,7 @@ describe("KJH2 testing ability for client to reconnect when server close connect
         if (!client) {
             return done();
         }
-        setImmediate(function () {
+        setImmediate(function() {
             try {
                 client.isReconnecting.should.eql(false, "verify_that_client_is_NOT_trying_to_reconnect");
             } catch (err) {
@@ -616,7 +616,7 @@ describe("KJH2 testing ability for client to reconnect when server close connect
     }
 
     function wait_for_reconnection_to_be_completed(done) {
-        client.once("after_reconnection", function () {
+        client.once("after_reconnection", function() {
             done();
         });
     }
@@ -632,7 +632,7 @@ describe("KJH2 testing ability for client to reconnect when server close connect
     }
 
 
-    it("TR1 - should be possible to reconnect client after the server closed the connection", function (done) {
+    it("TR1 - should be possible to reconnect client after the server closed the connection", function(done) {
 
         // steps:
         //  -     Given a running demo server
@@ -673,12 +673,12 @@ describe("KJH2 testing ability for client to reconnect when server close connect
             f(verify_that_server_has_no_active_channel),
             f(shutdown_server)
 
-        ], function (err) {
+        ], function(err) {
             done(err);
         });
     });
 
-    it("TR2 - a client should be able to reconnect automatically to the server when the server restarts after a server failure", function (done) {
+    it("TR2 - a client should be able to reconnect automatically to the server when the server restarts after a server failure", function(done) {
 
         // steps:
         //  -     Given a running demo server
@@ -715,12 +715,12 @@ describe("KJH2 testing ability for client to reconnect when server close connect
             f(disconnect_client),
             f(verify_that_server_has_no_active_channel),
             f(shutdown_server)
-        ], function (err) {
+        ], function(err) {
             done(err);
         });
     });
 
-    it("TR2a - a client should be able to reconnect automatically to the server when the server restarts after a server failure", function (done) {
+    it("TR2a - a client should be able to reconnect automatically to the server when the server restarts after a server failure", function(done) {
 
         async.series([
             f(start_demo_server),
@@ -743,7 +743,7 @@ describe("KJH2 testing ability for client to reconnect when server close connect
 
 
             // reset client reconnection event counter
-            function (callback) {
+            function(callback) {
                 client_has_received_start_reconnection_event = 0;
                 callback();
             },
@@ -767,12 +767,12 @@ describe("KJH2 testing ability for client to reconnect when server close connect
             f(disconnect_client),
             f(verify_that_server_has_no_active_channel),
             f(shutdown_server)
-        ], function (err) {
+        ], function(err) {
             done(err);
         });
     });
 
-    it("TR3 - it should be possible to disconnect a client which is in the middle a reconnection sequence", function (done) {
+    it("TR3 - it should be possible to disconnect a client which is in the middle a reconnection sequence", function(done) {
         async.series([
             f(start_demo_server),
             // use robust connectionStrategy
@@ -787,16 +787,16 @@ describe("KJH2 testing ability for client to reconnect when server close connect
             f(wait_a_little_while),
             f(verify_that_client_is_NOT_trying_to_reconnect)
 
-        ], function (err) {
+        ], function(err) {
             done(err);
         });
 
 
     });
 
-    it("TR4 - it should be possible to disconnect a client which is attempting to establish it's first connection to a unavailable server", function (done) {
+    it("TR4 - it should be possible to disconnect a client which is attempting to establish it's first connection to a unavailable server", function(done) {
         async.series([
-            function (callback) {
+            function(callback) {
                 endpointUrl = "opc.tcp://localhost:11111"; // uri of an unavailable opcua server
                 callback();
             },
@@ -810,7 +810,7 @@ describe("KJH2 testing ability for client to reconnect when server close connect
             f(verify_that_client_is_NOT_trying_to_reconnect),
             f(wait_a_little_while),
             f(verify_that_client_is_NOT_trying_to_reconnect)
-        ], function (err) {
+        ], function(err) {
             done(err);
         });
 
@@ -820,7 +820,7 @@ describe("KJH2 testing ability for client to reconnect when server close connect
     let the_session = null;
 
     function client_create_and_activate_session(callback) {
-        client.createSession(function (err, session) {
+        client.createSession(function(err, session) {
             if (!err) {
                 the_session = session;
                 ///xx console.log("session timeout = ",the_session.timeout," ms");
@@ -841,7 +841,7 @@ describe("KJH2 testing ability for client to reconnect when server close connect
             publishingEnabled: true,
             priority: 6
         });
-        subscription.once("started", function () {
+        subscription.once("started", function() {
             callback();
         });
     }
@@ -849,7 +849,7 @@ describe("KJH2 testing ability for client to reconnect when server close connect
     function terminate_subscription(callback) {
 
         //xx console.log(" subscription.publish_engine.subscriptionCount", subscription.publish_engine.subscriptionCount);
-        subscription.on("terminated", function () {
+        subscription.on("terminated", function() {
             //xx console.log(" subscription.publish_engine.subscriptionCount", subscription.publish_engine.subscriptionCount);
         });
         subscription.terminate(callback);
@@ -883,12 +883,12 @@ describe("KJH2 testing ability for client to reconnect when server close connect
                 queueSize: 1000
             });
 
-        monitoredItem.once("initialized", function () {
+        monitoredItem.once("initialized", function() {
             //xx console.log("monitoredItem.monitoringParameters.samplingInterval",monitoredItem.monitoringParameters.samplingInterval);//);
             callback();
         });
 
-        monitoredItem.on("changed", function (dataValue) {
+        monitoredItem.on("changed", function(dataValue) {
             if (doDebug) {
                 console.log(" client ", " received value change ", dataValue.value.toString());
             }
@@ -897,14 +897,14 @@ describe("KJH2 testing ability for client to reconnect when server close connect
     }
 
     function wait_until_next_notification(done) {
-        monitoredItem.once("changed", function (dataValue) {
+        monitoredItem.once("changed", function(dataValue) {
             setTimeout(done, 1);
         });
     }
 
     let previous_value_count = 0;
 
-    afterEach(function () {
+    afterEach(function() {
         if (monitoredItem) {
             monitoredItem.removeAllListeners();
             monitoredItem = null;
@@ -920,7 +920,7 @@ describe("KJH2 testing ability for client to reconnect when server close connect
 
     function ensure_continuous(callback) {
         // ensure we have more value than previous call
-        wait_until_next_notification(function () {
+        wait_until_next_notification(function() {
 
             // ensure that series is continuous
             if (doDebug) {
@@ -1002,7 +1002,7 @@ describe("KJH2 testing ability for client to reconnect when server close connect
             " =>  _life_time_counter = ", subscription._life_time_counter, subscription.lifeTimeCount);
         subscription._life_time_counter = subscription.lifeTimeCount - 1;
 
-        subscription.once("terminated", function () {
+        subscription.once("terminated", function() {
             setImmediate(callback);
         });
     }
@@ -1030,7 +1030,7 @@ describe("KJH2 testing ability for client to reconnect when server close connect
         // in this case, the server drops all Subscriptions due to max lifetime count exhausted.
     }
 
-    it("TR4 - verify that server can suspend socket connection - useful for testing purposes", function (done) {
+    it("TR4 - verify that server can suspend socket connection - useful for testing purposes", function(done) {
 
 
         async.series([
@@ -1050,13 +1050,13 @@ describe("KJH2 testing ability for client to reconnect when server close connect
             f(disconnect_client),
 
             f(shutdown_server)
-        ], function (err) {
+        ], function(err) {
             done(err);
         });
 
     });
 
-    it("TR5 -a client with some active monitoring items should be able to seamlessly reconnect after a connection break - and retrieve missed notification without lost ( Republish)", function (done) {
+    it("TR5 -a client with some active monitoring items should be able to seamlessly reconnect after a connection break - and retrieve missed notification without lost ( Republish)", function(done) {
 
         async.series([
             f(start_demo_server),
@@ -1089,13 +1089,13 @@ describe("KJH2 testing ability for client to reconnect when server close connect
             f(terminate_subscription),
             f(disconnect_client),
             f(shutdown_server)
-        ], function (err) {
+        ], function(err) {
             done(err);
         });
 
     });
 
-    it("TR6 -  a client with some active monitoring items should be able to seamlessly reconnect after a very long connection break exceeding subscription lifetime", function (done) {
+    it("TR6 -  a client with some active monitoring items should be able to seamlessly reconnect after a very long connection break exceeding subscription lifetime", function(done) {
 
         // a client with some active monitoring items should be able to seamlessly reconnect
         // after a very long connection break exceeding subscription lifetime.
@@ -1144,17 +1144,17 @@ describe("KJH2 testing ability for client to reconnect when server close connect
 
             f(disconnect_client),
             f(shutdown_server)
-        ], function (err) {
+        ], function(err) {
             done(err);
         });
     });
 
-    xit("TR7 -  a client with some active monitored items should be able to reconnect seamlessly after a very long connection break exceeding session life time", function (done) {
+    xit("TR7 -  a client with some active monitored items should be able to reconnect seamlessly after a very long connection break exceeding session life time", function(done) {
         // to do
         async.series([], done);
     });
 
-    it("TR8 -  disconnecting during connect", function (done) {
+    it("TR8 -  disconnecting during connect", function(done) {
 
 
         // Given a client that has a infinite connection retry strategy,
@@ -1177,19 +1177,19 @@ describe("KJH2 testing ability for client to reconnect when server close connect
         const options = { connectionStrategy: infinite_connectivity_strategy };
         client = OPCUAClient.create(options);
 
-        client.on("close", function (err) {
+        client.on("close", function(err) {
             if (err) {
                 console.log("err=", err.message);
             }
             client_has_received_close_event += 1;
         });
 
-        client.on("start_reconnection", function () {
+        client.on("start_reconnection", function() {
             client_has_received_start_reconnection_event += 1;
         });
 
         let backoff_event_counter = 0;
-        client.on("backoff", function () {
+        client.on("backoff", function() {
             backoff_event_counter += 1;
         });
 
@@ -1201,7 +1201,7 @@ describe("KJH2 testing ability for client to reconnect when server close connect
         // passed to the client#connect method not to be called.
         let connect_done = false;
         let connect_err = null;
-        client.connect(endpointUrl, function (err) {
+        client.connect(endpointUrl, function(err) {
 
             connect_err = err;
             //xx console.log("client.connect(err) err = ",err);
@@ -1213,22 +1213,22 @@ describe("KJH2 testing ability for client to reconnect when server close connect
         async.series([
 
             // Wait until backoff is raised several times
-            function (callback) {
-                client.once("backoff", function (/*number,delay*/) {
+            function(callback) {
+                client.once("backoff", function(/*number,delay*/) {
                     callback();
                 });
             },
-            function (callback) {
-                client.once("backoff", function (/*number,delay*/) {
+            function(callback) {
+                client.once("backoff", function(/*number,delay*/) {
                     callback();
                 });
             },
-            function (callback) {
-                client.once("backoff", function (/*number,delay*/) {
+            function(callback) {
+                client.once("backoff", function(/*number,delay*/) {
                     callback();
                 });
             },
-            function (callback) {
+            function(callback) {
 
                 backoff_event_counter.should.be.greaterThan(2);
                 // client should be still trying to connect
@@ -1237,7 +1237,7 @@ describe("KJH2 testing ability for client to reconnect when server close connect
                 //  When client#disconnect is called
                 client_has_received_close_event.should.eql(0);
 
-                client.disconnect(function (err) {
+                client.disconnect(function(err) {
 
                     client_has_received_close_event.should.eql(1);
                     // connect callback should have been called...
@@ -1249,7 +1249,7 @@ describe("KJH2 testing ability for client to reconnect when server close connect
                 });
             },
             f(wait_a_little_while),
-            function (callback) {
+            function(callback) {
                 client_has_received_close_event.should.eql(1);
                 // backoff must be terminated now
                 count_ref.should.eql(backoff_event_counter);
@@ -1259,7 +1259,7 @@ describe("KJH2 testing ability for client to reconnect when server close connect
 
     });
 
-    it("TR9 -  disconnecting during reconnect", function (done) {
+    it("TR9 -  disconnecting during reconnect", function(done) {
         // Given a client that has a infinite connection retry strategy,
         //   And the client has a lived connection with a server
         //   And that the connection has dropped ( backoff stragety taking place)
@@ -1297,7 +1297,7 @@ describe("KJH2 testing ability for client to reconnect when server close connect
 
     });
 
-    it("TR10 -  a client should notify that the reconnection attempt is taking place with an event", function (done) {
+    it("TR10 -  a client should notify that the reconnection attempt is taking place with an event", function(done) {
         // Given a client and a server with an established connection
         // When the connection link dropped
         // Then the client shall raise an event to indicate that the reconnection process is now taking place.
@@ -1366,22 +1366,22 @@ describe("KJH2 testing ability for client to reconnect when server close connect
 
             f(disconnect_client),
             f(shutdown_server)
-        ], function (err) {
+        ], function(err) {
             done(err);
         });
     }
 
-    it("TR11-a -  a client with active monitoring should be able to reconnect after a EPIPE connection break cause local socket end has been shut down - no security ", function (done) {
+    it("TR11-a -  a client with active monitoring should be able to reconnect after a EPIPE connection break cause local socket end has been shut down - no security ", function(done) {
         test_1({ securityMode: opcua.MessageSecurityMode.None, securityPolicy: opcua.SecurityPolicy.Node }, done);
     });
-    it("TR11-b -  a client with active monitoring should be able to reconnect after a EPIPE connection break cause local socket end has been shut down - with secure channel (#390)", function (done) {
+    it("TR11-b -  a client with active monitoring should be able to reconnect after a EPIPE connection break cause local socket end has been shut down - with secure channel (#390)", function(done) {
         test_1({
             securityMode: opcua.MessageSecurityMode.SignAndEncrypt,
             securityPolicy: opcua.SecurityPolicy.Basic256Sha256
         }, done);
     });
 
-    it("TR12 -  a client with active monitored item should be able to reconnect and transfer subscriptions when session timeout", function (done) {
+    it("TR12 -  a client with active monitored item should be able to reconnect and transfer subscriptions when session timeout", function(done) {
 
         const requestedSessionTimeout = 5000;
 
@@ -1418,7 +1418,7 @@ describe("KJH2 testing ability for client to reconnect when server close connect
 
             f(disconnect_client),
             f(shutdown_server)
-        ], function (err) {
+        ], function(err) {
             if (!err && server) {
                 server.engine.currentSessionCount.should.eql(0);
             }
@@ -1428,7 +1428,7 @@ describe("KJH2 testing ability for client to reconnect when server close connect
     });
 
 
-    xit("TR13 - a connected client shall be able to detect when a server has shut down and shall reconnect when server restarts", function (done) {
+    xit("TR13 - a connected client shall be able to detect when a server has shut down and shall reconnect when server restarts", function(done) {
 
         async.series([
             f(start_demo_server),

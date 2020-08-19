@@ -8,7 +8,7 @@ const UserTokenPolicy = opcua.UserTokenPolicy;
 // require("node-opcua-service-session").UserNameIdentityToken;
 
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
-describe("Testing bug #574", function () {
+describe("Testing bug #574", function() {
 
     const port = 2222;
     let server = null;
@@ -18,15 +18,15 @@ describe("Testing bug #574", function () {
 
         server = new opcua.OPCUAServer({
             port,
-            securityModes: [ opcua.MessageSecurityMode.None],
+            securityModes: [opcua.MessageSecurityMode.None],
             securityPolicies: [opcua.SecurityPolicy.None],
             userManager: {
-                isValidUser: (username , password) =>
-                  (username === "user1" && password === "password1")
+                isValidUser: (username, password) =>
+                    (username === "user1" && password === "password1")
             }
         });
 
-        server.start((err)=> {
+        server.start((err) => {
             // note: Some OPCUA servers (such as Softing) allow user token policies that
             //       send password in clear text on the TCP unencrypted channel.
             //       This behavior is not recommended by the OPCUA specification but
@@ -56,10 +56,10 @@ describe("Testing bug #574", function () {
         server.shutdown(done);
     });
 
-    it("should create a aession with user/password on unsecure connection", function (done) {
+    it("should create a aession with user/password on unsecure connection", function(done) {
 
         // user1/password1
-        const endpointUrl = "opc.tcp://localhost:"+port;
+        const endpointUrl = "opc.tcp://localhost:" + port;
 
         const client = opcua.OPCUAClient.create({
             endpoint_must_exist: false,
@@ -72,7 +72,7 @@ describe("Testing bug #574", function () {
         async.series([
 
             function client_connect(callback) {
-                client.connect(endpointUrl, function (err) {
+                client.connect(endpointUrl, function(err) {
                     if (err) {
                         console.log(" cannot connect to endpoint :", endpointUrl);
                     } else {
@@ -83,7 +83,7 @@ describe("Testing bug #574", function () {
             },
 
             function client_create_session(callback) {
-                client.createSession(userIdentity, function (err, session) {
+                client.createSession(userIdentity, function(err, session) {
                     if (!err) {
                         the_session = session;
                     }
@@ -91,10 +91,10 @@ describe("Testing bug #574", function () {
                 });
             },
 
-            function (callback) {
+            function(callback) {
                 the_session.close(callback);
             },
-            function (callback) {
+            function(callback) {
                 client.disconnect(callback);
             }
         ], done);

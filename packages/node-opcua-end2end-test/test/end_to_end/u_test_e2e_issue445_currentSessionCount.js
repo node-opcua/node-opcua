@@ -7,7 +7,7 @@ const chalk = require("chalk");
 
 
 function f(func) {
-    return function (callback) {
+    return function(callback) {
         console.log("       * " + func.name.replace(/_/g, " ").replace(/(given|when|then)/, chalk.green("**$1**")));
         return func(callback);
     };
@@ -25,11 +25,11 @@ const doDebug = checkDebugFlag(__filename);
 
 const perform_operation_on_subscription = require("../../test_helpers/perform_operation_on_client_session").perform_operation_on_subscription;
 
-module.exports = function (test) {
+module.exports = function(test) {
 
-    describe("Testing bug #445 - server.serverDiagnosticsSummary.currentSessionCount", function () {
+    describe("Testing bug #445 - server.serverDiagnosticsSummary.currentSessionCount", function() {
 
-        it("test that current SessionCount increments and decrements appropriately", function (done) {
+        it("test that current SessionCount increments and decrements appropriately", function(done) {
 
             const endpointUrl = test.endpointUrl;
 
@@ -38,60 +38,60 @@ module.exports = function (test) {
             const currentSessionCountNodeId = opcua.resolveNodeId(opcua.VariableIds.Server_ServerDiagnostics_ServerDiagnosticsSummary_CurrentSessionCount);
             const cumulatedSessionCountNodeId = opcua.resolveNodeId((opcua.VariableIds.Server_ServerDiagnostics_ServerDiagnosticsSummary_CumulatedSessionCount));
 
-            perform_operation_on_subscription(client, test.endpointUrl, function (session, subscription, callback) {
+            perform_operation_on_subscription(client, test.endpointUrl, function(session, subscription, callback) {
 
                 debugLog(subscription.toString());
 
                 const currentSessionCountMonitoredItem = opcua.ClientMonitoredItem.create(
-                  subscription,
-                  { nodeId: currentSessionCountNodeId, attributeId: opcua.AttributeIds.Value },
-                  {
-                      samplingInterval: 0, // reports immediately
-                      discardOldest: true,
-                      queueSize: 10
-                  });
+                    subscription,
+                    { nodeId: currentSessionCountNodeId, attributeId: opcua.AttributeIds.Value },
+                    {
+                        samplingInterval: 0, // reports immediately
+                        discardOldest: true,
+                        queueSize: 10
+                    });
 
                 const cumulatedSessionCountMonitoredItem = opcua.ClientMonitoredItem.create(
-                  subscription,
-                  { nodeId: cumulatedSessionCountNodeId, attributeId: opcua.AttributeIds.Value },
-                  {
-                      samplingInterval: 0, // reports immediately
-                      discardOldest: true,
-                      queueSize: 10
-                  });
+                    subscription,
+                    { nodeId: cumulatedSessionCountNodeId, attributeId: opcua.AttributeIds.Value },
+                    {
+                        samplingInterval: 0, // reports immediately
+                        discardOldest: true,
+                        queueSize: 10
+                    });
 
                 const recordedCumulatedSessionCountValues = [];
-                cumulatedSessionCountMonitoredItem.on("changed", function (dataValue) {
+                cumulatedSessionCountMonitoredItem.on("changed", function(dataValue) {
                     recordedCumulatedSessionCountValues.push(dataValue.value.value);
                     debugLog("cumulatedSessionCount =", recordedCumulatedSessionCountValues);
                 });
                 const recordedCurrentSessionCountValues = [];
-                currentSessionCountMonitoredItem.on("changed", function (dataValue) {
+                currentSessionCountMonitoredItem.on("changed", function(dataValue) {
                     recordedCurrentSessionCountValues.push(dataValue.value.value);
                     debugLog("currentSessionCount =", recordedCurrentSessionCountValues);
                 });
 
 
                 let currentSessionCount = 0;
-                currentSessionCountMonitoredItem.once("changed", function (dataValue) {
+                currentSessionCountMonitoredItem.once("changed", function(dataValue) {
                     dataValue.statusCode.should.eql(opcua.StatusCodes.Good);
                     currentSessionCount = dataValue.value.value;
                     //xx console.log("!!!! new_currentSessionCount=",dataValue.toString());
                 });
 
-                currentSessionCountMonitoredItem.once("changed", function () {
+                currentSessionCountMonitoredItem.once("changed", function() {
 
-                    setImmediate(function () {
+                    setImmediate(function() {
 
                         let data1, data2;
 
                         function connect_and_create_session(callback) {
                             const client = OPCUAClient.create({});
-                            client.connect(endpointUrl, function (err) {
+                            client.connect(endpointUrl, function(err) {
                                 if (err) {
                                     return callback(err);
                                 }
-                                client.createSession(function (err, session) {
+                                client.createSession(function(err, session) {
                                     if (err) {
                                         return callback(err);
                                     }
@@ -110,7 +110,7 @@ module.exports = function (test) {
                             const session = data.session;
                             const client = data.client;
 
-                            session.close(function () {
+                            session.close(function() {
                                 setImmediate(() => {
                                     client.disconnect(callback);
                                 });
@@ -120,13 +120,13 @@ module.exports = function (test) {
 
                         async.series([
                             f(function connect_client1(callback) {
-                                currentSessionCountMonitoredItem.once("changed", function (dataValue) {
+                                currentSessionCountMonitoredItem.once("changed", function(dataValue) {
                                     const new_currentSessionCount = dataValue.value.value;
                                     new_currentSessionCount.should.eql(currentSessionCount + 1);
                                     debugLog("new_currentSessionCount=", dataValue.toString());
                                     callback();
                                 });
-                                connect_and_create_session(function (err, data) {
+                                connect_and_create_session(function(err, data) {
                                     if (err) {
                                         debugLog("ERR => ", err);
                                     }
@@ -134,17 +134,17 @@ module.exports = function (test) {
                                 });
                             }),
                             f(function connect_client2(callback) {
-                                currentSessionCountMonitoredItem.once("changed", function (dataValue) {
+                                currentSessionCountMonitoredItem.once("changed", function(dataValue) {
                                     const new_currentSessionCount = dataValue.value.value;
                                     new_currentSessionCount.should.eql(currentSessionCount + 2);
                                     debugLog("new_currentSessionCount=", dataValue.toString());
                                     if (!data2) {
                                         errorLog("Event has been received before session creation has been notified," +
-                                          "this could happen !!!");
+                                            "this could happen !!!");
                                     }
                                     setImmediate(callback);
                                 });
-                                connect_and_create_session(function (err, data) {
+                                connect_and_create_session(function(err, data) {
                                     if (err) {
                                         debugLog("ERR => ", err);
                                     }
@@ -153,24 +153,24 @@ module.exports = function (test) {
                             }),
                             f(function disconnect_client2(callback) {
 
-                                currentSessionCountMonitoredItem.once("changed", function (dataValue) {
+                                currentSessionCountMonitoredItem.once("changed", function(dataValue) {
                                     const new_currentSessionCount = dataValue.value.value;
                                     new_currentSessionCount.should.eql(currentSessionCount + 1);
                                     debugLog("new_currentSessionCount=", dataValue.toString());
                                     setImmediate(callback);
                                 });
-                                close_session_and_disconnect(data2, function () {
+                                close_session_and_disconnect(data2, function() {
                                 });
                             }),
 
                             f(function disconnect_client1(callback) {
-                                currentSessionCountMonitoredItem.once("changed", function (dataValue) {
+                                currentSessionCountMonitoredItem.once("changed", function(dataValue) {
                                     const new_currentSessionCount = dataValue.value.value;
                                     new_currentSessionCount.should.eql(currentSessionCount);
                                     debugLog("new_currentSessionCount=", dataValue.toString());
                                     callback();
                                 });
-                                close_session_and_disconnect(data1, function () {
+                                close_session_and_disconnect(data1, function() {
 
                                 });
                             }),

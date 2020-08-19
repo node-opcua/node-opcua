@@ -1,33 +1,33 @@
 /* istanbul ignore file */
 "use strict";
 
-const assert = require("node-opcua-assert").assert;
+const { assert } = require("node-opcua-assert");
 const _ = require("underscore");
 
 const path = require("path");
 const fs = require("fs");
 
-const { 
-    resolveNodeId
- }= require("node-opcua-nodeid");
 const {
-    AddressSpace 
- } = require("node-opcua-address-space");
+    resolveNodeId
+} = require("node-opcua-nodeid");
+const {
+    AddressSpace
+} = require("node-opcua-address-space");
 
 const {
     normalize_require_file,
-    LineFile 
+    LineFile
 } = require("node-opcua-utils");
 const {
-    lowerFirstLetter 
-}= require("node-opcua-utils");
-const { 
-    hasConstructor, 
+    lowerFirstLetter
+} = require("node-opcua-utils");
+const {
+    hasConstructor,
     getConstructor,
     hasEnumeration,
-    getEnumeration 
-}= require("node-opcua-factory");
-const { NodeClass } = require("node-opcua-data-model"); 
+    getEnumeration
+} = require("node-opcua-factory");
+const { NodeClass } = require("node-opcua-data-model");
 const crypto = require("crypto");
 
 function hashNamespace(namespaceUri) {
@@ -221,15 +221,15 @@ function makeStructure(dataType/*: UADataType*/, bForce/*: boolean*/, schema_fol
     assert(dataType.nodeClass === NodeClass.DataType);
 
     const addressSpace = dataType.addressSpace;
-  
+
     const namespaceUri = addressSpace.getNamespaceUri(dataType.nodeId.namespace);
 
     // istanbul ignore next
     if (!dataType.binaryEncodingNodeId) {
         throw new Error(
             "DataType with name " +
-                dataType.browseName.toString() +
-                " has no binaryEncoding node\nplease check your nodeset file"
+            dataType.browseName.toString() +
+            " has no binaryEncoding node\nplease check your nodeset file"
         );
     }
 
@@ -298,8 +298,8 @@ function constructSchema(addressSpace, dataType) {
         if (!fieldDataType) {
             throw new Error(
                 " cannot find description for object " +
-                    dataTypeId +
-                    ". Check that this node exists in the nodeset.xml file"
+                dataTypeId +
+                ". Check that this node exists in the nodeset.xml file"
             );
         }
 

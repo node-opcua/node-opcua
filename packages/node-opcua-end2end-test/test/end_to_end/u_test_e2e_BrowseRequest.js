@@ -1,7 +1,7 @@
 
 
 const should = require("should");
-const assert = require("node-opcua-assert").assert;
+const { assert } = require("node-opcua-assert");
 const async = require("async");
 const util = require("util");
 const _ = require("underscore");
@@ -16,24 +16,24 @@ const BrowseDirection = opcua.BrowseDirection;
 const debugLog = require("node-opcua-debug").make_debugLog(__filename);
 
 
-module.exports = function (test) {
+module.exports = function(test) {
 
-    describe("Test Browse Request", function () {
+    describe("Test Browse Request", function() {
 
         let client, endpointUrl;
 
         let g_session = null;
-        beforeEach(function (done) {
+        beforeEach(function(done) {
 
             endpointUrl = test.endpointUrl;
 
             client = OPCUAClient.create();
-            client.connect(endpointUrl, function (err) {
+            client.connect(endpointUrl, function(err) {
                 if (err) {
                     done(err);
                 }
                 else {
-                    client.createSession(function (err, session) {
+                    client.createSession(function(err, session) {
                         g_session = session;
                         done(err);
                     });
@@ -42,19 +42,19 @@ module.exports = function (test) {
 
         });
 
-        afterEach(function (done) {
-            g_session.close(function () {
+        afterEach(function(done) {
+            g_session.close(function() {
                 client.disconnect(done);
             });
         });
 
-        it("T1 - #Browse should return BadNothingToDo if nodesToBrowse is empty ", function (done) {
+        it("T1 - #Browse should return BadNothingToDo if nodesToBrowse is empty ", function(done) {
 
 
             const browseRequest = new opcua.BrowseRequest({
                 nodesToBrowse: []
             });
-            g_session.performMessageTransaction(browseRequest, function (err, result) {
+            g_session.performMessageTransaction(browseRequest, function(err, result) {
                 err.message.should.match(/BadNothingToDo/);
                 // todo
                 done();
@@ -62,7 +62,7 @@ module.exports = function (test) {
 
         });
 
-        it("T2 - #Browse should return BadViewIdInvalid if viewId is invalid", function (done) {
+        it("T2 - #Browse should return BadViewIdInvalid if viewId is invalid", function(done) {
 
             const browseDesc = {
                 nodeId: resolveNodeId("RootFolder"),
@@ -76,13 +76,13 @@ module.exports = function (test) {
                 },
                 nodesToBrowse: [browseDesc]
             });
-            g_session.performMessageTransaction(browseRequest, function (err, result) {
+            g_session.performMessageTransaction(browseRequest, function(err, result) {
                 err.message.should.match(/BadViewIdUnknown/);
                 done();
             });
         });
 
-        it("T3 - #Browse should return BadViewUnknown if object referenced by viewId is not a view", function (done) {
+        it("T3 - #Browse should return BadViewUnknown if object referenced by viewId is not a view", function(done) {
 
             const browseDesc = {
                 nodeId: resolveNodeId("RootFolder"),
@@ -96,14 +96,14 @@ module.exports = function (test) {
                 },
                 nodesToBrowse: [browseDesc]
             });
-            g_session.performMessageTransaction(browseRequest, function (err, result) {
+            g_session.performMessageTransaction(browseRequest, function(err, result) {
                 // todo
                 err.message.should.match(/BadViewIdUnknown/);
                 done();
             });
         });
 
-        it("T4 - #Browse server should respect Browse maxReferencesPerNode ", function (done) {
+        it("T4 - #Browse server should respect Browse maxReferencesPerNode ", function(done) {
 
             const browseDesc = {
                 nodeId: resolveNodeId("RootFolder"),
@@ -115,13 +115,13 @@ module.exports = function (test) {
 
             async.series([
 
-                function (callback) {
+                function(callback) {
                     const browseRequest1 = new opcua.BrowseRequest({
                         view: null,//{ viewId: 'ns=0;i=85'},
                         requestedMaxReferencesPerNode: 10,
                         nodesToBrowse: [browseDesc]
                     });
-                    g_session.performMessageTransaction(browseRequest1, function (err, response) {
+                    g_session.performMessageTransaction(browseRequest1, function(err, response) {
                         if (err) {
                             return callback(err);
                         }
@@ -132,13 +132,13 @@ module.exports = function (test) {
                         callback();
                     });
                 },
-                function (callback) {
+                function(callback) {
                     const browseRequest2 = new opcua.BrowseRequest({
                         view: null,//{ viewId: 'ns=0;i=85'},
                         requestedMaxReferencesPerNode: 1,
                         nodesToBrowse: [browseDesc]
                     });
-                    g_session.performMessageTransaction(browseRequest2, function (err, response) {
+                    g_session.performMessageTransaction(browseRequest2, function(err, response) {
                         if (err) {
                             return callback(err);
                         }
@@ -154,14 +154,14 @@ module.exports = function (test) {
 
         });
 
-        it("T5 - #BrowseNext response should have serviceResult=BadNothingToDo if request have no continuationPoints", function (done) {
+        it("T5 - #BrowseNext response should have serviceResult=BadNothingToDo if request have no continuationPoints", function(done) {
             async.series([
 
-                function (callback) {
+                function(callback) {
                     const browseNextRequest = new opcua.BrowseNextRequest({
                         continuationPoints: null
                     });
-                    g_session.performMessageTransaction(browseNextRequest, function (err, response) {
+                    g_session.performMessageTransaction(browseNextRequest, function(err, response) {
                         err.message.should.match(/BadNothingToDo/);
                         // console.log(response.toString());
                         response.responseHeader.serviceResult.should.equal(StatusCodes.BadNothingToDo);
@@ -170,7 +170,7 @@ module.exports = function (test) {
                 }
             ], done);
         });
-        it("T6 - #BrowseNext response ", function (done) {
+        it("T6 - #BrowseNext response ", function(done) {
             const browseDesc = {
                 nodeId: resolveNodeId("RootFolder"),
                 referenceTypeId: null,
@@ -183,13 +183,13 @@ module.exports = function (test) {
             let continuationPoint;
             async.series([
 
-                function (callback) {
+                function(callback) {
                     const browseRequest1 = new opcua.BrowseRequest({
                         view: null,//{ viewId: 'ns=0;i=85'},
                         requestedMaxReferencesPerNode: 10,
                         nodesToBrowse: [browseDesc]
                     });
-                    g_session.performMessageTransaction(browseRequest1, function (err, response) {
+                    g_session.performMessageTransaction(browseRequest1, function(err, response) {
                         if (err) {
                             return callback(err);
                         }
@@ -202,13 +202,13 @@ module.exports = function (test) {
                     });
                 },
 
-                function (callback) {
+                function(callback) {
                     const browseRequest2 = new opcua.BrowseRequest({
                         view: null,//{ viewId: 'ns=0;i=85'},
                         requestedMaxReferencesPerNode: 2,
                         nodesToBrowse: [browseDesc]
                     });
-                    g_session.performMessageTransaction(browseRequest2, function (err, response) {
+                    g_session.performMessageTransaction(browseRequest2, function(err, response) {
                         if (err) {
                             return callback(err);
                         }
@@ -227,12 +227,12 @@ module.exports = function (test) {
                     });
                 },
 
-                function (callback) {
+                function(callback) {
                     const browseNextRequest = new opcua.BrowseNextRequest({
                         continuationPoints: [continuationPoint],
-//xx                    releaseContinuationPoints: true
+                        //xx                    releaseContinuationPoints: true
                     });
-                    g_session.performMessageTransaction(browseNextRequest, function (err, response) {
+                    g_session.performMessageTransaction(browseNextRequest, function(err, response) {
                         if (err) {
                             return callback(err);
                         }
@@ -256,12 +256,12 @@ module.exports = function (test) {
                 },
 
                 // we reach the end of the sequence. continuationPoint shall not be usable anymore
-                function (callback) {
+                function(callback) {
                     const browseNextRequest = new opcua.BrowseNextRequest({
                         continuationPoints: [continuationPoint],
                         releaseContinuationPoints: true
                     });
-                    g_session.performMessageTransaction(browseNextRequest, function (err, response) {
+                    g_session.performMessageTransaction(browseNextRequest, function(err, response) {
                         if (err) {
                             return callback(err);
                         }
@@ -279,7 +279,7 @@ module.exports = function (test) {
         });
 
         const IT = test.server ? it : xit;
-        IT("T7 - #BrowseNext with releaseContinuousPoint set to false then set to true", function (done) {
+        IT("T7 - #BrowseNext with releaseContinuousPoint set to false then set to true", function(done) {
             /*
              * inspired by    Test 5.7.2-9 prepared by Dale Pope dale.pope@matrikon.com
              * Description:
@@ -330,13 +330,13 @@ module.exports = function (test) {
                 async.series([
 
                     // browse all references
-                    function (callback) {
+                    function(callback) {
                         const browseRequestAll = new opcua.BrowseRequest({
                             view: null,//{ viewId: 'ns=0;i=85'},
                             requestedMaxReferencesPerNode: 10,
                             nodesToBrowse: [browseDesc]
                         });
-                        g_session.performMessageTransaction(browseRequestAll, function (err, response) {
+                        g_session.performMessageTransaction(browseRequestAll, function(err, response) {
                             if (err) {
                                 return callback(err);
                             }
@@ -349,7 +349,7 @@ module.exports = function (test) {
                         });
                     },
 
-                    function (callback) {
+                    function(callback) {
 
                         const browseRequest1 = new opcua.BrowseRequest({
                             view: null,
@@ -357,7 +357,7 @@ module.exports = function (test) {
                             nodesToBrowse: [browseDesc]
                         });
 
-                        g_session.performMessageTransaction(browseRequest1, function (err, response) {
+                        g_session.performMessageTransaction(browseRequest1, function(err, response) {
                             if (err) {
                                 return callback(err);
                             }
@@ -373,12 +373,12 @@ module.exports = function (test) {
                         });
                     },
 
-                    function (callback) {
+                    function(callback) {
                         const browseNextRequest = new opcua.BrowseNextRequest({
                             releaseContinuationPoints: false,
                             continuationPoints: [continuationPoint]
                         });
-                        g_session.performMessageTransaction(browseNextRequest, function (err, response) {
+                        g_session.performMessageTransaction(browseNextRequest, function(err, response) {
                             if (err) {
                                 return callback(err);
                             }
@@ -397,12 +397,12 @@ module.exports = function (test) {
                         });
 
                     },
-                    function (callback) {
+                    function(callback) {
                         const browseNextRequest = new opcua.BrowseNextRequest({
                             releaseContinuationPoints: true,
                             continuationPoints: [continuationPoint]
                         });
-                        g_session.performMessageTransaction(browseNextRequest, function (err, response) {
+                        g_session.performMessageTransaction(browseNextRequest, function(err, response) {
                             if (err) {
                                 return callback(err);
                             }

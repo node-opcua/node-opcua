@@ -2,7 +2,7 @@
 "use strict";
 
 const chalk = require("chalk");
-const assert = require("node-opcua-assert").assert;
+const { assert } = require("node-opcua-assert");
 const async = require("async");
 const should = require("should");
 const sinon = require("sinon");

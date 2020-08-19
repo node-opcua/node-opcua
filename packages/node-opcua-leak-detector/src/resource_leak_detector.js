@@ -1,7 +1,7 @@
 "use strict";
 Error.stackTraceLimit = Infinity;
 
-const assert = require("node-opcua-assert").assert;
+const { assert } = require("node-opcua-assert");
 const _ = require("underscore");
 const chalk = require("chalk");
 

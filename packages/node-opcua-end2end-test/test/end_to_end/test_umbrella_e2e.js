@@ -17,7 +17,7 @@ const { build_address_space_for_conformance_testing } = require("node-opcua-addr
 const { start_simple_server, stop_simple_server } = require("../../test_helpers/external_server_fixture");
 
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
-describe("testing Client - Umbrella ", function () {
+describe("testing Client - Umbrella ", function() {
     // this test could be particularly slow on RaspberryPi or BeagleBoneBlack
     // so we set a big enough timeout
     // execution time could also be affected by code running under profiling/coverage tools (istanbul)
@@ -35,7 +35,7 @@ describe("testing Client - Umbrella ", function () {
     };
 
     function start_external_server(done) {
-        start_simple_server(options, function (err, data) {
+        start_simple_server(options, function(err, data) {
             if (err) {
                 return done(err, null);
             }
@@ -50,7 +50,7 @@ describe("testing Client - Umbrella ", function () {
     }
 
     function start_internal_server(done) {
-        test.server = build_server_with_temperature_device(options, function (err) {
+        test.server = build_server_with_temperature_device(options, function(err) {
             if (err) {
                 return done(err);
             }
@@ -61,7 +61,7 @@ describe("testing Client - Umbrella ", function () {
             test.endpointUrl = test.server.endpoints[0].endpointDescriptions()[0].endpointUrl;
             test.temperatureVariableId = test.server.temperatureVariableId;
 
-            setTimeout(function () {
+            setTimeout(function() {
                 test.server.engine.currentSessionCount.should.eql(
                     0,
                     " expecting ZERO session on server when test is starting !"
@@ -73,7 +73,7 @@ describe("testing Client - Umbrella ", function () {
         });
     }
 
-    before(function (done) {
+    before(function(done) {
         console.log(" ..... starting server ");
         if (process.env.TESTENDPOINT === "EXTERNAL") {
             start_external_server(done);
@@ -85,7 +85,7 @@ describe("testing Client - Umbrella ", function () {
         }
     });
 
-    beforeEach(function (done) {
+    beforeEach(function(done) {
         // make sure that test has closed all sessions
         if (test.server) {
             // test.nb_backgroundsession = test.server.engine.currentSessionCount;
@@ -106,15 +106,15 @@ describe("testing Client - Umbrella ", function () {
         perform_operation_on_client_session(
             client,
             endpointUrl,
-            function (session, inner_done) {
+            function(session, inner_done) {
                 const relativePath = "/Objects/Server.ServerDiagnostics.ServerDiagnosticsSummary";
                 const browsePath = [opcua.makeBrowsePath("RootFolder", relativePath)];
 
                 let sessionDiagnosticsSummaryNodeId;
                 async.series(
                     [
-                        function (callback) {
-                            session.translateBrowsePath(browsePath, function (err, result) {
+                        function(callback) {
+                            session.translateBrowsePath(browsePath, function(err, result) {
                                 if (!err) {
                                     if (result[0].statusCode === StatusCodes.Good) {
                                         //xx console.log(result[0].toString());
@@ -126,8 +126,8 @@ describe("testing Client - Umbrella ", function () {
                                 callback(err);
                             });
                         },
-                        function (callback) {
-                            session.readVariableValue(sessionDiagnosticsSummaryNodeId, function (err, dataValue) {
+                        function(callback) {
+                            session.readVariableValue(sessionDiagnosticsSummaryNodeId, function(err, dataValue) {
                                 //xx console.log("\n\n-----------------------------------------------------------------------------------------------------------");
                                 //xx console.log(dataValue.value.value.toString());
                                 //xx console.log("-----------------------------------------------------------------------------------------------------------");
@@ -142,7 +142,7 @@ describe("testing Client - Umbrella ", function () {
         );
     }
 
-    afterEach(function (done) {
+    afterEach(function(done) {
         const extraSessionCount = test.server.engine.currentSessionCount !== test.nb_backgroundsession;
 
         if (extraSessionCount && test.server) {
@@ -179,11 +179,11 @@ describe("testing Client - Umbrella ", function () {
         return done();
     });
 
-    after(function (done) {
+    after(function(done) {
         if (test.data) {
             stop_simple_server(test.data, done);
         } else if (test.server) {
-            test.server.shutdown(function () {
+            test.server.shutdown(function() {
                 done();
             });
         } else {

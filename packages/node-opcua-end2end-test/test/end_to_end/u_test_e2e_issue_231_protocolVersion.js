@@ -1,6 +1,6 @@
 /*global describe, it, require*/
 
-const assert = require("node-opcua-assert").assert;
+const { assert } = require("node-opcua-assert");
 const async = require("async");
 const should = require("should");
 
@@ -10,12 +10,12 @@ const OPCUAClient = opcua.OPCUAClient;
 
 
 
-module.exports = function (test) {
+module.exports = function(test) {
 
-    describe("Testing issue  #231 -  Server should accept client with protocolVersion greater than the protocolVersion it supports", function () {
+    describe("Testing issue  #231 -  Server should accept client with protocolVersion greater than the protocolVersion it supports", function() {
 
 
-        it("#231-A ", function (done) {
+        it("#231-A ", function(done) {
 
             const client1 = OPCUAClient.create();
 
@@ -26,19 +26,19 @@ module.exports = function (test) {
 
             async.series([
 
-                function (callback) {
+                function(callback) {
                     client1.connect(endpointUrl, callback);
                 },
 
-                function (callback) {
-                    client1.disconnect(function () {
+                function(callback) {
+                    client1.disconnect(function() {
                         callback();
                     });
                 }
             ], done);
 
         });
-        it("#231-B BadProtocolVersionUnsupported", function (done) {
+        it("#231-B BadProtocolVersionUnsupported", function(done) {
 
             const client1 = OPCUAClient.create();
 
@@ -52,16 +52,16 @@ module.exports = function (test) {
 
             async.series([
 
-                function (callback) {
-                    client1.connect(endpointUrl, function(err){
+                function(callback) {
+                    client1.connect(endpointUrl, function(err) {
 
                         err.message.should.match(/BadProtocolVersionUnsupported/);
                         callback();
                     });
                 },
 
-                function (callback) {
-                    client1.disconnect(function () {
+                function(callback) {
+                    client1.disconnect(function() {
                         callback();
                     });
                 }
