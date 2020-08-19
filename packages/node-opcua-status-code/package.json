@@ -1,6 +1,6 @@
 {
     "name": "node-opcua-status-code",
-    "version": "2.10.0",
+    "version": "2.11.0",
     "description": "pure nodejs OPCUA SDK - module -status-code",
     "main": "./dist/index.js",
     "types": "./dist/index.d.ts",
@@ -15,7 +15,7 @@
         "underscore": "^1.10.2"
     },
     "devDependencies": {
-        "node-opcua-binary-stream": "2.10.0",
+        "node-opcua-binary-stream": "2.11.0",
         "should": "^13.2.3"
     },
     "author": "Etienne Rossignon",
