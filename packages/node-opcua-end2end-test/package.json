@@ -10,7 +10,7 @@
         "test-typescript": "mocha --recursive test/end_to_end/*.ts"
     },
     "dependencies": {
-        "node-opcua-pki": "^2.1.0"
+        "node-opcua-pki": "^2.1.2"
     },
     "devDependencies": {
         "async": "^3.2.0",
