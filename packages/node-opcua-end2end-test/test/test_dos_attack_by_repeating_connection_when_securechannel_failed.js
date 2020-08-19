@@ -7,7 +7,8 @@
 Error.stackTraceLimit = Infinity;
 const chalk = require("chalk");
 const path = require("path");
-const { readCertificate } = require("node-opcua-crypto");
+const fs = require("fs");
+const { readCertificate, readCertificateRevocationList, readCertificatePEM, exploreCertificateInfo } = require("node-opcua-crypto");
 
 require("should");
 
@@ -20,7 +21,9 @@ const {
     SecurityPolicy,
     OPCUAServer,
     OPCUAClient,
-    ServerSecureChannelLayer
+    ServerSecureChannelLayer,
+    OPCUACertificateManager,
+    StatusCodes
 } = require("node-opcua");
 
 const fail_fast_connectionStrategy = {
@@ -28,6 +31,11 @@ const fail_fast_connectionStrategy = {
 };
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("testing Server resilience to DDOS attacks 2", function() {
+
+
+    const invalidCertificateFile = path.join(__dirname, "../certificates/client_cert_3072_outofdate.pem");
+    const validCertificate = path.join(__dirname, "../certificates/client_cert_3072.pem");
+    const privateKeyFile = path.join(__dirname, "../certificates/client_key_3072.pem");
 
     let server;
     let endpointUrl;
@@ -59,7 +67,7 @@ describe("testing Server resilience to DDOS attacks 2", function() {
     after(() => {
         ServerSecureChannelLayer.throttleTime = _throttleTime;
     });
-    beforeEach(function(done) {
+    beforeEach(async () => {
 
         port += 1;
 
@@ -68,23 +76,50 @@ describe("testing Server resilience to DDOS attacks 2", function() {
         sessions = [];
         rejected_connections = 0;
 
+
+        const serverCertificateManager = new OPCUACertificateManager({
+            rootFolder: path.join(__dirname, "../certificates/tmp_pki")
+        });
+        await serverCertificateManager.initialize();
+
         server = new OPCUAServer({
             port: port,
             maxConnectionsPerEndpoint: maxConnectionsPerEndpoint,
-            maxAllowedSessionNumber: maxAllowedSessionNumber
+            maxAllowedSessionNumber: maxAllowedSessionNumber,
             //xx nodeset_filename: empty_nodeset_filename
+            serverCertificateManager
         });
+        console.log("Rootfolder = ", server.serverCertificateManager.rootFolder);
 
-        server.start(function(err) {
-            // we will connect to first server end point
+        // make sure "that certificate issuer in th*
+        const issuerCertificateFile = path.join(__dirname, "../certificates/CA/public/cacert.pem");
+        const revokeListFile = path.join(__dirname, "../certificates/CA/crl/revocation_list.crl");
 
-            const epd = server.endpoints[0].endpointDescriptions()[0];
-            endpointUrl = epd.endpointUrl;
-            console.log("endpointUrl", endpointUrl);
-            console.log("epd", epd.securityMode.toString());
-            is_valid_endpointUrl(endpointUrl).should.equal(true);
-            done(err);
-        });
+        const issuerCertificate = await readCertificate(issuerCertificateFile);
+        const a = exploreCertificateInfo(issuerCertificate);
+
+        const status = await server.serverCertificateManager.addIssuer(issuerCertificate);
+        if (status !== "Good" && status !== "BadCertificateUntrusted") {
+
+            console.log("status = ", status);
+            console.log("issuerCertificateFile=", issuerCertificateFile);
+            console.log(issuerCertificate.toString("base64"));
+            throw new Error("Invalid issuer files")
+        }
+
+        const crl = await readCertificateRevocationList(revokeListFile);
+        server.serverCertificateManager.addRevocationList(crl);
+
+        await server.start();
+
+        // we will connect to first server end point
+
+        const epd = server.endpoints[0].endpointDescriptions()[0];
+        endpointUrl = epd.endpointUrl;
+        console.log("endpointUrl", endpointUrl);
+        console.log("epd", epd.securityMode.toString());
+        is_valid_endpointUrl(endpointUrl).should.equal(true);
+
 
         server.on("connectionError", (channel) => {
 
@@ -118,15 +153,15 @@ describe("testing Server resilience to DDOS attacks 2", function() {
         });
     });
 
+    it("ZCCC1 should ban client that constantly reconnect", async () => {
+
+    });
+
     it("ZCCC should ban client that constantly reconnect", async () => {
 
 
 
         const serverCertificate = readCertificate(server.certificateFile);
-
-        const certificateFile = path.join(__dirname, "../certificates/client_cert_3072_outofdate.pem");
-        const validCertificate = path.join(__dirname, "../certificates/client_cert_3072.pem");
-        const privateKeyFile = path.join(__dirname, "../certificates/client_key_3072.pem");
 
         const clients = [];
         for (let i = 0; i < 100; i++) {
@@ -134,7 +169,7 @@ describe("testing Server resilience to DDOS attacks 2", function() {
             if (doDebug) {
                 console.log("i =", i);
             }
-            
+
             try {
                 const client = OPCUAClient.create({
 
@@ -148,7 +183,7 @@ describe("testing Server resilience to DDOS attacks 2", function() {
 
                     defaultSecureTokenLifetime: 100000,
 
-                    certificateFile,
+                    certificateFile: invalidCertificateFile,
                     privateKeyFile,
 
                     serverCertificate
@@ -171,8 +206,8 @@ describe("testing Server resilience to DDOS attacks 2", function() {
         for (const client of clients) {
             try {
                 await client.disconnect();
-            } catch(err) {
-
+            } catch (err) {
+                /* */
             }
         }
         // new try to connect with a valid certificate => It should work
@@ -186,7 +221,6 @@ describe("testing Server resilience to DDOS attacks 2", function() {
                 connectionStrategy: fail_fast_connectionStrategy,
 
                 securityPolicy: SecurityPolicy.Basic256Sha256,
-
                 securityMode: MessageSecurityMode.SignAndEncrypt,
 
                 defaultSecureTokenLifetime: 100000,
@@ -196,7 +230,6 @@ describe("testing Server resilience to DDOS attacks 2", function() {
 
             });
             await client.connect(endpointUrl);
-
 
             const session = await client.createSession();
 
