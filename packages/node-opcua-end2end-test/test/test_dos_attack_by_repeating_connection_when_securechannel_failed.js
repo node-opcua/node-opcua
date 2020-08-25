@@ -134,7 +134,7 @@ describe("testing Server resilience to DDOS attacks 2", function() {
         });
         server.on("connectionRefused", (socketData, channelData, endpoint) => {
             register(socketData.remotePort);
-            console.og("Connection refused", JSON.stringify(socketData));
+            console.log("Connection refused", JSON.stringify(socketData));
         });
         server.on("openSecureChannelFailure", (socketData, channelData, endpoint) => {
             if (doDebug) {
