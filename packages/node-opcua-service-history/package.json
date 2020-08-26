@@ -1,6 +1,6 @@
 {
     "name": "node-opcua-service-history",
-    "version": "2.11.0",
+    "version": "2.12.0",
     "description": "pure nodejs OPCUA SDK - module -service-history",
     "scripts": {
         "test": "mocha test",
@@ -18,7 +18,7 @@
         "node-opcua-extension-object": "2.11.0",
         "node-opcua-factory": "2.11.0",
         "node-opcua-nodeid": "2.11.0",
-        "node-opcua-service-filter": "2.11.0",
+        "node-opcua-service-filter": "2.12.0",
         "node-opcua-service-secure-channel": "2.11.0",
         "node-opcua-types": "2.11.0",
         "underscore": "^1.10.2"
