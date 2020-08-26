@@ -9,17 +9,16 @@ type ArbitraryClockTick = number; // in millisecond
 type DurationInMillisecond = number;
 
 /**
- * a arbitrary clock which is system dependant and 
+ * a arbitrary clock which is system dependant and
  * insensible to clock drifts ....
- * 
+ *
  */
 function _getCurrentSystemTick(): ArbitraryClockTick {
-
     if (process && process.hrtime) {
         const h = process.hrtime();
         const n = h[1] / 1000000;
         assert(n <= 1000);
-        return (h[0] * 1000 + n);
+        return h[0] * 1000 + n;
     } else {
         // fallback to Date as process.hrtime doesn't exit
         return Date.now();
@@ -35,7 +34,6 @@ export interface IWatchdogData2 {
 }
 
 export interface ISubscriber {
-
     _watchDog?: WatchDog;
     _watchDogData?: IWatchdogData2;
 
@@ -50,7 +48,6 @@ function hasExpired(watchDogData: IWatchdogData2, currentTime: ArbitraryClockTic
 }
 
 function keepAliveFunc(this: ISubscriber) {
-
     assert(this._watchDog instanceof WatchDog);
     if (!this._watchDogData || !this._watchDog) {
         throw new Error("Internal error");
@@ -63,6 +60,9 @@ function keepAliveFunc(this: ISubscriber) {
 }
 
 export class WatchDog extends EventEmitter {
+    static emptyKeepAlive = () => {
+        /* */
+    };
     /**
      * returns the number of subscribers using the WatchDog object.
      */
@@ -105,7 +105,7 @@ export class WatchDog extends EventEmitter {
         timeout = timeout || 1000;
         assert(_.isNumber(timeout), " invalid timeout ");
         assert(_.isFunction(subscriber.watchdogReset), " the subscriber must provide a watchdogReset method ");
-        assert(!_.isFunction(subscriber.keepAlive));
+        assert(!_.isFunction(subscriber.keepAlive) || subscriber.keepAlive === WatchDog.emptyKeepAlive);
 
         this._counter += 1;
         const key = this._counter;
@@ -116,7 +116,7 @@ export class WatchDog extends EventEmitter {
             lastSeen: this._currentTime,
             subscriber,
             timeout,
-            visitCount: 0
+            visitCount: 0,
         } as IWatchdogData2;
 
         this._watchdogDataMap[key] = subscriber._watchDogData;
@@ -152,7 +152,7 @@ export class WatchDog extends EventEmitter {
         delete this._watchdogDataMap[subscriber._watchDogData.key];
         delete subscriber._watchDog;
         delete subscriber._watchDogData;
-        delete subscriber.keepAlive;
+        subscriber.keepAlive = WatchDog.emptyKeepAlive;
 
         // delete timer when the last subscriber comes out
         if (this.subscriberCount === 0) {
@@ -172,7 +172,6 @@ export class WatchDog extends EventEmitter {
     }
 
     private _visit_subscriber() {
-
         this._currentTime = this.getCurrentSystemTick();
 
         const expiredSubscribers = _.filter(this._watchdogDataMap, (watchDogData: IWatchdogData2) => {
@@ -202,5 +201,4 @@ export class WatchDog extends EventEmitter {
             this._timer = null;
         }
     }
-
 }
