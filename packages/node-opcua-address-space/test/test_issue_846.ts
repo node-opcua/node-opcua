@@ -8,6 +8,7 @@ const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("#846 Various Variable Value in nodeset2.xml", () => {
     let addressSpace: AddressSpace;
     let iotChannelSet: UAObject;
+    let propertySet: UAObject;
     before(async () => {
         addressSpace = AddressSpace.create();
 
@@ -17,6 +18,7 @@ describe("#846 Various Variable Value in nodeset2.xml", () => {
         ]);
 
         iotChannelSet = addressSpace.findNode("ns=1;i=5003") as UAObject;
+        propertySet = addressSpace.findNode("ns=1;i=5004") as UAObject;
     });
 
     after(() => {
@@ -149,5 +151,15 @@ describe("#846 Various Variable Value in nodeset2.xml", () => {
     it("Uint32OptionSetTypeData1", async () => {
         const v1 = iotChannelSet.getComponentByName("Uint32OptionSetTypeData1") as UAVariable;
         v1.readValue().value.toString().should.eql("Variant(Scalar<UInt32>, value: 1023)");
+    });
+
+    it("should write a EnumTypePropertyData1 #849", async () => {
+        const v1 = propertySet.getPropertyByName("EnumTypePropertyData1") as UAVariable;
+        v1.readValue().value.toString().should.eql("Variant(Scalar<Null>, value: <null>)");
+        v1.setValueFromSource({
+            dataType: "UInt32",
+            value: 1,
+        });
+        v1.readValue().value.toString().should.eql("Variant(Scalar<UInt32>, value: 1)");
     });
 });
