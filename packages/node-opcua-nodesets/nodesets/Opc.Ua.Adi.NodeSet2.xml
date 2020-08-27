@@ -28,15 +28,15 @@
  * http://opcfoundation.org/License/MIT/1.00/
 -->
 
-<UANodeSet xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" LastModified="2013-07-31T00:00:00Z" xmlns="http://opcfoundation.org/UA/2011/03/UANodeSet.xsd">
+<UANodeSet xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" LastModified="2013-07-31T00:00:00Z" xmlns="http://opcfoundation.org/UA/2011/03/UANodeSet.xsd">
   <NamespaceUris>
     <Uri>http://opcfoundation.org/UA/ADI/</Uri>
     <Uri>http://opcfoundation.org/UA/DI/</Uri>
   </NamespaceUris>
   <Models>
     <Model ModelUri="http://opcfoundation.org/UA/ADI/" Version="1.01" PublicationDate="2013-07-31T00:00:00Z">
-      <RequiredModel ModelUri="http://opcfoundation.org/UA/" Version="1.05" PublicationDate="2019-07-23T00:00:00Z" />
-      <RequiredModel ModelUri="http://opcfoundation.org/UA/DI/" Version="1.02" PublicationDate="2019-05-01T00:00:00Z" />
+      <RequiredModel ModelUri="http://opcfoundation.org/UA/" Version="1.03" PublicationDate="2013-12-02T00:00:00Z" />
+      <RequiredModel ModelUri="http://opcfoundation.org/UA/DI/" Version="1.01" PublicationDate="2012-12-31T00:00:00Z" />
     </Model>
   </Models>
   <Aliases>
@@ -191,6 +191,7 @@
   </UAVariable>
   <UAObjectType NodeId="ns=1;i=1001" BrowseName="1:AnalyserDeviceType" IsAbstract="true">
     <DisplayName>AnalyserDeviceType</DisplayName>
+    <Documentation>https://reference.opcfoundation.org/v104/ADI/v101a/docs/5.2.1/#5.2.1.1</Documentation>
     <References>
       <Reference ReferenceType="HasComponent">ns=1;i=5001</Reference>
       <Reference ReferenceType="HasComponent">ns=1;i=9382</Reference>
@@ -1294,6 +1295,7 @@
   </UAVariable>
   <UAObjectType NodeId="ns=1;i=1002" BrowseName="1:AnalyserDeviceStateMachineType">
     <DisplayName>AnalyserDeviceStateMachineType</DisplayName>
+    <Documentation>https://reference.opcfoundation.org/v104/ADI/v101a/docs/5.3.2/#5.3.2.1</Documentation>
     <References>
       <Reference ReferenceType="HasComponent">ns=1;i=9647</Reference>
       <Reference ReferenceType="HasComponent">ns=1;i=9649</Reference>
@@ -1647,6 +1649,7 @@
   </UAVariable>
   <UAObjectType NodeId="ns=1;i=1003" BrowseName="1:AnalyserChannelType">
     <DisplayName>AnalyserChannelType</DisplayName>
+    <Documentation>https://reference.opcfoundation.org/v104/ADI/v101a/docs/5.2.2/#5.2.2.1</Documentation>
     <References>
       <Reference ReferenceType="HasComponent">ns=1;i=9677</Reference>
       <Reference ReferenceType="HasComponent">ns=1;i=9679</Reference>
@@ -2133,6 +2136,7 @@
   </UAVariable>
   <UAObjectType NodeId="ns=1;i=1004" BrowseName="1:AnalyserChannelOperatingStateType">
     <DisplayName>AnalyserChannelOperatingStateType</DisplayName>
+    <Documentation>https://reference.opcfoundation.org/v104/ADI/v101a/docs/5.3.3/#5.3.3.2</Documentation>
     <References>
       <Reference ReferenceType="i=117">ns=1;i=9948</Reference>
       <Reference ReferenceType="HasSubtype" IsForward="false">i=2307</Reference>
@@ -2140,12 +2144,14 @@
   </UAObjectType>
   <UAObjectType NodeId="ns=1;i=1005" BrowseName="1:AnalyserChannelLocalStateType">
     <DisplayName>AnalyserChannelLocalStateType</DisplayName>
+    <Documentation>https://reference.opcfoundation.org/v104/ADI/v101a/docs/5.3.3/#5.3.3.2</Documentation>
     <References>
       <Reference ReferenceType="HasSubtype" IsForward="false">i=2307</Reference>
     </References>
   </UAObjectType>
   <UAObjectType NodeId="ns=1;i=1006" BrowseName="1:AnalyserChannelMaintenanceStateType">
     <DisplayName>AnalyserChannelMaintenanceStateType</DisplayName>
+    <Documentation>https://reference.opcfoundation.org/v104/ADI/v101a/docs/5.3.3/#5.3.3.2</Documentation>
     <References>
       <Reference ReferenceType="HasSubtype" IsForward="false">i=2307</Reference>
     </References>
@@ -2153,6 +2159,7 @@
   <UAObjectType NodeId="ns=1;i=1007" BrowseName="1:AnalyserChannelStateMachineType">
     <DisplayName>AnalyserChannelStateMachineType</DisplayName>
     <Description>Contains a nested state model that defines the top level states Operating, Local and Maintenance</Description>
+    <Documentation>https://reference.opcfoundation.org/v104/ADI/v101a/docs/5.3.3/#5.3.3.2</Documentation>
     <References>
       <Reference ReferenceType="HasComponent">ns=1;i=9948</Reference>
       <Reference ReferenceType="HasComponent">ns=1;i=9972</Reference>
@@ -2607,6 +2614,7 @@
   <UAObjectType NodeId="ns=1;i=1008" BrowseName="1:AnalyserChannel_OperatingModeSubStateMachineType">
     <DisplayName>AnalyserChannel_OperatingModeSubStateMachineType</DisplayName>
     <Description>AnalyserChannel OperatingMode SubStateMachine</Description>
+    <Documentation>https://reference.opcfoundation.org/v104/ADI/v101a/docs/5.3.4/#5.3.4.2</Documentation>
     <References>
       <Reference ReferenceType="HasComponent">ns=1;i=10036</Reference>
       <Reference ReferenceType="HasComponent">ns=1;i=10048</Reference>
@@ -4332,6 +4340,7 @@
   </UAVariable>
   <UAObjectType NodeId="ns=1;i=1009" BrowseName="1:AnalyserChannel_OperatingModeExecuteSubStateMachineType">
     <DisplayName>AnalyserChannel_OperatingModeExecuteSubStateMachineType</DisplayName>
+    <Documentation>https://reference.opcfoundation.org/v104/ADI/v101a/docs/5.3.4/#5.3.4.5.2</Documentation>
     <References>
       <Reference ReferenceType="HasComponent">ns=1;i=10201</Reference>
       <Reference ReferenceType="HasComponent">ns=1;i=10203</Reference>
@@ -5670,6 +5679,7 @@
   </UAVariable>
   <UAObjectType NodeId="ns=1;i=1010" BrowseName="1:StreamType">
     <DisplayName>StreamType</DisplayName>
+    <Documentation>https://reference.opcfoundation.org/v104/ADI/v101a/docs/5.2.3/#5.2.3.1</Documentation>
     <References>
       <Reference ReferenceType="HasComponent">ns=1;i=10317</Reference>
       <Reference ReferenceType="HasComponent">ns=1;i=10444</Reference>
@@ -6678,6 +6688,7 @@
   </UAObjectType>
   <UAObjectType NodeId="ns=1;i=1011" BrowseName="1:SpectrometerDeviceType">
     <DisplayName>SpectrometerDeviceType</DisplayName>
+    <Documentation>https://reference.opcfoundation.org/v104/ADI/v101a/docs/5.2.6/#5.2.6.1</Documentation>
     <References>
       <Reference ReferenceType="HasComponent">ns=1;i=11305</Reference>
       <Reference ReferenceType="HasComponent">ns=1;i=11411</Reference>
@@ -6712,30 +6723,35 @@
   </UAObject>
   <UAObjectType NodeId="ns=1;i=1012" BrowseName="1:ParticleSizeMonitorDeviceType">
     <DisplayName>ParticleSizeMonitorDeviceType</DisplayName>
+    <Documentation>https://reference.opcfoundation.org/v104/ADI/v101a/docs/5.2.8/#5.2.8.1</Documentation>
     <References>
       <Reference ReferenceType="HasSubtype" IsForward="false">ns=1;i=1001</Reference>
     </References>
   </UAObjectType>
   <UAObjectType NodeId="ns=1;i=1013" BrowseName="1:ChromatographDeviceType">
     <DisplayName>ChromatographDeviceType</DisplayName>
+    <Documentation>https://reference.opcfoundation.org/v104/ADI/v101a/docs/5.2.10/#5.2.10.1</Documentation>
     <References>
       <Reference ReferenceType="HasSubtype" IsForward="false">ns=1;i=1001</Reference>
     </References>
   </UAObjectType>
   <UAObjectType NodeId="ns=1;i=1014" BrowseName="1:MassSpectrometerDeviceType">
     <DisplayName>MassSpectrometerDeviceType</DisplayName>
+    <Documentation>https://reference.opcfoundation.org/v104/ADI/v101a/docs/5.2.7/#5.2.7.1</Documentation>
     <References>
       <Reference ReferenceType="HasSubtype" IsForward="false">ns=1;i=1001</Reference>
     </References>
   </UAObjectType>
   <UAObjectType NodeId="ns=1;i=1015" BrowseName="1:AcousticSpectrometerDeviceType">
     <DisplayName>AcousticSpectrometerDeviceType</DisplayName>
+    <Documentation>https://reference.opcfoundation.org/v104/ADI/v101a/docs/5.2.9/#5.2.9.1</Documentation>
     <References>
       <Reference ReferenceType="HasSubtype" IsForward="false">ns=1;i=1001</Reference>
     </References>
   </UAObjectType>
   <UAObjectType NodeId="ns=1;i=1016" BrowseName="1:NMRDeviceType">
     <DisplayName>NMRDeviceType</DisplayName>
+    <Documentation>https://reference.opcfoundation.org/v104/ADI/v101a/docs/5.2.11/#5.2.11.1</Documentation>
     <References>
       <Reference ReferenceType="HasSubtype" IsForward="false">ns=1;i=1001</Reference>
     </References>
@@ -6743,6 +6759,7 @@
   <UAObjectType NodeId="ns=1;i=1017" BrowseName="1:AccessorySlotType">
     <DisplayName>AccessorySlotType</DisplayName>
     <Description>Organizes zero or more Accessory objects identified by "AccessoryIdentifier" which represent Accessories currently being used on that AccessorySlot.</Description>
+    <Documentation>https://reference.opcfoundation.org/v104/ADI/v101a/docs/5.2.4/#5.2.4.1</Documentation>
     <References>
       <Reference ReferenceType="HasProperty">ns=1;i=12786</Reference>
       <Reference ReferenceType="HasProperty">ns=1;i=12787</Reference>
@@ -6854,6 +6871,7 @@
   <UAObjectType NodeId="ns=1;i=1018" BrowseName="1:AccessorySlotStateMachineType">
     <DisplayName>AccessorySlotStateMachineType</DisplayName>
     <Description>Describes the behaviour of an AccessorySlot when a physical accessory is inserted or removed.</Description>
+    <Documentation>https://reference.opcfoundation.org/v104/ADI/v101a/docs/5.3.5/#5.3.5.2</Documentation>
     <References>
       <Reference ReferenceType="HasComponent">ns=1;i=12840</Reference>
       <Reference ReferenceType="HasComponent">ns=1;i=12842</Reference>
@@ -7274,6 +7292,7 @@
   </UAVariable>
   <UAObjectType NodeId="ns=1;i=1019" BrowseName="1:AccessoryType">
     <DisplayName>AccessoryType</DisplayName>
+    <Documentation>https://reference.opcfoundation.org/v104/ADI/v101a/docs/5.2.5/#5.2.5.1</Documentation>
     <References>
       <Reference ReferenceType="HasComponent">ns=1;i=12898</Reference>
       <Reference ReferenceType="HasComponent">ns=1;i=12900</Reference>
@@ -7327,18 +7346,21 @@
   </UAVariable>
   <UAObjectType NodeId="ns=1;i=9350" BrowseName="1:DetectorType">
     <DisplayName>DetectorType</DisplayName>
+    <Documentation>https://reference.opcfoundation.org/v104/ADI/v101a/docs/5.2.5/#5.2.5.3</Documentation>
     <References>
       <Reference ReferenceType="HasSubtype" IsForward="false">ns=1;i=1019</Reference>
     </References>
   </UAObjectType>
   <UAObjectType NodeId="ns=1;i=9359" BrowseName="1:SmartSamplingSystemType">
     <DisplayName>SmartSamplingSystemType</DisplayName>
+    <Documentation>https://reference.opcfoundation.org/v104/ADI/v101a/docs/5.2.5/#5.2.5.3</Documentation>
     <References>
       <Reference ReferenceType="HasSubtype" IsForward="false">ns=1;i=1019</Reference>
     </References>
   </UAObjectType>
   <UAObjectType NodeId="ns=1;i=9368" BrowseName="1:SourceType">
     <DisplayName>SourceType</DisplayName>
+    <Documentation>https://reference.opcfoundation.org/v104/ADI/v101a/docs/5.2.5/#5.2.5.3</Documentation>
     <References>
       <Reference ReferenceType="HasSubtype" IsForward="false">ns=1;i=1019</Reference>
     </References>
@@ -7351,6 +7373,7 @@
   </UAObjectType>
   <UADataType NodeId="ns=1;i=9378" BrowseName="1:ExecutionCycleEnumeration">
     <DisplayName>ExecutionCycleEnumeration</DisplayName>
+    <Documentation>https://reference.opcfoundation.org/v104/ADI/v101a/docs/5.8.2/#5.8.2.2</Documentation>
     <References>
       <Reference ReferenceType="HasProperty">ns=1;i=13026</Reference>
       <Reference ReferenceType="HasSubtype" IsForward="false">i=29</Reference>
@@ -7625,6 +7648,7 @@
   </UAVariable>
   <UADataType NodeId="ns=1;i=3003" BrowseName="1:AcquisitionResultStatusEnumeration">
     <DisplayName>AcquisitionResultStatusEnumeration</DisplayName>
+    <Documentation>https://reference.opcfoundation.org/v104/ADI/v101a/docs/5.8.2/#5.8.2.3</Documentation>
     <References>
       <Reference ReferenceType="HasProperty">ns=1;i=13027</Reference>
       <Reference ReferenceType="HasSubtype" IsForward="false">i=29</Reference>
@@ -7687,6 +7711,7 @@
   <UAVariableType NodeId="ns=1;i=9380" BrowseName="1:EngineeringValueType" ValueRank="-2">
     <DisplayName>EngineeringValueType</DisplayName>
     <Description>Expose key results of an analyser and the associated values that qualified it</Description>
+    <Documentation>https://reference.opcfoundation.org/v104/ADI/v101a/docs/5.5</Documentation>
     <References>
       <Reference ReferenceType="HasComponent">ns=1;i=13030</Reference>
       <Reference ReferenceType="HasSubtype" IsForward="false">i=2365</Reference>
@@ -7704,6 +7729,7 @@
   <UAVariableType NodeId="ns=1;i=2007" BrowseName="1:ChemometricModelType" DataType="ByteString" ValueRank="-2">
     <DisplayName>ChemometricModelType</DisplayName>
     <Description>Hold the descriptions of a mathematical process and associated information to convert scaled data into one or more process values.</Description>
+    <Documentation>https://reference.opcfoundation.org/v104/ADI/v101a/docs/5.6</Documentation>
     <References>
       <Reference ReferenceType="HasProperty">ns=1;i=13033</Reference>
       <Reference ReferenceType="HasProperty">ns=1;i=13034</Reference>
@@ -7758,6 +7784,7 @@
   <UAVariableType NodeId="ns=1;i=2008" BrowseName="1:ProcessVariableType" ValueRank="-2">
     <DisplayName>ProcessVariableType</DisplayName>
     <Description>Provides a stable address space view from the user point of view even if the ADI server address space changes, after the new configuration is loaded.</Description>
+    <Documentation>https://reference.opcfoundation.org/v104/ADI/v101a/docs/5.7</Documentation>
     <References>
       <Reference ReferenceType="ns=1;i=4001">ns=1;i=13040</Reference>
       <Reference ReferenceType="HasSubtype" IsForward="false">i=2365</Reference>
@@ -7775,6 +7802,7 @@
   <UAReferenceType NodeId="ns=1;i=4001" BrowseName="1:HasDataSource">
     <DisplayName>HasDataSource</DisplayName>
     <Description>TargetNode is providing the value for the SourceNode.</Description>
+    <Documentation>https://reference.opcfoundation.org/v104/ADI/v101a/docs/5.9.1</Documentation>
     <References>
       <Reference ReferenceType="HasSubtype" IsForward="false">i=49</Reference>
     </References>
@@ -7783,6 +7811,7 @@
   <UAReferenceType NodeId="ns=1;i=4002" BrowseName="1:HasInput">
     <DisplayName>HasInput</DisplayName>
     <Description>TargetNode is providing an input value for a ChemometricModel.</Description>
+    <Documentation>https://reference.opcfoundation.org/v104/ADI/v101a/docs/5.9.2</Documentation>
     <References>
       <Reference ReferenceType="HasSubtype" IsForward="false">i=49</Reference>
     </References>
@@ -7791,6 +7820,7 @@
   <UAReferenceType NodeId="ns=1;i=4003" BrowseName="1:HasOutput">
     <DisplayName>HasOutput</DisplayName>
     <Description>TargetNode is exposing an output value of a ChemometricModel.</Description>
+    <Documentation>https://reference.opcfoundation.org/v104/ADI/v101a/docs/5.9.3</Documentation>
     <References>
       <Reference ReferenceType="HasSubtype" IsForward="false">i=49</Reference>
     </References>
@@ -7799,6 +7829,7 @@
   <UAVariableType NodeId="ns=1;i=2009" BrowseName="1:MVAModelType" DataType="ByteString" ValueRank="-2">
     <DisplayName>MVAModelType</DisplayName>
     <Description>Hold the descriptions of a mathematical process and associated information to convert scaled data into one or more process values.</Description>
+    <Documentation>https://reference.opcfoundation.org/v104/ADI/v101a/docs/G.3.1</Documentation>
     <References>
       <Reference ReferenceType="ns=1;i=4003">ns=1;i=13045</Reference>
       <Reference ReferenceType="HasProperty">ns=1;i=13046</Reference>
@@ -7834,6 +7865,7 @@
   <UAVariableType NodeId="ns=1;i=2010" BrowseName="1:MVAOutputParameterType" ValueRank="-2">
     <DisplayName>MVAOutputParameterType</DisplayName>
     <Description>Hold the descriptions of a mathematical process and associated information to convert scaled data into one or more process values.</Description>
+    <Documentation>https://reference.opcfoundation.org/v104/ADI/v101a/docs/G.3.1</Documentation>
     <References>
       <Reference ReferenceType="HasProperty">ns=1;i=13054</Reference>
       <Reference ReferenceType="HasProperty">ns=1;i=13055</Reference>
@@ -7921,6 +7953,7 @@
   </UAVariable>
   <UADataType NodeId="ns=1;i=3009" BrowseName="1:AlarmStateEnumeration">
     <DisplayName>AlarmStateEnumeration</DisplayName>
+    <Documentation>https://reference.opcfoundation.org/v104/ADI/v101a/docs/G.3.1</Documentation>
     <References>
       <Reference ReferenceType="HasProperty">ns=1;i=13063</Reference>
       <Reference ReferenceType="HasSubtype" IsForward="false">i=29</Reference>

@@ -28,13 +28,13 @@
  * http://opcfoundation.org/License/MIT/1.00/
 -->
 
-<UANodeSet xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" LastModified="2019-09-06T00:00:00Z" xmlns="http://opcfoundation.org/UA/2011/03/UANodeSet.xsd">
+<UANodeSet xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" LastModified="2019-05-06T00:00:00Z" xmlns="http://opcfoundation.org/UA/2011/03/UANodeSet.xsd">
   <NamespaceUris>
     <Uri>http://opcfoundation.org/UA/Robotics/</Uri>
     <Uri>http://opcfoundation.org/UA/DI/</Uri>
   </NamespaceUris>
   <Models>
-    <Model ModelUri="http://opcfoundation.org/UA/Robotics/" Version="1.01.1" PublicationDate="2020-01-09T00:00:00Z">
+    <Model ModelUri="http://opcfoundation.org/UA/Robotics/" Version="1.0.0" PublicationDate="2019-05-06T00:00:00Z">
       <RequiredModel ModelUri="http://opcfoundation.org/UA/" Version="1.04" PublicationDate="2019-05-01T00:00:00Z" />
       <RequiredModel ModelUri="http://opcfoundation.org/UA/DI/" Version="1.02" PublicationDate="2019-05-01T00:00:00Z" />
     </Model>
@@ -78,6 +78,7 @@
   </Aliases>
   <UAObject NodeId="ns=1;i=15011" BrowseName="1:http://opcfoundation.org/UA/Robotics/" SymbolicName="OPCUAROBOTICSNamespaceMetadata">
     <DisplayName>http://opcfoundation.org/UA/Robotics/</DisplayName>
+    <Documentation>https://reference.opcfoundation.org/v104/Robotics/v100/docs/9.1</Documentation>
     <References>
       <Reference ReferenceType="HasProperty">ns=1;i=15034</Reference>
       <Reference ReferenceType="HasProperty">ns=1;i=15064</Reference>
@@ -92,7 +93,6 @@
       <Reference ReferenceType="HasComponent" IsForward="false">i=11715</Reference>
       <Reference ReferenceType="HasTypeDefinition">i=11616</Reference>
     </References>
-    <Documentation>https://reference.opcfoundation.org/Robotics/docs/9.1</Documentation>
   </UAObject>
   <UAVariable NodeId="ns=1;i=15034" BrowseName="NamespaceUri" ParentNodeId="ns=1;i=15011" DataType="String">
     <DisplayName>NamespaceUri</DisplayName>
@@ -111,7 +111,7 @@
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=15011</Reference>
     </References>
     <Value>
-      <String xmlns="http://opcfoundation.org/UA/2008/02/Types.xsd">1.01</String>
+      <String xmlns="http://opcfoundation.org/UA/2008/02/Types.xsd">0.93</String>
     </Value>
   </UAVariable>
   <UAVariable NodeId="ns=1;i=15091" BrowseName="NamespacePublicationDate" ParentNodeId="ns=1;i=15011" DataType="DateTime">
@@ -121,7 +121,7 @@
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=15011</Reference>
     </References>
     <Value>
-      <DateTime xmlns="http://opcfoundation.org/UA/2008/02/Types.xsd">2020-01-09T00:00:00Z</DateTime>
+      <DateTime xmlns="http://opcfoundation.org/UA/2008/02/Types.xsd">2019-01-23T00:00:00Z</DateTime>
     </Value>
   </UAVariable>
   <UAVariable NodeId="ns=1;i=15114" BrowseName="IsNamespaceSubset" ParentNodeId="ns=1;i=15011" DataType="Boolean">
@@ -193,24 +193,24 @@
   <UAObjectType NodeId="ns=1;i=1002" BrowseName="1:MotionDeviceSystemType">
     <DisplayName>MotionDeviceSystemType</DisplayName>
     <Description>Contains the set of controllers and motion devices in a closely-coupled motion device system.</Description>
+    <Documentation>https://reference.opcfoundation.org/v104/Robotics/v100/docs/7.1.2</Documentation>
     <References>
       <Reference ReferenceType="HasComponent">ns=1;i=5002</Reference>
       <Reference ReferenceType="HasComponent">ns=1;i=5001</Reference>
       <Reference ReferenceType="HasComponent">ns=1;i=5010</Reference>
       <Reference ReferenceType="HasSubtype" IsForward="false">ns=2;i=15063</Reference>
     </References>
-    <Documentation>https://reference.opcfoundation.org/Robotics/docs/7.1.2</Documentation>
   </UAObjectType>
   <UAObject NodeId="ns=1;i=5002" BrowseName="1:MotionDevices" ParentNodeId="ns=1;i=1002">
     <DisplayName>MotionDevices</DisplayName>
     <Description>Contains any kinematic or motion device which is part of the motion device system.</Description>
+    <Documentation>https://reference.opcfoundation.org/v104/Robotics/v100/docs/7.1.2</Documentation>
     <References>
       <Reference ReferenceType="HasComponent">ns=1;i=15008</Reference>
       <Reference ReferenceType="HasTypeDefinition">i=61</Reference>
       <Reference ReferenceType="HasModellingRule">i=78</Reference>
       <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=1002</Reference>
     </References>
-    <Documentation>https://reference.opcfoundation.org/Robotics/docs/7.1.2</Documentation>
   </UAObject>
   <UAObject NodeId="ns=1;i=15008" BrowseName="1:&lt;MotionDeviceIdentifier&gt;" SymbolicName="MotionDeviceIdentifier" ParentNodeId="ns=1;i=5002">
     <DisplayName>&lt;MotionDeviceIdentifier&gt;</DisplayName>
@@ -291,33 +291,33 @@
   <UAObject NodeId="ns=1;i=15062" BrowseName="1:Axes" ParentNodeId="ns=1;i=15008">
     <DisplayName>Axes</DisplayName>
     <Description>Axes is a container for one or more instances of the AxisType.</Description>
+    <Documentation>https://reference.opcfoundation.org/v104/Robotics/v100/docs/7.2.3/#7.2.3.10</Documentation>
     <References>
       <Reference ReferenceType="HasTypeDefinition">i=61</Reference>
       <Reference ReferenceType="HasModellingRule">i=78</Reference>
       <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=15008</Reference>
     </References>
-    <Documentation>https://reference.opcfoundation.org/Robotics/docs/7.2.3/#7.2.3.10</Documentation>
   </UAObject>
   <UAObject NodeId="ns=1;i=15208" BrowseName="1:PowerTrains" ParentNodeId="ns=1;i=15008">
     <DisplayName>PowerTrains</DisplayName>
     <Description>PowerTrains is a container for one or more instances of the PowerTrainType.</Description>
+    <Documentation>https://reference.opcfoundation.org/v104/Robotics/v100/docs/7.2.3/#7.2.3.11</Documentation>
     <References>
       <Reference ReferenceType="HasTypeDefinition">i=61</Reference>
       <Reference ReferenceType="HasModellingRule">i=78</Reference>
       <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=15008</Reference>
     </References>
-    <Documentation>https://reference.opcfoundation.org/Robotics/docs/7.2.3/#7.2.3.11</Documentation>
   </UAObject>
   <UAObject NodeId="ns=1;i=5001" BrowseName="1:Controllers" ParentNodeId="ns=1;i=1002">
     <DisplayName>Controllers</DisplayName>
     <Description>Contains the set of controllers in the motion device system.</Description>
+    <Documentation>https://reference.opcfoundation.org/v104/Robotics/v100/docs/7.1.2</Documentation>
     <References>
       <Reference ReferenceType="HasComponent">ns=1;i=15405</Reference>
       <Reference ReferenceType="HasTypeDefinition">i=61</Reference>
       <Reference ReferenceType="HasModellingRule">i=78</Reference>
       <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=1002</Reference>
     </References>
-    <Documentation>https://reference.opcfoundation.org/Robotics/docs/7.1.2</Documentation>
   </UAObject>
   <UAObject NodeId="ns=1;i=15405" BrowseName="1:&lt;ControllerIdentifier&gt;" SymbolicName="ControllerIdentifier" ParentNodeId="ns=1;i=5001">
     <DisplayName>&lt;ControllerIdentifier&gt;</DisplayName>
@@ -388,33 +388,33 @@
   <UAObject NodeId="ns=1;i=15483" BrowseName="1:Software" ParentNodeId="ns=1;i=15405">
     <DisplayName>Software</DisplayName>
     <Description>Software is a container for one or more instances of SoftwareType defined in OPC UA DI.</Description>
+    <Documentation>https://reference.opcfoundation.org/v104/Robotics/v100/docs/7.8.3/#7.8.3.10</Documentation>
     <References>
       <Reference ReferenceType="HasTypeDefinition">i=61</Reference>
       <Reference ReferenceType="HasModellingRule">i=78</Reference>
       <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=15405</Reference>
     </References>
-    <Documentation>https://reference.opcfoundation.org/Robotics/docs/7.8.3/#7.8.3.10</Documentation>
   </UAObject>
   <UAObject NodeId="ns=1;i=15518" BrowseName="1:TaskControls" ParentNodeId="ns=1;i=15405">
     <DisplayName>TaskControls</DisplayName>
     <Description>TaskControls is a container for one or more instances of TaskControlType.</Description>
+    <Documentation>https://reference.opcfoundation.org/v104/Robotics/v100/docs/7.8.3/#7.8.3.11</Documentation>
     <References>
       <Reference ReferenceType="HasTypeDefinition">i=61</Reference>
       <Reference ReferenceType="HasModellingRule">i=78</Reference>
       <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=15405</Reference>
     </References>
-    <Documentation>https://reference.opcfoundation.org/Robotics/docs/7.8.3/#7.8.3.11</Documentation>
   </UAObject>
   <UAObject NodeId="ns=1;i=5010" BrowseName="1:SafetyStates" ParentNodeId="ns=1;i=1002">
     <DisplayName>SafetyStates</DisplayName>
     <Description>Contains safety-related data from motion device system.</Description>
+    <Documentation>https://reference.opcfoundation.org/v104/Robotics/v100/docs/7.1.2</Documentation>
     <References>
       <Reference ReferenceType="HasComponent">ns=1;i=15697</Reference>
       <Reference ReferenceType="HasTypeDefinition">i=61</Reference>
       <Reference ReferenceType="HasModellingRule">i=78</Reference>
       <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=1002</Reference>
     </References>
-    <Documentation>https://reference.opcfoundation.org/Robotics/docs/7.1.2</Documentation>
   </UAObject>
   <UAObject NodeId="ns=1;i=15697" BrowseName="1:&lt;SafetyStateIdentifier&gt;" SymbolicName="SafetyStateIdentifier" ParentNodeId="ns=1;i=5010">
     <DisplayName>&lt;SafetyStateIdentifier&gt;</DisplayName>
@@ -467,6 +467,7 @@
   <UAObjectType NodeId="ns=1;i=1004" BrowseName="1:MotionDeviceType">
     <DisplayName>MotionDeviceType</DisplayName>
     <Description>Represents a specific motion device in the motion device system like a robot, a linear unit or a positioner. A MotionDevice should have at least one axis.</Description>
+    <Documentation>https://reference.opcfoundation.org/v104/Robotics/v100/docs/7.2.2</Documentation>
     <References>
       <Reference ReferenceType="HasComponent">ns=1;i=5029</Reference>
       <Reference ReferenceType="HasProperty">ns=1;i=16351</Reference>
@@ -480,7 +481,6 @@
       <Reference ReferenceType="HasComponent">ns=1;i=16566</Reference>
       <Reference ReferenceType="HasSubtype" IsForward="false">ns=2;i=15063</Reference>
     </References>
-    <Documentation>https://reference.opcfoundation.org/Robotics/docs/7.2.2</Documentation>
   </UAObjectType>
   <UAObject NodeId="ns=1;i=5029" BrowseName="2:ParameterSet" ParentNodeId="ns=1;i=1004">
     <DisplayName>ParameterSet</DisplayName>
@@ -565,6 +565,7 @@
   <UAObject NodeId="ns=1;i=15305" BrowseName="1:Axes" ParentNodeId="ns=1;i=1004">
     <DisplayName>Axes</DisplayName>
     <Description>Axes is a container for one or more instances of the AxisType.</Description>
+    <Documentation>https://reference.opcfoundation.org/v104/Robotics/v100/docs/7.2.3/#7.2.3.10</Documentation>
     <References>
       <Reference ReferenceType="HasComponent">ns=1;i=15743</Reference>
       <Reference ReferenceType="HasTypeDefinition">i=61</Reference>
@@ -622,6 +623,7 @@
   <UAObject NodeId="ns=1;i=16443" BrowseName="1:PowerTrains" ParentNodeId="ns=1;i=1004">
     <DisplayName>PowerTrains</DisplayName>
     <Description>PowerTrains is a container for one or more instances of the PowerTrainType.</Description>
+    <Documentation>https://reference.opcfoundation.org/v104/Robotics/v100/docs/7.2.3/#7.2.3.11</Documentation>
     <References>
       <Reference ReferenceType="HasComponent">ns=1;i=15905</Reference>
       <Reference ReferenceType="HasTypeDefinition">i=61</Reference>
@@ -668,13 +670,13 @@
   <UAObject NodeId="ns=1;i=16566" BrowseName="1:AdditionalComponents" ParentNodeId="ns=1;i=1004">
     <DisplayName>AdditionalComponents</DisplayName>
     <Description>AdditionalComponents is a container for one or more instances of subtypes of ComponentType defined in OPC UA DI. The listed components are installed at the motion device, e.g. an IO-board.</Description>
+    <Documentation>https://reference.opcfoundation.org/v104/Robotics/v100/docs/7.2.3/#7.2.3.13</Documentation>
     <References>
       <Reference ReferenceType="HasComponent">ns=1;i=18310</Reference>
       <Reference ReferenceType="HasTypeDefinition">i=61</Reference>
       <Reference ReferenceType="HasModellingRule">i=80</Reference>
       <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=1004</Reference>
     </References>
-    <Documentation>https://reference.opcfoundation.org/Robotics/docs/7.2.3/#7.2.3.13</Documentation>
   </UAObject>
   <UAObject NodeId="ns=1;i=18310" BrowseName="1:&lt;AdditionalComponentIdentifier&gt;" SymbolicName="AdditionalComponentIdentifier" ParentNodeId="ns=1;i=16566">
     <DisplayName>&lt;AdditionalComponentIdentifier&gt;</DisplayName>
@@ -689,6 +691,7 @@
   <UAObjectType NodeId="ns=1;i=16601" BrowseName="1:AxisType">
     <DisplayName>AxisType</DisplayName>
     <Description>The AxisType describes an axis of a motion device.</Description>
+    <Documentation>https://reference.opcfoundation.org/v104/Robotics/v100/docs/7.3.3/#7.3.3.4</Documentation>
     <References>
       <Reference ReferenceType="HasComponent">ns=1;i=16602</Reference>
       <Reference ReferenceType="HasProperty">ns=1;i=16637</Reference>
@@ -696,7 +699,6 @@
       <Reference ReferenceType="ns=1;i=18179">ns=1;i=18344</Reference>
       <Reference ReferenceType="HasSubtype" IsForward="false">ns=2;i=15063</Reference>
     </References>
-    <Documentation>https://reference.opcfoundation.org/Robotics/docs/7.3.3/#7.3.3.4</Documentation>
   </UAObjectType>
   <UAObject NodeId="ns=1;i=16602" BrowseName="2:ParameterSet" ParentNodeId="ns=1;i=16601">
     <DisplayName>ParameterSet</DisplayName>
@@ -803,7 +805,7 @@
   </UAVariable>
   <UAObject NodeId="ns=1;i=18344" BrowseName="1:&lt;PowerTrainIdentifier&gt;" SymbolicName="PowerTrainIdentifier" ParentNodeId="ns=1;i=16601">
     <DisplayName>&lt;PowerTrainIdentifier&gt;</DisplayName>
-    <Description>The Requires reference provides the relationship of axes to powertrains. For complex kinematics this does not need to be a one to one relationship, because more than one powertrain might influence the motion of one axis. This reference connects all powertrains to an axis that must be actively driven when only this axis should move and all other axes should stand still. Virtual axes that are not actively driven by a powertrain do not have this reference.</Description>
+    <Description>The Requires reference provides the relationship of axes to power trains. For complex kinematics this does not need to be a one to one relationship, because more than one power train might influence the motion of one axis. This reference connects all power trains to an axis that must be actively driven when only this axis should move and all other axes should stand still. Virtual axes that are not actively driven by a power train do not have this reference.</Description>
     <References>
       <Reference ReferenceType="HasTypeDefinition">ns=1;i=16794</Reference>
       <Reference ReferenceType="HasModellingRule">i=11508</Reference>
@@ -812,7 +814,8 @@
   </UAObject>
   <UAObjectType NodeId="ns=1;i=16794" BrowseName="1:PowerTrainType">
     <DisplayName>PowerTrainType</DisplayName>
-    <Description>The PowerTrainType represents instances of powertrains of a motion device.</Description>
+    <Description>The PowerTrainType represents instances of power trains of a motion device.</Description>
+    <Documentation>https://reference.opcfoundation.org/v104/Robotics/v100/docs/7.4.2</Documentation>
     <References>
       <Reference ReferenceType="HasComponent">ns=1;i=15998</Reference>
       <Reference ReferenceType="HasComponent">ns=1;i=16041</Reference>
@@ -820,7 +823,6 @@
       <Reference ReferenceType="ns=1;i=18183">ns=1;i=18613</Reference>
       <Reference ReferenceType="HasSubtype" IsForward="false">ns=2;i=15063</Reference>
     </References>
-    <Documentation>https://reference.opcfoundation.org/Robotics/docs/7.4.2</Documentation>
   </UAObjectType>
   <UAObject NodeId="ns=1;i=15998" BrowseName="1:&lt;MotorIdentifier&gt;" SymbolicName="MotorIdentifier" ParentNodeId="ns=1;i=16794">
     <DisplayName>&lt;MotorIdentifier&gt;</DisplayName>
@@ -969,7 +971,7 @@
   </UAVariable>
   <UAObject NodeId="ns=1;i=18536" BrowseName="1:&lt;AxisIdentifier&gt;" SymbolicName="AxisIdentifier" ParentNodeId="ns=1;i=16794">
     <DisplayName>&lt;AxisIdentifier&gt;</DisplayName>
-    <Description>Moves is a reference to provide the relationship of powertrains to axes. For complex kinematics this does not need to be a one to one relationship, because a powertrain might influence the motion of more than one axis. This reference connects all axis to a powertrain that that move when only this powertrain moves and all other powertrains stand still.</Description>
+    <Description>Moves is a reference to provide the relationship of power trains to axes. For complex kinematics this does not need to be a one to one relationship, because a power train might influence the motion of more than one axis. This reference connects all axis to a power train that that move when only this power train moves and all other powertains stand still.</Description>
     <References>
       <Reference ReferenceType="HasComponent">ns=1;i=18537</Reference>
       <Reference ReferenceType="HasProperty">ns=1;i=18570</Reference>
@@ -1017,7 +1019,7 @@
   </UAVariable>
   <UAObject NodeId="ns=1;i=18613" BrowseName="1:&lt;PowerTrainIdentifier&gt;" SymbolicName="PowerTrainIdentifier" ParentNodeId="ns=1;i=16794">
     <DisplayName>&lt;PowerTrainIdentifier&gt;</DisplayName>
-    <Description>HasSlave is a reference to provide the master-slave relationship of powertrains which provide torque for a common axis. The InverseName is IsSlaveOf.</Description>
+    <Description>HasSlave is a reference to provide the master-slave relationship of power trains which provide torque for a common axis. The InverseName is IsSlaveOf.</Description>
     <References>
       <Reference ReferenceType="HasTypeDefinition">ns=1;i=16794</Reference>
       <Reference ReferenceType="HasModellingRule">i=11508</Reference>
@@ -1027,6 +1029,7 @@
   <UAObjectType NodeId="ns=1;i=1019" BrowseName="1:MotorType">
     <DisplayName>MotorType</DisplayName>
     <Description>The MotorType is for representing instances of electric motors.</Description>
+    <Documentation>https://reference.opcfoundation.org/v104/Robotics/v100/docs/7.5.2</Documentation>
     <References>
       <Reference ReferenceType="HasComponent">ns=1;i=5105</Reference>
       <Reference ReferenceType="HasProperty">ns=1;i=17101</Reference>
@@ -1037,7 +1040,6 @@
       <Reference ReferenceType="ns=1;i=18180">ns=1;i=18763</Reference>
       <Reference ReferenceType="HasSubtype" IsForward="false">ns=2;i=15063</Reference>
     </References>
-    <Documentation>https://reference.opcfoundation.org/Robotics/docs/7.5.2</Documentation>
   </UAObjectType>
   <UAObject NodeId="ns=1;i=5105" BrowseName="2:ParameterSet" ParentNodeId="ns=1;i=1019">
     <DisplayName>ParameterSet</DisplayName>
@@ -1121,7 +1123,7 @@
   </UAVariable>
   <UAObject NodeId="ns=1;i=18727" BrowseName="1:&lt;GearIdentifier&gt;" SymbolicName="GearIdentifier" ParentNodeId="ns=1;i=1019">
     <DisplayName>&lt;GearIdentifier&gt;</DisplayName>
-    <Description>IsConnectedTo is a reference to provide the relationship between a motor and a gear of a powertrain.</Description>
+    <Description>IsConnectedTo is a reference to provide the relationship between a motor and a gear of a power train.</Description>
     <References>
       <Reference ReferenceType="HasProperty">ns=1;i=18748</Reference>
       <Reference ReferenceType="HasProperty">ns=1;i=18750</Reference>
@@ -1192,9 +1194,9 @@
       <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=18761</Reference>
     </References>
   </UAVariable>
-  <UAObject NodeId="ns=1;i=18763" BrowseName="1:&lt;DriveIdentifier&gt;" SymbolicName="DriveIdentifier" ParentNodeId="ns=1;i=1019">
-    <DisplayName>&lt;DriveIdentifier&gt;</DisplayName>
-    <Description>IsDrivenBy is a reference to provide a relationship from a motor to a drive, which can be a multi-slot-drive or single slot drive. The TypeDefinition of the reference destination as BaseObjectType provides the possibility to point to a slot of a multi-slot-drive or a motor-integrated-drive. If this reference points to a physical drive (and not a drive slot) it should point to an DriveType.</Description>
+  <UAObject NodeId="ns=1;i=18763" BrowseName="1:&lt;DriveIdentifiier&gt;" SymbolicName="DriveIdentifiier" ParentNodeId="ns=1;i=1019">
+    <DisplayName>&lt;DriveIdentifiier&gt;</DisplayName>
+    <Description>IsDrivenBy is a reference to provide a relationship from a motor to a drive, which can be a multi-slot-drive or single slot drive. The TypeDefinition of the reference destination as BaseObjectType provides the possibility to point to a slot of a mulit-slot-drive or a motor-integrated-drive. If this reference points to a physical drive (and not a drive slot) it should point to an DriveType.</Description>
     <References>
       <Reference ReferenceType="HasTypeDefinition">i=58</Reference>
       <Reference ReferenceType="HasModellingRule">i=11508</Reference>
@@ -1203,7 +1205,8 @@
   </UAObject>
   <UAObjectType NodeId="ns=1;i=1022" BrowseName="1:GearType">
     <DisplayName>GearType</DisplayName>
-    <Description>The GearType describes a gear in a powertrain, e.g. a gear box or a spindle.</Description>
+    <Description>The GearType describes a gear in a power train, e.g. a gear box or a spindle.</Description>
+    <Documentation>https://reference.opcfoundation.org/v104/Robotics/v100/docs/7.6.2</Documentation>
     <References>
       <Reference ReferenceType="HasProperty">ns=1;i=17152</Reference>
       <Reference ReferenceType="HasProperty">ns=1;i=17154</Reference>
@@ -1214,7 +1217,6 @@
       <Reference ReferenceType="ns=1;i=18181">ns=1;i=18764</Reference>
       <Reference ReferenceType="HasSubtype" IsForward="false">ns=2;i=15063</Reference>
     </References>
-    <Documentation>https://reference.opcfoundation.org/Robotics/docs/7.6.2</Documentation>
   </UAObjectType>
   <UAVariable NodeId="ns=1;i=17152" BrowseName="2:Manufacturer" ParentNodeId="ns=1;i=1022" DataType="LocalizedText">
     <DisplayName>Manufacturer</DisplayName>
@@ -1286,7 +1288,7 @@
   </UAVariable>
   <UAObject NodeId="ns=1;i=18764" BrowseName="1:&lt;MotorIdentifier&gt;" SymbolicName="MotorIdentifier" ParentNodeId="ns=1;i=1022">
     <DisplayName>&lt;MotorIdentifier&gt;</DisplayName>
-    <Description>IsConnectedTo is a reference to provide the relationship between a motor and a gear of a powertrain.</Description>
+    <Description>IsConnectedTo is a reference to provide the relationship between a motor and a gear of a power train.</Description>
     <References>
       <Reference ReferenceType="HasComponent">ns=1;i=18765</Reference>
       <Reference ReferenceType="HasProperty">ns=1;i=18785</Reference>
@@ -1361,13 +1363,13 @@
   <UAObjectType NodeId="ns=1;i=1013" BrowseName="1:SafetyStateType">
     <DisplayName>SafetyStateType</DisplayName>
     <Description>SafetyStateType describes the safety states of the motion devices and controllers. One motion device system is associated with one or more instances of the SafetyStateType.</Description>
+    <Documentation>https://reference.opcfoundation.org/v104/Robotics/v100/docs/7.7.2</Documentation>
     <References>
       <Reference ReferenceType="HasComponent">ns=1;i=5016</Reference>
       <Reference ReferenceType="HasComponent">ns=1;i=17221</Reference>
       <Reference ReferenceType="HasComponent">ns=1;i=17225</Reference>
       <Reference ReferenceType="HasSubtype" IsForward="false">ns=2;i=15063</Reference>
     </References>
-    <Documentation>https://reference.opcfoundation.org/Robotics/docs/7.7.2</Documentation>
   </UAObjectType>
   <UAObject NodeId="ns=1;i=5016" BrowseName="2:ParameterSet" ParentNodeId="ns=1;i=1013">
     <DisplayName>ParameterSet</DisplayName>
@@ -1411,13 +1413,13 @@
   <UAObject NodeId="ns=1;i=17221" BrowseName="1:EmergencyStopFunctions" ParentNodeId="ns=1;i=1013">
     <DisplayName>EmergencyStopFunctions</DisplayName>
     <Description>EmergencyStopFunctions is a container for one or more instances of the EmergencyStopFunctionType.</Description>
+    <Documentation>https://reference.opcfoundation.org/v104/Robotics/v100/docs/7.7.3/#7.7.3.2</Documentation>
     <References>
       <Reference ReferenceType="HasComponent">ns=1;i=18806</Reference>
       <Reference ReferenceType="HasTypeDefinition">i=61</Reference>
       <Reference ReferenceType="HasModellingRule">i=80</Reference>
       <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=1013</Reference>
     </References>
-    <Documentation>https://reference.opcfoundation.org/Robotics/docs/7.7.3/#7.7.3.2</Documentation>
   </UAObject>
   <UAObject NodeId="ns=1;i=18806" BrowseName="1:&lt;EmergencyStopFunctionIdentifier&gt;" SymbolicName="EmergencyStopFunctionIdentifier" ParentNodeId="ns=1;i=17221">
     <DisplayName>&lt;EmergencyStopFunctionIdentifier&gt;</DisplayName>
@@ -1450,13 +1452,13 @@
   <UAObject NodeId="ns=1;i=17225" BrowseName="1:ProtectiveStopFunctions" ParentNodeId="ns=1;i=1013">
     <DisplayName>ProtectiveStopFunctions</DisplayName>
     <Description>ProtectiveStopFunctions is a container for one or more instances of the ProtectiveStopFunctionType.</Description>
+    <Documentation>https://reference.opcfoundation.org/v104/Robotics/v100/docs/7.7.3/#7.7.3.3</Documentation>
     <References>
       <Reference ReferenceType="HasComponent">ns=1;i=18809</Reference>
       <Reference ReferenceType="HasTypeDefinition">i=61</Reference>
       <Reference ReferenceType="HasModellingRule">i=80</Reference>
       <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=1013</Reference>
     </References>
-    <Documentation>https://reference.opcfoundation.org/Robotics/docs/7.7.3/#7.7.3.3</Documentation>
   </UAObject>
   <UAObject NodeId="ns=1;i=18809" BrowseName="1:&lt;ProtectiveStopFunctionIdentifier&gt;" SymbolicName="ProtectiveStopFunctionIdentifier" ParentNodeId="ns=1;i=17225">
     <DisplayName>&lt;ProtectiveStopFunctionIdentifier&gt;</DisplayName>
@@ -1499,12 +1501,12 @@
   <UAObjectType NodeId="ns=1;i=17230" BrowseName="1:EmergencyStopFunctionType">
     <DisplayName>EmergencyStopFunctionType</DisplayName>
     <Description>According to ISO 10218-1:2011 Ch.5.5.2 Emergency stop the robot shall have one or more emergency stop functions.</Description>
+    <Documentation>https://reference.opcfoundation.org/v104/Robotics/v100/docs/7.7.3/#7.7.3.2</Documentation>
     <References>
       <Reference ReferenceType="HasProperty">ns=1;i=17231</Reference>
       <Reference ReferenceType="HasComponent">ns=1;i=17232</Reference>
       <Reference ReferenceType="HasSubtype" IsForward="false">i=58</Reference>
     </References>
-    <Documentation>https://reference.opcfoundation.org/Robotics/docs/7.7.3/#7.7.3.2</Documentation>
   </UAObjectType>
   <UAVariable NodeId="ns=1;i=17231" BrowseName="1:Name" ParentNodeId="ns=1;i=17230" DataType="String">
     <DisplayName>Name</DisplayName>
@@ -1527,13 +1529,13 @@
   <UAObjectType NodeId="ns=1;i=17233" BrowseName="1:ProtectiveStopFunctionType">
     <DisplayName>ProtectiveStopFunctionType</DisplayName>
     <Description>According to ISO 10218-1:2011 Ch.5.5.3 the robot shall have one or more protective stop functions designed for the connection of external protective devices.</Description>
+    <Documentation>https://reference.opcfoundation.org/v104/Robotics/v100/docs/7.7.3/#7.7.3.3</Documentation>
     <References>
       <Reference ReferenceType="HasProperty">ns=1;i=17234</Reference>
       <Reference ReferenceType="HasComponent">ns=1;i=17235</Reference>
       <Reference ReferenceType="HasComponent">ns=1;i=17236</Reference>
       <Reference ReferenceType="HasSubtype" IsForward="false">i=58</Reference>
     </References>
-    <Documentation>https://reference.opcfoundation.org/Robotics/docs/7.7.3/#7.7.3.3</Documentation>
   </UAObjectType>
   <UAVariable NodeId="ns=1;i=17234" BrowseName="1:Name" ParentNodeId="ns=1;i=17233" DataType="String">
     <DisplayName>Name</DisplayName>
@@ -1565,6 +1567,7 @@
   <UAObjectType NodeId="ns=1;i=1003" BrowseName="1:ControllerType">
     <DisplayName>ControllerType</DisplayName>
     <Description>The ControllerType describes the control unit of motion devices. One motion device system can have one or more instances of the ControllerType.</Description>
+    <Documentation>https://reference.opcfoundation.org/v104/Robotics/v100/docs/7.8.3/#7.8.3.12</Documentation>
     <References>
       <Reference ReferenceType="HasComponent">ns=1;i=5004</Reference>
       <Reference ReferenceType="HasProperty">ns=1;i=17237</Reference>
@@ -1579,7 +1582,6 @@
       <Reference ReferenceType="ns=1;i=4002">ns=1;i=18964</Reference>
       <Reference ReferenceType="HasSubtype" IsForward="false">ns=2;i=15063</Reference>
     </References>
-    <Documentation>https://reference.opcfoundation.org/Robotics/docs/7.8.3/#7.8.3.12</Documentation>
   </UAObjectType>
   <UAObject NodeId="ns=1;i=5004" BrowseName="2:ParameterSet" ParentNodeId="ns=1;i=1003">
     <DisplayName>ParameterSet</DisplayName>
@@ -1681,7 +1683,7 @@
   </UAVariable>
   <UAVariable NodeId="ns=1;i=17377" BrowseName="1:InputVoltage" ParentNodeId="ns=1;i=5004" DataType="Double">
     <DisplayName>InputVoltage</DisplayName>
-    <Description>The input voltage of the controller which can be a configured value. To distinguish between an AC or DC supply the optional property Definition of the base type DataItemType shall be used.</Description>
+    <Description>The input voltage of the controller which can be a configured value. To distuinguish between an AC or DC supply the optional property Definition of the base type DataItemType shall be used.</Description>
     <References>
       <Reference ReferenceType="HasProperty">ns=1;i=17382</Reference>
       <Reference ReferenceType="HasTypeDefinition">i=17497</Reference>
@@ -1769,13 +1771,13 @@
   <UAObject NodeId="ns=1;i=17252" BrowseName="1:Components" ParentNodeId="ns=1;i=1003">
     <DisplayName>Components</DisplayName>
     <Description>Components is a container for one or more instances of subtypes of ComponentType defined in OPC UA DI. The listed components are installed in the motion device system, e.g. a processing-unit, a power-supply, an IO-board or a drive, and have an electrical interface to the controller.</Description>
+    <Documentation>https://reference.opcfoundation.org/v104/Robotics/v100/docs/7.8.3/#7.8.3.9</Documentation>
     <References>
       <Reference ReferenceType="HasComponent">ns=1;i=18813</Reference>
       <Reference ReferenceType="HasTypeDefinition">i=61</Reference>
       <Reference ReferenceType="HasModellingRule">i=80</Reference>
       <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=1003</Reference>
     </References>
-    <Documentation>https://reference.opcfoundation.org/Robotics/docs/7.8.3/#7.8.3.9</Documentation>
   </UAObject>
   <UAObject NodeId="ns=1;i=18813" BrowseName="1:&lt;ComponentIdentifier&gt;" SymbolicName="ComponentIdentifier" ParentNodeId="ns=1;i=17252">
     <DisplayName>&lt;ComponentIdentifier&gt;</DisplayName>
@@ -1791,6 +1793,7 @@
   <UAObject NodeId="ns=1;i=15800" BrowseName="1:Software" ParentNodeId="ns=1;i=1003">
     <DisplayName>Software</DisplayName>
     <Description>Software is a container for one or more instances of SoftwareType defined in OPC UA DI.</Description>
+    <Documentation>https://reference.opcfoundation.org/v104/Robotics/v100/docs/7.8.3/#7.8.3.10</Documentation>
     <References>
       <Reference ReferenceType="HasComponent">ns=1;i=18847</Reference>
       <Reference ReferenceType="HasTypeDefinition">i=61</Reference>
@@ -1836,6 +1839,7 @@
   <UAObject NodeId="ns=1;i=15826" BrowseName="1:TaskControls" ParentNodeId="ns=1;i=1003">
     <DisplayName>TaskControls</DisplayName>
     <Description>TaskControls is a container for one or more instances of TaskControlType.</Description>
+    <Documentation>https://reference.opcfoundation.org/v104/Robotics/v100/docs/7.8.3/#7.8.3.11</Documentation>
     <References>
       <Reference ReferenceType="HasComponent">ns=1;i=18881</Reference>
       <Reference ReferenceType="HasTypeDefinition">i=61</Reference>
@@ -1884,7 +1888,7 @@
   </UAVariable>
   <UAVariable NodeId="ns=1;i=18914" BrowseName="2:ComponentName" ParentNodeId="ns=1;i=18881" DataType="LocalizedText">
     <DisplayName>ComponentName</DisplayName>
-    <Description>A user writable name provided by the vendor, integrator or user of the device.</Description>
+    <Description>A user writeable name provided by the vendor, integrator or user of the device.</Description>
     <References>
       <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
       <Reference ReferenceType="HasModellingRule">i=78</Reference>
@@ -2020,6 +2024,7 @@
   <UAObject NodeId="ns=1;i=19002" BrowseName="1:Axes" ParentNodeId="ns=1;i=18964">
     <DisplayName>Axes</DisplayName>
     <Description>Axes is a container for one or more instances of the AxisType.</Description>
+    <Documentation>https://reference.opcfoundation.org/v104/Robotics/v100/docs/7.2.3/#7.2.3.10</Documentation>
     <References>
       <Reference ReferenceType="HasTypeDefinition">i=61</Reference>
       <Reference ReferenceType="HasModellingRule">i=78</Reference>
@@ -2029,6 +2034,7 @@
   <UAObject NodeId="ns=1;i=19080" BrowseName="1:PowerTrains" ParentNodeId="ns=1;i=18964">
     <DisplayName>PowerTrains</DisplayName>
     <Description>PowerTrains is a container for one or more instances of the PowerTrainType.</Description>
+    <Documentation>https://reference.opcfoundation.org/v104/Robotics/v100/docs/7.2.3/#7.2.3.11</Documentation>
     <References>
       <Reference ReferenceType="HasTypeDefinition">i=61</Reference>
       <Reference ReferenceType="HasModellingRule">i=78</Reference>
@@ -2038,11 +2044,11 @@
   <UAObjectType NodeId="ns=1;i=17725" BrowseName="1:AuxiliaryComponentType">
     <DisplayName>AuxiliaryComponentType</DisplayName>
     <Description>Components mounted in a controller cabinet or a motion device e.g. an IO-board or a power supply.</Description>
+    <Documentation>https://reference.opcfoundation.org/v104/Robotics/v100/docs/7.9.2</Documentation>
     <References>
       <Reference ReferenceType="HasProperty">ns=1;i=17756</Reference>
       <Reference ReferenceType="HasSubtype" IsForward="false">ns=2;i=1002</Reference>
     </References>
-    <Documentation>https://reference.opcfoundation.org/Robotics/docs/7.9.2</Documentation>
   </UAObjectType>
   <UAVariable NodeId="ns=1;i=17756" BrowseName="2:ProductCode" ParentNodeId="ns=1;i=17725" DataType="String">
     <DisplayName>ProductCode</DisplayName>
@@ -2056,11 +2062,11 @@
   <UAObjectType NodeId="ns=1;i=17793" BrowseName="1:DriveType">
     <DisplayName>DriveType</DisplayName>
     <Description>Drives (multi-slot or single-slot axis amplifier) mounted in a controller cabinet or a motion device.</Description>
+    <Documentation>https://reference.opcfoundation.org/v104/Robotics/v100/docs/7.10.2</Documentation>
     <References>
       <Reference ReferenceType="HasProperty">ns=1;i=17824</Reference>
       <Reference ReferenceType="HasSubtype" IsForward="false">ns=2;i=1002</Reference>
     </References>
-    <Documentation>https://reference.opcfoundation.org/Robotics/docs/7.10.2</Documentation>
   </UAObjectType>
   <UAVariable NodeId="ns=1;i=17824" BrowseName="2:ProductCode" ParentNodeId="ns=1;i=17793" DataType="String">
     <DisplayName>ProductCode</DisplayName>
@@ -2074,13 +2080,13 @@
   <UAObjectType NodeId="ns=1;i=1011" BrowseName="1:TaskControlType">
     <DisplayName>TaskControlType</DisplayName>
     <Description>Represents a specific task control active on the controller.</Description>
+    <Documentation>https://reference.opcfoundation.org/v104/Robotics/v100/docs/7.11.2</Documentation>
     <References>
       <Reference ReferenceType="HasComponent">ns=1;i=15883</Reference>
       <Reference ReferenceType="HasProperty">ns=1;i=17873</Reference>
       <Reference ReferenceType="ns=1;i=4002">ns=1;i=19254</Reference>
       <Reference ReferenceType="HasSubtype" IsForward="false">ns=2;i=15063</Reference>
     </References>
-    <Documentation>https://reference.opcfoundation.org/Robotics/docs/7.11.2</Documentation>
   </UAObjectType>
   <UAObject NodeId="ns=1;i=15883" BrowseName="2:ParameterSet" ParentNodeId="ns=1;i=1011">
     <DisplayName>ParameterSet</DisplayName>
@@ -2123,7 +2129,7 @@
   </UAVariable>
   <UAVariable NodeId="ns=1;i=17873" BrowseName="2:ComponentName" ParentNodeId="ns=1;i=1011" DataType="LocalizedText">
     <DisplayName>ComponentName</DisplayName>
-    <Description>A user writable name provided by the vendor, integrator or user of the device.</Description>
+    <Description>A user writeable name provided by the vendor, integrator or user of the device.</Description>
     <References>
       <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
       <Reference ReferenceType="HasModellingRule">i=78</Reference>
@@ -2210,6 +2216,7 @@
   <UAObject NodeId="ns=1;i=19292" BrowseName="1:Axes" ParentNodeId="ns=1;i=19254">
     <DisplayName>Axes</DisplayName>
     <Description>Axes is a container for one or more instances of the AxisType.</Description>
+    <Documentation>https://reference.opcfoundation.org/v104/Robotics/v100/docs/7.2.3/#7.2.3.10</Documentation>
     <References>
       <Reference ReferenceType="HasTypeDefinition">i=61</Reference>
       <Reference ReferenceType="HasModellingRule">i=78</Reference>
@@ -2219,6 +2226,7 @@
   <UAObject NodeId="ns=1;i=19370" BrowseName="1:PowerTrains" ParentNodeId="ns=1;i=19254">
     <DisplayName>PowerTrains</DisplayName>
     <Description>PowerTrains is a container for one or more instances of the PowerTrainType.</Description>
+    <Documentation>https://reference.opcfoundation.org/v104/Robotics/v100/docs/7.2.3/#7.2.3.11</Documentation>
     <References>
       <Reference ReferenceType="HasTypeDefinition">i=61</Reference>
       <Reference ReferenceType="HasModellingRule">i=78</Reference>
@@ -2228,13 +2236,13 @@
   <UAObjectType NodeId="ns=1;i=1018" BrowseName="1:LoadType">
     <DisplayName>LoadType</DisplayName>
     <Description>The LoadType is for describing loads mounted on the motion device typically by an integrator or a customer.</Description>
+    <Documentation>https://reference.opcfoundation.org/v104/Robotics/v100/docs/7.12.2</Documentation>
     <References>
       <Reference ReferenceType="HasComponent">ns=1;i=6723</Reference>
       <Reference ReferenceType="HasComponent">ns=1;i=6013</Reference>
       <Reference ReferenceType="HasComponent">ns=1;i=18170</Reference>
       <Reference ReferenceType="HasSubtype" IsForward="false">i=58</Reference>
     </References>
-    <Documentation>https://reference.opcfoundation.org/Robotics/docs/7.12.2</Documentation>
   </UAObjectType>
   <UAVariable NodeId="ns=1;i=6723" BrowseName="1:Mass" ParentNodeId="ns=1;i=1018" DataType="Double">
     <DisplayName>Mass</DisplayName>
@@ -2373,13 +2381,13 @@
   </UAVariable>
   <UAObjectType NodeId="ns=1;i=18175" BrowseName="1:UserType">
     <DisplayName>UserType</DisplayName>
-    <Description>The UserType ObjectType describes information of the registered user groups within the control system.</Description>
+    <Description>The UserType ObjectType describes information of the registred user groups within the control system.</Description>
+    <Documentation>https://reference.opcfoundation.org/v104/Robotics/v100/docs/7.13.2</Documentation>
     <References>
       <Reference ReferenceType="HasProperty">ns=1;i=18176</Reference>
       <Reference ReferenceType="HasProperty">ns=1;i=18177</Reference>
       <Reference ReferenceType="HasSubtype" IsForward="false">i=58</Reference>
     </References>
-    <Documentation>https://reference.opcfoundation.org/Robotics/docs/7.13.2</Documentation>
   </UAObjectType>
   <UAVariable NodeId="ns=1;i=18176" BrowseName="1:Level" ParentNodeId="ns=1;i=18175" DataType="String">
     <DisplayName>Level</DisplayName>
@@ -2402,67 +2410,68 @@
   <UAReferenceType NodeId="ns=1;i=4002" BrowseName="1:Controls">
     <DisplayName>Controls</DisplayName>
     <Description>Reference: Describe dependencies between objects which have a controlling character.</Description>
+    <Documentation>https://reference.opcfoundation.org/v104/Robotics/v100/docs/8.2</Documentation>
     <References>
       <Reference ReferenceType="HasSubtype" IsForward="false">i=33</Reference>
     </References>
-    <Documentation>https://reference.opcfoundation.org/Robotics/docs/8.2</Documentation>
     <InverseName>IsControlledBy</InverseName>
   </UAReferenceType>
   <UAReferenceType NodeId="ns=1;i=18178" BrowseName="1:Moves">
     <DisplayName>Moves</DisplayName>
-    <Description>Reference: Describe the coupling between a powertrain and the axes from the powertrain point of view.</Description>
+    <Description>Reference: Describe the coupling between a power train and the axes from the power train point of view.</Description>
+    <Documentation>https://reference.opcfoundation.org/v104/Robotics/v100/docs/8.3</Documentation>
     <References>
       <Reference ReferenceType="HasSubtype" IsForward="false">i=33</Reference>
     </References>
-    <Documentation>https://reference.opcfoundation.org/Robotics/docs/8.3</Documentation>
     <InverseName>IsMovedBy</InverseName>
   </UAReferenceType>
   <UAReferenceType NodeId="ns=1;i=18179" BrowseName="1:Requires">
     <DisplayName>Requires</DisplayName>
-    <Description>Reference: Describe the coupling between a powertrain and axes from the axis point of view. An axis has a Requires reference to all powertrains that need to move such that only this single axis moves.</Description>
+    <Description>Reference: Describe the coupling between a power train and axes from the axis point of view. An axis has a Requires reference to all powertrains that need to move such that only this single axis moves.</Description>
+    <Documentation>https://reference.opcfoundation.org/v104/Robotics/v100/docs/8.4</Documentation>
     <References>
       <Reference ReferenceType="HasSubtype" IsForward="false">i=33</Reference>
     </References>
-    <Documentation>https://reference.opcfoundation.org/Robotics/docs/8.4</Documentation>
     <InverseName>IsRequiredBy</InverseName>
   </UAReferenceType>
   <UAReferenceType NodeId="ns=1;i=18180" BrowseName="1:IsDrivenBy">
     <DisplayName>IsDrivenBy</DisplayName>
     <Description>Reference: Describe dependencies between objects which have a driving or powering character. The BrowseName IsDrivenBy and the InverseName Drives describe semantically the hierarchical dependency.</Description>
+    <Documentation>https://reference.opcfoundation.org/v104/Robotics/v100/docs/8.5</Documentation>
     <References>
       <Reference ReferenceType="HasSubtype" IsForward="false">i=33</Reference>
     </References>
-    <Documentation>https://reference.opcfoundation.org/Robotics/docs/8.5</Documentation>
     <InverseName>Drives</InverseName>
   </UAReferenceType>
   <UAReferenceType NodeId="ns=1;i=18181" BrowseName="1:IsConnectedTo" Symmetric="true">
     <DisplayName>IsConnectedTo</DisplayName>
     <Description>Reference: Describe dependencies between objects which are mounted or mechanically linked or connected to each other. The IsConnectedTo reference is symmetric and has no InverseName.</Description>
+    <Documentation>https://reference.opcfoundation.org/v104/Robotics/v100/docs/8.6</Documentation>
     <References>
       <Reference ReferenceType="HasSubtype" IsForward="false">i=32</Reference>
     </References>
-    <Documentation>https://reference.opcfoundation.org/Robotics/docs/8.6</Documentation>
   </UAReferenceType>
   <UAReferenceType NodeId="ns=1;i=18182" BrowseName="1:HasSafetyStates">
     <DisplayName>HasSafetyStates</DisplayName>
     <Description>Reference: Describe dependencies between objects to show which (controller) object is responsible for the execution of the safety-functionality. The BrowseName HasSafetyStates and the InverseName SafetyStatesOf describe semantically the hierarchical dependency.</Description>
+    <Documentation>https://reference.opcfoundation.org/v104/Robotics/v100/docs/8.7</Documentation>
     <References>
       <Reference ReferenceType="HasSubtype" IsForward="false">i=33</Reference>
     </References>
-    <Documentation>https://reference.opcfoundation.org/Robotics/docs/8.7</Documentation>
     <InverseName>SafetyStatesOf</InverseName>
   </UAReferenceType>
   <UAReferenceType NodeId="ns=1;i=18183" BrowseName="1:HasSlave">
     <DisplayName>HasSlave</DisplayName>
-    <Description>Reference: Provide the master-slave relationship of powertrains which provide torque for a common axis. The InverseName is IsSlaveOf.</Description>
+    <Description>Reference: Provide the master-slave relationship of power trains which provide torque for a common axis. The InverseName is IsSlaveOf.</Description>
+    <Documentation>https://reference.opcfoundation.org/v104/Robotics/v100/docs/8.8</Documentation>
     <References>
       <Reference ReferenceType="HasSubtype" IsForward="false">i=33</Reference>
     </References>
-    <Documentation>https://reference.opcfoundation.org/Robotics/docs/8.8</Documentation>
     <InverseName>IsSlaveOf</InverseName>
   </UAReferenceType>
   <UADataType NodeId="ns=1;i=18191" BrowseName="1:ExecutionModeEnumeration">
     <DisplayName>ExecutionModeEnumeration</DisplayName>
+    <Documentation>https://reference.opcfoundation.org/v104/Robotics/v100/docs/7.11.3/#7.11.3.2</Documentation>
     <References>
       <Reference ReferenceType="HasProperty">ns=1;i=18192</Reference>
       <Reference ReferenceType="HasSubtype" IsForward="false">i=29</Reference>
@@ -2508,6 +2517,7 @@
   </UAVariable>
   <UADataType NodeId="ns=1;i=18193" BrowseName="1:MotionDeviceCategoryEnumeration">
     <DisplayName>MotionDeviceCategoryEnumeration</DisplayName>
+    <Documentation>https://reference.opcfoundation.org/v104/Robotics/v100/docs/7.2.3/#7.2.3.8</Documentation>
     <References>
       <Reference ReferenceType="HasProperty">ns=1;i=18194</Reference>
       <Reference ReferenceType="HasSubtype" IsForward="false">i=29</Reference>
@@ -2585,6 +2595,7 @@
   </UAVariable>
   <UADataType NodeId="ns=1;i=3008" BrowseName="1:AxisMotionProfileEnumeration">
     <DisplayName>AxisMotionProfileEnumeration</DisplayName>
+    <Documentation>https://reference.opcfoundation.org/v104/Robotics/v100/docs/7.3.3/#7.3.3.2</Documentation>
     <References>
       <Reference ReferenceType="HasProperty">ns=1;i=6027</Reference>
       <Reference ReferenceType="HasSubtype" IsForward="false">i=29</Reference>
@@ -2646,6 +2657,7 @@
   </UAVariable>
   <UADataType NodeId="ns=1;i=3006" BrowseName="1:OperationalModeEnumeration">
     <DisplayName>OperationalModeEnumeration</DisplayName>
+    <Documentation>https://reference.opcfoundation.org/v104/Robotics/v100/docs/7.7.3/#7.7.3.4</Documentation>
     <References>
       <Reference ReferenceType="HasProperty">ns=1;i=6022</Reference>
       <Reference ReferenceType="HasSubtype" IsForward="false">i=29</Reference>
