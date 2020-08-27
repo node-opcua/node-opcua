@@ -2,21 +2,14 @@ import * as mocha from "mocha";
 import * as should from "should";
 
 import { BinaryStream } from "node-opcua-binary-stream";
-import {
-    resolveDynamicExtensionObject
-} from "node-opcua-client-dynamic-extension-object";
+import { resolveDynamicExtensionObject } from "node-opcua-client-dynamic-extension-object";
 import { ExtensionObject } from "node-opcua-extension-object";
 import { nodesets } from "node-opcua-nodesets";
 import { DataType, Variant } from "node-opcua-variant";
 
-import {
-    AddressSpace,
-    ensureDatatypeExtracted,
-    generateAddressSpace,
-} from "..";
+import { AddressSpace, ensureDatatypeExtracted, generateAddressSpace } from "..";
 
 describe("Testing PackML custom types", async function (this: any) {
-
     this.timeout(200000); // could be slow on appveyor !
 
     let addressSpace: AddressSpace;
@@ -24,11 +17,7 @@ describe("Testing PackML custom types", async function (this: any) {
         addressSpace = AddressSpace.create();
         const namespace0 = addressSpace.getDefaultNamespace();
 
-        await generateAddressSpace(addressSpace, [
-            nodesets.standard,
-            nodesets.di,
-            nodesets.packML,
-        ]);
+        await generateAddressSpace(addressSpace, [nodesets.standard, nodesets.di, nodesets.packML]);
         await ensureDatatypeExtracted(addressSpace);
     });
     after(() => {
@@ -36,7 +25,6 @@ describe("Testing PackML custom types", async function (this: any) {
     });
 
     function encode_decode(obj: Variant): Variant {
-
         const size = obj.binaryStoreSize();
         const stream = new BinaryStream(Buffer.alloc(size));
         obj.encode(stream);
@@ -52,28 +40,27 @@ describe("Testing PackML custom types", async function (this: any) {
         return objReloaded;
     }
     it("should create a PackMLAlarmDataType", async () => {
-
-        const nsPackML = addressSpace.getNamespaceIndex("http://opcfoundation.org/UA/PackML");
-        nsPackML.should.eql(2);
+        const nsPackML = addressSpace.getNamespaceIndex("http://opcfoundation.org/UA/PackML/");
+        nsPackML.should.eql(2, " PackML nodeset must exist");
 
         const packMLAlarmDataTypeNode = addressSpace.findDataType("PackMLAlarmDataType", nsPackML)!;
 
         should.exist(packMLAlarmDataTypeNode);
         const packMLAlarm = addressSpace.constructExtensionObject(packMLAlarmDataTypeNode, {
+            ackDateTime: new Date(1776, 6, 4),
             ID: 12,
             value: 6,
+            dateTime: new Date(1789, 6, 14),
             message: "Hello",
             category: 12,
-            dateTime: new Date(1789, 6, 14),
-            ackDateTime: new Date(1776, 6, 4),
-            trigger: true
+            trigger: true,
         });
         console.log("packMLAlarm = ", packMLAlarm.toString());
         //xx console.log(scanResult.schema);
 
         const v = new Variant({
             dataType: DataType.ExtensionObject,
-            value: packMLAlarm
+            value: packMLAlarm,
         });
         const reload_v = encode_decode(v);
 
@@ -81,7 +68,6 @@ describe("Testing PackML custom types", async function (this: any) {
         await resolveDynamicExtensionObject(reload_v, extraDataTypeManager);
 
         console.log(reload_v.toString());
-        console.log(packMLAlarm.toString())
+        console.log(packMLAlarm.toString());
     });
-
 });
