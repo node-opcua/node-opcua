@@ -68,7 +68,7 @@ import { UAVariable } from "../../src/ua_variable";
 import { UAVariableType } from "../../src/ua_variable_type";
 
 import * as PrettyError from "pretty-error";
-import { isValidGuid } from "node-opcua-basic-types";
+import { isValidGuid, StatusCodes } from "node-opcua-basic-types";
 import { parse } from "path";
 const pe = new PrettyError();
 
@@ -175,11 +175,7 @@ function makeEnumDefinition(definitionFields: any[]) {
         })),
     });
 }
-function makeStructureDefinition(
-    name: string,
-    definitionFields: StructureFieldOptions[],
-    isUnion: boolean
-): StructureDefinition {
+function makeStructureDefinition(name: string, definitionFields: StructureFieldOptions[], isUnion: boolean): StructureDefinition {
     // Structure = 0,
     // StructureWithOptionalFields = 1,
     // Union = 2,
@@ -231,11 +227,7 @@ function convertAccessLevel(accessLevel?: string | null): AccessLevelFlag {
 
 type Task = (addressSpace: AddressSpace) => Promise<void>;
 
-function makeDefaultVariant(
-    addressSpace: AddressSpacePublic,
-    dataTypeNode: NodeId,
-    valueRank: number
-): VariantOptions | undefined {
+function makeDefaultVariant(addressSpace: AddressSpacePublic, dataTypeNode: NodeId, valueRank: number): VariantOptions | undefined {
     const variant: VariantOptions = { dataType: DataType.Null };
     return variant;
 }
@@ -459,8 +451,7 @@ export function generateAddressSpace(
             Reference: {
                 finish(this: any) {
                     this.parent.array.push({
-                        isForward:
-                            this.attrs.IsForward === undefined ? true : this.attrs.IsForward === "false" ? false : true,
+                        isForward: this.attrs.IsForward === undefined ? true : this.attrs.IsForward === "false" ? false : true,
                         nodeId: convertToNodeId(this.text),
                         referenceType: _translateReferenceType(this.attrs.ReferenceType),
                     });
@@ -619,11 +610,7 @@ export function generateAddressSpace(
                         //       what is the subType yet, encodings are also unknown...
                         //       structureType may also be inaccurate
                         debugLog("setting structure $definition for ", definitionName, nameWithoutNamespace);
-                        (dataTypeNode as any).$definition = makeStructureDefinition(
-                            definitionName,
-                            definitionFields,
-                            isUnion
-                        );
+                        (dataTypeNode as any).$definition = makeStructureDefinition(definitionName, definitionFields, isUnion);
                     } else if (isEnumeration /* && dataTypeNode.nodeId.namespace !== 0 */) {
                         (dataTypeNode as any).$definition = makeEnumDefinition(definitionFields);
                     }
@@ -723,9 +710,7 @@ export function generateAddressSpace(
                     parser: {
                         Identifier: {
                             finish(this: any) {
-                                this.parent.parent.argument.dataType = _translateNodeId(
-                                    resolveNodeId(this.text.trim()).toString()
-                                );
+                                this.parent.parent.argument.dataType = _translateNodeId(resolveNodeId(this.text.trim()).toString());
                             },
                         },
                     },
@@ -902,8 +887,7 @@ export function generateAddressSpace(
                         const xmlBody = this.bodyXML;
                         // this is a user defined Extension Object
                         debugLog(
-                            "load nodeset2: typeDefinitionId in ExtensionObject Default XML = " +
-                                xmlEncodingNodeId.toString()
+                            "load nodeset2: typeDefinitionId in ExtensionObject Default XML = " + xmlEncodingNodeId.toString()
                         );
                         if (doDebug) {
                             debugLog("xxxx ", chalk.yellow(xmlBody));
@@ -1196,9 +1180,7 @@ export function generateAddressSpace(
             this.obj.valueRank = attrs.ValueRank === undefined ? -1 : ec.coerceInt32(attrs.ValueRank);
             this.obj.arrayDimensions = this.obj.valueRank === -1 ? null : stringToUInt32Array(attrs.ArrayDimensions);
 
-            this.obj.minimumSamplingInterval = attrs.MinimumSamplingInterval
-                ? parseInt(attrs.MinimumSamplingInterval, 10)
-                : 0;
+            this.obj.minimumSamplingInterval = attrs.MinimumSamplingInterval ? parseInt(attrs.MinimumSamplingInterval, 10) : 0;
             this.obj.minimumSamplingInterval = parseInt(this.obj.minimumSamplingInterval, 10);
 
             this.obj.historizing = false;
@@ -1221,11 +1203,7 @@ export function generateAddressSpace(
                 const capturedValue = this.obj.value;
                 const task = async (addressSpace2: AddressSpace) => {
                     if (false && doDebug) {
-                        debugLog(
-                            "1 setting value to ",
-                            variable.nodeId.toString(),
-                            new Variant(capturedValue).toString()
-                        );
+                        debugLog("1 setting value to ", variable.nodeId.toString(), new Variant(capturedValue).toString());
                     }
                     variable.setValueFromSource(capturedValue);
                 };
@@ -1239,7 +1217,11 @@ export function generateAddressSpace(
                         if (false && doDebug) {
                             debugLog("2 setting value to ", variable.nodeId.toString(), value);
                         }
-                        variable.setValueFromSource(value);
+                        if (value.dataType === DataType.Null) {
+                            variable.setValueFromSource(value, StatusCodes.BadWaitingForInitialData);
+                        } else {
+                            variable.setValueFromSource(value, StatusCodes.Good);
+                        }
                     }
                 };
                 postTaskInitializeVariable.push(task);
@@ -1278,9 +1260,7 @@ export function generateAddressSpace(
             this.obj.valueRank = ec.coerceInt32(attrs.ValueRank) || -1;
             this.obj.arrayDimensions = this.obj.valueRank === -1 ? null : stringToUInt32Array(attrs.ArrayDimensions);
 
-            this.obj.minimumSamplingInterval = attrs.MinimumSamplingInterval
-                ? parseInt(attrs.MinimumSamplingInterval, 10)
-                : 0;
+            this.obj.minimumSamplingInterval = attrs.MinimumSamplingInterval ? parseInt(attrs.MinimumSamplingInterval, 10) : 0;
 
             this.obj.historizing = false;
             this.obj.nodeId = convertToNodeId(attrs.NodeId) || null;
@@ -1465,15 +1445,11 @@ export function generateAddressSpace(
             async function finalSteps(): Promise<void> {
                 /// ----------------------------------------------------------------------------------------
                 // perform post task
-                debugLog(
-                    chalk.bgGreenBright("Performing post loading tasks -------------------------------------------")
-                );
+                debugLog(chalk.bgGreenBright("Performing post loading tasks -------------------------------------------"));
                 await performPostLoadingTasks(postTasks);
                 postTasks = [];
 
-                debugLog(
-                    chalk.bgGreenBright("Performing DataType extraction -------------------------------------------")
-                );
+                debugLog(chalk.bgGreenBright("Performing DataType extraction -------------------------------------------"));
                 assert(!addressSpace1.suspendBackReference);
                 await ensureDatatypeExtracted(addressSpace);
 
@@ -1489,9 +1465,7 @@ export function generateAddressSpace(
                 }
                 pendingSimpleTypeToRegister.splice(0);
 
-                debugLog(
-                    chalk.bgGreenBright("Performing post loading tasks 2 (parsing XML objects) ---------------------")
-                );
+                debugLog(chalk.bgGreenBright("Performing post loading tasks 2 (parsing XML objects) ---------------------"));
                 await performPostLoadingTasks(postTasks2);
                 postTasks2 = [];
 

@@ -2,16 +2,9 @@
  * @module node-opcua-factory
  */
 import * as chalk from "chalk";
-import * as  _ from "underscore";
+import * as _ from "underscore";
 
-import {
-    CommonInterface,
-    FieldCategory,
-    FieldInterfaceOptions,
-    FieldType,
-    StructuredTypeOptions,
-    TypeSchemaBase
-} from "./types";
+import { CommonInterface, FieldCategory, FieldInterfaceOptions, FieldType, StructuredTypeOptions, TypeSchemaBase } from "./types";
 
 import { assert } from "node-opcua-assert";
 import { BinaryStream } from "node-opcua-binary-stream";
@@ -24,9 +17,7 @@ import { getStructuredTypeSchema, getStructureTypeConstructor, hasStructuredType
 import { parameters } from "./factories_schema_helpers";
 import { DataTypeFactory } from "./datatype_factory";
 
-function figureOutFieldCategory(
-    field: FieldInterfaceOptions
-): FieldCategory {
+function figureOutFieldCategory(field: FieldInterfaceOptions): FieldCategory {
     const fieldType = field.fieldType;
 
     if (field.category) {
@@ -51,7 +42,6 @@ function figureOutSchema(
     field: FieldInterfaceOptions,
     category: FieldCategory
 ): CommonInterface {
-
     if (field.schema) {
         return field.schema;
     }
@@ -88,21 +78,35 @@ function figureOutSchema(
     }
     if (null === returnValue || undefined === returnValue) {
         returnValue = getEnumeration(fieldTypeWithoutNS);
-        throw new Error("Cannot find Schema for field with name " + field.name + " fieldTypeWithoutNS= " + fieldTypeWithoutNS +
-            " with type " + field.fieldType + " category = " + category + JSON.stringify(field, null, "\t"));
+        throw new Error(
+            "Cannot find Schema for field with name " +
+                field.name +
+                " fieldTypeWithoutNS= " +
+                fieldTypeWithoutNS +
+                " with type " +
+                field.fieldType +
+                " category = " +
+                category +
+                JSON.stringify(field, null, "\t")
+        );
     }
     return returnValue;
 }
 
 function buildField(underConstructSchema: StructuredTypeSchema, fieldLight: FieldInterfaceOptions): FieldType {
-
     const category = figureOutFieldCategory(fieldLight);
     const schema = figureOutSchema(underConstructSchema, fieldLight, category);
 
     /* istanbul ignore next */
     if (!schema) {
-        throw new Error("expecting a valid schema for field with name " +
-            fieldLight.name + " with type " + fieldLight.fieldType + " category" + category);
+        throw new Error(
+            "expecting a valid schema for field with name " +
+                fieldLight.name +
+                " with type " +
+                fieldLight.fieldType +
+                " category" +
+                category
+        );
     }
 
     return {
@@ -124,7 +128,6 @@ function buildField(underConstructSchema: StructuredTypeSchema, fieldLight: Fiel
 }
 
 export class StructuredTypeSchema extends TypeSchemaBase {
-
     public fields: FieldType[];
     public id: NodeId;
     public dataTypeNodeId: NodeId;
@@ -165,7 +168,6 @@ export class StructuredTypeSchema extends TypeSchemaBase {
         this._baseSchema = null;
     }
     public toString() {
-
         const str: string[] = [];
         str.push("name           = " + this.name);
         str.push("baseType       = " + this.baseType);
@@ -177,12 +179,18 @@ export class StructuredTypeSchema extends TypeSchemaBase {
         str.push("encodingDefaultXml     = " + this.encodingDefaultXml?.toString());
         str.push("encodingDefaultJson    = " + this.encodingDefaultJson?.toString());
         for (const f of this.fields) {
-            str.push("  field   =  " + f.name.padEnd(30) + " isArray= " + (f.isArray ? true : false) + " " + f.fieldType.toString().padEnd(30) +
-                (f.switchBit !== undefined ? (" switchBit " + f.switchBit) : "") +
-                (f.switchValue !== undefined ? " switchValue    " + f.switchValue : ""));
+            str.push(
+                "  field   =  " +
+                    f.name.padEnd(30) +
+                    " isArray= " +
+                    (f.isArray ? true : false) +
+                    " " +
+                    f.fieldType.toString().padEnd(30) +
+                    (f.switchBit !== undefined ? " switchBit " + f.switchBit : "") +
+                    (f.switchValue !== undefined ? " switchValue    " + f.switchValue : "")
+            );
         }
         return str.join("\n");
-
     }
 }
 
@@ -194,7 +202,6 @@ export class StructuredTypeSchema extends TypeSchemaBase {
  *
  */
 export function get_base_schema(schema: StructuredTypeSchema) {
-
     let baseSchema = schema._baseSchema;
     if (baseSchema) {
         return baseSchema;
@@ -208,6 +215,9 @@ export function get_base_schema(schema: StructuredTypeSchema) {
     }
 
     if (schema.baseType && schema.baseType !== "BaseUAObject" && schema.baseType !== "DataTypeDefinition") {
+        if (!hasStructuredType(schema.baseType)) {
+            return null;
+        }
         const baseType = getStructureTypeConstructor(schema.baseType);
 
         // istanbul ignore next
@@ -230,7 +240,6 @@ export function get_base_schema(schema: StructuredTypeSchema) {
  *
  */
 export function extract_all_fields(schema: StructuredTypeSchema) {
-
     // returns cached result if any
     // istanbul ignore next
     if (schema._possibleFields) {
@@ -259,7 +268,6 @@ export function extract_all_fields(schema: StructuredTypeSchema) {
  *
  */
 export function check_options_correctness_against_schema(obj: any, schema: StructuredTypeSchema, options: any): boolean {
-
     if (!parameters.debugSchemaHelper) {
         return true; // ignoring set
     }
@@ -267,13 +275,12 @@ export function check_options_correctness_against_schema(obj: any, schema: Struc
     options = options || {};
 
     // istanbul ignore next
-    if (!_.isObject(options) && !(typeof (options) === "object")) {
-        let message = chalk.red(" Invalid options specified while trying to construct a ")
-            + " " + chalk.yellow(schema.name);
+    if (!_.isObject(options) && !(typeof options === "object")) {
+        let message = chalk.red(" Invalid options specified while trying to construct a ") + " " + chalk.yellow(schema.name);
         message += "\n";
         message += chalk.red(" expecting a ") + chalk.yellow(" Object ");
         message += "\n";
-        message += chalk.red(" and got a ") + chalk.yellow((typeof options)) + chalk.red(" instead ");
+        message += chalk.red(" and got a ") + chalk.yellow(typeof options) + chalk.red(" instead ");
         // console.log(" Schema  = ", schema);
         // console.log(" options = ", options);
         throw new Error(message);

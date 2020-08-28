@@ -1,7 +1,9 @@
 import * as path from "path";
-import { AddressSpace, generateAddressSpace, UAObject } from "..";
+import { AddressSpace, generateAddressSpace, UAObject, SessionContext } from "..";
 import { nodesets } from "node-opcua-nodesets";
 import { UAVariable } from "../dist/src/ua_variable";
+import { Variant } from "node-opcua-variant";
+import { AttributeIds } from "node-opcua-data-model";
 
 // tslint:disable-next-line:no-var-requires
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
@@ -14,7 +16,7 @@ describe("#846 Various Variable Value in nodeset2.xml", () => {
 
         await generateAddressSpace(addressSpace, [
             nodesets.standard,
-            path.join(__dirname, "../test_helpers/test_fixtures/issue_846.xml"),
+            path.join(__dirname, "../test_helpers/test_fixtures/issue_846.xml")
         ]);
 
         iotChannelSet = addressSpace.findNode("ns=1;i=5003") as UAObject;
@@ -83,9 +85,7 @@ describe("#846 Various Variable Value in nodeset2.xml", () => {
     });
     it("should read an array of Float", async () => {
         const v1 = iotChannelSet.getComponentByName("FloatArrayTypeData1") as UAVariable;
-        v1.readValue()
-            .value.toString()
-            .should.eql("Variant(Array<Float>, l= 2, value=[88.87999725341797,99.98999786376953])");
+        v1.readValue().value.toString().should.eql("Variant(Array<Float>, l= 2, value=[88.87999725341797,99.98999786376953])");
     });
     it("should read a Float", async () => {
         const v1 = iotChannelSet.getComponentByName("FloatTypeData1") as UAVariable;
@@ -152,14 +152,50 @@ describe("#846 Various Variable Value in nodeset2.xml", () => {
         const v1 = iotChannelSet.getComponentByName("Uint32OptionSetTypeData1") as UAVariable;
         v1.readValue().value.toString().should.eql("Variant(Scalar<UInt32>, value: 1023)");
     });
-
-    it("should write a EnumTypePropertyData1 #849", async () => {
+    // see https://reference.opcfoundation.org/v104/Core/docs/Part6/5.2.4/
+    it("should never be null EnumTypePropertyData1 #849-1", async () => {});
+    it("should write a EnumTypePropertyData1 #849-2", async () => {
         const v1 = propertySet.getPropertyByName("EnumTypePropertyData1") as UAVariable;
-        v1.readValue().value.toString().should.eql("Variant(Scalar<Null>, value: <null>)");
         v1.setValueFromSource({
-            dataType: "UInt32",
-            value: 1,
+            dataType: "Int32",
+            value: 1
         });
-        v1.readValue().value.toString().should.eql("Variant(Scalar<UInt32>, value: 1)");
+        v1.readValue().value.toString().should.eql("Variant(Scalar<Int32>, value: 1)");
+    });
+    it("should write a EnumTypePropertyData1 #849-3", async () => {
+        const v1 = propertySet.getPropertyByName("EnumTypePropertyData1") as UAVariable;
+        v1.setValueFromSource({
+            dataType: "Int32",
+            value: 1
+        });
+        v1.readValue().value.toString().should.eql("Variant(Scalar<Int32>, value: 1)");
+    });
+    it("should write a EnumTypePropertyData1 #849-4", async () => {
+        const v1 = propertySet.getPropertyByName("EnumTypePropertyData1") as UAVariable;
+        await v1.writeAttribute(SessionContext.defaultContext, {
+            attributeId: AttributeIds.Value,
+            nodeId: v1.nodeId,
+            value: {
+                value: new Variant({
+                    dataType: "Int32",
+                    value: 3
+                })
+            }
+        });
+        v1.readValue().value.toString().should.eql("Variant(Scalar<Int32>, value: 3)");
+    });
+    it("should write a EnumTypePropertyData1 #849-5", async () => {
+        const v1 = propertySet.getPropertyByName("EnumTypePropertyData1") as UAVariable;
+        await v1.writeAttribute(SessionContext.defaultContext, {
+            attributeId: AttributeIds.Value,
+            nodeId: v1.nodeId,
+            value: {
+                value: new Variant({
+                    dataType: "Int32",
+                    value: 2
+                })
+            }
+        });
+        v1.readValue().value.toString().should.eql("Variant(Scalar<Int32>, value: 2)");
     });
 });

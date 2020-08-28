@@ -488,16 +488,16 @@ describe("Namespace to NodeSet2.xml", () => {
 
     it("should emit AccessLevel attribute when needed (UAVariable)", () => {
 
-        const acessLevelFlag = makeAccessLevelFlag("CurrentRead | CurrentWrite | HistoryRead");
+        const accessLevelFlag = makeAccessLevelFlag("CurrentRead | CurrentWrite | HistoryRead");
 
         const myVariable = namespace.addVariable({
-            accessLevel: acessLevelFlag,
+            accessLevel: accessLevelFlag,
             browseName: "MyVariable",
             dataType: DataType.Double,
             typeDefinition: "BaseVariableType",
         });
 
-        myVariable.accessLevel.should.eql(acessLevelFlag);
+        myVariable.accessLevel.should.eql(accessLevelFlag);
 
         let xml = namespace.toNodeset2XML();
         xml = xml.replace(/LastModified="([^"]*)"/g, "LastModified=\"YYYY-MM-DD\"");
