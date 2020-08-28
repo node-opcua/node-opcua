@@ -22,13 +22,11 @@ import {
     UAConditionBase,
     UAEventType,
     UAObject,
-    UAVariable
+    UAVariable,
 } from "../..";
 
 export function utest_condition(test: any) {
-
-    describe("AddressSpace : Conditions ", () => {
-
+    describe("AddressSpace : Conditions 2", () => {
         let addressSpace: AddressSpace;
         let source: UAObject;
         before(() => {
@@ -37,24 +35,20 @@ export function utest_condition(test: any) {
         });
 
         it("should fail to instantiate a ConditionType (because it's abstract)", () => {
-
             const conditionType = addressSpace.findEventType("ConditionType")!;
             conditionType.isAbstract.should.eql(true);
 
             should(function attempt_to_instantiate_an_AbstractConditionType() {
                 const instance = conditionType.instantiate({
                     browseName: "ConditionType",
-                    componentOf: source
+                    componentOf: source,
                 });
             }).throwError();
-
         });
 
         describe("With a custom condition type", () => {
-
             let myCustomConditionType: UAEventType;
             before(() => {
-
                 const namespace = addressSpace.getOwnNamespace();
 
                 const conditionType = addressSpace.findEventType("ConditionType")!;
@@ -62,31 +56,31 @@ export function utest_condition(test: any) {
                 myCustomConditionType = namespace.addObjectType({
                     browseName: "MyConditionType",
                     isAbstract: false,
-                    subtypeOf: conditionType
+                    subtypeOf: conditionType,
                 }) as UAEventType;
             });
 
             it("should instantiate a custom ConditionType", () => {
-
                 const namespace = addressSpace.getOwnNamespace();
                 const condition = namespace.instantiateCondition(myCustomConditionType, {
                     browseName: "MyCustomCondition",
                     conditionSource: null,
-                    organizedBy: addressSpace.rootFolder.objects
+                    organizedBy: addressSpace.rootFolder.objects,
                 });
                 condition.browseName.toString().should.eql("1:MyCustomCondition");
                 // xx                should.not.exist(condition.enabledState.transitionTime);
                 // xx                should.not.exist(condition.enabledState.effectiveTransitionTime);
             });
 
-            it("should be possible to enable and disable a condition using the enable & disable methods" +
-                " ( as a client would do)", async () => {
-
+            it(
+                "should be possible to enable and disable a condition using the enable & disable methods" +
+                    " ( as a client would do)",
+                async () => {
                     const namespace = addressSpace.getOwnNamespace();
                     const condition = namespace.instantiateCondition(myCustomConditionType, {
                         browseName: "MyCustomCondition2",
                         conditionSource: null,
-                        organizedBy: addressSpace.rootFolder.objects
+                        organizedBy: addressSpace.rootFolder.objects,
                     });
 
                     (condition as any).evaluateConditionsAfterEnabled = () => {
@@ -144,11 +138,10 @@ export function utest_condition(test: any) {
                     callMethodResult3.statusCode!.should.eql(StatusCodes.BadConditionAlreadyEnabled);
                     condition.enabledState.id.readValue().value.value.should.eql(true);
                     condition.enabledState.readValue().value.value.text.should.eql("Enabled");
-
-                });
+                }
+            );
 
             describe("Testing Branches ", () => {
-
                 let condition: UAConditionBase;
 
                 before(() => {
@@ -157,11 +150,10 @@ export function utest_condition(test: any) {
                     condition = namespace.instantiateCondition(myCustomConditionType, {
                         browseName: "MyCustomCondition2B",
                         conditionSource: null,
-                        organizedBy: addressSpace.rootFolder.objects
+                        organizedBy: addressSpace.rootFolder.objects,
                     });
                 });
                 it("writing to a master branch (branch0) variable should affect the underlying variable", () => {
-
                     const currentBranch = condition.currentBranch();
 
                     currentBranch.isCurrentBranch().should.eql(true);
@@ -170,11 +162,9 @@ export function utest_condition(test: any) {
                     currentBranch.getComment().text!.should.eql("MyComment");
 
                     condition.comment.readValue().value.value.text!.should.eql("MyComment");
-
                 });
 
                 it("writing to a new created branch variable should  NOT affect the underlying variable", () => {
-
                     const currentBranch = condition.currentBranch();
 
                     const newBranch = condition.createBranch();
@@ -193,7 +183,6 @@ export function utest_condition(test: any) {
 
                     newBranch.getComment().text!.should.eql("MyComment222");
                 });
-
             });
 
             it("should provide BadConditionNotEnabled when client try to interrogate a condition variable, when the condition is disabled", () => {
@@ -245,7 +234,7 @@ export function utest_condition(test: any) {
                 const condition = namespace.instantiateCondition(myCustomConditionType, {
                     browseName: "MyCustomCondition2C",
                     conditionSource: source,
-                    organizedBy: addressSpace.rootFolder.objects
+                    organizedBy: addressSpace.rootFolder.objects,
                 });
 
                 (condition as any).evaluateConditionsAfterEnabled = () => {
@@ -266,7 +255,7 @@ export function utest_condition(test: any) {
                     message: "Hello Message",
                     quality: StatusCodes.Good,
                     retain: true,
-                    severity: 1235
+                    severity: 1235,
                 });
                 spyOnEvent.callCount.should.eql(1, "an event should have been raised to signal new Condition State");
 
@@ -297,7 +286,10 @@ export function utest_condition(test: any) {
                 spyOnEvent.callCount.should.eql(2, "an event should have been raised to signal Disabled State");
                 // xx console.log( spyOnEvent.getCalls()[1].args[0]);
                 spyOnEvent.getCalls()[1].args[0].branchId.value.should.eql(NodeId.nullNodeId);
-                spyOnEvent.getCalls()[1].args[0].message.toString().should.eql("Variant(Scalar<StatusCode>, value: BadConditionDisabled (0x80990000))");
+                spyOnEvent
+                    .getCalls()[1]
+                    .args[0].message.toString()
+                    .should.eql("Variant(Scalar<StatusCode>, value: BadConditionDisabled (0x80990000))");
 
                 // In a disabled state those value must be provided
                 // EventId, EventType, Source Node, Source Name, Time, and EnabledState.
@@ -340,31 +332,24 @@ export function utest_condition(test: any) {
                 spyOnEvent.getCalls()[2].args[0].comment.value.text.should.eql("");
 
                 condition.removeListener("on", spyOnEvent);
-
             });
 
             it("should be possible to activate the EnabledState.TransitionTime optional property", async () => {
-
                 const namespace = addressSpace.getOwnNamespace();
 
                 const condition = namespace.instantiateCondition(myCustomConditionType, {
                     browseName: "MyCustomCondition5",
                     conditionSource: null,
-                    optionals: [
-                        "EnabledState.EffectiveDisplayName",
-                        "EnabledState.TransitionTime"
-                    ],
-                    organizedBy: addressSpace.rootFolder.objects
+                    optionals: ["EnabledState.EffectiveDisplayName", "EnabledState.TransitionTime"],
+                    organizedBy: addressSpace.rootFolder.objects,
                 });
 
                 should.exist(condition.enabledState.transitionTime);
 
                 condition.enabledState.id.readValue().value.value.should.eql(true);
-
             });
 
             it("should be possible to activate the EnabledState.EffectiveTransitionTime optional property", async () => {
-
                 const namespace = addressSpace.getOwnNamespace();
 
                 const condition = namespace.instantiateCondition(myCustomConditionType, {
@@ -373,33 +358,30 @@ export function utest_condition(test: any) {
                     optionals: [
                         "EnabledState.EffectiveDisplayName",
                         "EnabledState.TransitionTime",
-                        "EnabledState.EffectiveTransitionTime"
+                        "EnabledState.EffectiveTransitionTime",
                     ],
-                    organizedBy: addressSpace.rootFolder.objects
+                    organizedBy: addressSpace.rootFolder.objects,
                 });
 
                 should.exist(condition.enabledState.transitionTime);
                 should.exist(condition.enabledState.effectiveTransitionTime);
                 condition.enabledState.id.readValue().value.value.should.eql(true);
-
             });
 
             it("should be possible to activate the EnabledState.EffectiveDisplayName optional property", async () => {
-
                 const namespace = addressSpace.getOwnNamespace();
 
                 const condition = namespace.instantiateCondition(myCustomConditionType, {
                     browseName: "MyCustomCondition3",
                     conditionSource: null,
-                    optionals: [
-                        "EnabledState.EffectiveDisplayName",
-                        "EnabledState.TransitionTime"
-                    ],
-                    organizedBy: addressSpace.rootFolder.objects
-
+                    optionals: ["EnabledState.EffectiveDisplayName", "EnabledState.TransitionTime"],
+                    organizedBy: addressSpace.rootFolder.objects,
                 });
 
-                should.exist(condition.enabledState.effectiveDisplayName, "Should expose the enabledState.effectiveDisplayName property");
+                should.exist(
+                    condition.enabledState.effectiveDisplayName,
+                    "Should expose the enabledState.effectiveDisplayName property"
+                );
                 condition.enabledState.id.readValue().value.value.should.eql(true);
 
                 // as per OPCUA 1.03 Part 9 page 13:
@@ -413,12 +395,11 @@ export function utest_condition(test: any) {
             });
 
             it("should be possible to set the comment of a condition using the addComment method of the condition instance", async () => {
-
                 const namespace = addressSpace.getOwnNamespace();
                 const condition = namespace.instantiateCondition(myCustomConditionType, {
                     browseName: "MyCustomCondition4",
                     conditionSource: null,
-                    organizedBy: addressSpace.rootFolder.objects
+                    organizedBy: addressSpace.rootFolder.objects,
                 });
 
                 // make sure condition is raised once
@@ -432,15 +413,13 @@ export function utest_condition(test: any) {
                     // the eventId
                     new Variant({ dataType: DataType.ByteString, value: eventId }),
                     //
-                    new Variant({ dataType: DataType.LocalizedText, value: coerceLocalizedText("Some message") })
+                    new Variant({ dataType: DataType.LocalizedText, value: coerceLocalizedText("Some message") }),
                 ];
-                condition.addComment.execute(param, context,
-                    (err: Error | null, callMethodResult: CallMethodResultOptions) => {
-                        callMethodResult.statusCode!.should.equal(StatusCodes.Good);
-                    });
+                condition.addComment.execute(param, context, (err: Error | null, callMethodResult: CallMethodResultOptions) => {
+                    callMethodResult.statusCode!.should.equal(StatusCodes.Good);
+                });
 
                 condition.currentBranch().getComment().text!.should.eql("Some message");
-
             });
 
             it("should be possible to set the comment of a condition using the addComment method of the conditionType", async () => {
@@ -449,7 +428,7 @@ export function utest_condition(test: any) {
                 const condition = namespace.instantiateCondition(myCustomConditionType, {
                     browseName: "MyCustomCondition12",
                     conditionSource: null,
-                    organizedBy: addressSpace.rootFolder.objects
+                    organizedBy: addressSpace.rootFolder.objects,
                 });
 
                 condition.raiseNewCondition(new ConditionInfo({ severity: 100 }));
@@ -462,18 +441,16 @@ export function utest_condition(test: any) {
                     // the eventId
                     new Variant({ dataType: DataType.ByteString, value: eventId }),
                     //
-                    new Variant({ dataType: DataType.LocalizedText, value: coerceLocalizedText("Some message") })
+                    new Variant({ dataType: DataType.LocalizedText, value: coerceLocalizedText("Some message") }),
                 ];
 
                 const conditionType = addressSpace.findObjectType("ConditionType")! as ConditionType;
 
-                conditionType.addComment.execute(param, context,
-                    (err: Error | null, callMethodResult: CallMethodResultOptions) => {
-                        callMethodResult.statusCode!.should.equal(StatusCodes.Good);
-                    });
+                conditionType.addComment.execute(param, context, (err: Error | null, callMethodResult: CallMethodResultOptions) => {
+                    callMethodResult.statusCode!.should.equal(StatusCodes.Good);
+                });
 
                 condition.currentBranch().getComment().text!.should.eql("Some message");
-
             });
 
             it("should install the conditionSource in SourceNode and SourceName", () => {
@@ -482,12 +459,8 @@ export function utest_condition(test: any) {
                 const condition = namespace.instantiateCondition(myCustomConditionType, {
                     browseName: "MyCustomCondition7",
                     conditionSource: source,
-                    optionals: [
-                        "EnabledState.EffectiveDisplayName",
-                        "EnabledState.TransitionTime"
-                    ],
-                    organizedBy: addressSpace.rootFolder.objects
-
+                    optionals: ["EnabledState.EffectiveDisplayName", "EnabledState.TransitionTime"],
+                    organizedBy: addressSpace.rootFolder.objects,
                 });
                 condition.sourceNode.readValue().value.value.toString().should.eql(source.nodeId.toString());
                 condition.sourceName.dataType.toString().should.eql("ns=0;i=12"); // string
@@ -499,27 +472,19 @@ export function utest_condition(test: any) {
                 const condition = namespace.instantiateCondition(myCustomConditionType, {
                     browseName: "MyCustomCondition_last_severity_initial_value",
                     conditionSource: source,
-                    optionals: [
-                        "EnabledState.EffectiveDisplayName",
-                        "EnabledState.TransitionTime"
-                    ],
-                    organizedBy: addressSpace.rootFolder.objects
-
+                    optionals: ["EnabledState.EffectiveDisplayName", "EnabledState.TransitionTime"],
+                    organizedBy: addressSpace.rootFolder.objects,
                 });
                 condition.currentBranch().getLastSeverity().should.equal(0);
             });
 
             it("setting severity should record lastSeverity", () => {
-
                 const namespace = addressSpace.getOwnNamespace();
                 const condition = namespace.instantiateCondition(myCustomConditionType, {
                     browseName: "MyCustomCondition_last_severity_recorded-2",
                     conditionSource: source,
-                    optionals: [
-                        "EnabledState.EffectiveDisplayName",
-                        "EnabledState.TransitionTime"
-                    ],
-                    organizedBy: addressSpace.rootFolder.objects
+                    optionals: ["EnabledState.EffectiveDisplayName", "EnabledState.TransitionTime"],
+                    organizedBy: addressSpace.rootFolder.objects,
                 });
 
                 condition.currentBranch().setSeverity(100);
@@ -527,11 +492,9 @@ export function utest_condition(test: any) {
 
                 condition.currentBranch().setSeverity(110);
                 condition.currentBranch().getLastSeverity().should.equal(100);
-
             });
 
             it("should produce eventData ", () => {
-
                 const namespace = addressSpace.getOwnNamespace();
                 const condition = namespace.instantiateCondition(myCustomConditionType, {
                     browseName: "MyCustomCondition_last_severity_recorded-1",
@@ -543,10 +506,9 @@ export function utest_condition(test: any) {
                         "ConditionClassId",
                         "ConditionClassName",
                         "ConditionSubClassId",
-                        "ConditionSubClassName"
+                        "ConditionSubClassName",
                     ],
-                    organizedBy: addressSpace.rootFolder.objects
-
+                    organizedBy: addressSpace.rootFolder.objects,
                 });
 
                 condition.conditionClassId.browseName.toString().should.eql("ConditionClassId");
@@ -557,22 +519,22 @@ export function utest_condition(test: any) {
                 const nullVariant = {};
 
                 const data = {
-                    "branchId": nullVariant,
-                    "clientUserId": nullVariant,
-                    "comment": nullVariant,
+                    branchId: nullVariant,
+                    clientUserId: nullVariant,
+                    comment: nullVariant,
                     "comment.sourceTimestamp": nullVariant,
-                    "conditionName": nullVariant,
-                    "enabledState": nullVariant,
+                    conditionName: nullVariant,
+                    enabledState: nullVariant,
                     "enabledState.effectiveDisplayName": nullVariant,
                     "enabledState.effectiveTransitionTime": nullVariant,
                     "enabledState.id": nullVariant,
                     "enabledState.transitionTime": nullVariant,
-                    "lastSeverity": nullVariant,
+                    lastSeverity: nullVariant,
                     "lastSeverity.sourceTimestamp": nullVariant,
-                    "quality": nullVariant,
+                    quality: nullVariant,
                     "quality.sourceTimestamp": nullVariant,
-                    "retain": nullVariant,
-                    "sourceNode": condition.sourceNode.readValue().value
+                    retain: nullVariant,
+                    sourceNode: condition.sourceNode.readValue().value,
                 };
                 const eventData2 = addressSpace.constructEventData(myCustomConditionType, data);
 
@@ -590,21 +552,15 @@ export function utest_condition(test: any) {
                 const checker2 = Object.keys(eventData2).filter(f).sort().join(" ");
 
                 checker1.should.eql(checker2);
-
             });
 
             it("should raise a new condition ", () => {
-
                 const namespace = addressSpace.getOwnNamespace();
                 const condition = namespace.instantiateCondition(myCustomConditionType, {
                     browseName: "MyCustomCondition8",
                     conditionSource: source,
-                    optionals: [
-                        "EnabledState.EffectiveDisplayName",
-                        "EnabledState.TransitionTime"
-                    ],
-                    organizedBy: addressSpace.rootFolder.objects
-
+                    optionals: ["EnabledState.EffectiveDisplayName", "EnabledState.TransitionTime"],
+                    organizedBy: addressSpace.rootFolder.objects,
                 });
 
                 // install the event catcher
@@ -618,7 +574,7 @@ export function utest_condition(test: any) {
                 condition.raiseNewCondition({
                     message: "Hello Message",
                     quality: StatusCodes.Good,
-                    severity: 1235
+                    severity: 1235,
                 });
 
                 spy_on_event.callCount.should.eql(1);
@@ -647,7 +603,7 @@ export function utest_condition(test: any) {
                 condition.raiseNewCondition({
                     message: "Something nasty happened",
                     quality: StatusCodes.Bad,
-                    severity: 1000
+                    severity: 1000,
                 });
 
                 spy_on_event.callCount.should.eql(2);
@@ -661,7 +617,7 @@ export function utest_condition(test: any) {
                 evtData1.quality.value.should.eql(StatusCodes.Bad);
                 // raise with only severity
                 condition.raiseNewCondition({
-                    severity: 1001
+                    severity: 1001,
                 });
                 spy_on_event.callCount.should.eql(3);
                 const evtData2 = spy_on_event.getCall(2).args[0];
@@ -671,22 +627,16 @@ export function utest_condition(test: any) {
                 should(evtData2.eventId.value).not.eql(evtData.eventId.value, "EventId must be different from previous one");
                 evtData2.severity.value.should.eql(1001, "the severity should match expecting severity");
                 evtData2.quality.value.should.eql(StatusCodes.Bad);
-
             });
 
             describe("Condition Branches", () => {
-
                 it("should be possible to create several branches of a condition state", () => {
-
                     const namespace = addressSpace.getOwnNamespace();
                     const condition = namespace.instantiateCondition(myCustomConditionType, {
                         browseName: "MyCustomCondition_branch",
                         conditionSource: source,
-                        optionals: [
-                            "EnabledState.EffectiveDisplayName",
-                            "EnabledState.TransitionTime"
-                        ],
-                        organizedBy: addressSpace.rootFolder.objects
+                        optionals: ["EnabledState.EffectiveDisplayName", "EnabledState.TransitionTime"],
+                        organizedBy: addressSpace.rootFolder.objects,
                     });
 
                     condition.getBranchCount().should.eql(0);
@@ -702,19 +652,15 @@ export function utest_condition(test: any) {
                     condition.getBranchCount().should.eql(2);
 
                     branch1.getBranchId().toString().should.not.eql(branch2.getBranchId().toString());
-
                 });
-
             });
             describe("Condition & Subscriptions : ConditionRefresh", () => {
-
                 it("should be possible to refresh a condition", () => {
-
                     const namespace = addressSpace.getOwnNamespace();
                     const condition = namespace.instantiateCondition(myCustomConditionType, {
                         browseName: "MyCustomCondition_to_test_condition_refresh",
                         conditionSource: source,
-                        organizedBy: addressSpace.rootFolder.objects
+                        organizedBy: addressSpace.rootFolder.objects,
                     });
 
                     // mark the condition as being retained so that event can be refreshed
@@ -726,7 +672,11 @@ export function utest_condition(test: any) {
                     const context = new SessionContext({
                         object: conditionType,
                         server: {},
-                        session: { getSessionId() { return NodeId.nullNodeId; } },
+                        session: {
+                            getSessionId() {
+                                return NodeId.nullNodeId;
+                            },
+                        },
                     });
 
                     // install the event catcher
@@ -736,9 +686,10 @@ export function utest_condition(test: any) {
 
                     const subscriptionIdVar = new Variant({ dataType: DataType.UInt32, value: 2 });
 
-                    conditionType.conditionRefresh.execute([subscriptionIdVar], context,
+                    conditionType.conditionRefresh.execute(
+                        [subscriptionIdVar],
+                        context,
                         (err: Error | null, callMethodResult: CallMethodResultOptions) => {
-
                             //
                             // During the process we should receive 3 events
                             //
@@ -754,18 +705,27 @@ export function utest_condition(test: any) {
                             spy_on_event.getCall(0).thisValue.nodeId.toString().should.eql("ns=0;i=2253");
                             spy_on_event.getCall(0).thisValue.browseName.toString().should.eql("Server");
                             spy_on_event.getCall(0).args.length.should.eql(1);
-                            spy_on_event.getCall(0).args[0].eventType.toString().should.eql("Variant(Scalar<NodeId>, value: RefreshStartEventType (ns=0;i=2787))");
+                            spy_on_event
+                                .getCall(0)
+                                .args[0].eventType.toString()
+                                .should.eql("Variant(Scalar<NodeId>, value: RefreshStartEventType (ns=0;i=2787))");
 
                             // xx console.log("spy_on_event.getCall(0).args[0]=",spy_on_event.getCall(1).args[0]);
                             spy_on_event.getCall(1).thisValue.browseName.toString().should.eql("Server");
-                            spy_on_event.getCall(1).args[0].eventType.value.toString().should.eql(myCustomConditionType.nodeId.toString());
+                            spy_on_event
+                                .getCall(1)
+                                .args[0].eventType.value.toString()
+                                .should.eql(myCustomConditionType.nodeId.toString());
 
                             const last = spy_on_event.callCount - 1;
                             // RefreshEndEventType (i=2788)
                             spy_on_event.getCall(last).thisValue.browseName.toString().should.eql("Server");
-                            spy_on_event.getCall(last).args[0].eventType.toString().should.eql("Variant(Scalar<NodeId>, value: RefreshEndEventType (ns=0;i=2788))");
-
-                        });
+                            spy_on_event
+                                .getCall(last)
+                                .args[0].eventType.toString()
+                                .should.eql("Variant(Scalar<NodeId>, value: RefreshEndEventType (ns=0;i=2788))");
+                        }
+                    );
                 });
             });
         });

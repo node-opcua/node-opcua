@@ -1,11 +1,21 @@
 "use strict";
-/* global require, process, __filename, it, before, beforeEach, after, afterEach */
 const should = require("should");
 const async = require("async");
 const _ = require("underscore");
 const os = require("os");
-const opcua = require("node-opcua");
-const RegisterServerManager = require("node-opcua-server").RegisterServerManager;
+const {
+    OPCUAClient,
+    ClientSubscription,
+    OPCUADiscoveryServer,
+    RegisterServerManager,
+    RegisterServerMethod,
+    OPCUAServer,
+    ClientMonitoredItem,
+    resolveNodeId,
+    AttributeIds,
+    makeApplicationUrn,
+    TimestampsToReturn
+} = require("node-opcua");
 
 const debugLog = require("node-opcua-debug").make_debugLog(__filename);
 const doDebug = require("node-opcua-debug").checkDebugFlag(__filename);
@@ -30,7 +40,7 @@ describe("NodeRed -  testing frequent server restart within same process", funct
 
     function startDiscoveryServer(callback) {
         // note : only one discovery server shall be run per machine
-        discoveryServer = new opcua.OPCUADiscoveryServer({ port: discoveryServerPort });
+        discoveryServer = new OPCUADiscoveryServer({ port: discoveryServerPort });
         discoveryServer.start(function(err) {
             debugLog(" Discovery server listening on ", discoveryServerEndpointUrl);
             discoveryServerEndpointUrl = discoveryServer._get_endpoints()[0].endpointUrl;
@@ -47,13 +57,15 @@ describe("NodeRed -  testing frequent server restart within same process", funct
     }
 
     let endpointUrl = "";
-
     function createServer(callback) {
 
-        const server = new opcua.OPCUAServer({
+        const server = new OPCUAServer({
             port: serverPort,
-            registerServerMethod: opcua.RegisterServerMethod.LDS,
-            discoveryServerEndpointUrl: discoveryServerEndpointUrl
+            registerServerMethod: RegisterServerMethod.LDS,
+            discoveryServerEndpointUrl: discoveryServerEndpointUrl,
+            serverInfo: {
+                applicationUri: makeApplicationUrn("%FQDN%", "Node-OPCUA-Server")
+            }
         });
         // start server with many node
         server.on("serverRegistrationPending", function() {
@@ -103,12 +115,11 @@ describe("NodeRed -  testing frequent server restart within same process", funct
 
     function connectManyClient(callback) {
 
-
         function addClient(callback) {
             if (doDebug) {
                 debugLog(" creating client");
             }
-            let client = opcua.OPCUAClient.create();
+            let client = OPCUAClient.create();
             client.connect(endpointUrl, function(err) {
                 if (err) return callback(err);
                 client.createSession(function(err, session) {
@@ -116,7 +127,7 @@ describe("NodeRed -  testing frequent server restart within same process", funct
                     client.session = session;
                     clients.push(client);
 
-                    client.subscription = opcua.ClientSubscription.create(session, {
+                    client.subscription = ClientSubscription.create(session, {
                         requestedPublishingInterval: 1000,
                         requestedLifetimeCount: 100,
                         requestedMaxKeepAliveCount: 20,
@@ -132,17 +143,17 @@ describe("NodeRed -  testing frequent server restart within same process", funct
                         debugLog("keepalive");
                     }).on("terminated", function() {
                     });
-
-                    client.monitoredItem = opcua.ClientMonitoredItem.create(client.subscription, {
-                        nodeId: opcua.resolveNodeId("ns=0;i=2258"),
-                        attributeId: opcua.AttributeIds.Value
-                    },
+                    client.monitoredItem = ClientMonitoredItem.create(client.subscription,
+                        {
+                            nodeId: resolveNodeId("ns=0;i=2258"),
+                            attributeId: AttributeIds.Value
+                        },
                         {
                             samplingInterval: 100,
                             discardOldest: true,
                             queueSize: 10
                         },
-                        opcua.TimestampsToReturn.Both
+                        TimestampsToReturn.Both
                     );
                     client.monitoredItem.on("changed", function(dataValue) {
                         if (doDebug) {
@@ -234,7 +245,7 @@ describe("NodeRed -  testing frequent server restart within same process", funct
 
     it("T0c- should cancel a client that is attempting a connection on an existing server", function(done) {
 
-        let client = opcua.OPCUAClient.create();
+        let client = OPCUAClient.create();
         const endpoint = discoveryServerEndpointUrl;
         async.series([
             function create_client_do_not_wait(callback) {
@@ -252,9 +263,9 @@ describe("NodeRed -  testing frequent server restart within same process", funct
 
     xit("T0d- should cancel a client that cannot connect - on standard LocalDiscoveryServer", function(done) {
 
-        let server = new opcua.OPCUAServer({
+        let server = new OPCUAServer({
             port: serverPort,
-            registerServerMethod: opcua.RegisterServerMethod.LDS,
+            registerServerMethod: RegisterServerMethod.LDS,
             discoveryServerEndpointUrl: "opc.tcp://localhost:4840", //<< standard server
         });
         server.registerServerManager.timeout = 100;
@@ -279,9 +290,9 @@ describe("NodeRed -  testing frequent server restart within same process", funct
             function create_Server(callback) {
 
                 debugLog("discoveryServerEndpointUrl =", discoveryServerEndpointUrl);
-                server = new opcua.OPCUAServer({
+                server = new OPCUAServer({
                     port: serverPort,
-                    registerServerMethod: opcua.RegisterServerMethod.LDS,
+                    registerServerMethod: RegisterServerMethod.LDS,
                     discoveryServerEndpointUrl: discoveryServerEndpointUrl
                 });
                 server.start(callback);
@@ -468,7 +479,7 @@ describe("NodeRed -  testing frequent server restart within same process", funct
         async.series([
 
             function create_server_1(callback) {
-                server1 = new opcua.OPCUAServer({ port: 2222 });
+                server1 = new OPCUAServer({ port: 2222 });
                 server1.start(function(err) {
                     callback(err);
                 });
@@ -476,7 +487,7 @@ describe("NodeRed -  testing frequent server restart within same process", funct
             function create_server_2(callback) {
                 // we start a second server on the same port !
                 // this server will fail to start
-                server2 = new opcua.OPCUAServer({ port: 2222 });
+                server2 = new OPCUAServer({ port: 2222 });
                 server2.start(function(err) {
                     if (!err) {
                         debugLog(" expecting a error here !");
@@ -507,11 +518,11 @@ describe("NodeRed -  testing frequent server restart within same process", funct
         async.series([
 
             function create_server_1(callback) {
-                server1 = new opcua.OPCUAServer({ port: 2004 });
+                server1 = new OPCUAServer({ port: 2004 });
                 server1.start(callback);
             },
             function create_server_2(callback) {
-                server2 = new opcua.OPCUAServer({ port: 2018 });
+                server2 = new OPCUAServer({ port: 2018 });
                 server2.start(callback);
             },
             function shutdown_server_2(callback) {
@@ -530,11 +541,11 @@ describe("NodeRed -  testing frequent server restart within same process", funct
         async.series([
 
             function create_server_1(callback) {
-                server1 = new opcua.OPCUAServer({ port: 2014 });
+                server1 = new OPCUAServer({ port: 2014 });
                 server1.start(callback);
             },
             function create_server_2(callback) {
-                server2 = new opcua.OPCUAServer({ port: 2016 });
+                server2 = new OPCUAServer({ port: 2016 });
                 server2.start(callback);
             },
             function shutdown_server_1(callback) {

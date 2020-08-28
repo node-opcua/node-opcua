@@ -1,4 +1,3 @@
-
 import * as fs from "fs";
 import * as nodesets from "node-opcua-nodesets";
 import * as should from "should";
@@ -15,8 +14,7 @@ import { utest_off_normal_alarm } from "./utest_off_normal_alarm";
 
 // tslint:disable-next-line:no-var-requires
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
-describe("AddressSpace : Conditions ", function (this: any) {
-
+describe("AddressSpace : Conditions 1", function (this: any) {
     const test = this;
 
     let addressSpace: AddressSpace;
@@ -25,7 +23,6 @@ describe("AddressSpace : Conditions ", function (this: any) {
 
     let source;
     before(async () => {
-
         addressSpace = AddressSpace.create();
         addressSpace.registerNamespace("PRIVATE_NAMESPACE");
 
@@ -49,19 +46,19 @@ describe("AddressSpace : Conditions ", function (this: any) {
         source = namespace.addObject({
             browseName: "Motor.RPM",
             componentOf: green,
-            eventSourceOf: green
+            eventSourceOf: green,
         });
 
         test.variableWithAlarm = namespace.addVariable({
             browseName: "VariableWithLimit",
             dataType: "Double",
-            propertyOf: source
+            propertyOf: source,
         });
 
         test.setpointNodeNode = namespace.addVariable({
             browseName: "SetPointValue",
             dataType: "Double",
-            propertyOf: source
+            propertyOf: source,
         });
 
         test.addressSpace = addressSpace;

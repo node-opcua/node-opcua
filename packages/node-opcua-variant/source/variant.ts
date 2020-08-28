@@ -75,10 +75,10 @@ const schemaVariant: StructuredTypeSchema = buildStructuredType({
     name: "Variant"
 });
 
-function _coerceVariant(variantLike: any): Variant {
-  const value = (variantLike instanceof Variant) ? variantLike : new Variant(variantLike);
-  assert(value instanceof Variant);
-  return value;
+function _coerceVariant(variantLike: VariantOptions | Variant): Variant {
+    const value = variantLike instanceof Variant ? variantLike : new Variant(variantLike);
+    assert(value instanceof Variant);
+    return value;
 }
 
 export interface VariantOptions {
@@ -1055,7 +1055,6 @@ export interface VariantT<T, DT extends DataType> extends Variant {
 }
 export declare type VariantByteString = VariantT<Buffer, DataType.ByteString>;
 export declare type VariantDouble = VariantT<number, DataType.Double>;
-
 
 registerType({
     name: "Variant",
