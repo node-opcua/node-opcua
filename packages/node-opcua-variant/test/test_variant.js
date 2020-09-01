@@ -30,6 +30,7 @@ const factories = require("node-opcua-factory");
 const { NumericRange } = require("node-opcua-numeric-range");
 const { StatusCodes } = require("node-opcua-status-code");
 const { ExtensionObject } = require("node-opcua-extension-object");
+const { resolveNodeId } = require("node-opcua-nodeid");
 
 describe("Variant", () => {
 
@@ -2061,6 +2062,12 @@ describe("testing isValidVariant", () => {
         isValidVariant(VariantArrayType.Matrix, DataType.Double, [-2.24, 3.15], [1, 2]).should.eql(true);
         isValidVariant(VariantArrayType.Matrix, DataType.Byte, [655525, 12], [1, 2]).should.eql(false);
     });
+
+
+    it("variantToString ", () => {
+        const v = new Variant({ dataType: DataType.NodeId, value: resolveNodeId("i=24") });
+        v.toString().should.eql("Variant(Scalar<NodeId>, value: BaseDataType (ns=0;i=24))")
+    })
 
 });
 

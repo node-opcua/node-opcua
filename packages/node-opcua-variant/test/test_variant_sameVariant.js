@@ -1,8 +1,10 @@
+/* eslint-disable max-statements */
 "use strict";
 
 const should = require("should");
 const { assert } = require("node-opcua-assert");
 const _ = require("underscore");
+const { ExtensionObject } = require("node-opcua-extension-object");
 
 
 const Variant = require("..").Variant;
@@ -73,6 +75,23 @@ describe("testing return sameVariant for pull request", function() {
         });
         sameVariant(b1, b2).should.equal(false);
     });
+
+    it("testing different variants of type Boolean matrix different dimension, same size", function() {
+        const b1 = new Variant({
+            dataType: DataType.Boolean,
+            arrayType: VariantArrayType.Matrix,
+            dimensions: [2, 3],
+            value: [true, true, true, true, true, true]
+        });
+        const b2 = new Variant({
+            dataType: DataType.Boolean,
+            arrayType: VariantArrayType.Matrix,
+            dimensions: [3, 2],
+            value: [true, true, true, true, true, true]
+        });
+        sameVariant(b1, b2).should.equal(false);
+    });
+
 
     it("testing same variants of type Byte", function() {
         const b1 = new Variant({ dataType: DataType.Byte, arrayType: VariantArrayType.Scalar, value: 1 });
@@ -872,4 +891,50 @@ describe("testing return sameVariant for pull request", function() {
         test(DataType.Double);
     });
 
+
+    class SomeExtensionObjectA extends ExtensionObject {
+
+        constructor(options) {
+            super();
+            this.a = options.a;
+        }
+    }
+    class SomeExtensionObjectB extends ExtensionObject {
+
+        constructor(options) {
+            super();
+            this.a = options.a;
+        }
+    }
+    /// same variant with extension object
+    it("sameVariant with extension objects - 1", () => {
+
+        const ext1 = new SomeExtensionObjectA({ a: 32 });
+        const ext2 = new SomeExtensionObjectA({ a: 32 });
+
+        const b1 = new Variant({ dataType: DataType.ExtensionObject, value: ext1 });
+        const b2 = new Variant({ dataType: DataType.ExtensionObject, value: ext2 });
+
+        sameVariant(b1, b2).should.eql(true);
+    })
+    it("sameVariant with extension objects - 2", () => {
+
+        const ext1 = new SomeExtensionObjectA({ a: 32 });
+        const ext2 = new SomeExtensionObjectA({ a: 10000 });
+
+        const b1 = new Variant({ dataType: DataType.ExtensionObject, value: ext1 });
+        const b2 = new Variant({ dataType: DataType.ExtensionObject, value: ext2 });
+
+        sameVariant(b1, b2).should.eql(false);
+    })
+    it("sameVariant with extension objects - 3", () => {
+
+        const ext1 = new SomeExtensionObjectA({ a: 32 });
+        const ext2 = new SomeExtensionObjectB({ a: 32 });
+
+        const b1 = new Variant({ dataType: DataType.ExtensionObject, value: ext1 });
+        const b2 = new Variant({ dataType: DataType.ExtensionObject, value: ext2 });
+
+        sameVariant(b1, b2).should.eql(false);
+    })
 });
