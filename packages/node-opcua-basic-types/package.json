@@ -1,6 +1,6 @@
 {
     "name": "node-opcua-basic-types",
-    "version": "2.11.0",
+    "version": "2.13.0",
     "description": "pure nodejs OPCUA SDK - module -basic-types",
     "main": "./dist/index.js",
     "types": "./dist/index.d.ts",
@@ -19,7 +19,7 @@
         "node-opcua-guid": "2.10.0",
         "node-opcua-nodeid": "2.11.0",
         "node-opcua-status-code": "2.11.0",
-        "node-opcua-utils": "2.10.0",
+        "node-opcua-utils": "2.13.0",
         "underscore": "^1.10.2"
     },
     "devDependencies": {

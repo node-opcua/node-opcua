@@ -1,6 +1,6 @@
 {
     "name": "node-opcua-service-call",
-    "version": "2.11.0",
+    "version": "2.13.0",
     "description": "pure nodejs OPCUA SDK - module -service-call",
     "scripts": {
         "test": "mocha test",
@@ -11,18 +11,18 @@
     "types": "./dist/index.d.ts",
     "dependencies": {
         "node-opcua-assert": "2.10.0",
-        "node-opcua-basic-types": "2.11.0",
+        "node-opcua-basic-types": "2.13.0",
         "node-opcua-binary-stream": "2.11.0",
-        "node-opcua-factory": "2.11.0",
+        "node-opcua-factory": "2.13.0",
         "node-opcua-nodeid": "2.11.0",
-        "node-opcua-service-secure-channel": "2.11.0",
-        "node-opcua-types": "2.11.0",
-        "node-opcua-variant": "2.11.0",
+        "node-opcua-service-secure-channel": "2.13.0",
+        "node-opcua-types": "2.13.0",
+        "node-opcua-variant": "2.13.0",
         "underscore": "^1.10.2"
     },
     "devDependencies": {
-        "node-opcua-generator": "2.11.0",
-        "node-opcua-packet-analyzer": "2.11.0",
+        "node-opcua-generator": "2.13.0",
+        "node-opcua-packet-analyzer": "2.13.0",
         "node-opcua-status-code": "2.11.0",
         "should": "^13.2.3"
     },
