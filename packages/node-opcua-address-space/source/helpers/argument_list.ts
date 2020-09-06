@@ -27,12 +27,7 @@ function myfindBuiltInType(dataType: DataType): any {
     return factories.findBuiltInType(DataType[dataType]);
 }
 
-export function encode_ArgumentList(
-    definition: any[],
-    args: any,
-    stream: OutputBinaryStream
-) {
-
+export function encode_ArgumentList(definition: any[], args: any, stream: OutputBinaryStream) {
     assert(definition.length === args.length);
 
     assert(_.isArray(definition));
@@ -43,7 +38,6 @@ export function encode_ArgumentList(
     // we only encode arguments by following the definition
 
     for (let i = 0; i < definition.length; i++) {
-
         const def = definition[i];
         const value = args[i];
 
@@ -51,7 +45,7 @@ export function encode_ArgumentList(
         // assert((def.valueRank === -1) || (def.valueRank === 0));
 
         // todo : handle -3 -2
-        const isArray = (def.valueRank && (def.valueRank === 1 || def.valueRank !== -1));
+        const isArray = def.valueRank && (def.valueRank === 1 || def.valueRank !== -1);
 
         if (isArray) {
             ec.encodeArray(value, stream, encodeFunc);
@@ -59,15 +53,13 @@ export function encode_ArgumentList(
             encodeFunc(value, stream);
         }
     }
-
 }
 
 export function decode_ArgumentList(definition: any[], stream: BinaryStream): any[] {
-
     if (!_.isArray(definition)) {
         throw new Error(
             "This BaseDataType cannot be decoded because it has no definition.\n" +
-            "Please construct a BaseDataType({definition : [{dataType: DataType.UInt32 }]});"
+                "Please construct a BaseDataType({definition : [{dataType: DataType.UInt32 }]});"
         );
     }
 
@@ -75,11 +67,10 @@ export function decode_ArgumentList(definition: any[], stream: BinaryStream): an
     let value;
 
     for (const def of definition) {
-
         const decodeFunc = myfindBuiltInType(def.dataType).decode;
 
         // xx assert(def.valueRank === -1 || def.valueRank==0);
-        const isArray = (def.valueRank === 1 || def.valueRank === -1);
+        const isArray = def.valueRank === 1 || def.valueRank === -1;
 
         if (isArray) {
             value = ec.decodeArray(stream, decodeFunc);
@@ -92,7 +83,6 @@ export function decode_ArgumentList(definition: any[], stream: BinaryStream): an
 }
 
 export function binaryStoreSize_ArgumentList(description: any, args: any) {
-
     assert(_.isArray(description));
     assert(_.isArray(args));
     assert(args.length === description.length);
@@ -106,14 +96,12 @@ export function getMethodDeclaration_ArgumentList(
     addressSpace: AddressSpace,
     objectId: NodeId,
     methodId: NodeId
-): any {
-
+): { statusCode: StatusCode; methodDeclaration?: UAMethod } {
     assert(objectId instanceof NodeId);
     assert(methodId instanceof NodeId);
     // find object in address space
     const obj = addressSpace.findNode(objectId) as UAObject;
     if (!obj) {
-
         // istanbul ignore next
         if (doDebug) {
             debugLog("cannot find node ", objectId.toString());
@@ -122,7 +110,6 @@ export function getMethodDeclaration_ArgumentList(
     }
     let objectMethod = obj.getMethodById(methodId) as UAMethod;
     if (!objectMethod) {
-
         // the method doesn't belong to the object, nevertheless
         // the method can be called
         objectMethod = addressSpace.findNode(methodId) as UAMethod;
@@ -131,12 +118,15 @@ export function getMethodDeclaration_ArgumentList(
         }
     }
 
-    const methodDeclarationId = (objectMethod as any).methodDeclarationId;
-
-    const methodDeclaration = addressSpace.findNode(methodDeclarationId);
+    const methodDeclarationId = objectMethod.methodDeclarationId;
+    const methodDeclaration = addressSpace.findNode(methodDeclarationId) as UAMethod;
     if (!methodDeclaration) {
         //  return {statusCode: StatusCodes.BadMethodInvalid};
         return { statusCode: StatusCodes.Good, methodDeclaration: objectMethod };
+    }
+    // istanbul ignore next
+    if (methodDeclaration.nodeClass !== NodeClass.Method) {
+        throw new Error("Expecting a Method here");
     }
     return { statusCode: StatusCodes.Good, methodDeclaration };
 }
@@ -144,17 +134,11 @@ export function getMethodDeclaration_ArgumentList(
 /**
  * @private
  */
-function isArgumentValid(
-    addressSpace: AddressSpace,
-    argDefinition: Argument,
-    arg: Variant
-): boolean {
-
+function isArgumentValid(addressSpace: AddressSpace, argDefinition: Argument, arg: Variant): boolean {
     assert(argDefinition instanceof Argument);
     assert(argDefinition.hasOwnProperty("dataType"));
     assert(argDefinition.hasOwnProperty("valueRank"));
 
-    
     const argDefDataType = addressSpace.findDataType(argDefinition.dataType);
     const argDataType = addressSpace.findDataType(resolveNodeId(arg.dataType));
 
@@ -183,13 +167,12 @@ function isArgumentValid(
         debugLog(" checking argDataType ", argDataType.toString());
     }
 
-    const isArray = (arg.arrayType === VariantArrayType.Array);
+    const isArray = arg.arrayType === VariantArrayType.Array;
 
     if (argDefinition.valueRank > 0) {
-
         return isArray;
-
-    } else if (argDefinition.valueRank === -1) { // SCALAR
+    } else if (argDefinition.valueRank === -1) {
+        // SCALAR
         if (isArray) {
             return false;
         }
@@ -201,7 +184,6 @@ function isArgumentValid(
 
     // check that dataType is of the same type (derived )
     return argDefDataType.isSupertypeOf(argDataType);
-
 }
 
 /**
@@ -216,10 +198,9 @@ export function verifyArguments_ArgumentList(
     methodInputArguments: Argument[],
     inputArguments?: Variant[]
 ): {
-    inputArgumentResults?: StatusCode[],
-    statusCode: StatusCode,
+    inputArgumentResults?: StatusCode[];
+    statusCode: StatusCode;
 } {
-
     const inputArgumentResults: StatusCode[] = [];
 
     if (methodInputArguments.length === 0 && !inputArguments) {
@@ -233,10 +214,15 @@ export function verifyArguments_ArgumentList(
     if (methodInputArguments.length > inputArguments.length) {
         // istanbul ignore next
         if (doDebug) {
-            debugLog("verifyArguments_ArgumentList " +
-                "\n       The client did  specify too many input arguments for the method.  " +
-                "\n        expected : " + methodInputArguments.length + "" +
-                "\n        actual   : " + inputArguments.length);
+            debugLog(
+                "verifyArguments_ArgumentList " +
+                    "\n       The client did  specify too many input arguments for the method.  " +
+                    "\n        expected : " +
+                    methodInputArguments.length +
+                    "" +
+                    "\n        actual   : " +
+                    inputArguments.length
+            );
         }
         return { statusCode: StatusCodes.BadArgumentsMissing };
     }
@@ -244,34 +230,48 @@ export function verifyArguments_ArgumentList(
     if (methodInputArguments.length < inputArguments.length) {
         // istanbul ignore next
         if (doDebug) {
-            debugLog(" verifyArguments_ArgumentList " +
-                "\n        The client did not specify all of the input arguments for the method. " +
-                "\n        expected : " + methodInputArguments.length + "" +
-                "\n        actual   : " + inputArguments.length);
+            debugLog(
+                " verifyArguments_ArgumentList " +
+                    "\n        The client did not specify all of the input arguments for the method. " +
+                    "\n        expected : " +
+                    methodInputArguments.length +
+                    "" +
+                    "\n        actual   : " +
+                    inputArguments.length
+            );
         }
         return { statusCode: StatusCodes.BadTooManyArguments };
     }
 
     let errorCount = 0;
     for (let i = 0; i < methodInputArguments.length; i++) {
-
         const argDefinition = methodInputArguments[i];
 
         const arg = inputArguments[i];
 
         // istanbul ignore next
         if (doDebug) {
-            debugLog("verifyArguments_ArgumentList checking argument " + i +
-                "\n        argDefinition is    : " + JSON.stringify(argDefinition) +
-                "\n        corresponding arg is: " + JSON.stringify(arg));
+            debugLog(
+                "verifyArguments_ArgumentList checking argument " +
+                    i +
+                    "\n        argDefinition is    : " +
+                    JSON.stringify(argDefinition) +
+                    "\n        corresponding arg is: " +
+                    JSON.stringify(arg)
+            );
         }
         if (!isArgumentValid(addressSpace, argDefinition, arg)) {
             // istanbul ignore next
             if (doDebug) {
-                debugLog("verifyArguments_ArgumentList \n" +
-                    "         The client did specify a argument with the wrong data type.\n" +
-                    chalk.white("          expected : ") + argDefinition.dataType + "\n" +
-                    chalk.cyan("          actual   :") + arg.dataType);
+                debugLog(
+                    "verifyArguments_ArgumentList \n" +
+                        "         The client did specify a argument with the wrong data type.\n" +
+                        chalk.white("          expected : ") +
+                        argDefinition.dataType +
+                        "\n" +
+                        chalk.cyan("          actual   :") +
+                        arg.dataType
+                );
             }
             inputArgumentResults.push(StatusCodes.BadTypeMismatch);
             errorCount += 1;
@@ -289,9 +289,7 @@ export function verifyArguments_ArgumentList(
     return ret;
 }
 
-export function build_retrieveInputArgumentsDefinition(
-    addressSpace: AddressSpace
-) {
+export function build_retrieveInputArgumentsDefinition(addressSpace: AddressSpace) {
     const the_address_space = addressSpace;
     return (objectId: NodeId, methodId: NodeId) => {
         const response = getMethodDeclaration_ArgumentList(the_address_space, objectId, methodId);
@@ -299,10 +297,16 @@ export function build_retrieveInputArgumentsDefinition(
         /* istanbul ignore next */
         if (response.statusCode !== StatusCodes.Good) {
             debugLog(" StatusCode  = " + response.statusCode.toString());
-            throw new Error("Invalid Method " + response.statusCode.toString() +
-                " ObjectId= " + objectId.toString() + "Method Id =" + methodId.toString());
+            throw new Error(
+                "Invalid Method " +
+                    response.statusCode.toString() +
+                    " ObjectId= " +
+                    objectId.toString() +
+                    "Method Id =" +
+                    methodId.toString()
+            );
         }
-        const methodDeclaration = response.methodDeclaration;
+        const methodDeclaration = response.methodDeclaration!;
         // verify input Parameters
         const methodInputArguments = methodDeclaration.getInputArguments();
         assert(_.isArray(methodInputArguments));
@@ -310,11 +314,7 @@ export function build_retrieveInputArgumentsDefinition(
     };
 }
 
-export function convertJavaScriptToVariant(
-    argumentDefinition: ArgumentOptions[],
-    values: any[]
-): Variant[] {
-
+export function convertJavaScriptToVariant(argumentDefinition: ArgumentOptions[], values: any[]): Variant[] {
     assert(argumentDefinition.length === values.length);
     assert(_.isArray(argumentDefinition));
     assert(_.isArray(values));

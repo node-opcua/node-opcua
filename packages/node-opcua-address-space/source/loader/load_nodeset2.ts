@@ -22,26 +22,10 @@ import {
 } from "node-opcua-data-model";
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 import { ExtensionObject } from "node-opcua-extension-object";
-import {
-    findSimpleType,
-    getStandardDataTypeFactory,
-    getStructureTypeConstructor,
-    registerBasicType,
-    StructuredTypeSchema,
-    DataTypeFactory,
-    BasicTypeDefinition,
-} from "node-opcua-factory";
+import { findSimpleType, getStandardDataTypeFactory, DataTypeFactory } from "node-opcua-factory";
 import { NodeId, resolveNodeId } from "node-opcua-nodeid";
 import { Argument } from "node-opcua-service-call";
-import {
-    DataTypeDefinition,
-    EnumDefinition,
-    Range,
-    StructureDefinition,
-    StructureField,
-    StructureType,
-    StructureFieldOptions,
-} from "node-opcua-types";
+import { EnumDefinition, Range, StructureDefinition, StructureType, StructureFieldOptions } from "node-opcua-types";
 import { DataType, VariantArrayType, VariantOptions, Variant } from "node-opcua-variant";
 import { ParserLike, ReaderState, ReaderStateParserLike, Xml2Json, XmlAttributes } from "node-opcua-xml2json";
 
@@ -69,7 +53,6 @@ import { UAVariableType } from "../../src/ua_variable_type";
 
 import * as PrettyError from "pretty-error";
 import { isValidGuid, StatusCodes } from "node-opcua-basic-types";
-import { parse } from "path";
 const pe = new PrettyError();
 
 const doDebug = checkDebugFlag(__filename);
@@ -1301,7 +1284,7 @@ export function generateAddressSpace(
             this.obj.browseName = convertQualifiedName(attrs.BrowseName);
             this.obj.parentNodeId = attrs.ParentNodeId || null;
             this.obj.nodeId = convertToNodeId(attrs.NodeId) || null;
-            this.obj.methodDeclarationId = attrs.MethodDeclarationId ? resolveNodeId(attrs.MethodDeclarationId) : null;
+            this.obj.methodDeclarationId = attrs.MethodDeclarationId ? _translateNodeId(attrs.MethodDeclarationId) : null;
         },
         finish(this: any) {
             _internal_createNode(this.obj);
