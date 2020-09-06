@@ -5,56 +5,42 @@
 const should = require("should");
 const sinon = require("sinon");
 
-const subscription_service = require("node-opcua-service-subscription");
-const StatusCodes = require("node-opcua-status-code").StatusCodes;
+const {
+    MonitoringMode,
+    MonitoredItemCreateRequest,
+    DataChangeFilter,
+    DataChangeTrigger,
+    DeadbandType
+} = require("node-opcua-service-subscription");
+const { StatusCodes } = require("node-opcua-status-code");
+const { TimestampsToReturn } = require("node-opcua-service-read");
 
 
-const TimestampsToReturn = require("node-opcua-service-read").TimestampsToReturn;
-
-const MonitoredItemCreateRequest = subscription_service.MonitoredItemCreateRequest;
-
-const DataType = require("node-opcua-variant").DataType;
-const DataValue = require("node-opcua-data-value").DataValue;
-const Variant = require("node-opcua-variant").Variant;
-const VariantArrayType = require("node-opcua-variant").VariantArrayType;
-
-const AttributeIds = require("node-opcua-data-model").AttributeIds;
-
-const NodeId = require("node-opcua-nodeid").NodeId;
-const coerceNodeId = require("node-opcua-nodeid").coerceNodeId;
+const { DataType, VariantArrayType, Variant } = require("node-opcua-variant");
+const { DataValue } = require("node-opcua-data-value");
+const { AttributeIds } = require("node-opcua-data-model");
+const {
+    NodeId,
+    coerceNodeId
+} = require("node-opcua-nodeid");
+const {
+    SessionContext
+} = require("node-opcua-address-space");
 
 
-const SessionContext = require("node-opcua-address-space").SessionContext;
-
-
-const MonitoredItem = require("..").MonitoredItem;
-const Subscription = require("..").Subscription;
-const ServerEngine = require("..").ServerEngine;
+const {
+    MonitoredItem,
+    Subscription,
+    ServerEngine
+} = require("..");
 const mini_nodeset_filename = require("node-opcua-address-space").get_mini_nodeset_filename();
 
 const context = SessionContext.defaultContext;
 
 const now = (new Date()).getTime();
+const { getFakePublishEngine } = require("./helper_fake_publish_engine");
 
-const fake_publish_engine = {
-    pendingPublishRequestCount: 0,
-    send_notification_message: function () {
-    },
-    send_keep_alive_response: function () {
-        if (this.pendingPublishRequestCount <= 0) {
-            return false;
-        }
-        this.pendingPublishRequestCount -= 1;
-        return true;
-    },
-    on_close_subscription: function (/*subscription*/) {
-
-    },
-    cancelPendingPublishRequestBeforeChannelChange: function() {
-
-    }
-
-};
+const fake_publish_engine = getFakePublishEngine();
 
 let dataSourceFrozen = false;
 
@@ -69,31 +55,32 @@ function unfreeze_data_source() {
 function install_spying_samplingFunc() {
     unfreeze_data_source();
     let sample_value = 0;
-    const spy_samplingEventCall = sinon.spy(function (oldValue, callback) {
+    const spy_samplingEventCall = sinon.spy(function(oldValue, callback) {
         if (!dataSourceFrozen) {
             sample_value++;
         }
         //xx console.log(" OOOOO ----- OOOOOOO");
-        const dataValue = new DataValue({value: {dataType: DataType.UInt32, value: sample_value}});
+        const dataValue = new DataValue({ value: { dataType: DataType.UInt32, value: sample_value } });
         callback(null, dataValue);
     });
     return spy_samplingEventCall;
 }
 
-describe("Subscriptions and MonitoredItems", function () {
+const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
+describe("Subscriptions and MonitoredItems", function() {
 
     this.timeout(Math.max(300000, this._timeout));
 
-    let addressSpace , namespace;
+    let addressSpace, namespace;
 
     let engine;
     const test = this;
 
-    before(function (done) {
+    before(function(done) {
 
         engine = new ServerEngine();
 
-        engine.initialize({nodeset_filename: mini_nodeset_filename}, function () {
+        engine.initialize({ nodeset_filename: mini_nodeset_filename }, function() {
             addressSpace = engine.addressSpace;
             namespace = addressSpace.getOwnNamespace();
 
@@ -103,30 +90,30 @@ describe("Subscriptions and MonitoredItems", function () {
                     nodeId: "s=Static_" + typeName,
                     browseName: "Static_" + typeName,
                     dataType: typeName,
-                    value: {dataType: DataType[typeName], value: value}
+                    value: { dataType: DataType[typeName], value: value }
                 });
             }
 
-            addVar("LocalizedText", {text: "Hello"});
+            addVar("LocalizedText", { text: "Hello" });
             addVar("ByteString", Buffer.from("AZERTY"));
-//             addVar("SByte", 0);
-//             addVar("Int16", 0);
-//             addVar("Int32", 0);
-//             addVar("Int64", 0);
-//             addVar("Byte", 0);
-//             addVar("UInt16", 0);
-//             addVar("UInt32", 0);
-//             addVar("UInt64", 0);
-// //xx            addVar("Duration"     , 0);
-//             addVar("Float", 0);
-//             addVar("Double", 0);
+            //             addVar("SByte", 0);
+            //             addVar("Int16", 0);
+            //             addVar("Int32", 0);
+            //             addVar("Int64", 0);
+            //             addVar("Byte", 0);
+            //             addVar("UInt16", 0);
+            //             addVar("UInt32", 0);
+            //             addVar("UInt64", 0);
+            // //xx            addVar("Duration"     , 0);
+            //             addVar("Float", 0);
+            //             addVar("Double", 0);
             addVar("Boolean", false);
             addVar("String", "Hello");
 
             done();
         });
     });
-    after(function () {
+    after(function() {
         if (engine) {
             engine.shutdown();
             engine.dispose();
@@ -134,14 +121,14 @@ describe("Subscriptions and MonitoredItems", function () {
         }
     });
 
-    beforeEach(function () {
+    beforeEach(function() {
         this.clock = sinon.useFakeTimers(now);
     });
-    afterEach(function () {
+    afterEach(function() {
         this.clock.restore();
     });
 
-    it("should return Good if DeadBandFilter is NOT specified on boolean value monitored item", function () {
+    it("should return Good if DeadBandFilter is NOT specified on boolean value monitored item", function() {
 
 
         const subscription = new Subscription({
@@ -149,7 +136,7 @@ describe("Subscriptions and MonitoredItems", function () {
             maxKeepAliveCount: 20,
             publishEngine: fake_publish_engine
         });
-        subscription.on("monitoredItem", function (monitoredItem) {
+        subscription.on("monitoredItem", function(monitoredItem) {
             monitoredItem.samplingFunc = install_spying_samplingFunc();
         });
 
@@ -159,13 +146,13 @@ describe("Subscriptions and MonitoredItems", function () {
                     nodeId: nodeId,
                     attributeId: AttributeIds.Value
                 },
-                monitoringMode: subscription_service.MonitoringMode.Reporting,
+                monitoringMode: MonitoringMode.Reporting,
                 requestedParameters: {
                     queueSize: 10,
                     samplingInterval: 100,
-                    filter: new subscription_service.DataChangeFilter({
-                        trigger: subscription_service.DataChangeTrigger.Status,
-                        deadbandType: subscription_service.DeadbandType.None,
+                    filter: new DataChangeFilter({
+                        trigger: DataChangeTrigger.Status,
+                        deadbandType: DeadbandType.None,
                     })
                 }
             });
@@ -175,14 +162,14 @@ describe("Subscriptions and MonitoredItems", function () {
 
 
         const namespaceSimulationIndex = 1;
-        const nodeIdBoolean = coerceNodeId("s=Static_Boolean",namespaceSimulationIndex);
+        const nodeIdBoolean = coerceNodeId("s=Static_Boolean", namespaceSimulationIndex);
         test_with_nodeId(nodeIdBoolean).should.eql(StatusCodes.Good);
 
         subscription.terminate();
         subscription.dispose();
 
     });
-    it("should return Good if DeadBandFilter is NOT specified on String value monitored item", function () {
+    it("should return Good if DeadBandFilter is NOT specified on String value monitored item", function() {
 
 
         const subscription = new Subscription({
@@ -190,7 +177,7 @@ describe("Subscriptions and MonitoredItems", function () {
             maxKeepAliveCount: 20,
             publishEngine: fake_publish_engine
         });
-        subscription.on("monitoredItem", function (monitoredItem) {
+        subscription.on("monitoredItem", function(monitoredItem) {
             monitoredItem.samplingFunc = install_spying_samplingFunc();
         });
 
@@ -200,13 +187,13 @@ describe("Subscriptions and MonitoredItems", function () {
                     nodeId: nodeId,
                     attributeId: AttributeIds.Value
                 },
-                monitoringMode: subscription_service.MonitoringMode.Reporting,
+                monitoringMode: MonitoringMode.Reporting,
                 requestedParameters: {
                     queueSize: 10,
                     samplingInterval: 100,
-                    filter: new subscription_service.DataChangeFilter({
-                        trigger: subscription_service.DataChangeTrigger.Status,
-                        deadbandType: subscription_service.DeadbandType.None,
+                    filter: new DataChangeFilter({
+                        trigger: DataChangeTrigger.Status,
+                        deadbandType: DeadbandType.None,
                     })
                 }
             });
@@ -221,7 +208,7 @@ describe("Subscriptions and MonitoredItems", function () {
         subscription.dispose();
 
     });
-    it("should return Good if DeadBandFilter is NOT specified on ByteString value monitored item", function () {
+    it("should return Good if DeadBandFilter is NOT specified on ByteString value monitored item", function() {
 
 
         const subscription = new Subscription({
@@ -229,7 +216,7 @@ describe("Subscriptions and MonitoredItems", function () {
             maxKeepAliveCount: 20,
             publishEngine: fake_publish_engine
         });
-        subscription.on("monitoredItem", function (monitoredItem) {
+        subscription.on("monitoredItem", function(monitoredItem) {
             monitoredItem.samplingFunc = install_spying_samplingFunc();
         });
 
@@ -239,13 +226,13 @@ describe("Subscriptions and MonitoredItems", function () {
                     nodeId: nodeId,
                     attributeId: AttributeIds.Value
                 },
-                monitoringMode: subscription_service.MonitoringMode.Reporting,
+                monitoringMode: MonitoringMode.Reporting,
                 requestedParameters: {
                     queueSize: 10,
                     samplingInterval: 100,
-                    filter: new subscription_service.DataChangeFilter({
-                        trigger: subscription_service.DataChangeTrigger.Status,
-                        deadbandType: subscription_service.DeadbandType.None,
+                    filter: new DataChangeFilter({
+                        trigger: DataChangeTrigger.Status,
+                        deadbandType: DeadbandType.None,
                     })
                 }
             });
@@ -261,7 +248,7 @@ describe("Subscriptions and MonitoredItems", function () {
 
     });
 
-    it("should return Good if DeadBandFilter is NOT specified on LocalizedText value monitored item", function () {
+    it("should return Good if DeadBandFilter is NOT specified on LocalizedText value monitored item", function() {
 
 
         const subscription = new Subscription({
@@ -269,7 +256,7 @@ describe("Subscriptions and MonitoredItems", function () {
             maxKeepAliveCount: 20,
             publishEngine: fake_publish_engine
         });
-        subscription.on("monitoredItem", function (monitoredItem) {
+        subscription.on("monitoredItem", function(monitoredItem) {
             monitoredItem.samplingFunc = install_spying_samplingFunc();
         });
 
@@ -279,13 +266,13 @@ describe("Subscriptions and MonitoredItems", function () {
                     nodeId: nodeId,
                     attributeId: AttributeIds.Value
                 },
-                monitoringMode: subscription_service.MonitoringMode.Reporting,
+                monitoringMode: MonitoringMode.Reporting,
                 requestedParameters: {
                     queueSize: 10,
                     samplingInterval: 100,
-                    filter: new subscription_service.DataChangeFilter({
-                        trigger: subscription_service.DataChangeTrigger.Status,
-                        deadbandType: subscription_service.DeadbandType.None,
+                    filter: new DataChangeFilter({
+                        trigger: DataChangeTrigger.Status,
+                        deadbandType: DeadbandType.None,
                     })
                 }
             });
@@ -301,7 +288,7 @@ describe("Subscriptions and MonitoredItems", function () {
 
     });
 
-    it("should return BadFilterNotAllowed if DeadBandFilter is specified on boolean value monitored item", function () {
+    it("should return BadFilterNotAllowed if DeadBandFilter is specified on boolean value monitored item", function() {
 
 
         const subscription = new Subscription({
@@ -309,7 +296,7 @@ describe("Subscriptions and MonitoredItems", function () {
             maxKeepAliveCount: 20,
             publishEngine: fake_publish_engine
         });
-        subscription.on("monitoredItem", function (monitoredItem) {
+        subscription.on("monitoredItem", function(monitoredItem) {
             monitoredItem.samplingFunc = install_spying_samplingFunc();
         });
 
@@ -319,13 +306,13 @@ describe("Subscriptions and MonitoredItems", function () {
                     nodeId: nodeId,
                     attributeId: AttributeIds.Value
                 },
-                monitoringMode: subscription_service.MonitoringMode.Reporting,
+                monitoringMode: MonitoringMode.Reporting,
                 requestedParameters: {
                     queueSize: 10,
                     samplingInterval: 100,
-                    filter: new subscription_service.DataChangeFilter({
-                        trigger: subscription_service.DataChangeTrigger.Status,
-                        deadbandType: subscription_service.DeadbandType.Percent,
+                    filter: new DataChangeFilter({
+                        trigger: DataChangeTrigger.Status,
+                        deadbandType: DeadbandType.Percent,
                         deadbandValue: 10
                     })
                 }
@@ -341,7 +328,7 @@ describe("Subscriptions and MonitoredItems", function () {
         subscription.dispose();
 
     });
-    it("should return BadFilterNotAllowed if DeadBandFilter is specified on String value monitored item", function () {
+    it("should return BadFilterNotAllowed if DeadBandFilter is specified on String value monitored item", function() {
 
 
         const subscription = new Subscription({
@@ -349,7 +336,7 @@ describe("Subscriptions and MonitoredItems", function () {
             maxKeepAliveCount: 20,
             publishEngine: fake_publish_engine
         });
-        subscription.on("monitoredItem", function (monitoredItem) {
+        subscription.on("monitoredItem", function(monitoredItem) {
             monitoredItem.samplingFunc = install_spying_samplingFunc();
         });
 
@@ -359,13 +346,13 @@ describe("Subscriptions and MonitoredItems", function () {
                     nodeId: nodeId,
                     attributeId: AttributeIds.Value
                 },
-                monitoringMode: subscription_service.MonitoringMode.Reporting,
+                monitoringMode: MonitoringMode.Reporting,
                 requestedParameters: {
                     queueSize: 10,
                     samplingInterval: 100,
-                    filter: new subscription_service.DataChangeFilter({
-                        trigger: subscription_service.DataChangeTrigger.Status,
-                        deadbandType: subscription_service.DeadbandType.Percent,
+                    filter: new DataChangeFilter({
+                        trigger: DataChangeTrigger.Status,
+                        deadbandType: DeadbandType.Percent,
                         deadbandValue: 10
                     })
                 }
@@ -381,7 +368,7 @@ describe("Subscriptions and MonitoredItems", function () {
         subscription.dispose();
 
     });
-    it("should return BadFilterNotAllowed if DeadBandFilter is specified on ByteString value monitored item", function () {
+    it("should return BadFilterNotAllowed if DeadBandFilter is specified on ByteString value monitored item", function() {
 
 
         const subscription = new Subscription({
@@ -389,7 +376,7 @@ describe("Subscriptions and MonitoredItems", function () {
             maxKeepAliveCount: 20,
             publishEngine: fake_publish_engine
         });
-        subscription.on("monitoredItem", function (monitoredItem) {
+        subscription.on("monitoredItem", function(monitoredItem) {
             monitoredItem.samplingFunc = install_spying_samplingFunc();
         });
 
@@ -399,13 +386,13 @@ describe("Subscriptions and MonitoredItems", function () {
                     nodeId: nodeId,
                     attributeId: AttributeIds.Value
                 },
-                monitoringMode: subscription_service.MonitoringMode.Reporting,
+                monitoringMode: MonitoringMode.Reporting,
                 requestedParameters: {
                     queueSize: 10,
                     samplingInterval: 100,
-                    filter: new subscription_service.DataChangeFilter({
-                        trigger: subscription_service.DataChangeTrigger.Status,
-                        deadbandType: subscription_service.DeadbandType.Percent,
+                    filter: new DataChangeFilter({
+                        trigger: DataChangeTrigger.Status,
+                        deadbandType: DeadbandType.Percent,
                         deadbandValue: 10
                     })
                 }
@@ -422,7 +409,7 @@ describe("Subscriptions and MonitoredItems", function () {
 
     });
 
-    it("should return BadFilterNotAllowed if DeadBandFilter is specified on LocalizedText value monitored item", function () {
+    it("should return BadFilterNotAllowed if DeadBandFilter is specified on LocalizedText value monitored item", function() {
 
 
         const subscription = new Subscription({
@@ -430,7 +417,7 @@ describe("Subscriptions and MonitoredItems", function () {
             maxKeepAliveCount: 20,
             publishEngine: fake_publish_engine
         });
-        subscription.on("monitoredItem", function (monitoredItem) {
+        subscription.on("monitoredItem", function(monitoredItem) {
             monitoredItem.samplingFunc = install_spying_samplingFunc();
         });
 
@@ -440,13 +427,13 @@ describe("Subscriptions and MonitoredItems", function () {
                     nodeId: nodeId,
                     attributeId: AttributeIds.Value
                 },
-                monitoringMode: subscription_service.MonitoringMode.Reporting,
+                monitoringMode: MonitoringMode.Reporting,
                 requestedParameters: {
                     queueSize: 10,
                     samplingInterval: 100,
-                    filter: new subscription_service.DataChangeFilter({
-                        trigger: subscription_service.DataChangeTrigger.Status,
-                        deadbandType: subscription_service.DeadbandType.Percent,
+                    filter: new DataChangeFilter({
+                        trigger: DataChangeTrigger.Status,
+                        deadbandType: DeadbandType.Percent,
                         deadbandValue: 10
                     })
                 }

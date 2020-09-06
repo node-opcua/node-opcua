@@ -12,18 +12,24 @@ function add_mock_monitored_item(subscription) {
     // pretend we have a monitored item
     const monitoredItem = {
         queue: [],
-        extractMonitoredItemNotifications: function () {
+
+        extractMonitoredItemNotifications() {
             const tmp = this.queue;
             this.queue = [];
             return tmp;
         },
-        terminate: function () {
-        },
-        dispose: function () {
 
+        terminate() {
+        },
+
+        dispose() {
+
+        },
+        async resendInitialValues() {
+            this.simulateMonitoredItemAddingNotification();
         }
     };
-    monitoredItem.__defineGetter__("hasMonitoredItemNotifications", function () {
+    monitoredItem.__defineGetter__("hasMonitoredItemNotifications", function() {
         return this.queue.length > 0;
     });
 
@@ -44,6 +50,13 @@ function add_mock_monitored_item(subscription) {
             }
         }));
     };
+
+
+    setImmediate(() => {
+        // initial value !
+        monitoredItem.simulateMonitoredItemAddingNotification();
+    });
+
     return monitoredItem;
 }
 

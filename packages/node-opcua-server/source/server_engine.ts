@@ -38,7 +38,14 @@ import {
   ServerStatusDataType,
   SubscriptionDiagnosticsDataType
 } from "node-opcua-common";
-import { AttributeIds, BrowseDirection, NodeClass, coerceLocalizedText, LocalizedTextLike, makeAccessLevelFlag } from "node-opcua-data-model";
+import {
+  AttributeIds,
+  BrowseDirection,
+  NodeClass,
+  coerceLocalizedText,
+  LocalizedTextLike,
+  makeAccessLevelFlag
+} from "node-opcua-data-model";
 import { coerceNodeId, makeNodeId, NodeId, NodeIdLike, NodeIdType, resolveNodeId } from "node-opcua-nodeid";
 import { BrowseResult } from "node-opcua-service-browse";
 import { ReadRequest, TimestampsToReturn } from "node-opcua-service-read";
@@ -54,12 +61,7 @@ import { nodesets } from "node-opcua-nodesets";
 import { ObjectRegistry } from "node-opcua-object-registry";
 import { CallMethodResult } from "node-opcua-service-call";
 import { ApplicationDescription } from "node-opcua-service-endpoints";
-import {
-  HistoryReadDetails,
-  HistoryReadRequest,
-  HistoryReadResult,
-  HistoryReadValueId
-} from "node-opcua-service-history";
+import { HistoryReadDetails, HistoryReadRequest, HistoryReadResult, HistoryReadValueId } from "node-opcua-service-history";
 import { StatusCode, StatusCodes, CallbackT, StatusCodeCallback } from "node-opcua-status-code";
 import {
   BrowseDescription,
@@ -89,11 +91,11 @@ import { ServerSidePublishEngine } from "./server_publish_engine";
 import { ServerSidePublishEngineForOrphanSubscription } from "./server_publish_engine_for_orphan_subscriptions";
 import { ServerSession } from "./server_session";
 import { Subscription } from "./server_subscription";
+import { sessionsCompatibleForTransfer } from "./sessions_compatible_for_transfer";
 
 const debugLog = make_debugLog(__filename);
 const errorLog = make_errorLog(__filename);
 const doDebug = checkDebugFlag(__filename);
-
 
 function upperCaseFirst(str: string) {
   return str.slice(0, 1).toUpperCase() + str.slice(1);
@@ -108,14 +110,7 @@ function shutdownAndDisposeAddressSpace(this: ServerEngine) {
 }
 
 // binding methods
-function getMonitoredItemsId(
-  this: ServerEngine,
-  inputArguments: any,
-  context: SessionContext,
-  callback: any
-) {
-
-
+function getMonitoredItemsId(this: ServerEngine, inputArguments: any, context: SessionContext, callback: any) {
   assert(_.isArray(inputArguments));
   assert(_.isFunction(callback));
 
@@ -151,14 +146,9 @@ function getMonitoredItemsId(
     ]
   });
   callback(null, callMethodResult);
-
 }
 
-function __bindVariable(
-  self: ServerEngine,
-  nodeId: NodeIdLike,
-  options?: any
-) {
+function __bindVariable(self: ServerEngine, nodeId: NodeIdLike, options?: any) {
   options = options || {};
   // must have a get and a set property
   assert(_.difference(["get", "set"], _.keys(options)).length === 0);
@@ -169,8 +159,11 @@ function __bindVariable(
     assert(_.isFunction(variable.asyncRefresh));
     assert(_.isFunction((variable as any).refreshFunc));
   } else {
-    console.log("Warning: cannot bind object with id ", nodeId.toString(),
-      " please check your nodeset.xml file or add this node programmatically");
+    console.log(
+      "Warning: cannot bind object with id ",
+      nodeId.toString(),
+      " please check your nodeset.xml file or add this node programmatically"
+    );
   }
 }
 
@@ -190,7 +183,6 @@ function _get_next_subscriptionId() {
 export type StringGetter = () => string;
 
 export interface ServerEngineOptions {
-
   applicationUri: string | StringGetter;
 
   buildInfo?: BuildInfoOptions;
@@ -203,11 +195,15 @@ export interface ServerEngineOptions {
   historyServerCapabilities?: HistoryServerCapabilitiesOptions;
 }
 
+export interface CreateSessionOption {
+  clientDescription?: ApplicationDescription;
+  sessionTimeout?: number;
+}
+
 /**
  *
  */
 export class ServerEngine extends EventEmitter {
-
   public static readonly registry = new ObjectRegistry();
 
   public isAuditing: boolean;
@@ -219,12 +215,13 @@ export class ServerEngine extends EventEmitter {
 
   public addressSpace: AddressSpace | null;
 
+  // pseudo private
   public _rejectedSessionCount: number = 0;
+  public _internalState: "creating" | "initializing" | "initialized" | "shutdown" | "disposed";
 
   private _sessions: { [key: string]: ServerSession };
   private _closedSessions: { [key: string]: ServerSession };
   private _orphanPublishEngine?: ServerSidePublishEngineForOrphanSubscription;
-  private _internalState: | "creating" | "initializing" | "initialized" | "shutdown" | "disposed";
   private _shutdownTask: any[];
   private _applicationUri: string;
   private _expectedShutdownTime!: Date;
@@ -233,7 +230,7 @@ export class ServerEngine extends EventEmitter {
   constructor(options: ServerEngineOptions) {
     super();
 
-    options = options || { applicationUri: "" } as ServerEngineOptions;
+    options = options || ({ applicationUri: "" } as ServerEngineOptions);
     options.buildInfo = options.buildInfo || {};
 
     ServerEngine.registry.register(this);
@@ -314,18 +311,15 @@ export class ServerEngine extends EventEmitter {
       this._applicationUri = options.applicationUri || "<unset _applicationUri>";
     }
 
-    options.serverDiagnosticsEnabled = options.hasOwnProperty("serverDiagnosticsEnable")
-      ? options.serverDiagnosticsEnabled : true;
+    options.serverDiagnosticsEnabled = options.hasOwnProperty("serverDiagnosticsEnable") ? options.serverDiagnosticsEnabled : true;
 
     this.serverDiagnosticsEnabled = options.serverDiagnosticsEnabled!;
-
   }
   public isStarted(): boolean {
-    return !!this._serverStatus!
+    return !!this._serverStatus!;
   }
 
   public dispose() {
-
     this.addressSpace = null;
 
     assert(Object.keys(this._sessions).length === 0, "ServerEngine#_sessions not empty");
@@ -342,7 +336,7 @@ export class ServerEngine extends EventEmitter {
     }
 
     this._shutdownTask = [];
-    this._serverStatus = null as any as ServerStatusDataType;
+    this._serverStatus = (null as any) as ServerStatusDataType;
     this._internalState = "disposed";
     this.removeAllListeners();
 
@@ -374,7 +368,6 @@ export class ServerEngine extends EventEmitter {
    * @method shutdown
    */
   public shutdown() {
-
     debugLog("ServerEngine#shutdown");
 
     this._internalState = "shutdown";
@@ -393,9 +386,9 @@ export class ServerEngine extends EventEmitter {
 
     // xx console.log("xxxxxxxxx ServerEngine.shutdown must terminate "+ tokens.length," sessions");
 
-    tokens.forEach((token: any) => {
+    for (const token of tokens) {
       this.closeSession(token, true, "Terminated");
-    });
+    }
 
     // all sessions must have been terminated
     assert(this.currentSessionCount === 0);
@@ -406,9 +399,9 @@ export class ServerEngine extends EventEmitter {
     this._shutdownTask.push(shutdownAndDisposeAddressSpace);
 
     // perform registerShutdownTask
-    this._shutdownTask.forEach((task: any) => {
+    for (const task of this._shutdownTask) {
       task.call(this);
-    });
+    }
 
     this.dispose();
   }
@@ -476,7 +469,9 @@ export class ServerEngine extends EventEmitter {
    * value is only relevant once the state changes into SHUTDOWN.
    */
   public secondsTillShutdown(): number {
-    if (!this._expectedShutdownTime) { return 0; }
+    if (!this._expectedShutdownTime) {
+      return 0;
+    }
     // ToDo: implement a correct solution here
     const now = Date.now();
     return Math.max(0, Math.ceil((this._expectedShutdownTime.getTime() - now) / 1000));
@@ -531,11 +526,7 @@ export class ServerEngine extends EventEmitter {
    * @param options.nodeset_filename {String} - [option](default : 'mini.Node.Set2.xml' )
    * @param callback
    */
-  public initialize(
-    options: any,
-    callback: any
-  ) {
-
+  public initialize(options: any, callback: any) {
     assert(!this.addressSpace); // check that 'initialize' has not been already called
 
     this._internalState = "initializing";
@@ -556,15 +547,13 @@ export class ServerEngine extends EventEmitter {
     assert(serverNamespace.index === 1);
 
     generateAddressSpace(this.addressSpace, options.nodeset_filename, () => {
-
       if (!this.addressSpace) {
         throw new Error("Internal error");
       }
       const addressSpace = this.addressSpace;
 
       const endTime = new Date();
-      debugLog("Loading ", options.nodeset_filename, " done : ",
-        endTime.getTime() - startTime.getTime(), " ms");
+      debugLog("Loading ", options.nodeset_filename, " done : ", endTime.getTime() - startTime.getTime(), " ms");
 
       const bindVariableIfPresent = (nodeId: NodeId, opts: any) => {
         assert(nodeId instanceof NodeId);
@@ -574,7 +563,7 @@ export class ServerEngine extends EventEmitter {
           __bindVariable(this, nodeId, opts);
         }
         return obj;
-      }
+      };
 
       // -------------------------------------------- install default get/put handler
       const server_NamespaceArray_Id = makeNodeId(VariableIds.Server_NamespaceArray); // ns=0;i=2255
@@ -622,13 +611,7 @@ export class ServerEngine extends EventEmitter {
         }
       }
 
-      const bindStandardScalar = (
-        id: number,
-        dataType: DataType,
-        func: () => any,
-        setter_func?: (value: any) => void
-      ) => {
-
+      const bindStandardScalar = (id: number, dataType: DataType, func: () => any, setter_func?: (value: any) => void) => {
         assert(_.isNumber(id), "expecting id to be a number");
         assert(_.isFunction(func));
         assert(_.isFunction(setter_func) || !setter_func);
@@ -650,7 +633,6 @@ export class ServerEngine extends EventEmitter {
 
         /* istanbul ignore next */
         if (!isValidVariant(VariantArrayType.Scalar, dataType, func())) {
-
           errorLog("func", func());
           throw new Error("bindStandardScalar : func doesn't provide an value of type " + DataType[dataType]);
         }
@@ -664,17 +646,10 @@ export class ServerEngine extends EventEmitter {
             });
           },
           set: setter_func2
-
         });
-      }
+      };
 
-      const bindStandardArray = (
-        id: number,
-        variantDataType: DataType,
-        dataType: any,
-        func: () => any[]
-      ) => {
-
+      const bindStandardArray = (id: number, variantDataType: DataType, dataType: any, func: () => any[]) => {
         assert(_.isFunction(func));
         assert(variantDataType !== null); // check invalid dataType
 
@@ -696,10 +671,9 @@ export class ServerEngine extends EventEmitter {
           },
           set: null // read only
         });
-      }
+      };
 
-      bindStandardScalar(VariableIds.Server_EstimatedReturnTime,
-        DataType.DateTime, () => minOPCUADate);
+      bindStandardScalar(VariableIds.Server_EstimatedReturnTime, DataType.DateTime, () => minOPCUADate);
 
       // TimeZoneDataType
       const timeZoneDataType = addressSpace.findDataType(resolveNodeId(DataTypeIds.TimeZoneDataType))!;
@@ -709,20 +683,17 @@ export class ServerEngine extends EventEmitter {
         daylightSavingInOffset: /* boolean*/ false,
         offset: /* int16 */ 0
       });
-      bindStandardScalar(VariableIds.Server_LocalTime,
-        DataType.ExtensionObject, () => {
-          return timeZone;
-        });
+      bindStandardScalar(VariableIds.Server_LocalTime, DataType.ExtensionObject, () => {
+        return timeZone;
+      });
 
-      bindStandardScalar(VariableIds.Server_ServiceLevel,
-        DataType.Byte, () => {
-          return 255;
-        });
+      bindStandardScalar(VariableIds.Server_ServiceLevel, DataType.Byte, () => {
+        return 255;
+      });
 
-      bindStandardScalar(VariableIds.Server_Auditing,
-        DataType.Boolean, () => {
-          return this.isAuditing;
-        });
+      bindStandardScalar(VariableIds.Server_Auditing, DataType.Boolean, () => {
+        return this.isAuditing;
+      });
 
       const engine = this;
       const makeNotReadableIfEnabledFlagIsFalse = (variable: UAVariable) => {
@@ -737,16 +708,19 @@ export class ServerEngine extends EventEmitter {
             makeNotReadableIfEnabledFlagIsFalse(c as UAVariable);
           }
         }
-      }
+      };
 
       const bindServerDiagnostics = () => {
-
-        bindStandardScalar(VariableIds.Server_ServerDiagnostics_EnabledFlag,
-          DataType.Boolean, () => {
+        bindStandardScalar(
+          VariableIds.Server_ServerDiagnostics_EnabledFlag,
+          DataType.Boolean,
+          () => {
             return this.serverDiagnosticsEnabled;
-          }, (newFlag: boolean) => {
+          },
+          (newFlag: boolean) => {
             this.serverDiagnosticsEnabled = newFlag;
-          });
+          }
+        );
 
         const nodeId = makeNodeId(VariableIds.Server_ServerDiagnostics_ServerDiagnosticsSummary);
         const serverDiagnosticsSummaryNode = addressSpace.findNode(nodeId) as UAServerDiagnosticsSummary;
@@ -756,13 +730,10 @@ export class ServerEngine extends EventEmitter {
           this.serverDiagnosticsSummary = serverDiagnosticsSummaryNode.$extensionObject;
           makeNotReadableIfEnabledFlagIsFalse(serverDiagnosticsSummaryNode);
         }
-
-      }
+      };
 
       const bindServerStatus = () => {
-
-        const serverStatusNode =
-          addressSpace.findNode(makeNodeId(VariableIds.Server_ServerStatus)) as UAServerStatus;
+        const serverStatusNode = addressSpace.findNode(makeNodeId(VariableIds.Server_ServerStatus)) as UAServerStatus;
 
         if (!serverStatusNode) {
           return;
@@ -772,14 +743,14 @@ export class ServerEngine extends EventEmitter {
           serverStatusNode.minimumSamplingInterval = 1000;
         }
 
-        const currentTimeNode =
-          addressSpace.findNode(makeNodeId(VariableIds.Server_ServerStatus_CurrentTime)) as UAVariable;
+        const currentTimeNode = addressSpace.findNode(makeNodeId(VariableIds.Server_ServerStatus_CurrentTime)) as UAVariable;
 
         if (currentTimeNode) {
           currentTimeNode.minimumSamplingInterval = 1000;
         }
-        const secondsTillShutdown =
-          addressSpace.findNode(makeNodeId(VariableIds.Server_ServerStatus_SecondsTillShutdown)) as UAVariable;
+        const secondsTillShutdown = addressSpace.findNode(
+          makeNodeId(VariableIds.Server_ServerStatus_SecondsTillShutdown)
+        ) as UAVariable;
 
         if (secondsTillShutdown) {
           secondsTillShutdown.minimumSamplingInterval = 1000;
@@ -800,39 +771,32 @@ export class ServerEngine extends EventEmitter {
           }
         });
         this._serverStatus = serverStatusNode.$extensionObject;
-      }
+      };
 
       const bindServerCapabilities = () => {
+        bindStandardArray(VariableIds.Server_ServerCapabilities_ServerProfileArray, DataType.String, DataType.String, () => {
+          return this.serverCapabilities.serverProfileArray;
+        });
 
-        bindStandardArray(VariableIds.Server_ServerCapabilities_ServerProfileArray,
-          DataType.String, DataType.String, () => {
-            return this.serverCapabilities.serverProfileArray;
-          });
+        bindStandardArray(VariableIds.Server_ServerCapabilities_LocaleIdArray, DataType.String, "LocaleId", () => {
+          return this.serverCapabilities.localeIdArray;
+        });
 
-        bindStandardArray(VariableIds.Server_ServerCapabilities_LocaleIdArray,
-          DataType.String, "LocaleId", () => {
-            return this.serverCapabilities.localeIdArray;
-          });
+        bindStandardScalar(VariableIds.Server_ServerCapabilities_MinSupportedSampleRate, DataType.Double, () => {
+          return this.serverCapabilities.minSupportedSampleRate;
+        });
 
-        bindStandardScalar(VariableIds.Server_ServerCapabilities_MinSupportedSampleRate,
-          DataType.Double, () => {
-            return this.serverCapabilities.minSupportedSampleRate;
-          });
+        bindStandardScalar(VariableIds.Server_ServerCapabilities_MaxBrowseContinuationPoints, DataType.UInt16, () => {
+          return this.serverCapabilities.maxBrowseContinuationPoints;
+        });
 
-        bindStandardScalar(VariableIds.Server_ServerCapabilities_MaxBrowseContinuationPoints,
-          DataType.UInt16, () => {
-            return this.serverCapabilities.maxBrowseContinuationPoints;
-          });
+        bindStandardScalar(VariableIds.Server_ServerCapabilities_MaxQueryContinuationPoints, DataType.UInt16, () => {
+          return this.serverCapabilities.maxQueryContinuationPoints;
+        });
 
-        bindStandardScalar(VariableIds.Server_ServerCapabilities_MaxQueryContinuationPoints,
-          DataType.UInt16, () => {
-            return this.serverCapabilities.maxQueryContinuationPoints;
-          });
-
-        bindStandardScalar(VariableIds.Server_ServerCapabilities_MaxHistoryContinuationPoints,
-          DataType.UInt16, () => {
-            return this.serverCapabilities.maxHistoryContinuationPoints;
-          });
+        bindStandardScalar(VariableIds.Server_ServerCapabilities_MaxHistoryContinuationPoints, DataType.UInt16, () => {
+          return this.serverCapabilities.maxHistoryContinuationPoints;
+        });
 
         // added by DI : Server-specific period of time in milliseconds until the Server will revoke a lock.
         // TODO bindStandardScalar(VariableIds.Server_ServerCapabilities_MaxInactiveLockTime,
@@ -840,44 +804,42 @@ export class ServerEngine extends EventEmitter {
         // TODO         return self.serverCapabilities.maxInactiveLockTime;
         // TODO });
 
-        bindStandardArray(VariableIds.Server_ServerCapabilities_SoftwareCertificates,
-          DataType.ExtensionObject, "SoftwareCertificates", () => {
+        bindStandardArray(
+          VariableIds.Server_ServerCapabilities_SoftwareCertificates,
+          DataType.ExtensionObject,
+          "SoftwareCertificates",
+          () => {
             return this.serverCapabilities.softwareCertificates;
-          });
+          }
+        );
 
-        bindStandardScalar(VariableIds.Server_ServerCapabilities_MaxArrayLength,
-          DataType.UInt32, () => {
-            return this.serverCapabilities.maxArrayLength;
-          });
+        bindStandardScalar(VariableIds.Server_ServerCapabilities_MaxArrayLength, DataType.UInt32, () => {
+          return this.serverCapabilities.maxArrayLength;
+        });
 
-        bindStandardScalar(VariableIds.Server_ServerCapabilities_MaxStringLength,
-          DataType.UInt32, () => {
-            return this.serverCapabilities.maxStringLength;
-          });
+        bindStandardScalar(VariableIds.Server_ServerCapabilities_MaxStringLength, DataType.UInt32, () => {
+          return this.serverCapabilities.maxStringLength;
+        });
 
-        bindStandardScalar(VariableIds.Server_ServerCapabilities_MaxByteStringLength,
-          DataType.UInt32, () => {
-            return this.serverCapabilities.maxByteStringLength;
-          });
+        bindStandardScalar(VariableIds.Server_ServerCapabilities_MaxByteStringLength, DataType.UInt32, () => {
+          return this.serverCapabilities.maxByteStringLength;
+        });
 
         const bindOperationLimits = (operationLimits: OperationLimits) => {
-
           assert(_.isObject(operationLimits));
 
           const keys = Object.keys(operationLimits);
 
           keys.forEach((key: string) => {
-
             const uid = "Server_ServerCapabilities_OperationLimits_" + upperCaseFirst(key);
             const nodeId = makeNodeId((VariableIds as any)[uid]);
             assert(!nodeId.isEmpty());
 
-            bindStandardScalar((VariableIds as any)[uid],
-              DataType.UInt32, () => {
-                return (operationLimits as any)[key];
-              });
+            bindStandardScalar((VariableIds as any)[uid], DataType.UInt32, () => {
+              return (operationLimits as any)[key];
+            });
           });
-        }
+        };
 
         bindOperationLimits(this.serverCapabilities.operationLimits);
 
@@ -893,77 +855,61 @@ export class ServerEngine extends EventEmitter {
           }
         }
         fix_ProgramStateMachineType_ProgramDiagnostics();
-      }
+      };
 
       const bindHistoryServerCapabilities = () => {
+        bindStandardScalar(VariableIds.HistoryServerCapabilities_MaxReturnDataValues, DataType.UInt32, () => {
+          return this.historyServerCapabilities.maxReturnDataValues;
+        });
 
-        bindStandardScalar(VariableIds.HistoryServerCapabilities_MaxReturnDataValues,
-          DataType.UInt32, () => {
-            return this.historyServerCapabilities.maxReturnDataValues;
-          });
+        bindStandardScalar(VariableIds.HistoryServerCapabilities_MaxReturnEventValues, DataType.UInt32, () => {
+          return this.historyServerCapabilities.maxReturnEventValues;
+        });
 
-        bindStandardScalar(VariableIds.HistoryServerCapabilities_MaxReturnEventValues,
-          DataType.UInt32, () => {
-            return this.historyServerCapabilities.maxReturnEventValues;
-          });
+        bindStandardScalar(VariableIds.HistoryServerCapabilities_AccessHistoryDataCapability, DataType.Boolean, () => {
+          return this.historyServerCapabilities.accessHistoryDataCapability;
+        });
+        bindStandardScalar(VariableIds.HistoryServerCapabilities_AccessHistoryEventsCapability, DataType.Boolean, () => {
+          return this.historyServerCapabilities.accessHistoryEventsCapability;
+        });
+        bindStandardScalar(VariableIds.HistoryServerCapabilities_InsertDataCapability, DataType.Boolean, () => {
+          return this.historyServerCapabilities.insertDataCapability;
+        });
+        bindStandardScalar(VariableIds.HistoryServerCapabilities_ReplaceDataCapability, DataType.Boolean, () => {
+          return this.historyServerCapabilities.replaceDataCapability;
+        });
+        bindStandardScalar(VariableIds.HistoryServerCapabilities_UpdateDataCapability, DataType.Boolean, () => {
+          return this.historyServerCapabilities.updateDataCapability;
+        });
 
-        bindStandardScalar(VariableIds.HistoryServerCapabilities_AccessHistoryDataCapability,
-          DataType.Boolean, () => {
-            return this.historyServerCapabilities.accessHistoryDataCapability;
-          });
-        bindStandardScalar(VariableIds.HistoryServerCapabilities_AccessHistoryEventsCapability,
-          DataType.Boolean, () => {
-            return this.historyServerCapabilities.accessHistoryEventsCapability;
-          });
-        bindStandardScalar(VariableIds.HistoryServerCapabilities_InsertDataCapability,
-          DataType.Boolean, () => {
-            return this.historyServerCapabilities.insertDataCapability;
-          });
-        bindStandardScalar(VariableIds.HistoryServerCapabilities_ReplaceDataCapability,
-          DataType.Boolean, () => {
-            return this.historyServerCapabilities.replaceDataCapability;
-          });
-        bindStandardScalar(VariableIds.HistoryServerCapabilities_UpdateDataCapability,
-          DataType.Boolean, () => {
-            return this.historyServerCapabilities.updateDataCapability;
-          });
+        bindStandardScalar(VariableIds.HistoryServerCapabilities_InsertEventCapability, DataType.Boolean, () => {
+          return this.historyServerCapabilities.insertEventCapability;
+        });
 
-        bindStandardScalar(VariableIds.HistoryServerCapabilities_InsertEventCapability,
-          DataType.Boolean, () => {
-            return this.historyServerCapabilities.insertEventCapability;
-          });
+        bindStandardScalar(VariableIds.HistoryServerCapabilities_ReplaceEventCapability, DataType.Boolean, () => {
+          return this.historyServerCapabilities.replaceEventCapability;
+        });
 
-        bindStandardScalar(VariableIds.HistoryServerCapabilities_ReplaceEventCapability,
-          DataType.Boolean, () => {
-            return this.historyServerCapabilities.replaceEventCapability;
-          });
+        bindStandardScalar(VariableIds.HistoryServerCapabilities_UpdateEventCapability, DataType.Boolean, () => {
+          return this.historyServerCapabilities.updateEventCapability;
+        });
 
-        bindStandardScalar(VariableIds.HistoryServerCapabilities_UpdateEventCapability,
-          DataType.Boolean, () => {
-            return this.historyServerCapabilities.updateEventCapability;
-          });
+        bindStandardScalar(VariableIds.HistoryServerCapabilities_DeleteEventCapability, DataType.Boolean, () => {
+          return this.historyServerCapabilities.deleteEventCapability;
+        });
 
-        bindStandardScalar(VariableIds.HistoryServerCapabilities_DeleteEventCapability,
-          DataType.Boolean, () => {
-            return this.historyServerCapabilities.deleteEventCapability;
-          });
+        bindStandardScalar(VariableIds.HistoryServerCapabilities_DeleteRawCapability, DataType.Boolean, () => {
+          return this.historyServerCapabilities.deleteRawCapability;
+        });
 
-        bindStandardScalar(VariableIds.HistoryServerCapabilities_DeleteRawCapability,
-          DataType.Boolean, () => {
-            return this.historyServerCapabilities.deleteRawCapability;
-          });
+        bindStandardScalar(VariableIds.HistoryServerCapabilities_DeleteAtTimeCapability, DataType.Boolean, () => {
+          return this.historyServerCapabilities.deleteAtTimeCapability;
+        });
 
-        bindStandardScalar(VariableIds.HistoryServerCapabilities_DeleteAtTimeCapability,
-          DataType.Boolean, () => {
-            return this.historyServerCapabilities.deleteAtTimeCapability;
-          });
-
-        bindStandardScalar(VariableIds.HistoryServerCapabilities_InsertAnnotationCapability,
-          DataType.Boolean, () => {
-            return this.historyServerCapabilities.insertAnnotationCapability;
-          });
-
-      }
+        bindStandardScalar(VariableIds.HistoryServerCapabilities_InsertAnnotationCapability, DataType.Boolean, () => {
+          return this.historyServerCapabilities.insertAnnotationCapability;
+        });
+      };
 
       bindServerDiagnostics();
 
@@ -977,10 +923,9 @@ export class ServerEngine extends EventEmitter {
         // mainly for compliance
 
         // The version number for the data type description. i=104
-        bindStandardScalar(VariableIds.DataTypeDescriptionType_DataTypeVersion,
-          DataType.UInt16, () => {
-            return 0.0;
-          });
+        bindStandardScalar(VariableIds.DataTypeDescriptionType_DataTypeVersion, DataType.UInt16, () => {
+          return 0.0;
+        });
 
         const namingRuleDataTypeNode = addressSpace.findDataType(resolveNodeId(DataTypeIds.NamingRuleType))! as UADataType;
         // xx console.log(nrt.toString());
@@ -990,40 +935,32 @@ export class ServerEngine extends EventEmitter {
             throw new Error("Cannot find Enumeration definition for NamingRuleType");
           }
           // i=111
-          bindStandardScalar(VariableIds.ModellingRuleType_NamingRule,
-            DataType.UInt16, () => {
-              return 0;
-            });
+          bindStandardScalar(VariableIds.ModellingRuleType_NamingRule, DataType.UInt16, () => {
+            return 0;
+          });
 
           // i=112
-          bindStandardScalar(VariableIds.ModellingRule_Mandatory_NamingRule,
-            DataType.UInt16, () => {
-              return namingRuleType.Mandatory ? namingRuleType.Mandatory.value : 0;
-            });
+          bindStandardScalar(VariableIds.ModellingRule_Mandatory_NamingRule, DataType.UInt16, () => {
+            return namingRuleType.Mandatory ? namingRuleType.Mandatory.value : 0;
+          });
 
           // i=113
-          bindStandardScalar(VariableIds.ModellingRule_Optional_NamingRule,
-            DataType.UInt16, () => {
-              return namingRuleType.Optional ? namingRuleType.Optional.value : 0;
-            });
+          bindStandardScalar(VariableIds.ModellingRule_Optional_NamingRule, DataType.UInt16, () => {
+            return namingRuleType.Optional ? namingRuleType.Optional.value : 0;
+          });
           // i=114
-          bindStandardScalar(VariableIds.ModellingRule_ExposesItsArray_NamingRule,
-            DataType.UInt16, () => {
-              return namingRuleType.ExposesItsArray ? namingRuleType.ExposesItsArray.value : 0;
-            });
-          bindStandardScalar(VariableIds.ModellingRule_MandatoryPlaceholder_NamingRule,
-            DataType.UInt16, () => {
-              return namingRuleType.MandatoryPlaceholder ? namingRuleType.MandatoryPlaceholder.value : 0;
-            });
-
+          bindStandardScalar(VariableIds.ModellingRule_ExposesItsArray_NamingRule, DataType.UInt16, () => {
+            return namingRuleType.ExposesItsArray ? namingRuleType.ExposesItsArray.value : 0;
+          });
+          bindStandardScalar(VariableIds.ModellingRule_MandatoryPlaceholder_NamingRule, DataType.UInt16, () => {
+            return namingRuleType.MandatoryPlaceholder ? namingRuleType.MandatoryPlaceholder.value : 0;
+          });
         }
-      }
+      };
 
       bindExtraStuff();
 
-      this.__internal_bindMethod(
-        makeNodeId(MethodIds.Server_GetMonitoredItems),
-        getMonitoredItemsId.bind(this));
+      this.__internal_bindMethod(makeNodeId(MethodIds.Server_GetMonitoredItems), getMonitoredItemsId.bind(this));
 
       // fix getMonitoredItems.outputArguments arrayDimensions
       const fixGetMonitoredItemArgs = () => {
@@ -1033,15 +970,12 @@ export class ServerEngine extends EventEmitter {
         }
         const outputArguments = objects.server.getMonitoredItems.outputArguments!;
         const dataValue = outputArguments.readValue();
-        assert(dataValue.value.value[0].arrayDimensions.length === 1
-          && dataValue.value.value[0].arrayDimensions[0] === 0);
-        assert(dataValue.value.value[1].arrayDimensions.length === 1
-          && dataValue.value.value[1].arrayDimensions[0] === 0);
+        assert(dataValue.value.value[0].arrayDimensions.length === 1 && dataValue.value.value[0].arrayDimensions[0] === 0);
+        assert(dataValue.value.value[1].arrayDimensions.length === 1 && dataValue.value.value[1].arrayDimensions[0] === 0);
       };
       fixGetMonitoredItemArgs();
 
       const prepareServerDiagnostics = () => {
-
         const addressSpace1 = this.addressSpace!;
 
         if (!addressSpace1.rootFolder.objects) {
@@ -1068,44 +1002,42 @@ export class ServerEngine extends EventEmitter {
         // A Server may not expose the SamplingIntervalDiagnosticsArray if it does not use fixed sampling rates.
         // because we are not using fixed sampling rate, we need to remove the optional SamplingIntervalDiagnosticsArray
         // component
-        const samplingIntervalDiagnosticsArray =
-          serverDiagnosticsNode.getComponentByName("SamplingIntervalDiagnosticsArray");
+        const samplingIntervalDiagnosticsArray = serverDiagnosticsNode.getComponentByName("SamplingIntervalDiagnosticsArray");
         if (samplingIntervalDiagnosticsArray) {
           addressSpace.deleteNode(samplingIntervalDiagnosticsArray);
           const s = serverDiagnosticsNode.getComponents();
           // xx console.log(s.map((x) => x.browseName.toString()).join(" "));
         }
 
-        const subscriptionDiagnosticsArrayNode =
-          serverDiagnosticsNode.getComponentByName("SubscriptionDiagnosticsArray")! as
-          UADynamicVariableArray<SessionDiagnosticsDataType>;
+        const subscriptionDiagnosticsArrayNode = serverDiagnosticsNode.getComponentByName(
+          "SubscriptionDiagnosticsArray"
+        )! as UADynamicVariableArray<SessionDiagnosticsDataType>;
         assert(subscriptionDiagnosticsArrayNode.nodeClass === NodeClass.Variable);
-        bindExtObjArrayNode(subscriptionDiagnosticsArrayNode,
-          "SubscriptionDiagnosticsType", "subscriptionId");
+        bindExtObjArrayNode(subscriptionDiagnosticsArrayNode, "SubscriptionDiagnosticsType", "subscriptionId");
 
         makeNotReadableIfEnabledFlagIsFalse(subscriptionDiagnosticsArrayNode);
 
         const sessionsDiagnosticsSummary = serverDiagnosticsNode.getComponentByName("SessionsDiagnosticsSummary")!;
 
-        const sessionDiagnosticsArray =
-          sessionsDiagnosticsSummary.getComponentByName("SessionDiagnosticsArray")! as
-          UADynamicVariableArray<SessionDiagnosticsDataType>;
+        const sessionDiagnosticsArray = sessionsDiagnosticsSummary.getComponentByName(
+          "SessionDiagnosticsArray"
+        )! as UADynamicVariableArray<SessionDiagnosticsDataType>;
         assert(sessionDiagnosticsArray.nodeClass === NodeClass.Variable);
 
         bindExtObjArrayNode(sessionDiagnosticsArray, "SessionDiagnosticsVariableType", "sessionId");
 
         const varType = addressSpace.findVariableType("SessionSecurityDiagnosticsType");
         if (!varType) {
-          console.log("Warning cannot find SessionSecurityDiagnosticsType variable Type");
+          debugLog("Warning cannot find SessionSecurityDiagnosticsType variable Type");
         } else {
-          const sessionSecurityDiagnosticsArray =
-            sessionsDiagnosticsSummary.getComponentByName("SessionSecurityDiagnosticsArray")! as
-            UADynamicVariableArray<SessionSecurityDiagnosticsDataType>;
+          const sessionSecurityDiagnosticsArray = sessionsDiagnosticsSummary.getComponentByName(
+            "SessionSecurityDiagnosticsArray"
+          )! as UADynamicVariableArray<SessionSecurityDiagnosticsDataType>;
           assert(sessionSecurityDiagnosticsArray.nodeClass === NodeClass.Variable);
           bindExtObjArrayNode(sessionSecurityDiagnosticsArray, "SessionSecurityDiagnosticsType", "sessionId");
           ensureObjectIsSecure(sessionSecurityDiagnosticsArray);
         }
-      }
+      };
 
       prepareServerDiagnostics();
 
@@ -1125,20 +1057,12 @@ export class ServerEngine extends EventEmitter {
    * @param [context]
    * @return  the browse result
    */
-  public browseSingleNode(
-    nodeId: NodeIdLike,
-    browseDescription: BrowseDescription,
-    context?: SessionContext
-  ): BrowseResult {
+  public browseSingleNode(nodeId: NodeIdLike, browseDescription: BrowseDescription, context?: SessionContext): BrowseResult {
     const addressSpace = this.addressSpace!;
     return addressSpace.browseSingleNode(nodeId, browseDescription, context);
   }
 
-  public async browseWithAutomaticExpansion(
-    nodesToBrowse: BrowseDescription[],
-    context?: SessionContext
-  ) {
-
+  public async browseWithAutomaticExpansion(nodesToBrowse: BrowseDescription[], context?: SessionContext) {
     // do expansion first
     for (const browseDescription of nodesToBrowse) {
       const nodeId = resolveNodeId(browseDescription.nodeId);
@@ -1161,11 +1085,7 @@ export class ServerEngine extends EventEmitter {
   /**
    *
    */
-  public browse(
-    nodesToBrowse: BrowseDescription[],
-    context?: SessionContext
-  ): BrowseResult[] {
-
+  public browse(nodesToBrowse: BrowseDescription[], context?: SessionContext): BrowseResult[] {
     const results: BrowseResult[] = [];
     for (const browseDescription of nodesToBrowse) {
       const nodeId = resolveNodeId(browseDescription.nodeId);
@@ -1190,12 +1110,14 @@ export class ServerEngine extends EventEmitter {
     attributeId: AttributeIds,
     timestampsToReturn?: TimestampsToReturn
   ): DataValue {
-    return this._readSingleNode(context,
+    return this._readSingleNode(
+      context,
       {
         attributeId,
         nodeId
       },
-      timestampsToReturn);
+      timestampsToReturn
+    );
   }
 
   /**
@@ -1222,7 +1144,6 @@ export class ServerEngine extends EventEmitter {
    *  @return  an array of DataValue
    */
   public read(context: SessionContext, readRequest: ReadRequest): DataValue[] {
-
     assert(context instanceof SessionContext);
     assert(readRequest instanceof ReadRequest);
     assert(readRequest.maxAge >= 0);
@@ -1242,7 +1163,10 @@ export class ServerEngine extends EventEmitter {
         dataValues[i].sourceTimestamp = null;
         dataValues[i].sourcePicoseconds = 0;
       }
-      if ((timestampsToReturn === TimestampsToReturn.Both || timestampsToReturn === TimestampsToReturn.Server) && (!dataValues[i].serverTimestamp || dataValues[i].serverTimestamp === minOPCUADate)) {
+      if (
+        (timestampsToReturn === TimestampsToReturn.Both || timestampsToReturn === TimestampsToReturn.Server) &&
+        (!dataValues[i].serverTimestamp || dataValues[i].serverTimestamp === minOPCUADate)
+      ) {
         dataValues[i].serverTimestamp = new Date();
         dataValues[i].sourcePicoseconds = 0;
       }
@@ -1265,7 +1189,6 @@ export class ServerEngine extends EventEmitter {
     writeValue: WriteValue,
     callback: (err: Error | null, statusCode?: StatusCode) => void
   ) {
-
     assert(context instanceof SessionContext);
     assert(_.isFunction(callback));
     assert(writeValue.schema.name === "WriteValue");
@@ -1302,7 +1225,6 @@ export class ServerEngine extends EventEmitter {
     nodesToWrite: WriteValue[],
     callback: (err: Error | null, statusCodes?: StatusCode[]) => void
   ) {
-
     assert(context instanceof SessionContext);
     assert(_.isFunction(callback));
 
@@ -1310,27 +1232,21 @@ export class ServerEngine extends EventEmitter {
 
     let l_extraDataTypeManager: ExtraDataTypeManager;
 
-    const performWrite = (
-      writeValue: WriteValue,
-      inner_callback: StatusCodeCallback
-    ) => {
+    const performWrite = (writeValue: WriteValue, inner_callback: StatusCodeCallback) => {
       assert(writeValue instanceof WriteValue);
       const ignored_promise = resolveDynamicExtensionObject(writeValue.value.value, l_extraDataTypeManager);
       this.writeSingleNode(context, writeValue, inner_callback);
-    }
+    };
 
     ensureDatatypeExtractedWithCallback(this.addressSpace, (err2: Error | null, extraDataTypeManager: ExtraDataTypeManager) => {
-
       l_extraDataTypeManager = extraDataTypeManager;
 
       // tslint:disable:array-type
-      async.map(nodesToWrite, performWrite,
-        (err?: Error | null, statusCodes?: (StatusCode | undefined)[]) => {
-          assert(_.isArray(statusCodes));
-          callback(err!, statusCodes as StatusCode[]);
-        });
+      async.map(nodesToWrite, performWrite, (err?: Error | null, statusCodes?: (StatusCode | undefined)[]) => {
+        assert(_.isArray(statusCodes));
+        callback(err!, statusCodes as StatusCode[]);
+      });
     });
-
   }
 
   /**
@@ -1340,24 +1256,29 @@ export class ServerEngine extends EventEmitter {
     context: SessionContext,
     nodeId: NodeId,
     attributeId: AttributeIds,
-    historyReadDetails:
-      ReadRawModifiedDetails | ReadEventDetails | ReadProcessedDetails | ReadAtTimeDetails,
+    historyReadDetails: ReadRawModifiedDetails | ReadEventDetails | ReadProcessedDetails | ReadAtTimeDetails,
     timestampsToReturn: TimestampsToReturn,
     callback: (err: Error | null, results?: HistoryReadResult) => void
   ): void {
-
     if (timestampsToReturn === TimestampsToReturn.Invalid) {
-      callback(null,
+      callback(
+        null,
         new HistoryReadResult({
           statusCode: StatusCodes.BadTimestampsToReturnInvalid
-        }));
+        })
+      );
       return;
     }
     assert(context instanceof SessionContext);
-    this._historyReadSingleNode(context,
+    this._historyReadSingleNode(
+      context,
       new HistoryReadValueId({
         nodeId
-      }), historyReadDetails, timestampsToReturn, callback);
+      }),
+      historyReadDetails,
+      timestampsToReturn,
+      callback
+    );
   }
 
   /**
@@ -1379,7 +1300,6 @@ export class ServerEngine extends EventEmitter {
     historyReadRequest: HistoryReadRequest,
     callback: (err: Error | null, results: HistoryReadResult[]) => void
   ) {
-
     assert(context instanceof SessionContext);
     assert(historyReadRequest instanceof HistoryReadRequest);
     assert(_.isFunction(callback));
@@ -1402,18 +1322,20 @@ export class ServerEngine extends EventEmitter {
           historyReadDetails,
           timestampsToReturn,
           (err: Error | null, result?: any) => {
-
             if (err && !result) {
               result = new HistoryReadResult({ statusCode: StatusCodes.BadInternalError });
             }
             historyData.push(result);
             async.setImmediate(cbNode);
             // it's not guaranteed that the historical read process is really asynchronous
-          });
-      }, (err?: Error | null) => {
+          }
+        );
+      },
+      (err?: Error | null) => {
         assert(historyData.length === nodesToRead.length);
         callback(err || null, historyData);
-      });
+      }
+    );
   }
 
   public getOldestUnactivatedSession(): ServerSession | null {
@@ -1442,8 +1364,7 @@ export class ServerEngine extends EventEmitter {
    * @param  [options.clientDescription] {ApplicationDescription}
    * @return {ServerSession}
    */
-  public createSession(options: any): ServerSession {
-
+  public createSession(options: CreateSessionOption): ServerSession {
     options = options || {};
 
     debugLog("createSession : increasing serverDiagnosticsSummary cumulatedSessionCount/currentSessionCount ");
@@ -1490,10 +1411,13 @@ export class ServerEngine extends EventEmitter {
 
       console.log(
         chalk.cyan("Server: closing SESSION "),
-        session.status, chalk.yellow(session.sessionName),
+        session.status,
+        chalk.yellow(session.sessionName),
         chalk.yellow(session.nodeId.toString()),
-        chalk.cyan(" because of timeout = "), session.sessionTimeout,
-        chalk.cyan(" has expired without a keep alive"));
+        chalk.cyan(" because of timeout = "),
+        session.sessionTimeout,
+        chalk.cyan(" has expired without a keep alive")
+      );
 
       const channel = session.channel;
       if (channel) {
@@ -1502,7 +1426,7 @@ export class ServerEngine extends EventEmitter {
 
       // If a Server terminates a Session for any other reason, Subscriptions  associated with the Session,
       // are not deleted. => deleteSubscription= false
-      this.closeSession(session.authenticationToken, /*deleteSubscription=*/false, /* reason =*/"Timeout");
+      this.closeSession(session.authenticationToken, /*deleteSubscription=*/ false, /* reason =*/ "Timeout");
     });
 
     return session;
@@ -1527,8 +1451,9 @@ export class ServerEngine extends EventEmitter {
    */
   public closeSession(
     authenticationToken: NodeId,
-    deleteSubscriptions: boolean, reason: string) {
-
+    deleteSubscriptions: boolean,
+    reason: "Timeout" | "Terminated" | "CloseSession" | "Forcing"
+  ) {
     reason = reason || "CloseSession";
     assert(_.isString(reason));
     assert(reason === "Timeout" || reason === "Terminated" || reason === "CloseSession" || reason === "Forcing");
@@ -1536,24 +1461,21 @@ export class ServerEngine extends EventEmitter {
     debugLog("ServerEngine.closeSession ", authenticationToken.toString(), deleteSubscriptions);
 
     const session = this.getSession(authenticationToken);
+
+    // istanbul ignore next
     if (!session) {
-      throw new Error("Internal Error");
+      throw new Error("cannot find session with this authenticationToken " + authenticationToken.toString());
     }
 
     if (!deleteSubscriptions) {
-
       // Live Subscriptions will not be deleted, but transferred to the orphanPublishEngine
       // until they time out or until a other session transfer them back to it.
       if (!this._orphanPublishEngine) {
-
-        this._orphanPublishEngine = new ServerSidePublishEngineForOrphanSubscription(
-          { maxPublishRequestInQueue: 0 });
-
+        this._orphanPublishEngine = new ServerSidePublishEngineForOrphanSubscription({ maxPublishRequestInQueue: 0 });
       }
 
       debugLog("transferring remaining live subscription to orphanPublishEngine !");
-      ServerSidePublishEngine.transferSubscriptionsToOrphan(
-        session.publishEngine, this._orphanPublishEngine);
+      ServerSidePublishEngine.transferSubscriptionsToOrphan(session.publishEngine, this._orphanPublishEngine);
     }
 
     session.close(deleteSubscriptions, reason);
@@ -1569,11 +1491,9 @@ export class ServerEngine extends EventEmitter {
     // remove sessionDiagnostics from server.ServerDiagnostics.SessionsDiagnosticsSummary.SessionDiagnosticsSummary
     delete this._sessions[authenticationToken.toString()];
     session.dispose();
-
   }
 
   public findSubscription(subscriptionId: number): Subscription | null {
-
     const subscriptions: Subscription[] = [];
     _.map(this._sessions, (session) => {
       if (subscriptions.length) {
@@ -1593,7 +1513,6 @@ export class ServerEngine extends EventEmitter {
   }
 
   public findOrphanSubscription(subscriptionId: number): Subscription | null {
-
     if (!this._orphanPublishEngine) {
       return null;
     }
@@ -1620,11 +1539,11 @@ export class ServerEngine extends EventEmitter {
    * @param sendInitialValues {Boolean}        - true if initial values will be resent.
    * @return                  {TransferResult}
    */
-  public transferSubscription(
+  public async transferSubscription(
     session: ServerSession,
     subscriptionId: number,
-    sendInitialValues: boolean): TransferResult {
-
+    sendInitialValues: boolean
+  ): Promise<TransferResult> {
     assert(session instanceof ServerSession);
     assert(_.isNumber(subscriptionId));
     assert(_.isBoolean(sendInitialValues));
@@ -1637,10 +1556,15 @@ export class ServerEngine extends EventEmitter {
     if (!subscription) {
       return new TransferResult({ statusCode: StatusCodes.BadSubscriptionIdInvalid });
     }
+    // istanbul ignore next
     if (!subscription.$session) {
       return new TransferResult({ statusCode: StatusCodes.BadInternalError });
     }
 
+    // check that session have same userIdentity
+    if (!sessionsCompatibleForTransfer(subscription.$session, session)) {
+      return new TransferResult({ statusCode: StatusCodes.BadUserAccessDenied });
+    }
     // update diagnostics
     subscription.subscriptionDiagnostics.transferRequestCount++;
 
@@ -1649,7 +1573,7 @@ export class ServerEngine extends EventEmitter {
     //     console.log("ServerEngine#transferSubscription => BadUserAccessDenied");
     //     return new TransferResult({ statusCode: StatusCodes.BadUserAccessDenied });
     // }
-    if (session.publishEngine === subscription.publishEngine) {
+    if ((session.publishEngine as any) === subscription.publishEngine) {
       // subscription is already in this session !!
       return new TransferResult({ statusCode: StatusCodes.BadNothingToDo });
     }
@@ -1666,18 +1590,14 @@ export class ServerEngine extends EventEmitter {
     const nbSubscriptionBefore = session.publishEngine.subscriptionCount;
 
     subscription.$session._unexposeSubscriptionDiagnostics(subscription);
-    ServerSidePublishEngine.transferSubscription(subscription, session.publishEngine, sendInitialValues);
+    await ServerSidePublishEngine.transferSubscription(subscription, session.publishEngine, sendInitialValues);
 
     subscription.$session = session;
 
     session._exposeSubscriptionDiagnostics(subscription);
 
-    assert(subscription.publishEngine === session.publishEngine);
-    assert(session.publishEngine.subscriptionCount === nbSubscriptionBefore + 1);
-
-    // TODO: If the Server transfers the Subscription to the new Session, the Server shall issue a
-    //       StatusChangeNotification notificationMessage with the status code Good_SubscriptionTransferred
-    //       to the old Session.
+    assert((subscription.publishEngine as any) === session.publishEngine);
+    // assert(session.publishEngine.subscriptionCount === nbSubscriptionBefore + 1);
 
     const result = new TransferResult({
       availableSequenceNumbers: subscription.getAvailableSequenceNumbers(),
@@ -1690,7 +1610,6 @@ export class ServerEngine extends EventEmitter {
     }
 
     return result;
-
   }
 
   /**
@@ -1701,15 +1620,12 @@ export class ServerEngine extends EventEmitter {
    * @param activeOnly
    * @return {ServerSession}
    */
-  public getSession(
-    authenticationToken: NodeId,
-    activeOnly?: boolean
-  ): ServerSession | null {
-
-    if (!authenticationToken ||
-      (authenticationToken.identifierType &&
-        (authenticationToken.identifierType !== NodeIdType.BYTESTRING))) {
-      return null;     // wrong type !
+  public getSession(authenticationToken: NodeId, activeOnly?: boolean): ServerSession | null {
+    if (
+      !authenticationToken ||
+      (authenticationToken.identifierType && authenticationToken.identifierType !== NodeIdType.BYTESTRING)
+    ) {
+      return null; // wrong type !
     }
     const key = authenticationToken.toString();
     let session = this._sessions[key];
@@ -1741,17 +1657,15 @@ export class ServerEngine extends EventEmitter {
    * @async
    */
   public refreshValues(
-    nodesToRefresh: (ReadValueId[] | HistoryReadValueId[]),
+    nodesToRefresh: ReadValueId[] | HistoryReadValueId[],
     maxAge: number,
     callback: (err: Error | null, dataValues?: DataValue[]) => void
   ): void {
-
     const referenceTime = new Date(Date.now() - maxAge);
 
     assert(callback instanceof Function);
     const objs: any = {};
     for (const nodeToRefresh of nodesToRefresh) {
-
       // only consider node  for which the caller wants to read the Value attribute
       // assuming that Value is requested if attributeId is missing,
       if (nodeToRefresh instanceof ReadValueId && nodeToRefresh.attributeId !== AttributeIds.Value) {
@@ -1778,23 +1692,27 @@ export class ServerEngine extends EventEmitter {
       return callback(null, []);
     }
     // perform all asyncRefresh in parallel
-    async.map(objs, (obj: BaseNode, inner_callback: DataValueCallback) => {
-
-      if (obj.nodeClass !== NodeClass.Variable) {
-        inner_callback(null, new DataValue({
-          statusCode: StatusCodes.BadNodeClassInvalid
-        }));
-        return;
+    async.map(
+      objs,
+      (obj: BaseNode, inner_callback: DataValueCallback) => {
+        if (obj.nodeClass !== NodeClass.Variable) {
+          inner_callback(
+            null,
+            new DataValue({
+              statusCode: StatusCodes.BadNodeClassInvalid
+            })
+          );
+          return;
+        }
+        (obj as UAVariable).asyncRefresh(referenceTime, inner_callback);
+      },
+      (err?: Error | null, arrResult?: (DataValue | undefined)[]) => {
+        callback(err || null, arrResult as DataValue[]);
       }
-      (obj as UAVariable).asyncRefresh(referenceTime, inner_callback);
-
-    }, (err?: Error | null, arrResult?: (DataValue | undefined)[]) => {
-      callback(err || null, arrResult as DataValue[]);
-    });
+    );
   }
 
   private _exposeSubscriptionDiagnostics(subscription: Subscription): void {
-
     debugLog("ServerEngine#_exposeSubscriptionDiagnostics");
     const subscriptionDiagnosticsArray = this._getServerSubscriptionDiagnosticsArrayNode();
     const subscriptionDiagnostics = subscription.subscriptionDiagnostics;
@@ -1807,16 +1725,16 @@ export class ServerEngine extends EventEmitter {
   }
 
   private _unexposeSubscriptionDiagnostics(subscription: Subscription) {
-
     const subscriptionDiagnosticsArray = this._getServerSubscriptionDiagnosticsArrayNode();
     const subscriptionDiagnostics = subscription.subscriptionDiagnostics;
     assert(subscriptionDiagnostics instanceof SubscriptionDiagnosticsDataType);
     if (subscriptionDiagnostics && subscriptionDiagnosticsArray) {
-
       const node = (subscriptionDiagnosticsArray as any)[subscription.id];
       removeElement(subscriptionDiagnosticsArray, subscriptionDiagnostics);
-      assert(!(subscriptionDiagnosticsArray as any)[subscription.id],
-        " subscription node must have been removed from subscriptionDiagnosticsArray");
+      assert(
+        !(subscriptionDiagnosticsArray as any)[subscription.id],
+        " subscription node must have been removed from subscriptionDiagnosticsArray"
+      );
     }
     debugLog("ServerEngine#_unexposeSubscriptionDiagnostics");
   }
@@ -1825,27 +1743,28 @@ export class ServerEngine extends EventEmitter {
    * create a new subscription
    * @return {Subscription}
    */
-  private _createSubscriptionOnSession(
-    session: ServerSession,
-    request: CreateSubscriptionRequestLike
-  ) {
-
+  public _createSubscriptionOnSession(session: ServerSession, request: CreateSubscriptionRequestLike) {
     assert(request.hasOwnProperty("requestedPublishingInterval")); // Duration
-    assert(request.hasOwnProperty("requestedLifetimeCount"));      // Counter
-    assert(request.hasOwnProperty("requestedMaxKeepAliveCount"));  // Counter
-    assert(request.hasOwnProperty("maxNotificationsPerPublish"));  // Counter
-    assert(request.hasOwnProperty("publishingEnabled"));           // Boolean
-    assert(request.hasOwnProperty("priority"));                    // Byte
+    assert(request.hasOwnProperty("requestedLifetimeCount")); // Counter
+    assert(request.hasOwnProperty("requestedMaxKeepAliveCount")); // Counter
+    assert(request.hasOwnProperty("maxNotificationsPerPublish")); // Counter
+    assert(request.hasOwnProperty("publishingEnabled")); // Boolean
+    assert(request.hasOwnProperty("priority")); // Byte
+
+    // adjust publishing parameters
+    const publishingInterval = request.requestedPublishingInterval || 0;
+    const maxKeepAliveCount = request.requestedMaxKeepAliveCount || 0;
+    const lifeTimeCount = request.requestedLifetimeCount || 0;
 
     const subscription = new Subscription({
       id: _get_next_subscriptionId(),
-      lifeTimeCount: request.requestedLifetimeCount,
-      maxKeepAliveCount: request.requestedMaxKeepAliveCount,
+      publishingInterval,
+      maxKeepAliveCount,
+      lifeTimeCount,
       maxNotificationsPerPublish: request.maxNotificationsPerPublish,
       priority: request.priority || 0,
-      publishEngine: session.publishEngine, //
+      publishEngine: session.publishEngine as any, //
       publishingEnabled: request.publishingEnabled,
-      publishingInterval: request.requestedPublishingInterval,
       // -------------------
       sessionId: NodeId.nullNodeId
     });
@@ -1853,7 +1772,7 @@ export class ServerEngine extends EventEmitter {
     // add subscriptionDiagnostics
     this._exposeSubscriptionDiagnostics(subscription);
 
-    assert(subscription.publishEngine === session.publishEngine);
+    assert((subscription.publishEngine as any) === session.publishEngine);
     session.publishEngine.add_subscription(subscription);
 
     const engine = this;
@@ -1875,7 +1794,6 @@ export class ServerEngine extends EventEmitter {
     nodeToRead: ReadValueIdOptions,
     timestampsToReturn?: TimestampsToReturn
   ): DataValue {
-
     assert(context instanceof SessionContext);
     const nodeId = nodeToRead.nodeId!;
     const attributeId = nodeToRead.attributeId!;
@@ -1896,7 +1814,6 @@ export class ServerEngine extends EventEmitter {
       // Object Not Found
       return new DataValue({ statusCode: StatusCodes.BadNodeIdUnknown });
     } else {
-
       // check access
       //    BadUserAccessDenied
       //    BadNotReadable
@@ -1908,7 +1825,6 @@ export class ServerEngine extends EventEmitter {
         if (!dataValue.isValid()) {
           console.log("Invalid value for node ", obj.nodeId.toString(), obj.browseName.toString());
         }
-
       } catch (err) {
         console.log(" Internal error reading  NodeId       ", obj.nodeId.toString());
         console.log("                         AttributeId  ", attributeId.toString());
@@ -1929,7 +1845,6 @@ export class ServerEngine extends EventEmitter {
     timestampsToReturn: TimestampsToReturn,
     callback: CallbackT<HistoryReadResult>
   ): void {
-
     assert(context instanceof SessionContext);
     assert(callback instanceof Function);
 
@@ -1947,19 +1862,23 @@ export class ServerEngine extends EventEmitter {
       // Object Not Found
       callback(null, new HistoryReadResult({ statusCode: StatusCodes.BadNodeIdUnknown }));
       return;
-
     } else {
-
       if (!obj.historyRead) {
         // note : Object and View may also support historyRead to provide Event historical data
         //        todo implement historyRead for Object and View
-        const msg = " this node doesn't provide historyRead! probably not a UAVariable\n "
-          + obj.nodeId.toString() + " " + obj.browseName.toString() + "\n"
-          + "with " + nodeToRead.toString() + "\n"
-          + "HistoryReadDetails " + historyReadDetails.toString();
+        const msg =
+          " this node doesn't provide historyRead! probably not a UAVariable\n " +
+          obj.nodeId.toString() +
+          " " +
+          obj.browseName.toString() +
+          "\n" +
+          "with " +
+          nodeToRead.toString() +
+          "\n" +
+          "HistoryReadDetails " +
+          historyReadDetails.toString();
         if (doDebug) {
-          console.log(chalk.cyan("ServerEngine#_historyReadSingleNode "),
-            chalk.white.bold(msg));
+          console.log(chalk.cyan("ServerEngine#_historyReadSingleNode "), chalk.white.bold(msg));
         }
         const err = new Error(msg);
         // object has no historyRead method
@@ -1985,17 +1904,14 @@ export class ServerEngine extends EventEmitter {
           assert(result!.isValid());
           // result = apply_timestamps(result, timestampsToReturn, attributeId);
           callback(err, result);
-        });
+        }
+      );
     }
   }
 
   /**
    */
-  private __internal_bindMethod(
-    nodeId: NodeId,
-    func: MethodFunctor
-  ) {
-
+  private __internal_bindMethod(nodeId: NodeId, func: MethodFunctor) {
     assert(_.isFunction(func));
     assert(nodeId instanceof NodeId);
 
@@ -2008,16 +1924,15 @@ export class ServerEngine extends EventEmitter {
     } else {
       console.log(
         chalk.yellow("WARNING:  cannot bind a method with id ") +
-        chalk.cyan(nodeId.toString()) +
-        chalk.yellow(". please check your nodeset.xml file or add this node programmatically"));
+          chalk.cyan(nodeId.toString()) +
+          chalk.yellow(". please check your nodeset.xml file or add this node programmatically")
+      );
 
       console.log(trace_from_this_projet_only());
     }
   }
 
-  private _getServerSubscriptionDiagnosticsArrayNode()
-    : UADynamicVariableArray<SubscriptionDiagnosticsDataType> | null {
-
+  private _getServerSubscriptionDiagnosticsArrayNode(): UADynamicVariableArray<SubscriptionDiagnosticsDataType> | null {
     if (!this.addressSpace) {
       if (doDebug) {
         console.warn("ServerEngine#_getServerSubscriptionDiagnosticsArray : no addressSpace");
@@ -2027,14 +1942,14 @@ export class ServerEngine extends EventEmitter {
     const subscriptionDiagnosticsType = this.addressSpace.findVariableType("SubscriptionDiagnosticsType");
     if (!subscriptionDiagnosticsType) {
       if (doDebug) {
-        console.warn("ServerEngine#_getServerSubscriptionDiagnosticsArray " +
-          ": cannot find SubscriptionDiagnosticsType");
+        console.warn("ServerEngine#_getServerSubscriptionDiagnosticsArray " + ": cannot find SubscriptionDiagnosticsType");
       }
     }
 
     // SubscriptionDiagnosticsArray = i=2290
     const subscriptionDiagnosticsArrayNode = this.addressSpace.findNode(
-      makeNodeId(VariableIds.Server_ServerDiagnostics_SubscriptionDiagnosticsArray))!;
+      makeNodeId(VariableIds.Server_ServerDiagnostics_SubscriptionDiagnosticsArray)
+    )!;
 
     return subscriptionDiagnosticsArrayNode as UADynamicVariableArray<SubscriptionDiagnosticsDataType>;
   }

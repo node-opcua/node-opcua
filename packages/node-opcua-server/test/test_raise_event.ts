@@ -40,6 +40,7 @@ import {
 } from "node-opcua-variant";
 import { NodeId, makeBrowsePath, NumericRange } from "../../node-opcua/source";
 
+const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("testing Events  ", () => {
 
     let addressSpace: AddressSpace;
@@ -65,7 +66,7 @@ describe("testing Events  ", () => {
 
     util.inherits(Observer, EventEmitter);
 
-    it("should raise a new transitory event of  EventType", function (done) {
+    it("should raise a new transitory event of  EventType", function (done: () => void) {
 
         const serverObject = addressSpace.findNode("Server")! as UAObject;
         serverObject.browseName.toString().should.eql("Server");
@@ -149,7 +150,7 @@ describe("testing Events  ", () => {
 
     });
 
-    it("should filter an event", function (done) {
+    it("should filter an event", function (done: () => void) {
 
         const serverObject = addressSpace.findNode("Server")! as UAObject;
         serverObject.browseName.toString().should.eql("Server");
