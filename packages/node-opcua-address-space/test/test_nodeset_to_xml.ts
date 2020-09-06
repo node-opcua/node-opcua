@@ -16,7 +16,7 @@ import {
     getMiniAddressSpace,
     Namespace,
     RootFolder,
-    UAVariable
+    UAVariable,
 } from "..";
 
 import * as nodesets from "node-opcua-nodesets";
@@ -28,7 +28,6 @@ const doDebug = process.env.DEBUGTEST || false;
 // tslint:disable-next-line:no-var-requires
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("testing nodeset to xml", () => {
-
     let addressSpace: AddressSpace;
     let namespace: Namespace;
 
@@ -44,7 +43,6 @@ describe("testing nodeset to xml", () => {
     const createTemperatureSensorType = require("./fixture_temperature_sensor_type").createTemperatureSensorType;
 
     it("should output a standard extension object datatype to xml (Argument)", () => {
-
         const argumentDataType = addressSpace.findDataType("Argument")!;
         if (doDebug) {
             console.log(argumentDataType.toString());
@@ -67,10 +65,9 @@ describe("testing nodeset to xml", () => {
     });
 
     it("€€€ should output a custom Enum node to xml (MyEnumType) - Form1( with EnumStrings )", () => {
-
         const myEnumType = namespace.addEnumerationType({
             browseName: "MyEnumTypeForm1",
-            enumeration: ["RUNNING", "STOPPED"]
+            enumeration: ["RUNNING", "STOPPED"],
         });
 
         const enumStringNode = myEnumType.getChildByName("EnumStrings")! as UAVariable;
@@ -86,16 +83,14 @@ describe("testing nodeset to xml", () => {
         str.should.match(/RUNNING/);
         str.should.match(/<Field Name="RUNNING" Value="0">/);
         str.should.match(/<Field Name="STOPPED" Value="1">/);
-
     });
     it("€€ should output a custom Enum node to xml (MyEnumType) - Form2 ( with EnumValues )", () => {
-
         const myEnumType = namespace.addEnumerationType({
             browseName: "MyEnumType",
             enumeration: [
                 { displayName: "RUNNING", value: 10, description: "the device is running" },
-                { displayName: "STOPPED", value: 20, description: "the device is stopped" }
-            ]
+                { displayName: "STOPPED", value: 20, description: "the device is stopped" },
+            ],
         });
 
         myEnumType.browseName.toString().should.eql("1:MyEnumType");
@@ -106,7 +101,6 @@ describe("testing nodeset to xml", () => {
         str.should.match(/RUNNING/);
         str.should.match(/<Field Name="RUNNING" Value="10">/);
         str.should.match(/<Field Name="STOPPED" Value="20">/);
-
     });
 
     it("should output a simple objectType node to xml", () => {
@@ -118,7 +112,6 @@ describe("testing nodeset to xml", () => {
     });
 
     it("should output a instance of a new ObjectType  to xml", () => {
-
         const ownNamespace = addressSpace.getOwnNamespace();
 
         // TemperatureSensorType
@@ -129,7 +122,7 @@ describe("testing nodeset to xml", () => {
             dataType: "Double",
             description: "the temperature value of the sensor in Celsius <�C>",
             modellingRule: "Mandatory",
-            value: new Variant({ dataType: DataType.Double, value: 19.5 })
+            value: new Variant({ dataType: DataType.Double, value: 19.5 }),
         });
 
         const parentFolder = addressSpace.findNode("RootFolder")! as RootFolder;
@@ -152,11 +145,9 @@ describe("testing nodeset to xml", () => {
             console.log(str);
         }
         str.should.match(/UAObjectType/g);
-
     });
 
     it("KLKL should output a instance of object with method  to xml", () => {
-
         const createCameraType = require("./fixture_camera_type").createCameraType;
 
         const cameraType = createCameraType(addressSpace);
@@ -174,10 +165,11 @@ describe("testing nodeset to xml", () => {
         str.should.match(/<\/UAMethod>/g, "must have a complex UAMethod element");
         str.should.match(/BrowseName="InputArguments"/);
         str.should.match(/BrowseName="OutputArguments"/);
+        str.should.match(/<UAMethod NodeId="ns=1;i=1001" BrowseName="1:Trigger">/);
+        str.should.match(/<UAMethod NodeId="ns=1;i=1005" BrowseName="1:Trigger" MethodDeclarationId="ns=1;i=1001"/);
     });
 
     it("should output an instance of variable type to xml", () => {
-
         const ownNamespace = addressSpace.getOwnNamespace();
         const variableType = ownNamespace.addVariableType({ browseName: "MyCustomVariableType" });
 
@@ -189,11 +181,10 @@ describe("testing nodeset to xml", () => {
     });
 
     it("should output a ReferenceType to xml", () => {
-
         const ownNamespace = addressSpace.getOwnNamespace();
         const referenceType = ownNamespace.addReferenceType({
             browseName: "HasStuff",
-            inverseName: "StuffOf"
+            inverseName: "StuffOf",
         });
 
         const str = dumpXml(referenceType, {});
@@ -203,7 +194,6 @@ describe("testing nodeset to xml", () => {
         str.should.match(/UAReferenceType/g);
         str.should.match(/StuffOf/g);
         str.should.match(/HasStuff/g);
-
     });
 
     it("should output a Method to xml", () => {
@@ -213,7 +203,7 @@ describe("testing nodeset to xml", () => {
 
         const obj1 = ownNamespace.addObject({
             browseName: "Object",
-            organizedBy: rootFolder.objects
+            organizedBy: rootFolder.objects,
         });
         ownNamespace.addMethod(obj1, {
             browseName: "Trigger",
@@ -222,7 +212,7 @@ describe("testing nodeset to xml", () => {
                     dataType: DataType.UInt32,
                     description: { text: "specifies the number of seconds to wait before the picture is taken " },
                     name: "ShutterLag",
-                }
+                },
             ],
             modellingRule: "Mandatory",
             outputArguments: [
@@ -230,8 +220,8 @@ describe("testing nodeset to xml", () => {
                     dataType: "Image",
                     description: { text: "the generated image" },
                     name: "Image",
-                }
-            ]
+                },
+            ],
         });
         let str = dumpXml(obj1, {});
 
@@ -243,7 +233,7 @@ describe("testing nodeset to xml", () => {
             console.log(str);
         }
 
-        str = str.replace(/LastModified=\".*\" /g, "LastModified=\"DATE\" ");
+        str = str.replace(/LastModified=\".*\" /g, 'LastModified="DATE" ');
         str.should.eql(`<?xml version="1.0"?>
 <UANodeSet xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" Version="1.02" LastModified="DATE" xmlns="http://opcfoundation.org/UA/2011/03/UANodeSet.xsd">
     <Aliases>
@@ -333,13 +323,10 @@ describe("testing nodeset to xml", () => {
     </UAVariable>
 <!--Object - 1:Object }}}} -->
 </UANodeSet>`);
-
     });
-
 });
 
 describe("Namespace to NodeSet2.xml", () => {
-
     let addressSpace: AddressSpace;
     let namespace: Namespace;
     beforeEach(async () => {
@@ -353,11 +340,10 @@ describe("Namespace to NodeSet2.xml", () => {
     });
 
     it("should produce a XML file from a namespace - a new Reference", () => {
-
         namespace.addReferenceType({
             browseName: "HasCousin",
             inverseName: "IsCousinOf",
-            subtypeOf: "HasChild"
+            subtypeOf: "HasChild",
         });
 
         const nodeIds = namespace.getStandardsNodeIds();
@@ -365,7 +351,7 @@ describe("Namespace to NodeSet2.xml", () => {
         should.exist(nodeIds.referenceTypeIds.HasCousin);
 
         let xml = namespace.toNodeset2XML();
-        xml = xml.replace(/LastModified="([^"]*)"/g, "LastModified=\"YYYY-MM-DD\"");
+        xml = xml.replace(/LastModified="([^"]*)"/g, 'LastModified="YYYY-MM-DD"');
         xml.should.eql(
             `<?xml version="1.0"?>
 <UANodeSet xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:uax="http://opcfoundation.org/UA/2008/02/Types.xsd" xmlns="http://opcfoundation.org/UA/2011/03/UANodeSet.xsd">
@@ -389,14 +375,12 @@ describe("Namespace to NodeSet2.xml", () => {
 <!--Other Nodes-->
 </UANodeSet>`
         );
-
     });
 
     it("should produce a XML file from a namespace - a new UAObjectType", () => {
-
         namespace.addObjectType({
             browseName: "MyObjectType",
-            subtypeOf: "BaseObjectType"
+            subtypeOf: "BaseObjectType",
         });
 
         const nodeIds = namespace.getStandardsNodeIds();
@@ -404,7 +388,7 @@ describe("Namespace to NodeSet2.xml", () => {
         should.exist(nodeIds.objectTypeIds.MyObjectType);
 
         let xml = namespace.toNodeset2XML();
-        xml = xml.replace(/LastModified="([^"]*)"/g, "LastModified=\"YYYY-MM-DD\"");
+        xml = xml.replace(/LastModified="([^"]*)"/g, 'LastModified="YYYY-MM-DD"');
         xml.should.eql(
             `<?xml version="1.0"?>
 <UANodeSet xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:uax="http://opcfoundation.org/UA/2008/02/Types.xsd" xmlns="http://opcfoundation.org/UA/2011/03/UANodeSet.xsd">
@@ -429,11 +413,9 @@ describe("Namespace to NodeSet2.xml", () => {
 <!--Other Nodes-->
 </UANodeSet>`
         );
-
     });
 
     it("should produce a XML file from a namespace - with 2 UAObjectType", () => {
-
         const myObjectBaseType = namespace.addObjectType({
             browseName: "MyObjectBaseType",
             isAbstract: true,
@@ -451,7 +433,7 @@ describe("Namespace to NodeSet2.xml", () => {
         should.exist(nodeIds.objectTypeIds.MyObjectType);
 
         let xml = namespace.toNodeset2XML();
-        xml = xml.replace(/LastModified="([^"]*)"/g, "LastModified=\"YYYY-MM-DD\"");
+        xml = xml.replace(/LastModified="([^"]*)"/g, 'LastModified="YYYY-MM-DD"');
         xml.should.eql(
             `<?xml version="1.0"?>
 <UANodeSet xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:uax="http://opcfoundation.org/UA/2008/02/Types.xsd" xmlns="http://opcfoundation.org/UA/2011/03/UANodeSet.xsd">
@@ -487,7 +469,6 @@ describe("Namespace to NodeSet2.xml", () => {
     });
 
     it("should emit AccessLevel attribute when needed (UAVariable)", () => {
-
         const accessLevelFlag = makeAccessLevelFlag("CurrentRead | CurrentWrite | HistoryRead");
 
         const myVariable = namespace.addVariable({
@@ -500,7 +481,7 @@ describe("Namespace to NodeSet2.xml", () => {
         myVariable.accessLevel.should.eql(accessLevelFlag);
 
         let xml = namespace.toNodeset2XML();
-        xml = xml.replace(/LastModified="([^"]*)"/g, "LastModified=\"YYYY-MM-DD\"");
+        xml = xml.replace(/LastModified="([^"]*)"/g, 'LastModified="YYYY-MM-DD"');
         xml.should.eql(
             `<?xml version="1.0"?>
 <UANodeSet xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:uax="http://opcfoundation.org/UA/2008/02/Types.xsd" xmlns="http://opcfoundation.org/UA/2011/03/UANodeSet.xsd">
@@ -522,14 +503,12 @@ describe("Namespace to NodeSet2.xml", () => {
             <Reference ReferenceType="HasTypeDefinition">i=62</Reference>
         </References>
     </UAVariable>
-</UANodeSet>`);
-
+</UANodeSet>`
+        );
     });
-
 });
 
 describe("nodeset2.xml with more than one referenced namespace", function (this: any) {
-
     this.timeout(20000);
 
     let addressSpace: AddressSpace;
@@ -538,10 +517,7 @@ describe("nodeset2.xml with more than one referenced namespace", function (this:
     beforeEach(async () => {
         addressSpace = AddressSpace.create();
 
-        const xml_files = [
-            nodesets.standard_nodeset_file,
-            nodesets.di_nodeset_filename
-        ];
+        const xml_files = [nodesets.standard_nodeset_file, nodesets.di_nodeset_filename];
         fs.existsSync(xml_files[0]).should.be.eql(true);
         fs.existsSync(xml_files[1]).should.be.eql(true);
 
@@ -552,14 +528,16 @@ describe("nodeset2.xml with more than one referenced namespace", function (this:
         addressSpace.getNamespaceArray().length.should.eql(3);
         addressSpace.getNamespaceArray()[2].namespaceUri.should.eql("http://opcfoundation.org/UA/DI/");
 
-        addressSpace.getNamespaceArray().map((x: Namespace) => x.namespaceUri).should.eql([
-            "http://opcfoundation.org/UA/",    // 0
-            "ServerNamespaceURI",              // 1
-            "http://opcfoundation.org/UA/DI/" // 2
-        ]);
+        addressSpace
+            .getNamespaceArray()
+            .map((x: Namespace) => x.namespaceUri)
+            .should.eql([
+                "http://opcfoundation.org/UA/", // 0
+                "ServerNamespaceURI", // 1
+                "http://opcfoundation.org/UA/DI/", // 2
+            ]);
 
         namespace = addressSpace.getOwnNamespace();
-
     });
     afterEach(async () => {
         if (addressSpace) {
@@ -569,11 +547,7 @@ describe("nodeset2.xml with more than one referenced namespace", function (this:
 
     async function reloadedNodeSet(tmpFilename: string) {
         /// Xx console.log(xml);
-        const theNodesets = [
-            nodesets.standard_nodeset_file,
-            nodesets.di_nodeset_filename,
-            tmpFilename
-        ];
+        const theNodesets = [nodesets.standard_nodeset_file, nodesets.di_nodeset_filename, tmpFilename];
         // now reload the file as part of a addressSpace;
         const reloadedAddressSpace = AddressSpace.create();
         await generateAddressSpace(reloadedAddressSpace, theNodesets);
@@ -582,7 +556,7 @@ describe("nodeset2.xml with more than one referenced namespace", function (this:
         r_namespace.constructor.name.should.eql("UANamespace");
 
         const r_xml = r_namespace.toNodeset2XML();
-        const r_xml2 = r_xml.replace(/LastModified="([^"]*)"/g, "LastModified=\"YYYY-MM-DD\"");
+        const r_xml2 = r_xml.replace(/LastModified="([^"]*)"/g, 'LastModified="YYYY-MM-DD"');
 
         const tmpFilename2 = getTempFilename("__generated_node_set_version2.xml");
         fs.writeFileSync(tmpFilename2, r_xml);
@@ -591,10 +565,9 @@ describe("nodeset2.xml with more than one referenced namespace", function (this:
     }
 
     it("should produce a XML file - with DI included - 1 Rich ObjectType - and reload it", async () => {
-
         createBoilerType(namespace);
         const xml = namespace.toNodeset2XML();
-        const xml2 = xml.replace(/LastModified="([^"]*)"/g, "LastModified=\"YYYY-MM-DD\"");
+        const xml2 = xml.replace(/LastModified="([^"]*)"/g, 'LastModified="YYYY-MM-DD"');
         const tmpFilename = getTempFilename("__generated_node_set_version1.xml");
         fs.writeFileSync(tmpFilename, xml);
 
@@ -610,12 +583,12 @@ describe("nodeset2.xml with more than one referenced namespace", function (this:
             organizedBy: addressSpace.rootFolder.objects,
             value: {
                 dataType: DataType.Guid,
-                value: "AFCFB362-73BD-D408-20FA-94E9567BCC27" // randomGuid("000")
-            }
+                value: "AFCFB362-73BD-D408-20FA-94E9567BCC27", // randomGuid("000")
+            },
         });
 
         const xml = namespace.toNodeset2XML();
-        const xml2 = xml.replace(/LastModified="([^"]*)"/g, "LastModified=\"YYYY-MM-DD\"");
+        const xml2 = xml.replace(/LastModified="([^"]*)"/g, 'LastModified="YYYY-MM-DD"');
         const tmpFilename = getTempFilename("__generated_node_set_version1.xml");
         fs.writeFileSync(tmpFilename, xml);
 
@@ -630,12 +603,12 @@ describe("nodeset2.xml with more than one referenced namespace", function (this:
             organizedBy: addressSpace.rootFolder.objects,
             value: {
                 dataType: DataType.LocalizedText,
-                value: coerceLocalizedText("Hello")
-            }
+                value: coerceLocalizedText("Hello"),
+            },
         });
 
         const xml = namespace.toNodeset2XML();
-        const xml2 = xml.replace(/LastModified="([^"]*)"/g, "LastModified=\"YYYY-MM-DD\"");
+        const xml2 = xml.replace(/LastModified="([^"]*)"/g, 'LastModified="YYYY-MM-DD"');
         const tmpFilename = getTempFilename("__generated_node_set_version1.xml");
         fs.writeFileSync(tmpFilename, xml);
 
@@ -655,12 +628,12 @@ describe("nodeset2.xml with more than one referenced namespace", function (this:
             organizedBy: addressSpace.rootFolder.objects,
             value: {
                 dataType: DataType.UInt32,
-                value: [1, 2, 3, 4]
-            }
+                value: [1, 2, 3, 4],
+            },
         });
 
         const xml = namespace.toNodeset2XML();
-        const xml2 = xml.replace(/LastModified="([^"]*)"/g, "LastModified=\"YYYY-MM-DD\"");
+        const xml2 = xml.replace(/LastModified="([^"]*)"/g, 'LastModified="YYYY-MM-DD"');
         const tmpFilename = getTempFilename("__generated_node_set_version_x.xml");
         fs.writeFileSync(tmpFilename, xml);
 
@@ -683,12 +656,12 @@ describe("nodeset2.xml with more than one referenced namespace", function (this:
             organizedBy: addressSpace.rootFolder.objects,
             value: {
                 dataType: DataType.UInt32,
-                value: [1, 2, 3, 4]
-            }
+                value: [1, 2, 3, 4],
+            },
         });
 
         const xml = namespace.toNodeset2XML();
-        const xml2 = xml.replace(/LastModified="([^"]*)"/g, "LastModified=\"YYYY-MM-DD\"");
+        const xml2 = xml.replace(/LastModified="([^"]*)"/g, 'LastModified="YYYY-MM-DD"');
         const tmpFilename = getTempFilename("__generated_node_set_version_x.xml");
         fs.writeFileSync(tmpFilename, xml);
 

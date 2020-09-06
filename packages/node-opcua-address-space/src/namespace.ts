@@ -1264,7 +1264,7 @@ export class UANamespace implements NamespacePublic {
         }
 
         if (options.outputArguments) {
-            const _ouputArgs = new Variant({
+            const _outputArgs = new Variant({
                 arrayType: VariantArrayType.Array,
                 dataType: DataType.ExtensionObject,
                 value: options.outputArguments.map((opts) => new Argument(opts)),
@@ -1272,7 +1272,7 @@ export class UANamespace implements NamespacePublic {
 
             const outputArguments = this.addVariable({
                 accessLevel: "CurrentRead",
-                arrayDimensions: [_ouputArgs.value.length],
+                arrayDimensions: [_outputArgs.value.length],
                 browseName: { name: "OutputArguments", namespaceIndex: 0 },
                 dataType: nodeId_ArgumentDataType,
                 description:
@@ -1284,10 +1284,10 @@ export class UANamespace implements NamespacePublic {
                 modellingRule: "Mandatory",
                 propertyOf: method,
                 typeDefinition: "PropertyType",
-                value: _ouputArgs,
+                value: _outputArgs,
                 valueRank: 1,
             });
-            outputArguments.setValueFromSource(_ouputArgs);
+            outputArguments.setValueFromSource(_outputArgs);
 
             assert(outputArguments.typeDefinition.toString() === propertyTypeId.toString());
             assert(_.isArray(outputArguments.arrayDimensions));
