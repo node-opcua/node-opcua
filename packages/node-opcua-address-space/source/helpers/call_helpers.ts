@@ -4,10 +4,7 @@
 import _ = require("underscore");
 
 import { assert } from "node-opcua-assert";
-import {
-    ExtraDataTypeManager,
-    resolveDynamicExtensionObject
-} from "node-opcua-client-dynamic-extension-object";
+import { ExtraDataTypeManager, resolveDynamicExtensionObject } from "node-opcua-client-dynamic-extension-object";
 import { NodeClass } from "node-opcua-data-model";
 import { NodeId } from "node-opcua-nodeid";
 import { CallMethodRequest } from "node-opcua-service-call";
@@ -51,17 +48,17 @@ export function callMethodHelper(
     assert(objectId instanceof NodeId);
     assert(methodId instanceof NodeId);
 
-    let response = getMethodDeclaration_ArgumentList(addressSpace, objectId, methodId);
+    const response1 = getMethodDeclaration_ArgumentList(addressSpace, objectId, methodId);
 
-    if (response.statusCode !== StatusCodes.Good) {
-        return callback(null, { statusCode: response.statusCode });
+    if (response1.statusCode !== StatusCodes.Good) {
+        return callback(null, { statusCode: response1.statusCode });
     }
-    const methodDeclaration = response.methodDeclaration;
+    const methodDeclaration = response1.methodDeclaration!;
 
     // verify input Parameters
     const methodInputArguments = methodDeclaration.getInputArguments();
 
-    response = verifyArguments_ArgumentList(addressSpace, methodInputArguments, inputArguments);
+    const response = verifyArguments_ArgumentList(addressSpace, methodInputArguments, inputArguments);
     if (response.statusCode !== StatusCodes.Good) {
         return callback(null, response);
     }
@@ -81,7 +78,6 @@ export function callMethodHelper(
     let l_extraDataTypeManager: ExtraDataTypeManager;
 
     ensureDatatypeExtractedWithCallback(addressSpace, (err2: Error | null, extraDataTypeManager: ExtraDataTypeManager) => {
-
         l_extraDataTypeManager = extraDataTypeManager;
 
         // resolve opaque data structure from inputArguments
@@ -89,35 +85,33 @@ export function callMethodHelper(
             resolveDynamicExtensionObject(variant, l_extraDataTypeManager);
         }
 
-        methodObj.execute(inputArguments, context,
-            (err: Error | null, callMethodResponse?: CallMethodResultOptions) => {
+        methodObj.execute(inputArguments, context, (err: Error | null, callMethodResponse?: CallMethodResultOptions) => {
+            /* istanbul ignore next */
+            if (err) {
+                return callback(err);
+            }
+            if (!callMethodResponse) {
+                return callback(new Error("internal Error"));
+            }
 
-                /* istanbul ignore next */
-                if (err) {
-                    return callback(err);
+            callMethodResponse.inputArgumentResults = response.inputArgumentResults || [];
+            assert(callMethodResponse.statusCode);
+
+            if (callMethodResponse.statusCode === StatusCodes.Good) {
+                assert(_.isArray(callMethodResponse.outputArguments));
+            }
+
+            assert(_.isArray(callMethodResponse.inputArgumentResults));
+            assert(callMethodResponse.inputArgumentResults!.length === methodInputArguments.length);
+
+            if (callMethodResponse.outputArguments) {
+                const outputArguments = callMethodResponse.outputArguments || [];
+                for (const variant of outputArguments) {
+                    resolveDynamicExtensionObject(variant as Variant, l_extraDataTypeManager);
                 }
-                if (!callMethodResponse) {
-                    return callback(new Error("internal Error"));
-                }
+            }
 
-                callMethodResponse.inputArgumentResults = response.inputArgumentResults || [];
-                assert(callMethodResponse.statusCode);
-
-                if (callMethodResponse.statusCode === StatusCodes.Good) {
-                    assert(_.isArray(callMethodResponse.outputArguments));
-                }
-
-                assert(_.isArray(callMethodResponse.inputArgumentResults));
-                assert(callMethodResponse.inputArgumentResults!.length === methodInputArguments.length);
-
-                if (callMethodResponse.outputArguments) {
-                    const outputArguments = callMethodResponse.outputArguments || [];
-                    for (const variant of outputArguments) {
-                        resolveDynamicExtensionObject(variant as Variant, l_extraDataTypeManager);
-                    }
-                }
-
-                return callback(null, callMethodResponse);
-            });
+            return callback(null, callMethodResponse);
+        });
     });
 }
