@@ -23,10 +23,8 @@ const {
   install_optional_cpu_and_memory_usage_node,
   build_address_space_for_conformance_testing,
   RegisterServerMethod,
-  extractFullyQualifiedDomainName,
-  CreateMonitoredItemsResponse
+  extractFullyQualifiedDomainName
 } = require("node-opcua");
-
 
 Error.stackTraceLimit = Infinity;
 
@@ -144,7 +142,7 @@ const paths = envPaths(productUri);
   const userPkiFolder = path.join(configFolder, "userPki");
 
   const userCertificateManager = new OPCUACertificateManager({
-    automaticallyAcceptUnknownCertificate: false,
+    automaticallyAcceptUnknownCertificate: true,
     name: "userPki",
     rootFolder: userPkiFolder,
   });
