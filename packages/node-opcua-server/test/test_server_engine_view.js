@@ -5,28 +5,28 @@ const mini_nodeset_filename = require("node-opcua-address-space").get_mini_nodes
 const ServerEngine = require("..").ServerEngine;
 const SubscriptionState = require("..").SubscriptionState;
 
-const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 
 const doDebug = false;
 
-describe("Testing the server  engine - View related ", function () {
+const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
+describe("Testing the server  engine - View related ", function() {
 
     let engine;
-    beforeEach(function (done) {
+    beforeEach(function(done) {
         engine = new ServerEngine();
-        engine.initialize({nodeset_filename: mini_nodeset_filename}, function () {
+        engine.initialize({ nodeset_filename: mini_nodeset_filename }, function() {
             const FolderTypeId = engine.addressSpace.findNode("FolderType").nodeId;
             const BaseDataVariableTypeId = engine.addressSpace.findNode("BaseDataVariableType").nodeId;
             done();
         });
     });
-    afterEach(function () {
+    afterEach(function() {
         should.exist(engine);
         engine.shutdown();
         engine = null;
     });
 
-    it("should create a view in the address space", function () {
+    it("should create a view in the address space", function() {
 
         const viewsFolder = engine.addressSpace.findNode("ViewsFolder");
 

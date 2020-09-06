@@ -21,18 +21,13 @@ import { DateTime } from "node-opcua-basic-types";
 import { NodeClass, QualifiedNameOptions } from "node-opcua-data-model";
 import { AttributeIds } from "node-opcua-data-model";
 import { apply_timestamps, DataValue, extractRange, sameDataValue, coerceTimestampsToReturn } from "node-opcua-data-value";
-import {
-  checkDebugFlag, make_debugLog
-} from "node-opcua-debug";
+import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 import { ExtensionObject } from "node-opcua-extension-object";
 import { NodeId } from "node-opcua-nodeid";
 import { NumericalRange0, NumericRange } from "node-opcua-numeric-range";
 import { ObjectRegistry } from "node-opcua-object-registry";
 import { EventFilter } from "node-opcua-service-filter";
-import {
-  ReadValueId,
-  TimestampsToReturn
-} from "node-opcua-service-read";
+import { ReadValueId, TimestampsToReturn } from "node-opcua-service-read";
 import {
   MonitoredItemModifyResult,
   MonitoredItemNotification,
@@ -56,28 +51,24 @@ import {
   SimpleAttributeOperand,
   SubscriptionDiagnosticsDataType
 } from "node-opcua-types";
-import {
-  sameVariant,
-  Variant
-} from "node-opcua-variant";
+import { sameVariant, Variant } from "node-opcua-variant";
 
 import { appendToTimer, removeFromTimer } from "./node_sampler";
 import { validateFilter } from "./validate_filter";
 
 const defaultItemToMonitor: ReadValueIdOptions = new ReadValueId({
   attributeId: AttributeIds.Value,
-  indexRange: undefined,
+  indexRange: undefined
 });
 
 const debugLog = make_debugLog(__filename);
 const doDebug = checkDebugFlag(__filename);
 
 function _adjust_sampling_interval(samplingInterval: number, node_minimumSamplingInterval: number): number {
-
   assert(_.isNumber(node_minimumSamplingInterval), "expecting a number");
 
   if (samplingInterval === 0) {
-    return (node_minimumSamplingInterval === 0)
+    return node_minimumSamplingInterval === 0
       ? samplingInterval
       : Math.max(MonitoredItem.minimumSamplingInterval, node_minimumSamplingInterval);
   }
@@ -85,9 +76,8 @@ function _adjust_sampling_interval(samplingInterval: number, node_minimumSamplin
   samplingInterval = samplingInterval || MonitoredItem.defaultSamplingInterval;
   samplingInterval = Math.max(samplingInterval, MonitoredItem.minimumSamplingInterval);
   samplingInterval = Math.min(samplingInterval, MonitoredItem.maximumSamplingInterval);
-  samplingInterval = node_minimumSamplingInterval === 0
-    ? samplingInterval
-    : Math.max(samplingInterval, node_minimumSamplingInterval);
+  samplingInterval =
+    node_minimumSamplingInterval === 0 ? samplingInterval : Math.max(samplingInterval, node_minimumSamplingInterval);
 
   return samplingInterval;
 }
@@ -111,10 +101,7 @@ function _validate_parameters(monitoringParameters: any) {
   assert(monitoringParameters.queueSize >= 0);
 }
 
-function statusCodeHasChanged(
-  newDataValue: DataValue,
-  oldDataValue: DataValue
-): boolean {
+function statusCodeHasChanged(newDataValue: DataValue, oldDataValue: DataValue): boolean {
   assert(newDataValue instanceof DataValue);
   assert(oldDataValue instanceof DataValue);
   return newDataValue.statusCode !== oldDataValue.statusCode;
@@ -127,7 +114,6 @@ function valueHasChanged(
   deadbandType: DeadbandType,
   deadbandValue: number
 ): boolean {
-
   assert(newDataValue instanceof DataValue);
   assert(oldDataValue instanceof DataValue);
   switch (deadbandType) {
@@ -166,10 +152,7 @@ function valueHasChanged(
       if (euRangeNode && euRangeNode.nodeClass === NodeClass.Variable) {
         // double,double
         const rangeVariant = euRangeNode.readValue().value;
-        return isOutsideDeadbandPercent(
-          oldDataValue.value,
-          newDataValue.value,
-          deadbandValue, rangeVariant.value as PseudoRange);
+        return isOutsideDeadbandPercent(oldDataValue.value, newDataValue.value, deadbandValue, rangeVariant.value as PseudoRange);
       } else {
         console.log("EURange is not of type Variable");
       }
@@ -178,7 +161,7 @@ function valueHasChanged(
 }
 
 function timestampHasChanged(t1: DateTime, t2: DateTime): boolean {
-  if ((t1 || !t2) || (t2 || !t1)) {
+  if (t1 || !t2 || t2 || !t1) {
     return true;
   }
   if (!t1 || !t2) {
@@ -191,10 +174,7 @@ function isGoodish(statusCode: StatusCode): boolean {
   return statusCode.value < 0x10000000;
 }
 
-function apply_datachange_filter(
-  this: MonitoredItem,
-  newDataValue: DataValue, oldDataValue: DataValue
-): boolean {
+function apply_datachange_filter(this: MonitoredItem, newDataValue: DataValue, oldDataValue: DataValue): boolean {
   /* istanbul ignore next */
   if (!this.filter || !(this.filter instanceof DataChangeFilter)) {
     throw new Error("Internal Error");
@@ -218,11 +198,13 @@ function apply_datachange_filter(
       //              change. The Deadband filter can be used in addition for
       //              filtering value changes.
       //              This is the default setting if no filter is set.
-      return statusCodeHasChanged(newDataValue, oldDataValue) ||
-        valueHasChanged.call(this, newDataValue, oldDataValue,
-          this.filter.deadbandType, this.filter.deadbandValue);
+      return (
+        statusCodeHasChanged(newDataValue, oldDataValue) ||
+        valueHasChanged.call(this, newDataValue, oldDataValue, this.filter.deadbandType, this.filter.deadbandValue)
+      );
 
-    default: // StatusValueTimestamp
+    default:
+      // StatusValueTimestamp
       //              Report a notification if either StatusCode, value or the
       //              SourceTimestamp change.
       //
@@ -231,19 +213,16 @@ function apply_datachange_filter(
       //              If the DataChangeFilter is not applied to the monitored item, STATUS_VALUE_1
       //              is the default reporting behaviour
       assert(trigger === DataChangeTrigger.StatusValueTimestamp);
-      return timestampHasChanged(newDataValue.sourceTimestamp, oldDataValue.sourceTimestamp) ||
+      return (
+        timestampHasChanged(newDataValue.sourceTimestamp, oldDataValue.sourceTimestamp) ||
         statusCodeHasChanged(newDataValue, oldDataValue) ||
-        valueHasChanged.call(this, newDataValue, oldDataValue,
-          this.filter.deadbandType, this.filter.deadbandValue);
+        valueHasChanged.call(this, newDataValue, oldDataValue, this.filter.deadbandType, this.filter.deadbandValue)
+      );
   }
   return false;
 }
 
-function apply_filter(
-  this: MonitoredItem,
-  newDataValue: DataValue
-) {
-
+function apply_filter(this: MonitoredItem, newDataValue: DataValue) {
   if (!this.oldDataValue) {
     return true; // keep
   }
@@ -265,15 +244,13 @@ function apply_filter(
 
 function setSemanticChangeBit(notification: any) {
   if (notification && notification.hasOwnProperty("value")) {
-    notification.value.statusCode =
-      StatusCode.makeStatusCode(notification.value.statusCode, "SemanticChanged");
+    notification.value.statusCode = StatusCode.makeStatusCode(notification.value.statusCode, "SemanticChanged");
   }
 }
 
 const useCommonTimer = true;
 
 export interface MonitoredItemOptions extends MonitoringParameters {
-
   monitoringMode: MonitoringMode;
   /**
    * the monitoredItem Id assigned by the server to this monitoredItem.
@@ -283,7 +260,7 @@ export interface MonitoredItemOptions extends MonitoringParameters {
   timestampsToReturn?: TimestampsToReturn;
 
   // MonitoringParameters
-  filter: (ExtensionObject | null);
+  filter: ExtensionObject | null;
   /**
    * if discardOldest === true, older items are removed from the queue when queue overflows
    */
@@ -344,7 +321,6 @@ function isSourceNewerThan(a: DataValue, b?: DataValue): boolean {
  *
  */
 export class MonitoredItem extends EventEmitter {
-
   public get node(): BaseNode | null {
     return this._node;
   }
@@ -354,9 +330,9 @@ export class MonitoredItem extends EventEmitter {
   }
 
   public static registry = new ObjectRegistry();
-  public static minimumSamplingInterval = 50;              // 50 ms as a minimum sampling interval
-  public static defaultSamplingInterval = 1500;            // 1500 ms as a default sampling interval
-  public static maximumSamplingInterval = 1000 * 60 * 60;  // 1 hour !
+  public static minimumSamplingInterval = 50; // 50 ms as a minimum sampling interval
+  public static defaultSamplingInterval = 1500; // 1500 ms as a default sampling interval
+  public static maximumSamplingInterval = 1000 * 60 * 60; // 1 hour !
 
   public samplingInterval: number = -1;
   public monitoredItemId: number;
@@ -371,11 +347,9 @@ export class MonitoredItem extends EventEmitter {
   public clientHandle?: number;
   public $subscription?: ISubscription;
   public _samplingId?: TimerKey | string;
-  public samplingFunc: ((
-    this: MonitoredItem,
-    value: DataValue,
-    callback: (err: Error | null, dataValue?: DataValue) => void
-  ) => void) | null = null;
+  public samplingFunc:
+    | ((this: MonitoredItem, value: DataValue, callback: (err: Error | null, dataValue?: DataValue) => void) => void)
+    | null = null;
 
   private _node: BaseNode | null;
   private queue: QueueItem[];
@@ -388,7 +362,6 @@ export class MonitoredItem extends EventEmitter {
   private _on_node_disposed_listener: any;
 
   constructor(options: MonitoredItemOptions) {
-
     super();
 
     assert(options.hasOwnProperty("monitoredItemId"));
@@ -436,7 +409,6 @@ export class MonitoredItem extends EventEmitter {
   }
 
   public setMonitoringMode(monitoringMode: MonitoringMode) {
-
     assert(monitoringMode !== MonitoringMode.Invalid);
 
     if (monitoringMode === this.monitoringMode) {
@@ -449,7 +421,6 @@ export class MonitoredItem extends EventEmitter {
     this.monitoringMode = monitoringMode;
 
     if (this.monitoringMode === MonitoringMode.Disabled) {
-
       this._stop_sampling();
 
       // OPCUA 1.03 part 4 : $5.12.4
@@ -464,11 +435,9 @@ export class MonitoredItem extends EventEmitter {
       // SAMPLING or REPORTING) or it is created in the enabled state, the Server shall report the first
       // sample as soon as possible and the time of this sample becomes the starting point for the next
       // sampling interval.
-      const recordInitialValue = (old_monitoringMode === MonitoringMode.Invalid ||
-        old_monitoringMode === MonitoringMode.Disabled);
+      const recordInitialValue = old_monitoringMode === MonitoringMode.Invalid || old_monitoringMode === MonitoringMode.Disabled;
 
       this._start_sampling(recordInitialValue);
-
     }
   }
 
@@ -518,12 +487,10 @@ export class MonitoredItem extends EventEmitter {
     this._attribute_changed_callback = null;
     this._semantic_changed_callback = null;
     this._on_opcua_event_received_callback = null;
-
   }
 
   public get isSampling(): boolean {
-    return !!this._samplingId || _.isFunction(this._value_changed_callback) ||
-      _.isFunction(this._attribute_changed_callback);
+    return !!this._samplingId || _.isFunction(this._value_changed_callback) || _.isFunction(this._attribute_changed_callback);
   }
 
   /**
@@ -539,23 +506,18 @@ export class MonitoredItem extends EventEmitter {
    *    of the contain at the time recordValue was called.
    *
    */
-  public recordValue(
-    dataValue: DataValue,
-    skipChangeTest: boolean,
-    indexRange?: NumericRange
-  ) {
-
+  public recordValue(dataValue: DataValue, skipChangeTest: boolean, indexRange?: NumericRange) {
     assert(dataValue instanceof DataValue);
-    assert(dataValue !== this.oldDataValue,
-      "recordValue expects different dataValue to be provided");
+    assert(dataValue !== this.oldDataValue, "recordValue expects different dataValue to be provided");
 
-    assert(!dataValue.value || dataValue.value !== this.oldDataValue!.value,
-      "recordValue expects different dataValue.value to be provided");
+    assert(
+      !dataValue.value || dataValue.value !== this.oldDataValue!.value,
+      "recordValue expects different dataValue.value to be provided"
+    );
 
-    assert(!dataValue.value || dataValue.value.isValid(),
-      "expecting a valid variant value");
+    assert(!dataValue.value || dataValue.value.isValid(), "expecting a valid variant value");
 
-    const hasSemanticChanged = this.node && ((this.node as any).semantic_version !== this._semantic_version);
+    const hasSemanticChanged = this.node && (this.node as any).semantic_version !== this._semantic_version;
 
     // xx   console.log("`\n----------------------------",skipChangeTest,this.clientHandle,
     //             this.node.listenerCount("value_changed"),this.node.nodeId.toString());
@@ -577,9 +539,13 @@ export class MonitoredItem extends EventEmitter {
 
     // istanbul ignore next
     if (doDebug) {
-      debugLog("MonitoredItem#recordValue",
+      debugLog(
+        "MonitoredItem#recordValue",
         this.node!.nodeId.toString(),
-        this.node!.browseName.toString(), " has Changed = ", !sameDataValue(dataValue, this.oldDataValue!));
+        this.node!.browseName.toString(),
+        " has Changed = ",
+        !sameDataValue(dataValue, this.oldDataValue!)
+      );
     }
 
     // if semantic has changed, value need to be enqueued regardless of other assumptions
@@ -618,7 +584,6 @@ export class MonitoredItem extends EventEmitter {
     }
     // store last value
     this._enqueue_value(dataValue);
-
   }
 
   get hasMonitoredItemNotifications(): boolean {
@@ -626,7 +591,6 @@ export class MonitoredItem extends EventEmitter {
   }
 
   public extractMonitoredItemNotifications() {
-
     if (this.monitoringMode !== MonitoringMode.Reporting) {
       return [];
     }
@@ -635,7 +599,6 @@ export class MonitoredItem extends EventEmitter {
 
     // apply semantic changed bit if necessary
     if (notifications.length > 0 && this.node && this._semantic_version < (this.node as any).semantic_version) {
-
       const dataValue = notifications[notifications.length - 1];
       setSemanticChangeBit(dataValue);
       this._semantic_version = (this.node as any).semantic_version;
@@ -644,11 +607,7 @@ export class MonitoredItem extends EventEmitter {
     return notifications;
   }
 
-  public modify(
-    timestampsToReturn: TimestampsToReturn,
-    monitoringParameters: MonitoringParameters
-  ): MonitoredItemModifyResult {
-
+  public modify(timestampsToReturn: TimestampsToReturn, monitoringParameters: MonitoringParameters): MonitoredItemModifyResult {
     assert(monitoringParameters instanceof MonitoringParameters);
 
     const old_samplingInterval = this.samplingInterval;
@@ -684,17 +643,16 @@ export class MonitoredItem extends EventEmitter {
       revisedSamplingInterval: this.samplingInterval,
       statusCode: StatusCodes.Good
     });
-
   }
 
-  public resendInitialValues() {
+  public async resendInitialValues(): Promise<void> {
     // tte first Publish response(s) after the TransferSubscriptions call shall contain the current values of all
     // Monitored Items in the Subscription where the Monitoring Mode is set to Reporting.
     // the first Publish response after the TransferSubscriptions call shall contain only the value changes since
     // the last Publish response was sent.
     // This parameter only applies to MonitoredItems used for monitoring Attribute changes.
     this._stop_sampling();
-    this._start_sampling(true);
+    return this._start_sampling(true);
   }
 
   /**
@@ -704,15 +662,17 @@ export class MonitoredItem extends EventEmitter {
    *
    */
   private _on_sampling_timer() {
-
     // istanbul ignore next
     if (doDebug) {
-      debugLog("MonitoredItem#_on_sampling_timer",
-        this.node ? this.node.nodeId.toString() : "null", " isSampling?=", this._is_sampling);
+      debugLog(
+        "MonitoredItem#_on_sampling_timer",
+        this.node ? this.node.nodeId.toString() : "null",
+        " isSampling?=",
+        this._is_sampling
+      );
     }
 
     if (this._samplingId) {
-
       assert(this.monitoringMode === MonitoringMode.Sampling || this.monitoringMode === MonitoringMode.Reporting);
 
       if (this._is_sampling) {
@@ -731,7 +691,6 @@ export class MonitoredItem extends EventEmitter {
       this._is_sampling = true;
 
       this.samplingFunc.call(this, this.oldDataValue!, (err: Error | null, newDataValue?: DataValue) => {
-
         if (!this._samplingId) {
           // item has been dispose .... the monitored item has been disposed while the async sampling func
           // was taking place ... just ignore this
@@ -747,7 +706,6 @@ export class MonitoredItem extends EventEmitter {
         }
         this._is_sampling = false;
       });
-
     } else {
       /* istanbul ignore next */
       debugLog("_on_sampling_timer call but MonitoredItem has been terminated !!! ");
@@ -755,7 +713,6 @@ export class MonitoredItem extends EventEmitter {
   }
 
   private _stop_sampling() {
-
     // debugLog("MonitoredItem#_stop_sampling");
     if (!this.node) {
       throw new Error("Internal Error");
@@ -789,7 +746,6 @@ export class MonitoredItem extends EventEmitter {
       assert(!this._samplingId);
       this.node.removeListener("semantic_changed", this._semantic_changed_callback);
       this._semantic_changed_callback = null;
-
     }
     if (this._samplingId) {
       this._clear_timer();
@@ -800,7 +756,6 @@ export class MonitoredItem extends EventEmitter {
     assert(!this._semantic_changed_callback);
     assert(!this._attribute_changed_callback);
     assert(!this._on_opcua_event_received_callback);
-
   }
 
   private _on_value_changed(dataValue: DataValue, indexRange?: NumericRange) {
@@ -814,7 +769,6 @@ export class MonitoredItem extends EventEmitter {
   }
 
   private _on_opcua_event(eventData: IEventData) {
-
     // TO DO : => Improve Filtering, bearing in mind that ....
     // Release 1.04 8 OPC Unified Architecture, Part 9
     // 4.5 Condition state synchronization
@@ -834,9 +788,7 @@ export class MonitoredItem extends EventEmitter {
       return;
     }
 
-    const selectClauses = this.filter.selectClauses
-      ? this.filter.selectClauses
-      : ([] as SimpleAttributeOperand[]);
+    const selectClauses = this.filter.selectClauses ? this.filter.selectClauses : ([] as SimpleAttributeOperand[]);
 
     const eventFields: Variant[] = extractEventFields(SessionContext.defaultContext, selectClauses, eventData);
 
@@ -862,8 +814,8 @@ export class MonitoredItem extends EventEmitter {
     return this.$subscription.$session;
   }
 
-  private _start_sampling(recordInitialValue?: boolean) {
-
+  private async _start_sampling(recordInitialValue?: boolean): Promise<void> {
+    // istanbul ignore next
     if (!this.node) {
       throw new Error("Internal Error");
     }
@@ -878,11 +830,9 @@ export class MonitoredItem extends EventEmitter {
     });
 
     if (this.itemToMonitor.attributeId === AttributeIds.EventNotifier) {
-
       // istanbul ignore next
       if (doDebug) {
-        debugLog("xxxxxx monitoring EventNotifier on",
-          this.node.nodeId.toString(), this.node.browseName.toString());
+        debugLog("xxxxxx monitoring EventNotifier on", this.node.nodeId.toString(), this.node.browseName.toString());
       }
       // we are monitoring OPCUA Event
       this._on_opcua_event_received_callback = this._on_opcua_event.bind(this);
@@ -891,7 +841,6 @@ export class MonitoredItem extends EventEmitter {
       return;
     }
     if (this.itemToMonitor.attributeId !== AttributeIds.Value) {
-
       // sampling interval only applies to Value Attributes.
       this.samplingInterval = 0; // turned to exception-based regardless of requested sampling interval
 
@@ -905,13 +854,11 @@ export class MonitoredItem extends EventEmitter {
         // read initial value
         const dataValue = this.node.readAttribute(context, this.itemToMonitor.attributeId);
         this.recordValue(dataValue, true);
-
       }
       return;
     }
 
     if (this.samplingInterval === 0) {
-
       // we have a exception-based dataItem : event based model, so we do not need a timer
       // rather , we setup the "value_changed_event";
       this._value_changed_callback = this._on_value_changed.bind(this);
@@ -922,24 +869,28 @@ export class MonitoredItem extends EventEmitter {
 
       // initiate first read
       if (recordInitialValue) {
-        (this.node as UAVariable).readValueAsync(context, (err: Error | null, dataValue?: DataValue) => {
-          if (!err && dataValue) {
-            this.recordValue(dataValue, true);
-          }
+        await new Promise((resolve) => {
+          (this.node as UAVariable).readValueAsync(context, (err: Error | null, dataValue?: DataValue) => {
+            if (!err && dataValue) {
+              this.recordValue(dataValue, true);
+            }
+            resolve();
+          });
         });
       }
     } else {
-
       this._set_timer();
       if (recordInitialValue) {
-        setImmediate(() => {
-          // xx console.log("Record Initial Value ",this.node.nodeId.toString());
-          // initiate first read (this requires this._samplingId to be set)
-          this._on_sampling_timer();
+        await new Promise((resolve) => {
+          setImmediate(() => {
+            // xx console.log("Record Initial Value ",this.node.nodeId.toString());
+            // initiate first read (this requires this._samplingId to be set)
+            this._on_sampling_timer();
+            resolve();
+          });
         });
       }
     }
-
   }
 
   private _set_parameters(monitoredParameters: MonitoringParameters) {
@@ -951,26 +902,24 @@ export class MonitoredItem extends EventEmitter {
     // that the data item is exception-based rather than being sampled at some period. An exception-based
     // model means that the underlying system does not require sampling and reports data changes.
     if (this.node && this.node.nodeClass === NodeClass.Variable) {
-      this.samplingInterval = _adjust_sampling_interval(monitoredParameters.samplingInterval,
-        this.node ? (this.node as UAVariable).minimumSamplingInterval : 0);
+      this.samplingInterval = _adjust_sampling_interval(
+        monitoredParameters.samplingInterval,
+        this.node ? (this.node as UAVariable).minimumSamplingInterval : 0
+      );
     } else {
-      this.samplingInterval = _adjust_sampling_interval(monitoredParameters.samplingInterval,
-        0);
+      this.samplingInterval = _adjust_sampling_interval(monitoredParameters.samplingInterval, 0);
     }
     this.discardOldest = monitoredParameters.discardOldest;
     this.queueSize = _adjust_queue_size(monitoredParameters.queueSize);
 
     // change filter
-    this.filter = monitoredParameters.filter as MonitoringFilter || null;
-
+    this.filter = (monitoredParameters.filter as MonitoringFilter) || null;
   }
 
   private _setOverflowBit(notification: any) {
-
     if (notification.hasOwnProperty("value")) {
       assert(notification.value.statusCode.equals(StatusCodes.Good));
-      notification.value.statusCode =
-        StatusCode.makeStatusCode(notification.value.statusCode, "Overflow | InfoTypeDataValue");
+      notification.value.statusCode = StatusCode.makeStatusCode(notification.value.statusCode, "Overflow | InfoTypeDataValue");
       assert(_.isEqual(notification.value.statusCode, StatusCodes.GoodWithOverflowBit));
       assert(notification.value.statusCode.hasOverflowBit);
     }
@@ -981,16 +930,13 @@ export class MonitoredItem extends EventEmitter {
     // to do eventQueueOverFlowCount
   }
 
-  private _enqueue_notification(
-    notification: MonitoredItemNotification | EventFieldList
-  ) {
-
+  private _enqueue_notification(notification: MonitoredItemNotification | EventFieldList) {
     if (this.queueSize === 1) {
       // https://reference.opcfoundation.org/v104/Core/docs/Part4/5.12.1/#5.12.1.5
       // If the queue size is one, the queue becomes a buffer that always contains the newest
-      // Notification. In this case, if the sampling interval of the MonitoredItem is faster 
-      // than the publishing interval of the Subscription, the MonitoredItem will be over 
-      // sampling and the Client will always receive the most up-to-date value. 
+      // Notification. In this case, if the sampling interval of the MonitoredItem is faster
+      // than the publishing interval of the Subscription, the MonitoredItem will be over
+      // sampling and the Client will always receive the most up-to-date value.
       // The discard policy is ignored if the queue size is one.
       // ensure queuesize
       if (!this.queue || this.queue.length !== 1) {
@@ -998,15 +944,12 @@ export class MonitoredItem extends EventEmitter {
       }
       this.queue[0] = notification;
       assert(this.queue.length === 1);
-
     } else {
       if (this.discardOldest) {
-
         // push new value to queue
         this.queue.push(notification);
 
         if (this.queue.length > this.queueSize) {
-
           this.overflow = true;
 
           this.queue.shift(); // remove front element
@@ -1014,13 +957,10 @@ export class MonitoredItem extends EventEmitter {
           // set overflow bit
           this._setOverflowBit(this.queue[0]);
         }
-
       } else {
         if (this.queue.length < this.queueSize) {
-
           this.queue.push(notification);
         } else {
-
           this.overflow = true;
 
           this._setOverflowBit(notification);
@@ -1046,7 +986,6 @@ export class MonitoredItem extends EventEmitter {
    * @private
    */
   private _enqueue_value(dataValue: DataValue) {
-
     // preconditions:
 
     assert(dataValue instanceof DataValue);
@@ -1063,15 +1002,29 @@ export class MonitoredItem extends EventEmitter {
 
     // let's check that data Value is really a different object
     // we may end up with corrupted queue if dataValue are recycled and stored as is in notifications
-    assert(!this.oldDataValue || !dataValue.value || (dataValue.value !== this.oldDataValue.value),
-      "dataValue cannot be the same object twice!");
+    assert(
+      !this.oldDataValue || !dataValue.value || dataValue.value !== this.oldDataValue.value,
+      "dataValue cannot be the same object twice!"
+    );
 
-    if (!(!this.oldDataValue || !this.oldDataValue.value
-      || !dataValue.value || !(dataValue.value.value instanceof Object)
-      || (dataValue.value.value !== this.oldDataValue.value.value)) && !(dataValue.value.value instanceof Date)) {
-      throw new Error("dataValue.value.value cannot be the same object twice! "
-        + this.node!.browseName.toString() + " " + dataValue.toString() + "  " +
-        chalk.cyan(this.oldDataValue.toString()));
+    if (
+      !(
+        !this.oldDataValue ||
+        !this.oldDataValue.value ||
+        !dataValue.value ||
+        !(dataValue.value.value instanceof Object) ||
+        dataValue.value.value !== this.oldDataValue.value.value
+      ) &&
+      !(dataValue.value.value instanceof Date)
+    ) {
+      throw new Error(
+        "dataValue.value.value cannot be the same object twice! " +
+          this.node!.browseName.toString() +
+          " " +
+          dataValue.toString() +
+          "  " +
+          chalk.cyan(this.oldDataValue.toString())
+      );
     }
 
     // istanbul ignore next
@@ -1107,7 +1060,6 @@ export class MonitoredItem extends EventEmitter {
   }
 
   private _clear_timer() {
-
     if (this._samplingId) {
       if (useCommonTimer) {
         removeFromTimer(this);
@@ -1119,7 +1071,6 @@ export class MonitoredItem extends EventEmitter {
   }
 
   private _set_timer() {
-
     assert(this.samplingInterval >= MonitoredItem.minimumSamplingInterval);
     assert(!this._samplingId);
 
@@ -1135,14 +1086,11 @@ export class MonitoredItem extends EventEmitter {
   }
 
   private _adjust_queue_to_match_new_queue_size() {
-
     // adjust queue size if necessary
     if (this.queueSize < this.queue.length) {
-
       if (this.discardOldest) {
         this.queue.splice(0, this.queue.length - this.queueSize);
       } else {
-
         const lastElement = this.queue[this.queue.length - 1];
         // only keep queueSize first element, discard others
         this.queue.splice(this.queueSize);
@@ -1154,7 +1102,6 @@ export class MonitoredItem extends EventEmitter {
       // unset OverFlowBit
       if (this.queue.length === 1) {
         if (this.queue[0] instanceof MonitoredItemNotification) {
-
           const el = this.queue[0] as MonitoredItemNotification;
           if (el.value.statusCode.hasOverflowBit) {
             (el.value.statusCode as any).unset("Overflow | InfoTypeDataValue");
@@ -1172,13 +1119,14 @@ export class MonitoredItem extends EventEmitter {
   }
 
   private _on_node_disposed(node: BaseNode) {
-    this._on_value_changed(new DataValue({
-      sourceTimestamp: new Date(),
-      statusCode: StatusCodes.BadNodeIdInvalid
-    }));
+    this._on_value_changed(
+      new DataValue({
+        sourceTimestamp: new Date(),
+        statusCode: StatusCodes.BadNodeIdInvalid
+      })
+    );
     this._stop_sampling();
     node.removeListener("dispose", this._on_node_disposed_listener);
     this._on_node_disposed_listener = null;
   }
-
 }
