@@ -13,6 +13,7 @@ import {
     OPCUAClient,
     OPCUAClientOptions,
     SecurityPolicy,
+    UserTokenType
 } from "node-opcua";
 import { Certificate, toPem } from "node-opcua-crypto";
 
@@ -43,8 +44,7 @@ const argv = yargs(process.argv)
         alias: "D",
         describe: "specify the endpoint uri of discovery server (by default same as server endpoint uri)"
     })
-    .example("get_endpoints  --endpoint opc.tcp://localhost:49230", "")
-    .argv;
+    .example("get_endpoints  --endpoint opc.tcp://localhost:49230", "").argv;
 
 const securityMode = coerceMessageSecurityMode(argv.securityMode!);
 if (securityMode === MessageSecurityMode.Invalid) {
@@ -56,7 +56,6 @@ if (securityPolicy === SecurityPolicy.Invalid) {
     throw new Error("Invalid securityPolicy");
 }
 
-
 console.log(chalk.cyan("securityMode        = "), securityMode.toString());
 console.log(chalk.cyan("securityPolicy      = "), securityPolicy.toString());
 
@@ -66,12 +65,10 @@ if (!endpointUrl) {
     yargs.showHelp();
     process.exit(0);
 }
-const discoveryUrl = argv.discovery ? argv.discovery as string : endpointUrl;
+const discoveryUrl = argv.discovery ? (argv.discovery as string) : endpointUrl;
 
 async function main() {
-
     const optionsInitial: OPCUAClientOptions = {
-
         securityMode,
         securityPolicy,
 
@@ -133,7 +130,8 @@ async function main() {
         const certificate_filename = path.join(__dirname, "../certificates/PKI/server_certificate" + i + ".pem");
 
         if (serverCertificate) {
-            fs.writeFile(certificate_filename, toPem(serverCertificate, "CERTIFICATE"), () => {/**/
+            fs.writeFile(certificate_filename, toPem(serverCertificate, "CERTIFICATE"), () => {
+                /**/
             });
         }
         table.newRow();
@@ -142,11 +140,16 @@ async function main() {
     console.log(table.toString());
 
     for (const endpoint of endpoints) {
-        console.log("Identify Token for : Security Mode=", chalk.cyan(MessageSecurityMode[endpoint.securityMode].toString()), " Policy=", chalk.cyan(endpoint.securityPolicyUri));
+        console.log(
+            "Identify Token for : Security Mode=",
+            chalk.cyan(MessageSecurityMode[endpoint.securityMode].toString()),
+            " Policy=",
+            chalk.cyan(endpoint.securityPolicyUri)
+        );
         const table2 = new Table();
         for (const token of endpoint.userIdentityTokens!) {
             table2.cell("policyId", token.policyId);
-            table2.cell("tokenType", token.tokenType.toString());
+            table2.cell("tokenType", UserTokenType[token.tokenType]);
             table2.cell("issuedTokenType", token.issuedTokenType);
             table2.cell("issuerEndpointUrl", token.issuerEndpointUrl);
             table2.cell("securityPolicyUri", token.securityPolicyUri);
