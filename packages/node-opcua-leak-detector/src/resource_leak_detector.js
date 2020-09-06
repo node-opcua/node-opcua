@@ -2,9 +2,7 @@
 Error.stackTraceLimit = Infinity;
 
 const { assert } = require("node-opcua-assert");
-const _ = require("underscore");
-const chalk = require("chalk");
-
+const { isFunction } = require("util");
 
 const ObjectRegistry = require("node-opcua-object-registry").ObjectRegistry;
 ObjectRegistry.doDebug = true;
@@ -73,34 +71,36 @@ ResourceLeakDetector.prototype.verify_registry_counts = function(info) {
 
     if (errorMessages.length) {
 
-        //xx        if (info) {
-        //xx            console.log(" TRACE : ", info);
-        //xx        }
-        console.log(errorMessages.join("\n"));
-        console.log("----------------------------------------------- more info");
+        if (!info.silent) {
 
-        console.log("||||||||||||||||||||||||||||||||||||||||||||||||||||||||||    setInterval/clearInterval");
-        _.forEach(self.interval_map, function(value, key) {
-            if (value && !value.disposed) {
-                console.log("key =", key, "value.disposed = ", value.disposed);
-                console.log(value.stack);//.split("\n"));
+            //xx        if (info) {
+            //xx            console.log(" TRACE : ", info);
+            //xx        }
+            console.log(errorMessages.join("\n"));
+            console.log("----------------------------------------------- more info");
+
+            console.log("||||||||||||||||||||||||||||||||||||||||||||||||||||||||||    setInterval/clearInterval");
+            for (const [key, value] of Object.entries(self.interval_map)) {
+                if (value && !value.disposed) {
+                    console.log("key =", key, "value.disposed = ", value.disposed);
+                    console.log(value.stack);//.split("\n"));
+                }
             }
-        });
 
 
-        console.log("||||||||||||||||||||||||||||||||||||||||||||||||||||||||||    setTimeout/clearTimeout");
-        _.forEach(self.timeout_map, function(value, key) {
-            if (value && !value.disposed) {
-                console.log("setTimeout key =", key, "value.disposed = ", value.disposed);
-                console.log(value.stack);//.split("\n"));
+            console.log("||||||||||||||||||||||||||||||||||||||||||||||||||||||||||    setTimeout/clearTimeout");
+            for (const [key, value] of Object.entries(self.timeout_map)) {
+                if (value && !value.disposed) {
+                    console.log("setTimeout key =", key, "value.disposed = ", value.disposed);
+                    console.log(value.stack);//.split("\n"));
+                }
             }
-        });
 
 
-        console.log("LEAKS in  => ", self.ctx ? self.ctx.test.parent.file + "  " + self.ctx.test.parent.title : "???");
-        throw new Error("LEAKS !!!" + errorMessages.join("\n"));
+            console.log("LEAKS in  => ", self.ctx ? self.ctx.test.parent.file + "  " + self.ctx.test.parent.title : "???");
+            throw new Error("LEAKS !!!" + errorMessages.join("\n"));
+        }
     }
-
 };
 
 global.hasResourceLeakDetector = true;
@@ -141,7 +141,7 @@ ResourceLeakDetector.prototype.start = function(info) {
             assert(arguments.length === 2, "current limitation:  setTimeout must be called with 2 arguments");
             // detect invalid delays
             assert(delay !== undefined);
-            assert(_.isFinite(delay));
+            assert(isFinite(delay));
             if (delay < 0) {
                 console.log("GLOBAL#setTimeout called with a too small delay = " + delay.toString());
                 throw new Error("GLOBAL#setTimeout called with a too small delay = " + delay.toString());
@@ -229,7 +229,7 @@ ResourceLeakDetector.prototype.start = function(info) {
     global.setInterval = function(func, delay) {
         assert(arguments.length === 2);
         assert(delay !== undefined);
-        assert(_.isFinite(delay));
+        assert(isFinite(delay));
         if (delay <= 10) {
             throw new Error("GLOBAL#setInterval called with a too small delay = " + delay.toString());
         }
@@ -301,7 +301,7 @@ ResourceLeakDetector.prototype.stop = function(info) {
     if (trace) {
         console.log(" stop resourceLeakDetector");
     }
-    assert(_.isFunction(self.setInterval_old), " did you forget to call resourceLeakDetector.start() ?");
+    assert(isFunction(self.setInterval_old), " did you forget to call resourceLeakDetector.start() ?");
 
     global.setInterval = self.setInterval_old;
     self.setInterval_old = null;
@@ -323,7 +323,7 @@ ResourceLeakDetector.prototype.stop = function(info) {
 
 
     // call garbage collector
-    if (_.isFunction(global.gc)) {
+    if (isFunction(global.gc)) {
         global.gc(true);
     }
 
@@ -343,12 +343,15 @@ const resourceLeakDetector = ResourceLeakDetector.singleton;
 
 const trace_from_this_project_only = require("node-opcua-debug").trace_from_this_projet_only;
 
+let testHasFailed = false;
+
 exports.installResourceLeakDetector = function(isGlobal, func) {
 
     const trace = trace_from_this_project_only();
-
+    testHasFailed = false;
     if (isGlobal) {
         before(function() {
+            testHasFailed = false;
             const self = this;
             resourceLeakDetector.ctx = self.test.ctx;
             resourceLeakDetector.start();
@@ -367,7 +370,7 @@ exports.installResourceLeakDetector = function(isGlobal, func) {
             func.call(this);
         }
         after(function() {
-            resourceLeakDetector.stop(null);
+            resourceLeakDetector.stop({ silent: testHasFailed });
             resourceLeakDetector.ctx = false;
             // make sure we start with a garbage collected situation
             if (global.gc) {
@@ -387,7 +390,7 @@ exports.installResourceLeakDetector = function(isGlobal, func) {
             resourceLeakDetector.start();
         });
         afterEach(function() {
-            resourceLeakDetector.stop(trace);
+            resourceLeakDetector.stop({ silent: testHasFailed });
             resourceLeakDetector.ctx = false;
             // make sure we start with a garbage collected situation
             if (global.gc) {
@@ -399,7 +402,36 @@ exports.installResourceLeakDetector = function(isGlobal, func) {
 };
 
 const global_describe = describe;
-assert(_.isFunction(global_describe), " expecting mocha to be defined");
+const global_it = it;
+function replacement_it(testName, f) {
+    if (!f) { return; }
+    if (f.length) {
+        const f1 = function(done) {
+            f.call(this, (err) => {
+                if (err) {
+                    testHasFailed = true;
+                }
+                done(err);
+            });
+        }
+        global_it(testName, f1);
+        return;
+    }
+    const ff = async function() {
+        let r;
+        try {
+            r = await f.call(this);
+        }
+        catch (err) {
+            testHasFailed = true;
+            throw err;
+        }
+        return r;
+    }
+    global_it(testName, ff);
+};
+assert(isFunction(global_describe), " expecting mocha to be defined");
+
 
 let g_indescribeWithLeakDetector = false;
 exports.describeWithLeakDetector = function(message, func) {
@@ -407,9 +439,11 @@ exports.describeWithLeakDetector = function(message, func) {
         return global_describe(message, func);
     }
     g_indescribeWithLeakDetector = true;
+    global.it = replacement_it;
     global_describe.call(this, message, function() {
         exports.installResourceLeakDetector.call(this, true, func);
         g_indescribeWithLeakDetector = false;
+        global.it = global_it;
     });
 };
 
