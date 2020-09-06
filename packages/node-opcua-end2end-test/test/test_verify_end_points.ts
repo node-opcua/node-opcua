@@ -18,7 +18,7 @@ describe("Verifying Server Endpoint", () => {
         await server.shutdown();
     });
 
-    it("should not have duplicated policies", async () => {
+    it("should not have duplicated policies inside a single endpoint", async () => {
         // given a server
         const client = OPCUAClient.create({ endpoint_must_exist: false });
 
@@ -45,6 +45,40 @@ describe("Verifying Server Endpoint", () => {
 
                 duplicatedPolicies.should.eql([], "endpoint " + e.securityPolicyUri + " must not exhibit duplicated policies");
             }
+        } catch (err) {
+            throw err;
+        } finally {
+            await client.disconnect();
+        }
+    });
+    it("should not have duplicated policies within the server", async () => {
+        // given a server
+        const client = OPCUAClient.create({ endpoint_must_exist: false });
+
+        await client.connect(endpointUri);
+
+        const endpointDescriptions = await client.getEndpoints();
+
+        try {
+            const counters: { [key: string]: number } = {};
+
+            for (const e of endpointDescriptions) {
+                // console.log(e.toString());
+                const policyIds = e.userIdentityTokens!.map((a) => a.policyId!);
+
+                policyIds?.forEach((a: string) => {
+                    counters[a] = (counters[a] || 0) + 1;
+                });
+            }
+            const duplicatedPolicies = Object.entries(counters)
+                .filter(([k, v]) => v !== 1)
+                .map(([k, v]) => k);
+
+            if (duplicatedPolicies.length) {
+                console.log("duplicated policies", duplicatedPolicies);
+            }
+
+            duplicatedPolicies.should.eql([], "duplicated policies found");
         } catch (err) {
             throw err;
         } finally {
