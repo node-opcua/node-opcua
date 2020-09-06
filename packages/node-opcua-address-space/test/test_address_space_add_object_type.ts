@@ -8,11 +8,7 @@ import { AddressSpace, InstantiateObjectOptions, Namespace, UAObject, UAObjectTy
 import { NodeClass } from "node-opcua-data-model";
 import { getMiniAddressSpace } from "../";
 import { createCameraType } from "./fixture_camera_type";
-import {
-    createTemperatureSensorType,
-    TemperatureSensor,
-    TemperatureSensorType
-} from "./fixture_temperature_sensor_type";
+import { createTemperatureSensorType, TemperatureSensor, TemperatureSensorType } from "./fixture_temperature_sensor_type";
 
 interface MockMachine extends UAObject {
     temperatureSensor: UAVariable;
@@ -27,20 +23,19 @@ interface MockMachineType extends UAObjectType {
 }
 
 function createMachineType(addressSpace: AddressSpace): MockMachineType {
-
     const namespace = addressSpace.getOwnNamespace();
 
     const temperatureSensorType = createTemperatureSensorType(addressSpace);
 
     // -------------------------------------------- MachineType
     const machineTypeNode = namespace.addObjectType({
-        browseName: "MachineType"
+        browseName: "MachineType",
     }) as MockMachineType;
 
     const machineTypeTemperatureSensorNode = temperatureSensorType.instantiate({
         browseName: "TemperatureSensor",
         componentOf: machineTypeNode,
-        modellingRule: "Mandatory"
+        modellingRule: "Mandatory",
     });
 
     should.exist(machineTypeNode.temperatureSensor);
@@ -52,7 +47,7 @@ function createMachineType(addressSpace: AddressSpace): MockMachineType {
         dataType: "Boolean",
         modellingRule: "Mandatory",
         propertyOf: machineTypeNode,
-        value: { dataType: DataType.Boolean, value: false }
+        value: { dataType: DataType.Boolean, value: false },
     });
 
     should.exist(machineTypeNode.heaterSwitch);
@@ -69,12 +64,10 @@ interface SpecialTemperatureSensor extends TemperatureSensor {
 }
 
 interface SpecialTemperatureSensorType extends TemperatureSensorType {
-
     instantiate(options: InstantiateObjectOptions): SpecialTemperatureSensor;
 }
 
 function createSpecialTempSensorType(addressSpace: AddressSpace): SpecialTemperatureSensorType {
-
     const namespace = addressSpace.getOwnNamespace();
 
     const temperatureSensorType = addressSpace.findObjectType("1:TemperatureSensorType")!;
@@ -82,7 +75,7 @@ function createSpecialTempSensorType(addressSpace: AddressSpace): SpecialTempera
 
     const specialTemperatureSensorTypeNode = namespace.addObjectType({
         browseName: "SpecialTemperatureSensorType",
-        subtypeOf: temperatureSensorType
+        subtypeOf: temperatureSensorType,
     }) as SpecialTemperatureSensorType;
 
     return specialTemperatureSensorTypeNode;
@@ -91,7 +84,6 @@ function createSpecialTempSensorType(addressSpace: AddressSpace): SpecialTempera
 // tslint:disable-next-line:no-var-requires
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("testing add new ObjectType ", () => {
-
     let addressSpace: AddressSpace;
     let namespace: Namespace;
 
@@ -104,18 +96,19 @@ describe("testing add new ObjectType ", () => {
     });
 
     it("should create a new TemperatureSensorType", async () => {
-
         const machineTypeNode = createMachineType(addressSpace);
 
         // perform some verification on temperatureSensorType
         const temperatureSensorType = addressSpace.findObjectType(
-          "TemperatureSensorType", namespace.index)! as TemperatureSensorType;
+            "TemperatureSensorType",
+            namespace.index
+        )! as TemperatureSensorType;
 
         should.exist(temperatureSensorType.temperature);
 
         const temperatureSensor = temperatureSensorType.instantiate({
             browseName: "Test",
-            organizedBy: "RootFolder"
+            organizedBy: "RootFolder",
         });
         should.exist(temperatureSensor.temperature);
 
@@ -142,23 +135,21 @@ describe("testing add new ObjectType ", () => {
 
         const specialSensor = specialTemperatureSensorTypeNode.instantiate({
             browseName: "mySpecialSensor",
-            organizedBy: "RootFolder"
+            organizedBy: "RootFolder",
         });
 
         specialSensor.should.have.property("typeDefinitionObj");
         // xx should.not.exist(specialSensor.subtypeOfObj);//, "Object should not have SubType");
         specialSensor.typeDefinitionObj.browseName.toString().should.eql("1:SpecialTemperatureSensorType");
         should.exist(specialSensor.temperature);
-
     });
 
     it("should create a new CameraType with Method", async () => {
-
         const cameraType = createCameraType(addressSpace);
 
         const camera1 = cameraType.instantiate({
             browseName: "Camera1",
-            organizedBy: "RootFolder"
+            organizedBy: "RootFolder",
         });
 
         camera1.browseName.toString().should.eql("1:Camera1");
@@ -172,6 +163,14 @@ describe("testing add new ObjectType ", () => {
 
         cameraType.getComponents()[0].nodeClass.should.eql(NodeClass.Method);
         cameraType.getComponents()[0].nodeId.toString().should.not.eql(c[0].nodeId.toString());
-    });
+        cameraType.getComponents()[0].browseName.toString().should.eql("1:Trigger");
 
+        cameraType.getMethodByName("Trigger")!.nodeClass.should.eql(NodeClass.Method);
+        camera1.getMethodByName("Trigger")!.nodeClass.should.eql(NodeClass.Method);
+
+        camera1
+            .getMethodByName("Trigger")!
+            .methodDeclarationId.toString()
+            .should.eql(cameraType.getMethodByName("Trigger")!.nodeId.toString());
+    });
 });
