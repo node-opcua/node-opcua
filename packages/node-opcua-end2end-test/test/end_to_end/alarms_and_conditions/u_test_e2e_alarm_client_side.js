@@ -13,6 +13,7 @@ const { construct_demo_alarm_in_address_space } = require("node-opcua-address-sp
 const chalk = require("chalk");
 const { perform_operation_on_subscription_async } = require("../../../test_helpers/perform_operation_on_client_session");
 
+const doDebug = false;
 const Table = require("cli-table3");
 
 const truncate = require('cli-truncate');
@@ -61,6 +62,27 @@ module.exports = function(test) {
     describe("A&C3 client side alarm monitoring", () => {
 
         let client;
+        function resetConditions(test) {
+            // set alarms to a known state
+            test.tankLevelCondition.setEnabledState(true);
+            test.tankLevelCondition.currentBranch().setRetain(false);
+            test.tankLevelCondition.currentBranch().setAckedState(false);
+            test.tankLevelCondition.currentBranch().setConfirmedState(false);
+
+            test.tankLevelCondition2.setEnabledState(true);
+            test.tankLevelCondition2.currentBranch().setRetain(false);
+            test.tankLevelCondition2.currentBranch().setAckedState(false);
+            test.tankLevelCondition2.currentBranch().setConfirmedState(false);
+
+            // put the level value at non alarming position
+            test.tankLevel.setValueFromSource({ dataType: "Double", value: 0.5 });
+            test.tankLevel2.setValueFromSource({ dataType: "Double", value: 0.5 })
+
+            // xx console.log(test.tankLevelCondition.currentBranch().toString());
+            // xx console.log(test.tankLevelCondition2.currentBranch().toString());
+
+        }
+
         before(() => {
 
             // add a condition to the server
@@ -72,60 +94,59 @@ module.exports = function(test) {
                 keepSessionAlive: true
             });
 
-            function resetConditions(test) {
-                // set alarms to a known state
-                test.tankLevelCondition.setEnabledState(true);
-                test.tankLevelCondition.currentBranch().setRetain(false);
-                test.tankLevelCondition.currentBranch().setAckedState(false);
-                test.tankLevelCondition.currentBranch().setConfirmedState(false);
-
-                test.tankLevelCondition2.setEnabledState(true);
-                test.tankLevelCondition2.currentBranch().setRetain(false);
-                test.tankLevelCondition2.currentBranch().setAckedState(false);
-                test.tankLevelCondition2.currentBranch().setConfirmedState(false);
-
-                // put the level value at non alarming position
-                test.tankLevel.setValueFromSource({ dataType: "Double", value: 0.5 });
-                test.tankLevel2.setValueFromSource({ dataType: "Double", value: 0.5 })
-
-                // xx console.log(test.tankLevelCondition.currentBranch().toString());
-                // xx console.log(test.tankLevelCondition2.currentBranch().toString());
-
-            }
-
+            resetConditions(test);
+        });
+        beforeEach(() => {
             resetConditions(test);
         });
         after(() => {
             client = null;
         });
 
-        function setAlarmHighHigh() {
+        function setAlarmInBound() {
+
+            const value = 0.50;
+            console.log("set tankLevel to = ", value);
             // let's simulate the tankLevel going to 99%
             // the alarm should be raised
             test.tankLevel.setValueFromSource({
                 dataType: "Double",
-                value: 0.99
+                value
+            });
+            /// test.tankLevelCondition.limitState.getCurrentState().should.eql("HighHigh");
+        }
+        function setAlarmHighHigh() {
+
+            const value = 0.99;
+            console.log("set tankLevel to = ", value);
+            // let's simulate the tankLevel going to 99%
+            // the alarm should be raised
+            test.tankLevel.setValueFromSource({
+                dataType: "Double",
+                value
             });
             test.tankLevelCondition.limitState.getCurrentState().should.eql("HighHigh");
         }
         function setAlarmLowLow() {
+            const value = 0.01;
+            console.log("set tankLevel to = ", value);
             // let's simulate the tankLevel going to 1%
             // the alarm should be raised
             test.tankLevel.setValueFromSource({
                 dataType: "Double",
-                value: 0.01
+                value
             });
-            test.tankLevelCondition.limitState.getCurrentState().should.eql("LowLow");
+            test.tankLevelCondition.limitState.getCurrentState().should.eql("Low");
         }
         async function pause() {
-            await new Promise((resolve) => setTimeout(resolve, 500));
+            await new Promise((resolve) => setTimeout(resolve, 1500));
         }
         it("should monitor all alarms", async () => {
 
             await perform_operation_on_subscription_async(client, test.endpointUrl,
                 async (session, subscription) => {
 
-
+                    setAlarmInBound();
                     // make sure no alarm exists anymore
                     try {
 
@@ -136,7 +157,7 @@ module.exports = function(test) {
 
                             function n(o) {
                                 const no = test.tankLevel.addressSpace.findNode(o);
-                                return no ? no.browseName.toString() + " " + no.nodeId.toString() : o.toString();
+                                return no ? no.browseName.toString() + " " + no.nodeId.toString(test.tankLevel.addressSpace) : o.toString(test.tankLevel.addressSpace);
                             }
                             function dd(alarm) {
                                 const a = alarm.fields;
@@ -152,14 +173,18 @@ module.exports = function(test) {
                         const addressSpace = test.server.engine.addressSpace;
                         const server = addressSpace.findNode("Server");
                         server.on("event", (eventData/*: RaiseEventData*/) => {
-                            return;
-                            console.log("qqqqqqqqqqqqqqqqqqqqqq");
-                            console.log(eventData.eventId.value.toString("hex"));
-                            console.log(eventData.eventType.value);
-                            if (eventData.retain) {
-                                console.log("retain = ", eventData.retain.value);
+                            console.log(
+                                "server send event ",
+                                eventData.eventId.value.toString("hex"),
+                                eventData.eventType.value.toString({
+                                    addressSpace: test.tankLevel.addressSpace
+                                }),
+                                "retain = ", eventData.retain ? eventData.retain.value : false,
+                                "message", (eventData.message && eventData.message.value) ? eventData.message.value.toString() : ""
+                            );
+                            if (doDebug) {
+                                console.log("    event data = ", Object.keys(eventData).join(" "));
                             }
-                            console.log(Object.keys(eventData).join(" "));
                         });
 
                         // Given a client that monitor alarms
@@ -171,8 +196,12 @@ module.exports = function(test) {
                         // we should have no alarm  to start with
                         alarms.length.should.eql(0);
 
-                        // When tankLevel goes to 0.1 then alarm should switcj to LowLow 
-                        test.tankLevel.setValueFromSource({ dataType: "Double", value: 0.1 });
+                        // When tankLevel goes to 0.1 then alarm should switch to LowLow 
+                        console.log("When tankLevel goes to 0.1 then alarm should switch to LowL");
+                        setAlarmLowLow();
+                        // test.tankLevel.setValueFromSource({ dataType: "Double", value: 0.1 });
+
+
                         await pause();
                         displayAlarms(alarms);
                         alarms.length.should.eql(1);
@@ -245,6 +274,7 @@ module.exports = function(test) {
                         await uninstallAlarmMonitoring(session);
                     } catch (err) {
                         console.log(err);
+                        throw err;
                     }
                 });
 
