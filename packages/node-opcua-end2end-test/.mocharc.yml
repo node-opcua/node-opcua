@@ -1,0 +1,9 @@
+require:
+  - ../../node_modules/source-map-support/register
+  - ../../node_modules/ts-node/register/transpile-only
+recursive: tue
+bail: true
+extension:
+  - js
+  - ts
+timeout: 500000

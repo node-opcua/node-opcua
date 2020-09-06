@@ -25,7 +25,7 @@ import { ServiceFault } from "node-opcua-service-secure-channel";
 import { StatusCode, StatusCodes } from "node-opcua-status-code";
 import { ApplicationDescriptionOptions } from "node-opcua-types";
 import { EndpointDescription, GetEndpointsRequest } from "node-opcua-types";
-import { OPCUAServerEndPoint, } from "./server_end_point";
+import { OPCUAServerEndPoint } from "./server_end_point";
 import { IChannelData } from "./i_channel_data";
 import { ISocketData } from "./i_socket_data";
 
@@ -59,7 +59,7 @@ const default_server_info = {
 
     discoveryProfileUri: "",
 
-    discoveryUrls: [],
+    discoveryUrls: []
 };
 
 function cleanupEndpoint(endpoint: OPCUAServerEndPoint) {
@@ -127,11 +127,9 @@ export class OPCUABaseServer extends OPCUASecureObject {
 
     constructor(options?: OPCUABaseServerOptions) {
         options = options || ({} as OPCUABaseServerOptions);
-        options.certificateFile =
-            options.certificateFile || constructFilename("certificates/server_selfsigned_cert_2048.pem");
+        options.certificateFile = options.certificateFile || constructFilename("certificates/server_selfsigned_cert_2048.pem");
 
-        options.privateKeyFile =
-            options.privateKeyFile || constructFilename("certificates/PKI/own/private/private_key.pem");
+        options.privateKeyFile = options.privateKeyFile || constructFilename("certificates/PKI/own/private/private_key.pem");
 
         super(options);
 
@@ -156,7 +154,7 @@ export class OPCUABaseServer extends OPCUASecureObject {
         this.serverCertificateManager =
             options.serverCertificateManager ||
             new OPCUACertificateManager({
-                name: "certificates",
+                name: "certificates"
             });
     }
 
@@ -174,20 +172,23 @@ export class OPCUABaseServer extends OPCUASecureObject {
         assert(_.isArray(this.endpoints));
         assert(this.endpoints.length > 0, "We need at least one end point");
         callbackify(extractFullyQualifiedDomainName)((err: Error | null, fqdn: string) => {
-
-            const _on_new_channel = function(this: OPCUAServerEndPoint, channel: ServerSecureChannelLayer)  {
+            const _on_new_channel = function (this: OPCUAServerEndPoint, channel: ServerSecureChannelLayer) {
                 self.emit("newChannel", channel, this);
             };
             const _on_close_channel = function (this: OPCUAServerEndPoint, channel: ServerSecureChannelLayer) {
                 self.emit("closeChannel", channel, this);
             };
 
-            const _on_connectionRefused = function (this: OPCUAServerEndPoint, socketData: ISocketData)  {
+            const _on_connectionRefused = function (this: OPCUAServerEndPoint, socketData: ISocketData) {
                 self.emit("connectionRefused", socketData, this);
-            }
-            const _on_openSecureChannelFailure = function(this: OPCUAServerEndPoint, socketData: ISocketData, channelData: IChannelData) {
+            };
+            const _on_openSecureChannelFailure = function (
+                this: OPCUAServerEndPoint,
+                socketData: ISocketData,
+                channelData: IChannelData
+            ) {
                 self.emit("openSecureChannelFailure", socketData, channelData, this);
-            }
+            };
 
             async.forEach(
                 this.endpoints,
@@ -253,7 +254,7 @@ export class OPCUABaseServer extends OPCUASecureObject {
                         (callback2: (err?: Error | null) => void) => {
                             endpoint.abruptlyInterruptChannels();
                             endpoint.shutdown(callback2);
-                        },
+                        }
                         // xx              (callback2: (err?: Error| null) => void) => {
                         // xx                 endpoint.restoreConnection(callback2);
                         // xx              }
@@ -415,9 +416,7 @@ export class OPCUABaseServer extends OPCUASecureObject {
 
         response.endpoints = server._get_endpoints();
 
-        response.endpoints = response.endpoints.filter(
-            (endpoint: EndpointDescription) => !(endpoint as any).restricted
-        );
+        response.endpoints = response.endpoints.filter((endpoint: EndpointDescription) => !(endpoint as any).restricted);
 
         // apply filters
         if (request.profileUris && request.profileUris.length > 0) {
@@ -473,12 +472,12 @@ export class OPCUABaseServer extends OPCUASecureObject {
                     discoveryProfileUri: applicationDescription.discoveryProfileUri,
                     discoveryUrls: applicationDescription.discoveryUrls,
                     gatewayServerUri: applicationDescription.gatewayServerUri,
-                    productUri: applicationDescription.productUri,
+                    productUri: applicationDescription.productUri
                 });
             }
 
             const response = new FindServersResponse({
-                servers: servers.map(adapt),
+                servers: servers.map(adapt)
             });
 
             channel.send_response("MSG", response, message, emptyCallback);
