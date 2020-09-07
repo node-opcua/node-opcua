@@ -1,6 +1,6 @@
 {
     "name": "node-opcua-certificate-manager",
-    "version": "2.13.0",
+    "version": "2.14.0",
     "description": "pure nodejs OPCUA SDK - module -client",
     "scripts": {
         "certificate": "node test_helpers/create_certificates.js certificate -s -o certificates/client_selfsigned_cert_2048.pem",
@@ -39,7 +39,7 @@
         "@types/async": "^3.2.3",
         "@types/underscore": "^1.10.20",
         "dequeue": "^1.0.5",
-        "node-opcua-leak-detector": "2.11.0",
+        "node-opcua-leak-detector": "2.14.0",
         "should": "^13.2.3",
         "sinon": "^9.0.2"
     },
