@@ -23,7 +23,7 @@ import {
     isValidUInt16,
     isValidUInt32,
     isValidUInt64,
-    isValidUInt8
+    isValidUInt8,
 } from "node-opcua-basic-types";
 import { LocalizedText, QualifiedName } from "node-opcua-data-model";
 import {
@@ -34,7 +34,7 @@ import {
     initialize_field_array,
     registerSpecialVariantEncoder,
     StructuredTypeSchema,
-    registerType
+    registerType,
 } from "node-opcua-factory";
 
 import * as utils from "node-opcua-utils";
@@ -52,27 +52,27 @@ const schemaVariant: StructuredTypeSchema = buildStructuredType({
             defaultValue: () => DataType.Null,
             documentation: "the variant type.",
             fieldType: "DataType",
-            name: "dataType"
+            name: "dataType",
         },
         {
             defaultValue: VariantArrayType.Scalar,
             fieldType: "VariantArrayType",
-            name: "arrayType"
+            name: "arrayType",
         },
         {
             defaultValue: null,
             fieldType: "Any",
-            name: "value"
+            name: "value",
         },
         {
             defaultValue: null,
             documentation: "the matrix dimensions",
             fieldType: "UInt32",
             isArray: true,
-            name: "dimensions"
-        }
+            name: "dimensions",
+        },
     ],
-    name: "Variant"
+    name: "Variant",
 });
 
 function _coerceVariant(variantLike: VariantOptions | Variant): Variant {
@@ -385,7 +385,7 @@ function constructHook(options: any): any {
             arrayType: options.arrayType,
             dataType: options.dataType,
             dimensions: options.dimensions,
-            value: options.value
+            value: options.value,
         };
         if (opts.dataType === DataType.ExtensionObject) {
             if (opts.arrayType === VariantArrayType.Scalar) {
@@ -453,9 +453,8 @@ function constructHook(options: any): any {
         assert(options.arrayType === VariantArrayType.Array || options.arrayType === VariantArrayType.Matrix);
         /* istanbul ignore else */
         if (options.arrayType === VariantArrayType.Array) {
-            options.value = options.value || [];
             const value1 = coerceVariantArray(options.dataType, options.value);
-            assert(value1 !== options.value);
+            assert(value1 === null || value1 !== options.value);
             options.value = value1;
         } else {
             assert(options.arrayType === VariantArrayType.Matrix);
@@ -557,7 +556,7 @@ interface BufferedArrayConstructor {
 function convertTo(dataType: DataType, arrayTypeConstructor: BufferedArrayConstructor | null, value: any) {
     // istanbul ignore next
     if (value === undefined || value === null) {
-        value = [];
+        return null;
     }
 
     if (arrayTypeConstructor && value instanceof arrayTypeConstructor) {
@@ -627,6 +626,11 @@ function encodeTypedArray(arrayTypeConstructor: BufferedArrayConstructor, stream
 }
 
 function encodeGeneralArray(dataType: DataType, stream: OutputBinaryStream, value: any) {
+    if (!value) {
+        assert(value === null);
+        encodeUInt32(0xffffffff, stream);
+        return;
+    }
     const arr = value || [];
     assert(arr instanceof Array);
     assert(_.isFinite(arr.length));
@@ -640,7 +644,7 @@ function encodeGeneralArray(dataType: DataType, stream: OutputBinaryStream, valu
 }
 
 function encodeVariantArray(dataType: DataType, stream: OutputBinaryStream, value: any) {
-    if (value.buffer) {
+    if (value && value.buffer) {
         try {
             return _getHelper(dataType).encode(stream, value);
         } catch (err) {
@@ -696,7 +700,7 @@ function _declareTypeArrayHelper(dataType: DataType, typedArrayConstructor: any)
     typedArrayHelpers[DataType[dataType]] = {
         coerce: convertTo.bind(null, dataType, typedArrayConstructor),
         decode: decodeTypedArray.bind(null, typedArrayConstructor),
-        encode: encodeTypedArray.bind(null, typedArrayConstructor)
+        encode: encodeTypedArray.bind(null, typedArrayConstructor),
     };
 }
 
@@ -876,6 +880,9 @@ function isValidScalarVariant(dataType: DataType, value: any): boolean {
 }
 
 function isValidArrayVariant(dataType: DataType, value: any): boolean {
+    if (value === null) {
+        return true;
+    }
     if (dataType === DataType.Float && value instanceof Float32Array) {
         return true;
     } else if (dataType === DataType.Double && value instanceof Float64Array) {
@@ -1061,5 +1068,5 @@ registerType({
     subType: "",
     coerce: _coerceVariant,
     encode: encodeVariant,
-    decode: decodeVariant
+    decode: decodeVariant,
 });

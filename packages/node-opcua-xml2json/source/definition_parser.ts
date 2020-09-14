@@ -4,10 +4,7 @@
 //   <Field>
 // </Definition>
 import assert from "node-opcua-assert";
-import {
-    ReaderStateParserLike,
-    XmlAttributes
-} from "./xml2json";
+import { ReaderStateParserLike, XmlAttributes } from "./xml2json";
 
 // <Definition Name="SomeName">
 //   <Field Name="Running" Value="0" dataType: [ValueRank="1"]>
@@ -37,8 +34,8 @@ export const _definitionParser: ReaderStateParserLike = {
                 Description: {
                     finish(this: any) {
                         this.parent.description = this.text;
-                    }
-                }
+                    },
+                },
             },
             finish(this: any) {
                 const obj: any = {
@@ -60,7 +57,7 @@ export const _definitionParser: ReaderStateParserLike = {
                     obj.valueRank = -1;
                 }
                 if (this.attrs.ArrayDimensions !== undefined) {
-                    obj.arrayDimensions = this.attrs.ArrayDimensions;
+                    obj.arrayDimensions = this.attrs.ArrayDimensions.split(",").map((e: string) => parseInt(e, 10));
                 }
 
                 obj.isOptional = this.attrs.IsOptional === "true" ? true : false;
@@ -69,19 +66,19 @@ export const _definitionParser: ReaderStateParserLike = {
                     obj.symbolicName = this.attrs.SymbolicName;
                 }
                 this.parent.array.push(obj);
-            }
-        }
-    }
+            },
+        },
+    },
 };
 export const definitionReaderStateParser: ReaderStateParserLike = {
     parser: {
-        Definition: _definitionParser
+        Definition: _definitionParser,
     },
     endElement(this: any) {
         this._pojo = {
             name: this.definitionName,
 
-            fields: this.definitionFields
+            fields: this.definitionFields,
         };
-    }
+    },
 };
