@@ -1161,7 +1161,7 @@ export function generateAddressSpace(
             this.obj.dataType = convertToNodeId(attrs.DataType);
 
             this.obj.valueRank = attrs.ValueRank === undefined ? -1 : ec.coerceInt32(attrs.ValueRank);
-            this.obj.arrayDimensions = this.obj.valueRank === -1 ? null : stringToUInt32Array(attrs.ArrayDimensions);
+            this.obj.arrayDimensions = this.obj.valueRank <= 0 ? null : stringToUInt32Array(attrs.ArrayDimensions);
 
             this.obj.minimumSamplingInterval = attrs.MinimumSamplingInterval ? parseInt(attrs.MinimumSamplingInterval, 10) : 0;
             this.obj.minimumSamplingInterval = parseInt(this.obj.minimumSamplingInterval, 10);
@@ -1241,7 +1241,7 @@ export function generateAddressSpace(
             this.obj.dataType = convertToNodeId(attrs.DataType) || null;
 
             this.obj.valueRank = ec.coerceInt32(attrs.ValueRank) || -1;
-            this.obj.arrayDimensions = this.obj.valueRank === -1 ? null : stringToUInt32Array(attrs.ArrayDimensions);
+            this.obj.arrayDimensions = this.obj.valueRank <= 0 ? null : stringToUInt32Array(attrs.ArrayDimensions);
 
             this.obj.minimumSamplingInterval = attrs.MinimumSamplingInterval ? parseInt(attrs.MinimumSamplingInterval, 10) : 0;
 

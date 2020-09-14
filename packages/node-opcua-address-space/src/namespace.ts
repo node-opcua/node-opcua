@@ -101,7 +101,7 @@ import { UAObject } from "./ua_object";
 import { UAObjectType } from "./ua_object_type";
 import { UAReferenceType } from "./ua_reference_type";
 import { _install_TwoStateVariable_machinery, UATwoStateVariable } from "./ua_two_state_variable";
-import { UAVariable } from "./ua_variable";
+import { UAVariable, verifyRankAndDimensions } from "./ua_variable";
 import { UAVariableType } from "./ua_variable_type";
 import { UAView } from "./ua_view";
 
@@ -369,20 +369,15 @@ export class UANamespace implements NamespacePublic {
         options.dataType = options.dataType || "Int32";
         options.dataType = this.addressSpace._coerce_DataType(options.dataType);
 
-        // valueRank
-        options.valueRank = utils.isNullOrUndefined(options.valueRank) ? -1 : options.valueRank;
-        assert(_.isFinite(options.valueRank));
-        assert(typeof options.valueRank === "number");
+        // valueRank/ arrayDimensions
+        verifyRankAndDimensions(options);
 
         // arrayDimensions
-        options.arrayDimensions = options.arrayDimensions || [];
-        assert(_.isArray(options.arrayDimensions) || options.arrayDimensions === null);
-
         const variableType = this._addObjectOrVariableType(options, "BaseVariableType", NodeClass.VariableType) as UAVariableType;
 
         variableType.dataType = options.dataType;
         variableType.valueRank = options.valueRank || 0;
-        variableType.arrayDimensions = options.arrayDimensions;
+        variableType.arrayDimensions = options.arrayDimensions!;
 
         return variableType as UAVariableTypePublic;
     }
@@ -2115,7 +2110,11 @@ export class UANamespace implements NamespacePublic {
         // ------------------------------------------ DataType
         options.dataType = addressSpace._coerce_DataType(options.dataType!);
 
-        options.valueRank = utils.isNullOrUndefined(options.valueRank) ? -1 : options.valueRank;
+        options.valueRank = utils.isNullOrUndefined(options.valueRank)
+            ? options.arrayDimensions
+                ? options.arrayDimensions.length
+                : -1
+            : options.valueRank;
         assert(_.isFinite(options.valueRank));
         assert(typeof options.valueRank === "number");
 

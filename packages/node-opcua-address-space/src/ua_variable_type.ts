@@ -21,7 +21,8 @@ import { Variant } from "node-opcua-variant";
 import { VariantArrayType } from "node-opcua-variant";
 
 import {
-    AddressSpace, AddVariableOptions,
+    AddressSpace,
+    AddVariableOptions,
     BaseNode as BaseNodePublic,
     InstantiateVariableOptions,
     makeOptionalsMap,
@@ -31,7 +32,7 @@ import {
     UAObjectType as UAObjectTypePublic,
     UAReference,
     UAVariable as UAVariablePublic,
-    UAVariableType as UAVariableTypePublic
+    UAVariableType as UAVariableTypePublic,
 } from "../source";
 
 import { AddressSpacePrivate } from "./address_space_private";
@@ -43,7 +44,7 @@ import * as tools from "./tool_isSupertypeOf";
 import { get_subtypeOfObj } from "./tool_isSupertypeOf";
 import { get_subtypeOf } from "./tool_isSupertypeOf";
 import { UAObjectType } from "./ua_object_type";
-import { UAVariable, adjust_accessLevel, adjust_userAccessLevel } from "./ua_variable";
+import { UAVariable, adjust_accessLevel, adjust_userAccessLevel, verifyRankAndDimensions } from "./ua_variable";
 
 const debugLog = make_debugLog(__filename);
 const doDebug = checkDebugFlag(__filename);
@@ -64,30 +65,26 @@ export class UAVariableType extends BaseNode implements UAVariableTypePublic {
     public readonly isAbstract: boolean;
     public dataType: NodeId;
     public valueRank: number;
-    public arrayDimensions: UInt32[];
+    public arrayDimensions: UInt32[] | null;
     public readonly minimumSamplingInterval: number;
     public readonly value: any;
     public historizing: boolean;
 
     constructor(options: any) {
-
         super(options);
+
+        verifyRankAndDimensions(options);
+        this.valueRank = options.valueRank;
+        this.arrayDimensions = options.arrayDimensions;
 
         this.minimumSamplingInterval = 0;
 
         this.historizing = isNullOrUndefined(options.historizing) ? false : options.historizing;
         this.isAbstract = isNullOrUndefined(options.isAbstract) ? false : options.isAbstract;
 
-        this.value = options.value;          // optional default value for instances of this UAVariableType
+        this.value = options.value; // optional default value for instances of this UAVariableType
 
-        this.dataType = coerceNodeId(options.dataType);    // DataType (NodeId)
-
-        this.valueRank = options.valueRank === undefined ? -1 : (options.valueRank || 0);  // Int32
-
-        // see OPC-UA part 5 : $3.7 Conventions for Node descriptions
-        this.arrayDimensions = options.arrayDimensions || [];
-
-        assert(_.isArray(this.arrayDimensions));
+        this.dataType = coerceNodeId(options.dataType); // DataType (NodeId)
 
         if (options.value) {
             this.value = new Variant(options.value);
@@ -96,7 +93,6 @@ export class UAVariableType extends BaseNode implements UAVariableTypePublic {
     }
 
     public readAttribute(context: SessionContext | null, attributeId: AttributeIds) {
-
         assert(!context || context instanceof SessionContext);
 
         const options: DataValueLike = {};
@@ -130,7 +126,7 @@ export class UAVariableType extends BaseNode implements UAVariableTypePublic {
                 options.value = {
                     arrayType: VariantArrayType.Array,
                     dataType: DataType.UInt32,
-                    value: this.arrayDimensions
+                    value: this.arrayDimensions,
                 };
                 options.statusCode = StatusCodes.Good;
                 break;
@@ -175,29 +171,26 @@ export class UAVariableType extends BaseNode implements UAVariableTypePublic {
      *  see : OPCUA 1.03 page 44 $6.4 Instances of ObjectTypes and VariableTypes
      */
     public instantiate(options: InstantiateVariableOptions): UAVariablePublic {
-
         const addressSpace = this.addressSpace;
         // xx assert(!this.isAbstract, "cannot instantiate abstract UAVariableType");
 
         assert(options, "missing option object");
         assert(_.isString(options.browseName) || _.isObject(options.browseName), "expecting a browse name");
-        assert(!options.hasOwnProperty("propertyOf"),
-            "Use addressSpace#addVariable({ propertyOf: xxx}); to add a property");
+        assert(!options.hasOwnProperty("propertyOf"), "Use addressSpace#addVariable({ propertyOf: xxx}); to add a property");
 
         assertUnusedChildBrowseName(addressSpace, options);
 
         const baseVariableType = addressSpace.findVariableType("BaseVariableType")!;
         assert(baseVariableType, "BaseVariableType must be defined in the address space");
 
-        let dataType = (options.dataType !== undefined) ? options.dataType : this.dataType;
+        let dataType = options.dataType !== undefined ? options.dataType : this.dataType;
         // may be required (i.e YArrayItemType )
 
-        dataType = this.resolveNodeId(dataType);    // DataType (NodeId)
+        dataType = this.resolveNodeId(dataType); // DataType (NodeId)
         assert(dataType instanceof NodeId);
 
-        const valueRank = (options.valueRank !== undefined) ? options.valueRank : this.valueRank;
-        const arrayDimensions = (options.arrayDimensions !== undefined)
-            ? options.arrayDimensions : this.arrayDimensions;
+        const valueRank = options.valueRank !== undefined ? options.valueRank : this.valueRank;
+        const arrayDimensions = options.arrayDimensions !== undefined ? options.arrayDimensions : this.arrayDimensions;
 
         // istanbul ignore next
         if (!dataType || dataType.isEmpty()) {
@@ -220,7 +213,7 @@ export class UAVariableType extends BaseNode implements UAVariableTypePublic {
             organizedBy: options.organizedBy,
             typeDefinition: this.nodeId,
             value: options.value,
-            valueRank
+            valueRank,
         };
 
         const namespace: Namespace = addressSpace.getOwnNamespace();
@@ -228,11 +221,7 @@ export class UAVariableType extends BaseNode implements UAVariableTypePublic {
 
         // xx assert(instance.minimumSamplingInterval === options.minimumSamplingInterval);
 
-        initialize_properties_and_components(
-            instance,
-            baseVariableType,
-            this,
-            options.optionals);
+        initialize_properties_and_components(instance, baseVariableType, this, options.optionals);
 
         // if VariableType is a type of Structure DataType
         // we need to instantiate a dataValue
@@ -259,7 +248,6 @@ export class UAVariableType extends BaseNode implements UAVariableTypePublic {
  * @return {Boolean}
  */
 class MandatoryChildOrRequestedOptionalFilter {
-
     private readonly instance: BaseNodePublic;
     private readonly optionalsMap: any;
     private readonly references: Reference[];
@@ -300,10 +288,10 @@ class MandatoryChildOrRequestedOptionalFilter {
             case undefined:
                 return false; // skip
             case "Mandatory":
-                return true;  // keep;
+                return true; // keep;
             case "Optional":
                 // only if in requested optionals
-                return (node.browseName!.name! in this.optionalsMap);
+                return node.browseName!.name! in this.optionalsMap;
             case "OptionalPlaceHolder":
                 return false; // ignored
             default:
@@ -312,7 +300,6 @@ class MandatoryChildOrRequestedOptionalFilter {
     }
 
     public filterFor(childInstance: UAVariableType) {
-
         const browseName: string = childInstance.browseName.name!;
 
         let map = {};
@@ -331,10 +318,7 @@ class MandatoryChildOrRequestedOptionalFilter {
  * @return {null|BaseNode}
  * @private
  */
-function _get_parent_as_VariableOrObjectType(
-    originalObject: BaseNodePublic
-): UAVariableType | UAObjectType | null {
-
+function _get_parent_as_VariableOrObjectType(originalObject: BaseNodePublic): UAVariableType | UAObjectType | null {
     if (originalObject.nodeClass === NodeClass.Method) {
         return null;
     }
@@ -349,10 +333,7 @@ function _get_parent_as_VariableOrObjectType(
         console.warn(originalObject.toString());
         console.warn(" parents : ");
         for (const parent of parents) {
-            console.log("     ",
-                parent.toString(),
-                addressSpace.findNode(parent.nodeId)!.browseName.toString()
-            );
+            console.log("     ", parent.toString(), addressSpace.findNode(parent.nodeId)!.browseName.toString());
         }
         return null;
     }
@@ -363,28 +344,25 @@ function _get_parent_as_VariableOrObjectType(
     }
     const theParent = addressSpace.findNode(parents[0]!.nodeId)!;
     if (theParent && (theParent.nodeClass === NodeClass.VariableType || theParent.nodeClass === NodeClass.ObjectType)) {
-        return theParent as (UAVariableType | UAObjectType);
+        return theParent as UAVariableType | UAObjectType;
     }
     return null;
 }
 
 class CloneHelper {
-
     private readonly mapOrgToClone: any;
 
     constructor() {
         this.mapOrgToClone = {};
     }
 
-    public registerClonedObject
-        <TT extends UAVariableTypePublic | UAObjectTypePublic,
-            T extends UAObjectPublic | UAVariablePublic | UAMethodPublic>(
-                objInType: TT, clonedObj: T
-            ) {
-
+    public registerClonedObject<
+        TT extends UAVariableTypePublic | UAObjectTypePublic,
+        T extends UAObjectPublic | UAVariablePublic | UAMethodPublic
+    >(objInType: TT, clonedObj: T) {
         this.mapOrgToClone[objInType.nodeId.toString()] = {
             cloned: clonedObj,
-            original: objInType
+            original: objInType,
         };
 
         //
@@ -405,14 +383,13 @@ class CloneHelper {
         //
         const origParent = _get_parent_as_VariableOrObjectType(objInType);
         if (origParent) {
-
             let base = origParent.subtypeOfObj;
             while (base) {
                 const shadowChild = base.getChildByName(objInType.browseName);
                 if (shadowChild) {
                     this.mapOrgToClone[shadowChild.nodeId.toString()] = {
                         cloned: clonedObj,
-                        original: shadowChild
+                        original: shadowChild,
                     };
                 }
                 base = base.subtypeOfObj;
@@ -431,16 +408,10 @@ class CloneHelper {
 //  => null (no modelling rule ) => Not Installed
 //
 
-function _initialize_properties_and_components
-    <B extends UAObjectPublic | UAVariablePublic | UAMethodPublic,
-        T extends UAObjectTypePublic | UAVariableTypePublic>(
-            instance: B,
-            topMostType: T,
-            typeNode: T,
-            optionalsMap: any,
-            extraInfo: any
-        ) {
-
+function _initialize_properties_and_components<
+    B extends UAObjectPublic | UAVariablePublic | UAMethodPublic,
+    T extends UAObjectTypePublic | UAVariableTypePublic
+>(instance: B, topMostType: T, typeNode: T, optionalsMap: any, extraInfo: any) {
     if (doDebug) {
         console.log("instance browseName =", instance.browseName.toString());
         console.log("typeNode         =", typeNode.browseName.toString());
@@ -468,9 +439,7 @@ function _initialize_properties_and_components
     _clone_children_references.call(typeNode, instance as BaseNodePublic, filter, extraInfo);
 
     // get properties and components from base class
-    _initialize_properties_and_components(
-        instance, topMostType, baseType, optionalsMap, extraInfo);
-
+    _initialize_properties_and_components(instance, topMostType, baseType, optionalsMap, extraInfo);
 }
 
 /**
@@ -479,20 +448,18 @@ function _initialize_properties_and_components
  * @param parent
  * @param childBrowseName
  */
-function hasChildWithBrowseName(
-    parent: BaseNode,
-    childBrowseName: string
-): boolean {
+function hasChildWithBrowseName(parent: BaseNode, childBrowseName: string): boolean {
     if (!parent) {
         throw Error("Internal error");
     }
     // extract children
     const children = parent.findReferencesAsObject("HasChild", true);
 
-    return children.filter((child: BaseNodePublic) => {
-        return child.browseName.name!.toString() === childBrowseName;
-    }).length > 0;
-
+    return (
+        children.filter((child: BaseNodePublic) => {
+            return child.browseName.name!.toString() === childBrowseName;
+        }).length > 0
+    );
 }
 
 function getParent(addressSpace: AddressSpace, options: any) {
@@ -503,11 +470,7 @@ function getParent(addressSpace: AddressSpace, options: any) {
     return parent;
 }
 
-export function assertUnusedChildBrowseName(
-    addressSpace: AddressSpacePrivate,
-    options: any
-) {
-
+export function assertUnusedChildBrowseName(addressSpace: AddressSpacePrivate, options: any) {
     function resolveOptionalObject(node: BaseNodePublic): BaseNodePublic | null {
         return node! ? addressSpace._coerceNode(node) : null;
     }
@@ -528,8 +491,12 @@ export function assertUnusedChildBrowseName(
     // istanbul ignore next
     // verify that no components already exists in parent
     if (parent && hasChildWithBrowseName(parent, options.browseName)) {
-        throw new Error("object " + parent.browseName.name!.toString() +
-            " have already a child with browseName " + options.browseName.toString());
+        throw new Error(
+            "object " +
+                parent.browseName.name!.toString() +
+                " have already a child with browseName " +
+                options.browseName.toString()
+        );
     }
 }
 
@@ -542,15 +509,16 @@ const hasModellingRuleNodeId = makeNodeId(37);
 function _remove_unwanted_ref(references: UAReference[]): UAReference[] {
     // filter out HasTypeDefinition (i=40) , HasModellingRule (i=37);
     references = _.filter(references, (reference: UAReference) => {
-        return !sameNodeId(reference.referenceType, hasTypeDefinitionNodeId) &&
-            !sameNodeId(reference.referenceType, hasModellingRuleNodeId);
+        return (
+            !sameNodeId(reference.referenceType, hasTypeDefinitionNodeId) &&
+            !sameNodeId(reference.referenceType, hasModellingRuleNodeId)
+        );
     });
     return references;
 }
 
 // todo: MEMOIZE this method
 function findNonHierarchicalReferences(originalObject: BaseNodePublic): UAReference[] {
-
     const addressSpace: AddressSpace = originalObject.addressSpace;
     const referenceId = addressSpace.findReferenceType("NonHierarchicalReferences");
     if (!referenceId) {
@@ -569,7 +537,6 @@ function findNonHierarchicalReferences(originalObject: BaseNodePublic): UARefere
     const parent = _get_parent_as_VariableOrObjectType(originalObject);
 
     if (parent && parent.subtypeOfObj) {
-
         // parent is a ObjectType or VariableType and is not a root type
         assert(parent.nodeClass === NodeClass.VariableType || parent.nodeClass === NodeClass.ObjectType);
 
@@ -587,11 +554,9 @@ function findNonHierarchicalReferences(originalObject: BaseNodePublic): UARefere
     references = _remove_unwanted_ref(references);
 
     return references;
-
 }
 
 function reconstructNonHierarchicalReferences(extraInfo: any): any {
-
     function findImplementedObject(ref: UAReference): any {
         const info = extraInfo.mapOrgToClone[ref.nodeId.toString()];
         if (info) {
@@ -605,7 +570,6 @@ function reconstructNonHierarchicalReferences(extraInfo: any): any {
     // this could be node organized by some FunctionalGroup
     //
     _.forEach(extraInfo.mapOrgToClone, (value: any, key: any) => {
-
         const originalObject = value.original;
         const clonedObject = value.cloned;
 
@@ -618,35 +582,43 @@ function reconstructNonHierarchicalReferences(extraInfo: any): any {
 
         // istanbul ignore next
         if (doDebug) {
-            debugLog(" investigation ", value.original.browseName.toString(),
+            debugLog(
+                " investigation ",
+                value.original.browseName.toString(),
                 value.cloned.nodeClass.toString(),
                 value.original.nodeClass.toString(),
                 value.original.nodeId.toString(),
-                value.cloned.nodeId.toString());
+                value.cloned.nodeId.toString()
+            );
         }
 
         originalNonHierarchical.forEach((ref: UAReference) => {
-
             const info = findImplementedObject(ref);
 
             // if the object pointed by this reference is also cloned ...
             if (info) {
-
                 const originalDest = info.original;
                 const cloneDest = info.cloned;
 
                 // istanbul ignore next
                 if (doDebug) {
-                    debugLog(chalk.cyan("   adding reference "), ref.referenceType, " from cloned ",
-                        clonedObject.nodeId.toString(), clonedObject.browseName.toString(),
-                        " to cloned ", cloneDest.nodeId.toString(), cloneDest.browseName.toString());
+                    debugLog(
+                        chalk.cyan("   adding reference "),
+                        ref.referenceType,
+                        " from cloned ",
+                        clonedObject.nodeId.toString(),
+                        clonedObject.browseName.toString(),
+                        " to cloned ",
+                        cloneDest.nodeId.toString(),
+                        cloneDest.browseName.toString()
+                    );
                 }
 
                 // restore reference
                 clonedObject.addReference({
                     isForward: false,
                     nodeId: cloneDest.nodeId,
-                    referenceType: ref.referenceType
+                    referenceType: ref.referenceType,
                 });
             }
         });
@@ -675,7 +647,6 @@ function reconstructNonHierarchicalReferences(extraInfo: any): any {
 function reconstructFunctionalGroupType(extraInfo: any) {
     // navigate through original objects to find those that are being organized by some FunctionalGroup
     _.forEach(extraInfo.mapOrgToClone, (value: any, key: any) => {
-
         const originalObject = value.original;
         const instantiatedObject = value.cloned;
         const organizedByArray = originalObject.findReferencesEx("Organizes", BrowseDirection.Inverse);
@@ -690,9 +661,7 @@ function reconstructFunctionalGroupType(extraInfo: any) {
         //    originalObject.browseName.toString(),
         //    organizedByArray.map(dumpRef).join("\n"));
         organizedByArray.forEach((ref: Reference) => {
-
             if (extraInfo.mapOrgToClone.hasOwnProperty(ref.nodeId.toString())) {
-
                 const info = extraInfo.mapOrgToClone[ref.nodeId.toString()];
                 const folder = info.original;
 
@@ -706,7 +675,7 @@ function reconstructFunctionalGroupType(extraInfo: any) {
                 destFolder.addReference({
                     isForward: !ref.isForward,
                     nodeId: instantiatedObject.nodeId,
-                    referenceType: ref.referenceType
+                    referenceType: ref.referenceType,
                 });
                 // xx console.log("xxx ============> adding reference ",ref.browse )
             }
@@ -714,14 +683,10 @@ function reconstructFunctionalGroupType(extraInfo: any) {
     });
 }
 
-export function initialize_properties_and_components
-    <B extends UAObjectPublic | UAVariablePublic | UAMethodPublic, T extends UAVariableTypePublic | UAObjectTypePublic>(
-        instance: B,
-        topMostType: T,
-        nodeType: T,
-        optionals?: string[]
-    ): void {
-
+export function initialize_properties_and_components<
+    B extends UAObjectPublic | UAVariablePublic | UAMethodPublic,
+    T extends UAVariableTypePublic | UAObjectTypePublic
+>(instance: B, topMostType: T, nodeType: T, optionals?: string[]): void {
     const extraInfo = new CloneHelper();
 
     extraInfo.registerClonedObject(nodeType, instance);

@@ -3,15 +3,10 @@
 import * as mocha from "mocha";
 import { should } from "should";
 
-import {
-    definitionReaderStateParser,
-    Xml2Json
-} from "..";
+import { definitionReaderStateParser, Xml2Json } from "..";
 
 describe("Definition Parser", () => {
-
     it("should parse a definition bloc", async () => {
-
         const xmlDoc = `
 <Definition Name="1:MyStructureDataType">
     <Field DataType="Int32" Name="Id"/>
@@ -25,47 +20,44 @@ describe("Definition Parser", () => {
         const a = await parser.parseString(xmlDoc);
         // console.log(a);
         a.should.eql({
-
             name: "1:MyStructureDataType",
 
-            fields:
-                [
-                    {
-                        dataType: "Int32",
-                        name: "Id",
-                        isOptional: false,
-                        valueRank: -1
-                    },
-                    {
-                        dataType: "Double",
-                        name: "HighValue",
-                        isOptional: false,
-                        valueRank: -1
-                    },
-                    {
-                        dataType: "Double",
-                        name: "LowValue",
-                        isOptional: false,
-                        valueRank: -1
-                    },
-                    {
-                        dataType: "LocalizedText",
-                        name: "Comments",
-                        isOptional: false,
-                        valueRank: -1
-                    },
-                    {
-                        dataType: "EUInformation",
-                        name: "EngineeringUnits",
-                        isOptional: false,
-                        valueRank: -1
-                    }
-                ]
+            fields: [
+                {
+                    dataType: "Int32",
+                    name: "Id",
+                    isOptional: false,
+                    valueRank: -1,
+                },
+                {
+                    dataType: "Double",
+                    name: "HighValue",
+                    isOptional: false,
+                    valueRank: -1,
+                },
+                {
+                    dataType: "Double",
+                    name: "LowValue",
+                    isOptional: false,
+                    valueRank: -1,
+                },
+                {
+                    dataType: "LocalizedText",
+                    name: "Comments",
+                    isOptional: false,
+                    valueRank: -1,
+                },
+                {
+                    dataType: "EUInformation",
+                    name: "EngineeringUnits",
+                    isOptional: false,
+                    valueRank: -1,
+                },
+            ],
         });
     });
 
     it("should parse a definition bloc 2", async () => {
-
         const xmlDoc = `
 <Definition Name="1:OpticalVerifierScanResult">
     <Field DataType="String" Name="IsoGrade"/>
@@ -79,33 +71,37 @@ describe("Definition Parser", () => {
         a.should.eql({
             name: "1:OpticalVerifierScanResult",
 
-            fields:
-                [
-                    {
-                        name: "IsoGrade", dataType: "String",
-                        isOptional: false,
-                        valueRank: -1
-                    },
-                    {
-                        name: "RMin", dataType: "Int16", isOptional: false,
-                        valueRank: -1
-
-                    },
-                    {
-                        name: "Decode", dataType: "Int16", symbolicName: "Decode_", isOptional: false,
-                        valueRank: -1
-
-                    },
-                    {
-                        name: "PrintGain", dataType: "Int16", isOptional: false,
-                        valueRank: -1
-
-                    }]
+            fields: [
+                {
+                    name: "IsoGrade",
+                    dataType: "String",
+                    isOptional: false,
+                    valueRank: -1,
+                },
+                {
+                    name: "RMin",
+                    dataType: "Int16",
+                    isOptional: false,
+                    valueRank: -1,
+                },
+                {
+                    name: "Decode",
+                    dataType: "Int16",
+                    symbolicName: "Decode_",
+                    isOptional: false,
+                    valueRank: -1,
+                },
+                {
+                    name: "PrintGain",
+                    dataType: "Int16",
+                    isOptional: false,
+                    valueRank: -1,
+                },
+            ],
         });
     });
 
     it("should parse a definition bloc 2", async () => {
-
         const xmlDoc = `
 <Definition Name="1:ResultDataType">
             <Field DataType="ResultIdDataType" Name="ResultId">
@@ -170,31 +166,28 @@ describe("Definition Parser", () => {
                     isOptional: false,
                     valueRank: -1,
                     description:
-                        "System-wide unique identifier, which is assigned by the system. This ID can be used for fetching exactly this result using the pertinent result management methods and it is identical to the ResultId of the ResultReadyEventType."
+                        "System-wide unique identifier, which is assigned by the system. This ID can be used for fetching exactly this result using the pertinent result management methods and it is identical to the ResultId of the ResultReadyEventType.",
                 },
                 {
                     dataType: "Boolean",
                     isOptional: true,
                     valueRank: -1,
                     name: "HasTransferableDataOnFile",
-                    description:
-                        "Indicates that additional data for this result can be retrieved by temporary file transfer."
+                    description: "Indicates that additional data for this result can be retrieved by temporary file transfer.",
                 },
                 {
                     dataType: "Boolean",
                     name: "IsPartial",
                     isOptional: false,
                     valueRank: -1,
-                    description:
-                        "Indicates whether the result is the partial result of a total result."
+                    description: "Indicates whether the result is the partial result of a total result.",
                 },
                 {
                     dataType: "Boolean",
                     isOptional: true,
                     valueRank: -1,
                     name: "IsSimulated",
-                    description:
-                        "Indicates whether the system was in simulation mode when the result was created."
+                    description: "Indicates whether the system was in simulation mode when the result was created.",
                 },
                 {
                     dataType: "ResultStateDataType",
@@ -202,7 +195,7 @@ describe("Definition Parser", () => {
                     isOptional: false,
                     valueRank: -1,
                     description:
-                        "ResultState provides information about the current state of a result and the ResultStateDataType is defined in Section 12.18."
+                        "ResultState provides information about the current state of a result and the ResultStateDataType is defined in Section 12.18.",
                 },
                 {
                     dataType: "MeasIdDataType",
@@ -210,7 +203,7 @@ describe("Definition Parser", () => {
                     valueRank: -1,
                     name: "MeasId",
                     description:
-                        "This identifier is given by the client when starting a single job or continuous execution and transmitted to the vision system. It is used to identify the respective result data generated for this job. Although the system-wide unique JobId would be sufficient to identify the job which the result belongs to, this makes for easier filtering on the part of the client without keeping track of JobIds."
+                        "This identifier is given by the client when starting a single job or continuous execution and transmitted to the vision system. It is used to identify the respective result data generated for this job. Although the system-wide unique JobId would be sufficient to identify the job which the result belongs to, this makes for easier filtering on the part of the client without keeping track of JobIds.",
                 },
                 {
                     dataType: "PartIdDataType",
@@ -218,7 +211,7 @@ describe("Definition Parser", () => {
                     valueRank: -1,
                     name: "PartId",
                     description:
-                        "A PartId is given by the client when starting the job; although the system-wide unique JobId would be sufficient to identify the job which the result belongs to, this makes for easier filtering on the part of the client without keeping track of JobIds."
+                        "A PartId is given by the client when starting the job; although the system-wide unique JobId would be sufficient to identify the job which the result belongs to, this makes for easier filtering on the part of the client without keeping track of JobIds.",
                 },
                 {
                     dataType: "RecipeIdExternalDataType",
@@ -226,7 +219,7 @@ describe("Definition Parser", () => {
                     isOptional: true,
                     valueRank: -1,
                     description:
-                        "External Id of the recipe in use which produced the result. The ExternalID is only managed by the environment."
+                        "External Id of the recipe in use which produced the result. The ExternalID is only managed by the environment.",
                 },
                 {
                     dataType: "RecipeIdInternalDataType",
@@ -234,15 +227,14 @@ describe("Definition Parser", () => {
                     isOptional: false,
                     valueRank: -1,
                     description:
-                        "Internal Id of the recipe in use which produced the result. This ID is system-wide unique and is assigned by the vision system."
+                        "Internal Id of the recipe in use which produced the result. This ID is system-wide unique and is assigned by the vision system.",
                 },
                 {
                     dataType: "ProductIdDataType",
                     name: "ProductId",
                     isOptional: true,
                     valueRank: -1,
-                    description:
-                        "productId which was used to trigger the job which created the result."
+                    description: "productId which was used to trigger the job which created the result.",
                 },
                 {
                     dataType: "ConfigurationIdDataType",
@@ -250,7 +242,7 @@ describe("Definition Parser", () => {
                     isOptional: true,
                     valueRank: -1,
                     description:
-                        "External Id of the configuration in use which produced the result. The ExternalID is only managed by the environment."
+                        "External Id of the configuration in use which produced the result. The ExternalID is only managed by the environment.",
                 },
                 {
                     dataType: "ConfigurationIdDataType",
@@ -258,7 +250,7 @@ describe("Definition Parser", () => {
                     isOptional: false,
                     valueRank: -1,
                     description:
-                        "Internal Id of the configuration in use which produced the result. This ID is system-wide unique and is assigned by the vision system."
+                        "Internal Id of the configuration in use which produced the result. This ID is system-wide unique and is assigned by the vision system.",
                 },
                 {
                     dataType: "JobIdDataType",
@@ -266,33 +258,30 @@ describe("Definition Parser", () => {
                     isOptional: false,
                     valueRank: -1,
                     description:
-                        "The ID of the job, created by the transition from state Ready to state SingleExecution or to state ContinuousExecution which produced the result."
+                        "The ID of the job, created by the transition from state Ready to state SingleExecution or to state ContinuousExecution which produced the result.",
                 },
                 {
                     dataType: "UtcTime",
                     name: "CreationTime",
                     isOptional: false,
                     valueRank: -1,
-                    description:
-                        "CreationTime indicates the time when the result was created."
+                    description: "CreationTime indicates the time when the result was created.",
                 },
                 {
                     dataType: "ProcessingTimesDataType",
                     name: "ProcessingTimes",
                     isOptional: true,
                     valueRank: -1,
-                    description:
-                        "Collection of different processing times that were needed to create the result."
+                    description: "Collection of different processing times that were needed to create the result.",
                 },
                 {
                     valueRank: 1,
-                    arrayDimensions: "1",
+                    arrayDimensions: [1],
                     isOptional: true,
                     name: "ResultContent",
-                    description:
-                        "Abstract data type to be subtyped from to hold result data created by the selected recipe."
-                }
-            ]
+                    description: "Abstract data type to be subtyped from to hold result data created by the selected recipe.",
+                },
+            ],
         });
     });
 });

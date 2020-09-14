@@ -16,7 +16,7 @@ import {
     AccessLevelFlag,
     makeAccessLevelFlag,
     AttributeIds,
-    isDataEncoding
+    isDataEncoding,
 } from "node-opcua-data-model";
 import { extractRange, sameDataValue, DataValue, DataValueLike } from "node-opcua-data-value";
 import { coerceClock, getCurrentClock, PreciseClock } from "node-opcua-date-time";
@@ -38,7 +38,7 @@ import {
     ReadProcessedDetails,
     ReadRawModifiedDetails,
     StructureDefinition,
-    StructureDescription
+    StructureDescription,
 } from "node-opcua-types";
 import * as utils from "node-opcua-utils";
 import { lowerFirstLetter } from "node-opcua-utils";
@@ -59,16 +59,16 @@ import {
     PseudoSession,
     UADataType as UADataTypePublic,
     UAVariable as UAVariablePublic,
-    UAVariableType
+    UAVariableType,
 } from "../source";
-import { BaseNode } from "./base_node";
+import { BaseNode, InternalBaseNodeOptions } from "./base_node";
 import {
     _clone,
     apply_condition_refresh,
     BaseNode_toString,
     ToStringBuilder,
     UAVariable_toString,
-    valueRankToString
+    valueRankToString,
 } from "./base_node_private";
 import { SessionContext } from "./session_context";
 import { EnumerationInfo, IEnumItem, UADataType } from "./ua_data_type";
@@ -205,25 +205,57 @@ function validateDataType(addressSpace: AddressSpace, dataTypeNodeId: NodeId, va
     return dest_isSuperTypeOf_variant;
 }
 
+interface UAVariableOptions extends InternalBaseNodeOptions {
+    value?: any;
+    dataType: NodeId | string;
+    valueRank?: number;
+    arrayDimensions?: null | number[];
+    accessLevel?: any;
+    userAccessLevel?: any;
+    minimumSamplingInterval?: number; // default -1
+    historizing?: number;
+    permissions?: Permissions;
+    /* @param [options.permissions] {Permissions}
+     * @param options.parentNodeId {NodeId}
+     */
+}
+
+export function verifyRankAndDimensions(options: { valueRank?: number; arrayDimensions?: number[] | null }) {
+    // evaluate valueRank arrayDimensions is specified but valueRank is null
+    if (options.arrayDimensions && options.valueRank === undefined) {
+        options.valueRank = options.arrayDimensions.length;
+    }
+    options.valueRank = options.valueRank === undefined ? -1 : options.valueRank || 0; // UInt32
+    assert(typeof options.valueRank === "number");
+
+    options.arrayDimensions = options.arrayDimensions || null;
+    assert(_.isNull(options.arrayDimensions) || _.isArray(options.arrayDimensions));
+
+    if (options.arrayDimensions && options.valueRank <= 0) {
+        throw new Error("[CONFORMANCE] arrayDimensions must be null if valueRank <=0");
+    }
+    // specify default arrayDimension if not provided
+    if (options.valueRank > 0 && !options.arrayDimensions) {
+        options.arrayDimensions = new Array(options.valueRank).fill(0);
+    }
+    if (!options.arrayDimensions && options.valueRank > 0) {
+        throw new Error("[CONFORMANCE] arrayDimension must be specified  if valueRank >0 " + options.valueRank);
+    }
+    if (options.valueRank > 0 && options.arrayDimensions!.length !== options.valueRank) {
+        throw new Error(
+            "[CONFORMANCE] when valueRank> 0, arrayDimensions must have valueRank elements, this.valueRank =" +
+                options.valueRank +
+                "  whereas arrayDimensions.length =" +
+                options.arrayDimensions!.length
+        );
+    }
+}
 /**
  * A OPCUA Variable Node
  *
  * @class UAVariable
  * @constructor
  * @extends  BaseNode
- * @param options  {Object}
- * @param options.value
- * @param options.browseName {string}
- * @param options.dataType   {NodeId|String}
- * @param options.valueRank  {Int32}
- * @param options.arrayDimensions {null|Array<Integer>}
- * @param options.accessLevel {AccessLevel}
- * @param options.userAccessLevel {AccessLevel}
- * @param [options.minimumSamplingInterval = -1]
- * @param [options.historizing = false] {Boolean}
- * @param [options.permissions] {Permissions}
- * @param options.parentNodeId {NodeId}
- *
  *  The AccessLevel Attribute is used to indicate how the Value of a Variable can be accessed (read/write) and if it
  *  contains current and/or historic data. The AccessLevel does not take any user access rights into account,
  *  i.e. although the Variable is writable this may be restricted to a certain user / user group.
@@ -244,7 +276,6 @@ function validateDataType(addressSpace: AddressSpace, dataTypeNodeId: NodeId, va
  *  indicates if the history of the Variable is available via the OPC UA server.
  *
  */
-
 export class UAVariable extends BaseNode implements UAVariablePublic {
     public readonly nodeClass = NodeClass.Variable;
     public dataType: NodeId;
@@ -262,7 +293,7 @@ export class UAVariable extends BaseNode implements UAVariablePublic {
     public minimumSamplingInterval: number;
     public historizing: boolean;
     public semantic_version: number;
-    public _permissions: any | null;
+    public _permissions: Permissions | null;
     public arrayDimensions: null | number[];
 
     public $extensionObject?: any;
@@ -277,23 +308,20 @@ export class UAVariable extends BaseNode implements UAVariablePublic {
         return super.typeDefinitionObj as UAVariableType;
     }
 
-    constructor(options: any) {
+    constructor(options: UAVariableOptions) {
         super(options);
 
+        verifyRankAndDimensions(options);
+        this.valueRank = options.valueRank!;
+        this.arrayDimensions = options.arrayDimensions!;
+
         this.dataType = this.resolveNodeId(options.dataType); // DataType (NodeId)
-        assert(this.dataType instanceof NodeId);
-
-        this.valueRank = options.valueRank === undefined ? -1 : options.valueRank || 0; // UInt32
-        assert(typeof this.valueRank === "number");
-
-        this.arrayDimensions = options.arrayDimensions || null;
-        assert(_.isNull(this.arrayDimensions) || _.isArray(this.arrayDimensions));
 
         this.accessLevel = adjust_accessLevel(options.accessLevel);
 
         this.userAccessLevel = adjust_userAccessLevel(options.userAccessLevel, options.accessLevel);
 
-        this.minimumSamplingInterval = adjust_samplingInterval(options.minimumSamplingInterval);
+        this.minimumSamplingInterval = adjust_samplingInterval(options.minimumSamplingInterval || 0);
 
         this.historizing = !!options.historizing; // coerced to boolean
 
@@ -496,7 +524,7 @@ export class UAVariable extends BaseNode implements UAVariablePublic {
             }
             this.setValueFromSource({
                 dataType: DataType.Int32,
-                value
+                value,
             });
         } else {
             throw new Error("UAVariable#writeEnumValue:  value type mismatch");
@@ -589,7 +617,7 @@ export class UAVariable extends BaseNode implements UAVariablePublic {
             serverTimestamp: now.timestamp,
             sourcePicoseconds: now.picoseconds,
             sourceTimestamp: now.timestamp,
-            statusCode
+            statusCode,
         });
         dataValue.value = variant as Variant;
         this._internal_set_dataValue(dataValue);
@@ -1069,7 +1097,7 @@ export class UAVariable extends BaseNode implements UAVariablePublic {
             historizing: this.historizing,
             minimumSamplingInterval: this.minimumSamplingInterval,
             userAccessLevel: this.userAccessLevel,
-            valueRank: this.valueRank
+            valueRank: this.valueRank,
         });
 
         const newVariable = _clone.call(this, UAVariable, options, optionalFilter, extraInfo) as UAVariable;
@@ -1215,7 +1243,7 @@ export class UAVariable extends BaseNode implements UAVariablePublic {
                     timestamped_set(dataValue, callback) {
                         // xx console.log("XYXYX timestamped_set : Not Implemented");
                         callback(null, StatusCodes.BadNotWritable);
-                    }
+                    },
                 },
                 true
             );
@@ -1240,7 +1268,7 @@ export class UAVariable extends BaseNode implements UAVariablePublic {
 
             const theValue = new Variant({
                 dataType: DataType.ExtensionObject,
-                value: this.$extensionObject
+                value: this.$extensionObject,
             });
             this.setValueFromSource(theValue, StatusCodes.Good);
 
@@ -1264,7 +1292,7 @@ export class UAVariable extends BaseNode implements UAVariablePublic {
                         self.$extensionObject = new Proxy(ext, makeHandler(self));
                         self.touchValue();
                         callback(null, StatusCodes.Good);
-                    }
+                    },
                 },
                 true
             );
@@ -1300,7 +1328,7 @@ export class UAVariable extends BaseNode implements UAVariablePublic {
                     browseName: { namespaceIndex: structureNamespace, name: field.name!.toString() },
                     componentOf: this,
                     dataType: field.dataType,
-                    minimumSamplingInterval: this.minimumSamplingInterval
+                    minimumSamplingInterval: this.minimumSamplingInterval,
                 });
                 assert(property.minimumSamplingInterval === this.minimumSamplingInterval);
             }
@@ -1339,7 +1367,7 @@ export class UAVariable extends BaseNode implements UAVariablePublic {
                 this.$extensionObject[camelCaseName] = new Proxy(this.$extensionObject[camelCaseName], makeHandler(property));
                 property._dataValue.value = new Variant({
                     dataType: DataType.ExtensionObject,
-                    value: this.$extensionObject[camelCaseName]
+                    value: this.$extensionObject[camelCaseName],
                 });
                 property.bindExtensionObject();
                 property.$extensionObject = this.$extensionObject[camelCaseName];
@@ -1350,13 +1378,13 @@ export class UAVariable extends BaseNode implements UAVariablePublic {
 
                 if (prop === undefined) {
                     property._dataValue.value = new Variant({
-                        dataType: DataType.Null
+                        dataType: DataType.Null,
                     });
                 } else {
                     const preparedValue = prepareVariantValue(dataTypeNodeId, prop);
                     property._dataValue.value = new Variant({
                         dataType: dataTypeAsString,
-                        value: preparedValue
+                        value: preparedValue,
                     });
                 }
 
@@ -1482,7 +1510,7 @@ export class UAVariable extends BaseNode implements UAVariablePublic {
         callback: CallbackT<HistoryReadResult>
     ): any {
         const result = new HistoryReadResult({
-            statusCode: StatusCodes.BadHistoryOperationUnsupported
+            statusCode: StatusCodes.BadHistoryOperationUnsupported,
         });
         callback(null, result);
     }
@@ -1573,8 +1601,8 @@ export class UAVariable extends BaseNode implements UAVariablePublic {
             statusCode: StatusCodes.Good,
             value: {
                 dataType: DataType.NodeId,
-                value: this.dataType
-            }
+                value: this.dataType,
+            },
         };
         return new DataValue(options);
     }
@@ -1583,16 +1611,17 @@ export class UAVariable extends BaseNode implements UAVariablePublic {
         assert(typeof this.valueRank === "number");
         const options = {
             statusCode: StatusCodes.Good,
-            value: { dataType: DataType.Int32, value: this.valueRank }
+            value: { dataType: DataType.Int32, value: this.valueRank },
         };
         return new DataValue(options);
     }
 
     private _readArrayDimensions(): DataValue {
         assert(_.isArray(this.arrayDimensions) || this.arrayDimensions === null);
+        assert(!this.arrayDimensions || this.valueRank > 0, "arrayDimension must be null if valueRank <0");
         const options = {
             statusCode: StatusCodes.Good,
-            value: { dataType: DataType.UInt32, arrayType: VariantArrayType.Array, value: this.arrayDimensions }
+            value: { dataType: DataType.UInt32, arrayType: VariantArrayType.Array, value: this.arrayDimensions },
         };
         return new DataValue(options);
     }
@@ -1601,7 +1630,7 @@ export class UAVariable extends BaseNode implements UAVariablePublic {
         assert(context instanceof SessionContext);
         const options = {
             statusCode: StatusCodes.Good,
-            value: { dataType: DataType.Byte, value: convertAccessLevelFlagToByte(this.accessLevel) }
+            value: { dataType: DataType.Byte, value: convertAccessLevelFlagToByte(this.accessLevel) },
         };
         return new DataValue(options);
     }
@@ -1615,8 +1644,8 @@ export class UAVariable extends BaseNode implements UAVariablePublic {
             value: {
                 dataType: DataType.Byte,
                 statusCode: StatusCodes.Good,
-                value: convertAccessLevelFlagToByte(effectiveUserAccessLevel)
-            }
+                value: convertAccessLevelFlagToByte(effectiveUserAccessLevel),
+            },
         };
         return new DataValue(options);
     }
@@ -1637,7 +1666,7 @@ export class UAVariable extends BaseNode implements UAVariablePublic {
         assert(typeof this.historizing === "boolean");
         const options = {
             statusCode: StatusCodes.Good,
-            value: { dataType: DataType.Boolean, value: !!this.historizing }
+            value: { dataType: DataType.Boolean, value: !!this.historizing },
         };
         return new DataValue(options);
     }
@@ -1868,7 +1897,7 @@ function _Variable_bind_with_simple_get(this: UAVariable, options: any) {
     };
 
     _Variable_bind_with_timestamped_get.call(this, {
-        timestamped_get: timestamped_get_func_from__Variable_bind_with_simple_get
+        timestamped_get: timestamped_get_func_from__Variable_bind_with_simple_get,
     });
 }
 
@@ -1937,11 +1966,11 @@ function bind_setter(this: UAVariable, options: SetterOptions) {
         // timestamped_get is  specified but timestamped_set is not
         // => Value is read-only
         _Variable_bind_with_timestamped_set.call(this, {
-            timestamped_set: _not_writable_timestamped_set_func
+            timestamped_set: _not_writable_timestamped_set_func,
         });
     } else {
         _Variable_bind_with_timestamped_set.call(this, {
-            timestamped_set: _default_writable_timestamped_set_func
+            timestamped_set: _default_writable_timestamped_set_func,
         });
     }
 }
@@ -1998,7 +2027,7 @@ function _setter(variable: UAVariable, target: any, key: string, value: any /*, 
 function makeHandler(variable: UAVariable) {
     const handler = {
         get: _getter,
-        set: _setter.bind(null, variable)
+        set: _setter.bind(null, variable),
     };
     return handler;
 }

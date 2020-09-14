@@ -31,6 +31,7 @@ const { NumericRange } = require("node-opcua-numeric-range");
 const { StatusCodes } = require("node-opcua-status-code");
 const { ExtensionObject } = require("node-opcua-extension-object");
 const { resolveNodeId } = require("node-opcua-nodeid");
+const { encode } = require("punycode");
 
 describe("Variant", () => {
 
@@ -2063,7 +2064,6 @@ describe("testing isValidVariant", () => {
         isValidVariant(VariantArrayType.Matrix, DataType.Byte, [655525, 12], [1, 2]).should.eql(false);
     });
 
-
     it("variantToString ", () => {
         const v = new Variant({ dataType: DataType.NodeId, value: resolveNodeId("i=24") });
         v.toString().should.eql("Variant(Scalar<NodeId>, value: BaseDataType (ns=0;i=24))")
@@ -2071,3 +2071,29 @@ describe("testing isValidVariant", () => {
 
 });
 
+describe("Preserving  null in Arrays or Matrices", () => {
+    it("it should preserve empty array ... String", () => {
+        const v = new Variant({ dataType: DataType.String, value: [], arrayType: VariantArrayType.Array });
+        should(v.value).eql([]);
+        const v_reloaded = encode_decode_round_trip_test(v);
+        should(v_reloaded.value).eql([]);
+    });
+    it("it should preserve null array ... String", () => {
+        const v = new Variant({ dataType: DataType.String, value: null, arrayType: VariantArrayType.Array });
+        should(v.value).eql(null);
+        const v_reloaded = encode_decode_round_trip_test(v);
+        should(v_reloaded.value).eql(null);
+    });
+    it("it should preserve empty array ... UInt32 ", () => {
+        const v = new Variant({ dataType: DataType.UInt16, value: [], arrayType: VariantArrayType.Array });
+        should(v.value).instanceOf(Uint16Array);
+        const v_reloaded = encode_decode_round_trip_test(v);
+        should(v_reloaded.value).instanceOf(Uint16Array);
+    });
+    it("it should preserve null array ... UInt32", () => {
+        const v = new Variant({ dataType: DataType.UInt16, value: null, arrayType: VariantArrayType.Array });
+        should(v.value).eql(null);
+        const v_reloaded = encode_decode_round_trip_test(v);
+        should(v_reloaded.value).eql(null);
+    });
+});
