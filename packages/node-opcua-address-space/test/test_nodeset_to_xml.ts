@@ -673,4 +673,26 @@ describe("nodeset2.xml with more than one referenced namespace", function (this:
 
         // console.log(xml);
     });
+
+    it("NSXML4 - empty buffer #861 ", async () => {
+        const v = namespace.addVariable({
+            browseName: "TestVariable",
+            dataType: DataType.ByteString,
+            organizedBy: addressSpace.rootFolder.objects,
+            value: {
+                dataType: DataType.ByteString,
+                value: Buffer.alloc(0),
+            },
+        });
+
+        const xml = namespace.toNodeset2XML();
+        const xml2 = xml.replace(/LastModified="([^"]*)"/g, 'LastModified="YYYY-MM-DD"');
+        const tmpFilename = getTempFilename("__generated_node_set_version_x.xml");
+        fs.writeFileSync(tmpFilename, xml);
+
+        const r_xml2 = await reloadedNodeSet(tmpFilename);
+        r_xml2.split("\n").should.eql(xml2.split("\n"));
+
+        //  console.log(xml);
+    });
 });
