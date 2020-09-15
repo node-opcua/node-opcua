@@ -262,12 +262,8 @@ function _dumpVariantValue(xw: XmlWriter, dataType: DataType, value: any) {
             if (value !== undefined && value !== null) {
                 xw.startElement(DataType[dataType]);
                 // xw.writeAttribute("xmlns", "http://opcfoundation.org/UA/2008/02/Types.xsd");
-                xw.text(
-                    value
-                        .toString("base64")
-                        .match(/.{1,80}/g)
-                        .join("\n")
-                );
+                const base64 = value.toString("base64");
+                xw.text(base64.match(/.{0,80}/g).join("\n"));
                 xw.endElement();
             }
             break;
