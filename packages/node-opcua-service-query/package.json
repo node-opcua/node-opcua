@@ -1,6 +1,6 @@
 {
     "name": "node-opcua-service-query",
-    "version": "2.14.0",
+    "version": "2.15.0",
     "description": "pure nodejs OPCUA SDK - module -service-query",
     "scripts": {
         "build": "tsc -b",
@@ -18,16 +18,16 @@
         "node-opcua-factory": "2.13.0",
         "node-opcua-nodeid": "2.11.0",
         "node-opcua-numeric-range": "2.13.0",
-        "node-opcua-service-browse": "2.13.0",
-        "node-opcua-service-filter": "2.13.0",
-        "node-opcua-service-secure-channel": "2.13.0",
-        "node-opcua-service-subscription": "2.14.0",
-        "node-opcua-service-translate-browse-path": "2.13.0",
-        "node-opcua-types": "2.13.0",
+        "node-opcua-service-browse": "2.15.0",
+        "node-opcua-service-filter": "2.15.0",
+        "node-opcua-service-secure-channel": "2.15.0",
+        "node-opcua-service-subscription": "2.15.0",
+        "node-opcua-service-translate-browse-path": "2.15.0",
+        "node-opcua-types": "2.15.0",
         "underscore": "^1.10.2"
     },
     "devDependencies": {
-        "node-opcua-generator": "2.13.0"
+        "node-opcua-generator": "2.15.0"
     },
     "author": "Etienne Rossignon",
     "license": "MIT",
