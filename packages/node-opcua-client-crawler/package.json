@@ -24,7 +24,7 @@
 		"node-opcua-status-code": "2.16.0",
 		"node-opcua-utils": "2.16.0",
 		"node-opcua-variant": "2.16.0",
-		"underscore": "^1.10.2"
+		"underscore": "^1.11.0"
 	},
 	"devDependencies": {
 		"node-opcua-address-space": "2.16.0",

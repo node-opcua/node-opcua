@@ -5,7 +5,6 @@
 
 import * as crypto from "crypto";
 import { EventEmitter } from "events";
-import * as _ from "underscore";
 
 import {
     addElement,
@@ -148,7 +147,7 @@ export class ServerSession extends EventEmitter implements ISubscriber, ISession
 
         ServerSession.registry.register(this);
 
-        assert(_.isFinite(sessionTimeout));
+        assert(isFinite(sessionTimeout));
         assert(sessionTimeout >= 0, " sessionTimeout");
         this.sessionTimeout = sessionTimeout;
 

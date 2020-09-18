@@ -3356,7 +3356,7 @@ export class OPCUAServer extends OPCUABaseServer {
         /* istanbul ignore next */
         if (
             !endpointOptions.hasOwnProperty("port") ||
-            !_.isFinite(endpointOptions.port!) ||
+            !isFinite(endpointOptions.port!) ||
             typeof endpointOptions.port !== "number"
         ) {
             throw new Error("expecting a valid port (number)");

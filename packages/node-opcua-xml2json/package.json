@@ -11,7 +11,7 @@
   },
   "dependencies": {
     "bomstrip": "^0.1.4",
-    "ltx": "^2.9.2",
+    "ltx": "^2.10.0",
     "node-opcua-assert": "2.16.0",
     "node-opcua-debug": "2.16.0",
     "node-opcua-utils": "2.16.0",

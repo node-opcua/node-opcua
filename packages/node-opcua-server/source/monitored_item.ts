@@ -94,10 +94,10 @@ function _validate_parameters(monitoringParameters: any) {
     // xx assert(options instanceof MonitoringParameters);
     assert(monitoringParameters.hasOwnProperty("clientHandle"));
     assert(monitoringParameters.hasOwnProperty("samplingInterval"));
-    assert(_.isFinite(monitoringParameters.clientHandle));
-    assert(_.isFinite(monitoringParameters.samplingInterval));
+    assert(isFinite(monitoringParameters.clientHandle));
+    assert(isFinite(monitoringParameters.samplingInterval));
     assert(typeof monitoringParameters.discardOldest === "boolean");
-    assert(_.isFinite(monitoringParameters.queueSize));
+    assert(isFinite(monitoringParameters.queueSize));
     assert(monitoringParameters.queueSize >= 0);
 }
 

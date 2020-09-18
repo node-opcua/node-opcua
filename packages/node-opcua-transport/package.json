@@ -23,17 +23,15 @@
         "node-opcua-packet-assembler": "2.16.0",
         "node-opcua-status-code": "2.16.0",
         "node-opcua-types": "2.16.0",
-        "node-opcua-utils": "2.16.0",
-        "underscore": "^1.10.2"
+        "node-opcua-utils": "2.16.0"
     },
     "devDependencies": {
-        "@types/node": "^14.0.27",
-        "@types/underscore": "^1.10.20",
+        "@types/node": "^14.11.1",
         "colors": "^1.4.0",
-        "node-opcua-debug": "2.8.1",
+        "node-opcua-debug": "2.16.0",
         "node-opcua-generator": "2.16.0",
         "should": "^13.2.3",
-        "sinon": "^9.0.2"
+        "sinon": "^9.0.3"
     },
     "author": "Etienne Rossignon",
     "license": "MIT",

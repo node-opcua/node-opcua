@@ -20,7 +20,7 @@
     "node-opcua": "2.16.0",
     "vorpal": "^1.12.0",
     "vorpal-repl": "^1.1.8",
-    "yargs": "^15.4.1"
+    "yargs": "^16.0.3"
   },
   "author": "Etienne Rossignon",
   "license": "MIT",
