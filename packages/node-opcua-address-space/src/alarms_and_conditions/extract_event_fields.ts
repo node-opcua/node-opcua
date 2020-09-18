@@ -11,8 +11,8 @@ import { SessionContext } from "../session_context";
 import { UAObject } from "../ua_object";
 
 function assert_valid_event_data(eventData: IEventData) {
-    assert(_.isFunction(eventData.resolveSelectClause));
-    assert(_.isFunction(eventData.readValue));
+    assert(typeof eventData.resolveSelectClause === "function");
+    assert(typeof eventData.readValue === "function");
 }
 
 /**

@@ -4,7 +4,7 @@
 // tslint:disable:no-console
 // tslint:disable:ban-types
 import * as fs from "fs";
-import * as  _ from "underscore";
+import * as _ from "underscore";
 import * as util from "util";
 
 import { assert } from "node-opcua-assert";
@@ -16,16 +16,11 @@ import { getTempFilename } from "./get_temp_filename";
  * @param actionFct  the inner function to execute
  * @param callback
  */
-export function redirectToFile(
-  tmpFile: string,
-  actionFct: Function,
-  callback: ((err?: Error) => void) | null
-): void {
-
+export function redirectToFile(tmpFile: string, actionFct: Function, callback: ((err?: Error) => void) | null): void {
     let oldConsoleLog: any;
 
-    assert(_.isFunction(actionFct));
-    assert(!callback || _.isFunction(callback));
+    assert(typeof actionFct === "function");
+    assert(!callback || typeof callback === "function");
 
     const isAsync = actionFct && actionFct.length;
 
@@ -35,7 +30,6 @@ export function redirectToFile(
     const f = fs.createWriteStream(logFile, { flags: "w", encoding: "ascii" });
 
     function _write_to_file(...args: [any, ...any[]]) {
-
         const msg = util.format.apply(null, args);
         f.write(msg + "\n");
         if (process.env.DEBUG) {
@@ -76,7 +70,7 @@ export function redirectToFile(
         // async version
 
         actionFct((err: Error) => {
-            assert(_.isFunction(callback));
+            assert(typeof callback === "function");
             console.log = oldConsoleLog;
             if (err) {
                 console.log("redirectToFile  has intercepted an error");

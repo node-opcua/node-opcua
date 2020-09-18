@@ -883,7 +883,7 @@ module.exports = function(test) {
 
                 function write(value, indexRange, callback) {
 
-                    assert(_.isFunction(callback));
+                    assert(typeof callback === "function");
                     assert(_.isArray(value));
 
                     const nodeToWrite = {
@@ -2711,7 +2711,7 @@ module.exports = function(test) {
 
             createSubscriptionRequest = new opcua.CreateSubscriptionRequest(createSubscriptionRequest);
 
-            _.isFunction(callback).should.eql(true, "expecting a function");
+            typeof callback === "function".should.eql(true, "expecting a function");
 
             session.performMessageTransaction(createSubscriptionRequest, function(err, response) {
                 response.subscriptionId.should.be.greaterThan(0);
@@ -2723,7 +2723,7 @@ module.exports = function(test) {
         const publishingInterval = 40;
 
         function createSubscription(session, callback) {
-            _.isFunction(callback).should.eql(true, "expecting a function");
+            typeof callback === "function".should.eql(true, "expecting a function");
             const createSubscriptionRequest = {
                 requestedPublishingInterval: publishingInterval,
                 requestedLifetimeCount: 60000,

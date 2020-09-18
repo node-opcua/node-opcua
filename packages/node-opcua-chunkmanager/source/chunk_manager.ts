@@ -71,7 +71,6 @@ export interface IChunkManagerOptions {
 }
 
 export class ChunkManager extends EventEmitter {
-
     public signBufferFunc?: SignBufferFunc;
     public encryptBufferFunc?: EncryptBufferFunc;
     public writeSequenceHeaderFunc?: WriteSequenceHeaderFunc;
@@ -102,13 +101,13 @@ export class ChunkManager extends EventEmitter {
         this.headerSize = options.headerSize || 0;
         if (this.headerSize) {
             this.writeHeaderFunc = options.writeHeaderFunc;
-            assert(_.isFunction(this.writeHeaderFunc));
+            assert(typeof this.writeHeaderFunc === "function");
         }
 
         this.sequenceHeaderSize = options.sequenceHeaderSize === undefined ? 8 : options.sequenceHeaderSize;
         if (this.sequenceHeaderSize > 0) {
             this.writeSequenceHeaderFunc = options.writeSequenceHeaderFunc;
-            assert(_.isFunction(this.writeSequenceHeaderFunc));
+            assert(typeof this.writeSequenceHeaderFunc === "function");
         }
 
         this.signatureLength = options.signatureLength || 0;
@@ -121,9 +120,8 @@ export class ChunkManager extends EventEmitter {
         if (this.cipherBlockSize === 0) {
             assert(this.plainBlockSize === 0);
             // unencrypted block
-            this.maxBodySize = (this.chunkSize - this.headerSize - this.signatureLength - this.sequenceHeaderSize);
+            this.maxBodySize = this.chunkSize - this.headerSize - this.signatureLength - this.sequenceHeaderSize;
             this.encryptBufferFunc = undefined;
-
         } else {
             assert(this.plainBlockSize !== 0);
             // During encryption a block with a size equal to  PlainTextBlockSize  is processed to produce a block
@@ -131,12 +129,13 @@ export class ChunkManager extends EventEmitter {
             // be the same.
 
             this.encryptBufferFunc = options.encryptBufferFunc;
-            assert(_.isFunction(this.encryptBufferFunc), "an encryptBufferFunc is required");
+            assert(typeof this.encryptBufferFunc === "function", "an encryptBufferFunc is required");
 
             // this is the formula proposed  by OPCUA
-            this.maxBodySize = this.plainBlockSize * Math.floor(
-                (this.chunkSize - this.headerSize - this.signatureLength - 1)
-                / this.cipherBlockSize) - this.sequenceHeaderSize;
+            this.maxBodySize =
+                this.plainBlockSize *
+                    Math.floor((this.chunkSize - this.headerSize - this.signatureLength - 1) / this.cipherBlockSize) -
+                this.sequenceHeaderSize;
 
             // this is the formula proposed  by ERN
             this.maxBlock = Math.floor((this.chunkSize - this.headerSize) / this.cipherBlockSize);
@@ -154,13 +153,11 @@ export class ChunkManager extends EventEmitter {
         this.chunk = null;
         this.cursor = 0;
         this.pendingChunk = null;
-
     }
 
     public write(buffer: Buffer, length?: number) {
-
         length = length || buffer.length;
-        assert(buffer instanceof Buffer || (buffer === null));
+        assert(buffer instanceof Buffer || buffer === null);
         assert(length > 0);
 
         let l = length;
@@ -209,9 +206,8 @@ export class ChunkManager extends EventEmitter {
      * @private
      */
     private _write_signature(chunk: Buffer) {
-
         if (this.signBufferFunc) {
-            assert(_.isFunction(this.signBufferFunc));
+            assert(typeof this.signBufferFunc === "function");
             assert(this.signatureLength !== 0);
 
             const signatureStart = this.dataEnd;
@@ -221,16 +217,13 @@ export class ChunkManager extends EventEmitter {
             assert(signature.length === this.signatureLength);
 
             signature.copy(chunk, signatureStart);
-
         } else {
             assert(this.signatureLength === 0, "expecting NO SIGN");
         }
     }
 
     private _encrypt(chunk: Buffer) {
-
         if (this.plainBlockSize > 0) {
-
             assert(this.dataEnd !== undefined);
             const startEncryptionPos = this.headerSize;
             const endEncryptionPos = this.dataEnd + this.signatureLength;
@@ -245,14 +238,11 @@ export class ChunkManager extends EventEmitter {
             assert(encryptedBuffer.length === nbBlock * this.cipherBlockSize);
 
             encryptedBuffer.copy(chunk, this.headerSize, 0);
-
         }
     }
 
     private _push_pending_chunk(isLast: boolean) {
-
         if (this.pendingChunk) {
-
             const expectedLength = this.pendingChunk.length;
 
             if (this.headerSize > 0) {
@@ -262,8 +252,7 @@ export class ChunkManager extends EventEmitter {
                 this.writeHeaderFunc!(this.pendingChunk.slice(0, this.headerSize), isLast, expectedLength);
             }
             if (this.sequenceHeaderSize > 0) {
-                this.writeSequenceHeaderFunc!(
-                    this.pendingChunk.slice(this.headerSize, this.headerSize + this.sequenceHeaderSize));
+                this.writeSequenceHeaderFunc!(this.pendingChunk.slice(this.headerSize, this.headerSize + this.sequenceHeaderSize));
             }
 
             this._write_signature(this.pendingChunk);
@@ -281,12 +270,10 @@ export class ChunkManager extends EventEmitter {
     }
 
     private _write_padding_bytes(nbPaddingByteTotal: number) {
-
         const nbPaddingByte = nbPaddingByteTotal % 256;
         const extraNbPaddingByte = Math.floor(nbPaddingByteTotal / 256);
 
-        assert(extraNbPaddingByte === 0 || this.plainBlockSize > 256,
-            "extraNbPaddingByte only requested when key size > 2048");
+        assert(extraNbPaddingByte === 0 || this.plainBlockSize > 256, "extraNbPaddingByte only requested when key size > 2048");
 
         // write the padding byte
         this.chunk!.writeUInt8(nbPaddingByte, this.cursor + this.dataOffset);
@@ -301,15 +288,12 @@ export class ChunkManager extends EventEmitter {
             this.chunk!.writeUInt8(extraNbPaddingByte, this.cursor + this.dataOffset);
             this.cursor += 1;
         }
-
     }
 
     private _post_process_current_chunk() {
-
         let extraEncryptionBytes = 0;
         // add padding bytes if needed
         if (this.plainBlockSize > 0) {
-
             // write padding ( if encryption )
 
             // let's calculate curLength = the length of the block to encrypt without padding yet
@@ -323,7 +307,7 @@ export class ChunkManager extends EventEmitter {
                 curLength += 1;
             }
             // let's calculate the required number of padding bytes
-            const n = (curLength % this.plainBlockSize);
+            const n = curLength % this.plainBlockSize;
             const nbPaddingByteTotal = (this.plainBlockSize - n) % this.plainBlockSize;
 
             this._write_padding_bytes(nbPaddingByteTotal);
@@ -347,5 +331,4 @@ export class ChunkManager extends EventEmitter {
         this.chunk = null;
         this.cursor = 0;
     }
-
 }

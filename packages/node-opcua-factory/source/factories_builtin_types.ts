@@ -3,49 +3,78 @@
  */
 import { assert } from "node-opcua-assert";
 import {
-
-    coerceBoolean, coerceByte,
-    coerceByteString, coerceDateTime, coerceDouble,
-    coerceExpandedNodeId, coerceFloat, coerceInt16,
-    coerceInt32, coerceInt64, coerceInt8,
-    coerceNodeId, coerceSByte, coerceUInt16,
-    coerceUInt32, coerceUInt64, coerceUInt8,
-    decodeBoolean, decodeByte,
-    decodeByteString, decodeDateTime, decodeDouble,
-    decodeExpandedNodeId, decodeFloat, decodeGuid,
-    decodeInt16, decodeInt32, decodeInt64,
-    decodeInt8, decodeNodeId, decodeSByte,
-    decodeString, decodeUInt16, decodeUInt32,
-    decodeUInt64, decodeUInt8,
-    encodeBoolean, encodeByte, encodeByteString,
-    encodeDateTime, encodeDouble, encodeExpandedNodeId,
-    encodeFloat, encodeGuid,
-    encodeInt16, encodeInt32, encodeInt64,
-    encodeInt8, encodeNodeId,
-    encodeSByte, encodeString, encodeUInt16,
-    encodeUInt32, encodeUInt64, encodeUInt8
-
+    coerceBoolean,
+    coerceByte,
+    coerceByteString,
+    coerceDateTime,
+    coerceDouble,
+    coerceExpandedNodeId,
+    coerceFloat,
+    coerceInt16,
+    coerceInt32,
+    coerceInt64,
+    coerceInt8,
+    coerceNodeId,
+    coerceSByte,
+    coerceUInt16,
+    coerceUInt32,
+    coerceUInt64,
+    coerceUInt8,
+    decodeBoolean,
+    decodeByte,
+    decodeByteString,
+    decodeDateTime,
+    decodeDouble,
+    decodeExpandedNodeId,
+    decodeFloat,
+    decodeGuid,
+    decodeInt16,
+    decodeInt32,
+    decodeInt64,
+    decodeInt8,
+    decodeNodeId,
+    decodeSByte,
+    decodeString,
+    decodeUInt16,
+    decodeUInt32,
+    decodeUInt64,
+    decodeUInt8,
+    encodeBoolean,
+    encodeByte,
+    encodeByteString,
+    encodeDateTime,
+    encodeDouble,
+    encodeExpandedNodeId,
+    encodeFloat,
+    encodeGuid,
+    encodeInt16,
+    encodeInt32,
+    encodeInt64,
+    encodeInt8,
+    encodeNodeId,
+    encodeSByte,
+    encodeString,
+    encodeUInt16,
+    encodeUInt32,
+    encodeUInt64,
+    encodeUInt8
 } from "node-opcua-basic-types";
 import { BinaryStream, OutputBinaryStream } from "node-opcua-binary-stream";
 import { emptyGuid } from "node-opcua-guid";
 import { makeExpandedNodeId, makeNodeId } from "node-opcua-nodeid";
 import { coerceStatusCode, decodeStatusCode, encodeStatusCode, StatusCodes } from "node-opcua-status-code";
-import * as  _ from "underscore";
+import * as _ from "underscore";
 import { BasicTypeDefinition, BasicTypeDefinitionOptions, FieldCategory, TypeSchemaBase } from "./types";
-
 
 // tslint:disable:no-empty
 // tslint:enable:no-unused-variable
-function defaultEncode(value: any, stream: OutputBinaryStream): void {
-
-}
+function defaultEncode(value: any, stream: OutputBinaryStream): void {}
 
 function defaultDecode(stream: BinaryStream): any {
     return null;
 }
 
 export class BasicTypeSchema extends TypeSchemaBase implements BasicTypeDefinition {
-
     public subType: string;
 
     public encode: (value: any, stream: OutputBinaryStream) => void;
@@ -81,8 +110,7 @@ function decodeAny(stream: BinaryStream) {
     assert(false, "type 'Any' cannot be decoded");
 }
 
-function encodeNull(value: any, stream: OutputBinaryStream): void {
-}
+function encodeNull(value: any, stream: OutputBinaryStream): void {}
 
 function decodeNull(stream: BinaryStream): any {
     return null;
@@ -262,7 +290,7 @@ const _defaultType: any[] = [
         decode: decodeUInt32,
         encode: encodeUInt32,
 
-        defaultValue: 0xFFFFFFFF
+        defaultValue: 0xffffffff
     },
 
     // The StatusCode is a 32-bit unsigned integer. The top 16 bits represent the numeric value of the
@@ -286,10 +314,10 @@ const _defaultType: any[] = [
  */
 export function registerType(schema: BasicTypeDefinitionOptions): void {
     assert(typeof schema.name === "string");
-    if (!_.isFunction(schema.encode)) {
+    if (!typeof schema.encode === "function") {
         throw new Error("schema " + schema.name + " has no encode function");
     }
-    if (!_.isFunction(schema.decode)) {
+    if (!typeof schema.decode === "function") {
         throw new Error("schema " + schema.name + " has no decode function");
     }
 
@@ -343,7 +371,7 @@ export function findBuiltInType(dataTypeName: string): BasicTypeDefinition {
     if (!t) {
         throw new Error("datatype " + dataTypeName + " must be registered");
     }
-    if (t.subType && t.subType !== t.name/* avoid infinite recursion */) {
+    if (t.subType && t.subType !== t.name /* avoid infinite recursion */) {
         return findBuiltInType(t.subType);
     }
     return t;

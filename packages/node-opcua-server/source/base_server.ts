@@ -64,23 +64,23 @@ const default_server_info = {
 
 function cleanupEndpoint(endpoint: OPCUAServerEndPoint) {
     if (endpoint._on_new_channel) {
-        assert(_.isFunction(endpoint._on_new_channel));
+        assert(typeof endpoint._on_new_channel === "function");
         endpoint.removeListener("newChannel", endpoint._on_new_channel);
         endpoint._on_new_channel = undefined;
     }
 
     if (endpoint._on_close_channel) {
-        assert(_.isFunction(endpoint._on_close_channel));
+        assert(typeof endpoint._on_close_channel === "function");
         endpoint.removeListener("closeChannel", endpoint._on_close_channel);
         endpoint._on_close_channel = undefined;
     }
     if (endpoint._on_connectionRefused) {
-        assert(_.isFunction(endpoint._on_connectionRefused));
+        assert(typeof endpoint._on_connectionRefused === "function");
         endpoint.removeListener("connectionRefused", endpoint._on_connectionRefused);
         endpoint._on_connectionRefused = undefined;
     }
     if (endpoint._on_openSecureChannelFailure) {
-        assert(_.isFunction(endpoint._on_openSecureChannelFailure));
+        assert(typeof endpoint._on_openSecureChannelFailure === "function");
         endpoint.removeListener("openSecureChannelFailure", endpoint._on_openSecureChannelFailure);
         endpoint._on_openSecureChannelFailure = undefined;
     }
@@ -168,7 +168,7 @@ export class OPCUABaseServer extends OPCUASecureObject {
         installPeriodicClockAdjustmement();
 
         const self = this;
-        assert(_.isFunction(done));
+        assert(typeof done === "function");
         assert(_.isArray(this.endpoints));
         assert(this.endpoints.length > 0, "We need at least one end point");
         callbackify(extractFullyQualifiedDomainName)((err: Error | null, fqdn: string) => {
@@ -222,7 +222,7 @@ export class OPCUABaseServer extends OPCUASecureObject {
         uninstallPeriodicClockAdjustmement();
         this.serverCertificateManager.dispose().then(() => {
             debugLog("OPCUABaseServer#shutdown starting");
-            assert(_.isFunction(done));
+            assert(typeof done === "function");
             async.forEach(
                 this.endpoints,
                 (endpoint: OPCUAServerEndPoint, callback: (err?: Error) => void) => {
@@ -240,7 +240,7 @@ export class OPCUABaseServer extends OPCUASecureObject {
     public async shutdownChannels(): Promise<void>;
     public shutdownChannels(callback: (err?: Error | null) => void): void;
     public shutdownChannels(callback?: (err?: Error | null) => void): Promise<void> | void {
-        assert(_.isFunction(callback));
+        assert(typeof callback === "function");
         debugLog("OPCUABaseServer#shutdownChannels");
         async.forEach(
             this.endpoints,
@@ -295,7 +295,7 @@ export class OPCUABaseServer extends OPCUASecureObject {
         try {
             // handler must be named _on_ActionRequest()
             const handler = (this as any)["_on_" + request.schema.name];
-            if (_.isFunction(handler)) {
+            if (typeof handler === "function") {
                 handler.apply(this, arguments);
             } else {
                 errMessage = "UNSUPPORTED REQUEST !! " + request.schema.name;

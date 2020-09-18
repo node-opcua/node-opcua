@@ -145,7 +145,7 @@ describe("testing Server resilience to DDOS attacks", function() {
             function createChannel(data, _inner_callback) {
 
 
-                _.isFunction(_inner_callback).should.eql(true);
+                typeof _inner_callback === "function".should.eql(true);
                 const secureChannel = new ClientSecureChannelLayer({
                     defaultSecureTokenLifetime: 5000000,
                     securityMode: MessageSecurityMode.None,

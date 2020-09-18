@@ -77,7 +77,7 @@ function _findDataType(dataTypeName: string) {
 }
 
 function validate_value_or_array(isArray: boolean, variantValue: any, validatorFunc: any) {
-    assert(_.isFunction(validatorFunc));
+    assert(typeof validatorFunc === "function");
     let i: number;
     let value: any;
     if (isArray) {
@@ -160,7 +160,7 @@ function _add_variable(
 
 function add_variable(namespace: Namespace, parent: UAObject, name: string, realType: any, default_value: any, extra_name: string) {
     assert(typeof extra_name === "string");
-    const initialValue = _.isFunction(default_value) ? default_value() : default_value;
+    const initialValue = typeof default_value === "function" ? default_value() : default_value;
     const variable = _add_variable(namespace, parent, name, realType, initialValue, false, extra_name);
     assert(variable.valueRank === -1);
     // tslint:disable-next-line: no-bitwise
@@ -192,7 +192,7 @@ function add_variable_array(
     assert((DataType as any)[realTypeName], " expecting a valid real type");
     arrayLength = arrayLength || 10;
 
-    const local_defaultValue = _.isFunction(default_value) ? default_value() : default_value;
+    const local_defaultValue = typeof default_value === "function" ? default_value() : default_value;
 
     const current_value = buildVariantArray((DataType as any)[realTypeName], arrayLength, local_defaultValue);
 
@@ -222,7 +222,7 @@ function add_mass_variables_of_type(
     });
     for (let i = 0; i <= 99; i++) {
         const extra_name = "_" + ("00" + i.toString()).substr(-2);
-        const local_defaultValue = _.isFunction(default_value) ? default_value() : default_value;
+        const local_defaultValue = typeof default_value === "function" ? default_value() : default_value;
         _add_variable(namespace, scalarMass_Type, dataTypeName, realType, local_defaultValue, false, extra_name);
     }
 }
@@ -311,7 +311,7 @@ function add_simulation_variables(namespace: Namespace, scalarFolder: UAObject):
         const randomFunc = getRandomFuncForType(dataType);
 
         // istanbul ignore next
-        if (!_.isFunction(randomFunc)) {
+        if (!typeof randomFunc === "function") {
             throw new Error("a random function must exist for basicType " + dataTypeName);
         }
 
@@ -338,7 +338,7 @@ function add_simulation_variables(namespace: Namespace, scalarFolder: UAObject):
     // add simulation variables
     typeAndDefaultValue.forEach((e) => {
         const dataType = e.type;
-        const defaultValue = _.isFunction(e.defaultValue) ? e.defaultValue() : e.defaultValue;
+        const defaultValue = typeof e.defaultValue === "function" ? e.defaultValue() : e.defaultValue;
         const realType = e.realType || dataType;
         add_simulation_variable(simulation, dataType, defaultValue, realType);
     });
@@ -439,7 +439,7 @@ function add_scalar_static_variables(namespace: Namespace, scalarFolder: UAObjec
         const dataType = e.type;
         const realType = e.realType || dataType;
 
-        const defaultValue = _.isFunction(e.defaultValue) ? e.defaultValue() : e.defaultValue;
+        const defaultValue = typeof e.defaultValue === "function" ? e.defaultValue() : e.defaultValue;
         add_variable(namespace, scalarStatic, dataType, realType, defaultValue, "");
     });
 

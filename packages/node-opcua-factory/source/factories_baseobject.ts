@@ -46,10 +46,10 @@ function _decode_member_(value: any, field: StructuredTypeField, stream: BinaryS
             if (!field.fieldTypeConstructor) {
                 field.fieldTypeConstructor = getStructureTypeConstructor(field.fieldType);
             }
-            if (!_.isFunction(field.fieldTypeConstructor)) {
+            if (!typeof field.fieldTypeConstructor === "function") {
                 throw new Error("Cannot find constructor for  " + field.name + "of type " + field.fieldType);
             }
-            // assert(_.isFunction(field.fieldTypeConstructor));
+            // assert(typeof field.fieldTypeConstructor === "function");
             const constructor = field.fieldTypeConstructor;
             value = callConstructor(constructor);
             value.decodeDebug(stream, options);
@@ -61,13 +61,7 @@ function _decode_member_(value: any, field: StructuredTypeField, stream: BinaryS
 
 type Func1 = (a: any, field: StructuredTypeField, data: ExploreParams, args: any) => void;
 
-function applyOnAllSchemaFields(
-    self: BaseUAObject,
-    schema: StructuredTypeSchema,
-    data: ExploreParams,
-    functor: Func1,
-    args: any
-) {
+function applyOnAllSchemaFields(self: BaseUAObject, schema: StructuredTypeSchema, data: ExploreParams, functor: Func1, args: any) {
     const baseSchema = get_base_schema(schema);
     if (baseSchema) {
         applyOnAllSchemaFields(self, baseSchema, data, functor, args);
@@ -161,20 +155,13 @@ function _exploreObject(self: BaseUAObject, field: StructuredTypeField, data: Ex
 
     // detected when optional field is not specified in value
     if (field.switchBit !== undefined && value === undefined) {
-        str =
-            fieldNameF +
-            " " +
-            fieldTypeF +
-            ": " +
-            chalk.italic.grey("undefined") +
-            " /* optional field not specified */";
+        str = fieldNameF + " " + fieldTypeF + ": " + chalk.italic.grey("undefined") + " /* optional field not specified */";
         data.lines.push(str);
         return;
     }
     // detected when union field is not specified in value
     if (field.switchValue !== undefined && value === undefined) {
-        str =
-            fieldNameF + " " + fieldTypeF + ": " + chalk.italic.grey("undefined") + " /* union field not specified */";
+        str = fieldNameF + " " + fieldTypeF + ": " + chalk.italic.grey("undefined") + " /* union field not specified */";
         data.lines.push(str);
         return;
     }
@@ -212,7 +199,7 @@ function _exploreObject(self: BaseUAObject, field: StructuredTypeField, data: Ex
             if (process.env?.FULLBUFFER) {
                 const _hexDump = hexDump(value);
                 data.lines.push("BUFFER{" + _hexDump + "}");
-            } else { 
+            } else {
                 data.lines.push("BUFFER");
             }
         } else {
@@ -262,8 +249,7 @@ function _exploreObject(self: BaseUAObject, field: StructuredTypeField, data: Ex
                 // tslint:disable-next-line: no-console
                 console.log(" No typeDictionary for ", self.schema);
             }
-            field.fieldTypeConstructor =
-                field.fieldTypeConstructor || typeDictionary.getStructureTypeConstructor(fieldType);
+            field.fieldTypeConstructor = field.fieldTypeConstructor || typeDictionary.getStructureTypeConstructor(fieldType);
             const fieldTypeConstructor = field.fieldTypeConstructor;
 
             const _newFieldSchema =
@@ -286,7 +272,7 @@ function _exploreObject(self: BaseUAObject, field: StructuredTypeField, data: Ex
 
                         const data1 = {
                             lines: [] as string[],
-                            padding: padding + "    ",
+                            padding: padding + "    "
                         };
                         applyOnAllSchemaFields(element, _newFieldSchema, data1, _exploreObject, args);
 
@@ -324,21 +310,10 @@ function _exploreObject(self: BaseUAObject, field: StructuredTypeField, data: Ex
                 // tslint:disable:no-console
                 (s.typedEnum as any)._isFlaggable = true;
                 console.log("xxxx cannot find typeEnum value ", value);
-                str =
-                    fieldNameF + " " + fieldTypeF + ": " + s.name + "." + s.typedEnum.get(value) + " ( " + value + ")";
+                str = fieldNameF + " " + fieldTypeF + ": " + s.name + "." + s.typedEnum.get(value) + " ( " + value + ")";
                 data.lines.push(str);
             } else {
-                str =
-                    fieldNameF +
-                    " " +
-                    fieldTypeF +
-                    ": " +
-                    s.name +
-                    "." +
-                    s.typedEnum.get(value)!.key +
-                    " ( " +
-                    value +
-                    ")";
+                str = fieldNameF + " " + fieldTypeF + ": " + s.name + "." + s.typedEnum.get(value)!.key + " ( " + value + ")";
                 data.lines.push(str);
             }
             break;
@@ -358,7 +333,7 @@ function json_ify(t: BuiltInTypeDefinition, value: any, fieldType: FieldType) {
         return value.map((e) => (e && e.toJSON ? e.toJSON() : e));
     }
     /*
-    if (_.isFunction(fieldType.toJSON)) {
+    if (typeof fieldType.toJSON === "function") {
         return fieldType.toJSON(value);
     } else
     */
@@ -519,7 +494,7 @@ export class BaseUAObject {
     public explore(): string {
         const data: { padding: string; lines: string[] } = {
             lines: [],
-            padding: " ",
+            padding: " "
         };
 
         data.lines.push("{" + chalk.cyan(" /*" + (this.schema ? this.schema.name : "") + "*/"));
@@ -575,7 +550,7 @@ function _visitSchemaChain(
     func: (self: BaseUAObject, schema: StructuredTypeSchema, pojo: any) => void,
     extraData: any
 ) {
-    assert(_.isFunction(func));
+    assert(typeof func === "function");
 
     // apply also construct to baseType schema first
     const baseSchema = get_base_schema(schema);

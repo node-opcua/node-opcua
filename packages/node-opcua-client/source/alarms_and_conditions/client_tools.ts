@@ -26,88 +26,73 @@ const debugLog = make_debugLog(__filename);
 const doDebug = checkDebugFlag(__filename);
 const errorLog = debugLog;
 
-export async function callConditionRefresh(
-    subscription: ClientSubscription
-): Promise<void>;
-export function callConditionRefresh(
-    subscription: ClientSubscription,
-    callback: ErrorCallback
-): void;
-export function callConditionRefresh(
-    subscription: ClientSubscription,
-    callback?: ErrorCallback
-): any {
-
+export async function callConditionRefresh(subscription: ClientSubscription): Promise<void>;
+export function callConditionRefresh(subscription: ClientSubscription, callback: ErrorCallback): void;
+export function callConditionRefresh(subscription: ClientSubscription, callback?: ErrorCallback): any {
     const subscriptionI = subscription as ClientSubscriptionImpl;
     const theSession = subscriptionI.publishEngine.session!;
 
     const subscriptionId = subscription.subscriptionId;
 
     assert(_.isFinite(subscriptionId), "May be subscription is not yet initialized");
-    assert(_.isFunction(callback));
+    assert(typeof callback === "function");
 
     const conditionTypeNodeId = resolveNodeId("ConditionType");
 
     let conditionRefreshId = resolveNodeId("ConditionType_ConditionRefresh");
 
-    async.series([
-        // find conditionRefreshId
-        (innerCallback: ErrorCallback) => {
-
-            const browsePath = makeBrowsePath(conditionTypeNodeId, ".ConditionRefresh");
-            theSession.translateBrowsePath(browsePath, (err: Error | null, result?: BrowsePathResult) => {
-                if (!err) {
-                    result = result!;
-                    // istanbul ignore else
-                    if (result.targets && result.targets.length > 0) {
-                        conditionRefreshId = result.targets[0].targetId;
-                    } else {
-                        // cannot find conditionRefreshId
-                        debugLog("cannot find conditionRefreshId", result.toString());
-                        err = new Error(" cannot find conditionRefreshId");
+    async.series(
+        [
+            // find conditionRefreshId
+            (innerCallback: ErrorCallback) => {
+                const browsePath = makeBrowsePath(conditionTypeNodeId, ".ConditionRefresh");
+                theSession.translateBrowsePath(browsePath, (err: Error | null, result?: BrowsePathResult) => {
+                    if (!err) {
+                        result = result!;
+                        // istanbul ignore else
+                        if (result.targets && result.targets.length > 0) {
+                            conditionRefreshId = result.targets[0].targetId;
+                        } else {
+                            // cannot find conditionRefreshId
+                            debugLog("cannot find conditionRefreshId", result.toString());
+                            err = new Error(" cannot find conditionRefreshId");
+                        }
                     }
-                }
-                innerCallback(err ? err : undefined);
-            });
-        },
+                    innerCallback(err ? err : undefined);
+                });
+            },
 
-        (innerCallback: ErrorCallback) => {
+            (innerCallback: ErrorCallback) => {
+                const methodToCall: CallMethodRequestLike = {
+                    inputArguments: [new Variant({ dataType: DataType.UInt32, value: subscriptionId })],
+                    methodId: conditionRefreshId,
+                    objectId: conditionTypeNodeId
+                };
 
-            const methodToCall: CallMethodRequestLike = {
-                inputArguments: [
-                    new Variant({ dataType: DataType.UInt32, value: subscriptionId })
-                ],
-                methodId: conditionRefreshId,
-                objectId: conditionTypeNodeId
-            };
+                debugLog("xxxxx Calling method ", methodToCall.toString());
+                theSession.call(methodToCall, (err: Error | null, result?: CallMethodResult) => {
+                    if (err) {
+                        return innerCallback(err);
+                    }
+                    result = result!;
 
-            debugLog("xxxxx Calling method ", methodToCall.toString());
-            theSession.call(methodToCall, (err: Error | null, result?: CallMethodResult) => {
-                if (err) {
-                    return innerCallback(err);
-                }
-                result = result!;
-
-                // istanbul ignore next
-                if (result.statusCode !== StatusCodes.Good) {
-                    return innerCallback(new Error("Error " + result.statusCode.toString()));
-                }
-                innerCallback();
-            });
+                    // istanbul ignore next
+                    if (result.statusCode !== StatusCodes.Good) {
+                        return innerCallback(new Error("Error " + result.statusCode.toString()));
+                    }
+                    innerCallback();
+                });
+            }
+        ],
+        (err) => {
+            callback!(err || undefined);
         }
-
-    ], (err) => {
-        callback!(err || undefined);
-    });
+    );
 }
 
-ClientSessionImpl.prototype.disableCondition = () => {
+ClientSessionImpl.prototype.disableCondition = () => {};
 
-};
-
-ClientSessionImpl.prototype.enableCondition = () => {
-
-};
+ClientSessionImpl.prototype.enableCondition = () => {};
 
 ClientSessionImpl.prototype.addCommentCondition = function (
     conditionId: NodeIdLike,
@@ -118,16 +103,10 @@ ClientSessionImpl.prototype.addCommentCondition = function (
     this._callMethodCondition("AddComment", conditionId, eventId, comment, callback);
 };
 
-ClientSessionImpl.prototype.findMethodId = function (
-    nodeId: NodeIdLike,
-    methodName: string,
-    callback: ResponseCallback<NodeId>
-) {
-
+ClientSessionImpl.prototype.findMethodId = function (nodeId: NodeIdLike, methodName: string, callback: ResponseCallback<NodeId>) {
     const browsePath = makeBrowsePath(nodeId, "/" + methodName);
     let methodId: NodeId;
     this.translateBrowsePath(browsePath, (err: Error | null, result?: BrowsePathResult) => {
-
         if (err) {
             return callback(err);
         }
@@ -147,7 +126,6 @@ ClientSessionImpl.prototype.findMethodId = function (
         }
         callback(err);
     });
-
 };
 
 /**
@@ -163,60 +141,63 @@ ClientSessionImpl.prototype._callMethodCondition = function (
     methodName: string,
     conditionId: NodeIdLike,
     eventId: Buffer,
-    comment: LocalizedTextLike, callback: Callback<StatusCode>
+    comment: LocalizedTextLike,
+    callback: Callback<StatusCode>
 ) {
-
     conditionId = coerceNodeId(conditionId);
     assert(conditionId instanceof NodeId);
     assert(eventId instanceof Buffer);
-    assert(typeof (comment) === "string" || comment instanceof LocalizedText);
+    assert(typeof comment === "string" || comment instanceof LocalizedText);
 
     comment = LocalizedText.coerce(comment) || new LocalizedText();
 
     let methodId: NodeId;
 
     let statusCode: StatusCode;
-    async.series([
+    async.series(
+        [
+            (innerCallback: ErrorCallback) => {
+                this.findMethodId(conditionId, methodName, (err: Error | null, _methodId?: NodeId) => {
+                    if (err) {
+                        return innerCallback(err);
+                    }
+                    if (_methodId) {
+                        methodId = _methodId;
+                    }
+                    innerCallback();
+                });
+            },
 
-        (innerCallback: ErrorCallback) => {
-            this.findMethodId(conditionId, methodName, (err: Error | null, _methodId?: NodeId) => {
-                if (err) {
-                    return innerCallback(err);
-                }
-                if (_methodId) {
-                    methodId = _methodId;
-                }
-                innerCallback();
-            });
-        },
+            (innerCallback: ErrorCallback) => {
+                const methodToCalls = [];
 
-        (innerCallback: ErrorCallback) => {
+                methodToCalls.push(
+                    new CallMethodRequest({
+                        inputArguments: [
+                            /* eventId */ new Variant({ dataType: "ByteString", value: eventId }),
+                            /* comment */ new Variant({ dataType: "LocalizedText", value: comment })
+                        ],
+                        methodId,
+                        objectId: conditionId
+                    })
+                );
 
-            const methodToCalls = [];
-
-            methodToCalls.push(new CallMethodRequest({
-                inputArguments: [
-                    /* eventId */ new Variant({ dataType: "ByteString", value: eventId }),
-                    /* comment */ new Variant({ dataType: "LocalizedText", value: comment })
-                ],
-                methodId,
-                objectId: conditionId
-            }));
-
-            this.call(methodToCalls, (err: Error | null, results?: CallMethodResult[]) => {
-                if (err) {
-                    return innerCallback(err);
-                }
-                statusCode = results![0].statusCode;
-                innerCallback();
-            });
+                this.call(methodToCalls, (err: Error | null, results?: CallMethodResult[]) => {
+                    if (err) {
+                        return innerCallback(err);
+                    }
+                    statusCode = results![0].statusCode;
+                    innerCallback();
+                });
+            }
+        ],
+        (err) => {
+            if (err) {
+                return callback(err);
+            }
+            callback(null, statusCode);
         }
-    ], (err) => {
-        if (err) {
-            return callback(err);
-        }
-        callback(null, statusCode);
-    });
+    );
 };
 
 ClientSessionImpl.prototype.confirmCondition = function (
@@ -234,7 +215,8 @@ ClientSessionImpl.prototype.acknowledgeCondition = function (
     conditionId: NodeId,
     eventId: Buffer,
     comment: LocalizedTextLike,
-    callback: Callback<StatusCode>) {
+    callback: Callback<StatusCode>
+) {
     // ns=0;i=9111 AcknowledgeableConditionType#Acknowledge
     this._callMethodCondition("Acknowledge", conditionId, eventId, comment, callback);
 };

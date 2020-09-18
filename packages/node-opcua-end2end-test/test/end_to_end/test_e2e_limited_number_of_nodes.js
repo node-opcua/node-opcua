@@ -16,7 +16,7 @@ const {
     makeBrowsePath,
 } = require("node-opcua");
 
-assert(_.isFunction(makeBrowsePath));
+assert(typeof makeBrowsePath === "function");
 
 const port = 2000;
 

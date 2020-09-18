@@ -31,7 +31,6 @@ export interface PacketAssemblerOptions {
 }
 
 export class PacketAssembler extends EventEmitter {
-
     private readonly _stack: Buffer[];
     private expectedLength: number;
     private currentLength: number;
@@ -46,14 +45,13 @@ export class PacketAssembler extends EventEmitter {
         this.currentLength = 0;
         this.readMessageFunc = options.readMessageFunc;
         this.minimumSizeInBytes = options.minimumSizeInBytes || 8;
-        assert(_.isFunction(this.readMessageFunc), "packet assembler requires a readMessageFunc");
+        assert(typeof this.readMessageFunc === "function", "packet assembler requires a readMessageFunc");
     }
 
     public feed(data: Buffer) {
         let messageChunk;
 
         if (this.expectedLength === 0 && this.currentLength + data.length >= this.minimumSizeInBytes) {
-
             // we are at a start of a block and there is enough data provided to read the length  of the block
             // let's build the whole data block with previous blocks already read.
             if (this._stack.length > 0) {
@@ -72,13 +70,10 @@ export class PacketAssembler extends EventEmitter {
         }
 
         if (this.expectedLength === 0 || this.currentLength + data.length < this.expectedLength) {
-
             this._stack.push(data);
             this.currentLength += data.length;
             // expecting more data to complete current message chunk
-
         } else if (this.currentLength + data.length === this.expectedLength) {
-
             this.currentLength += data.length;
 
             messageChunk = this._buildData(data);
@@ -94,7 +89,6 @@ export class PacketAssembler extends EventEmitter {
             this.expectedLength = 0;
 
             this.emit("message", messageChunk);
-
         } else {
             // there is more data in this chunk than expected...
             // the chunk need to be split
@@ -128,5 +122,4 @@ export class PacketAssembler extends EventEmitter {
         this._stack.length = 0;
         return data;
     }
-
 }

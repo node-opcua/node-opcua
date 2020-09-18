@@ -3,7 +3,7 @@
  */
 // tslint:disable:no-console
 import * as chalk from "chalk";
-import * as  _ from "underscore";
+import * as _ from "underscore";
 import * as util from "util";
 
 import { assert } from "node-opcua-assert";
@@ -13,22 +13,14 @@ import { ExpandedNodeId, NodeId } from "node-opcua-nodeid";
 import { BasicTypeDefinition } from ".";
 import { ConstructorFunc, ConstructorFuncWithSchema } from "./constructor_type";
 import { BaseUAObject } from "./factories_baseobject";
-import {
-    getBuildInType,
-    hasBuiltInType,
-} from "./factories_builtin_types";
-import {
-    EnumerationDefinitionSchema,
-    getEnumeration,
-    hasEnumeration
-} from "./factories_enumerations";
+import { getBuildInType, hasBuiltInType } from "./factories_builtin_types";
+import { EnumerationDefinitionSchema, getEnumeration, hasEnumeration } from "./factories_enumerations";
 import { StructuredTypeSchema } from "./factories_structuredTypeSchema";
 
 const debugLog = make_debugLog(__filename);
 const doDebug = checkDebugFlag(__filename);
 
 export class DataTypeFactory {
-
     public defaultByteOrder: string;
     public targetNamespace: string;
     public imports: string[] = [];
@@ -38,10 +30,10 @@ export class DataTypeFactory {
     private _structureTypeConstructorByEncodingNodeIdMap: any = {};
 
     private _enumerations: {
-        [key: string]: EnumerationDefinitionSchema
+        [key: string]: EnumerationDefinitionSchema;
     } = {};
     private _simpleTypes: {
-        [key: string]: { nodeId: NodeId, definition: BasicTypeDefinition }
+        [key: string]: { nodeId: NodeId; definition: BasicTypeDefinition };
     } = {};
 
     private baseDataFactories: DataTypeFactory[];
@@ -164,12 +156,16 @@ export class DataTypeFactory {
         if (doDebug) {
             console.log(Object.keys(this._structureTypeConstructorByNameMap).join(" "));
         }
-        throw new Error("Cannot find StructureType constructor for " + typeName + " - it may be abstract, or it could be a basic type");
+        throw new Error(
+            "Cannot find StructureType constructor for " + typeName + " - it may be abstract, or it could be a basic type"
+        );
     }
 
     public hasStructuredType(typeName: string): boolean {
         const flag = !!this._structureTypeConstructorByNameMap[typeName];
-        if (flag) { return true; }
+        if (flag) {
+            return true;
+        }
         for (const factory of this.baseDataFactories) {
             const flag2 = factory.hasStructuredType(typeName);
             if (flag2) {
@@ -186,8 +182,12 @@ export class DataTypeFactory {
 
     public dump(): void {
         console.log(" dumping registered factories");
-        console.log(" Factory ", Object.keys(this._structureTypeConstructorByNameMap)
-            .sort().forEach((e) => e));
+        console.log(
+            " Factory ",
+            Object.keys(this._structureTypeConstructorByNameMap)
+                .sort()
+                .forEach((e) => e)
+        );
         console.log(" done");
     }
 
@@ -197,8 +197,7 @@ export class DataTypeFactory {
             this.associateWithBinaryEncoding(className, classConstructor.encodingDefaultBinary);
         } else {
             // for instance in DI FetchResultDataType should be abstract but is not
-            debugLog("warning ", dataTypeNodeId.toString(),
-                "name=", className, " do not have binary encoding");
+            debugLog("warning ", dataTypeNodeId.toString(), "name=", className, " do not have binary encoding");
         }
     }
 
@@ -256,7 +255,6 @@ export class DataTypeFactory {
             // throw new Error("Cannot find constructor for " + expandedNodeId.toString());
         }
         return callConstructor(constructor);
-
     }
 
     public associateWithBinaryEncoding(className: string, expandedNodeId: ExpandedNodeId) {
@@ -273,8 +271,14 @@ export class DataTypeFactory {
 
         /* istanbul ignore next */
         if (expandedNodeIdKey in this._structureTypeConstructorByEncodingNodeIdMap) {
-            throw new Error(" Class " + className + " with ID " + expandedNodeId +
-                "  already in constructorMap for  " + this._structureTypeConstructorByEncodingNodeIdMap[expandedNodeIdKey].name);
+            throw new Error(
+                " Class " +
+                    className +
+                    " with ID " +
+                    expandedNodeId +
+                    "  already in constructorMap for  " +
+                    this._structureTypeConstructorByEncodingNodeIdMap[expandedNodeIdKey].name
+            );
         }
 
         this._structureTypeConstructorByEncodingNodeIdMap[expandedNodeIdKey] = classConstructor;
@@ -304,10 +308,9 @@ export class DataTypeFactory {
         Object.defineProperty(constructor.schema, "$$factory", {
             enumerable: false,
             value: this,
-            writable: false,
+            writable: false
         });
     }
-
 }
 
 function dumpSchema(schema: StructuredTypeSchema, write: any) {
@@ -319,7 +322,6 @@ function dumpSchema(schema: StructuredTypeSchema, write: any) {
     }
 }
 function dumpDataFactory(dataFactory: DataTypeFactory, write: any) {
-
     for (const structureTypeName of dataFactory.structuredTypesNames()) {
         const schema = dataFactory.getStructuredTypeSchema(structureTypeName);
 
@@ -338,7 +340,6 @@ function dumpDataFactory(dataFactory: DataTypeFactory, write: any) {
                 console.log("schema", schema.encodingDefaultXml ? schema.encodingDefaultXml.toString() : " ");
                 // return;
                 // throw new Error("Not  in Binary Encoding Map!!!!!  " + schema.encodingDefaultBinary);
-
             }
         }
         dumpSchema(schema, write);
@@ -358,7 +359,7 @@ function makeExpandedNodeIdKey(expandedNodeId: NodeId): string {
 }
 
 export function callConstructor(constructor: ConstructorFunc): BaseUAObject {
-    assert(_.isFunction(constructor));
+    assert(typeof constructor === "function");
     const constructorFunc: any = constructor.bind.apply(constructor, arguments as any);
     return new constructorFunc();
 }

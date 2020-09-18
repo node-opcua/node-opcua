@@ -652,7 +652,7 @@ export class UAVariable extends BaseNode implements UAVariablePublic {
             throw new Error("Invalid Number of args");
         }
 
-        assert(_.isFunction(callback));
+        assert(typeof callback === "function");
         assert(dataValue instanceof DataValue);
         // index range could be string
         indexRange = NumericRange.coerce(indexRange);
@@ -748,7 +748,7 @@ export class UAVariable extends BaseNode implements UAVariablePublic {
         assert(writeValue instanceof WriteValue);
         assert(writeValue.value instanceof DataValue);
         assert(writeValue.value!.value instanceof Variant);
-        assert(_.isFunction(callback));
+        assert(typeof callback === "function");
 
         // Spec 1.0.2 Part 4 page 58
         // If the SourceTimestamp or the ServerTimestamp is specified, the Server shall
@@ -984,21 +984,21 @@ export class UAVariable extends BaseNode implements UAVariablePublic {
 
         options = options || {};
 
-        assert(!_.isFunction(this._timestamped_set_func), "UAVariable already bound");
-        assert(!_.isFunction(this._timestamped_get_func), "UAVariable already bound");
+        assert(!typeof this._timestamped_set_func === "function", "UAVariable already bound");
+        assert(!typeof this._timestamped_get_func === "function", "UAVariable already bound");
         bind_getter.call(this, options as GetterOptions);
         bind_setter.call(this, options as SetterOptions);
 
         const _historyRead = (options as BindVariableOptionsVariation1).historyRead;
         if (_historyRead) {
-            assert(!_.isFunction(this._historyRead) || this._historyRead === UAVariable.prototype._historyRead);
-            assert(_.isFunction(_historyRead));
+            assert(!typeof this._historyRead === "function" || this._historyRead === UAVariable.prototype._historyRead);
+            assert(typeof _historyRead === "function");
 
             this._historyRead = _historyRead;
             assert(this._historyRead.length === 6);
         }
 
-        assert(_.isFunction(this._timestamped_set_func));
+        assert(typeof this._timestamped_set_func === "function");
         assert(this._timestamped_set_func.length === 3);
     }
 
@@ -1043,7 +1043,7 @@ export class UAVariable extends BaseNode implements UAVariablePublic {
                 innerCallback(null, dataValue);
             };
         } else {
-            func = _.isFunction(this.refreshFunc) ? this.asyncRefresh.bind(this, new Date()) : readImmediate;
+            func = typeof this.refreshFunc === "function" ? this.asyncRefresh.bind(this, new Date()) : readImmediate;
         }
 
         const satisfy_callbacks = (err: Error | null, dataValue?: DataValue) => {
@@ -1095,7 +1095,7 @@ export class UAVariable extends BaseNode implements UAVariablePublic {
 
         newVariable.bindVariable();
 
-        assert(_.isFunction(newVariable._timestamped_set_func));
+        assert(typeof newVariable._timestamped_set_func === "function");
 
         assert(newVariable.dataType === this.dataType);
         newVariable._dataValue = this._dataValue.clone();
@@ -1800,7 +1800,7 @@ function _Variable_bind_with_async_refresh(this: UAVariable, options: any) {
     /* jshint validthis: true */
     assert(this instanceof UAVariable);
 
-    assert(_.isFunction(options.refreshFunc));
+    assert(typeof options.refreshFunc === "function");
     assert(!options.get, "a getter shall not be specified when refreshFunc is set");
     assert(!options.timestamped_get, "a getter shall not be specified when refreshFunc is set");
 
@@ -1824,7 +1824,7 @@ function _Variable_bind_with_async_refresh(this: UAVariable, options: any) {
 function _Variable_bind_with_timestamped_get(this: UAVariable, options: any) {
     /* jshint validthis: true */
     assert(this instanceof UAVariable);
-    assert(_.isFunction(options.timestamped_get));
+    assert(typeof options.timestamped_get === "function");
     assert(!options.get, "should not specify 'get' when 'timestamped_get' exists ");
     assert(!this._timestamped_get_func);
 
@@ -1856,7 +1856,7 @@ function _Variable_bind_with_timestamped_get(this: UAVariable, options: any) {
 function _Variable_bind_with_simple_get(this: UAVariable, options: any) {
     /* jshint validthis: true */
     assert(this instanceof UAVariable);
-    assert(_.isFunction(options.get), "should specify get function");
+    assert(typeof options.get === "function", "should specify get function");
     assert(options.get.length === 0, "get function should not have arguments");
     assert(!options.timestamped_get, "should not specify a timestamped_get function when get is specified");
     assert(!this._timestamped_get_func);
@@ -1894,7 +1894,7 @@ function _Variable_bind_with_simple_get(this: UAVariable, options: any) {
 
 function _Variable_bind_with_simple_set(this: UAVariable, options: any) {
     assert(this instanceof UAVariable);
-    assert(_.isFunction(options.set), "should specify set function");
+    assert(typeof options.set === "function", "should specify set function");
     assert(!options.timestamped_set, "should not specify a timestamped_set function");
 
     assert(!this._timestamped_set_func);
@@ -1924,7 +1924,7 @@ function _Variable_bind_with_simple_set(this: UAVariable, options: any) {
 
 function _Variable_bind_with_timestamped_set(this: UAVariable, options: any) {
     assert(this instanceof UAVariable);
-    assert(_.isFunction(options.timestamped_set));
+    assert(typeof options.timestamped_set === "function");
     assert(
         options.timestamped_set.length === 2,
         "timestamped_set must have 2 parameters  timestamped_set: function(dataValue,callback){}"
@@ -1946,14 +1946,14 @@ interface SetterOptions {
     timestamped_get?: any;
 }
 function bind_setter(this: UAVariable, options: SetterOptions) {
-    if (_.isFunction(options.set)) {
+    if (typeof options.set === "function") {
         // variation 1
         _Variable_bind_with_simple_set.call(this, options);
-    } else if (_.isFunction(options.timestamped_set)) {
+    } else if (typeof options.timestamped_set === "function") {
         // variation 2
-        assert(_.isFunction(options.timestamped_get), "timestamped_set must be used with timestamped_get ");
+        assert(typeof options.timestamped_get === "function", "timestamped_set must be used with timestamped_get ");
         _Variable_bind_with_timestamped_set.call(this, options);
-    } else if (_.isFunction(options.timestamped_get)) {
+    } else if (typeof options.timestamped_get === "function") {
         // timestamped_get is  specified but timestamped_set is not
         // => Value is read-only
         _Variable_bind_with_timestamped_set.call(this, {
@@ -1974,13 +1974,13 @@ interface GetterOptions {
     value?: any;
 }
 function bind_getter(this: UAVariable, options: GetterOptions) {
-    if (_.isFunction(options.get)) {
+    if (typeof options.get === "function") {
         // variation 1
         _Variable_bind_with_simple_get.call(this, options);
-    } else if (_.isFunction(options.timestamped_get)) {
+    } else if (typeof options.timestamped_get === "function") {
         // variation 2
         _Variable_bind_with_timestamped_get.call(this, options);
-    } else if (_.isFunction(options.refreshFunc)) {
+    } else if (typeof options.refreshFunc === "function") {
         // variation 3
         _Variable_bind_with_async_refresh.call(this, options);
     } else {

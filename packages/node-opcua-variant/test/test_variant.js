@@ -1230,11 +1230,11 @@ xdescribe("benchmarking variant encode", () => {
         ];
         bench
             .add("Variant.encode", () => {
-                assert(_.isFunction(encodeVariant));
+                assert(typeof encodeVariant === "function");
                 test_iteration(variant, stream, encodeVariant);
             })
             .add("Variant.old_encode", () => {
-                assert(_.isFunction(old_encode));
+                assert(typeof old_encode === "function");
                 test_iteration(variant, stream, old_encode);
             })
             .on("cycle", function(message) {

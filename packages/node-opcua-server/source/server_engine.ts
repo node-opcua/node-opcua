@@ -114,7 +114,7 @@ function shutdownAndDisposeAddressSpace(this: ServerEngine) {
 // binding methods
 function getMonitoredItemsId(this: ServerEngine, inputArguments: any, context: SessionContext, callback: any) {
     assert(_.isArray(inputArguments));
-    assert(_.isFunction(callback));
+    assert(typeof callback === "function");
 
     assert(context.hasOwnProperty("session"), " expecting a session id in the context object");
 
@@ -158,8 +158,8 @@ function __bindVariable(self: ServerEngine, nodeId: NodeIdLike, options?: any) {
     const variable = self.addressSpace!.findNode(nodeId) as UAVariable;
     if (variable && variable.bindVariable) {
         variable.bindVariable(options, true);
-        assert(_.isFunction(variable.asyncRefresh));
-        assert(_.isFunction((variable as any).refreshFunc));
+        assert(typeof variable.asyncRefresh === "function");
+        assert(typeof ((variable as any) === "function".refreshFunc));
     } else {
         console.log(
             "Warning: cannot bind object with id ",
@@ -364,7 +364,7 @@ export class ServerEngine extends EventEmitter {
      * @method registerShutdownTask
      */
     public registerShutdownTask(task: any) {
-        assert(_.isFunction(task));
+        assert(typeof task === "function");
         this._shutdownTask.push(task);
     }
 
@@ -536,7 +536,7 @@ export class ServerEngine extends EventEmitter {
         this._internalState = "initializing";
 
         options = options || {};
-        assert(_.isFunction(callback));
+        assert(typeof callback === "function");
 
         options.nodeset_filename = options.nodeset_filename || nodesets.standard_nodeset_file;
 
@@ -617,8 +617,8 @@ export class ServerEngine extends EventEmitter {
 
             const bindStandardScalar = (id: number, dataType: DataType, func: () => any, setter_func?: (value: any) => void) => {
                 assert(_.isNumber(id), "expecting id to be a number");
-                assert(_.isFunction(func));
-                assert(_.isFunction(setter_func) || !setter_func);
+                assert(typeof func === "function");
+                assert(typeof setter_func === "function" || !setter_func);
                 assert(dataType !== null); // check invalid dataType
 
                 let setter_func2 = null;
@@ -654,7 +654,7 @@ export class ServerEngine extends EventEmitter {
             };
 
             const bindStandardArray = (id: number, variantDataType: DataType, dataType: any, func: () => any[]) => {
-                assert(_.isFunction(func));
+                assert(typeof func === "function");
                 assert(variantDataType !== null); // check invalid dataType
 
                 const nodeId = makeNodeId(id);
@@ -1203,7 +1203,7 @@ export class ServerEngine extends EventEmitter {
         callback: (err: Error | null, statusCode?: StatusCode) => void
     ) {
         assert(context instanceof SessionContext);
-        assert(_.isFunction(callback));
+        assert(typeof callback === "function");
         assert(writeValue.schema.name === "WriteValue");
         assert(writeValue.value instanceof DataValue);
 
@@ -1239,7 +1239,7 @@ export class ServerEngine extends EventEmitter {
         callback: (err: Error | null, statusCodes?: StatusCode[]) => void
     ) {
         assert(context instanceof SessionContext);
-        assert(_.isFunction(callback));
+        assert(typeof callback === "function");
 
         context.currentTime = new Date();
 
@@ -1315,7 +1315,7 @@ export class ServerEngine extends EventEmitter {
     ) {
         assert(context instanceof SessionContext);
         assert(historyReadRequest instanceof HistoryReadRequest);
-        assert(_.isFunction(callback));
+        assert(typeof callback === "function");
 
         const timestampsToReturn = historyReadRequest.timestampsToReturn;
         const historyReadDetails = historyReadRequest.historyReadDetails! as HistoryReadDetails;
@@ -1690,7 +1690,7 @@ export class ServerEngine extends EventEmitter {
                 continue;
             }
             // ... and that have been declared as asynchronously updating
-            if (!_.isFunction((obj as any).refreshFunc)) {
+            if (!typeof ((obj as any) === "function".refreshFunc)) {
                 continue;
             }
             const key = obj.nodeId.toString();
@@ -1925,7 +1925,7 @@ export class ServerEngine extends EventEmitter {
     /**
      */
     private __internal_bindMethod(nodeId: NodeId, func: MethodFunctor) {
-        assert(_.isFunction(func));
+        assert(typeof func === "function");
         assert(nodeId instanceof NodeId);
 
         const methodNode = this.addressSpace!.findNode(nodeId)! as UAMethod;

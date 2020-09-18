@@ -34,7 +34,6 @@ const doDebug = checkDebugFlag(__filename);
  * @constructor
  */
 export class ClientSidePublishEngine {
-
     public static publishRequestCountInPipeline = 5;
     public timeoutHint: number;
     public activeSubscriptionCount: number;
@@ -46,7 +45,6 @@ export class ClientSidePublishEngine {
     private readonly subscriptionMap: any;
 
     constructor(session: ClientSession) {
-
         this.session = session;
         this.subscriptionAcknowledgements = [];
         this.subscriptionMap = {};
@@ -65,7 +63,6 @@ export class ClientSidePublishEngine {
         this.isSuspended = false;
 
         assert(this.session, "Session must exist");
-
     }
 
     /**
@@ -90,8 +87,7 @@ export class ClientSidePublishEngine {
     }
 
     public cleanup_acknowledgment_for_subscription(subscriptionId: SubscriptionId) {
-        this.subscriptionAcknowledgements = this.subscriptionAcknowledgements.filter(
-            (a) => a.subscriptionId !== subscriptionId);
+        this.subscriptionAcknowledgements = this.subscriptionAcknowledgements.filter((a) => a.subscriptionId !== subscriptionId);
     }
 
     /**
@@ -121,7 +117,6 @@ export class ClientSidePublishEngine {
                 }
                 this.internalSendPublishRequest();
             });
-
         }
     }
 
@@ -130,19 +125,18 @@ export class ClientSidePublishEngine {
     }
 
     public registerSubscription(subscription: any) {
-
         debugLog("ClientSidePublishEngine#registerSubscription ", subscription.subscriptionId);
 
         assert(arguments.length === 1);
         assert(_.isFinite(subscription.subscriptionId));
         assert(!this.subscriptionMap.hasOwnProperty(subscription.subscriptionId)); // already registered ?
-        assert(_.isFunction(subscription.onNotificationMessage));
+        assert(typeof subscription.onNotificationMessage === "function");
         assert(_.isFinite(subscription.timeoutHint));
 
         this.activeSubscriptionCount += 1;
         this.subscriptionMap[subscription.subscriptionId] = subscription;
 
-        this.timeoutHint = Math.min(Math.max(this.timeoutHint, subscription.timeoutHint), 0x7FFFFFF);
+        this.timeoutHint = Math.min(Math.max(this.timeoutHint, subscription.timeoutHint), 0x7ffffff);
 
         debugLog("                       setting timeoutHint = ", this.timeoutHint, subscription.timeoutHint);
 
@@ -150,7 +144,6 @@ export class ClientSidePublishEngine {
     }
 
     public replenish_publish_request_queue() {
-
         // Spec 1.03 part 4 5.13.5 Publish
         // [..] in high latency networks, the Client may wish to pipeline Publish requests
         // to ensure cyclic reporting from the Server. Pipe-lining involves sending more than one Publish
@@ -171,7 +164,6 @@ export class ClientSidePublishEngine {
      * @param subscriptionId
      */
     public unregisterSubscription(subscriptionId: SubscriptionId) {
-
         debugLog("ClientSidePublishEngine#unregisterSubscription ", subscriptionId);
 
         assert(_.isFinite(subscriptionId) && subscriptionId > 0);
@@ -205,7 +197,6 @@ export class ClientSidePublishEngine {
     }
 
     public republish(callback: () => void) {
-
         // After re-establishing the connection the Client shall call Republish in a loop, starting with
         // the next expected sequence number and incrementing the sequence number until the Server returns
         // the status BadMessageNotAvailable.
@@ -221,7 +212,8 @@ export class ClientSidePublishEngine {
         const repairSubscription = (
             subscription: ClientSubscription,
             subscriptionId: SubscriptionId | string,
-            innerCallback: () => void) => {
+            innerCallback: () => void
+        ) => {
             subscriptionId = parseInt(subscriptionId as string, 10);
             this.__repairSubscription(subscription, subscriptionId, innerCallback);
         };
@@ -230,7 +222,6 @@ export class ClientSidePublishEngine {
     }
 
     public internalSendPublishRequest() {
-
         assert(this.session, "ClientSidePublishEngine terminated ?");
 
         this.nbPendingPublishRequests += 1;
@@ -281,17 +272,17 @@ export class ClientSidePublishEngine {
 
         const session = this.session! as ClientSessionImpl;
         session.publish(publishRequest, (err: Error | null, response?: PublishResponse) => {
-
             this.nbPendingPublishRequests -= 1;
 
             if (err) {
-                debugLog(chalk.cyan("ClientSidePublishEngine.prototype.internalSendPublishRequest callback : "),
-                    chalk.yellow(err.message));
+                debugLog(
+                    chalk.cyan("ClientSidePublishEngine.prototype.internalSendPublishRequest callback : "),
+                    chalk.yellow(err.message)
+                );
                 debugLog("'" + err.message + "'");
 
                 if (err.message.match("not connected")) {
-                    debugLog(chalk.bgWhite.red(" WARNING :  CLIENT IS NOT CONNECTED :" +
-                        " MAY BE RECONNECTION IS IN PROGRESS"));
+                    debugLog(chalk.bgWhite.red(" WARNING :  CLIENT IS NOT CONNECTED :" + " MAY BE RECONNECTION IS IN PROGRESS"));
                     debugLog("this.activeSubscriptionCount =", this.activeSubscriptionCount);
                     // the previous publish request has ended up with an error because
                     // the connection has failed ...
@@ -304,8 +295,7 @@ export class ClientSidePublishEngine {
                     // the server tells us that there is no subscription for this session
                     // but the client have some active subscription left.
                     // This could happen if the client has missed or not received the StatusChange Notification
-                    debugLog(chalk.bgWhite.red(" WARNING :   SERVER TELLS THAT IT HAS NO SUBSCRIPTION , " +
-                        "BUT CLIENT DISAGREE"));
+                    debugLog(chalk.bgWhite.red(" WARNING :   SERVER TELLS THAT IT HAS NO SUBSCRIPTION , " + "BUT CLIENT DISAGREE"));
                     debugLog("this.activeSubscriptionCount =", this.activeSubscriptionCount);
                     active = false;
                 }
@@ -317,13 +307,13 @@ export class ClientSidePublishEngine {
                     // and the client does not send intermediate keepAlive request to keep the connection working.
                     //
                     debugLog(chalk.bgWhite.red(" WARNING : SERVER TELLS THAT THE SESSION HAS CLOSED ..."));
-                    debugLog("   the ClientSidePublishEngine shall now be disabled," +
-                        " as server will reject any further request");
+                    debugLog(
+                        "   the ClientSidePublishEngine shall now be disabled," + " as server will reject any further request"
+                    );
                     // close all active subscription....
                     active = false;
                 }
                 if (err.message.match(/BadTooManyPublishRequests/)) {
-
                     // preventing queue overflow
                     // -------------------------
                     //   if the client send too many publish requests that the server can queue, the server returns
@@ -333,14 +323,14 @@ export class ClientSidePublishEngine {
                     //   with extraneous publish requests in the future.
                     //
                     this.nbMaxPublishRequestsAcceptedByServer = Math.min(
-                        this.nbPendingPublishRequests, this.nbMaxPublishRequestsAcceptedByServer);
+                        this.nbPendingPublishRequests,
+                        this.nbMaxPublishRequestsAcceptedByServer
+                    );
                     active = false;
 
-                    debugLog(chalk.bgWhite.red(" WARNING : SERVER TELLS THAT TOO MANY" +
-                        " PUBLISH REQUEST HAS BEEN SEND ..."));
+                    debugLog(chalk.bgWhite.red(" WARNING : SERVER TELLS THAT TOO MANY" + " PUBLISH REQUEST HAS BEEN SEND ..."));
                     debugLog(" On our side nbPendingPublishRequests = ", this.nbPendingPublishRequests);
-                    debugLog(" => nbMaxPublishRequestsAcceptedByServer =",
-                        this.nbMaxPublishRequestsAcceptedByServer);
+                    debugLog(" => nbMaxPublishRequestsAcceptedByServer =", this.nbMaxPublishRequestsAcceptedByServer);
                 }
             } else {
                 if (doDebug) {
@@ -357,7 +347,6 @@ export class ClientSidePublishEngine {
     }
 
     private _receive_publish_response(response: PublishResponse) {
-
         debugLog(chalk.yellow("receive publish response"));
 
         // the id of the subscription sending the notification message
@@ -389,7 +378,6 @@ export class ClientSidePublishEngine {
         const subscription = this.subscriptionMap[subscriptionId];
 
         if (subscription && this.session !== null) {
-
             try {
                 // delegate notificationData to the subscription callback
                 subscription.onNotificationMessage(notificationMessage);
@@ -399,7 +387,6 @@ export class ClientSidePublishEngine {
                     debugLog("Exception in onNotificationMessage");
                 }
             }
-
         } else {
             debugLog(" ignoring notificationMessage", notificationMessage, " for subscription", subscriptionId);
             debugLog(" because there is no subscription.");
@@ -408,26 +395,27 @@ export class ClientSidePublishEngine {
     }
 
     private _republish(subscription: any, subscriptionId: SubscriptionId, callback: (err?: Error) => void) {
-
         assert(subscription.subscriptionId === +subscriptionId);
 
         let isDone = false;
         const session = this.session as ClientSessionImpl;
 
         const sendRepublishFunc = (callback2: (err?: Error) => void) => {
-
-            assert(_.isFinite(subscription.lastSequenceNumber) &&
-                subscription.lastSequenceNumber + 1 >= 0);
+            assert(_.isFinite(subscription.lastSequenceNumber) && subscription.lastSequenceNumber + 1 >= 0);
 
             const request = new RepublishRequest({
                 retransmitSequenceNumber: subscription.lastSequenceNumber + 1,
-                subscriptionId: subscription.subscriptionId,
+                subscriptionId: subscription.subscriptionId
             });
 
             // istanbul ignore next
             if (doDebug) {
-                debugLog(chalk.bgCyan.yellow.bold(" republish Request for subscription"),
-                    request.subscriptionId, " retransmitSequenceNumber=", request.retransmitSequenceNumber);
+                debugLog(
+                    chalk.bgCyan.yellow.bold(" republish Request for subscription"),
+                    request.subscriptionId,
+                    " retransmitSequenceNumber=",
+                    request.retransmitSequenceNumber
+                );
             }
 
             if (!session || session!._closeEventHasBeenEmitted) {
@@ -452,14 +440,16 @@ export class ClientSidePublishEngine {
         };
 
         setImmediate(() => {
-            assert(_.isFunction(callback));
+            assert(typeof callback === "function");
             (async as any).whilst(
                 (cb: any) => cb(null, !isDone),
-                sendRepublishFunc, (err: Error | null) => {
+                sendRepublishFunc,
+                (err: Error | null) => {
                     debugLog("nbPendingPublishRequest = ", this.nbPendingPublishRequests);
                     debugLog(" _republish ends with ", err ? err.message : "null");
                     callback(err!);
-                });
+                }
+            );
         });
     }
 
@@ -468,11 +458,9 @@ export class ClientSidePublishEngine {
         subscriptionId: SubscriptionId,
         callback: (err?: Error) => void
     ) {
-
         debugLog("__repairSubscription  for SubscriptionId ", subscriptionId);
 
         this._republish(subscription, subscriptionId, (err?: Error) => {
-
             assert(!err || err instanceof Error);
 
             debugLog("__repairSubscription--------------------- err =", err ? err.message : null);
@@ -482,7 +470,6 @@ export class ClientSidePublishEngine {
                 return callback(err);
             }
             if (err && err.message.match(/SubscriptionIdInvalid/)) {
-
                 // _republish failed because subscriptionId is not valid anymore on server side.
                 //
                 // This could happen when the subscription has timed out and has been deleted by server
@@ -492,15 +479,12 @@ export class ClientSidePublishEngine {
                 // In this case, Client must recreate a subscription and recreate monitored item without altering
                 // the event handlers
                 //
-                debugLog(chalk.bgWhite.red("_republish failed " +
-                    " subscriptionId is not valid anymore on server side."));
+                debugLog(chalk.bgWhite.red("_republish failed " + " subscriptionId is not valid anymore on server side."));
 
                 const subscriptionI = subscription as ClientSubscriptionImpl;
                 return subscriptionI.recreateSubscriptionAndMonitoredItem(callback);
             }
             callback();
-
         });
-
     }
 }

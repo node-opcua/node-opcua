@@ -37,7 +37,7 @@ function build_client_server_session(options, done) {
     let server, client;
     let endpointUrl;
 
-    if (_.isFunction(options)) {
+    if (typeof options === "function") {
         done = options;
         options = {
             port: 2001,

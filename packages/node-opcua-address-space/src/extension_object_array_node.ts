@@ -31,9 +31,7 @@ const debugLog = make_debugLog(__filename);
  *
  */
 
-function getExtObjArrayNodeValue(
-    this: any
-) {
+function getExtObjArrayNodeValue(this: any) {
     return new Variant({
         arrayType: VariantArrayType.Array,
         dataType: DataType.ExtensionObject,
@@ -41,11 +39,7 @@ function getExtObjArrayNodeValue(
     });
 }
 
-function removeElementByIndex<T extends ExtensionObject>(
-    uaArrayVariableNode: UADynamicVariableArray<T>,
-    elementIndex: number
-) {
-
+function removeElementByIndex<T extends ExtensionObject>(uaArrayVariableNode: UADynamicVariableArray<T>, elementIndex: number) {
     const _array = uaArrayVariableNode.$$extensionObjectArray;
 
     assert(_.isNumber(elementIndex));
@@ -63,8 +57,7 @@ function removeElementByIndex<T extends ExtensionObject>(
         throw new Error(" cannot find component ");
     }
 
-    const hasComponent =
-        uaArrayVariableNode.addressSpace.findReferenceType("HasComponent")! as UAReferenceType;
+    const hasComponent = uaArrayVariableNode.addressSpace.findReferenceType("HasComponent")! as UAReferenceType;
 
     // remove the hasComponent reference toward node
     uaArrayVariableNode.removeReference({
@@ -92,11 +85,7 @@ function removeElementByIndex<T extends ExtensionObject>(
  * @param options.indexPropertyName
  * @return {Object|UAVariable}
  */
-export function createExtObjArrayNode<T extends ExtensionObject>(
-    parentFolder: UAObject,
-    options: any
-): UADynamicVariableArray<T> {
-
+export function createExtObjArrayNode<T extends ExtensionObject>(parentFolder: UAObject, options: any): UADynamicVariableArray<T> {
     assert(typeof options.variableType === "string");
     assert(typeof options.indexPropertyName === "string");
 
@@ -126,7 +115,6 @@ export function createExtObjArrayNode<T extends ExtensionObject>(
     assert(dataType.isSupertypeOf(structure as any), "expecting a structure (= ExtensionObject) here ");
 
     const inner_options = {
-
         componentOf: parentFolder,
 
         browseName: options.browseName,
@@ -138,13 +126,9 @@ export function createExtObjArrayNode<T extends ExtensionObject>(
 
     const uaArrayVariableNode = namespace.addVariable(inner_options) as UADynamicVariableArray<T>;
 
-    bindExtObjArrayNode(
-        uaArrayVariableNode,
-        options.variableType,
-        options.indexPropertyName);
+    bindExtObjArrayNode(uaArrayVariableNode, options.variableType, options.indexPropertyName);
 
     return uaArrayVariableNode;
-
 }
 
 /**
@@ -159,7 +143,6 @@ export function bindExtObjArrayNode<T extends ExtensionObject>(
     variableTypeNodeId: string | NodeId,
     indexPropertyName: string
 ): UAVariablePublic {
-
     const addressSpace = uaArrayVariableNode.addressSpace;
 
     const variableType = addressSpace.findVariableType(variableTypeNodeId);
@@ -193,7 +176,6 @@ export function bindExtObjArrayNode<T extends ExtensionObject>(
     uaArrayVariableNode.$$indexPropertyName = indexPropertyName;
 
     uaArrayVariableNode.$$getElementBrowseName = function (this: any, extObj: ExtensionObject) {
-
         const indexPropertyName1 = this.$$indexPropertyName;
 
         if (!extObj.hasOwnProperty(indexPropertyName1)) {
@@ -239,11 +221,12 @@ export function addElement<T extends ExtensionObject>(
     options: any /* ExtensionObjectConstructor | ExtensionObject | UAVariable*/,
     uaArrayVariableNode: UADynamicVariableArray<T>
 ): UAVariable {
-
     assert(uaArrayVariableNode, " must provide an UAVariable containing the array");
     // verify that arr has been created correctly
-    assert(!!uaArrayVariableNode.$$variableType && !!uaArrayVariableNode.$$dataType,
-        "did you create the array Node with createExtObjArrayNode ?");
+    assert(
+        !!uaArrayVariableNode.$$variableType && !!uaArrayVariableNode.$$dataType,
+        "did you create the array Node with createExtObjArrayNode ?"
+    );
     assert(uaArrayVariableNode.$$dataType.nodeClass === NodeClass.DataType);
 
     const addressSpace = uaArrayVariableNode.addressSpace;
@@ -254,13 +237,14 @@ export function addElement<T extends ExtensionObject>(
     let elVar = null;
     let browseName;
 
-
     if (options instanceof UAVariable) {
         elVar = options;
         extensionObject = elVar.$extensionObject; // get shared extension object
 
-        assert(extensionObject instanceof Constructor,
-            "the provided variable must expose a Extension Object of the expected type ");
+        assert(
+            extensionObject instanceof Constructor,
+            "the provided variable must expose a Extension Object of the expected type "
+        );
         // add a reference
         uaArrayVariableNode.addReference({
             isForward: true,
@@ -268,7 +252,6 @@ export function addElement<T extends ExtensionObject>(
             referenceType: "HasComponent"
         });
         // xx elVar.bindExtensionObject();
-
     } else {
         if (options instanceof Constructor) {
             // extension object has already been created
@@ -312,7 +295,6 @@ export function removeElement<T extends ExtensionObject>(
     uaArrayVariableNode: UADynamicVariableArray<T>,
     element: any /* number | UAVariable | (a any) => boolean | ExtensionObject */
 ): void {
-
     assert(element, "element must exist");
     const _array = uaArrayVariableNode.$$extensionObjectArray;
     if (_array.length === 0) {
@@ -321,27 +303,20 @@ export function removeElement<T extends ExtensionObject>(
     let elementIndex = -1;
 
     if (_.isNumber(element)) {
-
         // find element by index
         elementIndex = element;
         assert(elementIndex >= 0 && elementIndex < _array.length);
-
     } else if (element && element.nodeClass) {
-
         // find element by name
         const browseNameToFind = element.browseName.name!.toString();
         elementIndex = _array.findIndex((obj: any, i: number) => {
             const browseName = uaArrayVariableNode.$$getElementBrowseName(obj).toString();
-            return (browseName === browseNameToFind);
+            return browseName === browseNameToFind;
         });
-
-    } else if (_.isFunction(element)) {
-
+    } else if (typeof element === "function") {
         // find element by functor
         elementIndex = _array.findIndex(element);
-
     } else {
-
         // find element by inner extension object
         assert(_array[0].constructor.name === (element as any).constructor.name, "element must match");
         elementIndex = _array.findIndex((x: any) => x === element);

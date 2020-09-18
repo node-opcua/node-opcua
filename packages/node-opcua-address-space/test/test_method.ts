@@ -147,7 +147,7 @@ describe("testing Method binding", () => {
 
     function fake_getMonitoredItemId(this: any, inputArguments: Variant[], context1: SessionContext, callback: any) {
         should(_.isArray(inputArguments)).eql(true);
-        should(_.isFunction(callback)).eql(true);
+        should(typeof callback === "function").eql(true);
 
         inputArguments[0].dataType.should.eql(DataType.UInt32);
         inputArguments[0].value.should.eql(5);
