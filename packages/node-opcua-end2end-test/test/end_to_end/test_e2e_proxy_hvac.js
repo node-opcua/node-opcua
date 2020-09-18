@@ -4,7 +4,6 @@ const createHVACSystem = require("../../test_helpers/hvac_system").createHVACSys
 
 const should = require("should");
 const async = require("async");
-const _ = require("underscore");
 
 
 const opcua = require("node-opcua");

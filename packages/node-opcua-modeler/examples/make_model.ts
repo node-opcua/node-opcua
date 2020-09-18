@@ -16,7 +16,7 @@ import {
     UAVariable,
     UAVariableT
 } from "..";
-import { generateAddressSpace } from "node-opcua-address-space/nodeJs";
+import { generateAddressSpace } from "node-opcua-address-space/nodeJS";
 import { createBoilerType } from "node-opcua-address-space/testHelpers";
 
 const writeFile = promisify(fs.writeFile);

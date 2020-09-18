@@ -8,7 +8,6 @@ import { BinaryStream, BinaryStreamSizeCalculator, OutputBinaryStream } from "no
 import { hexDump } from "node-opcua-debug";
 import { NodeId } from "node-opcua-nodeid";
 import * as utils from "node-opcua-utils";
-import * as _ from "underscore";
 
 import { getBuildInType } from "./factories_builtin_types";
 import { getEnumeration, hasEnumeration } from "./factories_enumerations";

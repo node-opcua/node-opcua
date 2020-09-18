@@ -38,8 +38,7 @@ const { construct_demo_alarm_in_address_space } = require("node-opcua-address-sp
 
 
 function wait_a_little_bit_to_let_events_to_be_processed(callback) {
-  // setImmediate(callback);
-  setTimeout(callback, 250);
+  setTimeout(callback, 400);
 }
 
 module.exports = function(test) {
@@ -355,7 +354,7 @@ module.exports = function(test) {
 
     });
 
-    describe("test on Disabled conditons", function() {
+    describe("test on Disabled conditions", function() {
 
       /*
        For any Condition that exists in the AddressSpace the Attributes and the following

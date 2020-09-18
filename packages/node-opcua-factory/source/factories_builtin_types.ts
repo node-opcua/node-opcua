@@ -63,7 +63,6 @@ import { BinaryStream, OutputBinaryStream } from "node-opcua-binary-stream";
 import { emptyGuid } from "node-opcua-guid";
 import { makeExpandedNodeId, makeNodeId } from "node-opcua-nodeid";
 import { coerceStatusCode, decodeStatusCode, encodeStatusCode, StatusCodes } from "node-opcua-status-code";
-import * as _ from "underscore";
 import { BasicTypeDefinition, BasicTypeDefinitionOptions, FieldCategory, TypeSchemaBase } from "./types";
 
 // tslint:disable:no-empty

@@ -2,7 +2,6 @@
  * @module node-opcua-chunkmanager
  */
 import { EventEmitter } from "events";
-import * as _ from "underscore";
 
 import { assert } from "node-opcua-assert";
 import { BinaryStream } from "node-opcua-binary-stream";

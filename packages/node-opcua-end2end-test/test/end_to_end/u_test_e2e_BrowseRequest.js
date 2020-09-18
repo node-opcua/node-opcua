@@ -4,7 +4,6 @@ const should = require("should");
 const { assert } = require("node-opcua-assert");
 const async = require("async");
 const util = require("util");
-const _ = require("underscore");
 
 const opcua = require("node-opcua");
 const resolveNodeId = opcua.resolveNodeId;

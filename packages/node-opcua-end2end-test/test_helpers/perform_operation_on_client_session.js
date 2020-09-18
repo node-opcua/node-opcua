@@ -1,8 +1,6 @@
 "use strict";
 
 const async = require("async");
-const should = require("should");
-const _ = require("underscore");
 const { promisify, callbackify } = require("util");
 const opcua = require("node-opcua");
 
@@ -60,8 +58,8 @@ function perform_operation_on_subscription(client, endpointUrl, do_func, done_fu
 
     perform_operation_on_client_session(client, endpointUrl, function(session, done) {
 
-        var do_func_err = null;
-        var subscription;
+        let do_func_err = null;
+        let subscription;
         async.series([
 
             function(callback) {

@@ -504,7 +504,7 @@ export class ClientBaseImpl extends OPCUASecureObject implements OPCUAClientBase
         callback: CreateSecureChannelCallbackFunc
     ) {
         assert(this._secureChannel === null);
-        assert(_.isString(this.endpointUrl));
+        assert(typeof this.endpointUrl === "string");
 
         debugLog("_internal_create_secure_channel creating new ClientSecureChannelLayer");
         const secureChannel = new ClientSecureChannelLayer({

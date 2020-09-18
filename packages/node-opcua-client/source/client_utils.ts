@@ -2,8 +2,6 @@
  * @module node-opcua-client
  */
 
-import * as _ from "underscore";
-
 import { assert } from "node-opcua-assert";
 import { AttributeIds } from "node-opcua-data-model";
 import { DataValue } from "node-opcua-data-value";

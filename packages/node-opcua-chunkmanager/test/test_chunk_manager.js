@@ -4,7 +4,6 @@ const ChunkManager = require("..").ChunkManager;
 
 const util = require("util");
 const { assert } = require("node-opcua-assert");
-const _ = require("underscore");
 
 const hexDump = require("node-opcua-debug").hexDump;
 

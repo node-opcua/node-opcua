@@ -1,8 +1,6 @@
 /**
  * @module node-opcua-address-space.AlarmsAndConditions
  */
-import * as _ from "underscore";
-
 import { assert } from "node-opcua-assert";
 import { UInt16 } from "node-opcua-basic-types";
 import { LocalizedText, LocalizedTextLike } from "node-opcua-data-model";

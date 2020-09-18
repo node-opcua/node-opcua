@@ -11,8 +11,7 @@
     },
     "dependencies": {
         "node-opcua-assert": "2.10.0",
-        "node-opcua-constants": "2.9.0",
-        "underscore": "^1.10.2"
+        "node-opcua-constants": "2.9.0"
     },
     "devDependencies": {
         "node-opcua-binary-stream": "2.11.0",

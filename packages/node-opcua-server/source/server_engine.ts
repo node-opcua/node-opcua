@@ -1468,7 +1468,7 @@ export class ServerEngine extends EventEmitter {
         reason: "Timeout" | "Terminated" | "CloseSession" | "Forcing"
     ) {
         reason = reason || "CloseSession";
-        assert(_.isString(reason));
+        assert(typeof reason === "string");
         assert(reason === "Timeout" || reason === "Terminated" || reason === "CloseSession" || reason === "Forcing");
 
         debugLog("ServerEngine.closeSession ", authenticationToken.toString(), deleteSubscriptions);

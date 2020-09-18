@@ -1797,7 +1797,7 @@ export class OPCUAServer extends OPCUABaseServer {
         server.emit("create_session", session);
 
         session.on("session_closed", (session1: ServerSession, deleteSubscriptions: boolean, reason: string) => {
-            assert(_.isString(reason));
+            assert(typeof reason === "string");
             if (server.isAuditing) {
                 assert(reason === "Timeout" || reason === "Terminated" || reason === "CloseSession" || reason === "Forcing");
                 const sourceName = "Session/" + reason;

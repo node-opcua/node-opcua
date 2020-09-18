@@ -10,7 +10,6 @@ const sinon = require("sinon");
 const should = require("should");
 const async = require("async");
 const path = require("path");
-const _ = require("underscore");
 const defer = require("delayed");
 const chalk = require("chalk");
 

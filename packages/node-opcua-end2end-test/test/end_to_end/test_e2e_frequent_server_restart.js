@@ -1,7 +1,6 @@
 "use strict";
 const should = require("should");
 const async = require("async");
-const _ = require("underscore");
 const os = require("os");
 const {
     OPCUAClient,

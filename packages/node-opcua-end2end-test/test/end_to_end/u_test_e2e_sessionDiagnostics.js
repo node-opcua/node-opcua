@@ -8,20 +8,20 @@ const OPCUAClient = opcua.OPCUAClient;
 
 const sinon = require("sinon");
 
-const perform_operation_on_subscription = require("../../test_helpers/perform_operation_on_client_session").perform_operation_on_subscription;
+const { perform_operation_on_subscription } = require("../../test_helpers/perform_operation_on_client_session");
 
-module.exports = function (test) {
+module.exports = function(test) {
 
-    describe("SDS1 Testing SessionDiagnostics", function () {
+    describe("SDS1 Testing SessionDiagnostics", function() {
 
-        it("SDS1-A server should expose a ServerDiagnostic object", function (done) {
+        it("SDS1-A server should expose a ServerDiagnostic object", function(done) {
             const client = opcua.OPCUAClient.create({});
 
-            perform_operation_on_subscription(client, test.endpointUrl, function (session, subscription, callback) {
+            perform_operation_on_subscription(client, test.endpointUrl, function(session, subscription, callback) {
 
 
                 async.series([
-                    function (callback) {
+                    function(callback) {
                         const nodesToRead = [
                             {
                                 nodeId: opcua.makeNodeId(opcua.VariableIds.Server_ServerDiagnostics_ServerDiagnosticsSummary),
@@ -40,7 +40,7 @@ module.exports = function (test) {
                                 attributeId: opcua.AttributeIds.Value
                             },
                         ];
-                        session.read(nodesToRead, function (err, dataValues) {
+                        session.read(nodesToRead, function(err, dataValues) {
                             if (err) {
                                 return callback(err);
                             }
@@ -68,11 +68,11 @@ module.exports = function (test) {
 
         });
 
-        it("SDS1-B server should expose a SessionDiagnostics per Session", function (done) {
+        it("SDS1-B server should expose a SessionDiagnostics per Session", function(done) {
 
             const client = opcua.OPCUAClient.create({});
 
-            perform_operation_on_subscription(client, test.endpointUrl, function (session, subscription, callback) {
+            perform_operation_on_subscription(client, test.endpointUrl, function(session, subscription, callback) {
 
                 //xx console.log("session nodeId = ",session.sessionId);
 
@@ -83,27 +83,27 @@ module.exports = function (test) {
                 let monitoredItemGroupChangeSpy;
 
                 async.series([
-                    function readSessionNode(callback){
+                    function readSessionNode(callback) {
 
                         const nodeToRead = {
                             nodeId: session.sessionId,
                             attributeId: opcua.AttributeIds.BrowseName
                         };
 
-                        session.read(nodeToRead,function(err,dataValue){
+                        session.read(nodeToRead, function(err, dataValue) {
 
                             callback();
                         });
 
                     },
-                    function (callback) {
+                    function(callback) {
                         const browseDesc = {
                             nodeId: session.sessionId,
                             /// referenceTypeId: ,
                             browseDirection: opcua.BrowseDirection.Forward,
                             resultMask: 63
                         };
-                        session.browse([browseDesc], function (err, browseResult) {
+                        session.browse([browseDesc], function(err, browseResult) {
                             if (err) {
                                 return callback(err);
                             }
@@ -122,7 +122,7 @@ module.exports = function (test) {
                             opcua.makeBrowsePath(session.sessionId, ".SessionDiagnostics.WriteCount.TotalCount")
                         ];
 
-                        session.translateBrowsePath(browsePath, function (err, browsePathResults) {
+                        session.translateBrowsePath(browsePath, function(err, browsePathResults) {
                             if (err) {
                                 return callback(err);
                             }
@@ -146,9 +146,9 @@ module.exports = function (test) {
                             nodeId: currentSessionDiagnosticNodeId,
                             attributeId: opcua.AttributeIds.Value
                         };
-                        session.read(nodeToRead, function (err, dataValue) {
+                        session.read(nodeToRead, function(err, dataValue) {
 
-                            if(err) { return callback(err); }
+                            if (err) { return callback(err); }
 
                             dataValue.statusCode.should.eql(opcua.StatusCodes.Good);
                             dataValue.value.value.constructor.name.should.eql("SessionDiagnosticsDataType");
@@ -184,10 +184,10 @@ module.exports = function (test) {
                             queueSize: 10
                         };
 
-                        monitoredItemGroup = opcua.ClientMonitoredItemGroup.create(subscription,itemsToMonitor, options);
+                        monitoredItemGroup = opcua.ClientMonitoredItemGroup.create(subscription, itemsToMonitor, options);
 
                         // subscription.on("item_added",function(monitoredItem){
-                        monitoredItemGroup.on("initialized", function () {
+                        monitoredItemGroup.on("initialized", function() {
                             monitoredItemGroup.monitoredItems.length.should.eql(4);
                             callback();
                         });
@@ -204,7 +204,7 @@ module.exports = function (test) {
                             dataType: opcua.DataType.Double,
                             value: 42
                         };
-                        session.writeSingleNode(nodeId, dataValue, function (err, results) {
+                        session.writeSingleNode(nodeId, dataValue, function(err, results) {
                             if (err) {
                                 return callback(err);
                             }
@@ -214,10 +214,10 @@ module.exports = function (test) {
                     },
                     function verify_that_session_diagnostics_has_reported_a_new_writeCounter_value(callback) {
 
-                        setTimeout(function () {
+                        setTimeout(function() {
 
                             // extract DataChangeNotification that matches writeCounter
-                            const args = monitoredItemGroupChangeSpy.args.filter(function (arg) {
+                            const args = monitoredItemGroupChangeSpy.args.filter(function(arg) {
                                 return arg[0].itemToMonitor.nodeId.toString() === writeCountTotalCountNodeId.toString();
                             });
                             args.length.should.eql(2);
@@ -237,9 +237,9 @@ module.exports = function (test) {
                             nodeId: currentSessionDiagnosticNodeId,
                             attributeId: opcua.AttributeIds.Value
                         };
-                        session.read(nodeToRead, function (err, dataValue) {
+                        session.read(nodeToRead, function(err, dataValue) {
 
-                            if(err) { return callback(err); }
+                            if (err) { return callback(err); }
 
                             const sessionDiagnostic = dataValue.value.value;
                             sessionDiagnostic.clientConnectionTime.getTime().should.be.lessThan(
@@ -249,7 +249,7 @@ module.exports = function (test) {
 
                             //xx console.log(results[0].toString());
 
-                            const args = monitoredItemGroupChangeSpy.args.filter(function (arg) {
+                            const args = monitoredItemGroupChangeSpy.args.filter(function(arg) {
                                 return arg[0].itemToMonitor.nodeId.toString() === clientLastContactTimeNodeId.toString();
                             });
 
@@ -258,7 +258,7 @@ module.exports = function (test) {
                         });
                     },
                     function terminate_monitored_items(callback) {
-                        monitoredItemGroup.terminate(function () {
+                        monitoredItemGroup.terminate(function() {
                             callback();
                         });
                     }
@@ -267,15 +267,15 @@ module.exports = function (test) {
             }, done);
         });
 
-        it("SDS1-C server should expose a SessionDiagnostics in SessionDiagnosticsSummary.SessionDiagnosticsArray", function (done) {
+        it("SDS1-C server should expose a SessionDiagnostics in SessionDiagnosticsSummary.SessionDiagnosticsArray", function(done) {
 
             const client = opcua.OPCUAClient.create({});
-            perform_operation_on_subscription(client, test.endpointUrl, function (session, subscription, callback) {
+            perform_operation_on_subscription(client, test.endpointUrl, function(session, subscription, callback) {
 
                 //xx console.log("session nodeId = ",session.sessionId);
 
                 let sessionDiagnosticsArrayNodeId = opcua.resolveNodeId("Server_ServerDiagnostics_SessionsDiagnosticsSummary_SessionDiagnosticsArray");
-                const serverNodeId =opcua.resolveNodeId("Server");
+                const serverNodeId = opcua.resolveNodeId("Server");
                 let sessionDiagnosticsNodeId;
                 async.series([
                     function get_sessionDiagnosticsArrayNodeId(callback) {
@@ -283,7 +283,7 @@ module.exports = function (test) {
                             opcua.makeBrowsePath(serverNodeId, ".ServerDiagnostics.SessionsDiagnosticsSummary.SessionDiagnosticsArray"),
                         ];
 
-                        session.translateBrowsePath(browsePath, function (err, browsePathResults) {
+                        session.translateBrowsePath(browsePath, function(err, browsePathResults) {
                             if (err) {
                                 return callback(err);
                             }
@@ -293,14 +293,14 @@ module.exports = function (test) {
                             callback();
                         });
                     },
-                    function (callback) {
+                    function(callback) {
                         const browseDesc = {
                             nodeId: sessionDiagnosticsArrayNodeId,
                             referenceTypeId: "HasComponent",
                             browseDirection: opcua.BrowseDirection.Forward,
                             resultMask: 63
                         };
-                        session.browse([browseDesc], function (err, browseResult) {
+                        session.browse([browseDesc], function(err, browseResult) {
                             if (err) {
                                 return callback(err);
                             }
@@ -317,9 +317,9 @@ module.exports = function (test) {
                             nodeId: sessionDiagnosticsNodeId,
                             attributeId: opcua.AttributeIds.Value
                         };
-                        session.read(nodeToRead, function (err, dataValue) {
+                        session.read(nodeToRead, function(err, dataValue) {
 
-                            if(err) { return callback(err); }
+                            if (err) { return callback(err); }
 
                             dataValue.statusCode.should.eql(opcua.StatusCodes.Good);
                             dataValue.value.value.constructor.name.should.eql("SessionDiagnosticsDataType");
@@ -334,20 +334,20 @@ module.exports = function (test) {
 
         });
 
-        function count_number_of_exposed_sessionDiagnostics(done){
+        function count_number_of_exposed_sessionDiagnostics(done) {
             let sessionDiagnosticsArrayNodeId = opcua.resolveNodeId("Server_ServerDiagnostics_SessionsDiagnosticsSummary_SessionDiagnosticsArray");
-            const serverNodeId =opcua.resolveNodeId("Server");
+            const serverNodeId = opcua.resolveNodeId("Server");
             let sessionDiagnosticsNodeId;
             let nbSessionDiagnostics = -1;
             const client = opcua.OPCUAClient.create({});
-            perform_operation_on_subscription(client, test.endpointUrl, function (session, subscription, callback) {
+            perform_operation_on_subscription(client, test.endpointUrl, function(session, subscription, callback) {
                 async.series([
                     function get_sessionDiagnosticsArrayNodeId(callback) {
                         const browsePath = [
                             opcua.makeBrowsePath(serverNodeId, ".ServerDiagnostics.SessionsDiagnosticsSummary.SessionDiagnosticsArray"),
                         ];
 
-                        session.translateBrowsePath(browsePath, function (err, browsePathResults) {
+                        session.translateBrowsePath(browsePath, function(err, browsePathResults) {
                             if (err) {
                                 return callback(err);
                             }
@@ -357,14 +357,14 @@ module.exports = function (test) {
                             callback();
                         });
                     },
-                    function (callback) {
+                    function(callback) {
                         const browseDesc = {
                             nodeId: sessionDiagnosticsArrayNodeId,
                             referenceTypeId: "HasComponent",
                             browseDirection: opcua.BrowseDirection.Forward,
                             resultMask: 63
                         };
-                        session.browse([browseDesc], function (err, browseResult) {
+                        session.browse([browseDesc], function(err, browseResult) {
                             if (err) {
                                 return callback(err);
                             }
@@ -377,18 +377,18 @@ module.exports = function (test) {
                     }
                 ], callback);
             }, function(err) {
-                if(err) { return callback(err);}
-                done(null,nbSessionDiagnostics);
+                if (err) { return callback(err); }
+                done(null, nbSessionDiagnostics);
             });
 
         }
-        it("SDS1-D server should remove SessionDiagnostic when session is closed",function(done){
+        it("SDS1-D server should remove SessionDiagnostic when session is closed", function(done) {
 
             let nbSessionDiagnosticsStep1, nbSessionDiagnosticsStep2;
             async.series([
                 function count_before(callback) {
-                    count_number_of_exposed_sessionDiagnostics(function(err,nbSessionDiagnostic) {
-                        if (err) { return callback (err);}
+                    count_number_of_exposed_sessionDiagnostics(function(err, nbSessionDiagnostic) {
+                        if (err) { return callback(err); }
                         //xx console.log("xxxx nbSessionDiagnostics =",nbSessionDiagnostic);
                         nbSessionDiagnosticsStep1 = nbSessionDiagnostic;
                         callback();
@@ -396,26 +396,26 @@ module.exports = function (test) {
                 },
                 function createSession(callback) {
                     const client = opcua.OPCUAClient.create({});
-                    perform_operation_on_subscription(client, test.endpointUrl, function (session, subscription, callback) {
-                        count_number_of_exposed_sessionDiagnostics(function(err,nbSessionDiagnostic) {
-                            if (err) { return callback (err);}
+                    perform_operation_on_subscription(client, test.endpointUrl, function(session, subscription, callback) {
+                        count_number_of_exposed_sessionDiagnostics(function(err, nbSessionDiagnostic) {
+                            if (err) { return callback(err); }
                             //xx console.log("xxxx nbSessionDiagnostics =",nbSessionDiagnostic);
-                            nbSessionDiagnosticsStep1.should.eql(nbSessionDiagnostic-1);
+                            nbSessionDiagnosticsStep1.should.eql(nbSessionDiagnostic - 1);
                             callback();
                         });
-                    },callback);
+                    }, callback);
                 },
                 function count_before(callback) {
-                    count_number_of_exposed_sessionDiagnostics(function(err,nbSessionDiagnostic) {
-                        if (err) { return callback (err);}
+                    count_number_of_exposed_sessionDiagnostics(function(err, nbSessionDiagnostic) {
+                        if (err) { return callback(err); }
                         //xx console.log("xxxx nbSessionDiagnostics =",nbSessionDiagnostic);
-                        nbSessionDiagnosticsStep2 = nbSessionDiagnostic ;
+                        nbSessionDiagnosticsStep2 = nbSessionDiagnostic;
                         nbSessionDiagnosticsStep1.should.eql(nbSessionDiagnosticsStep2);
                         callback();
                     });
                 },
 
-            ],done)
+            ], done)
         });
     });
 };

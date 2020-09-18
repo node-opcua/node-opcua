@@ -500,7 +500,7 @@ export class UAVariable extends BaseNode implements UAVariablePublic {
     public writeEnumValue(value: string | number): void {
         const enumInfo = this._getEnumerationInfo();
 
-        if (_.isString(value)) {
+        if (typeof value === "string") {
             if (!enumInfo.nameIndex.hasOwnProperty(value)) {
                 const possibleValues = Object.keys(enumInfo.nameIndex).join(",");
                 throw new Error("UAVariable#writeEnumValue: cannot find value " + value + " in [" + possibleValues + "]");

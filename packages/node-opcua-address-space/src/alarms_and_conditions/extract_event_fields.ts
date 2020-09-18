@@ -1,5 +1,3 @@
-import _ = require("underscore");
-
 import { assert } from "node-opcua-assert";
 import { AttributeIds } from "node-opcua-data-model";
 import { resolveNodeId } from "node-opcua-nodeid";

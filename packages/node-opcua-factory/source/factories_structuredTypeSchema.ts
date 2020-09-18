@@ -3,7 +3,6 @@
  */
 import * as chalk from "chalk";
 import * as _ from "underscore";
-
 import { CommonInterface, FieldCategory, FieldInterfaceOptions, FieldType, StructuredTypeOptions, TypeSchemaBase } from "./types";
 
 import { assert } from "node-opcua-assert";

@@ -1,5 +1,4 @@
 
-const _ = require("underscore");
 const { assert } = require("node-opcua-assert");
 
 const NodeId = require("node-opcua-nodeid").NodeId;

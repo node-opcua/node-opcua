@@ -1,7 +1,6 @@
 /**
  * @module node-opcua-address-space
  */
-import * as _ from "underscore";
 
 import { assert } from "node-opcua-assert";
 import { NodeId, resolveNodeId } from "node-opcua-nodeid";

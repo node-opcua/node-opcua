@@ -4,7 +4,6 @@
 import * as chalk from "chalk";
 import { EventEmitter } from "events";
 import { Socket } from "net";
-import * as _ from "underscore";
 
 import { assert } from "node-opcua-assert";
 import { createFastUninitializedBuffer } from "node-opcua-buffer-utils";

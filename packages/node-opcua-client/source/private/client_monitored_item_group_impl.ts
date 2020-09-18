@@ -3,8 +3,6 @@
  */
 // tslint:disable:no-empty
 import { EventEmitter } from "events";
-import * as _ from "underscore";
-
 import { assert } from "node-opcua-assert";
 import { DataValue, TimestampsToReturn, coerceTimestampsToReturn } from "node-opcua-data-value";
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";

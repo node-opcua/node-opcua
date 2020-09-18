@@ -1,7 +1,6 @@
 "use strict";
 
 const should = require("should");
-const _ = require("underscore");
 
 const Enum = require("..").Enum;
 

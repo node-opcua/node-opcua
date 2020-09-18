@@ -728,7 +728,7 @@ function UAConditionBase_instantiate(
 
     assert(conditionType.isSupertypeOf(baseConditionEventType));
 
-    // assert(_.isString(options.browseName));
+    // assert((typeof options.browseName === "string"));
     options.browseName = options.browseName || "??? instantiateCondition - missing browseName";
 
     options.optionals = options.optionals || [];
@@ -951,7 +951,7 @@ function UAConditionBase_instantiate(
     let conditionClassId = baseConditionClassType ? baseConditionClassType.nodeId : NodeId.nullNodeId;
     let conditionClassName = baseConditionClassType ? baseConditionClassType.displayName[0] : "";
     if (options.conditionClass) {
-        if (_.isString(options.conditionClass)) {
+        if (typeof options.conditionClass === "string") {
             options.conditionClass = addressSpace.findObjectType(options.conditionClass);
         }
         const conditionClassNode = addressSpace._coerceNode(options.conditionClass);
@@ -988,7 +988,7 @@ function UAConditionBase_instantiate(
      * @type {UAVariable}
      */
     const conditionName = options.conditionName || "Unset Condition Name";
-    assert(_.isString(conditionName));
+    assert(typeof conditionName === "string");
     conditionNode.conditionName.setValueFromSource({
         dataType: DataType.String,
         value: conditionName

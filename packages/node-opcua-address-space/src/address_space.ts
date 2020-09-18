@@ -513,7 +513,7 @@ export class AddressSpace implements AddressSpacePrivate {
                 return null;
             }
         } else {
-            assert(_.isString(refType));
+            assert(typeof refType === "string");
             node = this._findReferenceType(refType, namespaceIndex) as UAReferenceType;
         }
         return node;

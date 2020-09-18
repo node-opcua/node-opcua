@@ -24,8 +24,7 @@
     "node-opcua-schemas": "2.15.0",
     "node-opcua-service-browse": "2.15.0",
     "node-opcua-status-code": "2.11.0",
-    "node-opcua-xml2json": "2.15.0",
-    "underscore": "^1.10.2"
+    "node-opcua-xml2json": "2.15.0"
   },
   "devDependencies": {
     "node-opcua-leak-detector": "2.14.0",

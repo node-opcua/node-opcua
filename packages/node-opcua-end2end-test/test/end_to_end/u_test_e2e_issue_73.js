@@ -1,4 +1,3 @@
-/*global xit,it,describe,before,after,beforeEach,afterEach,require*/
 "use strict";
 
 const { assert } = require("node-opcua-assert");

@@ -1,6 +1,5 @@
 import { EventEmitter } from "events";
 import { assert } from "node-opcua-assert";
-import * as _ from "underscore";
 
 const doDebug = false;
 

@@ -1,7 +1,6 @@
 /**
  * @module node-opcua-factory
  */
-import * as _ from "underscore";
 import * as util from "util";
 
 import { assert } from "node-opcua-assert";

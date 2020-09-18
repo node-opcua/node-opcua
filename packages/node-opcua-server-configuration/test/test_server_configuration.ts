@@ -1,7 +1,7 @@
 import * as path from "path";
 
 import { AddressSpace, IServerBase, ISessionBase, PseudoSession, SessionContext } from "node-opcua-address-space";
-import { generateAddressSpace } from "node-opcua-address-space/nodeJs";
+import { generateAddressSpace } from "node-opcua-address-space/nodeJS";
 
 import { NodeClass } from "node-opcua-data-model";
 import { nodesets } from "node-opcua-nodesets";

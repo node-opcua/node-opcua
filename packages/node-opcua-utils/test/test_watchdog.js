@@ -1,7 +1,6 @@
 "use strict";
 
 const sinon = require("sinon");
-const _ = require("underscore");
 const EventEmitter = require("events").EventEmitter;
 const util = require("util");
 const should = require("should");

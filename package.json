@@ -15,7 +15,7 @@
         "build1": "node  ./node_modules/lerna/cli.js --stream --sort --concurrency=1 run build",
         "build": "npm run generate && tsc -b packages",
         "generate": "node  ./node_modules/lerna/cli.js run generate",
-        "postinstall": "npm run bootstrap && npm run build && npm run generate",
+        "postinstall": "npm run bootstrap && npm run build",
         "pretest": "node  ./node_modules/lerna/cli.js run pretest",
         "_old_test": "cd source && mocha test --color -R spec --recursive --timeout 200000 --bail",
         "test": "cd packages && node  --max-old-space-size=512 run_all_mocha_tests.js",

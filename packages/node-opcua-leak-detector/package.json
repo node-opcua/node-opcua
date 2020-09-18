@@ -14,8 +14,7 @@
         "colors": "^1.4.0",
         "node-opcua-assert": "2.10.0",
         "node-opcua-debug": "2.10.0",
-        "node-opcua-object-registry": "2.10.0",
-        "underscore": "^1.10.2"
+        "node-opcua-object-registry": "2.10.0"
     },
     "repository": {
         "type": "git",

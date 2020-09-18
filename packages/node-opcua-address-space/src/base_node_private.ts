@@ -609,7 +609,7 @@ export function BaseNode_add_backward_reference(this: BaseNode, reference: Refer
     const _private = BaseNode_getPrivate(this);
 
     const h = reference.hash;
-    assert(_.isString(h));
+    assert(typeof h === "string");
     // istanbul ignore next
     if (_private._referenceIdx[h]) {
         //  the reference exists already in the forward references

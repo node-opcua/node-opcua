@@ -4,7 +4,6 @@
 // tslint:disable:no-console
 // tslint:disable:ban-types
 import * as fs from "fs";
-import * as _ from "underscore";
 import * as util from "util";
 
 import { assert } from "node-opcua-assert";

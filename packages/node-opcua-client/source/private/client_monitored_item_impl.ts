@@ -5,7 +5,6 @@
 // tslint:disable:no-empty
 import { EventEmitter } from "events";
 import { assert } from "node-opcua-assert";
-import * as _ from "underscore";
 
 import { AttributeIds } from "node-opcua-data-model";
 import { DataValue, coerceTimestampsToReturn } from "node-opcua-data-value";

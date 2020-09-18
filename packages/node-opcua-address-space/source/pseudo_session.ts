@@ -2,7 +2,6 @@
  * @module node-opcua-address-space
  */
 import * as async from "async";
-import * as _ from "underscore";
 import { promisify } from "util";
 
 import { assert } from "node-opcua-assert";

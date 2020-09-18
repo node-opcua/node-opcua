@@ -5,7 +5,6 @@
 import * as async from "async";
 import * as chalk from "chalk";
 import { EventEmitter } from "events";
-import * as _ from "underscore";
 
 import { assert } from "node-opcua-assert";
 import { UAString } from "node-opcua-basic-types";
