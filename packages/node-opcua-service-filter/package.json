@@ -1,6 +1,6 @@
 {
     "name": "node-opcua-service-filter",
-    "version": "2.15.0",
+    "version": "2.16.0",
     "description": "pure nodejs OPCUA SDK - module -service-filter",
     "main": "./dist/index.js",
     "types": "./dist/index.d.ts",
@@ -10,23 +10,23 @@
         "build": "tsc -b"
     },
     "dependencies": {
-        "node-opcua-assert": "2.10.0",
-        "node-opcua-basic-types": "2.13.0",
-        "node-opcua-binary-stream": "2.11.0",
-        "node-opcua-constants": "2.9.0",
-        "node-opcua-data-model": "2.13.0",
-        "node-opcua-debug": "2.10.0",
-        "node-opcua-factory": "2.13.0",
-        "node-opcua-nodeid": "2.11.0",
-        "node-opcua-numeric-range": "2.13.0",
-        "node-opcua-service-translate-browse-path": "2.15.0",
-        "node-opcua-status-code": "2.11.0",
-        "node-opcua-types": "2.15.0",
-        "node-opcua-variant": "2.15.0"
+        "node-opcua-assert": "2.16.0",
+        "node-opcua-basic-types": "2.16.0",
+        "node-opcua-binary-stream": "2.16.0",
+        "node-opcua-constants": "2.16.0",
+        "node-opcua-data-model": "2.16.0",
+        "node-opcua-debug": "2.16.0",
+        "node-opcua-factory": "2.16.0",
+        "node-opcua-nodeid": "2.16.0",
+        "node-opcua-numeric-range": "2.16.0",
+        "node-opcua-service-translate-browse-path": "2.16.0",
+        "node-opcua-status-code": "2.16.0",
+        "node-opcua-types": "2.16.0",
+        "node-opcua-variant": "2.16.0"
     },
     "devDependencies": {
-        "node-opcua-generator": "2.15.0",
-        "node-opcua-service-secure-channel": "2.15.0",
+        "node-opcua-generator": "2.16.0",
+        "node-opcua-service-secure-channel": "2.16.0",
         "should": "^13.2.3"
     },
     "author": "Etienne Rossignon",

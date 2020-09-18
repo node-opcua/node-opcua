@@ -2,7 +2,7 @@
     "name": "node-opcua-date-time",
     "main": "./dist/index.js",
     "types": "./dist/index.d.ts",
-    "version": "2.11.0",
+    "version": "2.16.0",
     "description": "pure nodejs OPCUA SDK - module -date-time",
     "scripts": {
         "build": "tsc -b",
@@ -12,14 +12,14 @@
     "dependencies": {
         "browser-process-hrtime": "^1.0.0",
         "long": "^4.0.0",
-        "node-opcua-assert": "2.10.0",
+        "node-opcua-assert": "2.16.0",
         "underscore": "^1.10.2"
     },
     "devDependencies": {
         "@types/underscore": "^1.10.20",
         "bignumber.js": "^9.0.0",
-        "node-opcua-benchmarker": "2.10.0",
-        "node-opcua-binary-stream": "2.11.0",
+        "node-opcua-benchmarker": "2.16.0",
+        "node-opcua-binary-stream": "2.16.0",
         "should": "^13.2.3"
     },
     "author": "Etienne Rossignon",
