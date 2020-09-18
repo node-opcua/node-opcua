@@ -461,7 +461,7 @@ export class OPCUAClientImpl extends ClientBaseImpl implements OPCUAClient {
         const deleteSubscriptions = args[1];
         const callback = args[2];
 
-        assert(_.isBoolean(deleteSubscriptions));
+        assert(typeof deleteSubscriptions === "boolean");
         assert(typeof callback === "function");
         assert(session);
         assert(session._client === this, "session must be attached to this");
@@ -1106,7 +1106,7 @@ export class OPCUAClientImpl extends ClientBaseImpl implements OPCUAClient {
         callback: (err: Error | null, response?: CloseSessionResponse) => void
     ) {
         assert(typeof callback === "function");
-        assert(_.isBoolean(deleteSubscriptions));
+        assert(typeof deleteSubscriptions === "boolean");
 
         // istanbul ignore next
         if (!this._secureChannel) {

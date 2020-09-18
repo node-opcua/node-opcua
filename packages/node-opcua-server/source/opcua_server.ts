@@ -503,7 +503,7 @@ function _registerServer(
     outer_callback: (err?: Error) => void
 ) {
     assert(typeof discoveryServerEndpointUrl === "string");
-    assert(_.isBoolean(isOnline));
+    assert(typeof isOnline === "boolean");
     const self = this;
     if (!self.registerServerManager) {
         throw new Error("Internal Error");

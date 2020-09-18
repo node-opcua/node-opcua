@@ -403,7 +403,7 @@ export class BaseNode extends EventEmitter implements BaseNodePublic {
         const _private = BaseNode_getPrivate(this);
 
         isForward = utils.isNullOrUndefined(isForward) ? true : !!isForward;
-        assert(_.isBoolean(isForward));
+        assert(typeof isForward === "boolean");
 
         const referenceTypeNode = this._coerceReferenceType(referenceType);
 

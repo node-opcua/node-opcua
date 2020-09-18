@@ -1518,7 +1518,7 @@ export class UANamespace implements NamespacePublic {
 
         assert(component instanceof UAObjectType);
         assert(_.isString(stateName));
-        assert(_.isBoolean(isInitialState));
+        assert(typeof isInitialState === "boolean");
 
         const initialStateType = addressSpace.findObjectType("InitialStateType")!;
         const stateType = addressSpace.findObjectType("StateType")!;

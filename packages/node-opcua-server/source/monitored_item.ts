@@ -96,7 +96,7 @@ function _validate_parameters(monitoringParameters: any) {
     assert(monitoringParameters.hasOwnProperty("samplingInterval"));
     assert(_.isFinite(monitoringParameters.clientHandle));
     assert(_.isFinite(monitoringParameters.samplingInterval));
-    assert(_.isBoolean(monitoringParameters.discardOldest));
+    assert(typeof monitoringParameters.discardOldest === "boolean");
     assert(_.isFinite(monitoringParameters.queueSize));
     assert(monitoringParameters.queueSize >= 0);
 }

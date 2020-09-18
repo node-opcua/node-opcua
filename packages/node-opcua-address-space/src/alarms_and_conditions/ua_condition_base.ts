@@ -302,7 +302,7 @@ export class UAConditionBase extends BaseEventType {
      * @private
      */
     public _setEnabledState(requestedEnabledState: boolean): StatusCode {
-        assert(_.isBoolean(requestedEnabledState));
+        assert(typeof requestedEnabledState === "boolean");
 
         const enabledState = this.getEnabledState();
         if (enabledState && requestedEnabledState) {
@@ -539,7 +539,7 @@ export class UAConditionBase extends BaseEventType {
             branch.setQuality(conditionInfo.quality!);
         }
         if (conditionInfo.hasOwnProperty("retain") && conditionInfo.retain !== null) {
-            assert(_.isBoolean(conditionInfo.retain));
+            assert(typeof conditionInfo.retain === "boolean");
             branch.setRetain(!!conditionInfo.retain!);
         }
 
