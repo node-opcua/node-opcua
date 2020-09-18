@@ -5,22 +5,17 @@ import { assert } from "node-opcua-assert";
 import {
     BaseUAObject,
     buildStructuredType,
-    check_options_correctness_against_schema, initialize_field,
+    check_options_correctness_against_schema,
+    initialize_field,
     parameters,
     registerSpecialVariantEncoder,
     StructuredTypeSchema
 } from "node-opcua-factory";
 
-import * as _ from "underscore";
-
 import { BinaryStream, OutputBinaryStream } from "node-opcua-binary-stream";
 import { ExpandedNodeId, makeExpandedNodeId } from "node-opcua-nodeid";
 
-import {
-    decodeUAString, decodeUInt16, encodeUAString,
-    encodeUInt16, Int32,
-    UAString, UInt16
-} from "node-opcua-basic-types";
+import { decodeUAString, decodeUInt16, encodeUAString, encodeUInt16, Int32, UAString, UInt16 } from "node-opcua-basic-types";
 
 export const schemaQualifiedName = buildStructuredType({
     baseType: "BaseUAObject",
@@ -49,13 +44,9 @@ export interface QualifiedNameOptions {
 }
 
 export class QualifiedName extends BaseUAObject {
-
     public static schema: StructuredTypeSchema = schemaQualifiedName;
 
-    public static possibleFields: string[] = [
-        "namespaceIndex",
-        "name"
-    ];
+    public static possibleFields: string[] = ["namespaceIndex", "name"];
     public static encodingDefaultBinary: ExpandedNodeId = makeExpandedNodeId(0, 0);
     public static encodingDefaultXml: ExpandedNodeId = makeExpandedNodeId(0, 0);
     public namespaceIndex: UInt16;
@@ -69,7 +60,6 @@ export class QualifiedName extends BaseUAObject {
      * @param  options {Object}
      */
     constructor(options?: QualifiedNameOptions) {
-
         super();
 
         const schema = QualifiedName.schema;
@@ -128,7 +118,6 @@ export class QualifiedName extends BaseUAObject {
     public isEmpty() {
         return !this.name || this.name.length === 0;
     }
-
 }
 
 QualifiedName.prototype.schema = QualifiedName.schema;
@@ -141,9 +130,7 @@ export type QualifiedNameLike = QualifiedNameOptions | string;
 // xx}
 
 function isInteger(value: any): boolean {
-    return typeof value === "number" &&
-        isFinite(value) &&
-        Math.floor(value) === value;
+    return typeof value === "number" && isFinite(value) && Math.floor(value) === value;
 }
 
 /**
@@ -157,14 +144,15 @@ function isInteger(value: any): boolean {
  *  stringToQualifiedName("3:Hello") => {namespaceIndex: 3, name: "Hello"}
  */
 export function stringToQualifiedName(value: string): QualifiedName {
-
     const splitArray = value.split(":");
     let namespaceIndex = 0;
 
-    if (!isNaN(parseFloat(splitArray[0])) &&
+    if (
+        !isNaN(parseFloat(splitArray[0])) &&
         isFinite(parseInt(splitArray[0], 10)) &&
         isInteger(parseFloat(splitArray[0])) &&
-        splitArray.length > 1) {
+        splitArray.length > 1
+    ) {
         namespaceIndex = parseInt(splitArray[0], 10);
         splitArray.shift();
         value = splitArray.join(":");
@@ -176,12 +164,11 @@ export function coerceQualifiedName(value: null): null;
 export function coerceQualifiedName(value: QualifiedNameLike): QualifiedName;
 export function coerceQualifiedName(value: string): QualifiedName;
 export function coerceQualifiedName(value: null | QualifiedNameLike): QualifiedName | null {
-
     if (!value) {
         return null;
     } else if (value instanceof QualifiedName) {
         return value;
-    } else if (_.isString(value)) {
+    } else if (typeof value === "string") {
         return stringToQualifiedName(value);
     } else {
         assert(value.hasOwnProperty("namespaceIndex"));

@@ -920,7 +920,7 @@ UAMethod.prototype.dumpXML = function (xw) {
 function resolveDataTypeName(addressSpace: AddressSpacePrivate, dataType: string | NodeId): QualifiedName {
     let dataTypeNode = null;
     // istanbul ignore next
-    if (_.isString(dataType)) {
+    if (typeof dataType === "string") {
         dataTypeNode = addressSpace.findDataType(dataType);
     } else {
         assert(dataType instanceof NodeId);

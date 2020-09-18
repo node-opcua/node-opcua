@@ -1,7 +1,6 @@
 /**
  * @module node-opcua-factory
  */
-import * as _ from "underscore";
 
 import { assert } from "node-opcua-assert";
 import { BinaryStream, OutputBinaryStream } from "node-opcua-binary-stream";

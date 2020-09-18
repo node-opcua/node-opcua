@@ -7,7 +7,7 @@ const opcua = require("node-opcua");
 const OPCUAClient = opcua.OPCUAClient;
 const coerceNodeId = opcua.coerceNodeId;
 
-const perform_operation_on_subscription = require("../../test_helpers/perform_operation_on_client_session").perform_operation_on_subscription;
+const { perform_operation_on_subscription } = require("../../test_helpers/perform_operation_on_client_session");
 
 module.exports = function(test) {
 

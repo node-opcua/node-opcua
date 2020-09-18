@@ -13,6 +13,9 @@
             "path": "../node-opcua-assert"
         },
         {
+            "path": "../node-opcua-address-space"
+        },
+        {
             "path": "../node-opcua-aggregates"
         },
         {

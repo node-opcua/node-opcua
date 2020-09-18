@@ -12,8 +12,7 @@
     "author": "Etienne Rossignon",
     "license": "MIT",
     "dependencies": {
-        "node-opcua-assert": "2.10.0",
-        "underscore": "^1.10.2"
+        "node-opcua-assert": "2.10.0"
     },
     "devDependencies": {
         "should": "^13.2.3"

@@ -1,5 +1,4 @@
 import * as should from "should";
-import * as _ from "underscore";
 
 import { AttributeIds, LocalizedText } from "node-opcua-data-model";
 import { StatusCodes } from "node-opcua-status-code";

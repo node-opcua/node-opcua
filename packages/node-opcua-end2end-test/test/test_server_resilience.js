@@ -1,7 +1,6 @@
 "use strict";
 const should = require("should");
 const async = require("async");
-const _ = require("underscore");
 
 
 const OPCUAServer = require("node-opcua-server").OPCUAServer;

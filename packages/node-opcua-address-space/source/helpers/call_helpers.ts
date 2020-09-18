@@ -1,8 +1,6 @@
 /**
  * @module node-opcua-address-space
  */
-import _ = require("underscore");
-
 import { assert } from "node-opcua-assert";
 import { ExtraDataTypeManager, resolveDynamicExtensionObject } from "node-opcua-client-dynamic-extension-object";
 import { NodeClass } from "node-opcua-data-model";

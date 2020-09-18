@@ -1,4 +1,4 @@
-{
+        {
     "compilerOptions": {
         "composite": true,
         "incremental": true

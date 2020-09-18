@@ -7,7 +7,7 @@ import * as should from "should";
 import { promisify } from "util";
 
 import { AddressSpace, PseudoSession, SessionContext, UAFileType, UAMethod } from "node-opcua-address-space";
-import { generateAddressSpace } from "node-opcua-address-space/nodeJs";
+import { generateAddressSpace } from "node-opcua-address-space/nodeJS";
 import { UInt64, extraStatusCodeBits, coerceUInt64 } from "node-opcua-basic-types";
 import { nodesets } from "node-opcua-nodesets";
 

@@ -2,8 +2,6 @@
 /* global require, process, __filename, it, before, beforeEach, after, afterEach */
 const should = require("should");
 const async = require("async");
-const _ = require("underscore");
-const os = require("os");
 const fs = require("fs");
 const opcua = require("node-opcua");
 const chalk = require("chalk");

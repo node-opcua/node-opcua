@@ -1,23 +1,31 @@
-const _ = require("underscore");
-const should = require("should");
 
-
-const resolveNodeId = require("node-opcua-nodeid").resolveNodeId;
-const VariantArrayType = require("node-opcua-variant").VariantArrayType;
-const DataType = require("node-opcua-variant").DataType;
-const NodeId = require("node-opcua-nodeid").NodeId;
-const StatusCodes = require("node-opcua-status-code").StatusCodes;
-const NodeClass = require("node-opcua-data-model").NodeClass;
+const {
+    resolveNodeId,
+    NodeId
+} = require("node-opcua-nodeid");
+const {
+    VariantArrayType,
+    DataType
+} = require("node-opcua-variant");
+const {
+    StatusCodes
+} = require("node-opcua-status-code");
+const {
+    NodeClass
+} = require("node-opcua-data-model");
+const {
+    getMethodDeclaration_ArgumentList,
+    SessionContext,
+    UAMethod
+} = require("node-opcua-address-space");
+const {
+    BrowsePath
+} = require("node-opcua-service-translate-browse-path");
 
 let engine, FolderTypeId, BaseDataVariableTypeId, ref_Organizes_Id;
 
-const getMethodDeclaration_ArgumentList = require("node-opcua-address-space").getMethodDeclaration_ArgumentList;
-const UAMethod = require("node-opcua-address-space").UAMethod;
-const SessionContext = require("node-opcua-address-space").SessionContext;
 
-const translate_service = require("node-opcua-service-translate-browse-path");
-
-const ServerEngine = require("..").ServerEngine;
+const { ServerEngine } = require("..");
 const { get_mini_nodeset_filename } = require("node-opcua-address-space/testHelpers");
 const mini_nodeset_filename = get_mini_nodeset_filename();
 
@@ -158,10 +166,10 @@ describe("ServerEngine - addMethod", function() {
         }
         ];
 
-        let result = engine.browsePath(new translate_service.BrowsePath(browsePath[0]));
+        let result = engine.browsePath(new BrowsePath(browsePath[0]));
         result.statusCode.should.eql(StatusCodes.Good);
 
-        result = engine.browsePath(new translate_service.BrowsePath(browsePath[1]));
+        result = engine.browsePath(new BrowsePath(browsePath[1]));
         result.statusCode.should.eql(StatusCodes.Good);
 
         objectMethod.execute(inputArguments, context, function(err, callMethodResponse) {

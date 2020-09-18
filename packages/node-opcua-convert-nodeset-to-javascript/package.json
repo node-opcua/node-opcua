@@ -12,8 +12,7 @@
         "node-opcua-data-model": "2.13.0",
         "node-opcua-factory": "2.13.0",
         "node-opcua-nodeid": "2.11.0",
-        "node-opcua-utils": "2.13.0",
-        "underscore": "^1.10.2"
+        "node-opcua-utils": "2.13.0"
     },
     "devDependencies": {
         "node-opcua-packet-analyzer": "2.13.0",

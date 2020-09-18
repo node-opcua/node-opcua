@@ -9,7 +9,6 @@ const {
     parse_opcua_common
 } = require("../lib/parse_server_common");
 
-const _ = require("underscore");
 const PseudoSession = require("../lib/pseudo_session").PseudoSession;
 
 async function parse_xml(nodeset_files) {

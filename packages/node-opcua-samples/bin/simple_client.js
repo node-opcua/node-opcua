@@ -3,7 +3,6 @@
 const fs = require("fs");
 const path = require("path");
 const treeify = require("treeify");
-const _ = require("underscore");
 const chalk = require("chalk");
 const Table = require("easy-table");
 const util = require("util");

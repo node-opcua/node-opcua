@@ -26,15 +26,9 @@
  </UADataType>
  */
 
-const _ = require("underscore");
 const { assert } = require("node-opcua-assert");
-
-const factories = require("node-opcua-factory");
-const NodeId = require("node-opcua-nodeid").NodeId;
-const makeNodeId = require("node-opcua-nodeid").makeNodeId;
-const coerceNodeId = require("node-opcua-nodeid").coerceNodeId;
-const resolveNodeId = require("node-opcua-nodeid").resolveNodeId;
-const DataType = require("node-opcua-variant").DataType;
+const { NodeId, coerceNodeId, resolveNodeId } = require("node-opcua-nodeid");
+const { DataType } = require("node-opcua-variant");
 
 // OPC Unified Architecture, Part 4 $7.1 page 106
 const Argument_Schema = {

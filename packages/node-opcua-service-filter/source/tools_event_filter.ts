@@ -4,7 +4,6 @@
 // tslint:disable:object-literal-shorthand
 // tslint:disable:only-arrow-functions
 // tslint:disable:max-line-length
-import * as _ from "underscore";
 
 import { assert } from "node-opcua-assert";
 import { ObjectTypeIds } from "node-opcua-constants";

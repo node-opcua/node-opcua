@@ -176,7 +176,7 @@ export class UAVariableType extends BaseNode implements UAVariableTypePublic {
 
         assert(options, "missing option object");
         assert(
-            _.isString(options.browseName) || (options.browseName !== null && typeof options.browseName === "object"),
+            typeof options.browseName === "string" || (options.browseName !== null && typeof options.browseName === "object"),
             "expecting a browse name"
         );
         assert(!options.hasOwnProperty("propertyOf"), "Use addressSpace#addVariable({ propertyOf: xxx}); to add a property");

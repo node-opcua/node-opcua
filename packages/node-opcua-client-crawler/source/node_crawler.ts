@@ -1,6 +1,5 @@
 import * as chalk from "chalk";
 import * as async from "async";
-import _ = require("underscore");
 
 import { NodeIdLike, resolveNodeId } from "node-opcua-nodeid";
 import { assert } from "node-opcua-assert";

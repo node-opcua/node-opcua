@@ -17,7 +17,7 @@ import {
     nodesets,
     StructureDefinitionOptions
 } from "..";
-import { generateAddressSpace } from "node-opcua-address-space/nodeJs";
+import { generateAddressSpace } from "node-opcua-address-space/nodeJS";
 
 const writeFile = promisify(fs.writeFile);
 

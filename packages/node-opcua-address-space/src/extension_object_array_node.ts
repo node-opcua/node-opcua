@@ -2,7 +2,6 @@
  * @module node-opcua-address-space.Private
  */
 import { assert } from "node-opcua-assert";
-import * as _ from "underscore";
 
 import { BrowseDirection, NodeClass } from "node-opcua-data-model";
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";

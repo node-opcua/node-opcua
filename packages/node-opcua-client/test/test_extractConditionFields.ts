@@ -1,7 +1,7 @@
 import * as fs from "fs";
 import { AddressSpace } from "node-opcua-address-space";
 import { construct_demo_alarm_in_address_space, IAlarmTestData } from "node-opcua-address-space/testHelpers";
-import { generateAddressSpace } from "node-opcua-address-space/nodeJs";
+import { generateAddressSpace } from "node-opcua-address-space/nodeJS";
 import { PseudoSession } from "node-opcua-address-space";
 import { nodesets } from "node-opcua-nodesets";
 import { extractConditionFields, resolveNodeId } from "..";

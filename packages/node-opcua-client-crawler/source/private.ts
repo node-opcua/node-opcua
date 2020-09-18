@@ -2,7 +2,6 @@ import { assert } from "node-opcua-assert";
 import { QualifiedName, ReferenceDescription, BrowseResult, NodeId } from "node-opcua-client";
 import { debugLog } from "node-opcua-pki";
 import { CacheNode, UserData } from ".";
-import _ = require("underscore");
 
 export type EmptyCallback = () => void;
 

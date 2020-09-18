@@ -6,7 +6,6 @@ const { assert } = require("node-opcua-assert");
 const async = require("async");
 const should = require("should");
 const sinon = require("sinon");
-const _ = require("underscore");
 
 const opcua = require("node-opcua");
 
@@ -23,7 +22,7 @@ const VariantArrayType = opcua.VariantArrayType;
 const MonitoredItem = opcua.MonitoredItem;
 
 const perform_operation_on_client_session = require("../../test_helpers/perform_operation_on_client_session").perform_operation_on_client_session;
-const perform_operation_on_subscription = require("../../test_helpers/perform_operation_on_client_session").perform_operation_on_subscription;
+const { perform_operation_on_subscription } = require("../../test_helpers/perform_operation_on_client_session");
 const perform_operation_on_monitoredItem = require("../../test_helpers/perform_operation_on_client_session").perform_operation_on_monitoredItem;
 
 const Subscription = require("node-opcua-server").Subscription;

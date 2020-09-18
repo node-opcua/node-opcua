@@ -45,7 +45,7 @@ export class ClientMonitoredItemToolbox {
         for (const monitoredItem of monitoredItems) {
             const monitoredItemI = monitoredItem as ClientMonitoredItemImpl;
             const itemToCreate = monitoredItemI._prepare_for_monitoring();
-            if (_.isString(itemToCreate.error)) {
+            if (typeof itemToCreate.error === "string") {
                 return done(new Error(itemToCreate.error));
             }
             itemsToCreate.push(itemToCreate as MonitoredItemCreateRequestOptions);

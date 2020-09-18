@@ -7,7 +7,6 @@
  *
  */
 
-import * as _ from "underscore";
 import * as path from "path";
 import * as fs from "fs";
 

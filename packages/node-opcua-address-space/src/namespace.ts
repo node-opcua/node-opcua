@@ -1364,7 +1364,7 @@ export class UANamespace implements NamespacePublic {
         // other usages where the actual value might be between 8 and 64 Bit.
         const self = this;
 
-        assert(_.isString(options.browseName));
+        assert(typeof options.browseName === "string");
         assert(Array.isArray(options.enumeration));
 
         const addressSpace = self.addressSpace;
@@ -1387,7 +1387,7 @@ export class UANamespace implements NamespacePublic {
 
         enumType.propagate_back_references();
 
-        if (_.isString(options.enumeration[0])) {
+        if (typeof options.enumeration[0] === "string") {
             const enumeration = options.enumeration as string[];
             // enumeration is a array of string
             definition = enumeration.map((str: string, index: number) => coerceLocalizedText(str));
@@ -1520,7 +1520,7 @@ export class UANamespace implements NamespacePublic {
         isInitialState = !!isInitialState;
 
         assert(component instanceof UAObjectType);
-        assert(_.isString(stateName));
+        assert(typeof stateName === "string");
         assert(typeof isInitialState === "boolean");
 
         const initialStateType = addressSpace.findObjectType("InitialStateType")!;
@@ -1553,8 +1553,8 @@ export class UANamespace implements NamespacePublic {
         const addressSpace = namespace.addressSpace;
 
         assert(component instanceof UAObjectType);
-        assert(_.isString(fromState));
-        assert(_.isString(toState));
+        assert(typeof fromState === "string");
+        assert(typeof toState === "string");
         assert(_.isFinite(transitionNumber));
 
         const fromStateNode = component.getComponentByName(fromState, component.nodeId.namespace);
@@ -2338,7 +2338,7 @@ function _handle_node_version(node: BaseNode, options: any) {
             dataType: "String",
             propertyOf: node
         });
-        const initialValue = _.isString(options.nodeVersion) ? options.nodeVersion : "0";
+        const initialValue = typeof options.nodeVersion === "string" ? options.nodeVersion : "0";
         // xx console.log(" init value =",initialValue);
         nodeVersion.setValueFromSource({ dataType: "String", value: initialValue });
     }

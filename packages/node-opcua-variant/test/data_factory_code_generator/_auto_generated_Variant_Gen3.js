@@ -5,7 +5,6 @@
  */
 const { assert } = require("node-opcua-assert");
 const util = require("util");
-const _ = require("underscore");
 const schema_helpers = require("node-opcua-factory/src/factories_schema_helpers");
 const resolve_schema_field_types = schema_helpers.resolve_schema_field_types;
 const initialize_field = schema_helpers.initialize_field;

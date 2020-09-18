@@ -1,8 +1,6 @@
 /***
  * @module node-opcua-basic-types
  */
-import * as _ from "underscore";
-
 import { BinaryStream, OutputBinaryStream } from "node-opcua-binary-stream";
 import { createFastUninitializedBuffer } from "node-opcua-buffer-utils";
 

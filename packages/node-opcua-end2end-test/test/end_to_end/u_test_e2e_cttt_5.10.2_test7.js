@@ -4,14 +4,12 @@
    Server should revise the value to a value it supports. */
 
 
-const { assert } = require("node-opcua-assert");
-const should = require("should");
 const opcua = require("node-opcua");
 const _ = require("underscore");
 
 const OPCUAClient = opcua.OPCUAClient;
 
-const perform_operation_on_subscription = require("../../test_helpers/perform_operation_on_client_session").perform_operation_on_subscription;
+const { perform_operation_on_subscription } = require("../../test_helpers/perform_operation_on_client_session");
 
 module.exports = function(test) {
 
@@ -28,7 +26,7 @@ module.exports = function(test) {
                     requestedPublishingInterval: maxValue
                 };
                 session.modifySubscription(request, function(err, response) {
-                    typeof response.revisedPublishingInterval === "number".should.be.eql(true);
+                    (typeof response.revisedPublishingInterval === "number").should.be.eql(true);
                     response.revisedPublishingInterval.should.not.eql(maxValue);
                     //xx console.log("   requestedPublishingInterval = ",maxValue);
                     //xx console.log("     revisedPublishingInterval = ",response.revisedPublishingInterval);

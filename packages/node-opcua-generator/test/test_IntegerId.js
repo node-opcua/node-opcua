@@ -3,19 +3,18 @@ const should = require("should");
 
 const generator = require("..");
 const encode_decode_round_trip_test = require("node-opcua-packet-analyzer/dist/test_helpers").encode_decode_round_trip_test;
-const _ = require("underscore");
 
 const path = require("path");
-const tmpfolder  = path.join(__dirname,"../_test_generated");
+const tmpfolder = path.join(__dirname, "../_test_generated");
 
 function initialize() {
-    const ObjWithIntegerId = generator.registerObject(path.join(__dirname,"./schemas")+"|ObjWithIntegerId", tmpfolder);
+    const ObjWithIntegerId = generator.registerObject(path.join(__dirname, "./schemas") + "|ObjWithIntegerId", tmpfolder);
 }
 
 
-xdescribe("Testing IntegerId", function () {
+xdescribe("Testing IntegerId", function() {
 
-    it("should persist a IntegerId === 0", function () {
+    it("should persist a IntegerId === 0", function() {
 
         const o = new ObjWithIntegerId({
             requestHandle: 0
@@ -26,7 +25,7 @@ xdescribe("Testing IntegerId", function () {
         obj_reloaded.requestHandle.should.eql(0);
 
     });
-    it("should persist a IntegerId !== 0", function () {
+    it("should persist a IntegerId !== 0", function() {
 
         const o = new ObjWithIntegerId({
             requestHandle: 1

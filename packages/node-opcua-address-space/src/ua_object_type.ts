@@ -1,8 +1,6 @@
 /**
  * @module node-opcua-address-space
  */
-import * as _ from "underscore";
-
 import { assert } from "node-opcua-assert";
 import { NodeClass } from "node-opcua-data-model";
 import { AttributeIds } from "node-opcua-data-model";
@@ -101,7 +99,7 @@ export class UAObjectType extends BaseNode implements UAObjectTypePublic {
 
         assert(options, "missing option object");
         assert(
-            _.isString(options.browseName) || (options.browseName !== null && typeof options.browseName === "object"),
+            typeof options.browseName === "string" || (options.browseName !== null && typeof options.browseName === "object"),
             "expecting a browse name"
         );
 

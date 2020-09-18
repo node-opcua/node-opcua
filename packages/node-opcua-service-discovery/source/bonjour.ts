@@ -3,7 +3,6 @@
  */
 // tslint:disable:no-console
 import * as bonjour from "bonjour";
-import * as _ from "underscore";
 import { callbackify } from "util";
 import { promisify } from "util";
 

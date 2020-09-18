@@ -32,7 +32,6 @@
         "node-opcua-leak-detector": "2.14.0",
         "should": "^13.2.3",
         "sinon": "^9.0.2",
-        "underscore": "^1.10.2",
         "yargs": "^15.4.1"
     },
     "author": "Etienne Rossignon",
