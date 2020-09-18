@@ -3,7 +3,7 @@
  */
 // tslint:disable:no-console
 import * as bonjour from "bonjour";
-import * as   _ from "underscore";
+import * as _ from "underscore";
 import { callbackify } from "util";
 import { promisify } from "util";
 
@@ -49,10 +49,7 @@ export function sameAnnouncement(a?: Announcement, b?: Announcement): boolean {
     if (!a || !b) {
         return false;
     }
-    return a.port === b.port &&
-        a.path === b.path &&
-        a.name === b.name &&
-        a.capabilities.join(" ") === b.capabilities.join(" ");
+    return a.port === b.port && a.path === b.path && a.name === b.name && a.capabilities.join(" ") === b.capabilities.join(" ");
 }
 
 export async function _announceServerOnMulticastSubnet(
@@ -60,7 +57,7 @@ export async function _announceServerOnMulticastSubnet(
     options: Announcement
 ): Promise<bonjour.Service> {
     const port = options.port;
-    assert(_.isNumber(port));
+    assert(typeof port === "number");
     assert(multicastDNS, "bonjour must have been initialized?");
 
     const params: bonjour.ServiceOptions = {
@@ -105,15 +102,12 @@ interface ServiceFixed extends NodeJS.EventEmitter {
 }
 
 export class BonjourHolder {
-
     public announcement?: Announcement;
 
     private _multicastDNS?: bonjour.Bonjour;
     private _service?: bonjour.Service;
 
-    public async _announcedOnMulticastSubnet(
-        options: Announcement
-    ): Promise<boolean> {
+    public async _announcedOnMulticastSubnet(options: Announcement): Promise<boolean> {
         if (!options) {
             // ignored
             return false;
@@ -132,20 +126,17 @@ export class BonjourHolder {
         return true;
     }
 
-    public _announcedOnMulticastSubnetWithCallback(
-        options: Announcement,
-        callback: (err: Error | null, result?: boolean) => void) {
+    public _announcedOnMulticastSubnetWithCallback(options: Announcement, callback: (err: Error | null, result?: boolean) => void) {
         callback(new Error("Internal Error"));
     }
 
     public async _stop_announcedOnMulticastSubnet(): Promise<void> {
-
         debugLog("_stop_announcedOnMulticastSubnet = ");
 
         if (this._service) {
             // due to a wrong declaration of Service.stop in the d.ts file we
             // need to use a workaround here
-            const this_service = this._service as any as ServiceFixed;
+            const this_service = (this._service as any) as ServiceFixed;
             this._service = undefined;
             this._multicastDNS = undefined;
             this.announcement = undefined;
@@ -161,14 +152,12 @@ export class BonjourHolder {
         }
     }
 
-    public _stop_announcedOnMulticastSubnetWithCallback(
-        callback: (err: Error | null) => void) {
+    public _stop_announcedOnMulticastSubnetWithCallback(callback: (err: Error | null) => void) {
         callback(new Error("Internal Error"));
     }
-
 }
 
-BonjourHolder.prototype._announcedOnMulticastSubnetWithCallback =
-    callbackify(BonjourHolder.prototype._announcedOnMulticastSubnet);
-BonjourHolder.prototype._stop_announcedOnMulticastSubnetWithCallback =
-    callbackify(BonjourHolder.prototype._stop_announcedOnMulticastSubnet);
+BonjourHolder.prototype._announcedOnMulticastSubnetWithCallback = callbackify(BonjourHolder.prototype._announcedOnMulticastSubnet);
+BonjourHolder.prototype._stop_announcedOnMulticastSubnetWithCallback = callbackify(
+    BonjourHolder.prototype._stop_announcedOnMulticastSubnet
+);

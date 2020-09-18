@@ -35,8 +35,8 @@ import { AddDataItemOptions, ModellingRuleType } from "../../source";
 import { UADataItem as UADataItemPublic } from "../../source";
 import { UAVariable } from "../ua_variable";
 
-const definition_Description = "Definition  is a vendor - specific," +
-    " human readable string that specifies how the value of this  DataItem  is calculated.";
+const definition_Description =
+    "Definition  is a vendor - specific," + " human readable string that specifies how the value of this  DataItem  is calculated.";
 const valuePrecision_Description = "";
 
 interface add_dataItem_stuffOptions {
@@ -44,16 +44,11 @@ interface add_dataItem_stuffOptions {
     valuePrecision?: number;
     modellingRule?: ModellingRuleType;
 }
-export function add_dataItem_stuff(
-    variable: UAVariable,
-    options: add_dataItem_stuffOptions
-) {
-
+export function add_dataItem_stuff(variable: UAVariable, options: add_dataItem_stuffOptions) {
     const addressSpace = variable.addressSpace;
     const namespace = addressSpace.getNamespace(variable.nodeId.namespace);
 
     if (options.hasOwnProperty("definition")) {
-
         namespace.addVariable({
             browseName: { name: "Definition", namespaceIndex: 0 },
             dataType: "String",
@@ -67,8 +62,7 @@ export function add_dataItem_stuff(
     }
 
     if (options.hasOwnProperty("valuePrecision")) {
-
-        assert(_.isNumber(options.valuePrecision));
+        assert(typeof options.valuePrecision === "number");
 
         namespace.addVariable({
             browseName: { name: "ValuePrecision", namespaceIndex: 0 },
@@ -82,10 +76,6 @@ export function add_dataItem_stuff(
         });
     }
 }
-export class UADataItem extends UAVariable implements UADataItemPublic {
-
-}
+export class UADataItem extends UAVariable implements UADataItemPublic {}
 // tslint:disable:no-empty-interface
-export interface UADataItem {
-
-}
+export interface UADataItem {}

@@ -229,7 +229,7 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
         options.port = options.port || 0;
 
         this.port = parseInt(options.port.toString(), 10);
-        assert(_.isNumber(this.port));
+        assert(typeof this.port === "number");
 
         this._certificateChain = options.certificateChain;
         this._privateKey = options.privateKey;

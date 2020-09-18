@@ -887,7 +887,7 @@ function add_analog_data_items(namespace: Namespace, parentFolder: UAObject): vo
 
         const { engineeringUnitsRange, instrumentRange } = makeRange(dataType);
         assert(
-            _.isArray(initialValue) || (initialValue >= engineeringUnitsRange.low && initialValue <= engineeringUnitsRange.high)
+            Array.isArray(initialValue) || (initialValue >= engineeringUnitsRange.low && initialValue <= engineeringUnitsRange.high)
         );
         const name = dataType + "AnalogDataItem";
         const nodeId = "s=" + name;

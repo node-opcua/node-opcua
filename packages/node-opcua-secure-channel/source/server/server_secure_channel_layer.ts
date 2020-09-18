@@ -192,7 +192,7 @@ export class ServerSecureChannelLayer extends EventEmitter {
     public static throttleTime: number = 1000;
 
     public get securityTokenCount() {
-        assert(_.isNumber(this.lastTokenId));
+        assert(typeof this.lastTokenId === "number");
         return this.lastTokenId;
     }
 

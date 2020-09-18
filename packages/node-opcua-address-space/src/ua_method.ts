@@ -112,7 +112,7 @@ export class UAMethod extends BaseNode implements UAMethodPublic {
         if (!callback) {
             throw new Error("execute need to be promisified");
         }
-        assert(inputArguments === null || _.isArray(inputArguments));
+        assert(inputArguments === null || Array.isArray(inputArguments));
         inputArguments = inputArguments || [];
         inputArguments = inputArguments.map(Variant.coerce);
         assert(inputArguments.length === 0 || inputArguments[0] instanceof Variant);
@@ -227,7 +227,7 @@ export class UAMethod extends BaseNode implements UAMethodPublic {
             return [];
         }
         // a list of extension object
-        assert(_.isArray(args));
+        assert(Array.isArray(args));
         assert(args.length === 0 || UAMethod.checkValidArgument(args[0]));
         return args;
     }

@@ -406,7 +406,7 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession {
      */
     public browse(...args: any[]): any {
         const arg0 = args[0];
-        const isArray = _.isArray(arg0);
+        const isArray = Array.isArray(arg0);
         const callback: any = args[1];
         assert(typeof callback === "function");
 
@@ -488,7 +488,7 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession {
     public browseNext(continuationPoints: Buffer[], releaseContinuationPoints: boolean): Promise<BrowseResult[]>;
     public browseNext(...args: any[]): any {
         const arg0 = args[0];
-        const isArray = _.isArray(arg0);
+        const isArray = Array.isArray(arg0);
         const releaseContinuationPoints = args[1] as boolean;
         const callback: any = args[2];
         assert(typeof callback === "function", "expecting a callback function here");
@@ -567,7 +567,7 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession {
         const callback = args[1];
         assert(typeof callback === "function");
 
-        const isArray = _.isArray(args[0]);
+        const isArray = Array.isArray(args[0]);
 
         const nodes = isArray ? args[0] : [args[0]];
 
@@ -662,7 +662,7 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession {
         assert(typeof callback === "function");
 
         const arg0 = args[0];
-        const isArray = _.isArray(arg0);
+        const isArray = Array.isArray(arg0);
 
         const nodes = isArray ? arg0 : [arg0];
 
@@ -794,7 +794,7 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession {
         const callback = args[0];
         assert(typeof callback === "function");
 
-        const isArray = _.isArray(arg0);
+        const isArray = Array.isArray(arg0);
 
         const nodesToRead: HistoryReadValueIdOptions[] = isArray
             ? (arg0 as HistoryReadValueIdOptions[])
@@ -950,7 +950,7 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession {
      */
     public write(...args: any[]): any {
         const arg0 = args[0];
-        const isArray = _.isArray(arg0);
+        const isArray = Array.isArray(arg0);
         const nodesToWrite = isArray ? arg0 : [arg0];
 
         const callback = args[1];
@@ -1055,7 +1055,7 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession {
         const callback = args[1];
         assert(typeof callback === "function");
 
-        const isArray = _.isArray(arg0);
+        const isArray = Array.isArray(arg0);
 
         const nodes = isArray ? arg0 : [arg0];
 
@@ -1168,11 +1168,11 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession {
         }
         assert(args.length === 3);
 
-        const isArray = _.isArray(args[0]);
+        const isArray = Array.isArray(args[0]);
 
         const nodesToRead = isArray ? args[0] : [args[0]];
 
-        assert(_.isArray(nodesToRead));
+        assert(Array.isArray(nodesToRead));
 
         const maxAge = args[1];
 
@@ -1398,7 +1398,7 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession {
      */
     public setPublishingMode(...args: any[]): any {
         const publishingEnabled = args[0];
-        const isArray = _.isArray(args[1]);
+        const isArray = Array.isArray(args[1]);
         const subscriptionIds = isArray ? args[1] : [args[1]];
         const callback = args[2];
 
@@ -1451,7 +1451,7 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession {
      * @param args
      */
     public translateBrowsePath(...args: any[]): any {
-        const isArray = _.isArray(args[0]);
+        const isArray = Array.isArray(args[0]);
         const browsePaths = isArray ? args[0] : [args[0]];
 
         const callback = args[1];
@@ -1728,9 +1728,9 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession {
      * @param args
      */
     public call(...args: any[]): any {
-        const isArray = _.isArray(args[0]);
+        const isArray = Array.isArray(args[0]);
         const methodsToCall = isArray ? args[0] : [args[0]];
-        assert(_.isArray(methodsToCall));
+        assert(Array.isArray(methodsToCall));
 
         const callback = args[1];
 
@@ -1848,7 +1848,7 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession {
         const callback = args[1] as (err: Error | null, registeredNodeIds?: NodeId[]) => void;
 
         assert(typeof callback === "function");
-        assert(_.isArray(nodesToRegister));
+        assert(Array.isArray(nodesToRegister));
 
         const request = new RegisterNodesRequest({
             nodesToRegister: nodesToRegister.map(resolveNodeId)
@@ -1877,7 +1877,7 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession {
         const callback = args[1] as (err?: Error) => void;
 
         assert(typeof callback === "function");
-        assert(_.isArray(nodesToUnregister));
+        assert(Array.isArray(nodesToUnregister));
 
         const request = new UnregisterNodesRequest({
             nodesToUnregister: nodesToUnregister.map(resolveNodeId)

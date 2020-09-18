@@ -23,7 +23,7 @@ import {
     isValidUInt16,
     isValidUInt32,
     isValidUInt64,
-    isValidUInt8,
+    isValidUInt8
 } from "node-opcua-basic-types";
 import { LocalizedText, QualifiedName } from "node-opcua-data-model";
 import {
@@ -34,7 +34,7 @@ import {
     initialize_field_array,
     registerSpecialVariantEncoder,
     StructuredTypeSchema,
-    registerType,
+    registerType
 } from "node-opcua-factory";
 
 import * as utils from "node-opcua-utils";
@@ -52,27 +52,27 @@ const schemaVariant: StructuredTypeSchema = buildStructuredType({
             defaultValue: () => DataType.Null,
             documentation: "the variant type.",
             fieldType: "DataType",
-            name: "dataType",
+            name: "dataType"
         },
         {
             defaultValue: VariantArrayType.Scalar,
             fieldType: "VariantArrayType",
-            name: "arrayType",
+            name: "arrayType"
         },
         {
             defaultValue: null,
             fieldType: "Any",
-            name: "value",
+            name: "value"
         },
         {
             defaultValue: null,
             documentation: "the matrix dimensions",
             fieldType: "UInt32",
             isArray: true,
-            name: "dimensions",
-        },
+            name: "dimensions"
+        }
     ],
-    name: "Variant",
+    name: "Variant"
 });
 
 function _coerceVariant(variantLike: VariantOptions | Variant): Variant {
@@ -236,7 +236,7 @@ function variantToString(self: Variant, options?: any) {
             data += ", null";
         } else {
             const a = [];
-            assert(_.isArray(self.value) || self.value.buffer instanceof ArrayBuffer);
+            assert(Array.isArray(self.value) || self.value.buffer instanceof ArrayBuffer);
             for (let i = 0; i < Math.min(10, self.value.length); i++) {
                 a[i] = self.value[i];
             }
@@ -385,7 +385,7 @@ function constructHook(options: any): any {
             arrayType: options.arrayType,
             dataType: options.dataType,
             dimensions: options.dimensions,
-            value: options.value,
+            value: options.value
         };
         if (opts.dataType === DataType.ExtensionObject) {
             if (opts.arrayType === VariantArrayType.Scalar) {
@@ -433,7 +433,7 @@ function constructHook(options: any): any {
         options.arrayType = at;
     }
 
-    if (isArrayTypeUnspecified && _.isArray(options.value)) {
+    if (isArrayTypeUnspecified && Array.isArray(options.value)) {
         // when using UInt64 ou Int64 arrayType must be specified , as automatic detection cannot be made
 
         /* istanbul ignore next */
@@ -700,7 +700,7 @@ function _declareTypeArrayHelper(dataType: DataType, typedArrayConstructor: any)
     typedArrayHelpers[DataType[dataType]] = {
         coerce: convertTo.bind(null, dataType, typedArrayConstructor),
         decode: decodeTypedArray.bind(null, typedArrayConstructor),
-        encode: encodeTypedArray.bind(null, typedArrayConstructor),
+        encode: encodeTypedArray.bind(null, typedArrayConstructor)
     };
 }
 
@@ -901,7 +901,7 @@ function isValidArrayVariant(dataType: DataType, value: any): boolean {
         return true;
     }
     // array values can be store in Buffer, Float32Array
-    assert(_.isArray(value));
+    assert(Array.isArray(value));
     for (const valueItem of value) {
         if (!isValidScalarVariant(dataType, valueItem)) {
             return false;
@@ -1068,5 +1068,5 @@ registerType({
     subType: "",
     coerce: _coerceVariant,
     encode: encodeVariant,
-    decode: decodeVariant,
+    decode: decodeVariant
 });

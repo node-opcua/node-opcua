@@ -147,7 +147,7 @@ function write_complex(write: WriteFunc, schema: StructuredTypeSchema, field: Fi
             write(`        this.${member} = [];`);
         }
         write(`        if (options.${member}) {`);
-        write(`            assert(_.isArray(options.${member}));`);
+        write(`            assert(Array.isArray(options.${member}));`);
         write(`            this.${member} = options.${member}.map((e: any) => new ${field.fieldType}(e));`);
         // write(`        self.${member} = options.${member}.map(function(e){ return construct${field.fieldType}(e); } );`);
         write("        }");
@@ -168,7 +168,7 @@ function write_basic(write: WriteFunc, schema: StructuredTypeSchema, field: Fiel
     if (field.isArray) {
         // write(`this.${member} = [];`);
         // write(`if (options.${member}) {`);
-        // write(`    assert(_.isArray(options.${member}));`);
+        // write(`    assert(Array.isArray(options.${member}));`);
         // write(`    this.${member} = options.browsePath.map(e => field.coerce(e) );`);
         // write(`}`);
         write(`        this.${member} = initialize_field_array(schema.fields[${i}], options.${field.name});`);

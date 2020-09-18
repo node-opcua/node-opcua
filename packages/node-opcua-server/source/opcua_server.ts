@@ -2690,7 +2690,7 @@ export class OPCUAServer extends OPCUABaseServer {
         const server = this;
         const request = message.request as WriteRequest;
         assert(request instanceof WriteRequest);
-        assert(!request.nodesToWrite || _.isArray(request.nodesToWrite));
+        assert(!request.nodesToWrite || Array.isArray(request.nodesToWrite));
 
         this._apply_on_SessionObject(
             WriteResponse,
@@ -2719,7 +2719,7 @@ export class OPCUAServer extends OPCUABaseServer {
                 assert(request.nodesToWrite[0].schema.name === "WriteValue");
                 server.engine.write(context, request.nodesToWrite, (err: Error | null, results?: StatusCode[]) => {
                     assert(!err);
-                    assert(_.isArray(results));
+                    assert(Array.isArray(results));
                     assert(results!.length === request.nodesToWrite!.length);
                     response = new WriteResponse({
                         diagnosticInfos: undefined,
@@ -3190,7 +3190,7 @@ export class OPCUAServer extends OPCUABaseServer {
                         if (err) {
                             errorLog("ERROR in method Call !! ", err);
                         }
-                        assert(_.isArray(results));
+                        assert(Array.isArray(results));
                         response = new CallResponse({
                             results: results as CallMethodResultOptions[]
                         });

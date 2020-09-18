@@ -98,10 +98,10 @@ export function callMethodHelper(
             assert(callMethodResponse.statusCode);
 
             if (callMethodResponse.statusCode === StatusCodes.Good) {
-                assert(_.isArray(callMethodResponse.outputArguments));
+                assert(Array.isArray(callMethodResponse.outputArguments));
             }
 
-            assert(_.isArray(callMethodResponse.inputArgumentResults));
+            assert(Array.isArray(callMethodResponse.inputArgumentResults));
             assert(callMethodResponse.inputArgumentResults!.length === methodInputArguments.length);
 
             if (callMethodResponse.outputArguments) {

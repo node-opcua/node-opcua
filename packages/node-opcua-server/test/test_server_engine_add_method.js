@@ -95,10 +95,10 @@ describe("ServerEngine - addMethod", function() {
         arg.methodDeclaration.should.eql(objectMethod);
 
         const methodInputArguments = objectMethod.getInputArguments();
-        _.isArray(methodInputArguments).should.eql(true);
+        Array.isArray(methodInputArguments).should.eql(true);
 
         const methodOutputArguments = objectMethod.getOutputArguments();
-        _.isArray(methodOutputArguments).should.eql(true);
+        Array.isArray(methodOutputArguments).should.eql(true);
 
         method.bindMethod(function(inputArguments, context, callback) {
 

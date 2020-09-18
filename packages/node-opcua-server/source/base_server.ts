@@ -169,7 +169,7 @@ export class OPCUABaseServer extends OPCUASecureObject {
 
         const self = this;
         assert(typeof done === "function");
-        assert(_.isArray(this.endpoints));
+        assert(Array.isArray(this.endpoints));
         assert(this.endpoints.length > 0, "We need at least one end point");
         callbackify(extractFullyQualifiedDomainName)((err: Error | null, fqdn: string) => {
             const _on_new_channel = function (this: OPCUAServerEndPoint, channel: ServerSecureChannelLayer) {
@@ -509,7 +509,7 @@ function makeServiceFault(statusCode: StatusCode, messages: string[]): ServiceFa
     response.responseHeader.serviceResult = statusCode;
     // xx response.serviceDiagnostics.push( new DiagnosticInfo({ additionalInfo: messages.join("\n")}));
 
-    assert(_.isArray(messages));
+    assert(Array.isArray(messages));
     assert(typeof messages[0] === "string");
 
     response.responseHeader.stringTable = messages;

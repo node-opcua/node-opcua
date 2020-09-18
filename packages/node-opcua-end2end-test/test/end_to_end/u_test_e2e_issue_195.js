@@ -244,7 +244,7 @@ module.exports = function(test) {
 
                 f(function transfer_subscription_to_new_session(callback) {
 
-                    _.isNumber(subscriptionId).should.eql(true);
+                    typeof subscriptionId === "number".should.eql(true);
 
                     console.log("transferring subscription", subscriptionId);
 

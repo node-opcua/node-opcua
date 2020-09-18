@@ -148,7 +148,7 @@ function add_method(proxyManager: UAProxyManager, obj: any, reference: Reference
                 throw new Error("expecting input argument " + propName);
             }
             if (arrayType === VariantArrayType.Array) {
-                if (!_.isArray(value)) {
+                if (!Array.isArray(value)) {
                     throw new Error("expecting value to be an Array or a TypedArray");
                 }
             }

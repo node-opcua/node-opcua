@@ -1217,8 +1217,8 @@ export class UANamespace implements NamespacePublic {
         assert(_.isObject(parentObject) && parentObject instanceof BaseNode, "expecting a valid parent object");
 
         assert(options.hasOwnProperty("browseName"));
-        assert(!options.hasOwnProperty("inputArguments") || _.isArray(options.inputArguments));
-        assert(!options.hasOwnProperty("outputArguments") || _.isArray(options.outputArguments));
+        assert(!options.hasOwnProperty("inputArguments") || Array.isArray(options.inputArguments));
+        assert(!options.hasOwnProperty("outputArguments") || Array.isArray(options.outputArguments));
 
         options.componentOf = parentObject;
 
@@ -1255,7 +1255,7 @@ export class UANamespace implements NamespacePublic {
             inputArguments.setValueFromSource(_inputArgs);
             assert(inputArguments.typeDefinition.toString() === propertyTypeId.toString());
             // xx console.log("xxxx propertyTypeId = ", propertyTypeId, outputArguments.hasTypeDefinition);
-            assert(_.isArray(inputArguments.arrayDimensions));
+            assert(Array.isArray(inputArguments.arrayDimensions));
         }
 
         if (options.outputArguments) {
@@ -1285,7 +1285,7 @@ export class UANamespace implements NamespacePublic {
             outputArguments.setValueFromSource(_outputArgs);
 
             assert(outputArguments.typeDefinition.toString() === propertyTypeId.toString());
-            assert(_.isArray(outputArguments.arrayDimensions));
+            assert(Array.isArray(outputArguments.arrayDimensions));
         }
 
         // verifying post-conditions
@@ -1362,7 +1362,7 @@ export class UANamespace implements NamespacePublic {
         const self = this;
 
         assert(_.isString(options.browseName));
-        assert(_.isArray(options.enumeration));
+        assert(Array.isArray(options.enumeration));
 
         const addressSpace = self.addressSpace;
         let definition;
@@ -2119,7 +2119,7 @@ export class UANamespace implements NamespacePublic {
         assert(typeof options.valueRank === "number");
 
         options.arrayDimensions = options.arrayDimensions || null;
-        assert(_.isArray(options.arrayDimensions) || options.arrayDimensions === null);
+        assert(Array.isArray(options.arrayDimensions) || options.arrayDimensions === null);
         // -----------------------------------------------------
 
         options.minimumSamplingInterval = options.minimumSamplingInterval !== undefined ? +options.minimumSamplingInterval : 0;

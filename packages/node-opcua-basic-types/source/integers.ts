@@ -2,9 +2,9 @@
  * @module node-opcua-basic-types
  */
 import { assert } from "node-opcua-assert";
-import { BinaryStream, OutputBinaryStream } from "node-opcua-binary-stream" ;
+import { BinaryStream, OutputBinaryStream } from "node-opcua-binary-stream";
 import * as _ from "underscore";
-import { getRandomInt } from "./utils" ;
+import { getRandomInt } from "./utils";
 
 export function isValidUInt16(value: any): boolean {
     if (!_.isFinite(value)) {
@@ -157,7 +157,7 @@ export function randomUInt64(): UInt64 {
 }
 
 export function encodeUInt64(value: UInt64 | number, stream: OutputBinaryStream) {
-    if (_.isNumber(value)) {
+    if (typeof value === "number") {
         const arr = coerceUInt64(value);
         stream.writeUInt32(arr[1]);
         stream.writeUInt32(arr[0]);
@@ -187,11 +187,11 @@ export function coerceUInt64(value: any): UInt64 {
         return value;
     }
     if (value instanceof Array) {
-        assert(_.isNumber(value[0]));
-        assert(_.isNumber(value[1]));
+        assert(typeof value[0] === "number");
+        assert(typeof value[1] === "number");
         return value;
     }
-    if (typeof(value) === "string") {
+    if (typeof value === "string") {
         v = value.split(",");
         high = parseInt(v[0], 10);
         low = parseInt(v[1], 10);
@@ -275,9 +275,9 @@ export function coerceInt32(value: any): Int32 {
     if (value === null || value === undefined) {
         return value;
     }
-    if (value.length === 2 && (typeof value[0] === "number") && (typeof value[1] === "number")) {
+    if (value.length === 2 && typeof value[0] === "number" && typeof value[1] === "number") {
         // Int64 as a [high,low]
-        return value[1]  + value[0] * 0xFFFFFFFF;
+        return value[1] + value[0] * 0xffffffff;
     }
     return parseInt(value, 10);
 }
