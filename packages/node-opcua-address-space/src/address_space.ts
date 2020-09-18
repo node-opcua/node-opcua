@@ -1453,7 +1453,7 @@ export class AddressSpace implements AddressSpacePrivate {
         if (dataType instanceof BaseNode) {
             dataType = dataType.nodeId;
         }
-        assert(_.isObject(typeMap));
+        assert(typeMap !== null && typeof typeMap === "object");
         let nodeId: NodeId | null;
         if (typeof dataType === "string") {
             const namespace0 = this.getDefaultNamespace();

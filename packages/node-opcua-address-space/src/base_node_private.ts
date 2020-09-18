@@ -388,7 +388,7 @@ function _clone_collection_new(
         // it may happen that the xmlnodeset2 file was malformed
 
         // istanbul ignore next
-        if (!typeof ((node as any) === "function".clone)) {
+        if (typeof (node as any).clone !== "function") {
             // tslint:disable-next-line:no-console
             console.log(
                 chalk.red("Warning : cannot clone node ") +
@@ -452,8 +452,10 @@ export function _clone(
     extraInfo: any
 ): BaseNode {
     assert(typeof Constructor === "function");
-    assert(_.isObject(options));
-    assert(!extraInfo || (_.isObject(extraInfo) && typeof extraInfo.registerClonedObject === "function"));
+    assert(options !== null && typeof options === "object");
+    assert(
+        !extraInfo || (extraInfo !== null && typeof extraInfo === "object" && typeof extraInfo.registerClonedObject === "function")
+    );
     assert(!(this as any).subtypeOf, "We do not do cloning of Type yet");
 
     options = _.extend(options, {

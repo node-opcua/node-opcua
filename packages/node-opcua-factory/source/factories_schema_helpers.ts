@@ -3,7 +3,7 @@
  */
 import { assert } from "node-opcua-assert";
 import { make_debugLog } from "node-opcua-debug";
-import * as  _ from "underscore";
+import * as _ from "underscore";
 import { FieldCategory, FieldType, StructuredTypeField } from "./types";
 
 const debugLog = make_debugLog(__filename);
@@ -22,7 +22,7 @@ export const parameters = {
 export function check_schema_correctness(schema: any) {
     assert(typeof schema.name === "string", " expecting schema to have a name");
     assert(schema.fields instanceof Array, " expecting schema to provide a set of fields " + schema.name);
-    assert(schema.baseType === undefined || (typeof schema.baseType === "string"));
+    assert(schema.baseType === undefined || typeof schema.baseType === "string");
 }
 
 /**
@@ -32,12 +32,13 @@ export function check_schema_correctness(schema: any) {
  * @return {*}
  */
 export function initialize_field(field: StructuredTypeField, value: any): any {
-
     const _t = field.schema;
-    if (!_.isObject(_t)) {
-        throw new Error("initialize_field: expecting field.schema to be set field.name = '" + field.name + "' type = " + field.fieldType);
+    if (!(_t !== null && typeof _t === "object")) {
+        throw new Error(
+            "initialize_field: expecting field.schema to be set field.name = '" + field.name + "' type = " + field.fieldType
+        );
     }
-    assert(_.isObject(field));
+    assert(field !== null && typeof field === "object");
     assert(!field.isArray);
 
     if (field.category === FieldCategory.complex) {
@@ -45,7 +46,7 @@ export function initialize_field(field: StructuredTypeField, value: any): any {
             return new field.fieldTypeConstructor(value);
         } else {
             debugLog("xxxx => missing constructor for field type", field.fieldType);
-        }        
+        }
     }
 
     const defaultValue = _t.computer_default_value ? _t.computer_default_value(field.defaultValue) : field.defaultValue;
@@ -67,12 +68,11 @@ export function initialize_field(field: StructuredTypeField, value: any): any {
  * @return
  */
 export function initialize_field_array(field: FieldType, valueArray: any) {
-
     const _t = field.schema;
 
     let value;
     let i;
-    assert(_.isObject(field));
+    assert(field !== null && typeof field === "object");
     assert(field.isArray);
 
     if (!valueArray && field.defaultValue === null) {

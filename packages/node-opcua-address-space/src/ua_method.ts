@@ -63,7 +63,7 @@ export class UAMethod extends BaseNode implements UAMethodPublic {
     }
 
     public getExecutableFlag(context: SessionContext): boolean {
-        if (!typeof this._asyncExecutionFunction === "function") {
+        if (typeof this._asyncExecutionFunction !== "function") {
             return false;
         }
         if (this._getExecutableFlag) {
@@ -116,7 +116,7 @@ export class UAMethod extends BaseNode implements UAMethodPublic {
         inputArguments = inputArguments || [];
         inputArguments = inputArguments.map(Variant.coerce);
         assert(inputArguments.length === 0 || inputArguments[0] instanceof Variant);
-        assert(_.isObject(context));
+        assert(context !== null && typeof context === "object");
         assert(typeof callback === "function");
 
         // a context object must be provided

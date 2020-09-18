@@ -973,7 +973,7 @@ export class OPCUAServer extends OPCUABaseServer {
         this.serverInfo.productUri = this.serverInfo.productUri || buildInfo.productUri;
 
         this.userManager = options.userManager || {};
-        if (!typeof this.userManager.isValidUser === "function") {
+        if (typeof this.userManager.isValidUser !== "function") {
             this.userManager.isValidUser = (/*userName,password*/) => {
                 return false;
             };

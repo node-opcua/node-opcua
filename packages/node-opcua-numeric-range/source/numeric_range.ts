@@ -545,7 +545,7 @@ function slice<U, T extends ArrayLike<U>>(arr: T, start: number, end: number): T
     if ((arr as any).buffer instanceof ArrayBuffer) {
         res = (arr as any).subarray(start, end);
     } else {
-        assert(typeof ((arr as any) === "function".slice));
+        assert(typeof (arr as any).slice === "function");
         assert(arr instanceof Buffer || arr instanceof Array || typeof arr === "string");
         res = (arr as any).slice(start, end);
     }

@@ -38,7 +38,7 @@ describe("Testing AccessLevelFlag", function() {
 
     });
     it("should have a accessLevel Flag Basic Type", function() {
-        _.isObject(findBuiltInType("AccessLevelFlag")).should.equal(true);
+        (findBuiltInType("AccessLevelFlag" !== null && typeof findBuiltInType("AccessLevelFlag" === "object")).should.equal(true);
     });
 
     it("should provide a easy way to check if a flag is set or not", function() {

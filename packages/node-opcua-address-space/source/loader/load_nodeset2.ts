@@ -830,25 +830,25 @@ export function makeStuff(addressSpace: AddressSpacePublic) {
                     case "i=7616": // EnumValueType
                     case "ns=0;i=7616": // EnumValueType
                         self.extensionObject = self.parser.Body.parser.EnumValueType.enumValueType;
-                        assert(_.isObject(self.extensionObject));
+                        assert(self.extensionObject !== null && typeof self.extensionObject === "object");
                         assert(self.extensionObject instanceof ExtensionObject);
                         break;
                     case "i=297": // Arguments
                     case "ns=0;i=297": // Arguments
                         self.extensionObject = self.parser.Body.parser.Argument.argument;
-                        assert(_.isObject(self.extensionObject));
+                        assert(self.extensionObject !== null && typeof self.extensionObject === "object");
                         assert(self.extensionObject instanceof ExtensionObject);
                         break;
                     case "i=888":
                     case "ns=0;i=888": // EUInformation
                         self.extensionObject = self.parser.Body.parser.EUInformation.euInformation;
-                        assert(_.isObject(self.extensionObject));
+                        assert(self.extensionObject !== null && typeof self.extensionObject === "object");
                         assert(self.extensionObject instanceof ExtensionObject);
                         break;
                     case "i=885": // Range
                     case "ns=0;i=885":
                         self.extensionObject = self.parser.Body.parser.Range.range;
-                        assert(_.isObject(self.extensionObject));
+                        assert(self.extensionObject !== null && typeof self.extensionObject === "object");
                         assert(self.extensionObject instanceof ExtensionObject);
                         break;
                     default: {

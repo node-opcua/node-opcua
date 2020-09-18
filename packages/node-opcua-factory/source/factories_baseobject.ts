@@ -46,7 +46,7 @@ function _decode_member_(value: any, field: StructuredTypeField, stream: BinaryS
             if (!field.fieldTypeConstructor) {
                 field.fieldTypeConstructor = getStructureTypeConstructor(field.fieldType);
             }
-            if (!typeof field.fieldTypeConstructor === "function") {
+            if (typeof field.fieldTypeConstructor !== "function") {
                 throw new Error("Cannot find constructor for  " + field.name + "of type " + field.fieldType);
             }
             // assert(typeof field.fieldTypeConstructor === "function");
