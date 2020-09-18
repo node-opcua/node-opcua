@@ -275,7 +275,7 @@ export function check_options_correctness_against_schema(obj: any, schema: Struc
     options = options || {};
 
     // istanbul ignore next
-    if (!_.isObject(options) && !(typeof options === "object")) {
+    if (!(options !== null && typeof options === "object") && !(typeof options === "object")) {
         let message = chalk.red(" Invalid options specified while trying to construct a ") + " " + chalk.yellow(schema.name);
         message += "\n";
         message += chalk.red(" expecting a ") + chalk.yellow(" Object ");

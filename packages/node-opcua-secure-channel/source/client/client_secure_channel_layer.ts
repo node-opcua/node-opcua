@@ -969,7 +969,7 @@ export class ClientSecureChannelLayer extends EventEmitter {
             // this securityPolicy may not be support yet ... let's return null
             return null;
         }
-        assert(_.isObject(cryptoFactory));
+        assert(cryptoFactory !== null && typeof cryptoFactory === "object");
         return randomBytes(cryptoFactory.symmetricKeyLength);
     }
 

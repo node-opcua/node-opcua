@@ -413,7 +413,7 @@ function write_decode(write: WriteFunc, schema: StructuredTypeSchema): void {
         write("        " + "schema" + ".decode(this,stream);");
         write("    }");
 
-        if (!typeof schema.decodeDebug === "function") {
+        if (typeof schema.decodeDebug !== "function") {
             throw new Error("schema decode requires also to provide a decodeDebug " + schema.name);
         }
         write("    public decodeDebug(stream: BinaryStream, options: any): void {");

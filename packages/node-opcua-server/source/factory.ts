@@ -12,7 +12,7 @@ export class Factory {
     public engine: any;
 
     constructor(engine: any) {
-        assert(_.isObject(engine));
+        assert(engine !== null && typeof engine === "object");
         this.engine = engine;
     }
 

@@ -87,7 +87,7 @@ describe("ServerEngine - addMethod", function() {
 
         method.nodeId.should.be.instanceOf(NodeId);
         const objectMethod = object.getMethodById(method.nodeId);
-        _.isObject(objectMethod).should.eql(true);
+        (objectMethod !== null && typeof objectMethod === "object").should.eql(true);
 
         const arg = getMethodDeclaration_ArgumentList(engine.addressSpace, object.nodeId, method.nodeId);
 

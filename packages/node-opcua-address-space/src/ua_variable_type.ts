@@ -175,7 +175,10 @@ export class UAVariableType extends BaseNode implements UAVariableTypePublic {
         // xx assert(!this.isAbstract, "cannot instantiate abstract UAVariableType");
 
         assert(options, "missing option object");
-        assert(_.isString(options.browseName) || _.isObject(options.browseName), "expecting a browse name");
+        assert(
+            _.isString(options.browseName) || (options.browseName !== null && typeof options.browseName === "object"),
+            "expecting a browse name"
+        );
         assert(!options.hasOwnProperty("propertyOf"), "Use addressSpace#addVariable({ propertyOf: xxx}); to add a property");
 
         assertUnusedChildBrowseName(addressSpace, options);
@@ -254,7 +257,7 @@ class MandatoryChildOrRequestedOptionalFilter {
 
     constructor(instance: BaseNodePublic, optionalsMap: any) {
         // should we clone the node to be a component or propertyOf of a instance
-        assert(_.isObject(optionalsMap));
+        assert(optionalsMap !== null && typeof optionalsMap === "object");
         assert(null !== instance);
         this.optionalsMap = optionalsMap;
         this.instance = instance;
@@ -484,7 +487,7 @@ export function assertUnusedChildBrowseName(addressSpace: AddressSpacePrivate, o
     if (!parent) {
         return;
     }
-    assert(_.isObject(parent));
+    assert(parent !== null && typeof parent === "object");
     if (!(parent instanceof BaseNode)) {
         throw new Error("Invalid parent  parent is " + parent.constructor.name);
     }

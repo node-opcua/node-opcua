@@ -314,10 +314,10 @@ const _defaultType: any[] = [
  */
 export function registerType(schema: BasicTypeDefinitionOptions): void {
     assert(typeof schema.name === "string");
-    if (!typeof schema.encode === "function") {
+    if (typeof schema.encode !== "function") {
         throw new Error("schema " + schema.name + " has no encode function");
     }
-    if (!typeof schema.decode === "function") {
+    if (typeof schema.decode !== "function") {
         throw new Error("schema " + schema.name + " has no decode function");
     }
 

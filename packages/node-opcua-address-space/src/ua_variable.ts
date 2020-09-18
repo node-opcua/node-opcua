@@ -984,14 +984,14 @@ export class UAVariable extends BaseNode implements UAVariablePublic {
 
         options = options || {};
 
-        assert(!typeof this._timestamped_set_func === "function", "UAVariable already bound");
-        assert(!typeof this._timestamped_get_func === "function", "UAVariable already bound");
+        assert(typeof this._timestamped_set_func !== "function", "UAVariable already bound");
+        assert(typeof this._timestamped_get_func !== "function", "UAVariable already bound");
         bind_getter.call(this, options as GetterOptions);
         bind_setter.call(this, options as SetterOptions);
 
         const _historyRead = (options as BindVariableOptionsVariation1).historyRead;
         if (_historyRead) {
-            assert(!typeof this._historyRead === "function" || this._historyRead === UAVariable.prototype._historyRead);
+            assert(typeof this._historyRead !== "function" || this._historyRead === UAVariable.prototype._historyRead);
             assert(typeof _historyRead === "function");
 
             this._historyRead = _historyRead;

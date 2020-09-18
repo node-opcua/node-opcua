@@ -311,7 +311,7 @@ function add_simulation_variables(namespace: Namespace, scalarFolder: UAObject):
         const randomFunc = getRandomFuncForType(dataType);
 
         // istanbul ignore next
-        if (!typeof randomFunc === "function") {
+        if (typeof randomFunc !== "function") {
             throw new Error("a random function must exist for basicType " + dataTypeName);
         }
 

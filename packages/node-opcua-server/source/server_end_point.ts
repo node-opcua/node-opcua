@@ -256,7 +256,7 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
         this.securityTokenCountOldChannels = 0;
 
         this.serverInfo = options.serverInfo;
-        assert(_.isObject(this.serverInfo));
+        assert(this.serverInfo !== null && typeof this.serverInfo === "object");
     }
 
     public dispose() {
@@ -765,7 +765,7 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
         }
 
         delete this._channels[channel.hashKey];
-        assert(typeof ((channel as any) === "function"._unpreregisterChannelEvent));
+        assert(typeof (channel as any)._unpreregisterChannelEvent === "function");
         channel.removeListener("abort", (channel as any)._unpreregisterChannelEvent);
         (channel as any)._unpreregisterChannelEvent = null;
     }
@@ -986,7 +986,7 @@ function _makeEndpointDescription(options: MakeEndpointDescriptionOptions): Endp
     assert(!options.hasOwnProperty("serverCertificate"));
     assert(!!options.securityMode); // s.MessageSecurityMode
     assert(!!options.securityPolicy);
-    assert(_.isObject(options.server));
+    assert(options.server !== null && typeof options.server === "object");
     assert(!!options.hostname && typeof options.hostname === "string");
     assert(typeof options.restricted === "boolean");
 

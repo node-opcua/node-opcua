@@ -159,7 +159,7 @@ function __bindVariable(self: ServerEngine, nodeId: NodeIdLike, options?: any) {
     if (variable && variable.bindVariable) {
         variable.bindVariable(options, true);
         assert(typeof variable.asyncRefresh === "function");
-        assert(typeof ((variable as any) === "function".refreshFunc));
+        assert(typeof (variable as any).refreshFunc === "function");
     } else {
         console.log(
             "Warning: cannot bind object with id ",
@@ -837,7 +837,7 @@ export class ServerEngine extends EventEmitter {
                 });
 
                 const bindOperationLimits = (operationLimits: OperationLimits) => {
-                    assert(_.isObject(operationLimits));
+                    assert(operationLimits !== null && typeof operationLimits === "object");
 
                     const keys = Object.keys(operationLimits);
 
@@ -1690,7 +1690,7 @@ export class ServerEngine extends EventEmitter {
                 continue;
             }
             // ... and that have been declared as asynchronously updating
-            if (!typeof ((obj as any) === "function".refreshFunc)) {
+            if (typeof (obj as any).refreshFunc !== "function") {
                 continue;
             }
             const key = obj.nodeId.toString();

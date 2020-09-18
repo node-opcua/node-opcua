@@ -327,7 +327,7 @@ export class NodeCrawlerBase extends EventEmitter implements NodeCrawlerEvents {
      * @private
      */
     private _inner_crawl(nodeId: NodeId, userData: UserData, endCallback: ErrorCallback) {
-        assert(_.isObject(userData));
+        assert(userData !== null && typeof userData === "object");
         assert(typeof endCallback === "function");
         assert(!this._visitedNode);
         assert(!this._crawled);
@@ -420,8 +420,8 @@ export class NodeCrawlerBase extends EventEmitter implements NodeCrawlerEvents {
 
     private _add_crawl_task(cacheNode: CacheNode, userData: any) {
         assert(userData);
-        assert(_.isObject(this));
-        assert(_.isObject(this._crawled));
+        assert(this !== null && typeof this === "object");
+        assert(this._crawled !== null && typeof this._crawled === "object");
 
         const key = cacheNode.nodeId.toString();
 

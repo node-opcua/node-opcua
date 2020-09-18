@@ -1128,7 +1128,7 @@ export class UANamespace implements NamespacePublic {
     public addYArrayItem(options: AddYArrayItemOptions): YArrayItemVariable {
         assert(options.hasOwnProperty("engineeringUnitsRange"), "expecting engineeringUnitsRange");
         assert(options.hasOwnProperty("axisScaleType"), "expecting axisScaleType");
-        assert(_.isObject(options.xAxisDefinition), "expecting a xAxisDefinition");
+        assert(options.xAxisDefinition !== null && typeof options.xAxisDefinition === "object", "expecting a xAxisDefinition");
 
         const addressSpace = this.addressSpace;
 
@@ -1214,7 +1214,10 @@ export class UANamespace implements NamespacePublic {
     public addMethod(parentObject: UAObject, options: AddMethodOptions): UAMethod {
         const addressSpace = this.addressSpace;
 
-        assert(_.isObject(parentObject) && parentObject instanceof BaseNode, "expecting a valid parent object");
+        assert(
+            parentObject !== null && typeof parentObject === "object" && parentObject instanceof BaseNode,
+            "expecting a valid parent object"
+        );
 
         assert(options.hasOwnProperty("browseName"));
         assert(!options.hasOwnProperty("inputArguments") || Array.isArray(options.inputArguments));
@@ -1923,7 +1926,7 @@ export class UANamespace implements NamespacePublic {
 
         // object shall now be registered
         if (doDebug) {
-            assert(_.isObject(this.findNode(node.nodeId)));
+            assert(this.findNode(node.nodeId) !== null && typeof this.findNode(node.nodeId) === "object");
         }
         return node;
     }

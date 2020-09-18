@@ -477,7 +477,7 @@ async function main() {
     }
 
     if (doCrawling) {
-        assert(_.isObject(the_session));
+        assert((the_session !== null && typeof the_session === "object"));
         const crawler = new NodeCrawler(the_session);
 
         let t5 = Date.now();
