@@ -14,8 +14,8 @@ import { promisify } from "util";
 const force_inclusion = n.NumericRange;
 const force_includsion_QualifiedName = d.QualifiedName;
 const force_includsion_LocalizedText = d.LocalizedText;
-const force_includsion_Variant       = Variant;
-const force_includsion_DataValue      = DataValue;
+const force_includsion_Variant = Variant;
+const force_includsion_DataValue = DataValue;
 
 async function main() {
     try {

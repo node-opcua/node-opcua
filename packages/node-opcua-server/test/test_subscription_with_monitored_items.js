@@ -1,36 +1,46 @@
-/*global require,describe,it,before,beforeEach,after,afterEach*/
 "use strict";
-
 
 const should = require("should");
 const sinon = require("sinon");
 
-const SessionContext = require("node-opcua-address-space").SessionContext;
-const add_eventGeneratorObject = require("node-opcua-address-space").add_eventGeneratorObject;
-const subscription_service = require("node-opcua-service-subscription");
-const MonitoringParameters = subscription_service.MonitoringParameters;
-const StatusCodes = require("node-opcua-status-code").StatusCodes;
+const { TimestampsToReturn } = require("node-opcua-service-read");
+const { SessionContext } = require("node-opcua-address-space");
+const { DataValue } = require("node-opcua-data-value");
+const { AttributeIds } = require("node-opcua-data-model");
+const { NodeId, coerceNodeId } = require("node-opcua-nodeid");
+const { makeBrowsePath } = require("node-opcua-service-translate-browse-path");
+const {
+    MonitoringParameters,
+    MonitoredItemCreateRequest,
+    MonitoringMode,
+    PublishRequest,
+    MonitoredItemCreateResult,
+    DataChangeFilter,
+    DataChangeTrigger,
+    DeadbandType
+} = require("node-opcua-service-subscription");
+const { DataType, Variant, VariantArrayType } = require("node-opcua-variant");
+const { StatusCodes } = require("node-opcua-status-code");
 const encode_decode = require("node-opcua-basic-types");
-const TimestampsToReturn = require("node-opcua-service-read").TimestampsToReturn;
-const MonitoredItemCreateRequest = subscription_service.MonitoredItemCreateRequest;
-const makeBrowsePath = require("node-opcua-service-translate-browse-path").makeBrowsePath;
-const DataType = require("node-opcua-variant").DataType;
-const DataValue = require("node-opcua-data-value").DataValue;
-const Variant = require("node-opcua-variant").Variant;
-const VariantArrayType = require("node-opcua-variant").VariantArrayType;
-const AttributeIds = require("node-opcua-data-model").AttributeIds;
+const { nodesets } = require("node-opcua-nodesets");
 
-const NodeId = require("node-opcua-nodeid").NodeId;
-const coerceNodeId = require("node-opcua-nodeid").coerceNodeId;
 
-const Subscription = require("..").Subscription;
-const SubscriptionState = require("..").SubscriptionState;
-const ServerSidePublishEngine = require("..").ServerSidePublishEngine;
-const MonitoredItem = require("..").MonitoredItem;
-const ServerEngine = require("..").ServerEngine;
+const {
+    Subscription,
+    SubscriptionState,
+    ServerSidePublishEngine,
+    MonitoredItem,
+    ServerEngine
+} = require("..");
 
-const mini_nodeset_filename = require("node-opcua-address-space").get_mini_nodeset_filename();
-const nodesets = require("node-opcua-nodesets").nodesets;
+
+const { add_eventGeneratorObject } = require("node-opcua-address-space/testHelpers");
+
+const { get_mini_nodeset_filename } = require("node-opcua-address-space/testHelpers");
+const mini_nodeset_filename = get_mini_nodeset_filename();
+
+const { getFakePublishEngine } = require("./helper_fake_publish_engine");
+const fake_publish_engine = getFakePublishEngine();
 
 const context = SessionContext.defaultContext;
 
@@ -38,8 +48,6 @@ const doDebug = false;
 
 const now = (new Date()).getTime();
 
-const { getFakePublishEngine } = require("./helper_fake_publish_engine");
-const fake_publish_engine = getFakePublishEngine();
 
 let dataSourceFrozen = false;
 
@@ -69,7 +77,7 @@ function install_spying_samplingFunc() {
 function simulate_client_adding_publish_request(publishEngine, callback) {
     callback = callback || function() {
     };
-    const publishRequest = new subscription_service.PublishRequest({});
+    const publishRequest = new PublishRequest({});
     publishEngine._on_PublishRequest(publishRequest, callback);
 }
 
@@ -215,7 +223,7 @@ describe("SM1 - Subscriptions and MonitoredItems", function() {
 
         const monitoredItemCreateRequest = new MonitoredItemCreateRequest({
             itemToMonitor: { nodeId: someVariableNode },
-            monitoringMode: subscription_service.MonitoringMode.Reporting,
+            monitoringMode: MonitoringMode.Reporting,
 
             requestedParameters: {
                 queueSize: 10,
@@ -230,7 +238,7 @@ describe("SM1 - Subscriptions and MonitoredItems", function() {
 
         subscription.monitoredItemCount.should.eql(1);
 
-        monitoredItemCreateResult.should.be.instanceOf(subscription_service.MonitoredItemCreateResult);
+        monitoredItemCreateResult.should.be.instanceOf(MonitoredItemCreateResult);
 
         monitoredItemCreateResult.revisedSamplingInterval.should.eql(100);
 
@@ -258,7 +266,7 @@ describe("SM1 - Subscriptions and MonitoredItems", function() {
 
         const monitoredItemCreateRequest = new MonitoredItemCreateRequest({
             itemToMonitor: { nodeId: someVariableNode },
-            monitoringMode: subscription_service.MonitoringMode.Reporting,
+            monitoringMode: MonitoringMode.Reporting,
 
             requestedParameters: {
                 queueSize: 10,
@@ -286,7 +294,7 @@ describe("SM1 - Subscriptions and MonitoredItems", function() {
 
         const monitoredItemCreateRequest = new MonitoredItemCreateRequest({
             itemToMonitor: { nodeId: someVariableNode },
-            monitoringMode: subscription_service.MonitoringMode.Reporting,
+            monitoringMode: MonitoringMode.Reporting,
             requestedParameters: {
                 queueSize: 10,
                 samplingInterval: 100
@@ -361,7 +369,7 @@ describe("SM1 - Subscriptions and MonitoredItems", function() {
 
         const monitoredItemCreateRequest = new MonitoredItemCreateRequest({
             itemToMonitor: { nodeId: someVariableNode },
-            monitoringMode: subscription_service.MonitoringMode.Reporting,
+            monitoringMode: MonitoringMode.Reporting,
             requestedParameters: {
                 clientHandle: 123,
                 queueSize: 10,
@@ -446,7 +454,7 @@ describe("SM1 - Subscriptions and MonitoredItems", function() {
 
         const monitoredItemCreateRequest = new MonitoredItemCreateRequest({
             itemToMonitor: { nodeId: someVariableNode },
-            monitoringMode: subscription_service.MonitoringMode.Reporting,
+            monitoringMode: MonitoringMode.Reporting,
             requestedParameters: {
                 clientHandle: 123,
                 queueSize: 10,
@@ -505,13 +513,13 @@ describe("SM1 - Subscriptions and MonitoredItems", function() {
                     nodeId: not_a_analogItemNode,
                     attributeId: AttributeIds.Value
                 },
-                monitoringMode: subscription_service.MonitoringMode.Reporting,
+                monitoringMode: MonitoringMode.Reporting,
                 requestedParameters: {
                     queueSize: 10,
                     samplingInterval: 100,
-                    filter: new subscription_service.DataChangeFilter({
-                        trigger: subscription_service.DataChangeTrigger.Status,
-                        deadbandType: subscription_service.DeadbandType.Percent,
+                    filter: new DataChangeFilter({
+                        trigger: DataChangeTrigger.Status,
+                        deadbandType: DeadbandType.Percent,
                         deadbandValue: 10.0 /* 10% */
                     })
                 }
@@ -530,13 +538,13 @@ describe("SM1 - Subscriptions and MonitoredItems", function() {
                     nodeId: analogItemNode,
                     attributeId: AttributeIds.Value
                 },
-                monitoringMode: subscription_service.MonitoringMode.Reporting,
+                monitoringMode: MonitoringMode.Reporting,
                 requestedParameters: {
                     queueSize: 10,
                     samplingInterval: 100,
-                    filter: new subscription_service.DataChangeFilter({
-                        trigger: subscription_service.DataChangeTrigger.Status,
-                        deadbandType: subscription_service.DeadbandType.Percent,
+                    filter: new DataChangeFilter({
+                        trigger: DataChangeTrigger.Status,
+                        deadbandType: DeadbandType.Percent,
                         deadbandValue: value
                     })
                 }
@@ -572,13 +580,13 @@ describe("SM1 - Subscriptions and MonitoredItems", function() {
                         nodeId: analogItemNode,
                         attributeId: attributeId
                     },
-                    monitoringMode: subscription_service.MonitoringMode.Reporting,
+                    monitoringMode: MonitoringMode.Reporting,
                     requestedParameters: {
                         queueSize: 10,
                         samplingInterval: 100,
-                        filter: new subscription_service.DataChangeFilter({
-                            trigger: subscription_service.DataChangeTrigger.Status,
-                            deadbandType: subscription_service.DeadbandType.Percent,
+                        filter: new DataChangeFilter({
+                            trigger: DataChangeTrigger.Status,
+                            deadbandType: DeadbandType.Percent,
                             deadbandValue: 10
                         })
                     }
@@ -624,7 +632,7 @@ describe("SM1 - Subscriptions and MonitoredItems", function() {
                     nodeId: nodeId,
                     attributeId: AttributeIds.Value
                 },
-                monitoringMode: subscription_service.MonitoringMode.Reporting,
+                monitoringMode: MonitoringMode.Reporting,
                 requestedParameters: {
                     clientHandle: _clientHandle++,
                     queueSize: 10,
@@ -760,13 +768,13 @@ describe("SM1 - Subscriptions and MonitoredItems", function() {
                     nodeId: nodeId,
                     attributeId: AttributeIds.Value
                 },
-                monitoringMode: subscription_service.MonitoringMode.Reporting,
+                monitoringMode: MonitoringMode.Reporting,
                 requestedParameters: {
                     queueSize: 10,
                     samplingInterval: 100,
-                    filter: new subscription_service.DataChangeFilter({
-                        trigger: subscription_service.DataChangeTrigger.Status,
-                        deadbandType: subscription_service.DeadbandType.Percent,
+                    filter: new DataChangeFilter({
+                        trigger: DataChangeTrigger.Status,
+                        deadbandType: DeadbandType.Percent,
                         deadbandValue: 10
                     })
                 }
@@ -874,7 +882,7 @@ describe("SM1 - Subscriptions and MonitoredItems", function() {
                     nodeId: nodeId,
                     attributeId: AttributeIds.Value
                 },
-                monitoringMode: subscription_service.MonitoringMode.Reporting,
+                monitoringMode: MonitoringMode.Reporting,
                 requestedParameters: {
                     queueSize: 10,
                     samplingInterval: 0
@@ -906,7 +914,7 @@ describe("SM1 - Subscriptions and MonitoredItems", function() {
                     nodeId: nodeId,
                     attributeId: AttributeIds.Value
                 },
-                monitoringMode: subscription_service.MonitoringMode.Reporting,
+                monitoringMode: MonitoringMode.Reporting,
                 requestedParameters: {
                     queueSize: 10,
                     samplingInterval: 0
@@ -943,7 +951,7 @@ describe("SM1 - Subscriptions and MonitoredItems", function() {
                     nodeId: nodeId,
                     attributeId: AttributeIds.Value
                 },
-                monitoringMode: subscription_service.MonitoringMode.Reporting,
+                monitoringMode: MonitoringMode.Reporting,
                 requestedParameters: {
                     queueSize: 10,
                     samplingInterval: 0
@@ -1064,13 +1072,13 @@ describe("SM1 - Subscriptions and MonitoredItems", function() {
                     nodeId: nodeId,
                     attributeId: AttributeIds.Value
                 },
-                monitoringMode: subscription_service.MonitoringMode.Reporting,
+                monitoringMode: MonitoringMode.Reporting,
                 requestedParameters: {
                     queueSize: 10,
                     samplingInterval: 0,
-                    filter: new subscription_service.DataChangeFilter({
-                        trigger: subscription_service.DataChangeTrigger.StatusValue,
-                        deadbandType: subscription_service.DeadbandType.Absolute,
+                    filter: new DataChangeFilter({
+                        trigger: DataChangeTrigger.StatusValue,
+                        deadbandType: DeadbandType.Absolute,
                         deadbandValue: deadband
                     })
                 }
@@ -1171,9 +1179,9 @@ describe("SM1 - Subscriptions and MonitoredItems", function() {
 
             const nodeId = "ns=1;s=Static_LocalizedText";
 
-            const filter = new subscription_service.DataChangeFilter({
-                trigger: subscription_service.DataChangeTrigger.StatusValue,
-                deadbandType: subscription_service.DeadbandType.Absolute,
+            const filter = new DataChangeFilter({
+                trigger: DataChangeTrigger.StatusValue,
+                deadbandType: DeadbandType.Absolute,
                 deadbandValue: 10.0
             });
 
@@ -1183,7 +1191,7 @@ describe("SM1 - Subscriptions and MonitoredItems", function() {
                     nodeId: nodeId,
                     attributeId: AttributeIds.Value
                 },
-                monitoringMode: subscription_service.MonitoringMode.Reporting,
+                monitoringMode: MonitoringMode.Reporting,
                 requestedParameters: {
                     queueSize: 10,
                     samplingInterval: 0,
@@ -1203,7 +1211,7 @@ describe("SM1 - Subscriptions and MonitoredItems", function() {
             const monitoredItem = subscription.getMonitoredItem(monitoredItemCreateResult.monitoredItemId);
 
             // now modify monitoredItem setting a filter
-            const res = monitoredItem.modify(null, new subscription_service.MonitoringParameters({
+            const res = monitoredItem.modify(null, new MonitoringParameters({
                 samplingInterval: 0,
                 discardOldest: true,
                 queueSize: 1,
@@ -1265,7 +1273,7 @@ describe("SM1 - Subscriptions and MonitoredItems", function() {
                 });
                 const monitoredItemCreateRequest = new MonitoredItemCreateRequest({
                     itemToMonitor: { nodeId: someVariableNode },
-                    monitoringMode: subscription_service.MonitoringMode.Reporting,
+                    monitoringMode: MonitoringMode.Reporting,
                     requestedParameters: {
                         clientHandle: 123,
                         queueSize: 10,
@@ -1331,7 +1339,7 @@ describe("SM1 - Subscriptions and MonitoredItems", function() {
 
                 const monitoredItemCreateRequest = new MonitoredItemCreateRequest({
                     itemToMonitor: { nodeId: someVariableNode },
-                    monitoringMode: subscription_service.MonitoringMode.Reporting,
+                    monitoringMode: MonitoringMode.Reporting,
                     requestedParameters: {
                         clientHandle: 123,
                         queueSize: 10,
@@ -1467,7 +1475,7 @@ describe("SM2 - MonitoredItem advanced", function() {
         function createMonitoredItem(subscription, clientHandle) {
             const monitoredItemCreateRequest = new MonitoredItemCreateRequest({
                 itemToMonitor: { nodeId: someVariableNode },
-                monitoringMode: subscription_service.MonitoringMode.Reporting,
+                monitoringMode: MonitoringMode.Reporting,
                 requestedParameters: {
                     clientHandle: clientHandle,
                     queueSize: 10,
@@ -1629,7 +1637,7 @@ describe("SM2 - MonitoredItem advanced", function() {
             const nodeId = "i=2258"; // CurrentTime
             const monitoredItemCreateRequest = new MonitoredItemCreateRequest({
                 itemToMonitor: { nodeId: nodeId },
-                monitoringMode: subscription_service.MonitoringMode.Reporting,
+                monitoringMode: MonitoringMode.Reporting,
 
                 requestedParameters: {
                     queueSize: 10,
@@ -1650,7 +1658,6 @@ describe("SM2 - MonitoredItem advanced", function() {
             subscription = null;
         });
 
-        const MonitoringMode = subscription_service.MonitoringMode;
 
         it("should update Subscription.subscriptionDiagnostics.sessionId", function() {
             subscription.subscriptionDiagnostics.sessionId.should.eql(subscription.getSessionId());

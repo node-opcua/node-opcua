@@ -1,44 +1,40 @@
 {
-  "extends": "../tsconfig.json",
-  "compilerOptions": {
-    "rootDir": "source",
-    "outDir": "dist",
-    "composite": true
-  },
-  "exclude": [
-    "node_modules",
-    "dist"
-  ],
-  "include": [
-    "source/**/*.ts"
-  ],
-  "references": [
-    {
-      "path": "../node-opcua-assert"
+    "extends": "../tsconfig.json",
+    "compilerOptions": {
+        "rootDir": "source",
+        "outDir": "dist",
+        "composite": true,
+        "incremental": true
     },
-    {
-      "path": "../node-opcua-basic-types"
-    },
-    {
-      "path": "../node-opcua-buffer-utils"
-    },
-    {
-      "path": "../node-opcua-common"
-    },
-    {
-      "path": "../node-opcua-constants"
-    },
-    {
-      "path": "../node-opcua-debug"
-    },
-    {
-      "path": "../node-opcua-status-code"
-    },
-    {
-      "path": "../node-opcua-utils"
-    },
-    {
-      "path": "../node-opcua-leak-detector"
-    }
-  ]
+    "exclude": ["node_modules", "dist"],
+    "include": ["source/**/*.ts"],
+    "references": [
+        {
+            "path": "../node-opcua-assert"
+        },
+        {
+            "path": "../node-opcua-basic-types"
+        },
+        {
+            "path": "../node-opcua-buffer-utils"
+        },
+        {
+            "path": "../node-opcua-common"
+        },
+        {
+            "path": "../node-opcua-constants"
+        },
+        {
+            "path": "../node-opcua-debug"
+        },
+        {
+            "path": "../node-opcua-status-code"
+        },
+        {
+            "path": "../node-opcua-utils"
+        },
+        {
+            "path": "../node-opcua-leak-detector"
+        }
+    ]
 }

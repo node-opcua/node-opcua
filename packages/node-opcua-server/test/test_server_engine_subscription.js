@@ -9,7 +9,8 @@ const { MonitoredItemCreateRequest } = require("node-opcua-service-subscription"
 
 const { ServerEngine, SubscriptionState } = require("..");
 
-const mini_nodeset_filename = require("node-opcua-address-space").get_mini_nodeset_filename();
+const { get_mini_nodeset_filename } = require("node-opcua-address-space/testHelpers");
+const mini_nodeset_filename = get_mini_nodeset_filename();
 
 const { with_fake_timer } = require("./helper_with_fake_timer");
 

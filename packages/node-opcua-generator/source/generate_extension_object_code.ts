@@ -7,34 +7,23 @@
 //
 import * as chalk from "chalk";
 import * as fs from "fs";
-import { assert } from "node-opcua-assert";
-import {
-    DataTypeIds,
-    ObjectIds
-} from "node-opcua-constants";
-import {
-    checkDebugFlag,
-    make_debugLog
-} from "node-opcua-debug";
+import { promisify } from "util";
 
+import { assert } from "node-opcua-assert";
+import { DataTypeIds, ObjectIds } from "node-opcua-constants";
+import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 import {
     EnumerationDefinitionSchema,
     FieldCategory,
     getStandardDataTypeFactory,
     StructuredTypeSchema,
-    DataTypeFactory,
+    DataTypeFactory
 } from "node-opcua-factory";
-import {
-    DataTypeAndEncodingId,
-    MapDataTypeAndEncodingIdProvider,
-    parseBinaryXSDAsync
-} from "node-opcua-schemas";
-import { LineFile } from "node-opcua-utils";
-import { promisify } from "util";
-import { writeStructuredType } from "./factory_code_generator";
-
 import { NodeId } from "node-opcua-nodeid";
-import * as n from "node-opcua-numeric-range";
+import { DataTypeAndEncodingId, MapDataTypeAndEncodingIdProvider, parseBinaryXSDAsync } from "node-opcua-schemas";
+
+import { writeStructuredType } from "./factory_code_generator";
+import { LineFile1 } from "./utils/index";
 
 const doDebug = checkDebugFlag(__filename);
 const debugLog = make_debugLog(__filename);
@@ -43,26 +32,21 @@ const debugLog = make_debugLog(__filename);
 
 const readFile = promisify(fs.readFile);
 
-const f = new LineFile();
+const f = new LineFile1();
 
 function write(...args: string[]) {
     f.write.apply(f, args);
 }
 
 function writeEnumeratedType(enumerationSchema: EnumerationDefinitionSchema) {
-
-
     const arrayValues = Object.keys(enumerationSchema.enumValues)
         .filter((a: string) => a.match("[0-9]+"))
         .map((a: string) => parseInt(a, 10))
-        .filter((a: number) => a !== 0xFFFFFFFF)
+        .filter((a: number) => a !== 0xffffffff)
         .sort((a: number, b: number) => a - b);
 
     // determining if enum is of type FLAGS
-    const isFlaggable = arrayValues.length > 2
-        && arrayValues[2] === arrayValues[1] * 2
-        && arrayValues[3] === arrayValues[2] * 2
-        ;
+    const isFlaggable = arrayValues.length > 2 && arrayValues[2] === arrayValues[1] * 2 && arrayValues[3] === arrayValues[2] * 2;
     // find min and max values (excluding
     const minEnumValue = Math.min.apply(null, arrayValues);
     const maxEnumValue = Math.max.apply(null, arrayValues);
@@ -70,9 +54,9 @@ function writeEnumeratedType(enumerationSchema: EnumerationDefinitionSchema) {
     // make sure there is a Invalid key in the enum => else insert one (but only if not flaggable)
     const hasInvalid = enumerationSchema.enumValues.hasOwnProperty("Invalid");
     if (!hasInvalid && !isFlaggable) {
-        enumerationSchema.enumValues[enumerationSchema.enumValues.Invalid = 0xFFFFFFFF] = "Invalid";
+        enumerationSchema.enumValues[(enumerationSchema.enumValues.Invalid = 0xffffffff)] = "Invalid";
     }
-    
+
     write("");
     write(`// --------------------------------------------------------------------------------------------`);
     write(`export enum ${enumerationSchema.name} {`);
@@ -106,7 +90,9 @@ function writeEnumeratedType(enumerationSchema: EnumerationDefinitionSchema) {
             assert(enumerationSchema.lengthInBits === 32);
             write(`    let value =  stream.readUInt32() as ${enumerationSchema.name};`);
         }
-        write(`    value = (value < schema${enumerationSchema.name}.minValue || value > schema${enumerationSchema.name}.maxValue) ? ${enumerationSchema.name}.Invalid : value; `);
+        write(
+            `    value = (value < schema${enumerationSchema.name}.minValue || value > schema${enumerationSchema.name}.maxValue) ? ${enumerationSchema.name}.Invalid : value; `
+        );
         write(`    return value;`);
     } else {
         write(`    return  stream.readUInt32() as ${enumerationSchema.name};`);
@@ -122,11 +108,9 @@ function writeEnumeratedType(enumerationSchema: EnumerationDefinitionSchema) {
     write(`}`);
 
     write(`export const _enumeration${enumerationSchema.name} = registerEnumeration(schema${enumerationSchema.name});`);
-
 }
 
 function writeStructuredTypeWithSchema(structuredType: StructuredTypeSchema) {
-
     write(`// --------------------------------------------------------------------------------------------`);
 
     write(`const schema${structuredType.name} = buildStructuredType({`);
@@ -149,16 +133,10 @@ function writeStructuredTypeWithSchema(structuredType: StructuredTypeSchema) {
     write(`});`);
 
     writeStructuredType(write, structuredType);
-
 }
 
-export async function generate(
-    filename: string,
-    generatedTypescriptFilename: string
-) {
-
+export async function generate(filename: string, generatedTypescriptFilename: string) {
     try {
-
         const content = await readFile(filename, "ascii");
 
         const idProvider: MapDataTypeAndEncodingIdProvider = {
@@ -178,12 +156,15 @@ export async function generate(
                     binaryEncodingNodeId,
                     dataTypeNodeId,
                     jsonEncodingNodeId,
-                    xmlEncodingNodeId,
+                    xmlEncodingNodeId
                 };
                 if (doDebug) {
-                    debugLog("xxdata=", chalk.cyan(name.padEnd(43, " ")),
+                    debugLog(
+                        "xxdata=",
+                        chalk.cyan(name.padEnd(43, " ")),
                         data.dataTypeNodeId.toString().padEnd(43, " "),
-                        data.binaryEncodingNodeId.toString().padEnd(43, " "));
+                        data.binaryEncodingNodeId.toString().padEnd(43, " ")
+                    );
                 }
                 return data;
             }
@@ -274,7 +255,8 @@ import {
 import {
     decodeVariant, encodeVariant, Variant, VariantLike,
     VariantOptions
-} from "node-opcua-variant";`);
+} from "node-opcua-variant";`
+        );
 
         write(``);
 

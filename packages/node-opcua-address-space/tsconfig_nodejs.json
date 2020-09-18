@@ -1,0 +1,25 @@
+{
+    "extends": "../tsconfig.json",
+    "compilerOptions": {
+        "rootDir": "source_nodejs",
+        "outDir": "distNodeJS",
+        "composite": true,
+        "incremental": true
+    },
+    "ts-node": {
+        "compilerOptions": {
+            "inlineSourceMap": true
+        }
+    },
+    "include": [
+        "source_nodejs/**/*.ts"
+    ],
+    "references": [
+        {
+            "path": "./tsconfig_common.json"
+        }
+    ],
+    "exclude": [
+        "node_modules"
+    ]
+}

@@ -18,14 +18,13 @@ import {
     MonitoredItemModifyResult,
     MonitoringMode,
     MonitoringParameters,
-    MonitoringParametersOptions,
+    MonitoringParametersOptions
 } from "node-opcua-service-subscription";
 import { StatusCode, StatusCodes } from "node-opcua-status-code";
 import { Variant } from "node-opcua-variant";
 import { Callback, ErrorCallback } from "node-opcua-status-code";
 
 import { ClientMonitoredItem } from "../client_monitored_item";
-import { ClientMonitoredItemBase } from "../client_monitored_item_base";
 import { ClientMonitoredItemToolbox } from "../client_monitored_item_toolbox";
 import { ClientSubscription } from "../client_subscription";
 import { ClientSubscriptionImpl } from "./client_subscription_impl";
@@ -106,7 +105,7 @@ export class ClientMonitoredItemImpl extends EventEmitter implements ClientMonit
     public terminate(done: ErrorCallback): void;
     public terminate(...args: any[]): any {
         const done = args[0];
-        assert(_.isFunction(done));
+        assert(typeof done === "function");
 
         const subscription = this.subscription as ClientSubscriptionImpl;
         subscription._delete_monitored_items([this], (err?: Error) => {
@@ -117,14 +116,8 @@ export class ClientMonitoredItemImpl extends EventEmitter implements ClientMonit
     }
 
     public async modify(parameters: MonitoringParametersOptions): Promise<StatusCode>;
-    public async modify(
-        parameters: MonitoringParametersOptions,
-        timestampsToReturn: TimestampsToReturn
-    ): Promise<StatusCode>;
-    public modify(
-        parameters: MonitoringParametersOptions,
-        callback: (err: Error | null, statusCode?: StatusCode) => void
-    ): void;
+    public async modify(parameters: MonitoringParametersOptions, timestampsToReturn: TimestampsToReturn): Promise<StatusCode>;
+    public modify(parameters: MonitoringParametersOptions, callback: (err: Error | null, statusCode?: StatusCode) => void): void;
     public modify(
         parameters: MonitoringParametersOptions,
         timestampsToReturn: TimestampsToReturn | null,
@@ -179,20 +172,15 @@ export class ClientMonitoredItemImpl extends EventEmitter implements ClientMonit
      */
     public _monitor(done?: ErrorCallback) {
         assert(done === undefined || _.isFunction(done));
-        ClientMonitoredItemToolbox._toolbox_monitor(
-            this.subscription,
-            this.timestampsToReturn,
-            [this],
-            (err?: Error) => {
-                if (err) {
-                    this.emit("err", err.message);
-                    this.emit("terminated");
-                }
-                if (done) {
-                    done(err);
-                }
+        ClientMonitoredItemToolbox._toolbox_monitor(this.subscription, this.timestampsToReturn, [this], (err?: Error) => {
+            if (err) {
+                this.emit("err", err.message);
+                this.emit("terminated");
             }
-        );
+            if (done) {
+                done(err);
+            }
+        });
     }
 
     /**
@@ -282,7 +270,7 @@ export class ClientMonitoredItemImpl extends EventEmitter implements ClientMonit
                         "Got a " +
                         filter.schema.name +
                         " but a EventFilter object is required " +
-                        "when itemToMonitor.attributeId== AttributeIds.EventNotifier",
+                        "when itemToMonitor.attributeId== AttributeIds.EventNotifier"
                 };
             }
         } else if (this.itemToMonitor.attributeId === AttributeIds.Value) {
@@ -296,14 +284,14 @@ export class ClientMonitoredItemImpl extends EventEmitter implements ClientMonit
                 return {
                     error:
                         "Mismatch between attributeId and filter in monitoring parameters : " +
-                        "no filter expected when attributeId is not Value  or  EventNotifier",
+                        "no filter expected when attributeId is not Value  or  EventNotifier"
                 };
             }
         }
         return {
             itemToMonitor: this.itemToMonitor,
             monitoringMode: this.monitoringMode,
-            requestedParameters: this.monitoringParameters,
+            requestedParameters: this.monitoringParameters
         };
     }
 
@@ -359,9 +347,7 @@ const thenify = require("thenify");
 const opts = { multiArgs: false };
 
 ClientMonitoredItemImpl.prototype.terminate = thenify.withCallback(ClientMonitoredItemImpl.prototype.terminate);
-ClientMonitoredItemImpl.prototype.setMonitoringMode = thenify.withCallback(
-    ClientMonitoredItemImpl.prototype.setMonitoringMode
-);
+ClientMonitoredItemImpl.prototype.setMonitoringMode = thenify.withCallback(ClientMonitoredItemImpl.prototype.setMonitoringMode);
 ClientMonitoredItemImpl.prototype.modify = thenify.withCallback(ClientMonitoredItemImpl.prototype.modify);
 
 ClientMonitoredItem.create = (
@@ -370,12 +356,7 @@ ClientMonitoredItem.create = (
     monitoringParameters: MonitoringParametersOptions,
     timestampsToReturn: TimestampsToReturn
 ) => {
-    const monitoredItem = new ClientMonitoredItemImpl(
-        subscription,
-        itemToMonitor,
-        monitoringParameters,
-        timestampsToReturn
-    );
+    const monitoredItem = new ClientMonitoredItemImpl(subscription, itemToMonitor, monitoringParameters, timestampsToReturn);
 
     setImmediate(() => {
         (subscription as ClientSubscriptionImpl)._wait_for_subscription_to_be_ready((err?: Error) => {

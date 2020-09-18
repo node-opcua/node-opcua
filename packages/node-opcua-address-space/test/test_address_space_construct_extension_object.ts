@@ -29,20 +29,13 @@ import { DataType } from "node-opcua-variant";
 import { Variant } from "node-opcua-variant";
 
 import { nodesets } from "node-opcua-nodesets";
-import {
-    AddressSpace,
-    BaseNode,
-    generateAddressSpace,
-    Namespace,
-    SessionContext,
-    UAObject,
-    UAServerStatus,
-} from "..";
+import { AddressSpace, BaseNode, Namespace, SessionContext, UAServerStatus } from "..";
+import { generateAddressSpace } from "../nodeJS";
 
 // make sure all namespace 0 data type are properly loaded
 const context = SessionContext.defaultContext;
 
-function debugLog(...args: [any, ... any[]]) {
+function debugLog(...args: [any, ...any[]]) {
     //
     console.log.apply(console.log, args);
 }
@@ -56,10 +49,7 @@ describe("testing address space namespace loading", function (this: any) {
     let namespace: Namespace;
     before(async () => {
         addressSpace = AddressSpace.create();
-        const xml_files = [
-            nodesets.standard_nodeset_file,
-            path.join(__dirname, "../../../", "modeling/my_data_type.xml")
-        ];
+        const xml_files = [nodesets.standard_nodeset_file, path.join(__dirname, "../../../", "modeling/my_data_type.xml")];
         fs.existsSync(xml_files[0]).should.be.eql(true);
         fs.existsSync(xml_files[1]).should.be.eql(true);
 
@@ -73,7 +63,6 @@ describe("testing address space namespace loading", function (this: any) {
     });
 
     it("should be possible to create a ServerStatus ExtensionObject", () => {
-
         const serverStatusDataType = addressSpace.findDataType("ServerStatusDataType")!;
         serverStatusDataType.nodeClass.should.eql(NodeClass.DataType);
         serverStatusDataType.browseName.toString().should.eql("ServerStatusDataType");
@@ -104,11 +93,9 @@ describe("testing address space namespace loading", function (this: any) {
 
         op.should.have.property("attributeId");
         op.should.have.property("browsePath");
-
     });
 
     it("should create a arbitrary structure from a second name space", () => {
-
         const ns = addressSpace.getNamespaceIndex("http://yourorganisation.org/my_data_type/");
         ns.should.eql(2);
 
@@ -161,11 +148,9 @@ describe("testing address space namespace loading", function (this: any) {
         // verify that value has changed using all way to access it
         (myVar as any).lowValue.readValue().value.value.should.eql(10);
         myVar.readValue().value.value.lowValue.should.eql(10);
-
     });
 
     it("should explore the DataType through OPCUA", () => {
-
         const ns = addressSpace.getNamespaceIndex("http://yourorganisation.org/my_data_type/");
         ns.should.eql(2);
         const myStructureDataType = addressSpace.findDataType("MyStructureDataType", ns)!;
@@ -202,11 +187,11 @@ describe("testing address space namespace loading", function (this: any) {
             values: [
                 {
                     highValue: 100,
-                    lowValue: 50,
+                    lowValue: 50
                 },
                 {
                     highValue: 101,
-                    lowValue: 51,
+                    lowValue: 51
                 }
             ]
         };
@@ -221,7 +206,6 @@ describe("testing address space namespace loading", function (this: any) {
         op.values[0].lowValue.should.eql(50);
         op.values[1].highValue.should.eql(101);
         op.values[1].lowValue.should.eql(51);
-
     });
 
     it("should bind an xml-preloaded Extension Object Variable : ServerStatus ", async () => {
@@ -243,57 +227,33 @@ describe("testing address space namespace loading", function (this: any) {
         serverStatus.bindExtensionObject();
 
         {
-            serverStatus
-                .readValue()
-                .value.value.state
-                .should.eql(ServerState.Running);
+            serverStatus.readValue().value.value.state.should.eql(ServerState.Running);
 
             serverStatus.$extensionObject.state = ServerState.CommunicationFault;
 
-            serverStatus
-                .readValue()
-                .value.value.state
-                .should.eql(ServerState.CommunicationFault);
+            serverStatus.readValue().value.value.state.should.eql(ServerState.CommunicationFault);
 
             serverStatus.$extensionObject.state = ServerState.Running;
         }
 
-        serverStatus
-            .readValue()
-            .value.value.startTime.toISOString()
-            .should.eql("1601-01-01T00:00:00.000Z");
+        serverStatus.readValue().value.value.startTime.toISOString().should.eql("1601-01-01T00:00:00.000Z");
 
-        serverStatus.startTime
-            .readValue()
-            .value.value!.toISOString()
-            .should.eql("1601-01-01T00:00:00.000Z");
+        serverStatus.startTime.readValue().value.value!.toISOString().should.eql("1601-01-01T00:00:00.000Z");
 
         serverStatus.$extensionObject.startTime = new Date(Date.UTC(1800, 0, 1));
 
-        serverStatus
-            .readValue()
-            .value.value.startTime.toISOString()
-            .should.eql("1800-01-01T00:00:00.000Z");
+        serverStatus.readValue().value.value.startTime.toISOString().should.eql("1800-01-01T00:00:00.000Z");
 
-        serverStatus.startTime
-            .readValue()
-            .value.value!.toISOString()
-            .should.eql("1800-01-01T00:00:00.000Z");
+        serverStatus.startTime.readValue().value.value!.toISOString().should.eql("1800-01-01T00:00:00.000Z");
 
         serverStatus.startTime.setValueFromSource({
             dataType: DataType.DateTime,
             value: new Date(Date.UTC(2100, 0, 1))
         });
 
-        serverStatus
-            .readValue()
-            .value.value!.startTime.toISOString()
-            .should.eql("2100-01-01T00:00:00.000Z");
+        serverStatus.readValue().value.value!.startTime.toISOString().should.eql("2100-01-01T00:00:00.000Z");
 
-        serverStatus.startTime
-            .readValue()
-            .value.value!.toISOString()
-            .should.eql("2100-01-01T00:00:00.000Z");
+        serverStatus.startTime.readValue().value.value!.toISOString().should.eql("2100-01-01T00:00:00.000Z");
 
         // xx debugLog(serverStatus.readValue().value.toString());
 
@@ -337,11 +297,9 @@ describe("testing address space namespace loading", function (this: any) {
 
         serverStatus.buildInfo.productName.readValue().value.value!.should.not.eql("productName3");
         serverStatus.readValue().value.value.buildInfo.productName.should.not.eql("productName3");
-
     });
 
     it("should instantiate SessionDiagnostics in a linear time", () => {
-
         const sessionDiagnosticsDataType = addressSpace.findDataType("SessionDiagnosticsDataType")!;
         const sessionDiagnosticsVariableType = addressSpace.findVariableType("SessionDiagnosticsVariableType")!;
 

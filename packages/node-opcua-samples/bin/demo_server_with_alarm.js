@@ -1,11 +1,13 @@
 #!/usr/bin/env node
 "use strict";
-/*global require,setInterval,console */
 const path = require("path");
 const opcua = require("node-opcua");
+const { construct_demo_alarm_in_address_space } = require("node-opcua-address-space/testHelpers");
+
 function constructFilename(filename) {
     return path.join(__dirname, "../", filename);
 }
+
 const server_certificate_file = constructFilename("certificates/server_selfsigned_cert_2048.pem");
 const server_certificate_privatekey_file = constructFilename("certificates/server_key_2048.pem");
 
@@ -32,7 +34,7 @@ function post_initialize() {
         const addressSpace = server.engine.addressSpace;
 
         const data = {};
-        opcua.construct_demo_alarm_in_address_space(data, addressSpace);
+        construct_demo_alarm_in_address_space(data, addressSpace);
 
         let time = 1;
         function simulate_variation() {

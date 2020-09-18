@@ -1,14 +1,7 @@
 import * as should from "should";
-import {
-    AddressSpace,
-    assert,
-    displayNodeElement,
-    generateAddressSpace,
-    Namespace,
-    NodeClass,
-    nodesets,
-    promoteToMandatory,
-} from "..";
+import { AddressSpace, assert, displayNodeElement, Namespace, NodeClass, nodesets, promoteToMandatory } from "..";
+import { generateAddressSpace } from "node-opcua-address-space/nodeJS";
+
 import { removeDecoration } from "./test_helpers";
 
 const namespaceUri = "urn:some";
@@ -20,7 +13,6 @@ function createModel(addressSpace: AddressSpace) {
 // tslint:disable-next-line: no-var-requires
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("promoteToMandatory", () => {
-
     let addressSpace: AddressSpace;
     let nsDI: number;
     let ns: Namespace;
@@ -28,10 +20,7 @@ describe("promoteToMandatory", () => {
     before(async () => {
         addressSpace = AddressSpace.create();
         ns = addressSpace.registerNamespace(namespaceUri);
-        const nodesetsXML = [
-            nodesets.standard,
-            nodesets.di
-        ];
+        const nodesetsXML = [nodesets.standard, nodesets.di];
 
         await generateAddressSpace(addressSpace, nodesetsXML);
         createModel(addressSpace);
@@ -40,14 +29,12 @@ describe("promoteToMandatory", () => {
         if (nsDI < 0) {
             throw new Error("Cannot find DI namespace!");
         }
-
     });
     after(() => {
         addressSpace.dispose();
     });
 
     it("when creating a sub type it should be possible to promote a component or property to mandatory", async () => {
-
         const deviceType = addressSpace.findObjectType("DeviceType", nsDI);
         if (!deviceType) {
             throw new Error("Cannot find DeviceType");
@@ -55,7 +42,7 @@ describe("promoteToMandatory", () => {
 
         const boilerType = ns.addObjectType({
             browseName: "BoilerType",
-            subtypeOf: deviceType,
+            subtypeOf: deviceType
         });
 
         const deviceClass = promoteToMandatory(boilerType, "DeviceClass", nsDI);
@@ -74,6 +61,5 @@ describe("promoteToMandatory", () => {
 
         // a[2 * 2 + 1].should.eql(`│ HasComponent Ⓥ         │ ns=1;i=1001  │ 2:DeviceHealth         │ Mandatory           │ BaseDataVariableType  │ 2:DeviceHealthEnumeration(Variant) │ null  │`);
         // a[13 * 2 + 1].should.eql(`│ HasComponent Ⓥ         │ ns=2;i=6208  │ 2:DeviceHealth         │ Optional            │ BaseDataVariableType  │ 2:DeviceHealthEnumeration(Variant) │ null  │`);
-
     });
 });

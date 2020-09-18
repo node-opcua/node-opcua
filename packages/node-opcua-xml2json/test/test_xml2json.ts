@@ -2,13 +2,8 @@
 import * as mocha from "mocha";
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 import { should } from "should";
-import {
-    ParserLike,
-    ReaderStateParserLike,
-    Xml2Json,
-    XmlAttributes
-} from "..";
-
+import { ParserLike, ReaderStateParserLike, Xml2Json, XmlAttributes } from "..";
+import { Xml2JsonFs } from "../source/nodejs/xml2json_fs";
 const doDebug = checkDebugFlag(__filename);
 const debugLog = make_debugLog(__filename);
 
@@ -17,17 +12,12 @@ const _should = should;
 type ErrorCallback = (err?: Error) => void;
 
 describe("XMLToJSON", () => {
-
     it("should parse a simple xml data string", (done: ErrorCallback) => {
-
         let init_called = false;
         let finish_called = false;
         const parser = new Xml2Json({
-
             parser: {
-
                 person: {
-
                     init(name: string, attrs: XmlAttributes) {
                         debugLog("person:init name = ", name);
                         name.should.equal("person");
@@ -57,24 +47,19 @@ describe("XMLToJSON", () => {
         });
 
         parser.parseString(
-            "<employees>" +
-            "   <person name='John'>" +
-            "     <address>Paris</address>" +
-            "   </person>" +
-            "</employees>", () => {
-
+            "<employees>" + "   <person name='John'>" + "     <address>Paris</address>" + "   </person>" + "</employees>",
+            () => {
                 init_called.should.equal(true);
 
                 finish_called.should.equal(true);
 
                 (parser as any).obj.should.eql({ name: "John", address: "Paris" });
                 done();
-            });
-
+            }
+        );
     });
 
     it("should parse a UTF8 encoded xml file with a BOM", function (this: any, done: ErrorCallback) {
-
         const nodesets = require("node-opcua-nodesets");
 
         // accommodate for slow RPI
@@ -83,18 +68,16 @@ describe("XMLToJSON", () => {
             this.slow(20000);
         }
         const xml_file = nodesets.standard_nodeset_file;
-        const parser = new Xml2Json({});
+        const parser = new Xml2JsonFs({});
         parser.parse(xml_file, (err?: Error) => {
             done(err);
         });
     });
 
     it("should parse a escaped string", (done: ErrorCallback) => {
-
         let displayName: string | null = null;
 
         const parser = new Xml2Json({
-
             parser: {
                 DisplayName: {
                     finish(this: any) {
@@ -104,28 +87,18 @@ describe("XMLToJSON", () => {
             }
         });
 
-        parser.parseString(
-            "<object>" +
-            "  <DisplayName>&lt;HelloWorld&gt;</DisplayName>" +
-            "</object>", () => {
+        parser.parseString("<object>" + "  <DisplayName>&lt;HelloWorld&gt;</DisplayName>" + "</object>", () => {
+            displayName!.should.eql("<HelloWorld>");
 
-                displayName!.should.eql("<HelloWorld>");
-
-                done();
-            });
+            done();
+        });
     });
 
     it("should parse a array", (done: ErrorCallback) => {
-
-        function BasicType_parser1(
-            dataType: string,
-            parseFunc: (this: any, text: string) => any
-        ): ParserLike {
-
+        function BasicType_parser1(dataType: string, parseFunc: (this: any, text: string) => any): ParserLike {
             const _parser: ParserLike = {};
 
             const r: ReaderStateParserLike = {
-
                 init(this: any, name: string, attrs: XmlAttributes) {
                     this.value = 0;
                 },
@@ -139,10 +112,7 @@ describe("XMLToJSON", () => {
             return _parser;
         }
 
-        function ListOf1(
-            dataType: string,
-            parseFunc: any
-        ) {
+        function ListOf1(dataType: string, parseFunc: any) {
             return {
                 init(this: any) {
                     this.listData = [];
@@ -184,14 +154,13 @@ describe("XMLToJSON", () => {
                 <uax:Float>32</uax:Float>
                 <uax:Float>33</uax:Float>
             </uax:ListOfFloat>
-        </Value>`, () => {
-            done();
-        });
-
+        </Value>`,
+            () => {
+                done();
+            }
+        );
     });
     it("should parse a array 2", (done: ErrorCallback) => {
-
         done();
     });
 });
-

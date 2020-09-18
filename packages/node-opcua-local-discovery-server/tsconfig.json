@@ -1,17 +1,15 @@
 {
-  "extends": "../tsconfig.json",
-  "compilerOptions": {
-    "rootDir": "source",
-    "outDir": "dist",
-    "composite": true
-  },
-  "references": [
-    {
-      "path": "../node-opcua"
-    }
-  ],
-  "exclude": [
-    "node_modules",
-    "dist"
-  ]
+    "extends": "../tsconfig.json",
+    "compilerOptions": {
+        "rootDir": "source",
+        "outDir": "dist",
+        "composite": true,
+        "incremental": true
+    },
+    "references": [
+        {
+            "path": "../node-opcua"
+        }
+    ],
+    "exclude": ["node_modules", "dist"]
 }

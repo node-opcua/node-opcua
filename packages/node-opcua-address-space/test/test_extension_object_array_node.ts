@@ -13,12 +13,11 @@ import {
     UADataType,
     UAVariable
 } from "..";
-import { getMiniAddressSpace } from "../";
+import { getMiniAddressSpace } from "../testHelpers";
 
 // tslint:disable-next-line:no-var-requires
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("Extension Object Array Node (or Complex Variable)", () => {
-
     let addressSpace: AddressSpace;
     before(async () => {
         addressSpace = await getMiniAddressSpace();
@@ -28,7 +27,6 @@ describe("Extension Object Array Node (or Complex Variable)", () => {
     });
 
     it("should create a Variable that exposes an array of ExtensionObject of a specific type", async () => {
-
         // given a address space
         // give a DataType
 
@@ -44,8 +42,9 @@ describe("Extension Object Array Node (or Complex Variable)", () => {
         addressSpace.findNode(arr.dataType)!.nodeClass.should.eql(NodeClass.DataType);
 
         const expectedType = addressSpace.findVariableType("SubscriptionDiagnosticsArrayType")!;
-        arr.typeDefinition.toString().should.eql(expectedType.nodeId.toString(),
-            "should have typeDefinition SubscriptionDiagnosticsArrayType");
+        arr.typeDefinition
+            .toString()
+            .should.eql(expectedType.nodeId.toString(), "should have typeDefinition SubscriptionDiagnosticsArrayType");
 
         const dv = arr.readValue();
         should(dv.value.value).eql([]);
@@ -85,11 +84,9 @@ describe("Extension Object Array Node (or Complex Variable)", () => {
 
         elementNode.maxLifetimeCount.readValue().value.value.should.eql(12345);
         elementNode.readValue().value.value.maxLifetimeCount.should.eql(12345);
-
     });
 
     it("should be possible to add more than one element in the Extension Object variable node", () => {
-
         const rootFolder = addressSpace.rootFolder;
 
         const arr = createExtObjArrayNode(rootFolder, {
@@ -108,10 +105,8 @@ describe("Extension Object Array Node (or Complex Variable)", () => {
         elVar3.browseName.toString().should.eql("1:1002");
 
         arr.readValue().value.value.length.should.eql(3, "expecting 3 elements in array");
-
     });
     it("should be possible to remove some element in the Extension Object variable node", () => {
-
         const rootFolder = addressSpace.rootFolder;
 
         const arr = createExtObjArrayNode(rootFolder, {
@@ -148,11 +143,9 @@ describe("Extension Object Array Node (or Complex Variable)", () => {
 
         should.not.exist(arr.getComponentByName("1002"));
         should.not.exist(arr.getComponentByName("1000"));
-
     });
 
     it("should be possible to add an element in  the Extension array that already exists ", () => {
-
         const rootFolder = addressSpace.rootFolder;
 
         const arr = createExtObjArrayNode(rootFolder, {
@@ -194,7 +187,6 @@ describe("Extension Object Array Node (or Complex Variable)", () => {
     });
 
     it("should be possible to add the same extension object into two array Variables", () => {
-
         const rootFolder = addressSpace.rootFolder;
 
         // Given 2 SubscriptionDiagnosticArray ( A & B)
@@ -202,7 +194,7 @@ describe("Extension Object Array Node (or Complex Variable)", () => {
             browseName: "SubscriptionDiagnosticArray_A",
             complexVariableType: "SubscriptionDiagnosticsArrayType",
             indexPropertyName: "subscriptionId",
-            variableType: "SubscriptionDiagnosticsType",
+            variableType: "SubscriptionDiagnosticsType"
         });
         arrA.readValue().value.value.length.should.eql(0);
 
@@ -210,7 +202,7 @@ describe("Extension Object Array Node (or Complex Variable)", () => {
             browseName: "SubscriptionDiagnosticArray_B",
             complexVariableType: "SubscriptionDiagnosticsArrayType",
             indexPropertyName: "subscriptionId",
-            variableType: "SubscriptionDiagnosticsType",
+            variableType: "SubscriptionDiagnosticsType"
         });
         arrB.readValue().value.value.length.should.eql(0);
 
@@ -220,7 +212,7 @@ describe("Extension Object Array Node (or Complex Variable)", () => {
 
         const extObj = new SubscriptionDiagnosticsDataType({
             enableCount: 7,
-            subscriptionId: 1123455,
+            subscriptionId: 1123455
         });
 
         const browseName = arrA.$$getElementBrowseName(extObj);

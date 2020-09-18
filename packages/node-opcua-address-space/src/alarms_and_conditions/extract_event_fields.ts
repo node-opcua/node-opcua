@@ -22,19 +22,13 @@ function assert_valid_event_data(eventData: IEventData) {
  * @param eventData
  * @param selectClause
  */
-function extractEventField(
-    sessionContext: SessionContext,
-    eventData: IEventData,
-    selectClause: SimpleAttributeOperand
-): Variant {
-
+function extractEventField(sessionContext: SessionContext, eventData: IEventData, selectClause: SimpleAttributeOperand): Variant {
     assert_valid_event_data(eventData);
     assert(selectClause instanceof SimpleAttributeOperand);
 
     selectClause.browsePath = selectClause.browsePath || [];
 
     if (selectClause.browsePath.length === 0 && selectClause.attributeId === AttributeIds.NodeId) {
-
         const eventSource = eventData.$eventDataSource as UAObject;
         const addressSpace = eventSource.addressSpace;
         const conditionTypeNodeId = resolveNodeId("ConditionType");
@@ -60,7 +54,9 @@ function extractEventField(
                 // tslint:disable-next-line:no-console
                 console.warn(" ", typeDefinitionObj ? typeDefinitionObj.browseName.toString() : "????");
                 // tslint:disable-next-line:no-console
-                console.warn("this case is not handled yet : selectClause.typeDefinitionId = " + selectClause.typeDefinitionId.toString());
+                console.warn(
+                    "this case is not handled yet : selectClause.typeDefinitionId = " + selectClause.typeDefinitionId.toString()
+                );
                 const eventSource1 = eventData.$eventDataSource!;
                 return new Variant({ dataType: DataType.NodeId, value: eventSource1.nodeId });
             }
@@ -85,9 +81,7 @@ function extractEventField(
         const value = eventData.readValue(sessionContext, handle, selectClause);
         assert(value instanceof Variant);
         return value;
-
     } else {
-
         // Part 4 - 7.17.3
         // A null value is returned in the corresponding event field in the Publish response if the selected
         // field is not part of the Event or an error was returned in the selectClauseResults of the EventFilterResult.

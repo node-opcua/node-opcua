@@ -4,21 +4,19 @@ import { StatusCodes } from "node-opcua-status-code";
 import { DataType } from "node-opcua-variant";
 import { AddressSpace, SessionContext } from "..";
 
-import { create_minimalist_address_space_nodeset } from "../";
+import { create_minimalist_address_space_nodeset } from "../testHelpers";
 
 const context = SessionContext.defaultContext;
 
 // tslint:disable-next-line:no-var-requires
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("testing UAObjectType", () => {
-
     let addressSpace: AddressSpace;
 
     before(() => {
         addressSpace = AddressSpace.create();
         create_minimalist_address_space_nodeset(addressSpace);
         addressSpace.registerNamespace("Private");
-
     });
     after(() => {
         if (addressSpace) {
@@ -27,7 +25,6 @@ describe("testing UAObjectType", () => {
     });
 
     it("should read Attribute IsAbstract on UAObjectType ", () => {
-
         const namespace = addressSpace.getOwnNamespace();
         const objType = namespace.addObjectType({
             browseName: "MyObject",
@@ -39,10 +36,8 @@ describe("testing UAObjectType", () => {
         value.value.dataType.should.eql(DataType.Boolean);
         value.statusCode.should.eql(StatusCodes.Good);
         value.value.value.should.equal(false);
-
     });
     it("should read Attribute IsAbstract on Abstract UAObjectType ", () => {
-
         const namespace = addressSpace.getOwnNamespace();
         const objType = namespace.addObjectType({
             browseName: "MyObject2",
@@ -57,16 +52,14 @@ describe("testing UAObjectType", () => {
 
         value = objType.readAttribute(context, AttributeIds.NodeId);
         value.value.dataType.should.eql(DataType.NodeId);
-
     });
 
-    it("UAObjectType#instantiate should be possible to instantiate a ObjectType (nodeId not specified)", () =>  {
-
+    it("UAObjectType#instantiate should be possible to instantiate a ObjectType (nodeId not specified)", () => {
         const namespace = addressSpace.getOwnNamespace();
         const objType = namespace.addObjectType({
             browseName: "MyObject3",
             isAbstract: false,
-            subtypeOf: "BaseObjectType",
+            subtypeOf: "BaseObjectType"
         });
 
         const obj = objType.instantiate({
@@ -76,16 +69,14 @@ describe("testing UAObjectType", () => {
         obj.browseName.toString().should.eql("1:Instance3");
 
         obj.nodeId.identifierType.should.eql(NodeId.NodeIdType.NUMERIC);
-
     });
 
-    it("UAObjectType#instantiate should be possible to instantiate a ObjectType and specify its nodeId)", () =>  {
-
+    it("UAObjectType#instantiate should be possible to instantiate a ObjectType and specify its nodeId)", () => {
         const namespace = addressSpace.getOwnNamespace();
         const objType = namespace.addObjectType({
             browseName: "MyObject4",
             isAbstract: false,
-            subtypeOf: "BaseObjectType",
+            subtypeOf: "BaseObjectType"
         });
 
         const obj = objType.instantiate({
@@ -96,15 +87,13 @@ describe("testing UAObjectType", () => {
         obj.browseName.toString().should.eql("1:Instance4");
 
         obj.nodeId.toString().should.eql("ns=1;s=HelloWorld");
-
     });
     it("UAObjectType#toString()", () => {
-
         const namespace = addressSpace.getOwnNamespace();
         const objType = namespace.addObjectType({
             browseName: "MyObject5",
             isAbstract: false,
-            subtypeOf: "BaseObjectType",
+            subtypeOf: "BaseObjectType"
         });
         const variable = namespace.addVariable({
             browseName: "Variable",

@@ -1,64 +1,58 @@
 {
-  "extends": "../tsconfig.json",
-  "compilerOptions": {
-    "rootDir": "",
-    "outDir": "dist",
-    "composite": true
-  },
-  "include": [
-    "source/**/*.ts",
-    "test-fixtures/**/*.ts",
-    "test_helpers/**/*.ts"
-  ],
-  "references": [
-    {
-      "path": "../node-opcua-assert"
+    "extends": "../tsconfig.json",
+    "compilerOptions": {
+        "rootDir": "",
+        "outDir": "dist",
+        "composite": true,
+        "incremental": true
     },
-    {
-      "path": "../node-opcua-basic-types"
-    },
-    {
-      "path": "../node-opcua-binary-stream"
-    },
-    {
-      "path": "../node-opcua-buffer-utils"
-    },
-    {
-      "path": "../node-opcua-chunkmanager"
-    },
-    {
-      "path": "../node-opcua-debug"
-    },
-    {
-      "path": "../node-opcua-factory"
-    },
-    {
-      "path": "../node-opcua-nodeid"
-    },
-    {
-      "path": "../node-opcua-object-registry"
-    },
-    {
-      "path": "../node-opcua-packet-assembler"
-    },
-    {
-      "path": "../node-opcua-status-code"
-    },
-    {
-      "path": "../node-opcua-types"
-    },
-    {
-      "path": "../node-opcua-utils"
-    },
-    {
-      "path": "../node-opcua-debug"
-    },
-    {
-      "path": "../node-opcua-generator"
-    }
-  ],
-  "exclude": [
-    "node_modules",
-    "dist"
-  ]
+    "include": ["source/**/*.ts", "test-fixtures/**/*.ts", "test_helpers/**/*.ts"],
+    "references": [
+        {
+            "path": "../node-opcua-assert"
+        },
+        {
+            "path": "../node-opcua-basic-types"
+        },
+        {
+            "path": "../node-opcua-binary-stream"
+        },
+        {
+            "path": "../node-opcua-buffer-utils"
+        },
+        {
+            "path": "../node-opcua-chunkmanager"
+        },
+        {
+            "path": "../node-opcua-debug"
+        },
+        {
+            "path": "../node-opcua-factory"
+        },
+        {
+            "path": "../node-opcua-nodeid"
+        },
+        {
+            "path": "../node-opcua-object-registry"
+        },
+        {
+            "path": "../node-opcua-packet-assembler"
+        },
+        {
+            "path": "../node-opcua-status-code"
+        },
+        {
+            "path": "../node-opcua-types"
+        },
+        {
+            "path": "../node-opcua-utils"
+        },
+        {
+            "path": "../node-opcua-debug"
+        },
+        {
+            "path": "../node-opcua-generator"
+        }
+    ],
+    "exclude": ["node_modules", "dist"]
 }

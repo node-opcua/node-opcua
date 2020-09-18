@@ -3,7 +3,8 @@
     "compilerOptions": {
         "rootDir": "test",
         "outDir": "dist",
-        "composite": true
+        "composite": true,
+        "incremental": true
     },
     "references": [
         {

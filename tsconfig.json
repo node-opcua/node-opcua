@@ -20,6 +20,8 @@
         "noUnusedParameters": false /* Report errors on unused parameters. */,
         "noImplicitReturns": true /* Report error when not all code paths in function return a value. */,
 
+       "incremental": true,
+
         "lib": ["es2017", "es2017.object"],
         "types": ["node"],
         "baseUrl": ".", // required for "paths"
@@ -30,5 +32,4 @@
     "include": ["packages/**/*.ts"],
     "exclude": ["node_modules/**", "node_modules"],
     "compileOnSave": false,
-    "incremental": "traceResolution"
 }

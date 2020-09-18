@@ -10,6 +10,7 @@ import { DataValue } from "node-opcua-data-value";
 import { StatusCodes } from "node-opcua-status-code";
 import { StatusCode } from "node-opcua-status-code";
 import { EnumValueType } from "node-opcua-types";
+
 import {
     Property,
     UAMultiStateValueDiscrete as UAMultiStateValueDiscretePublic,
@@ -23,9 +24,8 @@ export interface UAMultiStateValueDiscrete {
 }
 
 function install_synchronisation(variable: UAMultiStateValueDiscrete) {
-
     variable.on("value_changed", (value: DataValue) => {
-        const valueAsTextNode = variable.valueAsText || variable.getComponentByName("ValueAsText") as UAVariable;
+        const valueAsTextNode = variable.valueAsText || (variable.getComponentByName("ValueAsText") as UAVariable);
         if (!valueAsTextNode) {
             return;
         }
@@ -33,14 +33,11 @@ function install_synchronisation(variable: UAMultiStateValueDiscrete) {
         valueAsTextNode.setValueFromSource(valueAsText1);
     });
     variable.emit("value_changed", variable.readValue());
-
 }
 
 export class UAMultiStateValueDiscrete extends UAVariable implements UAMultiStateValueDiscretePublic {
-
     public setValue(value: string | number | Int64): void {
         if (typeof value === "string") {
-
             const enumValues = this.enumValues.readValue().value.value;
             const selected = enumValues.filter((a: any) => a.displayName.text === value)[0];
             if (selected) {
@@ -71,7 +68,6 @@ export class UAMultiStateValueDiscrete extends UAVariable implements UAMultiStat
     }
 
     public clone(options1: any, optionalFilter: any, extraInfo: any): UAMultiStateValueDiscrete {
-
         const variable1 = UAVariable.prototype.clone.call(this, options1, optionalFilter, extraInfo);
         return promoteToMultiStateValueDiscrete(variable1);
     }
@@ -92,7 +88,10 @@ export class UAMultiStateValueDiscrete extends UAVariable implements UAMultiStat
     public _enumValueIndex(): any {
         // construct an index to quickly find a EnumValue from a value
         const enumValues = this.enumValues.readValue().value.value;
-        const enumValueIndex: any = {}; enumValues.forEach((e: any) => { enumValueIndex[e.value[1]] = e; });
+        const enumValueIndex: any = {};
+        enumValues.forEach((e: any) => {
+            enumValueIndex[e.value[1]] = e;
+        });
         return enumValueIndex;
     }
 
@@ -101,7 +100,6 @@ export class UAMultiStateValueDiscrete extends UAVariable implements UAMultiStat
      * @private
      */
     public _setValue(value: Int64) {
-
         // check that value is in bound
         if (!this._isValueInRange(coerceInt32(value))) {
             throw new Error("UAMultiStateValueDiscrete#_setValue out of range " + value);
@@ -153,7 +151,6 @@ export class UAMultiStateValueDiscrete extends UAVariable implements UAMultiStat
         // find the enum value type
         install_synchronisation(this);
     }
-
 }
 
 export function promoteToMultiStateValueDiscrete(node: UAVariablePublic): UAMultiStateValueDiscrete {

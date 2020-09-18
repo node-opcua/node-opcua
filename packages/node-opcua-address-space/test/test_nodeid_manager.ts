@@ -1,32 +1,25 @@
 import { resolveNodeId } from "node-opcua-nodeid";
 import "should";
 import * as sinon from "sinon";
-import {
-    AddressSpace,
-    ConstructNodeIdOptions,
-    generateAddressSpace,
-    NodeIdManager
-} from "..";
+import { AddressSpace, ConstructNodeIdOptions, NodeIdManager } from "..";
+import { generateAddressSpace } from "../nodeJS";
 
 import { coerceQualifiedName, NodeClass } from "node-opcua-data-model";
 
 // tslint:disable-next-line: no-var-requires
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("NodeIdManager", () => {
-
     const namespaceUri = "urn:namespace";
     let addressSpace: AddressSpace;
     let nodeIdManager: NodeIdManager;
 
     beforeEach(async () => {
-
         addressSpace = AddressSpace.create();
         const ns = addressSpace.registerNamespace(namespaceUri);
         const nodesetsXML: string[] = [];
         await generateAddressSpace(addressSpace, nodesetsXML);
 
         nodeIdManager = new NodeIdManager(1, addressSpace);
-
     });
     afterEach(() => {
         addressSpace.dispose();
@@ -49,10 +42,9 @@ describe("NodeIdManager", () => {
     });
 
     it("should constructNodeId with s=STRING form", () => {
-
         nodeIdManager.setCache([
             ["Person", 100, NodeClass.ObjectType],
-            ["Person_Name", 200, NodeClass.Variable],
+            ["Person_Name", 200, NodeClass.Variable]
         ]);
         const options: ConstructNodeIdOptions = {
             browseName: coerceQualifiedName("AAA"),
@@ -84,7 +76,11 @@ describe("NodeIdManager", () => {
     });
 
     it("should constructNodeId with CoercibleString form", () => {
-        const options = { nodeId: "CloseSecureChannelRequest_Encoding_DefaultXml", nodeClass: NodeClass.Object, browseName: coerceQualifiedName("a") };
+        const options = {
+            nodeId: "CloseSecureChannelRequest_Encoding_DefaultXml",
+            nodeClass: NodeClass.Object,
+            browseName: coerceQualifiedName("a")
+        };
         const nodeId1 = nodeIdManager.constructNodeId(options);
         nodeId1.toString().should.eql("ns=1;i=1000");
 
@@ -92,15 +88,10 @@ describe("NodeIdManager", () => {
         const nodeIdManager0 = new NodeIdManager(0, addressSpace);
         const nodeId2 = nodeIdManager0.constructNodeId(options);
         nodeId2.toString().should.eql("ns=0;i=451");
-
     });
 
     it("should constructNodeId with SomeName form", () => {
-        nodeIdManager.setCache(
-            [
-                ["SomeName", 10001, NodeClass.Variable]
-            ],
-        );
+        nodeIdManager.setCache([["SomeName", 10001, NodeClass.Variable]]);
         const options = {
             browseName: coerceQualifiedName("AAA"),
             nodeClass: NodeClass.Variable,
@@ -111,11 +102,7 @@ describe("NodeIdManager", () => {
     });
 
     it("should constructNodeId with SomeName_SomeProp form", () => {
-        nodeIdManager.setCache(
-            [
-                ["SomeName", 10001, NodeClass.Variable]
-            ],
-        );
+        nodeIdManager.setCache([["SomeName", 10001, NodeClass.Variable]]);
         const options = {
             browseName: coerceQualifiedName("AAA"),
             nodeClass: NodeClass.Variable,
@@ -129,11 +116,7 @@ describe("NodeIdManager", () => {
     });
 
     it("should maintain a list of Symbol and recycle the one that exists already", () => {
-        nodeIdManager.setCache(
-            [
-                ["SomeName", 1000, NodeClass.Object]
-            ],
-        );
+        nodeIdManager.setCache([["SomeName", 1000, NodeClass.Object]]);
 
         (nodeIdManager as any)._isInCache(1000).should.eql(true);
 
@@ -149,7 +132,7 @@ describe("NodeIdManager", () => {
         const options2 = {
             browseName: coerceQualifiedName("Property1"),
             nodeClass: NodeClass.Variable,
-            nodeId: "SomeName_Property1",
+            nodeId: "SomeName_Property1"
         };
         const nodeId2 = nodeIdManager.constructNodeId(options2);
         nodeId2.toString().should.eql("ns=1;i=1001");
@@ -158,7 +141,6 @@ describe("NodeIdManager", () => {
     });
 
     it("should maintain a list of Symbol and recycle the one that exists already", () => {
-
         const options1 = {
             browseName: coerceQualifiedName("MyNewDataType"),
             nodeClass: NodeClass.ObjectType,
@@ -178,8 +160,6 @@ describe("NodeIdManager", () => {
         const nodeId2 = nodeIdManager.constructNodeId(options2);
         nodeId2.toString().should.eql("ns=1;i=1001");
 
-        nodeIdManager.getSymbolCSV().should.eql(
-            `MyNewDataType;1000;ObjectType\nMyNewDataType_Property1;1001;Variable`);
-
+        nodeIdManager.getSymbolCSV().should.eql(`MyNewDataType;1000;ObjectType\nMyNewDataType_Property1;1001;Variable`);
     });
 });

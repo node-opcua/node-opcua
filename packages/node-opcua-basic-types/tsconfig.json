@@ -1,47 +1,43 @@
 {
-  "extends": "../tsconfig.json",
-  "compilerOptions": {
-    "rootDir": "source",
-    "outDir": "dist",
-    "composite": true
-  },
-  "include": [
-    "source/**/*.ts"
-  ],
-  "references": [
-    {
-      "path": "../node-opcua-assert"
+    "extends": "../tsconfig.json",
+    "compilerOptions": {
+        "rootDir": "source",
+        "outDir": "dist",
+        "composite": true,
+        "incremental": true
     },
-    {
-      "path": "../node-opcua-binary-stream"
-    },
-    {
-      "path": "../node-opcua-buffer-utils"
-    },
-    {
-      "path": "../node-opcua-date-time"
-    },
-    {
-      "path": "../node-opcua-enum"
-    },
-    {
-      "path": "../node-opcua-guid"
-    },
-    {
-      "path": "../node-opcua-nodeid"
-    },
-    {
-      "path": "../node-opcua-status-code"
-    },
-    {
-      "path": "../node-opcua-utils"
-    },
-    {
-      "path": "../node-opcua-debug"
-    }
-  ],
-  "exclude": [
-    "node_modules",
-    "dist"
-  ]
+    "include": ["source/**/*.ts"],
+    "references": [
+        {
+            "path": "../node-opcua-assert"
+        },
+        {
+            "path": "../node-opcua-binary-stream"
+        },
+        {
+            "path": "../node-opcua-buffer-utils"
+        },
+        {
+            "path": "../node-opcua-date-time"
+        },
+        {
+            "path": "../node-opcua-enum"
+        },
+        {
+            "path": "../node-opcua-guid"
+        },
+        {
+            "path": "../node-opcua-nodeid"
+        },
+        {
+            "path": "../node-opcua-status-code"
+        },
+        {
+            "path": "../node-opcua-utils"
+        },
+        {
+            "path": "../node-opcua-debug"
+        }
+    ],
+    "exclude": ["node_modules", "dist"]
 }

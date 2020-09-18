@@ -4,19 +4,23 @@ import {
     AddressSpace,
     extractEventFields,
     UAObject,
-    generateAddressSpace,
     SessionContext,
-    IEventData,
-    EventData,
     checkWhereClause,
     RaiseEventData,
     UAEventType,
-    UAVariable,
-    UAObjectType,
-    UAConditionBase
+    UAVariable
 } from "../..";
+import { generateAddressSpace } from "../../nodeJS";
+
 import { nodesets } from "node-opcua-nodesets";
-import { EventFilter, EventFilterOptions, FilterOperator, LiteralOperand, ContentFilter, SimpleAttributeOperand, ElementOperand } from "node-opcua-types";
+import {
+    EventFilter,
+    FilterOperator,
+    LiteralOperand,
+    ContentFilter,
+    SimpleAttributeOperand,
+    ElementOperand
+} from "node-opcua-types";
 import { coerceQualifiedName, AttributeIds } from "node-opcua-data-model";
 import { coerceNodeId, resolveNodeId, NodeId } from "node-opcua-nodeid";
 import { Variant, DataType } from "node-opcua-variant";
@@ -29,12 +33,10 @@ interface This extends Mocha.Suite {
     green: UAObject;
 }
 describe("Testing extract EventField", function (this: Mocha.Suite) {
-
     let addressSpace: AddressSpace;
     let source: UAObject;
     const test = this as This;
     before(async () => {
-
         addressSpace = AddressSpace.create();
         addressSpace.registerNamespace("PRIVATE_NAMESPACE");
 
@@ -76,7 +78,6 @@ describe("Testing extract EventField", function (this: Mocha.Suite) {
         test.addressSpace = addressSpace;
         test.source = source;
         test.green = green;
-
     });
     after(() => {
         addressSpace.dispose();
@@ -85,8 +86,7 @@ describe("Testing extract EventField", function (this: Mocha.Suite) {
     function createEventData(eventTypeName: string) {
         const eventTypeNode = addressSpace.findNode(eventTypeName)! as UAEventType;
         should.exist(eventTypeNode);
-        const data: RaiseEventData = {
-        };
+        const data: RaiseEventData = {};
         data.$eventDataSource = eventTypeNode;
         data.sourceNode = {
             dataType: DataType.NodeId,
@@ -96,25 +96,23 @@ describe("Testing extract EventField", function (this: Mocha.Suite) {
         return eventData;
     }
 
-
     it("EVF1- EventFilter", () => {
-
         const eventFilter = new EventFilter({
-            selectClauses                 /* SimpleAttributeOp[] */: [
+            selectClauses /* SimpleAttributeOp[] */: [
                 {
                     attributeId: AttributeIds.Value,
                     browsePath: [coerceQualifiedName("Changes")],
-                    typeDefinitionId: coerceNodeId("ns=0;i=2041"),
+                    typeDefinitionId: coerceNodeId("ns=0;i=2041")
                 },
                 {
                     attributeId: AttributeIds.Value,
                     browsePath: [coerceQualifiedName("EventType")],
-                    typeDefinitionId: coerceNodeId("ns=0;i=2041"),
+                    typeDefinitionId: coerceNodeId("ns=0;i=2041")
                 },
                 {
                     attributeId: AttributeIds.Value,
                     browsePath: [coerceQualifiedName("SourceNode")],
-                    typeDefinitionId: coerceNodeId("ns=0;i=2041"),
+                    typeDefinitionId: coerceNodeId("ns=0;i=2041")
                 }
             ],
             whereClause: new ContentFilter({
@@ -125,7 +123,8 @@ describe("Testing extract EventField", function (this: Mocha.Suite) {
                         filterOperands /* ExtensionObject  [] */: [
                             new LiteralOperand({
                                 value: new Variant({
-                                    dataType: DataType.NodeId, value: coerceNodeId("ns=0;i=2132")
+                                    dataType: DataType.NodeId,
+                                    value: coerceNodeId("ns=0;i=2132")
                                 })
                             })
                         ]
@@ -142,13 +141,12 @@ describe("Testing extract EventField", function (this: Mocha.Suite) {
         result[2].dataType.should.eql(DataType.NodeId);
         result[1].value.toString().should.eql(resolveNodeId("EventQueueOverflowEventType").toString());
         result[2].value.toString().should.eql(test.source.nodeId.toString());
-
     });
     it("EVF1b ", () => {
         const selectClauses = [
             new SimpleAttributeOperand({
                 attributeId: AttributeIds.Value,
-                browsePath: [coerceQualifiedName("EventType")],
+                browsePath: [coerceQualifiedName("EventType")]
             })
         ];
         const sessionContext = SessionContext.defaultContext;
@@ -159,7 +157,6 @@ describe("Testing extract EventField", function (this: Mocha.Suite) {
     });
 
     it("EVF2- check Where Clause OfType", () => {
-
         const whereClause = new ContentFilter({
             elements /* ContentFilterElem[] */: [
                 {
@@ -168,13 +165,14 @@ describe("Testing extract EventField", function (this: Mocha.Suite) {
                     filterOperands /* ExtensionObject  [] */: [
                         new LiteralOperand({
                             value: new Variant({
-                                dataType: DataType.NodeId, value: resolveNodeId("SystemEventType")
+                                dataType: DataType.NodeId,
+                                value: resolveNodeId("SystemEventType")
                             })
                         })
                     ]
                 }
             ]
-        })
+        });
         const sessionContext = SessionContext.defaultContext;
 
         {
@@ -191,7 +189,6 @@ describe("Testing extract EventField", function (this: Mocha.Suite) {
         }
     });
     it("EVF3- check Where Clause InList OfType", () => {
-
         const whereClause = new ContentFilter({
             elements /* ContentFilterElem[] */: [
                 {
@@ -201,18 +198,20 @@ describe("Testing extract EventField", function (this: Mocha.Suite) {
                         new SimpleAttributeOperand({
                             attributeId: AttributeIds.Value,
                             browsePath: [coerceQualifiedName("EventType")],
-                            typeDefinitionId: NodeId.nullNodeId,
+                            typeDefinitionId: NodeId.nullNodeId
                         }),
                         new LiteralOperand({
                             value: new Variant({
-                                dataType: DataType.NodeId, value: resolveNodeId("AuditCertificateExpiredEventType")
+                                dataType: DataType.NodeId,
+                                value: resolveNodeId("AuditCertificateExpiredEventType")
                             })
                         }),
                         new LiteralOperand({
                             value: new Variant({
-                                dataType: DataType.NodeId, value: resolveNodeId("AuditHistoryDeleteEventType")
+                                dataType: DataType.NodeId,
+                                value: resolveNodeId("AuditHistoryDeleteEventType")
                             })
-                        }),
+                        })
                     ]
                 }
             ]
@@ -221,7 +220,7 @@ describe("Testing extract EventField", function (this: Mocha.Suite) {
         const op = new SimpleAttributeOperand({
             attributeId: AttributeIds.Value,
             browsePath: [coerceQualifiedName("EventType")],
-            typeDefinitionId: NodeId.nullNodeId,
+            typeDefinitionId: NodeId.nullNodeId
         });
 
         {
@@ -247,14 +246,12 @@ describe("Testing extract EventField", function (this: Mocha.Suite) {
     });
 
     it("EVF4- check WhereClause with Not Operand #810", () => {
-
         const whereClause = new ContentFilter({
-
             elements /* ContentFilterElem[] */: [
-                { /*0*/
-                    filterOperator          /* FilterOperator      */: FilterOperator.Not,
+                {
+                    /*0*/ filterOperator /* FilterOperator      */: FilterOperator.Not,
 
-                    filterOperands          /* ExtensionObject  [] */: [
+                    filterOperands /* ExtensionObject  [] */: [
                         new ElementOperand({
                             index /* UInt32*/: 1
                         })
@@ -268,7 +265,7 @@ describe("Testing extract EventField", function (this: Mocha.Suite) {
                         new LiteralOperand({
                             value: new Variant({
                                 dataType: DataType.NodeId,
-                                value: resolveNodeId("GeneralModelChangeEventType")// (ns = 0; i=2133))
+                                value: resolveNodeId("GeneralModelChangeEventType") // (ns = 0; i=2133))
                             })
                         })
                     ]
@@ -286,7 +283,5 @@ describe("Testing extract EventField", function (this: Mocha.Suite) {
             const eventData1 = createEventData("GeneralModelChangeEventType");
             checkWhereClause(addressSpace, sessionContext, whereClause, eventData1).should.eql(false);
         }
-
     });
-
 });

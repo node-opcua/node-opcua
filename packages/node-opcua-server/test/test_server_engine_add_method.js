@@ -18,18 +18,19 @@ const SessionContext = require("node-opcua-address-space").SessionContext;
 const translate_service = require("node-opcua-service-translate-browse-path");
 
 const ServerEngine = require("..").ServerEngine;
-const mini_nodeset_filename = require("node-opcua-address-space").get_mini_nodeset_filename();
+const { get_mini_nodeset_filename } = require("node-opcua-address-space/testHelpers");
+const mini_nodeset_filename = get_mini_nodeset_filename();
 
 
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
-describe("ServerEngine - addMethod", function () {
+describe("ServerEngine - addMethod", function() {
 
     let addressSpace; let namespace;
-    before(function (done) {
+    before(function(done) {
 
         engine = new ServerEngine();
 
-        engine.initialize({nodeset_filename: mini_nodeset_filename}, function () {
+        engine.initialize({ nodeset_filename: mini_nodeset_filename }, function() {
 
             addressSpace = engine.addressSpace;
             namespace = addressSpace.getOwnNamespace();
@@ -43,13 +44,13 @@ describe("ServerEngine - addMethod", function () {
         });
 
     });
-    after(function () {
+    after(function() {
         engine.shutdown();
         engine = null;
     });
 
 
-    it("should be able to attach a method on a object of the address space and call it", function (done) {
+    it("should be able to attach a method on a object of the address space and call it", function(done) {
 
 
         const objectFolder = engine.addressSpace.findNode("ObjectsFolder");
@@ -66,7 +67,7 @@ describe("ServerEngine - addMethod", function () {
             inputArguments: [
                 {
                     name: "nbBarks",
-                    description: {text: "specifies the number of time I should bark"},
+                    description: { text: "specifies the number of time I should bark" },
                     dataType: DataType.UInt32
                 }
             ],
@@ -74,7 +75,7 @@ describe("ServerEngine - addMethod", function () {
             outputArguments: [
                 {
                     name: "Barks",
-                    description: {text: "the generated barks"},
+                    description: { text: "the generated barks" },
                     dataType: DataType.String,
                     valueRank: 1
 
@@ -99,7 +100,7 @@ describe("ServerEngine - addMethod", function () {
         const methodOutputArguments = objectMethod.getOutputArguments();
         _.isArray(methodOutputArguments).should.eql(true);
 
-        method.bindMethod(function (inputArguments, context, callback) {
+        method.bindMethod(function(inputArguments, context, callback) {
 
             const nbBarks = inputArguments[0].value;
             console.log("Hello World ! I will bark ", nbBarks, "times");
@@ -120,7 +121,7 @@ describe("ServerEngine - addMethod", function () {
             callback(null, callMethodResult);
         });
         // now call it
-        const inputArguments = [{dataType: DataType.UInt32, value: 3}];
+        const inputArguments = [{ dataType: DataType.UInt32, value: 3 }];
 
         const context = new SessionContext({});
 
@@ -133,12 +134,12 @@ describe("ServerEngine - addMethod", function () {
         const browsePath = [{
             startingNode: /* NodeId  */ method.nodeId,
             relativePath: /* RelativePath   */  {
-                elements: /* RelativePathElement */ [
+                elements: /* RelativePathElement */[
                     {
                         referenceTypeId: hasPropertyRefId,
                         isInverse: false,
                         includeSubtypes: false,
-                        targetName: {namespaceIndex: 0, name: "InputArguments"}
+                        targetName: { namespaceIndex: 0, name: "InputArguments" }
                     }
                 ]
             }
@@ -150,7 +151,7 @@ describe("ServerEngine - addMethod", function () {
                         referenceTypeId: hasPropertyRefId,
                         isInverse: false,
                         includeSubtypes: false,
-                        targetName: {name: "OutputArguments"}
+                        targetName: { name: "OutputArguments" }
                     }
                 ]
             }
@@ -163,7 +164,7 @@ describe("ServerEngine - addMethod", function () {
         result = engine.browsePath(new translate_service.BrowsePath(browsePath[1]));
         result.statusCode.should.eql(StatusCodes.Good);
 
-        objectMethod.execute(inputArguments, context, function (err, callMethodResponse) {
+        objectMethod.execute(inputArguments, context, function(err, callMethodResponse) {
 
             done(err);
             callMethodResponse.statusCode.should.eql(StatusCodes.Good);

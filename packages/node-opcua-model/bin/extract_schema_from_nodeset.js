@@ -1,8 +1,9 @@
 "use strict";
 const {
     AddressSpace,
-    generateAddressSpace
 } = require("node-opcua-address-space");
+const { generateAddressSpace } = require("node-opcua-address-space/testHelpers");
+
 const nodesets = require("node-opcua-nodesets");
 const {
     parse_opcua_common

@@ -7,7 +7,8 @@ import * as should from "should";
 import { standardUnits } from "node-opcua-data-access";
 import * as nodesets from "node-opcua-nodesets";
 import { encode_decode_round_trip_test } from "node-opcua-packet-analyzer/dist/test_helpers";
-import { AddressSpace, generateAddressSpace } from "../..";
+import { AddressSpace } from "../..";
+import { generateAddressSpace } from "../../nodeJS";
 
 import { subtest_analog_item_semantic_changed } from "./subtest_analog_item_semantic_changed";
 import { subtest_analog_item_type } from "./subtest_analog_item_type";
@@ -18,7 +19,6 @@ import { subtest_two_state_discrete_type } from "./subtest_two_state_discrete_ty
 import { subtest_Y_array_item_type } from "./subtest_Y_array_item_type";
 
 describe("DataAccess", () => {
-
     let addressSpace: AddressSpace;
     const data = { addressSpace: null as any };
     before(async () => {
@@ -26,12 +26,9 @@ describe("DataAccess", () => {
 
         addressSpace.registerNamespace("MyPrivateNamespace");
         data.addressSpace = addressSpace;
-        const xmlFiles = [
-            nodesets.standard_nodeset_file
-        ];
+        const xmlFiles = [nodesets.standard_nodeset_file];
         fs.existsSync(xmlFiles[0]).should.eql(true);
         await generateAddressSpace(addressSpace, xmlFiles);
-
     });
 
     after(() => {
@@ -127,7 +124,6 @@ describe("DataAccess", () => {
             buffer.length.should.equal(82);
             done();
         });
-
     });
 
     subtest_analog_item_type(data);
@@ -137,7 +133,6 @@ describe("DataAccess", () => {
     subtest_multi_state_value_discrete_type(data);
     subtest_Y_array_item_type(data);
     subtest_analog_item_semantic_changed(data);
-
 });
 
 // todo :

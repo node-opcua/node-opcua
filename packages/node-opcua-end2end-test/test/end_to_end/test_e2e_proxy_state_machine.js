@@ -3,12 +3,10 @@
 const async = require("async");
 require("should");
 
-const build_client_server_session = require("../../test_helpers/build_client_server_session").build_client_server_session;
+const { build_client_server_session } = require("../../test_helpers/build_client_server_session");
+const { UAProxyManager } = require("node-opcua-client-proxy");
 
-
-const UAProxyManager = require("node-opcua-client-proxy").UAProxyManager;
-
-const opcua = require("node-opcua");
+const { getAddressSpaceFixture } = require("node-opcua-address-space/testHelpers");
 
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("testing client Proxy State Machine", function() {
@@ -18,7 +16,7 @@ describe("testing client Proxy State Machine", function() {
     const server_options = {
         port: 2000,
         nodeset_filename: [
-            opcua.getAddressSpaceFixture("fixture_simple_statemachine_nodeset2.xml"),
+            getAddressSpaceFixture("fixture_simple_statemachine_nodeset2.xml"),
         ]
     };
 

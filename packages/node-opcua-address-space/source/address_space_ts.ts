@@ -32,6 +32,7 @@ import {
 } from "node-opcua-data-model";
 import { DataValue, DataValueOptions, DataValueOptionsT, DataValueT } from "node-opcua-data-value";
 import { PreciseClock } from "node-opcua-date-time";
+import { ExtensionObject } from "node-opcua-extension-object";
 import { ExpandedNodeId, NodeId, NodeIdLike } from "node-opcua-nodeid";
 import { NumericRange } from "node-opcua-numeric-range";
 import { BrowseDescription, BrowseDescriptionOptions, BrowseResult } from "node-opcua-service-browse";
@@ -39,6 +40,7 @@ import { HistoryReadDetails, HistoryReadResult, ReadRawModifiedDetails } from "n
 import { WriteValueOptions } from "node-opcua-service-write";
 import { StatusCode } from "node-opcua-status-code";
 import { ErrorCallback, CallbackT } from "node-opcua-status-code";
+import { StatusCodeCallback } from "node-opcua-status-code";
 
 import {
     Argument,
@@ -70,7 +72,6 @@ import { MinimalistAddressSpace, Reference } from "../src/reference";
 import { State, StateMachine, StateMachineType, Transition, UtcTime } from "./interfaces/state_machine";
 import { SessionContext } from "./session_context";
 
-import { ExtensionObject } from "node-opcua-extension-object";
 import { UAAcknowledgeableConditionBase } from "../src/alarms_and_conditions/ua_acknowledgeable_condition_base";
 import { UAAlarmConditionBase } from "../src/alarms_and_conditions/ua_alarm_condition_base";
 import { UAConditionBase } from "../src/alarms_and_conditions/ua_condition_base";
@@ -80,8 +81,6 @@ import { UAExclusiveLimitAlarm } from "../src/alarms_and_conditions/ua_exclusive
 import { UALimitAlarm } from "../src/alarms_and_conditions/ua_limit_alarm";
 import { UANonExclusiveDeviationAlarm } from "../src/alarms_and_conditions/ua_non_exclusive_deviation_alarm";
 import { UANonExclusiveLimitAlarm } from "../src/alarms_and_conditions/ua_non_exclusive_limit_alarm";
-
-import { StatusCodeCallback } from "node-opcua-status-code";
 
 export declare interface AddReferenceOpts {
     referenceType: string | NodeId | UAReferenceType;
@@ -378,7 +377,7 @@ export interface UAVariable extends BaseNode, VariableAttributes, IPropertyAndCo
      *
      *
      * **Note**: the maximum length of an array transferred on the wire is 2147483647 (max Int32)
-     *     and a multidimentional array is encoded as a one dimensional array.
+     *     and a multidimensional array is encoded as a one dimensional array.
      *
      */
     arrayDimensions: UInt32[] | null;
@@ -491,7 +490,7 @@ export interface UAVariable extends BaseNode, VariableAttributes, IPropertyAndCo
     asyncRefresh(oldestDate: Date): Promise<DataValue>;
 
     /**
-     * write a variale attribute (callback version)
+     * write a variable attribute (callback version)
      * @param context
      * @param writeValue
      * @param callback
@@ -2540,8 +2539,6 @@ export class AddressSpace {
 }
 
 export type IHistoricalDataNodeOptions = IVariableHistorianOptions | { historian: IVariableHistorian };
-
-export { generateAddressSpace } from "./loader/load_nodeset2";
 
 export declare class VariableHistorian implements IVariableHistorian {
     public constructor(node: UAVariable, options: IVariableHistorianOptions);

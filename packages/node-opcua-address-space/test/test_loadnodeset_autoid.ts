@@ -2,22 +2,17 @@ import * as mocha from "mocha";
 import * as should from "should";
 
 import { BinaryStream } from "node-opcua-binary-stream";
-import {
-    resolveDynamicExtensionObject
-} from "node-opcua-client-dynamic-extension-object";
+import { resolveDynamicExtensionObject } from "node-opcua-client-dynamic-extension-object";
 import { ExtensionObject, OpaqueStructure } from "node-opcua-extension-object";
 import { nodesets } from "node-opcua-nodesets";
 import { DataType, Variant } from "node-opcua-variant";
 
-import {
-    AddressSpace,
-    ensureDatatypeExtracted,
-    generateAddressSpace,
-} from "..";
+import { AddressSpace, ensureDatatypeExtracted } from "..";
+import { generateAddressSpace } from "../nodeJS";
+
 import { assert } from "console";
 
 describe("Testing AutoID custom types", async function (this: any) {
-
     this.timeout(200000); // could be slow on appveyor !
 
     let addressSpace: AddressSpace;
@@ -25,11 +20,7 @@ describe("Testing AutoID custom types", async function (this: any) {
         addressSpace = AddressSpace.create();
         const namespace0 = addressSpace.getDefaultNamespace();
 
-        await generateAddressSpace(addressSpace, [
-            nodesets.standard,
-            nodesets.di,
-            nodesets.autoId,
-        ]);
+        await generateAddressSpace(addressSpace, [nodesets.standard, nodesets.di, nodesets.autoId]);
         await ensureDatatypeExtracted(addressSpace);
     });
     after(() => {
@@ -37,11 +28,10 @@ describe("Testing AutoID custom types", async function (this: any) {
     });
 
     it("should construct a ScanSettings", () => {
-
         enum LocationTypeEnumeration {
-            NMEA = 0,// An NMEA string representing a coordinate as defined in 9.1.2.
-            LOCAL = 2,// A local coordinate as defined in 9.3.4
-            WGS84 = 4,// A lat / lon / alt coordinate as defined in 9.3.16
+            NMEA = 0, // An NMEA string representing a coordinate as defined in 9.1.2.
+            LOCAL = 2, // A local coordinate as defined in 9.3.4
+            WGS84 = 4, // A lat / lon / alt coordinate as defined in 9.3.16
             NAME = 5 // A name for a location as defined in 9.1.1
         }
         interface ScanSettings extends ExtensionObject {
@@ -56,12 +46,10 @@ describe("Testing AutoID custom types", async function (this: any) {
         const scanSettingsDataTypeNode = addressSpace.findDataType("ScanSettings", nsAutoId)!;
         should.exist(scanSettingsDataTypeNode);
 
-        const settings = addressSpace.constructExtensionObject(scanSettingsDataTypeNode, {
-        }) as ScanSettings;
+        const settings = addressSpace.constructExtensionObject(scanSettingsDataTypeNode, {}) as ScanSettings;
     });
 
     function encode_decode(obj: Variant): Variant {
-
         const size = obj.binaryStoreSize();
         const stream = new BinaryStream(Buffer.alloc(size));
         obj.encode(stream);
@@ -78,10 +66,7 @@ describe("Testing AutoID custom types", async function (this: any) {
     }
 
     it("should construct a ScanResult ", async () => {
-
-        interface ScanResult extends ExtensionObject {
-
-        }
+        interface ScanResult extends ExtensionObject {}
 
         const nsAutoId = addressSpace.getNamespaceIndex("http://opcfoundation.org/UA/AutoID/");
         nsAutoId.should.eql(2);
@@ -98,7 +83,7 @@ describe("Testing AutoID custom types", async function (this: any) {
                     uId: Buffer.from("Hello"),
                     xpC_W1: 10,
                     xpC_W2: 12
-                },
+                }
             },
             timestamp: new Date(2018, 11, 23),
             location: {
@@ -108,7 +93,7 @@ describe("Testing AutoID custom types", async function (this: any) {
                     z: 300,
                     timestamp: new Date(),
                     dilutionOfPrecision: 0.01,
-                    usefulPrecicision: 2  // <<!!!! Note the TYPO HERE ! Bug in AutoID.XML !
+                    usefulPrecicision: 2 // <<!!!! Note the TYPO HERE ! Bug in AutoID.XML !
                 }
             }
         }) as ScanResult;
@@ -127,11 +112,9 @@ describe("Testing AutoID custom types", async function (this: any) {
 
         console.log(reload_v.toString());
         console.log(scanResult.toString());
-
     });
 
     it("should create a opcua variable with a scan result", () => {
-
         const namespace = addressSpace.getOwnNamespace();
 
         const nsAutoId = addressSpace.getNamespaceIndex("http://opcfoundation.org/UA/AutoID/");
@@ -151,11 +134,9 @@ describe("Testing AutoID custom types", async function (this: any) {
             value: { dataType: DataType.ExtensionObject, value: scanResult }
         });
         //        console.log(scanResultNode.toString());
-
     });
 
     it("test RfidScanResult", async () => {
-
         const nsAutoId = addressSpace.getNamespaceIndex("http://opcfoundation.org/UA/AutoID/");
 
         const rfidScanResultDataTypeNode = addressSpace.findDataType("RfidScanResult", nsAutoId)!;
@@ -173,7 +154,7 @@ describe("Testing AutoID custom types", async function (this: any) {
                     uId: Buffer.from("Hello"),
                     xpC_W1: 10,
                     xpC_W2: 12
-                },
+                }
             },
             timestamp: new Date(2018, 11, 23),
 
@@ -185,7 +166,7 @@ describe("Testing AutoID custom types", async function (this: any) {
 
                     dilutionOfPrecision: 0.01,
                     timestamp: new Date(),
-                    usefulPrecicision: 2  // <<!!!! Note the TYPO HERE ! Bug in AutoID.XML !
+                    usefulPrecicision: 2 // <<!!!! Note the TYPO HERE ! Bug in AutoID.XML !
                 }
             }
         });
@@ -196,7 +177,6 @@ describe("Testing AutoID custom types", async function (this: any) {
             dataType: DataType.ExtensionObject,
             value: scanResult
         });
-
 
         const reload_v = encode_decode(v);
 
@@ -216,10 +196,9 @@ describe("Testing AutoID custom types", async function (this: any) {
 
         // and verify that it could be decoded well
         const v2 = new Variant();
-        bs2.length =0;
+        bs2.length = 0;
         v2.decode(bs2);
         await resolveDynamicExtensionObject(v2, extraDataTypeManager);
         //  console.log(v2);
-
     });
 });

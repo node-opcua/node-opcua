@@ -3,7 +3,7 @@ import * as fs from "fs";
 import * as path from "path";
 import * as should from "should";
 import { AddressSpace } from "..";
-import { generateAddressSpace } from "..";
+import { generateAddressSpace } from "../nodeJS";
 
 import * as async from "async";
 
@@ -11,10 +11,14 @@ function dumpMemoryUse() {
     if (process.memoryUsage) {
         const m = process.memoryUsage();
         const h = require("humanize");
-        console.log(" memoryUsage = ",
-          " rss =", h.filesize(m.rss),
-          " heapTotal =", h.filesize(m.heapTotal),
-          " heapUsed =", h.filesize(m.heapUsed)
+        console.log(
+            " memoryUsage = ",
+            " rss =",
+            h.filesize(m.rss),
+            " heapTotal =",
+            h.filesize(m.heapTotal),
+            " heapUsed =",
+            h.filesize(m.heapUsed)
         );
     }
 }
@@ -23,13 +27,13 @@ function callGarbageCollector() {
     if (global.gc) {
         global.gc();
     } else {
-        console.log("Garbage collection unavailable.  Pass --expose-gc "
-          + "when launching node to enable forced garbage collection.");
+        console.log(
+            "Garbage collection unavailable.  Pass --expose-gc " + "when launching node to enable forced garbage collection."
+        );
     }
 }
 
 describe("Testing AddressSpace memory Leaks", function (this: any) {
-
     const xml_file = path.join(__dirname, "../test_helpers/test_fixtures/mini.Node.Set2.xml");
     fs.existsSync(xml_file).should.be.eql(true, "cannot find mini node set");
 
@@ -41,7 +45,6 @@ describe("Testing AddressSpace memory Leaks", function (this: any) {
 
     this.timeout(200000);
     it("It should repeatedly load an address_space => no Leak", async () => {
-
         async function f() {
             const addressSpace = AddressSpace.create();
             await generateAddressSpace(addressSpace, xml_file);

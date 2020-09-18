@@ -1,18 +1,15 @@
 import * as should from "should";
-import { getMiniAddressSpace } from "../";
+import { getMiniAddressSpace } from "../testHelpers";
 
 import { DataValue } from "node-opcua-data-value";
 import { StatusCodes } from "node-opcua-status-code";
 import { DataType } from "node-opcua-variant";
 import { Variant } from "node-opcua-variant";
-import {
-    AddressSpace, AddVariableOptions, BindVariableOptionsVariation1, SessionContext, UAVariable
-} from "..";
+import { AddressSpace, AddVariableOptions, BindVariableOptionsVariation1, SessionContext, UAVariable } from "..";
 
 // tslint:disable-next-line:no-var-requires
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("testing github issue https://github.com/node-opcua/node-opcua/issues/449", () => {
-
     let addressSpace: AddressSpace;
     before(async () => {
         addressSpace = await getMiniAddressSpace();
@@ -22,7 +19,6 @@ describe("testing github issue https://github.com/node-opcua/node-opcua/issues/4
     });
 
     it("#449 should be possible to access this in UAVariable get/set value accessor", async () => {
-
         const namespace = addressSpace.getOwnNamespace();
         let node: UAVariable;
 
@@ -58,6 +54,5 @@ describe("testing github issue https://github.com/node-opcua/node-opcua/issues/4
 
         const statusCode = await node.writeValue(SessionContext.defaultContext, dataValue);
         statusCode.should.eql(StatusCodes.Good);
-
     });
 });

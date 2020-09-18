@@ -7,10 +7,7 @@
 // tslint:disable:no-var-requires
 // tslint:disable:unified-signatures
 
-import * as fs from "fs";
 import { assert } from "node-opcua-assert";
-import * as _ from "underscore";
-
 const LtxParser = require("ltx/lib/parsers/ltx.js");
 
 export type SimpleCallback = (err?: Error) => void;
@@ -28,7 +25,6 @@ declare interface LtxParser {
     on(eventName: "text", eventHandler: (name: string) => void): void;
 
     on(eventName: "close", eventHandler: () => void): void;
-
 }
 
 export interface Parser {
@@ -43,7 +39,6 @@ export interface Parser {
  * @return {map}
  */
 function _coerceParser(parser: ParserLike): Parser {
-
     for (const name of Object.keys(parser)) {
         if (parser[name] && !(parser[name] instanceof ReaderState)) {
             // this is to prevent recursion
@@ -61,13 +56,7 @@ export interface XmlAttributes {
 
 export interface ReaderStateParser {
     parser?: ParserLike;
-    init?: (
-        this: IReaderState,
-        name: string,
-        attrs: XmlAttributes,
-        parent: IReaderState,
-        engine: Xml2Json
-    ) => void;
+    init?: (this: IReaderState, name: string, attrs: XmlAttributes, parent: IReaderState, engine: Xml2Json) => void;
     finish?: (this: IReaderState) => void;
     startElement?: (this: IReaderState, name: string, attrs: XmlAttributes) => void;
     endElement?: (this: IReaderState, name: string) => void;
@@ -79,26 +68,14 @@ export interface ParserLike {
 
 export interface ReaderStateParserLike {
     parser?: ParserLike;
-    init?: (
-        this: any,
-        name: string,
-        attrs: XmlAttributes,
-        parent: IReaderState,
-        engine: Xml2Json
-    ) => void;
+    init?: (this: any, name: string, attrs: XmlAttributes, parent: IReaderState, engine: Xml2Json) => void;
     finish?: (this: any) => void;
     startElement?: (this: any, name: string, attrs: XmlAttributes) => void;
     endElement?: (this: any, name: string) => void;
 }
 
 export interface IReaderState {
-
-    _on_init(
-        elementName: string,
-        attrs: XmlAttributes,
-        parent: IReaderState,
-        level: number,
-        engine: Xml2Json): void;
+    _on_init(elementName: string, attrs: XmlAttributes, parent: IReaderState, level: number, engine: Xml2Json): void;
 
     _on_finish(): void;
 
@@ -111,11 +88,8 @@ export interface IReaderState {
     _on_text(text: string): void;
 }
 
-
-export class ReaderStateBase {
-}
-export interface ReaderStateBase extends IReaderState {
-}
+export class ReaderStateBase {}
+export interface ReaderStateBase extends IReaderState {}
 /**
  * @class ReaderState
  * @private
@@ -127,11 +101,7 @@ export interface ReaderStateBase extends IReaderState {
  * @param [options.endElement]
  */
 export class ReaderState extends ReaderStateBase {
-
-    public _init?: (
-        name: string, attrs: XmlAttributes,
-        parent: IReaderState, engine: Xml2Json
-    ) => void;
+    public _init?: (name: string, attrs: XmlAttributes, parent: IReaderState, engine: Xml2Json) => void;
     public _finish?: () => void;
     public _startElement?: (name: string, attrs: XmlAttributes) => void;
     public _endElement?: (name: string) => void;
@@ -151,23 +121,11 @@ export class ReaderState extends ReaderStateBase {
     public data?: any;
 
     constructor(options: ReaderStateParser | ReaderState) {
-
         super();
         // ensure options object has only expected properties
         options.parser = options.parser || {};
 
         if (!(options instanceof ReaderStateBase)) {
-
-            const fields = _.keys(options);
-            const invalid_fields = _.difference(fields, ["parser", "init", "finish", "startElement", "endElement"]);
-
-            /* istanbul ignore next*/
-            if (invalid_fields.length !== 0) {
-                // tslint:disable:no-console
-                throw new Error("Invalid filed detected in ReaderState Parser ! : " +
-                    invalid_fields.join(" - ") +
-                    " t =" + options.constructor.name);
-            }
             this._init = options.init;
             this._finish = options.finish;
             this._startElement = options.startElement;
@@ -186,14 +144,7 @@ export class ReaderState extends ReaderStateBase {
      * @param engine
      * @protected
      */
-    public _on_init(
-        elementName: string,
-        attrs: XmlAttributes,
-        parent: IReaderState,
-        level: number,
-        engine: Xml2Json
-    ) {
-
+    public _on_init(elementName: string, attrs: XmlAttributes, parent: IReaderState, level: number, engine: Xml2Json) {
         this.name = elementName;
         this.parent = parent;
         this.engine = engine;
@@ -220,7 +171,6 @@ export class ReaderState extends ReaderStateBase {
      * @protected
      */
     public _on_startElement(level: number, elementName: string, attrs: XmlAttributes) {
-
         this.currentLevel = level;
         // console.log("wxxxx _on_startElement#" + this.name, elementName, this.currentLevel);
 
@@ -252,10 +202,8 @@ export class ReaderState extends ReaderStateBase {
         this.chunks = this.chunks || [];
 
         if (this.level > level) {
-
             // we end a child element of this node
             this._on_endElement2(level, elementName);
-
         } else if (this.level === level) {
             // we received the end event of this node
             // we need to finish
@@ -340,14 +288,12 @@ function resolve_namespace(name: string) {
  *   });
  */
 export class Xml2Json {
-
     public currentLevel: number = 0;
     private state_stack: any[] = [];
     private current_state: IReaderState | null = null;
 
     constructor(options: ReaderStateParser) {
-        const state = (options instanceof ReaderStateBase)
-            ? options as ReaderState : new ReaderState(options);
+        const state = options instanceof ReaderStateBase ? (options as ReaderState) : new ReaderState(options);
         state.root = this;
 
         this.state_stack = [];
@@ -366,48 +312,6 @@ export class Xml2Json {
         parser.write(xml_text);
         parser.end();
     }
-
-    /**
-     * @method  parse
-     * @async
-     * @param xmlFile - the name of the xml file to parse.
-     */
-    public parse(xmlFile: string): Promise<any>;
-    public parse(xmlFile: string, callback: Callback<any> | SimpleCallback): void;
-    public parse(xmlFile: string, callback?: Callback<any> | SimpleCallback): any {
-
-        if (!callback) {
-            throw new Error("internal error");
-        }
-        const readWholeFile = true;
-        if (readWholeFile) {
-
-            // slightly faster but require more memory ..
-            fs.readFile(xmlFile, (err: Error | null, data: Buffer) => {
-                if (err) {
-                    return callback(err);
-                }
-                if (data[0] === 0xEF && data[1] === 0xBB && data[2] === 0xBF) {
-                    data = data.slice(3);
-                }
-                const dataAsString = data.toString();
-                const parser = this._prepareParser(callback);
-                parser.write(dataAsString);
-                parser.end();
-            });
-        } else {
-
-            const Bomstrip = require("bomstrip");
-
-            const parser = this._prepareParser(callback);
-
-            fs.createReadStream(xmlFile, { autoClose: true, encoding: "utf8" })
-                .pipe(new Bomstrip())
-                .pipe(parser);
-
-        }
-    }
-
     /**
      * @param new_state
      * @param name
@@ -441,8 +345,7 @@ export class Xml2Json {
         }
     }
 
-    private _prepareParser(callback: Callback<any> | SimpleCallback): LtxParser {
-
+    protected _prepareParser(callback: Callback<any> | SimpleCallback): LtxParser {
         assert(callback instanceof Function);
         const parser = new LtxParser();
         this.currentLevel = 0;
@@ -472,21 +375,16 @@ export class Xml2Json {
                 this.current_state._on_text(text);
             }
         });
-        parser.on("close",
-            () => {
-                if (callback) {
-                    (callback as any)(null, (this.current_state! as any)._pojo);
-                }
-            });
+        parser.on("close", () => {
+            if (callback) {
+                (callback as any)(null, (this.current_state! as any)._pojo);
+            }
+        });
         return parser;
     }
 }
 
-
 // tslint:disable:no-var-requires
 const thenify = require("thenify");
 const opts = { multiArgs: false };
-Xml2Json.prototype.parseString =
-    thenify.withCallback(Xml2Json.prototype.parseString, opts);
-Xml2Json.prototype.parse =
-    thenify.withCallback(Xml2Json.prototype.parse, opts);
+Xml2Json.prototype.parseString = thenify.withCallback(Xml2Json.prototype.parseString, opts);

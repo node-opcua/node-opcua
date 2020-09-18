@@ -7,14 +7,8 @@ import * as should from "should";
 
 import { standardUnits } from "node-opcua-data-access";
 import * as nodesets from "node-opcua-nodesets";
-import {
-    AddressSpace,
-    generateAddressSpace,
-    RootFolder,
-    UAAnalogItem,
-    UAObject,
-    UAObjectType,
-} from "..";
+import { AddressSpace, RootFolder, UAAnalogItem, UAObject, UAObjectType } from "..";
+import { generateAddressSpace } from "../nodeJS";
 
 interface MyCustomType extends UAObjectType {
     temperature: UAAnalogItem;
@@ -24,7 +18,6 @@ interface MyCustom extends UAObject {
 }
 
 function createCustomType(addressSpace: AddressSpace): MyCustomType {
-
     const namespace = addressSpace.getOwnNamespace();
     // -------------------------------------------- MachineType
     const customTypeNode = namespace.addObjectType({ browseName: "CustomType" }) as MyCustomType;
@@ -50,7 +43,6 @@ function createCustomType(addressSpace: AddressSpace): MyCustomType {
 // tslint:disable-next-line:no-var-requires
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("testing add new DataType ", function (this: any) {
-
     this.timeout(Math.max(300000, this.timeout()));
 
     let addressSpace: AddressSpace;
@@ -61,7 +53,6 @@ describe("testing add new DataType ", function (this: any) {
         fs.existsSync(xml_file).should.be.eql(true);
         await generateAddressSpace(addressSpace, xml_file);
         addressSpace.registerNamespace("Private");
-
     });
     after(async () => {
         if (addressSpace) {
@@ -70,7 +61,6 @@ describe("testing add new DataType ", function (this: any) {
     });
 
     it("should instantiate an object whose type defines an analog item", () => {
-
         const customType = createCustomType(addressSpace);
         customType.temperature.browseName.toString().should.eql("1:Temperature");
         customType.temperature.valuePrecision!.browseName.toString().should.eql("ValuePrecision");
@@ -90,14 +80,11 @@ describe("testing add new DataType ", function (this: any) {
         customNode1.temperature.instrumentRange!.browseName.toString().should.eql("InstrumentRange");
         customNode1.temperature.instrumentRange!.readValue().value.value.low.should.eql(-70);
         customNode1.temperature.instrumentRange!.readValue().value.value.high.should.eql(120);
-
     });
 });
 
 describe("issue #108", () => {
-
     it("should verify that UAObjectType.instantiate works for complex ObjectTypes like DI and ADI (reading from old 1.02 NodeSet)", async () => {
-
         const addressSpace = AddressSpace.create();
 
         const xml_files = [
@@ -129,6 +116,5 @@ describe("issue #108", () => {
         ftnirInstance.nodeId.namespace.should.eql(addressSpace.getOwnNamespace().index);
 
         addressSpace.dispose();
-
     });
 });

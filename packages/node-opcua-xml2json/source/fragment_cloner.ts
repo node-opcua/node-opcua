@@ -1,11 +1,6 @@
-import {
-    Xml2Json,
-    XmlAttributes,
-    IReaderState
-} from "./xml2json";
+import { Xml2Json, XmlAttributes, IReaderState } from "./xml2json";
 
 interface XmlWriter {
-
     startElement(elementName: string): this;
 
     endElement(): this;
@@ -21,12 +16,12 @@ const XMLWriter = require("xml-writer");
 export class InternalFragmentClonerReaderState implements IReaderState {
     private _xw: XmlWriter = new XMLWriter(true);
     public value: any;
-    public initLevel: number= 0;
+    public initLevel: number = 0;
     public engine?: Xml2Json;
 
     public _on_startElement(level: number, elementName: string, attrs: XmlAttributes): void {
         this._xw.startElement(elementName);
-        for(const [ attName, attValue ] of Object.entries(attrs)) {
+        for (const [attName, attValue] of Object.entries(attrs)) {
             this._xw.writeAttribute(attName, attValue);
         }
     }
@@ -44,31 +39,13 @@ export class InternalFragmentClonerReaderState implements IReaderState {
         this.initLevel = level;
         this._xw = new XMLWriter(true);
         this._xw.startElement(elementName);
-        for(const [ attName, attValue ] of Object.entries(attrs)) {
+        for (const [attName, attValue] of Object.entries(attrs)) {
             this._xw.writeAttribute(attName, attValue);
         }
     }
-    public _on_finish(): void {
-    }
-    public _on_endElement2(level: number, elementName: string): void {
-    }
+    public _on_finish(): void {}
+    public _on_endElement2(level: number, elementName: string): void {}
     public _on_text(text: string): void {
         this._xw.text(text);
-    }
-}
-
-export class FragmentClonerParser {
-    public value: any;
-    private _cloneFragment?: InternalFragmentClonerReaderState;
-    constructor() {
-    }
-
-    public startElement(this: any, elementName: string, attrs: XmlAttributes) {
-        this._cloneFragment =new InternalFragmentClonerReaderState();
-        this.engine!._promote(this._cloneFragment, this.engine!.currentLevel, elementName, attrs);
-    }
-    public finish() {
-        this.value = this._cloneFragment!.value;
-        this._cloneFragment!.value = null;
     }
 }

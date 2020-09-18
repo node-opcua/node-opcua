@@ -1,26 +1,21 @@
 import * as should from "should";
 import { removeDecoration } from "./test_helpers";
 
-import {
-    AddressSpace,
-    generateAddressSpace
-} from "node-opcua-address-space";
+import { AddressSpace } from "node-opcua-address-space";
+import { generateAddressSpace } from "node-opcua-address-space/nodeJs";
+
 import { nodesets } from "node-opcua-nodesets";
 import { displayNodeElement } from "..";
 
 // tslint:disable-next-line: no-var-requires
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("displayNodeElement", () => {
-
     let addressSpace: AddressSpace;
 
     before(async () => {
         addressSpace = AddressSpace.create();
 
-        const xmlFiles = [
-            nodesets.standard,
-            nodesets.di
-        ];
+        const xmlFiles = [nodesets.standard, nodesets.di];
         await generateAddressSpace(addressSpace, xmlFiles);
     });
 
@@ -29,7 +24,6 @@ describe("displayNodeElement", () => {
     });
 
     it("displayNodeElement", () => {
-
         const str0 = displayNodeElement(addressSpace.rootFolder);
 
         const str1 = displayNodeElement(addressSpace.rootFolder.objects.server, { format: "cli" });
@@ -81,7 +75,9 @@ describe("displayNodeElement", () => {
 │ HasProperty Ⓥ        │ ns=0;i=12885 │ EstimatedReturnTime      │               │ PropertyType            │ DateTime                              │ null  │
 ├──────────────────────┼──────────────┼──────────────────────────┼───────────────┼─────────────────────────┼───────────────────────────────────────┼───────┤
 │ HasProperty Ⓥ        │ ns=0;i=17634 │ LocalTime                │               │ PropertyType            │ TimeZoneDataType(ExtensionObject)     │       │
-└──────────────────────┴──────────────┴──────────────────────────┴───────────────┴─────────────────────────┴───────────────────────────────────────┴───────┘`.split("\n"));
-
+└──────────────────────┴──────────────┴──────────────────────────┴───────────────┴─────────────────────────┴───────────────────────────────────────┴───────┘`.split(
+                "\n"
+            )
+        );
     });
 });

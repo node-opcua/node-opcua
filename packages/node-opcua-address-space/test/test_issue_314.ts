@@ -5,12 +5,12 @@ import * as nodesets from "node-opcua-nodesets";
 import { DataType } from "node-opcua-variant";
 import * as path from "path";
 
-import { AddressSpace , generateAddressSpace, UAVariable } from "..";
+import { AddressSpace, UAVariable } from "..";
+import { generateAddressSpace } from "../nodeJS";
 
 // tslint:disable-next-line:no-var-requires
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("testing loading ExtensionObject value from NodeSet XML file", function (this: any) {
-
     this.timeout(20000); // could be slow on appveyor !
 
     let addressSpace: AddressSpace;
@@ -25,15 +25,10 @@ describe("testing loading ExtensionObject value from NodeSet XML file", function
     });
 
     it("#314 should load a EUInformation value from nodeset xml file", async () => {
-
         const xml_file = path.join(__dirname, "../test_helpers/test_fixtures/nodeset_with_analog_items.xml");
         fs.existsSync(xml_file).should.be.eql(true);
 
-        const xml_files = [
-            nodesets.standard_nodeset_file,
-            nodesets.di_nodeset_filename,
-            xml_file
-        ];
+        const xml_files = [nodesets.standard_nodeset_file, nodesets.di_nodeset_filename, xml_file];
         await generateAddressSpace(addressSpace, xml_files);
 
         const nodeId = "ns=2;i=6038";

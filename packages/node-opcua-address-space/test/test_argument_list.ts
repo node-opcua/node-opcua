@@ -11,10 +11,10 @@ import {
     decode_ArgumentList,
     encode_ArgumentList,
     verifyArguments_ArgumentList,
-    get_mini_nodeset_filename,
-    AddressSpace,
-    generateAddressSpace,
+    AddressSpace
 } from "..";
+import { generateAddressSpace } from "../nodeJS";
+
 import { nodesets } from "node-opcua-nodesets";
 import { Argument, ArgumentOptions } from "node-opcua-types";
 import { resolveNodeId } from "node-opcua-nodeid";
@@ -60,8 +60,8 @@ describe("testing ArgumentList special encode/decode process", () => {
         const definition = [
             {
                 dataType: DataType.UInt32,
-                valueRank: 1,
-            },
+                valueRank: 1
+            }
         ];
         const args = [[100, 200, 300]];
 
@@ -86,7 +86,7 @@ describe("testing ArgumentList special encode/decode process", () => {
         const definition = [
             { dataType: DataType.UInt32, name: "someValue" },
             { dataType: DataType.UInt32, valueRank: 1, name: "someValueArray" },
-            { dataType: DataType.String, name: "someText" },
+            { dataType: DataType.String, name: "someText" }
         ];
 
         const args = [10, [15, 20], "Hello"];
@@ -125,8 +125,8 @@ describe("verifyArguments_ArgumentList", () => {
             dataType: resolveNodeId(DataType.UInt32),
             description: "Some arguments",
             name: "someValue",
-            valueRank: -1,
-        }),
+            valueRank: -1
+        })
     ];
 
     it("verifyArguments_ArgumentList - One UInt32 - Good", () => {
@@ -139,7 +139,7 @@ describe("verifyArguments_ArgumentList", () => {
 
         result.should.eql({
             inputArgumentResults: [StatusCodes.Good],
-            statusCode: StatusCodes.Good,
+            statusCode: StatusCodes.Good
         });
     });
     it("verifyArguments_ArgumentList - One UInt32 - TypeMismatch", () => {
@@ -150,7 +150,7 @@ describe("verifyArguments_ArgumentList", () => {
         console.log("statusCode             ", result.statusCode.toString());
         result.should.eql({
             inputArgumentResults: [StatusCodes.BadTypeMismatch],
-            statusCode: StatusCodes.BadInvalidArgument,
+            statusCode: StatusCodes.BadInvalidArgument
         });
     });
 
@@ -160,16 +160,16 @@ describe("verifyArguments_ArgumentList", () => {
             dataType: resolveNodeId("BaseDataType"),
             description: "Some arguments",
             name: "someValue",
-            valueRank: 1,
-        }),
+            valueRank: 1
+        })
     ];
     it("methodInputArgumentsOneArrayOfAny - Good", () => {
         const argsGood1 = [
             new Variant({
                 arrayType: VariantArrayType.Array,
                 dataType: DataType.String,
-                value: ["Good", "Good"],
-            }),
+                value: ["Good", "Good"]
+            })
         ];
         const result = verifyArguments_ArgumentList(addressSpace, methodInputArgumentsOneArrayOfAny, argsGood1);
         // tslint:disable: no-console
@@ -177,7 +177,7 @@ describe("verifyArguments_ArgumentList", () => {
         console.log("statusCode             ", result.statusCode.toString());
         result.should.eql({
             inputArgumentResults: [StatusCodes.Good],
-            statusCode: StatusCodes.Good,
+            statusCode: StatusCodes.Good
         });
     });
 
@@ -186,8 +186,8 @@ describe("verifyArguments_ArgumentList", () => {
             new Variant({
                 arrayType: VariantArrayType.Scalar,
                 dataType: DataType.String,
-                value: "Good",
-            }),
+                value: "Good"
+            })
         ];
         const result = verifyArguments_ArgumentList(addressSpace, methodInputArgumentsOneArrayOfAny, argsBad);
         // tslint:disable: no-console
@@ -195,7 +195,7 @@ describe("verifyArguments_ArgumentList", () => {
         console.log("statusCode             ", result.statusCode.toString());
         result.should.eql({
             inputArgumentResults: [StatusCodes.BadTypeMismatch],
-            statusCode: StatusCodes.BadInvalidArgument,
+            statusCode: StatusCodes.BadInvalidArgument
         });
     });
 
@@ -203,8 +203,8 @@ describe("verifyArguments_ArgumentList", () => {
         // Null variant shall be consider as a empty array !!!
         const argsBad = [
             new Variant({
-                dataType: DataType.Null,
-            }),
+                dataType: DataType.Null
+            })
         ];
         const result = verifyArguments_ArgumentList(addressSpace, methodInputArgumentsOneArrayOfAny, argsBad);
         // tslint:disable: no-console
@@ -212,7 +212,7 @@ describe("verifyArguments_ArgumentList", () => {
         console.log("statusCode             ", result.statusCode.toString());
         result.should.eql({
             inputArgumentResults: [StatusCodes.Good],
-            statusCode: StatusCodes.Good,
+            statusCode: StatusCodes.Good
         });
     });
 });

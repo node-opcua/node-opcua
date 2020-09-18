@@ -13,7 +13,7 @@
         "noStrictGenericChecks": false,
         "noImplicitThis": true,
         "skipLibCheck": false,
-        "removeComments": false /* to prevent Istanbul  ignore statement in comment to disapper */,
+        "removeComments": false /* to prevent Istanbul  ignore statement in comment to disappear */,
         "outDir": "dist",
         "incremental": true,
         "composite": true
@@ -21,12 +21,16 @@
     "exclude": ["**/node_modules/*", "node_modules", "**/dist/*", "packages/*"],
     "references": [
         { "path": "node-opcua" },
+        {
+            "path": "node-opcua-address-space"
+        },
         { "path": "node-opcua-test-fixtures" },
         { "path": "node-opcua-aggregates" },
         { "path": "node-opcua-file-transfer" },
         { "path": "node-opcua-benchmarker" },
         { "path": "node-opcua-modeler" },
         { "path": "node-opcua-local-discovery-server" },
-        { "path": "node-opcua-samples" }
+        { "path": "node-opcua-samples" },
+        { "path": "node-opcua-convert-nodeset-to-javascript" }
     ]
 }
