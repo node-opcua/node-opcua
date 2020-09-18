@@ -15,7 +15,6 @@
     "node-opcua-assert": "2.10.0",
     "node-opcua-debug": "2.10.0",
     "node-opcua-utils": "2.13.0",
-    "underscore": "^1.10.2",
     "xml-writer": "^1.7.0"
   },
   "author": "Etienne Rossignon",
