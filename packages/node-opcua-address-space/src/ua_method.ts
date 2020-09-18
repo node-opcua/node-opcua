@@ -37,7 +37,6 @@ function default_check_valid_argument(arg: any) {
 }
 
 export class UAMethod extends BaseNode implements UAMethodPublic {
-
     public static checkValidArgument(args: any) {
         return default_check_valid_argument(args);
     }
@@ -64,7 +63,7 @@ export class UAMethod extends BaseNode implements UAMethodPublic {
     }
 
     public getExecutableFlag(context: SessionContext): boolean {
-        if (!_.isFunction(this._asyncExecutionFunction)) {
+        if (!typeof this._asyncExecutionFunction === "function") {
             return false;
         }
         if (this._getExecutableFlag) {
@@ -78,7 +77,6 @@ export class UAMethod extends BaseNode implements UAMethodPublic {
     }
 
     public readAttribute(context: SessionContext, attributeId: AttributeIds): DataValue {
-
         const options: DataValueLike = {};
         switch (attributeId) {
             case AttributeIds.Executable:
@@ -104,24 +102,13 @@ export class UAMethod extends BaseNode implements UAMethodPublic {
     }
 
     public bindMethod(async_func: MethodFunctor): void {
-        assert(_.isFunction(async_func));
+        assert(typeof async_func === "function");
         this._asyncExecutionFunction = async_func;
     }
 
-    public execute(
-        inputArguments: null | VariantLike[],
-        context: SessionContext
-    ): Promise<CallMethodResultOptions>;
-    public execute(
-        inputArguments: null | VariantLike[],
-        context: SessionContext,
-        callback: MethodFunctorCallback
-    ): void;
-    public execute(
-        inputArguments: VariantLike[] | null,
-        context: SessionContext,
-        callback?: MethodFunctorCallback
-    ): any {
+    public execute(inputArguments: null | VariantLike[], context: SessionContext): Promise<CallMethodResultOptions>;
+    public execute(inputArguments: null | VariantLike[], context: SessionContext, callback: MethodFunctorCallback): void;
+    public execute(inputArguments: VariantLike[] | null, context: SessionContext, callback?: MethodFunctorCallback): any {
         if (!callback) {
             throw new Error("execute need to be promisified");
         }
@@ -130,7 +117,7 @@ export class UAMethod extends BaseNode implements UAMethodPublic {
         inputArguments = inputArguments.map(Variant.coerce);
         assert(inputArguments.length === 0 || inputArguments[0] instanceof Variant);
         assert(_.isObject(context));
-        assert(_.isFunction(callback));
+        assert(typeof callback === "function");
 
         // a context object must be provided
         if (!context.object) {
@@ -139,8 +126,14 @@ export class UAMethod extends BaseNode implements UAMethodPublic {
 
         assert(context.object instanceof BaseNode);
         if (context.object.nodeClass !== NodeClass.Object && context.object.nodeClass !== NodeClass.ObjectType) {
-            console.log("Method " + this.nodeId.toString() + " " + this.browseName.toString() +
-                " called for a node that is not a Object/ObjectType but " + NodeClass[context.object.nodeClass]);
+            console.log(
+                "Method " +
+                    this.nodeId.toString() +
+                    " " +
+                    this.browseName.toString() +
+                    " called for a node that is not a Object/ObjectType but " +
+                    NodeClass[context.object.nodeClass]
+            );
             return callback(null, { statusCode: StatusCodes.BadNodeIdInvalid });
         }
         if (!this._asyncExecutionFunction) {
@@ -159,13 +152,11 @@ export class UAMethod extends BaseNode implements UAMethodPublic {
         const inputArgumentDiagnosticInfos: DiagnosticInfo[] = [];
 
         try {
-
             this._asyncExecutionFunction.call(
-                (this as UAMethodPublic),
+                this as UAMethodPublic,
                 inputArguments as Variant[],
                 context,
                 (err: Error | null, callMethodResult: CallMethodResultOptions) => {
-
                     if (err) {
                         console.log(err.message);
                         console.log(err);
@@ -187,9 +178,8 @@ export class UAMethod extends BaseNode implements UAMethodPublic {
                     // to be continued ...
 
                     callback(err, callMethodResult);
-
-                });
-
+                }
+            );
         } catch (err) {
             // tslint:disable:no-console
             console.log(chalk.red("ERR in method  handler"), err.message);
@@ -199,12 +189,7 @@ export class UAMethod extends BaseNode implements UAMethodPublic {
         }
     }
 
-    public clone(
-        options: any,
-        optionalFilter?: any,
-        extraInfo?: any
-    ): UAMethodPublic {
-
+    public clone(options: any, optionalFilter?: any, extraInfo?: any): UAMethodPublic {
         assert(!options.componentOf || options.componentOf, "trying to create an orphan method ?");
 
         options = options || {};
@@ -229,7 +214,6 @@ export class UAMethod extends BaseNode implements UAMethodPublic {
     }
 
     private _getArguments(name: string): Argument[] {
-
         assert(name === "InputArguments" || name === "OutputArguments");
         const argsVariable = this.getPropertyByName(name);
         if (!argsVariable) {
@@ -247,7 +231,6 @@ export class UAMethod extends BaseNode implements UAMethodPublic {
         assert(args.length === 0 || UAMethod.checkValidArgument(args[0]));
         return args;
     }
-
 }
 
 // tslint:disable:no-var-requires

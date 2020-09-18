@@ -161,7 +161,7 @@ function trustCertificateOnServer(certificateFile, callback) {
     server.serverCertificateManager.trustCertificate(certificate, callback);
 }
 function start_server(options, callback) {
-    if (_.isFunction(options) && !callback) {
+    if (typeof options === "function" && !callback) {
         callback = options;
         options = null;
     }

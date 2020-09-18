@@ -32,7 +32,7 @@ function constructFilename(p) {
  */
 function start_simple_server(options, callback) {
 
-    if (_.isFunction(options)) {
+    if (typeof options === "function") {
         callback = options;
         options = null;
     }
@@ -41,7 +41,7 @@ function start_simple_server(options, callback) {
     const server_script = options.server_sourcefile || "./bin/simple_server.js";
 
     if (!fs.existsSync(server_script)) {
-        throw new Error("start_simple_server : cannot find server script : "+ server_script);
+        throw new Error("start_simple_server : cannot find server script : " + server_script);
 
     }
     const port = options.port || "2222";
@@ -56,7 +56,7 @@ function start_simple_server(options, callback) {
 
     options.env.DEBUG = options.env.DEBUG2 || "";
     options.env.NODEOPCUADEBUG = "";
-    
+
     //xx options.env.DEBUG = "ALL";
 
     const server_exec = spawn("node", [server_script, "-p", port], options);
@@ -88,7 +88,7 @@ function start_simple_server(options, callback) {
                 server_exec.removeListener("close", detect_early_termination);
                 callback_called = true;
 
-                setTimeout(function () {
+                setTimeout(function() {
 
                     callback(null, {
                         process: server_exec,
@@ -104,8 +104,8 @@ function start_simple_server(options, callback) {
 
     server_exec.on("close", detect_early_termination);
 
-    server_exec.on("error", function (err) {
-        console.log("xxxx child process terminated due to receipt of signal ",err);
+    server_exec.on("error", function(err) {
+        console.log("xxxx child process terminated due to receipt of signal ", err);
     });
 
 
@@ -113,9 +113,9 @@ function start_simple_server(options, callback) {
         data = "" + data;
         data = data.split("\n");
 
-        data.filter(function (a) {
+        data.filter(function(a) {
             return a.length > 0;
-        }).forEach(function (data) {
+        }).forEach(function(data) {
 
             detect_ready_message(data);
             if (!options.silent) {
@@ -125,10 +125,10 @@ function start_simple_server(options, callback) {
 
     }
 
-    server_exec.stdout.on("data", function (data) {
+    server_exec.stdout.on("data", function(data) {
         dumpData(chalk.cyan("stdout:  "), data.toString("utf8"));
     });
-    server_exec.stderr.on("data", function (data) {
+    server_exec.stderr.on("data", function(data) {
         dumpData(chalk.red("stderr: "), data.toString("utf8"));
     });
 
@@ -145,7 +145,7 @@ function stop_simple_server(serverHandle, callback) {
         " pid = ", serverHandle.process.pid,
         "collected pid=", serverHandle.pid_collected);
 
-    serverHandle.process.on("close", function (/*err*/) {
+    serverHandle.process.on("close", function(/*err*/) {
         //xx console.log("XXXXX child process terminated due to receipt of signal ");
         setTimeout(callback, 100);
     });
@@ -156,7 +156,7 @@ function stop_simple_server(serverHandle, callback) {
             process.kill(serverHandle.pid_collected, "SIGKILL");
 
         }
-        catch (err) {/**/}
+        catch (err) {/**/ }
     }
 
     /* istanbul ignore next */

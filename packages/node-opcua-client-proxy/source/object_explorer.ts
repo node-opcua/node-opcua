@@ -55,19 +55,13 @@ function convertNodeIdToDataType(dataTypeId: NodeId): DataType {
  *
  * see also AddressSpace#findCorrespondingBasicDataType
  */
-function convertNodeIdToDataTypeAsync(
-    session: IBasicSession,
-    dataTypeId: NodeId,
-    callback: Callback<DataType>
-) {
-
+function convertNodeIdToDataTypeAsync(session: IBasicSession, dataTypeId: NodeId, callback: Callback<DataType>) {
     const nodeToRead = {
         attributeId: AttributeIds.BrowseName,
-        nodeId: dataTypeId,
+        nodeId: dataTypeId
     };
 
     session.read(nodeToRead, (err: Error | null, dataValue?: DataValue) => {
-
         // istanbul ignore next
         if (err) {
             setImmediate(() => {
@@ -131,31 +125,20 @@ function convertNodeIdToDataTypeAsync(
  * @method add_method
  * @private
  */
-function add_method(
-    proxyManager: UAProxyManager,
-    obj: any,
-    reference: ReferenceDescription,
-    outerCallback: (err?: Error) => void
-) {
-
+function add_method(proxyManager: UAProxyManager, obj: any, reference: ReferenceDescription, outerCallback: (err?: Error) => void) {
     const session = proxyManager.session;
 
     const name = lowerFirstLetter(reference.browseName.name!);
 
-    obj[name] = function functionCaller(
-        inputArgs: any,
-        callback: (err: Error | null, args?: any[]) => void
-    ) {
-
-        assert(_.isFunction(callback));
+    obj[name] = function functionCaller(inputArgs: any, callback: (err: Error | null, args?: any[]) => void) {
+        assert(typeof callback === "function");
         // convert input arguments into Variants
         const inputArgsDef = obj[name].inputArguments || [];
 
         const inputArguments: Variant[] = inputArgsDef.map((arg: any) => {
-
             const dataType = convertNodeIdToDataType(arg.dataType);
 
-            const arrayType = (arg.valueRank === 1) ? VariantArrayType.Array : VariantArrayType.Scalar;
+            const arrayType = arg.valueRank === 1 ? VariantArrayType.Array : VariantArrayType.Scalar;
 
             // xx console.log("xxx ",arg.toString());
             const propName = lowerFirstLetter(arg.name);
@@ -175,11 +158,10 @@ function add_method(
         const methodToCall = new CallMethodRequest({
             inputArguments,
             methodId: reference.nodeId,
-            objectId: obj.nodeId,
+            objectId: obj.nodeId
         });
 
         session.call(methodToCall, (err: Error | null, callResult?: CallMethodResult) => {
-
             // istanbul ignore next
             if (err) {
                 return callback(err);
@@ -196,8 +178,14 @@ function add_method(
             obj[name].outputArguments = obj[name].outputArguments || [];
 
             if (callResult.outputArguments.length !== obj[name].outputArguments.length) {
-                return callback(new Error("Internal error callResult.outputArguments.length "
-                    + callResult.outputArguments.length + " " + obj[name].outputArguments.length));
+                return callback(
+                    new Error(
+                        "Internal error callResult.outputArguments.length " +
+                            callResult.outputArguments.length +
+                            " " +
+                            obj[name].outputArguments.length
+                    )
+                );
             }
 
             const outputArgs: any = {};
@@ -210,18 +198,12 @@ function add_method(
 
                 const propName = lowerFirstLetter(arg.name);
                 outputArgs[propName] = variant.value;
-
             });
             callback(err, outputArgs);
-
         });
     };
 
-    function extractDataType(
-        arg: any,
-        callback: any
-    ): void {
-
+    function extractDataType(arg: any, callback: any): void {
         if (arg.dataType && arg.dataType._dataType) {
             setImmediate(callback); // already convertedr
             return;
@@ -239,68 +221,65 @@ function add_method(
         browseName: name,
         executableFlag: false,
         func: obj[name],
-        nodeId: reference.nodeId,
+        nodeId: reference.nodeId
     };
     obj.$methods[name] = methodObj;
 
     // tslint:disable:no-shadowed-variable
-    async.series([
-
-        (callback: ErrorCallback) => {
-
-            session.getArgumentDefinition(reference.nodeId, (err: Error | null, args?: any) => {
-                // istanbul ignore next
-                if (err) {
-                    setImmediate(() => {
-                        callback(err);
-                    });
-                    return;
-                }
-                const inputArguments = args.inputArguments;
-                const outputArguments = args.outputArguments;
-
-                obj[name].inputArguments = inputArguments;
-                obj[name].outputArguments = outputArguments;
-
-                async.series([
-                    (callback: ErrorCallback) => {
-                        async.eachSeries(obj[name].inputArguments, extractDataType, (err) => callback(err!));
-                    },
-                    (callback: ErrorCallback) => {
-                        async.eachSeries(obj[name].outputArguments, extractDataType, (err) => callback(err!));
+    async.series(
+        [
+            (callback: ErrorCallback) => {
+                session.getArgumentDefinition(reference.nodeId, (err: Error | null, args?: any) => {
+                    // istanbul ignore next
+                    if (err) {
+                        setImmediate(() => {
+                            callback(err);
+                        });
+                        return;
                     }
-                ], (err) => callback(err!));
-            });
-        },
+                    const inputArguments = args.inputArguments;
+                    const outputArguments = args.outputArguments;
 
-        (callback: ErrorCallback) => {
-            proxyManager._monitor_execution_flag(methodObj, () => {
-                callback();
-            });
-        }
-    ], (err) => outerCallback(err!));
+                    obj[name].inputArguments = inputArguments;
+                    obj[name].outputArguments = outputArguments;
 
+                    async.series(
+                        [
+                            (callback: ErrorCallback) => {
+                                async.eachSeries(obj[name].inputArguments, extractDataType, (err) => callback(err!));
+                            },
+                            (callback: ErrorCallback) => {
+                                async.eachSeries(obj[name].outputArguments, extractDataType, (err) => callback(err!));
+                            }
+                        ],
+                        (err) => callback(err!)
+                    );
+                });
+            },
+
+            (callback: ErrorCallback) => {
+                proxyManager._monitor_execution_flag(methodObj, () => {
+                    callback();
+                });
+            }
+        ],
+        (err) => outerCallback(err!)
+    );
 }
 
-function add_component(
-    proxyManager: UAProxyManager,
-    obj: any,
-    reference: ReferenceDescription,
-    callback: (err?: Error) => void) {
-
+function add_component(proxyManager: UAProxyManager, obj: any, reference: ReferenceDescription, callback: (err?: Error) => void) {
     const session = proxyManager.session;
 
     const name = lowerFirstLetter(reference.browseName.name || "");
 
     proxyManager.getObject(reference.nodeId, (err?: Error | null, childObj?: any) => {
-
         // istanbul ignore else
         if (!err) {
             childObj = new ObjectExplorer({
                 name,
                 nodeId: reference.nodeId,
                 parent: obj,
-                proxyManager,
+                proxyManager
             });
             obj[name] = childObj;
             obj.$components.push(childObj);
@@ -318,7 +297,6 @@ function addFolderElement(
     reference: ReferenceDescription,
     callback: (err?: Error) => void
 ) {
-
     const session = proxyManager.session;
 
     const name = lowerFirstLetter(reference.browseName.name || "");
@@ -327,7 +305,7 @@ function addFolderElement(
         name,
         nodeId: reference.nodeId,
         parent: obj,
-        proxyManager,
+        proxyManager
     });
 
     obj[name] = childObj;
@@ -335,13 +313,7 @@ function addFolderElement(
     childObj.$resolve(callback);
 }
 
-function add_property(
-    proxyManager: UAProxyManager,
-    obj: any,
-    reference: ReferenceDescription,
-    callback: (err?: Error) => void
-) {
-
+function add_property(proxyManager: UAProxyManager, obj: any, reference: ReferenceDescription, callback: (err?: Error) => void) {
     const session = proxyManager.session;
 
     const name = lowerFirstLetter(reference.browseName.name || "");
@@ -371,12 +343,7 @@ function add_typeDefinition(
     setImmediate(callback);
 }
 
-function addFromState(
-    proxyManager: UAProxyManager,
-    obj: any,
-    reference: ReferenceDescription,
-    callback: (err?: Error) => void
-) {
+function addFromState(proxyManager: UAProxyManager, obj: any, reference: ReferenceDescription, callback: (err?: Error) => void) {
     proxyManager.getObject(reference.nodeId, (err: Error | null, childObj: any) => {
         if (err) {
             callback(err);
@@ -386,12 +353,7 @@ function addFromState(
     });
 }
 
-function addToState(
-    proxyManager: UAProxyManager,
-    obj: any,
-    reference: ReferenceDescription,
-    callback: (err?: Error) => void
-) {
+function addToState(proxyManager: UAProxyManager, obj: any, reference: ReferenceDescription, callback: (err?: Error) => void) {
     proxyManager.getObject(reference.nodeId, (err: Error | null, childObj: any) => {
         if (err) {
             callback(err);
@@ -402,7 +364,6 @@ function addToState(
 }
 
 export class ObjectExplorer {
-
     public proxyManager: UAProxyManager;
     public name: string;
     public nodeId: NodeId;
@@ -416,31 +377,21 @@ export class ObjectExplorer {
     }
 
     public $resolve(callback: (err?: Error) => void) {
+        this.proxyManager.getObject(this.nodeId, (err: Error | null, childObj: any) => {
+            // istanbul ignore next
+            if (err) {
+                return callback(err);
+            }
 
-        this.proxyManager.getObject(
-            this.nodeId,
-            (err: Error | null, childObj: any) => {
+            this.parent[this.name] = childObj;
+            this.parent.$components.push(childObj);
 
-                // istanbul ignore next
-                if (err) {
-                    return callback(err);
-                }
-
-                this.parent[this.name] = childObj;
-                this.parent.$components.push(childObj);
-
-                callback();
-            });
+            callback();
+        });
     }
-
 }
 
-export function readUAStructure(
-    proxyManager: UAProxyManager,
-    obj: any,
-    callback: ErrorCallback
-) {
-
+export function readUAStructure(proxyManager: UAProxyManager, obj: any, callback: ErrorCallback) {
     const session = proxyManager.session;
 
     //   0   Object
@@ -448,7 +399,6 @@ export function readUAStructure(
     //   2   Method
     const nodeId = obj.nodeId;
     const nodesToBrowse = [
-
         // Components (except Methods)
         {
             // BrowseDescription
@@ -457,7 +407,7 @@ export function readUAStructure(
             nodeClassMask: makeNodeClassMask("Object | Variable"), // we don't want Method here
             nodeId,
             referenceTypeId: makeRefId("HasComponent"),
-            resultMask,
+            resultMask
         },
         // Properties
         {
@@ -518,7 +468,6 @@ export function readUAStructure(
         }
     ];
     session.browse(nodesToBrowse, (err: Error | null, browseResults?: BrowseResult[]) => {
-
         function t(references: ReferenceDescription[]) {
             return references.map((r: ReferenceDescription) => r.browseName.name + " " + r.nodeId.toString());
         }
@@ -533,61 +482,73 @@ export function readUAStructure(
         // xx console.log("Components", t(results[0].references));
         // xx console.log("Properties", t(results[1].references));
         // xx console.log("Methods", t(results[2].references));
-        async.series([
+        async.series(
+            [
+                (callback: ErrorCallback) => {
+                    async.mapSeries(
+                        browseResults![0].references!,
+                        (reference: ReferenceDescription, callback: ErrorCallback) =>
+                            add_component(proxyManager, obj, reference, callback),
+                        (err) => callback(err!)
+                    );
+                },
 
-            (callback: ErrorCallback) => {
-                async.mapSeries(browseResults![0].references!,
-                    (reference: ReferenceDescription, callback: ErrorCallback) =>
-                        add_component(proxyManager, obj, reference, callback), (err) => callback(err!));
-            },
+                (callback: ErrorCallback) => {
+                    async.mapSeries(
+                        browseResults![1].references!,
+                        (reference: ReferenceDescription, callback: ErrorCallback) =>
+                            add_property(proxyManager, obj, reference, callback),
+                        (err) => callback(err!)
+                    );
+                },
 
-            (callback: ErrorCallback) => {
-                async.mapSeries(browseResults![1].references!,
-                    (reference: ReferenceDescription, callback: ErrorCallback) =>
-                        add_property(proxyManager, obj, reference, callback), (err) => callback(err!));
-            },
+                // now enrich our object with nice callable async methods
+                (callback: ErrorCallback) => {
+                    async.mapSeries(
+                        browseResults![2].references!,
+                        (reference: ReferenceDescription, callback: ErrorCallback) =>
+                            add_method(proxyManager, obj, reference, callback),
+                        (err) => callback(err!)
+                    );
+                },
 
-            // now enrich our object with nice callable async methods
-            (callback: ErrorCallback) => {
-                async.mapSeries(browseResults![2].references!,
-                    (reference: ReferenceDescription, callback: ErrorCallback) =>
-                        add_method(proxyManager, obj, reference, callback), (err) => callback(err!));
-            },
+                // now set typeDefinition
+                (callback: ErrorCallback) => {
+                    add_typeDefinition(proxyManager, obj, browseResults![3].references!, callback);
+                },
 
-            // now set typeDefinition
-            (callback: ErrorCallback) => {
-                add_typeDefinition(proxyManager, obj, browseResults![3].references!, callback);
-            },
+                // FromState
+                (callback: ErrorCallback) => {
+                    // fromState
+                    const reference = browseResults![4].references ? browseResults![4].references![0] : null;
+                    // fromState
+                    if (reference) {
+                        return addFromState(proxyManager, obj, reference, callback);
+                    }
+                    callback();
+                },
 
-            // FromState
-            (callback: ErrorCallback) => {
-                // fromState
-                const reference = browseResults![4].references ? browseResults![4].references![0] : null;
-                // fromState
-                if (reference) {
-                    return addFromState(proxyManager, obj, reference, callback);
+                // ToState
+                (callback: ErrorCallback) => {
+                    const reference = browseResults![5].references ? browseResults![5].references![0] : null;
+                    // fromState
+                    if (reference) {
+                        return addToState(proxyManager, obj, reference, callback);
+                    }
+                    callback();
+                },
+
+                // Organizes
+                (callback: ErrorCallback) => {
+                    async.mapSeries(
+                        browseResults![6].references!,
+                        (reference: ReferenceDescription, callback: ErrorCallback) =>
+                            addFolderElement(proxyManager, obj, reference, callback),
+                        (err) => callback(err!)
+                    );
                 }
-                callback();
-            },
-
-            // ToState
-            (callback: ErrorCallback) => {
-
-                const reference = browseResults![5].references ? browseResults![5].references![0] : null;
-                // fromState
-                if (reference) {
-                    return addToState(proxyManager, obj, reference, callback);
-                }
-                callback();
-            },
-
-            // Organizes
-            (callback: ErrorCallback) => {
-                async.mapSeries(browseResults![6].references!,
-                    (reference: ReferenceDescription, callback: ErrorCallback) =>
-                        addFolderElement(proxyManager, obj, reference, callback), (err) => callback(err!));
-            }
-
-        ], (err) => callback(err!));
+            ],
+            (err) => callback(err!)
+        );
     });
 }

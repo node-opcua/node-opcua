@@ -336,7 +336,7 @@ function apply_command(cmd, func, callback) {
 
 function apply_on_valid_session(cmd, func, callback) {
 
-    assert(_.isFunction(func));
+    assert(typeof func === "function");
     assert(func.length === 2);
 
     if (the_session) {
@@ -444,7 +444,7 @@ function close_session(outer_callback) {
             if (!outer_callback) {
                 inner_callback(err);
             } else {
-                assert(_.isFunction(outer_callback));
+                assert(typeof outer_callback === "function");
                 outer_callback(inner_callback);
             }
         });

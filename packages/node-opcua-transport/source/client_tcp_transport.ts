@@ -24,7 +24,6 @@ const doDebug = debug.checkDebugFlag(__filename);
 const debugLog = debug.make_debugLog(__filename);
 const gHostname = os.hostname();
 
-
 function createClientSocket(endpointUrl: string): Socket {
     // create a socket based on Url
     const ep = parseEndpointUrl(endpointUrl);
@@ -33,7 +32,6 @@ function createClientSocket(endpointUrl: string): Socket {
     let socket: Socket;
     switch (ep.protocol) {
         case "opc.tcp:":
-
             socket = createConnection({ host: hostname, port });
 
             //        // Setting true for noDelay will immediately fire off data each time socket.write() is called.
@@ -51,7 +49,6 @@ function createClientSocket(endpointUrl: string): Socket {
         case "https:FF":
         default:
             throw new Error("this transport protocol is currently not supported :" + ep.protocol);
-
     }
 }
 
@@ -120,9 +117,8 @@ export class ClientTCP_transport extends TCP_transport {
     }
 
     public connect(endpointUrl: string, callback: ErrorCallback) {
-
         assert(arguments.length === 2);
-        assert(_.isFunction(callback));
+        assert(typeof callback === "function");
 
         const ep = parseEndpointUrl(endpointUrl);
 
@@ -165,7 +161,6 @@ export class ClientTCP_transport extends TCP_transport {
         };
 
         const _on_socket_connect = () => {
-
             /* istanbul ignore next */
             if (doDebug) {
                 debugLog("entering _on_socket_connect");
@@ -226,7 +221,6 @@ export class ClientTCP_transport extends TCP_transport {
         this._socket.once("end", _on_socket_end_for_connect);
         this._socket.once("connect", _on_socket_connect);
         this._install_socket(this._socket);
-
     }
 
     protected on_socket_ended(err: Error | null) {
@@ -240,7 +234,6 @@ export class ClientTCP_transport extends TCP_transport {
     }
 
     private _handle_ACK_response(messageChunk: Buffer, callback: ErrorCallback) {
-
         const _stream = new BinaryStream(messageChunk);
         const messageHeader = readMessageHeader(_stream);
         let err;
@@ -261,7 +254,6 @@ export class ClientTCP_transport extends TCP_transport {
             err = new Error("ACK: ERR received " + response.statusCode.toString() + " : " + response.reason);
             (err as any).statusCode = response.statusCode;
             callback(err);
-
         } else {
             responseClass = AcknowledgeMessage;
             _stream.rewind();
@@ -269,11 +261,9 @@ export class ClientTCP_transport extends TCP_transport {
             this.parameters = response as AcknowledgeMessage;
             callback();
         }
-
     }
 
     private _send_HELLO_request() {
-
         /* istanbul ignore next */
         if (doDebug) {
             debugLog("entering _send_HELLO_request");
@@ -286,14 +276,13 @@ export class ClientTCP_transport extends TCP_transport {
         // Write a message to the socket as soon as the client is connected,
         // the server will receive it as message from the client
         const request = new HelloMessage({
-
             endpointUrl: this.endpointUrl,
-            maxChunkCount: 0,                 // 0 - no limits
-            maxMessageSize: 0,                // 0 - no limits
+            maxChunkCount: 0, // 0 - no limits
+            maxMessageSize: 0, // 0 - no limits
 
             protocolVersion: this.protocolVersion,
             receiveBufferSize: 1024 * 64 * 10,
-            sendBufferSize: 1024 * 64 * 10   // 8192 min,
+            sendBufferSize: 1024 * 64 * 10 // 8192 min,
         });
 
         const messageChunk = packTcpMessage("HEL", request);
@@ -301,13 +290,12 @@ export class ClientTCP_transport extends TCP_transport {
     }
 
     private _on_ACK_response(externalCallback: ErrorCallback, err: Error | null, data?: Buffer) {
-
         /* istanbul ignore next */
         if (doDebug) {
             debugLog("entering _on_ACK_response");
         }
 
-        assert(_.isFunction(externalCallback));
+        assert(typeof externalCallback === "function");
         assert(this._counter === 0, "Ack response should only be received once !");
         this._counter += 1;
 
@@ -328,7 +316,7 @@ export class ClientTCP_transport extends TCP_transport {
             return callback(new Error("No socket available to perform HEL/ACK transaction"));
         }
         assert(this._socket, "expecting a valid socket to send a message");
-        assert(_.isFunction(callback));
+        assert(typeof callback === "function");
         this._counter = 0;
         /* istanbul ignore next */
         if (doDebug) {

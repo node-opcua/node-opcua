@@ -98,7 +98,7 @@ const userManager = {
  */
 function build_server_with_temperature_device(options, done) {
 
-    assert(_.isFunction(done, "expecting a callback function"));
+    assert(typeof done, "expecting a callback function" === "function");
     assert(typeof opcua.nodesets.standard_nodeset_file === "string");
 
     // use mini_nodeset_filename for speed up if not otherwise specified
@@ -254,7 +254,7 @@ function _build_server_with_temperature_device(server, options, done) {
             value: {
                 // asynchronous read
                 timestamped_get: function(callback) {
-                    assert(_.isFunction(callback), "callback must be a function");
+                    assert(typeof callback === "function", "callback must be a function");
                     setTimeout(function() {
                         callback(null, asyncWriteFull_dataValue);
                     }, 100);
@@ -264,7 +264,7 @@ function _build_server_with_temperature_device(server, options, done) {
                 // as we want to control and deal with the dataValue provided by the client write
                 // This will allow us to handle more specifically timestamps and statusCodes
                 timestamped_set: function(dataValue, callback) {
-                    assert(_.isFunction(callback), "callback must be a function");
+                    assert(typeof callback === "function", "callback must be a function");
                     //xxx console.log(chalk.cyan(" DATA VALUE !!!"), chalk.yellow(dataValue.toString()));
                     setTimeout(function() {
                         asyncWriteFull_dataValue = new DataValue(dataValue);

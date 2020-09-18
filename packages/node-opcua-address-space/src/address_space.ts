@@ -20,7 +20,7 @@ import {
     BrowsePathResult,
     BrowsePathTargetOptions,
     BrowseResultOptions,
-    RelativePathElement,
+    RelativePathElement
 } from "node-opcua-types";
 import * as utils from "node-opcua-utils";
 import { lowerFirstLetter } from "node-opcua-utils";
@@ -40,7 +40,7 @@ import {
     UAObjectType as UAObjectTypePublic,
     UAReference,
     UAReferenceType as UAReferenceTypePublic,
-    UAVariableType as UAVariableTypePublic,
+    UAVariableType as UAVariableTypePublic
 } from "../source";
 import { AddressSpacePrivate } from "./address_space_private";
 import { UAAcknowledgeableConditionBase } from "./alarms_and_conditions";
@@ -247,7 +247,7 @@ export class AddressSpace implements AddressSpacePrivate {
                 index,
                 namespaceUri,
                 publicationDate: new Date(),
-                version: "undefined",
+                version: "undefined"
             })
         );
         return this._namespaceArray[index];
@@ -618,7 +618,7 @@ export class AddressSpace implements AddressSpacePrivate {
 
         return new Variant({
             dataType: DataType.ByteString,
-            value: Buffer.from(self._eventIdCounter),
+            value: Buffer.from(self._eventIdCounter)
         }) as VariantT<Buffer, DataType.ByteString>;
     }
 
@@ -671,7 +671,7 @@ export class AddressSpace implements AddressSpacePrivate {
 
         data.sourceName = data.sourceName || {
             dataType: DataType.String,
-            value: sourceNode.getDisplayName("en"),
+            value: sourceNode.getDisplayName("en")
         };
 
         const nowUTC = new Date();
@@ -868,7 +868,7 @@ export class AddressSpace implements AddressSpacePrivate {
         if (!browsePath.relativePath.elements || browsePath.relativePath.elements.length === 0) {
             return new BrowsePathResult({
                 statusCode: StatusCodes.BadNothingToDo,
-                targets: [],
+                targets: []
             });
         }
 
@@ -914,7 +914,7 @@ export class AddressSpace implements AddressSpacePrivate {
             const targets = nodeIds.map((nodeId: NodeId) => {
                 return {
                     remainingPathIndex: elements.length - index,
-                    targetId: nodeId,
+                    targetId: nodeId
                 };
             });
 
@@ -931,7 +931,7 @@ export class AddressSpace implements AddressSpacePrivate {
                 for (const target of targets) {
                     res.push({
                         remainingPathIndex: 0xffffffff,
-                        targetId: coerceExpandedNodeId(target.targetId),
+                        targetId: coerceExpandedNodeId(target.targetId)
                     });
                 }
             }
@@ -945,7 +945,7 @@ export class AddressSpace implements AddressSpacePrivate {
 
         return new BrowsePathResult({
             statusCode: StatusCodes.Good,
-            targets: res,
+            targets: res
         });
     }
 
@@ -1024,7 +1024,7 @@ export class AddressSpace implements AddressSpacePrivate {
      */
     public registerShutdownTask(task: (this: AddressSpace) => void): void {
         this._shutdownTask = this._shutdownTask || [];
-        assert(_.isFunction(task));
+        assert(typeof task === "function");
         this._shutdownTask.push(task);
     }
 
@@ -1053,7 +1053,7 @@ export class AddressSpace implements AddressSpacePrivate {
         const browseResult: BrowseResultOptions = {
             continuationPoint: undefined,
             references: null,
-            statusCode: StatusCodes.Good,
+            statusCode: StatusCodes.Good
         };
 
         if (!browseDescription || browseDescription.browseDirection === BrowseDirection.Invalid) {
@@ -1221,7 +1221,7 @@ export class AddressSpace implements AddressSpacePrivate {
                         // xx console.log("xx raising event on server object");
                         addressSpace.rootFolder.objects.server.raiseEvent(eventTypeNode, {
                             // Part 5 - 6.4.32 GeneralModelChangeEventType
-                            changes: { dataType: "ExtensionObject", value: this._modelChanges },
+                            changes: { dataType: "ExtensionObject", value: this._modelChanges }
                         });
                     }
                 }
@@ -1536,7 +1536,7 @@ function _increase_version_number(node: BaseNode | null) {
         const previousValue = parseInt(node.nodeVersion.readValue().value.value, 10);
         node.nodeVersion.setValueFromSource({
             dataType: DataType.String,
-            value: (previousValue + 1).toString(),
+            value: (previousValue + 1).toString()
         });
         // xx console.log("xxx increasing version number of node ", node.browseName.toString(),previousValue);
     }

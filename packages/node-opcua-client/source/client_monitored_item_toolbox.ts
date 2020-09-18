@@ -8,11 +8,14 @@ import { assert } from "node-opcua-assert";
 import { TimestampsToReturn } from "node-opcua-data-value";
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 import {
-    CreateMonitoredItemsRequest, CreateMonitoredItemsResponse,
-    ModifyMonitoredItemsRequest, ModifyMonitoredItemsResponse,
+    CreateMonitoredItemsRequest,
+    CreateMonitoredItemsResponse,
+    ModifyMonitoredItemsRequest,
+    ModifyMonitoredItemsResponse,
     MonitoredItemModifyRequest,
     MonitoredItemModifyResult,
-    MonitoringMode, SetMonitoringModeResponse
+    MonitoringMode,
+    SetMonitoringModeResponse
 } from "node-opcua-service-subscription";
 import { StatusCode, StatusCodes } from "node-opcua-status-code";
 import { Callback, ErrorCallback } from "node-opcua-status-code";
@@ -31,17 +34,15 @@ const doDebug = checkDebugFlag(__filename);
  * @internal
  */
 export class ClientMonitoredItemToolbox {
-
     public static _toolbox_monitor(
         subscription: ClientSubscription,
         timestampsToReturn: TimestampsToReturn,
         monitoredItems: ClientMonitoredItemBase[],
         done: ErrorCallback
     ) {
-        assert(_.isFunction(done));
+        assert(typeof done === "function");
         const itemsToCreate: MonitoredItemCreateRequestOptions[] = [];
         for (const monitoredItem of monitoredItems) {
-
             const monitoredItemI = monitoredItem as ClientMonitoredItemImpl;
             const itemToCreate = monitoredItemI._prepare_for_monitoring();
             if (_.isString(itemToCreate.error)) {
@@ -53,35 +54,30 @@ export class ClientMonitoredItemToolbox {
         const createMonitorItemsRequest = new CreateMonitoredItemsRequest({
             itemsToCreate,
             subscriptionId: subscription.subscriptionId,
-            timestampsToReturn,
+            timestampsToReturn
         });
 
         const session = subscription.session as ClientSessionImpl;
-        assert(session,
-            "expecting a valid session attached to the subscription ");
-        session.createMonitoredItems(
-            createMonitorItemsRequest,
-            (err?: Error | null, response?: CreateMonitoredItemsResponse) => {
-
-                /* istanbul ignore next */
-                if (err) {
-                    debugLog(chalk.red("ClientMonitoredItemBase#_toolbox_monitor:  ERROR in createMonitoredItems "));
-                } else {
-                    if (!response) {
-                        return done(new Error("Internal Error"));
-                    }
-
-                    response.results = response.results || [];
-
-                    for (let i = 0; i < response.results.length; i++) {
-                        const monitoredItemResult = response.results[i];
-                        const monitoredItem = monitoredItems[i] as ClientMonitoredItemImpl;
-                        monitoredItem._after_create(monitoredItemResult);
-                    }
+        assert(session, "expecting a valid session attached to the subscription ");
+        session.createMonitoredItems(createMonitorItemsRequest, (err?: Error | null, response?: CreateMonitoredItemsResponse) => {
+            /* istanbul ignore next */
+            if (err) {
+                debugLog(chalk.red("ClientMonitoredItemBase#_toolbox_monitor:  ERROR in createMonitoredItems "));
+            } else {
+                if (!response) {
+                    return done(new Error("Internal Error"));
                 }
-                done(err ? err : undefined);
-            });
 
+                response.results = response.results || [];
+
+                for (let i = 0; i < response.results.length; i++) {
+                    const monitoredItemResult = response.results[i];
+                    const monitoredItem = monitoredItems[i] as ClientMonitoredItemImpl;
+                    monitoredItem._after_create(monitoredItemResult);
+                }
+            }
+            done(err ? err : undefined);
+        });
     }
 
     public static _toolbox_modify(
@@ -91,8 +87,7 @@ export class ClientMonitoredItemToolbox {
         timestampsToReturn: TimestampsToReturn,
         callback: Callback<MonitoredItemModifyResult[]>
     ) {
-
-        assert(callback === undefined || _.isFunction(callback));
+        assert(callback === undefined || typeof callback === "function");
 
         const itemsToModify = monitoredItems.map((monitoredItem: ClientMonitoredItemBase) => {
             const clientHandle = monitoredItem.monitoringParameters.clientHandle;
@@ -104,37 +99,33 @@ export class ClientMonitoredItemToolbox {
         const modifyMonitoredItemsRequest = new ModifyMonitoredItemsRequest({
             itemsToModify,
             subscriptionId: subscription.subscriptionId,
-            timestampsToReturn,
+            timestampsToReturn
         });
 
         const session = subscription.session as ClientSessionImpl;
-        assert(session,
-            "expecting a valid session attached to the subscription ");
+        assert(session, "expecting a valid session attached to the subscription ");
 
-        session.modifyMonitoredItems(
-            modifyMonitoredItemsRequest,
-            (err: Error | null, response?: ModifyMonitoredItemsResponse) => {
+        session.modifyMonitoredItems(modifyMonitoredItemsRequest, (err: Error | null, response?: ModifyMonitoredItemsResponse) => {
+            /* istanbul ignore next */
+            if (err) {
+                return callback(err);
+            }
+            if (!response || !(response instanceof ModifyMonitoredItemsResponse)) {
+                return callback(new Error("internal error"));
+            }
 
-                /* istanbul ignore next */
-                if (err) {
-                    return callback(err);
-                }
-                if (!response || !(response instanceof ModifyMonitoredItemsResponse)) {
-                    return callback(new Error("internal error"));
-                }
+            response.results = response.results || [];
 
-                response.results = response.results || [];
+            assert(response.results.length === monitoredItems.length);
 
-                assert(response.results.length === monitoredItems.length);
+            const res = response.results[0];
 
-                const res = response.results[0];
-
-                /* istanbul ignore next */
-                if (response.results.length === 1 && res.statusCode !== StatusCodes.Good) {
-                    return callback(new Error("Error" + res.statusCode.toString()));
-                }
-                callback(null, response.results);
-            });
+            /* istanbul ignore next */
+            if (response.results.length === 1 && res.statusCode !== StatusCodes.Good) {
+                return callback(new Error("Error" + res.statusCode.toString()));
+            }
+            callback(null, response.results);
+        });
     }
 
     public static _toolbox_setMonitoringMode(
@@ -143,31 +134,27 @@ export class ClientMonitoredItemToolbox {
         monitoringMode: MonitoringMode,
         callback: Callback<StatusCode[]>
     ) {
-
         const monitoredItemIds = monitoredItems.map((monitoredItem) => monitoredItem.monitoredItemId);
 
         const setMonitoringModeRequest: SetMonitoringModeRequestLike = {
             monitoredItemIds,
             monitoringMode,
-            subscriptionId: subscription.subscriptionId,
+            subscriptionId: subscription.subscriptionId
         };
 
         const session = subscription.session as ClientSessionImpl;
-        assert(session,
-            "expecting a valid session attached to the subscription ");
+        assert(session, "expecting a valid session attached to the subscription ");
 
-        session.setMonitoringMode(
-            setMonitoringModeRequest,
-            (err: Error | null, response?: SetMonitoringModeResponse) => {
-                if (err) {
-                    return callback(err);
-                }
-                monitoredItems.forEach((monitoredItem) => {
-                    monitoredItem.monitoringMode = monitoringMode;
-                });
-                response = response!;
-                response.results = response.results || [];
-                callback(null, response.results);
+        session.setMonitoringMode(setMonitoringModeRequest, (err: Error | null, response?: SetMonitoringModeResponse) => {
+            if (err) {
+                return callback(err);
+            }
+            monitoredItems.forEach((monitoredItem) => {
+                monitoredItem.monitoringMode = monitoringMode;
             });
+            response = response!;
+            response.results = response.results || [];
+            callback(null, response.results);
+        });
     }
 }

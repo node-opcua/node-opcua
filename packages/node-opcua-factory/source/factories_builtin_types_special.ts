@@ -1,7 +1,7 @@
 /**
  * @module node-opcua-factory
  */
-import * as  _ from "underscore";
+import * as _ from "underscore";
 
 import { assert } from "node-opcua-assert";
 import { BinaryStream, OutputBinaryStream } from "node-opcua-binary-stream";
@@ -10,7 +10,7 @@ import { registerType } from "./factories_builtin_types";
 import { ConstructorFunc } from "./constructor_type";
 
 function _self_encode(constructor: any) {
-    assert(_.isFunction(constructor));
+    assert(typeof constructor === "function");
     return (value: any, stream: OutputBinaryStream) => {
         if (!value || !value.encode) {
             value = new constructor(value);
@@ -20,7 +20,7 @@ function _self_encode(constructor: any) {
 }
 
 function _self_decode(constructor: any) {
-    assert(_.isFunction(constructor));
+    assert(typeof constructor === "function");
     return (stream: BinaryStream) => {
         const value = new constructor();
         value.decode(stream);
@@ -29,7 +29,7 @@ function _self_decode(constructor: any) {
 }
 
 function _self_coerce(constructor: any) {
-    assert(_.isFunction(constructor));
+    assert(typeof constructor === "function");
     return (value: any) => {
         const obj = new constructor(value);
         return obj;
@@ -37,8 +37,7 @@ function _self_coerce(constructor: any) {
 }
 
 export function registerSpecialVariantEncoder(constructor: ConstructorFunc) {
-
-    assert(_.isFunction(constructor));
+    assert(typeof constructor === "function");
 
     const name = constructor.prototype.schema.name;
 
@@ -54,5 +53,4 @@ export function registerSpecialVariantEncoder(constructor: ConstructorFunc) {
 
         defaultValue: () => new constructor()
     });
-
 }

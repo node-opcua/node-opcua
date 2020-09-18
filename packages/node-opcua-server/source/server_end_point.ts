@@ -469,7 +469,7 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
      * @async
      */
     public listen(callback: (err?: Error) => void) {
-        assert(_.isFunction(callback));
+        assert(typeof callback === "function");
         assert(!this._started, "OPCUAServerEndPoint is already listening");
 
         this._listen_callback = callback;
@@ -574,7 +574,7 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
      * @param callback
      */
     public start(callback: (err?: Error) => void): void {
-        assert(_.isFunction(callback));
+        assert(typeof callback === "function");
         this.listen(callback);
     }
 
@@ -765,7 +765,7 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
         }
 
         delete this._channels[channel.hashKey];
-        assert(_.isFunction((channel as any)._unpreregisterChannelEvent));
+        assert(typeof ((channel as any) === "function"._unpreregisterChannelEvent));
         channel.removeListener("abort", (channel as any)._unpreregisterChannelEvent);
         (channel as any)._unpreregisterChannelEvent = null;
     }
@@ -834,7 +834,7 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
     }
 
     private _end_listen(err?: Error) {
-        assert(_.isFunction(this._listen_callback));
+        assert(typeof this._listen_callback === "function");
         this._listen_callback(err);
         this._listen_callback = null;
     }
@@ -845,7 +845,7 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
      * @param inner_callback
      */
     private shutdown_channel(channel: ServerSecureChannelLayer, inner_callback: (err?: Error) => void) {
-        assert(_.isFunction(inner_callback));
+        assert(typeof inner_callback === "function");
         channel.once("close", () => {
             // xx console.log(" ON CLOSED !!!!");
         });

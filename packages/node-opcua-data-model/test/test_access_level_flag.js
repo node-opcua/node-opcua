@@ -55,7 +55,7 @@ if (false) {
     const generator = require("node-opcua-generator");
     const tmpfolder = path.join(__dirname, "../_test_generated");
     const ObjWithAccessLevel = generator.registerObject(path.join(__dirname, "fixture_schemas") + "|ObjWithAccessLevel", tmpfolder);
-    assert(_.isFunction(ObjWithAccessLevel));
+    assert(typeof ObjWithAccessLevel === "function");
     describe("TestAccessFlag inside object", function() {
         it("should create an object with access_level", function() {
             const o = new ObjWithAccessLevel();

@@ -171,7 +171,7 @@ export class ClientMonitoredItemImpl extends EventEmitter implements ClientMonit
      * @internal
      */
     public _monitor(done?: ErrorCallback) {
-        assert(done === undefined || _.isFunction(done));
+        assert(done === undefined || typeof done === "function");
         ClientMonitoredItemToolbox._toolbox_monitor(this.subscription, this.timestampsToReturn, [this], (err?: Error) => {
             if (err) {
                 this.emit("err", err.message);

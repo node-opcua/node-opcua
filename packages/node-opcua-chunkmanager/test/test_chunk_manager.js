@@ -56,7 +56,7 @@ function fake_encrypt_buffer(buffer) {
 
     this.encrypt_block = fake_encrypt_block;
 
-    assert(_.isFunction(this.encrypt_block));
+    assert(typeof this.encrypt_block === "function");
 
     const nbBlocks = Math.ceil(buffer.length / (this.plainBlockSize));
 

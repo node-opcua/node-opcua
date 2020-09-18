@@ -146,7 +146,7 @@ describe("testing client Proxy", function() {
                     proxyManager.getObject(serverNodeId, function(err, object) {
                         //xx console.log(object);
                         serverObject = object;
-                        _.isFunction(serverObject.getMonitoredItems).should.eql(true);
+                        typeof serverObject.getMonitoredItems === "function".should.eql(true);
                         callback(err);
                     });
                 },

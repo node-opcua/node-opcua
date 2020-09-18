@@ -8,16 +8,19 @@ import * as _ from "underscore";
 import { assert } from "node-opcua-assert";
 import {
     AccessLevelFlag,
-    BrowseDirection, coerceLocalizedText,
+    BrowseDirection,
+    coerceLocalizedText,
     coerceQualifiedName,
-    LocalizedText, NodeClass,
+    LocalizedText,
+    NodeClass,
     ResultMask
 } from "node-opcua-data-model";
 import { NodeId, resolveNodeId, sameNodeId } from "node-opcua-nodeid";
 import { ReferenceDescription } from "node-opcua-types";
 import {
     AddressSpace,
-    SessionContext, UAConditionBase,
+    SessionContext,
+    UAConditionBase,
     UADataType,
     UAObjectType as UAObjectTypePublic,
     UAReferenceType as UAReferenceTypePublic
@@ -58,7 +61,7 @@ export function BaseNode_initPrivate(self: BaseNode): BaseNodeCache {
         _parent: undefined,
         _referenceIdx: {},
         _subtype_idx: {},
-        _subtype_idxVersion: 0,
+        _subtype_idxVersion: 0
     };
     g_weakMap.set(self, _private);
     return _private;
@@ -86,7 +89,6 @@ export interface ToStringOption {
 }
 
 export class ToStringBuilder implements ToStringOption {
-
     public level: number = 0;
     public cycleDetector: any = {};
     public padding: string = "";
@@ -106,50 +108,45 @@ export class ToStringBuilder implements ToStringOption {
 
     public indent(str: string, padding: string | null): string {
         padding = padding || "          ";
-        return str.split("\n").map((r) => {
-            return padding + r;
-        }).join("\n");
+        return str
+            .split("\n")
+            .map((r) => {
+                return padding + r;
+            })
+            .join("\n");
     }
 }
 
-function set_as_processed(
-    options: ToStringOption,
-    nodeId: NodeId
-) {
+function set_as_processed(options: ToStringOption, nodeId: NodeId) {
     options.cycleDetector[nodeId.toString()] = nodeId;
 }
-function is_already_processed(
-    options: ToStringOption,
-    nodeId: NodeId
-): boolean {
+function is_already_processed(options: ToStringOption, nodeId: NodeId): boolean {
     return !!options.cycleDetector[nodeId.toString()];
 }
 
-export function BaseNode_toString(
-    this: BaseNode,
-    options: ToStringOption
-) {
-
+export function BaseNode_toString(this: BaseNode, options: ToStringOption) {
     options.level = options.level || 1;
 
     set_as_processed(options, this.nodeId);
 
     options.add("");
     options.add(options.padding + chalk.yellow("          nodeId              : ") + this.nodeId.toString());
-    options.add(options.padding + chalk.yellow("          nodeClass           : ") + NodeClass[this.nodeClass] + " (" + this.nodeClass + ")");
+    options.add(
+        options.padding + chalk.yellow("          nodeClass           : ") + NodeClass[this.nodeClass] + " (" + this.nodeClass + ")"
+    );
     options.add(options.padding + chalk.yellow("          browseName          : ") + this.browseName.toString());
-    options.add(options.padding + chalk.yellow("          displayName         : ") + this.displayName
-        .map((f) => f.locale + " " + f.text).join(" | "));
+    options.add(
+        options.padding +
+            chalk.yellow("          displayName         : ") +
+            this.displayName.map((f) => f.locale + " " + f.text).join(" | ")
+    );
 
-    options.add(options.padding + chalk.yellow("          description         : ")
-        + (this.description ? this.description.toString() : ""));
+    options.add(
+        options.padding + chalk.yellow("          description         : ") + (this.description ? this.description.toString() : "")
+    );
 }
 
-export function BaseNode_References_toString(
-    this: BaseNode,
-    options: ToStringOption
-) {
-
+export function BaseNode_References_toString(this: BaseNode, options: ToStringOption) {
     const _private = BaseNode_getPrivate(this);
 
     const dispOptions = {
@@ -158,24 +155,22 @@ export function BaseNode_References_toString(
 
     const addressSpace = this.addressSpace;
 
-    options.add(options.padding + chalk.yellow("          references    : ") + "  length =" +
-        Object.keys(_private._referenceIdx).length);
+    options.add(
+        options.padding + chalk.yellow("          references    : ") + "  length =" + Object.keys(_private._referenceIdx).length
+    );
 
     function dump_reference(follow: boolean, reference: Reference | null) {
-
         if (!reference) {
             return;
         }
         const o = Reference.resolveReferenceNode(addressSpace, reference);
         const name = o ? o.browseName.toString() : "<???>";
-        options.add(options.padding +
-            chalk.yellow("               +-> ") +
-            reference.toString(dispOptions) +
-            " " + chalk.cyan(name));
+        options.add(
+            options.padding + chalk.yellow("               +-> ") + reference.toString(dispOptions) + " " + chalk.cyan(name)
+        );
 
         // ignore HasTypeDefinition as it has been already handled
-        if (sameNodeId(reference.referenceType, hasTypeDefinition_ReferenceTypeNodeId) &&
-            reference.nodeId.namespace === 0) {
+        if (sameNodeId(reference.referenceType, hasTypeDefinition_ReferenceTypeNodeId) && reference.nodeId.namespace === 0) {
             return;
         }
         if (o) {
@@ -185,7 +180,7 @@ export function BaseNode_References_toString(
                     const rr = (o as any).toString({
                         cycleDetector: options.cycleDetector,
                         level: options.level - 1,
-                        padding: options.padding + "         ",
+                        padding: options.padding + "         "
                     });
                     options.add(rr);
                 }
@@ -198,50 +193,51 @@ export function BaseNode_References_toString(
 
     const br = _.map(_private._back_referenceIdx, (x: Reference) => x);
 
-    options.add(options.padding +
-        chalk.yellow("          back_references     : ") +
-        chalk.cyan("  length =") + br.length +
-        chalk.grey(" ( references held by other nodes involving this node)"));
+    options.add(
+        options.padding +
+            chalk.yellow("          back_references     : ") +
+            chalk.cyan("  length =") +
+            br.length +
+            chalk.grey(" ( references held by other nodes involving this node)")
+    );
     // backward reference
     br.forEach(dump_reference.bind(null, false));
-
 }
 
-function _UAType_toString(
-    this: UAReferenceTypePublic | UADataType | UAObjectType | UAVariableType,
-    options: ToStringOption
-): void {
+function _UAType_toString(this: UAReferenceTypePublic | UADataType | UAObjectType | UAVariableType, options: ToStringOption): void {
     if (this.subtypeOfObj) {
-        options.add(options.padding + chalk.yellow("          subtypeOf           : ") +
-            this.subtypeOfObj.browseName.toString() + " (" + this.subtypeOfObj.nodeId.toString() + ")");
+        options.add(
+            options.padding +
+                chalk.yellow("          subtypeOf           : ") +
+                this.subtypeOfObj.browseName.toString() +
+                " (" +
+                this.subtypeOfObj.nodeId.toString() +
+                ")"
+        );
     }
 }
 
-function _UAInstance_toString(
-    this: UAVariable | UAMethod | UAObject,
-    options: ToStringOption
-): void {
-
+function _UAInstance_toString(this: UAVariable | UAMethod | UAObject, options: ToStringOption): void {
     if (this.typeDefinitionObj) {
-        options.add(options.padding + chalk.yellow("          typeDefinition      : ") +
-            this.typeDefinitionObj.browseName.toString() + " (" + this.typeDefinitionObj.nodeId.toString() + ")");
+        options.add(
+            options.padding +
+                chalk.yellow("          typeDefinition      : ") +
+                this.typeDefinitionObj.browseName.toString() +
+                " (" +
+                this.typeDefinitionObj.nodeId.toString() +
+                ")"
+        );
     }
 }
 
-export function UAVariableType_toString(
-    this: UAVariableType,
-    options: ToStringOption
-): void {
+export function UAVariableType_toString(this: UAVariableType, options: ToStringOption): void {
     BaseNode_toString.call(this, options);
     _UAType_toString.call(this, options);
     VariableOrVariableType_toString.call(this, options);
     BaseNode_References_toString.call(this, options);
 }
 
-export function UAVariable_toString(
-    this: UAVariable,
-    options: ToStringOption
-): void {
+export function UAVariable_toString(this: UAVariable, options: ToStringOption): void {
     BaseNode_toString.call(this, options);
     _UAInstance_toString.call(this, options);
     VariableOrVariableType_toString.call(this, options);
@@ -249,19 +245,13 @@ export function UAVariable_toString(
     BaseNode_References_toString.call(this, options);
 }
 
-export function UAObject_toString(
-    this: UAObject,
-    options: ToStringOption
-): void {
+export function UAObject_toString(this: UAObject, options: ToStringOption): void {
     BaseNode_toString.call(this, options);
     _UAInstance_toString.call(this, options);
     BaseNode_References_toString.call(this, options);
 }
 
-export function UAObjectType_toString(
-    this: UAObjectType,
-    options: ToStringOption
-): void {
+export function UAObjectType_toString(this: UAObjectType, options: ToStringOption): void {
     BaseNode_toString.call(this, options);
     _UAType_toString.call(this, options);
     BaseNode_References_toString.call(this, options);
@@ -290,39 +280,47 @@ export function valueRankToString(valueRank: number): string {
 
 function accessLevelFlagToString(flag: AccessLevelFlag): string {
     const str: string[] = [];
-    if (flag & AccessLevelFlag.CurrentRead) { str.push("CurrentRead"); }
-    if (flag & AccessLevelFlag.CurrentWrite) { str.push("CurrentWrite"); }
-    if (flag & AccessLevelFlag.HistoryRead) { str.push("HistoryRead"); }
-    if (flag & AccessLevelFlag.HistoryWrite) { str.push("HistoryWrite"); }
-    if (flag & AccessLevelFlag.SemanticChange) { str.push("SemanticChange"); }
-    if (flag & AccessLevelFlag.StatusWrite) { str.push("StatusWrite"); }
-    if (flag & AccessLevelFlag.TimestampWrite) { str.push("TimestampWrite"); }
+    if (flag & AccessLevelFlag.CurrentRead) {
+        str.push("CurrentRead");
+    }
+    if (flag & AccessLevelFlag.CurrentWrite) {
+        str.push("CurrentWrite");
+    }
+    if (flag & AccessLevelFlag.HistoryRead) {
+        str.push("HistoryRead");
+    }
+    if (flag & AccessLevelFlag.HistoryWrite) {
+        str.push("HistoryWrite");
+    }
+    if (flag & AccessLevelFlag.SemanticChange) {
+        str.push("SemanticChange");
+    }
+    if (flag & AccessLevelFlag.StatusWrite) {
+        str.push("StatusWrite");
+    }
+    if (flag & AccessLevelFlag.TimestampWrite) {
+        str.push("TimestampWrite");
+    }
     return str.join(" | ");
 }
 
-function AccessLevelFlags_toString(
-    this: UAVariable,
-    options: ToStringOption
-) {
+function AccessLevelFlags_toString(this: UAVariable, options: ToStringOption) {
     assert(options);
 
     const _private = BaseNode_getPrivate(this);
-    options.add(options.padding + chalk.yellow("          accessLevel         : ") + " " +
-        accessLevelFlagToString(this.accessLevel));
-    options.add(options.padding + chalk.yellow("          userAccessLevel     : ") + " " +
-        accessLevelFlagToString(this.userAccessLevel));
-
+    options.add(
+        options.padding + chalk.yellow("          accessLevel         : ") + " " + accessLevelFlagToString(this.accessLevel)
+    );
+    options.add(
+        options.padding + chalk.yellow("          userAccessLevel     : ") + " " + accessLevelFlagToString(this.userAccessLevel)
+    );
 }
-export function VariableOrVariableType_toString(
-    this: UAVariableType | UAVariable,
-    options: ToStringOption
-) {
+export function VariableOrVariableType_toString(this: UAVariableType | UAVariable, options: ToStringOption) {
     assert(options);
 
     const _private = BaseNode_getPrivate(this);
 
     if (this.dataType) {
-
         const addressSpace = this.addressSpace;
         const d = addressSpace.findNode(this.dataType);
         const n = d ? "(" + d.browseName.toString() + ")" : " (???)";
@@ -331,29 +329,42 @@ export function VariableOrVariableType_toString(
 
     if (this.nodeClass === NodeClass.Variable) {
         if (this._dataValue) {
-            options.add(options.padding + chalk.yellow("          value               : ") + "\n" +
-                options.indent(this._dataValue.toString(), options.padding + "                        | "));
+            options.add(
+                options.padding +
+                    chalk.yellow("          value               : ") +
+                    "\n" +
+                    options.indent(this._dataValue.toString(), options.padding + "                        | ")
+            );
         }
     }
 
     if (this.hasOwnProperty("valueRank")) {
-
         if (this.valueRank !== undefined) {
-            options.add(options.padding + chalk.yellow("          valueRank           : ") + " " +
-                valueRankToString(this.valueRank));
+            options.add(
+                options.padding + chalk.yellow("          valueRank           : ") + " " + valueRankToString(this.valueRank)
+            );
         } else {
             options.add(options.padding + chalk.yellow("          valueRank           : ") + " undefined");
         }
     }
     if (this.minimumSamplingInterval !== undefined) {
-        options.add(options.padding + chalk.yellow(" minimumSamplingInterval      : ") + " " +
-            this.minimumSamplingInterval.toString() + " ms");
+        options.add(
+            options.padding +
+                chalk.yellow(" minimumSamplingInterval      : ") +
+                " " +
+                this.minimumSamplingInterval.toString() +
+                " ms"
+        );
     }
     if (this.arrayDimensions) {
-        options.add(options.padding + chalk.yellow(" arrayDimension               : ") + " [" +
-            this.arrayDimensions.join(",").toString() + " ]");
+        options.add(
+            options.padding +
+                chalk.yellow(" arrayDimension               : ") +
+                " [" +
+                this.arrayDimensions.join(",").toString() +
+                " ]"
+        );
     }
-
 }
 
 /**
@@ -367,25 +378,26 @@ function _clone_collection_new(
     optionalFilter: any,
     extraInfo: any
 ): void {
-
     const addressSpace = newParent.addressSpace;
-    assert(!optionalFilter || (_.isFunction(optionalFilter.shouldKeep) && _.isFunction(optionalFilter.filterFor)));
+    assert(!optionalFilter || (typeof optionalFilter.shouldKeep === "function" && typeof optionalFilter.filterFor === "function"));
 
     for (const reference of collectionRef) {
-
         const node = Reference.resolveReferenceNode(addressSpace, reference);
 
         // ensure node is of the correct type,
         // it may happen that the xmlnodeset2 file was malformed
 
         // istanbul ignore next
-        if (!_.isFunction((node as any).clone)) {
+        if (!typeof ((node as any) === "function".clone)) {
             // tslint:disable-next-line:no-console
             console.log(
                 chalk.red("Warning : cannot clone node ") +
-                node.browseName.toString() +
-                " of class " + NodeClass[node.nodeClass].toString() +
-                " while cloning " + newParent.browseName.toString());
+                    node.browseName.toString() +
+                    " of class " +
+                    NodeClass[node.nodeClass].toString() +
+                    " while cloning " +
+                    newParent.browseName.toString()
+            );
             continue;
         }
 
@@ -396,9 +408,7 @@ function _clone_collection_new(
         assert(reference.isForward);
         assert(reference.referenceType instanceof NodeId, "" + reference.referenceType.toString());
         const options = {
-            references: [
-                { referenceType: reference.referenceType, isForward: false, nodeId: newParent.nodeId }
-            ]
+            references: [{ referenceType: reference.referenceType, isForward: false, nodeId: newParent.nodeId }]
         };
 
         const clone = (node as any).clone(options, optionalFilter, extraInfo);
@@ -413,19 +423,14 @@ export function _clone_children_references(
     this: BaseNodePublic,
     newParent: BaseNodePublic,
     optionalFilter: any,
-    extraInfo: any): void {
+    extraInfo: any
+): void {
     // find all reference that derives from the Aggregates
     const aggregatesRef = this.findReferencesEx("Aggregates", BrowseDirection.Forward);
     _clone_collection_new.call(this, newParent, aggregatesRef, optionalFilter, extraInfo);
 }
 
-export function _clone_non_hierarchical_references(
-    this: BaseNode,
-    newParent: BaseNodePublic,
-    optionalFilter: any,
-    extraInfo: any
-) {
-
+export function _clone_non_hierarchical_references(this: BaseNode, newParent: BaseNodePublic, optionalFilter: any, extraInfo: any) {
     // clone only some non hierarchical_references that we do want to clone
     // such as
     //   HasSubStateMachine
@@ -446,10 +451,9 @@ export function _clone(
     optionalFilter: any,
     extraInfo: any
 ): BaseNode {
-
-    assert(_.isFunction(Constructor));
+    assert(typeof Constructor === "function");
     assert(_.isObject(options));
-    assert(!extraInfo || (_.isObject(extraInfo) && _.isFunction(extraInfo.registerClonedObject)));
+    assert(!extraInfo || (_.isObject(extraInfo) && typeof extraInfo.registerClonedObject === "function"));
     assert(!(this as any).subtypeOf, "We do not do cloning of Type yet");
 
     options = _.extend(options, {
@@ -457,7 +461,7 @@ export function _clone(
         browseName: this.browseName,
         description: this.description,
         displayName: this.displayName,
-        nodeClass: this.nodeClass,
+        nodeClass: this.nodeClass
     });
     options.references = options.references || [];
 
@@ -465,7 +469,7 @@ export function _clone(
         options.references.push({
             isForward: true,
             nodeId: this.typeDefinition,
-            referenceType: "HasTypeDefinition",
+            referenceType: "HasTypeDefinition"
         });
     }
 
@@ -476,7 +480,7 @@ export function _clone(
             options.references.push({
                 isForward: true,
                 nodeId: modellingRuleNode.nodeId,
-                referenceType: "HasModellingRule",
+                referenceType: "HasModellingRule"
             });
         }
     } else {
@@ -501,18 +505,13 @@ export function _clone(
     return cloneObj;
 }
 
-export function _handle_HierarchicalReference(
-    node: BaseNode,
-    reference: Reference,
-) {
-
+export function _handle_HierarchicalReference(node: BaseNode, reference: Reference) {
     const _private = BaseNode_getPrivate(node);
     if (_private._cache._childByNameMap) {
         const addressSpace = node.addressSpace;
         const referenceType = Reference.resolveReferenceType(addressSpace, reference);
 
         if (referenceType) {
-
             const HierarchicalReferencesType = addressSpace.findReferenceType("HierarchicalReferences");
 
             // xx console.log ("HierarchicalReferencesType",HierarchicalReferencesType.toString());
@@ -526,11 +525,7 @@ export function _handle_HierarchicalReference(
     }
 }
 
-function _remove_HierarchicalReference(
-    node: BaseNode,
-    reference: Reference
-) {
-
+function _remove_HierarchicalReference(node: BaseNode, reference: Reference) {
     const _private = BaseNode_getPrivate(node);
     if (_private._cache._childByNameMap) {
         const addressSpace = node.addressSpace;
@@ -548,12 +543,7 @@ function _remove_HierarchicalReference(
     }
 }
 
-function _makeReferenceDescription(
-    addressSpace: AddressSpace,
-    reference: Reference,
-    resultMask: number
-): ReferenceDescription {
-
+function _makeReferenceDescription(addressSpace: AddressSpace, reference: Reference, resultMask: number): ReferenceDescription {
     const isForward = reference.isForward;
 
     const referenceTypeId = Reference.resolveReferenceType(addressSpace, reference).nodeId;
@@ -568,19 +558,19 @@ function _makeReferenceDescription(
         data = {
             isForward,
             nodeId: reference.nodeId,
-            referenceTypeId: (resultMask & ResultMask.ReferenceType) ? referenceTypeId : null,
+            referenceTypeId: resultMask & ResultMask.ReferenceType ? referenceTypeId : null,
             typeDefinition: null
         };
     } else {
         assert(reference.nodeId, " obj.nodeId");
         data = {
-            browseName: (resultMask & ResultMask.BrowseName) ? coerceQualifiedName(obj.browseName) : null,
-            displayName: (resultMask & ResultMask.DisplayName) ? coerceLocalizedText(obj.displayName[0]) : null,
-            isForward: (resultMask & ResultMask.IsForward) ? isForward : false,
-            nodeClass: (resultMask & ResultMask.NodeClass) ? obj.nodeClass : NodeClass.Unspecified,
+            browseName: resultMask & ResultMask.BrowseName ? coerceQualifiedName(obj.browseName) : null,
+            displayName: resultMask & ResultMask.DisplayName ? coerceLocalizedText(obj.displayName[0]) : null,
+            isForward: resultMask & ResultMask.IsForward ? isForward : false,
+            nodeClass: resultMask & ResultMask.NodeClass ? obj.nodeClass : NodeClass.Unspecified,
             nodeId: obj.nodeId,
-            referenceTypeId: (resultMask & ResultMask.ReferenceType) ? referenceTypeId : null,
-            typeDefinition: (resultMask & ResultMask.TypeDefinition) ? obj.typeDefinition : null
+            referenceTypeId: resultMask & ResultMask.ReferenceType ? referenceTypeId : null,
+            typeDefinition: resultMask & ResultMask.TypeDefinition ? obj.typeDefinition : null
         };
     }
     if (data.typeDefinition === null) {
@@ -613,11 +603,7 @@ export function BaseNode_remove_backward_reference(this: BaseNode, reference: Re
     reference.dispose();
 }
 
-export function BaseNode_add_backward_reference(
-    this: BaseNode,
-    reference: Reference
-): void {
-
+export function BaseNode_add_backward_reference(this: BaseNode, reference: Reference): void {
     const _private = BaseNode_getPrivate(this);
 
     const h = reference.hash;
@@ -655,7 +641,6 @@ export function BaseNode_add_backward_reference(
 }
 
 function _get_idx(referenceType: UAReferenceTypePublic): any {
-
     const possibleReferenceTypes = referenceType.getAllSubtypes();
     // create a index of reference type with browseName as key for faster search
     const keys: any = {};
@@ -673,8 +658,7 @@ export const ReferenceTypeCounter = { count: 0 };
  * @private
  */
 export function getSubtypeIndex(this: UAReferenceTypePublic): any {
-
-    const _cache = BaseNode_getPrivate(this as any as BaseNode);
+    const _cache = BaseNode_getPrivate((this as any) as BaseNode);
 
     if (_cache._subtype_idxVersion < ReferenceTypeCounter.count) {
         // the cache need to be invalidated
@@ -690,7 +674,6 @@ export function getSubtypeIndex(this: UAReferenceTypePublic): any {
 }
 
 export function apply_condition_refresh(this: BaseNode, _cache?: any) {
-
     // visit all notifiers recursively
     _cache = _cache || {};
     const notifiers = this.getNotifiers();

@@ -138,7 +138,7 @@ describe("testing ServerEngine", () => {
                     },
                     set: function(variant) {
                         // Variation 1 : synchronous
-                        // assert(_.isFunction(callback));
+                        // assert(typeof callback === "function");
                         return StatusCodes.Good;
                     }
                 }

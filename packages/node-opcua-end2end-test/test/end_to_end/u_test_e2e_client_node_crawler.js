@@ -157,7 +157,7 @@ module.exports = function(test) {
 
             perform_operation_on_client_session(client, endpointUrl, function(session, done) {
 
-                assert(_.isFunction(done));
+                assert(typeof done === "function");
 
                 const crawler = new NodeCrawler(session);
 
@@ -188,7 +188,7 @@ module.exports = function(test) {
 
             perform_operation_on_client_session(client, endpointUrl, function(session, done) {
 
-                assert(_.isFunction(done));
+                assert(typeof done === "function");
 
                 const crawler = new NodeCrawler(session);
 

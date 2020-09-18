@@ -195,7 +195,7 @@ function write_constructor(write: WriteFunc, schema: StructuredTypeSchema): void
             const documentation = field.documentation ? field.documentation : "";
             def = "";
             if (field.defaultValue !== undefined) {
-                if (_.isFunction(field.defaultValue)) {
+                if (typeof field.defaultValue === "function") {
                     def = " = " + field.defaultValue();
                 } else {
                     def = " = " + field.defaultValue;
@@ -220,7 +220,7 @@ function write_constructor(write: WriteFunc, schema: StructuredTypeSchema): void
     }
 
     write(`        const schema = ${className}.schema;`);
-    if (_.isFunction(schema.constructHook)) {
+    if (typeof schema.constructHook === "function") {
         write("        options = schema.constructHook(options);");
     } else {
         write("        options = schema.constructHook ? schema.constructHook(options) : options;");
@@ -309,7 +309,7 @@ function write_possible_fields(write: WriteFunc, className: string, possibleFiel
 
 function write_isValid(write: WriteFunc, schema: StructuredTypeSchema): void {
     // ---------------------------------------
-    if (_.isFunction(schema.isValid)) {
+    if (typeof schema.isValid === "function") {
         if (produceComment) {
             write("   /**");
             write("    *");
@@ -323,7 +323,7 @@ function write_isValid(write: WriteFunc, schema: StructuredTypeSchema): void {
 }
 
 function write_encode(write: WriteFunc, schema: StructuredTypeSchema): void {
-    if (_.isFunction(schema.encode)) {
+    if (typeof schema.encode === "function") {
         write("    public encode(stream: OutputBinaryStream): void {");
         write("        " + "schema" + ".encode(this, stream);");
         write("    }");
@@ -377,7 +377,7 @@ function write_decode(write: WriteFunc, schema: StructuredTypeSchema): void {
                 if (false) {
                     write("        this." + member + ".decode(stream);");
                 } else {
-                    if (_.isFunction(field.decode)) {
+                    if (typeof field.decode === "function") {
                         write("        this." + member + " = " + "schema" + ".fields[" + i + "].decode(stream);");
                     } else {
                         write("        this." + member + " = decode" + field.fieldType + "(stream);");
@@ -400,7 +400,7 @@ function write_decode(write: WriteFunc, schema: StructuredTypeSchema): void {
     }
 
     //  ---------------------------------------------------------------
-    if (_.isFunction(schema.decode)) {
+    if (typeof schema.decode === "function") {
         if (produceComment) {
             write("    /**");
             write("     * decode the object from a binary stream");
@@ -413,7 +413,7 @@ function write_decode(write: WriteFunc, schema: StructuredTypeSchema): void {
         write("        " + "schema" + ".decode(this,stream);");
         write("    }");
 
-        if (!_.isFunction(schema.decodeDebug)) {
+        if (!typeof schema.decodeDebug === "function") {
             throw new Error("schema decode requires also to provide a decodeDebug " + schema.name);
         }
         write("    public decodeDebug(stream: BinaryStream, options: any): void {");

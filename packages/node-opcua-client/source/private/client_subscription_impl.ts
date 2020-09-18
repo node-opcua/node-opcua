@@ -27,7 +27,7 @@ import {
     NotificationMessage,
     StatusChangeNotification,
     NotificationData,
-    EventNotificationList,
+    EventNotificationList
 } from "node-opcua-service-subscription";
 
 import { StatusCode, StatusCodes } from "node-opcua-status-code";
@@ -40,12 +40,7 @@ import { IBasicSession } from "node-opcua-pseudo-session";
 import { ClientMonitoredItemBase, ClientMonitoredItemOrGroupAction } from "../client_monitored_item_base";
 import { ClientMonitoredItemGroup } from "../client_monitored_item_group";
 import { ClientSession, MonitoredItemData, SubscriptionId } from "../client_session";
-import {
-    ClientHandle,
-    ClientMonitoredItemBaseMap,
-    ClientSubscription,
-    ClientSubscriptionOptions,
-} from "../client_subscription";
+import { ClientHandle, ClientMonitoredItemBaseMap, ClientSubscription, ClientSubscriptionOptions } from "../client_subscription";
 import { ClientMonitoredItemGroupImpl } from "./client_monitored_item_group_impl";
 import { ClientMonitoredItemImpl } from "./client_monitored_item_impl";
 import { ClientSidePublishEngine } from "./client_publish_engine";
@@ -194,12 +189,9 @@ export class ClientSubscriptionImpl extends EventEmitter implements ClientSubscr
 
     public terminate(...args: any[]): any {
         const callback = args[0];
-        assert(_.isFunction(callback), "expecting a callback function");
+        assert(typeof callback === "function", "expecting a callback function");
 
-        if (
-            this.subscriptionId === TERMINTATED_SUBSCRIPTION_ID ||
-            this.subscriptionId === TERMINATING_SUBSCRIPTION_ID
-        ) {
+        if (this.subscriptionId === TERMINTATED_SUBSCRIPTION_ID || this.subscriptionId === TERMINATING_SUBSCRIPTION_ID) {
             // already terminated... just ignore
             return callback(new Error("Already Terminated"));
         }
@@ -218,7 +210,7 @@ export class ClientSubscriptionImpl extends EventEmitter implements ClientSubscr
             }
             session.deleteSubscriptions(
                 {
-                    subscriptionIds: [subscriptionId],
+                    subscriptionIds: [subscriptionId]
                 },
                 (err: Error | null, response?: DeleteSubscriptionsResponse) => {
                     if (response && response!.results![0] !== StatusCodes.Good) {
@@ -267,7 +259,7 @@ export class ClientSubscriptionImpl extends EventEmitter implements ClientSubscr
         const timestampsToReturn = args[2] as TimestampsToReturn;
         const done = args[3] as Callback<ClientMonitoredItemBase>;
 
-        assert(_.isFunction(done), "expecting a function here");
+        assert(typeof done === "function", "expecting a function here");
 
         itemToMonitor.nodeId = resolveNodeId(itemToMonitor.nodeId!);
 
@@ -305,12 +297,7 @@ export class ClientSubscriptionImpl extends EventEmitter implements ClientSubscr
         const timestampsToReturn = args[2] as TimestampsToReturn;
         const done = args[3] as Callback<ClientMonitoredItemGroup>;
 
-        const monitoredItemGroup = new ClientMonitoredItemGroupImpl(
-            this,
-            itemsToMonitor,
-            requestedParameters,
-            timestampsToReturn
-        );
+        const monitoredItemGroup = new ClientMonitoredItemGroupImpl(this, itemsToMonitor, requestedParameters, timestampsToReturn);
 
         this._wait_for_subscription_to_be_ready((err?: Error) => {
             if (err) {
@@ -326,7 +313,7 @@ export class ClientSubscriptionImpl extends EventEmitter implements ClientSubscr
     }
 
     public _delete_monitored_items(monitoredItems: ClientMonitoredItemBase[], callback: ErrorCallback) {
-        assert(_.isFunction(callback));
+        assert(typeof callback === "function");
         assert(_.isArray(monitoredItems));
 
         assert(this.isActive);
@@ -338,7 +325,7 @@ export class ClientSubscriptionImpl extends EventEmitter implements ClientSubscr
         session.deleteMonitoredItems(
             {
                 monitoredItemIds: monitoredItems.map((monitoredItem) => monitoredItem.monitoredItemId),
-                subscriptionId: this.subscriptionId,
+                subscriptionId: this.subscriptionId
             },
             (err: Error | null, response?: DeleteMonitoredItemsResponse) => {
                 callback(err!);
@@ -351,7 +338,7 @@ export class ClientSubscriptionImpl extends EventEmitter implements ClientSubscr
     public setPublishingMode(...args: any[]): any {
         const publishingEnabled = args[0] as boolean;
         const callback = args[1] as Callback<StatusCode>;
-        assert(_.isFunction(callback));
+        assert(typeof callback === "function");
 
         const session = this.session as ClientSessionImpl;
         if (!session) {
@@ -412,14 +399,14 @@ export class ClientSubscriptionImpl extends EventEmitter implements ClientSubscr
                         itemsToCreate.push({
                             itemToMonitor: monitoredItem.itemToMonitor,
                             monitoringMode: monitoredItem.monitoringMode,
-                            requestedParameters: monitoredItem.monitoringParameters,
+                            requestedParameters: monitoredItem.monitoringParameters
                         });
                     });
 
                     const createMonitorItemsRequest = new CreateMonitoredItemsRequest({
                         itemsToCreate,
                         subscriptionId: this.subscriptionId,
-                        timestampsToReturn: TimestampsToReturn.Both, // this.timestampsToReturn,
+                        timestampsToReturn: TimestampsToReturn.Both // this.timestampsToReturn,
                     });
 
                     const session = this.session;
@@ -459,7 +446,7 @@ export class ClientSubscriptionImpl extends EventEmitter implements ClientSubscr
                             innerCallback();
                         }
                     );
-                },
+                }
             ],
             (err) => {
                 callback(err!);
@@ -529,7 +516,7 @@ export class ClientSubscriptionImpl extends EventEmitter implements ClientSubscr
             } else if (this.subscriptionId === TERMINTATED_SUBSCRIPTION_ID) {
                 // the subscription has been terminated in the meantime
                 // this indicates a potential issue in the code using this api.
-                if (_.isFunction(done)) {
+                if (typeof done === "function") {
                     done(new Error("subscription has been deleted"));
                 }
             } else {
@@ -541,7 +528,7 @@ export class ClientSubscriptionImpl extends EventEmitter implements ClientSubscr
     }
 
     private __create_subscription(callback: ErrorCallback) {
-        assert(_.isFunction(callback));
+        assert(typeof callback === "function");
 
         if (!this.hasSession) {
             return callback(new Error("No Session"));
@@ -556,7 +543,7 @@ export class ClientSubscriptionImpl extends EventEmitter implements ClientSubscr
             publishingEnabled: this.publishingEnabled,
             requestedLifetimeCount: this.lifetimeCount,
             requestedMaxKeepAliveCount: this.maxKeepAliveCount,
-            requestedPublishingInterval: this.publishingInterval,
+            requestedPublishingInterval: this.publishingInterval
         });
 
         session.createSubscription(request, (err: Error | null, response?: CreateSubscriptionResponse) => {
@@ -613,8 +600,7 @@ export class ClientSubscriptionImpl extends EventEmitter implements ClientSubscr
                     warningLog(
                         chalk.yellow("Warning"),
                         chalk.cyan(
-                            " Server send a DataChangeNotification for an EventNotifier." +
-                                " EventNotificationList was expected"
+                            " Server send a DataChangeNotification for an EventNotifier." + " EventNotificationList was expected"
                         )
                     );
                     warningLog(
@@ -727,9 +713,7 @@ export class ClientSubscriptionImpl extends EventEmitter implements ClientSubscr
                             this.__on_publish_response_DataChangeNotification(notification as DataChangeNotification);
                             break;
                         case "StatusChangeNotification":
-                            this.__on_publish_response_StatusChangeNotification(
-                                notification as StatusChangeNotification
-                            );
+                            this.__on_publish_response_StatusChangeNotification(notification as StatusChangeNotification);
                             break;
                         case "EventNotificationList":
                             this.__on_publish_response_EventNotificationList(notification as EventNotificationList);
@@ -793,18 +777,14 @@ export class ClientSubscriptionImpl extends EventEmitter implements ClientSubscr
 const thenify = require("thenify");
 const opts = { multiArgs: false };
 
-ClientSubscriptionImpl.prototype.setPublishingMode = thenify.withCallback(
-    ClientSubscriptionImpl.prototype.setPublishingMode
-);
+ClientSubscriptionImpl.prototype.setPublishingMode = thenify.withCallback(ClientSubscriptionImpl.prototype.setPublishingMode);
 ClientSubscriptionImpl.prototype.monitor = thenify.withCallback(ClientSubscriptionImpl.prototype.monitor);
 ClientSubscriptionImpl.prototype.monitorItems = thenify.withCallback(ClientSubscriptionImpl.prototype.monitorItems);
 ClientSubscriptionImpl.prototype.recreateSubscriptionAndMonitoredItem = thenify.withCallback(
     ClientSubscriptionImpl.prototype.recreateSubscriptionAndMonitoredItem
 );
 ClientSubscriptionImpl.prototype.terminate = thenify.withCallback(ClientSubscriptionImpl.prototype.terminate);
-ClientSubscriptionImpl.prototype.getMonitoredItems = thenify.withCallback(
-    ClientSubscriptionImpl.prototype.getMonitoredItems
-);
+ClientSubscriptionImpl.prototype.getMonitoredItems = thenify.withCallback(ClientSubscriptionImpl.prototype.getMonitoredItems);
 
 ClientSubscription.create = (clientSession: ClientSession, options: ClientSubscriptionOptions) => {
     return new ClientSubscriptionImpl(clientSession, options);

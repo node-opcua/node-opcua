@@ -247,7 +247,7 @@ function makeStructure(dataType/*: UADataType*/, bForce/*: boolean*/, schema_fol
     const relative_filename = normalize_require_file(__dirname, filename);
 
     const constructor = require(relative_filename)[schema.name];
-    assert(_.isFunction(constructor), "expecting a constructor here");
+    assert(typeof constructor === "function", "expecting a constructor here");
 
     return constructor;
 }
