@@ -981,7 +981,7 @@ function estimateSecurityLevel(securityMode: MessageSecurityMode, securityPolicy
  * @private
  */
 function _makeEndpointDescription(options: MakeEndpointDescriptionOptions): EndpointDescriptionEx {
-    assert(_.isFinite(options.port), "expecting a valid port number");
+    assert(isFinite(options.port), "expecting a valid port number");
     assert(options.hasOwnProperty("serverCertificateChain"));
     assert(!options.hasOwnProperty("serverCertificate"));
     assert(!!options.securityMode); // s.MessageSecurityMode
@@ -995,7 +995,7 @@ function _makeEndpointDescription(options: MakeEndpointDescriptionOptions): Endp
         options.securityLevel === undefined
             ? estimateSecurityLevel(options.securityMode, options.securityPolicy)
             : options.securityLevel;
-    assert(_.isFinite(options.securityLevel), "expecting a valid securityLevel");
+    assert(isFinite(options.securityLevel), "expecting a valid securityLevel");
 
     const securityPolicyUri = toURI(options.securityPolicy);
 

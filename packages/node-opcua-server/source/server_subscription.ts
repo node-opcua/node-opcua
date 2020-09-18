@@ -1011,9 +1011,9 @@ export class Subscription extends EventEmitter {
     } else {
       debugLog(chalk.red("Cannot  send GoodSubscriptionTransferred => lets create a TransferedSubscription "));
       const ts = new TransferedSubscription({
-        id: this.id,
-        generator: this._sequence_number_generator,
-        publishEngine: this.publishEngine
+          generator: this._sequence_number_generator,
+          id: this.id,
+          publishEngine: this.publishEngine
       });
 
       const notificationMessage = new NotificationMessage({

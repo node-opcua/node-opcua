@@ -9,7 +9,6 @@ const debugLog = make_debugLog(__filename);
 const doDebug = checkDebugFlag(__filename) || true;
 
 export class MDNSResponder {
-
     /**
      * the list of servers that have been activated as mDNS service
      */
@@ -21,7 +20,6 @@ export class MDNSResponder {
     private lastUpdateDate: Date = new Date();
 
     constructor() {
-
         this.registeredServers = [];
 
         this.multicastDNS = acquireBonjour();
@@ -33,11 +31,8 @@ export class MDNSResponder {
         });
 
         const findServiceIndex = (serverName: string) => {
-
-            const index = this.registeredServers.findIndex(
-              (server: ServerOnNetwork) => server.serverName === serverName);
+            const index = this.registeredServers.findIndex((server: ServerOnNetwork) => server.serverName === serverName);
             return index;
-
         };
 
         const addService = (service: bonjour.Service) => {
@@ -76,24 +71,27 @@ export class MDNSResponder {
             const serverName = service.name;
 
             service.txt = service.txt || {};
-            const service_txt =  service.txt as any;
+            const service_txt = service.txt as any;
             service_txt.caps = service_txt.caps || "";
-            const serverCapabilities = service_txt.caps.split(",").map((x: string) => x.toUpperCase()).sort();
+            const serverCapabilities = service_txt.caps
+                .split(",")
+                .map((x: string) => x.toUpperCase())
+                .sort();
 
             const path = service_txt.path || "";
             const discoveryUrl = "opc.tcp://" + service.host + ":" + service.port + path;
 
             this.registeredServers.push(
-              new ServerOnNetwork({
-                  discoveryUrl,
-                  recordId,
-                  serverCapabilities,
-                  serverName
-              }));
+                new ServerOnNetwork({
+                    discoveryUrl,
+                    recordId,
+                    serverCapabilities,
+                    serverName
+                })
+            );
             this.lastUpdateDate = new Date(Date.now());
 
             debugLog("a new OPCUA server has been registered on mDNS", service.name, recordId);
-
         };
 
         const removeService = (service: bonjour.Service) => {
@@ -109,7 +107,6 @@ export class MDNSResponder {
         };
 
         this.responder.on("up", (service: bonjour.Service) => {
-
             if (doDebug) {
                 debugLog("service is up with  ", service.fqdn);
             }
@@ -125,7 +122,7 @@ export class MDNSResponder {
     }
 
     public dispose() {
-        delete this.multicastDNS;
+        delete (this as any).multicastDNS;
         releaseBonjour();
     }
 }

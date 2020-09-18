@@ -137,12 +137,12 @@ export class UAMethod extends BaseNode implements UAMethodPublic {
             return callback(null, { statusCode: StatusCodes.BadNodeIdInvalid });
         }
         if (!this._asyncExecutionFunction) {
-            console.log("Method " + this.nodeId.toString() + " " + this.browseName.toString() + "_ has not been bound");
+            console.log("Method " + this.nodeId.toString() + " " + this.browseName.toString() + " has not been bound");
             return callback(null, { statusCode: StatusCodes.BadInternalError });
         }
 
         if (!this.getExecutableFlag(context)) {
-            console.log("Method " + this.nodeId.toString() + " " + this.browseName.toString() + "_ is not executable");
+            console.log("Method " + this.nodeId.toString() + " " + this.browseName.toString() + " is not executable");
             // todo : find the correct Status code to return here
             return callback(null, { statusCode: StatusCodes.BadMethodInvalid });
         }

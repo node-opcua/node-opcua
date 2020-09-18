@@ -107,7 +107,7 @@ function shutdownAndDisposeAddressSpace(this: ServerEngine) {
     if (this.addressSpace) {
         this.addressSpace.shutdown();
         this.addressSpace.dispose();
-        delete this.addressSpace;
+        delete (this as any).addressSpace;
     }
 }
 
@@ -1151,7 +1151,7 @@ export class ServerEngine extends EventEmitter {
      *    This may occur when the time it takes the Server to process and return the new data value after it has been
      *    accessed is greater than the specified maximum age.
      *    If maxAge is set to 0, the Server shall attempt to read a new value from the data source.
-     *    If maxAge is set to the max Int32 value or greater, the Server shall attempt to geta cached value.
+     *    If maxAge is set to the max Int32 value or greater, the Server shall attempt to get a cached value.
      *    Negative values are invalid for maxAge.
      *
      *  @return  an array of DataValue
@@ -1771,13 +1771,13 @@ export class ServerEngine extends EventEmitter {
 
         const subscription = new Subscription({
             id: _get_next_subscriptionId(),
-            publishingInterval,
-            maxKeepAliveCount,
             lifeTimeCount,
+            maxKeepAliveCount,
             maxNotificationsPerPublish: request.maxNotificationsPerPublish,
             priority: request.priority || 0,
             publishEngine: session.publishEngine as any, //
             publishingEnabled: request.publishingEnabled,
+            publishingInterval,
             // -------------------
             sessionId: NodeId.nullNodeId
         });

@@ -161,7 +161,7 @@ function isValidSecurityPolicy(securityPolicy: SecurityPolicy) {
 }
 
 /**
- * returns trus if the nonce is null or zero (all bytes set to 0)
+ * returns true if the nonce is null or zero (all bytes set to 0)
  */
 export function isEmptyNonce(nonce: Buffer): boolean {
     const countZero = nonce.reduce((accumulator: number, currentValue: number) => accumulator + (currentValue === 0 ? 1 : 0), 0);
@@ -579,7 +579,10 @@ export class ServerSecureChannelLayer extends EventEmitter {
             this._tick2 = get_clock_tick();
         }
 
-        assert(this.securityToken);
+        // istanbul ignore next
+        if (!this.securityToken) {
+            throw new Error("Internal error");
+        }
 
         let options = {
             channelId: this.securityToken.channelId,
@@ -744,8 +747,6 @@ export class ServerSecureChannelLayer extends EventEmitter {
     }
 
     private _prepare_security_token(openSecureChannelRequest: OpenSecureChannelRequest) {
-        delete this.securityToken;
-
         if (openSecureChannelRequest.requestType === SecurityTokenRequestType.Renew) {
             this._stop_security_token_watch_dog();
         } else if (openSecureChannelRequest.requestType === SecurityTokenRequestType.Issue) {

@@ -21,8 +21,7 @@
         "node-opcua-nodeid": "2.16.0",
         "node-opcua-status-code": "2.16.0",
         "node-opcua-utils": "2.16.0",
-        "node-opcua-variant": "2.16.0",
-        "underscore": "^1.10.2"
+        "node-opcua-variant": "2.16.0"
     },
     "devDependencies": {
         "node-opcua-generator": "2.16.0",

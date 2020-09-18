@@ -246,7 +246,7 @@ export class ServerSidePublishEngine extends EventEmitter implements IServerSide
      */
     public add_subscription(subscription: Subscription): Subscription {
         assert(subscription instanceof Subscription);
-        assert(_.isFinite(subscription.id));
+        assert(isFinite(subscription.id));
         subscription.publishEngine = (subscription.publishEngine || this) as any;
         assert((subscription.publishEngine as any) === this);
         assert(!this._subscriptions[subscription.id]);
@@ -259,7 +259,7 @@ export class ServerSidePublishEngine extends EventEmitter implements IServerSide
 
     public detach_subscription(subscription: Subscription): Subscription {
         assert(subscription instanceof Subscription);
-        assert(_.isFinite(subscription.id));
+        assert(isFinite(subscription.id));
         assert((subscription.publishEngine as any) === this);
         assert(this._subscriptions[subscription.id] === subscription);
 
@@ -315,7 +315,7 @@ export class ServerSidePublishEngine extends EventEmitter implements IServerSide
             },
             0
         );
-        assert(_.isFinite(result));
+        assert(isFinite(result));
         return result;
     }
 

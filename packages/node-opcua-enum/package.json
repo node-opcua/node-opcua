@@ -16,8 +16,7 @@
     "devDependencies": {
         "enum": "3.0.4",
         "node-opcua-benchmarker": "2.16.0",
-        "should": "^13.2.3",
-        "underscore": "^1.10.2"
+        "should": "^13.2.3"
     },
     "author": "Etienne Rossignon",
     "license": "MIT",

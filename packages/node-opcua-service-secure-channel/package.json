@@ -20,7 +20,7 @@
         "node-opcua-types": "2.16.0"
     },
     "devDependencies": {
-        "node-opcua-binary-stream": "2.8.1",
+        "node-opcua-binary-stream": "2.16.0",
         "node-opcua-buffer-utils": "2.16.0",
         "node-opcua-debug": "2.16.0",
         "node-opcua-generator": "2.16.0",

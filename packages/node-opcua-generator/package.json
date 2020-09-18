@@ -26,12 +26,10 @@
         "node-opcua-status-code": "2.16.0",
         "node-opcua-utils": "2.16.0",
         "node-opcua-xml2json": "2.16.0",
-        "prettier": "^2.0.5",
-        "typescript": "^3.9.7",
-        "underscore": "^1.10.2"
+        "typescript": "^4.0.3",
+        "underscore": "^1.11.0"
     },
     "devDependencies": {
-        "@types/prettier": "^2.0.2",
         "node-opcua-binary-stream": "2.16.0",
         "node-opcua-extension-object": "2.16.0",
         "node-opcua-packet-analyzer": "2.16.0",
