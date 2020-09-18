@@ -47,7 +47,7 @@ export class ClientMonitoredItemGroupImpl extends EventEmitter implements Client
         timestampsToReturn: TimestampsToReturn
     ) {
         super();
-        assert(_.isArray(itemsToMonitor));
+        assert(Array.isArray(itemsToMonitor));
         // Try to resolve the nodeId and fail fast if we can't.
         itemsToMonitor.forEach((itemToMonitor: ReadValueIdOptions) => {
             itemToMonitor.nodeId = resolveNodeId(itemToMonitor.nodeId!);

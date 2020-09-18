@@ -44,7 +44,7 @@ export class ConditionInfo {
             this.quality = options.quality!;
         }
         if (options.hasOwnProperty("severity") && options.severity !== null) {
-            assert(_.isNumber(options.severity));
+            assert(typeof options.severity === "number");
             this.severity = options.severity!;
         }
         if (options.hasOwnProperty("retain") && options.retain !== null) {

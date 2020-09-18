@@ -28,7 +28,7 @@ module.exports = function(test) {
                     requestedPublishingInterval: maxValue
                 };
                 session.modifySubscription(request, function(err, response) {
-                    _.isNumber(response.revisedPublishingInterval).should.be.eql(true);
+                    typeof response.revisedPublishingInterval === "number".should.be.eql(true);
                     response.revisedPublishingInterval.should.not.eql(maxValue);
                     //xx console.log("   requestedPublishingInterval = ",maxValue);
                     //xx console.log("     revisedPublishingInterval = ",response.revisedPublishingInterval);

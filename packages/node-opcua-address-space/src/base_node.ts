@@ -1258,7 +1258,7 @@ export class BaseNode extends EventEmitter implements BaseNodePublic {
     }
 
     private _setDisplayName(displayName: LocalizedTextLike | LocalizedTextLike[]) {
-        const displayNames: LocalizedTextLike[] = _.isArray(displayName) ? displayName : [displayName];
+        const displayNames: LocalizedTextLike[] = Array.isArray(displayName) ? displayName : [displayName];
         const _displayNames = displayNames.map(coerceLocalizedText) as LocalizedText[];
         const _private = BaseNode_getPrivate(this);
         _private._displayName = _displayNames;
@@ -1306,7 +1306,7 @@ function _setup_parent_item(this: BaseNode, references: { [key: string]: any }):
 
     /* jshint validthis: true */
     assert(this instanceof BaseNode);
-    assert(_.isArray(references));
+    assert(Array.isArray(references));
 
     const _private = BaseNode_getPrivate(this);
     assert(!_private._parent, "_setup_parent_item has been already called");

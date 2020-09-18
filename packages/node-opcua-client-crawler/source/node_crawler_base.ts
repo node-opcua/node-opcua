@@ -82,7 +82,7 @@ function convertToStandardArray(a: number[] | Uint32Array | undefined): number[]
  * @return {*}
  */
 function _fetch_elements<T>(arr: T[], maxNode: number): T[] {
-    assert(_.isArray(arr));
+    assert(Array.isArray(arr));
     assert(arr.length > 0);
     const highLimit = maxNode <= 0 ? arr.length : maxNode;
     const tmp = arr.splice(0, highLimit);
@@ -977,7 +977,7 @@ export class NodeCrawlerBase extends EventEmitter implements NodeCrawlerEvents {
         this.pendingBrowseTasks.push({
             action: (object: CacheNode) => {
                 assert(object === cacheNode);
-                assert(_.isArray(object.references));
+                assert(Array.isArray(object.references));
                 assert(cacheNode.browseName.name !== "pending");
                 actionOnBrowse(null, cacheNode);
             },
@@ -996,7 +996,7 @@ export class NodeCrawlerBase extends EventEmitter implements NodeCrawlerEvents {
         this.pendingBrowseNextTasks.push({
             action: (object: CacheNode) => {
                 assert(object === cacheNode);
-                assert(_.isArray(object.references));
+                assert(Array.isArray(object.references));
                 assert(cacheNode.browseName.name !== "pending");
                 actionOnBrowse(null, cacheNode);
             },

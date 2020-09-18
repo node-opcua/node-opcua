@@ -113,7 +113,7 @@ function shutdownAndDisposeAddressSpace(this: ServerEngine) {
 
 // binding methods
 function getMonitoredItemsId(this: ServerEngine, inputArguments: any, context: SessionContext, callback: any) {
-    assert(_.isArray(inputArguments));
+    assert(Array.isArray(inputArguments));
     assert(typeof callback === "function");
 
     assert(context.hasOwnProperty("session"), " expecting a session id in the context object");
@@ -136,8 +136,8 @@ function getMonitoredItemsId(this: ServerEngine, inputArguments: any, context: S
     }
     const result = subscription.getMonitoredItems();
     assert(result.statusCode);
-    assert(_.isArray(result.serverHandles));
-    assert(_.isArray(result.clientHandles));
+    assert(Array.isArray(result.serverHandles));
+    assert(Array.isArray(result.clientHandles));
     assert(result.serverHandles.length === result.clientHandles.length);
     const callMethodResult = new CallMethodResult({
         statusCode: result.statusCode,
@@ -616,7 +616,7 @@ export class ServerEngine extends EventEmitter {
             }
 
             const bindStandardScalar = (id: number, dataType: DataType, func: () => any, setter_func?: (value: any) => void) => {
-                assert(_.isNumber(id), "expecting id to be a number");
+                assert(typeof id === "number", "expecting id to be a number");
                 assert(typeof func === "function");
                 assert(typeof setter_func === "function" || !setter_func);
                 assert(dataType !== null); // check invalid dataType
@@ -666,7 +666,7 @@ export class ServerEngine extends EventEmitter {
                 bindVariableIfPresent(nodeId, {
                     get() {
                         const value = func();
-                        assert(_.isArray(value));
+                        assert(Array.isArray(value));
                         return new Variant({
                             arrayType: VariantArrayType.Array,
                             dataType: variantDataType,
@@ -1164,7 +1164,7 @@ export class ServerEngine extends EventEmitter {
         const timestampsToReturn = readRequest.timestampsToReturn;
 
         const nodesToRead = readRequest.nodesToRead || [];
-        assert(_.isArray(nodesToRead));
+        assert(Array.isArray(nodesToRead));
 
         context.currentTime = new Date();
 
@@ -1256,7 +1256,7 @@ export class ServerEngine extends EventEmitter {
 
             // tslint:disable:array-type
             async.map(nodesToWrite, performWrite, (err?: Error | null, statusCodes?: (StatusCode | undefined)[]) => {
-                assert(_.isArray(statusCodes));
+                assert(Array.isArray(statusCodes));
                 callback(err!, statusCodes as StatusCode[]);
             });
         });
@@ -1323,7 +1323,7 @@ export class ServerEngine extends EventEmitter {
         const nodesToRead = historyReadRequest.nodesToRead || ([] as HistoryReadValueId[]);
 
         assert(historyReadDetails instanceof HistoryReadDetails);
-        assert(_.isArray(nodesToRead));
+        assert(Array.isArray(nodesToRead));
 
         const historyData: HistoryReadResult[] = [];
         async.eachSeries(
@@ -1388,7 +1388,7 @@ export class ServerEngine extends EventEmitter {
 
         const sessionTimeout = options.sessionTimeout || 1000;
 
-        assert(_.isNumber(sessionTimeout));
+        assert(typeof sessionTimeout === "number");
 
         const session = new ServerSession(this, sessionTimeout);
 
@@ -1558,7 +1558,7 @@ export class ServerEngine extends EventEmitter {
         sendInitialValues: boolean
     ): Promise<TransferResult> {
         assert(session instanceof ServerSession);
-        assert(_.isNumber(subscriptionId));
+        assert(typeof subscriptionId === "number");
         assert(_.isBoolean(sendInitialValues));
 
         if (subscriptionId <= 0) {

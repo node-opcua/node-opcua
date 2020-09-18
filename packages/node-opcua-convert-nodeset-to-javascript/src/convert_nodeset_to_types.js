@@ -123,7 +123,7 @@ function makeEnumeration(dataType, bForce) {
     assert(dataType);
     assert(dataType.browseName);
     assert(dataType.browseName instanceof QualifiedName);
-    assert(_.isArray(dataType.definition));
+    assert(Array.isArray(dataType.definition));
 
     const dataTypeName = dataType.browseName.name.toString();
     if (hasEnumeration(dataTypeName)) {

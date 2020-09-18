@@ -32,7 +32,7 @@ export function decodeByteString(stream: BinaryStream): ByteString {
 }
 
 export function coerceByteString(value: any): ByteString {
-    if (_.isArray(value)) {
+    if (Array.isArray(value)) {
         return Buffer.from(value);
     }
     if (typeof value === "string") {

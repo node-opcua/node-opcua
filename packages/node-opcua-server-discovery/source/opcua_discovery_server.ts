@@ -11,24 +11,10 @@ import { callbackify } from "util";
 import { assert } from "node-opcua-assert";
 import { UAString } from "node-opcua-basic-types";
 import { makeApplicationUrn } from "node-opcua-common";
-import {
-    checkDebugFlag,
-    make_debugLog
-} from "node-opcua-debug";
-import {
-    extractFullyQualifiedDomainName,
-    resolveFullyQualifiedDomainName
-} from "node-opcua-hostname";
-import {
-    Message,
-    Response,
-    ServerSecureChannelLayer
-} from "node-opcua-secure-channel";
-import {
-    OPCUABaseServer,
-    OPCUABaseServerOptions,
-    OPCUAServerEndPoint
-} from "node-opcua-server";
+import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
+import { extractFullyQualifiedDomainName, resolveFullyQualifiedDomainName } from "node-opcua-hostname";
+import { Message, Response, ServerSecureChannelLayer } from "node-opcua-secure-channel";
+import { OPCUABaseServer, OPCUABaseServerOptions, OPCUAServerEndPoint } from "node-opcua-server";
 
 import {
     Announcement,
@@ -45,10 +31,7 @@ import {
     ServerOnNetwork
 } from "node-opcua-service-discovery";
 import { ApplicationDescription } from "node-opcua-service-endpoints";
-import {
-    ApplicationDescriptionOptions,
-    ApplicationType
-} from "node-opcua-service-endpoints";
+import { ApplicationDescriptionOptions, ApplicationType } from "node-opcua-service-endpoints";
 import { StatusCode, StatusCodes } from "node-opcua-status-code";
 
 import { MDNSResponder } from "./mdns_responder";
@@ -61,12 +44,9 @@ function constructFilename(p: string): string {
     return filename;
 }
 
-function hasCapabilities(
-    serverCapabilities: UAString[] | null,
-    serverCapabilityFilter: string
-): boolean {
+function hasCapabilities(serverCapabilities: UAString[] | null, serverCapabilityFilter: string): boolean {
     if (serverCapabilities == null) {
-        return true;  // filter is empty => no filtering should take place
+        return true; // filter is empty => no filtering should take place
     }
     if (serverCapabilityFilter.length === 0) {
         return true; // filter is empty => no filtering should take place
@@ -75,10 +55,8 @@ function hasCapabilities(
 }
 
 export interface OPCUADiscoveryServerOptions extends OPCUABaseServerOptions {
-
     certificateFile?: string;
     port?: number;
-
 }
 
 interface RegisteredServerExtended extends RegisteredServer {
@@ -92,14 +70,12 @@ interface RegisterServerMap {
 }
 
 export class OPCUADiscoveryServer extends OPCUABaseServer {
-
     private mDnsResponder?: MDNSResponder;
     private readonly registeredServers: RegisterServerMap;
     private bonjourHolder: BonjourHolder;
     private _delayInit?: () => void;
 
     constructor(options: OPCUADiscoveryServerOptions) {
-
         const default_certificate_file = constructFilename("certificates/server_selfsigned_cert_2048.pem");
         options.certificateFile = options.certificateFile || default_certificate_file;
         assert(fs.existsSync(options.certificateFile), "cannot find certificateFile" + options.certificateFile);
@@ -156,37 +132,37 @@ export class OPCUADiscoveryServer extends OPCUABaseServer {
                 this.on_request(message, channel);
             });
         };
-
     }
 
     public async start(): Promise<void>;
     public start(done: (err?: Error) => void): void;
     public start(done?: (err?: Error) => void): any {
         assert(!this.mDnsResponder);
-        assert(_.isArray(this.capabilitiesForMDNS));
+        assert(Array.isArray(this.capabilitiesForMDNS));
 
         callbackify(extractFullyQualifiedDomainName)((err1: Error | null, fqdn: string) => {
-
             if (this._delayInit) {
                 this._delayInit();
                 this._delayInit = undefined;
             }
 
             super.start((err?: Error | null) => {
-
                 if (err) {
                     return done!(err);
                 }
                 this.mDnsResponder = new MDNSResponder();
                 // declare discovery server in bonjour
-                this.bonjourHolder._announcedOnMulticastSubnetWithCallback({
-                    capabilities: this.capabilitiesForMDNS,
-                    name: this.serverInfo.applicationUri!,
-                    path: "/DiscoveryServer",
-                    port: this.endpoints[0].port
-                }, (err2: Error | null) => {
-                    done!(err2!);
-                });
+                this.bonjourHolder._announcedOnMulticastSubnetWithCallback(
+                    {
+                        capabilities: this.capabilitiesForMDNS,
+                        name: this.serverInfo.applicationUri!,
+                        path: "/DiscoveryServer",
+                        port: this.endpoints[0].port
+                    },
+                    (err2: Error | null) => {
+                        done!(err2!);
+                    }
+                );
             });
         });
     }
@@ -194,18 +170,16 @@ export class OPCUADiscoveryServer extends OPCUABaseServer {
     public async shutdown(): Promise<void>;
     public shutdown(done: (err?: Error) => void): void;
     public shutdown(done?: (err?: Error) => void): any {
-
         if (this.mDnsResponder) {
             this.mDnsResponder.dispose();
             this.mDnsResponder = undefined;
         }
         debugLog("stopping announcement of LDS on mDNS");
-        this.bonjourHolder._stop_announcedOnMulticastSubnetWithCallback(
-            () => {
-                debugLog("stopping announcement of LDS on mDNS - DONE");
-                debugLog("Shutting down Discovery Server");
-                super.shutdown(done!);
-            });
+        this.bonjourHolder._stop_announcedOnMulticastSubnetWithCallback(() => {
+            debugLog("stopping announcement of LDS on mDNS - DONE");
+            debugLog("Shutting down Discovery Server");
+            super.shutdown(done!);
+        });
     }
 
     /**
@@ -216,7 +190,6 @@ export class OPCUADiscoveryServer extends OPCUABaseServer {
     }
 
     public getServers(channel: ServerSecureChannelLayer): ApplicationDescription[] {
-
         this.serverInfo.discoveryUrls = this.getDiscoveryUrls();
 
         const servers: ApplicationDescription[] = [this.serverInfo];
@@ -230,7 +203,6 @@ export class OPCUADiscoveryServer extends OPCUABaseServer {
     }
 
     protected _on_RegisterServer2Request(message: Message, channel: ServerSecureChannelLayer) {
-
         assert(message.request instanceof RegisterServer2Request);
         const request = message.request as RegisterServer2Request;
 
@@ -254,15 +226,14 @@ export class OPCUADiscoveryServer extends OPCUABaseServer {
 
                     response = OPCUADiscoveryServer.makeServiceFault(StatusCodes.BadInternalError, additional_messages);
                     channel.send_response("MSG", response, message);
-
                 } else {
                     channel.send_response("MSG", response!, message);
                 }
-            });
+            }
+        );
     }
 
     protected _on_RegisterServerRequest(message: Message, channel: ServerSecureChannelLayer) {
-
         assert(message.request instanceof RegisterServerRequest);
         const request = message.request as RegisterServerRequest;
         assert(request.schema.name === "RegisterServerRequest");
@@ -272,11 +243,11 @@ export class OPCUADiscoveryServer extends OPCUABaseServer {
             undefined,
             (err: Error | null, response?: Response) => {
                 channel.send_response("MSG", response!, message);
-            });
+            }
+        );
     }
 
     protected _on_FindServersOnNetworkRequest(message: Message, channel: ServerSecureChannelLayer) {
-
         // from OPCUA 1.04 part 4
         // This Service returns the Servers known to a Discovery Server. Unlike FindServer, this Service is
         // only implemented by Discovery Servers.
@@ -327,8 +298,10 @@ export class OPCUADiscoveryServer extends OPCUABaseServer {
         const servers = [];
 
         request.serverCapabilityFilter = request.serverCapabilityFilter || [];
-        const serverCapabilityFilter: string = request.serverCapabilityFilter.map(
-            (x: UAString) => x!.toUpperCase()).sort().join(" ");
+        const serverCapabilityFilter: string = request.serverCapabilityFilter
+            .map((x: UAString) => x!.toUpperCase())
+            .sort()
+            .join(" ");
 
         debugLog(" startingRecordId = ", request.startingRecordId);
 
@@ -351,7 +324,6 @@ export class OPCUADiscoveryServer extends OPCUABaseServer {
             servers
         });
         channel.send_response("MSG", response, message);
-
     }
 
     private async __internalRegisterServerWithCallback(
@@ -369,14 +341,15 @@ export class OPCUADiscoveryServer extends OPCUABaseServer {
         rawServer: RegisteredServer,
         discoveryConfigurations?: MdnsDiscoveryConfiguration[]
     ): Promise<Response> {
-
-        const server = rawServer as any as RegisteredServerExtended;
+        const server = (rawServer as any) as RegisteredServerExtended;
 
         if (!discoveryConfigurations) {
-            discoveryConfigurations = [new MdnsDiscoveryConfiguration({
-                mdnsServerName: undefined,
-                serverCapabilities: ["NA"]
-            })];
+            discoveryConfigurations = [
+                new MdnsDiscoveryConfiguration({
+                    mdnsServerName: undefined,
+                    serverCapabilities: ["NA"]
+                })
+            ];
         }
 
         function sendError(statusCode: StatusCode): Response {
@@ -388,17 +361,13 @@ export class OPCUADiscoveryServer extends OPCUABaseServer {
         }
 
         async function _stop_announcedOnMulticastSubnet(conf: MdnsDiscoveryConfiguration): Promise<void> {
-            const b = ((conf as any).bonjourHolder) as BonjourHolder;
+            const b = (conf as any).bonjourHolder as BonjourHolder;
             await b._stop_announcedOnMulticastSubnet();
             (conf as any).bonjourHolder = undefined;
         }
 
-        async function _announcedOnMulticastSubnet(
-            conf: MdnsDiscoveryConfiguration,
-            announcement: Announcement
-        ): Promise<void> {
-
-            let b = ((conf as any).bonjourHolder) as BonjourHolder;
+        async function _announcedOnMulticastSubnet(conf: MdnsDiscoveryConfiguration, announcement: Announcement): Promise<void> {
+            let b = (conf as any).bonjourHolder as BonjourHolder;
             if (b && b.announcement) {
                 if (sameAnnouncement(b.announcement, announcement)) {
                     debugLog("Configuration ", conf.mdnsServerName, " has not changed !");
@@ -412,7 +381,7 @@ export class OPCUADiscoveryServer extends OPCUABaseServer {
                 await _stop_announcedOnMulticastSubnet(conf);
             }
             b = new BonjourHolder();
-            ((conf as any).bonjourHolder) = b;
+            (conf as any).bonjourHolder = b;
             await b._announcedOnMulticastSubnet(announcement);
         }
 
@@ -486,12 +455,11 @@ export class OPCUADiscoveryServer extends OPCUABaseServer {
         let configurationResults: StatusCode[] | null = null;
 
         if (server.isOnline) {
-
             debugLog(chalk.cyan(" registering server : "), chalk.yellow(server.serverUri));
 
             // prepare serverInfo which will be used by FindServers
             const serverInfo: ApplicationDescriptionOptions = {
-                applicationName: server.serverNames[0],  // which one shall we use ?
+                applicationName: server.serverNames[0], // which one shall we use ?
                 applicationType: server.serverType,
                 applicationUri: server.serverUri,
                 discoveryUrls: server.discoveryUrls,
@@ -508,7 +476,6 @@ export class OPCUADiscoveryServer extends OPCUABaseServer {
                 for (const conf of previousServer.discoveryConfiguration!) {
                     previousConfMap[conf.mdnsServerName!] = conf;
                 }
-
             }
             this.registeredServers[key] = server;
 
@@ -528,7 +495,6 @@ export class OPCUADiscoveryServer extends OPCUABaseServer {
             if (Object.keys(previousConfMap).length !== 0) {
                 debugLog(" Warning some conf need to be removed !");
             }
-
         } else {
             // server is announced offline
             if (key in this.registeredServers) {
@@ -560,7 +526,6 @@ export class OPCUADiscoveryServer extends OPCUABaseServer {
  * @private
  */
 function _isValidServerType(serverType: ApplicationType): boolean {
-
     switch (serverType) {
         case ApplicationType.Client:
             return false;
@@ -572,11 +537,11 @@ function _isValidServerType(serverType: ApplicationType): boolean {
     return false;
 }
 
-(OPCUADiscoveryServer as any).prototype.__internalRegisterServerWithCallback =
-    callbackify((OPCUADiscoveryServer as any).prototype.__internalRegisterServer);
+(OPCUADiscoveryServer as any).prototype.__internalRegisterServerWithCallback = callbackify(
+    (OPCUADiscoveryServer as any).prototype.__internalRegisterServer
+);
 
 const thenify = require("thenify");
 const opts = { multiArgs: false };
 OPCUADiscoveryServer.prototype.start = thenify.withCallback(OPCUADiscoveryServer.prototype.start, opts);
 OPCUADiscoveryServer.prototype.shutdown = thenify.withCallback(OPCUADiscoveryServer.prototype.shutdown, opts);
-

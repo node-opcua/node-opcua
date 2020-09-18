@@ -1,9 +1,5 @@
-import {
-    assert
-} from "node-opcua-assert";
-import {
-    QualifiedName, ReferenceDescription, BrowseResult, NodeId
-} from "node-opcua-client";
+import { assert } from "node-opcua-assert";
+import { QualifiedName, ReferenceDescription, BrowseResult, NodeId } from "node-opcua-client";
 import { debugLog } from "node-opcua-pki";
 import { CacheNode, UserData } from ".";
 import _ = require("underscore");
@@ -45,7 +41,6 @@ export interface TaskBrowseNext extends TaskBrowseNode {
     continuationPoint: Buffer;
 }
 
-
 export interface TaskCrawl extends TaskBase {
     param: {
         cacheNode: CacheNode;
@@ -73,10 +68,10 @@ export interface TaskProcessBrowseResponse extends TaskBase {
 
 export interface TaskExtraReference extends TaskBase {
     param: {
-        childCacheNode: CacheNode,
-        parentNode: CacheNode,
-        reference: any,
-        userData: UserData
+        childCacheNode: CacheNode;
+        parentNode: CacheNode;
+        reference: any;
+        userData: UserData;
     };
     func: (task: TaskExtraReference, callback: EmptyCallback) => void;
 }
@@ -88,12 +83,7 @@ export interface TaskReconstruction extends TaskBase {
 
 export type Task = TaskCrawl | Task2 | TaskProcessBrowseResponse | TaskExtraReference;
 
-
-export function remove_cycle(
-    object: any,
-    innerCallback: (err: Error | null, object?: any) => void
-) {
-
+export function remove_cycle(object: any, innerCallback: (err: Error | null, object?: any) => void) {
     const visitedNodeIds: any = {};
 
     function hasBeenVisited(e: any) {
@@ -103,17 +93,16 @@ export function remove_cycle(
 
     function setVisited(e: any) {
         const key1 = e.nodeId.toString();
-        return visitedNodeIds[key1] = e;
+        return (visitedNodeIds[key1] = e);
     }
 
     function mark_array(arr: any[]) {
         if (!arr) {
             return;
         }
-        assert(_.isArray(arr));
+        assert(Array.isArray(arr));
 
         for (const e of arr) {
-
             if (hasBeenVisited(e)) {
                 return;
             } else {

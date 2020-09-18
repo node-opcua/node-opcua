@@ -1312,7 +1312,7 @@ export class AddressSpace implements AddressSpacePrivate {
             return [];
         }
         references = references as Reference[] | AddReferenceOpts[];
-        assert(_.isArray(references));
+        assert(Array.isArray(references));
 
         return (references as any).map((el: Reference | AddReferenceOpts) => this.normalizeReferenceType(el));
     }

@@ -42,7 +42,7 @@ function getExtObjArrayNodeValue(this: any) {
 function removeElementByIndex<T extends ExtensionObject>(uaArrayVariableNode: UADynamicVariableArray<T>, elementIndex: number) {
     const _array = uaArrayVariableNode.$$extensionObjectArray;
 
-    assert(_.isNumber(elementIndex));
+    assert(typeof elementIndex === "number");
 
     const addressSpace = uaArrayVariableNode.addressSpace;
     const extObj = _array[elementIndex];
@@ -302,7 +302,7 @@ export function removeElement<T extends ExtensionObject>(
     }
     let elementIndex = -1;
 
-    if (_.isNumber(element)) {
+    if (typeof element === "number") {
         // find element by index
         elementIndex = element;
         assert(elementIndex >= 0 && elementIndex < _array.length);

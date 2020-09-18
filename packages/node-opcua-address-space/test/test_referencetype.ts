@@ -225,7 +225,7 @@ describe("testing ReferenceType", () => {
         redirectToFile(
             "ReferenceDescription1.log",
             () => {
-                _.isArray(references).should.eql(true);
+                Array.isArray(references).should.eql(true);
                 dumpReferenceDescriptions(addressSpace, references);
             },
             done
@@ -261,7 +261,7 @@ describe("testing ReferenceType", () => {
         redirectToFile(
             "ReferenceDescription2.log",
             () => {
-                _.isArray(references).should.eql(true);
+                Array.isArray(references).should.eql(true);
                 dumpReferenceDescriptions(addressSpace, references);
             },
             done

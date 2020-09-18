@@ -223,7 +223,7 @@ export function verifyRankAndDimensions(options: { valueRank?: number; arrayDime
     assert(typeof options.valueRank === "number");
 
     options.arrayDimensions = options.arrayDimensions || null;
-    assert(_.isNull(options.arrayDimensions) || _.isArray(options.arrayDimensions));
+    assert(_.isNull(options.arrayDimensions) || Array.isArray(options.arrayDimensions));
 
     if (options.arrayDimensions && options.valueRank <= 0) {
         throw new Error("[CONFORMANCE] arrayDimensions must be null if valueRank <=0");
@@ -1608,7 +1608,7 @@ export class UAVariable extends BaseNode implements UAVariablePublic {
     }
 
     private _readArrayDimensions(): DataValue {
-        assert(_.isArray(this.arrayDimensions) || this.arrayDimensions === null);
+        assert(Array.isArray(this.arrayDimensions) || this.arrayDimensions === null);
         assert(!this.arrayDimensions || this.valueRank > 0, "arrayDimension must be null if valueRank <0");
         const options = {
             statusCode: StatusCodes.Good,
@@ -1680,7 +1680,7 @@ export interface UAVariable {
 }
 
 function check_valid_array(dataType: DataType, array: any): boolean {
-    if (_.isArray(array)) {
+    if (Array.isArray(array)) {
         return true;
     }
     switch (dataType) {

@@ -884,7 +884,7 @@ module.exports = function(test) {
                 function write(value, indexRange, callback) {
 
                     assert(typeof callback === "function");
-                    assert(_.isArray(value));
+                    assert(Array.isArray(value));
 
                     const nodeToWrite = {
                         nodeId: nodeId,

@@ -81,7 +81,7 @@ function _arrayEllipsis(value: any[] | null, data: ExploreParams): string {
         if (value.length === 0) {
             return "[ /* empty*/ ]";
         }
-        assert(_.isArray(value));
+        assert(Array.isArray(value));
 
         const v = [];
 

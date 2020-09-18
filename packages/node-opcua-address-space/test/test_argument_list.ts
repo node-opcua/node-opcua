@@ -52,7 +52,7 @@ describe("testing ArgumentList special encode/decode process", () => {
         stream.rewind();
         const args_reloaded = decode_ArgumentList(definition, stream);
 
-        _.isArray(args_reloaded).should.equal(true);
+        Array.isArray(args_reloaded).should.equal(true);
         args_reloaded[0].should.eql(100);
     });
 
@@ -74,7 +74,7 @@ describe("testing ArgumentList special encode/decode process", () => {
         stream.rewind();
         const args_reloaded = decode_ArgumentList(definition, stream);
 
-        _.isArray(args_reloaded).should.equal(true);
+        Array.isArray(args_reloaded).should.equal(true);
         args_reloaded.length.should.eql(1);
         args_reloaded[0].length.should.eql(3);
         args_reloaded[0][0].should.eql(100);

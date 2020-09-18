@@ -585,7 +585,7 @@ export function _constructReferenceDescription(
     references: Reference[],
     resultMask: number
 ): ReferenceDescription[] {
-    assert(_.isArray(references));
+    assert(Array.isArray(references));
     return references.map((reference: Reference) => _makeReferenceDescription(addressSpace, reference, resultMask));
 }
 

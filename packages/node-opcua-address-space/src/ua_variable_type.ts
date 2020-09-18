@@ -32,7 +32,7 @@ import {
     UAObjectType as UAObjectTypePublic,
     UAReference,
     UAVariable as UAVariablePublic,
-    UAVariableType as UAVariableTypePublic,
+    UAVariableType as UAVariableTypePublic
 } from "../source";
 
 import { AddressSpacePrivate } from "./address_space_private";
@@ -122,11 +122,11 @@ export class UAVariableType extends BaseNode implements UAVariableTypePublic {
                 options.statusCode = StatusCodes.Good;
                 break;
             case AttributeIds.ArrayDimensions:
-                assert(_.isArray(this.arrayDimensions) || this.arrayDimensions === null);
+                assert(Array.isArray(this.arrayDimensions) || this.arrayDimensions === null);
                 options.value = {
                     arrayType: VariantArrayType.Array,
                     dataType: DataType.UInt32,
-                    value: this.arrayDimensions,
+                    value: this.arrayDimensions
                 };
                 options.statusCode = StatusCodes.Good;
                 break;
@@ -213,7 +213,7 @@ export class UAVariableType extends BaseNode implements UAVariableTypePublic {
             organizedBy: options.organizedBy,
             typeDefinition: this.nodeId,
             value: options.value,
-            valueRank,
+            valueRank
         };
 
         const namespace: Namespace = addressSpace.getOwnNamespace();
@@ -362,7 +362,7 @@ class CloneHelper {
     >(objInType: TT, clonedObj: T) {
         this.mapOrgToClone[objInType.nodeId.toString()] = {
             cloned: clonedObj,
-            original: objInType,
+            original: objInType
         };
 
         //
@@ -389,7 +389,7 @@ class CloneHelper {
                 if (shadowChild) {
                     this.mapOrgToClone[shadowChild.nodeId.toString()] = {
                         cloned: clonedObj,
-                        original: shadowChild,
+                        original: shadowChild
                     };
                 }
                 base = base.subtypeOfObj;
@@ -618,7 +618,7 @@ function reconstructNonHierarchicalReferences(extraInfo: any): any {
                 clonedObject.addReference({
                     isForward: false,
                     nodeId: cloneDest.nodeId,
-                    referenceType: ref.referenceType,
+                    referenceType: ref.referenceType
                 });
             }
         });
@@ -675,7 +675,7 @@ function reconstructFunctionalGroupType(extraInfo: any) {
                 destFolder.addReference({
                     isForward: !ref.isForward,
                     nodeId: instantiatedObject.nodeId,
-                    referenceType: ref.referenceType,
+                    referenceType: ref.referenceType
                 });
                 // xx console.log("xxx ============> adding reference ",ref.browse )
             }

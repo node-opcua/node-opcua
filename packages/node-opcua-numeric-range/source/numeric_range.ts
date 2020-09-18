@@ -223,10 +223,10 @@ function _check_range(numericalRange: NumericalRange0) {
             if (numericalRange.value === null) {
                 throw new Error("Internal Error");
             }
-            assert(_.isNumber(numericalRange.value[0][0]));
-            assert(_.isNumber(numericalRange.value[0][1]));
-            assert(_.isNumber(numericalRange.value[1][0]));
-            assert(_.isNumber(numericalRange.value[1][1]));
+            assert(typeof numericalRange.value[0][0] === "number");
+            assert(typeof numericalRange.value[0][1] === "number");
+            assert(typeof numericalRange.value[1][0] === "number");
+            assert(typeof numericalRange.value[1][1] === "number");
             return (
                 _valid_range(numericalRange.value[0][0], numericalRange.value[0][1]) &&
                 _valid_range(numericalRange.value[1][0], numericalRange.value[1][1])
@@ -342,7 +342,7 @@ export class NumericRange implements NumericalRange1 {
             const a = construct_from_values(value, secondValue);
             this.type = a.type;
             this.value = a.value;
-        } else if (_.isArray(value)) {
+        } else if (Array.isArray(value)) {
             const a = _construct_from_array(value);
             this.type = a.type;
             this.value = a.value;
@@ -355,7 +355,7 @@ export class NumericRange implements NumericalRange1 {
             this.type = NumericRangeType.Empty;
         }
 
-        // xx assert((this.type !== NumericRangeType.ArrayRange) || _.isArray(this.value));
+        // xx assert((this.type !== NumericRangeType.ArrayRange) || Array.isArray(this.value));
     }
 
     public isValid(): boolean {
@@ -384,7 +384,7 @@ export class NumericRange implements NumericalRange1 {
 
     public toString(): string {
         function array_range_to_string(values: number[]): string {
-            assert(_.isArray(values));
+            assert(Array.isArray(values));
             if (values.length === 2 && values[0] === values[1]) {
                 return values[0].toString();
             }
@@ -394,7 +394,7 @@ export class NumericRange implements NumericalRange1 {
         function matrix_range_to_string(values: any) {
             return values
                 .map((value: any) => {
-                    return _.isArray(value) ? array_range_to_string(value) : value.toString(10);
+                    return Array.isArray(value) ? array_range_to_string(value) : value.toString(10);
                 })
                 .join(",");
         }
@@ -516,7 +516,7 @@ export class NumericRange implements NumericalRange1 {
         if (this.type !== NumericRangeType.Empty && newValues.length !== high_index - low_index + 1) {
             return { array: [], statusCode: StatusCodes.BadIndexRangeInvalid };
         }
-        const insertInPlace = _.isArray(arrayToAlter)
+        const insertInPlace = Array.isArray(arrayToAlter)
             ? insertInPlaceStandardArray
             : arrayToAlter instanceof Buffer
             ? insertInPlaceBuffer
@@ -606,7 +606,7 @@ function extract_array_range<U, T extends ArrayLike<U>>(array: T, low_index: num
 }
 
 function isArrayLike(value: any): boolean {
-    return _.isNumber(value.length) || value.hasOwnProperty("length");
+    return typeof value.length === "number" || value.hasOwnProperty("length");
 }
 
 function extract_matrix_range<U, T extends ArrayLike<U>>(
@@ -615,7 +615,7 @@ function extract_matrix_range<U, T extends ArrayLike<U>>(
     colRange: number[],
     dimension?: number[]
 ): ExtractResult<T> {
-    assert(_.isArray(rowRange) && _.isArray(colRange));
+    assert(Array.isArray(rowRange) && Array.isArray(colRange));
 
     if (array.length === 0) {
         return {
@@ -680,7 +680,7 @@ function extract_matrix_range<U, T extends ArrayLike<U>>(
 }
 
 function assert_array_or_buffer(array: any) {
-    assert(_.isArray(array) || array.buffer instanceof ArrayBuffer || array instanceof Buffer);
+    assert(Array.isArray(array) || array.buffer instanceof ArrayBuffer || array instanceof Buffer);
 }
 
 function insertInPlaceStandardArray(arrayToAlter: any, low: number, high: number, newValues: any): any {
@@ -733,6 +733,6 @@ function coerceNumericRange(value: any | string | NumericRange | null | number[]
     if (value === NUMERIC_RANGE_EMPTY_STRING) {
         return new NumericRange();
     }
-    assert(typeof value === "string" || _.isArray(value));
+    assert(typeof value === "string" || Array.isArray(value));
     return new NumericRange(value);
 }

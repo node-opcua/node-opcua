@@ -65,7 +65,7 @@ const debugLog = make_debugLog(__filename);
 const doDebug = checkDebugFlag(__filename);
 
 function _adjust_sampling_interval(samplingInterval: number, node_minimumSamplingInterval: number): number {
-    assert(_.isNumber(node_minimumSamplingInterval), "expecting a number");
+    assert(typeof node_minimumSamplingInterval === "number", "expecting a number");
 
     if (samplingInterval === 0) {
         return node_minimumSamplingInterval === 0
@@ -1051,7 +1051,7 @@ export class MonitoredItem extends EventEmitter {
     }
 
     private _makeEventFieldList(eventFields: any[]): EventFieldList {
-        assert(_.isArray(eventFields));
+        assert(Array.isArray(eventFields));
         return new EventFieldList({
             clientHandle: this.clientHandle,
             eventFields

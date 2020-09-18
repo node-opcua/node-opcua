@@ -103,7 +103,7 @@ export function extractEventFields(
 ): Variant[] {
     assert(sessionContext instanceof SessionContext);
     assert_valid_event_data(eventData);
-    assert(_.isArray(selectClauses));
+    assert(Array.isArray(selectClauses));
     assert(selectClauses.length === 0 || selectClauses[0] instanceof SimpleAttributeOperand);
     return selectClauses.map(extractEventField.bind(null, sessionContext, eventData));
 }

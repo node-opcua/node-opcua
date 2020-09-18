@@ -40,7 +40,7 @@ interface PublishData {
 
 function _assertValidPublishData(publishData: PublishData) {
     assert(publishData.request instanceof PublishRequest);
-    assert(_.isArray(publishData.results));
+    assert(Array.isArray(publishData.results));
     assert(typeof publishData.callback === "function");
 }
 

@@ -314,7 +314,7 @@ export class ClientSubscriptionImpl extends EventEmitter implements ClientSubscr
 
     public _delete_monitored_items(monitoredItems: ClientMonitoredItemBase[], callback: ErrorCallback) {
         assert(typeof callback === "function");
-        assert(_.isArray(monitoredItems));
+        assert(Array.isArray(monitoredItems));
 
         assert(this.isActive);
 

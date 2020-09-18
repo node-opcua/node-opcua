@@ -9,27 +9,25 @@ import { EnumValueType } from "node-opcua-common";
 import { coerceLocalizedText } from "node-opcua-data-model";
 
 export function coerceEnumValues(enumValues: any): EnumValueType[] {
-
-    if (_.isArray(enumValues)) {
-
+    if (Array.isArray(enumValues)) {
         //
         return _.map(enumValues, (en: any) => {
             assert(en.hasOwnProperty("value"));
             assert(en.hasOwnProperty("displayName"));
             return new EnumValueType({
                 displayName: coerceLocalizedText(en.displayName),
-                value: en.value,
+                value: en.value
             });
         });
-
     } else {
-        return coerceEnumValues(_.map(enumValues, (value: Int64, key)  => {
-
-            return new EnumValueType({
-                description: coerceLocalizedText(key),
-                displayName: coerceLocalizedText(key),
-                value,
-            });
-        }));
+        return coerceEnumValues(
+            _.map(enumValues, (value: Int64, key) => {
+                return new EnumValueType({
+                    description: coerceLocalizedText(key),
+                    displayName: coerceLocalizedText(key),
+                    value
+                });
+            })
+        );
     }
 }
