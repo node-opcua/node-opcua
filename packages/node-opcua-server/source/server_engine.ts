@@ -241,7 +241,7 @@ export class ServerEngine extends EventEmitter {
         this._closedSessions = {};
         this._orphanPublishEngine = undefined; // will be constructed on demand
 
-        this.isAuditing = _.isBoolean(options.isAuditing) ? options.isAuditing : false;
+        this.isAuditing = typeof options.isAuditing === "boolean" ? options.isAuditing : false;
 
         options.buildInfo.buildDate = options.buildInfo.buildDate || new Date();
         // ---------------------------------------------------- ServerStatusDataType
@@ -1559,7 +1559,7 @@ export class ServerEngine extends EventEmitter {
     ): Promise<TransferResult> {
         assert(session instanceof ServerSession);
         assert(typeof subscriptionId === "number");
-        assert(_.isBoolean(sendInitialValues));
+        assert(typeof sendInitialValues === "boolean");
 
         if (subscriptionId <= 0) {
             return new TransferResult({ statusCode: StatusCodes.BadSubscriptionIdInvalid });

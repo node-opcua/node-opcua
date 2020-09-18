@@ -988,7 +988,7 @@ function _makeEndpointDescription(options: MakeEndpointDescriptionOptions): Endp
     assert(!!options.securityPolicy);
     assert(_.isObject(options.server));
     assert(!!options.hostname && typeof options.hostname === "string");
-    assert(_.isBoolean(options.restricted));
+    assert(typeof options.restricted === "boolean");
 
     const u = (n: string) => getUniqueName(n, options.collection);
     options.securityLevel =

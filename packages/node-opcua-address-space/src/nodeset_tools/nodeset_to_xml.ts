@@ -469,7 +469,7 @@ function _dumpArrayDimensionsAttribute(xw: XmlWriter, node: UAVariableType | UAV
 }
 
 function visitUANode(node: BaseNode, options: any, forward: boolean) {
-    assert(_.isBoolean(forward));
+    assert(typeof forward === "boolean");
 
     const addressSpace = node.addressSpace;
     options.elements = options.elements || [];

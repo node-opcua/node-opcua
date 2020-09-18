@@ -1695,7 +1695,7 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession {
         const callback = args[1];
 
         assert(typeof callback === "function");
-        assert(_.isBoolean(deleteSubscription));
+        assert(typeof deleteSubscription === "boolean");
 
         /* istanbul ignore next */
         if (!this._client) {

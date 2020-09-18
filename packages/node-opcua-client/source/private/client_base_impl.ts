@@ -362,7 +362,7 @@ export class ClientBaseImpl extends OPCUASecureObject implements OPCUAClientBase
          * @property keepSessionAlive
          * @type {boolean}
          */
-        this.keepSessionAlive = _.isBoolean(options.keepSessionAlive) ? options.keepSessionAlive : false;
+        this.keepSessionAlive = typeof options.keepSessionAlive === "boolean" ? options.keepSessionAlive : false;
 
         // statistics...
         this._byteRead = 0;

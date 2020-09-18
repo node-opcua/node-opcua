@@ -48,7 +48,7 @@ export class ConditionInfo {
             this.severity = options.severity!;
         }
         if (options.hasOwnProperty("retain") && options.retain !== null) {
-            assert(_.isBoolean(options.retain));
+            assert(typeof options.retain === "boolean");
             this.retain = options.retain!;
         }
     }
