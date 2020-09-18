@@ -2,4 +2,5 @@ out/
 test/
 test_to_fix/
 tsconfig.json
-tsconfig.tsbuildinfo
+tsconfig_*.json
+*.tsbuildinfo
