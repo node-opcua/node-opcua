@@ -1,0 +1,28 @@
+{
+    "extends": "../tsconfig.json",
+    "compilerOptions": {
+        "rootDir": "test_helpers",
+        "outDir": "distHelpers",
+        "composite": true,
+        "incremental": true
+    },
+    "ts-node": {
+        "compilerOptions": {
+            "inlineSourceMap": true
+        }
+    },
+    "include": [
+        "test_helpers/**.ts"
+    ],
+    "references": [
+        {
+            "path": "./tsconfig_common.json"
+        },
+        {
+            "path": "./tsconfig_nodejs.json"
+        }
+    ],
+    "exclude": [
+        "node_modules"
+    ]
+}

@@ -1,27 +1,22 @@
 "use strict";
 const should = require("should");
-const { assert } = require("node-opcua-assert");
 const async = require("async");
 const _ = require("underscore");
 
 
-const opcua = require("node-opcua");
-const OPCUAClient = opcua.OPCUAClient;
-const OPCUAServer = opcua.OPCUAServer;
+const { OPCUAClient, OPCUAServer, SessionContext } = require("node-opcua");
+const context = SessionContext.defaultContext;
 
-const context = opcua.SessionContext.defaultContext;
+const { perform_operation_on_client_session } = require("../../test_helpers/perform_operation_on_client_session");
 
-const perform_operation_on_client_session = require("../../test_helpers/perform_operation_on_client_session").perform_operation_on_client_session;
-
-const makeBoiler = require("node-opcua-address-space").makeBoiler;
+const { makeBoiler } = require("node-opcua-address-space/testHelpers");
+const { UAProxyManager } = require("node-opcua-client-proxy");
 
 
 const doDebug = false;
 
-const UAProxyManager = require("node-opcua-client-proxy").UAProxyManager;
 
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
-
 describe("testing monitoring Executable flags on methods", function() {
 
 

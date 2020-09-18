@@ -6,34 +6,21 @@ import * as path from "path";
 import * as should from "should";
 import { promisify } from "util";
 
-import {
-    AddressSpace,
-    generateAddressSpace, PseudoSession,
-    SessionContext,
-    UAFileType,
-    UAMethod
-} from "node-opcua-address-space";
+import { AddressSpace, PseudoSession, SessionContext, UAFileType, UAMethod } from "node-opcua-address-space";
+import { generateAddressSpace } from "node-opcua-address-space/nodeJs";
 import { UInt64, extraStatusCodeBits, coerceUInt64 } from "node-opcua-basic-types";
 import { nodesets } from "node-opcua-nodesets";
 
-import {
-    ClientFile,
-    FileTypeData,
-    getFileData,
-    installFileType,
-    OpenFileMode
-} from "..";
+import { ClientFile, FileTypeData, getFileData, installFileType, OpenFileMode } from "..";
 import { MethodIds } from "node-opcua-client";
 
 // tslint:disable:no-var-requires
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 
 ["with File object methods", "with FileType methods"].forEach((message) => {
-
     const useGlobalMethod = !!message.match(/FileType/);
 
     describe("FileTransfer " + message, () => {
-
         let addressSpace: AddressSpace;
 
         before(() => {
@@ -47,9 +34,7 @@ const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
             }
         });
         before(async () => {
-            const xmlFiles = [
-                nodesets.standard
-            ];
+            const xmlFiles = [nodesets.standard];
             addressSpace = AddressSpace.create();
             await generateAddressSpace(addressSpace, xmlFiles);
             addressSpace.registerNamespace("Own");
@@ -87,14 +72,12 @@ const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
             }) as UAFileType;
             const filename2 = path.join(tempFolder, "tempFile2.txt");
             installFileType(opcuaFile2, { filename: filename2 });
-
         });
         after(() => {
             /* empty */
         });
 
         it("should expose a File Transfer node and open/close", async () => {
-
             const session = new PseudoSession(addressSpace);
 
             const clientFile = new ClientFile(session, opcuaFile.nodeId);
@@ -109,11 +92,9 @@ const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
             if (ClientFile.useGlobalMethod) {
                 (clientFile as any).openMethodNodeId.value.should.eql(MethodIds.FileType_Open);
             }
-
         });
 
         it("should expose a File Transfer node", async () => {
-
             const session = new PseudoSession(addressSpace);
             const clientFile = new ClientFile(session, opcuaFile.nodeId);
 
@@ -127,11 +108,9 @@ const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
             curPos1.should.eql([0, 1]);
 
             await clientFile.close();
-
         });
 
         it("should read a file ", async () => {
-
             const session = new PseudoSession(addressSpace);
             const clientFile = new ClientFile(session, opcuaFile.nodeId);
 
@@ -141,11 +120,9 @@ const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
             await clientFile.close();
 
             buf.toString("ascii").should.eql("content");
-
         });
 
         it("should increase openCount when a file is opened and decrease it when it's closed", async () => {
-
             const session = new PseudoSession(addressSpace);
             const clientFile = new ClientFile(session, opcuaFile.nodeId);
 
@@ -160,10 +137,8 @@ const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
             await clientFile.close();
             const countAfter2 = await clientFile.openCount();
             countAfter2.should.eql(countBefore);
-
         });
         it("should expose the size of the current file", async () => {
-
             const session = new PseudoSession(addressSpace);
             const clientFile = new ClientFile(session, opcuaFile.nodeId);
 
@@ -172,7 +147,6 @@ const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
         });
 
         it("should not be possible to write to a file if Write Bit is not set in open mode", async () => {
-
             // Given a OCUA File
             const session = new PseudoSession(addressSpace);
             const clientFile = new ClientFile(session, opcuaFile.nodeId);
@@ -198,7 +172,6 @@ const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
         });
 
         it("should be possible to write a file - in create mode", async () => {
-
             // Given a file on server side with some original content
             const fileData = getFileData(opcuaFile2);
             fs.writeFileSync(fileData.filename, "!!! ORIGINAL CONTENT !!!", "utf-8");
@@ -216,11 +189,9 @@ const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 
             // Then I should verify that the file now contains "#### REPLACE ####"
             fs.readFileSync(fileData.filename, "utf-8").should.eql("#### REPLACE ####");
-
         });
 
         it("should be possible to write to a file - in append mode", async () => {
-
             // Given a file on server side with some original content
             const fileData = getFileData(opcuaFile2);
             fs.writeFileSync(fileData.filename, "!!! ORIGINAL CONTENT !!!", "utf-8");
@@ -250,11 +221,9 @@ const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 
             // and I should verify that the file on the server side contains the expected data
             fs.readFileSync(fileData.filename, "utf-8").should.eql("!!! ORIGINAL CONTENT !!!" + "#### REPLACE ####");
-
         });
 
         it("should not allow read method if Read bit is not set in open mode", async () => {
-
             // Given a OCUA File
             const session = new PseudoSession(addressSpace);
             const clientFile = new ClientFile(session, opcuaFile.nodeId);
@@ -278,15 +247,12 @@ const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
             // Then I should verify that the read method has failed
             should.exist(hasReceivedException, "It should have received an exception");
             hasSucceeded.should.eql(false);
-
         });
 
         it("should allow file to grow", async () => {
-
             const fileData = getFileData(opcuaFile2);
             fs.writeFileSync(fileData.filename, "!!! ORIGINAL CONTENT !!!", "utf-8");
             await fileData.refresh();
-
 
             // Given a client
             const session = new PseudoSession(addressSpace);
@@ -315,10 +281,8 @@ const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
             newFileSize[1].should.eql(originalFileSize[1] + extraData.length);
 
             await clientFile.close();
-
         });
         it("file size must change on client size if file changes on server side", async () => {
-
             const fileData = getFileData(opcuaFile2);
             fs.writeFileSync(fileData.filename, "1", "utf-8");
             await fileData.refresh();
@@ -343,7 +307,6 @@ const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
             (c1 as any).fileHandle = b;
         }
         it("should not be possible to reuse filehandle generated by one session with an other session", async () => {
-
             // Given client 1
             const sessionA = new PseudoSession(addressSpace);
             const clientFileA = new ClientFile(sessionA, opcuaFile2.nodeId);
@@ -365,14 +328,11 @@ const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
                 // then a exception should be raised
                 exceptionHasBeenRaised = true;
             } finally {
-
             }
             exceptionHasBeenRaised.should.eql(true);
 
             swapHandle(clientFileA, clientFileB);
             await clientFileA.close();
-
         });
-
     });
 });

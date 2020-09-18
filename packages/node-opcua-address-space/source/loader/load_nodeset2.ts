@@ -3,7 +3,6 @@
  */
 import * as async from "async";
 import * as chalk from "chalk";
-import * as fs from "fs";
 import * as _ from "underscore";
 import { callbackify } from "util";
 
@@ -18,7 +17,7 @@ import {
     makeAccessLevelFlag,
     NodeClass,
     QualifiedName,
-    stringToQualifiedName,
+    stringToQualifiedName
 } from "node-opcua-data-model";
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 import { ExtensionObject } from "node-opcua-extension-object";
@@ -34,14 +33,16 @@ import {
     Definition,
     FragmentClonerParser,
     InternalFragmentClonerReaderState,
-    makeExtensionObjectReader,
+    makeExtensionObjectReader
 } from "node-opcua-xml2json";
+import { ErrorCallback, isValidGuid, StatusCodes } from "node-opcua-basic-types";
+
 import {
     AddReferenceTypeOptions,
     AddressSpace as AddressSpacePublic,
     CreateNodeOptions,
     Namespace,
-    PseudoSession,
+    PseudoSession
 } from "../../source";
 import { AddressSpace } from "../../src/address_space";
 import { AddressSpacePrivate } from "../../src/address_space_private";
@@ -52,7 +53,6 @@ import { UAVariable } from "../../src/ua_variable";
 import { UAVariableType } from "../../src/ua_variable_type";
 
 import * as PrettyError from "pretty-error";
-import { isValidGuid, StatusCodes } from "node-opcua-basic-types";
 const pe = new PrettyError();
 
 const doDebug = checkDebugFlag(__filename);
@@ -130,7 +130,7 @@ async function decodeXmlObject(
                 return { name: "", fields: [] };
             }
             return (dataTypeFactory.getStructuredTypeSchema(name) as any) as Definition;
-        },
+        }
     };
     const reader = makeExtensionObjectReader(dataTypeName, definitionMap, {});
     const parser2 = new Xml2Json(reader);
@@ -151,11 +151,11 @@ function makeEnumDefinition(definitionFields: any[]) {
     return new EnumDefinition({
         fields: definitionFields.map((x) => ({
             description: {
-                text: x.description,
+                text: x.description
             },
             name: x.name,
-            value: x.value,
-        })),
+            value: x.value
+        }))
     });
 }
 function makeStructureDefinition(name: string, definitionFields: StructureFieldOptions[], isUnion: boolean): StructureDefinition {
@@ -174,7 +174,7 @@ function makeStructureDefinition(name: string, definitionFields: StructureFieldO
         baseDataType: undefined,
         defaultEncodingId: undefined,
         fields: definitionFields,
-        structureType,
+        structureType
     });
 
     return sd;
@@ -263,18 +263,10 @@ function makeDefaultVariant2(
     return variant;
 }
 
-export function generateAddressSpace(
-    addressSpace: AddressSpacePublic,
-    xmlFiles: string | string[],
-    callback: (err?: Error) => void
-): void;
-export function generateAddressSpace(addressSpace: AddressSpacePublic, xmlFiles: string | string[]): Promise<void>;
-export function generateAddressSpace(
-    addressSpace: AddressSpacePublic,
-    xmlFiles: string | string[],
-    callback?: (err?: Error) => void
-): any {
+export function makeStuff(addressSpace: AddressSpacePublic) {
     const addressSpace1 = addressSpace as AddressSpace;
+
+    addressSpace1.suspendBackReference = true;
 
     let postTasks: Task[] = [];
     let postTaskInitializeVariable: Task[] = [];
@@ -417,12 +409,10 @@ export function generateAddressSpace(
         return qn;
     }
 
-    assert(_.isFunction(callback)); // expecting a callback
-
     const state_Alias = {
         finish(this: any) {
             addAlias(this.attrs.Alias, this.text);
-        },
+        }
     };
 
     const references_parser = {
@@ -436,11 +426,11 @@ export function generateAddressSpace(
                     this.parent.array.push({
                         isForward: this.attrs.IsForward === undefined ? true : this.attrs.IsForward === "false" ? false : true,
                         nodeId: convertToNodeId(this.text),
-                        referenceType: _translateReferenceType(this.attrs.ReferenceType),
+                        referenceType: _translateReferenceType(this.attrs.ReferenceType)
                     });
-                },
-            },
-        },
+                }
+            }
+        }
     };
 
     const state_UAObject = {
@@ -460,17 +450,17 @@ export function generateAddressSpace(
             DisplayName: {
                 finish(this: any) {
                     this.parent.obj.displayName = this.text;
-                },
+                }
             },
 
             Description: {
                 finish(this: any) {
                     this.parent.obj.description = this.text;
-                },
+                }
             },
 
-            References: references_parser,
-        },
+            References: references_parser
+        }
     };
 
     const state_UAObjectType = {
@@ -489,17 +479,17 @@ export function generateAddressSpace(
             DisplayName: {
                 finish(this: any) {
                     this.parent.obj.displayName = this.text;
-                },
+                }
             },
 
             Description: {
                 finish(this: any) {
                     this.parent.obj.description = this.text;
-                },
+                }
             },
 
-            References: references_parser,
-        },
+            References: references_parser
+        }
     };
 
     const state_UAReferenceType = {
@@ -517,22 +507,22 @@ export function generateAddressSpace(
             DisplayName: {
                 finish(this: any) {
                     this.parent.obj.displayName = this.text;
-                },
+                }
             },
 
             Description: {
                 finish(this: any) {
                     this.parent.obj.description = this.text;
-                },
+                }
             },
 
             InverseName: {
                 finish(this: any) {
                     this.parent.obj.inverseName = this.text;
-                },
+                }
             },
-            References: references_parser,
-        },
+            References: references_parser
+        }
     };
 
     const pendingSimpleTypeToRegister: any[] = [];
@@ -608,18 +598,18 @@ export function generateAddressSpace(
             DisplayName: {
                 finish(this: any) {
                     this.parent.obj.displayName = this.text;
-                },
+                }
             },
 
             Description: {
                 finish(this: any) {
                     this.parent.obj.description = this.text;
-                },
+                }
             },
             References: references_parser,
 
-            Definition: _definitionParser,
-        },
+            Definition: _definitionParser
+        }
     };
 
     const localizedText_parser = {
@@ -631,15 +621,15 @@ export function generateAddressSpace(
                 Locale: {
                     finish(this: any) {
                         this.parent.localizedText.locale = this.text.trim();
-                    },
+                    }
                 },
                 Text: {
                     finish(this: any) {
                         this.parent.localizedText.text = this.text.trim();
-                    },
-                },
-            },
-        },
+                    }
+                }
+            }
+        }
     };
 
     const enumValueType_parser = {
@@ -648,7 +638,7 @@ export function generateAddressSpace(
                 this.enumValueType = new EnumValueType({
                     description: undefined,
                     displayName: undefined,
-                    value: [0, 0], // Int64
+                    value: [0, 0] // Int64
                 });
             },
             parser: {
@@ -656,25 +646,25 @@ export function generateAddressSpace(
                     finish(this: any) {
                         // Low part
                         this.parent.enumValueType.value[1] = parseInt(this.text, 10);
-                    },
+                    }
                 },
 
                 DisplayName: _.extend(_.clone(localizedText_parser.LocalizedText), {
                     finish(this: any) {
                         this.parent.enumValueType.displayName = _.clone(this.localizedText);
-                    },
+                    }
                 }),
 
                 Description: _.extend(_.clone(localizedText_parser.LocalizedText), {
                     finish(this: any) {
                         this.parent.enumValueType.description = _.clone(this.localizedText);
-                    },
-                }),
+                    }
+                })
             },
             finish(this: any) {
                 this.enumValueType = new EnumValueType(this.enumValueType);
-            },
-        },
+            }
+        }
     };
 
     const argument_parser = {
@@ -686,7 +676,7 @@ export function generateAddressSpace(
                 Name: {
                     finish(this: any) {
                         this.parent.argument.name = this.text.trim();
-                    },
+                    }
                 },
 
                 DataType: {
@@ -694,20 +684,20 @@ export function generateAddressSpace(
                         Identifier: {
                             finish(this: any) {
                                 this.parent.parent.argument.dataType = _translateNodeId(resolveNodeId(this.text.trim()).toString());
-                            },
-                        },
-                    },
+                            }
+                        }
+                    }
                 },
                 ValueRank: {
                     finish(this: any) {
                         this.parent.argument.valueRank = parseInt(this.text.trim(), 10);
-                    },
+                    }
                 },
 
                 ArrayDimensions: {
                     finish(this: any) {
                         // xx  this.parent.argument.arrayDimensions =[];
-                    },
+                    }
                 },
                 Description: {
                     init(this: any) {
@@ -722,24 +712,24 @@ export function generateAddressSpace(
                             },
                             finish(this: any) {
                                 this.parent.locale = this.text.trim();
-                            },
+                            }
                         },
                         Text: {
                             finish(this: any) {
                                 this.text = this.text || "";
                                 this.parent._text = this.text.trim();
-                            },
-                        },
+                            }
+                        }
                     },
                     finish(this: any) {
                         this.parent.argument.description = coerceLocalizedText(this._text);
-                    },
-                },
+                    }
+                }
             },
             finish(this: any) {
                 // xx this.argument = new Argument(this.argument);
-            },
-        },
+            }
+        }
     };
 
     const Range_parser = {
@@ -751,16 +741,16 @@ export function generateAddressSpace(
                 Low: {
                     finish(this: any) {
                         this.parent.range.low = parseFloat(this.text);
-                    },
+                    }
                 },
 
                 High: {
                     finish(this: any) {
                         this.parent.range.high = parseFloat(this.text);
-                    },
-                },
-            },
-        },
+                    }
+                }
+            }
+        }
     };
 
     const EUInformation_parser = {
@@ -772,30 +762,30 @@ export function generateAddressSpace(
                 NamespaceUri: {
                     finish(this: any) {
                         this.parent.euInformation.namespaceUri = this.text;
-                    },
+                    }
                 },
                 UnitId: {
                     finish(this: any) {
                         this.parent.euInformation.unitId = parseInt(this.text, 10);
-                    },
+                    }
                 },
 
                 DisplayName: _.extend(_.clone(localizedText_parser.LocalizedText), {
                     finish(this: any) {
                         this.parent.euInformation.displayName = _.clone(this.localizedText);
-                    },
+                    }
                 }),
 
                 Description: _.extend(_.clone(localizedText_parser.LocalizedText), {
                     finish(this: any) {
                         this.parent.euInformation.description = _.clone(this.localizedText);
-                    },
-                }),
+                    }
+                })
             },
             finish(this: any) {
                 this.euInformation = new EUInformation(this.euInformation);
-            },
-        },
+            }
+        }
     };
 
     const _extensionObject_inner_parser = {
@@ -806,9 +796,9 @@ export function generateAddressSpace(
                         const typeDefinitionId = this.text.trim();
                         const self = this.parent.parent; // ExtensionObject
                         self.typeDefinitionId = resolveNodeId(typeDefinitionId);
-                    },
-                },
-            },
+                    }
+                }
+            }
         },
 
         Body2: new FragmentClonerParser(),
@@ -818,7 +808,7 @@ export function generateAddressSpace(
                 Argument: argument_parser.Argument,
                 EUInformation: EUInformation_parser.EUInformation,
                 EnumValueType: enumValueType_parser.EnumValueType,
-                Range: Range_parser.Range,
+                Range: Range_parser.Range
             },
             startElement(this: any, elementName: string, attrs: any) {
                 const self = this.parent; // ExtensionObject
@@ -892,8 +882,8 @@ export function generateAddressSpace(
                         break;
                     }
                 }
-            },
-        },
+            }
+        }
     };
 
     const extensionObject_parser = {
@@ -906,8 +896,8 @@ export function generateAddressSpace(
             parser: _extensionObject_inner_parser,
             finish(this: any) {
                 /* empty */
-            },
-        },
+            }
+        }
     };
 
     function BasicType_parser(dataType: string, parseFunc: (this: any, text: string) => any): ParserLike {
@@ -920,7 +910,7 @@ export function generateAddressSpace(
 
             finish(this: any) {
                 this.value = parseFunc.call(this, this.text);
-            },
+            }
         };
         _parser[dataType] = r;
         return _parser;
@@ -938,12 +928,12 @@ export function generateAddressSpace(
                 this.parent.parent.obj.value = {
                     arrayType: VariantArrayType.Array,
                     dataType: (DataType as any)[dataType],
-                    value: this.listData,
+                    value: this.listData
                 };
             },
             endElement(this: any, element: string) {
                 this.listData.push(this.parser[dataType].value);
-            },
+            }
         };
     }
 
@@ -952,9 +942,9 @@ export function generateAddressSpace(
             finish(this: any) {
                 this.parent.parent.obj.value = {
                     dataType: (DataType as any)[type],
-                    value: p(this.text),
+                    value: p(this.text)
                 };
-            },
+            }
         };
     }
     const state_Variant = {
@@ -966,18 +956,18 @@ export function generateAddressSpace(
                 finish(this: any) {
                     this.parent.parent.obj.value = {
                         dataType: DataType.LocalizedText,
-                        value: this.localizedText,
+                        value: this.localizedText
                     };
-                },
+                }
             }),
 
             String: {
                 finish(this: any) {
                     this.parent.parent.obj.value = {
                         dataType: DataType.String,
-                        value: this.text,
+                        value: this.text
                     };
-                },
+                }
             },
 
             Guid: {
@@ -990,11 +980,11 @@ export function generateAddressSpace(
                             }
                             this.parent.parent.parent.obj.value = {
                                 dataType: DataType.Guid,
-                                value: this.text,
+                                value: this.text
                             };
-                        },
-                    },
-                },
+                        }
+                    }
+                }
             },
 
             Boolean: parser2("Boolean", ec.coerceBoolean),
@@ -1017,26 +1007,26 @@ export function generateAddressSpace(
                     this.parent.parent.obj.value = {
                         arrayType: VariantArrayType.Scalar,
                         dataType: DataType.ByteString,
-                        value: byteString,
+                        value: byteString
                     };
-                },
+                }
             },
             Float: {
                 finish(this: any) {
                     this.parent.parent.obj.value = {
                         dataType: DataType.Float,
-                        value: parseFloat(this.text),
+                        value: parseFloat(this.text)
                     };
-                },
+                }
             },
 
             Double: {
                 finish(this: any) {
                     this.parent.parent.obj.value = {
                         dataType: DataType.Double,
-                        value: parseFloat(this.text),
+                        value: parseFloat(this.text)
                     };
-                },
+                }
             },
 
             ListOfExtensionObject: {
@@ -1048,7 +1038,7 @@ export function generateAddressSpace(
                     this.parent.parent.obj.value = {
                         arrayType: VariantArrayType.Array,
                         dataType: DataType.ExtensionObject,
-                        value: this.listData,
+                        value: this.listData
                     };
                 },
                 startElement(this: any, elementName: string) {
@@ -1065,7 +1055,7 @@ export function generateAddressSpace(
                             throw new Error("expecting an extension object");
                         }
                     }
-                },
+                }
             },
 
             ListOfLocalizedText: {
@@ -1077,12 +1067,12 @@ export function generateAddressSpace(
                     this.parent.parent.obj.value = {
                         arrayType: VariantArrayType.Array,
                         dataType: DataType.LocalizedText,
-                        value: this.listData,
+                        value: this.listData
                     };
                 },
                 endElement(this: any /*element*/) {
                     this.listData.push(this.parser.LocalizedText.localizedText);
-                },
+                }
             },
 
             ListOfBoolean: ListOf("Boolean", ec.coerceBoolean),
@@ -1121,7 +1111,7 @@ export function generateAddressSpace(
 
                     this.parent.parent.obj.value = {
                         dataType: DataType.ExtensionObject,
-                        value: this.extensionObject,
+                        value: this.extensionObject
                     };
 
                     // let's create the mechanism that postpone the creation of the
@@ -1146,9 +1136,9 @@ export function generateAddressSpace(
                         };
                         postTasks3.push(task);
                     }
-                },
-            },
-        },
+                }
+            }
+        }
     };
 
     const state_UAVariable = {
@@ -1216,18 +1206,18 @@ export function generateAddressSpace(
             DisplayName: {
                 finish(this: any) {
                     this.parent.obj.displayName = this.text;
-                },
+                }
             },
 
             Description: {
                 finish(this: any) {
                     this.parent.obj.description = this.text;
-                },
+                }
             },
             References: references_parser,
 
-            Value: state_Variant,
-        },
+            Value: state_Variant
+        }
     };
 
     const state_UAVariableType = {
@@ -1262,17 +1252,17 @@ export function generateAddressSpace(
             DisplayName: {
                 finish(this: any) {
                     this.parent.obj.displayName = this.text;
-                },
+                }
             },
 
             Description: {
                 finish(this: any) {
                     this.parent.obj.description = this.text;
-                },
+                }
             },
             References: references_parser,
-            Value: state_Variant,
-        },
+            Value: state_Variant
+        }
     };
 
     const state_UAMethod = {
@@ -1293,10 +1283,10 @@ export function generateAddressSpace(
             DisplayName: {
                 finish(this: any) {
                     this.parent.obj.displayName = this.text;
-                },
+                }
             },
-            References: references_parser,
-        },
+            References: references_parser
+        }
     };
 
     const state_ModelTableEntry = new ReaderState({
@@ -1322,10 +1312,10 @@ export function generateAddressSpace(
                 publicationDate,
                 requiredModels: this._requiredModels,
                 symbolicName,
-                version,
+                version
             });
             this._requiredModels.push(namespace);
-        },
+        }
     });
     // state_ModelTableEntry.parser["RequiredModel"] = state_ModelTableEntry;
 
@@ -1341,9 +1331,9 @@ export function generateAddressSpace(
                     Uri: {
                         finish(this: any) {
                             _register_namespace_uri(this.text);
-                        },
-                    },
-                },
+                        }
+                    }
+                }
             },
 
             Models: {
@@ -1352,12 +1342,12 @@ export function generateAddressSpace(
                     //
                 },
                 parser: {
-                    Model: state_ModelTableEntry,
+                    Model: state_ModelTableEntry
                 },
 
                 finish(this: any) {
                     //
-                },
+                }
             },
 
             UADataType: state_UADataType,
@@ -1366,115 +1356,112 @@ export function generateAddressSpace(
             UAObjectType: state_UAObjectType,
             UAReferenceType: state_UAReferenceType,
             UAVariable: state_UAVariable,
-            UAVariableType: state_UAVariableType,
-        },
+            UAVariableType: state_UAVariableType
+        }
     };
 
-    if (!_.isArray(xmlFiles)) {
-        xmlFiles = [xmlFiles];
-    }
     const parser = new Xml2Json(state_0);
 
-    addressSpace1.suspendBackReference = true;
+    function terminate(callback: ErrorCallback) {
+        make_back_references(addressSpace1);
 
-    async.mapSeries(
-        xmlFiles,
-        (xmlFile: string, callback1: (err?: Error) => void) => {
-            // istanbul ignore next
-            if (!fs.existsSync(xmlFile)) {
-                throw new Error("generateAddressSpace : cannot file nodeset2 xml file at " + xmlFile);
-            }
+        // setting up Server_NamespaceArray
 
-            debugLog(" parsing ", xmlFile);
-            _reset_namespace_translation();
-            parser.parse(xmlFile, callback1);
-        },
-        (err?: Error | null) => {
-            make_back_references(addressSpace1);
-
-            // setting up Server_NamespaceArray
-
-            if (addressSpace.rootFolder?.objects?.server?.namespaceArray) {
-                addressSpace.rootFolder.objects.server.namespaceArray.setValueFromSource({
-                    arrayType: VariantArrayType.Array,
-                    dataType: DataType.String,
-                    value: addressSpace1.getNamespaceArray().map((ns) => ns.namespaceUri),
-                });
-                // istanbul ignore next
-                if (doDebug) {
-                    debugLog(
-                        "addressSpace NS = ",
-                        addressSpace.rootFolder.objects.server.namespaceArray.readValue().value.value.join(" ")
-                    );
-                }
-            }
-            debugLog(
-                chalk.bgGreenBright("Performing post loading tasks -------------------------------------------") +
-                    chalk.green("DONE")
-            );
-
-            async function performPostLoadingTasks(tasks: Task[]): Promise<void> {
-                for (const task of tasks) {
-                    try {
-                        await task(addressSpace1);
-                    } catch (err) {
-                        // istanbul ignore next
-                        // tslint:disable:no-console
-                        console.log(" performPostLoadingTasks Err  => ", err.message, "\n", err);
-                        await task(addressSpace1);
-                    }
-                }
-            }
-            async function finalSteps(): Promise<void> {
-                /// ----------------------------------------------------------------------------------------
-                // perform post task
-                debugLog(chalk.bgGreenBright("Performing post loading tasks -------------------------------------------"));
-                await performPostLoadingTasks(postTasks);
-                postTasks = [];
-
-                debugLog(chalk.bgGreenBright("Performing DataType extraction -------------------------------------------"));
-                assert(!addressSpace1.suspendBackReference);
-                await ensureDatatypeExtracted(addressSpace);
-
-                /// ----------------------------------------------------------------------------------------
-                debugLog(chalk.bgGreenBright("DataType extraction done ") + chalk.green("DONE"), err?.message);
-
-                for (const { name, dataTypeNodeId } of pendingSimpleTypeToRegister) {
-                    if (dataTypeNodeId.namespace === 0) {
-                        continue;
-                    }
-                    const dataTypeManager = (addressSpace as AddressSpacePrivate).getDataTypeManager();
-                    const dataTypeFactory = dataTypeManager.getDataTypeFactoryForNamespace(dataTypeNodeId.namespace);
-                }
-                pendingSimpleTypeToRegister.splice(0);
-
-                debugLog(chalk.bgGreenBright("Performing post loading tasks 2 (parsing XML objects) ---------------------"));
-                await performPostLoadingTasks(postTasks2);
-                postTasks2 = [];
-
-                debugLog(chalk.bgGreenBright("Performing post variable initialization ---------------------"));
-                await performPostLoadingTasks(postTaskInitializeVariable);
-                postTaskInitializeVariable = [];
-
-                debugLog(
-                    chalk.bgGreenBright(
-                        "Performing post loading tasks 3 (assigning Extension Object to Variables) ---------------------"
-                    )
-                );
-                await performPostLoadingTasks(postTasks3);
-                postTasks3 = [];
-            }
-            callbackify(finalSteps)((err1?: Error) => {
-                if (err1) {
-                    console.log("Error ", pe.render(err1));
-                }
-                callback!(err1 || undefined);
+        if (addressSpace.rootFolder?.objects?.server?.namespaceArray) {
+            addressSpace.rootFolder.objects.server.namespaceArray.setValueFromSource({
+                arrayType: VariantArrayType.Array,
+                dataType: DataType.String,
+                value: addressSpace1.getNamespaceArray().map((ns) => ns.namespaceUri)
             });
+            // istanbul ignore next
+            if (doDebug) {
+                debugLog(
+                    "addressSpace NS = ",
+                    addressSpace.rootFolder.objects.server.namespaceArray.readValue().value.value.join(" ")
+                );
+            }
         }
-    );
-}
+        debugLog(
+            chalk.bgGreenBright("Performing post loading tasks -------------------------------------------") + chalk.green("DONE")
+        );
 
-// tslint:disable:no-var-requires
-// tslint:disable:max-line-length
-const thenify = require("thenify");
-(module.exports as any).generateAddressSpace = thenify.withCallback((module.exports as any).generateAddressSpace);
+        async function performPostLoadingTasks(tasks: Task[]): Promise<void> {
+            for (const task of tasks) {
+                try {
+                    await task(addressSpace1);
+                } catch (err) {
+                    // istanbul ignore next
+                    // tslint:disable:no-console
+                    console.log(" performPostLoadingTasks Err  => ", err.message, "\n", err);
+                    await task(addressSpace1);
+                }
+            }
+        }
+        async function finalSteps(): Promise<void> {
+            /// ----------------------------------------------------------------------------------------
+            // perform post task
+            debugLog(chalk.bgGreenBright("Performing post loading tasks -------------------------------------------"));
+            await performPostLoadingTasks(postTasks);
+            postTasks = [];
+
+            debugLog(chalk.bgGreenBright("Performing DataType extraction -------------------------------------------"));
+            assert(!addressSpace1.suspendBackReference);
+            await ensureDatatypeExtracted(addressSpace);
+
+            /// ----------------------------------------------------------------------------------------
+            debugLog(chalk.bgGreenBright("DataType extraction done ") + chalk.green("DONE"));
+
+            for (const { name, dataTypeNodeId } of pendingSimpleTypeToRegister) {
+                if (dataTypeNodeId.namespace === 0) {
+                    continue;
+                }
+                const dataTypeManager = (addressSpace as AddressSpacePrivate).getDataTypeManager();
+                const dataTypeFactory = dataTypeManager.getDataTypeFactoryForNamespace(dataTypeNodeId.namespace);
+            }
+            pendingSimpleTypeToRegister.splice(0);
+
+            debugLog(chalk.bgGreenBright("Performing post loading tasks 2 (parsing XML objects) ---------------------"));
+            await performPostLoadingTasks(postTasks2);
+            postTasks2 = [];
+
+            debugLog(chalk.bgGreenBright("Performing post variable initialization ---------------------"));
+            await performPostLoadingTasks(postTaskInitializeVariable);
+            postTaskInitializeVariable = [];
+
+            debugLog(
+                chalk.bgGreenBright(
+                    "Performing post loading tasks 3 (assigning Extension Object to Variables) ---------------------"
+                )
+            );
+            await performPostLoadingTasks(postTasks3);
+            postTasks3 = [];
+        }
+        callbackify(finalSteps)((err1?: Error) => {
+            if (err1) {
+                console.log("Error ", pe.render(err1));
+            }
+            callback!(err1 || undefined);
+        });
+    }
+    function addNodeSet(xmlData: string, callback1: ErrorCallback) {
+        _reset_namespace_translation();
+        parser.parseString(xmlData, callback1);
+    }
+
+    return {
+        addNodeSet,
+        terminate
+    };
+}
+export class NodeSetLoader {
+    _s: any;
+    constructor(addressSpace: AddressSpace) {
+        this._s = makeStuff(addressSpace);
+    }
+    addNodeSet(xmlData: string, callback: ErrorCallback) {
+        return this._s.addNodeSet(xmlData, callback);
+    }
+    terminate(callback: ErrorCallback) {
+        this._s.terminate(callback);
+    }
+}

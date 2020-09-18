@@ -15,18 +15,10 @@ import {
     makeNodeClassMask,
     makeResultMask,
     NodeClass,
-    makeAccessLevelFlag,
+    makeAccessLevelFlag
 } from "node-opcua-data-model";
 import { QualifiedName } from "node-opcua-data-model";
-import {
-    FieldBasic,
-    FieldType,
-    getStructureTypeConstructor,
-    StructuredTypeField,
-    StructuredTypeSchema,
-    hasConstructor,
-    hasStructuredType,
-} from "node-opcua-factory";
+import { getStructureTypeConstructor, StructuredTypeField, StructuredTypeSchema, hasStructuredType } from "node-opcua-factory";
 import { getStructuredTypeSchema } from "node-opcua-factory";
 import { NodeId, resolveNodeId } from "node-opcua-nodeid";
 import * as utils from "node-opcua-utils";
@@ -37,8 +29,6 @@ import { DataType } from "node-opcua-variant";
 import { Namespace, XmlWriter } from "../../source";
 
 import { Int64 } from "node-opcua-basic-types";
-import { Enum } from "node-opcua-enum";
-import { BrowseDescriptionLike } from "node-opcua-pseudo-session";
 import { BrowseDescription, EnumDefinition, StructureDefinition, StructureField, StructureType } from "node-opcua-types";
 import { BaseNode } from "../base_node";
 import { UANamespace } from "../namespace";
@@ -1147,7 +1137,7 @@ UANamespace.prototype.toNodeset2XML = function (this: UANamespace) {
             nodeClassMask: makeNodeClassMask("Variable"),
             nodeId: opcBinaryTypeSystem.nodeId,
             referenceTypeId: resolveNodeId("HasComponent"),
-            resultMask: makeResultMask("ReferenceType | IsForward | BrowseName | NodeClass | TypeDefinition"),
+            resultMask: makeResultMask("ReferenceType | IsForward | BrowseName | NodeClass | TypeDefinition")
         });
         const result = opcBinaryTypeSystem.browseNode(nodeToBrowse).filter((r) => r.nodeId.namespace === this.index);
         assert(result.length <= 1);

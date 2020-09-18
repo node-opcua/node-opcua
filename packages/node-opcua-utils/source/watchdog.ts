@@ -3,7 +3,6 @@
  */
 import { EventEmitter } from "events";
 import { assert } from "node-opcua-assert";
-import * as _ from "underscore";
 
 type ArbitraryClockTick = number; // in millisecond
 type DurationInMillisecond = number;
@@ -52,7 +51,7 @@ function keepAliveFunc(this: ISubscriber) {
     if (!this._watchDogData || !this._watchDog) {
         throw new Error("Internal error");
     }
-    assert(_.isNumber(this._watchDogData.key));
+    assert(typeof this._watchDogData.key === "number");
     this._watchDogData.lastSeen = this._watchDog.getCurrentSystemTick();
     if (this.onClientSeen) {
         this.onClientSeen();
@@ -103,9 +102,9 @@ export class WatchDog extends EventEmitter {
     public addSubscriber(subscriber: ISubscriber, timeout: number): number {
         this._currentTime = this.getCurrentSystemTick();
         timeout = timeout || 1000;
-        assert(_.isNumber(timeout), " invalid timeout ");
-        assert(_.isFunction(subscriber.watchdogReset), " the subscriber must provide a watchdogReset method ");
-        assert(!_.isFunction(subscriber.keepAlive) || subscriber.keepAlive === WatchDog.emptyKeepAlive);
+        assert(typeof timeout === "number", " invalid timeout ");
+        assert(typeof subscriber.watchdogReset === "function", " the subscriber must provide a watchdogReset method ");
+        assert(typeof subscriber.keepAlive !== "function" || subscriber.keepAlive === WatchDog.emptyKeepAlive);
 
         this._counter += 1;
         const key = this._counter;
@@ -116,7 +115,7 @@ export class WatchDog extends EventEmitter {
             lastSeen: this._currentTime,
             subscriber,
             timeout,
-            visitCount: 0,
+            visitCount: 0
         } as IWatchdogData2;
 
         this._watchdogDataMap[key] = subscriber._watchDogData;
@@ -145,8 +144,8 @@ export class WatchDog extends EventEmitter {
         }
 
         assert(subscriber._watchDog instanceof WatchDog);
-        assert(_.isNumber(subscriber._watchDogData.key));
-        assert(_.isFunction(subscriber.keepAlive));
+        assert(typeof subscriber._watchDogData.key === "number");
+        assert(typeof subscriber.keepAlive === "function");
         assert(this._watchdogDataMap.hasOwnProperty(subscriber._watchDogData.key));
 
         delete this._watchdogDataMap[subscriber._watchDogData.key];
@@ -161,10 +160,7 @@ export class WatchDog extends EventEmitter {
     }
 
     public shutdown(): void {
-        assert(
-            this._timer === null && Object.keys(this._watchdogDataMap).length === 0,
-            " leaking subscriber in watchdog"
-        );
+        assert(this._timer === null && Object.keys(this._watchdogDataMap).length === 0, " leaking subscriber in watchdog");
     }
 
     public getCurrentSystemTick(): ArbitraryClockTick {
@@ -174,12 +170,11 @@ export class WatchDog extends EventEmitter {
     private _visit_subscriber() {
         this._currentTime = this.getCurrentSystemTick();
 
-        const expiredSubscribers = _.filter(this._watchdogDataMap, (watchDogData: IWatchdogData2) => {
+        const expiredSubscribers = Object.values(this._watchdogDataMap).filter((watchDogData: IWatchdogData2) => {
             watchDogData.visitCount += 1;
             return hasExpired(watchDogData, this._currentTime);
         });
 
-        // xx console.log("_visit_subscriber", _.map(expired_subscribers, _.property("key")));
         if (expiredSubscribers.length) {
             this.emit("timeout", expiredSubscribers);
         }

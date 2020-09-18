@@ -1,13 +1,7 @@
-import {
-    AddressSpace,
-    getMiniAddressSpace,
-    Namespace,
-    UAObject,
-    UAObjectType,
-    UADiscreteAlarm,
-    generateAddressSpace,
-    ensureDatatypeExtracted,
-} from "..";
+import { AddressSpace, Namespace, UAObject, UAObjectType, UADiscreteAlarm, ensureDatatypeExtracted } from "..";
+import { generateAddressSpace } from "../nodeJS";
+import { getMiniAddressSpace } from "../testHelpers";
+
 import { DataType } from "node-opcua-variant";
 import { nodesets } from "node-opcua-nodesets";
 
@@ -26,7 +20,6 @@ describe("AddressSpace#delete", () => {
     });
 
     it("DX1 sshould delete node ", () => {
-
         // given a parent node having a direct reference to it's child node
         const parentNode = namespace.addObject({
             browseName: "ParentNode",
@@ -40,7 +33,7 @@ describe("AddressSpace#delete", () => {
         parentNode.addReference({
             isForward: true,
             nodeId: childNode.nodeId,
-            referenceType: "HasComponent",
+            referenceType: "HasComponent"
         });
 
         parentNode.getComponents().length.should.eql(1);
@@ -49,10 +42,8 @@ describe("AddressSpace#delete", () => {
 
         // then the parent should not have it as a child
         parentNode.getComponents().length.should.eql(0);
-
     });
     it("DX2 should delete node ", () => {
-
         // given a child node having a reverse reference to it's parent node
         const parentNode = namespace.addObject({
             browseName: "ParentNode",
@@ -66,7 +57,7 @@ describe("AddressSpace#delete", () => {
         childNode.addReference({
             isForward: false,
             nodeId: parentNode.nodeId,
-            referenceType: "HasComponent",
+            referenceType: "HasComponent"
         });
 
         parentNode.getComponents().length.should.eql(1);
@@ -75,21 +66,14 @@ describe("AddressSpace#delete", () => {
 
         // then the parent should not have it as a child
         parentNode.getComponents().length.should.eql(0);
-
     });
 });
 
 describe("AddressSpace#deleteNode-b", () => {
-
     let addressSpace: AddressSpace;
     let namespace: Namespace;
 
-    function _createXXXXAlarm(
-        deviceNode: UAObject,
-        alarmType: UAObjectType,
-        browseName: string
-    ): UADiscreteAlarm {
-
+    function _createXXXXAlarm(deviceNode: UAObject, alarmType: UAObjectType, browseName: string): UADiscreteAlarm {
         const deviceHealthNode = (deviceNode as any).deviceHealth;
         if (!deviceHealthNode) {
             throw new Error("DeviceHealth must exist");
@@ -112,15 +96,9 @@ describe("AddressSpace#deleteNode-b", () => {
             conditionSource: deviceNode,
             inputNode: deviceHealthNode,
             // normalState: normalStateNode,
-            optionals: [
-                "ConfirmedState",
-                "Confirm"
-            ]
+            optionals: ["ConfirmedState", "Confirm"]
         };
-        const alarmNode = namespace.instantiateAlarmCondition(
-            alarmType,
-            options,
-            null);
+        const alarmNode = namespace.instantiateAlarmCondition(alarmType, options, null);
 
         alarmNode.conditionName.setValueFromSource({
             dataType: DataType.String,
@@ -135,7 +113,6 @@ describe("AddressSpace#deleteNode-b", () => {
     }
 
     function createDeviceNodeWithAlarm(nodeId: string) {
-
         const nsDI = addressSpace.getNamespaceIndex("http://opcfoundation.org/UA/DI/");
         if (nsDI < 0) {
             throw new Error("Cannot find DI namespace!");
@@ -146,17 +123,17 @@ describe("AddressSpace#deleteNode-b", () => {
             browseName: "A",
             eventSourceOf: addressSpace.rootFolder.objects.server,
             nodeId,
-            organizedBy: addressSpace.rootFolder.objects,
+            organizedBy: addressSpace.rootFolder.objects
         });
         const deviceHealth = namespace.addVariable({
             browseName: "DeviceHealth",
             componentOf: deviceNode,
-            dataType: "Int32",
+            dataType: "Int32"
         });
         const deviceHealthAlarms = namespace.addObject({
             browseName: "DeviceHealthAlarms",
-            componentOf: deviceNode,
-        })
+            componentOf: deviceNode
+        });
         _createXXXXAlarm(deviceNode, checkFunctionAlarmType, "CheckFunctionAlarm");
 
         return deviceNode;
@@ -166,11 +143,7 @@ describe("AddressSpace#deleteNode-b", () => {
         addressSpace = AddressSpace.create();
         const namespace0 = addressSpace.getDefaultNamespace();
 
-        await generateAddressSpace(addressSpace, [
-            nodesets.standard,
-            nodesets.di,
-            nodesets.autoId,
-        ]);
+        await generateAddressSpace(addressSpace, [nodesets.standard, nodesets.di, nodesets.autoId]);
         await ensureDatatypeExtracted(addressSpace);
         namespace = addressSpace.getOwnNamespace();
     });
@@ -180,12 +153,10 @@ describe("AddressSpace#deleteNode-b", () => {
     });
 
     it("YUYU should create an alarm and delete it", () => {
-
         const deviceNode = createDeviceNodeWithAlarm("s=Test");
         addressSpace.deleteNode(deviceNode);
 
         const deviceNodeAgain = createDeviceNodeWithAlarm("s=Test");
         addressSpace.deleteNode(deviceNodeAgain);
     });
-
 });

@@ -19,15 +19,15 @@ import {
     AddressSpace,
     BindVariableOptionsVariation2,
     DataValueCallback,
-    generateAddressSpace,
     Namespace,
     PseudoSession,
     RootFolder,
     SessionContext,
     UAVariable
 } from "..";
+import { generateAddressSpace } from "../nodeJS";
 
-import { create_minimalist_address_space_nodeset } from "../";
+import { create_minimalist_address_space_nodeset } from "../testHelpers";
 
 const context = SessionContext.defaultContext;
 

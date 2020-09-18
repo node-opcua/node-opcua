@@ -11,9 +11,9 @@ import { ConditionInfoOptions } from "../../source/interfaces/alarms_and_conditi
 
 export interface ConditionInfo {
     message: LocalizedText | null;
-    quality: StatusCode| null ;
-    severity: UInt16| null;
-    retain: boolean| null;
+    quality: StatusCode | null;
+    severity: UInt16 | null;
+    retain: boolean | null;
     isDifferentFrom(otherConditionInfo: ConditionInfo): boolean;
 }
 /**
@@ -26,14 +26,12 @@ export interface ConditionInfo {
  * @constructor
  */
 export class ConditionInfo {
-
     public message: LocalizedText | null = null;
     public quality: StatusCode | null = null;
     public severity: UInt16 | null = 0;
     public retain: boolean | null = false;
 
     constructor(options: ConditionInfoOptions) {
-
         this.severity = null;
         this.quality = null;
         this.message = null;
@@ -62,9 +60,9 @@ export class ConditionInfo {
      */
     public isDifferentFrom(otherConditionInfo: ConditionInfo): boolean {
         return (
-          this.severity !== otherConditionInfo.severity ||
-          this.quality !== otherConditionInfo.quality ||
-          this.message !== otherConditionInfo.message
+            this.severity !== otherConditionInfo.severity ||
+            this.quality !== otherConditionInfo.quality ||
+            this.message !== otherConditionInfo.message
         );
     }
 }

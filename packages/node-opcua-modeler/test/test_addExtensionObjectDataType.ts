@@ -13,11 +13,12 @@ import {
     //
     DataType,
     ExtensionObjectDefinition,
-    generateAddressSpace,
     NodeId,
     nodesets,
-    StructureDefinitionOptions,
+    StructureDefinitionOptions
 } from "..";
+import { generateAddressSpace } from "node-opcua-address-space/nodeJs";
+
 const writeFile = promisify(fs.writeFile);
 
 const doDebug = false;
@@ -50,16 +51,16 @@ describe("addExtensionObjectDataType", function (this: any) {
                     description: "the name",
                     isOptional: false,
                     name: "Name",
-                    valueRank: -1,
+                    valueRank: -1
                 },
                 {
                     arrayDimensions: [1],
                     dataType: DataType.Float,
                     description: "the list of values",
                     name: "Values",
-                    valueRank: 1,
-                },
-            ],
+                    valueRank: 1
+                }
+            ]
         };
 
         const options: ExtensionObjectDefinition = {
@@ -69,7 +70,7 @@ describe("addExtensionObjectDataType", function (this: any) {
             structureDefinition,
 
             binaryEncoding: NodeId.nullNodeId,
-            xmlEncoding: NodeId.nullNodeId,
+            xmlEncoding: NodeId.nullNodeId
         };
         const dataType = await addExtensionObjectDataType(ns, options);
 
@@ -116,11 +117,11 @@ describe("addExtensionObjectDataType", function (this: any) {
             const v = namespace.addVariable({
                 browseName: "Var1",
                 dataType: personDataType.nodeId,
-                propertyOf: addressSpace2.rootFolder.objects.server,
+                propertyOf: addressSpace2.rootFolder.objects.server
             });
 
             const person = addressSpace2.constructExtensionObject(personDataType, {
-                name: "Joe Doe",
+                name: "Joe Doe"
             });
             person.constructor.name.should.eql("PersonDataType");
             v.setValueFromSource({ dataType: DataType.ExtensionObject, value: person });
@@ -170,51 +171,51 @@ describe("addVariableTypeForDataType", function (this: any) {
                     dataType: DataType.String,
                     isOptional: false,
                     name: "ProductUri",
-                    valueRank: -1,
+                    valueRank: -1
                 },
                 {
                     arrayDimensions: null,
                     dataType: DataType.String,
                     isOptional: false,
                     name: "ManufacturerName",
-                    valueRank: -1,
+                    valueRank: -1
                 },
                 {
                     arrayDimensions: [],
                     dataType: DataType.String,
                     isOptional: false,
                     name: "ProductName",
-                    valueRank: -1,
+                    valueRank: -1
                 },
                 {
                     arrayDimensions: [],
                     dataType: DataType.String,
                     isOptional: false,
                     name: "SoftwareVersion",
-                    valueRank: -1,
+                    valueRank: -1
                 },
                 {
                     arrayDimensions: [],
                     dataType: DataType.String,
                     isOptional: false,
                     name: "BuildNumber",
-                    valueRank: -1,
+                    valueRank: -1
                 },
                 {
                     arrayDimensions: [],
                     dataType: DataType.DateTime,
                     isOptional: false,
                     name: "BuildDate",
-                    valueRank: -1,
-                },
-            ],
+                    valueRank: -1
+                }
+            ]
         };
 
         const buildInfoOptions: ExtensionObjectDefinition = {
             browseName: "MyBuildInfoDataType",
             description: "Some BuildInfo",
             isAbstract: false,
-            structureDefinition: buildInfoStructureDefinition,
+            structureDefinition: buildInfoStructureDefinition
         };
         const buildInfoDataType = await addExtensionObjectDataType(ns, buildInfoOptions);
 
@@ -226,29 +227,29 @@ describe("addVariableTypeForDataType", function (this: any) {
                     dataType: DataType.DateTime,
                     isOptional: false,
                     name: "StartTime",
-                    valueRank: -1,
+                    valueRank: -1
                 },
                 {
                     arrayDimensions: [],
                     dataType: addressSpace.findDataType("UtcTime")!.nodeId,
                     isOptional: false,
                     name: "CurrentTime",
-                    valueRank: -1,
+                    valueRank: -1
                 },
                 {
                     arrayDimensions: [],
                     dataType: buildInfoDataType.nodeId,
                     isOptional: false,
                     name: "BuildInfo",
-                    valueRank: -1,
-                },
-            ],
+                    valueRank: -1
+                }
+            ]
         };
         const serverStatusOptions: ExtensionObjectDefinition = {
             browseName: "MyServerStatusDataType",
             description: "....",
             isAbstract: false,
-            structureDefinition: serverStatusStructureDefinition,
+            structureDefinition: serverStatusStructureDefinition
         };
         const serverStatusDataType = await addExtensionObjectDataType(ns, serverStatusOptions);
         console.log("BBBBBBBBB");
@@ -268,7 +269,7 @@ describe("addVariableTypeForDataType", function (this: any) {
 
         const statusType = serverStatusType.instantiate({
             browseName: "Test",
-            organizedBy: addressSpace.rootFolder.objects.server,
+            organizedBy: addressSpace.rootFolder.objects.server
         }) as any;
         should.exist(statusType.startTime);
         const e = statusType.readValue().value.value;

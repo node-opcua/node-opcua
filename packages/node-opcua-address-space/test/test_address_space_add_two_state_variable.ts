@@ -3,14 +3,15 @@ import { StatusCodes } from "node-opcua-status-code";
 import * as should from "should";
 import * as sinon from "sinon";
 
-import { AddressSpace, BaseNode, generateAddressSpace, Namespace } from "..";
+import { AddressSpace, BaseNode, Namespace } from "..";
+
+import { generateAddressSpace } from "../nodeJS";
 
 let clock: any = null;
 
 // tslint:disable-next-line:no-var-requires
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("testing add TwoStateVariable ", function (this: any) {
-
     this.timeout(Math.max(this.timeout(), 10000));
 
     let addressSpace: AddressSpace;
@@ -39,7 +40,6 @@ describe("testing add TwoStateVariable ", function (this: any) {
     });
 
     it("should add a TwoStateVariableType", () => {
-
         const node = namespace.addTwoStateVariable({
             browseName: "TwoStateVariable1"
         });
@@ -58,11 +58,9 @@ describe("testing add TwoStateVariable ", function (this: any) {
 
         node.setValue(false);
         node.readValue().value.value.text.should.eql("FALSE");
-
     });
 
     it("TwoStateVariableType should add an uncertain value after creation", () => {
-
         const node = namespace.addTwoStateVariable({
             browseName: "TwoStateVariable1"
         });
@@ -74,7 +72,6 @@ describe("testing add TwoStateVariable ", function (this: any) {
         node.setValue(true);
         node.readValue().statusCode.should.eql(StatusCodes.Good);
         node.id.readValue().statusCode.should.eql(StatusCodes.Good);
-
     });
 
     it("should add a TwoStateVariableType with trueState and falseState as String", () => {
@@ -99,7 +96,6 @@ describe("testing add TwoStateVariable ", function (this: any) {
     });
 
     it("should add a TwoStateVariableType with transitionTime", function (this: any) {
-
         const node = namespace.addTwoStateVariable({
             browseName: "TwoStateVariable2",
             optionals: ["TransitionTime"]
@@ -117,11 +113,9 @@ describe("testing add TwoStateVariable ", function (this: any) {
         clock.tick(100);
         node.setValue(false);
         node.transitionTime!.readValue().value.value.getTime().should.eql(200, "again");
-
     });
 
     it("SubState => IsFalseSubStateOf", () => {
-
         const mainState = namespace.addTwoStateVariable({
             browseName: "TwoStateVariableMain",
             optionals: ["TransitionTime", "EffectiveDisplayName"]
@@ -141,11 +135,9 @@ describe("testing add TwoStateVariable ", function (this: any) {
         should(subState.isTrueSubStateOf).eql(null);
         subState.getFalseSubStates().should.eql([]);
         subState.getTrueSubStates().should.eql([]);
-
     });
 
     it("SubState => IsTrueSubStateOf", () => {
-
         function f(n: BaseNode): string {
             return n.browseName.toString();
         }
@@ -169,11 +161,9 @@ describe("testing add TwoStateVariable ", function (this: any) {
         should(subState.isFalseSubStateOf).eql(null);
         subState.getFalseSubStates().length.should.eql(0);
         subState.getTrueSubStates().length.should.eql(0);
-
     });
 
     it("should add a TwoStateVariableType with effectiveTransitionTime", function (this: any) {
-
         const mainState = namespace.addTwoStateVariable({
             browseName: "TwoStateVariable2",
             optionals: ["EffectiveTransitionTime", "TransitionTime", "EffectiveDisplayName"]
@@ -186,7 +176,6 @@ describe("testing add TwoStateVariable ", function (this: any) {
             isTrueSubStateOf: mainState,
             optionals: ["TransitionTime"],
             trueState: "PowerON"
-
         });
         mainState.effectiveTransitionTime!.readValue().statusCode.should.eql(StatusCodes.Good);
 
@@ -211,7 +200,5 @@ describe("testing add TwoStateVariable ", function (this: any) {
 
         //  todo
         // mainState.effectiveDisplayName.readValue().value.value.should.eql("aaa");
-
     });
-
 });

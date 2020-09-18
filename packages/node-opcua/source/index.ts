@@ -14,9 +14,10 @@ const minimumNodeVersionRequired = ">=8.0.0"; // minimum
 // istanbul ignore next
 if (!semver.satisfies(process.version, minimumNodeVersionRequired)) {
     console.log(
-        chalk.cyan(`warning node-opcua: Required nodejs version ${minimumNodeVersionRequired} not satisfied with current nodejs version ${
-            process.version
-            }.`));
+        chalk.cyan(
+            `warning node-opcua: Required nodejs version ${minimumNodeVersionRequired} not satisfied with current nodejs version ${process.version}.`
+        )
+    );
 }
 
 export * from "node-opcua-common";
@@ -39,10 +40,7 @@ export {
     coerceExpandedNodeId
 } from "node-opcua-nodeid";
 
-export {
-    StatusCode,
-    StatusCodes
-} from "node-opcua-status-code";
+export { StatusCode, StatusCodes } from "node-opcua-status-code";
 export {
     VariableTypeIds,
     VariableIds,
@@ -100,10 +98,7 @@ export { DiagnosticInfo } from "node-opcua-data-model";
 // -----------------------------------------------------------------------------
 export { nodesets } from "node-opcua-nodesets";
 // an incomplete but sufficient nodeset file used during testing
-export {
-    get_empty_nodeset_filename,
-    get_mini_nodeset_filename
-} from "node-opcua-address-space";
+export { get_empty_nodeset_filename, get_mini_nodeset_filename } from "node-opcua-address-space/testHelpers";
 
 module.exports.utils = require("node-opcua-utils");
 module.exports.hexDump = require("node-opcua-debug").hexDump;
@@ -134,3 +129,4 @@ export { build_address_space_for_conformance_testing } from "node-opcua-address-
 export { install_optional_cpu_and_memory_usage_node } from "node-opcua-vendor-diagnostic";
 
 export * from "node-opcua-aggregates";
+export { makeBoiler } from "node-opcua-address-space/testHelpers";

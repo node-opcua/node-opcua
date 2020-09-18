@@ -20,7 +20,9 @@ const {
     ServerEngine,
     ServerSidePublishEngine
 } = require("..");
-const mini_nodeset_filename = require("node-opcua-address-space").get_mini_nodeset_filename();
+
+const { get_mini_nodeset_filename } = require("node-opcua-address-space/testHelpers");
+const mini_nodeset_filename = get_mini_nodeset_filename();
 const { getFakePublishEngine } = require("./helper_fake_publish_engine");
 
 let fake_publish_engine = {

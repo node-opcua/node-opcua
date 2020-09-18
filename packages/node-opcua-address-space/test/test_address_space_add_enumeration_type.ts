@@ -5,7 +5,7 @@ import { StatusCodes } from "node-opcua-status-code";
 import { DataType, Variant } from "node-opcua-variant";
 import * as should from "should";
 
-import { getMiniAddressSpace } from "../";
+import { getMiniAddressSpace } from "../testHelpers";
 
 import { AddressSpace, BaseNode, Namespace, SessionContext } from "..";
 
@@ -27,7 +27,7 @@ describe("AddressSpace : testing add enumeration type", () => {
     it("should add a new Enumeration type into an address space - Form 1", () => {
         const myEnumType = namespace.addEnumerationType({
             browseName: "MyEnumType2",
-            enumeration: ["RUNNING", "BLOCKED", "IDLE", "UNDER MAINTENANCE"],
+            enumeration: ["RUNNING", "BLOCKED", "IDLE", "UNDER MAINTENANCE"]
         });
 
         myEnumType.browseName.toString().should.eql("1:MyEnumType2");
@@ -39,7 +39,7 @@ describe("AddressSpace : testing add enumeration type", () => {
         const browseDescription = new BrowseDescription({
             browseDirection: BrowseDirection.Forward,
             referenceTypeId: null,
-            resultMask: 0x3f,
+            resultMask: 0x3f
         });
         const r = enumerationType.browseNode(browseDescription);
         const names = r.map((x: any) => x.browseName.toString());
@@ -50,7 +50,7 @@ describe("AddressSpace : testing add enumeration type", () => {
         const e = namespace.addVariable({
             browseName: "RunningState",
             dataType: myEnumType,
-            propertyOf: addressSpace.rootFolder.objects.server.vendorServerInfo,
+            propertyOf: addressSpace.rootFolder.objects.server.vendorServerInfo
         });
 
         e.setValueFromSource({ dataType: DataType.Int32, value: 1 });
@@ -100,8 +100,8 @@ describe("AddressSpace : testing add enumeration type", () => {
                 { displayName: "VALUE01", value: 0x01 },
                 { displayName: "VALUE02", value: 0x02 },
                 { displayName: "VALUE04", value: 0x04 },
-                { displayName: "VALUE08", value: 0x08 },
-            ],
+                { displayName: "VALUE08", value: 0x08 }
+            ]
         });
 
         myEnumType.browseName.toString().should.eql("1:MyEnumType3");
@@ -113,7 +113,7 @@ describe("AddressSpace : testing add enumeration type", () => {
         const browseDescription = new BrowseDescription({
             browseDirection: BrowseDirection.Forward,
             referenceTypeId: null,
-            resultMask: 0x3f,
+            resultMask: 0x3f
         });
         const r = enumerationType.browseNode(browseDescription);
         const names = r.map((x: any) => x.browseName.toString());
@@ -124,7 +124,7 @@ describe("AddressSpace : testing add enumeration type", () => {
         const e = namespace.addVariable({
             browseName: "RunningState",
             dataType: myEnumType,
-            propertyOf: addressSpace.rootFolder.objects.server.vendorServerInfo,
+            propertyOf: addressSpace.rootFolder.objects.server.vendorServerInfo
         });
 
         e.setValueFromSource({ dataType: DataType.Int32, value: 1 });
@@ -171,14 +171,14 @@ describe("AddressSpace : testing add enumeration type", () => {
     it("should add a writable new Enumeration type into an address space  #552 ", async () => {
         const myEnumType = namespace.addEnumerationType({
             browseName: "MyEnumType4",
-            enumeration: ["RUNNING", "BLOCKED", "IDLE", "UNDER MAINTENANCE"],
+            enumeration: ["RUNNING", "BLOCKED", "IDLE", "UNDER MAINTENANCE"]
         });
 
         // now instantiate a variable that have this type.
         const e = namespace.addVariable({
             browseName: "RunningState",
             dataType: myEnumType,
-            propertyOf: addressSpace.rootFolder.objects.server.vendorServerInfo,
+            propertyOf: addressSpace.rootFolder.objects.server.vendorServerInfo
         });
 
         // simulate a write
@@ -187,8 +187,8 @@ describe("AddressSpace : testing add enumeration type", () => {
             new DataValue({
                 value: {
                     dataType: DataType.UInt32,
-                    value: 2,
-                },
+                    value: 2
+                }
             })
         );
         should(statusCode).eql(StatusCodes.Good);

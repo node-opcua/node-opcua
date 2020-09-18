@@ -15,10 +15,6 @@ const {
 } = require("node-opcua-address-space");
 
 const {
-    normalize_require_file,
-    LineFile
-} = require("node-opcua-utils");
-const {
     lowerFirstLetter
 } = require("node-opcua-utils");
 const {

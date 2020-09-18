@@ -1,17 +1,14 @@
 import * as fs from "fs";
-import {
-    AddressSpace,
-    generateAddressSpace,
-    Namespace,
-    NodeIdManager
-} from "node-opcua-address-space";
+import { AddressSpace, Namespace, NodeIdManager } from "node-opcua-address-space";
+import { generateAddressSpace } from "node-opcua-address-space/nodeJS";
+
 import { NodeClass } from "node-opcua-data-model";
 import { promisify } from "util";
 
 const writeFile = promisify(fs.writeFile);
 const readFile = promisify(fs.readFile);
 
-export type Symbols = Array<[string, number, string]>;
+export type Symbols = [string, number, string][];
 
 export interface BuildModelOptions {
     version: string;
@@ -21,14 +18,14 @@ export interface BuildModelOptions {
     presetSymbols?: Symbols;
 }
 
-export async function buildModel(data: BuildModelOptions): Promise<{ markdown: string, xmlModel: string, symbols: Symbols }> {
+export async function buildModel(data: BuildModelOptions): Promise<{ markdown: string; xmlModel: string; symbols: Symbols }> {
     try {
         const addressSpace = AddressSpace.create();
 
         // create own namespace (before loading other xml files)
         const ns = addressSpace.registerNamespace(data.namespaceUri);
 
-        const nodeIdManager = ((ns as any)._nodeIdManager) as NodeIdManager;
+        const nodeIdManager = (ns as any)._nodeIdManager as NodeIdManager;
         if (data.presetSymbols) {
             nodeIdManager.setSymbols(data.presetSymbols);
         }
@@ -80,15 +77,17 @@ export async function getPresetSymbolsFromCSV(csvFilename: string): Promise<Symb
                     }
                     return value;
                 }
-            }).on("readable", function (this: Parser) {
-                let record = this.read();
-                while (record) {
-                    output.push(record);
-                    record = this.read();
-                }
-            }).on("end", () => {
-                resolve(output);
-            });
+            })
+                .on("readable", function (this: Parser) {
+                    let record = this.read();
+                    while (record) {
+                        output.push(record);
+                        record = this.read();
+                    }
+                })
+                .on("end", () => {
+                    resolve(output);
+                });
         });
         return records as Symbols;
     } catch (err) {

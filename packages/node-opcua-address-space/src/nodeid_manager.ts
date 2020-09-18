@@ -2,12 +2,7 @@ import { assert } from "node-opcua-assert";
 import { NodeClass, QualifiedName } from "node-opcua-data-model";
 import { makeNodeId, NodeId, NodeIdLike, NodeIdType, resolveNodeId, sameNodeId } from "node-opcua-nodeid";
 
-import { LineFile } from "node-opcua-utils";
-import {
-    BaseNode as BaseNodePublic,
-    UAReferenceType as UAReferenceTypePublic
-} from "../source";
-import { AddressSpace } from "./address_space";
+import { BaseNode as BaseNodePublic, UAReferenceType as UAReferenceTypePublic } from "../source";
 import { Reference } from "./reference";
 
 export const NamespaceOptions = {
@@ -24,14 +19,13 @@ const hasComponentRefId = resolveNodeId("HasComponent");
 const hasEncoding = resolveNodeId("HasEncoding");
 
 function _identifyParentInReference(references: Reference[]): [NodeId, string] | null {
-
     const candidates = references.filter((r: Reference) => {
-        return !r.isForward &&
-            (
-                sameNodeId(r.referenceType, hasComponentRefId) ||
+        return (
+            !r.isForward &&
+            (sameNodeId(r.referenceType, hasComponentRefId) ||
                 sameNodeId(r.referenceType, hasPropertyRefId) ||
-                sameNodeId(r.referenceType, hasEncoding)
-            );
+                sameNodeId(r.referenceType, hasEncoding))
+        );
     });
     assert(candidates.length <= 1);
     if (candidates.length === 0) {
@@ -45,23 +39,21 @@ function _identifyParentInReference(references: Reference[]): [NodeId, string] |
 }
 
 export interface AddressSpacePartial {
-
     findNode(nodeId: NodeIdLike): BaseNodePublic | null;
     findReferenceType(refType: NodeIdLike, namespaceIndex?: number): UAReferenceTypePublic | null;
-
 }
 export interface ConstructNodeIdOptions {
-
     nodeId?: string | NodeIdLike | null;
     browseName: QualifiedName;
     nodeClass: NodeClass;
     references?: Reference[];
 }
+export type NodeEntry = [string, number, NodeClass];
+export type NodeEntry1 = [string, number, string /*"Object" | "Variable" etc...*/];
 
 export class NodeIdManager {
-
     private _cache: { [key: string]: number } = {};
-    private _reverseCache: { [key: number]: { name: string, nodeClass: NodeClass } } = {};
+    private _reverseCache: { [key: number]: { name: string; nodeClass: NodeClass } } = {};
 
     private _internal_id_counter: number;
     private namespaceIndex: number;
@@ -73,7 +65,7 @@ export class NodeIdManager {
         this.addressSpace = addressSpace;
     }
 
-    public setCache(cache: Array<[string, number, NodeClass]>) {
+    public setCache(cache: NodeEntry[]) {
         this._cache = {};
         this._reverseCache = {};
         for (const [key, value, nodeClass] of cache) {
@@ -81,21 +73,20 @@ export class NodeIdManager {
         }
     }
 
-    public setSymbols(symbols: Array<[string, number, string]>): void {
-
+    public setSymbols(symbols: NodeEntry1[]): void {
         function convertNodeClass(nodeClass: string): NodeClass {
             return (NodeClass as any)[nodeClass as any] as NodeClass;
         }
-        const symbols2 = symbols.map((e: [string, number, string]) => [
-            e[0] as string,
-            e[1] as number,
-            convertNodeClass(e[2])
-        ]) as Array<[string, number, NodeClass]>;
+        const symbols2 = symbols.map((e: [string, number, string]) => [e[0] as string, e[1] as number, convertNodeClass(e[2])]) as [
+            string,
+            number,
+            NodeClass
+        ][];
         this.setCache(symbols2);
     }
 
-    public getSymbols(): Array<[string, number, string]> {
-        const line: Array<[string, number, string]> = [];
+    public getSymbols(): NodeEntry1[] {
+        const line: NodeEntry1[] = [];
         for (const [key, value] of Object.entries(this._cache)) {
             const nodeClass = NodeClass[this._reverseCache[value].nodeClass];
             line.push([key, value, nodeClass]);
@@ -104,7 +95,6 @@ export class NodeIdManager {
     }
 
     public getSymbolCSV(): string {
-
         const line: string[] = [];
         for (const [name, value, nodeClass] of this.getSymbols()) {
             line.push([name, value, nodeClass].join(";"));
@@ -122,17 +112,18 @@ export class NodeIdManager {
     }
 
     public constructNodeId(options: ConstructNodeIdOptions): NodeId {
-
         function prepareName(browseName: QualifiedName): string {
             assert(browseName instanceof QualifiedName);
-            const m = browseName.name!.toString().replace(/[ ]/g, "").replace(/(\<|\>)/g, "");
+            const m = browseName
+                .name!.toString()
+                .replace(/[ ]/g, "")
+                .replace(/(\<|\>)/g, "");
             return m;
         }
         let nodeId = options.nodeId;
         const nodeClass = options.nodeClass;
 
         if (!nodeId) {
-
             //    console.log("xx constructNodeId", options.browseName.toString());
 
             const parentInfo = this.findParentNodeId(options);
@@ -173,9 +164,7 @@ export class NodeIdManager {
                 }
             }
         } else if (typeof nodeId === "string") {
-
             if (this.namespaceIndex !== 0) {
-
                 if (nodeId.match(regExp2)) {
                     // nothing
                 } else if (nodeId.match(regExp1)) {
@@ -196,7 +185,6 @@ export class NodeIdManager {
     }
 
     public findParentNodeId(options: ConstructNodeIdOptions): [NodeId, string] | null {
-
         if (!options.references) {
             return null;
         }
@@ -226,10 +214,7 @@ export class NodeIdManager {
         return this._reverseCache[nodeIdValue] ? true : false;
     }
 
-    private _getOrCreateFromName(
-        aliasName: string,
-        nodeClass: NodeClass
-    ): NodeId {
+    private _getOrCreateFromName(aliasName: string, nodeClass: NodeClass): NodeId {
         assert(isValidNodeClass(nodeClass), "invalid node class " + nodeClass);
         assert(!aliasName.includes(":"), "Alias name should not contain special characters");
         if (this._cache[aliasName]) {
@@ -239,6 +224,5 @@ export class NodeIdManager {
             this._addInCache(aliasName, nodeIdResult.value as number, nodeClass);
             return nodeIdResult;
         }
-
     }
 }

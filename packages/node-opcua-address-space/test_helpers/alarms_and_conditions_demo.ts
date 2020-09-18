@@ -2,9 +2,7 @@
  * @module node-opcua-address-space
  */
 import { assert } from "node-opcua-assert";
-import { AddressSpace, UAVariable } from "../source/address_space_ts";
-import { UANonExclusiveLimitAlarm } from "../src/alarms_and_conditions";
-import { UAExclusiveLimitAlarm } from "../src/alarms_and_conditions/ua_exclusive_limit_alarm";
+import { AddressSpace, UAVariable, UANonExclusiveLimitAlarm, UAExclusiveLimitAlarm } from "..";
 
 export interface IAlarmTestData {
     tankLevel: UAVariable;
@@ -14,11 +12,7 @@ export interface IAlarmTestData {
     tankTripCondition: null;
 }
 
-export function construct_demo_alarm_in_address_space(
-    test: IAlarmTestData,
-    addressSpace: AddressSpace
-) {
-
+export function construct_demo_alarm_in_address_space(test: IAlarmTestData, addressSpace: AddressSpace) {
     const a = addressSpace as any;
     if (a.construct_demo_alarm_in_address_space_called) {
         return;
@@ -33,7 +27,7 @@ export function construct_demo_alarm_in_address_space(
         description: "The Object representing the Tank",
         eventNotifier: 0x01,
         notifierOf: addressSpace.rootFolder.objects.server,
-        organizedBy: addressSpace.rootFolder.objects,
+        organizedBy: addressSpace.rootFolder.objects
     });
     assert(tank.getNotifiers().length === 0, "expecting a notifier now");
 
@@ -57,8 +51,7 @@ export function construct_demo_alarm_in_address_space(
         throw new Error("cannot find ExclusiveLimitAlarmType in namespace 0");
     }
 
-    const tankLevelCondition = namespace.instantiateExclusiveLimitAlarm(
-        exclusiveLimitAlarmType, {
+    const tankLevelCondition = namespace.instantiateExclusiveLimitAlarm(exclusiveLimitAlarmType, {
         browseName: "TankLevelCondition",
         componentOf: tank,
         conditionName: "TankLevelCondition",
@@ -67,12 +60,13 @@ export function construct_demo_alarm_in_address_space(
         highHighLimit: 0.9,
         highLimit: 0.8,
 
-        inputNode: tankLevel,   // the variable that will be monitored for change
+        inputNode: tankLevel, // the variable that will be monitored for change
 
         lowLimit: 0.2,
 
         optionals: [
-            "ConfirmedState", "Confirm" // confirm state and confirm Method
+            "ConfirmedState",
+            "Confirm" // confirm state and confirm Method
         ]
     });
     assert(tankLevelCondition.browseName.toString() === "1:TankLevelCondition");
@@ -113,8 +107,7 @@ export function construct_demo_alarm_in_address_space(
         throw new Error("!!");
     }
 
-    const tankLevelCondition2 = namespace.instantiateNonExclusiveLimitAlarm(
-        nonExclusiveLimitAlarmType, {
+    const tankLevelCondition2 = namespace.instantiateNonExclusiveLimitAlarm(nonExclusiveLimitAlarmType, {
         browseName: "TankLevelCondition2",
         componentOf: tank,
         conditionName: "TankLevel2",
@@ -123,12 +116,13 @@ export function construct_demo_alarm_in_address_space(
         highHighLimit: 0.9,
         highLimit: 0.8,
 
-        inputNode: tankLevel2,   // the variable that will be monitored for change
+        inputNode: tankLevel2, // the variable that will be monitored for change
 
         lowLimit: 0.2,
 
         optionals: [
-            "ConfirmedState", "Confirm" // confirm state and confirm Method
+            "ConfirmedState",
+            "Confirm" // confirm state and confirm Method
         ]
     });
     assert(tankLevel2.findReferences("HasCondition").length === 1);
@@ -140,5 +134,4 @@ export function construct_demo_alarm_in_address_space(
     test.tankLevelCondition2 = tankLevelCondition2;
 
     test.tankTripCondition = tankTripCondition;
-
 }

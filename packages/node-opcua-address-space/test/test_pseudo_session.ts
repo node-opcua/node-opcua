@@ -5,12 +5,9 @@ import { AttributeIds } from "node-opcua-data-model";
 import { StatusCodes } from "node-opcua-status-code";
 import { ReadValueIdOptions } from "node-opcua-types";
 
-import {
-    AddressSpace,
-    PseudoSession
-} from "..";
+import { AddressSpace, PseudoSession } from "..";
 
-import { getMiniAddressSpace } from "../";
+import { getMiniAddressSpace } from "../testHelpers";
 
 // tslint:disable-next-line:no-var-requires
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
@@ -26,7 +23,6 @@ describe("PseudoSession", () => {
     });
 
     it("should browse a single node ", async () => {
-
         const nodeToBrowse = /*BrowseDescription*/ {
             browseDirection: BrowseDirection.Forward,
             includeSubtypes: false,
@@ -47,7 +43,6 @@ describe("PseudoSession", () => {
     });
 
     it("should browse multiple nodes ", async () => {
-
         const nodeToBrowse = /*BrowseDescription*/ {
             browseDirection: BrowseDirection.Forward,
             includeSubtypes: false,
@@ -75,7 +70,6 @@ describe("PseudoSession", () => {
     });
 
     it("should read a single node", async () => {
-
         const nodeToRead = /*ReadValue*/ {
             attributeId: AttributeIds.BrowseName,
             nodeId: "i=84"
@@ -88,7 +82,6 @@ describe("PseudoSession", () => {
     });
 
     it("should read multiple nodes", async () => {
-
         const nodesToRead: ReadValueIdOptions[] = [
             {
                 attributeId: AttributeIds.BrowseName,

@@ -3,13 +3,9 @@
  */
 import { StatusCodes } from "node-opcua-status-code";
 import { DataType, Variant } from "node-opcua-variant";
-import { Folder, MethodFunctor, MethodFunctorCallback, Namespace, SessionContext } from "../source";
+import { Folder, MethodFunctor, MethodFunctorCallback, Namespace, SessionContext } from "..";
 
-export function add_eventGeneratorObject(
-    namespace: Namespace,
-    parentFolder: Folder | string
-) {
-
+export function add_eventGeneratorObject(namespace: Namespace, parentFolder: Folder | string) {
     const myEvtType = namespace.addEventType({
         browseName: "MyEventType",
         subtypeOf: "BaseEventType" // should be implicit
@@ -18,7 +14,7 @@ export function add_eventGeneratorObject(
     const myObject = namespace.addObject({
         browseName: "EventGeneratorObject",
         eventNotifier: 1,
-        organizedBy: parentFolder,
+        organizedBy: parentFolder
     });
 
     myObject.addReference({
@@ -43,11 +39,7 @@ export function add_eventGeneratorObject(
         outputArguments: []
     });
 
-    method.bindMethod((
-        inputArguments: Variant[],
-        context: SessionContext,
-        callback: MethodFunctorCallback) => {
-
+    method.bindMethod((inputArguments: Variant[], context: SessionContext, callback: MethodFunctorCallback) => {
         // xx console.log("In Event Generator Method");
         // xx console.log(this.toString());
         // xx console.log(context.object.toString());
@@ -67,7 +59,6 @@ export function add_eventGeneratorObject(
                 dataType: DataType.UInt32,
                 value: severity
             }
-
         });
         // console.log(require("util").inspect(context).toString());
         const callMethodResult = {
@@ -76,5 +67,4 @@ export function add_eventGeneratorObject(
         };
         callback(null, callMethodResult);
     });
-
 }

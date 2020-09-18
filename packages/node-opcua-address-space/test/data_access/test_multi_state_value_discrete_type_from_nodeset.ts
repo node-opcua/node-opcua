@@ -1,16 +1,14 @@
 import * as fs from "fs";
-import * as mocha from "mocha";
 import * as path from "path";
 import * as should from "should";
 
 import { nodesets } from "node-opcua-nodesets";
 import { DataType } from "node-opcua-variant";
-import { AddressSpace, generateAddressSpace, UAVariable } from "../../source";
-import { promoteToMultiStateDiscrete } from "../../src/data_access/ua_multistate_discrete";
-import { promoteToMultiStateValueDiscrete } from "../../src/data_access/ua_mutlistate_value_discrete";
+
+import { AddressSpace, UAVariable, promoteToMultiStateDiscrete, promoteToMultiStateValueDiscrete } from "../..";
+import { generateAddressSpace } from "../../nodeJS";
 
 describe("MultiStateValueDiscreteType - 2", () => {
-
     let addressSpace: AddressSpace;
     const data = { addressSpace: null as any };
     before(async () => {
@@ -24,7 +22,6 @@ describe("MultiStateValueDiscreteType - 2", () => {
         ];
         fs.existsSync(xmlFiles[0]).should.eql(true);
         await generateAddressSpace(addressSpace, xmlFiles);
-
     });
 
     after(() => {
@@ -33,7 +30,6 @@ describe("MultiStateValueDiscreteType - 2", () => {
     });
 
     it("ZYZ-1 it should promoteToMultiStateValueDiscrete from an existing nodeset", async () => {
-
         const ns = addressSpace.getNamespaceIndex("mydemo/");
 
         const variable = addressSpace.findNode("ns=2;i=16003") as UAVariable;
@@ -69,11 +65,9 @@ describe("MultiStateValueDiscreteType - 2", () => {
             msvd.setValue(12345);
         }).throw();
         msvd.getValueAsNumber().should.eql(3);
-
     });
 
     it("ZYZ-2 it should promoteToMultiStateDiscrete from an existing nodeset", async () => {
-
         const ns = addressSpace.getNamespaceIndex("mydemo/");
 
         const variable = addressSpace.findNode("ns=2;i=26001") as UAVariable;
@@ -119,6 +113,5 @@ describe("MultiStateValueDiscreteType - 2", () => {
             msd.setValue(42);
         }).throw();
         msd.getValue().should.eql(1);
-
     });
 });

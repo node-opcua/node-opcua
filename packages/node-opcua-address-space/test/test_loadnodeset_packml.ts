@@ -7,7 +7,8 @@ import { ExtensionObject } from "node-opcua-extension-object";
 import { nodesets } from "node-opcua-nodesets";
 import { DataType, Variant } from "node-opcua-variant";
 
-import { AddressSpace, ensureDatatypeExtracted, generateAddressSpace } from "..";
+import { AddressSpace, ensureDatatypeExtracted } from "..";
+import { generateAddressSpace } from "../nodeJS";
 
 describe("Testing PackML custom types", async function (this: any) {
     this.timeout(200000); // could be slow on appveyor !
@@ -53,14 +54,14 @@ describe("Testing PackML custom types", async function (this: any) {
             dateTime: new Date(1789, 6, 14),
             message: "Hello",
             category: 12,
-            trigger: true,
+            trigger: true
         });
         console.log("packMLAlarm = ", packMLAlarm.toString());
         //xx console.log(scanResult.schema);
 
         const v = new Variant({
             dataType: DataType.ExtensionObject,
-            value: packMLAlarm,
+            value: packMLAlarm
         });
         const reload_v = encode_decode(v);
 

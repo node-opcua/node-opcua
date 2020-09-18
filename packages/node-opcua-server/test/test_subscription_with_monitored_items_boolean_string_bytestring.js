@@ -33,7 +33,9 @@ const {
     Subscription,
     ServerEngine
 } = require("..");
-const mini_nodeset_filename = require("node-opcua-address-space").get_mini_nodeset_filename();
+
+const { get_mini_nodeset_filename } = require("node-opcua-address-space/testHelpers");
+const mini_nodeset_filename = get_mini_nodeset_filename();
 
 const context = SessionContext.defaultContext;
 

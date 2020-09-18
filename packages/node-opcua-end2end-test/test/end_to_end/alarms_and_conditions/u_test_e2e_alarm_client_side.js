@@ -1,5 +1,4 @@
 const sinon = require("sinon");
-const treeify = require('treeify');
 
 const {
     installAlarmMonitoring,
@@ -9,8 +8,7 @@ const {
     confirmAllConditions,
     dumpEvent
 } = require("node-opcua-client");
-const { construct_demo_alarm_in_address_space } = require("node-opcua-address-space");
-const chalk = require("chalk");
+const { construct_demo_alarm_in_address_space } = require("node-opcua-address-space/testHelpers");
 const { perform_operation_on_subscription_async } = require("../../../test_helpers/perform_operation_on_client_session");
 
 const doDebug = false;

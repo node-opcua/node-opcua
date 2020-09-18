@@ -4,8 +4,9 @@ const fs = require("fs");
 
 const {
     AddressSpace,
-    generateAddressSpace
 } = require("node-opcua-address-space");
+const { generateAddressSpace } = require("node-opcua-address-space/testHelpers");
+
 const { PseudoSession } = require("node-opcua-address-space");
 const { parse_opcua_common } = require("../lib/parse_server_common");
 const { nodesets } = require("node-opcua-nodesets");

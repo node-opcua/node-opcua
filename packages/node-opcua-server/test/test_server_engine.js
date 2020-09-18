@@ -60,8 +60,10 @@ const { assert_arrays_are_equal } = require("node-opcua-test-helpers");
 
 const { ServerEngine } = require("..");
 
-const mini_nodeset_filename = require("node-opcua-address-space").get_mini_nodeset_filename();
-const standard_nodeset_file = require("node-opcua-nodesets").nodesets.standard_nodeset_file;
+const { get_mini_nodeset_filename } = require("node-opcua-address-space/testHelpers");
+const mini_nodeset_filename = get_mini_nodeset_filename();
+
+const { standard_nodeset_file } = require("node-opcua-nodesets").nodesets;
 
 const server_NamespaceArray_Id = makeNodeId(VariableIds.Server_NamespaceArray); // ns=0;i=2255
 const context = SessionContext.defaultContext;

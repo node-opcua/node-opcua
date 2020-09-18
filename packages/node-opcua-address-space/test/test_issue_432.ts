@@ -1,13 +1,12 @@
 import * as should from "should";
 
-import { getMiniAddressSpace } from "../";
+import { getMiniAddressSpace } from "../testHelpers";
 
 import { AddressSpace } from "..";
 
 // tslint:disable-next-line:no-var-requires
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("testing github issue https://github.com/node-opcua/node-opcua/issues/432", () => {
-
     let addressSpace: AddressSpace;
     before(async () => {
         addressSpace = await getMiniAddressSpace();
@@ -19,7 +18,6 @@ describe("testing github issue https://github.com/node-opcua/node-opcua/issues/4
     });
 
     it("should be possible to specify a custom nodeId when creating an object type", () => {
-
         // assuming that the namspace exist !!!
         const ns2 = addressSpace.registerNamespace("N2");
         const ns3 = addressSpace.registerNamespace("N3");

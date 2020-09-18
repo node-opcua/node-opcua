@@ -15,27 +15,14 @@ import { assert } from "node-opcua-assert";
 import { coerceNodeId, makeNodeId, NodeIdLike } from "node-opcua-nodeid";
 import { StatusCodes } from "node-opcua-status-code";
 import { AddressSpace, Namespace, UAObject, UAVariable } from "node-opcua-address-space";
-import {
-    AccessLevelFlag,
-    makeAccessLevelFlag
-} from "node-opcua-data-model";
-import {
-    Variant,
-    DataType,
-    VariantArrayType,
-    buildVariantArray
-} from "node-opcua-variant";
+import { AccessLevelFlag, makeAccessLevelFlag } from "node-opcua-data-model";
+import { Variant, DataType, VariantArrayType, buildVariantArray } from "node-opcua-variant";
 import { findBuiltInType } from "node-opcua-factory";
 import { DataValue } from "node-opcua-data-value";
 import * as ec from "node-opcua-basic-types";
-import {
-    QualifiedName,
-    LocalizedText
-} from "node-opcua-data-model";
-import {
-    standardUnits
-} from "node-opcua-data-access";
-import { add_eventGeneratorObject } from "node-opcua-address-space";
+import { QualifiedName, LocalizedText } from "node-opcua-data-model";
+import { standardUnits } from "node-opcua-data-access";
+import { add_eventGeneratorObject } from "node-opcua-address-space/testHelpers";
 
 function defaultValidator(/*value*/) {
     return true;
@@ -47,7 +34,6 @@ function getValidatorFuncForType(dataType: DataType): any {
 }
 
 function getRandomFuncForType(dataType: DataType): () => any {
-
     const dataTypeName = DataType[dataType];
     const f = (ec as any)["random" + dataTypeName];
 
@@ -90,14 +76,11 @@ function _findDataType(dataTypeName: string) {
     return dataType;
 }
 
-function validate_value_or_array(
-    isArray: boolean, variantValue: any, validatorFunc: any) {
-
+function validate_value_or_array(isArray: boolean, variantValue: any, validatorFunc: any) {
     assert(_.isFunction(validatorFunc));
     let i: number;
     let value: any;
     if (isArray) {
-
         const n = Math.min(10, variantValue.length);
 
         for (i = 0; i < n; i++) {
@@ -107,7 +90,6 @@ function validate_value_or_array(
                 throw new Error("default value must be valid for dataType " + variantValue + " at index " + i + " got " + value);
             }
         }
-
     } else {
         // scalar
         // istanbul ignore next
@@ -115,12 +97,10 @@ function validate_value_or_array(
             throw new Error("default value must be valid for dataType " + variantValue);
         }
     }
-
 }
 
 function makeVariant(dataTypeName: string, isArray: boolean, current_value: any) {
-
-    isArray = (isArray === null) ? false : isArray;
+    isArray = isArray === null ? false : isArray;
     let arrayType = VariantArrayType.Scalar;
     if (isArray) {
         arrayType = VariantArrayType.Array;
@@ -149,7 +129,6 @@ function _add_variable(
     isArray: boolean,
     extra_name: string
 ): UAVariable {
-
     const addressSpace = namespace.addressSpace;
     assert(typeof extra_name === "string");
 
@@ -179,14 +158,7 @@ function _add_variable(
     return variable;
 }
 
-function add_variable(
-    namespace: Namespace,
-    parent: UAObject,
-    name: string,
-    realType: any,
-    default_value: any,
-    extra_name: string) {
-
+function add_variable(namespace: Namespace, parent: UAObject, name: string, realType: any, default_value: any, extra_name: string) {
     assert(typeof extra_name === "string");
     const initialValue = _.isFunction(default_value) ? default_value() : default_value;
     const variable = _add_variable(namespace, parent, name, realType, initialValue, false, extra_name);
@@ -203,10 +175,11 @@ function add_variable_array(
     namespace: Namespace,
     parent: UAObject,
     dataTypeName: string,
-    default_value: any, realTypeName: string,
+    default_value: any,
+    realTypeName: string,
     arrayLength: number,
-    extra_name: string): void {
-
+    extra_name: string
+): void {
     assert(typeof dataTypeName === "string");
     assert(typeof realTypeName === "string");
 
@@ -228,7 +201,6 @@ function add_variable_array(
     assert(variable.accessLevel === AccessLevelFlag.CurrentRead + AccessLevelFlag.CurrentWrite);
     assert(variable.userAccessLevel === AccessLevelFlag.CurrentRead + AccessLevelFlag.CurrentWrite);
     assert(variable.historizing === false);
-
 }
 
 function add_mass_variables_of_type(
@@ -236,7 +208,8 @@ function add_mass_variables_of_type(
     parent: UAObject,
     dataTypeName: string,
     default_value: any,
-    realType: string): void {
+    realType: string
+): void {
     // Mass Mass_Boolean -> Mass_Boolean_Boolean_00 ...
     const nodeName = "Scalar_Mass_" + dataTypeName;
 
@@ -245,18 +218,16 @@ function add_mass_variables_of_type(
         browseName: nodeName,
         description: "This folder will contain 100 items per supported data-type.",
         nodeId: "s=" + nodeName,
-        organizedBy: parent,
+        organizedBy: parent
     });
     for (let i = 0; i <= 99; i++) {
         const extra_name = "_" + ("00" + i.toString()).substr(-2);
         const local_defaultValue = _.isFunction(default_value) ? default_value() : default_value;
         _add_variable(namespace, scalarMass_Type, dataTypeName, realType, local_defaultValue, false, extra_name);
     }
-
 }
 
 function add_mass_variables(namespace: Namespace, scalarFolder: UAObject): void {
-
     const scalarMass = namespace.addFolder(scalarFolder, {
         browseName: "Scalar_Mass",
         description: "This folder will contain 100 items per supported data-type.",
@@ -282,7 +253,8 @@ const typeAndDefaultValue = [
     { type: "Int16", defaultValue: 0 },
     { type: "Int32", defaultValue: 0 },
     {
-        type: "NodeId", defaultValue() {
+        type: "NodeId",
+        defaultValue() {
             return coerceNodeId("ns=" + 3 + ";g=00000000-0000-0000-0000-000000000023");
         }
     },
@@ -291,24 +263,28 @@ const typeAndDefaultValue = [
     { type: "UInt16", defaultValue: 0 },
     { type: "UInt32", defaultValue: 0 },
     { type: "Duration", realType: "Double", defaultValue: 0.0 },
-    { type: "Number", realType: "UInt16", defaultValue: 0 },// Number is abstract
-    { type: "Integer", realType: "Int64", defaultValue: 0 },// because Integer is abstract , we choose Int32
+    { type: "Number", realType: "UInt16", defaultValue: 0 }, // Number is abstract
+    { type: "Integer", realType: "Int64", defaultValue: 0 }, // because Integer is abstract , we choose Int32
     { type: "UInteger", realType: "UInt64", defaultValue: 0 },
     {
-        type: "UtcTime", realType: "DateTime", defaultValue() {
+        type: "UtcTime",
+        realType: "DateTime",
+        defaultValue() {
             return new Date();
         }
     },
     // xx        {  type: "Int64",         defaultValue:  0},
     { type: "LocaleId", realType: "String", defaultValue: "" },
     {
-        type: "LocalizedText", defaultValue() {
+        type: "LocalizedText",
+        defaultValue() {
             return new LocalizedText({});
         }
     },
 
     {
-        type: "QualifiedName", defaultValue() {
+        type: "QualifiedName",
+        defaultValue() {
             return new QualifiedName();
         }
     },
@@ -320,17 +296,14 @@ const typeAndDefaultValue = [
     { type: "ImageBMP", realType: "ByteString", defaultValue: null },
     { type: "ImageGIF", realType: "ByteString", defaultValue: null },
     { type: "ImageJPG", realType: "ByteString", defaultValue: null },
-    { type: "ImagePNG", realType: "ByteString", defaultValue: null },
+    { type: "ImagePNG", realType: "ByteString", defaultValue: null }
     // {type: "Enumeration", realType: "UInt32" , defaultValue:0}
 ];
 
 function add_simulation_variables(namespace: Namespace, scalarFolder: UAObject): void {
-
     let values_to_change: any[] = [];
 
-    function add_simulation_variable(parent: UAObject,
-        dataTypeName: string, defaultValue: any, realTypeName: string): UAVariable {
-
+    function add_simulation_variable(parent: UAObject, dataTypeName: string, defaultValue: any, realTypeName: string): UAVariable {
         // the type of the default value
         realTypeName = realTypeName || dataTypeName;
 
@@ -347,7 +320,7 @@ function add_simulation_variables(namespace: Namespace, scalarFolder: UAObject):
         const value_to_change = {
             dataType,
             randomFunc,
-            variable,
+            variable
         };
 
         values_to_change.push(value_to_change);
@@ -359,7 +332,7 @@ function add_simulation_variables(namespace: Namespace, scalarFolder: UAObject):
         browseName: "Scalar_Simulation",
         description: "This folder will contain one item per supported data-type.",
         nodeId: "s=Scalar_Simulation",
-        organizedBy: scalarFolder,
+        organizedBy: scalarFolder
     });
 
     // add simulation variables
@@ -376,13 +349,10 @@ function add_simulation_variables(namespace: Namespace, scalarFolder: UAObject):
     let timer: NodeJS.Timeout | undefined;
 
     function change_randomly() {
-
         values_to_change.forEach((element) => {
-
             const variant = element.variable._backdoor_placeholder.variant;
             variant.value = element.randomFunc();
             element.variable.setValueFromSource(variant);
-
         });
     }
 
@@ -422,7 +392,7 @@ function add_simulation_variables(namespace: Namespace, scalarFolder: UAObject):
         })
     });
 
-    intervalVariable.on("value_changed", (dataValue/*,indexRange*/) => {
+    intervalVariable.on("value_changed", (dataValue /*,indexRange*/) => {
         const variant = dataValue.value;
         assert(variant instanceof Variant);
         assert(ec.isValidUInt16(variant.value), " value must be valid for dataType");
@@ -443,7 +413,7 @@ function add_simulation_variables(namespace: Namespace, scalarFolder: UAObject):
         })
     });
 
-    enabledVariable.on("value_changed", (dataValue/*,indexRange*/) => {
+    enabledVariable.on("value_changed", (dataValue /*,indexRange*/) => {
         const variant = dataValue.value;
         assert(variant instanceof Variant);
         assert(ec.isValidBoolean(variant.value), " value must be valid for dataType");
@@ -454,11 +424,9 @@ function add_simulation_variables(namespace: Namespace, scalarFolder: UAObject):
 
     const addressSpace = namespace.addressSpace;
     (addressSpace as any).registerShutdownTask(tearDown_Timer);
-
 }
 
 function add_scalar_static_variables(namespace: Namespace, scalarFolder: UAObject) {
-
     const scalarStatic = namespace.addObject({
         organizedBy: scalarFolder,
         browseName: "Scalar_Static",
@@ -483,11 +451,13 @@ function add_scalar_static_variables(namespace: Namespace, scalarFolder: UAObjec
             refreshFunc: (callback: (err: Error | null, dataValue: DataValue) => void) => {
                 fs.readFile(fullpath, (err, data) => {
                     if (err) {
-                        return callback(null, new DataValue({
-                            statusCode: StatusCodes.BadInternalError,
-                            value: { dataType: "ByteString", value: null }
-                        }));
-
+                        return callback(
+                            null,
+                            new DataValue({
+                                statusCode: StatusCodes.BadInternalError,
+                                value: { dataType: "ByteString", value: null }
+                            })
+                        );
                     }
                     assert(data instanceof Buffer);
                     callback(null, new DataValue({ value: { dataType: "ByteString", value: data } }));
@@ -495,8 +465,7 @@ function add_scalar_static_variables(namespace: Namespace, scalarFolder: UAObjec
             }
         };
 
-        imageNode.bindVariable(options, /*overwrite=*/true);
-
+        imageNode.bindVariable(options, /*overwrite=*/ true);
     }
 
     function setImage(imageType: string, filename: string) {
@@ -521,7 +490,8 @@ function add_scalar_static_variables(namespace: Namespace, scalarFolder: UAObjec
     const scalarStaticArray = namespace.addObject({
         organizedBy: scalarFolder,
         browseName: "Scalar_Static_Array",
-        description: "Single dimension, suggested size of 10-elements per array. Unsupported types will be missing from the address-space.",
+        description:
+            "Single dimension, suggested size of 10-elements per array. Unsupported types will be missing from the address-space.",
         nodeId: "s=Scalar_Static_Array"
     });
     // add static Array
@@ -531,11 +501,9 @@ function add_scalar_static_variables(namespace: Namespace, scalarFolder: UAObjec
         add_variable_array(namespace, scalarStaticArray, dataType, e.defaultValue, realType, 10, "");
     });
     // add static Mass
-
 }
 
 function add_access_right_variables(namespace: Namespace, parentFolder: UAObject): void {
-
     const accessRight_Folder = namespace.addFolder(parentFolder, {
         browseName: "AccessRight",
         description: "Folder containing various nodes with different access right behavior",
@@ -578,7 +546,6 @@ function add_access_right_variables(namespace: Namespace, parentFolder: UAObject
         accessLevel: makeAccessLevelFlag("CurrentWrite"),
         userAccessLevel: makeAccessLevelFlag("CurrentWrite"),
         value: {}
-
     });
 
     name = "AccessLevel_CurrentRead_NotUser";
@@ -675,11 +642,9 @@ function add_access_right_variables(namespace: Namespace, parentFolder: UAObject
             value: 36
         })
     });
-
 }
 
 function add_node_with_references(namespace: Namespace, simulation_folder: UAObject): void {
-
     const parent = simulation_folder;
     const referenceFolder = namespace.addObject({
         browseName: "References",
@@ -710,7 +675,6 @@ function add_node_with_references(namespace: Namespace, simulation_folder: UAObj
             componentOf: has3ForwardReferences1,
             dataType: "UInt32"
         });
-
     })();
 
     (() => {
@@ -724,15 +688,15 @@ function add_node_with_references(namespace: Namespace, simulation_folder: UAObj
             browseName: "BaseDataVariable",
             componentOf: has3ForwardReferences2,
             dataType: "UInt32"
-        })
+        });
         const method1 = namespace.addMethod(has3ForwardReferences2, {
-            browseName: "Method1",
+            browseName: "Method1"
         });
         const method2 = namespace.addMethod(has3ForwardReferences2, {
-            browseName: "Method2",
+            browseName: "Method2"
         });
         const method3 = namespace.addMethod(has3ForwardReferences2, {
-            browseName: "Method3",
+            browseName: "Method3"
         });
         const property = namespace.addVariable({
             browseName: "Property",
@@ -771,7 +735,6 @@ function add_node_with_references(namespace: Namespace, simulation_folder: UAObj
             referenceType: "Organizes",
             nodeId: has3InverseReferences
         });
-
     })();
 
     (() => {
@@ -796,7 +759,6 @@ function add_node_with_references(namespace: Namespace, simulation_folder: UAObj
             propertyOf: has3ForwardReferences4,
             dataType: "UInt32"
         });
-
     })();
     (() => {
         const has3ForwardReferences5 = namespace.addObject({
@@ -815,9 +777,8 @@ function add_node_with_references(namespace: Namespace, simulation_folder: UAObj
             dataType: "UInt32"
         });
         const method3 = namespace.addMethod(has3ForwardReferences5, {
-            browseName: "ReferenceNode3",
+            browseName: "ReferenceNode3"
         });
-
     })();
 
     (() => {
@@ -830,7 +791,6 @@ function add_node_with_references(namespace: Namespace, simulation_folder: UAObj
         namespace.addFolder(hasInverseAndForwardReferences, {
             browseName: "ReferenceNode1"
         });
-
     })();
 
     const hasReferencesWithDifferentParentTypes = namespace.addObject({
@@ -841,7 +801,6 @@ function add_node_with_references(namespace: Namespace, simulation_folder: UAObj
     });
 }
 function add_path_10deep(namespace: Namespace, simulation_folder: UAObject) {
-
     let parent = simulation_folder;
     for (let i = 1; i <= 10; i++) {
         const name = "Path_" + i.toString() + "Deep";
@@ -858,7 +817,6 @@ function add_path_10deep(namespace: Namespace, simulation_folder: UAObject) {
 }
 
 function add_very_large_array_variables(namespace: Namespace, objectsFolder: UAObject): void {
-
     // add statics Array Variables
     const scalarStaticLargeArray = namespace.addObject({
         organizedBy: objectsFolder,
@@ -888,14 +846,9 @@ function add_very_large_array_variables(namespace: Namespace, objectsFolder: UAO
 //           TwoStateDiscreteType     MultiStateDiscreteType                MutliStateValueDiscreteType
 //
 function add_analog_data_items(namespace: Namespace, parentFolder: UAObject): void {
-
-    function _addDataItem(
-        localParentFolder: UAObject,
-        dataType: string,
-        initialValue: any): void {
-
+    function _addDataItem(localParentFolder: UAObject, dataType: string, initialValue: any): void {
         // istanbul ignore next
-        if (!((DataType as any)[dataType])) {
+        if (!(DataType as any)[dataType]) {
             throw new Error(" Invalid dataType " + dataType);
         }
 
@@ -927,20 +880,20 @@ function add_analog_data_items(namespace: Namespace, parentFolder: UAObject): vo
         return { engineeringUnitsRange, instrumentRange };
     }
     function _addAnalogDataItem(localParentFolder: UAObject, dataType: string, initialValue: any): void {
-
         // istanbul ignore next
-        if (!((DataType as any)[dataType])) {
+        if (!(DataType as any)[dataType]) {
             throw new Error(" Invalid dataType " + dataType);
         }
 
         const { engineeringUnitsRange, instrumentRange } = makeRange(dataType);
-        assert(_.isArray(initialValue) || (initialValue >= engineeringUnitsRange.low && initialValue <= engineeringUnitsRange.high));
+        assert(
+            _.isArray(initialValue) || (initialValue >= engineeringUnitsRange.low && initialValue <= engineeringUnitsRange.high)
+        );
         const name = dataType + "AnalogDataItem";
         const nodeId = "s=" + name;
         // UAAnalogItem
         // add a UAAnalogItem
         namespace.addAnalogDataItem({
-
             componentOf: localParentFolder,
 
             nodeId,
@@ -959,12 +912,9 @@ function add_analog_data_items(namespace: Namespace, parentFolder: UAObject): vo
         });
     }
 
-    function _addArrayAnalogDataItem(localParentFolder: UAObject,
-        dataType: string,
-        initialValue: any
-    ) {
+    function _addArrayAnalogDataItem(localParentFolder: UAObject, dataType: string, initialValue: any) {
         // istanbul ignore next
-        if (!((DataType as any)[dataType])) {
+        if (!(DataType as any)[dataType]) {
             throw new Error(" Invalid dataType " + dataType);
         }
         const name = dataType + "ArrayAnalogDataItem";
@@ -973,7 +923,6 @@ function add_analog_data_items(namespace: Namespace, parentFolder: UAObject): vo
         const { engineeringUnitsRange, instrumentRange } = makeRange(dataType);
         // add a UAAnalogItem
         namespace.addAnalogDataItem({
-
             componentOf: localParentFolder,
 
             nodeId,
@@ -990,7 +939,6 @@ function add_analog_data_items(namespace: Namespace, parentFolder: UAObject): vo
                 value: [initialValue, initialValue, initialValue, initialValue, initialValue]
             }
         });
-
     }
 
     // add statics Array Variables
@@ -1006,7 +954,6 @@ function add_analog_data_items(namespace: Namespace, parentFolder: UAObject): vo
 
     const { engineeringUnitsRange, instrumentRange } = makeRange("Double");
     namespace.addAnalogDataItem({
-
         componentOf: analogItemFolder,
         nodeId,
         browseName: name,
@@ -1033,7 +980,7 @@ function add_analog_data_items(namespace: Namespace, parentFolder: UAObject): vo
         { dataType: "Int64", value: [0, 0] },
         { dataType: "UInt64", value: [0, 0] },
         { dataType: "Byte", value: 65 },
-        { dataType: "SByte", value: -23 },
+        { dataType: "SByte", value: -23 }
     ];
 
     data.forEach((e) => {
@@ -1049,17 +996,14 @@ function add_analog_data_items(namespace: Namespace, parentFolder: UAObject): vo
     data.forEach((e) => {
         _addArrayAnalogDataItem(analogItemFolder, e.dataType, e.value);
     });
-
 }
 
 function getDADiscreteTypeFolder(namespace: Namespace, parentFolder: UAObject): UAObject {
-
     const name = "Simulation_DA_DiscreteType";
     const nodeId = "s=Simulation_DA_DiscreteType";
 
     let node = parentFolder.getFolderElementByName(name);
     if (!node) {
-
         node = namespace.addObject({
             organizedBy: parentFolder,
             typeDefinition: "FolderType",
@@ -1071,7 +1015,6 @@ function getDADiscreteTypeFolder(namespace: Namespace, parentFolder: UAObject): 
 }
 
 function add_two_state_discrete_variables(namespace: Namespace, parentFolder: UAObject): void {
-
     const DADiscreteTypeFolder = getDADiscreteTypeFolder(namespace, parentFolder);
 
     const twoStateDiscrete001 = namespace.addTwoStateDiscrete({
@@ -1119,11 +1062,9 @@ function add_two_state_discrete_variables(namespace: Namespace, parentFolder: UA
     twoStateDiscrete003.setValueFromSource({ dataType: "Boolean", value: false });
     twoStateDiscrete004.setValueFromSource({ dataType: "Boolean", value: false });
     twoStateDiscrete005.setValueFromSource({ dataType: "Boolean", value: false });
-
 }
 
 function add_multi_state_discrete_variable(namespace: Namespace, parentFolder: UAObject): void {
-
     const DADiscreteTypeFolder = getDADiscreteTypeFolder(namespace, parentFolder);
 
     // MultiStateDiscrete001
@@ -1170,11 +1111,9 @@ function add_multi_state_discrete_variable(namespace: Namespace, parentFolder: U
         enumStrings: ["Red", "Orange", "Green"],
         value: 1 // Orange
     });
-
 }
 
 function add_multi_state_value_discrete_variables(namespaceDemo: Namespace, parentFolder: UAObject): void {
-
     const multistateValueDiscreteTypeFolder = namespaceDemo.addObject({
         organizedBy: parentFolder,
         typeDefinition: "FolderType",
@@ -1183,7 +1122,6 @@ function add_multi_state_value_discrete_variables(namespaceDemo: Namespace, pare
     });
 
     function _add_multi_state_variable(parentFolder: UAObject, dataType: string) {
-
         const name = dataType + "MultiStateValueDiscrete";
         const nodeId = "s=" + name;
 
@@ -1192,10 +1130,9 @@ function add_multi_state_value_discrete_variables(namespaceDemo: Namespace, pare
             browseName: name,
             nodeId,
             dataType,
-            enumValues: { "Red": 0xFF0000, "Orange": 0xFF9933, "Green": 0x00FF00, "Blue": 0x0000FF },
-            value: 0xFF0000 // Red
+            enumValues: { Red: 0xff0000, Orange: 0xff9933, Green: 0x00ff00, Blue: 0x0000ff },
+            value: 0xff0000 // Red
         });
-
     }
 
     const data = [
@@ -1211,11 +1148,9 @@ function add_multi_state_value_discrete_variables(namespaceDemo: Namespace, pare
     data.forEach((e) => {
         _add_multi_state_variable(multistateValueDiscreteTypeFolder, e.dataType);
     });
-
 }
 
 function add_ObjectWithMethod(namespace: Namespace, parentFolder: UAObject) {
-
     const myObject = namespace.addObject({
         nodeId: "s=ObjectWithMethods",
         organizedBy: parentFolder,
@@ -1224,11 +1159,15 @@ function add_ObjectWithMethod(namespace: Namespace, parentFolder: UAObject) {
 
     const methodNoArgs = namespace.addMethod(myObject, {
         browseName: "MethodNoArgs",
-        nodeId: "s=MethodNoArgs",
+        nodeId: "s=MethodNoArgs"
         // xx inputArguments: [],
         // xx outputArguments: []
     });
-    assert(makeNodeId("MethodNoArgs", namespace.index).toString().match(/s=MethodNoArgs/));
+    assert(
+        makeNodeId("MethodNoArgs", namespace.index)
+            .toString()
+            .match(/s=MethodNoArgs/)
+    );
     assert(methodNoArgs.nodeId.toString().match(/s=MethodNoArgs/));
 
     methodNoArgs.bindMethod((inputArguments, context, callback) => {
@@ -1241,7 +1180,6 @@ function add_ObjectWithMethod(namespace: Namespace, parentFolder: UAObject) {
     });
 
     const methodIO = namespace.addMethod(myObject, {
-
         /// xx modellingRule: "Mandatory",
 
         browseName: "MethodIO",
@@ -1278,7 +1216,6 @@ function add_ObjectWithMethod(namespace: Namespace, parentFolder: UAObject) {
     });
 
     const methodI = namespace.addMethod(myObject, {
-
         /// xx modellingRule: "Mandatory",
 
         browseName: "MethodI",
@@ -1290,9 +1227,8 @@ function add_ObjectWithMethod(namespace: Namespace, parentFolder: UAObject) {
                 description: { text: "specifies the number of seconds to wait before the picture is taken " },
                 dataType: DataType.UInt32
             }
-        ],
+        ]
         // xx outputArguments: []
-
     });
     methodI.bindMethod((inputArguments, context, callback) => {
         // console.log(require("util").inspect(context).toString());
@@ -1304,7 +1240,6 @@ function add_ObjectWithMethod(namespace: Namespace, parentFolder: UAObject) {
     });
 
     const methodO = namespace.addMethod(myObject, {
-
         /// xx modellingRule: "Mandatory",
 
         browseName: "MethodO",
@@ -1318,7 +1253,6 @@ function add_ObjectWithMethod(namespace: Namespace, parentFolder: UAObject) {
                 dataType: "Int32"
             }
         ]
-
     });
     methodO.bindMethod((inputArguments, context, callback) => {
         // console.log(require("util").inspect(context).toString());
@@ -1333,11 +1267,9 @@ function add_ObjectWithMethod(namespace: Namespace, parentFolder: UAObject) {
         };
         callback(null, callMethodResult);
     });
-
 }
 
 function add_enumeration_variable(namespaceDemo: Namespace, parentFolder: UAObject): void {
-
     const addressSpace = namespaceDemo.addressSpace;
 
     const myEnumType = namespaceDemo.addEnumerationType({
@@ -1358,21 +1290,21 @@ function add_enumeration_variable(namespaceDemo: Namespace, parentFolder: UAObje
         browseName: "RunningState",
         value: {
             get() {
-                return new Variant({ dataType: DataType.Int32, value: 1 })
+                return new Variant({ dataType: DataType.Int32, value: 1 });
             }
         }
     });
-
 }
 
 function add_trigger_nodes(namespace: Namespace, parentFolder: UAObject): void {
-
     const addressSpace = namespace.addressSpace;
 
-    const myEvtType = namespace.findObjectType("MyEventType") || namespace.addEventType({
-        browseName: "MyEventType",
-        subtypeOf: "BaseEventType" // should be implicit
-    });
+    const myEvtType =
+        namespace.findObjectType("MyEventType") ||
+        namespace.addEventType({
+            browseName: "MyEventType",
+            subtypeOf: "BaseEventType" // should be implicit
+        });
 
     // add 2 nodes that generate an event when ever they are written to.
     function _add_trigger_node(parent: UAObject, browseName: string, nodeId: NodeIdLike) {
@@ -1416,15 +1348,14 @@ function add_trigger_nodes(namespace: Namespace, parentFolder: UAObject): void {
     const sampleTriggerNode = namespace.addObject({
         browseName: "SampleTriggerNode",
         eventNotifier: 0x1,
-        organizedBy: parentFolder,
-    })
+        organizedBy: parentFolder
+    });
     const triggerNode01 = _add_trigger_node(sampleTriggerNode, "TriggerNode01", "s=TriggerNode01");
 
     const triggerNode02 = _add_trigger_node(sampleTriggerNode, "TriggerNode02", "s=TriggerNode02");
 }
 
 function add_sampleView(namespace: Namespace): void {
-
     const addressSpace = namespace.addressSpace;
 
     namespace.addView({
@@ -1434,10 +1365,7 @@ function add_sampleView(namespace: Namespace): void {
     });
 }
 
-export function build_address_space_for_conformance_testing(
-    addressSpace: AddressSpace,
-    options: any) {
-
+export function build_address_space_for_conformance_testing(addressSpace: AddressSpace, options: any) {
     const namespace = addressSpace.registerNamespace("urn://node-opcua-simulator");
 
     options = options || {};
@@ -1483,5 +1411,4 @@ export function build_address_space_for_conformance_testing(
     add_multi_state_discrete_variable(namespace, simulationFolder);
 
     add_trigger_nodes(namespace, simulationFolder);
-
-};
+}

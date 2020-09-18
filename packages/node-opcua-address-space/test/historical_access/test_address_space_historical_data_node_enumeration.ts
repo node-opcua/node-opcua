@@ -3,9 +3,8 @@ import * as nodesets from "node-opcua-nodesets";
 import * as should from "should";
 import * as _ from "underscore";
 
-import {
-    AddressSpace, generateAddressSpace, SessionContext
-} from "../..";
+import { AddressSpace, SessionContext } from "../..";
+import { generateAddressSpace } from "../../nodeJS";
 
 const context = SessionContext.defaultContext;
 
@@ -16,15 +15,11 @@ require("date-utils");
 // tslint:disable-next-line:no-var-requires
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("Testing Historical Data Node Enumeration", () => {
-
     let addressSpace: AddressSpace;
 
     before(async () => {
-
         addressSpace = AddressSpace.create();
-        const xml_files = [
-            nodesets.standard_nodeset_file
-        ];
+        const xml_files = [nodesets.standard_nodeset_file];
         fs.existsSync(xml_files[0]).should.be.eql(true, "file " + xml_files[0] + " must exist");
         await generateAddressSpace(addressSpace, xml_files);
 
@@ -53,17 +48,14 @@ describe("Testing Historical Data Node Enumeration", () => {
             dataType: "Double"
         });
         addressSpace.installHistoricalDataNode(node3);
-
     });
     after(() => {
         addressSpace.dispose();
     });
 
     it("should be easy to enumerate  UAVariable with History from a addressSpace", () => {
-
         Object.keys(addressSpace.historizingNodes).length.should.eql(3);
         const historizingNode = _.map(addressSpace.historizingNodes, (x: any) => x);
         historizingNode.map((x: any) => x.browseName.toString()).should.eql(["1:MyVar1", "1:MyVar2", "1:MyVar3"]);
     });
-
 });

@@ -1,13 +1,12 @@
 import * as should from "should";
 import { AddressSpace, Namespace } from "../";
-import { assertHasMatchingReference, getMiniAddressSpace } from "../";
+import { assertHasMatchingReference, getMiniAddressSpace } from "../testHelpers";
 
 const createTemperatureSensorType = require("./fixture_temperature_sensor_type").createTemperatureSensorType;
 
 // tslint:disable-next-line:no-var-requires
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("testing github issue https://github.com/node-opcua/node-opcua/issues/105", () => {
-
     let addressSpace: AddressSpace;
     let namespace: Namespace;
 
@@ -26,7 +25,6 @@ describe("testing github issue https://github.com/node-opcua/node-opcua/issues/1
     });
 
     it("should be possible to create an object organized by a folder whose type is a subtype of FolderType", () => {
-
         const temperatureSensorType = createTemperatureSensorType(addressSpace);
 
         const myFolderType = addressSpace.findObjectType("MyFolderType", addressSpace.getOwnNamespace().index)!;
@@ -48,6 +46,5 @@ describe("testing github issue https://github.com/node-opcua/node-opcua/issues/1
         myObject2.browseName.toString().should.eql("1:Obj2");
 
         assertHasMatchingReference(myFolder, { referenceType: "Organizes", nodeId: myObject2.nodeId });
-
     });
 });

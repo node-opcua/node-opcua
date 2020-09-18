@@ -1,5 +1,7 @@
 import * as path from "path";
-import { AddressSpace, generateAddressSpace, UAObject, SessionContext } from "..";
+import { AddressSpace, UAObject, SessionContext } from "..";
+import { generateAddressSpace } from "../nodeJS";
+
 import { nodesets } from "node-opcua-nodesets";
 import { UAVariable } from "../dist/src/ua_variable";
 import { Variant } from "node-opcua-variant";

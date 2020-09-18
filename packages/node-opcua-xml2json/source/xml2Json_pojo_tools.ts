@@ -1,16 +1,8 @@
-
-import {
-    IReaderState, ReaderState, ReaderStateBase,
-    ReaderStateParser,
-    Xml2Json,
-    XmlAttributes
-} from "./xml2json";
+import { IReaderState, ReaderState, ReaderStateBase, ReaderStateParser, Xml2Json, XmlAttributes } from "./xml2json";
 import { lowerFirstLetter } from "node-opcua-utils";
+export type withPojoLambda = (name: string, pojo: any) => void;
 
-type withPojoLambda = (name: string, pojo: any) => void;
-
-class ReaderState2 extends ReaderStateBase {
-
+export class ReaderState2 extends ReaderStateBase {
     public _stack: any;
     public _pojo: any;
     public _element: any;
@@ -29,18 +21,12 @@ class ReaderState2 extends ReaderStateBase {
         this._element = {};
         this.text = "";
         this.parent = undefined;
-        this._withPojo = (pojo: any) => { /* empty */
+        this._withPojo = (pojo: any) => {
+            /* empty */
         };
     }
 
-    public _on_init(
-        elementName: string,
-        attrs: XmlAttributes,
-        parent: IReaderState,
-        level: number,
-        engine: Xml2Json
-    ): void {
-
+    public _on_init(elementName: string, attrs: XmlAttributes, parent: IReaderState, level: number, engine: Xml2Json): void {
         this.parent = parent;
         this.engine = engine;
         this.initLevel = level;
@@ -55,7 +41,6 @@ class ReaderState2 extends ReaderStateBase {
     }
 
     public _on_startElement(level: number, elementName: string, attrs: XmlAttributes): void {
-
         this._stack.push(this._element);
 
         if (elementName.match(/^ListOf/)) {
@@ -80,7 +65,6 @@ class ReaderState2 extends ReaderStateBase {
                 this._element = this._element[elName];
             }
         }
-
     }
 
     public _on_endElement2(level: number, elementName: string): void {
@@ -110,37 +94,5 @@ class ReaderState2 extends ReaderStateBase {
 
     public _on_text(text: string): void {
         this.text = text;
-    }
-
-}
-const json_extractor: ReaderState2 = new ReaderState2();
-export const json_parser: ReaderStateParser = {
-
-    init(
-        this: IReaderState,
-        elementName: string,
-        attrs: XmlAttributes,
-        parent: IReaderState,
-        engine: Xml2Json
-    ) {
-        json_extractor._on_init(elementName, attrs, parent, 0, engine);
-    },
-    finish(this: any) {
-        this.parent._pojo = json_extractor._pojo;
-    }
-};
-
-export function startPojo(pThis: ReaderState, elementName: string, attrs: XmlAttributes, withPojo: withPojoLambda) {
-
-    pThis.engine!._promote(json_extractor, pThis.engine!.currentLevel, elementName, attrs);
-    json_extractor._withPojo = (name: string, pojo: any) => {
-        withPojo(name, pojo);
-        pThis.engine!._demote(json_extractor, pThis.engine!.currentLevel, elementName);
-    };
-}
-
-export class Xml2JsonPojo extends Xml2Json {
-    constructor() {
-        super(json_extractor as ReaderStateParser);
     }
 }

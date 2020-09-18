@@ -9,13 +9,13 @@ import {
     AddressSpace,
     ExclusiveLimitStateMachineType,
     FiniteStateMachineType,
-    generateAddressSpace,
     promoteToStateMachine,
     StateMachine,
     StateMachineType,
     UAObject,
     Transition
 } from "../..";
+import { generateAddressSpace } from "../../nodeJS";
 
 const doDebug = false;
 

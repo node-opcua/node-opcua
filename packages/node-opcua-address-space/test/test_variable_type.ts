@@ -8,20 +8,18 @@ import { StatusCodes } from "node-opcua-status-code";
 import { DataType } from "node-opcua-variant";
 
 import { AddressSpace, SessionContext, UAVariableType } from "..";
-import { create_minimalist_address_space_nodeset } from "../";
+import { create_minimalist_address_space_nodeset } from "../testHelpers";
 
 const _should = should;
 // tslint:disable-next-line:no-var-requires
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 
 describe("testing UAVariableType", () => {
-
     let addressSpace: AddressSpace;
 
     const context = SessionContext.defaultContext;
 
     before(() => {
-
         addressSpace = AddressSpace.create();
         create_minimalist_address_space_nodeset(addressSpace);
         addressSpace.registerNamespace("Private");
@@ -34,7 +32,6 @@ describe("testing UAVariableType", () => {
     });
 
     it("should read Attribute IsAbstract on UAVariableType ", () => {
-
         const variableType = addressSpace.getOwnNamespace().addVariableType({
             browseName: "MyVariableType1",
             isAbstract: false
@@ -44,11 +41,9 @@ describe("testing UAVariableType", () => {
         dataValue.value.dataType.should.eql(DataType.Boolean);
         dataValue.statusCode.should.eql(StatusCodes.Good);
         dataValue.value.value.should.equal(false);
-
     });
 
     it("should read Attribute IsAbstract on Abstract UAVariableType ", () => {
-
         const variableType = addressSpace.getOwnNamespace().addVariableType({
             browseName: "MyVariable2",
             isAbstract: true
@@ -63,40 +58,36 @@ describe("testing UAVariableType", () => {
         value.value.dataType.should.eql(DataType.NodeId);
         value.statusCode.should.eql(StatusCodes.Good);
         value.value.value.toString().should.eql(variableType.nodeId.toString());
-
     });
 
     it("UAVariableType#instantiate should be possible to instantiate a VariableType (nodeId not specified)", () => {
-
         const variableType = addressSpace.getOwnNamespace().addVariableType({
             browseName: "MyVariable3",
             isAbstract: false,
-            subtypeOf: "BaseVariableType",
+            subtypeOf: "BaseVariableType"
         });
 
         const obj = variableType.instantiate({
             browseName: "Instance3",
-            dataType: "Int32",
+            dataType: "Int32"
         });
 
         obj.browseName.toString().should.eql("1:Instance3");
 
         obj.nodeId.identifierType.should.eql(NodeId.NodeIdType.NUMERIC);
-
     });
 
     it("UAVariableType#instantiate should be possible to instantiate a VariableType and specify its nodeId)", () => {
-
         const variableType = addressSpace.getOwnNamespace().addVariableType({
             browseName: "MyVariable4",
             isAbstract: false,
-            subtypeOf: "BaseVariableType",
+            subtypeOf: "BaseVariableType"
         });
 
         const obj = variableType.instantiate({
             browseName: "Instance4",
             dataType: "Int32",
-            nodeId: "ns=1;s=HelloWorld",
+            nodeId: "ns=1;s=HelloWorld"
         });
 
         obj.browseName.toString().should.eql("1:Instance4");
@@ -105,7 +96,6 @@ describe("testing UAVariableType", () => {
     });
 
     it("UAVariableType#instantiate with componentOf", () => {
-
         addressSpace.rootFolder.browseName.toString().should.eql("RootFolder");
 
         const myFolder = addressSpace.getOwnNamespace().addObject({
@@ -116,20 +106,18 @@ describe("testing UAVariableType", () => {
         const variableType = addressSpace.getOwnNamespace().addVariableType({
             browseName: "MyVariable5",
             isAbstract: false,
-            subtypeOf: "BaseVariableType",
+            subtypeOf: "BaseVariableType"
         });
 
         const obj = variableType.instantiate({
             browseName: "Instance5",
             componentOf: myFolder,
-            dataType: "Int32",
+            dataType: "Int32"
         });
 
         myFolder.getComponentByName("Instance5")!.browseName.toString().should.eql("1:Instance5");
-
     });
     it("UAVariableType#instantiate with organizedBy", () => {
-
         addressSpace.rootFolder.browseName.toString().should.eql("RootFolder");
 
         const myFolder = addressSpace.getOwnNamespace().addObject({
@@ -140,7 +128,7 @@ describe("testing UAVariableType", () => {
         const variableType = addressSpace.getOwnNamespace().addVariableType({
             browseName: "MyVariable6",
             isAbstract: false,
-            subtypeOf: "BaseVariableType",
+            subtypeOf: "BaseVariableType"
         });
 
         const obj = variableType.instantiate({
@@ -150,17 +138,15 @@ describe("testing UAVariableType", () => {
         });
 
         myFolder.getFolderElementByName("Instance6")!.browseName.toString().should.eql("1:Instance6");
-
     });
     it("UAVariableType#instantiate with valueRank and arrayDimension", () => {
-
         const variableType = addressSpace.getOwnNamespace().addVariableType({
             arrayDimensions: [3, 3],
             browseName: "My3x3MatrixVariableType",
             dataType: "Double",
             isAbstract: false,
             subtypeOf: "BaseVariableType",
-            valueRank: 2,
+            valueRank: 2
         });
 
         const doubleDataType = addressSpace.findDataType("Double")!;
@@ -180,24 +166,22 @@ describe("testing UAVariableType", () => {
         obj.dataType.should.eql(doubleDataType.nodeId);
         obj.valueRank.should.eql(2);
         obj.arrayDimensions!.should.eql([3, 3]);
-
     });
 
     it("should provide a mechanism to customize newly created instance", () => {
-
         const postInstantiateFunc = sinon.spy();
 
         const variableType = addressSpace.getOwnNamespace().addVariableType({
             browseName: "MyVariable10",
             isAbstract: false,
             postInstantiateFunc,
-            subtypeOf: "BaseVariableType",
+            subtypeOf: "BaseVariableType"
         });
         postInstantiateFunc.callCount.should.eql(0);
 
         const obj = variableType.instantiate({
             browseName: "Instance4",
-            dataType: "Int32",
+            dataType: "Int32"
         });
 
         postInstantiateFunc.callCount.should.eql(1);
@@ -205,14 +189,13 @@ describe("testing UAVariableType", () => {
 
     // tslint:disable:no-console
     it("UAVariableType#toString()", () => {
-
         const variableType = addressSpace.getOwnNamespace().addVariableType({
             arrayDimensions: [3, 3],
             browseName: "My3x3MatrixVariableType1",
             dataType: "Double",
             isAbstract: false,
             subtypeOf: "BaseVariableType",
-            valueRank: 2,
+            valueRank: 2
         });
         variableType.toString();
         console.log(variableType.toString());
@@ -223,7 +206,6 @@ describe("testing UAVariableType", () => {
 
         variable.toString();
         console.log(variable.toString());
-
     });
 
     it("UADataType#toString()", () => {
@@ -231,5 +213,4 @@ describe("testing UAVariableType", () => {
         doubleDataType.toString();
         console.log(doubleDataType.toString());
     });
-
 });

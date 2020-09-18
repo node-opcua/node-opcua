@@ -13,28 +13,25 @@ import { lowerFirstLetter } from "node-opcua-utils";
 import { Variant } from "node-opcua-variant";
 
 import { ClientSession } from "../client_session";
-import { ClientSessionImpl } from "../private/client_session_impl";
 
 export interface HistoryServerCapabilities {
     [key: string]: any;
 }
 
-export function readHistoryServerCapabilities(
-  session: ClientSession
-): Promise<HistoryServerCapabilities>;
+export function readHistoryServerCapabilities(session: ClientSession): Promise<HistoryServerCapabilities>;
 export function readHistoryServerCapabilities(
     session: ClientSession,
-    callback: (err: Error | null, capabilities?: HistoryServerCapabilities) => void): void;
+    callback: (err: Error | null, capabilities?: HistoryServerCapabilities) => void
+): void;
 export function readHistoryServerCapabilities(
-  session: ClientSession,
-  callback?: (err: Error | null, capabilities?: HistoryServerCapabilities) => void
+    session: ClientSession,
+    callback?: (err: Error | null, capabilities?: HistoryServerCapabilities) => void
 ): any {
-
-    if (!callback) { throw new Error("Internal error"); }
+    if (!callback) {
+        throw new Error("Internal error");
+    }
     // display HistoryCapabilities of server
-    const browsePath: BrowsePath = makeBrowsePath(
-        ObjectIds.ObjectsFolder,
-        "/Server/ServerCapabilities.HistoryServerCapabilities");
+    const browsePath: BrowsePath = makeBrowsePath(ObjectIds.ObjectsFolder, "/Server/ServerCapabilities.HistoryServerCapabilities");
 
     session.translateBrowsePath(browsePath, (err: Error | null, result?: BrowsePathResult) => {
         if (err) {
@@ -76,11 +73,10 @@ export function readHistoryServerCapabilities(
             "AggregateFunctions/DeltaBounds",
             "AggregateFunctions/DurationBad",
             "AggregateFunctions/DurationGood",
-            "AggregateFunctions/DurationStateNonZero",
+            "AggregateFunctions/DurationStateNonZero"
             // etc....
         ];
-        const browsePaths = properties.map(
-            (prop: string) => makeBrowsePath(historyServerCapabilitiesNodeId, "." + prop));
+        const browsePaths = properties.map((prop: string) => makeBrowsePath(historyServerCapabilitiesNodeId, "." + prop));
 
         session.translateBrowsePath(browsePaths, (innerErr: Error | null, results?: BrowsePathResult[]) => {
             if (innerErr) {
@@ -90,20 +86,20 @@ export function readHistoryServerCapabilities(
                 return callback(new Error("Internal Error"));
             }
 
-            const nodeIds = results.map(
-                (innerResult: BrowsePathResult) =>
-                    (innerResult.statusCode === StatusCodes.Good && innerResult.targets)
-                        ? innerResult.targets[0].targetId
-                        : NodeId.nullNodeId);
+            const nodeIds = results.map((innerResult: BrowsePathResult) =>
+                innerResult.statusCode === StatusCodes.Good && innerResult.targets
+                    ? innerResult.targets[0].targetId
+                    : NodeId.nullNodeId
+            );
 
-            const nodesToRead: ReadValueIdOptions [] = nodeIds.map((nodeId: NodeId) => ({
-                    attributeId: AttributeIds.Value,
-                    nodeId/*: coerceNodeId(nodeId)*/}));
+            const nodesToRead: ReadValueIdOptions[] = nodeIds.map((nodeId: NodeId) => ({
+                attributeId: AttributeIds.Value,
+                nodeId /*: coerceNodeId(nodeId)*/
+            }));
 
             const data: HistoryServerCapabilities = {};
 
             session.read(nodesToRead, (err2: Error | null, dataValues?: DataValue[]) => {
-
                 if (err2) {
                     return callback(err2);
                 }
@@ -122,5 +118,8 @@ export function readHistoryServerCapabilities(
 }
 // tslint:disable:no-var-requires
 const thenify = require("thenify");
-const opts = {multiArgs: false};
-(module as any).exports.readHistoryServerCapabilities = thenify.withCallback((module as any).exports.readHistoryServerCapabilities, opts);
+const opts = { multiArgs: false };
+(module as any).exports.readHistoryServerCapabilities = thenify.withCallback(
+    (module as any).exports.readHistoryServerCapabilities,
+    opts
+);

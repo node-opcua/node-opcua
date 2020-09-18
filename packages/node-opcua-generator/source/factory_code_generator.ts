@@ -16,18 +16,17 @@ import {
     getStructuredTypeSchema,
     StructuredTypeSchema
 } from "node-opcua-factory";
-import * as  os from "os";
+import * as os from "os";
 import * as path from "path";
-import * as  prettier from "prettier";
+import * as prettier from "prettier";
 import * as _ from "underscore";
 
-import {
-    DataTypeIds,
-    ObjectIds
-} from "node-opcua-constants";
+import { DataTypeIds, ObjectIds } from "node-opcua-constants";
 import { make_debugLog } from "node-opcua-debug";
-import { coerceNodeId, makeExpandedNodeId, NodeId } from "node-opcua-nodeid";
-import { capitalizeFirstLetter, LineFile, normalize_require_file } from "node-opcua-utils";
+import { coerceNodeId, NodeId } from "node-opcua-nodeid";
+import { capitalizeFirstLetter } from "node-opcua-utils";
+
+import { LineFile1, normalize_require_file } from "./utils/index";
 
 const produceComment = false;
 const debugLog = make_debugLog(__filename);
@@ -35,7 +34,7 @@ const debugLog = make_debugLog(__filename);
 const generatedObjectSchema: any = {};
 
 function quotify(str: string): string {
-    return "\"" + str + "\"";
+    return '"' + str + '"';
 }
 
 function makeFieldType(field: FieldType) {
@@ -45,13 +44,12 @@ function makeFieldType(field: FieldType) {
 function convertToJavascriptCode(obj: any): string {
     const lines: string[] = [];
 
-    if (typeof (obj) === "object" && !(obj instanceof Array)) {
+    if (typeof obj === "object" && !(obj instanceof Array)) {
         lines.push("{");
         for (const prop of Object.keys(obj)) {
             lines.push(prop, ": ", convertToJavascriptCode(obj[prop]), ",");
         }
         lines.push("}");
-
     } else if (obj instanceof Array) {
         lines.push("[");
         for (const prop of obj) {
@@ -60,8 +58,7 @@ function convertToJavascriptCode(obj: any): string {
         lines.push("]");
 
         // tslint:disable:no-empty
-    } else if (typeof (obj) === "function") {
-
+    } else if (typeof obj === "function") {
     } else {
         lines.push(JSON.stringify(obj));
     }
@@ -96,7 +93,6 @@ export function get_class_jscript_filename(schemaName: string, optionalFolder?: 
 }
 
 function get_class_tscript_filename_local(schemaName: string): string {
-
     let schema = getStructuredTypeSchema(schemaName);
     if (!schema) {
         schema = generatedObjectSchema[schemaName];
@@ -115,11 +111,7 @@ function get_class_tscript_filename_local(schemaName: string): string {
 
 type WriteFunc = (...args: string[]) => void;
 
-function write_enumeration_setter(
-    write: WriteFunc,
-    schema: StructuredTypeSchema,
-    field: FieldType, member: string
-): void {
+function write_enumeration_setter(write: WriteFunc, schema: StructuredTypeSchema, field: FieldType, member: string): void {
     const capMember = capitalizeFirstLetter(member);
     write(`    public set${capMember}(value: any): ${field.fieldType} {`);
     write(`        const coercedValue = _enumeration${field.fieldType}.get(value);`);
@@ -132,22 +124,13 @@ function write_enumeration_setter(
     write(`    }`);
 }
 
-function write_enumeration(
-    write: WriteFunc,
-    schema: StructuredTypeSchema,
-    field: FieldType,
-    member: string,
-    i: number
-): void {
+function write_enumeration(write: WriteFunc, schema: StructuredTypeSchema, field: FieldType, member: string, i: number): void {
     assert(!field.isArray); // would not work in this case
     const capMember = capitalizeFirstLetter(member);
-    write(
-        `        this.${field.name} = this.set${capMember}(initialize_field(schema.fields[${i}], options.${field.name}));`
-    );
+    write(`        this.${field.name} = this.set${capMember}(initialize_field(schema.fields[${i}], options.${field.name}));`);
 }
 
 function write_complex_fast_construct(write: WriteFunc, schema: StructuredTypeSchema, field: FieldType, member: string) {
-
     if (field.isArray) {
         write(`         this.${member} =  null; /* null array */`);
     } else {
@@ -156,7 +139,6 @@ function write_complex_fast_construct(write: WriteFunc, schema: StructuredTypeSc
 }
 
 function write_complex(write: WriteFunc, schema: StructuredTypeSchema, field: FieldType, member: string /*, i*/) {
-
     if (field.isArray) {
         if (field.hasOwnProperty("defaultValue")) {
             // todo: fix me => should call field defaultValue in the live version
@@ -181,7 +163,6 @@ function write_complex(write: WriteFunc, schema: StructuredTypeSchema, field: Fi
 }
 
 function write_basic(write: WriteFunc, schema: StructuredTypeSchema, field: FieldType, member: string, i: number): void {
-
     assert(field.category === FieldCategory.basic);
 
     if (field.isArray) {
@@ -197,7 +178,6 @@ function write_basic(write: WriteFunc, schema: StructuredTypeSchema, field: Fiel
 }
 
 function write_constructor(write: WriteFunc, schema: StructuredTypeSchema): void {
-
     const baseClass = schema.baseType;
     const className = schema.name;
     write("");
@@ -264,7 +244,6 @@ function write_constructor(write: WriteFunc, schema: StructuredTypeSchema): void
                 // write("        " + baseclass + ".call(this,options);");
             }
             for (let i = 0; i < n; i++) {
-
                 const field = schema.fields[i];
                 const member = field.name;
 
@@ -288,7 +267,6 @@ function write_constructor(write: WriteFunc, schema: StructuredTypeSchema): void
         const member = field.name;
 
         if (produceComment) {
-
             write("");
             write("    /**");
             const documentation = field.documentation ? field.documentation : "";
@@ -324,11 +302,9 @@ function write_constructor(write: WriteFunc, schema: StructuredTypeSchema): void
 }
 
 function write_possible_fields(write: WriteFunc, className: string, possibleFields: string[]): void {
-
     write("    public static possibleFields: string[] = [");
     write("          " + possibleFields.map(quotify).join("," + os.EOL + "           "));
     write("    ];");
-
 }
 
 function write_isValid(write: WriteFunc, schema: StructuredTypeSchema): void {
@@ -347,7 +323,6 @@ function write_isValid(write: WriteFunc, schema: StructuredTypeSchema): void {
 }
 
 function write_encode(write: WriteFunc, schema: StructuredTypeSchema): void {
-
     if (_.isFunction(schema.encode)) {
         write("    public encode(stream: OutputBinaryStream): void {");
         write("        " + "schema" + ".encode(this, stream);");
@@ -380,8 +355,7 @@ function write_encode(write: WriteFunc, schema: StructuredTypeSchema): void {
                     break;
                 case FieldCategory.complex:
                     if (field.isArray) {
-                        write(
-                            `        encodeArray(this.${member}, stream, (obj, stream1) => { obj.encode(stream1); });`);
+                        write(`        encodeArray(this.${member}, stream, (obj, stream1) => { obj.encode(stream1); });`);
                     } else {
                         write(`        this.${member}.encode(stream);`);
                     }
@@ -390,11 +364,9 @@ function write_encode(write: WriteFunc, schema: StructuredTypeSchema): void {
         }
         write("    }");
     }
-
 }
 
 function write_decode(write: WriteFunc, schema: StructuredTypeSchema): void {
-
     //  --------------------------------------------------------------
     //   implement decode
     function write_field(field: FieldType, member: string, i: number) {
@@ -429,7 +401,6 @@ function write_decode(write: WriteFunc, schema: StructuredTypeSchema): void {
 
     //  ---------------------------------------------------------------
     if (_.isFunction(schema.decode)) {
-
         if (produceComment) {
             write("    /**");
             write("     * decode the object from a binary stream");
@@ -463,7 +434,6 @@ function write_decode(write: WriteFunc, schema: StructuredTypeSchema): void {
 
         const n = schema.fields.length;
         for (let i = 0; i < n; i++) {
-
             const field = schema.fields[i];
             const fieldType = field.fieldType;
             const member = field.name;
@@ -492,7 +462,6 @@ function hasComplex(schema: StructuredTypeSchema): boolean {
 }
 
 function write_class_constructor_options(write: WriteFunc, schema: StructuredTypeSchema): void {
-
     const n = schema.fields.length;
     for (let i = 0; i < n; i++) {
         const field = schema.fields[i];
@@ -527,7 +496,6 @@ function write_class_constructor_options(write: WriteFunc, schema: StructuredTyp
             }
         }
     }
-
 }
 
 function write_declare_class_member(write: WriteFunc, schema: StructuredTypeSchema): void {
@@ -560,7 +528,6 @@ function write_declare_class_member(write: WriteFunc, schema: StructuredTypeSche
 }
 
 function write_enumerations(write: WriteFunc, schema: StructuredTypeSchema): void {
-
     if (!hasEnumeration(schema)) {
         return;
     }
@@ -581,8 +548,8 @@ function write_enumerations(write: WriteFunc, schema: StructuredTypeSchema): voi
 
 function write_expose_encoder_decoder(write: WriteFunc, schema: StructuredTypeSchema): void {
     write("");
-    write("import { BinaryStream, OutputBinaryStream } from \"node-opcua-binary-stream\";");
-    write("import { ExpandedNodeId, NodeId } from \"node-opcua-nodeid\";");
+    write('import { BinaryStream, OutputBinaryStream } from "node-opcua-binary-stream";');
+    write('import { ExpandedNodeId, NodeId } from "node-opcua-nodeid";');
 
     const n = schema.fields.length;
     const done: any = {};
@@ -595,13 +562,37 @@ function write_expose_encoder_decoder(write: WriteFunc, schema: StructuredTypeSc
                 case FieldCategory.basic:
                     break;
                 case FieldCategory.enumeration:
-                    write("const _enumeration" + field.fieldType + " = " + "getEnumeration(\"" + field.fieldType + "\");");
-                    write("const encode" + field.fieldType + ": (value: any, stream: OutputBinaryStream) => void = getEnumeration(\"" + field.fieldType + "\").encode;");
-                    write("const decode" + field.fieldType + ": (stream: BinaryStream) => void = getEnumeration(\"" + field.fieldType + "\").decode;");
+                    write("const _enumeration" + field.fieldType + " = " + 'getEnumeration("' + field.fieldType + '");');
+                    write(
+                        "const encode" +
+                            field.fieldType +
+                            ': (value: any, stream: OutputBinaryStream) => void = getEnumeration("' +
+                            field.fieldType +
+                            '").encode;'
+                    );
+                    write(
+                        "const decode" +
+                            field.fieldType +
+                            ': (stream: BinaryStream) => void = getEnumeration("' +
+                            field.fieldType +
+                            '").decode;'
+                    );
                     break;
                 case FieldCategory.complex:
-                    write("const encode" + field.fieldType + ": (value: any, stream: OutputBinaryStream) => void = getBuildInType(\"" + field.fieldType + "\").encode;");
-                    write("const decode" + field.fieldType + ": (stream: BinaryStream) => void  = getBuildInType(\"" + field.fieldType + "\").decode;");
+                    write(
+                        "const encode" +
+                            field.fieldType +
+                            ': (value: any, stream: OutputBinaryStream) => void = getBuildInType("' +
+                            field.fieldType +
+                            '").encode;'
+                    );
+                    write(
+                        "const decode" +
+                            field.fieldType +
+                            ': (stream: BinaryStream) => void  = getBuildInType("' +
+                            field.fieldType +
+                            '").decode;'
+                    );
                     break;
             }
         }
@@ -609,7 +600,6 @@ function write_expose_encoder_decoder(write: WriteFunc, schema: StructuredTypeSc
 }
 
 export function writeStructuredType(write: WriteFunc, schema: StructuredTypeSchema) {
-
     const className = schema.name;
     const baseClass = schema.baseType;
 
@@ -633,7 +623,6 @@ export function writeStructuredType(write: WriteFunc, schema: StructuredTypeSche
 
     write(`export class ${className} extends ${baseClass} {`);
     {
-
         write(`    public static get schema(): StructuredTypeSchema { return schema${className}; }`);
         const possibleFields = extract_all_fields(schema);
         write_possible_fields(write, className, possibleFields);
@@ -642,7 +631,8 @@ export function writeStructuredType(write: WriteFunc, schema: StructuredTypeSche
         // -------------------------------------------------------------------------
         write(`    public static dataTypeNodeId = makeExpandedNodeId(${dataTypeNodeId.value}, ${dataTypeNodeId.namespace});`);
         if (encodingBinaryNodeId) {
-            write(`    public static encodingDefaultBinary = makeExpandedNodeId(${encodingBinaryNodeId.value}, ${encodingBinaryNodeId.namespace});`
+            write(
+                `    public static encodingDefaultBinary = makeExpandedNodeId(${encodingBinaryNodeId.value}, ${encodingBinaryNodeId.namespace});`
             );
         }
 
@@ -717,12 +707,7 @@ function getEncodingJsonId(schema: StructuredTypeSchema): NodeId {
 }
 
 /* eslint complexity:[0,50],  max-statements: [1, 254]*/
-export function produce_tscript_code(
-    schema: StructuredTypeSchema,
-    localSchemaFile: string,
-    generatedTypescriptFilename: string
-) {
-
+export function produce_tscript_code(schema: StructuredTypeSchema, localSchemaFile: string, generatedTypescriptFilename: string) {
     const className = schema.name;
 
     generatedObjectSchema[className] = generatedTypescriptFilename;
@@ -733,7 +718,7 @@ export function produce_tscript_code(
 
     check_schema_correctness(schema);
 
-    const f = new LineFile();
+    const f = new LineFile1();
 
     function write(...args: string[]) {
         f.write.apply(f, args);
@@ -742,7 +727,8 @@ export function produce_tscript_code(
     // Xx resolve_schema_field_types(schema, generatedObjectSchema);
 
     const complexTypes = schema.fields.filter(
-        (field: FieldType) => field.category === FieldCategory.complex && field.fieldType !== schema.name);
+        (field: FieldType) => field.category === FieldCategory.complex && field.fieldType !== schema.name
+    );
 
     const folderForSourceFile = path.dirname(generatedTypescriptFilename);
 
@@ -753,10 +739,10 @@ export function produce_tscript_code(
     write(" * @module node-opcua-address-space.types");
     write(" */");
     write("/* istanbul ignore file */\n");
-    write("import { assert } from \"node-opcua-assert\";");
-    write("import * as util from \"util\";");
-    write("import * as _ from \"underscore\";");
-    write("import { makeNodeId, makeExpandedNodeId } from \"node-opcua-nodeid\";");
+    write('import { assert } from "node-opcua-assert";');
+    write('import * as util from "util";');
+    write('import * as _ from "underscore";');
+    write('import { makeNodeId, makeExpandedNodeId } from "node-opcua-nodeid";');
     write(`import {`);
     write(`     parameters,`);
     write(`     check_options_correctness_against_schema,`);
@@ -770,16 +756,14 @@ export function produce_tscript_code(
     write(`     BaseUAObject,`);
     write(`     getEnumeration`);
     write(` } from "node-opcua-factory";`);
-    write("import { encodeArray, decodeArray } from \"node-opcua-basic-types\";");
+    write('import { encodeArray, decodeArray } from "node-opcua-basic-types";');
     // xx write('import { BaseUAObject } from "node-opcua-factory";');
     write("/* tslint:disable:no-this-assignment */");
     write("/* tslint:disable:max-classes-per-file */");
 
     const schemaObjName = schema.name + "_Schema";
 
-    write(
-        `import { ${schemaObjName} } from "${localSchemaFile}";`
-    );
+    write(`import { ${schemaObjName} } from "${localSchemaFile}";`);
     write("const schema = " + schemaObjName + ";");
 
     // -------------------------------------------------------------------------
@@ -797,13 +781,9 @@ export function produce_tscript_code(
 
         if (fs.existsSync(filename)) {
             // xx write("const " + field.fieldType + ' = require("' + local_filename + '").' + field.fieldType + ";");
-            write(
-                `import { ${field.fieldType} } from "${localFilename}";`
-            );
+            write(`import { ${field.fieldType} } from "${localFilename}";`);
         } else {
-            write(
-                `import { ${field.fieldType} } from "../source/imports";`
-            );
+            write(`import { ${field.fieldType} } from "../source/imports";`);
         }
     }
 
@@ -812,16 +792,15 @@ export function produce_tscript_code(
     // -------------------------------------------------------------------------
 
     if (baseClass !== "BaseUAObject") {
-
         const filename = get_class_tscript_filename_local(baseClass);
         const localFilename = normalize_require_file(folderForSourceFile, filename);
         // xx console.log(" ===> filename", filename, localFilename, fs.existsSync(filename));
 
         if (fs.existsSync(filename)) {
             assert(!localFilename.match(/\\/));
-            write("import { " + baseClass + " } from \"" + localFilename + "\";");
+            write("import { " + baseClass + ' } from "' + localFilename + '";');
         } else {
-            write("const " + baseClass + " = getStructureTypeConstructor(\"" + baseClass + "\");");
+            write("const " + baseClass + ' = getStructureTypeConstructor("' + baseClass + '");');
         }
     }
 

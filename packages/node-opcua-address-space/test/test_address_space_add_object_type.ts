@@ -6,7 +6,7 @@ import { DataType } from "node-opcua-variant";
 import { AddressSpace, InstantiateObjectOptions, Namespace, UAObject, UAObjectType, UAVariable } from "..";
 
 import { NodeClass } from "node-opcua-data-model";
-import { getMiniAddressSpace } from "../";
+import { getMiniAddressSpace } from "../testHelpers";
 import { createCameraType } from "./fixture_camera_type";
 import { createTemperatureSensorType, TemperatureSensor, TemperatureSensorType } from "./fixture_temperature_sensor_type";
 
@@ -29,13 +29,13 @@ function createMachineType(addressSpace: AddressSpace): MockMachineType {
 
     // -------------------------------------------- MachineType
     const machineTypeNode = namespace.addObjectType({
-        browseName: "MachineType",
+        browseName: "MachineType"
     }) as MockMachineType;
 
     const machineTypeTemperatureSensorNode = temperatureSensorType.instantiate({
         browseName: "TemperatureSensor",
         componentOf: machineTypeNode,
-        modellingRule: "Mandatory",
+        modellingRule: "Mandatory"
     });
 
     should.exist(machineTypeNode.temperatureSensor);
@@ -47,7 +47,7 @@ function createMachineType(addressSpace: AddressSpace): MockMachineType {
         dataType: "Boolean",
         modellingRule: "Mandatory",
         propertyOf: machineTypeNode,
-        value: { dataType: DataType.Boolean, value: false },
+        value: { dataType: DataType.Boolean, value: false }
     });
 
     should.exist(machineTypeNode.heaterSwitch);
@@ -75,7 +75,7 @@ function createSpecialTempSensorType(addressSpace: AddressSpace): SpecialTempera
 
     const specialTemperatureSensorTypeNode = namespace.addObjectType({
         browseName: "SpecialTemperatureSensorType",
-        subtypeOf: temperatureSensorType,
+        subtypeOf: temperatureSensorType
     }) as SpecialTemperatureSensorType;
 
     return specialTemperatureSensorTypeNode;
@@ -108,7 +108,7 @@ describe("testing add new ObjectType ", () => {
 
         const temperatureSensor = temperatureSensorType.instantiate({
             browseName: "Test",
-            organizedBy: "RootFolder",
+            organizedBy: "RootFolder"
         });
         should.exist(temperatureSensor.temperature);
 
@@ -135,7 +135,7 @@ describe("testing add new ObjectType ", () => {
 
         const specialSensor = specialTemperatureSensorTypeNode.instantiate({
             browseName: "mySpecialSensor",
-            organizedBy: "RootFolder",
+            organizedBy: "RootFolder"
         });
 
         specialSensor.should.have.property("typeDefinitionObj");
@@ -149,7 +149,7 @@ describe("testing add new ObjectType ", () => {
 
         const camera1 = cameraType.instantiate({
             browseName: "Camera1",
-            organizedBy: "RootFolder",
+            organizedBy: "RootFolder"
         });
 
         camera1.browseName.toString().should.eql("1:Camera1");

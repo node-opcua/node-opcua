@@ -1,26 +1,22 @@
 {
-  "extends": "../tsconfig.json",
-  "compilerOptions": {
-    "rootDir": "source",
-    "outDir": "dist",
-    "composite": true
-  },
-  "include": [
-    "source/**/*.ts"
-  ],
-  "references": [
-    {
-      "path": "../node-opcua-assert"
+    "extends": "../tsconfig.json",
+    "compilerOptions": {
+        "rootDir": "source",
+        "outDir": "dist",
+        "composite": true,
+        "incremental": true
     },
-    {
-      "path": "../node-opcua-benchmarker"
-    },
-    {
-      "path": "../node-opcua-binary-stream"
-    }
-  ],
-  "exclude": [
-    "node_modules",
-    "dist"
-  ]
+    "include": ["source/**/*.ts"],
+    "references": [
+        {
+            "path": "../node-opcua-assert"
+        },
+        {
+            "path": "../node-opcua-benchmarker"
+        },
+        {
+            "path": "../node-opcua-binary-stream"
+        }
+    ],
+    "exclude": ["node_modules", "dist"]
 }

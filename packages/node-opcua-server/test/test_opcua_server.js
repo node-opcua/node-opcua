@@ -6,10 +6,11 @@ const NodeId = require("node-opcua-nodeid").NodeId;
 
 const OPCUAServer = require("..").OPCUAServer;
 
-const mini_nodeset_filename = require("node-opcua-address-space").get_mini_nodeset_filename();
+const { get_mini_nodeset_filename } = require("node-opcua-address-space/testHelpers");
+const mini_nodeset_filename = get_mini_nodeset_filename();
 
 fs.existsSync(mini_nodeset_filename).should.eql(true,
-  " expecting " + mini_nodeset_filename + " to exist");
+    " expecting " + mini_nodeset_filename + " to exist");
 
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("OPCUAServer", () => {
@@ -25,7 +26,7 @@ describe("OPCUAServer", () => {
             done(err);
         });
     });
-    afterEach( (done) => {
+    afterEach((done) => {
         if (server) {
             server.shutdown(() => {
                 server = null;
@@ -50,7 +51,7 @@ describe("OPCUAServer", () => {
         server.engine.cumulatedSessionCount.should.equal(1);
 
 
-        server.shutdown(function () {
+        server.shutdown(function() {
             server.engine.currentSessionCount.should.equal(0);
             server.engine.cumulatedSessionCount.should.equal(1);
             server = null;
@@ -92,7 +93,7 @@ describe("OPCUAServer-2", () => {
 
     let server;
 
-    before( (done) => {
+    before((done) => {
 
         fs.existsSync(mini_nodeset_filename).should.eql(true);
 
@@ -105,7 +106,7 @@ describe("OPCUAServer-2", () => {
     });
 
     after((done) => {
-        server.shutdown(()  => {
+        server.shutdown(() => {
             server = null;
             done();
         });
@@ -135,13 +136,13 @@ describe("OPCUAServer-2", () => {
 describe("OPCUAServer-3", () => {
 
     let server;
-    before((done)=>{
+    before((done) => {
 
         server = new OPCUAServer();
         done();
     });
 
-    it("checking IOPCUAServer properties before startup", () =>{
+    it("checking IOPCUAServer properties before startup", () => {
         server.currentChannelCount.should.eql(0);
         server.rejectedSessionCount.should.eql(0);
         server.rejectedRequestsCount.should.eql(0);

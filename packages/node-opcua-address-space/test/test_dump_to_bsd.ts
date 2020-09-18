@@ -1,22 +1,16 @@
-import {
-    AddressSpace,
-    getMiniAddressSpace,
-    dumpToBSD,
-    generateAddressSpace,
-} from "..";
+import { AddressSpace, dumpToBSD } from "..";
+import { generateAddressSpace } from "../nodeJS";
+
 import { nodesets } from "node-opcua-nodesets";
-import { StructureDefinitionOptions, StructureDefinition, EnumDefinition, StructureType } from "node-opcua-types";
+import { StructureDefinition, EnumDefinition, StructureType } from "node-opcua-types";
 import { DataType } from "node-opcua-variant";
 import { NodeId } from "node-opcua-nodeid";
 
 describe("converting DataType to BSD schema files", () => {
-
     let addressSpace: AddressSpace;
     beforeEach(async () => {
         addressSpace = AddressSpace.create();
-        const nodesetFilename = [
-            nodesets.standard
-        ];
+        const nodesetFilename = [nodesets.standard];
         await generateAddressSpace(addressSpace, nodesetFilename);
         addressSpace.registerNamespace("PRIVATE");
     });
@@ -29,7 +23,7 @@ describe("converting DataType to BSD schema files", () => {
         const dataType = namespace.createDataType({
             browseName: "MyDataType",
             isAbstract: true,
-            subtypeOf: "Structure",
+            subtypeOf: "Structure"
         });
         const xml = dumpToBSD(namespace);
         // tslint:disable-next-line: no-console
@@ -40,7 +34,6 @@ describe("converting DataType to BSD schema files", () => {
 </opc:TypeDictionary>`);
     });
     it("BSD2- structure 1", async () => {
-
         const namespace = addressSpace.getOwnNamespace();
         const dataType = namespace.createDataType({
             browseName: "MyDataType",
@@ -63,7 +56,7 @@ describe("converting DataType to BSD schema files", () => {
                     dataType: DataType.Float,
                     description: "the list of values",
                     name: "Values",
-                    valueRank: 1,
+                    valueRank: 1
                 }
             ]
         });
@@ -80,7 +73,6 @@ describe("converting DataType to BSD schema files", () => {
 </opc:TypeDictionary>`);
     });
     it("BSD3 - Enumeration ", async () => {
-
         const namespace = addressSpace.getOwnNamespace();
 
         namespace.addEnumerationType({
@@ -100,10 +92,8 @@ describe("converting DataType to BSD schema files", () => {
         <opc:EnumeratedValue Name="UNDER MAINTENANCE" Value="3"/>
     </opc:EnumeratedType>
 </opc:TypeDictionary>`);
-
     });
     it("BSD4- structure 2", async () => {
-
         const namespace = addressSpace.getOwnNamespace();
         const dataType = namespace.createDataType({
             browseName: "MyDataType",
@@ -131,7 +121,7 @@ describe("converting DataType to BSD schema files", () => {
                     dataType: DataType.NodeId,
                     description: "the list of NodeId",
                     name: "Values",
-                    valueRank: 1,
+                    valueRank: 1
                 }
             ]
         });
@@ -144,10 +134,9 @@ describe("converting DataType to BSD schema files", () => {
                     isOptional: false,
                     name: "Extra",
                     valueRank: -1
-                },
-
+                }
             ],
-            structureType: StructureType.Structure,
+            structureType: StructureType.Structure
         });
         const xml = dumpToBSD(namespace);
         // tslint:disable-next-line: no-console
@@ -171,7 +160,6 @@ describe("converting DataType to BSD schema files", () => {
         */
     });
     it("BSD6 - WithOptionalValue", async () => {
-
         /*
          <opc:StructuredType Name="DataValue">
             <opc:Documentation>A value with an associated timestamp, and quality.</opc:Documentation>
@@ -212,7 +200,7 @@ describe("converting DataType to BSD schema files", () => {
                     description: "Optional list of NodeId",
                     isOptional: true,
                     name: "Values",
-                    valueRank: 1,
+                    valueRank: 1
                 }
             ]
         });
@@ -231,5 +219,4 @@ describe("converting DataType to BSD schema files", () => {
     </opc:StructuredType>
 </opc:TypeDictionary>`);
     });
-
 });

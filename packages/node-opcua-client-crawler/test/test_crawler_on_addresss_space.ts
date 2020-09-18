@@ -1,38 +1,23 @@
 import { should } from "should";
 import * as sinon from "sinon";
 
-import {
-    AddressSpace,
-    getMiniAddressSpace,
-    PseudoSession,
-    UAVariable,
-} from "node-opcua-address-space";
+import { AddressSpace, PseudoSession, UAVariable } from "node-opcua-address-space";
+import { getMiniAddressSpace } from "node-opcua-address-space/testHelpers";
 
-import {
-    ObjectIds, DataTypeIds
-} from "node-opcua-constants";
+import { ObjectIds, DataTypeIds } from "node-opcua-constants";
 import { BrowseDirection, NodeClass } from "node-opcua-data-model";
-import {
-    makeNodeId,
-    NodeId
-} from "node-opcua-nodeid";
+import { makeNodeId, NodeId } from "node-opcua-nodeid";
 
 import { DataType } from "node-opcua-client";
-import {
-    CacheNode,
-    NodeCrawlerBase,
-    UserData
-} from "..";
+import { CacheNode, NodeCrawlerBase, UserData } from "..";
 
 describe("NodeCrawlerBase", function (this: any) {
-
     this.timeout(200000);
 
     let addressSpace: AddressSpace;
     let groupNodeId: NodeId;
     let massVariablesNodeId: NodeId;
     before(async () => {
-
         addressSpace = await getMiniAddressSpace();
 
         addressSpace.isFrugal = true;
@@ -60,10 +45,9 @@ describe("NodeCrawlerBase", function (this: any) {
                 browseName: "Variable" + i,
                 dataType: "Double",
                 organizedBy: massVariables,
-                value: { dataType: "Double", value: i },
+                value: { dataType: "Double", value: i }
             });
         }
-
     });
     after(() => {
         if (addressSpace) {
@@ -72,7 +56,6 @@ describe("NodeCrawlerBase", function (this: any) {
     });
 
     function followForward(crawler: NodeCrawlerBase, cacheNode: CacheNode, userData: UserData) {
-
         NodeCrawlerBase.follow(crawler, cacheNode, userData, "Organizes", BrowseDirection.Forward);
         NodeCrawlerBase.follow(crawler, cacheNode, userData, "HasComponent", BrowseDirection.Forward);
         NodeCrawlerBase.follow(crawler, cacheNode, userData, "HasProperty", BrowseDirection.Forward);
@@ -86,7 +69,6 @@ describe("NodeCrawlerBase", function (this: any) {
     }
 
     it("should crawl on a PseudoSession", async () => {
-
         const session = new PseudoSession(addressSpace);
 
         const crawler = new NodeCrawlerBase(session);
@@ -103,30 +85,32 @@ describe("NodeCrawlerBase", function (this: any) {
 
         await crawler.crawl(nodeId, data);
 
-        results.sort().join(" ").should.eql(
-            "HasComponent HasProperty " +
-            "LocaleIdArray " +
-            "MaxMonitoredItemsPerCall " +
-            "MaxNodesPerBrowse " +
-            "MaxNodesPerHistoryReadData " +
-            "MaxNodesPerHistoryReadEvents " +
-            "MaxNodesPerHistoryUpdateData " +
-            "MaxNodesPerHistoryUpdateEvents " +
-            "MaxNodesPerMethodCall " +
-            "MaxNodesPerNodeManagement " +
-            "MaxNodesPerRead " +
-            "MaxNodesPerRegisterNodes " +
-            "MaxNodesPerTranslateBrowsePathsToNodeIds " +
-            "MaxNodesPerWrite " +
-            "OperationLimits " +
-            "ServerCapabilities");
+        results
+            .sort()
+            .join(" ")
+            .should.eql(
+                "HasComponent HasProperty " +
+                    "LocaleIdArray " +
+                    "MaxMonitoredItemsPerCall " +
+                    "MaxNodesPerBrowse " +
+                    "MaxNodesPerHistoryReadData " +
+                    "MaxNodesPerHistoryReadEvents " +
+                    "MaxNodesPerHistoryUpdateData " +
+                    "MaxNodesPerHistoryUpdateEvents " +
+                    "MaxNodesPerMethodCall " +
+                    "MaxNodesPerNodeManagement " +
+                    "MaxNodesPerRead " +
+                    "MaxNodesPerRegisterNodes " +
+                    "MaxNodesPerTranslateBrowsePathsToNodeIds " +
+                    "MaxNodesPerWrite " +
+                    "OperationLimits " +
+                    "ServerCapabilities"
+            );
 
         crawler.dispose();
-
     });
 
     it("should crawl a very large number of nodes", async () => {
-
         const session = new PseudoSession(addressSpace);
 
         (session as any).browse = sinon.spy(session, "browse");
@@ -147,11 +131,15 @@ describe("NodeCrawlerBase", function (this: any) {
 
         await crawler.crawl(groupNodeId, data);
 
-        results.sort().join(" ").should.eql(
-            "1:Group 1:Object0 1:Object1 " +
-            "1:Object2 1:Object3 1:Object4 " +
-            "1:Object5 1:Object6 1:Object7 " +
-            "1:Object8 1:Object9 Organizes");
+        results
+            .sort()
+            .join(" ")
+            .should.eql(
+                "1:Group 1:Object0 1:Object1 " +
+                    "1:Object2 1:Object3 1:Object4 " +
+                    "1:Object5 1:Object6 1:Object7 " +
+                    "1:Object8 1:Object9 Organizes"
+            );
 
         // tslint:disable: no-console
         console.log("browseCounter = ", crawler.browseCounter);
@@ -162,10 +150,13 @@ describe("NodeCrawlerBase", function (this: any) {
     });
 
     it("issue #655: it should used provided MaxNodePerRead/MaxNodePerBrowse as a minimum value when set <> 0 and server provide limits", async () => {
-
         // Given a server that provides some limit for MaxNodesPerRead && MaxNodesPerBrowse
-        const maxNodesPerReadVar = addressSpace.findNode("Server_ServerCapabilities_OperationLimits_MaxNodesPerRead")! as UAVariable;
-        const maxNodesPerBrowseVar = addressSpace.findNode("Server_ServerCapabilities_OperationLimits_MaxNodesPerBrowse")! as UAVariable;
+        const maxNodesPerReadVar = addressSpace.findNode(
+            "Server_ServerCapabilities_OperationLimits_MaxNodesPerRead"
+        )! as UAVariable;
+        const maxNodesPerBrowseVar = addressSpace.findNode(
+            "Server_ServerCapabilities_OperationLimits_MaxNodesPerBrowse"
+        )! as UAVariable;
 
         maxNodesPerReadVar.setValueFromSource({ dataType: DataType.UInt32, value: 251 });
         maxNodesPerBrowseVar.setValueFromSource({ dataType: DataType.UInt32, value: 252 });
@@ -179,8 +170,11 @@ describe("NodeCrawlerBase", function (this: any) {
             const crawler = new NodeCrawlerBase(session);
             crawler.maxNodesPerRead = 0;
             crawler.maxNodesPerBrowse = 0;
-            await crawler.crawl(groupNodeId, { onBrowse: () => {/* empty */ } });
-
+            await crawler.crawl(groupNodeId, {
+                onBrowse: () => {
+                    /* empty */
+                }
+            });
 
             // then NodeCrawlerBase shall be set with value provided by server
             crawler.maxNodesPerRead.should.eql(251);
@@ -194,7 +188,11 @@ describe("NodeCrawlerBase", function (this: any) {
             const crawler = new NodeCrawlerBase(session);
             crawler.maxNodesPerRead = 5;
             crawler.maxNodesPerBrowse = 10;
-            await crawler.crawl(groupNodeId, { onBrowse: () => {/* empty */ } });
+            await crawler.crawl(groupNodeId, {
+                onBrowse: () => {
+                    /* empty */
+                }
+            });
             // then NodeCrawlerBase shall be set with value provided by itself
             crawler.maxNodesPerRead.should.eql(5);
             crawler.maxNodesPerBrowse.should.eql(10);
@@ -206,19 +204,25 @@ describe("NodeCrawlerBase", function (this: any) {
             const crawler = new NodeCrawlerBase(session);
             crawler.maxNodesPerRead = 501;
             crawler.maxNodesPerBrowse = 502;
-            await crawler.crawl(groupNodeId, { onBrowse: () => {/* empty */ } });
+            await crawler.crawl(groupNodeId, {
+                onBrowse: () => {
+                    /* empty */
+                }
+            });
             // then NodeCrawlerBase shall be set with value provided by server
             crawler.maxNodesPerRead.should.eql(251);
             crawler.maxNodesPerBrowse.should.eql(252);
             crawler.dispose();
         }
-
     });
     it("issue #655: it should used provided MaxNodePerRead/MaxNodePerBrowse as a minimum value when set <> 0 and server do not provide limits", async () => {
-
         // Given a server that DOES NOT provide some limit for MaxNodesPerRead && MaxNodesPerBrowse
-        const maxNodesPerReadVar = addressSpace.findNode("Server_ServerCapabilities_OperationLimits_MaxNodesPerRead")! as UAVariable;
-        const maxNodesPerBrowseVar = addressSpace.findNode("Server_ServerCapabilities_OperationLimits_MaxNodesPerBrowse")! as UAVariable;
+        const maxNodesPerReadVar = addressSpace.findNode(
+            "Server_ServerCapabilities_OperationLimits_MaxNodesPerRead"
+        )! as UAVariable;
+        const maxNodesPerBrowseVar = addressSpace.findNode(
+            "Server_ServerCapabilities_OperationLimits_MaxNodesPerBrowse"
+        )! as UAVariable;
 
         maxNodesPerReadVar.setValueFromSource({ dataType: DataType.UInt32, value: 0 });
         maxNodesPerBrowseVar.setValueFromSource({ dataType: DataType.UInt32, value: 0 });
@@ -234,7 +238,11 @@ describe("NodeCrawlerBase", function (this: any) {
             crawler.maxNodesPerRead = 0;
             crawler.maxNodesPerBrowse = 0;
             // then NodeCrawlerBase shall be set with default value provided by NodeCrawlerBase
-            await crawler.crawl(groupNodeId, { onBrowse: () => {/* empty */ } });
+            await crawler.crawl(groupNodeId, {
+                onBrowse: () => {
+                    /* empty */
+                }
+            });
             crawler.maxNodesPerRead.should.eql(100);
             crawler.maxNodesPerBrowse.should.eql(100);
             crawler.dispose();
@@ -245,7 +253,11 @@ describe("NodeCrawlerBase", function (this: any) {
             // Given that NodeCrawlerBase doesn't specify minimum value for  maxNodesPerRead/Browse
             crawler.maxNodesPerRead = 5;
             crawler.maxNodesPerBrowse = 10;
-            await crawler.crawl(groupNodeId, { onBrowse: () => {/* empty */ } });
+            await crawler.crawl(groupNodeId, {
+                onBrowse: () => {
+                    /* empty */
+                }
+            });
             // then NodeCrawlerBase shall be set with value provided by itself
             crawler.maxNodesPerRead.should.eql(5);
             crawler.maxNodesPerBrowse.should.eql(10);
@@ -257,22 +269,26 @@ describe("NodeCrawlerBase", function (this: any) {
             // and greater than default value
             crawler.maxNodesPerRead = 501;
             crawler.maxNodesPerBrowse = 502;
-            await crawler.crawl(groupNodeId, { onBrowse: () => {/* empty */ } });
+            await crawler.crawl(groupNodeId, {
+                onBrowse: () => {
+                    /* empty */
+                }
+            });
             // then NodeCrawlerBase shall be set with value provided by itself
             crawler.maxNodesPerRead.should.eql(501);
             crawler.maxNodesPerBrowse.should.eql(502);
             crawler.dispose();
         }
-
     });
 
     it("#655 it should send a browse event for each elements visited ", async () => {
-
         addressSpace.rootFolder.objects.server.serverCapabilities.operationLimits.maxNodesPerBrowse!.setValueFromSource({
-            dataType: "UInt32", value: 100,
+            dataType: "UInt32",
+            value: 100
         });
         addressSpace.rootFolder.objects.server.serverCapabilities.operationLimits.maxNodesPerRead!.setValueFromSource({
-            dataType: "UInt32", value: 1000,
+            dataType: "UInt32",
+            value: 1000
         });
 
         const session = new PseudoSession(addressSpace);
@@ -316,15 +332,13 @@ describe("NodeCrawlerBase", function (this: any) {
         results = [];
 
         crawler.dispose();
-
     });
     it("#717 it should populate nodeClass for each elements visited ", async () => {
-
         const session = new PseudoSession(addressSpace);
 
         const crawler = new NodeCrawlerBase(session);
 
-        let results: { browseName: string, nodeClass: string }[] = [];
+        let results: { browseName: string; nodeClass: string }[] = [];
 
         const data = {
             onBrowse(this: UserData, crawler1: NodeCrawlerBase, cacheNode: CacheNode) {
@@ -338,17 +352,25 @@ describe("NodeCrawlerBase", function (this: any) {
 
         await crawler.crawl(addressSpace.rootFolder.objects.server.nodeId, data);
 
-        const countInvalidNodeClass1 = results.reduce((previous: number, current) => previous + ((current.nodeClass === "Unspecified") ? 1 : 0), 0);
+        const countInvalidNodeClass1 = results.reduce(
+            (previous: number, current) => previous + (current.nodeClass === "Unspecified" ? 1 : 0),
+            0
+        );
         countInvalidNodeClass1.should.eql(0);
 
         results = [];
         await crawler.crawl(DataTypeIds.BaseDataType, data);
-        const countInvalidNodeClass2 = results.reduce((previous: number, current) => previous + ((current.nodeClass === "Unspecified") ? 1 : 0), 0);
+        const countInvalidNodeClass2 = results.reduce(
+            (previous: number, current) => previous + (current.nodeClass === "Unspecified" ? 1 : 0),
+            0
+        );
         countInvalidNodeClass2.should.eql(0);
-        const countDataTypeNodeClass3 = results.reduce((previous: number, current) => previous + ((current.nodeClass === "DataType") ? 1 : 0), 0);
+        const countDataTypeNodeClass3 = results.reduce(
+            (previous: number, current) => previous + (current.nodeClass === "DataType" ? 1 : 0),
+            0
+        );
         countDataTypeNodeClass3.should.eql(1);
         // console.log(results);
         crawler.dispose();
-
     });
 });

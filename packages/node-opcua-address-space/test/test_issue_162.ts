@@ -7,20 +7,16 @@ import { DataType } from "node-opcua-variant";
 import { Variant } from "node-opcua-variant";
 
 import { AddressSpace, UAObject, UAVariable } from "..";
-import { generateAddressSpace } from "..";
+import { generateAddressSpace } from "../nodeJS";
 
 interface MyCustomObject extends UAObject {
     customProperty: UAVariable;
 }
 
-function findOrCreateCustomObjectType(
-  addressSpace: AddressSpace
-) {
-
+function findOrCreateCustomObjectType(addressSpace: AddressSpace) {
     let myCustomObjectType = addressSpace.findObjectType("1:MyCustomObjectType");
 
     if (!myCustomObjectType) {
-
         const namespace = addressSpace.getOwnNamespace();
 
         myCustomObjectType = namespace.addObjectType({
@@ -38,16 +34,13 @@ function findOrCreateCustomObjectType(
             //   - it always is 1
             value: { dataType: DataType.Double, value: 1 }
         });
-
     }
     return myCustomObjectType;
-
 }
 
 // tslint:disable-next-line:no-var-requires
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("Issue 162 : demonstrate how to modify an instantiate object variable", function (this: any) {
-
     this.timeout(Math.max(300000, this.timeout()));
 
     let addressSpace: AddressSpace;
@@ -62,7 +55,6 @@ describe("Issue 162 : demonstrate how to modify an instantiate object variable",
         await generateAddressSpace(addressSpace, xml_file);
         const namespace = addressSpace.registerNamespace("Private");
         namespace.index.should.eql(1);
-
     });
 
     after(() => {
@@ -70,13 +62,12 @@ describe("Issue 162 : demonstrate how to modify an instantiate object variable",
     });
 
     it("example from 162 - way 1 : using setValueFromSource", () => {
-
         const myCustomObjectType = findOrCreateCustomObjectType(addressSpace);
 
         const myObject = myCustomObjectType.instantiate({
             browseName: "MyObject",
-            organizedBy: "RootFolder",
-        })  as MyCustomObject;
+            organizedBy: "RootFolder"
+        }) as MyCustomObject;
 
         should(myObject).hasOwnProperty("customProperty");
         // the first method consist of accessing the customProperty and
@@ -86,16 +77,14 @@ describe("Issue 162 : demonstrate how to modify an instantiate object variable",
         // verification
         // xx console.log(myObject.customProperty.readValue().toString());
         myObject.customProperty.readValue().value.value.should.eql(-32);
-
     });
 
     it("example from 162 - way 2 : rebinding variable ", () => {
-
         const myCustomObjectType = findOrCreateCustomObjectType(addressSpace);
 
         const myObject = myCustomObjectType.instantiate({
             browseName: "MyObject2",
-            organizedBy: "RootFolder",
+            organizedBy: "RootFolder"
         }) as MyCustomObject;
 
         // the  method consist of setting a getter and a setter
@@ -111,12 +100,11 @@ describe("Issue 162 : demonstrate how to modify an instantiate object variable",
             set: undefined
         };
 
-        myObject.customProperty.bindVariable(options, true/*overwrite existing binding ? Yes !*/);
+        myObject.customProperty.bindVariable(options, true /*overwrite existing binding ? Yes !*/);
 
         myObject.customProperty.readValue().value.value.should.eql(3);
 
         value = 30;
         myObject.customProperty.readValue().value.value.should.eql(30);
     });
-
 });

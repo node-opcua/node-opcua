@@ -1,4 +1,3 @@
-/* global xit,it,describe,before,after,beforeEach,afterEach*/
 "use strict";
 
 const chalk = require("chalk");
@@ -8,28 +7,34 @@ const should = require("should");
 const sinon = require("sinon");
 const _ = require("underscore");
 
-const opcua = require("node-opcua");
+const {
+  OPCUAClient,
+  AttributeIds,
+  resolveNodeId,
+  StatusCodes,
+  DataType,
+  TimestampsToReturn,
+  NodeId,
+  callConditionRefresh,
+  ClientMonitoredItem,
+  coerceNodeId,
+  Variant,
+  LocalizedText
 
-const OPCUAClient = opcua.OPCUAClient;
-const AttributeIds = opcua.AttributeIds;
-const resolveNodeId = opcua.resolveNodeId;
-const StatusCodes = opcua.StatusCodes;
-const DataType = opcua.DataType;
-const TimestampsToReturn = opcua.TimestampsToReturn;
-const NodeId = opcua.NodeId;
+} = require("node-opcua");
 
-const conditionTypeId = opcua.resolveNodeId("ConditionType");
 
-const perform_operation_on_subscription = require("../../../test_helpers/perform_operation_on_client_session").perform_operation_on_subscription;
+const conditionTypeId = resolveNodeId("ConditionType");
 
-const constructEventFilter = require("node-opcua-service-filter").constructEventFilter;
+const { perform_operation_on_subscription } = require("../../../test_helpers/perform_operation_on_client_session");
 
-const callConditionRefresh = opcua.callConditionRefresh;
+const { constructEventFilter } = require("node-opcua-service-filter");
+
 
 function debugLog() {
 }
 
-const construct_demo_alarm_in_address_space = require("node-opcua-address-space").construct_demo_alarm_in_address_space;
+const { construct_demo_alarm_in_address_space } = require("node-opcua-address-space/testHelpers");
 
 
 function wait_a_little_bit_to_let_events_to_be_processed(callback) {
@@ -89,7 +94,7 @@ module.exports = function(test) {
       return result[index];
     }
 
-    var fields = [
+    const fields = [
       "EventId",
       "ConditionName",
       "ConditionClassName",
@@ -144,7 +149,8 @@ module.exports = function(test) {
         samplingInterval: 10,
       };
 
-      test.monitoredItem1 = opcua.ClientMonitoredItem.create(subscription, readValue, requestedParameters, TimestampsToReturn.Both);
+
+      test.monitoredItem1 = ClientMonitoredItem.create(subscription, readValue, requestedParameters, TimestampsToReturn.Both);
 
       test.monitoredItem1.on("initialized", function(err) {
         setTimeout(callback, 100);
@@ -380,7 +386,7 @@ module.exports = function(test) {
               const methodToCalls = [];
               methodToCalls.push({
                 objectId: test.tankLevelCondition.nodeId,
-                methodId: opcua.coerceNodeId("ns=0;i=9028"), // ConditionType#Disable Method nodeID
+                methodId: coerceNodeId("ns=0;i=9028"), // ConditionType#Disable Method nodeID
                 inputArguments: []
               });
 
@@ -403,13 +409,12 @@ module.exports = function(test) {
               const results = test.spy_monitored_item1_changes.getCall(0).args[0];
               //xx dump_field_values(fields, results);
 
-              const conditionDisabledVar = new opcua.Variant({
-                dataType: opcua.DataType.StatusCode,
+              const conditionDisabledVar = new Variant({
+                dataType: DataType.StatusCode,
                 value: StatusCodes.BadConditionDisabled
               });
 
               // shall be valid EventId, EventType, SourceNode, SourceName, Time, and EnabledState
-
               // other shall be invalid
 
               const value_severity = extract_value_for_field("Severity", results);
@@ -540,7 +545,7 @@ module.exports = function(test) {
             dataValues = test.spy_monitored_item1_changes.getCall(1).args[0];
             //  dump_field_values(fields,dataValues);
             //xx The EventId field shall contain the id of the event for which the comment was added.
-            extract_value_for_field("BranchId", dataValues).value.should.eql(opcua.NodeId.nullNodeId);
+            extract_value_for_field("BranchId", dataValues).value.should.eql(NodeId.nullNodeId);
             extract_value_for_field("ConditionName", dataValues).value.should.eql("TankLevelCondition");
             extract_value_for_field("SourceName", dataValues).value.should.eql(levelNode.browseName.toString());
             extract_value_for_field("Comment", dataValues).value.text.toString().should.eql("SomeComment!!!");
@@ -601,9 +606,8 @@ module.exports = function(test) {
 
             addCommentSpy.callCount.should.eql(1);
             addCommentSpy.getCall(0).args[0].should.be.instanceOf(Buffer); // eventId
-            addCommentSpy.getCall(0).args[1].should.be.instanceOf(opcua.LocalizedText);
+            addCommentSpy.getCall(0).args[1].should.be.instanceOf(LocalizedText);
             addCommentSpy.getCall(0).args[2].constructor.name.should.eql("ConditionSnapshot");
-
 
             addCommentSpy.getCall(0).args[1].text.should.eql(the_new_comment);
 
@@ -757,7 +761,7 @@ module.exports = function(test) {
 
         function condition_acknowledged_requires_confirm(callback) {
 
-          should(alarmNode.nodeId).be.instanceOf(opcua.NodeId);
+          should(alarmNode.nodeId).be.instanceOf(NodeId);
 
           const conditionId = alarmNode.nodeId;
           const eventId = eventId_Step0;
@@ -822,7 +826,7 @@ module.exports = function(test) {
 
             eventId_Step0 = extract_value_for_field("EventId", dataValues).value;
             should(eventId_Step0).be.instanceOf(Buffer);
-            extract_value_for_field("BranchId", dataValues).value.should.eql(opcua.NodeId.nullNodeId);
+            extract_value_for_field("BranchId", dataValues).value.should.eql(NodeId.nullNodeId);
             //xx extract_value_for_field("ConditionName", dataValues).value.should.eql("Test2");
             extract_value_for_field("SourceName", dataValues).value.should.eql(levelNode.browseName.toString());
 
@@ -870,7 +874,7 @@ module.exports = function(test) {
 
             eventId_Step2.toString("hex").should.not.eql(eventId_Step0.toString("hex"), "eventId must have changed");
 
-            extract_value_for_field("BranchId", dataValues).value.should.eql(opcua.NodeId.nullNodeId);
+            extract_value_for_field("BranchId", dataValues).value.should.eql(NodeId.nullNodeId);
             //xx extract_value_for_field("ConditionName", dataValues).value.should.eql("Test2");
             extract_value_for_field("SourceName", dataValues).value.should.eql(levelNode.browseName.toString());
 
@@ -908,7 +912,7 @@ module.exports = function(test) {
 
             // ns=0;i=9341 => ExclusiveLimitAlarmType
             extract_value_for_field("EventType", dataValues).value.toString().should.eql(eventTypeNodeId);
-            extract_value_for_field("BranchId", dataValues).value.should.eql(opcua.NodeId.nullNodeId);
+            extract_value_for_field("BranchId", dataValues).value.should.eql(NodeId.nullNodeId);
             //xx extract_value_for_field("ConditionName", dataValues).value.should.eql("Test2");
             extract_value_for_field("SourceName", dataValues).value.should.eql(levelNode.browseName.toString());
 
@@ -949,7 +953,7 @@ module.exports = function(test) {
             dataValues = test.spy_monitored_item1_changes.getCall(2).args[0];
             extract_value_for_field("EventType", dataValues).value.toString().should.eql(eventTypeNodeId);
             //xx dump_field_values(fields,dataValues);
-            extract_value_for_field("BranchId", dataValues).value.should.eql(opcua.NodeId.nullNodeId);
+            extract_value_for_field("BranchId", dataValues).value.should.eql(NodeId.nullNodeId);
             //xx extract_value_for_field("ConditionName", dataValues).value.should.eql("Test2");
             extract_value_for_field("SourceName", dataValues).value.should.eql(levelNode.browseName.toString());
 
@@ -980,7 +984,7 @@ module.exports = function(test) {
             //  i=9341 => ExclusiveLimitAlarmType
             extract_value_for_field("EventType", dataValues).value.toString().should.eql(eventTypeNodeId);
             //xx dump_field_values(fields,dataValues);
-            extract_value_for_field("BranchId", dataValues).value.should.eql(opcua.NodeId.nullNodeId);
+            extract_value_for_field("BranchId", dataValues).value.should.eql(NodeId.nullNodeId);
             //xx extract_value_for_field("ConditionName", dataValues).value.should.eql("Test2");
             extract_value_for_field("SourceName", dataValues).value.should.eql(levelNode.browseName.toString());
 
@@ -1013,7 +1017,7 @@ module.exports = function(test) {
             // event value for branch #1 -----------------------------------------------------
             //  i=9341 => ExclusiveLimitAlarmType
             extract_value_for_field("EventType", dataValues7).value.toString().should.eql(eventTypeNodeId);
-            extract_value_for_field("BranchId", dataValues7).value.should.not.eql(opcua.NodeId.nullNodeId);
+            extract_value_for_field("BranchId", dataValues7).value.should.not.eql(NodeId.nullNodeId);
             //xx extract_value_for_field("ConditionName", dataValues7).value.should.eql("Test2");
             extract_value_for_field("SourceName", dataValues7).value.should.eql(levelNode.browseName.toString());
             branch1_NodeId = extract_value_for_field("BranchId", dataValues7).value;
@@ -1035,7 +1039,7 @@ module.exports = function(test) {
             //  i=9341 => ExclusiveLimitAlarmType
             extract_value_for_field("EventType", dataValues8).value.toString().should.eql(eventTypeNodeId);
             //xx dump_field_values(fields,dataValues);
-            extract_value_for_field("BranchId", dataValues8).value.should.eql(opcua.NodeId.nullNodeId);
+            extract_value_for_field("BranchId", dataValues8).value.should.eql(NodeId.nullNodeId);
             //Xxx extract_value_for_field("ConditionName", dataValues8).value.should.eql("Test2");
             extract_value_for_field("SourceName", dataValues8).value.should.eql(levelNode.browseName.toString());
 
@@ -1069,7 +1073,7 @@ module.exports = function(test) {
             //  i=9341 => ExclusiveLimitAlarmType
             extract_value_for_field("EventType", dataValues9).value.toString().should.eql(eventTypeNodeId);
             //xx dump_field_values(fields,dataValues);
-            extract_value_for_field("BranchId", dataValues9).value.should.eql(opcua.NodeId.nullNodeId);
+            extract_value_for_field("BranchId", dataValues9).value.should.eql(NodeId.nullNodeId);
             //xx extract_value_for_field("ConditionName", dataValues9).value.should.eql("Test2");
             extract_value_for_field("SourceName", dataValues9).value.should.eql(levelNode.browseName.toString());
 
