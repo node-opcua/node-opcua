@@ -672,8 +672,6 @@ export class ClientSubscriptionImpl extends EventEmitter implements ClientSubscr
     }
 
     private onNotificationMessage(notificationMessage: NotificationMessage) {
-        this.lastRequestSentTime = new Date(Date.now());
-
         assert(notificationMessage.hasOwnProperty("sequenceNumber"));
 
         this.lastSequenceNumber = notificationMessage.sequenceNumber;

@@ -1,43 +1,41 @@
 "use strict";
 const should = require("should");
-const write_service = require("..");
-const encode_decode_round_trip_test = require("node-opcua-packet-analyzer/dist/test_helpers").encode_decode_round_trip_test;
-const NumericRangeType = require("node-opcua-numeric-range").NumericRangeType;
-const NumericRange = require("node-opcua-numeric-range").NumericRange;
-const ServerStatusDataType = require ("node-opcua-common").ServerStatusDataType;
-const DataType = require("node-opcua-variant").DataType;
-const AttributeIds = require("node-opcua-data-model").AttributeIds;
-const WriteValue = write_service.WriteValue;
-const DataValue = require("node-opcua-data-value").DataValue;
+const { WriteValue, WriteRequest, WriteResponse } = require("..");
+const { encode_decode_round_trip_test } = require("node-opcua-packet-analyzer/dist/test_helpers");
+const { NumericRange, NumericRangeType } = require("node-opcua-numeric-range");
+const { ServerStatusDataType } = require("node-opcua-types");
+const { DataType } = require("node-opcua-variant");
+const { AttributeIds } = require("node-opcua-data-model");
+const { DataValue } = require("node-opcua-data-value");
 
-describe("Write Service",function() {
+describe("Write Service", function() {
 
 
-    it("should create a WriteValue",function() {
-        new write_service.WriteValue({});
+    it("should create a WriteValue", function() {
+        new WriteValue({});
     });
-    it("should create a WriteRequest",function() {
-        new write_service.WriteRequest({});
+    it("should create a WriteRequest", function() {
+        new WriteRequest({});
     });
-    it("should create a WriteResponse",function() {
-        new write_service.WriteResponse({});
+    it("should create a WriteResponse", function() {
+        new WriteResponse({});
     });
 });
 
-describe("WriteValue", function () {
+describe("WriteValue", function() {
 
 
-    it("should create a default WriteValue", function () {
+    it("should create a default WriteValue", function() {
 
         const wv = new WriteValue({});
         wv.indexRange.type.should.equal(NumericRangeType.Empty);
 
     });
 
-    it ("should create a write value with a DataValue containing a Extension Object",function() {
+    it("should create a write value with a DataValue containing a Extension Object", function() {
 
         const dataValue = {
-            value : {
+            value: {
                 dataType: DataType.ExtensionObject,
                 value: new ServerStatusDataType({
                 })
@@ -54,12 +52,11 @@ describe("WriteValue", function () {
     });
 
 });
-describe("WriteRequest", function () {
+describe("WriteRequest", function() {
 
+    it("should create a default WriteRequest", function() {
 
-    it("should create a default WriteRequest", function () {
-
-        const wv = new write_service.WriteRequest({
+        const wv = new WriteRequest({
             nodesToWrite: [{}, {}]
         });
 

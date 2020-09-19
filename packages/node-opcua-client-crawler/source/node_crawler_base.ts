@@ -8,7 +8,7 @@ import * as _ from "underscore";
 import { UAReferenceType } from "node-opcua-address-space";
 import { assert } from "node-opcua-assert";
 import { BrowseDescriptionLike, ReadValueIdOptions, ResponseCallback } from "node-opcua-client";
-import { DataTypeDefinition } from "node-opcua-common";
+import { DataTypeDefinition } from "node-opcua-types";
 import { ReferenceTypeIds, VariableIds } from "node-opcua-constants";
 import {
     AccessLevelFlag,

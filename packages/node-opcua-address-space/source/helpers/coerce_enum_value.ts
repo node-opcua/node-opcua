@@ -5,8 +5,8 @@ import { assert } from "node-opcua-assert";
 import * as _ from "underscore";
 
 import { Int64 } from "node-opcua-basic-types";
-import { EnumValueType } from "node-opcua-common";
 import { coerceLocalizedText } from "node-opcua-data-model";
+import { EnumValueType } from "node-opcua-types";
 
 export function coerceEnumValues(enumValues: any): EnumValueType[] {
     if (Array.isArray(enumValues)) {
