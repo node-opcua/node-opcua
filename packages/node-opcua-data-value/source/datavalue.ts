@@ -15,7 +15,6 @@ import {
 } from "node-opcua-factory";
 import { StatusCode, StatusCodes } from "node-opcua-status-code";
 import { DataType, sameVariant, Variant, VariantArrayType, VariantOptions, VariantOptionsT, VariantT } from "node-opcua-variant";
-import * as _ from "underscore";
 import { DataValueEncodingByte } from "./DataValueEncodingByte_enum";
 import { TimestampsToReturn } from "./TimestampsToReturn_enum";
 
@@ -65,7 +64,7 @@ function getDataValue_EncodingByte(dataValue: DataValue): DataValueEncodingByte 
 
 export function encodeDataValue(dataValue: DataValue, stream: OutputBinaryStream): void {
     const encodingMask = getDataValue_EncodingByte(dataValue);
-    assert(_.isFinite(encodingMask) && encodingMask >= 0 && encodingMask <= 0x3f);
+    assert(isFinite(encodingMask) && encodingMask >= 0 && encodingMask <= 0x3f);
     // write encoding byte
     encodeUInt8(encodingMask, stream);
 

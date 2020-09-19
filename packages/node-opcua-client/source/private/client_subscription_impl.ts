@@ -196,7 +196,7 @@ export class ClientSubscriptionImpl extends EventEmitter implements ClientSubscr
             return callback(new Error("Already Terminated"));
         }
 
-        if (_.isFinite(this.subscriptionId)) {
+        if (isFinite(this.subscriptionId)) {
             const subscriptionId = this.subscriptionId;
             this.subscriptionId = TERMINATING_SUBSCRIPTION_ID;
             this.publishEngine.unregisterSubscription(subscriptionId);

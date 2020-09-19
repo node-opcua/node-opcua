@@ -28,8 +28,6 @@ import { LineFile1 } from "./utils/index";
 const doDebug = checkDebugFlag(__filename);
 const debugLog = make_debugLog(__filename);
 
-// Xx import * as  prettier from "prettier";
-
 const readFile = promisify(fs.readFile);
 
 const f = new LineFile1();

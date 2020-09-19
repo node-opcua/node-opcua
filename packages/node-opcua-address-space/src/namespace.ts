@@ -1555,7 +1555,7 @@ export class UANamespace implements NamespacePublic {
         assert(component instanceof UAObjectType);
         assert(typeof fromState === "string");
         assert(typeof toState === "string");
-        assert(_.isFinite(transitionNumber));
+        assert(isFinite(transitionNumber));
 
         const fromStateNode = component.getComponentByName(fromState, component.nodeId.namespace);
 
@@ -2118,8 +2118,7 @@ export class UANamespace implements NamespacePublic {
                 ? options.arrayDimensions.length
                 : -1
             : options.valueRank;
-        assert(_.isFinite(options.valueRank));
-        assert(typeof options.valueRank === "number");
+        assert(typeof options.valueRank === "number" && isFinite(options.valueRank!));
 
         options.arrayDimensions = options.arrayDimensions || null;
         assert(Array.isArray(options.arrayDimensions) || options.arrayDimensions === null);

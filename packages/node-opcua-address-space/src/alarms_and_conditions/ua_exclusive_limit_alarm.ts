@@ -2,8 +2,6 @@
  * @module node-opcua-address-space.AlarmsAndConditions
  */
 import { assert } from "node-opcua-assert";
-import * as _ from "underscore";
-
 import { NodeId } from "node-opcua-nodeid";
 import { Namespace, UAEventType } from "../../source";
 import { AddressSpace } from "../address_space";
@@ -17,7 +15,6 @@ export interface UAExclusiveLimitAlarm extends UALimitAlarm {
     limitState: StateMachine;
 }
 export class UAExclusiveLimitAlarm extends UALimitAlarm {
-
     /***
      *
      * @method (static)instantiate
@@ -33,7 +30,6 @@ export class UAExclusiveLimitAlarm extends UALimitAlarm {
         options: any,
         data: any
     ): UAExclusiveLimitAlarm {
-
         const addressSpace = namespace.addressSpace;
 
         const exclusiveAlarmType = addressSpace.findEventType(type);
@@ -51,7 +47,7 @@ export class UAExclusiveLimitAlarm extends UALimitAlarm {
 
         const node = UALimitAlarm.instantiate(namespace, type, options, data);
         Object.setPrototypeOf(node, UAExclusiveLimitAlarm.prototype);
-        const alarm = node as any as UAExclusiveLimitAlarm;
+        const alarm = (node as any) as UAExclusiveLimitAlarm;
         assert(alarm instanceof UAExclusiveLimitAlarm);
         assert(alarm instanceof UALimitAlarm);
 
@@ -67,11 +63,7 @@ export class UAExclusiveLimitAlarm extends UALimitAlarm {
         return alarm;
     }
 
-    public _signalNewCondition(
-        stateName: string | null,
-        isActive: boolean,
-        value: string
-    ): void {
+    public _signalNewCondition(stateName: string | null, isActive: boolean, value: string): void {
         assert(stateName === null || typeof isActive === "boolean");
         assert(validState.indexOf(stateName) >= 0, "must have a valid state : " + stateName);
 
@@ -88,8 +80,7 @@ export class UAExclusiveLimitAlarm extends UALimitAlarm {
     }
 
     public _setStateBasedOnInputValue(value: number) {
-
-        assert(_.isFinite(value));
+        assert(isFinite(value));
         let isActive = false;
 
         let state = null;

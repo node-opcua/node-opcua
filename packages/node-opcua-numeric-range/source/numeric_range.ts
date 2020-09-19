@@ -2,7 +2,6 @@
  * @module node-opcua-numeric-range
  */
 import { assert } from "node-opcua-assert";
-import * as _ from "underscore";
 
 import { decodeString, encodeString, UAString } from "node-opcua-basic-types";
 import { BinaryStream, OutputBinaryStream } from "node-opcua-binary-stream";
@@ -201,13 +200,11 @@ function construct_from_string(value: string): NumericalRange0 {
     return construct_numeric_range_from_string(value);
 }
 
-function _set_single_value(value: any): NumericalRange0 {
-    assert(_.isFinite(value));
-
-    if (value === null || value < 0) {
+function _set_single_value(value: number | null): NumericalRange0 {
+    if (value === null || value < 0 || !isFinite(value)) {
         return {
             type: NumericRangeType.InvalidRange,
-            value: "" + value.toString()
+            value: "" + value?.toString()
         };
     } else {
         return {
@@ -254,23 +251,20 @@ function _set_range_value(low: number, high: number): NumericalRangeArrayRange |
     return numericalRange;
 }
 
-function construct_from_values(value: any, secondValue?: any): NumericalRange0 {
+function construct_from_values(value: number, secondValue?: number): NumericalRange0 {
     if (secondValue === undefined) {
         return _set_single_value(value);
     } else {
-        if (!_.isFinite(secondValue)) {
+        if (!isFinite(secondValue)) {
             throw new Error(" invalid second argument, expecting a number");
         }
         return _set_range_value(value, secondValue);
     }
 }
 
-function _construct_from_array(value: any): NumericalRange0 {
+function _construct_from_array(value: number[]): NumericalRange0 {
     assert(value.length === 2);
-    if (_.isFinite(value[0])) {
-        if (!_.isFinite(value[1])) {
-            throw new Error(" invalid range in " + value);
-        }
+    if (isFinite(value[0]) && isFinite(value[1])) {
         return _set_range_value(value[0], value[1]);
     }
     return { type: NumericRangeType.InvalidRange, value: "" + value };
@@ -282,9 +276,9 @@ function _construct_from_NumericRange(nr: NumericalRange1): NumericalRange0 {
         case NumericRangeType.InvalidRange:
             return { type: NumericRangeType.InvalidRange, value: nrToClone.value };
         case NumericRangeType.MatrixRange:
-            return { type: NumericRangeType.MatrixRange, value: _.clone(nr.value) as number[][] };
+            return { type: NumericRangeType.MatrixRange, value: [...nrToClone.value] as number[][] };
         case NumericRangeType.ArrayRange:
-            return { type: NumericRangeType.ArrayRange, value: _.clone(nr.value) as number[] };
+            return { type: NumericRangeType.ArrayRange, value: [...nrToClone.value] as number[] };
         case NumericRangeType.SingleValue:
             return { type: NumericRangeType.SingleValue, value: nrToClone.value as number };
         case NumericRangeType.Empty:
@@ -328,7 +322,7 @@ export class NumericRange implements NumericalRange1 {
     public type: NumericRangeType;
     public value: NumericalRangeValueType;
 
-    constructor(value?: any, secondValue?: any) {
+    constructor(value?: null | string | number | number[] | NumericRange, secondValue?: number) {
         this.type = NumericRangeType.InvalidRange;
         this.value = null;
 
@@ -338,7 +332,7 @@ export class NumericRange implements NumericalRange1 {
             const a = construct_from_string(value as string);
             this.type = a.type;
             this.value = a.value;
-        } else if (_.isFinite(value) && !_.isUndefined(value)) {
+        } else if (typeof value === "number" && isFinite(value)) {
             const a = construct_from_values(value, secondValue);
             this.type = a.type;
             this.value = a.value;
@@ -587,7 +581,7 @@ function extract_single_value<U, T extends ArrayLike<U>>(array: T, index: number
 }
 
 function extract_array_range<U, T extends ArrayLike<U>>(array: T, low_index: number, high_index: number): ExtractResult<T> {
-    assert(_.isFinite(low_index) && _.isFinite(high_index));
+    assert(isFinite(low_index) && isFinite(high_index));
     assert(low_index >= 0);
     assert(low_index <= high_index);
     if (low_index >= array.length) {

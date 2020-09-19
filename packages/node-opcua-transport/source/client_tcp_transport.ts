@@ -4,7 +4,6 @@
 // tslint:disable:class-name
 // system
 import * as os from "os";
-import * as _ from "underscore";
 
 import { createConnection, Socket } from "net";
 import { assert } from "node-opcua-assert";
@@ -270,7 +269,7 @@ export class ClientTCP_transport extends TCP_transport {
         }
 
         assert(this._socket);
-        assert(_.isFinite(this.protocolVersion));
+        assert(isFinite(this.protocolVersion));
         assert(this.endpointUrl.length > 0, " expecting a valid endpoint url");
 
         // Write a message to the socket as soon as the client is connected,

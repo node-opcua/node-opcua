@@ -3,11 +3,10 @@
  */
 import { assert } from "node-opcua-assert";
 import { BinaryStream, OutputBinaryStream } from "node-opcua-binary-stream";
-import * as _ from "underscore";
 import { getRandomInt } from "./utils";
 
 export function isValidUInt16(value: any): boolean {
-    if (!_.isFinite(value)) {
+    if (!isFinite(value)) {
         return false;
     }
     return value >= 0 && value <= 0xffff;
@@ -41,7 +40,7 @@ export function decodeUInt16(stream: BinaryStream): UInt16 {
 }
 
 export function isValidInt16(value: any): boolean {
-    if (!_.isFinite(value)) {
+    if (!isFinite(value)) {
         return false;
     }
     return value >= -0x8000 && value <= 0x7fff;
@@ -52,7 +51,7 @@ export function randomInt16(): Int16 {
 }
 
 export function encodeInt16(value: Int16, stream: OutputBinaryStream): void {
-    assert(_.isFinite(value));
+    assert(isFinite(value));
     stream.writeInt16(value);
 }
 
@@ -61,7 +60,7 @@ export function decodeInt16(stream: BinaryStream): Int16 {
 }
 
 export function isValidInt32(value: any): boolean {
-    if (!_.isFinite(value)) {
+    if (!isFinite(value)) {
         return false;
     }
     return value >= -0x80000000 && value <= 0x7fffffff;
@@ -72,7 +71,7 @@ export function randomInt32(): Int32 {
 }
 
 export function encodeInt32(value: Int32, stream: OutputBinaryStream): void {
-    assert(_.isFinite(value));
+    assert(isFinite(value));
     stream.writeInteger(value);
 }
 
@@ -81,7 +80,7 @@ export function decodeInt32(stream: BinaryStream): Int32 {
 }
 
 export function isValidUInt32(value: any): boolean {
-    if (!_.isFinite(value)) {
+    if (!isFinite(value)) {
         return false;
     }
     return value >= 0 && value <= 0xffffffff;
@@ -100,7 +99,7 @@ export function decodeUInt32(stream: BinaryStream): UInt32 {
 }
 
 export function isValidInt8(value: any): boolean {
-    if (!_.isFinite(value)) {
+    if (!isFinite(value)) {
         return false;
     }
     return value >= -0x80 && value <= 0x7f;
@@ -125,7 +124,7 @@ export const encodeSByte = encodeInt8;
 export const decodeSByte = decodeInt8;
 
 export function isValidUInt8(value: any): boolean {
-    if (!_.isFinite(value)) {
+    if (!isFinite(value)) {
         return false;
     }
     return value >= 0x00 && value <= 0xff;

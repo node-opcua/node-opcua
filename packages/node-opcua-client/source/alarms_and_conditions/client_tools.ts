@@ -5,8 +5,6 @@
 // tslint:disable: only-arrow-functions
 
 import * as async from "async";
-import * as _ from "underscore";
-
 import { assert } from "node-opcua-assert";
 import { LocalizedText, LocalizedTextLike } from "node-opcua-data-model";
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
@@ -34,7 +32,7 @@ export function callConditionRefresh(subscription: ClientSubscription, callback?
 
     const subscriptionId = subscription.subscriptionId;
 
-    assert(_.isFinite(subscriptionId), "May be subscription is not yet initialized");
+    assert(isFinite(subscriptionId), "May be subscription is not yet initialized");
     assert(typeof callback === "function");
 
     const conditionTypeNodeId = resolveNodeId("ConditionType");

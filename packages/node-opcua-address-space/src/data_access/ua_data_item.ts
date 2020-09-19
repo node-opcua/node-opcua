@@ -30,7 +30,6 @@
 import { assert } from "node-opcua-assert";
 import { DataType } from "node-opcua-variant";
 import { Variant } from "node-opcua-variant";
-import * as _ from "underscore";
 import { AddDataItemOptions, ModellingRuleType } from "../../source";
 import { UADataItem as UADataItemPublic } from "../../source";
 import { UAVariable } from "../ua_variable";

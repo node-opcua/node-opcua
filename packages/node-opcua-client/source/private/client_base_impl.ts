@@ -338,7 +338,7 @@ export class ClientBaseImpl extends OPCUASecureObject implements OPCUAClientBase
 
         this.defaultSecureTokenLifetime = options.defaultSecureTokenLifetime || 600000;
         this.tokenRenewalInterval = options.tokenRenewalInterval || 0;
-        assert(_.isFinite(this.tokenRenewalInterval) && this.tokenRenewalInterval >= 0);
+        assert(isFinite(this.tokenRenewalInterval) && this.tokenRenewalInterval >= 0);
         /**
          * @property securityMode
          * @type MessageSecurityMode

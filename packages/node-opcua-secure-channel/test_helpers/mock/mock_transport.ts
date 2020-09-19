@@ -9,7 +9,6 @@ import { CloseSecureChannelResponse, OpenSecureChannelResponse } from "node-opcu
 import { ActivateSessionResponse, CreateSessionResponse } from "node-opcua-service-session";
 import { AcknowledgeMessage } from "node-opcua-transport";
 import { DirectTransport } from "node-opcua-transport/dist/test_helpers";
-import * as _ from "underscore";
 
 const debugLog = make_debugLog(__filename);
 

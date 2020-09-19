@@ -1,8 +1,6 @@
 /***
  * @module node-opcua-basic-types
  */
-import * as _ from "underscore";
-
 import { BinaryStream, OutputBinaryStream } from "node-opcua-binary-stream";
 
 const minFloat = -3.4 * Math.pow(10, 38);
@@ -21,7 +19,7 @@ function getRandomDouble(min: number, max: number) {
 }
 
 export function isValidFloat(value: any): boolean {
-    if (!_.isFinite(value)) {
+    if (!isFinite(value)) {
         return false;
     }
     return value > minFloat && value < maxFloat;
@@ -50,7 +48,7 @@ export function decodeFloat(stream: BinaryStream): Float {
 }
 
 export function isValidDouble(value: any): boolean {
-    if (!_.isFinite(value)) {
+    if (!isFinite(value)) {
         return false;
     }
     return true;

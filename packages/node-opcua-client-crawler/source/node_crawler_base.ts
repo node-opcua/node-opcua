@@ -57,7 +57,7 @@ function make_node_attribute_key(nodeId: NodeId, attributeId: AttributeIds): str
 }
 function convertToStandardArray(a: number[] | Uint32Array | undefined): number[] | undefined {
     if (a === undefined || a === null) {
-        return a;
+        return undefined;
     }
     if (a instanceof Array) {
         return a;

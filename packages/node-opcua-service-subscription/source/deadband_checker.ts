@@ -2,7 +2,6 @@
  * @module node-opcua-service-subscription
  */
 import { assert } from "node-opcua-assert";
-import * as _ from "underscore";
 
 import { DataType, Variant, VariantArrayType } from "node-opcua-variant";
 
@@ -39,7 +38,7 @@ function _isOutsideDeadbandScalar(value1: NumberType, value2: NumberType, dataTy
             }
         }
         diff = value1[1] - value2[1];
-        assert(typeof diff === "number" && _.isFinite(diff));
+        assert(typeof diff === "number" && isFinite(diff));
         return Math.abs(diff) > absoluteDeadband;
     }
     // istanbul ignore next
@@ -47,11 +46,11 @@ function _isOutsideDeadbandScalar(value1: NumberType, value2: NumberType, dataTy
         throw new Error("Invalid");
     }
     diff = value2 - value1;
-    assert(typeof diff === "number" && _.isFinite(diff));
+    assert(typeof diff === "number" && isFinite(diff));
     return Math.abs(diff) > absoluteDeadband;
 }
 function isOutsideDeadbandVariant(v1: Variant, v2: Variant, absoluteDeadBand: number): boolean {
-    assert(_.isFinite(absoluteDeadBand));
+    assert(isFinite(absoluteDeadBand));
 
     if (v1.arrayType === VariantArrayType.Array) {
         if (v1.dataType !== v2.dataType) {

@@ -1,7 +1,6 @@
 "use strict";
 const should = require("should");
 
-const _ = require("underscore");
 const BinaryStream = require("node-opcua-binary-stream").BinaryStream;
 
 const date_time = require("..");
@@ -17,14 +16,14 @@ const getCurrentClock = require("..").getCurrentClock;
 
 
 function isValidUInt32(value) {
-    if (!_.isFinite(value)) {
+    if (!isFinite(value)) {
         return false;
     }
     return value >= 0 && value <= 0xFFFFFFFF;
 }
 function isValidInt32(value) {
 
-    if (!_.isFinite(value)) {
+    if (!isFinite(value)) {
         return false;
     }
     value.should.be.greaterThan(-Math.pow(2, 31) - 1);

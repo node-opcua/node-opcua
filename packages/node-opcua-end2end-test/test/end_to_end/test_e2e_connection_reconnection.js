@@ -1,5 +1,5 @@
+/* eslint-disable max-statements */
 "use strict";
-/* global require, process, __filename, it, before, beforeEach, after, afterEach */
 const should = require("should");
 const async = require("async");
 const fs = require("fs");
@@ -301,7 +301,7 @@ describe("KJH1 testing basic Client-Server communication", function() {
 
             function(callback) {
                 client.endpoint_must_exist = true;
-                client.connect(endpointUrl + "/somecrap", callback);
+                client.connect(endpointUrl + "/someCrap", callback);
             },
 
             function(callback) {
@@ -926,7 +926,7 @@ describe("KJH2 testing ability for client to reconnect when server close connect
             }
 
             // let check that new values have been received
-            // when the following test fails, this probably means that the publish mecanism is not working as expected
+            // when the following test fails, this probably means that the publish mechanism is not working as expected
             values_to_check.length.should.be.greaterThan(previous_value_count + 1,
                 " expecting that new values have been received since last check : values_to_check = " + values_to_check + " != " + (previous_value_count + 1));
 
@@ -936,7 +936,7 @@ describe("KJH2 testing ability for client to reconnect when server close connect
                 if (lastValue > expectedLastValue) {
                     console.log(" Warning ", values_to_check.join(" "));
                 }
-                // lastValue.should.be.belowOrEqual(exepectedLastValue);
+                // lastValue.should.be.belowOrEqual(expectedLastValue);
             }
             previous_value_count = values_to_check.length;
             callback();
@@ -1260,7 +1260,7 @@ describe("KJH2 testing ability for client to reconnect when server close connect
     it("TR9 -  disconnecting during reconnect", function(done) {
         // Given a client that has a infinite connection retry strategy,
         //   And the client has a lived connection with a server
-        //   And that the connection has dropped ( backoff stragety taking place)
+        //   And that the connection has dropped ( backoff strategy taking place)
         //
         //  When client#disconnect is called
         //

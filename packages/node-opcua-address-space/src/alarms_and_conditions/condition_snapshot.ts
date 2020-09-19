@@ -2,7 +2,6 @@
  * @module node-opcua-address-space.AlarmsAndConditions
  */
 import { EventEmitter } from "events";
-import * as _ from "underscore";
 
 import { assert } from "node-opcua-assert";
 import { UInt16 } from "node-opcua-basic-types";
@@ -15,12 +14,7 @@ import { SimpleAttributeOperand, TimeZoneDataType } from "node-opcua-types";
 import * as utils from "node-opcua-utils";
 import { DataType, Variant } from "node-opcua-variant";
 
-import {
-    IEventData,
-    SessionContext,
-    UAAcknowledgeableConditionBase,
-    UtcTime,
-} from "../../source";
+import { IEventData, SessionContext, UAAcknowledgeableConditionBase, UtcTime } from "../../source";
 import { BaseNode } from "../base_node";
 import { EventData } from "../event_data";
 import { UATwoStateVariable } from "../ua_two_state_variable";
@@ -32,24 +26,17 @@ const debugLog = make_debugLog(__filename);
 const doDebug = checkDebugFlag(__filename);
 
 export interface ConditionSnapshot {
-    on(
-        eventName: "value_changed",
-        eventHandler: (node: UAVariable, variant: Variant
-        ) => void): this;
+    on(eventName: "value_changed", eventHandler: (node: UAVariable, variant: Variant) => void): this;
 }
 
 function normalizeName(str: string): string {
-    return str
-        .split(".")
-        .map(utils.lowerFirstLetter)
-        .join(".");
+    return str.split(".").map(utils.lowerFirstLetter).join(".");
 }
 
 function _visit(self: any, node: BaseNode, prefix: string): void {
     const aggregates = node.getAggregates();
     for (const aggregate of aggregates) {
         if (aggregate.nodeClass === NodeClass.Variable) {
-
             let name = aggregate.browseName.toString();
             name = utils.lowerFirstLetter(name);
 
@@ -69,10 +56,7 @@ function _visit(self: any, node: BaseNode, prefix: string): void {
     }
 }
 
-function _record_condition_state(
-    self: any,
-    condition: any
-) {
+function _record_condition_state(self: any, condition: any) {
     self._map = {};
     self._node_index = {};
     assert(condition instanceof UAConditionBase);
@@ -103,12 +87,7 @@ function _installOnChangeEventHandlers(self: any, node: BaseNode, prefix: string
     }
 }
 
-function _ensure_condition_values_correctness(
-    self: any,
-    node: BaseNode,
-    prefix: string,
-    error: string[]
-) {
+function _ensure_condition_values_correctness(self: any, node: BaseNode, prefix: string, error: string[]) {
     const displayError = !!error;
     error = error || [];
 
@@ -129,11 +108,11 @@ function _ensure_condition_values_correctness(
             if (snapshot_value !== condition_value) {
                 error.push(
                     " Condition Branch0 is not in sync with node values for " +
-                    key +
-                    "\n v1= " +
-                    snapshot_value +
-                    "\n v2= " +
-                    condition_value
+                        key +
+                        "\n v1= " +
+                        snapshot_value +
+                        "\n v2= " +
+                        condition_value
                 );
             }
 
@@ -155,24 +134,23 @@ const disabledVar = new Variant({
 // list of Condition variables that should not be published as BadConditionDisabled when the condition
 // is in a disabled state.
 const _varTable = {
-    "branchId": 1,
-    "conditionClassId": 1,
-    "conditionClassName": 1,
-    "conditionName": 1,
-    "enabledState": 1,
+    branchId: 1,
+    conditionClassId: 1,
+    conditionClassName: 1,
+    conditionName: 1,
+    enabledState: 1,
     "enabledState.effectiveDisplayName": 1,
     "enabledState.id": 1,
     "enabledState.transitionTime": 1,
-    "eventId": 1,
-    "eventType": 1,
-    "localTime": 1,
-    "sourceName": 1,
-    "sourceNode": 1,
-    "time": 1
+    eventId: 1,
+    eventType: 1,
+    localTime: 1,
+    sourceName: 1,
+    sourceNode: 1,
+    time: 1
 };
 
 export class ConditionSnapshot extends EventEmitter {
-
     public static normalizeName = normalizeName;
 
     public condition: UAConditionBase;
@@ -204,7 +182,6 @@ export class ConditionSnapshot extends EventEmitter {
     }
 
     public _constructEventData(): IEventData {
-
         if (this.branchId === NodeId.nullNodeId) {
             _ensure_condition_values_correctness(this, this.condition!, "", []);
         }
@@ -239,7 +216,6 @@ export class ConditionSnapshot extends EventEmitter {
      *
      */
     public readValue(sessionContext: SessionContext, nodeId: NodeId, selectClause: SimpleAttributeOperand): Variant {
-
         const isDisabled = !this.condition!.getEnabledState();
         if (isDisabled) {
             return disabledVar;
@@ -256,7 +232,6 @@ export class ConditionSnapshot extends EventEmitter {
     }
 
     public _get_var(varName: string): any {
-
         if (!this.condition.getEnabledState() && !_varTable.hasOwnProperty(varName)) {
             // xx console.log("ConditionSnapshot#_get_var condition enabled =", self.condition.getEnabledState());
             return disabledVar;
@@ -268,7 +243,6 @@ export class ConditionSnapshot extends EventEmitter {
     }
 
     public _set_var(varName: string, dataType: DataType, value: any) {
-
         const key = normalizeName(varName);
         // istanbul ignore next
         if (!this._map.hasOwnProperty(key)) {
@@ -495,7 +469,7 @@ export class ConditionSnapshot extends EventEmitter {
      * @param severity {UInt16}
      */
     public setSeverity(severity: UInt16): void {
-        assert(_.isFinite(severity), "expecting a UInt16");
+        assert(isFinite(severity), "expecting a UInt16");
 
         // record automatically last severity
         const lastSeverity = this.getSeverity();
@@ -623,12 +597,15 @@ export class ConditionSnapshot extends EventEmitter {
     // -- ACKNOWLEDGEABLE -------------------------------------------------------------------
 
     public getAckedState(): boolean {
-
         const acknowledgeableCondition = this.condition as UAAcknowledgeableConditionBase;
         if (!acknowledgeableCondition.ackedState) {
-            throw new Error("Node " + acknowledgeableCondition.browseName.toString() +
-                " of type " + acknowledgeableCondition.typeDefinitionObj.browseName.toString() +
-                " has no AckedState");
+            throw new Error(
+                "Node " +
+                    acknowledgeableCondition.browseName.toString() +
+                    " of type " +
+                    acknowledgeableCondition.typeDefinitionObj.browseName.toString() +
+                    " has no AckedState"
+            );
         }
         return this._get_twoStateVariable("ackedState");
     }
@@ -640,7 +617,6 @@ export class ConditionSnapshot extends EventEmitter {
     }
 
     public getConfirmedState(): boolean {
-
         const acknowledgeableCondition = this.condition as UAAcknowledgeableConditionBase;
         assert(acknowledgeableCondition.confirmedState, "Must have a confirmed state");
         return this._get_twoStateVariable("confirmedState");
@@ -708,18 +684,28 @@ export class ConditionSnapshot extends EventEmitter {
         //   public eventData: any = null;
         //   public branchId: NodeId | null = null;
         const t = this.condition.addressSpace.findNode(this.condition.typeDefinition)!;
-        return ""
-            + "condition: " + (this.condition.browseName.toString() + " " + this.condition.nodeId.toString())
-            + ", type: " + (t.browseName.toString() + " " + t.nodeId.toString())
-            + ", branchId: " + (this.branchId ? this.branchId.toString() : "<null>")
-            + ", acked: " + this.getAckedState()
-            + ", confirmed: " + this.getConfirmedState()
-            + ", activeState: " + this.getActiveState()
+        return (
+            "" +
+            "condition: " +
+            (this.condition.browseName.toString() + " " + this.condition.nodeId.toString()) +
+            ", type: " +
+            (t.browseName.toString() + " " + t.nodeId.toString()) +
+            ", branchId: " +
+            (this.branchId ? this.branchId.toString() : "<null>") +
+            ", acked: " +
+            this.getAckedState() +
+            ", confirmed: " +
+            this.getConfirmedState() +
+            ", activeState: " +
+            this.getActiveState() +
             // + ", suppressed: " + this.getSuppressedState()
-            + ", retain: " + this.getRetain()
-            + ", message: " + this.getMessage()
-            + ", comment: " + this.getComment()
-            ;
+            ", retain: " +
+            this.getRetain() +
+            ", message: " +
+            this.getMessage() +
+            ", comment: " +
+            this.getComment()
+        );
     }
     /**
      * @class ConditionSnapshot

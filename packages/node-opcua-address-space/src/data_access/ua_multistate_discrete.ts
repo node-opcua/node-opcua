@@ -6,7 +6,6 @@ import { LocalizedText } from "node-opcua-data-model";
 import { StatusCode, StatusCodes } from "node-opcua-status-code";
 import { DataType } from "node-opcua-variant";
 import { Variant } from "node-opcua-variant";
-import * as _ from "underscore";
 
 import { Property, UAMultiStateDiscrete as UAMultiStateDiscretePublic, UAVariable as UAVariablePublic } from "../../source";
 import { UAVariable } from "../ua_variable";
@@ -49,7 +48,7 @@ export class UAMultiStateDiscrete extends UAVariable implements UAMultiStateDisc
         if (value >= arrayEnumStrings.length) {
             throw new Error("UAMultiStateDiscrete#setValue BadOutOfRange " + value);
         }
-        assert(_.isFinite(value));
+        assert(isFinite(value));
         return this.setValueFromSource(new Variant({ dataType: DataType.UInt32, value }));
     }
 

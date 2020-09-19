@@ -1,8 +1,6 @@
 /**
  * @module node-opcua-address-space.AlarmsAndConditions
  */
-import * as _ from "underscore";
-
 import { assert } from "node-opcua-assert";
 import { DataValue } from "node-opcua-data-value";
 import { NodeId } from "node-opcua-nodeid";
@@ -26,14 +24,12 @@ import { UALimitAlarm } from "./ua_limit_alarm";
  * @constructor
  */
 export class UAExclusiveDeviationAlarm extends UAExclusiveLimitAlarm implements DeviationStuff {
-
     public static instantiate(
-      namespace: NamespacePrivate,
-      type: string | NodeId,
-      options: any,
-      data: any
+        namespace: NamespacePrivate,
+        type: string | NodeId,
+        options: any,
+        data: any
     ): UAExclusiveDeviationAlarm {
-
         const addressSpace = namespace.addressSpace;
 
         const exclusiveDeviationAlarmType = addressSpace.findEventType("ExclusiveDeviationAlarmType");
@@ -44,8 +40,7 @@ export class UAExclusiveDeviationAlarm extends UAExclusiveLimitAlarm implements 
 
         assert(type === exclusiveDeviationAlarmType.browseName.toString());
 
-        const alarm = UAExclusiveLimitAlarm.instantiate(
-          namespace, type, options, data) as UAExclusiveDeviationAlarm;
+        const alarm = UAExclusiveLimitAlarm.instantiate(namespace, type, options, data) as UAExclusiveDeviationAlarm;
         Object.setPrototypeOf(alarm, UAExclusiveDeviationAlarm.prototype);
 
         assert(alarm instanceof UAExclusiveDeviationAlarm);
@@ -75,7 +70,7 @@ export class UAExclusiveDeviationAlarm extends UAExclusiveLimitAlarm implements 
 
     public _setStateBasedOnInputValue(value: number) {
         const setpointValue = this.getSetpointValue();
-        assert(_.isFinite(setpointValue));
+        assert(isFinite(setpointValue));
         // call base class implementation
         UAExclusiveLimitAlarm.prototype._setStateBasedOnInputValue.call(this, value - setpointValue);
     }

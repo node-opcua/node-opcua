@@ -3,8 +3,6 @@
  */
 import * as async from "async";
 import * as chalk from "chalk";
-import * as _ from "underscore";
-
 import { assert } from "node-opcua-assert";
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 import { PublishRequest, PublishResponse, RepublishRequest, RepublishResponse } from "node-opcua-service-subscription";
@@ -128,10 +126,10 @@ export class ClientSidePublishEngine {
         debugLog("ClientSidePublishEngine#registerSubscription ", subscription.subscriptionId);
 
         assert(arguments.length === 1);
-        assert(_.isFinite(subscription.subscriptionId));
+        assert(isFinite(subscription.subscriptionId));
         assert(!this.subscriptionMap.hasOwnProperty(subscription.subscriptionId)); // already registered ?
         assert(typeof subscription.onNotificationMessage === "function");
-        assert(_.isFinite(subscription.timeoutHint));
+        assert(isFinite(subscription.timeoutHint));
 
         this.activeSubscriptionCount += 1;
         this.subscriptionMap[subscription.subscriptionId] = subscription;
@@ -166,7 +164,7 @@ export class ClientSidePublishEngine {
     public unregisterSubscription(subscriptionId: SubscriptionId) {
         debugLog("ClientSidePublishEngine#unregisterSubscription ", subscriptionId);
 
-        assert(_.isFinite(subscriptionId) && subscriptionId > 0);
+        assert(isFinite(subscriptionId) && subscriptionId > 0);
         this.activeSubscriptionCount -= 1;
         // note : it is possible that we get here while the server has already requested
         //        a session shutdown ... in this case it is possible that subscriptionId is already
@@ -186,13 +184,13 @@ export class ClientSidePublishEngine {
      * get the client subscription from Id
      */
     public getSubscription(subscriptionId: SubscriptionId): any {
-        assert(_.isFinite(subscriptionId) && subscriptionId > 0);
+        assert(isFinite(subscriptionId) && subscriptionId > 0);
         assert(this.subscriptionMap.hasOwnProperty(subscriptionId));
         return this.subscriptionMap[subscriptionId];
     }
 
     public hasSubscription(subscriptionId: SubscriptionId): boolean {
-        assert(_.isFinite(subscriptionId) && subscriptionId > 0);
+        assert(isFinite(subscriptionId) && subscriptionId > 0);
         return this.subscriptionMap.hasOwnProperty(subscriptionId);
     }
 
@@ -401,7 +399,7 @@ export class ClientSidePublishEngine {
         const session = this.session as ClientSessionImpl;
 
         const sendRepublishFunc = (callback2: (err?: Error) => void) => {
-            assert(_.isFinite(subscription.lastSequenceNumber) && subscription.lastSequenceNumber + 1 >= 0);
+            assert(isFinite(subscription.lastSequenceNumber) && subscription.lastSequenceNumber + 1 >= 0);
 
             const request = new RepublishRequest({
                 retransmitSequenceNumber: subscription.lastSequenceNumber + 1,
