@@ -41,7 +41,6 @@ export enum AttributeIds {
 export const attributeNameById = _.invert(AttributeIds);
 
 export function isValidAttributeId(attributeId: any) {
-    assert(_.isFinite(attributeId));
+    assert(isFinite(attributeId));
     return attributeId >= 1 && attributeId <= AttributeIds.LAST;
 }
-

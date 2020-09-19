@@ -6,7 +6,6 @@
 import * as chalk from "chalk";
 import { Socket } from "net";
 import { assert } from "node-opcua-assert";
-import * as _ from "underscore";
 
 // opcua requires
 import { BinaryStream } from "node-opcua-binary-stream";
@@ -210,7 +209,7 @@ export class ServerTCP_transport extends TCP_transport {
             assert(data.length >= 24);
 
             const helloMessage = decodeMessage(stream, HelloMessage) as HelloMessage;
-            assert(_.isFinite(this.protocolVersion));
+            assert(isFinite(this.protocolVersion));
 
             // OPCUA Spec 1.03 part 6 - page 41
             // The Server shall always accept versions greater than what it supports.

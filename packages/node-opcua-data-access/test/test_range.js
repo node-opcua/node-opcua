@@ -1,5 +1,4 @@
 "use strict";
-const _ = require("underscore");
 const should = require("should");
 const { assert } = require("node-opcua-assert");
 
@@ -20,8 +19,8 @@ const Range = require("..").Range;
 
 function get_deadband_percent(euRange, deadBandValue) {
     assert(euRange instanceof Range);
-    assert(_.isFinite(euRange.low));
-    assert(_.isFinite(euRange.high));
+    assert(isFinite(euRange.low));
+    assert(isFinite(euRange.high));
     //xx console.log(euRange.toString());
     return (euRange.high - euRange.low) * deadBandValue / 100.0;
 }

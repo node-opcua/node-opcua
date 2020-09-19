@@ -8,7 +8,6 @@ import { UInt16 } from "node-opcua-basic-types";
 import { BinaryStream } from "node-opcua-binary-stream";
 import { ChunkManager, EncryptBufferFunc, IChunkManagerOptions, SequenceHeader, SignBufferFunc } from "node-opcua-chunkmanager";
 import { AsymmetricAlgorithmSecurityHeader, SymmetricAlgorithmSecurityHeader } from "node-opcua-service-secure-channel";
-import * as _ from "underscore";
 import { SequenceNumberGenerator } from "./sequence_number_generator";
 
 export type SecurityHeader = AsymmetricAlgorithmSecurityHeader | SymmetricAlgorithmSecurityHeader;
@@ -65,7 +64,7 @@ export class SecureMessageChunkManager extends EventEmitter {
         this.msgType = msgType;
 
         options.channelId = options.channelId || 0;
-        assert(_.isFinite(options.channelId));
+        assert(isFinite(options.channelId));
         this.channelId = options.channelId;
 
         const requestId = options.requestId;

@@ -633,7 +633,7 @@ function encodeGeneralArray(dataType: DataType, stream: OutputBinaryStream, valu
     }
     const arr = value || [];
     assert(arr instanceof Array);
-    assert(_.isFinite(arr.length));
+    assert(isFinite(arr.length));
     encodeUInt32(arr.length, stream);
     const encode = get_encoder(dataType);
     let i;
@@ -802,7 +802,7 @@ export function coerceVariantType(dataType: DataType, value: any): any {
                 value = parseInt(value, 10);
             }
             /* istanbul ignore next */
-            if (!_.isFinite(value)) {
+            if (!isFinite(value)) {
                 // xx console.log("xxx ", value, ttt);
                 throw new Error("expecting a number " + value);
             }

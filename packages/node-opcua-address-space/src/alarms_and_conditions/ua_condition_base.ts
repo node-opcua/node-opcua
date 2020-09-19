@@ -531,7 +531,7 @@ export class UAConditionBase extends BaseEventType {
         // self.receiveTime.setValueFromSource();
 
         if (conditionInfo.hasOwnProperty("severity") && conditionInfo.severity !== null) {
-            assert(_.isFinite(conditionInfo.severity));
+            assert(isFinite(conditionInfo.severity!));
             branch.setSeverity(conditionInfo.severity!);
         }
         if (conditionInfo.hasOwnProperty("quality") && conditionInfo.quality !== null) {

@@ -4,7 +4,6 @@
 import * as chalk from "chalk";
 import * as fs from "fs";
 import * as path from "path";
-import * as _ from "underscore";
 import * as url from "url";
 import { callbackify } from "util";
 
@@ -214,8 +213,11 @@ export class OPCUADiscoveryServer extends OPCUABaseServer {
             request.server,
             request.discoveryConfiguration as MdnsDiscoveryConfiguration[],
             (err: Error | null, response?: Response) => {
+                // istanbul ignore next
                 if (err) {
+                    // tslint:disable-next-line: no-console
                     console.log("What shall I do ?", err.message);
+                    // tslint:disable-next-line: no-console
                     console.log(err);
                     let additional_messages = [];
                     additional_messages.push("EXCEPTION CAUGHT WHILE PROCESSING REQUEST !!! " + request.schema.name);
@@ -541,6 +543,7 @@ function _isValidServerType(serverType: ApplicationType): boolean {
     (OPCUADiscoveryServer as any).prototype.__internalRegisterServer
 );
 
+// tslint:disable-next-line: no-var-requires
 const thenify = require("thenify");
 const opts = { multiArgs: false };
 OPCUADiscoveryServer.prototype.start = thenify.withCallback(OPCUADiscoveryServer.prototype.start, opts);

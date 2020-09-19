@@ -350,10 +350,10 @@ export class StateMachine extends UAObject implements StateMachine {
             });
         } else {
             if (fromStateNode && fromStateNode !== toStateNode) {
+                // istanbul ignore next
                 if (doDebug) {
                     const f = fromStateNode.browseName.toString();
                     const t = toStateNode.browseName.toString();
-
                     // tslint:disable-next-line:no-console
                     console.log(chalk.red("Warning"), " cannot raise event :  transition " + f + " to " + t + " is missing");
                 }

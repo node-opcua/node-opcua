@@ -77,7 +77,7 @@ function isGoodish(statusCode: StatusCode) {
 export function adjust_accessLevel(accessLevel: any): AccessLevelFlag {
     accessLevel = utils.isNullOrUndefined(accessLevel) ? "CurrentRead | CurrentWrite" : accessLevel;
     accessLevel = makeAccessLevelFlag(accessLevel);
-    assert(_.isFinite(accessLevel));
+    assert(isFinite(accessLevel));
     return accessLevel;
 }
 
@@ -90,7 +90,7 @@ export function adjust_userAccessLevel(userAccessLevel: any, accessLevel: any): 
 }
 
 function adjust_samplingInterval(minimumSamplingInterval: number): number {
-    assert(_.isFinite(minimumSamplingInterval));
+    assert(isFinite(minimumSamplingInterval));
     if (minimumSamplingInterval < 0) {
         return -1; // only -1 is a valid negative value for samplingInterval and means "unspecified"
     }
@@ -508,7 +508,7 @@ export class UAVariable extends BaseNode implements UAVariablePublic {
             const valueIndex = enumInfo.nameIndex[value].value;
             value = valueIndex;
         }
-        if (_.isFinite(value)) {
+        if (isFinite(value)) {
             const possibleValues = Object.keys(enumInfo.nameIndex).join(",");
 
             if (!enumInfo.valueIndex[value]) {

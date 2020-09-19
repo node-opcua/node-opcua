@@ -18,7 +18,6 @@ import {
 } from "node-opcua-factory";
 import * as os from "os";
 import * as path from "path";
-import * as prettier from "prettier";
 import * as _ from "underscore";
 
 import { DataTypeIds, ObjectIds } from "node-opcua-constants";
@@ -234,14 +233,14 @@ function write_constructor(write: WriteFunc, schema: StructuredTypeSchema): void
     write("        }");
 
     // -----------------------------------------------------------------------------------------------------------------
-    // Special case when options === null => fast constructor for deserialization
+    // Special case when options === null => fast constructor for de-serialization
     // -----------------------------------------------------------------------------------------------------------------
     if (hasComplex(schema)) {
         write("        if (options === null) {");
         {
             if (baseClass) {
-                // write("        " + baseclass + ".call(this,options);");
-                // write("        " + baseclass + ".call(this,options);");
+                // write("        " + baseClass + ".call(this,options);");
+                // write("        " + baseClass + ".call(this,options);");
             }
             for (let i = 0; i < n; i++) {
                 const field = schema.fields[i];
@@ -686,13 +685,13 @@ export function writeStructuredType(write: WriteFunc, schema: StructuredTypeSche
 
 function getDataTypeNodeId(schema: StructuredTypeSchema): NodeId {
     const className = schema.name;
-    const encodingBinarylId = (DataTypeIds as any)[className];
-    return coerceNodeId(encodingBinarylId);
+    const encodingBinaryId = (DataTypeIds as any)[className];
+    return coerceNodeId(encodingBinaryId);
 }
 function getEncodingBinaryId(schema: StructuredTypeSchema): NodeId {
     const className = schema.name;
-    const encodingBinarylId = (ObjectIds as any)[className + "_Encoding_DefaultBinary"];
-    return coerceNodeId(encodingBinarylId);
+    const encodingBinaryId = (ObjectIds as any)[className + "_Encoding_DefaultBinary"];
+    return coerceNodeId(encodingBinaryId);
 }
 
 function getEncodingXmlId(schema: StructuredTypeSchema): NodeId {
@@ -809,12 +808,13 @@ export function produce_tscript_code(schema: StructuredTypeSchema, localSchemaFi
     writeStructuredType(write, schema);
 
     f.saveFormat(generatedTypescriptFilename, (code) => {
-        const options: prettier.Options = {
-            bracketSpacing: true,
-            insertPragma: true,
-            parser: "typescript",
-            printWidth: 120
-        };
-        return prettier.format(code, options);
+        // const options: prettier.Options = {
+        //     bracketSpacing: true,
+        //     insertPragma: true,
+        //     parser: "typescript",
+        //     printWidth: 120
+        // };
+        // return prettier.format(code, options);
+        return code;
     });
 }

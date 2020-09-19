@@ -3,8 +3,6 @@
  */
 import * as chalk from "chalk";
 import { EventEmitter } from "events";
-import * as _ from "underscore";
-
 import { assert } from "node-opcua-assert";
 import { AggregateFunction } from "node-opcua-constants";
 import { DateTime } from "node-opcua-basic-types";
@@ -410,7 +408,7 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession {
         const callback: any = args[1];
         assert(typeof callback === "function");
 
-        assert(_.isFinite(this.requestedMaxReferencesPerNode));
+        assert(isFinite(this.requestedMaxReferencesPerNode));
 
         const nodesToBrowse: BrowseDescription[] = (isArray ? arg0 : [arg0 as BrowseDescription]).map(coerceBrowseDescription);
 

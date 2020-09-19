@@ -6,8 +6,6 @@
 // ShelvingStateMachine
 // --------------------------------------------------------------------------------------------------
 
-import * as _ from "underscore";
-
 import { assert } from "node-opcua-assert";
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 import { StatusCodes } from "node-opcua-status-code";
@@ -28,15 +26,13 @@ export interface ShelvingStateMachine {
     oneShotShelve: UAMethod;
     unshelveTime: UAVariable;
 
-    _timer: NodeJS.Timer| null;
+    _timer: NodeJS.Timer | null;
     _sheveldTime: Date;
     _unshelvedTime: Date;
     _duration: number;
 }
 export class ShelvingStateMachine extends StateMachine {
-
     public static promote(object: UAObject): ShelvingStateMachine {
-
         const shelvingState = object as ShelvingStateMachine;
         promoteToStateMachine(shelvingState);
 
@@ -55,15 +51,17 @@ export class ShelvingStateMachine extends StateMachine {
         // install unshelveTime
         if (shelvingState.unshelveTime) {
             shelvingState.unshelveTime.minimumSamplingInterval = 500;
-            shelvingState.unshelveTime.bindVariable({
-                get: _unShelveTimeFunc.bind(null, shelvingState)
-            }, true);
+            shelvingState.unshelveTime.bindVariable(
+                {
+                    get: _unShelveTimeFunc.bind(null, shelvingState)
+                },
+                true
+            );
         }
 
         assert(shelvingState instanceof ShelvingStateMachine);
         return shelvingState;
     }
-
 }
 
 // The Unshelve Method sets the AlarmCondition to the Unshelved state. Normally, the MethodId found
@@ -73,12 +71,7 @@ export class ShelvingStateMachine extends StateMachine {
 // specifying ConditionId as the ObjectId. The Method cannot be called with an ObjectId of the
 // ShelvedStateMachineType Node.
 // output => BadConditionNotShelved
-function _unshelve_method(
-  inputArguments: VariantLike[],
-  context: SessionContext,
-  callback: any
-) {
-
+function _unshelve_method(inputArguments: VariantLike[], context: SessionContext, callback: any) {
     assert(inputArguments.length === 0);
     // var alarmNode = context.object.parent;
     // if (!(alarmNode instanceof UAAlarmConditionBase)) {
@@ -110,7 +103,6 @@ function _unshelve_method(
 }
 
 export function _clear_timer_if_any(shelvingState: ShelvingStateMachine) {
-
     if (shelvingState._timer) {
         clearTimeout(shelvingState._timer);
         // xx console.log("_clear_timer_if_any shelvingState = ",shelvingState._timer,shelvingState.constructor.name);
@@ -119,7 +111,6 @@ export function _clear_timer_if_any(shelvingState: ShelvingStateMachine) {
 }
 
 function _automatically_unshelve(shelvingState: ShelvingStateMachine) {
-
     assert(shelvingState._timer, "expecting timerId to be set");
     shelvingState._timer = null;
 
@@ -137,11 +128,7 @@ function _automatically_unshelve(shelvingState: ShelvingStateMachine) {
     assert(!shelvingState._timer);
 }
 
-function _start_timer_for_automatic_unshelve(
-  shelvingState: ShelvingStateMachine,
-  duration: number
-) {
-
+function _start_timer_for_automatic_unshelve(shelvingState: ShelvingStateMachine, duration: number) {
     if (duration < 10 || duration >= Math.pow(2, 31)) {
         throw new Error(" Invalid maxTimeShelved duration: " + duration + "  must be [10,2**31] ");
     }
@@ -179,11 +166,7 @@ function _start_timer_for_automatic_unshelve(
 //                                           a reset of the shelved timer.
 //               BadShelvingTimeOutOfRange
 
-function _timedShelve_method(
-  inputArguments: VariantLike[],
-  context: SessionContext,
-  callback: any
-) {
+function _timedShelve_method(inputArguments: VariantLike[], context: SessionContext, callback: any) {
     assert(inputArguments.length === 1);
 
     const shelvingState = context.object as ShelvingStateMachine;
@@ -203,7 +186,7 @@ function _timedShelve_method(
         });
     }
     const maxTimeShelved = alarmNode.getMaxTimeShelved();
-    assert(_.isFinite(maxTimeShelved));
+    assert(isFinite(maxTimeShelved));
 
     assert(inputArguments[0].dataType === DataType.Double); // Duration
     assert(inputArguments[0] instanceof Variant);
@@ -230,7 +213,6 @@ function _timedShelve_method(
     return callback(null, {
         statusCode: StatusCodes.Good
     });
-
 }
 
 // Spec 1.03:
@@ -241,12 +223,11 @@ function _timedShelve_method(
 // shall also allow Clients to call the OneShotShelve Method by specifying ConditionId as the ObjectId. The Method
 // cannot be called with an ObjectId of the ShelvedStateMachineType Node
 function _oneShotShelve_method(
-  this: UAMethod,
-  inputArguments: Variant[],
-  context: SessionContext,
-  callback: MethodFunctorCallback
+    this: UAMethod,
+    inputArguments: Variant[],
+    context: SessionContext,
+    callback: MethodFunctorCallback
 ) {
-
     assert(inputArguments.length === 0);
     const shelvingState = context.object as ShelvingStateMachine;
     if (shelvingState.getCurrentState() === "OneShotShelved") {
@@ -265,7 +246,7 @@ function _oneShotShelve_method(
     }
 
     const maxTimeShelved = alarmNode.getMaxTimeShelved();
-    assert(_.isFinite(maxTimeShelved));
+    assert(isFinite(maxTimeShelved));
     assert(maxTimeShelved !== UAAlarmConditionBase.MaxDuration);
 
     // set automatic unshelving timer
@@ -285,10 +266,7 @@ function _oneShotShelve_method(
 //   TimedShelve Method call.
 // * For the OneShotShelved state the UnshelveTime will be a constant set to the maximum Duration
 //   except if a MaxTimeShelved Property is provided.
-function _unShelveTimeFunc(
-  shelvingState: ShelvingStateMachine
-) {
-
+function _unShelveTimeFunc(shelvingState: ShelvingStateMachine) {
     if (shelvingState.getCurrentState() === "Unshelved") {
         return new Variant({
             dataType: DataType.StatusCode,
@@ -302,8 +280,7 @@ function _unShelveTimeFunc(
             value: StatusCodes.BadConditionNotShelved
         });
     }
-    if (shelvingState.getCurrentState() === "OneShotShelved" &&
-      shelvingState._duration === UAAlarmConditionBase.MaxDuration) {
+    if (shelvingState.getCurrentState() === "OneShotShelved" && shelvingState._duration === UAAlarmConditionBase.MaxDuration) {
         return new Variant({
             dataType: DataType.Double,
             value: UAAlarmConditionBase.MaxDuration
@@ -311,8 +288,7 @@ function _unShelveTimeFunc(
     }
     const now = new Date();
 
-    let timeToAutomaticUnshelvedState =
-      shelvingState._duration - (now.getTime() - shelvingState._sheveldTime.getTime());
+    let timeToAutomaticUnshelvedState = shelvingState._duration - (now.getTime() - shelvingState._sheveldTime.getTime());
 
     // timeToAutomaticUnshelvedState should always be greater than (or equal) zero
     timeToAutomaticUnshelvedState = Math.max(timeToAutomaticUnshelvedState, 0);

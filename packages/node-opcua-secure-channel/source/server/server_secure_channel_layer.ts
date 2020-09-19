@@ -737,7 +737,7 @@ export class ServerSecureChannelLayer extends EventEmitter {
         });
 
         assert(!hasTokenExpired(securityToken));
-        assert(_.isFinite(securityToken.revisedLifetime));
+        assert(isFinite(securityToken.revisedLifetime));
 
         this.securityToken = securityToken;
 
@@ -747,6 +747,7 @@ export class ServerSecureChannelLayer extends EventEmitter {
     }
 
     private _prepare_security_token(openSecureChannelRequest: OpenSecureChannelRequest) {
+        this.securityToken = (null as any) as ChannelSecurityToken;
         if (openSecureChannelRequest.requestType === SecurityTokenRequestType.Renew) {
             this._stop_security_token_watch_dog();
         } else if (openSecureChannelRequest.requestType === SecurityTokenRequestType.Issue) {
@@ -758,7 +759,7 @@ export class ServerSecureChannelLayer extends EventEmitter {
     }
 
     private _set_lifetime(requestedLifetime: number) {
-        assert(_.isFinite(requestedLifetime));
+        assert(isFinite(requestedLifetime));
 
         // revised lifetime
         this.revisedLifetime = requestedLifetime;
@@ -790,7 +791,7 @@ export class ServerSecureChannelLayer extends EventEmitter {
     }
 
     private _install_wait_for_open_secure_channel_request_timeout(callback: ErrorCallback, timeout: number) {
-        assert(_.isFinite(timeout));
+        assert(isFinite(timeout));
         assert(typeof callback === "function");
 
         this.timeoutId = setTimeout(() => {
@@ -1351,7 +1352,7 @@ export class ServerSecureChannelLayer extends EventEmitter {
         const requestId = message.requestId;
 
         assert(requestId > 0);
-        assert(_.isFinite(request.requestHeader.requestHandle));
+        assert(isFinite(request.requestHeader.requestHandle));
 
         let description;
 

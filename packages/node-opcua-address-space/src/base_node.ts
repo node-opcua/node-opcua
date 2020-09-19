@@ -637,7 +637,7 @@ export class BaseNode extends EventEmitter implements BaseNodePublic {
                 break;
 
             case AttributeIds.NodeClass: // NodeClass
-                assert(_.isFinite(this.nodeClass));
+                assert(isFinite(this.nodeClass));
                 options.value = { dataType: DataType.Int32, value: this.nodeClass };
                 break;
 
@@ -814,8 +814,8 @@ export class BaseNode extends EventEmitter implements BaseNodePublic {
      * @return an array with reference descriptions
      */
     public browseNode(browseDescription: BrowseDescription, context?: SessionContext): ReferenceDescription[] {
-        assert(_.isFinite(browseDescription.nodeClassMask));
-        assert(_.isFinite(browseDescription.browseDirection));
+        assert(isFinite(browseDescription.nodeClassMask));
+        assert(isFinite(browseDescription.browseDirection));
 
         const do_debug = false;
 
@@ -1535,7 +1535,7 @@ function _filter_by_direction(references: Reference[], browseDirection: BrowseDi
 }
 
 function _filter_by_nodeclass(this: BaseNode, references: Reference[], nodeClassMask: number): Reference[] {
-    assert(_.isFinite(nodeClassMask));
+    assert(isFinite(nodeClassMask));
     if (nodeClassMask === 0) {
         return references;
     }

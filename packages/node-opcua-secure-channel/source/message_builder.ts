@@ -6,7 +6,6 @@
 // tslint:disable:max-line-length
 
 import * as chalk from "chalk";
-import * as _ from "underscore";
 
 import { assert } from "node-opcua-assert";
 import { decodeExpandedNodeId, decodeString } from "node-opcua-basic-types";
@@ -122,7 +121,7 @@ export class MessageBuilder extends MessageBuilderBase {
             " the objectFactory must provide a constructObject method"
         );
         this._previousSequenceNumber = -1; // means unknown
-        assert(_.isFinite(this._previousSequenceNumber));
+        assert(isFinite(this._previousSequenceNumber));
         this._tokenStack = [];
     }
 
@@ -314,8 +313,8 @@ export class MessageBuilder extends MessageBuilderBase {
 
     private _validateSequenceNumber(sequenceNumber: number) {
         // checking that sequenceNumber is increasing
-        assert(_.isFinite(this._previousSequenceNumber));
-        assert(_.isFinite(sequenceNumber) && sequenceNumber >= 0);
+        assert(isFinite(this._previousSequenceNumber));
+        assert(isFinite(sequenceNumber) && sequenceNumber >= 0);
 
         let expectedSequenceNumber;
         if (this._previousSequenceNumber !== -1) {

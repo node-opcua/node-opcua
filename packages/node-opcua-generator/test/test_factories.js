@@ -334,7 +334,7 @@ xdescribe("Testing that objects created by factory can be persisted as JSON stri
 
         qname.toString().should.eql("ns=0 name=null");
 
-        should(_.isFinite(qname.namespaceIndex)).be.equal(true);
+        should(isFinite(qname.namespaceIndex)).be.equal(true);
         qname.namespaceIndex.should.equal(0);
 
         const str = JSON.stringify(qname);
@@ -342,7 +342,7 @@ xdescribe("Testing that objects created by factory can be persisted as JSON stri
 
         const obj = new QualifiedName(JSON.parse(str));
         obj.namespaceIndex.should.equal(0);
-        should(_.isFinite(obj.namespaceIndex)).be.equal(true);
+        should(isFinite(obj.namespaceIndex)).be.equal(true);
 
         obj.should.eql(qname);
 

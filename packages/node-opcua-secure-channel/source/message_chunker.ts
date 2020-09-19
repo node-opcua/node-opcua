@@ -4,7 +4,6 @@
 // tslint:disable:max-line-length
 
 import { assert } from "node-opcua-assert";
-import * as _ from "underscore";
 
 import { encodeExpandedNodeId } from "node-opcua-basic-types";
 import { BinaryStream } from "node-opcua-binary-stream";
