@@ -21,6 +21,7 @@
         "noImplicitReturns": true /* Report error when not all code paths in function return a value. */,
 
        "incremental": true,
+       "composite": true,
 
         "lib": ["es2017", "es2017.object"],
         "types": ["node"],
@@ -29,7 +30,10 @@
             "typescript-starter": ["package/node-opcua/index.js"] // write tests without relative paths
         }
     },
-    "include": ["packages/**/*.ts"],
-    "exclude": ["node_modules/**", "node_modules"],
+    "references": [
+        {
+            "path": "packages/node-opcua"
+        }
+    ],    
     "compileOnSave": false,
 }

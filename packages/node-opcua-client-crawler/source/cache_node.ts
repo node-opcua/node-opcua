@@ -4,19 +4,17 @@ import {
     NodeClass,
     LocalizedText,
     coerceLocalizedText,
-    DataValue, AccessLevelFlag
+    DataValue,
+    AccessLevelFlag
 } from "node-opcua-client";
 import { NodeId } from "node-opcua-nodeid";
-import { DataTypeDefinition } from "node-opcua-common";
+import { DataTypeDefinition } from "node-opcua-types";
 import { pendingBrowseName } from "./private";
-
-
 
 function w(s: string, l: number): string {
     return (s + "                                                                ").substr(0, l);
 }
 export class CacheNode {
-
     // the reference that links this node to its parent
     public referenceToParent?: ReferenceDescription;
     public parent?: CacheNode;
@@ -50,7 +48,7 @@ export class CacheNode {
     public toString(): string {
         let str = w(this.nodeId.toString(), 20);
         str += " " + w(this.browseName.toString(), 30);
-        str += " typeDef : " + w((this.typeDefinition ? this.typeDefinition.toString() : ""), 30);
+        str += " typeDef : " + w(this.typeDefinition ? this.typeDefinition.toString() : "", 30);
         str += " nodeClass : " + w(NodeClass[this.nodeClass], 12);
         return str;
     }
@@ -59,7 +57,6 @@ export class CacheNode {
         this.referenceToParent = undefined;
         this.references.length = 0;
         this.typeDefinition = undefined;
-
     }
 }
 
@@ -106,7 +103,6 @@ export class CacheNodeVariableType extends CacheNode {
             this.dataValue = undefined;
         }
     }
-
 }
 export interface CacheNodeVariableType extends CacheNode {
     nodeClass: NodeClass.VariableType;

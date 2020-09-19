@@ -22,7 +22,7 @@ import { StatusCodes } from "node-opcua-status-code";
 import * as path from "path";
 import * as should from "should";
 
-import { ServerState } from "node-opcua-common";
+import { ServerState } from "node-opcua-types";
 import { AccessLevelFlag, NodeClass } from "node-opcua-data-model";
 import { AttributeIds } from "node-opcua-data-model";
 import { DataType } from "node-opcua-variant";

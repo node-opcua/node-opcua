@@ -2,7 +2,6 @@
 /* eslint no-process-exit: 0 */
 "use strict";
 const chalk = require("chalk");
-const readline = require("readline");
 const treeify = require("treeify");
 const sprintf = require("sprintf-js").sprintf;
 const util = require("util");

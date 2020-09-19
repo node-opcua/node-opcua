@@ -9,7 +9,7 @@ import { callbackify } from "util";
 import { assert } from "node-opcua-assert";
 import * as ec from "node-opcua-basic-types";
 import { ExtraDataTypeManager, populateDataTypeManager } from "node-opcua-client-dynamic-extension-object";
-import { EnumValueType } from "node-opcua-common";
+import { EnumValueType } from "node-opcua-types";
 import { EUInformation } from "node-opcua-data-access";
 import {
     AccessLevelFlag,

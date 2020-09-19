@@ -19,6 +19,7 @@
         "node-opcua-debug": "2.16.0",
         "node-opcua-factory": "2.16.0",
         "node-opcua-utils": "2.16.0",
+        "@types/underscore": "^1.10.23",
         "underscore": "^1.11.0"
     },
     "devDependencies": {

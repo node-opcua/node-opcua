@@ -2,12 +2,7 @@
  * @module node-opcua-secure-channel
  */
 import { TypeSchemaBase } from "node-opcua-factory";
-import {
-    CloseSecureChannelRequest,
-    MessageSecurityMode,
-    RequestHeader,
-    ResponseHeader
-} from "node-opcua-service-secure-channel";
+import { CloseSecureChannelRequest, MessageSecurityMode, RequestHeader, ResponseHeader } from "node-opcua-service-secure-channel";
 import { ServiceFault } from "./services";
 
 export interface ResponseB {
@@ -24,6 +19,5 @@ export interface RequestB {
 }
 
 export type Request = RequestB | CloseSecureChannelRequest;
-
 
 export { ICertificateKeyPairProvider } from "node-opcua-common";

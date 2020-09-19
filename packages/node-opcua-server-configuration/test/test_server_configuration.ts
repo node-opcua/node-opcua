@@ -135,7 +135,7 @@ describe("ServerConfiguration", () => {
 
             const certificateGroupId = await clientPullCertificateManager.getCertificateGroupId("DefaultApplicationGroup");
             const certificateTypeId = NodeId.nullNodeId;
-            const subjectName = "O=NodeOPCUA, CN=urn:NodeOPCUA-Server";
+            const subjectName = "/O=NodeOPCUA/CN=urn:NodeOPCUA-Server";
             const regeneratePrivateKey = false;
             const nonce = Buffer.alloc(0);
 

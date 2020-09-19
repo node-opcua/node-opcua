@@ -2,7 +2,6 @@
 
 const should = require("should");
 const { assert } = require("node-opcua-assert");
-const _ = require("underscore");
 
 const {
     Variant,
