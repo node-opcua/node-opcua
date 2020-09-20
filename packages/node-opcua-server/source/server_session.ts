@@ -670,20 +670,20 @@ export class ServerSession extends EventEmitter implements ISubscriber, ISession
                 });
 
                 Object.defineProperty(this._sessionDiagnostics, "actualSessionTimeout", {
-                    get(this: any) {
-                        return this.$session.sessionTimeout;
+                    get(this: SessionDiagnosticsDataTypeEx) {
+                        return this.$session?.sessionTimeout;
                     }
                 });
 
                 Object.defineProperty(this._sessionDiagnostics, "sessionId", {
-                    get(this: any) {
-                        return this.$session.nodeId;
+                    get(this: SessionDiagnosticsDataTypeEx) {
+                        return this.$session?.nodeId;
                     }
                 });
 
                 Object.defineProperty(this._sessionDiagnostics, "sessionName", {
-                    get(this: any) {
-                        return this.$session.sessionName.toString();
+                    get(this: SessionDiagnosticsDataTypeEx) {
+                        return this.$session?.sessionName.toString();
                     }
                 });
 
@@ -725,7 +725,7 @@ export class ServerSession extends EventEmitter implements ISubscriber, ISession
                 */
                 Object.defineProperty(this._sessionSecurityDiagnostics, "sessionId", {
                     get(this: any) {
-                        return this.$session.nodeId;
+                        return this.$session?.nodeId;
                     }
                 });
 
@@ -759,19 +759,19 @@ export class ServerSession extends EventEmitter implements ISubscriber, ISession
                 Object.defineProperty(this._sessionSecurityDiagnostics, "securityMode", {
                     get(this: any) {
                         const session: ServerSession = this.$session;
-                        return session.channel!.endpoint!.securityMode;
+                        return session?.channel!.endpoint!.securityMode;
                     }
                 });
                 Object.defineProperty(this._sessionSecurityDiagnostics, "securityPolicyUri", {
                     get(this: any) {
                         const session: ServerSession = this.$session;
-                        return session.channel!.endpoint!.securityPolicyUri;
+                        return session?.channel!.endpoint!.securityPolicyUri;
                     }
                 });
                 Object.defineProperty(this._sessionSecurityDiagnostics, "clientCertificate", {
                     get(this: any) {
                         const session: ServerSession = this.$session;
-                        return session.channel!.clientCertificate;
+                        return session?.channel!.clientCertificate;
                     }
                 });
 

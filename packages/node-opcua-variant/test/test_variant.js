@@ -3,6 +3,11 @@
 const should = require("should");
 const { assert } = require("node-opcua-assert");
 
+const ul = require("lodash");
+const uu = require("underscore");
+const sameVariantSlow1 = ul.isEqual;
+const sameVariantSlow2 = uu.isEqual;
+
 const {
     Variant,
     DataType,
@@ -1366,7 +1371,7 @@ describe("benchmarking float Array encode/decode", function() {
                 console.log(" slowest is " + this.slowest.name);
                 console.log(" Fastest is " + this.fastest.name);
                 console.log(" Speed Up : x", this.speedUp);
-                // xxthis.fastest.name.should.eql("test4");
+                // xx this.fastest.name.should.eql("test4");
                 done();
             })
             .run({ max_time: 0.1 });
@@ -1600,11 +1605,8 @@ describe("Variant with enumeration", () => {
 
 });
 
-const sameVariant = require("..").sameVariant;
+const { sameVariant } = require("..");
 
-const sameVariantSlow = function(v1, v2) {
-    return _.isEqual(v1, v2);
-};
 
 describe("testing sameVariant Performance", function() {
     this.timeout(40000);
@@ -1755,10 +1757,17 @@ describe("testing sameVariant Performance", function() {
                     }
                 }
             })
-            .add("slow sameVariant", () => {
+            .add("slow sameVariant 1", () => {
                 for (let i = 0; i < variousVariants.length; i++) {
                     for (let j = 0; j < variousVariants.length; j++) {
-                        sameVariantSlow(variousVariants[i], variousVariants_clone[j]);
+                        sameVariantSlow1(variousVariants[i], variousVariants_clone[j]);
+                    }
+                }
+            })
+            .add("slow sameVariant 2", () => {
+                for (let i = 0; i < variousVariants.length; i++) {
+                    for (let j = 0; j < variousVariants.length; j++) {
+                        sameVariantSlow2(variousVariants[i], variousVariants_clone[j]);
                     }
                 }
             })
@@ -2056,6 +2065,8 @@ describe("testing isValidVariant", () => {
             buildVariantArray(DataType.UInt32, 3, 0)).should.eql(true);
         isValidVariant(VariantArrayType.Array, DataType.Int32,
             buildVariantArray(DataType.Int32, 3, 0)).should.eql(true);
+
+        isValidVariant(VariantArrayType.Array, DataType.Int32, null).should.eql(true);
     });
 
     it("isValidVariant with Matrix", () => {
@@ -2063,11 +2074,22 @@ describe("testing isValidVariant", () => {
         isValidVariant(VariantArrayType.Matrix, DataType.Byte, [655525, 12], [1, 2]).should.eql(false);
     });
 
-    it("variantToString ", () => {
+    it("variantToString 1", () => {
         const v = new Variant({ dataType: DataType.NodeId, value: resolveNodeId("i=24") });
         v.toString().should.eql("Variant(Scalar<NodeId>, value: BaseDataType (ns=0;i=24))")
-    })
-
+    });
+    it("variantToString 2", () => {
+        const v = new Variant({ dataType: DataType.ByteString, value: null });
+        v.toString().should.eql("Variant(Scalar<ByteString>, value: <null>)")
+    });
+    it("variantToString 3", () => {
+        const v = new Variant({ dataType: DataType.DateTime, value: null });
+        v.toString().should.eql("Variant(Scalar<DateTime>, value: <null>)")
+    });
+    it("variantToString 4", () => {
+        const v = new Variant({ dataType: DataType.DateTime, arrayType: VariantArrayType.Array, value: null });
+        v.toString().should.eql("Variant(Array<DateTime>, null)")
+    });
 });
 
 describe("Preserving  null in Arrays or Matrices", () => {

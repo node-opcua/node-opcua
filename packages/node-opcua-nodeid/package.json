@@ -16,8 +16,8 @@
         "node-opcua-constants": "2.16.0",
         "node-opcua-enum": "2.16.0",
         "node-opcua-guid": "2.16.0",
-        "@types/underscore": "^1.10.23",
-        "underscore": "^1.11.0"
+        "lodash": "4.17.20",
+        "@types/lodash": "4.14.161"
     },
     "devDependencies": {
         "node-opcua-benchmarker": "2.16.0",

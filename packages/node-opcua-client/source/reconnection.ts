@@ -353,7 +353,7 @@ function _repair_client_session(
     });
 }
 type Callback = (err?: Error) => void;
-interface Reconnactable {
+interface Reconnectable {
     _reconnecting: {
         reconnecting: boolean;
         pending: Callback[];
@@ -372,7 +372,7 @@ export function repair_client_session(
     }
 
     debugLog(chalk.yellow("Starting client session repair"));
-    const privateSession = session as any as Reconnactable;
+    const privateSession = session as any as Reconnectable;
     privateSession._reconnecting = privateSession._reconnecting || { reconnecting: false, pending: [] };
     if (privateSession._reconnecting.reconnecting) {
         debugLog(chalk.bgCyan("Reconnecting already happening for session"), session.sessionId.toString());

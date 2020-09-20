@@ -1181,7 +1181,10 @@ export class ClientBaseImpl extends OPCUASecureObject implements OPCUAClientBase
                                 assert(typeof this._on_connection_reestablished === "function");
                                 this._on_connection_reestablished((err2?: Error) => {
                                     if (err2) {
-                                        debugLog("connection_reestablished has failed");
+                                        if (doDebug) {
+                                            debugLog("connection_reestablished has failed");
+                                            debugLog(err);
+                                        }
                                         this.disconnect(() => {
                                             //  callback(err);
                                             // tslint:disable-next-line: no-console

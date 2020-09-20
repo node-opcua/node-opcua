@@ -5,7 +5,6 @@
 import * as chalk from "chalk";
 import { EventEmitter } from "events";
 import { assert } from "node-opcua-assert";
-import * as _ from "underscore";
 
 import {
     BaseNode,
@@ -20,7 +19,14 @@ import {
 import { DateTime } from "node-opcua-basic-types";
 import { NodeClass, QualifiedNameOptions } from "node-opcua-data-model";
 import { AttributeIds } from "node-opcua-data-model";
-import { apply_timestamps, DataValue, extractRange, sameDataValue, coerceTimestampsToReturn } from "node-opcua-data-value";
+import {
+    apply_timestamps,
+    DataValue,
+    extractRange,
+    sameDataValue,
+    coerceTimestampsToReturn,
+    sameStatusCode
+} from "node-opcua-data-value";
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 import { ExtensionObject } from "node-opcua-extension-object";
 import { NodeId } from "node-opcua-nodeid";
@@ -933,7 +939,7 @@ export class MonitoredItem extends EventEmitter {
                 notification.value.statusCode,
                 "Overflow | InfoTypeDataValue"
             );
-            assert(_.isEqual(notification.value.statusCode, StatusCodes.GoodWithOverflowBit));
+            assert(sameStatusCode(notification.value.statusCode, StatusCodes.GoodWithOverflowBit));
             assert(notification.value.statusCode.hasOverflowBit);
         }
         // console.log(chalk.cyan("Setting Over"), !!this.$subscription, !!this.$subscription!.subscriptionDiagnostics);
