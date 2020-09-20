@@ -47,6 +47,8 @@
         "pretty-error": "^2.1.1",
         "set-prototype-of": "^1.0.0",
         "thenify": "^3.3.1",
+        "lodash": "4.17.20",
+        "@types/lodash": "4.14.161",
         "underscore": "^1.11.0",
         "@types/underscore": "^1.10.23",
         "xml-writer": "^1.7.0"

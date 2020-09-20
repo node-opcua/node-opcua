@@ -516,7 +516,7 @@ export interface UAVariable extends BaseNode, VariableAttributes, IPropertyAndCo
      */
     writeAttribute(context: SessionContext, writeValue: WriteValueOptions, callback: StatusCodeCallback): void;
     /**
-     * write a variale attribute (async/await version)
+     * write a variable attribute (async/await version)
      * @param context
      * @param writeValue
      *

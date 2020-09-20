@@ -1,9 +1,6 @@
 /**
  * @module node-opcua-variant
  */
-
-import * as _ from "underscore";
-
 import { assert } from "node-opcua-assert";
 import { NodeId } from "node-opcua-nodeid";
 import {
@@ -40,7 +37,6 @@ import {
 import * as utils from "node-opcua-utils";
 
 import { BinaryStream, OutputBinaryStream } from "node-opcua-binary-stream";
-import { ExtensionObject } from "node-opcua-extension-object";
 import { _enumerationDataType, DataType } from "./DataType_enum";
 import { _enumerationVariantArrayType, VariantArrayType } from "./VariantArrayType_enum";
 // tslint:disable:no-bitwise
@@ -142,10 +138,12 @@ export class Variant extends BaseUAObject {
                     throw new Error("A variant with DataType.ExtensionObject must have a ExtensionObject value");
                 }
             } else {
-                for (const e of this.value) {
-                    /* istanbul ignore next */
-                    if (e && !(e instanceof BaseUAObject)) {
-                        throw new Error("A variant with DataType.ExtensionObject must have a ExtensionObject value");
+                if (this.value) {
+                    for (const e of this.value) {
+                        /* istanbul ignore next */
+                        if (e && !(e instanceof BaseUAObject)) {
+                            throw new Error("A variant with DataType.ExtensionObject must have a ExtensionObject value");
+                        }
                     }
                 }
             }
@@ -974,6 +972,49 @@ export function buildVariantArray(dataType: DataType, nbElements: number, defaul
 // old version of nodejs do not provide a Buffer#equals test
 const oldNodeVersion = process.versions.node && process.versions.node.substring(0, 1) === "0";
 
+function __type(a: any): string {
+    return Object.prototype.toString.call(a);
+}
+function __check_same_object(o1: any, o2: any): boolean {
+    if (o1 === o2) return true;
+    if ((!o1 && o2) || (!o2 && o1)) return false;
+    const t1 = __type(o1);
+    const t2 = __type(o2);
+    if (t1 !== t2) return false;
+    switch (t1) {
+        case "[object Array]":
+            return __check_same_array(o1, o2);
+        case "[object Object]":
+            if (o1.constructor?.name !== o2.constructor?.name) {
+                return false;
+            }
+            const keys1 = Object.keys(o1);
+            const keys2 = Object.keys(o2);
+            // istanbul ignore next
+            if (keys1.length !== keys2.length) {
+                return false;
+            }
+            for (const k of Object.keys(o1)) {
+                if (!__check_same_object(o1[k], o2[k])) {
+                    return false;
+                }
+            }
+            return true;
+        case "[object Float32Array]":
+        case "[object Float64Array]":
+        case "[object Int32Array]":
+        case "[object Int16Array]":
+        case "[object Int8Array]":
+        case "[object Uint32Array]":
+        case "[object Uint16Array]":
+        case "[object Uint8Array]":
+            const b1 = Buffer.from(o1.buffer, o1.byteOffset, o1.byteLength);
+            const b2 = Buffer.from(o2.buffer, o2.byteOffset, o2.byteLength);
+            return b1.equals(b2);
+        default:
+            return o1 === o2;
+    }
+}
 function __check_same_array(arr1: any, arr2: any) {
     if (!arr1 || !arr2) {
         return !arr1 && !arr2;
@@ -987,7 +1028,7 @@ function __check_same_array(arr1: any, arr2: any) {
     if (!oldNodeVersion && arr1.buffer) {
         // v1 and v2 are TypedArray (such as Int32Array...)
         // this is the most efficient way to compare 2 buffers but it doesn't work with node <= 0.12
-        assert(arr2.buffer);
+        assert(arr2.buffer && __type(arr2.buffer) === "[object ArrayBuffer]");
         // compare byte by byte
         const b1 = Buffer.from(arr1.buffer, arr1.byteOffset, arr1.byteLength);
         const b2 = Buffer.from(arr2.buffer, arr2.byteOffset, arr2.byteLength);
@@ -995,7 +1036,7 @@ function __check_same_array(arr1: any, arr2: any) {
     }
     const n = arr1.length;
     for (let i = 0; i < n; i++) {
-        if (!_.isEqual(arr1[i], arr2[i])) {
+        if (!__check_same_object(arr1[i], arr2[i])) {
             return false;
         }
     }
@@ -1026,7 +1067,7 @@ export function sameVariant(v1: Variant, v2: Variant): boolean {
     if (v1.arrayType === VariantArrayType.Scalar) {
         if (v1.dataType === DataType.ExtensionObject) {
             // compare two extension objects
-            return _.isEqual(v1.value, v2.value);
+            return __check_same_object(v1.value, v2.value);
         }
         if (Array.isArray(v1.value) && Array.isArray(v2.value)) {
             return __check_same_array(v1.value, v2.value);

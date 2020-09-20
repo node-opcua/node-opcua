@@ -775,7 +775,7 @@ describe("testing return sameVariant for pull request", function() {
         const b2 = new Variant({
             dataType: DataType.ByteString,
             arrayType: VariantArrayType.Array,
-            value: [Buffer.from([1, 2, 4]), Buffer.from([1, 2, 4])]
+            value: [Buffer.from([1, 2, 4 /* spot the diff here !*/]), Buffer.from([1, 2, 4 /* spot the diff here !*/])]
         });
         sameVariant(b1, b2).should.equal(false);
     });
@@ -935,5 +935,53 @@ describe("testing return sameVariant for pull request", function() {
         const b2 = new Variant({ dataType: DataType.ExtensionObject, value: ext2 });
 
         sameVariant(b1, b2).should.eql(false);
+    })
+    it("sameVariant with array of Extension objects - 4", () => {
+
+        const ext1 = new SomeExtensionObjectA({ a: 32 });
+        const ext2 = new SomeExtensionObjectB({ a: 32 });
+
+        const b1 = new Variant({ dataType: DataType.ExtensionObject, arrayType: VariantArrayType.Array, value: [ext1] });
+        const b2 = new Variant({ dataType: DataType.ExtensionObject, arrayType: VariantArrayType.Array, value: null });
+
+        sameVariant(b1, b2).should.eql(false);
+    })
+    it("sameVariant with array of Extension objects - 5", () => {
+
+        const ext1 = new SomeExtensionObjectA({ a: 32 });
+        const ext2 = new SomeExtensionObjectB({ a: 32 });
+
+        const b1 = new Variant({ dataType: DataType.ExtensionObject, arrayType: VariantArrayType.Array, value: [ext1] });
+        const b2 = new Variant({ dataType: DataType.ExtensionObject, arrayType: VariantArrayType.Array, value: [ext2] });
+
+        sameVariant(b1, b2).should.eql(false);
+    })
+    it("sameVariant with array of Extension objects - 6", () => {
+
+        const ext1 = new SomeExtensionObjectA({ a: 32 });
+        const ext2 = new SomeExtensionObjectA({ a: 32 });
+
+        const b1 = new Variant({ dataType: DataType.ExtensionObject, arrayType: VariantArrayType.Array, value: [ext1] });
+        const b2 = new Variant({ dataType: DataType.ExtensionObject, arrayType: VariantArrayType.Array, value: [ext2] });
+
+        sameVariant(b1, b2).should.eql(true);
+    })
+    it("sameVariant with array of Extension objects - 7", () => {
+
+        const ext1 = new SomeExtensionObjectA({ a: 32 });
+        const ext2 = new SomeExtensionObjectA({ a: 32 });
+
+        const b1 = new Variant({ dataType: DataType.ExtensionObject, arrayType: VariantArrayType.Array, value: [ext1, ext1] });
+        const b2 = new Variant({ dataType: DataType.ExtensionObject, arrayType: VariantArrayType.Array, value: [ext2] });
+
+        sameVariant(b1, b2).should.eql(false);
+    })
+    it("sameVariant with array of Extension objects - 8", () => {
+
+        const ext1 = new SomeExtensionObjectA({ a: 32 });
+        const b1 = new Variant({ dataType: DataType.ExtensionObject, arrayType: VariantArrayType.Array, value: [ext1] });
+        const b2 = new Variant({ dataType: DataType.ExtensionObject, arrayType: VariantArrayType.Array, value: [ext1] });
+
+        sameVariant(b1, b2).should.eql(true);
     })
 });

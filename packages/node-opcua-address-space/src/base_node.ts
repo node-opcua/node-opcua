@@ -3,7 +3,7 @@
  */
 import * as chalk from "chalk";
 import { EventEmitter } from "events";
-import * as _ from "underscore";
+import { isEqual } from "lodash";
 
 import { assert } from "node-opcua-assert";
 import { UInt32 } from "node-opcua-basic-types";
@@ -65,6 +65,7 @@ import {
     ToStringBuilder
 } from "./base_node_private";
 import { MinimalistAddressSpace, Reference } from "./reference";
+import { UAReferenceType } from "./ua_reference_type";
 
 // tslint:disable:no-var-requires
 // tslint:disable:no-bitwise
@@ -367,7 +368,7 @@ export class BaseNode extends EventEmitter implements BaseNodePublic {
         const references: Reference[] = [];
 
         function process(referenceIdx: any) {
-            const referenceTypes = _.values(referenceIdx);
+            const referenceTypes = Object.values<any>(referenceIdx);
             for (const ref of referenceTypes) {
                 const h = ref.referenceType.toString();
                 if (ref.isForward === isForward && keys[h]) {
@@ -418,21 +419,21 @@ export class BaseNode extends EventEmitter implements BaseNodePublic {
         }
 
         const result: Reference[] = [];
-        _.forEach(_private._referenceIdx, (ref: Reference) => {
+        for (const ref of Object.values(_private._referenceIdx) as Reference[]) {
             if (ref.isForward === isForward) {
                 if (sameNodeId(ref.referenceType, referenceTypeNode.nodeId)) {
                     result.push(ref);
                 }
             }
-        });
+        }
 
-        _.forEach(_private._back_referenceIdx, (ref: Reference) => {
+        for (const ref of Object.values(_private._back_referenceIdx) as Reference[]) {
             if (ref.isForward === isForward) {
                 if (sameNodeId(ref.referenceType, referenceTypeNode.nodeId)) {
                     result.push(ref);
                 }
             }
-        });
+        }
 
         _private._cache[hash] = result;
         return result;
@@ -602,7 +603,7 @@ export class BaseNode extends EventEmitter implements BaseNodePublic {
      */
     public getMethodById(nodeId: NodeId): UAMethodPublic | null {
         const methods = this.getMethods();
-        const found = _.find(methods, (m: UAMethodPublic) => m.nodeId.toString() === nodeId.toString());
+        const found = methods.find((m: UAMethodPublic) => m.nodeId.toString() === nodeId.toString());
         return found || null;
     }
 
@@ -703,7 +704,7 @@ export class BaseNode extends EventEmitter implements BaseNodePublic {
 
     public ownReferences(): Reference[] {
         const _private = BaseNode_getPrivate(this);
-        return _.map(_private._referenceIdx, (r: Reference) => r);
+        return Object.values(_private._referenceIdx);
     }
 
     /**
@@ -782,7 +783,7 @@ export class BaseNode extends EventEmitter implements BaseNodePublic {
                 throw new Error(" cannot find node with id " + reference.nodeId.toString());
             }
 
-            if (_.isEqual(obj.browseName, relativePathElement.targetName)) {
+            if (isEqual(obj.browseName, relativePathElement.targetName)) {
                 // compare QualifiedName
 
                 const key = obj.nodeId.toString();
@@ -1137,8 +1138,8 @@ export class BaseNode extends EventEmitter implements BaseNodePublic {
         this.removeAllListeners();
         this._clear_caches();
 
-        _.forEach(_private._back_referenceIdx, (ref: Reference) => ref.dispose());
-        _.forEach(_private._referenceIdx, (ref: Reference) => ref.dispose());
+        (Object.values(_private._back_referenceIdx) as Reference[]).forEach((ref: Reference) => ref.dispose());
+        (Object.values(_private._referenceIdx) as Reference[]).forEach((ref: Reference) => ref.dispose());
         _private._cache = {};
         _private.__address_space = null;
         _private._back_referenceIdx = null;
@@ -1162,7 +1163,7 @@ export class BaseNode extends EventEmitter implements BaseNodePublic {
 
         const addressSpace = this.addressSpace;
 
-        _.forEach(_private._referenceIdx, (reference: UAReference) => {
+        for (const reference of Object.values(_private._referenceIdx) as UAReference[]) {
             // filter out non  Hierarchical References
             const referenceType = resolveReferenceType(addressSpace, reference);
 
@@ -1183,7 +1184,7 @@ export class BaseNode extends EventEmitter implements BaseNodePublic {
                     })
                 );
             } // else addressSpace may be incomplete
-        });
+        }
     }
 
     public installPostInstallFunc(f: any): void {
@@ -1302,11 +1303,7 @@ function toString_ReferenceDescription(ref: Reference, options: { addressSpace: 
 
 /* jshint latedef: false */
 function _setup_parent_item(this: BaseNode, references: { [key: string]: any }): BaseNodePublic | null {
-    references = _.map(references, (x: Reference) => x) as Reference[];
-
-    /* jshint validthis: true */
-    assert(this instanceof BaseNode);
-    assert(Array.isArray(references));
+    references = Object.values(references);
 
     const _private = BaseNode_getPrivate(this);
     assert(!_private._parent, "_setup_parent_item has been already called");

@@ -1,7 +1,7 @@
 /**
  * @module node-opcua-address-space.AlarmsAndConditions
  */
-import * as _ from "underscore";
+import { isEqual } from "lodash";
 
 import { assert } from "node-opcua-assert";
 import { NodeClass } from "node-opcua-data-model";
@@ -477,17 +477,14 @@ export class UAAlarmConditionBase extends UAAcknowledgeableConditionBase {
         const newConditionInfo = alarm._calculateConditionInfo(stateName, !!isActive, value!, oldConditionInfo);
 
         // detect potential internal bugs due to misused of _signalNewCondition
-        if (_.isEqual(oldConditionInfo, newConditionInfo)) {
+        if (isEqual(oldConditionInfo, newConditionInfo)) {
             // tslint:disable-next-line:no-console
             console.log(oldConditionInfo);
             throw new Error(
                 "condition values have not change, shall we really raise an event ? alarm " + alarm.browseName.toString()
             );
         }
-        assert(
-            !_.isEqual(oldConditionInfo, newConditionInfo),
-            "condition values have not change, shall we really raise an event ?"
-        );
+        assert(!isEqual(oldConditionInfo, newConditionInfo), "condition values have not change, shall we really raise an event ?");
 
         if (isActive) {
             alarm.currentBranch().setActiveState(true);
