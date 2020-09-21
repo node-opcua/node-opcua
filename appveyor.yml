@@ -38,11 +38,13 @@ test_script:
   - node --version
   - npm --version
   # run tests
-  - npm run pretest
-  - dir packages\node-opcua-end2end-test\certificates
   - npm test
   # run typescript in packages that have some
-  - node  ./node_modules/lerna/cli.js run test-typescript
+  # - node  ./node_modules/lerna/cli.js run test-typescript
 
 # Don't actually build.
 build: false
+
+cache:
+  - node_modules                        # local npm modules
+  - '%APPDATA%\npm-cache'               # npm cache
