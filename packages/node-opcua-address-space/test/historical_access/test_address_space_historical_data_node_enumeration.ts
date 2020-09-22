@@ -1,7 +1,6 @@
 import * as fs from "fs";
 import * as nodesets from "node-opcua-nodesets";
 import * as should from "should";
-import * as _ from "underscore";
 
 import { AddressSpace, SessionContext } from "../..";
 import { generateAddressSpace } from "../../nodeJS";
@@ -54,8 +53,8 @@ describe("Testing Historical Data Node Enumeration", () => {
     });
 
     it("should be easy to enumerate  UAVariable with History from a addressSpace", () => {
-        Object.keys(addressSpace.historizingNodes).length.should.eql(3);
-        const historizingNode = _.map(addressSpace.historizingNodes, (x: any) => x);
-        historizingNode.map((x: any) => x.browseName.toString()).should.eql(["1:MyVar1", "1:MyVar2", "1:MyVar3"]);
+        const historizingNode = Object.values(addressSpace.historizingNodes || {});
+        historizingNode.length.should.eql(3);
+        historizingNode.map((x) => x.browseName.toString()).should.eql(["1:MyVar1", "1:MyVar2", "1:MyVar3"]);
     });
 });

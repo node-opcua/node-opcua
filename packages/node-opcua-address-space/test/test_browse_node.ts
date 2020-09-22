@@ -1,5 +1,4 @@
 import * as should from "should";
-import * as _ from "underscore";
 
 import { BrowseDirection } from "node-opcua-data-model";
 import { redirectToFile } from "node-opcua-debug";
@@ -21,15 +20,11 @@ describe("testing address space", () => {
     });
 
     it("should dump references", (done: any) => {
-        const hr = addressSpace.findReferenceType("HierarchicalReferences")!;
-
+        const references = addressSpace.rootFolder.findReferencesEx("References", BrowseDirection.Forward);
         redirectToFile(
             "dumpReferences.log",
             () => {
-                dumpReferences(
-                    addressSpace,
-                    _.map((hr as any)._references, (x: any) => x)
-                );
+                dumpReferences(addressSpace, references);
             },
             done
         );

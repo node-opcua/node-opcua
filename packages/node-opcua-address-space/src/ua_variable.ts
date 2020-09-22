@@ -6,7 +6,6 @@
 // tslint:disable:max-line-length
 import * as chalk from "chalk";
 import { assert } from "node-opcua-assert";
-import * as _ from "underscore";
 
 import {
     isValidDataEncoding,
@@ -223,7 +222,7 @@ export function verifyRankAndDimensions(options: { valueRank?: number; arrayDime
     assert(typeof options.valueRank === "number");
 
     options.arrayDimensions = options.arrayDimensions || null;
-    assert(_.isNull(options.arrayDimensions) || Array.isArray(options.arrayDimensions));
+    assert(options.arrayDimensions === null || Array.isArray(options.arrayDimensions));
 
     if (options.arrayDimensions && options.valueRank <= 0) {
         throw new Error("[CONFORMANCE] arrayDimensions must be null if valueRank <=0");
@@ -1078,7 +1077,8 @@ export class UAVariable extends BaseNode implements UAVariablePublic {
 
     public clone(options?: any, optionalFilter?: any, extraInfo?: any): UAVariable {
         options = options || {};
-        options = _.extend(_.clone(options), {
+        options = {
+            ...options,
             // check this eventNotifier: this.eventNotifier,
             // check this symbolicName: this.symbolicName,
 
@@ -1089,7 +1089,7 @@ export class UAVariable extends BaseNode implements UAVariablePublic {
             minimumSamplingInterval: this.minimumSamplingInterval,
             userAccessLevel: this.userAccessLevel,
             valueRank: this.valueRank
-        });
+        };
 
         const newVariable = _clone.call(this, UAVariable, options, optionalFilter, extraInfo) as UAVariable;
 

@@ -75,8 +75,11 @@ export function callMethodHelper(
 
     let l_extraDataTypeManager: ExtraDataTypeManager;
 
-    ensureDatatypeExtractedWithCallback(addressSpace, (err2: Error | null, extraDataTypeManager: ExtraDataTypeManager) => {
-        l_extraDataTypeManager = extraDataTypeManager;
+    ensureDatatypeExtractedWithCallback(addressSpace, (err2: Error | null, extraDataTypeManager?: ExtraDataTypeManager) => {
+        if (err2) {
+            return callback(err2);
+        }
+        l_extraDataTypeManager = extraDataTypeManager!;
 
         // resolve opaque data structure from inputArguments
         for (const variant of inputArguments) {

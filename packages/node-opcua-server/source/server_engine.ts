@@ -6,7 +6,6 @@ import * as async from "async";
 import * as chalk from "chalk";
 import { EventEmitter } from "events";
 import { assert } from "node-opcua-assert";
-import * as _ from "underscore";
 
 import {
     addElement,
@@ -152,8 +151,6 @@ function getMonitoredItemsId(this: ServerEngine, inputArguments: any, context: S
 
 function __bindVariable(self: ServerEngine, nodeId: NodeIdLike, options?: any) {
     options = options || {};
-    // must have a get and a set property
-    assert(_.difference(["get", "set"], _.keys(options)).length === 0);
 
     const variable = self.addressSpace!.findNode(nodeId) as UAVariable;
     if (variable && variable.bindVariable) {
@@ -292,7 +289,7 @@ export class ServerEngine extends EventEmitter {
             // currentSubscriptionCount returns the total number of subscriptions
             // that are currently active on all sessions
             let counter = 0;
-            _.values(this._sessions).forEach((session: ServerSession) => {
+            Object.values(this._sessions).forEach((session: ServerSession) => {
                 counter += session.currentSubscriptionCount;
             });
             return counter;
@@ -1251,15 +1248,18 @@ export class ServerEngine extends EventEmitter {
             this.writeSingleNode(context, writeValue, inner_callback);
         };
 
-        ensureDatatypeExtractedWithCallback(this.addressSpace, (err2: Error | null, extraDataTypeManager: ExtraDataTypeManager) => {
-            l_extraDataTypeManager = extraDataTypeManager;
+        ensureDatatypeExtractedWithCallback(
+            this.addressSpace!,
+            (err2: Error | null, extraDataTypeManager?: ExtraDataTypeManager) => {
+                l_extraDataTypeManager = extraDataTypeManager!;
 
-            // tslint:disable:array-type
-            async.map(nodesToWrite, performWrite, (err?: Error | null, statusCodes?: (StatusCode | undefined)[]) => {
-                assert(Array.isArray(statusCodes));
-                callback(err!, statusCodes as StatusCode[]);
-            });
-        });
+                // tslint:disable:array-type
+                async.map(nodesToWrite, performWrite, (err?: Error | null, statusCodes?: (StatusCode | undefined)[]) => {
+                    assert(Array.isArray(statusCodes));
+                    callback(err!, statusCodes as StatusCode[]);
+                });
+            }
+        );
     }
 
     /**
@@ -1352,7 +1352,7 @@ export class ServerEngine extends EventEmitter {
     }
 
     public getOldestUnactivatedSession(): ServerSession | null {
-        const tmp = _.filter(this._sessions, (session1: ServerSession) => {
+        const tmp = Object.values(this._sessions).filter((session1: ServerSession) => {
             return session1.status === "new";
         });
         if (tmp.length === 0) {
@@ -1508,7 +1508,7 @@ export class ServerEngine extends EventEmitter {
 
     public findSubscription(subscriptionId: number): Subscription | null {
         const subscriptions: Subscription[] = [];
-        _.map(this._sessions, (session) => {
+        Object.values(this._sessions).map((session) => {
             if (subscriptions.length) {
                 return;
             }

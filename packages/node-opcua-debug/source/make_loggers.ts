@@ -4,13 +4,14 @@
 // tslint:disable:no-console
 import * as chalk from "chalk";
 import * as path from "path";
-import * as _ from "underscore";
 import { format } from "util";
 
 const debugFlags: { [id: string]: boolean } = {};
 
-const maxLines = (process.env && process.env.NODEOPCUA_DEBUG_MAXLINE_PER_MESSAGE) ?
-    parseInt(process.env.NODEOPCUA_DEBUG_MAXLINE_PER_MESSAGE, 10) : 25;
+const maxLines =
+    process.env && process.env.NODEOPCUA_DEBUG_MAXLINE_PER_MESSAGE
+        ? parseInt(process.env.NODEOPCUA_DEBUG_MAXLINE_PER_MESSAGE, 10)
+        : 25;
 
 function extractBasename(name: string) {
     return path.basename(name).replace(/\.(js|ts)$/, "");
@@ -38,7 +39,7 @@ export function checkDebugFlag(scriptFullPath: string): boolean {
     const filename = extractBasename(scriptFullPath);
     let doDebug: boolean = debugFlags[filename];
     if (process && process.env && process.env.DEBUG && !debugFlags.hasOwnProperty(filename)) {
-        doDebug = (process.env.DEBUG.indexOf(filename) >= 0 || process.env.DEBUG.indexOf("ALL") >= 0);
+        doDebug = process.env.DEBUG.indexOf(filename) >= 0 || process.env.DEBUG.indexOf("ALL") >= 0;
         setDebugFlag(filename, doDebug);
     }
     return doDebug;
@@ -50,7 +51,7 @@ export function checkDebugFlag(scriptFullPath: string): boolean {
  * @param callerLine
  */
 function file_line(mode: "E" | "D", filename: string, callerLine: number): string {
-    const d = (new Date()).toISOString().substr(11);
+    const d = new Date().toISOString().substr(11);
     if (mode === "D") {
         return chalk.bgWhite.cyan(w(d, 14) + ":" + w(filename, 30) + ":" + w(callerLine.toString(), 5));
     } else {
@@ -70,8 +71,7 @@ function buildPrefix(mode: "E" | "D"): string {
 }
 
 function dump(mode: "E" | "D", args1: [any?, ...any[]]) {
-
-    const a2 = _.values(args1) as [string, ...string[]];
+    const a2 = Object.values(args1) as [string, ...string[]];
     const output = format.apply(null, a2);
     let a1 = [buildPrefix(mode)];
 
@@ -87,7 +87,6 @@ function dump(mode: "E" | "D", args1: [any?, ...any[]]) {
             break;
         }
     }
-
 }
 
 /**
@@ -98,7 +97,6 @@ function dump(mode: "E" | "D", args1: [any?, ...any[]]) {
  *
  */
 export function make_debugLog(scriptFullPath: string): (...arg: any[]) => void {
-
     const filename = extractBasename(scriptFullPath);
 
     function debugLogFunc(...args: [any?, ...any[]]) {
@@ -111,7 +109,6 @@ export function make_debugLog(scriptFullPath: string): (...arg: any[]) => void {
 }
 
 export function make_errorLog(context: string): (...arg: any[]) => void {
-
     function errorLogFunc(...args: [any?, ...any[]]) {
         dump("E", args);
     }

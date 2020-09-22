@@ -1,42 +1,19 @@
 import * as should from "should";
-import * as _ from "underscore";
-
-import { DataType, VariantArrayType } from "node-opcua-variant";
-import { Variant } from "node-opcua-variant";
-
+import { DataType, VariantArrayType, Variant } from "node-opcua-variant";
+import { nodesets } from "node-opcua-nodesets";
+import { Argument } from "node-opcua-types";
+import { resolveNodeId } from "node-opcua-nodeid";
+import { StatusCodes } from "node-opcua-status-code";
 import { BinaryStream } from "node-opcua-binary-stream";
+
 import {
     binaryStoreSize_ArgumentList,
-    convertJavaScriptToVariant,
     decode_ArgumentList,
     encode_ArgumentList,
     verifyArguments_ArgumentList,
     AddressSpace
 } from "..";
 import { generateAddressSpace } from "../nodeJS";
-
-import { nodesets } from "node-opcua-nodesets";
-import { Argument, ArgumentOptions } from "node-opcua-types";
-import { resolveNodeId } from "node-opcua-nodeid";
-import { StatusCodes, StatusCode } from "node-opcua-status-code";
-
-function extractValues(arrayVariant: Variant[]) {
-    return arrayVariant.map(_.property("value"));
-}
-
-describe("convertJavaScriptToVariant", () => {
-    it("should convertJavaScriptToVariant", () => {
-        const definition = [{ dataType: DataType.UInt32 }];
-        const args = [100];
-
-        const args_as_variant = convertJavaScriptToVariant(definition, args);
-
-        args_as_variant.length.should.eql(1);
-        args_as_variant[0].should.eql(new Variant({ dataType: DataType.UInt32, value: 100 }));
-
-        extractValues(args_as_variant).should.eql([100]);
-    });
-});
 
 describe("testing ArgumentList special encode/decode process", () => {
     it("should encode/decode an ArgumentList (scalar)", () => {

@@ -10,7 +10,6 @@
 		"lint": "tslint source/**/*.ts"
 	},
 	"dependencies": {
-		"async": "^3.2.0",
 		"browser-process-hrtime": "^1.0.0",
 		"node-opcua-assert": "2.16.0"
 	},

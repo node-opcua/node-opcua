@@ -12,9 +12,7 @@
     "license": "MIT",
     "dependencies": {
         "node-opcua-assert": "2.16.0",
-        "node-opcua-debug": "2.16.0",
-        "@types/underscore": "^1.10.23",
-        "underscore": "^1.11.0"
+        "node-opcua-debug": "2.16.0"
     },
     "devDependencies": {
         "colors": "^1.4.0",

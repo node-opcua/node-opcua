@@ -247,6 +247,7 @@ function _exploreObject(self: BaseUAObject, field: StructuredTypeField, data: Ex
             if (!typeDictionary) {
                 // tslint:disable-next-line: no-console
                 console.log(" No typeDictionary for ", self.schema);
+                return;
             }
             field.fieldTypeConstructor = field.fieldTypeConstructor || typeDictionary.getStructureTypeConstructor(fieldType);
             const fieldTypeConstructor = field.fieldTypeConstructor;

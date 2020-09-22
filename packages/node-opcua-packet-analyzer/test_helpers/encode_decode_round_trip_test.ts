@@ -5,7 +5,6 @@ import { hexDump } from "node-opcua-debug";
 import { BaseUAObject, constructObject } from "node-opcua-factory";
 import { assert_arrays_are_equal } from "node-opcua-test-helpers";
 import * as should from "should";
-import * as _ from "underscore";
 
 import { analyze_object_binary_encoding, analyzePacket } from "../source";
 // tslint:disable:no-console

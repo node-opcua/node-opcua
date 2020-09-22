@@ -34,7 +34,7 @@ export function generateAddressSpace(addressSpace: AddressSpacePublic, xmlFiles:
             });
         },
         (err?: Error | null) => {
-            stuff.terminate(callback!);
+            stuff.terminate(callback!); 
         }
     );
 }

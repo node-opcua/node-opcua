@@ -44,6 +44,7 @@ export function redirectToFile(tmpFile: string, actionFct: Function, callback: (
         // async version
         try {
             actionFct();
+            f.end(callback);
         } catch (err) {
             console.log = oldConsoleLog;
 
@@ -59,9 +60,9 @@ export function redirectToFile(tmpFile: string, actionFct: Function, callback: (
                     callback(err);
                 }
             });
+        } finally {
+            console.log = oldConsoleLog;
         }
-        console.log = oldConsoleLog;
-        f.end(callback);
     } else {
         oldConsoleLog = console.log;
         console.log = _write_to_file;

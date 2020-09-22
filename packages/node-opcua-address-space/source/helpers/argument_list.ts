@@ -2,7 +2,6 @@
  * @module node-opcua-address-space
  */
 import * as chalk from "chalk";
-import * as _ from "underscore";
 
 import { assert } from "node-opcua-assert";
 import * as ec from "node-opcua-basic-types";
@@ -312,19 +311,4 @@ export function build_retrieveInputArgumentsDefinition(addressSpace: AddressSpac
         assert(Array.isArray(methodInputArguments));
         return methodInputArguments;
     };
-}
-
-export function convertJavaScriptToVariant(argumentDefinition: ArgumentOptions[], values: any[]): Variant[] {
-    assert(argumentDefinition.length === values.length);
-    assert(Array.isArray(argumentDefinition));
-    assert(Array.isArray(values));
-
-    return _.zip(values, argumentDefinition).map((pair: any) => {
-        pair = pair as [VariantLike, Argument];
-        const value = pair[0];
-        const arg = pair[1];
-        const variant = _.extend({}, arg);
-        variant.value = value;
-        return new Variant(variant);
-    });
 }

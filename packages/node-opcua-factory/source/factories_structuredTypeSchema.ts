@@ -2,7 +2,6 @@
  * @module node-opcua-factory
  */
 import * as chalk from "chalk";
-import * as _ from "underscore";
 import { CommonInterface, FieldCategory, FieldInterfaceOptions, FieldType, StructuredTypeOptions, TypeSchemaBase } from "./types";
 
 import { assert } from "node-opcua-assert";
@@ -291,13 +290,17 @@ export function check_options_correctness_against_schema(obj: any, schema: Struc
     }
 
     // extract the possible fields from the schema.
-    const possibleFields = obj.constructor.possibleFields || schema._possibleFields;
+    const possibleFields: string[] = obj.constructor.possibleFields || schema._possibleFields;
 
     // extracts the fields exposed by the option object
     const currentFields = Object.keys(options);
 
     // get a list of field that are in the 'options' object but not in schema
-    const invalidOptionsFields = _.difference(currentFields, possibleFields);
+    // https://github.com/you-dont-need/You-Dont-Need-Lodash-Underscore
+    function difference<T>(a1: T[], a2: T[]) {
+        return [a1, a2].reduce((a, b) => a.filter((value) => !b.includes(value)));
+    }
+    const invalidOptionsFields = difference(currentFields, possibleFields);
 
     /* istanbul ignore next */
     if (invalidOptionsFields.length > 0) {

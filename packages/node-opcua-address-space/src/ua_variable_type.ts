@@ -4,7 +4,6 @@
 // tslint:disable:max-classes-per-file
 // tslint:disable:no-console
 import * as chalk from "chalk";
-import * as _ from "underscore";
 
 import { assert } from "node-opcua-assert";
 import { UInt32 } from "node-opcua-basic-types";
@@ -511,12 +510,11 @@ const hasModellingRuleNodeId = makeNodeId(37);
 
 function _remove_unwanted_ref(references: UAReference[]): UAReference[] {
     // filter out HasTypeDefinition (i=40) , HasModellingRule (i=37);
-    references = _.filter(references, (reference: UAReference) => {
-        return (
+    references = references.filter(
+        (reference: UAReference) =>
             !sameNodeId(reference.referenceType, hasTypeDefinitionNodeId) &&
             !sameNodeId(reference.referenceType, hasModellingRuleNodeId)
-        );
-    });
+    );
     return references;
 }
 
@@ -572,7 +570,7 @@ function reconstructNonHierarchicalReferences(extraInfo: any): any {
     // have been cloned .
     // this could be node organized by some FunctionalGroup
     //
-    _.forEach(extraInfo.mapOrgToClone, (value: any, key: any) => {
+    Object.values(extraInfo.mapOrgToClone).forEach((value: any) => {
         const originalObject = value.original;
         const clonedObject = value.cloned;
 
@@ -649,7 +647,7 @@ function reconstructNonHierarchicalReferences(extraInfo: any): any {
  */
 function reconstructFunctionalGroupType(extraInfo: any) {
     // navigate through original objects to find those that are being organized by some FunctionalGroup
-    _.forEach(extraInfo.mapOrgToClone, (value: any, key: any) => {
+    Object.values(extraInfo.mapOrgToClone).forEach((value: any) => {
         const originalObject = value.original;
         const instantiatedObject = value.cloned;
         const organizedByArray = originalObject.findReferencesEx("Organizes", BrowseDirection.Inverse);

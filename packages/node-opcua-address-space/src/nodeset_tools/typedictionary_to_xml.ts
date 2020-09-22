@@ -1,4 +1,3 @@
-import * as _ from "underscore";
 import { assert } from "node-opcua-assert";
 import { StructureDefinition, EnumDefinition, EnumDescription } from "node-opcua-types";
 import { constructNamespaceDependency } from "./construct_namespace_dependency";
@@ -167,7 +166,7 @@ export function dumpToBSD(namespace: UANamespace) {
     xw.writeAttribute("DefaultByteOrder", "LittleEndian");
     xw.writeAttribute("TargetNamespace", namespace.namespaceUri);
 
-    const dataTypes = _.values(namespace._dataTypeMap);
+    const dataTypes = Object.values(namespace._dataTypeMap);
     for (const dataType of dataTypes) {
         dumpDataTypeToBSD(xw, dataType, map);
     }

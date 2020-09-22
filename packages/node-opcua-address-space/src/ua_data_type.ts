@@ -2,7 +2,6 @@
  * @module node-opcua-address-space
  */
 import * as chalk from "chalk";
-import * as _ from "underscore";
 
 import { assert } from "node-opcua-assert";
 import { NodeClass } from "node-opcua-data-model";
@@ -225,7 +224,7 @@ export class UADataType extends BaseNode implements UADataTypePublic {
             assert(this.enumValues, "must have a enumValues property");
             const enumValues = this.enumValues.readValue().value.value;
             assert(Array.isArray(enumValues));
-            definition = _.map(enumValues, (e: any) => {
+            definition = enumValues.map((e: any) => {
                 return {
                     name: e.displayName.text,
                     value: e.value[1]

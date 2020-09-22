@@ -2,7 +2,6 @@
  * @module node-opcua-address-space
  */
 import * as chalk from "chalk";
-import * as _ from "underscore";
 
 import { assert } from "node-opcua-assert";
 import { isValidByte } from "node-opcua-basic-types";
@@ -60,10 +59,11 @@ export class UAObject extends BaseNode implements UAObjectPublic {
 
     public clone(options: any, optionalFilter?: any, extraInfo?: any): UAObject {
         options = options || {};
-        options = _.extend(_.clone(options), {
+        options = {
+            ...options,
             eventNotifier: this.eventNotifier,
             symbolicName: this.symbolicName
-        });
+        };
 
         const cloneObject = _clone.call(this, UAObject, options, optionalFilter, extraInfo) as UAObject;
         // xx  newObject.propagate_back_references();
