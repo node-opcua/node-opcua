@@ -11,7 +11,6 @@
     "main": "./dist/index.js",
     "types": "./dist/index.d.ts",
     "dependencies": {
-        "async": "^3.2.0",
         "node-opcua-data-model": "2.16.0",
         "node-opcua-data-value": "2.16.0",
         "node-opcua-nodeid": "2.16.0",

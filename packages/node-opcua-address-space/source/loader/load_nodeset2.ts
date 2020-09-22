@@ -1,10 +1,7 @@
 /**
  * @module node-opcua-address-space
  */
-import * as async from "async";
 import * as chalk from "chalk";
-import * as _ from "underscore";
-import { callbackify } from "util";
 
 import { assert } from "node-opcua-assert";
 import * as ec from "node-opcua-basic-types";
@@ -35,7 +32,7 @@ import {
     InternalFragmentClonerReaderState,
     makeExtensionObjectReader
 } from "node-opcua-xml2json";
-import { ErrorCallback, isValidGuid, StatusCodes } from "node-opcua-basic-types";
+import { CallbackT, ErrorCallback, isValidGuid, StatusCodes } from "node-opcua-basic-types";
 
 import {
     AddReferenceTypeOptions,
@@ -80,7 +77,15 @@ export async function ensureDatatypeExtracted(addressSpace: any): Promise<ExtraD
     }
     return addressSpacePriv.$$extraDataTypeManager;
 }
-export const ensureDatatypeExtractedWithCallback = callbackify(ensureDatatypeExtracted);
+
+export function ensureDatatypeExtractedWithCallback(
+    addressSpace: AddressSpacePublic,
+    callback: CallbackT<ExtraDataTypeManager>
+): void {
+    ensureDatatypeExtracted(addressSpace)
+        .then((result: ExtraDataTypeManager) => callback(null, result))
+        .catch((err) => callback(err));
+}
 
 function findDataTypeNode(addressSpace: AddressSpace, encodingNodeId: NodeId): UADataType {
     const encodingNode = addressSpace.findNode(encodingNodeId)!;
@@ -181,12 +186,13 @@ function makeStructureDefinition(name: string, definitionFields: StructureFieldO
 }
 
 function __make_back_references(namespace: NamespacePrivate) {
-    _.forEach(namespace._nodeid_index, (node: BaseNode) => {
+    const nodes = Object.values(namespace._nodeid_index);
+    for (const node of nodes) {
         node.propagate_back_references();
-    });
-    _.forEach(namespace._nodeid_index, (node: BaseNode) => {
+    }
+    for (const node of nodes) {
         node.install_extra_properties();
-    });
+    }
 }
 
 /**
@@ -649,17 +655,19 @@ export function makeStuff(addressSpace: AddressSpacePublic) {
                     }
                 },
 
-                DisplayName: _.extend(_.clone(localizedText_parser.LocalizedText), {
+                DisplayName: {
+                    ...localizedText_parser.LocalizedText,
                     finish(this: any) {
-                        this.parent.enumValueType.displayName = _.clone(this.localizedText);
+                        this.parent.enumValueType.displayName = { ...this.localizedText };
                     }
-                }),
+                },
 
-                Description: _.extend(_.clone(localizedText_parser.LocalizedText), {
+                Description: {
+                    ...localizedText_parser.LocalizedText,
                     finish(this: any) {
-                        this.parent.enumValueType.description = _.clone(this.localizedText);
+                        this.parent.enumValueType.description = { ...this.localizedText };
                     }
-                })
+                }
             },
             finish(this: any) {
                 this.enumValueType = new EnumValueType(this.enumValueType);
@@ -770,17 +778,19 @@ export function makeStuff(addressSpace: AddressSpacePublic) {
                     }
                 },
 
-                DisplayName: _.extend(_.clone(localizedText_parser.LocalizedText), {
+                DisplayName: {
+                    ...localizedText_parser.LocalizedText,
                     finish(this: any) {
-                        this.parent.euInformation.displayName = _.clone(this.localizedText);
+                        this.parent.euInformation.displayName = { ...this.localizedText };
                     }
-                }),
+                },
 
-                Description: _.extend(_.clone(localizedText_parser.LocalizedText), {
+                Description: {
+                    ...localizedText_parser.LocalizedText,
                     finish(this: any) {
-                        this.parent.euInformation.description = _.clone(this.localizedText);
+                        this.parent.euInformation.description = { ...this.localizedText };
                     }
-                })
+                }
             },
             finish(this: any) {
                 this.euInformation = new EUInformation(this.euInformation);
@@ -952,14 +962,15 @@ export function makeStuff(addressSpace: AddressSpacePublic) {
             /* empty */
         },
         parser: {
-            LocalizedText: _.extend(_.clone(localizedText_parser.LocalizedText), {
+            LocalizedText: {
+                ...localizedText_parser.LocalizedText,
                 finish(this: any) {
                     this.parent.parent.obj.value = {
                         dataType: DataType.LocalizedText,
                         value: this.localizedText
                     };
                 }
-            }),
+            },
 
             String: {
                 finish(this: any) {
@@ -1436,12 +1447,12 @@ export function makeStuff(addressSpace: AddressSpacePublic) {
             await performPostLoadingTasks(postTasks3);
             postTasks3 = [];
         }
-        callbackify(finalSteps)((err1?: Error) => {
-            if (err1) {
+        finalSteps()
+            .then(() => callback!())
+            .catch((err1: Error) => {
                 console.log("Error ", pe.render(err1));
-            }
-            callback!(err1 || undefined);
-        });
+                callback!(err1);
+            });
     }
     function addNodeSet(xmlData: string, callback1: ErrorCallback) {
         _reset_namespace_translation();
@@ -1459,8 +1470,20 @@ export class NodeSetLoader {
         this._s = makeStuff(addressSpace);
     }
     addNodeSet(xmlData: string, callback: ErrorCallback) {
+        if (!callback) {
+            throw new Error("Expecting callback function");
+        }
         return this._s.addNodeSet(xmlData, callback);
     }
+
+    async addNodeSetAsync(xmlData: string): Promise<void> {
+        return await new Promise((resolve) => {
+            this.addNodeSet(xmlData, (err?: Error) => {
+                resolve();
+            });
+        });
+    }
+
     terminate(callback: ErrorCallback) {
         this._s.terminate(callback);
     }

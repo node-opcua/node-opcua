@@ -4,7 +4,6 @@
 // tslint:disable:no-console
 import * as chalk from "chalk";
 import { assert } from "node-opcua-assert";
-import * as _ from "underscore";
 
 import { AttributeIds } from "node-opcua-data-model";
 import { DiagnosticInfo, NodeClass } from "node-opcua-data-model";
@@ -193,9 +192,7 @@ export class UAMethod extends BaseNode implements UAMethodPublic {
         assert(!options.componentOf || options.componentOf, "trying to create an orphan method ?");
 
         options = options || {};
-        options = _.extend(_.clone(options), {
-            methodDeclarationId: this.nodeId
-        });
+        options = { ...options, methodDeclarationId: this.nodeId };
         options.references = options.references || [];
 
         const addressSpace = this.addressSpace;

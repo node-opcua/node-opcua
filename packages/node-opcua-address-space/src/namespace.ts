@@ -3,7 +3,6 @@
  */
 // tslint:disable:no-console
 import * as chalk from "chalk";
-import * as _ from "underscore";
 
 import { assert } from "node-opcua-assert";
 import { coerceInt64 } from "node-opcua-basic-types";
@@ -224,9 +223,9 @@ export class UANamespace implements NamespacePublic {
     }
 
     public dispose() {
-        _.forEach(this._nodeid_index, (node: BaseNode) => {
+        for (const node of Object.values(this._nodeid_index)) {
             node.dispose();
-        });
+        }
 
         this._nodeid_index = {};
         this.addressSpace = {} as AddressSpacePrivate;
@@ -534,17 +533,18 @@ export class UANamespace implements NamespacePublic {
 
         options.value = options.value === undefined ? 0 : options.value;
 
-        const variable = namespace.addVariable(
-            _.extend(options, {
-                dataType: "UInteger",
-                typeDefinition: multiStateDiscreteType.nodeId,
-                value: new Variant({
-                    dataType: DataType.UInt32,
-                    value: options.value
-                }),
-                valueRank: -2
-            })
-        ) as UAMultiStateDiscrete;
+        const variable = namespace.addVariable({
+            ...options,
+
+            dataType: "UInteger",
+            typeDefinition: multiStateDiscreteType.nodeId,
+            value: new Variant({
+                dataType: DataType.UInt32,
+                value: options.value
+            }),
+
+            valueRank: -2
+        }) as UAMultiStateDiscrete;
         Object.setPrototypeOf(variable, UAMultiStateDiscrete.prototype);
 
         add_dataItem_stuff(variable, options);
@@ -741,10 +741,10 @@ export class UANamespace implements NamespacePublic {
             referenceTypeIds: {} as { [key: string]: string }
         };
 
-        for (const referenceType of _.values(this._referenceTypeMap)) {
+        for (const referenceType of Object.values(this._referenceTypeMap)) {
             standardNodeIds.referenceTypeIds[referenceType!.browseName!.name!] = referenceType.nodeId.toString();
         }
-        for (const objectType of _.values(this._objectTypeMap)) {
+        for (const objectType of Object.values(this._objectTypeMap)) {
             standardNodeIds.objectTypeIds[objectType!.browseName!.name!] = objectType.nodeId.toString();
         }
         return standardNodeIds;
@@ -802,12 +802,11 @@ export class UANamespace implements NamespacePublic {
         if (!dataItemType) {
             throw new Error("Cannot find DataItemType");
         }
-        const variable = namespace.addVariable(
-            _.extend(options, {
-                dataType,
-                typeDefinition: dataItemType.nodeId
-            })
-        ) as UAVariable;
+        const variable = namespace.addVariable({
+            ...options,
+            dataType,
+            typeDefinition: dataItemType.nodeId
+        }) as UAVariable;
 
         add_dataItem_stuff(variable, options);
 
@@ -876,12 +875,7 @@ export class UANamespace implements NamespacePublic {
             throw new Error("expecting AnalogItemType to be defined , check nodeset xml file");
         }
 
-        let clone_options = _.clone(options) as AddVariableOptions;
-
-        clone_options = _.extend(clone_options, {
-            dataType,
-            typeDefinition: analogItemType.nodeId
-        });
+        const clone_options = { ...options, dataType, typeDefinition: analogItemType.nodeId } as AddVariableOptions;
 
         const variable = namespace.addVariable(clone_options) as UAVariable;
 
@@ -1043,15 +1037,15 @@ export class UANamespace implements NamespacePublic {
             options.value = enumValues[0].value; // Int64
         }
 
-        let cloned_options = _.clone(options) as AddVariableOptions;
-        cloned_options = _.extend(cloned_options, {
+        const cloned_options = {
+            ...options,
             dataType: "Number",
             typeDefinition: multiStateValueDiscreteType.nodeId,
             // valueRank:
             // note : OPCUA Spec 1.03 specifies -1:Scalar (part 8 page 8) but nodeset file specifies -2:Any
             value: new Variant({ dataType: DataType.UInt32, value: options.value }),
             valueRank: -1 // -1 : Scalar
-        });
+        };
 
         const variable = namespace.addVariable(cloned_options) as UAMultiStateValueDiscrete;
 

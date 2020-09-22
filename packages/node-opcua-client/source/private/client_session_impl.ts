@@ -166,9 +166,9 @@ function coerceReadValueId(node: any): ReadValueId {
 const keys = Object.keys(AttributeIds).filter((k: any) => (AttributeIds as any)[k] !== AttributeIds.INVALID);
 
 const attributeNames: string[] = ((): string[] => {
-    const r = [];
+    const r: string[] = [];
     for (let i = 1; i <= 22; i++) {
-        r.push(attributeNameById[i]);
+        r.push(attributeNameById[i].toString());
     }
     return r;
 })();

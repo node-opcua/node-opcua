@@ -2347,7 +2347,7 @@ export interface IEventData {
 export interface AddressSpace {
     rootFolder: RootFolder;
 
-    historizingNodes?: any;
+    historizingNodes?: { [key: string]: UAVariable };
 
     /**
      * when this flag is set, properties and components are not added as javascript

@@ -13,7 +13,6 @@
     "build-docker": "docker build . -t lds"
   },
   "dependencies": {
-    "async": "^3.2.0",
     "bonjour": "^3.5.0",
     "colors": "^1.4.0",
     "env-paths": "^2.2.0",

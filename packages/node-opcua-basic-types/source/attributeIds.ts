@@ -2,7 +2,6 @@
  * @module node-opcua-basic-types
  */
 import { assert } from "node-opcua-assert";
-import * as _ from "underscore";
 
 export enum AttributeIds {
     NodeId = 1,
@@ -37,8 +36,14 @@ export enum AttributeIds {
     INVALID = 999
 }
 
-// deprecated use getAttributeName(attributeId: AttributeIds);
-export const attributeNameById = _.invert(AttributeIds);
+// see https://github.com/you-dont-need/You-Dont-Need-Lodash-Underscore/issues/296
+function invert(a: { [key: string]: string | number }) {
+    return Object.entries(a).reduce((c, [k, v]) => {
+        c[v] = k;
+        return c;
+    }, {} as { [key: string]: string | number });
+}
+export const attributeNameById = invert(AttributeIds);
 
 export function isValidAttributeId(attributeId: any) {
     assert(isFinite(attributeId));

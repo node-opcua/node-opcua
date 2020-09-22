@@ -2,7 +2,6 @@
  * @module node-opcua-client-proxy
  */
 import * as async from "async";
-import * as _ from "underscore";
 
 import { assert } from "node-opcua-assert";
 import { Callback, ErrorCallback } from "node-opcua-status-code";
@@ -191,14 +190,12 @@ function add_method(proxyManager: UAProxyManager, obj: any, reference: Reference
             const outputArgs: any = {};
 
             const outputArgsDef = obj[name].outputArguments;
-
-            _.zip(outputArgsDef, callResult.outputArguments).forEach((pair: any) => {
-                const arg = pair[0];
-                const variant = pair[1];
-
+            outputArgsDef.map((arg: any, index: number) => {
+                const variant = callResult!.outputArguments![index];
                 const propName = lowerFirstLetter(arg.name);
                 outputArgs[propName] = variant.value;
             });
+
             callback(err, outputArgs);
         });
     };

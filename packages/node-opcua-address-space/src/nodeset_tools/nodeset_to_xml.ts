@@ -6,8 +6,6 @@ import { AddressSpacePrivate } from "../address_space_private";
 
 // tslint:disable:no-var-requires
 const XMLWriter = require("xml-writer");
-import * as _ from "underscore";
-
 import { assert } from "node-opcua-assert";
 import {
     BrowseDirection,
@@ -496,7 +494,7 @@ function visitUANode(node: BaseNode, options: any, forward: boolean) {
         }
     }
 
-    _.forEach(node.ownReferences(), process_reference);
+    node.ownReferences().forEach(process_reference);
     options.elements.push(node);
     return node;
 }
@@ -983,7 +981,7 @@ function buildUpAliases(node: BaseNode, xw: XmlWriter, options: any) {
         }
     }
 
-    _.forEach(node.allReferences(), collectReferenceNameInAlias);
+    node.allReferences().forEach(collectReferenceNameInAlias);
 }
 
 function writeAliases(xw: XmlWriter, aliases: any) {
@@ -1111,7 +1109,7 @@ UANamespace.prototype.toNodeset2XML = function (this: UANamespace) {
     xw.endElement();
 
     const s: any = {};
-    for (const node of _.values(this._nodeid_index)) {
+    for (const node of Object.values(this._nodeid_index)) {
         buildUpAliases(node, xw, s);
     }
     writeAliases(xw, s.aliases);
@@ -1120,7 +1118,7 @@ UANamespace.prototype.toNodeset2XML = function (this: UANamespace) {
 
     // -------------- writeReferences
     xw.writeComment("ReferenceTypes");
-    const referenceTypes = _.values(this._referenceTypeMap).sort(sortByBrowseName);
+    const referenceTypes = Object.values(this._referenceTypeMap).sort(sortByBrowseName);
     for (const referenceType of referenceTypes) {
         dumpReferenceType(xw, referenceType);
     }
@@ -1148,7 +1146,7 @@ UANamespace.prototype.toNodeset2XML = function (this: UANamespace) {
         }
     }
     // -------------- DataTypes
-    const dataTypes = _.values(this._dataTypeMap).sort(sortByBrowseName);
+    const dataTypes = Object.values(this._dataTypeMap).sort(sortByBrowseName);
     if (dataTypes.length) {
         xw.writeComment("DataTypes");
         // xx xw.writeComment(" "+ objectTypes.map(x=>x.browseName.name.toString()).join(" "));
@@ -1160,7 +1158,7 @@ UANamespace.prototype.toNodeset2XML = function (this: UANamespace) {
     }
     // -------------- ObjectTypes
     xw.writeComment("ObjectTypes");
-    const objectTypes = _.values(this._objectTypeMap).sort(sortByBrowseName);
+    const objectTypes = Object.values(this._objectTypeMap).sort(sortByBrowseName);
     // xx xw.writeComment(" "+ objectTypes.map(x=>x.browseName.name.toString()).join(" "));
     for (const objectType of objectTypes) {
         if (!xw.visitedNode[_hash(objectType)]) {
@@ -1170,7 +1168,7 @@ UANamespace.prototype.toNodeset2XML = function (this: UANamespace) {
 
     // -------------- VariableTypes
     xw.writeComment("VariableTypes");
-    const variableTypes = _.values(this._variableTypeMap).sort(sortByBrowseName);
+    const variableTypes = Object.values(this._variableTypeMap).sort(sortByBrowseName);
     // xx xw.writeComment("ObjectTypes "+ variableTypes.map(x=>x.browseName.name.toString()).join(" "));
     for (const variableType of variableTypes) {
         if (!xw.visitedNode[_hash(variableType)]) {
@@ -1180,7 +1178,7 @@ UANamespace.prototype.toNodeset2XML = function (this: UANamespace) {
 
     // -------------- Any   thing else
     xw.writeComment("Other Nodes");
-    const nodes = _.values(this._nodeid_index).sort(sortByBrowseName);
+    const nodes = Object.values(this._nodeid_index).sort(sortByBrowseName);
     for (const node of nodes) {
         if (!xw.visitedNode[_hash(node)]) {
             node.dumpXML(xw);

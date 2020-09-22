@@ -1,5 +1,3 @@
-import * as _ from "underscore";
-
 import { AttributeIds, BrowseDirection, makeNodeClassMask } from "node-opcua-data-model";
 import { NodeClass } from "node-opcua-data-model";
 import { redirectToFile } from "node-opcua-debug";
@@ -103,11 +101,12 @@ describe("testing ReferenceType", () => {
         });
         references.length.should.be.greaterThan(2);
 
-        const names = references.map((ref) => {
+        const browseNames = references.map((ref) => {
             return addressSpace.findNode(ref.nodeId)!.browseName.toString();
         });
-        const expectedNames = ["FolderType", "Objects", "Types", "Views"];
-        _.intersection(names, expectedNames).length.should.eql(expectedNames.length);
+        const expectedBrowseNames = ["FolderType", "Objects", "Types", "Views"];
+        browseNames.sort().should.eql(expectedBrowseNames.sort());
+        // xx _.intersection(names, expectedNames).length.should.eql(expectedNames.length);
     });
 
     it("should return 1 refs for browseNode on RootFolder ,  NonHierarchicalReferences, includeSubtypes  ", () => {
@@ -131,11 +130,10 @@ describe("testing ReferenceType", () => {
         });
         references.length.should.be.greaterThan(2);
 
-        const names = references.map((ref) => {
-            return addressSpace.findNode(ref.nodeId)!.browseName.toString();
-        });
-        const expectedNames = ["Objects", "Types", "Views"];
-        _.intersection(names, expectedNames).length.should.eql(expectedNames.length);
+        const browseNames = references.map((ref) => addressSpace.findNode(ref.nodeId)!.browseName.toString());
+        const expectedBrowseNames = ["Objects", "Types", "Views"];
+        // _.intersection(names, expectedNames).length.should.eql(expectedNames.length);
+        browseNames.sort().should.eql(expectedBrowseNames.sort());
     });
 
     it("should return 0 refs for browseNode on RootFolder , HierarchicalReferences ,!includeSubtypes  ", () => {
@@ -186,8 +184,8 @@ describe("testing ReferenceType", () => {
         references.length.should.equal(6);
 
         const expectedBrowseNames = ["StartTime", "CurrentTime", "State", "BuildInfo", "SecondsTillShutdown", "ShutdownReason"];
-
-        _.intersection(browseNames, expectedBrowseNames).length.should.eql(expectedBrowseNames.length);
+        // _.intersection(browseNames, expectedBrowseNames).length.should.eql(expectedBrowseNames.length);
+        browseNames.sort().should.eql(expectedBrowseNames.sort());
     });
 
     it("ServerStatus parent shall be Server", () => {
@@ -220,7 +218,8 @@ describe("testing ReferenceType", () => {
 
         // xx references.length.should.equal(7);
         const expectedBrowseNames = ["Server"];
-        _.intersection(browseNames, expectedBrowseNames).length.should.eql(expectedBrowseNames.length);
+        // xx   _.intersection(browseNames, expectedBrowseNames).length.should.eql(expectedBrowseNames.length);
+        browseNames.sort().should.eql(expectedBrowseNames.sort());
 
         redirectToFile(
             "ReferenceDescription1.log",
@@ -256,7 +255,7 @@ describe("testing ReferenceType", () => {
             "ShutdownReason",
             "Server"
         ];
-        _.intersection(browseNames, expectedBrowseNames).length.should.eql(expectedBrowseNames.length);
+        browseNames.sort().should.eql(expectedBrowseNames.sort());
 
         redirectToFile(
             "ReferenceDescription2.log",
@@ -284,7 +283,7 @@ describe("testing ReferenceType", () => {
             return r.browseName.name;
         });
         const expectedBrowseNames = ["Server"];
-        _.intersection(browseNames, expectedBrowseNames).length.should.eql(expectedBrowseNames.length);
+        browseNames.sort().should.eql(expectedBrowseNames.sort());
     });
 
     it("should return 1 refs for browseNode on Server (BrowseDirection.Forward) and NodeClass set to Method", () => {
@@ -306,7 +305,8 @@ describe("testing ReferenceType", () => {
         references.length.should.equal(1);
 
         const expectedBrowseNames = ["GetMonitoredItems"];
-        _.intersection(browseNames, expectedBrowseNames).length.should.eql(expectedBrowseNames.length);
+        browseNames.sort().should.eql(expectedBrowseNames.sort());
+        // xx _.intersection(browseNames, expectedBrowseNames).length.should.eql(expectedBrowseNames.length);
     });
 
     it("ReferenceType should have a toString (HierarchicalReferences)", () => {

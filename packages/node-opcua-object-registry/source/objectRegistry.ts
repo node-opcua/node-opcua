@@ -3,13 +3,11 @@
  */
 import { assert } from "node-opcua-assert";
 import { trace_from_this_projet_only } from "node-opcua-debug";
-import * as _ from "underscore";
 
 const gRegistries: ObjectRegistry[] = [];
 let hashCounter = 1;
 
 export class ObjectRegistry {
-
     public static doDebug = false;
     public static registries: any = gRegistries;
 
@@ -17,7 +15,6 @@ export class ObjectRegistry {
     private readonly _cache: any;
 
     constructor(objectType?: any) {
-
         this._objectType = objectType;
         this._cache = {};
         gRegistries.push(this);
@@ -28,7 +25,6 @@ export class ObjectRegistry {
     }
 
     public register(obj: any): void {
-
         if (!this._objectType) {
             this._objectType = obj.constructor;
         }
@@ -56,17 +52,17 @@ export class ObjectRegistry {
     }
 
     public toString(): string {
-
         const className = this.getClassName();
         let str = " className :" + className + " found => " + this.count() + " object leaking\n";
 
-        _.forEach(this._cache, (obj: any/*,key*/) => {
+        Object.values(this._cache).forEach((obj: any /*,key*/) => {
             str += obj.constructor.name + " " + obj.toString() + "\n";
         });
 
         if (ObjectRegistry.doDebug) {
-            _.forEach(this._cache, (obj: any, key) => {
+            Object.values(this._cache).forEach((obj: any, key) => {
                 const cachedObject = this._cache[key];
+                if (!cachedObject) return;
                 assert(cachedObject.hasOwnProperty("_____trace"));
                 str += "   " + key + cachedObject._____trace + "\n";
             });

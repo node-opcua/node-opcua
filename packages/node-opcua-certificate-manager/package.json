@@ -16,7 +16,6 @@
     "types": "./dist/index.d.ts",
     "dependencies": {
         "@types/mkdirp": "0.5.2",
-        "async": "^3.2.0",
         "chalk": "^4.1.0",
         "delayed": "^2.0.0",
         "env-paths": "^2.2.0",

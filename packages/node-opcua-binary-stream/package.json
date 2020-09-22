@@ -13,9 +13,7 @@
 	"dependencies": {
 		"colors": "^1.4.0",
 		"node-opcua-assert": "2.16.0",
-		"node-opcua-buffer-utils": "2.16.0",
-		"@types/underscore": "^1.10.23",
-		"underscore": "^1.11.0"
+		"node-opcua-buffer-utils": "2.16.0"
 	},
 	"devDependencies": {
 		"node-opcua-benchmarker": "2.16.0",

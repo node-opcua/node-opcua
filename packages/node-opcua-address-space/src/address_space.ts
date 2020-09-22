@@ -3,7 +3,6 @@
  */
 
 import * as chalk from "chalk";
-import * as _ from "underscore";
 
 import { assert } from "node-opcua-assert";
 import { ExtraDataTypeManager } from "node-opcua-client-dynamic-extension-object";
@@ -25,8 +24,6 @@ import {
 import * as utils from "node-opcua-utils";
 import { lowerFirstLetter } from "node-opcua-utils";
 import { DataType, Variant, VariantT } from "node-opcua-variant";
-import { AnyConstructorFunc } from "node-opcua-schemas";
-import { ConstructorFuncWithSchema } from "node-opcua-factory";
 import {
     AddReferenceOpts,
     AddressSpace as AddressSpacePublic,
@@ -141,7 +138,7 @@ export class AddressSpace implements AddressSpacePrivate {
      */
     public suspendBackReference: boolean = false;
     public isFrugal: boolean = false;
-    public historizingNodes?: any = {};
+    public historizingNodes?: { [key: string]: UAVariable } = {};
     public _condition_refresh_in_progress: boolean = false;
 
     public readonly isNodeIdString = isNodeIdString;
@@ -1207,7 +1204,9 @@ export class AddressSpace implements AddressSpacePrivate {
                 // xx console.log( "xx dealing with ",this._modelChanges.length);
                 // increase version number of participating nodes
 
-                const nodeIds = _.uniq(this._modelChanges.map((c: any) => c.affected));
+                // https://github.com/you-dont-need/You-Dont-Need-Lodash-Underscore
+                // const nodeIds = _.uniq(this._modelChanges.map((c: any) => c.affected));
+                const nodeIds = [...new Set(this._modelChanges.map((c: any) => c.affected))];
 
                 const nodes = nodeIds.map((nodeId: NodeId) => addressSpace.findNode(nodeId)!);
 
@@ -1481,7 +1480,7 @@ export class AddressSpace implements AddressSpacePrivate {
 
         if (!el) {
             // verify that node Id exists in standard type map typeMap
-            const find = _.filter(typeMap, (a) => a === nodeId!.value);
+            const find = Object.values(typeMap).filter((a) => a === nodeId!.value);
             /* istanbul ignore next */
             if (find.length !== 1) {
                 throw new Error(" cannot find " + dataType.toString() + " in typeMap " + typeMapName + " L = " + find.length);

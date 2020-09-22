@@ -2,7 +2,6 @@
  * @module node-opcua-address-space.AlarmsAndConditions
  */
 import * as chalk from "chalk";
-import * as _ from "underscore";
 
 import { assert } from "node-opcua-assert";
 import { ByteString, DateTime } from "node-opcua-basic-types";
@@ -211,7 +210,7 @@ export class UAConditionBase extends BaseEventType {
     }
     private _branch0: ConditionSnapshot = null as any;
     private _previousRetainFlag: boolean = false;
-    private _branches: any = {};
+    private _branches: { [key: string]: ConditionSnapshot } = {};
 
     /**
      * @method initialize
@@ -656,9 +655,9 @@ export class UAConditionBase extends BaseEventType {
         if (sameBuffer(conditionNode.eventId!.readValue().value.value, eventId)) {
             return conditionNode.currentBranch();
         }
-        const e = _.filter(conditionNode._branches, (branch: ConditionSnapshot, key: string) => {
-            return sameBuffer(branch.getEventId(), eventId);
-        });
+        const e = Object.values(conditionNode._branches).filter((branch: ConditionSnapshot) =>
+            sameBuffer(branch.getEventId(), eventId)
+        );
         if (e.length === 1) {
             return e[0];
         }

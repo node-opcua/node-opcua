@@ -3,8 +3,6 @@
  */
 // tslint:disable:no-bitwise
 import * as chalk from "chalk";
-import * as _ from "underscore";
-
 import { assert } from "node-opcua-assert";
 import {
     AccessLevelFlag,
@@ -189,9 +187,9 @@ export function BaseNode_References_toString(this: BaseNode, options: ToStringOp
     }
 
     // direct reference
-    _.forEach(_private._referenceIdx, dump_reference.bind(null, true));
+    (Object.values(_private._referenceIdx) as Reference[]).forEach(dump_reference.bind(null, true));
 
-    const br = _.map(_private._back_referenceIdx, (x: Reference) => x);
+    const br = (Object.values(_private._back_referenceIdx) as Reference[]).map((x: Reference) => x);
 
     options.add(
         options.padding +
@@ -458,13 +456,14 @@ export function _clone(
     );
     assert(!(this as any).subtypeOf, "We do not do cloning of Type yet");
 
-    options = _.extend(options, {
+    options = {
+        ...options,
         addressSpace: this.addressSpace,
         browseName: this.browseName,
         description: this.description,
         displayName: this.displayName,
         nodeClass: this.nodeClass
-    });
+    };
     options.references = options.references || [];
 
     if (this.typeDefinition) {
@@ -627,7 +626,9 @@ export function BaseNode_add_backward_reference(this: BaseNode, reference: Refer
         // tslint:disable-next-line:no-console
         console.warn(" already found in ===>");
         // tslint:disable-next-line:no-console
-        console.warn(_.map(_private._back_referenceIdx, (c: Reference) => c.toString(opts)).join("\n"));
+        console.warn(
+            (Object.values(_private._back_referenceIdx) as Reference[]).map((c: Reference) => c.toString(opts)).join("\n")
+        );
         // tslint:disable-next-line:no-console
         console.warn("===>");
         throw new Error("reference exists already in _back_references");
