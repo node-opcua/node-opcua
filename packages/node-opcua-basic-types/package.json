@@ -1,6 +1,6 @@
 {
     "name": "node-opcua-basic-types",
-    "version": "2.16.0",
+    "version": "2.17.0",
     "description": "pure nodejs OPCUA SDK - module -basic-types",
     "main": "./dist/index.js",
     "types": "./dist/index.d.ts",
@@ -12,18 +12,18 @@
     },
     "dependencies": {
         "node-opcua-assert": "2.16.0",
-        "node-opcua-binary-stream": "2.16.0",
-        "node-opcua-buffer-utils": "2.16.0",
-        "node-opcua-date-time": "2.16.0",
-        "node-opcua-enum": "2.16.0",
+        "node-opcua-binary-stream": "2.17.0",
+        "node-opcua-buffer-utils": "2.17.0",
+        "node-opcua-date-time": "2.17.0",
+        "node-opcua-enum": "2.17.0",
         "node-opcua-guid": "2.16.0",
-        "node-opcua-nodeid": "2.16.0",
-        "node-opcua-status-code": "2.16.0",
-        "node-opcua-utils": "2.16.0"
+        "node-opcua-nodeid": "2.17.0",
+        "node-opcua-status-code": "2.17.0",
+        "node-opcua-utils": "2.17.0"
     },
     "devDependencies": {
         "@types/node": "^14.11.1",
-        "node-opcua-debug": "2.16.0",
+        "node-opcua-debug": "2.17.0",
         "should": "^13.2.3"
     },
     "author": "Etienne Rossignon",
