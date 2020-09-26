@@ -161,12 +161,12 @@ export interface ClientSubscription extends EventEmitter {
         itemToMonitor: ReadValueIdOptions,
         requestedParameters: MonitoringParametersOptions,
         timestampsToReturn: TimestampsToReturn
-    ): Promise<ClientMonitoredItemBase>;
+    ): Promise<ClientMonitoredItem>;
     monitor(
         itemToMonitor: ReadValueIdOptions,
         requestedParameters: MonitoringParametersOptions,
         timestampsToReturn: TimestampsToReturn,
-        done: (err: Error | null, monitoredItem?: ClientMonitoredItemBase) => void
+        done: (err: Error | null, monitoredItem?: ClientMonitoredItem) => void
     ): void;
 
     /**
