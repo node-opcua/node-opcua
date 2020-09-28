@@ -112,8 +112,8 @@ export class ServerTCP_transport extends TCP_transport {
 
         /* istanbul ignore else */
         if (!this._aborted) {
+            this._aborted = 1;
             setTimeout(() => {
-                this._aborted = 1;
                 // send the error message and close the connection
                 assert(StatusCodes.hasOwnProperty(statusCode.name));
 

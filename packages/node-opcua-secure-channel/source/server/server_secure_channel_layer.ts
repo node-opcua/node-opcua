@@ -39,7 +39,7 @@ import {
 } from "node-opcua-service-secure-channel";
 import { StatusCode, StatusCodes } from "node-opcua-status-code";
 import { ServerTCP_transport } from "node-opcua-transport";
-import { get_clock_tick } from "node-opcua-utils";
+import { get_clock_tick, timestamp } from "node-opcua-utils";
 import { Callback2, ErrorCallback } from "node-opcua-status-code";
 
 import { SecureMessageChunkManagerOptions, SecurityHeader } from "../secure_message_chunk_manager";
@@ -70,6 +70,9 @@ const debugLog = make_debugLog(__filename);
 const doDebug = checkDebugFlag(__filename);
 
 const doTraceMessage = process.env.NODEOPCUADEBUG && process.env.NODEOPCUADEBUG.indexOf("SERVERTRACE") >= 0;
+const doTraceRequest = process.env.NODEOPCUADEBUG && process.env.NODEOPCUADEBUG.indexOf("REQUEST") >= 0;
+const doTraceResponse = process.env.NODEOPCUADEBUG && process.env.NODEOPCUADEBUG.indexOf("RESPONSE") >= 0;
+const doPerfMonitoring = process.env.NODEOPCUADEBUG && process.env.NODEOPCUADEBUG.indexOf("PERF") >= 0;
 
 let gLastChannelId = 0;
 
@@ -77,8 +80,6 @@ function getNextChannelId() {
     gLastChannelId += 1;
     return gLastChannelId;
 }
-
-const doPerfMonitoring = process.env.NODEOPCUADEBUG && process.env.NODEOPCUADEBUG.indexOf("PERF") >= 0;
 
 export interface ServerSecureChannelParent extends ICertificateKeyPairProvider {
     certificateManager: ICertificateManager;
@@ -134,18 +135,44 @@ function _dump_transaction_statistics(stats?: ServerTransactionStatistics) {
     }
 }
 
+function traceResponseMessage(response: Response, channelId: number) {
+    assert(response.responseHeader.requestHandle >= 0);
+    if (doTraceMessage) {
+        const requestId = response.responseHeader.requestHandle;
+        console.log(
+            chalk.cyan.bold(timestamp(), "   <<<< ------ "),
+            chalk.green.bold(response.schema.name.padEnd(32)),
+            "requestId=",
+            requestId.toString().padStart(6),
+            "channelId=",
+            channelId.toString().padStart(3),
+            "serviceResult",
+            response.responseHeader.serviceResult.toString()
+        );
+        if (doTraceResponse) {
+            console.log(response.toString());
+            console.log(chalk.cyan.bold("       <<<< ------n"));
+        }
+    }
+}
+
 // istanbul ignore next
-function dump_request(request: Request, requestId: number, channelId: number) {
-    console.log(
-        chalk.cyan("xxxx   <<<< ---------------------------------------- "),
-        chalk.yellow(request.schema.name),
-        "requestId",
-        requestId,
-        "channelId=",
-        channelId
-    );
-    console.log(request.toString());
-    console.log(chalk.cyan("xxxx   <<<< ---------------------------------------- \n"));
+function traceRequestMessage(request: Request, channelId: number) {
+    if (doTraceMessage) {
+        const requestId = request.requestHeader.requestHandle;
+        console.log(
+            chalk.cyan.bold(timestamp(), "   >>>> ------ "),
+            chalk.yellow(request.schema.name.padEnd(32)),
+            "requestId=",
+            requestId.toString().padStart(6),
+            "channelId=",
+            channelId.toString().padStart(3)
+        );
+        if (doTraceRequest) {
+            console.log(request.toString());
+            console.log(chalk.cyan("   >>>> ------ \n"));
+        }
+    }
 }
 
 function isValidSecurityPolicy(securityPolicy: SecurityPolicy) {
@@ -555,6 +582,7 @@ export class ServerSecureChannelLayer extends EventEmitter {
     public send_response(msgType: string, response: Response, message: Message, callback?: ErrorCallback): void {
         const request = message.request;
         const requestId = message.requestId;
+        assert(requestId !== 0);
 
         if (this.aborted) {
             debugLog("channel has been terminated , cannot send responses");
@@ -604,13 +632,7 @@ export class ServerSecureChannelLayer extends EventEmitter {
 
         /* istanbul ignore next */
         if (doTraceMessage) {
-            console.log(
-                chalk.cyan.bold("xxxx   >>>> ---------------------------------------- "),
-                chalk.green.bold(response.schema.name),
-                requestId
-            );
-            console.log(response.toString());
-            console.log(chalk.cyan.bold("xxxx   >>>> ----------------------------------------|\n"));
+            traceResponseMessage(response, this.securityToken.channelId);
         }
 
         if (this._on_response) {
@@ -634,32 +656,6 @@ export class ServerSecureChannelLayer extends EventEmitter {
                 callback(new Error(description + " statusCode = " + statusCode.toString()));
             });
         });
-    }
-    /**
-     *
-     * send a ServiceFault response abd abort the connection
-     */
-    private _send_ServiceFault_and_abort(
-        statusCode: StatusCode,
-        description: string,
-        message: Message,
-        callback: ErrorCallback
-    ): void {
-        assert(message.request.schema);
-        assert(message.requestId > 0);
-        assert(typeof callback === "function");
-
-        const response = new ServiceFault({
-            responseHeader: { serviceResult: statusCode }
-        });
-
-        response.responseHeader.stringTable = [description];
-        setTimeout(() => {
-            // Throttle
-            this.send_response("MSG", response, message, () => {
-                this.close(callback);
-            });
-        }, ServerSecureChannelLayer.throttleTime); // Throttling keep connection on hold for a while.
     }
 
     /**
@@ -813,7 +809,7 @@ export class ServerSecureChannelLayer extends EventEmitter {
     ) {
         /* istanbul ignore next */
         if (doTraceMessage) {
-            dump_request(request, requestId, channelId);
+            traceRequestMessage(request, channelId);
         }
 
         assert(typeof callback === "function");
@@ -1040,12 +1036,12 @@ export class ServerSecureChannelLayer extends EventEmitter {
         return securityHeader;
     }
 
-    private checkCertificateCallback(
+    protected checkCertificateCallback(
         certificate: Certificate | null,
         callback: (err: Error | null, statusCode?: StatusCode) => void
     ): void {}
 
-    private async checkCertificate(certificate: Certificate | null): Promise<StatusCode> {
+    protected async checkCertificate(certificate: Certificate | null): Promise<StatusCode> {
         if (!certificate) {
             return StatusCodes.Good;
         }
@@ -1160,8 +1156,6 @@ export class ServerSecureChannelLayer extends EventEmitter {
             serverProtocolVersion: this.protocolVersion
         });
 
-        response.responseHeader.serviceResult = serviceResult;
-
         this.send_response("OPN", response, message, (/*err*/) => {
             const responseHeader = response.responseHeader;
             if (responseHeader.serviceResult !== StatusCodes.Good) {
@@ -1221,7 +1215,7 @@ export class ServerSecureChannelLayer extends EventEmitter {
     private _on_common_message(request: Request, msgType: string, requestId: number, channelId: number) {
         /* istanbul ignore next */
         if (doTraceMessage) {
-            dump_request(request, requestId, channelId);
+            traceRequestMessage(request, channelId);
         }
 
         if (this.messageBuilder.sequenceHeader === null) {
@@ -1328,21 +1322,19 @@ export class ServerSecureChannelLayer extends EventEmitter {
     // Bad_NonceInvalid
 
     private _on_OpenSecureChannelRequestError(
-        statusCode: StatusCode,
+        serviceResult: StatusCode,
         description: string,
         message: Message,
         callback: ErrorCallback
     ) {
-        debugLog("ServerSecureChannel sendError: ", statusCode.toString(), description, message.request.constructor.name);
+        debugLog("ServerSecureChannel sendError: ", serviceResult.toString(), description, message.request.constructor.name);
 
         // turn of security mode as we haven't manage to set it to
         this.securityMode = MessageSecurityMode.None;
 
-        // unexpected message type ! let close the channel
-        const err = new Error(description);
-        this._send_ServiceFault_and_abort(statusCode, description, message, () => {
-            callback(err); // OK
-        });
+        setTimeout(() => {
+            this.send_fatal_error_and_abort(serviceResult, description, message, callback);
+        }, ServerSecureChannelLayer.throttleTime); // Throttling keep connection on hold for a while.
     }
 
     private _on_initial_OpenSecureChannelRequest(message: Message, callback: ErrorCallback) {
@@ -1357,7 +1349,7 @@ export class ServerSecureChannelLayer extends EventEmitter {
         let description;
 
         // expecting a OpenChannelRequest as first communication message
-        if (!((request as any) instanceof OpenSecureChannelRequest)) {
+        if (!(request instanceof OpenSecureChannelRequest)) {
             description = "Expecting OpenSecureChannelRequest";
             console.log(chalk.red("ERROR"), "BadCommunicationError: expecting a OpenChannelRequest as first communication message");
             return this._on_OpenSecureChannelRequestError(StatusCodes.BadCommunicationError, description, message, callback);
@@ -1417,15 +1409,6 @@ export class ServerSecureChannelLayer extends EventEmitter {
                 // OPCUA specification v1.02 part 6 page 42 $6.7.4
                 // If an error occurs after the  Server  has verified  Message  security  it  shall  return a  ServiceFault  instead
                 // of a OpenSecureChannel  response. The  ServiceFault  Message  is described in  Part  4,   7.28.
-                if (
-                    statusCode === StatusCodes.BadCertificateUntrusted ||
-                    statusCode === StatusCodes.BadCertificateRevoked ||
-                    false
-                    //  statusCode === StatusCodes.BadCertificateTimeInvalid ||
-                ) {
-                    statusCode = StatusCodes.BadSecurityChecksFailed;
-                }
-                // return this.send_fatal_error_and_abort(statusCode!, "", message, callback);
                 return this._on_OpenSecureChannelRequestError(statusCode, description, message, callback);
             }
 

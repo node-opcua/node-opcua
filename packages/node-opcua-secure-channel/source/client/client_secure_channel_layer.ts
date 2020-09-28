@@ -748,7 +748,7 @@ export class ClientSecureChannelLayer extends EventEmitter {
             console.log(
                 chalk.cyan.bold(timestamp(), "  <<<<<< _on_message_received "),
                 requestId,
-                response.schema.name,
+                response.schema.name.padStart(30),
                 response.responseHeader.serviceResult.toString()
             );
         }
@@ -758,7 +758,7 @@ export class ClientSecureChannelLayer extends EventEmitter {
         /* istanbul ignore next */
         if (!requestData) {
             console.log(
-                chalk.cyan.bold("xxxxx  <<<<<< _on_message_received for unknwonw or timeout request "),
+                chalk.cyan.bold("xxxxx  <<<<<< _on_message_received for unknown or timeout request "),
                 requestId,
                 response.schema.name,
                 response.responseHeader.serviceResult.toString()
