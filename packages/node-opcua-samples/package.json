@@ -1,6 +1,6 @@
 {
     "name": "node-opcua-samples",
-    "version": "2.17.0",
+    "version": "2.18.0",
     "description": "pure nodejs OPCUA SDK - module -samples",
     "bin": {
         "simple_client": "./bin/simple_client_ts.ts",
@@ -21,10 +21,10 @@
         "colors": "^1.4.0",
         "easy-table": "^1.1.1",
         "exit": "^0.1.2",
-        "node-opcua": "2.17.0",
+        "node-opcua": "2.18.0",
         "node-opcua-assert": "2.16.0",
         "node-opcua-pki": "^2.1.5",
-        "node-opcua-server-configuration": "2.17.0",
+        "node-opcua-server-configuration": "2.18.0",
         "sprintf-js": "^1.1.2",
         "treeify": "^1.1.0",
         "underscore": "^1.11.0",
