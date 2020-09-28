@@ -46,9 +46,11 @@ import {
     getCryptoFactory,
     SecurityPolicy
 } from "./security_policy";
+import { timestamp } from "node-opcua-utils";
 
 const debugLog = make_debugLog(__filename);
 const doDebug = checkDebugFlag(__filename);
+const doTraceChunk = process.env.NODEOPCUADEBUG && process.env.NODEOPCUADEBUG.indexOf("CHUNK") >= 0;
 
 export interface SecurityToken {
     tokenId: number;
@@ -163,6 +165,10 @@ export class MessageBuilder extends MessageBuilderBase {
     protected _read_headers(binaryStream: BinaryStream): boolean {
         super._read_headers(binaryStream);
 
+        // istanbul ignore next
+        if (!this.messageHeader) {
+            throw new Error("internal error");
+        }
         assert(binaryStream.length === 12);
 
         const msgType = this.messageHeader.msgType;
@@ -179,6 +185,19 @@ export class MessageBuilder extends MessageBuilderBase {
             if (doDebug) {
                 debugLog(chalk.red.bold(" ERROR RECEIVED FROM SENDER"), chalk.cyan(errorCode.toString()), message);
                 debugLog(hexDump(binaryStream.buffer));
+            }
+            if (doTraceChunk) {
+                console.log(
+                    timestamp(),
+                    chalk.red("   >$$ "),
+                    chalk.red(this.messageHeader.msgType),
+                    chalk.red("nbChunk = " + this.messageChunks.length.toString().padStart(3)),
+                    chalk.red("totalLength = " + this.totalMessageSize.toString().padStart(8)),
+                    "l=",
+                    this.messageHeader.length.toString().padStart(6),
+                    errorCode.toString(),
+                    message
+                );
             }
             return true;
         } else {
@@ -202,13 +221,32 @@ export class MessageBuilder extends MessageBuilderBase {
             if (doDebug) {
                 debugLog(" Sequence Header", this.sequenceHeader);
             }
-
+            if (doTraceChunk) {
+                console.log(
+                    timestamp(),
+                    chalk.green("   >$$ "),
+                    chalk.green(this.messageHeader.msgType),
+                    chalk.green("nbChunk = " + this.messageChunks.length.toString().padStart(3)),
+                    chalk.green("totalLength = " + this.totalMessageSize.toString().padStart(8)),
+                    "l=",
+                    this.messageHeader.length.toString().padStart(6),
+                    "s=",
+                    this.sequenceHeader.sequenceNumber.toString().padEnd(4),
+                    "r=",
+                    this.sequenceHeader.requestId.toString().padEnd(4)
+                );
+            }
             this._validateSequenceNumber(this.sequenceHeader.sequenceNumber);
         }
         return true;
     }
 
     protected _decodeMessageBody(fullMessageBody: Buffer): boolean {
+        // istanbul ignore next
+        if (!this.messageHeader) {
+            throw new Error("internal error");
+        }
+
         const binaryStream = new BinaryStream(fullMessageBody);
         const msgType = this.messageHeader.msgType;
 
@@ -222,13 +260,13 @@ export class MessageBuilder extends MessageBuilderBase {
             this._report_error("Invalid message type ( HEL/ACK )");
             return false;
         }
-        if (msgType === "CLO" && fullMessageBody.length === 0) {
+        if (msgType === "CLO" && fullMessageBody.length === 0 && this.sequenceHeader) {
             // The Client closes the connection by sending a CloseSecureChannel request and closing the
             // socket gracefully. When the Server receives this Message, it shall release all resources
             // allocated for the channel. The body of the CloseSecureChannel request is empty. The Server
             // does not send a CloseSecureChannel response.
             const objMessage1 = new CloseSecureChannelRequest();
-            this.emit("message", objMessage1, msgType, this.sequenceHeader!.requestId, this.channelId);
+            this.emit("message", objMessage1, msgType, this.sequenceHeader.requestId, this.channelId);
             return true;
         }
         // read expandedNodeId:
@@ -362,24 +400,27 @@ export class MessageBuilder extends MessageBuilderBase {
 
             debugLog("};");
         }
-
-        // OpcUA part 2 V 1.02 page 15
-        // 4.11 OPC UA Security Related Services
-        // [...]
-        // The OPC UA Client sends its Public Key in a Digital Certificate and secret information with the
-        // OpenSecureChannel service Message to the Server. This Message is secured by applying
-        // Asymmetric Encryption with the Server's Public Key and by generating Asymmetric Signatures with
-        // the Client's Private Key. However the Digital Certificate is sent unencrypted so that the receiver can
-        // use it to verify the Asymmetric Signature.
-        // [...]
-        //
-
-        /* istanbul ignore next */
         if (doDebug) {
+            // OpcUA part 2 V 1.02 page 15
+            // 4.11 OPC UA Security Related Services
+            // [...]
+            // The OPC UA Client sends its Public Key in a Digital Certificate and secret information with the
+            // OpenSecureChannel service Message to the Server. This Message is secured by applying
+            // Asymmetric Encryption with the Server's Public Key and by generating Asymmetric Signatures with
+            // the Client's Private Key. However the Digital Certificate is sent unencrypted so that the receiver can
+            // use it to verify the Asymmetric Signature.
+            // [...]
+            //
+
+            /* istanbul ignore next */
             debugLog(chalk.cyan("EN------------------------------"));
             // xx debugLog(hexDump(binaryStream.buffer, 32, 0xFFFFFFFF));
             debugLog("---------------------- SENDER CERTIFICATE");
             debugLog("thumbprint ", makeSHA1Thumbprint(asymmetricAlgorithmSecurityHeader.senderCertificate).toString("hex"));
+        }
+        if (doTraceChunk) {
+            const thumb = makeSHA1Thumbprint(asymmetricAlgorithmSecurityHeader.senderCertificate).toString("hex");
+            console.log(timestamp(), ` >$$ securityPolicyId:  ${asymmetricAlgorithmSecurityHeader.securityPolicyUri} ${thumb} `);
         }
 
         if (!this.cryptoFactory) {
@@ -578,6 +619,11 @@ export class MessageBuilder extends MessageBuilderBase {
     }
 
     private _decrypt(binaryStream: BinaryStream) {
+        // istanbul ignore next
+        if (!this.messageHeader) {
+            throw new Error("internal error");
+        }
+
         if (this.securityPolicy === SecurityPolicy.Invalid) {
             // this._report_error("SecurityPolicy");
             // return false;

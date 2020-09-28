@@ -10,9 +10,12 @@ import { BinaryStream } from "node-opcua-binary-stream";
 import { DerivedKeys } from "node-opcua-crypto";
 import { BaseUAObject } from "node-opcua-factory";
 import { AsymmetricAlgorithmSecurityHeader, SymmetricAlgorithmSecurityHeader } from "node-opcua-service-secure-channel";
+import { timestamp } from "node-opcua-utils";
 
 import { SecureMessageChunkManager, SecureMessageChunkManagerOptions, SecurityHeader } from "./secure_message_chunk_manager";
 import { SequenceNumberGenerator } from "./sequence_number_generator";
+
+const doTraceChunk = process.env.NODEOPCUADEBUG && process.env.NODEOPCUADEBUG.indexOf("CHUNK") >= 0;
 
 export interface MessageChunkerOptions {
     securityHeader?: SecurityHeader;
@@ -92,11 +95,27 @@ export class MessageChunker {
 
         const chunkManager = new SecureMessageChunkManager(msgType, options, securityHeader, this.sequenceNumberGenerator);
 
+        let nbChunks = 0;
+        let totalSize = 0;
         chunkManager
             .on("chunk", (messageChunk: Buffer) => {
+                nbChunks++;
+                totalSize += messageChunk.length;
                 messageChunkCallback(messageChunk);
             })
             .on("finished", () => {
+                if (doTraceChunk) {
+                    // tslint:disable-next-line: no-console
+                    console.log(
+                        timestamp(),
+                        "   <$$ ",
+                        msgType,
+                        "nbChunk = " + nbChunks.toString().padStart(3),
+                        "totalLength = " + totalSize.toString().padStart(8),
+                        "l=",
+                        binSize.toString().padStart(6)
+                    );
+                }
                 messageChunkCallback(null);
             });
 

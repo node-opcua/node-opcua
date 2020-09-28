@@ -8,10 +8,10 @@ import { BinaryStream } from "node-opcua-binary-stream";
 import { createFastUninitializedBuffer } from "node-opcua-buffer-utils";
 import { readMessageHeader, SequenceHeader } from "node-opcua-chunkmanager";
 import { make_errorLog, make_debugLog } from "node-opcua-debug";
-import { PacketAssembler, PacketInfo } from "node-opcua-packet-assembler";
+import { MessageHeader, PacketAssembler, PacketInfo } from "node-opcua-packet-assembler";
 import { get_clock_tick } from "node-opcua-utils";
 
-const doPerfMonitoring = process.env.NODEOPCUADEBUG && (process.env.NODEOPCUADEBUG.indexOf("PERF")) >= 0;
+const doPerfMonitoring = process.env.NODEOPCUADEBUG && process.env.NODEOPCUADEBUG.indexOf("PERF") >= 0;
 
 const errorLog = make_errorLog("MessageBuilder");
 const debugLog = make_debugLog("MessageBuilder");
@@ -35,7 +35,6 @@ export function readRawMessageHeader(data: Buffer): PacketInfo {
  *
  */
 export class MessageBuilderBase extends EventEmitter {
-
     public readonly signatureLength: number;
     public readonly options: { signatureLength?: number };
     public readonly _packetAssembler: PacketAssembler;
@@ -50,7 +49,7 @@ export class MessageBuilderBase extends EventEmitter {
 
     protected totalBodySize: number;
     protected messageChunks: Buffer[];
-    protected messageHeader: any;
+    protected messageHeader?: MessageHeader;
 
     private _securityDefeated: boolean;
     private _hasReceivedError: boolean;
@@ -59,7 +58,6 @@ export class MessageBuilderBase extends EventEmitter {
     private offsetBodyStart: number;
 
     constructor(options?: { signatureLength?: number }) {
-
         super();
 
         this.id = "";
@@ -85,7 +83,6 @@ export class MessageBuilderBase extends EventEmitter {
         this._packetAssembler.on("message", (messageChunk) => this._feed_messageChunk(messageChunk));
 
         this._packetAssembler.on("newMessage", (info, data) => {
-
             if (doPerfMonitoring) {
                 // record tick 0: when the first data is received
                 this._tick0 = get_clock_tick();
@@ -129,7 +126,6 @@ export class MessageBuilderBase extends EventEmitter {
     }
 
     protected _read_headers(binaryStream: BinaryStream): boolean {
-
         this.messageHeader = readMessageHeader(binaryStream);
         assert(binaryStream.length === 8, "expecting message header to be 8 bytes");
 
@@ -144,7 +140,6 @@ export class MessageBuilderBase extends EventEmitter {
     }
 
     protected _report_error(errorMessage: string): false {
-
         this._hasReceivedError = true;
         /**
          * notify the observers that an error has occurred
@@ -173,7 +168,6 @@ export class MessageBuilderBase extends EventEmitter {
      * @private
      */
     private _append(chunk: Buffer): boolean {
-
         if (this._hasReceivedError) {
             // the message builder is in error mode and further message chunks should be discarded.
             return false;
@@ -191,10 +185,13 @@ export class MessageBuilderBase extends EventEmitter {
         assert(binaryStream.length >= 12);
 
         // verify message chunk length
-        if (this.messageHeader.length !== chunk.length) {
+        if (this.messageHeader!.length !== chunk.length) {
             // tslint:disable:max-line-length
             return this._report_error(
-                `Invalid messageChunk size: the provided chunk is ${chunk.length} bytes long but header specifies ${this.messageHeader.length}`);
+                `Invalid messageChunk size: the provided chunk is ${chunk.length} bytes long but header specifies ${
+                    this.messageHeader!.length
+                }`
+            );
         }
 
         // the start of the message body block
@@ -203,13 +200,13 @@ export class MessageBuilderBase extends EventEmitter {
         // the end of the message body block
         const offsetBodyEnd = binaryStream.buffer.length;
 
-        this.totalBodySize += (offsetBodyEnd - offsetBodyStart);
+        this.totalBodySize += offsetBodyEnd - offsetBodyStart;
         this.offsetBodyStart = offsetBodyStart;
 
         // add message body to a queue
         // note : Buffer.slice create a shared memory !
         //        use Buffer.clone
-        const sharedBuffer = chunk.slice(offsetBodyStart, offsetBodyEnd);
+        const sharedBuffer = chunk.slice(this.offsetBodyStart, offsetBodyEnd);
         const clonedBuffer = createFastUninitializedBuffer(sharedBuffer.length);
 
         sharedBuffer.copy(clonedBuffer, 0, 0);
@@ -229,7 +226,6 @@ export class MessageBuilderBase extends EventEmitter {
         this.emit("chunk", chunk);
 
         if (messageHeader.isFinal === "F") {
-
             // last message
             this._append(chunk);
             if (this._hasReceivedError) {
@@ -254,14 +250,11 @@ export class MessageBuilderBase extends EventEmitter {
             // be ready for next block
             this._init_new();
             return true;
-
         } else if (messageHeader.isFinal === "A") {
             return this._report_error("received and Abort Message");
-
         } else if (messageHeader.isFinal === "C") {
             return this._append(chunk);
         }
         return false;
     }
-
 }
