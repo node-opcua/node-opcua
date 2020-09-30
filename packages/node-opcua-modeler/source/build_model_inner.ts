@@ -1,15 +1,19 @@
-import { AddressSpace, Namespace, NodeIdManager } from "node-opcua-address-space";
-import { generateAddressSpace } from "node-opcua-address-space/nodeJS";
+import { AddressSpace, Namespace, NodeIdManager, XmlLoaderFunc, generateAddressSpaceRaw } from "node-opcua-address-space";
+import { buildDocumentationToString } from "./generate_markdown_doc";
+import { Symbols } from "./symbol";
 
-export interface BuildModelOptions {
+export interface BuildModelOptionsBase {
     version: string;
     namespaceUri: string;
     xmlFiles: string[];
     createModel: /*async*/ (addressSpace: AddressSpace) => Promise<void>;
     presetSymbols?: Symbols;
 }
+export interface BuildModelOptions extends BuildModelOptionsBase {
+    xmlLoader: XmlLoaderFunc;
+}
 
-export async function buildModel(data: BuildModelOptions): Promise<{ markdown: string; xmlModel: string; symbols: Symbols }> {
+export async function buildModelInner(data: BuildModelOptions): Promise<{ markdown: string; xmlModel: string; symbols: Symbols }> {
     try {
         const addressSpace = AddressSpace.create();
 
@@ -21,7 +25,7 @@ export async function buildModel(data: BuildModelOptions): Promise<{ markdown: s
             nodeIdManager.setSymbols(data.presetSymbols);
         }
 
-        await generateAddressSpace(addressSpace, data.xmlFiles);
+        await generateAddressSpaceRaw(addressSpace, data.xmlFiles, data.xmlLoader);
 
         await data.createModel(addressSpace);
 
@@ -37,6 +41,3 @@ export async function buildModel(data: BuildModelOptions): Promise<{ markdown: s
         throw err;
     }
 }
-
-import { buildDocumentationToString } from "./generate_markdown_doc";
-import { Symbols } from "./symbol";
