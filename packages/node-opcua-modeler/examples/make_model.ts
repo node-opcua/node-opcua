@@ -3,20 +3,20 @@ import * as fs from "fs";
 import { promisify } from "util";
 import {
     AddressSpace,
-    buildModel,
     DataType,
     displayNodeElement,
-    getPresetSymbolsFromCSV,
     nodesets,
     promoteToMandatory,
-    saveSymbolsToCSV,
     setNamespaceMetaData,
     Symbols,
     UAObject,
     UAVariable,
     UAVariableT
 } from "..";
+
+import { getPresetSymbolsFromCSV, saveSymbolsToCSV, buildModel } from "../nodeJS";
 import { generateAddressSpace } from "node-opcua-address-space/nodeJS";
+
 import { createBoilerType } from "node-opcua-address-space/testHelpers";
 
 const writeFile = promisify(fs.writeFile);
@@ -103,7 +103,7 @@ async function buildModelFile() {
     }
 }
 
-async function testNamepsace() {
+async function testNamespace() {
     const addressSpace = AddressSpace.create();
     const xmlFiles1 = [nodesets.standard, nodesets.di, nodesetFilename];
     await generateAddressSpace(addressSpace, xmlFiles1);
@@ -141,7 +141,7 @@ async function testNamepsace() {
     try {
         await buildModelFile();
         // now test the nodeset
-        await testNamepsace();
+        await testNamespace();
     } catch (err) {
         console.log("err", err.message);
         console.log(err);

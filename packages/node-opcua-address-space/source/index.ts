@@ -21,6 +21,7 @@ export { adjustBrowseDirection } from "./helpers/adjust_browse_direction";
 
 export { ContinuationPointManager } from "./continuation_points/continuation_point_manager";
 export { ensureDatatypeExtracted, ensureDatatypeExtractedWithCallback } from "./loader/load_nodeset2";
+export * from "../source/loader/generateAddressSpaceRaw";
 
 export * from "../src/alarms_and_conditions";
 export { promoteToMultiStateDiscrete } from "../src/data_access/ua_multistate_discrete";
