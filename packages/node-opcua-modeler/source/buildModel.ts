@@ -1,14 +1,5 @@
-import * as fs from "fs";
 import { AddressSpace, Namespace, NodeIdManager } from "node-opcua-address-space";
 import { generateAddressSpace } from "node-opcua-address-space/nodeJS";
-
-import { NodeClass } from "node-opcua-data-model";
-import { promisify } from "util";
-
-const writeFile = promisify(fs.writeFile);
-const readFile = promisify(fs.readFile);
-
-export type Symbols = [string, number, string][];
 
 export interface BuildModelOptions {
     version: string;
@@ -47,52 +38,5 @@ export async function buildModel(data: BuildModelOptions): Promise<{ markdown: s
     }
 }
 
-import * as parse from "csv-parse";
-import { Parser } from "csv-parse";
-import { displayNodeElement } from "./displayNodeElement";
 import { buildDocumentationToString } from "./generate_markdown_doc";
-
-function toCSV(arr: Symbols) {
-    const line: string[] = [];
-    for (const [name, value, nodeClass] of arr) {
-        line.push([name, value, nodeClass].join(","));
-    }
-    return line.join("\n");
-}
-
-export async function saveSymbolsToCSV(csvFilename: string, symbols: Symbols): Promise<void> {
-    await writeFile(csvFilename, toCSV(symbols), "utf-8");
-}
-
-export async function getPresetSymbolsFromCSV(csvFilename: string): Promise<Symbols> {
-    try {
-        const data = await readFile(csvFilename, "utf-8");
-
-        const records = await new Promise((resolve) => {
-            const output: any[] = [];
-            parse(data, {
-                cast: (value, context) => {
-                    if (context.index === 1) {
-                        return parseInt(value, 10);
-                    }
-                    return value;
-                }
-            })
-                .on("readable", function (this: Parser) {
-                    let record = this.read();
-                    while (record) {
-                        output.push(record);
-                        record = this.read();
-                    }
-                })
-                .on("end", () => {
-                    resolve(output);
-                });
-        });
-        return records as Symbols;
-    } catch (err) {
-        // tslint:disable-next-line: no-console
-        console.log("getPresetSymbols err = ", err.message);
-        return [];
-    }
-}
+import { Symbols } from "./symbol";
