@@ -11,11 +11,11 @@
     },
     "dependencies": {
         "browser-process-hrtime": "^1.0.0",
+        "chalk": "^4.1.0",
         "node-opcua-assert": "2.16.0"
     },
     "devDependencies": {
         "@types/node": "^14.11.2",
-        "chalk": "^4.1.0",
         "should": "^13.2.3",
         "sinon": "^9.1.0"
     },

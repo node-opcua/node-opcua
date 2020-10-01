@@ -15,7 +15,7 @@
         "node-opcua-assert": "2.16.0"
     },
     "devDependencies": {
-        "bignumber.js": "^9.0.0",
+        "bignumber.js": "^9.0.1",
         "node-opcua-benchmarker": "2.17.0",
         "node-opcua-binary-stream": "2.17.0",
         "should": "^13.2.3"

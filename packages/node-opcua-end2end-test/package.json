@@ -10,10 +10,10 @@
         "test-typescript": "mocha --recursive test/end_to_end/*.ts"
     },
     "dependencies": {
-        "node-opcua-pki": "^2.1.5"
+        "node-opcua-pki": "^2.1.7"
     },
     "devDependencies": {
-        "@types/underscore": "^1.10.23",
+        "@types/underscore": "^1.10.24",
         "async": "^3.2.0",
         "colors": "^1.4.0",
         "delayed": "^2.0.0",
@@ -28,7 +28,7 @@
         "node-opcua-client": "2.18.0",
         "node-opcua-client-proxy": "2.18.0",
         "node-opcua-constants": "2.16.0",
-        "node-opcua-crypto": "^1.3.7",
+        "node-opcua-crypto": "^1.3.8",
         "node-opcua-debug": "2.17.0",
         "node-opcua-extension-object": "2.17.0",
         "node-opcua-factory": "2.17.0",
@@ -45,7 +45,7 @@
         "node-opcua-service-secure-channel": "2.17.0",
         "node-opcua-variant": "2.17.0",
         "should": "^13.2.3",
-        "sinon": "^9.0.3",
+        "sinon": "^9.1.0",
         "underscore": "^1.11.0",
         "yargs": "15.4.1"
     },
