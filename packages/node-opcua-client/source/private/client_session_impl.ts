@@ -720,36 +720,6 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession {
         });
     }
 
-    /**
-     * @method readAggregateValue
-     * @async
-     *
-     * @example
-     *
-     * ```javascript
-     * //  es5
-     * session.readAggregateValue(
-     *   { nodeId: "ns=5;s=Simulation Examples.Functions.Sine1" },
-     *   "2015-06-10T09:00:00.000Z",
-     *   "2015-06-10T09:01:00.000Z", 'Average', 3600000, function(err,dataValues) {
-     *
-     * });
-     * ```
-     *
-     * ```javascript
-     * //  es6
-     * const dataValues = await session.readAggregateValue(
-     *   { nodeId: "ns=5;s=Simulation Examples.Functions.Sine1" },
-     *   "2015-06-10T09:00:00.000Z",
-     *   "2015-06-10T09:01:00.000Z", 'Average', 3600000);
-     * ```
-     * @param nodes   the read value id
-     * @param startTime   the start time in UTC format
-     * @param endTime     the end time in UTC format
-     * @param aggregateFn
-     * @param processingInterval in milliseconds
-     * @param callback
-     */
     public readAggregateValue(
         nodesToRead: HistoryReadValueIdOptions[],
         startTime: DateTime,
