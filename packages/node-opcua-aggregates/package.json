@@ -30,7 +30,7 @@
         "node-opcua-assert": "2.16.0",
         "node-opcua-leak-detector": "2.17.0",
         "should": "^13.2.3",
-        "sinon": "^9.0.3",
+        "sinon": "^9.1.0",
         "yargs": "15.4.1"
     },
     "author": "Etienne Rossignon",

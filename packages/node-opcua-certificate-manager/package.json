@@ -24,9 +24,9 @@
         "node-opcua-basic-types": "2.17.0",
         "node-opcua-buffer-utils": "2.17.0",
         "node-opcua-constants": "2.16.0",
-        "node-opcua-crypto": "^1.3.7",
+        "node-opcua-crypto": "^1.3.8",
         "node-opcua-debug": "2.17.0",
-        "node-opcua-pki": "^2.1.5",
+        "node-opcua-pki": "^2.1.7",
         "node-opcua-status-code": "2.17.0",
         "node-opcua-utils": "2.17.0",
         "once": "^1.4.0",
@@ -37,7 +37,7 @@
         "dequeue": "^1.0.5",
         "node-opcua-leak-detector": "2.17.0",
         "should": "^13.2.3",
-        "sinon": "^9.0.3"
+        "sinon": "^9.1.0"
     },
     "eslintConfig": {
         "env": {
