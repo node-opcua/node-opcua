@@ -20,9 +20,6 @@ import {
     AddressSpace,
     callMethodHelper,
     ContinuationPoint,
-    getMethodDeclaration_ArgumentList,
-    IServerBase,
-    ISessionBase,
     IUserManager,
     PseudoVariantBoolean,
     PseudoVariantByteString,
@@ -37,14 +34,12 @@ import {
     SessionContext,
     UAObject,
     UAVariable,
-    UAView,
-    verifyArguments_ArgumentList
+    UAView
 } from "node-opcua-address-space";
-import { ErrorCallback } from "node-opcua-status-code";
-import { ICertificateManager, OPCUACertificateManager } from "node-opcua-certificate-manager";
+import { OPCUACertificateManager } from "node-opcua-certificate-manager";
 import { ServerState } from "node-opcua-common";
 import { Certificate, exploreCertificate, Nonce, toPem } from "node-opcua-crypto";
-import { AttributeIds, DiagnosticInfo, NodeClass } from "node-opcua-data-model";
+import { AttributeIds, NodeClass } from "node-opcua-data-model";
 import { DataValue } from "node-opcua-data-value";
 import { dump, make_debugLog, make_errorLog } from "node-opcua-debug";
 import { NodeId } from "node-opcua-nodeid";
@@ -65,7 +60,7 @@ import {
     verifySignature
 } from "node-opcua-secure-channel";
 import { BrowseNextRequest, BrowseNextResponse, BrowseRequest, BrowseResponse } from "node-opcua-service-browse";
-import { CallMethodRequest, CallRequest, CallResponse } from "node-opcua-service-call";
+import { CallRequest, CallResponse } from "node-opcua-service-call";
 import { ApplicationType, UserTokenType } from "node-opcua-service-endpoints";
 import { HistoryReadRequest, HistoryReadResponse, HistoryReadResult, HistoryUpdateResponse } from "node-opcua-service-history";
 import {
@@ -135,9 +130,7 @@ import {
     MonitoringMode,
     UserIdentityToken,
     UserTokenPolicy,
-    BrowseDescription,
-    TransferResultOptions,
-    TransferResult
+    BrowseDescription
 } from "node-opcua-types";
 import { DataType } from "node-opcua-variant";
 import { VariantArrayType } from "node-opcua-variant";
@@ -156,8 +149,6 @@ import { ServerSession } from "./server_session";
 import { Subscription } from "./server_subscription";
 import { ISocketData } from "./i_socket_data";
 import { IChannelData } from "./i_channel_data";
-
-declare type ResponseCallback<T> = (err: Error | null, result?: T) => void;
 
 function isSubscriptionIdInvalid(subscriptionId: number): boolean {
     return subscriptionId < 0 || subscriptionId >= 0xffffffff;
@@ -268,19 +259,17 @@ function getRequiredEndpointInfo(endpoint: EndpointDescription) {
 //            This value is the applicationUri from the EndpointDescription which is the applicationUri for the
 //            underlying Server. The type EndpointDescription is defined in 7.10.
 
-function _serverEndpointsForCreateSessionResponse(server: OPCUAServer, serverUri?: string) {
-    serverUri = ""; // unused then
+function _serverEndpointsForCreateSessionResponse(server: OPCUAServer, endpointUrl: string | null, serverUri: string | null) {
+    serverUri = null; // unused then
 
     // The Server shall return a set of EndpointDescriptions available for the serverUri specified in the request.
     // It is recommended that Servers only include the endpointUrl, securityMode,
     // securityPolicyUri, userIdentityTokens, transportProfileUri and securityLevel with all other parameters
     // set to null. Only the recommended parameters shall be verified by the client.
-    return (
-        server
-            ._get_endpoints()
-            // xx .filter(onlyforUri.bind(null,serverUri)
-            .map(getRequiredEndpointInfo)
-    );
+    return server
+        ._get_endpoints(endpointUrl)
+        .map(getRequiredEndpointInfo)
+        .filter((e) => e.endpointUrl === endpointUrl);
 }
 
 function adjustSecurityPolicy(
@@ -811,10 +800,20 @@ function getNodeIds(nodesToBrowse: BrowseDescription[]): NodeId[] {
     return result;
 }
 
+const g_requestExactEndpointUrl: boolean = !!process.env.NODEOPCUA_SERVER_REQUEST_EXACT_ENDPOINT_URL;
 /**
  *
  */
 export class OPCUAServer extends OPCUABaseServer {
+    /**
+     * if requestExactEndpointUrl is set to true the server will only accept createSession that have a endpointUrl that strictly matches
+     * one of the provided endpoint.
+     * This mean that if the server expose a endpoint with url such as opc.tcp://MYHOSTNAME:1234, client will not be able to reach the server
+     * with the ip address of the server.
+     * requestExactEndpointUrl = true => emulates the Prosys Server behavior whereas
+     * requestExactEndpointUrl = false => emulates the Unified Automation behavior.
+     */
+    static requestExactEndpointUrl: boolean = g_requestExactEndpointUrl;
     /**
      * total number of bytes written  by the server since startup
      */
@@ -1481,6 +1480,7 @@ export class OPCUAServer extends OPCUABaseServer {
         session: ServerSession,
         userIdentityToken: UserIdentityToken,
         userTokenSignature: any,
+        endpointDescription: EndpointDescription,
         callback: (err: Error | null, statusCode?: StatusCode) => void
     ): void {
         assert(callback instanceof Function);
@@ -1489,10 +1489,7 @@ export class OPCUAServer extends OPCUABaseServer {
             throw new Error("Invalid token");
         }
 
-        const endpoint_desc = channel.endpoint!;
-        assert(endpoint_desc instanceof EndpointDescription);
-
-        const userTokenPolicy = findUserTokenByPolicy(endpoint_desc, userIdentityToken.policyId!);
+        const userTokenPolicy = findUserTokenByPolicy(endpointDescription, userIdentityToken.policyId!);
         if (!userTokenPolicy) {
             // cannot find token with this policyId
             return callback(null, StatusCodes.BadIdentityTokenInvalid);
@@ -1540,10 +1537,7 @@ export class OPCUAServer extends OPCUABaseServer {
         assert(userIdentityToken);
         assert(typeof callback === "function");
 
-        const endpoint_desc = channel.endpoint!;
-        assert(endpoint_desc instanceof EndpointDescription);
-
-        const userTokenPolicy = findUserTokenByPolicy(endpoint_desc, userIdentityToken.policyId!);
+        const userTokenPolicy = findUserTokenByPolicy(session.getEndpointDescription(), userIdentityToken.policyId!);
         assert(userTokenPolicy);
         // find if a userToken exists
         if (userIdentityToken instanceof UserNameIdentityToken) {
@@ -1659,9 +1653,32 @@ export class OPCUAServer extends OPCUABaseServer {
             return rejectConnection(StatusCodes.BadCertificateUriInvalid);
         }
 
-        function validate_security_endpoint(channel1: ServerSecureChannelLayer): StatusCode {
-            let endpoints = server._get_endpoints();
-
+        function validate_security_endpoint(
+            channel1: ServerSecureChannelLayer
+        ): { errCode: StatusCode; endpoint?: EndpointDescription } {
+            debugLog("validate_security_endpoint = ", request.endpointUrl);
+            let endpoints = server._get_endpoints(request.endpointUrl);
+            // endpointUrl String The network address that the Client used to access the Session Endpoint.
+            //             The HostName portion of the URL should be one of the HostNames for the application that are
+            //             specified in the Server’s ApplicationInstanceCertificate (see 7.2). The Server shall raise an
+            //             AuditUrlMismatchEventType event if the URL does not match the Server’s HostNames.
+            //             AuditUrlMismatchEventType event type is defined in Part 5.
+            //             The Server uses this information for diagnostics and to determine the set of
+            //             EndpointDescriptions to return in the response.
+            // ToDo: check endpointUrl validity and emit an AuditUrlMismatchEventType event if not
+            if (endpoints.length === 0) {
+                // we have a UrlMismatch here
+                const ua_server = server.engine.addressSpace!.rootFolder.objects.server;
+                ua_server.raiseEvent("AuditUrlMismatchEventType", {
+                    endpointUrl: { dataType: DataType.String, value: request.endpointUrl }
+                });
+                debugLog("Cannot find endpoint  in available endpoints with endpointUri", request.endpointUrl);
+                if (OPCUAServer.requestExactEndpointUrl) {
+                    return { errCode: StatusCodes.BadServiceUnsupported };
+                } else {
+                    endpoints = server._get_endpoints(null);
+                }
+            }
             // ignore restricted endpoints
             endpoints = endpoints.filter((endpoint: EndpointDescription) => {
                 return !(endpoint as any).restricted;
@@ -1672,41 +1689,32 @@ export class OPCUAServer extends OPCUABaseServer {
             });
 
             if (endpoints_matching_security_mode.length === 0) {
-                return StatusCodes.BadSecurityModeRejected;
+                return { errCode: StatusCodes.BadSecurityModeRejected };
             }
             const endpoints_matching_security_policy = endpoints_matching_security_mode.filter((e: EndpointDescription) => {
                 return e.securityPolicyUri === channel1.securityHeader!.securityPolicyUri;
             });
 
             if (endpoints_matching_security_policy.length === 0) {
-                return StatusCodes.BadSecurityPolicyRejected;
+                return { errCode: StatusCodes.BadSecurityPolicyRejected };
             }
-            return StatusCodes.Good;
+            if (endpoints_matching_security_policy.length !== 1) {
+                debugLog("endpoints_matching_security_policy= ", endpoints_matching_security_policy.length);
+            }
+            return { errCode: StatusCodes.Good, endpoint: endpoints_matching_security_policy[0] };
         }
 
-        const errStatus = validate_security_endpoint(channel);
-        if (errStatus !== StatusCodes.Good) {
-            return rejectConnection(errStatus);
+        const { errCode, endpoint } = validate_security_endpoint(channel);
+        if (errCode !== StatusCodes.Good) {
+            return rejectConnection(errCode);
         }
-
-        // endpointUrl String The network address that the Client used to access the Session Endpoint.
-        //             The HostName portion of the URL should be one of the HostNames for the application that are
-        //             specified in the Server’s ApplicationInstanceCertificate (see 7.2). The Server shall raise an
-        //             AuditUrlMismatchEventType event if the URL does not match the Server’s HostNames.
-        //             AuditUrlMismatchEventType event type is defined in Part 5.
-        //             The Server uses this information for diagnostics and to determine the set of
-        //             EndpointDescriptions to return in the response.
-        function validate_endpointUri() {
-            // ToDo: check endpointUrl validity and emit an AuditUrlMismatchEventType event if not
-        }
-
-        validate_endpointUri();
 
         // see Release 1.02  27  OPC Unified Architecture, Part 4
         const session = server.createSession({
             clientDescription: request.clientDescription,
             sessionTimeout: revisedSessionTimeout
         });
+        session.endpoint = endpoint;
 
         assert(session);
         assert(session.sessionTimeout === revisedSessionTimeout);
@@ -1774,7 +1782,7 @@ export class OPCUAServer extends OPCUABaseServer {
             // securityPolicyUri, userIdentityTokens, transportProfileUri and securityLevel with all
             // other parameters set to null. Only the recommended parameters shall be verified by
             // the client.
-            serverEndpoints: _serverEndpointsForCreateSessionResponse(server, request.serverUri!),
+            serverEndpoints: _serverEndpointsForCreateSessionResponse(server, request.endpointUrl, request.serverUri),
 
             // This parameter is deprecated and the array shall be empty.
             serverSoftwareCertificates: null,
@@ -1980,7 +1988,7 @@ export class OPCUAServer extends OPCUABaseServer {
         }
 
         // userIdentityToken may be missing , assume anonymous access then
-        request.userIdentityToken = request.userIdentityToken || createAnonymousIdentityToken(channel.endpoint!);
+        request.userIdentityToken = request.userIdentityToken || createAnonymousIdentityToken(session.endpoint!);
 
         // check request.userIdentityToken is correct ( expected type and correctly formed)
         server.isValidUserIdentityToken(
@@ -1988,6 +1996,7 @@ export class OPCUAServer extends OPCUABaseServer {
             session,
             request.userIdentityToken as UserIdentityToken,
             request.userTokenSignature,
+            session.endpoint!,
             (err: Error | null, statusCode?: StatusCode) => {
                 if (statusCode !== StatusCodes.Good) {
                     /* istanbul ignore next */
@@ -3458,6 +3467,9 @@ export interface RaiseEventAuditActivateSessionEventData extends RaiseEventAudit
 // tslint:disable:no-empty-interface
 export interface RaiseEventTransitionEventData extends RaiseEventData {}
 
+export interface RaiseEventAuditUrlMismatchEventTypeData extends RaiseEventData {
+    endpointUrl: PseudoVariantString;
+}
 export interface OPCUAServer {
     /**
      * @internal
@@ -3473,6 +3485,8 @@ export interface OPCUAServer {
     raiseEvent(eventType: "AuditCreateSessionEventType", options: RaiseEventData): void;
 
     raiseEvent(eventType: "AuditConditionCommentEventType", options: RaiseEventAuditConditionCommentEventData): void;
+
+    raiseEvent(eventType: "AuditUrlMismatchEventType", options: RaiseEventAuditUrlMismatchEventTypeData): void;
 
     raiseEvent(eventType: "TransitionEventType", options: RaiseEventTransitionEventData): void;
 }

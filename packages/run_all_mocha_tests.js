@@ -138,20 +138,27 @@ const selectedFiles = testFiles.filter((file) => {
     const extension = file.substr(-3);
     return extension === ".js" || extension === ".ts";
 });
+
+const skipped = process.env.SKIPPED ? parseInt(process.env.SKIPPED) : 0;
+
+let count = 0;
 for (const file of selectedFiles) {
 
     function test_no_leak() {
         let t = fs.readFileSync(file, "ascii");
         if (t.match("OPCUAClient")) {
             if (!t.match("Leak")) {
-                console.log(" OPCUAClient without leak detection mechanism  !!!", file);
+                console.log(chalk.yellow(" OPCUAClient without leak detection mechanism  !!!"), file);
             }
         }
     }
     test_no_leak();
-    mocha.addFile(file);
+    if (count >= skipped) {
+        mocha.addFile(file);
+    }
+    count++;
 }
-
+console.log("")
 mocha.timeout(200000);
 mocha.bail(true);
 

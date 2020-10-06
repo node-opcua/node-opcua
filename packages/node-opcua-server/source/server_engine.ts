@@ -1422,20 +1422,20 @@ export class ServerEngine extends EventEmitter {
             this.serverDiagnosticsSummary.sessionTimeoutCount += 1;
             session.sessionName = session.sessionName || "";
 
-            console.log(
+            const channel = session.channel;
+            errorLog(
                 chalk.cyan("Server: closing SESSION "),
                 session.status,
                 chalk.yellow(session.sessionName),
                 chalk.yellow(session.nodeId.toString()),
                 chalk.cyan(" because of timeout = "),
                 session.sessionTimeout,
-                chalk.cyan(" has expired without a keep alive")
+                chalk.cyan(" has expired without a keep alive"),
+                chalk.bgCyan("channel = "),
+                channel?.remoteAddress,
+                " port = ",
+                channel?.remotePort
             );
-
-            const channel = session.channel;
-            if (channel) {
-                console.log(chalk.bgCyan("channel = "), channel.remoteAddress, " port = ", channel.remotePort);
-            }
 
             // If a Server terminates a Session for any other reason, Subscriptions  associated with the Session,
             // are not deleted. => deleteSubscription= false

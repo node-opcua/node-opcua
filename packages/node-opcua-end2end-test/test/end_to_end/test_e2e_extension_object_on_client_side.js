@@ -50,7 +50,7 @@ describe("testing extension object with client residing on a different process t
         const client = OPCUAClient.create({
             endpoint_must_exist: false
         });
-        const endpointUrl = "opc.tcp://localhost:23232";
+        const endpointUrl = serverHandle.endpointUrl;
 
         const nodeId = "ns=2;i=6001";
         perform_operation_on_client_session(client, endpointUrl, function(session, inner_done) {
@@ -77,7 +77,7 @@ describe("testing extension object with client residing on a different process t
                             //xx console.log(" input,",nodesToRead[0].toString());
                             //xx console.log(" result,",results[0].toString());
                             const xmlData = dataValues[0].value.value.toString("ascii");
-                            xmlData.should.match(/opc:StructuredType BaseType="ua:ExtensionObject" Name="MyStructureDataType\"/);
+                            xmlData.should.match(/opc:StructuredType BaseType="ua:ExtensionObject" Name="MyStructureDataType"/);
                         }
                         callback(err);
                     });

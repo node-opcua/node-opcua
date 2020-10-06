@@ -1,4 +1,3 @@
-/*global describe, it, require*/
 const async = require("async");
 const should = require("should");
 const opcua = require("node-opcua");
@@ -12,9 +11,10 @@ describe("Testing bug #574", function() {
 
     const port = 2222;
     let server = null;
+    let endpointUrl = "";
 
 
-    before(function(done) {
+    before(async () => {
 
         server = new opcua.OPCUAServer({
             port,
@@ -26,40 +26,40 @@ describe("Testing bug #574", function() {
             }
         });
 
-        server.start((err) => {
-            // note: Some OPCUA servers (such as Softing) allow user token policies that
-            //       send password in clear text on the TCP unencrypted channel.
-            //       This behavior is not recommended by the OPCUA specification but
-            //       exists in many server on the field.
-            //       On our side, node opcua doesn't allow password to be send unsecurely.
-            //       We need to tweak the server to allow this for the purpose
-            //       of this test.
-            //       Let's remove all but policy and add a single
-            //       userIdentityTokens policy for username and uncrypted password
-            let endpoints = server._get_endpoints();
-            endpoints = endpoints.filter((e) => e.securityMode === opcua.MessageSecurityMode.None);
-            endpoints.length.should.eql(1);
+        await server.start();
+        // note: Some OPCUA servers (such as Softing) allow user token policies that
+        //       send password in clear text on the TCP un-encrypted channel.
+        //       This behavior is not recommended by the OPCUA specification but
+        //       exists in many server on the field.
+        //       On our side, node opcua doesn't allow password to be send un-securely.
+        //       We need to tweak the server to allow this for the purpose
+        //       of this test.
+        //       Let's remove all but policy and add a single
+        //       userIdentityTokens policy for username and un-encrypted password
+        let endpoints = server._get_endpoints();
+        endpointUrl = endpoints[0].endpointUrl;
 
-            endpoints[0].userIdentityTokens = [];
-            endpoints[0].userIdentityTokens.push(new UserTokenPolicy({
-                policyId: "usernamePassword_unsecure",
-                tokenType: 1, /*UserTokenType.UserName,*/
-                issuedTokenType: null,
-                issuerEndpointUrl: null,
-                securityPolicyUri: null
-            }));
-            done(err)
-        });
+        endpoints = endpoints.filter((e) => e.securityMode === opcua.MessageSecurityMode.None);
+        endpoints.length.should.eql(1);
+
+        endpoints[0].userIdentityTokens = [];
+        endpoints[0].userIdentityTokens.push(new UserTokenPolicy({
+            policyId: "usernamePassword_unsecure",
+            tokenType: 1, /*UserTokenType.UserName,*/
+            issuedTokenType: null,
+            issuerEndpointUrl: null,
+            securityPolicyUri: null
+        }));
+
 
     });
     after(function(done) {
         server.shutdown(done);
     });
 
-    it("should create a aession with user/password on unsecure connection", function(done) {
+    it("should create a session with user/password on unsecured connection", (done) => {
 
         // user1/password1
-        const endpointUrl = "opc.tcp://localhost:" + port;
 
         const client = opcua.OPCUAClient.create({
             endpoint_must_exist: false,

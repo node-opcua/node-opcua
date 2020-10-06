@@ -94,8 +94,8 @@ function __findEndpoint(
 
     const client = new ClientBaseImpl(options);
 
-    let selectedEndpoints: any = null;
-    const allEndpoints: any = null;
+    let selectedEndpoint: EndpointDescription;
+    const allEndpoints: EndpointDescription[] = [];
     const tasks = [
         (innerCallback: ErrorCallback) => {
             // rebind backoff handler
@@ -114,7 +114,7 @@ function __findEndpoint(
                 });
             }
 
-            client.connect(endpointUrl, (err?: Error) => {
+            client._connectStep2(endpointUrl, (err?: Error) => {
                 if (err) {
                     // let's improve the error message with meaningful info
                     err.message =
@@ -142,7 +142,14 @@ function __findEndpoint(
 
                 endpoints.forEach((endpoint: EndpointDescription) => {
                     if (endpoint.securityMode === securityMode && endpoint.securityPolicyUri === securityPolicy) {
-                        selectedEndpoints = endpoint; // found it
+                        if (selectedEndpoint) {
+                            errorLog(
+                                "Warning more than one endpoint matching !",
+                                endpoint.endpointUrl,
+                                selectedEndpoint.endpointUrl
+                            );
+                        }
+                        selectedEndpoint = endpoint; // found it
                     }
                 });
 
@@ -160,7 +167,7 @@ function __findEndpoint(
             return callback(err);
         }
 
-        if (!selectedEndpoints) {
+        if (!selectedEndpoint) {
             callback(
                 new Error(
                     "Cannot find an Endpoint matching " +
@@ -172,9 +179,11 @@ function __findEndpoint(
             );
         }
 
+        debugLog(chalk.bgWhite.red("xxxxxxxxxxxxxxxxxxxxx => selected EndPoint = "), selectedEndpoint.toString());
+
         const result = {
             endpoints: allEndpoints,
-            selectedEndpoint: selectedEndpoints
+            selectedEndpoint
         };
         callback(null, result);
     });
@@ -207,6 +216,9 @@ function _verify_serverCertificate(serverCertificate: Certificate, callback: Err
         setImmediate(callback);
     });
 }
+
+const forceEndpointDiscoveryOnConnect = !!parseInt(process.env.NODEOPCUA_CLIENT_FORCE_ENDPOINT_DISCOVERY || "0");
+debugLog("forceEndpointDiscoveryOnConnect = ", forceEndpointDiscoveryOnConnect);
 
 /**
  * @internal
@@ -590,10 +602,31 @@ export class ClientBaseImpl extends OPCUASecureObject implements OPCUAClientBase
         const callback = args[1];
         assert(typeof callback === "function", "expecting a callback");
 
-        this.endpointUrl = endpointUrl;
-
         debugLog("ClientBaseImpl#connect ", endpointUrl);
 
+        if (!this.serverCertificate && (forceEndpointDiscoveryOnConnect || this.securityMode !== MessageSecurityMode.None)) {
+            debugLog("Fetching certificates from endpoints");
+            return this.fetchServerCertificate(endpointUrl, (err: Error | null, adjustedEndpointUrl?: string) => {
+                if (err) {
+                    errorLog("fetchServerCertificate Err = ", err.message);
+                    return callback(err);
+                }
+                if (forceEndpointDiscoveryOnConnect) {
+                    debugLog("connecting with adjusted endpoint : ", adjustedEndpointUrl, "  was =", endpointUrl);
+                    this._connectStep2(adjustedEndpointUrl!, callback);
+                } else {
+                    debugLog("connecting with endpoint : ", endpointUrl);
+                    this._connectStep2(endpointUrl, callback);
+                }
+            });
+        }
+        this._connectStep2(endpointUrl, callback);
+    }
+
+    /**
+     * @private
+     */
+    public _connectStep2(endpointUrl: string, callback: ErrorCallback): void {
         // prevent illegal call to connect
         if (this._secureChannel !== null) {
             setImmediate(() => {
@@ -601,15 +634,7 @@ export class ClientBaseImpl extends OPCUASecureObject implements OPCUAClientBase
             });
             return;
         }
-
-        if (!this.serverCertificate && this.securityMode !== MessageSecurityMode.None) {
-            return this.fetchServerCertificate(endpointUrl, (err?: Error) => {
-                if (err) {
-                    return callback(err);
-                }
-                this.connect(endpointUrl, callback);
-            });
-        }
+        this.endpointUrl = endpointUrl;
 
         // todo: make sure endpointUrl exists in the list of endpoints send by the server
         // [...]
@@ -625,12 +650,12 @@ export class ClientBaseImpl extends OPCUASecureObject implements OPCUAClientBase
         ) => {
             // xx secureChannel;
             if (!err) {
+                debugLog(" Connected successfully  to ", this.endpointUrl);
                 this.emit("connected");
                 callbackOnceDelayed(err!);
             } else {
                 OPCUAClientBase.registry.unregister(this);
                 uninstallPeriodicClockAdjustmement();
-
                 debugLog(chalk.red("SecureChannel creation has failed with error :", err.message));
                 if (err.message.match(/ECONNREF/)) {
                     debugLog(chalk.yellow("- The client cannot to :" + endpointUrl + ". Server is not reachable."));
@@ -941,7 +966,7 @@ export class ClientBaseImpl extends OPCUASecureObject implements OPCUAClientBase
         }
     }
 
-    private fetchServerCertificate(endpointUrl: string, callback: (err?: Error) => void): void {
+    private fetchServerCertificate(endpointUrl: string, callback: (err: Error | null, adjustedEndpointUrl?: string) => void): void {
         const discoveryUrl = this.discoveryUrl.length > 0 ? this.discoveryUrl : endpointUrl;
         debugLog("OPCUAClientImpl : getting serverCertificate");
         // we have not been given the serverCertificate but this certificate
@@ -959,7 +984,7 @@ export class ClientBaseImpl extends OPCUASecureObject implements OPCUAClientBase
         //
         const certificateFile = this.certificateFile || "certificates/client_selfsigned_cert_2048.pem";
         const privateKeyFile = this.privateKeyFile || "certificates/client_key_2048.pem";
-        const applicationName = (this as any).applicationName || "NodeOPCUA-Client";
+        const applicationName = this.applicationName || "NodeOPCUA-Client";
 
         const params = {
             connectionStrategy: this.connectionStrategy,
@@ -1005,11 +1030,11 @@ export class ClientBaseImpl extends OPCUASecureObject implements OPCUAClientBase
                     return callback(err1);
                 }
                 this.serverCertificate = endpoint.serverCertificate;
-                callback();
+                callback(null, endpoint.endpointUrl!);
             });
         });
     }
-    private _acculumate_statistics() {
+    private _accumulate_statistics() {
         if (this._secureChannel) {
             // keep accumulated statistics
             this._byteWritten += this._secureChannel.bytesWritten;
@@ -1020,6 +1045,7 @@ export class ClientBaseImpl extends OPCUASecureObject implements OPCUAClientBase
                 debugLog("byteWritten  = ", this._byteWritten);
                 debugLog("byteRead     = ", this._byteRead);
                 debugLog("transactions = ", this._transactionsPerformed);
+                debugLog("timedOutRequestCount = ", this._timedOutRequestCount);
             }
         }
     }
@@ -1033,7 +1059,7 @@ export class ClientBaseImpl extends OPCUASecureObject implements OPCUAClientBase
                 );
             }
 
-            this._acculumate_statistics();
+            this._accumulate_statistics();
 
             this._secureChannel.dispose();
             this._secureChannel.removeAllListeners();

@@ -37,6 +37,8 @@ import {
     readHistoryServerCapabilities,
     resolveNodeId,
     SecurityPolicy,
+    UserIdentityInfo,
+    UserTokenType,
     VariableIds,
     Variant
 } from "node-opcua";
@@ -313,6 +315,7 @@ async function main() {
 
     try {
         await client.connect(endpointUrl);
+        console.log(" Connected ! exact endpoint url is ", client.endpointUrl);
     } catch (err) {
         console.log(chalk.red(" Cannot connect to ") + endpointUrl);
         console.log(" Error = ", err.message);
@@ -381,9 +384,14 @@ async function main() {
     console.log(chalk.cyan("Server Certificate :"));
     console.log(chalk.yellow(hexDump(serverCertificate!)));
 
+    console.log(" adjusted endpoint Url =", client.endpointUrl);
+    const adjustedEndpointUrl = client.endpointUrl;
+
     const options = {
         securityMode,
         securityPolicy,
+
+        // we specify here server certificate
         serverCertificate,
 
         defaultSecureTokenLifetime: 40000,
@@ -400,17 +408,20 @@ async function main() {
 
     client = OPCUAClient.create(options);
 
-    console.log(" reconnecting to ", chalk.cyan.bold(endpointUrl));
-    await client.connect(endpointUrl);
+    console.log(" --------------------------------- Now connecting again to ", chalk.cyan.bold(adjustedEndpointUrl));
+    await client.connect(adjustedEndpointUrl);
 
-    let userIdentity: any; // anonymous
+    console.log(" Connected ! exact endpoint url is ", client.endpointUrl);
+    let userIdentity: UserIdentityInfo = { type: UserTokenType.Anonymous }; // anonymous
     if (argv.userName && argv.password) {
         userIdentity = {
-            password: argv.password,
-            userName: argv.userName
+            type: UserTokenType.UserName,
+            password: argv.password as string,
+            userName: argv.userName as string
         };
     }
 
+    console.log(" now creating Session !");
     the_session = await client.createSession(userIdentity);
     client.on("connection_reestablished", () => {
         console.log(chalk.bgWhite.red(" !!!!!!!!!!!!!!!!!!!!!!!!  CONNECTION RE-ESTABLISHED !!!!!!!!!!!!!!!!!!!"));

@@ -675,7 +675,7 @@ export interface PseudoVariantNull {
 
 export interface PseudoVariantString {
     dataType: "String" | DataType.String;
-    value: string;
+    value: UAString;
 }
 
 export interface PseudoVariantBoolean {

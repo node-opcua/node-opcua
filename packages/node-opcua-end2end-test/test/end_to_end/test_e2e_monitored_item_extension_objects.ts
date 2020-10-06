@@ -16,9 +16,6 @@ import {
     resolveNodeId,
     Variant,
     constructEventFilter,
-    ContentFilter,
-    FilterOperator,
-    LiteralOperand,
     ClientSession
 } from "node-opcua";
 import * as should from "should";
@@ -26,24 +23,19 @@ import * as sinon from "sinon";
 const _should = should;
 
 const port = 4000;
-const endpointUrl = `opc.tcp://localhost:${port}`;
+let endpointUrl: string;
 
 let nsAutoId;
 
 // tslint:disable-next-line:no-var-requires
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("AZA1- testing Client-Server subscription use case, on a fake server exposing the temperature device", function () {
-
     let nodeId: NodeId;
     let scanResultNode: UAVariable;
 
     const server = new OPCUAServer({
         port,
-        nodeset_filename: [
-            nodesets.standard,
-            nodesets.di,
-            nodesets.autoId
-        ]
+        nodeset_filename: [nodesets.standard, nodesets.di, nodesets.autoId]
     });
 
     function raiseRfidScanEvent() {
@@ -67,8 +59,8 @@ describe("AZA1- testing Client-Server subscription use case, on a fake server ex
                     pC: Math.ceil(Math.random() * 100),
                     uId: Buffer.from("Hello"),
                     xpC_W1: Math.ceil(Math.random() * 100),
-                    xpC_W2: Math.ceil(Math.random() * 100),
-                },
+                    xpC_W2: Math.ceil(Math.random() * 100)
+                }
             },
             timestamp: new Date(2018, 11, 23),
 
@@ -82,7 +74,7 @@ describe("AZA1- testing Client-Server subscription use case, on a fake server ex
 
                     dilutionOfPrecision: Math.random(),
 
-                    usefulPrecicision: 2  // <<!!!! Note the TYPO HERE ! Bug in AutoID.XML !
+                    usefulPrecicision: 2 // <<!!!! Note the TYPO HERE ! Bug in AutoID.XML !
                 }
             }
         });
@@ -91,7 +83,7 @@ describe("AZA1- testing Client-Server subscription use case, on a fake server ex
             scanResult: {
                 dataType: DataType.ExtensionObject,
                 value: scanResult
-            },
+            }
         });
 
         console.log("Event raised");
@@ -119,7 +111,7 @@ describe("AZA1- testing Client-Server subscription use case, on a fake server ex
                     uId: Buffer.from("Hello"),
                     xpC_W1: 10,
                     xpC_W2: 12
-                },
+                }
             },
             timestamp: new Date(2018, 11, 23),
 
@@ -133,7 +125,7 @@ describe("AZA1- testing Client-Server subscription use case, on a fake server ex
 
                     dilutionOfPrecision: 0.01,
 
-                    usefulPrecicision: 2  // <<!!!! Note the TYPO HERE ! Bug in AutoID.XML !
+                    usefulPrecicision: 2 // <<!!!! Note the TYPO HERE ! Bug in AutoID.XML !
                 }
             }
         });
@@ -158,13 +150,13 @@ describe("AZA1- testing Client-Server subscription use case, on a fake server ex
         nodeId = scanResultNode.nodeId;
 
         await server.start();
+        endpointUrl = server._get_endpoints(null)[0].endpointUrl!;
     });
     after(async () => {
         await server.shutdown();
     });
 
     it("MIEO-1 - a client should not receive opaque structure when monitoring extension objects", async () => {
-
         const client = OPCUAClient.create({
             requestedSessionTimeout: 10000000,
             // tslint:disable-next-line: object-literal-sort-keys
@@ -175,58 +167,62 @@ describe("AZA1- testing Client-Server subscription use case, on a fake server ex
             publishingEnabled: true,
             requestedLifetimeCount: 10000,
             requestedMaxKeepAliveCount: 100,
-            requestedPublishingInterval: 100,
+            requestedPublishingInterval: 100
         };
-        await client.withSubscriptionAsync(endpointUrl, subscriptionParameters, async (session: IBasicSession, subscription: ClientSubscription) => {
+        await client.withSubscriptionAsync(
+            endpointUrl,
+            subscriptionParameters,
+            async (session: IBasicSession, subscription: ClientSubscription) => {
+                try {
+                    const itemToMonitor = {
+                        attributeId: AttributeIds.Value,
+                        nodeId
+                    };
+                    const parameters: MonitoringParametersOptions = {
+                        queueSize: 10,
+                        samplingInterval: 100
+                    };
+                    const monitoredItem = ClientMonitoredItem.create(
+                        subscription,
+                        itemToMonitor,
+                        parameters,
+                        TimestampsToReturn.Both
+                    );
 
-            try {
-
-                const itemToMonitor = {
-                    attributeId: AttributeIds.Value,
-                    nodeId,
-                };
-                const parameters: MonitoringParametersOptions = {
-                    queueSize: 10,
-                    samplingInterval: 100,
-                };
-                const monitoredItem = ClientMonitoredItem.create(subscription, itemToMonitor, parameters, TimestampsToReturn.Both);
-
-                const changedSpy = sinon.spy();
-                monitoredItem.on("changed", changedSpy);
-                monitoredItem.on("err", (message: string) => {
-                    console.log("Error", message);
-                });
-
-                monitoredItem.on("changed", (dataValue) => {
-                    console.log(".");//dataValue.toJSON());
-                });
-                await new Promise((resolve) => {
-                    // subscription.on("item_added",function(monitoredItem){
-                    monitoredItem.on("initialized", () => {
-                        console.log(" Initialized !");
-                        resolve();
+                    const changedSpy = sinon.spy();
+                    monitoredItem.on("changed", changedSpy);
+                    monitoredItem.on("err", (message: string) => {
+                        console.log("Error", message);
                     });
-                });
 
-                await new Promise((resolve) => setTimeout(resolve, 1000));
+                    monitoredItem.on("changed", (dataValue) => {
+                        console.log("."); //dataValue.toJSON());
+                    });
+                    await new Promise((resolve) => {
+                        // subscription.on("item_added",function(monitoredItem){
+                        monitoredItem.on("initialized", () => {
+                            console.log(" Initialized !");
+                            resolve();
+                        });
+                    });
 
-                console.log("changedSpy = ", changedSpy.getCalls().length);
-                /*RfidScanResult*/
-                changedSpy.firstCall.args[0].should.be.instanceOf(DataValue);
-                changedSpy.firstCall.args[0].value.dataType.should.eql(DataType.ExtensionObject);
-                changedSpy.firstCall.args[0].value.value.constructor.name.should.eql("RfidScanResult");
-                changedSpy.callCount.should.eql(1);
+                    await new Promise((resolve) => setTimeout(resolve, 1000));
+
+                    console.log("changedSpy = ", changedSpy.getCalls().length);
+                    /*RfidScanResult*/
+                    changedSpy.firstCall.args[0].should.be.instanceOf(DataValue);
+                    changedSpy.firstCall.args[0].value.dataType.should.eql(DataType.ExtensionObject);
+                    changedSpy.firstCall.args[0].value.value.constructor.name.should.eql("RfidScanResult");
+                    changedSpy.callCount.should.eql(1);
+                } catch (err) {
+                    console.log(err);
+                    throw err;
+                }
             }
-            catch (err) {
-                console.log(err);
-                throw err;
-            }
-        });
-
+        );
     });
 
     it("MIEO-2 - a client should not receive opaque structure when monitoring extension objects", async () => {
-
         const client = OPCUAClient.create({
             requestedSessionTimeout: 10000000,
             endpoint_must_exist: false
@@ -236,79 +232,93 @@ describe("AZA1- testing Client-Server subscription use case, on a fake server ex
             publishingEnabled: true,
             requestedLifetimeCount: 10000,
             requestedMaxKeepAliveCount: 100,
-            requestedPublishingInterval: 100,
+            requestedPublishingInterval: 100
         };
-        await client.withSubscriptionAsync(endpointUrl, subscriptionParameters, async (session: ClientSession, subscription: ClientSubscription) => {
+        await client.withSubscriptionAsync(
+            endpointUrl,
+            subscriptionParameters,
+            async (session: ClientSession, subscription: ClientSubscription) => {
+                try {
+                    await session.readNamespaceArray();
+                    const nsAutoId = session.getNamespaceIndex("http://opcfoundation.org/UA/AutoID/");
+                    const rfidScanEventTypeNodeId = `ns=${nsAutoId};i=1006`;
 
-            try {
-                await session.readNamespaceArray();
-                const nsAutoId = session.getNamespaceIndex("http://opcfoundation.org/UA/AutoID/");
-                const rfidScanEventTypeNodeId = `ns=${nsAutoId};i=1006`;
+                    const fields = [
+                        "EventType",
+                        "SourceName",
+                        "EventId",
+                        "ReceiveTime",
+                        "Severity",
+                        "Message",
+                        `${nsAutoId}:ScanResult`
+                    ];
+                    // Create event filter for when changes are detected on the server
+                    const eventFilter = constructEventFilter(fields);
+                    const monitoringParameters = {
+                        discardOldest: true,
+                        queueSize: 100,
+                        samplingInterval: 0, // when ever changed
 
-                const fields = ["EventType", "SourceName", "EventId", "ReceiveTime", "Severity", "Message", `${nsAutoId}:ScanResult`];
-                // Create event filter for when changes are detected on the server
-                const eventFilter = constructEventFilter(fields);
-                const monitoringParameters = {
-                    discardOldest: true,
-                    queueSize: 100,
-                    samplingInterval: 0, // when ever changed
+                        // tslint:disable-next-line: object-literal-sort-keys
+                        filter: eventFilter
+                    };
 
-                    // tslint:disable-next-line: object-literal-sort-keys
-                    filter: eventFilter
-                };
+                    const itemToMonitor = {
+                        attributeId: AttributeIds.EventNotifier,
+                        nodeId: resolveNodeId("ns=0;i=2253") // resolveNodeId("Server")
+                    };
 
-                const itemToMonitor = {
-                    attributeId: AttributeIds.EventNotifier,
-                    nodeId: resolveNodeId("ns=0;i=2253") // resolveNodeId("Server")
-                };
+                    const monitoredItem = ClientMonitoredItem.create(
+                        subscription,
+                        itemToMonitor,
+                        monitoringParameters,
+                        TimestampsToReturn.Both
+                    );
 
-                const monitoredItem = ClientMonitoredItem.create(subscription, itemToMonitor, monitoringParameters, TimestampsToReturn.Both);
-
-                // subscription.on("item_added",function(monitoredItem){
-                monitoredItem.on("initialized", () => {
-                    // tslint:disable-next-line: no-console
-                    console.log(" Initialized !");
-                });
-
-                const changedSpy = sinon.spy();
-                monitoredItem.on("changed", changedSpy);
-                monitoredItem.on("err", (message: string) => {
-                    // tslint:disable-next-line: no-console
-                    console.log("Error", message);
-                });
-
-                monitoredItem.on("changed", (eventFields: Variant[]) => {
-                    for (const eventField of eventFields) {
-                        // tslint:disable-next-line: no-console
-                        // console.log(eventField.toString());
-                    }
-                });
-                await new Promise((resolve) => {
                     // subscription.on("item_added",function(monitoredItem){
                     monitoredItem.on("initialized", () => {
+                        // tslint:disable-next-line: no-console
                         console.log(" Initialized !");
-                        resolve();
                     });
-                });
 
-                raiseRfidScanEvent();
+                    const changedSpy = sinon.spy();
+                    monitoredItem.on("changed", changedSpy);
+                    monitoredItem.on("err", (message: string) => {
+                        // tslint:disable-next-line: no-console
+                        console.log("Error", message);
+                    });
 
-                await new Promise((resolve) => setTimeout(resolve, 1000));
+                    monitoredItem.on("changed", (eventFields: Variant[]) => {
+                        for (const eventField of eventFields) {
+                            // tslint:disable-next-line: no-console
+                            // console.log(eventField.toString());
+                        }
+                    });
+                    await new Promise((resolve) => {
+                        // subscription.on("item_added",function(monitoredItem){
+                        monitoredItem.on("initialized", () => {
+                            console.log(" Initialized !");
+                            resolve();
+                        });
+                    });
 
-                console.log("changedSpy = ", changedSpy.getCalls().length);
+                    raiseRfidScanEvent();
 
-                // console.log(changedSpy.firstCall.args[0]);
-                /*RfidScanResult*/
-                changedSpy.firstCall.args[0].should.be.instanceOf(Array);
-                changedSpy.firstCall.args[0][6].dataType.should.eql(DataType.ExtensionObject);
-                changedSpy.firstCall.args[0][6].value.constructor.name.should.eql("RfidScanResult");
-                changedSpy.callCount.should.eql(1);
+                    await new Promise((resolve) => setTimeout(resolve, 1000));
+
+                    console.log("changedSpy = ", changedSpy.getCalls().length);
+
+                    // console.log(changedSpy.firstCall.args[0]);
+                    /*RfidScanResult*/
+                    changedSpy.firstCall.args[0].should.be.instanceOf(Array);
+                    changedSpy.firstCall.args[0][6].dataType.should.eql(DataType.ExtensionObject);
+                    changedSpy.firstCall.args[0][6].value.constructor.name.should.eql("RfidScanResult");
+                    changedSpy.callCount.should.eql(1);
+                } catch (err) {
+                    console.log(err);
+                    throw err;
+                }
             }
-            catch (err) {
-                console.log(err);
-                throw err;
-            }
-        });
-
+        );
     });
 });

@@ -1,7 +1,7 @@
 "use strict";
 const should = require("should");
 const async = require("async");
-
+const chalk = require("chalk");
 
 const { OPCUAClient, OPCUAServer, SessionContext } = require("node-opcua");
 const context = SessionContext.defaultContext;
