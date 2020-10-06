@@ -90,7 +90,11 @@ export interface ServerSecureChannelParent extends ICertificateKeyPairProvider {
 
     getPrivateKey(): PrivateKeyPEM;
 
-    getEndpointDescription(securityMode: MessageSecurityMode, securityPolicy: SecurityPolicy): EndpointDescription | null;
+    getEndpointDescription(
+        securityMode: MessageSecurityMode,
+        securityPolicy: SecurityPolicy,
+        endpointUri: string | null
+    ): EndpointDescription | null;
 }
 
 export interface SeverSecureChannelLayerOptions {
@@ -302,7 +306,6 @@ export class ServerSecureChannelLayer extends EventEmitter {
     public securityPolicy: SecurityPolicy = SecurityPolicy.Invalid;
     public securityHeader: AsymmetricAlgorithmSecurityHeader | null;
     public clientSecurityHeader?: SecurityHeader;
-    public endpoint: EndpointDescription | null;
 
     private readonly __hash: number;
     private parent: ServerSecureChannelParent | null;
@@ -344,7 +347,6 @@ export class ServerSecureChannelLayer extends EventEmitter {
         this._on_response = null;
         this.__verifId = {};
         this._abort_has_been_called = false;
-        this.endpoint = null;
         this._remoteAddress = "";
         this._remotePort = 0;
         this.receiverCertificate = null;
@@ -480,11 +482,15 @@ export class ServerSecureChannelLayer extends EventEmitter {
      * the endpoint associated with this secure channel
      *
      */
-    public getEndpointDescription(securityMode: MessageSecurityMode, securityPolicy: SecurityPolicy): EndpointDescription | null {
+    public getEndpointDescription(
+        securityMode: MessageSecurityMode,
+        securityPolicy: SecurityPolicy,
+        endpointUri: string | null
+    ): EndpointDescription | null {
         if (!this.parent) {
             return null; // throw new Error("getEndpointDescription - no parent");
         }
-        return this.parent.getEndpointDescription(this.securityMode, securityPolicy);
+        return this.parent.getEndpointDescription(this.securityMode, securityPolicy, endpointUri);
     }
 
     public setSecurity(securityMode: MessageSecurityMode, securityPolicy: SecurityPolicy): void {
@@ -687,7 +693,7 @@ export class ServerSecureChannelLayer extends EventEmitter {
         if (!this.parent) {
             return true;
         }
-        const endpoint_desc = this.getEndpointDescription(securityMode, securityPolicy);
+        const endpoint_desc = this.getEndpointDescription(securityMode, securityPolicy, null);
         return endpoint_desc !== null;
     }
 
@@ -1381,8 +1387,6 @@ export class ServerSecureChannelLayer extends EventEmitter {
             description = " This server doesn't not support  " + securityPolicy.toString() + " " + this.securityMode.toString();
             return this._on_OpenSecureChannelRequestError(StatusCodes.BadSecurityPolicyRejected, description, message, callback);
         }
-
-        this.endpoint = this.getEndpointDescription(this.securityMode, securityPolicy)!;
 
         this.messageBuilder
             .on("message", (request, msgType, requestId, channelId) => {

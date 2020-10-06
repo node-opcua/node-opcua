@@ -1,14 +1,12 @@
-/* global: require, describe, it, process*/
 "use strict";
 const chalk = require("chalk");
-var crypto_utils = require("node-opcua-crypto");
-var fs = require("fs");
-var path = require("path");
-var _ = require("underscore");
-var spawn = require("child_process").spawn;
-var os = require("os");
+const crypto_utils = require("node-opcua-crypto");
+const fs = require("fs");
+const path = require("path");
+const { spawn } = require("child_process");
+const os = require("os");
 function constructFilename(p) {
-    var filename = path.join(__dirname, "..", p);
+    const filename = path.join(__dirname, "..", p);
     //xx console.log("fi = ",filename);
     if (!fs.existsSync(filename)) {
         throw new Error("Cannot find " + filename);
@@ -26,7 +24,7 @@ function constructFilename(p) {
  * @param callback.error {Error|Null}
  * @param callback.data
  * @param callback.data.process
- * @param callback.data.endpointurl
+ * @param callback.data.endpointUrl
  * @param callback.data.serverCertificate
  *
  */
@@ -49,10 +47,11 @@ function start_simple_server(options, callback) {
     delete options.server_sourcefile;
     delete options.port;
 
-
-
     options.env = options.env || {};
-    _.extend(options.env, process.env);
+    options.env = {
+        ...options.env,
+        ...process.env
+    };
 
     options.env.DEBUG = options.env.DEBUG2 || "";
     options.env.NODEOPCUADEBUG = "";
@@ -93,7 +92,7 @@ function start_simple_server(options, callback) {
                     callback(null, {
                         process: server_exec,
                         pid_collected: pid_collected,
-                        endpointUrl: "opc.tcp://" + os.hostname() + ":" + port + "/UA/SampleServer",
+                        endpointUrl: "opc.tcp://" + os.hostname() + ":" + port,
                         serverCertificate: crypto_utils.readCertificate(serverCertificateFilename)
                     });
 
@@ -104,7 +103,7 @@ function start_simple_server(options, callback) {
 
     server_exec.on("close", detect_early_termination);
 
-    server_exec.on("error", function(err) {
+    server_exec.on("error", (err) => {
         console.log("xxxx child process terminated due to receipt of signal ", err);
     });
 
@@ -125,10 +124,10 @@ function start_simple_server(options, callback) {
 
     }
 
-    server_exec.stdout.on("data", function(data) {
+    server_exec.stdout.on("data", (data) => {
         dumpData(chalk.cyan("stdout:  "), data.toString("utf8"));
     });
-    server_exec.stderr.on("data", function(data) {
+    server_exec.stderr.on("data", (data) => {
         dumpData(chalk.red("stderr: "), data.toString("utf8"));
     });
 

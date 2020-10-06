@@ -83,10 +83,13 @@ function start_active_client(connectionStrategy, callback) {
         },
 
         function client_recreate_session(callback) {
-            client.createSession(function(err, session) {
-                if (!err) {
-                    the_session = session;
+            client.createSession((err, session) => {
+                if (err) {
+                    console.log("endpointUrl = ", endpointUrl);
+                    console.log("err = ", err);
+                    return callback(err);
                 }
+                the_session = session;
                 debugLog("session timeout = ", session.timeout);
                 the_session.on("keepalive", function(state) {
                     if (doDebug) {
@@ -98,7 +101,7 @@ function start_active_client(connectionStrategy, callback) {
                 the_session.on("session_closed", function(statusCode) {
                     debugLog(chalk.yellow("Session has closed : statusCode = "), statusCode ? statusCode.toString() : "????");
                 });
-                callback(err);
+                callback();
             });
         },
 
@@ -249,7 +252,9 @@ function terminate_active_client(callback) {
                 clearInterval(intervalId);
                 intervalId = null;
             }
-
+            if (!the_session) {
+                return callback();
+            }
             the_session.close(function(err) {
                 if (err) {
                     debugLog("session closed failed ?");

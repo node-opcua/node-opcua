@@ -334,7 +334,7 @@ export class ClientSecureChannelLayer extends EventEmitter {
     private securityHeader: AsymmetricAlgorithmSecurityHeader | null;
     private lastError?: Error;
     private _tick2: number = 0;
-    private _isDiscconnecting = false;
+    private _isDisconnecting = false;
 
     constructor(options: ClientSecureChannelLayerOptions) {
         super();
@@ -538,7 +538,7 @@ export class ClientSecureChannelLayer extends EventEmitter {
     }
 
     public dispose() {
-        this._isDiscconnecting = true;
+        this._isDisconnecting = true;
         this.abortConnection(() => {
             /* empty */
         });
@@ -559,7 +559,7 @@ export class ClientSecureChannelLayer extends EventEmitter {
 
     public abortConnection(callback: ErrorCallback) {
         const self = this;
-        this._isDiscconnecting = true;
+        this._isDisconnecting = true;
         debugLog("abortConnection ", !!this.__call);
         assert(typeof callback === "function");
 
@@ -779,7 +779,7 @@ export class ClientSecureChannelLayer extends EventEmitter {
         if (response.responseHeader.requestHandle !== request.requestHeader.requestHandle) {
             const expected = request.requestHeader.requestHandle;
             const actual = response.responseHeader.requestHandle;
-            const moreInfo = "Class = " + response.schema.name;
+            const moreInfo = "Request= " + request.schema.name + " Response = " + response.schema.name;
 
             const message =
                 " WARNING SERVER responseHeader.requestHandle is invalid" +
@@ -797,6 +797,7 @@ export class ClientSecureChannelLayer extends EventEmitter {
 
             debugLog(chalk.red.bold(message), chalk.yellow(moreInfo));
             console.log(chalk.red.bold(message), chalk.yellow(moreInfo));
+            console.log(request.toString());
         }
 
         requestData.response = response;
@@ -1134,7 +1135,7 @@ export class ClientSecureChannelLayer extends EventEmitter {
             //   - server too busy -
             //   - server shielding itself from a DDOS attack
             if (err) {
-                let should_abort = this._isDiscconnecting;
+                let should_abort = this._isDisconnecting;
 
                 if (err.message.match(/ECONNRESET/)) {
                     should_abort = true;

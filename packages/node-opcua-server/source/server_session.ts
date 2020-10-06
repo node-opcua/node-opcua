@@ -9,48 +9,36 @@ import { EventEmitter } from "events";
 import {
     addElement,
     AddressSpace,
-    BaseNode,
     ContinuationPointManager,
     createExtObjArrayNode,
     ensureObjectIsSecure,
-    IChannelBase,
     ISessionBase,
     removeElement,
-    SessionContext,
     UADynamicVariableArray,
     UAObject,
     UASessionDiagnostics,
-    UASessionSecurityDiagnostics,
-    UAVariable
+    UASessionSecurityDiagnostics
 } from "node-opcua-address-space";
 
 import { assert } from "node-opcua-assert";
 import { randomGuid } from "node-opcua-basic-types";
 import { SessionDiagnosticsDataType, SessionSecurityDiagnosticsDataType, SubscriptionDiagnosticsDataType } from "node-opcua-common";
-import { QualifiedName, makeAccessLevelFlag } from "node-opcua-data-model";
-import { NodeClass } from "node-opcua-data-model";
+import { QualifiedName, NodeClass } from "node-opcua-data-model";
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 import { makeNodeId, NodeId, NodeIdType, sameNodeId } from "node-opcua-nodeid";
 import { ObjectRegistry } from "node-opcua-object-registry";
 import { StatusCode, StatusCodes } from "node-opcua-status-code";
 import { WatchDog } from "node-opcua-utils";
 import { lowerFirstLetter } from "node-opcua-utils";
+import { ISubscriber, IWatchdogData2 } from "node-opcua-utils";
 
 import { ServerSecureChannelLayer } from "node-opcua-secure-channel";
-import {
-    ApplicationDescription,
-    MessageSecurityMode,
-    ReferenceDescriptionOptions,
-    UserIdentityToken,
-    CreateSubscriptionRequestOptions
-} from "node-opcua-types";
+import { ApplicationDescription, UserIdentityToken, CreateSubscriptionRequestOptions, EndpointDescription } from "node-opcua-types";
 
-import { ISubscriber, IWatchdogData2 } from "node-opcua-utils";
 import { ServerSidePublishEngine } from "./server_publish_engine";
 import { Subscription } from "./server_subscription";
 import { SubscriptionState } from "./server_subscription";
 import { ServerEngine } from "./server_engine";
-import { CreateSubscriptionOptions } from "node-opcua-client";
 
 const debugLog = make_debugLog(__filename);
 const doDebug = checkDebugFlag(__filename);
@@ -193,6 +181,11 @@ export class ServerSession extends EventEmitter implements ISubscriber, ISession
 
     public getSessionId(): NodeId {
         return this.nodeId;
+    }
+
+    public endpoint?: EndpointDescription;
+    public getEndpointDescription(): EndpointDescription {
+        return this.endpoint!;
     }
 
     public dispose() {
@@ -759,13 +752,13 @@ export class ServerSession extends EventEmitter implements ISubscriber, ISession
                 Object.defineProperty(this._sessionSecurityDiagnostics, "securityMode", {
                     get(this: any) {
                         const session: ServerSession = this.$session;
-                        return session?.channel!.endpoint!.securityMode;
+                        return session?.channel?.securityMode;
                     }
                 });
                 Object.defineProperty(this._sessionSecurityDiagnostics, "securityPolicyUri", {
                     get(this: any) {
                         const session: ServerSession = this.$session;
-                        return session?.channel!.endpoint!.securityPolicyUri;
+                        return session?.channel?.securityPolicy;
                     }
                 });
                 Object.defineProperty(this._sessionSecurityDiagnostics, "clientCertificate", {
@@ -919,7 +912,6 @@ export class ServerSession extends EventEmitter implements ISubscriber, ISession
         this._exposeSubscriptionDiagnostics(subscription);
 
         subscription.once("terminated", () => {
-            // Xx session._unexposeSubscriptionDiagnostics(subscription);
             // Notify the owner that a new subscription has been terminated
             // @event subscription_terminated
             // @param {Subscription} subscription

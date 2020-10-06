@@ -22,7 +22,6 @@ import {
     DeleteMonitoredItemsResponse,
     DeleteSubscriptionsResponse,
     MonitoredItemCreateRequestOptions,
-    MonitoredItemCreateResult,
     MonitoringParametersOptions,
     NotificationMessage,
     StatusChangeNotification,
@@ -37,7 +36,7 @@ import { promoteOpaqueStructure } from "node-opcua-client-dynamic-extension-obje
 import { DataType, Variant } from "node-opcua-variant";
 import { IBasicSession } from "node-opcua-pseudo-session";
 
-import { ClientMonitoredItemBase, ClientMonitoredItemOrGroupAction } from "../client_monitored_item_base";
+import { ClientMonitoredItemBase } from "../client_monitored_item_base";
 import { ClientMonitoredItemGroup } from "../client_monitored_item_group";
 import { ClientSession, MonitoredItemData, SubscriptionId } from "../client_session";
 import { ClientHandle, ClientMonitoredItemBaseMap, ClientSubscription, ClientSubscriptionOptions } from "../client_subscription";
@@ -50,8 +49,8 @@ const debugLog = make_debugLog(__filename);
 const doDebug = checkDebugFlag(__filename);
 const warningLog = debugLog;
 
-const PENDING_SUBSCRIPTON_ID = 0xc0cac01a;
-const TERMINTATED_SUBSCRIPTION_ID = 0xc0cac01b;
+const PENDING_SUBSCRIPTION_ID = 0xc0cac01a;
+const TERMINATED_SUBSCRIPTION_ID = 0xc0cac01b;
 const TERMINATING_SUBSCRIPTION_ID = 0xc0cac01c;
 
 async function promoteOpaqueStructureInNotificationData(
@@ -103,8 +102,8 @@ export class ClientSubscriptionImpl extends EventEmitter implements ClientSubscr
     }
     public get isActive(): boolean {
         return !(
-            this.subscriptionId === PENDING_SUBSCRIPTON_ID ||
-            this.subscriptionId === TERMINTATED_SUBSCRIPTION_ID ||
+            this.subscriptionId === PENDING_SUBSCRIPTION_ID ||
+            this.subscriptionId === TERMINATED_SUBSCRIPTION_ID ||
             this.subscriptionId === TERMINATING_SUBSCRIPTION_ID
         );
     }
@@ -155,7 +154,7 @@ export class ClientSubscriptionImpl extends EventEmitter implements ClientSubscr
         this.publishingEnabled = options.publishingEnabled;
         this.priority = options.priority;
 
-        this.subscriptionId = PENDING_SUBSCRIPTON_ID;
+        this.subscriptionId = PENDING_SUBSCRIPTION_ID;
 
         this._nextClientHandle = 0;
         this.monitoredItems = {};
@@ -188,10 +187,11 @@ export class ClientSubscriptionImpl extends EventEmitter implements ClientSubscr
     }
 
     public terminate(...args: any[]): any {
+        debugLog("Terminating client subscription ", this.subscriptionId);
         const callback = args[0];
         assert(typeof callback === "function", "expecting a callback function");
 
-        if (this.subscriptionId === TERMINTATED_SUBSCRIPTION_ID || this.subscriptionId === TERMINATING_SUBSCRIPTION_ID) {
+        if (this.subscriptionId === TERMINATED_SUBSCRIPTION_ID || this.subscriptionId === TERMINATING_SUBSCRIPTION_ID) {
             // already terminated... just ignore
             return callback(new Error("Already Terminated"));
         }
@@ -229,7 +229,7 @@ export class ClientSubscriptionImpl extends EventEmitter implements ClientSubscr
             );
         } else {
             debugLog("subscriptionId is not value ", this.subscriptionId);
-            assert(this.subscriptionId === PENDING_SUBSCRIPTON_ID);
+            assert(this.subscriptionId === PENDING_SUBSCRIPTION_ID);
             this._terminate_step2(callback);
         }
     }
@@ -372,7 +372,7 @@ export class ClientSubscriptionImpl extends EventEmitter implements ClientSubscr
     public recreateSubscriptionAndMonitoredItem(callback: ErrorCallback) {
         debugLog("ClientSubscription#recreateSubscriptionAndMonitoredItem");
 
-        if (this.subscriptionId === TERMINTATED_SUBSCRIPTION_ID) {
+        if (this.subscriptionId === TERMINATED_SUBSCRIPTION_ID) {
             debugLog("Subscription is not in a valid state");
             return callback();
         }
@@ -509,11 +509,11 @@ export class ClientSubscriptionImpl extends EventEmitter implements ClientSubscr
         const waitForSubscriptionAndMonitor = () => {
             _watchDogCount++;
 
-            if (this.subscriptionId === PENDING_SUBSCRIPTON_ID) {
+            if (this.subscriptionId === PENDING_SUBSCRIPTION_ID) {
                 // the subscriptionID is not yet known because the server hasn't replied yet
                 // let postpone this call, a little bit, to let things happen
                 setImmediate(waitForSubscriptionAndMonitor);
-            } else if (this.subscriptionId === TERMINTATED_SUBSCRIPTION_ID) {
+            } else if (this.subscriptionId === TERMINATED_SUBSCRIPTION_ID) {
                 // the subscription has been terminated in the meantime
                 // this indicates a potential issue in the code using this api.
                 if (typeof done === "function") {
@@ -626,10 +626,8 @@ export class ClientSubscriptionImpl extends EventEmitter implements ClientSubscr
             // a StatusChangeNotification  notificationMessage with the status code
             // Good_SubscriptionTransferred to the old Session.
             debugLog("ClientSubscription#__on_publish_response_StatusChangeNotification : GoodSubscriptionTransferred");
-            this.hasTimedOut = true;
-            this.terminate(() => {
-                /* empty*/
-            });
+
+            // may be it has been transferred after a reconnection.... in this case should do nothing about it
         }
         if (notification.status === StatusCodes.BadTimeout) {
             // the server tells use that the subscription has timed out ..
@@ -742,7 +740,7 @@ export class ClientSubscriptionImpl extends EventEmitter implements ClientSubscr
              * notify the observers tha the client subscription has terminated
              * @event  terminated
              */
-            this.subscriptionId = TERMINTATED_SUBSCRIPTION_ID;
+            this.subscriptionId = TERMINATED_SUBSCRIPTION_ID;
             this.emit("terminated");
             callback();
         });

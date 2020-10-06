@@ -335,12 +335,12 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
     public getEndpointDescription(
         securityMode: MessageSecurityMode,
         securityPolicy: SecurityPolicy,
-        endpointUrl?: string
+        endpointUrl: string | null
     ): EndpointDescription | null {
         const endpoints = this.endpointDescriptions();
         const arr = _.filter(endpoints, matching_endpoint.bind(this, securityMode, securityPolicy, endpointUrl));
 
-        if (!(arr.length === 0 || arr.length === 1)) {
+        if (endpointUrl && endpointUrl.length > 0 && !(arr.length === 0 || arr.length === 1)) {
             errorLog("Several matching endpoints have been found : ");
             for (const a of arr) {
                 errorLog("   ", a.endpointUrl, MessageSecurityMode[securityMode], securityPolicy);
@@ -1129,7 +1129,7 @@ function _makeEndpointDescription(options: MakeEndpointDescriptionOptions): Endp
 function matching_endpoint(
     securityMode: MessageSecurityMode,
     securityPolicy: SecurityPolicy,
-    endpointUrl: string | undefined,
+    endpointUrl: string | null,
     endpoint: EndpointDescription
 ): boolean {
     assert(endpoint instanceof EndpointDescription);
