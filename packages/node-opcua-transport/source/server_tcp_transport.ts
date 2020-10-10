@@ -78,7 +78,7 @@ export class ServerTCP_transport extends TCP_transport {
      * Initialize the server transport.
      *
      *
-     *  The ServerTCP_transport initialisation process starts by waiting for the client to send a "HEL" message.
+     *  The ServerTCP_transport initialization process starts by waiting for the client to send a "HEL" message.
      *
      *  The  ServerTCP_transport replies with a "ACK" message and then start waiting for further messages of any size.
      *

@@ -11,7 +11,7 @@
     "main": "./dist/index.js",
     "types": "./dist/index.d.ts",
     "dependencies": {
-        "@types/bonjour": "^3.5.6",
+        "@types/bonjour": "^3.5.7",
         "bonjour": "^3.5.0",
         "node-opcua-assert": "2.16.0",
         "node-opcua-basic-types": "2.19.0",

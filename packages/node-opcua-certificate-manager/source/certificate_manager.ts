@@ -45,11 +45,7 @@ export interface ICertificateManager {
     rejectCertificate(certificate: Certificate): Promise<void>;
 }
 
-type ReadFileFunc = (
-    filename: string,
-    encoding: string,
-    callback: (err: Error | null, content?: Buffer) => void
-) => void;
+type ReadFileFunc = (filename: string, encoding: string, callback: (err: Error | null, content?: Buffer) => void) => void;
 
 export interface OPCUACertificateManagerOptions {
     /**
@@ -80,7 +76,7 @@ export class OPCUACertificateManager extends CertificateManager implements ICert
 
         const _options: CertificateManagerOptions = {
             keySize: 2048,
-            location,
+            location
         };
         super(_options);
 
@@ -96,7 +92,7 @@ export class OPCUACertificateManager extends CertificateManager implements ICert
             }
             const statusCode = (StatusCodes as any)[status!];
 
-            // console.log("StatusCode = ", statusCode.toString());
+            debugLog("checkCertificate => StatusCode = ", statusCode.toString());
             if (statusCode === StatusCodes.BadCertificateUntrusted) {
                 const thumbprint = makeSHA1Thumbprint(certificate).toString("hex");
                 if (this.automaticallyAcceptUnknownCertificate) {
@@ -106,9 +102,7 @@ export class OPCUACertificateManager extends CertificateManager implements ICert
                 } else {
                     errorLog("automaticallyAcceptUnknownCertificate = false");
                     errorLog("certificate with thumbprint " + thumbprint + " is now rejected");
-                    return this.rejectCertificate(certificate, () =>
-                        callback!(null, StatusCodes.BadCertificateUntrusted)
-                    );
+                    return this.rejectCertificate(certificate, () => callback!(null, StatusCodes.BadCertificateUntrusted));
                 }
             }
 
@@ -133,14 +127,8 @@ export class OPCUACertificateManager extends CertificateManager implements ICert
 const thenify = require("thenify");
 const opts = { multiArgs: false };
 
-OPCUACertificateManager.prototype.checkCertificate = thenify.withCallback(
-    OPCUACertificateManager.prototype.checkCertificate,
-    opts
-);
-OPCUACertificateManager.prototype.getTrustStatus = thenify.withCallback(
-    OPCUACertificateManager.prototype.getTrustStatus,
-    opts
-);
+OPCUACertificateManager.prototype.checkCertificate = thenify.withCallback(OPCUACertificateManager.prototype.checkCertificate, opts);
+OPCUACertificateManager.prototype.getTrustStatus = thenify.withCallback(OPCUACertificateManager.prototype.getTrustStatus, opts);
 
 // also see OPCUA 1.02 part 4 :
 //  - page 95  6.1.3 Determining if a Certificate is Trusted
@@ -160,20 +148,14 @@ export function checkCertificateValidity(certificate: Certificate): StatusCode {
         // certificate is not active yet
         // tslint:disable-next-line:no-console
         console.log(
-            chalk.red(" Sender certificate is invalid : certificate is not active yet !") +
-                "  not before date =" +
-                cert.notBefore
+            chalk.red(" Sender certificate is invalid : certificate is not active yet !") + "  not before date =" + cert.notBefore
         );
         return StatusCodes.BadCertificateTimeInvalid;
     }
     if (cert.notAfter.getTime() <= now.getTime()) {
         // certificate is obsolete
         // tslint:disable-next-line:no-console
-        console.log(
-            chalk.red(" Sender certificate is invalid : certificate has expired !") +
-                " not after date =" +
-                cert.notAfter
-        );
+        console.log(chalk.red(" Sender certificate is invalid : certificate has expired !") + " not after date =" + cert.notAfter);
         return StatusCodes.BadCertificateTimeInvalid;
     }
     // Has SoftwareCertificate has  been revoked by the issuer ?
