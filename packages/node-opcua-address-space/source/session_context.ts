@@ -3,7 +3,11 @@
  */
 
 import { assert } from "node-opcua-assert";
-import { Certificate, CertificateInternals, exploreCertificate } from "node-opcua-crypto";
+
+// note : use specifically dist file to avoid modules that rely on fs
+import { CertificateInternals, exploreCertificate } from "node-opcua-crypto/dist/crypto_explore_certificate";
+import { Certificate } from "node-opcua-crypto/dist/common";
+
 import { AccessLevelFlag, makeAccessLevelFlag } from "node-opcua-data-model";
 import { NodeId } from "node-opcua-nodeid";
 import { AnonymousIdentityToken, MessageSecurityMode, UserNameIdentityToken, X509IdentityToken } from "node-opcua-types";
