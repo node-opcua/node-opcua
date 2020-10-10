@@ -10,7 +10,7 @@
         "test-typescript": "mocha --recursive test/end_to_end/*.ts"
     },
     "dependencies": {
-        "node-opcua-pki": "^2.1.7"
+        "node-opcua-pki": "^2.2.0"
     },
     "devDependencies": {
         "@types/underscore": "^1.10.24",
@@ -45,7 +45,7 @@
         "node-opcua-service-secure-channel": "2.19.0",
         "node-opcua-variant": "2.19.0",
         "should": "^13.2.3",
-        "sinon": "^9.1.0",
+        "sinon": "^9.2.0",
         "underscore": "^1.11.0",
         "yargs": "15.4.1"
     },

@@ -220,7 +220,7 @@ export function nonceAlreadyBeenUsed(nonce?: Buffer): boolean {
  * @uses MessageChunker
  */
 export class ServerSecureChannelLayer extends EventEmitter {
-    public static throttleTime: number = 1000;
+    public static throttleTime: number = 100;
 
     public get securityTokenCount() {
         assert(typeof this.lastTokenId === "number");
@@ -1337,10 +1337,9 @@ export class ServerSecureChannelLayer extends EventEmitter {
 
         // turn of security mode as we haven't manage to set it to
         this.securityMode = MessageSecurityMode.None;
-
-        setTimeout(() => {
-            this.send_fatal_error_and_abort(serviceResult, description, message, callback);
-        }, ServerSecureChannelLayer.throttleTime); // Throttling keep connection on hold for a while.
+        //setTimeout(() => {
+        this.send_fatal_error_and_abort(serviceResult, description, message, callback);
+        //}, ServerSecureChannelLayer.throttleTime); // Throttling keep connection on hold for a while.
     }
 
     private _on_initial_OpenSecureChannelRequest(message: Message, callback: ErrorCallback) {
@@ -1413,9 +1412,18 @@ export class ServerSecureChannelLayer extends EventEmitter {
                 // OPCUA specification v1.02 part 6 page 42 $6.7.4
                 // If an error occurs after the  Server  has verified  Message  security  it  shall  return a  ServiceFault  instead
                 // of a OpenSecureChannel  response. The  ServiceFault  Message  is described in  Part  4,   7.28.
+                if (
+                    statusCode !== StatusCodes.BadCertificateIssuerRevocationUnknown &&
+                    statusCode !== StatusCodes.BadCertificateRevocationUnknown &&
+                    statusCode !== StatusCodes.BadCertificateTimeInvalid &&
+                    statusCode !== StatusCodes.BadCertificateUseNotAllowed
+                ) {
+                    statusCode = StatusCodes.BadSecurityChecksFailed;
+                }
                 return this._on_OpenSecureChannelRequestError(statusCode, description, message, callback);
             }
 
+            console.log("---------------> statusCode =", statusCode.toString());
             this._handle_OpenSecureChannelRequest(statusCode!, message, callback);
         });
     }
