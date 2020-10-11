@@ -10,7 +10,7 @@ describe("extractConditionFields", () => {
     let addressSpace: AddressSpace;
     const test = {} as IAlarmTestData;
     before(async () => {
-        const xmlFiles = [nodesets.standard_nodeset_file];
+        const xmlFiles = [nodesets.standard];
         addressSpace = AddressSpace.create();
         fs.existsSync(xmlFiles[0]).should.eql(true);
         await generateAddressSpace(addressSpace, xmlFiles);

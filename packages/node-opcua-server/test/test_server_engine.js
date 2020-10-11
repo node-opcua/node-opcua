@@ -63,7 +63,7 @@ const { ServerEngine } = require("..");
 const { get_mini_nodeset_filename } = require("node-opcua-address-space/testHelpers");
 const mini_nodeset_filename = get_mini_nodeset_filename();
 
-const { standard_nodeset_file } = require("node-opcua-nodesets").nodesets;
+const { nodesets } = require("node-opcua-nodesets");
 
 const server_NamespaceArray_Id = makeNodeId(VariableIds.Server_NamespaceArray); // ns=0;i=2255
 const context = SessionContext.defaultContext;
@@ -2357,7 +2357,7 @@ describe("ServerEngine ServerStatus & ServerCapabilities", function(/*this: any*
 
         engine = new ServerEngine({ buildInfo: defaultBuildInfo });
 
-        engine.initialize({ nodeset_filename: standard_nodeset_file }, () => {
+        engine.initialize({ nodeset_filename: nodesets.standard }, () => {
             done();
         });
 

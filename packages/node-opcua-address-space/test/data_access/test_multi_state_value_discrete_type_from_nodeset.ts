@@ -17,7 +17,7 @@ describe("MultiStateValueDiscreteType - 2", () => {
         addressSpace.registerNamespace("MyPrivateNamespace");
         data.addressSpace = addressSpace;
         const xmlFiles = [
-            nodesets.standard_nodeset_file,
+            nodesets.standard,
             path.join(__dirname, "../../test_helpers/test_fixtures/mini.nodeset.withVariousVariables.xml")
         ];
         fs.existsSync(xmlFiles[0]).should.eql(true);

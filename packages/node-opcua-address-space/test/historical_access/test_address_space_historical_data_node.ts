@@ -5,7 +5,7 @@ import { promisify } from "util";
 
 import { AttributeIds } from "node-opcua-data-model";
 import { DataValue } from "node-opcua-data-value";
-import * as nodesets from "node-opcua-nodesets";
+import { nodesets } from "node-opcua-nodesets";
 import {
     HistoryData,
     ReadAtTimeDetails,
@@ -40,7 +40,7 @@ describe("Testing Historical Data Node", () => {
 
     before(async () => {
         addressSpace = AddressSpace.create();
-        const xml_files = [nodesets.standard_nodeset_file];
+        const xml_files = [nodesets.standard];
         fs.existsSync(xml_files[0]).should.be.eql(true, "file " + xml_files[0] + " must exist");
         await generateAddressSpace(addressSpace, xml_files);
         const namespace = addressSpace.registerNamespace("MyPrivateNamespace");

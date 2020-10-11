@@ -376,13 +376,6 @@ xdescribe("factories testing advanced cases", function() {
 
     it("should accept all basic types as field scalar or field arrays", function() {
 
-        // delete existing file if any
-
-        //xx var filename = utils.getTempFilename("_Blob6.js");
-        //xx if (fs.existsSync(filename)) {
-        //xx     fs.unlinkSync(filename);
-        //xx }
-
         const ExtensionObject = require("node-opcua-status-code").ExtensionObject;
 
         exports.Blob6_Schema = {

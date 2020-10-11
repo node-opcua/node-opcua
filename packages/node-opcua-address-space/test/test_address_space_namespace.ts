@@ -1,5 +1,5 @@
 import * as fs from "fs";
-import * as nodesets from "node-opcua-nodesets";
+import { nodesets } from "node-opcua-nodesets";
 import { getFixture } from "node-opcua-test-fixtures";
 import * as path from "path";
 import * as should from "should";
@@ -115,7 +115,7 @@ describe("testing  address space namespace loading", function (this: any) {
 
     it("should process namespaces with DI", async () => {
         const addressSpace = AddressSpace.create();
-        const xml_files = [nodesets.standard_nodeset_file, nodesets.di_nodeset_filename];
+        const xml_files = [nodesets.standard, nodesets.di];
         fs.existsSync(xml_files[0]).should.be.eql(true);
         fs.existsSync(xml_files[1]).should.be.eql(true);
 

@@ -1,6 +1,7 @@
 import * as fs from "fs";
-import * as nodesets from "node-opcua-nodesets";
+import { nodesets } from "node-opcua-nodesets";
 import * as should from "should";
+
 import { AddressSpace } from "../..";
 import { generateAddressSpace } from "../../nodeJS";
 
@@ -27,7 +28,7 @@ describe("AddressSpace : Conditions 1", function (this: any) {
         addressSpace = AddressSpace.create();
         addressSpace.registerNamespace("PRIVATE_NAMESPACE");
 
-        const xml_file = nodesets.standard_nodeset_file;
+        const xml_file = nodesets.standard;
 
         fs.existsSync(xml_file).should.be.eql(true);
 

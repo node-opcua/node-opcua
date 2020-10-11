@@ -21,9 +21,9 @@ async function parse_xml(nodeset_files) {
 const path = require("path");
 
 const g_nodesets = [
-    nodesets.standard_nodeset_file,
-    nodesets.di_nodeset_filename,
-    nodesets.adi_nodeset_filename,
+    nodesets.standard,
+    nodesets.di,
+    nodesets.adi,
     path.join(__dirname, "../../../modeling/my_data_type.xml")
 ];
 

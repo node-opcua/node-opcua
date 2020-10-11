@@ -1,11 +1,9 @@
 "use strict";
 const should = require("should");
-const ChunkManager = require("..").ChunkManager;
-
-const util = require("util");
 const { assert } = require("node-opcua-assert");
+const { hexDump } = require("node-opcua-debug");
 
-const hexDump = require("node-opcua-debug").hexDump;
+const { ChunkManager } = require("..");
 
 function make_packet(packet_length) {
     const buf = Buffer.allocUnsafe(packet_length);

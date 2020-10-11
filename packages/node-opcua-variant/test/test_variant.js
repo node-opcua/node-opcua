@@ -24,7 +24,7 @@ const { QualifiedName, LocalizedText } = require("node-opcua-data-model");
 
 const { encode_decode_round_trip_test } = require("node-opcua-packet-analyzer/dist/test_helpers");
 
-const { redirectToFile } = require("node-opcua-debug");
+const { redirectToFile } = require("node-opcua-debug/nodeJS");
 
 const { Benchmarker } = require("node-opcua-benchmarker");
 const { BinaryStream } = require("node-opcua-binary-stream");

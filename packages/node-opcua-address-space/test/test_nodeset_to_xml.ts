@@ -3,10 +3,10 @@
 import * as fs from "fs";
 import * as should from "should";
 
-import { getTempFilename } from "node-opcua-debug";
+import { getTempFilename } from "node-opcua-debug/nodeJS";
 import { DataType } from "node-opcua-variant";
 import { Variant } from "node-opcua-variant";
-import * as nodesets from "node-opcua-nodesets";
+import { nodesets } from "node-opcua-nodesets";
 import { coerceLocalizedText, makeAccessLevelFlag } from "node-opcua-data-model";
 
 import { AddressSpace, dumpXml, Namespace, RootFolder, UAVariable } from "..";
@@ -507,7 +507,7 @@ describe("nodeset2.xml with more than one referenced namespace", function (this:
     beforeEach(async () => {
         addressSpace = AddressSpace.create();
 
-        const xml_files = [nodesets.standard_nodeset_file, nodesets.di_nodeset_filename];
+        const xml_files = [nodesets.standard, nodesets.di];
         fs.existsSync(xml_files[0]).should.be.eql(true);
         fs.existsSync(xml_files[1]).should.be.eql(true);
 
@@ -537,7 +537,7 @@ describe("nodeset2.xml with more than one referenced namespace", function (this:
 
     async function reloadedNodeSet(tmpFilename: string) {
         /// Xx console.log(xml);
-        const theNodesets = [nodesets.standard_nodeset_file, nodesets.di_nodeset_filename, tmpFilename];
+        const theNodesets = [nodesets.standard, nodesets.di, tmpFilename];
         // now reload the file as part of a addressSpace;
         const reloadedAddressSpace = AddressSpace.create();
         await generateAddressSpace(reloadedAddressSpace, theNodesets);

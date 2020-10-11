@@ -9,7 +9,7 @@ const { UAProxyManager, makeRefId } = require("node-opcua-client-proxy");
 
 const { dumpStateMachineToGraphViz, dumpStateMachineToPlantUML } = require("node-opcua-address-space/testHelpers");
 
-const { redirectToFile } = require("node-opcua-debug");
+const { redirectToFile } = require("node-opcua-debug/nodeJS");
 const { promoteToStateMachine } = require("node-opcua-address-space");
 
 const doDebug = false;
@@ -57,9 +57,9 @@ describe("ADI - Testing a server that exposes Analyser Devices", function() {
     const server_options = {
         port: 2000,
         nodeset_filename: [
-            opcua.nodesets.standard_nodeset_file,
-            opcua.nodesets.di_nodeset_filename,
-            opcua.nodesets.adi_nodeset_filename
+            opcua.nodesets.standard,
+            opcua.nodesets.di,
+            opcua.nodesets.adi
         ]
     };
 

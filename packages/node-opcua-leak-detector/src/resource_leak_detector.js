@@ -341,13 +341,13 @@ ResourceLeakDetector.prototype.stop = function(info) {
 ResourceLeakDetector.singleton = new ResourceLeakDetector();
 const resourceLeakDetector = ResourceLeakDetector.singleton;
 
-const trace_from_this_project_only = require("node-opcua-debug").trace_from_this_projet_only;
+const { traceFromThisProjectOnly } = require("node-opcua-debug");
 
 let testHasFailed = false;
 
 exports.installResourceLeakDetector = function(isGlobal, func) {
 
-    const trace = trace_from_this_project_only();
+    const trace = traceFromThisProjectOnly();
     testHasFailed = false;
     if (isGlobal) {
         before(function() {

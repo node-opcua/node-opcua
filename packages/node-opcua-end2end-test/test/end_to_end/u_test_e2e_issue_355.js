@@ -1,4 +1,3 @@
-/* global describe, it, require*/
 "use strict";
 
 const should = require("should");
@@ -6,7 +5,7 @@ const should = require("should");
 const opcua = require("node-opcua");
 
 const { perform_operation_on_subscription } = require("../../test_helpers/perform_operation_on_client_session");
-const redirectToFile = require("node-opcua-debug").redirectToFile;
+const { redirectToFile } = require("node-opcua-debug/nodeJS");
 
 module.exports = function(test) {
 

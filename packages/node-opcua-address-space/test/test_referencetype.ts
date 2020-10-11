@@ -1,6 +1,6 @@
 import { AttributeIds, BrowseDirection, makeNodeClassMask } from "node-opcua-data-model";
 import { NodeClass } from "node-opcua-data-model";
-import { redirectToFile } from "node-opcua-debug";
+import { redirectToFile } from "node-opcua-debug/nodeJS";
 import { makeNodeId, NodeId } from "node-opcua-nodeid";
 import { StatusCodes } from "node-opcua-status-code";
 import { ReferenceDescription } from "node-opcua-types";

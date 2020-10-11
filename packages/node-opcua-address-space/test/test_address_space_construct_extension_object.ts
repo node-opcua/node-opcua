@@ -49,7 +49,7 @@ describe("testing address space namespace loading", function (this: any) {
     let namespace: Namespace;
     before(async () => {
         addressSpace = AddressSpace.create();
-        const xml_files = [nodesets.standard_nodeset_file, path.join(__dirname, "../../../", "modeling/my_data_type.xml")];
+        const xml_files = [nodesets.standard, path.join(__dirname, "../../../", "modeling/my_data_type.xml")];
         fs.existsSync(xml_files[0]).should.be.eql(true);
         fs.existsSync(xml_files[1]).should.be.eql(true);
 

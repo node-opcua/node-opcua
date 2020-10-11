@@ -4,7 +4,7 @@ import * as should from "should";
 import * as sinon from "sinon";
 
 import { AddressSpace, BaseNode, Namespace } from "..";
-
+import { nodesets } from "node-opcua-nodesets";
 import { generateAddressSpace } from "../nodeJS";
 
 let clock: any = null;
@@ -19,7 +19,7 @@ describe("testing add TwoStateVariable ", function (this: any) {
 
     before(async () => {
         addressSpace = AddressSpace.create();
-        const xml_file = require("node-opcua-nodesets").standard_nodeset_file;
+        const xml_file = nodesets.standard;
         fs.existsSync(xml_file).should.be.eql(true);
 
         await generateAddressSpace(addressSpace, xml_file);

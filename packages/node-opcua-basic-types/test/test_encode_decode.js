@@ -1,17 +1,18 @@
 "use strict";
-/* global Buffer */
-
 const should = require("should");
 
 const ec = require("..");
-const BinaryStream = require("node-opcua-binary-stream").BinaryStream;
+const { BinaryStream } = require("node-opcua-binary-stream");
 const guid = require("node-opcua-guid");
-const makeNodeId = require("node-opcua-nodeid").makeNodeId;
-const NodeIdType = require("node-opcua-nodeid").NodeIdType;
-const NodeId = require("node-opcua-nodeid").NodeId;
+const {
+    makeNodeId,
+    NodeIdType,
+    NodeId,
+    makeExpandedNodeId,
+    ExpandedNodeId
+} = require("node-opcua-nodeid");
 
-const makeExpandedNodeId = require("node-opcua-nodeid").makeExpandedNodeId;
-const ExpandedNodeId = require("node-opcua-nodeid").ExpandedNodeId;
+const { hexDump } = require("node-opcua-debug");
 
 /**
  * @method test_encode_decode
@@ -349,7 +350,6 @@ describe("encoding and decoding string", function() {
     it("should encode and decode a simple ascii String", function() {
         test_encode_decode("hello world", ec.encodeString, ec.decodeString, 11 + 4);
     });
-    const hexDump = require("node-opcua-debug").hexDump;
     it("should encode and decode a utf-8 containing double bytes characters", function() {
         test_encode_decode(
             "°C",

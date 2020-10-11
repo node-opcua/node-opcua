@@ -6,7 +6,7 @@ import { assert } from "node-opcua-assert";
 import * as should from "should";
 
 import { standardUnits } from "node-opcua-data-access";
-import * as nodesets from "node-opcua-nodesets";
+import { nodesets, constructNodesetFilename } from "node-opcua-nodesets";
 import { AddressSpace, RootFolder, UAAnalogItem, UAObject, UAObjectType } from "..";
 import { generateAddressSpace } from "../nodeJS";
 
@@ -49,7 +49,7 @@ describe("testing add new DataType ", function (this: any) {
 
     before(async () => {
         addressSpace = AddressSpace.create();
-        const xml_file = nodesets.standard_nodeset_file;
+        const xml_file = nodesets.standard;
         fs.existsSync(xml_file).should.be.eql(true);
         await generateAddressSpace(addressSpace, xml_file);
         addressSpace.registerNamespace("Private");
@@ -88,10 +88,10 @@ describe("issue #108", () => {
         const addressSpace = AddressSpace.create();
 
         const xml_files = [
-            nodesets.standard_nodeset_file,
-            nodesets.constructNodesetFilename("1.02/Opc.Ua.Di.NodeSet2.xml"),
-            nodesets.constructNodesetFilename("1.02/Opc.Ua.Adi.NodeSet2.xml"),
-            nodesets.constructNodesetFilename("1.02/FTNIR.NodeSet2.xml")
+            nodesets.standard,
+            constructNodesetFilename("1.02/Opc.Ua.Di.NodeSet2.xml"),
+            constructNodesetFilename("1.02/Opc.Ua.Adi.NodeSet2.xml"),
+            constructNodesetFilename("1.02/FTNIR.NodeSet2.xml")
         ];
 
         fs.existsSync(xml_files[0]).should.be.eql(true);

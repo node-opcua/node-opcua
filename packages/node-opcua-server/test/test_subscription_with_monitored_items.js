@@ -97,7 +97,7 @@ describe("SM1 - Subscriptions and MonitoredItems", function() {
 
     before(function(done) {
         engine = new ServerEngine();
-        engine.initialize({ nodeset_filename: nodesets.standard_nodeset_file }, function() {
+        engine.initialize({ nodeset_filename: nodesets.standard }, function() {
 
             addressSpace = engine.addressSpace;
             namespace = addressSpace.getOwnNamespace();

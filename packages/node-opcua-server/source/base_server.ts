@@ -15,7 +15,7 @@ import { IOPCUASecureObjectOptions, OPCUASecureObject } from "node-opcua-common"
 import { coerceLocalizedText, LocalizedText } from "node-opcua-data-model";
 import { installPeriodicClockAdjustmement, uninstallPeriodicClockAdjustmement } from "node-opcua-date-time";
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
-import { display_trace_from_this_projet_only } from "node-opcua-debug";
+import { displayTraceFromThisProjectOnly } from "node-opcua-debug";
 import { extractFullyQualifiedDomainName, resolveFullyQualifiedDomainName } from "node-opcua-hostname";
 import { Message, Response, ServerSecureChannelLayer, ServerSecureChannelParent } from "node-opcua-secure-channel";
 import { FindServersRequest, FindServersResponse } from "node-opcua-service-discovery";
@@ -311,7 +311,7 @@ export class OPCUABaseServer extends OPCUASecureObject {
 
             console.log(request.toString());
 
-            display_trace_from_this_projet_only(err);
+            displayTraceFromThisProjectOnly(err);
 
             let additional_messages = [];
             additional_messages.push("EXCEPTION CAUGHT WHILE PROCESSING REQUEST !!! " + request.schema.name);

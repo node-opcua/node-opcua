@@ -2,7 +2,7 @@
  * @module node-opcua-object-registry
  */
 import { assert } from "node-opcua-assert";
-import { trace_from_this_projet_only } from "node-opcua-debug";
+import { traceFromThisProjectOnly } from "node-opcua-debug";
 
 const gRegistries: ObjectRegistry[] = [];
 let hashCounter = 1;
@@ -37,7 +37,7 @@ export class ObjectRegistry {
 
         // istanbul ignore next
         if (ObjectRegistry.doDebug) {
-            obj._____trace = trace_from_this_projet_only();
+            obj._____trace = traceFromThisProjectOnly();
         }
     }
 

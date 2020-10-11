@@ -1,11 +1,11 @@
-    import * as fs from "fs";
+import * as fs from "fs";
 
 import * as mocha from "mocha";
 
 import * as should from "should";
 
 import { standardUnits } from "node-opcua-data-access";
-import * as nodesets from "node-opcua-nodesets";
+import { nodesets } from "node-opcua-nodesets";
 import { encode_decode_round_trip_test } from "node-opcua-packet-analyzer/dist/test_helpers";
 import { AddressSpace } from "../..";
 import { generateAddressSpace } from "../../nodeJS";
@@ -26,7 +26,7 @@ describe("DataAccess", () => {
 
         addressSpace.registerNamespace("MyPrivateNamespace");
         data.addressSpace = addressSpace;
-        const xmlFiles = [nodesets.standard_nodeset_file];
+        const xmlFiles = [nodesets.standard];
         fs.existsSync(xmlFiles[0]).should.eql(true);
         await generateAddressSpace(addressSpace, xmlFiles);
     });

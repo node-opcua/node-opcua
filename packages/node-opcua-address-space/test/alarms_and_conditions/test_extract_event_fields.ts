@@ -40,7 +40,7 @@ describe("Testing extract EventField", function (this: Mocha.Suite) {
         addressSpace = AddressSpace.create();
         addressSpace.registerNamespace("PRIVATE_NAMESPACE");
 
-        const xml_file = nodesets.standard_nodeset_file;
+        const xml_file = nodesets.standard;
 
         fs.existsSync(xml_file).should.be.eql(true);
 

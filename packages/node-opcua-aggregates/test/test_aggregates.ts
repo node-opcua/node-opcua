@@ -23,7 +23,7 @@ describe("Aggregates ", () => {
     beforeEach((done) => {
         addressSpace = AddressSpace.create();
 
-        const namespaces: string[] = [nodesets.standard_nodeset_file];
+        const namespaces: string[] = [nodesets.standard];
         generateAddressSpace(addressSpace, namespaces, (err?: Error) => {
             done(err);
         });
@@ -49,7 +49,7 @@ describe("Aggregates - Function ", () => {
     before((done: (err: Error | null) => void) => {
         addressSpace = AddressSpace.create();
 
-        const namespaces: string[] = [nodesets.standard_nodeset_file];
+        const namespaces: string[] = [nodesets.standard];
         generateAddressSpace(addressSpace, namespaces, (err?: Error) => {
             const namespace = addressSpace.registerNamespace("PRIVATENAMESPACE");
             namespace.index.should.eql(1);

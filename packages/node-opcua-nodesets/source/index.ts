@@ -6,7 +6,6 @@ import * as fs from "fs";
 import * as path from "path";
 
 export function constructNodesetFilename(filename: string) {
-
     const dirname = __dirname;
     let file = path.join(dirname, "../nodesets", filename);
     if (!fs.existsSync(file)) {
@@ -35,35 +34,23 @@ path.join(__dirname, "nodesets/Opc.Ua.Robotics.NodeSet2.xml");
 
 // ------------------------------------------------------------- }}
 
-export const standardNodeSetFilename = constructNodesetFilename("Opc.Ua.NodeSet2.xml");
-export const diNodeSetFilename = constructNodesetFilename("Opc.Ua.Di.NodeSet2.xml");
-export const adiNodeSetFilename = constructNodesetFilename("Opc.Ua.Adi.NodeSet2.xml");
-export const gdsNodeSetFilename = constructNodesetFilename("Opc.Ua.Gds.NodeSet2.xml");
-export const autoIdNodeSetFilename = constructNodesetFilename("Opc.Ua.AutoID.NodeSet2.xml");
-export const roboticsNodeSetFilename = constructNodesetFilename("Opc.Ua.Robotics.NodeSet2.xml");
-export const machineVisionNodeSetFilename = constructNodesetFilename("Opc.Ua.MachineVision.NodeSet2.xml");
-export const packMLNodeSetFilename = constructNodesetFilename("Opc.Ua.PackML.NodeSet2.xml");
-export const standard_nodeset_file = standardNodeSetFilename;
-export const di_nodeset_filename = diNodeSetFilename;
-export const adi_nodeset_filename = adiNodeSetFilename;
-export const gds_nodeset_filename = gdsNodeSetFilename;
+const standardNodeSetFilename = constructNodesetFilename("Opc.Ua.NodeSet2.xml");
+const diNodeSetFilename = constructNodesetFilename("Opc.Ua.Di.NodeSet2.xml");
+const adiNodeSetFilename = constructNodesetFilename("Opc.Ua.Adi.NodeSet2.xml");
+const gdsNodeSetFilename = constructNodesetFilename("Opc.Ua.Gds.NodeSet2.xml");
+const autoIdNodeSetFilename = constructNodesetFilename("Opc.Ua.AutoID.NodeSet2.xml");
+const roboticsNodeSetFilename = constructNodesetFilename("Opc.Ua.Robotics.NodeSet2.xml");
+const machineVisionNodeSetFilename = constructNodesetFilename("Opc.Ua.MachineVision.NodeSet2.xml");
+const packMLNodeSetFilename = constructNodesetFilename("Opc.Ua.PackML.NodeSet2.xml");
 
 export const nodesets = {
     adi: adiNodeSetFilename,
-    adiNodeSetFilename,
-    adi_nodeset_filename: adiNodeSetFilename,
 
     di: diNodeSetFilename,
-    diNodeSetFilename,
-    di_nodeset_filename: diNodeSetFilename,
 
     standard: standardNodeSetFilename,
-    standardNodeSetFilename,
-    standard_nodeset_file: standardNodeSetFilename,
 
     gds: gdsNodeSetFilename,
-    gdsNodeSetFilename,
-    gds_nodeset_filename: gdsNodeSetFilename,
 
     autoId: autoIdNodeSetFilename,
 
@@ -73,3 +60,21 @@ export const nodesets = {
 
     packML: packMLNodeSetFilename
 };
+
+function makeDeprecated(id: string, newName: keyof typeof nodesets) {
+    Object.defineProperty(nodesets, id, {
+        get: () => {
+            console.log(`nodeset.${id} is deprecated , please use nodeset.${newName} instead`);
+            return nodesets[newName];
+        }
+    });
+}
+
+makeDeprecated("adiNodeSetFilename", "adi");
+makeDeprecated("adi_nodeset_filename", "adi");
+makeDeprecated("diNodeSetFilename", "di");
+makeDeprecated("di_nodeset_filename", "di");
+makeDeprecated("standardNodeSetFilename", "standard");
+makeDeprecated("standard_nodeset_file", "standard");
+makeDeprecated("gdsNodeSetFilename", "gds");
+makeDeprecated("gds_nodeset_filename", "gds");

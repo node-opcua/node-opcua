@@ -126,7 +126,7 @@ describe("AddressSpace#browsePath 2/2", () => {
     let addressSpace: AddressSpace;
 
     before(async () => {
-        const xml_file = nodesets.standard_nodeset_file;
+        const xml_file = nodesets.standard;
 
         addressSpace = AddressSpace.create();
         await generateAddressSpace(addressSpace, xml_file);
@@ -227,7 +227,7 @@ describe("AddressSpace#browsePath 2/2", () => {
     let addressSpace: AddressSpace;
 
     before(async () => {
-        const xml_file = nodesets.standard_nodeset_file;
+        const xml_file = nodesets.standard;
 
         addressSpace = AddressSpace.create();
         await generateAddressSpace(addressSpace, xml_file);

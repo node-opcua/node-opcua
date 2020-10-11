@@ -7,13 +7,12 @@
 Error.stackTraceLimit = Infinity;
 const chalk = require("chalk");
 const path = require("path");
-const fs = require("fs");
-const { readCertificate, readCertificateRevocationList, readCertificatePEM, exploreCertificateInfo } = require("node-opcua-crypto");
+const { readCertificate, readCertificateRevocationList, exploreCertificateInfo } = require("node-opcua-crypto");
 
 require("should");
 
 const debugLog = require("node-opcua-debug").make_debugLog(__filename);
-const doDebug = require("node-opcua-debug").checkDebugFlag(__filename);
+const doDebug = require("node-opcua-debug").checkDebugFlag(__filename) || !!process.env.DEBUG;
 
 const {
     is_valid_endpointUrl,
@@ -23,7 +22,7 @@ const {
     OPCUAClient,
     ServerSecureChannelLayer,
     OPCUACertificateManager,
-    StatusCodes
+
 } = require("node-opcua");
 
 const fail_fast_connectionStrategy = {
@@ -33,9 +32,9 @@ const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("testing Server resilience to DDOS attacks 2", function() {
 
 
-    const invalidCertificateFile = path.join(__dirname, "../certificates/client_cert_3072_outofdate.pem");
-    const validCertificate = path.join(__dirname, "../certificates/client_cert_3072.pem");
-    const privateKeyFile = path.join(__dirname, "../certificates/client_key_3072.pem");
+    const invalidCertificateFile = path.join(__dirname, "../certificates/client_cert_2048_outofdate.pem");
+    const validCertificate = path.join(__dirname, "../certificates/client_cert_2048.pem");
+    const privateKeyFile = path.join(__dirname, "../certificates/client_key_2048.pem");
 
     let server;
     let endpointUrl;
@@ -82,6 +81,9 @@ describe("testing Server resilience to DDOS attacks 2", function() {
         });
         await serverCertificateManager.initialize();
 
+        const cert = await readCertificate(validCertificate);
+        await serverCertificateManager.trustCertificate(cert);
+
         server = new OPCUAServer({
             port: port,
             maxConnectionsPerEndpoint: maxConnectionsPerEndpoint,
@@ -89,7 +91,7 @@ describe("testing Server resilience to DDOS attacks 2", function() {
             //xx nodeset_filename: empty_nodeset_filename
             serverCertificateManager
         });
-        console.log("Rootfolder = ", server.serverCertificateManager.rootFolder);
+        console.log("RootFolder = ", server.serverCertificateManager.rootFolder);
 
         // make sure "that certificate issuer in th*
         const issuerCertificateFile = path.join(__dirname, "../certificates/CA/public/cacert.pem");
@@ -122,7 +124,7 @@ describe("testing Server resilience to DDOS attacks 2", function() {
 
 
         server.on("connectionError", (channel) => {
-
+            console.log("connectionError");
         });
 
         server.on("newChannel", (channel/*: ServerSecureChannelLayer*/) => {
@@ -157,14 +159,12 @@ describe("testing Server resilience to DDOS attacks 2", function() {
 
     });
 
-    it("ZCCC should ban client that constantly reconnect", async () => {
-
-
+    it("ZCCC2 should ban client that constantly reconnect", async () => {
 
         const serverCertificate = readCertificate(server.certificateFile);
 
         const clients = [];
-        for (let i = 0; i < 100; i++) {
+        for (let i = 0; i < 10; i++) {
 
             if (doDebug) {
                 console.log("i =", i);
@@ -211,7 +211,7 @@ describe("testing Server resilience to DDOS attacks 2", function() {
             }
         }
         // new try to connect with a valid certificate => It should work
-
+        debugLog("new try to connect with a valid certificate => It should work")
         // eslint-disable-next-line no-useless-catch
         try {
             const client = OPCUAClient.create({
