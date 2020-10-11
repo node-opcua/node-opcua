@@ -31,7 +31,7 @@ describe("testing Client - Umbrella ", function() {
         port: port,
         maxConnectionsPerEndpoint: 500,
         silent: true,
-        nodeset_filename: [opcua.nodesets.standard_nodeset_file],
+        nodeset_filename: [opcua.nodesets.standard],
     };
 
     function start_external_server(done) {

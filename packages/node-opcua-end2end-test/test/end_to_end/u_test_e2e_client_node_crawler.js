@@ -11,7 +11,7 @@ const OPCUAClient = opcua.OPCUAClient;
 const NodeCrawler = opcua.NodeCrawler;
 
 
-const redirectToFile = require("node-opcua-debug").redirectToFile;
+const { redirectToFile } = require("node-opcua-debug/nodeJS");
 const debugLog = require("node-opcua-debug").make_debugLog(__filename);
 
 function xredirectToFile(file, fun, callback) {
@@ -221,7 +221,7 @@ module.exports = function(test) {
 
         it("CRAWL5- should display a tree", function(done) {
 
-            const redirectToFile = require("node-opcua-debug").redirectToFile;
+            const { redirectToFile } = require("node-opcua-debug/nodeJS");
 
             redirectToFile("crawler_display_tree.log", function(inner_callback) {
 

@@ -3,7 +3,7 @@
  */
 // tslint:disable:no-console
 import * as chalk from "chalk";
-import * as path from "path";
+import { basename } from "path";
 import { format } from "util";
 
 const debugFlags: { [id: string]: boolean } = {};
@@ -13,8 +13,8 @@ const maxLines =
         ? parseInt(process.env.NODEOPCUA_DEBUG_MAXLINE_PER_MESSAGE, 10)
         : 25;
 
-function extractBasename(name: string) {
-    return path.basename(name).replace(/\.(js|ts)$/, "");
+function extractBasename(name: string): string {
+    return basename(name).replace(/\.(js|ts)$/, "");
 }
 
 function w(str: string, l: number): string {
@@ -46,7 +46,7 @@ export function checkDebugFlag(scriptFullPath: string): boolean {
 }
 
 /**
- * file_line return a 51 caracter string
+ * file_line return a 51 character string
  * @param filename
  * @param callerLine
  */

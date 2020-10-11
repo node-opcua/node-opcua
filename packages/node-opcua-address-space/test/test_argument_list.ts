@@ -88,7 +88,7 @@ describe("verifyArguments_ArgumentList", () => {
 
     before(async () => {
         addressSpace = AddressSpace.create();
-        const xml_file = nodesets.standard_nodeset_file;
+        const xml_file = nodesets.standard;
         await generateAddressSpace(addressSpace, xml_file);
         addressSpace.registerNamespace("ServerNamespaceURI");
     });

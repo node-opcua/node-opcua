@@ -96,12 +96,12 @@ export class OPCUACertificateManager extends CertificateManager implements ICert
             if (statusCode === StatusCodes.BadCertificateUntrusted) {
                 const thumbprint = makeSHA1Thumbprint(certificate).toString("hex");
                 if (this.automaticallyAcceptUnknownCertificate) {
-                    errorLog("automaticallyAcceptUnknownCertificate = true");
-                    errorLog("certificate with thumbprint " + thumbprint + " is now trusted");
+                    debugLog("automaticallyAcceptUnknownCertificate = true");
+                    debugLog("certificate with thumbprint " + thumbprint + " is now trusted");
                     return this.trustCertificate(certificate, () => callback!(null, StatusCodes.Good));
                 } else {
-                    errorLog("automaticallyAcceptUnknownCertificate = false");
-                    errorLog("certificate with thumbprint " + thumbprint + " is now rejected");
+                    debugLog("automaticallyAcceptUnknownCertificate = false");
+                    debugLog("certificate with thumbprint " + thumbprint + " is now rejected");
                     return this.rejectCertificate(certificate, () => callback!(null, StatusCodes.BadCertificateUntrusted));
                 }
             }

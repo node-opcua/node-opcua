@@ -1,7 +1,7 @@
 import * as should from "should";
 
 import * as fs from "fs";
-import * as nodesets from "node-opcua-nodesets";
+import { nodesets } from "node-opcua-nodesets";
 import { DataType } from "node-opcua-variant";
 import * as path from "path";
 
@@ -28,7 +28,7 @@ describe("testing loading ExtensionObject value from NodeSet XML file", function
         const xml_file = path.join(__dirname, "../test_helpers/test_fixtures/nodeset_with_analog_items.xml");
         fs.existsSync(xml_file).should.be.eql(true);
 
-        const xml_files = [nodesets.standard_nodeset_file, nodesets.di_nodeset_filename, xml_file];
+        const xml_files = [nodesets.standard, nodesets.di, xml_file];
         await generateAddressSpace(addressSpace, xml_files);
 
         const nodeId = "ns=2;i=6038";

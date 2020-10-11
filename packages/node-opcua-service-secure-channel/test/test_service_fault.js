@@ -4,15 +4,15 @@ const should = require("should");
 const makeBuffer = require("node-opcua-buffer-utils").makeBuffer;
 const analyzePacket = require("node-opcua-packet-analyzer").analyzePacket;
 const BinaryStream = require("node-opcua-binary-stream").BinaryStream;
-const redirectToFile = require("node-opcua-debug").redirectToFile;
+const { redirectToFile } = require("node-opcua-debug/nodeJS");
 
 const ec = require("node-opcua-basic-types");
 const StatusCodes = require("node-opcua-status-code").StatusCodes;
 const ServiceFault = require("..").ServiceFault;
 
-describe("ServiceFault", function () {
+describe("ServiceFault", function() {
 
-    it("should decode a real ServiceFault", function (done) {
+    it("should decode a real ServiceFault", function(done) {
         const ws_message = makeBuffer(
             "01 00 8d 01 e0 8c 9d ba 65 27 cf 01 05 00 00 00 00 00 0f 80 14 00 00 00 00 91 01 00 00 3e 3e 3e " +//   ....`..:e'O..................>>>
             "20 38 30 30 46 30 30 30 30 0d 0a 2d 2d 2d 20 20 20 20 c3 a0 20 4f 70 63 2e 55 61 2e 53 65 72 76 " +//   .800F0000..---....C..Opc.Ua.Serv
@@ -30,7 +30,7 @@ describe("ServiceFault", function () {
             "28 4f 62 6a 65 63 74 20 73 74 61 74 65 29 01 00 00 00 08 00 00 00 38 30 30 46 30 30 30 30 00 00 " +//   (Object.state)........800F0000..
             "00"
         );
-        redirectToFile("ws_ServiceFault.log", function () {
+        redirectToFile("ws_ServiceFault.log", function() {
 
             analyzePacket(ws_message);
 
@@ -42,9 +42,9 @@ describe("ServiceFault", function () {
         }, done);
     });
 
-    it("should create a ServiceFault with a specific serviceResult", function () {
+    it("should create a ServiceFault with a specific serviceResult", function() {
         const sf = new ServiceFault({
-            responseHeader: {serviceResult: StatusCodes.BadNoSubscription}
+            responseHeader: { serviceResult: StatusCodes.BadNoSubscription }
         });
         sf.responseHeader.serviceResult.should.eql(StatusCodes.BadNoSubscription);
     });

@@ -5,14 +5,14 @@ const MessageBuilder = require("..").MessageBuilder;
 
 const packets = require("node-opcua-transport/dist/test-fixtures");
 
-const redirectToFile = require("node-opcua-debug").redirectToFile;
+const { redirectToFile } = require("node-opcua-debug/nodeJS");
 const debugLog = require("node-opcua-debug").make_debugLog(__filename);
 
 
-describe("MessageBuilder", function () {
+describe("MessageBuilder", function() {
 
 
-    it('should raise a error event if a HEL or ACK packet is fed instead of a MSG packet ', function (done) {
+    it('should raise a error event if a HEL or ACK packet is fed instead of a MSG packet ', function(done) {
 
         const messageBuilder = new MessageBuilder();
 
@@ -20,15 +20,15 @@ describe("MessageBuilder", function () {
         let on_message__received = false;
 
         messageBuilder.
-            on("message", function (message) {
+            on("message", function(message) {
                 on_message__received = true;
 
             }).
-            on("full_message_body", function (full_message_body) {
+            on("full_message_body", function(full_message_body) {
                 full_message_body_event_received = true;
 
             }).
-            on("error", function (err) {
+            on("error", function(err) {
                 err.should.be.instanceOf(Error);
                 on_message__received.should.equal(false);
                 full_message_body_event_received.should.equal(true);
@@ -51,34 +51,34 @@ describe("MessageBuilder", function () {
 
         //xx redirectToFile("MessageBuilder_" + test_case_name + ".log", function () {
 
-            const messageBuilder = new MessageBuilder();
+        const messageBuilder = new MessageBuilder();
 
-            let full_message_body_event_received = false;
-            let on_message__received = false;
+        let full_message_body_event_received = false;
+        let on_message__received = false;
 
-            messageBuilder.
-                on("message", function (message) {
-                    on_message__received = true;
+        messageBuilder.
+            on("message", function(message) {
+                on_message__received = true;
 
-                }).
-                on("full_message_body", function (full_message_body) {
-                    full_message_body_event_received = true;
+            }).
+            on("full_message_body", function(full_message_body) {
+                full_message_body_event_received = true;
 
-                }).
-                on("error", function (err) {
-                    err.should.be.instanceOf(Error);
-                    on_message__received.should.equal(false);
-                    full_message_body_event_received.should.equal(true);
-                    done();
-                });
+            }).
+            on("error", function(err) {
+                err.should.be.instanceOf(Error);
+                on_message__received.should.equal(false);
+                full_message_body_event_received.should.equal(true);
+                done();
+            });
 
 
-            messageBuilder.feed(bad_packet); // OpenSecureChannel message
+        messageBuilder.feed(bad_packet); // OpenSecureChannel message
         //}, function () {});
 
     }
 
-    it('should raise an error if the embedded object id is not known', function (done) {
+    it('should raise an error if the embedded object id is not known', function(done) {
 
         const bad_packet = Buffer.from(packets.packet_cs_2);
 
@@ -92,7 +92,7 @@ describe("MessageBuilder", function () {
 
     });
 
-    it('should raise an error if the embedded object failed to be decoded', function (done) {
+    it('should raise an error if the embedded object failed to be decoded', function(done) {
 
         const bad_packet = Buffer.from(packets.packet_cs_2);
 
@@ -106,19 +106,19 @@ describe("MessageBuilder", function () {
     });
 
 
-    it("should emit a 'invalid_sequence_number' event if a message does not have a 1-increased sequence number", function (done) {
+    it("should emit a 'invalid_sequence_number' event if a message does not have a 1-increased sequence number", function(done) {
 
         const messageBuilder = new MessageBuilder();
 
         messageBuilder.
-            on("message", function (message) {
+            on("message", function(message) {
             }).
-            on("error", function (err) {
+            on("error", function(err) {
                 console.log(err);
 
                 throw new Error("should not get there");
             }).
-            on("invalid_sequence_number", function (expected, found) {
+            on("invalid_sequence_number", function(expected, found) {
                 //xx console.log("expected ",expected);
                 //xx console.log("found",found);
                 done();

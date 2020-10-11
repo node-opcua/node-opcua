@@ -1,6 +1,6 @@
 // tslint:disable:no-console
 import * as chalk from "chalk";
-import * as nodesets from "node-opcua-nodesets";
+import { nodesets } from "node-opcua-nodesets";
 import * as should from "should";
 import { generateAddressSpace } from "../nodeJS";
 import { SessionContext, StateMachine } from "..";
@@ -17,7 +17,7 @@ describe("Testing Boiler System", () => {
         return x.browseName.toString();
     }
 
-    const nodesetFilename = nodesets.standard_nodeset_file;
+    const nodesetFilename = nodesets.standard;
 
     let addressSpace: AddressSpace;
     let namespace: Namespace;

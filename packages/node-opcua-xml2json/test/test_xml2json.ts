@@ -4,6 +4,8 @@ import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 import { should } from "should";
 import { ParserLike, ReaderStateParserLike, Xml2Json, XmlAttributes } from "..";
 import { Xml2JsonFs } from "../source/nodejs/xml2json_fs";
+import { nodesets } from "node-opcua-nodesets";
+
 const doDebug = checkDebugFlag(__filename);
 const debugLog = make_debugLog(__filename);
 
@@ -60,14 +62,12 @@ describe("XMLToJSON", () => {
     });
 
     it("should parse a UTF8 encoded xml file with a BOM", function (this: any, done: ErrorCallback) {
-        const nodesets = require("node-opcua-nodesets");
-
         // accommodate for slow RPI
         if (process.arch === "arm") {
             this.timeout(40000);
             this.slow(20000);
         }
-        const xml_file = nodesets.standard_nodeset_file;
+        const xml_file = nodesets.standard;
         const parser = new Xml2JsonFs({});
         parser.parse(xml_file, (err?: Error) => {
             done(err);

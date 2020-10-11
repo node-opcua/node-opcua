@@ -1,6 +1,6 @@
 // tslint:disable:no-console
 import * as chalk from "chalk";
-import * as nodesets from "node-opcua-nodesets";
+import { nodesets } from "node-opcua-nodesets";
 import * as should from "should";
 
 import { generateAddressSpace } from "../nodeJS";
@@ -10,9 +10,9 @@ import { AddressSpace, BaseNode, UAReference } from "..";
 // tslint:disable-next-line:no-var-requires
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("testing findReferenceEx", () => {
-    const nodesetFilename = nodesets.standard_nodeset_file;
+    const nodesetFilename = nodesets.standard;
 
-    const my_nodesets = [nodesets.standard_nodeset_file, nodesets.di_nodeset_filename];
+    const my_nodesets = [nodesets.standard, nodesets.di];
 
     let addressSpace: AddressSpace;
 

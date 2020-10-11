@@ -1,5 +1,5 @@
 import * as fs from "fs";
-import * as nodesets from "node-opcua-nodesets";
+import { nodesets } from "node-opcua-nodesets";
 import * as should from "should";
 
 import { AddressSpace, SessionContext } from "../..";
@@ -18,7 +18,7 @@ describe("Testing Historical Data Node Enumeration", () => {
 
     before(async () => {
         addressSpace = AddressSpace.create();
-        const xml_files = [nodesets.standard_nodeset_file];
+        const xml_files = [nodesets.standard];
         fs.existsSync(xml_files[0]).should.be.eql(true, "file " + xml_files[0] + " must exist");
         await generateAddressSpace(addressSpace, xml_files);
 

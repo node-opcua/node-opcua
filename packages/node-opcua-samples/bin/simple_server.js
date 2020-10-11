@@ -191,8 +191,8 @@ const paths = envPaths(productUri);
     maxConnectionsPerEndpoint: maxConnectionsPerEndpoint,
 
     nodeset_filename: [
-      nodesets.standard_nodeset_file,
-      nodesets.di_nodeset_filename
+      nodesets.standard,
+      nodesets.di
     ],
 
     serverInfo: {

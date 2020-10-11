@@ -2,17 +2,10 @@
 /* eslint no-process-exit: 0 */
 // tslint:disable:no-console
 import * as chalk from "chalk";
-import * as  path from "path";
+import * as path from "path";
 import * as yargs from "yargs";
 
-import {
-    makeApplicationUrn,
-    MessageSecurityMode,
-    nodesets,
-    OPCUAServer,
-    SecurityPolicy,
-    ServerSession
-} from "node-opcua";
+import { makeApplicationUrn, MessageSecurityMode, nodesets, OPCUAServer, SecurityPolicy, ServerSession } from "node-opcua";
 
 Error.stackTraceLimit = Infinity;
 
@@ -21,30 +14,29 @@ function constructFilename(filename: string): string {
 }
 
 const argv = yargs(process.argv)
-.wrap(132)
+    .wrap(132)
 
-  .option("alternateHostname", {
-      alias: "a",
-      describe: "alternateHostname"
-  })
+    .option("alternateHostname", {
+        alias: "a",
+        describe: "alternateHostname"
+    })
 
-  .option("port", {
-      alias: "p",
-      default: 26543
-  })
+    .option("port", {
+        alias: "p",
+        default: 26543
+    })
 
-  .option("silent", {
-      alias: "s",
-      default: false,
-      describe: "silent - no trace"
-  })
-  .option("maxAllowedSessionNumber", {
-      alias: "m",
-      default: 10,
-  })
+    .option("silent", {
+        alias: "s",
+        default: false,
+        describe: "silent - no trace"
+    })
+    .option("maxAllowedSessionNumber", {
+        alias: "m",
+        default: 10
+    })
 
-  .help(true)
-  .argv;
+    .help(true).argv;
 
 const port = argv.port || 26543;
 
@@ -64,40 +56,30 @@ const server_certificate_file = constructFilename("certificates/server_selfsigne
 const server_certificate_privatekey_file = constructFilename("certificates/server_key_2048.pem");
 
 const server_options = {
+    securityPolicies: [SecurityPolicy.Basic128Rsa15, SecurityPolicy.Basic256],
 
-    securityPolicies: [
-        SecurityPolicy.Basic128Rsa15,
-        SecurityPolicy.Basic256
-    ],
-
-    securityModes: [
-        MessageSecurityMode.Sign,
-        MessageSecurityMode.SignAndEncrypt
-    ],
+    securityModes: [MessageSecurityMode.Sign, MessageSecurityMode.SignAndEncrypt],
 
     certificateFile: server_certificate_file,
     privateKeyFile: server_certificate_privatekey_file,
 
     port,
 
-    nodeset_filename: [
-        nodesets.standard_nodeset_file,
-        nodesets.di_nodeset_filename
-    ],
+    nodeset_filename: [nodesets.standard, nodesets.di],
 
     serverInfo: {
-        applicationName: {text: "NodeOPCUA", locale: "en"},
+        applicationName: { text: "NodeOPCUA", locale: "en" },
         applicationUri: makeApplicationUrn("%FQDN%", "NodeOPCUA-Server"),
         productUri: "NodeOPCUA-Server",
 
         discoveryProfileUri: null,
         discoveryUrls: [],
-        gatewayServerUri: null,
+        gatewayServerUri: null
     },
 
     buildInfo: {
         buildDate: new Date(),
-        buildNumber: "1234",
+        buildNumber: "1234"
     },
 
     userManager,
@@ -110,7 +92,6 @@ process.title = "Node OPCUA Server on port : " + server_options.port;
 // server_options.alternateHostname = argv.alternateHostname;
 
 async function main() {
-
     const server = new OPCUAServer(server_options);
 
     server.on("post_initialize", () => {
@@ -130,7 +111,7 @@ async function main() {
 
     if (argv.silent) {
         console.log("silent");
-        console.log = (...args: [any?, ... any[]]) => {
+        console.log = (...args: [any?, ...any[]]) => {
             /* silent */
         };
     }
@@ -159,6 +140,5 @@ async function main() {
         console.error(chalk.red.bold(" shot down ..."));
         process.exit(1);
     });
-
 }
 main();

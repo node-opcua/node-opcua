@@ -70,7 +70,7 @@ describe("testing NodeSet XML file loading", function (this: any) {
     });
 
     it("should load the DI nodeset ", async () => {
-        const xml_files = [nodesets.standard_nodeset_file, nodesets.di_nodeset_filename];
+        const xml_files = [nodesets.standard, nodesets.di];
         fs.existsSync(xml_files[0]).should.be.eql(true, " standard node set file shall exist");
         fs.existsSync(xml_files[1]).should.be.eql(true, " DI node set file shall exist");
 
@@ -102,7 +102,7 @@ describe("testing NodeSet XML file loading", function (this: any) {
 
         const xml_file = getFixture("fixture_node_with_various_access_level_nodeset.xml");
 
-        const xml_files = [nodesets.standard_nodeset_file, xml_file];
+        const xml_files = [nodesets.standard, xml_file];
         fs.existsSync(xml_files[0]).should.be.eql(true);
         fs.existsSync(xml_files[1]).should.be.eql(true);
 
@@ -126,7 +126,7 @@ describe("testing NodeSet XML file loading", function (this: any) {
 
         const xml_file = getFixture("fixture_node_with_predefined_variable.xml");
 
-        const xml_files = [nodesets.standard_nodeset_file, xml_file];
+        const xml_files = [nodesets.standard, xml_file];
 
         fs.existsSync(xml_files[0]).should.be.eql(true);
         fs.existsSync(xml_files[1]).should.be.eql(true);
@@ -188,7 +188,7 @@ describe("testing NodeSet XML file loading", function (this: any) {
     });
 
     it("#339 default ValueRank should be -1  for UAVariable and UAVariableType when loading nodeset2.xml files", async () => {
-        const xml_files = [nodesets.standard_nodeset_file];
+        const xml_files = [nodesets.standard];
         fs.existsSync(xml_files[0]).should.be.eql(true, " standard node set file shall exist");
         await generateAddressSpace(addressSpace, xml_files);
         addressSpace.rootFolder.objects.server.serverStatus.valueRank.should.eql(-1);
@@ -245,7 +245,7 @@ describe("testing NodeSet XML file loading", function (this: any) {
 
     it("VV5 read datatype ", async () => {
         const xml_file1 = path.join(__dirname, "../test_helpers/test_fixtures/dataType_withEnumeration.xml");
-        const xml_files = [nodesets.standard_nodeset_file, xml_file1];
+        const xml_files = [nodesets.standard, xml_file1];
         await generateAddressSpace(addressSpace, xml_files);
 
         const dataType = addressSpace.findDataType("DeviceHealthEnumeration", 1)!;
@@ -385,7 +385,7 @@ describe("testing NodeSet XML file loading", function (this: any) {
         addressSpace.registerNamespace("PRIVATE");
 
         const xml_file2 = path.join(__dirname, "../test_helpers/test_fixtures/dataType_in_separateNamespace_basic.xml");
-        const xml_files = [nodesets.standardNodeSetFilename, xml_file2];
+        const xml_files = [nodesets.standard, xml_file2];
         await generateAddressSpace(addressSpace, xml_files);
 
         const nsIndex = addressSpace.getNamespaceIndex("urn:MyNamespace/");
@@ -419,7 +419,7 @@ describe("testing NodeSet XML file loading", function (this: any) {
         addressSpace.registerNamespace("PRIVATE");
 
         const xml_file2 = path.join(__dirname, "../test_helpers/test_fixtures/dataType_in_separateNamespace_mix.xml");
-        const xml_files = [nodesets.standardNodeSetFilename, xml_file2];
+        const xml_files = [nodesets.standard, xml_file2];
         await generateAddressSpace(addressSpace, xml_files);
 
         const nsIndex = addressSpace.getNamespaceIndex("urn:MyNamespace/mix");
@@ -524,7 +524,7 @@ describe("@A@ Testing loading nodeset with custom basic types", function (this: 
         const xml_file = path.join(__dirname, "../../../modeling/model_with_custom_datatype.xml");
         fs.existsSync(xml_file).should.be.eql(true, " should find " + xml_file);
 
-        await generateAddressSpace(addressSpace, [nodesets.standardNodeSetFilename, xml_file]);
+        await generateAddressSpace(addressSpace, [nodesets.standard, xml_file]);
     });
     after(() => {
         addressSpace.dispose();

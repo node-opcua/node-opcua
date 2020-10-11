@@ -1,11 +1,9 @@
 "use strict";
 
-const verify_multi_chunk_message = require("../dist/test_helpers").verify_multi_chunk_message;
-
-const redirectToFile = require("node-opcua-debug").redirectToFile;
-const makeBuffer = require("node-opcua-buffer-utils").makeBuffer;
-
-const BrowseResponse = require("node-opcua-service-browse").BrowseResponse;
+const { verify_multi_chunk_message } = require("../dist/test_helpers");
+const { redirectToFile } = require("node-opcua-debug/nodeJS");
+const { makeBuffer } = require("node-opcua-buffer-utils");
+const { BrowseResponse } = require("node-opcua-service-browse");
 
 
 const fixture_ws_browseRequest_message = makeBuffer(
@@ -62,21 +60,21 @@ const fixture_ws_browseResponse_with_error_and_diagnostic_info_message = makeBuf
 );
 
 
-describe("Testing multi chunk",function () {
+describe("Testing multi chunk", function() {
 
-    it("should decode a real BrowseRequest", function (done) {
-        redirectToFile("ws_BrowseRequest.log", function () {
+    it("should decode a real BrowseRequest", function(done) {
+        redirectToFile("ws_BrowseRequest.log", function() {
             verify_multi_chunk_message([fixture_ws_browseRequest_message]);
         }, done);
     });
 
-    it("should decode a real BrowseResponse", function (done) {
-        redirectToFile("ws_BrowseResponse.log", function () {
+    it("should decode a real BrowseResponse", function(done) {
+        redirectToFile("ws_BrowseResponse.log", function() {
             verify_multi_chunk_message([fixture_ws_browseResponse_message]);
         }, done);
     });
-    it("should decode a real BrowseResponse with StatusCode error and some diagnostic info", function (done) {
-        redirectToFile("ws_BrowseResponse2.log", function () {
+    it("should decode a real BrowseResponse with StatusCode error and some diagnostic info", function(done) {
+        redirectToFile("ws_BrowseResponse2.log", function() {
             verify_multi_chunk_message([fixture_ws_browseResponse_with_error_and_diagnostic_info_message]);
         }, done);
     });

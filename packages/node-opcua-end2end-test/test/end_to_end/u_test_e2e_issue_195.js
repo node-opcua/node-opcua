@@ -65,7 +65,7 @@ module.exports = function(test) {
                             }, TimestampsToReturn.Both);
 
                         the_monitoredItem.on("initialized", () => {
-                            console.log("Initialize()");
+                            // console.log("Initialize()");
                             setImmediate(callback);
                         });
                     }

@@ -1,16 +1,6 @@
-import * as  fs from "fs";
-import {
-    BaseNode,
-    Namespace,
-    UADataType, UAObjectType, UAReferenceType, UAVariableType
-} from "node-opcua-address-space";
+import { BaseNode, Namespace, UADataType, UAObjectType, UAReferenceType, UAVariableType } from "node-opcua-address-space";
 import { coerceUInt32 } from "node-opcua-basic-types";
-import {
-    DataTypeDefinition,
-    EnumDefinition,
-    StructureDefinition,
-    StructureField
-} from "node-opcua-types";
+import { DataTypeDefinition, EnumDefinition, StructureDefinition, StructureField } from "node-opcua-types";
 import { DataType } from "node-opcua-variant";
 import { displayNodeElement } from "./displayNodeElement";
 import { TableHelper } from "./tableHelper";
@@ -37,16 +27,6 @@ class Writer implements IWriter {
     }
 }
 
-export async function buildDocumentationToFile(namespace: Namespace, filename: string) {
-    const str = await buildDocumentationToString(namespace);
-    const stream = fs.createWriteStream("documentation.md");
-    stream.write(str);
-    await new Promise((resolve) => {
-        stream.on("finish", resolve);
-        stream.end();
-    });
-}
-
 export async function buildDocumentationToString(namespace: Namespace): Promise<string> {
     const writer = new Writer();
     await buildDocumentation(namespace, writer);
@@ -54,7 +34,6 @@ export async function buildDocumentationToString(namespace: Namespace): Promise<
 }
 
 function dataTypeToMarkdown(dataType: UADataType): string {
-
     const addressSpace = dataType.addressSpace;
 
     const writer = new Writer();
@@ -78,13 +57,7 @@ function dataTypeToMarkdown(dataType: UADataType): string {
     } else if (definition instanceof StructureDefinition) {
         writer.writeLine("\nBasic Type: " + (DataType as any)[dataType.basicDataType]);
 
-        const table = new TableHelper([
-            "Name",
-            "data type",
-            "value rank",
-            "maxStringLength",
-            "Dimensions",
-            "Description"]);
+        const table = new TableHelper(["Name", "data type", "value rank", "maxStringLength", "Dimensions", "Description"]);
 
         for (const f of definition.fields || []) {
             const dataTypeString = addressSpace.findDataType(f.dataType)!.browseName.toString();
@@ -94,19 +67,17 @@ function dataTypeToMarkdown(dataType: UADataType): string {
                 f.valueRank ? f.valueRank : "",
                 f.maxStringLength ? f.maxStringLength : "",
                 f.arrayDimensions ? f.arrayDimensions : "",
-                f.description.text || ""]);
+                f.description.text || ""
+            ]);
         }
         writer.writeLine(table.toMarkdownTable());
     } else {
         writer.writeLine("\nBasic Type: " + (DataType as any)[dataType.basicDataType]);
         writer.writeLine("");
-
     }
     return writer.toString();
-
 }
 export async function buildDocumentation(namespace: Namespace, writer: IWriter) {
-
     const addressSpace = namespace.addressSpace;
 
     const namespaceUri = namespace.namespaceUri;
@@ -118,7 +89,7 @@ export async function buildDocumentation(namespace: Namespace, writer: IWriter) 
     writer.writeLine("# Namespace " + namespaceUri);
     writer.writeLine("");
     // -------------- writeReferences
-    const namespacePriv = namespace as unknown as NamespacePriv2;
+    const namespacePriv = (namespace as unknown) as NamespacePriv2;
     const referenceTypes = Object.values(namespacePriv._referenceTypeMap);
     writer.writeLine("");
     writer.writeLine("##  References ");

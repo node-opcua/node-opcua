@@ -234,7 +234,7 @@ describe("testing server with low maxNodesPerRead and maxNodesPerBrowse", functi
 
     it("crawler shall work even if server has a low limit the number of node in Read and Browse request", function(done) {
 
-        const redirectToFile = require("node-opcua-debug").redirectToFile;
+        const { redirectToFile } = require("node-opcua-debug/nodeJS");
 
         //xx redirectToFile("crawler_display_tree1.log",function(done){
 

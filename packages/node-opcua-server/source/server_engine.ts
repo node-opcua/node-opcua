@@ -57,7 +57,7 @@ import { CreateSubscriptionRequestLike } from "node-opcua-client";
 import { ExtraDataTypeManager, resolveDynamicExtensionObject } from "node-opcua-client-dynamic-extension-object";
 import { DataTypeIds, MethodIds, ObjectIds, VariableIds } from "node-opcua-constants";
 import { minOPCUADate } from "node-opcua-date-time";
-import { checkDebugFlag, make_debugLog, make_errorLog, trace_from_this_projet_only } from "node-opcua-debug";
+import { checkDebugFlag, make_debugLog, make_errorLog, traceFromThisProjectOnly } from "node-opcua-debug";
 import { nodesets } from "node-opcua-nodesets";
 import { ObjectRegistry } from "node-opcua-object-registry";
 import { CallMethodResult } from "node-opcua-service-call";
@@ -535,7 +535,7 @@ export class ServerEngine extends EventEmitter {
         options = options || {};
         assert(typeof callback === "function");
 
-        options.nodeset_filename = options.nodeset_filename || nodesets.standard_nodeset_file;
+        options.nodeset_filename = options.nodeset_filename || nodesets.standard;
 
         const startTime = new Date();
 
@@ -1941,7 +1941,7 @@ export class ServerEngine extends EventEmitter {
                     chalk.yellow(". please check your nodeset.xml file or add this node programmatically")
             );
 
-            console.log(trace_from_this_projet_only());
+            console.log(traceFromThisProjectOnly());
         }
     }
 

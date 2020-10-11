@@ -6,7 +6,7 @@ import { generateAddressSpace } from "../../nodeJS";
 
 const context = SessionContext.defaultContext;
 
-import * as nodesets from "node-opcua-nodesets";
+import { nodesets } from "node-opcua-nodesets";
 import { HistoryData, ReadRawModifiedDetails } from "node-opcua-service-history";
 import { StatusCodes } from "node-opcua-status-code";
 
@@ -27,7 +27,7 @@ describe("Testing Historical Data Node", () => {
 
     before(async () => {
         addressSpace = AddressSpace.create();
-        const xml_files = [nodesets.standard_nodeset_file];
+        const xml_files = [nodesets.standard];
         fs.existsSync(xml_files[0]).should.be.eql(true, "file " + xml_files[0] + " must exist");
         const namespace = addressSpace.registerNamespace("MyPrivateNamespace");
         namespace.namespaceUri.should.eql("MyPrivateNamespace");

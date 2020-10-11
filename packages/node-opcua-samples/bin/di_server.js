@@ -39,7 +39,7 @@ const Variant = opcua.Variant;
 const DataType = opcua.DataType;
 
 const makeApplicationUrn = opcua.makeApplicationUrn;
-const standard_nodeset_file = opcua.nodesets.standard_nodeset_file;
+const nodesets = opcua.nodesets;
 
 const port = parseInt(argv.port) || 26543;
 
@@ -72,9 +72,9 @@ const server_options = {
     maxAllowedSessionNumber: 1500,
 
     nodeset_filename: [
-        standard_nodeset_file,
-        opcua.nodesets.di_nodeset_filename,
-        opcua.nodesets.adi_nodeset_filename
+        nodesets.standard,
+        nodesets.di,
+        nodesets.adi
     ],
 
     serverInfo: {

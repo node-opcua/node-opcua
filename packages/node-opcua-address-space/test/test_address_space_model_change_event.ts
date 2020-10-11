@@ -1,7 +1,7 @@
 import * as should from "should";
 import * as sinon from "sinon";
 
-import { standard_nodeset_file } from "node-opcua-nodesets";
+import { nodesets } from "node-opcua-nodesets";
 import { DataType } from "node-opcua-variant";
 import { generateAddressSpace } from "../nodeJS";
 import { AddObjectOptions, AddressSpace, EventData, Namespace, UAObject, UAVariableT } from "..";
@@ -99,7 +99,7 @@ describe("address_space ModelChangeEvent", function (this: any) {
 
     before(async () => {
         addressSpace = AddressSpace.create();
-        const xml_files = standard_nodeset_file;
+        const xml_files = nodesets.standard;
         await generateAddressSpace(addressSpace, xml_files);
         namespace = addressSpace.registerNamespace("PRIVATENAMESPACE");
         namespace.index.should.eql(1);

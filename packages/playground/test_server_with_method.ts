@@ -14,7 +14,6 @@ import {
 } from "node-opcua";
 
 function installObjectWithMethod(addressSpace: AddressSpace): UAObject {
-
     const namespace = addressSpace.getOwnNamespace();
 
     const myObject: UAObject = namespace.addObject({
@@ -23,7 +22,6 @@ function installObjectWithMethod(addressSpace: AddressSpace): UAObject {
     });
 
     const methodI = namespace.addMethod(myObject, {
-
         browseName: "DoStuff",
         nodeId: "s=DoStuff",
 
@@ -31,36 +29,34 @@ function installObjectWithMethod(addressSpace: AddressSpace): UAObject {
             {
                 dataType: DataType.String,
                 description: { text: "description of first input argument" },
-                name: "Param1",
+                name: "Param1"
             },
             {
                 dataType: DataType.String,
                 description: { text: "description of second input argument" },
-                name: "Param2",
+                name: "Param2"
             },
             {
                 dataType: DataType.String,
                 description: { text: "description of third input argument" },
-                name: "Param3",
+                name: "Param3"
             }
-
         ],
         outputArguments: [
             {
                 dataType: DataType.String,
                 description: { text: "description of result output" },
-                name: "Result",
-
+                name: "Result"
             }
         ]
     });
 
-    methodI.bindMethod(function(
-      this: UAMethod,
-      inputArguments: Variant[],
-      context: SessionContext,
-      callback: MethodFunctorCallback) {
-
+    methodI.bindMethod(function (
+        this: UAMethod,
+        inputArguments: Variant[],
+        context: SessionContext,
+        callback: MethodFunctorCallback
+    ) {
         const callMethodResult = {
             outputArguments: [
                 new Variant({
@@ -92,22 +88,16 @@ async function callMethodFromServer(addressSpace: AddressSpace, nodeId: NodeIdLi
 
         const context = SessionContext.defaultContext as SessionContext;
 
-        const callMethodResponse = await method.execute(
-          [param1, param2, param3],
-          context);
+        const callMethodResponse = await method.execute([param1, param2, param3], context);
 
         console.log(callMethodResponse.outputArguments![0]!.toString());
     }
 }
 
 async function main() {
-
     try {
-
         const server = new OPCUAServer({
-            nodeset_filename: [
-                nodesets.standard_nodeset_file
-            ]
+            nodeset_filename: [nodesets.standard]
         });
 
         await server.initialize();

@@ -6,7 +6,7 @@ import { standardUnits } from "node-opcua-data-access";
 import { DataValue, DataValueT } from "node-opcua-data-value";
 import { NodeId } from "node-opcua-nodeid";
 import { resolveNodeId } from "node-opcua-nodeid";
-import * as nodesets from "node-opcua-nodesets";
+import { nodesets } from "node-opcua-nodesets";
 import { StatusCodes } from "node-opcua-status-code";
 import { Variant } from "node-opcua-variant";
 import { DataType } from "node-opcua-variant";
@@ -17,7 +17,7 @@ import { generateAddressSpace } from "../nodeJS";
 // tslint:disable-next-line:no-var-requires
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("AnalogDataItem ValuePrecision issue #410", () => {
-    const nodesetFilename = nodesets.standard_nodeset_file;
+    const nodesetFilename = nodesets.standard;
 
     let addressSpace: AddressSpace;
     let analogItem: UAAnalogItem;

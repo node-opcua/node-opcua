@@ -1422,8 +1422,6 @@ export class ServerSecureChannelLayer extends EventEmitter {
                 }
                 return this._on_OpenSecureChannelRequestError(statusCode, description, message, callback);
             }
-
-            console.log("---------------> statusCode =", statusCode.toString());
             this._handle_OpenSecureChannelRequest(statusCode!, message, callback);
         });
     }

@@ -1,4 +1,4 @@
-import * as nodesets from "node-opcua-nodesets";
+import { nodesets } from "node-opcua-nodesets";
 import * as should from "should";
 
 import { AddressSpace, BaseNode } from "..";
@@ -8,7 +8,7 @@ import { BoilerType, createBoilerType } from "../testHelpers";
 // tslint:disable-next-line:no-var-requires
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("UANode#removeReference", () => {
-    const nodesetFilename = nodesets.standard_nodeset_file;
+    const nodesetFilename = nodesets.standard;
     let addressSpace: AddressSpace;
     let boilerType: BoilerType;
     before(async () => {

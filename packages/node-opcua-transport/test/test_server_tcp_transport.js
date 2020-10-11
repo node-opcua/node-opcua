@@ -44,7 +44,7 @@ describe("testing ServerTCP_transport", function() {
 
         transport.init(fakeSocket.server, function(err) {
             assert(err);
-            err.message.should.match(/Expecting \'HEL\' message/);
+            err.message.should.match(/Expecting 'HEL' message/);
         });
 
 

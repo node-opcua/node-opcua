@@ -2,7 +2,7 @@ import * as should from "should";
 
 import * as fs from "fs";
 
-import * as nodesets from "node-opcua-nodesets";
+import { nodesets } from "node-opcua-nodesets";
 import { DataType } from "node-opcua-variant";
 import { Variant } from "node-opcua-variant";
 
@@ -48,7 +48,7 @@ describe("Issue 162 : demonstrate how to modify an instantiate object variable",
     before(async () => {
         addressSpace = AddressSpace.create();
 
-        const xml_file = nodesets.standard_nodeset_file;
+        const xml_file = nodesets.standard;
 
         fs.existsSync(xml_file).should.be.eql(true);
 

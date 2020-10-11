@@ -1,4 +1,3 @@
-/*global xit,it,describe,before,beforeEach,afterEach*/
 "use strict";
 
 const chalk = require("chalk");

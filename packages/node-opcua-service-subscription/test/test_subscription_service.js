@@ -17,7 +17,7 @@ const verify_multi_chunk_message = require("node-opcua-secure-channel/dist/test_
 const encode_decode_round_trip_test = require("node-opcua-packet-analyzer/dist/test_helpers").encode_decode_round_trip_test;
 
 const makebuffer_from_trace = require("node-opcua-debug").makebuffer_from_trace;
-const redirectToFile = require("node-opcua-debug").redirectToFile;
+const { redirectToFile } = require("node-opcua-debug/nodeJS");
 
 describe("testing subscription objects", function() {
 
