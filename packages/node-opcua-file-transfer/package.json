@@ -21,7 +21,7 @@
     "node-opcua-debug": "2.17.0",
     "node-opcua-nodeid": "2.17.0",
     "node-opcua-nodesets": "2.13.0",
-    "node-opcua-pki": "^2.2.0",
+    "node-opcua-pki": "^2.2.1",
     "node-opcua-pseudo-session": "2.19.0",
     "node-opcua-secure-channel": "2.19.0",
     "node-opcua-server": "2.19.0",
