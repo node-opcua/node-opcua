@@ -2,6 +2,7 @@
     "name": "node-opcua-nodesets",
     "main": "./dist/index.js",
     "types": "./dist/index.d.ts",
+    "browser": "./index_web.js",
     "version": "2.13.0",
     "description": "pure nodejs OPCUA SDK - module -nodesets",
     "scripts": {
