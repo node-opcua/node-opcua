@@ -59,7 +59,7 @@ function make_tracer(buffer: Buffer, padding: number, offset?: number) {
     function _display(str: string, hexInfo?: string) {
         hexInfo = hexInfo || "";
         // account for ESC codes for colors
-        const nbColorAttributes = [...str].filter((c) => c === "\u001b").length;
+        const nbColorAttributes = [...str.split("")].filter((c) => c === "\u001b").length;
         const extra = nbColorAttributes * 5;
         console.log((pad() + str + spaces).substr(0, 132 + extra) + "|" + hexInfo);
     }
