@@ -10,7 +10,7 @@
         "test-typescript": "mocha --recursive test/end_to_end/*.ts"
     },
     "dependencies": {
-        "node-opcua-pki": "^2.2.1"
+        "node-opcua-pki": "^2.2.2"
     },
     "devDependencies": {
         "@types/underscore": "^1.10.24",
@@ -28,7 +28,7 @@
         "node-opcua-client": "2.20.0",
         "node-opcua-client-proxy": "2.20.0",
         "node-opcua-constants": "2.16.0",
-        "node-opcua-crypto": "^1.4.0",
+        "node-opcua-crypto": "^1.4.3",
         "node-opcua-debug": "2.20.0",
         "node-opcua-extension-object": "2.20.0",
         "node-opcua-factory": "2.20.0",
