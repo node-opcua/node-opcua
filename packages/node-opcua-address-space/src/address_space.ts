@@ -1448,7 +1448,7 @@ export class AddressSpace implements AddressSpacePrivate {
         return dataTypeNode.isSupertypeOf(enumerationNode);
     }
 
-    private _coerce_Type(dataType: BaseNode | string | NodeId, typeMap: any, typeMapName: any, finderMethod: any): NodeId {
+    private _coerce_Type(dataType: BaseNode | string | NodeId, typeMap: any, typeMapName: string, finderMethod: any): NodeId {
         if (dataType instanceof BaseNode) {
             dataType = dataType.nodeId;
         }
