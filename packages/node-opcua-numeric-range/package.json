@@ -1,6 +1,6 @@
 {
     "name": "node-opcua-numeric-range",
-    "version": "2.20.0",
+    "version": "2.21.0",
     "description": "pure nodejs OPCUA SDK - module -numeric-range",
     "main": "./dist/index.js",
     "types": "./dist/index.d.ts",
@@ -20,7 +20,7 @@
     },
     "devDependencies": {
         "node-opcua-nodeid": "2.20.0",
-        "node-opcua-packet-analyzer": "2.20.0",
+        "node-opcua-packet-analyzer": "2.21.0",
         "node-opcua-test-helpers": "2.17.0",
         "should": "^13.2.3"
     },
