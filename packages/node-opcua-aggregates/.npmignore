@@ -1,5 +1,5 @@
 test/
 test_helpers/
 tsconfig.json
-tsconfig.tsbuildinfo
+*.tsbuildinfo
 *.tsbuildinfo

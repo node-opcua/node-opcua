@@ -1,5 +1,5 @@
 tsconfig.json
-tsconfig.tsbuildinfo
+*.tsbuildinfo
 tslint.*
 test/
 .mocharc.yaml

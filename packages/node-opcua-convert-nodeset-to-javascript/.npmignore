@@ -8,5 +8,5 @@ test_fixtures/
 certificates/
 .vscode/
 tsconfig.json
-tsconfig.tsbuildinfo
+*.tsbuildinfo
 tslint.*
