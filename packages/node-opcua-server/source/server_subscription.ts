@@ -8,7 +8,6 @@ import { TimestampsToReturn } from "node-opcua-data-value";
 import { Queue } from "./queue";
 import * as chalk from "chalk";
 import { EventEmitter } from "events";
-import { isFunction, isNumber, isObject, isArray } from "util";
 
 import { AddressSpace, BaseNode, Duration, UAObjectType, UAVariable } from "node-opcua-address-space";
 import { checkSelectClauses } from "node-opcua-address-space";
@@ -111,7 +110,7 @@ function _adjust_publishingEnable(publishingEnabled?: boolean | null): boolean {
 
 function _adjust_maxNotificationsPerPublish(maxNotificationsPerPublish?: number): number {
     maxNotificationsPerPublish = maxNotificationsPerPublish === undefined ? 0 : maxNotificationsPerPublish;
-    assert(isNumber(maxNotificationsPerPublish));
+    assert(typeof maxNotificationsPerPublish === "number");
     return maxNotificationsPerPublish >= 0 ? maxNotificationsPerPublish : 0;
 }
 
@@ -1410,14 +1409,12 @@ export class Subscription extends EventEmitter {
      * @private
      */
     private _addNotificationMessage(notificationData: Notification[]) {
-        assert(isArray(notificationData));
         assert(notificationData.length === 1 || notificationData.length === 2); // as per spec part 3.
 
         // istanbul ignore next
         if (doDebug) {
             debugLog(chalk.yellow("Subscription#_addNotificationMessage"), notificationData.toString());
         }
-        assert(isObject(notificationData[0]));
         assert_validNotificationData(notificationData[0]);
 
         if (notificationData.length === 2) {
@@ -1541,7 +1538,7 @@ export class Subscription extends EventEmitter {
      */
     private _createMonitoredItemStep3(monitoredItem: MonitoredItem, monitoredItemCreateRequest: MonitoredItemCreateRequest): void {
         assert(monitoredItem.monitoringMode === MonitoringMode.Invalid);
-        assert(isFunction(monitoredItem.samplingFunc));
+        assert(typeof monitoredItem.samplingFunc === "function");
         const monitoringMode = monitoredItemCreateRequest.monitoringMode; // Disabled, Sampling, Reporting
         monitoredItem.setMonitoringMode(monitoringMode);
     }

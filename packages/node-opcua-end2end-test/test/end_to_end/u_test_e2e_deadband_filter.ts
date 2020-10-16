@@ -11,11 +11,15 @@ import {
     DataChangeFilter,
     DataChangeNotification,
     DataChangeTrigger,
+    DataType,
+    DataValue,
     DeadbandType,
     ExtensionObject,
+    getCurrentClock,
     makeBrowsePath,
     MonitoredItem,
     MonitoredItemNotification,
+    MonitoringParametersOptions,
     Namespace,
     NodeIdLike,
     OPCUAClient,
@@ -23,23 +27,26 @@ import {
     StatusCode,
     StatusCodes,
     TimestampsToReturn,
-    WriteValue,
+    UAVariable
 } from "node-opcua";
 import * as sinon from "sinon";
 
+const doDebug = false;
 function debugLog(...args: any[]) {
     /* empty */
+    if (doDebug) {
+        console.log.call(null, args.join(" "));
+    }
 }
+
 const defaultRange = new Range({ low: -1000000, high: 100000 });
 
-function makeValuesOutsideDeadBand(
-    currentValue: number, range: Range, percent: number, count: number
-): number[] {
+function makeValuesOutsideDeadBand(currentValue: number, range: Range, percent: number, count: number): number[] {
     assert(percent >= 0 && percent <= 100);
     const result: number[] = [];
     let value = currentValue;
 
-    const increment = (range.high - range.low) * percent / 100 + 1;
+    const increment = ((range.high - range.low) * percent) / 100 + 1;
 
     for (let i = 0; i < count; i++) {
         value = value + increment;
@@ -51,19 +58,48 @@ function makeValuesOutsideDeadBand(
     debugLog("cv = ", currentValue, result);
     return result;
 }
-function makeValuesInsideDeadBand(
-    currentValue: number, range: Range, percent: number, count: number
-): number[] {
+function makeValuesInsideDeadBand(currentValue: number, range: Range, percent: number, count: number): number[] {
     assert(percent >= 0 && percent <= 100);
+
     const result: number[] = [];
     let value = currentValue;
 
-    const span = (range.high - range.low) * percent / 100.0 - 2.01;
+    const span = ((range.high - range.low) * percent) / 100.0 - 2.01;
     for (let i = 0; i < count; i++) {
         value = currentValue + Math.ceil((Math.random() - 0.5) * span * 10) / 10;
     }
     debugLog("cv = ", currentValue, result, range, span);
     return result;
+}
+interface ClientSidePublishEnginePrivate extends ClientSidePublishEngine {
+    internalSendPublishRequest(): void;
+    suspend(suspend: boolean): void;
+}
+function getInternalPublishEngine(session: ClientSession): ClientSidePublishEnginePrivate {
+    const s: ClientSidePublishEnginePrivate = (session as any).getPublishEngine();
+    return s;
+}
+
+async function readCurrentValue(session: ClientSession, nodeId: NodeIdLike): Promise<number> {
+    const currentDataValue = await session.read({
+        attributeId: AttributeIds.Value,
+        nodeId
+    });
+    const currentValue = currentDataValue.value!.value;
+    return currentValue;
+}
+async function writeValue(session: ClientSession, nodeId: NodeIdLike, value: number): Promise<void> {
+    await session.write({
+        attributeId: AttributeIds.Value,
+        nodeId,
+        value: {
+            value: {
+                dataType: "Double",
+                value
+            }
+        }
+    });
+    debugLog("wrote : value", value);
 }
 
 /**
@@ -84,76 +120,123 @@ async function readVariableRange(session: ClientSession, nodeId: NodeIdLike): Pr
     }
     return dataValue.value.value as Range;
 }
+async function pause(delay: number): Promise<void> {
+    await new Promise((resolve) => setTimeout(resolve, delay));
+}
+
 export function t(test: any) {
+    const options = {};
 
-    describe("Testing DeadBandFilter associated with monitoring queue", function (this: any) {
+    async function createSession() {
+        const client = OPCUAClient.create(options);
+        const endpointUrl = test.endpointUrl;
+        await client.connect(endpointUrl);
+        const session = await client.createSession();
 
-        const options = {};
+        const publishEngine = getInternalPublishEngine(session);
+        publishEngine.timeoutHint = 100000000; // for debugging with ease !
+        // make sure we control how PublishRequest are send
+        publishEngine.suspend(true);
 
+        // create a subscriptions
+        const subscription = ClientSubscription.create(session, {
+            publishingEnabled: true,
+            requestedLifetimeCount: 1000,
+            requestedMaxKeepAliveCount: 4,
+            requestedPublishingInterval: 100
+        });
+
+        return { client, session, subscription, publishEngine };
+    }
+    let s: {
+        client: OPCUAClient;
+        session: ClientSession;
+        subscription: ClientSubscription;
+        publishEngine: ClientSidePublishEnginePrivate;
+    };
+    async function waitForRawNotifications(): Promise<ExtensionObject[]> {
+        const { publishEngine, subscription } = s;
+        publishEngine.internalSendPublishRequest();
+        return await new Promise((resolve: (result: ExtensionObject[]) => void) => {
+            // wait for fist notification
+            subscription.once("raw_notification", (notificationMessage: any) => {
+                // tslint:disable-next-line: no-console
+                debugLog("got notification message ", notificationMessage.toString());
+                resolve(notificationMessage.notificationData);
+            });
+        });
+    }
+    async function waitForNotificationsValues(): Promise<{ value: number; statusCode: StatusCode }[]> {
+        while (true) {
+            const notificationData1 = await waitForRawNotifications();
+            if (notificationData1.length > 0) {
+                const dcn = notificationData1[0] as DataChangeNotification;
+                const r = dcn.monitoredItems!.map((item: MonitoredItemNotification) => ({
+                    statusCode: item.value.statusCode,
+                    value: item.value.value.value
+                }));
+                return r;
+            }
+            // tslint:disable-next-line: no-console
+            debugLog(" ------- skipping empty publish response");
+            return [];
+        }
+    }
+
+    describe("DBF0", function (this: any) {
         this.timeout(Math.max(200000, this.timeout()));
 
-        let client: OPCUAClient;
-        let endpointUrl: string;
-        let session: ClientSession;
-        let subscription: ClientSubscription;
-        let monitoredItem: ClientMonitoredItem;
         let range: Range;
+        const nodeId = "ns=1;s=SomeAnalogDataItem2";
+        const nodeIdBool = "ns=1;s=SomeBoolean";
 
-        const variableWithRange = "ns=1;s=Int32AnalogDataItem";
-        const percent = 10.0;
         before(() => {
             const addressSpace = test.server.engine.addressSpace as AddressSpace;
             const namespace = test.server.engine.addressSpace.getOwnNamespace() as Namespace;
             const n = namespace.addAnalogDataItem({
-                browseName: "Int32AnalogDataItem",
+                browseName: "SomeAnalogDataItem2",
                 componentOf: addressSpace.rootFolder.objects.server,
                 dataType: "Double",
                 engineeringUnitsRange: { low: -100, high: 200 },
-                nodeId: "s=Int32AnalogDataItem",
+                nodeId: "s=SomeAnalogDataItem2"
             });
-            variableWithRange.should.eql(n.nodeId.toString());
-            n.setValueFromSource({ dataType: "Double", value: 145.0 });
+            nodeId.should.eql(n.nodeId.toString());
+            const n2 = namespace.addVariable({
+                browseName: "SomeBoolean",
+                componentOf: addressSpace.rootFolder.objects.server,
+                dataType: "Boolean",
+                nodeId: "s=SomeBoolean"
+            });
+            nodeIdBool.should.eql(n2.nodeId.toString());
         });
-
-        const changeSpy = sinon.spy();
         beforeEach(async () => {
-            client = OPCUAClient.create(options);
+            const addressSpace = test.server.engine.addressSpace as AddressSpace;
+            const n = addressSpace.findNode(nodeId)! as UAVariable;
+            n.setValueFromSource({ dataType: "Double", value: 145.0 }, StatusCodes.Good);
 
-            endpointUrl = test.endpointUrl;
-            await client.connect(endpointUrl);
-            session = await client.createSession();
+            const n2 = addressSpace.findNode(nodeIdBool)! as UAVariable;
+            n2.setValueFromSource({ dataType: DataType.Boolean, value: true }, StatusCodes.Good);
 
-            // create a subscriptions
-            subscription = ClientSubscription.create(session, {
-                publishingEnabled: true,
-                requestedLifetimeCount: 1000,
-                requestedMaxKeepAliveCount: 20,
-                requestedPublishingInterval: 100,
-            });
-
-            const publishEngine = (session as any).getPublishEngine();
-            // make sure we control how PublishRequest are send
-            publishEngine.suspend(true);
-
-            range = await readVariableRange(session, variableWithRange);
+            s = await createSession();
+            range = await readVariableRange(s.session, nodeId);
+        });
+        afterEach(async () => {
+            await s.subscription.terminate();
+            await s.session.close();
+            await s.client.disconnect();
+        });
+        const changeSpy = sinon.spy();
+        async function createMonitoredItem(
+            nodeId: NodeIdLike,
+            requestedParameters: MonitoringParametersOptions
+        ): Promise<ClientMonitoredItem> {
+            const { session, subscription, publishEngine } = s;
 
             const readValue = {
                 attributeId: AttributeIds.Value,
-                nodeId: variableWithRange,
+                nodeId
             };
-            const requestedParameters = {
-                discardOldest: true,
-                filter: new DataChangeFilter({
-                    deadbandType: DeadbandType.Percent,
-                    deadbandValue: percent,
-                    trigger: DataChangeTrigger.StatusValue,
-                }), // FILTER !
-                queueSize: 4,
-                samplingInterval: 0,
-            };
-            monitoredItem = ClientMonitoredItem.create(subscription, readValue, requestedParameters, TimestampsToReturn.Both);
-
-            publishEngine.internalSendPublishRequest();
+            const monitoredItem = ClientMonitoredItem.create(subscription, readValue, requestedParameters, TimestampsToReturn.Both);
 
             await new Promise((resolve: any) => {
                 // wait for fist notification
@@ -162,83 +245,243 @@ export function t(test: any) {
                     debugLog("got initial value !!! ", dataValue.value.value);
                     resolve();
                 });
+                s.publishEngine.internalSendPublishRequest();
             });
 
             monitoredItem.on("changed", changeSpy);
             // debugLog("Started !");
-        });
-        afterEach(async () => {
-            await subscription.terminate();
-            await session.close();
-            await client.disconnect();
-        });
-
-        async function readCurrentValue(): Promise<number> {
-            const currentDataValue = await session.read({
-                attributeId: AttributeIds.Value,
-                nodeId: variableWithRange,
+            return monitoredItem;
+        }
+        async function setValueAndStatusCode(
+            nodeId: NodeIdLike,
+            dataType: DataType,
+            value: number | boolean,
+            statusCode: StatusCode
+        ) {
+            const { session } = s;
+            const dataValue = new DataValue({
+                value: { dataType, value }
             });
-            const currentValue = currentDataValue.value!.value;
-            return currentValue;
-        }
-        async function writeValue(value: number): Promise<void> {
-            await session.write({
-                attributeId: AttributeIds.Value,
-                nodeId: variableWithRange,
-                value: {
-                    value: {
-                        dataType: "Double",
-                        value
-                    }
-                }
-            });
-            debugLog("wrote : value", value);
-        }
-
-        async function pause(delay: number): Promise<void> {
-            await new Promise((resolve) => setTimeout(resolve, delay));
-        }
-
-        it("DBF1 - check dead band filter 1", async () => {
-
-            async function waitForRawNotifications(): Promise<ExtensionObject[]> {
-                publishEngine.internalSendPublishRequest();
-                return await new Promise((resolve: (result: ExtensionObject[]) => void) => {
-                    // wait for fist notification
-                    subscription.once("raw_notification", (notificationMessage: any) => {
-                        // tslint:disable-next-line: no-console
-                        debugLog("got notification message ", notificationMessage.toString());
-                        resolve(notificationMessage.notificationData);
-                    });
+            dataValue.sourceTimestamp = getCurrentClock().timestamp;
+            dataValue.serverTimestamp = getCurrentClock().timestamp;
+            dataValue.statusCode = statusCode;
+            dataValue.value.value = value;
+            {
+                const statusCode = await session.write({
+                    attributeId: AttributeIds.Value,
+                    nodeId,
+                    value: dataValue
                 });
+                statusCode.should.eql(StatusCodes.Good);
             }
-            async function waitForNotificationsValues(): Promise<Array<{ value: number, statusCode: StatusCode }>> {
-                while (true) {
-                    const notificationData1 = await waitForRawNotifications();
-                    if (notificationData1.length > 0) {
-                        const dcn = notificationData1[0] as DataChangeNotification;
-                        const r = dcn.monitoredItems!.map((item: MonitoredItemNotification) => ({
-                            statusCode: item.value.statusCode,
-                            value: item.value.value.value
-                        }));
-                        return r;
-                    }
-                    // tslint:disable-next-line: no-console
-                    debugLog(" ------- skipping empty publish response");
-                    return [];
-                }
-            }
+        }
 
-            const publishEngine = (session as any).getPublishEngine();
+        it("DBF1: DeadBandFilter filter: none, trigger: Status - it should not received notification when trigger is status and value change", async () => {
+            const { session, subscription, publishEngine } = s;
+
+            const requestedParameters = {
+                discardOldest: true,
+                filter: new DataChangeFilter({
+                    deadbandType: DeadbandType.None,
+                    trigger: DataChangeTrigger.Status
+                }), // FILTER !
+
+                queueSize: 4,
+                samplingInterval: 0
+            };
+            await createMonitoredItem(nodeId, requestedParameters);
+
+            const changeNotificationCount1 = changeSpy.callCount;
+            await setValueAndStatusCode(nodeId, DataType.Double, 145, StatusCodes.BadAggregateConfigurationRejected);
+
+            publishEngine.internalSendPublishRequest();
+            publishEngine.internalSendPublishRequest();
+            // wait until next keep alive
+            await new Promise((resolve) => {
+                subscription.once("keepalive", () => resolve());
+            });
+
+            const changeNotificationCount2 = changeSpy.callCount;
+            changeNotificationCount2.should.eql(changeNotificationCount1 + 1, "must have received a changed notification");
+
+            // now change the value without changing the status
+            await setValueAndStatusCode(nodeId, DataType.Double, 200, StatusCodes.BadAggregateConfigurationRejected);
+
+            publishEngine.internalSendPublishRequest();
+            publishEngine.internalSendPublishRequest();
+            // wait until next keep alive
+            await new Promise((resolve) => {
+                subscription.once("keepalive", () => resolve());
+            });
+
+            const changeNotificationCount3 = changeSpy.callCount;
+            changeNotificationCount3.should.eql(changeNotificationCount2, "must NOT have received a changed notification");
+        });
+        /*
+            Description:
+            -  Create one monitored item with Filter =
+                    DataChangeFilter( deadbandType = None, trigger = StatusValue ).
+            - call Publish().
+            - Write a value to the Value attribute.
+            - call Publish().
+            - Write a status code to the Value attribute
+              (don’t change the value of the Value attribute).
+            - call Publish().
+              Write the existing value and status code to the Value attribute.
+            - call Publish().
+            Expected results:
+            -All service and operation level results are Good.
+            - The second Publish contains a DataChangeNotification with a value.value matching the
+              written value.
+            - The third Publish contains a DataChangeNotification with a value.statusCode matching the
+              written value (and value.value matching the value before the write).
+            -The fourth Publish contains no DataChangeNotifications.
+            */
+        it("DBF2: DeadBandFilter filter: none, trigger: StatusValue, (Double) it should not received notification when trigger is status and value change", async () => {
+            const { session, subscription, publishEngine } = s;
+            const requestedParameters = {
+                discardOldest: true,
+                filter: new DataChangeFilter({
+                    deadbandType: DeadbandType.None,
+                    deadbandValue: 0,
+                    trigger: DataChangeTrigger.StatusValue
+                }), // FILTER !
+
+                queueSize: 4,
+                samplingInterval: 0
+            };
+
+            await createMonitoredItem(nodeId, requestedParameters);
+
+            const dataValue = await session.read({ nodeId, attributeId: AttributeIds.Value });
+            dataValue.statusCode.should.eql(StatusCodes.Good);
+            dataValue.value.value.should.eql(145);
+
+            const changeNotificationCount1 = changeSpy.callCount;
+            await setValueAndStatusCode(nodeId, DataType.Double, 145, StatusCodes.GoodClamped);
+
+            publishEngine.internalSendPublishRequest();
+            publishEngine.internalSendPublishRequest();
+            // wait until next keep alive
+            await new Promise((resolve) => {
+                subscription.once("keepalive", () => resolve());
+            });
+
+            const changeNotificationCount2 = changeSpy.callCount;
+            changeNotificationCount2.should.eql(changeNotificationCount1 + 1, "must have received a changed notification");
+
+            const dataValue2 = changeSpy.getCall(changeNotificationCount2 - 1).firstArg;
+            dataValue2.statusCode.should.eql(StatusCodes.GoodClamped);
+            dataValue2.value.value.should.eql(145);
+
+            // now change the value without changing the status
+            await setValueAndStatusCode(nodeId, DataType.Double, 1000, StatusCodes.GoodClamped);
+
+            publishEngine.internalSendPublishRequest();
+            publishEngine.internalSendPublishRequest();
+            // wait until next keep alive
+            await new Promise((resolve) => {
+                subscription.once("keepalive", () => resolve());
+            });
+
+            const changeNotificationCount3 = changeSpy.callCount;
+            changeNotificationCount3.should.eql(changeNotificationCount2 + 1, "must have received a changed notification");
+
+            const dataValue3 = changeSpy.getCall(changeNotificationCount3 - 1).firstArg;
+            dataValue3.statusCode.should.eql(StatusCodes.GoodClamped);
+            dataValue3.value.value.should.eql(1000);
+        });
+        it("DBF3: DeadBandFilter filter: none, trigger: StatusValue, (Bool) it should not received notification when trigger is status and value change", async () => {
+            const { session, subscription, publishEngine } = s;
+            const requestedParameters = {
+                discardOldest: true,
+                filter: new DataChangeFilter({
+                    deadbandType: DeadbandType.None,
+                    deadbandValue: 0,
+                    trigger: DataChangeTrigger.StatusValue
+                }), // FILTER !
+
+                queueSize: 4,
+                samplingInterval: 0
+            };
+
+            await createMonitoredItem(nodeIdBool, requestedParameters);
+
+            const dataValue = await session.read({ nodeId: nodeIdBool, attributeId: AttributeIds.Value });
+            dataValue.statusCode.should.eql(StatusCodes.Good);
+            dataValue.value.value.should.eql(true);
+
+            const changeNotificationCount1 = changeSpy.callCount;
+            await setValueAndStatusCode(nodeIdBool, DataType.Boolean, false, StatusCodes.GoodClamped);
+
+            publishEngine.internalSendPublishRequest();
+            publishEngine.internalSendPublishRequest();
+            // wait until next keep alive
+            await new Promise((resolve) => {
+                subscription.once("keepalive", () => resolve());
+            });
+
+            const changeNotificationCount2 = changeSpy.callCount;
+            changeNotificationCount2.should.eql(changeNotificationCount1 + 1, "must have received a changed notification");
+
+            const dataValue2 = changeSpy.getCall(changeNotificationCount2 - 1).firstArg;
+            dataValue2.statusCode.should.eql(StatusCodes.GoodClamped);
+            dataValue2.value.value.should.eql(false);
+
+            // now change the value without changing the status
+            await setValueAndStatusCode(nodeIdBool, DataType.Boolean, true, StatusCodes.GoodClamped);
+
+            publishEngine.internalSendPublishRequest();
+            publishEngine.internalSendPublishRequest();
+            // wait until next keep alive
+            await new Promise((resolve) => {
+                subscription.once("keepalive", () => resolve());
+            });
+
+            const changeNotificationCount3 = changeSpy.callCount;
+            changeNotificationCount3.should.eql(changeNotificationCount2 + 1, "must have received a changed notification");
+
+            const dataValue3 = changeSpy.getCall(changeNotificationCount3 - 1).firstArg;
+            dataValue3.statusCode.should.eql(StatusCodes.GoodClamped);
+            dataValue3.value.value.should.eql(true);
+
+            // now writing same data again
+            await setValueAndStatusCode(nodeIdBool, DataType.Boolean, true, StatusCodes.GoodClamped);
+
+            publishEngine.internalSendPublishRequest();
+            publishEngine.internalSendPublishRequest();
+            // wait until next keep alive
+            await new Promise((resolve) => {
+                subscription.once("keepalive", () => resolve());
+            });
+
+            const changeNotificationCount4 = changeSpy.callCount;
+            changeNotificationCount4.should.eql(changeNotificationCount3, "must NOT receive a changed notification");
+        });
+
+        it("DBF4- Testing DeadBandFilter associated with monitoring queue - check dead band filter 1", async () => {
+            const percent = 10.0;
+            const requestedParameters = {
+                discardOldest: true,
+                filter: new DataChangeFilter({
+                    deadbandType: DeadbandType.Percent,
+                    deadbandValue: percent,
+                    trigger: DataChangeTrigger.StatusValue
+                }), // FILTER !
+                queueSize: 4,
+                samplingInterval: 0
+            };
+            await createMonitoredItem(nodeId, requestedParameters);
+
+            const { session } = s;
 
             // read dataValue
-            const currentValue = await readCurrentValue();
+            const currentValue = await readCurrentValue(session, nodeId);
             // tslint:disable-next-line: no-console
             const values = makeValuesOutsideDeadBand(currentValue, range, percent, 5);
 
-            console.log("currentValue", currentValue, values);
             for (const value of values) {
-                await writeValue(value);
+                await writeValue(session, nodeId, value);
                 await pause(200);
             }
 
@@ -255,17 +498,15 @@ export function t(test: any) {
             notifiedValues1[3].statusCode.toString().should.eql("Good (0x00000)");
 
             // now send value that are within dead band
-            const currentValue1 = await readCurrentValue();
+            const currentValue1 = await readCurrentValue(session, nodeId);
             const valuesInside = makeValuesInsideDeadBand(currentValue1, range, percent, 5);
-            console.log("currentValue", currentValue1, valuesInside);
             for (const value of valuesInside) {
-                await writeValue(value);
+                await writeValue(session, nodeId, value);
                 await pause(200);
             }
             // we should receive a empty notification
             const notifiedValues2 = await waitForNotificationsValues();
             notifiedValues2.should.eql([]);
-
         });
     });
 }

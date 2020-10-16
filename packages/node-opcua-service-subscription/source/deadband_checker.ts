@@ -43,7 +43,9 @@ function _isOutsideDeadbandScalar(value1: NumberType, value2: NumberType, dataTy
     }
     // istanbul ignore next
     if (!(typeof value1 === "number" && typeof value2 === "number")) {
-        throw new Error("Invalid");
+        throw new Error(
+            "Invalid value in _isOutsideDeadbandScalar > expecting number only but got " + typeof value1 + " " + typeof value2
+        );
     }
     diff = value2 - value1;
     assert(typeof diff === "number" && isFinite(diff));
@@ -115,7 +117,7 @@ function isOnEdgeOfRange(currentValue: Variant, newValue: Variant, range: Pseudo
  */
 export function isOutsideDeadbandNone(variant1: Variant, variant2: Variant): boolean {
     // No Deadband calculation should be applied.
-    return isOutsideDeadbandVariant(variant1, variant2, 0.0);
+    return variant1.value !== variant2.value;
 }
 /**
  * @method isOutsideDeadbandAbsolute

@@ -1,7 +1,6 @@
 /**
  * @module node-opcua-address-space.AlarmsAndConditions
  */
-import * as util from "util";
 import { UAOffNormalAlarm } from "./ua_off_normal_alarm";
 /**
  * The TripAlarmType is a specialization of the OffNormalAlarmType intended to represent an equipment trip Condition.
@@ -13,6 +12,4 @@ import { UAOffNormalAlarm } from "./ua_off_normal_alarm";
  * @constructor
  *
  */
-export class UATripAlarm extends UAOffNormalAlarm {
-
-}
+export class UATripAlarm extends UAOffNormalAlarm {}

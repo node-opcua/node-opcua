@@ -5,7 +5,7 @@
 
 import * as chalk from "chalk";
 import { assert } from "node-opcua-assert";
-import * as util from "util";
+import { inspect } from "util";
 
 import { decodeByte, decodeExpandedNodeId, decodeNodeId, decodeUInt32 } from "node-opcua-basic-types";
 import { BinaryStream } from "node-opcua-binary-stream";
@@ -203,7 +203,7 @@ function _internalAnalyzePacket(
     } catch (err) {
         console.log(" Error in ", err);
         console.log(" Error in ", err.stack);
-        console.log(" objMessage ", util.inspect(objMessage, { colors: true }));
+        console.log(" objMessage ", inspect(objMessage, { colors: true }));
     }
 }
 

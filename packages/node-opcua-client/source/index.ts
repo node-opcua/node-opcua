@@ -39,8 +39,14 @@ export { hexDump } from "node-opcua-debug";
 
 ///
 export {
-    NodeId, resolveNodeId, makeNodeId, coerceNodeId, sameNodeId,
-    ExpandedNodeId, makeExpandedNodeId, coerceExpandedNodeId
+    NodeId,
+    resolveNodeId,
+    makeNodeId,
+    coerceNodeId,
+    sameNodeId,
+    ExpandedNodeId,
+    makeExpandedNodeId,
+    coerceExpandedNodeId
 } from "node-opcua-nodeid";
 export { StatusCode, StatusCodes } from "node-opcua-status-code";
 export * from "node-opcua-variant";
