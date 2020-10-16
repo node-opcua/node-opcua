@@ -473,7 +473,7 @@ export interface ClientSessionReadHistoryService {
         nodesToRead: HistoryReadValueIdOptions[],
         startTime: DateTime,
         endTime: DateTime,
-        aggregateFn: AggregateFunction,
+        aggregateFn: AggregateFunction[],
         processingInterval: number,
         callback: Callback<HistoryReadResult[]>
     ): void;
@@ -481,7 +481,7 @@ export interface ClientSessionReadHistoryService {
         nodesToRead: HistoryReadValueIdOptions[],
         startTime: DateTime,
         endTime: DateTime,
-        aggregateFn: AggregateFunction,
+        aggregateFn: AggregateFunction[],
         processingInterval: number
     ): Promise<HistoryReadResult[]>;
     readAggregateValue(
