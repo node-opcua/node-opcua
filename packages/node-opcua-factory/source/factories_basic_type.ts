@@ -1,8 +1,6 @@
 /**
  * @module node-opcua-factory
  */
-import * as util from "util";
-
 import { assert } from "node-opcua-assert";
 import { decodeLocaleId, encodeLocaleId, validateLocaleId } from "node-opcua-basic-types";
 import { BinaryStream, OutputBinaryStream } from "node-opcua-binary-stream";
@@ -65,7 +63,6 @@ export function registerBasicType(schema: BasicTypeOptions) {
     /* istanbul ignore next */
     if (!t) {
         // tslint:disable-next-line:no-console
-        console.log(util.inspect(schema, { colors: true }));
         throw new Error(" cannot find subtype " + schema.subType);
     }
     assert(typeof t.decode === "function");

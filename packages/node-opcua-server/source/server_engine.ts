@@ -1243,9 +1243,13 @@ export class ServerEngine extends EventEmitter {
         let l_extraDataTypeManager: ExtraDataTypeManager;
 
         const performWrite = (writeValue: WriteValue, inner_callback: StatusCodeCallback) => {
-            assert(writeValue instanceof WriteValue);
-            const ignored_promise = resolveDynamicExtensionObject(writeValue.value.value, l_extraDataTypeManager);
-            this.writeSingleNode(context, writeValue, inner_callback);
+            resolveDynamicExtensionObject(writeValue.value.value, l_extraDataTypeManager)
+                .then(() => {
+                    this.writeSingleNode(context, writeValue, inner_callback);
+                })
+                .catch((err) => {
+                    this.writeSingleNode(context, writeValue, inner_callback);
+                });
         };
 
         ensureDatatypeExtractedWithCallback(
@@ -1836,6 +1840,7 @@ export class ServerEngine extends EventEmitter {
             try {
                 dataValue = obj.readAttribute(context, attributeId, indexRange, dataEncoding);
                 assert(dataValue.statusCode instanceof StatusCode);
+                // istanbul ignore next
                 if (!dataValue.isValid()) {
                     console.log("Invalid value for node ", obj.nodeId.toString(), obj.browseName.toString());
                 }
@@ -1877,6 +1882,7 @@ export class ServerEngine extends EventEmitter {
             callback(null, new HistoryReadResult({ statusCode: StatusCodes.BadNodeIdUnknown }));
             return;
         } else {
+            // istanbul ignore next
             if (!obj.historyRead) {
                 // note : Object and View may also support historyRead to provide Event historical data
                 //        todo implement historyRead for Object and View
@@ -1933,6 +1939,7 @@ export class ServerEngine extends EventEmitter {
         if (!methodNode) {
             return;
         }
+        // istanbul ignore else
         if (methodNode && methodNode.bindMethod) {
             methodNode.bindMethod(func);
         } else {
@@ -1947,6 +1954,7 @@ export class ServerEngine extends EventEmitter {
     }
 
     private _getServerSubscriptionDiagnosticsArrayNode(): UADynamicVariableArray<SubscriptionDiagnosticsDataType> | null {
+        // istanbul ignore next
         if (!this.addressSpace) {
             if (doDebug) {
                 console.warn("ServerEngine#_getServerSubscriptionDiagnosticsArray : no addressSpace");

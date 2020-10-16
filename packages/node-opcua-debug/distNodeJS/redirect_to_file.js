@@ -7,7 +7,7 @@ exports.redirectToFile = void 0;
 // tslint:disable:no-console
 // tslint:disable:ban-types
 const fs = require("fs");
-const util = require("util");
+const util_1 = require("util");
 const node_opcua_assert_1 = require("node-opcua-assert");
 const get_temp_filename_1 = require("./get_temp_filename");
 /**
@@ -25,7 +25,7 @@ function redirectToFile(tmpFile, actionFct, callback) {
     // xx    console.log(" log_file ",log_file);
     const f = fs.createWriteStream(logFile, { flags: "w", encoding: "ascii" });
     function _write_to_file(...args) {
-        const msg = util.format.apply(null, args);
+        const msg = util_1.format.apply(null, args);
         f.write(msg + "\n");
         if (process.env.DEBUG) {
             oldConsoleLog.call(console, msg);

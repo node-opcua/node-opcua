@@ -185,14 +185,11 @@ function isGoodish(statusCode: StatusCode): boolean {
     return statusCode.value < 0x10000000;
 }
 
-function apply_datachange_filter(this: MonitoredItem, newDataValue: DataValue, oldDataValue: DataValue): boolean {
+function apply_dataChange_filter(this: MonitoredItem, newDataValue: DataValue, oldDataValue: DataValue): boolean {
     /* istanbul ignore next */
     if (!this.filter || !(this.filter instanceof DataChangeFilter)) {
         throw new Error("Internal Error");
     }
-    assert(this.filter instanceof DataChangeFilter);
-    assert(newDataValue instanceof DataValue);
-    assert(oldDataValue instanceof DataValue);
 
     const trigger = this.filter.trigger;
 
@@ -219,10 +216,10 @@ function apply_datachange_filter(this: MonitoredItem, newDataValue: DataValue, o
             //              Report a notification if either StatusCode, value or the
             //              SourceTimestamp change.
             //
-            //              If a Deadband filter is specified,this trigger has the same behaviour as STATUS_VALUE_1.
+            //              If a Deadband filter is specified,this trigger has the same behavior as STATUS_VALUE_1.
             //
             //              If the DataChangeFilter is not applied to the monitored item, STATUS_VALUE_1
-            //              is the default reporting behaviour
+            //              is the default reporting behavior
             assert(trigger === DataChangeTrigger.StatusValueTimestamp);
             return (
                 timestampHasChanged(newDataValue.sourceTimestamp, oldDataValue.sourceTimestamp) ||
@@ -238,7 +235,7 @@ function apply_filter(this: MonitoredItem, newDataValue: DataValue) {
         return true; // keep
     }
     if (this.filter instanceof DataChangeFilter) {
-        return apply_datachange_filter.call(this, newDataValue, this.oldDataValue);
+        return apply_dataChange_filter.call(this, newDataValue, this.oldDataValue);
     } else {
         // if filter not set, by default report changes to Status or Value only
         if (newDataValue.statusCode.value !== this.oldDataValue.statusCode.value) {
@@ -992,6 +989,11 @@ export class MonitoredItem extends EventEmitter {
 
     private _makeDataChangeNotification(dataValue: DataValue): MonitoredItemNotification {
         const attributeId = this.itemToMonitor.attributeId;
+        // if dataFilter is specified ....
+        if (this.filter && this.filter instanceof DataChangeFilter) {
+            if (this.filter.trigger === DataChangeTrigger.Status) {
+            }
+        }
         dataValue = apply_timestamps(dataValue, this.timestampsToReturn, attributeId);
         return new MonitoredItemNotification({
             clientHandle: this.clientHandle,
@@ -1050,7 +1052,6 @@ export class MonitoredItem extends EventEmitter {
         if (doDebug) {
             debugLog("MonitoredItem#_enqueue_value", this.node!.nodeId.toString());
         }
-
         this.oldDataValue = dataValue;
         const notification = this._makeDataChangeNotification(dataValue);
         this._enqueue_notification(notification);

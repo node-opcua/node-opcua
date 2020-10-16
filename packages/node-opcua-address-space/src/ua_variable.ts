@@ -164,6 +164,7 @@ function validateDataType(addressSpace: AddressSpace, dataTypeNodeId: NodeId, va
         throw new Error("cannot find Enumeration DataType node in standard address space");
     }
     if (destUADataType.isSupertypeOf(enumerationUADataType)) {
+        // istanbul ignore next
         if (doDebug) {
             console.log("destUADataType.", destUADataType.browseName.toString(), destUADataType.nodeId.toString());
             console.log(
