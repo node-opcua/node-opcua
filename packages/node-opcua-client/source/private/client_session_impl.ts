@@ -724,7 +724,7 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession {
         nodesToRead: HistoryReadValueIdOptions[],
         startTime: DateTime,
         endTime: DateTime,
-        aggregateFn: AggregateFunction,
+        aggregateFn: AggregateFunction[],
         processingInterval: number,
         callback: Callback<HistoryReadResult[]>
     ): void;
@@ -732,7 +732,7 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession {
         nodesToRead: HistoryReadValueIdOptions[],
         startTime: DateTime,
         endTime: DateTime,
-        aggregateFn: AggregateFunction,
+        aggregateFn: AggregateFunction[],
         processingInterval: number
     ): Promise<HistoryReadResult[]>;
     public readAggregateValue(
@@ -755,7 +755,7 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession {
         arg0: HistoryReadValueIdOptions[] | HistoryReadValueIdOptions,
         startTime: DateTime,
         endTime: DateTime,
-        aggregateFn: AggregateFunction,
+        aggregateFn: AggregateFunction[] | AggregateFunction,
         processingInterval: number,
         ...args: any[]
     ): any {
@@ -768,8 +768,14 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession {
             ? (arg0 as HistoryReadValueIdOptions[])
             : [arg0 as HistoryReadValueIdOptions];
 
+        const aggregateFns: AggregateFunction[] = Array.isArray(aggregateFn)
+            ? (aggregateFn as AggregateFunction[])
+            : [aggregateFn as AggregateFunction];
+
+        assert(aggregateFns.length === nodesToRead.length);
+
         const readProcessedDetails = new ReadProcessedDetails({
-            aggregateType: [aggregateFn],
+            aggregateType: aggregateFns,
             endTime,
             processingInterval,
             startTime
