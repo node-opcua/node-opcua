@@ -26,12 +26,12 @@ function clamp(min: number, a: number, max: number) {
     return Math.max(Math.min(a, max), min);
 }
 
-export function decodeTimestampsToReturn(stream: BinaryStream): TimestampsToReturn {
+export function decodeTimestampsToReturn(stream: BinaryStream, value?: TimestampsToReturn): TimestampsToReturn {
     return clamp(TimestampsToReturn.Source, stream.readUInt32(), TimestampsToReturn.Invalid) as TimestampsToReturn;
 }
 
 export const _enumerationTimestampsToReturn = registerEnumeration(schemaTimestampsToReturn);
 
 export function coerceTimestampsToReturn(value: number | null | undefined): TimestampsToReturn {
-    return (typeof value === "number") ? +value : TimestampsToReturn.Neither;
+    return typeof value === "number" ? +value : TimestampsToReturn.Neither;
 }
