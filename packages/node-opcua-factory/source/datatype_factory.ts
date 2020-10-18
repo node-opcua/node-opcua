@@ -24,16 +24,11 @@ export class DataTypeFactory {
     public targetNamespace: string;
     public imports: string[] = [];
 
-    private _structureTypeConstructorByNameMap: { [key: string]: ConstructorFuncWithSchema } = {};
-    private _structureTypeConstructorByDataTypeMap: { [key: string]: ConstructorFuncWithSchema } = {};
-    private _structureTypeConstructorByEncodingNodeIdMap: any = {};
-
-    private _enumerations: {
-        [key: string]: EnumerationDefinitionSchema;
-    } = {};
-    private _simpleTypes: {
-        [key: string]: { nodeId: NodeId; definition: BasicTypeDefinition };
-    } = {};
+    private _structureTypeConstructorByNameMap: Map<string, ConstructorFuncWithSchema> = new Map();
+    private _structureTypeConstructorByDataTypeMap: Map<string, ConstructorFuncWithSchema> = new Map();
+    private _structureTypeConstructorByEncodingNodeIdMap: Map<string, any> = new Map();
+    private _enumerations: Map<string, EnumerationDefinitionSchema> = new Map();
+    private _simpleTypes: Map<string, { nodeId: NodeId; definition: BasicTypeDefinition }> = new Map();
 
     private baseDataFactories: DataTypeFactory[];
 
@@ -48,14 +43,15 @@ export class DataTypeFactory {
     }
     // -----------------------------
     public registerSimpleType(name: string, dataTypeNodeId: NodeId, def: BasicTypeDefinition) {
-        if (this._simpleTypes[name]) {
+        // istanbul ignore next
+        if (this._simpleTypes.has(name)) {
             throw new Error("registerSimpleType " + name + " already register");
         }
-        this._simpleTypes[name] = { nodeId: dataTypeNodeId, definition: def };
+        this._simpleTypes.set(name, { nodeId: dataTypeNodeId, definition: def });
     }
 
     public hasSimpleType(name: string): boolean {
-        if (this._simpleTypes[name]) {
+        if (this._simpleTypes.has(name)) {
             return true;
         }
         for (const factory of this.baseDataFactories) {
@@ -70,8 +66,8 @@ export class DataTypeFactory {
         return hasBuiltInType(name);
     }
     public getSimpleType(name: string): BasicTypeDefinition {
-        if (this._simpleTypes[name]) {
-            return this._simpleTypes[name].definition;
+        if (this._simpleTypes.has(name)) {
+            return this._simpleTypes.get(name)!.definition;
         }
         for (const factory of this.baseDataFactories) {
             if (factory.hasSimpleType(name)) {
@@ -84,11 +80,12 @@ export class DataTypeFactory {
     // EnumerationDefinitionSchema
     public registerEnumeration(enumeration: EnumerationDefinitionSchema): void {
         debugLog("Registering Enumeration ", enumeration.name);
-        assert(!this._enumerations[enumeration.name]);
-        this._enumerations[enumeration.name] = enumeration;
+        assert(!this._enumerations.has(enumeration.name));
+        this._enumerations.set(enumeration.name, enumeration);
     }
+
     public hasEnumeration(enumName: string): boolean {
-        if (this._enumerations[enumName]) {
+        if (this._enumerations.has(enumName)) {
             return true;
         }
         for (const factory of this.baseDataFactories) {
@@ -103,8 +100,8 @@ export class DataTypeFactory {
         return false;
     }
     public getEnumeration(enumName: string): EnumerationDefinitionSchema | null {
-        if (this._enumerations[enumName]) {
-            return this._enumerations[enumName];
+        if (this._enumerations.has(enumName)) {
+            return this._enumerations.get(enumName) || null;
         }
         for (const factory of this.baseDataFactories) {
             const hasEnum = factory.hasEnumeration(enumName);
@@ -119,7 +116,7 @@ export class DataTypeFactory {
     //  ----------------------------
 
     public findConstructorForDataType(dataTypeNodeId: NodeId): ConstructorFuncWithSchema {
-        const constructor = this._structureTypeConstructorByDataTypeMap[dataTypeNodeId.toString()];
+        const constructor = this._structureTypeConstructorByDataTypeMap.get(dataTypeNodeId.toString());
         if (constructor) {
             return constructor;
         }
@@ -134,12 +131,12 @@ export class DataTypeFactory {
     // ----------------------------------------------------------------------------------------------------
     // Access by typeName
     // ----------------------------------------------------------------------------------------------------
-    public structuredTypesNames(): string[] {
-        return Object.keys(this._structureTypeConstructorByNameMap);
+    public structuredTypesNames(): IterableIterator<string> {
+        return this._structureTypeConstructorByNameMap.keys();
     }
 
     public getStructureTypeConstructor(typeName: string): ConstructorFuncWithSchema {
-        const constructor = this._structureTypeConstructorByNameMap[typeName];
+        const constructor = this._structureTypeConstructorByNameMap.get(typeName);
         if (constructor) {
             return constructor;
         }
@@ -152,22 +149,22 @@ export class DataTypeFactory {
                 return constructor2;
             }
         }
+        // istanbul ignore next
         if (doDebug) {
-            console.log(Object.keys(this._structureTypeConstructorByNameMap).join(" "));
+            console.log([...this.structuredTypesNames()].join(" "));
         }
+        // istanbul ignore next
         throw new Error(
             "Cannot find StructureType constructor for " + typeName + " - it may be abstract, or it could be a basic type"
         );
     }
 
     public hasStructuredType(typeName: string): boolean {
-        const flag = !!this._structureTypeConstructorByNameMap[typeName];
-        if (flag) {
+        if (this._structureTypeConstructorByNameMap.has(typeName)) {
             return true;
         }
         for (const factory of this.baseDataFactories) {
-            const flag2 = factory.hasStructuredType(typeName);
-            if (flag2) {
+            if (factory.hasStructuredType(typeName)) {
                 return true;
             }
         }
@@ -179,13 +176,12 @@ export class DataTypeFactory {
         return constructor.schema;
     }
 
+    // istanbul ignore next
     public dump(): void {
         console.log(" dumping registered factories");
         console.log(
             " Factory ",
-            Object.keys(this._structureTypeConstructorByNameMap)
-                .sort()
-                .forEach((e) => e)
+            [...this.structuredTypesNames()].sort().forEach((e) => e)
         );
         console.log(" done");
     }
@@ -205,7 +201,7 @@ export class DataTypeFactory {
     // ----------------------------------------------------------------------------------------------------
     public getConstructor(binaryEncodingNodeId: NodeId): ConstructorFunc | null {
         const expandedNodeIdKey = makeExpandedNodeIdKey(binaryEncodingNodeId);
-        const constructor = this._structureTypeConstructorByEncodingNodeIdMap[expandedNodeIdKey];
+        const constructor = this._structureTypeConstructorByEncodingNodeIdMap.get(expandedNodeIdKey);
         if (constructor) {
             return constructor;
         }
@@ -229,7 +225,7 @@ export class DataTypeFactory {
             return false;
         }
         const expandedNodeIdKey = makeExpandedNodeIdKey(binaryEncodingNodeId);
-        const constructor = this._structureTypeConstructorByEncodingNodeIdMap[expandedNodeIdKey];
+        const constructor = this._structureTypeConstructorByEncodingNodeIdMap.get(expandedNodeIdKey);
         if (constructor) {
             return true;
         }
@@ -269,18 +265,18 @@ export class DataTypeFactory {
         const expandedNodeIdKey = makeExpandedNodeIdKey(expandedNodeId);
 
         /* istanbul ignore next */
-        if (expandedNodeIdKey in this._structureTypeConstructorByEncodingNodeIdMap) {
+        if (this._structureTypeConstructorByEncodingNodeIdMap.has(expandedNodeIdKey)) {
             throw new Error(
                 " Class " +
                     className +
                     " with ID " +
                     expandedNodeId +
                     "  already in constructorMap for  " +
-                    this._structureTypeConstructorByEncodingNodeIdMap[expandedNodeIdKey].name
+                    this._structureTypeConstructorByEncodingNodeIdMap.get(expandedNodeIdKey).name
             );
         }
 
-        this._structureTypeConstructorByEncodingNodeIdMap[expandedNodeIdKey] = classConstructor;
+        this._structureTypeConstructorByEncodingNodeIdMap.set(expandedNodeIdKey, classConstructor);
     }
 
     public toString(): string {
@@ -300,9 +296,9 @@ export class DataTypeFactory {
             throw new Error(" registerFactory  : " + typeName + " already registered");
         }
         debugLog("registering typeName ", typeName, dataTypeNodeId.toString());
-        this._structureTypeConstructorByNameMap[typeName] = constructor;
+        this._structureTypeConstructorByNameMap.set(typeName, constructor);
         if (dataTypeNodeId.value !== 0) {
-            this._structureTypeConstructorByDataTypeMap[dataTypeNodeId.toString()] = constructor;
+            this._structureTypeConstructorByDataTypeMap.set(dataTypeNodeId.toString(), constructor);
         }
         Object.defineProperty(constructor.schema, "$$factory", {
             enumerable: false,
