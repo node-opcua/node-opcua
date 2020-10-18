@@ -24,7 +24,7 @@ function constructFilename(pathname) {
     return path.join(__dirname, "../../", pathname);
 }
 
-
+const doDebug = process.env.doDebug;
 const port = parseInt(argv.port) || 26555;
 
 const server_certificate_file = constructFilename("certificates/server_cert_2048.pem");
@@ -82,11 +82,13 @@ process.title = "Node OPCUA Server on port : " + server_options.port;
         console.log(chalk.yellow("  endpointUrl         :"), chalk.cyan(endpointUrl));
         console.log(chalk.yellow("\n  server now waiting for connections. CTRL+C to stop"));
 
-        for (const e of server.endpoints) {
-            for (const ed of e.endpointDescriptions()) {
-                console.log(ed.endpointUrl, MessageSecurityMode[ed.securityMode], ed.securityPolicyUri);
-            }
+        if (doDebug) {
+            for (const e of server.endpoints) {
+                for (const ed of e.endpointDescriptions()) {
+                    console.log(ed.endpointUrl, MessageSecurityMode[ed.securityMode], ed.securityPolicyUri);
+                }
 
+            }
         }
         process.on('SIGINT', function() {
             // only work on linux apparently

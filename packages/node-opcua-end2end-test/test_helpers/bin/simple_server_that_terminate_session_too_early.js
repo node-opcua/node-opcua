@@ -89,7 +89,7 @@ server.on("post_initialize", function() {
         inputArguments: [
             {
                 name: "outageDuration",
-                description: { text: "specifies the number of miliseconds the Outage should be" },
+                description: { text: "specifies the number of milliseconds the Outage should be" },
                 dataType: opcua.DataType.UInt32
             }
         ],
@@ -128,7 +128,7 @@ server.on("post_initialize", function() {
         const session = context.session;
         // do nothing
         setTimeout(() => {
-            console.log("timout", session._watchDogData.timeout);
+            console.log("timeout", session._watchDogData.timeout);
             const old = session._watchDogData.timeout;
             session._watchDogData.timeout = 10;
             session._watchDog._visit_subscriber();
@@ -144,9 +144,9 @@ server.on("post_initialize", function() {
 
     server.on("create_session", (session) => {
         // scrap 
-        console.log("timout", session._watchDogData.timeout);
+        console.log("timeout", session._watchDogData.timeout);
         session._watchDogData.timeout = 10000;
-        console.log("timout", session._watchDogData.timeout);
+        console.log("timeout", session._watchDogData.timeout);
 
 
     });

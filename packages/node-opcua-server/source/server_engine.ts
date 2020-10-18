@@ -24,14 +24,13 @@ import {
     UAObject,
     UAServerDiagnosticsSummary,
     UAServerStatus,
-    UASessionSecurityDiagnostics,
     UAVariable,
     UAServerDiagnostics
 } from "node-opcua-address-space";
 
 import { generateAddressSpace } from "node-opcua-address-space/nodeJS";
 
-import { apply_timestamps, DataValue, coerceTimestampsToReturn } from "node-opcua-data-value";
+import { DataValue, coerceTimestampsToReturn, apply_timestamps_no_copy } from "node-opcua-data-value";
 
 import {
     ServerDiagnosticsSummaryDataType,
@@ -42,10 +41,11 @@ import {
 import {
     AttributeIds,
     BrowseDirection,
-    NodeClass,
     coerceLocalizedText,
     LocalizedTextLike,
-    makeAccessLevelFlag
+    makeAccessLevelFlag,
+    NodeClass,
+    QualifiedName
 } from "node-opcua-data-model";
 import { coerceNodeId, makeNodeId, NodeId, NodeIdLike, NodeIdType, resolveNodeId } from "node-opcua-nodeid";
 import { BrowseResult } from "node-opcua-service-browse";
@@ -56,7 +56,7 @@ import { TransferResult } from "node-opcua-service-subscription";
 import { CreateSubscriptionRequestLike } from "node-opcua-client";
 import { ExtraDataTypeManager, resolveDynamicExtensionObject } from "node-opcua-client-dynamic-extension-object";
 import { DataTypeIds, MethodIds, ObjectIds, VariableIds } from "node-opcua-constants";
-import { minOPCUADate } from "node-opcua-date-time";
+import { getCurrentClock, minOPCUADate } from "node-opcua-date-time";
 import { checkDebugFlag, make_debugLog, make_errorLog, traceFromThisProjectOnly } from "node-opcua-debug";
 import { nodesets } from "node-opcua-nodesets";
 import { ObjectRegistry } from "node-opcua-object-registry";
@@ -71,17 +71,15 @@ import {
     BuildInfo,
     BuildInfoOptions,
     ProgramDiagnostic2DataType,
-    ProgramDiagnosticDataType,
     ReadAtTimeDetails,
     ReadEventDetails,
     ReadProcessedDetails,
     ReadRawModifiedDetails,
-    ReadValueIdOptions,
     SessionDiagnosticsDataType,
     SessionSecurityDiagnosticsDataType,
-    TimeZoneDataType,
     WriteValue,
-    ReadValueId
+    ReadValueId,
+    TimeZoneDataType
 } from "node-opcua-types";
 import { DataType, isValidVariant, Variant, VariantArrayType } from "node-opcua-variant";
 
@@ -93,6 +91,7 @@ import { ServerSidePublishEngineForOrphanSubscription } from "./server_publish_e
 import { ServerSession } from "./server_session";
 import { Subscription } from "./server_subscription";
 import { sessionsCompatibleForTransfer } from "./sessions_compatible_for_transfer";
+import { NumericRange } from "node-opcua-numeric-range";
 
 const debugLog = make_debugLog(__filename);
 const errorLog = make_errorLog(__filename);
@@ -1116,16 +1115,17 @@ export class ServerEngine extends EventEmitter {
      */
     public readSingleNode(
         context: SessionContext,
-        nodeId: NodeId,
+        nodeId: NodeId | string,
         attributeId: AttributeIds,
         timestampsToReturn?: TimestampsToReturn
     ): DataValue {
+        context.currentTime = getCurrentClock();
         return this._readSingleNode(
             context,
-            {
+            new ReadValueId({
                 attributeId,
-                nodeId
-            },
+                nodeId: resolveNodeId(nodeId)
+            }),
             timestampsToReturn
         );
     }
@@ -1163,23 +1163,23 @@ export class ServerEngine extends EventEmitter {
         const nodesToRead = readRequest.nodesToRead || [];
         assert(Array.isArray(nodesToRead));
 
-        context.currentTime = new Date();
+        context.currentTime = getCurrentClock();
 
         const dataValues: DataValue[] = [];
-        for (let i = 0; i < nodesToRead.length; i++) {
-            const readValueId = nodesToRead[i];
-            dataValues[i] = this._readSingleNode(context, readValueId, timestampsToReturn);
+        for (const readValueId of nodesToRead) {
+            const dataValue = this._readSingleNode(context, readValueId, timestampsToReturn);
             if (timestampsToReturn === TimestampsToReturn.Server) {
-                dataValues[i].sourceTimestamp = null;
-                dataValues[i].sourcePicoseconds = 0;
+                dataValue.sourceTimestamp = null;
+                dataValue.sourcePicoseconds = 0;
             }
             if (
                 (timestampsToReturn === TimestampsToReturn.Both || timestampsToReturn === TimestampsToReturn.Server) &&
-                (!dataValues[i].serverTimestamp || dataValues[i].serverTimestamp === minOPCUADate)
+                (!dataValue.serverTimestamp || dataValue.serverTimestamp.getTime() === minOPCUADate.getTime())
             ) {
-                dataValues[i].serverTimestamp = new Date();
-                dataValues[i].sourcePicoseconds = 0;
+                dataValue.serverTimestamp = context.currentTime.timestamp;
+                dataValue.sourcePicoseconds = 0; // context.currentTime.picosecond // do we really need picosecond here ? this would inflate binary data
             }
+            dataValues.push(dataValue);
         }
         return dataValues;
     }
@@ -1212,7 +1212,7 @@ export class ServerEngine extends EventEmitter {
 
         const nodeId = writeValue.nodeId;
 
-        const obj = this.__findObject(nodeId);
+        const obj = this.__findNode(nodeId) as UAVariable;
         if (!obj) {
             return callback(null, StatusCodes.BadNodeIdUnknown);
         } else {
@@ -1238,18 +1238,13 @@ export class ServerEngine extends EventEmitter {
         assert(context instanceof SessionContext);
         assert(typeof callback === "function");
 
-        context.currentTime = new Date();
+        context.currentTime = getCurrentClock();
 
         let l_extraDataTypeManager: ExtraDataTypeManager;
 
         const performWrite = (writeValue: WriteValue, inner_callback: StatusCodeCallback) => {
-            resolveDynamicExtensionObject(writeValue.value.value, l_extraDataTypeManager)
-                .then(() => {
-                    this.writeSingleNode(context, writeValue, inner_callback);
-                })
-                .catch((err) => {
-                    this.writeSingleNode(context, writeValue, inner_callback);
-                });
+            resolveDynamicExtensionObject(writeValue.value.value, l_extraDataTypeManager);
+            this.writeSingleNode(context, writeValue, inner_callback);
         };
 
         ensureDatatypeExtractedWithCallback(
@@ -1800,22 +1795,20 @@ export class ServerEngine extends EventEmitter {
         return subscription;
     }
 
-    private __findObject(nodeId: NodeIdLike): BaseNode {
-        nodeId = resolveNodeId(nodeId);
-        assert(nodeId instanceof NodeId);
-        return this.addressSpace!.findNode(nodeId)!;
+    private __findNode(nodeId: NodeId): BaseNode | null {
+        if (nodeId.namespace >= (this.addressSpace?.getNamespaceArray().length || 0)) {
+            return null;
+        }
+        const namespace = this.addressSpace?.getNamespace(nodeId.namespace)!;
+        return namespace.findNode2(nodeId)!;
     }
 
-    private _readSingleNode(
-        context: SessionContext,
-        nodeToRead: ReadValueIdOptions,
-        timestampsToReturn?: TimestampsToReturn
-    ): DataValue {
+    private _readSingleNode(context: SessionContext, nodeToRead: ReadValueId, timestampsToReturn?: TimestampsToReturn): DataValue {
         assert(context instanceof SessionContext);
-        const nodeId = nodeToRead.nodeId!;
-        const attributeId = nodeToRead.attributeId!;
-        const indexRange = nodeToRead.indexRange;
-        const dataEncoding = nodeToRead.dataEncoding;
+        const nodeId: NodeId = nodeToRead.nodeId!;
+        const attributeId: AttributeIds = nodeToRead.attributeId!;
+        const indexRange: NumericRange = nodeToRead.indexRange!;
+        const dataEncoding: QualifiedName = nodeToRead.dataEncoding;
 
         if (timestampsToReturn === TimestampsToReturn.Invalid) {
             return new DataValue({ statusCode: StatusCodes.BadTimestampsToReturnInvalid });
@@ -1823,7 +1816,7 @@ export class ServerEngine extends EventEmitter {
 
         timestampsToReturn = coerceTimestampsToReturn(timestampsToReturn);
 
-        const obj = this.__findObject(nodeId!);
+        const obj = this.__findNode(nodeId!);
 
         let dataValue;
         if (!obj) {
@@ -1836,21 +1829,8 @@ export class ServerEngine extends EventEmitter {
             //    BadNotReadable
             //    invalid attributes : BadNodeAttributesInvalid
             //    invalid range      : BadIndexRangeInvalid
-            try {
-                dataValue = obj.readAttribute(context, attributeId, indexRange, dataEncoding);
-                assert(dataValue.statusCode instanceof StatusCode);
-                // istanbul ignore next
-                if (!dataValue.isValid()) {
-                    console.log("Invalid value for node ", obj.nodeId.toString(), obj.browseName.toString());
-                }
-            } catch (err) {
-                console.log(" Internal error reading  NodeId       ", obj.nodeId.toString());
-                console.log("                         AttributeId  ", attributeId.toString());
-                console.log("                        ", err.message);
-                console.log("                        ", err.stack);
-                return new DataValue({ statusCode: StatusCodes.BadInternalError });
-            }
-            dataValue = apply_timestamps(dataValue, timestampsToReturn, attributeId);
+            dataValue = obj.readAttribute(context, attributeId, indexRange, dataEncoding);
+            dataValue = apply_timestamps_no_copy(dataValue, timestampsToReturn, attributeId);
 
             return dataValue;
         }
@@ -1873,7 +1853,7 @@ export class ServerEngine extends EventEmitter {
 
         timestampsToReturn = coerceTimestampsToReturn(timestampsToReturn);
 
-        const obj = this.__findObject(nodeId) as UAVariable;
+        const obj = this.__findNode(nodeId) as UAVariable;
 
         if (!obj) {
             // may be return BadNodeIdUnknown in dataValue instead ?

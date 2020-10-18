@@ -1,5 +1,4 @@
 "use strict";
-/*global describe, it, require*/
 const async = require("async");
 const should = require("should");
 
@@ -368,7 +367,7 @@ module.exports = function(test) {
                             if (err) {
                                 return callback(err);
                             }
-                            // enumerate all sessions availables
+                            // enumerate all sessions available
                             //xx console.log(browseResult[0].toString());
                             sessionDiagnosticsNodeId = browseResult[0].references[0].nodeId;
                             nbSessionDiagnostics = browseResult[0].references.length;
@@ -377,7 +376,7 @@ module.exports = function(test) {
                     }
                 ], callback);
             }, function(err) {
-                if (err) { return callback(err); }
+                if (err) { return done(err); }
                 done(null, nbSessionDiagnostics);
             });
 

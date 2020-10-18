@@ -8,6 +8,7 @@ import { assert } from "node-opcua-assert";
 import { Certificate, CertificateInternals, exploreCertificate } from "node-opcua-crypto";
 
 import { AccessLevelFlag, makeAccessLevelFlag } from "node-opcua-data-model";
+import { PreciseClock } from "node-opcua-date-time";
 import { NodeId } from "node-opcua-nodeid";
 import { AnonymousIdentityToken, MessageSecurityMode, UserNameIdentityToken, X509IdentityToken } from "node-opcua-types";
 
@@ -110,7 +111,7 @@ export class SessionContext implements ISessionContext {
     public static defaultContext = new SessionContext({});
 
     public object: any;
-    public currentTime?: Date;
+    public currentTime?: PreciseClock;
     public continuationPoints: any = {};
     public userIdentity: any;
     public readonly session?: ISessionBase;

@@ -1,31 +1,16 @@
 /**
  * @module node-opcua-address-space.Private
  */
-import {
-    assert
-} from "node-opcua-assert";
-import {
-    NodeId
-} from "node-opcua-nodeid";
-import {
-    AddReferenceOpts,
-    ConstructNodeIdOptions,
-    CreateNodeOptions,
-    ModellingRuleType,
-    Namespace
-} from "../source";
-import {
-    AddressSpacePrivate
-} from "./address_space_private";
-import {
-    BaseNode
-} from "./base_node";
+import { assert } from "node-opcua-assert";
+import { NodeId } from "node-opcua-nodeid";
+import { AddReferenceOpts, ConstructNodeIdOptions, CreateNodeOptions, ModellingRuleType, Namespace } from "../source";
+import { AddressSpacePrivate } from "./address_space_private";
+import { BaseNode } from "./base_node";
 
 export interface NamespacePrivate extends Namespace {
-
     addressSpace: AddressSpacePrivate;
 
-    _nodeid_index: { [key: string]: BaseNode };
+    nodeIterator(): IterableIterator<BaseNode>;
 
     constructNodeId(options: ConstructNodeIdOptions): NodeId;
 

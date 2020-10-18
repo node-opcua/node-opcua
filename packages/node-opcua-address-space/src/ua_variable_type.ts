@@ -351,21 +351,21 @@ function _get_parent_as_VariableOrObjectType(originalObject: BaseNodePublic): UA
     return null;
 }
 
+interface CloneInfo {
+    cloned: UAObjectPublic | UAVariablePublic | UAMethodPublic;
+    original: UAVariableTypePublic | UAObjectTypePublic;
+}
 class CloneHelper {
-    private readonly mapOrgToClone: any;
-
-    constructor() {
-        this.mapOrgToClone = {};
-    }
+    private readonly mapOrgToClone: Map<string, CloneInfo> = new Map();
 
     public registerClonedObject<
         TT extends UAVariableTypePublic | UAObjectTypePublic,
         T extends UAObjectPublic | UAVariablePublic | UAMethodPublic
     >(objInType: TT, clonedObj: T) {
-        this.mapOrgToClone[objInType.nodeId.toString()] = {
+        this.mapOrgToClone.set(objInType.nodeId.toString(), {
             cloned: clonedObj,
             original: objInType
-        };
+        });
 
         //
         //   /-----------------------------\
@@ -387,12 +387,12 @@ class CloneHelper {
         if (origParent) {
             let base = origParent.subtypeOfObj;
             while (base) {
-                const shadowChild = base.getChildByName(objInType.browseName);
+                const shadowChild = base.getChildByName(objInType.browseName) as UAObjectTypePublic | UAVariableTypePublic | null;
                 if (shadowChild) {
-                    this.mapOrgToClone[shadowChild.nodeId.toString()] = {
+                    this.mapOrgToClone.set(shadowChild.nodeId.toString(), {
                         cloned: clonedObj,
                         original: shadowChild
-                    };
+                    });
                 }
                 base = base.subtypeOfObj;
             }
@@ -557,43 +557,35 @@ function findNonHierarchicalReferences(originalObject: BaseNodePublic): UARefere
     return references;
 }
 
-function reconstructNonHierarchicalReferences(extraInfo: any): any {
-    function findImplementedObject(ref: UAReference): any {
-        const info = extraInfo.mapOrgToClone[ref.nodeId.toString()];
-        if (info) {
-            return info;
-        }
-        return null;
-    }
+function reconstructNonHierarchicalReferences(extraInfo: any): void {
+    const findImplementedObject = (ref: UAReference): CloneInfo | null =>
+        extraInfo.mapOrgToClone.get(ref.nodeId.toString()) || null;
 
     // navigate through original objects to find those that are being references by node that
     // have been cloned .
     // this could be node organized by some FunctionalGroup
     //
-    Object.values(extraInfo.mapOrgToClone).forEach((value: any) => {
-        const originalObject = value.original;
-        const clonedObject = value.cloned;
-
+    for (const { original, cloned } of extraInfo.mapOrgToClone.values()) {
         // find NonHierarchical References on original object
-        const originalNonHierarchical = findNonHierarchicalReferences(originalObject);
+        const originalNonHierarchical = findNonHierarchicalReferences(original);
 
         if (originalNonHierarchical.length === 0) {
-            return;
+            continue;
         }
 
         // istanbul ignore next
         if (doDebug) {
             debugLog(
                 " investigation ",
-                value.original.browseName.toString(),
-                value.cloned.nodeClass.toString(),
-                value.original.nodeClass.toString(),
-                value.original.nodeId.toString(),
-                value.cloned.nodeId.toString()
+                original.browseName.toString(),
+                cloned.nodeClass.toString(),
+                original.nodeClass.toString(),
+                original.nodeId.toString(),
+                cloned.nodeId.toString()
             );
         }
 
-        originalNonHierarchical.forEach((ref: UAReference) => {
+        for (const ref of originalNonHierarchical) {
             const info = findImplementedObject(ref);
 
             // if the object pointed by this reference is also cloned ...
@@ -607,8 +599,8 @@ function reconstructNonHierarchicalReferences(extraInfo: any): any {
                         chalk.cyan("   adding reference "),
                         ref.referenceType,
                         " from cloned ",
-                        clonedObject.nodeId.toString(),
-                        clonedObject.browseName.toString(),
+                        cloned.nodeId.toString(),
+                        cloned.browseName.toString(),
                         " to cloned ",
                         cloneDest.nodeId.toString(),
                         cloneDest.browseName.toString()
@@ -616,14 +608,14 @@ function reconstructNonHierarchicalReferences(extraInfo: any): any {
                 }
 
                 // restore reference
-                clonedObject.addReference({
+                cloned.addReference({
                     isForward: false,
                     nodeId: cloneDest.nodeId,
                     referenceType: ref.referenceType
                 });
             }
-        });
-    });
+        }
+    }
 }
 
 /**
@@ -647,10 +639,8 @@ function reconstructNonHierarchicalReferences(extraInfo: any): any {
  */
 function reconstructFunctionalGroupType(extraInfo: any) {
     // navigate through original objects to find those that are being organized by some FunctionalGroup
-    Object.values(extraInfo.mapOrgToClone).forEach((value: any) => {
-        const originalObject = value.original;
-        const instantiatedObject = value.cloned;
-        const organizedByArray = originalObject.findReferencesEx("Organizes", BrowseDirection.Inverse);
+    for (const { original, cloned } of extraInfo.mapOrgToClone.values()) {
+        const organizedByArray = original.findReferencesEx("Organizes", BrowseDirection.Inverse);
 
         // function dumpRef(r) {
         //    var referenceTd = addressSpace.findNode(r.referenceTypeId);
@@ -661,27 +651,27 @@ function reconstructFunctionalGroupType(extraInfo: any) {
         // console.log("xxxxx ========================================================",
         //    originalObject.browseName.toString(),
         //    organizedByArray.map(dumpRef).join("\n"));
-        organizedByArray.forEach((ref: Reference) => {
-            if (extraInfo.mapOrgToClone.hasOwnProperty(ref.nodeId.toString())) {
-                const info = extraInfo.mapOrgToClone[ref.nodeId.toString()];
-                const folder = info.original;
+        for (const ref of organizedByArray) {
+            const info = extraInfo.mapOrgToClone.get(ref.nodeId.toString());
+            if (!info) continue;
 
-                assert(folder.typeDefinitionObj.browseName.name.toString() === "FunctionalGroupType");
+            const folder = info.original;
 
-                // now create the same reference with the instantiated function group
-                const destFolder = info.cloned;
+            assert(folder.typeDefinitionObj.browseName.name.toString() === "FunctionalGroupType");
 
-                assert(ref.referenceType);
+            // now create the same reference with the instantiated function group
+            const destFolder = info.cloned;
 
-                destFolder.addReference({
-                    isForward: !ref.isForward,
-                    nodeId: instantiatedObject.nodeId,
-                    referenceType: ref.referenceType
-                });
-                // xx console.log("xxx ============> adding reference ",ref.browse )
-            }
-        });
-    });
+            assert(ref.referenceType);
+
+            destFolder.addReference({
+                isForward: !ref.isForward,
+                nodeId: cloned.nodeId,
+                referenceType: ref.referenceType
+            });
+            // xx console.log("xxx ============> adding reference ",ref.browse )
+        }
+    }
 }
 
 export function initialize_properties_and_components<

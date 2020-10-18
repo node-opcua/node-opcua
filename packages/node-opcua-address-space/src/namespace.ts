@@ -7,13 +7,12 @@ import * as chalk from "chalk";
 import { assert } from "node-opcua-assert";
 import { coerceInt64 } from "node-opcua-basic-types";
 import { AxisScaleEnumeration } from "node-opcua-data-access";
-import { coerceLocalizedText, coerceQualifiedName, QualifiedNameLike } from "node-opcua-data-model";
+import { coerceLocalizedText, QualifiedNameLike } from "node-opcua-data-model";
 import { QualifiedName } from "node-opcua-data-model";
 import { BrowseDirection } from "node-opcua-data-model";
 import { LocalizedText, NodeClass } from "node-opcua-data-model";
 import { dumpIf } from "node-opcua-debug";
-import { sameNodeId } from "node-opcua-nodeid";
-import { resolveNodeId } from "node-opcua-nodeid";
+import { NodeIdType, resolveNodeId } from "node-opcua-nodeid";
 import { NodeId } from "node-opcua-nodeid";
 import { StatusCodes } from "node-opcua-status-code";
 import {
@@ -48,33 +47,21 @@ import {
     BaseNode as BaseNodePublic,
     CreateDataTypeOptions,
     CreateNodeOptions,
-    Enumeration,
     EnumerationItem,
-    Folder,
     InitialState,
-    InitialStateType,
-    ModellingRuleType,
     Namespace as NamespacePublic,
     State,
     StateMachine,
-    StateType,
     Transition,
-    UAAnalogItem as UAAnalogItemPublic,
-    UADataItem as UADataItemPublic,
     UAEventType,
     UAMultiStateDiscrete as UAMultiStateDiscretePublic,
-    UAMultiStateValueDiscrete as UAMultiStateValueDiscretePublic,
-    UAReference as UAReferencePublic,
     UAVariable as UAVariablePublic,
     UAVariableType as UAVariableTypePublic,
-    UAView as UAViewPublic,
-    YArrayItemVariable,
-    UAVariableTypeT
+    YArrayItemVariable
 } from "../source";
 
 import { coerceEnumValues } from "../source/helpers/coerce_enum_value";
 import { UATwoStateDiscrete } from "../source/interfaces/data_access/ua_two_state_discrete";
-import { UAYArrayItem } from "../source/interfaces/data_access/ua_y_array_item";
 import { _handle_delete_node_model_change_event, _handle_model_change_event } from "./address_space_change_event_tools";
 import { AddressSpacePrivate } from "./address_space_private";
 import { UAAcknowledgeableConditionBase } from "./alarms_and_conditions/ua_acknowledgeable_condition_base";
@@ -106,6 +93,17 @@ import { UAView } from "./ua_view";
 
 import { ConstructNodeIdOptions, NodeIdManager } from "./nodeid_manager";
 
+function _makeHashKey(nodeId: NodeId): string | number {
+    switch (nodeId.identifierType) {
+        case NodeIdType.STRING:
+        case NodeIdType.GUID:
+            return nodeId.value as string;
+        case NodeIdType.NUMERIC:
+            return nodeId.value as number;
+        default:
+            return nodeId.value.toString();
+    }
+}
 const doDebug = false;
 
 const regExp1 = /^(s|i|b|g)=/;
@@ -121,12 +119,8 @@ interface AddVariableOptions2 extends AddVariableOptions {
 
 function detachNode(node: BaseNode) {
     const addressSpace = node.addressSpace;
-
-    // console.log("detachNode", node.browseName.toString(), node.nodeId.toString());
-
     const nonHierarchicalReferences = node.findReferencesEx("NonHierarchicalReferences", BrowseDirection.Inverse);
     for (const ref of nonHierarchicalReferences) {
-        //        console.log("removing ", ref.toString({ addressSpace }));
         assert(!ref.isForward);
         ref.node!.removeReference({
             isForward: !ref.isForward,
@@ -136,11 +130,9 @@ function detachNode(node: BaseNode) {
     }
     const nonHierarchicalReferencesF = node.findReferencesEx("NonHierarchicalReferences", BrowseDirection.Forward);
     for (const ref of nonHierarchicalReferencesF) {
-        // console.log("removing ", ref.toString({ addressSpace }));
         if (!ref.node) {
-            // could be a special case of a frequently use traget node such as ModellingRule_Mandatory that do not back trace
+            // could be a special case of a frequently use target node such as ModellingRule_Mandatory that do not back trace
             // their reference
-            // console.log("!!!!!!!!!!!!!!!!!!!!", ref.nodeId.toString());
             continue;
         }
         assert(ref.isForward);
@@ -187,14 +179,14 @@ export class UANamespace implements NamespacePublic {
     public version: number = 0;
     public publicationDate: Date = new Date(1900, 0, 1);
 
-    public _nodeid_index: { [key: string]: BaseNode };
-    public _objectTypeMap: { [key: string]: UAObjectType };
-    public _variableTypeMap: { [key: string]: UAVariableType };
-    public _referenceTypeMap: { [key: string]: UAReferenceType };
-    public _dataTypeMap: { [key: string]: UADataType };
-    private _aliases: { [key: string]: NodeId };
-    private _referenceTypeMapInv: any;
+    private _objectTypeMap: Map<string, UAObjectType>;
+    private _variableTypeMap: Map<string, UAVariableType>;
+    private _referenceTypeMap: Map<string, UAReferenceType>;
+    private _dataTypeMap: Map<string, UADataType>;
+    private _referenceTypeMapInv: Map<string, UAReferenceType>;
     private _nodeIdManager: NodeIdManager;
+    private _nodeid_index: Map<string | number, BaseNode>;
+    private _aliases: Map<string, NodeId>;
 
     constructor(options: any) {
         assert(typeof options.namespaceUri === "string");
@@ -207,14 +199,13 @@ export class UANamespace implements NamespacePublic {
         }
 
         this.index = options.index;
-        this._nodeid_index = {};
-
-        this._aliases = {};
-        this._objectTypeMap = {};
-        this._variableTypeMap = {};
-        this._referenceTypeMap = {};
-        this._referenceTypeMapInv = {};
-        this._dataTypeMap = {};
+        this._nodeid_index = new Map();
+        this._aliases = new Map();
+        this._objectTypeMap = new Map();
+        this._variableTypeMap = new Map();
+        this._referenceTypeMap = new Map();
+        this._referenceTypeMapInv = new Map();
+        this._dataTypeMap = new Map();
         this._nodeIdManager = new NodeIdManager(this.index, this.addressSpace);
     }
 
@@ -223,22 +214,59 @@ export class UANamespace implements NamespacePublic {
     }
 
     public dispose() {
-        for (const node of Object.values(this._nodeid_index)) {
+        for (const node of this.nodeIterator()) {
             node.dispose();
         }
 
-        this._nodeid_index = {};
+        this._nodeid_index = new Map();
+        this._aliases = new Map();
+
         this.addressSpace = {} as AddressSpacePrivate;
 
-        this._aliases = {};
-
-        this._objectTypeMap = {};
-        this._variableTypeMap = {};
-        this._referenceTypeMap = {};
-        this._referenceTypeMapInv = {};
-        this._dataTypeMap = {};
+        this._objectTypeMap = new Map();
+        this._variableTypeMap = new Map();
+        this._referenceTypeMap = new Map();
+        this._referenceTypeMapInv = new Map();
+        this._dataTypeMap = new Map();
     }
 
+    public nodeIterator(): IterableIterator<BaseNode> {
+        return this._nodeid_index.values();
+    }
+
+    public _objectTypeIterator(): IterableIterator<UAObjectType> {
+        return this._objectTypeMap.values();
+    }
+    public _objectTypeCount(): number {
+        return this._objectTypeMap.size;
+    }
+    public _variableTypeIterator(): IterableIterator<UAVariableType> {
+        return this._variableTypeMap.values();
+    }
+    public _variableTypeCount(): number {
+        return this._variableTypeMap.size;
+    }
+    public _dataTypeIterator(): IterableIterator<UADataType> {
+        return this._dataTypeMap.values();
+    }
+    public _dataTypeCount(): number {
+        return this._dataTypeMap.size;
+    }
+    public _referenceTypeIterator(): IterableIterator<UAReferenceType> {
+        return this._referenceTypeMap.values();
+    }
+    public _referenceTypeCount(): number {
+        return this._referenceTypeMap.size;
+    }
+    public _aliasCount(): number {
+        return this._aliases.size;
+    }
+
+    public findNode2(nodeId: NodeId): BaseNode | null {
+        // this one is faster assuming you have a nodeId
+        assert(nodeId.namespace === this.index);
+        return this._nodeid_index.get(_makeHashKey(nodeId)) || null;
+    }
     public findNode(nodeId: string | NodeId): BaseNode | null {
         if (typeof nodeId === "string") {
             if (nodeId.match(regExp1)) {
@@ -246,8 +274,7 @@ export class UANamespace implements NamespacePublic {
             }
         }
         nodeId = resolveNodeId(nodeId);
-        assert(nodeId.namespace === this.index);
-        return this._nodeid_index[nodeId.toString()];
+        return this.findNode2(nodeId);
     }
 
     /**
@@ -256,9 +283,7 @@ export class UANamespace implements NamespacePublic {
      * @return {UAObjectType|null}
      */
     public findObjectType(objectTypeName: string): UAObjectType | null {
-        assert(typeof objectTypeName === "string");
-        const objectType = this._objectTypeMap[objectTypeName];
-        return objectType ? objectType : null;
+        return this._objectTypeMap.get(objectTypeName) || null;
     }
 
     /**
@@ -267,21 +292,15 @@ export class UANamespace implements NamespacePublic {
      * @returns {UAVariableType|null}
      */
     public findVariableType(variableTypeName: string): UAVariableTypePublic | null {
-        assert(typeof variableTypeName === "string");
-        const variableType = this._variableTypeMap[variableTypeName]! as UAVariableTypePublic;
-        return variableType ? variableType : null;
+        return this._variableTypeMap.get(variableTypeName) || null;
     }
-
     /**
      *
      * @param dataTypeName {String}
      * @returns {UADataType|null}
      */
     public findDataType(dataTypeName: string): UADataType | null {
-        assert(typeof dataTypeName === "string");
-        assert(this._dataTypeMap, "internal error : _dataTypeMap is missing");
-        const dataType = this._dataTypeMap[dataTypeName];
-        return dataType ? dataType : null;
+        return this._dataTypeMap.get(dataTypeName) || null;
     }
 
     /**
@@ -290,9 +309,7 @@ export class UANamespace implements NamespacePublic {
      * @returns  {ReferenceType|null}
      */
     public findReferenceType(referenceTypeName: string): UAReferenceType | null {
-        assert(typeof referenceTypeName === "string");
-        const referenceType = this._referenceTypeMap[referenceTypeName];
-        return referenceType ? referenceType : null;
+        return this._referenceTypeMap.get(referenceTypeName) || null;
     }
 
     /**
@@ -303,7 +320,7 @@ export class UANamespace implements NamespacePublic {
      */
     public findReferenceTypeFromInverseName(inverseName: string): UAReferenceType | null {
         assert(typeof inverseName === "string");
-        const node = this._referenceTypeMapInv[inverseName];
+        const node = this._referenceTypeMapInv.get(inverseName);
         assert(!node || (node.nodeClass === NodeClass.ReferenceType && node.inverseName.text === inverseName));
         return node ? node : null;
     }
@@ -318,11 +335,11 @@ export class UANamespace implements NamespacePublic {
         assert(typeof alias_name === "string");
         assert(nodeId instanceof NodeId);
         assert(nodeId.namespace === this.index);
-        this._aliases[alias_name] = nodeId;
+        this._aliases.set(alias_name, nodeId);
     }
 
     public resolveAlias(name: string): NodeId | null {
-        return this._aliases[name] || null;
+        return this._aliases.get(name) || null;
     }
 
     /**
@@ -727,7 +744,6 @@ export class UANamespace implements NamespacePublic {
 
             // delete nodes from global index
             const namespace = addressSpace.getNamespace(node.nodeId.namespace);
-            assert(namespace === this);
             namespace._deleteNode(node);
         });
     }
@@ -741,10 +757,10 @@ export class UANamespace implements NamespacePublic {
             referenceTypeIds: {} as { [key: string]: string }
         };
 
-        for (const referenceType of Object.values(this._referenceTypeMap)) {
+        for (const referenceType of this._referenceTypeMap.values()) {
             standardNodeIds.referenceTypeIds[referenceType!.browseName!.name!] = referenceType.nodeId.toString();
         }
-        for (const objectType of Object.values(this._objectTypeMap)) {
+        for (const objectType of this._objectTypeMap.values()) {
             standardNodeIds.objectTypeIds[objectType!.browseName!.name!] = objectType.nodeId.toString();
         }
         return standardNodeIds;
@@ -819,7 +835,7 @@ export class UANamespace implements NamespacePublic {
      * @method addAnalogDataItem
      *
      * AnalogDataItem DataItems that represent continuously-variable physical quantities ( e.g., length, temperature),
-     * incontrast to the digital representation of data in discrete  items
+     * in contrast to the digital representation of data in discrete  items
      * NOTE Typical examples are the values provided by temperature sensors or pressure sensors. OPC UA defines a
      * specific UAVariableType to identify an AnalogItem. Properties describe the possible ranges of  AnalogItems.
      *
@@ -901,7 +917,7 @@ export class UANamespace implements NamespacePublic {
         // use as automatically scaling a bar graph display
         // Sensor or instrument failure or deactivation can result in a return ed item value which is actually
         // outside  of  this range. Client software must be prepared to deal with this   possibility. Similarly a client
-        // may attempt to write a value that is outside  of  this range back to the server. The exact behaviour
+        // may attempt to write a value that is outside  of  this range back to the server. The exact behavior
         // (accept, reject, clamp, etc.) in this case is server - dependent. However ,   in general servers  shall  be
         // prepared to handle this.
         //     Example:    EURange ::= {-200.0,1400.0}
@@ -1783,8 +1799,10 @@ export class UANamespace implements NamespacePublic {
         assert(node.hasOwnProperty("browseName"), "Node must have a browseName");
         // assert(node.browseName.namespaceIndex === this.index,"browseName must belongs to this namespace");
 
-        const hashKey = node.nodeId.toString();
-        if (this._nodeid_index.hasOwnProperty(hashKey)) {
+        const hashKey = _makeHashKey(node.nodeId);
+
+        // istanbul ignore next
+        if (this._nodeid_index.has(hashKey)) {
             throw new Error(
                 "node " +
                     node.browseName.toString() +
@@ -1803,28 +1821,30 @@ export class UANamespace implements NamespacePublic {
             );
         }
 
-        this._nodeid_index[hashKey] = node;
+        this._nodeid_index.set(hashKey, node);
 
-        if (node.nodeClass === NodeClass.ObjectType) {
-            this._registerObjectType(node as UAObjectType);
-        } else if (node.nodeClass === NodeClass.VariableType) {
-            this._registerVariableType(node as UAVariableType);
-        } else if (node.nodeClass === NodeClass.ReferenceType) {
-            this._registerReferenceType(node as UAReferenceType);
-        } else if (node.nodeClass === NodeClass.DataType) {
-            this._registerDataType(node as UADataType);
-        } else if (node.nodeClass === NodeClass.Object) {
-            //
-        } else if (node.nodeClass === NodeClass.Variable) {
-            //
-        } else if (node.nodeClass === NodeClass.Method) {
-            //
-        } else if (node.nodeClass === NodeClass.View) {
-            //
-        } else {
-            // tslint:disable-next-line:no-console
-            console.log("Invalid class Name", node.nodeClass);
-            throw new Error("Invalid class name specified");
+        switch (node.nodeClass) {
+            case NodeClass.ObjectType:
+                this._registerObjectType(node as UAObjectType);
+                break;
+            case NodeClass.VariableType:
+                this._registerVariableType(node as UAVariableType);
+                break;
+            case NodeClass.ReferenceType:
+                this._registerReferenceType(node as UAReferenceType);
+                break;
+            case NodeClass.DataType:
+                this._registerDataType(node as UADataType);
+                break;
+            case NodeClass.Object:
+            case NodeClass.Variable:
+            case NodeClass.Method:
+            case NodeClass.View:
+                break;
+            default:
+                // tslint:disable-next-line:no-console
+                console.log("Invalid class Name", node.nodeClass);
+                throw new Error("Invalid class name specified");
         }
     }
 
@@ -1849,7 +1869,7 @@ export class UANamespace implements NamespacePublic {
         assert(options.browseName, "options.browseName must be specified");
         // xx assert(options.browseName instanceof QualifiedName
         // ? (options.browseName.namespaceIndex === this.index): true,
-        // "Expecting browseName to have the same namepsaceIndex as the namespace");
+        // "Expecting browseName to have the same namespaceIndex as the namespace");
 
         options.description = coerceLocalizedText(options.description);
 
@@ -1903,7 +1923,7 @@ export class UANamespace implements NamespacePublic {
         assert(options.nodeId instanceof NodeId);
 
         // assert(options.browseName.namespaceIndex === this.index,"Expecting browseName to have
-        // the same namepsaceIndex as the namespace");
+        // the same namespaceIndex as the namespace");
 
         const Constructor = _constructors_map[NodeClass[options.nodeClass]];
 
@@ -1913,12 +1933,10 @@ export class UANamespace implements NamespacePublic {
 
         options.addressSpace = this.addressSpace;
         const node = new Constructor(options);
-
-        assert(node.nodeId);
-        assert(node.nodeId instanceof NodeId);
         this._register(node);
 
         // object shall now be registered
+        // istanbul ignore next
         if (doDebug) {
             assert(this.findNode(node.nodeId) !== null && typeof this.findNode(node.nodeId) === "object");
         }
@@ -1928,30 +1946,30 @@ export class UANamespace implements NamespacePublic {
     public _deleteNode(node: BaseNode): void {
         assert(node instanceof BaseNode);
 
-        const indexName = node.nodeId.toString();
+        const hashKey = _makeHashKey(node.nodeId);
         // istanbul ignore next
-        if (!this._nodeid_index.hasOwnProperty(indexName)) {
+        if (!this._nodeid_index.has(hashKey)) {
             throw new Error("deleteNode : nodeId " + node.nodeId.displayText() + " is not registered " + node.nodeId.toString());
         }
-        if (node.nodeClass === NodeClass.ObjectType) {
-            this._unregisterObjectType(node as UAObjectType);
-        } else if (node.nodeClass === NodeClass.VariableType) {
-            this._unregisterVariableType(node as UAVariableType);
-        } else if (node.nodeClass === NodeClass.Object) {
-            // etc...
-        } else if (node.nodeClass === NodeClass.Variable) {
-            // etc...
-        } else if (node.nodeClass === NodeClass.Method) {
-            // etc...
-        } else if (node.nodeClass === NodeClass.View) {
-            // etc...
-        } else {
-            // tslint:disable:no-console
-            console.log("Invalid class Name", node.nodeClass);
-            throw new Error("Invalid class name specified");
+        switch (node.nodeClass) {
+            case NodeClass.ObjectType:
+                this._unregisterObjectType(node as UAObjectType);
+                break;
+            case NodeClass.VariableType:
+                this._unregisterVariableType(node as UAVariableType);
+                break;
+            case NodeClass.Object:
+            case NodeClass.Variable:
+            case NodeClass.Method:
+            case NodeClass.View:
+                break;
+            default:
+                // tslint:disable:no-console
+                console.log("Invalid class Name", node.nodeClass);
+                throw new Error("Invalid class name specified");
         }
-        assert(this._nodeid_index[indexName] === node);
-        delete this._nodeid_index[indexName];
+        const deleted = this._nodeid_index.delete(hashKey);
+        assert(deleted);
         node.dispose();
     }
 
@@ -2033,15 +2051,15 @@ export class UANamespace implements NamespacePublic {
     private _registerObjectType(node: UAObjectType) {
         assert(this.index === node.nodeId.namespace);
         const key = node.browseName.name!;
-        assert(!this._objectTypeMap[key], " UAObjectType already declared");
-        this._objectTypeMap[key] = node;
+        assert(!this._objectTypeMap.has(key), " UAObjectType already declared");
+        this._objectTypeMap.set(key, node);
     }
 
     private _registerVariableType(node: UAVariableType) {
         assert(this.index === node.nodeId.namespace);
         const key = node.browseName.name!;
-        assert(!this._variableTypeMap[key], " UAVariableType already declared");
-        this._variableTypeMap[key] = node;
+        assert(!this._variableTypeMap.has(key), " UAVariableType already declared");
+        this._variableTypeMap.set(key, node);
     }
 
     private _registerReferenceType(node: UAReferenceType) {
@@ -2054,26 +2072,26 @@ export class UANamespace implements NamespacePublic {
             node.inverseName = LocalizedText.coerce({ text: node.browseName.name! })!;
         }
         const key: string = node.browseName.name!;
-        this._referenceTypeMap[key] = node;
-        this._referenceTypeMapInv[node.inverseName.text!] = node;
+        this._referenceTypeMap.set(key, node);
+        this._referenceTypeMapInv.set(node.inverseName.text!, node);
     }
 
     private _registerDataType(node: UADataType) {
         assert(this.index === node.nodeId.namespace);
         const key = node.browseName.name!;
         assert(node.browseName instanceof QualifiedName);
-        assert(!this._dataTypeMap[key], " DataType already declared");
-        this._dataTypeMap[key] = node;
+        assert(!this._dataTypeMap.has(key), " DataType already declared");
+        this._dataTypeMap.set(key, node);
     }
 
     private _unregisterObjectType(node: UAObjectType): void {
         const key = node.browseName.name!;
-        delete this._objectTypeMap[key];
+        this._objectTypeMap.delete(key);
     }
 
     private _unregisterVariableType(node: UAVariableType): void {
         const key = node.browseName.name!;
-        delete this._variableTypeMap[key];
+        this._variableTypeMap.delete(key);
     }
 
     /**

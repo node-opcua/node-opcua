@@ -104,8 +104,6 @@ describe("issue #108", () => {
 
         const deviceSet = addressSpace.findNode("RootFolder")! as RootFolder;
 
-        // xx Object.keys(addressSpace._objectTypeMap).forEach(function(a) { console.log(a); });
-
         const ftnirType = addressSpace.findObjectType("3:FTNIRSimulatorDeviceType")!;
 
         // console.log(" ftnirType = ", ftnirType.toString());

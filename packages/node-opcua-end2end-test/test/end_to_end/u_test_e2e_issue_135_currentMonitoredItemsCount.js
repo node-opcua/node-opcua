@@ -144,12 +144,12 @@ module.exports = function(test) {
 
                             dataValues.length.should.eql(3);
                             const currentMonitoredItemsCount = dataValues[0].value.value;
-                            const currentSubcriptionsCount = dataValues[1].value.value;
+                            const currentSubscriptionsCount = dataValues[1].value.value;
 
                             debugLog("CurrentMonitoredItemsCount = ", currentMonitoredItemsCount);
-                            debugLog("currentSubcriptionsCount   = ", currentSubcriptionsCount);
+                            debugLog("currentSubscriptionsCount   = ", currentSubscriptionsCount);
 
-                            currentSubcriptionsCount.should.eql(1, "expecting one subscription ");
+                            currentSubscriptionsCount.should.eql(1, "expecting one subscription ");
                             currentMonitoredItemsCount.should.eql(2);
 
                             dataValues[2].value.value.constructor.name.should.eql("SessionDiagnosticsDataType");
