@@ -14,7 +14,7 @@ import {
     StructuredTypeSchema
 } from "node-opcua-factory";
 
-export function coerceLocalizedText(value: null | string | LocalizedTextOptions): LocalizedText | null {
+export function coerceLocalizedText(value?: null | string | LocalizedTextOptions): LocalizedText | null {
     if (value === undefined || value === null) {
         return null;
     }
