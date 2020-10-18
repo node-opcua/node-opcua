@@ -5,7 +5,7 @@ const { assert } = require("node-opcua-assert");
 const { isFunction } = require("util");
 
 const ObjectRegistry = require("node-opcua-object-registry").ObjectRegistry;
-ObjectRegistry.doDebug = true;
+ObjectRegistry.doDebug = false;
 const trace = false;
 
 //trace = true;
