@@ -15,6 +15,7 @@ const { ExtensionObject } = require("node-opcua-extension-object");
 const { DataValue, extractRange } = require("..");
 
 require("should");
+const doDebug = process.env.DEBUG;
 
 const { encode_decode_round_trip_test } = require("node-opcua-packet-analyzer/dist/test_helpers");
 describe("DataValue", () => {
@@ -510,9 +511,10 @@ describe("DataValue", () => {
             }
         });
 
-        console.log(dataValue.toJSON());
-        console.log(dataValue.toString());
-
+        if (doDebug) {
+            console.log(dataValue.toJSON());
+            console.log(dataValue.toString());
+        }
     });
 
 });
