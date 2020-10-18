@@ -4,6 +4,7 @@
 import * as long from "long";
 import { assert } from "node-opcua-assert";
 import hrtime = require("browser-process-hrtime");
+import { time } from "console";
 
 export interface DateWithPicoseconds extends Date {
     picoseconds: number;
@@ -217,9 +218,9 @@ export function getCurrentClock(): PreciseClock {
     return gClock;
 }
 
-export function coerceClock(timestamp: null | PreciseClock, picoseconds = 0) {
+export function coerceClock(timestamp: undefined | null | DateWithPicoseconds | Date, picoseconds = 0): PreciseClock {
     if (timestamp) {
-        return { timestamp, picoseconds };
+        return { timestamp: timestamp as DateWithPicoseconds, picoseconds };
     } else {
         return getCurrentClock();
     }
