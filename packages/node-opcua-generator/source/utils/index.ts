@@ -1,2 +1,2 @@
-export * from "./linefile";
+export * from "./line_file";
 export * from "./normalize_require_file";

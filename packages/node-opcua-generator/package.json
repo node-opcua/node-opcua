@@ -25,15 +25,15 @@
         "node-opcua-schemas": "2.21.0",
         "node-opcua-status-code": "2.17.0",
         "node-opcua-utils": "2.20.0",
-        "node-opcua-xml2json": "2.20.0",
-        "typescript": "^4.0.3",
-        "underscore": "^1.11.0"
+        "node-opcua-xml2json": "2.20.0"
     },
     "devDependencies": {
         "node-opcua-binary-stream": "2.17.0",
         "node-opcua-extension-object": "2.20.0",
         "node-opcua-packet-analyzer": "2.21.0",
         "should": "^13.2.3",
+        "typescript": "^4.0.3",
+        "prettier": "^2.1.2",
         "source-map-support": "^0.5.19"
     },
     "author": "Etienne Rossignon",

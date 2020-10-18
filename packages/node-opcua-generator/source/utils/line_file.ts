@@ -2,7 +2,6 @@
  * @module node-opcua-utils
  */
 import { writeFileSync } from "fs";
-import * as os from "os";
 import { LineFile } from "node-opcua-utils";
 
 export class LineFile1 extends LineFile {
