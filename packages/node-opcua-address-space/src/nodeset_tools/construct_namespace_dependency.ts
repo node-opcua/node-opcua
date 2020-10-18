@@ -18,7 +18,7 @@ export function constructNamespaceDependency(namespace: NamespacePrivate): Names
         depMap.add(namespace.index);
     }
 
-    for (const node of Object.values(namespace._nodeid_index)) {
+    for (const node of namespace.nodeIterator()) {
         // visit all reference
         const references = node.ownReferences();
         for (const reference of references) {

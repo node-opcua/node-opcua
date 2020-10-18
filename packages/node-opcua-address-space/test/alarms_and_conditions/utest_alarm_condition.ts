@@ -15,7 +15,7 @@ import { Variant } from "node-opcua-variant";
 import { DataValue } from "node-opcua-data-value";
 import { AddressSpace, BaseNode, ConditionSnapshot, SessionContext, UAAlarmConditionBase, UAObject, UAVariable } from "../..";
 
-const doDebug = true;
+const doDebug = !!process.env.DEBUG;
 
 export function utest_alarm_condition(test: any) {
     describe("AlarmConditionType", () => {

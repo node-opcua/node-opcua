@@ -23,11 +23,11 @@ describe("testing NodeSet XML file loading", function (this: any) {
     beforeEach(() => {
         addressSpace = AddressSpace.create();
         const namespace0 = addressSpace.getDefaultNamespace() as any;
-        Object.keys(namespace0._aliases).length.should.equal(0);
-        Object.keys(namespace0._variableTypeMap).length.should.equal(0);
-        Object.keys(namespace0._referenceTypeMap).length.should.equal(0);
-        Object.keys(namespace0._dataTypeMap).length.should.equal(0);
-        Object.keys(namespace0._objectTypeMap).length.should.equal(0);
+        namespace0._aliasCount().should.equal(0);
+        namespace0._variableTypeCount().should.equal(0);
+        namespace0._referenceTypeCount().should.equal(0);
+        namespace0._dataTypeCount().should.equal(0);
+        namespace0._objectTypeCount().should.equal(0);
     });
     afterEach(() => {
         addressSpace.dispose();
@@ -42,11 +42,11 @@ describe("testing NodeSet XML file loading", function (this: any) {
 
         const namespace0 = addressSpace.getDefaultNamespace() as any;
         namespace0.addressSpace.should.eql(addressSpace);
-        Object.keys(namespace0._aliases).length.should.be.greaterThan(10);
-        Object.keys(namespace0._variableTypeMap).length.should.be.greaterThan(3);
-        Object.keys(namespace0._referenceTypeMap).length.should.be.greaterThan(10);
-        Object.keys(namespace0._dataTypeMap).length.should.be.greaterThan(2);
-        Object.keys(namespace0._objectTypeMap).length.should.be.greaterThan(1);
+        namespace0._aliasCount().should.be.greaterThan(10);
+        namespace0._variableTypeCount().should.be.greaterThan(3);
+        namespace0._referenceTypeCount().should.be.greaterThan(10);
+        namespace0._dataTypeCount().should.be.greaterThan(2);
+        namespace0._objectTypeCount().should.be.greaterThan(1);
     });
 
     it("should load a large nodeset xml file", async () => {
@@ -62,11 +62,11 @@ describe("testing NodeSet XML file loading", function (this: any) {
         const namespace0 = addressSpace.getDefaultNamespace() as any;
         namespace0.addressSpace.should.eql(addressSpace);
 
-        Object.keys(namespace0._aliases).length.should.be.greaterThan(10);
-        Object.keys(namespace0._variableTypeMap).length.should.be.greaterThan(10);
-        Object.keys(namespace0._referenceTypeMap).length.should.be.greaterThan(10);
-        Object.keys(namespace0._dataTypeMap).length.should.be.greaterThan(10);
-        Object.keys(namespace0._objectTypeMap).length.should.be.greaterThan(10);
+        namespace0._aliasCount().should.be.greaterThan(10);
+        namespace0._variableTypeCount().should.be.greaterThan(10);
+        namespace0._referenceTypeCount().should.be.greaterThan(10);
+        namespace0._dataTypeCount().should.be.greaterThan(10);
+        namespace0._objectTypeCount().should.be.greaterThan(10);
     });
 
     it("should load the DI nodeset ", async () => {
@@ -80,21 +80,21 @@ describe("testing NodeSet XML file loading", function (this: any) {
         namespace0.namespaceUri.should.eql("http://opcfoundation.org/UA/");
         namespace0.addressSpace.should.eql(addressSpace);
 
-        Object.keys(namespace0._aliases).length.should.be.greaterThan(10);
-        Object.keys(namespace0._variableTypeMap).length.should.be.greaterThan(10);
-        Object.keys(namespace0._referenceTypeMap).length.should.be.greaterThan(10);
-        Object.keys(namespace0._dataTypeMap).length.should.be.greaterThan(10);
-        Object.keys(namespace0._objectTypeMap).length.should.be.greaterThan(10);
+        namespace0._aliasCount().should.be.greaterThan(10);
+        namespace0._variableTypeCount().should.be.greaterThan(10);
+        namespace0._referenceTypeCount().should.be.greaterThan(10);
+        namespace0._dataTypeCount().should.be.greaterThan(10);
+        namespace0._objectTypeCount().should.be.greaterThan(10);
 
         const namespace1 = addressSpace.getNamespace(1) as any;
         namespace1.namespaceUri.should.eql("http://opcfoundation.org/UA/DI/");
         namespace1.addressSpace.should.eql(addressSpace);
 
-        Object.keys(namespace1._aliases).length.should.be.eql(0);
-        Object.keys(namespace1._variableTypeMap).length.should.be.greaterThan(0);
-        Object.keys(namespace1._referenceTypeMap).length.should.be.greaterThan(2);
-        Object.keys(namespace1._dataTypeMap).length.should.be.greaterThan(4);
-        Object.keys(namespace1._objectTypeMap).length.should.be.greaterThan(9);
+        namespace1._aliasCount().should.be.eql(0);
+        namespace1._variableTypeCount().should.be.greaterThan(0);
+        namespace1._referenceTypeCount().should.be.greaterThan(2);
+        namespace1._dataTypeCount().should.be.greaterThan(4);
+        namespace1._objectTypeCount().should.be.greaterThan(9);
     });
 
     it("should read accessLevel and userAccessLevel attributes", async () => {
@@ -260,11 +260,11 @@ describe("testing NodeSet XML file loading", function (this: any) {
 
         const v = enumStrings.readAttribute(null, AttributeIds.Value);
         v.value.arrayType.should.eql(VariantArrayType.Array);
-        v.value.value[0].toString().should.eql("locale= text=NORMAL");
-        v.value.value[1].toString().should.eql("locale= text=FAILURE");
-        v.value.value[2].toString().should.eql("locale= text=CHECK_FUNCTION");
-        v.value.value[3].toString().should.eql("locale= text=OFF_SPEC");
-        v.value.value[4].toString().should.eql("locale= text=MAINTENANCE_REQUIRED");
+        v.value.value[0].toString().should.eql("locale=null text=NORMAL");
+        v.value.value[1].toString().should.eql("locale=null text=FAILURE");
+        v.value.value[2].toString().should.eql("locale=null text=CHECK_FUNCTION");
+        v.value.value[3].toString().should.eql("locale=null text=OFF_SPEC");
+        v.value.value[4].toString().should.eql("locale=null text=MAINTENANCE_REQUIRED");
         // console.log(v.value.toString());
 
         const namespace = addressSpace.getNamespace(1)!;
@@ -349,7 +349,7 @@ describe("testing NodeSet XML file loading", function (this: any) {
         );
     });
 
-    it("VV6 Coordiantes 3DFrame (which is from namespace 0)", async () => {
+    it("VV6 Coordinates 3DFrame (which is from namespace 0)", async () => {
         const xml_file1 = path.join(__dirname, "../test_helpers/test_fixtures/dataType_with_structures.xml");
         const xml_files = [xml_file1];
         await generateAddressSpace(addressSpace, xml_files);
@@ -449,11 +449,11 @@ describe("Testing variables loading ", function (this: any) {
     beforeEach(async () => {
         addressSpace = AddressSpace.create();
         const namespace0 = addressSpace.getDefaultNamespace() as any;
-        Object.keys(namespace0._aliases).length.should.equal(0);
-        Object.keys(namespace0._variableTypeMap).length.should.equal(0);
-        Object.keys(namespace0._referenceTypeMap).length.should.equal(0);
-        Object.keys(namespace0._dataTypeMap).length.should.equal(0);
-        Object.keys(namespace0._objectTypeMap).length.should.equal(0);
+        namespace0._aliasCount().should.equal(0);
+        namespace0._variableTypeCount().should.equal(0);
+        namespace0._referenceTypeCount().should.equal(0);
+        namespace0._dataTypeCount().should.equal(0);
+        namespace0._objectTypeCount().should.equal(0);
 
         const xml_file1 = path.join(__dirname, "../test_helpers/test_fixtures/mini.Node.Set2.xml");
 
@@ -463,11 +463,11 @@ describe("Testing variables loading ", function (this: any) {
         await generateAddressSpace(addressSpace, [xml_file1, xml_file]);
 
         namespace0.addressSpace.should.eql(addressSpace);
-        Object.keys(namespace0._aliases).length.should.be.greaterThan(10);
-        Object.keys(namespace0._variableTypeMap).length.should.be.greaterThan(3);
-        Object.keys(namespace0._referenceTypeMap).length.should.be.greaterThan(10);
-        Object.keys(namespace0._dataTypeMap).length.should.be.greaterThan(2);
-        Object.keys(namespace0._objectTypeMap).length.should.be.greaterThan(1);
+        namespace0._aliasCount().should.be.greaterThan(10);
+        namespace0._variableTypeCount().should.be.greaterThan(3);
+        namespace0._referenceTypeCount().should.be.greaterThan(10);
+        namespace0._dataTypeCount().should.be.greaterThan(2);
+        namespace0._objectTypeCount().should.be.greaterThan(1);
     });
     afterEach(() => {
         addressSpace.dispose();

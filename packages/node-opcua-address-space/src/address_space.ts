@@ -278,14 +278,15 @@ export class AddressSpace implements AddressSpacePrivate {
      * @return {BaseNode|null}
      */
     public findNode(nodeId: NodeIdLike): BaseNode | null {
-        nodeId = this.resolveNodeId(nodeId);
-        assert(nodeId instanceof NodeId);
+        if (!(nodeId instanceof NodeId)) {
+            nodeId = this.resolveNodeId(nodeId);
+        }
         if (nodeId.namespace < 0 || nodeId.namespace >= this._namespaceArray.length) {
             // namespace index is out of bound
             return null;
         }
-        const namespace = this.getNamespace(nodeId.namespace);
-        return namespace.findNode(nodeId) as BaseNode;
+        const namespace = this._namespaceArray[nodeId.namespace];
+        return namespace.findNode2(nodeId) as BaseNode;
     }
 
     public findMethod(nodeId: NodeId | string): UAMethod | null {
@@ -1509,8 +1510,7 @@ function _getNamespace(addressSpace: AddressSpace, nodeOrNodId: BaseNode | NodeI
     return addressSpace.getNamespace(nodeId.namespace);
 }
 
-function _find_by_node_id<T extends BaseNode>(addressSpace: AddressSpace, nodeId: NodeIdLike, namespaceIndex?: number): T {
-    assert(nodeId instanceof NodeId);
+function _find_by_node_id<T extends BaseNode>(addressSpace: AddressSpace, nodeId: NodeId, namespaceIndex?: number): T {
     const obj = addressSpace.findNode(nodeId);
     return obj as T;
 }

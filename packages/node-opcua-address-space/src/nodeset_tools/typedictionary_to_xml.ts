@@ -166,8 +166,7 @@ export function dumpToBSD(namespace: UANamespace) {
     xw.writeAttribute("DefaultByteOrder", "LittleEndian");
     xw.writeAttribute("TargetNamespace", namespace.namespaceUri);
 
-    const dataTypes = Object.values(namespace._dataTypeMap);
-    for (const dataType of dataTypes) {
+    for (const dataType of namespace._dataTypeIterator()) {
         dumpDataTypeToBSD(xw, dataType, map);
     }
     xw.endElement();

@@ -118,8 +118,7 @@ describe("testing Server resilience to DDOS attacks 2", function() {
 
         const epd = server.endpoints[0].endpointDescriptions()[0];
         endpointUrl = epd.endpointUrl;
-        console.log("endpointUrl", endpointUrl);
-        console.log("epd", epd.securityMode.toString());
+        // xx console.log("endpointUrl", endpointUrl, epd.securityMode.toString());
         is_valid_endpointUrl(endpointUrl).should.equal(true);
 
 

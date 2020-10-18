@@ -103,7 +103,7 @@ export class ServerSession extends EventEmitter implements ISubscriber, ISession
 
     public publishEngine: ServerSidePublishEngine;
     public sessionObject: any;
-    public creationDate: Date;
+    public readonly creationDate: Date;
     public sessionTimeout: number;
     public sessionDiagnostics?: UASessionDiagnostics;
     public sessionSecurityDiagnostics?: UASessionSecurityDiagnostics;
@@ -574,7 +574,6 @@ export class ServerSession extends EventEmitter implements ISubscriber, ISession
         assert(subscriptionDiagnostics.$subscription === subscription);
 
         if (subscriptionDiagnostics && subscriptionDiagnosticsArray) {
-            // xx console.log("GG => ServerSession Exposing subscription diagnostics =>",
             // subscription.id,"on session", session.nodeId.toString());
             addElement(subscriptionDiagnostics, subscriptionDiagnosticsArray);
         }

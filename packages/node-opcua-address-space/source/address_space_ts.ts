@@ -182,8 +182,6 @@ export declare class BaseNode extends EventEmitter {
      */
     public getEventSourceOfs(): BaseNode[];
 
-    // [key: string]: BaseNode;
-
     public install_extra_properties(): void;
 
     public findReferencesEx(strReference: string, browseDirection?: BrowseDirection): UAReference[];
@@ -1350,6 +1348,7 @@ export declare interface Namespace {
     findReferenceTypeFromInverseName(referenceType: string): UAReferenceType | null;
 
     findNode(nodeId: NodeIdLike): BaseNode | null;
+    findNode2(nodeId: NodeId): BaseNode | null;
 
     // -------------------------------------------------------------------------
 

@@ -15,7 +15,8 @@ import {
     ExtensionObjectDefinition,
     NodeId,
     nodesets,
-    StructureDefinitionOptions
+    StructureDefinitionOptions,
+    BaseNode
 } from "..";
 import { generateAddressSpace } from "node-opcua-address-space/nodeJS";
 
@@ -80,16 +81,17 @@ describe("addExtensionObjectDataType", function (this: any) {
         const tmpFile = path.join(os.tmpdir(), "test.NodeSet2.xml");
         console.log("tmpFile =", tmpFile);
 
+        // istanbul ignore next
         if (doDebug) {
-            const a = Object.values((ns as any)._nodeid_index);
-            a.forEach((b: any) => {
+            (ns as any).nodeIterator().forEach((b: any) => {
                 console.log(
                     b.browseName.toString(),
                     b.nodeId.toString(),
                     b.typeDefinitionObj ? b.typeDefinitionObj.browseName.toString() + " ... " + b.typeDefinition.toString() : ""
-                ); // .nodeId.tostring(), b.browseName.tostring());
+                ); // .nodeId.toString(), b.browseName.toString());
             });
         }
+
         const xml = ns.toNodeset2XML();
         await writeFile(tmpFile, xml, "utf-8");
 

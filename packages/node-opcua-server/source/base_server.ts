@@ -13,7 +13,7 @@ import { assert } from "node-opcua-assert";
 import { ICertificateManager, OPCUACertificateManager } from "node-opcua-certificate-manager";
 import { IOPCUASecureObjectOptions, OPCUASecureObject } from "node-opcua-common";
 import { coerceLocalizedText, LocalizedText } from "node-opcua-data-model";
-import { installPeriodicClockAdjustmement, uninstallPeriodicClockAdjustmement } from "node-opcua-date-time";
+import { installPeriodicClockAdjustment, uninstallPeriodicClockAdjustment } from "node-opcua-date-time";
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 import { displayTraceFromThisProjectOnly } from "node-opcua-debug";
 import { extractFullyQualifiedDomainName, resolveFullyQualifiedDomainName } from "node-opcua-hostname";
@@ -165,7 +165,7 @@ export class OPCUABaseServer extends OPCUASecureObject {
      * @param {callback} done
      */
     public start(done: (err?: Error | null) => void) {
-        installPeriodicClockAdjustmement();
+        installPeriodicClockAdjustment();
 
         const self = this;
         assert(typeof done === "function");
@@ -219,7 +219,7 @@ export class OPCUABaseServer extends OPCUASecureObject {
      * @async
      */
     public shutdown(done: (err?: Error) => void) {
-        uninstallPeriodicClockAdjustmement();
+        uninstallPeriodicClockAdjustment();
         this.serverCertificateManager.dispose().then(() => {
             debugLog("OPCUABaseServer#shutdown starting");
             assert(typeof done === "function");

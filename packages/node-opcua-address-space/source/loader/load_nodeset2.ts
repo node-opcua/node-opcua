@@ -186,11 +186,10 @@ function makeStructureDefinition(name: string, definitionFields: StructureFieldO
 }
 
 function __make_back_references(namespace: NamespacePrivate) {
-    const nodes = Object.values(namespace._nodeid_index);
-    for (const node of nodes) {
+    for (const node of namespace.nodeIterator()) {
         node.propagate_back_references();
     }
-    for (const node of nodes) {
+    for (const node of namespace.nodeIterator()) {
         node.install_extra_properties();
     }
 }
@@ -999,14 +998,14 @@ export function makeStuff(addressSpace: AddressSpacePublic) {
             },
 
             Boolean: parser2("Boolean", ec.coerceBoolean),
-            Int8: parser2("Int8", parseInt),
             Byte: parser2("Byte", parseInt),
-            SByte: parser2("SByte", parseInt),
             Int16: parser2("Int16", parseInt),
             Int32: parser2("Int32", parseInt),
-            UInt8: parser2("UInt8", parseInt),
+            Int8: parser2("Int8", parseInt),
+            SByte: parser2("SByte", parseInt),
             UInt16: parser2("UInt16", parseInt),
             UInt32: parser2("UInt32", parseInt),
+            UInt8: parser2("UInt8", parseInt),
 
             ByteString: {
                 init(this: any) {

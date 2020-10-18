@@ -604,13 +604,12 @@ export class UAVariable extends BaseNode implements UAVariablePublic {
 
         const now = coerceClock(sourceTimestamp, 0);
 
-        const dataValue = new DataValue({
-            serverPicoseconds: now.picoseconds,
-            serverTimestamp: now.timestamp,
-            sourcePicoseconds: now.picoseconds,
-            sourceTimestamp: now.timestamp,
-            statusCode
-        });
+        const dataValue = new DataValue(null);
+        dataValue.serverPicoseconds = now.picoseconds;
+        dataValue.serverTimestamp = now.timestamp;
+        dataValue.sourcePicoseconds = now.picoseconds;
+        dataValue.sourceTimestamp = now.timestamp;
+        dataValue.statusCode = statusCode;
         dataValue.value = variant as Variant;
         this._internal_set_dataValue(dataValue);
     }
@@ -624,8 +623,8 @@ export class UAVariable extends BaseNode implements UAVariablePublic {
             // source timestamp was not specified by the caller
             // we will set the timestamp ourself with the current clock
             if (context.currentTime) {
-                dataValue.sourceTimestamp = context.currentTime;
-                dataValue.sourcePicoseconds = 0;
+                dataValue.sourceTimestamp = context.currentTime.timestamp;
+                dataValue.sourcePicoseconds = context.currentTime.picoseconds;
             } else {
                 const { timestamp, picoseconds } = getCurrentClock();
                 dataValue.sourceTimestamp = timestamp;
@@ -634,8 +633,8 @@ export class UAVariable extends BaseNode implements UAVariablePublic {
         }
 
         if (context.currentTime && !dataValue.serverTimestamp) {
-            dataValue.serverTimestamp = context.currentTime;
-            dataValue.serverPicoseconds = 0;
+            dataValue.serverTimestamp = context.currentTime.timestamp;
+            dataValue.serverPicoseconds = context.currentTime.picoseconds;
         }
         assert(context instanceof SessionContext);
 
@@ -1129,7 +1128,7 @@ export class UAVariable extends BaseNode implements UAVariablePublic {
         const dataType = addressSpace.findDataType(this.dataType);
         if (!dataType) {
             // may be we are in the process of loading a xml file and the corresponding dataType
-            // has not yet been lodaded !
+            // has not yet been loaded !
             return true;
         }
         try {
@@ -1219,7 +1218,6 @@ export class UAVariable extends BaseNode implements UAVariablePublic {
                 {
                     timestamped_get() {
                         const prop = self.$extensionObject[name];
-                        // xx  console.log("XYXYX timestamped_get ", propertyNode.nodeId.toString(), prop);
 
                         if (prop === undefined) {
                             propertyNode._dataValue.value.dataType = DataType.Null;
@@ -1233,7 +1231,6 @@ export class UAVariable extends BaseNode implements UAVariablePublic {
                         return new DataValue(propertyNode._dataValue);
                     },
                     timestamped_set(dataValue, callback) {
-                        // xx console.log("XYXYX timestamped_set : Not Implemented");
                         callback(null, StatusCodes.BadNotWritable);
                     }
                 },
@@ -1268,7 +1265,6 @@ export class UAVariable extends BaseNode implements UAVariablePublic {
             this.bindVariable(
                 {
                     timestamped_get() {
-                        // xx console.log("XYXYXY: reading  Extension Object !!!!", self.browseName.toString());
                         self._dataValue.value.value = self.$extensionObject;
                         const d = new DataValue(self._dataValue);
                         d.value = new Variant(d.value);
@@ -1280,7 +1276,6 @@ export class UAVariable extends BaseNode implements UAVariablePublic {
                             return callback(null, StatusCodes.BadInvalidArgument);
                         }
 
-                        // xx console.log("XYXYXY: writing a new Extension Object !!!!", self.browseName.toString(), dataValue.toString());
                         self.$extensionObject = new Proxy(ext, makeHandler(self));
                         self.touchValue();
                         callback(null, StatusCodes.Good);
@@ -1882,7 +1877,7 @@ function _Variable_bind_with_simple_get(this: UAVariable, options: any) {
             if (!this._dataValue || !isGoodish(this._dataValue.statusCode) || !sameVariant(this._dataValue.value, value)) {
                 this.setValueFromSource(value, StatusCodes.Good);
             } else {
-                // XXXY console.log("YYYYYYYYYYYYYYYYYYYYYYYYYY",this.browseName.toString());
+                // XX console.log("YYYYYYYYYYYYYYYYYYYYYYYYYY",this.browseName.toString());
             }
             return this._dataValue;
         }
