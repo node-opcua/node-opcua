@@ -72,7 +72,13 @@ export class NodeId {
      * @param value            - the node id value. The type of Value depends on identifierType.
      * @param namespace        - the index of the related namespace (optional , default value = 0 )
      */
-    constructor(identifierType: NodeIdType, value: any, namespace?: number) {
+    constructor(identifierType?: NodeIdType | null, value?: any, namespace?: number) {
+        if (identifierType === null || identifierType === undefined) {
+            this.identifierType = NodeIdType.NUMERIC;
+            this.value = 0;
+            this.namespace = 0;
+            return;
+        }
         this.identifierType = identifierType;
         this.value = value;
         this.namespace = namespace || 0;
@@ -176,7 +182,7 @@ export class NodeId {
     }
 }
 
-NodeId.nullNodeId = new NodeId(NodeIdType.NUMERIC, 0);
+NodeId.nullNodeId = new NodeId();
 
 export type NodeIdLike = string | NodeId | number;
 
@@ -260,6 +266,7 @@ export function coerceNodeId(value: any, namespace?: number): NodeId {
     return new NodeId(identifierType, value, namespace);
 }
 
+const regEx1 = /^(s|g|b|i|ns)=/;
 /**
  * construct a node Id from a value and a namespace.
  * @class opcua
@@ -275,7 +282,7 @@ export function makeNodeId(value: string | Buffer | number, namespace?: number) 
 
     let identifierType = NodeIdType.NUMERIC;
     if (typeof value === "string") {
-        if (value.match(/^(s|g|b|i)=/)) {
+        if (value.match(regEx1)) {
             throw new Error("please use coerce NodeId instead");
         }
         //            1         2         3
@@ -285,17 +292,12 @@ export function makeNodeId(value: string | Buffer | number, namespace?: number) 
             identifierType = NodeIdType.GUID;
         } else {
             identifierType = NodeIdType.STRING;
-            // detect accidental string of form "ns=x;x";
-            assert(value.indexOf("ns=") === -1, " makeNodeId(string) ? did you mean using coerceNodeId instead? ");
         }
     } else if (value instanceof Buffer) {
         identifierType = NodeIdType.BYTESTRING;
     }
 
     const nodeId = new NodeId(identifierType, value, namespace);
-
-    assert(nodeId.hasOwnProperty("identifierType"));
-
     return nodeId;
 }
 

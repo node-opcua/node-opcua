@@ -49,10 +49,18 @@ export class ExpandedNodeId extends NodeId {
     public namespaceUri: null | string;
     public serverIndex: number;
 
-    constructor(
+    public constructor(forDeserialization: null);
+    public constructor(
         identifierType: NodeIdType,
         value: number | string | Guid | Buffer,
         namespace: number,
+        namespaceUri?: null | string,
+        serverIndex?: number
+    );
+    public constructor(
+        identifierType?: NodeIdType | null,
+        value?: number | string | Guid | Buffer,
+        namespace?: number,
         namespaceUri?: null | string,
         serverIndex?: number
     ) {
