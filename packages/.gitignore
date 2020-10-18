@@ -6,3 +6,5 @@ dist*/*.d.ts
 package-lock.json
 *.lerna_backup
 dist*/**/*
+tmp_*
+a.*
