@@ -3,7 +3,7 @@
  */
 import { assert } from "node-opcua-assert";
 
-import { decodeString, encodeString, UAString } from "node-opcua-basic-types";
+import { decodeString, encodeString, UAString, UInt8 } from "node-opcua-basic-types";
 import { BinaryStream, OutputBinaryStream } from "node-opcua-binary-stream";
 import { registerBasicType } from "node-opcua-factory";
 import { StatusCode, StatusCodes } from "node-opcua-status-code";
@@ -46,17 +46,9 @@ export const schemaNumericRange = {
     defaultValue: () => {
         return new NumericRange();
     },
+    encode: encodeNumericRange,
 
-    encode: (value: NumericRange | null, stream: OutputBinaryStream) => {
-        assert(value === null || value instanceof NumericRange);
-        const strValue = value === null ? null : value.toEncodeableString();
-        encodeString(strValue, stream);
-    },
-
-    decode: (stream: BinaryStream) => {
-        const str = decodeString(stream);
-        return new NumericRange(str);
-    },
+    decode: decodeNumericRange,
 
     random: (): NumericRange => {
         function r() {
@@ -217,24 +209,19 @@ function _set_single_value(value: number | null): NumericalRange0 {
 function _check_range(numericalRange: NumericalRange0) {
     switch (numericalRange.type) {
         case NumericRangeType.MatrixRange:
+            // istanbul ignore next
             if (numericalRange.value === null) {
                 throw new Error("Internal Error");
             }
-            assert(typeof numericalRange.value[0][0] === "number");
-            assert(typeof numericalRange.value[0][1] === "number");
-            assert(typeof numericalRange.value[1][0] === "number");
-            assert(typeof numericalRange.value[1][1] === "number");
             return (
                 _valid_range(numericalRange.value[0][0], numericalRange.value[0][1]) &&
                 _valid_range(numericalRange.value[1][0], numericalRange.value[1][1])
             );
         case NumericRangeType.ArrayRange:
             return _valid_range(numericalRange.value[0], numericalRange.value[1]);
-        case NumericRangeType.SingleValue:
-            return numericalRange.value >= 0;
-        default:
-            return true;
     }
+    // istanbul ignore next
+    throw new Error("unsupported case");
 }
 
 function _set_range_value(low: number, high: number): NumericalRangeArrayRange | NumericalRangeInvalid {
@@ -267,28 +254,14 @@ function _construct_from_array(value: number[]): NumericalRange0 {
     if (isFinite(value[0]) && isFinite(value[1])) {
         return _set_range_value(value[0], value[1]);
     }
+    // istanbul ignore next
     return { type: NumericRangeType.InvalidRange, value: "" + value };
-}
-
-function _construct_from_NumericRange(nr: NumericalRange1): NumericalRange0 {
-    const nrToClone = nr as NumericalRange0;
-    switch (nrToClone.type) {
-        case NumericRangeType.InvalidRange:
-            return { type: NumericRangeType.InvalidRange, value: nrToClone.value };
-        case NumericRangeType.MatrixRange:
-            return { type: NumericRangeType.MatrixRange, value: [...nrToClone.value] as number[][] };
-        case NumericRangeType.ArrayRange:
-            return { type: NumericRangeType.ArrayRange, value: [...nrToClone.value] as number[] };
-        case NumericRangeType.SingleValue:
-            return { type: NumericRangeType.SingleValue, value: nrToClone.value as number };
-        case NumericRangeType.Empty:
-            return { type: NumericRangeType.Empty, value: null };
-    }
 }
 
 export class NumericRange implements NumericalRange1 {
     public static coerce = coerceNumericRange;
 
+    public static schema = schemaNumericRange;
     // tslint:disable:variable-name
     public static NumericRangeType = NumericRangeType;
 
@@ -313,16 +286,16 @@ export class NumericRange implements NumericalRange1 {
             const h2 = nr2.value[1];
             return _overlap(l1, h1, l2, h2);
         }
-        // console.log(" NR1 = ", nr1.toEncodeableString());
-        // console.log(" NR2 = ", nr2.toEncodeableString());
+        // istanbul ignore next
         assert(false, "NumericalRange#overlap : case not implemented yet "); // TODO
+        // istanbul ignore next
         return false;
     }
 
     public type: NumericRangeType;
     public value: NumericalRangeValueType;
 
-    constructor(value?: null | string | number | number[] | NumericRange, secondValue?: number) {
+    constructor(value?: null | string | number | number[], secondValue?: number) {
         this.type = NumericRangeType.InvalidRange;
         this.value = null;
 
@@ -338,10 +311,6 @@ export class NumericRange implements NumericalRange1 {
             this.value = a.value;
         } else if (Array.isArray(value)) {
             const a = _construct_from_array(value);
-            this.type = a.type;
-            this.value = a.value;
-        } else if (value instanceof NumericRange) {
-            const a = _construct_from_NumericRange(value);
             this.type = a.type;
             this.value = a.value;
         } else {
@@ -361,6 +330,7 @@ export class NumericRange implements NumericalRange1 {
         }
         if (this.type === NumericRangeType.SingleValue) {
             const value = this.value as number;
+            // istanbul ignore next
             if (value < 0) {
                 return false;
             }
@@ -423,6 +393,7 @@ export class NumericRange implements NumericalRange1 {
             case NumericRangeType.MatrixRange:
                 return this.toString();
             case NumericRangeType.InvalidRange:
+                // istanbul ignore next
                 if (!(typeof this.value === "string")) {
                     throw new Error("Internal Error");
                 }
@@ -476,7 +447,7 @@ export class NumericRange implements NumericalRange1 {
         }
     }
 
-    public set_values(arrayToAlter: any, newValues: any) {
+    public set_values(arrayToAlter: Buffer | [], newValues: Buffer | []) {
         assert_array_or_buffer(arrayToAlter);
         assert_array_or_buffer(newValues);
 
@@ -519,14 +490,6 @@ export class NumericRange implements NumericalRange1 {
             array: insertInPlace(arrayToAlter, low_index, high_index, newValues),
             statusCode: StatusCodes.Good
         };
-    }
-
-    public encode(stream: OutputBinaryStream) {
-        encodeString(this.toEncodeableString(), stream);
-    }
-
-    public decode(stream: BinaryStream) {
-        const str = decodeString(stream);
     }
 }
 
@@ -709,10 +672,10 @@ function _overlap(l1: number, h1: number, l2: number, h2: number): boolean {
 
 export function encodeNumericRange(numericRange: NumericRange, stream: OutputBinaryStream) {
     assert(numericRange instanceof NumericRange);
-    numericRange.encode(stream);
+    encodeString(numericRange.toEncodeableString(), stream);
 }
 
-export function decodeNumericRange(stream: BinaryStream): NumericRange {
+export function decodeNumericRange(stream: BinaryStream, _value?: NumericRange): NumericRange {
     const str = decodeString(stream);
     return new NumericRange(str);
 }
