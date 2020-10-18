@@ -64,6 +64,28 @@ async function _readNamespaceUriProperty(session: IBasicSession, dataTypeDiction
     return dataValue.value.value || "<not set>";
 }
 
+async function browseAll(session: IBasicSession, nodeToBrowse: BrowseDescriptionLike): Promise<BrowseResult>;
+async function browseAll(session: IBasicSession, nodesToBrowse: BrowseDescriptionLike[]): Promise<BrowseResult[]>;
+async function browseAll(session: IBasicSession, nodesToBrowse: BrowseDescriptionLike[] | BrowseDescriptionLike): Promise<any> {
+    if (!(nodesToBrowse instanceof Array)) {
+        return (await browseAll(session, [nodesToBrowse]))[0];
+    }
+    if (nodesToBrowse.length === 0) {
+        return [];
+    }
+    const results = await session.browse(nodesToBrowse);
+
+    for (const result of results) {
+        let continuationPoint = result.continuationPoint;
+        while (continuationPoint) {
+            debugLog("  Continuation points");
+            const result2 = await session.browseNext(result.continuationPoint, false);
+            result.references!.push.apply(result.references, result2.references || []);
+            continuationPoint = result2.continuationPoint;
+        }
+    }
+    return results;
+}
 async function _getDataTypeDescriptions(session: IBasicSession, dataTypeDictionaryNodeId: NodeId): Promise<IDataTypeDescription[]> {
     const nodeToBrowse2: BrowseDescriptionLike = {
         browseDirection: BrowseDirection.Forward,
@@ -74,7 +96,7 @@ async function _getDataTypeDescriptions(session: IBasicSession, dataTypeDictiona
         // resultMask: makeResultMask("NodeId | ReferenceType | BrowseName | NodeClass | TypeDefinition")
         resultMask: makeResultMask("NodeId | BrowseName")
     };
-    const result2 = await session.browse(nodeToBrowse2);
+    const result2 = await browseAll(session, nodeToBrowse2);
     result2.references = result2.references || [];
     return result2.references.map((r) => ({ nodeId: r.nodeId, browseName: r.browseName }));
 }
@@ -97,7 +119,7 @@ async function _enrichWithDescriptionOf(session: IBasicSession, dataTypeDescript
     if (nodesToBrowse3.length === 0) {
         return [];
     }
-    const results3 = await session.browse(nodesToBrowse3);
+    const results3 = await browseAll(session, nodesToBrowse3);
 
     const binaryEncodings = [];
     const nodesToBrowseDataType: BrowseDescriptionOptions[] = [];
@@ -131,7 +153,7 @@ async function _enrichWithDescriptionOf(session: IBasicSession, dataTypeDescript
     }
     const dataTypeNodeIds: NodeId[] = [];
     if (nodesToBrowseDataType.length > 0) {
-        const results4 = await session.browse(nodesToBrowseDataType);
+        const results4 = await browseAll(session, nodesToBrowseDataType);
         i = 0;
         for (const result4 of results4) {
             result4.references = result4.references || [];
@@ -169,7 +191,7 @@ async function _findEncodings(session: IBasicSession, dataTypeNodeId: NodeId): P
         referenceTypeId: resolveNodeId("HasEncoding"),
         resultMask: makeResultMask("ReferenceType | IsForward | BrowseName | NodeClass | TypeDefinition")
     };
-    const result = await session.browse(nodeToBrowse);
+    const result = await browseAll(session, nodeToBrowse);
     const references = result.references || [];
     if (references.length === 0) {
         // xx throw new Error("Cannot find encodings on type " + dataTypeNodeId.toString() + " statusCode " + result.statusCode.toString());
@@ -414,7 +436,7 @@ async function _exploreDataTypeDefinition(
         referenceTypeId: resolveNodeId("HasComponent"),
         resultMask: makeResultMask("ReferenceType | IsForward | BrowseName | NodeClass | TypeDefinition")
     };
-    const result = await session.browse(nodeToBrowse);
+    const result = await browseAll(session, nodeToBrowse);
     const references = result.references || [];
 
     /* istanbul ignore next */
@@ -433,7 +455,7 @@ async function _exploreDataTypeDefinition(
             resultMask: makeResultMask("NodeId | ReferenceType | BrowseName | NodeClass | TypeDefinition")
         };
     });
-    const results2 = await session.browse(nodesToBrowse2);
+    const results2 = await browseAll(session, nodesToBrowse2);
 
     const binaryEncodingNodeIds = results2.map((br: BrowseResult) => {
         const defaultBin = br.references!.filter((r: ReferenceDescription) => r.browseName.toString() === "Default Binary");
@@ -550,7 +572,7 @@ export async function populateDataTypeManager(session: IBasicSession, dataTypeMa
         referenceTypeId: resolveNodeId("HasComponent"),
         resultMask: makeResultMask("ReferenceType | IsForward | BrowseName | NodeClass | TypeDefinition")
     };
-    const result = await session.browse(nodeToBrowse);
+    const result = await browseAll(session, nodeToBrowse);
 
     if (doDebug) {
         debugLog(result.statusCode.toString());
@@ -743,7 +765,7 @@ async function getHasEncodingDefaultBinary(session: IBasicSession, dataTypeNodeI
         resultMask: makeResultMask("NodeId | ReferenceType | BrowseName | NodeClass | TypeDefinition")
     };
 
-    const result1 = await session.browse(nodeToBrowse1);
+    const result1 = await browseAll(session, nodeToBrowse1);
 
     if (result1.references && result1.references.length > 1) {
         // we have more than one possible Encoding .... only keep "Default Binary"
@@ -802,7 +824,7 @@ async function getDefinition(session: IBasicSession, defaultBinaryEncodingNodeId
         referenceTypeId: resolveNodeId("HasDescription"),
         resultMask: makeResultMask("NodeId | ReferenceType | BrowseName | NodeClass | TypeDefinition")
     };
-    const result2 = await session.browse(nodeToBrowse2);
+    const result2 = await browseAll(session, nodeToBrowse2);
     assert(result2.references && result2.references.length === 1);
     const definitionRef = result2.references![0]!;
 
@@ -833,7 +855,7 @@ async function getSchemaNode(session: IBasicSession, definitionRefNodeId: NodeId
         referenceTypeId: resolveNodeId("HasComponent"),
         resultMask: makeResultMask("NodeId | ReferenceType | BrowseName | NodeClass | TypeDefinition")
     };
-    const result3 = await session.browse(nodeToBrowse3);
+    const result3 = await browseAll(session, nodeToBrowse3);
     assert(result3.references && result3.references.length === 1);
     const schemaNode = result3.references![0]!.nodeId;
     return schemaNode;
@@ -895,7 +917,7 @@ async function findSuperType(session: IBasicSession, dataTypeNodeId: NodeId): Pr
         referenceTypeId: resolveNodeId("HasSubtype"),
         resultMask: makeResultMask("NodeId | ReferenceType | BrowseName | NodeClass")
     };
-    const result3 = await session.browse(nodeToBrowse3);
+    const result3 = await browseAll(session, nodeToBrowse3);
 
     /* istanbul ignore next */
     if (result3.statusCode !== StatusCodes.Good) {

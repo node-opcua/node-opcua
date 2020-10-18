@@ -87,7 +87,7 @@ export class ExtraDataTypeManager {
         }
         write("ExtraDataTypeManager");
         for (let n = 0; n < this.namespaceArray.length; n++) {
-            write("-----------", this.namespaceArray[n]);
+            write("------------- namespace:", this.namespaceArray[n]);
             const dataFactory = this.dataTypeFactoryMapByNamespace[n];
             if (!dataFactory) {
                 continue;
