@@ -1,11 +1,10 @@
 "use strict";
 
-const BinaryStream = require("..").BinaryStream; // node-opcua-binary-stream
-const BinaryStreamSizeCalculator = require("..").BinaryStreamSizeCalculator;
-const should = require("should");
 const { assert } = require("node-opcua-assert");
+const { Benchmarker } = require("node-opcua-benchmarker");
+const { BinaryStream, BinaryStreamSizeCalculator, calculateByteLength } = require(".."); // node-opcua-binary-stream
+const should = require("should");
 
-const Benchmarker = require("node-opcua-benchmarker").Benchmarker;
 
 describe("Testing BinaryStream", function() {
 
@@ -206,6 +205,41 @@ describe("Testing BinaryStream#writeArrayBuffer /  BinaryStream#readArrayBuffer"
         perform(BinaryStream.prototype.writeArrayBuffer_old, BinaryStream.prototype.readArrayBuffer_old);
 
     });
+    it("should provide a efficient calculateByteLength", function() {
+        const bench = new Benchmarker();
+
+        const demoString1 = "&✌☃(｡◕‿◕｡)Ƹ̵̡Ӝ̵̨̄Ʒ  ¯\\_(ツ)_/¯  ٩(⁎❛ᴗ❛⁎)۶   (づ｡◕‿‿◕｡)づ   •*´¨`*•.¸¸.•*´¨`*•.¸¸.•*´¨`*•.¸¸.•*´¨`*•.¸¸.•";
+        const demoString2 = "ﭗ";
+        const demoString3 = "\uDC20";
+
+        calculateByteLength(demoString1).should.eql(Buffer.from(demoString1).length);
+        calculateByteLength(demoString2).should.eql(Buffer.from(demoString2).length);
+        calculateByteLength(demoString3).should.eql(Buffer.from(demoString3).length);
+
+        bench
+            .add("demoString calculateByteLength", function() {
+                const l1 = calculateByteLength(demoString1);
+                const l2 = calculateByteLength(demoString2);
+                const l3 = calculateByteLength(demoString3);
+            })
+            .add("demoString with buffer from", function() {
+                const l1 = Buffer.from(demoString1).length;
+                const l2 = Buffer.from(demoString2).length;
+                const l3 = Buffer.from(demoString3).length;
+            })
+
+            .on('cycle', function(message) {
+                console.log(message);
+            })
+            .on('complete', function() {
+                console.log(' Fastest is ' + this.fastest.name);
+                console.log(' Speed Up : x', this.speedUp);
+                //xx this.fastest.name.should.eql("Variant.encode");
+
+            })
+            .run({ max_time: 0.5 });
+    });
+
 
     it("should provide a efficient writeArrayBuffer", function() {
 
