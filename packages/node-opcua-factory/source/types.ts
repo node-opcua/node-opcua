@@ -26,8 +26,6 @@ export interface CommonInterface {
 
     defaultValue?: any;
 
-    initialize_value(value: any, defaultValue: any): any;
-
     computer_default_value(defaultValue: any): any;
 }
 
@@ -178,30 +176,5 @@ export class TypeSchemaBase implements CommonInterface {
             defaultValue = defaultValue();
         }
         return defaultValue;
-    }
-
-    /**
-     * @method initialize_value
-     * @param value
-     * @param defaultValue
-     * @return {*}
-     */
-    public initialize_value(value: any, defaultValue: any): any {
-        if (value === undefined) {
-            return defaultValue;
-        }
-        if (defaultValue === null) {
-            if (value === null) {
-                return null;
-            }
-        }
-
-        if (value === undefined) {
-            return defaultValue;
-        }
-        if (this.coerce) {
-            value = this.coerce(value);
-        }
-        return value;
     }
 }
