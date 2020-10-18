@@ -11,7 +11,7 @@ import * as _ from "underscore";
 import { assert } from "node-opcua-assert";
 import { IOPCUASecureObjectOptions, OPCUASecureObject } from "node-opcua-common";
 import { Certificate, makeSHA1Thumbprint, Nonce, toPem } from "node-opcua-crypto";
-import { installPeriodicClockAdjustmement, uninstallPeriodicClockAdjustmement } from "node-opcua-date-time";
+import { installPeriodicClockAdjustment, uninstallPeriodicClockAdjustment } from "node-opcua-date-time";
 import { checkDebugFlag, make_debugLog, make_errorLog } from "node-opcua-debug";
 import {
     ClientSecureChannelLayer,
@@ -642,7 +642,7 @@ export class ClientBaseImpl extends OPCUASecureObject implements OPCUAClientBase
         // make sure callback will only be call once regardless of outcome, and will be also deferred.
         const callbackOnceDelayed: any = once((err?: Error) => setImmediate(() => callback(err)));
 
-        installPeriodicClockAdjustmement();
+        installPeriodicClockAdjustment();
         OPCUAClientBase.registry.register(this);
 
         this._internal_create_secure_channel(this.connectionStrategy, (
@@ -655,7 +655,7 @@ export class ClientBaseImpl extends OPCUASecureObject implements OPCUAClientBase
                 callbackOnceDelayed(err!);
             } else {
                 OPCUAClientBase.registry.unregister(this);
-                uninstallPeriodicClockAdjustmement();
+                uninstallPeriodicClockAdjustment();
                 debugLog(chalk.red("SecureChannel creation has failed with error :", err.message));
                 if (err.message.match(/ECONNREF/)) {
                     debugLog(chalk.yellow("- The client cannot to :" + endpointUrl + ". Server is not reachable."));
@@ -908,7 +908,7 @@ export class ClientBaseImpl extends OPCUASecureObject implements OPCUAClientBase
         assert(this._sessions.length === 0, " attempt to disconnect a client with live sessions ");
 
         OPCUAClientBase.registry.unregister(this);
-        uninstallPeriodicClockAdjustmement();
+        uninstallPeriodicClockAdjustment();
 
         if (this._secureChannel) {
             let tmpChannel: any = this._secureChannel;

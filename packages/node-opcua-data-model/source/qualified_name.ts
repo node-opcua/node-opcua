@@ -32,7 +32,7 @@ export const schemaQualifiedName = buildStructuredType({
 
             fieldType: "UAString",
 
-            defaultValue: () => null
+            defaultValue: null
         }
     ]
 });
@@ -49,47 +49,31 @@ export class QualifiedName extends BaseUAObject {
     public static possibleFields: string[] = ["namespaceIndex", "name"];
     public static encodingDefaultBinary: ExpandedNodeId = makeExpandedNodeId(0, 0);
     public static encodingDefaultXml: ExpandedNodeId = makeExpandedNodeId(0, 0);
+
     public namespaceIndex: UInt16;
     public name: UAString;
 
-    /**
-     *
-     * @class QualifiedName
-     * @constructor
-     * @extends BaseUAObject
-     * @param  options {Object}
-     */
-    constructor(options?: QualifiedNameOptions) {
+    constructor(options?: QualifiedNameOptions | null) {
         super();
-
-        const schema = QualifiedName.schema;
-        options = options || {};
+        // for de-serialization
+        if (options === null) {
+            this.namespaceIndex = 0;
+            this.name = null;
+            return;
+        }
         /* istanbul ignore next */
         if (parameters.debugSchemaHelper) {
+            const schema = QualifiedName.schema;
             check_options_correctness_against_schema(this, schema, options);
         }
-
-        /**
-         * @property namespaceIndex
-         * @type {Int32}
-         */
-        this.namespaceIndex = initialize_field(schema.fields[0], options.namespaceIndex);
-
-        /**
-         * @property name
-         * @type {UAString}
-         */
-        this.name = initialize_field(schema.fields[1], options.name);
+        this.namespaceIndex = options?.namespaceIndex || 0;
+        this.name = options?.name || null;
     }
 
     /**
      * encode the object into a binary stream
-     * @method encode
-     *
-     * @param stream {BinaryStream}
      */
     public encode(stream: OutputBinaryStream): void {
-        // call base class implementation first
         super.encode(stream);
         encodeUInt16(this.namespaceIndex, stream);
         encodeUAString(this.name, stream);
@@ -97,12 +81,8 @@ export class QualifiedName extends BaseUAObject {
 
     /**
      * decode the object from a binary stream
-     * @method decode
-     *
-     * @param stream {BinaryStream}
      */
     public decode(stream: BinaryStream): void {
-        // call base class implementation first
         super.decode(stream);
         this.namespaceIndex = decodeUInt16(stream);
         this.name = decodeUAString(stream);
@@ -173,7 +153,7 @@ export function coerceQualifiedName(value: null | QualifiedNameLike): QualifiedN
     } else {
         assert(value.hasOwnProperty("namespaceIndex"));
         assert(value.hasOwnProperty("name"));
-        return new exports.QualifiedName(value);
+        return new QualifiedName(value);
     }
 }
 
@@ -183,8 +163,8 @@ export function encodeQualifiedName(value: QualifiedName, stream: OutputBinarySt
     value.encode(stream);
 }
 
-export function decodeQualifiedName(stream: BinaryStream): QualifiedName {
-    const value = new QualifiedName({});
+export function decodeQualifiedName(stream: BinaryStream, value?: QualifiedName): QualifiedName {
+    value = value || new QualifiedName(null);
     value.decode(stream);
     return value;
 }

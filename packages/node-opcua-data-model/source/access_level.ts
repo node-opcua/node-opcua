@@ -8,27 +8,28 @@ import { registerBasicType } from "node-opcua-factory";
 import * as utils from "node-opcua-utils";
 
 export enum AccessLevelFlag {
-    CurrentRead = 0x01,    // bit 0 : Indicate if the current value is readable (0 means not readable, 1 means readable).
-    CurrentWrite = 0x02,   // bit 1 : Indicate if the current value is writable (0 means not writable, 1 means writable).
-    HistoryRead = 0x04,    // bit 2 : Indicates if the history of the value is readable (0 means not readable, 1 means readable).
-    HistoryWrite = 0x08,   // bit 3 : Indicates if the history of the value is writable (0 means not writable, 1 means writable).
+    CurrentRead = 0x01, // bit 0 : Indicate if the current value is readable (0 means not readable, 1 means readable).
+    CurrentWrite = 0x02, // bit 1 : Indicate if the current value is writable (0 means not writable, 1 means writable).
+    HistoryRead = 0x04, // bit 2 : Indicates if the history of the value is readable (0 means not readable, 1 means readable).
+    HistoryWrite = 0x08, // bit 3 : Indicates if the history of the value is writable (0 means not writable, 1 means writable).
     SemanticChange = 0x10, // bit 4 : Indicates if the Variable used as Property generates SemanticChangeEvents
-    StatusWrite = 0x20,    // bit 5 : Indicates if the current StatusCode of the value is writable (0 means not writable, 1 means writable).
+    StatusWrite = 0x20, // bit 5 : Indicates if the current StatusCode of the value is writable (0 means not writable, 1 means writable).
     TimestampWrite = 0x40, // bit 6 : Indicates if the current SourceTimestamp of the value is writable (0 means not writable, 1 means writable).
     NONE = 0x800, // Deprecated
-    None = 0x800,
+    None = 0x800
 }
 
 export function convertAccessLevelFlagToByte(accessLevel: AccessLevelFlag): number {
-    return accessLevel & 0x3F;
+    return accessLevel & 0x3f;
 }
 // @example
 //      makeAccessLevelFlag("CurrentRead | CurrentWrite").should.eql(0x03);
 export function makeAccessLevelFlag(str: string | number | null): AccessLevelFlag {
-
     if (typeof str === "number") {
         const value = str as number;
-        if (value === 0) { return AccessLevelFlag.None; }
+        if (value === 0) {
+            return AccessLevelFlag.None;
+        }
         return value as AccessLevelFlag;
     }
 
@@ -44,9 +45,6 @@ export function makeAccessLevelFlag(str: string | number | null): AccessLevelFla
         }
     }
 
-    if (utils.isNullOrUndefined(accessFlag)) {
-        throw new Error("Invalid access flag specified '" + str + "' should be one of " + AccessLevelFlag.toString());
-    }
     return accessFlag as AccessLevelFlag;
 }
 
@@ -86,17 +84,23 @@ export function accessLevelFlagToString(accessLevelFlag: AccessLevelFlag): strin
     return retVal.join(" | ");
 }
 
+export function decodeAccessLevelFlag(stream: BinaryStream): AccessLevelFlag {
+    const code = stream.readUInt8();
+    return code;
+}
+
+export function encodeAccessLevelFlag(value: AccessLevelFlag, stream: OutputBinaryStream) {
+    stream.writeUInt8(value & 0x8f);
+}
+
 registerBasicType({
     name: "AccessLevelFlag",
     subType: "Byte",
 
-    defaultValue: () => AccessLevelFlag.CurrentRead | AccessLevelFlag.CurrentWrite,
+    defaultValue: AccessLevelFlag.CurrentRead | AccessLevelFlag.CurrentWrite,
 
-    coerce: (value: any): AccessLevelFlag => makeAccessLevelFlag(value),
-    decode: (stream: BinaryStream): AccessLevelFlag => {
-        const code = stream.readUInt8();
-        return (code ? AccessLevelFlag[code] : AccessLevelFlag.NONE) as AccessLevelFlag;
-    },
-    encode: (value: AccessLevelFlag, stream: OutputBinaryStream) => stream.writeUInt8(value & 0x8F),
+    coerce: makeAccessLevelFlag,
+    decode: decodeAccessLevelFlag,
+    encode: encodeAccessLevelFlag,
     random: randomAccessLevel
 });
