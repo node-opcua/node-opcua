@@ -1,27 +1,23 @@
 /**
  * @module node-opcua-date-time
  */
-import * as  long from "long";
+import * as long from "long";
 import { assert } from "node-opcua-assert";
 import hrtime = require("browser-process-hrtime");
 
-export class DateWithPicoseconds extends Date {
-
-    public picoseconds = 0;
-
-    // tslint:disable:variable-name
-    public high_low = [0, 0];
+export interface DateWithPicoseconds extends Date {
+    picoseconds: number;
+    high_low: [number, number];
 }
 
 export const offsetFactor1601 = (function offset_factor_1601() {
-
     const utc1600 = new Date(Date.UTC(1601, 0, 1, 0, 0, 0));
     const t1600 = utc1600.getTime();
 
     const utc1600PlusOneDay = new Date(Date.UTC(1601, 0, 2, 0, 0, 0));
     const t1600OneDay = utc1600PlusOneDay.getTime();
 
-    const factor1 = (24 * 60 * 60 * 1000) * 10000 / (t1600OneDay - t1600);
+    const factor1 = (24 * 60 * 60 * 1000 * 10000) / (t1600OneDay - t1600);
 
     const utc1970 = new Date(Date.UTC(1970, 0, 1, 0, 0, 0));
     const t1970 = utc1970.getTime();
@@ -31,7 +27,6 @@ export const offsetFactor1601 = (function offset_factor_1601() {
     assert(factor1 === 10000);
     assert(offsetToGregorianCalendarZero === 11644473600000);
     return [offsetToGregorianCalendarZero, factor1];
-
 })();
 
 const offset = offsetFactor1601[0];
@@ -90,7 +85,7 @@ export function bn_dateToHundredNanoSecondFrom1601(date: Date, picoseconds: numb
     //        of milliseconds since 1 January 1970 00:00:00 UTC.
     //
     const t = date.getTime(); // number of milliseconds since since 1 January 1970 00:00:00 UTC.
-    const excess100nanosecond = (picoseconds !== undefined) ? Math.floor(picoseconds / 100000) : 0;
+    const excess100nanosecond = picoseconds !== undefined ? Math.floor(picoseconds / 100000) : 0;
 
     //           value_64 = (t + offset ) * factor;
     const tL = long.fromNumber(t, false);
@@ -103,20 +98,27 @@ export function bn_dateToHundredNanoSecondFrom1601(date: Date, picoseconds: numb
 
 export function bn_dateToHundredNanoSecondFrom1601Excess(date: Date, picoseconds: number): number {
     // 100 nano seconds = 100 x 1000 picoseconds
-    return (picoseconds !== undefined && picoseconds !== null) ? picoseconds % 100000 : 0;
+    return (picoseconds || 0) % 100000;
 }
 
-export function bn_hundredNanoSecondFrom1601ToDate(high: number, low: number, picoseconds = 0): DateWithPicoseconds {
+export function bn_hundredNanoSecondFrom1601ToDate(
+    high: number,
+    low: number,
+    picoseconds = 0,
+    _value: Date | null = null
+): DateWithPicoseconds {
     assert(low !== undefined);
     //           value_64 / factor  - offset = t
-    const l = new long(low, high, /*unsigned*/true);
+    const l = new long(low, high, /*unsigned*/ true);
     const value1 = l.div(factor).toNumber() - offset;
+    // const date = _value || new Date(value1);
+    // if (_value) _value.setTime(value1);
     const date = new Date(value1);
     // enrich the date
     const excess100nanoInPico = l.mod(10000).mul(100000).toNumber();
     (date as any).high_low = [high, low];
     // picosecond will contains un-decoded 100 nanoseconds => 10 x 100 nanoseconds = 1 microsecond
-    (date as any).picoseconds = excess100nanoInPico + ((picoseconds !== undefined) ? picoseconds : 0);
+    (date as any).picoseconds = excess100nanoInPico + (picoseconds || 0);
     return date as DateWithPicoseconds;
 }
 
@@ -155,6 +157,10 @@ export function getCurrentClockWithJavascriptDate(): PreciseClock {
 let origin = hrtime();
 let refTime = Date.now();
 
+export const periodicClockAdjustment = {
+    adjustmentCount: 0,
+    interval: 3000 /* every 30 seconds */
+};
 // update refTime now and then to make sure that we don't miss
 // any system time adjustment here such as a NTP clock event
 // see #651
@@ -162,7 +168,7 @@ let timerId: NodeJS.Timeout | null;
 let timerInstallationCount = 0;
 const g_setInterval = global.setInterval;
 const g_clearInterval = global.clearInterval;
-export function installPeriodicClockAdjustmement() {
+export function installPeriodicClockAdjustment() {
     timerInstallationCount++;
     if (timerId) {
         return;
@@ -170,9 +176,10 @@ export function installPeriodicClockAdjustmement() {
     timerId = g_setInterval(() => {
         origin = hrtime();
         refTime = Date.now();
-    }, 30000 /* every 30 seconds */);
+        periodicClockAdjustment.adjustmentCount++;
+    }, periodicClockAdjustment.interval);
 }
-export function uninstallPeriodicClockAdjustmement() {
+export function uninstallPeriodicClockAdjustment() {
     timerInstallationCount--;
     if (timerInstallationCount <= 0) {
         g_clearInterval(timerId!);
@@ -194,7 +201,6 @@ const original_hrtime = hrtime;
 const setTimeout_check = setTimeout;
 /*kWithProcessHRTime*/
 export function getCurrentClock(): PreciseClock {
-
     if (setTimeout_check !== setTimeout) {
         // is fake sinon clock being used ?
         // in this case hrtime is not working
@@ -211,7 +217,7 @@ export function getCurrentClock(): PreciseClock {
     return gClock;
 }
 
-export function coerceClock(timestamp: any, picoseconds = 0) {
+export function coerceClock(timestamp: null | PreciseClock, picoseconds = 0) {
     if (timestamp) {
         return { timestamp, picoseconds };
     } else {
