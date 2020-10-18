@@ -17,16 +17,13 @@ export function encodeBoolean(value: boolean, stream: OutputBinaryStream): void 
     stream.writeUInt8(value ? 1 : 0);
 }
 
-export function decodeBoolean(stream: BinaryStream): boolean {
+export function decodeBoolean(stream: BinaryStream, _value?: boolean): boolean {
     return !!stream.readUInt8();
 }
 
 const falseDetectionRegex = /^(?:f(?:alse)?|no?|0+)$/i;
 
-export function coerceBoolean(value: any): boolean {
-    if (value === null || value === undefined) {
-        return value;
-    }
+export function coerceBoolean(value: string): boolean {
     // http://stackoverflow.com/a/24744599/406458
     return !falseDetectionRegex.test(value) && !!value;
     // return !!(+value||String(value).toLowerCase().replace(!!0,''));

@@ -25,11 +25,11 @@ export function encodeByteString(byteString: ByteString, stream: OutputBinaryStr
     stream.writeByteStream(byteString);
 }
 
-export function decodeByteString(stream: BinaryStream): ByteString {
+export function decodeByteString(stream: BinaryStream, _value?: ByteString): ByteString {
     return stream.readByteStream() as ByteString;
 }
 
-export function coerceByteString(value: any): ByteString {
+export function coerceByteString(value: number[] | string | ByteString): ByteString {
     if (Array.isArray(value)) {
         return Buffer.from(value);
     }
