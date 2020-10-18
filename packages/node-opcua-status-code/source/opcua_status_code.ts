@@ -110,7 +110,7 @@ export const extraStatusCodeBits: { [key: string]: number } = {
     HistorianExtraData: 0x1 << 3,
 
     /** Multiple values match the Aggregate criteria (i.e. multiple minimum values at different timestamps within the same interval). */
-    HistorianMultiValue: 0x1 << 4,
+    HistorianMultiValue: 0x1 << 4
 };
 
 /**
@@ -262,10 +262,7 @@ export function getStatusCodeFromCode(code: number) {
             "expecting a known StatusCode but got 0x" + codeWithoutInfoBits.toString(16),
             " code was 0x" + code.toString(16)
         );
-        warnLog(
-            "expecting a known StatusCode but got 0x" + codeWithoutInfoBits.toString(16),
-            " code was 0x" + code.toString(16)
-        );
+        warnLog("expecting a known StatusCode but got 0x" + codeWithoutInfoBits.toString(16), " code was 0x" + code.toString(16));
     }
     if (infoBits) {
         const tmp = new ModifiableStatusCode({ _base: sc });
@@ -275,7 +272,7 @@ export function getStatusCodeFromCode(code: number) {
     return sc;
 }
 
-export function decodeStatusCode(stream: BinaryStream) {
+export function decodeStatusCode(stream: BinaryStream, _value?: StatusCode) {
     const code = stream.readUInt32();
     return getStatusCodeFromCode(code);
 }
