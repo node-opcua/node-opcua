@@ -70,7 +70,7 @@ function get_class_folder(schemaName: string, optionalFolder?: string): string {
         if (!fs.existsSync(optionalFolder)) {
             fs.mkdirSync(optionalFolder);
             if (!fs.existsSync(optionalFolder)) {
-                throw new Error("get_class_tscript_filename: Cannot find folder " + optionalFolder);
+                throw new Error("get_class_TScript_filename: Cannot find folder " + optionalFolder);
             }
         }
         folder = optionalFolder;
@@ -81,17 +81,17 @@ function get_class_folder(schemaName: string, optionalFolder?: string): string {
     return folder;
 }
 
-export function get_class_tscript_filename(schemaName: string, optionalFolder?: string): string {
+export function get_class_TScript_filename(schemaName: string, optionalFolder?: string): string {
     const folder = get_class_folder(schemaName, optionalFolder);
     return path.join(folder, "_" + schemaName + ".ts");
 }
 
-export function get_class_jscript_filename(schemaName: string, optionalFolder?: string): string {
+export function get_class_JScript_filename(schemaName: string, optionalFolder?: string): string {
     const folder = get_class_folder(schemaName, optionalFolder);
     return path.join(folder, "_" + schemaName + ".js");
 }
 
-function get_class_tscript_filename_local(schemaName: string): string {
+function get_class_TScript_filename_local(schemaName: string): string {
     let schema = getStructuredTypeSchema(schemaName);
     if (!schema) {
         schema = generatedObjectSchema[schemaName];
@@ -108,8 +108,6 @@ function get_class_tscript_filename_local(schemaName: string): string {
     return generateTypeScriptSource;
 }
 
-type WriteFunc = (...args: string[]) => void;
-
 function write_enumeration_setter(write: WriteFunc, schema: StructuredTypeSchema, field: FieldType, member: string): void {
     const capMember = capitalizeFirstLetter(member);
     write(`    public set${capMember}(value: any): ${field.fieldType} {`);
@@ -123,17 +121,27 @@ function write_enumeration_setter(write: WriteFunc, schema: StructuredTypeSchema
     write(`    }`);
 }
 
+function write_enumeration_fast_init(
+    write: WriteFunc,
+    schema: StructuredTypeSchema,
+    field: FieldType,
+    member: string,
+    i: number
+): void {
+    write(`             this.${member} =  0 as  ${field.fieldType};`);
+}
+
 function write_enumeration(write: WriteFunc, schema: StructuredTypeSchema, field: FieldType, member: string, i: number): void {
     assert(!field.isArray); // would not work in this case
     const capMember = capitalizeFirstLetter(member);
-    write(`        this.${field.name} = this.set${capMember}(initialize_field(schema.fields[${i}], options.${field.name}));`);
+    write(`        this.${field.name} = this.set${capMember}(initialize_field(schema.fields[${i}], options?.${field.name}));`);
 }
 
-function write_complex_fast_construct(write: WriteFunc, schema: StructuredTypeSchema, field: FieldType, member: string) {
+function write_complex_fast_init(write: WriteFunc, schema: StructuredTypeSchema, field: FieldType, member: string) {
     if (field.isArray) {
         write(`         this.${member} =  null; /* null array */`);
     } else {
-        write(`         this.${member} =  new ${field.fieldType}();`);
+        write(`         this.${member} =  new ${field.fieldType}(null);`);
     }
 }
 
@@ -170,9 +178,89 @@ function write_basic(write: WriteFunc, schema: StructuredTypeSchema, field: Fiel
         // write(`    assert(Array.isArray(options.${member}));`);
         // write(`    this.${member} = options.browsePath.map(e => field.coerce(e) );`);
         // write(`}`);
-        write(`        this.${member} = initialize_field_array(schema.fields[${i}], options.${field.name});`);
+        write(`        this.${member} = initialize_field_array(schema.fields[${i}], options?.${field.name});`);
     } else {
-        write(`        this.${member} = initialize_field(schema.fields[${i}], options.${field.name});`);
+        write(`        this.${member} = initialize_field(schema.fields[${i}], options?.${field.name});`);
+    }
+}
+function write_basic_fast_init(write: WriteFunc, schema: StructuredTypeSchema, field: FieldType, member: string, i: number): void {
+    if (field.isArray) {
+        // write(`this.${member} = [];`);
+        // write(`if (options.${member}) {`);
+        // write(`    assert(Array.isArray(options.${member}));`);
+        // write(`    this.${member} = options.browsePath.map(e => field.coerce(e) );`);
+        // write(`}`);
+        write(`            this.${member} = []`);
+    } else {
+        switch (field.schema.name) {
+            case "Variant":
+                write(`            this.${member} = new Variant(null);`);
+                break;
+            case "UABoolean":
+            case "Boolean":
+                write(`            this.${member} = false;`);
+                break;
+            case "UAString":
+                write(`            this.${member} = null;`);
+                break;
+            case "ExpandedNodeId":
+                write(`            this.${member} = new ExpandedNodeId(null);`);
+                break;
+            case "NodeId":
+                write(`            this.${member} = new NodeId(null);`);
+                break;
+            case "QualifiedName":
+                write(`            this.${member} = new QualifiedName(null);`);
+                break;
+            case "DateTime":
+                write(`            this.${member} = new Date();`);
+                break;
+            case "ByteString":
+                write(`            this.${member} = Buffer.alloc(0);`);
+                break;
+            case "StatusCode":
+                write(`            this.${member} = StatusCodes.Good;`);
+                break;
+            case "DiagnosticInfo":
+            case "ExtensionObject":
+                write(`            this.${member} = null;`);
+                break;
+            case "NumericRange":
+                write(`            this.${member} = new NumericRange(null);`);
+                break;
+            case "LocalizedText":
+                write(`            this.${member} = new LocalizedText(null);`);
+                break;
+            case "Guid":
+                write(`            this.${member} = "";`);
+                break;
+            case "UInt64":
+                write(`            this.${member} = [];`);
+                break;
+            case "Int64":
+                write(`            this.${member} = [];`);
+                break;
+            case "DataValue":
+                write(`            this.${member} = new DataValue(null);`);
+                break;
+
+            default:
+                write(`            this.${member} = 0;`);
+        }
+    }
+}
+function write_fast_init_member(write: WriteFunc, schema: StructuredTypeSchema, field: FieldType, i: number) {
+    const member = field.name;
+    switch (field.category) {
+        case FieldCategory.enumeration:
+            write_enumeration_fast_init(write, schema, field, member, i);
+            break;
+        case FieldCategory.basic:
+            write_basic_fast_init(write, schema, field, member, i);
+            break;
+        case FieldCategory.complex:
+            write_complex_fast_init(write, schema, field, member);
+            break;
     }
 }
 
@@ -207,7 +295,7 @@ function write_constructor(write: WriteFunc, schema: StructuredTypeSchema): void
         write("     */");
     }
 
-    write(`    constructor(options?: ${className}Options) {`);
+    write(`    constructor(options?: ${className}Options | null) {`);
     write("");
     if (baseClass) {
         if (baseClass === "BaseUAObject") {
@@ -218,46 +306,30 @@ function write_constructor(write: WriteFunc, schema: StructuredTypeSchema): void
         write("");
     }
 
+    // detect de-serialization constructor
+    // -----------------------------------------------------------------------------------------------------------------
+    // Special case when options === null => fast constructor for de-serialization
+    // -----------------------------------------------------------------------------------------------------------------
+    write(`        if (options === null) {`);
+    for (let i = 0; i < n; i++) {
+        const field = schema.fields[i];
+        write_fast_init_member(write, schema, field, i);
+    }
+    write("              return;");
+    write("        }");
+
     write(`        const schema = ${className}.schema;`);
     if (typeof schema.constructHook === "function") {
-        write("        options = schema.constructHook(options);");
+        write(`        options = schema.constructHook(options) as ${className}Options;`);
     } else {
-        write("        options = schema.constructHook ? schema.constructHook(options) : options;");
+        write(`        options = (schema.constructHook ? schema.constructHook(options) as ${className}Options: options ) || {};`);
     }
-    // write("        options = options || {};");
-    write("        if (options === undefined || options === null) { options = {}; }");
+    //    write("        if (options === undefined) { options = {}; }");
 
     write("        /* istanbul ignore next */");
     write("        if (parameters.debugSchemaHelper) {");
     write("            check_options_correctness_against_schema(this, schema, options);");
     write("        }");
-
-    // -----------------------------------------------------------------------------------------------------------------
-    // Special case when options === null => fast constructor for de-serialization
-    // -----------------------------------------------------------------------------------------------------------------
-    if (hasComplex(schema)) {
-        write("        if (options === null) {");
-        {
-            if (baseClass) {
-                // write("        " + baseClass + ".call(this,options);");
-                // write("        " + baseClass + ".call(this,options);");
-            }
-            for (let i = 0; i < n; i++) {
-                const field = schema.fields[i];
-                const member = field.name;
-
-                switch (field.category) {
-                    case FieldCategory.enumeration:
-                    case FieldCategory.basic:
-                        break;
-                    case FieldCategory.complex:
-                        write_complex_fast_construct(write, schema, field, member);
-                        break;
-                }
-            }
-        }
-        write("        }");
-    }
 
     // -----------------------------------------------------------------------------------------------------------------
 
@@ -379,7 +451,7 @@ function write_decode(write: WriteFunc, schema: StructuredTypeSchema): void {
                     if (typeof field.decode === "function") {
                         write("        this." + member + " = " + "schema" + ".fields[" + i + "].decode(stream);");
                     } else {
-                        write("        this." + member + " = decode" + field.fieldType + "(stream);");
+                        write("        this." + member + " = decode" + field.fieldType + "(stream, this." + member + ");");
                     }
                 }
             }
@@ -387,7 +459,7 @@ function write_decode(write: WriteFunc, schema: StructuredTypeSchema): void {
             assert(field.category === FieldCategory.complex);
             if (field.isArray) {
                 write("        this." + member + " = decodeArray(stream, (stream1: BinaryStream) => {");
-                write("            const obj = new " + field.fieldType + "();");
+                write("            const obj = new " + field.fieldType + "(null);");
                 write("            obj.decode(stream1);");
                 write("            return obj;");
                 write("        });");
@@ -476,6 +548,8 @@ function write_class_constructor_options(write: WriteFunc, schema: StructuredTyp
             case FieldCategory.basic: {
                 if (field.fieldType === "ExtensionObject") {
                     write(`    ${member}?: (${field.fieldType} | null)${arrayOpt};`);
+                } else if (field.fieldType === "DiagnosticInfo") {
+                    write(`    ${member}?: (${field.fieldType} | null)${arrayOpt};`);
                 } else if (
                     field.fieldType === "Variant" ||
                     field.fieldType === "DataValue" ||
@@ -511,7 +585,9 @@ function write_declare_class_member(write: WriteFunc, schema: StructuredTypeSche
                 break;
             }
             case FieldCategory.basic: {
-                if (field.fieldType === "ExtensionObject") {
+                if (field.fieldType === "DiagnosticInfo") {
+                    write(`    public ${member}: (${field.fieldType} | null)${arrayOpt};`);
+                } else if (field.fieldType === "ExtensionObject") {
                     write(`    public ${member}: (${field.fieldType} | null)${arrayOpt};`);
                 } else {
                     write(`    public ${member}: ${field.fieldType}${arrayOpt};`);
@@ -706,7 +782,7 @@ function getEncodingJsonId(schema: StructuredTypeSchema): NodeId {
 }
 
 /* eslint complexity:[0,50],  max-statements: [1, 254]*/
-export function produce_tscript_code(schema: StructuredTypeSchema, localSchemaFile: string, generatedTypescriptFilename: string) {
+export function produce_TScript_code(schema: StructuredTypeSchema, localSchemaFile: string, generatedTypescriptFilename: string) {
     const className = schema.name;
 
     generatedObjectSchema[className] = generatedTypescriptFilename;
@@ -719,11 +795,7 @@ export function produce_tscript_code(schema: StructuredTypeSchema, localSchemaFi
 
     const f = new LineFile1();
 
-    function write(...args: string[]) {
-        f.write.apply(f, args);
-    }
-
-    // Xx resolve_schema_field_types(schema, generatedObjectSchema);
+    const write = makeWrite(f);
 
     const complexTypes = schema.fields.filter(
         (field: FieldType) => field.category === FieldCategory.complex && field.fieldType !== schema.name
@@ -732,7 +804,7 @@ export function produce_tscript_code(schema: StructuredTypeSchema, localSchemaFi
     const folderForSourceFile = path.dirname(generatedTypescriptFilename);
 
     // -------------------------------------------------------------------------
-    // - insert common require's
+    // - insert common requires
     // -------------------------------------------------------------------------
     write("/**");
     write(" * @module node-opcua-address-space.types");
@@ -775,7 +847,7 @@ export function produce_tscript_code(schema: StructuredTypeSchema, localSchemaFi
         }
         tmpMap[field.fieldType] = 1;
 
-        const filename = get_class_tscript_filename_local(field.fieldType);
+        const filename = get_class_TScript_filename_local(field.fieldType);
         const localFilename = normalize_require_file(folderForSourceFile, filename);
 
         if (fs.existsSync(filename)) {
@@ -791,7 +863,7 @@ export function produce_tscript_code(schema: StructuredTypeSchema, localSchemaFi
     // -------------------------------------------------------------------------
 
     if (baseClass !== "BaseUAObject") {
-        const filename = get_class_tscript_filename_local(baseClass);
+        const filename = get_class_TScript_filename_local(baseClass);
         const localFilename = normalize_require_file(folderForSourceFile, filename);
         // xx console.log(" ===> filename", filename, localFilename, fs.existsSync(filename));
 
@@ -808,13 +880,15 @@ export function produce_tscript_code(schema: StructuredTypeSchema, localSchemaFi
     writeStructuredType(write, schema);
 
     f.saveFormat(generatedTypescriptFilename, (code) => {
-        // const options: prettier.Options = {
-        //     bracketSpacing: true,
-        //     insertPragma: true,
-        //     parser: "typescript",
-        //     printWidth: 120
-        // };
-        // return prettier.format(code, options);
-        return code;
+        const options: prettier.Options = {
+            bracketSpacing: true,
+            insertPragma: true,
+            parser: "typescript",
+            printWidth: 120
+        };
+        return prettier.format(code, options);
+        // return code;
     });
 }
+import * as prettier from "prettier";
+import { makeWrite, WriteFunc } from "./utils/write_func";

@@ -7,8 +7,9 @@
 //
 import * as chalk from "chalk";
 import * as fs from "fs";
+import * as os from "os";
 import { promisify } from "util";
-
+import * as prettier from "prettier";
 import { assert } from "node-opcua-assert";
 import { DataTypeIds, ObjectIds } from "node-opcua-constants";
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
@@ -23,7 +24,8 @@ import { NodeId } from "node-opcua-nodeid";
 import { DataTypeAndEncodingId, MapDataTypeAndEncodingIdProvider, parseBinaryXSDAsync } from "node-opcua-schemas";
 
 import { writeStructuredType } from "./factory_code_generator";
-import { LineFile1 } from "./utils/index";
+import { LineFile1 } from "./utils/line_file";
+import { makeWrite } from "./utils/write_func";
 
 const doDebug = checkDebugFlag(__filename);
 const debugLog = make_debugLog(__filename);
@@ -32,9 +34,7 @@ const readFile = promisify(fs.readFile);
 
 const f = new LineFile1();
 
-function write(...args: string[]) {
-    f.write.apply(f, args);
-}
+const write = makeWrite(f);
 
 function writeEnumeratedType(enumerationSchema: EnumerationDefinitionSchema) {
     const arrayValues = Object.keys(enumerationSchema.enumValues)
@@ -80,7 +80,9 @@ function writeEnumeratedType(enumerationSchema: EnumerationDefinitionSchema) {
     write(`    name: "${enumerationSchema.name}"`);
 
     write(`};`);
-    write(`function decode${enumerationSchema.name}(stream: BinaryStream): ${enumerationSchema.name} {`);
+    write(
+        `function decode${enumerationSchema.name}(stream: BinaryStream, _value?: ${enumerationSchema.name}): ${enumerationSchema.name} {`
+    );
     if (!isFlaggable) {
         if (enumerationSchema.lengthInBits === 16) {
             write(`    let value =  stream.readUInt16() as ${enumerationSchema.name};`);
@@ -158,7 +160,7 @@ export async function generate(filename: string, generatedTypescriptFilename: st
                 };
                 if (doDebug) {
                     debugLog(
-                        "xxdata=",
+                        " data=",
                         chalk.cyan(name.padEnd(43, " ")),
                         data.dataTypeNodeId.toString().padEnd(43, " "),
                         data.binaryEncodingNodeId.toString().padEnd(43, " ")
@@ -248,7 +250,7 @@ import {
     decodeNumericRange, encodeNumericRange, NumericRange
 } from "node-opcua-numeric-range";
 import {
-    decodeStatusCode, encodeStatusCode, StatusCode
+    decodeStatusCode, encodeStatusCode, StatusCode, StatusCodes
 } from "node-opcua-status-code";
 import {
     decodeVariant, encodeVariant, Variant, VariantLike,
@@ -260,6 +262,7 @@ import {
 
         write(`export class DataTypeDefinition extends BaseUAObject {`);
         write(`    constructor(options: any) {`);
+        write(`        options = options; // do not remove`);
         write(`        super();`);
         write(`    }`);
         write(`}`);
@@ -326,7 +329,7 @@ import {
         //        processStructuredType(dataTypeFactory.getStructuredTypeSchema("DiagnosticInfo"));
         processStructuredType(dataTypeFactory.getStructuredTypeSchema("SimpleAttributeOperand"));
 
-        for (const structureType of dataTypeFactory.structuredTypesNames().sort()) {
+        for (const structureType of [...dataTypeFactory.structuredTypesNames()].sort()) {
             if (!dataTypeFactory.hasStructuredType(structureType)) {
                 continue;
             }
@@ -336,14 +339,14 @@ import {
 
         write(``);
         f.saveFormat(generatedTypescriptFilename, (code) => {
-            // const options: prettier.Options = {
-            //     printWidth: 120,
-            //     parser: "typescript",
-            //     insertPragma: true,
-            //     bracketSpacing: true
-            // };
-            return code;
-            // return prettier.format(code, options).replace("\n",os.EOL);
+            //  return code;
+            const options: prettier.Options = {
+                bracketSpacing: true,
+                insertPragma: true,
+                parser: "typescript",
+                printWidth: 120
+            };
+            return prettier.format(code, options).replace("\n", os.EOL);
         });
     } catch (err) {
         throw err;
