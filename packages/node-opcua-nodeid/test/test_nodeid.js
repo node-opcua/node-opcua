@@ -50,6 +50,34 @@ describe("testing NodeIds", function() {
         nodeId.identifierType.should.eql(NodeIdType.BYTESTRING);
         nodeId.toString().should.eql("ns=4;b=deadbeef");
     });
+    it("should create a OPAQUE nodeID with null buffer", function() {
+        const nodeId = new NodeId(NodeIdType.BYTESTRING, null, 4);
+        nodeId.toString().should.eql("ns=4;b=<null>");
+    });
+
+    it("should enriched  NodeId#toString", () => {
+        const nodeId = new NodeId(NodeIdType.NUMERIC, 2254, 0);
+        nodeId.toString({ addressSpace: "Hello" })
+            .should.eql("ns=0;i=2254 \u001b[32m\u001b[1mServer_ServerArray\u001b[22m\u001b[39m"
+            );
+        nodeId.displayText().should.eql("Server_ServerArray (ns=0;i=2254)");
+    });
+    it("should enriched  NodeId#toString 2", () => {
+        const addressSpace = {
+            findNode() {
+                return { browseName: "Hello" }
+            }
+        };
+
+        const nodeId = new NodeId(NodeIdType.STRING, "AAA", 3);
+        nodeId.toString({ addressSpace })
+            .should.eql("ns=3;s=AAA Hello");
+        nodeId.displayText().should.eql("ns=3;s=AAA");
+    });
+    it("NodeId#toJSON", () => {
+        const nodeId = new NodeId(NodeIdType.STRING, "AAA", 3);
+        nodeId.toJSON().should.eql("ns=3;s=AAA");
+    })
 });
 
 describe("testing coerceNodeId", function() {
@@ -70,6 +98,15 @@ describe("testing coerceNodeId", function() {
         const ref_nodeId = new NodeId(NodeIdType.STRING, "TemperatureSensor", 2);
         coerceNodeId("ns=2;s=TemperatureSensor").should.eql(ref_nodeId);
     });
+    it("should coerce a string of a form '1E14849E-3744-470d-8C7B-5F9110C2FA32' ", function() {
+        const ref_nodeId = new NodeId(NodeIdType.GUID, "1E14849E-3744-470d-8C7B-5F9110C2FA32", 0);
+        coerceNodeId("1E14849E-3744-470d-8C7B-5F9110C2FA32").should.eql(ref_nodeId);
+    });
+    it("should coerce a NodeId from a NodeIdOptions", function() {
+        const ref_nodeId = new NodeId(NodeIdType.STRING, "Hello", 3);
+        coerceNodeId({ namespace: 3, identifierType: 2, value: "Hello" }).should.eql(ref_nodeId);
+    });
+
 
     it("should coerce a string of a form 'ns=4;s=Test32;datatype=Int32'  (Mika)", function() {
         const ref_nodeId = new NodeId(NodeIdType.STRING, "Test32;datatype=Int32", 4);
@@ -105,6 +142,19 @@ describe("testing coerceNodeId", function() {
         coerceNodeId(1234).should.eql(makeNodeId(1234));
     });
 
+    it("makeNodeId('1E14849E-3744-470d-8C7B-5F9110C2FA32')", () => {
+        const nodeId1 = coerceNodeId("g=1E14849E-3744-470d-8C7B-5F9110C2FA32");
+        const nodeId2 = makeNodeId('1E14849E-3744-470d-8C7B-5F9110C2FA32');
+        nodeId1.should.eql(nodeId2);
+    })
+    it("makeNodeId(buffer)", () => {
+        const nodeId2 = makeNodeId(Buffer.from([1, 2, 3]));
+        nodeId2.toString().should.eql("ns=0;b=010203");
+    })
+    it("resolveNodeId", () => {
+        resolveNodeId("i=12");
+        resolveNodeId(Buffer.from([1, 2, 3]));
+    })
     it("should coerce a OPAQUE buffer as a BYTESTRING", function() {
         const buffer = Buffer.alloc(8);
         buffer.writeUInt32BE(0xb1dedada, 0);
