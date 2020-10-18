@@ -61,10 +61,6 @@ function write_UInt32(stream: OutputBinaryStream, guid: string, starts: number[]
         const d8 = hexCharToNum(guid.charCodeAt(start + 7));
         // tslint:disable-next-line: no-bitwise
         const value = (((((((((((((d1 << 4) | d2) << 4) | d3) << 4) | d4) << 4) | d5) << 4) | d6) << 4) | d7) << 4) | d8;
-        if (doDebug) {
-            console.log(value.toString(16), guid.substr(start, 8), value);
-            assert(parseInt(guid.substr(start, 8), 16) === value);
-        }
         stream.writeInteger(value);
     }
 }
@@ -79,10 +75,6 @@ function write_UInt16(stream: OutputBinaryStream, guid: string, starts: number[]
         const d4 = hexCharToNum(guid.charCodeAt(start + 3));
         // tslint:disable-next-line: no-bitwise
         const value = (((((d1 << 4) | d2) << 4) | d3) << 4) | d4;
-        if (doDebug) {
-            console.log(value.toString(16), guid.substr(start, 4), parseInt(guid.substr(start, 4), 16), value);
-            assert(parseInt(guid.substr(start, 4), 16) === value);
-        }
         stream.writeUInt16(value);
     }
 }
@@ -95,10 +87,6 @@ function write_UInt8(stream: OutputBinaryStream, guid: string, starts: number[])
         const d2 = hexCharToNum(guid.charCodeAt(start + 1));
         // tslint:disable-next-line: no-bitwise
         const value = (d1 << 4) | d2;
-        if (doDebug) {
-            assert(parseInt(guid.substr(start, 2), 16) === value);
-            console.log(value.toString(16), guid.substr(start, 2));
-        }
         stream.writeUInt8(value);
     }
 }
@@ -132,7 +120,7 @@ function read_many(stream: BinaryStream, func: (stream: BinaryStream) => string,
     return result;
 }
 
-export function decodeGuid(stream: BinaryStream): Guid {
+export function decodeGuid(stream: BinaryStream, value?: Guid): Guid {
     const data1 = read_UInt32(stream);
 
     const data2 = read_UInt16(stream);

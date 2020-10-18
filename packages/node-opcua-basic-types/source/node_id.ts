@@ -22,7 +22,7 @@ const enum EnumNodeIdEncoding {
     Guid = 0x04, // A Guid value.
     ByteString = 0x05, // An opaque (ByteString) value.
     NamespaceUriFlag = 0x80, //  NamespaceUriFlag on  ExpandedNodeId is present
-    ServerIndexFlag = 0x40, //  NamespaceUriFlag on  ExpandedNodeId is present
+    ServerIndexFlag = 0x40 //  NamespaceUriFlag on  ExpandedNodeId is present
 }
 
 function isUInt8(value: number): boolean {
@@ -34,18 +34,15 @@ function isUInt16(value: number): boolean {
 }
 
 function nodeID_encodingByte(nodeId: NodeId): number {
-    if (!nodeId) {
-        return 0;
-    }
-    assert(nodeId.hasOwnProperty("identifierType"));
-
     let encodingByte = 0;
 
     if (nodeId.identifierType === NodeIdType.NUMERIC) {
-        if (isUInt8(nodeId.value as number) &&
+        if (
+            isUInt8(nodeId.value as number) &&
             !nodeId.namespace &&
             !(nodeId as ExpandedNodeId).namespaceUri &&
-            !(nodeId as ExpandedNodeId).serverIndex) {
+            !(nodeId as ExpandedNodeId).serverIndex
+        ) {
             encodingByte = encodingByte | EnumNodeIdEncoding.TwoBytes;
         } else if (
             isUInt16(nodeId.value as number) &&
@@ -74,11 +71,8 @@ function nodeID_encodingByte(nodeId: NodeId): number {
     return encodingByte;
 }
 
-export function isValidNodeId(nodeId: any): boolean {
-    if (nodeId === null || nodeId === void 0) {
-        return false;
-    }
-    return nodeId.hasOwnProperty("identifierType");
+export function isValidNodeId(nodeId: NodeId): boolean {
+    return nodeId instanceof NodeId;
 }
 
 export function randomNodeId(): NodeId {
@@ -88,7 +82,6 @@ export function randomNodeId(): NodeId {
 }
 
 function _encodeNodeId(encodingByte: number, nodeId: NodeId, stream: OutputBinaryStream) {
-
     stream.writeUInt8(encodingByte); // encoding byte
 
     /*jslint bitwise: true */
@@ -96,7 +89,7 @@ function _encodeNodeId(encodingByte: number, nodeId: NodeId, stream: OutputBinar
 
     switch (encodingByte) {
         case EnumNodeIdEncoding.TwoBytes:
-            stream.writeUInt8(nodeId ? nodeId.value as number : 0);
+            stream.writeUInt8(nodeId ? (nodeId.value as number) : 0);
             break;
         case EnumNodeIdEncoding.FourBytes:
             stream.writeUInt8(nodeId.namespace);
@@ -141,39 +134,40 @@ export function encodeExpandedNodeId(expandedNodeId: ExpandedNodeId, stream: Out
     }
 }
 
-function _decodeNodeId(encodingByte: number, stream: BinaryStream): NodeId {
+function _decodeNodeId(encodingByte: number, stream: BinaryStream, _nodeId?: NodeId): NodeId {
     let value;
     let namespace;
-    let nodeIdType;
+    let identifierType;
     /*jslint bitwise: true */
     encodingByte &= 0x3f; // 1 to 5
 
     switch (encodingByte) {
         case EnumNodeIdEncoding.TwoBytes:
             value = stream.readUInt8();
-            nodeIdType = NodeIdType.NUMERIC;
+            identifierType = NodeIdType.NUMERIC;
             break;
         case EnumNodeIdEncoding.FourBytes:
             namespace = stream.readUInt8();
             value = stream.readUInt16();
-            nodeIdType = NodeIdType.NUMERIC;
+            identifierType = NodeIdType.NUMERIC;
             break;
         case EnumNodeIdEncoding.Numeric:
             namespace = stream.readUInt16();
             value = stream.readUInt32();
-            nodeIdType = NodeIdType.NUMERIC;
+            identifierType = NodeIdType.NUMERIC;
             break;
         case EnumNodeIdEncoding.String:
             namespace = stream.readUInt16();
             value = decodeString(stream);
-            nodeIdType = NodeIdType.STRING;
+            identifierType = NodeIdType.STRING;
             break;
         case EnumNodeIdEncoding.ByteString:
             namespace = stream.readUInt16();
             value = decodeByteString(stream);
-            nodeIdType = NodeIdType.BYTESTRING;
+            identifierType = NodeIdType.BYTESTRING;
             break;
         default:
+            // istanbul ignore next
             if (encodingByte !== EnumNodeIdEncoding.Guid) {
                 /*jslint bitwise: true */
                 // console.log(" encoding_byte = 0x" + encodingByte.toString(16),
@@ -184,21 +178,27 @@ function _decodeNodeId(encodingByte: number, stream: BinaryStream): NodeId {
             }
             namespace = stream.readUInt16();
             value = decodeGuid(stream);
-            nodeIdType = NodeIdType.GUID;
+            identifierType = NodeIdType.GUID;
             assert(isValidGuid(value));
             break;
     }
-    return new NodeId(nodeIdType, value, namespace);
+    if (_nodeId === undefined) {
+        return new NodeId(identifierType, value, namespace);
+    }
+    _nodeId.value = value!;
+    _nodeId.identifierType = identifierType;
+    _nodeId.namespace = namespace || 0;
+    return _nodeId;
 }
 
-export function decodeNodeId(stream: BinaryStream): NodeId {
+export function decodeNodeId(stream: BinaryStream, _nodeId?: NodeId): NodeId {
     const encodingByte = stream.readUInt8();
-    return _decodeNodeId(encodingByte, stream);
+    return _decodeNodeId(encodingByte, stream, _nodeId);
 }
 
-export function decodeExpandedNodeId(stream: BinaryStream): ExpandedNodeId {
+export function decodeExpandedNodeId(stream: BinaryStream, _nodeId?: ExpandedNodeId): ExpandedNodeId {
     const encodingByte = stream.readUInt8();
-    const expandedNodeId = _decodeNodeId(encodingByte, stream) as ExpandedNodeId;
+    const expandedNodeId = _decodeNodeId(encodingByte, stream, _nodeId) as ExpandedNodeId;
     expandedNodeId.namespaceUri = null;
     expandedNodeId.serverIndex = 0;
 

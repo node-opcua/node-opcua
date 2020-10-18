@@ -19,5 +19,5 @@ export function roundToFloat2(float: number): number {
     const nbDigits = Math.ceil(Math.log(Math.abs(float)) / Math.log(10));
     const scale = Math.pow(10, -nbDigits + 2);
     return Math.round(float * scale) / scale;
+    // return (float > 0 && r < 0) || (float < 0 && r > 0) ? -r : r;
 }
-

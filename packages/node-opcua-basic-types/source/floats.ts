@@ -43,7 +43,7 @@ export function encodeFloat(value: Float, stream: OutputBinaryStream): void {
     stream.writeFloat(value);
 }
 
-export function decodeFloat(stream: BinaryStream): Float {
+export function decodeFloat(stream: BinaryStream, value?: number): Float {
     return stream.readFloat();
 }
 
@@ -64,19 +64,25 @@ export function encodeDouble(value: Double, stream: OutputBinaryStream) {
     stream.writeDouble(value);
 }
 
-export function decodeDouble(stream: BinaryStream) {
+export function decodeDouble(stream: BinaryStream, value?: number) {
     return stream.readDouble();
 }
 
-export function coerceFloat(value: any): Float {
+export function coerceFloat(value: number | null | string): Float {
     if (value === null || value === undefined) {
+        return 0.0;
+    }
+    if (typeof value === "number") {
         return value;
     }
     return parseFloat(value);
 }
 
-export function coerceDouble(value: any): Double {
+export function coerceDouble(value: number | null | string): Double {
     if (value === null || value === undefined) {
+        return 0.0;
+    }
+    if (typeof value === "number") {
         return value;
     }
     return parseFloat(value);
