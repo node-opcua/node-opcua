@@ -330,7 +330,6 @@ export class OPCUABaseServer extends OPCUASecureObject {
         let endpoints: EndpointDescription[] = [];
         for (const endPoint of this.endpoints) {
             const ep = endPoint.endpointDescriptions();
-            //xx ep.map((e) => console.log("xxxxxx =>", e.endpointUrl, endpointUrl || "<null>", e.securityMode, e.securityPolicyUri));
             const epFiltered = endpointUrl ? ep.filter((e) => e.endpointUrl === endpointUrl) : ep;
             endpoints = endpoints.concat(epFiltered);
         }

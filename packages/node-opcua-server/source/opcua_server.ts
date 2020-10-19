@@ -737,7 +737,7 @@ export interface OPCUAServerOptions extends OPCUABaseServerOptions, OPCUAServerE
     discoveryServerEndpointUrl?: string;
     /**
      *
-     *  supported server capabilities for the Mutlicast (mDNS)
+     *  supported server capabilities for the Multicast (mDNS)
      *  @default ["NA"]
      *  the possible values are any of node-opcua-discovery.serverCapabilities)
      *
@@ -810,7 +810,7 @@ export class OPCUAServer extends OPCUABaseServer {
      * one of the provided endpoint.
      * This mean that if the server expose a endpoint with url such as opc.tcp://MYHOSTNAME:1234, client will not be able to reach the server
      * with the ip address of the server.
-     * requestExactEndpointUrl = true => emulates the Prosys Server behavior whereas
+     * requestExactEndpointUrl = true => emulates the Prosys Server behavior
      * requestExactEndpointUrl = false => emulates the Unified Automation behavior.
      */
     static requestExactEndpointUrl: boolean = g_requestExactEndpointUrl;
@@ -933,7 +933,7 @@ export class OPCUAServer extends OPCUABaseServer {
     public maxConnectionsPerEndpoint: number;
 
     /**
-     * false if anonymouse connection are not allowed
+     * false if anonymous connection are not allowed
      */
     public allowAnonymous: boolean = false;
 
@@ -1027,10 +1027,11 @@ export class OPCUAServer extends OPCUABaseServer {
 
             endpointDefinitions.push({
                 port: options.port || 26543,
-                hostname: options.hostname || hostname,
+
                 allowAnonymous: options.allowAnonymous,
                 alternateHostname: options.alternateHostname,
                 disableDiscovery: options.disableDiscovery,
+                hostname: options.hostname || hostname,
                 securityModes: options.securityModes,
                 securityPolicies: options.securityPolicies
             });
@@ -1619,7 +1620,7 @@ export class OPCUAServer extends OPCUABaseServer {
         }
         if (nonceAlreadyBeenUsed(request.clientNonce)) {
             errorLog(
-                chalk.red("SERVER with secure connection: Nonee has already been used"),
+                chalk.red("SERVER with secure connection: None has already been used"),
                 request.clientNonce && request.clientNonce.toString("hex")
             );
 
@@ -1680,9 +1681,7 @@ export class OPCUAServer extends OPCUABaseServer {
                 }
             }
             // ignore restricted endpoints
-            endpoints = endpoints.filter((endpoint: EndpointDescription) => {
-                return !(endpoint as any).restricted;
-            });
+            endpoints = endpoints.filter((e: EndpointDescription) => !(e as any).restricted);
 
             const endpoints_matching_security_mode = endpoints.filter((e: EndpointDescription) => {
                 return e.securityMode === channel1.securityMode;
@@ -3363,7 +3362,7 @@ export class OPCUAServer extends OPCUABaseServer {
         if (!endpointOptions) {
             throw new Error("internal error");
         }
-        var hostname = getFullyQualifiedDomainName();
+        const hostname = getFullyQualifiedDomainName();
         endpointOptions.hostname = endpointOptions.hostname || hostname;
         endpointOptions.port = endpointOptions.port || 26543;
 
@@ -3393,6 +3392,7 @@ export class OPCUAServer extends OPCUABaseServer {
             securityPolicies: endpointOptions.securityPolicies,
 
             hostname: endpointOptions.hostname,
+
             alternateHostname,
 
             disableDiscovery: !!endpointOptions.disableDiscovery,
