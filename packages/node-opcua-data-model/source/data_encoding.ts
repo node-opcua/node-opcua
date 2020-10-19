@@ -13,8 +13,11 @@ export function isValidDataEncoding(dataEncoding?: string | null | QualifiedName
         return true;
     }
 
-    if ((dataEncoding as any).name) {
+    if ((dataEncoding as any).hasOwnProperty("name")) {
         dataEncoding = (dataEncoding as QualifiedNameOptions).name;
+    }
+    if (!dataEncoding) {
+        return true;
     }
     return validEncoding.indexOf(dataEncoding as string) !== -1;
 }
