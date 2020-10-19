@@ -117,7 +117,7 @@ export class Variant extends BaseUAObject {
         this.dataType = options2.dataType;
         this.arrayType = options2.arrayType;
         this.value = initialize_field(schema.fields[2], options2.value);
-        this.dimensions = options2.dimensions;
+        this.dimensions = options2.dimensions || null;
 
         if (this.dataType === DataType.ExtensionObject) {
             if (this.arrayType === VariantArrayType.Scalar) {

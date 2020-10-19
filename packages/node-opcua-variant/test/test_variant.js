@@ -1558,6 +1558,14 @@ describe("testing variant JSON conversion", () => {
 
     });
 
+    it("dimensions shall be set to null if not specified ", () => {
+        const variant = new Variant({
+            dataType: DataType.StatusCode,
+            value: StatusCodes.BadConditionDisabled
+        });
+        should(variant.dimensions).eql(null);
+    });
+
 });
 
 describe("testing isValidVariant", () => {
