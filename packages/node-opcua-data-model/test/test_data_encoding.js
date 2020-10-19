@@ -12,6 +12,7 @@ describe("DataEncoding", () => {
         isValidDataEncoding({ name: "DefaultXml" }).should.eql(true);
         isValidDataEncoding({ name: "DefaultJson" }).should.eql(true);
         isValidDataEncoding({ name: "DefaultStuff" }).should.eql(false);
+        isValidDataEncoding({ name: null }).should.eql(truegi);
         isValidDataEncoding("DefaultBinary").should.eql(true);
         isValidDataEncoding("DefaultXml").should.eql(true);
         isValidDataEncoding("DefaultJson").should.eql(true);
