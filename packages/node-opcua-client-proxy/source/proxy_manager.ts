@@ -38,32 +38,32 @@ function getObject(proxyManager: UAProxyManager, nodeId: NodeIdLike | NodeId, op
     const nodesToRead = [
         {
             attributeId: AttributeIds.BrowseName,
-            nodeId,
+            nodeId
         },
         {
             attributeId: AttributeIds.Description,
-            nodeId,
+            nodeId
         },
         {
             attributeId: AttributeIds.NodeClass,
-            nodeId,
-        },
+            nodeId
+        }
     ];
 
     function read_accessLevels(clientObject: any, callback: ErrorCallback) {
         const nodesToRead = [
             {
                 attributeId: AttributeIds.Value,
-                nodeId,
+                nodeId
             },
             {
                 attributeId: AttributeIds.UserAccessLevel,
-                nodeId,
+                nodeId
             },
             {
                 attributeId: AttributeIds.AccessLevel,
-                nodeId,
-            },
+                nodeId
+            }
         ];
 
         session.read(nodesToRead, (err: Error | null, dataValues?: DataValue[]) => {
@@ -121,7 +121,13 @@ function getObject(proxyManager: UAProxyManager, nodeId: NodeIdLike | NodeId, op
             (callback: ErrorCallback) => {
                 // install monitored item
                 if (clientObject.nodeClass === NodeClass.Variable) {
-                    // xx console.log("xxxx -> ???", clientObject.nodeId.toString(), clientObject.nodeClass.toString());
+                    /*console.log(
+                        "xxxx -> monitoring",
+                        clientObject.nodeId.toString(),
+                        clientObject.nodeClass.toString(),
+                        clientObject.browseName.toString()
+                    );
+                    */
                     return proxyManager._monitor_value(clientObject, callback);
                 }
                 callback();
@@ -129,7 +135,7 @@ function getObject(proxyManager: UAProxyManager, nodeId: NodeIdLike | NodeId, op
 
             (callback: ErrorCallback) => {
                 readUAStructure(proxyManager, clientObject, callback);
-            },
+            }
 
             //
         ],
@@ -159,21 +165,11 @@ export interface IClientMonitoredItemBase {
     on(eventName: "changed", eventHandler: (data: DataValue | Variant[]) => void): void;
 }
 export interface IBasicSessionWithSubscription extends IBasicSession {
+    write(nodeToWrite: WriteValueOptions, callback: CallbackT<StatusCode>): void;
 
-    write(
-        nodeToWrite: WriteValueOptions,
-        callback: CallbackT<StatusCode>
-    ): void;
+    write(nodeToWrite: WriteValueOptions[], callback: CallbackT<StatusCode[]>): void;
 
-    write(
-        nodeToWrite: WriteValueOptions[],
-        callback: CallbackT<StatusCode[]>
-    ): void;
-        
-    createSubscription2(
-        options: CreateSubscriptionRequestOptions, 
-        callback: CallbackT<IClientSubscription>
-    ): void;
+    createSubscription2(options: CreateSubscriptionRequestOptions, callback: CallbackT<IClientSubscription>): void;
 }
 
 // tslint:disable-next-line: max-classes-per-file
@@ -199,22 +195,19 @@ export class UAProxyManager {
             publishingEnabled: true,
             requestedLifetimeCount: 6000,
             requestedMaxKeepAliveCount: 100,
-            requestedPublishingInterval: 100,
+            requestedPublishingInterval: 100
         };
 
-        this.session.createSubscription2(
-            createSubscriptionRequest,
-            (err: Error | null, subscription?: IClientSubscription) => {
-                if (err) {
-                    return callback(err);
-                }
-                this.subscription = subscription!;
-                this.subscription!.on("terminated", () => {
-                    this.subscription = undefined;
-                });
-                callback();
+        this.session.createSubscription2(createSubscriptionRequest, (err: Error | null, subscription?: IClientSubscription) => {
+            if (err) {
+                return callback(err);
             }
-        );
+            this.subscription = subscription!;
+            this.subscription!.on("terminated", () => {
+                this.subscription = undefined;
+            });
+            callback();
+        });
     }
 
     public async stop(): Promise<void>;
@@ -264,6 +257,7 @@ export class UAProxyManager {
 
     public _monitor_value(proxyObject: any, callback: ErrorCallback) {
         if (!this.subscription) {
+            // debugLog("cannot monitor _monitor_value: no subscription");
             // some server do not provide subscription support, do not treat this as an error.
             return callback(); // new Error("No subscription"));
         }
@@ -271,13 +265,13 @@ export class UAProxyManager {
         const itemToMonitor: ReadValueIdOptions = {
             // ReadValueId
             attributeId: AttributeIds.Value,
-            nodeId: proxyObject.nodeId,
+            nodeId: proxyObject.nodeId
         };
         const monitoringParameters: MonitoringParametersOptions = {
             // MonitoringParameters
             discardOldest: true,
             queueSize: 10,
-            samplingInterval: 0 /* event-based */,
+            samplingInterval: 0 /* event-based */
         };
         const requestedParameters = TimestampsToReturn.Both;
 
@@ -288,10 +282,13 @@ export class UAProxyManager {
 
             (err: Error | null, monitoredItem?: IClientMonitoredItemBase) => {
                 Object.defineProperty(proxyObject, "__monitoredItem", { value: monitoredItem, enumerable: false });
-
                 proxyObject.__monitoredItem.on("changed", (dataValue: DataValue) => {
                     proxyObject.dataValue = dataValue;
                     proxyObject.emit("value_changed", dataValue);
+                });
+                proxyObject.__monitoredItem.on("err", (err: Error) => {
+                    // tslint:disable-next-line: no-console
+                    console.log("Proxy: cannot monitor variable ", itemToMonitor.nodeId?.toString(), err.message);
                 });
                 callback(err!);
             }
@@ -310,14 +307,14 @@ export class UAProxyManager {
         const itemToMonitor = {
             // ReadValueId
             attributeId: AttributeIds.Executable,
-            nodeId: proxyObject.nodeId,
+            nodeId: proxyObject.nodeId
         };
 
         const monitoringParameters = {
             // MonitoringParameters
             discardOldest: true,
             queueSize: 10,
-            samplingInterval: 0 /* event-based */,
+            samplingInterval: 0 /* event-based */
         };
         const requestedParameters = TimestampsToReturn.Neither;
 
@@ -328,7 +325,8 @@ export class UAProxyManager {
             (err: Error | null, monitoredItem?: IClientMonitoredItemBase) => {
                 Object.defineProperty(proxyObject, "__monitoredItem_execution_flag", {
                     value: monitoredItem,
-                    enumerable: false,
+
+                    enumerable: false
                 });
 
                 proxyObject.__monitoredItem_execution_flag.on("changed", (dataValue: DataValue) => {

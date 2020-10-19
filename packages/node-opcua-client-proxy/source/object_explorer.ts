@@ -202,7 +202,7 @@ function add_method(proxyManager: UAProxyManager, obj: any, reference: Reference
 
     function extractDataType(arg: any, callback: any): void {
         if (arg.dataType && arg.dataType._dataType) {
-            setImmediate(callback); // already convertedr
+            setImmediate(callback); // already converted
             return;
         }
 
