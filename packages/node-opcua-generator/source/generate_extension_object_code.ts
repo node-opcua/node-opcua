@@ -9,7 +9,8 @@ import * as chalk from "chalk";
 import * as fs from "fs";
 import * as os from "os";
 import { promisify } from "util";
-import * as prettier from "prettier";
+// import * as prettier from "prettier";
+
 import { assert } from "node-opcua-assert";
 import { DataTypeIds, ObjectIds } from "node-opcua-constants";
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
@@ -339,7 +340,8 @@ import {
 
         write(``);
         f.saveFormat(generatedTypescriptFilename, (code) => {
-            //  return code;
+            return code;
+            /*
             const options: prettier.Options = {
                 bracketSpacing: true,
                 insertPragma: true,
@@ -347,6 +349,7 @@ import {
                 printWidth: 120
             };
             return prettier.format(code, options).replace("\n", os.EOL);
+            */
         });
     } catch (err) {
         throw err;

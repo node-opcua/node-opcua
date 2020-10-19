@@ -25,6 +25,7 @@ import { make_debugLog } from "node-opcua-debug";
 import { coerceNodeId, NodeId } from "node-opcua-nodeid";
 import { capitalizeFirstLetter } from "node-opcua-utils";
 
+import { makeWrite, WriteFunc } from "./utils/write_func";
 import { LineFile1, normalize_require_file } from "./utils/index";
 
 const produceComment = false;
@@ -880,6 +881,8 @@ export function produce_TScript_code(schema: StructuredTypeSchema, localSchemaFi
     writeStructuredType(write, schema);
 
     f.saveFormat(generatedTypescriptFilename, (code) => {
+        return code;
+        /*
         const options: prettier.Options = {
             bracketSpacing: true,
             insertPragma: true,
@@ -887,8 +890,6 @@ export function produce_TScript_code(schema: StructuredTypeSchema, localSchemaFi
             printWidth: 120
         };
         return prettier.format(code, options);
-        // return code;
+        */
     });
 }
-import * as prettier from "prettier";
-import { makeWrite, WriteFunc } from "./utils/write_func";
