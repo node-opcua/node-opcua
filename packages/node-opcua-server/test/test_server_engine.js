@@ -22,6 +22,7 @@ const {
     QualifiedName,
     AttributeIds,
     BrowseDirection,
+    LocalizedText,
     ResultMask
 } = require("node-opcua-data-model");
 const {
@@ -1936,7 +1937,7 @@ describe("testing ServerEngine", () => {
                     const serverStatus = dataValues[0].value.value;
 
                     serverStatus.state.should.eql(ServerState.Running);
-                    serverStatus.shutdownReason.text.should.eql("");
+                    serverStatus.shutdownReason.should.eql(new LocalizedText({ locale: null, text: null }));
 
                     serverStatus.buildInfo.productName.should.equal("NODEOPCUA-SERVER");
                     serverStatus.buildInfo.softwareVersion.should.equal("1.0");
