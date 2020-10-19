@@ -1,13 +1,16 @@
-const coerceNodeId = require("..").coerceNodeId;
-const resolveNodeId = require("..").resolveNodeId;
-const makeNodeId = require("..").makeNodeId;
-const NodeIdType = require("..").NodeIdType;
-const NodeId = require("..").NodeId;
-const sameNodeId = require("..").sameNodeId;
+const {
+    coerceNodeId,
+    resolveNodeId,
+    makeNodeId,
+    NodeIdType,
+    NodeId,
+    sameNodeId
+} = require("..");
 
 const should = require("should");
 const { assert } = require("node-opcua-assert");
-const Benchmarker = require("node-opcua-benchmarker").Benchmarker;
+const { Benchmarker } = require("node-opcua-benchmarker");
+const { removeDecoration } = require("node-opcua-debug");
 
 describe("testing NodeIds", function() {
     it("should create a NUMERIC nodeID", function() {
@@ -55,14 +58,14 @@ describe("testing NodeIds", function() {
         nodeId.toString().should.eql("ns=4;b=<null>");
     });
 
-    it("should enriched  NodeId#toString", () => {
+    it("NodeId#toString with addressSpace object (standard Nodes) 0", () => {
         const nodeId = new NodeId(NodeIdType.NUMERIC, 2254, 0);
-        nodeId.toString({ addressSpace: "Hello" })
-            .should.eql("ns=0;i=2254 \u001b[32m\u001b[1mServer_ServerArray\u001b[22m\u001b[39m"
+        removeDecoration(nodeId.toString({ addressSpace: "Hello" }))
+            .should.eql("ns=0;i=2254 Server_ServerArray"
             );
         nodeId.displayText().should.eql("Server_ServerArray (ns=0;i=2254)");
     });
-    it("should enriched  NodeId#toString 2", () => {
+    it("NodeId#toString with addressSpace object (findNode) 2", () => {
         const addressSpace = {
             findNode() {
                 return { browseName: "Hello" }
