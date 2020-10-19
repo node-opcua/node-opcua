@@ -90,7 +90,6 @@ describe("testing monitoring Executable flags on methods", function() {
                 },
 
                 function(callback) {
-                    //xx var smType = "BoilerStateMachineType";
                     const smType = "ProgramStateMachineType";
                     proxyManager.getStateMachineType(smType, function(err, obj) {
 
@@ -117,10 +116,7 @@ describe("testing monitoring Executable flags on methods", function() {
                     }
                     proxyManager.getObject(nodeId, function(err, data) {
                         if (!err) {
-
                             boiler = data;
-                            //xx console.log("xXXXXX",hvac);
-
                             if (doDebug) {
                                 console.log("Current State", boiler.simulation.currentState.toString());
                             }
@@ -130,7 +126,6 @@ describe("testing monitoring Executable flags on methods", function() {
                                 }
                                 callback(err);
                             });
-
                             return;
                         }
                         callback(err);
@@ -158,6 +153,9 @@ describe("testing monitoring Executable flags on methods", function() {
                 },
 
                 function(callback) {
+
+                    console.log(boiler.simulation.currentState.toString());
+
                     boiler.simulation.currentState.dataValue.value.value.text.should.eql("Ready");
 
                     boiler.simulation.$methods["start"].executableFlag.should.eql(true, "When system is Ready, start method shall be executable");
