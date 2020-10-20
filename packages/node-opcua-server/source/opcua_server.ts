@@ -1191,9 +1191,9 @@ export class OPCUAServer extends OPCUABaseServer {
         const shutdownTime = new Date(Date.now() + timeout);
         this.engine.setShutdownTime(shutdownTime);
 
-        debugLog("OPCUServer is now unregistering itself from  the discovery server " + this.buildInfo);
+        debugLog("OPCUAServer is now unregistering itself from  the discovery server " + this.buildInfo);
         this.registerServerManager!.stop((err?: Error) => {
-            debugLog("OPCUServer unregistered from discovery server", err);
+            debugLog("OPCUAServer unregistered from discovery server", err);
             setTimeout(() => {
                 this.engine.shutdown();
 
@@ -1927,6 +1927,9 @@ export class OPCUAServer extends OPCUABaseServer {
             return rejectConnection(StatusCodes.BadSessionIdInvalid);
         }
 
+        // tslint:disable-next-line: no-unused-expression
+        session.keepAlive ? session.keepAlive() : void 0;
+
         // OpcUA 1.02 part 3 $5.6.3.1 ActiveSession Set page 29
         // When the ActivateSession  Service  is called f or the first time then the Server shall reject the request
         // if the  SecureChannel  is not same as the one associated with the  CreateSession  request.
@@ -2104,11 +2107,11 @@ export class OPCUAServer extends OPCUABaseServer {
         // --- check that session is correct
         const authenticationToken = request.requestHeader.authenticationToken;
         const session = server.getSession(authenticationToken, /*activeOnly*/ true);
-        message.session = session;
         if (!session) {
             message.session_statusCode = StatusCodes.BadSessionIdInvalid;
             return;
         }
+        message.session = session;
 
         // --- check that provided session matches session attached to channel
         if (channel.channelId !== session.channelId) {
@@ -2208,10 +2211,12 @@ export class OPCUAServer extends OPCUABaseServer {
         // (Sessions are terminated by the Server automatically if the Client fails to issue a Service
         // request on the Session within the timeout period negotiated by the Server in the
         // CreateSession Service response. )
-        assert(typeof message.session.keepAlive === "function");
-        message.session.keepAlive();
+        if (message.session.keepAlive) {
+            assert(typeof message.session.keepAlive === "function");
+            message.session.keepAlive();
+        }
         message.session.incrementTotalRequestCount();
-        await action_to_perform(message.session, sendResponse, sendError);
+        await action_to_perform(message.session as ServerSession, sendResponse, sendError);
     }
 
     /**

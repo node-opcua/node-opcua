@@ -48,6 +48,7 @@ function hasExpired(watchDogData: IWatchdogData2, currentTime: ArbitraryClockTic
 
 function keepAliveFunc(this: ISubscriber) {
     assert(this._watchDog instanceof WatchDog);
+    // istanbul ignore next
     if (!this._watchDogData || !this._watchDog) {
         throw new Error("Internal error");
     }
@@ -186,7 +187,7 @@ export class WatchDog extends EventEmitter {
 
     private _start_timer(): void {
         assert(this._timer === null, " setInterval already called ?");
-        this._timer = setInterval(this._visitSubscriberB, 1000) as NodeJS.Timer;
+        this._timer = setInterval(this._visitSubscriberB, 1000);
     }
 
     private _stop_timer(): void {

@@ -1387,10 +1387,11 @@ export class ServerEngine extends EventEmitter {
         this.clientDescription = options.clientDescription || new ApplicationDescription({});
 
         const sessionTimeout = options.sessionTimeout || 1000;
-
         assert(typeof sessionTimeout === "number");
 
         const session = new ServerSession(this, sessionTimeout);
+
+        debugLog("createSession :sessionTimeout = ", session.sessionTimeout);
 
         const key = session.authenticationToken.toString();
 
