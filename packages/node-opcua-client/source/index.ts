@@ -19,7 +19,6 @@ export * from "./alarms_and_conditions/client_alarm_tools_acknowledge_all_condit
 export * from "./tools/findservers";
 export * from "./tools/read_history_server_capabilities";
 export * from "./client_utils";
-
 export { assert } from "node-opcua-assert";
 export * from "node-opcua-utils";
 
@@ -39,8 +38,14 @@ export { hexDump } from "node-opcua-debug";
 
 ///
 export {
-    NodeId, resolveNodeId, makeNodeId, coerceNodeId, sameNodeId,
-    ExpandedNodeId, makeExpandedNodeId, coerceExpandedNodeId
+    NodeId,
+    resolveNodeId,
+    makeNodeId,
+    coerceNodeId,
+    sameNodeId,
+    ExpandedNodeId,
+    makeExpandedNodeId,
+    coerceExpandedNodeId
 } from "node-opcua-nodeid";
 export { StatusCode, StatusCodes } from "node-opcua-status-code";
 export * from "node-opcua-variant";
@@ -64,5 +69,5 @@ export * from "node-opcua-service-subscription";
 export * from "node-opcua-service-translate-browse-path";
 export * from "node-opcua-service-write";
 export * from "node-opcua-service-filter";
-export { IBasicSession } from "node-opcua-pseudo-session";
+export { IBasicSession, browseAll } from "node-opcua-pseudo-session";
 export * from "node-opcua-client-dynamic-extension-object";

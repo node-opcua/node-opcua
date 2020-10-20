@@ -23,7 +23,7 @@ import {
     EnumerationDefinitionSchema
 } from "node-opcua-factory";
 import { ExpandedNodeId, makeExpandedNodeId, NodeId, resolveNodeId, sameNodeId } from "node-opcua-nodeid";
-import { BrowseDescriptionLike, IBasicSession, ReadValueIdLike } from "node-opcua-pseudo-session";
+import { browseAll, BrowseDescriptionLike, IBasicSession, ReadValueIdLike } from "node-opcua-pseudo-session";
 import {
     createDynamicObjectConstructor,
     DataTypeAndEncodingId,
@@ -64,28 +64,6 @@ async function _readNamespaceUriProperty(session: IBasicSession, dataTypeDiction
     return dataValue.value.value || "<not set>";
 }
 
-async function browseAll(session: IBasicSession, nodeToBrowse: BrowseDescriptionLike): Promise<BrowseResult>;
-async function browseAll(session: IBasicSession, nodesToBrowse: BrowseDescriptionLike[]): Promise<BrowseResult[]>;
-async function browseAll(session: IBasicSession, nodesToBrowse: BrowseDescriptionLike[] | BrowseDescriptionLike): Promise<any> {
-    if (!(nodesToBrowse instanceof Array)) {
-        return (await browseAll(session, [nodesToBrowse]))[0];
-    }
-    if (nodesToBrowse.length === 0) {
-        return [];
-    }
-    const results = await session.browse(nodesToBrowse);
-
-    for (const result of results) {
-        let continuationPoint = result.continuationPoint;
-        while (continuationPoint) {
-            debugLog("  Continuation points");
-            const result2 = await session.browseNext(result.continuationPoint, false);
-            result.references!.push.apply(result.references, result2.references || []);
-            continuationPoint = result2.continuationPoint;
-        }
-    }
-    return results;
-}
 async function _getDataTypeDescriptions(session: IBasicSession, dataTypeDictionaryNodeId: NodeId): Promise<IDataTypeDescription[]> {
     const nodeToBrowse2: BrowseDescriptionLike = {
         browseDirection: BrowseDirection.Forward,
@@ -531,6 +509,7 @@ export async function populateDataTypeManager(session: IBasicSession, dataTypeMa
 
     // istanbul ignore next
     if (!namespaceArray) {
+        console.log("session: cannot read Server_NamespaceArray");
         // throw new Error("Cannot get Server_NamespaceArray as a array of string");
         return;
     }
