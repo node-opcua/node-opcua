@@ -119,6 +119,35 @@ describe("test readAggregateValue", () => {
         });
     });
 
+    it("RHA should calculate aggregate(multi) of multiple nodeId", async () => {
+
+        const client = OPCUAClient.create({
+            endpoint_must_exist: false
+        });
+
+        const parameters = {};
+        await client.withSubscriptionAsync(endpointUrl, parameters, async (session: ClientSession, subscription: ClientSubscription) => {
+
+            const nodeToRead: ReadValueIdOptions[] = [{ nodeId: h1NodeId },{ nodeId: h1NodeId }];
+            const aggregateFn = [AggregateFunction.Maximum, AggregateFunction.Minimum];
+
+            const startTime = makeDate("12:00:00");
+            const endTime = makeDate("12:01:40");
+
+            const processingInterval = 16 * 1000;
+            const resultMaxMin = await session.readAggregateValue(
+                nodeToRead,
+                startTime,
+                endTime,
+                aggregateFn,
+                processingInterval);
+
+            resultMaxMin[0].statusCode.should.eql(StatusCodes.Good);
+            resultMaxMin[1].statusCode.should.eql(StatusCodes.Good);
+
+        });
+    });
+
 
     it("RHV readHistoryValue - form 1", async () =>{
         const client = OPCUAClient.create({
