@@ -32,7 +32,7 @@ import { WatchDog } from "node-opcua-utils";
 import { lowerFirstLetter } from "node-opcua-utils";
 import { ISubscriber, IWatchdogData2 } from "node-opcua-utils";
 
-import { ServerSecureChannelLayer } from "node-opcua-secure-channel";
+import { IServerSession, ServerSecureChannelLayer } from "node-opcua-secure-channel";
 import { ApplicationDescription, UserIdentityToken, CreateSubscriptionRequestOptions, EndpointDescription } from "node-opcua-types";
 
 import { ServerSidePublishEngine } from "./server_publish_engine";
@@ -91,7 +91,7 @@ interface SessionSecurityDiagnosticsDataTypeEx extends SessionSecurityDiagnostic
  *   SessionDiagnosticsArray Variable and notifies any other Clients who were subscribed to this entry.
  *
  */
-export class ServerSession extends EventEmitter implements ISubscriber, ISessionBase {
+export class ServerSession extends EventEmitter implements ISubscriber, ISessionBase, IServerSession {
     public static registry = new ObjectRegistry();
     public static maxPublishRequestInQueue: number = 100;
 
@@ -118,6 +118,7 @@ export class ServerSession extends EventEmitter implements ISubscriber, ISession
     // ISubscriber
     public _watchDog?: WatchDog;
     public _watchDogData?: IWatchdogData2;
+    keepAlive: () => void = WatchDog.emptyKeepAlive;
 
     private _registeredNodesCounter: number;
     private _registeredNodes: any;

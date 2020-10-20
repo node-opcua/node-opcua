@@ -110,12 +110,19 @@ export interface SeverSecureChannelLayerOptions {
     objectFactory?: ObjectFactory;
 }
 
+export interface IServerSession {
+    keepAlive?: () => void;
+    status: string;
+    incrementTotalRequestCount(): void;
+    incrementRequestErrorCounter(counterName: string): void;
+    incrementRequestTotalCounter(counterName: string): void;
+}
 export interface Message {
     request: Request;
     requestId: number;
     securityHeader?: SecurityHeader;
     channel?: ServerSecureChannelLayer;
-    session?: any;
+    session?: IServerSession;
     session_statusCode?: StatusCode;
 }
 
