@@ -97,7 +97,7 @@ describe("addExtensionObjectDataType", function (this: any) {
         const csv = (ns as any)._nodeIdManager.getSymbolCSV();
         await writeFile(tmpCSVFile, csv, "utf-8");
 
-        // should be possible to create o bject
+        // should be possible to create object
         const o = addressSpace.constructExtensionObject(dataType, { name: "JoeDoe" });
 
         if (doDebug) {

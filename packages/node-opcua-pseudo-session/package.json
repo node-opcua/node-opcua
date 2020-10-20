@@ -19,6 +19,7 @@
         "node-opcua-service-read": "2.21.0",
         "node-opcua-service-translate-browse-path": "2.21.0",
         "node-opcua-service-write": "2.21.0",
+        "node-opcua-constants": "2.16.0",
         "node-opcua-status-code": "2.17.0",
         "node-opcua-utils": "2.20.0",
         "node-opcua-variant": "2.21.0"
