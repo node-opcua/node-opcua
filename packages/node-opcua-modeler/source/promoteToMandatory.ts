@@ -8,11 +8,12 @@ import {
     UAReferenceType,
     UAVariable,
     UAVariableType,
-    ModellingRuleType,
+    ModellingRuleType
 } from "node-opcua-address-space";
 import { NodeClass } from "node-opcua-data-model";
 import { makeBrowsePath } from "node-opcua-service-translate-browse-path";
-import { displayNodeElement } from ".";
+
+import { displayNodeElement } from "./displayNodeElement";
 
 type UAType = UAObjectType | UAVariableType | UAReferenceType | UADataType;
 
@@ -25,21 +26,21 @@ function findReferenceToNode(node1: BaseNode, node2: BaseNode): UAReference {
         return reference.nodeId.toString() === node2.nodeId.toString();
     });
     const ref = r ? r[0] : null;
-    /* instanbul ignore next */
+    /* istanbul ignore next */
     if (!ref) {
         // may be from subtype
-        if (node1.nodeClass === NodeClass.ObjectType ||
+        if (
+            node1.nodeClass === NodeClass.ObjectType ||
             node1.nodeClass === NodeClass.ReferenceType ||
-            node1.nodeClass === NodeClass.VariableType) {
-
+            node1.nodeClass === NodeClass.VariableType
+        ) {
             const uaType = node1 as UAType;
             if (uaType.subtypeOfObj) {
                 return findReferenceToNode(uaType.subtypeOfObj, node2);
             }
         }
 
-        throw new Error("Internal Error cannot find ref from node "
-            + node1.nodeId.toString() + " " + node2.nodeId.toString());
+        throw new Error("Internal Error cannot find ref from node " + node1.nodeId.toString() + " " + node2.nodeId.toString());
     }
     return ref;
 }
@@ -48,8 +49,7 @@ export function getChildInTypeOrBaseType(
     node: UAObjectType | UAVariableType,
     propertyName: string,
     namespaceIndex: number
-): { propInSuperType: UAConcrete, reference: UAReference } {
-
+): { propInSuperType: UAConcrete; reference: UAReference } {
     const addressSpace = node.addressSpace;
 
     const subtypeOf = node.subtypeOfObj!;
@@ -59,7 +59,7 @@ export function getChildInTypeOrBaseType(
     }
 
     const browseResult = addressSpace.browsePath(makeBrowsePath(subtypeOf.nodeId, `.${namespaceIndex}:${propertyName}`));
-    const propNodeId = (!browseResult.targets || !browseResult.targets[0]) ? null : browseResult.targets[0].targetId!;
+    const propNodeId = !browseResult.targets || !browseResult.targets[0] ? null : browseResult.targets[0].targetId!;
 
     /* istanbul ignore next */
     if (!propNodeId) {
@@ -83,10 +83,7 @@ export function getChildInTypeOrBaseType(
     return { propInSuperType, reference };
 }
 
-export function promoteToMandatory(
-    node: UAObjectType | UAVariableType,
-    propertyName: string,
-    namespaceIndex: number): UAConcrete {
+export function promoteToMandatory(node: UAObjectType | UAVariableType, propertyName: string, namespaceIndex: number): UAConcrete {
     // get base node
 
     const { propInSuperType, reference } = getChildInTypeOrBaseType(node, propertyName, namespaceIndex);
@@ -105,10 +102,14 @@ export function promoteToMandatory(
         referenceType: reference.referenceType
     };
 
-    const newProp = (propInSuperType as UAConcrete).clone({
-        modellingRule: "Mandatory",
-        references: [newRef],
-    }, null, null);
+    const newProp = (propInSuperType as UAConcrete).clone(
+        {
+            modellingRule: "Mandatory",
+            references: [newRef]
+        },
+        null,
+        null
+    );
     return newProp;
 }
 
@@ -118,7 +119,6 @@ export function promoteChild(
     namespaceIndex: number,
     modellingRule: ModellingRuleType
 ): UAConcrete {
-
     const { propInSuperType, reference } = getChildInTypeOrBaseType(node, propertyName, namespaceIndex);
 
     if (!modellingRule) {
@@ -131,9 +131,13 @@ export function promoteChild(
         referenceType: reference.referenceType
     };
 
-    const newProp = (propInSuperType as UAConcrete).clone({
-        modellingRule,
-        references: [newRef],
-    }, null, null);
+    const newProp = (propInSuperType as UAConcrete).clone(
+        {
+            modellingRule,
+            references: [newRef]
+        },
+        null,
+        null
+    );
     return newProp;
 }

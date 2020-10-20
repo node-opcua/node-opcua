@@ -2,7 +2,7 @@
  * @module node-opcua-basic-types
  */
 
-import { BinaryStream, OutputBinaryStream } from "node-opcua-binary-stream" ;
+import { BinaryStream, OutputBinaryStream } from "node-opcua-binary-stream";
 
 import { getRandomInt } from "./utils";
 
@@ -19,11 +19,11 @@ export function randomString(): string {
     return cars.join("");
 }
 
-export function decodeString(stream: BinaryStream): string | null {
+export function decodeString(stream: BinaryStream, value?: string | null): string | null {
     return stream.readString();
 }
 
-export function encodeString(value: null|string, stream: OutputBinaryStream): void {
+export function encodeString(value: null | string, stream: OutputBinaryStream): void {
     stream.writeString(value);
 }
 

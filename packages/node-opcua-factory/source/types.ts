@@ -5,7 +5,6 @@ import { assert } from "node-opcua-assert";
 import { BinaryStream, OutputBinaryStream } from "node-opcua-binary-stream";
 import { Enum, EnumItem } from "node-opcua-enum";
 import { NodeId } from "node-opcua-nodeid";
-import * as _ from "underscore";
 import { ConstructorFunc } from "./constructor_type";
 
 // ------------------
@@ -15,7 +14,6 @@ import { ConstructorFunc } from "./constructor_type";
 //         EnumerationDefinition
 //
 export interface CommonInterface {
-
     name: string;
 
     encode?: (value: any, stream: OutputBinaryStream) => void;
@@ -27,8 +25,6 @@ export interface CommonInterface {
     validate?: (value: any) => void;
 
     defaultValue?: any;
-
-    initialize_value(value: any, defaultValue: any): any;
 
     computer_default_value(defaultValue: any): any;
 }
@@ -57,7 +53,6 @@ export interface StructuredTypeField {
 
     switchBit?: number; // the bit number
     switchValue?: number;
-
 }
 
 // tslint:disable:no-empty-interface
@@ -90,7 +85,6 @@ export interface FieldInterfaceOptions {
 }
 
 export interface StructuredTypeOptions {
-
     name: string;
     id?: number | NodeId;
     fields: FieldInterfaceOptions[];
@@ -121,8 +115,7 @@ export interface BasicTypeDefinition extends CommonInterface {
     subType: string;
 }
 
-export interface BuiltInTypeDefinition extends BasicTypeDefinition {
-}
+export interface BuiltInTypeDefinition extends BasicTypeDefinition {}
 
 export interface EnumerationDefinition extends CommonInterface {
     enumValues: any;
@@ -133,14 +126,10 @@ export interface EnumerationDefinition extends CommonInterface {
 export type TypeDefinition = BuiltInTypeDefinition | EnumerationDefinition | BasicTypeDefinition | TypeSchemaBase;
 
 // tslint:disable-next-line:no-empty
-function defaultEncode(value: any, stream: BinaryStream): void {
-
-}
+function defaultEncode(value: any, stream: BinaryStream): void {}
 
 // tslint:disable-next-line:no-empty
-function defaultDecode(stream: BinaryStream): void {
-
-}
+function defaultDecode(stream: BinaryStream): void {}
 
 /**
  * @class TypeSchemaBase
@@ -149,7 +138,6 @@ function defaultDecode(stream: BinaryStream): void {
  * create a new type Schema
  */
 export class TypeSchemaBase implements CommonInterface {
-
     public name: string;
     public defaultValue: any;
     public encode?: (value: any, stream: OutputBinaryStream) => void;
@@ -159,7 +147,6 @@ export class TypeSchemaBase implements CommonInterface {
     public category: FieldCategory;
 
     constructor(options: TypeSchemaConstructorOptions) {
-
         assert(options.category !== null);
         this.encode = options.encode || undefined;
         this.decode = options.decode || undefined;
@@ -180,41 +167,14 @@ export class TypeSchemaBase implements CommonInterface {
      * @return {*}
      */
     public computer_default_value(defaultValue: any): any {
-
         if (defaultValue === undefined) {
             defaultValue = this.defaultValue;
         }
-        if (_.isFunction(defaultValue)) {
+        if (typeof defaultValue === "function") {
             // be careful not to cache this value , it must be call each time to make sure
             // we do not end up with the same value/instance twice.
             defaultValue = defaultValue();
         }
         return defaultValue;
-    }
-
-    /**
-     * @method initialize_value
-     * @param value
-     * @param defaultValue
-     * @return {*}
-     */
-    public initialize_value(value: any, defaultValue: any): any {
-
-        if (value === undefined) {
-            return defaultValue;
-        }
-        if (defaultValue === null) {
-            if (value === null) {
-                return null;
-            }
-        }
-
-        if (value === undefined) {
-            return defaultValue;
-        }
-        if (this.coerce) {
-            value = this.coerce(value);
-        }
-        return value;
     }
 }

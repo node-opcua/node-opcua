@@ -247,6 +247,25 @@
             </Field>
         </Definition>
     </UADataType>
+    <UADataType NodeId="i=12" BrowseName="String">
+        <DisplayName>String</DisplayName>
+        <References>
+            <Reference ReferenceType="HasSubtype" IsForward="false">i=24</Reference>
+        </References>
+    </UADataType>
+
+    <UADataType NodeId="i=7594" BrowseName="EnumValueType">
+        <DisplayName>EnumValueType</DisplayName>
+        <References>
+            <Reference ReferenceType="HasSubtype" IsForward="false">i=22</Reference>
+        </References>
+        <Definition Name="EnumValueType">
+            <Field Name="Value" DataType="i=8" />
+            <Field Name="DisplayName" DataType="i=21" />
+            <Field Name="Description" DataType="i=21" />
+        </Definition>
+    </UADataType>
+  
     <UAVariable NodeId="i=12169" BrowseName="EnumValues" ParentNodeId="i=120" DataType="i=7594" ArrayDimensions="0" ValueRank="1">
         <DisplayName>EnumValues</DisplayName>
         <References>

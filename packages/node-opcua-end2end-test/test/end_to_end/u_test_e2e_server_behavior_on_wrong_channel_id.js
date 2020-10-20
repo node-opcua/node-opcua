@@ -1,6 +1,6 @@
 /*global describe, it, require*/
 
-const assert = require("node-opcua-assert").assert;
+const { assert } = require("node-opcua-assert");
 const async = require("async");
 const should = require("should");
 
@@ -11,9 +11,9 @@ const doDebug = false;
 const perform_operation_on_client_session = require("../../test_helpers/perform_operation_on_client_session").perform_operation_on_client_session;
 
 
-module.exports = function (test) {
+module.exports = function(test) {
 
-    describe("GGH1 Server should check channelId correctness", function () {
+    describe("GGH1 Server should check channelId correctness", function() {
 
         it("server should abruptly stops the connection if client uses wrong channel Id", async () => {
 

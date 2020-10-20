@@ -6,18 +6,8 @@ import { EventEmitter } from "events";
 import { assert } from "node-opcua-assert";
 import { UInt16 } from "node-opcua-basic-types";
 import { BinaryStream } from "node-opcua-binary-stream";
-import {
-    ChunkManager,
-    EncryptBufferFunc,
-    IChunkManagerOptions,
-    SequenceHeader,
-    SignBufferFunc
-} from "node-opcua-chunkmanager";
-import {
-    AsymmetricAlgorithmSecurityHeader,
-    SymmetricAlgorithmSecurityHeader,
-} from "node-opcua-service-secure-channel";
-import * as _ from "underscore";
+import { ChunkManager, EncryptBufferFunc, IChunkManagerOptions, SequenceHeader, SignBufferFunc } from "node-opcua-chunkmanager";
+import { AsymmetricAlgorithmSecurityHeader, SymmetricAlgorithmSecurityHeader } from "node-opcua-service-secure-channel";
 import { SequenceNumberGenerator } from "./sequence_number_generator";
 
 export type SecurityHeader = AsymmetricAlgorithmSecurityHeader | SymmetricAlgorithmSecurityHeader;
@@ -39,11 +29,9 @@ export interface SecureMessageChunkManagerOptions {
     encryptBufferFunc?: EncryptBufferFunc;
     signBufferFunc?: SignBufferFunc;
     verifyBufferFunc?: VerifyBufferFunc;
-
 }
 
 export class SecureMessageChunkManager extends EventEmitter {
-
     private aborted: boolean;
     private readonly chunkSize: UInt16;
     private readonly msgType: string;
@@ -55,14 +43,19 @@ export class SecureMessageChunkManager extends EventEmitter {
     private readonly chunkManager: ChunkManager;
     private readonly sequenceHeaderSize: number;
 
-    constructor(msgType: string, options: SecureMessageChunkManagerOptions, securityHeader: SecurityHeader | null, sequenceNumberGenerator: SequenceNumberGenerator) {
+    constructor(
+        msgType: string,
+        options: SecureMessageChunkManagerOptions,
+        securityHeader: SecurityHeader | null,
+        sequenceNumberGenerator: SequenceNumberGenerator
+    ) {
         super();
         this.aborted = false;
         this.sequenceHeaderSize = 0;
         msgType = msgType || "OPN";
 
         this.securityHeader = securityHeader || chooseSecurityHeader(msgType);
-        assert(_.isObject(this.securityHeader));
+        assert(this.securityHeader !== null && typeof this.securityHeader === "object");
 
         // the maximum size of a message chunk:
         // Note: OPCUA requires that chunkSize is at least 8192
@@ -71,7 +64,7 @@ export class SecureMessageChunkManager extends EventEmitter {
         this.msgType = msgType;
 
         options.channelId = options.channelId || 0;
-        assert(_.isFinite(options.channelId));
+        assert(isFinite(options.channelId));
         this.channelId = options.channelId;
 
         const requestId = options.requestId;
@@ -80,7 +73,7 @@ export class SecureMessageChunkManager extends EventEmitter {
 
         assert(requestId > 0, "expecting a valid request ID");
 
-        this.sequenceHeader = new SequenceHeader({requestId, sequenceNumber: -1});
+        this.sequenceHeader = new SequenceHeader({ requestId, sequenceNumber: -1 });
 
         const securityHeaderSize = this.securityHeader.binaryStoreSize();
         const sequenceHeaderSize = this.sequenceHeader.binaryStoreSize();
@@ -112,7 +105,7 @@ export class SecureMessageChunkManager extends EventEmitter {
             // ---------------------------------------- Encrypting stuff
             cipherBlockSize: options.cipherBlockSize,
             encryptBufferFunc: options.encryptBufferFunc,
-            plainBlockSize: options.plainBlockSize,
+            plainBlockSize: options.plainBlockSize
         };
 
         this.chunkManager = new ChunkManager(params);

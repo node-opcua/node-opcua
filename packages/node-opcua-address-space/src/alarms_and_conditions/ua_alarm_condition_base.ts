@@ -1,7 +1,7 @@
 /**
  * @module node-opcua-address-space.AlarmsAndConditions
  */
-import * as _ from "underscore";
+import { isEqual } from "lodash";
 
 import { assert } from "node-opcua-assert";
 import { NodeClass } from "node-opcua-data-model";
@@ -9,11 +9,7 @@ import { DataValue } from "node-opcua-data-value";
 import { NodeId } from "node-opcua-nodeid";
 import { StatusCodes } from "node-opcua-status-code";
 import { DataType } from "node-opcua-variant";
-import {
-    Namespace,
-    UAEventType,
-    UAVariableT,
-} from "../../source";
+import { Namespace, UAEventType, UAVariableT } from "../../source";
 import { BaseNode } from "../base_node";
 import { _install_TwoStateVariable_machinery, UATwoStateVariable } from "../ua_two_state_variable";
 import { UAVariable } from "../ua_variable";
@@ -29,7 +25,6 @@ function _update_suppressedOrShelved(alarmNode: UAAlarmConditionBase) {
 }
 
 export interface UAAlarmConditionBase {
-
     activeState: UATwoStateVariable;
     shelvingState: ShelvingStateMachine;
     suppressedState: UATwoStateVariable;
@@ -43,7 +38,6 @@ export interface UAAlarmConditionBase {
  * @extends UAAcknowledgeableConditionBase
  */
 export class UAAlarmConditionBase extends UAAcknowledgeableConditionBase {
-
     /**
      * @class UAAlarmConditionBase
      * @static
@@ -62,13 +56,7 @@ export class UAAlarmConditionBase extends UAAcknowledgeableConditionBase {
      * @param options.maxTimeShelved  max TimeShelved duration (in ms)
      * @param data
      */
-    public static instantiate(
-        namespace: Namespace,
-        alarmConditionTypeId: UAEventType | string | NodeId,
-        options: any,
-        data: any
-    ) {
-
+    public static instantiate(namespace: Namespace, alarmConditionTypeId: UAEventType | string | NodeId, options: any, data: any) {
         const addressSpace = namespace.addressSpace;
 
         // xx assert(options.hasOwnProperty("conditionOf")); // must provide a conditionOf
@@ -89,14 +77,17 @@ export class UAAlarmConditionBase extends UAAcknowledgeableConditionBase {
         options.optionals = options.optionals || [];
         if (options.hasOwnProperty("maxTimeShelved")) {
             options.optionals.push("MaxTimeShelved");
-            assert(_.isFinite(options.maxTimeShelved));
+            assert(isFinite(options.maxTimeShelved));
         }
 
-        assert(alarmConditionTypeBase === alarmConditionType ||
-            alarmConditionType.isSupertypeOf(alarmConditionTypeBase));
+        assert(alarmConditionTypeBase === alarmConditionType || alarmConditionType.isSupertypeOf(alarmConditionTypeBase));
 
         const alarmNode = UAAcknowledgeableConditionBase.instantiate(
-            namespace, alarmConditionTypeId, options, data) as UAAlarmConditionBase;
+            namespace,
+            alarmConditionTypeId,
+            options,
+            data
+        ) as UAAlarmConditionBase;
         Object.setPrototypeOf(alarmNode, UAAlarmConditionBase.prototype);
 
         // ----------------------- Install Alarm specifics
@@ -117,7 +108,7 @@ export class UAAlarmConditionBase extends UAAcknowledgeableConditionBase {
          */
         _install_TwoStateVariable_machinery(alarmNode.activeState, {
             falseState: "Inactive",
-            trueState: "Active",
+            trueState: "Active"
         });
 
         alarmNode.currentBranch().setActiveState(false);
@@ -137,9 +128,8 @@ export class UAAlarmConditionBase extends UAAcknowledgeableConditionBase {
             // install activeState - Optional
             _install_TwoStateVariable_machinery(alarmNode.suppressedState, {
                 falseState: "Unsuppressed",
-                trueState: "Suppressed",
+                trueState: "Suppressed"
             });
-
         }
         // Specs 1.03:
         /**
@@ -154,7 +144,7 @@ export class UAAlarmConditionBase extends UAAcknowledgeableConditionBase {
         }
 
         // SuppressedOrShelved : Mandatory
-        // install supressedOrShelved automatic detection
+        // install suppressedOrShelved automatic detection
         /**
          * The SuppressedState and the ShelvingState together result in the SuppressedOrShelved status of the
          * Condition. When an Alarm is in one of the states, the SuppressedOrShelved property will be set TRUE
@@ -239,7 +229,6 @@ export class UAAlarmConditionBase extends UAAcknowledgeableConditionBase {
      * @return {boolean}
      */
     public isSuppressedOrShelved(): boolean {
-
         let suppressed = false;
         if (this.suppressedState) {
             suppressed = this.suppressedState.id!.readValue().value.value;
@@ -362,14 +351,11 @@ export class UAAlarmConditionBase extends UAAcknowledgeableConditionBase {
         assert(inputNode, " must provide options.inputNode (NodeId or BaseNode object)");
 
         if (inputNode instanceof NodeId) {
-
             alarm.inputNode.setValueFromSource({
                 dataType: DataType.NodeId,
                 value: inputNode as NodeId
             });
-
         } else {
-
             alarm.inputNode.setValueFromSource({
                 dataType: "NodeId",
                 value: (inputNode as BaseNode).nodeId
@@ -403,7 +389,6 @@ export class UAAlarmConditionBase extends UAAcknowledgeableConditionBase {
     }
 
     public getCurrentConditionInfo(): ConditionInfo {
-
         const alarm = this;
 
         const oldSeverity = alarm.currentBranch().getSeverity();
@@ -415,7 +400,7 @@ export class UAAlarmConditionBase extends UAAcknowledgeableConditionBase {
             message: oldMessage,
             quality: oldQuality,
             retain: oldRetain,
-            severity: oldSeverity,
+            severity: oldSeverity
         });
         return oldConditionInfo;
     }
@@ -455,22 +440,20 @@ export class UAAlarmConditionBase extends UAAcknowledgeableConditionBase {
         value: string,
         oldCondition: ConditionInfo
     ): ConditionInfo {
-
         if (!stateData) {
             return new ConditionInfo({
                 message: "Back to normal",
                 quality: StatusCodes.Good,
                 retain: true,
-                severity: 0,
+                severity: 0
             });
         } else {
             return new ConditionInfo({
                 message: "Condition value is " + value + " and state is " + stateData,
                 quality: StatusCodes.Good,
                 retain: true,
-                severity: 150,
+                severity: 150
             });
-
         }
     }
 
@@ -479,12 +462,7 @@ export class UAAlarmConditionBase extends UAAcknowledgeableConditionBase {
         alarm.currentBranch().setActiveState(false);
         alarm.currentBranch().setAckedState(true);
     }
-    public _signalNewCondition(
-        stateName: string | null,
-        isActive?: boolean,
-        value?: string
-    ): void {
-
+    public _signalNewCondition(stateName: string | null, isActive?: boolean, value?: string): void {
         const alarm = this;
         // xx if(stateName === null) {
         // xx     alarm.currentBranch().setActiveState(false);
@@ -499,33 +477,30 @@ export class UAAlarmConditionBase extends UAAcknowledgeableConditionBase {
         const newConditionInfo = alarm._calculateConditionInfo(stateName, !!isActive, value!, oldConditionInfo);
 
         // detect potential internal bugs due to misused of _signalNewCondition
-        if (_.isEqual(oldConditionInfo, newConditionInfo)) {
+        if (isEqual(oldConditionInfo, newConditionInfo)) {
             // tslint:disable-next-line:no-console
             console.log(oldConditionInfo);
-            throw new Error("condition values have not change, shall we really raise an event ? alarm "
-                + alarm.browseName.toString());
+            throw new Error(
+                "condition values have not change, shall we really raise an event ? alarm " + alarm.browseName.toString()
+            );
         }
-        assert(!_.isEqual(oldConditionInfo, newConditionInfo),
-            "condition values have not change, shall we really raise an event ?");
+        assert(!isEqual(oldConditionInfo, newConditionInfo), "condition values have not change, shall we really raise an event ?");
 
         if (isActive) {
             alarm.currentBranch().setActiveState(true);
             alarm.currentBranch().setAckedState(false);
             alarm.raiseNewCondition(newConditionInfo);
         } else {
-
             if (alarm.currentBranch().getAckedState() === false) {
                 // prior state need acknowledgement
                 // note : TODO : timestamp of branch and new state of current branch must be identical
 
                 if (alarm.currentBranch().getRetain()) {
-
                     // we need to create a new branch so the previous state could be acknowledged
                     const newBranch = alarm.createBranch();
                     assert(newBranch.getBranchId() !== NodeId.nullNodeId);
                     // also raised a new Event for the new branch as branchId has changed
                     alarm.raiseNewBranchState(newBranch);
-
                 }
             }
 
@@ -535,5 +510,4 @@ export class UAAlarmConditionBase extends UAAcknowledgeableConditionBase {
             alarm.raiseNewCondition(newConditionInfo);
         }
     }
-
 }

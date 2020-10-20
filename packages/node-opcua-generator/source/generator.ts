@@ -13,7 +13,7 @@ import { assert } from "node-opcua-assert";
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 import { ConstructorFunc } from "node-opcua-factory";
 
-import { get_class_tscript_filename, produce_tscript_code } from "./factory_code_generator";
+import { get_class_TScript_filename, produce_TScript_code } from "./factory_code_generator";
 
 const debugLog = make_debugLog(__filename);
 const doDebug = checkDebugFlag(__filename);
@@ -27,8 +27,7 @@ const mkdir = promisify(fs.mkdir);
  * @static
  */
 
-function compileTscriptCode(typescriptFilename: string): string {
-
+function compileTScriptCode(typescriptFilename: string): string {
     const content = fs.readFileSync(typescriptFilename, "ascii");
 
     const compilerOptions = {
@@ -48,10 +47,10 @@ function compileTscriptCode(typescriptFilename: string): string {
     const res1 = ts.transpileModule(content, { compilerOptions, moduleName: "myModule2" });
 
     const javascriptFilename = typescriptFilename.replace(/\.ts$/, ".js");
-    const sourcemapFilename = typescriptFilename.replace(/\.ts$/, ".js.map");
+    const sourceMapFilename = typescriptFilename.replace(/\.ts$/, ".js.map");
 
     fs.writeFileSync(javascriptFilename, res1.outputText, "ascii");
-    fs.writeFileSync(sourcemapFilename, res1.sourceMapText!, "ascii");
+    fs.writeFileSync(sourceMapFilename, res1.sourceMapText!, "ascii");
 
     return res1.outputText;
 }
@@ -62,7 +61,7 @@ function get_caller_source_filename() {
     // let's find source code where schema file is described
     // to do make change this
     // the line has the following shape:
-    //      'at blah (/home/toto/myfile.js:53:34)'
+    //      'at blah (/home/toto/myFile.js:53:34)'
     const err = new Error("");
     const re = /.*\((.*):[0-9]*:[0-9]*\)/g;
     if (!err.stack) {
@@ -83,7 +82,6 @@ function get_caller_source_filename() {
 }
 
 export async function generateCode(schemaName: string, localSchemaFile: string, generatedCodeFolder?: string) {
-
     const schemaTypescriptFile = schemaName + "_Schema.ts";
 
     const currentFolder = process.cwd();
@@ -111,12 +109,11 @@ export async function generateCode(schemaName: string, localSchemaFile: string, 
     let codeGeneratorIsNewer = true;
 
     if (generatedSourceExists) {
-
         const generatedSourceMtime = new Date(fs.statSync(generatedTypescriptSource).mtime).getTime();
 
         const schemaFileMtime = new Date(fs.statSync(localSchemaFile).mtime).getTime();
 
-        schemaFileIsNewer = (generatedSourceMtime <= schemaFileMtime);
+        schemaFileIsNewer = generatedSourceMtime <= schemaFileMtime;
 
         let codeGeneratorScript = path.join(__dirname, "factory_code_generator.ts");
         if (!fs.existsSync(codeGeneratorScript)) {
@@ -126,12 +123,11 @@ export async function generateCode(schemaName: string, localSchemaFile: string, 
         assert(fs.existsSync(codeGeneratorScript), "cannot get code factory_code_generator" + codeGeneratorScript);
         const codeGeneratorScriptMtime = new Date(fs.statSync(codeGeneratorScript).mtime).getTime();
 
-        codeGeneratorIsNewer = (generatedSourceMtime <= codeGeneratorScriptMtime);
+        codeGeneratorIsNewer = generatedSourceMtime <= codeGeneratorScriptMtime;
     }
-    const generatedSourceIsOutdated = (!generatedSourceExists || codeGeneratorIsNewer || schemaFileIsNewer);
+    const generatedSourceIsOutdated = !generatedSourceExists || codeGeneratorIsNewer || schemaFileIsNewer;
 
     if (generatedSourceIsOutdated) {
-
         const module = await import(localSchemaFile);
         const schema = module[schemaName + "_Schema"];
 
@@ -144,19 +140,18 @@ export async function generateCode(schemaName: string, localSchemaFile: string, 
             console.log(" generating ", schemaName, " in ", generatedTypescriptSource);
         }
         const localSchemaFile1 = path.join("../schemas", schemaName + "_schema");
-        produce_tscript_code(schema, localSchemaFile1, generatedTypescriptSource);
+        produce_TScript_code(schema, localSchemaFile1, generatedTypescriptSource);
     }
 }
 
 export async function generateTypeScriptCodeFromSchema(schemaName: string) {
     const currentFolder = process.cwd();
-    const schemafilename = path.join(currentFolder, "schemas", schemaName + "_schema.ts");
+    const schemaFilename = path.join(currentFolder, "schemas", schemaName + "_schema.ts");
     const generatedCodeFolder = path.join(process.cwd(), "_generated_");
-    await generateCode(schemaName, schemafilename, generatedCodeFolder);
+    await generateCode(schemaName, schemaFilename, generatedCodeFolder);
 }
 
 export async function registerObject(schema: string, generateCodeFolder?: string): Promise<ConstructorFunc | null> {
-
     if (!schema.split) {
         console.log("error !", schema);
         // xx process.exit(1);
@@ -169,9 +164,7 @@ export async function registerObject(schema: string, generateCodeFolder?: string
 
         const defaultHint = path.join(path.dirname(callerFolder), "schemas");
         hintSchema.unshift(defaultHint);
-        generateCodeFolder = generateCodeFolder
-            ? generateCodeFolder
-            : path.join(path.dirname(callerFolder), "_generated_");
+        generateCodeFolder = generateCodeFolder ? generateCodeFolder : path.join(path.dirname(callerFolder), "_generated_");
     }
 
     const folderHint = hintSchema[0];
@@ -191,7 +184,7 @@ export async function registerObject(schema: string, generateCodeFolder?: string
 }
 
 export function unregisterObject(schema: any, folder: string) {
-    const generateTypeScriptSource = get_class_tscript_filename(schema.name, folder);
+    const generateTypeScriptSource = get_class_TScript_filename(schema.name, folder);
     if (fs.existsSync(generateTypeScriptSource)) {
         fs.unlinkSync(generateTypeScriptSource);
         assert(!fs.existsSync(generateTypeScriptSource));

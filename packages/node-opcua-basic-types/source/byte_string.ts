@@ -1,8 +1,6 @@
 /***
  * @module node-opcua-basic-types
  */
-import * as _ from "underscore";
-
 import { BinaryStream, OutputBinaryStream } from "node-opcua-binary-stream";
 import { createFastUninitializedBuffer } from "node-opcua-buffer-utils";
 
@@ -27,12 +25,12 @@ export function encodeByteString(byteString: ByteString, stream: OutputBinaryStr
     stream.writeByteStream(byteString);
 }
 
-export function decodeByteString(stream: BinaryStream): ByteString {
+export function decodeByteString(stream: BinaryStream, _value?: ByteString): ByteString {
     return stream.readByteStream() as ByteString;
 }
 
-export function coerceByteString(value: any): ByteString {
-    if (_.isArray(value)) {
+export function coerceByteString(value: number[] | string | ByteString): ByteString {
+    if (Array.isArray(value)) {
         return Buffer.from(value);
     }
     if (typeof value === "string") {

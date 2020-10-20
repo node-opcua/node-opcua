@@ -1,12 +1,8 @@
 import * as path from "path";
 
-import {
-    AddressSpace,
-    generateAddressSpace,
-    IServerBase, ISessionBase,
-    PseudoSession,
-    SessionContext
-} from "node-opcua-address-space";
+import { AddressSpace, IServerBase, ISessionBase, PseudoSession, SessionContext } from "node-opcua-address-space";
+import { generateAddressSpace } from "node-opcua-address-space/nodeJS";
+
 import { NodeClass } from "node-opcua-data-model";
 import { nodesets } from "node-opcua-nodesets";
 
@@ -22,7 +18,6 @@ import { initializeHelpers } from "./helpers/fake_certificate_authority";
 // tslint:disable-next-line:no-var-requires
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("ServerConfiguration", () => {
-
     let addressSpace: AddressSpace;
 
     const opcuaServer: IServerBase = {
@@ -36,7 +31,9 @@ describe("ServerConfiguration", () => {
         userIdentityToken: new UserNameIdentityToken({
             userName: "joedoe"
         }),
-        getSessionId() { return NodeId.nullNodeId; }
+        getSessionId() {
+            return NodeId.nullNodeId;
+        }
     };
     const _tempFolder = path.join(__dirname, "../temp");
 
@@ -47,9 +44,7 @@ describe("ServerConfiguration", () => {
         location: path.join(_tempFolder, "user")
     });
 
-    const xmlFiles = [
-        nodesets.standard
-    ];
+    const xmlFiles = [nodesets.standard];
     before(async () => {
         await initializeHelpers();
 
@@ -59,7 +54,6 @@ describe("ServerConfiguration", () => {
         addressSpace = AddressSpace.create();
         await generateAddressSpace(addressSpace, xmlFiles);
         addressSpace.registerNamespace("Private");
-
     });
     after(() => {
         addressSpace.dispose();
@@ -71,7 +65,6 @@ describe("ServerConfiguration", () => {
     });
 
     it("should expose a server configuration object - Certificate Management", async () => {
-
         const server = addressSpace.rootFolder.objects.server;
 
         // folders
@@ -88,7 +81,6 @@ describe("ServerConfiguration", () => {
         server.serverConfiguration.should.have.ownProperty("createSigningRequest");
         server.serverConfiguration.should.have.ownProperty("getRejectedList");
         server.serverConfiguration.should.have.ownProperty("updateCertificate");
-
     });
 
     it("server configuration should make its first level object visible", () => {
@@ -133,7 +125,6 @@ describe("ServerConfiguration", () => {
         // new Certificates.
 
         it("should implement createSigningRequest", async () => {
-
             installPushCertificateManagement(addressSpace, { applicationGroup, userTokenGroup });
 
             const server = addressSpace.rootFolder.objects.server;
@@ -144,7 +135,7 @@ describe("ServerConfiguration", () => {
 
             const certificateGroupId = await clientPullCertificateManager.getCertificateGroupId("DefaultApplicationGroup");
             const certificateTypeId = NodeId.nullNodeId;
-            const subjectName = "O=NodeOPCUA, CN=urn:NodeOPCUA-Server";
+            const subjectName = "/O=NodeOPCUA/CN=urn:NodeOPCUA-Server";
             const regeneratePrivateKey = false;
             const nonce = Buffer.alloc(0);
 
@@ -156,10 +147,8 @@ describe("ServerConfiguration", () => {
                 nonce
             );
             result.statusCode.should.eql(StatusCodes.Good);
-
         });
         xit("should implement UpdateCertificate", async () => {
-
             installPushCertificateManagement(addressSpace, {});
 
             const pseudoSession = new PseudoSession(addressSpace, opcuaServer, session);
@@ -168,10 +157,7 @@ describe("ServerConfiguration", () => {
             const certificateGroupId = NodeId.nullNodeId;
             const certificateTypeId = NodeId.nullNodeId;
             const certificate = Buffer.from("SomeCertificate");
-            const issuerCertificates = [
-                Buffer.from("Issuer1"),
-                Buffer.from("Issuer2")
-            ];
+            const issuerCertificates = [Buffer.from("Issuer1"), Buffer.from("Issuer2")];
             const privateKeyFormat = "PEM";
             const privateKey = Buffer.from("1234");
 
@@ -184,8 +170,6 @@ describe("ServerConfiguration", () => {
 
             result.statusCode.should.eql(StatusCodes.BadInvalidArgument);
             //            result.applyChangesRequired!.should.eql(true);
-
         });
     });
-
 });

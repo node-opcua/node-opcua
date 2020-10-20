@@ -1,22 +1,21 @@
-/* global describe, it, require*/
 "use strict";
 
 const should = require("should");
 
 const opcua = require("node-opcua");
 
-const perform_operation_on_subscription = require("../../test_helpers/perform_operation_on_client_session").perform_operation_on_subscription;
-const redirectToFile = require("node-opcua-debug").redirectToFile;
+const { perform_operation_on_subscription } = require("../../test_helpers/perform_operation_on_client_session");
+const { redirectToFile } = require("node-opcua-debug/nodeJS");
 
-module.exports = function (test) {
+module.exports = function(test) {
 
 
-    describe("Testing server when client sessionName  is not defined   #355", function () {
+    describe("Testing server when client sessionName  is not defined   #355", function() {
 
-        before(function(done){
+        before(function(done) {
             done();
         });
-        it("#355 Client MonitoredItem event handler should be protected against exception raised in user code", function (done) {
+        it("#355 Client MonitoredItem event handler should be protected against exception raised in user code", function(done) {
 
             const server = test.server;
 
@@ -26,21 +25,21 @@ module.exports = function (test) {
 
             const client = opcua.OPCUAClient.create();
 
-            perform_operation_on_subscription(client,test.endpointUrl,function(session,subscription,callback) {
+            perform_operation_on_subscription(client, test.endpointUrl, function(session, subscription, callback) {
 
-               redirectToFile("issue_355", function (callback) {
+                redirectToFile("issue_355", function(callback) {
 
                     const monitoredItem = opcua.ClientMonitoredItem.create(subscription,
-                      {nodeId: "ns=1;s=FanSpeed", attributeId: opcua.AttributeIds.Value},
-                      {
-                          samplingInterval: 10, // sampling twice as fast as variable refresh rate
-                          discardOldest: true,
-                          queueSize: 10
-                      });
+                        { nodeId: "ns=1;s=FanSpeed", attributeId: opcua.AttributeIds.Value },
+                        {
+                            samplingInterval: 10, // sampling twice as fast as variable refresh rate
+                            discardOldest: true,
+                            queueSize: 10
+                        });
 
                     let count = 0;
                     let timerId;
-                    monitoredItem.on("changed",function(dataValue){
+                    monitoredItem.on("changed", function(dataValue) {
 
                         count++;
                         if (count >= 5) {
@@ -52,19 +51,19 @@ module.exports = function (test) {
 
                     });
 
-                    timerId  = setInterval(function() {
+                    timerId = setInterval(function() {
                         const node = test.server.engine.addressSpace.findNode("ns=1;s=FanSpeed");
                         console.log("Set");
-                        node.setValueFromSource( new opcua.Variant({
+                        node.setValueFromSource(new opcua.Variant({
                             value: Math.random(),
                             dataType: "Float"
                         }));
-                    },100);
+                    }, 100);
 
-               }, callback);
+                }, callback);
 
 
-            },done);
+            }, done);
 
         });
 

@@ -1,38 +1,36 @@
 {
-  "extends": "../tsconfig.json",
-  "compilerOptions": {
-    "rootDir": "source",
-    "outDir": "dist",
-    "composite": true
-  },
-  "references": [
-    {
-      "path": "../node-opcua-address-space"
+    "extends": "../tsconfig.json",
+    "compilerOptions": {
+        "rootDir": "source",
+        "outDir": "dist",
+        "composite": true,
+        "incremental": true
     },
-    {
-      "path": "../node-opcua-assert"
-    },
-    {
-      "path": "../node-opcua-data-model"
-    },
-    {
-      "path": "../node-opcua-factory"
-    },
-    {
-      "path": "../node-opcua-nodeid"
-    },
-    {
-      "path": "../node-opcua-utils"
-    },
-    {
-      "path": "../node-opcua-packet-analyzer"
-    },
-    {
-      "path": "../node-opcua-variant"
-    }
-  ],
-  "exclude": [
-    "node_modules",
-    "dist"
-  ]
+    "references": [
+        {
+            "path": "../node-opcua-address-space"
+        },
+        {
+            "path": "../node-opcua-assert"
+        },
+        {
+            "path": "../node-opcua-data-model"
+        },
+        {
+            "path": "../node-opcua-factory"
+        },
+        {
+            "path": "../node-opcua-nodeid"
+        },
+        {
+            "path": "../node-opcua-utils"
+        },
+        {
+            "path": "../node-opcua-packet-analyzer"
+        },
+        {
+            "path": "../node-opcua-variant"
+        }
+    ],
+    "exclude": ["node_modules", "dist"]
 }

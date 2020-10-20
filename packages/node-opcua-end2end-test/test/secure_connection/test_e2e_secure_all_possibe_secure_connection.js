@@ -161,7 +161,7 @@ function trustCertificateOnServer(certificateFile, callback) {
     server.serverCertificateManager.trustCertificate(certificate, callback);
 }
 function start_server(options, callback) {
-    if (_.isFunction(options) && !callback) {
+    if (typeof options === "function" && !callback) {
         callback = options;
         options = null;
     }
@@ -522,7 +522,7 @@ function perform_collection_of_test_with_various_client_configuration(prefix) {
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("ZZA- testing Secure Client-Server communication", function() {
 
-    this.timeout(Math.max(this._timeout, 20001));
+    this.timeout(Math.max(this.timeout(), 20001));
 
     let serverHandle;
 
@@ -718,7 +718,7 @@ describe("ZZA- testing Secure Client-Server communication", function() {
 
 describe("ZZB- testing server behavior on secure connection ", function() {
 
-    this.timeout(Math.max(this._timeout, 20002));
+    this.timeout(Math.max(this.timeout(), 20002));
 
     let serverHandle;
     let old_method;
@@ -812,7 +812,7 @@ describe("ZZB- testing server behavior on secure connection ", function() {
 
 describe("ZZC- testing Security Policy with a valid 1024 bit certificate on server", function() {
 
-    this.timeout(Math.max(this._timeout, 20003));
+    this.timeout(Math.max(this.timeout(), 20003));
 
     let serverHandle;
 
@@ -841,7 +841,7 @@ describe("ZZC- testing Security Policy with a valid 1024 bit certificate on serv
 
 describe("ZZD- testing Security Policy with a valid 2048 bit certificate on server", function() {
 
-    this.timeout(Math.max(this._timeout, 20004));
+    this.timeout(Math.max(this.timeout(), 20004));
 
     let serverHandle;
 
@@ -871,7 +871,7 @@ describe("ZZD- testing Security Policy with a valid 2048 bit certificate on serv
 
 describe("ZZD2- testing Security Policy with a valid 4096 bit certificate on server", function() {
 
-    this.timeout(Math.max(this._timeout, 20004));
+    this.timeout(Math.max(this.timeout(), 20004));
 
     let serverHandle;
 
@@ -898,7 +898,7 @@ describe("ZZD2- testing Security Policy with a valid 4096 bit certificate on ser
 
 describe("ZZE- testing with various client certificates", function() {
 
-    this.timeout(Math.max(this._timeout, 20005));
+    this.timeout(Math.max(this.timeout(), 20005));
 
     let serverHandle;
 

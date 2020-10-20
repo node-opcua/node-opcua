@@ -1,7 +1,7 @@
 #!/usr/bin/env ts-node
 // tslint:disable:no-console
 import * as chalk from "chalk";
-import * as  fs from "fs";
+import * as fs from "fs";
 import * as path from "path";
 import * as _ from "underscore";
 import * as util from "util";
@@ -37,8 +37,10 @@ import {
     readHistoryServerCapabilities,
     resolveNodeId,
     SecurityPolicy,
+    UserIdentityInfo,
+    UserTokenType,
     VariableIds,
-    Variant,
+    Variant
 } from "node-opcua";
 import { Certificate, toPem } from "node-opcua-crypto";
 
@@ -101,8 +103,7 @@ const argv = yargs(process.argv)
     })
     .example("simple_client  --endpoint opc.tcp://localhost:49230 -P=Basic256Rsa256 -s=Sign", "")
     .example("simple_client  -e opc.tcp://localhost:49230 -P=Basic256Sha256 -s=Sign -u JoeDoe -p P@338@rd ", "")
-    .example("simple_client  --endpoint opc.tcp://localhost:49230  -n=\"ns=0;i=2258\"", "")
-    .argv;
+    .example('simple_client  --endpoint opc.tcp://localhost:49230  -n="ns=0;i=2258"', "").argv;
 
 const securityMode = coerceMessageSecurityMode(argv.securityMode!);
 if (securityMode === MessageSecurityMode.Invalid) {
@@ -114,10 +115,9 @@ if (securityPolicy === SecurityPolicy.Invalid) {
     throw new Error("Invalid securityPolicy");
 }
 
-const timeout = argv.timeout as number * 1000 || 20000;
+const timeout = (argv.timeout as number) * 1000 || 20000;
 
-const monitored_node: NodeId = coerceNodeId(argv.node as string ||
-    makeNodeId(VariableIds.Server_ServerStatus_CurrentTime));
+const monitored_node: NodeId = coerceNodeId((argv.node as string) || makeNodeId(VariableIds.Server_ServerStatus_CurrentTime));
 
 console.log(chalk.cyan("securityMode        = "), securityMode.toString());
 console.log(chalk.cyan("securityPolicy      = "), securityPolicy.toString());
@@ -130,7 +130,7 @@ if (!endpointUrl) {
     yargs.showHelp();
     process.exit(0);
 }
-const discoveryUrl = argv.discovery ? argv.discovery as string : endpointUrl;
+const discoveryUrl = argv.discovery ? (argv.discovery as string) : endpointUrl;
 
 const doCrawling = !!argv.crawl;
 const doHistory = !!argv.history;
@@ -140,16 +140,11 @@ function w(str: string, l: number): string {
 }
 
 async function enumerateAllConditionTypes(session: ClientSession) {
-
     const tree: any = {};
 
     const conditionEventTypes: any = {};
 
-    async function findAllNodeOfType(
-        tree1: any,
-        typeNodeId1: NodeId,
-        browseName: string) {
-
+    async function findAllNodeOfType(tree1: any, typeNodeId1: NodeId, browseName: string) {
         const browseDesc1 = {
             nodeId: typeNodeId1,
             referenceTypeId: resolveNodeId("HasSubtype"),
@@ -157,7 +152,6 @@ async function enumerateAllConditionTypes(session: ClientSession) {
             browseDirection: BrowseDirection.Forward,
             includeSubtypes: true,
             resultMask: 63
-
         };
         const browseDesc2 = {
             nodeId: typeNodeId1,
@@ -166,7 +160,6 @@ async function enumerateAllConditionTypes(session: ClientSession) {
             browseDirection: BrowseDirection.Inverse,
             includeSubtypes: true,
             resultMask: 63
-
         };
         const browseDesc3 = {
             nodeId: typeNodeId1,
@@ -175,14 +168,9 @@ async function enumerateAllConditionTypes(session: ClientSession) {
             browseDirection: BrowseDirection.Forward,
             includeSubtypes: true,
             resultMask: 63
-
         };
 
-        const nodesToBrowse = [
-            browseDesc1,
-            browseDesc2,
-            browseDesc3
-        ];
+        const nodesToBrowse = [browseDesc1, browseDesc2, browseDesc3];
         const browseResults = await session.browse(nodesToBrowse);
 
         tree1[browseName] = {};
@@ -203,7 +191,6 @@ async function enumerateAllConditionTypes(session: ClientSession) {
 }
 
 async function enumerateAllAlarmAndConditionInstances(session: ClientSession): Promise<any[]> {
-
     const conditions: any = {};
 
     const found: any = [];
@@ -213,9 +200,7 @@ async function enumerateAllAlarmAndConditionInstances(session: ClientSession): P
     }
 
     async function exploreForObjectOfType(session1: ClientSession, nodeId: NodeId) {
-
         async function worker(element: any) {
-
             const nodeToBrowse = {
                 nodeId: element.nodeId,
                 referenceTypeId: resolveNodeId("HierarchicalReferences"),
@@ -240,7 +225,6 @@ async function enumerateAllAlarmAndConditionInstances(session: ClientSession): P
                         typeDefinitionName: conditions[ref.typeDefinition.toString()]
                     };
                     found.push(alarm);
-
                 } else {
                     await worker(ref.nodeId);
                 }
@@ -248,7 +232,6 @@ async function enumerateAllAlarmAndConditionInstances(session: ClientSession): P
         }
 
         await worker(nodeId);
-
     }
 
     await enumerateAllConditionTypes(session);
@@ -259,7 +242,6 @@ async function enumerateAllAlarmAndConditionInstances(session: ClientSession): P
 }
 
 async function _getAllEventTypes(session: ClientSession, baseNodeId: NodeId, tree: any) {
-
     const browseDesc1 = {
         nodeId: baseNodeId,
         referenceTypeId: resolveNodeId("HasSubtype"),
@@ -283,7 +265,6 @@ async function _getAllEventTypes(session: ClientSession, baseNodeId: NodeId, tre
  * getAllEventType recursively
  */
 async function getAllEventTypes(session: ClientSession) {
-
     const baseNodeId = makeNodeId(ObjectTypeIds.BaseEventType);
     const result = {};
     await _getAllEventTypes(session, baseNodeId, result);
@@ -307,9 +288,7 @@ let the_session: ClientSession;
 let client: OPCUAClient;
 
 async function main() {
-
     const optionsInitial: OPCUAClientOptions = {
-
         securityMode,
         securityPolicy,
 
@@ -336,6 +315,7 @@ async function main() {
 
     try {
         await client.connect(endpointUrl);
+        console.log(" Connected ! exact endpoint url is ", client.endpointUrl);
     } catch (err) {
         console.log(chalk.red(" Cannot connect to ") + endpointUrl);
         console.log(" Error = ", err.message);
@@ -371,7 +351,8 @@ async function main() {
         const certificate_filename = path.join(__dirname, "../certificates/PKI/server_certificate" + i + ".pem");
 
         if (serverCertificate) {
-            fs.writeFile(certificate_filename, toPem(serverCertificate, "CERTIFICATE"), () => {/**/
+            fs.writeFile(certificate_filename, toPem(serverCertificate, "CERTIFICATE"), () => {
+                /**/
             });
         }
         table.newRow();
@@ -380,7 +361,12 @@ async function main() {
     console.log(table.toString());
 
     for (const endpoint of endpoints) {
-        console.log("Identify Token for : Security Mode=", endpoint.securityMode.toString(), " Policy=", endpoint.securityPolicyUri);
+        console.log(
+            "Identify Token for : Security Mode=",
+            endpoint.securityMode.toString(),
+            " Policy=",
+            endpoint.securityPolicyUri
+        );
         const table2 = new Table();
         for (const token of endpoint.userIdentityTokens!) {
             table2.cell("policyId", token.policyId);
@@ -398,9 +384,14 @@ async function main() {
     console.log(chalk.cyan("Server Certificate :"));
     console.log(chalk.yellow(hexDump(serverCertificate!)));
 
+    console.log(" adjusted endpoint Url =", client.endpointUrl);
+    const adjustedEndpointUrl = client.endpointUrl;
+
     const options = {
         securityMode,
         securityPolicy,
+
+        // we specify here server certificate
         serverCertificate,
 
         defaultSecureTokenLifetime: 40000,
@@ -417,19 +408,20 @@ async function main() {
 
     client = OPCUAClient.create(options);
 
-    console.log(" reconnecting to ", chalk.cyan.bold(endpointUrl));
-    await client.connect(endpointUrl);
+    console.log(" --------------------------------- Now connecting again to ", chalk.cyan.bold(adjustedEndpointUrl));
+    await client.connect(adjustedEndpointUrl);
 
-    let userIdentity: any; // anonymous
+    console.log(" Connected ! exact endpoint url is ", client.endpointUrl);
+    let userIdentity: UserIdentityInfo = { type: UserTokenType.Anonymous }; // anonymous
     if (argv.userName && argv.password) {
-
         userIdentity = {
-            password: argv.password,
-            userName: argv.userName
+            type: UserTokenType.UserName,
+            password: argv.password as string,
+            userName: argv.userName as string
         };
-
     }
 
+    console.log(" now creating Session !");
     the_session = await client.createSession(userIdentity);
     client.on("connection_reestablished", () => {
         console.log(chalk.bgWhite.red(" !!!!!!!!!!!!!!!!!!!!!!!!  CONNECTION RE-ESTABLISHED !!!!!!!!!!!!!!!!!!!"));
@@ -475,13 +467,18 @@ async function main() {
 
     function print_stat() {
         t2 = Date.now();
-        const str = util.format("R= %d W= %d T=%d t= %d",
-            client.bytesRead, client.bytesWritten, client.transactionsPerformed, (t2 - t1));
+        const str = util.format(
+            "R= %d W= %d T=%d t= %d",
+            client.bytesRead,
+            client.bytesWritten,
+            client.transactionsPerformed,
+            t2 - t1
+        );
         console.log(chalk.yellow.bold(str));
     }
 
     if (doCrawling) {
-        assert(_.isObject(the_session));
+        assert(the_session !== null && typeof the_session === "object");
         const crawler = new NodeCrawler(the_session);
 
         let t5 = Date.now();
@@ -500,7 +497,7 @@ async function main() {
         console.log("now crawling object folder ...please wait...");
 
         const obj = await crawler.read(nodeId);
-        console.log(" Time        = ", (new Date()).getTime() - t5);
+        console.log(" Time        = ", new Date().getTime() - t5);
         console.log(" read        = ", crawler.readCounter);
         console.log(" browse      = ", crawler.browseCounter);
         console.log(" browseNext  = ", crawler.browseNextCounter);
@@ -520,10 +517,14 @@ async function main() {
     // enumerate all Condition Types exposed by the server
     // -----------------------------------------------------------------------------------------------------------------
 
-    console.log("--------------------------------------------------------------- Enumerate all Condition Types exposed by the server");
+    console.log(
+        "--------------------------------------------------------------- Enumerate all Condition Types exposed by the server"
+    );
     const conditionTree = await enumerateAllConditionTypes(the_session);
     console.log(treeify.asTree(conditionTree));
-    console.log(" -----------------------------------------------------------------------------------------------------------------");
+    console.log(
+        " -----------------------------------------------------------------------------------------------------------------"
+    );
 
     // -----------------------------------------------------------------------------------------------------------------
     // enumerate all objects that have an Alarm & Condition instances
@@ -542,7 +543,9 @@ async function main() {
             chalk.yellow(w(alarm.alarmNodeId.toString(), 40))
         );
     }
-    console.log(" -----------------------------------------------------------------------------------------------------------------");
+    console.log(
+        " -----------------------------------------------------------------------------------------------------------------"
+    );
 
     // -----------------------------------------------------------------------------------------------------------------
     // Testing if server implements QueryFirst
@@ -560,30 +563,33 @@ async function main() {
 
                     includeSubTypes: true,
 
-                    dataToReturn: [{
-
-                        attributeId: AttributeIds.AccessLevel,
-                        relativePath: undefined
-                    }]
+                    dataToReturn: [
+                        {
+                            attributeId: AttributeIds.AccessLevel,
+                            relativePath: undefined
+                        }
+                    ]
                 }
             ]
         };
 
         const queryFirstResult = await the_session.queryFirst(queryFirstRequest);
-        console.log(" -----------------------------------------------------------------------------------------------------------------");
+        console.log(
+            " -----------------------------------------------------------------------------------------------------------------"
+        );
     } catch (err) {
         console.log(" Server is not supporting queryFirst err=", err.message);
     }
     // create Read
     if (doHistory) {
-
         console.log(" ---------------------------------------------------------- History Read------------------------");
         const now = Date.now();
         const start = now - 1000; // read 1 seconds of history
-        const historicalReadResult = await the_session.readHistoryValue({
-            nodeId: monitored_node
-        }, new Date(start), new Date(now));
-        console.log(" -----------------------------------------------------------------------------------------------------------------");
+        const historicalReadResult = await the_session.readHistoryValue(monitored_node, new Date(start), new Date(now));
+        console.log(historicalReadResult.toString());
+        console.log(
+            " -----------------------------------------------------------------------------------------------------------------"
+        );
     }
 
     // ----------------------------------------------------------------------------------
@@ -605,21 +611,44 @@ async function main() {
 
     console.log("started subscription :", the_subscription!.subscriptionId);
     console.log(" revised parameters ");
-    console.log("  revised maxKeepAliveCount  ", the_subscription!.maxKeepAliveCount, " ( requested ", parameters.requestedMaxKeepAliveCount + ")");
-    console.log("  revised lifetimeCount      ", the_subscription!.lifetimeCount, " ( requested ", parameters.requestedLifetimeCount + ")");
-    console.log("  revised publishingInterval ", the_subscription!.publishingInterval, " ( requested ", parameters.requestedPublishingInterval + ")");
+    console.log(
+        "  revised maxKeepAliveCount  ",
+        the_subscription!.maxKeepAliveCount,
+        " ( requested ",
+        parameters.requestedMaxKeepAliveCount + ")"
+    );
+    console.log(
+        "  revised lifetimeCount      ",
+        the_subscription!.lifetimeCount,
+        " ( requested ",
+        parameters.requestedLifetimeCount + ")"
+    );
+    console.log(
+        "  revised publishingInterval ",
+        the_subscription!.publishingInterval,
+        " ( requested ",
+        parameters.requestedPublishingInterval + ")"
+    );
 
-    the_subscription.on("internal_error", (err: Error) => {
-        console.log(" received internal error", err.message);
-    }).on("keepalive", () => {
-        const t4 = getTick();
-        const span = t4 - t;
-        t = t4;
-        console.log("keepalive ", span / 1000, "sec",
-            " pending request on server = ", (the_subscription as any).getPublishEngine().nbPendingPublishRequests);
-
-    }).on("terminated", () => { /* */
-    });
+    the_subscription
+        .on("internal_error", (err: Error) => {
+            console.log(" received internal error", err.message);
+        })
+        .on("keepalive", () => {
+            const t4 = getTick();
+            const span = t4 - t;
+            t = t4;
+            console.log(
+                "keepalive ",
+                span / 1000,
+                "sec",
+                " pending request on server = ",
+                (the_subscription as any).getPublishEngine().nbPendingPublishRequests
+            );
+        })
+        .on("terminated", () => {
+            /* */
+        });
 
     try {
         const results1 = await the_subscription.getMonitoredItems();
@@ -712,9 +741,7 @@ async function main() {
         "Value"
     ];
 
-    const eventFilter = constructEventFilter(fields, [
-        resolveNodeId("ConditionType")
-    ]);
+    const eventFilter = constructEventFilter(fields, [resolveNodeId("ConditionType")]);
 
     const event_monitoringItem = ClientMonitoredItem.create(
         the_subscription,
@@ -746,11 +773,9 @@ async function main() {
 
     console.log("Starting timer ", timeout);
     if (timeout > 0) {
-
         // simulate a connection break at t =timeout/2
         // new Promise((resolve) => {
         setTimeout(() => {
-
             console.log(chalk.red("  -------------------------------------------------------------------- "));
             console.log(chalk.red("  --                               SIMULATE CONNECTION BREAK        -- "));
             console.log(chalk.red("  -------------------------------------------------------------------- "));
@@ -777,7 +802,6 @@ async function main() {
                 }
             }, timeout);
         });
-
     }
 
     console.log(" closing session");
@@ -794,7 +818,6 @@ async function main() {
 
 let user_interruption_count: number = 0;
 process.on("SIGINT", async () => {
-
     console.log(" user interruption ...");
 
     user_interruption_count += 1;

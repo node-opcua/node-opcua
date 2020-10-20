@@ -1,19 +1,7 @@
-import {
-    ReaderState,
-    ReaderStateParserLike,
-    ParserLike,
-    XmlAttributes
-} from "./xml2json";
+import { ReaderState, ReaderStateParserLike, ParserLike, XmlAttributes } from "./xml2json";
 import { lowerFirstLetter } from "node-opcua-utils";
 
-
-
-function BasicType_parser(
-    dataType: string,
-    parseFunc: (this: any, text: string) => any
-): ParserLike {
-
-
+function BasicType_parser(dataType: string, parseFunc: (this: any, text: string) => any): ParserLike {
     const r: ReaderStateParserLike = {
         init(this: any, elementName: string, attrs: XmlAttributes) {
             this.value = undefined;
@@ -27,10 +15,7 @@ function BasicType_parser(
     return _parser;
 }
 
-function ListOf(
-    dataType: string,
-    parseFunc: any
-) {
+function ListOf(dataType: string, parseFunc: any) {
     return {
         init(this: any) {
             this.value = [];
@@ -38,8 +23,7 @@ function ListOf(
 
         parser: BasicType_parser(dataType, parseFunc),
 
-        finish(this: any) {
-        },
+        finish(this: any) {},
         endElement(this: any, elementName: string) {
             this.value.push(this.parser[elementName].value);
         }
@@ -79,7 +63,7 @@ const partials: { [key: string]: ReaderStateParserLike } = {
 
     Boolean: {
         finish(this: any) {
-            this.value = (this.text.toLowerCase() === "true");
+            this.value = this.text.toLowerCase() === "true";
         }
     },
 
@@ -155,9 +139,8 @@ const partials: { [key: string]: ReaderStateParserLike } = {
             this.value = [];
         },
         parser: { LocalizedText: localizedTextReader },
-        finish(this: any) {
-        },
-        endElement(this: any/*element*/) {
+        finish(this: any) {},
+        endElement(this: any /*element*/) {
             this.value.push(this.parser.LocalizedText.value);
         }
     },
@@ -201,17 +184,12 @@ function _clone(a: any): any {
         return a;
     }
     if (a instanceof Array) {
-        return a.map(x => _clone(x));
+        return a.map((x) => _clone(x));
     }
     return { ...a };
 }
 
-function _makeExtensionObjectReader(
-    definitionName: string,
-    definitionMap: DefinitionMap,
-    readerMap: any
-): ReaderStateParserLike {
-
+function _makeExtensionObjectReader(definitionName: string, definitionMap: DefinitionMap, readerMap: any): ReaderStateParserLike {
     // is it a basic type ?
     if (partials.hasOwnProperty(definitionName)) {
         return partials[definitionName];
@@ -227,20 +205,17 @@ function _makeExtensionObjectReader(
         throw new Error("cannot find definition for " + definitionName);
     }
     reader = {
-        finish(this: any) {
-        },
+        finish(this: any) {},
         parser: {}
     };
 
     for (const field of definition.fields) {
-
         const fieldReader = _makeExtensionObjectReader(field.dataType, definitionMap, readerMap);
         if (!fieldReader) {
             throw new Error(" Cannot find reader for dataType " + field.dataType);
         }
 
         if (field.valueRank === undefined || field.valueRank === -1) {
-
             const parser = fieldReader;
             if (!parser) {
                 throw new Error("??? " + field.dataType + "  " + field.name);
@@ -256,7 +231,6 @@ function _makeExtensionObjectReader(
                 }
             };
         } else if (field.valueRank === 1) {
-
             const listReader: ReaderStateParserLike = {
                 init(this: any) {
                     this.value = [];
@@ -289,13 +263,11 @@ function _makeExtensionObjectReader(
 
 export function makeExtensionObjectReader(definitionName: string, definitionMap: DefinitionMap, readerMap: any) {
     const reader1: ReaderStateParserLike = {
-        parser: {
-
-        },
+        parser: {},
         endElement(this: any) {
             //         console.log(this.parser[definitionName].value);
             this._pojo = this.parser[definitionName].value;
-        },
+        }
     };
 
     reader1.parser![definitionName] = _makeExtensionObjectReader(definitionName, definitionMap, readerMap);

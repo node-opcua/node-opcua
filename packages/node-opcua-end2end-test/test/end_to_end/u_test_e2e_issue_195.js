@@ -1,7 +1,6 @@
 "use strict";
 const async = require("async");
 const should = require("should");
-const _ = require("underscore");
 
 const {
     ClientSubscription,
@@ -66,7 +65,7 @@ module.exports = function(test) {
                             }, TimestampsToReturn.Both);
 
                         the_monitoredItem.on("initialized", () => {
-                            console.log("Initialize()");
+                            // console.log("Initialize()");
                             setImmediate(callback);
                         });
                     }
@@ -244,7 +243,7 @@ module.exports = function(test) {
 
                 f(function transfer_subscription_to_new_session(callback) {
 
-                    _.isNumber(subscriptionId).should.eql(true);
+                    (typeof subscriptionId === "number").should.eql(true);
 
                     console.log("transferring subscription", subscriptionId);
 

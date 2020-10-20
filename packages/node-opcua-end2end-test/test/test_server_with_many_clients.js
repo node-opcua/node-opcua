@@ -1,9 +1,8 @@
 "use strict";
 const chalk = require("chalk");
 const should = require("should");
-const assert = require("node-opcua-assert").assert;
+const { assert } = require("node-opcua-assert");
 const async = require("async");
-const _ = require("underscore");
 
 const opcua = require("node-opcua");
 
@@ -30,7 +29,7 @@ const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("Functional test : one server with many concurrent clients", function() {
     let server, temperatureVariableId, endpointUrl;
 
-    this.timeout(Math.max(20000, this._timeout));
+    this.timeout(Math.max(20000, this.timeout()));
 
     let serverCertificateChain = null;
     before(function(done) {
@@ -209,10 +208,10 @@ describe("Functional test : one server with many concurrent clients", function()
                         nb_received_changed_event.should.be.greaterThan(
                             1,
                             "client " +
-                                index +
-                                " has received " +
-                                nb_received_changed_event +
-                                " events ( expecting at least 2)"
+                            index +
+                            " has received " +
+                            nb_received_changed_event +
+                            " events ( expecting at least 2)"
                         );
                     });
 

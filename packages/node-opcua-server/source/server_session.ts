@@ -5,49 +5,40 @@
 
 import * as crypto from "crypto";
 import { EventEmitter } from "events";
-import * as _ from "underscore";
 
 import {
     addElement,
     AddressSpace,
-    BaseNode,
     ContinuationPointManager,
     createExtObjArrayNode,
     ensureObjectIsSecure,
-    IChannelBase,
     ISessionBase,
     removeElement,
-    SessionContext,
     UADynamicVariableArray,
     UAObject,
     UASessionDiagnostics,
-    UASessionSecurityDiagnostics,
-    UAVariable,
+    UASessionSecurityDiagnostics
 } from "node-opcua-address-space";
 
 import { assert } from "node-opcua-assert";
 import { randomGuid } from "node-opcua-basic-types";
-import {
-    SessionDiagnosticsDataType,
-    SessionSecurityDiagnosticsDataType,
-    SubscriptionDiagnosticsDataType
-} from "node-opcua-common";
-import { QualifiedName, makeAccessLevelFlag } from "node-opcua-data-model";
-import { NodeClass } from "node-opcua-data-model";
+import { SessionDiagnosticsDataType, SessionSecurityDiagnosticsDataType, SubscriptionDiagnosticsDataType } from "node-opcua-common";
+import { QualifiedName, NodeClass } from "node-opcua-data-model";
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 import { makeNodeId, NodeId, NodeIdType, sameNodeId } from "node-opcua-nodeid";
 import { ObjectRegistry } from "node-opcua-object-registry";
 import { StatusCode, StatusCodes } from "node-opcua-status-code";
 import { WatchDog } from "node-opcua-utils";
 import { lowerFirstLetter } from "node-opcua-utils";
-
-import { ServerSecureChannelLayer } from "node-opcua-secure-channel";
-import { ApplicationDescription, MessageSecurityMode, ReferenceDescriptionOptions, UserIdentityToken } from "node-opcua-types";
-
 import { ISubscriber, IWatchdogData2 } from "node-opcua-utils";
+
+import { IServerSession, ServerSecureChannelLayer } from "node-opcua-secure-channel";
+import { ApplicationDescription, UserIdentityToken, CreateSubscriptionRequestOptions, EndpointDescription } from "node-opcua-types";
+
 import { ServerSidePublishEngine } from "./server_publish_engine";
 import { Subscription } from "./server_subscription";
 import { SubscriptionState } from "./server_subscription";
+import { ServerEngine } from "./server_engine";
 
 const debugLog = make_debugLog(__filename);
 const doDebug = checkDebugFlag(__filename);
@@ -100,20 +91,19 @@ interface SessionSecurityDiagnosticsDataTypeEx extends SessionSecurityDiagnostic
  *   SessionDiagnosticsArray Variable and notifies any other Clients who were subscribed to this entry.
  *
  */
-export class ServerSession extends EventEmitter implements ISubscriber, ISessionBase {
-
+export class ServerSession extends EventEmitter implements ISubscriber, ISessionBase, IServerSession {
     public static registry = new ObjectRegistry();
     public static maxPublishRequestInQueue: number = 100;
 
     public __status: string = "";
-    public parent: any;
+    public parent: ServerEngine;
     public authenticationToken: NodeId;
     public nodeId: NodeId;
     public sessionName: string = "";
 
     public publishEngine: ServerSidePublishEngine;
     public sessionObject: any;
-    public creationDate: Date;
+    public readonly creationDate: Date;
     public sessionTimeout: number;
     public sessionDiagnostics?: UASessionDiagnostics;
     public sessionSecurityDiagnostics?: UASessionSecurityDiagnostics;
@@ -128,6 +118,7 @@ export class ServerSession extends EventEmitter implements ISubscriber, ISession
     // ISubscriber
     public _watchDog?: WatchDog;
     public _watchDogData?: IWatchdogData2;
+    keepAlive: () => void = WatchDog.emptyKeepAlive;
 
     private _registeredNodesCounter: number;
     private _registeredNodes: any;
@@ -138,15 +129,14 @@ export class ServerSession extends EventEmitter implements ISubscriber, ISession
 
     private channel_abort_event_handler: any;
 
-    constructor(parent: any, sessionTimeout: number) {
-
+    constructor(parent: ServerEngine, sessionTimeout: number) {
         super();
 
         this.parent = parent; // SessionEngine
 
         ServerSession.registry.register(this);
 
-        assert(_.isFinite(sessionTimeout));
+        assert(isFinite(sessionTimeout));
         assert(sessionTimeout >= 0, " sessionTimeout");
         this.sessionTimeout = sessionTimeout;
 
@@ -194,13 +184,17 @@ export class ServerSession extends EventEmitter implements ISubscriber, ISession
         return this.nodeId;
     }
 
-    public dispose() {
+    public endpoint?: EndpointDescription;
+    public getEndpointDescription(): EndpointDescription {
+        return this.endpoint!;
+    }
 
+    public dispose() {
         debugLog("ServerSession#dispose()");
 
         assert(!this.sessionObject, " sessionObject has not been cleared !");
 
-        this.parent = null;
+        this.parent = (null as any) as ServerEngine;
         this.authenticationToken = NodeId.nullNodeId;
 
         if (this.publishEngine) {
@@ -218,7 +212,6 @@ export class ServerSession extends EventEmitter implements ISubscriber, ISession
         this.__status = "disposed";
 
         ServerSession.registry.unregister(this);
-
     }
 
     public get clientConnectionTime() {
@@ -240,13 +233,15 @@ export class ServerSession extends EventEmitter implements ISubscriber, ISession
         this.__status = value;
     }
 
-    get addressSpace(): AddressSpace {
-        return this.parent ? this.parent.addressSpace : null;
+    get addressSpace(): AddressSpace | null {
+        if (this.parent && this.parent.addressSpace) {
+            return this.parent.addressSpace!;
+        }
+        return null;
     }
 
     get currentPublishRequestInQueue(): number {
-        return this.publishEngine
-            ? this.publishEngine.pendingPublishRequestCount : 0;
+        return this.publishEngine ? this.publishEngine.pendingPublishRequestCount : 0;
     }
 
     public updateClientLastContactTime() {
@@ -267,7 +262,6 @@ export class ServerSession extends EventEmitter implements ISubscriber, ISession
      * @private
      */
     public onClientSeen() {
-
         this.updateClientLastContactTime();
 
         if (this._sessionDiagnostics) {
@@ -292,7 +286,6 @@ export class ServerSession extends EventEmitter implements ISubscriber, ISession
     }
 
     public incrementTotalRequestCount() {
-
         if (this._sessionDiagnostics && this._sessionDiagnostics.totalRequestCount) {
             this._sessionDiagnostics.totalRequestCount.totalCount += 1;
         }
@@ -327,7 +320,7 @@ export class ServerSession extends EventEmitter implements ISubscriber, ISession
      * returns rootFolder.objects.server.serverDiagnostics.sessionsDiagnosticsSummary.sessionDiagnosticsArray
      */
     public getSessionDiagnosticsArray(): UADynamicVariableArray<SessionDiagnosticsDataType> {
-        const server = this.addressSpace.rootFolder.objects.server;
+        const server = this.addressSpace!.rootFolder.objects.server;
         return server.serverDiagnostics.sessionsDiagnosticsSummary.sessionDiagnosticsArray;
     }
 
@@ -335,7 +328,7 @@ export class ServerSession extends EventEmitter implements ISubscriber, ISession
      * returns rootFolder.objects.server.serverDiagnostics.sessionsDiagnosticsSummary.sessionSecurityDiagnosticsArray
      */
     public getSessionSecurityDiagnosticsArray(): UADynamicVariableArray<SessionSecurityDiagnosticsDataType> {
-        const server = this.addressSpace.rootFolder.objects.server;
+        const server = this.addressSpace!.rootFolder.objects.server;
         return server.serverDiagnostics.sessionsDiagnosticsSummary.sessionSecurityDiagnosticsArray;
     }
 
@@ -374,8 +367,10 @@ export class ServerSession extends EventEmitter implements ISubscriber, ISession
             // it should be considered as excluded
             return null;
         }
-        assert(!subscription || subscription.state !== SubscriptionState.CLOSED,
-            "CLOSED subscription shall not be managed by publish engine anymore");
+        assert(
+            !subscription || subscription.state !== SubscriptionState.CLOSED,
+            "CLOSED subscription shall not be managed by publish engine anymore"
+        );
         return subscription;
     }
 
@@ -385,7 +380,6 @@ export class ServerSession extends EventEmitter implements ISubscriber, ISession
      * @return {StatusCode}
      */
     public deleteSubscription(subscriptionId: number): StatusCode {
-
         const session = this;
         const subscription = session.getSubscription(subscriptionId);
         if (!subscription) {
@@ -396,7 +390,6 @@ export class ServerSession extends EventEmitter implements ISubscriber, ISession
         subscription.terminate();
 
         if (session.currentSubscriptionCount === 0) {
-
             const local_publishEngine = session.publishEngine;
             local_publishEngine.cancelPendingPublishRequest();
         }
@@ -421,7 +414,6 @@ export class ServerSession extends EventEmitter implements ISubscriber, ISession
      *
      */
     public close(deleteSubscriptions: boolean, reason: string) {
-
         debugLog(" closing session deleteSubscriptions = ", deleteSubscriptions);
         if (this.publishEngine) {
             this.publishEngine.onSessionClose();
@@ -431,11 +423,9 @@ export class ServerSession extends EventEmitter implements ISubscriber, ISession
         // ---------------  delete associated subscriptions ---------------------
 
         if (!deleteSubscriptions && this.currentSubscriptionCount !== 0) {
-
             // I don't know what to do yet if deleteSubscriptions is false
             console.log("TO DO : Closing session without deleting subscription not yet implemented");
             // to do: Put subscriptions in safe place for future transfer if any
-
         }
 
         this._deleteSubscriptions();
@@ -455,20 +445,18 @@ export class ServerSession extends EventEmitter implements ISubscriber, ISession
 
         // ---------------- shut down publish engine
         if (this.publishEngine) {
-
             // remove subscription
             this.publishEngine.shutdown();
 
             assert(this.publishEngine.subscriptionCount === 0);
             this.publishEngine.dispose();
-            this.publishEngine = null as any as ServerSidePublishEngine;
+            this.publishEngine = (null as any) as ServerSidePublishEngine;
         }
 
         this._removeSessionObjectFromAddressSpace();
 
         assert(!this.sessionDiagnostics, "ServerSession#_removeSessionObjectFromAddressSpace must be called");
         assert(!this.sessionObject, "ServerSession#_removeSessionObjectFromAddressSpace must be called");
-
     }
 
     public registerNode(nodeId: NodeId) {
@@ -487,7 +475,7 @@ export class ServerSession extends EventEmitter implements ISubscriber, ISession
             return registeredNode;
         }
 
-        const node = session.addressSpace.findNode(nodeId);
+        const node = session.addressSpace!.findNode(nodeId);
         if (!node) {
             return nodeId;
         }
@@ -501,7 +489,6 @@ export class ServerSession extends EventEmitter implements ISubscriber, ISession
     }
 
     public unRegisterNode(aliasNodeId: NodeId): void {
-
         assert(aliasNodeId instanceof NodeId);
         if (aliasNodeId.namespace !== registeredNodeNameSpace) {
             return; // not a registered Node
@@ -517,7 +504,6 @@ export class ServerSession extends EventEmitter implements ISubscriber, ISession
     }
 
     public resolveRegisteredNode(aliasNodeId: NodeId): NodeId {
-
         if (aliasNodeId.namespace !== registeredNodeNameSpace) {
             return aliasNodeId; // not a registered Node
         }
@@ -538,8 +524,9 @@ export class ServerSession extends EventEmitter implements ISubscriber, ISession
         return this.channel.aborted;
     }
 
-    public createSubscription(parameters: any): Subscription {
+    public createSubscription(parameters: CreateSubscriptionRequestOptions): Subscription {
         const subscription = this.parent._createSubscriptionOnSession(this, parameters);
+        assert(!parameters.hasOwnProperty("id"));
         this.assignSubscription(subscription);
         assert(subscription.$session === this);
         assert(subscription.sessionId instanceof NodeId);
@@ -559,7 +546,6 @@ export class ServerSession extends EventEmitter implements ISubscriber, ISession
         // when channel is aborting
         this.channel_abort_event_handler = on_channel_abort.bind(this);
         channel.on("abort", this.channel_abort_event_handler);
-
     }
 
     public _detach_channel() {
@@ -572,7 +558,7 @@ export class ServerSession extends EventEmitter implements ISubscriber, ISession
         const key = this.authenticationToken.toString();
         assert(channel.sessionTokens.hasOwnProperty(key));
         assert(this.channel);
-        assert(_.isFunction(this.channel_abort_event_handler));
+        assert(typeof this.channel_abort_event_handler === "function");
         channel.removeListener("abort", this.channel_abort_event_handler);
 
         delete channel.sessionTokens[key];
@@ -588,14 +574,12 @@ export class ServerSession extends EventEmitter implements ISubscriber, ISession
         assert(subscriptionDiagnostics.$subscription === subscription);
 
         if (subscriptionDiagnostics && subscriptionDiagnosticsArray) {
-            // xx console.log("GG => ServerSession Exposing subscription diagnostics =>",
             // subscription.id,"on session", session.nodeId.toString());
             addElement(subscriptionDiagnostics, subscriptionDiagnosticsArray);
         }
     }
 
     public _unexposeSubscriptionDiagnostics(subscription: Subscription) {
-
         const subscriptionDiagnosticsArray = this._getSubscriptionDiagnosticsArray();
         const subscriptionDiagnostics = subscription.subscriptionDiagnostics;
         assert(subscriptionDiagnostics instanceof SubscriptionDiagnosticsDataType);
@@ -618,7 +602,6 @@ export class ServerSession extends EventEmitter implements ISubscriber, ISession
     }
 
     private _createSessionObjectInAddressSpace() {
-
         if (this.sessionObject) {
             return;
         }
@@ -645,12 +628,9 @@ export class ServerSession extends EventEmitter implements ISubscriber, ISession
         const serverDiagnosticsNode = root.objects.server.serverDiagnostics;
 
         if (!serverDiagnosticsNode || !serverDiagnosticsNode.sessionsDiagnosticsSummary) {
-            debugLog(
-                "ServerSession#_createSessionObjectInAddressSpace :" +
-                " no serverDiagnostics.sessionsDiagnosticsSummary");
+            debugLog("ServerSession#_createSessionObjectInAddressSpace :" + " no serverDiagnostics.sessionsDiagnosticsSummary");
             return false;
         }
-
 
         const sessionDiagnosticsObjectType = this.addressSpace.findObjectType("SessionDiagnosticsObjectType");
 
@@ -664,9 +644,11 @@ export class ServerSession extends EventEmitter implements ISubscriber, ISession
 
         function createSessionDiagnosticsStuff(this: ServerSession) {
             if (sessionDiagnosticsDataType && sessionDiagnosticsVariableType) {
-
                 // the extension object
-                this._sessionDiagnostics = this.addressSpace.constructExtensionObject(sessionDiagnosticsDataType, {})! as SessionDiagnosticsDataTypeEx;
+                this._sessionDiagnostics = this.addressSpace!.constructExtensionObject(
+                    sessionDiagnosticsDataType,
+                    {}
+                )! as SessionDiagnosticsDataTypeEx;
                 this._sessionDiagnostics.$session = this;
 
                 // install property getter on property that are unlikely to change
@@ -681,20 +663,20 @@ export class ServerSession extends EventEmitter implements ISubscriber, ISession
                 });
 
                 Object.defineProperty(this._sessionDiagnostics, "actualSessionTimeout", {
-                    get(this: any) {
-                        return this.$session.sessionTimeout;
+                    get(this: SessionDiagnosticsDataTypeEx) {
+                        return this.$session?.sessionTimeout;
                     }
                 });
 
                 Object.defineProperty(this._sessionDiagnostics, "sessionId", {
-                    get(this: any) {
-                        return this.$session.nodeId;
+                    get(this: SessionDiagnosticsDataTypeEx) {
+                        return this.$session?.nodeId;
                     }
                 });
 
                 Object.defineProperty(this._sessionDiagnostics, "sessionName", {
-                    get(this: any) {
-                        return this.$session.sessionName.toString();
+                    get(this: SessionDiagnosticsDataTypeEx) {
+                        return this.$session?.sessionName.toString();
                     }
                 });
 
@@ -712,14 +694,15 @@ export class ServerSession extends EventEmitter implements ISubscriber, ISession
 
                 // add sessionDiagnostics into sessionDiagnosticsArray
                 addElement<SessionDiagnosticsDataType>(this._sessionDiagnostics, sessionDiagnosticsArray);
-
             }
-
         }
         function createSessionSecurityDiagnosticsStuff(this: ServerSession) {
             if (sessionSecurityDiagnosticsDataType && sessionSecurityDiagnosticsType) {
                 // the extension object
-                this._sessionSecurityDiagnostics = this.addressSpace.constructExtensionObject(sessionSecurityDiagnosticsDataType, {})! as SessionSecurityDiagnosticsDataTypeEx;
+                this._sessionSecurityDiagnostics = this.addressSpace!.constructExtensionObject(
+                    sessionSecurityDiagnosticsDataType,
+                    {}
+                )! as SessionSecurityDiagnosticsDataTypeEx;
                 this._sessionSecurityDiagnostics.$session = this;
 
                 /*
@@ -735,7 +718,7 @@ export class ServerSession extends EventEmitter implements ISubscriber, ISession
                 */
                 Object.defineProperty(this._sessionSecurityDiagnostics, "sessionId", {
                     get(this: any) {
-                        return this.$session.nodeId;
+                        return this.$session?.nodeId;
                     }
                 });
 
@@ -769,19 +752,19 @@ export class ServerSession extends EventEmitter implements ISubscriber, ISession
                 Object.defineProperty(this._sessionSecurityDiagnostics, "securityMode", {
                     get(this: any) {
                         const session: ServerSession = this.$session;
-                        return session.channel!.endpoint!.securityMode;
+                        return session?.channel?.securityMode;
                     }
                 });
                 Object.defineProperty(this._sessionSecurityDiagnostics, "securityPolicyUri", {
                     get(this: any) {
                         const session: ServerSession = this.$session;
-                        return session.channel!.endpoint!.securityPolicyUri;
+                        return session?.channel?.securityPolicy;
                     }
                 });
                 Object.defineProperty(this._sessionSecurityDiagnostics, "clientCertificate", {
                     get(this: any) {
                         const session: ServerSession = this.$session;
-                        return session.channel!.clientCertificate;
+                        return session?.channel!.clientCertificate;
                     }
                 });
 
@@ -794,27 +777,28 @@ export class ServerSession extends EventEmitter implements ISubscriber, ISession
 
                 ensureObjectIsSecure(this.sessionSecurityDiagnostics);
 
-                this._sessionSecurityDiagnostics = this.sessionSecurityDiagnostics.$extensionObject as SessionSecurityDiagnosticsDataTypeEx;
+                this._sessionSecurityDiagnostics = this.sessionSecurityDiagnostics
+                    .$extensionObject as SessionSecurityDiagnosticsDataTypeEx;
                 assert(this._sessionSecurityDiagnostics.$session === this);
 
                 const sessionSecurityDiagnosticsArray = this.getSessionSecurityDiagnosticsArray();
 
                 // add sessionDiagnostics into sessionDiagnosticsArray
-                const node = addElement<SessionSecurityDiagnosticsDataType>(this._sessionSecurityDiagnostics, sessionSecurityDiagnosticsArray);
+                const node = addElement<SessionSecurityDiagnosticsDataType>(
+                    this._sessionSecurityDiagnostics,
+                    sessionSecurityDiagnosticsArray
+                );
                 ensureObjectIsSecure(node);
-
             }
-
         }
 
         function createSessionDiagnosticSummaryUAObject(this: ServerSession) {
-
             const references: any[] = [];
             if (sessionDiagnosticsObjectType) {
                 references.push({
                     isForward: true,
                     nodeId: sessionDiagnosticsObjectType,
-                    referenceType: "HasTypeDefinition",
+                    referenceType: "HasTypeDefinition"
                 });
             }
 
@@ -824,27 +808,23 @@ export class ServerSession extends EventEmitter implements ISubscriber, ISession
                 nodeClass: NodeClass.Object,
                 nodeId: this.nodeId,
                 references,
-                typeDefinition: sessionDiagnosticsObjectType,
+                typeDefinition: sessionDiagnosticsObjectType
             }) as UAObject;
 
             createSessionDiagnosticsStuff.call(this);
             createSessionSecurityDiagnosticsStuff.call(this);
-
         }
         function createSubscriptionDiagnosticsArray(this: ServerSession) {
-            const subscriptionDiagnosticsArrayType =
-                this.addressSpace.findVariableType("SubscriptionDiagnosticsArrayType")!;
+            const subscriptionDiagnosticsArrayType = this.addressSpace!.findVariableType("SubscriptionDiagnosticsArrayType")!;
             assert(subscriptionDiagnosticsArrayType.nodeId.toString() === "ns=0;i=2171");
 
-            this.subscriptionDiagnosticsArray =
-                createExtObjArrayNode<SubscriptionDiagnosticsDataType>(this.sessionObject, {
-                    browseName: { namespaceIndex: 0, name: "SubscriptionDiagnosticsArray" },
-                    complexVariableType: "SubscriptionDiagnosticsArrayType",
-                    indexPropertyName: "subscriptionId",
-                    minimumSamplingInterval: 2000, // 2 seconds
-                    variableType: "SubscriptionDiagnosticsType",
-                });
-
+            this.subscriptionDiagnosticsArray = createExtObjArrayNode<SubscriptionDiagnosticsDataType>(this.sessionObject, {
+                browseName: { namespaceIndex: 0, name: "SubscriptionDiagnosticsArray" },
+                complexVariableType: "SubscriptionDiagnosticsArrayType",
+                indexPropertyName: "subscriptionId",
+                minimumSamplingInterval: 2000, // 2 seconds
+                variableType: "SubscriptionDiagnosticsType"
+            });
         }
         createSessionDiagnosticSummaryUAObject.call(this);
         createSubscriptionDiagnosticsArray.call(this);
@@ -856,14 +836,12 @@ export class ServerSession extends EventEmitter implements ISubscriber, ISession
      * @private
      */
     private _removeSessionObjectFromAddressSpace() {
-
         // todo : dump session statistics in a file or somewhere for deeper diagnostic analysis on closed session
 
         if (!this.addressSpace) {
             return;
         }
         if (this.sessionDiagnostics) {
-
             const sessionDiagnosticsArray = this.getSessionDiagnosticsArray()!;
             removeElement(sessionDiagnosticsArray, this.sessionDiagnostics.$extensionObject);
 
@@ -900,7 +878,6 @@ export class ServerSession extends EventEmitter implements ISubscriber, ISession
      * @private
      */
     private _getSubscriptionDiagnosticsArray() {
-
         if (!this.addressSpace) {
             if (doDebug) {
                 console.warn("ServerSession#_getSubscriptionDiagnosticsArray : no addressSpace");
@@ -935,21 +912,18 @@ export class ServerSession extends EventEmitter implements ISubscriber, ISession
         this._exposeSubscriptionDiagnostics(subscription);
 
         subscription.once("terminated", () => {
-            // Xx session._unexposeSubscriptionDiagnostics(subscription);
             // Notify the owner that a new subscription has been terminated
             // @event subscription_terminated
             // @param {Subscription} subscription
             this.emit("subscription_terminated", subscription);
         });
-
     }
 
     private _deleteSubscriptions() {
         assert(this.publishEngine);
         const subscriptions = this.publishEngine.subscriptions;
-        subscriptions.forEach((subscription: Subscription) => {
+        for (const subscription of subscriptions) {
             this.deleteSubscription(subscription.id);
-        });
+        }
     }
-
 }

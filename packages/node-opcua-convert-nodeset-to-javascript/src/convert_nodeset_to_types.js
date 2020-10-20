@@ -1,33 +1,28 @@
 /* istanbul ignore file */
 "use strict";
 
-const assert = require("node-opcua-assert").assert;
-const _ = require("underscore");
+const { assert } = require("node-opcua-assert");
 
 const path = require("path");
 const fs = require("fs");
 
-const { 
-    resolveNodeId
- }= require("node-opcua-nodeid");
 const {
-    AddressSpace 
- } = require("node-opcua-address-space");
+    resolveNodeId
+} = require("node-opcua-nodeid");
+const {
+    AddressSpace
+} = require("node-opcua-address-space");
 
 const {
-    normalize_require_file,
-    LineFile 
+    lowerFirstLetter
 } = require("node-opcua-utils");
 const {
-    lowerFirstLetter 
-}= require("node-opcua-utils");
-const { 
-    hasConstructor, 
+    hasConstructor,
     getConstructor,
     hasEnumeration,
-    getEnumeration 
-}= require("node-opcua-factory");
-const { NodeClass } = require("node-opcua-data-model"); 
+    getEnumeration
+} = require("node-opcua-factory");
+const { NodeClass } = require("node-opcua-data-model");
 const crypto = require("crypto");
 
 function hashNamespace(namespaceUri) {
@@ -127,7 +122,7 @@ function makeEnumeration(dataType, bForce) {
     assert(dataType);
     assert(dataType.browseName);
     assert(dataType.browseName instanceof QualifiedName);
-    assert(_.isArray(dataType.definition));
+    assert(Array.isArray(dataType.definition));
 
     const dataTypeName = dataType.browseName.name.toString();
     if (hasEnumeration(dataTypeName)) {
@@ -221,15 +216,15 @@ function makeStructure(dataType/*: UADataType*/, bForce/*: boolean*/, schema_fol
     assert(dataType.nodeClass === NodeClass.DataType);
 
     const addressSpace = dataType.addressSpace;
-  
+
     const namespaceUri = addressSpace.getNamespaceUri(dataType.nodeId.namespace);
 
     // istanbul ignore next
     if (!dataType.binaryEncodingNodeId) {
         throw new Error(
             "DataType with name " +
-                dataType.browseName.toString() +
-                " has no binaryEncoding node\nplease check your nodeset file"
+            dataType.browseName.toString() +
+            " has no binaryEncoding node\nplease check your nodeset file"
         );
     }
 
@@ -251,7 +246,7 @@ function makeStructure(dataType/*: UADataType*/, bForce/*: boolean*/, schema_fol
     const relative_filename = normalize_require_file(__dirname, filename);
 
     const constructor = require(relative_filename)[schema.name];
-    assert(_.isFunction(constructor), "expecting a constructor here");
+    assert(typeof constructor === "function", "expecting a constructor here");
 
     return constructor;
 }
@@ -298,8 +293,8 @@ function constructSchema(addressSpace, dataType) {
         if (!fieldDataType) {
             throw new Error(
                 " cannot find description for object " +
-                    dataTypeId +
-                    ". Check that this node exists in the nodeset.xml file"
+                dataTypeId +
+                ". Check that this node exists in the nodeset.xml file"
             );
         }
 

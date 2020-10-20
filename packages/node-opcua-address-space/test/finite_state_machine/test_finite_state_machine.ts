@@ -1,6 +1,5 @@
 // tslint:disable:no-console
 import * as path from "path";
-import * as should from "should";
 
 import { LocalizedText } from "node-opcua-data-model";
 import { StatusCodes } from "node-opcua-status-code";
@@ -10,12 +9,13 @@ import {
     AddressSpace,
     ExclusiveLimitStateMachineType,
     FiniteStateMachineType,
-    generateAddressSpace,
-    InstantiateObjectOptions,
     promoteToStateMachine,
     StateMachine,
-    StateMachineType
+    StateMachineType,
+    UAObject,
+    Transition
 } from "../..";
+import { generateAddressSpace } from "../../nodeJS";
 
 const doDebug = false;
 
@@ -23,11 +23,9 @@ const doDebug = false;
 // tslint:disable-next-line:no-var-requires
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("Testing Finite State Machine", () => {
-
     let addressSpace: AddressSpace;
 
     before(async () => {
-
         addressSpace = AddressSpace.create();
         addressSpace.registerNamespace("MyPrivateNamespace");
 
@@ -42,7 +40,6 @@ describe("Testing Finite State Machine", () => {
     });
 
     it("finite state machine should have expected mandatory and optional fields", async () => {
-
         const stateMachineType = addressSpace.findObjectType("StateMachineType")! as StateMachineType;
 
         stateMachineType.currentState.modellingRule!.should.eql("Mandatory");
@@ -58,11 +55,9 @@ describe("Testing Finite State Machine", () => {
         stateMachineType.isAbstract.should.eql(false);
         stateMachineType.currentState.typeDefinitionObj.browseName.toString().should.eql("StateVariableType");
         stateMachineType.lastTransition.typeDefinitionObj.browseName.toString().should.eql("TransitionVariableType");
-
     });
 
     it("should instantiate a finite state machine", async () => {
-
         const stateMachineType = addressSpace.findObjectType("StateMachineType")! as StateMachineType;
 
         const stateMachine = stateMachineType.instantiate({ browseName: "MyStateMachine" });
@@ -73,11 +68,9 @@ describe("Testing Finite State Machine", () => {
         stateMachine.currentState.id.browseName.toString().should.eql("Id");
 
         stateMachine.hasOwnProperty("lastTransition").should.eql(false);
-
     });
 
     it("should instantiate a finite state machine with lastTransition", async () => {
-
         const stateMachineType = addressSpace.findObjectType("StateMachineType")! as StateMachineType;
 
         const stateMachine = stateMachineType.instantiate({
@@ -93,7 +86,6 @@ describe("Testing Finite State Machine", () => {
     });
 
     it("should bind a finite state machine state variable", async () => {
-
         const stateMachineType = addressSpace.findObjectType("StateMachineType")! as StateMachineType;
 
         const stateMachine = stateMachineType.instantiate({
@@ -105,7 +97,6 @@ describe("Testing Finite State Machine", () => {
             dataType: DataType.LocalizedText,
             value: new LocalizedText({ text: "NewState" })
         });
-
     });
 
     // FiniteStateMachineType are defined in  OPCUA Specification Part 5 : information model
@@ -119,7 +110,6 @@ describe("Testing Finite State Machine", () => {
     //   A Transition is directed and points from one State to another State.
 
     it("should explore FiniteStateMachineType", async () => {
-
         const finiteStateMachineType = addressSpace.findObjectType("FiniteStateMachineType")! as FiniteStateMachineType;
 
         finiteStateMachineType.currentState.modellingRule!.should.eql("Mandatory");
@@ -133,15 +123,13 @@ describe("Testing Finite State Machine", () => {
         finiteStateMachineType.currentState.dataTypeObj.browseName.toString().should.eql("LocalizedText");
         finiteStateMachineType.currentState.id.dataTypeObj.browseName.toString().should.eql("NodeId");
 
-        finiteStateMachineType.currentState.typeDefinitionObj.browseName.toString()
-          .should.eql("FiniteStateVariableType");
-
+        finiteStateMachineType.currentState.typeDefinitionObj.browseName.toString().should.eql("FiniteStateVariableType");
     });
 
     it("should handle a FiniteStateMachine Type defined in a nodeset.xml file", () => {
-
-        const exclusiveLimitStateMachineType =
-          addressSpace.findObjectType("ExclusiveLimitStateMachineType")! as ExclusiveLimitStateMachineType;
+        const exclusiveLimitStateMachineType = addressSpace.findObjectType(
+            "ExclusiveLimitStateMachineType"
+        )! as ExclusiveLimitStateMachineType;
 
         exclusiveLimitStateMachineType.browseName.toString().should.eql("ExclusiveLimitStateMachineType");
 
@@ -157,9 +145,8 @@ describe("Testing Finite State Machine", () => {
 
         // get the states
         const a = myStateMachine.getStates().map((e: any) => {
-
             const stateNumber = e.stateNumber.readValue().value.value;
-            return e.browseName.toString() + ((stateNumber !== null) ? (" ( " + stateNumber + " )") : "");
+            return e.browseName.toString() + (stateNumber !== null ? " ( " + stateNumber + " )" : "");
         });
 
         if (doDebug) {
@@ -169,7 +156,7 @@ describe("Testing Finite State Machine", () => {
         // get the transitions
         const t = myStateMachine.getTransitions().map((e) => {
             const transitionNumber = e.transitionNumber.readValue().value.value;
-            return e.browseName.toString() + ((transitionNumber !== null) ? (" ( " + transitionNumber + " )") : "");
+            return e.browseName.toString() + (transitionNumber !== null ? " ( " + transitionNumber + " )" : "");
         });
         if (doDebug) {
             console.log("transitions : ", t.join(" "));
@@ -197,11 +184,9 @@ describe("Testing Finite State Machine", () => {
         const lowToLowLowTransition = myStateMachine.findTransitionNode(lowState, lowlowState)!;
 
         lowToLowLowTransition.browseName.toString().should.eql("LowToLowLow");
-
     });
 
     it("should define a new FiniteMachineStateType", () => {
-
         /*
          *  BrowseName  AnalyserDeviceStateMachineType
          *  Subtype of the FiniteStateMachineType defined in [UA Part 5]
@@ -277,7 +262,105 @@ describe("Testing Finite State Machine", () => {
         namespace.addTransition(myFiniteStateMachine, "Operating", "Shutdown", 8);
         namespace.addTransition(myFiniteStateMachine, "Local", "Shutdown", 9);
         namespace.addTransition(myFiniteStateMachine, "Maintenance", "Shutdown", 10);
+    });
+});
 
+import { nodesets } from "node-opcua-nodesets";
+import * as sinon from "sinon";
+
+describe("FiniteStateMachine with Multiple transition from one state to an other", () => {
+    // some state machine may have multiple transition from one state to the other
+    // this is the case in the VisionStateMachine of the MachineVision nodeset
+    // for this reason the setState method need to have a extra argument that allows disambiguation
+
+    const oldConsole = console.log;
+    let _output: string[] = [];
+    function captureConsoleLog() {
+        /* */
+        // tslint:disable-next-line: only-arrow-functions
+        console.log = function (...args: [any, ...any[]]) {
+            const str = args.map((a) => "" + a).join(" ");
+            if (str.substr(0, 3) !== "XXX") {
+                _output.push(str);
+            }
+        };
+    }
+    function unCaptureConsoleLog(): string {
+        /* */
+        console.log = oldConsole;
+        const ret = _output.join("\n");
+        _output = [];
+        return ret;
+    }
+
+    interface UAVisionSystem extends UAObject {
+        // configurationManagement: UAConfigurationManagementSystem;
+        // recipeManagement: UARecipeManagement;
+        // resultManagement: UAResultManagement;
+        // safetyStateManagement: UASafetyStateManagement;
+        // diagnosticLevel: UAVariableT<number, DataType.UInt32>;
+        visionStateMachine: StateMachine;
+        // systemState: UAVariable;
+    }
+    let visionSystem: UAVisionSystem;
+    let addressSpace: AddressSpace;
+
+    before(async () => {
+        addressSpace = AddressSpace.create();
+
+        const xml_file = [nodesets.standard, nodesets.di, nodesets.machineVision];
+        await generateAddressSpace(addressSpace, xml_file);
+
+        addressSpace.installAlarmsAndConditionsService();
+
+        const nsVision = addressSpace.getNamespaceIndex("http://opcfoundation.org/UA/MachineVision");
+        const nsDI = addressSpace.getNamespaceIndex("http://opcfoundation.org/UA/DI/");
+        const visionSystemType = addressSpace.findObjectType("VisionSystemType", nsVision);
+
+        const deviceSet = addressSpace.rootFolder.objects.getFolderElementByName("DeviceSet", nsDI);
+        if (!deviceSet) throw new Error("Cannot find device set in namespace  " + nsDI);
+
+        visionSystem = visionSystemType!.instantiate({
+            browseName: "VisionSystem1",
+            organizedBy: deviceSet // addressSpace.rootFolder.objects,
+        }) as UAVisionSystem;
+
+        promoteToStateMachine(visionSystem.visionStateMachine);
+
+        visionSystem.visionStateMachine.raiseEvent = sinon.spy();
     });
 
+    after(async () => {
+        addressSpace.dispose();
+    });
+
+    beforeEach(() => {
+        captureConsoleLog();
+        visionSystem.visionStateMachine.setState("Halted");
+        unCaptureConsoleLog();
+    });
+
+    it("MachineState#setState: should display a warning if multiple transition exists and no predicate is provided", () => {
+        captureConsoleLog();
+        visionSystem.visionStateMachine.setState("Preoperational");
+
+        const output = unCaptureConsoleLog();
+
+        console.log(output);
+
+        output.should.match(/warning: a duplicated FromState Reference to the same target has been found/);
+        output.should.match(/Please check your model or provide a predicate method to select which one to use/);
+    });
+    it("MachineState#setState: should properly use the predicate to select which transition to use for the TransitionEventType Event", () => {
+        captureConsoleLog();
+        visionSystem.visionStateMachine.setState(
+            "Preoperational",
+            (possibleTransitions: Transition[]) => possibleTransitions.find((t) => t.browseName.toString().match(/Auto/)) || null
+        );
+        const output = unCaptureConsoleLog();
+
+        console.log(output);
+
+        output.should.eql("");
+    });
 });

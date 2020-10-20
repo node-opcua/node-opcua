@@ -1,17 +1,15 @@
 import * as fs from "fs";
-import * as nodesets from "node-opcua-nodesets";
+import { nodesets } from "node-opcua-nodesets";
 import { getFixture } from "node-opcua-test-fixtures";
 import * as path from "path";
 import * as should from "should";
 import { AddressSpace } from "..";
-import { generateAddressSpace } from "..";
+import { generateAddressSpace } from "../nodeJS";
 
 // tslint:disable-next-line:no-var-requires
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("testing address space namespace", () => {
-
     it("#getNamespaceUri : should have namespace 0", () => {
-
         const addressSpace = AddressSpace.create();
 
         addressSpace.getNamespaceUri(0).should.eql("http://opcfoundation.org/UA/");
@@ -19,7 +17,6 @@ describe("testing address space namespace", () => {
         addressSpace.dispose();
     });
     it("#registerNamespace should register new namespace", () => {
-
         const addressSpace = AddressSpace.create();
 
         const namespaceUri = "http://MyNEWNameSpace";
@@ -28,15 +25,11 @@ describe("testing address space namespace", () => {
         addressSpace.getNamespaceIndex(namespaceUri).should.eql(namespace.index);
 
         addressSpace.dispose();
-
     });
-
 });
 
 describe("testing  address space namespace loading", function (this: any) {
-
     it("should process namespaces and translate namespace index when loading node set xml files", async () => {
-
         const addressSpace = AddressSpace.create();
         const xml_files = [
             path.join(__dirname, "../test_helpers/test_fixtures/mini.Node.Set2.xml"),
@@ -48,10 +41,10 @@ describe("testing  address space namespace loading", function (this: any) {
 
         addressSpace.registerNamespace("ServerNamespaceURI");
         addressSpace.getNamespaceArray().length.should.eql(2);
-        addressSpace.getNamespaceArray().map((x) => x.namespaceUri).should.eql([
-            "http://opcfoundation.org/UA/",
-            "ServerNamespaceURI"
-        ]);
+        addressSpace
+            .getNamespaceArray()
+            .map((x) => x.namespaceUri)
+            .should.eql(["http://opcfoundation.org/UA/", "ServerNamespaceURI"]);
 
         await generateAddressSpace(addressSpace, xml_files);
 
@@ -62,15 +55,17 @@ describe("testing  address space namespace loading", function (this: any) {
         addressSpace.findNode("ns=2;i=1")!.browseName.toString().should.eql("2:ObjectInCUSTOM_NAMESPACE1");
         addressSpace.findNode("ns=3;i=1")!.browseName.toString().should.eql("3:ObjectInCUSTOM_NAMESPACE2");
 
-        addressSpace.getNamespaceArray().map((x) => x.namespaceUri).should.eql([
-            "http://opcfoundation.org/UA/",
-            "ServerNamespaceURI",
-            "http://nodeopcua.org/UA/CUSTOM_NAMESPACE1/",
-            "http://nodeopcua.org/UA/CUSTOM_NAMESPACE2/"
-        ]);
+        addressSpace
+            .getNamespaceArray()
+            .map((x) => x.namespaceUri)
+            .should.eql([
+                "http://opcfoundation.org/UA/",
+                "ServerNamespaceURI",
+                "http://nodeopcua.org/UA/CUSTOM_NAMESPACE1/",
+                "http://nodeopcua.org/UA/CUSTOM_NAMESPACE2/"
+            ]);
 
         addressSpace.dispose();
-
     });
 
     it("should process multiple xml files that reference each other", async () => {
@@ -102,27 +97,25 @@ describe("testing  address space namespace loading", function (this: any) {
 
         addressSpace.findNode("ns=4;i=1")!.browseName.toString().should.eql("4:ObjectInCUSTOM_NAMESPACE3");
 
-        addressSpace.getNamespaceArray().map((x) => x.namespaceUri).should.eql([
-            "http://opcfoundation.org/UA/",
-            "ServerNamespaceURI",
-            "http://nodeopcua.org/UA/CUSTOM_NAMESPACE1/",
-            "http://nodeopcua.org/UA/CUSTOM_NAMESPACE2/",
-            "http://nodeopcua.org/UA/CUSTOM_NAMESPACE3/"
-        ]);
+        addressSpace
+            .getNamespaceArray()
+            .map((x) => x.namespaceUri)
+            .should.eql([
+                "http://opcfoundation.org/UA/",
+                "ServerNamespaceURI",
+                "http://nodeopcua.org/UA/CUSTOM_NAMESPACE1/",
+                "http://nodeopcua.org/UA/CUSTOM_NAMESPACE2/",
+                "http://nodeopcua.org/UA/CUSTOM_NAMESPACE3/"
+            ]);
         addressSpace.dispose();
-
     });
 
     // increase test timeout as test may take time on slow arm computers
-    this.timeout(Math.max(100000, this._timeout));
+    this.timeout(Math.max(100000, this.timeout()));
 
     it("should process namespaces with DI", async () => {
-
         const addressSpace = AddressSpace.create();
-        const xml_files = [
-            nodesets.standard_nodeset_file,
-            nodesets.di_nodeset_filename
-        ];
+        const xml_files = [nodesets.standard, nodesets.di];
         fs.existsSync(xml_files[0]).should.be.eql(true);
         fs.existsSync(xml_files[1]).should.be.eql(true);
 
@@ -134,11 +127,14 @@ describe("testing  address space namespace loading", function (this: any) {
         addressSpace.getNamespaceArray().length.should.eql(3);
         addressSpace.getNamespaceArray()[2].namespaceUri.should.eql("http://opcfoundation.org/UA/DI/");
 
-        addressSpace.getNamespaceArray().map((x) => x.namespaceUri).should.eql([
-            "http://opcfoundation.org/UA/",   // 0
-            "ServerNamespaceURI",             // 1
-            "http://opcfoundation.org/UA/DI/" // 2
-        ]);
+        addressSpace
+            .getNamespaceArray()
+            .map((x) => x.namespaceUri)
+            .should.eql([
+                "http://opcfoundation.org/UA/", // 0
+                "ServerNamespaceURI", // 1
+                "http://opcfoundation.org/UA/DI/" // 2
+            ]);
 
         const di_ns = addressSpace.getNamespaceIndex("http://opcfoundation.org/UA/DI/");
         di_ns.should.eql(2);
@@ -168,6 +164,5 @@ describe("testing  address space namespace loading", function (this: any) {
         should(addressSpace.findDataType("2:ParameterResultDataType")).eql(ParameterResultDataType);
 
         addressSpace.dispose();
-
     });
 });

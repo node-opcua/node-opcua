@@ -4,12 +4,16 @@
         "rootDir": "source",
         "outDir": "dist",
         "types": ["node", "mocha"],
-        "composite": true
+        "composite": true,
+        "incremental": true
     },
     "include": ["source/**/*.ts"],
     "references": [
         {
             "path": "../node-opcua-assert"
+        },
+        {
+            "path": "../node-opcua-address-space"
         },
         {
             "path": "../node-opcua-aggregates"

@@ -1,12 +1,10 @@
-/*global xit,it,describe,before,beforeEach,afterEach*/
 "use strict";
 
 const chalk = require("chalk");
-const assert = require("node-opcua-assert").assert;
+const { assert } = require("node-opcua-assert");
 const async = require("async");
 const should = require("should");
 const sinon = require("sinon");
-const _ = require("underscore");
 
 const opcua = require("node-opcua");
 
@@ -23,7 +21,7 @@ const VariantArrayType = opcua.VariantArrayType;
 const MonitoredItem = opcua.MonitoredItem;
 
 const perform_operation_on_client_session = require("../../test_helpers/perform_operation_on_client_session").perform_operation_on_client_session;
-const perform_operation_on_subscription = require("../../test_helpers/perform_operation_on_client_session").perform_operation_on_subscription;
+const { perform_operation_on_subscription } = require("../../test_helpers/perform_operation_on_client_session");
 const perform_operation_on_monitoredItem = require("../../test_helpers/perform_operation_on_client_session").perform_operation_on_monitoredItem;
 
 const Subscription = require("node-opcua-server").Subscription;
@@ -883,8 +881,8 @@ module.exports = function(test) {
 
                 function write(value, indexRange, callback) {
 
-                    assert(_.isFunction(callback));
-                    assert(_.isArray(value));
+                    assert(typeof callback === "function");
+                    assert(Array.isArray(value));
 
                     const nodeToWrite = {
                         nodeId: nodeId,
@@ -2711,7 +2709,7 @@ module.exports = function(test) {
 
             createSubscriptionRequest = new opcua.CreateSubscriptionRequest(createSubscriptionRequest);
 
-            _.isFunction(callback).should.eql(true, "expecting a function");
+            (typeof callback === "function").should.eql(true, "expecting a function");
 
             session.performMessageTransaction(createSubscriptionRequest, function(err, response) {
                 response.subscriptionId.should.be.greaterThan(0);
@@ -2723,7 +2721,7 @@ module.exports = function(test) {
         const publishingInterval = 40;
 
         function createSubscription(session, callback) {
-            _.isFunction(callback).should.eql(true, "expecting a function");
+            (typeof callback === "function").should.eql(true, "expecting a function");
             const createSubscriptionRequest = {
                 requestedPublishingInterval: publishingInterval,
                 requestedLifetimeCount: 60000,
@@ -3464,7 +3462,7 @@ module.exports = function(test) {
 
         it("#subscription operations should extend subscription lifetime", function(done) {
 
-            this.timeout(Math.max(200000, this._timeout));
+            this.timeout(Math.max(200000, this.timeout()));
 
             // see CTT test063
 

@@ -1,6 +1,5 @@
 import * as chalk from "chalk";
 import * as async from "async";
-import _ = require("underscore");
 
 import { NodeIdLike, resolveNodeId } from "node-opcua-nodeid";
 import { assert } from "node-opcua-assert";
@@ -8,15 +7,8 @@ import { ReferenceDescription } from "node-opcua-service-browse";
 import { ErrorCallback } from "node-opcua-status-code";
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 
-import {
-    NodeCrawlerBase,
-    UserData,
-} from "./node_crawler_base";
-import {
-    CacheNode,
-    CacheNodeVariable,
-    CacheNodeVariableType
-} from "./cache_node";
+import { NodeCrawlerBase, UserData } from "./node_crawler_base";
+import { CacheNode, CacheNodeVariable, CacheNodeVariableType } from "./cache_node";
 import { TaskReconstruction, EmptyCallback, remove_cycle } from "./private";
 import { lowerFirstLetter } from "node-opcua-utils";
 
@@ -24,14 +16,12 @@ const debugLog = make_debugLog(__filename);
 const doDebug = checkDebugFlag(__filename);
 
 export class NodeCrawler extends NodeCrawlerBase {
-
     /**
      *
      */
     public read(nodeId: NodeIdLike): Promise<any>;
     public read(nodeId: NodeIdLike, callback: (err: Error | null, obj?: any) => void): void;
     public read(nodeId: NodeIdLike, callback?: (err: Error | null, obj?: any) => void): any {
-
         /* istanbul ignore next */
         if (!callback) {
             throw new Error("Invalid Error");
@@ -56,7 +46,6 @@ export class NodeCrawler extends NodeCrawlerBase {
         };
 
         this.crawl(nodeId, userData, (err) => {
-
             /* istanbul ignore next */
             if (err) {
                 return callback(err);
@@ -64,37 +53,28 @@ export class NodeCrawler extends NodeCrawlerBase {
 
             /* istanbul ignore else */
             if (this._objectCache.hasOwnProperty(key)) {
-
                 const cacheNode = this._objectCache[key];
                 assert(cacheNode.browseName.name !== "pending");
 
                 this.simplify_object(this._objMap, cacheNode, callback);
-
             } else {
                 callback(new Error("Cannot find nodeId" + key));
             }
         });
     }
 
-    private simplify_object(
-        objMap: any,
-        object: CacheNode,
-        finalCallback: (err: Error | null, obj?: any) => void
-    ) {
+    private simplify_object(objMap: any, object: CacheNode, finalCallback: (err: Error | null, obj?: any) => void) {
+        assert(typeof finalCallback === "function");
 
-        assert(_.isFunction(finalCallback));
-
-        const queue = async.queue(
-            (task: TaskReconstruction, innerCallback: EmptyCallback) => {
-                setImmediate(() => {
-                    assert(_.isFunction(task.func));
-                    task.func(task, innerCallback);
-                });
-            }, 1);
+        const queue = async.queue((task: TaskReconstruction, innerCallback: EmptyCallback) => {
+            setImmediate(() => {
+                assert(typeof task.func === "function");
+                task.func(task, innerCallback);
+            });
+        }, 1);
 
         // tslint:disable:no-empty
-        this._add_for_reconstruction(queue, objMap, object, () => {
-        });
+        this._add_for_reconstruction(queue, objMap, object, () => {});
 
         const key1 = object.nodeId.toString();
         queue.drain(() => {
@@ -103,13 +83,8 @@ export class NodeCrawler extends NodeCrawlerBase {
         });
     }
 
-    private _add_for_reconstruction(
-        queue: any,
-        objMap: any,
-        object: CacheNode,
-        extraFunc: (err: Error | null, obj?: any) => void
-    ) {
-        assert(_.isFunction(extraFunc));
+    private _add_for_reconstruction(queue: any, objMap: any, object: CacheNode, extraFunc: (err: Error | null, obj?: any) => void) {
+        assert(typeof extraFunc === "function");
         assert(typeof object.nodeId.toString() === "string");
 
         const task: TaskReconstruction = {
@@ -128,10 +103,9 @@ export class NodeCrawler extends NodeCrawlerBase {
         queue: any,
         objMap: any,
         object: CacheNode,
-        callback: (err: Error | null, obj?: any
-        ) => void) {
-
-        assert(_.isFunction(callback));
+        callback: (err: Error | null, obj?: any) => void
+    ) {
+        assert(typeof callback === "function");
         assert(object);
         assert(object.nodeId);
 
@@ -178,7 +152,6 @@ export class NodeCrawler extends NodeCrawlerBase {
         object.references = object.references || [];
 
         object.references.map((ref: ReferenceDescription) => {
-
             assert(ref);
             const refIndex = ref.referenceTypeId.toString();
 
@@ -195,12 +168,15 @@ export class NodeCrawler extends NodeCrawlerBase {
 
             /* istanbul ignore else */
             if (!reference) {
-                debugLog(ref.nodeId.toString(),
-                    "bn=", ref.browseName.toString(),
-                    "class =", ref.nodeClass.toString(),
-                    ref.typeDefinition.toString());
-                debugLog("#_reconstruct_manageable_object: Cannot find reference",
-                    ref.nodeId.toString(), "in cache");
+                debugLog(
+                    ref.nodeId.toString(),
+                    "bn=",
+                    ref.browseName.toString(),
+                    "class =",
+                    ref.nodeClass.toString(),
+                    ref.typeDefinition.toString()
+                );
+                debugLog("#_reconstruct_manageable_object: Cannot find reference", ref.nodeId.toString(), "in cache");
             }
 
             if (reference) {
@@ -208,7 +184,6 @@ export class NodeCrawler extends NodeCrawlerBase {
                 reference.nodeClass = (ref as any).$nodeClass;
             }
             if (referenceType) {
-
                 const refName = lowerFirstLetter(referenceType.browseName.name);
 
                 if (refName === "hasTypeDefinition") {
@@ -230,9 +205,7 @@ export class NodeCrawler extends NodeCrawlerBase {
             }
         });
         callback(null, obj);
-
     }
-
 }
 // tslint:disable:no-var-requires
 // tslint:disable:max-line-length

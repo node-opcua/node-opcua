@@ -1,13 +1,11 @@
 const should = require("should");
 
-const ReadRequest = require("node-opcua-service-read").ReadRequest;
-const TimestampsToReturn = require("node-opcua-service-read").TimestampsToReturn;
+const { ReadRequest, TimestampsToReturn } = require("node-opcua-service-read");
+const { redirectToFile } = require("node-opcua-debug/nodeJS");
+const { makeBuffer } = require("node-opcua-buffer-utils");
 
-const redirectToFile = require("node-opcua-debug").redirectToFile;
-const makeBuffer = require("node-opcua-buffer-utils").makeBuffer;
-
-const encode_decode_round_trip_test = require("node-opcua-packet-analyzer/dist/test_helpers").encode_decode_round_trip_test;
-const verify_multi_chunk_message = require("../dist/test_helpers").verify_multi_chunk_message;
+const { encode_decode_round_trip_test } = require("node-opcua-packet-analyzer/dist/test_helpers");
+const { verify_multi_chunk_message } = require("../dist/test_helpers");
 
 /* a real readRequest (with two nodeIds) captured with ws*/
 const fixture_ws_readRequest_message = makeBuffer(
@@ -67,34 +65,34 @@ const fixture_ws_readResponse_message2 = makeBuffer(
     "00 04 00 00 00 00 04 00 00 00 00 04 00 00 00 00 04 00 00 00 00 04 00 00 00 00 04 00 00 00 00");
 
 
-describe("Read Service", function () {
+describe("Read Service", function() {
 
-    it("should decode a real ReadRequest 1/2", function (done) {
-        redirectToFile("ws_ReadRequest.log", function () {
+    it("should decode a real ReadRequest 1/2", function(done) {
+        redirectToFile("ws_ReadRequest.log", function() {
             verify_multi_chunk_message([fixture_ws_readRequest_message]);
         }, done);
     });
-    it("should decode a real ReadRequest 2/2", function (done) {
-        redirectToFile("ws_ReadRequest2.log", function () {
+    it("should decode a real ReadRequest 2/2", function(done) {
+        redirectToFile("ws_ReadRequest2.log", function() {
             verify_multi_chunk_message([fixture_ws_readRequest_message2]);
         }, done);
     });
 
-    it("should decode a real ReadResponse 1/2", function (done) {
-        redirectToFile("ws_ReadResponse.log", function () {
+    it("should decode a real ReadResponse 1/2", function(done) {
+        redirectToFile("ws_ReadResponse.log", function() {
             verify_multi_chunk_message([fixture_ws_readResponse_message]);
         }, done);
     });
 
-    it("should decode a real ReadResponse 2/2", function (done) {
-        redirectToFile("ws_ReadResponse2.log", function () {
+    it("should decode a real ReadResponse 2/2", function(done) {
+        redirectToFile("ws_ReadResponse2.log", function() {
             verify_multi_chunk_message([fixture_ws_readResponse_message2]);
         }, done);
 
     });
 
 
-    it("should encode and decode a ReadRequest ", function () {
+    it("should encode and decode a ReadRequest ", function() {
 
         const readRequest = new ReadRequest({
             timestampsToReturn: TimestampsToReturn.Both,

@@ -1,8 +1,8 @@
-import * as _ from "underscore";
 import { assert } from "node-opcua-assert";
 import { StructureDefinition, EnumDefinition, EnumDescription } from "node-opcua-types";
 import { constructNamespaceDependency } from "./construct_namespace_dependency";
 import { NodeId } from "node-opcua-nodeid";
+
 import { XmlWriter, Namespace } from "../../source/address_space_ts";
 import { UADataType } from "../ua_data_type";
 import { AddressSpace } from "../address_space";
@@ -25,11 +25,7 @@ function dumpEnumeratedType(xw: XmlWriter, e: EnumDefinition, name: string): voi
     }
     xw.endElement();
 }
-function buildXmlName(
-    addressSpace: AddressSpacePrivate,
-    map: { [key: number]: string },
-    nodeId: NodeId
-) {
+function buildXmlName(addressSpace: AddressSpacePrivate, map: { [key: number]: string }, nodeId: NodeId) {
     if (NodeId.sameNodeId(nodeId, NodeId.nullNodeId)) {
         return "ua:ExtensionObject";
     }
@@ -39,11 +35,8 @@ function buildXmlName(
         throw new Error("Cannot find Node for" + nodeId?.toString());
     }
     const typeName = node.browseName.name!;
-    const prefix = node.nodeId.namespace === 0
-        ? (node.nodeId.value <= 15 ? "opc" : "ua")
-        : map[node.nodeId.namespace];
-    return prefix + ":" + ((typeName === "Structure" && prefix === "ua") ? "ExtensionObject" : typeName);
-
+    const prefix = node.nodeId.namespace === 0 ? (node.nodeId.value <= 15 ? "opc" : "ua") : map[node.nodeId.namespace];
+    return prefix + ":" + (typeName === "Structure" && prefix === "ua" ? "ExtensionObject" : typeName);
 }
 function dumpDataTypeStructure(
     xw: XmlWriter,
@@ -53,7 +46,6 @@ function dumpDataTypeStructure(
     name: string,
     doc?: string
 ) {
-
     xw.startElement("opc:StructuredType");
     xw.writeAttribute("Name", name);
     xw.writeAttribute("BaseType", buildXmlName(addressSpace, map, structureDefinition.baseDataType));
@@ -90,7 +82,6 @@ function dumpDataTypeStructure(
         */
         const padding = 32 - optionalsCount;
         if (padding !== 0) {
-
             xw.startElement("opc:Field");
             xw.writeAttribute("Name", "Reserved1");
             xw.writeAttribute("TypeName", "opc:Bit");
@@ -99,7 +90,6 @@ function dumpDataTypeStructure(
         }
     }
     for (const f of structureDefinition.fields || []) {
-
         const isArray = f.valueRank > 0 && f.arrayDimensions?.length;
 
         if (isArray) {
@@ -129,7 +119,6 @@ function dumpDataTypeStructure(
 }
 
 function dumpDataTypeToBSD(xw: XmlWriter, dataType: UADataType, map: { [key: number]: string }) {
-
     const addressSpace = dataType.addressSpace;
 
     const name: string = dataType.browseName.name!;
@@ -147,7 +136,6 @@ function shortcut(namespace: Namespace) {
     return "n" + namespace.index;
 }
 export function dumpToBSD(namespace: UANamespace) {
-
     const dependency: Namespace[] = constructNamespaceDependency(namespace);
 
     const addressSpace = namespace.addressSpace;
@@ -158,34 +146,28 @@ export function dumpToBSD(namespace: UANamespace) {
 
     xw.startElement("opc:TypeDictionary");
 
-    xw.writeAttribute(
-        "xmlns:opc", "http://opcfoundation.org/BinarySchema/");
-    xw.writeAttribute(
-        "xmlns:xsi", "http://www.w3.org/2001/XMLSchema-instance");
-    xw.writeAttribute(
-        "xmlns:ua", "http://opcfoundation.org/UA/");
+    xw.writeAttribute("xmlns:opc", "http://opcfoundation.org/BinarySchema/");
+    xw.writeAttribute("xmlns:xsi", "http://www.w3.org/2001/XMLSchema-instance");
+    xw.writeAttribute("xmlns:ua", "http://opcfoundation.org/UA/");
 
     const map: { [key: number]: string } = {};
 
     for (const dependantNamespace of dependency) {
         const namespaceIndex = dependantNamespace.index;
-        if (namespaceIndex === 0) { //|| namespaceIndex === namespace.index) {
+        if (namespaceIndex === 0) {
+            //|| namespaceIndex === namespace.index) {
             continue;
         }
         const ns = shortcut(dependantNamespace);
         map[namespaceIndex] = ns;
-        xw.writeAttribute(
-            `xmlns:${ns}`, dependantNamespace.namespaceUri);
+        xw.writeAttribute(`xmlns:${ns}`, dependantNamespace.namespaceUri);
     }
 
-    xw.writeAttribute(
-        "DefaultByteOrder", "LittleEndian");
-    xw.writeAttribute(
-        "TargetNamespace", namespace.namespaceUri);
+    xw.writeAttribute("DefaultByteOrder", "LittleEndian");
+    xw.writeAttribute("TargetNamespace", namespace.namespaceUri);
 
-    const dataTypes = _.values(namespace._dataTypeMap);
-    for (const dataType of dataTypes) {
-        dumpDataTypeToBSD(xw, dataType, map)
+    for (const dataType of namespace._dataTypeIterator()) {
+        dumpDataTypeToBSD(xw, dataType, map);
     }
     xw.endElement();
     xw.endDocument();

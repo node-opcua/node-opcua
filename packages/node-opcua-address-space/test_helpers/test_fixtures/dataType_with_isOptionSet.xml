@@ -7,6 +7,7 @@
         <Alias Alias="HasTypeDefinition">i=40</Alias>
         <Alias Alias="HasSubtype">i=45</Alias>
     </Aliases>
+
     <UAReferenceType NodeId="i=31" BrowseName="References" IsAbstract="true" Symmetric="true">
         <DisplayName>References</DisplayName>
         <Description>The abstract base type for all references.</Description>
@@ -109,6 +110,13 @@
         <Description>Describes a value that can have any valid DataType.</Description>
         <References/>
     </UADataType>
+          <UADataType NodeId="i=21" BrowseName="LocalizedText">
+    <DisplayName>LocalizedText</DisplayName>
+    <References>
+      <Reference ReferenceType="HasSubtype" IsForward="false">i=24</Reference>
+    </References>
+  </UADataType>
+
     <UADataType NodeId="i=29" BrowseName="Enumeration" IsAbstract="true">
         <DisplayName>Enumeration</DisplayName>
         <Description>Describes a value that is an enumerated DataType.</Description>

@@ -6,4 +6,4 @@ test/
 test_to_fix/
 certificates/
 .vscode/
-
+*.tsbuildinfo

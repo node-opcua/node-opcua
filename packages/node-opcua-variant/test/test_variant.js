@@ -2,7 +2,11 @@
 
 const should = require("should");
 const { assert } = require("node-opcua-assert");
-const _ = require("underscore");
+
+const ul = require("lodash");
+const uu = require("underscore");
+const sameVariantSlow1 = ul.isEqual;
+const sameVariantSlow2 = uu.isEqual;
 
 const {
     Variant,
@@ -20,7 +24,7 @@ const { QualifiedName, LocalizedText } = require("node-opcua-data-model");
 
 const { encode_decode_round_trip_test } = require("node-opcua-packet-analyzer/dist/test_helpers");
 
-const { redirectToFile } = require("node-opcua-debug");
+const { redirectToFile } = require("node-opcua-debug/nodeJS");
 
 const { Benchmarker } = require("node-opcua-benchmarker");
 const { BinaryStream } = require("node-opcua-binary-stream");
@@ -30,6 +34,8 @@ const factories = require("node-opcua-factory");
 const { NumericRange } = require("node-opcua-numeric-range");
 const { StatusCodes } = require("node-opcua-status-code");
 const { ExtensionObject } = require("node-opcua-extension-object");
+const { resolveNodeId } = require("node-opcua-nodeid");
+const { encode } = require("punycode");
 
 describe("Variant", () => {
 
@@ -503,7 +509,7 @@ const makeNodeId = require("node-opcua-nodeid").makeNodeId;
 
 describe("Variant - Analyser", function() {
     // increase timeout to cope with istanbul
-    this.timeout(Math.max(400000, this._timeout));
+    this.timeout(Math.max(400000, this.timeout()));
 
     const manyValues = [];
     for (let i = 0; i < 1000; i++) {
@@ -747,492 +753,14 @@ xdescribe("benchmarking variant encode", () => {
             value: []
         });
 
-        variant.value = [
-            1,
-            2,
-            3,
-            4,
-            5,
-            6,
-            7,
-            8,
-            9,
-            10,
-            11,
-            12,
-            13,
-            14,
-            15,
-            16,
-            17,
-            18,
-            1,
-            2,
-            3,
-            4,
-            5,
-            6,
-            7,
-            8,
-            9,
-            10,
-            11,
-            12,
-            13,
-            14,
-            15,
-            16,
-            17,
-            18,
-            1,
-            2,
-            3,
-            4,
-            5,
-            6,
-            7,
-            8,
-            9,
-            1,
-            2,
-            3,
-            4,
-            5,
-            6,
-            7,
-            8,
-            9,
-            10,
-            11,
-            12,
-            13,
-            14,
-            15,
-            16,
-            17,
-            18,
-            1,
-            2,
-            3,
-            4,
-            5,
-            6,
-            7,
-            8,
-            9,
-            10,
-            11,
-            12,
-            13,
-            14,
-            15,
-            16,
-            17,
-            18,
-            1,
-            2,
-            3,
-            4,
-            5,
-            6,
-            7,
-            8,
-            9,
-            1,
-            2,
-            3,
-            4,
-            5,
-            6,
-            7,
-            8,
-            9,
-            10,
-            11,
-            12,
-            13,
-            14,
-            15,
-            16,
-            17,
-            18,
-            1,
-            2,
-            3,
-            4,
-            5,
-            6,
-            7,
-            8,
-            9,
-            10,
-            11,
-            12,
-            13,
-            14,
-            15,
-            16,
-            17,
-            18,
-            1,
-            2,
-            3,
-            4,
-            5,
-            6,
-            7,
-            8,
-            9,
-            1,
-            2,
-            3,
-            4,
-            5,
-            6,
-            7,
-            8,
-            9,
-            10,
-            11,
-            12,
-            13,
-            14,
-            15,
-            16,
-            17,
-            18,
-            1,
-            2,
-            3,
-            4,
-            5,
-            6,
-            7,
-            8,
-            9,
-            10,
-            11,
-            12,
-            13,
-            14,
-            15,
-            16,
-            17,
-            18,
-            1,
-            2,
-            3,
-            4,
-            5,
-            6,
-            7,
-            8,
-            9,
-            1,
-            2,
-            3,
-            4,
-            5,
-            6,
-            7,
-            8,
-            9,
-            10,
-            11,
-            12,
-            13,
-            14,
-            15,
-            16,
-            17,
-            18,
-            1,
-            2,
-            3,
-            4,
-            5,
-            6,
-            7,
-            8,
-            9,
-            10,
-            11,
-            12,
-            13,
-            14,
-            15,
-            16,
-            17,
-            18,
-            1,
-            2,
-            3,
-            4,
-            5,
-            6,
-            7,
-            8,
-            9,
-            1,
-            2,
-            3,
-            4,
-            5,
-            6,
-            7,
-            8,
-            9,
-            10,
-            11,
-            12,
-            13,
-            14,
-            15,
-            16,
-            17,
-            18,
-            1,
-            2,
-            3,
-            4,
-            5,
-            6,
-            7,
-            8,
-            9,
-            10,
-            11,
-            12,
-            13,
-            14,
-            15,
-            16,
-            17,
-            18,
-            1,
-            2,
-            3,
-            4,
-            5,
-            6,
-            7,
-            8,
-            9,
-            1,
-            2,
-            3,
-            4,
-            5,
-            6,
-            7,
-            8,
-            9,
-            10,
-            11,
-            12,
-            13,
-            14,
-            15,
-            16,
-            17,
-            18,
-            1,
-            2,
-            3,
-            4,
-            5,
-            6,
-            7,
-            8,
-            9,
-            10,
-            11,
-            12,
-            13,
-            14,
-            15,
-            16,
-            17,
-            18,
-            1,
-            2,
-            3,
-            4,
-            5,
-            6,
-            7,
-            8,
-            9,
-            1,
-            2,
-            3,
-            4,
-            5,
-            6,
-            7,
-            8,
-            9,
-            10,
-            11,
-            12,
-            13,
-            14,
-            15,
-            16,
-            17,
-            18,
-            1,
-            2,
-            3,
-            4,
-            5,
-            6,
-            7,
-            8,
-            9,
-            10,
-            11,
-            12,
-            13,
-            14,
-            15,
-            16,
-            17,
-            18,
-            1,
-            2,
-            3,
-            4,
-            5,
-            6,
-            7,
-            8,
-            9,
-            1,
-            2,
-            3,
-            4,
-            5,
-            6,
-            7,
-            8,
-            9,
-            10,
-            11,
-            12,
-            13,
-            14,
-            15,
-            16,
-            17,
-            18,
-            1,
-            2,
-            3,
-            4,
-            5,
-            6,
-            7,
-            8,
-            9,
-            10,
-            11,
-            12,
-            13,
-            14,
-            15,
-            16,
-            17,
-            18,
-            1,
-            2,
-            3,
-            4,
-            5,
-            6,
-            7,
-            8,
-            9,
-            1,
-            2,
-            3,
-            4,
-            5,
-            6,
-            7,
-            8,
-            9,
-            10,
-            11,
-            12,
-            13,
-            14,
-            15,
-            16,
-            17,
-            18,
-            1,
-            2,
-            3,
-            4,
-            5,
-            6,
-            7,
-            8,
-            9,
-            10,
-            11,
-            12,
-            13,
-            14,
-            15,
-            16,
-            17,
-            18,
-            1,
-            2,
-            3,
-            4,
-            5,
-            6,
-            7,
-            8,
-            9,
-            10,
-            11,
-            12,
-            13,
-            14,
-            15,
-            16,
-            17,
-            18,
-            1,
-            2,
-            3,
-            4,
-            5,
-            6,
-            7,
-            8,
-            9,
-            10,
-            11,
-            12,
-            13,
-            14,
-            15,
-            16,
-            17,
-            18
-        ];
+        variant.value = Array.from(new Array(10000), (_, i) => i);
         bench
             .add("Variant.encode", () => {
-                assert(_.isFunction(encodeVariant));
+                assert(typeof encodeVariant === "function");
                 test_iteration(variant, stream, encodeVariant);
             })
             .add("Variant.old_encode", () => {
-                assert(_.isFunction(old_encode));
+                assert(typeof old_encode === "function");
                 test_iteration(variant, stream, old_encode);
             })
             .on("cycle", function(message) {
@@ -1254,7 +782,7 @@ xdescribe("benchmarking variant encode", () => {
 });
 
 describe("benchmarking float Array encode/decode", function() {
-    this.timeout(Math.max(200000, this._timeout));
+    this.timeout(Math.max(200000, this.timeout()));
 
     function test_1(stream, arr) {
         stream.writeUInt32(arr.length);
@@ -1365,7 +893,7 @@ describe("benchmarking float Array encode/decode", function() {
                 console.log(" slowest is " + this.slowest.name);
                 console.log(" Fastest is " + this.fastest.name);
                 console.log(" Speed Up : x", this.speedUp);
-                // xxthis.fastest.name.should.eql("test4");
+                // xx this.fastest.name.should.eql("test4");
                 done();
             })
             .run({ max_time: 0.1 });
@@ -1599,11 +1127,8 @@ describe("Variant with enumeration", () => {
 
 });
 
-const sameVariant = require("..").sameVariant;
+const { sameVariant } = require("..");
 
-const sameVariantSlow = function(v1, v2) {
-    return _.isEqual(v1, v2);
-};
 
 describe("testing sameVariant Performance", function() {
     this.timeout(40000);
@@ -1754,10 +1279,17 @@ describe("testing sameVariant Performance", function() {
                     }
                 }
             })
-            .add("slow sameVariant", () => {
+            .add("slow sameVariant 1", () => {
                 for (let i = 0; i < variousVariants.length; i++) {
                     for (let j = 0; j < variousVariants.length; j++) {
-                        sameVariantSlow(variousVariants[i], variousVariants_clone[j]);
+                        sameVariantSlow1(variousVariants[i], variousVariants_clone[j]);
+                    }
+                }
+            })
+            .add("slow sameVariant 2", () => {
+                for (let i = 0; i < variousVariants.length; i++) {
+                    for (let j = 0; j < variousVariants.length; j++) {
+                        sameVariantSlow2(variousVariants[i], variousVariants_clone[j]);
                     }
                 }
             })
@@ -2026,6 +1558,14 @@ describe("testing variant JSON conversion", () => {
 
     });
 
+    it("dimensions shall be set to null if not specified ", () => {
+        const variant = new Variant({
+            dataType: DataType.StatusCode,
+            value: StatusCodes.BadConditionDisabled
+        });
+        should(variant.dimensions).eql(null);
+    });
+
 });
 
 describe("testing isValidVariant", () => {
@@ -2055,6 +1595,8 @@ describe("testing isValidVariant", () => {
             buildVariantArray(DataType.UInt32, 3, 0)).should.eql(true);
         isValidVariant(VariantArrayType.Array, DataType.Int32,
             buildVariantArray(DataType.Int32, 3, 0)).should.eql(true);
+
+        isValidVariant(VariantArrayType.Array, DataType.Int32, null).should.eql(true);
     });
 
     it("isValidVariant with Matrix", () => {
@@ -2062,5 +1604,51 @@ describe("testing isValidVariant", () => {
         isValidVariant(VariantArrayType.Matrix, DataType.Byte, [655525, 12], [1, 2]).should.eql(false);
     });
 
+    it("variantToString 1", () => {
+        const v = new Variant({ dataType: DataType.NodeId, value: resolveNodeId("i=24") });
+        v.toString().should.eql("Variant(Scalar<NodeId>, value: BaseDataType (ns=0;i=24))")
+    });
+    it("variantToString 2", () => {
+        const v = new Variant({ dataType: DataType.ByteString, value: null });
+        v.toString().should.eql("Variant(Scalar<ByteString>, value: <null>)")
+    });
+    it("variantToString 3", () => {
+        const v = new Variant({ dataType: DataType.DateTime, value: null });
+        v.toString().should.eql("Variant(Scalar<DateTime>, value: <null>)")
+    });
+    it("variantToString 4", () => {
+        const v = new Variant({ dataType: DataType.DateTime, arrayType: VariantArrayType.Array, value: null });
+        v.toString().should.eql("Variant(Array<DateTime>, null)")
+    });
+    it("variantToString 5", () => {
+        const v = new Variant({ dataType: "DateTime", arrayType: "Array", value: null });
+        v.toString().should.eql("Variant(Array<DateTime>, null)")
+    });
 });
 
+describe("Preserving  null in Arrays or Matrices", () => {
+    it("it should preserve empty array ... String", () => {
+        const v = new Variant({ dataType: DataType.String, value: [], arrayType: VariantArrayType.Array });
+        should(v.value).eql([]);
+        const v_reloaded = encode_decode_round_trip_test(v);
+        should(v_reloaded.value).eql([]);
+    });
+    it("it should preserve null array ... String", () => {
+        const v = new Variant({ dataType: DataType.String, value: null, arrayType: VariantArrayType.Array });
+        should(v.value).eql(null);
+        const v_reloaded = encode_decode_round_trip_test(v);
+        should(v_reloaded.value).eql(null);
+    });
+    it("it should preserve empty array ... UInt32 ", () => {
+        const v = new Variant({ dataType: DataType.UInt16, value: [], arrayType: VariantArrayType.Array });
+        should(v.value).instanceOf(Uint16Array);
+        const v_reloaded = encode_decode_round_trip_test(v);
+        should(v_reloaded.value).instanceOf(Uint16Array);
+    });
+    it("it should preserve null array ... UInt32", () => {
+        const v = new Variant({ dataType: DataType.UInt16, value: null, arrayType: VariantArrayType.Array });
+        should(v.value).eql(null);
+        const v_reloaded = encode_decode_round_trip_test(v);
+        should(v_reloaded.value).eql(null);
+    });
+});

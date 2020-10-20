@@ -10,7 +10,7 @@ import { DataType } from "node-opcua-variant";
 import * as should from "should";
 
 import { AddressSpace, Namespace, SessionContext, UAReference } from "..";
-import { getMiniAddressSpace } from "..";
+import { getMiniAddressSpace } from "../testHelpers";
 
 function findReference(references: UAReference[], nodeId: NodeId): UAReference[] {
     assert(nodeId instanceof NodeId);
@@ -20,7 +20,6 @@ function findReference(references: UAReference[], nodeId: NodeId): UAReference[]
 // tslint:disable-next-line:no-var-requires
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("testing address space", () => {
-
     let addressSpace: AddressSpace;
     let namespace: Namespace;
     before(async () => {
@@ -34,49 +33,44 @@ describe("testing address space", () => {
     });
 
     it("BaseNode#findReferencesEx - should find HierarchicalReferences", () => {
-
         const object = namespace.addObject({
             browseName: "ChildObject",
-            organizedBy: "RootFolder",
+            organizedBy: "RootFolder"
         });
 
-        object.findReferencesEx("HierarchicalReferences", BrowseDirection.Inverse).length
-            .should.eql(1, "Object must be child of one parent");
+        object
+            .findReferencesEx("HierarchicalReferences", BrowseDirection.Inverse)
+            .length.should.eql(1, "Object must be child of one parent");
 
-        object.findReferencesEx("HierarchicalReferences", BrowseDirection.Forward).length
-            .should.eql(0, "Object must not have children yet");
+        object
+            .findReferencesEx("HierarchicalReferences", BrowseDirection.Forward)
+            .length.should.eql(0, "Object must not have children yet");
 
         const comp1 = namespace.addVariable({
             browseName: "Component1",
             componentOf: object,
             dataType: "String"
         });
-        object.findReferencesEx("HierarchicalReferences", BrowseDirection.Forward).length
-            .should.eql(1, "Object must now have one child");
+        object
+            .findReferencesEx("HierarchicalReferences", BrowseDirection.Forward)
+            .length.should.eql(1, "Object must now have one child");
 
-        object.findReferencesEx("HasChild", BrowseDirection.Forward).length
-            .should.eql(1, "Object must now have one child");
+        object.findReferencesEx("HasChild", BrowseDirection.Forward).length.should.eql(1, "Object must now have one child");
         // xx object.findReferencesEx("ChildOf",true).length.should.eql(1,"Object must now have one child");
 
-        object.findReferencesEx("Aggregates", BrowseDirection.Forward).length
-            .should.eql(1, "Object must now have one child");
+        object.findReferencesEx("Aggregates", BrowseDirection.Forward).length.should.eql(1, "Object must now have one child");
 
-        object.findReferencesEx("HasComponent", BrowseDirection.Forward).length
-            .should.eql(1, "Object must now have one child");
+        object.findReferencesEx("HasComponent", BrowseDirection.Forward).length.should.eql(1, "Object must now have one child");
 
-        object.findReferencesEx("HasProperty", BrowseDirection.Forward).length
-            .should.eql(0, "Object must now have one child");
+        object.findReferencesEx("HasProperty", BrowseDirection.Forward).length.should.eql(0, "Object must now have one child");
 
-        object.findReferencesEx("Organizes", BrowseDirection.Forward).length
-            .should.eql(0, "Object must now have one child");
-
+        object.findReferencesEx("Organizes", BrowseDirection.Forward).length.should.eql(0, "Object must now have one child");
     });
 
     it("AddressSpace#deleteNode - should remove an object from the address space", () => {
-
         const options = {
             browseName: "SomeObject",
-            organizedBy: "ObjectsFolder",
+            organizedBy: "ObjectsFolder"
         };
 
         const object = namespace.addObject(options);
@@ -104,14 +98,12 @@ describe("testing address space", () => {
         findReference(references, object.nodeId).length.should.eql(0);
 
         should(rootFolder.getFolderElementByName("SomeObject")).eql(null);
-
     });
 
     it("AddressSpace#deleteNode - should remove an object and its children from the address space", () => {
-
         const options = {
             browseName: "SomeObject",
-            organizedBy: "ObjectsFolder",
+            organizedBy: "ObjectsFolder"
         };
         const object = namespace.addObject(options);
         const innerVar = namespace.addVariable({ componentOf: object, browseName: "Hello", dataType: "String" });
@@ -137,11 +129,9 @@ describe("testing address space", () => {
 
         references = rootFolder.findReferences("Organizes", true);
         findReference(references, object.nodeId).length.should.eql(0);
-
     });
 
     it("AddressSpace#deleteNode - should remove a component of a existing object", () => {
-
         // give an object
         const object = namespace.addObject({ organizedBy: "ObjectsFolder", browseName: "MyObject1" });
 
@@ -193,19 +183,15 @@ describe("testing address space", () => {
         should(object.getChildByName("Property1")).eql(null);
         object.getChildByName("Component2")!.browseName.toString().should.eql("1:Component2");
         should(object.getChildByName("Property2")).eql(null);
-
     });
 
     it("AddressSpace#findCorrespondingBasicDataType i=13 => DataType.String", () => {
-
         const dataType = addressSpace.findDataType(resolveNodeId("i=12"))!;
         dataType.browseName.toString().should.eql("String");
         addressSpace.findCorrespondingBasicDataType(dataType).should.eql(DataType.String);
-
     });
 
     it("AddressSpace#findCorrespondingBasicDataType i=338 => BuildInfo => DataType.ExtensionObject", () => {
-
         const dataType = addressSpace.findDataType(makeNodeId(DataTypeIds.BuildInfo))!; // ServerStatus
         dataType.browseName.toString().should.eql("BuildInfo");
         addressSpace.findCorrespondingBasicDataType(dataType).should.eql(DataType.ExtensionObject);
@@ -226,15 +212,12 @@ describe("testing address space", () => {
     });
 
     it(" AddressSpace#findCorrespondingBasicDataType  i=13 => DataType.String", () => {
-
         const dataType = addressSpace.findDataType(resolveNodeId("i=12"))!;
         dataType.browseName.toString().should.eql("String");
         addressSpace.findCorrespondingBasicDataType(dataType).should.eql(DataType.String);
-
     });
 
     it("AddressSpace#findCorrespondingBasicDataType i=338 => BuildInfo => DataType.ExtensionObject", () => {
-
         const dataType = addressSpace.findDataType(makeNodeId(DataTypeIds.BuildInfo))!; // ServerStatus
         dataType.browseName.toString().should.eql("BuildInfo");
         addressSpace.findCorrespondingBasicDataType(dataType).should.eql(DataType.ExtensionObject);
@@ -251,31 +234,24 @@ describe("testing address space", () => {
     });
 
     it("AddressSpace#addObject : should verify that Only Organizes References are used to relate Objects to the 'Objects' standard Object.", () => {
-
         //  (version 1.03) part 5 : $8.2.4
         //   Only Organizes References are used to relate Objects to the 'Objects' standard Object.
         should(function add_an_object_to_the_objects_folder_using_a_component_relation_instead_of_organizedBy() {
-
             namespace.addObject({
                 browseName: "TestObject1",
                 componentOf: addressSpace.rootFolder.objects
             });
-
         }).throwError();
 
         should(function add_an_object_to_the_objects_folder_using_a_property_relation_instead_of_organizedBy() {
-
             namespace.addObject({
                 browseName: "TestObject2",
                 propertyOf: addressSpace.rootFolder.objects
             });
-
         }).throwError();
-
     });
 
     it("AddressSpace#extractRootViews : it should provide a mean to extract the list of views to which the object is visible", () => {
-
         // by walking up the hierarchy of node until we reach either the root.objects folder => primary view is server
         // or the views folder
 
@@ -283,33 +259,33 @@ describe("testing address space", () => {
 
         const view1 = namespace.addView({
             browseName: "View1",
-            organizedBy: addressSpace.rootFolder.views,
+            organizedBy: addressSpace.rootFolder.views
         });
 
         const view2 = namespace.addView({
             browseName: "View2",
-            organizedBy: addressSpace.rootFolder.views,
+            organizedBy: addressSpace.rootFolder.views
         });
 
         const view3 = namespace.addView({
             browseName: "View3",
-            organizedBy: addressSpace.rootFolder.views,
+            organizedBy: addressSpace.rootFolder.views
         });
 
         const folder = namespace.addObject({
             browseName: "EngineeringViews",
             organizedBy: addressSpace.rootFolder.views,
-            typeDefinition: addressSpace.findObjectType("FolderObjectType")!,
+            typeDefinition: addressSpace.findObjectType("FolderObjectType")!
         });
 
         const view4 = namespace.addView({
             browseName: "View4",
-            organizedBy: folder,
+            organizedBy: folder
         });
 
         const node = namespace.addObject({
             browseName: "View4",
-            organizedBy: objects,
+            organizedBy: objects
         });
 
         node.addReference({ referenceType: "OrganizedBy", nodeId: view1 });
@@ -324,9 +300,10 @@ describe("testing address space", () => {
 
         const context = SessionContext.defaultContext;
         view1.readAttribute(context, AttributeIds.EventNotifier).value.toString().should.eql("Variant(Scalar<UInt32>, value: 0)");
-        view1.readAttribute(context, AttributeIds.ContainsNoLoops).value.toString().should.eql("Variant(Scalar<Boolean>, value: false)");
+        view1
+            .readAttribute(context, AttributeIds.ContainsNoLoops)
+            .value.toString()
+            .should.eql("Variant(Scalar<Boolean>, value: false)");
         view1.readAttribute(context, AttributeIds.BrowseName).value.value.toString().should.eql("1:View1");
-
     });
-
 });

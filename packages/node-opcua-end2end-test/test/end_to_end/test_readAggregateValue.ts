@@ -5,16 +5,18 @@ import {
     ClientSession,
     ReadValueIdOptions,
     StatusCodes,
-    ClientSubscription
-
+    ClientSubscription,
+    HistoryReadValueIdOptions2,
+    AggregateFunction,
 } from "node-opcua";
-import { addAggregateSupport, AggregateFunction } from "node-opcua-aggregates";
+import { addAggregateSupport  } from "node-opcua-aggregates";
 import {
     createHistorian1,
     createHistorian2,
     createHistorian3,
     createHistorian4
 } from "node-opcua-aggregates/test/helpers/create_historizing_variables";
+import { ClientSessionKeepAliveManagerEvents } from "node-opcua-client/dist/client_session_keepalive_manager";
 
 const year = 2018;
 const month = 10;
@@ -73,14 +75,14 @@ describe("test readAggregateValue", () => {
         const parameters = {};
         await client.withSubscriptionAsync(endpointUrl, parameters, async (session: ClientSession, subscription: ClientSubscription) => {
 
-            const nodes: ReadValueIdOptions = { nodeId: h1NodeId };
+            const nodeToRead: ReadValueIdOptions = { nodeId: h1NodeId };
 
             const startTime = makeDate("12:00:00");
             const endTime = makeDate("12:01:40");
 
             const processingInterval = 16 * 1000;
             const resultMax = await session.readAggregateValue(
-                nodes,
+                nodeToRead,
                 startTime,
                 endTime,
                 AggregateFunction.Maximum,
@@ -89,7 +91,7 @@ describe("test readAggregateValue", () => {
             resultMax.statusCode.should.eql(StatusCodes.Good);
 
             const resultMin = await session.readAggregateValue(
-                nodes,
+                nodeToRead,
                 startTime,
                 endTime,
                 AggregateFunction.Minimum,
@@ -97,7 +99,7 @@ describe("test readAggregateValue", () => {
             resultMin.statusCode.should.eql(StatusCodes.Good);
 
             const resultAvg = await session.readAggregateValue(
-                nodes,
+                nodeToRead,
                 startTime,
                 endTime,
                 AggregateFunction.Average,
@@ -107,7 +109,7 @@ describe("test readAggregateValue", () => {
             console.log(resultAvg.toString());
 
             const resultStdSample = await session.readAggregateValue(
-                nodes,
+                nodeToRead,
                 startTime,
                 endTime,
                 AggregateFunction.StandardDeviationSample,
@@ -116,4 +118,47 @@ describe("test readAggregateValue", () => {
 
         });
     });
+
+
+    it("RHV readHistoryValue - form 1", async () =>{
+        const client = OPCUAClient.create({
+            endpoint_must_exist: false
+        });
+
+
+        await client.withSubscriptionAsync(endpointUrl, {}, async (session: ClientSession) => {
+
+            const nodeToRead: HistoryReadValueIdOptions2 = { nodeId: h1NodeId };
+
+            const startTime = makeDate("12:00:00");
+            const endTime = makeDate("12:01:40");
+
+            const result = await session.readHistoryValue(
+                nodeToRead, // use a HistoryReadValueIdOptions2 here
+                startTime,
+                endTime);
+            // tslint:disable-next-line: no-console
+            console.log(result.toString());
+        });
+    });
+
+    it("RHV readHistoryValue - form 2", async () =>{
+        const client = OPCUAClient.create({
+            endpoint_must_exist: false
+        });
+
+        await client.withSubscriptionAsync(endpointUrl, {}, async (session: ClientSession) => {
+
+            const startTime = makeDate("12:00:00");
+            const endTime = makeDate("12:01:40");
+
+            const result = await session.readHistoryValue(
+                h1NodeId, // use  a nodeId here
+                startTime,
+                endTime);
+            // tslint:disable-next-line: no-console
+            console.log(result.toString());
+        }); 
+    });
+
 });

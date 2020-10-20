@@ -1,35 +1,44 @@
-const _ = require("underscore");
-const should = require("should");
 
-
-const resolveNodeId = require("node-opcua-nodeid").resolveNodeId;
-const VariantArrayType = require("node-opcua-variant").VariantArrayType;
-const DataType = require("node-opcua-variant").DataType;
-const NodeId = require("node-opcua-nodeid").NodeId;
-const StatusCodes = require("node-opcua-status-code").StatusCodes;
-const NodeClass = require("node-opcua-data-model").NodeClass;
+const {
+    resolveNodeId,
+    NodeId
+} = require("node-opcua-nodeid");
+const {
+    VariantArrayType,
+    DataType
+} = require("node-opcua-variant");
+const {
+    StatusCodes
+} = require("node-opcua-status-code");
+const {
+    NodeClass
+} = require("node-opcua-data-model");
+const {
+    getMethodDeclaration_ArgumentList,
+    SessionContext,
+    UAMethod
+} = require("node-opcua-address-space");
+const {
+    BrowsePath
+} = require("node-opcua-service-translate-browse-path");
 
 let engine, FolderTypeId, BaseDataVariableTypeId, ref_Organizes_Id;
 
-const getMethodDeclaration_ArgumentList = require("node-opcua-address-space").getMethodDeclaration_ArgumentList;
-const UAMethod = require("node-opcua-address-space").UAMethod;
-const SessionContext = require("node-opcua-address-space").SessionContext;
 
-const translate_service = require("node-opcua-service-translate-browse-path");
-
-const ServerEngine = require("..").ServerEngine;
-const mini_nodeset_filename = require("node-opcua-address-space").get_mini_nodeset_filename();
+const { ServerEngine } = require("..");
+const { get_mini_nodeset_filename } = require("node-opcua-address-space/testHelpers");
+const mini_nodeset_filename = get_mini_nodeset_filename();
 
 
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
-describe("ServerEngine - addMethod", function () {
+describe("ServerEngine - addMethod", function() {
 
     let addressSpace; let namespace;
-    before(function (done) {
+    before(function(done) {
 
         engine = new ServerEngine();
 
-        engine.initialize({nodeset_filename: mini_nodeset_filename}, function () {
+        engine.initialize({ nodeset_filename: mini_nodeset_filename }, function() {
 
             addressSpace = engine.addressSpace;
             namespace = addressSpace.getOwnNamespace();
@@ -43,13 +52,13 @@ describe("ServerEngine - addMethod", function () {
         });
 
     });
-    after(function () {
+    after(function() {
         engine.shutdown();
         engine = null;
     });
 
 
-    it("should be able to attach a method on a object of the address space and call it", function (done) {
+    it("should be able to attach a method on a object of the address space and call it", function(done) {
 
 
         const objectFolder = engine.addressSpace.findNode("ObjectsFolder");
@@ -66,7 +75,7 @@ describe("ServerEngine - addMethod", function () {
             inputArguments: [
                 {
                     name: "nbBarks",
-                    description: {text: "specifies the number of time I should bark"},
+                    description: { text: "specifies the number of time I should bark" },
                     dataType: DataType.UInt32
                 }
             ],
@@ -74,7 +83,7 @@ describe("ServerEngine - addMethod", function () {
             outputArguments: [
                 {
                     name: "Barks",
-                    description: {text: "the generated barks"},
+                    description: { text: "the generated barks" },
                     dataType: DataType.String,
                     valueRank: 1
 
@@ -86,7 +95,7 @@ describe("ServerEngine - addMethod", function () {
 
         method.nodeId.should.be.instanceOf(NodeId);
         const objectMethod = object.getMethodById(method.nodeId);
-        _.isObject(objectMethod).should.eql(true);
+        (objectMethod !== null && typeof objectMethod === "object").should.eql(true);
 
         const arg = getMethodDeclaration_ArgumentList(engine.addressSpace, object.nodeId, method.nodeId);
 
@@ -94,12 +103,12 @@ describe("ServerEngine - addMethod", function () {
         arg.methodDeclaration.should.eql(objectMethod);
 
         const methodInputArguments = objectMethod.getInputArguments();
-        _.isArray(methodInputArguments).should.eql(true);
+        Array.isArray(methodInputArguments).should.eql(true);
 
         const methodOutputArguments = objectMethod.getOutputArguments();
-        _.isArray(methodOutputArguments).should.eql(true);
+        Array.isArray(methodOutputArguments).should.eql(true);
 
-        method.bindMethod(function (inputArguments, context, callback) {
+        method.bindMethod(function(inputArguments, context, callback) {
 
             const nbBarks = inputArguments[0].value;
             console.log("Hello World ! I will bark ", nbBarks, "times");
@@ -120,7 +129,7 @@ describe("ServerEngine - addMethod", function () {
             callback(null, callMethodResult);
         });
         // now call it
-        const inputArguments = [{dataType: DataType.UInt32, value: 3}];
+        const inputArguments = [{ dataType: DataType.UInt32, value: 3 }];
 
         const context = new SessionContext({});
 
@@ -133,12 +142,12 @@ describe("ServerEngine - addMethod", function () {
         const browsePath = [{
             startingNode: /* NodeId  */ method.nodeId,
             relativePath: /* RelativePath   */  {
-                elements: /* RelativePathElement */ [
+                elements: /* RelativePathElement */[
                     {
                         referenceTypeId: hasPropertyRefId,
                         isInverse: false,
                         includeSubtypes: false,
-                        targetName: {namespaceIndex: 0, name: "InputArguments"}
+                        targetName: { namespaceIndex: 0, name: "InputArguments" }
                     }
                 ]
             }
@@ -150,20 +159,20 @@ describe("ServerEngine - addMethod", function () {
                         referenceTypeId: hasPropertyRefId,
                         isInverse: false,
                         includeSubtypes: false,
-                        targetName: {name: "OutputArguments"}
+                        targetName: { name: "OutputArguments" }
                     }
                 ]
             }
         }
         ];
 
-        let result = engine.browsePath(new translate_service.BrowsePath(browsePath[0]));
+        let result = engine.browsePath(new BrowsePath(browsePath[0]));
         result.statusCode.should.eql(StatusCodes.Good);
 
-        result = engine.browsePath(new translate_service.BrowsePath(browsePath[1]));
+        result = engine.browsePath(new BrowsePath(browsePath[1]));
         result.statusCode.should.eql(StatusCodes.Good);
 
-        objectMethod.execute(inputArguments, context, function (err, callMethodResponse) {
+        objectMethod.execute(inputArguments, context, function(err, callMethodResponse) {
 
             done(err);
             callMethodResponse.statusCode.should.eql(StatusCodes.Good);

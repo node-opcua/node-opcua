@@ -1,9 +1,8 @@
 
 const chalk = require("chalk");
 const should = require("should");
-const assert = require("node-opcua-assert").assert;
+const { assert } = require("node-opcua-assert");
 const async = require("async");
-const _ = require("underscore");
 const util = require("util");
 
 
@@ -12,7 +11,7 @@ const OPCUAClient = opcua.OPCUAClient;
 const NodeCrawler = opcua.NodeCrawler;
 
 
-const redirectToFile = require("node-opcua-debug").redirectToFile;
+const { redirectToFile } = require("node-opcua-debug/nodeJS");
 const debugLog = require("node-opcua-debug").make_debugLog(__filename);
 
 function xredirectToFile(file, fun, callback) {
@@ -157,7 +156,7 @@ module.exports = function(test) {
 
             perform_operation_on_client_session(client, endpointUrl, function(session, done) {
 
-                assert(_.isFunction(done));
+                assert(typeof done === "function");
 
                 const crawler = new NodeCrawler(session);
 
@@ -188,7 +187,7 @@ module.exports = function(test) {
 
             perform_operation_on_client_session(client, endpointUrl, function(session, done) {
 
-                assert(_.isFunction(done));
+                assert(typeof done === "function");
 
                 const crawler = new NodeCrawler(session);
 
@@ -222,7 +221,7 @@ module.exports = function(test) {
 
         it("CRAWL5- should display a tree", function(done) {
 
-            const redirectToFile = require("node-opcua-debug").redirectToFile;
+            const { redirectToFile } = require("node-opcua-debug/nodeJS");
 
             redirectToFile("crawler_display_tree.log", function(inner_callback) {
 

@@ -7,10 +7,7 @@ import { EventEmitter } from "events";
 
 import { DiagnosticInfo } from "node-opcua-data-model";
 import { ReadValueIdOptions, TimestampsToReturn } from "node-opcua-service-read";
-import {
-    MonitoringParametersOptions,
-    NotificationMessage
-} from "node-opcua-service-subscription";
+import { MonitoringParametersOptions, NotificationMessage } from "node-opcua-service-subscription";
 import { StatusCode } from "node-opcua-status-code";
 import { ErrorCallback } from "node-opcua-status-code";
 
@@ -35,7 +32,6 @@ export interface ClientMonitoredItemBaseMap {
 }
 
 export interface ClientSubscription extends EventEmitter {
-
     subscriptionId: SubscriptionId;
     publishingInterval: number;
     lifetimeCount: number;
@@ -66,22 +62,6 @@ export interface ClientSubscription extends EventEmitter {
      * add a monitor item to the subscription
      *
      * @method monitor
-     * @async
-     * @param itemToMonitor                        {ReadValueId}
-     * @param itemToMonitor.nodeId                 {NodeId}
-     * @param itemToMonitor.attributeId            {AttributeId}
-     * @param itemToMonitor.indexRange             {null|NumericRange}
-     * @param itemToMonitor.dataEncoding
-     * @param requestedParameters                  {MonitoringParameters}
-     * @param requestedParameters.clientHandle     {IntegerId}
-     * @param requestedParameters.samplingInterval {Duration}
-     * @param requestedParameters.filter           {ExtensionObject|null} EventFilter/DataChangeFilter
-     * @param requestedParameters.queueSize        {Counter}
-     * @param requestedParameters.discardOldest    {Boolean}
-     * @param timestampsToReturn                   {TimestampsToReturn} //{TimestampsToReturnId}
-     * @param  [done]                              {Function} optional done callback
-     * @return {ClientMonitoredItem}
-     *
      *
      * Monitoring a simple Value Change
      * ---------------------------------
@@ -181,14 +161,13 @@ export interface ClientSubscription extends EventEmitter {
         itemToMonitor: ReadValueIdOptions,
         requestedParameters: MonitoringParametersOptions,
         timestampsToReturn: TimestampsToReturn
-    ): Promise<ClientMonitoredItemBase>;
+    ): Promise<ClientMonitoredItem>;
     monitor(
         itemToMonitor: ReadValueIdOptions,
         requestedParameters: MonitoringParametersOptions,
         timestampsToReturn: TimestampsToReturn,
-        done: (err: Error | null, monitoredItem?: ClientMonitoredItemBase) => void
+        done: (err: Error | null, monitoredItem?: ClientMonitoredItem) => void
     ): void;
-    monitor(...args: any[]): any;
 
     /**
      * @method monitorItems
@@ -218,18 +197,15 @@ export interface ClientSubscription extends EventEmitter {
         timestampsToReturn: TimestampsToReturn,
         done: (err: Error | null, monitoredItemGroup?: ClientMonitoredItemGroup) => void
     ): void;
-    monitorItems(...args: any[]): any;
 
     getMonitoredItems(): Promise<MonitoredItemData>;
     getMonitoredItems(callback: (err: Error | null, result?: MonitoredItemData) => void): void;
 
     terminate(): Promise<void>;
     terminate(callback: ErrorCallback): void;
-    terminate(...args: any[]): any;
 }
 
 export declare interface ClientSubscription {
-
     once(event: string | symbol, listener: (...args: any[]) => void): this;
 
     on(event: string | symbol, listener: (...args: any[]) => void): this;

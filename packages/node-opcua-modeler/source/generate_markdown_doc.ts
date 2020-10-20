@@ -1,25 +1,21 @@
-import * as  fs from "fs";
-import {
-    BaseNode,
-    Namespace,
-    UADataType, UAObjectType, UAReferenceType, UAVariableType
-} from "node-opcua-address-space";
+import { BaseNode, Namespace, UADataType, UAObjectType, UAReferenceType, UAVariableType } from "node-opcua-address-space";
 import { coerceUInt32 } from "node-opcua-basic-types";
-import {
-    DataTypeDefinition,
-    EnumDefinition,
-    StructureDefinition,
-    StructureField
-} from "node-opcua-types";
+import { DataTypeDefinition, EnumDefinition, StructureDefinition, StructureField } from "node-opcua-types";
 import { DataType } from "node-opcua-variant";
 import { displayNodeElement } from "./displayNodeElement";
 import { TableHelper } from "./tableHelper";
 
 interface NamespacePriv2 {
-    _objectTypeMap: { [key: string]: UAObjectType };
-    _variableTypeMap: { [key: string]: UAVariableType };
-    _referenceTypeMap: { [key: string]: UAReferenceType };
-    _dataTypeMap: { [key: string]: UADataType };
+    nodeIterator(): IterableIterator<BaseNode>;
+    _objectTypeIterator(): IterableIterator<UAObjectType>;
+    _objectTypeCount(): number;
+    _variableTypeIterator(): IterableIterator<UAVariableType>;
+    _variableTypeCount(): number;
+    _dataTypeIterator(): IterableIterator<UADataType>;
+    _dataTypeCount(): number;
+    _referenceTypeIterator(): IterableIterator<UAReferenceType>;
+    _referenceTypeCount(): number;
+    _aliasCount(): number;
 }
 export interface IWriter {
     writeLine(...args: any[]): void;
@@ -37,16 +33,6 @@ class Writer implements IWriter {
     }
 }
 
-export async function buildDocumentationToFile(namespace: Namespace, filename: string) {
-    const str = await buildDocumentationToString(namespace);
-    const stream = fs.createWriteStream("documentation.md");
-    stream.write(str);
-    await new Promise((resolve) => {
-        stream.on("finish", resolve);
-        stream.end();
-    });
-}
-
 export async function buildDocumentationToString(namespace: Namespace): Promise<string> {
     const writer = new Writer();
     await buildDocumentation(namespace, writer);
@@ -54,7 +40,6 @@ export async function buildDocumentationToString(namespace: Namespace): Promise<
 }
 
 function dataTypeToMarkdown(dataType: UADataType): string {
-
     const addressSpace = dataType.addressSpace;
 
     const writer = new Writer();
@@ -78,13 +63,7 @@ function dataTypeToMarkdown(dataType: UADataType): string {
     } else if (definition instanceof StructureDefinition) {
         writer.writeLine("\nBasic Type: " + (DataType as any)[dataType.basicDataType]);
 
-        const table = new TableHelper([
-            "Name",
-            "data type",
-            "value rank",
-            "maxStringLength",
-            "Dimensions",
-            "Description"]);
+        const table = new TableHelper(["Name", "data type", "value rank", "maxStringLength", "Dimensions", "Description"]);
 
         for (const f of definition.fields || []) {
             const dataTypeString = addressSpace.findDataType(f.dataType)!.browseName.toString();
@@ -94,19 +73,17 @@ function dataTypeToMarkdown(dataType: UADataType): string {
                 f.valueRank ? f.valueRank : "",
                 f.maxStringLength ? f.maxStringLength : "",
                 f.arrayDimensions ? f.arrayDimensions : "",
-                f.description.text || ""]);
+                f.description.text || ""
+            ]);
         }
         writer.writeLine(table.toMarkdownTable());
     } else {
         writer.writeLine("\nBasic Type: " + (DataType as any)[dataType.basicDataType]);
         writer.writeLine("");
-
     }
     return writer.toString();
-
 }
 export async function buildDocumentation(namespace: Namespace, writer: IWriter) {
-
     const addressSpace = namespace.addressSpace;
 
     const namespaceUri = namespace.namespaceUri;
@@ -118,12 +95,11 @@ export async function buildDocumentation(namespace: Namespace, writer: IWriter) 
     writer.writeLine("# Namespace " + namespaceUri);
     writer.writeLine("");
     // -------------- writeReferences
-    const namespacePriv = namespace as unknown as NamespacePriv2;
-    const referenceTypes = Object.values(namespacePriv._referenceTypeMap);
+    const namespacePriv = (namespace as unknown) as NamespacePriv2;
     writer.writeLine("");
     writer.writeLine("##  References ");
     writer.writeLine("");
-    for (const referenceType of referenceTypes) {
+    for (const referenceType of namespacePriv._referenceTypeIterator()) {
         writer.writeLine("\n\n###  reference " + referenceType.browseName.name!);
     }
 
@@ -131,21 +107,19 @@ export async function buildDocumentation(namespace: Namespace, writer: IWriter) 
         return node.description ? node.description!.text!.toString() : "";
     }
     // -------------- writeDataType
-    const dataTypes = Object.values(namespacePriv._dataTypeMap);
     writer.writeLine("");
     writer.writeLine("## DataTypes");
     writer.writeLine("");
-    for (const dataType of dataTypes) {
+    for (const dataType of namespacePriv._dataTypeIterator()) {
         writer.writeLine("\n\n### " + dataType.browseName.name!.toString());
         writer.writeLine("");
         writer.writeLine(dataTypeToMarkdown(dataType));
     }
     // -------------- writeObjectType
-    const objectTypes = Object.values(namespacePriv._objectTypeMap);
     writer.writeLine("");
     writer.writeLine("## ObjectTypes");
     writer.writeLine("");
-    for (const objectType of objectTypes) {
+    for (const objectType of namespacePriv._objectTypeIterator()) {
         writer.writeLine("\n\n### " + objectType.browseName.name!.toString());
         writer.writeLine(d(objectType));
         // enumerate components
@@ -166,8 +140,7 @@ export async function buildDocumentation(namespace: Namespace, writer: IWriter) 
     writer.writeLine("");
     writer.writeLine("## VariableTypes");
     writer.writeLine("");
-    const variableTypes = Object.values(namespacePriv._variableTypeMap);
-    for (const variableType of variableTypes) {
+    for (const variableType of namespacePriv._variableTypeIterator()) {
         writer.writeLine("\n\n### " + variableType.browseName.name!.toString());
         writer.writeLine(d(variableType));
         writer.writeLine("");

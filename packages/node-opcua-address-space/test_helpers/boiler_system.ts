@@ -18,27 +18,24 @@ import {
     ProgramFiniteStateMachine,
     ProgramFiniteStateMachineType,
     SessionContext,
-    StateMachine, TransitionEventType,
+    StateMachine,
+    TransitionEventType,
     UAAnalogItem,
     UAMethod,
     UAObject,
     UAObjectType,
     UAReferenceType,
-    UAVariable
-} from "../source";
-import { promoteToStateMachine } from "../src/state_machine/finite_state_machine";
+    UAVariable,
+    promoteToStateMachine
+} from "..";
 
-export interface FlowToReference extends UAReferenceType {
-}
+export interface FlowToReference extends UAReferenceType {}
 
-export interface HotFlowToReference extends UAReferenceType {
-}
+export interface HotFlowToReference extends UAReferenceType {}
 
-export interface SignalToReference extends UAReferenceType {
-}
+export interface SignalToReference extends UAReferenceType {}
 
-export interface BoilerHaltedEventType extends TransitionEventType {
-}
+export interface BoilerHaltedEventType extends TransitionEventType {}
 
 export interface CustomControllerB {
     input1: UAVariable;
@@ -48,21 +45,17 @@ export interface CustomControllerB {
     // conflict here !    description: UAVariable;
 }
 
-export interface CustomControllerType extends CustomControllerB, UAObjectType {
-}
+export interface CustomControllerType extends CustomControllerB, UAObjectType {}
 
-export interface CustomController extends CustomControllerB, UAObject {
-}
+export interface CustomController extends CustomControllerB, UAObject {}
 
 export interface GenericSensorB {
     output: UAAnalogItem;
 }
 
-export interface GenericSensorType extends GenericSensorB, UAObjectType {
-}
+export interface GenericSensorType extends GenericSensorB, UAObjectType {}
 
-export interface GenericSensor extends GenericSensorB, UAObject {
-}
+export interface GenericSensor extends GenericSensorB, UAObject {}
 
 export interface GenericControllerB {
     controlOut: UAVariable;
@@ -70,35 +63,25 @@ export interface GenericControllerB {
     setPoint: UAVariable;
 }
 
-export interface GenericControllerType extends GenericControllerB, UAObjectType {
-}
+export interface GenericControllerType extends GenericControllerB, UAObjectType {}
 
-export interface GenericController extends GenericControllerB, UAObject {
-}
+export interface GenericController extends GenericControllerB, UAObject {}
 
-export interface FlowControllerType extends GenericControllerType {
-}
+export interface FlowControllerType extends GenericControllerType {}
 
-export interface FlowController extends GenericController {
-}
+export interface FlowController extends GenericController {}
 
-export interface LevelControllerType extends GenericControllerType {
-}
+export interface LevelControllerType extends GenericControllerType {}
 
-export interface LevelController extends GenericController {
-}
+export interface LevelController extends GenericController {}
 
-export interface FlowTransmitterType extends GenericSensorType {
-}
+export interface FlowTransmitterType extends GenericSensorType {}
 
-export interface FlowTransmitter extends GenericSensor {
-}
+export interface FlowTransmitter extends GenericSensor {}
 
-export interface LevelIndicatorType extends GenericSensorType {
-}
+export interface LevelIndicatorType extends GenericSensorType {}
 
-export interface LevelIndicator extends GenericSensor {
-}
+export interface LevelIndicator extends GenericSensor {}
 
 export interface GenericActuatorType extends UAObjectType {
     input: UAAnalogItem;
@@ -108,11 +91,9 @@ export interface GenericActuator extends UAObject {
     input: UAAnalogItem;
 }
 
-export interface ValveType extends GenericActuatorType {
-}
+export interface ValveType extends GenericActuatorType {}
 
-export interface Valve extends GenericActuator {
-}
+export interface Valve extends GenericActuator {}
 
 export interface BoilerInputPipeType extends FolderType {
     flowTransmitter: FlowTransmitter;
@@ -130,32 +111,28 @@ export interface BoilerOutputPipeType extends FolderType {
 
 export interface BoilerOutputPipe extends Folder {
     flowTransmitter: FlowTransmitter;
-
 }
 
-export interface BoilerDrumpType extends FolderType {
+export interface BoilerDrumType extends FolderType {
     levelIndicator: LevelIndicator;
 }
 
-export interface BoilerDrump extends Folder {
+export interface BoilerDrum extends Folder {
     levelIndicator: LevelIndicator;
 }
 
-export interface BoilerStateMachineType extends ProgramFiniteStateMachineType {
-}
+export interface BoilerStateMachineType extends ProgramFiniteStateMachineType {}
 
-export interface BoilerStateMachine extends ProgramFiniteStateMachine {
-}
+export interface BoilerStateMachine extends ProgramFiniteStateMachine {}
 
 export interface BoilerType extends UAObjectType {
-
     customController: CustomController;
     flowController: FlowController;
     levelController: LevelController;
     inputPipe: BoilerInputPipe;
-    boilerDrum: BoilerDrump;
+    boilerDrum: BoilerDrum;
     outputPipe: BoilerOutputPipe;
-    boilerDrum2: BoilerDrump;
+    boilerDrum2: BoilerDrum;
     simulation: BoilerStateMachine;
 
     instantiate(options: InstantiateObjectOptions): Boiler;
@@ -166,9 +143,9 @@ export interface Boiler extends UAObject {
     flowController: FlowController;
     levelController: LevelController;
     inputPipe: BoilerInputPipe;
-    boilerDrum: BoilerDrump;
+    boilerDrum: BoilerDrum;
     outputPipe: BoilerOutputPipe;
-    boilerDrum2: BoilerDrump;
+    boilerDrum2: BoilerDrum;
     simulation: BoilerStateMachine;
 }
 
@@ -178,9 +155,7 @@ function MygetExecutableFlag(method: UAMethod, toState: string, methodName: stri
 }
 
 function implementProgramStateMachine(programStateMachine: UAObject): void {
-
     function installMethod(methodName: string, toState: string) {
-
         let method = programStateMachine.getMethodByName(methodName);
 
         if (!method) {
@@ -194,7 +169,6 @@ function implementProgramStateMachine(programStateMachine: UAObject): void {
             });
             method = programStateMachine.getMethodByName(methodName)!;
             assert(method !== null, "Method clone should cause parent object to be extended");
-
         }
         assert(method.nodeClass === NodeClass.Method);
 
@@ -203,25 +177,26 @@ function implementProgramStateMachine(programStateMachine: UAObject): void {
             return MygetExecutableFlag(this as UAMethod, toState, methodName);
         };
 
-        method.bindMethod(
-            function (
-                this: UAMethod,
-                inputArguments: VariantLike[],
-                context: SessionContext,
-                callback: (err: Error | null, callMethodResult: CallMethodResultOptions) => void
-            ) {
-                const stateMachineW = this.parent! as StateMachine;
-                // tslint:disable-next-line:no-console
-                console.log("Boiler System :  " + methodName + " about to process");
-                stateMachineW.setState(toState);
-                callback(null, {
-                    outputArguments: [],
-                    statusCode: StatusCodes.Good,
-                });
+        method.bindMethod(function (
+            this: UAMethod,
+            inputArguments: VariantLike[],
+            context: SessionContext,
+            callback: (err: Error | null, callMethodResult: CallMethodResultOptions) => void
+        ) {
+            const stateMachineW = this.parent! as StateMachine;
+            // tslint:disable-next-line:no-console
+            console.log("Boiler System :  " + methodName + " about to process");
+            stateMachineW.setState(toState);
+            callback(null, {
+                outputArguments: [],
+                statusCode: StatusCodes.Good
             });
+        });
 
-        assert(programStateMachine.getMethodByName(methodName) !== null,
-            "Method " + methodName + " should be added to parent object (checked with getMethodByName)");
+        assert(
+            programStateMachine.getMethodByName(methodName) !== null,
+            "Method " + methodName + " should be added to parent object (checked with getMethodByName)"
+        );
         const lc_name = lowerFirstLetter(methodName);
     }
 
@@ -232,11 +207,7 @@ function implementProgramStateMachine(programStateMachine: UAObject): void {
     installMethod("Resume", "Running");
 }
 
-function addRelation(
-    srcNode: BaseNode,
-    referenceType: UAReferenceType | string,
-    targetNode: BaseNode
-) {
+function addRelation(srcNode: BaseNode, referenceType: UAReferenceType | string, targetNode: BaseNode) {
     assert(srcNode, "expecting srcNode !== null");
     assert(targetNode, "expecting targetNode !== null");
     if (typeof referenceType === "string") {
@@ -249,7 +220,6 @@ function addRelation(
 
 // tslint:disable:no-console
 export function createBoilerType(namespace: Namespace): BoilerType {
-
     // istanbul ignore next
     if (namespace.findObjectType("BoilerType")) {
         console.warn("createBoilerType has already been called");
@@ -311,7 +281,7 @@ export function createBoilerType(namespace: Namespace): BoilerType {
         dataType: "Double",
         description: "a reference that indicates an electrical signal between two variables",
         modellingRule: "Mandatory",
-        propertyOf: customControllerType,
+        propertyOf: customControllerType
     });
 
     const input2: UAVariable = namespace.addVariable({
@@ -495,8 +465,9 @@ export function createBoilerType(namespace: Namespace): BoilerType {
         notifierOf: boilerDrumType
     }) as LevelIndicator;
 
-    const programFiniteStateMachineType: ProgramFiniteStateMachineType =
-        addressSpace.findObjectType("ProgramStateMachineType")! as ProgramFiniteStateMachineType;
+    const programFiniteStateMachineType: ProgramFiniteStateMachineType = addressSpace.findObjectType(
+        "ProgramStateMachineType"
+    )! as ProgramFiniteStateMachineType;
 
     // --------------------------------------------------------
     // define boiler State Machine
@@ -504,16 +475,12 @@ export function createBoilerType(namespace: Namespace): BoilerType {
     const boilerStateMachineType = namespace.addObjectType({
         browseName: "BoilerStateMachineType",
         postInstantiateFunc: implementProgramStateMachine,
-        subtypeOf: programFiniteStateMachineType!,
+        subtypeOf: programFiniteStateMachineType!
     }) as BoilerStateMachineType;
 
     // programStateMachineType has Optional placeHolder for method "Halt", "Reset","Start","Suspend","Resume")
 
-    function addMethod(
-        baseType: UAObjectType,
-        objectType: UAObjectType,
-        methodName: string
-    ) {
+    function addMethod(baseType: UAObjectType, objectType: UAObjectType, methodName: string) {
         assert(!objectType.getMethodByName(methodName));
         const method = baseType.getMethodByName(methodName)!;
         const m = method.clone({
@@ -535,7 +502,7 @@ export function createBoilerType(namespace: Namespace): BoilerType {
     // --------------------------------------------------------------------------------
     const boilerType = namespace.addObjectType({
         browseName: "BoilerType",
-        eventNotifier: 0x1,
+        eventNotifier: 0x1
     }) as BoilerType;
 
     // BoilerType.CustomController (CustomControllerType)
@@ -573,7 +540,7 @@ export function createBoilerType(namespace: Namespace): BoilerType {
         componentOf: boilerType,
         modellingRule: "Mandatory",
         notifierOf: boilerType
-    }) as BoilerDrump;
+    }) as BoilerDrum;
 
     // BoilerType.OutputPipe (BoilerOutputPipeType)
     const outputPipe = boilerOutputPipeType.instantiate({
@@ -588,7 +555,7 @@ export function createBoilerType(namespace: Namespace): BoilerType {
         browseName: "Simulation",
         componentOf: boilerType,
         eventSourceOf: boilerType,
-        modellingRule: "Mandatory",
+        modellingRule: "Mandatory"
     }) as BoilerStateMachine;
 
     addRelation(inputPipe, flowTo, boilerDrum);
@@ -617,11 +584,10 @@ export function createBoilerType(namespace: Namespace): BoilerType {
 export function makeBoiler(
     addressSpace: AddressSpace,
     options: {
-        browseName: string,
-        organizedBy: BaseNode
+        browseName: string;
+        organizedBy: BaseNode;
     }
 ): Boiler {
-
     const namespace = addressSpace.getOwnNamespace();
 
     assert(options);

@@ -13,7 +13,7 @@ pki/
 tmp/
 deprecated_*
 tsconfig.json
-tsconfig.tsbuildinfo
+*.tsbuildinfo
 tslint.*
 .mocharc.yaml
 

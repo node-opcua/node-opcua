@@ -1,6 +1,6 @@
 "use strict";
 const should = require("should");
-const assert = require("node-opcua-assert").assert;
+const { assert } = require("node-opcua-assert");
 const chalk = require("chalk");
 const sinon = require("sinon");
 
@@ -19,7 +19,7 @@ const ClientTCP_transport = require("..").ClientTCP_transport;
 const packTcpMessage = require("..").packTcpMessage;
 
 
-describe("testing ClientTCP_transport", function () {
+describe("testing ClientTCP_transport", function() {
 
 
     this.timeout(5000);
@@ -30,7 +30,7 @@ describe("testing ClientTCP_transport", function () {
     let fakeServer;
     let endpointUrl;
 
-    beforeEach(function (done) {
+    beforeEach(function(done) {
 
         transport = new ClientTCP_transport();
 
@@ -50,12 +50,12 @@ describe("testing ClientTCP_transport", function () {
         });
     });
 
-    afterEach(function (done) {
+    afterEach(function(done) {
 
-        transport.disconnect(function (err) {
+        transport.disconnect(function(err) {
             transport.removeAllListeners();
             transport = null;
-            fakeServer.shutdown(function (err) {
+            fakeServer.shutdown(function(err) {
                 fakeServer = null;
                 done(err);
             });
@@ -70,9 +70,9 @@ describe("testing ClientTCP_transport", function () {
         maxChunkCount: 600000
     });
 
-    it("TCS1 should create and connect to a client TCP", function (done) {
+    it("TCS1 should create and connect to a client TCP", function(done) {
 
-        const spyOnServerWrite = sinon.spy(function (socket, data) {
+        const spyOnServerWrite = sinon.spy(function(socket, data) {
             assert(data);
             // received Fake HEL Message
             // send Fake ACK response
@@ -82,14 +82,14 @@ describe("testing ClientTCP_transport", function () {
 
         fakeServer.pushResponse(spyOnServerWrite);
 
-        transport.connect(endpointUrl, function (err) {
+        transport.connect(endpointUrl, function(err) {
 
             spyOnConnect.callCount.should.eql(1);
             spyOnClose.callCount.should.eql(0);
             spyOnConnectionBreak.callCount.should.eql(0);
             spyOnServerWrite.callCount.should.eql(1);
 
-            transport.disconnect(function (err) {
+            transport.disconnect(function(err) {
 
                 spyOnConnect.callCount.should.eql(1);
                 spyOnClose.callCount.should.eql(1);
@@ -103,16 +103,16 @@ describe("testing ClientTCP_transport", function () {
 
     });
 
-    it("TCS2 should report a time out error if trying to connect to a non responding server", function (done) {
+    it("TCS2 should report a time out error if trying to connect to a non responding server", function(done) {
 
-        const spyOnServerWrite = sinon.spy(function (socket, data) {
+        const spyOnServerWrite = sinon.spy(function(socket, data) {
             // DO NOTHING !!
         });
         fakeServer.pushResponse(spyOnServerWrite);
 
         transport.timeout = 500; // very short timeout;
 
-        transport.connect(endpointUrl, function (err) {
+        transport.connect(endpointUrl, function(err) {
 
             if (err) {
                 err.message.should.containEql("Timeout");
@@ -130,9 +130,9 @@ describe("testing ClientTCP_transport", function () {
 
     });
 
-    it("should report an error if the server close the socket unexpectedly", function (done) {
+    it("should report an error if the server close the socket unexpectedly", function(done) {
 
-        const spyOnServerWrite = sinon.spy(function (socket, data) {
+        const spyOnServerWrite = sinon.spy(function(socket, data) {
             should.exist(data);
             // received Fake HEL Message
             // Pretend the message is malformed or that the server crashed for some reason : abort now !
@@ -142,7 +142,7 @@ describe("testing ClientTCP_transport", function () {
 
         transport.timeout = 1000; // very short timeout;
 
-        transport.connect(endpointUrl, function (err) {
+        transport.connect(endpointUrl, function(err) {
 
             if (err) {
 
@@ -162,13 +162,13 @@ describe("testing ClientTCP_transport", function () {
 
     function makeError(statusCode) {
         assert(statusCode instanceof StatusCode);
-        return new TCPErrorMessage({statusCode: statusCode, reason: statusCode.description});
+        return new TCPErrorMessage({ statusCode: statusCode, reason: statusCode.description });
     }
 
-    it("should report an error if the server reports a protocol version mismatch", function (done) {
+    it("should report an error if the server reports a protocol version mismatch", function(done) {
 
 
-        const spyOnServerWrite = sinon.spy(function (socket, data) {
+        const spyOnServerWrite = sinon.spy(function(socket, data) {
             // received Fake HEL Message
 
             // Pretend the protocol version is wrong.
@@ -176,7 +176,7 @@ describe("testing ClientTCP_transport", function () {
             const messageChunk = packTcpMessage("ERR", errorResponse);
             socket.write(messageChunk);
 
-            setImmediate(function () {
+            setImmediate(function() {
                 socket.end();
             });
         });
@@ -184,7 +184,7 @@ describe("testing ClientTCP_transport", function () {
 
         transport.timeout = 1000; // very short timeout;
 
-        transport.connect(endpointUrl, function (err) {
+        transport.connect(endpointUrl, function(err) {
             if (err) {
                 err.message.should.match(/The applications do not have compatible protocol versions/);
 
@@ -200,7 +200,7 @@ describe("testing ClientTCP_transport", function () {
 
     });
 
-    it("should connect and forward subsequent message chunks after a valid HEL/ACK transaction", function (done) {
+    it("should connect and forward subsequent message chunks after a valid HEL/ACK transaction", function(done) {
 
         // lets build the subsequent message
         const message1 = Buffer.alloc(10);
@@ -210,7 +210,7 @@ describe("testing ClientTCP_transport", function () {
 
 
         let counter = 1;
-        const spyOnServerWrite = sinon.spy(function (socket, data) {
+        const spyOnServerWrite = sinon.spy(function(socket, data) {
             debugLog(chalk.cyan.bold("\ncounter = "), counter);
             debugLog(chalk.yellow.bold(hexDump(data)));
             if (counter === 1) {
@@ -239,7 +239,7 @@ describe("testing ClientTCP_transport", function () {
 
         transport.timeout = 1000; // very short timeout;
 
-        transport.on("message", function (message_chunk) {
+        transport.on("message", function(message_chunk) {
             debugLog(chalk.cyan.bold(hexDump(message_chunk)));
             compare_buffers(message_chunk.slice(8), message1);
 
@@ -252,7 +252,7 @@ describe("testing ClientTCP_transport", function () {
             done();
         });
 
-        transport.connect(endpointUrl, function (err) {
+        transport.connect(endpointUrl, function(err) {
             if (err) {
                 console.log(chalk.bgWhite.red(" err = "), err.message);
             }
@@ -263,7 +263,7 @@ describe("testing ClientTCP_transport", function () {
         });
     });
 
-    it("should close the socket and emit a close event when disconnect() is called", function (done) {
+    it("should close the socket and emit a close event when disconnect() is called", function(done) {
 
 
         let counter = 1;
@@ -271,7 +271,7 @@ describe("testing ClientTCP_transport", function () {
         let server_confirms_that_server_socket_has_been_closed = false;
         let transport_confirms_that_close_event_has_been_processed = false;
 
-        const spyOnServerWrite = sinon.spy(function (socket, data) {
+        const spyOnServerWrite = sinon.spy(function(socket, data) {
             debugLog(chalk.cyan.bold("\ncounter = "), counter);
             debugLog(chalk.yellow.bold(hexDump(data)));
             if (counter === 1) {
@@ -286,31 +286,31 @@ describe("testing ClientTCP_transport", function () {
         fakeServer.pushResponse(spyOnServerWrite);
         fakeServer.pushResponse(spyOnServerWrite);
 
-        fakeServer.on("end", function () {
+        fakeServer.on("end", function() {
             server_confirms_that_server_socket_has_been_closed = true;
         });
 
         transport.timeout = 1000; // very short timeout;
 
-        transport.on("close", function (err) {
+        transport.on("close", function(err) {
             transport_confirms_that_close_event_has_been_processed.should.eql(false, "close event shall only be received once");
             transport_confirms_that_close_event_has_been_processed = true;
             should(err).be.eql(null, "close event shall have err===null, when disconnection is initiated by the client itself");
         });
 
-        transport.connect(endpointUrl, function (err) {
+        transport.connect(endpointUrl, function(err) {
             if (err) {
                 console.log(chalk.bgWhite.red(" err = "), err.message);
             }
             assert(!err);
             server_confirms_that_server_socket_has_been_closed.should.equal(false);
             transport_confirms_that_close_event_has_been_processed.should.equal(false);
-            transport.disconnect(function (err) {
+            transport.disconnect(function(err) {
                 if (err) {
                     console.log(chalk.bgWhite.red(" err = "), err.message);
                 }
                 assert(!err);
-                setImmediate(function () {
+                setImmediate(function() {
                     server_confirms_that_server_socket_has_been_closed.should.equal(true);
                     transport_confirms_that_close_event_has_been_processed.should.equal(true);
                     done(err);
@@ -319,14 +319,14 @@ describe("testing ClientTCP_transport", function () {
         });
     });
 
-    it("should dispose the socket and emit a close event when socket is closed by the other end", function (done) {
+    it("should dispose the socket and emit a close event when socket is closed by the other end", function(done) {
 
         let counter = 1;
 
         let server_confirms_that_server_socket_has_been_closed = false;
         let transport_confirms_that_close_event_has_been_processed = false;
 
-        const spyOnServerWrite = sinon.spy(function (socket, data) {
+        const spyOnServerWrite = sinon.spy(function(socket, data) {
 
             debugLog(chalk.cyan.bold("\ncounter = "), counter);
             debugLog(chalk.yellow.bold(hexDump(data)));
@@ -336,7 +336,7 @@ describe("testing ClientTCP_transport", function () {
                 counter += 1;
                 socket.write(messageChunk);
 
-                setTimeout(function () {
+                setTimeout(function() {
                     debugLog(" Aborting server ");
                     socket.end(); // close after 10 ms
                 }, 10);
@@ -349,13 +349,13 @@ describe("testing ClientTCP_transport", function () {
         });
         fakeServer.pushResponse(spyOnServerWrite);
 
-        fakeServer.on("end", function () {
+        fakeServer.on("end", function() {
             server_confirms_that_server_socket_has_been_closed = true;
         });
 
 
         transport.timeout = 1000; // very short timeout;
-        transport.on("close", function (err) {
+        transport.on("close", function(err) {
 
 
             transport_confirms_that_close_event_has_been_processed.should.eql(false, "close event shall only be received once");
@@ -369,18 +369,18 @@ describe("testing ClientTCP_transport", function () {
 
         });
 
-        transport.connect(endpointUrl, function (err) {
+        transport.connect(endpointUrl, function(err) {
             assert(!err);
         });
 
     });
 
 
-    it("should returns an error if url has invalid port", function (done) {
+    it("should returns an error if url has invalid port", function(done) {
 
-        transport.connect("opc.tcp://localhost:XXXXX/SomeAddress", function (err) {
+        transport.connect("opc.tcp://localhost:XXXXX/SomeAddress", function(err) {
             if (err) {
-		console.log(err);
+                console.log(err);
                 const regexp_1 = /EADDRNOTAVAIL|ECONNREFUSED/; // node v0.10
                 const regexp_2 = /port(" option)* should be/; // node >v0.10 < 9.000
                 const regexp_3 = /Port should be > 0 and < 65536. Received NaN/; // node >= 9.00

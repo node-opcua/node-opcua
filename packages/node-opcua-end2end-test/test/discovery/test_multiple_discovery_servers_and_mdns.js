@@ -4,7 +4,7 @@ const opcua = require("node-opcua");
 const should = require("should");
 const async = require("async");
 
-const assert = require("node-opcua-assert").assert;
+const { assert } = require("node-opcua-assert");
 
 const OPCUAServer = opcua.OPCUAServer;
 const OPCUAClient = opcua.OPCUAClient;
@@ -241,7 +241,7 @@ describe("DS4 - Many discovery servers sharing ServerOnNetworks list", function(
                 findServersOnNetwork(discovery_server_endpointUrl1, function(err, servers) {
 
                     if (doDebug) {
-                        debugLog(servers.map(x=>x.discoveryUrl).join("\n"));
+                        debugLog(servers.map(x => x.discoveryUrl).join("\n"));
                     }
                     servers.length.should.eql(6);
                     debugLog("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx");
@@ -251,7 +251,7 @@ describe("DS4 - Many discovery servers sharing ServerOnNetworks list", function(
             function query_discovery_server_for_available_servers_on_network(callback) {
                 findServersOnNetwork(discovery_server_endpointUrl2, function(err, servers) {
                     if (doDebug) {
-                        debugLog(servers.map(x=>x.discoveryUrl).join("\n"));
+                        debugLog(servers.map(x => x.discoveryUrl).join("\n"));
                     }
                     servers.length.should.eql(6);
                     debugLog("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx");
@@ -261,7 +261,7 @@ describe("DS4 - Many discovery servers sharing ServerOnNetworks list", function(
             function query_discovery_server_for_available_servers_on_network(callback) {
                 findServersOnNetwork(discovery_server_endpointUrl3, function(err, servers) {
                     if (doDebug) {
-                        debugLog(servers.map(x=>x.discoveryUrl).join("\n"));
+                        debugLog(servers.map(x => x.discoveryUrl).join("\n"));
                     }
                     //xxservers.length.should.eql(6);
                     debugLog("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx");

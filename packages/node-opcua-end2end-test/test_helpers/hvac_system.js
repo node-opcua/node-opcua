@@ -1,8 +1,7 @@
 "use strict";
 
 const chalk = require("chalk");
-const _ = require("underscore");
-const assert = require("node-opcua-assert").assert;
+const { assert } = require("node-opcua-assert");
 const opcua = require("node-opcua");
 const StatusCodes = opcua.StatusCodes;
 const DataType = opcua.DataType;

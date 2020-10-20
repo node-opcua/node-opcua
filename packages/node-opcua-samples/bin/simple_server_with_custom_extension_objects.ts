@@ -3,20 +3,17 @@
 // tslint:disable:no-console
 import * as chalk from "chalk";
 import { nodesets, OPCUAServer } from "node-opcua";
-import * as  path from "path";
+import * as path from "path";
 import * as yargs from "yargs";
-import {Argv} from "yargs";
+import { Argv } from "yargs";
 
 Error.stackTraceLimit = Infinity;
 
-const argv = yargs
-  .wrap(132)
-  .option("port", {
-      alias: "p",
-      default: "26543",
-      describe:  "port to listen",
-  })
-  .argv;
+const argv = yargs.wrap(132).option("port", {
+    alias: "p",
+    default: "26543",
+    describe: "port to listen"
+}).argv;
 
 function constructFilename(filename: string): string {
     return path.join(__dirname, "../", filename);
@@ -34,34 +31,29 @@ const server_options = {
 
     port,
 
-    nodeset_filename: [
-        nodesets.standard_nodeset_file,
-        path.join(rootFolder, "modeling/my_data_type.xml")
-    ]
+    nodeset_filename: [nodesets.standard, path.join(rootFolder, "modeling/my_data_type.xml")]
 };
 
 process.title = "Node OPCUA Server on port : " + server_options.port;
 
 async function main() {
-
     const server = new OPCUAServer(server_options);
 
     console.log(chalk.yellow("  server PID          :"), process.pid);
 
     server.on("post_initialize", () => {
-
         const addressSpace = server.engine.addressSpace!;
 
         // to do: expose new nodeid here
         const ns = addressSpace.getNamespaceIndex("http://yourorganisation.org/my_data_type/");
         const myStructureType = addressSpace.findVariableType("MyStructureType", ns);
         if (!myStructureType) {
-           console.log(" ns = ", ns, "cannot find MyStructureDataType ");
-           return;
+            console.log(" ns = ", ns, "cannot find MyStructureDataType ");
+            return;
         }
 
         const namespace = addressSpace.getOwnNamespace();
-        const someObject =  namespace.addObject({
+        const someObject = namespace.addObject({
             browseName: "SomeObject",
             organizedBy: addressSpace.rootFolder.objects
         });
@@ -70,7 +62,6 @@ async function main() {
             browseName: "MyVar",
             componentOf: someObject
         });
-
     });
 
     try {

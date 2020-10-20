@@ -11,24 +11,24 @@ const StatusCodes = opcua.StatusCodes;
 
 const BrowseDirection = opcua.BrowseDirection;
 
-module.exports = function (test) {
+module.exports = function(test) {
 
-    describe("QSD Test Browse Request", function () {
+    describe("QSD Test Browse Request", function() {
 
         let client, endpointUrl;
 
         let g_session = null;
-        beforeEach(function (done) {
+        beforeEach(function(done) {
 
             endpointUrl = test.endpointUrl;
 
             client = OPCUAClient.create();
-            client.connect(endpointUrl, function (err) {
+            client.connect(endpointUrl, function(err) {
                 if (err) {
                     done(err);
                 }
                 else {
-                    client.createSession(function (err, session) {
+                    client.createSession(function(err, session) {
                         g_session = session;
                         done(err);
                     });
@@ -37,14 +37,14 @@ module.exports = function (test) {
 
         });
 
-        afterEach(function (done) {
-            g_session.close(function () {
+        afterEach(function(done) {
+            g_session.close(function() {
                 client.disconnect(done);
             });
         });
 
 
-        it("T6 - #BrowseNext response ", function (done) {
+        it("T6 - #BrowseNext response ", function(done) {
 
             const nodeToBrowse = {
                 nodeId: resolveNodeId("i=29"),
@@ -58,13 +58,13 @@ module.exports = function (test) {
             let allReferences;
             async.series([
 
-                function (callback) {
+                function(callback) {
                     const browseRequest1 = new opcua.BrowseRequest({
                         view: null,
                         requestedMaxReferencesPerNode: 0,
                         nodesToBrowse: [nodeToBrowse]
                     });
-                    g_session.performMessageTransaction(browseRequest1, function (err, response) {
+                    g_session.performMessageTransaction(browseRequest1, function(err, response) {
                         if (err) {
                             return callback(err);
                         }
@@ -76,7 +76,7 @@ module.exports = function (test) {
                         callback();
                     });
                 },
-                function (callback) {
+                function(callback) {
                     callback();
                 }
             ], done);

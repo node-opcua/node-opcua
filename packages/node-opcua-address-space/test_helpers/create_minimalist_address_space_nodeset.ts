@@ -10,26 +10,26 @@ import { DataTypeIds, ObjectIds, ObjectTypeIds, ReferenceTypeIds, VariableTypeId
 import { NodeClass } from "node-opcua-data-model";
 import { NodeId, resolveNodeId } from "node-opcua-nodeid";
 
-import {
-    AddReferenceOpts,
-    AddressSpace,
-    Folder,
-    UAObject,
-    UAReferenceType,
-    UAVariableType
-} from "../source";
+import { AddReferenceOpts, AddressSpace, Folder, UAObject, UAReferenceType, UAVariableType } from "..";
 
 const doDebug = false;
 
 function dumpReferencesHierarchy(_addressSpace: AddressSpace) {
-
     const addressSpace = _addressSpace;
 
     function _dump(referenceType: UAReferenceType, level: string) {
-
-        console.log(level, referenceType.browseName.toString(), "(",
-            chalk.green(referenceType.getAllSubtypes().map((x: any) => x.browseName.toString()).join(" ")),
-            ")");
+        console.log(
+            level,
+            referenceType.browseName.toString(),
+            "(",
+            chalk.green(
+                referenceType
+                    .getAllSubtypes()
+                    .map((x: any) => x.browseName.toString())
+                    .join(" ")
+            ),
+            ")"
+        );
 
         const subTypes = referenceType.findReferencesExAsObject("HasSubtype");
         for (const subType of subTypes) {
@@ -40,21 +40,13 @@ function dumpReferencesHierarchy(_addressSpace: AddressSpace) {
     const references = addressSpace.findReferenceType(ReferenceTypeIds.References)!;
 
     _dump(references, " ");
-
 }
 
-export function create_minimalist_address_space_nodeset(
-    addressSpace: AddressSpace
-) {
+export function create_minimalist_address_space_nodeset(addressSpace: AddressSpace) {
     const namespace0 = addressSpace.registerNamespace("http://opcfoundation.org/UA/");
     assert(namespace0.index === 0);
 
-    function addReferenceType(
-        browseName_: string,
-        isAbstract?: boolean,
-        subtypeOf?: UAReferenceType
-    ): UAReferenceType {
-
+    function addReferenceType(browseName_: string, isAbstract?: boolean, subtypeOf?: UAReferenceType): UAReferenceType {
         const tmp = browseName_.split("/");
         const inverseName = tmp[1] as string;
         const browseName = tmp[0] as string;
@@ -86,7 +78,6 @@ export function create_minimalist_address_space_nodeset(
 
     // add references
     {
-
         // before we do any thing , we need to create the HasSubtype reference
         // which is required in the first to create the hierachy of References
         const hasSubtype = addReferenceType("HasSubtype/HasSupertype");
@@ -103,14 +94,17 @@ export function create_minimalist_address_space_nodeset(
         {
             const hierarchicalReferences = addReferenceType("HierarchicalReferences", true, references);
             {
-
                 const hasChild = addReferenceType("HasChild/ChildOf", true, hierarchicalReferences);
                 {
                     const aggregates = addReferenceType("Aggregates/AggregatedBy", true, hasChild);
                     {
                         const hasComponent = addReferenceType("HasComponent/ComponentOf", false, aggregates);
                         const hasProperty = addReferenceType("HasProperty/PropertyOf", false, aggregates);
-                        const hasHistoricalConfiguration = addReferenceType("HasHistoricalConfiguration/HistoricalConfigurationOf", false, aggregates);
+                        const hasHistoricalConfiguration = addReferenceType(
+                            "HasHistoricalConfiguration/HistoricalConfigurationOf",
+                            false,
+                            aggregates
+                        );
                     }
                 }
                 {
@@ -142,45 +136,45 @@ export function create_minimalist_address_space_nodeset(
         nodeId: resolveNodeId(ObjectTypeIds.BaseObjectType)
     });
 
-    const baseVariableType = namespace0._createNode({
+    const baseVariableType = (namespace0._createNode({
         browseName: "BaseVariableType",
         isAbstract: true,
         nodeClass: NodeClass.VariableType,
         nodeId: resolveNodeId(VariableTypeIds.BaseVariableType)
-    }) as any as UAVariableType;
+    }) as any) as UAVariableType;
 
     const propertyType = namespace0.addVariableType({
         browseName: "PropertyType",
         subtypeOf: baseVariableType
     });
 
-    const baseDataVariableType = namespace0._createNode({
+    const baseDataVariableType = (namespace0._createNode({
         browseName: "BaseDataVariableType",
         isAbstract: true,
         nodeClass: NodeClass.VariableType,
         nodeId: resolveNodeId(VariableTypeIds.BaseDataVariableType),
         subtypeOf: baseVariableType.nodeId
-    }) as any as UAVariableType;
+    }) as any) as UAVariableType;
 
-    const modellingRule_Optional = namespace0._createNode({
+    const modellingRule_Optional = (namespace0._createNode({
         browseName: "Optional",
         nodeClass: NodeClass.Object,
-        nodeId: resolveNodeId(ObjectIds.ModellingRule_Optional),
-    }) as any as UAObject;
+        nodeId: resolveNodeId(ObjectIds.ModellingRule_Optional)
+    }) as any) as UAObject;
 
-    const modellingRule_Mandatory = namespace0._createNode({
+    const modellingRule_Mandatory = (namespace0._createNode({
         browseName: "Mandatory",
         nodeClass: NodeClass.Object,
-        nodeId: resolveNodeId(ObjectIds.ModellingRule_Mandatory),
-    }) as any as UAObject;
+        nodeId: resolveNodeId(ObjectIds.ModellingRule_Mandatory)
+    }) as any) as UAObject;
 
     // add the root folder
     {
-        const rootFolder = namespace0._createNode({
+        const rootFolder = (namespace0._createNode({
             browseName: "RootFolder",
             nodeClass: NodeClass.Object,
             nodeId: resolveNodeId(ObjectIds.RootFolder)
-        }) as any as UAObject;
+        }) as any) as UAObject;
 
         {
             const objectsFolder = namespace0.addObject({
@@ -189,9 +183,7 @@ export function create_minimalist_address_space_nodeset(
                 organizedBy: rootFolder
             });
 
-            assert(rootFolder.getFolderElementByName("Objects")!
-                .browseName.toString() === "Objects");
-
+            assert(rootFolder.getFolderElementByName("Objects")!.browseName.toString() === "Objects");
         }
         {
             const dataTypeFolder = namespace0.addObject({

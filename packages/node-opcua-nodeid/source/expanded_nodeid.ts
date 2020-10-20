@@ -1,8 +1,6 @@
 /**
  * @module node-opcua-nodeid
  */
-import * as  _ from "underscore";
-
 import { Guid } from "node-opcua-guid";
 import { coerceNodeId, NodeId, NodeIdType } from "./nodeid";
 
@@ -42,22 +40,27 @@ import { coerceNodeId, NodeId, NodeIdType } from "./nodeid";
  * @constructor
  */
 export class ExpandedNodeId extends NodeId {
-
     public static nullExpandedNodeId = new ExpandedNodeId(NodeIdType.NUMERIC, 0, 0);
 
     public static fromNodeId(nodeId: NodeId, namespaceUri?: string, serverIndex?: number): ExpandedNodeId {
-        return new ExpandedNodeId(
-            nodeId.identifierType, nodeId.value, nodeId.namespace,
-            namespaceUri, serverIndex);
+        return new ExpandedNodeId(nodeId.identifierType, nodeId.value, nodeId.namespace, namespaceUri, serverIndex);
     }
 
     public namespaceUri: null | string;
     public serverIndex: number;
 
-    constructor(
+    public constructor(forDeserialization: null);
+    public constructor(
         identifierType: NodeIdType,
         value: number | string | Guid | Buffer,
         namespace: number,
+        namespaceUri?: null | string,
+        serverIndex?: number
+    );
+    public constructor(
+        identifierType?: NodeIdType | null,
+        value?: number | string | Guid | Buffer,
+        namespace?: number,
         namespaceUri?: null | string,
         serverIndex?: number
     ) {
@@ -71,7 +74,6 @@ export class ExpandedNodeId extends NodeId {
      * @return {string}
      */
     public toString() {
-
         let str = NodeId.prototype.toString.call(this);
         if (this.namespaceUri) {
             str += ";namespaceUri:" + this.namespaceUri;
@@ -94,8 +96,7 @@ export class ExpandedNodeId extends NodeId {
 
 export function coerceExpandedNodeId(value: any): ExpandedNodeId {
     const n = coerceNodeId(value);
-    return new ExpandedNodeId(n.identifierType, n.value, n.namespace, /*namespaceUri*/null, /*serverIndex*/0);
-
+    return new ExpandedNodeId(n.identifierType, n.value, n.namespace, /*namespaceUri*/ null, /*serverIndex*/ 0);
 }
 
 /**
@@ -105,7 +106,6 @@ export function coerceExpandedNodeId(value: any): ExpandedNodeId {
  * @return {ExpandedNodeId}
  */
 export function makeExpandedNodeId(value: any, namespace?: number) {
-
     if (value === undefined && namespace === undefined) {
         return new ExpandedNodeId(NodeIdType.NUMERIC, 0, 0, null, 0);
     }
@@ -125,7 +125,7 @@ export function makeExpandedNodeId(value: any, namespace?: number) {
     }
 
     const valueInt = parseInt(value, 10);
-    if (!_.isFinite(valueInt)) {
+    if (!isFinite(valueInt)) {
         throw new Error(" cannot makeExpandedNodeId out of " + value);
     }
     namespace = namespace || 0;

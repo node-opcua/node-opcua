@@ -3,24 +3,17 @@
 // tslint:disable:no-console
 import * as chalk from "chalk";
 
-import {
-    nodesets,
-    OPCUACertificateManager,
-    OPCUAServer
-} from "node-opcua";
+import { nodesets, OPCUACertificateManager, OPCUAServer } from "node-opcua";
 import { CertificateManager } from "node-opcua-pki";
 import { installPushCertificateManagement } from "node-opcua-server-configuration";
-import * as  path from "path";
+import * as path from "path";
 import * as yargs from "yargs";
 
-const argv = yargs
-  .wrap(132)
-  .option("port", {
-      alias: "p",
-      default: "26543",
-      describe: "port to listen"
-  })
-  .argv;
+const argv = yargs.wrap(132).option("port", {
+    alias: "p",
+    default: "26543",
+    describe: "port to listen"
+}).argv;
 
 const rootFolder = path.join(__dirname, "../../..");
 
@@ -29,15 +22,13 @@ const port = parseInt(argv.port, 10) || 26555;
 const certificateManager = new OPCUACertificateManager({
     automaticallyAcceptUnknownCertificate: true,
 
-    rootFolder: path.join(__dirname, "certificate"),
+    rootFolder: path.join(__dirname, "certificate")
 });
 
 const server_options = {
     port,
 
-    nodeset_filename: [
-        nodesets.standard_nodeset_file
-    ],
+    nodeset_filename: [nodesets.standard],
 
     serverCertificateManager: certificateManager
 };
@@ -45,7 +36,6 @@ const server_options = {
 process.title = "Node OPCUA Server on port : " + server_options.port;
 
 async function main() {
-
     const tmpFolder = path.join(__dirname, "../certificates/myApp");
 
     const applicationGroup = new CertificateManager({
@@ -60,7 +50,6 @@ async function main() {
     console.log(chalk.yellow("  server PID          :"), process.pid);
 
     server.on("post_initialize", () => {
-
         const addressSpace = server.engine.addressSpace!;
         // to do: expose new nodeid here
         const ns = addressSpace.getNamespaceIndex("http://yourorganisation.org/my_data_type/");
@@ -71,7 +60,6 @@ async function main() {
         });
 
         console.log("Certificate rejected folder ", server.serverCertificateManager.rejectedFolder);
-
     });
 
     try {

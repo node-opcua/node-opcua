@@ -4,20 +4,18 @@
 // tslint:disable:max-line-length
 
 import { assert } from "node-opcua-assert";
-import * as  _ from "underscore";
 
 import { encodeExpandedNodeId } from "node-opcua-basic-types";
 import { BinaryStream } from "node-opcua-binary-stream";
 import { DerivedKeys } from "node-opcua-crypto";
 import { BaseUAObject } from "node-opcua-factory";
 import { AsymmetricAlgorithmSecurityHeader, SymmetricAlgorithmSecurityHeader } from "node-opcua-service-secure-channel";
+import { timestamp } from "node-opcua-utils";
 
-import {
-    SecureMessageChunkManager,
-    SecureMessageChunkManagerOptions,
-    SecurityHeader
-} from "./secure_message_chunk_manager";
+import { SecureMessageChunkManager, SecureMessageChunkManagerOptions, SecurityHeader } from "./secure_message_chunk_manager";
 import { SequenceNumberGenerator } from "./sequence_number_generator";
+
+const doTraceChunk = process.env.NODEOPCUADEBUG && process.env.NODEOPCUADEBUG.indexOf("CHUNK") >= 0;
 
 export interface MessageChunkerOptions {
     securityHeader?: SecurityHeader;
@@ -59,13 +57,13 @@ export class MessageChunker {
      * update security information
      */
     public update(options?: MessageChunkerOptions) {
-
         options = options || {};
-        options.securityHeader = options.securityHeader ||
-            new AsymmetricAlgorithmSecurityHeader({securityPolicyUri: "http://opcfoundation.org/UA/SecurityPolicy#None"});
+        options.securityHeader =
+            options.securityHeader ||
+            new AsymmetricAlgorithmSecurityHeader({ securityPolicyUri: "http://opcfoundation.org/UA/SecurityPolicy#None" });
 
-        assert(_.isObject(options));
-        assert(_.isObject(options.securityHeader));
+        assert(options !== null && typeof options === "object");
+        assert(options.securityHeader !== null && typeof options.securityHeader === "object");
 
         this.securityHeader = options.securityHeader;
         this.derivedKeys = options.derivedKeys || undefined;
@@ -75,9 +73,9 @@ export class MessageChunker {
         msgType: string,
         options: ChunkMessageOptions,
         message: BaseUAObject,
-        messageChunkCallback: MessageCallbackFunc) {
-
-        assert(_.isFunction(messageChunkCallback));
+        messageChunkCallback: MessageCallbackFunc
+    ) {
+        assert(typeof messageChunkCallback === "function");
 
         // calculate message size ( with its  encodingDefaultBinary)
         const binSize = message.binaryStoreSize() + 4;
@@ -92,18 +90,32 @@ export class MessageChunker {
         if (msgType === "OPN") {
             securityHeader = this.securityHeader;
         } else {
-            securityHeader = new SymmetricAlgorithmSecurityHeader({tokenId: options.tokenId});
+            securityHeader = new SymmetricAlgorithmSecurityHeader({ tokenId: options.tokenId });
         }
 
-        const chunkManager = new SecureMessageChunkManager(
-            msgType, options, securityHeader, this.sequenceNumberGenerator
-        );
+        const chunkManager = new SecureMessageChunkManager(msgType, options, securityHeader, this.sequenceNumberGenerator);
 
+        let nbChunks = 0;
+        let totalSize = 0;
         chunkManager
             .on("chunk", (messageChunk: Buffer) => {
+                nbChunks++;
+                totalSize += messageChunk.length;
                 messageChunkCallback(messageChunk);
             })
-            .on("finished", ()  => {
+            .on("finished", () => {
+                if (doTraceChunk) {
+                    // tslint:disable-next-line: no-console
+                    console.log(
+                        timestamp(),
+                        "   <$$ ",
+                        msgType,
+                        "nbChunk = " + nbChunks.toString().padStart(3),
+                        "totalLength = " + totalSize.toString().padStart(8),
+                        "l=",
+                        binSize.toString().padStart(6)
+                    );
+                }
                 messageChunkCallback(null);
             });
 

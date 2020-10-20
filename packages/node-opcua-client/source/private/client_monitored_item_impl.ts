@@ -5,29 +5,25 @@
 // tslint:disable:no-empty
 import { EventEmitter } from "events";
 import { assert } from "node-opcua-assert";
-import * as _ from "underscore";
 
 import { AttributeIds } from "node-opcua-data-model";
 import { DataValue, coerceTimestampsToReturn } from "node-opcua-data-value";
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 import { ExtensionObject } from "node-opcua-extension-object";
 import { EventFilter } from "node-opcua-service-filter";
-import {
-    ReadValueId,
-    ReadValueIdOptions,
-    TimestampsToReturn
-} from "node-opcua-service-read";
+import { ReadValueId, ReadValueIdOptions, TimestampsToReturn } from "node-opcua-service-read";
 import {
     MonitoredItemCreateResult,
     MonitoredItemModifyResult,
-    MonitoringMode, MonitoringParameters, MonitoringParametersOptions
+    MonitoringMode,
+    MonitoringParameters,
+    MonitoringParametersOptions
 } from "node-opcua-service-subscription";
 import { StatusCode, StatusCodes } from "node-opcua-status-code";
 import { Variant } from "node-opcua-variant";
 import { Callback, ErrorCallback } from "node-opcua-status-code";
 
 import { ClientMonitoredItem } from "../client_monitored_item";
-import { ClientMonitoredItemBase } from "../client_monitored_item_base";
 import { ClientMonitoredItemToolbox } from "../client_monitored_item_toolbox";
 import { ClientSubscription } from "../client_subscription";
 import { ClientSubscriptionImpl } from "./client_subscription_impl";
@@ -35,12 +31,14 @@ import { ClientSubscriptionImpl } from "./client_subscription_impl";
 const debugLog = make_debugLog(__filename);
 const doDebug = checkDebugFlag(__filename);
 
-export type PrepareForMonitoringResult = { error: string } | {
-    error?: null;
-    itemToMonitor: ReadValueIdOptions;
-    monitoringMode: MonitoringMode;
-    requestedParameters: MonitoringParameters;
-};
+export type PrepareForMonitoringResult =
+    | { error: string }
+    | {
+          error?: null;
+          itemToMonitor: ReadValueIdOptions;
+          monitoringMode: MonitoringMode;
+          requestedParameters: MonitoringParameters;
+      };
 
 /**
  * ClientMonitoredItem
@@ -55,7 +53,6 @@ export type PrepareForMonitoringResult = { error: string } | {
  *  note: this.monitoringMode = subscription_service.MonitoringMode.Reporting;
  */
 export class ClientMonitoredItemImpl extends EventEmitter implements ClientMonitoredItem {
-
     public itemToMonitor: ReadValueId;
     public monitoringParameters: MonitoringParameters;
     public subscription: ClientSubscriptionImpl;
@@ -72,7 +69,6 @@ export class ClientMonitoredItemImpl extends EventEmitter implements ClientMonit
         monitoringParameters: MonitoringParametersOptions,
         timestampsToReturn: TimestampsToReturn
     ) {
-
         super();
 
         this.statusCode = StatusCodes.BadDataUnavailable;
@@ -83,13 +79,12 @@ export class ClientMonitoredItemImpl extends EventEmitter implements ClientMonit
         this.itemToMonitor = new ReadValueId(itemToMonitor);
         this.monitoringParameters = new MonitoringParameters(monitoringParameters);
         this.monitoringMode = MonitoringMode.Reporting;
-        assert(this.monitoringParameters.clientHandle === 0xFFFFFFFF, "should not have a client handle yet");
+        assert(this.monitoringParameters.clientHandle === 0xffffffff, "should not have a client handle yet");
 
         assert(subscription.session, "expecting session");
         timestampsToReturn = coerceTimestampsToReturn(timestampsToReturn);
         assert(subscription.constructor.name === "ClientSubscriptionImpl");
         this.timestampsToReturn = timestampsToReturn;
-
     }
 
     public toString(): string {
@@ -108,14 +103,8 @@ export class ClientMonitoredItemImpl extends EventEmitter implements ClientMonit
     public async terminate(): Promise<void>;
     public terminate(done: ErrorCallback): void;
     public terminate(...args: any[]): any {
-
         const done = args[0];
-        assert(_.isFunction(done));
-        /**
-         * Notify the observer that this monitored item has been terminated.
-         * @event terminated
-         */
-        this.emit("terminated");
+        assert(typeof done === "function");
 
         const subscription = this.subscription as ClientSubscriptionImpl;
         subscription._delete_monitored_items([this], (err?: Error) => {
@@ -125,20 +114,14 @@ export class ClientMonitoredItemImpl extends EventEmitter implements ClientMonit
         });
     }
 
-    public async modify(
-        parameters: MonitoringParametersOptions
-    ): Promise<StatusCode>;
-    public async modify(
-        parameters: MonitoringParametersOptions,
-        timestampsToReturn: TimestampsToReturn
-    ): Promise<StatusCode>;
-    public modify(
-        parameters: MonitoringParametersOptions,
-        callback: (err: Error | null, statusCode?: StatusCode) => void): void;
+    public async modify(parameters: MonitoringParametersOptions): Promise<StatusCode>;
+    public async modify(parameters: MonitoringParametersOptions, timestampsToReturn: TimestampsToReturn): Promise<StatusCode>;
+    public modify(parameters: MonitoringParametersOptions, callback: (err: Error | null, statusCode?: StatusCode) => void): void;
     public modify(
         parameters: MonitoringParametersOptions,
         timestampsToReturn: TimestampsToReturn | null,
-        callback: (err: Error | null, statusCode?: StatusCode) => void): void;
+        callback: (err: Error | null, statusCode?: StatusCode) => void
+    ): void;
     public modify(...args: any[]): any {
         if (args.length === 2) {
             return this.modify(args[0], null, args[1]);
@@ -161,22 +144,24 @@ export class ClientMonitoredItemImpl extends EventEmitter implements ClientMonit
                 }
                 assert(results!.length === 1);
                 callback(null, results![0]);
-            });
+            }
+        );
     }
 
     public async setMonitoringMode(monitoringMode: MonitoringMode): Promise<StatusCode>;
     public setMonitoringMode(monitoringMode: MonitoringMode, callback: Callback<StatusCode>): void;
     public setMonitoringMode(...args: any[]): any {
-
         const monitoringMode = args[0] as MonitoringMode;
         const callback = args[1] as Callback<StatusCode>;
 
         ClientMonitoredItemToolbox._toolbox_setMonitoringMode(
             this.subscription,
             [this],
-            monitoringMode, (err?: Error | null, statusCodes?: StatusCode[]) => {
+            monitoringMode,
+            (err?: Error | null, statusCodes?: StatusCode[]) => {
                 callback(err ? err : null, statusCodes![0]);
-            });
+            }
+        );
     }
 
     /**
@@ -185,19 +170,16 @@ export class ClientMonitoredItemImpl extends EventEmitter implements ClientMonit
      * @internal
      */
     public _monitor(done?: ErrorCallback) {
-        assert(done === undefined || _.isFunction(done));
-        ClientMonitoredItemToolbox._toolbox_monitor(
-            this.subscription,
-            this.timestampsToReturn,
-            [this], (err?: Error) => {
-                if (err) {
-                    this.emit("err", err.message);
-                    this.emit("terminated");
-                }
-                if (done) {
-                    done(err);
-                }
-            });
+        assert(done === undefined || typeof done === "function");
+        ClientMonitoredItemToolbox._toolbox_monitor(this.subscription, this.timestampsToReturn, [this], (err?: Error) => {
+            if (err) {
+                this.emit("err", err.message);
+                this.emit("terminated");
+            }
+            if (done) {
+                done(err);
+            }
+        });
     }
 
     /**
@@ -242,7 +224,8 @@ export class ClientMonitoredItemImpl extends EventEmitter implements ClientMonit
      * @internal
      * @private
      */
-    public _prepare_for_monitoring() { // : PrepareForMonitoringResult {
+    public _prepare_for_monitoring() {
+        // : PrepareForMonitoringResult {
 
         assert(this.monitoringParameters.clientHandle === 4294967295, "should not have a client handle yet");
 
@@ -250,8 +233,7 @@ export class ClientMonitoredItemImpl extends EventEmitter implements ClientMonit
 
         this.monitoringParameters.clientHandle = subscription.nextClientHandle();
 
-        assert(this.monitoringParameters.clientHandle > 0
-            && this.monitoringParameters.clientHandle !== 4294967295);
+        assert(this.monitoringParameters.clientHandle > 0 && this.monitoringParameters.clientHandle !== 4294967295);
 
         // If attributeId is EventNotifier then monitoring parameters need a filter.
         // The filter must then either be DataChangeFilter, EventFilter or AggregateFilter.
@@ -260,7 +242,6 @@ export class ClientMonitoredItemImpl extends EventEmitter implements ClientMonit
         // todo support DataChangeFilter
         // todo support whereClause
         if (this.itemToMonitor.attributeId === AttributeIds.EventNotifier) {
-
             //
             // see OPCUA Spec 1.02 part 4 page 65 : 5.12.1.4 Filter
             // see                 part 4 page 130: 7.16.3 EventFilter
@@ -283,15 +264,16 @@ export class ClientMonitoredItemImpl extends EventEmitter implements ClientMonit
 
             if (filter.schema.name !== "EventFilter") {
                 return {
-                    error: "Mismatch between attributeId and filter in monitoring parameters : " +
-                        "Got a " + filter.schema.name + " but a EventFilter object is required " +
+                    error:
+                        "Mismatch between attributeId and filter in monitoring parameters : " +
+                        "Got a " +
+                        filter.schema.name +
+                        " but a EventFilter object is required " +
                         "when itemToMonitor.attributeId== AttributeIds.EventNotifier"
                 };
             }
-
         } else if (this.itemToMonitor.attributeId === AttributeIds.Value) {
             // the DataChangeFilter and the AggregateFilter are used when monitoring Variable Values
-
             // The Value Attribute is used when monitoring Variables. Variable values are monitored for a change
             // in value or a change in their status. The filters defined in this standard (see 7.16.2) and in Part 8 are
             // used to determine if the value change is large enough to cause a Notification to be generated for the
@@ -299,7 +281,8 @@ export class ClientMonitoredItemImpl extends EventEmitter implements ClientMonit
         } else {
             if (this.monitoringParameters.filter) {
                 return {
-                    error: "Mismatch between attributeId and filter in monitoring parameters : " +
+                    error:
+                        "Mismatch between attributeId and filter in monitoring parameters : " +
                         "no filter expected when attributeId is not Value  or  EventNotifier"
                 };
             }
@@ -309,7 +292,6 @@ export class ClientMonitoredItemImpl extends EventEmitter implements ClientMonit
             monitoringMode: this.monitoringMode,
             requestedParameters: this.monitoringParameters
         };
-
     }
 
     /**
@@ -318,18 +300,15 @@ export class ClientMonitoredItemImpl extends EventEmitter implements ClientMonit
      * @private
      */
     public _applyResult(monitoredItemResult: MonitoredItemCreateResult) {
-
         this.statusCode = monitoredItemResult.statusCode;
 
         /* istanbul ignore else */
         if (monitoredItemResult.statusCode === StatusCodes.Good) {
-
             this.result = monitoredItemResult;
             this.monitoredItemId = monitoredItemResult.monitoredItemId;
             this.monitoringParameters.samplingInterval = monitoredItemResult.revisedSamplingInterval;
             this.monitoringParameters.queueSize = monitoredItemResult.revisedQueueSize;
             this.filterResult = monitoredItemResult.filterResult || undefined;
-
         }
     }
     /**
@@ -338,11 +317,9 @@ export class ClientMonitoredItemImpl extends EventEmitter implements ClientMonit
      * @private
      */
     public _after_create(monitoredItemResult: MonitoredItemCreateResult) {
-
         this._applyResult(monitoredItemResult);
 
         if (this.statusCode === StatusCodes.Good) {
-
             const subscription = this.subscription as ClientSubscriptionImpl;
             subscription._add_monitored_item(this.monitoringParameters.clientHandle, this);
             /**
@@ -350,7 +327,6 @@ export class ClientMonitoredItemImpl extends EventEmitter implements ClientMonit
              * @event initialized
              */
             this.emit("initialized");
-
         } else {
             /**
              * Notify the observers that the monitored item has failed to initialized.
@@ -362,7 +338,6 @@ export class ClientMonitoredItemImpl extends EventEmitter implements ClientMonit
             this.emit("terminated");
         }
     }
-
 }
 
 // tslint:disable:no-var-requires
@@ -380,23 +355,15 @@ ClientMonitoredItem.create = (
     monitoringParameters: MonitoringParametersOptions,
     timestampsToReturn: TimestampsToReturn
 ) => {
-    const monitoredItem = new ClientMonitoredItemImpl(
-        subscription,
-        itemToMonitor,
-        monitoringParameters,
-        timestampsToReturn
-    );
+    const monitoredItem = new ClientMonitoredItemImpl(subscription, itemToMonitor, monitoringParameters, timestampsToReturn);
 
     setImmediate(() => {
         (subscription as ClientSubscriptionImpl)._wait_for_subscription_to_be_ready((err?: Error) => {
             if (err) {
                 return;
             }
-            monitoredItem._monitor((err1?: Error) => {
-            });
+            monitoredItem._monitor((err1?: Error) => {});
         });
-
     });
     return monitoredItem;
-
 };

@@ -5,14 +5,13 @@ import * as should from "should";
 
 import { AddressSpace, SessionContext, UADataType } from "..";
 
-import { getMiniAddressSpace } from "../";
+import { getMiniAddressSpace } from "../testHelpers";
 
 const context = SessionContext.defaultContext;
 
 // tslint:disable-next-line:no-var-requires
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("testing UADataype -  Attribute", () => {
-
     let addressSpace: AddressSpace;
     before(async () => {
         addressSpace = await getMiniAddressSpace();
@@ -27,13 +26,12 @@ describe("testing UADataype -  Attribute", () => {
     });
 
     it("UADataType#readAttribute", () => {
-
         const namespace = addressSpace.getOwnNamespace();
 
         const dataType = namespace.createDataType({
             browseName: "MyDataType",
             isAbstract: true,
-            subtypeOf: "BaseDataType",
+            subtypeOf: "BaseDataType"
         });
 
         let value;
@@ -48,7 +46,6 @@ describe("testing UADataype -  Attribute", () => {
     });
 
     describe("UADataType#isSupertypeOf", () => {
-
         let number_dt: UADataType;
         let double_dt: UADataType;
         let float_dt: UADataType;

@@ -1,4 +1,4 @@
 test/
 tsconfig.json
-tsconfig.tsbuildinfo
+*.tsbuildinfo
 tslint.*

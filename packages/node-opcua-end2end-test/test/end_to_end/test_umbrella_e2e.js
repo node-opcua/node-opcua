@@ -14,20 +14,15 @@ const port = 2002;
 const { build_server_with_temperature_device } = require("../../test_helpers/build_server_with_temperature_device");
 const { build_address_space_for_conformance_testing } = require("node-opcua-address-space-for-conformance-testing");
 
-const {
-    start_simple_server,
-    stop_simple_server
-} = require("../../test_helpers/external_server_fixture");
-
+const { start_simple_server, stop_simple_server } = require("../../test_helpers/external_server_fixture");
 
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("testing Client - Umbrella ", function() {
-
     // this test could be particularly slow on RaspberryPi or BeagleBoneBlack
     // so we set a big enough timeout
     // execution time could also be affected by code running under profiling/coverage tools (istanbul)
-    this.timeout((process.arch === "arm") ? 400000 : 30000);
-    this.timeout(Math.max(200000, this._timeout));
+    this.timeout(process.arch === "arm" ? 400000 : 30000);
+    this.timeout(Math.max(200000, this.timeout()));
 
     const test = this;
     test.nb_backgroundsession = 0;
@@ -36,12 +31,11 @@ describe("testing Client - Umbrella ", function() {
         port: port,
         maxConnectionsPerEndpoint: 500,
         silent: true,
-        nodeset_filename: [opcua.nodesets.standard_nodeset_file]
+        nodeset_filename: [opcua.nodesets.standard],
     };
 
     function start_external_server(done) {
         start_simple_server(options, function(err, data) {
-
             if (err) {
                 return done(err, null);
             }
@@ -56,7 +50,6 @@ describe("testing Client - Umbrella ", function() {
     }
 
     function start_internal_server(done) {
-
         test.server = build_server_with_temperature_device(options, function(err) {
             if (err) {
                 return done(err);
@@ -68,19 +61,19 @@ describe("testing Client - Umbrella ", function() {
             test.endpointUrl = test.server.endpoints[0].endpointDescriptions()[0].endpointUrl;
             test.temperatureVariableId = test.server.temperatureVariableId;
 
-
             setTimeout(function() {
-                test.server.engine.currentSessionCount.should.eql(0, " expecting ZERO session on server when test is starting !");
+                test.server.engine.currentSessionCount.should.eql(
+                    0,
+                    " expecting ZERO session on server when test is starting !"
+                );
                 console.log(" ..... done ");
                 console.log("server started at ", test.endpointUrl);
                 done(err);
-
             }, 1000);
         });
     }
 
     before(function(done) {
-
         console.log(" ..... starting server ");
         if (process.env.TESTENDPOINT === "EXTERNAL") {
             start_external_server(done);
@@ -90,62 +83,67 @@ describe("testing Client - Umbrella ", function() {
         } else {
             start_internal_server(done);
         }
-
     });
 
     beforeEach(function(done) {
         // make sure that test has closed all sessions
         if (test.server) {
             // test.nb_backgroundsession = test.server.engine.currentSessionCount;
-            test.server.engine.currentSessionCount.should.eql(test.nb_backgroundsession, " expecting ZERO session o server when test is starting !");
+            test.server.engine.currentSessionCount.should.eql(
+                test.nb_backgroundsession,
+                " expecting ZERO session o server when test is starting !"
+            );
         }
         done();
     });
 
     function dumpStatistics(endpointUrl, done) {
-        const perform_operation_on_client_session = require("../../test_helpers/perform_operation_on_client_session").perform_operation_on_client_session;
+        const perform_operation_on_client_session = require("../../test_helpers/perform_operation_on_client_session")
+            .perform_operation_on_client_session;
 
         const client = OPCUAClient.create();
 
-        perform_operation_on_client_session(client, endpointUrl, function(session, inner_done) {
-            const relativePath = "/Objects/Server.ServerDiagnostics.ServerDiagnosticsSummary";
-            const browsePath = [
-                opcua.makeBrowsePath("RootFolder", relativePath),
-            ];
+        perform_operation_on_client_session(
+            client,
+            endpointUrl,
+            function(session, inner_done) {
+                const relativePath = "/Objects/Server.ServerDiagnostics.ServerDiagnosticsSummary";
+                const browsePath = [opcua.makeBrowsePath("RootFolder", relativePath)];
 
-            let sessionDiagnosticsSummaryNodeId;
-            async.series([
-
-                function(callback) {
-                    session.translateBrowsePath(browsePath, function(err, result) {
-                        if (!err) {
-                            if (result[0].statusCode === StatusCodes.Good) {
-                                //xx console.log(result[0].toString());
-                                sessionDiagnosticsSummaryNodeId = result[0].targets[0].targetId;
-                            } else {
-                                err = new Error("Cannot find ServerDiagnosticsSummary")
-                            }
-                        }
-                        callback(err);
-                    });
-                },
-                function(callback) {
-
-                    session.readVariableValue(sessionDiagnosticsSummaryNodeId, function(err, dataValue) {
-                        //xx console.log("\n\n-----------------------------------------------------------------------------------------------------------");
-                        //xx console.log(dataValue.value.value.toString());
-                        //xx console.log("-----------------------------------------------------------------------------------------------------------");
-                        callback(err);
-                    });
-                }
-            ], inner_done);
-
-        }, done);
+                let sessionDiagnosticsSummaryNodeId;
+                async.series(
+                    [
+                        function(callback) {
+                            session.translateBrowsePath(browsePath, function(err, result) {
+                                if (!err) {
+                                    if (result[0].statusCode === StatusCodes.Good) {
+                                        //xx console.log(result[0].toString());
+                                        sessionDiagnosticsSummaryNodeId = result[0].targets[0].targetId;
+                                    } else {
+                                        err = new Error("Cannot find ServerDiagnosticsSummary");
+                                    }
+                                }
+                                callback(err);
+                            });
+                        },
+                        function(callback) {
+                            session.readVariableValue(sessionDiagnosticsSummaryNodeId, function(err, dataValue) {
+                                //xx console.log("\n\n-----------------------------------------------------------------------------------------------------------");
+                                //xx console.log(dataValue.value.value.toString());
+                                //xx console.log("-----------------------------------------------------------------------------------------------------------");
+                                callback(err);
+                            });
+                        },
+                    ],
+                    inner_done
+                );
+            },
+            done
+        );
     }
 
     afterEach(function(done) {
-
-        const extraSessionCount = (test.server.engine.currentSessionCount !== test.nb_backgroundsession);
+        const extraSessionCount = test.server.engine.currentSessionCount !== test.nb_backgroundsession;
 
         if (extraSessionCount && test.server) {
             console.log(" currentChannelCount          = ", test.server.currentChannelCount);
@@ -163,17 +161,22 @@ describe("testing Client - Umbrella ", function() {
             // test must not add exta nodes in root => "organizes" ref count => 3
             const addressSpace = test.server.engine.addressSpace;
             const rootFolder = addressSpace.findNode("RootFolder");
-            rootFolder.getFolderElements().length.should.eql(3, "Test should not pollute the root folder: expecting 3 folders in RootFolder only");
-
+            rootFolder
+                .getFolderElements()
+                .length.should.eql(
+                    3,
+                    "Test should not pollute the root folder: expecting 3 folders in RootFolder only"
+                );
 
             dumpStatistics(test.endpointUrl, done);
         }
 
-
         // make sure that test has closed all sessions
-        test.server.engine.currentSessionCount.should.eql(test.nb_backgroundsession, " Test must have deleted all created session");
+        test.server.engine.currentSessionCount.should.eql(
+            test.nb_backgroundsession,
+            " Test must have deleted all created session"
+        );
         return done();
-
     });
 
     after(function(done) {
@@ -187,7 +190,6 @@ describe("testing Client - Umbrella ", function() {
             done();
         }
     });
-
 
     require("./u_test_e2e_ctt_modifyMonitoredItems010")(test);
     require("./u_test_e2e_monitored_item_with_timestamp_source_issue#804")(test);
@@ -257,7 +259,9 @@ describe("testing Client - Umbrella ", function() {
     require("./u_test_e2e_test_accessing_service_before_session_is_activated")(test);
     require("./alarms_and_conditions/u_test_e2e_conditions")(test);
     require("./alarms_and_conditions/u_test_e2e_alarm_client_side")(test);
-    // typescripts tests starts here...
 
+    require("./u_test_e2e_monitoredItem_client_terminated_event")(test);
+
+    // typescripts tests starts here...
     require("./u_test_e2e_deadband_filter").t(test);
 });

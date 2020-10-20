@@ -1,8 +1,6 @@
 /**
  * @module node-opcua-address-space.AlarmsAndConditions
  */
-import * as _ from "underscore";
-
 import { assert } from "node-opcua-assert";
 import { UInt16 } from "node-opcua-basic-types";
 import { LocalizedText, LocalizedTextLike } from "node-opcua-data-model";
@@ -11,9 +9,9 @@ import { ConditionInfoOptions } from "../../source/interfaces/alarms_and_conditi
 
 export interface ConditionInfo {
     message: LocalizedText | null;
-    quality: StatusCode| null ;
-    severity: UInt16| null;
-    retain: boolean| null;
+    quality: StatusCode | null;
+    severity: UInt16 | null;
+    retain: boolean | null;
     isDifferentFrom(otherConditionInfo: ConditionInfo): boolean;
 }
 /**
@@ -26,14 +24,12 @@ export interface ConditionInfo {
  * @constructor
  */
 export class ConditionInfo {
-
     public message: LocalizedText | null = null;
     public quality: StatusCode | null = null;
     public severity: UInt16 | null = 0;
     public retain: boolean | null = false;
 
     constructor(options: ConditionInfoOptions) {
-
         this.severity = null;
         this.quality = null;
         this.message = null;
@@ -46,11 +42,11 @@ export class ConditionInfo {
             this.quality = options.quality!;
         }
         if (options.hasOwnProperty("severity") && options.severity !== null) {
-            assert(_.isNumber(options.severity));
+            assert(typeof options.severity === "number");
             this.severity = options.severity!;
         }
         if (options.hasOwnProperty("retain") && options.retain !== null) {
-            assert(_.isBoolean(options.retain));
+            assert(typeof options.retain === "boolean");
             this.retain = options.retain!;
         }
     }
@@ -62,9 +58,9 @@ export class ConditionInfo {
      */
     public isDifferentFrom(otherConditionInfo: ConditionInfo): boolean {
         return (
-          this.severity !== otherConditionInfo.severity ||
-          this.quality !== otherConditionInfo.quality ||
-          this.message !== otherConditionInfo.message
+            this.severity !== otherConditionInfo.severity ||
+            this.quality !== otherConditionInfo.quality ||
+            this.message !== otherConditionInfo.message
         );
     }
 }

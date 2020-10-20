@@ -1,28 +1,22 @@
 /**
  * @module node-opcua-data-model
  */
-import { QualifiedName, QualifiedNameLike } from "./qualified_name";
+import { QualifiedName, QualifiedNameLike, QualifiedNameOptions } from "./qualified_name";
 
 export function isDataEncoding(dataEncoding: any): boolean {
-    return (dataEncoding && typeof dataEncoding.name === "string");
+    return dataEncoding && typeof dataEncoding.name === "string";
 }
 
-const validEncoding = ["DefaultBinary", "DefaultXml"];
+const validEncoding = ["DefaultBinary", "DefaultXml", "DefaultJson"];
 export function isValidDataEncoding(dataEncoding?: string | null | QualifiedNameLike): boolean {
-
     if (!dataEncoding) {
         return true;
     }
 
-    if ((dataEncoding as any).name) {
-        dataEncoding = (dataEncoding as QualifiedName).name;
+    if ((dataEncoding as any).hasOwnProperty("name")) {
+        dataEncoding = (dataEncoding as QualifiedNameOptions).name;
     }
-    if (dataEncoding && ((dataEncoding as any).name || (dataEncoding as any).text) ) {
-        // tslint:disable:no-console
-        console.log(" isValidDataEncoding => expecting a string here , not a LocalizedText or a QualifiedName ");
-        return false;
-    }
-    if (!(dataEncoding && typeof dataEncoding === "string")) {
+    if (!dataEncoding) {
         return true;
     }
     return validEncoding.indexOf(dataEncoding as string) !== -1;

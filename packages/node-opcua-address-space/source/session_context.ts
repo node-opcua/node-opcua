@@ -1,15 +1,18 @@
 /**
  * @module node-opcua-address-space
  */
-import * as _ from "underscore";
 
 import { assert } from "node-opcua-assert";
+
+// note : use specifically dist file to avoid modules that rely on fs
 import { Certificate, CertificateInternals, exploreCertificate } from "node-opcua-crypto";
+
 import { AccessLevelFlag, makeAccessLevelFlag } from "node-opcua-data-model";
+import { PreciseClock } from "node-opcua-date-time";
+import { NodeId } from "node-opcua-nodeid";
 import { AnonymousIdentityToken, MessageSecurityMode, UserNameIdentityToken, X509IdentityToken } from "node-opcua-types";
 
 import { BaseNode, ISessionContext, UAObject, UAObjectType } from "./address_space_ts";
-import { NodeId } from "node-opcua-nodeid";
 
 type UserIdentityToken = UserNameIdentityToken | AnonymousIdentityToken | X509IdentityToken;
 
@@ -80,13 +83,12 @@ export interface IServerBase {
     userManager?: IUserManager;
 }
 export interface SessionContextOptions {
-    session?: ISessionBase;  /* ServerSession */
+    session?: ISessionBase /* ServerSession */;
     object?: UAObject | UAObjectType;
-    server?: IServerBase;   /* OPCUAServer*/
+    server?: IServerBase /* OPCUAServer*/;
 }
 
 function hasOneRoleDenied(permission: string[], roles: string[]): boolean {
-
     for (const role of roles) {
         const str = "!" + role;
         if (permission.findIndex((x: string) => x === str) >= 0) {
@@ -106,11 +108,10 @@ function hasOneRoleAllowed(permission: string[], roles: string[]) {
 }
 
 export class SessionContext implements ISessionContext {
-
     public static defaultContext = new SessionContext({});
 
     public object: any;
-    public currentTime?: Date;
+    public currentTime?: PreciseClock;
     public continuationPoints: any = {};
     public userIdentity: any;
     public readonly session?: ISessionBase;
@@ -132,7 +133,6 @@ export class SessionContext implements ISessionContext {
      *
      */
     public getCurrentUserRole(): string {
-
         if (!this.session) {
             return "default";
         }
@@ -154,7 +154,7 @@ export class SessionContext implements ISessionContext {
 
         assert(this.server != null, "expecting a server");
 
-        if (!_.isFunction(this.server.userManager.getUserRole)) {
+        if (typeof this.server.userManager.getUserRole !== "function") {
             return "default";
         }
         return this.server.userManager.getUserRole(username);
@@ -167,7 +167,6 @@ export class SessionContext implements ISessionContext {
      * @return {Boolean}
      */
     public checkPermission(node: BaseNode, action: string): boolean {
-
         // tslint:disable:no-bitwise
         const lNode = node as any;
 

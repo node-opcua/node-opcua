@@ -1,8 +1,6 @@
 /**
  * @module node-opcua-address-space.AlarmsAndConditions
  */
-import * as _ from "underscore";
-
 import { assert } from "node-opcua-assert";
 import { LocalizedText, LocalizedTextLike } from "node-opcua-data-model";
 import { NodeId } from "node-opcua-nodeid";
@@ -26,11 +24,7 @@ export interface UAAcknowledgeableConditionBase extends UAConditionBase {
 }
 
 export interface UAAcknowledgeableConditionBase extends UAConditionBase {
-
-    on(
-        eventName: string,
-        eventHandler: (...args: any[]) => void
-    ): this;
+    on(eventName: string, eventHandler: (...args: any[]) => void): this;
 
     on(
         eventName: "acknowledged" | "confirmed",
@@ -44,7 +38,6 @@ export interface UAAcknowledgeableConditionBase extends UAConditionBase {
  * @extends UAConditionBase
  */
 export class UAAcknowledgeableConditionBase extends UAConditionBase {
-
     /**
      */
     public static instantiate(
@@ -53,9 +46,12 @@ export class UAAcknowledgeableConditionBase extends UAConditionBase {
         options: any,
         data: any
     ): UAAcknowledgeableConditionBase {
-
         const conditionNode = UAConditionBase.instantiate(
-            namespace, conditionTypeId, options, data) as UAAcknowledgeableConditionBase;
+            namespace,
+            conditionTypeId,
+            options,
+            data
+        ) as UAAcknowledgeableConditionBase;
 
         Object.setPrototypeOf(conditionNode, UAAcknowledgeableConditionBase.prototype);
 
@@ -107,25 +103,7 @@ export class UAAcknowledgeableConditionBase extends UAConditionBase {
         (acknowledgeableConditionType as any).confirm.bindMethod(_confirm_method);
     }
 
-    // public _populate_EventData(eventData: any) {
-    //     super._populate_EventData(eventData);
-    //     this._populate_EventData_with_AcknowledgeableConditionTypeElements(eventData);
-    // }
-    //
-    // public _populate_EventData_with_AcknowledgeableConditionTypeElements(eventData: any) {
-    //     const self = this;
-    //     const data = {
-    //         // -----------------------------------------------------------
-    //         // AcknowledgeableConditionType
-    //         // -----------------------------------------------------------
-    //         ackedState: self.ackedState.readValue().value,
-    //         confirmedState: self.confirmedState ? self.confirmedState.readValue().value : null
-    //     };
-    //     eventData = _.extend(eventData, data);
-    // }
-
     public _raiseAuditConditionAcknowledgeEvent(branch: ConditionSnapshot): void {
-
         // raise the AuditConditionAcknowledgeEventType
         const eventData: RaiseEventData = {
             actionTimeStamp: { dataType: DataType.DateTime, value: new Date() },
@@ -164,13 +142,11 @@ export class UAAcknowledgeableConditionBase extends UAConditionBase {
     }
 
     public _raiseAuditConditionConfirmEvent(branch: ConditionSnapshot) {
-
         // raise the AuditConditionConfirmEventType
         const eventData: RaiseEventData = {
-
             actionTimeStamp: { dataType: DataType.DateTime, value: new Date() },
 
-            // ConditionEventId The ConditionEventId field shall contain the id of the Event that was confirmedd 
+            // ConditionEventId The ConditionEventId field shall contain the id of the Event that was confirmedd
             conditionEventId: { dataType: DataType.ByteString, value: branch.getEventId() },
             // xx branchId: branch.branchId.readValue().value,
 
@@ -197,7 +173,6 @@ export class UAAcknowledgeableConditionBase extends UAConditionBase {
             }
         };
         this.raiseEvent("AuditConditionConfirmEventType", eventData);
-
     }
 
     public _acknowledge_branch(
@@ -206,8 +181,7 @@ export class UAAcknowledgeableConditionBase extends UAConditionBase {
         branch: ConditionSnapshot,
         message: string
     ) {
-
-        assert(typeof (message) === "string");
+        assert(typeof message === "string");
 
         const conditionNode = this;
 
@@ -257,8 +231,7 @@ export class UAAcknowledgeableConditionBase extends UAConditionBase {
         branch: ConditionSnapshot,
         message: string
     ): any {
-
-        assert(typeof (message) === "string");
+        assert(typeof message === "string");
         assert(comment instanceof LocalizedText);
 
         const conditionNode = this;
@@ -283,7 +256,6 @@ export class UAAcknowledgeableConditionBase extends UAConditionBase {
          * raised when the alarm branch has been confirmed
          */
         conditionNode.emit("confirmed", conditionEventId, comment, branch);
-
     }
 
     /**
@@ -291,10 +263,7 @@ export class UAAcknowledgeableConditionBase extends UAConditionBase {
      * @param branch
      * @param comment
      */
-    public autoConfirmBranch(
-        branch: ConditionSnapshot,
-        comment: LocalizedTextLike
-    ) {
+    public autoConfirmBranch(branch: ConditionSnapshot, comment: LocalizedTextLike) {
         assert(branch instanceof ConditionSnapshot);
         if (!this.confirmedState) {
             // no confirmedState => ignoring
@@ -313,10 +282,7 @@ export class UAAcknowledgeableConditionBase extends UAConditionBase {
      * @param branch {ConditionSnapshot}
      * @param comment {String|LocalizedText}
      */
-    public acknowledgeAndAutoConfirmBranch(
-        branch: ConditionSnapshot,
-        comment: string | LocalizedTextLike | LocalizedText
-    ) {
+    public acknowledgeAndAutoConfirmBranch(branch: ConditionSnapshot, comment: string | LocalizedTextLike | LocalizedText) {
         comment = LocalizedText.coerce(comment)!;
         const conditionEventId = branch.getEventId();
         branch.setRetain(false);
@@ -325,19 +291,12 @@ export class UAAcknowledgeableConditionBase extends UAConditionBase {
     }
 }
 
-function _acknowledge_method(
-    inputArguments: VariantLike[],
-    context: SessionContext,
-    callback: any
-) {
-
-    UAConditionBase.with_condition_method(inputArguments, context, callback,
-        (
-            conditionEventId: Buffer,
-            comment: LocalizedText,
-            branch: ConditionSnapshot,
-            conditionNode: UAConditionBase) => {
-
+function _acknowledge_method(inputArguments: VariantLike[], context: SessionContext, callback: any) {
+    UAConditionBase.with_condition_method(
+        inputArguments,
+        context,
+        callback,
+        (conditionEventId: Buffer, comment: LocalizedText, branch: ConditionSnapshot, conditionNode: UAConditionBase) => {
             const ackConditionNode = conditionNode as UAAcknowledgeableConditionBase;
             // precondition checking
             assert(!conditionEventId || conditionEventId instanceof Buffer, "must have a valid eventId or  null");
@@ -345,7 +304,8 @@ function _acknowledge_method(
             assert(conditionNode instanceof UAAcknowledgeableConditionBase);
             ackConditionNode._acknowledge_branch(conditionEventId, comment, branch, "Method/Acknowledged");
             return StatusCodes.Good;
-        });
+        }
+    );
 }
 
 /*
@@ -356,20 +316,12 @@ function _acknowledge_method(
  *
  * @private
  */
-function _confirm_method(
-    inputArguments: VariantLike[],
-    context: SessionContext,
-    callback: any
-) {
-
+function _confirm_method(inputArguments: VariantLike[], context: SessionContext, callback: any) {
     UAConditionBase.with_condition_method(
-        inputArguments, context, callback,
-        (
-            eventId: Buffer,
-            comment: LocalizedText,
-            branch: ConditionSnapshot,
-            conditionNode: UAConditionBase) => {
-
+        inputArguments,
+        context,
+        callback,
+        (eventId: Buffer, comment: LocalizedText, branch: ConditionSnapshot, conditionNode: UAConditionBase) => {
             assert(eventId instanceof Buffer);
             assert(branch.getEventId() instanceof Buffer);
             assert(branch.getEventId().toString("hex") === eventId.toString("hex"));
@@ -380,5 +332,6 @@ function _confirm_method(
             }
             ackConditionNode._confirm_branch(eventId, comment, branch, "Method/Confirm");
             return StatusCodes.Good;
-        });
+        }
+    );
 }

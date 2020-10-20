@@ -26,15 +26,9 @@
  </UADataType>
  */
 
-const _ = require("underscore");
-const assert = require("node-opcua-assert").assert;
-
-const factories = require("node-opcua-factory");
-const NodeId = require("node-opcua-nodeid").NodeId;
-const makeNodeId = require("node-opcua-nodeid").makeNodeId;
-const coerceNodeId = require("node-opcua-nodeid").coerceNodeId;
-const resolveNodeId =  require("node-opcua-nodeid").resolveNodeId;
-const DataType = require("node-opcua-variant").DataType;
+const { assert } = require("node-opcua-assert");
+const { NodeId, coerceNodeId, resolveNodeId } = require("node-opcua-nodeid");
+const { DataType } = require("node-opcua-variant");
 
 // OPC Unified Architecture, Part 4 $7.1 page 106
 const Argument_Schema = {
@@ -46,13 +40,13 @@ const Argument_Schema = {
         if (dataType) {
             if (typeof dataType === "string") {
                 dataType = resolveNodeId(dataType);
-            } else if ( dataType instanceof NodeId ) {
+            } else if (dataType instanceof NodeId) {
                 // nothing
             } else {
                 assert(dataType.hasOwnProperty("value"));
-                dataType = coerceNodeId(dataType.value,dataType.namespace);
+                dataType = coerceNodeId(dataType.value, dataType.namespace);
             }
-           options.dataType = dataType;
+            options.dataType = dataType;
         }
 
         // fix missing ArrayDimension (The value is an array with one dimension.)
@@ -64,29 +58,29 @@ const Argument_Schema = {
 
     },
     fields: [
-        {name: "name", fieldType: "String", documentation: "The name of the argument."},
-        {name: "dataType", fieldType: "NodeId", documentation: "The nodeId of the Data type of the argument."},
+        { name: "name", fieldType: "String", documentation: "The name of the argument." },
+        { name: "dataType", fieldType: "NodeId", documentation: "The nodeId of the Data type of the argument." },
 
-    /**
-     * @class Argument
-     *
-     * @property valueRank {Integer}
-     *
-     * valueRank (5.6.2 Variable NodeClass part 3)
-     * This Attribute indicates whether the Value Attribute of the Variable is
-     * an array and how many dimensions the array has.
-     * It may have the following values:
-     *    n > 1: the Value is an array with the specified number of dimensions.
-     *    OneDimension        (1): The value is an array with one dimension.
-     *    OneOrMoreDimensions (0): The value is an array with one or more dimensions.
-     *    Scalar             (-1): The value is not an array.
-     *    Any                (-2): The value can be a scalar or an array with any number of
-     *                             dimensions.
-     *   ScalarOrOneDimension(-3): The value can be a scalar or a one dimensional array.
-     *
-     *   NOTE: All DataTypes are considered to be scalar, even if they have
-     *   array-like semantics like ByteString and String.
-     */
+        /**
+         * @class Argument
+         *
+         * @property valueRank {Integer}
+         *
+         * valueRank (5.6.2 Variable NodeClass part 3)
+         * This Attribute indicates whether the Value Attribute of the Variable is
+         * an array and how many dimensions the array has.
+         * It may have the following values:
+         *    n > 1: the Value is an array with the specified number of dimensions.
+         *    OneDimension        (1): The value is an array with one dimension.
+         *    OneOrMoreDimensions (0): The value is an array with one or more dimensions.
+         *    Scalar             (-1): The value is not an array.
+         *    Any                (-2): The value can be a scalar or an array with any number of
+         *                             dimensions.
+         *   ScalarOrOneDimension(-3): The value can be a scalar or a one dimensional array.
+         *
+         *   NOTE: All DataTypes are considered to be scalar, even if they have
+         *   array-like semantics like ByteString and String.
+         */
         {
             name: "valueRank",
             fieldType: "Int32",
@@ -94,20 +88,20 @@ const Argument_Schema = {
             defaultValue: -1 /* Scalar is the default value */
         },
 
-    /**
-     * @property arrayDimensions {UInt32}
-     * This Attribute specifies the length of each dimension for an array
-     * value. The Attribute is intended to describe the capability of the
-     * Variable, not the current size.
-     * The number of elements shall be equal to the value of the ValueRank
-     * Attribute. Shall be null if ValueRank ≤0.
-     * A value of 0 for an individual dimension indicates that the dimension
-     * has a variable length.
-     * For example, if a Variable is defined by the following C array:
-     * Int32 myArray[346];
-     * then this Variable’s DataType would point to an Int32, the Variable’s
-     * ValueRank has the value 1 and the one entry having the value 346.
-     */
+        /**
+         * @property arrayDimensions {UInt32}
+         * This Attribute specifies the length of each dimension for an array
+         * value. The Attribute is intended to describe the capability of the
+         * Variable, not the current size.
+         * The number of elements shall be equal to the value of the ValueRank
+         * Attribute. Shall be null if ValueRank ≤0.
+         * A value of 0 for an individual dimension indicates that the dimension
+         * has a variable length.
+         * For example, if a Variable is defined by the following C array:
+         * Int32 myArray[346];
+         * then this Variable’s DataType would point to an Int32, the Variable’s
+         * ValueRank has the value 1 and the one entry having the value 346.
+         */
 
         {
             name: "arrayDimensions",
@@ -116,7 +110,7 @@ const Argument_Schema = {
             defaultValue: null,
             documentation: "The number of dimensions if the argument is an array type and one or more dimensions have a fixed length."
         },
-        {name: "description", fieldType: "LocalizedText", documentation: "The description for the argument."}
+        { name: "description", fieldType: "LocalizedText", documentation: "The description for the argument." }
 
     ]
 };

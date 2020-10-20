@@ -11,7 +11,7 @@ const { ReadRequest } = require("node-opcua-types");
 
 describe("Testing ClientSecureChannel 1", function () {
 
-    this.timeout(Math.max(this._timeout, 100000));
+    this.timeout(Math.max(this.timeout(), 100000));
 
     const options = {
         connectionStrategy: {
@@ -150,7 +150,7 @@ describe("Testing ClientSecureChannel 2", function () {
 
 describe("Testing ClientSecureChannel with BackOff reconnection strategy", function () {
 
-    this.timeout(Math.max(this._timeout, 100000));
+    this.timeout(Math.max(this.timeout(), 100000));
 
     it("WW2-a connectionStrategy: should retry many times and fail eventually ",function(done) {
 

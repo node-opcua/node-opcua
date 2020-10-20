@@ -5,22 +5,17 @@ import { assert } from "node-opcua-assert";
 import {
     BaseUAObject,
     buildStructuredType,
-    check_options_correctness_against_schema, initialize_field,
+    check_options_correctness_against_schema,
+    initialize_field,
     parameters,
     registerSpecialVariantEncoder,
     StructuredTypeSchema
 } from "node-opcua-factory";
 
-import * as _ from "underscore";
-
 import { BinaryStream, OutputBinaryStream } from "node-opcua-binary-stream";
 import { ExpandedNodeId, makeExpandedNodeId } from "node-opcua-nodeid";
 
-import {
-    decodeUAString, decodeUInt16, encodeUAString,
-    encodeUInt16, Int32,
-    UAString, UInt16
-} from "node-opcua-basic-types";
+import { decodeUAString, decodeUInt16, encodeUAString, encodeUInt16, Int32, UAString, UInt16 } from "node-opcua-basic-types";
 
 export const schemaQualifiedName = buildStructuredType({
     baseType: "BaseUAObject",
@@ -37,7 +32,7 @@ export const schemaQualifiedName = buildStructuredType({
 
             fieldType: "UAString",
 
-            defaultValue: () => null
+            defaultValue: null
         }
     ]
 });
@@ -49,57 +44,36 @@ export interface QualifiedNameOptions {
 }
 
 export class QualifiedName extends BaseUAObject {
-
     public static schema: StructuredTypeSchema = schemaQualifiedName;
 
-    public static possibleFields: string[] = [
-        "namespaceIndex",
-        "name"
-    ];
+    public static possibleFields: string[] = ["namespaceIndex", "name"];
     public static encodingDefaultBinary: ExpandedNodeId = makeExpandedNodeId(0, 0);
     public static encodingDefaultXml: ExpandedNodeId = makeExpandedNodeId(0, 0);
+
     public namespaceIndex: UInt16;
     public name: UAString;
 
-    /**
-     *
-     * @class QualifiedName
-     * @constructor
-     * @extends BaseUAObject
-     * @param  options {Object}
-     */
-    constructor(options?: QualifiedNameOptions) {
-
+    constructor(options?: QualifiedNameOptions | null) {
         super();
-
-        const schema = QualifiedName.schema;
-        options = options || {};
+        // for de-serialization
+        if (options === null) {
+            this.namespaceIndex = 0;
+            this.name = null;
+            return;
+        }
         /* istanbul ignore next */
         if (parameters.debugSchemaHelper) {
+            const schema = QualifiedName.schema;
             check_options_correctness_against_schema(this, schema, options);
         }
-
-        /**
-         * @property namespaceIndex
-         * @type {Int32}
-         */
-        this.namespaceIndex = initialize_field(schema.fields[0], options.namespaceIndex);
-
-        /**
-         * @property name
-         * @type {UAString}
-         */
-        this.name = initialize_field(schema.fields[1], options.name);
+        this.namespaceIndex = options?.namespaceIndex || 0;
+        this.name = options?.name || null;
     }
 
     /**
      * encode the object into a binary stream
-     * @method encode
-     *
-     * @param stream {BinaryStream}
      */
     public encode(stream: OutputBinaryStream): void {
-        // call base class implementation first
         super.encode(stream);
         encodeUInt16(this.namespaceIndex, stream);
         encodeUAString(this.name, stream);
@@ -107,12 +81,8 @@ export class QualifiedName extends BaseUAObject {
 
     /**
      * decode the object from a binary stream
-     * @method decode
-     *
-     * @param stream {BinaryStream}
      */
     public decode(stream: BinaryStream): void {
-        // call base class implementation first
         super.decode(stream);
         this.namespaceIndex = decodeUInt16(stream);
         this.name = decodeUAString(stream);
@@ -128,7 +98,6 @@ export class QualifiedName extends BaseUAObject {
     public isEmpty() {
         return !this.name || this.name.length === 0;
     }
-
 }
 
 QualifiedName.prototype.schema = QualifiedName.schema;
@@ -141,9 +110,7 @@ export type QualifiedNameLike = QualifiedNameOptions | string;
 // xx}
 
 function isInteger(value: any): boolean {
-    return typeof value === "number" &&
-        isFinite(value) &&
-        Math.floor(value) === value;
+    return typeof value === "number" && isFinite(value) && Math.floor(value) === value;
 }
 
 /**
@@ -157,14 +124,15 @@ function isInteger(value: any): boolean {
  *  stringToQualifiedName("3:Hello") => {namespaceIndex: 3, name: "Hello"}
  */
 export function stringToQualifiedName(value: string): QualifiedName {
-
     const splitArray = value.split(":");
     let namespaceIndex = 0;
 
-    if (!isNaN(parseFloat(splitArray[0])) &&
+    if (
+        !isNaN(parseFloat(splitArray[0])) &&
         isFinite(parseInt(splitArray[0], 10)) &&
         isInteger(parseFloat(splitArray[0])) &&
-        splitArray.length > 1) {
+        splitArray.length > 1
+    ) {
         namespaceIndex = parseInt(splitArray[0], 10);
         splitArray.shift();
         value = splitArray.join(":");
@@ -176,17 +144,16 @@ export function coerceQualifiedName(value: null): null;
 export function coerceQualifiedName(value: QualifiedNameLike): QualifiedName;
 export function coerceQualifiedName(value: string): QualifiedName;
 export function coerceQualifiedName(value: null | QualifiedNameLike): QualifiedName | null {
-
     if (!value) {
         return null;
     } else if (value instanceof QualifiedName) {
         return value;
-    } else if (_.isString(value)) {
+    } else if (typeof value === "string") {
         return stringToQualifiedName(value);
     } else {
         assert(value.hasOwnProperty("namespaceIndex"));
         assert(value.hasOwnProperty("name"));
-        return new exports.QualifiedName(value);
+        return new QualifiedName(value);
     }
 }
 
@@ -196,8 +163,8 @@ export function encodeQualifiedName(value: QualifiedName, stream: OutputBinarySt
     value.encode(stream);
 }
 
-export function decodeQualifiedName(stream: BinaryStream): QualifiedName {
-    const value = new QualifiedName({});
+export function decodeQualifiedName(stream: BinaryStream, value?: QualifiedName): QualifiedName {
+    value = value || new QualifiedName(null);
     value.decode(stream);
     return value;
 }

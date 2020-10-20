@@ -2,7 +2,6 @@
  * @module node-opcua-address-space
  */
 import { assert } from "node-opcua-assert";
-import * as _ from "underscore";
 
 import { BrowseDirection } from "node-opcua-data-model";
 import { resolveNodeId } from "node-opcua-nodeid";
@@ -56,19 +55,17 @@ const hasFalseSubState_ReferenceTypeNodeId = resolveNodeId("HasFalseSubState");
 function _updateTransitionTime(node: UATwoStateVariablePublic) {
     // TransitionTime specifies the time when the current state was entered.
     if (node.transitionTime) {
-        node.transitionTime.setValueFromSource({ dataType: DataType.DateTime, value: (new Date()) });
+        node.transitionTime.setValueFromSource({ dataType: DataType.DateTime, value: new Date() });
     }
 }
 
-function _updateEffectiveTransitionTime(
-    node: UATwoStateVariablePublic
-) {
+function _updateEffectiveTransitionTime(node: UATwoStateVariablePublic) {
     if (node.effectiveTransitionTime) {
         // xx console.log("xxxx _updateEffectiveTransitionTime
         // because subStateNode ",subStateNode.browseName.toString());
         node.effectiveTransitionTime.setValueFromSource({
             dataType: DataType.DateTime,
-            value: (new Date())
+            value: new Date()
         });
     }
 }
@@ -97,7 +94,6 @@ function _getEffectiveDisplayName(node: UATwoStateVariablePublic) {
 }
 
 function _getHumanReadableString(node: UATwoStateVariablePublic) {
-
     let dataValue = node.id.readValue();
     if (dataValue.statusCode !== StatusCodes.Good) {
         return dataValue;
@@ -111,11 +107,10 @@ function _getHumanReadableString(node: UATwoStateVariablePublic) {
     let valueAsLocalizedText;
 
     if (boolValue) {
-        const _trueState = ((node as any)._trueState) ? (node as any)._trueState : "TRUE";
+        const _trueState = (node as any)._trueState ? (node as any)._trueState : "TRUE";
         valueAsLocalizedText = { dataType: "LocalizedText", value: { text: _trueState } };
-
     } else {
-        const _falseState = ((node as any)._falseState) ? (node as any)._falseState : "FALSE";
+        const _falseState = (node as any)._falseState ? (node as any)._falseState : "FALSE";
         valueAsLocalizedText = { dataType: "LocalizedText", value: { text: _falseState } };
     }
     dataValue = dataValue.clone();
@@ -123,11 +118,7 @@ function _getHumanReadableString(node: UATwoStateVariablePublic) {
     return dataValue;
 }
 
-export function _install_TwoStateVariable_machinery(
-    node: UATwoStateVariablePublic,
-    options: any
-): UATwoStateVariable {
-
+export function _install_TwoStateVariable_machinery(node: UATwoStateVariablePublic, options: any): UATwoStateVariable {
     assert(node.dataTypeObj.browseName.toString() === "LocalizedText");
     assert(node.minimumSamplingInterval === 0);
     assert(node.typeDefinitionObj.browseName.toString() === "TwoStateVariableType");
@@ -156,7 +147,6 @@ export interface UATwoStateVariable {
  * @extends UAVariable
  */
 export class UATwoStateVariable extends UAVariable implements UATwoStateVariablePublic {
-
     public _trueState?: string;
     public _falseState?: string;
 
@@ -164,46 +154,57 @@ export class UATwoStateVariable extends UAVariable implements UATwoStateVariable
         super(opts);
     }
 
-    get isFalseSubStateOf() { return super.isFalseSubStateOf; }
-    get isTrueSubStateOf() { return super.isTrueSubStateOf; }
+    get isFalseSubStateOf() {
+        return super.isFalseSubStateOf;
+    }
+    get isTrueSubStateOf() {
+        return super.isTrueSubStateOf;
+    }
 
     public initialize(options: any) {
-
         const node = this;
 
         if (options.trueState) {
             assert(options.falseState);
-            assert(typeof (options.trueState) === "string");
-            assert(typeof (options.falseState) === "string");
+            assert(typeof options.trueState === "string");
+            assert(typeof options.falseState === "string");
             node._trueState = options.trueState;
             node._falseState = options.falseState;
 
             if (node.falseState) {
-                node.falseState.bindVariable({
-                    get() {
-                        return new Variant({
-                            dataType: DataType.LocalizedText,
-                            value: node._falseState
-                        });
-                    }
-                }, true);
-
+                node.falseState.bindVariable(
+                    {
+                        get() {
+                            return new Variant({
+                                dataType: DataType.LocalizedText,
+                                value: node._falseState
+                            });
+                        }
+                    },
+                    true
+                );
             }
             if (node.trueState) {
-                node.trueState.bindVariable({
-                    get() {
-                        return new Variant({
-                            dataType: DataType.LocalizedText,
-                            value: node._trueState
-                        });
-                    }
-                }, true);
+                node.trueState.bindVariable(
+                    {
+                        get() {
+                            return new Variant({
+                                dataType: DataType.LocalizedText,
+                                value: node._trueState
+                            });
+                        }
+                    },
+                    true
+                );
             }
         }
-        node.id.setValueFromSource({
-            dataType: "Boolean",
-            value: false
-        }, StatusCodes.UncertainInitialValue);
+        node.id.setValueFromSource(
+            {
+                dataType: "Boolean",
+                value: false
+            },
+            StatusCodes.UncertainInitialValue
+        );
 
         // handle isTrueSubStateOf
         if (options.isTrueSubStateOf) {
@@ -226,8 +227,7 @@ export class UATwoStateVariable extends UAVariable implements UATwoStateVariable
             // install "value_changed" event handler on SubState that are already defined
             const subStates = ([] as BaseNode[]).concat(node.getTrueSubStates(), node.getFalseSubStates());
             for (const subState of subStates) {
-                subState.on("value_changed", () =>
-                    _updateEffectiveTransitionTime(node));
+                subState.on("value_changed", () => _updateEffectiveTransitionTime(node));
             }
         }
 
@@ -263,9 +263,8 @@ export class UATwoStateVariable extends UAVariable implements UATwoStateVariable
      * @param boolValue {Boolean}
      */
     public setValue(boolValue: boolean) {
-
         const node = this;
-        assert(_.isBoolean(boolValue));
+        assert(typeof boolValue === "boolean");
         const dataValue = node.id!.readValue();
         const oldValue = dataValue.value.value;
         if (dataValue.statusCode === StatusCodes.Good && boolValue === oldValue) {
@@ -312,15 +311,15 @@ export class UATwoStateVariable extends UAVariable implements UATwoStateVariable
     // HighHigh, then the TransitionTime stays at the point in time where the Alarm became active whereas the
     // EffectiveTransitionTime changes with each shift of a sub state.
     protected _add_backward_reference(reference: Reference): void {
-
         const self = this;
 
         super._add_backward_reference(reference);
 
-        if (reference.isForward &&
+        if (
+            reference.isForward &&
             (sameNodeId(reference.referenceType, hasTrueSubState_ReferenceTypeNodeId) ||
-                sameNodeId(reference.referenceType, hasFalseSubState_ReferenceTypeNodeId))) {
-
+                sameNodeId(reference.referenceType, hasFalseSubState_ReferenceTypeNodeId))
+        ) {
             const addressSpace = self.addressSpace;
             // add event handle
             const subState = addressSpace.findNode(reference.nodeId) as UAVariable;

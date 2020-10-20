@@ -10,16 +10,16 @@ const AttributeIds = opcua.AttributeIds;
 const ClientSubscription = opcua.ClientSubscription;
 
 
-function debugLog() {}
+function debugLog() { }
 
 
-module.exports = function (test) {
+module.exports = function(test) {
 
 
-    describe("Testing #135 - a server shall expose currentMonitoredItemsCount", function () {
+    describe("Testing #135 - a server shall expose currentMonitoredItemsCount", function() {
 
 
-        it("test",function(done) {
+        it("test", function(done) {
 
             const server = test.server;
 
@@ -31,11 +31,11 @@ module.exports = function (test) {
                 browseName: "SlowVariable",
                 dataType: "UInt32",
                 value: {
-                    refreshFunc: function (callback) {
+                    refreshFunc: function(callback) {
                         // simulate a asynchronous behaviour
-                        setTimeout(function () {
+                        setTimeout(function() {
                             counter += 1;
-                            callback(null, new opcua.DataValue({value: { dataType: "UInt32", value: counter } }));
+                            callback(null, new opcua.DataValue({ value: { dataType: "UInt32", value: counter } }));
                         }, refreshRate);
                     }
                 }
@@ -50,13 +50,13 @@ module.exports = function (test) {
 
             async.series([
 
-                function (callback) {
+                function(callback) {
                     client1.connect(endpointUrl, callback);
                 },
 
                 // create a session using client1
-                function (callback) {
-                    client1.createSession(function (err, session) {
+                function(callback) {
+                    client1.createSession(function(err, session) {
                         if (err) {
                             return callback(err);
                         }
@@ -66,20 +66,20 @@ module.exports = function (test) {
                 },
 
 
-                function (callback) {
+                function(callback) {
 
                     const subscription = ClientSubscription.create(the_session, {
-                        requestedPublishingInterval:  150,
-                        requestedLifetimeCount:       10 * 60 * 10,
-                        requestedMaxKeepAliveCount:   10,
-                        maxNotificationsPerPublish:   2,
+                        requestedPublishingInterval: 150,
+                        requestedLifetimeCount: 10 * 60 * 10,
+                        requestedMaxKeepAliveCount: 10,
+                        maxNotificationsPerPublish: 2,
                         publishingEnabled: true,
                         priority: 6
                     });
                     the_subscription = subscription;
 
-                    subscription.once("started",function() {
-                        debugLog("publishingInterval",subscription.publishingInterval);
+                    subscription.once("started", function() {
+                        debugLog("publishingInterval", subscription.publishingInterval);
                         callback();
                     });
 
@@ -89,9 +89,9 @@ module.exports = function (test) {
 
                     nodesToMonitor.forEach(function(nodeId) {
                         const monitoredItem = opcua.ClientMonitoredItem.create(subscription,
-                            {nodeId: nodeId, attributeId: AttributeIds.Value},
+                            { nodeId: nodeId, attributeId: AttributeIds.Value },
                             {
-                                samplingInterval: refreshRate/2, // sampling twice as fast as variable refresh rate
+                                samplingInterval: refreshRate / 2, // sampling twice as fast as variable refresh rate
                                 discardOldest: true,
                                 queueSize: 100
                             });
@@ -105,13 +105,13 @@ module.exports = function (test) {
                 function(callback) {
 
                     const sessionId /* NodeId */ = the_session.sessionId;
-                    console.log("session nodeId = ",sessionId.toString());
+                    console.log("session nodeId = ", sessionId.toString());
                     const browsePath = [
-                        opcua.makeBrowsePath(sessionId,".SessionDiagnostics.CurrentMonitoredItemsCount"),
-                        opcua.makeBrowsePath(sessionId,".SessionDiagnostics.CurrentSubscriptionsCount"),
-                        opcua.makeBrowsePath(sessionId,".SessionDiagnostics")
+                        opcua.makeBrowsePath(sessionId, ".SessionDiagnostics.CurrentMonitoredItemsCount"),
+                        opcua.makeBrowsePath(sessionId, ".SessionDiagnostics.CurrentSubscriptionsCount"),
+                        opcua.makeBrowsePath(sessionId, ".SessionDiagnostics")
                     ];
-                    the_session.translateBrowsePath(browsePath,function(err,browsePathResults){
+                    the_session.translateBrowsePath(browsePath, function(err, browsePathResults) {
                         if (err) { return callback(err); }
                         // debugLog(" browsePathResults",browsePathResults[0].toString());
                         browsePathResults[0].statusCode.should.eql(opcua.StatusCodes.Good);
@@ -133,7 +133,7 @@ module.exports = function (test) {
                             attributeId: AttributeIds.Value
                         });
 
-                        the_session.read(nodesToRead, function (err, dataValues) {
+                        the_session.read(nodesToRead, function(err, dataValues) {
 
                             if (err) {
                                 return callback(err);
@@ -143,13 +143,13 @@ module.exports = function (test) {
                             //xx console.log("results = ",results);
 
                             dataValues.length.should.eql(3);
-                            const currentMonitoredItemsCount =  dataValues[0].value.value;
-                            const currentSubcriptionsCount   =  dataValues[1].value.value;
+                            const currentMonitoredItemsCount = dataValues[0].value.value;
+                            const currentSubscriptionsCount = dataValues[1].value.value;
 
                             debugLog("CurrentMonitoredItemsCount = ", currentMonitoredItemsCount);
-                            debugLog("currentSubcriptionsCount   = ", currentSubcriptionsCount);
+                            debugLog("currentSubscriptionsCount   = ", currentSubscriptionsCount);
 
-                            currentSubcriptionsCount.should.eql(1, "expecting one subscription ");
+                            currentSubscriptionsCount.should.eql(1, "expecting one subscription ");
                             currentMonitoredItemsCount.should.eql(2);
 
                             dataValues[2].value.value.constructor.name.should.eql("SessionDiagnosticsDataType");
@@ -163,17 +163,17 @@ module.exports = function (test) {
 
                 },
 
-                function (callback) {
+                function(callback) {
                     the_subscription.terminate(callback);
                 },
 
-                function (callback) {
+                function(callback) {
                     the_session.close(callback);
                 }
 
             ], function final(err) {
-                client1.disconnect(function () {
-                    debugLog(" Client disconnected ",(err ? err.message : "null"));
+                client1.disconnect(function() {
+                    debugLog(" Client disconnected ", (err ? err.message : "null"));
                     done(err);
                 });
             });

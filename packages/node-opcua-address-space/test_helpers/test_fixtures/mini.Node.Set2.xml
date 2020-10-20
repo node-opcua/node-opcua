@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<UANodeSet
-        Version="1.02" LastModified="2013-03-06T05:36:44.0862658Z"
-        xmlns="http://opcfoundation.org/UA/2011/03/UANodeSet.xsd">
+<UANodeSet Version="1.02" LastModified="2013-03-06T05:36:44.0862658Z"
+    xmlns="http://opcfoundation.org/UA/2011/03/UANodeSet.xsd">
     <Models>
         <Model ModelUri="http://opcfoundation.org/UA/" Version="1.04" PublicationDate="2018-05-15T00:00:00Z" />
     </Models>
@@ -48,6 +47,13 @@
     <UADataType NodeId="i=29" BrowseName="Enumeration" IsAbstract="true">
         <DisplayName>Enumeration</DisplayName>
         <Description>Describes a value that is an enumerated DataType.</Description>
+        <References>
+            <Reference ReferenceType="HasSubtype" IsForward="false">i=24</Reference>
+        </References>
+    </UADataType>
+
+    <UADataType NodeId="i=1" BrowseName="Boolean">
+        <DisplayName>Boolean</DisplayName>
         <References>
             <Reference ReferenceType="HasSubtype" IsForward="false">i=24</Reference>
         </References>
@@ -229,6 +235,15 @@
         </References>
     </UADataType>
 
+    <UADataType NodeId="i=316" BrowseName="UserIdentityToken" IsAbstract="true">
+        <DisplayName>UserIdentityToken</DisplayName>
+        <References>
+            <Reference ReferenceType="HasSubtype" IsForward="false">i=22</Reference>
+        </References>
+        <Definition Name="UserIdentityToken">
+            <Field Name="PolicyId" DataType="i=12" />
+        </Definition>
+    </UADataType>
 
     <UAReferenceType NodeId="i=31" BrowseName="References" IsAbstract="true" Symmetric="true">
         <DisplayName>References</DisplayName>
@@ -567,6 +582,25 @@
             <Reference ReferenceType="HasSubtype" IsForward="false">i=58</Reference>
         </References>
     </UAObjectType>
+    <UADataType NodeId="i=120" BrowseName="NamingRuleType">
+        <DisplayName>NamingRuleType</DisplayName>
+        <References>
+            <Reference ReferenceType="HasProperty">i=12169</Reference>
+            <Reference ReferenceType="HasSubtype" IsForward="false">i=29</Reference>
+        </References>
+        <Definition Name="NamingRuleType">
+            <Field Name="Mandatory" Value="1">
+                <Description>The BrowseName must appear in all instances of the type.</Description>
+            </Field>
+            <Field Name="Optional" Value="2">
+                <Description>The BrowseName may appear in an instance of the type.</Description>
+            </Field>
+            <Field Name="Constraint" Value="3">
+                <Description>The modelling rule defines a constraint and the BrowseName is not used in an instance of the type.</Description>
+            </Field>
+        </Definition>
+    </UADataType>
+
     <UAVariable NodeId="i=111" BrowseName="NamingRule" ParentNodeId="i=77" DataType="i=120">
         <DisplayName>NamingRule</DisplayName>
         <Description>Specified the significances of the BrowseName when a type is instantiated.</Description>
@@ -621,29 +655,6 @@
             <Int32 xmlns="http://opcfoundation.org/UA/2008/02/Types.xsd">2</Int32>
         </Value>
     </UAVariable>
-    <UADataType NodeId="i=120" BrowseName="NamingRuleType">
-        <DisplayName>NamingRuleType</DisplayName>
-        <Description>Describes a value that specifies the significance of the BrowseName for an instance declaration.
-        </Description>
-        <References>
-            <Reference ReferenceType="HasProperty">i=12169</Reference>
-            <Reference ReferenceType="HasSubtype" IsForward="false">i=29</Reference>
-        </References>
-        <Definition Name="NamingRuleType">
-            <Field Name="Mandatory" Value="1">
-                <Description>The BrowseName must appear in all instances of the type.</Description>
-            </Field>
-            <Field Name="Optional" Value="2">
-                <Description>The BrowseName may appear in an instance of the type.</Description>
-            </Field>
-            <Field Name="Constraint" Value="3">
-                <Description>The modelling rule defines a constraint and the BrowseName is not used in an instance of
-                    the type.
-                </Description>
-            </Field>
-        </Definition>
-    </UADataType>
-
     <UAVariable NodeId="i=104" BrowseName="DataTypeVersion" ParentNodeId="i=69" DataType="String">
         <DisplayName>DataTypeVersion</DisplayName>
         <Description>The version number for the data type description.</Description>
@@ -654,11 +665,23 @@
         </References>
     </UAVariable>
 
+    <UADataType NodeId="i=290" BrowseName="Duration">
+        <DisplayName>Duration</DisplayName>
+        <References>
+            <Reference ReferenceType="HasSubtype" IsForward="false">i=11</Reference>
+        </References>
+    </UADataType>
     <UADataType NodeId="i=292" BrowseName="Time">
         <DisplayName>Time</DisplayName>
         <Description>A time value specified as HH:MM:SS.SSS.</Description>
         <References>
             <Reference ReferenceType="HasSubtype" IsForward="false">i=12</Reference>
+        </References>
+    </UADataType>
+    <UADataType NodeId="i=294" BrowseName="UtcTime">
+        <DisplayName>UtcTime</DisplayName>
+        <References>
+            <Reference ReferenceType="HasSubtype" IsForward="false">i=13</Reference>
         </References>
     </UADataType>
 
@@ -693,6 +716,16 @@
             <Field Name="Description" DataType="i=21">
                 <Description>The description for the argument.</Description>
             </Field>
+        </Definition>
+    </UADataType>
+    <UADataType NodeId="i=344" BrowseName="SignedSoftwareCertificate">
+        <DisplayName>SignedSoftwareCertificate</DisplayName>
+        <References>
+            <Reference ReferenceType="HasSubtype" IsForward="false">i=22</Reference>
+        </References>
+        <Definition Name="SignedSoftwareCertificate">
+            <Field Name="CertificateData" DataType="i=15" />
+            <Field Name="Signature" DataType="i=15" />
         </Definition>
     </UADataType>
 
@@ -774,6 +807,19 @@
             <Field Name="EventQueueOverFlowCount" DataType="i=7" />
         </Definition>
     </UADataType>
+
+
+    <UADataType NodeId="i=8912" BrowseName="TimeZoneDataType">
+        <DisplayName>TimeZoneDataType</DisplayName>
+        <References>
+            <Reference ReferenceType="HasSubtype" IsForward="false">i=22</Reference>
+        </References>
+        <Definition Name="TimeZoneDataType">
+            <Field Name="Offset" DataType="i=4" />
+            <Field Name="DaylightSavingInOffset" DataType="i=1" />
+        </Definition>
+    </UADataType>
+
     <UAObject NodeId="i=875" BrowseName="Default XML" SymbolicName="DefaultXml">
         <DisplayName>Default XML</DisplayName>
         <References>
@@ -1525,8 +1571,7 @@
         </References>
     </UAObject>
 
-    <UAVariable NodeId="i=2254" BrowseName="ServerArray" ParentNodeId="i=2253" DataType="String" ValueRank="1"
-                MinimumSamplingInterval="1000">
+    <UAVariable NodeId="i=2254" BrowseName="ServerArray" ParentNodeId="i=2253" DataType="String" ValueRank="1" MinimumSamplingInterval="1000">
         <DisplayName>ServerArray</DisplayName>
         <Description>The list of server URIs used by the server.</Description>
         <References>
@@ -1534,8 +1579,7 @@
             <Reference ReferenceType="HasProperty" IsForward="false">i=2253</Reference>
         </References>
     </UAVariable>
-    <UAVariable NodeId="i=2255" BrowseName="NamespaceArray" ParentNodeId="i=2253" DataType="String" ValueRank="1"
-                MinimumSamplingInterval="1000">
+    <UAVariable NodeId="i=2255" BrowseName="NamespaceArray" ParentNodeId="i=2253" DataType="String" ValueRank="1" MinimumSamplingInterval="1000">
         <DisplayName>NamespaceArray</DisplayName>
         <Description>The list of namespace URIs used by the server.</Description>
         <References>
@@ -1543,8 +1587,57 @@
             <Reference ReferenceType="HasProperty" IsForward="false">i=2253</Reference>
         </References>
     </UAVariable>
-    <UAVariable NodeId="i=2256" BrowseName="ServerStatus" ParentNodeId="i=2253" DataType="i=862"
-                MinimumSamplingInterval="1000">
+
+    <UADataType NodeId="i=852" BrowseName="ServerState">
+        <DisplayName>ServerState</DisplayName>
+        <References>
+            <Reference ReferenceType="HasProperty">i=7612</Reference>
+            <Reference ReferenceType="HasSubtype" IsForward="false">i=29</Reference>
+        </References>
+        <Definition Name="ServerState">
+            <Field Name="Running" Value="0"/>
+            <Field Name="Failed" Value="1"/>
+            <Field Name="NoConfiguration" Value="2"/>
+            <Field Name="Suspended" Value="3"/>
+            <Field Name="Shutdown" Value="4"/>
+            <Field Name="Test" Value="5"/>
+            <Field Name="CommunicationFault" Value="6"/>
+            <Field Name="Unknown" Value="7"/>
+        </Definition>
+    </UADataType>
+
+    <UADataType NodeId="i=338" BrowseName="BuildInfo">
+        <DisplayName>BuildInfo</DisplayName>
+        <References>
+            <Reference ReferenceType="HasSubtype" IsForward="false">i=22</Reference>
+        </References>
+        <Definition Name="BuildInfo">
+            <Field Name="ProductUri" DataType="i=12"/>
+            <Field Name="ManufacturerName" DataType="i=12"/>
+            <Field Name="ProductName" DataType="i=12"/>
+            <Field Name="SoftwareVersion" DataType="i=12"/>
+            <Field Name="BuildNumber" DataType="i=12"/>
+            <Field Name="BuildDate" DataType="i=294"/>
+        </Definition>
+    </UADataType>
+
+    <UADataType NodeId="i=862" BrowseName="ServerStatusDataType">
+        <DisplayName>ServerStatusDataType</DisplayName>
+        <References>
+            <Reference ReferenceType="HasSubtype" IsForward="false">i=22</Reference>
+        </References>
+        <Definition Name="ServerStatusDataType">
+            <Field Name="StartTime" DataType="i=294"/>
+            <Field Name="CurrentTime" DataType="i=294"/>
+            <Field Name="State" DataType="i=852"/>
+            <Field Name="BuildInfo" DataType="i=338"/>
+            <Field Name="SecondsTillShutdown" DataType="i=7"/>
+            <Field Name="ShutdownReason" DataType="i=21"/>
+        </Definition>
+    </UADataType>
+
+
+    <UAVariable NodeId="i=2256" BrowseName="ServerStatus" ParentNodeId="i=2253" DataType="i=862" MinimumSamplingInterval="1000">
         <DisplayName>ServerStatus</DisplayName>
         <Description>The current status of the server.</Description>
         <References>
@@ -1592,48 +1685,42 @@
             <Reference ReferenceType="HasComponent" IsForward="false">i=2256</Reference>
         </References>
     </UAVariable>
-    <UAVariable NodeId="i=2262" BrowseName="ProductUri" ParentNodeId="i=2260" DataType="String"
-                MinimumSamplingInterval="1000">
+    <UAVariable NodeId="i=2262" BrowseName="ProductUri" ParentNodeId="i=2260" DataType="String" MinimumSamplingInterval="1000">
         <DisplayName>ProductUri</DisplayName>
         <References>
             <Reference ReferenceType="HasTypeDefinition">i=63</Reference>
             <Reference ReferenceType="HasComponent" IsForward="false">i=2260</Reference>
         </References>
     </UAVariable>
-    <UAVariable NodeId="i=2263" BrowseName="ManufacturerName" ParentNodeId="i=2260" DataType="String"
-                MinimumSamplingInterval="1000">
+    <UAVariable NodeId="i=2263" BrowseName="ManufacturerName" ParentNodeId="i=2260" DataType="String" MinimumSamplingInterval="1000">
         <DisplayName>ManufacturerName</DisplayName>
         <References>
             <Reference ReferenceType="HasTypeDefinition">i=63</Reference>
             <Reference ReferenceType="HasComponent" IsForward="false">i=2260</Reference>
         </References>
     </UAVariable>
-    <UAVariable NodeId="i=2261" BrowseName="ProductName" ParentNodeId="i=2260" DataType="String"
-                MinimumSamplingInterval="1000">
+    <UAVariable NodeId="i=2261" BrowseName="ProductName" ParentNodeId="i=2260" DataType="String" MinimumSamplingInterval="1000">
         <DisplayName>ProductName</DisplayName>
         <References>
             <Reference ReferenceType="HasTypeDefinition">i=63</Reference>
             <Reference ReferenceType="HasComponent" IsForward="false">i=2260</Reference>
         </References>
     </UAVariable>
-    <UAVariable NodeId="i=2264" BrowseName="SoftwareVersion" ParentNodeId="i=2260" DataType="String"
-                MinimumSamplingInterval="1000">
+    <UAVariable NodeId="i=2264" BrowseName="SoftwareVersion" ParentNodeId="i=2260" DataType="String" MinimumSamplingInterval="1000">
         <DisplayName>SoftwareVersion</DisplayName>
         <References>
             <Reference ReferenceType="HasTypeDefinition">i=63</Reference>
             <Reference ReferenceType="HasComponent" IsForward="false">i=2260</Reference>
         </References>
     </UAVariable>
-    <UAVariable NodeId="i=2265" BrowseName="BuildNumber" ParentNodeId="i=2260" DataType="String"
-                MinimumSamplingInterval="1000">
+    <UAVariable NodeId="i=2265" BrowseName="BuildNumber" ParentNodeId="i=2260" DataType="String" MinimumSamplingInterval="1000">
         <DisplayName>BuildNumber</DisplayName>
         <References>
             <Reference ReferenceType="HasTypeDefinition">i=63</Reference>
             <Reference ReferenceType="HasComponent" IsForward="false">i=2260</Reference>
         </References>
     </UAVariable>
-    <UAVariable NodeId="i=2266" BrowseName="BuildDate" ParentNodeId="i=2260" DataType="i=294"
-                MinimumSamplingInterval="1000">
+    <UAVariable NodeId="i=2266" BrowseName="BuildDate" ParentNodeId="i=2260" DataType="i=294" MinimumSamplingInterval="1000">
         <DisplayName>BuildDate</DisplayName>
         <References>
             <Reference ReferenceType="HasTypeDefinition">i=63</Reference>
@@ -1660,28 +1747,6 @@
             <Reference ReferenceType="HasComponent" IsForward="false">i=2253</Reference>
         </References>
     </UAObject>
-    <UADataType NodeId="i=294" BrowseName="UtcTime">
-        <DisplayName>UtcTime</DisplayName>
-        <Description>A date/time value specified in Universal Coordinated Time (UTC).</Description>
-        <References>
-            <Reference ReferenceType="HasSubtype" IsForward="false">i=13</Reference>
-        </References>
-    </UADataType>
-
-    <UADataType NodeId="i=338" BrowseName="BuildInfo">
-        <DisplayName>BuildInfo</DisplayName>
-        <References>
-            <Reference ReferenceType="HasSubtype" IsForward="false">i=22</Reference>
-        </References>
-        <Definition Name="BuildInfo">
-            <Field Name="ProductUri" DataType="i=12"/>
-            <Field Name="ManufacturerName" DataType="i=12"/>
-            <Field Name="ProductName" DataType="i=12"/>
-            <Field Name="SoftwareVersion" DataType="i=12"/>
-            <Field Name="BuildNumber" DataType="i=12"/>
-            <Field Name="BuildDate" DataType="i=294"/>
-        </Definition>
-    </UADataType>
 
     <UAObject NodeId="i=340" BrowseName="Default Binary" SymbolicName="DefaultBinary">
         <DisplayName>Default Binary</DisplayName>
@@ -1692,23 +1757,6 @@
         </References>
     </UAObject>
 
-    <UADataType NodeId="i=852" BrowseName="ServerState">
-        <DisplayName>ServerState</DisplayName>
-        <References>
-            <Reference ReferenceType="HasProperty">i=7612</Reference>
-            <Reference ReferenceType="HasSubtype" IsForward="false">i=29</Reference>
-        </References>
-        <Definition Name="ServerState">
-            <Field Name="Running" Value="0"/>
-            <Field Name="Failed" Value="1"/>
-            <Field Name="NoConfiguration" Value="2"/>
-            <Field Name="Suspended" Value="3"/>
-            <Field Name="Shutdown" Value="4"/>
-            <Field Name="Test" Value="5"/>
-            <Field Name="CommunicationFault" Value="6"/>
-            <Field Name="Unknown" Value="7"/>
-        </Definition>
-    </UADataType>
 
     <UAVariable NodeId="i=7612" BrowseName="EnumStrings" ParentNodeId="i=852" DataType="LocalizedText" ValueRank="1">
         <DisplayName>EnumStrings</DisplayName>
@@ -1763,20 +1811,6 @@
         </Value>
     </UAVariable>
 
-    <UADataType NodeId="i=862" BrowseName="ServerStatusDataType">
-        <DisplayName>ServerStatusDataType</DisplayName>
-        <References>
-            <Reference ReferenceType="HasSubtype" IsForward="false">i=22</Reference>
-        </References>
-        <Definition Name="ServerStatusDataType">
-            <Field Name="StartTime" DataType="i=294"/>
-            <Field Name="CurrentTime" DataType="i=294"/>
-            <Field Name="State" DataType="i=852"/>
-            <Field Name="BuildInfo" DataType="i=338"/>
-            <Field Name="SecondsTillShutdown" DataType="i=7"/>
-            <Field Name="ShutdownReason" DataType="i=21"/>
-        </Definition>
-    </UADataType>
 
     <UAObject NodeId="i=864" BrowseName="Default Binary" SymbolicName="DefaultBinary">
         <DisplayName>Default Binary</DisplayName>
@@ -1799,18 +1833,6 @@
 
 
 
-    <UADataType NodeId="i=8912" BrowseName="TimeZoneDataType">
-        <DisplayName>TimeZoneDataType</DisplayName>
-        <References>
-            <Reference ReferenceType="HasSubtype" IsForward="false">i=22</Reference>
-        </References>
-        <Definition Name="TimeZoneDataType">
-            <Field Name="Offset" DataType="i=4"/>
-            <Field Name="DaylightSavingInOffset" DataType="i=1"/>
-        </Definition>
-    </UADataType>
-
-
     <UAObjectType NodeId="i=2004" BrowseName="ServerType">
         <DisplayName>ServerType</DisplayName>
         <Description>Specifies the current status and capabilities of the server.</Description>
@@ -1830,8 +1852,7 @@
         </References>
     </UAObjectType>
 
-    <UAVariable NodeId="i=2007" BrowseName="ServerStatus" ParentNodeId="i=2004" DataType="i=862"
-                MinimumSamplingInterval="1000">
+    <UAVariable NodeId="i=2007" BrowseName="ServerStatus" ParentNodeId="i=2004" DataType="i=862" MinimumSamplingInterval="1000">
         <DisplayName>ServerStatus</DisplayName>
         <Description>The current status of the server.</Description>
         <References>
@@ -2038,8 +2059,19 @@
             <Reference ReferenceType="HasComponent" IsForward="false">i=2275</Reference>
         </References>
     </UAVariable>
-    <UAVariable NodeId="i=2289" BrowseName="SamplingIntervalDiagnosticsArray" ParentNodeId="i=2274" DataType="i=856"
-                ValueRank="1">
+    <UADataType NodeId="i=856" BrowseName="SamplingIntervalDiagnosticsDataType">
+        <DisplayName>SamplingIntervalDiagnosticsDataType</DisplayName>
+        <References>
+            <Reference ReferenceType="HasSubtype" IsForward="false">i=22</Reference>
+        </References>
+        <Definition Name="SamplingIntervalDiagnosticsDataType">
+            <Field Name="SamplingInterval" DataType="i=290" />
+            <Field Name="MonitoredItemCount" DataType="i=7" />
+            <Field Name="MaxMonitoredItemCount" DataType="i=7" />
+            <Field Name="DisabledMonitoredItemCount" DataType="i=7" />
+        </Definition>
+    </UADataType>
+    <UAVariable NodeId="i=2289" BrowseName="SamplingIntervalDiagnosticsArray" ParentNodeId="i=2274" DataType="i=856" ValueRank="1">
         <DisplayName>SamplingIntervalDiagnosticsArray</DisplayName>
         <Description>A list of diagnostics for each sampling interval supported by the server.</Description>
         <References>
@@ -2068,21 +2100,6 @@
             <Reference ReferenceType="HasComponent" IsForward="false">i=2275</Reference>
         </References>
     </UAVariable>
-
-    <UADataType NodeId="i=1" BrowseName="Boolean">
-        <DisplayName>Boolean</DisplayName>
-        <Description>Describes a value that is either TRUE or FALSE.</Description>
-        <References>
-            <Reference ReferenceType="HasSubtype" IsForward="false">i=24</Reference>
-        </References>
-    </UADataType>
-    <UADataType NodeId="i=290" BrowseName="Duration">
-        <DisplayName>Duration</DisplayName>
-        <Description>A period of time measured in seconds.</Description>
-        <References>
-            <Reference ReferenceType="HasSubtype" IsForward="false">i=11</Reference>
-        </References>
-    </UADataType>
 
     <UAObject NodeId="i=11704" BrowseName="OperationLimits" ParentNodeId="i=2268">
         <DisplayName>OperationLimits</DisplayName>
@@ -2176,8 +2193,7 @@
             <Reference ReferenceType="HasProperty" IsForward="false">i=11704</Reference>
         </References>
     </UAVariable>
-    <UAVariable NodeId="i=11712" BrowseName="MaxNodesPerTranslateBrowsePathsToNodeIds" ParentNodeId="i=11704"
-                DataType="UInt32">
+    <UAVariable NodeId="i=11712" BrowseName="MaxNodesPerTranslateBrowsePathsToNodeIds" ParentNodeId="i=11704" DataType="UInt32">
         <DisplayName>MaxNodesPerTranslateBrowsePathsToNodeIds</DisplayName>
         <Description>The maximum number of operations in a single TranslateBrowsePathsToNodeIds request.</Description>
         <References>
@@ -2385,8 +2401,7 @@
             <Reference ReferenceType="HasProperty" IsForward="false">i=11564</Reference>
         </References>
     </UAVariable>
-    <UAVariable NodeId="i=11572" BrowseName="MaxNodesPerTranslateBrowsePathsToNodeIds" ParentNodeId="i=11564"
-                DataType="UInt32">
+    <UAVariable NodeId="i=11572" BrowseName="MaxNodesPerTranslateBrowsePathsToNodeIds" ParentNodeId="i=11564" DataType="UInt32">
         <DisplayName>MaxNodesPerTranslateBrowsePathsToNodeIds</DisplayName>
         <Description>The maximum number of operations in a single TranslateBrowsePathsToNodeIds request.</Description>
         <References>
@@ -2822,8 +2837,7 @@
 
 
 
-    <UAVariable NodeId="i=3698" BrowseName="ProductUri" ParentNodeId="i=2142" DataType="String"
-                MinimumSamplingInterval="1000">
+    <UAVariable NodeId="i=3698" BrowseName="ProductUri" ParentNodeId="i=2142" DataType="String" MinimumSamplingInterval="1000">
         <DisplayName>ProductUri</DisplayName>
         <References>
             <Reference ReferenceType="HasTypeDefinition">i=63</Reference>
@@ -2831,8 +2845,7 @@
             <Reference ReferenceType="HasComponent" IsForward="false">i=2142</Reference>
         </References>
     </UAVariable>
-    <UAVariable NodeId="i=3699" BrowseName="ManufacturerName" ParentNodeId="i=2142" DataType="String"
-                MinimumSamplingInterval="1000">
+    <UAVariable NodeId="i=3699" BrowseName="ManufacturerName" ParentNodeId="i=2142" DataType="String" MinimumSamplingInterval="1000">
         <DisplayName>ManufacturerName</DisplayName>
         <References>
             <Reference ReferenceType="HasTypeDefinition">i=63</Reference>
@@ -2840,8 +2853,7 @@
             <Reference ReferenceType="HasComponent" IsForward="false">i=2142</Reference>
         </References>
     </UAVariable>
-    <UAVariable NodeId="i=3700" BrowseName="ProductName" ParentNodeId="i=2142" DataType="String"
-                MinimumSamplingInterval="1000">
+    <UAVariable NodeId="i=3700" BrowseName="ProductName" ParentNodeId="i=2142" DataType="String" MinimumSamplingInterval="1000">
         <DisplayName>ProductName</DisplayName>
         <References>
             <Reference ReferenceType="HasTypeDefinition">i=63</Reference>
@@ -2849,8 +2861,7 @@
             <Reference ReferenceType="HasComponent" IsForward="false">i=2142</Reference>
         </References>
     </UAVariable>
-    <UAVariable NodeId="i=3701" BrowseName="SoftwareVersion" ParentNodeId="i=2142" DataType="String"
-                MinimumSamplingInterval="1000">
+    <UAVariable NodeId="i=3701" BrowseName="SoftwareVersion" ParentNodeId="i=2142" DataType="String" MinimumSamplingInterval="1000">
         <DisplayName>SoftwareVersion</DisplayName>
         <References>
             <Reference ReferenceType="HasTypeDefinition">i=63</Reference>
@@ -2858,8 +2869,7 @@
             <Reference ReferenceType="HasComponent" IsForward="false">i=2142</Reference>
         </References>
     </UAVariable>
-    <UAVariable NodeId="i=3702" BrowseName="BuildNumber" ParentNodeId="i=2142" DataType="String"
-                MinimumSamplingInterval="1000">
+    <UAVariable NodeId="i=3702" BrowseName="BuildNumber" ParentNodeId="i=2142" DataType="String" MinimumSamplingInterval="1000">
         <DisplayName>BuildNumber</DisplayName>
         <References>
             <Reference ReferenceType="HasTypeDefinition">i=63</Reference>
@@ -2867,8 +2877,7 @@
             <Reference ReferenceType="HasComponent" IsForward="false">i=2142</Reference>
         </References>
     </UAVariable>
-    <UAVariable NodeId="i=3703" BrowseName="BuildDate" ParentNodeId="i=2142" DataType="i=294"
-                MinimumSamplingInterval="1000">
+    <UAVariable NodeId="i=3703" BrowseName="BuildDate" ParentNodeId="i=2142" DataType="i=294" MinimumSamplingInterval="1000">
         <DisplayName>BuildDate</DisplayName>
         <References>
             <Reference ReferenceType="HasTypeDefinition">i=63</Reference>
@@ -2904,8 +2913,7 @@
             <Reference ReferenceType="HasSubtype" IsForward="false">i=63</Reference>
         </References>
     </UAVariableType>
-    <UAVariable NodeId="i=3052" BrowseName="ProductUri" ParentNodeId="i=3051" DataType="String"
-                MinimumSamplingInterval="1000">
+    <UAVariable NodeId="i=3052" BrowseName="ProductUri" ParentNodeId="i=3051" DataType="String" MinimumSamplingInterval="1000">
         <DisplayName>ProductUri</DisplayName>
         <References>
             <Reference ReferenceType="HasTypeDefinition">i=63</Reference>
@@ -2913,8 +2921,7 @@
             <Reference ReferenceType="HasComponent" IsForward="false">i=3051</Reference>
         </References>
     </UAVariable>
-    <UAVariable NodeId="i=3053" BrowseName="ManufacturerName" ParentNodeId="i=3051" DataType="String"
-                MinimumSamplingInterval="1000">
+    <UAVariable NodeId="i=3053" BrowseName="ManufacturerName" ParentNodeId="i=3051" DataType="String" MinimumSamplingInterval="1000">
         <DisplayName>ManufacturerName</DisplayName>
         <References>
             <Reference ReferenceType="HasTypeDefinition">i=63</Reference>
@@ -2922,8 +2929,7 @@
             <Reference ReferenceType="HasComponent" IsForward="false">i=3051</Reference>
         </References>
     </UAVariable>
-    <UAVariable NodeId="i=3054" BrowseName="ProductName" ParentNodeId="i=3051" DataType="String"
-                MinimumSamplingInterval="1000">
+    <UAVariable NodeId="i=3054" BrowseName="ProductName" ParentNodeId="i=3051" DataType="String" MinimumSamplingInterval="1000">
         <DisplayName>ProductName</DisplayName>
         <References>
             <Reference ReferenceType="HasTypeDefinition">i=63</Reference>
@@ -2931,8 +2937,7 @@
             <Reference ReferenceType="HasComponent" IsForward="false">i=3051</Reference>
         </References>
     </UAVariable>
-    <UAVariable NodeId="i=3055" BrowseName="SoftwareVersion" ParentNodeId="i=3051" DataType="String"
-                MinimumSamplingInterval="1000">
+    <UAVariable NodeId="i=3055" BrowseName="SoftwareVersion" ParentNodeId="i=3051" DataType="String" MinimumSamplingInterval="1000">
         <DisplayName>SoftwareVersion</DisplayName>
         <References>
             <Reference ReferenceType="HasTypeDefinition">i=63</Reference>
@@ -2940,8 +2945,7 @@
             <Reference ReferenceType="HasComponent" IsForward="false">i=3051</Reference>
         </References>
     </UAVariable>
-    <UAVariable NodeId="i=3056" BrowseName="BuildNumber" ParentNodeId="i=3051" DataType="String"
-                MinimumSamplingInterval="1000">
+    <UAVariable NodeId="i=3056" BrowseName="BuildNumber" ParentNodeId="i=3051" DataType="String" MinimumSamplingInterval="1000">
         <DisplayName>BuildNumber</DisplayName>
         <References>
             <Reference ReferenceType="HasTypeDefinition">i=63</Reference>
@@ -2949,8 +2953,7 @@
             <Reference ReferenceType="HasComponent" IsForward="false">i=3051</Reference>
         </References>
     </UAVariable>
-    <UAVariable NodeId="i=3057" BrowseName="BuildDate" ParentNodeId="i=3051" DataType="i=294"
-                MinimumSamplingInterval="1000">
+    <UAVariable NodeId="i=3057" BrowseName="BuildDate" ParentNodeId="i=3051" DataType="i=294" MinimumSamplingInterval="1000">
         <DisplayName>BuildDate</DisplayName>
         <References>
             <Reference ReferenceType="HasTypeDefinition">i=63</Reference>
@@ -2958,8 +2961,7 @@
             <Reference ReferenceType="HasComponent" IsForward="false">i=3051</Reference>
         </References>
     </UAVariable>
-    <UAVariable NodeId="i=2267" BrowseName="ServiceLevel" ParentNodeId="i=2253" DataType="Byte"
-                MinimumSamplingInterval="1000">
+    <UAVariable NodeId="i=2267" BrowseName="ServiceLevel" ParentNodeId="i=2253" DataType="Byte" MinimumSamplingInterval="1000">
         <DisplayName>ServiceLevel</DisplayName>
         <Description>A value indicating the level of service the server can provide. 255 indicates the best.
         </Description>
@@ -2968,8 +2970,7 @@
             <Reference ReferenceType="HasProperty" IsForward="false">i=2253</Reference>
         </References>
     </UAVariable>
-    <UAVariable NodeId="i=2994" BrowseName="Auditing" ParentNodeId="i=2253" DataType="Boolean"
-                MinimumSamplingInterval="1000">
+    <UAVariable NodeId="i=2994" BrowseName="Auditing" ParentNodeId="i=2253" DataType="Boolean" MinimumSamplingInterval="1000">
         <DisplayName>Auditing</DisplayName>
         <Description>A flag indicating whether the server is currently generating audit events.</Description>
         <References>
@@ -3824,6 +3825,23 @@
             <Reference ReferenceType="HasComponent" IsForward="false">i=3706</Reference>
         </References>
     </UAVariable>
+    <UADataType NodeId="i=868" BrowseName="SessionSecurityDiagnosticsDataType">
+        <DisplayName>SessionSecurityDiagnosticsDataType</DisplayName>
+        <References>
+            <Reference ReferenceType="HasSubtype" IsForward="false">i=22</Reference>
+        </References>
+        <Definition Name="SessionSecurityDiagnosticsDataType">
+            <Field Name="SessionId" DataType="i=17" />
+            <Field Name="ClientUserIdOfSession" DataType="i=12" />
+            <Field Name="ClientUserIdHistory" DataType="i=12" ValueRank="1" />
+            <Field Name="AuthenticationMechanism" DataType="i=12" />
+            <Field Name="Encoding" DataType="i=12" />
+            <Field Name="TransportProtocol" DataType="i=12" />
+            <Field Name="SecurityMode" DataType="i=302" />
+            <Field Name="SecurityPolicyUri" DataType="i=12" />
+            <Field Name="ClientCertificate" DataType="i=15" />
+        </Definition>
+    </UADataType>
     <UAVariable NodeId="i=3708" BrowseName="SessionSecurityDiagnosticsArray" ParentNodeId="i=3706" DataType="i=868" ValueRank="1">
         <DisplayName>SessionSecurityDiagnosticsArray</DisplayName>
         <Description>A list of security related diagnostics for each active session.</Description>

@@ -2,9 +2,10 @@
  * @module node-opcua-address-space
  */
 import { assert } from "node-opcua-assert";
-import * as path from "path";
 
-import { AddressSpace, generateAddressSpace } from "../source";
+import { AddressSpace } from "..";
+import { generateAddressSpace } from "../nodeJS";
+
 import { getAddressSpaceFixture } from "./get_address_space_fixture";
 
 export const mini_nodeset = "mini.Node.Set2.xml";
@@ -20,7 +21,6 @@ const thenify = require("thenify");
 export function getMiniAddressSpace(callback: (err: Error | null, addressSpace?: AddressSpace) => void): void;
 export function getMiniAddressSpace(): Promise<AddressSpace>;
 export function getMiniAddressSpace(...args: any[]): any {
-
     const callback = args[0] as (err: Error | null, addressSpace?: AddressSpace) => void;
 
     const addressSpace = AddressSpace.create();

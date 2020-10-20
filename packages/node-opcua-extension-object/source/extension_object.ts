@@ -4,13 +4,7 @@
 import { decodeNodeId, encodeNodeId } from "node-opcua-basic-types";
 import { BinaryStream, OutputBinaryStream } from "node-opcua-binary-stream";
 import { checkDebugFlag, hexDump, make_debugLog } from "node-opcua-debug";
-import {
-    BaseUAObject,
-    constructObject,
-    is_internal_id,
-    registerBuiltInType,
-    StructuredTypeSchema
-} from "node-opcua-factory";
+import { BaseUAObject, constructObject, is_internal_id, registerBuiltInType, StructuredTypeSchema } from "node-opcua-factory";
 import { ExpandedNodeId, makeNodeId, NodeId } from "node-opcua-nodeid";
 
 const debugLog = make_debugLog(__filename);
@@ -19,7 +13,6 @@ import * as chalk from "chalk";
 
 /* tslint:disable:no-empty */
 export class ExtensionObject extends BaseUAObject {
-
     public static schema: StructuredTypeSchema = new StructuredTypeSchema({
         baseType: "",
         documentation: "",
@@ -30,7 +23,6 @@ export class ExtensionObject extends BaseUAObject {
     constructor(options: any) {
         super();
     }
-
 }
 
 ExtensionObject.prototype.schema = ExtensionObject.schema;
@@ -66,14 +58,20 @@ function constructEmptyExtensionObject(expandedNodeId: NodeId): ExtensionObject 
 //
 
 export function encodeExtensionObject(object: BaseUAObject | null, stream: OutputBinaryStream): void {
-
     if (!object) {
         encodeNodeId(makeNodeId(0), stream);
         stream.writeUInt8(0x00); // no body is encoded
         // note : Length shall not hbe specified, end of the job!
     } else {
+        if (object instanceof OpaqueStructure) {
+            // Writing raw Opaque buffer as Opaque Structure ...
+            encodeNodeId(object.nodeId, stream);
+            stream.writeUInt8(0x01); // 0x01 The body is encoded as a ByteString.
+            stream.writeByteStream(object.buffer);
+            return;
+        }
         /* istanbul ignore next */
-        if (!((object as any) instanceof BaseUAObject)) {
+        if (!(object instanceof BaseUAObject)) {
             throw new Error("Expecting a extension object");
         }
         // ensure we have a valid encoding Default Binary ID !!!
@@ -95,8 +93,11 @@ export function encodeExtensionObject(object: BaseUAObject | null, stream: Outpu
         }
         /* istanbul ignore next */
         if (is_internal_id(encodingDefaultBinary.value as number)) {
-            debugLog(chalk.yellow("encoding ExtObj "),
-                (object.constructor as any).encodingDefaultBinary.toString(), object.schema.name);
+            debugLog(
+                chalk.yellow("encoding ExtObj "),
+                (object.constructor as any).encodingDefaultBinary.toString(),
+                object.schema.name
+            );
             throw new Error("Cannot find valid OPCUA encodingDefaultBinary for this object : " + object.schema.name);
         }
 
@@ -121,15 +122,18 @@ export class OpaqueStructure extends ExtensionObject {
     public toString(): string {
         const str =
             "/* OpaqueStructure */ { \n" +
-            "nodeId " + this.nodeId.toString() + "\n" +
-            "buffer = \n" + hexDump(this.buffer) + "\n" +
+            "nodeId " +
+            this.nodeId.toString() +
+            "\n" +
+            "buffer = \n" +
+            hexDump(this.buffer) +
+            "\n" +
             "}";
         return str;
     }
 }
 
-export function decodeExtensionObject(stream: BinaryStream): ExtensionObject | null {
-
+export function decodeExtensionObject(stream: BinaryStream, _value?: ExtensionObject | null): ExtensionObject | null {
     const nodeId = decodeNodeId(stream);
     const encodingType = stream.readUInt8();
 
@@ -157,7 +161,6 @@ export function decodeExtensionObject(stream: BinaryStream): ExtensionObject | n
         // lets rewind before the length
         stream.length -= 4;
         object = new OpaqueStructure(nodeId, stream.readByteStream()!);
-
     } else {
         object = constructEmptyExtensionObject(nodeId);
         /* istanbul ignore next */
@@ -181,9 +184,14 @@ export function decodeExtensionObject(stream: BinaryStream): ExtensionObject | n
         debugLog(chalk.bgWhiteBright.red("========================================="));
 
         // tslint:disable-next-line:no-console
-        console.warn("WARNING => Extension object decoding error on ",
-            object.constructor.name, " expected size was", length,
-            "but only this amount of bytes have been read :", stream.length - streamLengthBefore);
+        console.warn(
+            "WARNING => Extension object decoding error on ",
+            object.constructor.name,
+            " expected size was",
+            length,
+            "but only this amount of bytes have been read :",
+            stream.length - streamLengthBefore
+        );
         stream.length = streamLengthBefore + length;
     }
     return object;

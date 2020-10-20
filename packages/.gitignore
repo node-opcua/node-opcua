@@ -1,7 +1,10 @@
 */source/**/*.js
 */source/**/*.js.map
 */source/**/*.d.ts
-*.d.ts
+dist*/*.d.ts
 *.js.map
 package-lock.json
 *.lerna_backup
+dist*/**/*
+tmp_*
+a.*

@@ -1,6 +1,6 @@
 {
   "name": "node-opcua-local-discovery-server",
-  "version": "2.7.0",
+  "version": "2.21.0",
   "description": "pure nodejs OPCUA SDK - local-discovery-server",
   "bin": {
     "lds": "./bin/local-discovery-server.js",
@@ -8,18 +8,18 @@
     "node-opcua-local-discovery-server": "./bin/local-discovery-server.js"
   },
   "scripts": {
-    "postinstall": "node bin/create_certificates.js  demo -s",
     "lint": "tslint source/**/*.ts",
     "test": "echo no test",
-    "clean": "node -e \"require('rimraf').sync('certificates');\""
+    "build-docker": "docker build . -t lds"
   },
   "dependencies": {
-    "async": "^3.2.0",
     "bonjour": "^3.5.0",
     "colors": "^1.4.0",
-    "node-opcua": "^2.7.0",
+    "env-paths": "^2.2.0",
+    "node-opcua": "2.21.0",
     "vorpal": "^1.12.0",
-    "vorpal-repl": "^1.1.8"
+    "vorpal-repl": "^1.1.8",
+    "yargs": "15.4.1"
   },
   "author": "Etienne Rossignon",
   "license": "MIT",

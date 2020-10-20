@@ -1,11 +1,7 @@
 import { NamespacePrivate } from "../namespace_private";
 import { Namespace } from "../../source/address_space_ts";
-import * as _ from "underscore";
 
-export function constructNamespaceDependency(
-    namespace: NamespacePrivate
-): Namespace[] {
-
+export function constructNamespaceDependency(namespace: NamespacePrivate): Namespace[] {
     const addressSpace = namespace.addressSpace;
 
     // navigate all namespace recursively to
@@ -22,7 +18,7 @@ export function constructNamespaceDependency(
         depMap.add(namespace.index);
     }
 
-    for (const node of _.values(namespace._nodeid_index)) {
+    for (const node of namespace.nodeIterator()) {
         // visit all reference
         const references = node.ownReferences();
         for (const reference of references) {

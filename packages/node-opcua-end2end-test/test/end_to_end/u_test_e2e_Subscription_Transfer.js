@@ -16,14 +16,14 @@ const ClientSubscription = opcua.ClientSubscription;
 
 const perform_operation_on_client_session = require("../../test_helpers/perform_operation_on_client_session").perform_operation_on_client_session;
 
-const perform_operation_on_subscription = require("../../test_helpers/perform_operation_on_client_session").perform_operation_on_subscription;
+const { perform_operation_on_subscription } = require("../../test_helpers/perform_operation_on_client_session");
 
-module.exports = function (test) {
+module.exports = function(test) {
 
-    describe("#TSS TransferSessionService", function () {
+    describe("#TSS TransferSessionService", function() {
 
         let endpointUrl;
-        beforeEach(function (done) {
+        beforeEach(function(done) {
             endpointUrl = test.endpointUrl;
             done();
         });
@@ -40,15 +40,15 @@ module.exports = function (test) {
 
             async.series([
 
-                function (callback) {
-                    client.connect(endpointUrl, function (err) {
+                function(callback) {
+                    client.connect(endpointUrl, function(err) {
                         callback(err);
                     });
                 },
 
                 // create session
-                function (callback) {
-                    client.createSession(function (err, session) {
+                function(callback) {
+                    client.createSession(function(err, session) {
                         if (!err) {
                             the_session = session;
                         }
@@ -56,7 +56,7 @@ module.exports = function (test) {
                     });
                 },
 
-                function (callback) {
+                function(callback) {
                     subscription = ClientSubscription.create(the_session, {
                         requestedPublishingInterval: 100,
                         requestedLifetimeCount: 10 * 60,
@@ -65,7 +65,7 @@ module.exports = function (test) {
                         publishingEnabled: true,
                         priority: 6
                     });
-                    subscription.on("started", function () {
+                    subscription.on("started", function() {
                         the_subscriptionId = subscription.subscriptionId;
                         subscription.on("terminated", spy_on_terminated);
                         callback();
@@ -73,42 +73,42 @@ module.exports = function (test) {
                 },
 
                 // closing session
-                function (callback) {
-                    the_session.close(/*deleteSubscription=*/false, function (err) {
+                function(callback) {
+                    the_session.close(/*deleteSubscription=*/false, function(err) {
                         callback(err);
                     });
                 },
-                function (callback) {
+                function(callback) {
                     client.disconnect(callback);
                 }
-            ], function (err) {
+            ], function(err) {
                 callback(err, the_subscriptionId);
             });
         }
 
-        it("TSS-1 should transfer a subscription", function (done) {
+        it("TSS-1 should transfer a subscription", function(done) {
 
             let the_subscriptionId;
             async.series([
 
-                function (callback) {
-                    create_subscription_and_close_session(function (err, subscriptionId) {
+                function(callback) {
+                    create_subscription_and_close_session(function(err, subscriptionId) {
                         the_subscriptionId = subscriptionId;
                         callback(err);
                     });
                 },
-                function (callback) {
+                function(callback) {
                     //xx console.log("SubscriptionId ", the_subscriptionId);
                     callback();
                 },
-                function (callback) {
+                function(callback) {
                     const client2 = OPCUAClient.create();
-                    perform_operation_on_client_session(client2, endpointUrl, function (session, done) {
+                    perform_operation_on_client_session(client2, endpointUrl, function(session, done) {
 
                         session.transferSubscriptions({
                             subscriptionIds: [the_subscriptionId],
                             sendInitialValues: true
-                        }, function (err, response) {
+                        }, function(err, response) {
 
                             spy_on_terminated.callCount.should.eql(0);
                             response.results.length.should.eql(1);
@@ -117,7 +117,7 @@ module.exports = function (test) {
                             subscription.terminate(function(err1) { done(err); });
 
                         });
-                    }, function (err) {
+                    }, function(err) {
 
                         if (!err) {
                             spy_on_terminated.callCount.should.eql(1);
@@ -128,7 +128,7 @@ module.exports = function (test) {
             ], done);
         });
 
-        it("TSS-2 should transfer a subscription from a live session to an other", function (done) {
+        it("TSS-2 should transfer a subscription from a live session to an other", function(done) {
 
             const client = OPCUAClient.create();
 
@@ -139,15 +139,15 @@ module.exports = function (test) {
 
             async.series([
 
-                function (callback) {
-                    client.connect(endpointUrl, function (err) {
+                function(callback) {
+                    client.connect(endpointUrl, function(err) {
                         callback(err);
                     });
                 },
 
                 // create session
-                function (callback) {
-                    client.createSession(function (err, session) {
+                function(callback) {
+                    client.createSession(function(err, session) {
                         if (!err) {
                             the_session1 = session;
                         }
@@ -155,7 +155,7 @@ module.exports = function (test) {
                     });
                 },
 
-                function (callback) {
+                function(callback) {
 
                     subscription = ClientSubscription.create(the_session1, {
                         requestedPublishingInterval: 100,
@@ -166,7 +166,7 @@ module.exports = function (test) {
                         priority: 6
                     });
 
-                    subscription.on("started", function () {
+                    subscription.on("started", function() {
                         the_subscriptionId = subscription.subscriptionId;
                         subscription.on("terminated", spy_on_terminated);
                         callback();
@@ -174,8 +174,8 @@ module.exports = function (test) {
                 },
 
                 // create session 2
-                function (callback) {
-                    client.createSession(function (err, session) {
+                function(callback) {
+                    client.createSession(function(err, session) {
                         if (!err) {
                             the_session2 = session;
                         }
@@ -184,12 +184,12 @@ module.exports = function (test) {
                 },
 
                 // session2.transferSubscriptions
-                function (callback) {
+                function(callback) {
                     const options = {
                         subscriptionIds: [the_subscriptionId],
                         sendInitialValues: true
                     };
-                    the_session2.transferSubscriptions(options, function (err, response) {
+                    the_session2.transferSubscriptions(options, function(err, response) {
                         //xx console.log("response",response.toString());
                         response.results.length.should.eql(1);
                         response.results[0].statusCode.should.eql(StatusCodes.Good);
@@ -200,13 +200,13 @@ module.exports = function (test) {
                 },
 
                 // deleting subscription on session1 shall fail
-                function (callback) {
+                function(callback) {
 
                     const options = {
                         subscriptionIds: [the_subscriptionId]
                     };
 
-                    the_session1.deleteSubscriptions(options, function (err, response) {
+                    the_session1.deleteSubscriptions(options, function(err, response) {
                         response.results.length.should.eql(1);
                         response.results[0].should.eql(StatusCodes.BadSubscriptionIdInvalid);
                     });
@@ -215,13 +215,13 @@ module.exports = function (test) {
                 },
 
                 // deleting subscription on session2 shall succeed
-                function (callback) {
+                function(callback) {
 
                     const options = {
                         subscriptionIds: [the_subscriptionId]
                     };
 
-                    the_session2.deleteSubscriptions(options, function (err, response) {
+                    the_session2.deleteSubscriptions(options, function(err, response) {
                         response.results.length.should.eql(1);
                         response.results[0].should.eql(StatusCodes.Good);
                     });
@@ -231,48 +231,48 @@ module.exports = function (test) {
 
 
                 // closing session 1
-                function (callback) {
-                    the_session1.close(/*deleteSubscription=*/true, function (err) {
+                function(callback) {
+                    the_session1.close(/*deleteSubscription=*/true, function(err) {
                         callback(err);
                     });
                 },
 
                 // closing session 2
-                function (callback) {
-                    the_session2.close(/*deleteSubscription=*/true, function (err) {
+                function(callback) {
+                    the_session2.close(/*deleteSubscription=*/true, function(err) {
                         callback(err);
                     });
                 },
-                function (callback) {
+                function(callback) {
                     client.disconnect(callback);
                 }
             ], done);
 
         });
 
-        it("TSS-3 should send a StatusChangeNotification to the old session with GoodSubscriptionTransferred", function (done) {
+        it("TSS-3 should send a StatusChangeNotification to the old session with GoodSubscriptionTransferred", function(done) {
             const client = OPCUAClient.create();
             const spy_status_changed = new sinon.spy();
             let the_session2;
             const spy_keepalive = new sinon.spy();
 
-            perform_operation_on_subscription(client, endpointUrl, function (session, subscription, inner_done) {
+            perform_operation_on_subscription(client, endpointUrl, function(session, subscription, inner_done) {
 
                 subscription.on("status_changed", spy_status_changed);
                 subscription.on("keepalive", spy_keepalive);
                 async.series([
-                    function (callback) {
+                    function(callback) {
 
                         const timeout = subscription.publishingInterval * 2;
-                        setTimeout(function () {
+                        setTimeout(function() {
                             //xx console.log("StatusChange Count ", spy_status_changed.callCount, " keepAlive count = ", spy_keepalive.callCount);
                             spy_status_changed.callCount.should.eql(0);
                             spy_keepalive.callCount.should.be.aboveOrEqual(1);
                             callback();
                         }, timeout);
                     },
-                    function (callback) {
-                        client.createSession(function (err, session) {
+                    function(callback) {
+                        client.createSession(function(err, session) {
                             if (!err) {
                                 the_session2 = session;
                             }
@@ -280,17 +280,17 @@ module.exports = function (test) {
                         });
                     },
 
-                    function (callback) {
+                    function(callback) {
                         setTimeout(callback, 500);
                     },
 
                     // session2.transferSubscriptions
-                    function (callback) {
+                    function(callback) {
                         const options = {
                             subscriptionIds: [subscription.subscriptionId],
                             sendInitialValues: true
                         };
-                        the_session2.transferSubscriptions(options, function (err, response) {
+                        the_session2.transferSubscriptions(options, function(err, response) {
                             //xx console.log("response",response.toString());
                             response.results.length.should.eql(1);
                             response.results[0].statusCode.should.eql(StatusCodes.Good);
@@ -300,18 +300,18 @@ module.exports = function (test) {
                         });
                     },
 
-                    function (callback) {
-                        setTimeout(function () {
+                    function(callback) {
+                        setTimeout(function() {
                             //xx console.log("StatusChange Count ", spy_status_changed.callCount, " keepAlive count = ", spy_keepalive.callCount);
                             spy_status_changed.callCount.should.eql(1);
                             callback();
                         }, 1000);
                     },
-                    function (callback) {
+                    function(callback) {
                         the_session2.close(callback);
                     }
 
-                ], function (err) {
+                ], function(err) {
                     //xx console.log("-------------------", subscription.subscriptionId);
                     inner_done(err);
                 });
@@ -320,7 +320,7 @@ module.exports = function (test) {
 
         });
 
-        it("TSS-4 should resend initialValue on monitored Item", function (done) {
+        it("TSS-4 should resend initialValue on monitored Item", function(done) {
 
             const client = OPCUAClient.create();
             let the_session2;
@@ -342,13 +342,13 @@ module.exports = function (test) {
             const spy_publish_session1 = new sinon.spy();
             const spy_publish_session2 = new sinon.spy();
 
-            perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
+            perform_operation_on_client_session(client, endpointUrl, function(session, inner_done) {
 
                 let subscriptionId;
                 async.series([
 
                     // Create Subscription on session1
-                    function (callback) {
+                    function(callback) {
                         const request = new opcua.CreateSubscriptionRequest({
                             requestedPublishingInterval: 100,
                             requestedLifetimeCount: 1000,
@@ -357,7 +357,7 @@ module.exports = function (test) {
                             publishingEnabled: true,
                             priority: 6
                         });
-                        session.createSubscription(request, function (err, response) {
+                        session.createSubscription(request, function(err, response) {
                             if (err) {
                                 return callback(err);
                             }
@@ -367,7 +367,7 @@ module.exports = function (test) {
                     },
 
                     // Create MonitoredItem on session1 with many publish request in queue
-                    function (callback) {
+                    function(callback) {
                         // CreateMonitoredItemsRequest
                         const request = new opcua.CreateMonitoredItemsRequest({
                             subscriptionId: subscriptionId,
@@ -381,7 +381,7 @@ module.exports = function (test) {
                             ]
                         });
 
-                        session.createMonitoredItems(request, function (err, response) {
+                        session.createMonitoredItems(request, function(err, response) {
 
                             response.should.be.instanceof(opcua.CreateMonitoredItemsResponse);
                             response.responseHeader.serviceResult.should.eql(StatusCodes.Good);
@@ -401,15 +401,15 @@ module.exports = function (test) {
                         });
                     },
                     // wait a little bit
-                    function (callback) {
-                        setTimeout(function () {
+                    function(callback) {
+                        setTimeout(function() {
                             callback();
                         }, parameters.samplingInterval);
                     },
 
                     // create Session 2
-                    function (callback) {
-                        client.createSession(function (err, l_session) {
+                    function(callback) {
+                        client.createSession(function(err, l_session) {
                             if (!err) {
                                 the_session2 = l_session;
                             }
@@ -418,12 +418,12 @@ module.exports = function (test) {
                     },
 
                     // session2.transferSubscriptions
-                    function (callback) {
+                    function(callback) {
                         const options = {
                             subscriptionIds: [subscriptionId],
                             sendInitialValues: true
                         };
-                        the_session2.transferSubscriptions(options, function (err, response) {
+                        the_session2.transferSubscriptions(options, function(err, response) {
                             //xx console.log("response",response.toString());
                             response.results.length.should.eql(1);
                             response.results[0].statusCode.should.eql(StatusCodes.Good);
@@ -434,14 +434,14 @@ module.exports = function (test) {
                     },
 
                     // wait a little bit
-                    function (callback) {
-                        setTimeout(function () {
+                    function(callback) {
+                        setTimeout(function() {
                             callback();
                         }, parameters.samplingInterval);
                     },
 
                     // session 1 should receive StatusChangeNotification
-                    function (callback) {
+                    function(callback) {
 
                         //xx console.log("count = ", spy_publish_session1.callCount);
 
@@ -463,7 +463,7 @@ module.exports = function (test) {
                     },
 
 
-                    function (callback) {
+                    function(callback) {
                         the_session2.publish({}, spy_publish_session2);
                         the_session2.publish({}, spy_publish_session2);
                         the_session2.publish({}, spy_publish_session2);
@@ -472,19 +472,19 @@ module.exports = function (test) {
                     },
 
                     // wait a little bit
-                    function (callback) {
-                        setTimeout(function () {
+                    function(callback) {
+                        setTimeout(function() {
                             callback();
                         }, parameters.samplingInterval);
                     },
                     // wait a little bit
-                    function (callback) {
-                        setTimeout(function () {
+                    function(callback) {
+                        setTimeout(function() {
                             callback();
                         }, parameters.samplingInterval);
                     },
 
-                    function (callback) {
+                    function(callback) {
                         //Xx console.log("count = ", spy_publish_session2.callCount);
 
                         const response0 = spy_publish_session2.getCall(0).args[1];
@@ -499,14 +499,14 @@ module.exports = function (test) {
                     },
 
                     // now delete subscription
-                    function (callback) {
-                        the_session2.deleteSubscriptions({subscriptionIds: [subscriptionId]}, callback);
+                    function(callback) {
+                        the_session2.deleteSubscriptions({ subscriptionIds: [subscriptionId] }, callback);
                     },
 
-                    function (callback) {
+                    function(callback) {
                         the_session2.close(callback);
                     },
-                    function (callback) {
+                    function(callback) {
                         //xx console.log("count = ", spy_publish_session2.callCount);
                         spy_publish_session2.callCount.should.eql(4);
 
@@ -522,7 +522,7 @@ module.exports = function (test) {
                         //xx console.log(response3.toString())
                         callback();
                     }
-                ], function (err) {
+                ], function(err) {
                     //xx console.log("-------------------", subscriptionId);
                     inner_done(err);
                 });

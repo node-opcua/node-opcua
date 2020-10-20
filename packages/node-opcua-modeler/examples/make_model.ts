@@ -3,22 +3,21 @@ import * as fs from "fs";
 import { promisify } from "util";
 import {
     AddressSpace,
-    buildModel,
-    createBoilerType,
     DataType,
     displayNodeElement,
-    generateAddressSpace,
-    getPresetSymbolsFromCSV,
     nodesets,
     promoteToMandatory,
-    saveSymbolsToCSV,
     setNamespaceMetaData,
     Symbols,
     UAObject,
     UAVariable,
-    UAVariableT,
+    UAVariableT
 } from "..";
-// } from "node-opcua-modeler";
+
+import { getPresetSymbolsFromCSV, saveSymbolsToCSV, buildModel } from "../nodeJS";
+import { generateAddressSpace } from "node-opcua-address-space/nodeJS";
+
+import { createBoilerType } from "node-opcua-address-space/testHelpers";
 
 const writeFile = promisify(fs.writeFile);
 const readFile = promisify(fs.readFile);
@@ -28,10 +27,7 @@ interface UABoilerTest extends UAObject {
     manufacturer: UAVariableT<string, DataType.String>;
 }
 
-const xmlFiles = [
-    nodesets.standard,
-    nodesets.di
-];
+const xmlFiles = [nodesets.standard, nodesets.di];
 
 const namespaceUri = "http://acme.com/Boiler/V0";
 const version = "1.0.0";
@@ -40,7 +36,6 @@ const nodesetFilename = "./MyModel.NodeSet2.xml";
 const symbolFilename = "./MyModelIds.csv";
 
 async function createModel(addressSpace: AddressSpace): Promise<void> {
-
     const ns = addressSpace.getOwnNamespace();
 
     const nsDI = addressSpace.getNamespaceIndex("http://opcfoundation.org/UA/DI/");
@@ -63,7 +58,7 @@ async function createModel(addressSpace: AddressSpace): Promise<void> {
 
     const boilerDeviceType = ns.addObjectType({
         browseName: "BoilerDeviceType",
-        subtypeOf: deviceType,
+        subtypeOf: deviceType
     });
 
     promoteToMandatory(boilerDeviceType, "Manufacturer", nsDI);
@@ -85,12 +80,10 @@ async function createModel(addressSpace: AddressSpace): Promise<void> {
     createBoilerType(ns);
 
     console.log(displayNodeElement(boilerDeviceType));
-
 }
 
 async function buildModelFile() {
     try {
-
         const presetSymbols = await getPresetSymbolsFromCSV(symbolFilename);
 
         const { xmlModel, symbols } = await buildModel({
@@ -99,26 +92,20 @@ async function buildModelFile() {
             version,
             xmlFiles,
             // tslint:disable-next-line: object-literal-sort-keys
-            presetSymbols,
+            presetSymbols
         });
         // save model to a file
         await writeFile(nodesetFilename, xmlModel, "utf-8");
 
         await saveSymbolsToCSV(symbolFilename, symbols);
-
     } catch (err) {
         console.log("Error", err);
     }
 }
 
-async function testNamepsace() {
-
+async function testNamespace() {
     const addressSpace = AddressSpace.create();
-    const xmlFiles1 = [
-        nodesets.standard,
-        nodesets.di,
-        nodesetFilename,
-    ];
+    const xmlFiles1 = [nodesets.standard, nodesets.di, nodesetFilename];
     await generateAddressSpace(addressSpace, xmlFiles1);
 
     const nsDI = addressSpace.getNamespaceIndex("http://opcfoundation.org/UA/DI/");
@@ -154,7 +141,7 @@ async function testNamepsace() {
     try {
         await buildModelFile();
         // now test the nodeset
-        await testNamepsace();
+        await testNamespace();
     } catch (err) {
         console.log("err", err.message);
         console.log(err);

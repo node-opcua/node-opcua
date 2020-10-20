@@ -1,24 +1,23 @@
 // tslint:disable:no-console
 import * as chalk from "chalk";
-import * as nodesets from "node-opcua-nodesets";
+import { nodesets } from "node-opcua-nodesets";
 import * as should from "should";
-import { generateAddressSpace } from "..";
+import { generateAddressSpace } from "../nodeJS";
 import { SessionContext, StateMachine } from "..";
 import { AddressSpace, BaseNode, Namespace, ProgramFiniteStateMachine, promoteToStateMachine } from "..";
 
-import { createBoilerType, makeBoiler } from "..";
+import { createBoilerType, makeBoiler } from "../testHelpers";
 
 const doDebug = false;
 
 // tslint:disable-next-line:no-var-requires
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("Testing Boiler System", () => {
-
     function getBrowseName(x: BaseNode): string {
         return x.browseName.toString();
     }
 
-    const nodesetFilename = nodesets.standard_nodeset_file;
+    const nodesetFilename = nodesets.standard;
 
     let addressSpace: AddressSpace;
     let namespace: Namespace;
@@ -33,7 +32,6 @@ describe("Testing Boiler System", () => {
     });
 
     it("should handle StateMachine derived from ProgramStateMachine", () => {
-
         const programStateMachine = addressSpace.findObjectType("ProgramStateMachineType")!;
 
         const psm = programStateMachine.instantiate({
@@ -42,11 +40,9 @@ describe("Testing Boiler System", () => {
         promoteToStateMachine(psm);
 
         psm.getStates().map(getBrowseName).sort().should.eql(["Halted", "Ready", "Running", "Suspended"]);
-
     });
 
     it("should handle StateMachine derived from ProgramStateMachine", () => {
-
         const myProgramStateMachine = namespace.addObjectType({
             browseName: "MyProgramStateMachine",
             subtypeOf: "ProgramStateMachineType"
@@ -60,21 +56,22 @@ describe("Testing Boiler System", () => {
 
         psm.getStates().map(getBrowseName).sort().should.eql(["Halted", "Ready", "Running", "Suspended"]);
 
-        psm.getTransitions().map(getBrowseName).should.eql([
-            "HaltedToReady",
-            "ReadyToRunning",
-            "RunningToHalted",
-            "RunningToReady",
-            "RunningToSuspended",
-            "SuspendedToRunning",
-            "SuspendedToHalted",
-            "SuspendedToReady",
-            "ReadyToHalted"
-        ]);
+        psm.getTransitions()
+            .map(getBrowseName)
+            .should.eql([
+                "HaltedToReady",
+                "ReadyToRunning",
+                "RunningToHalted",
+                "RunningToReady",
+                "RunningToSuspended",
+                "SuspendedToRunning",
+                "SuspendedToHalted",
+                "SuspendedToReady",
+                "ReadyToHalted"
+            ]);
     });
 
     it("should create a boiler system", async () => {
-
         const context = SessionContext.defaultContext;
 
         const boilerType = createBoilerType(namespace);
@@ -102,9 +99,13 @@ describe("Testing Boiler System", () => {
         boiler.getNotifiers().length.should.eql(3);
         boiler.getEventSources().length.should.eql(1);
 
-        boiler.getNotifiers().map((x: BaseNode) => {
-            return x.browseName.name!.toString();
-        }).join(" ").should.eql("InputPipe BoilerDrum OutputPipe");
+        boiler
+            .getNotifiers()
+            .map((x: BaseNode) => {
+                return x.browseName.name!.toString();
+            })
+            .join(" ")
+            .should.eql("InputPipe BoilerDrum OutputPipe");
         // xx boiler.inputPipe.notifierOf.nodeId.toString().should.eql(boiler.nodeId.toString());
         // xx boiler.inputPipe.notifierOf.nodeId.toString().should.eql(boiler.nodeId.toString());
 
@@ -156,6 +157,5 @@ describe("Testing Boiler System", () => {
         resetMethod.getExecutableFlag(context).should.eql(true);
         startMethod.getExecutableFlag(context).should.eql(true);
         suspendMethod.getExecutableFlag(context).should.eql(false);
-
     });
 });

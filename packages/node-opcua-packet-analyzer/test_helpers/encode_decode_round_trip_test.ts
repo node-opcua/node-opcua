@@ -5,7 +5,6 @@ import { hexDump } from "node-opcua-debug";
 import { BaseUAObject, constructObject } from "node-opcua-factory";
 import { assert_arrays_are_equal } from "node-opcua-test-helpers";
 import * as should from "should";
-import * as  _ from "underscore";
 
 import { analyze_object_binary_encoding, analyzePacket } from "../source";
 // tslint:disable:no-console
@@ -29,7 +28,6 @@ function isArrayOrTypedArray(v: any): boolean {
 }
 
 function compare(objReloaded: any, obj: any) {
-
     function displayError(p: string, expected: any, actual: any) {
         console.log(chalk.yellow(" ---------------------------------- error in encode_decode_round_trip_test"));
         console.log(chalk.red(" key "), p);
@@ -42,7 +40,7 @@ function compare(objReloaded: any, obj: any) {
             if (isArrayOrTypedArray(obj[p])) {
                 assert_arrays_are_equal(objReloaded[p], obj[p]);
             } else {
-                if (objReloaded[p] === undefined || obj[p] === undefined ) {
+                if (objReloaded[p] === undefined || obj[p] === undefined) {
                     return;
                 }
                 (JSON.stringify(objReloaded[p]) as any).should.eql(JSON.stringify(obj[p]));
@@ -58,7 +56,6 @@ function compare(objReloaded: any, obj: any) {
 }
 
 function redirectToNull(functor: () => void) {
-
     const old = console.log;
 
     if (!process.env.DEBUG) {
@@ -89,8 +86,7 @@ export function encode_decode_round_trip_test(
     options?: any,
     callback_buffer?: encode_decode_round_trip_testCallback
 ): any {
-
-    if (!callback_buffer && _.isFunction(options)) {
+    if (!callback_buffer && typeof options === "function") {
         callback_buffer = options;
         options = {};
     }
@@ -121,7 +117,7 @@ export function encode_decode_round_trip_test(
 }
 
 export function json_encode_decode_round_trip_test(obj: any, options: any, callbackBuffer?: any) {
-    if (!callbackBuffer && _.isFunction(options)) {
+    if (!callbackBuffer && typeof options === "function") {
         callbackBuffer = options;
         options = {};
     }
@@ -136,5 +132,4 @@ export function json_encode_decode_round_trip_test(obj: any, options: any, callb
     compare(objReloaded, obj);
 
     return objReloaded;
-
 }

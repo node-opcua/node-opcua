@@ -2,7 +2,6 @@
 
 const should = require("should");
 const async = require("async");
-const _ = require("underscore");
 
 const opcua = require("node-opcua");
 
@@ -16,7 +15,7 @@ const {
     makeBrowsePath,
 } = require("node-opcua");
 
-assert(_.isFunction(makeBrowsePath));
+assert(typeof makeBrowsePath === "function");
 
 const port = 2000;
 
@@ -28,7 +27,7 @@ const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("testing server with low maxNodesPerRead and maxNodesPerBrowse", function() {
 
 
-    this.timeout(Math.max(this._timeout, 10000));
+    this.timeout(Math.max(this.timeout(), 10000));
 
     let server;
 
@@ -235,7 +234,7 @@ describe("testing server with low maxNodesPerRead and maxNodesPerBrowse", functi
 
     it("crawler shall work even if server has a low limit the number of node in Read and Browse request", function(done) {
 
-        const redirectToFile = require("node-opcua-debug").redirectToFile;
+        const { redirectToFile } = require("node-opcua-debug/nodeJS");
 
         //xx redirectToFile("crawler_display_tree1.log",function(done){
 

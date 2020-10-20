@@ -4,7 +4,7 @@
 import * as chalk from "chalk";
 
 import { assert } from "node-opcua-assert";
-import { ModelChangeStructureDataType } from "node-opcua-common";
+import { ModelChangeStructureDataType } from "node-opcua-types";
 import { NodeClass } from "node-opcua-data-model";
 import { BrowseDirection } from "node-opcua-data-model";
 import { Enum, EnumItem } from "node-opcua-enum";
@@ -42,11 +42,7 @@ function makeVerb(verbs: any): number {
     return e.value;
 }
 
-export function _handle_add_reference_change_event(
-  node1: BaseNode,
-  node2id: NodeId
-) {
-
+export function _handle_add_reference_change_event(node1: BaseNode, node2id: NodeId) {
     const addressSpace = node1.addressSpace as AddressSpacePrivate;
 
     const node2 = addressSpace.findNode(node2id)! as BaseNode;
@@ -54,7 +50,6 @@ export function _handle_add_reference_change_event(
     if (node1.nodeVersion || (node2 && node2.nodeVersion)) {
         // a event has to be send
         addressSpace.modelChangeTransaction(() => {
-
             function _getTypeDef(node: BaseNode) {
                 if (node.nodeClass === NodeClass.Object || node.nodeClass === NodeClass.Variable) {
                     return node.typeDefinitionObj.nodeId;
@@ -91,8 +86,7 @@ try {
                 return "";
             }
             const node = addressSpace.findNode(nodeId)!;
-            return "\"" + nodeId.toString() +
-              "\"" + chalk.yellow(" /* " + (node ? node.browseName.toString() : "???") + " */");
+            return '"' + nodeId.toString() + '"' + chalk.yellow(" /* " + (node ? node.browseName.toString() : "???") + " */");
         }
 
         let str = "{ verb:" + verbFlags.get(this.verb)!.key + ",";
@@ -110,9 +104,7 @@ export function _handle_model_change_event(node: BaseNode) {
     const parent = node.parent!;
 
     if (parent && (parent as any).nodeVersion) {
-
         addressSpace.modelChangeTransaction(() => {
-
             let typeDefinitionNodeId = null;
 
             if (node.nodeClass === NodeClass.Object || node.nodeClass === NodeClass.Variable) {
@@ -147,7 +139,6 @@ export function _handle_model_change_event(node: BaseNode) {
 }
 
 export function _handle_delete_node_model_change_event(node: BaseNode) {
-
     const addressSpace = node.addressSpace;
 
     // get backward references
@@ -160,11 +151,9 @@ export function _handle_delete_node_model_change_event(node: BaseNode) {
     const versionableNodes = parentNodes.filter((n: BaseNode) => !!n.nodeVersion);
 
     if (versionableNodes.length >= 1 || !!node.nodeVersion) {
-
         addressSpace.modelChangeTransaction(() => {
             // ...
             for (const r of references) {
-
                 const target = addressSpace.findNode(r.nodeId)!;
 
                 const modelChangeSrc_l = new ModelChangeStructureDataType({

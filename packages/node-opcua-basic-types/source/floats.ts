@@ -1,8 +1,6 @@
 /***
  * @module node-opcua-basic-types
  */
-import * as _ from "underscore";
-
 import { BinaryStream, OutputBinaryStream } from "node-opcua-binary-stream";
 
 const minFloat = -3.4 * Math.pow(10, 38);
@@ -21,7 +19,7 @@ function getRandomDouble(min: number, max: number) {
 }
 
 export function isValidFloat(value: any): boolean {
-    if (!_.isFinite(value)) {
+    if (!isFinite(value)) {
         return false;
     }
     return value > minFloat && value < maxFloat;
@@ -45,12 +43,12 @@ export function encodeFloat(value: Float, stream: OutputBinaryStream): void {
     stream.writeFloat(value);
 }
 
-export function decodeFloat(stream: BinaryStream): Float {
+export function decodeFloat(stream: BinaryStream, value?: number): Float {
     return stream.readFloat();
 }
 
 export function isValidDouble(value: any): boolean {
-    if (!_.isFinite(value)) {
+    if (!isFinite(value)) {
         return false;
     }
     return true;
@@ -66,19 +64,25 @@ export function encodeDouble(value: Double, stream: OutputBinaryStream) {
     stream.writeDouble(value);
 }
 
-export function decodeDouble(stream: BinaryStream) {
+export function decodeDouble(stream: BinaryStream, value?: number) {
     return stream.readDouble();
 }
 
-export function coerceFloat(value: any): Float {
+export function coerceFloat(value: number | null | string): Float {
     if (value === null || value === undefined) {
+        return 0.0;
+    }
+    if (typeof value === "number") {
         return value;
     }
     return parseFloat(value);
 }
 
-export function coerceDouble(value: any): Double {
+export function coerceDouble(value: number | null | string): Double {
     if (value === null || value === undefined) {
+        return 0.0;
+    }
+    if (typeof value === "number") {
         return value;
     }
     return parseFloat(value);

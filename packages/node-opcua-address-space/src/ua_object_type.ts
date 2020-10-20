@@ -1,8 +1,6 @@
 /**
  * @module node-opcua-address-space
  */
-import * as _ from "underscore";
-
 import { assert } from "node-opcua-assert";
 import { NodeClass } from "node-opcua-data-model";
 import { AttributeIds } from "node-opcua-data-model";
@@ -15,7 +13,7 @@ import {
     AddObjectOptions,
     InstantiateObjectOptions,
     UAObject as UAObjectPublic,
-    UAObjectType as UAObjectTypePublic,
+    UAObjectType as UAObjectTypePublic
 } from "../source";
 import { BaseNode } from "./base_node";
 import { ToStringBuilder, UAObjectType_toString } from "./base_node_private";
@@ -23,10 +21,7 @@ import { Reference } from "./reference";
 import { SessionContext } from "./session_context";
 import { get_subtypeOf, get_subtypeOfObj } from "./tool_isSupertypeOf";
 import * as tools from "./tool_isSupertypeOf";
-import {
-    assertUnusedChildBrowseName,
-    initialize_properties_and_components
-} from "./ua_variable_type";
+import { assertUnusedChildBrowseName, initialize_properties_and_components } from "./ua_variable_type";
 
 /*
 UAObjectType.prototype.isSupertypeOf = tools.construct_isSupertypeOf(UAObjectType);
@@ -46,7 +41,7 @@ export class UAObjectType extends BaseNode implements UAObjectTypePublic {
         return get_subtypeOf.call(this);
     }
     public get subtypeOfObj(): UAObjectTypePublic | null {
-        return get_subtypeOfObj.call(this) as any as UAObjectTypePublic;
+        return (get_subtypeOfObj.call(this) as any) as UAObjectTypePublic;
     }
     public isSupertypeOf = tools.construct_isSupertypeOf<UAObjectTypePublic>(UAObjectType);
 
@@ -99,12 +94,14 @@ export class UAObjectType extends BaseNode implements UAObjectTypePublic {
      *  DataVariableType  |
      */
     public instantiate(options: InstantiateObjectOptions): UAObjectPublic {
-
         const addressSpace = this.addressSpace;
         assert(!this.isAbstract, "cannot instantiate abstract UAObjectType");
 
         assert(options, "missing option object");
-        assert(_.isString(options.browseName) || _.isObject(options.browseName), "expecting a browse name");
+        assert(
+            typeof options.browseName === "string" || (options.browseName !== null && typeof options.browseName === "object"),
+            "expecting a browse name"
+        );
 
         assert(!options.hasOwnProperty("propertyOf"), "an Object shall not be a PropertyOf an other object");
         assert(!options.hasOwnProperty("optional"), "do you mean optionals ?");
@@ -157,5 +154,4 @@ export class UAObjectType extends BaseNode implements UAObjectTypePublic {
         UAObjectType_toString.call(this, options);
         return options.toString();
     }
-
 }

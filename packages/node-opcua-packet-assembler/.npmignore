@@ -12,7 +12,7 @@ schemas/
 pki/
 tmp/
 tsconfig.json
-tsconfig.tsbuildinfo
+*.tsbuildinfo
 tslint.*
 .mocharc.yaml
 

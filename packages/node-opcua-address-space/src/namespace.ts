@@ -3,25 +3,24 @@
  */
 // tslint:disable:no-console
 import * as chalk from "chalk";
-import * as _ from "underscore";
 
 import { assert } from "node-opcua-assert";
 import { coerceInt64 } from "node-opcua-basic-types";
 import { AxisScaleEnumeration } from "node-opcua-data-access";
-import { coerceLocalizedText, coerceQualifiedName, QualifiedNameLike } from "node-opcua-data-model";
+import { coerceLocalizedText, QualifiedNameLike } from "node-opcua-data-model";
 import { QualifiedName } from "node-opcua-data-model";
 import { BrowseDirection } from "node-opcua-data-model";
 import { LocalizedText, NodeClass } from "node-opcua-data-model";
 import { dumpIf } from "node-opcua-debug";
-import { sameNodeId } from "node-opcua-nodeid";
-import { resolveNodeId } from "node-opcua-nodeid";
+import { NodeIdType, resolveNodeId } from "node-opcua-nodeid";
 import { NodeId } from "node-opcua-nodeid";
 import { StatusCodes } from "node-opcua-status-code";
 import {
     Argument,
     ArgumentOptions,
     AxisInformation,
-    EnumDefinition, EnumField,
+    EnumDefinition,
+    EnumField,
     EnumValueType,
     EUInformation,
     Range
@@ -31,9 +30,11 @@ import { DataType, Variant, VariantArrayType } from "node-opcua-variant";
 import {
     AddAnalogDataItemOptions,
     AddBaseNodeOptions,
-    AddDataItemOptions, AddEnumerationTypeOptions,
+    AddDataItemOptions,
+    AddEnumerationTypeOptions,
     AddMethodOptions,
-    AddMultiStateDiscreteOptions, AddMultiStateValueDiscreteOptions,
+    AddMultiStateDiscreteOptions,
+    AddMultiStateValueDiscreteOptions,
     AddObjectOptions,
     AddObjectTypeOptions,
     AddReferenceOpts,
@@ -41,32 +42,26 @@ import {
     AddTwoStateVariableOptions,
     AddVariableOptions,
     AddVariableTypeOptions,
-    AddViewOptions, AddYArrayItemOptions,
+    AddViewOptions,
+    AddYArrayItemOptions,
     BaseNode as BaseNodePublic,
     CreateDataTypeOptions,
-    CreateNodeOptions, Enumeration, EnumerationItem,
-    Folder,
+    CreateNodeOptions,
+    EnumerationItem,
     InitialState,
-    InitialStateType,
-    ModellingRuleType,
     Namespace as NamespacePublic,
     State,
     StateMachine,
-    StateType,
     Transition,
-    UAAnalogItem as UAAnalogItemPublic,
-    UADataItem as UADataItemPublic, UAEventType,
+    UAEventType,
     UAMultiStateDiscrete as UAMultiStateDiscretePublic,
-    UAMultiStateValueDiscrete as UAMultiStateValueDiscretePublic,
-    UAReference as UAReferencePublic,
     UAVariable as UAVariablePublic,
     UAVariableType as UAVariableTypePublic,
-    UAView as UAViewPublic, YArrayItemVariable, UAVariableTypeT
+    YArrayItemVariable
 } from "../source";
 
 import { coerceEnumValues } from "../source/helpers/coerce_enum_value";
 import { UATwoStateDiscrete } from "../source/interfaces/data_access/ua_two_state_discrete";
-import { UAYArrayItem } from "../source/interfaces/data_access/ua_y_array_item";
 import { _handle_delete_node_model_change_event, _handle_model_change_event } from "./address_space_change_event_tools";
 import { AddressSpacePrivate } from "./address_space_private";
 import { UAAcknowledgeableConditionBase } from "./alarms_and_conditions/ua_acknowledgeable_condition_base";
@@ -83,10 +78,7 @@ import { BaseNode } from "./base_node";
 import { UAAnalogItem } from "./data_access/ua_analog_item";
 import { add_dataItem_stuff, UADataItem } from "./data_access/ua_data_item";
 import { UAMultiStateDiscrete } from "./data_access/ua_multistate_discrete";
-import {
-    promoteToMultiStateValueDiscrete,
-    UAMultiStateValueDiscrete
-} from "./data_access/ua_mutlistate_value_discrete";
+import { promoteToMultiStateValueDiscrete, UAMultiStateValueDiscrete } from "./data_access/ua_mutlistate_value_discrete";
 import { UANamespace_process_modelling_rule } from "./namespace_private";
 import { Reference } from "./reference";
 import { UADataType } from "./ua_data_type";
@@ -95,12 +87,23 @@ import { UAObject } from "./ua_object";
 import { UAObjectType } from "./ua_object_type";
 import { UAReferenceType } from "./ua_reference_type";
 import { _install_TwoStateVariable_machinery, UATwoStateVariable } from "./ua_two_state_variable";
-import { UAVariable } from "./ua_variable";
+import { UAVariable, verifyRankAndDimensions } from "./ua_variable";
 import { UAVariableType } from "./ua_variable_type";
 import { UAView } from "./ua_view";
 
 import { ConstructNodeIdOptions, NodeIdManager } from "./nodeid_manager";
 
+function _makeHashKey(nodeId: NodeId): string | number {
+    switch (nodeId.identifierType) {
+        case NodeIdType.STRING:
+        case NodeIdType.GUID:
+            return nodeId.value as string;
+        case NodeIdType.NUMERIC:
+            return nodeId.value as number;
+        default:
+            return nodeId.value.toString();
+    }
+}
 const doDebug = false;
 
 const regExp1 = /^(s|i|b|g)=/;
@@ -111,18 +114,13 @@ export interface AddFolderOptions {
 }
 
 interface AddVariableOptions2 extends AddVariableOptions {
-    nodeClass?: NodeClass.Variable
-};
+    nodeClass?: NodeClass.Variable;
+}
 
 function detachNode(node: BaseNode) {
     const addressSpace = node.addressSpace;
-
-    // console.log("detachNode", node.browseName.toString(), node.nodeId.toString());
-
     const nonHierarchicalReferences = node.findReferencesEx("NonHierarchicalReferences", BrowseDirection.Inverse);
     for (const ref of nonHierarchicalReferences) {
-
-        //        console.log("removing ", ref.toString({ addressSpace }));
         assert(!ref.isForward);
         ref.node!.removeReference({
             isForward: !ref.isForward,
@@ -132,12 +130,9 @@ function detachNode(node: BaseNode) {
     }
     const nonHierarchicalReferencesF = node.findReferencesEx("NonHierarchicalReferences", BrowseDirection.Forward);
     for (const ref of nonHierarchicalReferencesF) {
-
-        // console.log("removing ", ref.toString({ addressSpace }));
         if (!ref.node) {
-            // could be a special case of a frequently use traget node such as ModellingRule_Mandatory that do not back trace
-            // their reference 
-            // console.log("!!!!!!!!!!!!!!!!!!!!", ref.nodeId.toString());
+            // could be a special case of a frequently use target node such as ModellingRule_Mandatory that do not back trace
+            // their reference
             continue;
         }
         assert(ref.isForward);
@@ -174,7 +169,6 @@ function detachNode(node: BaseNode) {
  *
  */
 export class UANamespace implements NamespacePublic {
-
     public static _handle_hierarchy_parent = _handle_hierarchy_parent;
     public static isNonEmptyQualifiedName = isNonEmptyQualifiedName;
 
@@ -185,17 +179,16 @@ export class UANamespace implements NamespacePublic {
     public version: number = 0;
     public publicationDate: Date = new Date(1900, 0, 1);
 
-    public _nodeid_index: { [key: string]: BaseNode };
-    public _objectTypeMap: { [key: string]: UAObjectType };
-    public _variableTypeMap: { [key: string]: UAVariableType };
-    public _referenceTypeMap: { [key: string]: UAReferenceType };
-    public _dataTypeMap: { [key: string]: UADataType };
-    private _aliases: { [key: string]: NodeId };
-    private _referenceTypeMapInv: any;
+    private _objectTypeMap: Map<string, UAObjectType>;
+    private _variableTypeMap: Map<string, UAVariableType>;
+    private _referenceTypeMap: Map<string, UAReferenceType>;
+    private _dataTypeMap: Map<string, UADataType>;
+    private _referenceTypeMapInv: Map<string, UAReferenceType>;
     private _nodeIdManager: NodeIdManager;
+    private _nodeid_index: Map<string | number, BaseNode>;
+    private _aliases: Map<string, NodeId>;
 
     constructor(options: any) {
-
         assert(typeof options.namespaceUri === "string");
         assert(typeof options.index === "number");
 
@@ -206,42 +199,74 @@ export class UANamespace implements NamespacePublic {
         }
 
         this.index = options.index;
-        this._nodeid_index = {};
-
-        this._aliases = {};
-        this._objectTypeMap = {};
-        this._variableTypeMap = {};
-        this._referenceTypeMap = {};
-        this._referenceTypeMapInv = {};
-        this._dataTypeMap = {};
+        this._nodeid_index = new Map();
+        this._aliases = new Map();
+        this._objectTypeMap = new Map();
+        this._variableTypeMap = new Map();
+        this._referenceTypeMap = new Map();
+        this._referenceTypeMapInv = new Map();
+        this._dataTypeMap = new Map();
         this._nodeIdManager = new NodeIdManager(this.index, this.addressSpace);
     }
 
     public getDefaultNamespace(): UANamespace {
-        return (this.index === 0)
-            ? this
-            : this.addressSpace.getDefaultNamespace() as UANamespace;
+        return this.index === 0 ? this : (this.addressSpace.getDefaultNamespace() as UANamespace);
     }
 
     public dispose() {
-
-        _.forEach(this._nodeid_index, (node: BaseNode) => {
+        for (const node of this.nodeIterator()) {
             node.dispose();
-        });
+        }
 
-        this._nodeid_index = {};
+        this._nodeid_index = new Map();
+        this._aliases = new Map();
+
         this.addressSpace = {} as AddressSpacePrivate;
 
-        this._aliases = {};
-
-        this._objectTypeMap = {};
-        this._variableTypeMap = {};
-        this._referenceTypeMap = {};
-        this._referenceTypeMapInv = {};
-        this._dataTypeMap = {};
-
+        this._objectTypeMap = new Map();
+        this._variableTypeMap = new Map();
+        this._referenceTypeMap = new Map();
+        this._referenceTypeMapInv = new Map();
+        this._dataTypeMap = new Map();
     }
 
+    public nodeIterator(): IterableIterator<BaseNode> {
+        return this._nodeid_index.values();
+    }
+
+    public _objectTypeIterator(): IterableIterator<UAObjectType> {
+        return this._objectTypeMap.values();
+    }
+    public _objectTypeCount(): number {
+        return this._objectTypeMap.size;
+    }
+    public _variableTypeIterator(): IterableIterator<UAVariableType> {
+        return this._variableTypeMap.values();
+    }
+    public _variableTypeCount(): number {
+        return this._variableTypeMap.size;
+    }
+    public _dataTypeIterator(): IterableIterator<UADataType> {
+        return this._dataTypeMap.values();
+    }
+    public _dataTypeCount(): number {
+        return this._dataTypeMap.size;
+    }
+    public _referenceTypeIterator(): IterableIterator<UAReferenceType> {
+        return this._referenceTypeMap.values();
+    }
+    public _referenceTypeCount(): number {
+        return this._referenceTypeMap.size;
+    }
+    public _aliasCount(): number {
+        return this._aliases.size;
+    }
+
+    public findNode2(nodeId: NodeId): BaseNode | null {
+        // this one is faster assuming you have a nodeId
+        assert(nodeId.namespace === this.index);
+        return this._nodeid_index.get(_makeHashKey(nodeId)) || null;
+    }
     public findNode(nodeId: string | NodeId): BaseNode | null {
         if (typeof nodeId === "string") {
             if (nodeId.match(regExp1)) {
@@ -249,8 +274,7 @@ export class UANamespace implements NamespacePublic {
             }
         }
         nodeId = resolveNodeId(nodeId);
-        assert(nodeId.namespace === this.index);
-        return this._nodeid_index[nodeId.toString()];
+        return this.findNode2(nodeId);
     }
 
     /**
@@ -259,9 +283,7 @@ export class UANamespace implements NamespacePublic {
      * @return {UAObjectType|null}
      */
     public findObjectType(objectTypeName: string): UAObjectType | null {
-        assert(typeof objectTypeName === "string");
-        const objectType = this._objectTypeMap[objectTypeName];
-        return objectType ? objectType : null;
+        return this._objectTypeMap.get(objectTypeName) || null;
     }
 
     /**
@@ -270,21 +292,15 @@ export class UANamespace implements NamespacePublic {
      * @returns {UAVariableType|null}
      */
     public findVariableType(variableTypeName: string): UAVariableTypePublic | null {
-        assert(typeof variableTypeName === "string");
-        const variableType = this._variableTypeMap[variableTypeName]! as UAVariableTypePublic;
-        return variableType ? variableType : null;
+        return this._variableTypeMap.get(variableTypeName) || null;
     }
-
     /**
      *
      * @param dataTypeName {String}
      * @returns {UADataType|null}
      */
     public findDataType(dataTypeName: string): UADataType | null {
-        assert(typeof dataTypeName === "string");
-        assert(this._dataTypeMap, "internal error : _dataTypeMap is missing");
-        const dataType = this._dataTypeMap[dataTypeName];
-        return dataType ? dataType : null;
+        return this._dataTypeMap.get(dataTypeName) || null;
     }
 
     /**
@@ -293,9 +309,7 @@ export class UANamespace implements NamespacePublic {
      * @returns  {ReferenceType|null}
      */
     public findReferenceType(referenceTypeName: string): UAReferenceType | null {
-        assert(typeof referenceTypeName === "string");
-        const referenceType = this._referenceTypeMap[referenceTypeName];
-        return referenceType ? referenceType : null;
+        return this._referenceTypeMap.get(referenceTypeName) || null;
     }
 
     /**
@@ -306,7 +320,7 @@ export class UANamespace implements NamespacePublic {
      */
     public findReferenceTypeFromInverseName(inverseName: string): UAReferenceType | null {
         assert(typeof inverseName === "string");
-        const node = this._referenceTypeMapInv[inverseName];
+        const node = this._referenceTypeMapInv.get(inverseName);
         assert(!node || (node.nodeClass === NodeClass.ReferenceType && node.inverseName.text === inverseName));
         return node ? node : null;
     }
@@ -321,11 +335,11 @@ export class UANamespace implements NamespacePublic {
         assert(typeof alias_name === "string");
         assert(nodeId instanceof NodeId);
         assert(nodeId.namespace === this.index);
-        this._aliases[alias_name] = nodeId;
+        this._aliases.set(alias_name, nodeId);
     }
 
     public resolveAlias(name: string): NodeId | null {
-        return this._aliases[name] || null;
+        return this._aliases.get(name) || null;
     }
 
     /**
@@ -346,10 +360,7 @@ export class UANamespace implements NamespacePublic {
         assert(!options.hasOwnProperty("dataType"), "an objectType should not have a dataType");
         assert(!options.hasOwnProperty("valueRank"), "an objectType should not have a valueRank");
         assert(!options.hasOwnProperty("arrayDimensions"), "an objectType should not have a arrayDimensions");
-        return this._addObjectOrVariableType(
-            options,
-            "BaseObjectType",
-            NodeClass.ObjectType) as UAObjectType;
+        return this._addObjectOrVariableType(options, "BaseObjectType", NodeClass.ObjectType) as UAObjectType;
     }
 
     /**
@@ -368,30 +379,21 @@ export class UANamespace implements NamespacePublic {
      *
      */
     public addVariableType(options: AddVariableTypeOptions): UAVariableTypePublic {
-
         assert(!options.hasOwnProperty("arrayDimension"), "Do you mean ArrayDimensions ?");
 
         // dataType
         options.dataType = options.dataType || "Int32";
         options.dataType = this.addressSpace._coerce_DataType(options.dataType);
 
-        // valueRank
-        options.valueRank = utils.isNullOrUndefined(options.valueRank) ? -1 : options.valueRank;
-        assert(_.isFinite(options.valueRank));
-        assert(typeof options.valueRank === "number");
+        // valueRank/ arrayDimensions
+        verifyRankAndDimensions(options);
 
         // arrayDimensions
-        options.arrayDimensions = options.arrayDimensions || [];
-        assert(_.isArray(options.arrayDimensions) || options.arrayDimensions === null);
-
-        const variableType = this._addObjectOrVariableType(
-            options,
-            "BaseVariableType",
-            NodeClass.VariableType) as UAVariableType;
+        const variableType = this._addObjectOrVariableType(options, "BaseVariableType", NodeClass.VariableType) as UAVariableType;
 
         variableType.dataType = options.dataType;
         variableType.valueRank = options.valueRank || 0;
-        variableType.arrayDimensions = options.arrayDimensions;
+        variableType.arrayDimensions = options.arrayDimensions!;
 
         return variableType as UAVariableTypePublic;
     }
@@ -410,12 +412,10 @@ export class UANamespace implements NamespacePublic {
      * @return UAVariable
      */
     public addVariable(options: AddVariableOptions): UAVariablePublic {
-
         assert(arguments.length === 1, "Invalid arguments AddressSpace#addVariable now takes only one argument.");
         if (options.hasOwnProperty("propertyOf") && options.propertyOf) {
             assert(!options.typeDefinition || options.typeDefinition === "PropertyType");
             options.typeDefinition = options.typeDefinition || "PropertyType";
-
         } else {
             assert(!options.typeDefinition || options.typeDefinition !== "PropertyType");
         }
@@ -423,7 +423,6 @@ export class UANamespace implements NamespacePublic {
     }
 
     public addView(options: AddViewOptions): UAView {
-
         assert(arguments.length === 1, "Namespace#addView expecting a single argument");
         assert(options);
         assert(options.hasOwnProperty("browseName"));
@@ -457,7 +456,6 @@ export class UANamespace implements NamespacePublic {
     }
 
     public addObject(options1: AddObjectOptions): UAObject {
-
         const options: CreateNodeOptions = options1 as CreateNodeOptions;
 
         assert(!options.nodeClass || options.nodeClass === NodeClass.Object);
@@ -484,7 +482,6 @@ export class UANamespace implements NamespacePublic {
      * @return {BaseNode}
      */
     public addFolder(parentFolder: UAObject, options: AddFolderOptions | string): UAObject {
-
         if (typeof options === "string") {
             options = { browseName: options };
         }
@@ -511,7 +508,6 @@ export class UANamespace implements NamespacePublic {
      * @param options.inverseName
      */
     public addReferenceType(options: AddReferenceTypeOptions): UAReferenceType {
-
         const namespace = this;
         const addressSpace = namespace.addressSpace;
 
@@ -520,10 +516,7 @@ export class UANamespace implements NamespacePublic {
         options1.references = options1.references || [];
 
         if (options.subtypeOf) {
-            const subtypeOfNodeId = addressSpace._coerceType(
-                options.subtypeOf,
-                "References",
-                NodeClass.ReferenceType);
+            const subtypeOfNodeId = addressSpace._coerceType(options.subtypeOf, "References", NodeClass.ReferenceType);
 
             assert(subtypeOfNodeId);
             // tslint:disable:no-console
@@ -544,7 +537,6 @@ export class UANamespace implements NamespacePublic {
     /**
      */
     public addMultiStateDiscrete(options: AddMultiStateDiscreteOptions): UAMultiStateDiscretePublic {
-
         const namespace = this;
         const addressSpace = namespace.addressSpace;
         assert(options.hasOwnProperty("enumStrings"));
@@ -556,17 +548,20 @@ export class UANamespace implements NamespacePublic {
         }
         // todo : if options.typeDefinition is specified, check that type is SubTypeOf MultiStateDiscreteType
 
-        options.value = (options.value === undefined) ? 0 : options.value;
+        options.value = options.value === undefined ? 0 : options.value;
 
-        const variable = namespace.addVariable(_.extend(options, {
+        const variable = namespace.addVariable({
+            ...options,
+
             dataType: "UInteger",
             typeDefinition: multiStateDiscreteType.nodeId,
             value: new Variant({
                 dataType: DataType.UInt32,
                 value: options.value
             }),
+
             valueRank: -2
-        })) as UAMultiStateDiscrete;
+        }) as UAMultiStateDiscrete;
         Object.setPrototypeOf(variable, UAMultiStateDiscrete.prototype);
 
         add_dataItem_stuff(variable, options);
@@ -599,7 +594,6 @@ export class UANamespace implements NamespacePublic {
         assert(variable.enumStrings.browseName.toString() === "EnumStrings");
 
         return variable;
-
     }
 
     /**
@@ -645,12 +639,10 @@ export class UANamespace implements NamespacePublic {
      * @internal
      */
     public createNode(options: CreateNodeOptions): BaseNode {
-
-        let node: BaseNode = null as any as BaseNode;
+        let node: BaseNode = (null as any) as BaseNode;
 
         const addressSpace = this.addressSpace;
         addressSpace.modelChangeTransaction(() => {
-
             assert(isNonEmptyQualifiedName(options.browseName));
             // xx assert(options.hasOwnProperty("browseName") && options.browseName.length > 0);
 
@@ -677,7 +669,6 @@ export class UANamespace implements NamespacePublic {
             _handle_node_version(node, options);
 
             _handle_model_change_event(node);
-
         });
         return node;
     }
@@ -691,7 +682,6 @@ export class UANamespace implements NamespacePublic {
      *
      */
     public deleteNode(nodeOrNodeId: NodeId | BaseNode): void {
-
         let node: BaseNode | null = null;
         let nodeId: NodeId = NodeId.nullNodeId;
         if (nodeOrNodeId instanceof NodeId) {
@@ -738,9 +728,15 @@ export class UANamespace implements NamespacePublic {
             // TODO: shall we delete nodes pointed by "Organizes" links here ?
             const subfolders = node.findReferences("Organizes", true);
 
-            for (const r of components) { deleteNodePointedByReference(r); }
-            for (const r of properties) { deleteNodePointedByReference(r); }
-            for (const r of subfolders) { deleteNodePointedByReference(r); }
+            for (const r of components) {
+                deleteNodePointedByReference(r);
+            }
+            for (const r of properties) {
+                deleteNodePointedByReference(r);
+            }
+            for (const r of subfolders) {
+                deleteNodePointedByReference(r);
+            }
 
             _handle_delete_node_model_change_event(node);
 
@@ -748,7 +744,6 @@ export class UANamespace implements NamespacePublic {
 
             // delete nodes from global index
             const namespace = addressSpace.getNamespace(node.nodeId.namespace);
-            assert(namespace === this);
             namespace._deleteNode(node);
         });
     }
@@ -756,19 +751,16 @@ export class UANamespace implements NamespacePublic {
     /**
      * @internals
      */
-    public getStandardsNodeIds(
-
-    ): { referenceTypeIds: { [key: string]: string }, objectTypeIds: { [key: string]: string } } {
-
+    public getStandardsNodeIds(): { referenceTypeIds: { [key: string]: string }; objectTypeIds: { [key: string]: string } } {
         const standardNodeIds = {
             objectTypeIds: {} as { [key: string]: string },
-            referenceTypeIds: {} as { [key: string]: string },
+            referenceTypeIds: {} as { [key: string]: string }
         };
 
-        for (const referenceType of _.values(this._referenceTypeMap)) {
+        for (const referenceType of this._referenceTypeMap.values()) {
             standardNodeIds.referenceTypeIds[referenceType!.browseName!.name!] = referenceType.nodeId.toString();
         }
-        for (const objectType of _.values(this._objectTypeMap)) {
+        for (const objectType of this._objectTypeMap.values()) {
             standardNodeIds.objectTypeIds[objectType!.browseName!.name!] = objectType.nodeId.toString();
         }
         return standardNodeIds;
@@ -818,7 +810,6 @@ export class UANamespace implements NamespacePublic {
      * @return {UAVariable}
      */
     public addDataItem(options: AddDataItemOptions): UADataItem {
-
         const namespace = this;
         const addressSpace = namespace.addressSpace;
         const dataType = options.dataType || "Number";
@@ -827,10 +818,11 @@ export class UANamespace implements NamespacePublic {
         if (!dataItemType) {
             throw new Error("Cannot find DataItemType");
         }
-        const variable = namespace.addVariable(_.extend(options, {
+        const variable = namespace.addVariable({
+            ...options,
             dataType,
             typeDefinition: dataItemType.nodeId
-        })) as UAVariable;
+        }) as UAVariable;
 
         add_dataItem_stuff(variable, options);
 
@@ -843,7 +835,7 @@ export class UANamespace implements NamespacePublic {
      * @method addAnalogDataItem
      *
      * AnalogDataItem DataItems that represent continuously-variable physical quantities ( e.g., length, temperature),
-     * incontrast to the digital representation of data in discrete  items
+     * in contrast to the digital representation of data in discrete  items
      * NOTE Typical examples are the values provided by temperature sensors or pressure sensors. OPC UA defines a
      * specific UAVariableType to identify an AnalogItem. Properties describe the possible ranges of  AnalogItems.
      *
@@ -886,7 +878,6 @@ export class UANamespace implements NamespacePublic {
      * @return {UAVariable}
      */
     public addAnalogDataItem(options: AddAnalogDataItemOptions): UAAnalogItem {
-
         const namespace = this;
         const addressSpace = namespace.addressSpace;
 
@@ -900,12 +891,7 @@ export class UANamespace implements NamespacePublic {
             throw new Error("expecting AnalogItemType to be defined , check nodeset xml file");
         }
 
-        let clone_options = _.clone(options) as AddVariableOptions;
-
-        clone_options = _.extend(clone_options, {
-            dataType,
-            typeDefinition: analogItemType.nodeId
-        });
+        const clone_options = { ...options, dataType, typeDefinition: analogItemType.nodeId } as AddVariableOptions;
 
         const variable = namespace.addVariable(clone_options) as UAVariable;
 
@@ -931,7 +917,7 @@ export class UANamespace implements NamespacePublic {
         // use as automatically scaling a bar graph display
         // Sensor or instrument failure or deactivation can result in a return ed item value which is actually
         // outside  of  this range. Client software must be prepared to deal with this   possibility. Similarly a client
-        // may attempt to write a value that is outside  of  this range back to the server. The exact behaviour
+        // may attempt to write a value that is outside  of  this range back to the server. The exact behavior
         // (accept, reject, clamp, etc.) in this case is server - dependent. However ,   in general servers  shall  be
         // prepared to handle this.
         //     Example:    EURange ::= {-200.0,1400.0}
@@ -944,7 +930,8 @@ export class UANamespace implements NamespacePublic {
             propertyOf: variable,
             typeDefinition: "PropertyType",
             value: new Variant({
-                dataType: DataType.ExtensionObject, value: new Range(options.engineeringUnitsRange)
+                dataType: DataType.ExtensionObject,
+                value: new Range(options.engineeringUnitsRange)
             })
         }) as UAVariable;
 
@@ -954,7 +941,6 @@ export class UANamespace implements NamespacePublic {
         euRange.on("value_changed", handler);
 
         if (options.hasOwnProperty("instrumentRange")) {
-
             const instrumentRange = namespace.addVariable({
                 accessLevel: "CurrentRead | CurrentWrite",
                 browseName: { name: "InstrumentRange", namespaceIndex: 0 },
@@ -964,16 +950,15 @@ export class UANamespace implements NamespacePublic {
                 propertyOf: variable,
                 typeDefinition: "PropertyType",
                 value: new Variant({
-                    dataType: DataType.ExtensionObject, value: new Range(options.instrumentRange)
+                    dataType: DataType.ExtensionObject,
+                    value: new Range(options.instrumentRange)
                 })
             });
 
             instrumentRange.on("value_changed", handler);
-
         }
 
         if (options.hasOwnProperty("engineeringUnits")) {
-
             const engineeringUnits = new EUInformation(options.engineeringUnits);
             assert(engineeringUnits instanceof EUInformation, "expecting engineering units");
 
@@ -989,18 +974,17 @@ export class UANamespace implements NamespacePublic {
                 propertyOf: variable,
                 typeDefinition: "PropertyType",
                 value: new Variant({
-                    dataType: DataType.ExtensionObject, value: engineeringUnits
+                    dataType: DataType.ExtensionObject,
+                    value: engineeringUnits
                 })
             });
 
             eu.on("value_changed", handler);
-
         }
 
         variable.install_extra_properties();
 
         return variable as UAAnalogItem;
-
     }
 
     /**
@@ -1048,7 +1032,6 @@ export class UANamespace implements NamespacePublic {
      *      });
      */
     public addMultiStateValueDiscrete(options: AddMultiStateValueDiscreteOptions): UAMultiStateValueDiscrete {
-
         assert(options.hasOwnProperty("enumValues"));
         assert(!options.hasOwnProperty("ValuePrecision"));
 
@@ -1070,15 +1053,15 @@ export class UANamespace implements NamespacePublic {
             options.value = enumValues[0].value; // Int64
         }
 
-        let cloned_options = _.clone(options) as AddVariableOptions;
-        cloned_options = _.extend(cloned_options, {
+        const cloned_options = {
+            ...options,
             dataType: "Number",
             typeDefinition: multiStateValueDiscreteType.nodeId,
             // valueRank:
             // note : OPCUA Spec 1.03 specifies -1:Scalar (part 8 page 8) but nodeset file specifies -2:Any
             value: new Variant({ dataType: DataType.UInt32, value: options.value }),
             valueRank: -1 // -1 : Scalar
-        });
+        };
 
         const variable = namespace.addVariable(cloned_options) as UAMultiStateValueDiscrete;
 
@@ -1108,7 +1091,7 @@ export class UANamespace implements NamespacePublic {
             modellingRule: options.modellingRule ? "Mandatory" : undefined,
             propertyOf: variable,
             typeDefinition: "PropertyType",
-            userAccessLevel: "CurrentRead",
+            userAccessLevel: "CurrentRead"
             // value: valueAsText
         });
 
@@ -1120,7 +1103,6 @@ export class UANamespace implements NamespacePublic {
         assert(variable.enumValues.browseName.toString() === "EnumValues");
         assert(variable.valueAsText.browseName.toString() === "ValueAsText");
         return variable;
-
     }
 
     // -
@@ -1154,13 +1136,9 @@ export class UANamespace implements NamespacePublic {
      * @param options.value
      */
     public addYArrayItem(options: AddYArrayItemOptions): YArrayItemVariable {
-
-        assert(options.hasOwnProperty("engineeringUnitsRange"),
-            "expecting engineeringUnitsRange");
-        assert(options.hasOwnProperty("axisScaleType"),
-            "expecting axisScaleType");
-        assert(_.isObject(options.xAxisDefinition),
-            "expecting a xAxisDefinition");
+        assert(options.hasOwnProperty("engineeringUnitsRange"), "expecting engineeringUnitsRange");
+        assert(options.hasOwnProperty("axisScaleType"), "expecting axisScaleType");
+        assert(options.xAxisDefinition !== null && typeof options.xAxisDefinition === "object", "expecting a xAxisDefinition");
 
         const addressSpace = this.addressSpace;
 
@@ -1190,28 +1168,43 @@ export class UANamespace implements NamespacePublic {
 
         variable.setValueFromSource(options.value as Variant, StatusCodes.Good);
 
-        variable.euRange.setValueFromSource(new Variant({
-            dataType: DataType.ExtensionObject, value: new Range(options.engineeringUnitsRange)
-        }));
+        variable.euRange.setValueFromSource(
+            new Variant({
+                dataType: DataType.ExtensionObject,
+                value: new Range(options.engineeringUnitsRange)
+            })
+        );
 
         if (options.hasOwnProperty("instrumentRange")) {
-            variable.instrumentRange.setValueFromSource(new Variant({
-                dataType: DataType.ExtensionObject, value: new Range(options.instrumentRange)
-            }));
+            variable.instrumentRange.setValueFromSource(
+                new Variant({
+                    dataType: DataType.ExtensionObject,
+                    value: new Range(options.instrumentRange)
+                })
+            );
         }
 
-        variable.title.setValueFromSource(new Variant({
-            dataType: DataType.LocalizedText, value: coerceLocalizedText(options.title || "")
-        }));
+        variable.title.setValueFromSource(
+            new Variant({
+                dataType: DataType.LocalizedText,
+                value: coerceLocalizedText(options.title || "")
+            })
+        );
 
         // Linear/Log/Ln
-        variable.axisScaleType.setValueFromSource(new Variant({
-            dataType: DataType.Int32, value: coerceAxisScale(options.axisScaleType)
-        }));
+        variable.axisScaleType.setValueFromSource(
+            new Variant({
+                dataType: DataType.Int32,
+                value: coerceAxisScale(options.axisScaleType)
+            })
+        );
 
-        variable.xAxisDefinition.setValueFromSource(new Variant({
-            dataType: DataType.ExtensionObject, value: new AxisInformation(options.xAxisDefinition)
-        }));
+        variable.xAxisDefinition.setValueFromSource(
+            new Variant({
+                dataType: DataType.ExtensionObject,
+                value: new AxisInformation(options.xAxisDefinition)
+            })
+        );
 
         return variable;
     }
@@ -1229,14 +1222,16 @@ export class UANamespace implements NamespacePublic {
      * @return {Object}
      */
     public addMethod(parentObject: UAObject, options: AddMethodOptions): UAMethod {
-
         const addressSpace = this.addressSpace;
 
-        assert(_.isObject(parentObject) && parentObject instanceof BaseNode, "expecting a valid parent object");
+        assert(
+            parentObject !== null && typeof parentObject === "object" && parentObject instanceof BaseNode,
+            "expecting a valid parent object"
+        );
 
         assert(options.hasOwnProperty("browseName"));
-        assert(!options.hasOwnProperty("inputArguments") || _.isArray(options.inputArguments));
-        assert(!options.hasOwnProperty("outputArguments") || _.isArray(options.outputArguments));
+        assert(!options.hasOwnProperty("inputArguments") || Array.isArray(options.inputArguments));
+        assert(!options.hasOwnProperty("outputArguments") || Array.isArray(options.outputArguments));
 
         options.componentOf = parentObject;
 
@@ -1260,7 +1255,9 @@ export class UANamespace implements NamespacePublic {
                 dataType: nodeId_ArgumentDataType,
                 description:
                     "the definition of the input argument of method " +
-                    parentObject.browseName.toString() + "." + method.browseName.toString(),
+                    parentObject.browseName.toString() +
+                    "." +
+                    method.browseName.toString(),
                 minimumSamplingInterval: -1,
                 modellingRule: "Mandatory",
                 propertyOf: method,
@@ -1271,12 +1268,11 @@ export class UANamespace implements NamespacePublic {
             inputArguments.setValueFromSource(_inputArgs);
             assert(inputArguments.typeDefinition.toString() === propertyTypeId.toString());
             // xx console.log("xxxx propertyTypeId = ", propertyTypeId, outputArguments.hasTypeDefinition);
-            assert(_.isArray(inputArguments.arrayDimensions));
-
+            assert(Array.isArray(inputArguments.arrayDimensions));
         }
 
         if (options.outputArguments) {
-            const _ouputArgs = new Variant({
+            const _outputArgs = new Variant({
                 arrayType: VariantArrayType.Array,
                 dataType: DataType.ExtensionObject,
                 value: options.outputArguments.map((opts) => new Argument(opts))
@@ -1284,22 +1280,25 @@ export class UANamespace implements NamespacePublic {
 
             const outputArguments = this.addVariable({
                 accessLevel: "CurrentRead",
-                arrayDimensions: [_ouputArgs.value.length],
+                arrayDimensions: [_outputArgs.value.length],
                 browseName: { name: "OutputArguments", namespaceIndex: 0 },
                 dataType: nodeId_ArgumentDataType,
-                description: "the definition of the output arguments of method " +
-                    parentObject.browseName.toString() + "." + method.browseName.toString(),
+                description:
+                    "the definition of the output arguments of method " +
+                    parentObject.browseName.toString() +
+                    "." +
+                    method.browseName.toString(),
                 minimumSamplingInterval: -1,
                 modellingRule: "Mandatory",
                 propertyOf: method,
                 typeDefinition: "PropertyType",
-                value: _ouputArgs,
+                value: _outputArgs,
                 valueRank: 1
             });
-            outputArguments.setValueFromSource(_ouputArgs);
+            outputArguments.setValueFromSource(_outputArgs);
 
             assert(outputArguments.typeDefinition.toString() === propertyTypeId.toString());
-            assert(_.isArray(outputArguments.arrayDimensions));
+            assert(Array.isArray(outputArguments.arrayDimensions));
         }
 
         // verifying post-conditions
@@ -1321,7 +1320,6 @@ export class UANamespace implements NamespacePublic {
      * @param options.enumeration[].description {String|LocalizedText|null}
      */
     public addEnumerationType(options: AddEnumerationTypeOptions): UADataType {
-
         // Release 1.03 OPC Unified Architecture, Part 3 - page 34
         // Enumeration DataTypes are DataTypes that represent discrete sets of named values.
         // Enumerations are always encoded as Int32 on the wire as defined in Part 6. Enumeration
@@ -1376,17 +1374,15 @@ export class UANamespace implements NamespacePublic {
         // other usages where the actual value might be between 8 and 64 Bit.
         const self = this;
 
-        assert(_.isString(options.browseName));
-        assert(_.isArray(options.enumeration));
+        assert(typeof options.browseName === "string");
+        assert(Array.isArray(options.enumeration));
 
         const addressSpace = self.addressSpace;
         let definition;
         const enumerationType = addressSpace.findDataType("Enumeration")!;
         assert(enumerationType.nodeId instanceof NodeId);
         assert(enumerationType instanceof UADataType);
-        const references = [
-            { referenceType: "HasSubtype", isForward: false, nodeId: enumerationType.nodeId }
-        ];
+        const references = [{ referenceType: "HasSubtype", isForward: false, nodeId: enumerationType.nodeId }];
         const opts = {
             browseName: options.browseName,
             definition,
@@ -1401,8 +1397,7 @@ export class UANamespace implements NamespacePublic {
 
         enumType.propagate_back_references();
 
-        if (_.isString(options.enumeration[0])) {
-
+        if (typeof options.enumeration[0] === "string") {
             const enumeration = options.enumeration as string[];
             // enumeration is a array of string
             definition = enumeration.map((str: string, index: number) => coerceLocalizedText(str));
@@ -1434,16 +1429,17 @@ export class UANamespace implements NamespacePublic {
             //   OptionSet, the corresponding Value in the base type contains the number of the bit associated
             //   with the field. The EnumField is formally defined in Table 37.
             (enumType as any).$definition = new EnumDefinition({
-                fields: enumeration.map((x: string, index: number) => new EnumField({
-                    name: x,
+                fields: enumeration.map(
+                    (x: string, index: number) =>
+                        new EnumField({
+                            name: x,
 
-                    description: coerceLocalizedText(x),
-                    value: coerceInt64(index)
-                }))
+                            description: coerceLocalizedText(x),
+                            value: coerceInt64(index)
+                        })
+                )
             });
-
         } else {
-
             const enumeration = options.enumeration as EnumerationItem[];
             // construct the definition object
             definition = enumeration.map((enumItem: EnumerationItem) => {
@@ -1472,12 +1468,15 @@ export class UANamespace implements NamespacePublic {
             assert(enumValues.browseName.toString() === "EnumValues");
 
             (enumType as any).$definition = new EnumDefinition({
-                fields: enumeration.map((x: EnumerationItem, index: number) => new EnumField({
-                    name: x.displayName.toString(),
+                fields: enumeration.map(
+                    (x: EnumerationItem, index: number) =>
+                        new EnumField({
+                            name: x.displayName.toString(),
 
-                    description: x.description || "",
-                    value: coerceInt64(x.value)
-                }))
+                            description: x.description || "",
+                            value: coerceInt64(x.value)
+                        })
+                )
             });
         }
         // now create the string value property
@@ -1525,15 +1524,14 @@ export class UANamespace implements NamespacePublic {
         stateNumber: number,
         isInitialState: boolean
     ): State | InitialState {
-
         const namespace = this;
         const addressSpace = namespace.addressSpace;
 
         isInitialState = !!isInitialState;
 
         assert(component instanceof UAObjectType);
-        assert(_.isString(stateName));
-        assert(_.isBoolean(isInitialState));
+        assert(typeof stateName === "string");
+        assert(typeof isInitialState === "boolean");
 
         const initialStateType = addressSpace.findObjectType("InitialStateType")!;
         const stateType = addressSpace.findObjectType("StateType")!;
@@ -1560,19 +1558,14 @@ export class UANamespace implements NamespacePublic {
 
     /**
      */
-    public addTransition(
-        component: StateMachine,
-        fromState: string,
-        toState: string,
-        transitionNumber: number
-    ): Transition {
+    public addTransition(component: StateMachine, fromState: string, toState: string, transitionNumber: number): Transition {
         const namespace = this;
         const addressSpace = namespace.addressSpace;
 
         assert(component instanceof UAObjectType);
-        assert(_.isString(fromState));
-        assert(_.isString(toState));
-        assert(_.isFinite(transitionNumber));
+        assert(typeof fromState === "string");
+        assert(typeof toState === "string");
+        assert(isFinite(transitionNumber));
 
         const fromStateNode = component.getComponentByName(fromState, component.nodeId.namespace);
 
@@ -1611,14 +1604,14 @@ export class UANamespace implements NamespacePublic {
         });
 
         transition.transitionNumber.setValueFromSource({
-            dataType: DataType.UInt32, value: transitionNumber
+            dataType: DataType.UInt32,
+            value: transitionNumber
         });
 
         return transition as Transition;
     }
 
     public addTwoStateVariable(options: AddTwoStateVariableOptions): UATwoStateVariable {
-
         const namespace = this;
         const addressSpace = namespace.addressSpace;
 
@@ -1708,7 +1701,8 @@ export class UANamespace implements NamespacePublic {
             propertyOf: variable,
             typeDefinition: "PropertyType",
             value: new Variant({
-                dataType: DataType.LocalizedText, value: coerceLocalizedText(options.trueState || "ON")
+                dataType: DataType.LocalizedText,
+                value: coerceLocalizedText(options.trueState || "ON")
             })
         });
 
@@ -1721,7 +1715,8 @@ export class UANamespace implements NamespacePublic {
             propertyOf: variable,
             typeDefinition: "PropertyType",
             value: new Variant({
-                dataType: DataType.LocalizedText, value: coerceLocalizedText(options.falseState || "OFF")
+                dataType: DataType.LocalizedText,
+                value: coerceLocalizedText(options.falseState || "OFF")
             })
         });
 
@@ -1733,63 +1728,59 @@ export class UANamespace implements NamespacePublic {
     }
 
     // --- Alarms & Conditions -------------------------------------------------
-    public instantiateCondition(
-        conditionTypeId: UAEventType | NodeId | string, options: any, data: any
-    ): UAConditionBase {
+    public instantiateCondition(conditionTypeId: UAEventType | NodeId | string, options: any, data: any): UAConditionBase {
         return UAConditionBase.instantiate(this, conditionTypeId, options, data);
     }
 
     public instantiateAcknowledgeableCondition(
-        conditionTypeId: UAEventType | NodeId | string, options: any, data: any
+        conditionTypeId: UAEventType | NodeId | string,
+        options: any,
+        data: any
     ): UAAcknowledgeableConditionBase {
         // @ts-ignore
         return UAAcknowledgeableConditionBase.instantiate(this, conditionTypeId, options, data);
     }
 
     public instantiateAlarmCondition(
-        alarmConditionTypeId: UAEventType | NodeId | string, options: any, data: any
+        alarmConditionTypeId: UAEventType | NodeId | string,
+        options: any,
+        data: any
     ): UAAlarmConditionBase {
         return UAAlarmConditionBase.instantiate(this, alarmConditionTypeId, options, data);
     }
 
-    public instantiateLimitAlarm(
-        limitAlarmTypeId: UAEventType | NodeId | string, options: any, data: any
-    ): UALimitAlarm {
+    public instantiateLimitAlarm(limitAlarmTypeId: UAEventType | NodeId | string, options: any, data: any): UALimitAlarm {
         return UALimitAlarm.instantiate(this, limitAlarmTypeId, options, data);
     }
 
     public instantiateExclusiveLimitAlarm(
-        exclusiveLimitAlarmTypeId: UAEventType | NodeId | string, options: any, data: any
+        exclusiveLimitAlarmTypeId: UAEventType | NodeId | string,
+        options: any,
+        data: any
     ): UAExclusiveLimitAlarm {
         return UAExclusiveLimitAlarm.instantiate(this, exclusiveLimitAlarmTypeId, options, data);
     }
 
-    public instantiateExclusiveDeviationAlarm(
-        options: any, data: any
-    ): UAExclusiveDeviationAlarm {
+    public instantiateExclusiveDeviationAlarm(options: any, data: any): UAExclusiveDeviationAlarm {
         return UAExclusiveDeviationAlarm.instantiate(this, "ExclusiveDeviationAlarmType", options, data);
     }
 
     public instantiateNonExclusiveLimitAlarm(
-        nonExclusiveLimitAlarmTypeId: UAEventType | NodeId | string, options: any, data: any
+        nonExclusiveLimitAlarmTypeId: UAEventType | NodeId | string,
+        options: any,
+        data: any
     ): UANonExclusiveLimitAlarm {
         return UANonExclusiveLimitAlarm.instantiate(this, nonExclusiveLimitAlarmTypeId, options, data);
     }
 
-    public instantiateNonExclusiveDeviationAlarm(
-        options: any, data: any
-    ): UANonExclusiveDeviationAlarm {
+    public instantiateNonExclusiveDeviationAlarm(options: any, data: any): UANonExclusiveDeviationAlarm {
         return UANonExclusiveDeviationAlarm.instantiate(this, "NonExclusiveDeviationAlarmType", options, data);
     }
 
-    public instantiateDiscreteAlarm(
-        discreteAlarmType: UAEventType | NodeId | string, options: any, data: any
-    ): UADiscreteAlarm {
+    public instantiateDiscreteAlarm(discreteAlarmType: UAEventType | NodeId | string, options: any, data: any): UADiscreteAlarm {
         return UADiscreteAlarm.instantiate(this, discreteAlarmType, options, data);
     }
-    public instantiateOffNormalAlarm(
-        options: any, data: any
-    ): UAOffNormalAlarm {
+    public instantiateOffNormalAlarm(options: any, data: any): UAOffNormalAlarm {
         return UAOffNormalAlarm.instantiate(this, "OffNormalAlarmType", options, data);
     }
 
@@ -1799,50 +1790,61 @@ export class UANamespace implements NamespacePublic {
     }
 
     public _register(node: BaseNode): void {
-
-        assert(node instanceof BaseNode,
-            "Expecting a instance of BaseNode in _register");
+        assert(node instanceof BaseNode, "Expecting a instance of BaseNode in _register");
         assert(node.nodeId instanceof NodeId, "Expecting a NodeId");
         if (node.nodeId.namespace !== this.index) {
             throw new Error("node must belongs to this namespace");
         }
-        assert(node.nodeId.namespace === this.index,
-            "node must belongs to this namespace");
+        assert(node.nodeId.namespace === this.index, "node must belongs to this namespace");
         assert(node.hasOwnProperty("browseName"), "Node must have a browseName");
         // assert(node.browseName.namespaceIndex === this.index,"browseName must belongs to this namespace");
 
-        const hashKey = node.nodeId.toString();
-        if (this._nodeid_index.hasOwnProperty(hashKey)) {
-            throw new Error("node " + node.browseName.toString() + "nodeId = " +
-                node.nodeId.displayText() + " already registered " + node.nodeId.toString()
-                + "\n" +
-                " in namespace " + this.namespaceUri + " index = " + this.index
-                + "\n" +
-                " browseName = " + node.browseName.toString());
+        const hashKey = _makeHashKey(node.nodeId);
+
+        // istanbul ignore next
+        if (this._nodeid_index.has(hashKey)) {
+            throw new Error(
+                "node " +
+                    node.browseName.toString() +
+                    "nodeId = " +
+                    node.nodeId.displayText() +
+                    " already registered " +
+                    node.nodeId.toString() +
+                    "\n" +
+                    " in namespace " +
+                    this.namespaceUri +
+                    " index = " +
+                    this.index +
+                    "\n" +
+                    " browseName = " +
+                    node.browseName.toString()
+            );
         }
 
-        this._nodeid_index[hashKey] = node;
+        this._nodeid_index.set(hashKey, node);
 
-        if (node.nodeClass === NodeClass.ObjectType) {
-            this._registerObjectType(node as UAObjectType);
-        } else if (node.nodeClass === NodeClass.VariableType) {
-            this._registerVariableType(node as UAVariableType);
-        } else if (node.nodeClass === NodeClass.ReferenceType) {
-            this._registerReferenceType(node as UAReferenceType);
-        } else if (node.nodeClass === NodeClass.DataType) {
-            this._registerDataType(node as UADataType);
-        } else if (node.nodeClass === NodeClass.Object) {
-            //
-        } else if (node.nodeClass === NodeClass.Variable) {
-            //
-        } else if (node.nodeClass === NodeClass.Method) {
-            //
-        } else if (node.nodeClass === NodeClass.View) {
-            //
-        } else {
-            // tslint:disable-next-line:no-console
-            console.log("Invalid class Name", node.nodeClass);
-            throw new Error("Invalid class name specified");
+        switch (node.nodeClass) {
+            case NodeClass.ObjectType:
+                this._registerObjectType(node as UAObjectType);
+                break;
+            case NodeClass.VariableType:
+                this._registerVariableType(node as UAVariableType);
+                break;
+            case NodeClass.ReferenceType:
+                this._registerReferenceType(node as UAReferenceType);
+                break;
+            case NodeClass.DataType:
+                this._registerDataType(node as UADataType);
+                break;
+            case NodeClass.Object:
+            case NodeClass.Variable:
+            case NodeClass.Method:
+            case NodeClass.View:
+                break;
+            default:
+                // tslint:disable-next-line:no-console
+                console.log("Invalid class Name", node.nodeClass);
+                throw new Error("Invalid class name specified");
         }
     }
 
@@ -1863,47 +1865,55 @@ export class UANamespace implements NamespacePublic {
      * @return {BaseNode}
      */
     public _createNode(options: CreateNodeOptions): BaseNode {
-
         assert(options.nodeClass !== undefined, " options.nodeClass must be specified");
         assert(options.browseName, "options.browseName must be specified");
         // xx assert(options.browseName instanceof QualifiedName
         // ? (options.browseName.namespaceIndex === this.index): true,
-        // "Expecting browseName to have the same namepsaceIndex as the namespace");
+        // "Expecting browseName to have the same namespaceIndex as the namespace");
 
         options.description = coerceLocalizedText(options.description);
 
         // browseName adjustment
         if (typeof options.browseName === "string") {
-
             const match = options.browseName.match(regExpNamespaceDotBrowseName);
             if (match) {
                 const correctedName = match[1];
                 // the application is using an old scheme
-                console.log(chalk.green("Warning : since node-opcua 0.4.2 " +
-                    "namespace index should not be prepended to the browse name anymore"));
+                console.log(
+                    chalk.green(
+                        "Warning : since node-opcua 0.4.2 " + "namespace index should not be prepended to the browse name anymore"
+                    )
+                );
                 console.log("   ", options.browseName, " will be replaced with ", correctedName);
                 console.log(" Please update your code");
 
                 const indexVerif = parseInt(match[0], 10);
                 if (indexVerif !== this.index) {
-                    console.log(chalk.red.bold("Error: namespace index used at the front of the browseName " +
-                        indexVerif + " do not match the index of the current namespace (" + this.index + ")"));
-                    console.log(" Please fix your code so that the created node is inserted in the correct namespace," +
-                        " please refer to the NodeOPCUA documentation");
+                    console.log(
+                        chalk.red.bold(
+                            "Error: namespace index used at the front of the browseName " +
+                                indexVerif +
+                                " do not match the index of the current namespace (" +
+                                this.index +
+                                ")"
+                        )
+                    );
+                    console.log(
+                        " Please fix your code so that the created node is inserted in the correct namespace," +
+                            " please refer to the NodeOPCUA documentation"
+                    );
                 }
             }
 
             options.browseName = new QualifiedName({ name: options.browseName, namespaceIndex: this.index });
-
         } else if (!(options.browseName instanceof QualifiedName)) {
             options.browseName = new QualifiedName(options.browseName);
         }
-        assert(options.browseName instanceof QualifiedName,
-            "Expecting options.browseName to be instanceof  QualifiedName ");
+        assert(options.browseName instanceof QualifiedName, "Expecting options.browseName to be instanceof  QualifiedName ");
 
         // ------------- set display name
         if (!options.displayName) {
-            assert(typeof (options.browseName.name) === "string");
+            assert(typeof options.browseName.name === "string");
             options.displayName = options.browseName.name;
         }
 
@@ -1913,7 +1923,7 @@ export class UANamespace implements NamespacePublic {
         assert(options.nodeId instanceof NodeId);
 
         // assert(options.browseName.namespaceIndex === this.index,"Expecting browseName to have
-        // the same namepsaceIndex as the namespace");
+        // the same namespaceIndex as the namespace");
 
         const Constructor = _constructors_map[NodeClass[options.nodeClass]];
 
@@ -1923,14 +1933,12 @@ export class UANamespace implements NamespacePublic {
 
         options.addressSpace = this.addressSpace;
         const node = new Constructor(options);
-
-        assert(node.nodeId);
-        assert(node.nodeId instanceof NodeId);
         this._register(node);
 
         // object shall now be registered
+        // istanbul ignore next
         if (doDebug) {
-            assert(_.isObject(this.findNode(node.nodeId)));
+            assert(this.findNode(node.nodeId) !== null && typeof this.findNode(node.nodeId) === "object");
         }
         return node;
     }
@@ -1938,31 +1946,30 @@ export class UANamespace implements NamespacePublic {
     public _deleteNode(node: BaseNode): void {
         assert(node instanceof BaseNode);
 
-        const indexName = node.nodeId.toString();
+        const hashKey = _makeHashKey(node.nodeId);
         // istanbul ignore next
-        if (!this._nodeid_index.hasOwnProperty(indexName)) {
-            throw new Error("deleteNode : nodeId " +
-                node.nodeId.displayText() + " is not registered " + node.nodeId.toString());
+        if (!this._nodeid_index.has(hashKey)) {
+            throw new Error("deleteNode : nodeId " + node.nodeId.displayText() + " is not registered " + node.nodeId.toString());
         }
-        if (node.nodeClass === NodeClass.ObjectType) {
-            this._unregisterObjectType(node as UAObjectType);
-        } else if (node.nodeClass === NodeClass.VariableType) {
-            this._unregisterVariableType(node as UAVariableType);
-        } else if (node.nodeClass === NodeClass.Object) {
-            // etc...
-        } else if (node.nodeClass === NodeClass.Variable) {
-            // etc...
-        } else if (node.nodeClass === NodeClass.Method) {
-            // etc...
-        } else if (node.nodeClass === NodeClass.View) {
-            // etc...
-        } else {
-            // tslint:disable:no-console
-            console.log("Invalid class Name", node.nodeClass);
-            throw new Error("Invalid class name specified");
+        switch (node.nodeClass) {
+            case NodeClass.ObjectType:
+                this._unregisterObjectType(node as UAObjectType);
+                break;
+            case NodeClass.VariableType:
+                this._unregisterVariableType(node as UAVariableType);
+                break;
+            case NodeClass.Object:
+            case NodeClass.Variable:
+            case NodeClass.Method:
+            case NodeClass.View:
+                break;
+            default:
+                // tslint:disable:no-console
+                console.log("Invalid class Name", node.nodeClass);
+                throw new Error("Invalid class name specified");
         }
-        assert(this._nodeid_index[indexName] === node);
-        delete this._nodeid_index[indexName];
+        const deleted = this._nodeid_index.delete(hashKey);
+        assert(deleted);
         node.dispose();
     }
 
@@ -1987,12 +1994,7 @@ export class UANamespace implements NamespacePublic {
         }
         const references: Reference[] = [];
 
-        function process_subtypeOf_options(
-            this: UANamespace,
-            options2: any,
-            references1: AddReferenceOpts[]
-        ) {
-
+        function process_subtypeOf_options(this: UANamespace, options2: any, references1: AddReferenceOpts[]) {
             // check common misspelling mistake
             assert(!options2.subTypeOf, "misspell error : it should be 'subtypeOf' instead");
             if (options2.hasOwnProperty("hasTypeDefinition")) {
@@ -2000,8 +2002,7 @@ export class UANamespace implements NamespacePublic {
             }
             assert(!options2.typeDefinition, " do you mean subtypeOf ?");
 
-            const subtypeOfNodeId = addressSpace._coerceType(
-                options2.subtypeOf, topMostBaseType, nodeClass);
+            const subtypeOfNodeId = addressSpace._coerceType(options2.subtypeOf, topMostBaseType, nodeClass);
 
             assert(subtypeOfNodeId);
             references1.push({
@@ -2050,15 +2051,15 @@ export class UANamespace implements NamespacePublic {
     private _registerObjectType(node: UAObjectType) {
         assert(this.index === node.nodeId.namespace);
         const key = node.browseName.name!;
-        assert(!this._objectTypeMap[key], " UAObjectType already declared");
-        this._objectTypeMap[key] = node;
+        assert(!this._objectTypeMap.has(key), " UAObjectType already declared");
+        this._objectTypeMap.set(key, node);
     }
 
     private _registerVariableType(node: UAVariableType) {
         assert(this.index === node.nodeId.namespace);
         const key = node.browseName.name!;
-        assert(!this._variableTypeMap[key], " UAVariableType already declared");
-        this._variableTypeMap[key] = node;
+        assert(!this._variableTypeMap.has(key), " UAVariableType already declared");
+        this._variableTypeMap.set(key, node);
     }
 
     private _registerReferenceType(node: UAReferenceType) {
@@ -2071,33 +2072,32 @@ export class UANamespace implements NamespacePublic {
             node.inverseName = LocalizedText.coerce({ text: node.browseName.name! })!;
         }
         const key: string = node.browseName.name!;
-        this._referenceTypeMap[key] = node;
-        this._referenceTypeMapInv[node.inverseName.text!] = node;
+        this._referenceTypeMap.set(key, node);
+        this._referenceTypeMapInv.set(node.inverseName.text!, node);
     }
 
     private _registerDataType(node: UADataType) {
         assert(this.index === node.nodeId.namespace);
         const key = node.browseName.name!;
         assert(node.browseName instanceof QualifiedName);
-        assert(!this._dataTypeMap[key], " DataType already declared");
-        this._dataTypeMap[key] = node;
+        assert(!this._dataTypeMap.has(key), " DataType already declared");
+        this._dataTypeMap.set(key, node);
     }
 
     private _unregisterObjectType(node: UAObjectType): void {
         const key = node.browseName.name!;
-        delete this._objectTypeMap[key];
+        this._objectTypeMap.delete(key);
     }
 
     private _unregisterVariableType(node: UAVariableType): void {
         const key = node.browseName.name!;
-        delete this._variableTypeMap[key];
+        this._variableTypeMap.delete(key);
     }
 
     /**
      * @private
      */
     private _addVariable(options: AddVariableOptions2): UAVariablePublic {
-
         const addressSpace = this.addressSpace;
 
         const baseDataVariableType = addressSpace.findVariableType("BaseDataVariableType");
@@ -2125,15 +2125,18 @@ export class UANamespace implements NamespacePublic {
         // ------------------------------------------ DataType
         options.dataType = addressSpace._coerce_DataType(options.dataType!);
 
-        options.valueRank = utils.isNullOrUndefined(options.valueRank) ? -1 : options.valueRank;
-        assert(_.isFinite(options.valueRank));
-        assert(typeof options.valueRank === "number");
+        options.valueRank = utils.isNullOrUndefined(options.valueRank)
+            ? options.arrayDimensions
+                ? options.arrayDimensions.length
+                : -1
+            : options.valueRank;
+        assert(typeof options.valueRank === "number" && isFinite(options.valueRank!));
 
         options.arrayDimensions = options.arrayDimensions || null;
-        assert(_.isArray(options.arrayDimensions) || options.arrayDimensions === null);
+        assert(Array.isArray(options.arrayDimensions) || options.arrayDimensions === null);
         // -----------------------------------------------------
 
-        options.minimumSamplingInterval = (options.minimumSamplingInterval !== undefined) ? +options.minimumSamplingInterval : 0;
+        options.minimumSamplingInterval = options.minimumSamplingInterval !== undefined ? +options.minimumSamplingInterval : 0;
         let references = options.references || ([] as AddReferenceOpts[]);
 
         references = ([] as AddReferenceOpts[]).concat(references, [
@@ -2158,7 +2161,6 @@ export class UANamespace implements NamespacePublic {
      * @private
      */
     private _addMethod(options: any): UAMethod {
-
         const addressSpace = this.addressSpace;
 
         assert(isNonEmptyQualifiedName(options.browseName));
@@ -2212,7 +2214,7 @@ function _coerce_parent(
     value: null | string | BaseNodePublic,
     coerceFunc: (data: string | NodeId | BaseNodePublic) => BaseNodePublic | null
 ): BaseNode | null {
-    assert(_.isFunction(coerceFunc));
+    assert(typeof coerceFunc === "function");
     if (value) {
         if (typeof value === "string") {
             value = coerceFunc.call(addressSpace, value);
@@ -2230,7 +2232,6 @@ function _handle_event_hierarchy_parent(
     references: AddReferenceOpts[],
     options: CreateNodeOptions
 ) {
-
     options.eventSourceOf = _coerce_parent(addressSpace, options.eventSourceOf, addressSpace._coerceNode);
     options.notifierOf = _coerce_parent(addressSpace, options.notifierOf, addressSpace._coerceNode);
     if (options.eventSourceOf) {
@@ -2242,7 +2243,6 @@ function _handle_event_hierarchy_parent(
         });
 
         options.eventNotifier = options.eventNotifier || 1;
-
     } else if (options.notifierOf) {
         assert(!options.eventSourceOf, "eventSourceOf shall not be provided with notifierOf ");
         references.push({
@@ -2253,12 +2253,7 @@ function _handle_event_hierarchy_parent(
     }
 }
 
-export function _handle_hierarchy_parent(
-    addressSpace: AddressSpacePrivate,
-    references: AddReferenceOpts[],
-    options: any
-) {
-
+export function _handle_hierarchy_parent(addressSpace: AddressSpacePrivate, references: AddReferenceOpts[], options: any) {
     options.componentOf = _coerce_parent(addressSpace, options.componentOf, addressSpace._coerceNode);
     options.propertyOf = _coerce_parent(addressSpace, options.propertyOf, addressSpace._coerceNode);
     options.organizedBy = _coerce_parent(addressSpace, options.organizedBy, addressSpace._coerceFolder);
@@ -2268,8 +2263,10 @@ export function _handle_hierarchy_parent(
         assert(!options.propertyOf);
         assert(!options.organizedBy);
         assert(addressSpace.rootFolder.objects, "addressSpace must have a rootFolder.objects folder");
-        assert(options.componentOf.nodeId !== addressSpace.rootFolder.objects.nodeId,
-            "Only Organizes References are used to relate Objects to the 'Objects' standard Object.");
+        assert(
+            options.componentOf.nodeId !== addressSpace.rootFolder.objects.nodeId,
+            "Only Organizes References are used to relate Objects to the 'Objects' standard Object."
+        );
         references.push({
             isForward: false,
             nodeId: options.componentOf.nodeId,
@@ -2280,8 +2277,10 @@ export function _handle_hierarchy_parent(
     if (options.propertyOf) {
         assert(!options.componentOf);
         assert(!options.organizedBy);
-        assert(options.propertyOf.nodeId !== addressSpace.rootFolder.objects.nodeId,
-            "Only Organizes References are used to relate Objects to the 'Objects' standard Object.");
+        assert(
+            options.propertyOf.nodeId !== addressSpace.rootFolder.objects.nodeId,
+            "Only Organizes References are used to relate Objects to the 'Objects' standard Object."
+        );
         references.push({
             isForward: false,
             nodeId: options.propertyOf.nodeId,
@@ -2300,8 +2299,7 @@ export function _handle_hierarchy_parent(
     }
     if (options.encodingOf) {
         // parent must be a DataType
-        assert(options.encodingOf.nodeClass === NodeClass.DataType,
-            "encodingOf must be toward a DataType");
+        assert(options.encodingOf.nodeClass === NodeClass.DataType, "encodingOf must be toward a DataType");
         references.push({
             isForward: false,
             nodeId: options.encodingOf.nodeId,
@@ -2341,11 +2339,7 @@ export function isNonEmptyQualifiedName(browseName?: null | string | QualifiedNa
     return browseName.name!.length > 0;
 }
 
-function _handle_node_version(
-    node: BaseNode,
-    options: any
-) {
-
+function _handle_node_version(node: BaseNode, options: any) {
     assert(options);
     if (options.nodeVersion) {
         assert(node.nodeClass === NodeClass.Variable || node.nodeClass === NodeClass.Object);
@@ -2355,7 +2349,7 @@ function _handle_node_version(
             dataType: "String",
             propertyOf: node
         });
-        const initialValue = _.isString(options.nodeVersion) ? options.nodeVersion : "0";
+        const initialValue = typeof options.nodeVersion === "string" ? options.nodeVersion : "0";
         // xx console.log(" init value =",initialValue);
         nodeVersion.setValueFromSource({ dataType: "String", value: initialValue });
     }

@@ -4,7 +4,6 @@ const createHVACSystem = require("../../test_helpers/hvac_system").createHVACSys
 
 const should = require("should");
 const async = require("async");
-const _ = require("underscore");
 
 
 const opcua = require("node-opcua");
@@ -18,19 +17,19 @@ const DataType = opcua.DataType;
 const UAProxyManager = require("node-opcua-client-proxy").UAProxyManager;
 
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
-describe("testing client Proxy", function () {
+describe("testing client Proxy", function() {
 
-    this.timeout(Math.max(600000,this._timeout));
+    this.timeout(Math.max(600000, this.timeout()));
 
     let server, client, temperatureVariableId, endpointUrl;
 
     let HVAC_on_server = null;
 
     let port = 2000;
-    before(function (done) {
+    before(function(done) {
         port += 1;
 
-        server = build_server_with_temperature_device({port: port}, function (err) {
+        server = build_server_with_temperature_device({ port: port }, function(err) {
 
             if (err) {
                 return done(err);
@@ -44,47 +43,47 @@ describe("testing client Proxy", function () {
         });
     });
 
-    beforeEach(function (done) {
+    beforeEach(function(done) {
         client = OPCUAClient.create();
         done();
     });
 
-    afterEach(function (done) {
+    afterEach(function(done) {
         client = null;
         done();
     });
 
-    after(function (done) {
+    after(function(done) {
         server.shutdown(done);
     });
 
 
-    it("client should expose a nice little handy javascript object that proxies the HVAC UAObject", function (done) {
+    it("client should expose a nice little handy javascript object that proxies the HVAC UAObject", function(done) {
 
         let proxyManager;
-        perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
+        perform_operation_on_client_session(client, endpointUrl, function(session, inner_done) {
 
-            proxyManager= new UAProxyManager(session);
+            proxyManager = new UAProxyManager(session);
             const hvacNodeId = HVAC_on_server;
 
 
             let hvac;
             async.series([
-                function (callback) {
+                function(callback) {
                     proxyManager.start(callback);
                 },
-                function (callback) {
+                function(callback) {
 
-                    proxyManager.getObject(hvacNodeId,function(err,data){
-                        if(!err){
+                    proxyManager.getObject(hvacNodeId, function(err, data) {
+                        if (!err) {
 
                             hvac = data;
                             //xx console.log("xXXXXX",hvac);
 
-                            console.log("Interior temperature",hvac.interiorTemperature.value);
+                            console.log("Interior temperature", hvac.interiorTemperature.value);
 
-                            hvac.interiorTemperature.readValue(function(err,value){
-                                console.log(" Interior temperature updated ...",value.toString());
+                            hvac.interiorTemperature.readValue(function(err, value) {
+                                console.log(" Interior temperature updated ...", value.toString());
                                 callback(err);
                             });
 
@@ -93,113 +92,113 @@ describe("testing client Proxy", function () {
                         callback(err);
                     });
                 },
-                function (callback) {
+                function(callback) {
                     proxyManager.stop(callback);
                 }
 
             ], inner_done);
 
-        },done);
+        }, done);
     });
 
 
-    it("client should expose a nice little handy javascript object that proxies the server UAObject", function (done) {
+    it("client should expose a nice little handy javascript object that proxies the server UAObject", function(done) {
 
         let proxyManager;
-        perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
+        perform_operation_on_client_session(client, endpointUrl, function(session, inner_done) {
 
-            proxyManager= new UAProxyManager(session);
+            proxyManager = new UAProxyManager(session);
 
             const serverNodeId = opcua.coerceNodeId("i=2253");
 
             let serverObject = null;
-            let subscriptionId =-1;
+            let subscriptionId = -1;
 
             async.series([
 
                 // create subscription
-                function (callback) {
+                function(callback) {
 
                     session.createSubscription({
                         requestedPublishingInterval: 100, // Duration
-                        requestedLifetimeCount:     1000, // Counter
-                        requestedMaxKeepAliveCount:   10, // Counter
-                        maxNotificationsPerPublish:   10, // Counter
+                        requestedLifetimeCount: 1000, // Counter
+                        requestedMaxKeepAliveCount: 10, // Counter
+                        maxNotificationsPerPublish: 10, // Counter
                         publishingEnabled: true, // Boolean
                         priority: 14 // Byte
-                    }, function (err, response) {
+                    }, function(err, response) {
 
                         if (!err) {
-                            subscriptionId =response.subscriptionId;
+                            subscriptionId = response.subscriptionId;
                         }
                         callback(err);
                     });
 
                 },
 
-                function (callback) {
+                function(callback) {
                     proxyManager.start(callback);
                 },
 
-                function (callback) {
+                function(callback) {
 
-                    proxyManager.getObject(serverNodeId, function (err, object) {
+                    proxyManager.getObject(serverNodeId, function(err, object) {
                         //xx console.log(object);
                         serverObject = object;
-                        _.isFunction(serverObject.getMonitoredItems).should.eql(true);
+                        (typeof serverObject.getMonitoredItems === "function").should.eql(true);
                         callback(err);
                     });
                 },
 
-                function (callback) {
+                function(callback) {
 
-                    serverObject.serverStatus.currentTime.readValue(function(err,dataValue){
+                    serverObject.serverStatus.currentTime.readValue(function(err, dataValue) {
                         //xx console.log("currentTime = ",dataValue.toString());
                         callback(err);
                     });
                 },
-                function (callback) {
+                function(callback) {
 
-                    serverObject.serverArray.readValue(function(err,dataValue){
+                    serverObject.serverArray.readValue(function(err, dataValue) {
                         //xx console.log("ServerArray = ",dataValue.toString());
                         callback(err);
                     });
                 },
-                function (callback) {
+                function(callback) {
 
-                    serverObject.serverStatus.readValue(function(err,dataValue){
+                    serverObject.serverStatus.readValue(function(err, dataValue) {
                         //xx console.log("serverStatus = ",dataValue.toString());
                         callback(err);
                     });
                 },
-                function (callback) {
+                function(callback) {
 
-                    serverObject.serverStatus.buildInfo.readValue(function(err,dataValue){
+                    serverObject.serverStatus.buildInfo.readValue(function(err, dataValue) {
                         //xx console.log("serverStatus = ",dataValue.toString());
                         callback(err);
                     });
                 },
 
-                function (callback) {
-                    setTimeout(callback,1000);
+                function(callback) {
+                    setTimeout(callback, 1000);
                 },
 
-                function (callback) {
+                function(callback) {
 
-                    serverObject.serverStatus.currentTime.readValue(function(err,dataValue){
+                    serverObject.serverStatus.currentTime.readValue(function(err, dataValue) {
                         //xx console.log("currentTime = ",dataValue.toString());
                         callback(err);
                     });
                 },
 
-                function (callback) {
+                function(callback) {
 
                     // now call getMonitoredItems
                     //xx console.log(" SubscriptionID= ", subscriptionId);
 
-                    serverObject.getMonitoredItems({subscriptionId: subscriptionId }, function (err, outputArgs) {
+                    serverObject.getMonitoredItems({ subscriptionId: subscriptionId }, function(err, outputArgs) {
                         //xx console.log("err = ", err);
-                        if (!err && outputArgs){
+                        if (!err && outputArgs) {
                             //xx console.log("outputArgs.clientHandles = ", outputArgs.clientHandles);
                             //xx console.log("outputArgs.serverHandles = ", outputArgs.serverHandles);
                         }
@@ -210,26 +209,26 @@ describe("testing client Proxy", function () {
         }, done);
     });
 
-    it("AA one can subscribe to proxy object property change", function (done) {
+    it("AA one can subscribe to proxy object property change", function(done) {
 
-        this.timeout(Math.max(20000,this._timeout));
+        this.timeout(Math.max(20000, this.timeout()));
         let proxyManager;
-        perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
+        perform_operation_on_client_session(client, endpointUrl, function(session, inner_done) {
 
-            proxyManager= new UAProxyManager(session);
+            proxyManager = new UAProxyManager(session);
             const hvacNodeId = HVAC_on_server;
 
 
             let hvac;
             async.series([
-                function (callback) {
+                function(callback) {
                     proxyManager.start(callback);
                 },
-                function (callback) {
+                function(callback) {
 
-                    proxyManager.getObject(hvacNodeId,function(err,data){
+                    proxyManager.getObject(hvacNodeId, function(err, data) {
 
-                        if(!err){
+                        if (!err) {
 
                             hvac = data;
 
@@ -239,13 +238,13 @@ describe("testing client Proxy", function () {
                             hvac.setTargetTemperature.outputArguments.length.should.eql(0);
 
 
-//                          console.log("Interior temperature",hvac.interiorTemperature.dataValue);
+                            //                          console.log("Interior temperature",hvac.interiorTemperature.dataValue);
 
-                            hvac.interiorTemperature.on("value_changed",function(value){
-                               console.log(chalk.yellow("  EVENT: interiorTemperature has changed to "),value.value.toString());
+                            hvac.interiorTemperature.on("value_changed", function(value) {
+                                console.log(chalk.yellow("  EVENT: interiorTemperature has changed to "), value.value.toString());
                             });
-                            hvac.targetTemperature.on("value_changed",function(value){
-                                console.log(chalk.cyan("  EVENT: targetTemperature has changed to "),value.value.toString());
+                            hvac.targetTemperature.on("value_changed", function(value) {
+                                console.log(chalk.cyan("  EVENT: targetTemperature has changed to "), value.value.toString());
                             });
 
 
@@ -254,23 +253,23 @@ describe("testing client Proxy", function () {
                     });
                 },
 
-                function (callback) {
+                function(callback) {
 
-                    hvac.interiorTemperature.readValue(function (err, value) {
+                    hvac.interiorTemperature.readValue(function(err, value) {
                         console.log(" reading Interior temperature, got = ...", value.toString());
                         callback(err);
                     });
                 },
 
-                function (callback) {
+                function(callback) {
 
                     //xx console.log(" Access Level = ",hvac.interiorTemperature.accessLevel);
 
                     // it should not be possible to set the interiorTemperature => ReadOnly from the outside
                     hvac.interiorTemperature.writeValue({
-                        value: new opcua.Variant({ dataType: opcua.DataType.Double, value: 100.00})
-                    },function(err) {
-                        should(err).not.eql(null," it should not be possible to set readonly interiorTemperature");
+                        value: new opcua.Variant({ dataType: opcua.DataType.Double, value: 100.00 })
+                    }, function(err) {
+                        should(err).not.eql(null, " it should not be possible to set readonly interiorTemperature");
                         err.message.should.match(/BadNotWritable/);
                         callback();
                     });
@@ -281,8 +280,8 @@ describe("testing client Proxy", function () {
                 function(callback) {
                     // it should not be possible to set the interiorTemperature => ReadOnly from the outside
                     hvac.interiorTemperature.writeValue({
-                        value: new opcua.Variant({ dataType: opcua.DataType.Double, value: 100.00})
-                    },function(err) {
+                        value: new opcua.Variant({ dataType: opcua.DataType.Double, value: 100.00 })
+                    }, function(err) {
                         should.exist(err);
                         err.message.should.match(/BadNotWritable/);
                         callback();
@@ -294,7 +293,7 @@ describe("testing client Proxy", function () {
                 function(callback) {
 
 
-                    hvac.setTargetTemperature({targetTemperature: 10000 },function(err,results){
+                    hvac.setTargetTemperature({ targetTemperature: 10000 }, function(err, results) {
                         should.exist(err);
                         //xx console.log("result",err,results);
                         callback();
@@ -302,7 +301,7 @@ describe("testing client Proxy", function () {
 
                 },
                 function(callback) {
-                    hvac.setTargetTemperature({targetTemperature: 37},function(err,results){
+                    hvac.setTargetTemperature({ targetTemperature: 37 }, function(err, results) {
                         //xx console.log("result",results);
                         callback();
                     });
@@ -310,27 +309,27 @@ describe("testing client Proxy", function () {
                 },
                 function(callback) {
                     // wait for temperature to settle down
-                    setTimeout(callback,2000);
+                    setTimeout(callback, 2000);
                 },
                 function(callback) {
 
-                    hvac.setTargetTemperature({targetTemperature: 18},function(err,results){
+                    hvac.setTargetTemperature({ targetTemperature: 18 }, function(err, results) {
                         callback();
                     });
 
                 },
                 function(callback) {
                     // wait for temperature to settle down
-                    setTimeout(callback,2000);
+                    setTimeout(callback, 2000);
                 },
-                function (callback) {
+                function(callback) {
                     //xx console.log("stopping proxy");
                     proxyManager.stop(callback);
                 }
 
             ], inner_done);
 
-        },done);
+        }, done);
     });
 
 
@@ -338,23 +337,23 @@ describe("testing client Proxy", function () {
 
         let proxyManager;
 
-        perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
+        perform_operation_on_client_session(client, endpointUrl, function(session, inner_done) {
 
             proxyManager = new UAProxyManager(session);
 
             const makeNodeId = opcua.makeNodeId;
 
-            let subscriptionDiagnosticsArray =null;
+            let subscriptionDiagnosticsArray = null;
 
-            let subscriptionId =null;
+            let subscriptionId = null;
 
             async.series([
-                function (callback) {
+                function(callback) {
                     proxyManager.start(callback);
                 },
-                function (callback) {
+                function(callback) {
 
-                    proxyManager.getObject(makeNodeId(opcua.VariableIds.Server_ServerDiagnostics_SubscriptionDiagnosticsArray), function (err, data) {
+                    proxyManager.getObject(makeNodeId(opcua.VariableIds.Server_ServerDiagnostics_SubscriptionDiagnosticsArray), function(err, data) {
 
                         if (!err) {
                             subscriptionDiagnosticsArray = data;
@@ -362,7 +361,7 @@ describe("testing client Proxy", function () {
                         callback(err);
                     });
                 },
-                function (callback) {
+                function(callback) {
 
                     // subscriptionDiagnosticsArray should have no elements this time
                     //xx console.log(subscriptionDiagnosticsArray.$components[0].toString());
@@ -373,26 +372,26 @@ describe("testing client Proxy", function () {
                 },
 
                 // now create a subscription
-                function (callback) {
+                function(callback) {
 
                     session.createSubscription({
-                        requestedPublishingInterval:  100, // Duration
-                        requestedLifetimeCount:      6000, // Counter
-                        requestedMaxKeepAliveCount:  1000, // Counter
-                        maxNotificationsPerPublish:    10, // Counter
+                        requestedPublishingInterval: 100, // Duration
+                        requestedLifetimeCount: 6000, // Counter
+                        requestedMaxKeepAliveCount: 1000, // Counter
+                        maxNotificationsPerPublish: 10, // Counter
                         publishingEnabled: true, // Boolean
                         priority: 14 // Byte
-                    }, function (err, response) {
+                    }, function(err, response) {
 
                         if (!err) {
-                            subscriptionId =response.subscriptionId;
+                            subscriptionId = response.subscriptionId;
                         }
                         callback(err);
                     });
                 },
 
                 // verify that we have a subscription diagnostics array now
-                function (callback) {
+                function(callback) {
 
                     // subscriptionDiagnosticsArray should have no elements this time
                     //xx console.log(subscriptionDiagnosticsArray.$components[0].toString());
@@ -404,7 +403,7 @@ describe("testing client Proxy", function () {
 
             ], inner_done);
 
-        },done);
+        }, done);
     });
 });
 

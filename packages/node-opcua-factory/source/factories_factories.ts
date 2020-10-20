@@ -4,19 +4,13 @@
 // tslint:disable:no-console
 
 import * as chalk from "chalk";
-import * as  _ from "underscore";
 
 import { assert } from "node-opcua-assert";
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 import { ExpandedNodeId, NodeId } from "node-opcua-nodeid";
 
-import {
-    DataTypeFactory,
-} from "./datatype_factory";
-import {
-    ConstructorFuncWithSchema,
-    ConstructorFunc
-} from "./constructor_type";
+import { DataTypeFactory } from "./datatype_factory";
+import { ConstructorFuncWithSchema, ConstructorFunc } from "./constructor_type";
 
 import { BaseUAObject } from "./factories_baseobject";
 import { StructuredTypeSchema } from "./factories_structuredTypeSchema";
@@ -51,7 +45,11 @@ export function hasConstructor(binaryEncodingNodeId: ExpandedNodeId): boolean {
 export function constructObject(binaryEncodingNodeId: ExpandedNodeId): BaseUAObject {
     return getStandardDataTypeFactory().constructObject(binaryEncodingNodeId);
 }
-export function registerClassDefinition(dataTypeNodeId: NodeId, className: string, classConstructor: ConstructorFuncWithSchema): void {
+export function registerClassDefinition(
+    dataTypeNodeId: NodeId,
+    className: string,
+    classConstructor: ConstructorFuncWithSchema
+): void {
     return getStandardDataTypeFactory().registerClassDefinition(dataTypeNodeId, className, classConstructor);
 }
 /* istanbul ignore next */

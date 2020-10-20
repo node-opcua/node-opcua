@@ -10,6 +10,6 @@ certificates/
 _test_generated/
 schemas/
 tsconfig.json
-tsconfig.tsbuildinfo
+*.tsbuildinfo
 tslint.*
 

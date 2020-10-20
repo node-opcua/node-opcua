@@ -6,7 +6,6 @@
 import * as chalk from "chalk";
 import { Socket } from "net";
 import { assert } from "node-opcua-assert";
-import * as _ from "underscore";
 
 // opcua requires
 import { BinaryStream } from "node-opcua-binary-stream";
@@ -53,6 +52,7 @@ const minimumBufferSize = 8192;
  *
  */
 export class ServerTCP_transport extends TCP_transport {
+    public static throttleTime: number = 1000;
 
     public receiveBufferSize: number;
     public sendBufferSize: number;
@@ -78,7 +78,7 @@ export class ServerTCP_transport extends TCP_transport {
      * Initialize the server transport.
      *
      *
-     *  The ServerTCP_transport initialisation process starts by waiting for the client to send a "HEL" message.
+     *  The ServerTCP_transport initialization process starts by waiting for the client to send a "HEL" message.
      *
      *  The  ServerTCP_transport replies with a "ACK" message and then start waiting for further messages of any size.
      *
@@ -95,7 +95,7 @@ export class ServerTCP_transport extends TCP_transport {
             debugLog(chalk.cyan("init socket"));
         }
         assert(!this._socket, "init already called!");
-        assert(_.isFunction(callback), "expecting a valid callback ");
+        assert(typeof callback === "function", "expecting a valid callback ");
         this._install_socket(socket);
         this._install_HEL_message_receiver(callback);
     }
@@ -104,45 +104,45 @@ export class ServerTCP_transport extends TCP_transport {
         return this._abortWithError(statusCode, extraErrorDescription, callback);
     }
     private _abortWithError(statusCode: StatusCode, extraErrorDescription: string, callback: ErrorCallback) {
-
         if (debugLog) {
             debugLog(chalk.cyan("_abortWithError"));
         }
 
-        assert(_.isFunction(callback), "expecting a callback");
+        assert(typeof callback === "function", "expecting a callback");
 
         /* istanbul ignore else */
         if (!this._aborted) {
             this._aborted = 1;
-            // send the error message and close the connection
-            assert(StatusCodes.hasOwnProperty(statusCode.name));
+            setTimeout(() => {
+                // send the error message and close the connection
+                assert(StatusCodes.hasOwnProperty(statusCode.name));
 
-            /* istanbul ignore next*/
-            if (doDebug) {
-                debugLog(chalk.red(" Server aborting because ") + chalk.cyan(statusCode.name));
-                debugLog(chalk.red(" extraErrorDescription   ") + chalk.cyan(extraErrorDescription));
-            }
+                /* istanbul ignore next*/
+                if (doDebug) {
+                    debugLog(chalk.red(" Server aborting because ") + chalk.cyan(statusCode.name));
+                    debugLog(chalk.red(" extraErrorDescription   ") + chalk.cyan(extraErrorDescription));
+                }
 
-            const errorResponse = new TCPErrorMessage({
-                reason: statusCode.description
-                , statusCode
-            });
+                const errorResponse = new TCPErrorMessage({
+                    reason: statusCode.description,
+                    statusCode
+                });
 
-            const messageChunk = packTcpMessage("ERR", errorResponse);
+                const messageChunk = packTcpMessage("ERR", errorResponse);
 
-            this.write(messageChunk);
-            this.disconnect(() => {
-                this._aborted = 2;
-                callback(new Error(extraErrorDescription + " StatusCode = " + statusCode.name));
-            });
+                this.write(messageChunk);
 
+                this.disconnect(() => {
+                    this._aborted = 2;
+                    callback(new Error(extraErrorDescription + " StatusCode = " + statusCode.name));
+                });
+            }, ServerTCP_transport.throttleTime);
         } else {
             callback(new Error(statusCode.name));
         }
     }
 
     private _send_ACK_response(helloMessage: HelloMessage) {
-
         assert(helloMessage.receiveBufferSize >= minimumBufferSize);
         assert(helloMessage.sendBufferSize >= minimumBufferSize);
 
@@ -170,11 +170,9 @@ export class ServerTCP_transport extends TCP_transport {
 
         // send the ACK reply
         this.write(messageChunk);
-
     }
 
     private _install_HEL_message_receiver(callback: ErrorCallback) {
-
         if (debugLog) {
             debugLog(chalk.cyan("_install_HEL_message_receiver "));
         }
@@ -208,27 +206,29 @@ export class ServerTCP_transport extends TCP_transport {
         }
 
         if (msgType === "HEL") {
-
             assert(data.length >= 24);
 
             const helloMessage = decodeMessage(stream, HelloMessage) as HelloMessage;
-            assert(_.isFinite(this.protocolVersion));
+            assert(isFinite(this.protocolVersion));
 
             // OPCUA Spec 1.03 part 6 - page 41
             // The Server shall always accept versions greater than what it supports.
             if (helloMessage.protocolVersion !== this.protocolVersion) {
-                debugLog(`warning ! client sent helloMessage.protocolVersion = ` +
-                    ` 0x${helloMessage.protocolVersion.toString(16)} ` +
-                    `whereas server protocolVersion is 0x${this.protocolVersion.toString(16)}`);
+                debugLog(
+                    `warning ! client sent helloMessage.protocolVersion = ` +
+                        ` 0x${helloMessage.protocolVersion.toString(16)} ` +
+                        `whereas server protocolVersion is 0x${this.protocolVersion.toString(16)}`
+                );
             }
 
-            if (helloMessage.protocolVersion === 0xDEADBEEF || helloMessage.protocolVersion < this.protocolVersion) {
-
+            if (helloMessage.protocolVersion === 0xdeadbeef || helloMessage.protocolVersion < this.protocolVersion) {
                 // Note: 0xDEADBEEF is our special version number to simulate BadProtocolVersionUnsupported in tests
                 // invalid protocol version requested by client
-                return this._abortWithError(StatusCodes.BadProtocolVersionUnsupported,
-                    "Protocol Version Error" + this.protocolVersion, callback);
-
+                return this._abortWithError(
+                    StatusCodes.BadProtocolVersionUnsupported,
+                    "Protocol Version Error" + this.protocolVersion,
+                    callback
+                );
             }
 
             // OPCUA Spec 1.04 part 6 - page 45
@@ -237,25 +237,23 @@ export class ServerTCP_transport extends TCP_transport {
             // pieces (called ‘MessageChunks’) that are smaller than the buffer size allowed by the
             // TransportProtocol. UASC requires a TransportProtocol buffer size that is at least 8 192 bytes
             if (helloMessage.receiveBufferSize < minimumBufferSize || helloMessage.sendBufferSize < minimumBufferSize) {
-                return this._abortWithError(StatusCodes.BadConnectionRejected,
-                    "Buffer size too small (should be at least " + minimumBufferSize, callback);
+                return this._abortWithError(
+                    StatusCodes.BadConnectionRejected,
+                    "Buffer size too small (should be at least " + minimumBufferSize,
+                    callback
+                );
             }
             // the helloMessage shall only be received once.
             this._helloReceived = true;
             this._send_ACK_response(helloMessage);
             callback(); // no Error
-
         } else {
-
             // invalid packet , expecting HEL
             /* istanbul ignore next*/
             if (doDebug) {
                 debugLog(chalk.red("BadCommunicationError ") + "Expecting 'HEL' message to initiate communication");
             }
-            this._abortWithError(
-                StatusCodes.BadCommunicationError,
-                "Expecting 'HEL' message to initiate communication", callback);
-
+            this._abortWithError(StatusCodes.BadCommunicationError, "Expecting 'HEL' message to initiate communication", callback);
         }
     }
 }

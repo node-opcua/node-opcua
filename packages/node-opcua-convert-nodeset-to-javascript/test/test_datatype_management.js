@@ -1,4 +1,3 @@
-/* global describe,require,it,before */
 "use strict";
 
 const should = require("should");
@@ -32,7 +31,7 @@ xdescribe("ComplexType read from XML NodeSET file shall be binary encode-able", 
     let addressSpace;
 
     before(function (done) {
-        addressSpace = new AddressSpace();
+        addressSpace= AddressSpace.create();
 
         const xml_file = getFixture("fixture_nodeset_enumtype.xml");
 

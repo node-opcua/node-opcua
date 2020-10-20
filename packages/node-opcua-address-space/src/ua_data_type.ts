@@ -2,7 +2,6 @@
  * @module node-opcua-address-space
  */
 import * as chalk from "chalk";
-import * as _ from "underscore";
 
 import { assert } from "node-opcua-assert";
 import { NodeClass } from "node-opcua-data-model";
@@ -12,17 +11,21 @@ import { ExtensionObject } from "node-opcua-extension-object";
 import { ExpandedNodeId, NodeId } from "node-opcua-nodeid";
 import { NumericRange } from "node-opcua-numeric-range";
 import { StatusCodes } from "node-opcua-status-code";
-import { DataTypeDefinition, EnumDefinition, EnumField, EnumFieldOptions, StructureDefinition, StructureType } from "node-opcua-types";
+import {
+    DataTypeDefinition,
+    EnumDefinition,
+    EnumField,
+    EnumFieldOptions,
+    StructureDefinition,
+    StructureType
+} from "node-opcua-types";
 import { isNullOrUndefined } from "node-opcua-utils";
 import { DataType } from "node-opcua-variant";
 
-import {
-    SessionContext,
-    UADataType as UADataTypePublic, UAVariable
-} from "../source";
+import { SessionContext, UADataType as UADataTypePublic, UAVariable } from "../source";
 import { BaseNode } from "./base_node";
 import { BaseNode_References_toString, BaseNode_toString, ToStringBuilder, ToStringOption } from "./base_node_private";
-import * as  tools from "./tool_isSupertypeOf";
+import * as tools from "./tool_isSupertypeOf";
 import { get_subtypeOf } from "./tool_isSupertypeOf";
 import { get_subtypeOfObj } from "./tool_isSupertypeOf";
 import { UAObject } from "./ua_object";
@@ -50,7 +53,6 @@ export interface EnumerationInfo {
 }
 
 function findBasicDataType(dataType: UADataType): DataType {
-
     if (dataType.nodeId.namespace === 0 && dataType.nodeId.value <= 25) {
         // we have a well-known DataType
         return dataType.nodeId.value as DataType;
@@ -59,7 +61,6 @@ function findBasicDataType(dataType: UADataType): DataType {
 }
 
 export class UADataType extends BaseNode implements UADataTypePublic {
-
     public readonly nodeClass = NodeClass.DataType;
     public readonly definitionName: string = "";
     public readonly symbolicName: string;
@@ -79,7 +80,7 @@ export class UADataType extends BaseNode implements UADataTypePublic {
     }
 
     public get subtypeOfObj(): UADataTypePublic | null {
-        return get_subtypeOfObj.call(this) as any as UADataTypePublic;
+        return (get_subtypeOfObj.call(this) as any) as UADataTypePublic;
     }
 
     public isSupertypeOf = tools.construct_isSupertypeOf<UADataTypePublic>(UADataType);
@@ -91,10 +92,9 @@ export class UADataType extends BaseNode implements UADataTypePublic {
     private $definition?: DataTypeDefinition;
 
     constructor(options: any) {
-
         super(options);
         this.$definition = options.$definition;
-        this.isAbstract = (options.isAbstract === null) ? false : options.isAbstract;
+        this.isAbstract = options.isAbstract === null ? false : options.isAbstract;
         this.symbolicName = options.symbolicName || this.browseName.name!;
     }
 
@@ -103,7 +103,6 @@ export class UADataType extends BaseNode implements UADataTypePublic {
     }
 
     public readAttribute(context: SessionContext | null, attributeId: AttributeIds): DataValue {
-
         assert(!context || context instanceof SessionContext);
 
         const options: DataValueLike = {};
@@ -142,11 +141,9 @@ export class UADataType extends BaseNode implements UADataTypePublic {
     }
 
     public getEncodingNode(encoding_name: string): UAObject | null {
-
         const _cache = BaseNode._getCache(this);
         const key = encoding_name + "Node";
         if (_cache[key] === undefined) {
-
             assert(encoding_name === "Default Binary" || encoding_name === "Default XML" || encoding_name === "Default JSON");
             // could be binary or xml
             const refs = this.findReferences("HasEncoding", true);
@@ -155,7 +152,7 @@ export class UADataType extends BaseNode implements UADataTypePublic {
                 .map((ref) => addressSpace.findNode(ref.nodeId))
                 .filter((obj: any) => obj !== null)
                 .filter((obj: any) => obj.browseName.toString() === encoding_name);
-            const node = encoding.length === 0 ? null : encoding[0] as UAObject;
+            const node = encoding.length === 0 ? null : (encoding[0] as UAObject);
             _cache[key] = node;
         }
         return _cache[key];
@@ -216,7 +213,7 @@ export class UADataType extends BaseNode implements UADataTypePublic {
         let definition = [];
         if (this.enumStrings) {
             const enumStrings = this.enumStrings.readValue().value.value;
-            assert(_.isArray(enumStrings));
+            assert(Array.isArray(enumStrings));
             definition = enumStrings.map((e: any, index: number) => {
                 return {
                     name: e.text,
@@ -226,8 +223,8 @@ export class UADataType extends BaseNode implements UADataTypePublic {
         } else if (this.enumValues) {
             assert(this.enumValues, "must have a enumValues property");
             const enumValues = this.enumValues.readValue().value.value;
-            assert(_.isArray(enumValues));
-            definition = _.map(enumValues, (e: any) => {
+            assert(Array.isArray(enumValues));
+            definition = enumValues.map((e: any) => {
                 return {
                     name: e.displayName.text,
                     value: e.value[1]
@@ -248,7 +245,6 @@ export class UADataType extends BaseNode implements UADataTypePublic {
     }
 
     public _getDefinition(): DataTypeDefinition | null {
-
         if (!this.$definition) {
             const structure = this.addressSpace.findDataType("Structure")!;
             if (!structure) {
@@ -285,10 +281,7 @@ export class UADataType extends BaseNode implements UADataTypePublic {
     }
 }
 
-function dataTypeDefinition_toString(
-    this: UADataType,
-    options: ToStringOption
-) {
+function dataTypeDefinition_toString(this: UADataType, options: ToStringOption) {
     const definition = this._getDefinition();
     if (!definition) {
         return;
@@ -300,27 +293,31 @@ function dataTypeDefinition_toString(
     }
 }
 
-export function DataType_toString(
-    this: UADataType,
-    options: ToStringOption
-): void {
-
+export function DataType_toString(this: UADataType, options: ToStringOption): void {
     BaseNode_toString.call(this, options);
     options.add(options.padding + chalk.yellow("          isAbstract          : " + this.isAbstract));
     options.add(options.padding + chalk.yellow("          definitionName      : " + this.definitionName));
 
-    options.add(options.padding + chalk.yellow("          binaryEncodingNodeId: ") +
-        (this.binaryEncodingNodeId ? this.binaryEncodingNodeId.toString() : "<none>"));
-    options.add(options.padding + chalk.yellow("          xmlEncodingNodeId   : ") +
-        (this.xmlEncodingNodeId ? this.xmlEncodingNodeId.toString() : "<none>"));
+    options.add(
+        options.padding +
+            chalk.yellow("          binaryEncodingNodeId: ") +
+            (this.binaryEncodingNodeId ? this.binaryEncodingNodeId.toString() : "<none>")
+    );
+    options.add(
+        options.padding +
+            chalk.yellow("          xmlEncodingNodeId   : ") +
+            (this.xmlEncodingNodeId ? this.xmlEncodingNodeId.toString() : "<none>")
+    );
 
     if (this.subtypeOfObj) {
-        options.add(options.padding + chalk.yellow("          subtypeOfObj        : ") +
-            (this.subtypeOfObj ? this.subtypeOfObj.browseName.toString() : ""));
+        options.add(
+            options.padding +
+                chalk.yellow("          subtypeOfObj        : ") +
+                (this.subtypeOfObj ? this.subtypeOfObj.browseName.toString() : "")
+        );
     }
     // references
     BaseNode_References_toString.call(this, options);
 
     dataTypeDefinition_toString.call(this, options);
-
 }

@@ -1,17 +1,21 @@
 "use strict";
-/* global Buffer */
-
 const should = require("should");
 
-const ec = require("..");
-const BinaryStream = require("node-opcua-binary-stream").BinaryStream;
+const { hexDump } = require("node-opcua-debug");
+const { BinaryStream } = require("node-opcua-binary-stream");
 const guid = require("node-opcua-guid");
-const makeNodeId = require("node-opcua-nodeid").makeNodeId;
-const NodeIdType = require("node-opcua-nodeid").NodeIdType;
-const NodeId = require("node-opcua-nodeid").NodeId;
 
-const makeExpandedNodeId = require("node-opcua-nodeid").makeExpandedNodeId;
-const ExpandedNodeId = require("node-opcua-nodeid").ExpandedNodeId;
+const ec = require("..");
+const {
+    makeNodeId,
+    NodeIdType,
+    NodeId,
+    makeExpandedNodeId,
+    ExpandedNodeId
+} = require("node-opcua-nodeid");
+const crypto = require("crypto");
+const { encodeNodeId, decodeNodeId, randomGuid } = require("..");
+
 
 /**
  * @method test_encode_decode
@@ -38,24 +42,37 @@ function test_encode_decode(obj, encode_func, decode_func, expectedLength, verif
     }
     binaryStream.rewind();
 
-    const obj_verif = decode_func(binaryStream);
+    const obj_reloaded = decode_func(binaryStream);
     binaryStream.length.should.equal(expectedLength);
 
-    if (obj !== undefined) {
-        obj_verif.should.eql(obj);
+    if (obj !== undefined && obj !== null) {
+        obj_reloaded.should.eql(obj);
     } else {
-        should.not.exists(obj_verif);
+        should.not.exists(obj_reloaded);
     }
 }
 
-describe("testing built-in type encoding", function() {
-    it("should encode and decode a boolean as a single byte", function() {
+describe("testing built-in type encoding", () => {
+    it("should encode and decode a boolean as a single byte", () => {
         test_encode_decode(true, ec.encodeBoolean, ec.decodeBoolean, 1);
         test_encode_decode(false, ec.encodeBoolean, ec.decodeBoolean, 1);
     });
+    it("should encode and decode a Int8 (1 (signed) byte)", () => {
+        test_encode_decode(27, ec.encodeInt8, ec.decodeInt8, 1, (buffer) => {
+            buffer.should.be.instanceOf(Buffer);
+            buffer.readInt8(0).should.equal(27);
+        });
+        test_encode_decode(-32, ec.encodeInt8, ec.decodeInt8, 1);
+    });
+    it("should encode and decode a UInt8 (1 byte)", () => {
+        test_encode_decode(130, ec.encodeUInt8, ec.decodeUInt8, 1, (buffer) => {
+            buffer.should.be.instanceOf(Buffer);
+            buffer.readUInt8(0).should.equal(130);
+        });
+    });
 
-    it("should encode and decode a Int16 (2 bytes)", function() {
-        test_encode_decode(255, ec.encodeInt16, ec.decodeInt16, 2, function(buffer) {
+    it("should encode and decode a Int16 (2 bytes)", () => {
+        test_encode_decode(255, ec.encodeInt16, ec.decodeInt16, 2, (buffer) => {
             buffer.should.be.instanceOf(Buffer);
             // should be little endian
             buffer.readUInt8(0).should.equal(0xff);
@@ -64,8 +81,8 @@ describe("testing built-in type encoding", function() {
         test_encode_decode(-32000, ec.encodeInt16, ec.decodeInt16, 2);
     });
 
-    it("should encode and decode a Int16 (2 bytes)", function() {
-        test_encode_decode(0xfffe, ec.encodeUInt16, ec.decodeUInt16, 2, function(buffer) {
+    it("should encode and decode a Int16 (2 bytes)", () => {
+        test_encode_decode(0xfffe, ec.encodeUInt16, ec.decodeUInt16, 2, (buffer) => {
             buffer.should.be.instanceOf(Buffer);
             // should be little endian
             buffer.readUInt8(0).should.equal(0xfe);
@@ -73,8 +90,8 @@ describe("testing built-in type encoding", function() {
         });
     });
 
-    it("should encode and decode a Integer (4 bytes)", function() {
-        test_encode_decode(1000000000, ec.encodeInt32, ec.decodeInt32, 4, function(buffer) {
+    it("should encode and decode a Integer (4 bytes)", () => {
+        test_encode_decode(1000000000, ec.encodeInt32, ec.decodeInt32, 4, (buffer) => {
             // should be little endian
             buffer.readUInt8(0).should.equal(0x00);
             buffer.readUInt8(1).should.equal(0xca);
@@ -84,10 +101,29 @@ describe("testing built-in type encoding", function() {
         test_encode_decode(-100000000, ec.encodeInt32, ec.decodeInt32, 4);
     });
 
-    it("should encode and decode a Floating Point (4 bytes)", function() {
+    it("should encode and decode a Int64 (8 bytes)", () => {
+        test_encode_decode([0, 1000000000], ec.encodeInt64, ec.decodeInt64, 8, (buffer) => {
+            // should be little endian
+            buffer.readUInt8(0).should.equal(0x00);
+            buffer.readUInt8(1).should.equal(0xca);
+            buffer.readUInt8(2).should.equal(0x9a);
+            buffer.readUInt8(3).should.equal(0x3b);
+            buffer.readUInt8(4).should.equal(0x00);
+            buffer.readUInt8(5).should.equal(0x00);
+            buffer.readUInt8(6).should.equal(0x00);
+            buffer.readUInt8(7).should.equal(0x00);
+        });
+        test_encode_decode([0, 100000000], ec.encodeInt64, ec.decodeInt64, 8);
+
+        const stream = new BinaryStream();
+        ec.encodeInt64(1000, stream);
+        ec.encodeUInt64(1000, stream);
+    });
+
+    it("should encode and decode a Floating Point (4 bytes)", () => {
         const value = -6.5;
         // I EEE-754
-        test_encode_decode(value, ec.encodeFloat, ec.decodeFloat, 4, function(buffer) {
+        test_encode_decode(value, ec.encodeFloat, ec.decodeFloat, 4, (buffer) => {
             // should be little endian
             buffer.readUInt8(0).should.equal(0x00);
             buffer.readUInt8(1).should.equal(0x00);
@@ -96,12 +132,12 @@ describe("testing built-in type encoding", function() {
         });
     });
 
-    it("should encode and decode a Double Point (8 bytes)", function() {
+    it("should encode and decode a Double Point (8 bytes)", () => {
         // I EEE-754
 
         const value = -6.5;
         // I EEE-754
-        test_encode_decode(value, ec.encodeDouble, ec.decodeDouble, 8, function(buffer) {
+        test_encode_decode(value, ec.encodeDouble, ec.decodeDouble, 8, (buffer) => {
             // should be little endian
             buffer.readUInt8(0).should.equal(0x00);
             buffer.readUInt8(1).should.equal(0x00);
@@ -114,10 +150,10 @@ describe("testing built-in type encoding", function() {
         });
     });
 
-    it("should encode and decode a null string", function() {
+    it("should encode and decode a null string", () => {
         let value;
 
-        test_encode_decode(value, ec.encodeString, ec.decodeString, 4, function(buffer) {
+        test_encode_decode(value, ec.encodeString, ec.decodeString, 4, (buffer) => {
             // should be little endian
             buffer.readUInt8(0).should.equal(0xff);
             buffer.readUInt8(1).should.equal(0xff);
@@ -126,10 +162,25 @@ describe("testing built-in type encoding", function() {
         });
     });
 
-    it("should encode and decode a normal string", function() {
+    it("should encode and decode a normal string", () => {
         const value = "Hello";
 
-        test_encode_decode(value, ec.encodeString, ec.decodeString, 9, function(buffer) {
+        test_encode_decode(value, ec.encodeString, ec.decodeString, 9, (buffer) => {
+            // should be little endian
+            buffer.readUInt8(0).should.equal(0x05);
+            buffer.readUInt8(1).should.equal(0x00);
+            buffer.readUInt8(2).should.equal(0x00);
+            buffer.readUInt8(3).should.equal(0x00);
+            buffer.readUInt8(4).should.equal("H".charCodeAt(0));
+            buffer.readUInt8(5).should.equal("e".charCodeAt(0));
+            buffer.readUInt8(6).should.equal("l".charCodeAt(0));
+            buffer.readUInt8(7).should.equal("l".charCodeAt(0));
+            buffer.readUInt8(8).should.equal("o".charCodeAt(0));
+        });
+    });
+    it("should encode and decode a LocaleId", () => {
+        const value = "Hello";
+        test_encode_decode(value, ec.encodeLocaleId, ec.decodeLocaleId, 9, (buffer) => {
             // should be little endian
             buffer.readUInt8(0).should.equal(0x05);
             buffer.readUInt8(1).should.equal(0x00);
@@ -143,24 +194,25 @@ describe("testing built-in type encoding", function() {
         });
     });
 
-    it("should encode and decode a DateTime - origin", function() {
+
+    it("should encode and decode a DateTime - origin", () => {
         const value = new Date(Date.UTC(1601, 0, 1, 0, 0, 0));
-        test_encode_decode(value, ec.encodeDateTime, ec.decodeDateTime, 8, function(buffer) {
+        test_encode_decode(value, ec.encodeDateTime, ec.decodeDateTime, 8, (buffer) => {
             // todo
         });
     });
-    it("should encode and decode a DateTime", function() {
+    it("should encode and decode a DateTime", () => {
         const value = new Date(Date.UTC(2014, 0, 2, 15, 0));
-        test_encode_decode(value, ec.encodeDateTime, ec.decodeDateTime, 8, function(buffer) {
+        test_encode_decode(value, ec.encodeDateTime, ec.decodeDateTime, 8, (buffer) => {
             // todo
         });
     });
 
-    it("should encode and decode a GUID", function() {
+    it("should encode and decode a GUID", () => {
         const value = guid.emptyGuid;
         should.exist(value);
 
-        test_encode_decode(value, ec.encodeGuid, ec.decodeGuid, 16, function(buffer) {
+        test_encode_decode(value, ec.encodeGuid, ec.decodeGuid, 16, (buffer) => {
             buffer.readUInt8(0).should.equal(0x00);
             buffer.readUInt8(1).should.equal(0x00);
             buffer.readUInt8(2).should.equal(0x00);
@@ -184,10 +236,10 @@ describe("testing built-in type encoding", function() {
         });
     });
 
-    it("should encode and decode a GUID", function() {
+    it("should encode and decode a GUID", () => {
         const value = "72962B91-FA75-4AE6-8D28-B404DC7DAF63";
 
-        test_encode_decode(value, ec.encodeGuid, ec.decodeGuid, 16, function(buffer) {
+        test_encode_decode(value, ec.encodeGuid, ec.decodeGuid, 16, (buffer) => {
             buffer.readUInt8(0).should.equal(0x91);
             buffer.readUInt8(1).should.equal(0x2b);
             buffer.readUInt8(2).should.equal(0x96);
@@ -211,17 +263,17 @@ describe("testing built-in type encoding", function() {
         });
     });
 
-    it("should encode and decode a ByteString", function() {
+    it("should encode and decode a ByteString", () => {
         const buf = Buffer.allocUnsafe(256);
         buf.write("THIS IS MY BUFFER");
 
-        test_encode_decode(buf, ec.encodeByteString, ec.decodeByteString, 256 + 4, function(buffer) {
+        test_encode_decode(buf, ec.encodeByteString, ec.decodeByteString, 256 + 4, (buffer) => {
             buffer.readUInt32LE(0).should.equal(256);
         });
         //xx check_buf.toString('hex').should.equal(buf.toString('hex'));
     });
 
-    it("should encode and decode a two byte NodeId", function() {
+    it("should encode and decode a two byte NodeId", () => {
         const nodeId = makeNodeId(25);
         nodeId.identifierType.should.eql(NodeIdType.NUMERIC);
 
@@ -231,7 +283,7 @@ describe("testing built-in type encoding", function() {
         });
     });
 
-    it("should encode and decode a four byte NodeId", function() {
+    it("should encode and decode a four byte NodeId", () => {
         const nodeId = makeNodeId(258);
         nodeId.identifierType.should.eql(NodeIdType.NUMERIC);
         test_encode_decode(nodeId, ec.encodeNodeId, ec.decodeNodeId, 4, function verify_buffer(buffer) {
@@ -241,12 +293,12 @@ describe("testing built-in type encoding", function() {
         });
     });
 
-    it("should encode and decode a Numeric NodeId", function() {
+    it("should encode and decode a Numeric NodeId", () => {
         const nodeId = makeNodeId(545889, 2500);
         nodeId.identifierType.should.eql(NodeIdType.NUMERIC);
         test_encode_decode(nodeId, ec.encodeNodeId, ec.decodeNodeId, 7);
     });
-    it("should encode and decode a byte NodeId (bug reported by Mika)", function() {
+    it("should encode and decode a byte NodeId (bug reported by Mika)", () => {
         const nodeId = makeNodeId(129, 129);
         test_encode_decode(
             nodeId,
@@ -256,32 +308,32 @@ describe("testing built-in type encoding", function() {
         );
     });
 
-    it("should encode and decode any small numeric NodeId", function() {
+    it("should encode and decode any small numeric NodeId", () => {
         for (let i = 0; i <= 255; i++) {
             const nodeId = makeNodeId(/*value*/ i, /*namespace*/ 2);
             test_encode_decode(nodeId, ec.encodeNodeId, ec.decodeNodeId, 4);
         }
     });
 
-    it("should encode and decode a String NodeId", function() {
+    it("should encode and decode a String NodeId", () => {
         const nodeId = makeNodeId("SomeStuff", 2500);
         nodeId.identifierType.should.eql(NodeIdType.STRING);
 
         test_encode_decode(nodeId, ec.encodeNodeId, ec.decodeNodeId, 4 + 9 + 2 + 1);
     });
 
-    it("should encode and decode a Guid NodeId", function() {
+    it("should encode and decode a Guid NodeId", () => {
         const nodeId = makeNodeId("72962B91-FA75-4AE6-8D28-B404DC7DAF63", 2500);
         nodeId.identifierType.should.eql(NodeIdType.GUID);
         test_encode_decode(nodeId, ec.encodeNodeId, ec.decodeNodeId, 16 + 2 + 1);
     });
-    it("should encode and decode a String NodeId that looks like a GUID (issue#377)", function() {
+    it("should encode and decode a String NodeId that looks like a GUID (issue#377)", () => {
         const nodeId = new NodeId(NodeIdType.STRING, "72962B91-FA75-4AE6-8D28-B404DC7DAF63", 2500);
         nodeId.identifierType.should.eql(NodeIdType.STRING);
         test_encode_decode(nodeId, ec.encodeNodeId, ec.decodeNodeId, 43);
     });
 
-    it("should encode and decode a Opaque NodeId", function() {
+    it("should encode and decode a Opaque NodeId", () => {
         const value = Buffer.allocUnsafe(32);
         for (let i = 0; i < 32; i++) {
             value.writeUInt8(i, i);
@@ -289,7 +341,7 @@ describe("testing built-in type encoding", function() {
         const nodeId = makeNodeId(value, 0x1bcd);
         nodeId.identifierType.should.equal(NodeIdType.BYTESTRING);
         const expectedLength = 1 + 2 + 4 + 32;
-        test_encode_decode(nodeId, ec.encodeNodeId, ec.decodeNodeId, expectedLength, function(buffer) {
+        test_encode_decode(nodeId, ec.encodeNodeId, ec.decodeNodeId, expectedLength, (buffer) => {
             // cod
             buffer.readUInt8(0).should.equal(0x05);
             // namespace
@@ -309,59 +361,70 @@ describe("testing built-in type encoding", function() {
         });
     });
 
-    it("should encode and decode a BYTESTRING NodeId", function() {
-        const NodeId = require("node-opcua-nodeid").NodeId;
-        const NodeIdType = require("node-opcua-nodeid").NodeIdType;
-        const crypto = require("crypto");
+    it("should encode and decode a BYTESTRING NodeId", () => {
 
         const nodeId = new NodeId(NodeIdType.BYTESTRING, crypto.randomBytes(16));
 
         const expectedLength = 1 + 2 + 4 + 16;
-        test_encode_decode(nodeId, ec.encodeNodeId, ec.decodeNodeId, expectedLength, function(buffer) {
+        test_encode_decode(nodeId, ec.encodeNodeId, ec.decodeNodeId, expectedLength, (buffer) => {
         });
     });
 
-    it("should encode and decode a Expanded NodeId  - TwoBytes", function() {
+    it("should use the second form of decodeNodeId", () => {
+
+        const nodeId = new NodeId(NodeIdType.GUID, randomGuid());
+        const stream = new BinaryStream();
+        encodeNodeId(nodeId, stream);
+        stream.rewind();
+
+        const reloadedNodeId = new NodeId();
+        decodeNodeId(stream, reloadedNodeId);
+
+        NodeId.sameNodeId(reloadedNodeId, nodeId).should.eql(true);
+
+
+    });
+
+    it("should encode and decode a Expanded NodeId  - TwoBytes", () => {
         test_encode_decode(makeExpandedNodeId(10), ec.encodeExpandedNodeId, ec.decodeExpandedNodeId, 2);
     });
 
-    it("should encode and decode a Expanded NodeId  - FourBytes", function() {
+    it("should encode and decode a Expanded NodeId  - FourBytes", () => {
         test_encode_decode(makeExpandedNodeId(32000), ec.encodeExpandedNodeId, ec.decodeExpandedNodeId, 4);
     });
 
-    it("should encode and decode a Expanded NodeId with namespaceUri", function() {
+    it("should encode and decode a Expanded NodeId with namespaceUri", () => {
         const serverIndex = 2;
         const namespaceUri = "some:namespace:uri";
         const expandedNodeId = new ExpandedNodeId(NodeIdType.NUMERIC, 4123, 4, namespaceUri, serverIndex);
         test_encode_decode(expandedNodeId, ec.encodeExpandedNodeId, ec.decodeExpandedNodeId, 33);
     });
 
-    it("should encode and decode a UInt64 EightBytes", function() {
+    it("should encode and decode a UInt64 EightBytes", () => {
         test_encode_decode([356, 234], ec.encodeUInt64, ec.decodeUInt64, 8);
     });
 
-    it("should encode and decode a Int64 EightBytes", function() {
+    it("should encode and decode a Int64 EightBytes", () => {
         test_encode_decode([356, 234], ec.encodeInt64, ec.decodeInt64, 8);
     });
 });
 
-describe("encoding and decoding string", function() {
-    it("should encode and decode a simple ascii String", function() {
+describe("encoding and decoding string", () => {
+    it("should encode and decode a simple ascii String", () => {
         test_encode_decode("hello world", ec.encodeString, ec.decodeString, 11 + 4);
     });
-    const hexDump = require("node-opcua-debug").hexDump;
-    it("should encode and decode a utf-8 containing double bytes characters", function() {
+    it("should encode and decode a utf-8 containing double bytes characters", () => {
         test_encode_decode(
             "°C",
             ec.encodeString,
             ec.decodeString,
-            3 + 4, // (°=2 bytes charaters + 1)
+            3 + 4, // (°=2 bytes characters + 1)
             function verify_buffer_func(buffer) {
                 console.log(hexDump(buffer.slice(0, 7)));
             }
         );
     });
-    it("should encode and decode a utf-8 containing chinesse characters", function() {
+    it("should encode and decode a utf-8 containing chinese characters", () => {
         test_encode_decode(
             "你好世界", // hello world
             ec.encodeString,
@@ -373,8 +436,22 @@ describe("encoding and decoding string", function() {
         );
     });
 });
-describe("encoding and decoding arrays", function() {
-    it("should encode and decode an array of integer", function() {
+describe("encoding and decoding arrays", () => {
+
+    it("should encode and decode a null array of integer", () => {
+
+        function encode_array_float(arr, stream) {
+            ec.encodeArray(arr, stream, ec.encodeFloat);
+        }
+
+        function decode_array_float(stream) {
+            return ec.decodeArray(stream, ec.decodeFloat);
+        }
+        test_encode_decode(null, encode_array_float, decode_array_float, 4);
+
+    });
+
+    it("should encode and decode an array of integer", () => {
         function encode_array_float(arr, stream) {
             ec.encodeArray(arr, stream, ec.encodeFloat);
         }
@@ -386,7 +463,7 @@ describe("encoding and decoding arrays", function() {
         test_encode_decode([10, 20, 30, 40], encode_array_float, decode_array_float, 4 * 3 + 8);
     });
 
-    it("should encode and decode an array of strings", function() {
+    it("should encode and decode an array of strings", () => {
         function encode_array_string(arr, stream) {
             ec.encodeArray(arr, stream, ec.encodeString);
         }
@@ -403,7 +480,7 @@ describe("encoding and decoding arrays", function() {
         );
     });
 
-    it("should encode and decode an array of ByteString", function() {
+    it("should encode and decode an array of ByteString", () => {
         function encode_array_string(arr, stream) {
             ec.encodeArray(arr, stream, ec.encodeByteString);
         }
@@ -419,7 +496,7 @@ describe("encoding and decoding arrays", function() {
     });
 });
 
-describe("check isValid and random for various types", function() {
+describe("check isValid and random for various types", () => {
 
     it("isValidDouble on string shall return false", () => {
         ec.isValidDouble("Value").should.eql(false);
@@ -428,11 +505,11 @@ describe("check isValid and random for various types", function() {
         ec.isValidFloat("Value").should.eql(false);
     });
 
-    it("should test isValid on Int32", function() {
+    it("should test isValid on Int32", () => {
         ec.isValidInt32(0).should.eql(true);
         ec.isValidInt32(-10).should.eql(true);
     });
-    it("should test isValid on UInt16", function() {
+    it("should test isValid on UInt16", () => {
         ec.isValidUInt16(0).should.eql(true);
         ec.isValidUInt16(0xffffff).should.eql(false);
     });
@@ -459,7 +536,7 @@ describe("check isValid and random for various types", function() {
     ];
 
     types.forEach(function(type) {
-        it("should have a random and isValid method for type " + type, function() {
+        it("should have a random and isValid method for type " + type, () => {
             const randomFunc = ec["random" + type];
             const isValidFunc = ec["isValid" + type];
 
@@ -473,99 +550,11 @@ describe("check isValid and random for various types", function() {
         });
     });
 });
-describe("check coerce various types", function() {
-    //
-    //        "String",
-    //        "Boolean",
-    //        "Double",
-    //        "Float",
-    //        "Guid",
-    //        "DateTime",
-    //        "NodeId",
-    //        "ByteString",
 
-    it("should have a coerce method for boolean", function() {
-        ec.coerceBoolean("false").should.equal(false);
-        ec.coerceBoolean("true").should.equal(true);
 
-        ec.coerceBoolean(0).should.equal(false);
-        ec.coerceBoolean(1).should.equal(true);
 
-        ec.coerceBoolean(false).should.equal(false);
-        ec.coerceBoolean(true).should.equal(true);
-
-        ec.coerceBoolean("0").should.equal(false);
-        ec.coerceBoolean("1").should.equal(true);
-    });
-
-    const types = [
-        "Byte",
-        "SByte",
-        "UInt8",
-        "UInt16",
-        "UInt32",
-        "Int8",
-        "Int16",
-        "Int32",
-        "Float",
-        "Double",
-        "Int64",
-        "UInt64"
-    ];
-
-    types.forEach(function(type) {
-        it("should have a coerce method for " + type, function() {
-            const coerceFunc = ec["coerce" + type];
-            const randomFunc = ec["random" + type];
-            //xx var isValidFunc = ec["isValid" + type];
-
-            ec.should.have.property("coerce" + type);
-            ec.should.have.property("random" + type);
-            ec.should.have.property("isValid" + type);
-
-            const random_value = randomFunc();
-
-            const value1 = coerceFunc(random_value);
-            value1.should.eql(random_value);
-
-            const value2 = coerceFunc(random_value.toString());
-            value2.should.eql(random_value);
-        });
-    });
-
-    function w(str, l) {
-        return (str + "                        ").substring(0, l);
-    }
-
-    types.forEach(function(type) {
-        it("coerce" + w(type, 8) + " should preserves null or undefined values ", function() {
-            const coerceFunc = ec["coerce" + type];
-
-            ec.should.have.property("coerce" + type);
-
-            const value1 = coerceFunc(null);
-            should.not.exist(value1);
-
-            const value2 = coerceFunc();
-            should(value2).be.equal(undefined);
-        });
-    });
-});
-
-describe("UInt64", function() {
-    it("should coerce an Int32 into Int64", function() {
-        ec.coerceUInt64(0xff1000).should.eql([0x0, 0xff1000]);
-    });
-    it("should coerce an long number into Int64", function() {
-        ec.coerceUInt64(0x1020000000).should.eql([0x10, 0x20000000]);
-    });
-    it("should coerce an long number into Int64", function() {
-        ec.coerceUInt64(0x100020000000).should.eql([0x1000, 0x20000000]);
-    });
-});
-
-describe("DateTime", function() {
-    it("converting 1491684476245", function() {
+describe("DateTime", () => {
+    it("converting 1491684476245", () => {
         function check_date(t) {
             const date1 = new Date();
             date1.setTime(t);
@@ -587,8 +576,8 @@ describe("DateTime", function() {
     });
 });
 
-describe("Float", function() {
-    it("should encode float (0)", function() {
+describe("Float", () => {
+    it("should encode float (0)", () => {
         const buffer = Buffer.allocUnsafe(4);
         buffer[0] = 0x1;
         buffer[0] = 0x2;
@@ -603,7 +592,7 @@ describe("Float", function() {
         value.should.eql(0.0);
     });
 
-    it("should encode float (0)", function() {
+    it("should encode float (0)", () => {
         const stream = new BinaryStream(4);
         ec.encodeFloat(0.0, stream);
 
@@ -614,7 +603,7 @@ describe("Float", function() {
         value.should.eql(0.0);
     });
 
-    it("should decode zero from a buffer with 4 bytes set to zero", function() {
+    it("should decode zero from a buffer with 4 bytes set to zero", () => {
         const buf = Buffer.allocUnsafe(4);
         buf.writeUInt32LE(0, 0);
         const stream = new BinaryStream(buf);

@@ -7,11 +7,11 @@ const opcua = require("node-opcua");
 const OPCUAClient = opcua.OPCUAClient;
 const coerceNodeId = opcua.coerceNodeId;
 
-const perform_operation_on_subscription = require("../../test_helpers/perform_operation_on_client_session").perform_operation_on_subscription;
+const { perform_operation_on_subscription } = require("../../test_helpers/perform_operation_on_client_session");
 
-module.exports = function (test) {
+module.exports = function(test) {
 
-    describe("Testing issue#313 ", function () {
+    describe("Testing issue#313 ", function() {
 
         // from https://github.com/mikakaraila/node-red-contrib-opcua/issues/30:
         //
@@ -23,7 +23,7 @@ module.exports = function (test) {
         // "subscription.monitorItem:Error: BadNodeIdUnknown (0x80340000)"
         // So far, so good - when I inject again, Node-Red would crash with the following error
 
-        it("Should not crash when monitoring the same invalid nodeId for the second time ", function (done) {
+        it("Should not crash when monitoring the same invalid nodeId for the second time ", function(done) {
 
             const nodeId = coerceNodeId("ns=4;s=TestVerzeichnis.TestKnotn"); // Server Object
             const client = OPCUAClient.create();
@@ -32,28 +32,28 @@ module.exports = function (test) {
             function add_monitored_item(subscription, callback) {
 
                 const monitoredItem = opcua.ClientMonitoredItem.create(subscription, {
-                      nodeId: nodeId,
-                      attributeId: opcua.AttributeIds.Value
-                  },
-                  {samplingInterval: 50, discardOldest: true, queueSize: 1},
-                  opcua.TimestampsToReturn.Both);
+                    nodeId: nodeId,
+                    attributeId: opcua.AttributeIds.Value
+                },
+                    { samplingInterval: 50, discardOldest: true, queueSize: 1 },
+                    opcua.TimestampsToReturn.Both);
 
-                monitoredItem.on("initialized",function() {
+                monitoredItem.on("initialized", function() {
                     callback(new Error("should not receive initialized event"));
 
                 });
 
-                monitoredItem.on("changed",function(dataValue){
+                monitoredItem.on("changed", function(dataValue) {
                     // should not get here !
-                    console.log("value = ",dataValue.toString());
+                    console.log("value = ", dataValue.toString());
                 });
-                monitoredItem.on("err",function(errMessage){
-                    console.log("err = ",errMessage);
+                monitoredItem.on("err", function(errMessage) {
+                    console.log("err = ", errMessage);
                     callback();
                 });
             }
 
-            perform_operation_on_subscription(client, endpointUrl, function (session, subscription, inner_done) {
+            perform_operation_on_subscription(client, endpointUrl, function(session, subscription, inner_done) {
                 async.series([
                     add_monitored_item.bind(null, subscription),
                     add_monitored_item.bind(null, subscription)

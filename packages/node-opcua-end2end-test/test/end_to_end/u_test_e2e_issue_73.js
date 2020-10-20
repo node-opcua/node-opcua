@@ -1,7 +1,6 @@
-/*global xit,it,describe,before,after,beforeEach,afterEach,require*/
 "use strict";
 
-const assert = require("node-opcua-assert").assert;
+const { assert } = require("node-opcua-assert");
 const should = require("should");
 const async = require("async");
 const _ = require("underscore");
@@ -31,7 +30,7 @@ module.exports = function(test) {
             defaultSecureTokenLifetime: 100   // << Use a very small secure token lifetime to speed up test !
         };
 
-        this.timeout(Math.max(200000, this._timeout));
+        this.timeout(Math.max(200000, this.timeout()));
 
         let client, endpointUrl;
 

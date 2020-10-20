@@ -13,13 +13,12 @@ export * from "../source/helpers/call_helpers";
 export * from "../source/helpers/ensure_secure_access";
 export * from "../source/interfaces/alarms_and_conditions/condition_info_i";
 export { UACertificateExpirationAlarm } from "./alarms_and_conditions";
-export {
-    ensureDatatypeExtracted,
-    ensureDatatypeExtractedWithCallback
-} from "../source/loader/load_nodeset2";
+
+export { ensureDatatypeExtracted, ensureDatatypeExtractedWithCallback } from "../source/loader/load_nodeset2";
+export * from "../source/loader/generateAddressSpaceRaw";
+
 export { ContinuationPointManager } from "../source/continuation_points/continuation_point_manager";
 
-export { generateAddressSpace } from "../source";
 export { promoteToStateMachine } from "./state_machine/finite_state_machine";
 
 export * from "./namespace";
@@ -36,7 +35,6 @@ export * from "./data_access/ua_data_item";
 export * from "./data_access/ua_multistate_discrete";
 export * from "./data_access/ua_mutlistate_value_discrete";
 
-export * from "../test_helpers";
 export { VariableHistorian } from "./historical_access/address_space_historical_data_node";
 export { Reference } from "./reference";
 export { NodeIdManager } from "../src/nodeid_manager";

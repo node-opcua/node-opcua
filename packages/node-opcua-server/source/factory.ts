@@ -1,7 +1,6 @@
 /**
  * @module node-opcua-server
  */
-import * as _ from "underscore";
 
 import { assert } from "node-opcua-assert";
 import { ExtensionObject } from "node-opcua-extension-object";
@@ -12,7 +11,7 @@ export class Factory {
     public engine: any;
 
     constructor(engine: any) {
-        assert(_.isObject(engine));
+        assert(engine !== null && typeof engine === "object");
         this.engine = engine;
     }
 

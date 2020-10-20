@@ -142,7 +142,10 @@ export class Enum {
         }
         this._isFlaggable = isFlaggable;
     }
-
+    
+    public get isFlaggable() {
+        return this._isFlaggable;
+    }
     /**
      * Returns the appropriate EnumItem.
      * @method get
@@ -239,5 +242,6 @@ export class Enum {
         pThis[key] = kv;
         return kv;
     }
+
 
 }

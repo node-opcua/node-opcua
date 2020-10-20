@@ -1,7 +1,7 @@
 /*global it,describe,beforeEach,afterEach,require*/
 "use strict";
 
-const assert = require("node-opcua-assert").assert;
+const { assert } = require("node-opcua-assert");
 const should = require("should");
 const async = require("async");
 

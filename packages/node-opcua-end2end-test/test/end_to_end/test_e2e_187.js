@@ -1,31 +1,25 @@
 "use strict";
 const should = require("should");
-const assert = require("node-opcua-assert").assert;
 const async = require("async");
-const _ = require("underscore");
+const chalk = require("chalk");
 
+const { OPCUAClient, OPCUAServer, SessionContext } = require("node-opcua");
+const context = SessionContext.defaultContext;
 
-const opcua = require("node-opcua");
-const OPCUAClient = opcua.OPCUAClient;
-const OPCUAServer = opcua.OPCUAServer;
+const { perform_operation_on_client_session } = require("../../test_helpers/perform_operation_on_client_session");
 
-const context = opcua.SessionContext.defaultContext;
-
-const perform_operation_on_client_session = require("../../test_helpers/perform_operation_on_client_session").perform_operation_on_client_session;
-
-const makeBoiler = require("node-opcua-address-space").makeBoiler;
+const { makeBoiler } = require("node-opcua-address-space/testHelpers");
+const { UAProxyManager } = require("node-opcua-client-proxy");
 
 
 const doDebug = false;
 
-const UAProxyManager = require("node-opcua-client-proxy").UAProxyManager;
 
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
-
 describe("testing monitoring Executable flags on methods", function() {
 
 
-    this.timeout(Math.max(60000, this._timeout));
+    this.timeout(Math.max(60000, this.timeout()));
 
     let server, client, endpointUrl;
 
@@ -96,7 +90,6 @@ describe("testing monitoring Executable flags on methods", function() {
                 },
 
                 function(callback) {
-                    //xx var smType = "BoilerStateMachineType";
                     const smType = "ProgramStateMachineType";
                     proxyManager.getStateMachineType(smType, function(err, obj) {
 
@@ -123,10 +116,7 @@ describe("testing monitoring Executable flags on methods", function() {
                     }
                     proxyManager.getObject(nodeId, function(err, data) {
                         if (!err) {
-
                             boiler = data;
-                            //xx console.log("xXXXXX",hvac);
-
                             if (doDebug) {
                                 console.log("Current State", boiler.simulation.currentState.toString());
                             }
@@ -136,7 +126,6 @@ describe("testing monitoring Executable flags on methods", function() {
                                 }
                                 callback(err);
                             });
-
                             return;
                         }
                         callback(err);
@@ -164,6 +153,9 @@ describe("testing monitoring Executable flags on methods", function() {
                 },
 
                 function(callback) {
+
+                    console.log(boiler.simulation.currentState.toString());
+
                     boiler.simulation.currentState.dataValue.value.value.text.should.eql("Ready");
 
                     boiler.simulation.$methods["start"].executableFlag.should.eql(true, "When system is Ready, start method shall be executable");

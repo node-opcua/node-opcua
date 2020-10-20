@@ -10,10 +10,10 @@ const empty_nodeset_filename = opcua.get_empty_nodeset_filename();
 const port = 2000;
 
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
-describe("testing server dropping session after timeout if no activity has been recorded", function () {
+describe("testing server dropping session after timeout if no activity has been recorded", function() {
 
 
-    this.timeout(Math.max(200000, this._timeout));
+    this.timeout(Math.max(200000, this.timeout()));
 
     let server;
 
@@ -39,7 +39,7 @@ describe("testing server dropping session after timeout if no activity has been 
         defaultSecureTokenLifetime: 2000
     };
 
-    before(function (done) {
+    before(function(done) {
 
         server = new OPCUAServer({
             port: port,
@@ -47,7 +47,7 @@ describe("testing server dropping session after timeout if no activity has been 
         });
         serverCertificateChain = server.getCertificateChain();
 
-        server.start(function (err) {
+        server.start(function(err) {
             endpointUrl = server.endpoints[0].endpointDescriptions()[0].endpointUrl;
             OPCUAServer.registry.count().should.eql(1);
             done(err);
@@ -55,59 +55,59 @@ describe("testing server dropping session after timeout if no activity has been 
 
     });
 
-    after(function (done) {
+    after(function(done) {
 
         async.series([
-            function (callback) {
+            function(callback) {
                 server.shutdown(callback);
             },
-            function (callback) {
+            function(callback) {
                 OPCUAServer.registry.count().should.eql(0);
                 callback();
             }
         ], done);
     });
 
-    it("should not be able to read a node if no session has been opened ", function (done) {
+    it("should not be able to read a node if no session has been opened ", function(done) {
 
         const client = OPCUAClient.create(options);
 
         async.series([
             // given that client1 is connected, and have a session
-            function (callback) {
+            function(callback) {
                 client.connect(endpointUrl, callback);
             },
 
             // reading should fail with BadSessionIdInvalid
-            function (callback) {
+            function(callback) {
 
-                client._secureChannel.performMessageTransaction(readRequest, function (err, response) {
+                client._secureChannel.performMessageTransaction(readRequest, function(err, response) {
                     response.responseHeader.serviceResult.should.equal(opcua.StatusCodes.BadSessionIdInvalid);
                     callback(err);
                 });
             },
-            function (callback) {
+            function(callback) {
                 client.disconnect(callback);
             },
 
         ], done);
     });
 
-    it("should denied service call with BadSessionClosed on a timed out session", function (done) {
+    it("should denied service call with BadSessionClosed on a timed out session", function(done) {
 
         const client = OPCUAClient.create(options);
 
         let l_session = null;
         async.series([
             // given that client1 is connected, and have a session
-            function (callback) {
+            function(callback) {
                 client.requestedSessionTimeout = 100;
                 client.connect(endpointUrl, callback);
             },
-            function (callback) {
+            function(callback) {
 
                 server.currentSessionCount.should.eql(0);
-                client.createSession(function (err, session) {
+                client.createSession(function(err, session) {
                     if (err) {
                         return callback(err);
                     }
@@ -121,16 +121,16 @@ describe("testing server dropping session after timeout if no activity has been 
             },
 
             // now wait so that session times out on the server side
-            function (callback) {
+            function(callback) {
                 setTimeout(callback, 1500);
             },
 
             // old behavior - reading should fail with BadSessionIdInvalid
-            function (callback) {
+            function(callback) {
                 return callback();
 
                 server.currentSessionCount.should.eql(0);
-                l_session.read(readRequest.nodesToRead, function (err, dataValues) {
+                l_session.read(readRequest.nodesToRead, function(err, dataValues) {
                     should.exist(err, "read should end up with an error ");
                     should.exist(dataValues, "results should exists");
                     err.message.should.match(/BadSessionIdInvalid/);
@@ -138,15 +138,15 @@ describe("testing server dropping session after timeout if no activity has been 
                 });
             },
             // new behabior - client tries to restore session by recreating it !!!!
-            function (callback) {
+            function(callback) {
                 server.currentSessionCount.should.eql(0);
-                l_session.read(readRequest.nodesToRead, function (err, dataValues) {
+                l_session.read(readRequest.nodesToRead, function(err, dataValues) {
                     should.not.exist(err, "read should end up without an error ");
                     callback(null);
                 });
             },
 
-            function (callback) {
+            function(callback) {
                 client.disconnect(callback);
             }
 

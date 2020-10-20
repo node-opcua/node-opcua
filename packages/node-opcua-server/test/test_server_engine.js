@@ -22,6 +22,7 @@ const {
     QualifiedName,
     AttributeIds,
     BrowseDirection,
+    LocalizedText,
     ResultMask
 } = require("node-opcua-data-model");
 const {
@@ -60,8 +61,10 @@ const { assert_arrays_are_equal } = require("node-opcua-test-helpers");
 
 const { ServerEngine } = require("..");
 
-const mini_nodeset_filename = require("node-opcua-address-space").get_mini_nodeset_filename();
-const standard_nodeset_file = require("node-opcua-nodesets").nodesets.standard_nodeset_file;
+const { get_mini_nodeset_filename } = require("node-opcua-address-space/testHelpers");
+const mini_nodeset_filename = get_mini_nodeset_filename();
+
+const { nodesets } = require("node-opcua-nodesets");
 
 const server_NamespaceArray_Id = makeNodeId(VariableIds.Server_NamespaceArray); // ns=0;i=2255
 const context = SessionContext.defaultContext;
@@ -136,7 +139,7 @@ describe("testing ServerEngine", () => {
                     },
                     set: function(variant) {
                         // Variation 1 : synchronous
-                        // assert(_.isFunction(callback));
+                        // assert(typeof callback === "function");
                         return StatusCodes.Good;
                     }
                 }
@@ -1934,7 +1937,7 @@ describe("testing ServerEngine", () => {
                     const serverStatus = dataValues[0].value.value;
 
                     serverStatus.state.should.eql(ServerState.Running);
-                    serverStatus.shutdownReason.text.should.eql("");
+                    serverStatus.shutdownReason.should.eql(new LocalizedText({ locale: null, text: null }));
 
                     serverStatus.buildInfo.productName.should.equal("NODEOPCUA-SERVER");
                     serverStatus.buildInfo.softwareVersion.should.equal("1.0");
@@ -2355,7 +2358,7 @@ describe("ServerEngine ServerStatus & ServerCapabilities", function(/*this: any*
 
         engine = new ServerEngine({ buildInfo: defaultBuildInfo });
 
-        engine.initialize({ nodeset_filename: standard_nodeset_file }, () => {
+        engine.initialize({ nodeset_filename: nodesets.standard }, () => {
             done();
         });
 

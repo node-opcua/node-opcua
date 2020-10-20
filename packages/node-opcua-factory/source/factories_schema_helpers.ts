@@ -3,8 +3,7 @@
  */
 import { assert } from "node-opcua-assert";
 import { make_debugLog } from "node-opcua-debug";
-import * as  _ from "underscore";
-import { FieldCategory, FieldType, StructuredTypeField } from "./types";
+import { CommonInterface, FieldCategory, FieldType, StructuredTypeField } from "./types";
 
 const debugLog = make_debugLog(__filename);
 
@@ -22,36 +21,42 @@ export const parameters = {
 export function check_schema_correctness(schema: any) {
     assert(typeof schema.name === "string", " expecting schema to have a name");
     assert(schema.fields instanceof Array, " expecting schema to provide a set of fields " + schema.name);
-    assert(schema.baseType === undefined || (typeof schema.baseType === "string"));
+    assert(schema.baseType === undefined || typeof schema.baseType === "string");
 }
 
 /**
- * @method initialize_field
- * @param field
+ * @method initialize_value
  * @param value
+ * @param defaultValue
  * @return {*}
  */
 export function initialize_field(field: StructuredTypeField, value: any): any {
-
     const _t = field.schema;
-    if (!_.isObject(_t)) {
-        throw new Error("initialize_field: expecting field.schema to be set field.name = '" + field.name + "' type = " + field.fieldType);
+    if (!(_t !== null && typeof _t === "object")) {
+        throw new Error(
+            "initialize_field: expecting field.schema to be set field.name = '" + field.name + "' type = " + field.fieldType
+        );
     }
-    assert(_.isObject(field));
-    assert(!field.isArray);
-
     if (field.category === FieldCategory.complex) {
         if (field.fieldTypeConstructor) {
             return new field.fieldTypeConstructor(value);
         } else {
             debugLog("xxxx => missing constructor for field type", field.fieldType);
-        }        
+        }
     }
 
     const defaultValue = _t.computer_default_value ? _t.computer_default_value(field.defaultValue) : field.defaultValue;
-
-    value = _t.initialize_value(value, defaultValue);
-
+    if (value === undefined) {
+        return defaultValue;
+    }
+    if (defaultValue === null) {
+        if (value === null) {
+            return null;
+        }
+    }
+    if (_t.coerce) {
+        value = _t.coerce(value);
+    }
     if (field.validate) {
         if (!field.validate(value)) {
             throw Error(" invalid value " + value + " for field " + field.name + " of type " + field.fieldType);
@@ -60,6 +65,21 @@ export function initialize_field(field: StructuredTypeField, value: any): any {
     return value;
 }
 
+function initialize_value(value: any, defaultValue: any, _t: CommonInterface) {
+    if (value === undefined) {
+        return defaultValue;
+    }
+    if (defaultValue === null) {
+        if (value === null) {
+            return null;
+        }
+    }
+    if (_t.coerce) {
+        value = _t.coerce(value);
+        return value;
+    }
+    return value;
+}
 /**
  * @method initialize_field_array
  * @param field
@@ -67,12 +87,11 @@ export function initialize_field(field: StructuredTypeField, value: any): any {
  * @return
  */
 export function initialize_field_array(field: FieldType, valueArray: any) {
-
     const _t = field.schema;
 
     let value;
     let i;
-    assert(_.isObject(field));
+    assert(field !== null && typeof field === "object");
     assert(field.isArray);
 
     if (!valueArray && field.defaultValue === null) {
@@ -85,10 +104,9 @@ export function initialize_field_array(field: FieldType, valueArray: any) {
     if (_t.computer_default_value) {
         defaultValue = _t.computer_default_value(field.defaultValue);
     }
-
     const arr = [];
     for (i = 0; i < valueArray.length; i++) {
-        value = _t.initialize_value(valueArray[i], defaultValue);
+        value = initialize_value(valueArray[i], defaultValue, _t);
         arr.push(value);
     }
     if (field.validate) {

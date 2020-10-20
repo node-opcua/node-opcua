@@ -1,6 +1,6 @@
 {
     "name": "node-opcua-test-helpers",
-    "version": "2.6.1",
+    "version": "2.17.0",
     "description": "pure nodejs OPCUA SDK - module -test-helpers",
     "main": "./dist/index.js",
     "types": "./dist/index.d.ts",
@@ -13,8 +13,7 @@
     "author": "Etienne Rossignon",
     "license": "MIT",
     "dependencies": {
-        "should": "^13.2.3",
-        "underscore": "^1.10.2"
+        "should": "^13.2.3"
     },
     "repository": {
         "type": "git",

@@ -5,21 +5,21 @@ const opcua = require("node-opcua");
 const OPCUAClient = opcua.OPCUAClient;
 const perform_operation_on_client_session = require("../../test_helpers/perform_operation_on_client_session").perform_operation_on_client_session;
 
-module.exports = function (test) {
+module.exports = function(test) {
 
-    describe("Testing bug #455 - OPCUASession#readVariableValue", function () {
+    describe("Testing bug #455 - OPCUASession#readVariableValue", function() {
 
-        it("should detect badly formed nodeId on the client level and raise an exception",function(done) {
+        it("should detect badly formed nodeId on the client level and raise an exception", function(done) {
 
 
             const client = OPCUAClient.create({});
             const endpointUrl = test.endpointUrl;
 
-            perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
+            perform_operation_on_client_session(client, endpointUrl, function(session, inner_done) {
 
                 async.series([
 
-                    function (callback) {
+                    function(callback) {
 
                         // in ths test we pass a INVALID nodeID (a.k.a a string that cannot be coerced to a NodeId)
                         // therefore this code will cause readVariableValue to raise a exception, before any
@@ -30,12 +30,12 @@ module.exports = function (test) {
                                 callback(new Error("Should Not Get Here"));
                             });
                         }
-                        catch(err) {
+                        catch (err) {
                             callback();
                         }
                     },
 
-                    function (callback) {
+                    function(callback) {
                         // in ths test we pass a VALID nodeID (a.k.a a string that can be coerced to a NodeId)
                         // but this node doesn't exists in the address space of the serve.
                         // therefore  readVariableValue will be executed, but the eerver will return a
@@ -45,15 +45,15 @@ module.exports = function (test) {
                             callback();
                         });
                     },
-                    function (callback) {
+                    function(callback) {
                         // same behavior applies on standard read transaction
-                        session.read({ nodeId: "ns=2;i=10000",attributeId: opcua.AttributeIds.Value}, (err, dataValue) => {
+                        session.read({ nodeId: "ns=2;i=10000", attributeId: opcua.AttributeIds.Value }, (err, dataValue) => {
                             dataValue.statusCode.should.eql(opcua.StatusCodes.BadNodeIdUnknown);
                             callback();
                         });
                     },
 
-                ],inner_done)
+                ], inner_done)
 
             }, done);
         });

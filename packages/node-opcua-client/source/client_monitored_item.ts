@@ -13,7 +13,6 @@ import { ClientSubscription } from "./client_subscription";
 
 // tslint:disable:unified-signatures
 export interface ClientMonitoredItem extends ClientMonitoredItemBase, ClientMonitoredItemOrGroupAction, EventEmitter {
-
     on(event: "changed", eventHandler: (dataValue: DataValue) => void): this;
     on(event: "changed", eventHandler: (values: Variant[]) => void): this;
 
@@ -34,5 +33,4 @@ export class ClientMonitoredItem {
         /* istanbul ignore next*/
         throw new Error("unimplemented");
     }
-
 }

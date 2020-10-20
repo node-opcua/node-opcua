@@ -1,8 +1,8 @@
+/* eslint-disable no-case-declarations */
 #!/usr/bin/env node
 /* eslint no-process-exit: 0 */
 "use strict";
 const chalk = require("chalk");
-const readline = require("readline");
 const treeify = require("treeify");
 const sprintf = require("sprintf-js").sprintf;
 const util = require("util");
@@ -18,7 +18,7 @@ const DataType = opcua.DataType;
 
 const utils = opcua.utils;
 
-const assert = require("node-opcua-assert").assert;
+const { assert } = require("node-opcua-assert");
 
 console.log(" Version ", opcua.version);
 
@@ -336,7 +336,7 @@ function apply_command(cmd, func, callback) {
 
 function apply_on_valid_session(cmd, func, callback) {
 
-    assert(_.isFunction(func));
+    assert(typeof func === "function");
     assert(func.length === 2);
 
     if (the_session) {
@@ -444,7 +444,7 @@ function close_session(outer_callback) {
             if (!outer_callback) {
                 inner_callback(err);
             } else {
-                assert(_.isFunction(outer_callback));
+                assert(typeof outer_callback === "function");
                 outer_callback(inner_callback);
             }
         });

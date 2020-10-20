@@ -3,7 +3,20 @@
  * @module node-opcua-address-space
  */
 import { EventEmitter } from "events";
-import { Byte, ByteString, DateTime, Int64, UABoolean, UAString, UInt16, UInt32, UInt64, Int32, Int16, SByte } from "node-opcua-basic-types";
+import {
+    Byte,
+    ByteString,
+    DateTime,
+    Int64,
+    UABoolean,
+    UAString,
+    UInt16,
+    UInt32,
+    UInt64,
+    Int32,
+    Int16,
+    SByte
+} from "node-opcua-basic-types";
 
 export type Duration = number;
 
@@ -19,17 +32,15 @@ import {
 } from "node-opcua-data-model";
 import { DataValue, DataValueOptions, DataValueOptionsT, DataValueT } from "node-opcua-data-value";
 import { PreciseClock } from "node-opcua-date-time";
-import { ExpandedNodeId, NodeId, NodeIdLike, } from "node-opcua-nodeid";
+import { ExtensionObject } from "node-opcua-extension-object";
+import { ExpandedNodeId, NodeId, NodeIdLike } from "node-opcua-nodeid";
 import { NumericRange } from "node-opcua-numeric-range";
 import { BrowseDescription, BrowseDescriptionOptions, BrowseResult } from "node-opcua-service-browse";
-import {
-    HistoryReadDetails,
-    HistoryReadResult,
-    ReadRawModifiedDetails
-} from "node-opcua-service-history";
+import { HistoryReadDetails, HistoryReadResult, ReadRawModifiedDetails } from "node-opcua-service-history";
 import { WriteValueOptions } from "node-opcua-service-write";
-import { StatusCode, } from "node-opcua-status-code";
+import { StatusCode } from "node-opcua-status-code";
 import { ErrorCallback, CallbackT } from "node-opcua-status-code";
+import { StatusCodeCallback } from "node-opcua-status-code";
 
 import {
     Argument,
@@ -54,20 +65,13 @@ import {
     SignedSoftwareCertificate,
     SimpleAttributeOperand
 } from "node-opcua-types";
-import {
-    DataType,
-    Variant,
-    VariantArrayType,
-    VariantByteString,
-    VariantLike
-} from "node-opcua-variant";
+import { DataType, Variant, VariantArrayType, VariantByteString, VariantLike } from "node-opcua-variant";
 import { AnyConstructorFunc } from "node-opcua-schemas";
 
 import { MinimalistAddressSpace, Reference } from "../src/reference";
 import { State, StateMachine, StateMachineType, Transition, UtcTime } from "./interfaces/state_machine";
 import { SessionContext } from "./session_context";
 
-import { ExtensionObject } from "node-opcua-extension-object";
 import { UAAcknowledgeableConditionBase } from "../src/alarms_and_conditions/ua_acknowledgeable_condition_base";
 import { UAAlarmConditionBase } from "../src/alarms_and_conditions/ua_alarm_condition_base";
 import { UAConditionBase } from "../src/alarms_and_conditions/ua_condition_base";
@@ -77,8 +81,6 @@ import { UAExclusiveLimitAlarm } from "../src/alarms_and_conditions/ua_exclusive
 import { UALimitAlarm } from "../src/alarms_and_conditions/ua_limit_alarm";
 import { UANonExclusiveDeviationAlarm } from "../src/alarms_and_conditions/ua_non_exclusive_deviation_alarm";
 import { UANonExclusiveLimitAlarm } from "../src/alarms_and_conditions/ua_non_exclusive_limit_alarm";
-
-import { StatusCodeCallback } from "node-opcua-status-code";
 
 export declare interface AddReferenceOpts {
     referenceType: string | NodeId | UAReferenceType;
@@ -101,10 +103,7 @@ export interface UAReference {
     toString(options?: { addressSpace?: AddressSpace }): string;
 }
 
-export declare function resolveReferenceType(
-    addressSpace: MinimalistAddressSpace,
-    reference: UAReference
-): UAReferenceType;
+export declare function resolveReferenceType(addressSpace: MinimalistAddressSpace, reference: UAReference): UAReferenceType;
 
 export declare function resolveReferenceNode(addressSpace: MinimalistAddressSpace, reference: UAReference): BaseNode;
 
@@ -182,8 +181,6 @@ export declare class BaseNode extends EventEmitter {
      * nodes = HasEventSource => self
      */
     public getEventSourceOfs(): BaseNode[];
-
-    // [key: string]: BaseNode;
 
     public install_extra_properties(): void;
 
@@ -264,10 +261,7 @@ export interface BindVariableOptionsVariation3 {
     historyRead?: any;
 }
 
-export type BindVariableOptions =
-    BindVariableOptionsVariation1
-    | BindVariableOptionsVariation2
-    | BindVariableOptionsVariation3;
+export type BindVariableOptions = BindVariableOptionsVariation1 | BindVariableOptionsVariation2 | BindVariableOptionsVariation3;
 
 export type ContinuationPoint = Buffer;
 
@@ -381,7 +375,7 @@ export interface UAVariable extends BaseNode, VariableAttributes, IPropertyAndCo
      *
      *
      * **Note**: the maximum length of an array transferred on the wire is 2147483647 (max Int32)
-     *     and a multidimentional array is encoded as a one dimensional array.
+     *     and a multidimensional array is encoded as a one dimensional array.
      *
      */
     arrayDimensions: UInt32[] | null;
@@ -444,11 +438,7 @@ export interface UAVariable extends BaseNode, VariableAttributes, IPropertyAndCo
      *  |BadNotReadable              | The access level does not allow reading or subscribing to the Node.|
      *  |BadUserAccessDenied         | User does not have permission to perform the requested operation. (table 165)|
      */
-    readValue(
-        context?: SessionContext | null,
-        indexRange?: NumericRange,
-        dataEncoding?: QualifiedNameLike | null
-    ): DataValue;
+    readValue(context?: SessionContext | null, indexRange?: NumericRange, dataEncoding?: QualifiedNameLike | null): DataValue;
 
     readValueAsync(context?: SessionContext | null): Promise<DataValue>;
 
@@ -498,7 +488,7 @@ export interface UAVariable extends BaseNode, VariableAttributes, IPropertyAndCo
     asyncRefresh(oldestDate: Date): Promise<DataValue>;
 
     /**
-     * write a variale attribute (callback version)
+     * write a variable attribute (callback version)
      * @param context
      * @param writeValue
      * @param callback
@@ -524,7 +514,7 @@ export interface UAVariable extends BaseNode, VariableAttributes, IPropertyAndCo
      */
     writeAttribute(context: SessionContext, writeValue: WriteValueOptions, callback: StatusCodeCallback): void;
     /**
-     * write a variale attribute (async/await version)
+     * write a variable attribute (async/await version)
      * @param context
      * @param writeValue
      *
@@ -593,7 +583,6 @@ export interface UAVariable extends BaseNode, VariableAttributes, IPropertyAndCo
 }
 
 export interface AddDataItemOptions extends AddVariableOptionsWithoutValue {
-
     arrayType?: VariantArrayType;
     value?: VariantLike | BindVariableOptions;
 
@@ -609,7 +598,6 @@ export interface UADataItem extends UAVariable {
 }
 
 export interface AddAnalogDataItemOptions extends AddDataItemOptions {
-
     value?: VariantLike | BindVariableOptions;
 
     engineeringUnitsRange?: {
@@ -675,7 +663,7 @@ export interface UAMultiStateValueDiscrete extends UAVariable {
 }
 
 // tslint:disable:no-empty-interface
-export interface UAEventType extends UAObjectType { }
+export interface UAEventType extends UAObjectType {}
 
 export type EventTypeLike = string | NodeId | UAEventType;
 
@@ -685,7 +673,7 @@ export interface PseudoVariantNull {
 
 export interface PseudoVariantString {
     dataType: "String" | DataType.String;
-    value: string;
+    value: UAString;
 }
 
 export interface PseudoVariantBoolean {
@@ -776,8 +764,7 @@ export type PseudoVariantNumber =
     | PseudoVariantInt16
     | PseudoVariantSByte
     | PseudoVariantDouble
-    | PseudoVariantFloat
-    ;
+    | PseudoVariantFloat;
 
 export type PseudoVariant =
     | PseudoVariantNull
@@ -826,7 +813,6 @@ export interface UAObject extends BaseNode, EventRaiser, IPropertyAndComponentHo
     on(eventName: "event", eventHandler: (eventData: IEventData) => void): this;
 
     clone(options: any, optionalFilter?: any, extraInfo?: any): UAObject;
-
 }
 
 // export interface CallMethodResult {
@@ -854,6 +840,8 @@ export declare class UAMethod extends BaseNode {
     public readonly inputArguments?: UAVariable;
     public readonly outputArguments?: UAVariable;
 
+    public readonly methodDeclarationId: NodeId;
+
     /**
      *
      */
@@ -873,18 +861,13 @@ export declare class UAMethod extends BaseNode {
      * @param context
      * @param callback
      */
-    public execute(
-        inputArguments: VariantLike[] | null,
-        context: SessionContext,
-        callback: MethodFunctorCallback
-    ): void;
+    public execute(inputArguments: VariantLike[] | null, context: SessionContext, callback: MethodFunctorCallback): void;
 
     public execute(inputArguments: null | VariantLike[], context: SessionContext): Promise<CallMethodResultOptions>;
 
     public clone(options: any, optionalFilter?: any, extraInfo?: any): UAMethod;
 
     public isBound(): boolean;
-
 }
 
 export interface UADataType extends BaseNode {
@@ -912,7 +895,6 @@ export interface UADataType extends BaseNode {
     isSupertypeOf(referenceType: NodeIdLike | UADataType): boolean;
 
     getEncodingNode(encodingName: string): BaseNode | null;
-
 }
 
 export interface InstantiateOptions {
@@ -1077,7 +1059,13 @@ export enum EUEngineeringUnit {
     // to be continued
 }
 
-export type ModellingRuleType = "Mandatory" | "Optional" | "MandatoryPlaceholder" | "OptionalPlaceholder" | "ExposesItsArray" | null;
+export type ModellingRuleType =
+    | "Mandatory"
+    | "Optional"
+    | "MandatoryPlaceholder"
+    | "OptionalPlaceholder"
+    | "ExposesItsArray"
+    | null;
 
 export interface AddBaseNodeOptions {
     browseName: QualifiedNameLike;
@@ -1360,6 +1348,7 @@ export declare interface Namespace {
     findReferenceTypeFromInverseName(referenceType: string): UAReferenceType | null;
 
     findNode(nodeId: NodeIdLike): BaseNode | null;
+    findNode2(nodeId: NodeId): BaseNode | null;
 
     // -------------------------------------------------------------------------
 
@@ -1444,11 +1433,7 @@ export declare interface Namespace {
         data?: any
     ): UAAcknowledgeableConditionBase;
 
-    instantiateAlarmCondition(
-        alarmConditionTypeId: UAEventType | NodeId | string,
-        options: any,
-        data?: any
-    ): UAAlarmConditionBase;
+    instantiateAlarmCondition(alarmConditionTypeId: UAEventType | NodeId | string, options: any, data?: any): UAAlarmConditionBase;
 
     instantiateLimitAlarm(limitAlarmTypeId: UAEventType | NodeId | string, options: any, data?: any): UALimitAlarm;
 
@@ -1468,11 +1453,7 @@ export declare interface Namespace {
 
     instantiateNonExclusiveDeviationAlarm(options: any, data?: any): UANonExclusiveDeviationAlarm;
 
-    instantiateDiscreteAlarm(
-        discreteAlarmType: UAEventType | NodeId | string,
-        options: any,
-        data?: any
-    ): UADiscreteAlarm;
+    instantiateDiscreteAlarm(discreteAlarmType: UAEventType | NodeId | string, options: any, data?: any): UADiscreteAlarm;
 
     instantiateOffNormalAlarm(options: any, data?: any): UAOffNormalAlarm;
 
@@ -1491,7 +1472,7 @@ export declare interface Namespace {
 }
 
 // tslint:disable:no-empty-interface
-export interface Folder extends UAObject { }
+export interface Folder extends UAObject {}
 
 export type FolderType = UAObjectType;
 
@@ -1663,7 +1644,7 @@ export interface UACertificateGroup extends UAObject {
     trustListOutOfDate?: UATrustListOutOfDateAlarmType;
 }
 
-export interface UACertificateExpirationAlarmType extends UAEventType { }
+export interface UACertificateExpirationAlarmType extends UAEventType {}
 
 /**
  * This event is raised when a Trust List is changed.
@@ -1671,7 +1652,7 @@ export interface UACertificateExpirationAlarmType extends UAEventType { }
  * It shall also be raised when the AddCertificate or RemoveCertificate Method causes an
  * update to the Trust List.
  */
-export interface UATrustListOutOfDateAlarmType extends UAEventType { }
+export interface UATrustListOutOfDateAlarmType extends UAEventType {}
 
 export interface UACertificateGroupFolder extends Folder {
     /**
@@ -1703,9 +1684,9 @@ export interface UACertificateGroupFolder extends Folder {
     // <AdditionalGroup>
 }
 
-export interface UAKeyCredentialConfigurationFolder extends Folder { }
+export interface UAKeyCredentialConfigurationFolder extends Folder {}
 
-export interface UAUserTokenPolicy { }
+export interface UAUserTokenPolicy {}
 
 export interface UAAuthorizationService extends UAObject {
     // found in authorizationServices
@@ -1738,7 +1719,7 @@ export interface UAAuthorizationService extends UAObject {
     requestAccessToken?: UAMethod;
 }
 
-export interface UAAutorizationServicesFolder extends Folder { }
+export interface UAAutorizationServicesFolder extends Folder {}
 
 // partial UAServerConfiguration related to authorization service
 export interface UAServerConfiguration extends UAObject {
@@ -1823,7 +1804,7 @@ export interface UAServerConfiguration extends UAObject {
     supportedPrivateKeyFormats: UAVariableT<UAString[], DataType.String>;
 }
 
-export interface UADirectoryType { }
+export interface UADirectoryType {}
 
 /**
  *
@@ -1958,7 +1939,7 @@ export interface UAOperationLimits extends UAObject {
     maxMonitoredItemsPerCall?: UAVariableT<UInt32, DataType.UInt32>;
 }
 
-export interface IdentityMappingRuleType { }
+export interface IdentityMappingRuleType {}
 
 /**
  * The Properties and Methods of the Role contain sensitive security related information and
@@ -2360,13 +2341,12 @@ export interface IEventData {
     resolveSelectClause(selectClause: SimpleAttributeOperand): NodeId | null;
     setValue(lowerName: string, node: BaseNode, variant: VariantLike): void;
     readValue(sessionContext: SessionContext, nodeId: NodeId, selectClause: SimpleAttributeOperand): Variant;
-
 }
 
 export interface AddressSpace {
     rootFolder: RootFolder;
 
-    historizingNodes?: any;
+    historizingNodes?: { [key: string]: UAVariable };
 
     /**
      * when this flag is set, properties and components are not added as javascript
@@ -2537,7 +2517,6 @@ export interface AddressSpace {
      * EventId is generated by the Server to uniquely identify a particular Event Notification.
      */
     generateEventId(): VariantByteString;
-
 }
 
 import { AddressSpace as AddressSpaceImpl } from "../src/address_space";
@@ -2559,8 +2538,6 @@ export class AddressSpace {
 }
 
 export type IHistoricalDataNodeOptions = IVariableHistorianOptions | { historian: IVariableHistorian };
-
-export { generateAddressSpace } from "./loader/load_nodeset2";
 
 export declare class VariableHistorian implements IVariableHistorian {
     public constructor(node: UAVariable, options: IVariableHistorianOptions);
@@ -2591,11 +2568,7 @@ export declare class VariableHistorian implements IVariableHistorian {
 }
 
 export interface UAVariableT<T, DT extends DataType> extends UAVariable {
-    readValue(
-        context?: SessionContext,
-        indexRange?: NumericRange,
-        dataEncoding?: QualifiedNameLike | null
-    ): DataValueT<T, DT>;
+    readValue(context?: SessionContext, indexRange?: NumericRange, dataEncoding?: QualifiedNameLike | null): DataValueT<T, DT>;
 
     writeValue(
         context: SessionContext,
@@ -2610,19 +2583,14 @@ export interface UAVariableT<T, DT extends DataType> extends UAVariable {
         callback: (err: Error | null, statusCode?: StatusCode) => void
     ): void;
 
-    writeValue(
-        context: SessionContext,
-        dataValue: DataValueOptionsT<T, DT>,
-        indexRange?: NumericRange | null
-    ): Promise<StatusCode>;
+    writeValue(context: SessionContext, dataValue: DataValueOptionsT<T, DT>, indexRange?: NumericRange | null): Promise<StatusCode>;
 }
 
 export interface UAVariableTypeT<T, DT extends DataType> extends UAVariableType {
     instantiate(options: InstantiateVariableOptions): UAVariableT<T, DT>;
 }
 
-export interface Property<T, DT extends DataType> extends UAVariableT<T, DT> {
-}
+export interface Property<T, DT extends DataType> extends UAVariableT<T, DT> {}
 
 export interface UAAggregateConfiguration extends UAObject {
     treatUncertainAsBad: UAVariableT<boolean, DataType.Boolean>;
@@ -2640,12 +2608,7 @@ export interface HistoricalDataConfiguration extends UAObject {
 }
 
 export interface Namespace {
-    addState(
-        component: StateMachine | StateMachineType,
-        stateName: string,
-        stateNumber: number,
-        isInitialState?: boolean
-    ): State;
+    addState(component: StateMachine | StateMachineType, stateName: string, stateNumber: number, isInitialState?: boolean): State;
 
     addTransition(
         component: StateMachine | StateMachineType,
@@ -2665,7 +2628,7 @@ export interface ConditionType extends UAObjectType {
     addComment: UAMethod;
 }
 
-export interface Enumeration extends UAVariable { }
+export interface Enumeration extends UAVariable {}
 
 // {{ Dynamic Array Variable
 export interface UADynamicVariableArray<T extends ExtensionObject> extends UAVariable {

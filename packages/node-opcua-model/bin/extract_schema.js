@@ -1,55 +1,54 @@
 const { OPCUAClient } = require("node-opcua-client");
-const { parse_opcua_common  } = require("../lib/parse_server_common");
-const { callbackify } = require("util")
+const { parse_opcua_common } = require("../lib/parse_server_common");
 
 const yargs = require("yargs/yargs");
 
 const argv = yargs(process.argv)
-    .wrap(132)
-    //.usage("Usage: $0 -d --endpoint <endpointUrl> [--securityMode (None|SignAndEncrypt|Sign)] [--securityPolicy (None|Basic256|Basic128Rsa15)] --node <node_id_to_monitor> --crawl")
-    .demand("endpoint")
-    .string("endpoint")
-    .describe("endpoint", "the end point to connect to ")
-    .string("securityMode")
-    .describe("securityMode", "the security mode")
-    .string("securityPolicy")
-    .describe("securityPolicy", "the policy mode")
-    .string("userName")
-    .describe("userName", "specify the user name of a UserNameIdentityToken ")
-    .string("password")
-    .describe("password", "specify the password of a UserNameIdentityToken")
-    .alias("e", "endpoint")
-    .alias("s", "securityMode")
-    .alias("P", "securityPolicy")
-    .alias("u", "userName")
-    .alias("p", "password")
-    .argv;
+  .wrap(132)
+  //.usage("Usage: $0 -d --endpoint <endpointUrl> [--securityMode (None|SignAndEncrypt|Sign)] [--securityPolicy (None|Basic256|Basic128Rsa15)] --node <node_id_to_monitor> --crawl")
+  .demand("endpoint")
+  .string("endpoint")
+  .describe("endpoint", "the end point to connect to ")
+  .string("securityMode")
+  .describe("securityMode", "the security mode")
+  .string("securityPolicy")
+  .describe("securityPolicy", "the policy mode")
+  .string("userName")
+  .describe("userName", "specify the user name of a UserNameIdentityToken ")
+  .string("password")
+  .describe("password", "specify the password of a UserNameIdentityToken")
+  .alias("e", "endpoint")
+  .alias("s", "securityMode")
+  .alias("P", "securityPolicy")
+  .alias("u", "userName")
+  .alias("p", "password")
+  .argv;
 
 const endpointUrl = argv.endpoint || "opc.tcp://localhost:48010";
 
 
 function parse_opcua_server(endpoint, callback) {
 
-    const options = {
-        endpoint_must_exist: false,
-        keepSessionAlive: true,
-        connectionStrategy: {
-            maxRetry: 10,
-            initialDelay: 2000,
-            maxDelay: 10 * 1000
-        }
-    };
+  const options = {
+    endpoint_must_exist: false,
+    keepSessionAlive: true,
+    connectionStrategy: {
+      maxRetry: 10,
+      initialDelay: 2000,
+      maxDelay: 10 * 1000
+    }
+  };
 
-    const client = OPCUAClient.create(options);
-    client.withSession(endpointUrl, function (session, callback) {
-        callbackify(parse_opcua_common)(session, callback);
-    }, function (err) {
-        callback(err);
-    });
+  const client = OPCUAClient.create(options);
+  client.withSession(endpointUrl, function(session, callback) {
+    parse_opcua_common(session).then(() => callback()).catch(err => callback(err));
+  }, function(err) {
+    callback(err);
+  });
 }
 
-parse_opcua_server(endpointUrl, function (err) {
-    console.log("done", err);
+parse_opcua_server(endpointUrl, function(err) {
+  console.log("done", err);
 });
 
 //

@@ -192,7 +192,7 @@ module.exports = function(test) {
                 function dumpNotificationResult() {
                     console.log("notification received  = ", subscription_raw_notification_event.callCount);
                     for (const c of subscription_raw_notification_event.getCalls()) {
-                        console.log("Initial l=", c.args[0].notificationData.length.toString());
+                        // console.log("Initial l=", c.args[0].notificationData.length.toString());
                         for (const n of c.args[0].notificationData) {
                             console.log(" monitoredItem changes = ", n.monitoredItems.length);
                         }

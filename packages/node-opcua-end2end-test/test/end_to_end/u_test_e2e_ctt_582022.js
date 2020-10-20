@@ -6,7 +6,6 @@
 const async = require("async");
 const should = require("should");
 const opcua = require("node-opcua");
-const _ = require("underscore");
 
 const {
     OPCUAClient,

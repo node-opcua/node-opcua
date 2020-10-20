@@ -26,7 +26,6 @@ const {
   extractFullyQualifiedDomainName
 } = require("node-opcua");
 
-
 Error.stackTraceLimit = Infinity;
 
 function constructFilename(filename) {
@@ -54,6 +53,9 @@ const argv = yargs(process.argv)
   .default("silent", false)
   .describe("silent", "no trace")
 
+
+  .string("alternateHostname")
+  .default("alternateHostname", null)
 
   .number("keySize")
   .describe("keySize", "certificate keySize [1024|2048|3072|4096]")
@@ -131,15 +133,16 @@ const paths = envPaths(productUri);
 (async function main() {
 
   const fqdn = await extractFullyQualifiedDomainName();
+  console.log("FQDN = ", fqdn);
+
   const applicationUri = makeApplicationUrn(fqdn, productUri);
   // -----------------------------------------------
   const configFolder = paths.config;
-  const certificateFolder = path.join(configFolder);
   const pkiFolder = path.join(configFolder, "pki");
   const userPkiFolder = path.join(configFolder, "userPki");
 
   const userCertificateManager = new OPCUACertificateManager({
-    automaticallyAcceptUnknownCertificate: false,
+    automaticallyAcceptUnknownCertificate: true,
     name: "userPki",
     rootFolder: userPkiFolder,
   });
@@ -188,8 +191,8 @@ const paths = envPaths(productUri);
     maxConnectionsPerEndpoint: maxConnectionsPerEndpoint,
 
     nodeset_filename: [
-      nodesets.standard_nodeset_file,
-      nodesets.di_nodeset_filename
+      nodesets.standard,
+      nodesets.di
     ],
 
     serverInfo: {
@@ -529,29 +532,33 @@ const paths = envPaths(productUri);
       return spacer + s;
     }).join("\n");
   }
+  function isIn(obj, arr) {
+    try {
+      return arr.findIndex((a) => a === obj.constructor.name.replace(/Response|Request/, "")) >= 0;
 
+    } catch (err) {
+      return true;
+    }
+  }
+
+  const servicesToTrace = ["Publish", "TransferSubscriptions", "Republish", "CreateSubscription", "CreateMonitoredItems"];
   server.on("response", function(response) {
 
     if (argv.silent) { return; }
-    if (response.constructor.name === "PublishResponse") {
-      console.log("PublishResponse", response.responseHeader.toString());
+    if (isIn(response, servicesToTrace)) {
+      console.log(t(response.responseHeader.timestamp), response.responseHeader.requestHandle,
+        response.schema.name.padEnd(30, " "), " status = ", response.responseHeader.serviceResult.toString());
+      console.log(response.constructor.name, response.toString());
     }
-    if (response.constructor.name === "CreateSubscriptionResponse") {
-      console.log("CreateSubscriptionResponse", response.toString());
-    }
-
-    console.log(t(response.responseHeader.timestamp), response.responseHeader.requestHandle,
-      response.schema.name.padEnd(30, " "), " status = ", response.responseHeader.serviceResult.toString());
-
   });
 
   server.on("request", function(request, channel) {
     if (argv.silent) { return; }
-    if (request.constructor.name === "PublishRequest") {
-      console.log("PublishRequest", request.toString());
+    if (isIn(request, servicesToTrace)) {
+      console.log(t(request.requestHeader.timestamp), request.requestHeader.requestHandle,
+        request.schema.name.padEnd(30, " "), " ID =", channel.channelId.toString());
+      console.log(request.constructor.name, request.toString());
     }
-    console.log(t(request.requestHeader.timestamp), request.requestHeader.requestHandle,
-      request.schema.name.padEnd(30, " "), " ID =", channel.channelId.toString());
   });
 
   process.on("SIGINT", function() {
@@ -566,22 +573,22 @@ const paths = envPaths(productUri);
     });
   });
 
-  server.on("serverRegistered", function() {
+  server.on("serverRegistered", () => {
     console.log("server has been registered");
   });
-  server.on("serverUnregistered", function() {
+  server.on("serverUnregistered", () => {
     console.log("server has been unregistered");
   });
-  server.on("serverRegistrationRenewed", function() {
+  server.on("serverRegistrationRenewed", () => {
     console.log("server registration has been renewed");
   });
-  server.on("serverRegistrationPending", function() {
+  server.on("serverRegistrationPending", () => {
     console.log("server registration is still pending (is Local Discovery Server up and running ?)");
   });
-  server.on("newChannel", function(channel) {
-    console.log(chalk.bgYellow("Client connected with address = "), channel.remoteAddress, " port = ", channel.remotePort);
+  server.on("newChannel", (channel) => {
+    console.log(chalk.bgYellow("Client connected with address = "), channel.remoteAddress, " port = ", channel.remotePort, "timeout=", channel.timeout);
   });
-  server.on("closeChannel", function(channel) {
+  server.on("closeChannel", (channel) => {
     console.log(chalk.bgCyan("Client disconnected with address = "), channel.remoteAddress, " port = ", channel.remotePort);
     if (global.gc) {
       global.gc();

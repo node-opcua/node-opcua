@@ -16,15 +16,15 @@ const OPCUADiscoveryServer = require("node-opcua-server-discovery").OPCUADiscove
 function f(func) {
 
     const title = func.name
-    .replace(/_/g, " ")
-    .replace("given ",chalk.green("**GIVEN** "))
-    .replace("when ",chalk.green("**WHEN** "))
-    .replace("then ",chalk.green("**THEN** "))
-    ;
+        .replace(/_/g, " ")
+        .replace("given ", chalk.green("**GIVEN** "))
+        .replace("when ", chalk.green("**WHEN** "))
+        .replace("then ", chalk.green("**THEN** "))
+        ;
     const ff = function(callback) {
-        console.log("     * "+ title);
-        func((err)=> {
-            console.log("     ! "+ title);
+        console.log("     * " + title);
+        func((err) => {
+            console.log("     ! " + title);
             callback(err);
         });
     }
@@ -33,10 +33,10 @@ function f(func) {
 
 
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
-describe("DS6- Discovery server", function () {
+describe("DS6- Discovery server", function() {
 
     this.timeout(50000);
-    
+
     let discoveryServer;
     let discoveryServerEndpointUrl = "opc.tcp://localhost:1240";
 
@@ -55,34 +55,34 @@ describe("DS6- Discovery server", function () {
         discoveryServer.shutdown(callback);
     }
 
-    before(function () {
+    before(function() {
         console.log("discovery url ", discoveryServerEndpointUrl);
         OPCUAServer.registry.count().should.eql(0);
 
         discoveryServer = new OPCUADiscoveryServer({ port: 1240 });
     });
-    after(function (done) {
+    after(function(done) {
         stop_discovery_server(() => {
-            setTimeout(()=> {
+            setTimeout(() => {
                 OPCUAServer.registry.count().should.eql(0);
                 done();
-            }, 1000);    
+            }, 1000);
         });
     });
 
-    beforeEach(function (done) {
+    beforeEach(function(done) {
         done();
     });
 
-    afterEach(function (done) {
+    afterEach(function(done) {
         done();
     });
 
-    it("a server shall register itself to the LDS when the LDS comes online", function (done) {
+    it("a server shall register itself to the LDS when the LDS comes online", function(done) {
         async.series([
             // given a up and running LDS
             start_discovery_server.bind(),
-            function (callback) {
+            function(callback) {
 
                 server = new OPCUAServer({
                     port: 1435,
@@ -92,20 +92,20 @@ describe("DS6- Discovery server", function () {
                 server.registerServerManager.timeout = 100;
                 // when server starts
                 // it should end up registering itself to the LDS
-                server.once("serverRegistered", function () {
+                server.once("serverRegistered", function() {
                     //xx console.log("server serverRegistered");
                     callback();
                 });
-                server.start(function () {
+                server.start(function() {
                 });
             },
-            function (callback) {
+            function(callback) {
                 // when the server shuts down
                 // it should unregistered itself from the LDS
-                server.once("serverUnregistered", function () {
+                server.once("serverUnregistered", function() {
                     //xx console.log("server serverUnregistered");
                 });
-                server.shutdown(function () {
+                server.shutdown(function() {
                     callback();
                 });
             },
@@ -113,7 +113,7 @@ describe("DS6- Discovery server", function () {
         ], done);
     });
 
-    it("a server shall register itself on a regular basic to the LDS", function (done) {
+    it("a server shall register itself on a regular basic to the LDS", function(done) {
         async.series([
             // given a up and running LDS
             f(function given_a_local_discovery_server(callback) {
@@ -128,21 +128,21 @@ describe("DS6- Discovery server", function () {
                 server.registerServerManager.timeout = 100;
                 // when server starts
                 // it should end up registering itself to the LDS
-                server.once("serverRegistered", function () {
+                server.once("serverRegistered", function() {
                     //xx console.log("server serverRegistered");
                     callback();
                 });
-                server.start(function () {
+                server.start(function() {
                 });
             }),
             f(function when_the_server_registration_is_renewed(callback) {
-                server.once("serverRegistrationRenewed", function () {
+                server.once("serverRegistrationRenewed", function() {
                     //xx console.log("server serverRegistrationRenewed");
                     callback();
                 });
             }),
             f(function then_server_registration_should_be_renewed_agin(callback) {
-                server.once("serverRegistrationRenewed", function () {
+                server.once("serverRegistrationRenewed", function() {
                     //xx console.log("server serverRegistrationRenewed");
                     callback();
                 });
@@ -150,10 +150,10 @@ describe("DS6- Discovery server", function () {
             f(function when_server_shutdown_it_shoud_unregistered_to_lds(callback) {
                 // when the server shuts down
                 // it should unregistered itself from the LDS
-                server.once("serverUnregistered", function () {
+                server.once("serverUnregistered", function() {
                     //xx console.log("server serverUnregistered");
                 });
-                server.shutdown(function () {
+                server.shutdown(function() {
                     callback();
                 });
             }),
@@ -162,7 +162,7 @@ describe("DS6- Discovery server", function () {
 
     });
 
-    it("a server shall try to register itself even if discovery server is not available", function (done) {
+    it("a server shall try to register itself even if discovery server is not available", function(done) {
 
         async.series([
 
@@ -176,19 +176,19 @@ describe("DS6- Discovery server", function () {
                 server.registerServerManager.timeout = 100;
                 // when server starts
                 // it should end up registering itself to the LDS
-                server.start(function () {
+                server.start(function() {
                     callback();
                 });
             }),
             f(function then_it_should_try_to_connect_to_LDS_and_raise_serverRegistrationPending(callback) {
-                server.once("serverRegistrationPending", function () {
+                server.once("serverRegistrationPending", function() {
                     //xx console.log("server serverRegistrationPending");
                     callback();
                 });
 
             }),
             f(function then_it_should_try_to_connect_to_LDS_and_raise_serverRegistrationPending(callback) {
-                server.once("serverRegistrationPending", function () {
+                server.once("serverRegistrationPending", function() {
                     //xx console.log("server serverRegistrationPending");
                     callback();
                 });
@@ -199,19 +199,19 @@ describe("DS6- Discovery server", function () {
                 start_discovery_server(callback);
             }),
             f(function then_server_should_finally_manage_to_connect_to_LDS_and_raise_serverRegistered_event(callback) {
-                server.once("serverRegistered", function () {
+                server.once("serverRegistered", function() {
                     //xx console.log("server serverRegistered");
                     callback();
                 });
             }),
             f(function then_later_on_server_should_renew_registration_and_raise_serverRegistrationRenewed_event(callback) {
-                server.once("serverRegistrationRenewed", function () {
+                server.once("serverRegistrationRenewed", function() {
                     //xx console.log("server serverRegistrationRenewed");
                     callback();
                 });
             }),
             f(function then_later_on_server_should_renew_registration_and_raise_serverRegistrationRenewed_event(callback) {
-                server.once("serverRegistrationRenewed", function () {
+                server.once("serverRegistrationRenewed", function() {
                     //xx console.log("server serverRegistrationRenewed");
                     callback();
                 });
@@ -219,10 +219,10 @@ describe("DS6- Discovery server", function () {
             f(function when_server_shutdown_it_should_unregister_itself_from_the_LDS(callback) {
                 // when the server shuts down
                 // it should unregistered itself from the LDS
-                server.once("serverUnregistered", function () {
+                server.once("serverUnregistered", function() {
                     //xx console.log("server serverUnregistered");
                 });
-                server.shutdown(function () {
+                server.shutdown(function() {
                     callback();
                 });
             }),
@@ -231,7 +231,7 @@ describe("DS6- Discovery server", function () {
 
     });
 
-    it("a server shall be able not to register itself to the LDS if needed to be hidden", function (done) {
+    it("a server shall be able not to register itself to the LDS if needed to be hidden", function(done) {
         async.series([
 
             f(function given_a_server_hidden_from_local_discovery(callback) {
@@ -241,12 +241,12 @@ describe("DS6- Discovery server", function () {
 
                 });
                 server.registerServerManager.timeout = 100;
-                server.start(function () {
+                server.start(function() {
                     callback();
                 });
             }),
-            function (callback) {
-                server.shutdown(function () {
+            function(callback) {
+                server.shutdown(function() {
                     callback();
                 });
             }
@@ -254,7 +254,7 @@ describe("DS6- Discovery server", function () {
 
     });
 
-    it("a server (that want to register itself to the LDS) shall be able to start promptly even if the LDS is no available", function (done) {
+    it("a server (that want to register itself to the LDS) shall be able to start promptly even if the LDS is no available", function(done) {
         this.timeout(5000);
         async.series([
 
@@ -266,12 +266,12 @@ describe("DS6- Discovery server", function () {
 
                 });
                 server.registerServerManager.timeout = 100;
-                server.start(function () {
+                server.start(function() {
                     callback();
                 });
             },
-            function (callback) {
-                server.shutdown(function () {
+            function(callback) {
+                server.shutdown(function() {
                     callback();
                 });
             }
@@ -281,10 +281,10 @@ describe("DS6- Discovery server", function () {
 
 });
 
-describe("DS7- Discovery Server 2", function () {
+describe("DS7- Discovery Server 2", function() {
     this.timeout(50000);
 
-    it("DS5-1 server shall not struggle to start if discovery server is not available", function (done) {
+    it("DS5-1 server shall not struggle to start if discovery server is not available", function(done) {
 
         let discoveryServerEndpointUrl = "opc.tcp://localhost:12345";
 
@@ -294,7 +294,7 @@ describe("DS7- Discovery Server 2", function () {
             // in this test, there is no discovery server available
             // no discovery ...
 
-            function (callback) {
+            function(callback) {
 
                 server = new OPCUAServer({
                     port: 1435,
@@ -306,14 +306,14 @@ describe("DS7- Discovery Server 2", function () {
 
                 // when server starts
                 // it should end up registering itself to the LDS
-                server.once("serverRegistered", function () {
+                server.once("serverRegistered", function() {
                     console.log("server serverRegistered ?! this is not what we expect !");
                 });
-                server.start(function () {
+                server.start(function() {
                     callback();
                 });
             },
-            function (callback) {
+            function(callback) {
                 server.shutdown(callback);
             }
         ], done);

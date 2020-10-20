@@ -18,11 +18,9 @@
  * }
  * @param stateMachineType
  */
-import { BaseNode, State, StateMachine, Transition, UAObject } from "../source";
+import { BaseNode, State, StateMachine, Transition, UAObject } from "..";
 
-export function dumpStateMachineToPlantUML(
-  stateMachineType: StateMachine
-) {
+export function dumpStateMachineToPlantUML(stateMachineType: StateMachine) {
     function w(str: string) {
         console.log(str);
     }
@@ -53,16 +51,13 @@ export function dumpStateMachineToPlantUML(
         return name;
     }
 
-    stateMachineType.states.forEach(
-      (state: UAObject) =>
-        w(" " + s(state) + ": " + n(state)));
+    stateMachineType.states.forEach((state: UAObject) => w(" " + s(state) + ": " + n(state)));
 
-    stateMachineType.transitions.forEach(
-      (transition: Transition) =>
-        w("  " + s(transition.fromStateNode!) + " --> " + s(transition.toStateNode!) + " : " + t(transition)));
+    stateMachineType.transitions.forEach((transition: Transition) =>
+        w("  " + s(transition.fromStateNode!) + " --> " + s(transition.toStateNode!) + " : " + t(transition))
+    );
 
     w("@enduml");
-
 }
 
 /*
@@ -113,10 +108,9 @@ export function dumpStateMachineToPlantUML(
  }
  */
 export function dumpStateMachineToGraphViz(
-  /*StateMachineProxy*/
-  stateMachineType: StateMachine
+    /*StateMachineProxy*/
+    stateMachineType: StateMachine
 ) {
-
     function w(str: string) {
         console.log(str);
     }
@@ -130,7 +124,7 @@ export function dumpStateMachineToGraphViz(
     }
 
     function s_full(state: BaseNode) {
-        return s(state) + " [ label = \"" + n(state) + "\" ]";
+        return s(state) + ' [ label = "' + n(state) + '" ]';
     }
 
     w("digraph finite_state_machine {");
@@ -141,17 +135,20 @@ export function dumpStateMachineToGraphViz(
         w("  _" + s_full(stateMachineType.initialState!) + " ;");
     }
     w("node [ shape = circle];");
-    stateMachineType.states.forEach(
-      (state: State) =>
-        w("   _" + s_full(state))
-    );
+    stateMachineType.states.forEach((state: State) => w("   _" + s_full(state)));
 
-    stateMachineType.transitions.forEach(
-      (transition: Transition) =>
-        w("  _" + s(transition.fromStateNode!) + " -> _" +
-          s(transition.toStateNode!) + " [ " +
-          //   " labeltooltip = \"" + i(transition) + "\" " +
-          ", label = \"" + n(transition) + "\" ];")
+    stateMachineType.transitions.forEach((transition: Transition) =>
+        w(
+            "  _" +
+                s(transition.fromStateNode!) +
+                " -> _" +
+                s(transition.toStateNode!) +
+                " [ " +
+                //   " labeltooltip = \"" + i(transition) + "\" " +
+                ', label = "' +
+                n(transition) +
+                '" ];'
+        )
     );
 
     w("}");

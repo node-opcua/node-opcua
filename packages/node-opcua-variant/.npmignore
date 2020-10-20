@@ -16,7 +16,7 @@ tmp/
 deprecated_*
 _generated_/
 tsconfig.json
-tsconfig.tsbuildinfo
+*.tsbuildinfo
 tslint.*
 .mocharc.yaml
 

@@ -4,7 +4,6 @@
 // tslint:disable:object-literal-shorthand
 // tslint:disable:only-arrow-functions
 // tslint:disable:max-line-length
-import * as  _ from "underscore";
 
 import { assert } from "node-opcua-assert";
 import { ObjectTypeIds } from "node-opcua-constants";
@@ -34,15 +33,11 @@ const doDebug = checkDebugFlag(__filename);
  *     constructEventFilter(["SourceName" ,"EnabledState.EffectiveDisplayName" ]);
  *
  */
-export function constructEventFilter(
-    arrayOfNames: string[] | string,
-    conditionTypes?: NodeId[] | NodeId
-): EventFilter {
-
-    if (!_.isArray(arrayOfNames)) {
+export function constructEventFilter(arrayOfNames: string[] | string, conditionTypes?: NodeId[] | NodeId): EventFilter {
+    if (!Array.isArray(arrayOfNames)) {
         return constructEventFilter([arrayOfNames], conditionTypes);
     }
-    if (conditionTypes && !_.isArray(conditionTypes)) {
+    if (conditionTypes && !Array.isArray(conditionTypes)) {
         return constructEventFilter(arrayOfNames, [conditionTypes]);
     }
     // istanbul ignore next
@@ -58,19 +53,19 @@ export function constructEventFilter(
     });
 
     const arrayOfNames3 = arrayOfNames2.map((path) => {
-        if (_.isArray(path)) {
+        if (Array.isArray(path)) {
             return path.map(stringToQualifiedName);
         }
         return path;
     });
     // replace "string" elements in arrayOfName with QualifiedName in namespace 0
     const arrayOfNames4 = arrayOfNames3.map((s) => {
-        return (typeof s === "string") ? stringToQualifiedName(s) : s;
+        return typeof s === "string" ? stringToQualifiedName(s) : s;
     });
 
     // construct browse paths array
     const browsePaths = arrayOfNames4.map((s) => {
-        return _.isArray(s) ? s : [s];
+        return Array.isArray(s) ? s : [s];
     });
 
     // Part 4 page 127:
@@ -83,12 +78,10 @@ export function constructEventFilter(
     // That said, profiles defined in Part 7 may make support for additional Attributes mandatory.
     let selectClauses = browsePaths.map((browsePath) => {
         return new SimpleAttributeOperand({
-
             attributeId: AttributeIds.Value,
             browsePath,
             indexRange: undefined, //  NumericRange
             typeDefinitionId: makeNodeId(ObjectTypeIds.BaseEventType) // i=2041
-
         });
     });
 
@@ -105,12 +98,11 @@ export function constructEventFilter(
     }
 
     const filter = new EventFilter({
-
         selectClauses: selectClauses,
 
-        whereClause: { // ContentFilter
+        whereClause: {
+            // ContentFilter
             elements: [
-
                 // ContentFilterElement
                 // {
                 //    filterOperator: FilterOperator.IsNull,
@@ -147,9 +139,11 @@ function simpleAttributeOperandToPath(self: SimpleAttributeOperand): string {
     if (!self.browsePath) {
         return "";
     }
-    return self.browsePath.map((a) => {
-        return a.name;
-    }).join("/");
+    return self.browsePath
+        .map((a) => {
+            return a.name;
+        })
+        .join("/");
 }
 
 /**
@@ -165,7 +159,6 @@ export function simpleAttributeOperandToShortString(
     self: SimpleAttributeOperand,
     addressSpace: any // Address Space
 ): string {
-
     let str = "";
     if (addressSpace) {
         const n = addressSpace.findNode(self.typeDefinitionId)!;

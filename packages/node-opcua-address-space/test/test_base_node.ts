@@ -5,19 +5,12 @@ import * as sinon from "sinon";
 import { BrowseDirection } from "node-opcua-data-model";
 import { NodeId, resolveNodeId } from "node-opcua-nodeid";
 
-import {
-    AddressSpace,
-    Namespace,
-    RootFolder,
-    UAObjectType,
-    UAReferenceType
-} from "..";
-import { getMiniAddressSpace } from "../";
+import { AddressSpace, Namespace, RootFolder, UAObjectType, UAReferenceType } from "..";
+import { getMiniAddressSpace } from "../testHelpers";
 
 // tslint:disable-next-line:no-var-requires
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("Testing UAObject", () => {
-
     let addressSpace: AddressSpace;
     let namespace: Namespace;
     let rootFolder: RootFolder;
@@ -42,9 +35,7 @@ describe("Testing UAObject", () => {
     }
 
     it("AddressSpace#addObject should create a 'hasTypeDefinition' reference on node", () => {
-
-        const nbReferencesBefore = baseObjectType.findReferencesEx(
-          "HasTypeDefinition", BrowseDirection.Inverse).length;
+        const nbReferencesBefore = baseObjectType.findReferencesEx("HasTypeDefinition", BrowseDirection.Inverse).length;
 
         const node1 = namespace.addObject({
             browseName: "Node1",
@@ -66,15 +57,16 @@ describe("Testing UAObject", () => {
         const nbReferencesAfter = baseObjectType.findReferencesEx("HasTypeDefinition", BrowseDirection.Inverse).length;
         // xx console.log("",nbReferencesBefore,nbReferencesAfter);
 
-        nbReferencesAfter.should.eql(nbReferencesBefore,
-          "we should have no more inverse references on the BaseObjectType because we " +
-          "do not add backward reference when reference is HasTypeDefinition");
+        nbReferencesAfter.should.eql(
+            nbReferencesBefore,
+            "we should have no more inverse references on the BaseObjectType because we " +
+                "do not add backward reference when reference is HasTypeDefinition"
+        );
 
         should(node1.parent).eql(null, "node1 should have no parent");
     });
 
     function _test_with_custom_referenceType(referenceType: string | NodeId | UAReferenceType) {
-
         const node1 = namespace.addObject({
             browseName: "Node1"
         });
@@ -130,7 +122,7 @@ describe("Testing UAObject", () => {
 
         node1.addReference({
             nodeId: nodeDest.nodeId,
-            referenceType: "Organizes",
+            referenceType: "Organizes"
         });
         node1.getFolderElementByName("nodeDest")!.browseName.should.eql(nodeDest.browseName);
     });
@@ -146,7 +138,6 @@ describe("Testing UAObject", () => {
     });
 
     it("BaseNode#addReference with invalid referenceType should raise an exception", () => {
-
         const node1 = namespace.addObject({
             browseName: "Node1"
         });
@@ -165,7 +156,6 @@ describe("Testing UAObject", () => {
     });
 
     it("BaseNode#addReference - four equivalent cases", () => {
-
         const view = namespace.addObject({ browseName: "View" });
         const node1 = namespace.addObject({ browseName: "Node1" });
         const node2 = namespace.addObject({ browseName: "Node2" });
@@ -185,11 +175,9 @@ describe("Testing UAObject", () => {
         view.getFolderElementByName("Node3")!.browseName.toString().should.eql(node3.browseName.toString());
         view.getFolderElementByName("Node4")!.browseName.toString().should.eql(node4.browseName.toString());
         view.getFolderElementByName("Node5")!.browseName.toString().should.eql(node5.browseName.toString());
-
     });
 
     it("BaseNode#addReference - 2 nodes - should properly update backward references on referenced nodes", () => {
-
         const node1 = namespace.addObject({
             browseName: "Node1"
         });
@@ -217,11 +205,9 @@ describe("Testing UAObject", () => {
         forwardReferencesDest.length.should.eql(1);
         inverseReferencesDest.length.should.eql(1);
         inverseReferencesDest[0].nodeId.toString().should.eql(node1.nodeId.toString());
-
     });
 
     it("BaseNode#addReference - 3 nodes - should properly update backward references on referenced nodes", () => {
-
         const node1 = namespace.addObject({
             browseName: "Node1"
         });
@@ -267,11 +253,9 @@ describe("Testing UAObject", () => {
         inverseReferencesDest.length.should.eql(2);
         inverseReferencesDest[0].nodeId.toString().should.eql(node1.nodeId.toString());
         inverseReferencesDest[1].nodeId.toString().should.eql(node2.nodeId.toString());
-
     });
 
     it("BaseNode#addReference should throw if the same reference is added twice", () => {
-
         const node1 = namespace.addObject({
             browseName: "Node1"
         });
@@ -292,13 +276,10 @@ describe("Testing UAObject", () => {
                 nodeId: node2.nodeId,
                 referenceType: "Organizes"
             });
-
         }).throwError();
-
     });
 
     it("BaseNode#addReference internal cache must be invalidated", () => {
-
         const node1 = namespace.addObject({
             browseName: "Node1"
         });
@@ -332,7 +313,6 @@ describe("Testing UAObject", () => {
         (node1 as any).node2.browseName.toString().should.eql("1:Node2");
     });
     it("BaseNode#addReference (Inverse) internal cache must be invalidated", () => {
-
         const node1 = namespace.addObject({
             browseName: "Node1"
         });
@@ -354,7 +334,6 @@ describe("Testing UAObject", () => {
         node2.getComponents().length.should.eql(0);
 
         (node1 as any).node2.browseName.toString().should.eql("1:Node2");
-
     });
 
     it("BaseNode#namespaceIndex", () => {
@@ -367,7 +346,6 @@ describe("Testing UAObject", () => {
     });
 
     it("BaseNode#namespaceUri", () => {
-
         const node1 = namespace.addObject({
             browseName: "Node2"
         });
@@ -377,7 +355,6 @@ describe("Testing UAObject", () => {
     });
 
     it("AddressSpace#parent should provide a parent property to access parent node", () => {
-
         const parentNode = namespace.addObject({
             browseName: "ParentNode"
         });
@@ -390,6 +367,5 @@ describe("Testing UAObject", () => {
 
         const child3 = namespace.addObject({ organizedBy: parentNode, browseName: "Child3" });
         should(child3.parent).eql(null, "OrganizedBy is not a Parent/Child relation");
-
     });
 });

@@ -1,58 +1,35 @@
-import {
-    AttributeIds,
-} from "node-opcua-data-model";
-import {
-    resolveNodeId,
-} from "node-opcua-nodeid";
-import {
-    constructEventFilter
-} from "node-opcua-service-filter";
-import {
-    ReadValueIdOptions,
-    TimestampsToReturn
-} from "node-opcua-service-read";
-import {
-    CreateSubscriptionRequestOptions,
-    MonitoringParametersOptions
-} from "node-opcua-service-subscription";
-import {
-    Variant,
-} from "node-opcua-variant";
-import {
-    ClientMonitoredItem
-} from "../client_monitored_item";
-import {
-    ClientSession
-} from "../client_session";
-import {
-    EventStuff,
-    fieldsToJson
-} from "./client_alarm";
-import {
-    ClientAlarmList
-} from "./client_alarm_list";
-import {
-    extractConditionFields
-} from "./client_alarm_tools_extractConditionFields";
-import {
-    callConditionRefresh,
-} from "./client_tools";
+import { AttributeIds } from "node-opcua-data-model";
+import { resolveNodeId } from "node-opcua-nodeid";
+import { constructEventFilter } from "node-opcua-service-filter";
+import { ReadValueIdOptions, TimestampsToReturn } from "node-opcua-service-read";
+import { CreateSubscriptionRequestOptions, MonitoringParametersOptions } from "node-opcua-service-subscription";
+import { Variant } from "node-opcua-variant";
+import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
+
+import { ClientMonitoredItem } from "../client_monitored_item";
+import { ClientSession } from "../client_session";
+import { EventStuff, fieldsToJson } from "./client_alarm";
+import { ClientAlarmList } from "./client_alarm_list";
+import { extractConditionFields } from "./client_alarm_tools_extractConditionFields";
+import { callConditionRefresh } from "./client_tools";
+
+const doDebug = checkDebugFlag(__filename);
+const debugLog = make_debugLog(__filename);
 
 // ------------------------------------------------------------------------------------------------------------------------------
 export async function uninstallAlarmMonitoring(session: ClientSession): Promise<void> {
-
-    const _sessionPriv = session as any;
-    if (!_sessionPriv.$clientAlarmList) {
-        return;
-    }
-
-    const mi = _sessionPriv.$monitoredItemForAlarmList as ClientMonitoredItem;
-    mi.removeAllListeners();
-
-    _sessionPriv.$monitoredItemForAlarmList = null;
-    await _sessionPriv.$subscriptionforAlarmList.terminate();
-    _sessionPriv.$clientAlarmList = null;
+  const _sessionPriv = session as any;
+  if (!_sessionPriv.$clientAlarmList) {
     return;
+  }
+
+  const mi = _sessionPriv.$monitoredItemForAlarmList as ClientMonitoredItem;
+  mi.removeAllListeners();
+
+  _sessionPriv.$monitoredItemForAlarmList = null;
+  await _sessionPriv.$subscriptionforAlarmList.terminate();
+  _sessionPriv.$clientAlarmList = null;
+  return;
 }
 
 // Release 1.04 8 OPC Unified Architecture, Part 9
@@ -67,97 +44,102 @@ export async function uninstallAlarmMonitoring(session: ClientSession): Promise<
 // RefreshEndEvent, the Client removes any remaining suspect Events, since they no longer
 // apply.
 
-
 // ------------------------------------------------------------------------------------------------------------------------------
 export async function installAlarmMonitoring(session: ClientSession): Promise<ClientAlarmList> {
+  const _sessionPriv = session as any;
+  // create
+  if (_sessionPriv.$clientAlarmList) {
+    return _sessionPriv.$clientAlarmList;
+  }
+  const clientAlarmList = new ClientAlarmList();
+  _sessionPriv.$clientAlarmList = clientAlarmList;
 
-    const _sessionPriv = session as any;
-    // create
-    if (_sessionPriv.$clientAlarmList) {
-        return _sessionPriv.$clientAlarmList;
-    }
-    const clientAlarmList = new ClientAlarmList();
-    _sessionPriv.$clientAlarmList = clientAlarmList;
+  const request: CreateSubscriptionRequestOptions = {
+    maxNotificationsPerPublish: 10000,
+    priority: 6,
+    publishingEnabled: true,
+    requestedLifetimeCount: 10000,
+    requestedMaxKeepAliveCount: 1000,
+    requestedPublishingInterval: 500
+  };
+  const subscription = await session.createSubscription2(request);
+  _sessionPriv.$subscriptionforAlarmList = subscription;
 
-    const request: CreateSubscriptionRequestOptions = {
-        maxNotificationsPerPublish: 10000,
-        priority: 6,
-        publishingEnabled: true,
-        requestedLifetimeCount: 10000,
-        requestedMaxKeepAliveCount: 1000,
-        requestedPublishingInterval: 1000,
-    };
-    const subscription = await session.createSubscription2(request);
-    _sessionPriv.$subscriptionforAlarmList = subscription;
+  const itemToMonitor: ReadValueIdOptions = {
+    attributeId: AttributeIds.EventNotifier,
+    nodeId: resolveNodeId("Server") // i=2253
+  };
 
-    const itemToMonitor: ReadValueIdOptions = {
-        attributeId: AttributeIds.EventNotifier,
-        nodeId: resolveNodeId("Server"), // i=2253
-    };
+  const fields = await extractConditionFields(session, "AlarmConditionType");
 
-    const fields = await extractConditionFields(session, "AlarmConditionType");
+  const eventFilter = constructEventFilter(fields, [resolveNodeId("AcknowledgeableConditionType")]);
 
-    const eventFilter = constructEventFilter(fields, [resolveNodeId("AcknowledgeableConditionType")]);
+  const monitoringParameters: MonitoringParametersOptions = {
+    discardOldest: false,
+    filter: eventFilter,
+    queueSize: 10000,
+    samplingInterval: 0
+  };
 
-    const monitoringParameters: MonitoringParametersOptions = {
-        discardOldest: false,
-        filter: eventFilter,
-        queueSize: 10000,
-        samplingInterval: 0,
-    };
+  // now create a event monitored Item
+  const event_monitoringItem = ClientMonitoredItem.create(
+    subscription,
+    itemToMonitor,
+    monitoringParameters,
+    TimestampsToReturn.Both
+  );
 
-    // now create a event monitored Item
-    const event_monitoringItem = ClientMonitoredItem.create(subscription, itemToMonitor, monitoringParameters, TimestampsToReturn.Both);
+  const RefreshStartEventType = resolveNodeId("RefreshStartEventType").toString();
+  const RefreshEndEventType = resolveNodeId("RefreshEndEventType").toString();
 
-    const RefreshStartEventType = resolveNodeId("RefreshStartEventType").toString();
-    const RefreshEndEventType = resolveNodeId("RefreshEndEventType").toString();
-
-    event_monitoringItem.on("changed", (eventFields: Variant[]) => {
-        const pojo = fieldsToJson(fields, eventFields) as EventStuff;
-        try {
-            if (pojo.eventType.value.toString() === RefreshStartEventType) {
-                return;
-            }
-            if (pojo.eventType.value.toString() === RefreshEndEventType) {
-                return;
-            }
-            if (!pojo.conditionId || !pojo.conditionId.value || pojo.conditionId.dataType === 0) {
-                // not a acknowledgeable condition
-                return;
-            }
-            clientAlarmList.update(pojo);
-        } catch (err) {
-            // tslint:disable-next-line: no-console
-            function r(_key: string, o: any) {
-                if (o && o.dataType === "Null") { return undefined; }
-                return o;
-            }
-            // tslint:disable-next-line: no-console
-            console.log(JSON.stringify(pojo, r, " "));
-            // tslint:disable-next-line: no-console
-            console.log("Error !!", err);
-        }
-
-        // Release 1.04 8 OPC Unified Architecture, Part 9
-        // 4.5 Condition state synchronization
-        // RefreshRequiredEventType
-        // Under some circumstances a Server may not be capable of ensuring the Client is fully
-        //  in sync with the current state of Condition instances. For example, if the underlying
-        // system represented by the Server is reset or communications are lost for some period
-        // of time the Server may need to resynchronize itself with the underlying system. In
-        // these cases, the Server shall send an Event of the RefreshRequiredEventType to
-        // advise the Client that a Refresh may be necessary. A Client receiving this special
-        // Event should initiate a ConditionRefresh as noted in this clause.
-        // TODO
-    });
-
-
+  event_monitoringItem.on("changed", (eventFields: Variant[]) => {
+    debugLog("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx ---- ALARM RECEIVED");
+    const pojo = fieldsToJson(fields, eventFields) as EventStuff;
     try {
-        await callConditionRefresh(subscription);
+      if (pojo.eventType.value.toString() === RefreshStartEventType) {
+        return;
+      }
+      if (pojo.eventType.value.toString() === RefreshEndEventType) {
+        return;
+      }
+      if (!pojo.conditionId || !pojo.conditionId.value || pojo.conditionId.dataType === 0) {
+        // not a acknowledgeable condition
+        return;
+      }
+      clientAlarmList.update(pojo);
     } catch (err) {
-        console.log("Server may not implement condition refresh", err.message);
+      // tslint:disable-next-line: no-console
+      function r(_key: string, o: any) {
+        if (o && o.dataType === "Null") {
+          return undefined;
+        }
+        return o;
+      }
+      // tslint:disable-next-line: no-console
+      console.log(JSON.stringify(pojo, r, " "));
+      // tslint:disable-next-line: no-console
+      console.log("Error !!", err);
     }
-    _sessionPriv.$monitoredItemForAlarmList = event_monitoringItem;
-    // also request updates
-    return clientAlarmList;
+
+    // Release 1.04 8 OPC Unified Architecture, Part 9
+    // 4.5 Condition state synchronization
+    // RefreshRequiredEventType
+    // Under some circumstances a Server may not be capable of ensuring the Client is fully
+    //  in sync with the current state of Condition instances. For example, if the underlying
+    // system represented by the Server is reset or communications are lost for some period
+    // of time the Server may need to resynchronize itself with the underlying system. In
+    // these cases, the Server shall send an Event of the RefreshRequiredEventType to
+    // advise the Client that a Refresh may be necessary. A Client receiving this special
+    // Event should initiate a ConditionRefresh as noted in this clause.
+    // TODO
+  });
+
+  try {
+    await callConditionRefresh(subscription);
+  } catch (err) {
+    console.log("Server may not implement condition refresh", err.message);
+  }
+  _sessionPriv.$monitoredItemForAlarmList = event_monitoringItem;
+  // also request updates
+  return clientAlarmList;
 }

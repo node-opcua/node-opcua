@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<UANodeSet Version="1.02" LastModified="2013-03-06T05:36:44.0862658Z" 
+<UANodeSet Version="1.02" LastModified="2013-03-06T05:36:44.0862658Z"
     xmlns="http://opcfoundation.org/UA/2011/03/UANodeSet.xsd">
 
     <Aliases>
@@ -92,6 +92,13 @@
         <DisplayName>BaseDataType</DisplayName>
         <Description>Describes a value that can have any valid DataType.</Description>
         <References/>
+    </UADataType>
+
+    <UADataType NodeId="i=29" BrowseName="Enumeration" IsAbstract="true">
+        <DisplayName>Enumeration</DisplayName>
+        <References>
+            <Reference ReferenceType="HasSubtype" IsForward="false">i=24</Reference>
+        </References>
     </UADataType>
 
     <UADataType NodeId="i=26" BrowseName="Number" IsAbstract="true">

@@ -3,7 +3,7 @@ import * as should from "should";
 import { BrowseDirection } from "node-opcua-data-model";
 
 import { AddressSpace, UAObject, UAObjectType, UAVariable } from "..";
-import { getMiniAddressSpace } from "../";
+import { getMiniAddressSpace } from "../testHelpers";
 
 // tslint:disable-next-line:no-var-requires
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;

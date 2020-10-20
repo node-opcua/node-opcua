@@ -3,7 +3,8 @@
     "compilerOptions": {
         "rootDir": "source",
         "outDir": "dist",
-        "composite": true
+        "composite": true,
+        "incremental": true
     },
 
     "include": [""],
@@ -14,6 +15,9 @@
         },
         {
             "path": "../node-opcua-basic-types"
+        },
+        {
+            "path": "../node-opcua-benchmarker"
         },
         {
             "path": "../node-opcua-binary-stream"

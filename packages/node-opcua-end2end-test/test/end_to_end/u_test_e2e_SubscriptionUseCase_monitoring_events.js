@@ -14,7 +14,7 @@ const MonitoringMode = opcua.MonitoringMode;
 const TimestampsToReturn = opcua.TimestampsToReturn;
 const constructEventFilter = opcua.constructEventFilter;
 
-const perform_operation_on_subscription = require("../../test_helpers/perform_operation_on_client_session").perform_operation_on_subscription;
+const { perform_operation_on_subscription } = require("../../test_helpers/perform_operation_on_client_session");
 
 module.exports = function(test) {
 

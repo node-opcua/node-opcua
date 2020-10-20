@@ -2,8 +2,6 @@
  * @module node-opcua-address-space.AlarmsAndConditions
  */
 
-import * as _ from "underscore";
-
 import { assert } from "node-opcua-assert";
 
 import { DataValue } from "node-opcua-data-value";
@@ -33,13 +31,12 @@ export interface UANonExclusiveDeviationAlarm extends UANonExclusiveLimitAlarm {
  * @constructor
  */
 export class UANonExclusiveDeviationAlarm extends UANonExclusiveLimitAlarm implements DeviationStuff {
-
     public static instantiate(
         namespace: NamespacePrivate,
         type: string | NodeId,
         options: any,
-        data: any): UANonExclusiveDeviationAlarm {
-
+        data: any
+    ): UANonExclusiveDeviationAlarm {
         const addressSpace = namespace.addressSpace;
 
         const nonExclusiveDeviationAlarmType = addressSpace.findEventType("NonExclusiveDeviationAlarmType");
@@ -49,8 +46,7 @@ export class UANonExclusiveDeviationAlarm extends UANonExclusiveLimitAlarm imple
         }
         assert(type === nonExclusiveDeviationAlarmType.browseName.toString());
 
-        const alarm = UANonExclusiveLimitAlarm.instantiate(
-            namespace, type, options, data) as UANonExclusiveDeviationAlarm;
+        const alarm = UANonExclusiveLimitAlarm.instantiate(namespace, type, options, data) as UANonExclusiveDeviationAlarm;
         Object.setPrototypeOf(alarm, UANonExclusiveDeviationAlarm.prototype);
 
         assert(alarm instanceof UANonExclusiveDeviationAlarm);
@@ -67,7 +63,7 @@ export class UANonExclusiveDeviationAlarm extends UANonExclusiveLimitAlarm imple
         if (setpointValue === null) {
             throw new Error("Cannot access setpoint Value");
         }
-        assert(_.isFinite(setpointValue), "expecting a valid setpoint value");
+        assert(isFinite(setpointValue), "expecting a valid setpoint value");
         // call base class implementation
         super._setStateBasedOnInputValue(value - setpointValue);
     }
@@ -87,7 +83,6 @@ export class UANonExclusiveDeviationAlarm extends UANonExclusiveLimitAlarm imple
     public _install_setpoint(options: any): any {
         return DeviationAlarmHelper_install_setpoint.call(this, options);
     }
-
 }
 
 /*

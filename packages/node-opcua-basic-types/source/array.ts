@@ -2,8 +2,7 @@
  * @module node-opcua-basic-types
  */
 import { assert } from "node-opcua-assert";
-import { BinaryStream, BinaryStreamSizeCalculator, OutputBinaryStream } from "node-opcua-binary-stream" ;
-import * as _ from "underscore";
+import { BinaryStream, BinaryStreamSizeCalculator, OutputBinaryStream } from "node-opcua-binary-stream";
 
 /**
  * @method encodeArray
@@ -14,12 +13,13 @@ import * as _ from "underscore";
 export function encodeArray(
     arr: any[] | null,
     stream: OutputBinaryStream,
-    encodeElementFunc: (value: any, stream: OutputBinaryStream) => void): void {
+    encodeElementFunc: (value: any, stream: OutputBinaryStream) => void
+): void {
     if (arr === null) {
         stream.writeUInt32(0xffffffff);
         return;
     }
-    assert(_.isArray(arr));
+    assert(Array.isArray(arr));
     stream.writeUInt32(arr.length);
     for (const value of arr) {
         encodeElementFunc(value, stream);

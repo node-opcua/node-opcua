@@ -1,50 +1,49 @@
 /*global xit,it,describe,before,after,beforeEach,afterEach,require*/
 "use strict";
 
-const assert = require("node-opcua-assert").assert;
+const { assert } = require("node-opcua-assert");
 const should = require("should");
 const async = require("async");
-const _ = require("underscore");
 
 const opcua = require("node-opcua");
 const OPCUAClient = opcua.OPCUAClient;
 
 // bug : server reported to many datavalue changed when client monitored a UAVariable consructed with variation 1");
-module.exports = function (test) {
+module.exports = function(test) {
 
-    describe("Closing an unactivated session ", function () {
+    describe("Closing an unactivated session ", function() {
 
-        it("AKQ server shall return BadSessionNotActivated if client attempts to close an unactivated session",function(done){
+        it("AKQ server shall return BadSessionNotActivated if client attempts to close an unactivated session", function(done) {
 
             const endpointUrl = test.endpointUrl;
 
             const client1 = OPCUAClient.create({
                 connectionStrategy: {
-                    maxRetry:1
+                    maxRetry: 1
                 }
             });
 
-            let session =null;
+            let session = null;
             async.series([
-                function (callback) {
+                function(callback) {
                     //xx console.log("xxxxx connecting to server ...");
-                    client1.connect(endpointUrl, function (err) {
+                    client1.connect(endpointUrl, function(err) {
                         callback(err);
                     });
                 },
 
                 function(callback) {
-                    client1._createSession(function (err, l_session) {
-                      session = l_session;
+                    client1._createSession(function(err, l_session) {
+                        session = l_session;
                         callback(err);
                     });
                 },
                 function(callback) {
 
-                    session.close(function(err){
+                    session.close(function(err) {
                         //  err.message.should.match(/BadSessionNotActivated/);
                         should.not.exist(err);
-                        
+
                         assert(client1._sessions.length === 0, "");
 
                         callback();
@@ -52,15 +51,15 @@ module.exports = function (test) {
 
                 },
                 function(callback) {
-                    client1.disconnect(function (err) {
+                    client1.disconnect(function(err) {
                         callback(err);
                     });
                 }
-            ],done);
+            ], done);
         });
     });
 
-    it("QQQQ a server shall close any unactivated sessions before reaching the maximum number of session",function(done) {
+    it("QQQQ a server shall close any unactivated sessions before reaching the maximum number of session", function(done) {
 
         const MAX_SESSIONS = 3;
         let oldMaxAllowedSessionNumber;
@@ -81,18 +80,18 @@ module.exports = function (test) {
         };
         const clients = [];
 
-        const sessions =[];
+        const sessions = [];
         function create_unactivated_session(callback) {
 
             const endpointUrl = test.endpointUrl;
-            const client1 = OPCUAClient.create( {
-                connectionStrategy:fail_fast_connectionStrategy
+            const client1 = OPCUAClient.create({
+                connectionStrategy: fail_fast_connectionStrategy
             });
             let session;
             //xx console.log("xxxxx connecting to server ...");
             async.series([
                 function(callback) {
-                    client1.connect(endpointUrl, function (err) {
+                    client1.connect(endpointUrl, function(err) {
                         clients.push(client1);
                         callback(err);
                     });
@@ -100,76 +99,76 @@ module.exports = function (test) {
 
                 function(callback) {
                     // create a session without activating it...
-                    client1._createSession(function (err, l_session) {
+                    client1._createSession(function(err, l_session) {
                         session = l_session;
                         sessions.push(session);
                         callback(err);
                     });
                 }
 
-            ],callback);
+            ], callback);
         }
 
-        test.server.engine.currentSessionCount.should.eql(0,"expecting server to have no session left opened ...");
+        test.server.engine.currentSessionCount.should.eql(0, "expecting server to have no session left opened ...");
 
         async.series([
-            function(callback) { setTimeout(callback,1000);},
-            function(callback) { test.server.engine.currentSessionCount.should.eql(0);callback(); },
-            function(callback) { create_unactivated_session(callback);},
-            function(callback) { test.server.engine.currentSessionCount.should.eql(1);callback(); },
-            function(callback) { create_unactivated_session(callback);},
-            function(callback) { test.server.engine.currentSessionCount.should.eql(2);callback(); },
-            function(callback) { create_unactivated_session(callback);},
-            function(callback) { test.server.engine.currentSessionCount.should.eql(3);callback(); },
+            function(callback) { setTimeout(callback, 1000); },
+            function(callback) { test.server.engine.currentSessionCount.should.eql(0); callback(); },
+            function(callback) { create_unactivated_session(callback); },
+            function(callback) { test.server.engine.currentSessionCount.should.eql(1); callback(); },
+            function(callback) { create_unactivated_session(callback); },
+            function(callback) { test.server.engine.currentSessionCount.should.eql(2); callback(); },
+            function(callback) { create_unactivated_session(callback); },
+            function(callback) { test.server.engine.currentSessionCount.should.eql(3); callback(); },
 
-            function(callback) { create_unactivated_session(callback);},
-            function(callback) { test.server.engine.currentSessionCount.should.eql(MAX_SESSIONS);callback(); },
-            function(callback) { create_unactivated_session(callback);},
-            function(callback) { test.server.engine.currentSessionCount.should.eql(MAX_SESSIONS);callback(); },
-            function(callback) { create_unactivated_session(callback);},
-            function(callback) { test.server.engine.currentSessionCount.should.eql(MAX_SESSIONS);callback(); },
-            function(callback) { create_unactivated_session(callback);},
-            function(callback) { test.server.engine.currentSessionCount.should.eql(MAX_SESSIONS);callback(); },
-            function(callback) { create_unactivated_session(callback);},
-            function(callback) { test.server.engine.currentSessionCount.should.eql(MAX_SESSIONS);callback(); },
-            function(callback) { create_unactivated_session(callback);},
-            function(callback) { test.server.engine.currentSessionCount.should.eql(MAX_SESSIONS);callback(); },
-            function(callback) { create_unactivated_session(callback);},
-            function(callback) { test.server.engine.currentSessionCount.should.eql(MAX_SESSIONS);callback(); },
-            function(callback) { create_unactivated_session(callback);},
-            function(callback) { test.server.engine.currentSessionCount.should.eql(MAX_SESSIONS);callback(); },
-            function(callback) { create_unactivated_session(callback);},
-            function(callback) { test.server.engine.currentSessionCount.should.eql(MAX_SESSIONS);callback(); },
+            function(callback) { create_unactivated_session(callback); },
+            function(callback) { test.server.engine.currentSessionCount.should.eql(MAX_SESSIONS); callback(); },
+            function(callback) { create_unactivated_session(callback); },
+            function(callback) { test.server.engine.currentSessionCount.should.eql(MAX_SESSIONS); callback(); },
+            function(callback) { create_unactivated_session(callback); },
+            function(callback) { test.server.engine.currentSessionCount.should.eql(MAX_SESSIONS); callback(); },
+            function(callback) { create_unactivated_session(callback); },
+            function(callback) { test.server.engine.currentSessionCount.should.eql(MAX_SESSIONS); callback(); },
+            function(callback) { create_unactivated_session(callback); },
+            function(callback) { test.server.engine.currentSessionCount.should.eql(MAX_SESSIONS); callback(); },
+            function(callback) { create_unactivated_session(callback); },
+            function(callback) { test.server.engine.currentSessionCount.should.eql(MAX_SESSIONS); callback(); },
+            function(callback) { create_unactivated_session(callback); },
+            function(callback) { test.server.engine.currentSessionCount.should.eql(MAX_SESSIONS); callback(); },
+            function(callback) { create_unactivated_session(callback); },
+            function(callback) { test.server.engine.currentSessionCount.should.eql(MAX_SESSIONS); callback(); },
+            function(callback) { create_unactivated_session(callback); },
+            function(callback) { test.server.engine.currentSessionCount.should.eql(MAX_SESSIONS); callback(); },
 
-            function (callback) {
+            function(callback) {
                 // close all sessions
-                async.eachLimit(sessions, 1, function (session, inner_callback) {
-                    session.close(function(err){
+                async.eachLimit(sessions, 1, function(session, inner_callback) {
+                    session.close(function(err) {
                         // ignore errors here
                         inner_callback()
                     });
-                },callback);
+                }, callback);
             },
 
 
-            function (callback) {
+            function(callback) {
                 // close all connections
-                async.eachLimit(clients,1,function(client,inner_callback){
+                async.eachLimit(clients, 1, function(client, inner_callback) {
 
-                    client.disconnect(function(err){
+                    client.disconnect(function(err) {
                         assert(client._sessions.length === 0, "");
                         inner_callback(err);
                     });
 
-                },callback)
+                }, callback)
             },
-            function(callback){ setTimeout(callback,1000); },
-            function(callback){
+            function(callback) { setTimeout(callback, 1000); },
+            function(callback) {
                 test.server.maxAllowedSessionNumber = oldMaxAllowedSessionNumber;
                 test.server.engine.currentSessionCount.should.eql(0);
                 callback();
             }
-        ],done);
+        ], done);
 
     });
 

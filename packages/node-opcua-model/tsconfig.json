@@ -1,60 +1,58 @@
 {
-  "extends": "../tsconfig.json",
-  "compilerOptions": {
-    "rootDir": "source",
-    "outDir": "dist",
-    "composite": true
-  },
-  "include": [],
-  "references": [
-    {
-      "path": "../node-opcua-address-space"
+    "extends": "../tsconfig.json",
+    "compilerOptions": {
+        "rootDir": "source",
+        "outDir": "dist",
+        "composite": true,
+        "incremental": true
     },
-    {
-      "path": "../node-opcua-assert"
-    },
-    {
-      "path": "../node-opcua-basic-types"
-    },
-    {
-      "path": "../node-opcua-client"
-    },
-    {
-      "path": "../node-opcua-enum"
-    },
-    {
-      "path": "../node-opcua-factory"
-    },
-    {
-      "path": "../node-opcua-generator"
-    },
-    {
-      "path": "../node-opcua-nodeid"
-    },
-    {
-      "path": "../node-opcua-nodesets"
-    },
-    {
-      "path": "../node-opcua-schemas"
-    },
-    {
-      "path": "../node-opcua-service-browse"
-    },
-    {
-      "path": "../node-opcua-status-code"
-    },
-    {
-      "path": "../node-opcua-xml2json"
-    },
-    {
-      "path": "../node-opcua-client-dynamic-extension-object"
-    },
-    {
-      "path": "../node-opcua-leak-detector"
-    }
-  ],
-  "exclude": [
-    "node_modules",
-    "dist"
-  ]
+    "include": [],
+    "references": [
+        {
+            "path": "../node-opcua-address-space"
+        },
+        {
+            "path": "../node-opcua-assert"
+        },
+        {
+            "path": "../node-opcua-basic-types"
+        },
+        {
+            "path": "../node-opcua-client"
+        },
+        {
+            "path": "../node-opcua-enum"
+        },
+        {
+            "path": "../node-opcua-factory"
+        },
+        {
+            "path": "../node-opcua-generator"
+        },
+        {
+            "path": "../node-opcua-nodeid"
+        },
+        {
+            "path": "../node-opcua-nodesets"
+        },
+        {
+            "path": "../node-opcua-schemas"
+        },
+        {
+            "path": "../node-opcua-service-browse"
+        },
+        {
+            "path": "../node-opcua-status-code"
+        },
+        {
+            "path": "../node-opcua-xml2json"
+        },
+        {
+            "path": "../node-opcua-client-dynamic-extension-object"
+        },
+        {
+            "path": "../node-opcua-leak-detector"
+        }
+    ],
+    "exclude": ["node_modules", "dist"]
 }

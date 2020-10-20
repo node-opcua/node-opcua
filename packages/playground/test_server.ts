@@ -5,16 +5,14 @@ import {
     ActivateSessionRequest,
     BrowseRequest,
     BrowseResponse,
-    makeBoiler,
     OPCUAServer,
     RegisterServerMethod,
     Request,
-    Response
+    Response,
+    makeBoiler
 } from "node-opcua";
-
 async function main() {
     try {
-
         const server = new OPCUAServer({
             registerServerMethod: RegisterServerMethod.LDS
         });
@@ -22,7 +20,6 @@ async function main() {
         await server.initialize();
 
         server.on("request", (request: Request) => {
-
             console.log(request.constructor.name, request.requestHeader.requestHandle);
 
             // you can either check the instance of the request object directl
@@ -40,10 +37,8 @@ async function main() {
                 }
                 // etc...
             }
-
         });
         server.on("response", (response: Response) => {
-
             // you can either check the instance of the request object directl
             if (response instanceof BrowseResponse) {
                 console.log("BrowseResponse.results.length =", response.results ? response.results.length : 0);

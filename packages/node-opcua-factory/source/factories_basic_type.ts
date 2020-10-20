@@ -1,9 +1,6 @@
 /**
  * @module node-opcua-factory
  */
-import * as  _ from "underscore";
-import * as util from "util";
-
 import { assert } from "node-opcua-assert";
 import { decodeLocaleId, encodeLocaleId, validateLocaleId } from "node-opcua-basic-types";
 import { BinaryStream, OutputBinaryStream } from "node-opcua-binary-stream";
@@ -50,7 +47,6 @@ export interface BasicTypeOptions {
  * @param [schema.toJSON]optional, a method to convert a value into the request type.
  */
 export function registerBasicType(schema: BasicTypeOptions) {
-
     const exists: boolean = hasBuiltInType(schema.name);
 
     /* istanbul ignore next */
@@ -67,19 +63,18 @@ export function registerBasicType(schema: BasicTypeOptions) {
     /* istanbul ignore next */
     if (!t) {
         // tslint:disable-next-line:no-console
-        console.log(util.inspect(schema, { colors: true }));
         throw new Error(" cannot find subtype " + schema.subType);
     }
-    assert(_.isFunction(t.decode));
+    assert(typeof t.decode === "function");
 
     const encodeFunc = schema.encode || t.encode;
-    assert(_.isFunction(encodeFunc));
+    assert(typeof encodeFunc === "function");
 
     const decodeFunc = schema.decode || t.decode;
-    assert(_.isFunction(decodeFunc));
+    assert(typeof decodeFunc === "function");
 
-    const defaultValue = (schema.defaultValue === undefined) ? t.defaultValue : schema.defaultValue;
-    // assert(_.isFunction(defaultValue));
+    const defaultValue = schema.defaultValue === undefined ? t.defaultValue : schema.defaultValue;
+    // assert(typeof defaultValue === "function");
 
     const coerceFunc = schema.coerce || t.coerce;
     const toJSONFunc = schema.toJSON || t.toJSON;
@@ -98,8 +93,7 @@ export function registerBasicType(schema: BasicTypeOptions) {
 
         defaultValue,
 
-        toJSON: toJSONFunc,
-
+        toJSON: toJSONFunc
     };
     registerType(newSchema);
 }
@@ -129,7 +123,7 @@ registerBasicType({
 
     decode: decodeLocaleId,
     encode: encodeLocaleId,
-    validate: validateLocaleId,
+    validate: validateLocaleId
 });
 
 registerBasicType({ name: "ContinuationPoint", subType: "ByteString" });
