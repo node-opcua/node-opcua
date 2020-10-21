@@ -17,7 +17,7 @@ import {
     UADataType,
     UAView,
     SessionContext,
-    ContinuationPoint,
+    ContinuationPoint
 } from "../source";
 import { NamespacePrivate } from "./namespace_private";
 import { Reference } from "./reference";
