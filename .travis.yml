@@ -50,7 +50,7 @@ before_install:
   - openssl version
 
 before_script:
-  - npm install -g mocha
+  - npm install -g mocha@7.2.0
   - if [[ $TRAVIS_OS_NAME =~ ^linux$ ]]; then
       if [[ $TRAVIS_NODE_VERSION =~ ^10$ ]]; then
         npm install -g istanbul coveralls;
