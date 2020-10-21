@@ -2,7 +2,7 @@
     "name": "node-opcua-nodeid",
     "main": "./dist/index.js",
     "types": "./dist/index.d.ts",
-    "version": "2.20.0",
+    "version": "2.22.0",
     "description": "pure nodejs OPCUA SDK - module -nodeid",
     "scripts": {
         "build": "tsc -b",
@@ -14,14 +14,14 @@
         "@types/lodash": "4.14.162",
         "chalk": "^4.1.0",
         "lodash": "4.17.20",
-        "node-opcua-assert": "2.16.0",
-        "node-opcua-constants": "2.16.0",
-        "node-opcua-enum": "2.17.0",
-        "node-opcua-guid": "2.16.0"
+        "node-opcua-assert": "2.22.0",
+        "node-opcua-constants": "2.22.0",
+        "node-opcua-enum": "2.22.0",
+        "node-opcua-guid": "2.22.0"
     },
     "devDependencies": {
-        "node-opcua-benchmarker": "2.17.0",
-        "node-opcua-debug": "2.20.0",
+        "node-opcua-benchmarker": "2.22.0",
+        "node-opcua-debug": "2.22.0",
         "should": "^13.2.3",
         "source-map-support": "^0.5.19"
     },
