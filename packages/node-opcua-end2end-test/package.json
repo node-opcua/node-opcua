@@ -28,7 +28,7 @@
         "node-opcua-client": "2.21.0",
         "node-opcua-client-proxy": "2.21.0",
         "node-opcua-constants": "2.16.0",
-        "node-opcua-crypto": "^1.4.3",
+        "node-opcua-crypto": "^1.4.4",
         "node-opcua-debug": "2.20.0",
         "node-opcua-extension-object": "2.20.0",
         "node-opcua-factory": "2.20.0",

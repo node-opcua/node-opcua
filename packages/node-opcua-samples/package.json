@@ -17,7 +17,7 @@
     },
     "dependencies": {
         "@types/underscore": "^1.10.24",
-        "@types/yargs": "15.0.8",
+        "@types/yargs": "15.0.9",
         "colors": "^1.4.0",
         "easy-table": "^1.1.1",
         "exit": "^0.1.2",

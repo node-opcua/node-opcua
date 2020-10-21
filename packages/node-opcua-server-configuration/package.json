@@ -17,7 +17,7 @@
         "node-opcua-basic-types": "2.20.0",
         "node-opcua-certificate-manager": "2.21.0",
         "node-opcua-client": "2.21.0",
-        "node-opcua-crypto": "^1.4.3",
+        "node-opcua-crypto": "^1.4.4",
         "node-opcua-data-model": "2.21.0",
         "node-opcua-debug": "2.20.0",
         "node-opcua-hostname": "2.16.0",

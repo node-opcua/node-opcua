@@ -27,7 +27,7 @@
         "node-opcua-client-dynamic-extension-object": "2.21.0",
         "node-opcua-common": "2.21.0",
         "node-opcua-constants": "2.16.0",
-        "node-opcua-crypto": "^1.4.3",
+        "node-opcua-crypto": "^1.4.4",
         "node-opcua-data-model": "2.21.0",
         "node-opcua-data-value": "2.21.0",
         "node-opcua-date-time": "2.19.0",

@@ -46,7 +46,7 @@
         "node-opcua-utils": "2.20.0",
         "node-opcua-variant": "2.21.0",
         "node-opcua-xml2json": "2.20.0",
-        "pretty-error": "^2.1.1",
+        "pretty-error": "^2.1.2",
         "set-prototype-of": "^1.0.0",
         "thenify": "^3.3.1",
         "xml-writer": "^1.7.0"
