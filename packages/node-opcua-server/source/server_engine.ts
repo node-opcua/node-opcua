@@ -1324,21 +1324,84 @@ export class ServerEngine extends EventEmitter {
         assert(historyReadDetails instanceof HistoryReadDetails);
         assert(Array.isArray(nodesToRead));
 
+        // special cases with ReadProcessedDetails
         const historyData: HistoryReadResult[] = [];
+        if (historyReadDetails instanceof ReadProcessedDetails) {
+            //
+            if (!historyReadDetails.aggregateType || historyReadDetails.aggregateType.length !== nodesToRead.length) {
+                return callback(null, [new HistoryReadResult({ statusCode: StatusCodes.BadInvalidArgument })]);
+            }
+            interface M {
+                nodeToRead: HistoryReadValueId;
+                processDetail: ReadProcessedDetails;
+                indexes: number[];
+            }
+            // const map: Map<string, M> = new Map();
+            // for (let i = 0; i < nodesToRead.length; i++) {
+            //     const nodeToRead = nodesToRead[i];
+            //     const aggregateType = historyReadDetails.aggregateType[i];
+            //     const key = nodesToRead.toString();
+            //     if (!map.has(key)) {
+            //         map.set(key, {
+            //             nodeToRead,
+            //             indexes: [],
+            //             processDetail: new ReadProcessedDetails({ ...historyReadDetails, aggregateType: [] })
+            //         });
+            //     }
+            //     map.get(key)!.processDetail.aggregateType?.push(aggregateType);
+            //     map.get(key)!.indexes.push(i);
+            // }
+            // const m = [...map.values()];
+            const elements: M[] = [];
+            for (let i = 0; i < nodesToRead.length; i++) {
+                const nodeToRead = nodesToRead[i];
+                const aggregateType = historyReadDetails.aggregateType[i];
+                elements.push({
+                    indexes: [i],
+                    nodeToRead,
+                    processDetail: new ReadProcessedDetails({ ...historyReadDetails, aggregateType: [aggregateType] })
+                });
+            }
+
+            async.forEach(
+                elements,
+                (m: M, _local_callback: (err: Error | null) => void) => {
+                    this._historyReadSingleNode(
+                        context,
+                        m.nodeToRead,
+                        m.processDetail,
+                        timestampsToReturn,
+                        (err: Error | null, result?: any) => {
+                            if (err && !result) {
+                                result = new HistoryReadResult({ statusCode: StatusCodes.BadInternalError });
+                            }
+                            historyData.push(result);
+                            _local_callback(null);
+                        }
+                    );
+                },
+                (err?: Error | null) => {
+                    callback(err!, historyData);
+                }
+            );
+            return;
+        }
         async.eachSeries(
             nodesToRead,
-            (historyReadValueId: HistoryReadValueId, cbNode: () => void) => {
+            (nodeToRead: HistoryReadValueId, cbNode: () => void) => {
+                console.log("QQQQQQ");
                 this._historyReadSingleNode(
                     context,
-                    historyReadValueId,
+                    nodeToRead,
                     historyReadDetails,
                     timestampsToReturn,
                     (err: Error | null, result?: any) => {
+                        console.log("IIII");
                         if (err && !result) {
                             result = new HistoryReadResult({ statusCode: StatusCodes.BadInternalError });
                         }
                         historyData.push(result);
-                        async.setImmediate(cbNode);
+                        cbNode();
                         // it's not guaranteed that the historical read process is really asynchronous
                     }
                 );

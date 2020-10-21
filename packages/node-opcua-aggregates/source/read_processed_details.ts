@@ -1,17 +1,19 @@
+import * as async from "async";
 import { AggregateFunction } from "node-opcua-constants";
 import { SessionContext, ContinuationPoint, UAVariable } from "node-opcua-address-space";
 import { NumericRange } from "node-opcua-numeric-range";
 import { QualifiedNameLike } from "node-opcua-data-model";
 import { CallbackT, StatusCodes } from "node-opcua-status-code";
-import {
-    DataValue
-} from "node-opcua-data-value";
+import { DataValue } from "node-opcua-data-value";
 import { ObjectIds } from "node-opcua-constants";
 import { NodeId } from "node-opcua-nodeid";
 import { getMinData, getMaxData } from "./minmax";
 import {
     HistoryData,
-    HistoryReadResult, ReadAtTimeDetails, ReadEventDetails, ReadProcessedDetails,
+    HistoryReadResult,
+    ReadAtTimeDetails,
+    ReadEventDetails,
+    ReadProcessedDetails,
     ReadRawModifiedDetails
 } from "node-opcua-service-history";
 
@@ -86,28 +88,32 @@ export function readProcessedDetails(
         return callback(null, new HistoryReadResult({ statusCode: StatusCodes.BadInvalidArgument }));
     }
 
-    const aggregateType: NodeId[] = historyReadDetails.aggregateType || [];
+    const aggregateTypes: NodeId[] = historyReadDetails.aggregateType || [];
 
     // If the ProcessingInterval is specified as 0 then Aggregates shall be calculated using one interval
     // starting at startTime and ending at endTime.
-    const processingInterval = historyReadDetails.processingInterval || (endTime.getTime() - startTime.getTime());
+    const processingInterval = historyReadDetails.processingInterval || endTime.getTime() - startTime.getTime();
 
-    function buildResult(err: Error | null, dataValues?: DataValue[]) {
-        if (err) {
-            return callback(null, new HistoryReadResult({ statusCode: StatusCodes.BadInternalError }));
-        }
-        const result = new HistoryReadResult({
-            historyData: new HistoryData({
-                dataValues
-            }),
-            statusCode: StatusCodes.Good
-        });
-        return callback(null, result);
-    }
     // tslint:disable-next-line: prefer-for-of
-    for (let i = 0; i < aggregateType.length; i++) {
 
-        switch (aggregateType[0].value) {
+    function applyAggregate(aggregateType: NodeId, callback2: (err: Error | null, result: HistoryReadResult) => void) {
+        function buildResult(err: Error | null, dataValues?: DataValue[]) {
+            if (err) {
+                return callback2(null, new HistoryReadResult({ statusCode: StatusCodes.BadInternalError }));
+            }
+            const result = new HistoryReadResult({
+                historyData: new HistoryData({
+                    dataValues
+                }),
+                statusCode: StatusCodes.Good
+            });
+            return callback2(null, result);
+        }
+
+        if (!startTime || !endTime) {
+            return buildResult(new Error("Invalid date time"));
+        }
+        switch (aggregateType.value) {
             case AggregateFunction.Minimum:
                 getMinData(variable, processingInterval, startTime, endTime, buildResult);
                 break;
@@ -123,7 +129,11 @@ export function readProcessedDetails(
             case AggregateFunction.Count:
             default:
                 // todo provide correct implementation
-                return callback(null, new HistoryReadResult({ statusCode: StatusCodes.BadAggregateNotSupported }));
+                return callback2(null, new HistoryReadResult({ statusCode: StatusCodes.BadAggregateNotSupported }));
         }
     }
+    if (historyReadDetails.aggregateType?.length !== 1) {
+        return callback(null, new HistoryReadResult({ statusCode: StatusCodes.BadInternalError }));
+    }
+    return applyAggregate(aggregateTypes[0], callback);
 }
