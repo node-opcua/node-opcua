@@ -24,11 +24,13 @@ import {
     NodeIdLike,
     OPCUAClient,
     Range,
+    ServerSidePublishEngine,
     StatusCode,
     StatusCodes,
     TimestampsToReturn,
     UAVariable
 } from "node-opcua";
+import { ClientSubscription } from "node-opcua-client";
 import * as sinon from "sinon";
 
 const doDebug = false;
@@ -275,7 +277,15 @@ export function t(test: any) {
                 statusCode.should.eql(StatusCodes.Good);
             }
         }
-
+        async function waitUntilKeepAlive(publishEngine: ClientSidePublishEngine, subscription: ClientSubscription) {
+            publishEngine.internalSendPublishRequest();
+            publishEngine.internalSendPublishRequest();
+            publishEngine.internalSendPublishRequest();
+            // wait until next keep alive
+            await new Promise((resolve) => {
+                subscription.once("keepalive", () => resolve());
+            });
+        }
         it("DBF1: DeadBandFilter filter: none, trigger: Status - it should not received notification when trigger is status and value change", async () => {
             const { session, subscription, publishEngine } = s;
 
@@ -294,12 +304,7 @@ export function t(test: any) {
             const changeNotificationCount1 = changeSpy.callCount;
             await setValueAndStatusCode(nodeId, DataType.Double, 145, StatusCodes.BadAggregateConfigurationRejected);
 
-            publishEngine.internalSendPublishRequest();
-            publishEngine.internalSendPublishRequest();
-            // wait until next keep alive
-            await new Promise((resolve) => {
-                subscription.once("keepalive", () => resolve());
-            });
+            await waitUntilKeepAlive(publishEngine, subscription);
 
             const changeNotificationCount2 = changeSpy.callCount;
             changeNotificationCount2.should.eql(changeNotificationCount1 + 1, "must have received a changed notification");
@@ -307,12 +312,8 @@ export function t(test: any) {
             // now change the value without changing the status
             await setValueAndStatusCode(nodeId, DataType.Double, 200, StatusCodes.BadAggregateConfigurationRejected);
 
-            publishEngine.internalSendPublishRequest();
-            publishEngine.internalSendPublishRequest();
             // wait until next keep alive
-            await new Promise((resolve) => {
-                subscription.once("keepalive", () => resolve());
-            });
+            await waitUntilKeepAlive(publishEngine, subscription);
 
             const changeNotificationCount3 = changeSpy.callCount;
             changeNotificationCount3.should.eql(changeNotificationCount2, "must NOT have received a changed notification");
@@ -360,12 +361,7 @@ export function t(test: any) {
             const changeNotificationCount1 = changeSpy.callCount;
             await setValueAndStatusCode(nodeId, DataType.Double, 145, StatusCodes.GoodClamped);
 
-            publishEngine.internalSendPublishRequest();
-            publishEngine.internalSendPublishRequest();
-            // wait until next keep alive
-            await new Promise((resolve) => {
-                subscription.once("keepalive", () => resolve());
-            });
+            await waitUntilKeepAlive(publishEngine, subscription);
 
             const changeNotificationCount2 = changeSpy.callCount;
             changeNotificationCount2.should.eql(changeNotificationCount1 + 1, "must have received a changed notification");
@@ -377,12 +373,7 @@ export function t(test: any) {
             // now change the value without changing the status
             await setValueAndStatusCode(nodeId, DataType.Double, 1000, StatusCodes.GoodClamped);
 
-            publishEngine.internalSendPublishRequest();
-            publishEngine.internalSendPublishRequest();
-            // wait until next keep alive
-            await new Promise((resolve) => {
-                subscription.once("keepalive", () => resolve());
-            });
+            await waitUntilKeepAlive(publishEngine, subscription);
 
             const changeNotificationCount3 = changeSpy.callCount;
             changeNotificationCount3.should.eql(changeNotificationCount2 + 1, "must have received a changed notification");
@@ -414,12 +405,7 @@ export function t(test: any) {
             const changeNotificationCount1 = changeSpy.callCount;
             await setValueAndStatusCode(nodeIdBool, DataType.Boolean, false, StatusCodes.GoodClamped);
 
-            publishEngine.internalSendPublishRequest();
-            publishEngine.internalSendPublishRequest();
-            // wait until next keep alive
-            await new Promise((resolve) => {
-                subscription.once("keepalive", () => resolve());
-            });
+            await waitUntilKeepAlive(publishEngine, subscription);
 
             const changeNotificationCount2 = changeSpy.callCount;
             changeNotificationCount2.should.eql(changeNotificationCount1 + 1, "must have received a changed notification");
@@ -431,12 +417,7 @@ export function t(test: any) {
             // now change the value without changing the status
             await setValueAndStatusCode(nodeIdBool, DataType.Boolean, true, StatusCodes.GoodClamped);
 
-            publishEngine.internalSendPublishRequest();
-            publishEngine.internalSendPublishRequest();
-            // wait until next keep alive
-            await new Promise((resolve) => {
-                subscription.once("keepalive", () => resolve());
-            });
+            await waitUntilKeepAlive(publishEngine, subscription);
 
             const changeNotificationCount3 = changeSpy.callCount;
             changeNotificationCount3.should.eql(changeNotificationCount2 + 1, "must have received a changed notification");
