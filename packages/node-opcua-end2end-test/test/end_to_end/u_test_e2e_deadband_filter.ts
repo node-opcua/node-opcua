@@ -30,7 +30,6 @@ import {
     TimestampsToReturn,
     UAVariable
 } from "node-opcua";
-import { ClientSubscription } from "node-opcua-client";
 import * as sinon from "sinon";
 
 const doDebug = false;

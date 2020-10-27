@@ -101,7 +101,11 @@ function _makeHashKey(nodeId: NodeId): string | number {
         case NodeIdType.NUMERIC:
             return nodeId.value as number;
         default:
-            return nodeId.value.toString();
+            // istanbul ignore next
+            if (nodeId.identifierType !== NodeIdType.BYTESTRING) {
+                throw new Error("invalid nodeIdType");
+            }
+            return nodeId.value ? nodeId.value.toString() : "OPAQUE:0";
     }
 }
 const doDebug = false;

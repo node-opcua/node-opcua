@@ -1,10 +1,5 @@
-import { DataTypeIds } from "node-opcua-constants";
 import { standardUnits } from "node-opcua-data-access";
-import { DataValue } from "node-opcua-data-value";
-import { NodeId } from "node-opcua-nodeid";
-import { resolveNodeId } from "node-opcua-nodeid";
 import { nodesets } from "node-opcua-nodesets";
-import { StatusCodes } from "node-opcua-status-code";
 import { Variant } from "node-opcua-variant";
 import { DataType } from "node-opcua-variant";
 import * as should from "should";
@@ -12,7 +7,6 @@ import * as should from "should";
 import { generateAddressSpace } from "../nodeJS";
 import { AddressSpace } from "..";
 import { Namespace } from "..";
-import { SessionContext } from "..";
 
 // tslint:disable-next-line:no-var-requires
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;

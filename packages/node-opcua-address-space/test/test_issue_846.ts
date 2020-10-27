@@ -1,7 +1,8 @@
 import * as path from "path";
+import "should";
+
 import { AddressSpace, UAObject, SessionContext } from "..";
 import { generateAddressSpace } from "../nodeJS";
-
 import { nodesets } from "node-opcua-nodesets";
 import { UAVariable } from "../dist/src/ua_variable";
 import { Variant } from "node-opcua-variant";
@@ -32,27 +33,27 @@ describe("#846 Various Variable Value in nodeset2.xml", () => {
     describe("to verify", () => {
         it("NestedStructNonVarTypeData3", () => {
             const v1 = iotChannelSet.getComponentByName("NestedStructNonVarTypeData3") as UAVariable;
-            v1.readValue().value.toString().should.eql("Variant(Scalar<Null>, value: <null>)");
+            v1.readValue().value.toString().should.eql("Variant(Scalar<ExtensionObject>, value: <null>)");
         });
         it("EnumArrayTypeData1", () => {
             const v1 = iotChannelSet.getComponentByName("EnumArrayTypeData1") as UAVariable;
-            v1.readValue().value.toString().should.eql("Variant(Scalar<Null>, value: <null>)");
+            v1.readValue().value.toString().should.eql("Variant(Array<Int32>, l= 0, value=[])");
         });
         it("should read a NestedStructNonVarTypeData3", async () => {
             const v1 = iotChannelSet.getComponentByName("NestedStructNonVarTypeData3") as UAVariable;
-            v1.readValue().value.toString().should.eql("Variant(Scalar<Null>, value: <null>)");
+            v1.readValue().value.toString().should.eql("Variant(Scalar<ExtensionObject>, value: <null>)");
         });
         it("should read an array of StatusCode", async () => {
             const v1 = iotChannelSet.getComponentByName("StatusCodeArrayTypeData1") as UAVariable;
-            v1.readValue().value.toString().should.eql("Variant(Scalar<Null>, value: <null>)");
+            v1.readValue().value.toString().should.eql("Variant(Array<StatusCode>, l= 0, value=[])");
         });
         it("should read a StatusCode", async () => {
             const v1 = iotChannelSet.getComponentByName("StatusCodeTypeData1") as UAVariable;
-            v1.readValue().value.toString().should.eql("Variant(Scalar<Null>, value: <null>)");
+            v1.readValue().value.toString().should.eql("Variant(Scalar<StatusCode>, value: Good (0x00000))");
         });
         it("should read an array of StructNonVarArrayTypeData1", async () => {
             const v1 = iotChannelSet.getComponentByName("StructNonVarTypeWithArrayElementData4") as UAVariable;
-            v1.readValue().value.toString().should.eql("Variant(Scalar<Null>, value: <null>)");
+            v1.readValue().value.toString().should.eql("Variant(Scalar<ExtensionObject>, value: <null>)");
         });
     });
 

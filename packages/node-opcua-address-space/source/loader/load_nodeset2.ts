@@ -215,15 +215,15 @@ function convertAccessLevel(accessLevel?: string | null): AccessLevelFlag {
 
 type Task = (addressSpace: AddressSpace) => Promise<void>;
 
-function makeDefaultVariant(addressSpace: AddressSpacePublic, dataTypeNode: NodeId, valueRank: number): VariantOptions | undefined {
-    const variant: VariantOptions = { dataType: DataType.Null };
-    return variant;
-}
 function makeDefaultVariant2(
     addressSpace: AddressSpacePublic,
     dataTypeNode: NodeId,
     valueRank: number
 ): VariantOptions | undefined {
+    const variant: VariantOptions = { dataType: DataType.Null };
+    return variant;
+}
+function makeDefaultVariant(addressSpace: AddressSpacePublic, dataTypeNode: NodeId, valueRank: number): VariantOptions | undefined {
     let variant: VariantOptions = { dataType: DataType.Null };
 
     const nodeDataType = addressSpace.findNode(dataTypeNode);
@@ -231,7 +231,7 @@ function makeDefaultVariant2(
         const dataType = addressSpace.findCorrespondingBasicDataType(dataTypeNode);
         if (dataType === DataType.ExtensionObject) {
             // console.log("xxxxxxxxxx ", dataTypeNode.toString(addressSpace as any));
-            return variant;
+            return { dataType: DataType.ExtensionObject, value: null };
         }
         const dv = findSimpleType(DataType[dataType]).defaultValue;
 

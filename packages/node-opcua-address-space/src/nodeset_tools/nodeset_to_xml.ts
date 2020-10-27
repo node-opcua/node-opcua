@@ -26,7 +26,7 @@ import { DataType } from "node-opcua-variant";
 
 import { Namespace, XmlWriter } from "../../source";
 
-import { Int64 } from "node-opcua-basic-types";
+import { Int64, minOPCUADate } from "node-opcua-basic-types";
 import { BrowseDescription, EnumDefinition, StructureDefinition, StructureField, StructureType } from "node-opcua-types";
 import { BaseNode } from "../base_node";
 import { UANamespace } from "../namespace";
@@ -393,9 +393,76 @@ function _dumpVariantExtensionObjectValue(xw: XmlWriter, schema: StructuredTypeS
     xw.endElement();
 }
 
+function _isDefaultValue(value: Variant): boolean {
+    // detect default value
+
+    if (value.arrayType === VariantArrayType.Scalar) {
+        switch (value.dataType) {
+            case DataType.ExtensionObject:
+                if (!value.value) {
+                    return true;
+                }
+                break;
+            case DataType.DateTime:
+                if (!value.value || value.value.getTime() === minOPCUADate) {
+                    return true;
+                }
+                break;
+            case DataType.ByteString:
+                if (!value.value || value.value.length === 0) {
+                    return true;
+                }
+                break;
+            case DataType.Boolean:
+                if (!value.value) {
+                    return true;
+                }
+                break;
+            case DataType.SByte:
+            case DataType.Byte:
+            case DataType.UInt16:
+            case DataType.UInt32:
+            case DataType.Int16:
+            case DataType.Int32:
+            case DataType.Double:
+            case DataType.Float:
+                if (value.value === 0 || value.value === null) {
+                    return true;
+                }
+                break;
+            case DataType.String:
+                if (value.value === null || value.value === "") {
+                    return true;
+                }
+                break;
+            case DataType.UInt64:
+            case DataType.UInt64:
+                if (0 === coerceInt64ToInt32(value.value)) {
+                    return true;
+                }
+                break;
+            case DataType.LocalizedText:
+                if (!value.value) {
+                    return true;
+                }
+                const l = value.value as LocalizedText;
+                if (!l.locale && !l.text) {
+                    return true;
+                }
+                break;
+        }
+        return false;
+    } else {
+        if (!value.value || value.value.length === 0) {
+            return true;
+        }
+        return false;
+    }
+}
 function _dumpValue(xw: XmlWriter, node: UAVariable | UAVariableType, value: Variant) {
     const addressSpace = node.addressSpace;
 
+    // istanbul ignore next
     if (value === null || value === undefined) {
         return;
     }
@@ -415,10 +482,13 @@ function _dumpValue(xw: XmlWriter, node: UAVariable | UAVariableType, value: Var
     }
     assert(typeof baseDataTypeName === "string");
 
-    xw.startElement("Value");
-
     // determine if dataTypeName is a ExtensionObject
     const isExtensionObject = value.dataType === DataType.ExtensionObject;
+
+    if (_isDefaultValue(value)) {
+        return;
+    }
+    xw.startElement("Value");
 
     if (isExtensionObject) {
         if (hasStructuredType(dataTypeName)) {

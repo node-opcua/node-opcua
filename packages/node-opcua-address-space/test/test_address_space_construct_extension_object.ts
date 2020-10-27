@@ -23,14 +23,15 @@ import * as path from "path";
 import * as should from "should";
 
 import { ServerState } from "node-opcua-types";
-import { AccessLevelFlag, NodeClass } from "node-opcua-data-model";
+import { AccessLevelFlag, NodeClass, makeAccessLevelFlag } from "node-opcua-data-model";
 import { AttributeIds } from "node-opcua-data-model";
 import { DataType } from "node-opcua-variant";
 import { Variant } from "node-opcua-variant";
-
+import { VariableIds } from "node-opcua-constants";
 import { nodesets } from "node-opcua-nodesets";
 import { AddressSpace, BaseNode, Namespace, SessionContext, UAServerStatus } from "..";
 import { generateAddressSpace } from "../nodeJS";
+import { WriteValue } from "node-opcua-service-write";
 
 // make sure all namespace 0 data type are properly loaded
 const context = SessionContext.defaultContext;
@@ -211,15 +212,14 @@ describe("testing address space namespace loading", function (this: any) {
     it("should bind an xml-preloaded Extension Object Variable : ServerStatus ", async () => {
         // in this test, we verify that we can easily bind the Server_ServerStatus object
         // the process shall automatically bind variables and substructures recursively
-        const VariableIds = require("node-opcua-constants").VariableIds;
 
         const serverStatus = addressSpace.findNode(makeNodeId(VariableIds.Server_ServerStatus))! as UAServerStatus;
         serverStatus.browseName.toString().should.eql("ServerStatus");
 
         // before bindExtensionObject is called, startTime property exists but is not bound
         serverStatus.should.have.property("startTime");
-        serverStatus.startTime.readValue().value.dataType.should.eql(DataType.Null);
-        serverStatus.readValue().value.dataType.should.eql(DataType.Null);
+        serverStatus.startTime.readValue().value.dataType.should.eql(DataType.DateTime);
+        serverStatus.readValue().value.dataType.should.eql(DataType.ExtensionObject);
 
         // Xx value.startTime.should.eql(DataType.Null);
         // xx debugLog("serverStatus.startTime =",serverStatus.startTime.readValue().value.toString());
@@ -264,10 +264,6 @@ describe("testing address space namespace loading", function (this: any) {
         serverStatus.buildInfo.productName.setValueFromSource({ dataType: DataType.String, value: "productName2" });
         serverStatus.readValue().value.value.buildInfo.productName.should.eql("productName2");
         serverStatus.buildInfo.productName.readValue().value.value!.should.eql("productName2");
-
-        const write_service = require("node-opcua-service-write");
-        const WriteValue = write_service.WriteValue;
-        const makeAccessLevelFlag = require("node-opcua-data-model").makeAccessLevelFlag;
 
         // now use WriteValue instead
         // make sure value is writable

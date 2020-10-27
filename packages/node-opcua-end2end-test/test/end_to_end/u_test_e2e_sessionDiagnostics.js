@@ -2,8 +2,18 @@
 const async = require("async");
 const should = require("should");
 
-const opcua = require("node-opcua");
-const OPCUAClient = opcua.OPCUAClient;
+const {
+    BrowseDirection,
+    OPCUAClient,
+    makeNodeId,
+    VariableIds,
+    AttributeIds,
+    makeBrowsePath,
+    StatusCodes,
+    ClientMonitoredItemGroup,
+    DataType,
+    resolveNodeId
+} = require("node-opcua");
 
 const sinon = require("sinon");
 
@@ -11,10 +21,10 @@ const { perform_operation_on_subscription } = require("../../test_helpers/perfor
 
 module.exports = function(test) {
 
-    describe("SDS1 Testing SessionDiagnostics", function() {
+    describe("SDS1 Testing SessionDiagnostics 1/2", function() {
 
         it("SDS1-A server should expose a ServerDiagnostic object", function(done) {
-            const client = opcua.OPCUAClient.create({});
+            const client = OPCUAClient.create({});
 
             perform_operation_on_subscription(client, test.endpointUrl, function(session, subscription, callback) {
 
@@ -23,20 +33,20 @@ module.exports = function(test) {
                     function(callback) {
                         const nodesToRead = [
                             {
-                                nodeId: opcua.makeNodeId(opcua.VariableIds.Server_ServerDiagnostics_ServerDiagnosticsSummary),
-                                attributeId: opcua.AttributeIds.Value
+                                nodeId: makeNodeId(VariableIds.Server_ServerDiagnostics_ServerDiagnosticsSummary),
+                                attributeId: AttributeIds.Value
                             },
                             {
-                                nodeId: opcua.makeNodeId(opcua.VariableIds.Server_ServerDiagnostics_ServerDiagnosticsSummary_CumulatedSessionCount),
-                                attributeId: opcua.AttributeIds.Value
+                                nodeId: makeNodeId(VariableIds.Server_ServerDiagnostics_ServerDiagnosticsSummary_CumulatedSessionCount),
+                                attributeId: AttributeIds.Value
                             },
                             {
-                                nodeId: opcua.makeNodeId(opcua.VariableIds.Server_ServerDiagnostics_ServerDiagnosticsSummary_CurrentSessionCount),
-                                attributeId: opcua.AttributeIds.Value
+                                nodeId: makeNodeId(VariableIds.Server_ServerDiagnostics_ServerDiagnosticsSummary_CurrentSessionCount),
+                                attributeId: AttributeIds.Value
                             },
                             {
-                                nodeId: opcua.makeNodeId(opcua.VariableIds.Server_ServerDiagnostics_ServerDiagnosticsSummary_CurrentSubscriptionCount),
-                                attributeId: opcua.AttributeIds.Value
+                                nodeId: makeNodeId(VariableIds.Server_ServerDiagnostics_ServerDiagnosticsSummary_CurrentSubscriptionCount),
+                                attributeId: AttributeIds.Value
                             },
                         ];
                         session.read(nodesToRead, function(err, dataValues) {
@@ -69,7 +79,7 @@ module.exports = function(test) {
 
         it("SDS1-B server should expose a SessionDiagnostics per Session", function(done) {
 
-            const client = opcua.OPCUAClient.create({});
+            const client = OPCUAClient.create({});
 
             perform_operation_on_subscription(client, test.endpointUrl, function(session, subscription, callback) {
 
@@ -86,7 +96,7 @@ module.exports = function(test) {
 
                         const nodeToRead = {
                             nodeId: session.sessionId,
-                            attributeId: opcua.AttributeIds.BrowseName
+                            attributeId: AttributeIds.BrowseName
                         };
 
                         session.read(nodeToRead, function(err, dataValue) {
@@ -99,7 +109,7 @@ module.exports = function(test) {
                         const browseDesc = {
                             nodeId: session.sessionId,
                             /// referenceTypeId: ,
-                            browseDirection: opcua.BrowseDirection.Forward,
+                            browseDirection: BrowseDirection.Forward,
                             resultMask: 63
                         };
                         session.browse([browseDesc], function(err, browseResult) {
@@ -114,11 +124,11 @@ module.exports = function(test) {
 
 
                         const browsePath = [
-                            opcua.makeBrowsePath(session.sessionId, ".SessionDiagnostics.TotalRequestCount.TotalCount"),
-                            opcua.makeBrowsePath(session.sessionId, ".SessionDiagnostics.EndpointUrl"),
-                            opcua.makeBrowsePath(session.sessionId, ".SessionDiagnostics.ClientLastContactTime"),
-                            opcua.makeBrowsePath(session.sessionId, ".SessionDiagnostics"),
-                            opcua.makeBrowsePath(session.sessionId, ".SessionDiagnostics.WriteCount.TotalCount")
+                            makeBrowsePath(session.sessionId, ".SessionDiagnostics.TotalRequestCount.TotalCount"),
+                            makeBrowsePath(session.sessionId, ".SessionDiagnostics.EndpointUrl"),
+                            makeBrowsePath(session.sessionId, ".SessionDiagnostics.ClientLastContactTime"),
+                            makeBrowsePath(session.sessionId, ".SessionDiagnostics"),
+                            makeBrowsePath(session.sessionId, ".SessionDiagnostics.WriteCount.TotalCount")
                         ];
 
                         session.translateBrowsePath(browsePath, function(err, browsePathResults) {
@@ -126,10 +136,10 @@ module.exports = function(test) {
                                 return callback(err);
                             }
                             //xx console.log(browsePathResults[3].toString());
-                            browsePathResults[0].statusCode.should.eql(opcua.StatusCodes.Good);
-                            browsePathResults[1].statusCode.should.eql(opcua.StatusCodes.Good);
-                            browsePathResults[2].statusCode.should.eql(opcua.StatusCodes.Good);
-                            browsePathResults[3].statusCode.should.eql(opcua.StatusCodes.Good);
+                            browsePathResults[0].statusCode.should.eql(StatusCodes.Good);
+                            browsePathResults[1].statusCode.should.eql(StatusCodes.Good);
+                            browsePathResults[2].statusCode.should.eql(StatusCodes.Good);
+                            browsePathResults[3].statusCode.should.eql(StatusCodes.Good);
 
                             totalRequestCountTotalCountNodeId = browsePathResults[0].targets[0].targetId;
                             clientLastContactTimeNodeId = browsePathResults[2].targets[0].targetId;
@@ -143,13 +153,13 @@ module.exports = function(test) {
 
                         const nodeToRead = {
                             nodeId: currentSessionDiagnosticNodeId,
-                            attributeId: opcua.AttributeIds.Value
+                            attributeId: AttributeIds.Value
                         };
                         session.read(nodeToRead, function(err, dataValue) {
 
                             if (err) { return callback(err); }
 
-                            dataValue.statusCode.should.eql(opcua.StatusCodes.Good);
+                            dataValue.statusCode.should.eql(StatusCodes.Good);
                             dataValue.value.value.constructor.name.should.eql("SessionDiagnosticsDataType");
                             dataValue.value.value.totalRequestCount.totalCount.should.be.greaterThan(8);
 
@@ -161,20 +171,20 @@ module.exports = function(test) {
                         const itemsToMonitor = [
                             {
                                 nodeId: currentSessionDiagnosticNodeId,
-                                attributeId: opcua.AttributeIds.Value
+                                attributeId: AttributeIds.Value
                             },
 
                             {
                                 nodeId: clientLastContactTimeNodeId,
-                                attributeId: opcua.AttributeIds.Value
+                                attributeId: AttributeIds.Value
                             },
                             {
                                 nodeId: totalRequestCountTotalCountNodeId,
-                                attributeId: opcua.AttributeIds.Value
+                                attributeId: AttributeIds.Value
                             },
                             {
                                 nodeId: writeCountTotalCountNodeId,
-                                attributeId: opcua.AttributeIds.Value
+                                attributeId: AttributeIds.Value
                             },
                         ];
                         const options = {
@@ -183,7 +193,7 @@ module.exports = function(test) {
                             queueSize: 10
                         };
 
-                        monitoredItemGroup = opcua.ClientMonitoredItemGroup.create(subscription, itemsToMonitor, options);
+                        monitoredItemGroup = ClientMonitoredItemGroup.create(subscription, itemsToMonitor, options);
 
                         // subscription.on("item_added",function(monitoredItem){
                         monitoredItemGroup.on("initialized", function() {
@@ -200,14 +210,14 @@ module.exports = function(test) {
                         const nodeId = "ns=2;s=Scalar_Static_Double";
 
                         const dataValue = {
-                            dataType: opcua.DataType.Double,
+                            dataType: DataType.Double,
                             value: 42
                         };
                         session.writeSingleNode(nodeId, dataValue, function(err, results) {
                             if (err) {
                                 return callback(err);
                             }
-                            results.should.eql(opcua.StatusCodes.Good);
+                            results.should.eql(StatusCodes.Good);
                             callback();
                         });
                     },
@@ -234,7 +244,7 @@ module.exports = function(test) {
 
                         const nodeToRead = {
                             nodeId: currentSessionDiagnosticNodeId,
-                            attributeId: opcua.AttributeIds.Value
+                            attributeId: AttributeIds.Value
                         };
                         session.read(nodeToRead, function(err, dataValue) {
 
@@ -268,18 +278,18 @@ module.exports = function(test) {
 
         it("SDS1-C server should expose a SessionDiagnostics in SessionDiagnosticsSummary.SessionDiagnosticsArray", function(done) {
 
-            const client = opcua.OPCUAClient.create({});
+            const client = OPCUAClient.create({});
             perform_operation_on_subscription(client, test.endpointUrl, function(session, subscription, callback) {
 
                 //xx console.log("session nodeId = ",session.sessionId);
 
-                let sessionDiagnosticsArrayNodeId = opcua.resolveNodeId("Server_ServerDiagnostics_SessionsDiagnosticsSummary_SessionDiagnosticsArray");
-                const serverNodeId = opcua.resolveNodeId("Server");
+                let sessionDiagnosticsArrayNodeId = resolveNodeId("Server_ServerDiagnostics_SessionsDiagnosticsSummary_SessionDiagnosticsArray");
+                const serverNodeId = resolveNodeId("Server");
                 let sessionDiagnosticsNodeId;
                 async.series([
                     function get_sessionDiagnosticsArrayNodeId(callback) {
                         const browsePath = [
-                            opcua.makeBrowsePath(serverNodeId, ".ServerDiagnostics.SessionsDiagnosticsSummary.SessionDiagnosticsArray"),
+                            makeBrowsePath(serverNodeId, ".ServerDiagnostics.SessionsDiagnosticsSummary.SessionDiagnosticsArray"),
                         ];
 
                         session.translateBrowsePath(browsePath, function(err, browsePathResults) {
@@ -287,7 +297,7 @@ module.exports = function(test) {
                                 return callback(err);
                             }
                             //xx console.log(browsePathResults[3].toString());
-                            browsePathResults[0].statusCode.should.eql(opcua.StatusCodes.Good);
+                            browsePathResults[0].statusCode.should.eql(StatusCodes.Good);
                             sessionDiagnosticsArrayNodeId = browsePathResults[0].targets[0].targetId;
                             callback();
                         });
@@ -296,7 +306,7 @@ module.exports = function(test) {
                         const browseDesc = {
                             nodeId: sessionDiagnosticsArrayNodeId,
                             referenceTypeId: "HasComponent",
-                            browseDirection: opcua.BrowseDirection.Forward,
+                            browseDirection: BrowseDirection.Forward,
                             resultMask: 63
                         };
                         session.browse([browseDesc], function(err, browseResult) {
@@ -314,13 +324,13 @@ module.exports = function(test) {
 
                         const nodeToRead = {
                             nodeId: sessionDiagnosticsNodeId,
-                            attributeId: opcua.AttributeIds.Value
+                            attributeId: AttributeIds.Value
                         };
                         session.read(nodeToRead, function(err, dataValue) {
 
                             if (err) { return callback(err); }
 
-                            dataValue.statusCode.should.eql(opcua.StatusCodes.Good);
+                            dataValue.statusCode.should.eql(StatusCodes.Good);
                             dataValue.value.value.constructor.name.should.eql("SessionDiagnosticsDataType");
                             dataValue.value.value.totalRequestCount.totalCount.should.be.greaterThan(7);
 
@@ -334,16 +344,16 @@ module.exports = function(test) {
         });
 
         function count_number_of_exposed_sessionDiagnostics(done) {
-            let sessionDiagnosticsArrayNodeId = opcua.resolveNodeId("Server_ServerDiagnostics_SessionsDiagnosticsSummary_SessionDiagnosticsArray");
-            const serverNodeId = opcua.resolveNodeId("Server");
+            let sessionDiagnosticsArrayNodeId = resolveNodeId("Server_ServerDiagnostics_SessionsDiagnosticsSummary_SessionDiagnosticsArray");
+            const serverNodeId = resolveNodeId("Server");
             let sessionDiagnosticsNodeId;
             let nbSessionDiagnostics = -1;
-            const client = opcua.OPCUAClient.create({});
+            const client = OPCUAClient.create({});
             perform_operation_on_subscription(client, test.endpointUrl, function(session, subscription, callback) {
                 async.series([
                     function get_sessionDiagnosticsArrayNodeId(callback) {
                         const browsePath = [
-                            opcua.makeBrowsePath(serverNodeId, ".ServerDiagnostics.SessionsDiagnosticsSummary.SessionDiagnosticsArray"),
+                            makeBrowsePath(serverNodeId, ".ServerDiagnostics.SessionsDiagnosticsSummary.SessionDiagnosticsArray"),
                         ];
 
                         session.translateBrowsePath(browsePath, function(err, browsePathResults) {
@@ -351,7 +361,7 @@ module.exports = function(test) {
                                 return callback(err);
                             }
                             //xx console.log(browsePathResults[3].toString());
-                            browsePathResults[0].statusCode.should.eql(opcua.StatusCodes.Good);
+                            browsePathResults[0].statusCode.should.eql(StatusCodes.Good);
                             sessionDiagnosticsArrayNodeId = browsePathResults[0].targets[0].targetId;
                             callback();
                         });
@@ -360,7 +370,7 @@ module.exports = function(test) {
                         const browseDesc = {
                             nodeId: sessionDiagnosticsArrayNodeId,
                             referenceTypeId: "HasComponent",
-                            browseDirection: opcua.BrowseDirection.Forward,
+                            browseDirection: BrowseDirection.Forward,
                             resultMask: 63
                         };
                         session.browse([browseDesc], function(err, browseResult) {
@@ -394,7 +404,7 @@ module.exports = function(test) {
                     });
                 },
                 function createSession(callback) {
-                    const client = opcua.OPCUAClient.create({});
+                    const client = OPCUAClient.create({});
                     perform_operation_on_subscription(client, test.endpointUrl, function(session, subscription, callback) {
                         count_number_of_exposed_sessionDiagnostics(function(err, nbSessionDiagnostic) {
                             if (err) { return callback(err); }

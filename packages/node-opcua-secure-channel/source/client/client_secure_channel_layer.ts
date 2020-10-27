@@ -250,7 +250,7 @@ export interface ClientSecureChannelLayerOptions {
 
     parent: ClientSecureChannelParent;
 
-    /* OPCUClientBase */
+    /* OPCUAClientBase */
     /**
      *   the transport timeout interval in ms ( default = 10 seconds)
      */
@@ -273,7 +273,7 @@ export class ClientSecureChannelLayer extends EventEmitter {
 
     /**
      * true if the secure channel is trying to establish the connection with the server. In this case, the client
-     * may be in the middle of the b ackoff connection process.
+     * may be in the middle of the backoff connection process.
      *
      */
     public get isConnecting(): boolean {
@@ -293,7 +293,7 @@ export class ClientSecureChannelLayer extends EventEmitter {
     }
 
     get timedOutRequestCount(): number {
-        return this._timedout_request_count;
+        return this._timeout_request_count;
     }
 
     public static defaultTransportTimeout = 60 * 1000; // 1 minute
@@ -319,7 +319,7 @@ export class ClientSecureChannelLayer extends EventEmitter {
     private _requests: { [key: string]: RequestData };
 
     private __in_normal_close_operation: boolean;
-    private _timedout_request_count: number;
+    private _timeout_request_count: number;
     private _securityTokenTimeoutId: NodeJS.Timer | null;
     private readonly transportTimeout: number;
     private readonly connectionStrategy: any;
@@ -420,7 +420,7 @@ export class ClientSecureChannelLayer extends EventEmitter {
 
         this.__in_normal_close_operation = false;
 
-        this._timedout_request_count = 0;
+        this._timeout_request_count = 0;
 
         this._securityTokenTimeoutId = null;
 
@@ -948,7 +948,7 @@ export class ClientSecureChannelLayer extends EventEmitter {
             );
         }
         assert(this._securityTokenTimeoutId === null);
-        // security token renewal should happen without overallping
+        // security token renewal should happen without overlapping
         this._securityTokenTimeoutId = setTimeout(() => {
             this._securityTokenTimeoutId = null;
             this._on_security_token_about_to_expire();
@@ -1148,7 +1148,7 @@ export class ClientSecureChannelLayer extends EventEmitter {
                 if (this.__call) {
                     // connection cannot be establish ? if not, abort the backoff process
                     if (should_abort) {
-                        debugLog(" Aborting backoff process prematurally - err = ", err.message);
+                        debugLog(" Aborting backoff process prematurely - err = ", err.message);
                         this.__call.abort();
                     } else {
                         debugLog(" backoff - keep trying - err = ", err.message);
@@ -1250,7 +1250,7 @@ export class ClientSecureChannelLayer extends EventEmitter {
                 this.emit("security_token_renewed");
             } else {
                 debugLog("ClientSecureChannelLayer: Warning: securityToken hasn't been renewed -> err ", err);
-                // XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX CHECHK ME !!!
+                // XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX CHECK ME !!!
                 this.closeWithError(new Error("Restarting because Request has timed out during OpenSecureChannel"), () => {
                     /* */
                 });
@@ -1375,7 +1375,7 @@ export class ClientSecureChannelLayer extends EventEmitter {
             debugLog(" Timeout was ", timeout, "ms");
             hasTimedOut = true;
             modified_callback(new Error("Transaction has timed out ( timeout = " + timeout + " ms)"));
-            this._timedout_request_count += 1;
+            this._timeout_request_count += 1;
             /**
              * notify the observer that the response from the request has not been
              * received within the timeoutHint specified
@@ -1384,7 +1384,7 @@ export class ClientSecureChannelLayer extends EventEmitter {
              */
             this.emit("timed_out_request", request);
 
-            // xx // XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX CHECHK ME !!!
+            // xx // XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX CHECK ME !!!
             // xx this.closeWithError(new Error("Restarting because Request has timed out (1)"), () => { });
         }, timeout);
 

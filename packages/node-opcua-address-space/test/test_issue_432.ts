@@ -18,7 +18,7 @@ describe("testing github issue https://github.com/node-opcua/node-opcua/issues/4
     });
 
     it("should be possible to specify a custom nodeId when creating an object type", () => {
-        // assuming that the namspace exist !!!
+        // assuming that the namespace exist !!!
         const ns2 = addressSpace.registerNamespace("N2");
         const ns3 = addressSpace.registerNamespace("N3");
         const ns4 = addressSpace.registerNamespace("N4");
