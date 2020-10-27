@@ -305,6 +305,7 @@ export class ServerSession extends EventEmitter implements ISubscriber, ISession
     }
 
     public incrementRequestErrorCounter(counterName: string) {
+        this.parent?.incrementRejectedRequestsCount();
         if (this._sessionDiagnostics) {
             const propName = lowerFirstLetter(counterName + "Count");
             if (!this._sessionDiagnostics.hasOwnProperty(propName)) {

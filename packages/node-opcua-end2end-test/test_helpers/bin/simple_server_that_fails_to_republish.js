@@ -84,7 +84,7 @@ server._on_RepublishRequest = (message /* :Message*/, channel/*: ServerSecureCha
 
     console.log("REPUBLISHED REQUEST !!!");
     const response = new opcua.RepublishResponse({
-        responseHeader: { serviceResult: opcua.StatusCodes.BadNotImplemented }
+        responseHeader: { serviceResult: opcua.StatusCodes.BadServiceUnsupported }
     });
     return channel.send_response("MSG", response, message);
 }

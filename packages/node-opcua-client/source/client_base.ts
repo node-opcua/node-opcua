@@ -12,20 +12,20 @@ import {
     ConnectionStrategy,
     ConnectionStrategyOptions,
     SecurityPolicy,
-    SecurityToken,
+    SecurityToken
 } from "node-opcua-secure-channel";
 import {
     FindServersOnNetworkRequest,
     FindServersOnNetworkRequestOptions,
     FindServersRequest,
     FindServersRequestOptions,
-    ServerOnNetwork,
+    ServerOnNetwork
 } from "node-opcua-service-discovery";
 import {
     ApplicationDescription,
     EndpointDescription,
     GetEndpointsRequest,
-    GetEndpointsResponse,
+    GetEndpointsResponse
 } from "node-opcua-service-endpoints";
 import { MessageSecurityMode } from "node-opcua-service-secure-channel";
 import { ErrorCallback } from "node-opcua-status-code";
@@ -147,10 +147,7 @@ export interface OPCUAClientBase extends OPCUASecureObject {
 
     disconnect(callback: ErrorCallback): void;
 
-    findEndpointForSecurity(
-        securityMode: MessageSecurityMode,
-        securityPolicy: SecurityPolicy
-    ): EndpointDescription | undefined;
+    findEndpointForSecurity(securityMode: MessageSecurityMode, securityPolicy: SecurityPolicy): EndpointDescription | undefined;
 
     getEndpoints(options?: GetEndpointsOptions): Promise<EndpointDescription[]>;
 
@@ -249,7 +246,7 @@ export interface OPCUAClientBase extends EventEmitter {
     on(event: "send_chunk", eventHandler: (chunk: Buffer) => void): this;
 
     /**
-     * this event is raised when the client has recevied a new message chunk from the servers
+     * this event is raised when the client has received a new message chunk from the servers
      * (advanced use only)
      * @param event
      * @param eventHandler

@@ -476,7 +476,7 @@ describe("Testing variables loading ", function (this: any) {
     it("GG1 - should have a variable with pre-fetched values", () => {
         const ns = addressSpace.getNamespaceIndex("mydemo/");
 
-        let variable = addressSpace.rootFolder.objects.getFolderElementByName("VarialbeTwoStateDiscrete", ns)! as UAVariable;
+        let variable = addressSpace.rootFolder.objects.getFolderElementByName("VariableTwoStateDiscrete", ns)! as UAVariable;
         variable = variable || ((addressSpace.rootFolder.objects as any).variableTwoStateDiscrete as UAVariable);
 
         should.exists(variable);
@@ -533,8 +533,8 @@ describe("@A@ Testing loading nodeset with custom basic types", function (this: 
     it("should compose new  basic type ", () => {
         const ns = addressSpace.getNamespaceIndex("http://yourorganisation.org/model_with_custom_datatype/");
 
-        const myIdenfifierDataType = addressSpace.findDataType("MyIdentifierString", ns)!;
-        should.exists(myIdenfifierDataType);
+        const myIdentifierDataType = addressSpace.findDataType("MyIdentifierString", ns)!;
+        should.exists(myIdentifierDataType);
 
         const myStructDataTypeNode = addressSpace.findDataType("MyStruct", ns)!;
         should.exists(myStructDataTypeNode);

@@ -79,7 +79,8 @@ import {
     SessionSecurityDiagnosticsDataType,
     WriteValue,
     ReadValueId,
-    TimeZoneDataType
+    TimeZoneDataType,
+    ProgramDiagnosticDataType
 } from "node-opcua-types";
 import { DataType, isValidVariant, Variant, VariantArrayType } from "node-opcua-variant";
 
@@ -214,7 +215,6 @@ export class ServerEngine extends EventEmitter {
     public addressSpace: AddressSpace | null;
 
     // pseudo private
-    public _rejectedSessionCount: number = 0;
     public _internalState: "creating" | "initializing" | "initialized" | "shutdown" | "disposed";
 
     private _sessions: { [key: string]: ServerSession };
@@ -452,6 +452,55 @@ export class ServerEngine extends EventEmitter {
 
     public get publishingIntervalCount(): number {
         return this.serverDiagnosticsSummary.publishingIntervalCount;
+    }
+
+    public incrementSessionTimeoutCount(): void {
+        if (this.serverDiagnosticsSummary && this.serverDiagnosticsEnabled) {
+            // The requests include all Services defined in Part 4 of the OPC UA Specification, also requests to create sessions. This number includes the securityRejectedRequestsCount.
+            this.serverDiagnosticsSummary.sessionTimeoutCount += 1;
+        }
+    }
+    public incrementSessionAbortCount(): void {
+        if (this.serverDiagnosticsSummary && this.serverDiagnosticsEnabled) {
+            // The requests include all Services defined in Part 4 of the OPC UA Specification, also requests to create sessions. This number includes the securityRejectedRequestsCount.
+            this.serverDiagnosticsSummary.sessionAbortCount += 1;
+        }
+    }
+    public incrementRejectedRequestsCount(): void {
+        if (this.serverDiagnosticsSummary && this.serverDiagnosticsEnabled) {
+            // The requests include all Services defined in Part 4 of the OPC UA Specification, also requests to create sessions. This number includes the securityRejectedRequestsCount.
+            this.serverDiagnosticsSummary.rejectedRequestsCount += 1;
+        }
+    }
+
+    /**
+     * increment rejected session count (also increment rejected requests count)
+     */
+    public incrementRejectedSessionCount(): void {
+        if (this.serverDiagnosticsSummary && this.serverDiagnosticsEnabled) {
+            // The requests include all Services defined in Part 4 of the OPC UA Specification, also requests to create sessions. This number includes the securityRejectedRequestsCount.
+            this.serverDiagnosticsSummary.rejectedSessionCount += 1;
+        }
+        this.incrementRejectedRequestsCount();
+    }
+
+    public incrementSecurityRejectedRequestsCount(): void {
+        if (this.serverDiagnosticsSummary && this.serverDiagnosticsEnabled) {
+            // The requests include all Services defined in Part 4 of the OPC UA Specification, also requests to create sessions. This number includes the securityRejectedRequestsCount.
+            this.serverDiagnosticsSummary.securityRejectedRequestsCount += 1;
+        }
+        this.incrementRejectedRequestsCount();
+    }
+
+    /**
+     * increment rejected session count (also increment rejected requests count)
+     */
+    public incrementSecurityRejectedSessionCount(): void {
+        if (this.serverDiagnosticsSummary && this.serverDiagnosticsEnabled) {
+            // The requests include all Services defined in Part 4 of the OPC UA Specification, also requests to create sessions. This number includes the securityRejectedRequestsCount.
+            this.serverDiagnosticsSummary.securityRejectedSessionCount += 1;
+        }
+        this.incrementSecurityRejectedRequestsCount();
     }
 
     public setShutdownTime(date: Date) {
@@ -855,10 +904,12 @@ export class ServerEngine extends EventEmitter {
                     const nodeId = coerceNodeId("i=2399"); // ProgramStateMachineType_ProgramDiagnostics
                     const variable = addressSpace.findNode(nodeId) as UAVariable;
                     if (variable) {
-                        variable.setValueFromSource({
-                            dataType: DataType.ExtensionObject,
-                            value: new ProgramDiagnostic2DataType()
-                        });
+                        (variable as any).$extensionObject = new ProgramDiagnosticDataType({});
+                        //  variable.setValueFromSource({
+                        //     dataType: DataType.ExtensionObject,
+                        //     //     value: new ProgramDiagnostic2DataType()
+                        //     value: new ProgramDiagnosticDataType({})
+                        // });
                     }
                 }
                 fix_ProgramStateMachineType_ProgramDiagnostics();
@@ -1466,10 +1517,12 @@ export class ServerEngine extends EventEmitter {
         session.on("new_subscription", (subscription: Subscription) => {
             this.serverDiagnosticsSummary.cumulatedSubscriptionCount += 1;
             // add the subscription diagnostics in our subscriptions diagnostics array
+            // note currentSubscriptionCount is handled directly with a special getter
         });
 
         session.on("subscription_terminated", (subscription: Subscription) => {
             // remove the subscription diagnostics in our subscriptions diagnostics array
+            // note currentSubscriptionCount is handled directly with a special getter
         });
 
         // OPC Unified Architecture, Part 4 23 Release 1.03
@@ -1503,6 +1556,8 @@ export class ServerEngine extends EventEmitter {
             // If a Server terminates a Session for any other reason, Subscriptions  associated with the Session,
             // are not deleted. => deleteSubscription= false
             this.closeSession(session.authenticationToken, /*deleteSubscription=*/ false, /* reason =*/ "Timeout");
+
+            this.incrementSessionTimeoutCount();
         });
 
         return session;

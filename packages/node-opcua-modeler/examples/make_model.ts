@@ -50,7 +50,7 @@ async function createModel(addressSpace: AddressSpace): Promise<void> {
 
     const deviceType = addressSpace.findObjectType("DeviceType", nsDI);
     if (!deviceType) {
-        throw new Error("Cannot find DevieType");
+        throw new Error("Cannot find DeviceType");
     }
 
     // construct namespace meta data

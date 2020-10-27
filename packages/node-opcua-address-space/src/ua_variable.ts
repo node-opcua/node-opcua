@@ -813,7 +813,6 @@ export class UAVariable extends BaseNode implements UAVariablePublic {
         variable._dataValue.statusCode = StatusCodes.Good;
 
         if (variable.minimumSamplingInterval === 0) {
-            // xx console.log("xxx touchValue = ",variable.browseName.toString(),variable._dataValue.value.value);
             if (variable.listenerCount("value_changed") > 0) {
                 const clonedDataValue = variable.readValue();
                 variable.emit("value_changed", clonedDataValue);
@@ -1182,8 +1181,32 @@ export class UAVariable extends BaseNode implements UAVariablePublic {
 
         // -------------------- make sure we do not bind a variable twice ....
         if (this.$extensionObject) {
-            assert(utils.isNullOrUndefined(optionalExtensionObject), "unsupported case");
-            assert(this.checkExtensionObjectIsCorrect(this.$extensionObject!));
+            // istanbul ignore next
+            // if (!force && !utils.isNullOrUndefined(optionalExtensionObject)) {
+            //     throw new Error(
+            //         "bindExtensionObject: unsupported case : $extensionObject already exists on " +
+            //             this.browseName.toString() +
+            //             " " +
+            //             this.nodeId.toString()
+            //     );
+            // }
+            // istanbul ignore next
+            if (!this.checkExtensionObjectIsCorrect(this.$extensionObject!)) {
+                console.log(
+                    "on node : ",
+                    this.browseName.toString(),
+                    this.nodeId.toString(),
+                    "dataType=",
+                    this.dataType.toString({ addressSpace: this.addressSpace })
+                );
+                console.log(this.$extensionObject?.toString());
+                throw new Error(
+                    "bindExtensionObject: $extensionObject is incorrect: we are expecting a " +
+                        this.dataType.toString({ addressSpace: this.addressSpace }) +
+                        " but we got a " +
+                        this.$extensionObject?.constructor.name
+                );
+            }
             return this.$extensionObject;
             // throw new Error("Variable already bound");
         }
@@ -1249,7 +1272,7 @@ export class UAVariable extends BaseNode implements UAVariablePublic {
             console.log("You need to provide a extension object yourself ");
             throw new Error("bindExtensionObject requires a extensionObject as associated dataType is only abstract");
         }
-        if (s.value && s.value.dataType === DataType.Null) {
+        if (s.value && (s.value.dataType === DataType.Null || (s.value.dataType === DataType.ExtensionObject && !s.value.value))) {
             // create a structure and bind it
             extensionObject_ = this.$extensionObject || addressSpace.constructExtensionObject(this.dataType);
             extensionObject_ = new Proxy(extensionObject_, makeHandler(this));
@@ -1298,6 +1321,7 @@ export class UAVariable extends BaseNode implements UAVariablePublic {
         // ------------------------------------------------------
         const definition = dt._getDefinition() as StructureDefinition;
 
+        // istanbul ignore next
         if (!definition) {
             console.log("xx definition missing in ", dt.toString());
         }
@@ -2002,7 +2026,6 @@ function _getter(target: any, key: string /*, receiver*/) {
 }
 
 function _setter(variable: UAVariable, target: any, key: string, value: any /*, receiver*/) {
-    // xx   console.log("xxxxx in _setter with  ", variable.nodeId.toString(), key);
     target[key] = value;
     const child = (variable as any)[key] as UAVariable | null;
     if (child && child.touchValue) {

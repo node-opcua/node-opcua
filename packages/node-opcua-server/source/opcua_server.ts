@@ -1564,7 +1564,7 @@ export class OPCUAServer extends OPCUABaseServer {
         assert(request instanceof CreateSessionRequest);
 
         function rejectConnection(statusCode: StatusCode): void {
-            server.engine._rejectedSessionCount += 1;
+            server.engine.incrementSecurityRejectedSessionCount();
 
             const response1 = new CreateSessionResponse({
                 responseHeader: { serviceResult: statusCode }
@@ -1914,7 +1914,13 @@ export class OPCUAServer extends OPCUABaseServer {
         const session = server.getSession(authenticationToken);
 
         function rejectConnection(statusCode: StatusCode): void {
-            server.engine._rejectedSessionCount += 1;
+            if (statusCode === StatusCodes.BadSessionIdInvalid) {
+                server.engine.incrementRejectedSessionCount();
+            } else {
+                server.engine.incrementRejectedSessionCount();
+                server.engine.incrementSecurityRejectedSessionCount();
+            }
+
             const response1 = new ActivateSessionResponse({ responseHeader: { serviceResult: statusCode } });
 
             channel.send_response("MSG", response1, message);
@@ -3297,7 +3303,7 @@ export class OPCUAServer extends OPCUABaseServer {
 
     /* istanbul ignore next */
     protected _on_Cancel(message: Message, channel: ServerSecureChannelLayer) {
-        return g_sendError(channel, message, CancelResponse, StatusCodes.BadNotImplemented);
+        return g_sendError(channel, message, CancelResponse, StatusCodes.BadServiceUnsupported);
     }
 
     // NodeManagement Service Set Overview
@@ -3306,38 +3312,38 @@ export class OPCUAServer extends OPCUABaseServer {
     //
     /* istanbul ignore next */
     protected _on_AddNodes(message: Message, channel: ServerSecureChannelLayer) {
-        return g_sendError(channel, message, AddNodesResponse, StatusCodes.BadNotImplemented);
+        return g_sendError(channel, message, AddNodesResponse, StatusCodes.BadServiceUnsupported);
     }
 
     /* istanbul ignore next */
     protected _on_AddReferences(message: Message, channel: ServerSecureChannelLayer) {
-        return g_sendError(channel, message, AddReferencesResponse, StatusCodes.BadNotImplemented);
+        return g_sendError(channel, message, AddReferencesResponse, StatusCodes.BadServiceUnsupported);
     }
 
     /* istanbul ignore next */
     protected _on_DeleteNodes(message: Message, channel: ServerSecureChannelLayer) {
-        return g_sendError(channel, message, DeleteNodesResponse, StatusCodes.BadNotImplemented);
+        return g_sendError(channel, message, DeleteNodesResponse, StatusCodes.BadServiceUnsupported);
     }
 
     /* istanbul ignore next */
     protected _on_DeleteReferences(message: Message, channel: ServerSecureChannelLayer) {
-        return g_sendError(channel, message, DeleteReferencesResponse, StatusCodes.BadNotImplemented);
+        return g_sendError(channel, message, DeleteReferencesResponse, StatusCodes.BadServiceUnsupported);
     }
 
     // Query Service
     /* istanbul ignore next */
     protected _on_QueryFirst(message: Message, channel: ServerSecureChannelLayer) {
-        return g_sendError(channel, message, QueryFirstResponse, StatusCodes.BadNotImplemented);
+        return g_sendError(channel, message, QueryFirstResponse, StatusCodes.BadServiceUnsupported);
     }
 
     /* istanbul ignore next */
     protected _on_QueryNext(message: Message, channel: ServerSecureChannelLayer) {
-        return g_sendError(channel, message, QueryNextResponse, StatusCodes.BadNotImplemented);
+        return g_sendError(channel, message, QueryNextResponse, StatusCodes.BadServiceUnsupported);
     }
 
     /* istanbul ignore next */
     protected _on_HistoryUpdate(message: Message, channel: ServerSecureChannelLayer) {
-        return g_sendError(channel, message, HistoryUpdateResponse, StatusCodes.BadNotImplemented);
+        return g_sendError(channel, message, HistoryUpdateResponse, StatusCodes.BadServiceUnsupported);
     }
 
     private createEndpoint(port1: number, serverOptions: OPCUAServerOptions): OPCUAServerEndPoint {

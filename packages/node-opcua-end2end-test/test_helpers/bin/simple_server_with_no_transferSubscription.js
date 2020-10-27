@@ -71,7 +71,7 @@ server.on("post_initialize", function() {
 
     server._on_TransferSubscriptionsRequest = (message /* :Message*/, channel/*: ServerSecureChannelLayer*/) => {
         const response = new opcua.TransferSubscriptionsResponse({
-            responseHeader: { serviceResult: opcua.StatusCodes.BadNotImplemented }
+            responseHeader: { serviceResult: opcua.StatusCodes.BadServiceUnsupported }
         });
         return channel.send_response("MSG", response, message);
     }
