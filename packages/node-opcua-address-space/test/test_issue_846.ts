@@ -5,11 +5,49 @@ import { AddressSpace, UAObject, SessionContext } from "..";
 import { generateAddressSpace } from "../nodeJS";
 import { nodesets } from "node-opcua-nodesets";
 import { UAVariable } from "../dist/src/ua_variable";
-import { Variant } from "node-opcua-variant";
+import { DataType, Variant, VariantArrayType } from "node-opcua-variant";
 import { AttributeIds } from "node-opcua-data-model";
 
 // tslint:disable-next-line:no-var-requires
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
+describe("#899 Variable with NodeId Value in nodeset2.xml", () => {
+    let addressSpace: AddressSpace;
+    before(async () => {
+        addressSpace = AddressSpace.create();
+
+        await generateAddressSpace(addressSpace, [
+            nodesets.standard,
+            nodesets.di,
+            path.join(__dirname, "../test_helpers/test_fixtures/issue_899_variable_with_nodeid_value.xml")
+        ]);
+    });
+
+    after(() => {
+        addressSpace.dispose();
+    });
+    it("should load a UAVariable of type NodeId that provide a Value ", () => {
+        const ns = addressSpace.getNamespaceIndex("http://abbci874.org/CI874TestNodeset/");
+        const v = addressSpace.findNode(`ns=${ns};i=1`) as UAVariable;
+        v.browseName.toString().should.eql(`${ns}:TestNodeId`);
+
+        const value = v.readValue().value;
+        value.dataType.should.eql(DataType.NodeId);
+        console.log("xxx=", value.toString());
+        value.value.toString().should.eql(`ns=${ns};i=6031`);
+        value.arrayType.should.eql(VariantArrayType.Scalar);
+    });
+    it("should load a UAVariable of type NodeId Array that provide a Value ", () => {
+        const ns = addressSpace.getNamespaceIndex("http://abbci874.org/CI874TestNodeset/");
+        const v = addressSpace.findNode(`ns=${ns};i=2`) as UAVariable;
+        v.browseName.toString().should.eql(`${ns}:TestListNodeId`);
+
+        const value = v.readValue().value;
+        value.dataType.should.eql(DataType.NodeId);
+        value.arrayType.should.eql(VariantArrayType.Array);
+        value.value[0].toString().should.eql(`ns=${ns};i=10`);
+        value.value[1].toString().should.eql(`ns=${ns};i=20`);
+    });
+});
 describe("#846 Various Variable Value in nodeset2.xml", () => {
     let addressSpace: AddressSpace;
     let iotChannelSet: UAObject;

@@ -637,6 +637,20 @@ export function makeStuff(addressSpace: AddressSpacePublic) {
         }
     };
 
+    const nodeId_parser = {
+        NodeId: {
+            init(this: any) {
+                this.nodeId = "";
+            },
+            parser: {
+                Identifier: {
+                    finish(this: any) {
+                        this.parent.nodeId = _translateNodeId(resolveNodeId(this.text.trim()).toString());
+                    }
+                }
+            }
+        }
+    };
     const enumValueType_parser = {
         EnumValueType: {
             init(this: any) {
@@ -990,7 +1004,23 @@ export function makeStuff(addressSpace: AddressSpacePublic) {
                             }
                             this.parent.parent.parent.obj.value = {
                                 dataType: DataType.Guid,
+                                arrayType: VariantArrayType.Scalar,
                                 value: this.text
+                            };
+                        }
+                    }
+                }
+            },
+
+            NodeId: {
+                parser: {
+                    Identifier: {
+                        finish(this: any) {
+                            const nodeId = this.text;
+                            this.parent.parent.parent.obj.value = {
+                                dataType: DataType.NodeId,
+                                arrayType: VariantArrayType.Scalar,
+                                value: _translateNodeId(resolveNodeId(nodeId).toString())
                             };
                         }
                     }
@@ -1084,7 +1114,22 @@ export function makeStuff(addressSpace: AddressSpacePublic) {
                     this.listData.push(this.parser.LocalizedText.localizedText);
                 }
             },
-
+            ListOfNodeId: {
+                init(this: any) {
+                    this.listData = [];
+                },
+                parser: nodeId_parser,
+                finish(this: any) {
+                    this.parent.parent.obj.value = {
+                        arrayType: VariantArrayType.Array,
+                        dataType: DataType.NodeId,
+                        value: this.listData
+                    };
+                },
+                endElement(this: any, elementName: string) {
+                    this.listData.push(this.parser.NodeId.nodeId);
+                }
+            },
             ListOfBoolean: ListOf("Boolean", ec.coerceBoolean),
             ListOfByte: ListOf("Byte", parseInt),
 

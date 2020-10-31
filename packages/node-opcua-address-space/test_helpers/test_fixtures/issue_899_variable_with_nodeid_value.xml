@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<UANodeSet xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:uax="http://opcfoundation.org/UA/2008/02/Types.xsd"
+    xmlns="http://opcfoundation.org/UA/2011/03/UANodeSet.xsd"
+    xmlns:s1="http://abbci874.org/CI874TestNodeset/Types.xsd"
+    xmlns:ua="http://unifiedautomation.com/Configuration/NodeSet.xsd"
+    xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+    <NamespaceUris>
+        <Uri>http://abbci874.org/CI874TestNodeset/</Uri>
+    </NamespaceUris>
+    <Aliases>
+        <Alias Alias="NodeId">i=17</Alias>
+    </Aliases>
+    <UAVariable DataType="NodeId" NodeId="ns=1;i=1" BrowseName="1:TestNodeId">
+        <Value>
+            <uax:NodeId>
+                <uax:Identifier>ns=1;i=6031</uax:Identifier>
+            </uax:NodeId>
+        </Value>
+    </UAVariable>
+    <UAVariable DataType="NodeId" ValueRank="1" ArrayDimensions="1" NodeId="ns=1;i=2" BrowseName="1:TestListNodeId">
+        <Value>
+            <uax:ListOfNodeId>
+                <uax:NodeId>
+                    <uax:Identifier>ns=1;i=10</uax:Identifier>
+                </uax:NodeId>
+                <uax:NodeId>
+                    <uax:Identifier>ns=1;i=20</uax:Identifier>
+                </uax:NodeId>
+            </uax:ListOfNodeId>
+        </Value>
+    </UAVariable>
+</UANodeSet>
