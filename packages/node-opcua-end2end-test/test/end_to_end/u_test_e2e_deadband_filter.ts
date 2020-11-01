@@ -142,19 +142,20 @@ export function t(test: any) {
         // create a subscriptions
         const subscription = ClientSubscription.create(session, {
             publishingEnabled: true,
-            requestedLifetimeCount: 1000,
-            requestedMaxKeepAliveCount: 4,
+            requestedLifetimeCount: 20,
+            requestedMaxKeepAliveCount: 3,
             requestedPublishingInterval: 100
         });
 
         return { client, session, subscription, publishEngine };
     }
-    let s: {
+    interface Connection {
         client: OPCUAClient;
         session: ClientSession;
         subscription: ClientSubscription;
         publishEngine: ClientSidePublishEnginePrivate;
-    };
+    }
+    let s: Connection;
     async function waitForRawNotifications(): Promise<ExtensionObject[]> {
         const { publishEngine, subscription } = s;
         publishEngine.internalSendPublishRequest();
@@ -231,13 +232,14 @@ export function t(test: any) {
             nodeId: NodeIdLike,
             requestedParameters: MonitoringParametersOptions
         ): Promise<ClientMonitoredItem> {
-            const { session, subscription, publishEngine } = s;
+            const { session, subscription, publishEngine } = s as Connection;
 
             const readValue = {
                 attributeId: AttributeIds.Value,
                 nodeId
             };
-            const monitoredItem = ClientMonitoredItem.create(subscription, readValue, requestedParameters, TimestampsToReturn.Both);
+            // const monitoredItem = ClientMonitoredItem.create(subscription, readValue, requestedParameters, TimestampsToReturn.Both);
+            const monitoredItem = await subscription.monitor(readValue, requestedParameters, TimestampsToReturn.Both);
 
             await new Promise((resolve: any) => {
                 // wait for fist notification
