@@ -16,7 +16,8 @@ export enum AccessLevelFlag {
     StatusWrite = 0x20, // bit 5 : Indicates if the current StatusCode of the value is writable (0 means not writable, 1 means writable).
     TimestampWrite = 0x40, // bit 6 : Indicates if the current SourceTimestamp of the value is writable (0 means not writable, 1 means writable).
     NONE = 0x800, // Deprecated
-    None = 0x800
+    None = 0x800,
+    Execute = 0x1000
 }
 
 export function convertAccessLevelFlagToByte(accessLevel: AccessLevelFlag): number {
