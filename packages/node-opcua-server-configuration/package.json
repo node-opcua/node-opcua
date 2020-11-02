@@ -1,6 +1,6 @@
 {
     "name": "node-opcua-server-configuration",
-    "version": "2.22.0",
+    "version": "2.23.0",
     "description": "pure nodejs OPCUA SDK - module -server",
     "scripts": {
         "build": "tsc -b",
@@ -12,11 +12,11 @@
     "types": "./dist/index.d.ts",
     "dependencies": {
         "colors": "^1.4.0",
-        "node-opcua-address-space": "2.22.0",
+        "node-opcua-address-space": "2.23.0",
         "node-opcua-assert": "2.22.0",
         "node-opcua-basic-types": "2.22.0",
         "node-opcua-certificate-manager": "2.22.0",
-        "node-opcua-client": "2.22.0",
+        "node-opcua-client": "2.23.0",
         "node-opcua-crypto": "^1.4.4",
         "node-opcua-data-model": "2.22.0",
         "node-opcua-debug": "2.22.0",
@@ -25,8 +25,8 @@
         "node-opcua-nodesets": "2.22.0",
         "node-opcua-pki": "^2.2.2",
         "node-opcua-pseudo-session": "2.22.0",
-        "node-opcua-secure-channel": "2.22.0",
-        "node-opcua-server": "2.22.0",
+        "node-opcua-secure-channel": "2.23.0",
+        "node-opcua-server": "2.23.0",
         "node-opcua-status-code": "2.22.0",
         "node-opcua-types": "2.22.0",
         "node-opcua-variant": "2.22.0"
