@@ -161,15 +161,12 @@ export type ValidUserAsyncFunc = (
     password: string,
     callback: (err: Error | null, isAuthorized?: boolean) => void
 ) => void;
-export type GetUserRoleFunc = (username: string) => string;
 
 export interface UserManagerOptions extends IUserManager {
     /** synchronous function to check the credentials - can be overruled by isValidUserAsync */
     isValidUser?: ValidUserFunc;
     /** asynchronous function to check if the credentials - overrules isValidUser */
     isValidUserAsync?: ValidUserAsyncFunc;
-    /**  synchronous function to return the role of the given user */
-    getUserRole?: GetUserRoleFunc;
 }
 
 // tslint:disable-next-line:no-var-requires
