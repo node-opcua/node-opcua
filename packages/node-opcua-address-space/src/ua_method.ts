@@ -9,7 +9,7 @@ import { AttributeIds } from "node-opcua-data-model";
 import { DiagnosticInfo, NodeClass } from "node-opcua-data-model";
 import { DataValue, DataValueLike } from "node-opcua-data-value";
 import { NodeId } from "node-opcua-nodeid";
-import { Argument, CallMethodResult } from "node-opcua-service-call";
+import { Argument } from "node-opcua-service-call";
 import { StatusCode, StatusCodes } from "node-opcua-status-code";
 import { CallMethodResultOptions } from "node-opcua-types";
 import { Variant } from "node-opcua-variant";
@@ -19,7 +19,8 @@ import {
     MethodFunctorCallback,
     UAMethod as UAMethodPublic,
     UAObject as UAObjectPublic,
-    UAObjectType
+    UAObjectType,
+    Permissions
 } from "../source";
 import { SessionContext } from "../source";
 import { BaseNode } from "./base_node";
@@ -53,12 +54,17 @@ export class UAMethod extends BaseNode implements UAMethodPublic {
     public value?: any;
     public methodDeclarationId: NodeId;
     public _getExecutableFlag?: (this: UAMethod, context: SessionContext) => boolean;
+    public _permissions: Permissions | null;
     public _asyncExecutionFunction?: MethodFunctor;
 
     constructor(options: any) {
         super(options);
         this.value = options.value;
         this.methodDeclarationId = options.methodDeclarationId;
+        this._permissions = null;
+        if (options.permissions) {
+            this.setPermissions(options.permissions);
+        }
     }
 
     public getExecutableFlag(context: SessionContext): boolean {
@@ -98,6 +104,10 @@ export class UAMethod extends BaseNode implements UAMethodPublic {
 
     public getOutputArguments(): Argument[] {
         return this._getArguments("OutputArguments");
+    }
+
+    public setPermissions(permissions: Permissions): void {
+        this._permissions = permissions;
     }
 
     public bindMethod(async_func: MethodFunctor): void {
@@ -145,6 +155,13 @@ export class UAMethod extends BaseNode implements UAMethodPublic {
             // todo : find the correct Status code to return here
             return callback(null, { statusCode: StatusCodes.BadMethodInvalid });
         }
+
+        if(this._permissions && context.checkPermission){
+            if(!context.checkPermission(this, "Execute")){
+                return callback(null, { statusCode: StatusCodes.BadUserAccessDenied });
+            }
+        }
+
         // verify that input arguments are correct
         // todo :
         const inputArgumentResults: StatusCode[] = [];

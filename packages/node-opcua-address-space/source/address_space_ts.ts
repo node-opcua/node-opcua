@@ -847,6 +847,8 @@ export declare class UAMethod extends BaseNode {
      */
     public _getExecutableFlag?: (sessionContext: SessionContext) => boolean;
 
+    public setPermissions(permissions: Permissions): void;
+
     public bindMethod(methodFunction: MethodFunctor): void;
 
     public getExecutableFlag(context: ISessionContext): boolean;
@@ -1093,6 +1095,7 @@ export interface Permissions {
     HistoryWrite?: string[];
     StatusWrite?: string[];
     TimestampWrite?: string[];
+    Execute?: string[];
 }
 
 export type AccessLevelString = string;
@@ -1235,6 +1238,7 @@ export interface AddMethodOptions {
     componentOf?: NodeIdLike | BaseNode;
     executable?: boolean;
     userExecutable?: boolean;
+    permissions?: Permissions;
 }
 
 export interface AddMultiStateDiscreteOptions extends AddBaseNodeOptions, VariableStuff {

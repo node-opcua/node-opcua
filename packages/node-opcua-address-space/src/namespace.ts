@@ -2184,7 +2184,8 @@ export class UANamespace implements NamespacePublic {
             isAbstract: false,
             nodeClass: NodeClass.Method,
             nodeId: options.nodeId,
-            references
+            references,
+            permissions: options.permissions
         }) as UAMethod;
         assert(method.nodeId !== null);
         method.propagate_back_references();
