@@ -1,0 +1,20 @@
+# Set the default behavior, in case people don't have core.autocrlf set.
+* text=auto
+
+# Explicitly declare text files you want to always be normalized and converted
+# to native line endings on checkout.
+.bat text eol=crlf
+*.js text
+*.json text
+*.md text
+*.ts text
+*.txt text
+*.xml text
+*.xsd text
+*.xsl text
+*.yml text
+
+# Denote all files that are truly binary and should not be modified.
+*.bmp binary
+*.jpg binary
+*.png binary
