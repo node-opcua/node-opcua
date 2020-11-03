@@ -1,6 +1,6 @@
 import * as fs from "fs";
 import { Namespace } from "node-opcua-address-space";
-import { buildDocumentationToString } from "../source/generate_markdown_doc";
+import { buildDocumentationToString } from "..";
 
 export async function buildDocumentationToFile(namespace: Namespace, filename: string) {
     const str = await buildDocumentationToString(namespace);
