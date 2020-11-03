@@ -88,7 +88,7 @@ const doDebug = checkDebugFlag(__filename);
 const errorLog = debugLog;
 
 function validateServerNonce(serverNonce: Nonce | null): boolean {
-    return !(serverNonce && serverNonce.length < 32);
+    return !(serverNonce && serverNonce.length < 32) || (serverNonce && serverNonce.length === 0);
 }
 
 function verifyEndpointDescriptionMatches(client: OPCUAClientImpl, responseServerEndpoints: EndpointDescription[]): boolean {
