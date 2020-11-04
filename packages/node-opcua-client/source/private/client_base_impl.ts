@@ -94,7 +94,7 @@ function __findEndpoint(
 
     const client = new ClientBaseImpl(options);
 
-    let selectedEndpoint: EndpointDescription;
+    let selectedEndpoint: EndpointDescription | undefined;
     const allEndpoints: EndpointDescription[] = [];
     const tasks = [
         (innerCallback: ErrorCallback) => {
