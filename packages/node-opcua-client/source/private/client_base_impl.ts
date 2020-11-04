@@ -168,7 +168,7 @@ function __findEndpoint(
         }
 
         if (!selectedEndpoint) {
-            callback(
+            return callback(
                 new Error(
                     "Cannot find an Endpoint matching " +
                         " security mode: " +
