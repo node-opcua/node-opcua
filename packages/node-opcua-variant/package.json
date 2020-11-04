@@ -1,6 +1,6 @@
 {
     "name": "node-opcua-variant",
-    "version": "2.22.0",
+    "version": "2.24.0",
     "description": "pure nodejs OPCUA SDK - module -variant",
     "main": "./dist/index.js",
     "types": "./dist/index.d.ts",
@@ -12,7 +12,7 @@
     "dependencies": {
         "node-opcua-assert": "2.22.0",
         "node-opcua-basic-types": "2.22.0",
-        "node-opcua-data-model": "2.22.0",
+        "node-opcua-data-model": "2.24.0",
         "node-opcua-enum": "2.22.0",
         "node-opcua-extension-object": "2.22.0",
         "node-opcua-factory": "2.22.0",

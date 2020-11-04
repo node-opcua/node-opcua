@@ -1,6 +1,6 @@
 {
     "name": "node-opcua-generator",
-    "version": "2.22.0",
+    "version": "2.24.0",
     "description": "pure nodejs OPCUA SDK - module -generator",
     "main": "./dist/index.js",
     "types": "./dist/index.d.ts",
@@ -22,7 +22,7 @@
         "node-opcua-guid": "2.22.0",
         "node-opcua-nodeid": "2.22.0",
         "node-opcua-numeric-range": "2.22.0",
-        "node-opcua-schemas": "2.22.0",
+        "node-opcua-schemas": "2.24.0",
         "node-opcua-status-code": "2.22.0",
         "node-opcua-utils": "2.22.0",
         "node-opcua-xml2json": "2.22.0"
