@@ -5,7 +5,9 @@ import {
     OPCUAClient,
     OPCUAServer,
     UserIdentityInfo,
-    UserTokenType
+    UserTokenType,
+    Response,
+    Request
 } from "node-opcua";
 import * as should from "should";
 const port = 2020;
