@@ -1,6 +1,6 @@
 {
 	"name": "node-opcua-client-crawler",
-	"version": "2.24.0",
+	"version": "2.24.1",
 	"main": "./dist/index.js",
 	"types": "./dist/index.d.ts",
 	"description": "pure nodejs OPCUA SDK - module -client-crawler",
@@ -29,7 +29,7 @@
 	},
 	"devDependencies": {
 		"node-opcua-address-space": "2.24.0",
-		"node-opcua-client": "2.24.0"
+		"node-opcua-client": "2.24.1"
 	},
 	"author": "Etienne Rossignon",
 	"license": "MIT",

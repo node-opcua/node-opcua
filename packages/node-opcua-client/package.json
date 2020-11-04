@@ -1,6 +1,6 @@
 {
     "name": "node-opcua-client",
-    "version": "2.24.0",
+    "version": "2.24.1",
     "description": "pure nodejs OPCUA SDK - module -client",
     "scripts": {
         "postinstall": "node test_helpers/create_certificates.js certificate -s -o certificates/client_selfsigned_cert_2048.pem",

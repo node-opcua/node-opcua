@@ -1,6 +1,6 @@
 {
     "name": "node-opcua",
-    "version": "2.24.0",
+    "version": "2.24.1",
     "description": "pure nodejs OPCUA SDK - module ",
     "main": "./dist/index.js",
     "types": "./dist/index.d.ts",
@@ -20,8 +20,8 @@
         "node-opcua-basic-types": "2.22.0",
         "node-opcua-binary-stream": "2.22.0",
         "node-opcua-certificate-manager": "2.22.0",
-        "node-opcua-client": "2.24.0",
-        "node-opcua-client-crawler": "2.24.0",
+        "node-opcua-client": "2.24.1",
+        "node-opcua-client-crawler": "2.24.1",
         "node-opcua-client-proxy": "2.24.0",
         "node-opcua-common": "2.24.0",
         "node-opcua-constants": "2.22.0",
@@ -38,8 +38,8 @@
         "node-opcua-numeric-range": "2.22.0",
         "node-opcua-packet-analyzer": "2.22.0",
         "node-opcua-secure-channel": "2.24.0",
-        "node-opcua-server": "2.24.0",
-        "node-opcua-server-discovery": "2.24.0",
+        "node-opcua-server": "2.24.1",
+        "node-opcua-server-discovery": "2.24.1",
         "node-opcua-service-browse": "2.24.0",
         "node-opcua-service-call": "2.24.0",
         "node-opcua-service-discovery": "2.24.0",
@@ -60,7 +60,7 @@
         "node-opcua-types": "2.24.0",
         "node-opcua-utils": "2.22.0",
         "node-opcua-variant": "2.24.0",
-        "node-opcua-vendor-diagnostic": "2.24.0",
+        "node-opcua-vendor-diagnostic": "2.24.1",
         "semver": "^7.3.2"
     },
     "devDependencies": {
