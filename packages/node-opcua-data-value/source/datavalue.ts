@@ -73,6 +73,7 @@ export function encodeDataValue(dataValue: DataValue, stream: OutputBinaryStream
         if (!dataValue.value) {
             dataValue.value = new Variant();
         }
+        // istanbul ignore next
         if (!dataValue.value.encode) {
             // tslint:disable-next-line:no-console
             console.log(" CANNOT FIND ENCODE METHOD ON VARIANT !!! HELP", JSON.stringify(dataValue, null, " "));

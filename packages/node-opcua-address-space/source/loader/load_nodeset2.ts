@@ -234,7 +234,10 @@ function makeDefaultVariant(addressSpace: AddressSpacePublic, dataTypeNode: Node
             return { dataType: DataType.ExtensionObject, value: null };
         }
         const dv = findSimpleType(DataType[dataType]).defaultValue;
-
+        if (dv === undefined || dv === null) {
+            // return
+            return { dataType: DataType.Null };
+        }
         let arrayType: VariantArrayType;
         const value = typeof dv === "function" ? dv() : dv;
         //  if (dataType === DataType.ByteString ) { value = Buffer.alloc(0) }
