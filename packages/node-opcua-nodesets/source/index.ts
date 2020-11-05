@@ -13,11 +13,11 @@ export function constructNodesetFilename(filename: string) {
             throw new Error("Please make sure that nodeset can be found in " + path.join(dirname, "../nodesets"));
         }
         // let's find alternate places where to find the nodeset folder
-        let appfolder = path.dirname(process.argv[1]);
-        file = path.join(appfolder, "nodesets", filename);
+        let appFolder = path.dirname(process.argv[1]);
+        file = path.join(appFolder, "nodesets", filename);
         if (!fs.existsSync(file)) {
-            appfolder = process.cwd();
-            file = path.join(appfolder, "nodesets", filename);
+            appFolder = process.cwd();
+            file = path.join(appFolder, "nodesets", filename);
         }
     }
     return file;
@@ -42,6 +42,9 @@ const autoIdNodeSetFilename = constructNodesetFilename("Opc.Ua.AutoID.NodeSet2.x
 const roboticsNodeSetFilename = constructNodesetFilename("Opc.Ua.Robotics.NodeSet2.xml");
 const machineVisionNodeSetFilename = constructNodesetFilename("Opc.Ua.MachineVision.NodeSet2.xml");
 const packMLNodeSetFilename = constructNodesetFilename("Opc.Ua.PackML.NodeSet2.xml");
+const machineryNodeSetFilename = constructNodesetFilename("Opc.Ua.Machinery.NodeSet2.xml");
+const cncNodeSetFilename = constructNodesetFilename("Opc.Ua.CNC.NodeSet.xml");
+const commercialKitchenEquipmentNodeSetFilename = constructNodesetFilename("Opc.Ua.CommercialKitchenEquipment.NodeSet2");
 
 export const nodesets = {
     adi: adiNodeSetFilename,
@@ -58,7 +61,13 @@ export const nodesets = {
 
     machineVision: machineVisionNodeSetFilename,
 
-    packML: packMLNodeSetFilename
+    packML: packMLNodeSetFilename,
+
+    machinery: machineryNodeSetFilename,
+
+    cnc: cncNodeSetFilename,
+
+    commercialKitchenEquipment: commercialKitchenEquipmentNodeSetFilename
 };
 
 function makeDeprecated(id: string, newName: keyof typeof nodesets) {

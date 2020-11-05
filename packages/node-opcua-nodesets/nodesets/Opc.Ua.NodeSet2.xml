@@ -28,9 +28,9 @@
  * http://opcfoundation.org/License/MIT/1.00/
 -->
 
-<UANodeSet xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" LastModified="2020-04-14T00:00:00Z" xmlns="http://opcfoundation.org/UA/2011/03/UANodeSet.xsd">
+<UANodeSet xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" LastModified="2020-07-15T00:00:00Z" xmlns="http://opcfoundation.org/UA/2011/03/UANodeSet.xsd">
   <Models>
-    <Model ModelUri="http://opcfoundation.org/UA/" Version="1.04.6" PublicationDate="2020-04-14T00:00:00Z" />
+    <Model ModelUri="http://opcfoundation.org/UA/" Version="1.04.7" PublicationDate="2020-07-15T00:00:00Z" />
   </Models>
   <Aliases>
     <Alias Alias="Boolean">i=1</Alias>
@@ -921,7 +921,7 @@
       <Reference ReferenceType="HasProperty" IsForward="false">i=15957</Reference>
     </References>
     <Value>
-      <String xmlns="http://opcfoundation.org/UA/2008/02/Types.xsd">1.04.6</String>
+      <String xmlns="http://opcfoundation.org/UA/2008/02/Types.xsd">1.04.7</String>
     </Value>
   </UAVariable>
   <UAVariable NodeId="i=15960" BrowseName="NamespacePublicationDate" ParentNodeId="i=15957" DataType="DateTime">
@@ -931,7 +931,7 @@
       <Reference ReferenceType="HasProperty" IsForward="false">i=15957</Reference>
     </References>
     <Value>
-      <DateTime xmlns="http://opcfoundation.org/UA/2008/02/Types.xsd">2020-04-14T00:00:00Z</DateTime>
+      <DateTime xmlns="http://opcfoundation.org/UA/2008/02/Types.xsd">2020-07-15T00:00:00Z</DateTime>
     </Value>
   </UAVariable>
   <UAVariable NodeId="i=15961" BrowseName="IsNamespaceSubset" ParentNodeId="i=15957" DataType="Boolean">
@@ -13939,6 +13939,58 @@
     <DisplayName>CurrencyUnit</DisplayName>
     <References>
       <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
+    </References>
+  </UAVariable>
+  <UAObjectType NodeId="i=23513" BrowseName="IOrderedObjectType" IsAbstract="true">
+    <DisplayName>IOrderedObjectType</DisplayName>
+    <Documentation>https://reference.opcfoundation.org/v104/Core/docs/Amendment13/6.10</Documentation>
+    <References>
+      <Reference ReferenceType="HasProperty">i=23517</Reference>
+      <Reference ReferenceType="HasSubtype" IsForward="false">i=17602</Reference>
+    </References>
+  </UAObjectType>
+  <UAVariable NodeId="i=23517" BrowseName="NumberInList" ParentNodeId="i=23513" DataType="Number">
+    <DisplayName>NumberInList</DisplayName>
+    <References>
+      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
+      <Reference ReferenceType="HasModellingRule">i=78</Reference>
+      <Reference ReferenceType="HasProperty" IsForward="false">i=23513</Reference>
+    </References>
+  </UAVariable>
+  <UAObjectType NodeId="i=23518" BrowseName="OrderedListType">
+    <DisplayName>OrderedListType</DisplayName>
+    <Documentation>https://reference.opcfoundation.org/v104/Core/docs/Amendment13/6.10</Documentation>
+    <References>
+      <Reference ReferenceType="i=49">i=23519</Reference>
+      <Reference ReferenceType="HasProperty">i=23525</Reference>
+      <Reference ReferenceType="i=41">i=2133</Reference>
+      <Reference ReferenceType="HasSubtype" IsForward="false">i=58</Reference>
+    </References>
+  </UAObjectType>
+  <UAObject NodeId="i=23519" BrowseName="&lt;OrderedObject&gt;" SymbolicName="OrderedObject_Placeholder" ParentNodeId="i=23518">
+    <DisplayName>&lt;OrderedObject&gt;</DisplayName>
+    <References>
+      <Reference ReferenceType="HasProperty">i=23521</Reference>
+      <Reference ReferenceType="i=17603">i=23513</Reference>
+      <Reference ReferenceType="HasTypeDefinition">i=58</Reference>
+      <Reference ReferenceType="HasModellingRule">i=11508</Reference>
+      <Reference ReferenceType="i=49" IsForward="false">i=23518</Reference>
+    </References>
+  </UAObject>
+  <UAVariable NodeId="i=23521" BrowseName="NumberInList" ParentNodeId="i=23519" DataType="Number">
+    <DisplayName>NumberInList</DisplayName>
+    <References>
+      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
+      <Reference ReferenceType="HasModellingRule">i=78</Reference>
+      <Reference ReferenceType="HasProperty" IsForward="false">i=23519</Reference>
+    </References>
+  </UAVariable>
+  <UAVariable NodeId="i=23525" BrowseName="NodeVersion" ParentNodeId="i=23518" DataType="String">
+    <DisplayName>NodeVersion</DisplayName>
+    <References>
+      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
+      <Reference ReferenceType="HasModellingRule">i=80</Reference>
+      <Reference ReferenceType="HasProperty" IsForward="false">i=23518</Reference>
     </References>
   </UAVariable>
   <UAVariableType NodeId="i=2365" BrowseName="DataItemType" ValueRank="-2">

@@ -456,6 +456,11 @@ export class AddressSpace implements AddressSpacePrivate {
             return DataType.Int32;
         }
 
+        if (dataTypeNode.nodeId.namespace === 0 && dataTypeNode.nodeId.value === 29) {
+            // Number
+            return DataType.Null; //which one ?
+        }
+
         if (dataTypeNode.nodeId.namespace === 0 && DataType[dataTypeNode.nodeId.value as number]) {
             return dataTypeNode.nodeId.value as DataType;
         }

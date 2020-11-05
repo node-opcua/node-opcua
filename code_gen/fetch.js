@@ -30,14 +30,14 @@ function wget(dest_folder, file_url) {
     }
     console.log(" downloading " + filename + " from " + file_url);
 
-    const stream = fs.createWriteStream(filename, {flag: "w"});
+    const stream = fs.createWriteStream(filename, { flag: "w" });
 
     const request_options = url.parse(file_url);
 
-    request_options.headers = {'user-agent': 'Mozilla/5.0'};
+    request_options.headers = { 'user-agent': 'Mozilla/5.0' };
 
     // Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/38.0.2125.101 Safari/537.36
-    const req = http.get(request_options, function (response) {
+    const req = http.get(request_options, function(response) {
         // handle the response
         let res_data = '';
         // console.log(response);
@@ -52,7 +52,7 @@ function wget(dest_folder, file_url) {
             total: fileBytes
         });
 
-        response.on('data', function (chunk) {
+        response.on('data', function(chunk) {
             res_data += chunk;
 
             if (chunk.length) {
@@ -65,11 +65,11 @@ function wget(dest_folder, file_url) {
             stream.write(chunk, "binary");
 
         });
-        response.on('end', function () {
+        response.on('end', function() {
             stream.end();
         });
     });
-    req.on('error', function (err) {
+    req.on('error', function(err) {
         console.log("Request error: " + err.message);
     });
 }
@@ -256,9 +256,9 @@ if (false) {
 
 // with git hub
 
-function fetch_from_github(version,file){
+function fetch_from_github(version, file) {
 
-    wget("1.04","https://raw.githubusercontent.com/OPCFoundation/UA-Nodeset/v" + version + "/" + file);
+    wget("1.04", "https://raw.githubusercontent.com/OPCFoundation/UA-Nodeset/v" + version + "/" + file);
 
 }
 const version = "1.04";
@@ -275,13 +275,26 @@ fetch_from_github(version, "Schema/Opc.Ua.NodeSet2.Part8.xml");
 fetch_from_github(version, "Schema/Opc.Ua.NodeSet2.xml");
 fetch_from_github(version, "Schema/Opc.Ua.Types.xsd");
 
-fetch_from_github(version, "/DI/Opc.Ua.Di.NodeSet2.xml");
-fetch_from_github(version, "/DI/Opc.Ua.Di.Types.xsd");
-fetch_from_github(version, "/DI/Opc.Ua.Di.Types.bsd");
+fetch_from_github(version, "DI/Opc.Ua.Di.NodeSet2.xml");
+fetch_from_github(version, "DI/Opc.Ua.Di.Types.xsd");
+fetch_from_github(version, "DI/Opc.Ua.Di.Types.bsd");
 
 fetch_from_github(version, "ADI/Opc.Ua.Adi.NodeSet2.xml");
 fetch_from_github(version, "ADI/Opc.Ua.Adi.Types.xsd");
 fetch_from_github(version, "ADI/Opc.Ua.Adi.Types.bsd");
+
+fetch_from_github(version, "GDS/Opc.Ua.Gds.NodeSet2.xml");
+fetch_from_github(version, "AutoID/Opc.Ua.AutoID.NodeSet2.xml");
+fetch_from_github(version, "Machinery/Opc.Ua.Machinery.NodeSet2.xml");
+fetch_from_github(version, "ISA-95/Opc.ISA95.NodeSet2.xml");
+fetch_from_github(version, "PackML/Opc.Ua.PackML.NodeSet2.xml");
+fetch_from_github(version, "Robotics/Opc.Ua.Robotics.NodeSet2.xml");
+fetch_from_github(version, "CNC/Opc.Ua.CNC.NodeSet.xml");
+fetch_from_github(version, "MachineVision/Opc.Ua.MachineVision.NodeSet2.xml");
+fetch_from_github(version, "Robotics/Opc.Ua.Robotics.NodeSet2.xml");
+
+// 
+fetch_from_github(version, "PlasticsRubber/Extrusion/Pelletizer/1.0/Opc.Ua.PlasticsRubber.Extrusion.Pelletizer.NodeSet2.xml");
 
 fetch_from_github(version, "Schema/SecuredApplication.xsd");
 fetch_from_github(version, "Schema/UANodeSet.xsd");

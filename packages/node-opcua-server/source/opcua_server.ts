@@ -2164,12 +2164,24 @@ export class OPCUAServer extends OPCUABaseServer {
         assert(typeof action_to_perform === "function");
 
         function sendResponse(response1: Response) {
-            assert(response1 instanceof ResponseClass);
-            if (message.session) {
-                const counterName = ResponseClass.name.replace("Response", "");
-                message.session.incrementRequestTotalCounter(counterName);
+            try {
+                assert(response1 instanceof ResponseClass);
+                if (message.session) {
+                    const counterName = ResponseClass.name.replace("Response", "");
+                    message.session.incrementRequestTotalCounter(counterName);
+                }
+                return channel.send_response("MSG", response1, message);
+            } catch (err) {
+                // istanbul ignore next
+                console.log(
+                    "Internal error in issuing response\nplease contact support@sterfive.com",
+                    message.request.toString(),
+                    "\n",
+                    response1.toString()
+                );
+                // istanbul ignore next
+                throw err;
             }
-            return channel.send_response("MSG", response1, message);
         }
 
         function sendError(statusCode: StatusCode) {

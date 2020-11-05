@@ -7,6 +7,9 @@ module.exports = {
         autoId: "nodeset:autoId",
         robotics: "nodeset:robotics",
         machineVision: "nodeset:machineVision",
-        packML: "nodeset:packML"
+        packML: "nodeset:packML",
+        cnc: "nodeset:CNC",
+        machinery: "nodeset:machinery",
+        commercialKitchenEquipment: "nodeset:commercialKitchenEquipment"
     }
 };
