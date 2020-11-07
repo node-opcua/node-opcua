@@ -8,7 +8,8 @@ const chalk = require("chalk");
             nodesets.standard,
             nodesets.di,
             nodesets.machinery,
-            nodesets.cnc
+            nodesets.cnc,
+            nodesets.machineTool,
         ],
     });
 
@@ -71,10 +72,12 @@ const chalk = require("chalk");
     console.log(chalk.yellow("  endpointUrl         :"), chalk.cyan(endpointUrl));
     console.log(chalk.yellow("\n  server now waiting for connections. CTRL+C to stop"));
 
-    process.on("SIGINT", async () => {
-        // only work on li  nux apparently
-        await server.shutdown(1000);
-        console.log(chalk.red.bold(" shutting down completed "));
-        process.exit(-1);
-    });
+    console.log(chalk.cyan("\nvisit https://www.sterfive.com for more advanced examples and professional support.")),
+
+        process.on("SIGINT", async () => {
+            // only work on li  nux apparently
+            await server.shutdown(1000);
+            console.log(chalk.red.bold(" shutting down completed "));
+            process.exit(-1);
+        });
 })();

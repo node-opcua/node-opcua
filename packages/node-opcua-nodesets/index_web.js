@@ -10,6 +10,7 @@ module.exports = {
         packML: "nodeset:packML",
         cnc: "nodeset:CNC",
         machinery: "nodeset:machinery",
-        commercialKitchenEquipment: "nodeset:commercialKitchenEquipment"
+        commercialKitchenEquipment: "nodeset:commercialKitchenEquipment",
+        machineTool: "nodeset:machineTool"
     }
 };
