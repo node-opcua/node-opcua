@@ -3,7 +3,6 @@
  * @module node-opcua-client-dynamic-extension-object
  */
 import * as chalk from "chalk";
-import * as _ from "underscore";
 import * as PrettyError from "pretty-error";
 const pe = new PrettyError();
 
@@ -450,8 +449,9 @@ async function _exploreDataTypeDefinition(
     /* istanbul ignore next */
     if (doDebug) {
         console.log(chalk.bgWhite.red("testing new constructors"));
-        const tuples = _.zip(references, binaryEncodingNodeIds);
-        for (const [ref, binaryEncoding] of tuples) {
+        for (let i = 0; i < references.length; i++) {
+            const ref = references[i];
+            const binaryEncoding = binaryEncodingNodeIds[i];
             const name = ref.browseName!.name!.toString();
             if (doDebug) {
                 debugLog("      type ", name.padEnd(30, " "), binaryEncoding.toString());
