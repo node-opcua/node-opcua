@@ -72,12 +72,12 @@ const chalk = require("chalk");
     console.log(chalk.yellow("  endpointUrl         :"), chalk.cyan(endpointUrl));
     console.log(chalk.yellow("\n  server now waiting for connections. CTRL+C to stop"));
 
-    console.log(chalk.cyan("\nvisit https://www.sterfive.com for more advanced examples and professional support.")),
+    console.log(chalk.cyan("\nvisit https://www.sterfive.com for more advanced examples and professional support."));
 
-        process.on("SIGINT", async () => {
-            // only work on li  nux apparently
-            await server.shutdown(1000);
-            console.log(chalk.red.bold(" shutting down completed "));
-            process.exit(-1);
-        });
+    process.on("SIGINT", async () => {
+        // only work on li  nux apparently
+        await server.shutdown(1000);
+        console.log(chalk.red.bold(" shutting down completed "));
+        process.exit(-1);
+    });
 })();
