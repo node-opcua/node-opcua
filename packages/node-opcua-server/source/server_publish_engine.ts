@@ -34,27 +34,20 @@ export interface ServerSidePublishEngineOptions {
 
 interface PublishData {
     request: PublishRequest;
+    serverTimeWhenReceived: number;
     results: StatusCode[];
     callback: (request: PublishRequest, response: PublishResponse) => void;
 }
 
 function _assertValidPublishData(publishData: PublishData) {
     assert(publishData.request instanceof PublishRequest);
+    assert(typeof publishData.serverTimeWhenReceived === "number");
     assert(Array.isArray(publishData.results));
     assert(typeof publishData.callback === "function");
 }
 
 function dummy_function() {
     /* empty */
-}
-
-function prepare_timeout_info(request: PublishRequest) {
-    // record received time
-    request.requestHeader.timestamp = request.requestHeader.timestamp || new Date();
-    assert(request.requestHeader.timeoutHint >= 0);
-    (request as any).received_time = Date.now();
-    (request as any).timeout_time =
-        request.requestHeader.timeoutHint > 0 ? (request as any).received_time + request.requestHeader.timeoutHint : 0;
 }
 
 function addDate(date: Date, delta: number) {
@@ -68,8 +61,9 @@ function timeout_filter(publishData: PublishData): boolean {
         // no limits
         return false;
     }
-    const expected_timeout_time = addDate(request.requestHeader.timestamp!, request.requestHeader.timeoutHint);
-    // CLOCK DISCREPANCY HERE
+    const serverTimeWhenReceived = publishData.serverTimeWhenReceived;
+    // remark : do not use request.requestHeader.timestamp! here as this is a client date and server and client clocks might differ
+    const expected_timeout_time = addDate(new Date(serverTimeWhenReceived), request.requestHeader.timeoutHint);
     return expected_timeout_time.getTime() < Date.now();
 }
 
@@ -433,9 +427,11 @@ export class ServerSidePublishEngine extends EventEmitter implements IServerSide
 
         const subscriptionAckResults = this.process_subscriptionAcknowledgements(request.subscriptionAcknowledgements || []);
 
+        const currentTime = Date.now();
         const publishData: PublishData = {
             callback,
             request,
+            serverTimeWhenReceived: currentTime,
             results: subscriptionAckResults
         };
 
@@ -456,8 +452,6 @@ export class ServerSidePublishEngine extends EventEmitter implements IServerSide
             traceLog("server has received a PublishRequest but has no subscription opened");
             this._send_error_for_request(publishData, StatusCodes.BadNoSubscription);
         } else {
-            prepare_timeout_info(request);
-
             // add the publish request to the queue for later processing
             this._publish_request_queue.push(publishData);
             assert(this.pendingPublishRequestCount > 0);
