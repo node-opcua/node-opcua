@@ -17,7 +17,7 @@ import { DataType, Variant } from "node-opcua-variant";
 import { IEventData, SessionContext, UAAcknowledgeableConditionBase, UtcTime } from "../../source";
 import { BaseNode } from "../base_node";
 import { EventData } from "../event_data";
-import { UATwoStateVariable } from "../ua_two_state_variable";
+import { UATwoStateVariable } from "../state_machine/ua_two_state_variable";
 import { UAVariable } from "../ua_variable";
 import { _setAckedState } from "./condition";
 import { UAConditionBase } from "./ua_condition_base";
@@ -725,17 +725,15 @@ export class ConditionSnapshot extends EventEmitter {
         // also change varName with human readable text
         const twoStateNode = this._node_index[hrKey];
         if (!twoStateNode) {
-            throw new Error("Cannot find twoState Varaible with name " + varName);
+            throw new Error("Cannot find twoState Variable with name " + varName);
         }
         if (!(twoStateNode instanceof UATwoStateVariable)) {
-            throw new Error("Cannot find twoState Varaible with name " + varName + " " + twoStateNode);
+            throw new Error("Cannot find twoState Variable with name " + varName + " " + twoStateNode);
         }
-
-        const txt = value ? twoStateNode._trueState : twoStateNode._falseState;
 
         const hrValue = new Variant({
             dataType: DataType.LocalizedText,
-            value: coerceLocalizedText(txt)
+            value: value ? twoStateNode.getTrueState() : twoStateNode.getFalseState()
         });
         this._map[hrKey] = hrValue;
 

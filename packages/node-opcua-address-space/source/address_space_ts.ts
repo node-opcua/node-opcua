@@ -69,7 +69,9 @@ import { DataType, Variant, VariantArrayType, VariantByteString, VariantLike } f
 import { AnyConstructorFunc } from "node-opcua-schemas";
 
 import { MinimalistAddressSpace, Reference } from "../src/reference";
-import { State, StateMachine, StateMachineType, Transition, UtcTime } from "./interfaces/state_machine";
+
+import { State, StateMachine, StateMachineType, Transition, UtcTime } from "./interfaces/state_machine/state_machine";
+import { UATwoStateVariable } from "../source/interfaces/state_machine/ua_two_state_variable";
 import { SessionContext } from "./session_context";
 
 import { UAAcknowledgeableConditionBase } from "../src/alarms_and_conditions/ua_acknowledgeable_condition_base";
@@ -622,26 +624,6 @@ export interface UAAnalogItem extends UADataItem {
     euRange: Property<Range, DataType.ExtensionObject>;
 }
 
-export interface UAMultiStateDiscrete extends UAVariable {
-    /**
-     * The EnumStrings Property only applies for Enumeration DataTypes.
-     * It shall not be applied for other DataTypes. If the EnumValues
-     * Property is provided, the EnumStrings Property shall not be provided.
-     * Each entry of the array of LocalizedText in this Property represents
-     * the human-readable representation of an enumerated value. The
-     * Integer representation of the enumeration value points to a position of the array.
-     */
-    enumStrings: Property<LocalizedText[], DataType.LocalizedText>;
-
-    getValue(): number;
-
-    getValueAsString(): string;
-
-    getIndex(value: string): number;
-
-    setValue(value: string | number): void;
-}
-
 export interface EnumValueTypeOptionsLike {
     value?: Int64 | UInt32;
     displayName?: LocalizedTextLike | null;
@@ -651,15 +633,6 @@ export interface EnumValueTypeOptionsLike {
 export interface AddMultiStateValueDiscreteOptions extends AddVariableOptionsWithoutValue {
     enumValues: EnumValueTypeOptionsLike[] | { [key: string]: number };
     value?: number | Int64;
-}
-
-export interface UAMultiStateValueDiscrete extends UAVariable {
-    enumValues: Property<EnumValueType[], DataType.ExtensionObject>;
-    valueAsText: Property<LocalizedText, DataType.LocalizedText>;
-
-    setValue(value: string | number | Int64): void;
-    getValueAsString(): string;
-    getValueAsNumber(): number;
 }
 
 // tslint:disable:no-empty-interface
@@ -1033,29 +1006,6 @@ export declare class UAReferenceType extends BaseNode {
     public getAllSubtypes(): UAReferenceType[];
 }
 
-export declare interface UATwoStateVariable extends UAVariable {
-    // components & properties
-    readonly falseState?: UAVariable;
-    readonly trueState?: UAVariable;
-    readonly id: UAVariable;
-    readonly effectiveTransitionTime?: UAVariable;
-    readonly transitionTime?: UAVariable;
-    readonly effectiveDisplayName?: UAVariable;
-    // references
-    readonly isFalseSubStateOf: BaseNode | null;
-    readonly isTrueSubStateOf: BaseNode | null;
-
-    setValue(boolValue: boolean): void;
-
-    getValue(): boolean;
-
-    getValueAsString(): string;
-
-    getFalseSubStates(): BaseNode[];
-
-    getTrueSubStates(): BaseNode[];
-}
-
 export enum EUEngineeringUnit {
     degree_celsius
     // to be continued
@@ -1255,13 +1205,45 @@ export interface AddReferenceTypeOptions extends AddBaseNodeOptions {
     subtypeOf?: string | NodeId | UAReferenceType;
 }
 
-export interface AddTwoStateVariableOptions extends AddVariableOptionsWithoutValue {
-    falseState?: string;
-    trueState?: string;
+// BaseVariableType => BaseDataVariableType => StateVariableType => TwoStateVariableType
+// @see https://reference.opcfoundation.org/v104/Core/VariableTypes/StateVariableType/
+// "EffectiveDisplayName"  QualifiedName
+// "Name"                  LocalizedText
+// "Number"                UInt32
+export type AddStateVariableOptionals = "EffectiveDisplayName" | "Name" | "Number" | string;
+export interface AddStateVariableOptions extends AddVariableOptionsWithoutValue {
+    id?: any;
+    optionals?: AddStateVariableOptionals[];
+}
+
+// BaseVariableType => BaseDataVariableType => StateVariableType => TwoStateVariableType
+// @see https://reference.opcfoundation.org/v104/Core/VariableTypes/TwoStateVariableType/
+// "TransitionTime"           UtcTime
+// "EffectiveTransitionTime"  UtcTime
+// "TrueState"                LocalizedText
+// "FalseState"               LocalizedText
+export type AddTwoStateVariableOptionals =
+    | AddStateVariableOptionals
+    | "TransitionTime"
+    | "EffectiveTransitionTime"
+    | "TrueState"
+    | "FalseState";
+export interface AddTwoStateVariableOptions extends AddStateVariableOptions {
+    falseState?: LocalizedTextLike;
+    trueState?: LocalizedTextLike;
+    optionals?: AddTwoStateVariableOptionals[];
+    isFalseSubStateOf?: NodeIdLike | BaseNode;
+    isTrueSubStateOf?: NodeIdLike | BaseNode;
+    value?: boolean;
+}
+
+// BaseVariableType => BaseDataVariableType => DataItemType => DiscreteItemType => TwoStateDiscreteType
+export interface AddTwoStateDiscreteOptions extends AddVariableOptionsWithoutValue {
+    falseState?: LocalizedTextLike;
+    trueState?: LocalizedTextLike;
     optionals?: string[];
     isFalseSubStateOf?: NodeIdLike | BaseNode;
     isTrueSubStateOf?: NodeIdLike | BaseNode;
-
     value?: boolean;
 }
 
@@ -1378,7 +1360,7 @@ export declare interface Namespace {
 
     addTwoStateVariable(options: AddTwoStateVariableOptions): UATwoStateVariable;
 
-    addTwoStateDiscrete(options: any): UATwoStateDiscrete;
+    addTwoStateDiscrete(options: AddTwoStateDiscreteOptions): UATwoStateDiscrete;
 
     addMultiStateDiscrete(options: AddMultiStateDiscreteOptions): UAMultiStateDiscrete;
 
@@ -1540,7 +1522,7 @@ export interface UAFileType extends UAObject {
     size: UAVariableT<UInt64, DataType.UInt64>;
     /**
      * Writable indicates whether the file is writable. It does not take any user
-     * access rights intoaccount, i.e. although the file is writable this may be
+     * access rights into account, i.e. although the file is writable this may be
      * restricted to a certain user / user group.
      * The Property does not take into account whether the file is currently
      * opened for writing by another client and thus currently locked and not
@@ -1723,14 +1705,14 @@ export interface UAAuthorizationService extends UAObject {
     requestAccessToken?: UAMethod;
 }
 
-export interface UAAutorizationServicesFolder extends Folder {}
+export interface UAAuthorizationServicesFolder extends Folder {}
 
 // partial UAServerConfiguration related to authorization service
 export interface UAServerConfiguration extends UAObject {
     // This Object is an instance of FolderType. It contains The AuthorizationService Objects which
     // may be accessed via the GDS. It is the target of an Organizes reference from the Objects
     // Folder
-    authorizationServices: UAAutorizationServicesFolder;
+    authorizationServices: UAAuthorizationServicesFolder;
 }
 
 // partial UAServerConfiguration related to KeyCredential management
@@ -1874,7 +1856,7 @@ export interface UAOperationLimits extends UAObject {
     /**
      * The MaxNodesPerHistoryReadData Property indicates the maximum size of the nodesToRead
      * array when a Client calls the HistoryRead Service using the historyReadDetails RAW,
-     * PROCESSED, MODIFIED or ATTIME.
+     * PROCESSED, MODIFIED or AtTime.
      */
     maxNodesPerHistoryReadData?: UAVariableT<UInt32, DataType.UInt32>;
     /**
@@ -1947,7 +1929,7 @@ export interface IdentityMappingRuleType {}
 
 /**
  * The Properties and Methods of the Role contain sensitive security related information and
- * shall only be browseable, writeable and callable by authorized administrators through an
+ * shall only be browse-able, writeable and callable by authorized administrators through an
  * encrypted channel.
  */
 export interface Role extends UAObject {
@@ -2180,7 +2162,7 @@ export interface UAHistoryServerCapabilities extends UAObject {
      */
     maxReturnDataValues: UAVariableT<UInt32, DataType.UInt32>;
     /**
-     * Similarily, the MaxReturnEventValues specifies the maximum number of Events that a Server
+     * Similarly, the MaxReturnEventValues specifies the maximum number of Events that a Server
      * can return for a HistoricalEventNode.
      */
     maxReturnEventValues: UAVariableT<UInt32, DataType.UInt32>;
@@ -2256,7 +2238,7 @@ export interface UAHistoryServerCapabilities extends UAObject {
     /**
      * AggregateConfiguration Object represents the browse entry point for information on how the
      * Server treats Aggregate specific functionality such as handling Uncertain data. This Object is
-     * listed as optional for backward compatability, but it is required to be present if Aggregates are
+     * listed as optional for backward compatibility, but it is required to be present if Aggregates are
      * supported (via Profiles)
      */
     aggregateConfiguration?: UAObject;
@@ -2527,7 +2509,8 @@ import { AddressSpace as AddressSpaceImpl } from "../src/address_space";
 import { UAOffNormalAlarm } from "../src/alarms_and_conditions/ua_off_normal_alarm";
 import { ConstructNodeIdOptions } from "../src/nodeid_manager";
 import { UATwoStateDiscrete } from "./interfaces/data_access/ua_two_state_discrete";
-import { UANamespace } from "../src/namespace";
+import { UAMultiStateDiscrete } from "./interfaces/data_access/ua_multistate_discrete";
+import { UAMultiStateValueDiscrete } from "./interfaces/data_access/ua_multistate_value_discrete";
 
 export class AddressSpace {
     public static historizerFactory: any;

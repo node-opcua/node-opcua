@@ -3,11 +3,12 @@ import * as path from "path";
 import * as should from "should";
 
 import { nodesets } from "node-opcua-nodesets";
-import { DataType } from "node-opcua-variant";
 
-import { AddressSpace, UAVariable, promoteToMultiStateDiscrete, promoteToMultiStateValueDiscrete } from "../..";
+import { AddressSpace, UAVariable, UAMultiStateValueDiscrete, UAMultiStateDiscrete } from "../..";
 import { generateAddressSpace } from "../../nodeJS";
 
+// tslint:disable-next-line:no-var-requires
+const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("MultiStateValueDiscreteType - 2", () => {
     let addressSpace: AddressSpace;
     const data = { addressSpace: null as any };
@@ -35,36 +36,34 @@ describe("MultiStateValueDiscreteType - 2", () => {
         const variable = addressSpace.findNode("ns=2;i=16003") as UAVariable;
         variable.browseName.toString().should.eql("2:VariableMultiStateValueDiscrete");
 
-        const msvd = promoteToMultiStateValueDiscrete(variable);
+        const multiStateValueDiscreteVar = variable as UAMultiStateValueDiscrete;
+        // no need tp promote explicitly anymore promoteToMultiStateValueDiscrete(variable);
 
-        msvd._getDataType().should.eql(DataType.Int32);
-        Object.keys(msvd._enumValueIndex()).length.should.eql(3);
+        multiStateValueDiscreteVar.setValue(1);
+        multiStateValueDiscreteVar.getValueAsNumber().should.eql(1);
+        multiStateValueDiscreteVar.getValueAsString().should.eql("Blue");
 
-        msvd.setValue(1);
-        msvd.getValueAsNumber().should.eql(1);
-        msvd.getValueAsString().should.eql("Blue");
+        multiStateValueDiscreteVar.setValue(3);
+        multiStateValueDiscreteVar.getValueAsNumber().should.eql(3);
+        multiStateValueDiscreteVar.getValueAsString().should.eql("Red");
 
-        msvd.setValue(3);
-        msvd.getValueAsNumber().should.eql(3);
-        msvd.getValueAsString().should.eql("Red");
+        multiStateValueDiscreteVar.setValue("Blue");
+        multiStateValueDiscreteVar.getValueAsNumber().should.eql(1);
+        multiStateValueDiscreteVar.getValueAsString().should.eql("Blue");
 
-        msvd.setValue("Blue");
-        msvd.getValueAsNumber().should.eql(1);
-        msvd.getValueAsString().should.eql("Blue");
-
-        msvd.setValue("Red");
-        msvd.getValueAsNumber().should.eql(3);
-        msvd.getValueAsString().should.eql("Red");
+        multiStateValueDiscreteVar.setValue("Red");
+        multiStateValueDiscreteVar.getValueAsNumber().should.eql(3);
+        multiStateValueDiscreteVar.getValueAsString().should.eql("Red");
 
         should(() => {
-            msvd.setValue("RedCRAP");
+            multiStateValueDiscreteVar.setValue("RedCRAP");
         }).throw();
-        msvd.getValueAsNumber().should.eql(3);
+        multiStateValueDiscreteVar.getValueAsNumber().should.eql(3);
 
         should(() => {
-            msvd.setValue(12345);
+            multiStateValueDiscreteVar.setValue(12345);
         }).throw();
-        msvd.getValueAsNumber().should.eql(3);
+        multiStateValueDiscreteVar.getValueAsNumber().should.eql(3);
     });
 
     it("ZYZ-2 it should promoteToMultiStateDiscrete from an existing nodeset", async () => {
@@ -73,45 +72,46 @@ describe("MultiStateValueDiscreteType - 2", () => {
         const variable = addressSpace.findNode("ns=2;i=26001") as UAVariable;
         variable.browseName.toString().should.eql("2:VariableMultiStateDiscrete");
 
-        const msd = promoteToMultiStateDiscrete(variable);
+        const multiStateDiscreteVar = variable as UAMultiStateDiscrete;
+        // no need tp promote explicitly anymore promoteToMultiStateDiscrete(variable);
 
-        msd.setValue(1);
-        msd.getValueAsString().should.eql("Blue");
-        msd.getValue().should.eql(1);
+        multiStateDiscreteVar.setValue(1);
+        multiStateDiscreteVar.getValueAsString().should.eql("Blue");
+        multiStateDiscreteVar.getValue().should.eql(1);
 
-        msd.setValue(2);
-        msd.getValueAsString().should.eql("Red");
-        msd.getValue().should.eql(2);
+        multiStateDiscreteVar.setValue(2);
+        multiStateDiscreteVar.getValueAsString().should.eql("Red");
+        multiStateDiscreteVar.getValue().should.eql(2);
 
-        msd.setValue(3);
-        msd.getValueAsString().should.eql("Yellow");
-        msd.getValue().should.eql(3);
+        multiStateDiscreteVar.setValue(3);
+        multiStateDiscreteVar.getValueAsString().should.eql("Yellow");
+        multiStateDiscreteVar.getValue().should.eql(3);
 
-        msd.setValue("Purple");
-        msd.getValueAsString().should.eql("Purple");
-        msd.getValue().should.eql(4);
+        multiStateDiscreteVar.setValue("Purple");
+        multiStateDiscreteVar.getValueAsString().should.eql("Purple");
+        multiStateDiscreteVar.getValue().should.eql(4);
 
-        msd.setValue("Red");
-        msd.getValueAsString().should.eql("Red");
-        msd.getValue().should.eql(2);
+        multiStateDiscreteVar.setValue("Red");
+        multiStateDiscreteVar.getValueAsString().should.eql("Red");
+        multiStateDiscreteVar.getValue().should.eql(2);
 
-        msd.setValue("Blue");
-        msd.getValueAsString().should.eql("Blue");
-        msd.getValue().should.eql(1);
-
-        should(() => {
-            msd.setValue("Crap");
-        }).throw();
-        msd.getValue().should.eql(1);
+        multiStateDiscreteVar.setValue("Blue");
+        multiStateDiscreteVar.getValueAsString().should.eql("Blue");
+        multiStateDiscreteVar.getValue().should.eql(1);
 
         should(() => {
-            msd.setValue("Crap");
+            multiStateDiscreteVar.setValue("Crap");
         }).throw();
-        msd.getValue().should.eql(1);
+        multiStateDiscreteVar.getValue().should.eql(1);
+
+        should(() => {
+            multiStateDiscreteVar.setValue("Crap");
+        }).throw();
+        multiStateDiscreteVar.getValue().should.eql(1);
 
         should(function not_be_possible_to_set_an_invalid_numeric_value() {
-            msd.setValue(42);
+            multiStateDiscreteVar.setValue(42);
         }).throw();
-        msd.getValue().should.eql(1);
+        multiStateDiscreteVar.getValue().should.eql(1);
     });
 });

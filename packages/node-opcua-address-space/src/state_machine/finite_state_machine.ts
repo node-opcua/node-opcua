@@ -3,6 +3,7 @@
  */
 import * as chalk from "chalk";
 import { assert } from "node-opcua-assert";
+import { ObjectTypeIds } from "node-opcua-constants";
 import { coerceLocalizedText, NodeClass } from "node-opcua-data-model";
 import { AttributeIds } from "node-opcua-data-model";
 import { NodeId } from "node-opcua-nodeid";
@@ -10,6 +11,7 @@ import { StatusCodes } from "node-opcua-status-code";
 import { DataType } from "node-opcua-variant";
 
 import { State, Transition, UAObject as UAObjectPublic, UAVariable as UAVariablePublic, TransitionSelector } from "../../source";
+import { registerNodePromoter } from "../../source/loader/register_node_promoter";
 
 import { BaseNode } from "../base_node";
 import { UAObject } from "../ua_object";
@@ -279,7 +281,7 @@ export class StateMachine extends UAObject implements StateMachine {
     public setState(toStateNode: string | State | null, predicate?: TransitionSelector): void {
         if (!toStateNode) {
             this.currentStateNode = null;
-            this.currentState.setValueFromSource({ dataType: DataType.Null }, StatusCodes.BadStateNotActive);
+            this.currentState.setValueFromSource({ dataType: DataType.LocalizedText, value: null }, StatusCodes.BadStateNotActive);
             return;
         }
 
@@ -399,6 +401,8 @@ export function promoteToStateMachine(node: UAObjectPublic): StateMachine {
     }
     Object.setPrototypeOf(node, StateMachine.prototype);
     assert(node instanceof StateMachine, "should now  be a State Machine");
-    (node as StateMachine)._post_initialize();
-    return node as StateMachine;
+    const _node = node as StateMachine;
+    _node._post_initialize();
+    return _node;
 }
+registerNodePromoter(ObjectTypeIds.FiniteStateMachineType, promoteToStateMachine);

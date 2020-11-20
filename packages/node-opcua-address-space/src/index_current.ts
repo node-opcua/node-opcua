@@ -33,7 +33,8 @@ export { dumpToBSD } from "./nodeset_tools/typedictionary_to_xml";
 export * from "./data_access/ua_analog_item";
 export * from "./data_access/ua_data_item";
 export * from "./data_access/ua_multistate_discrete";
-export * from "./data_access/ua_mutlistate_value_discrete";
+export * from "./data_access/ua_multistate_value_discrete";
+export * from "./data_access/ua_two_state_discrete";
 
 export { VariableHistorian } from "./historical_access/address_space_historical_data_node";
 export { Reference } from "./reference";

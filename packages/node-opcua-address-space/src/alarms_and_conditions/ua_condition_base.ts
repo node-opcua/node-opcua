@@ -30,7 +30,7 @@ import { AddressSpacePrivate } from "../address_space_private";
 import { BaseNode } from "../base_node";
 import { UAObject } from "../ua_object";
 import { UAObjectType } from "../ua_object_type";
-import { _install_TwoStateVariable_machinery, UATwoStateVariable } from "../ua_two_state_variable";
+import { _install_TwoStateVariable_machinery, UATwoStateVariable } from "../state_machine/ua_two_state_variable";
 import { UAVariable } from "../ua_variable";
 import { BaseEventType } from "./base_event_type";
 import { ConditionInfo } from "./condition_info";
@@ -116,7 +116,7 @@ export class UAConditionBase extends BaseEventType {
 
     public static install_condition_refresh_handle(addressSpace: AddressSpacePrivate) {
         //
-        // install CondititionRefresh
+        // install ConditionRefresh
         //
         // NOTE:
         // OPCUA doesn't implement the condition refresh method ! yet
@@ -408,6 +408,7 @@ export class UAConditionBase extends BaseEventType {
         assert(this.time.readValue().value.value instanceof Date);
 
         assert(this.quality.readValue().value.dataType === DataType.StatusCode);
+
         assert(this.enabledState.readValue().value.dataType === DataType.LocalizedText);
         assert(this.branchId.readValue().value.dataType === DataType.NodeId);
 
@@ -717,7 +718,7 @@ function UAConditionBase_instantiate(
     }
 
     // reminder : abstract event type cannot be instantiated directly !
-    assert(!conditionType.isAbstract, "Canot instantiate abstract conditionType");
+    assert(!conditionType.isAbstract, "Cannot instantiate abstract conditionType");
 
     const baseConditionEventType = addressSpace.findEventType("ConditionType");
     /* istanbul ignore next */
@@ -812,8 +813,6 @@ function UAConditionBase_instantiate(
         falseState: "Disabled",
         trueState: "Enabled"
     });
-    assert(conditionNode.enabledState._trueState === "Enabled");
-    assert(conditionNode.enabledState._falseState === "Disabled");
 
     // installing sourceName and sourceNode
     conditionNode.enabledState.setValue(true);

@@ -10,7 +10,7 @@ import { Namespace, RaiseEventData, SessionContext, UAEventType } from "../../so
 import { AddressSpacePrivate } from "../address_space_private";
 import { NamespacePrivate } from "../namespace_private";
 import { UAMethod } from "../ua_method";
-import { _install_TwoStateVariable_machinery, UATwoStateVariable } from "../ua_two_state_variable";
+import { _install_TwoStateVariable_machinery, UATwoStateVariable } from "../state_machine/ua_two_state_variable";
 import { UAVariable } from "../ua_variable";
 import { _setAckedState } from "./condition";
 import { ConditionSnapshot } from "./condition_snapshot";
@@ -146,7 +146,7 @@ export class UAAcknowledgeableConditionBase extends UAConditionBase {
         const eventData: RaiseEventData = {
             actionTimeStamp: { dataType: DataType.DateTime, value: new Date() },
 
-            // ConditionEventId The ConditionEventId field shall contain the id of the Event that was confirmedd
+            // ConditionEventId The ConditionEventId field shall contain the id of the Event that was confirmed
             conditionEventId: { dataType: DataType.ByteString, value: branch.getEventId() },
             // xx branchId: branch.branchId.readValue().value,
 

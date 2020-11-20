@@ -7,55 +7,41 @@ import { StatusCodes } from "node-opcua-status-code";
 import { Variant } from "node-opcua-variant";
 import { DataType } from "node-opcua-variant";
 import { VariantArrayType } from "node-opcua-variant";
-import {
-    AddressSpace,
-    Namespace,
-    SessionContext,
-    UAMultiStateDiscrete,
-    UAMultiStateValueDiscrete,
-    UAObject,
-    UAObjectType
-} from "../..";
-import { InstantiateObjectOptions } from "../..";
+
+import { AddressSpace, Namespace, SessionContext, UAMultiStateValueDiscrete, UAObject, UAObjectType } from "../..";
 
 const context = new SessionContext();
 
-export function subtest_multi_state_value_discrete_type(maintest: any) {
-
-
+export function subtest_multi_state_value_discrete_type(mainTest: { addressSpace: AddressSpace }) {
     describe("MultiStateValueDiscreteType", () => {
-
         let addressSpace: AddressSpace;
         let namespace: Namespace;
         before(() => {
-            addressSpace = maintest.addressSpace;
+            addressSpace = mainTest.addressSpace;
             namespace = addressSpace.getOwnNamespace();
 
             should(addressSpace).be.instanceof(AddressSpace);
         });
 
         it("MultiStateValueDiscreteType should not be abstract", () => {
-
             const multiStateValueDiscreteType = addressSpace.findVariableType("MultiStateValueDiscreteType")!;
             multiStateValueDiscreteType.isAbstract.should.eql(false);
-
         });
 
         it("should add a MultiStateValueDiscreteType variable - form 1", () => {
-
             const objectsFolder = addressSpace.rootFolder.objects;
 
-            const prop = namespace.addMultiStateValueDiscrete({
-                browseName: "MyMultiStateValueVariable",
-                enumValues: { Red: 0xFF0000, Orange: 0xFF9933, Green: 0x00FF00, Blue: 0x0000FF },
+            const multiStateDiscreteVariable = namespace.addMultiStateValueDiscrete({
+                browseName: "MyMultiStateDiscreteValueVariable",
+                enumValues: { Red: 0xff0000, Orange: 0xff9933, Green: 0x00ff00, Blue: 0x0000ff },
                 organizedBy: objectsFolder,
-                value: 0xFF0000 // Red
+                value: 0xff0000 // Red
             });
-            prop.browseName.toString().should.eql("1:MyMultiStateValueVariable");
+            multiStateDiscreteVariable.browseName.toString().should.eql("1:MyMultiStateDiscreteValueVariable");
 
-            prop.valueRank.should.eql(-1); // ValueRank=Scalar
+            multiStateDiscreteVariable.valueRank.should.eql(-1); // ValueRank=Scalar
 
-            const v = prop.getPropertyByName("EnumValues")!.readValue().value;
+            const v = multiStateDiscreteVariable.getPropertyByName("EnumValues")!.readValue().value;
             v.dataType.should.eql(DataType.ExtensionObject);
             v.arrayType.should.eql(VariantArrayType.Array);
             v.value.length.should.eql(4);
@@ -63,94 +49,97 @@ export function subtest_multi_state_value_discrete_type(maintest: any) {
             // xx .should.eql("Variant(Array<LocalizedText>, l= 3,
             // value=[locale=null text=Red,locale=null text=Orange,locale=null text=Green])");
 
-            prop.readValue().value.toString().should.eql("Variant(Scalar<UInt32>, value: 16711680)");
-            prop.readValue().value.dataType.should.eql(DataType.UInt32);
+            multiStateDiscreteVariable.readValue().value.toString().should.eql("Variant(Scalar<UInt32>, value: 16711680)");
+            multiStateDiscreteVariable.readValue().value.dataType.should.eql(DataType.UInt32);
 
-            prop.valueAsText.readValue().value.value.text!.should.eql("Red");
-
+            multiStateDiscreteVariable.valueAsText.readValue().value.value.text!.should.eql("Red");
         });
         it("should add a MultiStateValueDiscreteType variable - form 2", () => {
-
             const objectsFolder = addressSpace.rootFolder.objects;
 
-            const prop = namespace.addMultiStateValueDiscrete({
+            const multiStateValueDiscreteVariable = namespace.addMultiStateValueDiscrete({
                 browseName: "MyMultiStateValueVariable",
                 enumValues: [
-                    { displayName: "Red", value: 0xFF0000 },
-                    { displayName: "Orange", value: 0xFF9933 },
-                    { displayName: "Green", value: 0x00FF00 },
-                    { displayName: "Blue", value: 0x0000FF }
+                    { displayName: "Red", value: 0xff0000 },
+                    { displayName: "Orange", value: 0xff9933 },
+                    { displayName: "Green", value: 0x00ff00 },
+                    { displayName: "Blue", value: 0x0000ff }
                 ],
                 organizedBy: objectsFolder,
-                value: 0xFF0000 // Red
+                value: 0xff0000 // Red
             });
+            multiStateValueDiscreteVariable.getValueAsNumber().should.eql(0xff0000);
         });
         describe("edge case tests", () => {
-
-            let multiStateValue: UAMultiStateValueDiscrete;
+            let multiStateValueDiscreteVariable: UAMultiStateValueDiscrete;
             before(() => {
                 const objectsFolder = addressSpace.rootFolder.objects;
-                multiStateValue = namespace.addMultiStateValueDiscrete({
+                multiStateValueDiscreteVariable = namespace.addMultiStateValueDiscrete({
                     browseName: "MyMultiStateValueVariable",
                     enumValues: {
-                        Blue: 0x0000FF,
-                        Green: 0x00FF00,
-                        Orange: 0xFF9933,
-                        Red: 0xFF0000
+                        Blue: 0x0000ff,
+                        Green: 0x00ff00,
+                        Orange: 0xff9933,
+                        Red: 0xff0000
                     },
                     organizedBy: objectsFolder,
-                    value: 0xFF0000 // Red
+                    value: 0xff0000 // Red
                 });
-
             });
 
             it("writing a value not in the EnumValues map shall return BadOutOfRange", async () => {
-
                 const dataValue = new DataValue({
-                    value: new Variant({ dataType: DataType.UInt32, value: 100 })// out of range
+                    value: new Variant({ dataType: DataType.UInt32, value: 100 }) // out of range
                 });
-                const statusCode = await multiStateValue.writeValue(context, dataValue);
+                const statusCode = await multiStateValueDiscreteVariable.writeValue(context, dataValue);
                 statusCode.should.eql(StatusCodes.BadOutOfRange);
             });
 
             it("writing a value within EnumValues shall return Good", async () => {
-
                 const dataValue = new DataValue({
-                    value: new Variant({ dataType: DataType.UInt32, value: 0x0000FF })// OK
+                    value: new Variant({ dataType: DataType.UInt32, value: 0x0000ff }) // OK
                 });
 
-                const statusCode = await multiStateValue.writeValue(context, dataValue);
+                const statusCode = await multiStateValueDiscreteVariable.writeValue(context, dataValue);
 
                 statusCode.should.eql(StatusCodes.Good);
 
                 // Xx console.log(  multiStateValue.readValue().toString());
                 // Xx console.log(  multiStateValue.valueAsText.readValue().toString());
 
-                multiStateValue.valueAsText.readValue().value.value.text!.should.eql("Blue");
-
+                multiStateValueDiscreteVariable.valueAsText.readValue().value.value.text!.should.eql("Blue");
             });
 
             it("changing MultiStateVariable value shall change valueAsText accordingly", async () => {
-
-
                 const dataValue0 = new DataValue({
-                    value: new Variant({ dataType: DataType.UInt32, value: 0x0000FF })// OK
+                    value: new Variant({ dataType: DataType.UInt32, value: 0x0000ff }) // OK
                 });
 
-                const statusCode0 = await multiStateValue.writeValue(context, dataValue0);
+                const statusCode0 = await multiStateValueDiscreteVariable.writeValue(context, dataValue0);
 
                 const dataValue = new DataValue({
                     value: new Variant({
                         dataType: DataType.UInt32,
-                        value: 0x00FF00
-                    })// OK
+                        value: 0x00ff00
+                    }) // OK
                 });
-                const statusCode = await multiStateValue.writeValue(context, dataValue);
+                const statusCode = await multiStateValueDiscreteVariable.writeValue(context, dataValue);
 
                 // await new Promise((resolve) => setTimeout(resolve, 100));
 
                 statusCode.should.eql(StatusCodes.Good);
-                multiStateValue.valueAsText.readValue().value.value.text!.should.eql("Green");
+                multiStateValueDiscreteVariable.valueAsText.readValue().value.value.text!.should.eql("Green");
+            });
+
+            it("UAMultiStateValueDiscreteVariable#setValue - 1", () => {
+                multiStateValueDiscreteVariable.setValue("Orange");
+                multiStateValueDiscreteVariable.getValueAsString().should.eql("Orange");
+                multiStateValueDiscreteVariable.getValueAsNumber().should.eql(0xff9933);
+            });
+            it("UAMultiStateValueDiscreteVariable#setValue - 2", () => {
+                multiStateValueDiscreteVariable.setValue(0x0000ff);
+                multiStateValueDiscreteVariable.getValueAsString().should.eql("Blue");
+                multiStateValueDiscreteVariable.getValueAsNumber().should.eql(0x0000ff);
             });
         });
 
@@ -164,17 +153,17 @@ export function subtest_multi_state_value_discrete_type(maintest: any) {
         }
 
         it("ZZ2 should instantiate a DataType containing a MultiStateValueDiscreteType", async () => {
-
             // create a new DataType
             const myObjectType = namespace.addObjectType({
                 browseName: "MyObjectWithMultiStateValueDiscreteType"
             }) as MyObjectWithMultiStateValueDiscreteType;
-            const multiStateValue = namespace.addMultiStateValueDiscrete({
+
+            namespace.addMultiStateValueDiscrete({
                 browseName: "Color",
                 componentOf: myObjectType,
-                enumValues: { Red: 0xFF0000, Orange: 0xFF9933, Green: 0x00FF00, Blue: 0x0000FF },
+                enumValues: { Red: 0xff0000, Orange: 0xff9933, Green: 0x00ff00, Blue: 0x0000ff },
                 modellingRule: "Mandatory",
-                value: 0xFF0000 // Red,
+                value: 0xff0000 // Red,
             });
 
             should.exist(myObjectType.getComponentByName("Color"));
@@ -182,7 +171,7 @@ export function subtest_multi_state_value_discrete_type(maintest: any) {
             myObjectType.color.accessLevel.should.eql(AccessLevelFlag.CurrentRead | AccessLevelFlag.CurrentWrite);
             // add
 
-            // instanciate  the type
+            // instantiate  the type
             const obj = myObjectType.instantiate({
                 browseName: "MyObject"
             }) as MyObjectWithMultiStateValueDiscrete;
@@ -190,7 +179,7 @@ export function subtest_multi_state_value_discrete_type(maintest: any) {
             // verification
             obj.color.accessLevel.should.eql(AccessLevelFlag.CurrentRead | AccessLevelFlag.CurrentWrite);
             obj.color.valueAsText.readValue().value.value.text!.should.eql("Red");
-            obj.color.readValue().value.value.should.eql(0xFF0000);
+            obj.color.readValue().value.value.should.eql(0xff0000);
 
             obj.color.enumValues.readValue().value.value[0].displayName.text!.should.eql("Red");
             obj.color.enumValues.readValue().value.value[1].displayName.text!.should.eql("Orange");
@@ -201,7 +190,7 @@ export function subtest_multi_state_value_discrete_type(maintest: any) {
             // now change the value => verify that valueAsText will change accordingly
             const dataValue = new DataValue({
                 sourceTimestamp: new Date(),
-                value: new Variant({ dataType: DataType.UInt32, value: greenValue })// OK
+                value: new Variant({ dataType: DataType.UInt32, value: greenValue }) // OK
             });
 
             const statusCode = await obj.color.writeValue(context, dataValue);
@@ -209,7 +198,15 @@ export function subtest_multi_state_value_discrete_type(maintest: any) {
 
             // now verify that valueAsText has been updated accordingly...
             obj.color.valueAsText.readValue().value.value.text!.should.eql("Green");
-        });
 
+            // it
+            obj.color.setValue("Green");
+            obj.color.getValueAsString().should.eql("Green");
+            obj.color.valueAsText.readValue().value.value.text!.should.eql("Green");
+
+            obj.color.setValue("Blue");
+            obj.color.getValueAsString().should.eql("Blue");
+            obj.color.valueAsText.readValue().value.value.text!.should.eql("Blue");
+        });
     });
 }

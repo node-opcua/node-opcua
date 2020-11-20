@@ -54,10 +54,10 @@ describe("testing add TwoStateVariable ", function (this: any) {
         node.readValue().statusCode.should.eql(StatusCodes.UncertainInitialValue);
 
         node.setValue(true);
-        node.readValue().value.value.text.should.eql("TRUE");
+        node.readValue().value.value.text!.should.eql("TRUE");
 
         node.setValue(false);
-        node.readValue().value.value.text.should.eql("FALSE");
+        node.readValue().value.value.text!.should.eql("FALSE");
     });
 
     it("TwoStateVariableType should add an uncertain value after creation", () => {
@@ -89,10 +89,10 @@ describe("testing add TwoStateVariable ", function (this: any) {
         should.not.exist(node.transitionTime);
 
         node.setValue(true);
-        node.readValue().value.value.text.should.eql("Enabled");
+        node.readValue().value.value.text!.should.eql("Enabled");
 
         node.setValue(false);
-        node.readValue().value.value.text.should.eql("Disabled");
+        node.readValue().value.value.text!.should.eql("Disabled");
     });
 
     it("should add a TwoStateVariableType with transitionTime", function (this: any) {

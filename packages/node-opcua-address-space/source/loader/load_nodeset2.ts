@@ -50,6 +50,7 @@ import { UAVariable } from "../../src/ua_variable";
 import { UAVariableType } from "../../src/ua_variable_type";
 
 import * as PrettyError from "pretty-error";
+import { promoteObjectsAndVariables } from "./namespace_post_step";
 const pe = new PrettyError();
 
 const doDebug = checkDebugFlag(__filename);
@@ -1493,6 +1494,8 @@ export function makeStuff(addressSpace: AddressSpacePublic) {
             );
             await performPostLoadingTasks(postTasks3);
             postTasks3 = [];
+
+            promoteObjectsAndVariables(addressSpace);
         }
         finalSteps()
             .then(() => callback!())

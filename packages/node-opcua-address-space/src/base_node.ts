@@ -50,6 +50,7 @@ import {
     UAVariableType as UAVariableTypePublic,
     XmlWriter
 } from "../source";
+import { UAStateVariable } from "../source/interfaces/state_machine/ua_state_variable";
 import * as cetools from "./address_space_change_event_tools";
 import { AddressSpacePrivate } from "./address_space_private";
 import {
@@ -130,7 +131,7 @@ export function makeAttributeEventName(attributeId: AttributeIds) {
  * {{#crossLink "Reference"}}{{/crossLink}},
  * {{#crossLink "UAMethod"}}{{/crossLink}},
  * {{#crossLink "UAView"}}{{/crossLink}},
- * {{#crossLink "UAObjecType"}}{{/crossLink}},
+ * {{#crossLink "UAObjectType"}}{{/crossLink}},
  * {{#crossLink "UADataType"}}{{/crossLink}},
  * {{#crossLink "UAVariableType"}}{{/crossLink}},
  *
@@ -559,7 +560,7 @@ export class BaseNode extends EventEmitter implements BaseNodePublic {
         const select = _filter_by_browse_name(properties, browseName, namespaceIndex);
         assert(select.length <= 1, "BaseNode#getPropertyByName found duplicated reference");
         if (select.length === 1 && select[0].nodeClass !== NodeClass.Variable) {
-            throw new Error("Expecting a proprerty to be of TypeVariable");
+            throw new Error("Expecting a property to be of TypeVariable");
         }
         return select.length === 1 ? ((select[0] as any) as UAVariablePublic) : null;
     }
@@ -847,7 +848,7 @@ export class BaseNode extends EventEmitter implements BaseNodePublic {
 
         references = _filter_by_direction(references, browseDirection);
 
-        references = _filter_by_nodeclass.call(this, references, browseDescription.nodeClassMask);
+        references = _filter_by_nodeClass.call(this, references, browseDescription.nodeClassMask);
 
         references = _filter_by_userFilter.call(this, references, context);
 
@@ -900,18 +901,18 @@ export class BaseNode extends EventEmitter implements BaseNodePublic {
         cetools._handle_add_reference_change_event(this, referenceNode.nodeId);
     }
 
-    public removeReference(referencOpts: AddReferenceOpts): void {
+    public removeReference(referenceOpts: AddReferenceOpts): void {
         const _private = BaseNode_getPrivate(this);
 
-        assert(referencOpts.hasOwnProperty("referenceType"));
+        assert(referenceOpts.hasOwnProperty("referenceType"));
         // xx isForward is optional : assert(reference.hasOwnProperty("isForward"));
-        assert(referencOpts.hasOwnProperty("nodeId"));
+        assert(referenceOpts.hasOwnProperty("nodeId"));
 
         const addressSpace: AddressSpacePrivate = this.addressSpace;
         if (!addressSpace) {
             console.log(" Where is addressSpace ?");
         }
-        const reference = addressSpace.normalizeReferenceTypes([referencOpts!])![0];
+        const reference = addressSpace.normalizeReferenceTypes([referenceOpts!])![0];
         const h = reference.hash;
 
         const relatedNode = addressSpace.findNode(reference.nodeId)!;
@@ -1039,18 +1040,18 @@ export class BaseNode extends EventEmitter implements BaseNodePublic {
 
     /**
      * @method getFalseSubStates
-     * @return {BaseNode[]} return an array with the SubStates of this object.
+     * @return {UAStateVariable[]} return an array with the SubStates of this object.
      */
-    public getFalseSubStates(): BaseNode[] {
-        return this.findReferencesAsObject("HasFalseSubState");
+    public getFalseSubStates(): UAStateVariable[] {
+        return (this.findReferencesAsObject("HasFalseSubState") as unknown) as UAStateVariable[];
     }
 
     /**
      * @method getTrueSubStates
-     * @return {BaseNode[]} return an array with the SubStates of this object.
+     * @return {UAStateVariable[]} return an array with the SubStates of this object.
      */
-    public getTrueSubStates(): BaseNode[] {
-        return this.findReferencesAsObject("HasTrueSubState");
+    public getTrueSubStates(): UAStateVariable[] {
+        return (this.findReferencesAsObject("HasTrueSubState") as unknown) as UAStateVariable[];
     }
 
     public findHierarchicalReferences(): UAReference[] {
@@ -1531,7 +1532,7 @@ function _filter_by_direction(references: Reference[], browseDirection: BrowseDi
     }
 }
 
-function _filter_by_nodeclass(this: BaseNode, references: Reference[], nodeClassMask: number): Reference[] {
+function _filter_by_nodeClass(this: BaseNode, references: Reference[], nodeClassMask: number): Reference[] {
     assert(isFinite(nodeClassMask));
     if (nodeClassMask === 0) {
         return references;

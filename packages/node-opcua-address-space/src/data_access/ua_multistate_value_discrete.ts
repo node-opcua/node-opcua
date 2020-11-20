@@ -3,7 +3,6 @@
  */
 import { assert } from "node-opcua-assert";
 import { DataType, Variant } from "node-opcua-variant";
-
 import { coerceInt32, coerceUInt64, Int64 } from "node-opcua-basic-types";
 import { coerceLocalizedText, LocalizedText } from "node-opcua-data-model";
 import { DataValue } from "node-opcua-data-value";
@@ -11,19 +10,13 @@ import { StatusCodes } from "node-opcua-status-code";
 import { StatusCode } from "node-opcua-status-code";
 import { EnumValueType } from "node-opcua-types";
 
-import {
-    Property,
-    UAMultiStateValueDiscrete as UAMultiStateValueDiscretePublic,
-    UAVariable as UAVariablePublic
-} from "../../source/address_space_ts";
+import { Property, UAVariable as UAVariablePublic } from "../../source/address_space_ts";
+import { UAMultiStateValueDiscrete as UAMultiStateValueDiscretePublic } from "../../source/interfaces/data_access/ua_multistate_value_discrete";
 import { UAVariable } from "../ua_variable";
+import { VariableTypeIds } from "node-opcua-constants";
+import { registerNodePromoter } from "../../source/loader/register_node_promoter";
 
-export interface UAMultiStateValueDiscrete {
-    enumValues: Property<EnumValueType[], DataType.ExtensionObject>;
-    valueAsText: Property<LocalizedText, DataType.LocalizedText>;
-}
-
-function install_synchronisation(variable: UAMultiStateValueDiscrete) {
+function install_synchronization(variable: UAMultiStateValueDiscrete) {
     variable.on("value_changed", (value: DataValue) => {
         const valueAsTextNode = variable.valueAsText || (variable.getComponentByName("ValueAsText") as UAVariable);
         if (!valueAsTextNode) {
@@ -35,6 +28,10 @@ function install_synchronisation(variable: UAMultiStateValueDiscrete) {
     variable.emit("value_changed", variable.readValue());
 }
 
+export interface UAMultiStateValueDiscrete {
+    enumValues: Property<EnumValueType[], DataType.ExtensionObject>;
+    valueAsText: Property<LocalizedText, DataType.LocalizedText>;
+}
 export class UAMultiStateValueDiscrete extends UAVariable implements UAMultiStateValueDiscretePublic {
     public setValue(value: string | number | Int64): void {
         if (typeof value === "string") {
@@ -139,6 +136,9 @@ export class UAMultiStateValueDiscrete extends UAVariable implements UAMultiStat
         return result;
     }
     public _getDataType(): DataType {
+        if (this.dataType.value === 26 /* Number */) {
+            return DataType.UInt32;
+        }
         const dataTypeStr = DataType[this.dataType.value as number] as string;
         return (DataType as any)[dataTypeStr] as DataType;
     }
@@ -148,8 +148,29 @@ export class UAMultiStateValueDiscrete extends UAVariable implements UAMultiStat
      * @private
      */
     public _post_initialize() {
+        // MultiStateValueDiscrete Variables can have any numeric Data Type;
+        // this includes signed and unsigned integers from 8 to 64 Bit length.
+
+        // istanbul ignore next
+        if (
+            typeof this.dataType.value !== "number" ||
+            [
+                DataType.UInt64,
+                DataType.Int64,
+                DataType.UInt32,
+                DataType.Int32,
+                DataType.UInt16,
+                DataType.Int16,
+                DataType.Byte,
+                DataType.Byte,
+                DataType.SByte,
+                26 /*Number*/
+            ].indexOf(this.dataType.value as number) <= 0
+        ) {
+            throw new Error("Invalid DataType in UAMultiStateValueDiscrete =>" + this.dataType.toString());
+        }
         // find the enum value type
-        install_synchronisation(this);
+        install_synchronization(this);
     }
 }
 
@@ -162,3 +183,5 @@ export function promoteToMultiStateValueDiscrete(node: UAVariablePublic): UAMult
     (node as UAMultiStateValueDiscrete)._post_initialize();
     return node as UAMultiStateValueDiscrete;
 }
+
+registerNodePromoter(VariableTypeIds.MultiStateValueDiscreteType, promoteToMultiStateValueDiscrete);

@@ -18,6 +18,8 @@ import { subtest_multi_state_value_discrete_type } from "./subtest_multi_state_v
 import { subtest_two_state_discrete_type } from "./subtest_two_state_discrete_type";
 import { subtest_Y_array_item_type } from "./subtest_Y_array_item_type";
 
+// tslint:disable-next-line:no-var-requires
+const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("DataAccess", () => {
     let addressSpace: AddressSpace;
     const data = { addressSpace: null as any };
@@ -128,11 +130,12 @@ describe("DataAccess", () => {
 
     subtest_analog_item_type(data);
     subtest_data_item_PercentDeadband(data);
+    subtest_Y_array_item_type(data);
+    subtest_analog_item_semantic_changed(data);
+
     subtest_two_state_discrete_type(data);
     subtest_multi_state_discrete_type(data);
     subtest_multi_state_value_discrete_type(data);
-    subtest_Y_array_item_type(data);
-    subtest_analog_item_semantic_changed(data);
 });
 
 // todo :

@@ -283,7 +283,7 @@ class MandatoryChildOrRequestedOptionalFilter {
             return false; // ignore
         }
 
-        const modellingRule = (node as any).modellingRule;
+        const modellingRule = node.modellingRule;
 
         switch (modellingRule) {
             case null:
@@ -294,7 +294,7 @@ class MandatoryChildOrRequestedOptionalFilter {
             case "Optional":
                 // only if in requested optionals
                 return node.browseName!.name! in this.optionalsMap;
-            case "OptionalPlaceHolder":
+            case "OptionalPlaceholder":
                 return false; // ignored
             default:
                 return false; // ignored

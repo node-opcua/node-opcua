@@ -2,12 +2,15 @@
  * @module node-opcua-address-space.DataAccess
  */
 import { assert } from "node-opcua-assert";
+import { VariableTypeIds } from "node-opcua-constants";
 import { LocalizedText } from "node-opcua-data-model";
 import { StatusCode, StatusCodes } from "node-opcua-status-code";
 import { DataType } from "node-opcua-variant";
 import { Variant } from "node-opcua-variant";
 
-import { Property, UAMultiStateDiscrete as UAMultiStateDiscretePublic, UAVariable as UAVariablePublic } from "../../source";
+import { Property, UAVariable as UAVariablePublic } from "../../source";
+import { UAMultiStateDiscrete as UAMultiStateDiscretePublic } from "../../source/interfaces/data_access/ua_multistate_discrete";
+import { registerNodePromoter } from "../../source/loader/register_node_promoter";
 import { UAVariable } from "../ua_variable";
 
 export interface UAMultiStateDiscrete {
@@ -83,6 +86,14 @@ export function promoteToMultiStateDiscrete(node: UAVariablePublic): UAMultiStat
     }
     Object.setPrototypeOf(node, UAMultiStateDiscrete.prototype);
     assert(node instanceof UAMultiStateDiscrete, "should now  be a State Machine");
-    (node as UAMultiStateDiscrete)._post_initialize();
+
+    const _node = node as UAMultiStateDiscrete;
+    _node._post_initialize();
+
+    assert(_node.enumStrings.browseName.toString() === "EnumStrings");
+    const handler = _node.handle_semantic_changed.bind(_node);
+    _node.enumStrings.on("value_changed", handler);
+    _node.install_extra_properties();
     return node as UAMultiStateDiscrete;
 }
+registerNodePromoter(VariableTypeIds.MultiStateDiscreteType, promoteToMultiStateDiscrete);
