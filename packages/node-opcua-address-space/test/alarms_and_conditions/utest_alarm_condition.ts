@@ -105,7 +105,7 @@ export function utest_alarm_condition(test: any) {
                         optionals: [
                             // optionals from ConditionType
                             "ConfirmedState",
-                            // optionnals from AlarmConditionType
+                            // optionals from AlarmConditionType
                             "SuppressedState",
                             "ShelvingState",
                             /// -> not required (because of maxTimeShelved in options) "MaxTimeShelved",
@@ -133,6 +133,7 @@ export function utest_alarm_condition(test: any) {
                 // ---------------------------------------------------------------------------------------------
                 // playing with active State
                 // ---------------------------------------------------------------------------------------------
+                console.log("xxxx alarm.activeState", alarm.activeState.toString());
                 alarm.activeState.setValue(true);
                 alarm.activeState.getValueAsString().should.eql("Active");
 

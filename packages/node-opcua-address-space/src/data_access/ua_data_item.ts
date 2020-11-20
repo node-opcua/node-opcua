@@ -28,10 +28,9 @@
 //     wrote to the Server. This   difference shall be no more than the difference suggested by this  Property
 
 import { assert } from "node-opcua-assert";
-import { DataType } from "node-opcua-variant";
-import { Variant } from "node-opcua-variant";
-import { AddDataItemOptions, ModellingRuleType } from "../../source";
-import { UADataItem as UADataItemPublic } from "../../source";
+import { DataType, Variant } from "node-opcua-variant";
+
+import { ModellingRuleType, UADataItem as UADataItemPublic, UAVariable as UAVariablePublic } from "../../source";
 import { UAVariable } from "../ua_variable";
 
 const definition_Description =
@@ -43,7 +42,7 @@ interface add_dataItem_stuffOptions {
     valuePrecision?: number;
     modellingRule?: ModellingRuleType;
 }
-export function add_dataItem_stuff(variable: UAVariable, options: add_dataItem_stuffOptions) {
+export function add_dataItem_stuff(variable: UAVariablePublic, options: add_dataItem_stuffOptions) {
     const addressSpace = variable.addressSpace;
     const namespace = addressSpace.getNamespace(variable.nodeId.namespace);
 

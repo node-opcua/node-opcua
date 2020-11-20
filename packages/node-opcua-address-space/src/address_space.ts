@@ -970,7 +970,7 @@ export class AddressSpace implements AddressSpacePrivate {
             throw new Error("getExtensionObjectConstructor: dataType has unexpected type" + dataType);
         }
         const _dataType = dataType as UADataType;
-        // to do verify that dataType is of type "Strucuture"
+        // to do verify that dataType is of type "Structure"
         if (!_dataType.isSupertypeOf(this.findDataType("Structure")!)) {
             console.log(_dataType.toString());
         }
@@ -1322,7 +1322,7 @@ export class AddressSpace implements AddressSpacePrivate {
         return (references as any).map((el: Reference | AddReferenceOpts) => this.normalizeReferenceType(el));
     }
 
-    // -- Historycall Node  -----------------------------------------------------------------------------------------
+    // -- Historical Node  -----------------------------------------------------------------------------------------
     /**
      *
      * @param node

@@ -598,6 +598,19 @@ export class UAVariable extends BaseNode implements UAVariablePublic {
             if (variant.dataType === null || variant.dataType === undefined) {
                 throw new Error("Variant must provide a valid dataType" + variant.toString());
             }
+            if (
+                variant.dataType === DataType.Boolean &&
+                (this.dataType.namespace !== 0 || this.dataType.value !== DataType.Boolean)
+            ) {
+                throw new Error("Variant must provide a valid Boolean" + variant.toString());
+            }
+            if (
+                this.dataType.namespace === 0 &&
+                this.dataType.value == DataType.LocalizedText &&
+                variant.dataType !== DataType.LocalizedText
+            ) {
+                throw new Error("Variant must provide a valid LocalizedText" + variant.toString());
+            }
         }
 
         variant = Variant.coerce(variant);
@@ -1574,6 +1587,12 @@ export class UAVariable extends BaseNode implements UAVariablePublic {
                 console.log(dataValue.toString());
                 console.log("on nodeId =", this.nodeId.toString());
                 throw new Error("Invalid Extension Object");
+            }
+        }
+        // istanbul ignore next
+        if (this.dataType.namespace === 0) {
+            if (this.dataType.value === DataType.LocalizedText && dataValue.value.dataType !== DataType.LocalizedText) {
+                throw new Error("Invalid dataValue provided (expecting a LocalizedText) but got " + dataValue.toString());
             }
         }
 

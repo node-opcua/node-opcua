@@ -39,6 +39,7 @@ import {
     AddObjectTypeOptions,
     AddReferenceOpts,
     AddReferenceTypeOptions,
+    AddTwoStateDiscreteOptions,
     AddTwoStateVariableOptions,
     AddVariableOptions,
     AddVariableTypeOptions,
@@ -50,18 +51,17 @@ import {
     EnumerationItem,
     InitialState,
     Namespace as NamespacePublic,
+    promoteToTwoStateDiscrete,
     State,
     StateMachine,
     Transition,
     UAEventType,
-    UAMultiStateDiscrete as UAMultiStateDiscretePublic,
     UAVariable as UAVariablePublic,
     UAVariableType as UAVariableTypePublic,
     YArrayItemVariable
 } from "../source";
 
 import { coerceEnumValues } from "../source/helpers/coerce_enum_value";
-import { UATwoStateDiscrete } from "../source/interfaces/data_access/ua_two_state_discrete";
 import { _handle_delete_node_model_change_event, _handle_model_change_event } from "./address_space_change_event_tools";
 import { AddressSpacePrivate } from "./address_space_private";
 import { UAAcknowledgeableConditionBase } from "./alarms_and_conditions/ua_acknowledgeable_condition_base";
@@ -74,24 +74,40 @@ import { UALimitAlarm } from "./alarms_and_conditions/ua_limit_alarm";
 import { UANonExclusiveDeviationAlarm } from "./alarms_and_conditions/ua_non_exclusive_deviation_alarm";
 import { UANonExclusiveLimitAlarm } from "./alarms_and_conditions/ua_non_exclusive_limit_alarm";
 import { UAOffNormalAlarm } from "./alarms_and_conditions/ua_off_normal_alarm";
-import { BaseNode } from "./base_node";
+
+// data Access
+import { UATwoStateDiscrete as UATwoStateDiscretePublic } from "../source/interfaces/data_access/ua_two_state_discrete";
+import { UAMultiStateDiscrete as UAMultiStateDiscretePublic } from "../source/interfaces/data_access/ua_multistate_discrete";
+import { UAMultiStateValueDiscrete as UAMultiStateValueDiscretePublic } from "../source/interfaces/data_access/ua_multistate_value_discrete";
+import { UATwoStateVariable as UATwoStateVariablePublic } from "../source/interfaces/state_machine/ua_two_state_variable";
+
 import { UAAnalogItem } from "./data_access/ua_analog_item";
 import { add_dataItem_stuff, UADataItem } from "./data_access/ua_data_item";
-import { UAMultiStateDiscrete } from "./data_access/ua_multistate_discrete";
-import { promoteToMultiStateValueDiscrete, UAMultiStateValueDiscrete } from "./data_access/ua_mutlistate_value_discrete";
+import { promoteToMultiStateValueDiscrete } from "./data_access/ua_multistate_value_discrete";
+import { promoteToMultiStateDiscrete } from "./data_access/ua_multistate_discrete";
+// state machine
+import {
+    promoteToTwoStateVariable,
+    _install_TwoStateVariable_machinery,
+    UATwoStateVariable,
+    _addTwoStateVariable
+} from "./state_machine/ua_two_state_variable";
+
+//
 import { UANamespace_process_modelling_rule } from "./namespace_private";
+import { BaseNode } from "./base_node";
 import { Reference } from "./reference";
 import { UADataType } from "./ua_data_type";
 import { UAMethod } from "./ua_method";
 import { UAObject } from "./ua_object";
 import { UAObjectType } from "./ua_object_type";
 import { UAReferenceType } from "./ua_reference_type";
-import { _install_TwoStateVariable_machinery, UATwoStateVariable } from "./ua_two_state_variable";
 import { UAVariable, verifyRankAndDimensions } from "./ua_variable";
 import { UAVariableType } from "./ua_variable_type";
 import { UAView } from "./ua_view";
 
 import { ConstructNodeIdOptions, NodeIdManager } from "./nodeid_manager";
+import { _addTwoStateDiscrete } from "./data_access/ua_two_state_discrete";
 
 function _makeHashKey(nodeId: NodeId): string | number {
     switch (nodeId.identifierType) {
@@ -557,7 +573,7 @@ export class UANamespace implements NamespacePublic {
         const variable = namespace.addVariable({
             ...options,
 
-            dataType: "UInteger",
+            dataType: "Number",
             typeDefinition: multiStateDiscreteType.nodeId,
             value: new Variant({
                 dataType: DataType.UInt32,
@@ -565,8 +581,7 @@ export class UANamespace implements NamespacePublic {
             }),
 
             valueRank: -2
-        }) as UAMultiStateDiscrete;
-        Object.setPrototypeOf(variable, UAMultiStateDiscrete.prototype);
+        });
 
         add_dataItem_stuff(variable, options);
 
@@ -590,14 +605,7 @@ export class UANamespace implements NamespacePublic {
             })
         });
 
-        const handler = variable.handle_semantic_changed.bind(variable);
-        enumStringsNode.on("value_changed", handler);
-
-        variable.install_extra_properties();
-
-        assert(variable.enumStrings.browseName.toString() === "EnumStrings");
-
-        return variable;
+        return promoteToMultiStateDiscrete(variable);
     }
 
     /**
@@ -1035,7 +1043,7 @@ export class UANamespace implements NamespacePublic {
      *          ]
      *      });
      */
-    public addMultiStateValueDiscrete(options: AddMultiStateValueDiscreteOptions): UAMultiStateValueDiscrete {
+    public addMultiStateValueDiscrete(options: AddMultiStateValueDiscreteOptions): UAMultiStateValueDiscretePublic {
         assert(options.hasOwnProperty("enumValues"));
         assert(!options.hasOwnProperty("ValuePrecision"));
 
@@ -1059,7 +1067,7 @@ export class UANamespace implements NamespacePublic {
 
         const cloned_options = {
             ...options,
-            dataType: "Number",
+            dataType: DataType.UInt32,
             typeDefinition: multiStateValueDiscreteType.nodeId,
             // valueRank:
             // note : OPCUA Spec 1.03 specifies -1:Scalar (part 8 page 8) but nodeset file specifies -2:Any
@@ -1067,7 +1075,7 @@ export class UANamespace implements NamespacePublic {
             valueRank: -1 // -1 : Scalar
         };
 
-        const variable = namespace.addVariable(cloned_options) as UAMultiStateValueDiscrete;
+        const variable = namespace.addVariable(cloned_options) as UAMultiStateValueDiscretePublic;
 
         add_dataItem_stuff(variable, options);
 
@@ -1271,7 +1279,6 @@ export class UANamespace implements NamespacePublic {
             });
             inputArguments.setValueFromSource(_inputArgs);
             assert(inputArguments.typeDefinition.toString() === propertyTypeId.toString());
-            // xx console.log("xxxx propertyTypeId = ", propertyTypeId, outputArguments.hasTypeDefinition);
             assert(Array.isArray(inputArguments.arrayDimensions));
         }
 
@@ -1615,120 +1622,25 @@ export class UANamespace implements NamespacePublic {
         return transition as Transition;
     }
 
-    public addTwoStateVariable(options: AddTwoStateVariableOptions): UATwoStateVariable {
+    /**
+     * @method addTwoStateVariable
+     *
+     * @return {UATwoStateVariable}
+     */
+    public addTwoStateVariable(options: AddTwoStateVariableOptions): UATwoStateVariablePublic {
         const namespace = this;
-        const addressSpace = namespace.addressSpace;
-
-        const twoStateVariableType = addressSpace.findVariableType("TwoStateVariableType");
-        if (!twoStateVariableType) {
-            throw new Error("cannot find TwoStateVariableType");
-        }
-
-        options.optionals = options.optionals || [];
-        if (options.trueState) {
-            options.optionals.push("TrueState");
-        }
-        if (options.falseState) {
-            options.optionals.push("FalseState");
-        }
-
-        // we want event based change...
-        options.minimumSamplingInterval = 0;
-
-        const node = twoStateVariableType.instantiate({
-            browseName: options.browseName,
-
-            nodeId: options.nodeId,
-
-            description: options.description,
-
-            componentOf: options.componentOf,
-            organizedBy: options.organizedBy,
-
-            modellingRule: options.modellingRule,
-
-            minimumSamplingInterval: options.minimumSamplingInterval,
-            optionals: options.optionals
-        }) as UATwoStateVariable;
-
-        _install_TwoStateVariable_machinery(node, options);
-
-        return node;
+        return _addTwoStateVariable(namespace, options);
     }
 
     /**
      * @method addTwoStateDiscrete
-     * @param options {Object}
-     * @param options.browseName {String}
-     * @param [options.nodeId  {NodeId}]
-     * @param [options.value {Boolean} }
-     * @param [options.trueState {String} = "ON" }
-     * @param [options.falseState {String}= "OFF" }
-     * @return {Object|UAVariable}
+     *
+     * Add a TwoStateDiscrete Variable
+     * @return {UATwoStateDiscrete}
      */
-    public addTwoStateDiscrete(options: any): UATwoStateDiscrete {
+    public addTwoStateDiscrete(options: AddTwoStateDiscreteOptions): UATwoStateDiscretePublic {
         const namespace = this;
-        const addressSpace = namespace.addressSpace;
-
-        assert(!options.hasOwnProperty("ValuePrecision"));
-
-        const twoStateDiscreteType = addressSpace.findVariableType("TwoStateDiscreteType");
-        if (!twoStateDiscreteType) {
-            throw new Error("expecting TwoStateDiscreteType to be defined , check nodeset xml file");
-        }
-
-        // todo : if options.typeDefinition is specified,
-        // todo : refactor to use twoStateDiscreteType.instantiate
-
-        const variable = namespace.addVariable({
-            accessLevel: options.accessLevel,
-            browseName: options.browseName,
-            componentOf: options.componentOf,
-            dataType: "Boolean",
-            nodeId: options.nodeId,
-            typeDefinition: twoStateDiscreteType.nodeId,
-            userAccessLevel: options.userAccessLevel,
-            value: new Variant({ dataType: DataType.Boolean, value: !!options.value })
-        }) as UAVariable;
-
-        const dataValueVerif = variable.readValue();
-        assert(dataValueVerif.value.dataType === DataType.Boolean);
-
-        const handler = variable.handle_semantic_changed.bind(variable);
-
-        add_dataItem_stuff(variable, options);
-
-        const trueStateNode = namespace.addVariable({
-            browseName: { name: "TrueState", namespaceIndex: 0 },
-            dataType: "LocalizedText",
-            minimumSamplingInterval: 0,
-            propertyOf: variable,
-            typeDefinition: "PropertyType",
-            value: new Variant({
-                dataType: DataType.LocalizedText,
-                value: coerceLocalizedText(options.trueState || "ON")
-            })
-        });
-
-        trueStateNode.on("value_changed", handler);
-
-        const falseStateNode = namespace.addVariable({
-            browseName: { name: "FalseState", namespaceIndex: 0 },
-            dataType: "LocalizedText",
-            minimumSamplingInterval: 0,
-            propertyOf: variable,
-            typeDefinition: "PropertyType",
-            value: new Variant({
-                dataType: DataType.LocalizedText,
-                value: coerceLocalizedText(options.falseState || "OFF")
-            })
-        });
-
-        falseStateNode.on("value_changed", handler);
-
-        variable.install_extra_properties();
-
-        return variable;
+        return _addTwoStateDiscrete(namespace, options);
     }
 
     // --- Alarms & Conditions -------------------------------------------------

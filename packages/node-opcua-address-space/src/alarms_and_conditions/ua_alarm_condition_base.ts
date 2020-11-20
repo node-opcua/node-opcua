@@ -11,7 +11,7 @@ import { StatusCodes } from "node-opcua-status-code";
 import { DataType } from "node-opcua-variant";
 import { Namespace, UAEventType, UAVariableT } from "../../source";
 import { BaseNode } from "../base_node";
-import { _install_TwoStateVariable_machinery, UATwoStateVariable } from "../ua_two_state_variable";
+import { _install_TwoStateVariable_machinery, UATwoStateVariable } from "../state_machine/ua_two_state_variable";
 import { UAVariable } from "../ua_variable";
 import { ConditionInfo } from "./condition_info";
 import { _clear_timer_if_any, ShelvingStateMachine } from "./shelving_state_machine";
@@ -217,13 +217,21 @@ export class UAAlarmConditionBase extends UAAcknowledgeableConditionBase {
     }
 
     /**
-     * @method desactivateAlarm
+     * @method deactivateAlarm
      */
-    public desactivateAlarm() {
+    public deactivateAlarm() {
         const branch = this.currentBranch();
         branch.setRetain(true);
         branch.setActiveState(false);
     }
+
+    /**
+     * @deprecated use deactivateAlarm instead
+     */
+    public desactivateAlarm() {
+        this.deactivateAlarm();
+    }
+
     /**
      * @method isSuppressedOrShelved
      * @return {boolean}
@@ -373,11 +381,11 @@ export class UAAlarmConditionBase extends UAAcknowledgeableConditionBase {
                 });
             }
 
-            const inputn = alarm.getInputNodeNode();
-            if (!inputn || inputn === null) {
+            const inputNode2 = alarm.getInputNodeNode();
+            if (!inputNode2 || inputNode2 === null) {
                 throw new Error("Invalid input node");
             }
-            inputn.on("value_changed", (newDataValue: DataValue /*, oldDataValue */) => {
+            inputNode2.on("value_changed", (newDataValue: DataValue /*, oldDataValue */) => {
                 if (!alarm.getEnabledState()) {
                     // disabled alarms shall ignored input node value change event
                     // (alarm shall be reevaluated when EnabledState goes back to true)

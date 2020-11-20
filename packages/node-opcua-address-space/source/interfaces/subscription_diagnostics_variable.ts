@@ -2,13 +2,11 @@
  * @module node-opcua-address-space
  */
 import { Byte, Double, UABoolean, UInt32 } from "node-opcua-basic-types";
-import { NodeIdLike } from "node-opcua-nodeid";
 import { SubscriptionDiagnosticsDataType } from "node-opcua-types";
 import { DataType } from "node-opcua-variant";
 import { UAVariable, UAVariableT } from "../address_space_ts";
 
 export interface SubscriptionDiagnosticsVariable extends UAVariable {
-
     $extensionObject: SubscriptionDiagnosticsDataType;
 
     sessionId: UAVariable; // <NodeIdLike | null);

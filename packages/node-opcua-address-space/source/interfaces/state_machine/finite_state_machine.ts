@@ -5,16 +5,10 @@ import { LocalizedText } from "node-opcua-data-model";
 import { NodeId } from "node-opcua-nodeid";
 import { DataType } from "node-opcua-variant";
 
-import { InstantiateObjectOptions, UAVariableT } from "../address_space_ts";
-import {
-    State,
-    StateMachine,
-    StateMachineB,
-    StateMachineType,
-    StateVariableB,
-    TransitionVariableB
-} from "./state_machine";
-
+import { InstantiateObjectOptions, UAVariableT } from "../../address_space_ts";
+import { State, StateMachine, StateMachineB, StateMachineType, TransitionVariableB } from "./state_machine";
+import { UAStateVariable } from "./ua_state_variable";
+import { FiniteStateVariable } from "./ua_finite_state_variable";
 /**
  * Finite State Machine
  *
@@ -64,18 +58,6 @@ export interface FiniteStateMachineB extends StateMachineB {
     currentStateNode: State;
 }
 
-export interface FiniteStateVariableB extends StateVariableB {
-    /**
-     * Id is inherited from the TransitionVariableType and overridden to reflect
-     * the required DataType.
-     * This value shall be the NodeId of one of the Transition Objects of the FiniteStateMachineType.
-     */
-    id: UAVariableT<NodeId, DataType.NodeId>;
-}
-
-export interface FiniteStateVariable extends FiniteStateVariableB, UAVariableT<LocalizedText, DataType.LocalizedText> {
-}
-
 export interface FiniteTransitionVariableB extends TransitionVariableB {
     /**
      * Id is inherited from the TransitionVariableType and overridden to reflect
@@ -91,13 +73,10 @@ export interface FiniteTransitionVariableB extends TransitionVariableB {
      */
 }
 
-export interface FiniteTransitionVariable extends FiniteTransitionVariableB, UAVariableT<LocalizedText, DataType.LocalizedText> {
-}
+export interface FiniteTransitionVariable extends FiniteTransitionVariableB, UAVariableT<LocalizedText, DataType.LocalizedText> {}
 
 // tslint:disable-next-line:no-empty-interface
-export interface FiniteStateMachine extends StateMachine {
-
-}
+export interface FiniteStateMachine extends StateMachine {}
 
 export interface FiniteStateMachineType extends StateMachineType {
     instantiate(options: InstantiateObjectOptions): StateMachine;

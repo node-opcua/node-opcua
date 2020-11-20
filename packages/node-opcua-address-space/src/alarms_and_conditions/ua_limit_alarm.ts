@@ -9,7 +9,7 @@ import { StatusCodes } from "node-opcua-status-code";
 import { DataType } from "node-opcua-variant";
 import { UAEventType } from "../../source";
 import { NamespacePrivate } from "../namespace_private";
-import { UATwoStateVariable } from "../ua_two_state_variable";
+import { UATwoStateVariable } from "../state_machine/ua_two_state_variable";
 import { UAVariable } from "../ua_variable";
 import { UAAlarmConditionBase } from "./ua_alarm_condition_base";
 

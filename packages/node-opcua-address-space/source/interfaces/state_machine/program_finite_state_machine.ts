@@ -2,7 +2,7 @@
  * @module node-opcua-address-space
  */
 // tslint:disable:no-empty-interface
-import { InstantiateObjectOptions, UAMethod, UAObject, UAObjectType } from "../address_space_ts";
+import { InstantiateObjectOptions, UAMethod, UAObject, UAObjectType } from "../../address_space_ts";
 import { FiniteStateMachineB } from "./finite_state_machine";
 import { State, StateMachine, StateMachineType, Transition } from "./state_machine";
 
@@ -32,10 +32,9 @@ import { State, StateMachine, StateMachineType, Transition } from "./state_machi
  *  and effect(s) of additional stimuli and transitions.
  *  Standards bodies and industry groups may extend the base Program Finite State Model to conform to
  *  various industry models. For example, the Halted state can include the sub states “Aborted” and “Completed”
- *  to indicate if the function achieved a successful conclusion prior to the transition to Halted. Transitiona
+ *  to indicate if the function achieved a successful conclusion prior to the transition to Halted.
  */
 export interface ProgramFiniteStateMachineB extends FiniteStateMachineB {
-
     // -- States
     readonly halted: State;
     readonly ready: State;
@@ -82,6 +81,4 @@ export interface ProgramFiniteStateMachineType extends ProgramFiniteStateMachine
     instantiate(options: InstantiateObjectOptions): ProgramFiniteStateMachine;
 }
 
-export interface ProgramFiniteStateMachine extends ProgramFiniteStateMachineB, UAObject {
-
-}
+export interface ProgramFiniteStateMachine extends ProgramFiniteStateMachineB, UAObject {}
