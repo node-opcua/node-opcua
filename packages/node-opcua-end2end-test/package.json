@@ -15,7 +15,6 @@
     "devDependencies": {
         "@types/underscore": "^1.10.24",
         "async": "^3.2.0",
-        "colors": "^1.4.0",
         "delayed": "^2.0.0",
         "node-opcua": "2.26.0",
         "node-opcua-address-space": "2.26.0",
