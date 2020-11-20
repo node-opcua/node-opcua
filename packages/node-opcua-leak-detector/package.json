@@ -11,7 +11,7 @@
     "author": "Etienne Rossignon",
     "license": "MIT",
     "dependencies": {
-        "colors": "^1.4.0",
+        "chalk": "^4.1.0",
         "node-opcua-assert": "2.22.0",
         "node-opcua-debug": "2.22.0",
         "node-opcua-object-registry": "2.22.0"
