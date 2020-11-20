@@ -25,7 +25,6 @@
         "node-opcua-variant": "2.24.0"
     },
     "devDependencies": {
-        "colors": "^1.4.0",
         "delayed": "^2.0.0",
         "node-opcua-assert": "2.22.0",
         "node-opcua-leak-detector": "2.22.0",

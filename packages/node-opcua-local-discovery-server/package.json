@@ -14,7 +14,6 @@
   },
   "dependencies": {
     "bonjour": "^3.5.0",
-    "colors": "^1.4.0",
     "env-paths": "^2.2.0",
     "node-opcua": "2.26.0",
     "vorpal": "^1.12.0",
