@@ -44,7 +44,7 @@ const machineVisionNodeSetFilename = constructNodesetFilename("Opc.Ua.MachineVis
 const packMLNodeSetFilename = constructNodesetFilename("Opc.Ua.PackML.NodeSet2.xml");
 const machineryNodeSetFilename = constructNodesetFilename("Opc.Ua.Machinery.NodeSet2.xml");
 const cncNodeSetFilename = constructNodesetFilename("Opc.Ua.CNC.NodeSet.xml");
-const commercialKitchenEquipmentNodeSetFilename = constructNodesetFilename("Opc.Ua.CommercialKitchenEquipment.NodeSet2");
+const commercialKitchenEquipmentNodeSetFilename = constructNodesetFilename("Opc.Ua.CommercialKitchenEquipment.NodeSet2.xml");
 const machineToolNodeSetFilename = constructNodesetFilename("Opc.Ua.MachineTool.NodeSet2.xml");
 export const nodesets = {
     adi: adiNodeSetFilename,
