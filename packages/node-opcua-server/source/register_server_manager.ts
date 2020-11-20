@@ -8,7 +8,7 @@ import { EventEmitter } from "events";
 
 import { assert } from "node-opcua-assert";
 import { UAString } from "node-opcua-basic-types";
-import { OPCUAClientBase, ResponseCallback } from "node-opcua-client";
+import { OPCUAClientBase, OPCUAClientBaseOptions, ResponseCallback } from "node-opcua-client";
 import { make_debugLog, checkDebugFlag } from "node-opcua-debug";
 import { resolveFullyQualifiedDomainName } from "node-opcua-hostname";
 import { coerceSecurityPolicy, MessageSecurityMode, SecurityPolicy } from "node-opcua-secure-channel";
@@ -567,7 +567,7 @@ export class RegisterServerManager extends EventEmitter implements IRegisterServ
             return outer_callback(new Error("Cannot registerServer"));
         }
 
-        const options = {
+        const options: OPCUAClientBaseOptions = {
             securityMode: selectedEndpoint.securityMode,
             securityPolicy: coerceSecurityPolicy(selectedEndpoint.securityPolicyUri),
             serverCertificate: selectedEndpoint.serverCertificate,
@@ -607,6 +607,9 @@ export class RegisterServerManager extends EventEmitter implements IRegisterServ
                                     "=> please check that you server certificate is trusted by the LDS. err: " +
                                     err.message
                             );
+                            console.log("LDS endpoint    :", selectedEndpoint?.endpointUrl!);
+                            console.log("security mode   :", MessageSecurityMode[selectedEndpoint.securityMode]);
+                            console.log("security policy :", coerceSecurityPolicy(selectedEndpoint.securityPolicyUri));
                             // xx debugLog(options);
                             client.disconnect(() => {
                                 debugLog("RegisterServerManager#_registerServer client disconnected");
