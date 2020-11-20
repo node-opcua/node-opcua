@@ -4,7 +4,9 @@ Now edit the [server_with_method.js](#creating-a-simple-server-with-method "save
 
 In this example, we will create a OPCUA Server that exposes an object with some methods.
 
-    _"program"
+``` javascript
+_"program"
+```
 
 ### program
 
@@ -12,9 +14,13 @@ In this section, we create a very simple server.
 
 ``` javascript
 
-/* global console, require */
-const opcua = require("node-opcua");
-
+const { 
+    OPCUAServer,
+    DataType,
+    Variant,VariantArrayType,
+    StatusCodes,
+    makeAccessLevelFlag 
+} = require("node-opcua");
 
 (async () => {
 
@@ -30,7 +36,7 @@ const opcua = require("node-opcua");
 ### creating the server
 
 ``` javascript
-const server = new opcua.OPCUAServer({
+const server = new OPCUAServer({
     port: 4334 // the port of the listening socket of the server
 });
 
@@ -67,25 +73,25 @@ const method = namespace.addMethod(myDevice,{
         {
             name:"nbBarks",
             description: { text: "specifies the number of time I should bark" },
-            dataType: opcua.DataType.UInt32        
+            dataType: DataType.UInt32        
         },{
             name:"volume",
             description: { text: "specifies the sound volume [0 = quiet ,100 = loud]" },
-            dataType: opcua.DataType.UInt32
+            dataType: DataType.UInt32
         }
      ],
 
     outputArguments: [{
          name:"Barks",
          description:{ text: "the generated barks" },
-         dataType: opcua.DataType.String ,
+         dataType: DataType.String ,
          valueRank: 1
     }]
 });
 
 // optionally, we can adjust userAccessLevel attribute 
-method.outputArguments.userAccessLevel = opcua.makeAccessLevelFlag("CurrentRead");
-method.inputArguments.userAccessLevel = opcua.makeAccessLevelFlag("CurrentRead");
+method.outputArguments.userAccessLevel = makeAccessLevelFlag("CurrentRead");
+method.inputArguments.userAccessLevel = makeAccessLevelFlag("CurrentRead");
 ```
 
 
@@ -109,10 +115,10 @@ method.bindMethod((inputArguments,context,callback) => {
     }
 
     const callMethodResult = {
-        statusCode: opcua.StatusCodes.Good,
+        statusCode: StatusCodes.Good,
         outputArguments: [{
-                dataType: opcua.DataType.String,
-                arrayType: opcua.VariantArrayType.Array,
+                dataType: DataType.String,
+                arrayType: VariantArrayType.Array,
                 value :barks
         }]
     };

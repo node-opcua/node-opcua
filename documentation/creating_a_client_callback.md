@@ -3,11 +3,11 @@
 In this example, we want to create a OPCUA Client to monitor a variable on the server, created in
 [this tutorial](creating_a_server.md).
 
-### Note:
+### Note
 
-> this tutorial is using the legacy callback method which has been superceeded by the async/await method that provides a nicer and cleaner technique.
->
-> Please refer to the typescript version here [create a client typescript](creating_a_client_typescript.md)
+This tutorial is using the legacy callback method which has been superceeded by the async/await method that provides a nicer and cleaner technique.
+
+Please refer to the typescript version here [create a client typescript](creating_a_client_typescript.md)
 
 you've been warned !
 
@@ -18,30 +18,33 @@ you've been warned !
 Let's create a node project for our client.
 
 ```shell
-    $ mkdir sample_client
-    $ cd sample_client
-    $ npm init                      # creates a package.json
-    $ npm install node-opcua --save
-    $ npm install async --save
+$ mkdir sample_client
+$ cd sample_client
+$ npm init                      # creates a package.json
+$ npm install node-opcua --save
+$ npm install async --save
 ```
 
 Now create and edit the sample file [sample_client.js](#overview-of-the-client-script "save:")
+
+
 
 ### overview of the client script
 
 The script will be organised around the following four steps:
 
+```javascript
     _"declaration"
 
     _"client instantiation"
 
     _"setting up a series of asynchronous operations"
+```
 
 ### declaration
 
 ```javascript
-/*global require,console,setTimeout */
-const opcua = require("node-opcua");
+const { OPCUAClient, makeBrowsePath, AttributeIds, resolveNodeId, TimestampsToReturn} = require("node-opcua");
 const async = require("async");
 ```
 
@@ -49,7 +52,7 @@ const async = require("async");
 
 To connect to the server, the client must specify the exact URI of the server, comprising hostname, port and OPCUA-endpoint.
 
-```
+```javascript
 // const endpointUrl = "opc.tcp://<hostname>:4334/UA/MyLittleServer";
 const endpointUrl = "opc.tcp://" + require("os").hostname() + ":4334/UA/MyLittleServer";
 ```
@@ -58,7 +61,7 @@ where `<hostname>` shall be replaced with the computer name or fully qualified d
 server is running. `UA/MyLittleServer` is the endpoint defined by the server and also has to be replaced by an existing endpoint on that server.
 
 ```javascript
-const client = opcua.OPCUAClient.create({
+const client = OPCUAClient.create({
     endpoint_must_exist: false
 });
 _"adding some helpers to diagnose connection issues"
@@ -209,13 +212,13 @@ the_session.browse("RootFolder", function(err, browseResult) {
 
 ### read a variable with read
 
-To read a specific VariableType node we construct a `nodeToRead` object with the two parameters `nodeId` and `attributeId` to tell the `read` function what we want it to do. The first tells it the exact node, the latter which attribute we want to obtain. The possible values provided by the SDK are enumerated within the `opcua.AttributeIds` object. Each field contains the OPC-UA complient AttributeId that is defined by the OPC-UA standard.
+To read a specific VariableType node we construct a `nodeToRead` object with the two parameters `nodeId` and `attributeId` to tell the `read` function what we want it to do. The first tells it the exact node, the latter which attribute we want to obtain. The possible values provided by the SDK are enumerated within the `AttributeIds` object. Each field contains the OPC-UA complient AttributeId that is defined by the OPC-UA standard.
 
 ```javascript
 const maxAge = 0;
 const nodeToRead = {
   nodeId: "ns=1;s=free_memory",
-  attributeId: opcua.AttributeIds.Value
+  attributeId: AttributeIds.Value
 };
 
 the_session.read(nodeToRead, maxAge, function(err, dataValue) {
@@ -231,7 +234,7 @@ the_session.read(nodeToRead, maxAge, function(err, dataValue) {
 It is also possible to directly access a variables value with it's `nodeId` through the `readVariableValue` function. See the [SDK reference](https://node-opcua.github.io/api_doc/) for more simplified access functions.
 
 ```javascript
-the_session.readVariableValue("ns=1;s=free_memory", function(err, dataValue) {
+the_session.read({nodeId: "ns=1;s=free_memory", attributeId: AttributeIds.Value}, (err, dataValue) => {
   if (!err) {
     console.log(" free mem % = ", dataValue.toString());
   }
@@ -245,7 +248,7 @@ If the `nodeId` is unkown it may be obtained through browsing for it.
 
 ```javascript
 const browsePath = [
-  opcua.makeBrowsePath(
+  makeBrowsePath(
     "RootFolder",
     "/Objects/Server.ServerStatus.BuildInfo.ProductName"
   )
@@ -301,8 +304,8 @@ the_session.createSubscription2(subscriptionOptions, (err, subscription) => {
 ```javascript
 // install monitored item
 const itemToMonitor = {
-  nodeId: opcua.resolveNodeId("ns=1;s=free_memory"),
-  attributeId: opcua.AttributeIds.Value
+  nodeId: resolveNodeId("ns=1;s=free_memory"),
+  attributeId: AttributeIds.Value
 };
 const monitoringParamaters = {
   samplingInterval: 100,
@@ -313,7 +316,7 @@ const monitoringParamaters = {
 the_subscription.monitor(
   itemToMonitor,
   monitoringParamaters,
-  opcua.TimestampsToReturn.Both,
+  TimestampsToReturn.Both,
   (err, monitoredItem) => {
     monitoredItem.on("changed", function(dataValue) {
       console.log(
@@ -336,5 +339,6 @@ the_subscription.terminate(callback);
 ## Run the Client
 
 ```sh
-    $ node sample_client
+$ node sample_client
 ```
+
