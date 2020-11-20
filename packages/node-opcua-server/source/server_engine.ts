@@ -1022,7 +1022,7 @@ export class ServerEngine extends EventEmitter {
 
             // fix getMonitoredItems.outputArguments arrayDimensions
             const fixGetMonitoredItemArgs = () => {
-                const objects = this.addressSpace!.rootFolder.objects;
+                const objects = this.addressSpace!.rootFolder?.objects;
                 if (!objects || !objects.server || !objects.server.getMonitoredItems) {
                     return;
                 }
@@ -1440,14 +1440,12 @@ export class ServerEngine extends EventEmitter {
         async.eachSeries(
             nodesToRead,
             (nodeToRead: HistoryReadValueId, cbNode: () => void) => {
-                console.log("QQQQQQ");
                 this._historyReadSingleNode(
                     context,
                     nodeToRead,
                     historyReadDetails,
                     timestampsToReturn,
                     (err: Error | null, result?: any) => {
-                        console.log("IIII");
                         if (err && !result) {
                             result = new HistoryReadResult({ statusCode: StatusCodes.BadInternalError });
                         }
