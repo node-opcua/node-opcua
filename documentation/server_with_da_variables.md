@@ -9,40 +9,52 @@ Now edit the [server_with_da_variables.js](#preparation "save:") script.
 
 # preparation
 
-    _"creating the server"
+``` javascript
+_"creating the server"
+```
 
 ### creating the server
 
 In this section, we create a very simple server.
 
 ``` javascript
+const { OPCUAServer, standardUnits, DataType, Variant } = require("node-opcua");
+(async () => {
+    try {
+        _"inner"
+    }
+    catch(err){
+        console.log(err);
+        process.exit(1);
+    }
+})();
+```
 
-/* global console, require */
-var opcua = require("node-opcua");
+### inner
 
-var server = new opcua.OPCUAServer({
+``` javascript
+
+const server = new OPCUAServer({
     port: 4334 // the port of the listening socket of the server
 });
 
-function post_initialize() {
 
-    var addressSpace = server.engine.addressSpace;
-    
-    var myDevice = addressSpace.addObject({
-        organizedBy: addressSpace.rootFolder.objects,
-        browseName: "MyDevice"
-    });
-    
-    _"adding a DA Variable"
+await server.initialize();
 
-} 
+const addressSpace = server.engine.addressSpace;
 
-server.initialize(post_initialize);
+const namespace = addressSpace.getOwnNamespace();
 
-server.start(function() {
-    console.log("Server is now listening ... ( press CTRL+C to stop)");
+const myDevice = namespace.addObject({
+    organizedBy: addressSpace.rootFolder.objects,
+    browseName: "MyDevice"
 });
 
+_"adding a DA Variable"
+
+
+await server.start();
+console.log("Server is now listening ... ( press CTRL+C to stop)");
 ```
 
 
@@ -50,22 +62,20 @@ server.start(function() {
 
 ``` javascript
 
-var fakeValue = 1;
-var addressSpace = server.engine.addressSpace;
+let fakeValue = 1.0;
 
-var analogItem = addressSpace.addAnalogDataItem({
+const analogItem = namespace.addAnalogDataItem({
 
-      componentOf: myDevice,
+    componentOf: myDevice,
 
-      browseName: "TemperatureSensor",
+    browseName: "TemperatureSensor",
 
-      definition: "(tempA -25) + tempB",
-      valuePrecision: 0.5,
-      engineeringUnitsRange: { low: 100 , high: 200},
-      instrumentRange: { low: -100 , high: +200},
-      engineeringUnits: opcua.standardUnits.degree_celsius,
-      dataType: "Double",
-
-      value: { get: function(){return new opcua.Variant({dataType: opcua.DataType.Double , value: fakeValue}); } }
+    definition: "(tempA -25) + tempB",
+    valuePrecision: 0.5,
+    engineeringUnitsRange: { low: 100 , high: 200},
+    instrumentRange: { low: -100 , high: +200},
+    engineeringUnits: standardUnits.degree_celsius,
+    dataType: "Double",
+    value: { get: ()=> new Variant({dataType: DataType.Double , value: fakeValue}) }
 });
 ```

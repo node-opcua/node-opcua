@@ -1,3 +1,4 @@
+
 import {
   OPCUAClient,
   MessageSecurityMode,
@@ -18,15 +19,21 @@ const connectionStrategy = {
   initialDelay: 1000,
   maxRetry: 1
 };
-const options = {
+const client = OPCUAClient.create({
   applicationName: "MyClient",
   connectionStrategy: connectionStrategy,
   securityMode: MessageSecurityMode.None,
   securityPolicy: SecurityPolicy.None,
   endpoint_must_exist: false
-};
-const client = OPCUAClient.create(options);
-const endpointUrl = "opc.tcp://opcuademo.sterfive.com:26543";
+});
+//const endpointUrl = "opc.tcp://opcuademo.sterfive.com:26543";
+const endpointUrl = "opc.tcp://" + require("os").hostname() + ":4334/UA/MyLittleServer";
+
+
+async function timeout(ms: number) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
 async function main() {
   try {
     // step 1 : connect to
@@ -46,9 +53,10 @@ async function main() {
     }
 
     // step 4 : read a variable with readVariableValue
-    const dataValue2 = await session.readVariableValue(
-      "ns=3;s=Scalar_Simulation_Double"
-    );
+    const dataValue2 = await session.read({
+      nodeId: "ns=1;s=free_memory",
+      attributeId: AttributeIds.Value
+    });
     console.log(" value = ", dataValue2.toString());
 
     // step 4' : read a variable with read
@@ -87,7 +95,7 @@ async function main() {
     // install monitored item
     
     const itemToMonitor: ReadValueIdLike = {
-      nodeId: "ns=3;s=Scalar_Simulation_Float",
+      nodeId: "ns=1;s=free_memory",
       attributeId: AttributeIds.Value
     };
     const parameters: MonitoringParametersOptions = {
@@ -107,9 +115,6 @@ async function main() {
       console.log(" value has changed : ", dataValue.value.toString());
     });
     
-    async function timeout(ms: number) {
-      return new Promise(resolve => setTimeout(resolve, ms));
-    }
     await timeout(10000);
     
     console.log("now terminating subscription");

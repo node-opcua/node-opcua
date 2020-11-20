@@ -23,11 +23,16 @@ Now create and edit the sample file [sample_client_ts.ts](#overview-of-the-clien
 
 The script will be organised around the following four steps:
 
-    _"declaration"
 
-    _"client instantiation"
+```javascript
 
-    _"setting up a series of asynchronous operations"
+_"declaration"
+
+_"client instantiation"
+
+_"setting up a series of asynchronous operations"
+
+```
 
 ### declaration
 
@@ -71,21 +76,25 @@ const connectionStrategy = {
 Let's use un-secure connection by setting securityMode to None and securityPolicy to None.
 
 ```typescript
-const options = {
+const client = OPCUAClient.create({
   applicationName: "MyClient",
   connectionStrategy: connectionStrategy,
   securityMode: MessageSecurityMode.None,
   securityPolicy: SecurityPolicy.None,
   endpoint_must_exist: false
-};
-const client = OPCUAClient.create(options);
-const endpointUrl = "opc.tcp://opcuademo.sterfive.com:26543";
+});
+//const endpointUrl = "opc.tcp://opcuademo.sterfive.com:26543";
+const endpointUrl = "opc.tcp://" + require("os").hostname() + ":4334/UA/MyLittleServer";
+
 ```
 
 We'll setup a skeleton for the general schedule of the clients life-cycle with placeholders for the actual functions. The `async.series` function will execute all tasks in order of their definition, so we can assume the connection is established before creating a session for example. After all tasks are done the client will disconnect.
 _Note: read [this cookbook on async.series](http://www.sebastianseilund.com/nodejs-async-in-practice) if you do not know why it is a good idea to use this method._
 
 ```typescript
+
+_"utility function"
+
 async function main() {
   try {
     // step 1 : connect to
@@ -188,9 +197,10 @@ It is also possible to directly access a variables value with it's `nodeId` thro
 See the [SDK reference](https://node-opcua.github.io/api_doc/) for more simplified access functions.
 
 ```typescript
-const dataValue2 = await session.readVariableValue(
-  "ns=3;s=Scalar_Simulation_Double"
-);
+const dataValue2 = await session.read({
+  nodeId: "ns=1;s=free_memory",
+  attributeId: AttributeIds.Value
+});
 console.log(" value = ", dataValue2.toString());
 ```
 
@@ -212,7 +222,7 @@ console.log(" Product Name nodeId = ", productNameNodeId.toString());
 ### install a subscription
 
 OPC-UA allows for subscriptions to it's objects instead of polling for changes. You'll create a
-subscription from `the_session` with a parameter object. Next you'll define a Timeout for the
+subscription from `session` with a parameter object. Next you'll define a Timeout for the
 subscription to end and hook into several subscription events like `"started"`.
 When defining an actual monitor object you again use the `nodeId` as well as the `attributeId`
 you want to monitor. The monitor object again allows for hooks into it's event system.
@@ -244,7 +254,7 @@ subscription
 // install monitored item
 
 const itemToMonitor: ReadValueIdLike = {
-  nodeId: "ns=3;s=Scalar_Simulation_Float",
+  nodeId: "ns=1;s=free_memory",
   attributeId: AttributeIds.Value
 };
 const parameters: MonitoringParametersOptions = {
@@ -264,17 +274,22 @@ monitoredItem.on("changed", (dataValue: DataValue) => {
   console.log(" value has changed : ", dataValue.value.toString());
 });
 
-async function timeout(ms: number) {
-  return new Promise(resolve => setTimeout(resolve, ms));
-}
 await timeout(10000);
 
 console.log("now terminating subscription");
 await subscription.terminate();
 ```
 
+### utility function
+
+```javascript
+async function timeout(ms: number) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+```
 ## Run the Client
 
 ```sh
-    $ ts-node sample_client_ts.ts
+$ ts-node sample_client_ts.ts
 ```
+

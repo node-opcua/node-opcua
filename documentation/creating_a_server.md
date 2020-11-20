@@ -24,10 +24,10 @@ or under [Git Bash](http://msysgit.github.io/) cmd on Windows.
 Let's create a node project for our server.
 
 ``` shell
-    $ mkdir myserver
-    $ cd myserver
-    $ npm init                      # create a package.json
-    $ npm install node-opcua --save # add the node-opcua
+$ mkdir myserver
+$ cd myserver
+$ npm init                      # create a package.json
+$ npm install node-opcua --save # add the node-opcua
 ```
 
 
@@ -37,11 +37,18 @@ Now edit the [sample_server.js](#the-server-script "save:") script.
 
 The script will be organised around the following four steps:
 
-    _"declaration"
+```javascript
+_"declaration"
+
+
+(async ()=>{
 
     _"server instantiation"
-
     _"server initialisation"
+
+})();
+
+```
 
 Let visit each step in order:
 
@@ -51,7 +58,7 @@ The node-opcua sdk is made available to the application by this 'require' statem
 
 ```javascript
 /*global require,setInterval,console */
-const opcua = require("node-opcua");
+const { OPCUAServer, Variant, DataType, StatusCodes} = require("node-opcua");
 ```
 
 ### server instantiation
@@ -62,7 +69,7 @@ For a simple server, you just need to specify a TCP port.
 
 ```javascript
 // Let's create an instance of OPCUAServer
-const server = new opcua.OPCUAServer({
+const server = new OPCUAServer({
     port: 4334, // the port of the listening socket of the server
     resourcePath: "/UA/MyLittleServer", // this path will be added to the endpoint resource name
     _"setting server info"
@@ -81,7 +88,7 @@ Client will have to use this URN to connect to the server.
 additional information can be set at this stage such as the server *buildInfo*.
 
 ```javascript
- buildInfo : {
+buildInfo : {
     productName: "MySampleServer1",
     buildNumber: "7658",
     buildDate: new Date(2014,5,2)
@@ -97,11 +104,11 @@ when the initialization process is completed. the *callback* is function that co
 steps that we want to execute.
 
 ```javascript
-function post_initialize() {
-    console.log("initialized");
-    _"post initialisation"
-}
-server.initialize(post_initialize);
+await server.initialize();
+console.log("initialized");
+_"post initialisation"
+
+_"start the server"
 ```
 
 #### post initialisation
@@ -114,19 +121,15 @@ variables that we want to expose. This function will be called inside the initia
 The ```addressSpace``` is used to customize the objet model that our server will expose to the external world.
 
 ```javascript
-function construct_my_address_space(server) {
 
-    const addressSpace = server.engine.addressSpace;
-    const namespace = addressSpace.getOwnNamespace();
+const addressSpace = server.engine.addressSpace;
+const namespace = addressSpace.getOwnNamespace();
 
-    // declare a new object
-    _"add a new object into the objects folder"
+// declare a new object
+_"add a new object into the objects folder"
 
-    // add some variables
-    _"add some variables"
-}
-construct_my_address_space(server);
-_"start the server"
+// add some variables
+_"add some variables"
 ```
 
 
@@ -149,16 +152,14 @@ This function returns a Variant containing the value of the variable to scan.
 let variable1 = 1;
 
 // emulate variable1 changing every 500 ms
-setInterval(function(){  variable1+=1; }, 500);
+setInterval(() => {  variable1+=1; }, 500);
 
 namespace.addVariable({
     componentOf: device,
     browseName: "MyVariable1",
     dataType: "Double",
     value: {
-        get: function () {
-            return new opcua.Variant({dataType: opcua.DataType.Double, value: variable1 });
-        }
+        get:  () => new Variant({dataType: DataType.Double, value: variable1 })
     }
 });
 ```
@@ -183,12 +184,10 @@ namespace.addVariable({
     dataType: "Double",    
 
     value: {
-        get: function () {
-            return new opcua.Variant({dataType: opcua.DataType.Double, value: variable2 });
-        },
-        set: function (variant) {
+        get: () => new Variant({dataType: DataType.Double, value: variable2 }),
+        set: (variant) => {
             variable2 = parseFloat(variant.value);
-            return opcua.StatusCodes.Good;
+            return StatusCodes.Good;
         }
     }
 });
@@ -224,7 +223,7 @@ namespace.addVariable({
     browseName: "FreeMemory",
     dataType: "Double",    
     value: {
-        get: function () {return new opcua.Variant({dataType: opcua.DataType.Double, value: available_memory() });}
+        get:  () => new Variant({dataType: DataType.Double, value: available_memory() })
     }
 });
 ```

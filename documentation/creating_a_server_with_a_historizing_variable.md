@@ -21,14 +21,14 @@ function construct_address_space(server) {
   _"create historizing variable"
   _"adding historical configuration"
   _"simulating data"
-};
+}
 
 (async () => {
 
     try {
         _"creating and starting the server"
     } catch(err) {
-        console.log("Error = ", error);
+        console.log("Error = ", err);
     }
 })();
 ```
@@ -36,24 +36,28 @@ function construct_address_space(server) {
 ### creating and starting the server
 
 ```javascript
-        // Let's create an instance of OPCUAServer
-        const server = new opcua.OPCUAServer({
-            port: 26543, // the port of the listening socket of the server
-            resourcePath: "/UA/MyLittleServer", // this path will be added to the endpoint resource name
-            nodeset_filename: [
-                opcua.standard_nodeset_file,
-            ]
-        });
+// Let's create an instance of OPCUAServer
+const server = new opcua.OPCUAServer({
+    port: 26543, // the port of the listening socket of the server
+    resourcePath: "/UA/MyLittleServer", // this path will be added to the endpoint resource name
+    nodeset_filename: [
+        opcua.nodesets.standard,
+    ]
+});
 
-        await server.initialize();
+await server.initialize();
+console.log("certificateFile = ", server.certificateFile);
+console.log("privateKeyFile  = ", server.privateKeyFile);
+console.log("rejected folder = ",server.serverCertificateManager.rejectedFolder);
+console.log("trusted  folder = ",server.serverCertificateManager.trustedFolder);
 
-        construct_address_space(server);
+construct_address_space(server);
 
-        await server.start();
-        console.log("Server is now listening ... ( press CTRL+C to stop)");
-        console.log("port ", server.endpoints[0].port);
-        const endpointUrl = server.endpoints[0].endpointDescriptions()[0].endpointUrl;
-        console.log(" the primary server endpoint url is ", endpointUrl );
+await server.start();
+console.log("Server is now listening ... ( press CTRL+C to stop)");
+console.log("port ", server.endpoints[0].port);
+const endpointUrl = server.endpoints[0].endpointDescriptions()[0].endpointUrl;
+console.log(" the primary server endpoint url is ", endpointUrl );
 ```
 
 We add the code to create the variable inside the ```construct_address_space``` method.
@@ -116,7 +120,7 @@ setInterval(function() {
 
 ```
 
-### exploring the results with UAExpert:
+### exploring the results with UAExpert
 
 It is now time to launch your favorite OPCUA Client to check the results.
 
