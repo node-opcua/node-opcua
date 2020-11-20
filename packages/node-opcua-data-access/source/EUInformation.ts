@@ -19,12 +19,9 @@ const schemaEUInformation = EUInformation.schema;
 schemaEUInformation.fields[0].defaultValue = defaultUri;
 schemaEUInformation.fields[0].documentation =
     "Identifies the organization (company, standards organization) that defines the EUInformation.";
-schemaEUInformation.fields[1].documentation =
-    "Identifier for programmatic evaluation. −1 is used if a unitId is not available.";
-schemaEUInformation.fields[2].documentation =
-    "The displayName of the engineering  ( for instance 'm/s' )";
-schemaEUInformation.fields[3].documentation =
-    "Contains the full name of the engineering unit such as ”hour” or ”meter per second";
+schemaEUInformation.fields[1].documentation = "Identifier for programmatic evaluation. −1 is used if a unitId is not available.";
+schemaEUInformation.fields[2].documentation = "The displayName of the engineering  ( for instance 'm/s' )";
+schemaEUInformation.fields[3].documentation = "Contains the full name of the engineering unit such as ”hour” or ”meter per second";
 
 // The displayName of the engineering unit is typically the abbreviation of the
 // engineering unit, for example ”h” for hour or ”m/s” for meter per second." +
@@ -75,14 +72,52 @@ export function commonCodeToUInt(code: string): number {
 
 export function makeEUInformation(symbol: string, shortName: string, longName: string) {
     return new EUInformation({
-        description: {text: longName},
-        displayName: {text: shortName},
-        unitId: commonCodeToUInt(symbol),
+        description: { text: longName },
+        displayName: { text: shortName },
+        unitId: commonCodeToUInt(symbol)
     });
 }
 
+export interface StandardUnits {
+    ampere: EUInformation;
+    bar: EUInformation;
+    becquerel: EUInformation;
+    centimetre: EUInformation;
+    cubic_centimetre: EUInformation;
+    cubic_centimetre_per_second: EUInformation;
+    cubic_metre: EUInformation;
+    cubic_metre_per_hour: EUInformation;
+    curie: EUInformation;
+    curie_per_kilogram: EUInformation;
+    degree: EUInformation;
+    degree_celsius: EUInformation;
+    degree_fahrenheit: EUInformation;
+    dots_per_inch: EUInformation;
+    electron_volt: EUInformation;
+    farad: EUInformation;
+    gigabecquerel: EUInformation;
+    gram: EUInformation;
+    joule: EUInformation;
+    kelvin: EUInformation;
+    kilo_electron_volt: EUInformation;
+    kilobecquerel: EUInformation;
+    kilohertz: EUInformation;
+    mega_electron_volt: EUInformation;
+    megawatt: EUInformation;
+    metre: EUInformation;
+    microsecond: EUInformation;
+    millimetre: EUInformation;
+    millisecond: EUInformation;
+    newton: EUInformation;
+    percent: EUInformation;
+    pixel: EUInformation;
+    second: EUInformation;
+    volt: EUInformation;
+    watt: EUInformation;
+}
+
 // http://www.unece.org/fileadmin/DAM/cefact/recommendations/rec20/rec20_rev3_Annex2e.pdf
-export const standardUnits = {
+export const standardUnits: StandardUnits = {
     ampere: makeEUInformation("AMP", "A", "ampere"),
     bar: makeEUInformation("BAR", "bar", "bar [unit of pressure] = 1E5 Pa"),
     becquerel: makeEUInformation("BQL", "Bq", "becquerel = 27,027E-12 Ci"),
@@ -117,6 +152,6 @@ export const standardUnits = {
     pixel: makeEUInformation("E37", "", "pixel:  unit of count defining the number of pixels (pixel: picture element)"),
     second: makeEUInformation("SEC", "s", "second"),
     volt: makeEUInformation("VLT", "V", "Volt"),
-    watt: makeEUInformation("WTT", "W", "Watt"),
+    watt: makeEUInformation("WTT", "W", "Watt")
     // to be continued
 };
