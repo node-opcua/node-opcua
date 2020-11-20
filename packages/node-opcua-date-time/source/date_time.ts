@@ -4,7 +4,6 @@
 import * as long from "long";
 import { assert } from "node-opcua-assert";
 import hrtime = require("browser-process-hrtime");
-import { time } from "console";
 
 export interface DateWithPicoseconds extends Date {
     picoseconds: number;
