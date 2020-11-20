@@ -292,6 +292,7 @@ fetch_from_github(version, "Robotics/Opc.Ua.Robotics.NodeSet2.xml");
 fetch_from_github(version, "CNC/Opc.Ua.CNC.NodeSet.xml");
 fetch_from_github(version, "MachineVision/Opc.Ua.MachineVision.NodeSet2.xml");
 fetch_from_github(version, "Robotics/Opc.Ua.Robotics.NodeSet2.xml");
+fetch_from_github(version, "MachineTool/Opc.Ua.MachineTool.NodeSet2.xml");
 
 // 
 fetch_from_github(version, "PlasticsRubber/Extrusion/Pelletizer/1.0/Opc.Ua.PlasticsRubber.Extrusion.Pelletizer.NodeSet2.xml");
