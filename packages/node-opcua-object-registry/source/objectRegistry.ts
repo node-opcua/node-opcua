@@ -55,18 +55,21 @@ export class ObjectRegistry {
         const className = this.getClassName();
         let str = " className :" + className + " found => " + this.count() + " object leaking\n";
 
-        Object.values(this._cache).forEach((obj: any /*,key*/) => {
+        for (const obj of Object.values(this._cache) as any[]) {
             str += obj.constructor.name + " " + obj.toString() + "\n";
-        });
+        }
 
         if (ObjectRegistry.doDebug) {
-            Object.values(this._cache).forEach((obj: any, key) => {
-                const cachedObject = this._cache[key];
-                if (!cachedObject) return;
+            for (const [key, cachedObject] of Object.entries(this._cache) as any[]) {
                 assert(cachedObject.hasOwnProperty("_____trace"));
                 str += "   " + key + cachedObject._____trace + "\n";
-            });
+            }
         }
         return str;
     }
+}
+
+ObjectRegistry.doDebug = process?.env?.NODEOPCUA_REGISTRY?.match(/DEBUG/) ? true : false;
+if (ObjectRegistry.doDebug) {
+    console.log("ObjectRegistry.doDebug = ", ObjectRegistry.doDebug);
 }

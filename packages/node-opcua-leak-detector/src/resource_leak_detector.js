@@ -1,14 +1,12 @@
 "use strict";
 Error.stackTraceLimit = Infinity;
 
+const chalk = require("chalk");
 const { assert } = require("node-opcua-assert");
-const { isFunction } = require("util");
 
-const ObjectRegistry = require("node-opcua-object-registry").ObjectRegistry;
-ObjectRegistry.doDebug = false;
+const { ObjectRegistry } = require("node-opcua-object-registry");
 const trace = false;
 
-//trace = true;
 
 function get_stack() {
     const stack = (new Error("Stack Trace recording")).stack.split("\n");
@@ -62,42 +60,53 @@ ResourceLeakDetector.prototype.verify_registry_counts = function(info) {
 
     const monitoredResource = ObjectRegistry.registries;
 
+    let totalLeak = 0;
     for (let i = 0; i < monitoredResource.length; i++) {
         const res = monitoredResource[i];
         if (res.count() !== 0) {
-            errorMessages.push(" some Resource have not been properly terminated: " + res.toString());
+            errorMessages.push(chalk.cyan(" some Resource have not been properly terminated: \n"));
+            errorMessages.push(" " + res.toString());
         }
+        totalLeak += res.count();
     }
 
     if (errorMessages.length) {
 
         if (!info.silent) {
 
-            //xx        if (info) {
-            //xx            console.log(" TRACE : ", info);
-            //xx        }
-            console.log(errorMessages.join("\n"));
+            console.log(chalk.bgWhite.red("+----------------------------------------------------------------------------------------+"));
+            console.log(chalk.bgWhite.red("|                         RESOURCE LEAK DETECTED !!!                                     |"));
+            console.log(chalk.bgWhite.red("+----------------------------------------------------------------------------------------+"));
+
             console.log("----------------------------------------------- more info");
 
-            console.log("||||||||||||||||||||||||||||||||||||||||||||||||||||||||||    setInterval/clearInterval");
+            console.log(chalk.cyan("test filename                    : "), self.ctx ? self.ctx.test.parent.file + "  " + self.ctx.test.parent.title : "???");
+            console.log(chalk.cyan("setInterval/clearInterval leaks  : "), Object.entries(self.interval_map).length);
             for (const [key, value] of Object.entries(self.interval_map)) {
                 if (value && !value.disposed) {
                     console.log("key =", key, "value.disposed = ", value.disposed);
                     console.log(value.stack);//.split("\n"));
                 }
             }
-
-
-            console.log("||||||||||||||||||||||||||||||||||||||||||||||||||||||||||    setTimeout/clearTimeout");
+            console.log(chalk.cyan("setTimeout/clearTimeout leaks    : "), Object.entries(self.timeout_map).length);
             for (const [key, value] of Object.entries(self.timeout_map)) {
                 if (value && !value.disposed) {
                     console.log("setTimeout key =", key, "value.disposed = ", value.disposed);
                     console.log(value.stack);//.split("\n"));
                 }
             }
+            console.log(chalk.cyan("object leaks                     : "), totalLeak);
+            for (const resource of Object.values(monitoredResource)) {
+                if (resource.count() !== 0) {
+                    console.log("   ", chalk.yellow(resource.getClassName()).padEnd(38), ":", resource.count());
+                }
+            }
+
+            console.log(errorMessages.join("\n"));
 
 
-            console.log("LEAKS in  => ", self.ctx ? self.ctx.test.parent.file + "  " + self.ctx.test.parent.title : "???");
+            console.log("you can get trace information if you set NODEOPCUA_REGISTRY=DEBUG and rerun")
+            //
             throw new Error("LEAKS !!!" + errorMessages.join("\n"));
         }
     }
@@ -246,7 +255,7 @@ ResourceLeakDetector.prototype.start = function(info) {
             stack = get_stack();
         }
         catch (err) {
-
+            /**  */
         }
         self.interval_map[key] = {
             intervalId: intervalId,
@@ -272,7 +281,6 @@ ResourceLeakDetector.prototype.start = function(info) {
             console.log("clearInterval " + intervalId, get_stack());
         }
         const key = intervalId;
-        assert(self.interval_map.hasOwnProperty(key));
 
         const data = self.interval_map[key];
 
@@ -301,7 +309,7 @@ ResourceLeakDetector.prototype.stop = function(info) {
     if (trace) {
         console.log(" stop resourceLeakDetector");
     }
-    assert(isFunction(self.setInterval_old), " did you forget to call resourceLeakDetector.start() ?");
+    assert(typeof self.setInterval_old === "function", " did you forget to call resourceLeakDetector.start() ?");
 
     global.setInterval = self.setInterval_old;
     self.setInterval_old = null;
@@ -323,7 +331,7 @@ ResourceLeakDetector.prototype.stop = function(info) {
 
 
     // call garbage collector
-    if (isFunction(global.gc)) {
+    if (typeof global.gc === "function") {
         global.gc(true);
     }
 
@@ -429,20 +437,20 @@ function replacement_it(testName, f) {
         return r;
     }
     global_it(testName, ff);
-};
-assert(isFunction(global_describe), " expecting mocha to be defined");
+}
+assert(typeof global_describe === "function", " expecting mocha to be defined");
 
 
-let g_indescribeWithLeakDetector = false;
+let g_inDescribeWithLeakDetector = false;
 exports.describeWithLeakDetector = function(message, func) {
-    if (g_indescribeWithLeakDetector) {
+    if (g_inDescribeWithLeakDetector) {
         return global_describe(message, func);
     }
-    g_indescribeWithLeakDetector = true;
+    g_inDescribeWithLeakDetector = true;
     global.it = replacement_it;
     global_describe.call(this, message, function() {
         exports.installResourceLeakDetector.call(this, true, func);
-        g_indescribeWithLeakDetector = false;
+        g_inDescribeWithLeakDetector = false;
         global.it = global_it;
     });
 };
