@@ -447,7 +447,12 @@ export class AddressSpace implements AddressSpacePrivate {
         }
         /* istanbul ignore next */
         if (!(dataTypeNode instanceof UADataType)) {
-            throw new Error("Expecting a UADataType" + _orig_dataTypeNode.toString());
+            throw new Error(
+                "we are expecting an UADataType here :  " +
+                    _orig_dataTypeNode.toString() +
+                    " should not refer to a  " +
+                    dataTypeNode.constructor.name
+            );
         }
         dataTypeNode = dataTypeNode as UADataType;
 
