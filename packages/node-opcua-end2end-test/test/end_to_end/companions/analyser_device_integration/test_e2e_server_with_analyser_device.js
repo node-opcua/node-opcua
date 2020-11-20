@@ -3,7 +3,7 @@ const should = require("should");
 const async = require("async");
 
 const opcua = require("node-opcua");
-const { OPCUAClient, makeResultMask } = opcua;
+const { OPCUAClient, makeResultMask, BrowseDescription, BrowseDirection } = opcua;
 
 const { UAProxyManager, makeRefId } = require("node-opcua-client-proxy");
 
@@ -268,7 +268,7 @@ describe("ADI - Testing a server that exposes Analyser Devices", function() {
 
         const resultMask = makeResultMask("ReferenceType | IsForward | BrowseName | NodeClass | TypeDefinition");
 
-        const bd = new opcua.BrowseDescription({
+        const bd = new BrowseDescription({
             nodeId: stateMachineType.nodeId,
             browseDirection: BrowseDirection.Forward,
             referenceTypeId: makeRefId("HasComponent"),
