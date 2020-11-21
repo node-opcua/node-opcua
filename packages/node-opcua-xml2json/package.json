@@ -1,6 +1,6 @@
 {
   "name": "node-opcua-xml2json",
-  "version": "2.26.0",
+  "version": "2.27.0",
   "description": "pure nodejs OPCUA SDK - module -xml2json",
   "main": "dist/source/index.js",
   "type": "dist/source/index.d.ts",
@@ -20,7 +20,7 @@
   "author": "Etienne Rossignon",
   "license": "MIT",
   "devDependencies": {
-    "node-opcua-nodesets": "2.26.0",
+    "node-opcua-nodesets": "2.27.0",
     "should": "^13.2.3"
   },
   "repository": {
