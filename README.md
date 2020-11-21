@@ -6,7 +6,7 @@ an implementation of a OPC UA stack fully written in javascript and nodejs
 
 [![NPM download](https://img.shields.io/npm/dm/node-opcua.svg)](http://www.npm-stats.com/~packages/node-opcua)
 [![NPM version](https://badge.fury.io/js/node-opcua.png)](http://badge.fury.io/js/node-opcua)
-[![Build Status](https://travis-ci.org/node-opcua/node-opcua.png?branch=master)](https://travis-ci.org/node-opcua/node-opcua)
+[![Build Status](https://travis-ci.com/node-opcua/node-opcua.png?branch=master)](https://travis-ci.com/node-opcua/node-opcua)
 [![Build status](https://ci.appveyor.com/api/projects/status/8sgtm3n15aii98oc/branch/master?svg=true)](https://ci.appveyor.com/project/erossignon/node-opcua/branch/master)
 [![HitCount](http://hits.dwyl.io/node-opcua/node-opcua.svg)](http://hits.dwyl.io/node-opcua/node-opcua)
 [![lerna](https://img.shields.io/badge/maintained%20with-lerna-cc00ff.svg)](https://lernajs.io/)
@@ -17,6 +17,9 @@ an implementation of a OPC UA stack fully written in javascript and nodejs
 
 [![OPC UA](http://b.repl.ca/v1/OPC-UA-blue.png)](http://opcfoundation.org/)
 [![Gitter chat](https://badges.gitter.im/node-opcua/node-opcua.png)](https://gitter.im/node-opcua/node-opcua)
+
+
+[![The Book](https://img.shields.io/static/v1?label=the%20book&message=NodeOPCUA%20by%20example&color=blueviolet&logo=leanpub)](https://leanpub.com/node-opcuabyexample)
 
 [Node-opcua](http://node-opcua.github.io/) is an full OPC-UA stack written in NodeJS.
 
@@ -94,20 +97,27 @@ Because nodeJs is a great framework to design asynchronous application.
     $ npm install
     $ npm test
 
-## Supporting the project
+
+
+## Getting professional support
+
+To get professional support,  please contact [sterfive](https://www.sterfive.com)
+
+[![Professional Support](https://img.shields.io/static/v1?style=for-the-badge&label=Professional&message=Support&labelColor=blue&color=green&logo=data:image/svg%2bxml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbG5zOnhsaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIiB2ZXJzaW9uPSIxLjEiIGlkPSJMYXllcl8xIiB4PSIwcHgiIHk9IjBweCIgdmlld0JveD0iMCAwIDQ5MS41MiA0OTEuNTIiIHN0eWxlPSJlbmFibGUtYmFja2dyb3VuZDpuZXcgMCAwIDQ5MS41MiA0OTEuNTI7IiB4bWw6c3BhY2U9InByZXNlcnZlIj4NCjxnPg0KCTxnPg0KCQk8cGF0aCBkPSJNNDg3Ljk4OSwzODkuNzU1bC05My4xMDktOTIuOTc2Yy00LjgxMy00LjgwNi0xMi42NDItNC42NzQtMTcuMjczLDAuMzA3Yy03LjE0OCw3LjY4OS0xNC42NCwxNS41NTQtMjEuNzMsMjIuNjM0ICAgIGMtMC4yNzEsMC4yNy0wLjUwMSwwLjQ5My0wLjc2MywwLjc1NUw0NjcuMyw0MzIuNTA0YzguOTEtMTAuNjE0LDE2LjY1Ny0yMC40MSwyMS43My0yNi45NyAgICBDNDkyLjcyLDQwMC43NjIsNDkyLjI1NywzOTQuMDE5LDQ4Ny45ODksMzg5Ljc1NXoiLz4NCgk8L2c+DQo8L2c+DQo8Zz4NCgk8Zz4NCgkJPHBhdGggZD0iTTMzNC4zLDMzNy42NjFjLTM0LjMwNCwxMS4zNzktNzcuNTYsMC40MTMtMTE0LjU1NC0yOS41NDJjLTQ5LjAyMS0zOS42OTMtNzUuOTcyLTEwMi42NDItNjUuODM4LTE1MC41OTNMMzcuNjM0LDQxLjQxOCAgICBDMTcuNjUzLDU5LjQyNCwwLDc4LjU0NSwwLDkwYzAsMTQxLjc1MSwyNjAuMzQ0LDQxNS44OTYsNDAxLjUwMyw0MDAuOTMxYzExLjI5Ni0xLjE5OCwzMC4xNzYtMTguNjUxLDQ4LjA2Mi0zOC4xNjdMMzM0LjMsMzM3LjY2MSAgICB6Ii8+DQoJPC9nPg0KPC9nPg0KPGc+DQoJPGc+DQoJCTxwYXRoIGQ9Ik0xOTMuODU0LDk2LjA0MUwxMDEuMjEzLDMuNTNjLTQuMjI1LTQuMjItMTAuODgyLTQuNzI0LTE1LjY2NC0xLjE0NWMtNi42NTQsNC45ODMtMTYuNjQ4LDEyLjY1MS0yNy40NTMsMjEuNDk4ICAgIGwxMTEuOTQ1LDExMS43ODVjMC4wNjEtMC4wNiwwLjExMS0wLjExMywwLjE3Mi0wLjE3NGM3LjIzOC03LjIyOCwxNS4zNTUtMTQuODg1LDIzLjI5MS0yMi4xNjcgICAgQzE5OC41MzQsMTA4LjcxMywxOTguNjg0LDEwMC44NjMsMTkzLjg1NCw5Ni4wNDF6Ii8+DQoJPC9nPg0KPC9nPg0KPGc+DQo8L2c+DQo8Zz4NCjwvZz4NCjxnPg0KPC9nPg0KPGc+DQo8L2c+DQo8Zz4NCjwvZz4NCjxnPg0KPC9nPg0KPGc+DQo8L2c+DQo8Zz4NCjwvZz4NCjxnPg0KPC9nPg0KPGc+DQo8L2c+DQo8Zz4NCjwvZz4NCjxnPg0KPC9nPg0KPGc+DQo8L2c+DQo8Zz4NCjwvZz4NCjxnPg0KPC9nPg0KPC9zdmc+)](https://www.sterfive.com/#/contact)
+
+
+
+ ## Supporting the project
 
 If you like the project, please consider [sponsoring the author :beer: :tada: ](https://github.com/sponsors/erossignon), 
-
 This will give us full of motivation to carry on and keep working on the roadmap.
 
 [![NPM](https://nodei.co/npm/node-opcua.png?downloads=true&stars=true)](https://nodei.co/npm/node-opcua/)
 
 [![Project Stats](https://www.openhub.net/p/713850/widgets/project_thin_badge.gif)](https://www.openhub.net/p/node-opcua)
 
-## Getting commercial support
 
-To get commercial support,  please contact [sterfive](https://www.sterfive.com)
-               
+
 ## Supported Features
 
 
@@ -172,13 +182,13 @@ To get commercial support,  please contact [sterfive](https://www.sterfive.com)
 | __**Security Policies**__              |                          |                    |
 | **Policy**                             | **Status**               | **Comment**        |
 | None                                   | :white_check_mark:       |                    |               
-| Basic128Rsa15                          | :white_check_mark:       |                    |               
-| Basic256                               | :white_check_mark:       |                    |               
+| Basic128Rsa15                          | :white_check_mark:       | deprecated in 1.04 |               
+| Basic256                               | :white_check_mark:       | deprecated in 1.04 |               
 | Basic256Sha256                         | :white_check_mark:       |                    |               
 | **Authentication**                     | **Status**               | **Comment**        |
 | Anonymous                              |:white_check_mark:        |                    |
 | User Name Password                     |:white_check_mark:        |                    |
-| X509 Certificate                       |:white_check_mark:        | in version 2.0.x (sponsored)  |
+| X509 Certificate                       |:white_check_mark:        |                    |
 | __**client facets**__                  |                          |                    |
 | Base Client Behaviour                  |:white_check_mark:       | |
 | AddressSpace Lookup                    |:white_check_mark:       | |
@@ -206,7 +216,7 @@ To get commercial support,  please contact [sterfive](https://www.sterfive.com)
 | Redundancy Visible Server              | :new_moon:              |Sponsors wanted |
 | Node Management Server                 | :new_moon:              |Sponsors wanted |
 | Auditing Server                        | :first_quarter_moon:   | |
-| Complex Type Server                    | :first_quarter_moon:                        |Sponsors wanted |
+| Complex Type Server                    | :white_check_mark:                        |(sponsored) |
 | Session Diagnostics                    |  :white_check_mark:                         | (sponsored)|
 | Subscription Diagnostics               |  :white_check_mark:                         | (sponsored)|
 | Alarms & Conditions                    |  :white_check_mark:                         | (sponsored)|
