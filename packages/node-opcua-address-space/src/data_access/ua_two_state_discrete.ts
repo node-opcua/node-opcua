@@ -1,10 +1,17 @@
 import assert from "node-opcua-assert";
 import { coerceLocalizedText, LocalizedText, LocalizedTextLike } from "node-opcua-data-model";
-import { DataType, Variant } from "node-opcua-variant";
+import { DataType, Variant, VariantLike } from "node-opcua-variant";
 import { UATwoStateDiscrete as UATwoStateDiscretePublic } from "../../source/interfaces/data_access/ua_two_state_discrete";
 import { UAVariable } from "../ua_variable";
 
-import { AddTwoStateDiscreteOptions, Namespace, Property, UAVariable as UAVariablePublic, UAVariableT } from "../../source/address_space_ts";
+import {
+    AddTwoStateDiscreteOptions,
+    Namespace,
+    Property,
+    UAVariable as UAVariablePublic,
+    UAVariableT,
+    BindVariableOptions
+} from "../../source/address_space_ts";
 import { VariableTypeIds } from "node-opcua-constants";
 import { registerNodePromoter } from "../../source/loader/register_node_promoter";
 import { add_dataItem_stuff } from "./ua_data_item";
@@ -84,6 +91,12 @@ export function _addTwoStateDiscrete(namespace: Namespace, options: AddTwoStateD
         throw new Error("expecting TwoStateDiscreteType to be defined , check nodeset xml file");
     }
 
+    let value: undefined | VariantLike | BindVariableOptions;
+    if (typeof options.value === "boolean") {
+        value = new Variant({ dataType: DataType.Boolean, value: !!options.value });
+    } else {
+        value = options.value;
+    }
     // todo : if options.typeDefinition is specified,
     // todo : refactor to use twoStateDiscreteType.instantiate
 
@@ -97,12 +110,13 @@ export function _addTwoStateDiscrete(namespace: Namespace, options: AddTwoStateD
         userAccessLevel: options.userAccessLevel,
         modellingRule: options.modellingRule,
         minimumSamplingInterval: options.minimumSamplingInterval,
-        value: new Variant({ dataType: DataType.Boolean, value: !!options.value })
+        value
     }) as UAVariable;
 
+    /*
     const dataValueVerif = variable.readValue();
     assert(dataValueVerif.value.dataType === DataType.Boolean);
-
+    */
     const handler = variable.handle_semantic_changed.bind(variable);
 
     add_dataItem_stuff(variable, options);
@@ -114,7 +128,6 @@ export function _addTwoStateDiscrete(namespace: Namespace, options: AddTwoStateD
         propertyOf: variable,
         typeDefinition: "PropertyType",
         modellingRule: options.modellingRule ? "Mandatory" : undefined,
-
         value: new Variant({
             dataType: DataType.LocalizedText,
             value: coerceLocalizedText(options.trueState || "ON")
