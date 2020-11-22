@@ -1,6 +1,6 @@
 {
     "name": "node-opcua-service-browse",
-    "version": "2.27.0",
+    "version": "2.27.1",
     "description": "pure nodejs OPCUA SDK - module -service-browse",
     "scripts": {
         "build": "tsc -b",
@@ -11,21 +11,21 @@
     "type": "./dist/index.d.ts",
     "dependencies": {
         "node-opcua-assert": "2.22.0",
-        "node-opcua-basic-types": "2.27.0",
+        "node-opcua-basic-types": "2.27.1",
         "node-opcua-binary-stream": "2.27.0",
-        "node-opcua-data-model": "2.27.0",
-        "node-opcua-factory": "2.27.0",
+        "node-opcua-data-model": "2.27.1",
+        "node-opcua-factory": "2.27.1",
         "node-opcua-nodeid": "2.22.0",
-        "node-opcua-service-secure-channel": "2.27.0",
-        "node-opcua-types": "2.27.0"
+        "node-opcua-service-secure-channel": "2.27.1",
+        "node-opcua-types": "2.27.1"
     },
     "devDependencies": {
         "node-opcua-date-time": "2.27.0",
         "node-opcua-debug": "2.22.0",
-        "node-opcua-generator": "2.27.0",
-        "node-opcua-packet-analyzer": "2.27.0",
+        "node-opcua-generator": "2.27.1",
+        "node-opcua-packet-analyzer": "2.27.1",
         "node-opcua-status-code": "2.27.0",
-        "node-opcua-variant": "2.27.0",
+        "node-opcua-variant": "2.27.1",
         "should": "^13.2.3"
     },
     "author": "Etienne Rossignon",
