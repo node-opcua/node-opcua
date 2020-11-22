@@ -2,9 +2,7 @@
  * @module node-opcua-server
  */
 import { assert } from "node-opcua-assert";
-import {
-    checkDebugFlag, make_debugLog
-} from "node-opcua-debug";
+import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 import hrtime = require("browser-process-hrtime");
 
 const debugLog = make_debugLog(__filename);
@@ -13,7 +11,7 @@ const doDebug = checkDebugFlag(__filename);
 import { MonitoredItem } from "./monitored_item";
 
 const timers: any = {};
-const NS_PER_SEC = 1E9;
+const NS_PER_SEC = 1e9;
 
 function sampleMonitoredItem(monitoredItem: MonitoredItem) {
     const _monitoredItem = monitoredItem;
@@ -23,13 +21,11 @@ function sampleMonitoredItem(monitoredItem: MonitoredItem) {
 }
 
 export function appendToTimer(monitoredItem: MonitoredItem): string {
-
     const samplingInterval = monitoredItem.samplingInterval;
     const key = samplingInterval.toString();
     assert(samplingInterval > 0);
     let _t = timers[key];
     if (!_t) {
-
         _t = {
             _samplingId: false,
             monitoredItems: {},
@@ -37,7 +33,6 @@ export function appendToTimer(monitoredItem: MonitoredItem): string {
         };
 
         _t._samplingId = setInterval(() => {
-
             const start = doDebug ? hrtime() : undefined;
             let counter = 0;
             for (const m in _t.monitoredItems) {
@@ -48,7 +43,13 @@ export function appendToTimer(monitoredItem: MonitoredItem): string {
             }
             if (doDebug) {
                 const elapsed = hrtime(start);
-                debugLog(`Sampler ${samplingInterval}  ms : Benchmark took ${((elapsed[0] * NS_PER_SEC + elapsed[1]) / 1000 / 1000.0).toFixed(3)} milliseconds for ${counter} elements`);
+                debugLog(
+                    `Sampler ${samplingInterval}  ms : Benchmark took ${(
+                        (elapsed[0] * NS_PER_SEC + elapsed[1]) /
+                        1000 /
+                        1000.0
+                    ).toFixed(3)} milliseconds for ${counter} elements`
+                );
             }
         }, samplingInterval);
         timers[key] = _t;
@@ -60,7 +61,6 @@ export function appendToTimer(monitoredItem: MonitoredItem): string {
 }
 
 export function removeFromTimer(monitoredItem: MonitoredItem) {
-
     const samplingInterval = monitoredItem.samplingInterval;
     assert(samplingInterval > 0);
     assert(typeof monitoredItem._samplingId === "string");

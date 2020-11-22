@@ -71,7 +71,7 @@ const doPerfMonitoring = process.env.NODEOPCUADEBUG && process.env.NODEOPCUADEBU
 const dumpSecurityHeader = process.env.NODEOPCUADEBUG && process.env.NODEOPCUADEBUG.indexOf("SECURITY") >= 0;
 
 import { ICertificateKeyPairProvider, Request, Response } from "../common";
-import async = require("async");
+import * as async from "async";
 
 export const requestHandleNotSetValue = 0xdeadbeef;
 
