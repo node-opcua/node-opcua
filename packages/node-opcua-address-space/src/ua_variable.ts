@@ -457,6 +457,7 @@ export class UAVariable extends BaseNode implements UAVariablePublic {
 
     public asyncRefresh(...args: any[]): any {
         const oldestDate = args[0] as Date;
+        assert(oldestDate instanceof Date);
         const callback = args[1] as DataValueCallback;
 
         if (!this.refreshFunc) {
@@ -1015,13 +1016,10 @@ export class UAVariable extends BaseNode implements UAVariablePublic {
 
     /**
      * @method readValueAsync
-     * @param context
-     * @param callback
-     * @param callback.err
-     * @param callback.dataValue
-     * @async
      */
-    public readValueAsync(context?: SessionContext | null, callback?: any): any {
+    public readValueAsync(context: SessionContext | null, callback: CallbackT<DataValue>): void;
+    public readValueAsync(context: SessionContext | null): Promise<DataValue>;
+    public readValueAsync(context: SessionContext | null, callback?: any): any {
         if (!context) {
             context = SessionContext.defaultContext;
         }

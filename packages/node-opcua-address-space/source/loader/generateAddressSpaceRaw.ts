@@ -1,4 +1,4 @@
-import async = require("async");
+import * as async from "async";
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 import { CallbackT, ErrorCallback } from "node-opcua-status-code";
 import { AddressSpace } from "../../src/address_space";

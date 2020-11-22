@@ -16,7 +16,8 @@ import {
     UAVariable,
     UAVariableT,
     UAVariableType,
-    UAVariableTypeT
+    UAVariableTypeT,
+    BaseNode
 } from "../../address_space_ts";
 import { _UAStateVariable } from "./ua_state_variable";
 

@@ -3,18 +3,20 @@
  */
 import { assert } from "node-opcua-assert";
 
-import { BrowseDirection, coerceLocalizedText, LocalizedText } from "node-opcua-data-model";
-import { DataValue, DataValueT } from "node-opcua-data-value";
-import { resolveNodeId } from "node-opcua-nodeid";
+import { VariableTypeIds } from "node-opcua-constants";
+import { BrowseDirection, coerceLocalizedText, LocalizedText, LocalizedTextLike } from "node-opcua-data-model";
+import { DataValueT } from "node-opcua-data-value";
+import { NodeId, resolveNodeId } from "node-opcua-nodeid";
 import { sameNodeId } from "node-opcua-nodeid";
 import { StatusCodes } from "node-opcua-status-code";
-import { Variant, VariantT } from "node-opcua-variant";
+import { Variant, VariantLike, VariantT } from "node-opcua-variant";
 import { DataType } from "node-opcua-variant";
 
 // public interfaces
 import {
     AddTwoStateVariableOptions,
     BaseNode as BaseNodePublic,
+    BindVariableOptions,
     Namespace,
     UAVariable as UAVariablePublic,
     UAVariableT
@@ -28,8 +30,8 @@ import {
 import { BaseNode } from "../base_node";
 import { Reference } from "../reference";
 import { UAVariable } from "../ua_variable";
-import { VariableIds, VariableTypeIds } from "node-opcua-constants";
 import { registerNodePromoter } from "../../source/loader/register_node_promoter";
+import { option } from "yargs";
 
 const hasTrueSubState_ReferenceTypeNodeId = resolveNodeId("HasTrueSubState");
 const hasFalseSubState_ReferenceTypeNodeId = resolveNodeId("HasFalseSubState");
@@ -127,14 +129,16 @@ function _getHumanReadableString(node: UATwoStateVariable): DataValueT<Localized
     return dataValue2 as DataValueT<LocalizedText, DataType.LocalizedText>;
 }
 
-export function _install_TwoStateVariable_machinery(node: UAVariablePublic, options: any): UATwoStateVariable {
+export function _install_TwoStateVariable_machinery(
+    node: UAVariablePublic,
+    options: TwoStateVariableInitializeOptions
+): UATwoStateVariable {
     assert(node.dataTypeObj.browseName.toString() === "LocalizedText");
     assert(node.minimumSamplingInterval === 0);
     assert(node.typeDefinitionObj.browseName.toString() === "TwoStateVariableType");
     assert(node.dataTypeObj.browseName.toString() === "LocalizedText");
     assert(node.hasOwnProperty("valueRank") && (node.valueRank === -1 || node.valueRank === 0));
 
-    options = options || {};
     // promote node into a UATwoStateVariable
     const _node = promoteToTwoStateVariable(node);
     (node as UATwoStateVariable).initialize(options);
@@ -166,6 +170,14 @@ export interface UATwoStateVariable {
 
     // references
 }
+export interface TwoStateVariableInitializeOptions {
+    trueState?: LocalizedTextLike;
+    falseState?: LocalizedTextLike;
+    isFalseSubStateOf?: NodeId | string | BaseNodePublic;
+    isTrueSubStateOf?: NodeId | string | BaseNodePublic;
+
+    value?: boolean | VariantLike | BindVariableOptions;
+}
 /***
  * @class UATwoStateVariable
  * @constructor
@@ -186,11 +198,11 @@ export class UATwoStateVariable extends UAVariable implements UAStateVariablePub
         return super.isTrueSubStateOf as UAStateVariablePublic;
     }
 
-    public initialize(options: any) {
+    public initialize(options: TwoStateVariableInitializeOptions) {
         const node = this;
 
         if (options.trueState) {
-            assert(options.falseState);
+            assert(!!options.falseState);
             assert(typeof options.trueState === "string");
             assert(typeof options.falseState === "string");
 
@@ -200,7 +212,7 @@ export class UATwoStateVariable extends UAVariable implements UAStateVariablePub
                     value: coerceLocalizedText(options.falseState)
                 });
             } else {
-                node._trueState = options.trueState;
+                node._trueState = coerceLocalizedText(options.trueState)!.text!;
             }
             if (node.trueState) {
                 node.trueState.setValueFromSource({
@@ -208,17 +220,9 @@ export class UATwoStateVariable extends UAVariable implements UAStateVariablePub
                     value: coerceLocalizedText(options.trueState)
                 });
             } else {
-                node._falseState = options.falseState;
+                node._falseState = coerceLocalizedText(options.falseState)!.text!;
             }
         }
-
-        node.id.setValueFromSource(
-            {
-                dataType: "Boolean",
-                value: false
-            },
-            StatusCodes.UncertainInitialValue
-        );
 
         // handle isTrueSubStateOf
         if (options.isTrueSubStateOf) {
@@ -237,6 +241,28 @@ export class UATwoStateVariable extends UAVariable implements UAStateVariablePub
             });
         }
 
+        if (options.value === undefined) {
+            node.id.setValueFromSource(
+                {
+                    dataType: "Boolean",
+                    value: false
+                },
+                StatusCodes.UncertainInitialValue
+            );
+        } else if (typeof options.value === "boolean") {
+            node.id.setValueFromSource(
+                {
+                    dataType: "Boolean",
+                    value: options.value
+                },
+                StatusCodes.Good
+            );
+        } else if (options.value.hasOwnProperty("dataType")) {
+            assert((options.value as VariantLike).dataType === DataType.Boolean);
+            node.id.setValueFromSource(options.value as VariantLike, StatusCodes.Good);
+        } else {
+            node.id.bindVariable(options.value);
+        }
         this._postInitialize();
     }
 

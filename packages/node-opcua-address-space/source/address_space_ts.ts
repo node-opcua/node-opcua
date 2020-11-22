@@ -1228,13 +1228,15 @@ export type AddTwoStateVariableOptionals =
     | "EffectiveTransitionTime"
     | "TrueState"
     | "FalseState";
+
 export interface AddTwoStateVariableOptions extends AddStateVariableOptions {
     falseState?: LocalizedTextLike;
     trueState?: LocalizedTextLike;
     optionals?: AddTwoStateVariableOptionals[];
-    isFalseSubStateOf?: NodeIdLike | BaseNode;
-    isTrueSubStateOf?: NodeIdLike | BaseNode;
-    value?: boolean;
+    isFalseSubStateOf?: NodeId | string | BaseNode;
+    isTrueSubStateOf?: NodeId | string | BaseNode;
+
+    value?: boolean | VariantLike | BindVariableOptions;
 }
 
 // BaseVariableType => BaseDataVariableType => DataItemType => DiscreteItemType => TwoStateDiscreteType
@@ -1244,7 +1246,11 @@ export interface AddTwoStateDiscreteOptions extends AddVariableOptionsWithoutVal
     optionals?: string[];
     isFalseSubStateOf?: NodeIdLike | BaseNode;
     isTrueSubStateOf?: NodeIdLike | BaseNode;
-    value?: boolean;
+
+    value?: boolean | VariantLike | BindVariableOptions;
+
+    /** @example  "" */
+    definition?: string;
 }
 
 export interface CreateDataTypeOptions extends AddBaseNodeOptions {

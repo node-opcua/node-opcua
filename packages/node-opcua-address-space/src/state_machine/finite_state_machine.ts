@@ -214,12 +214,12 @@ export class StateMachine extends UAObject implements StateMachine {
     ): Transition | null {
         const addressSpace = this.addressSpace;
 
-        const _fromStateNode = this._coerceNode(fromStateNode) as State | null;
+        const _fromStateNode = this._coerceNode(fromStateNode);
         if (!_fromStateNode) {
             return null;
         }
 
-        const _toStateNode = this._coerceNode(toStateNode) as State | null;
+        const _toStateNode = this._coerceNode(toStateNode);
         if (!_toStateNode) {
             return null;
         }
@@ -246,7 +246,11 @@ export class StateMachine extends UAObject implements StateMachine {
         }
         // istanbul ignore next
         if (transitions.length > 1) {
-            const selectedTransition = (predicate || defaultPredicate)(transitions as Transition[], _fromStateNode, _toStateNode);
+            const selectedTransition = (predicate || defaultPredicate)(
+                (transitions as unknown) as Transition[],
+                (_fromStateNode as unknown) as State,
+                (_toStateNode as unknown) as State
+            );
             return selectedTransition;
         }
         return (transitions[0] as any) as Transition;
