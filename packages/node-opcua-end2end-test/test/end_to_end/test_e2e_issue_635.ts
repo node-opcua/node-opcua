@@ -2,6 +2,7 @@ import * as chalk from "chalk";
 import {
     AddressSpace,
     AttributeIds,
+    CallbackT,
     ClientSubscription,
     DataType,
     DataValue,
@@ -69,16 +70,18 @@ describe("Testing bug #635", () => {
             dataType: "String",
             nodeId: "ns=1;s=MyVariable1",
             value: {
-                timestamped_get: () => {
-                    const myDataValue = new DataValue({
-                        serverPicoseconds: 0,
-                        serverTimestamp: ts1,
-                        sourcePicoseconds: 0,
-                        sourceTimestamp: ts1,
-                        statusCode: quality1,
-                        value: new Variant({ dataType: DataType.String, value: variable1 })
-                    });
-                    return myDataValue;
+                timestamped_get: (callback: CallbackT<DataValue>) => {
+                    setTimeout(() => {
+                        const myDataValue = new DataValue({
+                            serverPicoseconds: 0,
+                            serverTimestamp: ts1,
+                            sourcePicoseconds: 0,
+                            sourceTimestamp: ts1,
+                            statusCode: quality1,
+                            value: new Variant({ dataType: DataType.String, value: variable1 })
+                        });
+                        callback(null, myDataValue);
+                    }, 1);
                 }
             }
         });

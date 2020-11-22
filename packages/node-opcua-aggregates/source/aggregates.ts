@@ -46,11 +46,7 @@ const historicalCapabilitiesDefaultProperties /*: HistoryServerCapabilities */ =
     updateEventCapability: false // Boolean PropertyType Mandatory
 };
 
-export function createHistoryServerCapabilities(
-    addressSpace: AddressSpace,
-    serverCapabilities: UAServerCapabilities
-): UAObject {
-
+export function createHistoryServerCapabilities(addressSpace: AddressSpace, serverCapabilities: UAServerCapabilities): UAObject {
     /* istanbul ignore next */
     if (serverCapabilities.browseName.toString() !== "ServerCapabilities") {
         throw new Error("Expecting server Capabilities");
@@ -68,10 +64,7 @@ export function createHistoryServerCapabilities(
     });
 }
 
-function setHistoricalServerCapabilities(
-    historyServerCapabilities: any,
-    defaultProperties: any
-) {
+function setHistoricalServerCapabilities(historyServerCapabilities: any, defaultProperties: any) {
     function setBoolean(propName: string) {
         const lowerCase = utils.lowerFirstLetter(propName);
 
@@ -87,7 +80,6 @@ function setHistoricalServerCapabilities(
             throw new Error(" Cannot find property " + propName);
         }
         prop.setValueFromSource({ dataType: DataType.Boolean, value });
-
     }
 
     function setUInt32(propName: string) {
@@ -123,46 +115,44 @@ function setHistoricalServerCapabilities(
 }
 
 export type AggregateFunctionName =
-    "AnnotationCount" |
-    "Average" |
-    "Count" |
-    "Delta" |
-    "DeltaBounds" |
-    "DurationBad" |
-    "DurationGood" |
-    "DurationInStateNonZero" |
-    "DurationInStateZero" |
-    "EndBound" |
-    "Interpolative" |
-    "Maximum" |
-    "Maximum2" |
-    "MaximumActualTime" |
-    "MaximumActualTime2" |
-    "Minimum" |
-    "Minimum2" |
-    "MinimumActualTime" |
-    "MinimumActualTime2" |
-    "NumberOfTransitions" |
-    "PercentBad" |
-    "PercentGood" |
-    "Range" |
-    "Range2" |
-    "StandardDeviationPopulation" |
-    "StandardDeviationSample" |
-    "Start" |
-    "StartBound" |
-    "TimeAverage" |
-    "TimeAverage2" |
-    "Total" |
-    "Total2" |
-    "VariancePopulation" |
-    "VarianceSample" |
-    "WorstQuality" |
-    "WorstQuality2";
+    | "AnnotationCount"
+    | "Average"
+    | "Count"
+    | "Delta"
+    | "DeltaBounds"
+    | "DurationBad"
+    | "DurationGood"
+    | "DurationInStateNonZero"
+    | "DurationInStateZero"
+    | "EndBound"
+    | "Interpolative"
+    | "Maximum"
+    | "Maximum2"
+    | "MaximumActualTime"
+    | "MaximumActualTime2"
+    | "Minimum"
+    | "Minimum2"
+    | "MinimumActualTime"
+    | "MinimumActualTime2"
+    | "NumberOfTransitions"
+    | "PercentBad"
+    | "PercentGood"
+    | "Range"
+    | "Range2"
+    | "StandardDeviationPopulation"
+    | "StandardDeviationSample"
+    | "Start"
+    | "StartBound"
+    | "TimeAverage"
+    | "TimeAverage2"
+    | "Total"
+    | "Total2"
+    | "VariancePopulation"
+    | "VarianceSample"
+    | "WorstQuality"
+    | "WorstQuality2";
 
-function addAggregateFunctionSupport(
-    addressSpace: AddressSpace, functionName: number): void {
-
+function addAggregateFunctionSupport(addressSpace: AddressSpace, functionName: number): void {
     /* istanbul ignore next */
     if (!functionName) {
         throw new Error("Invalid function name");
@@ -196,7 +186,6 @@ function addAggregateFunctionSupport(
         referenceType: "Organizes"
     });
 }
-
 
 export function addAggregateSupport(addressSpace: AddressSpace) {
     const aggregateConfigurationType = addressSpace.getNamespace(0).findObjectType("AggregateConfigurationType");
@@ -238,15 +227,11 @@ export function addAggregateSupport(addressSpace: AddressSpace) {
     addAggregateFunctionSupport(addressSpace, AggregateFunction.Maximum);
     addAggregateFunctionSupport(addressSpace, AggregateFunction.Average);
 
-    const addressSpaceInternal = addressSpace as AddressSpacePrivate;
-    addressSpaceInternal._readProcessedDetails = readProcessedDetails;
-
+    const addressSpaceInternal = (addressSpace as unknown) as AddressSpacePrivate;
+    addressSpaceInternal._readProcessedDetails = readProcessedDetails as any;
 }
 
-export function installAggregateConfigurationOptions(
-    node: UAVariable,
-    options: AggregateConfigurationOptionsEx
-) {
+export function installAggregateConfigurationOptions(node: UAVariable, options: AggregateConfigurationOptionsEx) {
     const nodePriv = node as any;
     const aggregateConfiguration = nodePriv.$historicalDataConfiguration.aggregateConfiguration;
     aggregateConfiguration.percentDataBad.setValueFromSource({ dataType: "Byte", value: options.percentDataBad });
@@ -267,11 +252,12 @@ export function installAggregateConfigurationOptions(
 }
 
 export function getAggregateConfiguration(node: BaseNode): AggregateConfigurationOptionsEx {
-
     const nodePriv = node as any;
 
     /* istanbul ignore next */
-    if (!nodePriv.$historicalDataConfiguration) { throw new Error("internal error"); }
+    if (!nodePriv.$historicalDataConfiguration) {
+        throw new Error("internal error");
+    }
     const aggregateConfiguration = nodePriv.$historicalDataConfiguration.aggregateConfiguration;
 
     // Beware ! Stepped value comes from Historical Configuration !

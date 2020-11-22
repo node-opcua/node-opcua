@@ -5,7 +5,7 @@ import "mocha";
 import { StatusCodes } from "node-opcua-status-code";
 import * as os from "os";
 import * as path from "path";
-import rimraf = require("rimraf");
+import * as rimraf from "rimraf";
 import * as should from "should";
 
 const _should = should; // make sure should is not removed during tscript compilation
@@ -24,10 +24,7 @@ if (!fs.existsSync(_tmpFolder)) {
 }
 
 // let's prepare a Certificate issued by a Certification Authority
-const certificateSelfSignedFilename = path.join(
-    __dirname,
-    "../../node-opcua-samples/certificates/client_selfsigned_cert_2048.pem"
-);
+const certificateSelfSignedFilename = path.join(__dirname, "../../node-opcua-samples/certificates/client_selfsigned_cert_2048.pem");
 
 // let's prepare a Certificate issued by a Certification Authority
 const issuerCertificateFile = path.join(__dirname, "../../node-opcua-samples/certificates/CA/public/cacert.pem");
@@ -35,10 +32,7 @@ const issuerCertificateRevocationListFile = path.join(
     __dirname,
     "../../node-opcua-samples/certificates/CA/crl/revocation_list.der"
 );
-const certificateIssuedByCAFilename = path.join(
-    __dirname,
-    "../../node-opcua-samples/certificates/client_cert_2048.pem"
-);
+const certificateIssuedByCAFilename = path.join(__dirname, "../../node-opcua-samples/certificates/client_cert_2048.pem");
 
 async function createFreshCertificateManage(options: OPCUACertificateManagerOptions): Promise<OPCUACertificateManager> {
     const temporaryFolder = options.rootFolder!;
@@ -232,12 +226,10 @@ describe("Testing OPCUA Certificate Manager with automatically acceptance of unk
         }
 
         certificateIssuedByCA = await readCertificate(certificateIssuedByCAFilename);
-        certificateIssuedByCAThumbprint =
-            "NodeOPCUA[" + makeSHA1Thumbprint(certificateIssuedByCA).toString("hex") + "]";
+        certificateIssuedByCAThumbprint = "NodeOPCUA[" + makeSHA1Thumbprint(certificateIssuedByCA).toString("hex") + "]";
 
         certificateSelfSigned = await readCertificate(certificateSelfSignedFilename);
-        certificateSelfSignedThumbprint =
-            "NodeOPCUA[" + makeSHA1Thumbprint(certificateSelfSigned).toString("hex") + "]";
+        certificateSelfSignedThumbprint = "NodeOPCUA[" + makeSHA1Thumbprint(certificateSelfSigned).toString("hex") + "]";
 
         const issuerCertificate = await readCertificate(issuerCertificateFile);
         const issuerCrl = await readCertificateRevocationList(issuerCertificateRevocationListFile);
@@ -245,7 +237,7 @@ describe("Testing OPCUA Certificate Manager with automatically acceptance of unk
         //        const temporaryFolder1 = path.join(_tmpFolder, "testing_certificates1");
         acceptingCertificateMgr = await createFreshCertificateManage({
             automaticallyAcceptUnknownCertificate: true,
-            rootFolder: temporaryFolder1,
+            rootFolder: temporaryFolder1
         });
         await acceptingCertificateMgr.addIssuer(issuerCertificate);
         await acceptingCertificateMgr.trustCertificate(issuerCertificate);
@@ -255,7 +247,7 @@ describe("Testing OPCUA Certificate Manager with automatically acceptance of unk
         const temporaryFolder2 = path.join(_tmpFolder, "testing_certificates2");
         rejectingCertificateMgr = await createFreshCertificateManage({
             automaticallyAcceptUnknownCertificate: false,
-            rootFolder: temporaryFolder2,
+            rootFolder: temporaryFolder2
         });
         await rejectingCertificateMgr.addIssuer(issuerCertificate);
         await rejectingCertificateMgr.trustCertificate(issuerCertificate);
@@ -272,17 +264,11 @@ describe("Testing OPCUA Certificate Manager with automatically acceptance of unk
         const statusCode = await acceptingCertificateMgr.checkCertificate(certificateSelfSigned);
         statusCode.should.eql(StatusCodes.Good);
 
-        const trusted = path.join(
-            acceptingCertificateMgr.rootDir,
-            "trusted/certs/" + certificateSelfSignedThumbprint + ".pem"
-        );
+        const trusted = path.join(acceptingCertificateMgr.rootDir, "trusted/certs/" + certificateSelfSignedThumbprint + ".pem");
         const existsInTrustedFolder = fs.existsSync(trusted);
         existsInTrustedFolder.should.eql(true, trusted);
 
-        const rejected = path.join(
-            acceptingCertificateMgr.rootDir,
-            "rejected/" + certificateSelfSignedThumbprint + ".pem"
-        );
+        const rejected = path.join(acceptingCertificateMgr.rootDir, "rejected/" + certificateSelfSignedThumbprint + ".pem");
         const existsInRejectedFolder = fs.existsSync(rejected);
         existsInRejectedFolder.should.eql(false, rejected);
     });
@@ -291,17 +277,11 @@ describe("Testing OPCUA Certificate Manager with automatically acceptance of unk
         const statusCode = await rejectingCertificateMgr.checkCertificate(certificateSelfSigned);
         statusCode.should.eql(StatusCodes.BadCertificateUntrusted);
 
-        const trusted = path.join(
-            rejectingCertificateMgr.rootDir,
-            "trusted/certs/" + certificateSelfSignedThumbprint + ".pem"
-        );
+        const trusted = path.join(rejectingCertificateMgr.rootDir, "trusted/certs/" + certificateSelfSignedThumbprint + ".pem");
         const existsInTrustedFolder = fs.existsSync(trusted);
         existsInTrustedFolder.should.eql(false, trusted);
 
-        const rejected = path.join(
-            rejectingCertificateMgr.rootDir,
-            "rejected/" + certificateSelfSignedThumbprint + ".pem"
-        );
+        const rejected = path.join(rejectingCertificateMgr.rootDir, "rejected/" + certificateSelfSignedThumbprint + ".pem");
         const existsInRejectedFolder = fs.existsSync(rejected);
         existsInRejectedFolder.should.eql(true, rejected);
     });
