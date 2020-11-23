@@ -3,12 +3,14 @@ import * as should from "should";
 
 import { AccessLevelFlag } from "node-opcua-data-model";
 import { DataValue } from "node-opcua-data-value";
-import { StatusCodes } from "node-opcua-status-code";
+import { CallbackT, StatusCode, StatusCodes } from "node-opcua-status-code";
 import { Variant } from "node-opcua-variant";
 import { DataType } from "node-opcua-variant";
 import { VariantArrayType } from "node-opcua-variant";
 
 import { AddressSpace, Namespace, SessionContext, UAMultiStateValueDiscrete, UAObject, UAObjectType } from "../..";
+import { getCurrentClock } from "node-opcua-date-time";
+import * as sinon from "sinon";
 
 const context = new SessionContext();
 
@@ -70,6 +72,109 @@ export function subtest_multi_state_value_discrete_type(mainTest: { addressSpace
             });
             multiStateValueDiscreteVariable.getValueAsNumber().should.eql(0xff0000);
         });
+
+        it("ZZ3 should create a MultiStateValueDiscreteType with value getter/setter", async () => {
+            const namespace = addressSpace.getOwnNamespace();
+
+            let _theValue = 0xff0000; // Red
+
+            const timestamped_get_raw = (callback: CallbackT<DataValue>) => {
+                // using getCurrentClock will guaranty that clock value is different each time
+                const clock = getCurrentClock();
+                setTimeout(() => {
+                    const myDataValue = new DataValue({
+                        serverPicoseconds: clock.picoseconds,
+                        serverTimestamp: clock.timestamp,
+                        sourcePicoseconds: clock.picoseconds,
+                        sourceTimestamp: clock.timestamp,
+                        statusCode: StatusCodes.Good,
+                        value: { dataType: DataType.UInt32, value: _theValue }
+                    });
+                    callback(null, myDataValue);
+                }, 10); //simulate some delay
+            };
+            const timestamped_set_raw = (dataValue: DataValue, callback: CallbackT<StatusCode>) => {
+                if (dataValue.value.dataType !== DataType.UInt32) {
+                    return callback(new Error("Invalid DataType"));
+                }
+                setTimeout(() => {
+                    _theValue = dataValue.value.value;
+                    callback(null, StatusCodes.Good);
+                }, 10);
+            };
+            const timestamped_set = sinon.spy(timestamped_set_raw);
+            const timestamped_get = sinon.spy(timestamped_get_raw);
+
+            const multiStateDiscreteValueVariable = namespace.addMultiStateValueDiscrete({
+                browseName: "MultiStateDiscreteValueVariableWithGetterAndSetter",
+                organizedBy: addressSpace.rootFolder.objects,
+                enumValues: [
+                    { displayName: "Red", value: 0xff0000 },
+                    { displayName: "Orange", value: 0xff9933 },
+                    { displayName: "Green", value: 0x00ff00 },
+                    { displayName: "Blue", value: 0x0000ff }
+                ],
+
+                value: {
+                    timestamped_get: timestamped_get as any,
+                    timestamped_set: timestamped_set as any
+                }
+            });
+
+            // because we use getter and setter, we need to call at least readValueAsync once
+            // to get the initial value....
+            const dv0 = await multiStateDiscreteValueVariable.readValueAsync(SessionContext.defaultContext);
+
+            multiStateDiscreteValueVariable.getValueAsNumber().should.eql(0xff0000);
+            multiStateDiscreteValueVariable.readValue().statusCode.should.eql(StatusCodes.Good);
+            multiStateDiscreteValueVariable.getValueAsString().should.eql("Red");
+            // ----------------
+
+            _theValue = 0x00ff00;
+            const dv1 = await multiStateDiscreteValueVariable.readValueAsync(SessionContext.defaultContext);
+            multiStateDiscreteValueVariable.getValueAsString().should.eql("Green");
+            //
+            _theValue = 0xff9933;
+            await multiStateDiscreteValueVariable.readValueAsync(SessionContext.defaultContext);
+            multiStateDiscreteValueVariable.getValueAsString().should.eql("Orange");
+            //
+
+            // external write
+            const clock = getCurrentClock();
+            await multiStateDiscreteValueVariable.writeValue(
+                SessionContext.defaultContext,
+                new DataValue({
+                    serverPicoseconds: clock.picoseconds,
+                    serverTimestamp: clock.timestamp,
+                    sourcePicoseconds: clock.picoseconds,
+                    sourceTimestamp: clock.timestamp,
+                    statusCode: StatusCodes.Good,
+                    value: { dataType: DataType.UInt32, value: 0x0000ff }
+                })
+            );
+
+            multiStateDiscreteValueVariable.getValueAsString().should.eql("Blue");
+            timestamped_set.callCount.should.eql(1);
+            timestamped_get.callCount.should.eql(3);
+
+            /// now trying with invalid values to see how
+            const sc1 = await multiStateDiscreteValueVariable.writeValue(
+                SessionContext.defaultContext,
+                new DataValue({
+                    serverPicoseconds: clock.picoseconds,
+                    serverTimestamp: clock.timestamp,
+                    sourcePicoseconds: clock.picoseconds,
+                    sourceTimestamp: clock.timestamp,
+                    statusCode: StatusCodes.Good,
+                    value: { dataType: DataType.UInt32, value: 0xaaaaaa }
+                })
+            );
+            multiStateDiscreteValueVariable.getValueAsString().should.eql("Blue");
+            sc1.should.not.eql(StatusCodes.Good);
+            sc1.should.eql(StatusCodes.BadOutOfRange);
+            //xx console.log(sc1.toString());
+        });
+
         describe("edge case tests", () => {
             let multiStateValueDiscreteVariable: UAMultiStateValueDiscrete;
             before(() => {

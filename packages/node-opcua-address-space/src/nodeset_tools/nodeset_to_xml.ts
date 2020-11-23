@@ -657,7 +657,6 @@ function coerceInt64ToInt32(int64: Int64): number {
     if (typeof int64 === "number") {
         return int64 as number;
     }
-    console.log(int64);
     if (int64[0] === 4294967295 && int64[1] === 4294967295) {
         return 0xffffffff;
     }
