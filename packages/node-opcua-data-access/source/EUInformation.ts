@@ -97,20 +97,31 @@ export interface StandardUnits {
     farad: EUInformation;
     gigabecquerel: EUInformation;
     gram: EUInformation;
+    hectopascal: EUInformation;
+    hertz: EUInformation;
     joule: EUInformation;
     kelvin: EUInformation;
     kilo_electron_volt: EUInformation;
     kilobecquerel: EUInformation;
     kilohertz: EUInformation;
+    kilogram: EUInformation;
+    kilometre_per_hour: EUInformation;
     mega_electron_volt: EUInformation;
     megawatt: EUInformation;
     metre: EUInformation;
+    metre_per_second: EUInformation;
+    metre_per_second_squared: EUInformation;
     microsecond: EUInformation;
+    mile_per_hour: EUInformation;
+    millibar: EUInformation;
     millimetre: EUInformation;
     millisecond: EUInformation;
     newton: EUInformation;
+    pascal: EUInformation;
     percent: EUInformation;
     pixel: EUInformation;
+    revolutions_per_minute: EUInformation;
+    revolutions_per_second: EUInformation;
     second: EUInformation;
     volt: EUInformation;
     watt: EUInformation;
@@ -118,39 +129,64 @@ export interface StandardUnits {
 
 // http://www.unece.org/fileadmin/DAM/cefact/recommendations/rec20/rec20_rev3_Annex2e.pdf
 export const standardUnits: StandardUnits = {
-    ampere: makeEUInformation("AMP", "A", "ampere"),
+    // pressure
     bar: makeEUInformation("BAR", "bar", "bar [unit of pressure] = 1E5 Pa"),
-    becquerel: makeEUInformation("BQL", "Bq", "becquerel = 27,027E-12 Ci"),
+    hectopascal: makeEUInformation("A97", "hPa", "hectopascal [unit of pressure] = 1E2 Pa"),
+    millibar: makeEUInformation("MBR", "mbar", "millibar [unit of pressure] = 1E2 Pa"),
+    pascal: makeEUInformation("PAL", "pa", "pascal [unit of pressure]"),
+    // time/duration
+    microsecond: makeEUInformation("B98", "μs", "microsecond =1E-6 second"),
+    millisecond: makeEUInformation("C26", "ms", "millisecond =1E-3 second"),
+    second: makeEUInformation("SEC", "s", "second"),
+    // distance
     centimetre: makeEUInformation("CMT", "cm", "centimetre = 1E-2 m"),
+    metre: makeEUInformation("MTR", "m", "metre"),
+    millimetre: makeEUInformation("MMT", "mm", "millimetre = 1E-3 metre"),
+    // volume
     cubic_centimetre: makeEUInformation("CMQ", "cm^3", "Cubic centimetre = 1E-6 m^3"),
     cubic_centimetre_per_second: makeEUInformation("2J", "cm^3/s", "Cubic centimetre per second"),
     cubic_metre: makeEUInformation("MTQ", "m^3", "Cubic metre"),
     cubic_metre_per_hour: makeEUInformation("MQH", "m^3", "Cubic metre per hours = 2,777 78 x 10⁻⁴ m³/s"),
+    // temperature
+    degree_celsius: makeEUInformation("CEL", "°C", "degree Celsius"),
+    degree_fahrenheit: makeEUInformation("FAH", "°F", "degree Fahrenheit 9/5(°C) + 32°"),
+    // weight
+    gram: makeEUInformation("GRM", "g", "gramme 1E-3 kg"),
+    kilogram: makeEUInformation("KGM", "kg", "A unit of mass equal to one thousand grams"),
+    // speed
+    metre_per_second: makeEUInformation("MTS", "m/s", "meter per second"),
+    mile_per_hour: makeEUInformation("HM", "mile/h", "mile per hour = 2 0,447 04 m/s"),
+    kilometre_per_hour: makeEUInformation("KMH", "km/h", "kilometre per hour = 0,277 778 m/s"),
+
+    // acceleration
+    metre_per_second_squared: makeEUInformation("MSK", "m/s²", "meter per second square"),
+    // frequency
+    kilohertz: makeEUInformation("KHZ", "kHz", "kilo hertz = 1E3 Hertz"),
+    hertz: makeEUInformation("HTZ", "Hz", "Hertz"),
+    revolutions_per_minute: makeEUInformation("RPM", "r/min", "revolutions per minute 1,047198 rad/(60 x s)"),
+    revolutions_per_second: makeEUInformation("RPS", "r/s", "revolutions per minute 1,047198 rad/s"),
+    //
+
+    //
+    ampere: makeEUInformation("AMP", "A", "ampere"),
+    becquerel: makeEUInformation("BQL", "Bq", "becquerel = 27,027E-12 Ci"),
     curie: makeEUInformation("CUR", "Ci", "Curie = 3,7E-10 Bq"),
     curie_per_kilogram: makeEUInformation("A42", "Ci/kg", "Curie per kilogram = 3,7E-10 Bq/kg"),
     degree: makeEUInformation("DD", "°", "degree [unit of angle]"),
-    degree_celsius: makeEUInformation("CEL", "°C", "degree Celsius"),
-    degree_fahrenheit: makeEUInformation("FAH", "°F", "degree Fahrenheit 9/5(°C) + 32°"),
     dots_per_inch: makeEUInformation("E39", "dpi", "dot per inch"),
     electron_volt: makeEUInformation("A53", "eV", "electron volt"),
     farad: makeEUInformation("FAR", "F", "Farad = kg⁻¹ x m⁻² x s⁴ x     A²"),
     gigabecquerel: makeEUInformation("GBQ", "GBq", "Giga becquerel = 1E9 Bq"),
-    gram: makeEUInformation("GRM", "g", "gramme 1E-3 kg"),
     joule: makeEUInformation("JOU", "J", "Joule"),
     kelvin: makeEUInformation("KEL", "K", "degree Kelvin"),
     kilo_electron_volt: makeEUInformation("B29", "keV", "kilo electron volt"),
     kilobecquerel: makeEUInformation("2Q", "kBq", "kilo becquerel = 1E3 Bq"),
-    kilohertz: makeEUInformation("KHZ", "kHz", "kilo hertz = 1E3 Hertz"),
     mega_electron_volt: makeEUInformation("B71", "MeV", "mega electron volt"),
     megawatt: makeEUInformation("MAW", "MW", "Mega Watt"),
-    metre: makeEUInformation("MTR", "m", "metre"),
-    microsecond: makeEUInformation("B98", "μs", "microsecond =1E-6 second"),
-    millimetre: makeEUInformation("MMT", "mm", "millimetre = 1E-3 metre"),
-    millisecond: makeEUInformation("C26", "ms", "millisecond =1E-3 second"),
+
     newton: makeEUInformation("NEW", "N", "Newton (kg x m)/s² "),
     percent: makeEUInformation("P1", "%", "Percent, a unit of proportion equal to 0.01. "),
     pixel: makeEUInformation("E37", "", "pixel:  unit of count defining the number of pixels (pixel: picture element)"),
-    second: makeEUInformation("SEC", "s", "second"),
     volt: makeEUInformation("VLT", "V", "Volt"),
     watt: makeEUInformation("WTT", "W", "Watt")
     // to be continued
