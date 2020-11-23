@@ -43,19 +43,19 @@ function securityPolicyLevel(securityPolicy: UAString): number {
         case SecurityPolicy.None:
             return 0;
         case SecurityPolicy.Basic128:
-            return 0;
-        case SecurityPolicy.Basic128Rsa15:
-            return 0;
-        case SecurityPolicy.Basic192:
             return 1;
-        case SecurityPolicy.Basic192Rsa15:
+        case SecurityPolicy.Basic128Rsa15:
             return 2;
+        case SecurityPolicy.Basic192:
+            return 3;
+        case SecurityPolicy.Basic192Rsa15:
+            return 4;
         case SecurityPolicy.Basic256:
-            return 3;
+            return 5;
         case SecurityPolicy.Basic256Rsa15:
-            return 3;
+            return 6;
         case SecurityPolicy.Basic256Sha256:
-            return 3;
+            return 7;
         default:
             return 0;
     }
@@ -65,9 +65,13 @@ function sortEndpointBySecurityLevel(endpoints: EndpointDescription[]): Endpoint
     endpoints.sort((a: EndpointDescription, b: EndpointDescription) => {
         if (a.securityMode === b.securityMode) {
             if (a.securityPolicyUri === b.securityPolicyUri) {
-                return a.securityLevel < b.securityLevel ? 1 : 0;
+                const sa = a.securityLevel;
+                const sb = b.securityLevel;
+                return sa < sb ? 1 : sa > sb ? -1 : 0;
             } else {
-                return securityPolicyLevel(a.securityPolicyUri) < securityPolicyLevel(b.securityPolicyUri) ? 1 : 0;
+                const sa = securityPolicyLevel(a.securityPolicyUri);
+                const sb = securityPolicyLevel(b.securityPolicyUri);
+                return sa < sb ? 1 : sa > sb ? -1 : 0;
             }
         } else {
             return a.securityMode < b.securityMode ? 1 : 0;
@@ -589,6 +593,8 @@ export class RegisterServerManager extends EventEmitter implements IRegisterServ
         this._setState(theStatus);
 
         debugLog("                      lds endpoint uri : ", selectedEndpoint.endpointUrl);
+        debugLog("                      securityMode     : ", MessageSecurityMode[selectedEndpoint.securityMode]);
+        debugLog("                      securityPolicy   : ", selectedEndpoint.securityPolicyUri);
 
         async.series(
             [
