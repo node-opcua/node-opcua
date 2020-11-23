@@ -144,9 +144,7 @@ export const standardUnits: StandardUnits = {
     millimetre: makeEUInformation("MMT", "mm", "millimetre = 1E-3 metre"),
     // volume
     cubic_centimetre: makeEUInformation("CMQ", "cm^3", "Cubic centimetre = 1E-6 m^3"),
-    cubic_centimetre_per_second: makeEUInformation("2J", "cm^3/s", "Cubic centimetre per second"),
     cubic_metre: makeEUInformation("MTQ", "m^3", "Cubic metre"),
-    cubic_metre_per_hour: makeEUInformation("MQH", "m^3", "Cubic metre per hours = 2,777 78 x 10⁻⁴ m³/s"),
     // temperature
     degree_celsius: makeEUInformation("CEL", "°C", "degree Celsius"),
     degree_fahrenheit: makeEUInformation("FAH", "°F", "degree Fahrenheit 9/5(°C) + 32°"),
@@ -170,6 +168,8 @@ export const standardUnits: StandardUnits = {
     //
     ampere: makeEUInformation("AMP", "A", "ampere"),
     becquerel: makeEUInformation("BQL", "Bq", "becquerel = 27,027E-12 Ci"),
+    cubic_centimetre_per_second: makeEUInformation("2J", "cm^3/s", "Cubic centimetre per second"),
+    cubic_metre_per_hour: makeEUInformation("MQH", "m^3", "Cubic metre per hours = 2,777 78 x 10⁻⁴ m³/s"),
     curie: makeEUInformation("CUR", "Ci", "Curie = 3,7E-10 Bq"),
     curie_per_kilogram: makeEUInformation("A42", "Ci/kg", "Curie per kilogram = 3,7E-10 Bq/kg"),
     degree: makeEUInformation("DD", "°", "degree [unit of angle]"),

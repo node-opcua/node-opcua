@@ -83,8 +83,8 @@ import { UATwoStateVariable as UATwoStateVariablePublic } from "../source/interf
 
 import { UAAnalogItem } from "./data_access/ua_analog_item";
 import { add_dataItem_stuff, UADataItem } from "./data_access/ua_data_item";
-import { promoteToMultiStateValueDiscrete } from "./data_access/ua_multistate_value_discrete";
-import { promoteToMultiStateDiscrete } from "./data_access/ua_multistate_discrete";
+import { promoteToMultiStateValueDiscrete, _addMultiStateValueDiscrete } from "./data_access/ua_multistate_value_discrete";
+import { promoteToMultiStateDiscrete, _addMultiStateDiscrete } from "./data_access/ua_multistate_discrete";
 // state machine
 import {
     promoteToTwoStateVariable,
@@ -557,55 +557,7 @@ export class UANamespace implements NamespacePublic {
     /**
      */
     public addMultiStateDiscrete(options: AddMultiStateDiscreteOptions): UAMultiStateDiscretePublic {
-        const namespace = this;
-        const addressSpace = namespace.addressSpace;
-        assert(options.hasOwnProperty("enumStrings"));
-        assert(!options.hasOwnProperty("ValuePrecision"));
-
-        const multiStateDiscreteType = addressSpace.findVariableType("MultiStateDiscreteType");
-        if (!multiStateDiscreteType) {
-            throw new Error("Cannot find MultiStateDiscreteType");
-        }
-        // todo : if options.typeDefinition is specified, check that type is SubTypeOf MultiStateDiscreteType
-
-        options.value = options.value === undefined ? 0 : options.value;
-
-        const variable = namespace.addVariable({
-            ...options,
-
-            dataType: "Number",
-            typeDefinition: multiStateDiscreteType.nodeId,
-            value: new Variant({
-                dataType: DataType.UInt32,
-                value: options.value
-            }),
-
-            valueRank: -2
-        });
-
-        add_dataItem_stuff(variable, options);
-
-        const enumStrings = options.enumStrings.map((value: string) => {
-            return coerceLocalizedText(value);
-        });
-
-        const enumStringsNode = namespace.addVariable({
-            accessLevel: "CurrentRead", // | CurrentWrite",
-            browseName: { name: "EnumStrings", namespaceIndex: 0 },
-            dataType: "LocalizedText",
-            minimumSamplingInterval: 0,
-            modellingRule: options.modellingRule ? "Mandatory" : undefined,
-            propertyOf: variable,
-            typeDefinition: "PropertyType",
-            userAccessLevel: "CurrentRead", // CurrentWrite",
-            value: new Variant({
-                arrayType: VariantArrayType.Array,
-                dataType: DataType.LocalizedText,
-                value: enumStrings
-            })
-        });
-
-        return promoteToMultiStateDiscrete(variable);
+        return _addMultiStateDiscrete(this, options);
     }
 
     /**
@@ -738,7 +690,7 @@ export class UANamespace implements NamespacePublic {
             const components = node.findReferences("HasComponent", true);
             const properties = node.findReferences("HasProperty", true);
             // TODO: shall we delete nodes pointed by "Organizes" links here ?
-            const subfolders = node.findReferences("Organizes", true);
+            const subFolders = node.findReferences("Organizes", true);
 
             for (const r of components) {
                 deleteNodePointedByReference(r);
@@ -746,7 +698,7 @@ export class UANamespace implements NamespacePublic {
             for (const r of properties) {
                 deleteNodePointedByReference(r);
             }
-            for (const r of subfolders) {
+            for (const r of subFolders) {
                 deleteNodePointedByReference(r);
             }
 
@@ -974,7 +926,7 @@ export class UANamespace implements NamespacePublic {
             const engineeringUnits = new EUInformation(options.engineeringUnits);
             assert(engineeringUnits instanceof EUInformation, "expecting engineering units");
 
-            // EngineeringUnits  specifies the units for the   DataItem‟s value (e.g., DEGC, hertz, seconds).   The
+            // EngineeringUnits  specifies the units for the   DataItem‟s value (e.g., degree, hertz, seconds).   The
             // EUInformation   type is specified in   5.6.3.
 
             const eu = namespace.addVariable({
@@ -1044,77 +996,7 @@ export class UANamespace implements NamespacePublic {
      *      });
      */
     public addMultiStateValueDiscrete(options: AddMultiStateValueDiscreteOptions): UAMultiStateValueDiscretePublic {
-        assert(options.hasOwnProperty("enumValues"));
-        assert(!options.hasOwnProperty("ValuePrecision"));
-
-        const namespace = this;
-        const addressSpace = namespace.addressSpace;
-
-        const multiStateValueDiscreteType = addressSpace.findVariableType("MultiStateValueDiscreteType");
-        if (!multiStateValueDiscreteType) {
-            throw new Error("expecting MultiStateValueDiscreteType to be defined , check nodeset xml file");
-        }
-
-        // todo : if options.typeDefinition is specified, check that type is SubTypeOf MultiStateDiscreteType
-
-        // EnumValueType
-        //   value: Int64, displayName: LocalizedText, Description: LocalizedText
-        const enumValues = coerceEnumValues(options.enumValues);
-
-        if (options.value === undefined && enumValues[0]) {
-            options.value = enumValues[0].value; // Int64
-        }
-
-        const cloned_options = {
-            ...options,
-            dataType: DataType.UInt32,
-            typeDefinition: multiStateValueDiscreteType.nodeId,
-            // valueRank:
-            // note : OPCUA Spec 1.03 specifies -1:Scalar (part 8 page 8) but nodeset file specifies -2:Any
-            value: new Variant({ dataType: DataType.UInt32, value: options.value }),
-            valueRank: -1 // -1 : Scalar
-        };
-
-        const variable = namespace.addVariable(cloned_options) as UAMultiStateValueDiscretePublic;
-
-        add_dataItem_stuff(variable, options);
-
-        namespace.addVariable({
-            accessLevel: "CurrentRead",
-            browseName: { name: "EnumValues", namespaceIndex: 0 },
-            dataType: "EnumValueType",
-            minimumSamplingInterval: 0,
-            modellingRule: options.modellingRule ? "Mandatory" : undefined,
-            propertyOf: variable,
-            typeDefinition: "PropertyType",
-            userAccessLevel: "CurrentRead",
-            value: new Variant({
-                arrayType: VariantArrayType.Array,
-                dataType: DataType.ExtensionObject,
-                value: enumValues
-            })
-        });
-
-        namespace.addVariable({
-            accessLevel: "CurrentRead",
-            browseName: { name: "ValueAsText", namespaceIndex: 0 },
-            dataType: "LocalizedText",
-            minimumSamplingInterval: 0,
-            modellingRule: options.modellingRule ? "Mandatory" : undefined,
-            propertyOf: variable,
-            typeDefinition: "PropertyType",
-            userAccessLevel: "CurrentRead"
-            // value: valueAsText
-        });
-
-        // install additional helpers methods
-        variable.install_extra_properties();
-
-        promoteToMultiStateValueDiscrete(variable);
-
-        assert(variable.enumValues.browseName.toString() === "EnumValues");
-        assert(variable.valueAsText.browseName.toString() === "ValueAsText");
-        return variable;
+        return _addMultiStateValueDiscrete(this, options);
     }
 
     // -
@@ -1360,7 +1242,7 @@ export class UANamespace implements NamespacePublic {
         //                               Enumerations with integers that are not zero-based or have gaps
         //                               (e.g. 1, 2, 4, 8, 16).
         //                               Each entry of the array of EnumValueType in this Property
-        //                               represents one enumeration value with its integer notation, humanreadable
+        //                               represents one enumeration value with its integer notation, human readable
         //                                representation and help information.
         // The Property EnumStrings contains human-readable representations of enumeration values and is
         // only applied to Enumeration DataTypes. Instead of the EnumStrings Property an Enumeration

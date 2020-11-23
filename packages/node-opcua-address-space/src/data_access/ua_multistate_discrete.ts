@@ -3,15 +3,22 @@
  */
 import { assert } from "node-opcua-assert";
 import { VariableTypeIds } from "node-opcua-constants";
-import { LocalizedText } from "node-opcua-data-model";
+import { coerceLocalizedText, LocalizedText } from "node-opcua-data-model";
 import { StatusCode, StatusCodes } from "node-opcua-status-code";
-import { DataType } from "node-opcua-variant";
+import { DataType, VariantArrayType, VariantLike } from "node-opcua-variant";
 import { Variant } from "node-opcua-variant";
 
-import { Property, UAVariable as UAVariablePublic } from "../../source";
+import {
+    AddMultiStateDiscreteOptions,
+    BindVariableOptions,
+    Namespace,
+    Property,
+    UAVariable as UAVariablePublic
+} from "../../source";
 import { UAMultiStateDiscrete as UAMultiStateDiscretePublic } from "../../source/interfaces/data_access/ua_multistate_discrete";
 import { registerNodePromoter } from "../../source/loader/register_node_promoter";
 import { UAVariable } from "../ua_variable";
+import { add_dataItem_stuff } from "./ua_data_item";
 
 export interface UAMultiStateDiscrete {
     enumStrings: Property<LocalizedText[], DataType.LocalizedText>;
@@ -97,3 +104,61 @@ export function promoteToMultiStateDiscrete(node: UAVariablePublic): UAMultiStat
     return node as UAMultiStateDiscrete;
 }
 registerNodePromoter(VariableTypeIds.MultiStateDiscreteType, promoteToMultiStateDiscrete);
+
+export function _addMultiStateDiscrete(namespace: Namespace, options: AddMultiStateDiscreteOptions): UAMultiStateDiscretePublic {
+    const addressSpace = namespace.addressSpace;
+    assert(options.hasOwnProperty("enumStrings"));
+    assert(!options.hasOwnProperty("ValuePrecision"));
+
+    const multiStateDiscreteType = addressSpace.findVariableType("MultiStateDiscreteType");
+    if (!multiStateDiscreteType) {
+        throw new Error("Cannot find MultiStateDiscreteType");
+    }
+    // todo : if options.typeDefinition is specified, check that type is SubTypeOf MultiStateDiscreteType
+
+    options.value = options.value === undefined ? 0 : options.value;
+
+    let value: undefined | VariantLike | BindVariableOptions;
+    if (typeof options.value === "number") {
+        value = new Variant({
+            dataType: DataType.UInt32,
+            value: options.value
+        });
+    } else {
+        value = options.value;
+    }
+
+    const variable = namespace.addVariable({
+        ...options,
+
+        dataType: "Number",
+        typeDefinition: multiStateDiscreteType.nodeId,
+        value,
+
+        valueRank: -2
+    });
+
+    add_dataItem_stuff(variable, options);
+
+    const enumStrings = options.enumStrings.map((value: string) => {
+        return coerceLocalizedText(value);
+    });
+
+    const enumStringsNode = namespace.addVariable({
+        accessLevel: "CurrentRead", // | CurrentWrite",
+        browseName: { name: "EnumStrings", namespaceIndex: 0 },
+        dataType: "LocalizedText",
+        minimumSamplingInterval: 0,
+        modellingRule: options.modellingRule ? "Mandatory" : undefined,
+        propertyOf: variable,
+        typeDefinition: "PropertyType",
+        userAccessLevel: "CurrentRead", // CurrentWrite",
+        value: new Variant({
+            arrayType: VariantArrayType.Array,
+            dataType: DataType.LocalizedText,
+            value: enumStrings
+        })
+    });
+
+    return promoteToMultiStateDiscrete(variable);
+}

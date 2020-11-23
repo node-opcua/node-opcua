@@ -632,7 +632,7 @@ export interface EnumValueTypeOptionsLike {
 
 export interface AddMultiStateValueDiscreteOptions extends AddVariableOptionsWithoutValue {
     enumValues: EnumValueTypeOptionsLike[] | { [key: string]: number };
-    value?: number | Int64;
+    value?: UInt32 | Int64 | VariantLike | BindVariableOptions;
 }
 
 // tslint:disable:no-empty-interface
@@ -1196,7 +1196,7 @@ export interface AddMultiStateDiscreteOptions extends AddBaseNodeOptions, Variab
     typeDefinition?: string | NodeId | UAVariableType;
     permissions?: Permissions;
     postInstantiateFunc?: (node: UAVariable) => void;
-    value?: number;
+    value?: number | VariantLike | BindVariableOptions;
 }
 
 export interface AddReferenceTypeOptions extends AddBaseNodeOptions {

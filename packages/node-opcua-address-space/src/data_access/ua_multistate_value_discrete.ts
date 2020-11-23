@@ -2,19 +2,27 @@
  * @module node-opcua-address-space.DataAccess
  */
 import { assert } from "node-opcua-assert";
-import { DataType, Variant } from "node-opcua-variant";
-import { coerceInt32, coerceUInt64, Int64 } from "node-opcua-basic-types";
+import { DataType, Variant, VariantArrayType, VariantLike } from "node-opcua-variant";
+import { coerceInt32, coerceUInt64, Int64, isValidUInt64 } from "node-opcua-basic-types";
 import { coerceLocalizedText, LocalizedText } from "node-opcua-data-model";
 import { DataValue } from "node-opcua-data-value";
 import { StatusCodes } from "node-opcua-status-code";
 import { StatusCode } from "node-opcua-status-code";
 import { EnumValueType } from "node-opcua-types";
 
-import { Property, UAVariable as UAVariablePublic } from "../../source/address_space_ts";
+import {
+    AddMultiStateValueDiscreteOptions,
+    BindVariableOptions,
+    Namespace,
+    Property,
+    UAVariable as UAVariablePublic
+} from "../../source/address_space_ts";
 import { UAMultiStateValueDiscrete as UAMultiStateValueDiscretePublic } from "../../source/interfaces/data_access/ua_multistate_value_discrete";
 import { UAVariable } from "../ua_variable";
 import { VariableTypeIds } from "node-opcua-constants";
 import { registerNodePromoter } from "../../source/loader/register_node_promoter";
+import { coerceEnumValues } from "../../source/helpers/coerce_enum_value";
+import { add_dataItem_stuff } from "./ua_data_item";
 
 function install_synchronization(variable: UAMultiStateValueDiscrete) {
     variable.on("value_changed", (value: DataValue) => {
@@ -185,3 +193,95 @@ export function promoteToMultiStateValueDiscrete(node: UAVariablePublic): UAMult
 }
 
 registerNodePromoter(VariableTypeIds.MultiStateValueDiscreteType, promoteToMultiStateValueDiscrete);
+
+export function _addMultiStateValueDiscrete(
+    namespace: Namespace,
+    options: AddMultiStateValueDiscreteOptions
+): UAMultiStateValueDiscretePublic {
+    assert(options.hasOwnProperty("enumValues"));
+    assert(!options.hasOwnProperty("ValuePrecision"));
+
+    const addressSpace = namespace.addressSpace;
+
+    const multiStateValueDiscreteType = addressSpace.findVariableType("MultiStateValueDiscreteType");
+    if (!multiStateValueDiscreteType) {
+        throw new Error("expecting MultiStateValueDiscreteType to be defined , check nodeset xml file");
+    }
+
+    // todo : if options.typeDefinition is specified, check that type is SubTypeOf MultiStateDiscreteType
+
+    // EnumValueType
+    //   value: Int64, displayName: LocalizedText, Description: LocalizedText
+    const enumValues = coerceEnumValues(options.enumValues);
+
+    if (options.value === undefined && enumValues[0]) {
+        options.value = enumValues[0].value; // Int64
+    }
+    let value: undefined | VariantLike | BindVariableOptions;
+    if (typeof options.value === "number" || isValidUInt64(options.value)) {
+        if (isValidUInt64(options.value)) {
+            value = new Variant({
+                dataType: DataType.UInt32,
+                value: (options.value as Int64)[1] // Low word
+            });
+        } else {
+            value = new Variant({
+                dataType: DataType.UInt32,
+                value: options.value
+            });
+        }
+    } else {
+        value = options.value as any;
+    }
+
+    const cloned_options = {
+        ...options,
+        dataType: DataType.UInt32,
+        typeDefinition: multiStateValueDiscreteType.nodeId,
+        // valueRank:
+        // note : OPCUA Spec 1.03 specifies -1:Scalar (part 8 page 8) but nodeset file specifies -2:Any
+        value,
+        valueRank: -1 // -1 : Scalar
+    };
+
+    const variable = namespace.addVariable(cloned_options) as UAMultiStateValueDiscretePublic;
+
+    add_dataItem_stuff(variable, options);
+
+    namespace.addVariable({
+        accessLevel: "CurrentRead",
+        browseName: { name: "EnumValues", namespaceIndex: 0 },
+        dataType: "EnumValueType",
+        minimumSamplingInterval: 0,
+        modellingRule: options.modellingRule ? "Mandatory" : undefined,
+        propertyOf: variable,
+        typeDefinition: "PropertyType",
+        userAccessLevel: "CurrentRead",
+        value: new Variant({
+            arrayType: VariantArrayType.Array,
+            dataType: DataType.ExtensionObject,
+            value: enumValues
+        })
+    });
+
+    namespace.addVariable({
+        accessLevel: "CurrentRead",
+        browseName: { name: "ValueAsText", namespaceIndex: 0 },
+        dataType: DataType.LocalizedText,
+        minimumSamplingInterval: 0,
+        modellingRule: options.modellingRule ? "Mandatory" : undefined,
+        propertyOf: variable,
+        typeDefinition: "PropertyType",
+        userAccessLevel: "CurrentRead"
+        // value: valueAsText
+    });
+
+    // install additional helpers methods
+    variable.install_extra_properties();
+
+    promoteToMultiStateValueDiscrete(variable);
+
+    assert(variable.enumValues.browseName.toString() === "EnumValues");
+    assert(variable.valueAsText.browseName.toString() === "ValueAsText");
+    return variable;
+}

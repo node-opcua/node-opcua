@@ -457,13 +457,14 @@ function constructHook(options: VariantOptions | Variant): VariantOptions2 {
         if (!isValidVariant(options.arrayType, options.dataType, options.value, null)) {
             throw new Error(
                 "Invalid variant arrayType: " +
-                    options.arrayType.toString() +
+                    VariantArrayType[options.arrayType] +
                     "  dataType: " +
-                    options.dataType.toString() +
+                    DataType[options.dataType] +
                     " value:" +
                     options.value +
-                    " type= " +
-                    typeof options.value
+                    " (javascript type = " +
+                    typeof options.value +
+                    " )"
             );
         }
     }

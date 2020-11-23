@@ -8,7 +8,7 @@ import * as path from "path";
 import * as rimraf from "rimraf";
 import * as should from "should";
 
-const _should = should; // make sure should is not removed during tscript compilation
+const _should = should; // make sure should is not removed during typescript compilation
 
 import { Certificate, readCertificate, makeSHA1Thumbprint, readCertificateRevocationList } from "node-opcua-crypto";
 import { OPCUACertificateManager, OPCUACertificateManagerOptions } from "../source";
