@@ -87,6 +87,7 @@ export interface StandardUnits {
     cubic_centimetre_per_second: EUInformation;
     cubic_metre: EUInformation;
     cubic_metre_per_hour: EUInformation;
+    cubic_meter_per_minute: EUInformation;
     curie: EUInformation;
     curie_per_kilogram: EUInformation;
     degree: EUInformation;
@@ -105,6 +106,9 @@ export interface StandardUnits {
     kilobecquerel: EUInformation;
     kilohertz: EUInformation;
     kilogram: EUInformation;
+    kilowatt: EUInformation;
+    kilogram_force: EUInformation;
+    kilogram_per_squared_centimeter: EUInformation;
     kilometre_per_hour: EUInformation;
     mega_electron_volt: EUInformation;
     megawatt: EUInformation;
@@ -134,6 +138,8 @@ export const standardUnits: StandardUnits = {
     hectopascal: makeEUInformation("A97", "hPa", "hectopascal [unit of pressure] = 1E2 Pa"),
     millibar: makeEUInformation("MBR", "mbar", "millibar [unit of pressure] = 1E2 Pa"),
     pascal: makeEUInformation("PAL", "pa", "pascal [unit of pressure]"),
+    kilogram_per_squared_centimeter: makeEUInformation("D5", "kg/cm²", "kilogram per square centimetre"),
+
     // time/duration
     microsecond: makeEUInformation("B98", "μs", "microsecond =1E-6 second"),
     millisecond: makeEUInformation("C26", "ms", "millisecond =1E-3 second"),
@@ -143,11 +149,13 @@ export const standardUnits: StandardUnits = {
     metre: makeEUInformation("MTR", "m", "metre"),
     millimetre: makeEUInformation("MMT", "mm", "millimetre = 1E-3 metre"),
     // volume
-    cubic_centimetre: makeEUInformation("CMQ", "cm^3", "Cubic centimetre = 1E-6 m^3"),
-    cubic_metre: makeEUInformation("MTQ", "m^3", "Cubic metre"),
+    cubic_centimetre: makeEUInformation("CMQ", "cm³", "Cubic centimetre = 1E-6 m³"),
+    cubic_metre: makeEUInformation("MTQ", "m³", "Cubic metre"),
     // temperature
     degree_celsius: makeEUInformation("CEL", "°C", "degree Celsius"),
     degree_fahrenheit: makeEUInformation("FAH", "°F", "degree Fahrenheit 9/5(°C) + 32°"),
+    kelvin: makeEUInformation("KEL", "K", "degree Kelvin"),
+
     // weight
     gram: makeEUInformation("GRM", "g", "gramme 1E-3 kg"),
     kilogram: makeEUInformation("KGM", "kg", "A unit of mass equal to one thousand grams"),
@@ -163,31 +171,37 @@ export const standardUnits: StandardUnits = {
     hertz: makeEUInformation("HTZ", "Hz", "Hertz"),
     revolutions_per_minute: makeEUInformation("RPM", "r/min", "revolutions per minute 1,047198 rad/(60 x s)"),
     revolutions_per_second: makeEUInformation("RPS", "r/s", "revolutions per minute 1,047198 rad/s"),
-    //
+    // force
+    newton: makeEUInformation("NEW", "N", "Newton (kg x m)/s² "),
+    kilogram_force: makeEUInformation("B37", "kgf", "kilogram-force 1 kgf = 9.80665 N"),
+    // power
+    kilowatt: makeEUInformation("KWT", "kW", "kilowatt  1kW = 10³ W"),
+    megawatt: makeEUInformation("MAW", "MW", "Mega Watt"),
+    watt: makeEUInformation("WTT", "W", "Watt"),
+    // rate of flow
+    cubic_centimetre_per_second: makeEUInformation("2J", "cm³/s", "Cubic centimetre per second"),
+    cubic_metre_per_hour: makeEUInformation("MQH", "m³/h", "Cubic metre per hours = 2,777 78 x 10⁻⁴ m³/s"),
+    cubic_meter_per_minute: makeEUInformation("G53", "m³/min", "m³/min	cubic metre per minute"),
+    // angle
+    degree: makeEUInformation("DD", "°", "degree [unit of angle]"),
 
     //
     ampere: makeEUInformation("AMP", "A", "ampere"),
     becquerel: makeEUInformation("BQL", "Bq", "becquerel = 27,027E-12 Ci"),
-    cubic_centimetre_per_second: makeEUInformation("2J", "cm^3/s", "Cubic centimetre per second"),
-    cubic_metre_per_hour: makeEUInformation("MQH", "m^3", "Cubic metre per hours = 2,777 78 x 10⁻⁴ m³/s"),
+
     curie: makeEUInformation("CUR", "Ci", "Curie = 3,7E-10 Bq"),
     curie_per_kilogram: makeEUInformation("A42", "Ci/kg", "Curie per kilogram = 3,7E-10 Bq/kg"),
-    degree: makeEUInformation("DD", "°", "degree [unit of angle]"),
+
     dots_per_inch: makeEUInformation("E39", "dpi", "dot per inch"),
     electron_volt: makeEUInformation("A53", "eV", "electron volt"),
     farad: makeEUInformation("FAR", "F", "Farad = kg⁻¹ x m⁻² x s⁴ x     A²"),
     gigabecquerel: makeEUInformation("GBQ", "GBq", "Giga becquerel = 1E9 Bq"),
     joule: makeEUInformation("JOU", "J", "Joule"),
-    kelvin: makeEUInformation("KEL", "K", "degree Kelvin"),
     kilo_electron_volt: makeEUInformation("B29", "keV", "kilo electron volt"),
     kilobecquerel: makeEUInformation("2Q", "kBq", "kilo becquerel = 1E3 Bq"),
     mega_electron_volt: makeEUInformation("B71", "MeV", "mega electron volt"),
-    megawatt: makeEUInformation("MAW", "MW", "Mega Watt"),
-
-    newton: makeEUInformation("NEW", "N", "Newton (kg x m)/s² "),
     percent: makeEUInformation("P1", "%", "Percent, a unit of proportion equal to 0.01. "),
     pixel: makeEUInformation("E37", "", "pixel:  unit of count defining the number of pixels (pixel: picture element)"),
-    volt: makeEUInformation("VLT", "V", "Volt"),
-    watt: makeEUInformation("WTT", "W", "Watt")
+    volt: makeEUInformation("VLT", "V", "Volt")
     // to be continued
 };
