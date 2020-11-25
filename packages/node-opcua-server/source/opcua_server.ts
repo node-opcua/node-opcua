@@ -134,6 +134,7 @@ import {
 } from "node-opcua-types";
 import { DataType } from "node-opcua-variant";
 import { VariantArrayType } from "node-opcua-variant";
+import { matchUri } from "node-opcua-utils";
 
 import { OPCUABaseServer, OPCUABaseServerOptions } from "./base_server";
 import { Factory } from "./factory";
@@ -272,7 +273,7 @@ function _serverEndpointsForCreateSessionResponse(server: OPCUAServer, endpointU
     return server
         ._get_endpoints(endpointUrl)
         .map(getRequiredEndpointInfo)
-        .filter((e) => e.endpointUrl === endpointUrl);
+        .filter((e) => matchUri(e.endpointUrl, endpointUrl));
 }
 
 function adjustSecurityPolicy(

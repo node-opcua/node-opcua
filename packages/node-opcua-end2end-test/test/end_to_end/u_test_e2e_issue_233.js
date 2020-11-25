@@ -13,6 +13,7 @@ const { perform_operation_on_subscription } = require("../../test_helpers/perfor
 // create a function that call the callback with an error if
 function create_time_bomb_function(timeout, callback) {
 
+    let timeoutId = null;
     const time_bomb_func = function(err) {
         if (timeoutId) {
             clearTimeout(timeoutId);
@@ -20,7 +21,7 @@ function create_time_bomb_function(timeout, callback) {
             callback(err);
         }
     };
-    var timeoutId = setTimeout(function() {
+    timeoutId = setTimeout(function() {
         timeoutId = 0;
         time_bomb_func(new Error("Function has not been called in the requested interval " + timeout));
     }, timeout);
