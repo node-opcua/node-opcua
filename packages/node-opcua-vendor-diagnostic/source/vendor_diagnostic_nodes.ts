@@ -19,14 +19,12 @@ const humanize = require("humanize");
  * @private
  */
 function addVariableWithHumanizeText(namespace: Namespace, options: any) {
-
     assert(options.componentOf || options.organizedBy);
     assert(typeof options.description === "string");
 
     const variable = namespace.addVariable(options);
     // add the xxxAsText property
     namespace.addVariable({
-
         propertyOf: variable,
 
         browseName: options.browseName.name.toString() + "AsText",
@@ -37,9 +35,9 @@ function addVariableWithHumanizeText(namespace: Namespace, options: any) {
             get() {
                 const v = options.value.get();
                 if (v instanceof Variant) {
-                    return new Variant({ dataType: DataType.String, value: humanize.filesize(v.value) });
-                } else {
                     return v;
+                } else {
+                    return new Variant({ dataType: DataType.String, value: humanize.filesize(v.value) });
                 }
             }
         }
@@ -55,7 +53,6 @@ function addVariableWithHumanizeText(namespace: Namespace, options: any) {
  *
  */
 export function install_optional_cpu_and_memory_usage_node(server: any) {
-
     const engine = server.engine;
     assert(engine instanceof ServerEngine);
 
@@ -79,18 +76,18 @@ export function install_optional_cpu_and_memory_usage_node(server: any) {
     const pid = process.pid;
 
     if (usage) {
-
         const options = { keepHistory: true };
         setInterval(() => {
             usage.lookup(pid, options, (err: Error | null, result: any) => {
                 usage_result = result;
                 console.log("result Used Memory: ", humanize.filesize(result.memory), " CPU ", Math.round(result.cpu), " %");
-                if (err) { console.log("err ", err); }
+                if (err) {
+                    console.log("err ", err);
+                }
             });
         }, 1000);
 
         namespace.addVariable({
-
             componentOf: vendorServerInfo,
 
             browseName: "CPUUsage",
@@ -126,7 +123,6 @@ export function install_optional_cpu_and_memory_usage_node(server: any) {
                 }
             }
         });
-
     } else {
         console.log("skipping installation of cpu_usage and memory_usage nodes");
     }
@@ -141,7 +137,7 @@ export function install_optional_cpu_and_memory_usage_node(server: any) {
         nodeId: "s=PercentageMemoryUsed",
         value: {
             get() {
-                const percent_used = Math.round((os.totalmem() - os.freemem()) / os.totalmem() * 100);
+                const percent_used = Math.round(((os.totalmem() - os.freemem()) / os.totalmem()) * 100);
                 return new Variant({ dataType: DataType.Double, value: percent_used });
             }
         }
@@ -276,5 +272,4 @@ export function install_optional_cpu_and_memory_usage_node(server: any) {
             }
         }
     });
-
 }
