@@ -739,7 +739,7 @@ export class ClientSecureChannelLayer extends EventEmitter {
                 requestId,
                 "response.responseHeader.requestHandle=",
                 response.responseHeader.requestHandle,
-                response.schema.name
+                response.schema.name.padStart(30)
             );
         }
 
@@ -749,7 +749,8 @@ export class ClientSecureChannelLayer extends EventEmitter {
                 chalk.cyan.bold(timestamp(), "  <<<<<< _on_message_received "),
                 requestId,
                 response.schema.name.padStart(30),
-                response.responseHeader.serviceResult.toString()
+                response.responseHeader.serviceResult.toString(),
+                this.channelId
             );
         }
 
@@ -760,8 +761,9 @@ export class ClientSecureChannelLayer extends EventEmitter {
             console.log(
                 chalk.cyan.bold("xxxxx  <<<<<< _on_message_received for unknown or timeout request "),
                 requestId,
-                response.schema.name,
-                response.responseHeader.serviceResult.toString()
+                response.schema.name.padStart(30),
+                response.responseHeader.serviceResult.toString(),
+                this.channelId
             );
             throw new Error(" =>  invalid requestId =" + requestId);
         }
@@ -1442,7 +1444,12 @@ export class ClientSecureChannelLayer extends EventEmitter {
 
         /* istanbul ignore next */
         if (doTraceMessage) {
-            console.log(chalk.cyan(timestamp(), "   >>>>>>                     "), requestHandle, request.schema.name);
+            console.log(
+                chalk.cyan(timestamp(), "   >>>>>>                     "),
+                requestHandle,
+                request.schema.name.padEnd(30),
+                this.channelId
+            );
         }
 
         const requestData: RequestData = {

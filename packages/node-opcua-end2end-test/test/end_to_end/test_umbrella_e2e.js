@@ -262,7 +262,7 @@ describe("testing Client - Umbrella ", function() {
     require("./alarms_and_conditions/u_test_e2e_alarm_client_side")(test);
 
     require("./u_test_e2e_monitoredItem_client_terminated_event")(test);
-
+    require("./u_test_e2e_keepAlive")(test);
     // typescripts tests starts here...
     require("./u_test_e2e_deadband_filter").t(test);
 });
