@@ -53,22 +53,22 @@ module.exports = function(test) {
 
             await client.connect(endpointUrl);
             // set a very short sessionTimeout ( > 500 though)
-            client.requestedSessionTimeout = 1000;
+            client.requestedSessionTimeout = 600;
 
 
             // create a session using client1
             const session = await client.createSession();
-            session.timeout.should.eql(1000);
+            session.timeout.should.eql(600);
 
             const keepalive_spy = sinon.spy();
             session.on("keepalive", keepalive_spy);
             session.on("keepalive", () => console.log("keepalive"));
             // let check that keep alive manager is active and as a checkInterval
             // which is below session Timeout
-            session._keepAliveManager.checkInterval.should.eql(500);
+            session._keepAliveManager.checkInterval.should.eql(400);
 
             // now wait a little while
-            await new Promise((resolve) => setTimeout(resolve, 5000));
+            await new Promise((resolve) => setTimeout(resolve, 2000));
 
             await session.close();
             keepalive_spy.callCount.should.be.greaterThan(2);
@@ -93,7 +93,7 @@ module.exports = function(test) {
             await client.connect(endpointUrl);
 
             // set a very short sessionTimeout
-            client.requestedSessionTimeout = 2000;
+            client.requestedSessionTimeout = 600;
 
             //xx console.log("requestedSessionTimeout = ", client1.requestedSessionTimeout);
 
@@ -103,7 +103,7 @@ module.exports = function(test) {
 
             // let check that keep alive manager is active and as a checkInterval
             // which is below session Timeout
-            session._keepAliveManager.checkInterval.should.eql(500);
+            session._keepAliveManager.checkInterval.should.eql(400);
 
             session.on("keepalive", keepalive_spy);
             session.on("keepalive", () => {
