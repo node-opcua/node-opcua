@@ -184,18 +184,34 @@ function createSubscriptionDiagnostics(subscription: Subscription): Subscription
     const subscription_subscriptionDiagnostics = subscriptionDiagnostics as any;
     subscription_subscriptionDiagnostics.$subscription = subscription;
     // "sessionId"
-    subscription_subscriptionDiagnostics.__defineGetter__("sessionId", function (this: SubscriptionDiagnosticsDataTypePriv) {
+    subscription_subscriptionDiagnostics.__defineGetter__("sessionId", function (
+        this: SubscriptionDiagnosticsDataTypePriv
+    ): NodeId {
+        if (!this.$subscription) {
+            return NodeId.nullNodeId;
+        }
         return this.$subscription.getSessionId();
     });
-    subscription_subscriptionDiagnostics.__defineGetter__("subscriptionId", function (this: SubscriptionDiagnosticsDataTypePriv) {
+    subscription_subscriptionDiagnostics.__defineGetter__("subscriptionId", function (
+        this: SubscriptionDiagnosticsDataTypePriv
+    ): number {
+        if (!this.$subscription) {
+            return 0;
+        }
         return this.$subscription.id;
     });
-    subscription_subscriptionDiagnostics.__defineGetter__("priority", function (this: SubscriptionDiagnosticsDataTypePriv) {
+    subscription_subscriptionDiagnostics.__defineGetter__("priority", function (this: SubscriptionDiagnosticsDataTypePriv): number {
+        if (!this.$subscription) {
+            return 0;
+        }
         return this.$subscription.priority;
     });
     subscription_subscriptionDiagnostics.__defineGetter__("publishingInterval", function (
         this: SubscriptionDiagnosticsDataTypePriv
-    ) {
+    ): number {
+        if (!this.$subscription) {
+            return 0;
+        }
         return this.$subscription.publishingInterval;
     });
     subscription_subscriptionDiagnostics.__defineGetter__("maxLifetimeCount", function (this: SubscriptionDiagnosticsDataTypePriv) {
@@ -203,32 +219,50 @@ function createSubscriptionDiagnostics(subscription: Subscription): Subscription
     });
     subscription_subscriptionDiagnostics.__defineGetter__("maxKeepAliveCount", function (
         this: SubscriptionDiagnosticsDataTypePriv
-    ) {
+    ): number {
+        if (!this.$subscription) {
+            return 0;
+        }
         return this.$subscription.maxKeepAliveCount;
     });
     subscription_subscriptionDiagnostics.__defineGetter__("maxNotificationsPerPublish", function (
         this: SubscriptionDiagnosticsDataTypePriv
-    ) {
+    ): number {
+        if (!this.$subscription) {
+            return 0;
+        }
         return this.$subscription.maxNotificationsPerPublish;
     });
     subscription_subscriptionDiagnostics.__defineGetter__("publishingEnabled", function (
         this: SubscriptionDiagnosticsDataTypePriv
-    ) {
+    ): boolean {
+        if (!this.$subscription) {
+            return false;
+        }
         return this.$subscription.publishingEnabled;
     });
     subscription_subscriptionDiagnostics.__defineGetter__("monitoredItemCount", function (
         this: SubscriptionDiagnosticsDataTypePriv
-    ) {
+    ): number {
+        if (!this.$subscription) {
+            return 0;
+        }
         return this.$subscription.monitoredItemCount;
     });
     subscription_subscriptionDiagnostics.__defineGetter__("nextSequenceNumber", function (
         this: SubscriptionDiagnosticsDataTypePriv
-    ) {
+    ): number {
+        if (!this.$subscription) {
+            return 0;
+        }
         return this.$subscription._get_future_sequence_number();
     });
     subscription_subscriptionDiagnostics.__defineGetter__("disabledMonitoredItemCount", function (
         this: SubscriptionDiagnosticsDataTypePriv
-    ) {
+    ): number {
+        if (!this.$subscription) {
+            return 0;
+        }
         return this.$subscription.disabledMonitoredItemCount;
     });
 
