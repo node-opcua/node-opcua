@@ -38,6 +38,7 @@ import {
 } from "node-opcua-service-endpoints";
 import { coerceMessageSecurityMode, MessageSecurityMode } from "node-opcua-service-secure-channel";
 import { ErrorCallback } from "node-opcua-status-code";
+import { matchUri } from "node-opcua-utils";
 
 import { ResponseCallback } from "../client_session";
 import { Request, Response } from "../common";
@@ -734,7 +735,7 @@ export class ClientBaseImpl extends OPCUASecureObject implements OPCUAClientBase
         }
         return _.find(this._serverEndpoints, (endpoint: EndpointDescription) => {
             return (
-                endpoint.endpointUrl === endpointUrl &&
+                matchUri(endpoint.endpointUrl, endpointUrl) &&
                 endpoint.securityMode === securityMode &&
                 endpoint.securityPolicyUri === securityPolicy
             );

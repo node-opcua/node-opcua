@@ -25,6 +25,8 @@ import { ServiceFault } from "node-opcua-service-secure-channel";
 import { StatusCode, StatusCodes } from "node-opcua-status-code";
 import { ApplicationDescriptionOptions } from "node-opcua-types";
 import { EndpointDescription, GetEndpointsRequest } from "node-opcua-types";
+import { matchUri } from "node-opcua-utils";
+
 import { OPCUAServerEndPoint } from "./server_end_point";
 import { IChannelData } from "./i_channel_data";
 import { ISocketData } from "./i_socket_data";
@@ -330,7 +332,7 @@ export class OPCUABaseServer extends OPCUASecureObject {
         let endpoints: EndpointDescription[] = [];
         for (const endPoint of this.endpoints) {
             const ep = endPoint.endpointDescriptions();
-            const epFiltered = endpointUrl ? ep.filter((e) => e.endpointUrl === endpointUrl) : ep;
+            const epFiltered = endpointUrl ? ep.filter((e) => matchUri(e.endpointUrl, endpointUrl)) : ep;
             endpoints = endpoints.concat(epFiltered);
         }
         return endpoints;

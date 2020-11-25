@@ -1905,11 +1905,11 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession {
              */
             this.emit("keepalive_failure");
         });
-        this._keepAliveManager.on("keepalive", (state) => {
+        this._keepAliveManager.on("keepalive", (state, count) => {
             /**
              * @event keepalive
              */
-            this.emit("keepalive", state);
+            this.emit("keepalive", state, count);
         });
         this._keepAliveManager.start();
     }

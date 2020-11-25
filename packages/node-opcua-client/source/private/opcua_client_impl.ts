@@ -57,7 +57,7 @@ import { StatusCodes } from "node-opcua-status-code";
 import { ErrorCallback, Callback } from "node-opcua-status-code";
 
 import { SignatureData, SignatureDataOptions, UserIdentityToken } from "node-opcua-types";
-import { isNullOrUndefined } from "node-opcua-utils";
+import { isNullOrUndefined, matchUri } from "node-opcua-utils";
 
 import { ClientSession } from "../client_session";
 import { ClientSubscription, ClientSubscriptionOptions } from "../client_subscription";
@@ -715,7 +715,7 @@ export class OPCUAClientImpl extends ClientBaseImpl implements OPCUAClient {
         }
 
         assert(
-            !internalSession._client || internalSession._client.endpointUrl === this.endpointUrl,
+            !internalSession._client || matchUri(internalSession._client.endpointUrl, this.endpointUrl),
             "cannot reactivateSession on a different endpoint"
         );
 
