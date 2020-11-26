@@ -42,12 +42,12 @@ describe("Testing Benchmarker", () => {
         const bench = new Benchmarker();
 
         async function test1() {
-            await new Promise((resolve) => setImmediate(() => {
+            await new Promise<void>((resolve) => setImmediate(() => {
                 resolve();
             }));
         }
         async function test2() {
-            await new Promise((resolve) => process.nextTick(() => {
+            await new Promise<void>((resolve) => process.nextTick(() => {
                 resolve();
             }));
         }

@@ -882,7 +882,7 @@ export class MonitoredItem extends EventEmitter {
 
             // initiate first read
             if (recordInitialValue) {
-                await new Promise((resolve) => {
+                await new Promise<void>((resolve: () => void) => {
                     (this.node as UAVariable).readValueAsync(context, (err: Error | null, dataValue?: DataValue) => {
                         if (!err && dataValue) {
                             this.recordValue(dataValue, true);
@@ -894,7 +894,7 @@ export class MonitoredItem extends EventEmitter {
         } else {
             this._set_timer();
             if (recordInitialValue) {
-                await new Promise((resolve) => {
+                return new Promise((resolve) => {
                     setImmediate(() => {
                         // xx console.log("Record Initial Value ",this.node.nodeId.toString());
                         // initiate first read (this requires this._samplingId to be set)
@@ -1040,11 +1040,11 @@ export class MonitoredItem extends EventEmitter {
         ) {
             throw new Error(
                 "dataValue.value.value cannot be the same object twice! " +
-                    this.node!.browseName.toString() +
-                    " " +
-                    dataValue.toString() +
-                    "  " +
-                    chalk.cyan(this.oldDataValue.toString())
+                this.node!.browseName.toString() +
+                " " +
+                dataValue.toString() +
+                "  " +
+                chalk.cyan(this.oldDataValue.toString())
             );
         }
 

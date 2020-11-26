@@ -198,7 +198,7 @@ describe("AZA1- testing Client-Server subscription use case, on a fake server ex
                     monitoredItem.on("changed", (dataValue) => {
                         console.log("."); //dataValue.toJSON());
                     });
-                    await new Promise((resolve) => {
+                    await new Promise<void>((resolve) => {
                         // subscription.on("item_added",function(monitoredItem){
                         monitoredItem.on("initialized", () => {
                             console.log(" Initialized !");
@@ -294,7 +294,7 @@ describe("AZA1- testing Client-Server subscription use case, on a fake server ex
                             // console.log(eventField.toString());
                         }
                     });
-                    await new Promise((resolve) => {
+                    await new Promise<void>((resolve) => {
                         // subscription.on("item_added",function(monitoredItem){
                         monitoredItem.on("initialized", () => {
                             console.log(" Initialized !");

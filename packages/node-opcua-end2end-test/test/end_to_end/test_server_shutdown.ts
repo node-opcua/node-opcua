@@ -75,7 +75,7 @@ async function then_the_client_should_automatically_be_disconnected(client: OPCU
         return;
     }
     let resolved = false;
-    await new Promise((resolve) => {
+    await new Promise<void>((resolve) => {
         client.on("connection_lost", () => {
             console.log("Connection has been lost");
             if (!resolved) {

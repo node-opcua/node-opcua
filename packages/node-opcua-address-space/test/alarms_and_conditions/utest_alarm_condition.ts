@@ -199,7 +199,7 @@ export function utest_alarm_condition(test: any) {
                 // function calling_timedShelve(callback) {
                 const callMethodResponse1 = await alarm.shelvingState.timedShelve.execute([shelvingTime], context);
 
-                const currentStateChangePromise = new Promise((resolve) => {
+                const currentStateChangePromise = new Promise<void>((resolve) => {
                     alarm.shelvingState.currentState.once("value_changed", (newValue: DataValue) => {
                         console.log(" alarm.shelvingState.currentState. ", newValue.toString());
 
