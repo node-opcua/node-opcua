@@ -29,8 +29,21 @@ export class UATwoStateDiscrete extends UAVariable implements UATwoStateDiscrete
         // (changes can cause misinterpretation by users or (scripting) programs) Properties are changed
         // (see section 5.2 for additional information).
         const handler = this.handle_semantic_changed.bind(this);
-        this.falseState.on("value_changed", handler);
-        this.trueState.on("value_changed", handler);
+
+        const falseState = this.getPropertyByName("FalseState");
+        /* istanbul ignore else */
+        if (falseState) {
+            falseState.on("value_changed", handler);
+        } else {
+            console.warn("warning: UATwoStateDiscrete -> a FalseState property is mandatory ", this.browseName.toString(), this.nodeId.toString());
+        }
+        const trueState = this.getPropertyByName("TrueState");
+        /* istanbul ignore else */
+        if (trueState) {
+            trueState.on("value_changed", handler);
+        } else {
+            console.warn("waring: UATwoStateDiscrete -> a TrueState property is mandatory", this.browseName.toString(), this.nodeId.toString());
+        }
     }
     setValue(value: boolean | LocalizedTextLike) {
         if (typeof value === "boolean") {
