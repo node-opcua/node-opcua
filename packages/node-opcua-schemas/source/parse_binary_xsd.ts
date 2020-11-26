@@ -22,6 +22,7 @@ import {
 import { DataTypeFactory } from "node-opcua-factory";
 import { NodeId } from "node-opcua-nodeid";
 import { Xml2Json } from "node-opcua-xml2json";
+import { Z_UNKNOWN } from "zlib";
 
 import {
     getOrCreateStructuredTypeSchema,
@@ -400,7 +401,7 @@ export async function parseBinaryXSDAsync(
 ): Promise<void> {
 
     debugLog("parseBinaryXSDAsync");
-    await new Promise((resolve, reject) => {
+    return new Promise((resolve, reject) => {
         parseBinaryXSD(xmlString, idProvider, dataTypeFactory, (err?: Error | null) => {
             if (err) {
                 reject(err);

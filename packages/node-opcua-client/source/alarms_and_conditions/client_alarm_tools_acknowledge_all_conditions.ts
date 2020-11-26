@@ -95,7 +95,7 @@ export async function findActiveConditions(session: ClientSession): Promise<Even
     const RefreshStartEventType = resolveNodeId("RefreshStartEventType").toString();
     const RefreshEndEventType = resolveNodeId("RefreshEndEventType").toString();
 
-    const promise = new Promise((resolve, reject) => {
+    const promise: Promise<void> = new Promise((resolve, reject) => {
 
         // now create a event monitored Item
         event_monitoringItem.on("changed", (_eventFields: any) => {

@@ -785,7 +785,7 @@ async function main() {
         }, timeout / 2.0);
         // });
 
-        await new Promise((resolve) => {
+        await new Promise<void>((resolve) => {
             setTimeout(async () => {
                 console.log("time out => shutting down ");
                 if (!the_subscription) {

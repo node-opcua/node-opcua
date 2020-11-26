@@ -2469,7 +2469,7 @@ export class OPCUAServer extends OPCUABaseServer {
                 const context = new SessionContext({ session, server });
 
                 const f = callbackify(server.engine.browseWithAutomaticExpansion).bind(server.engine);
-                f(request.nodesToBrowse, context, (err?: Error | null, results?: BrowseResult[]) => {
+                (f as any)(request.nodesToBrowse, context, (err?: Error | null, results?: BrowseResult[]) => {
                     // istanbul ignore next
                     if (!results) {
                         throw new Error("internal error");
@@ -3492,7 +3492,7 @@ export interface RaiseEventAuditActivateSessionEventData extends RaiseEventAudit
 }
 
 // tslint:disable:no-empty-interface
-export interface RaiseEventTransitionEventData extends RaiseEventData {}
+export interface RaiseEventTransitionEventData extends RaiseEventData { }
 
 export interface RaiseEventAuditUrlMismatchEventTypeData extends RaiseEventData {
     endpointUrl: PseudoVariantString;

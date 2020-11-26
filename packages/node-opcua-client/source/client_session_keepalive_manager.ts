@@ -22,7 +22,7 @@ const debugLog = make_debugLog(__filename);
 const doDebug = checkDebugFlag(__filename);
 const warningLog = debugLog;
 
-const emptyCallback = (err?: Error) => {};
+const emptyCallback = (err?: Error) => { };
 
 export interface ClientSessionKeepAliveManagerEvents {
     on(event: "keepalive", eventHandler: (lastKnownServerState: ServerState, count: number) => void): this;
@@ -138,6 +138,7 @@ export class ClientSessionKeepAliveManager extends EventEmitter implements Clien
         // Server_ServerStatus_State
 
         return new Promise((resolve) => {
+
             session.readVariableValue(serverStatusStateNodeId, (err: Error | null, dataValue?: DataValue) => {
                 this.transactionInProgress = false;
 
@@ -151,7 +152,7 @@ export class ClientSessionKeepAliveManager extends EventEmitter implements Clien
                      * the keep alive read Variable value transaction
                      */
                     this.emit("failure");
-                    resolve();
+                    resolve(0);
                     return;
                 }
 

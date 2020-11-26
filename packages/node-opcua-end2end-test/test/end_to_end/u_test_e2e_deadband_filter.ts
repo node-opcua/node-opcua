@@ -283,7 +283,7 @@ export function t(test: any) {
             publishEngine.internalSendPublishRequest();
             publishEngine.internalSendPublishRequest();
             // wait until next keep alive
-            await new Promise((resolve) => {
+            await new Promise<void>((resolve) => {
                 subscription.once("keepalive", () => resolve());
             });
         }
@@ -433,7 +433,7 @@ export function t(test: any) {
             publishEngine.internalSendPublishRequest();
             publishEngine.internalSendPublishRequest();
             // wait until next keep alive
-            await new Promise((resolve) => {
+            await new Promise<void>((resolve) => {
                 subscription.once("keepalive", () => resolve());
             });
 
