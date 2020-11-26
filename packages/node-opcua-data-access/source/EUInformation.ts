@@ -82,6 +82,7 @@ export interface StandardUnits {
     ampere: EUInformation;
     bar: EUInformation;
     becquerel: EUInformation;
+    byte: EUInformation;
     centimetre: EUInformation;
     cubic_centimetre: EUInformation;
     cubic_centimetre_per_second: EUInformation;
@@ -97,6 +98,7 @@ export interface StandardUnits {
     electron_volt: EUInformation;
     farad: EUInformation;
     gigabecquerel: EUInformation;
+    gigabyte: EUInformation;
     gram: EUInformation;
     hectopascal: EUInformation;
     hertz: EUInformation;
@@ -104,14 +106,21 @@ export interface StandardUnits {
     kelvin: EUInformation;
     kilo_electron_volt: EUInformation;
     kilobecquerel: EUInformation;
+    kilobyte: EUInformation;
     kilohertz: EUInformation;
     kilogram: EUInformation;
-    kilowatt: EUInformation;
     kilogram_force: EUInformation;
+    kilogram_per_second: EUInformation;
     kilogram_per_squared_centimeter: EUInformation;
     kilometre_per_hour: EUInformation;
+    kilopascal: EUInformation;
+    kilowatt: EUInformation;
     mega_electron_volt: EUInformation;
+    megabyte: EUInformation;
+    megahertz: EUInformation;
+    megapascal: EUInformation;
     megawatt: EUInformation;
+    megawatt_per_minute: EUInformation;
     metre: EUInformation;
     metre_per_second: EUInformation;
     metre_per_second_squared: EUInformation;
@@ -119,14 +128,19 @@ export interface StandardUnits {
     mile_per_hour: EUInformation;
     millibar: EUInformation;
     millimetre: EUInformation;
+    millipascal: EUInformation;
     millisecond: EUInformation;
+    minute: EUInformation;
+    minute_angle: EUInformation;
     newton: EUInformation;
     pascal: EUInformation;
+    part_per_million: EUInformation;
     percent: EUInformation;
     pixel: EUInformation;
     revolutions_per_minute: EUInformation;
     revolutions_per_second: EUInformation;
     second: EUInformation;
+    terabyte: EUInformation;
     volt: EUInformation;
     watt: EUInformation;
 }
@@ -137,8 +151,9 @@ export const standardUnits: StandardUnits = {
     bar: makeEUInformation("BAR", "bar", "bar [unit of pressure] = 1E5 Pa"),
     hectopascal: makeEUInformation("A97", "hPa", "hectopascal [unit of pressure] = 1E2 Pa"),
     millibar: makeEUInformation("MBR", "mbar", "millibar [unit of pressure] = 1E2 Pa"),
-    pascal: makeEUInformation("PAL", "pa", "pascal [unit of pressure]"),
+    pascal: makeEUInformation("PAL", "Pa", "pascal [unit of pressure]"),
     kilogram_per_squared_centimeter: makeEUInformation("D5", "kg/cm²", "kilogram per square centimetre"),
+    megapascal: makeEUInformation("MPA", "MPa", "1 megapascal =  10⁶ pascal [unit of pressure]"),
 
     // time/duration
     microsecond: makeEUInformation("B98", "μs", "microsecond =1E-6 second"),
@@ -169,6 +184,7 @@ export const standardUnits: StandardUnits = {
     // frequency
     kilohertz: makeEUInformation("KHZ", "kHz", "kilo hertz = 1E3 Hertz"),
     hertz: makeEUInformation("HTZ", "Hz", "Hertz"),
+    megahertz: makeEUInformation("MHZ", "MHz", "megahertz"),
     revolutions_per_minute: makeEUInformation("RPM", "r/min", "revolutions per minute 1,047198 rad/(60 x s)"),
     revolutions_per_second: makeEUInformation("RPS", "r/s", "revolutions per minute 1,047198 rad/s"),
     // force
@@ -198,10 +214,23 @@ export const standardUnits: StandardUnits = {
     gigabecquerel: makeEUInformation("GBQ", "GBq", "Giga becquerel = 1E9 Bq"),
     joule: makeEUInformation("JOU", "J", "Joule"),
     kilo_electron_volt: makeEUInformation("B29", "keV", "kilo electron volt"),
+    kilogram_per_second: makeEUInformation("KGS", "kg/s", "kilogram per second"),
+    kilopascal: makeEUInformation("KPA", "kPa", "1 kilopascal = 10³ Pa"),
+    millipascal: makeEUInformation("74", "mPa", "1 millipascal = 10⁻³ Pa"),
     kilobecquerel: makeEUInformation("2Q", "kBq", "kilo becquerel = 1E3 Bq"),
     mega_electron_volt: makeEUInformation("B71", "MeV", "mega electron volt"),
+    megawatt_per_minute: makeEUInformation("Q35", "MW/min", "A unit of power defining the total amount of bulk energy transferred or consumer per minute."),
     percent: makeEUInformation("P1", "%", "Percent, a unit of proportion equal to 0.01. "),
     pixel: makeEUInformation("E37", "", "pixel:  unit of count defining the number of pixels (pixel: picture element)"),
-    volt: makeEUInformation("VLT", "V", "Volt")
+    volt: makeEUInformation("VLT", "V", "Volt"),
+
+    byte: makeEUInformation("AD", "byte", "byte = A unit of information equal to 8 bits."),
+    kilobyte: makeEUInformation("2P", "kbyte", "kilobyte = A unit of information equal to 10³ (1000) bytes."),
+    megabyte: makeEUInformation("4L", "Mbyte", "megabyte = A unit of information equal to 10⁶ (1000000) bytes."),
+    gigabyte: makeEUInformation("E34", "Gbyte", "gigabyte = A unit of information equal to 10⁹ bytes."),
+    terabyte: makeEUInformation("E35", "Tbyte", "terabyte = A unit of information equal to 10¹² bytes."),
+    minute: makeEUInformation("MIN", "min", " minute (unit of time) 1min = 60 s"),
+    minute_angle: makeEUInformation("D61", "'", "minute [unit of angle]"),
+    part_per_million: makeEUInformation("59", "ppm", "A unit of proportion equal to 10⁻⁶."),
     // to be continued
 };
