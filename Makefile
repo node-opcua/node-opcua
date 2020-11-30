@@ -20,6 +20,13 @@ coveralls: istanbul
 			--reporter=text-lcov \
 		 | npx coveralls --exclude tmp
 
+coveralls2: istanbul
+	npx nyc@14 report --source-map \
+			--include="packages/node-opcua-*/dist/**/*.js"  \
+			--exclude-after-remap=false \
+			--cwd=. \
+			--reporter=lcov
+
 # note a CODECLIMATE_REPO_TOKEN must be specified as an environment variable.
 codeclimate: istanbul
 	codeclimate-test-reporter < ./coverage/lcov.info

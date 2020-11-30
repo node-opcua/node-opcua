@@ -4,6 +4,10 @@
 
 name: Node.js CI
 
+env:
+  COVERALLS_REPO_TOKEN: "${{ secrets.COVERALLS_REPO_TOKEN }}"
+  COVERALLS_GIT_BRANCH: "${{ github.ref }}"
+
 on:
   push:
     branches: [ master ]
@@ -23,12 +27,11 @@ jobs:
     - run: npm ci
     - run: npm run build --if-present
     - run: npm test
-    
   build:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node-version: [10.x, 12.x, 14.x]
+        node-version: [10.x, 14.x]
 
     steps:
     - uses: actions/checkout@v2
@@ -37,5 +40,28 @@ jobs:
       with:
         node-version: ${{ matrix.node-version }}
     - run: npm ci
-    - run: npm run build --if-present
+    - run: npm run build
     - run: npm test
+  coverage:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [ 10.x]
+    steps:
+      - uses: actions/checkout@v2
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v1
+        with:
+          node-version: ${{ matrix.node-version }}
+
+      - run: npm install -g nyc@14 istanbul coveralls codecov
+      - run: npm install -g codeclimate-test-reporter
+      - run: npm ci 
+      - run: npm run build 
+      - run: npm run pretest
+      - run: make test-cov     
+        
+      # - name: coveralls
+      #  uses: coverallsapp/github-action@master
+      #   with:
+      #   github-token: ${{ secrets.GITHUB_TOKEN }}
