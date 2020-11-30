@@ -15,7 +15,7 @@ node_js:
   - "14"
 os:
   - linux
-  - osx
+  # - osx
   # - windows
 
 matrix:
