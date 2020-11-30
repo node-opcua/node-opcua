@@ -1,6 +1,6 @@
 {
 	"name": "node-opcua-address-space-for-conformance-testing",
-	"version": "2.27.1",
+	"version": "2.28.0",
 	"description": "pure nodejs OPCUA SDK - module -address-space-for-conformance-testing",
 	"main": "dist/index.js",
 	"types": "dist/index.d.ts",
@@ -8,16 +8,16 @@
 		"build": "tsc -b"
 	},
 	"dependencies": {
-		"node-opcua-address-space": "2.27.1",
+		"node-opcua-address-space": "2.28.0",
 		"node-opcua-assert": "2.22.0",
-		"node-opcua-basic-types": "2.27.1",
-		"node-opcua-data-access": "2.27.1",
-		"node-opcua-data-model": "2.27.1",
-		"node-opcua-data-value": "2.27.1",
-		"node-opcua-factory": "2.27.1",
-		"node-opcua-nodeid": "2.22.0",
-		"node-opcua-status-code": "2.27.0",
-		"node-opcua-variant": "2.27.1"
+		"node-opcua-basic-types": "2.28.0",
+		"node-opcua-data-access": "2.28.0",
+		"node-opcua-data-model": "2.28.0",
+		"node-opcua-data-value": "2.28.0",
+		"node-opcua-factory": "2.28.0",
+		"node-opcua-nodeid": "2.28.0",
+		"node-opcua-status-code": "2.28.0",
+		"node-opcua-variant": "2.28.0"
 	},
 	"author": "Etienne Rossignon",
 	"license": "MIT",
