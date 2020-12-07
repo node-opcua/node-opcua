@@ -587,7 +587,7 @@ describe("nodeset2.xml with more than one referenced namespace", function (this:
         // console.log(xml);
     });
     it("NSXML2 should output an XML file - with Variant LocalizedText", async () => {
-        const v = namespace.addVariable({
+        const v1 = namespace.addVariable({
             browseName: "TestLocalizedText",
             dataType: DataType.LocalizedText,
             organizedBy: addressSpace.rootFolder.objects,
@@ -597,7 +597,7 @@ describe("nodeset2.xml with more than one referenced namespace", function (this:
             }
         });
 
-        const v = namespace.addVariable({
+        const v2 = namespace.addVariable({
             browseName: "TestLocalizedTextArray",
             dataType: DataType.LocalizedText,
             valueRank: 1,
