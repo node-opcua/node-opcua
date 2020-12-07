@@ -1,6 +1,6 @@
 {
   "name": "node-opcua-model",
-  "version": "2.28.1",
+  "version": "2.28.2",
   "description": "pure nodejs OPCUA SDK - module - model",
   "main": "index.js",
   "scripts": {
@@ -11,10 +11,10 @@
   "license": "MIT",
   "dependencies": {
     "chalk": "^4.1.0",
-    "node-opcua-address-space": "2.28.1",
+    "node-opcua-address-space": "2.28.2",
     "node-opcua-assert": "2.22.0",
     "node-opcua-basic-types": "2.28.0",
-    "node-opcua-client": "2.28.1",
+    "node-opcua-client": "2.28.2",
     "node-opcua-client-dynamic-extension-object": "2.28.1",
     "node-opcua-enum": "2.28.0",
     "node-opcua-factory": "2.28.0",
