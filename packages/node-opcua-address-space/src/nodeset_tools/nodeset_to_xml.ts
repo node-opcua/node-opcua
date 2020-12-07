@@ -41,6 +41,9 @@ import { UAVariable } from "../ua_variable";
 import { UAVariableType } from "../ua_variable_type";
 import { constructNamespaceDependency } from "./construct_namespace_dependency";
 import { ExtensionObject } from "node-opcua-extension-object";
+import { make_debugLog } from "node-opcua-debug";
+
+const debugLog = make_debugLog(__filename);
 
 function _hash(node: BaseNode | Reference): string {
     return node.nodeId.toString();
@@ -174,7 +177,9 @@ function _dumpQualifiedName(xw: XmlWriter, v: QualifiedName) {
         xw.endElement();
     }
 }
-
+function _dumpXmlElement(xw: XmlWriter, v: string) {
+    xw.text(v);
+}
 /*
 <uax:ExtensionObject>
     <uax:TypeId>
@@ -295,6 +300,13 @@ function _dumpVariantValue(xw: XmlWriter, dataType: DataType, value: any) {
             _dumpQualifiedName(xw, value as QualifiedName);
             xw.endElement();
             break;
+        case DataType.XmlElement:
+            xw.startElement(DataType[dataType]);
+            // xw.writeAttribute("xmlns", "http://opcfoundation.org/UA/2008/02/Types.xsd");
+            _dumpXmlElement(xw, value as string);
+            xw.endElement();
+            break;
+
         case DataType.StatusCode:
         default:
             throw new Error(
@@ -311,6 +323,9 @@ function _dumpVariantInnerValue(xw: XmlWriter, dataType: DataType, value: any) {
             break;
         case DataType.LocalizedText:
             _dumpLocalizedText(xw, value as LocalizedText);
+            break;
+        case DataType.QualifiedName:
+            _dumpQualifiedName(xw, value as QualifiedName);
             break;
         case DataType.NodeId:
             _dumpNodeId(xw, value as NodeId);
@@ -334,7 +349,6 @@ function _dumpVariantInnerValue(xw: XmlWriter, dataType: DataType, value: any) {
             xw.text(value.toString());
             break;
         case DataType.ByteString:
-        case DataType.QualifiedName:
         case DataType.StatusCode:
         default:
             throw new Error("_dumpVariantInnerValue incomplete " + value + " " + "DataType=" + dataType + "=" + DataType[dataType]);
@@ -660,8 +674,8 @@ function dumpCommonAttributes(xw: XmlWriter, node: BaseNode) {
     }
     if (node.hasOwnProperty("accessLevel")) {
         // CurrentRead is by default
-        if ((node as any).accessLevel !== currentReadFlag) {
-            xw.writeAttribute("AccessLevel", (node as any).accessLevel);
+        if ((node as UAVariable).accessLevel !== currentReadFlag) {
+            xw.writeAttribute("AccessLevel", (node as UAVariable).accessLevel.toString());
         }
     }
 }
@@ -679,7 +693,9 @@ function coerceInt64ToInt32(int64: Int64): number {
     if (int64[0] === 4294967295 && int64[1] === 4294967295) {
         return 0xffffffff;
     }
-    assert(int64[0] === 0, "???");
+    if (int64[0] !== 0) {
+        debugLog("coerceInt64ToInt32 , loosing high word in conversion");
+    };
     return int64[1];
 }
 

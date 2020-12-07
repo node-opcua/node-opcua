@@ -1028,7 +1028,14 @@ export function makeStuff(addressSpace: AddressSpacePublic) {
                     };
                 }
             },
-
+            XmlElement: {
+                finish(this: any) {
+                    this.parent.parent.obj.value = {
+                        dataType: DataType.XmlElement,
+                        value: this.text
+                    };
+                }
+            },
             String: {
                 finish(this: any) {
                     this.parent.parent.obj.value = {
@@ -1210,6 +1217,8 @@ export function makeStuff(addressSpace: AddressSpacePublic) {
             ListOfUInt8: ListOf("UInt8", parseInt),
 
             ListOfString: ListOf("String", (value: string) => value),
+
+            ListOfXmlElement: ListOf("XmlElement", (value: string) => value),
 
             ExtensionObject: {
                 init(this: any) {
