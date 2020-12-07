@@ -14,6 +14,8 @@ import {
     makeAccessLevelFlag,
     NodeClass,
     QualifiedName,
+    QualifiedNameLike,
+    QualifiedNameOptions,
     stringToQualifiedName
 } from "node-opcua-data-model";
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
@@ -173,8 +175,8 @@ function makeStructureDefinition(name: string, definitionFields: StructureFieldO
     const structureType = isUnion
         ? StructureType.Union
         : hasOptionalFields
-        ? StructureType.StructureWithOptionalFields
-        : StructureType.Structure;
+            ? StructureType.StructureWithOptionalFields
+            : StructureType.Structure;
 
     const sd = new StructureDefinition({
         baseDataType: undefined,
@@ -640,7 +642,36 @@ export function makeStuff(addressSpace: AddressSpacePublic) {
             }
         }
     };
-
+    interface QualifiedNameParserChild {
+        parent: {
+            qualifiedName: QualifiedNameOptions
+        },
+        text: string;
+    }
+    const qualifiedName_parser = {
+        QualifiedName: {
+            init(this: any) {
+                this.qualifiedName = {
+                    namespaceIndex: 0,
+                    name: null
+                } as QualifiedNameOptions;
+            },
+            parser: {
+                Name: {
+                    finish(this: QualifiedNameParserChild) {
+                        this.parent.qualifiedName.name = this.text.trim();
+                    }
+                },
+                NamespaceIndex: {
+                    finish(this: QualifiedNameParserChild) {
+                        const ns = parseInt(this.text, 10);
+                        const t = _translateNodeId(resolveNodeId(`ns=${ns};i=1`).toString())
+                        this.parent.qualifiedName.namespaceIndex = t.namespace;
+                    }
+                }
+            }
+        }
+    };
     const nodeId_parser = {
         NodeId: {
             init(this: any) {
@@ -979,6 +1010,15 @@ export function makeStuff(addressSpace: AddressSpacePublic) {
             /* empty */
         },
         parser: {
+            QualifiedName: {
+                ...qualifiedName_parser.QualifiedName,
+                finish(this: any) {
+                    this.parent.parent.obj.value = {
+                        dataType: DataType.QualifiedName,
+                        value: this.qualifiedName
+                    };
+                }
+            },
             LocalizedText: {
                 ...localizedText_parser.LocalizedText,
                 finish(this: any) {
@@ -1116,6 +1156,22 @@ export function makeStuff(addressSpace: AddressSpacePublic) {
                 },
                 endElement(this: any /*element*/) {
                     this.listData.push(this.parser.LocalizedText.localizedText);
+                }
+            },
+            ListOfQualifiedName: {
+                init(this: any) {
+                    this.listData = [];
+                },
+                parser: qualifiedName_parser,
+                finish(this: any) {
+                    this.parent.parent.obj.value = {
+                        arrayType: VariantArrayType.Array,
+                        dataType: DataType.QualifiedName,
+                        value: this.listData
+                    };
+                },
+                endElement(this: any /*element*/) {
+                    this.listData.push(this.parser.QualifiedName.qualifiedName);
                 }
             },
             ListOfNodeId: {

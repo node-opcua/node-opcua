@@ -4,10 +4,10 @@ import * as fs from "fs";
 import * as should from "should";
 
 import { getTempFilename } from "node-opcua-debug/nodeJS";
-import { DataType } from "node-opcua-variant";
+import { DataType, VariantArrayType } from "node-opcua-variant";
 import { Variant } from "node-opcua-variant";
 import { nodesets } from "node-opcua-nodesets";
-import { coerceLocalizedText, makeAccessLevelFlag } from "node-opcua-data-model";
+import { coerceLocalizedText, coerceQualifiedName, makeAccessLevelFlag } from "node-opcua-data-model";
 
 import { AddressSpace, dumpXml, Namespace, RootFolder, UAVariable } from "..";
 import { createBoilerType, getMiniAddressSpace } from "../testHelpers";
@@ -588,12 +588,27 @@ describe("nodeset2.xml with more than one referenced namespace", function (this:
     });
     it("NSXML2 should output an XML file - with Variant LocalizedText", async () => {
         const v = namespace.addVariable({
-            browseName: "Test",
-            dataType: "Guid",
+            browseName: "TestLocalizedText",
+            dataType: DataType.LocalizedText,
             organizedBy: addressSpace.rootFolder.objects,
             value: {
                 dataType: DataType.LocalizedText,
                 value: coerceLocalizedText("Hello")
+            }
+        });
+
+        const v = namespace.addVariable({
+            browseName: "TestLocalizedTextArray",
+            dataType: DataType.LocalizedText,
+            valueRank: 1,
+            organizedBy: addressSpace.rootFolder.objects,
+            value: {
+                dataType: DataType.LocalizedText,
+                arrayType: VariantArrayType.Array,
+                value: [
+                    coerceLocalizedText("Hello"),
+                    coerceLocalizedText("World"),
+                ]
             }
         });
 
@@ -606,10 +621,69 @@ describe("nodeset2.xml with more than one referenced namespace", function (this:
         r_xml2.split("\n").should.eql(xml2.split("\n"));
 
         // console.log(xml);
+        r_xml2.should.match(/<LocalizedText/);
+        r_xml2.should.match(/<ListOfLocalizedText.*>/);
+        r_xml2.should.match(/<\/LocalizedText>/);
+        r_xml2.should.match(/<\/LocalizedText>/);
+
     });
-    it("NSXML3 should output an XML file - with Variant Matrix UAVariable", async () => {
+    it("NSXML3 should output an XML file - with Variant QualifiedName", async () => {
+
+        const v1 = namespace.addVariable({
+            browseName: "TestQualifiedName",
+            dataType: DataType.QualifiedName,
+            organizedBy: addressSpace.rootFolder.objects,
+            value: {
+                dataType: DataType.QualifiedName,
+                value: coerceQualifiedName("Hello")
+            }
+        });
+        const v2 = namespace.addVariable({
+            browseName: "TestQualifiedName2",
+            dataType: DataType.QualifiedName,
+            organizedBy: addressSpace.rootFolder.objects,
+            value: {
+                dataType: DataType.QualifiedName,
+                value: coerceQualifiedName({ name: "Hello", namespaceIndex: 1 })
+            }
+        });
+
+        const v3 = namespace.addVariable({
+            browseName: "TestQualifiedNameArray",
+            dataType: DataType.QualifiedName,
+            arrayDimensions: [2],
+            valueRank: 1,
+            organizedBy: addressSpace.rootFolder.objects,
+            value: {
+                arrayType: VariantArrayType.Array,
+                dataType: DataType.QualifiedName,
+                value: [
+                    coerceQualifiedName({ name: "Hello", namespaceIndex: 1 }),
+                    coerceQualifiedName({ name: "World", namespaceIndex: 1 }),
+                ]
+            }
+        });
+
+        const xml = namespace.toNodeset2XML();
+        // console.log(xml);
+
+        const xml2 = xml.replace(/LastModified="([^"]*)"/g, 'LastModified="YYYY-MM-DD"');
+        const tmpFilename = getTempFilename("__generated_node_set_qn_version1.xml");
+        fs.writeFileSync(tmpFilename, xml);
+
+        const r_xml2 = await reloadedNodeSet(tmpFilename);
+        r_xml2.split("\n").should.eql(xml2.split("\n"));
+
+        r_xml2.should.match(/<QualifiedName/);
+        r_xml2.should.match(/<ListOfQualifiedName.*>/);
+        r_xml2.should.match(/<\/QualifiedName>/);
+        r_xml2.should.match(/<\/ListOfQualifiedName>/);
+
+    });
+
+    it("NSXML4 should output an XML file - with Variant Matrix UAVariable", async () => {
         const v = namespace.addVariable({
-            browseName: "Test",
+            browseName: "TestUInt32Matrix",
             dataType: "UInt32",
 
             arrayDimensions: [1, 2],
@@ -635,7 +709,7 @@ describe("nodeset2.xml with more than one referenced namespace", function (this:
 
         // console.log(xml);
     });
-    it("NSXML3 should output an XML file - with Variant Matrix UAVariableType", async () => {
+    it("NSXML5 should output an XML file - with Variant Matrix UAVariableType", async () => {
         const v = namespace.addVariableType({
             browseName: "TestVariableType",
             dataType: "UInt32",
@@ -663,8 +737,7 @@ describe("nodeset2.xml with more than one referenced namespace", function (this:
 
         // console.log(xml);
     });
-
-    it("NSXML4 - empty buffer #861 ", async () => {
+    it("NSXML6 - empty buffer #861 ", async () => {
         const v = namespace.addVariable({
             browseName: "TestVariable",
             dataType: DataType.ByteString,

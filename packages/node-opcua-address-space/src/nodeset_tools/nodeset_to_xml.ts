@@ -160,6 +160,20 @@ function _dumpLocalizedText(xw: XmlWriter, v: LocalizedText) {
     }
     xw.endElement();
 }
+function _dumpQualifiedName(xw: XmlWriter, v: QualifiedName) {
+
+    const t = translateBrowseName(xw, v);
+    if (t.name) {
+        xw.startElement("Name");
+        xw.text(t.name);
+        xw.endElement();
+    }
+    if (t.namespaceIndex) {
+        xw.startElement("NamespaceIndex");
+        xw.text(t.namespaceIndex.toString());
+        xw.endElement();
+    }
+}
 
 /*
 <uax:ExtensionObject>
@@ -276,6 +290,11 @@ function _dumpVariantValue(xw: XmlWriter, dataType: DataType, value: any) {
             xw.endElement();
             break;
         case DataType.QualifiedName:
+            xw.startElement(DataType[dataType]);
+            // xw.writeAttribute("xmlns", "http://opcfoundation.org/UA/2008/02/Types.xsd");
+            _dumpQualifiedName(xw, value as QualifiedName);
+            xw.endElement();
+            break;
         case DataType.StatusCode:
         default:
             throw new Error(
@@ -853,11 +872,11 @@ function dumpUAVariableType(xw: XmlWriter, node: UAVariableType) {
             // throw new Error(" cannot find datatype " + node.dataType);
             console.log(
                 " cannot find datatype " +
-                    node.dataType +
-                    " for node " +
-                    node.browseName.toString() +
-                    " id =" +
-                    node.nodeId.toString()
+                node.dataType +
+                " for node " +
+                node.browseName.toString() +
+                " id =" +
+                node.nodeId.toString()
             );
         } else {
             const dataTypeName = b(xw, resolveDataTypeName(addressSpace, dataTypeNode.nodeId));
