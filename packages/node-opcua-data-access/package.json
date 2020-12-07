@@ -2,7 +2,7 @@
   "name": "node-opcua-data-access",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
-  "version": "2.28.0",
+  "version": "2.28.1",
   "description": "pure nodejs OPCUA SDK - module -data-access",
   "scripts": {
     "build": "tsc -b",
@@ -17,10 +17,10 @@
     "node-opcua-data-model": "2.28.0",
     "node-opcua-factory": "2.28.0",
     "node-opcua-nodeid": "2.28.0",
-    "node-opcua-types": "2.28.0"
+    "node-opcua-types": "2.28.1"
   },
   "devDependencies": {
-    "node-opcua-generator": "2.28.0",
+    "node-opcua-generator": "2.28.1",
     "should": "^13.2.3"
   },
   "author": "Etienne Rossignon",
