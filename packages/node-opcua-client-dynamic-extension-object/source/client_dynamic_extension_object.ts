@@ -629,7 +629,7 @@ export async function populateDataTypeManager(session: IBasicSession, dataTypeMa
                 debugLog("xxx targetNamespace = ", info.targetNamespace);
                 innerMap[info.targetNamespace] = info;
             }
-            assert(info.targetNamespace.length !== 0);
+            // assert(info.targetNamespace.length !== 0);
         }
         // ----------------------------------
         const orderedList: TypeDictionaryInfo[] = [];
@@ -771,7 +771,7 @@ async function getHasEncodingDefaultBinary(session: IBasicSession, dataTypeNodeI
         console.log(result1.toString());
         throw new Error(
             "getDataTypeDefinition invalid HasEncoding reference dataTypeNodeId must be NodeClass.DataType but was " +
-                NodeClass[nodeClass.value.value]
+            NodeClass[nodeClass.value.value]
         );
     }
 
