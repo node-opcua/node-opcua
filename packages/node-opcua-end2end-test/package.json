@@ -1,6 +1,6 @@
 {
     "name": "node-opcua-end2end-test",
-    "version": "2.28.2",
+    "version": "2.28.3",
     "description": "pure nodejs OPCUA SDK - module -end2end-test",
     "private": true,
     "scripts": {
@@ -16,7 +16,7 @@
         "@types/underscore": "^1.10.24",
         "async": "^3.2.0",
         "delayed": "^2.0.0",
-        "node-opcua": "2.28.2",
+        "node-opcua": "2.28.3",
         "node-opcua-address-space": "2.28.2",
         "node-opcua-address-space-for-conformance-testing": "2.28.2",
         "node-opcua-aggregates": "2.28.2",
@@ -36,8 +36,8 @@
         "node-opcua-leak-detector": "2.28.0",
         "node-opcua-nodeid": "2.28.0",
         "node-opcua-packet-analyzer": "2.28.0",
-        "node-opcua-server": "2.28.2",
-        "node-opcua-server-discovery": "2.28.2",
+        "node-opcua-server": "2.28.3",
+        "node-opcua-server-discovery": "2.28.3",
         "node-opcua-service-browse": "2.28.1",
         "node-opcua-service-filter": "2.28.1",
         "node-opcua-service-read": "2.28.1",
