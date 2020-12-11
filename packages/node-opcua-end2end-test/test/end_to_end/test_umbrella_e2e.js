@@ -264,6 +264,8 @@ describe("testing Client - Umbrella ", function() {
     require("./u_test_e2e_monitoredItem_client_terminated_event")(test);
     require("./u_test_e2e_endpoint_should_be_case_insensitive")(test);
     require("./u_test_e2e_keepAlive")(test);
+    require("./u_test_e2e_createsSession_endpoints")(test);
+    
     // typescripts tests starts here...
     require("./u_test_e2e_deadband_filter").t(test);
 });

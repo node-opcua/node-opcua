@@ -1785,7 +1785,7 @@ export class OPCUAServer extends OPCUABaseServer {
             // securityPolicyUri, userIdentityTokens, transportProfileUri and securityLevel with all
             // other parameters set to null. Only the recommended parameters shall be verified by
             // the client.
-            serverEndpoints: _serverEndpointsForCreateSessionResponse(server, request.endpointUrl, request.serverUri),
+            serverEndpoints: _serverEndpointsForCreateSessionResponse(server, session.endpoint!.endpointUrl, request.serverUri),
 
             // This parameter is deprecated and the array shall be empty.
             serverSoftwareCertificates: null,
