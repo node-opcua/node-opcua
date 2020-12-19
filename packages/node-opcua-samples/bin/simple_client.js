@@ -306,7 +306,7 @@ async function main() {
         securityMode,
         securityPolicy,
 
-        endpoint_must_exist: false,
+        endpointMustExist: false,
         keepSessionAlive: true,
 
         connectionStrategy: {
@@ -405,7 +405,7 @@ async function main() {
 
         defaultSecureTokenLifetime: 40000,
 
-        endpoint_must_exist: false,
+        endpointMustExist: false,
 
         connectionStrategy: {
             initialDelay: 2000,

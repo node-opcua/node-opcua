@@ -8,7 +8,7 @@ module.exports = function(test) {
 
             // Set NODEOPCUADEBUG=client_session_keepalive_manager
             const client = OPCUAClient.create({
-                endpoint_must_exist: true,
+                endpointMustExist: true,
                 keepSessionAlive: true,
                 requestedSessionTimeout: 100
             });

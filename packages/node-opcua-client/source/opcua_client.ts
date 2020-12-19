@@ -6,21 +6,13 @@
 import { EventEmitter } from "events";
 import {
     Certificate,
-    exploreCertificate,
-    extractPublicKeyFromCertificateSync,
-    Nonce,
-    PrivateKey,
-    PrivateKeyPEM,
-    toPem
-} from "node-opcua-crypto";
+    PrivateKeyPEM} from "node-opcua-crypto";
 import {
     ConnectionStrategyOptions,
     SecurityPolicy
 } from "node-opcua-secure-channel";
 import {
     ApplicationDescription,
-    ApplicationDescriptionOptions,
-    ApplicationType,
     EndpointDescription,
     UserTokenType
 } from "node-opcua-service-endpoints";
@@ -62,15 +54,30 @@ export interface OPCUAClientOptions extends OPCUAClientBaseOptions {
 
     /**
      * the requested session timeout in CreateSession (ms)
-     * @default 60000
+     * 
+     * Note:
+     *    - make sure that this value is large enough, especially larger than the 
+     *      time between two transactions to the server.
+     * 
+     *    - If your client establishes a subscription with the server, make sure that 
+     *      (maxKeepAliveCount * publishingInterval) calculated with negociated values 
+     *      from the server  stay by large below the session time out, as you make 
+     *      encourtered unexpected behavior.
+     * 
+     * @default 60000 - default value is 60 secondes
      */
-
     requestedSessionTimeout?: number;
+
     /**
+     *  @deprecated(use endpointMustExist instead)
+     */ 
+    endpoint_must_exist?: boolean;
+   /**
      * set to false if the client should accept server endpoint mismatch
      * @default true
      */
-    endpoint_must_exist?: boolean;
+    endpointMustExist?: boolean;
+
 
     // --------------------------------------------------------------------
     connectionStrategy?: ConnectionStrategyOptions;

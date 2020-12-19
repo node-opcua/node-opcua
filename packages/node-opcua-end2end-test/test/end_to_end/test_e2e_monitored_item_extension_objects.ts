@@ -160,7 +160,7 @@ describe("AZA1- testing Client-Server subscription use case, on a fake server ex
         const client = OPCUAClient.create({
             requestedSessionTimeout: 10000000,
             // tslint:disable-next-line: object-literal-sort-keys
-            endpoint_must_exist: false
+            endpointMustExist: false
         });
 
         const subscriptionParameters = {
@@ -225,7 +225,7 @@ describe("AZA1- testing Client-Server subscription use case, on a fake server ex
     it("MIEO-2 - a client should not receive opaque structure when monitoring extension objects", async () => {
         const client = OPCUAClient.create({
             requestedSessionTimeout: 10000000,
-            endpoint_must_exist: false
+            endpointMustExist: false
         });
 
         const subscriptionParameters = {

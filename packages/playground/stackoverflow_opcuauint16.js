@@ -3,7 +3,7 @@ const {AttributeIds, OPCUAClient, DataType, VariantArrayType} = require("node-op
 const endpointUrl = "opc.tcp://localhost:48010";
 (async () => {
 
-    const client = OPCUAClient.create({ endpoint_must_exist: false});
+    const client = OPCUAClient.create({ endpointMustExist: false});
     client.on("backoff",() => console.log("still trying to connec to ", endpointUrl));
     await client.withSessionAsync(endpointUrl, async (session) => { 
 

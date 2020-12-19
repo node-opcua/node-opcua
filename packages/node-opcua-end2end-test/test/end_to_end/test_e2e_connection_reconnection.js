@@ -74,7 +74,7 @@ describe("KJH1 testing basic Client-Server communication", function() {
         // use fail fast connectionStrategy
         const options = {
             connectionStrategy: fail_fast_connectivity_strategy,
-            endpoint_must_exist: false
+            endpointMustExist: false
         };
         client = OPCUAClient.create(options);
         client.on("connection_reestablished", function() {
@@ -300,7 +300,7 @@ describe("KJH1 testing basic Client-Server communication", function() {
         async.series([
 
             function(callback) {
-                client.endpoint_must_exist = true;
+                client.endpointMustExist = true;
                 client.connect(endpointUrl + "/someCrap", callback);
             },
 
@@ -463,19 +463,18 @@ describe("KJH2 testing ability for client to reconnect when server close connect
         done.should.be.instanceOf(Function);
 
         should.not.exist(client, "expecting no client");
-        const options = {
+
+        should.not.exist(client, "Already have a client ");
+
+        client = OPCUAClient.create({
 
             securityMode: _options.securityMode || opcua.MessageSecurityMode.None,
             securityPolicy: _options.securityPolicy || opcua.SecurityPolicy.None,
             keepSessionAlive: true,
             requestedSessionTimeout: _options.requestedSessionTimeout || requestedSessionTimeout,
             connectionStrategy: connectionStrategy,
-
-        };
-
-        should.not.exist(client, "Already have a client ");
-
-        client = OPCUAClient.create(options);
+            requestedSessionTimeout: 120* 60* 1000, // 2 hours
+        });
 
         client.on("keepalive", function() {
             debugLog("keep alive");

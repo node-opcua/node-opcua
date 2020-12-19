@@ -11,7 +11,7 @@ const client = OPCUAClient.create({
     //  securityMode: 'None',
     // securityPolicy: 'None',
 
-    endpoint_must_exist: false,
+    endpointMustExist: false,
     // keepSessionAlive: true,
 
     connectionStrategy: {

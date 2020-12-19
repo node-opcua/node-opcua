@@ -46,7 +46,7 @@ async function when_server_is_shutdown(server: OPCUAServer): Promise<void> {
 async function given_a_connected_client(
     endpointUrl: string
 ): Promise<{ client: OPCUAClient; session: ClientSession; subscription: ClientSubscription }> {
-    const client = OPCUAClient.create({ endpoint_must_exist: false });
+    const client = OPCUAClient.create({ endpointMustExist: false });
 
     client.on("connection_lost", () => {
         console.log("Connection has been lost");

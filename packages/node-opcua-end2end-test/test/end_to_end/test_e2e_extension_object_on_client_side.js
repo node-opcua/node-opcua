@@ -48,7 +48,7 @@ describe("testing extension object with client residing on a different process t
     it("should read the MyStructureDataType definition", function(done) {
 
         const client = OPCUAClient.create({
-            endpoint_must_exist: false
+            endpointMustExist: false
         });
         const endpointUrl = serverHandle.endpointUrl;
 

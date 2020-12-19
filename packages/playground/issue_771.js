@@ -63,7 +63,7 @@ async function createServer() {
         const server = await createServer();
         const endpointUrl = "opc.tcp://localhost:1234";
 
-        const client = OPCUAClient.create({ endpoint_must_exist: false });
+        const client = OPCUAClient.create({ endpointMustExist: false });
         await client.connect(endpointUrl);
 
         const session = await client.createSession({

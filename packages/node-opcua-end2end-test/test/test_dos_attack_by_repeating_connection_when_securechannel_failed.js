@@ -172,7 +172,7 @@ describe("testing Server resilience to DDOS attacks 2", function() {
             try {
                 const client = OPCUAClient.create({
 
-                    endpoint_must_exist: false,
+                    endpointMustExist: false,
 
                     connectionStrategy: fail_fast_connectionStrategy,
 
@@ -215,7 +215,7 @@ describe("testing Server resilience to DDOS attacks 2", function() {
         try {
             const client = OPCUAClient.create({
 
-                endpoint_must_exist: false,
+                endpointMustExist: false,
 
                 connectionStrategy: fail_fast_connectionStrategy,
 

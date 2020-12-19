@@ -82,7 +82,7 @@ async function stopServer() {
 async function extractEndpoints(endpointUrl: string): Promise<EndpointDescription[]> {
 
     const client = OPCUAClient.create({
-        endpoint_must_exist: false,
+        endpointMustExist: false,
 
         connectionStrategy: {
             maxDelay: 1000,

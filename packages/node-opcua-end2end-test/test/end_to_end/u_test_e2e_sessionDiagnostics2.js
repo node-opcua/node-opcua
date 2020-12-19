@@ -61,7 +61,7 @@ module.exports = function(test) {
         }
         let data;
         beforeEach(async () => {
-            const client = OPCUAClient.create({ endpoint_must_exist: false });
+            const client = OPCUAClient.create({ endpointMustExist: false });
             await client.connect(test.endpointUrl);
             const session = await client.createSession();
             data = { client, session };
@@ -81,7 +81,7 @@ module.exports = function(test) {
             //  create a session with invalid  userIdentity
             {
 
-                const client2 = OPCUAClient.create({ endpoint_must_exist: false });
+                const client2 = OPCUAClient.create({ endpointMustExist: false });
                 await client2.connect(test.endpointUrl);
                 try {
                     const session2 = await client2.createSession({ type: UserTokenType.UserName, userName: "Invalid" });
@@ -114,7 +114,7 @@ module.exports = function(test) {
             //  create a session with invalid  userIdentity
             {
 
-                const client2 = OPCUAClient.create({ endpoint_must_exist: false });
+                const client2 = OPCUAClient.create({ endpointMustExist: false });
                 await client2.connect(test.endpointUrl);
                 try {
                     await new Promise((resolve, reject) => {

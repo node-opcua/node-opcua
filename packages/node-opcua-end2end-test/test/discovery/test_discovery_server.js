@@ -41,7 +41,9 @@ describe("DS1 - Discovery server", function() {
     let server;
 
     before(function() {
-        server = new OPCUAServer({ port: 1235 });
+        server = new OPCUAServer({ 
+            port: 1235 
+        });
     });
 
     after(function(done) {
@@ -71,7 +73,7 @@ describe("DS1 - Discovery server", function() {
 
 
         const client = OPCUAClient.create({
-            endpoint_must_exist: false,
+            endpointMustExist: false,
         });
         client.on("backoff", () => {
             console.log("cannot connect to " + discovery_server_endpointUrl);

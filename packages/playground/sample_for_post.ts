@@ -7,7 +7,7 @@ async function main() {
 
     const client = OPCUAClient.create({
 
-        endpoint_must_exist: false
+        endpointMustExist: false
     });
 
     client.on("backoff", (retry: number, delay: number) => {

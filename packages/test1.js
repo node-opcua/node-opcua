@@ -11,7 +11,9 @@ const endpointUrl = "opc.tcp://localhost:26544";
 async function cycle() {
     //xx await heapdump.writeSnapshot();
 
-    let client = opcua.OPCUAClient.create({endpoint_must_exist:false});
+    let client = opcua.OPCUAClient.create({
+        endpointMustExist:false
+    });
     await client.connect(endpointUrl);
 
     let session = await client.createSession();

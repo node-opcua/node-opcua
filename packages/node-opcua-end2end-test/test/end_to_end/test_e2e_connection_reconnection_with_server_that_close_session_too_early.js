@@ -107,7 +107,7 @@ async function start_active_client_no_subscription(connectionStrategy) {
 
     client = opcua.OPCUAClient.create({
         connectionStrategy,
-        endpoint_must_exist: false,
+        endpointMustExist: false,
         keepSessionAlive: true,
         requestedSessionTimeout: 60000
     });

@@ -24,7 +24,7 @@ const endpointUri = "opc.tcp://localhost:48010";
         const client = OPCUAClient.create({
             applicationName: "ClientBrowseNextDemo",
 
-            endpoint_must_exist: false,
+            endpointMustExist: false,
             keepSessionAlive: true,
             requestedSessionTimeout: 60 * 1000,
             //            securityMode: MessageSecurityMode.SignAndEncrypt,

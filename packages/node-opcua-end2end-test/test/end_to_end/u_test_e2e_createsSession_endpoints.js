@@ -9,7 +9,7 @@ const { reject } = require("underscore");
 async function testCreateSessionResponse(endpointUrl) {
 
     const client1 = OPCUAClient.create({
-        endpoint_must_exist: false,
+        endpointMustExist: false,
         connectionStrategy: {
             maxRetry: 1
         }
