@@ -2,7 +2,6 @@
 /* global require, process, __filename, it, before, beforeEach, after, afterEach */
 const should = require("should");
 const async = require("async");
-const _ = require("underscore");
 
 const opcua = require("node-opcua");
 
@@ -312,9 +311,8 @@ module.exports = function(test) {
 
                     //xx console.log(util.inspect(browseResults[0].references,{colors:true,depth:10}));
 
-                    const foundNode = _.filter(browseResults[0].references, function(result) {
-                        return result.browseName.name === "Server";
-                    });
+                    const foundNode = browseResults[0].references.filter((result) => result.browseName.name === "Server");
+                  
                     foundNode.length.should.equal(1);
                     foundNode[0].browseName.name.should.equal("Server");
                     foundNode[0].nodeId.toString().should.equal("ns=0;i=2253");

@@ -8,7 +8,6 @@ const should = require("should");
 const sinon = require("sinon");
 const path = require("path");
 const fs = require("fs");
-const _ = require("underscore");
 const { callbackify } = require("util");
 const crypto = require("crypto");
 
@@ -139,7 +138,7 @@ function start_server1(options, callback) {
  * @return {Number}
  */
 function get_server_channel_security_token_change_count(server) {
-    const sessions = _.values(server.engine._sessions);
+    const sessions = Object.values(server.engine._sessions);
     sessions.length.should.eql(1, "Expecting only one session on server at address " + server);
     const count = server.endpoints.reduce(function(accumulated, endpoint) {
         return accumulated + endpoint.securityTokenCount;
@@ -299,13 +298,14 @@ function common_test(securityPolicy, securityMode, options, done) {
     opcua.coerceMessageSecurityMode(securityMode).should.not.eql(opcua.MessageSecurityMode.Invalid, "expecting supporting");
 
     options = options || {};
-    options = _.extend(options, {
+    options = { 
+        ...options, 
         securityMode: opcua.coerceMessageSecurityMode(securityMode),
         securityPolicy: opcua.coerceSecurityPolicy(securityPolicy),
         //xx serverCertificate: serverCertificate,
         connectionStrategy: no_reconnect_connectivity_strategy,
         requestedSessionTimeout: 120 * 60 * 1000
-    });
+    };
 
     options.defaultSecureTokenLifetime = options.defaultSecureTokenLifetime || g_defaultSecureTokenLifetime;
     // make sure that securityToken renewal will happen very soon,
@@ -350,15 +350,15 @@ function common_test(securityPolicy, securityMode, options, done) {
 function check_open_secure_channel_fails(securityPolicy, securityMode, options, done) {
 
     options = options || {};
-    options = _.extend(options, {
+    options = {
+        ...options, 
         securityMode: opcua.coerceMessageSecurityMode(securityMode),
         securityPolicy: opcua.coerceSecurityPolicy(securityPolicy),
         serverCertificate: serverCertificate,
         defaultSecureTokenLifetime: g_defaultSecureTokenLifetime,
         tokenRenewalInterval: g_tokenRenewalInterval,
         connectionStrategy: no_reconnect_connectivity_strategy
-
-    });
+    };
     const client = OPCUAClient.create(options);
 
     trustCertificateOnServer(client.clientCertificate, () => {

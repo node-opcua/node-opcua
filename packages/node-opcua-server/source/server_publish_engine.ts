@@ -4,7 +4,7 @@
 // tslint:disable:no-console
 import * as chalk from "chalk";
 import { EventEmitter } from "events";
-import * as _ from "underscore";
+import { partition, sortBy } from "underscore";
 
 import { assert } from "node-opcua-assert";
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
@@ -86,8 +86,7 @@ export class ServerSidePublishEngine extends EventEmitter implements IServerSide
             )
         );
 
-        const tmp = srcPublishEngine._subscriptions;
-        _.forEach(tmp, (subscription: Subscription) => {
+        for(const subscription of Object.values(srcPublishEngine._subscriptions))  {
             assert((subscription.publishEngine as any) === srcPublishEngine);
 
             if (subscription.$session) {
@@ -97,7 +96,7 @@ export class ServerSidePublishEngine extends EventEmitter implements IServerSide
             }
 
             ServerSidePublishEngine.transferSubscription(subscription, destPublishEngine, false);
-        });
+        }
         assert(srcPublishEngine.subscriptionCount === 0);
 
         debugLog(
@@ -233,7 +232,7 @@ export class ServerSidePublishEngine extends EventEmitter implements IServerSide
      * get a array of subscription handled by the publish engine.
      */
     public get subscriptions(): Subscription[] {
-        return _.map(this._subscriptions, (x: Subscription) => x);
+        return Object.values(this._subscriptions)
     }
 
     /**
@@ -302,8 +301,8 @@ export class ServerSidePublishEngine extends EventEmitter implements IServerSide
     }
 
     public get currentMonitoredItemCount(): number {
-        const result = _.reduce(
-            this._subscriptions,
+        const subscriptions = Object.values(this._subscriptions);
+        const result = subscriptions.reduce(
             (cumul: number, subscription: Subscription) => {
                 return cumul + subscription.monitoredItemCount;
             },
@@ -351,33 +350,9 @@ export class ServerSidePublishEngine extends EventEmitter implements IServerSide
         return this._subscriptions[subscriptionId.toString()];
     }
 
-    // private findSubscriptionWaitingForFirstPublish() {
-    //   const subscriptions = ([] as ICloseOrTransferedSubscription[]).concat(
-    //     Object.values(this._subscriptions),
-    //     this._closed_subscriptions
-    //   );
-
-    //   // find all subscriptions that are late and sort them by urgency
-    //   let subscriptions_waiting_for_first_reply = _.filter(subscriptions, (subscription: ICloseOrTransferedSubscription) => {
-    //     return !subscription.messageSent && subscription.state === SubscriptionState.LATE && subscription.hasPendingNotifications;
-    //   });
-
-    //   if (subscriptions_waiting_for_first_reply.length === 0) {
-    //     subscriptions_waiting_for_first_reply = _.filter(subscriptions, (subscription: ICloseOrTransferedSubscription) => {
-    //       return !subscription.messageSent && subscription.state === SubscriptionState.LATE && subscription.hasPendingNotifications;
-    //     });
-    //   }
-
-    //   if (subscriptions_waiting_for_first_reply.length) {
-    //     subscriptions_waiting_for_first_reply = _(subscriptions_waiting_for_first_reply).sortBy("timeToExpiration");
-    //     debugLog("Some subscriptions with messageSent === false ");
-    //     return subscriptions_waiting_for_first_reply[0];
-    //   }
-    //   return null;
-    // }
-
     public findLateSubscriptions(): Subscription[] {
-        return _.filter(this._subscriptions, (subscription: Subscription) => {
+        const subscriptions = Object.values(this._subscriptions);
+        return subscriptions.filter((subscription: Subscription) => {
             return subscription.state === SubscriptionState.LATE && subscription.publishingEnabled; // && subscription.hasMonitoredItemNotifications;
         });
     }
@@ -388,7 +363,7 @@ export class ServerSidePublishEngine extends EventEmitter implements IServerSide
 
     public findLateSubscriptionsSortedByAge() {
         let late_subscriptions = this.findLateSubscriptions();
-        late_subscriptions = _(late_subscriptions).sortBy("timeToExpiration");
+        late_subscriptions = sortBy(late_subscriptions, "timeToExpiration");
 
         return late_subscriptions;
     }
@@ -644,11 +619,11 @@ export class ServerSidePublishEngine extends EventEmitter implements IServerSide
         }
 
         // filter out timeout requests
-        const partition = _.partition(this._publish_request_queue, timeout_filter);
+        const parts = partition(this._publish_request_queue, timeout_filter);
 
-        this._publish_request_queue = partition[1]; // still valid
+        this._publish_request_queue = parts[1]; // still valid
 
-        const invalid_published_request = partition[0];
+        const invalid_published_request = parts[0];
         for (let publishData of invalid_published_request) {
             console.log(chalk.cyan(" CANCELING TIMEOUT PUBLISH REQUEST "));
             this._send_error_for_request(publishData, StatusCodes.BadTimeout);

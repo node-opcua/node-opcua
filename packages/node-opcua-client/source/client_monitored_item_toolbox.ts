@@ -2,7 +2,6 @@
  * @module node-opcua-client
  */
 import * as chalk from "chalk";
-import * as _ from "underscore";
 
 import { assert } from "node-opcua-assert";
 import { TimestampsToReturn } from "node-opcua-data-value";
@@ -93,7 +92,10 @@ export class ClientMonitoredItemToolbox {
             const clientHandle = monitoredItem.monitoringParameters.clientHandle;
             return new MonitoredItemModifyRequest({
                 monitoredItemId: monitoredItem.monitoredItemId,
-                requestedParameters: _.extend(_.clone(parameters), { clientHandle })
+                requestedParameters: {
+                    ...parameters,
+                    clientHandle 
+                }
             });
         });
         const modifyMonitoredItemsRequest = new ModifyMonitoredItemsRequest({

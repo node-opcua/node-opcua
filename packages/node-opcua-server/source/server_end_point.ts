@@ -7,8 +7,6 @@ import * as chalk from "chalk";
 import { EventEmitter } from "events";
 import * as net from "net";
 import { Server, Socket } from "net";
-import * as path from "path";
-import * as _ from "underscore";
 
 import { assert } from "node-opcua-assert";
 import { ICertificateManager, OPCUACertificateManager } from "node-opcua-certificate-manager";
@@ -295,7 +293,7 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
     }
 
     public getChannels(): ServerSecureChannelLayer[] {
-        return _.values(this._channels);
+        return Object.values(this._channels);
     }
 
     /**
@@ -338,7 +336,7 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
         endpointUrl: string | null
     ): EndpointDescription | null {
         const endpoints = this.endpointDescriptions();
-        const arr = _.filter(endpoints, matching_endpoint.bind(this, securityMode, securityPolicy, endpointUrl));
+        const arr = endpoints.filter(matching_endpoint.bind(this, securityMode, securityPolicy, endpointUrl));
 
         if (endpointUrl && endpointUrl.length > 0 && !(arr.length === 0 || arr.length === 1)) {
             errorLog("Several matching endpoints have been found : ");
@@ -411,7 +409,7 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
     }
 
     public addRestrictedEndpointDescription(options: EndpointDescriptionParams) {
-        options = _.clone(options);
+        options = {...options};
         options.restricted = true;
         return this.addEndpointDescription(MessageSecurityMode.None, SecurityPolicy.None, options);
     }
@@ -430,8 +428,9 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
         if (typeof options.alternateHostname === "string") {
             options.alternateHostname = [options.alternateHostname];
         }
-        hostnames = _.uniq(hostnames.concat(options.alternateHostname as string[]));
-
+        // remove duplicates if any (uniq)
+        hostnames =  [...new Set(hostnames.concat(options.alternateHostname as string[]))];
+ 
         for (const alternateHostname of hostnames) {
             const optionsE = options as EndpointDescriptionParams;
             optionsE.hostname = alternateHostname;
@@ -530,8 +529,7 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
     }
 
     public abruptlyInterruptChannels() {
-        const _channels = _.values(this._channels);
-        for (const channel of _channels) {
+        for (const channel of Object.values(this._channels)) {
             channel.abruptlyInterrupt();
         }
     }
@@ -547,7 +545,7 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
             // make sure we don't accept new connection any more ...
             this.suspendConnection(() => {
                 // shutdown all opened channels ...
-                const _channels = _.values(this._channels);
+                const _channels = Object.values(this._channels);
                 async.each(
                     _channels,
                     (channel: ServerSecureChannelLayer, callback1: (err?: Error) => void) => {
@@ -579,7 +577,7 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
     }
 
     public get bytesWritten(): number {
-        const channels = _.values(this._channels);
+        const channels = Object.values(this._channels);
         return (
             this.bytesWrittenInOldChannels +
             channels.reduce((accumulated: number, channel: ServerSecureChannelLayer) => {
@@ -589,7 +587,7 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
     }
 
     public get bytesRead(): number {
-        const channels = _.values(this._channels);
+        const channels = Object.values(this._channels);
         return (
             this.bytesReadInOldChannels +
             channels.reduce((accumulated: number, channel: ServerSecureChannelLayer) => {
@@ -599,7 +597,7 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
     }
 
     public get transactionsCount(): number {
-        const channels = _.values(this._channels);
+        const channels = Object.values(this._channels);
         return (
             this.transactionsCountOldChannels +
             channels.reduce((accumulated: number, channel: ServerSecureChannelLayer) => {
@@ -609,7 +607,7 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
     }
 
     public get securityTokenCount(): number {
-        const channels = _.values(this._channels);
+        const channels = Object.values(this._channels);
         return (
             this.securityTokenCountOldChannels +
             channels.reduce((accumulated: number, channel: ServerSecureChannelLayer) => {
@@ -866,8 +864,7 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
             // istanbul ignore next
             console.log(chalk.bgRed.white("PREVENTING DDOS ATTACK => Closing unused channels"));
 
-            const unused_channels: ServerSecureChannelLayer[] = _.filter(
-                this.getChannels(),
+            const unused_channels: ServerSecureChannelLayer[] = this.getChannels().filter(
                 (channel1: ServerSecureChannelLayer) => {
                     return !channel1.isOpened && !channel1.hasSession;
                 }
@@ -885,7 +882,7 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
             if (doDebug) {
                 console.log(
                     "   - Unused channels that can be clobbered",
-                    _.map(unused_channels, (channel1: ServerSecureChannelLayer) => channel1.hashKey).join(" ")
+                    unused_channels.map((channel1: ServerSecureChannelLayer) => channel1.hashKey).join(" ")
                 );
             }
             const channel = unused_channels[0];

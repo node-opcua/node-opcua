@@ -3,7 +3,6 @@
 const { assert } = require("node-opcua-assert");
 const should = require("should");
 const async = require("async");
-const _ = require("underscore");
 
 const opcua = require("node-opcua");
 
@@ -81,9 +80,8 @@ module.exports = function(test) {
 
                     // verify that Token has been renewed ...
                     // ( i.e we have received multiple OpenSecureChannel
-                    _.filter(messages, function(a) {
-                        return a === "OpenSecureChannelResponse"
-                    }).length.should.be.greaterThan(2, "number of security token renewal");
+                    messages.filter((a) => a === "OpenSecureChannelResponse")
+                        .length.should.be.greaterThan(2, "number of security token renewal");
 
                     // sequence number should be increasing monotonically
                     console.log(sequenceNumbers);

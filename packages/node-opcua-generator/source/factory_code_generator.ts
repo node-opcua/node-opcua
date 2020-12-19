@@ -18,7 +18,6 @@ import {
 } from "node-opcua-factory";
 import * as os from "os";
 import * as path from "path";
-import * as _ from "underscore";
 
 import { DataTypeIds, ObjectIds } from "node-opcua-constants";
 import { make_debugLog } from "node-opcua-debug";
@@ -813,7 +812,6 @@ export function produce_TScript_code(schema: StructuredTypeSchema, localSchemaFi
     write("/* istanbul ignore file */\n");
     write('import { assert } from "node-opcua-assert";');
     write('import * as util from "util";');
-    write('import * as _ from "underscore";');
     write('import { makeNodeId, makeExpandedNodeId } from "node-opcua-nodeid";');
     write(`import {`);
     write(`     parameters,`);

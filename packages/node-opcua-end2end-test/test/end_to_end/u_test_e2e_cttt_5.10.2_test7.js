@@ -5,7 +5,6 @@
 
 
 const opcua = require("node-opcua");
-const _ = require("underscore");
 
 const OPCUAClient = opcua.OPCUAClient;
 
@@ -36,7 +35,7 @@ module.exports = function(test) {
 
         }
         it("1. Server should revise PublishingInterval the value to a value it support when RequestedPublishingInterval is NaN ", function(done) {
-            _.isNaN(NaN).should.eql(true);
+            Number.isNaN(NaN).should.eql(true);
             performTestWithValue(NaN, done);
         });
         it("2. Server should revise PublishingInterval the value to a value it support when RequestedPublishingInterval is Infinity ", function(done) {

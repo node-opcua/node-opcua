@@ -4,7 +4,6 @@
 "use strict";
 const path = require("path");
 const fs = require("fs");
-const _ = require("underscore");
 const assert = require("assert");
 const chalk = require("chalk");
 const yargs = require("yargs/yargs");
@@ -463,9 +462,9 @@ const paths = envPaths(productUri);
       return tmp.substr(0, width);
     }
 
-    return _.map(obj, function(value, key) {
-      return "      " + w(key, 30) + "  : " + ((value === null) ? null : value.toString());
-    }).join("\n");
+    return Object.entries(node).map((key,value) =>
+     "      " + w(key, 30) + "  : " + ((value === null) ? null : value.toString())
+    ).join("\n");
   }
 
 

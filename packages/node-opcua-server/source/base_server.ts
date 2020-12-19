@@ -6,7 +6,6 @@ import * as async from "async";
 import * as chalk from "chalk";
 import * as fs from "fs";
 import * as path from "path";
-import * as _ from "underscore";
 import { callbackify } from "util";
 
 import { assert } from "node-opcua-assert";
@@ -139,10 +138,10 @@ export class OPCUABaseServer extends OPCUASecureObject {
         this.endpoints = [];
         this.options = options;
 
-        const serverInfo: ApplicationDescriptionOptions = _.extend(
-            _.clone(default_server_info),
-            options.serverInfo
-        ) as ApplicationDescriptionOptions;
+        const serverInfo: ApplicationDescriptionOptions = {
+            ...default_server_info,
+            ...options.serverInfo
+        };
         serverInfo.applicationName = coerceLocalizedText(serverInfo.applicationName);
 
         this.serverInfo = new ApplicationDescription(serverInfo);
@@ -343,7 +342,6 @@ export class OPCUABaseServer extends OPCUASecureObject {
             return e.endpointDescriptions()[0].endpointUrl!;
         });
         return discoveryUrls;
-        // alternative : return _.uniq(this._get_endpoints().map(function(e){ return e.endpointUrl; }));
     }
 
     public getServers(channel: ServerSecureChannelLayer): ApplicationDescription[] {

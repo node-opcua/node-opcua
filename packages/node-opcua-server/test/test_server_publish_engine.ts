@@ -34,7 +34,7 @@
 
 import * as sinon from "sinon";
 import * as should from "should";
-import * as _ from "underscore";
+import {property} from "underscore";
 
 import { PublishRequest } from "node-opcua-service-subscription";
 import { StatusCodes } from "node-opcua-status-code";
@@ -699,14 +699,14 @@ describe("Testing the server publish engine", function (this: any) {
         subscription2.state.should.eql(SubscriptionState.LATE);
         subscription3.state.should.eql(SubscriptionState.LATE);
 
-        publish_server.findLateSubscriptionsSortedByAge().map(_.property("id")).should.eql([2, 1, 3]);
+        publish_server.findLateSubscriptionsSortedByAge().map(property("id")).should.eql([2, 1, 3]);
 
         test.clock.tick(1100);
         subscription1.state.should.eql(SubscriptionState.LATE);
         subscription2.state.should.eql(SubscriptionState.CLOSED);
         subscription3.state.should.eql(SubscriptionState.LATE);
 
-        publish_server.findLateSubscriptionsSortedByAge().map(_.property("id")).should.eql([1, 3]);
+        publish_server.findLateSubscriptionsSortedByAge().map(property("id")).should.eql([1, 3]);
 
         subscription1.terminate();
         subscription1.dispose();

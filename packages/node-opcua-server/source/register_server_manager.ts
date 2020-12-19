@@ -114,11 +114,11 @@ function constructRegisteredServer(server: OPCUABaseServer, isOnline: boolean): 
     const serverUri = info.tbsCertificate.extensions?.subjectAltName.uniformResourceIdentifier[0];
     // istanbul ignore next
     if (serverUri !== server.serverInfo.applicationUri) {
-        console.log("Warning certificate uniformResourceIdentifier doesn't match serverInfo.applicationUri");
-        console.log("subjectKeyIdentifier : ", info.tbsCertificate.extensions?.subjectKeyIdentifier);
-        console.log("subjectAltName       : ", info.tbsCertificate.extensions?.subjectAltName);
-        console.log("commonName           : ", info.tbsCertificate.subject.commonName!);
-        console.log("applicationUri       : ", server.serverInfo.applicationUri);
+        console.log(chalk.yellow("Warning certificate uniformResourceIdentifier doesn't match serverInfo.applicationUri"));
+        console.log(" subjectKeyIdentifier      : ", info.tbsCertificate.extensions?.subjectKeyIdentifier);
+        console.log(" subjectAltName            : ", info.tbsCertificate.extensions?.subjectAltName);
+        console.log(" commonName                : ", info.tbsCertificate.subject.commonName!);
+        console.log(" serverInfo.applicationUri : ", server.serverInfo.applicationUri);
     }
 
     // istanbul ignore next

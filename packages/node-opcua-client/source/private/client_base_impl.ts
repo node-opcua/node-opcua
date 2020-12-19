@@ -6,7 +6,6 @@ import * as async from "async";
 import * as chalk from "chalk";
 import * as fs from "fs";
 import * as path from "path";
-import * as _ from "underscore";
 
 import { assert } from "node-opcua-assert";
 import { IOPCUASecureObjectOptions, OPCUASecureObject } from "node-opcua-common";
@@ -40,7 +39,7 @@ import { coerceMessageSecurityMode, MessageSecurityMode } from "node-opcua-servi
 import { ErrorCallback } from "node-opcua-status-code";
 import { matchUri } from "node-opcua-utils";
 
-import { ResponseCallback } from "../client_session";
+import { ClientSession, ResponseCallback } from "../client_session";
 import { Request, Response } from "../common";
 
 import {
@@ -85,9 +84,6 @@ function __findEndpoint(
 
     const options: OPCUAClientBaseOptions = {
         connectionStrategy: params.connectionStrategy,
-
-        // endpoint_must_exist: false,
-
         applicationName: params.applicationName,
         certificateFile: params.certificateFile,
         privateKeyFile: params.privateKeyFile
@@ -300,7 +296,8 @@ export class ClientBaseImpl extends OPCUASecureObject implements OPCUAClientBase
 
     /// true if session shall periodically probe the server to keep the session alive and prevent timeout
     public keepSessionAlive: boolean;
-    public _sessions: any;
+
+    protected _sessions: ClientSessionImpl[];
     protected _serverEndpoints: EndpointDescription[];
     protected _secureChannel: ClientSecureChannelLayer | null;
     // statistics...
@@ -408,7 +405,7 @@ export class ClientBaseImpl extends OPCUASecureObject implements OPCUAClientBase
             this._secureChannel = null;
             callback();
         });
-        (this as any).once("reconnection_canceled", () => {
+        this.once("reconnection_canceled", () => {
             /* empty */
         });
     }
@@ -641,7 +638,7 @@ export class ClientBaseImpl extends OPCUASecureObject implements OPCUAClientBase
         // [...]
 
         // make sure callback will only be call once regardless of outcome, and will be also deferred.
-        const callbackOnceDelayed: any = once((err?: Error) => setImmediate(() => callback(err)));
+        const callbackOnceDelayed: (err: Error|null) => void  = once((err?: Error) => setImmediate(() => callback(err)));
 
         installPeriodicClockAdjustment();
         OPCUAClientBase.registry.register(this);
@@ -714,7 +711,7 @@ export class ClientBaseImpl extends OPCUASecureObject implements OPCUAClientBase
         securityMode = coerceMessageSecurityMode(securityMode);
         securityPolicy = coerceSecurityPolicy(securityPolicy);
         assert(this.knowsServerEndpoint, "Server end point are not known yet");
-        return _.find(this._serverEndpoints, (endpoint) => {
+        return this._serverEndpoints.find((endpoint) => {
             return endpoint.securityMode === securityMode && endpoint.securityPolicyUri === securityPolicy;
         });
     }
@@ -733,7 +730,7 @@ export class ClientBaseImpl extends OPCUASecureObject implements OPCUAClientBase
         if (!this._serverEndpoints || this._serverEndpoints.length === 0) {
             return undefined;
         }
-        return _.find(this._serverEndpoints, (endpoint: EndpointDescription) => {
+        return this._serverEndpoints.find((endpoint: EndpointDescription) => {
             return (
                 matchUri(endpoint.endpointUrl, endpointUrl) &&
                 endpoint.securityMode === securityMode &&
@@ -861,11 +858,10 @@ export class ClientBaseImpl extends OPCUASecureObject implements OPCUAClientBase
         if (index >= 0) {
             const s = this._sessions.splice(index, 1)[0];
             assert(s === session);
-            assert(!_.contains(this._sessions, session));
             assert(session._client === this);
             session._client = null;
         }
-        assert(!_.contains(this._sessions, session));
+        assert(this._sessions.indexOf(session) === -1);
     }
 
     public disconnect(): Promise<void>;
@@ -901,9 +897,10 @@ export class ClientBaseImpl extends OPCUASecureObject implements OPCUAClientBase
 
         if (this._sessions.length) {
             // transfer active session to  orphan and detach them from channel
-            _.forEach(this._sessions, (session: ClientSessionImpl) => {
+            const tmp = [...this._sessions];
+            for(const session of tmp) {
                 this._removeSession(session);
-            });
+            }
             this._sessions = [];
         }
         assert(this._sessions.length === 0, " attempt to disconnect a client with live sessions ");
@@ -956,9 +953,13 @@ export class ClientBaseImpl extends OPCUASecureObject implements OPCUAClientBase
         return str;
     }
 
+    public getSessions(): ClientSessionImpl [] {
+        return this._sessions;
+    }
+
     protected _addSession(session: ClientSessionImpl) {
         assert(!session._client || session._client === this);
-        assert(!_.contains(this._sessions, session), "session already added");
+        assert(this._sessions.indexOf(session) === -1, "session already added");
         session._client = this;
         this._sessions.push(session);
 
@@ -989,7 +990,7 @@ export class ClientBaseImpl extends OPCUASecureObject implements OPCUAClientBase
 
         const params = {
             connectionStrategy: this.connectionStrategy,
-            endpoint_must_exist: false,
+            endpointMustExist: false,
             securityMode: this.securityMode,
             securityPolicy: this.securityPolicy,
 
@@ -1070,7 +1071,7 @@ export class ClientBaseImpl extends OPCUASecureObject implements OPCUAClientBase
 
     private _close_pending_sessions(callback: ErrorCallback) {
         assert(typeof callback === "function");
-        const sessions = _.clone(this._sessions);
+        const sessions = [...this._sessions];
         async.map(
             sessions,
             (session: ClientSessionImpl, next: () => void) => {

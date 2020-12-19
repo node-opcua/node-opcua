@@ -12,7 +12,6 @@ import * as chalk from "chalk";
 import * as crypto from "crypto";
 import { EventEmitter } from "events";
 import { Socket } from "net";
-import * as _ from "underscore";
 import { callbackify, promisify } from "util";
 
 import { assert } from "node-opcua-assert";
@@ -52,6 +51,7 @@ import {
     DerivedKeys1,
     fromURI,
     getOptionsForSymmetricSignAndEncrypt,
+    SecureMessageChunkManagerOptionsPartial,
     SecurityPolicy
 } from "../security_policy";
 
@@ -633,7 +633,12 @@ export class ServerSecureChannelLayer extends EventEmitter {
         };
 
         const securityOptions = msgType === "OPN" ? this._get_security_options_for_OPN() : this._get_security_options_for_MSG();
-        options = _.extend(options, securityOptions);
+        if (securityOptions) {
+            options = {
+                ...options, 
+                ...securityOptions
+            };
+        }
 
         response.responseHeader.requestHandle = request.requestHeader.requestHandle;
 
@@ -924,7 +929,7 @@ export class ServerSecureChannelLayer extends EventEmitter {
         return null;
     }
 
-    private _get_security_options_for_MSG(): SecureMessageChunkManagerOptions | null {
+    private _get_security_options_for_MSG(): SecureMessageChunkManagerOptionsPartial | null {
         if (this.securityMode === MessageSecurityMode.None) {
             return null;
         }
