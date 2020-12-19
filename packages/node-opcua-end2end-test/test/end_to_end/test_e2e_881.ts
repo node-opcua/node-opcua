@@ -63,7 +63,7 @@ describe("building server with an AlternateName", () => {
         server.dispose();
     });
     it("should not confuse endpoints", async () => {
-        const client = OPCUAClient.create({ endpoint_must_exist: false });
+        const client = OPCUAClient.create({ endpointMustExist: false });
         client.on("backoff", () => console.log("keep trying", endpointUri));
 
         const endpointUri = `opc.tcp://${ip[0]}:${port}`;

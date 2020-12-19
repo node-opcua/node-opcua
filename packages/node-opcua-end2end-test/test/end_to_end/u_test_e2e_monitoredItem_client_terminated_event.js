@@ -30,7 +30,7 @@ module.exports = function (test) {
                 process.gc();
             }
 
-            client = OPCUAClient.create({ endpoint_must_exist: false });
+            client = OPCUAClient.create({ endpointMustExist: false });
 
             client.on("backoff", () => {
                 console.log("backoff");

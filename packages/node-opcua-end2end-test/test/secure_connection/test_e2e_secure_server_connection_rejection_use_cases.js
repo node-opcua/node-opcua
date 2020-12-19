@@ -175,7 +175,7 @@ describe("testing the server ability to deny client session request (server with
             return crypto.randomBytes(31); //<< instead of 32  !!!
         };
         const options = {
-            endpoint_must_exist: true
+            endpointMustExist: true
         };
         const client = OPCUAClient.create(options);
         test_connection(client, function(err) {
@@ -193,7 +193,7 @@ describe("testing the server ability to deny client session request (server with
         async.series([
 
             function(callback) {
-                client.endpoint_must_exist = true;
+                client.endpointMustExist = true;
                 client.connect(endpointUrl, callback);
             },
 
@@ -231,7 +231,7 @@ describe("testing the server ability to deny client session request (server with
 
             function(callback) {
                 should(client.serverCertificate).eql(null);
-                client.endpoint_must_exist = true;
+                client.endpointMustExist = true;
                 client.connect(endpointUrl, callback);
             },
 

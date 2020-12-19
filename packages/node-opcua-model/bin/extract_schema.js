@@ -30,7 +30,7 @@ const endpointUrl = argv.endpoint || "opc.tcp://localhost:48010";
 function parse_opcua_server(endpoint, callback) {
 
   const options = {
-    endpoint_must_exist: false,
+    endpointMustExist: false,
     keepSessionAlive: true,
     connectionStrategy: {
       maxRetry: 10,

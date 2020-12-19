@@ -69,7 +69,7 @@ describe("test readAggregateValue", () => {
     it("RHA should calculate average", async () => {
 
         const client = OPCUAClient.create({
-            endpoint_must_exist: false
+            endpointMustExist: false
         });
 
         const parameters = {};
@@ -122,7 +122,7 @@ describe("test readAggregateValue", () => {
     it("RHA should calculate aggregate(multi) of multiple nodeId", async () => {
 
         const client = OPCUAClient.create({
-            endpoint_must_exist: false
+            endpointMustExist: false
         });
 
         const parameters = {};
@@ -151,7 +151,7 @@ describe("test readAggregateValue", () => {
 
     it("RHV readHistoryValue - form 1", async () =>{
         const client = OPCUAClient.create({
-            endpoint_must_exist: false
+            endpointMustExist: false
         });
 
 
@@ -173,7 +173,7 @@ describe("test readAggregateValue", () => {
 
     it("RHV readHistoryValue - form 2", async () =>{
         const client = OPCUAClient.create({
-            endpoint_must_exist: false
+            endpointMustExist: false
         });
 
         await client.withSubscriptionAsync(endpointUrl, {}, async (session: ClientSession) => {

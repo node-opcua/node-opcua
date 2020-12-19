@@ -72,7 +72,7 @@ async function main() {
         securityMode,
         securityPolicy,
 
-        endpoint_must_exist: false,
+        endpointMustExist: false,
 
         connectionStrategy: {
             initialDelay: 2000,

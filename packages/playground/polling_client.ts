@@ -31,7 +31,7 @@ async function main() {
     const options: OPCUAClientOptions = {
         applicationName: "ClientBrowseNextDemo",
         connectionStrategy,
-        endpoint_must_exist: false,
+        endpointMustExist: false,
         keepSessionAlive: false,
         requestedSessionTimeout: 60000, // 1 minute
         securityMode: MessageSecurityMode.None,

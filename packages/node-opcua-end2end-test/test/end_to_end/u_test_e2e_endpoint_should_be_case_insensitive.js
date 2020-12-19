@@ -7,7 +7,7 @@ module.exports = function(test) {
         it("CASE-I should be possible to connect to server with endpoint in UpperCase", async () => {
 
             const client = OPCUAClient.create({
-                endpoint_must_exist: true
+                endpointMustExist: true
             });
 
             const endpointUrl = test.endpointUrl;

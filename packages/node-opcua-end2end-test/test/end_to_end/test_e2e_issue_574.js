@@ -62,7 +62,7 @@ describe("Testing bug #574", function() {
         // user1/password1
 
         const client = opcua.OPCUAClient.create({
-            endpoint_must_exist: false,
+            endpointMustExist: false,
             requestedSessionTimeout: 60000
         });
 

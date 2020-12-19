@@ -20,7 +20,7 @@ describe("Verifying Server Endpoint", () => {
 
     it("should not have duplicated policies inside a single endpoint", async () => {
         // given a server
-        const client = OPCUAClient.create({ endpoint_must_exist: false });
+        const client = OPCUAClient.create({ endpointMustExist: false });
 
         await client.connect(endpointUri);
 
@@ -53,7 +53,7 @@ describe("Verifying Server Endpoint", () => {
     });
     it("should not have duplicated policies within the server", async () => {
         // given a server
-        const client = OPCUAClient.create({ endpoint_must_exist: false });
+        const client = OPCUAClient.create({ endpointMustExist: false });
 
         await client.connect(endpointUri);
 

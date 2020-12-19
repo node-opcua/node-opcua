@@ -22,7 +22,7 @@ describe("Issue #896: Check Authorization for UAMethods", () => {
     })
 
     const client = OPCUAClient.create({
-        endpoint_must_exist: false,
+        endpointMustExist: false,
     });
 
     let wasExecuted: boolean;

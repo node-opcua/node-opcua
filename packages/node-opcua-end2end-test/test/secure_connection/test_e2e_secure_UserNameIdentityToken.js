@@ -200,7 +200,7 @@ describe("testing Client-Server with UserName/Password identity token", function
         const userName = "username";
         const password = "p@ssw0rd";
         const options = {
-            endpoint_must_exist: false,
+            endpointMustExist: false,
             securityMode: opcua.MessageSecurityMode.Sign,
             securityPolicy: opcua.SecurityPolicy.Basic128Rsa15
         };
