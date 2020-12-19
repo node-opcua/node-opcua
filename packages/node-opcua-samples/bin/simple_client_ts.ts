@@ -3,7 +3,6 @@
 import * as chalk from "chalk";
 import * as fs from "fs";
 import * as path from "path";
-import * as _ from "underscore";
 import * as util from "util";
 import * as yargs from "yargs";
 
@@ -292,7 +291,7 @@ async function main() {
         securityMode,
         securityPolicy,
 
-        endpoint_must_exist: false,
+        endpointMustExist: false,
         keepSessionAlive: true,
 
         connectionStrategy: {
@@ -396,7 +395,7 @@ async function main() {
 
         defaultSecureTokenLifetime: 40000,
 
-        endpoint_must_exist: false,
+        endpointMustExist: false,
 
         connectionStrategy: {
             initialDelay: 2000,

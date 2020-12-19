@@ -9,7 +9,6 @@
 import * as chalk from "chalk";
 import { randomBytes } from "crypto";
 import { EventEmitter } from "events";
-import * as _ from "underscore";
 
 import {
     Certificate,
@@ -1616,7 +1615,7 @@ export class ClientSecureChannelLayer extends EventEmitter {
 
         // assert(this.channelId !== 0 , "channel Id cannot be null");
 
-        const options: ChunkMessageOptions = {
+        let options: ChunkMessageOptions = {
             channelId: this.channelId,
             chunkSize: 0,
             requestId,
@@ -1662,7 +1661,10 @@ export class ClientSecureChannelLayer extends EventEmitter {
         }
 
         const security_options = msgType === "OPN" ? this._get_security_options_for_OPN() : this._get_security_options_for_MSG();
-        _.extend(options, security_options);
+        options = {
+            ...options,
+            ...security_options
+        };
 
         /**
          * notify the observer that a client request is being sent the server

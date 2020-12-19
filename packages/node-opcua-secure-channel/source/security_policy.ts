@@ -6,8 +6,6 @@
 // tslint:disable:max-line-length
 
 import { assert } from "node-opcua-assert";
-import { Enum } from "node-opcua-enum";
-import * as  _ from "underscore";
 
 import { MessageSecurityMode, SignatureData } from "node-opcua-service-secure-channel";
 
@@ -33,7 +31,8 @@ import {
     verifyMessageChunkSignature,
 
 } from "node-opcua-crypto";
-import { SecureMessageChunkManagerOptions } from "./secure_message_chunk_manager";
+import { SecureMessageChunkManagerOptions, VerifyBufferFunc } from "./secure_message_chunk_manager";
+import { EncryptBufferFunc, SignBufferFunc } from "node-opcua-chunkmanager";
 
 // tslint:disable:no-empty
 function errorLog(...args: any[]) {
@@ -487,24 +486,34 @@ export function verifySignature(
     return cryptoFactory.asymmetricVerify(dataToVerify, signature.signature, senderCertificate);
 }
 
+export interface SecureMessageChunkManagerOptionsPartial {
+    cipherBlockSize?: number;
+    encryptBufferFunc?: EncryptBufferFunc;
+    plainBlockSize?: number;
+
+    signBufferFunc: SignBufferFunc;
+    signatureLength: number;
+
+}
 export function getOptionsForSymmetricSignAndEncrypt(
   securityMode: MessageSecurityMode,
   derivedKeys: DerivedKeys
-): SecureMessageChunkManagerOptions {
+): SecureMessageChunkManagerOptionsPartial {
 
     assert(derivedKeys.hasOwnProperty("signatureLength"));
     assert(securityMode !== MessageSecurityMode.None && securityMode !== MessageSecurityMode.Invalid);
 
-    let options = {
+    let options: SecureMessageChunkManagerOptionsPartial = {
         signBufferFunc: (chunk: Buffer) => makeMessageChunkSignatureWithDerivedKeys(chunk, derivedKeys),
         signatureLength: derivedKeys.signatureLength,
     };
     if (securityMode === MessageSecurityMode.SignAndEncrypt) {
-        options = _.extend(options, {
+        options = {
+            ...options, 
             cipherBlockSize: derivedKeys.encryptingBlockSize,
             encryptBufferFunc: (chunk: Buffer) => encryptBufferWithDerivedKeys(chunk, derivedKeys),
             plainBlockSize: derivedKeys.encryptingBlockSize,
-        });
+        }
     }
-    return options as SecureMessageChunkManagerOptions;
+    return options;
 }

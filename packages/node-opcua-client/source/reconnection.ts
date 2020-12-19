@@ -407,7 +407,7 @@ export function repair_client_sessions(client: OPCUAClientImpl, callback: (err?:
 
     const self = client;
     // repair session
-    const sessions = self._sessions;
+    const sessions = self.getSessions();
     debugLog(chalk.red.bgWhite(" Starting sessions reactivation", sessions.length));
     async.map(sessions, (session: ClientSessionImpl, next: (err?: Error) => void) => {
         repair_client_session(client, session, next);

@@ -2,7 +2,6 @@
 "use strict";
 const chalk = require("chalk");
 const opcua = require("node-opcua");
-const _ = require("underscore");
 const path = require("path");
 
 Error.stackTraceLimit = Infinity;
@@ -212,9 +211,9 @@ function dumpNode(node) {
         const tmp = str + "                                        ";
         return tmp.substr(0, width);
     }
-    return _.map(node, function(value, key) {
-        return "      " + w(key, 30) + "  : " + ((value === null) ? null : value.toString());
-    }).join("\n");
+    return Object.entries(node).map((key,value) =>
+         "      " + w(key, 30) + "  : " + ((value === null) ? null : value.toString())
+    ).join("\n");
 }
 
 

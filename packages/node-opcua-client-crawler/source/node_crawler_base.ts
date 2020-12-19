@@ -3,7 +3,7 @@
  */
 import * as async from "async";
 import { EventEmitter } from "events";
-import * as _ from "underscore";
+import {zip} from "underscore";
 
 import { UAReferenceType } from "node-opcua-address-space";
 import { assert } from "node-opcua-assert";
@@ -513,7 +513,7 @@ export class NodeCrawlerBase extends EventEmitter implements NodeCrawlerEvents {
                 return callback(err);
             }
 
-            for (const pair of _.zip(selectedPendingReadTasks, dataValues!)) {
+            for (const pair of zip(selectedPendingReadTasks, dataValues!)) {
                 const readTask: TaskReadNode = pair[0];
                 const dataValue: DataValue = pair[1];
                 assert(dataValue.hasOwnProperty("statusCode"));
@@ -1234,7 +1234,7 @@ export class NodeCrawlerBase extends EventEmitter implements NodeCrawlerEvents {
     private _process_browse_response_task(task: TaskProcessBrowseResponse, callback: EmptyCallback) {
         const objectsToBrowse = task.param.objectsToBrowse;
         const browseResults = task.param.browseResults;
-        for (const pair of _.zip(objectsToBrowse, browseResults)) {
+        for (const pair of zip(objectsToBrowse, browseResults)) {
             const objectToBrowse = pair[0];
             const browseResult = pair[1];
             assert(browseResult instanceof BrowseResult);

@@ -2,7 +2,6 @@
 const chalk = require("chalk");
 const should = require("should");
 const async = require("async");
-const _ = require("underscore");
 
 const opcua = require("node-opcua");
 const OPCUAClient = opcua.OPCUAClient;
@@ -128,9 +127,8 @@ describe("testing AnalogItem on client side", function() {
                 return callback(null, null);
             }
 
-            let tmp = _.filter(result.references, function(e) {
-                return e.browseName.name === browseName;
-            });
+            let tmp = result.references.filter((e) =>  e.browseName.name === browseName);
+
             tmp = tmp.map(function(e) {
                 return e.nodeId;
             });

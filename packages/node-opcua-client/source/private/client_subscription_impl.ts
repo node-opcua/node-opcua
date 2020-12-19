@@ -5,7 +5,6 @@
 import * as async from "async";
 import * as chalk from "chalk";
 import { EventEmitter } from "events";
-import * as _ from "underscore";
 
 import { assert } from "node-opcua-assert";
 import { AttributeIds } from "node-opcua-data-model";
@@ -87,6 +86,61 @@ async function promoteOpaqueStructureInNotificationData(
     await promoteOpaqueStructure(session, dataValuesToPromote);
 }
 
+const minimumMaxKeepAliveCount = 3;
+
+function displayKeepAliveWarning(sessionTimeout: number, maxKeepAliveCount: number, publishingInterval: number): boolean {
+
+    const keepAliveInterval = maxKeepAliveCount  * publishingInterval;
+
+    // istanbul ignore next
+    if (sessionTimeout < keepAliveInterval) {
+
+        console.warn(
+            chalk.bgWhiteBright.red("NodeOPCUA-Warning: "),
+            chalk.bgWhiteBright.cyan("The subscription parameters are not compatible with the session timeout !"));
+        console.warn("   session timeout    = ", sessionTimeout , " millisecond");
+        console.warn("   maxKeepAliveCount  = ", maxKeepAliveCount);
+        console.warn("   publishingInterval = ", publishingInterval,  " milisecond");
+
+        console.warn(
+`
+It is important that you make sure that your session timeout (${chalk.red(sessionTimeout)} ms) is largely greater than 
+(MaxKeepAliveCount*PublishingInterval=${chalk.yellow(""+keepAliveInterval)} ms), otherwise  you may experience unexpected disconnection from
+the server if your monitored items are not changing frequently.`);
+
+        if (sessionTimeout < 3000 && publishingInterval <= 1000) {
+    console.warn(
+        `You'll need to increase your sessionTimeout significantly.`);
+
+        }
+        if (sessionTimeout >= 3000 && sessionTimeout < publishingInterval * minimumMaxKeepAliveCount && maxKeepAliveCount <= minimumMaxKeepAliveCount + 2 ) {
+            console.warn(
+                `your publishingInterval interval is probably too large, consider reducting it.`
+            );
+        }
+
+
+const idealMaxKeepAliveCount = Math.floor(sessionTimeout * 0.8 / keepAliveInterval - 0.5);
+const idealKeepAliveInterval = idealMaxKeepAliveCount  * publishingInterval;
+ 
+console.warn(
+`
+An ideal value for maxKeepAliveCount could be ${idealMaxKeepAliveCount}, which will make 
+your subscription emit a keep alive signal every ${idealKeepAliveInterval} ms.
+
+Aternatively, you can decrease your publishingInterval or increase the session timeout.
+
+const  client = OPCUAClient.create({
+    requestedSessionTimeout: 30* 60* 1000, // 30 minutes
+});
+
+`);
+
+            return true;
+    }
+    return false;
+}
+
 export class ClientSubscriptionImpl extends EventEmitter implements ClientSubscription {
     /**
      * the associated session
@@ -139,6 +193,16 @@ export class ClientSubscriptionImpl extends EventEmitter implements ClientSubscr
         options.requestedPublishingInterval = options.requestedPublishingInterval || 100;
         options.requestedLifetimeCount = options.requestedLifetimeCount || 60;
         options.requestedMaxKeepAliveCount = options.requestedMaxKeepAliveCount || 10;
+        options.requestedMaxKeepAliveCount = Math.max( options.requestedMaxKeepAliveCount, minimumMaxKeepAliveCount);
+
+        // perform some verification 
+        const warningEmitted = displayKeepAliveWarning(session.timeout, options.requestedMaxKeepAliveCount,options.requestedPublishingInterval);
+        // istanbul ignore next
+        if (warningEmitted) {
+            console.warn(JSON.stringify({
+                ...options
+            },null," "));
+        }
 
         options.maxNotificationsPerPublish = utils.isNullOrUndefined(options.maxNotificationsPerPublish)
             ? 0
@@ -394,14 +458,14 @@ export class ClientSubscriptionImpl extends EventEmitter implements ClientSubscr
 
                     const itemsToCreate: MonitoredItemCreateRequestOptions[] = [];
 
-                    _.forEach(oldMonitoredItems, (monitoredItem: ClientMonitoredItemBase /*, clientHandle*/) => {
+                    for (const monitoredItem of Object.values(oldMonitoredItems)) {
                         assert(monitoredItem.monitoringParameters.clientHandle > 0);
                         itemsToCreate.push({
                             itemToMonitor: monitoredItem.itemToMonitor,
                             monitoringMode: monitoredItem.monitoringMode,
                             requestedParameters: monitoredItem.monitoringParameters
                         });
-                    });
+                    }
 
                     const createMonitorItemsRequest = new CreateMonitoredItemsRequest({
                         itemsToCreate,
@@ -473,6 +537,10 @@ export class ClientSubscriptionImpl extends EventEmitter implements ClientSubscr
 
         str += "timeSinceLast PR    : " + duration + "ms" + extra + "\n";
         str += "has expired         : " + (duration > timeToLive) + "\n";
+
+        str += "(session timeout    : " + this.session.timeout + " ms)\n";
+        str += "(maxKeepAliveCount*publishingInterval: " + this.publishingInterval * this.session.timeout + " ms)\n"
+       
         return str;
     }
 
@@ -569,6 +637,8 @@ export class ClientSubscriptionImpl extends EventEmitter implements ClientSubscr
             this.maxKeepAliveCount = response.revisedMaxKeepAliveCount;
 
             this.timeoutHint = (this.maxKeepAliveCount + 10) * this.publishingInterval;
+
+            displayKeepAliveWarning(this.session.timeout, this.maxKeepAliveCount, this.publishingInterval);
 
             if (doDebug) {
                 debugLog(chalk.yellow.bold("registering callback"));

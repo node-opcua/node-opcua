@@ -8,7 +8,6 @@ import * as async from "async";
 import * as chalk from "chalk";
 import * as crypto from "crypto";
 import { EventEmitter } from "events";
-import * as _ from "underscore";
 import { callbackify } from "util";
 
 import { extractFullyQualifiedDomainName, getFullyQualifiedDomainName } from "node-opcua-hostname";
@@ -130,7 +129,8 @@ import {
     MonitoringMode,
     UserIdentityToken,
     UserTokenPolicy,
-    BrowseDescription
+    BrowseDescription,
+    BuildInfoOptions
 } from "node-opcua-types";
 import { DataType } from "node-opcua-variant";
 import { VariantArrayType } from "node-opcua-variant";
@@ -186,11 +186,13 @@ function g_sendError(channel: ServerSecureChannelLayer, message: Message, Respon
     return channel.send_response("MSG", response, message);
 }
 
-const default_build_info = {
+const default_build_info: BuildInfoOptions = {
     manufacturerName: "Node-OPCUA : MIT Licence ( see http://node-opcua.github.io/)",
     productName: "urn:NODEOPCUA-SERVER",
     productUri: null, // << should be same as default_server_info.productUri?
-    softwareVersion: package_info.version
+    softwareVersion: package_info.version,
+    buildNumber: "0",
+    buildDate: new Date(2020,1,1)
     // xx buildDate: fs.statSync(package_json_file).mtime
 };
 
@@ -296,7 +298,7 @@ function findUserTokenByPolicy(
     policyId: SecurityPolicy | string
 ): UserTokenPolicy | null {
     assert(endpoint_description instanceof EndpointDescription);
-    const r = _.filter(endpoint_description.userIdentityTokens!, (userIdentity: UserTokenPolicy) => {
+    const r = endpoint_description.userIdentityTokens!.filter((userIdentity: UserTokenPolicy) => {
         assert(userIdentity.tokenType !== undefined);
         return userIdentity.policyId === policyId;
     });
@@ -305,7 +307,7 @@ function findUserTokenByPolicy(
 
 function findUserTokenPolicy(endpoint_description: EndpointDescription, userTokenType: UserTokenType): UserTokenPolicy | null {
     assert(endpoint_description instanceof EndpointDescription);
-    const r = _.filter(endpoint_description.userIdentityTokens!, (userIdentity: UserTokenPolicy) => {
+    const r = endpoint_description.userIdentityTokens!.filter((userIdentity: UserTokenPolicy) => {
         assert(userIdentity.tokenType !== undefined);
         return userIdentity.tokenType === userTokenType;
     });
@@ -968,8 +970,10 @@ export class OPCUAServer extends OPCUABaseServer {
         this.maxConnectionsPerEndpoint = options.maxConnectionsPerEndpoint || default_maxConnectionsPerEndpoint;
 
         // build Info
-        let buildInfo = _.clone(default_build_info) as BuildInfo;
-        buildInfo = _.extend(buildInfo, options.buildInfo);
+        let buildInfo: BuildInfoOptions = { 
+            ...default_build_info,
+            ...options.buildInfo
+        };
 
         // repair product name
         buildInfo.productUri = buildInfo.productUri || this.serverInfo.productUri;

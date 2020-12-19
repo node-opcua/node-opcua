@@ -183,8 +183,6 @@ export async function generate(filename: string, generatedTypescriptFilename: st
 // tslint:disable:object-literal-sort-keys
 // tslint:disable:max-line-length
 
-import * as _ from "underscore";
-
 import { assert } from "node-opcua-assert";
 import {
     Byte, ByteString, CharArray, DateTime,
