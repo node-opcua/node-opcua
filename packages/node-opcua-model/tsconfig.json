@@ -6,8 +6,8 @@
         "composite": true,
         "incremental": true
     },
-    "include": [],
-    "references": [
+    "include": ["source/**/*.ts"],
+      "references": [
         {
             "path": "../node-opcua-address-space"
         },

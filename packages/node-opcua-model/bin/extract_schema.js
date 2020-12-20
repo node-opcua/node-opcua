@@ -1,5 +1,5 @@
 const { OPCUAClient } = require("node-opcua-client");
-const { parse_opcua_common } = require("../lib/parse_server_common");
+const { parse_opcua_common } = require("..");
 
 const yargs = require("yargs/yargs");
 
