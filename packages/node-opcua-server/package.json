@@ -26,7 +26,7 @@
         "node-opcua-client-dynamic-extension-object": "2.28.1",
         "node-opcua-common": "2.28.1",
         "node-opcua-constants": "2.22.0",
-        "node-opcua-crypto": "^1.4.4",
+        "node-opcua-crypto": "^1.4.8",
         "node-opcua-data-model": "2.28.0",
         "node-opcua-data-value": "2.28.1",
         "node-opcua-date-time": "2.28.0",
@@ -39,7 +39,7 @@
         "node-opcua-nodesets": "2.27.0",
         "node-opcua-numeric-range": "2.28.0",
         "node-opcua-object-registry": "2.28.0",
-        "node-opcua-pki": "^2.2.2",
+        "node-opcua-pki": "^2.4.0",
         "node-opcua-secure-channel": "2.28.1",
         "node-opcua-service-browse": "2.28.1",
         "node-opcua-service-call": "2.28.1",
@@ -60,7 +60,7 @@
         "node-opcua-types": "2.28.1",
         "node-opcua-utils": "2.28.0",
         "node-opcua-variant": "2.28.1",
-        "underscore": "^1.11.0"
+        "underscore": "^1.12.0"
     },
     "devDependencies": {
         "node-opcua-data-access": "2.28.1",
@@ -68,7 +68,7 @@
         "node-opcua-test-helpers": "2.17.0",
         "node-opcua-transport": "2.28.1",
         "should": "^13.2.3",
-        "sinon": "^9.2.0"
+        "sinon": "^9.2.2"
     },
     "author": "Etienne Rossignon",
     "license": "MIT",

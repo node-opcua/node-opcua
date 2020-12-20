@@ -9,7 +9,7 @@
     },
     "dependencies": {
         "chalk": "^4.1.0",
-        "hexy": "^0.3.0",
+        "hexy": "^0.3.1",
         "node-opcua-assert": "2.22.0",
         "node-opcua-buffer-utils": "2.28.0"
     },

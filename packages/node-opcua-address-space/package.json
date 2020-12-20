@@ -14,7 +14,7 @@
         "clean": "node -e \"require('rimraf').sync('dist');\""
     },
     "dependencies": {
-        "@types/lodash": "4.14.162",
+        "@types/lodash": "4.14.165",
         "async": "^3.2.0",
         "chalk": "^4.1.0",
         "dequeue": "^1.0.5",
@@ -63,7 +63,7 @@
         "node-opcua-packet-analyzer": "2.28.0",
         "node-opcua-test-fixtures": "2.28.0",
         "should": "^13.2.3",
-        "sinon": "^9.2.0",
+        "sinon": "^9.2.2",
         "source-map-support": "^0.5.19"
     },
     "author": "Etienne Rossignon",

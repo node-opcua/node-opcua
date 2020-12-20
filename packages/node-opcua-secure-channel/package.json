@@ -21,7 +21,7 @@
         "node-opcua-certificate-manager": "2.28.0",
         "node-opcua-chunkmanager": "2.28.0",
         "node-opcua-common": "2.28.1",
-        "node-opcua-crypto": "^1.4.4",
+        "node-opcua-crypto": "^1.4.8",
         "node-opcua-debug": "2.28.0",
         "node-opcua-enum": "2.28.0",
         "node-opcua-factory": "2.28.0",
@@ -33,13 +33,13 @@
         "node-opcua-transport": "2.28.1",
         "node-opcua-types": "2.28.1",
         "node-opcua-utils": "2.28.0",
-        "underscore": "^1.11.0"
+        "underscore": "^1.12.0"
     },
     "devDependencies": {
-        "@types/node": "^14.14.0",
+        "@types/node": "^14.14.14",
         "node-opcua-buffer-utils": "2.28.0",
         "node-opcua-leak-detector": "2.28.0",
-        "node-opcua-packet-analyzer": "2.21.0",
+        "node-opcua-packet-analyzer": "2.28.0",
         "node-opcua-service-browse": "2.28.1",
         "node-opcua-service-endpoints": "2.28.1",
         "node-opcua-service-read": "2.28.1",
@@ -47,7 +47,7 @@
         "node-opcua-test-fixtures": "2.28.0",
         "node-opcua-test-helpers": "2.17.0",
         "should": "^13.2.3",
-        "sinon": "^9.2.0",
+        "sinon": "^9.2.2",
         "source-map-support": "^0.5.19",
         "sprintf-js": "^1.1.2"
     },

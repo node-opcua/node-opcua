@@ -20,7 +20,7 @@
         "node-opcua-utils": "2.28.0"
     },
     "devDependencies": {
-        "@types/lodash": "4.14.162",
+        "@types/lodash": "4.14.165",
         "@types/underscore": "^1.10.24",
         "lodash": "4.17.20",
         "node-opcua-benchmarker": "2.28.0",
@@ -31,7 +31,7 @@
         "node-opcua-status-code": "2.28.0",
         "should": "^13.2.3",
         "source-map-support": "^0.5.19",
-        "underscore": "^1.11.0"
+        "underscore": "^1.12.0"
     },
     "author": "Etienne Rossignon",
     "license": "MIT",
