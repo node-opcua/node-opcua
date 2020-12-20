@@ -15,7 +15,7 @@
     "@types/csv-parse": "^1.2.2",
     "chalk": "^4.1.0",
     "cli-table3": "^0.6.0",
-    "csv-parse": "^4.12.0",
+    "csv-parse": "^4.14.2",
     "node-opcua-address-space": "2.28.2",
     "node-opcua-assert": "2.22.0",
     "node-opcua-basic-types": "2.28.0",
