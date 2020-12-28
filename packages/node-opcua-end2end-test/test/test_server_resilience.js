@@ -14,6 +14,7 @@ const debugLog = require("node-opcua-debug").make_debugLog(__filename);
 const empty_nodeset_filename = opcua.get_empty_nodeset_filename();
 
 
+const port = 1999;
 
 const ServerSideUnimplementedRequest = require("../test_helpers/unimplementedRequest").ServerSideUnimplementedRequest;
 
@@ -28,14 +29,14 @@ describe("testing Server resilience to unsupported request", function() {
 
     before(function(done) {
 
-        server = new OPCUAServer({ port: 2000, nodeset_filename: empty_nodeset_filename });
+        server = new OPCUAServer({ port, nodeset_filename: empty_nodeset_filename });
 
         client = OPCUAClient.create();
 
         server.start(function() {
 
             // we will connect to first server end point
-            endpointUrl = server.endpoints[0].endpointDescriptions()[0].endpointUrl;
+            endpointUrl = server.getEndpointUrl();
             debugLog("endpointUrl", endpointUrl);
             opcua.is_valid_endpointUrl(endpointUrl).should.equal(true);
 
@@ -86,9 +87,9 @@ describe("testing Server resilience with bad internet connection", function() {
 
     before(function(done) {
 
-        server = new OPCUAServer({ port: 2000, nodeset_filename: empty_nodeset_filename });
+        server = new OPCUAServer({ port, nodeset_filename: empty_nodeset_filename });
         server.start((err) => {
-            endpointUrl = server.endpoints[0].endpointDescriptions()[0].endpointUrl;
+            endpointUrl = server.getEndpointUrl();
             done(err);
         });
     });

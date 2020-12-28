@@ -18,7 +18,7 @@ const VariableIds = opcua.VariableIds;
 //xx opcua.utils.setDebugFlag(__filename,true);
 const debugLog = require("node-opcua-debug").make_debugLog(__filename);
 
-const port = 2000;
+const port = 2003;
 const maxConnectionsPerEndpoint = 100;
 const maxAllowedSessionNumber = 50;
 
@@ -35,12 +35,12 @@ describe("Functional test : one server with many concurrent clients", function()
     before(function(done) {
         server = build_server_with_temperature_device(
             {
-                port: port,
+                port,
                 maxAllowedSessionNumber: maxAllowedSessionNumber,
                 maxConnectionsPerEndpoint: maxConnectionsPerEndpoint
             },
             function(err) {
-                endpointUrl = server.endpoints[0].endpointDescriptions()[0].endpointUrl;
+                endpointUrl = server.getEndpointUrl();
                 temperatureVariableId = server.temperatureVariableId;
                 serverCertificateChain = server.getCertificateChain();
                 done(err);

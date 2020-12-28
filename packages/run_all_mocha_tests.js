@@ -11,7 +11,7 @@ require("ts-node").register({
     transpileOnly: true
 });
 
-Error.stackTraceLimit = Infinity;
+Error.stackTraceLimit = 20;
 
 
 require("mocha-clean");
@@ -40,6 +40,15 @@ let mocha = new Mocha({
     bail: true,
     fullTrace: true,
     grep: filterOpts,
+  
+    /*
+    fullTrace: true,
+    parallel: true,
+    jobs: 16,
+    */
+    // growl: true,
+    // checkLeaks: true,
+
     reporter: process.env.REPORTER || "spec", //"nyan", //"tap"
     slow: 6000,
 });
@@ -326,8 +335,15 @@ if (process.env.NODEOPCUATESTREPORTER) {
     mocha.reporter(MyReporter);
 }
 
-// Run the tests.
-mocha.run((failures) => {
-    process.exit(failures);  // exit with non-zero status if there were failures
-});
+try {
+    // Run the tests.
+    mocha.run((failures) => {
+        process.exit(failures);  // exit with non-zero status if there were failures
+    });
+}
+catch(err) {
 
+    console.log("---------------------------------- mocha run error");
+    console.log(err);
+    process.exit(-1);
+}

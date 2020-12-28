@@ -88,7 +88,7 @@ import {
 import { WriteRequest, WriteResponse, WriteValue } from "node-opcua-service-write";
 import { StatusCode, StatusCodes, Callback } from "node-opcua-status-code";
 import { ErrorCallback } from "node-opcua-status-code";
-import { BrowseNextRequest, BrowseNextResponse, HistoryReadValueIdOptions, HistoryReadValueId } from "node-opcua-types";
+import { BrowseNextRequest, BrowseNextResponse, HistoryReadValueIdOptions, HistoryReadValueId, WriteValueOptions } from "node-opcua-types";
 import { buffer_ellipsis, check_flag, getFunctionParameterNames, isNullOrUndefined, lowerFirstLetter } from "node-opcua-utils";
 import { DataType, Variant, VariantLike } from "node-opcua-variant";
 
@@ -108,11 +108,9 @@ import {
     MonitoredItemData,
     NodeAttributes,
     QueryFirstRequestLike,
-    ReadValueIdLike,
     SetMonitoringModeRequestLike,
     SubscriptionId,
     TransferSubscriptionsRequestLike,
-    WriteValueLike,
     HistoryReadValueIdOptions2
 } from "../client_session";
 import { ClientSessionKeepAliveManager } from "../client_session_keepalive_manager";
@@ -173,7 +171,7 @@ const attributeNames: string[] = ((): string[] => {
     return r;
 })();
 
-function composeResult(nodes: any[], nodesToRead: ReadValueIdLike[], dataValues: DataValue[]): NodeAttributes[] {
+function composeResult(nodes: any[], nodesToRead: ReadValueIdOptions[], dataValues: DataValue[]): NodeAttributes[] {
     assert(nodesToRead.length === dataValues.length);
     let c = 0;
     const results = [];
@@ -910,13 +908,13 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession {
      *   const statusCodes = await session.write(nodesToWrite);
      * ```
      */
-    public write(nodeToWrite: WriteValueLike, callback: ResponseCallback<StatusCode>): void;
+    public write(nodeToWrite: WriteValueOptions, callback: ResponseCallback<StatusCode>): void;
 
-    public write(nodesToWrite: WriteValueLike[], callback: ResponseCallback<StatusCode[]>): void;
+    public write(nodesToWrite: WriteValueOptions[], callback: ResponseCallback<StatusCode[]>): void;
 
-    public async write(nodesToWrite: WriteValueLike[]): Promise<StatusCode[]>;
+    public async write(nodesToWrite: WriteValueOptions[]): Promise<StatusCode[]>;
 
-    public async write(nodeToWrite: WriteValueLike): Promise<StatusCode>;
+    public async write(nodeToWrite: WriteValueOptions): Promise<StatusCode>;
 
     /**
      * @internal
@@ -1120,17 +1118,17 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession {
      *   ```
      *
      */
-    public read(nodeToRead: ReadValueIdLike, maxAge: number, callback: ResponseCallback<DataValue>): void;
+    public read(nodeToRead: ReadValueIdOptions, maxAge: number, callback: ResponseCallback<DataValue>): void;
 
-    public read(nodesToRead: ReadValueIdLike[], maxAge: number, callback: ResponseCallback<DataValue[]>): void;
+    public read(nodesToRead: ReadValueIdOptions[], maxAge: number, callback: ResponseCallback<DataValue[]>): void;
 
-    public read(nodeToRead: ReadValueIdLike, callback: ResponseCallback<DataValue>): void;
+    public read(nodeToRead: ReadValueIdOptions, callback: ResponseCallback<DataValue>): void;
 
-    public read(nodesToRead: ReadValueIdLike[], callback: ResponseCallback<DataValue[]>): void;
+    public read(nodesToRead: ReadValueIdOptions[], callback: ResponseCallback<DataValue[]>): void;
 
-    public read(nodeToRead: ReadValueIdLike, maxAge?: number): Promise<DataValue>;
+    public read(nodeToRead: ReadValueIdOptions, maxAge?: number): Promise<DataValue>;
 
-    public read(nodeToRead: ReadValueIdLike[], maxAge?: number): Promise<DataValue[]>;
+    public read(nodeToRead: ReadValueIdOptions[], maxAge?: number): Promise<DataValue[]>;
 
     /**
      * @internal
@@ -1241,14 +1239,22 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession {
     ): void;
     public createSubscription2(...args: any[]): any {
         const createSubscriptionRequest = args[0] as CreateSubscriptionRequestLike;
-        const callback = args[1];
+        let callback = args[1];
         const subscription = new ClientSubscriptionImpl(this, createSubscriptionRequest);
 
         // tslint:disable-next-line:no-empty
-        subscription.on("error", () => {});
+        subscription.on("error", (err) => {
+          //  if (callback) {
+          //      callback(err);
+          //      callback = null;
+          //  }
+        });
         subscription.on("started", () => {
             assert(subscription.session === this, "expecting a session here");
-            callback(null, subscription);
+            if (callback) {
+                callback(null, subscription);
+                callback = null;
+            }
         });
     }
 

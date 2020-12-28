@@ -17,7 +17,7 @@ const {
 
 assert(typeof makeBrowsePath === "function");
 
-const port = 2000;
+const port = 2227;
 
 
 const perform_operation_on_client_session = require("../../test_helpers/perform_operation_on_client_session").perform_operation_on_client_session;
@@ -38,7 +38,7 @@ describe("testing server with low maxNodesPerRead and maxNodesPerBrowse", functi
     before(function(done) {
 
         server = new OPCUAServer({
-            port: port,
+            port,
 
             // xx nodeset_filename: empty_nodeset_filename,
 
@@ -68,7 +68,7 @@ describe("testing server with low maxNodesPerRead and maxNodesPerBrowse", functi
         });
         client = OPCUAClient.create();
         server.start(function() {
-            endpointUrl = server.endpoints[0].endpointDescriptions()[0].endpointUrl;
+            endpointUrl = server.getEndpointUrl();
             done();
         });
 

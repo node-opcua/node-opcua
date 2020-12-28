@@ -24,7 +24,7 @@ const debugLog = require("node-opcua-debug").make_debugLog("TEST");
 const certificate_store = path.join(__dirname, "../../certificates");
 fs.existsSync(certificate_store).should.eql(true, "expecting certificate store at " + certificate_store);
 
-const port = 2225;
+const port = 2236;
 
 const { build_server_with_temperature_device } = require("../../test_helpers/build_server_with_temperature_device");
 const { perform_operation_on_client_session } = require("../../test_helpers/perform_operation_on_client_session");
@@ -49,7 +49,7 @@ const no_reconnect_connectivity_strategy = {
 
 
 let g_certificateManager = null;
-async function makeCerficateManager() {
+async function makeCertificateManager() {
 
     if (g_certificateManager) {
         return g_certificateManager;
@@ -73,7 +73,7 @@ async function makeCerficateManager() {
 function start_inner_server_local(options, callback) {
     // Given a server that have a signed end point
 
-    callbackify(makeCerficateManager)((err, certificateManager) => {
+    callbackify(makeCertificateManager)((err, certificateManager) => {
         options = options || {};
         options.port = options.port || port;
 
@@ -83,7 +83,7 @@ function start_inner_server_local(options, callback) {
                 return callback(err);
             }
             const data = {};
-            data.endpointUrl = server.endpoints[0].endpointDescriptions()[0].endpointUrl;
+            data.endpointUrl = server.getEndpointUrl();
             data.serverCertificate = server.endpoints[0].endpointDescriptions()[0].serverCertificate;
             data.temperatureVariableId = server.temperatureVariableId;
             data.server = server;
@@ -948,7 +948,7 @@ describe("ZZE- testing with various client certificates", function() {
         check_open_secure_channel_fails("Basic128Rsa15", "SignAndEncrypt", options, done);
     });
 
-    xit("Server should not allow a client to connect with a revoked certificate", function(done) {
+    xit("REVOKED-CERTIFICATE Server should not allow a client to connect with a revoked certificate", function(done) {
         // todo : implement a mechanism in server code to check certificate against CRL ( Certificate Revocation List)
         const options = {
             certificateFile: client_certificate_revoked,

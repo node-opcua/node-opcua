@@ -111,7 +111,7 @@ module.exports = function(test) {
 
             const dataBefore = await readServerDiagnostics(session);
 
-            //  create a session with invalid  userIdentity
+            //  create a session with an invalid userIdentity
             {
 
                 const client2 = OPCUAClient.create({ endpointMustExist: false });
@@ -124,13 +124,16 @@ module.exports = function(test) {
                             session2.authenticationToken = randomNodeId();
                             client2._activateSession(session2, (err) => {
                                 if (err) {
+                                    console.log("--> rejected - as expected A");
 
                                     session2.authenticationToken = original;
                                     client2.closeSession(session2, true).then(() => {
+                                        console.log("--> rejected - as expected B");
                                         return reject(err);
                                     });
+                                } else {
+                                    resolve();
                                 }
-                                resolve();
                             });
 
                         });
@@ -140,8 +143,8 @@ module.exports = function(test) {
 
                 } catch (err) {
                     /* */
-                    // console.log(err.message);
-                    // console.log(err);
+                    console.log(err.message);
+                    console.log(err);
                 }
                 await client2.disconnect();
             }

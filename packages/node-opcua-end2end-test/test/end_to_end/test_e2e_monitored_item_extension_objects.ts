@@ -22,7 +22,7 @@ import * as should from "should";
 import * as sinon from "sinon";
 const _should = should;
 
-const port = 4000;
+const port = 2228;
 let endpointUrl: string;
 
 let nsAutoId;
@@ -150,7 +150,7 @@ describe("AZA1- testing Client-Server subscription use case, on a fake server ex
         nodeId = scanResultNode.nodeId;
 
         await server.start();
-        endpointUrl = server._get_endpoints(null)[0].endpointUrl!;
+        endpointUrl = server.getEndpointUrl();
     });
     after(async () => {
         await server.shutdown();

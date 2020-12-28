@@ -25,12 +25,11 @@ describe("testing browse & browseNext", () => {
     let server: OPCUAServer;
     let endpointUrl: any;
 
-    let port = 20000;
+    const port = 2011;
     let groupNodeId: NodeId;
 
     before(async () => {
-        port += 1;
-
+ 
         const options = { port };
         server = new OPCUAServer(options);
 
@@ -49,7 +48,7 @@ describe("testing browse & browseNext", () => {
         }
         groupNodeId = group.nodeId;
         await server.start();
-        endpointUrl = server.endpoints[0].endpointDescriptions()[0].endpointUrl;
+        endpointUrl = server.getEndpointUrl();
     });
 
     let data: { session: ClientSession; client: OPCUAClient };

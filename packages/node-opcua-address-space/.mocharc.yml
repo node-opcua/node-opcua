@@ -8,3 +8,4 @@ spec:
   - test/**/*.ts
   - test/**/*.js
 bail: true
+parallel: true

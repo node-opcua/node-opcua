@@ -117,7 +117,7 @@ import {
     TranslateBrowsePathsToNodeIdsResponse
 } from "node-opcua-service-translate-browse-path";
 import { WriteRequest, WriteResponse } from "node-opcua-service-write";
-import { StatusCode, StatusCodes } from "node-opcua-status-code";
+import { ErrorCallback, StatusCode, StatusCodes } from "node-opcua-status-code";
 import {
     ApplicationDescriptionOptions,
     BrowseResult,
@@ -138,7 +138,7 @@ import { matchUri } from "node-opcua-utils";
 
 import { OPCUABaseServer, OPCUABaseServerOptions } from "./base_server";
 import { Factory } from "./factory";
-import { IRegisterServerManager } from "./I_register_server_manager";
+import { IRegisterServerManager } from "./i_register_server_manager";
 import { MonitoredItem } from "./monitored_item";
 import { RegisterServerManager } from "./register_server_manager";
 import { RegisterServerManagerHidden } from "./register_server_manager_hidden";
@@ -495,7 +495,7 @@ function _registerServer(
     this: OPCUAServer,
     discoveryServerEndpointUrl: string,
     isOnline: boolean,
-    outer_callback: (err?: Error) => void
+    outer_callback: ErrorCallback
 ) {
     assert(typeof discoveryServerEndpointUrl === "string");
     assert(typeof isOnline === "boolean");
@@ -1201,7 +1201,7 @@ export class OPCUAServer extends OPCUABaseServer {
         this.engine.setShutdownTime(shutdownTime);
 
         debugLog("OPCUAServer is now unregistering itself from  the discovery server " + this.buildInfo);
-        this.registerServerManager!.stop((err?: Error) => {
+        this.registerServerManager!.stop((err?: Error |null) => {
             debugLog("OPCUAServer unregistered from discovery server", err);
             setTimeout(() => {
                 this.engine.shutdown();

@@ -1,11 +1,11 @@
 {
   "extends": "../tsconfig.json",
   "compilerOptions": {
-    "rootDir": "source",
+    "rootDir": "bin",
     "outDir": "dist",
     "composite": true
   },
-  "include": [],
+  "include": ["bin/*.ts"],
   "references": [
     {
       "path": "../node-opcua"

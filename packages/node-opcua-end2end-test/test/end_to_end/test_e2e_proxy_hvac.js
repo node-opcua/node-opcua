@@ -16,6 +16,8 @@ const DataType = opcua.DataType;
 
 const UAProxyManager = require("node-opcua-client-proxy").UAProxyManager;
 
+const port = 2229;
+
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("testing client Proxy", function() {
 
@@ -25,16 +27,14 @@ describe("testing client Proxy", function() {
 
     let HVAC_on_server = null;
 
-    let port = 2000;
     before(function(done) {
-        port += 1;
 
-        server = build_server_with_temperature_device({ port: port }, function(err) {
+        server = build_server_with_temperature_device({ port }, function(err) {
 
             if (err) {
                 return done(err);
             }
-            endpointUrl = server.endpoints[0].endpointDescriptions()[0].endpointUrl;
+            endpointUrl = server.getEndpointUrl();
             temperatureVariableId = server.temperatureVariableId;
 
             HVAC_on_server = createHVACSystem(server.engine.addressSpace);
@@ -377,8 +377,8 @@ describe("testing client Proxy", function() {
                     session.createSubscription({
                         requestedPublishingInterval: 100, // Duration
                         requestedLifetimeCount: 6000, // Counter
-                        requestedMaxKeepAliveCount: 1000, // Counter
-                        maxNotificationsPerPublish: 10, // Counter
+                        requestedMaxKeepAliveCount: 10, // Counter
+                        maxNotificationsPerPublish: 100, // Counter
                         publishingEnabled: true, // Boolean
                         priority: 14 // Byte
                     }, function(err, response) {

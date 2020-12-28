@@ -19,7 +19,6 @@ import { Variant } from "node-opcua-variant";
 import { StatusCode } from "node-opcua-status-code";
 
 export type BrowseDescriptionLike = string | BrowseDescriptionOptions;
-export type ReadValueIdLike = ReadValueIdOptions;
 export type CallMethodRequestLike = CallMethodRequestOptions;
 
 export type ResponseCallback<T> = (err: Error | null, result?: T) => void;
@@ -58,17 +57,17 @@ export interface IBasicSession {
     browseNext(continuationPoints: Buffer[], releaseContinuationPoints: boolean): Promise<BrowseResult[]>;
 }
 export interface IBasicSession {
-    read(nodeToRead: ReadValueIdLike, maxAge: number, callback: ResponseCallback<DataValue>): void;
+    read(nodeToRead: ReadValueIdOptions, maxAge: number, callback: ResponseCallback<DataValue>): void;
 
-    read(nodesToRead: ReadValueIdLike[], maxAge: number, callback: ResponseCallback<DataValue[]>): void;
+    read(nodesToRead: ReadValueIdOptions[], maxAge: number, callback: ResponseCallback<DataValue[]>): void;
 
-    read(nodeToRead: ReadValueIdLike, callback: ResponseCallback<DataValue>): void;
+    read(nodeToRead: ReadValueIdOptions, callback: ResponseCallback<DataValue>): void;
 
-    read(nodesToRead: ReadValueIdLike[], callback: ResponseCallback<DataValue[]>): void;
+    read(nodesToRead: ReadValueIdOptions[], callback: ResponseCallback<DataValue[]>): void;
 
-    read(nodeToRead: ReadValueIdLike, maxAge?: number): Promise<DataValue>;
+    read(nodeToRead: ReadValueIdOptions, maxAge?: number): Promise<DataValue>;
 
-    read(nodesToRead: ReadValueIdLike[], maxAge?: number): Promise<DataValue[]>;
+    read(nodesToRead: ReadValueIdOptions[], maxAge?: number): Promise<DataValue[]>;
 }
 
 export type MethodId = NodeIdLike;
@@ -102,11 +101,11 @@ export interface IBasicSession {
     translateBrowsePath(browsePaths: BrowsePath[]): Promise<BrowsePathResult[]>;
 }
 
-export interface IBaseSession {
+export interface IBasicSession {
     write(nodeToWrite: WriteValueOptions, callback: ResponseCallback<StatusCode>): void;
-
+    
     write(nodesToWrite: WriteValueOptions[], callback: ResponseCallback<StatusCode[]>): void;
-
+    
     write(nodeToWrite: WriteValueOptions): Promise<StatusCode>;
 
     write(nodesToWrite: WriteValueOptions[]): Promise<StatusCode[]>;

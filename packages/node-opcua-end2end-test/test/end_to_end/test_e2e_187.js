@@ -24,11 +24,10 @@ describe("testing monitoring Executable flags on methods", function() {
     let server, client, endpointUrl;
 
     let boiler_on_server;
-    let port = 20000;
+    const port = 2006;
     before(function(done) {
-        port += 1;
 
-        const options = { port: port };
+        const options = { port };
         server = new OPCUAServer(options);
 
         server.on("post_initialize", function() {
@@ -48,7 +47,7 @@ describe("testing monitoring Executable flags on methods", function() {
         });
         server.start(function(err) {
 
-            endpointUrl = server.endpoints[0].endpointDescriptions()[0].endpointUrl;
+            endpointUrl = server.getEndpointUrl();
 
             if (err) {
                 return done(err);

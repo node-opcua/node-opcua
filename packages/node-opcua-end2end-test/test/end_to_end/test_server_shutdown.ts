@@ -19,7 +19,7 @@ import sinon = require("sinon");
 import { SinonSpy } from "sinon";
 import * as should from "should";
 const a = should;
-const port = 2002;
+const port = 2233;
 const doDebug = true;
 
 // tslint:disable-next-line: no-console
@@ -140,7 +140,7 @@ const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("Testing server shutdown", () => {
     it("should change state and update secondTillShutdown", async () => {
         const server = await f(given_a_running_server)();
-        const endpointUrl = server.endpoints[0].endpointDescriptions()[0].endpointUrl!;
+        const endpointUrl = server.getEndpointUrl()!;
 
         const { client, session, subscription } = await f(given_a_connected_client)(endpointUrl);
 

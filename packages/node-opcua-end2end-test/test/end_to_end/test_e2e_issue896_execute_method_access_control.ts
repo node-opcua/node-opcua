@@ -8,7 +8,7 @@ describe("Issue #896: Check Authorization for UAMethods", () => {
         {username: "Frodo", password: "f", role: "guest"},
     ];
 
-    const port = 2003;
+    const port = 2226;
     const server = new OPCUAServer({
         port,
         userManager: {

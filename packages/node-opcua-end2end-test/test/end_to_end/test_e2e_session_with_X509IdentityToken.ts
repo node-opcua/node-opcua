@@ -20,7 +20,7 @@ const empty_nodeset_filename = get_empty_nodeset_filename();
 
 const certificateFolder = path.join(__dirname, "../../../node-opcua-samples/certificates");
 
-const port = 5000;
+const port = 2231;
 
 let server: OPCUAServer;
 let endpointUrl: string;
@@ -46,7 +46,7 @@ async function startServer(): Promise<OPCUAServer> {
     await server.userCertificateManager.addRevocationList(crl);
     await server.serverCertificateManager.addRevocationList(crl);
 
-    endpointUrl = server.endpoints[0].endpointDescriptions()[0].endpointUrl!;
+    endpointUrl = server.getEndpointUrl()!;
     return server;
 }
 

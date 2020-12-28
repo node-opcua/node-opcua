@@ -10,6 +10,7 @@ const debugLog = require("node-opcua-debug").make_debugLog(__filename);
 
 const empty_nodeset_filename = opcua.get_empty_nodeset_filename();
 
+const port = 2001;
 
 /**
  * @method build_client_server_session
@@ -39,12 +40,12 @@ function build_client_server_session(options, done) {
     if (typeof options === "function") {
         done = options;
         options = {
-            port: 2001,
+            port,
             nodeset_filename: empty_nodeset_filename
         };
     }
 
-    options.port = options.port || 2001;
+    options.port = options.port || 2240;
 
     server = new OPCUAServer(options);
 
@@ -55,7 +56,7 @@ function build_client_server_session(options, done) {
         server.start(function() {
 
             // we will connect to first server end point
-            endpointUrl = server.endpoints[0].endpointDescriptions()[0].endpointUrl;
+            endpointUrl = server.getEndpointUrl();
             debugLog("endpointUrl", endpointUrl);
             opcua.is_valid_endpointUrl(endpointUrl).should.equal(true);
 

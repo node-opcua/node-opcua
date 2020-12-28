@@ -22,7 +22,7 @@ import {
     EnumerationDefinitionSchema
 } from "node-opcua-factory";
 import { ExpandedNodeId, makeExpandedNodeId, NodeId, resolveNodeId, sameNodeId } from "node-opcua-nodeid";
-import { browseAll, BrowseDescriptionLike, IBasicSession, ReadValueIdLike } from "node-opcua-pseudo-session";
+import { browseAll, BrowseDescriptionLike, IBasicSession } from "node-opcua-pseudo-session";
 import {
     createDynamicObjectConstructor,
     DataTypeAndEncodingId,
@@ -32,7 +32,7 @@ import {
 import { BrowseDescriptionOptions, BrowseDirection, BrowseResult, ReferenceDescription } from "node-opcua-service-browse";
 import { makeBrowsePath } from "node-opcua-service-translate-browse-path";
 import { StatusCodes } from "node-opcua-status-code";
-import { DataTypeDefinition, EnumDefinition, StructureDefinition, StructureType } from "node-opcua-types";
+import { DataTypeDefinition, EnumDefinition, ReadValueIdOptions, StructureDefinition, StructureType } from "node-opcua-types";
 import { ExtraDataTypeManager } from "./extra_data_type_manager";
 
 const doDebug = checkDebugFlag(__filename);
@@ -250,7 +250,7 @@ async function _extractDataTypeDictionaryFromDefinition(
     const dataTypeNodeIds = await _enrichWithDescriptionOf(session, dataTypeDescriptions);
 
     // now read DataTypeDefinition attributes of all the dataTypeNodeIds, this will only contains concrete structure
-    const nodesToRead: ReadValueIdLike[] = dataTypeNodeIds.map((nodeId: NodeId) => ({
+    const nodesToRead: ReadValueIdOptions[] = dataTypeNodeIds.map((nodeId: NodeId) => ({
         attributeId: AttributeIds.DataTypeDefinition,
         nodeId
     }));
@@ -509,7 +509,7 @@ export async function populateDataTypeManager(session: IBasicSession, dataTypeMa
 
     // istanbul ignore next
     if (!namespaceArray) {
-        console.log("session: cannot read Server_NamespaceArray");
+        debugLog("session: cannot read Server_NamespaceArray");
         // throw new Error("Cannot get Server_NamespaceArray as a array of string");
         return;
     }
@@ -692,7 +692,9 @@ export async function populateDataTypeManager(session: IBasicSession, dataTypeMa
             }
         }
         const dataTypeFactory = dataTypeManager.getDataTypeFactory(d.dataTypeDictionaryNodeId.namespace);
-        dataTypeFactory.repairBaseDataFactories(baseDataFactories);
+        if (dataTypeFactory) {
+            dataTypeFactory.repairBaseDataFactories(baseDataFactories);
+        }
     }
     // --------------------
 

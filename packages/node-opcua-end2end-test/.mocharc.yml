@@ -7,3 +7,4 @@ extension:
   - js
   - ts
 timeout: 500000
+parallel: false

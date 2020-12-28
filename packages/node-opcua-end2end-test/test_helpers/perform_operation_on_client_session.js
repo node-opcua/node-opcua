@@ -32,30 +32,7 @@ function perform_operation_on_client_session(client, endpointUrl, func, done_fun
 exports.perform_operation_on_client_session = perform_operation_on_client_session;
 
 
-/**
- * @method perform_operation_on_subscription
- *
- *  simple wrapper that operates on a freshly created subscription.
- *
- *  - connects to the server,and create a session
- *  - create a new subscription with a publish interval of 100 ms
- *  - calls your **callback** method (do_func) with the subscription object
- *  - delete the subscription
- *  - close the session and disconnect from the server
- *  - finally call the final **callback** (done_func)
- *
- * @param client {OPCUAClientBase}
- * @param endpointUrl {String}
- * @param {Function} do_func
- * @param do_func.session  {Session} the done callback to call when operation is completed
- * @param do_func.done  {Function} the done callback to call when operation is completed
- *
- * @param {Function} done_func
- * @param {Error} [done_func.err]
- */
-// callback function(session, subscriptionId,done)
-function perform_operation_on_subscription(client, endpointUrl, do_func, done_func) {
-
+function perform_operation_on_subscription_with_parameters(client, endpointUrl, subscriptionParameters, do_func, done_func) {
     perform_operation_on_client_session(client, endpointUrl, function(session, done) {
 
         let do_func_err = null;
@@ -63,14 +40,7 @@ function perform_operation_on_subscription(client, endpointUrl, do_func, done_fu
         async.series([
 
             function(callback) {
-                subscription = ClientSubscription.create(session, {
-                    requestedPublishingInterval: 100,
-                    requestedLifetimeCount: 6000,
-                    requestedMaxKeepAliveCount: 100,
-                    maxNotificationsPerPublish: 4,
-                    publishingEnabled: true,
-                    priority: 6
-                });
+                subscription = ClientSubscription.create(session,subscriptionParameters);
                 subscription.on("started", function() {
                     callback();
                 });
@@ -109,6 +79,43 @@ function perform_operation_on_subscription(client, endpointUrl, do_func, done_fu
         });
 
     }, done_func);
+}
+module.exports.perform_operation_on_subscription_with_parameters = perform_operation_on_subscription_with_parameters;
+
+/**
+ * @method perform_operation_on_subscription
+ *
+ *  simple wrapper that operates on a freshly created subscription.
+ *
+ *  - connects to the server,and create a session
+ *  - create a new subscription with a publish interval of 100 ms
+ *  - calls your **callback** method (do_func) with the subscription object
+ *  - delete the subscription
+ *  - close the session and disconnect from the server
+ *  - finally call the final **callback** (done_func)
+ *
+ * @param client {OPCUAClientBase}
+ * @param endpointUrl {String}
+ * @param {Function} do_func
+ * @param do_func.session  {Session} the done callback to call when operation is completed
+ * @param do_func.done  {Function} the done callback to call when operation is completed
+ *
+ * @param {Function} done_func
+ * @param {Error} [done_func.err]
+ */
+// callback function(session, subscriptionId,done)
+function perform_operation_on_subscription(client, endpointUrl, do_func, done_func) {
+
+    const subscriptionParameters =  {
+        requestedPublishingInterval: 100,
+        requestedLifetimeCount: 6000,
+        requestedMaxKeepAliveCount: 100,
+        maxNotificationsPerPublish: 4,
+        publishingEnabled: true,
+        priority: 6
+    };
+    perform_operation_on_subscription_with_parameters(client, endpointUrl, subscriptionParameters, do_func, done_func);
+
 }
 
 exports.perform_operation_on_subscription = perform_operation_on_subscription;

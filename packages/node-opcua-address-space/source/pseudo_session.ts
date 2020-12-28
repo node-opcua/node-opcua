@@ -14,7 +14,6 @@ import {
     getArgumentDefinitionHelper,
     IBasicSession,
     MethodId,
-    ReadValueIdLike,
     ResponseCallback
 } from "node-opcua-pseudo-session";
 import {
@@ -29,7 +28,7 @@ import { CallMethodRequest, CallMethodResult, CallMethodResultOptions } from "no
 import { BrowsePath, BrowsePathResult } from "node-opcua-service-translate-browse-path";
 import { StatusCodes, StatusCode } from "node-opcua-status-code";
 import { NodeClass, AttributeIds } from "node-opcua-data-model";
-import { MessageSecurityMode, ReadValueId, WriteValueOptions, WriteValue } from "node-opcua-types";
+import { MessageSecurityMode, ReadValueId, WriteValueOptions, WriteValue, ReadValueIdOptions } from "node-opcua-types";
 import { randomGuid } from "node-opcua-basic-types";
 
 import { AddressSpace } from "./address_space_ts";
@@ -112,10 +111,10 @@ export class PseudoSession implements IBasicSession {
         });
     }
 
-    public read(nodeToRead: ReadValueIdLike, callback: ResponseCallback<DataValue>): void;
-    public read(nodesToRead: ReadValueIdLike[], callback: ResponseCallback<DataValue[]>): void;
-    public read(nodeToRead: ReadValueIdLike): Promise<DataValue>;
-    public read(nodesToRead: ReadValueIdLike[]): Promise<DataValue[]>;
+    public read(nodeToRead: ReadValueIdOptions, callback: ResponseCallback<DataValue>): void;
+    public read(nodesToRead: ReadValueIdOptions[], callback: ResponseCallback<DataValue[]>): void;
+    public read(nodeToRead: ReadValueIdOptions): Promise<DataValue>;
+    public read(nodesToRead: ReadValueIdOptions[]): Promise<DataValue[]>;
     public read(nodesToRead: any, callback?: ResponseCallback<any>): any {
         const isArray = Array.isArray(nodesToRead);
         if (!isArray) {
@@ -136,7 +135,7 @@ export class PseudoSession implements IBasicSession {
                 },
                 (err) => {
                     // xx const context = new SessionContext({ session: null });
-                    const dataValues = nodesToRead.map((nodeToRead: ReadValueIdLike) => {
+                    const dataValues = nodesToRead.map((nodeToRead: ReadValueIdOptions) => {
                         assert(!!nodeToRead.nodeId, "expecting a nodeId");
                         assert(!!nodeToRead.attributeId, "expecting a attributeId");
 

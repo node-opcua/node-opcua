@@ -33,14 +33,13 @@ describe("testing Client-Server with UserName/Password identity token", function
 
     let server, client, endpointUrl;
 
-    let port = 2002;
+    const port = 2239;
     before(function (done) {
         // we use a different port for each tests to make sure that there is
         // no left over in the tcp pipe that could generate an error
-        port += 1;
 
         const options = {
-            port: port,
+            port,
             allowAnonymous: false
         };
 
@@ -49,7 +48,7 @@ describe("testing Client-Server with UserName/Password identity token", function
             // replace user manager with our custom one
             server.userManager = userManager;
 
-            endpointUrl = server.endpoints[0].endpointDescriptions()[0].endpointUrl;
+            endpointUrl = server.getEndpointUrl();
 
             done(err);
         });

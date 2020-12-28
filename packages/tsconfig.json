@@ -31,6 +31,7 @@
         { "path": "node-opcua-modeler" },
         { "path": "node-opcua-local-discovery-server" },
         { "path": "node-opcua-samples" },
-        { "path": "node-opcua-convert-nodeset-to-javascript" }
+        { "path": "node-opcua-convert-nodeset-to-javascript" },
+        { "path": "node-opcua-model"}
     ]
 }

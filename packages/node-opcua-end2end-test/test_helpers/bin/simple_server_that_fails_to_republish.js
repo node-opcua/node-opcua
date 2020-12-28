@@ -40,7 +40,7 @@ const server_certificate_privatekey_file = constructFilename("certificates/serve
 const server_options = {
     certificateFile: server_certificate_file,
     privateKeyFile: server_certificate_privatekey_file,
-    port: port,
+    port,
     nodeset_filename: [
         nodesets.standard,
         path.join(rootFolder, "modeling/my_data_type.xml")
@@ -94,7 +94,7 @@ server.start(function(err) {
         console.log(" Server failed to start ... exiting");
         process.exit(-3);
     }
-    const endpointUrl = server.endpoints[0].endpointDescriptions()[0].endpointUrl;
+    const endpointUrl = server.getEndpointUrl();
 
     console.log(chalk.yellow("  server on port      :"), chalk.cyan(server.endpoints[0].port.toString()));
     console.log(chalk.yellow("  endpointUrl         :"), chalk.cyan(endpointUrl));

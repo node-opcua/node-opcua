@@ -68,7 +68,10 @@ module.exports = function(test) {
         });
         it("should receive server endpoint in CreateSessionResponse when endpointUrl used by the client doesn't match a valid endpoint", async () => {
 
-            const endpointUrl = "opc.tcp://localhost:2002";
+            const match = test.endpointUrl.match(/\:([0-9]*)$/);
+            const port = parseInt(match[1],10);
+            const endpointUrl = `opc.tcp://localhost:${port}`;
+            // console.log(endpointUrl);
             const { createSessionResponse, err }= await testCreateSessionResponse(endpointUrl);
             should.not.exist(err);
             createSessionResponse.serverEndpoints.length.should.eql(7);

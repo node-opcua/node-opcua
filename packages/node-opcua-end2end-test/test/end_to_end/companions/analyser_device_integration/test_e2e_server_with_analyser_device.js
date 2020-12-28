@@ -12,6 +12,8 @@ const { dumpStateMachineToGraphViz, dumpStateMachineToPlantUML } = require("node
 const { redirectToFile } = require("node-opcua-debug/nodeJS");
 const { promoteToStateMachine } = require("node-opcua-address-space");
 
+const port = 2235;
+
 const doDebug = false;
 
 function ns(namespaceIndex, browseName) {
@@ -55,7 +57,7 @@ describe("ADI - Testing a server that exposes Analyser Devices", function() {
     this.timeout(Math.max(50000, this.timeout()));
 
     const server_options = {
-        port: 2000,
+        port,
         nodeset_filename: [
             opcua.nodesets.standard,
             opcua.nodesets.di,
@@ -64,13 +66,11 @@ describe("ADI - Testing a server that exposes Analyser Devices", function() {
     };
 
     let analyser_device;
-    let port = 2000;
 
     let addressSpace;
     before(function(done) {
-        port += 1;
         server = build_server_with_temperature_device(server_options, function(err) {
-            endpointUrl = server.endpoints[0].endpointDescriptions()[0].endpointUrl;
+            endpointUrl = server.getEndpointUrl();
 
             addressSpace = server.engine.addressSpace;
 

@@ -15,6 +15,7 @@ const {
 const { callbackify } = require("util");
 
 Error.stackTraceLimit = Infinity;
+const doDebug = !!process.env.DEBUG;
 
 const argv = require("yargs")
     .wrap(132)
@@ -40,7 +41,7 @@ const server_certificate_privatekey_file = constructFilename("certificates/serve
 const server_options = {
     certificateFile: server_certificate_file,
     privateKeyFile: server_certificate_privatekey_file,
-    port: port,
+    port,
     nodeset_filename: [
         nodesets.standard,
         path.join(rootFolder, "modeling/my_data_type.xml")
@@ -56,8 +57,7 @@ process.title = "Node OPCUA Server on port : " + server_options.port;
 
 const server = new OPCUAServer(server_options);
 
-console.log("   Server that terminates session too early");
-
+console.log("Server that terminates session too early");
 server.on("post_initialize", function() {
 
     const addressSpace = server.engine.addressSpace;
@@ -141,26 +141,29 @@ server.on("post_initialize", function() {
     method.bindMethod(scrapSession);
 
 
-
     server.on("create_session", (session) => {
         // scrap 
-        console.log("timeout", session._watchDogData.timeout);
+        if (doDebug) {
+            console.log("timeout", session._watchDogData.timeout);
+        }
         session._watchDogData.timeout = 10000;
-        console.log("timeout", session._watchDogData.timeout);
-
+        if (doDebug) {
+            console.log("timeout", session._watchDogData.timeout);
+        }
 
     });
     server.on("response", (response, channel) => {
+        // istanbul ignore next
         console.log(response.constructor.name.toString(), response.responseHeader.serviceResult.toString());
     })
 });
 
 server.start(function(err) {
     if (err) {
-        console.log(" Server failed to start ... exiting");
+        console.log("server failed to start ... exiting");
         process.exit(-3);
     }
-    const endpointUrl = server.endpoints[0].endpointDescriptions()[0].endpointUrl;
+    const endpointUrl = server.getEndpointUrl();
 
     console.log(chalk.yellow("  server on port      :"), chalk.cyan(server.endpoints[0].port.toString()));
     console.log(chalk.yellow("  endpointUrl         :"), chalk.cyan(endpointUrl));

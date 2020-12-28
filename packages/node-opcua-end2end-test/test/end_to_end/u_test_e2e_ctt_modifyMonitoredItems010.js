@@ -136,7 +136,7 @@ module.exports = function(test) {
                 const subscription = ClientSubscription.create(session, {
                     requestedPublishingInterval: 200,
                     requestedLifetimeCount: 10 * 60 * 1000,
-                    requestedMaxKeepAliveCount: 60000,
+                    requestedMaxKeepAliveCount: 60,
                     maxNotificationsPerPublish: 0,
                     publishingEnabled: true,
                     priority: 6

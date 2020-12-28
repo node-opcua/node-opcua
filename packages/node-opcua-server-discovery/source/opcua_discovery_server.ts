@@ -3,6 +3,7 @@
  */
 import * as chalk from "chalk";
 import * as fs from "fs";
+import * as os from "os";
 import * as path from "path";
 import * as url from "url";
 import { callbackify } from "util";
@@ -75,15 +76,17 @@ export class OPCUADiscoveryServer extends OPCUABaseServer {
     private _delayInit?: () => void;
 
     constructor(options: OPCUADiscoveryServerOptions) {
+
         const default_certificate_file = constructFilename("certificates/server_selfsigned_cert_2048.pem");
+        const default_private_key_file = constructFilename("certificates/PKI/own/private/private_key.pem");
+
         options.certificateFile = options.certificateFile || default_certificate_file;
         assert(fs.existsSync(options.certificateFile), "cannot find certificateFile" + options.certificateFile);
 
-        const default_private_key_file = constructFilename("certificates/PKI/own/private/private_key.pem");
         options.privateKeyFile = options.privateKeyFile || default_private_key_file;
         assert(fs.existsSync(options.certificateFile));
 
-        const defaultApplicationUri = makeApplicationUrn("%FQDN%", "NodeOPCUA-DiscoveryServer");
+        const defaultApplicationUri = makeApplicationUrn(os.hostname(), "NodeOPCUA-DiscoveryServer");
 
         options.serverInfo = options.serverInfo || {};
         const serverInfo = options.serverInfo;

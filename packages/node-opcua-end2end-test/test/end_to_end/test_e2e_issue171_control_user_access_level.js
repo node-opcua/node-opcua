@@ -53,12 +53,12 @@ describe("testing Client-Server with UserName/Password identity token", function
     let server, client, endpointUrl;
     let node1;
 
-    const port = 2002;
+    const port = 2224;
 
     before(function(done) {
 
         const options = {
-            port: port,
+            port,
             //xx            allowAnonymous: false
         };
 
@@ -69,7 +69,7 @@ describe("testing Client-Server with UserName/Password identity token", function
                 CurrentWrite: ["!*", "admin"]  // deny all except admint
             };
 
-            endpointUrl = server.endpoints[0].endpointDescriptions()[0].endpointUrl;
+            endpointUrl = server.getEndpointUrl();
             // replace user manager with our custom one
             server.userManager = userManager;
 

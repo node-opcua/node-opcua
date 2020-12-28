@@ -9,7 +9,7 @@ const opcua = require("node-opcua");
 const OPCUAClient = opcua.OPCUAClient;
 const StatusCodes = opcua.StatusCodes;
 
-const port = 2002;
+const port = 2234;
 
 const { build_server_with_temperature_device } = require("../../test_helpers/build_server_with_temperature_device");
 const { build_address_space_for_conformance_testing } = require("node-opcua-address-space-for-conformance-testing");
@@ -28,7 +28,7 @@ describe("testing Client - Umbrella ", function() {
     test.nb_backgroundsession = 0;
 
     const options = {
-        port: port,
+        port,
         maxConnectionsPerEndpoint: 500,
         silent: true,
         nodeset_filename: [opcua.nodesets.standard],
@@ -58,7 +58,7 @@ describe("testing Client - Umbrella ", function() {
 
             build_address_space_for_conformance_testing(test.server.engine.addressSpace, { mass_variables: false });
 
-            test.endpointUrl = test.server.endpoints[0].endpointDescriptions()[0].endpointUrl;
+            test.endpointUrl = test.server.getEndpointUrl();
             test.temperatureVariableId = test.server.temperatureVariableId;
 
             setTimeout(function() {

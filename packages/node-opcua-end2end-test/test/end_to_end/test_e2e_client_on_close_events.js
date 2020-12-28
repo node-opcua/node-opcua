@@ -18,19 +18,19 @@ describe("testing Client-Server - Event", function() {
 
     this.timeout(Math.max(600000, this.timeout()));
 
-    const port = 2225;
+    const port = 2013;
     let server;
     let endpointUrl;
 
     function start_server(done) {
         server = new OPCUAServer({
-            port: port,
+            port,
             nodeset_filename: empty_nodeset_filename,
             maxAllowedSessionNumber: 10
         });
 
         server.start(function() {
-            endpointUrl = server.endpoints[0].endpointDescriptions()[0].endpointUrl;
+            endpointUrl = server.getEndpointUrl();
             done();
         });
     }

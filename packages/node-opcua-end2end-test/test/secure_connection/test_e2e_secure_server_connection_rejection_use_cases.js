@@ -14,7 +14,7 @@ const StatusCodes = opcua.StatusCodes;
 
 const SignatureData = require("node-opcua-service-secure-channel").SignatureData;
 
-const port = 2000;
+const port = 2237;
 
 const empty_nodeset_filename = opcua.get_empty_nodeset_filename();
 
@@ -30,7 +30,7 @@ describe("testing the server ability to deny client session request (server with
     before(function(done) {
 
         server = new OPCUAServer({
-            port: port,
+            port,
             nodeset_filename: empty_nodeset_filename
         });
         const serverCertificate = server.getCertificateChain();
@@ -47,7 +47,7 @@ describe("testing the server ability to deny client session request (server with
             OPCUAServer.registry.count().should.eql(1);
             OPCUAClientBase.registry.count().should.eql(0);
 
-            endpointUrl = server.endpoints[0].endpointDescriptions()[0].endpointUrl;
+            endpointUrl = server.getEndpointUrl();
             done(err);
         });
 

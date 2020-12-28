@@ -1,16 +1,26 @@
-const async = require("async");
 const chalk = require("chalk");
 const path = require("path");
+const {
+    TimestampsToReturn,
+    AttributeIds,
+    StatusCodes,
+    OPCUAClient,  
+    ClientMonitoredItem,
+    coerceNodeId,
+    ClientSubscription,
+    DataType
+} = require("node-opcua");
 const {
     start_simple_server,
     stop_simple_server
 } = require("../../test_helpers/external_server_fixture");
 
-const doDebug = false;
+const doDebug = require("node-opcua-debug").checkDebugFlag("TEST");
 const debugLog = require("node-opcua-debug").make_debugLog("TEST");
 
 let server_data = null;
 
+const port = 2017;
 
 async function suspend_demo_server() {
     await server.suspendEndPoints();
@@ -25,9 +35,10 @@ let serverScript = "simple_server_that_terminate_session_too_early.js";
 async function start_external_opcua_server() {
 
     const options = {
+        silent: !doDebug,
         server_sourcefile: path.join(__dirname,
             "../../test_helpers/bin/", serverScript),
-        port: 2223
+        port
     };
 
     await new Promise((resolve, reject) => {
@@ -40,6 +51,11 @@ async function start_external_opcua_server() {
             debugLog("pid", data.pid_collected);
 
             server_data = data;
+
+            // note: if we use localhost rather than HOSTNAME, net.connect() fails faster if 
+            //       server is not listening
+            //xx server_data.endpointUrl = `opc.tcp://localhost:${port}`;
+
             resolve(err);
         });
     });
@@ -63,7 +79,7 @@ async function crash_external_opcua_server() {
     await promise;
 }
 
-const opcua = require("node-opcua");
+
 // ---------------------------------------------------------------------------------------------------------------------
 let client, session, subscription, intervalId, monitoredItem;
 
@@ -71,7 +87,7 @@ let client, session, subscription, intervalId, monitoredItem;
 async function break_connection(client, socketError) {
 
     const inputArguments = [{
-        dataType: opcua.DataType.UInt32,
+        dataType: DataType.UInt32,
         value: 10000
     }];
     const methodToCall = {
@@ -105,11 +121,11 @@ async function start_active_client_no_subscription(connectionStrategy) {
 
     const endpointUrl = server_data.endpointUrl;
 
-    client = opcua.OPCUAClient.create({
+    client = OPCUAClient.create({
         connectionStrategy,
         endpointMustExist: false,
         keepSessionAlive: true,
-        requestedSessionTimeout: 60000
+        requestedSessionTimeout: 5000, // !very small value => only for this test
     });
 
 
@@ -118,7 +134,7 @@ async function start_active_client_no_subscription(connectionStrategy) {
         debugLog(chalk.bgWhite.red(" !!!!!!!!!!!!!!!!!!!!!!!!  CONNECTION RE-ESTABLISHED !!!!!!!!!!!!!!!!!!!"));
     });
     client.on("backoff", function(number, delay) {
-        debugLog(chalk.bgWhite.yellow("backoff  attempt #"), number, " retrying in ", delay / 1000.0, " seconds");
+        debugLog(chalk.bgWhite.yellow("backoff  attempt #"), number, " retrying in ", delay, " miliseconds");
     });
 
     session = await client.createSession();
@@ -138,8 +154,8 @@ async function start_active_client(connectionStrategy) {
 
     await start_active_client_no_subscription(connectionStrategy);
 
-    const nodeId = opcua.coerceNodeId("ns=1;s=MyCounter");
-
+    const nodeId = coerceNodeId("ns=1;s=MyCounter");
+  
     const parameters = {
         requestedPublishingInterval: 100,
         requestedLifetimeCount: 1000,
@@ -149,7 +165,7 @@ async function start_active_client(connectionStrategy) {
         priority: 10
     };
 
-    subscription = await opcua.ClientSubscription.create(session, parameters);
+    subscription = await ClientSubscription.create(session, parameters);
 
     subscription.on("initialized", () => {
         debugLog("started subscription :", subscription.subscriptionId);
@@ -179,9 +195,9 @@ async function start_active_client(connectionStrategy) {
         queueSize: 1,
         discardOldest: true
     };
-    const item = { nodeId: nodeId, attributeId: opcua.AttributeIds.Value };
+    const item = { nodeId: nodeId, attributeId: AttributeIds.Value };
 
-    monitoredItem = await opcua.ClientMonitoredItem.create(subscription, item, requestedParameters, opcua.TimestampsToReturn.Both);
+    monitoredItem = ClientMonitoredItem.create(subscription, item, requestedParameters, TimestampsToReturn.Both);
     monitoredItem.on("err", function(errMessage) {
         throw new Error(errMessage);
     });
@@ -211,15 +227,15 @@ async function start_active_client(connectionStrategy) {
             //xx debugLog(the_session.toString());
             return; // ignore write as session is invalid for the time being
         }
-
+       
         let nodeToWrite = {
             nodeId: nodeId,
-            attributeId: opcua.AttributeIds.Value,
+            attributeId: AttributeIds.Value,
             value: /* DataValue */{
-                statusCode: opcua.StatusCodes.Good,
+                statusCode: StatusCodes.Good,
                 sourceTimestamp: new Date(),
                 value: /* Variant */{
-                    dataType: opcua.DataType.Int32,
+                    dataType: DataType.Int32,
                     value: counter
                 }
             }
@@ -265,7 +281,7 @@ async function f(func) {
     }();
 }
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
-describe("GHGL1 - Testing client reconnection with crashing server that close session too early (such as KepwareServerEx6)", function() {
+describe("GHGL1 - Testing client reconnection with a crashing server that closes the session too early (such as KepwareServerEx6)", function() {
 
     this.timeout(100000);
 
@@ -290,17 +306,17 @@ describe("GHGL1 - Testing client reconnection with crashing server that close se
     }
 
     async function when_the_server_restart_after_some_very_long_time() {
-        await new Promise((resolve) => setTimeout(resolve, 10000));
+        await new Promise((resolve) => setTimeout(resolve, 6000));
         await when_the_server_restart();
     }
 
     async function given_a_active_client_with_subscription_and_monitored_items() {
         // this client starts with default parameters
-        await start_active_client(undefined);
+        await start_active_client({ maxRetry: -1, initialDelay: 100, maxDelay: 200 });
     }
     async function given_a_active_client() {
         // this client starts with default parameters
-        await start_active_client_no_subscription(undefined);
+        await start_active_client_no_subscription({ maxRetry: -1, initialDelay: 100, maxDelay: 200 });
     }
 
 
@@ -313,7 +329,8 @@ describe("GHGL1 - Testing client reconnection with crashing server that close se
 
         let backoff_counter = 0;
         await new Promise((resolve) => {
-            function backoff_detector() {
+            function backoff_detector(retryCount, nextDelay) {
+        
                 backoff_counter += 1;
                 if (backoff_counter === 2) {
                     if (doDebug) {
@@ -394,15 +411,15 @@ describe("GHGL1 - Testing client reconnection with crashing server that close se
     }
     let c = 0;
     async function when_client_detects_a_sessionIdInvalid() {
-        const nodeId = opcua.coerceNodeId("ns=1;s=MyCounter");
+        const nodeId = coerceNodeId("ns=1;s=MyCounter");
 
         try {
             const statusCode = await session.write({
                 nodeId: nodeId,
-                attributeId: opcua.AttributeIds.Value,
+                attributeId: AttributeIds.Value,
                 value: {
-                    statusCode: opcua.StatusCodes.Good,
-                    value: { dataType: opcua.DataType.Int32, value: c++ }
+                    statusCode: StatusCodes.Good,
+                    value: { dataType: DataType.Int32, value: c++ }
                 }
             });
             debugLog("Write Status code =", statusCode.toString());

@@ -23,7 +23,7 @@ import {
 } from "node-opcua-crypto";
 import { LocalizedText } from "node-opcua-data-model";
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
-import { extractFullyQualifiedDomainName, getFullyQualifiedDomainName, resolveFullyQualifiedDomainName } from "node-opcua-hostname";
+import { extractFullyQualifiedDomainName, getFullyQualifiedDomainName, getHostname, resolveFullyQualifiedDomainName } from "node-opcua-hostname";
 import {
     ClientSecureChannelLayer,
     computeSignature,
@@ -1006,11 +1006,11 @@ export class OPCUAClientImpl extends ClientBaseImpl implements OPCUAClient {
             } else {
                 errorLog("Certificate has no extension");
                 errorLog(toPem(certificate, "CERTIFICATE"));
-                applicationUri = makeApplicationUrn(getFullyQualifiedDomainName(), this.applicationName);
+                applicationUri = makeApplicationUrn(getHostname(), this.applicationName);
             }
         } else {
             errorLog("client has no certificate");
-            applicationUri = makeApplicationUrn(getFullyQualifiedDomainName(), this.applicationName);
+            applicationUri = makeApplicationUrn(getHostname(), this.applicationName);
         }
         return resolveFullyQualifiedDomainName(applicationUri);
     }

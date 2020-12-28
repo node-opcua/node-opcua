@@ -59,7 +59,7 @@ export async function installAlarmMonitoring(session: ClientSession): Promise<Cl
     priority: 6,
     publishingEnabled: true,
     requestedLifetimeCount: 10000,
-    requestedMaxKeepAliveCount: 1000,
+    requestedMaxKeepAliveCount: 10,
     requestedPublishingInterval: 500
   };
   const subscription = await session.createSubscription2(request);

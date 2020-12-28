@@ -375,10 +375,8 @@ describe("testing NodeSet XML file loading", function (this: any) {
         const xml_file2 = path.join(__dirname, "../test_helpers/test_fixtures/dataType_in_separateNamespace.xml");
         const xml_files = [xml_file1, xml_file2];
         await generateAddressSpace(addressSpace, xml_files);
-
-        console.log("Loaded !");
-
         const dataType = addressSpace.findDataType("3DFrame", 0)!;
+        should.exist(dataType," expected to find 3DFrame DataType in addressSpace");
     });
 
     it("VV8 ----------", async () => {

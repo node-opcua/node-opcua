@@ -29,7 +29,7 @@ export function makeDate(time: string): Date {
 
 let h1NodeId: NodeId;
 
-const port = 2020;
+const port = 2232;
 
 async function startServerWithHA() {
 
@@ -58,7 +58,7 @@ describe("test readAggregateValue", () => {
     before(async () => {
         server = await startServerWithHA();
         await server.start();
-        endpointUrl = server.endpoints[0].endpointDescriptions()[0].endpointUrl!;
+        endpointUrl = server.getEndpointUrl()!;
         // tslint:disable-next-line: no-console
         console.log("endpointUrl = ", endpointUrl);
     });

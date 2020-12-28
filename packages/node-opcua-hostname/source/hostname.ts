@@ -66,17 +66,24 @@ export async function prepareFQDN() {
 }
 
 export function getFullyQualifiedDomainName(optional_max_length?: number) {
-    return _fullyQualifiedDomainNameInCache ? trim(_fullyQualifiedDomainNameInCache, optional_max_length) : "%FQDN%";
-}
-
-export function resolveFullyQualifiedDomainName(str: string): string {
-    if (!str.match(/%FQDN%/)) {
-        return str;
-    }
     if (!_fullyQualifiedDomainNameInCache) {
         throw new Error("FullyQualifiedDomainName computation is not completed yet");
     }
-    return str.replace("%FQDN%", _fullyQualifiedDomainNameInCache);
+    return _fullyQualifiedDomainNameInCache ? trim(_fullyQualifiedDomainNameInCache, optional_max_length) : "%FQDN%";
+}
+
+export function getHostname() {
+    return os.hostname();
+}
+
+export function resolveFullyQualifiedDomainName(str: string): string {
+    if (!_fullyQualifiedDomainNameInCache) {
+        throw new Error("FullyQualifiedDomainName computation is not completed yet");
+    }
+    str = str.replace("%FQDN%", _fullyQualifiedDomainNameInCache);
+    str = str.replace("{FQDN}", _fullyQualifiedDomainNameInCache);
+    str = str.replace("{hostname}", getHostname());
+    return str;
 }
 // note : under windows ... echo %COMPUTERNAME%.%USERDNSDOMAIN%
 prepareFQDN();

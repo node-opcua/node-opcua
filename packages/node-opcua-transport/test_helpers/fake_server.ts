@@ -2,6 +2,8 @@ import { EventEmitter } from "events";
 import * as  net from "net";
 import { assert } from "node-opcua-assert";
 
+const port = 5678;
+ 
 export class FakeServer extends EventEmitter {
 
     public port: number;
@@ -12,7 +14,6 @@ export class FakeServer extends EventEmitter {
 
     constructor() {
         super();
-        const port = 5678;
         this.port = port;
 
         this.url = "opc.tcp://localhost:" + port;

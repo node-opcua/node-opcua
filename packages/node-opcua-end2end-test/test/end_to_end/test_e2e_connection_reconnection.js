@@ -17,7 +17,7 @@ const Variant = opcua.Variant;
 const debugLog = require("node-opcua-debug").make_debugLog("TEST");
 const doDebug = process.env.DEBUG && process.env.DEBUG.match(/test/);
 
-const port = 2000;
+const port = 2014;
 
 const build_server_with_temperature_device = require("../../test_helpers/build_server_with_temperature_device").build_server_with_temperature_device;
 
@@ -62,8 +62,8 @@ describe("KJH1 testing basic Client-Server communication", function() {
 
 
     before(function(done) {
-        server = build_server_with_temperature_device({ port: port }, function(err) {
-            endpointUrl = server.endpoints[0].endpointDescriptions()[0].endpointUrl;
+        server = build_server_with_temperature_device({ port }, function(err) {
+            endpointUrl = server.getEndpointUrl();
             temperatureVariableId = server.temperatureVariableId;
             done(err);
         });
@@ -370,12 +370,12 @@ describe("KJH2 testing ability for client to reconnect when server close connect
 
     function start_demo_server(done) {
 
-        server = build_server_with_temperature_device({ port: port }, function(err) {
+        server = build_server_with_temperature_device({ port }, function(err) {
 
             if (err) {
                 console.log(err.message);
             }
-            endpointUrl = server.endpoints[0].endpointDescriptions()[0].endpointUrl;
+            endpointUrl = server.getEndpointUrl();
             temperatureVariableId = server.temperatureVariableId;
 
             const namespace = server.engine.addressSpace.getOwnNamespace();
@@ -1425,7 +1425,7 @@ describe("KJH2 testing ability for client to reconnect when server close connect
     });
 
 
-    xit("TR13 - a connected client shall be able to detect when a server has shut down and shall reconnect when server restarts", function(done) {
+    it("TR13 - a connected client shall be able to detect when a server has shut down and shall reconnect when server restarts", function(done) {
 
         async.series([
             f(start_demo_server),
@@ -1440,7 +1440,6 @@ describe("KJH2 testing ability for client to reconnect when server close connect
             f(disconnect_client),
             f(shutdown_server),
         ], done);
-
 
     });
 });

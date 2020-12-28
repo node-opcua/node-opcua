@@ -4,6 +4,7 @@
 import * as chalk from "chalk";
 import * as path from "path";
 import * as yargs from "yargs";
+import * as os from "os";
 
 import { makeApplicationUrn, MessageSecurityMode, nodesets, OPCUAServer, SecurityPolicy, ServerSession } from "node-opcua";
 
@@ -69,7 +70,7 @@ const server_options = {
 
     serverInfo: {
         applicationName: { text: "NodeOPCUA", locale: "en" },
-        applicationUri: makeApplicationUrn("%FQDN%", "NodeOPCUA-Server"),
+        applicationUri: makeApplicationUrn(os.hostname(), "NodeOPCUA-Server"),
         productUri: "NodeOPCUA-Server",
 
         discoveryProfileUri: null,
@@ -103,7 +104,7 @@ async function main() {
 
     await server.start();
 
-    const endpointUrl = server.endpoints[0].endpointDescriptions()[0].endpointUrl!;
+    const endpointUrl = server.getEndpointUrl()!;
     console.log(chalk.yellow("  server on port      :"), chalk.cyan(server.endpoints[0].port.toString()));
     console.log(chalk.yellow("  endpointUrl         :"), chalk.cyan(endpointUrl));
 

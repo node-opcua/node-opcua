@@ -18,14 +18,13 @@ describe("testing server with restricted securityModes - Given a server with a s
 
     let server, client, temperatureVariableId, endpointUrl, serverCertificate;
 
-    let port = 2001;
+    const port = 2238;
     before(function (done) {
         // we use a different port for each tests to make sure that there is
         // no left over in the tcp pipe that could generate an error
-        port += 1;
 
         const options = {
-            port: port,
+            port,
             securityPolicies: [SecurityPolicy.Basic128Rsa15],
             securityModes: [MessageSecurityMode.SignAndEncrypt],
 
@@ -34,7 +33,7 @@ describe("testing server with restricted securityModes - Given a server with a s
         };
 
         server = build_server_with_temperature_device(options, function (err) {
-            endpointUrl = server.endpoints[0].endpointDescriptions()[0].endpointUrl;
+            endpointUrl = server.getEndpointUrl();
             temperatureVariableId = server.temperatureVariableId;
             serverCertificate = server.endpoints[0].endpointDescriptions()[0].serverCertificate;
             done(err);

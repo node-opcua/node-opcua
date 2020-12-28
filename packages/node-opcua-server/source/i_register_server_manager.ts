@@ -2,14 +2,16 @@
  * @module node-opcua-server
  */
 import { EventEmitter } from "events";
+import { ErrorCallback } from "node-opcua-status-code";
+
 
 export interface IRegisterServerManager extends EventEmitter {
 
     discoveryServerEndpointUrl: string;
 
-    start(callback: (err?: Error) => void): void;
+    start(callback: ErrorCallback): void;
 
-    stop(callback: (err?: Error) => void): void;
+    stop(callback: ErrorCallback): void;
 
     dispose(): void;
 

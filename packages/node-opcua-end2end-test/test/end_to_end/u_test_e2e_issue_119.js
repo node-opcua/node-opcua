@@ -29,7 +29,7 @@ module.exports = function(test) {
         beforeEach(function(done) {
             client = OPCUAClient.create({
                 keepSessionAlive: true,
-                requestedSessionTimeout: 120 * 1000
+                requestedSessionTimeout: 40 * 60 * 1000
             });
             endpointUrl = test.endpointUrl;
             done();
@@ -48,7 +48,7 @@ module.exports = function(test) {
                 const subscription = ClientSubscription.create(session, {
                     requestedPublishingInterval: 150,
                     requestedLifetimeCount: 6000,// make sure subscription will not timeout
-                    requestedMaxKeepAliveCount: 1000,// make sure we won't received spurious KeepAlive PublishResponse
+                    requestedMaxKeepAliveCount: 100,// make sure we won't received spurious KeepAlive PublishResponse
                     maxNotificationsPerPublish: 20,
                     publishingEnabled: true,
                     priority: 6
@@ -205,10 +205,6 @@ module.exports = function(test) {
                         ]);
                     });
                 }, done);
-
             });
-
     });
-
-
 };

@@ -90,7 +90,7 @@ async function main() {
         });
 
         await server.start();
-        console.log(" Server started ", server.endpoints[0].endpointDescriptions()[0].endpointUrl);
+        console.log(" Server started ", server.getEndpointUrl());
     } catch (err) {
         console.log("Error : ", err.message);
         console.log(err.stack);

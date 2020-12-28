@@ -42,13 +42,11 @@ describe("testing Server resilience to DDOS attacks", function() {
     let sessions = [];
     let rejected_connections = 0;
 
-    let port = 2000;
+    const port = 2001;
 
     this.timeout(Math.max(30000, this.timeout()));
 
     beforeEach(function(done) {
-
-        port += 1;
 
         console.log(" server port = ", port);
         clients = [];
@@ -56,7 +54,7 @@ describe("testing Server resilience to DDOS attacks", function() {
         rejected_connections = 0;
 
         server = new OPCUAServer({
-            port: port,
+            port,
             maxConnectionsPerEndpoint: maxConnectionsPerEndpoint,
             maxAllowedSessionNumber: maxAllowedSessionNumber
             //xx nodeset_filename: empty_nodeset_filename
@@ -64,7 +62,7 @@ describe("testing Server resilience to DDOS attacks", function() {
 
         server.start(function(err) {
             // we will connect to first server end point
-            endpointUrl = server.endpoints[0].endpointDescriptions()[0].endpointUrl;
+            endpointUrl = server.getEndpointUrl();
             debugLog("endpointUrl", endpointUrl);
             is_valid_endpointUrl(endpointUrl).should.equal(true);
 

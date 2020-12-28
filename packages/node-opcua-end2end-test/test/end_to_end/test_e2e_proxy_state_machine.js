@@ -8,13 +8,15 @@ const { UAProxyManager } = require("node-opcua-client-proxy");
 
 const { getAddressSpaceFixture } = require("node-opcua-address-space/testHelpers");
 
+
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("testing client Proxy State Machine", function() {
 
     this.timeout(Math.max(200000, this.timeout()));
 
+    const port = 2245;
     const server_options = {
-        port: 2000,
+        port,
         nodeset_filename: [
             getAddressSpaceFixture("fixture_simple_statemachine_nodeset2.xml"),
         ]

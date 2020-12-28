@@ -6,7 +6,8 @@
     "scripts": {
         "pretest": "node test_helpers/create_certificates.js demo --dev -s",
         "clean": "node -e \"require('rimraf').sync('certificates');\"",
-        "test": "mocha --recursive test && npm run test-typescript",
+        "test": "mocha --recursive test -p -j 60 -i -g DiscoveryServer",
+        "test-separate": "mocha --recursive test -p -j 60 -f DiscoveryServer",
         "test-typescript": "mocha --recursive test/end_to_end/*.ts"
     },
     "dependencies": {

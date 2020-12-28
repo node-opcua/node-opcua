@@ -1,0 +1,521 @@
+import "should";
+import * as async from "async";
+import * as os from "os";
+import {
+    OPCUAClient,
+    ClientSubscription,
+    OPCUADiscoveryServer,
+    RegisterServerManager,
+    RegisterServerMethod,
+    OPCUAServer,
+    ClientMonitoredItem,
+    resolveNodeId,
+    AttributeIds,
+    makeApplicationUrn,
+    TimestampsToReturn,
+    ErrorCallback,
+    ApplicationType,
+    ClientSession
+} from "node-opcua";
+
+import { make_debugLog, checkDebugFlag } from "node-opcua-debug";
+import { createDiscovery, createServerThatRegisterWithDiscoveryServer, f, startDiscovery } from "./_helper";
+
+const debugLog = make_debugLog("TEST");
+const doDebug = checkDebugFlag("TEST");
+
+const port2 = 1240;
+const port1 = 1241;
+const port_discovery = 1244;
+
+module.exports = () => {
+    const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
+    describe("NodeRed -  testing frequent server restart within same process", function () {
+        /**
+         * This test simulates the way node-red will frequently start and restart
+         * a opcua server and a opcua client when the user is modifying and redeploying its project
+         * This test verifies that server can be restarted easily and help the nodered-iot-opcua team
+         * to elaborate its module
+         */
+
+        let g_server: OPCUAServer;
+
+        let discoveryServer: OPCUADiscoveryServer;
+        let discoveryServerEndpointUrl: string;
+
+        const startDiscoveryServer= f(function start_the_discovery_server(callback: ErrorCallback) {
+            // note : only one discovery server shall be run per machine
+            startDiscovery(port_discovery).then((_discoveryServer: OPCUADiscoveryServer)=>{
+                discoveryServer = _discoveryServer;
+                discoveryServerEndpointUrl = discoveryServer.getEndpointUrl();
+                callback()
+            }).catch(err=>callback(err));
+        });
+
+        const stopDiscoveryServer = f(function stop_the_discovery_server(callback: ErrorCallback) {
+            if (!discoveryServer) return callback();
+            discoveryServer.shutdown((err?: Error) => {
+                debugLog("discovery server stopped!", err);
+                callback(err);
+            });
+        });
+
+        let endpointUrl = "";
+        
+        const createServer = f(function start_an_opcua_server_that_register_to_the_lds(callback: ErrorCallback) {
+
+            createServerThatRegisterWithDiscoveryServer(discoveryServerEndpointUrl,port1,"AZ").then(async (server: OPCUAServer)=>{
+                g_server = server;
+                await server.start();
+                server.endpoints.length.should.be.greaterThan(0);
+                endpointUrl = server.getEndpointUrl();
+                callback();
+            }).catch(err=>callback(err));
+        });
+
+        const  shutdownServer = f(function shutdown_the_opcua_server(callback: ErrorCallback) {
+            g_server.shutdown(function () {
+                if (doDebug) {
+                    debugLog("Server has been shot down");
+                }
+                callback();
+            });
+        });
+
+        interface ClientData {
+            client: OPCUAClient;
+            session: ClientSession;
+            subscription: ClientSubscription;
+            monitoredItem: ClientMonitoredItem;
+        }
+        let clients: ClientData[] = [];
+
+        const connectManyClient = f(function connect_many_opcua_clients(callback: ErrorCallback) {
+            function addClient(callback: ErrorCallback) {
+                if (doDebug) {
+                    debugLog(" creating client");
+                }
+                let client = OPCUAClient.create({});
+                client.connect(endpointUrl, (err?: Error) => {
+                    if (err) return callback(err);
+                    client.createSession(function (err, _session) {
+                        if (err) return callback(err);
+                        const session = _session!;
+ 
+                        const subscription = ClientSubscription.create(session, {
+                            requestedPublishingInterval: 1000,
+                            requestedLifetimeCount: 100,
+                            requestedMaxKeepAliveCount: 20,
+                            maxNotificationsPerPublish: 100,
+                            publishingEnabled: true,
+                            priority: 10
+                        });
+                        subscription
+                            .on("started", function () {
+                                if (doDebug) {
+                                    debugLog(
+                                        "subscription started for 2 seconds - subscriptionId=",
+                                        subscription.subscriptionId
+                                    );
+                                }
+                            })
+                            .on("keepalive", function () {
+                                debugLog("keepalive");
+                            })
+                            .on("terminated", function () {});
+                        const monitoredItem = ClientMonitoredItem.create(
+                            subscription,
+                            {
+                                nodeId: resolveNodeId("ns=0;i=2258"),
+                                attributeId: AttributeIds.Value
+                            },
+                            {
+                                samplingInterval: 100,
+                                discardOldest: true,
+                                queueSize: 10
+                            },
+                            TimestampsToReturn.Both
+                        );
+                        monitoredItem.on("changed", function (dataValue) {
+                            if (doDebug) {
+                                debugLog(dataValue.toString());
+                            }
+                        });
+                        clients.push({ client, session, subscription, monitoredItem});
+
+                        callback();
+                    });
+                });
+            }
+
+            async.parallel([
+                addClient, addClient, addClient, addClient, addClient, addClient
+            ], ()=>callback());
+        });
+
+        const shutdownClients = f(function disconnect_the_opcua_clients(callback: ErrorCallback) {
+            function removeClient(callback: ErrorCallback) {
+                const { client, session, subscription, monitoredItem } = clients.pop()!;
+
+                subscription.terminate((err?: Error) => {
+                    session.close((err?: Error) => {
+                        if (err) return callback(err);
+                        setImmediate(function () {
+                            client.disconnect((err?: Error) => {
+                                if (err) return callback(err);
+
+                                if (doDebug) {
+                                    debugLog("Client terminated");
+                                }
+                                callback();
+                            });
+                        });
+                    });
+                });
+            }
+
+            async.parallel([
+                removeClient, removeClient, removeClient, removeClient, removeClient, removeClient
+            ],()=>callback());
+        });
+
+        const wait_a_few_seconds = f(function wait_a_few_seconds(callback: ErrorCallback) {
+            setTimeout(callback, 2000);
+        });
+
+        const wait_a_minute = f(function wait_a_minute(callback: ErrorCallback) {
+            setTimeout(callback, 6000);
+        });
+
+        before(function (done) {
+            startDiscoveryServer(done);
+        });
+
+        after(function (done) {
+            stopDiscoveryServer(done);
+        });
+
+        it("T0a- should perform start/stop cycle efficiently ", function (done) {
+            async.series([
+                createServer,
+                wait_a_few_seconds,
+                shutdownServer
+            ], done);
+        });
+
+        it("T0b- should perform start/stop cycle efficiently ", function (done) {
+            async.series([createServer, shutdownServer], done);
+        });
+
+        it("T0c- should cancel a client that is attempting a connection on an existing server", function (done) {
+            let client = OPCUAClient.create({});
+            const endpoint = discoveryServerEndpointUrl;
+            async.series(
+                [
+                    f(function when_we_create_a_client_but_do_not_wait_for_connection(callback: ErrorCallback) {
+                        client.connect(endpoint,  () => { /* nothing here */});
+                        setImmediate(callback);
+                    }),
+
+                    f(function when_we_close_client_while_connection_is_in_progress(callback: ErrorCallback) {
+                        client.disconnect(callback);
+                    }),
+                    f(function then_client_should_cancel_initial_connection(callback: ErrorCallback) {
+                        wait_a_few_seconds(callback);
+                    })
+                ],
+                done
+            );
+        });
+
+        it("T0d- should cancel a client that cannot connect - on standard LocalDiscoveryServer", function (done) {
+            let server = new OPCUAServer({
+                port: port1,
+                registerServerMethod: RegisterServerMethod.LDS,
+                discoveryServerEndpointUrl: "opc.tcp://localhost:4840" //<< standard server
+            });
+            (server.registerServerManager as any).timeout = 100;
+            async.series(
+                [
+                    function create_Server(callback: ErrorCallback) {
+                        server.start(callback);
+                    },
+
+                    function close_client_while_connect_in_progress(callback: ErrorCallback) {
+                        server.shutdown(callback);
+                    }
+                ],
+                done
+            );
+        });
+
+        it("T0f- should cancel a client that cannot connect - on specific LocalDiscoveryServer", function (done) {
+            let server: OPCUAServer;
+            async.series(
+                [
+                    //Xx startDiscoveryServer,
+
+                    function create_Server(callback: ErrorCallback) {
+                        debugLog("discoveryServerEndpointUrl =", discoveryServerEndpointUrl);
+                        server = new OPCUAServer({
+                            port: port1,
+                            registerServerMethod: RegisterServerMethod.LDS,
+                            discoveryServerEndpointUrl
+                        });
+                        server.start(callback);
+                        (server.registerServerManager as any).timeout = 100;
+                    },
+
+                    function close_client_while_connect_in_progress(callback: ErrorCallback) {
+                        server.shutdown(callback);
+                    }
+
+                    //Xx stopDiscoveryServer
+                ],
+                done
+            );
+        });
+
+        it("T0g- registration manager as a standalone object 2/2", function (done) {
+            const registrationManager = new RegisterServerManager({
+                discoveryServerEndpointUrl: "opc.tcp://localhost:48481", //<< not existing
+                server: {
+                    certificateFile: "",
+                    privateKeyFile: "",
+                    capabilitiesForMDNS: [],
+                    getCertificate(): Buffer { return Buffer.alloc(0);},
+                    getDiscoveryUrls():string[] {return []},
+                    serverInfo: {
+                        applicationName: { text: ""},
+                        applicationUri: "",
+                        productUri: null,
+                    },
+                    serverType: ApplicationType.Server
+                }
+            });
+            async.series(
+                [
+                    function (callback: ErrorCallback) {
+                        registrationManager.start(function () {});
+                        callback(); // setImmediate(callback);
+                    },
+                    function (callback: ErrorCallback) {
+                        registrationManager.stop(callback);
+                    }
+                ],
+                done
+            );
+        });
+        it("T0h- registration manager as a standalone object 2/2", function (done) {
+            const registrationManager = new RegisterServerManager({
+                discoveryServerEndpointUrl,
+                server: {
+                    certificateFile: "",
+                    privateKeyFile: "",
+                    capabilitiesForMDNS: [],
+                    getCertificate(): Buffer { return Buffer.alloc(0);},
+                    getDiscoveryUrls():string[] {return []},
+                    serverInfo: {
+                        applicationName: { text: ""},
+                        applicationUri: "",
+                        productUri: null,
+                    },
+                    serverType: ApplicationType.Server
+                }
+            });
+            async.series(
+                [
+                    function (callback: ErrorCallback) {
+                        registrationManager.start(function () {});
+                        callback(); // setImmediate(callback);
+                    },
+                    function (callback: ErrorCallback) {
+                        registrationManager.stop(callback);
+                    }
+                ],
+                done
+            );
+        });
+
+        it("T1- should perform start/stop cycle efficiently ", function (done) {
+            async.series(
+                [
+                    createServer,
+                    wait_a_few_seconds,
+                    shutdownServer,
+
+                    createServer,
+                    wait_a_few_seconds,
+                    shutdownServer,
+
+                    createServer,
+                    wait_a_few_seconds,
+                    shutdownServer,
+
+                    createServer,
+                    wait_a_few_seconds,
+                    shutdownServer,
+
+                    createServer,
+                    wait_a_few_seconds,
+                    shutdownServer
+                ],
+                done
+            );
+        });
+
+        it("T2- should perform start/stop cycle efficiently even with many connected clients and server close before clients", function (done) {
+            async.series(
+                [
+                    createServer,
+
+                    connectManyClient,
+                    wait_a_few_seconds,
+                    wait_a_few_seconds,
+
+                    shutdownServer,
+
+                    createServer,
+                    wait_a_few_seconds,
+
+                    shutdownServer,
+
+                    createServer,
+                    wait_a_few_seconds,
+
+                    shutdownServer,
+
+                    createServer,
+                    wait_a_few_seconds,
+
+                    shutdownServer,
+
+                    createServer,
+                    wait_a_few_seconds,
+
+                    shutdownServer,
+
+                    shutdownClients,
+                    wait_a_few_seconds
+                ],
+                done
+            );
+        });
+
+        it("T3- should perform start/stop cycle efficiently even with many connected clients and clients close before server", function (done) {
+            async.series(
+                [
+                    createServer,
+
+                    connectManyClient,
+                    wait_a_few_seconds,
+
+                    shutdownServer,
+
+                    createServer,
+                    wait_a_few_seconds,
+                    shutdownServer,
+
+                    createServer,
+                    wait_a_few_seconds,
+
+                    shutdownClients,
+                    wait_a_few_seconds,
+
+                    shutdownServer,
+                    wait_a_few_seconds
+                ],
+                done
+            );
+        });
+
+        it("T4- should perform start/stop long cycle efficiently even with many connected clients and clients close before server", function (done) {
+            async.series(
+                [
+                    createServer,
+                    wait_a_few_seconds,
+
+                    connectManyClient,
+                    wait_a_few_seconds,
+                    wait_a_few_seconds,
+
+                    shutdownServer,
+                    wait_a_minute,
+
+                    createServer,
+                    wait_a_minute,
+
+                    shutdownClients,
+                    wait_a_few_seconds,
+
+                    shutdownServer,
+                    wait_a_few_seconds
+                ],
+                done
+            );
+        });
+
+        it("T5- NR2 should not crash when a server that failed to start is shot down", function (done) {
+            let server1: OPCUAServer;
+            let server2: OPCUAServer;
+
+            async.series(
+                [
+                    f(function create_server_1(callback: ErrorCallback) {
+                        server1 = new OPCUAServer({ port: port1 });
+                        server1.start((err?: Error) => {
+                            callback(err);
+                        });
+                    }),
+                    f(function create_server_2(callback: ErrorCallback) {
+                        // we start a second server on the same port !
+                        // this server will fail to start
+                        server2 = new OPCUAServer({ port: port1 /* yes port 1*/ });
+                        server2.start((err?: Error) => {
+                            if (!err) {
+                                debugLog(" expecting a error here !");
+                            }
+                            //should.exist(err," server2 must fail to start !( but we ignore the error)");
+                            callback();
+                        });
+                    }),
+                    f(function shutdown_server_1(callback: ErrorCallback) {
+                        server1.shutdown(callback);
+                    }),
+                    f(function shutdown_server_2(callback: ErrorCallback) {
+                        server2.shutdown((err?: Error) => {
+                            if (!err) {
+                                debugLog("expecting a error here as well");
+                            }
+                            //xx should.exist(err,"we expect an error here because server2 failed to start, therefore cannot be shot down");
+                            callback();
+                        });
+                    })
+                ],
+                done
+            );
+        });
+
+        it("T6- should not crash when we start two servers and stop the second server first", async () => {
+            const server1 = new OPCUAServer({ port: port1 });
+            await server1.start();
+
+            const server2 = new OPCUAServer({ port: port2 });
+            await server2.start();
+
+            await server2.shutdown();
+            await server1.shutdown();
+        });
+
+        it("T7- should not crash when we start two servers and stop using the same order as we started them", async () => {
+            const server1 = new OPCUAServer({ port: port1 });
+            await server1.start();
+
+            const server2 = new OPCUAServer({ port: port2 });
+            await server2.start();
+
+            await server1.shutdown();
+            await server2.shutdown();
+        });
+    });
+};

@@ -7,7 +7,7 @@ const OPCUAServer = opcua.OPCUAServer;
 const OPCUAClient = opcua.OPCUAClient;
 const empty_nodeset_filename = opcua.get_empty_nodeset_filename();
 
-const port = 2000;
+const port = 2230;
 
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("testing server dropping session after timeout if no activity has been recorded", function() {
@@ -42,13 +42,13 @@ describe("testing server dropping session after timeout if no activity has been 
     before(function(done) {
 
         server = new OPCUAServer({
-            port: port,
+            port,
             nodeset_filename: empty_nodeset_filename
         });
         serverCertificateChain = server.getCertificateChain();
 
         server.start(function(err) {
-            endpointUrl = server.endpoints[0].endpointDescriptions()[0].endpointUrl;
+            endpointUrl = server.getEndpointUrl();
             OPCUAServer.registry.count().should.eql(1);
             done(err);
         });

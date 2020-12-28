@@ -147,7 +147,7 @@ describe("Testing OPCUA Client Certificate Manager", function (this: any) {
             });
             it("AQT05- should accept a certificate (signed by CA) even if the certificate doesn't appear in the  trusted certificate folder", async () => {
                 const verif = await certificateMgr.verifyCertificate(certificateIssuedByCA);
-                console.log(verif.toString());
+                verif.toString().should.eql("Good");
 
                 const statusCode = await certificateMgr.checkCertificate(certificateIssuedByCA);
                 statusCode.should.eql(StatusCodes.Good);
