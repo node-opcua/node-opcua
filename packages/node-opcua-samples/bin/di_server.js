@@ -3,6 +3,7 @@
 const chalk = require("chalk");
 const opcua = require("node-opcua");
 const path = require("path");
+const os = require("os");
 
 Error.stackTraceLimit = Infinity;
 
@@ -65,7 +66,7 @@ const server_options = {
     certificateFile: server_certificate_file,
     privateKeyFile: server_certificate_privatekey_file,
 
-    port: port,
+    port,
     resourcePath: "/UA/Server",
 
     maxAllowedSessionNumber: 1500,
@@ -77,7 +78,7 @@ const server_options = {
     ],
 
     serverInfo: {
-        applicationUri: makeApplicationUrn("%FQDN%", "NodeOPCUA-SimpleADIDemoServer"),
+        applicationUri: makeApplicationUrn(os.hostname(), "NodeOPCUA-SimpleADIDemoServer"),
         productUri: "urn:NodeOPCUA-SimpleADIDemoServer",
         applicationName: { text: "NodeOPCUA-SimpleADIDemoServer" },
         gatewayServerUri: null,
@@ -225,7 +226,7 @@ server.start(function(err) {
         process.exit(-3);
     }
 
-    const endpointUrl = server.endpoints[0].endpointDescriptions()[0].endpointUrl;
+    const endpointUrl = server.getEndpointUrl();
 
     console.log(chalk.yellow("  server on port      :"), server.endpoints[0].port.toString());
     console.log(chalk.yellow("  endpointUrl         :"), endpointUrl);

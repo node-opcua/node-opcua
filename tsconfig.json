@@ -33,6 +33,9 @@
     "references": [
         {
             "path": "packages/node-opcua"
+        },
+        {
+            "path": "packages/node-opcua-model"
         }
     ],    
     "compileOnSave": false,

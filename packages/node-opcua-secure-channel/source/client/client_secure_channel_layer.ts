@@ -1661,10 +1661,12 @@ export class ClientSecureChannelLayer extends EventEmitter {
         }
 
         const security_options = msgType === "OPN" ? this._get_security_options_for_OPN() : this._get_security_options_for_MSG();
-        options = {
-            ...options,
-            ...security_options
-        };
+        if(security_options) {
+            options = {
+                ...options,
+                ...security_options
+            };
+        }
 
         /**
          * notify the observer that a client request is being sent the server

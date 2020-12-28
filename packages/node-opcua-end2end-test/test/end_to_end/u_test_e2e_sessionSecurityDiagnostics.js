@@ -7,10 +7,10 @@ const opcua = require("node-opcua");
 const { OPCUAClient, StatusCodes } = opcua;
 
 const { perform_operation_on_subscription_async } = require("../../test_helpers/perform_operation_on_client_session");
-const { promisify, callbackify } = require("util");
 
 
 const clientOptions = {
+    endpointMustExist: false,
     securityMode: opcua.MessageSecurityMode.SignAndEncrypt,
     securityPolicy: opcua.SecurityPolicy.Basic256Sha256
 };

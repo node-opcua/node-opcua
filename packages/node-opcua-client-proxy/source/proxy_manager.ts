@@ -165,10 +165,6 @@ export interface IClientMonitoredItemBase {
     on(eventName: "changed", eventHandler: (data: DataValue | Variant[]) => void): void;
 }
 export interface IBasicSessionWithSubscription extends IBasicSession {
-    write(nodeToWrite: WriteValueOptions, callback: CallbackT<StatusCode>): void;
-
-    write(nodeToWrite: WriteValueOptions[], callback: CallbackT<StatusCode[]>): void;
-
     createSubscription2(options: CreateSubscriptionRequestOptions, callback: CallbackT<IClientSubscription>): void;
 }
 

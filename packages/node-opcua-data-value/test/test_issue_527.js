@@ -87,7 +87,7 @@ describe("DataValue with Limit bits", function () {
 
         debugLog(" value in hexa = 0x",dataValue.statusCode.value.toString(16));
     });
-    xit("should handle a DataValue that has a undefined statusCode ", function () {
+    it("should handle a DataValue that has a undefined statusCode", function () {
 
         const dataValue = new DataValue({
             statusCode: StatusCode.makeStatusCode(StatusCodes.Good, 1024)
@@ -95,14 +95,12 @@ describe("DataValue with Limit bits", function () {
 
         dataValue.statusCode = undefined;
 
-        encode_decode_round_trip_test(dataValue, function (buffer/*, id*/) {
+        encode_decode_round_trip_test(dataValue,  (buffer/*, id*/)=> {
             buffer.length.should.equal(1);
             debugLog(buffer.toString("hex"));
         });
 
         debugLog(dataValue.toString());
-
-        debugLog(" value in hexa = 0x",dataValue.statusCode.value.toString(16));
     });
 
 });

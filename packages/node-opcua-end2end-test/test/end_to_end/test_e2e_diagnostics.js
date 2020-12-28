@@ -14,16 +14,15 @@ describe("Testing Server and Client diagnostic facilities", function() {
 
     let server, client, temperatureVariableId, endpointUrl;
 
-    let port = 2001;
+    const port = 2015;
     before(function(done) {
         // we use a different port for each tests to make sure that there is
         // no left over in the tcp pipe that could generate an error
-        port += 1;
-        server = build_server_with_temperature_device({ port: port }, function(err) {
+        server = build_server_with_temperature_device({ port }, function(err) {
 
             if (err) return done(err);
 
-            endpointUrl = server.endpoints[0].endpointDescriptions()[0].endpointUrl;
+            endpointUrl = server.getEndpointUrl();
             temperatureVariableId = server.temperatureVariableId;
             done(err);
         });

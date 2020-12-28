@@ -71,7 +71,7 @@ export function findServers(
  */
 export async function findServersOnNetwork(
     discoveryServerEndpointUri: string
-): Promise<ServerOnNetwork>;
+): Promise<ServerOnNetwork[]>;
 export function findServersOnNetwork(
     discoveryServerEndpointUri: string,
     callback: (err: Error | null, servers?: ServerOnNetwork[]) => void

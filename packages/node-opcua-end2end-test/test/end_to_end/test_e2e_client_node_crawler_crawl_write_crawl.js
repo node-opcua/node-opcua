@@ -23,7 +23,7 @@ const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("NodeCrawlerBase after write", function() {
 
     const namespaceIndex = 411;
-    const port = 2555;
+    const port = 2012;
 
     // this test could be particularly slow on RaspberryPi or BeagleBoneBlack
     // so we set a big enough timeout
@@ -35,11 +35,11 @@ describe("NodeCrawlerBase after write", function() {
         // we use a different port for each tests to make sure that there is
         // no left over in the tcp pipe that could generate an error
         //port+=1;
-        server = build_server_with_temperature_device({ port: port }, function(err) {
+        server = build_server_with_temperature_device({ port }, function(err) {
 
             build_address_space_for_conformance_testing(server.engine.addressSpace, { mass_variables: false });
 
-            endpointUrl = server.endpoints[0].endpointDescriptions()[0].endpointUrl;
+            endpointUrl = server.getEndpointUrl();
             temperatureVariableId = server.temperatureVariableId;
             done(err);
         });

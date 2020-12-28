@@ -34,10 +34,11 @@ module.exports = function(test) {
                     // create a single subscription
                     function(callback) {
                         const parameters = {
-                            requestedPublishingInterval: 100000,
+                            requestedPublishingInterval: 10000,
                             requestedLifetimeCount: 60,
                             requestedMaxKeepAliveCount: 10
                         };
+                        ClientSubscription.ignoreNextWarning = true;
                         the_subscription = ClientSubscription.create(the_session, parameters);
                         the_subscription.on("started", function() {
                             callback();
@@ -85,7 +86,7 @@ module.exports = function(test) {
             if (!server) { return done(); }
 
             const client1 = OPCUAClient.create({
-                requestedSessionTimeout: 10000,
+                requestedSessionTimeout: 120 * 60* 1000,
                 keepSessionAlive: false
             });
 
@@ -184,9 +185,15 @@ module.exports = function(test) {
                         requestedLifetimeCount: 100000,  // very long subscription lifetime
                         requestedMaxKeepAliveCount: 1000
                     };
+                    
+                    ClientSubscription.ignoreNextWarning = true;
+
                     the_subscription = ClientSubscription.create(the_session, parameters);
                     the_subscription.on("started", function() {
                         subscriptionId = the_subscription.subscriptionId;
+
+                        (the_subscription.publishingInterval * the_subscription.maxKeepAliveCount).should.be.greaterThan(the_session.timeout)
+                        
                         callback();
                     }).on("internal_error", function(err) {
                         console.log(" received internal error", err.message);

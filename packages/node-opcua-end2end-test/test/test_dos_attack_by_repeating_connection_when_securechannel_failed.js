@@ -45,7 +45,7 @@ describe("testing Server resilience to DDOS attacks 2", function() {
     let sessions = [];
     let rejected_connections = 0;
 
-    let port = 2000;
+    const port = 2019;
 
     this.timeout(Math.max(30000000, this.timeout()));
     const remotePorts = {
@@ -68,8 +68,6 @@ describe("testing Server resilience to DDOS attacks 2", function() {
     });
     beforeEach(async () => {
 
-        port += 1;
-
         console.log(" server port = ", port);
         clients = [];
         sessions = [];
@@ -85,7 +83,7 @@ describe("testing Server resilience to DDOS attacks 2", function() {
         await serverCertificateManager.trustCertificate(cert);
 
         server = new OPCUAServer({
-            port: port,
+            port,
             maxConnectionsPerEndpoint: maxConnectionsPerEndpoint,
             maxAllowedSessionNumber: maxAllowedSessionNumber,
             //xx nodeset_filename: empty_nodeset_filename
@@ -155,7 +153,7 @@ describe("testing Server resilience to DDOS attacks 2", function() {
     });
 
     it("ZCCC1 should ban client that constantly reconnect", async () => {
-
+        console.log("done")
     });
 
     it("ZCCC2 should ban client that constantly reconnect", async () => {

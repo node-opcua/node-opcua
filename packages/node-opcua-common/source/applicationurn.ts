@@ -1,11 +1,11 @@
 /**
  * @module node-opcua-common
  */
-import * as  crypto from "crypto";
+import * as crypto from "crypto";
+
 import { assert } from "node-opcua-assert";
 
 export function makeApplicationUrn(hostname: string, suffix: string): string {
-
     // beware : Openssl doesn't support urn with length greater than 64 !!
     //          sometimes hostname length could be too long ...
     // application urn length must not exceed 64 car. to comply with openssl

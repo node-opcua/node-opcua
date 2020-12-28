@@ -232,7 +232,7 @@ export class TCP_transport extends EventEmitter {
         assert(socket);
         this._socket = socket;
         if (doDebug) {
-            debugLog("_install_socket ", this.name);
+            debugLog("  TCP_transport#_install_socket ", this.name);
         }
 
         // install packet assembler ...
@@ -255,10 +255,10 @@ export class TCP_transport extends EventEmitter {
             .on("error", (err: Error) => this._on_socket_error(err));
 
         // set socket timeout
-        debugLog("setting " + this.name + " _socket.setTimeout to ", this.timeout);
+        debugLog("  TCP_transport#install => setting " + this.name + " _socket.setTimeout to ", this.timeout);
 
         // let use a large timeout here to make sure that we not conflict with our internal timeout
-        this._socket.setTimeout(this.timeout + 2000, () => {
+        this._socket!.setTimeout(this.timeout + 2000, () => {
             debugLog(` _socket ${this.name} has timed out (timeout = ${this.timeout})`);
             this.prematureTerminate(new Error("INTERNAL_EPIPE timeout=" + this.timeout));
         });

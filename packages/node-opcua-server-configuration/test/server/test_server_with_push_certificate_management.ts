@@ -34,6 +34,8 @@ import { OPCUAServerPartial } from "../../source";
 // tslint:disable-next:no-var-requires
 import * as rimraf from "rimraf";
 
+const port = 20101;
+
 const doDebug = checkDebugFlag("ServerConfiguration");
 const debugLog = make_debugLog("ServerConfiguration");
 const errorLog = make_errorLog("ServerConfiguration");
@@ -288,7 +290,7 @@ describe("Testing server configured with push certificate management", () => {
         };
 
         const server = new OPCUAServer({
-            port: 2010,
+            port,
 
             nodeset_filename: nodesets.standard,
             userManager: mockUserManager,
@@ -423,7 +425,7 @@ describe("Testing server configured with push certificate management", () => {
         await server.start();
 
         // Given the server connection endpoint
-        const endpointUrl = server.endpoints[0].endpointDescriptions()[0].endpointUrl!;
+        const endpointUrl = server.getEndpointUrl()!;
 
         // Given that the sever has some client connected to it
         await startOnGoingConnection(endpointUrl);
@@ -470,7 +472,7 @@ describe("Testing server configured with push certificate management", () => {
         await server.start();
 
         // Given the server connection endpoint
-        const endpointUrl = server.endpoints[0].endpointDescriptions()[0].endpointUrl!;
+        const endpointUrl = server.getEndpointUrl()!;
 
         // Given a connected client
         const client = OPCUAClient.create({
@@ -539,7 +541,7 @@ describe("Testing server configured with push certificate management", () => {
         await server.start();
 
         // Given the server connection endpoint
-        const endpointUrl = server.endpoints[0].endpointDescriptions()[0].endpointUrl!;
+        const endpointUrl = server.getEndpointUrl()!;
 
         // Given that the sever has some client connected to it
         await startOnGoingConnection(endpointUrl);

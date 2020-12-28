@@ -14,10 +14,7 @@ import { NodeId, NodeIdLike } from "node-opcua-nodeid";
 import { IBasicSession } from "node-opcua-pseudo-session";
 import { ErrorCallback } from "node-opcua-status-code";
 import {
-    BrowseDescription,
     BrowseDescriptionOptions,
-    BrowseRequest,
-    BrowseResponse,
     BrowseResult
 } from "node-opcua-service-browse";
 import { CallMethodRequest, CallMethodRequestOptions, CallMethodResult } from "node-opcua-service-call";
@@ -87,8 +84,6 @@ export interface CreateSubscriptionOptions {
 }
 
 export type BrowseDescriptionLike = string | BrowseDescriptionOptions;
-export type ReadValueIdLike = ReadValueIdOptions;
-export type WriteValueLike = WriteValueOptions;
 export type DeleteMonitoredItemsRequestLike = DeleteMonitoredItemsRequestOptions;
 export type CreateSubscriptionRequestLike = CreateSubscriptionRequestOptions;
 export type DeleteSubscriptionsRequestLike = DeleteSubscriptionsRequestOptions;
@@ -294,39 +289,54 @@ export interface ClientSessionRegisterService {
 
 // read services
 export interface ClientSessionReadService {
-    read(nodeToRead: ReadValueIdLike, maxAge: number, callback: ResponseCallback<DataValue>): void;
+    read(nodeToRead: ReadValueIdOptions, maxAge: number, callback: ResponseCallback<DataValue>): void;
 
-    read(nodesToRead: ReadValueIdLike[], maxAge: number, callback: ResponseCallback<DataValue[]>): void;
+    read(nodesToRead: ReadValueIdOptions[], maxAge: number, callback: ResponseCallback<DataValue[]>): void;
 
-    read(nodeToRead: ReadValueIdLike, callback: ResponseCallback<DataValue>): void;
+    read(nodeToRead: ReadValueIdOptions, callback: ResponseCallback<DataValue>): void;
 
-    read(nodesToRead: ReadValueIdLike[], callback: ResponseCallback<DataValue[]>): void;
+    read(nodesToRead: ReadValueIdOptions[], callback: ResponseCallback<DataValue[]>): void;
 
-    read(nodeToRead: ReadValueIdLike, maxAge?: number): Promise<DataValue>;
+    read(nodeToRead: ReadValueIdOptions, maxAge?: number): Promise<DataValue>;
 
-    read(nodesToRead: ReadValueIdLike[], maxAge?: number): Promise<DataValue[]>;
+    read(nodesToRead: ReadValueIdOptions[], maxAge?: number): Promise<DataValue[]>;
 
+    /**
+     * @deprecated
+     */
     readVariableValue(nodeId: NodeIdLike, callback: ResponseCallback<DataValue>): void;
-
+    /**
+     * @deprecated
+     */
     readVariableValue(nodeId: NodeIdLike): Promise<DataValue>;
-
+    /**
+     * @deprecated
+     */
     readVariableValue(nodeIds: NodeIdLike[], callback: ResponseCallback<DataValue[]>): void;
-
+    /**
+     * @deprecated
+     */
     readVariableValue(nodeIds: NodeIdLike[]): Promise<DataValue[]>;
 }
 
 // write services
 export interface ClientSessionWriteService {
-    write(nodeToWrite: WriteValueLike, callback: ResponseCallback<StatusCode>): void;
+    write(nodeToWrite: WriteValueOptions, callback: ResponseCallback<StatusCode>): void;
 
-    write(nodesToWrite: WriteValueLike[], callback: ResponseCallback<StatusCode[]>): void;
+    write(nodesToWrite: WriteValueOptions[], callback: ResponseCallback<StatusCode[]>): void;
 
-    write(nodesToWrite: WriteValueLike[]): Promise<StatusCode[]>;
+    write(nodesToWrite: WriteValueOptions[]): Promise<StatusCode[]>;
 
-    write(nodeToWrite: WriteValueLike): Promise<StatusCode>;
+    write(nodeToWrite: WriteValueOptions): Promise<StatusCode>;
 
+    /**
+     * @deprecated
+     */
     writeSingleNode(nodeToWrite: NodeIdLike, value: Variant): Promise<StatusCode>;
 
+    /**
+     * @deprecated
+     */
     writeSingleNode(nodeToWrite: NodeIdLike, value: Variant, callback: ResponseCallback<StatusCode>): void;
 }
 
@@ -665,7 +675,7 @@ export interface ClientSession
         ClientSessionCallService,
         ClientSessionRegisterService,
         ClientSessionReadService,
-        ClientSessionWriteService,
+        // ClientSessionWriteService,
         ClientSessionReadHistoryService,
         ClientSessionConditionService,
         ClientSessionExtensionObjectService,

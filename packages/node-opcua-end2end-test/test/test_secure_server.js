@@ -37,10 +37,11 @@ describe("testing behavior of secure Server ( server that only accept SIGN or SI
 
     this.timeout(Math.max(20000, this.timeout()));
 
+    const port = 2241;
     before(function(done) {
 
         server = new OPCUAServer({
-            port: 2000,
+            port,
             nodeset_filename: empty_nodeset_filename,
             securityPolicies: [
                 SecurityPolicy.Basic256
@@ -52,7 +53,7 @@ describe("testing behavior of secure Server ( server that only accept SIGN or SI
         });
 
         server.start((err) => {
-            endpointUrl = server.endpoints[0].endpointDescriptions()[0].endpointUrl;
+            endpointUrl = server.getEndpointUrl();
             done(err);
         });
     });

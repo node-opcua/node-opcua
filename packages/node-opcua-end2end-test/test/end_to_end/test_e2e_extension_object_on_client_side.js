@@ -16,8 +16,9 @@ const AttributeIds = opcua.AttributeIds;
 const StatusCodes = opcua.StatusCodes;
 const OPCUAClient = opcua.OPCUAClient;
 
-const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
+const port = 2018;
 
+const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("testing extension object with client residing on a different process than the server process", function() {
 
     this.timeout(Math.max(600000, this.timeout()));
@@ -26,7 +27,7 @@ describe("testing extension object with client residing on a different process t
 
     const options = {
         server_sourcefile: path.join(__dirname, "../../test_helpers/bin/simple_server_with_custom_extension_objects.js"),
-        port: 23232
+        port
     };
     fs.existsSync(options.server_sourcefile).should.eql(true, "cannot find simple_server_with_custom_extension_objects script");
 

@@ -13,7 +13,7 @@ const readUAAnalogItem = opcua.readUAAnalogItem;
 
 const debugLog = require("node-opcua-debug").make_debugLog(__filename);
 
-const port = 2000;
+const port = 2009;
 
 const build_server_with_temperature_device = require("../../test_helpers/build_server_with_temperature_device").build_server_with_temperature_device;
 
@@ -28,9 +28,9 @@ describe("testing AnalogItem on client side", function() {
     let g_session = null;
     before(function(done) {
 
-        server = build_server_with_temperature_device({ port: port }, function(err) {
+        server = build_server_with_temperature_device({ port }, function(err) {
             if (err) return done(err);
-            endpointUrl = server.endpoints[0].endpointDescriptions()[0].endpointUrl;
+            endpointUrl = server.getEndpointUrl();
             temperatureVariableId = server.temperatureVariableId;
             done(err);
         });

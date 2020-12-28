@@ -4,6 +4,7 @@
 // tslint:disable:class-name
 // system
 import * as os from "os";
+import * as chalk from "chalk";
 
 import { createConnection, Socket } from "net";
 import { assert } from "node-opcua-assert";
@@ -34,7 +35,7 @@ function createClientSocket(endpointUrl: string): Socket {
             socket = createConnection({ host: hostname, port });
 
             //        // Setting true for noDelay will immediately fire off data each time socket.write() is called.
-            //       socket.setNoDelay(true);
+            socket.setNoDelay(true);
 
             return socket;
         case "fake:":
@@ -126,7 +127,7 @@ export class ClientTCP_transport extends TCP_transport {
         this.serverUri = "urn:" + gHostname + ":Sample";
         /* istanbul ignore next */
         if (doDebug) {
-            debugLog("endpointUrl =", endpointUrl);
+            debugLog(chalk.cyan("ClientTCP_transport#connect(endpointUrl = "+ endpointUrl+ ")"));
         }
         try {
             this._socket = createClientSocket(endpointUrl);
@@ -193,7 +194,7 @@ export class ClientTCP_transport extends TCP_transport {
             // this handler will catch attempt to connect to an inaccessible address.
             /* istanbul ignore next */
             if (doDebug) {
-                debugLog(" _on_socket_error_for_connect", err.message);
+                debugLog(chalk.cyan("ClientTCP_transport#connect - _on_socket_error_for_connect"), err.message);
             }
             assert(err instanceof Error);
             _remove_connect_listeners();
@@ -203,7 +204,7 @@ export class ClientTCP_transport extends TCP_transport {
         const _on_socket_end_for_connect = (err: Error | null) => {
             /* istanbul ignore next */
             if (doDebug) {
-                debugLog("_on_socket_end_for_connect Socket has been closed by server", err);
+                debugLog(chalk.cyan("ClientTCP_transport#connect -> _on_socket_end_for_connect Socket has been closed by server"), err);
             }
         };
 

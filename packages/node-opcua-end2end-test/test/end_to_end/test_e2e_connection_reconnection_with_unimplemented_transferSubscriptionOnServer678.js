@@ -15,11 +15,13 @@ const serverScript1 = "simple_server_that_fails_to_republish.js";
 const serverScript2 = "simple_server_with_no_transferSubscription.js";
 let serverScript = serverScript1;
 
+const port = 2240;
+
 async function start_external_opcua_server() {
 
     const options = {
         server_sourcefile: path.join(__dirname, "../../test_helpers/bin", serverScript),
-        port: 2223
+        port
     };
 
     await new Promise((resolve, reject) => {
@@ -214,7 +216,7 @@ async function f(func) {
     }();
 }
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
-describe("Testing client reconnection with crashing server that do not implement transferSubscription server (such as Siemens S7)", function() {
+describe("Testing client reconnection with a crashing server that does not implement transferSubscription server (such old Siemens S7)", function() {
 
     this.timeout(100000);
 

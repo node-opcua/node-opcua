@@ -3,7 +3,7 @@
     "version": "2.28.3",
     "description": "pure nodejs OPCUA SDK - module -samples",
     "bin": {
-        "simple_client": "./bin/simple_client_ts.ts",
+        "simple_client": "./dist/simple_client_ts.js",
         "interactive_client": "./bin/interactive_client.js",
         "simple_server": "./bin/simple_server.js",
         "di_server": "./bin/di_server.js"

@@ -19,7 +19,7 @@ const empty_nodeset_filename = getFixture("fixture_empty_nodeset2.xml");
 
 const debugLog = require("node-opcua-debug").make_debugLog(__filename);
 
-let port = 4000;
+const port = 2041;
 
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("Testing ChannelSecurityToken lifetime", function () {
@@ -31,9 +31,7 @@ describe("Testing ChannelSecurityToken lifetime", function () {
 
     beforeEach(function (done) {
 
-        port += 1;
-        server = new OPCUAServer({ port: port, nodeset_filename: empty_nodeset_filename });
-
+        server = new OPCUAServer({ port, nodeset_filename: empty_nodeset_filename });
 
         client = OPCUAClient.create({
             defaultSecureTokenLifetime: 100  // very short live time !
@@ -42,7 +40,7 @@ describe("Testing ChannelSecurityToken lifetime", function () {
         server.start(function () {
 
             // we will connect to first server end point
-            endpointUrl = server.endpoints[0].endpointDescriptions()[0].endpointUrl;
+            endpointUrl = server.getEndpointUrl();
             debugLog("endpointUrl", endpointUrl);
             opcua.is_valid_endpointUrl(endpointUrl).should.equal(true);
 

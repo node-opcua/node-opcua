@@ -1,7 +1,7 @@
 import { OPCUAServer, OPCUAClient } from "node-opcua";
 import * as should from "should";
 const _should = should;
-const port = 25400;
+const port = 2004;
 
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("Verifying Server Endpoint", () => {
@@ -11,7 +11,7 @@ describe("Verifying Server Endpoint", () => {
         server = new OPCUAServer({ port });
         await server.initialize();
         await server.start();
-        endpointUri = server.endpoints[0].endpointDescriptions()[0].endpointUrl!;
+        endpointUri = server.getEndpointUrl()!;
     });
 
     after(async () => {

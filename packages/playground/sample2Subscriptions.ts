@@ -13,9 +13,13 @@ import {
     DeadbandType,
     EventFilter,
     MessageSecurityMode,
-    MonitoringParametersOptions, OPCUAClient, OPCUAClientOptions,
-    ReadValueIdLike, SecurityPolicy,
-    TimestampsToReturn, UserTokenType
+    MonitoringParametersOptions,
+    OPCUAClient, 
+    OPCUAClientOptions,
+    ReadValueIdOptions,
+    SecurityPolicy,
+    TimestampsToReturn, 
+    UserTokenType
 } from "node-opcua-client";
 
 async function timeout(ms: number) {
@@ -77,7 +81,7 @@ async function test1() {
                 trigger: DataChangeTrigger.StatusValueTimestamp
             })
         };
-        const itemToMonitor1: ReadValueIdLike = {
+        const itemToMonitor1: ReadValueIdOptions = {
             attributeId: AttributeIds.Value,
             nodeId: "ns=1;s=FanSpeed"
         };
@@ -89,7 +93,7 @@ async function test1() {
         item1.on("changed", (dataValue: DataValue) => {
             console.log(" Value1 has changed : ", dataValue.toString());
         });
-        const itemToMonitor2: ReadValueIdLike = {
+        const itemToMonitor2: ReadValueIdOptions = {
             attributeId: AttributeIds.EventNotifier,
             nodeId: "i=2258"
         };
@@ -152,7 +156,7 @@ async function test2() {
             queueSize: 100,
             samplingInterval: 250
         };
-        const itemToMonitor1: ReadValueIdLike = {
+        const itemToMonitor1: ReadValueIdOptions = {
             attributeId: AttributeIds.Value,
             nodeId: "ns=1;s=PumpSpeed"
         };
@@ -166,7 +170,7 @@ async function test2() {
                 console.log("item1 has been terminated");
             });
 
-        const itemToMonitor2: ReadValueIdLike = {
+        const itemToMonitor2: ReadValueIdOptions = {
             attributeId: AttributeIds.Value,
             nodeId: "ns=1;s=FanSpeed"
         };

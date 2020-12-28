@@ -22,7 +22,7 @@ function getIpAddresses() {
 
     return [].concat.apply([], Object.values(results));
 }
-const port = 2000;
+const port = 2007;
 const ip = getIpAddresses();
 
 async function startServer(): Promise<OPCUAServer> {

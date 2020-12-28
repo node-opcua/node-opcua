@@ -2,7 +2,7 @@ import * as async from "async";
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 import { CallbackT, ErrorCallback } from "node-opcua-status-code";
 import { AddressSpace } from "../../src/address_space";
-import { AddressSpace as AddressSpacePublic } from "../address_space_ts";
+import { AddressSpace as AddressSpacePublic, UAVariable } from "../address_space_ts";
 import { NodeSetLoader } from "./load_nodeset2";
 
 const doDebug = checkDebugFlag(__filename);
@@ -45,6 +45,15 @@ export function generateAddressSpaceRawCallback(
                     nodesetLoader.addNodeSet(xmlData!, callback1);
                 },
                 (err?: Error | null) => {
+
+                    const namepsaceArrayVar = addressSpace.findNode("Server_NamespaceArray") as UAVariable;
+                    if (namepsaceArrayVar) {
+                        namepsaceArrayVar.setValueFromSource({ 
+                            dataType: "String", 
+                            value: addressSpace.getNamespaceArray().map((n)=> n.namespaceUri)
+                        });
+                    }   
+
                     nodesetLoader.terminate(callback!);
                 }
             );

@@ -1,13 +1,20 @@
-/*global xit,describe,beforeEach,afterEach,require*/
 "use strict";
-
 const should = require("should");
 
-const opcua = require("node-opcua");
-const OPCUAClient = opcua.OPCUAClient;
-const perform_operation_on_client_session = require("../../test_helpers/perform_operation_on_client_session").perform_operation_on_client_session;
-const securityMode = opcua.MessageSecurityMode.None;
-const securityPolicy = opcua.SecurityPolicy.None;
+const { 
+    OPCUAClient, 
+    AttributeIds,
+    makeNodeId,
+    MessageSecurityMode,
+    SecurityPolicy,
+    TimestampsToReturn,
+    VariableIds
+} = require("node-opcua");
+const {
+    perform_operation_on_subscription_async,
+}= require("../../test_helpers/perform_operation_on_client_session");
+const securityMode = MessageSecurityMode.None;
+const securityPolicy = SecurityPolicy.None;
 
 // Use Case:
 //
@@ -30,73 +37,73 @@ const securityPolicy = opcua.SecurityPolicy.None;
 //
 module.exports = function (test) {
 
+    function simulate_connection_lost(client) {
+
+        const socket = client._secureChannel._transport._socket;
+        socket.end();
+        socket.emit("error", new Error("ECONNRESET"));
+    }
+
     describe("Testing bug #144 - Server with Client & active subscription, connection broken , reconnection => No data Lost", function () {
 
-        const options = {
-            securityMode: securityMode,
-            securityPolicy: securityPolicy,
-            serverCertificate: null
-        };
+      
 
         let server, client, endpointUrl;
 
-        beforeEach(function (done) {
-            client = OPCUAClient.create(options);
+        beforeEach(async () => {
+            client = OPCUAClient.create( {
+                securityMode: securityMode,
+                securityPolicy: securityPolicy,
+                serverCertificate: null,
+                endpointMustExist: false,
+            });
             endpointUrl = test.endpointUrl;
             server = test.server;
-            done();
         });
 
-        afterEach(function (done) {
-            client.disconnect(done);
+        afterEach(async () => {
+            await client.disconnect();
             client = null;
         });
 
-        xit("#144-A should 1",function(done){
+        it("#144-A should 1",async () => {
 
             let timerId;
 
-            perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
+            await perform_operation_on_subscription_async(client, endpointUrl, async (session, subscription) => {
 
-                const the_subscription = opcua.ClientSubscription.create(session, {
-                    requestedPublishingInterval: 200,
-                    requestedMaxKeepAliveCount:  50,
-                    requestedLifetimeCount:      120,
-                    maxNotificationsPerPublish:  100,
-                    publishingEnabled: true,
-                    priority: 10
-                });
+                let session_restored_Count = 0;
+                session.on("session_restored", ()=>session_restored_Count+=1);
 
-                const timeout = 10000;
+                const timeout = 5000;
                 let keepaliveCounter = 0;
                 // subscribe to currentTime
+                console.log("revised publishingInterval :", subscription.publishingInterval);
+                console.log("revised lifetimeCount      :", subscription.lifetimeCount);
+                console.log("revised maxKeepAliveCount  :", subscription.maxKeepAliveCount);
+                console.log("started subscription       :", subscription.subscriptionId);
 
-
-                the_subscription.on("started", function () {
-                    console.log("revised publishingInterval :", the_subscription.publishingInterval);
-                    console.log("revised lifetimeCount      :", the_subscription.lifetimeCount);
-                    console.log("revised maxKeepAliveCount  :", the_subscription.maxKeepAliveCount);
-                    console.log("started subscription       :", the_subscription.subscriptionId);
-
-                }).on("internal_error", function (err) {
+                subscription.on("internal_error",  (err) => {
                     console.log(" received internal error", err.message);
                     clearTimeout(timerId);
                     //xx inner_done(err);
                 }).on("keepalive", function () {
                     console.log("keepalive");
                     keepaliveCounter++;
-
-                }).on("terminated", function () {
-                    inner_done();
                 });
 
+                const nodeId = makeNodeId(VariableIds.Server_ServerStatus_CurrentTime); // "ns=0;i=2261";
 
-                const nodeId = opcua.makeNodeId(opcua.VariableIds.Server_ServerStatus_CurrentTime); // "ns=0;i=2261";
-
-                const monitoredItem = the_subscription.monitor(
-                    {nodeId: opcua.resolveNodeId(nodeId), attributeId: opcua.AttributeIds.Value},
-                    {samplingInterval: 10, discardOldest: true, queueSize: 1});
-
+                const monitoredItem = await subscription.monitor(
+                    {
+                        nodeId,
+                        attributeId: AttributeIds.Value
+                    },
+                    {
+                        samplingInterval: 10,
+                        discardOldest: true,
+                        queueSize: 1
+                }, TimestampsToReturn.Both);
 
                 let change_count = 0;
                 monitoredItem.on("changed", function (dataValue) {
@@ -104,32 +111,23 @@ module.exports = function (test) {
                     change_count += 1;
                 });
 
-                timerId = setTimeout(function () {
+                await new Promise((resolve) => setTimeout(resolve,timeout));
+           
+                const change_countBefore = change_count;
+                console.log("change_count = ",change_count, "keepaliveCounter =", keepaliveCounter, "session_restored_Count =", session_restored_Count);
+                keepaliveCounter.should.eql(0);
+                session_restored_Count.should.eql(0);
 
-                    console.log("change_count = ",change_count);
+                // simulate a  connection break
+                simulate_connection_lost(client);
 
-                    // simulate a  connection break
-
-                    function simulate_connection_lost(client) {
-
-                        const socket = client._secureChannel._transport._socket;
-                        socket.end();
-                        socket.emit("error", new Error("ECONNRESET"));
-                    }
-
-                    simulate_connection_lost(client);
-
-                    setTimeout(function () {
-                        the_subscription.terminate(function(err){
-                            console.log("ERR = ");
-                            should.not.exist(err);
-                        });
-                    },1000);
-
-                }, timeout);
-
-            }, done);
-
+                await new Promise((resolve) => setTimeout(resolve,timeout));
+                console.log("change_count = ",change_count, "keepaliveCounter =", keepaliveCounter, "session_restored_Count =", session_restored_Count);
+                keepaliveCounter.should.eql(0);
+                session_restored_Count.should.eql(1);
+                change_countBefore.should.be.lessThan(change_count);
+                
+            });
         });
     });
 };

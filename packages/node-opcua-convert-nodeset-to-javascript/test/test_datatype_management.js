@@ -5,19 +5,16 @@ const path = require("path");
 const fs = require("fs");
 const existsSync = fs.existsSync;
 
-const encode_decode_round_trip_test = require("node-opcua-packet-analyzer/dist/test_helpers").encode_decode_round_trip_test;
+const { encode_decode_round_trip_test }= require("node-opcua-packet-analyzer/dist/test_helpers");
+const { AddressSpace } = require("node-opcua-address-space");
+const { generateAddressSpace } = require("node-opcua-address-space/nodeJS");
 
+const { makeExpandedNodeId } = require("node-opcua-nodeid");
+const { Variant, DataType } = require("node-opcua-variant");
 
-const AddressSpace = require("node-opcua-address-space").AddressSpace;
-const generateAddressSpace = require("node-opcua-address-space").generateAddressSpace;
+const { nodeset } = require("node-opcua-nodesets");
 
-const makeExpandedNodeId = require("node-opcua-nodeid").makeExpandedNodeId;
-const Variant = require("node-opcua-variant").Variant;
-const DataType = require("node-opcua-variant").DataType;
-
-const nodeset = require("..").nodeset;
-
-const createExtensionObjectDefinition = require("..").createExtensionObjectDefinition;
+const { createExtensionObjectDefinition } = require("..");
 
 
 function getFixture(file) {

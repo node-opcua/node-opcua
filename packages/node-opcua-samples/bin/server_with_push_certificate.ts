@@ -69,7 +69,7 @@ async function main() {
         process.exit(-3);
     }
 
-    const endpointUrl = server.endpoints[0].endpointDescriptions()[0].endpointUrl!;
+    const endpointUrl = server.getEndpointUrl()!;
 
     console.log(chalk.yellow("  server on port      :"), chalk.cyan(server.endpoints[0].port.toString()));
     console.log(chalk.yellow("  endpointUrl         :"), chalk.cyan(endpointUrl));

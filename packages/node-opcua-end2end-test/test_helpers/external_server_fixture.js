@@ -62,8 +62,9 @@ function start_simple_server(options, callback) {
 
     const serverCertificateFilename = constructFilename("certificates/server_cert_2048.pem");
 
-    console.log(" node ", server_script);
-
+    if (process.env.DEBUG2 || process.env.DEBUG) {
+        console.log(" node ", server_script);
+    }
     function detect_early_termination(code, signal) {
         console.log("child process terminated due to receipt of signal " + signal);
         callback(new Error("Process has terminated unexpectedly with code=" + code + " signal=" + signal));

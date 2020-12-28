@@ -1,6 +1,7 @@
 // tslint:disable:no-console
 import * as chalk from "chalk";
 import * as path from "path";
+import * as os from "os";
 
 import {
   makeApplicationUrn,
@@ -39,7 +40,7 @@ const server_options = {
   ],
 
   serverInfo: {
-    applicationUri: makeApplicationUrn("%FQDN%", "MiniNodeOPCUA-Server"),
+    applicationUri: makeApplicationUrn(os.hostname(), "MiniNodeOPCUA-Server"),
     productUri: "Mini NodeOPCUA-Server",
 
     applicationName: { text: "Mini NodeOPCUA Server", locale: "en" },
@@ -90,7 +91,7 @@ async function main() {
     process.exit(-3);
   }
 
-  const endpointUrl = server.endpoints[0].endpointDescriptions()[0].endpointUrl!;
+  const endpointUrl = server.getEndpointUrl()!;
 
   console.log(chalk.yellow("  server on port      :"), server.endpoints[0].port.toString());
   console.log(chalk.yellow("  endpointUrl         :"), chalk.cyan(endpointUrl));

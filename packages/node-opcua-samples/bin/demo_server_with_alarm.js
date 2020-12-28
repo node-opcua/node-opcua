@@ -13,11 +13,13 @@ const server_certificate_privatekey_file = constructFilename("certificates/serve
 
 const nodeset_filenames = [opcua.nodesets.standard];
 
+const port = 4334;
+
 const server = new opcua.OPCUAServer({
     certificateFile: server_certificate_file,
     privateKeyFile: server_certificate_privatekey_file,
 
-    port: 4334, // the port of the listening socket of the server
+    port, // the port of the listening socket of the server
     resourcePath: "/UA/MyLittleServer", // this path will be added to the endpoint resource name
     buildInfo: {
         productName: "urn:DemoAlarmServer",
@@ -55,7 +57,7 @@ function post_initialize() {
     server.start(function() {
         console.log("Server is now listening ... ( press CTRL+C to stop)");
         console.log("port ", server.endpoints[0].port);
-        const endpointUrl = server.endpoints[0].endpointDescriptions()[0].endpointUrl;
+        const endpointUrl = server.getEndpointUrl();
         console.log(" the primary server endpoint url is ", endpointUrl);
     });
 }

@@ -6,7 +6,7 @@
   "types": "dist/index.d.ts",
   "private": true,
   "scripts": {
-    "_build": "tsc -b",
+    "build": "tsc -b",
     "test": "mocha test"
   },
   "author": "Etienne Rossignon",

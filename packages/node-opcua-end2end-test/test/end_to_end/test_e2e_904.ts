@@ -10,11 +10,11 @@ import {
     Request
 } from "node-opcua";
 import * as should from "should";
-const port = 2020;
+const port = 2008;
 const doDebug = false;
 
 function geEndpoint(server: OPCUAServer): string {
-    return server.endpoints[0].endpointDescriptions()[0].endpointUrl!;
+    return server.getEndpointUrl()!;
 }
 
 let serverNonce: undefined | null | Buffer;

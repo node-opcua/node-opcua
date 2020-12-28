@@ -2,7 +2,9 @@
 import * as chalk from "chalk";
 import * as path from "path";
 import * as should from "should";
+import * as os from "os";
 
+const should1 = should;
 import {
     EndpointDescription,
     makeApplicationUrn,
@@ -18,7 +20,6 @@ import {
 // tslint:disable:no-var-requires
 const mocha = require("mocha");
 
-const keySize = 2048;
 const port1 = 3017;
 const port2 = 3018;
 
@@ -41,7 +42,7 @@ async function startServer() {
         ],
 
         serverInfo: {
-            applicationUri: makeApplicationUrn("%FQDN%", "MiniNodeOPCUA-Server"),
+            applicationUri: makeApplicationUrn(os.hostname(), "MiniNodeOPCUA-Server"),
             productUri: "Mini NodeOPCUA-Server",
 
             applicationName: { text: "Mini NodeOPCUA Server", locale: "en" }
@@ -114,7 +115,7 @@ async function startMultiHeadServer() {
         ],
         serverInfo: {
             applicationName: { text: "Mini NodeOPCUA Server", locale: "en" },
-            applicationUri: makeApplicationUrn("%FQDN%", "MiniNodeOPCUA-Server"),
+            applicationUri: makeApplicationUrn(os.hostname(), "MiniNodeOPCUA-Server"),
             productUri: "Mini NodeOPCUA-Server"
         },
 

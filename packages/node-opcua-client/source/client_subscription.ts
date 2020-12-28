@@ -264,4 +264,5 @@ export class ClientSubscription {
         /* istanbul ignore next*/
         throw new Error("Not Implemented");
     }
+    public static ignoreNextWarning: boolean = false;
 }

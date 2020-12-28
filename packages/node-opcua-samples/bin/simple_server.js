@@ -184,7 +184,7 @@ const paths = envPaths(productUri);
     certificateFile,
     privateKeyFile,
 
-    port: port,
+    port,
 
     maxAllowedSessionNumber: maxAllowedSessionNumber,
     maxConnectionsPerEndpoint: maxConnectionsPerEndpoint,
@@ -476,7 +476,7 @@ const paths = envPaths(productUri);
 
   console.log(chalk.yellow("\nregistering server to :") + server.discoveryServerEndpointUrl);
 
-  const endpointUrl = server.endpoints[0].endpointDescriptions()[0].endpointUrl;
+  const endpointUrl = server.getEndpointUrl();
 
   console.log(chalk.yellow("  server on port      :"), server.endpoints[0].port.toString());
   console.log(chalk.yellow("  endpointUrl         :"), endpointUrl);

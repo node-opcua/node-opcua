@@ -9,7 +9,7 @@ import {
     BonjourHolder
 } from "node-opcua-service-discovery";
 import { OPCUABaseServer } from "./base_server";
-import { IRegisterServerManager } from "./I_register_server_manager";
+import { IRegisterServerManager } from "./i_register_server_manager";
 
 /**
  * a RegisterServerManager that declare the server the OPCUA Bonjour service
