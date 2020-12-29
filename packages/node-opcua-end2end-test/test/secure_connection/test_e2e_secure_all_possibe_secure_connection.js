@@ -54,7 +54,9 @@ async function makeCertificateManager() {
     if (g_certificateManager) {
         return g_certificateManager;
     }
-    const certificateManager = new OPCUACertificateManager({});
+    const certificateManager = new OPCUACertificateManager({
+        automaticallyAcceptUnknownCertificate: true
+    });
     await certificateManager.initialize();
 
     const issuerCertificateFile = path.join(certificate_store, "CA/public/cacert.pem");
@@ -89,9 +91,7 @@ function start_inner_server_local(options, callback) {
             data.server = server;
             callback(null, data);
         });
-
     });
-
 }
 
 function stop_inner_server_local(data, callback) {

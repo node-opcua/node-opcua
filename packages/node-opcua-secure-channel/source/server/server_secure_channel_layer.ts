@@ -43,7 +43,7 @@ import { Callback2, ErrorCallback } from "node-opcua-status-code";
 
 import { SecureMessageChunkManagerOptions, SecurityHeader } from "../secure_message_chunk_manager";
 
-import { ICertificateKeyPairProvider, Request, Response } from "../common";
+import { getThumprint, ICertificateKeyPairProvider, Request, Response } from "../common";
 import { MessageBuilder, ObjectFactory } from "../message_builder";
 import { ChunkMessageOptions, MessageChunker } from "../message_chunker";
 import {
@@ -528,8 +528,7 @@ export class ServerSecureChannelLayer extends EventEmitter {
     }
 
     public getSignatureLength(): PublicKeyLength {
-        const chain = this.getCertificateChain();
-        const firstCertificateInChain = split_der(chain)[0];
+        const firstCertificateInChain = this.getCertificate();
         const cert = exploreCertificateInfo(firstCertificateInChain);
         return cert.publicKeyLength; // 1024 bits = 128Bytes or 2048=256Bytes
     }
@@ -635,7 +634,7 @@ export class ServerSecureChannelLayer extends EventEmitter {
         const securityOptions = msgType === "OPN" ? this._get_security_options_for_OPN() : this._get_security_options_for_MSG();
         if (securityOptions) {
             options = {
-                ...options, 
+                ...options,
                 ...securityOptions
             };
         }
@@ -1036,18 +1035,32 @@ export class ServerSecureChannelLayer extends EventEmitter {
             case MessageSecurityMode.Sign:
             case MessageSecurityMode.SignAndEncrypt:
             default: {
-                // get the thumbprint of the client certificate
-                const thumbprint = this.receiverCertificate ? makeSHA1Thumbprint(this.receiverCertificate) : null;
+                const receiverCertificateThumbprint = getThumprint(this.receiverCertificate);
 
-                if (!this.clientSecurityHeader) {
-                    throw new Error("Internal");
-                }
                 const asymmClientSecurityHeader = this.clientSecurityHeader as AsymmetricAlgorithmSecurityHeader;
 
+                // istanbul ignore next
                 securityHeader = new AsymmetricAlgorithmSecurityHeader({
-                    receiverCertificateThumbprint: thumbprint, // message not encrypted (????)
+                    receiverCertificateThumbprint, // message not encrypted (????)
                     securityPolicyUri: asymmClientSecurityHeader.securityPolicyUri,
-                    senderCertificate: this.getCertificateChain() // certificate of the private key used to sign the message
+                    /**
+                     * The X.509 v3 Certificate assigned to the sending application Instance.
+                     *  This is a DER encoded blob.
+                     * The structure of an X.509 v3 Certificate is defined in X.509 v3.
+                     * The DER format for a Certificate is defined in X690
+                     * This indicates what Private Key was used to sign the MessageChunk.
+                     * The Stack shall close the channel and report an error to the application if the SenderCertificate is too large for the buffer size supported by the transport layer.
+                     * This field shall be null if the Message is not signed.
+                     * If the Certificate is signed by a CA, the DER encoded CA Certificate may be 
+                     * appended after the Certificate in the byte array. If the CA Certificate is also 
+                     * signed by another CA this process is repeated until the entire Certificate chain
+                     *  is in the buffer or if MaxSenderCertificateSize limit is reached (the process 
+                     * stops after the last whole Certificate that can be added without exceeding 
+                     * the MaxSenderCertificateSize limit).
+                     * Receivers can extract the Certificates from the byte array by using the Certificate
+                     *  size contained in DER header (see X.509 v3).
+                     */
+                     senderCertificate: this.getCertificateChain() // certificate of the private key used to sign the message
                 });
             }
         }
@@ -1302,8 +1315,8 @@ export class ServerSecureChannelLayer extends EventEmitter {
 
         if (clientSecurityHeader.receiverCertificateThumbprint) {
             // check if the receiverCertificateThumbprint is my certificate thumbprint
-            const serverCertificateChain = this.getCertificateChain();
-            const myCertificateThumbPrint = makeSHA1Thumbprint(serverCertificateChain);
+            const serverCertificate = this.getCertificate();
+            const myCertificateThumbPrint = makeSHA1Thumbprint(serverCertificate);
             const thisIsMyCertificate =
                 myCertificateThumbPrint.toString("hex") === clientSecurityHeader.receiverCertificateThumbprint.toString("hex");
             if (doDebug && !thisIsMyCertificate) {

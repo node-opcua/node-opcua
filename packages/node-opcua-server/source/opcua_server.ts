@@ -38,7 +38,7 @@ import {
 import { OPCUACertificateManager } from "node-opcua-certificate-manager";
 import { ServerState } from "node-opcua-common";
 import { Certificate, exploreCertificate, Nonce, toPem } from "node-opcua-crypto";
-import { AttributeIds, NodeClass } from "node-opcua-data-model";
+import { AttributeIds, LocalizedText, NodeClass } from "node-opcua-data-model";
 import { DataValue } from "node-opcua-data-value";
 import { dump, make_debugLog, make_errorLog } from "node-opcua-debug";
 import { NodeId } from "node-opcua-nodeid";
@@ -246,18 +246,23 @@ function getRequiredEndpointInfo(endpoint: EndpointDescription) {
         securityLevel: endpoint.securityLevel,
         securityMode: endpoint.securityMode,
         securityPolicyUri: endpoint.securityPolicyUri,
-        server: { applicationUri: endpoint.server.applicationUri },
+        server: { 
+            applicationUri: endpoint.server.applicationUri,
+            applicationType: endpoint.server.applicationType,
+            applicationName: endpoint.server.applicationName,
+            // ... to be continued after verifying what fields are actually needed
+        },
         transportProfileUri: endpoint.transportProfileUri,
         userIdentityTokens: endpoint.userIdentityTokens
     });
     // reduce even further by explicitly setting unwanted members to null
-    (e as any).productUri = null;
-    (e as any).applicationName = null;
-    (e as any).applicationType = null;
-    (e as any).gatewayServerUri = null;
-    (e as any).discoveryProfileUri = null;
-    (e as any).discoveryUrls = null;
-    (e as any).serverCertificate = null;
+    e.server.productUri = null;
+    e.server.applicationName = null as any;
+    //xxx e.server.applicationType = null as any;
+    e.server.gatewayServerUri = null;
+    e.server.discoveryProfileUri = null;
+    e.server.discoveryUrls = null;
+    e.serverCertificate = null as any;
     return e;
 }
 
@@ -1314,9 +1319,9 @@ export class OPCUAServer extends OPCUABaseServer {
     ): boolean {
         const clientCertificate = channel.receiverCertificate!;
         const securityPolicy = channel.messageBuilder.securityPolicy;
-        const serverCertificateChain = this.getCertificateChain();
+        const serverCertificate = this.getCertificate();
 
-        const result = verifySignature(serverCertificateChain, session.nonce!, clientSignature, clientCertificate, securityPolicy);
+        const result = verifySignature(serverCertificate, session.nonce!, clientSignature, clientCertificate, securityPolicy);
 
         return result;
     }

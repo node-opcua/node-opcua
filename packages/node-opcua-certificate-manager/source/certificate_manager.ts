@@ -9,7 +9,7 @@ import * as mkdirp from "mkdirp";
 import envPaths from "env-paths";
 import { checkDebugFlag, make_debugLog, make_errorLog } from "node-opcua-debug";
 
-import { Certificate, exploreCertificateInfo, makeSHA1Thumbprint, readCertificate, toPem } from "node-opcua-crypto";
+import { Certificate, exploreCertificateInfo, makeSHA1Thumbprint, readCertificate, split_der, toPem } from "node-opcua-crypto";
 import { CertificateManager, CertificateManagerOptions, CertificateStatus } from "node-opcua-pki";
 import { StatusCodes } from "node-opcua-status-code";
 import { StatusCode } from "node-opcua-status-code";
@@ -83,10 +83,12 @@ export class OPCUACertificateManager extends CertificateManager implements ICert
         this.automaticallyAcceptUnknownCertificate = !!options.automaticallyAcceptUnknownCertificate;
     }
 
-    public checkCertificate(certificate: Certificate): Promise<StatusCode>;
-    public checkCertificate(certificate: Certificate, callback: StatusCodeCallback): void;
-    public checkCertificate(certificate: Certificate, callback?: StatusCodeCallback): Promise<StatusCode> | void {
-        super.verifyCertificate(certificate, (err1?: Error | null, status?: string) => {
+    public checkCertificate(certificateChain: Certificate): Promise<StatusCode>;
+    public checkCertificate(certificateChain: Certificate, callback: StatusCodeCallback): void;
+    public checkCertificate(certificateChain: Certificate, callback?: StatusCodeCallback): Promise<StatusCode> | void {
+        
+        super.verifyCertificate(certificateChain, (err1?: Error | null, status?: string) => {
+
             if (err1) {
                 return callback!(err1);
             }
@@ -94,15 +96,15 @@ export class OPCUACertificateManager extends CertificateManager implements ICert
 
             debugLog("checkCertificate => StatusCode = ", statusCode.toString());
             if (statusCode === StatusCodes.BadCertificateUntrusted) {
-                const thumbprint = makeSHA1Thumbprint(certificate).toString("hex");
+                const thumbprint = makeSHA1Thumbprint(certificateChain).toString("hex");
                 if (this.automaticallyAcceptUnknownCertificate) {
                     debugLog("automaticallyAcceptUnknownCertificate = true");
                     debugLog("certificate with thumbprint " + thumbprint + " is now trusted");
-                    return this.trustCertificate(certificate, () => callback!(null, StatusCodes.Good));
+                    return this.trustCertificate(certificateChain, () => callback!(null, StatusCodes.Good));
                 } else {
                     debugLog("automaticallyAcceptUnknownCertificate = false");
                     debugLog("certificate with thumbprint " + thumbprint + " is now rejected");
-                    return this.rejectCertificate(certificate, () => callback!(null, StatusCodes.BadCertificateUntrusted));
+                    return this.rejectCertificate(certificateChain, () => callback!(null, StatusCodes.BadCertificateUntrusted));
                 }
             }
 
