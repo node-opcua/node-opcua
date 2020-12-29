@@ -14,7 +14,7 @@
         "clean": "node -e \"require('rimraf').sync('dist');\""
     },
     "dependencies": {
-        "@types/lodash": "4.14.165",
+        "@types/lodash": "4.14.166",
         "async": "^3.2.0",
         "chalk": "^4.1.0",
         "dequeue": "^1.0.5",
