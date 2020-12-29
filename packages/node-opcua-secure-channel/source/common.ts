@@ -1,6 +1,7 @@
 /**
  * @module node-opcua-secure-channel
  */
+import { makeSHA1Thumbprint, split_der } from "node-opcua-crypto";
 import { TypeSchemaBase } from "node-opcua-factory";
 import { CloseSecureChannelRequest, MessageSecurityMode, RequestHeader, ResponseHeader } from "node-opcua-service-secure-channel";
 import { ServiceFault } from "./services";
@@ -21,3 +22,17 @@ export interface RequestB {
 export type Request = RequestB | CloseSecureChannelRequest;
 
 export { ICertificateKeyPairProvider } from "node-opcua-common";
+
+export function extractFirstCertificateInChain(certificateChain?: Buffer | null): Buffer | null {
+    if (!certificateChain) {
+        return null;
+    }
+    const c =  split_der(certificateChain);
+    return c[0];
+}
+export function getThumprint(certificateChain: Buffer|null): Buffer | null {
+    if (!certificateChain) {
+        return null;
+    }
+    return makeSHA1Thumbprint(extractFirstCertificateInChain(certificateChain)!);
+}

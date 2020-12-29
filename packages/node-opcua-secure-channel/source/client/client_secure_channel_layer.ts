@@ -16,7 +16,8 @@ import {
     makeSHA1Thumbprint,
     PrivateKeyPEM,
     PublicKeyPEM,
-    rsa_length
+    rsa_length,
+    split_der
 } from "node-opcua-crypto";
 
 import { assert } from "node-opcua-assert";
@@ -69,7 +70,7 @@ const doTraceStatistics = process.env.NODEOPCUADEBUG && process.env.NODEOPCUADEB
 const doPerfMonitoring = process.env.NODEOPCUADEBUG && process.env.NODEOPCUADEBUG.indexOf("PERF") >= 0;
 const dumpSecurityHeader = process.env.NODEOPCUADEBUG && process.env.NODEOPCUADEBUG.indexOf("SECURITY") >= 0;
 
-import { ICertificateKeyPairProvider, Request, Response } from "../common";
+import { extractFirstCertificateInChain, getThumprint, ICertificateKeyPairProvider, Request, Response } from "../common";
 import * as async from "async";
 
 export const requestHandleNotSetValue = 0xdeadbeef;
@@ -338,7 +339,7 @@ export class ClientSecureChannelLayer extends EventEmitter {
     constructor(options: ClientSecureChannelLayerOptions) {
         super();
 
-        this.securityHeader = null;
+        this.securityHeader = null; 
         this.receiverCertificate = null;
         this.securityToken = null;
         this.serverNonce = null;
@@ -371,7 +372,7 @@ export class ClientSecureChannelLayer extends EventEmitter {
 
         this.securityPolicy = coerceSecurityPolicy(options.securityPolicy);
 
-        this.serverCertificate = options.serverCertificate ? options.serverCertificate : null;
+        this.serverCertificate = extractFirstCertificateInChain(options.serverCertificate);
 
         if (this.securityMode !== MessageSecurityMode.None) {
             assert(
@@ -379,6 +380,7 @@ export class ClientSecureChannelLayer extends EventEmitter {
                 "Expecting a valid certificate when security mode is not None"
             );
             assert(this.securityPolicy !== SecurityPolicy.None, "Security Policy None is not a valid choice");
+            // make sure that we do not have a chain here ...
         }
 
         this.messageBuilder = new MessageBuilder({
@@ -436,6 +438,9 @@ export class ClientSecureChannelLayer extends EventEmitter {
 
     public getCertificateChain(): Certificate | null {
         return this.parent ? this.parent.getCertificateChain() : null;
+    }
+    public getCertificate(): Certificate | null {
+        return this.parent ? this.parent.getCertificate() : null;
     }
 
     public toString(): string {
@@ -1520,20 +1525,36 @@ export class ClientSecureChannelLayer extends EventEmitter {
     }
 
     private _construct_security_header() {
-        assert(this.hasOwnProperty("securityMode"));
-        assert(this.hasOwnProperty("securityPolicy"));
         this.receiverCertificate = this.serverCertificate ? Buffer.from(this.serverCertificate) : null;
-
         let securityHeader = null;
         switch (this.securityMode) {
             case MessageSecurityMode.Sign:
             case MessageSecurityMode.SignAndEncrypt: {
                 assert(this.securityPolicy !== SecurityPolicy.None);
                 // get the thumbprint of the client certificate
-                const thumbprint = this.receiverCertificate ? makeSHA1Thumbprint(this.receiverCertificate) : null;
+                const receiverCertificateThumbprint = getThumprint(this.receiverCertificate);
+                
                 securityHeader = new AsymmetricAlgorithmSecurityHeader({
-                    receiverCertificateThumbprint: thumbprint, // thumbprint of the public key used to encrypt the message
+                    receiverCertificateThumbprint, // thumbprint of the public key used to encrypt the message
                     securityPolicyUri: toURI(this.securityPolicy),
+
+                    /**
+                     * The X.509 v3 Certificate assigned to the sending application Instance.
+                     *  This is a DER encoded blob.
+                     * The structure of an X.509 v3 Certificate is defined in X.509 v3.
+                     * The DER format for a Certificate is defined in X690
+                     * This indicates what Private Key was used to sign the MessageChunk.
+                     * The Stack shall close the channel and report an error to the application if the SenderCertificate is too large for the buffer size supported by the transport layer.
+                     * This field shall be null if the Message is not signed.
+                     * If the Certificate is signed by a CA, the DER encoded CA Certificate may be 
+                     * appended after the Certificate in the byte array. If the CA Certificate is also 
+                     * signed by another CA this process is repeated until the entire Certificate chain
+                     *  is in the buffer or if MaxSenderCertificateSize limit is reached (the process 
+                     * stops after the last whole Certificate that can be added without exceeding 
+                     * the MaxSenderCertificateSize limit).
+                     * Receivers can extract the Certificates from the byte array by using the Certificate
+                     *  size contained in DER header (see X.509 v3).
+                     */
                     senderCertificate: this.getCertificateChain() // certificate of the private key used to sign the message
                 });
 
