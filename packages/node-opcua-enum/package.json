@@ -6,7 +6,7 @@
         "build": "tsc -b",
         "lint": "tslint source/**/*.ts",
         "clean": "node -e \"require('rimraf').sync('dist');\"",
-        "test": "mocha test"
+        "test": "mocha"
     },
     "main": "./dist/index.js",
     "@types": "./dist/index.d.ts",

@@ -1,9 +1,10 @@
 module.exports = {
    recursive: true,
    diff: true,
-   extension: [".ts"],
+   extension: [".ts", ".js"],
    spec: ["test/*.ts"],
    bail: true,
+   timeout: 20000,
    require: [
       "../../node_modules/should",
       "../../node_modules/ts-node/register",

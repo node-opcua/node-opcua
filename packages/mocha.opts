@@ -1,4 +1,0 @@
---colors
---recursive
-node-opcua-address-space/test
---require ../node_modules/source-map-support/register

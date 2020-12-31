@@ -74,7 +74,15 @@ export function subtest_analog_item_semantic_changed(maintest: any) {
             });
         });
 
-        it("should emit a 'semantic_changed' event when EURange changes", async () => {
+        it("should increase semantic_version when EURange changes", async () => {
+
+            analogItem.semantic_version.should.eql(0);
+            const original_semantic_version = analogItem.semantic_version;
+            await modifyEURange(analogItem);
+            analogItem.semantic_version.should.eql(original_semantic_version + 1);
+        });
+        
+        it("should increase 'semantic_' event when EURange changes", async () => {
 
             analogItem.semantic_version.should.eql(0);
 

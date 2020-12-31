@@ -1,0 +1,8 @@
+recursive: true
+bail: true
+require:
+  -  ../../node_modules/source-map-support/register
+  - ../../node_modules/ts-node/register
+extension:
+  - ts
+  - js

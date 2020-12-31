@@ -8,7 +8,7 @@
 		"lint": "tslint source/**/*.ts",
 		"build": "tsc -b",
 		"clean": "node -e \"require('rimraf').sync('dist');\"",
-		"test": "mocha test"
+		"test": "mocha "
 	},
 	"dependencies": {
 		"@types/underscore": "^1.10.24",

@@ -1,0 +1,8 @@
+require:
+ - ../../node_modules/source-map-support/register
+ - ../../node_modules/ts-node/register
+ - ../../node_modules/should
+timeout: 30000
+extension:
+  - ts
+  - js

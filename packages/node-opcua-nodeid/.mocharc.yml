@@ -1,0 +1,4 @@
+recursive: true
+bail: true
+require:
+- ../../node_modules/source-map-support/register

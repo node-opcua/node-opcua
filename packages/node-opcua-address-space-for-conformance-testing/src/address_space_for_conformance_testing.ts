@@ -23,6 +23,10 @@ import { QualifiedName, LocalizedText } from "node-opcua-data-model";
 import { standardUnits } from "node-opcua-data-access";
 import { add_eventGeneratorObject } from "node-opcua-address-space/testHelpers";
 
+interface RangeOptions {
+    low: number;
+    high: number;
+}
 function defaultValidator(/*value*/) {
     return true;
 }
@@ -65,8 +69,10 @@ function getRandomFuncForType(dataType: DataType): () => any {
     }
 }
 
-function _findDataType(dataTypeName: string) {
+function _findDataType(dataTypeName: string): DataType {
+
     const builtInDataTypeName = findBuiltInType(dataTypeName);
+
     const dataType = (DataType as any)[builtInDataTypeName.name];
     // istanbul ignore next
     if (!dataType) {
@@ -105,7 +111,6 @@ function makeVariant(dataTypeName: string, isArray: boolean, current_value: any)
         arrayType = VariantArrayType.Array;
     }
     const dataType = _findDataType(dataTypeName);
-    assert(!dataType.isAbstract);
 
     const validatorFunc = getValidatorFuncForType(dataType);
 
@@ -845,11 +850,7 @@ function add_very_large_array_variables(namespace: Namespace, objectsFolder: UAO
 //           TwoStateDiscreteType     MultiStateDiscreteType                MutliStateValueDiscreteType
 //
 function add_analog_data_items(namespace: Namespace, parentFolder: UAObject): void {
-    function _addDataItem(localParentFolder: UAObject, dataType: string, initialValue: any): void {
-        // istanbul ignore next
-        if (!(DataType as any)[dataType]) {
-            throw new Error(" Invalid dataType " + dataType);
-        }
+    function _addDataItem(localParentFolder: UAObject, dataType: DataType, initialValue: any): void {
 
         const name = dataType + "DataItem";
         const nodeId = "s=" + name;
@@ -862,14 +863,12 @@ function add_analog_data_items(namespace: Namespace, parentFolder: UAObject): vo
             dataType,
             value: {
                 arrayType: VariantArrayType.Scalar,
-                dataType: (DataType as any)[dataType],
+                dataType: dataType,
                 value: initialValue
             }
         });
     }
-    function makeRange(dataTypeStr: string): any {
-        assert(typeof dataTypeStr === "string");
-        const dataType = (DataType as any)[dataTypeStr];
+    function makeRange(dataType: DataType): {  engineeringUnitsRange: RangeOptions, instrumentRange: RangeOptions } {
         let engineeringUnitsRange = { low: -200, high: 200 };
         let instrumentRange = { low: -200, high: 200 };
         if (DataType[dataType][0] === "U" || dataType === DataType.Byte) {
@@ -878,17 +877,14 @@ function add_analog_data_items(namespace: Namespace, parentFolder: UAObject): vo
         }
         return { engineeringUnitsRange, instrumentRange };
     }
-    function _addAnalogDataItem(localParentFolder: UAObject, dataType: string, initialValue: any): void {
-        // istanbul ignore next
-        if (!(DataType as any)[dataType]) {
-            throw new Error(" Invalid dataType " + dataType);
-        }
 
+    function _addAnalogDataItem(localParentFolder: UAObject, dataType: DataType, initialValue: any): void {
+ 
         const { engineeringUnitsRange, instrumentRange } = makeRange(dataType);
         assert(
             Array.isArray(initialValue) || (initialValue >= engineeringUnitsRange.low && initialValue <= engineeringUnitsRange.high)
         );
-        const name = dataType + "AnalogDataItem";
+        const name = (DataType as any)[dataType]+ "AnalogDataItem";
         const nodeId = "s=" + name;
         // UAAnalogItem
         // add a UAAnalogItem
@@ -905,18 +901,15 @@ function add_analog_data_items(namespace: Namespace, parentFolder: UAObject): vo
             dataType,
             value: {
                 arrayType: VariantArrayType.Scalar,
-                dataType: (DataType as any)[dataType],
+                dataType: dataType,
                 value: initialValue
             }
         });
     }
 
-    function _addArrayAnalogDataItem(localParentFolder: UAObject, dataType: string, initialValue: any) {
-        // istanbul ignore next
-        if (!(DataType as any)[dataType]) {
-            throw new Error(" Invalid dataType " + dataType);
-        }
-        const name = dataType + "ArrayAnalogDataItem";
+    function _addArrayAnalogDataItem(localParentFolder: UAObject, dataType: DataType, initialValue: any) {
+ 
+        const name = (DataType as any)[dataType] + "ArrayAnalogDataItem";
         const nodeId = "s=" + name;
         // UAAnalogItem
         const { engineeringUnitsRange, instrumentRange } = makeRange(dataType);
@@ -934,7 +927,7 @@ function add_analog_data_items(namespace: Namespace, parentFolder: UAObject): vo
             dataType,
             value: {
                 arrayType: VariantArrayType.Array,
-                dataType: (DataType as any)[dataType],
+                dataType: dataType,
                 value: [initialValue, initialValue, initialValue, initialValue, initialValue]
             }
         });
@@ -951,7 +944,7 @@ function add_analog_data_items(namespace: Namespace, parentFolder: UAObject): vo
     const name = "DoubleAnalogDataItemWithEU";
     const nodeId = "s=" + name;
 
-    const { engineeringUnitsRange, instrumentRange } = makeRange("Double");
+    const { engineeringUnitsRange, instrumentRange } = makeRange(DataType.Double);
     namespace.addAnalogDataItem({
         componentOf: analogItemFolder,
         nodeId,
@@ -970,16 +963,16 @@ function add_analog_data_items(namespace: Namespace, parentFolder: UAObject): vo
     });
 
     const data = [
-        { dataType: "Double", value: 3.14 },
-        { dataType: "Float", value: 3.14 },
-        { dataType: "Int16", value: -10 },
-        { dataType: "UInt16", value: 10 },
-        { dataType: "Int32", value: -100 },
-        { dataType: "UInt32", value: 100 },
-        { dataType: "Int64", value: [0, 0] },
-        { dataType: "UInt64", value: [0, 0] },
-        { dataType: "Byte", value: 65 },
-        { dataType: "SByte", value: -23 }
+        { dataType: DataType.Double, value: 3.14 },
+        { dataType: DataType.Float, value: 3.14 },
+        { dataType: DataType.Int16, value: -10 },
+        { dataType: DataType.UInt16, value: 10 },
+        { dataType: DataType.Int32, value: -100 },
+        { dataType: DataType.UInt32, value: 100 },
+        { dataType: DataType.Int64, value: [0, 0] },
+        { dataType: DataType.UInt64, value: [0, 0] },
+        { dataType: DataType.Byte, value: 65 },
+        { dataType: DataType.SByte, value: -23 }
     ];
 
     data.forEach((e) => {
@@ -989,8 +982,8 @@ function add_analog_data_items(namespace: Namespace, parentFolder: UAObject): vo
     data.forEach((e) => {
         _addDataItem(analogItemFolder, e.dataType, e.value);
     });
-    _addDataItem(analogItemFolder, "String", "some string");
-    _addDataItem(analogItemFolder, "DateTime", new Date());
+    _addDataItem(analogItemFolder, DataType.String, "some string");
+    _addDataItem(analogItemFolder, DataType.DateTime, new Date());
 
     data.forEach((e) => {
         _addArrayAnalogDataItem(analogItemFolder, e.dataType, e.value);

@@ -1,3 +1,4 @@
+import "should";
 import {
     OPCUAClient,
     OPCUAServer,
@@ -9,6 +10,8 @@ import {
     HistoryReadValueIdOptions2,
     AggregateFunction,
 } from "node-opcua";
+
+
 import { addAggregateSupport  } from "node-opcua-aggregates";
 import {
     createHistorian1,
@@ -16,7 +19,6 @@ import {
     createHistorian3,
     createHistorian4
 } from "node-opcua-aggregates/test/helpers/create_historizing_variables";
-import { ClientSessionKeepAliveManagerEvents } from "node-opcua-client/dist/client_session_keepalive_manager";
 
 const year = 2018;
 const month = 10;

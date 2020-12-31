@@ -6,7 +6,7 @@
         "postinstall": "node test_helpers/create_certificates.js certificate -s -o certificates/client_selfsigned_cert_2048.pem",
         "pretest": "node test_helpers/create_certificates.js certificate -s -o certificates/client_selfsigned_cert_2048.pem",
         "clean": "node -e \"require('rimraf').sync('certificates');\"  && node -e \"require('rimraf').sync('dist');\"",
-        "test": "mocha test/*.js",
+        "test": "mocha",
         "build": "tsc -b",
         "lint": "tslint source/**/*.ts",
         "doc": "typedoc --options typedoc.js"

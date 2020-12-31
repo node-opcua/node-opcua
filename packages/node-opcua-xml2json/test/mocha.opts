@@ -1,6 +1,0 @@
--r ../../node_modules/source-map-support/register
---require ../../node_modules/ts-node/register/transpile-only
---recursive
---bail
---timeout 500000
-test/**.ts
