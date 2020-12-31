@@ -7,7 +7,7 @@
   "scripts": {
     "generate": "tsc -b tsconfig.pre.json && ts-node source/generate && tsc -b",
     "build": "npm run generate",
-    "test": "mocha -r ts-node/register test/**/*.ts",
+    "test": "mocha",
     "clean": "node -e \"require('rimraf').sync('dist');\""
   },
   "dependencies": {

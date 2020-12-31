@@ -1,10 +1,12 @@
 require:
   - ../../node_modules/source-map-support/register
   - ../../node_modules/ts-node/register/transpile-only
-recursive: tue
+  - ../../node_modules/should
+recursive: true
 bail: true
 extension:
   - js
   - ts
 timeout: 500000
-parallel: false
+parallel: true
+# jobs: 10

@@ -7,7 +7,7 @@
     "scripts": {
         "build": "tsc -b",
         "clean": "node -e \"require('rimraf').sync('dist');\"",
-        "test": "mocha test"
+        "test": "mocha"
     },
     "dependencies": {
         "browser-process-hrtime": "^1.0.0",

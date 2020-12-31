@@ -4,7 +4,7 @@
     "description": "pure nodejs OPCUA SDK - module -service-query",
     "scripts": {
         "build": "tsc -b",
-        "test": "mocha test",
+        "test": "mocha",
         "clean": "node -e \"require('rimraf').sync('dist');\"",
         "__qgenerate": "node ./generate"
     },

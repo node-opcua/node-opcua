@@ -6,7 +6,7 @@
     "types": "./dist/index.d.ts",
     "scripts": {
         "build": "tsc -b",
-        "test": "mocha test",
+        "test": "mocha",
         "clean": "node -e \"require('rimraf').sync('dist');\" && node -e \"require('rimraf').sync('_generated_');\"",
         "deprected_generate": "node ./generate"
     },

@@ -1,3 +1,0 @@
---recursive
---bail
---require ../../node_modules/source-map-support/register

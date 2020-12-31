@@ -3,7 +3,7 @@
     "version": "2.28.1",
     "description": "pure nodejs OPCUA SDK - module -service-history",
     "scripts": {
-        "test": "mocha test",
+        "test": "mocha",
         "clean": "node -e \"require('rimraf').sync('dist');\"",
         "build": "tsc -b"
     },

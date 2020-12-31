@@ -1,8 +1,7 @@
 import { nodesets } from "node-opcua-nodesets";
 import { getFullyQualifiedDomainName } from "node-opcua-hostname";
 import { OPCUAServer } from "..";
-
-//const os = require("os");
+import "should";
 
 // tslint:disable:no-var-requires
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;

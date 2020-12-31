@@ -1,0 +1,13 @@
+recursive: true
+timeout: 50000
+require:
+ - ../../node_modules/source-map-support/register
+ - ../../node_modules/ts-node/register
+ - ../../node_modules/should
+extension:
+  - ts
+  - js
+files: 
+ - test/**/*.ts
+ - test/**/*.js
+

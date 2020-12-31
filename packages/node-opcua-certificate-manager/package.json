@@ -6,7 +6,7 @@
         "certificate": "node test_helpers/create_certificates.js certificate -s -o certificates/client_selfsigned_cert_2048.pem",
         "pretest": "npm run certificate",
         "clean": "node -e \"require('rimraf').sync('certificates');\"  && node -e \"require('rimraf').sync('dist');\"",
-        "test": "mocha test/*.ts",
+        "test": "mocha",
         "test-typescript": "npx mocha test/*.ts",
         "build": "tsc -b",
         "lint": "tslint source/**/*.ts",

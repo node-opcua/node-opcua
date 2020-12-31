@@ -100,7 +100,7 @@ module.exports = function (test) {
                         attributeId: AttributeIds.Value
                     },
                     {
-                        samplingInterval: 10,
+                        samplingInterval: 100,
                         discardOldest: true,
                         queueSize: 1
                 }, TimestampsToReturn.Both);

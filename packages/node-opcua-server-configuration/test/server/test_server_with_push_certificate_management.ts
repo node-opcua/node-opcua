@@ -40,6 +40,7 @@ const doDebug = checkDebugFlag("ServerConfiguration");
 const debugLog = make_debugLog("ServerConfiguration");
 const errorLog = make_errorLog("ServerConfiguration");
 
+
 // make sure extra error checking is made on object constructions
 // tslint:disable-next-line:no-var-requires
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
@@ -78,9 +79,10 @@ describe("Testing server configured with push certificate management", () => {
         clientPrivateKeyFile = clientCertificateManager.privateKey;
     });
 
+
     it("SCT-1 should modify a server to support push certificate management", async () => {
         const server = new OPCUAServer({
-            port: 20000,
+            port,
             serverCertificateManager: certificateManager,
             userCertificateManager: certificateManager
         });
