@@ -7,7 +7,7 @@ const OPCUAClient = opcua.OPCUAClient;
 const SecurityPolicy = opcua.SecurityPolicy;
 const MessageSecurityMode = opcua.MessageSecurityMode;
 
-const build_server_with_temperature_device = require("../../test_helpers/build_server_with_temperature_device").build_server_with_temperature_device;
+const { build_server_with_temperature_device } = require("../../test_helpers/build_server_with_temperature_device");
 
 
 const crypto_utils = require("node-opcua-crypto");

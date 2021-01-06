@@ -111,7 +111,6 @@ describe("ServerEngine - addMethod", function() {
         method.bindMethod(function(inputArguments, context, callback) {
 
             const nbBarks = inputArguments[0].value;
-            console.log("Hello World ! I will bark ", nbBarks, "times");
             const barks = [];
             for (let i = 0; i < nbBarks; i++) {
                 barks.push("Whaff");
@@ -178,7 +177,7 @@ describe("ServerEngine - addMethod", function() {
             callMethodResponse.statusCode.should.eql(StatusCodes.Good);
             callMethodResponse.outputArguments.length.should.eql(1);
             callMethodResponse.outputArguments[0].value.should.eql(["Whaff", "Whaff", "Whaff"]);
-            console.log(" Result = ", callMethodResponse.outputArguments[0].value);
+            // xx console.log(" Result = ", callMethodResponse.outputArguments[0].value);
         });
 
     });

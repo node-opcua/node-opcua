@@ -15,6 +15,7 @@ const resolveNodeId = opcua.resolveNodeId;
 const doDebug = false;
 
 
+const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 module.exports = function(test) {
 
     describe("Testing ClientMonitoredItemGroup", function() {

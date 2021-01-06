@@ -49,32 +49,32 @@ describe("MessageBuilder", function() {
      */
     function test_behavior_with_bad_packet(test_case_name, bad_packet, done) {
 
-        //xx redirectToFile("MessageBuilder_" + test_case_name + ".log", function () {
+        redirectToFile("MessageBuilder_" + test_case_name + ".log", function () {
 
-        const messageBuilder = new MessageBuilder();
+            const messageBuilder = new MessageBuilder();
 
-        let full_message_body_event_received = false;
-        let on_message__received = false;
+            let full_message_body_event_received = false;
+            let on_message__received = false;
 
-        messageBuilder.
-            on("message", function(message) {
-                on_message__received = true;
+            messageBuilder.
+                on("message", function(message) {
+                    on_message__received = true;
 
-            }).
-            on("full_message_body", function(full_message_body) {
-                full_message_body_event_received = true;
+                }).
+                on("full_message_body", function(full_message_body) {
+                    full_message_body_event_received = true;
 
-            }).
-            on("error", function(err) {
-                err.should.be.instanceOf(Error);
-                on_message__received.should.equal(false);
-                full_message_body_event_received.should.equal(true);
-                done();
-            });
+                }).
+                on("error", function(err) {
+                    err.should.be.instanceOf(Error);
+                    on_message__received.should.equal(false);
+                    full_message_body_event_received.should.equal(true);
+                    done();
+                });
 
 
-        messageBuilder.feed(bad_packet); // OpenSecureChannel message
-        //}, function () {});
+            messageBuilder.feed(bad_packet); // OpenSecureChannel message
+            }, function () {});
 
     }
 

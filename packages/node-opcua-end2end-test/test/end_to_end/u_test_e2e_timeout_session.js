@@ -3,6 +3,7 @@ const sinon = require("sinon");
 
 const { OPCUAClient } = require("node-opcua");
 
+const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 
 module.exports = function(test) {
 

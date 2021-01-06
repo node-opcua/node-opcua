@@ -25,9 +25,6 @@ const argv = require("yargs")
     .argv;
 
 const rootFolder = path.join(__dirname, "../");
-function constructFilename(pathname) {
-    return path.join(__dirname, "../../", pathname);
-}
 
 const OPCUAServer = opcua.OPCUAServer;
 const nodesets = opcua.nodesets;
@@ -35,12 +32,7 @@ const nodesets = opcua.nodesets;
 
 const port = parseInt(argv.port) || 26555;
 
-const server_certificate_file = constructFilename("certificates/server_cert_2048.pem");
-const server_certificate_privatekey_file = constructFilename("certificates/server_key_2048.pem");
-
 const server_options = {
-    certificateFile: server_certificate_file,
-    privateKeyFile: server_certificate_privatekey_file,
     port,
     nodeset_filename: [
         nodesets.standard,

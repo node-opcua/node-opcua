@@ -3,7 +3,7 @@
 
 const async = require("async");
 const should = require("should");
-const perform_operation_on_client_session = require("../../test_helpers/perform_operation_on_client_session").perform_operation_on_client_session;
+const { perform_operation_on_client_session } = require("../../test_helpers/perform_operation_on_client_session");
 
 const opcua = require("node-opcua");
 const makeNodeId = opcua.makeNodeId;

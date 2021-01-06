@@ -15,6 +15,11 @@ import {
 } from "..";
 import { generateAddressSpace } from "../nodeJS";
 
+
+import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
+const debugLog = make_debugLog("TEST");
+const doDebug = checkDebugFlag("TEST");
+
 describe("testing ArgumentList special encode/decode process", () => {
     it("should encode/decode an ArgumentList (scalar)", () => {
         const definition = [{ dataType: DataType.UInt32 }];
@@ -111,8 +116,8 @@ describe("verifyArguments_ArgumentList", () => {
         const result = verifyArguments_ArgumentList(addressSpace, methodInputArgumentsOneUInt32, args);
 
         // tslint:disable: no-console
-        console.log("inputArgumentResults[0]", result.inputArgumentResults![0].toString());
-        console.log("statusCode             ", result.statusCode.toString());
+        debugLog("inputArgumentResults[0]", result.inputArgumentResults![0].toString());
+        debugLog("statusCode             ", result.statusCode.toString());
 
         result.should.eql({
             inputArgumentResults: [StatusCodes.Good],
@@ -123,8 +128,8 @@ describe("verifyArguments_ArgumentList", () => {
         const argsBad = [new Variant({ dataType: DataType.String, value: "Bad" })];
         const result = verifyArguments_ArgumentList(addressSpace, methodInputArgumentsOneUInt32, argsBad);
         // tslint:disable: no-console
-        console.log("inputArgumentResults[0]", result.inputArgumentResults![0].toString());
-        console.log("statusCode             ", result.statusCode.toString());
+        debugLog("inputArgumentResults[0]", result.inputArgumentResults![0].toString());
+        debugLog("statusCode             ", result.statusCode.toString());
         result.should.eql({
             inputArgumentResults: [StatusCodes.BadTypeMismatch],
             statusCode: StatusCodes.BadInvalidArgument
@@ -150,8 +155,8 @@ describe("verifyArguments_ArgumentList", () => {
         ];
         const result = verifyArguments_ArgumentList(addressSpace, methodInputArgumentsOneArrayOfAny, argsGood1);
         // tslint:disable: no-console
-        console.log("inputArgumentResults[0]", result.inputArgumentResults![0].toString());
-        console.log("statusCode             ", result.statusCode.toString());
+        debugLog("inputArgumentResults[0]", result.inputArgumentResults![0].toString());
+        debugLog("statusCode             ", result.statusCode.toString());
         result.should.eql({
             inputArgumentResults: [StatusCodes.Good],
             statusCode: StatusCodes.Good
@@ -168,8 +173,8 @@ describe("verifyArguments_ArgumentList", () => {
         ];
         const result = verifyArguments_ArgumentList(addressSpace, methodInputArgumentsOneArrayOfAny, argsBad);
         // tslint:disable: no-console
-        console.log("inputArgumentResults[0]", result.inputArgumentResults![0].toString());
-        console.log("statusCode             ", result.statusCode.toString());
+        debugLog("inputArgumentResults[0]", result.inputArgumentResults![0].toString());
+        debugLog("statusCode             ", result.statusCode.toString());
         result.should.eql({
             inputArgumentResults: [StatusCodes.BadTypeMismatch],
             statusCode: StatusCodes.BadInvalidArgument
@@ -185,8 +190,8 @@ describe("verifyArguments_ArgumentList", () => {
         ];
         const result = verifyArguments_ArgumentList(addressSpace, methodInputArgumentsOneArrayOfAny, argsBad);
         // tslint:disable: no-console
-        console.log("inputArgumentResults[0]", result.inputArgumentResults![0].toString());
-        console.log("statusCode             ", result.statusCode.toString());
+        debugLog("inputArgumentResults[0]", result.inputArgumentResults![0].toString());
+        debugLog("statusCode             ", result.statusCode.toString());
         result.should.eql({
             inputArgumentResults: [StatusCodes.Good],
             statusCode: StatusCodes.Good

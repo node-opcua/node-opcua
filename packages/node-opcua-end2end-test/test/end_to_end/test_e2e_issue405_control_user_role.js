@@ -6,9 +6,9 @@ const opcua = require("node-opcua");
 const OPCUAClient = opcua.OPCUAClient;
 const StatusCodes = opcua.StatusCodes;
 
-const build_server_with_temperature_device = require("../../test_helpers/build_server_with_temperature_device").build_server_with_temperature_device;
+const { build_server_with_temperature_device } = require("../../test_helpers/build_server_with_temperature_device");
 
-const perform_operation_on_client_session = require("../../test_helpers/perform_operation_on_client_session").perform_operation_on_client_session;
+const { perform_operation_on_client_session } = require("../../test_helpers/perform_operation_on_client_session");
 
 
 const users = [

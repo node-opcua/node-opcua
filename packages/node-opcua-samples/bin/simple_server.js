@@ -27,10 +27,6 @@ const {
 
 Error.stackTraceLimit = Infinity;
 
-function constructFilename(filename) {
-  return path.join(__dirname, "../", filename);
-}
-
 
 const argv = yargs(process.argv)
   .wrap(132)
@@ -456,12 +452,11 @@ const paths = envPaths(productUri);
   post_initialize();
 
 
-  function dumpObject(obj) {
+  function dumpObject(node) {
     function w(str, width) {
       const tmp = str + "                                        ";
       return tmp.substr(0, width);
     }
-
     return Object.entries(node).map((key,value) =>
      "      " + w(key, 30) + "  : " + ((value === null) ? null : value.toString())
     ).join("\n");

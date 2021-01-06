@@ -24,6 +24,8 @@ describe("testing Client - Umbrella-A ", function() {
     afterEach((done)  => afterEachTest(test,done));
     after((done)      => afterTest(test,done));
     
+    require("./u_test_e2e_client")(test);
+ 
     require("./u_test_e2e_call_service")(test);
     require("./u_test_e2e_ClientSession_readVariableValue")(test);
     require("./u_test_e2e_client_node_crawler")(test);

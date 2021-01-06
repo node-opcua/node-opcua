@@ -12,8 +12,9 @@ const { makeBoiler } = require("node-opcua-address-space/testHelpers");
 const { UAProxyManager } = require("node-opcua-client-proxy");
 
 
-const doDebug = false;
-
+const { make_debugLog, checkDebugFlag} = require("node-opcua-debug");
+const debugLog = make_debugLog("TEST");
+const doDebug = checkDebugFlag("TEST");
 
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("testing monitoring Executable flags on methods", function() {
@@ -95,11 +96,11 @@ describe("testing monitoring Executable flags on methods", function() {
                         if (!err) {
 
                             if (doDebug) {
-                                console.log("InitialState = ", obj.initialState ? obj.initialState.toString() : "<null>");
-                                console.log("States       = ", obj.states.map(function(state) {
+                                debugLog("InitialState = ", obj.initialState ? obj.initialState.toString() : "<null>");
+                                debugLog("States       = ", obj.states.map(function(state) {
                                     return state.browseName.toString();
                                 }));
-                                console.log("Transitions  = ", obj.transitions.map(function(transition) {
+                                debugLog("Transitions  = ", obj.transitions.map(function(transition) {
                                     return transition.browseName.toString();
                                 }));
                             }
@@ -111,17 +112,17 @@ describe("testing monitoring Executable flags on methods", function() {
                 function(callback) {
 
                     if (doDebug) {
-                        console.log(" NodeId = ", nodeId.toString());
+                        debugLog(" NodeId = ", nodeId.toString());
                     }
                     proxyManager.getObject(nodeId, function(err, data) {
                         if (!err) {
                             boiler = data;
                             if (doDebug) {
-                                console.log("Current State", boiler.simulation.currentState.toString());
+                                debugLog("Current State", boiler.simulation.currentState.toString());
                             }
                             boiler.simulation.currentState.readValue(function(err, value) {
                                 if (doDebug) {
-                                    console.log(" Interior temperature updated ...", value.toString());
+                                    debugLog(" Interior temperature updated ...", value.toString());
                                 }
                                 callback(err);
                             });
@@ -133,7 +134,7 @@ describe("testing monitoring Executable flags on methods", function() {
                 function(callback) {
                     boiler.simulation.halt([], function(err) {
                         if (doDebug) {
-                            console.log(" HALT => ", err);
+                            debugLog(" HALT => ", err);
                         }
                         callback();
                     });
@@ -141,7 +142,7 @@ describe("testing monitoring Executable flags on methods", function() {
                 function(callback) {
                     boiler.simulation.reset([], function(err) {
                         if (doDebug) {
-                            console.log(" Reset => ", err);
+                            debugLog(" Reset => ", err);
                         }
                         callback();
                     });
@@ -153,7 +154,7 @@ describe("testing monitoring Executable flags on methods", function() {
 
                 function(callback) {
 
-                    console.log(boiler.simulation.currentState.toString());
+                    debugLog(boiler.simulation.currentState.toString());
 
                     boiler.simulation.currentState.dataValue.value.value.text.should.eql("Ready");
 
@@ -163,11 +164,11 @@ describe("testing monitoring Executable flags on methods", function() {
 
 
                     if (doDebug) {
-                        console.log(chalk.bgWhite.cyan("    ====================================================================== STARTING .... "));
+                        debugLog(chalk.bgWhite.cyan("    ====================================================================== STARTING .... "));
                     }
                     boiler.simulation.start([], function(err) {
                         if (doDebug) {
-                            console.log(" start => ", err);
+                            debugLog(" start => ", err);
                         }
                         callback();
                     });
@@ -179,7 +180,7 @@ describe("testing monitoring Executable flags on methods", function() {
 
                 function(callback) {
                     if (doDebug) {
-                        console.log(chalk.bgWhite.cyan("    ====================================================================== STARTED .... "));
+                        debugLog(chalk.bgWhite.cyan("    ====================================================================== STARTED .... "));
                     }
 
                     boiler.simulation.currentState.dataValue.value.value.text.should.eql("Running");
@@ -189,7 +190,7 @@ describe("testing monitoring Executable flags on methods", function() {
 
                     boiler.simulation.suspend([], function(err) {
                         if (doDebug) {
-                            console.log(" start => ", err);
+                            debugLog(" start => ", err);
                         }
                         callback();
                     });

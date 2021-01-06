@@ -15,8 +15,10 @@ const {
     stop_simple_server
 } = require("../../test_helpers/external_server_fixture");
 
-const doDebug = require("node-opcua-debug").checkDebugFlag("TEST");
-const debugLog = require("node-opcua-debug").make_debugLog("TEST");
+const { make_debugLog, checkDebugFlag } = require("node-opcua-debug");
+const debugLog = make_debugLog("TEST");
+const doDebug = checkDebugFlag("TEST");
+
 
 let server_data = null;
 

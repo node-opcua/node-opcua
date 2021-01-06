@@ -7,5 +7,6 @@
   "enable-source-maps": true,
   "spec": [
     "test/**.ts"
-  ]
+  ],
+  "timeout": 30000
 }

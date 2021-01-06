@@ -8,6 +8,7 @@ const async = require("async");
 const opcua = require("node-opcua");
 const OPCUAClient = opcua.OPCUAClient;
 
+const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 // bug : server reported to many datavalue changed when client monitored a UAVariable consructed with variation 1");
 module.exports = function(test) {
 

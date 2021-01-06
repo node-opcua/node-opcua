@@ -12,16 +12,19 @@ const NodeCrawler = opcua.NodeCrawler;
 
 
 const { redirectToFile } = require("node-opcua-debug/nodeJS");
-const debugLog = require("node-opcua-debug").make_debugLog(__filename);
+const { make_debugLog } = require("node-opcua-debug");
+
+const debugLog = make_debugLog("TEST");
 
 function xredirectToFile(file, fun, callback) {
     fun(callback);
 }
 
-const perform_operation_on_client_session = require("../../test_helpers/perform_operation_on_client_session").perform_operation_on_client_session;
+const { perform_operation_on_client_session } = require("../../test_helpers/perform_operation_on_client_session");
 
 const nodeToCrawl = opcua.makeNodeId(opcua.ObjectIds.Server);
 
+const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 module.exports = function(test) {
 
     describe("NodeCrawler", function() {
@@ -47,7 +50,7 @@ module.exports = function(test) {
                 return (text + "                                                     ").substring(0, width);
             }
 
-            console.log("    referenceTypeId ",
+            debugLog("    referenceTypeId ",
                 f(chalk.yellow(reference.referenceTypeId.displayText(), 35)) +
                 (reference.isForward ? " => " : " <= ") +
                 f(chalk.blue.bold(reference.browseName.name, 20)) +
@@ -56,7 +59,7 @@ module.exports = function(test) {
         }
 
         function myDumpReferences(index, references) {
-            //xxx console.log(" xxxxxxxxxxxxxxxxx ",references);
+            //xxx debugLog(" xxxxxxxxxxxxxxxxx ",references);
             references.forEach(MyDumpReference);
         }
 
@@ -72,17 +75,17 @@ module.exports = function(test) {
                     const data = {};
                     crawler.on("browsed", function(nodeElement, data) {
 
-                        //xx console.log(chalk.yellow("nodeElement "), nodeElement.browseName.toString(), nodeElement.nodeId.displayText());
+                        //xx debugLog(chalk.yellow("nodeElement "), nodeElement.browseName.toString(), nodeElement.nodeId.displayText());
                         const objectIndex = {
                             findNode: function(nodeId) {
                                 return null;
                             }
                         };
-                        console.log(" Node => ", nodeElement.browseName.toString(), nodeElement.nodeId.toString());
+                        debugLog(" Node => ", nodeElement.browseName.toString(), nodeElement.nodeId.toString());
                         myDumpReferences(objectIndex, nodeElement.references);
 
                     }).on("end", function() {
-                        console.log("Data ", data);
+                        debugLog("Data ", data);
                     }).on("error", function(err) {
                         done(err);
                     });
@@ -166,7 +169,7 @@ module.exports = function(test) {
                     if (!err) {
 
                         obj.organizes.forEach(function(o) {
-                            console.log(o.browseName.toString());
+                           // debugLog(o.browseName.toString());
                         });
 
                         obj.browseName.toString().should.equal("Root");
@@ -221,8 +224,7 @@ module.exports = function(test) {
 
         it("CRAWL5- should display a tree", function(done) {
 
-            const { redirectToFile } = require("node-opcua-debug/nodeJS");
-
+  
             redirectToFile("crawler_display_tree.log", function(inner_callback) {
 
                 perform_operation_on_client_session(client, endpointUrl, function(the_session, callback) {
@@ -233,12 +235,12 @@ module.exports = function(test) {
                     });
 
                     const nodeId = "ObjectsFolder";
-                    console.log("now crawling object folder ...please wait...");
+                    debugLog("now crawling object folder ...please wait...");
                     crawler.read(nodeId, function(err, obj) {
                         if (!err) {
                             /*
                                 treeify.asLines(obj, true, true, function(line) {
-                                    console.log(line);
+                                    debugLog(line);
                                 });
                             */
                         }

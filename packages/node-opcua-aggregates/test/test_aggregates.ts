@@ -20,22 +20,17 @@ const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 
 describe("Aggregates ", () => {
     let addressSpace: AddressSpace;
-    beforeEach((done) => {
+    beforeEach(async () => {
         addressSpace = AddressSpace.create();
-
         const namespaces: string[] = [nodesets.standard];
-        generateAddressSpace(addressSpace, namespaces, (err?: Error) => {
-            done(err);
-        });
+        await generateAddressSpace(addressSpace, namespaces);
     });
-    after((done) => {
+    after(async () => {
         addressSpace.dispose();
-        done();
     });
 
-    it("should augment the addressSpace with aggregate function support", (done) => {
+    it("should augment the addressSpace with aggregate function support", async () => {
         addAggregateSupport(addressSpace);
-        done();
     });
 });
 

@@ -1214,7 +1214,6 @@ describe("MonitoredItem with DataChangeFilter", function() {
             q(monitoredItem).should.eql([48, 49, 49, 0]);
             f(monitoredItem).should.eql([o, X, o, o]);
 
-            console.log("band = ", band, step1, step2);
             writeValue(49);
             q(monitoredItem).should.eql([48, 49, 49, 0]);
             f(monitoredItem).should.eql([o, X, o, o]);

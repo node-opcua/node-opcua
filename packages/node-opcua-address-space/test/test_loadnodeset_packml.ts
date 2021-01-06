@@ -10,6 +10,10 @@ import { DataType, Variant } from "node-opcua-variant";
 import { AddressSpace, ensureDatatypeExtracted } from "..";
 import { generateAddressSpace } from "../nodeJS";
 
+import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
+const debugLog = make_debugLog("TEST");
+const doDebug = checkDebugFlag("TEST");
+
 describe("Testing PackML custom types", async function (this: any) {
     this.timeout(200000); // could be slow on appveyor !
 
@@ -37,7 +41,7 @@ describe("Testing PackML custom types", async function (this: any) {
 
         objReloaded.decode(stream);
 
-        console.log("Reloaded = ", objReloaded.toString());
+        debugLog("Reloaded = ", objReloaded.toString());
         return objReloaded;
     }
     it("should create a PackMLAlarmDataType", async () => {
@@ -56,8 +60,8 @@ describe("Testing PackML custom types", async function (this: any) {
             category: 12,
             trigger: true
         });
-        console.log("packMLAlarm = ", packMLAlarm.toString());
-        //xx console.log(scanResult.schema);
+        debugLog("packMLAlarm = ", packMLAlarm.toString());
+        //xx debugLog(scanResult.schema);
 
         const v = new Variant({
             dataType: DataType.ExtensionObject,
@@ -68,7 +72,7 @@ describe("Testing PackML custom types", async function (this: any) {
         const extraDataTypeManager = await ensureDatatypeExtracted(addressSpace);
         await resolveDynamicExtensionObject(reload_v, extraDataTypeManager);
 
-        console.log(reload_v.toString());
-        console.log(packMLAlarm.toString());
+        debugLog(reload_v.toString());
+        debugLog(packMLAlarm.toString());
     });
 });

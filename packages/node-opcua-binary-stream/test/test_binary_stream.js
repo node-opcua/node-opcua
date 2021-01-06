@@ -44,7 +44,7 @@ describe("Testing BinaryStream", function() {
             arr[i] = 512 + i;
         }
 
-        console.log((new Uint8Array(arr.buffer)).join(" "));
+        // xx console.log((new Uint8Array(arr.buffer)).join(" "));
         stream.writeArrayBuffer(arr.buffer);
 
         // let's verify that a copy has been made
@@ -59,7 +59,7 @@ describe("Testing BinaryStream", function() {
 
         stream.rewind();
         const arr2 = new Int16Array(stream.readArrayBuffer(50).buffer);
-        console.log((new Uint8Array(arr2.buffer)).join(" "));
+        // xx console.log((new Uint8Array(arr2.buffer)).join(" "));
 
         arr2.should.be.instanceof(Int16Array);
         arr2.length.should.eql(25);

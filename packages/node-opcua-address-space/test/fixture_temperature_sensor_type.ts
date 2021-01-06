@@ -1,3 +1,5 @@
+import "should";
+
 import { Double } from "node-opcua-basic-types";
 import { DataType, Variant } from "node-opcua-variant";
 import { AddressSpace , InstantiateObjectOptions, UAObject , UAObjectType, UAVariableT} from "..";

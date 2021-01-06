@@ -73,10 +73,9 @@ export function construct_demo_alarm_in_address_space(test: IAlarmTestData, addr
 
     assert(tankLevel.findReferences("HasCondition").length === 1);
     assert(tankLevel.findReferencesAsObject("HasCondition", true).length === 1);
-    // tslint:disable-next-line: no-console
-    console.log(tankLevel.findReferencesAsObject("HasCondition", true)[0].browseName.toString());
-    // tslint:disable-next-line: no-console
-    console.log(tankLevel.findReferencesAsObject("HasCondition", true)[0].constructor.name.toString());
+      
+    assert("1:TankLevelCondition" === tankLevel.findReferencesAsObject("HasCondition", true)[0].browseName.toString());
+    assert("UAExclusiveLimitAlarm" === tankLevel.findReferencesAsObject("HasCondition", true)[0].constructor.name.toString());
 
     // ----------------------------------------------------------------
     // tripAlarm that signals that the "Tank lid" is opened

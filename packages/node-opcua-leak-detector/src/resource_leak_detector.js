@@ -112,7 +112,7 @@ ResourceLeakDetector.prototype.verify_registry_counts = function(info) {
     }
 };
 
-global.hasResourceLeakDetector = true;
+global.hasResourceLeakDetector = false;
 ResourceLeakDetector.prototype.start = function(info) {
 
     global.ResourceLeakDetectorStarted = true;

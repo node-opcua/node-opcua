@@ -11,7 +11,7 @@ const DataType     = opcua.DataType;
 const AttributeIds = opcua.AttributeIds;
 const OPCUAClient  = opcua.OPCUAClient;
 
-const perform_operation_on_client_session = require("../../test_helpers/perform_operation_on_client_session").perform_operation_on_client_session;
+const { perform_operation_on_client_session } = require("../../test_helpers/perform_operation_on_client_session");
 
 module.exports = function (test) {
 

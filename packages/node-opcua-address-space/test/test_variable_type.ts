@@ -10,6 +10,11 @@ import { DataType } from "node-opcua-variant";
 import { AddressSpace, SessionContext, UAVariableType } from "..";
 import { create_minimalist_address_space_nodeset } from "../testHelpers";
 
+import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
+const debugLog = make_debugLog("TEST");
+const doDebug = checkDebugFlag("TEST");
+
+
 const _should = should;
 // tslint:disable-next-line:no-var-requires
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
@@ -198,19 +203,19 @@ describe("testing UAVariableType", () => {
             valueRank: 2
         });
         variableType.toString();
-        console.log(variableType.toString());
+        debugLog(variableType.toString());
 
         const variable = variableType.instantiate({
             browseName: "My3x3MatrixVariable1"
         });
 
         variable.toString();
-        console.log(variable.toString());
+        debugLog(variable.toString());
     });
 
     it("UADataType#toString()", () => {
         const doubleDataType = addressSpace.findDataType("Double")!;
         doubleDataType.toString();
-        console.log(doubleDataType.toString());
+        debugLog(doubleDataType.toString());
     });
 });

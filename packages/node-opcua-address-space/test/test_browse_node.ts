@@ -4,7 +4,7 @@ import { BrowseDirection } from "node-opcua-data-model";
 import { redirectToFile } from "node-opcua-debug/nodeJS";
 
 import { resolveNodeId } from "node-opcua-nodeid";
-import { BrowseDescription, BrowseDescriptionOptions } from "node-opcua-types";
+import { BrowseDescriptionOptions } from "node-opcua-types";
 import { AddressSpace, dumpBrowseDescription, dumpReferences } from "..";
 import { getMiniAddressSpace } from "../testHelpers";
 

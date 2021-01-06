@@ -6,6 +6,11 @@ import { PseudoSession } from "node-opcua-address-space";
 import { nodesets } from "node-opcua-nodesets";
 import { extractConditionFields, resolveNodeId } from "..";
 
+import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
+const debugLog = make_debugLog("TEST");
+const doDebug = checkDebugFlag("TEST");
+
+
 describe("extractConditionFields", () => {
     let addressSpace: AddressSpace;
     const test = {} as IAlarmTestData;
@@ -67,7 +72,7 @@ describe("extractConditionFields", () => {
         const session = new PseudoSession(addressSpace);
         const conditionNodeId = resolveNodeId("AcknowledgeableConditionType");
         const fields = await extractConditionFields(session, conditionNodeId);
-        // xx console.log(fields);
+        // xx debugLog(fields);
         fields
             .sort()
             .should.eql([
@@ -118,7 +123,7 @@ describe("extractConditionFields", () => {
         const session = new PseudoSession(addressSpace);
         const conditionNodeId = test.tankLevelCondition.nodeId;
         const fields = await extractConditionFields(session, conditionNodeId);
-        // xx console.log(fields);
+        // xx debugLog(fields);
         fields.sort().should.eql([
             "AckedState",
             // "AckedState.FalseState",

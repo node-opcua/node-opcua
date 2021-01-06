@@ -95,7 +95,7 @@ function build_server_with_temperature_device(options, done) {
 
     options.serverInfo = options.serverInfo ||
         {
-            applicationUri: makeApplicationUrn(os.hostname(), "Node-OPCUA-Server")
+            applicationUri: makeApplicationUrn(os.hostname(), "NodeOPCUA-Server")
         };
 
     const server = new OPCUAServer(options);

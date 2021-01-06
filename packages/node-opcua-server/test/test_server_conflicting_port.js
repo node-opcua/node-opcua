@@ -6,6 +6,9 @@ const { get_empty_nodeset_filename } = require("node-opcua-address-space/testHel
 const empty_nodeset_filename = get_empty_nodeset_filename();
 
 const { OPCUAServer } = require("..");
+const { checkDebugFlag, make_debugLog } = require("node-opcua-debug");
+const debugLog = make_debugLog("TEST");
+const doDebug = checkDebugFlag("TEST");
 
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("testing 2 servers on same port ", function() {
@@ -20,7 +23,7 @@ describe("testing 2 servers on same port ", function() {
     });
     after(function(done) {
         server1.shutdown(function(err) {
-            console.log("err = ", err);
+            debugLog("err = ", err);
             done(err);
         });
     });

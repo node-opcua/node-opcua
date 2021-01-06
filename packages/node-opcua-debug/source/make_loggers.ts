@@ -3,6 +3,7 @@
  */
 // tslint:disable:no-console
 import * as chalk from "chalk";
+import { EventEmitter } from "events";
 import { basename } from "path";
 import { format } from "util";
 
@@ -50,9 +51,11 @@ export function checkDebugFlag(scriptFullPath: string): boolean {
  * @param filename
  * @param callerLine
  */
-function file_line(mode: "E" | "D", filename: string, callerLine: number): string {
+function file_line(mode: "E" | "D" | "W", filename: string, callerLine: number): string {
     const d = new Date().toISOString().substr(11);
-    if (mode === "D") {
+    if (mode === "W") {
+        return chalk.bgCyan.white(w(d, 14) + ":" + w(filename, 30) + ":" + w(callerLine.toString(), 5));
+    } else if (mode === "D") {
         return chalk.bgWhite.cyan(w(d, 14) + ":" + w(filename, 30) + ":" + w(callerLine.toString(), 5));
     } else {
         return chalk.bgRed.white(w(d, 14) + ":" + w(filename, 30) + ":" + w(callerLine.toString(), 5));
@@ -61,7 +64,7 @@ function file_line(mode: "E" | "D", filename: string, callerLine: number): strin
 
 const continuation = w(" ...                                                            ", 51);
 
-function buildPrefix(mode: "E" | "D"): string {
+function buildPrefix(mode: "E" | "D" | "W"): string {
     const stack: string = new Error("").stack || "";
     // caller line number
     const l: string[] = stack.split("\n")[4].split(":");
@@ -70,7 +73,7 @@ function buildPrefix(mode: "E" | "D"): string {
     return file_line(mode, filename, callerLine);
 }
 
-function dump(mode: "E" | "D", args1: [any?, ...any[]]) {
+function dump(mode: "E" | "D"| "W", args1: [any?, ...any[]]) {
     const a2 = Object.values(args1) as [string, ...string[]];
     const output = format.apply(null, a2);
     let a1 = [buildPrefix(mode)];
@@ -87,6 +90,7 @@ function dump(mode: "E" | "D", args1: [any?, ...any[]]) {
             break;
         }
     }
+    return output;
 }
 
 /**
@@ -108,9 +112,23 @@ export function make_debugLog(scriptFullPath: string): (...arg: any[]) => void {
     return debugLogFunc;
 }
 
+export class MessageLogger extends EventEmitter {
+
+}
+export const messageLogger  = new MessageLogger();
+
 export function make_errorLog(context: string): (...arg: any[]) => void {
     function errorLogFunc(...args: [any?, ...any[]]) {
-        dump("E", args);
+        const output = dump("E", args);
+        messageLogger.emit("errorMessage", output);
+    }
+    return errorLogFunc;
+}
+
+export function make_warningLog(context: string): (...arg: any[]) => void {
+    function errorLogFunc(...args: [any?, ...any[]]) {
+        const output =dump("W", args);
+        messageLogger.emit("warningMessage", output);
     }
 
     return errorLogFunc;

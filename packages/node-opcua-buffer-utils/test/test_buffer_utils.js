@@ -4,7 +4,7 @@
 const buffer_utils = require("..");
 const createFastUninitializedBuffer = buffer_utils.createFastUninitializedBuffer;
 
-const Benchmarker = require("node-opcua-benchmarker").Benchmarker;
+const { Benchmarker } = require("node-opcua-benchmarker");
 
 
 describe("testing buffer utils",function() {

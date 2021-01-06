@@ -13,7 +13,11 @@ const {
 } = require("node-opcua");
 
 
-const f = require("../../test_helpers/display_function_name").f.bind(null, true);
+const { make_debugLog, checkDebugFlag} = require("node-opcua-debug");
+const debugLog = make_debugLog("TEST");
+const doDebug = checkDebugFlag("TEST");
+
+const f = require("../../test_helpers/display_function_name").f.bind(null, doDebug);
 
 module.exports = function(test) {
 

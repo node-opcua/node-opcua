@@ -380,7 +380,7 @@ describe("testing ClientTCP_transport", function() {
 
         transport.connect("opc.tcp://localhost:XXXXX/SomeAddress", function(err) {
             if (err) {
-                console.log(err);
+                // xx console.log(err.message);
                 const regexp_1 = /EADDRNOTAVAIL|ECONNREFUSED/; // node v0.10
                 const regexp_2 = /port(" option)* should be/; // node >v0.10 < 9.000
                 const regexp_3 = /Port should be > 0 and < 65536. Received NaN/; // node >= 9.00

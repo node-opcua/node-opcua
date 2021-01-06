@@ -40,13 +40,17 @@ interface TestParam {
     shouldFailAtClientConnection?: boolean;
 }
 
-const certificateFolder = path.join(__dirname, "../../../packages/node-opcua-end2end-test/certificates");
+const certificateFolder = path.join(__dirname, "../../../packages/node-opcua-samples/certificates");
 
 // tslint:disable:no-var-requires
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("Testing secure client and server connection", () => {
-    const certificateManager = new OPCUACertificateManager({});
+
+    const certificateManager = new OPCUACertificateManager({
+
+    });
     before(async () => {
+        await certificateManager.initialize();
         const issuerCertificateFile = path.join(certificateFolder, "CA/public/cacert.pem");
         const issuerCertificate = readCertificate(issuerCertificateFile);
         await certificateManager.addIssuer(issuerCertificate);

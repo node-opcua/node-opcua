@@ -25,6 +25,7 @@ const fail_fast_connectivity_strategy = {
 };
 
 
+const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 module.exports = function(test) {
 
     describe("Browse-Read-Write Services", function() {

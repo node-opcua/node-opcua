@@ -184,8 +184,6 @@ function implementProgramStateMachine(programStateMachine: UAObject): void {
             callback: (err: Error | null, callMethodResult: CallMethodResultOptions) => void
         ) {
             const stateMachineW = this.parent! as StateMachine;
-            // tslint:disable-next-line:no-console
-            console.log("Boiler System :  " + methodName + " about to process");
             stateMachineW.setState(toState);
             callback(null, {
                 outputArguments: [],

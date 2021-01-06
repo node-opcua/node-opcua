@@ -8,8 +8,9 @@ const opcua = require("node-opcua");
 
 const OPCUAClient = opcua.OPCUAClient;
 
-const perform_operation_on_client_session = require("../../test_helpers/perform_operation_on_client_session").perform_operation_on_client_session;
+const { perform_operation_on_client_session } = require("../../test_helpers/perform_operation_on_client_session");
 
+const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 
 module.exports = function(test) {
 
@@ -24,13 +25,13 @@ module.exports = function(test) {
             async.series([
                 function(callback) {
                     perform_operation_on_client_session(client, endpointUrl, function(session, inner_done) {
-                        session.name.should.eql("Session1");
+                        session.name.should.eql("ClientSession1");
                         inner_done();
                     }, callback);
                 },
                 function(callback) {
                     perform_operation_on_client_session(client, endpointUrl, function(session, inner_done) {
-                        session.name.should.eql("Session2");
+                        session.name.should.eql("ClientSession2");
                         inner_done();
                     }, callback);
                 }

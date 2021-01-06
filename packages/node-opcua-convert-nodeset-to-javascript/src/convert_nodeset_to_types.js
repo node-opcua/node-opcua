@@ -22,6 +22,8 @@ const {
     hasEnumeration,
     getEnumeration
 } = require("node-opcua-factory");
+const { QualifiedName } = require("node-opcua-data-model");
+
 const { NodeClass } = require("node-opcua-data-model");
 const crypto = require("crypto");
 
@@ -101,7 +103,6 @@ function generateEnumerationCode(dataType, filename) {
     f.save(filename);
 }
 
-const QualifiedName = require("node-opcua-data-model").QualifiedName;
 /**
  * const dataType = {
  *    browseName: "Color",

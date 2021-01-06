@@ -9,10 +9,11 @@ const OPCUAClient = opcua.OPCUAClient;
 const securityMode = opcua.MessageSecurityMode.None;
 const securityPolicy = opcua.SecurityPolicy.None;
 
-const perform_operation_on_client_session = require("../../test_helpers/perform_operation_on_client_session").perform_operation_on_client_session;
+const { perform_operation_on_client_session } = require("../../test_helpers/perform_operation_on_client_session");
 
 // bug : server reported to many datavalue changed when client monitored a UAVariable constructed with variation 1");
 
+const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 
 module.exports = function (test) {
 

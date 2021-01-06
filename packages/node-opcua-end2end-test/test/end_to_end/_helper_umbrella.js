@@ -6,7 +6,8 @@ const {
     StatusCodes,
     nodesets,
     AddressSpace,
-    makeBrowsePath 
+    makeBrowsePath, 
+    periodicClockAdjustment
 } = require("node-opcua");
 const { build_server_with_temperature_device } = require("../../test_helpers/build_server_with_temperature_device");
 const { build_address_space_for_conformance_testing } = require("node-opcua-address-space-for-conformance-testing");
@@ -106,7 +107,11 @@ exports.afterTest=  function afterTest(test,done){
     if (test.data) {
         stop_simple_server(test.data, done);
     } else if (test.server) {
-        test.server.shutdown(function() {
+        test.server.shutdown(() => {
+            if (periodicClockAdjustment.timerInstallationCount !==0) {
+                console.log("!!!!!!!!!!!!!!!!!!! -- "+ "periodicClockAdjustment call are not matching....");
+                // periodicClockAdjustment.timerInstallationCount.should.eql(0, "periodicClockAdjustment call are not matching....");
+            }
             done();
         });
     } else {

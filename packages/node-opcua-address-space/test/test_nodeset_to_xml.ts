@@ -12,6 +12,7 @@ import { coerceLocalizedText, coerceQualifiedName, makeAccessLevelFlag } from "n
 import { AddressSpace, dumpXml, Namespace, RootFolder, UAVariable } from "..";
 import { createBoilerType, getMiniAddressSpace } from "../testHelpers";
 import { generateAddressSpace } from "../nodeJS";
+const { createTemperatureSensorType  } = require("./fixture_temperature_sensor_type");
 
 const doDebug = process.env.DEBUGTEST || false;
 
@@ -30,7 +31,6 @@ describe("testing nodeset to xml", () => {
             addressSpace.dispose();
         }
     });
-    const createTemperatureSensorType = require("./fixture_temperature_sensor_type").createTemperatureSensorType;
 
     it("should output a standard extension object datatype to xml (Argument)", () => {
         const argumentDataType = addressSpace.findDataType("Argument")!;

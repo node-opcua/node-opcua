@@ -19,6 +19,7 @@ class VariantId extends Variant {
 }
 describe("Testing client alarm", () => {
 
+
     it("should update a client alarm list #CAL", () => {
 
         const clientAlarm = new ClientAlarm({

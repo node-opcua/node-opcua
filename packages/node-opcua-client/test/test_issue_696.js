@@ -1,41 +1,49 @@
-const {OPCUAClient} = require("..");
+const { OPCUAClient } = require("..");
 
 let setIntervalCalls = 0;
-const realSetInterval = global.setInterval;
 let clearIntervalCalls = 0;
-const realClearInterval = global.clearInterval;
+let realSetInterval;
+let realClearInterval;
+
+const doDebug = !!process.env.DEBUGTEST;
 
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
-describe("issue 696",function() {
-
-    before(()=> {
+describe("issue 696", function () {
+    before(() => {
+        realSetInterval = global.setInterval;
+        realClearInterval = global.clearInterval;
         global.setInterval = (...args) => {
             setIntervalCalls++;
             return realSetInterval(...args);
-        }
+        };
         global.clearInterval = (...args) => {
             clearIntervalCalls++;
             return realClearInterval(...args);
-        }
+        };
     });
-    after(()=>{
+    after(() => {
         global.setInterval = realSetInterval;
         global.clearInterval = realClearInterval;
-    })
-    it("should not leak interval if connection failed", async()=>{
-        
+    });
+    it("should not leak interval if connection failed", async () => {
         async function test() {
+            const client = OPCUAClient.create({ connectionStrategy: { maxRetry: 0 } });
             try {
-                const client = OPCUAClient.create({ connectionStrategy: { maxRetry: 0 } });
-                await client.connect('invalid-proto://test-host');    
-            } catch(err) { 
-                console.log(err.message);
+                await client.connect("invalid-proto://test-host");
+            } catch (err) {
+                if (doDebug) {
+                    console.log(err.message);
+                }
                 throw err;
+            }
+            finally {
+               await client.disconnect();
             }
         }
         test().should.be.rejectedWith(/The connection has been rejected/);
-        console.log(`setIntervalCalls ${setIntervalCalls} vs. clearIntervalCalls ${clearIntervalCalls}`);
-
+        if (doDebug) {
+            console.log(`setIntervalCalls ${setIntervalCalls} vs. clearIntervalCalls ${clearIntervalCalls}`);
+        }
         setIntervalCalls.should.eql(clearIntervalCalls);
-    })
+    });
 });

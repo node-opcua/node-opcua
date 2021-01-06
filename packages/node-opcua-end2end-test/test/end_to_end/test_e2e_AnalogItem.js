@@ -11,14 +11,15 @@ const AttributeIds = opcua.AttributeIds;
 const BrowseDirection = opcua.BrowseDirection;
 const readUAAnalogItem = opcua.readUAAnalogItem;
 
-const debugLog = require("node-opcua-debug").make_debugLog(__filename);
+const { make_debugLog, checkDebugFlag} = require("node-opcua-debug");
+const debugLog = make_debugLog("TEST");
+const doDebug = checkDebugFlag("TEST");
 
 const port = 2009;
 
-const build_server_with_temperature_device = require("../../test_helpers/build_server_with_temperature_device").build_server_with_temperature_device;
+const { build_server_with_temperature_device } = require("../../test_helpers/build_server_with_temperature_device");
 
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
-
 describe("testing AnalogItem on client side", function() {
 
     let server, client, temperatureVariableId, endpointUrl;

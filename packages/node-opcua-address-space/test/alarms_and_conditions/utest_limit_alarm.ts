@@ -9,13 +9,17 @@ import { StatusCodes } from "node-opcua-status-code";
 import { DataType } from "node-opcua-variant";
 import { AddressSpace, UAObject, UAVariable } from "../..";
 
+
+import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
+const debugLog = make_debugLog("TEST");
+const doDebug = checkDebugFlag("TEST");
+
 const fields = [
     "eventId", "eventType", "enabledState",
     "activeState", "ackedState",
     "lowLowLimit", "comment", "branchId",
     "quality", "message"
 ];
-const doDebug = false;
 
 function dumpEvent(
     addressSpace: AddressSpace, eventFields: string[], eventData: any) {
@@ -24,7 +28,7 @@ function dumpEvent(
         return (str + "                               ").substring(0, l);
     }
 
-    console.log("-----------------------");
+    debugLog("-----------------------");
     eventFields.map((key: string) => {
 
         const variant = eventData[key];
@@ -32,7 +36,7 @@ function dumpEvent(
             return;
         }
         if (variant.dataType === DataType.ByteString) {
-            console.log(w("", 20), chalk.yellow(w(key, 15)),
+            debugLog(w("", 20), chalk.yellow(w(key, 15)),
                 chalk.cyan(w(DataType[variant.dataType], 10).toString()),
                 variant.value.toString("hex"));
 
@@ -41,12 +45,12 @@ function dumpEvent(
             const node = addressSpace.findNode(variant.value);
             const name = node ? node.browseName.toString() : variant.value.toString();
 
-            console.log(chalk.yellow(w(name, 20), w(key, 15)),
+            debugLog(chalk.yellow(w(name, 20), w(key, 15)),
                 chalk.cyan(w(DataType[variant.dataType], 10).toString()),
                 chalk.cyan.bold(name), "(", w(variant.value, 20), ")");
 
         } else {
-            console.log(w("", 20),
+            debugLog(w("", 20),
                 chalk.yellow(w(key, 15)),
                 chalk.cyan(w(DataType[variant.dataType], 10).toString()),
                 variant.value.toString());
@@ -58,13 +62,13 @@ function ellipsis(a: string): string {
 }
 function dumpSpy(spyOnEvent: any) {
     for (let i = 0; i < spyOnEvent.getCalls().length; i++) {
-        console.log("call ", i);
-        console.log("  time      ", spyOnEvent.getCalls()[i].args[0].time.toString());
-        console.log("  eventId   ", spyOnEvent.getCalls()[i].args[0].eventId.toString());
-        console.log("  eventType ", ellipsis(spyOnEvent.getCalls()[i].args[0].eventType.toString()));
-        console.log("  branchId  ", spyOnEvent.getCalls()[i].args[0].branchId.toString());
-        console.log("  message   ", ellipsis(spyOnEvent.getCalls()[i].args[0].message.toString()));
-        console.log("  acked     ", spyOnEvent.getCalls()[i].args[0].ackedState.toString());
+        debugLog("call ", i);
+        debugLog("  time      ", spyOnEvent.getCalls()[i].args[0].time.toString());
+        debugLog("  eventId   ", spyOnEvent.getCalls()[i].args[0].eventId.toString());
+        debugLog("  eventType ", ellipsis(spyOnEvent.getCalls()[i].args[0].eventType.toString()));
+        debugLog("  branchId  ", spyOnEvent.getCalls()[i].args[0].branchId.toString());
+        debugLog("  message   ", ellipsis(spyOnEvent.getCalls()[i].args[0].message.toString()));
+        debugLog("  acked     ", spyOnEvent.getCalls()[i].args[0].ackedState.toString());
     }
 
 }
@@ -338,7 +342,7 @@ export function utest_limit_alarm(test: any) {
             // a new event should be raised because alarm is re-enabled and should be state is LowLow
             // there should be two events here because the alarm reraised the pending branches ...
 
-            // xx console.log(spyOnEvent.getCall(4).args[0]);
+            // xx debugLog(spyOnEvent.getCall(4).args[0]);
             spyOnEvent.getCall(4).args[0].message.value.text
                 .should.eql("Condition value is -100 and state is " +
                     "{\"highHigh\":false,\"high\":false,\"low\":true,\"lowLow\":true}");

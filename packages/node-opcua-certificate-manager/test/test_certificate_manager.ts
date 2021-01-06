@@ -3,7 +3,6 @@
 import * as fs from "fs";
 import "mocha";
 import { StatusCodes } from "node-opcua-status-code";
-import * as os from "os";
 import * as path from "path";
 import * as rimraf from "rimraf";
 import * as should from "should";
@@ -12,6 +11,7 @@ const _should = should; // make sure should is not removed during typescript com
 
 import { Certificate, readCertificate, makeSHA1Thumbprint, readCertificateRevocationList } from "node-opcua-crypto";
 import { OPCUACertificateManager, OPCUACertificateManagerOptions } from "../source";
+import { CertificateAuthority, CertificateManager } from "node-opcua-pki";
 
 async function t(a: number) {
     return await new Promise((resolve) => setTimeout(resolve, 1000));
@@ -23,18 +23,57 @@ if (!fs.existsSync(_tmpFolder)) {
     fs.mkdirSync(_tmpFolder);
 }
 
-// let's prepare a Certificate issued by a Certification Authority
-const certificateSelfSignedFilename = path.join(__dirname, "../../node-opcua-samples/certificates/client_selfsigned_cert_2048.pem");
+const tmpCA = new CertificateAuthority({
+    keySize: 2048,
+    location: path.join(__dirname, "../temp/someCA")
+});
+const tmpPKI = new CertificateManager({
+    keySize: 2048,
+    location: path.join(__dirname, "../temp/somePKI")
+});
 
 // let's prepare a Certificate issued by a Certification Authority
-const issuerCertificateFile = path.join(__dirname, "../../node-opcua-samples/certificates/CA/public/cacert.pem");
-const issuerCertificateRevocationListFile = path.join(
-    __dirname,
-    "../../node-opcua-samples/certificates/CA/crl/revocation_list.der"
-);
-const certificateIssuedByCAFilename = path.join(__dirname, "../../node-opcua-samples/certificates/client_cert_2048.pem");
+const certificateSelfSignedFilename = path.join(tmpPKI.rootDir, "client_selfsigned_cert_2048.pem");
 
-async function createFreshCertificateManage(options: OPCUACertificateManagerOptions): Promise<OPCUACertificateManager> {
+// let's prepare a Certificate issued by a Certification Authority
+const issuerCertificateFile = tmpCA.caCertificate;
+const issuerCertificateRevocationListFile = tmpCA.revocationList;
+
+const certificateIssuedByCAFilename = path.join(tmpPKI.rootDir, "client_cert_2048.pem");
+
+async function initializeDemoCertificates() {
+    await tmpPKI.initialize();
+    await tmpCA.initialize();
+
+    if (!fs.existsSync(certificateSelfSignedFilename)) {
+        await tmpPKI.createSelfSignedCertificate({
+            applicationUri: "SomeURI",
+            dns: [],
+            ip: [],
+            validity: 1000,
+            subject: "/CN=NodeOPCUA",
+            startDate: new Date(),
+            outputFile: certificateSelfSignedFilename
+        });
+    }
+    if (!fs.existsSync(certificateIssuedByCAFilename)) {
+
+        const certificateSigningRequestFilename = await tmpPKI.createCertificateRequest({
+            applicationUri: "SomeURI",
+            dns: [],
+            ip: [],
+            validity: 1000,
+            subject: "/CN=NodeOPCUA",
+            startDate: new Date()
+        });
+        const params = {
+            applicationUri: "SomeURI"
+        };
+        await tmpCA.signCertificateRequest(certificateIssuedByCAFilename, certificateSigningRequestFilename, params);
+    }
+}
+
+async function createFreshCertificateManager(options: OPCUACertificateManagerOptions): Promise<OPCUACertificateManager> {
     const temporaryFolder = options.rootFolder!;
 
     if (fs.existsSync(temporaryFolder)) {
@@ -45,8 +84,11 @@ async function createFreshCertificateManage(options: OPCUACertificateManagerOpti
     await certificateMgr.initialize();
     return certificateMgr;
 }
+
+// tslint:disable-next-line:no-var-requires
+const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("Testing OPCUA Client Certificate Manager", function (this: any) {
-    this.timeout(10000);
+    this.timeout(30000);
 
     let certificateMgr: OPCUACertificateManager;
     let certificateMgrWithNoIssuerCert: OPCUACertificateManager;
@@ -54,20 +96,24 @@ describe("Testing OPCUA Client Certificate Manager", function (this: any) {
     let certificateIssuedByCA: Certificate;
     let certificateSelfSigned: Certificate;
 
+    before(async () => await initializeDemoCertificates());
+    after(async () => {});
     beforeEach(async () => {
         // create a PKI with no issuer certificate
         const temporaryFolder2 = path.join(_tmpFolder, "testing_certificates");
-        certificateMgrWithNoIssuerCert = await createFreshCertificateManage({ rootFolder: temporaryFolder2 });
+        certificateMgrWithNoIssuerCert = await createFreshCertificateManager({ rootFolder: temporaryFolder2 });
         await certificateMgrWithNoIssuerCert.initialize();
 
         // create a PKI with  issuer certificate
         const temporaryFolder = path.join(_tmpFolder, "testing_certificates");
-        certificateMgr = await createFreshCertificateManage({ rootFolder: temporaryFolder });
+        certificateMgr = await createFreshCertificateManager({ rootFolder: temporaryFolder });
 
         const issuerCertificate = await readCertificate(issuerCertificateFile);
         const issuerCrl = await readCertificateRevocationList(issuerCertificateRevocationListFile);
         await certificateMgr.addIssuer(issuerCertificate);
+
         await certificateMgr.trustCertificate(issuerCertificate);
+
         await certificateMgr.addRevocationList(issuerCrl);
 
         // read the various certificate to test
@@ -75,7 +121,14 @@ describe("Testing OPCUA Client Certificate Manager", function (this: any) {
         certificateSelfSigned = await readCertificate(certificateSelfSignedFilename);
     });
 
-    afterEach(async () => {});
+    afterEach(async () => {
+        if (certificateMgr) {
+            await certificateMgr.dispose();
+        }
+        if (certificateMgrWithNoIssuerCert) {
+            await certificateMgrWithNoIssuerCert.dispose();
+        }
+    });
 
     describe("With self-signed certificates", () => {
         it("AQS01- should reject a valid self-signed certificate that has never been seen before  with BadCertificateUntrusted", async () => {
@@ -208,7 +261,7 @@ describe("Testing OPCUA Client Certificate Manager", function (this: any) {
 });
 
 describe("Testing OPCUA Certificate Manager with automatically acceptance of unknown certificate", function (this: any) {
-    this.timeout(10000);
+    this.timeout(30000);
 
     let acceptingCertificateMgr: OPCUACertificateManager;
     let rejectingCertificateMgr: OPCUACertificateManager;
@@ -235,7 +288,7 @@ describe("Testing OPCUA Certificate Manager with automatically acceptance of unk
         const issuerCrl = await readCertificateRevocationList(issuerCertificateRevocationListFile);
 
         //        const temporaryFolder1 = path.join(_tmpFolder, "testing_certificates1");
-        acceptingCertificateMgr = await createFreshCertificateManage({
+        acceptingCertificateMgr = await createFreshCertificateManager({
             automaticallyAcceptUnknownCertificate: true,
             rootFolder: temporaryFolder1
         });
@@ -245,7 +298,7 @@ describe("Testing OPCUA Certificate Manager with automatically acceptance of unk
         await acceptingCertificateMgr.addRevocationList(issuerCrl);
 
         const temporaryFolder2 = path.join(_tmpFolder, "testing_certificates2");
-        rejectingCertificateMgr = await createFreshCertificateManage({
+        rejectingCertificateMgr = await createFreshCertificateManager({
             automaticallyAcceptUnknownCertificate: false,
             rootFolder: temporaryFolder2
         });
@@ -257,6 +310,8 @@ describe("Testing OPCUA Certificate Manager with automatically acceptance of unk
 
     afterEach(async () => {
         /* */
+        acceptingCertificateMgr.dispose();
+        rejectingCertificateMgr.dispose();
     });
 
     it("BW01- should automatically accept 'unknown' self-signed certificate if  automaticallyAcceptUnknownCertificate is true", async () => {

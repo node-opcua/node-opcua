@@ -4,15 +4,11 @@
     "description": "pure nodejs OPCUA SDK - module -end2end-test",
     "private": true,
     "scripts": {
-        "pretest": "node test_helpers/create_certificates.js demo --dev -s",
-        "clean": "node -e \"require('rimraf').sync('certificates');\"",
-        "test": "npm run test-parallel",
-        "test-parallel": "mocha",
-        "test-separate": "mocha --parallel --recursive  --fgrep DiscoveryServer test",
-        "test-typescript": "mocha --recursive test/end_to_end/*.ts"
+        "clean": "node -e \"require('rimraf').sync('dist');\"",
+        "test": "mocha"
     },
     "dependencies": {
-        "node-opcua-pki": "^2.6.0"
+        "node-opcua-pki": "^2.6.1"
     },
     "devDependencies": {
         "@types/underscore": "^1.10.24",

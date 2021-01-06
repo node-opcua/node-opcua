@@ -31,8 +31,9 @@ const { perform_operation_on_subscription } = require("../../../test_helpers/per
 const { constructEventFilter } = require("node-opcua-service-filter");
 
 
-function debugLog() {
-}
+const { make_debugLog, checkDebugFlag } = require("node-opcua-debug");
+const debugLog = make_debugLog("TEST");
+const doDebug = checkDebugFlag("TEST");
 
 const { construct_demo_alarm_in_address_space } = require("node-opcua-address-space/testHelpers");
 
@@ -40,6 +41,8 @@ const { construct_demo_alarm_in_address_space } = require("node-opcua-address-sp
 function wait_a_little_bit_to_let_events_to_be_processed(callback) {
   setTimeout(callback, 400);
 }
+
+const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 
 module.exports = function(test) {
 

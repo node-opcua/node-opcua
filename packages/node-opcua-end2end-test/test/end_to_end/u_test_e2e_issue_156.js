@@ -13,7 +13,9 @@ const StatusCodes = opcua.StatusCodes;
 const DataType = opcua.DataType;
 const ClientSubscription = opcua.ClientSubscription;
 
-const perform_operation_on_client_session = require("../../test_helpers/perform_operation_on_client_session").perform_operation_on_client_session;
+const { perform_operation_on_client_session } = require("../../test_helpers/perform_operation_on_client_session");
+
+const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 
 
 module.exports = function(test) {

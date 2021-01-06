@@ -20,6 +20,10 @@ import {
     createHistorian4
 } from "node-opcua-aggregates/test/helpers/create_historizing_variables";
 
+import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
+const debugLog = make_debugLog("TEST");
+const doDebug = checkDebugFlag("TEST");
+
 const year = 2018;
 const month = 10;
 const day = 9;
@@ -62,7 +66,7 @@ describe("test readAggregateValue", () => {
         await server.start();
         endpointUrl = server.getEndpointUrl()!;
         // tslint:disable-next-line: no-console
-        console.log("endpointUrl = ", endpointUrl);
+        debugLog("endpointUrl = ", endpointUrl);
     });
     after(async () => {
         await server.shutdown();
@@ -108,7 +112,7 @@ describe("test readAggregateValue", () => {
                 processingInterval);
             resultAvg.statusCode.should.eql(StatusCodes.Good);
             // tslint:disable-next-line: no-console
-            console.log(resultAvg.toString());
+            debugLog(resultAvg.toString());
 
             const resultStdSample = await session.readAggregateValue(
                 nodeToRead,
@@ -169,7 +173,7 @@ describe("test readAggregateValue", () => {
                 startTime,
                 endTime);
             // tslint:disable-next-line: no-console
-            console.log(result.toString());
+            debugLog(result.toString());
         });
     });
 
@@ -188,7 +192,7 @@ describe("test readAggregateValue", () => {
                 startTime,
                 endTime);
             // tslint:disable-next-line: no-console
-            console.log(result.toString());
+            debugLog(result.toString());
         }); 
     });
 

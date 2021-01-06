@@ -20,6 +20,11 @@ import {
 } from "node-opcua";
 import * as should from "should";
 import * as sinon from "sinon";
+
+import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
+const debugLog = make_debugLog("TEST");
+const doDebug = checkDebugFlag("TEST");
+
 const _should = should;
 
 const port = 2228;
@@ -86,7 +91,7 @@ describe("AZA1- testing Client-Server subscription use case, on a fake server ex
             }
         });
 
-        console.log("Event raised");
+        debugLog("Event raised");
     }
 
     before(async () => {
@@ -192,30 +197,30 @@ describe("AZA1- testing Client-Server subscription use case, on a fake server ex
                     const changedSpy = sinon.spy();
                     monitoredItem.on("changed", changedSpy);
                     monitoredItem.on("err", (message: string) => {
-                        console.log("Error", message);
+                        debugLog("Error", message);
                     });
 
                     monitoredItem.on("changed", (dataValue) => {
-                        console.log("."); //dataValue.toJSON());
+                        debugLog("."); //dataValue.toJSON());
                     });
                     await new Promise<void>((resolve) => {
                         // subscription.on("item_added",function(monitoredItem){
                         monitoredItem.on("initialized", () => {
-                            console.log(" Initialized !");
+                            debugLog(" Initialized !");
                             resolve();
                         });
                     });
 
                     await new Promise((resolve) => setTimeout(resolve, 1000));
 
-                    console.log("changedSpy = ", changedSpy.getCalls().length);
+                    debugLog("changedSpy = ", changedSpy.getCalls().length);
                     /*RfidScanResult*/
                     changedSpy.firstCall.args[0].should.be.instanceOf(DataValue);
                     changedSpy.firstCall.args[0].value.dataType.should.eql(DataType.ExtensionObject);
                     changedSpy.firstCall.args[0].value.value.constructor.name.should.eql("RfidScanResult");
                     changedSpy.callCount.should.eql(1);
                 } catch (err) {
-                    console.log(err);
+                    debugLog(err);
                     throw err;
                 }
             }
@@ -278,26 +283,26 @@ describe("AZA1- testing Client-Server subscription use case, on a fake server ex
                     // subscription.on("item_added",function(monitoredItem){
                     monitoredItem.on("initialized", () => {
                         // tslint:disable-next-line: no-console
-                        console.log(" Initialized !");
+                        debugLog(" Initialized !");
                     });
 
                     const changedSpy = sinon.spy();
                     monitoredItem.on("changed", changedSpy);
                     monitoredItem.on("err", (message: string) => {
                         // tslint:disable-next-line: no-console
-                        console.log("Error", message);
+                        debugLog("Error", message);
                     });
 
                     monitoredItem.on("changed", (eventFields: Variant[]) => {
                         for (const eventField of eventFields) {
                             // tslint:disable-next-line: no-console
-                            // console.log(eventField.toString());
+                            // debugLog(eventField.toString());
                         }
                     });
                     await new Promise<void>((resolve) => {
                         // subscription.on("item_added",function(monitoredItem){
                         monitoredItem.on("initialized", () => {
-                            console.log(" Initialized !");
+                            debugLog(" Initialized !");
                             resolve();
                         });
                     });
@@ -306,16 +311,16 @@ describe("AZA1- testing Client-Server subscription use case, on a fake server ex
 
                     await new Promise((resolve) => setTimeout(resolve, 1000));
 
-                    console.log("changedSpy = ", changedSpy.getCalls().length);
+                    debugLog("changedSpy = ", changedSpy.getCalls().length);
 
-                    // console.log(changedSpy.firstCall.args[0]);
+                    // debugLog(changedSpy.firstCall.args[0]);
                     /*RfidScanResult*/
                     changedSpy.firstCall.args[0].should.be.instanceOf(Array);
                     changedSpy.firstCall.args[0][6].dataType.should.eql(DataType.ExtensionObject);
                     changedSpy.firstCall.args[0][6].value.constructor.name.should.eql("RfidScanResult");
                     changedSpy.callCount.should.eql(1);
                 } catch (err) {
-                    console.log(err);
+                    debugLog(err);
                     throw err;
                 }
             }

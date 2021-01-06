@@ -20,6 +20,7 @@ const {
 
 const { perform_operation_on_client_session } = require("../../test_helpers/perform_operation_on_client_session");
 
+const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 module.exports = function (test) {
     describe("Testing client with many monitored items", function () {
         let client, endpointUrl;
@@ -31,7 +32,9 @@ module.exports = function (test) {
             client = OPCUAClient.create();
             endpointUrl = test.endpointUrl;
 
-            console.log("client.tokenRenewalInterval = ", client.tokenRenewalInterval);
+            if (false) {
+                console.log("client.tokenRenewalInterval = ", client.tokenRenewalInterval);
+            }
             client.on("lifetime_75", () => console.log("token about to expire"));
             if (false) {
                 client.on("send_chunk", (buf) => console.log("chunk =>", buf.length));
@@ -186,7 +189,7 @@ module.exports = function (test) {
                             itemsToCreate: itemsToCreate,
                         });
 
-                        console.log(createMonitorItemsRequest.toString());
+                        //xx console.log(createMonitorItemsRequest.toString());
                         session.createMonitoredItems(createMonitorItemsRequest, function (err, response) {
                             if (err) {
                                 subscription.terminate(inner_done);

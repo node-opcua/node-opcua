@@ -2,7 +2,7 @@ const should = require("should");
 
 const MessageBuilder = require("..").MessageBuilder;
 const packets = require("node-opcua-transport/dist/test-fixtures");
-const BinaryStream = require("node-opcua-binary-stream").BinaryStream;
+const { BinaryStream } = require("node-opcua-binary-stream");
 
 
 xdescribe("testing with problematic packet", function () {

@@ -2,7 +2,7 @@
 const should = require("should");
 
 const generator = require("..");
-const encode_decode_round_trip_test = require("node-opcua-packet-analyzer/dist/test_helpers").encode_decode_round_trip_test;
+const { encode_decode_round_trip_test  } = require("node-opcua-packet-analyzer/dist/test_helpers");
 
 const path = require("path");
 const tmpfolder = path.join(__dirname, "../_test_generated");

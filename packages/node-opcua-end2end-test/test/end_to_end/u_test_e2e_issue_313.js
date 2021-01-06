@@ -9,6 +9,8 @@ const coerceNodeId = opcua.coerceNodeId;
 
 const { perform_operation_on_subscription } = require("../../test_helpers/perform_operation_on_client_session");
 
+const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
+
 module.exports = function(test) {
 
     describe("Testing issue#313 ", function() {

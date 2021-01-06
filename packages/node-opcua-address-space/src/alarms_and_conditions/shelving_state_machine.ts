@@ -7,7 +7,6 @@
 // --------------------------------------------------------------------------------------------------
 
 import { assert } from "node-opcua-assert";
-import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 import { StatusCodes } from "node-opcua-status-code";
 import { DataType, Variant, VariantLike } from "node-opcua-variant";
 
@@ -17,8 +16,9 @@ import { UAObject } from "../ua_object";
 import { UAVariable } from "../ua_variable";
 import { UAAlarmConditionBase } from "./ua_alarm_condition_base";
 
-const debugLog = make_debugLog(__filename);
-const doDebug = checkDebugFlag(__filename);
+import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
+const debugLog = make_debugLog("TEST");
+const doDebug = checkDebugFlag("TEST");
 
 export interface ShelvingStateMachine {
     unshelve: UAMethod;

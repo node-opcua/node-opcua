@@ -12,6 +12,7 @@ const ClientSubscription = opcua.ClientSubscription;
 
 const doDebug = false;
 
+const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 
 module.exports = function(test) {
 

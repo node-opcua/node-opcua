@@ -31,9 +31,9 @@ import {
 
  const configFolder = path.join(__dirname, "../../tmp");
 
- 
-const debugLog = require("node-opcua-debug").make_debugLog("TEST");
-const doDebug = require("node-opcua-debug").checkDebugFlag("TEST");
+import { checkDebugFlag, make_debugLog } from  "node-opcua-debug";
+const debugLog = make_debugLog("TEST");
+const doDebug = checkDebugFlag("TEST");
 
 const port0 = 2500;
 const port1 = 2501;
@@ -48,12 +48,10 @@ process.on("uncaughtException", function (err) {
     console.log(err);
 });
 
-
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
-
 export function t(test: any) {
     describe("DS1 - DiscoveryServer1", function (this: any) {
-        this.timeout(20000);
+        this.timeout(30*1000);
 
         let discovery_server: OPCUADiscoveryServer | undefined;
         let discoveryServerEndpointUrl: string;
@@ -232,7 +230,9 @@ export function t(test: any) {
             });
             await discoveryServer.start();
             discoveryServerEndpointUrl = discoveryServer.getEndpointUrl()!;
-            console.log(discoveryServerEndpointUrl);
+            if (doDebug) {
+                console.log(discoveryServerEndpointUrl);
+            }
         });
 
         afterEach(async () => {
@@ -248,7 +248,7 @@ export function t(test: any) {
 
         it("DS2-A should register server to the discover server 2", async () => {
          
-            const applicationUri = makeApplicationUrn(os.hostname(), "Node-OPCUA-Server");
+            const applicationUri = makeApplicationUrn(os.hostname(), "NodeOPCUA-Server");
 
             // there should be no endpoint exposed by an blank discovery server
             discoveryServer.registeredServerCount.should.equal(0);
@@ -272,7 +272,7 @@ export function t(test: any) {
                 serverInfo: {
                     applicationName: { text: "NodeOPCUA", locale: "en" },
                     applicationUri,
-                    productUri: "Node-OPCUA-Server",
+                    productUri: "NodeOPCUA-Server",
                     discoveryProfileUri: null,
                     discoveryUrls: [],
                     gatewayServerUri: null
@@ -479,7 +479,7 @@ export function t(test: any) {
                             }
                             servers.length.should.eql(6); // 5 server + 1 discovery server
 
-                            // servers[1].applicationUri.should.eql("urn:NodeOPCUA-Server-default");
+                            // servers[1].applicationUri.should.eql("urn:NodeOPCUA-Server");
                             callback(err);
                         });
                     },
@@ -495,7 +495,7 @@ export function t(test: any) {
                                 6,
                                 "may be you have a LDS running on your system. please make sure to shut it down before running the tests"
                             ); // 5 server + 1 discovery server
-                            // servers[1].applicationUri.should.eql("urn:NodeOPCUA-Server-default");
+                            // servers[1].applicationUri.should.eql("urn:NodeOPCUA-Server");
                             callback(err);
                         });
                     },

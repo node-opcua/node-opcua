@@ -29,6 +29,10 @@ import { EventFieldList } from "node-opcua-service-subscription";
 import { DataType, Variant } from "node-opcua-variant";
 import { NodeId } from "node-opcua-nodeid";
 
+import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
+const debugLog = make_debugLog("TEST");
+const doDebug = checkDebugFlag("TEST");
+
 // tslint:disable-next-line: no-var-requires
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("testing Events  ", () => {
@@ -65,7 +69,7 @@ describe("testing Events  ", () => {
         const observer = new Observer();
 
         observer.onEvent = (evtData: any) => {
-            console.log(" EVENT RECEIVED :", evtData.sourceName.value);
+            debugLog(" EVENT RECEIVED :", evtData.sourceName.value);
             evtData.sourceName.dataType.should.eql(DataType.String);
 
             done();
@@ -121,7 +125,7 @@ describe("testing Events  ", () => {
 
         selectClauseResults.length.should.eql(eventFilter.selectClauses!.length);
 
-        // xx console.log(selectClauseResults);
+        // xx debugLog(selectClauseResults);
 
         const eventData = new EventData(baseEventType);
 
@@ -133,7 +137,7 @@ describe("testing Events  ", () => {
             clientHandle: 1,
             eventFields
         });
-        // xx console.log("xxxx ",eventField.toString());
+        // xx debugLog("xxxx ",eventField.toString());
     });
 
     it("should filter an event", function (done: () => void) {
@@ -181,7 +185,7 @@ describe("testing Events  ", () => {
 
         eventFields.length.should.eql(4);
         eventFields.forEach(function (f) {
-            return console.log(f.toString());
+            return debugLog(f.toString());
         });
 
         eventFields[1].value.should.eql(serverObject.nodeId); // sourceNode
@@ -189,7 +193,7 @@ describe("testing Events  ", () => {
         eventFields[2].dataType.should.eql(DataType.String); // sourceName
         eventFields[3].dataType.should.eql(DataType.DateTime);
 
-        console.log(" EVENT RECEIVED :", (eventData as any).sourceName.value);
+        debugLog(" EVENT RECEIVED :", (eventData as any).sourceName.value);
         done();
     });
 
@@ -233,7 +237,7 @@ describe("testing Events  ", () => {
         const receivers: any[] = [];
 
         function spyFunc(this: BaseNode, object: any, data: any): void {
-            console.log("object ", this.browseName.toString(), " received Event");
+            debugLog("object ", this.browseName.toString(), " received Event");
             receivers.push(this.browseName.name!.toString());
         }
         const server = addressSpace.findNode("Server")!;
