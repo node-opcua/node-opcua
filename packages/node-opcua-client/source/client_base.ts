@@ -4,6 +4,7 @@
 // tslint:disable:no-unused-expression
 import { EventEmitter } from "events";
 import { LocaleId } from "node-opcua-basic-types";
+import { OPCUACertificateManager } from "node-opcua-certificate-manager";
 import { OPCUASecureObject } from "node-opcua-common";
 import { Certificate, makeSHA1Thumbprint, Nonce, toPem } from "node-opcua-crypto";
 import { ObjectRegistry } from "node-opcua-object-registry";
@@ -44,6 +45,7 @@ export interface FindEndpointOptions {
     certificateFile: string;
     privateKeyFile: string;
     applicationName: string;
+    clientCertificateManager: OPCUACertificateManager;
 }
 
 export interface FindEndpointResult {
@@ -103,6 +105,12 @@ export interface OPCUAClientBaseOptions {
      * @default false
      */
     keepSessionAlive?: boolean;
+
+
+    /**
+     * certificate Manager
+     */
+    clientCertificateManager?: OPCUACertificateManager;
 
     /**
      * client certificate pem file.

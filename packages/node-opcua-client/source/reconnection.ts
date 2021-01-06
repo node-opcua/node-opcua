@@ -6,7 +6,7 @@
 import * as async from "async";
 import * as chalk from "chalk";
 import { assert } from "node-opcua-assert";
-import { checkDebugFlag, make_debugLog, make_errorLog } from "node-opcua-debug";
+import { checkDebugFlag, make_debugLog, make_errorLog, make_warningLog } from "node-opcua-debug";
 import { TransferSubscriptionsRequest, TransferSubscriptionsResponse } from "node-opcua-service-subscription";
 import { StatusCodes } from "node-opcua-status-code";
 import { ErrorCallback } from "node-opcua-status-code";
@@ -18,6 +18,7 @@ import { OPCUAClientImpl } from "./private/opcua_client_impl";
 const debugLog = make_debugLog(__filename);
 const doDebug = checkDebugFlag(__filename);
 const errorLog = make_errorLog(__filename);
+const warningLog = make_warningLog(__filename);
 
 //
 // a new secure channel has be created, we need to reactivate the corresponding session,
@@ -215,7 +216,7 @@ function repair_client_session_by_recreating_a_new_session(
             });
 
             if (newSession.getPublishEngine().nbPendingPublishRequests !== 0) {
-                errorLog("Warning : we should not be publishing here");
+                warningLog("Warning : we should not be publishing here");
             }
             newSession.transferSubscriptions(subscriptionsToTransfer,
                 (err: Error | null, transferSubscriptionsResponse?: TransferSubscriptionsResponse) => {

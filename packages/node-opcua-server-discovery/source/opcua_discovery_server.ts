@@ -2,7 +2,6 @@
  * @module node-opcua-server-discovery
  */
 import * as chalk from "chalk";
-import * as fs from "fs";
 import * as os from "os";
 import * as path from "path";
 import * as url from "url";
@@ -32,9 +31,10 @@ import {
 } from "node-opcua-service-discovery";
 import { ApplicationDescription } from "node-opcua-service-endpoints";
 import { ApplicationDescriptionOptions, ApplicationType } from "node-opcua-service-endpoints";
-import { StatusCode, StatusCodes } from "node-opcua-status-code";
+import { ErrorCallback, StatusCode, StatusCodes } from "node-opcua-status-code";
 
 import { MDNSResponder } from "./mdns_responder";
+import { OPCUACertificateManager } from "node-opcua-certificate-manager";
 
 const debugLog = make_debugLog(__filename);
 const doDebug = checkDebugFlag(__filename);
@@ -69,6 +69,20 @@ interface RegisterServerMap {
     [key: string]: RegisteredServerExtended;
 }
 
+const defaultProductUri = "NodeOPCUA-LocalDiscoveryServer";
+const defaultApplicationUri = makeApplicationUrn(os.hostname(), defaultProductUri);
+
+function getDefaultCertificateManager(): OPCUACertificateManager {
+
+    const envPaths = require("env-paths");
+    const config  = envPaths(defaultProductUri).config;
+    return new OPCUACertificateManager({
+        name: "certificates",
+        rootFolder: path.join(config, "certificates"),
+        automaticallyAcceptUnknownCertificate: true
+    });
+}
+
 export class OPCUADiscoveryServer extends OPCUABaseServer {
     private mDnsResponder?: MDNSResponder;
     private readonly registeredServers: RegisterServerMap;
@@ -77,31 +91,33 @@ export class OPCUADiscoveryServer extends OPCUABaseServer {
 
     constructor(options: OPCUADiscoveryServerOptions) {
 
-        const default_certificate_file = constructFilename("certificates/server_selfsigned_cert_2048.pem");
-        const default_private_key_file = constructFilename("certificates/PKI/own/private/private_key.pem");
-
-        options.certificateFile = options.certificateFile || default_certificate_file;
-        assert(fs.existsSync(options.certificateFile), "cannot find certificateFile" + options.certificateFile);
-
-        options.privateKeyFile = options.privateKeyFile || default_private_key_file;
-        assert(fs.existsSync(options.certificateFile));
-
-        const defaultApplicationUri = makeApplicationUrn(os.hostname(), "NodeOPCUA-DiscoveryServer");
-
+    
         options.serverInfo = options.serverInfo || {};
         const serverInfo = options.serverInfo;
+
         serverInfo.applicationType = ApplicationType.DiscoveryServer;
+
         serverInfo.applicationUri = serverInfo.applicationUri || defaultApplicationUri;
-        serverInfo.productUri = serverInfo.productUri || "urn:NodeOPCUA-DiscoveryServer";
-        serverInfo.applicationName = serverInfo.applicationName || { text: "NodeOPCUA-DiscoveryServer", locale: null };
+
+        serverInfo.productUri = serverInfo.productUri || defaultProductUri;
+
+        serverInfo.applicationName = serverInfo.applicationName || {
+             text: defaultProductUri, locale: null
+        };
+
         serverInfo.gatewayServerUri = serverInfo.gatewayServerUri || "";
         serverInfo.discoveryProfileUri = serverInfo.discoveryProfileUri || "";
         serverInfo.discoveryUrls = serverInfo.discoveryUrls || [];
 
+        options.serverCertificateManager = options.serverCertificateManager || getDefaultCertificateManager();
+
+ 
         super(options);
 
         this.bonjourHolder = new BonjourHolder();
 
+        // see OPC UA Spec 1.2 part 6 : 7.4 Well Known Addresses
+        // opc.tcp://localhost:4840/UADiscovery
         const port = options.port || 4840;
 
         this.capabilitiesForMDNS = ["LDS"];
@@ -109,10 +125,7 @@ export class OPCUADiscoveryServer extends OPCUABaseServer {
 
         this.mDnsResponder = undefined;
 
-        // see OPC UA Spec 1.2 part 6 : 7.4 Well Known Addresses
-        // opc.tcp://localhost:4840/UADiscovery
-
-        this._delayInit = () => {
+        this._delayInit =async  (): Promise<void> => {
             const endPoint = new OPCUAServerEndPoint({
                 port,
 
@@ -128,59 +141,59 @@ export class OPCUADiscoveryServer extends OPCUABaseServer {
             this.endpoints.push(endPoint);
 
             endPoint.on("message", (message: Message, channel: ServerSecureChannelLayer) => {
-                if (doDebug) {
-                    debugLog(" RECEIVE MESSAGE", message.request.constructor.name);
-                }
                 this.on_request(message, channel);
             });
         };
     }
 
     public async start(): Promise<void>;
-    public start(done: (err?: Error) => void): void;
-    public start(done?: (err?: Error) => void): any {
+    public start(done: ErrorCallback): void;
+    public start(done?: ErrorCallback): any {
         assert(!this.mDnsResponder);
         assert(Array.isArray(this.capabilitiesForMDNS));
-
-        callbackify(extractFullyQualifiedDomainName)((err1: Error | null, fqdn: string) => {
-            if (this._delayInit) {
-                this._delayInit();
-                this._delayInit = undefined;
+  
+        this._preInitTask.push(async ()=> {
+            await this._delayInit!();
+        });
+         
+        super.start((err?: Error | null) => {
+            if (err) {
+                return done!(err);
             }
-
-            super.start((err?: Error | null) => {
-                if (err) {
-                    return done!(err);
+            this.mDnsResponder = new MDNSResponder();
+            // declare discovery server in bonjour
+            this.bonjourHolder._announcedOnMulticastSubnetWithCallback(
+                {
+                    capabilities: this.capabilitiesForMDNS,
+                    name: this.serverInfo.applicationUri!,
+                    path: "/DiscoveryServer",
+                    port: this.endpoints[0].port
+                },
+                (err2: Error | null) => {
+                    done!(err2!);
                 }
-                this.mDnsResponder = new MDNSResponder();
-                // declare discovery server in bonjour
-                this.bonjourHolder._announcedOnMulticastSubnetWithCallback(
-                    {
-                        capabilities: this.capabilitiesForMDNS,
-                        name: this.serverInfo.applicationUri!,
-                        path: "/DiscoveryServer",
-                        port: this.endpoints[0].port
-                    },
-                    (err2: Error | null) => {
-                        done!(err2!);
-                    }
-                );
-            });
+            );
         });
     }
 
     public async shutdown(): Promise<void>;
-    public shutdown(done: (err?: Error) => void): void;
-    public shutdown(done?: (err?: Error) => void): any {
+    public shutdown(done: ErrorCallback): void;
+    public shutdown(done?: ErrorCallback): any {
         if (this.mDnsResponder) {
             this.mDnsResponder.dispose();
             this.mDnsResponder = undefined;
         }
         debugLog("stopping announcement of LDS on mDNS");
-        this.bonjourHolder._stop_announcedOnMulticastSubnetWithCallback(() => {
+        this.bonjourHolder._stop_announcedOnMulticastSubnetWithCallback((err?: Error|null) => {
+
+            if (err) {
+                console.log("Error ", err.message);
+            }
             debugLog("stopping announcement of LDS on mDNS - DONE");
             debugLog("Shutting down Discovery Server");
-            super.shutdown(done!);
+            super.shutdown(()=>{
+                setTimeout(() => done!(), 100)
+            });
         });
     }
 

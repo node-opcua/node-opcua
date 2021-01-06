@@ -27,7 +27,7 @@ import {
     exploreCertificate
 } from "node-opcua-crypto";
 
-import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
+import { checkDebugFlag, make_debugLog, make_warningLog } from "node-opcua-debug";
 import { BaseUAObject } from "node-opcua-factory";
 import { analyze_object_binary_encoding } from "node-opcua-packet-analyzer";
 import {
@@ -66,8 +66,13 @@ import {
 
 import { checkCertificateValidity, ICertificateManager } from "node-opcua-certificate-manager";
 
+import { ObjectRegistry } from "node-opcua-object-registry";
+
+
 const debugLog = make_debugLog(__filename);
 const doDebug = checkDebugFlag(__filename);
+const warningLog = make_warningLog(__filename);
+
 
 const doTraceMessage = process.env.NODEOPCUADEBUG && process.env.NODEOPCUADEBUG.indexOf("SERVERTRACE") >= 0;
 const doTraceRequest = process.env.NODEOPCUADEBUG && process.env.NODEOPCUADEBUG.indexOf("REQUEST") >= 0;
@@ -294,7 +299,7 @@ export class ServerSecureChannelLayer extends EventEmitter {
         return this.__hash;
     }
 
-    public static registry: any;
+    public static registry = new ObjectRegistry({});
     public _on_response: ((msgType: string, response: Response, message: Message) => void) | null;
     public sessionTokens: any;
     public channelId: number | null;
@@ -1174,7 +1179,7 @@ export class ServerSecureChannelLayer extends EventEmitter {
             if (!this._check_receiverCertificateThumbprint(this.clientSecurityHeader)) {
                 description =
                     "Server#OpenSecureChannelRequest : Invalid receiver certificate thumbprint : the thumbprint doesn't match server certificate !";
-                console.log(chalk.cyan(description));
+                warningLog(chalk.cyan(description));
                 serviceResult = StatusCodes.BadCertificateInvalid;
             }
         }
@@ -1190,7 +1195,7 @@ export class ServerSecureChannelLayer extends EventEmitter {
         this.send_response("OPN", response, message, (/*err*/) => {
             const responseHeader = response.responseHeader;
             if (responseHeader.serviceResult !== StatusCodes.Good) {
-                console.log("OpenSecureChannelRequest Closing communication ", responseHeader.serviceResult.toString());
+                warningLog("OpenSecureChannelRequest Closing communication ", responseHeader.serviceResult.toString());
                 this.close();
             }
             callback();
@@ -1451,9 +1456,6 @@ export class ServerSecureChannelLayer extends EventEmitter {
         });
     }
 }
-
-import { ObjectRegistry } from "node-opcua-object-registry";
-ServerSecureChannelLayer.registry = new ObjectRegistry({});
 
 (ServerSecureChannelLayer as any).prototype.checkCertificateCallback = callbackify(
     (ServerSecureChannelLayer as any).prototype.checkCertificate

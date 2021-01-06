@@ -26,7 +26,7 @@ import { BinaryStream } from "node-opcua-binary-stream";
 import { get_clock_tick, timestamp } from "node-opcua-utils";
 
 import { readMessageHeader, verify_message_chunk } from "node-opcua-chunkmanager";
-import { checkDebugFlag, hexDump, make_debugLog, make_errorLog } from "node-opcua-debug";
+import { checkDebugFlag, hexDump, make_debugLog, make_errorLog, make_warningLog } from "node-opcua-debug";
 import { coerceMessageSecurityMode, MessageSecurityMode } from "node-opcua-service-secure-channel";
 import { StatusCodes } from "node-opcua-status-code";
 import { ClientTCP_transport } from "node-opcua-transport";
@@ -60,6 +60,7 @@ const backoff = require("backoff");
 const debugLog = make_debugLog(__filename);
 const errorLog = make_errorLog(__filename);
 const doDebug = checkDebugFlag(__filename);
+const warningLog = make_warningLog(__filename);
 const checkChunks = doDebug && false;
 const doDebug1 = false;
 
@@ -498,9 +499,10 @@ export class ClientSecureChannelLayer extends EventEmitter {
         assert(typeof callback === "function");
 
         if (this.securityMode !== MessageSecurityMode.None) {
+            // istanbul ignore next
             if (!this.serverCertificate) {
                 return callback(
-                    new Error("ClientSecureChannelLayer#create : expecting a  server certificate when securityMode is not None")
+                    new Error("ClientSecureChannelLayer#create : expecting a server certificate when securityMode is not None")
                 );
             }
 
@@ -1009,7 +1011,7 @@ export class ClientSecureChannelLayer extends EventEmitter {
         this._performMessageTransaction(msgType, msg, (err?: Error | null, response?: Response) => {
             // istanbul ignore next
             if (response && response.responseHeader && response.responseHeader.serviceResult !== StatusCodes.Good) {
-                console.log("xxxxx => response.responseHeader.serviceResult", response.responseHeader.serviceResult.toString());
+                warningLog("xxxxx => response.responseHeader.serviceResult ", response.constructor.name, response.responseHeader.serviceResult.toString());
                 err = new Error(response.responseHeader.serviceResult.toString());
             }
             if (!err && response) {
@@ -1603,6 +1605,7 @@ export class ClientSecureChannelLayer extends EventEmitter {
             return s;
         };
 
+        // istanbul ignore next
         if (!this.receiverPublicKey) {
             throw new Error(" invalid receiverPublicKey");
         }
@@ -1622,6 +1625,8 @@ export class ClientSecureChannelLayer extends EventEmitter {
         if (this.securityMode === MessageSecurityMode.None) {
             return null;
         }
+
+        // istanbul ignore next
         if (!this.derivedKeys || !this.derivedKeys.derivedClientKeys) {
             throw new Error("internal error expecting valid derivedKeys");
         }
