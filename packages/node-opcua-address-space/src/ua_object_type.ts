@@ -23,10 +23,6 @@ import { get_subtypeOf, get_subtypeOfObj } from "./tool_isSupertypeOf";
 import * as tools from "./tool_isSupertypeOf";
 import { assertUnusedChildBrowseName, initialize_properties_and_components } from "./ua_variable_type";
 
-/*
-UAObjectType.prototype.isSupertypeOf = tools.construct_isSupertypeOf(UAObjectType);
-const initialize_properties_and_components = require("./ua_variable_type").initialize_properties_and_components;
-*/
 
 export class UAObjectType extends BaseNode implements UAObjectTypePublic {
     public readonly nodeClass = NodeClass.ObjectType;

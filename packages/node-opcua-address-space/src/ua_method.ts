@@ -30,10 +30,6 @@ import { UAVariable } from "./ua_variable";
 
 function default_check_valid_argument(arg: any) {
     return arg.constructor.name === "Argument";
-    /*
-        var Argument  = require("./_generated_/_auto_generated_Argument").Argument;
-        return arg instanceof Argument
-    */
 }
 
 export class UAMethod extends BaseNode implements UAMethodPublic {

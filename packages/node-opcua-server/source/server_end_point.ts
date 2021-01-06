@@ -518,7 +518,7 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
         // if the server was not open when it was closed.
         this._server!.close(() => {
             this._started = false;
-            debugLog("Connection has been closed !");
+            debugLog("Connection has been closed !" + this.port);
         });
         this._started = false;
         callback();

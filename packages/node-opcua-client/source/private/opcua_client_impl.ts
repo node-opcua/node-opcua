@@ -1209,8 +1209,6 @@ export class OPCUAClientImpl extends ClientBaseImpl implements OPCUAClient {
 // tslint:disable:no-var-requires
 // tslint:disable:max-line-length
 const thenify = require("thenify");
-OPCUAClientImpl.prototype.connect = thenify.withCallback(OPCUAClientImpl.prototype.connect);
-OPCUAClientImpl.prototype.disconnect = thenify.withCallback(OPCUAClientImpl.prototype.disconnect);
 /**
  * @method createSession
  * @async

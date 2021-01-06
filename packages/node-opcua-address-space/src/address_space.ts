@@ -3,6 +3,7 @@
  */
 
 import * as chalk from "chalk";
+import { randomBytes } from "crypto";
 
 import { assert } from "node-opcua-assert";
 import { ExtraDataTypeManager } from "node-opcua-client-dynamic-extension-object";
@@ -619,7 +620,7 @@ export class AddressSpace implements AddressSpacePrivate {
         const offset = 16;
         const self = this as any;
         if (!self._eventIdCounter) {
-            self._eventIdCounter = require("crypto").randomBytes(20);
+            self._eventIdCounter = randomBytes(20);
             self._eventIdCounter.writeInt32BE(0, offset);
         }
         self._eventIdCounter.writeInt32BE(self._eventIdCounter.readInt32BE(offset) + 1, offset);
