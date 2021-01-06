@@ -22,7 +22,7 @@
         "node-opcua-types": "2.28.1"
     },
     "devDependencies": {
-        "@types/node": "^14.14.17",
+        "@types/node": "^14.14.20",
         "node-opcua-generator": "2.28.1",
         "should": "^13.2.3"
     },
