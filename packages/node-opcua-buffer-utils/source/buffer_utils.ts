@@ -12,9 +12,10 @@
 //
 // tslint:disable-next-line:ban-types
 export const createFastUninitializedBuffer: Function =
-    Buffer.allocUnsafe ? Buffer.allocUnsafe :  (size: number) => {
+    Buffer.allocUnsafe
+    /* ? Buffer.allocUnsafe :  (size: number) => {
         return new Buffer(size);
-    };
+    }*/;
 
 /**
  * @method makeBuffer
