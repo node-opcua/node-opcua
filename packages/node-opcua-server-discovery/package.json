@@ -18,7 +18,7 @@
 		"node-opcua-common": "2.28.1",
 		"node-opcua-debug": "2.28.0",
 		"node-opcua-hostname": "2.22.0",
-		"node-opcua-pki": "^2.6.1",
+		"node-opcua-pki": "^2.7.0",
 		"node-opcua-secure-channel": "2.28.1",
 		"node-opcua-server": "2.28.3",
 		"node-opcua-service-discovery": "2.28.1",

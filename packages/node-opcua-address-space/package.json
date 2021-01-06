@@ -15,7 +15,7 @@
         "c": "mocha --version"
     },
     "dependencies": {
-        "@types/lodash": "4.14.166",
+        "@types/lodash": "4.14.167",
         "async": "^3.2.0",
         "chalk": "^4.1.0",
         "dequeue": "^1.0.5",
@@ -47,7 +47,7 @@
         "node-opcua-utils": "2.28.0",
         "node-opcua-variant": "2.28.1",
         "node-opcua-xml2json": "2.28.0",
-        "pretty-error": "^2.1.2",
+        "pretty-error": "^3.0.3",
         "set-prototype-of": "^1.0.0",
         "thenify": "^3.3.1",
         "xml-writer": "^1.7.0"
@@ -64,7 +64,7 @@
         "node-opcua-packet-analyzer": "2.28.0",
         "node-opcua-test-fixtures": "2.28.0",
         "should": "^13.2.3",
-        "sinon": "^9.2.2",
+        "sinon": "^9.2.3",
         "source-map-support": "^0.5.19"
     },
     "author": "Etienne Rossignon",
