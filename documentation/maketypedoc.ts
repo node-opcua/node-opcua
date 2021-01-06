@@ -84,4 +84,8 @@ const sources = nodeopcuaModules.map((a: string) => {
     return index;
 });
 sources.unshift(path.join(__dirname, `../packages/node-opcua/source/index.ts`));
-app.generateDocs(sources, path.join(__dirname, "../../node-opcua.github.io/api_doc/2.0.0"));
+
+
+const project = app.convert();
+
+app.generateDocs(project, path.join(__dirname, "../../node-opcua.github.io/api_doc/2.0.0"));
