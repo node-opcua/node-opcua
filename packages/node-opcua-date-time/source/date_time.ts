@@ -159,17 +159,17 @@ let refTime = Date.now();
 
 export const periodicClockAdjustment = {
     adjustmentCount: 0,
-    interval: 3000 /* every 30 seconds */
+    interval: 3000, /* every 30 seconds */
+    timerInstallationCount: 0,
 };
 // update refTime now and then to make sure that we don't miss
 // any system time adjustment here such as a NTP clock event
 // see #651
 let timerId: NodeJS.Timeout | null;
-let timerInstallationCount = 0;
 const g_setInterval = global.setInterval;
 const g_clearInterval = global.clearInterval;
 export function installPeriodicClockAdjustment() {
-    timerInstallationCount++;
+    periodicClockAdjustment.timerInstallationCount++;
     if (timerId) {
         return;
     }
@@ -180,8 +180,8 @@ export function installPeriodicClockAdjustment() {
     }, periodicClockAdjustment.interval);
 }
 export function uninstallPeriodicClockAdjustment() {
-    timerInstallationCount--;
-    if (timerInstallationCount <= 0) {
+    periodicClockAdjustment.timerInstallationCount--;
+    if (periodicClockAdjustment.timerInstallationCount <= 0) {
         g_clearInterval(timerId!);
         timerId = null;
     }
