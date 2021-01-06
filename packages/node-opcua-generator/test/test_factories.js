@@ -12,7 +12,7 @@ const compare_obj_by_encoding = require("node-opcua-packet-analyzer/dist/test_he
 
 const ec = require("node-opcua-basic-types");
 
-const encode_decode_round_trip_test = require("node-opcua-packet-analyzer/dist/test_helpers").encode_decode_round_trip_test;
+const { encode_decode_round_trip_test  } = require("node-opcua-packet-analyzer/dist/test_helpers");
 require("../../node-opcua-data-model");
 
 

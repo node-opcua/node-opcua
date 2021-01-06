@@ -83,6 +83,8 @@ function reactivate_existing_session(endpointUrl, session, callback) {
     });
 }
 
+const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
+
 module.exports = function(test) {
 
     describe("Client and expired session activation", function() {

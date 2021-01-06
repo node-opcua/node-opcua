@@ -15,7 +15,9 @@ import { Variant } from "node-opcua-variant";
 import { DataValue } from "node-opcua-data-value";
 import { AddressSpace, BaseNode, ConditionSnapshot, SessionContext, UAAlarmConditionBase, UAObject, UAVariable } from "../..";
 
-const doDebug = !!process.env.DEBUG;
+import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
+const debugLog = make_debugLog("TEST");
+const doDebug = checkDebugFlag("TEST");
 
 export function utest_alarm_condition(test: any) {
     describe("AlarmConditionType", () => {
@@ -133,7 +135,7 @@ export function utest_alarm_condition(test: any) {
                 // ---------------------------------------------------------------------------------------------
                 // playing with active State
                 // ---------------------------------------------------------------------------------------------
-                console.log("xxxx alarm.activeState", alarm.activeState.toString());
+                debugLog("xxxx alarm.activeState", alarm.activeState.toString());
                 alarm.activeState.setValue(true);
                 alarm.activeState.getValueAsString().should.eql("Active");
 
@@ -201,13 +203,13 @@ export function utest_alarm_condition(test: any) {
 
                 const currentStateChangePromise = new Promise<void>((resolve) => {
                     alarm.shelvingState.currentState.once("value_changed", (newValue: DataValue) => {
-                        console.log(" alarm.shelvingState.currentState. ", newValue.toString());
+                        debugLog(" alarm.shelvingState.currentState. ", newValue.toString());
 
                         newValue.value.value.text.should.eql("Unshelved");
                         values.length.should.be.greaterThan(2);
                         if (doDebug) {
                             // tslint:disable:no-console
-                            console.log("                     unshelveTime value history = ", values);
+                            debugLog("                     unshelveTime value history = ", values);
                         }
                         resolve();
                     });

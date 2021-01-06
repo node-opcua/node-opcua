@@ -1,8 +1,7 @@
 const should = require("should");
 
-const StatusCodes = require("node-opcua-status-code").StatusCodes;
-
-const ContinuationPointManager = require("..").ContinuationPointManager;
+const { StatusCodes } = require("node-opcua-status-code");
+const { ContinuationPointManager } = require("..");
 
 describe("ContinuationPointManager", () => {
 

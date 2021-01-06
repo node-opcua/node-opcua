@@ -1,20 +1,25 @@
 
-
 const should = require("should");
 const { assert } = require("node-opcua-assert");
 const async = require("async");
 const util = require("util");
 
-const opcua = require("node-opcua");
-const resolveNodeId = opcua.resolveNodeId;
+const {
+    resolveNodeId,
+    OPCUAClient,
+    StatusCodes,
+    BrowseDirection,
+    BrowseRequest, 
+    BrowseNextRequest, 
+    BrowseDescription
+} = require("node-opcua");
 
-const OPCUAClient = opcua.OPCUAClient;
-const StatusCodes = opcua.StatusCodes;
-
-const BrowseDirection = opcua.BrowseDirection;
-const debugLog = require("node-opcua-debug").make_debugLog(__filename);
+const { make_debugLog, checkDebugFlag } = require("node-opcua-debug");
+const debugLog = make_debugLog("TEST");
+const doDebug = checkDebugFlag("TEST");
 
 
+const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 module.exports = function(test) {
 
     describe("Test Browse Request", function() {
@@ -49,8 +54,7 @@ module.exports = function(test) {
 
         it("T1 - #Browse should return BadNothingToDo if nodesToBrowse is empty ", function(done) {
 
-
-            const browseRequest = new opcua.BrowseRequest({
+            const browseRequest = new BrowseRequest({
                 nodesToBrowse: []
             });
             g_session.performMessageTransaction(browseRequest, function(err, result) {
@@ -69,7 +73,7 @@ module.exports = function(test) {
                 browseDirection: BrowseDirection.Forward
             };
 
-            const browseRequest = new opcua.BrowseRequest({
+            const browseRequest = new BrowseRequest({
                 view: {
                     viewId: 'ns=1256;i=1' //<< invalid viewId
                 },
@@ -89,7 +93,7 @@ module.exports = function(test) {
                 browseDirection: BrowseDirection.Forward
             };
 
-            const browseRequest = new opcua.BrowseRequest({
+            const browseRequest = new BrowseRequest({
                 view: {
                     viewId: 'ns=0;i=85',
                 },
@@ -115,7 +119,7 @@ module.exports = function(test) {
             async.series([
 
                 function(callback) {
-                    const browseRequest1 = new opcua.BrowseRequest({
+                    const browseRequest1 = new BrowseRequest({
                         view: null,//{ viewId: 'ns=0;i=85'},
                         requestedMaxReferencesPerNode: 10,
                         nodesToBrowse: [browseDesc]
@@ -132,7 +136,7 @@ module.exports = function(test) {
                     });
                 },
                 function(callback) {
-                    const browseRequest2 = new opcua.BrowseRequest({
+                    const browseRequest2 = new BrowseRequest({
                         view: null,//{ viewId: 'ns=0;i=85'},
                         requestedMaxReferencesPerNode: 1,
                         nodesToBrowse: [browseDesc]
@@ -157,7 +161,7 @@ module.exports = function(test) {
             async.series([
 
                 function(callback) {
-                    const browseNextRequest = new opcua.BrowseNextRequest({
+                    const browseNextRequest = new BrowseNextRequest({
                         continuationPoints: null
                     });
                     g_session.performMessageTransaction(browseNextRequest, function(err, response) {
@@ -183,7 +187,7 @@ module.exports = function(test) {
             async.series([
 
                 function(callback) {
-                    const browseRequest1 = new opcua.BrowseRequest({
+                    const browseRequest1 = new BrowseRequest({
                         view: null,//{ viewId: 'ns=0;i=85'},
                         requestedMaxReferencesPerNode: 10,
                         nodesToBrowse: [browseDesc]
@@ -202,7 +206,7 @@ module.exports = function(test) {
                 },
 
                 function(callback) {
-                    const browseRequest2 = new opcua.BrowseRequest({
+                    const browseRequest2 = new BrowseRequest({
                         view: null,//{ viewId: 'ns=0;i=85'},
                         requestedMaxReferencesPerNode: 2,
                         nodesToBrowse: [browseDesc]
@@ -227,7 +231,7 @@ module.exports = function(test) {
                 },
 
                 function(callback) {
-                    const browseNextRequest = new opcua.BrowseNextRequest({
+                    const browseNextRequest = new BrowseNextRequest({
                         continuationPoints: [continuationPoint],
                         //xx                    releaseContinuationPoints: true
                     });
@@ -256,7 +260,7 @@ module.exports = function(test) {
 
                 // we reach the end of the sequence. continuationPoint shall not be usable anymore
                 function(callback) {
-                    const browseNextRequest = new opcua.BrowseNextRequest({
+                    const browseNextRequest = new BrowseNextRequest({
                         continuationPoints: [continuationPoint],
                         releaseContinuationPoints: true
                     });
@@ -313,7 +317,7 @@ module.exports = function(test) {
                 const obj = server.engine.addressSpace.findNode(nodeId, BrowseDirection.Forward);
                 should.exist(obj);
 
-                const browseDesc = new opcua.BrowseDescription({
+                const browseDesc = new BrowseDescription({
                     nodeId: nodeId,
                     referenceTypeId: "i=47", // HasComponents
                     includeSubtypes: true,
@@ -330,7 +334,7 @@ module.exports = function(test) {
 
                     // browse all references
                     function(callback) {
-                        const browseRequestAll = new opcua.BrowseRequest({
+                        const browseRequestAll = new BrowseRequest({
                             view: null,//{ viewId: 'ns=0;i=85'},
                             requestedMaxReferencesPerNode: 10,
                             nodesToBrowse: [browseDesc]
@@ -350,7 +354,7 @@ module.exports = function(test) {
 
                     function(callback) {
 
-                        const browseRequest1 = new opcua.BrowseRequest({
+                        const browseRequest1 = new BrowseRequest({
                             view: null,
                             requestedMaxReferencesPerNode: 1,
                             nodesToBrowse: [browseDesc]
@@ -373,7 +377,7 @@ module.exports = function(test) {
                     },
 
                     function(callback) {
-                        const browseNextRequest = new opcua.BrowseNextRequest({
+                        const browseNextRequest = new BrowseNextRequest({
                             releaseContinuationPoints: false,
                             continuationPoints: [continuationPoint]
                         });
@@ -397,7 +401,7 @@ module.exports = function(test) {
 
                     },
                     function(callback) {
-                        const browseNextRequest = new opcua.BrowseNextRequest({
+                        const browseNextRequest = new BrowseNextRequest({
                             releaseContinuationPoints: true,
                             continuationPoints: [continuationPoint]
                         });

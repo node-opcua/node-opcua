@@ -8,7 +8,7 @@ const decodeStatusCode = require("..").decodeStatusCode;
 const getStatusCodeFromCode = require("..").getStatusCodeFromCode;
 const coerceStatusCode = require("..").coerceStatusCode;
 
-const BinaryStream = require("node-opcua-binary-stream").BinaryStream;
+const { BinaryStream } = require("node-opcua-binary-stream");
 
 describe("testing status code manipulation", () => {
 

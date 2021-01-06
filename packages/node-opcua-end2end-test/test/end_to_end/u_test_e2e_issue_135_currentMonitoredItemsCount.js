@@ -1,25 +1,32 @@
 /*global describe, it, require*/
 "use strict";
-const async = require("async");
 const should = require("should");
 
-const opcua = require("node-opcua");
+const {
+    OPCUAClient,
+    AttributeIds,
+    ClientMonitoredItem,
+    ClientSubscription,
+    DataValue,
+    makeBrowsePath,
+    StatusCodes
+} = require("node-opcua");
 
-const OPCUAClient = opcua.OPCUAClient;
-const AttributeIds = opcua.AttributeIds;
-const ClientSubscription = opcua.ClientSubscription;
+const { make_debugLog, checkDebugFlag } = require("node-opcua-debug");
+const debugLog = make_debugLog("TEST");
+const doDebug = checkDebugFlag("TEST");
 
 
-function debugLog() { }
+const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 
 
 module.exports = function(test) {
 
 
-    describe("Testing #135 - a server shall expose currentMonitoredItemsCount", function() {
+    describe("Testing #135 - a server should expose currentMonitoredItemsCount", function() {
 
 
-        it("test", function(done) {
+        it("should expose currentMonitoredItemsCount", async () => {
 
             const server = test.server;
 
@@ -35,149 +42,99 @@ module.exports = function(test) {
                         // simulate a asynchronous behaviour
                         setTimeout(function() {
                             counter += 1;
-                            callback(null, new opcua.DataValue({ value: { dataType: "UInt32", value: counter } }));
+                            callback(null, new DataValue({ value: { dataType: "UInt32", value: counter } }));
                         }, refreshRate);
                     }
                 }
             });
 
-            const client1 = OPCUAClient.create();
             const endpointUrl = test.endpointUrl;
 
-            let the_session;
+ 
+            const client = OPCUAClient.create({
+                clientName: "SomeFancyClientName"
+            });
+            await client.connect(endpointUrl);
 
-            let the_subscription;
+            const session = await client.createSession();
 
-            async.series([
+            const subscription = await session.createSubscription2({
+                requestedPublishingInterval: 150,
+                requestedLifetimeCount: 10 * 60 * 10,
+                requestedMaxKeepAliveCount: 10,
+                maxNotificationsPerPublish: 2,
+                publishingEnabled: true,
+                priority: 6
+            });
+       
+            debugLog("publishingInterval", subscription.publishingInterval);
+ 
+            const nodesToMonitor = [
+                slowVar.nodeId, "i=2254",
+            ];
 
-                function(callback) {
-                    client1.connect(endpointUrl, callback);
-                },
-
-                // create a session using client1
-                function(callback) {
-                    client1.createSession(function(err, session) {
-                        if (err) {
-                            return callback(err);
-                        }
-                        the_session = session;
-                        callback();
+            nodesToMonitor.forEach(function(nodeId) {
+                const monitoredItem = ClientMonitoredItem.create(subscription,
+                    { nodeId: nodeId, attributeId: AttributeIds.Value },
+                    {
+                        samplingInterval: refreshRate / 2, // sampling twice as fast as variable refresh rate
+                        discardOldest: true,
+                        queueSize: 100
                     });
-                },
-
-
-                function(callback) {
-
-                    const subscription = ClientSubscription.create(the_session, {
-                        requestedPublishingInterval: 150,
-                        requestedLifetimeCount: 10 * 60 * 10,
-                        requestedMaxKeepAliveCount: 10,
-                        maxNotificationsPerPublish: 2,
-                        publishingEnabled: true,
-                        priority: 6
-                    });
-                    the_subscription = subscription;
-
-                    subscription.once("started", function() {
-                        debugLog("publishingInterval", subscription.publishingInterval);
-                        callback();
-                    });
-
-                    const nodesToMonitor = [
-                        slowVar.nodeId, "i=2254",
-                    ];
-
-                    nodesToMonitor.forEach(function(nodeId) {
-                        const monitoredItem = opcua.ClientMonitoredItem.create(subscription,
-                            { nodeId: nodeId, attributeId: AttributeIds.Value },
-                            {
-                                samplingInterval: refreshRate / 2, // sampling twice as fast as variable refresh rate
-                                discardOldest: true,
-                                queueSize: 100
-                            });
-
-                    });
-
-                },
-
-                // DO SOMETHING HERE TO READ THE currentMonitoredItemsCount
-
-                function(callback) {
-
-                    const sessionId /* NodeId */ = the_session.sessionId;
-                    console.log("session nodeId = ", sessionId.toString());
-                    const browsePath = [
-                        opcua.makeBrowsePath(sessionId, ".SessionDiagnostics.CurrentMonitoredItemsCount"),
-                        opcua.makeBrowsePath(sessionId, ".SessionDiagnostics.CurrentSubscriptionsCount"),
-                        opcua.makeBrowsePath(sessionId, ".SessionDiagnostics")
-                    ];
-                    the_session.translateBrowsePath(browsePath, function(err, browsePathResults) {
-                        if (err) { return callback(err); }
-                        // debugLog(" browsePathResults",browsePathResults[0].toString());
-                        browsePathResults[0].statusCode.should.eql(opcua.StatusCodes.Good);
-                        browsePathResults[1].statusCode.should.eql(opcua.StatusCodes.Good);
-                        browsePathResults[2].statusCode.should.eql(opcua.StatusCodes.Good);
-
-                        const nodesToRead = [];
-                        nodesToRead.push({
-                            nodeId: browsePathResults[0].targets[0].targetId,
-                            attributeId: AttributeIds.Value
-                        });
-
-                        nodesToRead.push({
-                            nodeId: browsePathResults[1].targets[0].targetId,
-                            attributeId: AttributeIds.Value
-                        });
-                        nodesToRead.push({
-                            nodeId: browsePathResults[2].targets[0].targetId,
-                            attributeId: AttributeIds.Value
-                        });
-
-                        the_session.read(nodesToRead, function(err, dataValues) {
-
-                            if (err) {
-                                return callback(err);
-                            }
-
-                            //xx console.log(chalk.bgWhite.red("-----------------------------------------------"),err);
-                            //xx console.log("results = ",results);
-
-                            dataValues.length.should.eql(3);
-                            const currentMonitoredItemsCount = dataValues[0].value.value;
-                            const currentSubscriptionsCount = dataValues[1].value.value;
-
-                            debugLog("CurrentMonitoredItemsCount = ", currentMonitoredItemsCount);
-                            debugLog("currentSubscriptionsCount   = ", currentSubscriptionsCount);
-
-                            currentSubscriptionsCount.should.eql(1, "expecting one subscription ");
-                            currentMonitoredItemsCount.should.eql(2);
-
-                            dataValues[2].value.value.constructor.name.should.eql("SessionDiagnosticsDataType");
-                            dataValues[2].value.value.sessionName.toString().should.eql("Session1");
-
-                            debugLog("diagnostic = ", dataValues[2].value.toString());
-
-                            callback(err);
-                        });
-                    });
-
-                },
-
-                function(callback) {
-                    the_subscription.terminate(callback);
-                },
-
-                function(callback) {
-                    the_session.close(callback);
-                }
-
-            ], function final(err) {
-                client1.disconnect(function() {
-                    debugLog(" Client disconnected ", (err ? err.message : "null"));
-                    done(err);
-                });
             });
 
+
+            const sessionId = session.sessionId;
+            debugLog("session nodeId = ", sessionId.toString());
+
+            const browsePath = [
+                makeBrowsePath(sessionId, ".SessionDiagnostics.CurrentMonitoredItemsCount"),
+                makeBrowsePath(sessionId, ".SessionDiagnostics.CurrentSubscriptionsCount"),
+                makeBrowsePath(sessionId, ".SessionDiagnostics")
+            ];
+
+            const browsePathResults =  await session.translateBrowsePath(browsePath);
+            // debugLog(" browsePathResults",browsePathResults[0].toString());
+            browsePathResults[0].statusCode.should.eql(StatusCodes.Good);
+            browsePathResults[1].statusCode.should.eql(StatusCodes.Good);
+            browsePathResults[2].statusCode.should.eql(StatusCodes.Good);
+
+            const nodesToRead = [];
+            nodesToRead.push({
+                nodeId: browsePathResults[0].targets[0].targetId,
+                attributeId: AttributeIds.Value
+            });
+
+            nodesToRead.push({
+                nodeId: browsePathResults[1].targets[0].targetId,
+                attributeId: AttributeIds.Value
+            });
+            nodesToRead.push({
+                nodeId: browsePathResults[2].targets[0].targetId,
+                attributeId: AttributeIds.Value
+            });
+
+            const dataValues = await  session.read(nodesToRead);
+            //xx debugLog(chalk.bgWhite.red("-----------------------------------------------"),err);
+            //xx debugLog("results = ",results);
+            dataValues.length.should.eql(3);
+            const currentMonitoredItemsCount = dataValues[0].value.value;
+            const currentSubscriptionsCount = dataValues[1].value.value;
+
+            debugLog("CurrentMonitoredItemsCount = ", currentMonitoredItemsCount);
+            debugLog("currentSubscriptionsCount   = ", currentSubscriptionsCount);
+
+            currentSubscriptionsCount.should.eql(1, "expecting one subscription ");
+            currentMonitoredItemsCount.should.eql(2);
+
+            dataValues[2].value.value.constructor.name.should.eql("SessionDiagnosticsDataType");
+            dataValues[2].value.value.sessionName.toString().should.eql("SomeFancyClientName1");
+
+            debugLog("diagnostic = ", dataValues[2].value.toString());
+
+            await subscription.terminate();
+            await session.close();
+            await client.disconnect();
         });
 
     });

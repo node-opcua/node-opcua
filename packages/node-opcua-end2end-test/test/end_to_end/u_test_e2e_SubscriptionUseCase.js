@@ -46,8 +46,12 @@ const {
     perform_operation_on_subscription_async
 } = require("../../test_helpers/perform_operation_on_client_session");
 
-const doDebug = false;
-const f = require("../../test_helpers/display_function_name").f.bind(null, true);
+
+const { make_debugLog, checkDebugFlag} = require("node-opcua-debug");
+const debugLog = make_debugLog("TEST");
+const doDebug = checkDebugFlag("TEST");
+
+const f = require("../../test_helpers/display_function_name").f.bind(null, doDebug);
 
 function trace_console_log() {
     const log1 = global.console.log;
@@ -61,6 +65,7 @@ function trace_console_log() {
 }
 
 //xx trace_console_log();
+const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 
 
 module.exports = function(test) {

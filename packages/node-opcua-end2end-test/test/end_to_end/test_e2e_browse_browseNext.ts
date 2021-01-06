@@ -1,5 +1,6 @@
 // tslint:disable:no-var-requires
 // tslint:disable:no-empty
+import "should";
 
 import {
     BrowseDescriptionLike,

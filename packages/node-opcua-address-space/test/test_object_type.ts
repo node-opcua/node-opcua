@@ -8,6 +8,10 @@ import { create_minimalist_address_space_nodeset } from "../testHelpers";
 
 const context = SessionContext.defaultContext;
 
+import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
+const debugLog = make_debugLog("TEST");
+const doDebug = checkDebugFlag("TEST");
+
 // tslint:disable-next-line:no-var-requires
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("testing UAObjectType", () => {
@@ -102,7 +106,7 @@ describe("testing UAObjectType", () => {
             modellingRule: "Mandatory"
         });
         // tslint:disable:no-console
-        console.log(objType.toString());
-        console.log(variable.toString());
+        debugLog(objType.toString());
+        debugLog(variable.toString());
     });
 });

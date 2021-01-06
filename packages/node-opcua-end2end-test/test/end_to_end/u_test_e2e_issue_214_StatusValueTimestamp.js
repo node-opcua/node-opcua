@@ -15,6 +15,8 @@ const perform_operation_on_subscription = require("../../test_helpers/perform_op
 
 const debugLog = function() { };
 
+const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
+
 module.exports = function(test) {
     describe("NXX1 Testing issue  #214 -  DataChangeTrigger.StatusValueTimestamp", function() {
         it("#214 -  DataChangeTrigger.StatusValueTimestamp", function(done) {

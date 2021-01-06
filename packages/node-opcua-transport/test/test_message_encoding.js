@@ -3,7 +3,7 @@ const HelloMessage = require("..").HelloMessage;
 const packTcpMessage = require("..").packTcpMessage;
 const decodeMessage = require("..").decodeMessage;
 
-const BinaryStream = require("node-opcua-binary-stream").BinaryStream;
+const { BinaryStream } = require("node-opcua-binary-stream");
 
 describe("testing message encoding and decoding", function () {
 

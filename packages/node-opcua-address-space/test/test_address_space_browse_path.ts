@@ -9,7 +9,9 @@ import { AddressSpace, Namespace } from "..";
 import { generateAddressSpace } from "../nodeJS";
 import { getMiniAddressSpace, add_eventGeneratorObject } from "../testHelpers";
 
-const doDebug = false;
+import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
+const debugLog = make_debugLog("TEST");
+const doDebug = checkDebugFlag("TEST");
 
 describe("AddressSpace#browsePath", () => {
     let addressSpace: AddressSpace;
@@ -35,7 +37,7 @@ describe("AddressSpace#browsePath", () => {
 
         if (doDebug) {
             const opts = { addressSpace };
-            console.log((result as any).toString(opts));
+            debugLog((result as any).toString(opts));
         }
     });
     it("should browse Status", () => {
@@ -46,7 +48,7 @@ describe("AddressSpace#browsePath", () => {
 
         if (doDebug) {
             const opts = { addressSpace };
-            console.log((result as any).toString(opts));
+            debugLog((result as any).toString(opts));
         }
     });
     it("#QQ browsing a path when a null target name is not in the last element shall return an error ", () => {
@@ -67,10 +69,10 @@ describe("AddressSpace#browsePath", () => {
 
         if (doDebug) {
             const opts = { addressSpace };
-            console.log("browsePath", browsePath.toString(opts));
-            console.log("result", result.toString(opts));
+            debugLog("browsePath", browsePath.toString(opts));
+            debugLog("result", result.toString(opts));
 
-            console.log(addressSpace.rootFolder.objects.toString());
+            debugLog(addressSpace.rootFolder.objects.toString());
         }
     });
 
@@ -82,8 +84,8 @@ describe("AddressSpace#browsePath", () => {
 
         if (doDebug) {
             const opts = { addressSpace };
-            console.log("browsePath", browsePath.toString(opts));
-            console.log("result", result.toString(opts));
+            debugLog("browsePath", browsePath.toString(opts));
+            debugLog("result", result.toString(opts));
         }
 
         const node = addressSpace.findNode(result.targets![0].targetId)!.browseName.toString().should.eql("1:MyEventType");
@@ -215,9 +217,9 @@ describe("AddressSpace#browsePath 2/2", () => {
                 ]
             }
         });
-        // console.log(browsePath.toString());
+        // debugLog(browsePath.toString());
         const result = addressSpace.browsePath(browsePath);
-        // console.log(result.toString());
+        // debugLog(result.toString());
         result.statusCode.should.eql(StatusCodes.Good);
         result.targets!.length.should.eql(1);
     });
@@ -248,14 +250,14 @@ describe("AddressSpace#browsePath 2/2", () => {
 
         const node = server.getChildByName("ServerRedundancy")!;
         should.exist(node);
-        console.log(node.toString());
+        debugLog(node.toString());
         addressSpace.deleteNode(node);
         const childrenAfter = server
             .getComponents()
             .map((c) => c.browseName.toString())
             .sort()
             .join(" ");
-        console.log("childrenAfter  = ", childrenAfter);
-        console.log("childrenBefore = ", childrenBefore);
+        debugLog("childrenAfter  = ", childrenAfter);
+        debugLog("childrenBefore = ", childrenBefore);
     });
 });

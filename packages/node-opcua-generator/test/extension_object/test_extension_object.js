@@ -4,10 +4,10 @@ const should = require("should");
 const factories = require("node-opcua-factory");
 const generator = require("../..");
 
-const BinaryStream = require("node-opcua-binary-stream").BinaryStream;
-const makeExpandedNodeId = require("node-opcua-nodeid").makeExpandedNodeId;
+const { BinaryStream } = require("node-opcua-binary-stream");
+const { makeExpandedNodeId } = require("node-opcua-nodeid");
 
-const encode_decode_round_trip_test = require("node-opcua-packet-analyzer/dist/test_helpers").encode_decode_round_trip_test;
+const { encode_decode_round_trip_test  } = require("node-opcua-packet-analyzer/dist/test_helpers");
 
 
 const path = require("path");

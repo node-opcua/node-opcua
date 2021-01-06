@@ -5,8 +5,6 @@
     "scripts": {
         "build": "tsc -b",
         "lint": "tslint source/**/*.ts",
-        "postinstall": "node test_helpers/create_certificates.js certificate -s -o certificates/server_selfsigned_cert_2048.pem",
-        "pretest": "node test_helpers/create_certificates.js certificate -s -o certificates/server_selfsigned_cert_2048.pem",
         "clean": "node -e \"require('rimraf').sync('certificates');\" && node -e \"require('rimraf').sync('dist');\"",
         "test": "mocha"
     },
@@ -39,7 +37,7 @@
         "node-opcua-nodesets": "2.27.0",
         "node-opcua-numeric-range": "2.28.0",
         "node-opcua-object-registry": "2.28.0",
-        "node-opcua-pki": "^2.6.0",
+        "node-opcua-pki": "^2.6.1",
         "node-opcua-secure-channel": "2.28.1",
         "node-opcua-service-browse": "2.28.1",
         "node-opcua-service-call": "2.28.1",

@@ -125,7 +125,7 @@ describe("ServerConfiguration", () => {
         // new Certificates.
 
         it("should implement createSigningRequest", async () => {
-            installPushCertificateManagement(addressSpace, { applicationGroup, userTokenGroup });
+            installPushCertificateManagement(addressSpace, { applicationGroup, userTokenGroup, applicationUri: "SomeURI" });
 
             const server = addressSpace.rootFolder.objects.server;
             server.serverConfiguration.createSigningRequest.nodeClass.should.eql(NodeClass.Method);
@@ -149,7 +149,7 @@ describe("ServerConfiguration", () => {
             result.statusCode.should.eql(StatusCodes.Good);
         });
         xit("should implement UpdateCertificate", async () => {
-            installPushCertificateManagement(addressSpace, {});
+            installPushCertificateManagement(addressSpace, {applicationUri: "SomeUri"});
 
             const pseudoSession = new PseudoSession(addressSpace, opcuaServer, session);
             const clientPushCertificateManager = new ClientPushCertificateManagement(pseudoSession);

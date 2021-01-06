@@ -68,7 +68,7 @@ export function subtest_analog_item_type(maintest: any) {
             analogItem.instrumentRange!.browseName.toString().should.eql("InstrumentRange");
             analogItem.engineeringUnits.browseName.toString().should.eql("EngineeringUnits");
 
-            console.log("xxxx = analogItem.euRange.readValue().value.value", analogItem.euRange.readValue().toString());
+            // xx console.log("xxxx = analogItem.euRange.readValue().value.value", analogItem.euRange.readValue().toString());
             analogItem.euRange.readValue().value.value.low.should.eql(100);
             analogItem.euRange.readValue().value.value.high.should.eql(200);
 

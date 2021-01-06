@@ -6,9 +6,14 @@ const { promisify } = require("util");
 const ClientSecureChannelLayer = require("..").ClientSecureChannelLayer;
 const ServerSecureChannelLayer = require("..").ServerSecureChannelLayer;
 
-const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 const { ReadRequest } = require("node-opcua-types");
 
+
+const { make_debugLog, checkDebugFlag } = require("node-opcua-debug");
+const debugLog = make_debugLog("TEST");
+const doDebug = checkDebugFlag("TEST");
+
+const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("Testing ClientSecureChannel 1", function () {
 
     this.timeout(Math.max(this.timeout(), 100000));
@@ -75,8 +80,7 @@ function startServer(holder,callback) {
     const server_socket = new net.Server();
     holder.server_socket = server_socket;
 
-    //xx console.log(" max connection = ", server_socket.maxConnections);
-
+  
     server_socket.listen(1234);
     server_socket.on("connection", function on_connection(socket) {
 
@@ -86,7 +90,7 @@ function startServer(holder,callback) {
         holder.serverChannel = serverChannel;
         serverChannel.timeout = 1000*1000;
         serverChannel.init(socket, function () {
-            //xx console.log(" server channel is initialised");
+ 
         });
     });
 
@@ -124,14 +128,11 @@ describe("Testing ClientSecureChannel 2", function () {
 
             should.exist(transaction_stat.request);
             should.exist(transaction_stat.response);
-            // xx console.log(transaction_stat);
         };
 
         secureChannel.on("close", function (err) {
             should(!err).be.eql(true, "expecting no error here, as secure channel has been closed normally");
-            //xx console.log("secure channel has ended", err);
             if (err) {
-                //xx console.log(" the connection was closed by an external cause such as server shutdown");
             }
         });
         secureChannel.create("opc.tcp://localhost:1234/UA/Sample", function (err) {
@@ -167,7 +168,7 @@ describe("Testing ClientSecureChannel with BackOff reconnection strategy", funct
         const endpoint  = "opc.tcp://localhost:1234/UA/Sample";
         let nbRetry =0;
         secureChannel.on("backoff",function(number,delay){
-            console.log(number + " " + delay + "ms");
+            debugLog(number + " " + delay + "ms");
             nbRetry = number+1;
         });
         secureChannel.create(endpoint,function(err){
@@ -197,10 +198,10 @@ describe("Testing ClientSecureChannel with BackOff reconnection strategy", funct
         let nbRetry =0;
 
         secureChannel.on("backoff",function(number,delay){
-            console.log(number + " " + delay + "ms");
+            debugLog(number + " " + delay + "ms");
             nbRetry = number+1;
             if (number === 2) {
-                console.log("Let's abort the connection now");
+                debugLog("Let's abort the connection now");
                 secureChannel.abortConnection(function() {});
             }
         });
@@ -209,7 +210,7 @@ describe("Testing ClientSecureChannel with BackOff reconnection strategy", funct
             nbRetry.should.be.greaterThan(2);
             nbRetry.should.be.lessThan(4);
             should.exist(err,"expecting an error here");
-            console.log("secureChannel.create failed with message ",err.message);
+            debugLog("secureChannel.create failed with message ",err.message);
             secureChannel.close(function() {
                 setTimeout(done,100);
             });
@@ -235,7 +236,7 @@ describe("Testing ClientSecureChannel with BackOff reconnection strategy", funct
         let nbRetry =0;
 
         secureChannel.on("backoff",function(number,delay){
-            console.log(number + " " + delay + "ms");
+            debugLog(number + " " + delay + "ms");
             nbRetry = number+1;
         });
 
@@ -255,7 +256,7 @@ describe("Testing ClientSecureChannel with BackOff reconnection strategy", funct
         setTimeout(function(){
             // start the server with a delay
             startServer(test,function(){
-                console.log("Server finally started !");
+                debugLog("Server finally started !");
             });
         },5000);
 
@@ -290,7 +291,7 @@ describe("Testing ClientSecureChannel with BackOff reconnection strategy", funct
         const secureChannel = new ClientSecureChannelLayer(options);
 
         secureChannel.on("close",()=>{
-            console.log("On close");
+            debugLog("On close");
         });
 
         const holder = {};
@@ -304,11 +305,11 @@ describe("Testing ClientSecureChannel with BackOff reconnection strategy", funct
         //-----------------------------------------------------------------
         // let suspend the communication
         const oldWrite = holder.serverChannel.transport.write;
-        console.log()
+        debugLog()
         holder.serverChannel.transport.write = (chunk) => {
             // replace standard implementation with a method
             // do not write the expected chunk to simulate very slow network or broken network
-            console.log("Not Writing !!!", chunk.toString("hex"));
+            debugLog("Not Writing !!!", chunk.toString("hex"));
         };
         //-----------------------------------------------------------------
 
@@ -316,21 +317,20 @@ describe("Testing ClientSecureChannel with BackOff reconnection strategy", funct
 
         async function sendTransaction() {
             const res = await promisify(secureChannel.performMessageTransaction).call(secureChannel, request);
-            console.log(res.toString());    
+            debugLog(res.toString());    
         }
         await sendTransaction().should.be.rejectedWith(/Connection Break|Transaction has timed out/);
 
         await pause(10000);
 
         async function closeChannel() {
-            console.log("xxxxxxxxxxxxxxxxx Now closing channel");
             await promisify(secureChannel.close).call(secureChannel);
         }
         await closeChannel().should.be.rejectedWith(/Transport disconnected/);
 
         await promisify(stopServer)(holder);
  
-        console.log("DONE! ");
+        debugLog("DONE! ");
 
     });
     it("MMM2 testing if client SecureChannel could  sabotage itself when connection problem",async() => {
@@ -348,7 +348,7 @@ describe("Testing ClientSecureChannel with BackOff reconnection strategy", funct
         const secureChannel = new ClientSecureChannelLayer(options);
 
         secureChannel.on("close",()=>{
-            console.log("On close");
+            debugLog("On close");
         });
 
         const holder = {};       
@@ -363,7 +363,7 @@ describe("Testing ClientSecureChannel with BackOff reconnection strategy", funct
         } catch(err) {
             throw err;
         } finally {
-            console.log("Done ");
+            debugLog("Done ");
             await promisify(stopServer)(holder);    
         }
         

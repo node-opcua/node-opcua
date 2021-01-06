@@ -6,7 +6,7 @@ import * as should from "should";
 import { SecureMessageChunkManager, SecureMessageChunkManagerOptions, SequenceNumberGenerator } from "../source";
 
 // tslint:disable:no-var-requires
-const getFixture = require("node-opcua-test-fixtures").getFixture;
+const { getFixture } = require("node-opcua-test-fixtures");
 
 function construct_makeMessageChunkSignatureForTest() {
 

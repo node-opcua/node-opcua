@@ -6,7 +6,7 @@ const server = new opcua.OPCUAServer({
     privateKey: path.join(__dirname,"../../node-opcua-samples/certificates/server_key_2018.pem")
 });
 
-const addAggregateSupport = require("..").addAggregateSupport;
+const { addAggregateSupport } = require("..");
 
 server.start(function(err){
 

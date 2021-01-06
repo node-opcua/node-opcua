@@ -32,13 +32,10 @@ import {
 } from "node-opcua";
 import * as sinon from "sinon";
 
-const doDebug = false;
-function debugLog(...args: any[]) {
-    /* empty */
-    if (doDebug) {
-        console.log.call(null, args.join(" "));
-    }
-}
+import { make_debugLog, checkDebugFlag } from "node-opcua-debug";
+const debugLog = make_debugLog("TEST");
+const doDebug = checkDebugFlag("TEST");
+
 
 const defaultRange = new Range({ low: -1000000, high: 100000 });
 
@@ -185,6 +182,7 @@ export function t(test: any) {
         }
     }
 
+    const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
     describe("DBF0", function (this: any) {
         this.timeout(Math.max(200000, this.timeout()));
 

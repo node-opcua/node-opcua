@@ -29,6 +29,7 @@ const port1 = 1241;
 const port_discovery = 1244;
 
 module.exports = () => {
+    
     const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
     describe("NodeRed -  testing frequent server restart within same process", function () {
         /**
@@ -62,7 +63,7 @@ module.exports = () => {
 
         let endpointUrl = "";
         
-        const createServer = f(function start_an_opcua_server_that_register_to_the_lds(callback: ErrorCallback) {
+        const createServer = f(function start_an_opcua_server_that_registers_to_the_lds(callback: ErrorCallback) {
 
             createServerThatRegisterWithDiscoveryServer(discoveryServerEndpointUrl,port1,"AZ").then(async (server: OPCUAServer)=>{
                 g_server = server;
@@ -91,21 +92,47 @@ module.exports = () => {
         let clients: ClientData[] = [];
 
         const connectManyClient = f(function connect_many_opcua_clients(callback: ErrorCallback) {
+            let clientCount =0;
             function addClient(callback: ErrorCallback) {
                 if (doDebug) {
                     debugLog(" creating client");
                 }
-                let client = OPCUAClient.create({});
+                let client = OPCUAClient.create({
+                    requestedSessionTimeout: 5000,
+                    clientName: "Client-"+clientCount
+                });
+                clientCount+=1;
+
+            
+                client.on("connection_lost", ()=>{
+                    debugLog("connection lost", client.clientName);
+                })
+                client.on("connection_reestablished", ()=>{
+                    debugLog("connection reestablished", client.clientName);
+                })
+                client.on("reconnection_canceled", ()=>{
+                    debugLog("reconnection canceled ", client.clientName);              
+                })
+                client.on("after_reconnection", ()=>{
+                    debugLog("after_reconnection ", client.clientName);              
+                })
                 client.connect(endpointUrl, (err?: Error) => {
                     if (err) return callback(err);
                     client.createSession(function (err, _session) {
                         if (err) return callback(err);
                         const session = _session!;
  
+                        session.on("session_closed", ()=>{
+                            debugLog("session closed - client", client.clientName);
+                        });
+                        session.on("session_restored", ()=>{
+                            debugLog("session restored - client", client.clientName);
+                        });
+                        
                         const subscription = ClientSubscription.create(session, {
-                            requestedPublishingInterval: 1000,
-                            requestedLifetimeCount: 100,
-                            requestedMaxKeepAliveCount: 20,
+                            requestedPublishingInterval: 100,
+                            requestedLifetimeCount: 1000,
+                            requestedMaxKeepAliveCount: 6,
                             maxNotificationsPerPublish: 100,
                             publishingEnabled: true,
                             priority: 10
@@ -163,7 +190,6 @@ module.exports = () => {
                         setImmediate(function () {
                             client.disconnect((err?: Error) => {
                                 if (err) return callback(err);
-
                                 if (doDebug) {
                                     debugLog("Client terminated");
                                 }
@@ -176,15 +202,18 @@ module.exports = () => {
 
             async.parallel([
                 removeClient, removeClient, removeClient, removeClient, removeClient, removeClient
-            ],()=>callback());
+            ],()=>{
+                callback();
+                debugLog("------------------------------------------ clients terminated")
+            });
         });
 
         const wait_a_few_seconds = f(function wait_a_few_seconds(callback: ErrorCallback) {
-            setTimeout(callback, 2000);
+            setTimeout(callback, 800);
         });
 
         const wait_a_minute = f(function wait_a_minute(callback: ErrorCallback) {
-            setTimeout(callback, 6000);
+            setTimeout(callback, 4000);
         });
 
         before(function (done) {
@@ -287,7 +316,7 @@ module.exports = () => {
                     getDiscoveryUrls():string[] {return []},
                     serverInfo: {
                         applicationName: { text: ""},
-                        applicationUri: "",
+                        applicationUri: "SomeURI",
                         productUri: null,
                     },
                     serverType: ApplicationType.Server
@@ -317,7 +346,7 @@ module.exports = () => {
                     getDiscoveryUrls():string[] {return []},
                     serverInfo: {
                         applicationName: { text: ""},
-                        applicationUri: "",
+                        applicationUri: "SomeUri",
                         productUri: null,
                     },
                     serverType: ApplicationType.Server

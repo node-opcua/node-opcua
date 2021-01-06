@@ -10,13 +10,13 @@ const NumericRange = require("node-opcua-numeric-range").NumericRange;
 const subscription_service = require("..");
 
 
-const makeNodeId = require("node-opcua-nodeid").makeNodeId;
-const makeBuffer = require("node-opcua-buffer-utils").makeBuffer;
+const { makeNodeId } = require("node-opcua-nodeid");
+const { makeBuffer } = require("node-opcua-buffer-utils");
 
-const verify_multi_chunk_message = require("node-opcua-secure-channel/dist/test_helpers").verify_multi_chunk_message;
-const encode_decode_round_trip_test = require("node-opcua-packet-analyzer/dist/test_helpers").encode_decode_round_trip_test;
+const { verify_multi_chunk_message } = require("node-opcua-secure-channel/dist/test_helpers");
+const { encode_decode_round_trip_test  } = require("node-opcua-packet-analyzer/dist/test_helpers");
 
-const makebuffer_from_trace = require("node-opcua-debug").makebuffer_from_trace;
+const { makebuffer_from_trace } = require("node-opcua-debug");
 const { redirectToFile } = require("node-opcua-debug/nodeJS");
 
 describe("testing subscription objects", function() {

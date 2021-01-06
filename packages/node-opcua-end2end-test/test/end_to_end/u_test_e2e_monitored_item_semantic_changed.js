@@ -182,6 +182,8 @@ function getNextDataChangeNotificiation(session, callback) {
         }
     });
 }
+const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
+
 module.exports = function(test) {
 
     describe("Testing SemanticChanged Bit on statusCode monitoredItemData", function() {

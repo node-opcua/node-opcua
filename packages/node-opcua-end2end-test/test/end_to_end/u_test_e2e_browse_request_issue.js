@@ -11,6 +11,7 @@ const StatusCodes = opcua.StatusCodes;
 
 const BrowseDirection = opcua.BrowseDirection;
 
+const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 module.exports = function(test) {
 
     describe("QSD Test Browse Request", function() {

@@ -12,7 +12,7 @@ const StatusCodes = opcua.StatusCodes;
 const DataType = opcua.DataType;
 const VariantArrayType = opcua.VariantArrayType;
 
-const perform_operation_on_client_session = require("../../test_helpers/perform_operation_on_client_session").perform_operation_on_client_session;
+const { perform_operation_on_client_session } = require("../../test_helpers/perform_operation_on_client_session");
 const { perform_operation_on_subscription } = require("../../test_helpers/perform_operation_on_client_session");
 
 function exec_safely(func, done) {
@@ -24,6 +24,7 @@ function exec_safely(func, done) {
     }
 }
 
+const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 module.exports = function(test) {
     describe("testing CALL SERVICE on a fake server exposing the temperature device", function() {
 

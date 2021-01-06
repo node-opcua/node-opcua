@@ -38,6 +38,6 @@ describe("testing UADataype -  Attribute", () => {
 
         const dataTypeDefinition = dataTypeDefinitionDataValue.value.value;
         dataTypeDefinition.should.be.instanceOf(StructureDefinition);
-        console.log(dataTypeDefinition.toString());
+        //xx debugLog(dataTypeDefinition.toString());
     });
 });

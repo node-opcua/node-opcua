@@ -2,18 +2,14 @@
 
 import { OPCUAServer, findServers, findServersOnNetwork, RegisterServerMethod, OPCUABaseServer } from "node-opcua";
 const should = require("should");
-import * as path from "path";
 
 import { OPCUADiscoveryServer } from "node-opcua-server-discovery";
 import { createAndStartServer, ep, startDiscovery } from "./_helper";
 
-const doDebug = false;
+import { make_debugLog, checkDebugFlag } from "node-opcua-debug";
+const debugLog = make_debugLog("TEST");
+const doDebug = checkDebugFlag("TEST");
 
-function debugLog(...args: [any, ...any[]]) {
-    if (doDebug) {
-        console.log.apply(null, args);
-    }
-}
 // add the tcp/ip endpoint with no security
 
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;

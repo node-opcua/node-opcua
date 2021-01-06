@@ -22,12 +22,14 @@ describe("installPeriodicClockAdjustment", () => {
 
     it("should adjust clock", async () => {
         periodicClockAdjustment.interval = 100;
+
+        periodicClockAdjustment.timerInstallationCount.should.eql(0,"when test starts timerInstallationCount shall be ZERO");
         installPeriodicClockAdjustment();
-        periodicClockAdjustment.adjustmentCount.should.eql(0);
+        
 
+        const initialValue = periodicClockAdjustment.adjustmentCount;
         await new Promise((resolve) => setTimeout(resolve, 200));
-
-        periodicClockAdjustment.adjustmentCount.should.be.greaterThan(0);
+        (periodicClockAdjustment.adjustmentCount - initialValue).should.be.greaterThan(0);
         uninstallPeriodicClockAdjustment();
     });
 

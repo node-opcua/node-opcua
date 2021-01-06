@@ -1,5 +1,5 @@
 // tslint:disable:no-bitwise
-import * as should from "should";
+import "should";
 
 import { AccessLevelFlag } from "node-opcua-data-model";
 import { AddressSpace, Namespace } from "..";

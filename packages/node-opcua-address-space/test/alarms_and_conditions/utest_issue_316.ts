@@ -1,4 +1,5 @@
 "use strict";
+import "should";
 import { DataType } from "node-opcua-variant";
 import { AddressSpace, UAObject } from "../..";
 

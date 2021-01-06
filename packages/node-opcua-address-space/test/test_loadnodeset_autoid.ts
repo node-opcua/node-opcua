@@ -10,7 +10,11 @@ import { DataType, Variant } from "node-opcua-variant";
 import { AddressSpace, ensureDatatypeExtracted } from "..";
 import { generateAddressSpace } from "../nodeJS";
 
-import { assert } from "console";
+import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
+
+const debugLog = make_debugLog(__filename);
+const doDebug = checkDebugFlag(__filename);
+
 
 describe("Testing AutoID custom types", async function (this: any) {
     this.timeout(200000); // could be slow on appveyor !
@@ -61,7 +65,7 @@ describe("Testing AutoID custom types", async function (this: any) {
 
         objReloaded.decode(stream);
 
-        console.log("Reloaded = ", objReloaded.toString());
+        debugLog("Reloaded = ", objReloaded.toString());
         return objReloaded;
     }
 
@@ -98,8 +102,8 @@ describe("Testing AutoID custom types", async function (this: any) {
             }
         }) as ScanResult;
 
-        console.log("scanResult = ", scanResult.toString());
-        //xx console.log(scanResult.schema);
+        debugLog("scanResult = ", scanResult.toString());
+        //xx debugLog(scanResult.schema);
 
         const v = new Variant({
             dataType: DataType.ExtensionObject,
@@ -110,8 +114,8 @@ describe("Testing AutoID custom types", async function (this: any) {
         const extraDataTypeManager = await ensureDatatypeExtracted(addressSpace);
         await resolveDynamicExtensionObject(reload_v, extraDataTypeManager);
 
-        console.log(reload_v.toString());
-        console.log(scanResult.toString());
+        debugLog(reload_v.toString());
+        debugLog(scanResult.toString());
     });
 
     it("should create a opcua variable with a scan result", () => {
@@ -133,7 +137,7 @@ describe("Testing AutoID custom types", async function (this: any) {
             dataType: rfidScanResultDataTypeNode,
             value: { dataType: DataType.ExtensionObject, value: scanResult }
         });
-        //        console.log(scanResultNode.toString());
+        //        debugLog(scanResultNode.toString());
     });
 
     it("test RfidScanResult", async () => {
@@ -170,8 +174,7 @@ describe("Testing AutoID custom types", async function (this: any) {
                 }
             }
         });
-        // tslint:disable-next-line: no-console
-        // console.log(scanResult.toString());
+        debugLog(scanResult.toString());
 
         const v = new Variant({
             dataType: DataType.ExtensionObject,
@@ -183,8 +186,7 @@ describe("Testing AutoID custom types", async function (this: any) {
         const extraDataTypeManager = await ensureDatatypeExtracted(addressSpace);
         await resolveDynamicExtensionObject(reload_v, extraDataTypeManager);
 
-        // tslint:disable-next-line: no-console
-        console.log(reload_v.toString());
+        debugLog(reload_v.toString());
 
         // re-encode reload_vso that we keep the Opaque structure
         const reload_v2 = encode_decode(reload_v);
@@ -199,6 +201,6 @@ describe("Testing AutoID custom types", async function (this: any) {
         bs2.length = 0;
         v2.decode(bs2);
         await resolveDynamicExtensionObject(v2, extraDataTypeManager);
-        //  console.log(v2);
+        debugLog(v2.toString());
     });
 });

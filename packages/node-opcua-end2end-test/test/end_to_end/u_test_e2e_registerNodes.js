@@ -3,7 +3,7 @@
 const should = require("should");
 const async = require("async");
 
-const perform_operation_on_client_session = require("../../test_helpers/perform_operation_on_client_session").perform_operation_on_client_session;
+const { perform_operation_on_client_session } = require("../../test_helpers/perform_operation_on_client_session");
 
 const opcua = require("node-opcua");
 const StatusCodes = opcua.StatusCodes;

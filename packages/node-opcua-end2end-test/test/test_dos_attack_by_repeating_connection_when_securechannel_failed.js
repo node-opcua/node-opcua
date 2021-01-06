@@ -11,8 +11,9 @@ const { readCertificate, readCertificateRevocationList, exploreCertificateInfo }
 
 require("should");
 
-const debugLog = require("node-opcua-debug").make_debugLog(__filename);
-const doDebug = require("node-opcua-debug").checkDebugFlag(__filename) || !!process.env.DEBUG;
+const { make_debugLog, checkDebugFlag} = require("node-opcua-debug");
+const debugLog = make_debugLog("TEST");
+const doDebug = checkDebugFlag("TEST");
 
 const {
     is_valid_endpointUrl,
@@ -32,9 +33,9 @@ const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("testing Server resilience to DDOS attacks 2", function() {
 
 
-    const invalidCertificateFile = path.join(__dirname, "../certificates/client_cert_2048_outofdate.pem");
-    const validCertificate = path.join(__dirname, "../certificates/client_cert_2048.pem");
-    const privateKeyFile = path.join(__dirname, "../certificates/client_key_2048.pem");
+    const invalidCertificateFile = path.join(__dirname, "../../node-opcua-samples/certificates/client_cert_2048_outofdate.pem");
+    const validCertificate = path.join(__dirname, "../../node-opcua-samples/certificates/client_cert_2048.pem");
+    const privateKeyFile = path.join(__dirname, "../../node-opcua-samples/certificates/client_key_2048.pem");
 
     let server;
     let endpointUrl;
@@ -75,7 +76,7 @@ describe("testing Server resilience to DDOS attacks 2", function() {
 
 
         const serverCertificateManager = new OPCUACertificateManager({
-            rootFolder: path.join(__dirname, "../certificates/tmp_pki")
+            rootFolder: path.join(__dirname, "../../node-opcua-samples/certificates/tmp_pki")
         });
         await serverCertificateManager.initialize();
 
@@ -92,8 +93,8 @@ describe("testing Server resilience to DDOS attacks 2", function() {
         console.log("RootFolder = ", server.serverCertificateManager.rootFolder);
 
         // make sure "that certificate issuer in th*
-        const issuerCertificateFile = path.join(__dirname, "../certificates/CA/public/cacert.pem");
-        const revokeListFile = path.join(__dirname, "../certificates/CA/crl/revocation_list.crl");
+        const issuerCertificateFile = path.join(__dirname, "../../node-opcua-samples/certificates/CA/public/cacert.pem");
+        const revokeListFile = path.join(__dirname, "../../node-opcua-samples/certificates/CA/crl/revocation_list.crl");
 
         const issuerCertificate = await readCertificate(issuerCertificateFile);
         const a = exploreCertificateInfo(issuerCertificate);

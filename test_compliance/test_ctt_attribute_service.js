@@ -2,7 +2,7 @@
 const path = "../bin/node-opcua";
 require(path+"test_compliance/helpers");
 
-const build_server_with_temperature_device = require("../../test_helpers/build_server_with_temperature_device").build_server_with_temperature_device;
+const { build_server_with_temperature_device } = require("../../test_helpers/build_server_with_temperature_device");
 
 function include_test(filename, options) {
     const  test = require("./" + filename);

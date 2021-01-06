@@ -7,14 +7,14 @@ const opcua = require("node-opcua");
 
 const OPCUAClient = opcua.OPCUAClient;
 
-const perform_operation_on_client_session = require("../../test_helpers/perform_operation_on_client_session").perform_operation_on_client_session;
+const { perform_operation_on_client_session } = require("../../test_helpers/perform_operation_on_client_session");
 
+const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 module.exports = function (test) {
 
     describe("ClientSession#readVariableValue", function () {
 
         let client, endpointUrl;
-
 
         beforeEach(function (done) {
             client = OPCUAClient.create();
@@ -23,17 +23,17 @@ module.exports = function (test) {
         });
 
         afterEach(function (done) {
-            client.disconnect(function (err) {
+            client.disconnect((err) => {
                 client = null;
                 done(err);
             });
         });
 
-        it("ClientSession#readVariableValue - case 1 - a single nodeId", function (done) {
+        it("ClientSession#readVariableValue - case 1 - a single nodeId",  (done) => {
 
-            perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
+            perform_operation_on_client_session(client, endpointUrl,  (session, inner_done) => {
 
-                session.readVariableValue("ns=0;i=2258", function (err, dataValue) {
+                session.readVariableValue("ns=0;i=2258",  (err, dataValue) => {
 
                     dataValue.should.not.be.instanceOf(Array);
                     //xx console.log(" dataValue = ",dataValue.toString());
@@ -43,11 +43,11 @@ module.exports = function (test) {
             }, done);
         });
 
-        it("ClientSession#readVariableValue - case 2 - an array of nodeIds", function (done) {
+        it("ClientSession#readVariableValue - case 2 - an array of nodeIds",  (done) => {
 
-            perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
+            perform_operation_on_client_session(client, endpointUrl, (session, inner_done) => {
 
-                session.readVariableValue(["ns=0;i=2258", "ns=0;i=2257"], function (err, results) {
+                session.readVariableValue(["ns=0;i=2258", "ns=0;i=2257"], (err, results) => {
 
                     results.should.be.instanceOf(Array);
                     results.length.should.eql(2);
@@ -59,9 +59,9 @@ module.exports = function (test) {
             }, done);
         });
 
-        it("ClientSession#readVariableValue - case 3 - a single ReadValueId", function (done) {
+        it("ClientSession#readVariableValue - case 3 - a single ReadValueId",  (done) => {
 
-            perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
+            perform_operation_on_client_session(client, endpointUrl,  (session, inner_done) => {
                 const readValueId1 = {
                     nodeId: "ns=0;i=2258",
                     attributeId: opcua.AttributeIds.BrowseName
@@ -71,7 +71,7 @@ module.exports = function (test) {
                     attributeId: opcua.AttributeIds.NodeClass
                 };
 
-                session.readVariableValue([readValueId1, readValueId2], function (err, results) {
+                session.readVariableValue([readValueId1, readValueId2],  (err, results) => {
 
                     results.should.be.instanceOf(Array);
                     results.length.should.eql(2);

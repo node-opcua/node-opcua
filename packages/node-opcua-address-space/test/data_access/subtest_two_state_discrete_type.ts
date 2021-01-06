@@ -15,6 +15,8 @@ import { CallbackT, StatusCode, StatusCodes } from "node-opcua-status-code";
 import { DataValue } from "node-opcua-data-value";
 import { getCurrentClock } from "node-opcua-date-time";
 
+const doDebug = false;
+
 export function subtest_two_state_discrete_type(mainTest: { addressSpace: AddressSpace }) {
     describe("TwoStateDiscreteType", () => {
         let addressSpace: AddressSpace;
@@ -248,7 +250,9 @@ export function subtest_two_state_discrete_type(mainTest: { addressSpace: Addres
 
             const xmlString = namespace.toNodeset2XML();
 
-            console.log(xmlString);
+            if (doDebug) {
+                console.log(xmlString);
+            }
             fs.writeFileSync(xmlFile, xmlString);
 
             addressSpace.dispose();

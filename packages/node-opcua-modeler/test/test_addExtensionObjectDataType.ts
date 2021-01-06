@@ -42,7 +42,7 @@ describe("addExtensionObjectDataType", function (this: any) {
     });
     it("ZZZE-1 should add an ExtensionObject DataType", async () => {
         const ns = addressSpace.getOwnNamespace();
-        console.log("ns", ns.namespaceUri);
+        // xx console.log("ns", ns.namespaceUri);
 
         const structureDefinition: StructureDefinitionOptions = {
             baseDataType: "",
@@ -79,7 +79,7 @@ describe("addExtensionObjectDataType", function (this: any) {
 
         // const tmpFile = await fs.promises.mkdtemp(os.tmpdir() + "test.NodeSet2.xml", "utf-8");
         const tmpFile = path.join(os.tmpdir(), "test.NodeSet2.xml");
-        console.log("tmpFile =", tmpFile);
+        // xx console.log("tmpFile =", tmpFile);
 
         // istanbul ignore next
         if (doDebug) {
@@ -135,7 +135,8 @@ describe("addExtensionObjectDataType", function (this: any) {
         // make sure that bsd is correct
         const dataTypeDictionary = getDataTypeDictionary(ns);
         const bsd = dataTypeDictionary.readValue().value.value.toString();
-        console.log(bsd);
+        
+        // xx console.log(bsd);
         bsd.should.eql(
             `<?xml version="1.0"?>
 <opc:TypeDictionary xmlns:opc="http://opcfoundation.org/BinarySchema/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:ua="http://opcfoundation.org/UA/" xmlns:n1="http://sterfive.org/UA/Demo/" DefaultByteOrder="LittleEndian" TargetNamespace="http://sterfive.org/UA/Demo/">
@@ -254,14 +255,13 @@ describe("addVariableTypeForDataType", function (this: any) {
             structureDefinition: serverStatusStructureDefinition
         };
         const serverStatusDataType = await addExtensionObjectDataType(ns, serverStatusOptions);
-        console.log("BBBBBBBBB");
 
         const buildInfoType = addVariableTypeForDataType(ns, buildInfoDataType);
         const serverStatusType = addVariableTypeForDataType(ns, serverStatusDataType);
 
         const tmpFile = path.join(os.tmpdir(), "test1.NodeSet2.xml");
         const tmpCSVFile = path.join(os.tmpdir(), "test1.NodeSet2.csv");
-        console.log("tmpFile =", tmpFile);
+        // xx console.log("tmpFile =", tmpFile);
 
         const xml = ns.toNodeset2XML();
         await writeFile(tmpFile, xml, "utf-8");
@@ -276,13 +276,13 @@ describe("addVariableTypeForDataType", function (this: any) {
         should.exist(statusType.startTime);
         const e = statusType.readValue().value.value;
         should.exist(e.startTime);
-        console.log("e.", e.toString());
-        console.log("statusType.", statusType.toString());
+        // xx console.log("e.", e.toString());
+        // xx console.log("statusType.", statusType.toString());
 
         // make sure that bsd is correct
         const dataTypeDictionary = getDataTypeDictionary(ns);
         const bsd = dataTypeDictionary.readValue().value.value.toString();
-        console.log(bsd);
+        // xx console.log(bsd);
         bsd.should.eql(
             `<?xml version="1.0"?>
 <opc:TypeDictionary xmlns:opc="http://opcfoundation.org/BinarySchema/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:ua="http://opcfoundation.org/UA/" xmlns:n1="urn:name" DefaultByteOrder="LittleEndian" TargetNamespace="urn:name">

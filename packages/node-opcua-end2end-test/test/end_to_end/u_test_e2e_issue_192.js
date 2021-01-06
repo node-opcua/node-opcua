@@ -7,8 +7,9 @@ const sinon = require("sinon");
 const opcua = require("node-opcua");
 
 const OPCUAClient = opcua.OPCUAClient;
-const perform_operation_on_client_session = require("../../test_helpers/perform_operation_on_client_session")
-    .perform_operation_on_client_session;
+const {perform_operation_on_client_session }= require("../../test_helpers/perform_operation_on_client_session");
+
+const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 
 module.exports = function(test) {
     describe("Testing enhancement request #192 ", function() {

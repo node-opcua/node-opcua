@@ -6,11 +6,12 @@ const { DataValue } = require("..");
 const { Variant } = require("node-opcua-variant");
 const { DataType } = require("node-opcua-variant");
 const { StatusCode, StatusCodes } =require("node-opcua-status-code");
-
 require("should");
-function debugLog() {
-    // console.log.apply(null,arguments);
-}
+
+const { make_debugLog, checkDebugFlag } = require("node-opcua-debug");
+const debugLog = make_debugLog("TEST");
+const doDebug = checkDebugFlag("TEST");
+
 const encode_decode_round_trip_test = require("node-opcua-packet-analyzer/dist/test_helpers/encode_decode_round_trip_test").encode_decode_round_trip_test;
 
 describe("DataValue with Limit bits", function () {

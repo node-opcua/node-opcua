@@ -2,8 +2,7 @@
 
 const should = require('should');
 
-const QualifiedName = require('..').QualifiedName;
-const stringToQualifiedName = require('..').stringToQualifiedName;
+const { QualifiedName , stringToQualifiedName } = require('..');
 
 describe('test qualified name pull request #406', function () {
 

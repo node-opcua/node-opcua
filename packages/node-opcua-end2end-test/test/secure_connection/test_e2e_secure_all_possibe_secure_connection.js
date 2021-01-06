@@ -9,19 +9,26 @@ const sinon = require("sinon");
 const path = require("path");
 const fs = require("fs");
 const { callbackify } = require("util");
-const crypto = require("crypto");
+const {randomBytes} = require("crypto");
 
-const opcua = require("node-opcua");
-const { readCertificateRevocationList } = require("node-opcua-crypto");
+const {
+    ClientSubscription,
+    coerceMessageSecurityMode,
+    MessageSecurityMode,
+    SecurityPolicy,
+    coerceSecurityPolicy,
+    OPCUACertificateManager,
+    OPCUAClient,
+    ClientSecureChannelLayer
+}= require("node-opcua");
+const { readCertificateRevocationList,readCertificate } = require("node-opcua-crypto");
 
-const { OPCUACertificateManager, OPCUAClient, MessageSecurityMode } = require("node-opcua");
 
-const { ClientSecureChannelLayer } = require("node-opcua-client");
+const { make_debugLog, checkDebugFlag } = require("node-opcua-debug");
+const debugLog = make_debugLog("TEST");
+const doDebug = checkDebugFlag("TEST");
 
-
-const debugLog = require("node-opcua-debug").make_debugLog("TEST");
-
-const certificate_store = path.join(__dirname, "../../certificates");
+const certificate_store = path.join(__dirname, "../../../node-opcua-samples/certificates");
 fs.existsSync(certificate_store).should.eql(true, "expecting certificate store at " + certificate_store);
 
 const port = 2236;
@@ -152,7 +159,6 @@ function stop_server1(data, callback) {
     stop_simple_server(data, callback);
 }
 
-const readCertificate = require("node-opcua-crypto").readCertificate;
 function trustCertificateOnServer(certificateFile, callback) {
     if (!certificateFile) { return setImmediate(callback); }
     fs.existsSync(certificateFile).should.eql(true, " certificateFile must exist " + certificateFile);
@@ -234,7 +240,6 @@ function stop_server(data, callback) {
 //xx start_server=start_server1;
 //xx stop_server=stop_server1;
 
-const ClientSubscription = opcua.ClientSubscription;
 
 
 function keep_monitoring_some_variable(client, session, security_token_renewed_limit, done) {
@@ -295,13 +300,13 @@ function common_test(securityPolicy, securityMode, options, done) {
 
     //xx debugLog("securityPolicy = ", securityPolicy,"securityMode = ",securityMode);
 
-    opcua.coerceMessageSecurityMode(securityMode).should.not.eql(opcua.MessageSecurityMode.Invalid, "expecting supporting");
+    coerceMessageSecurityMode(securityMode).should.not.eql(MessageSecurityMode.Invalid, "expecting supporting");
 
     options = options || {};
     options = { 
         ...options, 
-        securityMode: opcua.coerceMessageSecurityMode(securityMode),
-        securityPolicy: opcua.coerceSecurityPolicy(securityPolicy),
+        securityMode: coerceMessageSecurityMode(securityMode),
+        securityPolicy: coerceSecurityPolicy(securityPolicy),
         //xx serverCertificate: serverCertificate,
         connectionStrategy: no_reconnect_connectivity_strategy,
         requestedSessionTimeout: 120 * 60 * 1000
@@ -352,9 +357,9 @@ function check_open_secure_channel_fails(securityPolicy, securityMode, options, 
     options = options || {};
     options = {
         ...options, 
-        securityMode: opcua.coerceMessageSecurityMode(securityMode),
-        securityPolicy: opcua.coerceSecurityPolicy(securityPolicy),
-        serverCertificate: serverCertificate,
+        securityMode: coerceMessageSecurityMode(securityMode),
+        securityPolicy: coerceSecurityPolicy(securityPolicy),
+        serverCertificate,
         defaultSecureTokenLifetime: g_defaultSecureTokenLifetime,
         tokenRenewalInterval: g_tokenRenewalInterval,
         connectionStrategy: no_reconnect_connectivity_strategy
@@ -387,7 +392,7 @@ function check_open_secure_channel_fails(securityPolicy, securityMode, options, 
 function common_test_expected_server_initiated_disconnection(securityPolicy, securityMode, done) {
 
 
-    opcua.coerceMessageSecurityMode(securityMode).should.not.eql(MessageSecurityMode.Invalid, "expecting a valid MessageSecurityMode");
+    coerceMessageSecurityMode(securityMode).should.not.eql(MessageSecurityMode.Invalid, "expecting a valid MessageSecurityMode");
 
     const fail_fast_connectivity_strategy = {
         maxRetry: 1,
@@ -396,8 +401,8 @@ function common_test_expected_server_initiated_disconnection(securityPolicy, sec
         randomisationFactor: 0
     };
     const options = {
-        securityMode: opcua.coerceMessageSecurityMode(securityMode),
-        securityPolicy: opcua.coerceSecurityPolicy(securityPolicy),
+        securityMode: coerceMessageSecurityMode(securityMode),
+        securityPolicy: coerceSecurityPolicy(securityPolicy),
         serverCertificate: serverCertificate,
         defaultSecureTokenLifetime: g_defaultSecureTokenLifetime,
         tokenRenewalInterval: g_tokenRenewalInterval,
@@ -546,8 +551,8 @@ describe("ZZA- testing Secure Client-Server communication", function() {
         should.exist(serverCertificate);
         server.currentChannelCount.should.equal(0);
         const options = {
-            securityMode: opcua.MessageSecurityMode.Sign,
-            securityPolicy: opcua.SecurityPolicy.Basic128Rsa15,
+            securityMode: MessageSecurityMode.Sign,
+            securityPolicy: SecurityPolicy.Basic128Rsa15,
             serverCertificate: serverCertificate,
             connectionStrategy: no_reconnect_connectivity_strategy
 
@@ -572,8 +577,8 @@ describe("ZZA- testing Secure Client-Server communication", function() {
             certificateFile: path.join(certificate_store, "client_selfsigned_cert_1024.pem"),
             privateKeyFile: path.join(certificate_store, "client_key_1024.pem"),
 
-            securityMode: opcua.MessageSecurityMode.SignAndEncrypt,
-            securityPolicy: opcua.SecurityPolicy.Basic128Rsa15,
+            securityMode: MessageSecurityMode.SignAndEncrypt,
+            securityPolicy: SecurityPolicy.Basic128Rsa15,
             serverCertificate: serverCertificate,
             connectionStrategy: no_reconnect_connectivity_strategy
 
@@ -599,8 +604,8 @@ describe("ZZA- testing Secure Client-Server communication", function() {
             certificateFile: path.join(certificate_store, "client_selfsigned_cert_2048.pem"),
             privateKeyFile: path.join(certificate_store, "client_key_2048.pem"),
 
-            securityMode: opcua.MessageSecurityMode.SignAndEncrypt,
-            securityPolicy: opcua.SecurityPolicy.Basic128Rsa15,
+            securityMode: MessageSecurityMode.SignAndEncrypt,
+            securityPolicy: SecurityPolicy.Basic128Rsa15,
             serverCertificate: serverCertificate,
 
             connectionStrategy: no_reconnect_connectivity_strategy
@@ -623,8 +628,8 @@ describe("ZZA- testing Secure Client-Server communication", function() {
             certificateFile: path.join(certificate_store, "client_selfsigned_cert_2048.pem"),
             privateKeyFile: path.join(certificate_store, "client_key_2048.pem"),
 
-            securityMode: opcua.MessageSecurityMode.SignAndEncrypt,
-            securityPolicy: opcua.SecurityPolicy.Basic256Sha256,
+            securityMode: MessageSecurityMode.SignAndEncrypt,
+            securityPolicy: SecurityPolicy.Basic256Sha256,
             serverCertificate: serverCertificate,
 
             connectionStrategy: no_reconnect_connectivity_strategy
@@ -646,8 +651,8 @@ describe("ZZA- testing Secure Client-Server communication", function() {
             certificateFile: path.join(certificate_store, "client_selfsigned_cert_2048.pem"),
             privateKeyFile: path.join(certificate_store, "client_key_2048.pem"),
 
-            securityMode: opcua.MessageSecurityMode.SignAndEncrypt,
-            securityPolicy: opcua.SecurityPolicy.Basic128Rsa15,
+            securityMode: MessageSecurityMode.SignAndEncrypt,
+            securityPolicy: SecurityPolicy.Basic128Rsa15,
             serverCertificate: serverCertificate,
 
             connectionStrategy: no_reconnect_connectivity_strategy
@@ -662,7 +667,7 @@ describe("ZZA- testing Secure Client-Server communication", function() {
                 // let's alter the client Nonce,
                 if (requestMessage.constructor.name === "OpenSecureChannelRequest") {
                     requestMessage.clientNonce.length.should.eql(16);
-                    this.clientNonce = requestMessage.clientNonce = crypto.randomBytes(32);
+                    this.clientNonce = requestMessage.clientNonce = randomBytes(32);
                     ClientSecureChannelLayer.prototype._performMessageTransaction = old_performMessageTransaction;
                 }
                 old_performMessageTransaction.call(this, msgType, requestMessage, callback);
@@ -682,8 +687,8 @@ describe("ZZA- testing Secure Client-Server communication", function() {
     it("QQQ5 a token shall be updated on a regular basis", function(done) {
 
         const options = {
-            securityMode: opcua.MessageSecurityMode.SignAndEncrypt,
-            securityPolicy: opcua.SecurityPolicy.Basic128Rsa15,
+            securityMode: MessageSecurityMode.SignAndEncrypt,
+            securityPolicy: SecurityPolicy.Basic128Rsa15,
             serverCertificate: serverCertificate,
             defaultSecureTokenLifetime: g_defaultSecureTokenLifetime,
             tokenRenewalInterval: g_tokenRenewalInterval,
@@ -766,8 +771,8 @@ describe("ZZB- testing server behavior on secure connection ", function() {
 
         const options = {
             keepSessionAlive: true,
-            securityMode: opcua.MessageSecurityMode.SignAndEncrypt,
-            securityPolicy: opcua.SecurityPolicy.Basic128Rsa15,
+            securityMode: MessageSecurityMode.SignAndEncrypt,
+            securityPolicy: SecurityPolicy.Basic128Rsa15,
             serverCertificate: serverCertificate,
             defaultSecureTokenLifetime: 2000,
             tokenRenewalInterval: 30000,
@@ -805,7 +810,7 @@ describe("ZZB- testing server behavior on secure connection ", function() {
             //xx debugLog("security_token_renewed");
         });
 
-        // common_test_expected_server_initiated_disconnection(opcua.SecurityPolicy.Basic128Rsa15, opcua.MessageSecurityMode.SIGN, done);
+        // common_test_expected_server_initiated_disconnection(SecurityPolicy.Basic128Rsa15, MessageSecurityMode.SIGN, done);
     });
 
 });

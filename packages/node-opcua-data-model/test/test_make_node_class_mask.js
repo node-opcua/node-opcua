@@ -1,7 +1,7 @@
 "use strict";
 require("should");
 
-const makeNodeClassMask = require("..").makeNodeClassMask;
+const { makeNodeClassMask }= require("..");
 
 describe("testing makeNodeClassMask", function () {
 

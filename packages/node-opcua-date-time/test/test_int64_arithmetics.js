@@ -1,6 +1,6 @@
 const should = require("should");
 
-const assert= require("node-opcua-assert").assert;
+const { assert } = require("node-opcua-assert");
 
 // How to deal with UInt64 and UInt32 with only Int32 !
 

@@ -1,9 +1,9 @@
 const should = require("should");
 
 
-const BinaryStream = require("node-opcua-binary-stream").BinaryStream;
+const { BinaryStream } = require("node-opcua-binary-stream");
 const ec = require("node-opcua-basic-types");
-const makeExpandedNodeId = require("node-opcua-nodeid").makeExpandedNodeId;
+const { makeExpandedNodeId } = require("node-opcua-nodeid");
 
 const generator = require("../..");
 const factories = require("node-opcua-factory");

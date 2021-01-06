@@ -2,14 +2,13 @@
 "use strict";
 const should = require("should");
 
-const opcua = require("node-opcua");
-const OPCUAServer = opcua.OPCUAServer;
-const OPCUAClient = opcua.OPCUAClient;
+const {OPCUAServer, OPCUAClient, get_empty_nodeset_filename, parseEndpointUrl} = require("node-opcua");
+const { getFullyQualifiedDomainName } = require("node-opcua-hostname");
 
-const getFullyQualifiedDomainName = require("node-opcua-hostname").getFullyQualifiedDomainName;
-const empty_nodeset_filename = opcua.get_empty_nodeset_filename();
 
-const perform_operation_on_client_session = require("../../test_helpers/perform_operation_on_client_session").perform_operation_on_client_session;
+const empty_nodeset_filename = get_empty_nodeset_filename();
+
+const { perform_operation_on_client_session } = require("../../test_helpers/perform_operation_on_client_session");
 
 const port = 6789;
 
@@ -26,7 +25,7 @@ describe("Testing a simple server from Server side", function () {
 
             const endPoint = server.endpoints[0];
 
-            const e = opcua.parseEndpointUrl(endPoint.endpointDescriptions()[0].endpointUrl);
+            const e = parseEndpointUrl(endPoint.endpointDescriptions()[0].endpointUrl);
 
             const expected_hostname = getFullyQualifiedDomainName();
             e.hostname.toLowerCase().should.be.match(new RegExp(expected_hostname.toLowerCase()));

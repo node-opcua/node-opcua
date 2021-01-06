@@ -1,48 +1,52 @@
 import "should";
 import * as async from "async";
-import * as chalk from "chalk";
-import * as path from "path";
 import * as os from "os";
 
 import {
     OPCUAServer,
     OPCUADiscoveryServer,
     RegisterServerMethod,
-    makeApplicationUrn,
-    OPCUACertificateManager,
-    assert
-} from "node-opcua";
-import { createAndStartServer, createDiscovery, createServerThatRegisterWithDiscoveryServer, f, fa } from "./_helper";
-import { make_debugLog, checkDebugFlag } from "node-opcua-debug";
+    makeApplicationUrn} from "node-opcua";
+import { createDiscovery, createServerThatRegisterWithDiscoveryServer, f, fa } from "./_helper";
+import { make_debugLog } from "node-opcua-debug";
 const debugLog = make_debugLog("TEST");
-const doDebug = checkDebugFlag("TEST");
 
 const port = 1435;
 const port_discovery = 1436;
 
-export function t(test: any) {
+export function t() {
     const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
     describe("DS6- Discovery server", function (this: any) {
         this.timeout(50000);
 
-        let discoveryServer: OPCUADiscoveryServer;
+       
         let discoveryServerEndpointUrl: string = `opc.tcp://localhost:${port_discovery}`;
 
-        let server: OPCUAServer;
+        let discoveryServer: OPCUADiscoveryServer | undefined;
 
         async function start_discovery_server() {
+            if (discoveryServer!== undefined) {
+                throw new Error("discoveryServer already started");
+            }
+            discoveryServer = await createDiscovery(port_discovery);
+            debugLog("starting discoveryServer");
             await discoveryServer.start();
+            debugLog("discoveryServer started");
             discoveryServerEndpointUrl = discoveryServer.getEndpointUrl();
             debugLog("discovery server started   : ", discoveryServerEndpointUrl);
         }
 
         async function stop_discovery_server() {
-            await discoveryServer.shutdown();
+            if (discoveryServer) {
+                debugLog("stopping discoveryServer");
+                await discoveryServer.shutdown();
+                debugLog("discoveryServer stopped");
+                discoveryServer = undefined;
+            } 
         }
 
         before(async () => {
             OPCUAServer.registry.count().should.eql(0);
-            discoveryServer = await createDiscovery(port_discovery);
         });
 
         after(async () => {
@@ -51,7 +55,7 @@ export function t(test: any) {
                 setTimeout(() => {
                     OPCUAServer.registry.count().should.eql(0);
                     resolve();
-                }, 100);
+                }, 1000);
             });
         });
 
@@ -96,10 +100,11 @@ export function t(test: any) {
                 serverUnregisteredCount.should.eql(1);
             });
 
-            await stop_discovery_server();
+            await fa("stopping discovery server", stop_discovery_server);
         });
 
         it("DS6-2 a server shall register itself on a regular basic to the LDS", async () => {
+          
             await fa("given a running local discovery server", async () => {
                 await start_discovery_server();
             });
@@ -125,7 +130,7 @@ export function t(test: any) {
                 await fa("when the server registration is renewed", async () => {
                     await new Promise<void>((resolve) => {
                         server.once("serverRegistrationRenewed", function () {
-                            //xx console.log("server serverRegistrationRenewed");
+                            //xx debugLog("server serverRegistrationRenewed");
                             resolve();
                         });
                     });
@@ -135,7 +140,7 @@ export function t(test: any) {
             await fa("then later, the server should renew the registration and register itself again", async () => {
                 await new Promise<void>((resolve) => {
                     server.once("serverRegistrationRenewed", function () {
-                        //xx console.log("server serverRegistrationRenewed");
+                        //xx debugLog("server serverRegistrationRenewed");
                         resolve();
                     });
                 });
@@ -160,6 +165,9 @@ export function t(test: any) {
         });
 
         it("DS6-3 a server shall try to register itself even if discovery server is not available", function (done) {
+           
+            let server: OPCUAServer;
+
             async.series(
                 [
                     // given a server that starts before the LDS
@@ -169,7 +177,7 @@ export function t(test: any) {
                             registerServerMethod: RegisterServerMethod.LDS,
                             discoveryServerEndpointUrl,
                             serverInfo: {
-                                applicationUri: makeApplicationUrn(os.hostname(), "Node-OPCUA-Server")
+                                applicationUri: makeApplicationUrn(os.hostname(), "NodeOPCUA-Server")
                             }
                         });
                         (server.registerServerManager as any).timeout = 100;
@@ -181,13 +189,13 @@ export function t(test: any) {
                     }),
                     f(function then_it_should_try_to_connect_to_LDS_and_raise_serverRegistrationPending(callback) {
                         server.once("serverRegistrationPending", function () {
-                            //xx console.log("server serverRegistrationPending");
+                            //xx debugLog("server serverRegistrationPending");
                             callback();
                         });
                     }),
                     f(function then_it_should_try_to_connect_to_LDS_and_raise_serverRegistrationPending(callback) {
                         server.once("serverRegistrationPending", function () {
-                            //xx console.log("server serverRegistrationPending");
+                            //xx debugLog("server serverRegistrationPending");
                             callback();
                         });
                     }),
@@ -199,19 +207,19 @@ export function t(test: any) {
                     }),
                     f(function then_server_should_finally_manage_to_connect_to_LDS_and_raise_serverRegistered_event(callback) {
                         server.once("serverRegistered", function () {
-                            //xx console.log("server serverRegistered");
+                            //xx debugLog("server serverRegistered");
                             callback();
                         });
                     }),
                     f(function then_later_on_server_should_renew_registration_and_raise_serverRegistrationRenewed_event(callback) {
                         server.once("serverRegistrationRenewed", function () {
-                            //xx console.log("server serverRegistrationRenewed");
+                            //xx debugLog("server serverRegistrationRenewed");
                             callback();
                         });
                     }),
                     f(function then_later_on_server_should_renew_registration_and_raise_serverRegistrationRenewed_event(callback) {
                         server.once("serverRegistrationRenewed", function () {
-                            //xx console.log("server serverRegistrationRenewed");
+                            //xx debugLog("server serverRegistrationRenewed");
                             callback();
                         });
                     }),
@@ -219,7 +227,7 @@ export function t(test: any) {
                         // when the server shuts down
                         // it should unregistered itself from the LDS
                         server.once("serverUnregistered", function () {
-                            //xx console.log("server serverUnregistered");
+                            //xx debugLog("server serverUnregistered");
                         });
                         server.shutdown(function () {
                             callback();
@@ -234,6 +242,7 @@ export function t(test: any) {
         });
 
         it("DS6-4 a server shall be able not to register itself to the LDS if needed to be hidden", function (done) {
+            let server: OPCUAServer;
             async.series(
                 [
                     f(function given_a_server_hidden_from_local_discovery(callback) {
@@ -241,7 +250,7 @@ export function t(test: any) {
                             port,
                             registerServerMethod: RegisterServerMethod.HIDDEN,
                             serverInfo: {
-                                applicationUri: makeApplicationUrn(os.hostname(), "Node-OPCUA-Server")
+                                applicationUri: makeApplicationUrn(os.hostname(), "NodeOPCUA-Server")
                             }
                         });
                         (server.registerServerManager as any).timeout = 100;
@@ -260,26 +269,27 @@ export function t(test: any) {
         });
 
         it("DS6-5 a server (that want to register itself to the LDS) shall be able to start promptly even if the LDS is no available", function (done) {
-            this.timeout(5000);
+   
+            let server: OPCUAServer;
+   
             async.series(
                 [
-                    function given_a_server_that_register_itself_to_local_discovery(callback) {
+                    function given_a_server_that_registers_itself_to_local_discovery(callback) {
                         server = new OPCUAServer({
                             port,
                             registerServerMethod: RegisterServerMethod.LDS,
-                            discoveryServerEndpointUrl,
-                            serverInfo: {
-                                applicationUri: makeApplicationUrn(os.hostname(), "Node-OPCUA-Server")
-                            }
+                            discoveryServerEndpointUrl
                         });
                         (server.registerServerManager as any).timeout = 100;
-                        server.start(function () {
+                        server.start(() => {
+
+                            // at this stage the server is initiating a connection to the LDS.... 
                             callback();
                         });
                     },
-                    function (callback) {
-                        server.shutdown(function () {
-                            callback();
+                    function the_server_shall_shutdown(callback) {
+                        server.shutdown(() => {
+                            setTimeout(callback, 1000);
                         });
                     }
                 ],
@@ -305,7 +315,7 @@ export function t(test: any) {
                             registerServerMethod: RegisterServerMethod.LDS,
                             discoveryServerEndpointUrl,
                             serverInfo: {
-                                applicationUri: makeApplicationUrn(os.hostname(), "Node-OPCUA-Server")
+                                applicationUri: makeApplicationUrn(os.hostname(), "NodeOPCUA-Server")
                             }
                         });
 
@@ -314,7 +324,7 @@ export function t(test: any) {
                         // when server starts
                         // it should end up registering itself to the LDS
                         server.once("serverRegistered", function () {
-                            console.log("server serverRegistered ?! this is not what we expect !");
+                            debugLog("server serverRegistered ?! this is not what we expect !");
                         });
                         server.start(function () {
                             callback();

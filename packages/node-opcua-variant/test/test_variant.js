@@ -36,6 +36,10 @@ const { StatusCodes } = require("node-opcua-status-code");
 const { ExtensionObject } = require("node-opcua-extension-object");
 const { resolveNodeId } = require("node-opcua-nodeid");
 
+const { make_debugLog, checkDebugFlag } = require("node-opcua-debug");
+const debugLog = make_debugLog("TEST");
+const doDebug = checkDebugFlag("TEST");
+
 describe("Variant", () => {
     it("should create a empty Variant", () => {
         const var1 = new Variant();
@@ -588,7 +592,7 @@ describe("Variant - Analyser", function () {
         })
     ];
 
-    //xx console.log(various_variants.map(function(a){return a.toString()}).join("\n"));
+    //xx debugLog(various_variants.map(function(a){return a.toString()}).join("\n"));
 
     it("should analyze variant", () => {
         redirectToFile("variant_analyze1.log", () => {
@@ -644,10 +648,10 @@ describe("Variant - Analyser", function () {
         very_large.encode(stream);
         const t4 = get_clock_tick();
 
-        console.log(" t1 = create variant   ", t1 - t0);
-        console.log(" t2 = binaryStoreSize  ", t2 - t1);
-        console.log(" t3 = new BinaryStream ", t3 - t2);
-        console.log(" t3 = encode           ", t4 - t3);
+        debugLog(" t1 = create variant   ", t1 - t0);
+        debugLog(" t2 = binaryStoreSize  ", t2 - t1);
+        debugLog(" t3 = new BinaryStream ", t3 - t2);
+        debugLog(" t3 = encode           ", t4 - t3);
     });
 
     it("should encode/decode a very large array of Float", () => {
@@ -669,7 +673,7 @@ describe("Variant - Analyser", function () {
     it("should check the performance of encode/decode a very large array of Float", () => {
         const length = 500 * 1024;
 
-        console.log("    array size = ", length);
+        debugLog("    array size = ", length);
 
         const obj = new Variant({
             dataType: DataType.Double,
@@ -699,11 +703,11 @@ describe("Variant - Analyser", function () {
                 obj_reloaded.decode(stream);
             })
             .on("cycle", function (message) {
-                //xx console.log(message);
+                //xx debugLog(message);
             })
             .on("complete", function () {
-                console.log(" Fastest is " + this.fastest.name);
-                console.log(" Speed Up : x", this.speedUp);
+                debugLog(" Fastest is " + this.fastest.name);
+                debugLog(" Speed Up : x", this.speedUp);
                 //xx this.fastest.name.should.eql("Variant.encode");
             })
             .run({ max_time: 0.2 });
@@ -780,11 +784,11 @@ xdescribe("benchmarking variant encode", () => {
                 test_iteration(variant, stream, old_encode);
             })
             .on("cycle", function (message) {
-                // console.log(message);
+                // debugLog(message);
             })
             .on("complete", function () {
-                console.log(" Fastest is " + this.fastest.name);
-                console.log(" Speed Up : x", this.speedUp);
+                debugLog(" Fastest is " + this.fastest.name);
+                debugLog(" Speed Up : x", this.speedUp);
                 // this test fails only on AppVeyor ! why ?
                 //xx this.fastest.name.should.eql("Variant.encode");
                 done();
@@ -903,12 +907,12 @@ describe("benchmarking float Array encode/decode", function () {
                 test_iteration(variant, stream, test_6);
             })
             .on("cycle", function (message) {
-                //xx console.log(message);
+                //xx debugLog(message);
             })
             .on("complete", function () {
-                console.log(" slowest is " + this.slowest.name);
-                console.log(" Fastest is " + this.fastest.name);
-                console.log(" Speed Up : x", this.speedUp);
+                debugLog(" slowest is " + this.slowest.name);
+                debugLog(" Fastest is " + this.fastest.name);
+                debugLog(" Speed Up : x", this.speedUp);
                 // xx this.fastest.name.should.eql("test4");
                 done();
             })
@@ -1047,7 +1051,7 @@ describe("Variant with enumeration", () => {
             dataType: DataType.Int32,
             value: SomeEnum.DiagnosticInfo
         });
-        // console.log(v.toString());
+        // debugLog(v.toString());
         v.value.should.eql(SomeEnum.DiagnosticInfo);
     });
 
@@ -1055,7 +1059,7 @@ describe("Variant with enumeration", () => {
         const v = new Variant({
             value: SomeEnum.DiagnosticInfo
         });
-        // console.log(v.toString());
+        // debugLog(v.toString());
         v.value.should.eql(1);
         v.dataType.should.eql(DataType.Int32);
     });
@@ -1308,11 +1312,11 @@ describe("testing sameVariant Performance", function () {
                 }
             })
             .on("cycle", function (message) {
-                console.log(message);
+                debugLog(message);
             })
             .on("complete", function () {
-                console.log(" Fastest is " + this.fastest.name);
-                console.log(" Speed Up : x", this.speedUp);
+                debugLog(" Fastest is " + this.fastest.name);
+                debugLog(" Speed Up : x", this.speedUp);
                 this.fastest.name.should.eql("fast sameVariant");
                 // with istanbul, speedUp may be not as high as we would expect ( x10 !)
                 // this.speedUp.should.be.greaterThan(10);
@@ -1493,7 +1497,7 @@ describe("testing variant JSON conversion", () => {
         });
         const jsonStr = JSON.stringify(b1, null, "");
 
-        // console.log(JSON.parse(jsonStr));
+        // debugLog(JSON.parse(jsonStr));
 
         const b2 = new Variant(JSON.parse(jsonStr));
         const jsonStr2 = JSON.stringify(b2, null, "");
@@ -1525,8 +1529,8 @@ describe("testing variant JSON conversion", () => {
             ]
         });
 
-        console.log(variant.toJSON());
-        console.log(variant.toString());
+        debugLog(variant.toJSON());
+        debugLog(variant.toString());
     });
     it("should convert a Variant with ExtensionObject to JSON", () => {
         class SomeExtensionObject extends ExtensionObject {
@@ -1547,8 +1551,8 @@ describe("testing variant JSON conversion", () => {
             })
         });
 
-        console.log(variant.toJSON());
-        console.log(variant.toString());
+        debugLog(variant.toJSON());
+        debugLog(variant.toString());
     });
 
     it("dimensions shall be set to null if not specified ", () => {

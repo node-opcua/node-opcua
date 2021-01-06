@@ -10,6 +10,8 @@ const OPCUAClient = opcua.OPCUAClient;
 
 const { perform_operation_on_subscription } = require("../../test_helpers/perform_operation_on_client_session");
 
+const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
+
 module.exports = function(test) {
 
     describe("Testing ctt  - Test 5.10.2 Test case 7  - SubscriptionBasic - 029.js", function() {

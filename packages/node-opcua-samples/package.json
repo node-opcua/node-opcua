@@ -22,7 +22,7 @@
         "exit": "^0.1.2",
         "node-opcua": "2.28.3",
         "node-opcua-assert": "2.22.0",
-        "node-opcua-pki": "^2.6.0",
+        "node-opcua-pki": "^2.6.1",
         "node-opcua-server-configuration": "2.28.3",
         "sprintf-js": "^1.1.2",
         "treeify": "^1.1.0",

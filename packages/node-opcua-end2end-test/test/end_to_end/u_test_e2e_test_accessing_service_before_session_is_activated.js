@@ -9,6 +9,8 @@ const {
     StatusCodes
 } = require("node-opcua");
 
+const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
+
 module.exports = function(test) {
 
     let client;

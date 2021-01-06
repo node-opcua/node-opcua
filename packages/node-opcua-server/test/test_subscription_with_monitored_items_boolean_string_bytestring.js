@@ -61,7 +61,6 @@ function install_spying_samplingFunc() {
         if (!dataSourceFrozen) {
             sample_value++;
         }
-        //xx console.log(" OOOOO ----- OOOOOOO");
         const dataValue = new DataValue({ value: { dataType: DataType.UInt32, value: sample_value } });
         callback(null, dataValue);
     });

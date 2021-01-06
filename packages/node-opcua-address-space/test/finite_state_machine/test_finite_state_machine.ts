@@ -1,6 +1,6 @@
 // tslint:disable:no-console
 import * as path from "path";
-
+import "should";
 import { LocalizedText } from "node-opcua-data-model";
 import { StatusCodes } from "node-opcua-status-code";
 import { DataType } from "node-opcua-variant";
@@ -17,7 +17,10 @@ import {
 } from "../..";
 import { generateAddressSpace } from "../../nodeJS";
 
-const doDebug = false;
+import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
+let debugLog = make_debugLog("TEST");
+const doDebug = checkDebugFlag("TEST");
+
 
 // make sure extra error checking is made on object constructions
 // tslint:disable-next-line:no-var-requires
@@ -141,7 +144,7 @@ describe("Testing Finite State Machine", () => {
             browseName: "MyStateMachine"
         });
         if (doDebug) {
-            console.log(myStateMachine.toString());
+            debugLog(myStateMachine.toString());
         }
         promoteToStateMachine(myStateMachine);
 
@@ -152,7 +155,7 @@ describe("Testing Finite State Machine", () => {
         });
 
         if (doDebug) {
-            console.log("states      : ", a.join(" "));
+            debugLog("states      : ", a.join(" "));
         }
 
         // get the transitions
@@ -161,14 +164,14 @@ describe("Testing Finite State Machine", () => {
             return e.browseName.toString() + (transitionNumber !== null ? " ( " + transitionNumber + " )" : "");
         });
         if (doDebug) {
-            console.log("transitions : ", t.join(" "));
+            debugLog("transitions : ", t.join(" "));
         }
 
         // set state and raise event
         myStateMachine.setState(myStateMachine.initialState!);
 
         if (doDebug) {
-            console.log(myStateMachine.currentState.readValue().toString());
+            debugLog(myStateMachine.currentState.readValue().toString());
         }
         myStateMachine.currentState.readValue().statusCode.should.eql(StatusCodes.BadStateNotActive);
 
@@ -348,7 +351,7 @@ describe("FiniteStateMachine with Multiple transition from one state to an other
 
         const output = unCaptureConsoleLog();
 
-        console.log(output);
+        debugLog(output);
 
         output.should.match(/warning: a duplicated FromState Reference to the same target has been found/);
         output.should.match(/Please check your model or provide a predicate method to select which one to use/);
@@ -361,7 +364,7 @@ describe("FiniteStateMachine with Multiple transition from one state to an other
         );
         const output = unCaptureConsoleLog();
 
-        console.log(output);
+        debugLog(output);
 
         output.should.eql("");
     });

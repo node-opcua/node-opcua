@@ -17,9 +17,10 @@ const DataType = opcua.DataType;
 const makeNodeId = opcua.makeNodeId;
 const VariableIds = opcua.VariableIds;
 
-const perform_operation_on_client_session = require("../../test_helpers/perform_operation_on_client_session").perform_operation_on_client_session;
+const { perform_operation_on_client_session } = require("../../test_helpers/perform_operation_on_client_session");
 
 // bug : server reported to many datavalue changed when client monitored a UAVariable consructed with variation 1");
+const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 
 module.exports = function(test) {
     describe("Testing bug #119 - Verify that monitored item only reports expected value change notifications :", function() {

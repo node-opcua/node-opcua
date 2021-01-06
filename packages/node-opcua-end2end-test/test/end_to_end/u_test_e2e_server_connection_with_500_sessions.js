@@ -9,7 +9,7 @@ const chalk = require("chalk");
 
 const doDebug = false;
 
-const perform_operation_on_client_session = require("../../test_helpers/perform_operation_on_client_session").perform_operation_on_client_session;
+const { perform_operation_on_client_session } = require("../../test_helpers/perform_operation_on_client_session");
 
 
 module.exports = function(test) {

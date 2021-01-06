@@ -1,7 +1,7 @@
 "use strict";
 const should = require("should");
 
-const BinaryStream = require("node-opcua-binary-stream").BinaryStream;
+const { BinaryStream } = require("node-opcua-binary-stream");
 
 const date_time = require("..");
 const offsetFactor1601 = date_time.offsetFactor1601;
@@ -12,8 +12,11 @@ const encodeDateTime = date_time.encodeDateTime;
 const offset = offsetFactor1601[0];
 const factor = offsetFactor1601[1];
 const Long = require("long");
-const getCurrentClock = require("..").getCurrentClock;
+const { getCurrentClock } = require("..");
 
+const { make_debugLog, checkDebugFlag} = require("node-opcua-debug");
+const debugLog = make_debugLog("TEST");
+const doDebug = checkDebugFlag("TEST");
 
 function isValidUInt32(value) {
     if (!isFinite(value)) {
@@ -98,9 +101,9 @@ describe("check OPCUA Date conversion version 2", function() {
         const january = 1;
         const first_of_jan_1970_UTC = new Date(Date.UTC(1970, january - 1, 1, 0, 0, 0));
 
-        //xx console.log("\n UTC Time  ",first_of_jan_1970_UTC.toUTCString());
-        //xx console.log(" Local Time",first_of_jan_1970_UTC.toString());
-        //xx console.log(" Iso Date",first_of_jan_1970_UTC.toISOString());
+        //xx debugLog("\n UTC Time  ",first_of_jan_1970_UTC.toUTCString());
+        //xx debugLog(" Local Time",first_of_jan_1970_UTC.toString());
+        //xx debugLog(" Iso Date",first_of_jan_1970_UTC.toISOString());
 
         first_of_jan_1970_UTC.getTime().should.eql(0);
         first_of_jan_1970_UTC.toUTCString().should.eql("Thu, 01 Jan 1970 00:00:00 GMT");
@@ -128,7 +131,7 @@ describe("check OPCUA Date conversion version 2", function() {
 
         const stream = new BinaryStream(buf);
         const date = decodeDateTime(stream);
-        //xx console.log("DDD = ",date.toUTCString(), " ms=", date.getMilliseconds());
+        //xx debugLog("DDD = ",date.toUTCString(), " ms=", date.getMilliseconds());
         date.toISOString().should.eql("2013-12-12T07:36:09.747Z");
     });
 
@@ -202,7 +205,7 @@ describe("Benchmarking Date conversion routines", function() {
             const verif2 = date_time.bn_hundredNanoSecondFrom1601ToDate(hundred_nano2[0], hundred_nano2[1]);
             const hundred_nano2Verif = date_time.bn_dateToHundredNanoSecondFrom1601(verif2);
 
-            //console.log(hundred_nano1,hundred_nano2,hundred_nano2Verif, verif2.toISOString());
+            //debugLog(hundred_nano1,hundred_nano2,hundred_nano2Verif, verif2.toISOString());
 
             hundred_nano1Verif.should.eql(hundred_nano1);
             hundred_nano2Verif.should.eql(hundred_nano2);
@@ -231,12 +234,12 @@ describe("Benchmarking Date conversion routines", function() {
 
             })
             .on('cycle', function(message) {
-                console.log(message);
+                debugLog(message);
             })
             .on('complete', function() {
 
-                console.log(' Fastest is ' + this.fastest.name);
-                console.log(' Speed Up : x', this.speedUp);
+                debugLog(' Fastest is ' + this.fastest.name);
+                debugLog(' Speed Up : x', this.speedUp);
                 this.fastest.name.should.eql("bn_dateToHundredNanoSecondFrom1601_fast");
                 done();
             })
@@ -258,12 +261,12 @@ describe("Benchmarking Date conversion routines", function() {
                 date_time.bn_hundredNanoSecondFrom1601ToDate(hundred_nano[0], hundred_nano[1]);
             })
             .on('cycle', function(message) {
-                console.log(message);
+                debugLog(message);
             })
             .on('complete', function() {
 
-                console.log(' Fastest is ' + this.fastest.name);
-                console.log(' Speed Up : x', this.speedUp);
+                debugLog(' Fastest is ' + this.fastest.name);
+                debugLog(' Speed Up : x', this.speedUp);
                 this.fastest.name.should.eql("bn_hundredNanoSecondFrom1601ToDate_fast");
                 done();
             })
@@ -316,7 +319,7 @@ describe("Benchmarking Date conversion routines", function() {
         const date = new Date(Date.UTC(1970, 0, 1, 0, 0, 0));
         const nano = date_time.bn_dateToHundredNanoSecondFrom1601(date);
         const verif = bn_dateToHundredNanoSecondFrom1601_big_number(date);
-        console.log(date.toUTCString(), "0x0" + nano[0].toString(16), "0x" + nano[1].toString(16), nano, verif[0].toString(16), verif[1].toString(16));
+        debugLog(date.toUTCString(), "0x0" + nano[0].toString(16), "0x" + nano[1].toString(16), nano, verif[0].toString(16), verif[1].toString(16));
         nano[0].should.equal(0x019DB1DE); // hi
         nano[1].should.equal(-0x2ac18000); // lo
     });
@@ -380,7 +383,7 @@ describe("understanding Javascript date", function() {
 
             const d = (date2.getTime() - date1.getTime()) / 1000;
             (d - n).should.eql(0);
-            // console.log("year = ", year, date1.toUTCString(), " => ",d,n,d -n);
+            // debugLog("year = ", year, date1.toUTCString(), " => ",d,n,d -n);
         }
 
         for (let y = 1970; y < 2020; y++) {
@@ -524,10 +527,10 @@ describe("understanding Javascript date", function() {
             const clock = getCurrentClock();
 
             clock.picoseconds.should.have.type("number");
-            //Xx console.log(clock);
+            //Xx debugLog(clock);
             const hundred_nano = date_time.bn_dateToHundredNanoSecondFrom1601(clock.timestamp, clock.picoseconds);
-            //Xx console.log(+clock.timestamp,clock.picoseconds);
-            //Xx console.log(nano);
+            //Xx debugLog(+clock.timestamp,clock.picoseconds);
+            //Xx debugLog(nano);
             const dateVerif = date_time.bn_hundredNanoSecondFrom1601ToDate(hundred_nano[0], hundred_nano[1]);
             dateVerif.picoseconds.should.have.type("number");
 

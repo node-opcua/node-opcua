@@ -6,6 +6,8 @@ const opcua = require("node-opcua");
 const OPCUAClient = opcua.OPCUAClient;
 
 
+const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
+
 module.exports = function(test) {
 
 

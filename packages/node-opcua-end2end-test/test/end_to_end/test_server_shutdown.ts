@@ -20,10 +20,11 @@ import { SinonSpy } from "sinon";
 import * as should from "should";
 const a = should;
 const port = 2233;
-const doDebug = true;
 
-// tslint:disable-next-line: no-console
-const debugLog = console.log;
+import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
+const debugLog = make_debugLog("TEST");
+const doDebug = checkDebugFlag("TEST");
+
 
 async function given_a_running_server() {
     const server = new OPCUAServer({
@@ -34,13 +35,13 @@ async function given_a_running_server() {
     await server.initialize();
 
     await server.start();
-    console.log("server started");
+    debugLog("server started");
     return server;
 }
 async function when_server_is_shutdown(server: OPCUAServer): Promise<void> {
     server.engine.setShutdownReason("Shutdown by Test");
     await server.shutdown(3000).then(() => {
-        console.log("Server has shutdown");
+        debugLog("Server has shutdown");
     });
 }
 async function given_a_connected_client(
@@ -49,13 +50,13 @@ async function given_a_connected_client(
     const client = OPCUAClient.create({ endpointMustExist: false });
 
     client.on("connection_lost", () => {
-        console.log("Connection has been lost");
+        debugLog("Connection has been lost");
     });
     client.on("backoff", () => {
-        console.log("Connection backoff");
+        debugLog("Connection backoff");
     });
     client.on("reconnection_attempt_has_failed", () => {
-        console.log("reconnection_attempt_has_failed");
+        debugLog("reconnection_attempt_has_failed");
     });
 
     await client.connect(endpointUrl);
@@ -77,21 +78,21 @@ async function then_the_client_should_automatically_be_disconnected(client: OPCU
     let resolved = false;
     await new Promise<void>((resolve) => {
         client.on("connection_lost", () => {
-            console.log("Connection has been lost");
+            debugLog("Connection has been lost");
             if (!resolved) {
                 resolved = true;
                 resolve();
             }
         });
         client.on("backoff", () => {
-            console.log("Connection backoff");
+            debugLog("Connection backoff");
             if (!resolved) {
                 resolved = true;
                 resolve();
             }
         });
         client.on("reconnection_attempt_has_failed", () => {
-            console.log("reconnection_attempt_has_failed");
+            debugLog("reconnection_attempt_has_failed");
             if (!resolved) {
                 resolved = true;
                 resolve();
@@ -117,11 +118,11 @@ async function monitor(subscription: ClientSubscription, id: number): Promise<Si
         monitoredItem.on("changed", spy);
 
         monitoredItem.on("err", (message: string) => {
-            console.log("Error", message);
+            debugLog("Error", message);
             reject(new Error(message));
         });
         monitoredItem.on("initialized", () => {
-            // console.log("Initialized");
+            // debugLog("Initialized");
             resolve(spy);
         });
     });
@@ -153,22 +154,22 @@ describe("Testing server shutdown", () => {
         await f(then_the_client_should_automatically_be_disconnected)(client);
 
         // force disconnection
-        console.log("Force disconnectionon");
+        debugLog("Force disconnectionon");
         await client.disconnect();
 
         if (doDebug) {
-            console.log(secondTillShutdownSpy.callCount);
-            console.log(stateSpy.callCount);
-            console.log(shutdownReasonSpy.callCount);
+            debugLog(secondTillShutdownSpy.callCount);
+            debugLog(stateSpy.callCount);
+            debugLog(shutdownReasonSpy.callCount);
 
             for (const c of secondTillShutdownSpy.getCalls()) {
-                console.log("secondTillShutdownSpy", c.args[0].toString());
+                debugLog("secondTillShutdownSpy", c.args[0].toString());
             }
             for (const c of stateSpy.getCalls()) {
-                console.log("state", ServerState[c.args[0].value.value], c.args[0].toString());
+                debugLog("state", ServerState[c.args[0].value.value], c.args[0].toString());
             }
             for (const c of shutdownReasonSpy.getCalls()) {
-                console.log("shutdownReasonSpy", c.args[0].toString());
+                debugLog("shutdownReasonSpy", c.args[0].toString());
             }
         }
 
@@ -181,6 +182,6 @@ describe("Testing server shutdown", () => {
         shutdownReasonSpy.getCall(1).args[0].value.value.text.should.eql("Shutdown by Test");
 
         // tslint:disable-next-line: no-console
-        console.log("Done");
+        debugLog("Done");
     });
 });

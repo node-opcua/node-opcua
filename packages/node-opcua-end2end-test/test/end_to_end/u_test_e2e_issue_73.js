@@ -9,7 +9,7 @@ const opcua = require("node-opcua");
 const OPCUAClient = opcua.OPCUAClient;
 const ClientSession = opcua.ClientSession;
 
-const perform_operation_on_client_session = require("../../test_helpers/perform_operation_on_client_session").perform_operation_on_client_session;
+const { perform_operation_on_client_session } = require("../../test_helpers/perform_operation_on_client_session");
 
 
 
@@ -18,6 +18,7 @@ const securityPolicy = opcua.SecurityPolicy.None;
 
 // bug : server reported to many datavalue changed when client monitored a UAVariable consructed with variation 1");
 
+const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 module.exports = function(test) {
 
     describe("Testing bug #73 -  Server resets sequence number after secure channel renewal ", function() {

@@ -1,14 +1,21 @@
-
-const  BaseUAObject = require("node-opcua-factory").BaseUAObject;
-const buildStructureType = require("node-opcua-factory").buildStructuredType;
-const makeExpandedNodeId = require("node-opcua-nodeid").makeExpandedNodeId;
-const ObjectIds = require("node-opcua-constants").ObjectIds;
-const RequestHeader = require("node-opcua-service-secure-channel").RequestHeader;
+const {
+    BaseUAObject,
+    buildStructuredType 
+} = require("node-opcua-factory");
+const { 
+    makeExpandedNodeId 
+} = require("node-opcua-nodeid");
+const {
+    ObjectIds 
+}= require("node-opcua-constants");
+const {
+    RequestHeader 
+} = require("node-opcua-service-secure-channel");
 
 // a fake request type that is supposed to be correctly decoded on server side
 // but that is not supported by the server engine
 
-const schemaServerSideUnimplementedRequest = buildStructureType({
+const schemaServerSideUnimplementedRequest = buildStructuredType({
     name: "ServerSideUnimplementedRequest",
     baseType: "BaseUAObject",
 //x    id: ObjectIds.Annotation_Encoding_DefaultXml,
@@ -39,5 +46,3 @@ exports.ServerSideUnimplementedRequest = ServerSideUnimplementedRequest;
 //xxx exports.ServerSideUnimplementedRequest_Schema = ServerSideUnimplementedRequest_Schema;
 //xxx const ServerSideUnimplementedRequest = generator.registerObject(ServerSideUnimplementedRequest_Schema, temporary_folder);
 //xxx exports.ServerSideUnimplementedRequest = ServerSideUnimplementedRequest;
-
-

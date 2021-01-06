@@ -37,6 +37,7 @@ function createSubscription(session, callback) {
   });
 }
 
+const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 
 module.exports = function(test) {
 
@@ -416,8 +417,7 @@ module.exports = function(test) {
 
 
     function m(file) {
-      //var p = constructFilename(file);
-      const p = path.join(__dirname, "../..", file);
+      const p = path.join(__dirname, "../../../node-opcua-samples", file);
       if (!fs.existsSync(p)) {
         console.error(" cannot find ", p);
       }

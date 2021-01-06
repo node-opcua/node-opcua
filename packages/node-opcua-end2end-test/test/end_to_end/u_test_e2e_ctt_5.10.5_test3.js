@@ -42,6 +42,8 @@ function f(func) {
     }
     return fct;
 }
+const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
+
 module.exports = function(test) {
 
     describe("Testing ctt  ", function() {

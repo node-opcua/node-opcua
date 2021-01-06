@@ -3,5 +3,6 @@ require:
 extension:
   - ts
   - js
-recursive: true
-timeout: 10000
+recursive: false
+timeout: 30000
+

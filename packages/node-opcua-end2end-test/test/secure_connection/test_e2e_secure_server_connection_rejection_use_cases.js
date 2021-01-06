@@ -12,7 +12,7 @@ const OPCUAClientBase = opcua.OPCUAClientBase;
 
 const StatusCodes = opcua.StatusCodes;
 
-const SignatureData = require("node-opcua-service-secure-channel").SignatureData;
+const { SignatureData  } = require("node-opcua-service-secure-channel");
 
 const port = 2237;
 

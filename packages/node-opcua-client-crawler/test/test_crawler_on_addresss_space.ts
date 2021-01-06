@@ -11,6 +11,10 @@ import { makeNodeId, NodeId } from "node-opcua-nodeid";
 import { DataType } from "node-opcua-client";
 import { CacheNode, NodeCrawlerBase, UserData } from "..";
 
+import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
+const debugLog = make_debugLog("TEST");
+const doDebug = checkDebugFlag("TEST");
+
 describe("NodeCrawlerBase", function (this: any) {
     this.timeout(200000);
 
@@ -62,7 +66,7 @@ describe("NodeCrawlerBase", function (this: any) {
 
         // for (const reference  of cacheNode.references) {
         //    if (reference.isForward && reference.referenceTypeId.toString() === "i=35") {
-        //        console.log( cacheNode.browseName, reference.isForward, reference.nodeId.toString());
+        //        debugLog( cacheNode.browseName, reference.isForward, reference.nodeId.toString());
         //        crawler.followReference(cacheNode, reference, userData);
         //    }
         // }
@@ -142,9 +146,9 @@ describe("NodeCrawlerBase", function (this: any) {
             );
 
         // tslint:disable: no-console
-        console.log("browseCounter = ", crawler.browseCounter);
-        console.log("browseNextCounter = ", crawler.browseNextCounter);
-        console.log("readCounter = ", crawler.readCounter);
+        debugLog("browseCounter = ", crawler.browseCounter);
+        debugLog("browseNextCounter = ", crawler.browseNextCounter);
+        debugLog("readCounter = ", crawler.readCounter);
         // crawler.browseNextCounter.should.be.greaterThan(0);
         crawler.dispose();
     });
@@ -315,10 +319,10 @@ describe("NodeCrawlerBase", function (this: any) {
         await crawler.crawl(massVariablesNodeId, data);
 
         // tslint:disable: no-console
-        console.log("onBrowse(element) count ", onBrowseCallCount);
-        console.log("browse                  ", browse.callCount);
-        console.log("browseNext              ", browseNext.callCount);
-        console.log("read                    ", read.callCount);
+        debugLog("onBrowse(element) count ", onBrowseCallCount);
+        debugLog("browse                  ", browse.callCount);
+        debugLog("browseNext              ", browseNext.callCount);
+        debugLog("read                    ", read.callCount);
 
         onBrowseCallCount.should.eql(1 + 10000 + 1);
         browse.callCount.should.eql(102); // 2 + 100*100
@@ -370,7 +374,7 @@ describe("NodeCrawlerBase", function (this: any) {
             0
         );
         countDataTypeNodeClass3.should.eql(1);
-        // console.log(results);
+        // debugLog(results);
         crawler.dispose();
     });
 });

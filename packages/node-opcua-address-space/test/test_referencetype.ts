@@ -17,6 +17,7 @@ import {
     UAReferenceType
 } from "..";
 import { getMiniAddressSpace } from "../testHelpers";
+import { Benchmarker } from "node-opcua-benchmarker";
 
 const context = SessionContext.defaultContext;
 
@@ -381,7 +382,6 @@ describe("testing ReferenceType", () => {
 
     it("BaseNode#findReferencesEx should be fast ", function (this: any, done: any) {
         // tslint:disable:no-console
-        const Benchmarker = require("node-opcua-benchmarker").Benchmarker;
 
         this.timeout(Math.max(this.timeout(), 100000));
 
@@ -430,7 +430,6 @@ describe(" improving performance of isSupertypeOf", () => {
     //                                 +->(hasSubtype) HasSubtype/HasSupertype
     //                  +->(hasSubtype) Organizes/OrganizedBy
     //                  +->(hasSubtype) HasEventSource/EventSourceOf
-    const Benchmarker = require("node-opcua-benchmarker").Benchmarker;
 
     const referenceTypeNames = Object.keys(require("node-opcua-constants").ReferenceTypeIds);
 

@@ -4,9 +4,7 @@
 	"description": "pure nodejs OPCUA SDK - module -server-discovery",
 	"scripts": {
 		"build": "tsc -b",
-		"postinstall": "npm run certificate",
 		"clean": "node -e \"require('rimraf').sync('dist');\"",
-		"certificate": "node test_helpers/create_certificates.js certificate -s -o certificates/server_selfsigned_cert_2048.pem",
 		"test": "echo no test here  : see node-opcua-end-to-end"
 	},
 	"main": "./dist/index.js",
@@ -20,7 +18,7 @@
 		"node-opcua-common": "2.28.1",
 		"node-opcua-debug": "2.28.0",
 		"node-opcua-hostname": "2.22.0",
-		"node-opcua-pki": "^2.6.0",
+		"node-opcua-pki": "^2.6.1",
 		"node-opcua-secure-channel": "2.28.1",
 		"node-opcua-server": "2.28.3",
 		"node-opcua-service-discovery": "2.28.1",

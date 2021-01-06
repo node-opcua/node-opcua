@@ -1969,7 +1969,7 @@ describe("testing ServerEngine", () => {
                     dataValues[0].statusCode.should.eql(StatusCodes.Good);
                     dataValues[0].value.dataType.should.eql(DataType.ExtensionObject);
 
-                    console.log("buildInfo", dataValues[0].value.value);
+                    // xx console.log("buildInfo", dataValues[0].value.value);
                     dataValues[0].value.value.should.be.instanceOf(Object);
 
                     const buildInfo = dataValues[0].value.value;

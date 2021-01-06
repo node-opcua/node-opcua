@@ -131,6 +131,9 @@ export async function startDiscovery(port: number): Promise<OPCUADiscoveryServer
     return discoveryServer;
 }
 
+
+const doTrace =  doDebug || process.env.TRACE;
+
 export type FF = (callback: ErrorCallback) => void;
 // add the tcp/ip endpoint with no security
 export function f(func: FF): FF {
@@ -140,7 +143,9 @@ export function f(func: FF): FF {
         .replace("when ", chalk.green("**WHEN** "))
         .replace("then ", chalk.green("**THEN** "));
     const ff = function (callback: ErrorCallback) {
-        console.log("         * " + title);
+        if (doTrace) {
+            console.log("         * " + title);
+        }
         func((err?: Error| null) => {
             if (doDebug) {
                 console.log("         ! " + title);
@@ -159,7 +164,9 @@ export async function fa(title: string, func: () => Promise<void>): Promise<void
         .replace("then ", chalk.green("**THEN** "));
 
     const ff = async () => {
-        console.log("         * " + title);
+        if (doTrace) {
+            console.log("         * " + title);
+        }
         await func();
         if (doDebug) {
             console.log("         ! " + title);

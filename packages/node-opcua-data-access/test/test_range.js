@@ -2,7 +2,7 @@
 const should = require("should");
 const { assert } = require("node-opcua-assert");
 
-const Range = require("..").Range;
+const { Range  } = require("..");
 // DeadbandType = PercentDeadband
 // For this type of deadband the  deadbandValue  is defined  as the percentage of the  EURange.   That is,
 // it applies only to  AnalogItems   with  an  EURange  Property  that define s  the   typical value   range for

@@ -9,7 +9,6 @@
 //    serverStatus.constructor.name.should.eql("ServerStatus");
 //
 //
-"use strict";
 
 import * as fs from "fs";
 import * as mocha from "mocha";
@@ -32,14 +31,14 @@ import { nodesets } from "node-opcua-nodesets";
 import { AddressSpace, BaseNode, Namespace, SessionContext, UAServerStatus } from "..";
 import { generateAddressSpace } from "../nodeJS";
 import { WriteValue } from "node-opcua-service-write";
+import { make_debugLog, checkDebugFlag } from "node-opcua-debug";
 
 // make sure all namespace 0 data type are properly loaded
 const context = SessionContext.defaultContext;
 
-function debugLog(...args: [any, ...any[]]) {
-    //
-    console.log.apply(console.log, args);
-}
+const debugLog = make_debugLog("TEST");
+const doDebug = checkDebugFlag("TEST");
+
 
 // tslint:disable-next-line:no-var-requires
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;

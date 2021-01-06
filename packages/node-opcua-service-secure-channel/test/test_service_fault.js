@@ -1,14 +1,14 @@
 "use strict";
 const should = require("should");
 
-const makeBuffer = require("node-opcua-buffer-utils").makeBuffer;
-const analyzePacket = require("node-opcua-packet-analyzer").analyzePacket;
-const BinaryStream = require("node-opcua-binary-stream").BinaryStream;
+const { makeBuffer } = require("node-opcua-buffer-utils");
+const { analyzePacket } = require("node-opcua-packet-analyzer");
+const { BinaryStream } = require("node-opcua-binary-stream");
 const { redirectToFile } = require("node-opcua-debug/nodeJS");
 
 const ec = require("node-opcua-basic-types");
-const StatusCodes = require("node-opcua-status-code").StatusCodes;
-const ServiceFault = require("..").ServiceFault;
+const { StatusCodes } = require("node-opcua-status-code");
+const { ServiceFault } = require("..");
 
 describe("ServiceFault", function() {
 

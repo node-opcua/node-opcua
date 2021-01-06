@@ -14,7 +14,7 @@ const OPCUAClient = opcua.OPCUAClient;
 const ClientSubscription = opcua.ClientSubscription;
 
 
-const perform_operation_on_client_session = require("../../test_helpers/perform_operation_on_client_session").perform_operation_on_client_session;
+const { perform_operation_on_client_session } = require("../../test_helpers/perform_operation_on_client_session");
 
 const { perform_operation_on_subscription } = require("../../test_helpers/perform_operation_on_client_session");
 

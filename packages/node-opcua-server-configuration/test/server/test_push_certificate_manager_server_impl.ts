@@ -59,7 +59,8 @@ describe("Testing Server Side PushCertificateManager", () => {
         });
         pushManager = new PushCertificateManagerServerImpl({
             applicationGroup,
-            userTokenGroup
+            userTokenGroup,
+            applicationUri: "--missing--applicationUri--",
         });
 
         await pushManager.initialize();

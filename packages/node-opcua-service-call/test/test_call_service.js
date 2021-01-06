@@ -1,11 +1,11 @@
 "use strict";
 require("should");
 const call_service = require("..");
-const encode_decode_round_trip_test = require("node-opcua-packet-analyzer/dist/test_helpers").encode_decode_round_trip_test;
+const { encode_decode_round_trip_test  } = require("node-opcua-packet-analyzer/dist/test_helpers");
 
-const coerceNodeId = require("node-opcua-nodeid").coerceNodeId;
-const DataType = require("node-opcua-variant").DataType;
-const StatusCodes = require("node-opcua-status-code").StatusCode;
+const { coerceNodeId }= require("node-opcua-nodeid");
+const { DataType } = require("node-opcua-variant");
+const { StatusCodes } = require("node-opcua-status-code");
 
 
 describe("testing CallMethodRequest", function () {

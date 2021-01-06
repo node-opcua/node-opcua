@@ -3,13 +3,12 @@ const opcua = require("node-opcua");
 const should = require("should");
 
 const OPCUAClient = opcua.OPCUAClient;
-const build_server_with_temperature_device = require("../../test_helpers/build_server_with_temperature_device").build_server_with_temperature_device;
-const perform_operation_on_client_session = require("../../test_helpers/perform_operation_on_client_session").perform_operation_on_client_session;
+const { build_server_with_temperature_device } = require("../../test_helpers/build_server_with_temperature_device");
+const { perform_operation_on_client_session } = require("../../test_helpers/perform_operation_on_client_session");
 
 const { redirectToFile } = require("node-opcua-debug/nodeJS");
 
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
-
 describe("Testing Server and Client diagnostic facilities", function() {
 
     let server, client, temperatureVariableId, endpointUrl;

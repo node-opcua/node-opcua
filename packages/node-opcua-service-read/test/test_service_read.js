@@ -1,12 +1,12 @@
 const should = require("should");
-const TimestampsToReturn = require("..").TimestampsToReturn;
-const ReadRequest = require("..").ReadRequest;
-const ReadValueId = require("..").ReadValueId;
-const ReadResponse = require("..").ReadResponse;
+const {
+    TimestampsToReturn,
+    ReadRequest,
+    ReadValueId,
+    ReadResponse 
+} = require("..");
 
-
-
-const encode_decode_round_trip_test = require("node-opcua-packet-analyzer/dist/test_helpers").encode_decode_round_trip_test;
+const { encode_decode_round_trip_test  } = require("node-opcua-packet-analyzer/dist/test_helpers");
 
 describe("test service Read",function() {
 

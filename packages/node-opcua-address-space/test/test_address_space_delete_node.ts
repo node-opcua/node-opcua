@@ -1,3 +1,5 @@
+import * as should from "should";
+
 import { AddressSpace, Namespace, UAObject, UAObjectType, UADiscreteAlarm, ensureDatatypeExtracted } from "..";
 import { generateAddressSpace } from "../nodeJS";
 import { getMiniAddressSpace } from "../testHelpers";

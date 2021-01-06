@@ -1,7 +1,7 @@
 recursive: true
 require:
   - ../../node_modules/should
-  - ../../node_modules/ts-node/register/transpile-only
+  - ../../node_modules/ts-node/register
 timeout: 20000
 enable-source-maps: true
 spec:

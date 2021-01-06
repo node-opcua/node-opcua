@@ -14,9 +14,6 @@ const defer = require("delayed");
 const chalk = require("chalk");
 
 
-const debugLog = require("node-opcua-debug").make_debugLog(__filename);
-const doDebug = require("node-opcua-debug").checkDebugFlag(__filename);
-
 const {
     is_valid_endpointUrl,
     MessageSecurityMode,
@@ -25,6 +22,11 @@ const {
     OPCUAClient,
     ClientSecureChannelLayer
 } = require("node-opcua");
+
+const { make_debugLog, checkDebugFlag} = require("node-opcua-debug");
+const debugLog = make_debugLog("TEST");
+const doDebug = checkDebugFlag("TEST");
+
 
 const fail_fast_connectionStrategy = {
     maxRetry: 0  // << NO RETRY !!

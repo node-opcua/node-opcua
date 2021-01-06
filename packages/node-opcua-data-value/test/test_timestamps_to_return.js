@@ -1,7 +1,9 @@
 "use strict";
-const TimestampsToReturn = require("..").TimestampsToReturn;
-const decodeTimestampsToReturn = require("..").decodeTimestampsToReturn;
-const BinaryStream = require("node-opcua-binary-stream").BinaryStream;
+const { 
+    TimestampsToReturn,
+    decodeTimestampsToReturn 
+} = require("..");
+const { BinaryStream } = require("node-opcua-binary-stream");
 require("should");
 
 describe("TimestampsToReturn", function () {

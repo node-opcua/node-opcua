@@ -3,11 +3,8 @@
     "version": "2.28.0",
     "description": "pure nodejs OPCUA SDK - module -client",
     "scripts": {
-        "certificate": "node test_helpers/create_certificates.js certificate -s -o certificates/client_selfsigned_cert_2048.pem",
-        "pretest": "npm run certificate",
         "clean": "node -e \"require('rimraf').sync('certificates');\"  && node -e \"require('rimraf').sync('dist');\"",
         "test": "mocha",
-        "test-typescript": "npx mocha test/*.ts",
         "build": "tsc -b",
         "lint": "tslint source/**/*.ts",
         "doc": "typedoc --options typedoc.js"
@@ -26,8 +23,9 @@
         "node-opcua-constants": "2.22.0",
         "node-opcua-crypto": "^1.6.0",
         "node-opcua-debug": "2.28.0",
-        "node-opcua-pki": "^2.6.0",
+        "node-opcua-pki": "^2.6.1",
         "node-opcua-status-code": "2.28.0",
+        "node-opcua-object-registry": "2.28.0",
         "node-opcua-utils": "2.28.0",
         "once": "^1.4.0",
         "thenify": "^3.3.1"
