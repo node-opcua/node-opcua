@@ -8,7 +8,7 @@ import { EventEmitter } from "events";
 
 import { assert } from "node-opcua-assert";
 import { AttributeIds } from "node-opcua-data-model";
-import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
+import { checkDebugFlag, make_debugLog, make_warningLog } from "node-opcua-debug";
 import { resolveNodeId } from "node-opcua-nodeid";
 
 import { ReadValueIdOptions, TimestampsToReturn } from "node-opcua-service-read";
@@ -46,7 +46,7 @@ import { ClientSessionImpl } from "./client_session_impl";
 
 const debugLog = make_debugLog(__filename);
 const doDebug = checkDebugFlag(__filename);
-const warningLog = debugLog;
+const warningLog = make_warningLog(__filename);
 
 const PENDING_SUBSCRIPTION_ID = 0xc0cac01a;
 const TERMINATED_SUBSCRIPTION_ID = 0xc0cac01b;
@@ -89,43 +89,40 @@ async function promoteOpaqueStructureInNotificationData(
 const minimumMaxKeepAliveCount = 3;
 
 function displayKeepAliveWarning(sessionTimeout: number, maxKeepAliveCount: number, publishingInterval: number): boolean {
+   
     const keepAliveInterval = maxKeepAliveCount * publishingInterval;
 
     // istanbul ignore next
     if (sessionTimeout < keepAliveInterval) {
-        console.warn(
-            chalk.bgWhiteBright.red("NodeOPCUA-Warning: "),
-            chalk.bgWhiteBright.cyan("The subscription parameters are not compatible with the session timeout !")
-        );
-        console.warn("   session timeout    = ", sessionTimeout, " millisecond");
-        console.warn("   maxKeepAliveCount  = ", maxKeepAliveCount);
-        console.warn("   publishingInterval = ", publishingInterval, " milisecond");
+        warningLog(
+            chalk.yellowBright(
+`[NODE-OPCUA-W09] The subscription parameters are not compatible with the session timeout !
+                  session timeout    = ${sessionTimeout}  milliseconds
+                  maxKeepAliveCount  = ${maxKeepAliveCount}
+                  publishingInterval = ${publishingInterval} miliseconds"
 
-        console.warn(
-            `
-It is important that you make sure that your session timeout (${chalk.red(sessionTimeout)} ms) is largely greater than 
-(MaxKeepAliveCount*PublishingInterval=${chalk.yellow(
-                "" + keepAliveInterval
-            )} ms), otherwise  you may experience unexpected disconnection from
-the server if your monitored items are not changing frequently.`
-        );
+                  It is important that the session timeout    ( ${chalk.red(sessionTimeout)} ms) is largely greater than :
+                      (maxKeepAliveCount*publishingInterval  =  ${chalk.red(keepAliveInterval)} ms), 
+                  otherwise you may experience unexpected disconnection from the server if your monitored items are not
+                  changing frequently.`
+));
 
         if (sessionTimeout < 3000 && publishingInterval <= 1000) {
-            console.warn(`You'll need to increase your sessionTimeout significantly.`);
+            warningLog(`[NODE-OPCUA-W10] You'll need to increase your sessionTimeout significantly.`);
         }
         if (
             sessionTimeout >= 3000 &&
             sessionTimeout < publishingInterval * minimumMaxKeepAliveCount &&
             maxKeepAliveCount <= minimumMaxKeepAliveCount + 2
         ) {
-            console.warn(`your publishingInterval interval is probably too large, consider reducting it.`);
+            warningLog(`[NODE-OPCUA-W11] your publishingInterval interval is probably too large, consider reducting it.`);
         }
 
-        const idealMaxKeepAliveCount = Math.floor((sessionTimeout * 0.8) / keepAliveInterval - 0.5);
+        const idealMaxKeepAliveCount = Math.floor((sessionTimeout * 0.8) / publishingInterval - 0.5);
         const idealKeepAliveInterval = idealMaxKeepAliveCount * publishingInterval;
 
-        console.warn(
-            `
+        warningLog(
+            `[NODE-OPCUA-W12] 
 An ideal value for maxKeepAliveCount could be ${idealMaxKeepAliveCount}, which will make 
 your subscription emit a keep alive signal every ${idealKeepAliveInterval} ms.
 
@@ -137,8 +134,10 @@ const  client = OPCUAClient.create({
 ${ClientSubscription.ignoreNextWarning}
 `
         );
+
+
         if (!ClientSubscription.ignoreNextWarning) {
-            throw new Error("")
+            throw new Error("[NODE-OPCUA-W09] The subscription parameters are not compatible with the session timeout ")
         }
         return true;
     }
@@ -181,12 +180,11 @@ export class ClientSubscriptionImpl extends EventEmitter implements ClientSubscr
     public timeoutHint = 0;
     public publishEngine: ClientSidePublishEngine;
 
-    private lastSequenceNumber: number;
+    public  lastSequenceNumber: number;
     private lastRequestSentTime: Date;
     private _nextClientHandle = 0;
     private hasTimedOut: boolean;
-    private pendingMonitoredItemsToRegister: ClientMonitoredItemBaseMap;
-
+ 
     constructor(session: ClientSession, options: ClientSubscriptionOptions) {
         super();
 
@@ -249,7 +247,6 @@ export class ClientSubscriptionImpl extends EventEmitter implements ClientSubscr
          */
         this.hasTimedOut = false;
 
-        this.pendingMonitoredItemsToRegister = {};
 
         setImmediate(() => {
             this.__create_subscription((err?: Error) => {

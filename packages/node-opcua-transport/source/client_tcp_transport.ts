@@ -22,6 +22,7 @@ import { TCPErrorMessage } from "./TCPErrorMessage";
 
 const doDebug = debug.checkDebugFlag(__filename);
 const debugLog = debug.make_debugLog(__filename);
+const errorLog = debug.make_errorLog(__filename);
 const gHostname = os.hostname();
 
 function createClientSocket(endpointUrl: string): Socket {
@@ -48,7 +49,8 @@ function createClientSocket(endpointUrl: string): Socket {
         case "http:":
         case "https:FF":
         default:
-            throw new Error("this transport protocol is currently not supported :" + ep.protocol);
+            errorLog("[NODE-OPCUA-E05] this transport protocol is not supported :" + ep.protocol);
+            throw new Error("[NODE-OPCUA-E05] this transport protocol is not supported :" + ep.protocol);
     }
 }
 

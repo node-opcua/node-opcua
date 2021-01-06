@@ -85,6 +85,8 @@ export interface PushCertificateManagerServerOptions {
     applicationGroup?: CertificateManager;
     userTokenGroup?: CertificateManager;
     httpsGroup?: CertificateManager;
+
+    applicationUri: string;
 }
 
 type Functor = () => Promise<void>;
@@ -145,12 +147,17 @@ export class PushCertificateManagerServerImpl extends EventEmitter implements Pu
     private readonly _pendingTasks: Functor[] = [];
 
     private $$actionQueue: ActionQueue = [];
+    
+    private applicationUri: string;
 
-    constructor(options?: PushCertificateManagerServerOptions) {
+    constructor(options: PushCertificateManagerServerOptions) {
 
         super();
 
+        this.applicationUri = options ? options.applicationUri : "";
+
         if (options) {
+
             this.applicationGroup = options.applicationGroup;
             this.userTokenGroup = options.userTokenGroup;
             this.httpsGroup = options.httpsGroup;
@@ -231,7 +238,8 @@ export class PushCertificateManagerServerImpl extends EventEmitter implements Pu
         }
 
         const options = {
-            subject: subjectName
+            subject: subjectName,
+            applicationUri: this.applicationUri
         };
         const csrfile = await certificateManager.createCertificateRequest(options);
         const csrPEM = await promisify(fs.readFile)(csrfile, "utf8");

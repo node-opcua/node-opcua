@@ -15,7 +15,7 @@ import {
     OPCUAClientBaseOptions,
     ResponseCallback
 } from "node-opcua-client";
-import { make_debugLog, checkDebugFlag } from "node-opcua-debug";
+import { make_debugLog, checkDebugFlag, make_warningLog } from "node-opcua-debug";
 import { resolveFullyQualifiedDomainName } from "node-opcua-hostname";
 import { coerceSecurityPolicy, MessageSecurityMode, SecurityPolicy } from "node-opcua-secure-channel";
 import {
@@ -30,6 +30,7 @@ import { exploreCertificate } from "node-opcua-crypto";
 
 const doDebug = checkDebugFlag(__filename);
 const debugLog = make_debugLog(__filename);
+const warningLog = make_warningLog(__filename);
 
 export enum RegisterServerManagerStatus {
     INACTIVE = 1,
@@ -383,7 +384,8 @@ export class RegisterServerManager extends EventEmitter implements IRegisterServ
         // Retry Strategy must be set
         const client = OPCUAClientBase.create({
             certificateFile: this.server.certificateFile,
-            clientName: "RegistrationClient-1",
+            clientName: this.server.serverInfo.applicationUri!,
+            applicationName: this.server.serverInfo.applicationUri!,
             connectionStrategy: infinite_connectivity_strategy,
             privateKeyFile: this.server.privateKeyFile
         }) as ClientBaseEx;
@@ -392,7 +394,7 @@ export class RegisterServerManager extends EventEmitter implements IRegisterServ
 
         client.on("backoff", (nbRetry: number, delay: number) => {
             debugLog("RegisterServerManager - received backoff");
-            console.log(
+            warningLog(
                 chalk.bgWhite.cyan("contacting discovery server backoff "),
                 this.discoveryServerEndpointUrl,
                 " attempt #",
@@ -601,7 +603,9 @@ export class RegisterServerManager extends EventEmitter implements IRegisterServ
             certificateFile: server.certificateFile,
             privateKeyFile: server.privateKeyFile,
 
-            clientName: "RegistrationClient-2",
+            clientName: server.serverInfo.applicationUri!,
+            applicationName: server.serverInfo.applicationUri!,
+            
             connectionStrategy: no_reconnect_connectivity_strategy
         };
 

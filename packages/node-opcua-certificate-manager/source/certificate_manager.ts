@@ -14,13 +14,16 @@ import { CertificateManager, CertificateManagerOptions, CertificateStatus } from
 import { StatusCodes } from "node-opcua-status-code";
 import { StatusCode } from "node-opcua-status-code";
 
-const paths = envPaths("node-opcua");
+import { CallbackT, StatusCodeCallback, Callback } from "node-opcua-status-code";
+import { assert }from "node-opcua-assert";
+
+import { ObjectRegistry } from "node-opcua-object-registry";
+
+const paths = envPaths("NodeOPCUA");
 
 const debugLog = make_debugLog(__filename);
 const errorLog = make_errorLog(__filename);
 const doDebug = checkDebugFlag(__filename);
-
-import { CallbackT, StatusCodeCallback, Callback } from "node-opcua-status-code";
 
 export interface ICertificateManager {
     getTrustStatus(certificate: Certificate): Promise<StatusCode>;
@@ -64,6 +67,8 @@ export interface OPCUACertificateManagerOptions {
 }
 
 export class OPCUACertificateManager extends CertificateManager implements ICertificateManager {
+    public static registry = new ObjectRegistry({});
+
     public automaticallyAcceptUnknownCertificate: boolean;
     /* */
     constructor(options: OPCUACertificateManagerOptions) {
@@ -83,12 +88,29 @@ export class OPCUACertificateManager extends CertificateManager implements ICert
         this.automaticallyAcceptUnknownCertificate = !!options.automaticallyAcceptUnknownCertificate;
     }
 
+    public async initialize(): Promise<void>;
+    public initialize(callback: (err?: Error) => void): void;
+    public initialize(...args: any[]): any {
+        const callback = args[0];
+        assert(callback && callback instanceof Function);
+        if (!this.initialized) {
+            // OPCUACertificateManager.registry.register(this);
+        }
+        return super.initialize(callback);
+    }
+
+    public async dispose(): Promise<void> {
+        if (this.initialized) {
+            // OPCUACertificateManager.registry.unregister(this);
+        }
+        await super.dispose();
+        this.initialized = false;
+    }
+
     public checkCertificate(certificateChain: Certificate): Promise<StatusCode>;
     public checkCertificate(certificateChain: Certificate, callback: StatusCodeCallback): void;
     public checkCertificate(certificateChain: Certificate, callback?: StatusCodeCallback): Promise<StatusCode> | void {
-        
         super.verifyCertificate(certificateChain, (err1?: Error | null, status?: string) => {
-
             if (err1) {
                 return callback!(err1);
             }
@@ -131,6 +153,7 @@ const opts = { multiArgs: false };
 
 OPCUACertificateManager.prototype.checkCertificate = thenify.withCallback(OPCUACertificateManager.prototype.checkCertificate, opts);
 OPCUACertificateManager.prototype.getTrustStatus = thenify.withCallback(OPCUACertificateManager.prototype.getTrustStatus, opts);
+OPCUACertificateManager.prototype.initialize = thenify.withCallback(OPCUACertificateManager.prototype.initialize, opts);
 
 // also see OPCUA 1.02 part 4 :
 //  - page 95  6.1.3 Determining if a Certificate is Trusted

@@ -18,7 +18,7 @@ import { ReferenceTypeIds } from "node-opcua-constants";
 import { Certificate, Nonce } from "node-opcua-crypto";
 import { attributeNameById, BrowseDirection, LocalizedTextLike, makeResultMask } from "node-opcua-data-model";
 import { DataValue } from "node-opcua-data-value";
-import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
+import { checkDebugFlag, make_debugLog, make_warningLog } from "node-opcua-debug";
 import { ExtensionObject, OpaqueStructure } from "node-opcua-extension-object";
 import { coerceNodeId, makeNodeId, NodeId, NodeIdLike, NodeIdType, resolveNodeId } from "node-opcua-nodeid";
 import { getArgumentDefinitionHelper, IBasicSession } from "node-opcua-pseudo-session";
@@ -127,7 +127,7 @@ const resultMask = makeResultMask("ReferenceType");
 const helpAPIChange = process.env.DEBUG && process.env.DEBUG.match(/API/);
 const debugLog = make_debugLog(__filename);
 const doDebug = checkDebugFlag(__filename);
-const warningLog = debugLog;
+const warningLog = make_warningLog(__filename);
 let pendingTransactionMessageDisplayed = false;
 
 function coerceBrowseDescription(data: any): BrowseDescription {
@@ -446,21 +446,6 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession {
             }
             for (const r of results) {
                 r.references = r.references || /* istanbul ignore next */ [];
-            }
-
-            // detect unsupported case :
-            // todo implement proper support for r.continuationPoint
-            /* istanbul ignore next */
-            for (const r of results) {
-                if (r.continuationPoint !== null) {
-                    warningLog(
-                        chalk.yellow(" warning:"),
-                        " BrowseResponse : server didn't send all references " +
-                            "and has provided a continuationPoint. Unfortunately we do not support this yet"
-                    );
-                    warningLog("           this.requestedMaxReferencesPerNode = ", this.requestedMaxReferencesPerNode);
-                    warningLog("           continuationPoint ", r.continuationPoint);
-                }
             }
             assert(results[0] instanceof BrowseResult);
             return callback(null, isArray ? results : results[0]);

@@ -40,7 +40,7 @@ import { ServerState } from "node-opcua-common";
 import { Certificate, exploreCertificate, Nonce, toPem } from "node-opcua-crypto";
 import { AttributeIds, LocalizedText, NodeClass } from "node-opcua-data-model";
 import { DataValue } from "node-opcua-data-value";
-import { dump, make_debugLog, make_errorLog } from "node-opcua-debug";
+import { dump, make_debugLog, make_errorLog, make_warningLog } from "node-opcua-debug";
 import { NodeId } from "node-opcua-nodeid";
 import { ObjectRegistry } from "node-opcua-object-registry";
 import {
@@ -174,7 +174,7 @@ export interface UserManagerOptions extends IUserManager {
 const package_info = require("../package.json");
 const debugLog = make_debugLog(__filename);
 const errorLog = make_errorLog(__filename);
-const warningLog = errorLog;
+const warningLog = make_warningLog(__filename);
 
 const default_maxAllowedSessionNumber = 10;
 const default_maxConnectionsPerEndpoint = 10;
@@ -187,8 +187,8 @@ function g_sendError(channel: ServerSecureChannelLayer, message: Message, Respon
 }
 
 const default_build_info: BuildInfoOptions = {
-    manufacturerName: "Node-OPCUA : MIT Licence ( see http://node-opcua.github.io/)",
-    productName: "urn:NODEOPCUA-SERVER",
+    manufacturerName: "NodeOPCUA : MIT Licence ( see http://node-opcua.github.io/)",
+    productName: "NodeOPCUA-Server",
     productUri: null, // << should be same as default_server_info.productUri?
     softwareVersion: package_info.version,
     buildNumber: "0",
@@ -816,6 +816,8 @@ const g_requestExactEndpointUrl: boolean = !!process.env.NODEOPCUA_SERVER_REQUES
  *
  */
 export class OPCUAServer extends OPCUABaseServer {
+
+    static defaultShutdownTimeout: number = 100; // 250 ms
     /**
      * if requestExactEndpointUrl is set to true the server will only accept createSession that have a endpointUrl that strictly matches
      * one of the provided endpoint.
@@ -956,7 +958,7 @@ export class OPCUAServer extends OPCUABaseServer {
     private objectFactory?: Factory;
     private nonce: Nonce;
     private protocolVersion: number = 0;
-    private _delayInit?: () => void;
+    private _delayInit?: () => Promise<void>;
 
     constructor(options?: OPCUAServerOptions) {
         super(options);
@@ -1019,7 +1021,8 @@ export class OPCUAServer extends OPCUABaseServer {
 
         // note: we need to delay initialization of endpoint as certain resources
         // such as %FQDN% might not be ready yet at this stage
-        this._delayInit = () => {
+        this._delayInit = async () => {
+
             /* istanbul ignore next */
             if (!options) {
                 throw new Error("Internal Error");
@@ -1094,25 +1097,28 @@ export class OPCUAServer extends OPCUABaseServer {
     public initialize(): Promise<void>;
     public initialize(done: () => void): void;
     public initialize(...args: [any?, ...any[]]): any {
-        const done = args[0] as () => void;
-
+        const done = args[0] as (err?: Error) => void;
         assert(!this.initialized, "server is already initialized"); // already initialized ?
 
-        callbackify(extractFullyQualifiedDomainName)((err?: Error) => {
+        this._preInitTask.push(async ()=>{
             /* istanbul ignore else */
             if (this._delayInit) {
-                this._delayInit();
+                await this._delayInit();
                 this._delayInit = undefined;
             }
+        });
 
+        this.performPreInitialization().then(()=>{
+    
             OPCUAServer.registry.register(this);
-
             this.engine.initialize(this.options, () => {
                 setImmediate(() => {
                     this.emit("post_initialize");
                     done();
                 });
-            });
+            });    
+        }).catch((err) => {
+            done(err);
         });
     }
 
@@ -1124,26 +1130,26 @@ export class OPCUAServer extends OPCUABaseServer {
     public start(done: () => void): void;
     public start(...args: [any?, ...any[]]): any {
         const done = args[0] as () => void;
-        const self = this;
         const tasks: any[] = [];
 
         tasks.push(callbackify(extractFullyQualifiedDomainName));
 
-        if (!self.initialized) {
-            tasks.push((callback: (err?: Error) => void) => {
-                self.initialize(callback);
+        if (!this.initialized) {
+            tasks.push((callback: ErrorCallback) => {
+                this.initialize(callback);
             });
         }
-        tasks.push((callback: (err?: Error) => void) => {
-            OPCUABaseServer.prototype.start.call(self, (err?: Error | null) => {
+        tasks.push((callback: ErrorCallback) => {
+            
+            super.start((err?: Error | null) => {
                 if (err) {
-                    self.shutdown((/*err2*/ err2?: Error) => {
+                    this.shutdown((/*err2*/ err2?: Error) => {
                         callback(err);
                     });
                 } else {
                     // we start the registration process asynchronously
                     // as we want to make server immediately available
-                    self.registerServerManager!.start(() => {
+                    this.registerServerManager!.start(() => {
                         /* empty */
                     });
 
@@ -1185,7 +1191,7 @@ export class OPCUAServer extends OPCUABaseServer {
     public shutdown(callback: (err?: Error) => void): void;
     public shutdown(timeout: number, callback: (err?: Error) => void): void;
     public shutdown(...args: [any?, ...any[]]): any {
-        const timeout = args.length === 1 ? 1000 : (args[0] as number);
+        const timeout = args.length === 1 ? OPCUAServer.defaultShutdownTimeout : (args[0] as number);
         const callback = (args.length === 1 ? args[0] : args[1]) as (err?: Error) => void;
         assert(typeof callback === "function");
         debugLog("OPCUAServer#shutdown (timeout = ", timeout, ")");
@@ -2183,7 +2189,7 @@ export class OPCUAServer extends OPCUABaseServer {
                 return channel.send_response("MSG", response1, message);
             } catch (err) {
                 // istanbul ignore next
-                console.log(
+                errorLog(
                     "Internal error in issuing response\nplease contact support@sterfive.com",
                     message.request.toString(),
                     "\n",

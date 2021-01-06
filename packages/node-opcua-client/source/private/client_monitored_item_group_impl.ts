@@ -5,7 +5,7 @@
 import { EventEmitter } from "events";
 import { assert } from "node-opcua-assert";
 import { DataValue, TimestampsToReturn, coerceTimestampsToReturn } from "node-opcua-data-value";
-import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
+import { checkDebugFlag, make_debugLog,make_warningLog } from "node-opcua-debug";
 import { MonitoringMode, MonitoringParametersOptions } from "node-opcua-service-subscription";
 import { StatusCode } from "node-opcua-status-code";
 import { Callback, ErrorCallback } from "node-opcua-status-code";
@@ -21,7 +21,7 @@ import { ClientSubscriptionImpl } from "./client_subscription_impl";
 
 const debugLog = make_debugLog(__filename);
 const doDebug = checkDebugFlag(__filename);
-const warningLog = debugLog;
+const warningLog = make_warningLog(__filename);
 
 /**
  * ClientMonitoredItemGroup

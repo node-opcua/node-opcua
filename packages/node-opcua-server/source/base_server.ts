@@ -6,14 +6,14 @@ import * as async from "async";
 import * as chalk from "chalk";
 import * as fs from "fs";
 import * as path from "path";
-import { callbackify } from "util";
+import * as os from "os";
 
 import { assert } from "node-opcua-assert";
 import { ICertificateManager, OPCUACertificateManager } from "node-opcua-certificate-manager";
-import { IOPCUASecureObjectOptions, OPCUASecureObject } from "node-opcua-common";
+import { IOPCUASecureObjectOptions, makeApplicationUrn, OPCUASecureObject } from "node-opcua-common";
 import { coerceLocalizedText, LocalizedText } from "node-opcua-data-model";
 import { installPeriodicClockAdjustment, uninstallPeriodicClockAdjustment } from "node-opcua-date-time";
-import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
+import { checkDebugFlag, make_debugLog, make_errorLog } from "node-opcua-debug";
 import { displayTraceFromThisProjectOnly } from "node-opcua-debug";
 import { extractFullyQualifiedDomainName, resolveFullyQualifiedDomainName } from "node-opcua-hostname";
 import { Message, Response, ServerSecureChannelLayer, ServerSecureChannelParent } from "node-opcua-secure-channel";
@@ -29,9 +29,12 @@ import { matchUri } from "node-opcua-utils";
 import { OPCUAServerEndPoint } from "./server_end_point";
 import { IChannelData } from "./i_channel_data";
 import { ISocketData } from "./i_socket_data";
+import { _verifyCertificate } from "node-opcua-client";
 
 const doDebug = checkDebugFlag(__filename);
 const debugLog = make_debugLog(__filename);
+const errorLog = make_errorLog(__filename);
+const warningLog= errorLog;
 
 function constructFilename(p: string): string {
     let filename = path.join(__dirname, "..", p);
@@ -46,9 +49,10 @@ function constructFilename(p: string): string {
 }
 
 const default_server_info = {
+
     // The globally unique identifier for the application instance. This URI is used as
     // ServerUri in Services if the application is a Server.
-    applicationUri: "urn:NodeOPCUA-Server-default",
+    applicationUri: makeApplicationUrn(os.hostname(), "NodeOPCUA-Server"),
 
     // The globally unique identifier for the product.
     productUri: "NodeOPCUA-Server",
@@ -105,6 +109,17 @@ const emptyCallback = () => {
     /* empty */
 };
 
+function getDefaultCertificateManager(): OPCUACertificateManager {
+
+    const envPaths = require("env-paths");
+    const config  = envPaths("NodeOPCUA-Default").config;
+    return new OPCUACertificateManager({
+        name: "certificates",
+        rootFolder: path.join(config, "certificates"),
+        automaticallyAcceptUnknownCertificate: true
+    });
+}
+
 /**
  * @class OPCUABaseServer
  * @constructor
@@ -121,22 +136,29 @@ export class OPCUABaseServer extends OPCUASecureObject {
 
     public serverInfo: ApplicationDescription;
     public endpoints: OPCUAServerEndPoint[];
-    public serverCertificateManager: OPCUACertificateManager;
+    public readonly serverCertificateManager: OPCUACertificateManager;
     public capabilitiesForMDNS: string[];
+    protected _preInitTask: any[];
 
     protected options: OPCUABaseServerOptions;
 
     constructor(options?: OPCUABaseServerOptions) {
         options = options || ({} as OPCUABaseServerOptions);
-        options.certificateFile = options.certificateFile || constructFilename("certificates/server_selfsigned_cert_2048.pem");
 
-        options.privateKeyFile = options.privateKeyFile || constructFilename("certificates/PKI/own/private/private_key.pem");
+        if (!options.serverCertificateManager) {
+            options.serverCertificateManager =  getDefaultCertificateManager();
+        }
+        options.privateKeyFile = options.privateKeyFile || options.serverCertificateManager.privateKey;
+        options.certificateFile =
+            options.certificateFile || path.join(options.serverCertificateManager.rootDir, "own/certs/certificate.pem");
 
         super(options);
 
+        this.serverCertificateManager = options.serverCertificateManager;
         this.capabilitiesForMDNS = [];
         this.endpoints = [];
         this.options = options;
+        this._preInitTask = [];
 
         const serverInfo: ApplicationDescriptionOptions = {
             ...default_server_info,
@@ -152,11 +174,37 @@ export class OPCUABaseServer extends OPCUASecureObject {
             return resolveFullyQualifiedDomainName(__applicationUri);
         });
 
-        this.serverCertificateManager =
-            options.serverCertificateManager ||
-            new OPCUACertificateManager({
-                name: "certificates"
+        
+        this._preInitTask.push(async () => {
+            const fqdn = await extractFullyQualifiedDomainName();
+        });
+
+        this._preInitTask.push(async () => {
+            await this.initializeCM();
+        });
+    }
+
+    private async initializeCM(): Promise<void> {
+        await this.serverCertificateManager.initialize();
+        if (!fs.existsSync(this.certificateFile)) {
+
+            const applicationUri = this.serverInfo.applicationUri!;
+            const hostname = require("os").hostname();
+            await this.serverCertificateManager.createSelfSignedCertificate({
+                applicationUri,
+                dns: [hostname],
+                // ip: await getIpAddresses(),
+                outputFile: this.certificateFile,
+                subject: "/CN=MyOPCUAServerApplicationName/O=Sterfive/L=Orleans/C=FR",
+                startDate: new Date(),
+                validity: 365 * 10, // 10 years 
             });
+  
+        } 
+        debugLog("privateKey      = ", this.privateKeyFile, this.serverCertificateManager.privateKey);
+        debugLog("certificateFile = ", this.certificateFile);
+        await _verifyCertificate.call(this, "server", this.serverCertificateManager,  this.serverInfo.applicationUri!);
+
     }
 
     /**
@@ -166,53 +214,72 @@ export class OPCUABaseServer extends OPCUASecureObject {
      * @param {callback} done
      */
     public start(done: (err?: Error | null) => void) {
-        installPeriodicClockAdjustment();
+        assert(typeof done === "function");
+        this.startAsync()
+            .then(() => done(null))
+            .catch((err) => done(err));
+    }
+
+    protected async performPreInitialization(): Promise<void> {
+        const tasks =   this._preInitTask;
+        this._preInitTask = [];
+        for (const task of tasks) {
+            await task();
+        }
+    }
+
+    protected async startAsync(): Promise<void> {
+
+        await this.performPreInitialization();
 
         const self = this;
-        assert(typeof done === "function");
         assert(Array.isArray(this.endpoints));
         assert(this.endpoints.length > 0, "We need at least one end point");
-        callbackify(extractFullyQualifiedDomainName)((err: Error | null, fqdn: string) => {
-            const _on_new_channel = function (this: OPCUAServerEndPoint, channel: ServerSecureChannelLayer) {
-                self.emit("newChannel", channel, this);
-            };
-            const _on_close_channel = function (this: OPCUAServerEndPoint, channel: ServerSecureChannelLayer) {
-                self.emit("closeChannel", channel, this);
-            };
 
-            const _on_connectionRefused = function (this: OPCUAServerEndPoint, socketData: ISocketData) {
-                self.emit("connectionRefused", socketData, this);
-            };
-            const _on_openSecureChannelFailure = function (
-                this: OPCUAServerEndPoint,
-                socketData: ISocketData,
-                channelData: IChannelData
-            ) {
-                self.emit("openSecureChannelFailure", socketData, channelData, this);
-            };
+        installPeriodicClockAdjustment();
 
-            async.forEach(
-                this.endpoints,
-                (endpoint: OPCUAServerEndPoint, callback: (err?: Error | null) => void) => {
-                    assert(!endpoint._on_close_channel);
+        const _on_new_channel = function (this: OPCUAServerEndPoint, channel: ServerSecureChannelLayer) {
+            self.emit("newChannel", channel, this);
+        };
 
-                    endpoint._on_new_channel = _on_new_channel;
-                    endpoint.on("newChannel", endpoint._on_new_channel);
+        const _on_close_channel = function (this: OPCUAServerEndPoint, channel: ServerSecureChannelLayer) {
+            self.emit("closeChannel", channel, this);
+        };
 
-                    endpoint._on_close_channel = _on_close_channel;
-                    endpoint.on("closeChannel", endpoint._on_close_channel);
+        const _on_connectionRefused = function (this: OPCUAServerEndPoint, socketData: ISocketData) {
+            self.emit("connectionRefused", socketData, this);
+        };
 
-                    endpoint._on_connectionRefused = _on_connectionRefused;
-                    endpoint.on("connectionRefused", endpoint._on_connectionRefused);
+        const _on_openSecureChannelFailure = function (
+            this: OPCUAServerEndPoint,
+            socketData: ISocketData,
+            channelData: IChannelData
+        ) {
+            self.emit("openSecureChannelFailure", socketData, channelData, this);
+        };
 
-                    endpoint._on_openSecureChannelFailure = _on_openSecureChannelFailure;
-                    endpoint.on("openSecureChannelFailure", endpoint._on_openSecureChannelFailure);
+        const promises: Promise<void>[] = [];
 
-                    endpoint.start(callback);
-                },
-                done
+        for (const endpoint of this.endpoints) {
+            assert(!endpoint._on_close_channel);
+
+            endpoint._on_new_channel = _on_new_channel;
+            endpoint.on("newChannel", endpoint._on_new_channel);
+
+            endpoint._on_close_channel = _on_close_channel;
+            endpoint.on("closeChannel", endpoint._on_close_channel);
+
+            endpoint._on_connectionRefused = _on_connectionRefused;
+            endpoint.on("connectionRefused", endpoint._on_connectionRefused);
+
+            endpoint._on_openSecureChannelFailure = _on_openSecureChannelFailure;
+            endpoint.on("openSecureChannelFailure", endpoint._on_openSecureChannelFailure);
+
+            promises.push(
+                new Promise<void>((resolve, reject) => endpoint.start((err) => (err ? reject(err) : resolve())))
             );
-        });
+        }
+        await Promise.all(promises);
     }
 
     /**
@@ -220,10 +287,10 @@ export class OPCUABaseServer extends OPCUASecureObject {
      * @async
      */
     public shutdown(done: (err?: Error) => void) {
+        assert(typeof done === "function");
         uninstallPeriodicClockAdjustment();
         this.serverCertificateManager.dispose().then(() => {
             debugLog("OPCUABaseServer#shutdown starting");
-            assert(typeof done === "function");
             async.forEach(
                 this.endpoints,
                 (endpoint: OPCUAServerEndPoint, callback: (err?: Error) => void) => {
@@ -267,6 +334,9 @@ export class OPCUABaseServer extends OPCUASecureObject {
         );
     }
 
+    /**
+     * @private
+     */
     public on_request(message: Message, channel: ServerSecureChannelLayer) {
         assert(message.request);
         assert(message.requestId !== 0);
@@ -282,11 +352,13 @@ export class OPCUABaseServer extends OPCUASecureObject {
         // prepare request
         this.prepare(message, channel);
 
-        debugLog(
-            chalk.green.bold("--------------------------------------------------------"),
-            channel.channelId,
-            request.schema.name
-        );
+        if (doDebug) {
+            debugLog(
+                chalk.green.bold("--------------------------------------------------------"),
+                channel.channelId,
+                request.schema.name
+            );    
+        }
 
         let errMessage: string;
         let response: Response;
@@ -299,19 +371,17 @@ export class OPCUABaseServer extends OPCUASecureObject {
             if (typeof handler === "function") {
                 handler.apply(this, arguments);
             } else {
-                errMessage = "UNSUPPORTED REQUEST !! " + request.schema.name;
-                console.log(errMessage);
+                errMessage = "[NODE-OPCUA-W07] UNSUPPORTED REQUEST !! " + request.schema.name;
+                warningLog(errMessage);
                 debugLog(chalk.red.bold(errMessage));
                 response = makeServiceFault(StatusCodes.BadNotImplemented, [errMessage]);
                 channel.send_response("MSG", response, message, emptyCallback);
             }
         } catch (err) {
             /* istanbul ignore if */
-            const errMessage1 = "EXCEPTION CAUGHT WHILE PROCESSING REQUEST !! " + request.schema.name;
-            console.log(chalk.red.bold(errMessage1));
-
-            console.log(request.toString());
-
+            const errMessage1 = "[NODE-OPCUA-W08] EXCEPTION CAUGHT WHILE PROCESSING REQUEST !! " + request.schema.name;
+            warningLog(chalk.red.bold(errMessage1));
+            warningLog(request.toString());
             displayTraceFromThisProjectOnly(err);
 
             let additional_messages = [];
@@ -327,6 +397,9 @@ export class OPCUABaseServer extends OPCUASecureObject {
         }
     }
 
+    /**
+     * @private
+     */
     public _get_endpoints(endpointUrl?: string | null): EndpointDescription[] {
         let endpoints: EndpointDescription[] = [];
         for (const endPoint of this.endpoints) {
@@ -521,7 +594,7 @@ function makeServiceFault(statusCode: StatusCode, messages: string[]): ServiceFa
 
     response.responseHeader.stringTable = messages;
     // tslint:disable:no-console
-    console.log(chalk.cyan(" messages "), messages.join("\n"));
+    warningLog(chalk.cyan(" messages "), messages.join("\n"));
     return response;
 }
 

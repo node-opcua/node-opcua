@@ -47,6 +47,9 @@ const doDebug = checkDebugFlag("ServerConfiguration");
 export interface OPCUAServerPartial extends ICertificateKeyPairProvider {
     serverInfo?: ApplicationDescriptionOptions;
     serverCertificateManager: OPCUACertificateManager;
+    privateKeyFile: string;
+    certificateFile: string;
+
     $$privateKeyPEM: PrivateKeyPEM;
     $$certificate?: Certificate;
     $$certificateChain: Certificate;
@@ -94,6 +97,12 @@ async function getIpAddresses(): Promise<string[]> {
 }
 
 async function install(this: OPCUAServerPartial): Promise<void> {
+
+    debugLog("install push certficate management", this.serverCertificateManager.rootDir);
+
+    (this as any).__defineGetter__("privateKeyFile", ()=>  this.serverCertificateManager.privateKey);
+    (this as any).__defineGetter__("certificateFile", ()=> path.join(this.serverCertificateManager.rootDir, "own/certs/certificate.pem"));
+
     if (!this.$$privateKeyPEM) {
         this.$$privateKeyPEM =
             await promisify(fs.readFile)(this.serverCertificateManager.privateKey, "utf8");
@@ -101,9 +110,9 @@ async function install(this: OPCUAServerPartial): Promise<void> {
 
     if (!this.$$certificateChain) {
 
-        const certificateFile = path.join(this.serverCertificateManager.rootDir, "own/certs/certificate.pem");
-        const exists = await (promisify(fs.exists)(certificateFile));
-        if (!exists) {
+        const certificateFile = this.certificateFile;
+
+        if (!fs.existsSync(certificateFile)) {
 
             // this is the first time server is launch
             // let's create a default self signed certificate with limited validity
@@ -116,12 +125,12 @@ async function install(this: OPCUAServerPartial): Promise<void> {
 
             const options = {
 
-                applicationUri: this.serverInfo!.applicationUri!,
+                applicationUri,
 
                 dns: [fqdn],
                 ip: ipAddresses,
 
-                subject: "/CN=MyCommonName;/L=Paris",
+                subject: "/CN="+ applicationUri +";/L=Paris",
 
                 startDate: new Date(),
 
@@ -138,8 +147,10 @@ async function install(this: OPCUAServerPartial): Promise<void> {
         }
         const certificatePEM =
             await promisify(fs.readFile)(certificateFile, "utf8");
+
         this.$$certificateChain = convertPEMtoDER(certificatePEM);
 
+      //  await this.serverCertificateManager.trustCertificate( this.$$certificateChain);
     }
 }
 
@@ -236,7 +247,7 @@ export async function installPushCertificateManagementOnServer(server: OPCUAServ
         for (const e of endpoint.endpointDescriptions()) {
             // e.serverCertificate = null;
             (e as any).__defineGetter__("serverCertificate", function (this: any) {
-                return endpoint.getCertificateChain();
+                return endpoint.getCertificate();
             });
         }
     }
@@ -244,7 +255,8 @@ export async function installPushCertificateManagementOnServer(server: OPCUAServ
     await installPushCertificateManagement(
         server.engine.addressSpace, {
         applicationGroup: server.serverCertificateManager,
-        userTokenGroup: server.userCertificateManager
+        userTokenGroup: server.userCertificateManager,
+        applicationUri: server.serverInfo.applicationUri! || "InvalidURI"
     });
 
     const serverConfiguration = server.engine.addressSpace.rootFolder.objects.server.serverConfiguration;

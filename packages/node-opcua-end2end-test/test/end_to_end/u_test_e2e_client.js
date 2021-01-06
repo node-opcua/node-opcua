@@ -29,6 +29,7 @@ module.exports = function (test) {
             const client = OPCUAClient.create({ connectionStrategy: { maxRetry: 0 } });
             const closeSpy = sinon.spy();
             client.on("close", closeSpy);
+            
             async function test() {
                 try {
                     await client.connect("invalid-proto://test-host");
@@ -109,6 +110,35 @@ module.exports = function (test) {
             await p2;
             await p1;
             closeSpy.callCount.should.eql(1);
+        });
+        it("it should  raise an warning if sessionTimeout are not compatible with subscription parameters", async () => {
+      
+            const client = OPCUAClient.create({
+                requestedSessionTimeout: 1000,
+            });
+            await client.connect(test.endpointUrl);
+            const session = await client.createSession();
+ 
+           
+            try {
+                const subscription = await session.createSubscription2({
+                    maxNotificationsPerPublish: 10,
+                    publishingEnabled: true,
+                    requestedLifetimeCount: 100,
+    
+                    requestedMaxKeepAliveCount: 100,
+                    publishingEnabled: 1000,
+                });
+    
+            } catch(err) {
+                // [NODE-OPCUA-W09] The subscription parameters are not compatible with the session timeout
+                err.message.should.match(/\[NODE-OPCUA-W09\]/);
+                console.log(err.message);
+            }
+
+            await session.close();
+            await client.disconnect();
+
         });
     });
 };

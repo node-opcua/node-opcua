@@ -9,10 +9,8 @@ import { assert } from "node-opcua-assert";
 import { ServerState } from "node-opcua-common";
 import { VariableIds } from "node-opcua-constants";
 import { DataValue } from "node-opcua-data-value";
-import { getCurrentClock } from "node-opcua-date-time";
-import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
+import { checkDebugFlag, make_debugLog, make_warningLog } from "node-opcua-debug";
 import { coerceNodeId } from "node-opcua-nodeid";
-import { ErrorCallback } from "node-opcua-status-code";
 import { StatusCodes } from "node-opcua-status-code";
 import { ClientSessionImpl } from "./private/client_session_impl";
 
@@ -20,7 +18,7 @@ const serverStatusStateNodeId = coerceNodeId(VariableIds.Server_ServerStatus_Sta
 
 const debugLog = make_debugLog(__filename);
 const doDebug = checkDebugFlag(__filename);
-const warningLog = debugLog;
+const warningLog = make_warningLog(__filename);
 
 const emptyCallback = (err?: Error) => { };
 
@@ -51,8 +49,8 @@ export class ClientSessionKeepAliveManager extends EventEmitter implements Clien
         assert(!this.timerId);
         /* istanbul ignore next*/
         if (this.session.timeout < 600) {
-            console.warn(
-                `ClientSessionKeepAliveManager detected that the session timeout (${this.session.timeout} ms) is really too small: please adjust it to a greater value ( at least 1000))`
+            warningLog(
+                `[NODE-OPCUA-W13] ClientSessionKeepAliveManager detected that the session timeout (${this.session.timeout} ms) is really too small: please adjust it to a greater value ( at least 1000))`
             );
         }
         /* istanbul ignore next*/
