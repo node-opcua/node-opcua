@@ -80,7 +80,7 @@ export class OPCUASecureObject extends EventEmitter implements ICertificateKeyPa
 
     public getPrivateKey(): PrivateKeyPEM {
         if (!this.privateKeyPEM) {
-            assert(fs.existsSync(this.certificateFile), "private file must exist :" + this.certificateFile);
+            assert(fs.existsSync(this.privateKeyFile), "private file must exist :" + this.privateKeyFile);
             this.privateKeyPEM = _load_private_key_pem(this.privateKeyFile);
         }
         return this.privateKeyPEM;

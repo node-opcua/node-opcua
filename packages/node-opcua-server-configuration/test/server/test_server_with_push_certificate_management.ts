@@ -90,7 +90,13 @@ describe("Testing server configured with push certificate management", () => {
         }
 
     });
+    after(()=>{
 
+        certificateManager.dispose();
+        
+        clientCertificateManager.dispose();
+
+    })
     it("SCT-1 should modify a server to support push certificate management", async () => {
         const server = new OPCUAServer({
             port,

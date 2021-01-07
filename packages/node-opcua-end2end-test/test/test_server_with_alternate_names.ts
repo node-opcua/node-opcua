@@ -1,15 +1,15 @@
 // tslint:disable:no-console
 import * as chalk from "chalk";
 import * as path from "path";
-import * as should from "should";
+import  "should";
 import * as os from "os";
 
-const should1 = should;
 import {
     EndpointDescription,
     makeApplicationUrn,
     MessageSecurityMode,
     nodesets,
+    OPCUACertificateManager,
     OPCUAClient,
     OPCUAServer,
     OPCUAServerOptions,
@@ -17,24 +17,29 @@ import {
     ServerSession
 } from "node-opcua";
 
-// tslint:disable:no-var-requires
-const mocha = require("mocha");
+import { checkDebugFlag, make_debugLog, make_errorLog, make_warningLog } from "node-opcua-debug";
+const debugLog = make_debugLog("TEST");
+const warningLog = make_warningLog("TEST");
+const errorLog = make_errorLog("TEST");
+const doDebug = checkDebugFlag("TEST");
 
 const port1 = 3017;
 const port2 = 3018;
 
 Error.stackTraceLimit = Infinity;
 
-function constructFilename(filename: string): string {
-    return path.join(__dirname, "../", filename);
-}
+const envPaths = require("env-paths");
+const config = envPaths("MiniNodeOPCUA-Server").config;
+const pkiFolder = path.join(config, "pki");
 
 let server: OPCUAServer;
 
 async function startServer() {
 
-    const server_options: OPCUAServerOptions = {
+    const serverOptions: OPCUAServerOptions = {
 
+        serverCertificateManager: new OPCUACertificateManager({ rootFolder: pkiFolder}),
+ 
         port: port1,
 
         nodeset_filename: [
@@ -53,27 +58,19 @@ async function startServer() {
 
         isAuditing: false
     };
-
-    server = new OPCUAServer(server_options);
-
-    server.on("post_initialize", () => {/**/
-    });
-
-    console.log(chalk.yellow("  server PID          :"), process.pid);
-
+    server = new OPCUAServer(serverOptions);
+    debugLog(chalk.yellow("  server PID          :"), process.pid);
     try {
         await server.start();
     } catch (err) {
-        console.log(" Server failed to start ... exiting => err:", err.message);
+        errorLog(" Server failed to start ... exiting => err:", err.message);
         return;
     }
-
     for (const endpoint of server.endpoints) {
         const endpointUrl = endpoint.endpointDescriptions()[0].endpointUrl!;
-        console.log(chalk.yellow("  server on port1      :"), endpoint.port.toString());
-        console.log(chalk.yellow("  endpointUrl1         :"), chalk.cyan(endpointUrl));
+        debugLog(chalk.yellow("  server on port1      :"), endpoint.port.toString());
+        debugLog(chalk.yellow("  endpointUrl1         :"), chalk.cyan(endpointUrl));
     }
-
 }
 
 async function stopServer() {
@@ -91,7 +88,7 @@ async function extractEndpoints(endpointUrl: string): Promise<EndpointDescriptio
         }
     });
     client.on("backoff", (count: number, delay: number) => {
-        console.log(" backoff => ", count, delay);
+        warningLog(" backoff => ", count, delay);
     });
 
     try {
@@ -100,15 +97,17 @@ async function extractEndpoints(endpointUrl: string): Promise<EndpointDescriptio
         await client.disconnect();
         return endpoints;
     } catch (err) {
-        console.log("Client error ", err.message);
-        console.log(err);
+        errorLog("Client error ", err.message);
+        errorLog(err);
         return [];
     }
 }
 
 async function startMultiHeadServer() {
 
-    const server_options: OPCUAServerOptions = {
+    const serverOptions: OPCUAServerOptions = {
+
+        serverCertificateManager: new OPCUACertificateManager({ rootFolder: pkiFolder}),
         isAuditing: false,
         nodeset_filename: [
             nodesets.standard
@@ -138,31 +137,26 @@ async function startMultiHeadServer() {
         ]
     };
 
-    server = new OPCUAServer(server_options);
+    server = new OPCUAServer(serverOptions);
 
-    server.on("post_initialize", () => {/**/
-    });
-
-    console.log(chalk.yellow("  server PID          :"), process.pid);
-
+    debugLog(chalk.yellow("  server PID          :"), process.pid);
     try {
         await server.start();
     } catch (err) {
-        console.log(" Server failed to start ... exiting => err:", err.message);
+        errorLog(" Server failed to start ... exiting => err:", err.message);
         return;
     }
-
 }
 
 function dumpEndpoints(endpoints: EndpointDescription[]): void {
     for (const e of endpoints) {
-        console.log(
+        debugLog(
             e.endpointUrl,
             e.securityLevel,
             MessageSecurityMode[e.securityMode],
             e.securityPolicyUri
         );
-        // console.log(e.toString());
+        // debugLog(e.toString());
     }
 }
 
@@ -204,7 +198,7 @@ describe("Testing server with several endpoints on different TCP/IP port1", () =
         const endpoints2 = await extractEndpoints(endpointUrl2);
 
         dumpEndpoints(endpoints1);
-        console.log("----------");
+        debugLog("----------");
         dumpEndpoints(endpoints2);
 
         endpoints1.length.should.eql(2 * 2);

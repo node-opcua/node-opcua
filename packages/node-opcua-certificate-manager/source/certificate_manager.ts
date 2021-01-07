@@ -68,7 +68,7 @@ export interface OPCUACertificateManagerOptions {
 
 export class OPCUACertificateManager extends CertificateManager implements ICertificateManager {
     public static registry = new ObjectRegistry({});
-
+    public isShared: boolean;
     public automaticallyAcceptUnknownCertificate: boolean;
     /* */
     constructor(options: OPCUACertificateManagerOptions) {
@@ -85,6 +85,8 @@ export class OPCUACertificateManager extends CertificateManager implements ICert
         };
         super(_options);
 
+        this.isShared = false;
+
         this.automaticallyAcceptUnknownCertificate = !!options.automaticallyAcceptUnknownCertificate;
     }
 
@@ -100,11 +102,13 @@ export class OPCUACertificateManager extends CertificateManager implements ICert
     }
 
     public async dispose(): Promise<void> {
-        if (this.initialized) {
-            // OPCUACertificateManager.registry.unregister(this);
+        if (!this.isShared) {
+            if (this.initialized) {
+               // OPCUACertificateManager.registry.unregister(this);
+            }
+            await super.dispose();
+            this.initialized = false;    
         }
-        await super.dispose();
-        this.initialized = false;
     }
 
     public checkCertificate(certificateChain: Certificate): Promise<StatusCode>;

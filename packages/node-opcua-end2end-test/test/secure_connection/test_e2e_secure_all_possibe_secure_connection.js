@@ -42,8 +42,8 @@ const {
 } = require("../../test_helpers/external_server_fixture");
 
 const g_defaultSecureTokenLifetime = 30 * 1000; // ms
-const g_tokenRenewalInterval = 400; // renew token as fast as possible
-const g_numberOfTokenRenewal = 3;
+const g_tokenRenewalInterval = 200; // renew token as fast as possible
+const g_numberOfTokenRenewal = 2;
 
 let server, endpointUrl, serverCertificate, temperatureVariableId;
 
@@ -55,12 +55,8 @@ const no_reconnect_connectivity_strategy = {
 };
 
 
-let g_certificateManager = null;
 async function makeCertificateManager() {
 
-    if (g_certificateManager) {
-        return g_certificateManager;
-    }
     const certificateManager = new OPCUACertificateManager({
         automaticallyAcceptUnknownCertificate: true
     });
@@ -75,7 +71,6 @@ async function makeCertificateManager() {
     await certificateManager.addIssuer(issuerCertificate);
     await certificateManager.addRevocationList(issuerCrl);
 
-    g_certificateManager = certificateManager;
     return certificateManager;
 }
 
@@ -83,6 +78,9 @@ function start_inner_server_local(options, callback) {
     // Given a server that have a signed end point
 
     callbackify(makeCertificateManager)((err, certificateManager) => {
+        if (err) {
+            return callback(err);
+        }
         options = options || {};
         options.port = options.port || port;
 
@@ -270,7 +268,7 @@ function keep_monitoring_some_variable(client, session, security_token_renewed_l
         }
     });
     const subscription = ClientSubscription.create(session, {
-        requestedPublishingInterval: 250,
+        requestedPublishingInterval: 100,
         requestedLifetimeCount: 100,
         requestedMaxKeepAliveCount: 3,
         maxNotificationsPerPublish: 3,
@@ -288,6 +286,10 @@ function keep_monitoring_some_variable(client, session, security_token_renewed_l
         the_error = err;
     });
     subscription.on("terminated", function() {
+    });
+    subscription.on("keepalive", function() {
+        debugLog(chalk.red("keep alive"));
+//        console.log(".")
     });
 }
 
@@ -377,12 +379,22 @@ function check_open_secure_channel_fails(securityPolicy, securityMode, options, 
             if (err) {
                 debugLog("Error = ", err.message);
                 client.disconnect(function() {
+                    console.log((new Date()).toUTCString());
+                    dumpCertificate(client.certificateFile,(err,data) => { console.log(data)});
                     done();
                 });
 
             } else {
                 client.disconnect(function() {
-                    done(new Error("The connection's succeeded, but was expected to fail!"));
+                    const o = { ... options};
+                    o.serverCertificate = null;
+                    console.log("options", o);
+                    console.log(endpointUrl);
+                    console.log((new Date()).toUTCString());
+                    dumpCertificate(client.certificateFile,(err,data) => { console.log(data)});
+                    client.connect(endpointUrl, function(errX) {
+                        done(new Error("The connection's succeeded, but was expected to fail!"));
+                    });
                 });
             }
         });
@@ -525,6 +537,7 @@ function perform_collection_of_test_with_various_client_configuration(prefix) {
 
 
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
+const { dumpCertificate } = require("node-opcua-pki");
 describe("ZZA- testing Secure Client-Server communication", function() {
 
     this.timeout(Math.max(this.timeout(), 20001));
@@ -953,7 +966,7 @@ describe("ZZE- testing with various client certificates", function() {
         check_open_secure_channel_fails("Basic128Rsa15", "SignAndEncrypt", options, done);
     });
 
-    xit("REVOKED-CERTIFICATE Server should not allow a client to connect with a revoked certificate", function(done) {
+    it("REVOKED-CERTIFICATE Server should not allow a client to connect with a revoked certificate", function(done) {
         // todo : implement a mechanism in server code to check certificate against CRL ( Certificate Revocation List)
         const options = {
             certificateFile: client_certificate_revoked,

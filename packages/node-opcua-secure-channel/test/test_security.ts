@@ -49,7 +49,10 @@ describe("Testing secure client and server connection", () => {
     const certificateManager = new OPCUACertificateManager({
 
     });
+    
+
     before(async () => {
+        certificateManager.isShared = true;
         await certificateManager.initialize();
         const issuerCertificateFile = path.join(certificateFolder, "CA/public/cacert.pem");
         const issuerCertificate = readCertificate(issuerCertificateFile);
@@ -58,6 +61,11 @@ describe("Testing secure client and server connection", () => {
         const issuerCertificateRevocationListFile = path.join(certificateFolder, "CA/crl/revocation_list.der");
         const crl = await readCertificateRevocationList(issuerCertificateRevocationListFile);
         await certificateManager.addRevocationList(crl);
+    });
+    
+    after(()=> {
+        certificateManager.isShared = false;
+        certificateManager.dispose();
     });
 
     let directTransport: DirectTransport;

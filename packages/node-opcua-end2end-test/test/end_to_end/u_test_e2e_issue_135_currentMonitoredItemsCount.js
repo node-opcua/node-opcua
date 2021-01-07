@@ -9,7 +9,8 @@ const {
     ClientSubscription,
     DataValue,
     makeBrowsePath,
-    StatusCodes
+    StatusCodes,
+    TimestampsToReturn
 } = require("node-opcua");
 
 const { make_debugLog, checkDebugFlag } = require("node-opcua-debug");
@@ -52,7 +53,8 @@ module.exports = function(test) {
 
  
             const client = OPCUAClient.create({
-                clientName: "SomeFancyClientName"
+                clientName: "SomeFancyClientName",
+                requestedSessionTimeout: 60000
             });
             await client.connect(endpointUrl);
 
@@ -62,7 +64,7 @@ module.exports = function(test) {
                 requestedPublishingInterval: 150,
                 requestedLifetimeCount: 10 * 60 * 10,
                 requestedMaxKeepAliveCount: 10,
-                maxNotificationsPerPublish: 2,
+                maxNotificationsPerPublish: 20,
                 publishingEnabled: true,
                 priority: 6
             });
@@ -73,15 +75,16 @@ module.exports = function(test) {
                 slowVar.nodeId, "i=2254",
             ];
 
-            nodesToMonitor.forEach(function(nodeId) {
-                const monitoredItem = ClientMonitoredItem.create(subscription,
+            for (const nodeId of nodesToMonitor) {
+                const monitoredItem = await subscription.monitor(
                     { nodeId: nodeId, attributeId: AttributeIds.Value },
                     {
                         samplingInterval: refreshRate / 2, // sampling twice as fast as variable refresh rate
                         discardOldest: true,
                         queueSize: 100
-                    });
-            });
+                    }, 
+                    TimestampsToReturn.Both);
+            }
 
 
             const sessionId = session.sessionId;
