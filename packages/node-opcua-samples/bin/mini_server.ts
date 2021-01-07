@@ -8,28 +8,24 @@ import {
   get_mini_nodeset_filename,
   nodesets,
   OPCUAServer,
-  ServerSession
+  ServerSession,
+  OPCUACertificateManager,
+  OPCUAServerOptions
 } from "node-opcua";
-
-const keySize = 2048;
-const port = 26544;
-
-const server_certificate_file = constructFilename("certificates/server_selfsigned_cert_" + keySize + ".pem");
-const server_certificate_privatekey_file = constructFilename("certificates/server_key_" + keySize + ".pem");
-
 Error.stackTraceLimit = Infinity;
 
-function constructFilename(filename: string): string {
-  return path.join(__dirname, "../", filename);
-}
+const port = 26544;
 
-console.log(" server certificate : ", server_certificate_file);
+const envPaths = require("env-paths");
+const config = envPaths("MiniNodeOPCUA-Server").config;
+const pkiFolder = path.join(config, "pki");
 
-const server_options = {
+const serverOptions: OPCUAServerOptions = {
 
-  certificateFile: server_certificate_file,
-  privateKeyFile: server_certificate_privatekey_file,
-
+  serverCertificateManager: new OPCUACertificateManager({
+     rootFolder: pkiFolder
+  }),
+  
   port,
 
   maxAllowedSessionNumber: 2,
@@ -44,11 +40,8 @@ const server_options = {
     productUri: "Mini NodeOPCUA-Server",
 
     applicationName: { text: "Mini NodeOPCUA Server", locale: "en" },
-
     gatewayServerUri: null,
-
     discoveryProfileUri: null,
-
     discoveryUrls: []
   },
 
@@ -74,14 +67,9 @@ const server_options = {
 };
 
 async function main() {
-  process.title = "Node OPCUA Server on port : " + server_options.port;
+  process.title = "Node OPCUA Server on port : " + serverOptions.port;
 
-  const server = new OPCUAServer(server_options);
-
-
-  server.on("post_initialize", () => {/**/
-  });
-
+  const server = new OPCUAServer(serverOptions);
   console.log(chalk.yellow("  server PID          :"), process.pid);
 
   try {

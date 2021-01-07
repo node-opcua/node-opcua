@@ -148,6 +148,9 @@ describe("Testing OPCUA Client Certificate Manager", function (this: any) {
             statusCode.should.eql(StatusCodes.BadCertificateUntrusted);
             const statusCode2 = await certificateMgr.checkCertificate(certificateSelfSigned);
             statusCode2.should.eql(StatusCodes.BadCertificateUntrusted);
+ 
+            await certificateMgr.trustCertificate(certificateSelfSigned);
+
         });
         it("AQS03- should accept a valid self-signed certificate that appears in the trusted certificate folder", async () => {
             await certificateMgr.trustCertificate(certificateSelfSigned);
@@ -182,6 +185,8 @@ describe("Testing OPCUA Client Certificate Manager", function (this: any) {
                 isTrusted.should.eql("BadCertificateUntrusted");
                 const statusCode = await certificateMgr.getTrustStatus(certificateIssuedByCA);
                 statusCode.should.eql(StatusCodes.BadCertificateUntrusted);
+
+                await certificateMgr.trustCertificate(certificateIssuedByCA);
             });
             it("AQT03- should accept a certificate (signed by CA) that appears in the trusted certificate folder - and check its validity", async () => {
                 await certificateMgr.trustCertificate(certificateIssuedByCA);

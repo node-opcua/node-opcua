@@ -1206,6 +1206,10 @@ export class OPCUAServer extends OPCUABaseServer {
             const err = new Error("OPCUAServer#shutdown failure ! server doesn't seems to be started yet");
             return callback(err);
         }
+
+        this.userCertificateManager.dispose();
+        
+    
         this.engine.setServerState(ServerState.Shutdown);
 
         const shutdownTime = new Date(Date.now() + timeout);
@@ -3438,6 +3442,12 @@ export class OPCUAServer extends OPCUABaseServer {
         });
         return endPoint;
     }
+
+    protected async initializeCM(): Promise<void> {
+        await super.initializeCM();
+        await this.userCertificateManager.initialize();
+    }
+
 }
 
 export interface RaiseEventAuditEventData extends RaiseEventData {

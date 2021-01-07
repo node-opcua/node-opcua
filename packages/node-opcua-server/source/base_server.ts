@@ -184,7 +184,7 @@ export class OPCUABaseServer extends OPCUASecureObject {
         });
     }
 
-    private async initializeCM(): Promise<void> {
+    protected async initializeCM(): Promise<void> {
         await this.serverCertificateManager.initialize();
         if (!fs.existsSync(this.certificateFile)) {
 

@@ -5,22 +5,36 @@ const chalk = require("chalk");
 const sinon = require("sinon");
 
 
-const StatusCodes = require("node-opcua-status-code").StatusCodes;
-const StatusCode = require("node-opcua-status-code").StatusCode;
-const hexDump = require("node-opcua-debug").hexDump;
-const compare_buffers = require("node-opcua-utils").compare_buffers;
-const debugLog = require("node-opcua-debug").make_debugLog(__filename);
+const {
+    StatusCodes,
+    StatusCode
+ } = require("node-opcua-status-code");
 
-const FakeServer = require("../dist/test_helpers").FakeServer;
+const {
+    hexDump 
+} = require("node-opcua-debug");
 
-const AcknowledgeMessage = require("..").AcknowledgeMessage;
-const TCPErrorMessage = require("..").TCPErrorMessage;
-const ClientTCP_transport = require("..").ClientTCP_transport;
-const packTcpMessage = require("..").packTcpMessage;
+const {
+    compare_buffers 
+} = require("node-opcua-utils");
 
+const  {
+    make_debugLog,
+    make_errorLog,
+} = require("node-opcua-debug");
+const debugLog = make_debugLog("TEST");
+const errorLog = make_errorLog("TEST");
+
+const { FakeServer } = require("../dist/test_helpers");
+
+const {
+    AcknowledgeMessage,
+    TCPErrorMessage,
+    ClientTCP_transport,
+    packTcpMessage 
+} = require("..");
 
 describe("testing ClientTCP_transport", function() {
-
 
     this.timeout(5000);
 
@@ -228,7 +242,7 @@ describe("testing ClientTCP_transport", function() {
                 socket.write(data);
 
             } else {
-                console.log(" UNWANTED PACKET");
+                errorLog(" UNWANTED PACKET");
             }
             counter.should.be.lessThan(4);
         });
@@ -254,7 +268,7 @@ describe("testing ClientTCP_transport", function() {
 
         transport.connect(endpointUrl, function(err) {
             if (err) {
-                console.log(chalk.bgWhite.red(" err = "), err.message);
+                errorLog(chalk.bgWhite.red(" err = "), err.message);
             }
             assert(!err);
             const buf = transport.createChunk("MSG", "F", message1.length);
@@ -300,14 +314,14 @@ describe("testing ClientTCP_transport", function() {
 
         transport.connect(endpointUrl, function(err) {
             if (err) {
-                console.log(chalk.bgWhite.red(" err = "), err.message);
+                errorLog(chalk.bgWhite.red(" err = "), err.message);
             }
             assert(!err);
             server_confirms_that_server_socket_has_been_closed.should.equal(false);
             transport_confirms_that_close_event_has_been_processed.should.equal(false);
             transport.disconnect(function(err) {
                 if (err) {
-                    console.log(chalk.bgWhite.red(" err = "), err.message);
+                    errorLog(chalk.bgWhite.red(" err = "), err.message);
                 }
                 assert(!err);
                 setImmediate(function() {
@@ -380,7 +394,6 @@ describe("testing ClientTCP_transport", function() {
 
         transport.connect("opc.tcp://localhost:XXXXX/SomeAddress", function(err) {
             if (err) {
-                // xx console.log(err.message);
                 const regexp_1 = /EADDRNOTAVAIL|ECONNREFUSED/; // node v0.10
                 const regexp_2 = /port(" option)* should be/; // node >v0.10 < 9.000
                 const regexp_3 = /Port should be > 0 and < 65536. Received NaN/; // node >= 9.00

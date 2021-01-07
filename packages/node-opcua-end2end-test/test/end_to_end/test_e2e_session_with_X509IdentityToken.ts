@@ -38,6 +38,7 @@ async function startServer(): Promise<OPCUAServer> {
     const issuerCertificateFile = path.join(certificateFolder, "CA/public/cacert.pem");
 
     const issuerCertificate = readCertificate(issuerCertificateFile);
+    
     await server.userCertificateManager.addIssuer(issuerCertificate);
     await server.serverCertificateManager.addIssuer(issuerCertificate);
 
@@ -96,7 +97,9 @@ describe("Testing Session with user certificate", () => {
         client = null;
     });
 
-    it("should create a session with a valid client certificates", async () => {
+    it("should create a session with a trusted client certificate", async () => {
+
+        await server.userCertificateManager.trustCertificate(clientCertificate);
 
         const userIdentity: UserIdentityInfoX509 = {
             certificateData: clientCertificate,
@@ -126,6 +129,9 @@ describe("Testing Session with user certificate", () => {
             exceptionCaught = err;
         }
         should(exceptionCaught).not.be.null();
+
+        await server.userCertificateManager.trustCertificate(clientCertificate);
+
     });
 
 

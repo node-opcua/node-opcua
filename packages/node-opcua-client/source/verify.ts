@@ -38,11 +38,11 @@ export async function _verifyCertificate(
                  The ${serverOrClient} is operating at risk.                                             `));
     }
     // verify that the certificate has a valid date and has expected extensions fields such as DNS and IP.
-    await certificateManager.trustCertificate(certificate); 
+    const status1 = await certificateManager.trustCertificate(certificate); 
     const status = await certificateManager.verifyCertificateAsync(certificate);
 
     if (status !== "Good") {
-        warningLog(chalk.yellowBright("[NODE-OPCUA-W04] Warning: the certificate status is = "), status);
+        warningLog(chalk.yellowBright("[NODE-OPCUA-W04] Warning: the certificate status is = "), status, " file = ",  this.certificateFile);
     }
 
     const certificateInfo = exploreCertificate(certificate);
@@ -79,7 +79,7 @@ export async function _verifyCertificate(
     // check that server certificate matches Application URI
 
     if (
-        certificateInfo.tbsCertificate.extensions?.subjectAltName?.uniformResourceIdentifier[0] !== applicationUri
+        certificateInfo?.tbsCertificate?.extensions?.subjectAltName?.uniformResourceIdentifier[0] !== applicationUri
     ) {
         warningLog(
             chalk.yellowBright(

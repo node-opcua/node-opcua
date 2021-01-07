@@ -9,11 +9,7 @@ import * as path from "path";
 
 import { assert } from "node-opcua-assert";
 import { IOPCUASecureObjectOptions, OPCUASecureObject } from "node-opcua-common";
-import {
-    Certificate,
-    makeSHA1Thumbprint,
-    Nonce,
- } from "node-opcua-crypto";
+import { Certificate, makeSHA1Thumbprint, Nonce } from "node-opcua-crypto";
 import { installPeriodicClockAdjustment, periodicClockAdjustment, uninstallPeriodicClockAdjustment } from "node-opcua-date-time";
 import { checkDebugFlag, make_debugLog, make_errorLog, make_warningLog } from "node-opcua-debug";
 import {
@@ -101,8 +97,6 @@ function __findEndpoint(
     let selectedEndpoint: EndpointDescription | undefined;
     const allEndpoints: EndpointDescription[] = [];
     const tasks = [
-
-
         (innerCallback: ErrorCallback) => {
             // rebind backoff handler
             masterClient.listeners("backoff").forEach((handler: any) => client.on("backoff", handler));
@@ -212,11 +206,10 @@ function _verify_serverCertificate(
             return callback(err);
         }
         if (status !== StatusCodes.Good) {
-            certificateManager.verifyCertificate(serverCertificate, (err: Error | null, status?: VerificationStatus) => {
-            });
+            certificateManager.verifyCertificate(serverCertificate, (err: Error | null, status?: VerificationStatus) => {});
             warningLog("serverCertificate = ", makeSHA1Thumbprint(serverCertificate).toString("hex"));
             warningLog("serverCertificate = ", serverCertificate.toString("base64"));
-            
+
             return callback(new Error("server Certificate verification failed with errr " + status?.toString()));
         }
         callback();
@@ -247,7 +240,7 @@ class ClockAdjustment {
     }
 }
 
-type InternalClientState =  "idle" | "connecting" | "connected" | "reconnecting" | "disconnecting";
+type InternalClientState = "idle" | "connecting" | "connected" | "reconnecting" | "disconnecting";
 
 /**
  * @internal
@@ -414,15 +407,14 @@ export class ClientBaseImpl extends OPCUASecureObject implements OPCUAClientBase
     }
 
     private _cancel_reconnection(callback: ErrorCallback) {
-
         // _cancel_reconnection is invovked during disconnection
-        // when we detect that a reconnection is in progress.. 
+        // when we detect that a reconnection is in progress..
         assert(this.isReconnecting);
 
         this.reconnectionIsCanceled = true;
         // istanbul ignore next
         if (!this._secureChannel) {
-            debugLog("_cancel_reconnection:  Nothing to do !")
+            debugLog("_cancel_reconnection:  Nothing to do !");
             return callback(); // nothing to do
         }
 
@@ -462,13 +454,12 @@ export class ClientBaseImpl extends OPCUASecureObject implements OPCUAClientBase
         };
 
         const failAndRetry = (err: Error, message: string) => {
- 
             if (this.reconnectionIsCanceled) {
                 this.emit("reconnection_canceled");
                 return callback(new Error("Reconnection has been canceled - " + this.clientName));
             }
             warningLog("client = ", this.clientName, message, err.message);
-           // else
+            // else
             // let retry a little bit later
             this.emit("reconnection_attempt_has_failed", err, message); // send after callback
             setTimeout(_attempt_to_recreate_secure_channel, 100);
@@ -488,7 +479,10 @@ export class ClientBaseImpl extends OPCUASecureObject implements OPCUAClientBase
                         return failAndRetry(err!, "cannot create secure channel (backoff aborted)");
                     }
                     if (true || err!.message.match("BadCertificateInvalid")) {
-                        warningLog("the server certificate has changed,  we need to retrieve server certificate again: ", err.message);
+                        warningLog(
+                            "the server certificate has changed,  we need to retrieve server certificate again: ",
+                            err.message
+                        );
                         warningLog("Old server certificate ", makeSHA1Thumbprint(this.serverCertificate!).toString("hex"));
                         // the server may have shut down the channel because its certificate
                         // has changed ....
@@ -543,7 +537,6 @@ export class ClientBaseImpl extends OPCUASecureObject implements OPCUAClientBase
     ) {
         assert(this._secureChannel === null);
         assert(typeof this.endpointUrl === "string");
-
 
         debugLog("_internal_create_secure_channel creating new ClientSecureChannelLayer");
         const secureChannel = new ClientSecureChannelLayer({
@@ -661,19 +654,18 @@ export class ClientBaseImpl extends OPCUASecureObject implements OPCUAClientBase
     public connect(endpointUrl: string): Promise<void>;
     public connect(endpointUrl: string, callback: ErrorCallback): void;
     public connect(...args: any[]): any {
-
         const endpointUrl = args[0];
         const callback = args[1];
         assert(typeof callback === "function", "expecting a callback");
-        if (typeof endpointUrl !== "string" ||  endpointUrl.length <= 0) {
-            errorLog("[NODE-OPCUA-E03] OPCUAClient#connect expects a valid endpoint : " + endpointUrl );
+        if (typeof endpointUrl !== "string" || endpointUrl.length <= 0) {
+            errorLog("[NODE-OPCUA-E03] OPCUAClient#connect expects a valid endpoint : " + endpointUrl);
             callback(new Error("Invalid endpoint"));
             return;
         }
         assert(typeof endpointUrl === "string" && endpointUrl.length > 0);
         // istanbul ignore next
         if (this._internalState !== "idle") {
-            callback(new Error("invalid internal state = "+ this._internalState));
+            callback(new Error("invalid internal state = " + this._internalState));
             return;
         }
 
@@ -757,8 +749,11 @@ export class ClientBaseImpl extends OPCUASecureObject implements OPCUAClientBase
                 callbackOnceDelayed(err!);
             } else {
                 OPCUAClientBase.registry.unregister(this);
-                if (this._clockAdjuster) { this._clockAdjuster.dispose(); this._clockAdjuster = undefined; }
-                
+                if (this._clockAdjuster) {
+                    this._clockAdjuster.dispose();
+                    this._clockAdjuster = undefined;
+                }
+
                 debugLog(chalk.red("SecureChannel creation has failed with error :", err.message));
                 if (err.message.match(/ECONNREF/)) {
                     debugLog(chalk.yellow("- The client cannot to :" + endpointUrl + ". Server is not reachable."));
@@ -775,7 +770,7 @@ export class ClientBaseImpl extends OPCUASecureObject implements OPCUAClientBase
                     debugLog(chalk.yellow("  - The client certificate may not be trusted by the server"));
                     err = new Error(
                         "The connection has been rejected by server,\n" +
-                           // "Please check that client certificate is trusted by server.\n" +
+                            // "Please check that client certificate is trusted by server.\n" +
                             "Err = (" +
                             err.message +
                             ")"
@@ -873,6 +868,7 @@ export class ClientBaseImpl extends OPCUASecureObject implements OPCUAClientBase
             if (err) {
                 return callback(err);
             }
+            // istanbul ignore next
             if (!response || !(response instanceof GetEndpointsResponse)) {
                 return callback(new Error("Internal Error"));
             }
@@ -883,6 +879,9 @@ export class ClientBaseImpl extends OPCUASecureObject implements OPCUAClientBase
         });
     }
 
+    /**
+     * @deprecated
+     */
     public getEndpointsRequest(options: any, callback: any) {
         warningLog("note: ClientBaseImpl#getEndpointsRequest is deprecated, use ClientBaseImpl#getEndpoints instead");
         return this.getEndpoints(options, callback);
@@ -975,10 +974,10 @@ export class ClientBaseImpl extends OPCUASecureObject implements OPCUAClientBase
     public disconnect(...args: any[]): any {
         const callback = args[0];
         assert(typeof callback === "function", "expecting a callback function here");
-  
+
         this.reconnectionIsCanceled = true;
         this.disconnecting = true;
- 
+
         debugLog("ClientBaseImpl#disconnect", this.endpointUrl);
         if (this.isReconnecting) {
             debugLog("ClientBaseImpl#disconnect called while reconnection is in progress");
@@ -1003,8 +1002,10 @@ export class ClientBaseImpl extends OPCUASecureObject implements OPCUAClientBase
             return;
         }
 
-
-       if (this._internalState === "idle" || this._internalState === "disconnecting") {
+        if (this.clientCertificateManager) {
+            this.clientCertificateManager.dispose();
+        }
+        if (this._internalState === "idle" || this._internalState === "disconnecting") {
             return callback();
         }
         this._internalState = "disconnecting";
@@ -1020,8 +1021,11 @@ export class ClientBaseImpl extends OPCUASecureObject implements OPCUAClientBase
         assert(this._sessions.length === 0, " attempt to disconnect a client with live sessions ");
 
         OPCUAClientBase.registry.unregister(this);
-        if (this._clockAdjuster) { this._clockAdjuster.dispose(); this._clockAdjuster = undefined; }
-                
+        if (this._clockAdjuster) {
+            this._clockAdjuster.dispose();
+            this._clockAdjuster = undefined;
+        }
+
         if (this._secureChannel) {
             let tmpChannel: any = this._secureChannel;
             this._secureChannel = null;
@@ -1052,7 +1056,7 @@ export class ClientBaseImpl extends OPCUASecureObject implements OPCUAClientBase
         str += "  securityPolicy................ " + this.securityPolicy.toString() + "\n";
         str += "  certificate fingerprint....... " + makeSHA1Thumbprint(this.getCertificate()).toString("hex") + "\n";
         str +=
-               "  server certificate fingerprint " +
+            "  server certificate fingerprint " +
             (this.serverCertificate ? makeSHA1Thumbprint(this.serverCertificate).toString("hex") : "") +
             "\n";
         // this.serverCertificate = options.serverCertificate || null + "\n";
@@ -1358,31 +1362,26 @@ export class ClientBaseImpl extends OPCUASecureObject implements OPCUAClientBase
     }
 }
 
-
-
 class TmpClient extends ClientBaseImpl {
-
     constructor(options: OPCUAClientBaseOptions) {
         super(options);
     }
-    
-    async connect(endpoint: string) : Promise<void>;
+
+    async connect(endpoint: string): Promise<void>;
     connect(endpoint: string, callback: ErrorCallback): void;
     connect(endpoint: string, callback?: ErrorCallback): any {
-
         if (this._internalState !== "idle") {
             callback!(new Error("invalid internal state"));
             return;
         }
         this._internalState = "connecting";
-        this
-        .initializeCM()
-        .then(() => {
-            this._connectStep2(endpoint, (err?: Error) => {
-                callback!(err);
+        this.initializeCM()
+            .then(() => {
+                this._connectStep2(endpoint, (err?: Error) => {
+                    callback!(err);
+                });
             })
-        })
-        .catch((err) => callback!(err));
+            .catch((err) => callback!(err));
     }
 }
 
