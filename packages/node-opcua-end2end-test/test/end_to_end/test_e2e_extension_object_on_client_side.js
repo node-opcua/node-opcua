@@ -22,6 +22,7 @@ describe("testing extension object with client residing on a different process t
     let serverHandle = null;
 
     const options = {
+        silent: true,
         server_sourcefile: path.join(__dirname, "../../test_helpers/bin/simple_server_with_custom_extension_objects.js"),
         port
     };

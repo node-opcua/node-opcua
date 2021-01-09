@@ -13,8 +13,9 @@ const {
 } = require("node-opcua");
 
 
-const { make_debugLog, checkDebugFlag} = require("node-opcua-debug");
+const { make_debugLog, checkDebugFlag, make_errorLog} = require("node-opcua-debug");
 const debugLog = make_debugLog("TEST");
+const errorLog = make_errorLog("TEST");
 const doDebug = checkDebugFlag("TEST");
 
 const f = require("../../test_helpers/display_function_name").f.bind(null, doDebug);
@@ -47,10 +48,9 @@ module.exports = function(test) {
                         the_subscription.on("started", function() {
                             callback();
                         }).on("internal_error", function(err) {
-                            console.log(" received internal error", err.message);
+                            errorLog(" received internal error", err.message);
                         }).on("keepalive", function() {
-
-                            console.log("keepalive  -pending request on server = ", the_subscription.publish_engine.nbPendingPublishRequests);
+                            errorLog("keepalive  -pending request on server = ", the_subscription.publish_engine.nbPendingPublishRequests);
 
                         }).on("terminated", function(err) {
                             should.not.exist(err);

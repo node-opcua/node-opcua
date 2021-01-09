@@ -74,8 +74,12 @@ function server_stuff() {
 }
 //server_stuff();
 
-const certificateFile ="../packages/node-opcua-samples/certificates/client_selfsigned_cert_2048.pem";
-const privateKeyFile ="../packages/node-opcua-samples/certificates/client_key_2048.pem";
+const certificateFolder = path.join(__dirname, "../packages/node-opcua-samples/certificates");
+fs.existsSync(certificateFolder).should.eql(true, "expecting certificate store at " + certificateFolder);
+
+const certificateFile = path.join(certificateFolder, "client_selfsigned_cert_2048.pem");
+const privateKeyFile =  path.join(certificateFolder, "client_key_2048.pem");
+
 const client = opcua.OPCUAClient.create({
     endpoint_must_exist: false,
     keepSessionAlive: true,

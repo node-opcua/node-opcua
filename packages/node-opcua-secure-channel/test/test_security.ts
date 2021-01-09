@@ -2,6 +2,7 @@
 // or compile with  tsc  -t es2017 -m commonjs test\test_security.ts  --outdir toto
 import * as async from "async";
 import * as fs from "fs";
+import * as path from "path";
 import { Socket } from "net";
 import { OPCUACertificateManager } from "node-opcua-certificate-manager";
 import {
@@ -17,7 +18,6 @@ import {
 import { EndpointDescription } from "node-opcua-service-endpoints";
 import { StatusCode } from "node-opcua-status-code";
 import { DirectTransport } from "node-opcua-transport/dist/test_helpers";
-import * as path from "path";
 import * as should from "should";
 import {
     ClientSecureChannelLayer,
@@ -41,6 +41,7 @@ interface TestParam {
 }
 
 const certificateFolder = path.join(__dirname, "../../../packages/node-opcua-samples/certificates");
+fs.existsSync(certificateFolder).should.eql(true, "expecting certificate store at " + certificateFolder);
 
 // tslint:disable:no-var-requires
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;

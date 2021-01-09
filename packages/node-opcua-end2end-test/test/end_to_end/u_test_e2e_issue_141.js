@@ -1,15 +1,23 @@
-/*global it,describe,beforeEach,afterEach,require*/
 "use strict";
-
 const should = require("should");
 
-const opcua = require("node-opcua");
+const {
+    DataValue,
+    ReadRequest,
+    TimestampsToReturn,
+    ClientSubscription,
+    OPCUAClient,
+    MessageSecurityMode,
+    SecurityPolicy
+} = require("node-opcua");
 
-const OPCUAClient = opcua.OPCUAClient;
-const securityMode = opcua.MessageSecurityMode.None;
-const securityPolicy = opcua.SecurityPolicy.None;
+const securityMode = MessageSecurityMode.None;
+const securityPolicy = SecurityPolicy.None;
 
 const { perform_operation_on_client_session } = require("../../test_helpers/perform_operation_on_client_session");
+
+const { make_debugLog } = require("node-opcua-debug");
+const debugLog = make_debugLog("TEST");
 
 // bug : server reported to many datavalue changed when client monitored a UAVariable constructed with variation 1");
 
@@ -49,7 +57,7 @@ module.exports = function (test) {
             let keepaliveCounter = 0;
             perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
 
-                the_subscription = opcua.ClientSubscription.create(session, {
+                the_subscription = ClientSubscription.create(session, {
                     requestedPublishingInterval: 6000,
                     requestedMaxKeepAliveCount: 2,
                     requestedLifetimeCount: 12,
@@ -70,17 +78,17 @@ module.exports = function (test) {
                 }
 
                 the_subscription.on("started", function () {
-                    //xx console.log("revised publishingInterval :", the_subscription.publishingInterval);
-                    //xx console.log("revised lifetimeCount      :", the_subscription.lifetimeCount);
-                    //xx console.log("revised maxKeepAliveCount  :", the_subscription.maxKeepAliveCount);
-                    //xx console.log("started subscription       :", the_subscription.subscriptionId);
+                    //xx debugLog("revised publishingInterval :", the_subscription.publishingInterval);
+                    //xx debugLog("revised lifetimeCount      :", the_subscription.lifetimeCount);
+                    //xx debugLog("revised maxKeepAliveCount  :", the_subscription.maxKeepAliveCount);
+                    //xx debugLog("started subscription       :", the_subscription.subscriptionId);
 
                 }).on("internal_error", function (err) {
-                    console.log(" received internal error", err.message);
+                    debugLog(" received internal error", err.message);
                     clearTimeout(timerId);
                     inner_done(err);
                 }).on("keepalive", function () {
-                    console.log("keepalive");
+                    // xx debugLog("keepalive");
                     keepaliveCounter++;
 
                 }).on("terminated", function () {
@@ -102,8 +110,8 @@ module.exports = function (test) {
                         // intentionally not calling callback(); immediatly
                         const longTime = 10000;
                         setTimeout(function () {
-                            console.log(" refreshed ");
-                            callback(null, new opcua.DataValue({
+                            debugLog(" refreshed ");
+                            callback(null, new DataValue({
                                 value: { value: 10, dataType: "Int32" },
                                 sourceTimestamp: new Date()
                             }));
@@ -114,12 +122,12 @@ module.exports = function (test) {
 
             perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
 
-                const request = new opcua.ReadRequest({
+                const request = new ReadRequest({
                     nodesToRead: [{
                         nodeId: node.nodeId,
                         attributeId: 13
                     }],
-                    timestampsToReturn: opcua.TimestampsToReturn.Neither
+                    timestampsToReturn: TimestampsToReturn.Neither
                 });
 
                 // let specify a very short timeout hint ...
@@ -130,10 +138,10 @@ module.exports = function (test) {
 
                 session.performMessageTransaction(request, function (err, response) {
 
-                    console.log(" received performMessageTransaction callback", request.constructor.name.toString());
+                    debugLog(" received performMessageTransaction callback", request.constructor.name.toString());
                     if (!err) {
-                        console.log(request.toString());
-                        console.log(response.toString());
+                        debugLog(request.toString());
+                        debugLog(response.toString());
                         return inner_done(new Error("Expecting an timeout Error "));
                     }
                     should.exist(err);
@@ -144,7 +152,7 @@ module.exports = function (test) {
                 });
 
                 client.on("timed_out_request", function (request) {
-                    console.log(" received timed_out_request", request.constructor.name.toString());
+                    debugLog(" received timed_out_request", request.constructor.name.toString());
                     client.timedOutRequestCount.should.eql(1);
                     event_received = true;
                     if (callback_received && event_received) {

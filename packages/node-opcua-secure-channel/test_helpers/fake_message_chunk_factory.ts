@@ -1,7 +1,6 @@
 import * as fs from "fs";
 import {
     computeDerivedKeys,
-    DerivedKeys,
     encryptBufferWithDerivedKeys,
     makeMessageChunkSignature,
     makeMessageChunkSignatureWithDerivedKeys,

@@ -1,4 +1,5 @@
 import * as path from "path";
+import * as fs from "fs";
 
 import { readCertificate } from "node-opcua-crypto";
 import { X509IdentityToken } from "node-opcua-types";
@@ -11,6 +12,9 @@ const keep_should = should;
 
 import { getMiniAddressSpace } from "../testHelpers";
 import { NodeId } from "node-opcua-nodeid";
+
+const certificateFolder = path.join(__dirname, "../../node-opcua-samples/certificates");
+fs.existsSync(certificateFolder).should.eql(true, "expecting certificate store at " + certificateFolder);
 
 // tslint:disable-next-line:no-var-requires
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
@@ -94,7 +98,8 @@ describe("SessionContext - with  dedicated SessionContext and certificate ", () 
         userManager: mockUserManager
     };
 
-    const certificateFilename = path.join(__dirname, "../../node-opcua-samples/certificates/client_cert_2048.pem");
+
+    const certificateFilename = path.join(certificateFolder, "client_cert_2048.pem");
 
     const certificate = readCertificate(certificateFilename);
     const mockSession = {

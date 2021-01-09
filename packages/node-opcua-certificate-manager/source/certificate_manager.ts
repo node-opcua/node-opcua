@@ -2,7 +2,6 @@
  * @module node-opcua-certificate-manager
  */
 // tslint:disable:no-empty
-import * as chalk from "chalk";
 import * as fs from "fs";
 import * as mkdirp from "mkdirp";
 
@@ -14,7 +13,7 @@ import { CertificateManager, CertificateManagerOptions, CertificateStatus } from
 import { StatusCodes } from "node-opcua-status-code";
 import { StatusCode } from "node-opcua-status-code";
 
-import { CallbackT, StatusCodeCallback, Callback } from "node-opcua-status-code";
+import {  StatusCodeCallback } from "node-opcua-status-code";
 import { assert }from "node-opcua-assert";
 
 import { ObjectRegistry } from "node-opcua-object-registry";
@@ -64,6 +63,11 @@ export interface OPCUACertificateManagerOptions {
      * the PKI folder will be <rootFolder>/<name>
      */
     name?: string;
+
+    /**
+     * 
+     */
+    keySize?: 2048 | 3072 | 4096
 }
 
 export class OPCUACertificateManager extends CertificateManager implements ICertificateManager {
@@ -80,7 +84,7 @@ export class OPCUACertificateManager extends CertificateManager implements ICert
         }
 
         const _options: CertificateManagerOptions = {
-            keySize: 2048,
+            keySize: options.keySize || 2048,
             location
         };
         super(_options);
@@ -114,7 +118,15 @@ export class OPCUACertificateManager extends CertificateManager implements ICert
     public checkCertificate(certificateChain: Certificate): Promise<StatusCode>;
     public checkCertificate(certificateChain: Certificate, callback: StatusCodeCallback): void;
     public checkCertificate(certificateChain: Certificate, callback?: StatusCodeCallback): Promise<StatusCode> | void {
-        super.verifyCertificate(certificateChain, (err1?: Error | null, status?: string) => {
+
+        // istanbul ignore next
+        if (!callback || typeof callback !== "function") {
+            throw new Error("Internal error");
+        }
+
+        this.verifyCertificate(certificateChain, (err1?: Error | null, status?: string) => {
+
+            // istanbul ignore next
             if (err1) {
                 return callback!(err1);
             }
@@ -133,10 +145,6 @@ export class OPCUACertificateManager extends CertificateManager implements ICert
                     return this.rejectCertificate(certificateChain, () => callback!(null, StatusCodes.BadCertificateUntrusted));
                 }
             }
-
-            // if (!statusCode) {
-            //     return callback!(new Error("Invalid statusCode " + status));
-            // }
             callback!(null, statusCode);
         });
     }
@@ -158,43 +166,3 @@ const opts = { multiArgs: false };
 OPCUACertificateManager.prototype.checkCertificate = thenify.withCallback(OPCUACertificateManager.prototype.checkCertificate, opts);
 OPCUACertificateManager.prototype.getTrustStatus = thenify.withCallback(OPCUACertificateManager.prototype.getTrustStatus, opts);
 OPCUACertificateManager.prototype.initialize = thenify.withCallback(OPCUACertificateManager.prototype.initialize, opts);
-
-// also see OPCUA 1.02 part 4 :
-//  - page 95  6.1.3 Determining if a Certificate is Trusted
-// -  page 100 6.2.3 Validating a Software Certificate
-//
-export function checkCertificateValidity(certificate: Certificate): StatusCode {
-    // Is the  signature on the SoftwareCertificate valid .?
-    if (!certificate) {
-        // missing certificate
-        return StatusCodes.BadSecurityChecksFailed;
-    }
-    // Has SoftwareCertificate passed its issue date and has it not expired ?
-    // check dates
-    const cert = exploreCertificateInfo(certificate);
-    const now = new Date();
-    if (cert.notBefore.getTime() > now.getTime()) {
-        // certificate is not active yet
-        // tslint:disable-next-line:no-console
-        console.log(
-            chalk.red(" Sender certificate is invalid : certificate is not active yet !") + "  not before date =" + cert.notBefore
-        );
-        return StatusCodes.BadCertificateTimeInvalid;
-    }
-    if (cert.notAfter.getTime() <= now.getTime()) {
-        // certificate is obsolete
-        // tslint:disable-next-line:no-console
-        console.log(chalk.red(" Sender certificate is invalid : certificate has expired !") + " not after date =" + cert.notAfter);
-        return StatusCodes.BadCertificateTimeInvalid;
-    }
-    // Has SoftwareCertificate has  been revoked by the issuer ?
-    // TODO: check if certificate is revoked or not ...
-    // StatusCodes.BadCertificateRevoked
-    // is issuer Certificate  valid and has not been revoked by the CA that issued it. ?
-    // TODO : check validity of issuer certificate
-    // StatusCodes.BadCertificateIssuerRevoked
-    // does the URI specified in the ApplicationDescription  match the URI in the Certificate ?
-    // TODO : check ApplicationDescription of issuer certificate
-    // return StatusCodes.BadCertificateUriInvalid
-    return StatusCodes.Good;
-}
