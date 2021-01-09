@@ -23,7 +23,6 @@ import {
     PrivateKeyPEM,
     PublicKeyLength,
     rsa_length,
-    split_der,
     exploreCertificate
 } from "node-opcua-crypto";
 
@@ -64,7 +63,7 @@ import {
     ServiceFault
 } from "../services";
 
-import { checkCertificateValidity, ICertificateManager } from "node-opcua-certificate-manager";
+import { ICertificateManager } from "node-opcua-certificate-manager";
 
 import { ObjectRegistry } from "node-opcua-object-registry";
 
@@ -1080,10 +1079,11 @@ export class ServerSecureChannelLayer extends EventEmitter {
     protected async checkCertificate(certificate: Certificate | null): Promise<StatusCode> {
         if (!certificate) {
             return StatusCodes.Good;
+        } // istanbul ignore script
+        if (!this.certificateManager) {
+            return StatusCodes.BadInternalError;
         }
-        const statusCode = !this.certificateManager
-            ? checkCertificateValidity(certificate)
-            : await this.certificateManager.checkCertificate(certificate);
+        const statusCode = await this.certificateManager.checkCertificate(certificate);
         if (statusCode === StatusCodes.Good) {
             const certInfo = exploreCertificate(certificate!);
             if (!certInfo.tbsCertificate.extensions?.keyUsage?.dataEncipherment) {

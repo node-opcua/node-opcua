@@ -13,12 +13,9 @@ import { EventEmitter } from "events";
 import {
     Certificate,
     extractPublicKeyFromCertificate,
-    makeSHA1Thumbprint,
     PrivateKeyPEM,
     PublicKeyPEM,
-    rsa_length,
-    split_der
-} from "node-opcua-crypto";
+    rsa_length} from "node-opcua-crypto";
 
 import { assert } from "node-opcua-assert";
 
@@ -597,7 +594,7 @@ export class ClientSecureChannelLayer extends EventEmitter {
                     });
                 }
             ],
-            (err?: Error | null) => {
+            () => {
                 callback();
             }
         );

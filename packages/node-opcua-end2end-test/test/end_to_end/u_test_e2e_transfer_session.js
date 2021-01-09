@@ -5,17 +5,28 @@ const _ = require("underscore");
 const path = require("path");
 const fs = require("fs");
 
-const opcua = require("node-opcua");
+const { 
+  OPCUAClient, 
+  StatusCodes, 
+  PublishRequest,
+  CreateSubscriptionRequest,
+  CloseSessionRequest,
+  ReadRequest,
+  TimestampsToReturn, 
+  MessageSecurityMode,
+  SecurityPolicy,
+  UserNameIdentityToken
+} = require("node-opcua");
 const {
   readCertificate,
   readCertificateRevocationList
 } = require("node-opcua-crypto");
 
-const OPCUAClient = opcua.OPCUAClient;
-const StatusCodes = opcua.StatusCodes;
+const certificateFolder = path.join(__dirname, "../../../node-opcua-samples/certificates");
+fs.existsSync(certificateFolder).should.eql(true, "expecting certificate store at " + certificateFolder);
 
 function sendPublishRequest(session, callback) {
-  const publishRequest = new opcua.PublishRequest({});
+  const publishRequest = new PublishRequest({});
   session.performMessageTransaction(publishRequest, function(err, response) {
     callback(err, response);
   });
@@ -23,7 +34,7 @@ function sendPublishRequest(session, callback) {
 
 function createSubscription(session, callback) {
   const publishingInterval = 1000;
-  const createSubscriptionRequest = new opcua.CreateSubscriptionRequest({
+  const createSubscriptionRequest = new CreateSubscriptionRequest({
     requestedPublishingInterval: publishingInterval,
     requestedLifetimeCount: 60,
     requestedMaxKeepAliveCount: 10,
@@ -149,7 +160,7 @@ module.exports = function(test) {
           client1.connect(test.endpointUrl, callback);
         },
         function(callback) {
-          const request = new opcua.CloseSessionRequest({
+          const request = new CloseSessionRequest({
             deleteSubscriptions: true
           });
           client1.performMessageTransaction(request, function(err, response) {
@@ -199,7 +210,7 @@ module.exports = function(test) {
 
         // second call to close session should raise an error
         function(callback) {
-          const request = new opcua.CloseSessionRequest({
+          const request = new CloseSessionRequest({
             deleteSubscriptions: true
           });
           client1.performMessageTransaction(request, function(err, response) {
@@ -258,14 +269,13 @@ module.exports = function(test) {
             callback(err);
           });
         },
-
         // let verify that it is now possible to send a request on client1's session
         function(callback) {
           // coerce nodeIds
-          const request = new opcua.ReadRequest({
+          const request = new ReadRequest({
             nodesToRead: [{ nodeId: "i=2255", attributeId: 13 }],
             maxAge: 0,
-            timestampsToReturn: opcua.TimestampsToReturn.Both
+            timestampsToReturn: TimestampsToReturn.Both
           });
           request.requestHeader.authenticationToken = session1.authenticationToken;
           client1.performMessageTransaction(request, function(err, response) {
@@ -292,10 +302,10 @@ module.exports = function(test) {
         // server shall refuse any requests on channel1
         function(callback) {
           // coerce nodeIds
-          const request = new opcua.ReadRequest({
+          const request = new ReadRequest({
             nodesToRead: [{ nodeId: "i=2255", attributeId: 13 }],
             maxAge: 0,
-            timestampsToReturn: opcua.TimestampsToReturn.Both
+            timestampsToReturn: TimestampsToReturn.Both
           });
           request.requestHeader.authenticationToken = session1.authenticationToken;
           client1.performMessageTransaction(request, function(err, response) {
@@ -308,10 +318,10 @@ module.exports = function(test) {
         // but server shall access request on new channel
         function(callback) {
           // coerce nodeIds
-          const request = new opcua.ReadRequest({
+          const request = new ReadRequest({
             nodesToRead: [{ nodeId: "i=2255", attributeId: 13 }],
             maxAge: 0,
-            timestampsToReturn: opcua.TimestampsToReturn.Both
+            timestampsToReturn: TimestampsToReturn.Both
           });
           request.requestHeader.authenticationToken = session1.authenticationToken;
           client2.performMessageTransaction(request, function(err, response) {
@@ -417,7 +427,7 @@ module.exports = function(test) {
 
 
     function m(file) {
-      const p = path.join(__dirname, "../../../node-opcua-samples", file);
+      const p = path.join(certificateFolder, file);
       if (!fs.existsSync(p)) {
         console.error(" cannot find ", p);
       }
@@ -439,24 +449,25 @@ module.exports = function(test) {
         // create a first channel (client1) with
         function(callback) {
           //xx console.log(" creating initial channel with some certificate");
-          const certificateFile1 = m("certificates/client_cert_2048.pem");
-          const privateKeyFile1 = m("certificates/client_key_2048.pem");
+          const certificateFile1 = m("client_cert_2048.pem");
+          const privateKeyFile1 = m("client_key_2048.pem");
           console.log(certificateFile1);
 
           client1 = OPCUAClient.create({
             certificateFile: certificateFile1,
             privateKeyFile: privateKeyFile1,
-            securityMode: opcua.MessageSecurityMode.Sign,
-            securityPolicy: opcua.SecurityPolicy.Basic128Rsa15,
+            securityMode: MessageSecurityMode.Sign,
+            securityPolicy: SecurityPolicy.Basic128Rsa15,
             serverCertificate: serverCertificate
           });
 
+   
           const certificate = readCertificate(certificateFile1);
 
           async function doIt() {
             await test.server.serverCertificateManager.trustCertificate(certificate);
-            const issuerCertificateFile = m("certificates/CA/public/cacert.pem");
-            const issuerCertificateRevocationListFile = m("certificates/CA/crl/revocation_list.der");
+            const issuerCertificateFile = m("CA/public/cacert.pem");
+            const issuerCertificateRevocationListFile = m("CA/crl/revocation_list.der");
             const issuerCertificate = readCertificate(issuerCertificateFile);
             const issuerCrl = await readCertificateRevocationList(issuerCertificateRevocationListFile);
             await test.server.serverCertificateManager.addIssuer(issuerCertificate);
@@ -493,13 +504,13 @@ module.exports = function(test) {
 
           // creating second channel with different credential
           console.log(" creating second channel with different certificate");
-          const certificateFile2 = m("certificates/client_cert_3072.pem");
-          const privateKeyFile2 = m("certificates/client_key_3072.pem");
+          const certificateFile2 = m("client_cert_3072.pem");
+          const privateKeyFile2 = m("client_key_3072.pem");
           client2 = OPCUAClient.create({
             certificateFile: certificateFile2,
             privateKeyFile: privateKeyFile2,
-            securityMode: opcua.MessageSecurityMode.Sign,
-            securityPolicy: opcua.SecurityPolicy.Basic256,
+            securityMode: MessageSecurityMode.Sign,
+            securityPolicy: SecurityPolicy.Basic256,
             serverCertificate: serverCertificate
           });
           const certificate = readCertificate(certificateFile2);
@@ -550,11 +561,10 @@ module.exports = function(test) {
       const user1 = {
         userName: "user1", password: "password1"
       };
-      const user2 = new opcua.UserNameIdentityToken({
+      const user2 = new UserNameIdentityToken({
         userName: "user1", password: "password1"
       });
       //xx console.log(" user1 ", user1.toString());
-
       async.series([
 
         // given a established session with a subscription and some publish request

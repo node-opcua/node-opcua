@@ -118,20 +118,18 @@ function displayKeepAliveWarning(sessionTimeout: number, maxKeepAliveCount: numb
             warningLog(`[NODE-OPCUA-W11] your publishingInterval interval is probably too large, consider reducting it.`);
         }
 
-        const idealMaxKeepAliveCount = Math.floor((sessionTimeout * 0.8) / publishingInterval - 0.5);
+        const idealMaxKeepAliveCount = Math.max(4,Math.floor((sessionTimeout * 0.8) / publishingInterval - 0.5));
+        const idealPublishingInternal = Math.min(publishingInterval, sessionTimeout / (idealMaxKeepAliveCount +3));
         const idealKeepAliveInterval = idealMaxKeepAliveCount * publishingInterval;
-
         warningLog(
-            `[NODE-OPCUA-W12] 
-An ideal value for maxKeepAliveCount could be ${idealMaxKeepAliveCount}, which will make 
-your subscription emit a keep alive signal every ${idealKeepAliveInterval} ms.
-
-Aternatively, you can decrease your publishingInterval or increase the session timeout.
-
-const  client = OPCUAClient.create({
-    requestedSessionTimeout: 30* 60* 1000, // 30 minutes
-});
-${ClientSubscription.ignoreNextWarning}
+`[NODE-OPCUA-W12]  An ideal value for maxKeepAliveCount could be ${idealMaxKeepAliveCount}.
+                  An ideal value for publishingInterval coule be ${idealPublishingInternal} ms.
+                  This will make  your subscription emit a keep alive signal every ${idealKeepAliveInterval} ms
+                  if no monitored items are generating notifications.
+                  for instance: 
+                    const  client = OPCUAClient.create({
+                        requestedSessionTimeout: 30* 60* 1000, // 30 minutes
+                    });
 `
         );
 

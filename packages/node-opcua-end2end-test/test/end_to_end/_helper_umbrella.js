@@ -17,8 +17,9 @@ const { start_simple_server, stop_simple_server } = require("../../test_helpers/
 function start_external_server(test, options, done) {
 
     assert(typeof test.port === "number");
-
     
+    options.silent = true;
+
     start_simple_server(options, function(err, data) {
         if (err) {
             return done(err, null);

@@ -29,13 +29,16 @@ const {
 const fail_fast_connectionStrategy = {
     maxRetry: 0  // << NO RETRY !!
 };
+
+const certificateFolder = path.join(__dirname, "../../node-opcua-samples/certificates");
+
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("testing Server resilience to DDOS attacks 2", function() {
 
 
-    const invalidCertificateFile = path.join(__dirname, "../../node-opcua-samples/certificates/client_cert_2048_outofdate.pem");
-    const validCertificate = path.join(__dirname, "../../node-opcua-samples/certificates/client_cert_2048.pem");
-    const privateKeyFile = path.join(__dirname, "../../node-opcua-samples/certificates/client_key_2048.pem");
+    const invalidCertificateFile = path.join(certificateFolder,"client_cert_2048_outofdate.pem");
+    const validCertificate = path.join(certificateFolder,"client_cert_2048.pem");
+    const privateKeyFile = path.join(certificateFolder,"client_key_2048.pem");
 
     let server;
     let endpointUrl;
@@ -76,7 +79,7 @@ describe("testing Server resilience to DDOS attacks 2", function() {
 
 
         const serverCertificateManager = new OPCUACertificateManager({
-            rootFolder: path.join(__dirname, "../../node-opcua-samples/certificates/tmp_pki")
+            rootFolder: path.join(certificateFolder,"tmp_pki")
         });
         await serverCertificateManager.initialize();
 
@@ -93,8 +96,8 @@ describe("testing Server resilience to DDOS attacks 2", function() {
         console.log("RootFolder = ", server.serverCertificateManager.rootFolder);
 
         // make sure "that certificate issuer in th*
-        const issuerCertificateFile = path.join(__dirname, "../../node-opcua-samples/certificates/CA/public/cacert.pem");
-        const revokeListFile = path.join(__dirname, "../../node-opcua-samples/certificates/CA/crl/revocation_list.crl");
+        const issuerCertificateFile = path.join(certificateFolder,"CA/public/cacert.pem");
+        const revokeListFile = path.join(certificateFolder,"CA/crl/revocation_list.crl");
 
         const issuerCertificate = await readCertificate(issuerCertificateFile);
         const a = exploreCertificateInfo(issuerCertificate);

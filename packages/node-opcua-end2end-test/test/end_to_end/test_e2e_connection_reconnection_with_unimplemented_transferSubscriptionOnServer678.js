@@ -21,6 +21,7 @@ const port = 2240;
 async function start_external_opcua_server() {
 
     const options = {
+        silent: true,
         server_sourcefile: path.join(__dirname, "../../test_helpers/bin", serverScript),
         port
     };

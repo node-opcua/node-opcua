@@ -4,18 +4,19 @@ const { assert } = require("node-opcua-assert");
 const should = require("should");
 const async = require("async");
 
-const opcua = require("node-opcua");
+const {
+    OPCUAClient,
+    ClientSession,
+    MessageSecurityMode,
+    SecurityPolicy,
+} = require("node-opcua");
+const securityMode = MessageSecurityMode.None;
+const securityPolicy = SecurityPolicy.None;
 
-const OPCUAClient = opcua.OPCUAClient;
-const ClientSession = opcua.ClientSession;
 
 const { perform_operation_on_client_session } = require("../../test_helpers/perform_operation_on_client_session");
 
-
-
-const securityMode = opcua.MessageSecurityMode.None;
-const securityPolicy = opcua.SecurityPolicy.None;
-
+const doDebug = false;
 // bug : server reported to many datavalue changed when client monitored a UAVariable consructed with variation 1");
 
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
@@ -85,7 +86,9 @@ module.exports = function(test) {
                         .length.should.be.greaterThan(2, "number of security token renewal");
 
                     // sequence number should be increasing monotonically
-                    console.log(sequenceNumbers);
+                    if (doDebug) {
+                        console.log(sequenceNumbers);
+                    }
 
                     for (let i = 1; i < sequenceNumbers.length; i++) {
                         sequenceNumbers[i].should.be.greaterThan(sequenceNumbers[i - 1]);

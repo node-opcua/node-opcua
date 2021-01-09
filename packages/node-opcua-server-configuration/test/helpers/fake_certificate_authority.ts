@@ -28,7 +28,7 @@ export async function produceCertificateAndPrivateKey(): Promise<{ certificate: 
     await certificateManager.initialize();
 
     const certFile = path.join(_tempFolder, "tmpPKI/certificate.pem");
-    const fileExists: boolean = await promisify(fs.exists)(certFile);
+    const fileExists: boolean = fs.existsSync(certFile);
 
     await certificateManager.createSelfSignedCertificate({
         applicationUri: "applicationUri",

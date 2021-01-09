@@ -48,13 +48,11 @@ function do_on_folder2(folder,packagejson,callback) {
 function do_on_folder(folder,callback) {
 
     const package_file = path.resolve(path.join(packages_folder,folder,"package.json"));
-    fs.exists(package_file,function (exists) {
-        if (exists) {
-            return do_on_folder2(folder,package_file,callback);
-        }
-        callback();
-    });
-
+    if (fs.existsSync(package_file)) {
+        return do_on_folder2(folder,package_file,callback);
+    }
+    callback();
+  
 }
 async.series([
 

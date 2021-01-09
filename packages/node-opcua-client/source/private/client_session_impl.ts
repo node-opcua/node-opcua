@@ -18,7 +18,7 @@ import { ReferenceTypeIds } from "node-opcua-constants";
 import { Certificate, Nonce } from "node-opcua-crypto";
 import { attributeNameById, BrowseDirection, LocalizedTextLike, makeResultMask } from "node-opcua-data-model";
 import { DataValue } from "node-opcua-data-value";
-import { checkDebugFlag, make_debugLog, make_warningLog } from "node-opcua-debug";
+import { checkDebugFlag, make_debugLog, make_errorLog, make_warningLog } from "node-opcua-debug";
 import { ExtensionObject, OpaqueStructure } from "node-opcua-extension-object";
 import { coerceNodeId, makeNodeId, NodeId, NodeIdLike, NodeIdType, resolveNodeId } from "node-opcua-nodeid";
 import { getArgumentDefinitionHelper, IBasicSession } from "node-opcua-pseudo-session";
@@ -128,6 +128,8 @@ const helpAPIChange = process.env.DEBUG && process.env.DEBUG.match(/API/);
 const debugLog = make_debugLog(__filename);
 const doDebug = checkDebugFlag(__filename);
 const warningLog = make_warningLog(__filename);
+const errorLog = make_errorLog(__filename);
+
 let pendingTransactionMessageDisplayed = false;
 
 function coerceBrowseDescription(data: any): BrowseDescription {
@@ -435,7 +437,7 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession {
                     if (r.references && r.references.length > this.requestedMaxReferencesPerNode) {
                         warningLog(
                             chalk.yellow("warning") +
-                                " BrowseResponse : server didn't take into" +
+                                " BrowseResponse : the server didn't take into" +
                                 " account our requestedMaxReferencesPerNode "
                         );
                         warningLog("        this.requestedMaxReferencesPerNode= " + this.requestedMaxReferencesPerNode);
@@ -1142,7 +1144,8 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession {
             if (
                 !(getFunctionParameterNames(callback)[1] === "dataValues" || getFunctionParameterNames(callback)[1] === "dataValue")
             ) {
-                warningLog(chalk.red("ERROR ClientSession#read  API has changed !!, please fix the client code"));
+                warningLog(
+                    chalk.red("[NODE-OPCUA-E005] the ClientSession#read  API has changed !!, please fix the client code"));
                 warningLog(chalk.red("   replace ..:"));
                 warningLog(chalk.cyan("   session.read(nodesToRead,function(err,nodesToRead,results) {}"));
                 warningLog(chalk.red("   with .... :"));

@@ -14,6 +14,7 @@ const port = 2016;
 function start_external_opcua_server(callback) {
 
     const options = {
+        silent: !doDebug,
         server_sourcefile: path.join(__dirname, "../../test_helpers/bin/simple_server_with_custom_extension_objects.js"),
         port
     };
