@@ -379,8 +379,8 @@ function check_open_secure_channel_fails(securityPolicy, securityMode, options, 
             if (err) {
                 debugLog("Error = ", err.message);
                 client.disconnect(function() {
-                    console.log((new Date()).toUTCString());
-                    dumpCertificate(client.certificateFile,(err,data) => { console.log(data)});
+                    // xx console.log((new Date()).toUTCString());
+                    // xx dumpCertificate(client.certificateFile,(err,data) => { console.log(data)});
                     done();
                 });
 
