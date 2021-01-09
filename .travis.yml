@@ -7,7 +7,7 @@ node_js:
   # dropping support for node 4
   # dropping support for node - "6"  (promisify not supporteed)
   # dropped - "7"
-  - "8"
+  # dropped - "8"  - (January 2021 )( 'for await' not supported - required by latest version of mocha)
   # dropped - "9"
   - "10"
   # - "11" not used yet => Lerna stack overflows!
