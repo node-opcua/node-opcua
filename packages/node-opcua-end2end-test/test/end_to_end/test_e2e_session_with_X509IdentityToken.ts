@@ -5,6 +5,7 @@ import * as path from "path";
 
 import {
     get_empty_nodeset_filename,
+    OPCUACertificateManager,
     OPCUAClient,
     OPCUAServer,
 } from "node-opcua";
@@ -20,6 +21,7 @@ const empty_nodeset_filename = get_empty_nodeset_filename();
 
 const certificateFolder = path.join(__dirname, "../../../node-opcua-samples/certificates");
 
+const tmpFolder= path.join(__dirname,"../../tmp");
 const port = 2231;
 
 let server: OPCUAServer;
@@ -28,8 +30,27 @@ let endpointUrl: string;
 //        -outform der -out example.der -subj "/CN=example.com" -days 3650
 async function startServer(): Promise<OPCUAServer> {
 
+    
+    const serverCertificateManager= new OPCUACertificateManager({
+        rootFolder: path.join(tmpFolder,"serverPKI"+port),
+        automaticallyAcceptUnknownCertificate: false,
+    });
+    await serverCertificateManager.initialize();
+
+
+    const userCertificateManager= new OPCUACertificateManager({
+        rootFolder: path.join(tmpFolder,"userPKI"+port),
+        automaticallyAcceptUnknownCertificate: false,
+    });
+    await userCertificateManager.initialize();
+
     server = new OPCUAServer({
+        userCertificateManager,
+
+        serverCertificateManager,
+
         maxAllowedSessionNumber: 10,
+        
         nodeset_filename: empty_nodeset_filename,
         port,
     });
@@ -56,6 +77,7 @@ async function endServer() {
         await server.shutdown(1);
     }
 }
+
 
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("Testing Session with user certificate", () => {
