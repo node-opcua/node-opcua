@@ -168,6 +168,7 @@ export class ClientSessionKeepAliveManager extends EventEmitter implements Clien
                     this.lastKnownState = newState;
                     this.count++; // increase successful counter
                 }
+                debugLog("emit keepalive");
                 this.emit("keepalive", this.lastKnownState, this.count);
                 resolve(0);
             });
