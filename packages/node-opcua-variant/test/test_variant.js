@@ -1460,6 +1460,10 @@ describe("miscellaneous Variant tests", () => {
         coerceVariantType(DataType.Int32, { value: 26, key: "foo" }).should.eql(26);
     });
 
+    it("coerceVariantType on Boolean", () => {
+        coerceVariantType(DataType.Boolean, true).should.eql(true);
+    });
+
     it("decodeVariant", () => {
         const stream = new BinaryStream(1000);
         const var1 = new Variant();
