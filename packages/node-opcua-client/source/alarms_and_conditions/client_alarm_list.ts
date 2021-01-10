@@ -56,8 +56,7 @@ export class ClientAlarmList extends EventEmitter implements Iterable<ClientAlar
             const key = this.makeKey(conditionId.value, eventType.value);
             const newAlarm = new ClientAlarm(eventField);
             this._map[key] = newAlarm;
-            this.emit("newAlarm", newAlarm);
-            this.emit("alarmChanged", alarm);
+            this.emit("alarmChanged", newAlarm);
         } else {
             alarm.update(eventField);
             this.emit("alarmChanged", alarm);
