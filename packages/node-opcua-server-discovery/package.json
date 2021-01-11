@@ -1,6 +1,6 @@
 {
 	"name": "node-opcua-server-discovery",
-	"version": "2.28.3",
+	"version": "2.29.0",
 	"description": "pure nodejs OPCUA SDK - module -server-discovery",
 	"scripts": {
 		"build": "tsc -b",
@@ -12,18 +12,18 @@
 	"dependencies": {
 		"@types/bonjour": "^3.5.8",
 		"bonjour": "^3.5.0",
-		"node-opcua-assert": "2.22.0",
-		"node-opcua-basic-types": "2.28.0",
-		"node-opcua-certificate-manager": "2.28.0",
-		"node-opcua-common": "2.28.1",
-		"node-opcua-debug": "2.28.0",
-		"node-opcua-hostname": "2.22.0",
+		"node-opcua-assert": "2.29.0",
+		"node-opcua-basic-types": "2.29.0",
+		"node-opcua-certificate-manager": "2.29.0",
+		"node-opcua-common": "2.29.0",
+		"node-opcua-debug": "2.29.0",
+		"node-opcua-hostname": "2.29.0",
 		"node-opcua-pki": "^2.7.0",
-		"node-opcua-secure-channel": "2.28.1",
-		"node-opcua-server": "2.28.3",
-		"node-opcua-service-discovery": "2.28.1",
-		"node-opcua-service-endpoints": "2.28.1",
-		"node-opcua-status-code": "2.28.0"
+		"node-opcua-secure-channel": "2.29.0",
+		"node-opcua-server": "2.29.0",
+		"node-opcua-service-discovery": "2.29.0",
+		"node-opcua-service-endpoints": "2.29.0",
+		"node-opcua-status-code": "2.29.0"
 	},
 	"author": "Etienne Rossignon",
 	"license": "MIT",
