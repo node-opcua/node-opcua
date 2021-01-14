@@ -1,10 +1,12 @@
+"use strict";
+
 const chalk = require("chalk");
 const path = require("path");
 const {
     TimestampsToReturn,
     AttributeIds,
     StatusCodes,
-    OPCUAClient,  
+    OPCUAClient,
     ClientMonitoredItem,
     coerceNodeId,
     ClientSubscription,
@@ -12,9 +14,7 @@ const {
 } = require("node-opcua");
 const {
     start_simple_server,
-    stop_simple_server
 } = require("../../test_helpers/external_server_fixture");
-
 const { make_debugLog, checkDebugFlag } = require("node-opcua-debug");
 const debugLog = make_debugLog("TEST");
 const doDebug = checkDebugFlag("TEST");
@@ -23,15 +23,6 @@ const doDebug = checkDebugFlag("TEST");
 let server_data = null;
 
 const port = 2017;
-
-async function suspend_demo_server() {
-    await server.suspendEndPoints();
-}
-
-async function resume_demo_server() {
-    await server.resumeEndPoints(callback);
-}
-
 
 let serverScript = "simple_server_that_terminate_session_too_early.js";
 async function start_external_opcua_server() {
@@ -54,15 +45,13 @@ async function start_external_opcua_server() {
 
             server_data = data;
 
-            // note: if we use localhost rather than HOSTNAME, net.connect() fails faster if 
+            // note: if we use localhost rather than HOSTNAME, net.connect() fails faster if
             //       server is not listening
             //xx server_data.endpointUrl = `opc.tcp://localhost:${port}`;
 
             resolve(err);
         });
     });
-
-
 }
 
 async function crash_external_opcua_server() {
@@ -71,7 +60,7 @@ async function crash_external_opcua_server() {
         return;
     }
     const promise = new Promise((resolve) => {
-        server_data.process.once("exit", function(err) {
+        server_data.process.once("exit", function() {
             debugLog("process killed");
             resolve();
         });
@@ -107,7 +96,7 @@ async function break_connection(client, socketError) {
     return new Promise((resolve) => setImmediate(resolve));
 }
 
-async function provoque_server_session_early_termination() {
+async function provoke_server_session_early_termination() {
     const inputArguments = [];
     const methodToCall = {
         inputArguments,
@@ -157,7 +146,7 @@ async function start_active_client(connectionStrategy) {
     await start_active_client_no_subscription(connectionStrategy);
 
     const nodeId = coerceNodeId("ns=1;s=MyCounter");
-  
+
     const parameters = {
         requestedPublishingInterval: 100,
         requestedLifetimeCount: 1000,
@@ -191,7 +180,6 @@ async function start_active_client(connectionStrategy) {
     });
 
 
-    const result = [];
     const requestedParameters = {
         samplingInterval: 250,
         queueSize: 1,
@@ -207,7 +195,6 @@ async function start_active_client(connectionStrategy) {
         if (doDebug) {
             debugLog(chalk.cyan(" ||||||||||| VALUE CHANGED !!!!"), dataValue.statusCode.toString(), dataValue.value.toString());
         }
-        result.push(dataValue);
     });
     monitoredItem.on("initialized", function() {
         if (doDebug) {
@@ -225,11 +212,7 @@ async function start_active_client(connectionStrategy) {
                 chalk.red("subscription will expire in "), subscription.evaluateRemainingLifetime() / 1000, " seconds",
                 chalk.red("subscription?"), session.subscriptionCount);
         }
-        if (!session.isChannelValid() && false) {
-            //xx debugLog(the_session.toString());
-            return; // ignore write as session is invalid for the time being
-        }
-       
+
         let nodeToWrite = {
             nodeId: nodeId,
             attributeId: AttributeIds.Value,
@@ -275,12 +258,13 @@ async function terminate_active_client() {
     client = null;
 }
 async function f(func) {
-    await async function() {
+    const debugWrapper = async function() {
         debugLog("       * " + func.name.replace(/_/g, " ").replace(/(given|when|then)/, chalk.green("**$1**")));
         await func();
         debugLog("       ! " + func.name.replace(/_/g, " ").replace(/(given|when|then)/, chalk.green("**$1**")));
 
-    }();
+    };
+    await debugWrapper();
 }
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("GHGL1 - Testing client reconnection with a crashing server that closes the session too early (such as KepwareServerEx6)", function() {
@@ -331,8 +315,7 @@ describe("GHGL1 - Testing client reconnection with a crashing server that closes
 
         let backoff_counter = 0;
         await new Promise((resolve) => {
-            function backoff_detector(retryCount, nextDelay) {
-        
+            function backoff_detector() {
                 backoff_counter += 1;
                 if (backoff_counter === 2) {
                     if (doDebug) {
@@ -409,7 +392,7 @@ describe("GHGL1 - Testing client reconnection with a crashing server that closes
     });
 
     async function when_server_closes_session_too_early() {
-        await provoque_server_session_early_termination();
+        await provoke_server_session_early_termination();
     }
     let c = 0;
     async function when_client_detects_a_sessionIdInvalid() {
@@ -435,7 +418,6 @@ describe("GHGL1 - Testing client reconnection with a crashing server that closes
         if (c < 3) {
             await when_client_detects_a_sessionIdInvalid();
         }
-        return;
     }
     async function then_it_should_succeed_to_recover() {
 
@@ -446,10 +428,9 @@ describe("GHGL1 - Testing client reconnection with a crashing server that closes
         await f(when_connection_is_broken);
         await f(then_client_should_detect_failure_and_enter_reconnection_mode);
         await f(then_client_should_reconnect);
-        await f(when_server_closes_session_too_early)
-        await f(when_client_detects_a_sessionIdInvalid)
-        await f(then_it_should_succeed_to_recover)
-
-    })
+        await f(when_server_closes_session_too_early);
+        await f(when_client_detects_a_sessionIdInvalid);
+        await f(then_it_should_succeed_to_recover);
+    });
 
 });
