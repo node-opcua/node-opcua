@@ -93,7 +93,7 @@ module.exports = function(test) {
             await client.connect(endpointUrl);
 
             // set a very short sessionTimeout
-            client.requestedSessionTimeout = 600;
+            client.requestedSessionTimeout = 1200;
 
             //xx console.log("requestedSessionTimeout = ", client1.requestedSessionTimeout);
 
@@ -103,7 +103,7 @@ module.exports = function(test) {
 
             // let check that keep alive manager is active and as a checkInterval
             // which is below session Timeout
-            session._keepAliveManager.checkInterval.should.eql(400);
+            session._keepAliveManager.checkInterval.should.eql(800);
 
             session.on("keepalive", keepalive_spy);
             session.on("keepalive", () => {
@@ -115,7 +115,7 @@ module.exports = function(test) {
 
             const timerId = setInterval(async () => {
                 await session.read({ nodeId: "ns=1;i=54" });
-            }, 500);
+            }, 300);
 
             await new Promise((resolve) => setTimeout(() => {
                 clearInterval(timerId);

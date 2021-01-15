@@ -10,7 +10,7 @@ import { DiagnosticInfo, NodeClass } from "node-opcua-data-model";
 import { DataValue, DataValueLike } from "node-opcua-data-value";
 import { NodeId } from "node-opcua-nodeid";
 import { Argument } from "node-opcua-service-call";
-import { StatusCode, StatusCodes } from "node-opcua-status-code";
+import { StatusCodes } from "node-opcua-status-code";
 import { CallMethodResultOptions } from "node-opcua-types";
 import { Variant } from "node-opcua-variant";
 import { DataType, VariantLike } from "node-opcua-variant";
@@ -152,15 +152,14 @@ export class UAMethod extends BaseNode implements UAMethodPublic {
             return callback(null, { statusCode: StatusCodes.BadMethodInvalid });
         }
 
-        if(this._permissions && context.checkPermission){
-            if(!context.checkPermission(this, "Execute")){
+        if (this._permissions && context.checkPermission) {
+            if (!context.checkPermission(this, "Execute")) {
                 return callback(null, { statusCode: StatusCodes.BadUserAccessDenied });
             }
         }
 
         // verify that input arguments are correct
         // todo :
-        const inputArgumentResults: StatusCode[] = [];
         const inputArgumentDiagnosticInfos: DiagnosticInfo[] = [];
 
         try {
@@ -178,12 +177,15 @@ export class UAMethod extends BaseNode implements UAMethodPublic {
                     callMethodResult.statusCode = callMethodResult.statusCode || StatusCodes.Good;
                     callMethodResult.outputArguments = callMethodResult.outputArguments || [];
 
-                    callMethodResult.inputArgumentResults = inputArgumentResults;
+                    callMethodResult.inputArgumentResults =
+                        callMethodResult.inputArgumentResults?.length === inputArguments?.length
+                            ? callMethodResult.inputArgumentResults
+                            : inputArguments?.map(() => StatusCodes.Good);
                     callMethodResult.inputArgumentDiagnosticInfos = inputArgumentDiagnosticInfos;
 
                     // verify that output arguments are correct according to schema
                     // Todo : ...
-                    const outputArgsDef = this.getOutputArguments();
+                    // const outputArgsDef = this.getOutputArguments();
 
                     // xx assert(outputArgsDef.length === callMethodResponse.outputArguments.length,
                     // xx     "_asyncExecutionFunction did not provide the expected number of output arguments");
