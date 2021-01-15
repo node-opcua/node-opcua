@@ -95,7 +95,8 @@ export function callMethodHelper(
                 return callback(new Error("internal Error"));
             }
 
-            callMethodResponse.inputArgumentResults = response.inputArgumentResults || [];
+            callMethodResponse.inputArgumentResults =
+                callMethodResponse.inputArgumentResults || response.inputArgumentResults || [];
             assert(callMethodResponse.statusCode);
 
             if (callMethodResponse.statusCode === StatusCodes.Good) {
