@@ -11,7 +11,6 @@ specs/
 node_modules/
 tmp/
 lerna-debug.log
-.coveralls.yml
 coverage
 *.swp
 *.bak
