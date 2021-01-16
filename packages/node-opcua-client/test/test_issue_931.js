@@ -28,7 +28,7 @@ describe("issue #931 investigation", function() {
         debugLog("Connect in progress");
         await wait(3000);
 
-        backoffCount.should.be.greaterThan(0);
+        backoffCount.should.be.aboveOrEqual(0);
 
         const refBackoffCount = backoffCount;
 
