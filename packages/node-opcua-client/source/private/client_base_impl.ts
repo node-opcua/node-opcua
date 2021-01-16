@@ -210,7 +210,7 @@ function _verify_serverCertificate(
             warningLog("serverCertificate = ", makeSHA1Thumbprint(serverCertificate).toString("hex"));
             warningLog("serverCertificate = ", serverCertificate.toString("base64"));
 
-            return callback(new Error("server Certificate verification failed with errr " + status?.toString()));
+            return callback(new Error("server Certificate verification failed with err " + status?.toString()));
         }
         callback();
     });
@@ -245,6 +245,7 @@ type InternalClientState = "idle" | "connecting" | "connected" | "reconnecting" 
 /**
  * @internal
  */
+// tslint:disable-next-line: max-classes-per-file
 export class ClientBaseImpl extends OPCUASecureObject implements OPCUAClientBase {
     /**
      * total number of requests that been canceled due to timeout
@@ -768,13 +769,7 @@ export class ClientBaseImpl extends OPCUASecureObject implements OPCUAClientBase
                     );
                 } else {
                     debugLog(chalk.yellow("  - The client certificate may not be trusted by the server"));
-                    err = new Error(
-                        "The connection has been rejected by server,\n" +
-                            // "Please check that client certificate is trusted by server.\n" +
-                            "Err = (" +
-                            err.message +
-                            ")"
-                    );
+                    err = new Error("The connection may have been rejected by server,\n" + "Err = (" + err.message + ")");
                 }
                 this.emit("connection_failed", err);
                 this._internalState = "idle";

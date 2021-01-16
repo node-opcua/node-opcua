@@ -88,7 +88,13 @@ import {
 import { WriteRequest, WriteResponse, WriteValue } from "node-opcua-service-write";
 import { StatusCode, StatusCodes, Callback } from "node-opcua-status-code";
 import { ErrorCallback } from "node-opcua-status-code";
-import { BrowseNextRequest, BrowseNextResponse, HistoryReadValueIdOptions, HistoryReadValueId, WriteValueOptions } from "node-opcua-types";
+import {
+    BrowseNextRequest,
+    BrowseNextResponse,
+    HistoryReadValueIdOptions,
+    HistoryReadValueId,
+    WriteValueOptions
+} from "node-opcua-types";
 import { buffer_ellipsis, check_flag, getFunctionParameterNames, isNullOrUndefined, lowerFirstLetter } from "node-opcua-utils";
 import { DataType, Variant, VariantLike } from "node-opcua-variant";
 
@@ -1144,8 +1150,7 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession {
             if (
                 !(getFunctionParameterNames(callback)[1] === "dataValues" || getFunctionParameterNames(callback)[1] === "dataValue")
             ) {
-                warningLog(
-                    chalk.red("[NODE-OPCUA-E005] the ClientSession#read  API has changed !!, please fix the client code"));
+                warningLog(chalk.red("[NODE-OPCUA-E04] the ClientSession#read  API has changed !!, please fix the client code"));
                 warningLog(chalk.red("   replace ..:"));
                 warningLog(chalk.cyan("   session.read(nodesToRead,function(err,nodesToRead,results) {}"));
                 warningLog(chalk.red("   with .... :"));
@@ -1232,10 +1237,10 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession {
 
         // tslint:disable-next-line:no-empty
         subscription.on("error", (err) => {
-          //  if (callback) {
-          //      callback(err);
-          //      callback = null;
-          //  }
+            //  if (callback) {
+            //      callback(err);
+            //      callback = null;
+            //  }
         });
         subscription.on("started", () => {
             assert(subscription.session === this, "expecting a session here");
