@@ -19,6 +19,10 @@ export function generateAddressSpaceRawCallback(
     xmlLoader: (nodeset2xmlUri: string, callback: CallbackT<string>) => void,
     callback?: ErrorCallback
 ): void {
+    // istanbul ignore next
+    if (!callback) {
+        throw new Error("Internal Error");
+    }
     const nodesetLoader = new NodeSetLoader(addressSpace as AddressSpace);
 
     if (!Array.isArray(xmlFiles)) {
@@ -33,7 +37,8 @@ export function generateAddressSpaceRawCallback(
         },
         (err, xmlDataArray) => {
             if (err) {
-                nodesetLoader.terminate(callback!);
+                callback!(err);
+                return;
             }
 
             async.forEachSeries(
@@ -45,14 +50,13 @@ export function generateAddressSpaceRawCallback(
                     nodesetLoader.addNodeSet(xmlData!, callback1);
                 },
                 (err?: Error | null) => {
-
                     const namepsaceArrayVar = addressSpace.findNode("Server_NamespaceArray") as UAVariable;
                     if (namepsaceArrayVar) {
-                        namepsaceArrayVar.setValueFromSource({ 
-                            dataType: "String", 
-                            value: addressSpace.getNamespaceArray().map((n)=> n.namespaceUri)
+                        namepsaceArrayVar.setValueFromSource({
+                            dataType: "String",
+                            value: addressSpace.getNamespaceArray().map((n) => n.namespaceUri)
                         });
-                    }   
+                    }
 
                     nodesetLoader.terminate(callback!);
                 }

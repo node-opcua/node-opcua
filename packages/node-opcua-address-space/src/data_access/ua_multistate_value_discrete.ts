@@ -94,6 +94,9 @@ export class UAMultiStateValueDiscrete extends UAVariable implements UAMultiStat
         // construct an index to quickly find a EnumValue from a value
         const enumValues = this.enumValues.readValue().value.value;
         const enumValueIndex: any = {};
+        if (!enumValues || !enumValues.forEach) {
+            return enumValueIndex;
+        }
         enumValues.forEach((e: any) => {
             enumValueIndex[e.value[1]] = e;
         });

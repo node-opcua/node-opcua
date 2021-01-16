@@ -121,7 +121,12 @@ type ShutdownTask = (this: AddressSpace) => void;
  */
 export class AddressSpace implements AddressSpacePrivate {
     public get rootFolder(): RootFolder {
-        return (this.findNode(this.resolveNodeId("RootFolder")) as any) as RootFolder;
+        const rootFolder = this.findNode(this.resolveNodeId("RootFolder"));
+        if (!rootFolder) {
+            // throw new Error("AddressSpace doesn't contain rootFolder object");
+            return (null as unknown) as RootFolder;
+        }
+        return (rootFolder as unknown) as RootFolder;
     }
 
     public static isNonEmptyQualifiedName = isNonEmptyQualifiedName;

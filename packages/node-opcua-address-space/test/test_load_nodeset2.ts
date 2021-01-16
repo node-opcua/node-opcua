@@ -197,6 +197,19 @@ describe("testing NodeSet XML file loading", function (this: any) {
         addressSpace.rootFolder.objects.server.serverStatus.valueRank.should.eql(-1);
     });
 
+    it("VV0 should provide appropriate error when nodeset file doesn't exist", async () => {
+        const xml_file1 = path.join(__dirname, "../test_helpers/test_fixtures/minimalist_nodeset_with_models.xml");
+        const xml_files = [xml_file1, "./missing_xml_file.xml"];
+
+        let _err: Error | undefined;
+        try {
+            await generateAddressSpace(addressSpace, xml_files);
+        } catch (err) {
+            _err = err;
+        }
+        should.exists(_err);
+        _err!.message.should.match(/.*NODE-OPCUA-E.*/);
+    });
     it("VV1 should load a nodeset file with a Models section", async () => {
         const xml_file1 = path.join(__dirname, "../test_helpers/test_fixtures/minimalist_nodeset_with_models.xml");
         const xml_files = [xml_file1];
@@ -379,7 +392,7 @@ describe("testing NodeSet XML file loading", function (this: any) {
         const xml_files = [xml_file1, xml_file2];
         await generateAddressSpace(addressSpace, xml_files);
         const dataType = addressSpace.findDataType("3DFrame", 0)!;
-        should.exist(dataType," expected to find 3DFrame DataType in addressSpace");
+        should.exist(dataType, " expected to find 3DFrame DataType in addressSpace");
     });
 
     it("VV8 ----------", async () => {
