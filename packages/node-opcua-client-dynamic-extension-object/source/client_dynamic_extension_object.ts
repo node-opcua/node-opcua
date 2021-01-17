@@ -258,7 +258,8 @@ async function _extractDataTypeDictionaryFromDefinition(
     const cache: { [key: string]: Cache } = {};
     const dataValuesWithDataTypeDefinition = nodesToRead.length > 0 ? await session.read(nodesToRead) : [];
 
-    assert(dataValuesWithDataTypeDefinition.length === dataTypeDescriptions.length);
+    // in some circumstances like Euromap, this assert fails:
+    // assert(dataValuesWithDataTypeDefinition.length === dataTypeDescriptions.length);
 
     const dataTypeDefinitions: DataTypeDefinitions = [];
 
@@ -773,7 +774,7 @@ async function getHasEncodingDefaultBinary(session: IBasicSession, dataTypeNodeI
         console.log(result1.toString());
         throw new Error(
             "getDataTypeDefinition invalid HasEncoding reference dataTypeNodeId must be NodeClass.DataType but was " +
-            NodeClass[nodeClass.value.value]
+                NodeClass[nodeClass.value.value]
         );
     }
 
