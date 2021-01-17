@@ -34,7 +34,7 @@ import { _verifyCertificate } from "node-opcua-client";
 const doDebug = checkDebugFlag(__filename);
 const debugLog = make_debugLog(__filename);
 const errorLog = make_errorLog(__filename);
-const warningLog= errorLog;
+const warningLog = errorLog;
 
 function constructFilename(p: string): string {
     let filename = path.join(__dirname, "..", p);
@@ -49,7 +49,6 @@ function constructFilename(p: string): string {
 }
 
 const default_server_info = {
-
     // The globally unique identifier for the application instance. This URI is used as
     // ServerUri in Services if the application is a Server.
     applicationUri: makeApplicationUrn(os.hostname(), "NodeOPCUA-Server"),
@@ -110,12 +109,12 @@ const emptyCallback = () => {
 };
 
 function getDefaultCertificateManager(): OPCUACertificateManager {
-
     const envPaths = require("env-paths");
-    const config  = envPaths("NodeOPCUA-Default").config;
+    const config = envPaths("NodeOPCUA-Default").config;
     return new OPCUACertificateManager({
         name: "certificates",
         rootFolder: path.join(config, "certificates"),
+
         automaticallyAcceptUnknownCertificate: true
     });
 }
@@ -146,7 +145,7 @@ export class OPCUABaseServer extends OPCUASecureObject {
         options = options || ({} as OPCUABaseServerOptions);
 
         if (!options.serverCertificateManager) {
-            options.serverCertificateManager =  getDefaultCertificateManager();
+            options.serverCertificateManager = getDefaultCertificateManager();
         }
         options.privateKeyFile = options.privateKeyFile || options.serverCertificateManager.privateKey;
         options.certificateFile =
@@ -174,7 +173,6 @@ export class OPCUABaseServer extends OPCUASecureObject {
             return resolveFullyQualifiedDomainName(__applicationUri);
         });
 
-        
         this._preInitTask.push(async () => {
             const fqdn = await extractFullyQualifiedDomainName();
         });
@@ -187,7 +185,6 @@ export class OPCUABaseServer extends OPCUASecureObject {
     protected async initializeCM(): Promise<void> {
         await this.serverCertificateManager.initialize();
         if (!fs.existsSync(this.certificateFile)) {
-
             const applicationUri = this.serverInfo.applicationUri!;
             const hostname = require("os").hostname();
             await this.serverCertificateManager.createSelfSignedCertificate({
@@ -196,15 +193,14 @@ export class OPCUABaseServer extends OPCUASecureObject {
                 // ip: await getIpAddresses(),
                 outputFile: this.certificateFile,
                 subject: "/CN=MyOPCUAServerApplicationName/O=Sterfive/L=Orleans/C=FR",
+
                 startDate: new Date(),
-                validity: 365 * 10, // 10 years 
+                validity: 365 * 10 // 10 years
             });
-  
-        } 
+        }
         debugLog("privateKey      = ", this.privateKeyFile, this.serverCertificateManager.privateKey);
         debugLog("certificateFile = ", this.certificateFile);
-        await _verifyCertificate.call(this, "server", this.serverCertificateManager,  this.serverInfo.applicationUri!);
-
+        await _verifyCertificate.call(this, "server", this.serverCertificateManager, this.serverInfo.applicationUri!);
     }
 
     /**
@@ -221,7 +217,7 @@ export class OPCUABaseServer extends OPCUASecureObject {
     }
 
     protected async performPreInitialization(): Promise<void> {
-        const tasks =   this._preInitTask;
+        const tasks = this._preInitTask;
         this._preInitTask = [];
         for (const task of tasks) {
             await task();
@@ -229,7 +225,6 @@ export class OPCUABaseServer extends OPCUASecureObject {
     }
 
     protected async startAsync(): Promise<void> {
-
         await this.performPreInitialization();
 
         const self = this;
@@ -357,7 +352,7 @@ export class OPCUABaseServer extends OPCUASecureObject {
                 chalk.green.bold("--------------------------------------------------------"),
                 channel.channelId,
                 request.schema.name
-            );    
+            );
         }
 
         let errMessage: string;

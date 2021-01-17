@@ -97,7 +97,8 @@ const applicationName = argv.applicationName;
 console.log("port                                    ", port);
 console.log("automatically accept unknown certificate", automaticallyAcceptUnknownCertificate);
 console.log("applicationName                         ", applicationName);
-; (async () => {
+
+(async () => {
     try {
 
         const fqdn = process.env.HOSTNAME || await extractFullyQualifiedDomainName();

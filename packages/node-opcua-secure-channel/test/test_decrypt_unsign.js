@@ -1,12 +1,12 @@
 
 const should = require("should");
-const makebuffer_from_trace = require("node-opcua-debug").makebuffer_from_trace;
+const makeBufferFromTrace = require("node-opcua-debug").makeBufferFromTrace;
 const inlineText = require("node-opcua-debug").inlineText;
 const hexDump = require("node-opcua-debug").hexDump;
 const crypto_utils = require("node-opcua-crypto");
 
-let buffer = makebuffer_from_trace(
-    function () {
+let buffer = makeBufferFromTrace(
+    function() {
         /*
          00000000: 4f 50 4e 46 59 06 00 00 00 00 00 00 38 00 00 00 68 74 74 70 3a 2f 2f 6f 70 63 66 6f 75 6e 64 61    OPNFY.......8...http://opcfounda
          00000020: 74 69 6f 6e 2e 6f 72 67 2f 55 41 2f 53 65 63 75 72 69 74 79 50 6f 6c 69 63 79 23 42 61 73 69 63    tion.org/UA/SecurityPolicy#Basic
@@ -65,7 +65,7 @@ let buffer = makebuffer_from_trace(
 //console.log(hexDump(buffer, 32 , 10000));
 
 const privateKey = inlineText(
-    function () {
+    function() {
         /*
          -----BEGIN RSA PRIVATE KEY-----
          MIICXQIBAAKBgQDVTV+bramiaPZc24RhmoFdL3ztiXS7QEoW3qvCfDqx4tAJKSZW
@@ -86,16 +86,16 @@ const privateKey = inlineText(
     });
 
 
-describe("testing message decryption", function () {
+describe("testing message decryption", function() {
 
-    it("should decrypt an OPN packet and verify that the signature is correct", function () {
+    it("should decrypt an OPN packet and verify that the signature is correct", function() {
 
 
         // extract the client certificate from the unencrypted part
         const senderCertificate = buffer.slice(0x4C, 0x475 + 0x4C);
 
         // where the encrypted  part starts
-        const start = buffer.length - ( 128 * 3 );
+        const start = buffer.length - (128 * 3);
         const encrypted_part = buffer.slice(start);
 
         // decrypt the encrypted part

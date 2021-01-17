@@ -30,7 +30,7 @@ export function extractFirstCertificateInChain(certificateChain?: Buffer | null)
     const c =  split_der(certificateChain);
     return c[0];
 }
-export function getThumprint(certificateChain: Buffer|null): Buffer | null {
+export function getThumbprint(certificateChain: Buffer|null): Buffer | null {
     if (!certificateChain) {
         return null;
     }

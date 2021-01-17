@@ -213,7 +213,12 @@ function _verify_serverCertificate(
             return callback(err);
         }
         if (status !== StatusCodes.Good) {
-            certificateManager.verifyCertificate(serverCertificate, (err: Error | null, status?: VerificationStatus) => {});
+            // do it again for debug purposes
+            if (doDebug) {
+                certificateManager.verifyCertificate(serverCertificate, (err1: Error | null, status1?: VerificationStatus) => {
+                    debugLog(status1);
+                });
+            }
             warningLog("serverCertificate = ", makeSHA1Thumbprint(serverCertificate).toString("hex"));
             warningLog("serverCertificate = ", serverCertificate.toString("base64"));
 
@@ -223,7 +228,7 @@ function _verify_serverCertificate(
     });
 }
 
-const forceEndpointDiscoveryOnConnect = !!parseInt(process.env.NODEOPCUA_CLIENT_FORCE_ENDPOINT_DISCOVERY || "0");
+const forceEndpointDiscoveryOnConnect = !!parseInt(process.env.NODEOPCUA_CLIENT_FORCE_ENDPOINT_DISCOVERY || "0", 10);
 debugLog("forceEndpointDiscoveryOnConnect = ", forceEndpointDiscoveryOnConnect);
 
 function getDefaultCertificateManager(): OPCUACertificateManager {
@@ -232,6 +237,7 @@ function getDefaultCertificateManager(): OPCUACertificateManager {
     return new OPCUACertificateManager({
         name: "certificates",
         rootFolder: path.join(config, "certificates"),
+
         automaticallyAcceptUnknownCertificate: true
     });
 }
@@ -632,6 +638,7 @@ export class ClientBaseImpl extends OPCUASecureObject implements OPCUAClientBase
                 // ip: await getIpAddresses(),
                 outputFile: this.certificateFile,
                 subject: "/CN=MyOPCUAClientApplicationName/O=Sterfive/L=Orleans/C=FR",
+
                 startDate: new Date(),
                 validity: 365 * 10 // 10 years
             });

@@ -42,7 +42,7 @@ import { Callback2, ErrorCallback } from "node-opcua-status-code";
 
 import { SecureMessageChunkManagerOptions, SecurityHeader } from "../secure_message_chunk_manager";
 
-import { getThumprint, ICertificateKeyPairProvider, Request, Response } from "../common";
+import { getThumbprint, ICertificateKeyPairProvider, Request, Response } from "../common";
 import { MessageBuilder, ObjectFactory } from "../message_builder";
 import { ChunkMessageOptions, MessageChunker } from "../message_chunker";
 import {
@@ -67,11 +67,9 @@ import { ICertificateManager } from "node-opcua-certificate-manager";
 
 import { ObjectRegistry } from "node-opcua-object-registry";
 
-
 const debugLog = make_debugLog(__filename);
 const doDebug = checkDebugFlag(__filename);
 const warningLog = make_warningLog(__filename);
-
 
 const doTraceMessage = process.env.NODEOPCUADEBUG && process.env.NODEOPCUADEBUG.indexOf("SERVERTRACE") >= 0;
 const doTraceRequest = process.env.NODEOPCUADEBUG && process.env.NODEOPCUADEBUG.indexOf("REQUEST") >= 0;
@@ -1039,7 +1037,7 @@ export class ServerSecureChannelLayer extends EventEmitter {
             case MessageSecurityMode.Sign:
             case MessageSecurityMode.SignAndEncrypt:
             default: {
-                const receiverCertificateThumbprint = getThumprint(this.receiverCertificate);
+                const receiverCertificateThumbprint = getThumbprint(this.receiverCertificate);
 
                 const asymmClientSecurityHeader = this.clientSecurityHeader as AsymmetricAlgorithmSecurityHeader;
 
@@ -1055,16 +1053,16 @@ export class ServerSecureChannelLayer extends EventEmitter {
                      * This indicates what Private Key was used to sign the MessageChunk.
                      * The Stack shall close the channel and report an error to the application if the SenderCertificate is too large for the buffer size supported by the transport layer.
                      * This field shall be null if the Message is not signed.
-                     * If the Certificate is signed by a CA, the DER encoded CA Certificate may be 
-                     * appended after the Certificate in the byte array. If the CA Certificate is also 
+                     * If the Certificate is signed by a CA, the DER encoded CA Certificate may be
+                     * appended after the Certificate in the byte array. If the CA Certificate is also
                      * signed by another CA this process is repeated until the entire Certificate chain
-                     *  is in the buffer or if MaxSenderCertificateSize limit is reached (the process 
-                     * stops after the last whole Certificate that can be added without exceeding 
+                     *  is in the buffer or if MaxSenderCertificateSize limit is reached (the process
+                     * stops after the last whole Certificate that can be added without exceeding
                      * the MaxSenderCertificateSize limit).
                      * Receivers can extract the Certificates from the byte array by using the Certificate
                      *  size contained in DER header (see X.509 v3).
                      */
-                     senderCertificate: this.getCertificateChain() // certificate of the private key used to sign the message
+                    senderCertificate: this.getCertificateChain() // certificate of the private key used to sign the message
                 });
             }
         }
@@ -1273,7 +1271,7 @@ export class ServerSecureChannelLayer extends EventEmitter {
             this._handle_OpenSecureChannelRequest(StatusCodes.Good, message, (/* err?: Error*/) => {});
         } else {
             if (request.schema.name === "CloseSecureChannelRequest") {
-                console.log("WARNING : RECEIVED a CloseSecureChannelRequest with MSGTYPE=" + msgType);
+                console.log("WARNING : RECEIVED a CloseSecureChannelRequest with msgType=" + msgType);
                 this.close();
             } else {
                 if (doPerfMonitoring) {
@@ -1367,9 +1365,9 @@ export class ServerSecureChannelLayer extends EventEmitter {
 
         // turn of security mode as we haven't manage to set it to
         this.securityMode = MessageSecurityMode.None;
-        //setTimeout(() => {
+        // setTimeout(() => {
         this.send_fatal_error_and_abort(serviceResult, description, message, callback);
-        //}, ServerSecureChannelLayer.throttleTime); // Throttling keep connection on hold for a while.
+        // }, ServerSecureChannelLayer.throttleTime); // Throttling keep connection on hold for a while.
     }
 
     private _on_initial_OpenSecureChannelRequest(message: Message, callback: ErrorCallback) {

@@ -4,13 +4,18 @@
 import { makeBuffer } from "node-opcua-buffer-utils";
 
 export function inlineText(f: any): string {
-    let k = f.toString().replace(/^[^\/]+\/\*!?/, "").replace(/\*\/[^\/]+$/, "");
-    k = k.split("\n").map((t: string) => t.trim()).join("\n");
+    let k = f
+        .toString()
+        .replace(/^[^\/]+\/\*!?/, "")
+        .replace(/\*\/[^\/]+$/, "");
+    k = k
+        .split("\n")
+        .map((t: string) => t.trim())
+        .join("\n");
     return k;
 }
 
 function hexString(str: string): string {
-
     let hexline: string = "";
     let lines = str.split("\n");
     if (lines.length === 0) {
@@ -39,7 +44,7 @@ function hexString(str: string): string {
 }
 
 // tslint:disable:ban-types
-export function makebuffer_from_trace(func: string | Function): Buffer {
+export function makeBufferFromTrace(func: string | Function): Buffer {
     if (typeof func === "string") {
         return makeBuffer(hexString(func as string));
     }
