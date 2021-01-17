@@ -280,7 +280,7 @@ function _serverEndpointsForCreateSessionResponse(server: OPCUAServer, endpointU
     return server
         ._get_endpoints(endpointUrl)
         .map(getRequiredEndpointInfo)
-        .filter((e) => matchUri(e.endpointUrl, endpointUrl));
+        .filter((e) => matchUri(e.endpointUrl, endpointUrl) && !(e as any).restricted);
 }
 
 function adjustSecurityPolicy(
