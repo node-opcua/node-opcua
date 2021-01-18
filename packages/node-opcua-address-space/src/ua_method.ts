@@ -181,7 +181,8 @@ export class UAMethod extends BaseNode implements UAMethodPublic {
                         callMethodResult.inputArgumentResults?.length === inputArguments?.length
                             ? callMethodResult.inputArgumentResults
                             : inputArguments?.map(() => StatusCodes.Good);
-                    callMethodResult.inputArgumentDiagnosticInfos = inputArgumentDiagnosticInfos;
+                    callMethodResult.inputArgumentDiagnosticInfos =
+                        callMethodResult.inputArgumentDiagnosticInfos || inputArgumentDiagnosticInfos;
 
                     // verify that output arguments are correct according to schema
                     // Todo : ...

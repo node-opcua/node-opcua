@@ -1,4 +1,4 @@
-
+"use strict";
 
 const should = require("should");
 
@@ -29,7 +29,7 @@ describe("DiagnosticInfo", function() {
         diag.innerStatusCode.should.eql(StatusCodes.Good);
         should(diag.innerDiagnosticInfo).eql(null);
 
-        encode_decode_round_trip_test(diag, function(buffer, id) {
+        encode_decode_round_trip_test(diag, function(buffer) {
             buffer.length.should.equal(1);
         });
 
@@ -39,7 +39,7 @@ describe("DiagnosticInfo", function() {
         const diag = new DiagnosticInfo({
             symbolicId: 120
         });
-        encode_decode_round_trip_test(diag, function(buffer, id) {
+        encode_decode_round_trip_test(diag, function(buffer) {
             buffer.length.should.equal(5);
         });
 
@@ -51,7 +51,7 @@ describe("DiagnosticInfo", function() {
             symbolicId: 120,
             locale: 128
         });
-        encode_decode_round_trip_test(diag, function(buffer, id) {
+        encode_decode_round_trip_test(diag, function(buffer) {
             buffer.length.should.equal(9);
         });
 
@@ -65,7 +65,7 @@ describe("DiagnosticInfo", function() {
             innerStatusCode: StatusCodes.BadCertificateRevocationUnknown
         });
 
-        encode_decode_round_trip_test(diag, function(buffer, id) {
+        encode_decode_round_trip_test(diag, function(buffer) {
             buffer.length.should.equal(13);
         });
 
@@ -77,7 +77,7 @@ describe("DiagnosticInfo", function() {
             innerDiagnosticInfo: new DiagnosticInfo({})
         });
 
-        encode_decode_round_trip_test(diag, function(buffer, id) {
+        encode_decode_round_trip_test(diag, function(buffer) {
             buffer.length.should.equal(2);
         });
     });
@@ -88,7 +88,7 @@ describe("DiagnosticInfo", function() {
             innerDiagnosticInfo: new DiagnosticInfo({ additionalInfo: "Hello" })
         });
 
-        encode_decode_round_trip_test(diag, function(buffer, id) {
+        encode_decode_round_trip_test(diag, function(buffer) {
             buffer.length.should.equal(2 + 4 + 5);
         });
     });
@@ -99,7 +99,7 @@ describe("DiagnosticInfo", function() {
             symbolicId: 1234
         });
 
-        encode_decode_round_trip_test(diag, function(buffer, id) {
+        encode_decode_round_trip_test(diag, function(buffer) {
             buffer.length.should.equal(5);
         });
 
@@ -111,7 +111,7 @@ describe("DiagnosticInfo", function() {
             localizedText: 1234
         });
 
-        encode_decode_round_trip_test(diag, function(buffer, id) {
+        encode_decode_round_trip_test(diag, function(buffer) {
             buffer.length.should.equal(1 + 4);
         });
 
@@ -122,7 +122,7 @@ describe("DiagnosticInfo", function() {
             namespaceURI: 1234
         });
 
-        encode_decode_round_trip_test(diag, function(buffer, id) {
+        encode_decode_round_trip_test(diag, function(buffer) {
             buffer.length.should.equal(1 + 4);
         });
 
@@ -135,13 +135,13 @@ describe("DiagnosticInfo", function() {
             namespaceURI: 1234
         });
 
-        encode_decode_round_trip_test(diag, function(buffer, id) {
+        encode_decode_round_trip_test(diag, function(buffer) {
             buffer.length.should.equal(1 + 4 + 4 + 4);
         });
 
     });
 
-    it("encodeDiagnosticInfo/decodeDiagnosticInfo", () => {
+    it("encodeDiagnosticInfo/decodeDiagnosticInfo1", () => {
 
         const stream = new BinaryStream();
         const diag = new DiagnosticInfo({
@@ -152,7 +152,7 @@ describe("DiagnosticInfo", function() {
 
         encodeDiagnosticInfo(diag, stream);
 
-        const reloaded = new DiagnosticInfo(null);
+        const reloaded = new DiagnosticInfo();
 
         stream.rewind();
         decodeDiagnosticInfo(stream, reloaded);
@@ -161,14 +161,14 @@ describe("DiagnosticInfo", function() {
         reloaded.namespaceURI.should.eql(diag.namespaceURI);
     });
 
-    it("encodeDiagnosticInfo/decodeDiagnosticInfo", () => {
+    it("encodeDiagnosticInfo/decodeDiagnosticInfo2", () => {
 
         const stream = new BinaryStream();
 
 
         encodeDiagnosticInfo(null, stream);
         stream.rewind();
-        const reloaded = new DiagnosticInfo(null);
+        const reloaded = new DiagnosticInfo();
         decodeDiagnosticInfo(stream, reloaded);
 
     });
