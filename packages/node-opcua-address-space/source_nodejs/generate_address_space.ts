@@ -1,16 +1,19 @@
 import * as async from "async";
 import * as fs from "fs";
-import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
+import { checkDebugFlag, make_debugLog, make_errorLog } from "node-opcua-debug";
 import { ErrorCallback } from "node-opcua-status-code";
 import { AddressSpace as AddressSpacePublic } from "../dist/source";
 import { generateAddressSpaceRawCallback } from "../dist/source";
 const doDebug = checkDebugFlag(__filename);
 const debugLog = make_debugLog(__filename);
+const errorLog = make_errorLog(__filename);
 
 export function readNodeSet2XmlFile(xmlFile: string, callback: (err: Error | null, xmlData?: string) => void) {
     // istanbul ignore next
     if (!fs.existsSync(xmlFile)) {
-        return callback(new Error("generateAddressSpace : cannot file nodeset2 xml file at " + xmlFile));
+        const msg = "[NODE-OPCUA-E02] generateAddressSpace : cannot find nodeset2 xml file at " + xmlFile;
+        errorLog(msg);
+        return callback(new Error(msg));
     }
     debugLog(" parsing ", xmlFile);
     fs.readFile(xmlFile, "ascii", (err, xmlData: string) => {

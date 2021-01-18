@@ -11,7 +11,7 @@ const errorLog = make_errorLog(__filename);
 const warningLog = make_warningLog(__filename);
 
 export async function _verifyCertificate(
-    this: OPCUASecureObject, 
+    this: OPCUASecureObject,
     serverOrClient: "server" | "client",
     certificateManager: OPCUACertificateManager,
     applicationUri: string
@@ -21,11 +21,11 @@ export async function _verifyCertificate(
     const privateKey = convertPEMtoDER(this.getPrivateKey());
     //
     if (!publicKeyAndPrivateKeyMatches(certificate, privateKey)) {
-        errorLog(chalk.bgWhite.red("[NODE-OPCUA-E010] Configuration error : the certificate and the private key do not match !"));
+        errorLog(chalk.bgWhite.red("[NODE-OPCUA-E01] Configuration error : the certificate and the private key do not match !"));
         errorLog(chalk.bgWhite.red("                  please check the configuration of the OPCUA Server"));
-        errorLog(chalk.bgWhite.red("                  privateKey= ", this.privateKeyFile));
-        errorLog(chalk.bgWhite.red(" cerficateManager.privateKey= ", certificateManager.privateKey));
-        errorLog(chalk.bgWhite.red("                  certificateFile= ", this.certificateFile));
+        errorLog(chalk.bgWhite.red("                    privateKey= ", this.privateKeyFile));
+        errorLog(chalk.bgWhite.red(" certificateManager.privateKey= ", certificateManager.privateKey));
+        errorLog(chalk.bgWhite.red("               certificateFile= ", this.certificateFile));
         throw new Error("Configuration error : the certificate and the private key do not match ! please fix your configuration");
     }
     // verify that the certificate provided has the right key length ( at least 2048)
@@ -33,16 +33,23 @@ export async function _verifyCertificate(
     if (privateKeyInfo.modulus.length <= 1024 / 8) {
         warningLog(
             chalk.yellowBright(
-`[NODE-OPCUA-W04] The public/private key pair uses a key length which is equal or lower than 1024 bits. 
-                 OPCUA version 1.04 requires that security key length are greater or equal to 2048 bits.  
-                 The ${serverOrClient} is operating at risk.                                             `));
+                `[NODE-OPCUA-W04] The public/private key pair uses a key length which is equal or lower than 1024 bits.
+                 OPCUA version 1.04 requires that security key length are greater or equal to 2048 bits.
+                 The ${serverOrClient} is operating at risk.                                             `
+            )
+        );
     }
     // verify that the certificate has a valid date and has expected extensions fields such as DNS and IP.
-    const status1 = await certificateManager.trustCertificate(certificate); 
+    const status1 = await certificateManager.trustCertificate(certificate);
     const status = await certificateManager.verifyCertificateAsync(certificate);
 
     if (status !== "Good") {
-        warningLog(chalk.yellowBright("[NODE-OPCUA-W04] Warning: the certificate status is = "), status, " file = ",  this.certificateFile);
+        warningLog(
+            chalk.yellowBright("[NODE-OPCUA-W04] Warning: the certificate status is = "),
+            status,
+            " file = ",
+            this.certificateFile
+        );
     }
 
     const certificateInfo = exploreCertificate(certificate);
@@ -51,42 +58,51 @@ export async function _verifyCertificate(
     // check that certificate is active
     if (certificateInfo.tbsCertificate.validity.notBefore.getTime() > now.getTime()) {
         // certificate is not active yet
-        warningLog(chalk.yellowBright(
-`[NODE-OPCUA-W02] The certificate is not active yet
+        warningLog(
+            chalk.yellowBright(
+                `[NODE-OPCUA-W02] The certificate is not active yet
                  notBefore       ${certificateInfo.tbsCertificate.validity.notBefore.toISOString()}
                  certificateFile ${this.certificateFile}
-`));
+`
+            )
+        );
     }
     //  check that certificate has not expired
     if (certificateInfo.tbsCertificate.validity.notAfter.getTime() <= now.getTime()) {
         // certificate is obsolete
-        warningLog(chalk.yellowBright(
-`[NODE-OPCUA-W03] The certificate has expired
+        warningLog(
+            chalk.yellowBright(
+                `[NODE-OPCUA-W03] The certificate has expired
                  Please regenerate a valid certificate
                  notAfter       = ${certificateInfo.tbsCertificate.validity.notAfter.toISOString()}
-                 certificateFile= ${this.certificateFile} `));
+                 certificateFile= ${this.certificateFile} `
+            )
+        );
     } else {
         const tenDays = 10 * 24 * 60 * 60 * 1000;
         if (certificateInfo.tbsCertificate.validity.notAfter.getTime() <= now.getTime() + tenDays) {
             // certificate is going to expired very soon
-            warningLog(chalk.yellowBright(
-`[NODE-OPCUA-W05] The certificate is about to expire in less than 10 days
+            warningLog(
+                chalk.yellowBright(
+                    `[NODE-OPCUA-W05] The certificate is about to expire in less than 10 days
                  Please regenerate a valid certificate as soon as possible
                  notAfter       = ${certificateInfo.tbsCertificate.validity.notAfter.toISOString()}
-                 certificateFile= ${this.certificateFile}`));
+                 certificateFile= ${this.certificateFile}`
+                )
+            );
         }
     }
     // check that server certificate matches Application URI
 
-    if (
-        certificateInfo?.tbsCertificate?.extensions?.subjectAltName?.uniformResourceIdentifier[0] !== applicationUri
-    ) {
+    if (certificateInfo?.tbsCertificate?.extensions?.subjectAltName?.uniformResourceIdentifier[0] !== applicationUri) {
         warningLog(
             chalk.yellowBright(
-`[NODE-OPCUA-W06] The certificate subjectAltName does not match the server applicationUri
+                `[NODE-OPCUA-W06] The certificate subjectAltName does not match the server applicationUri
                  Please regenerate a specific certificate that matches your server applicationUri
                  certificate subjectAltName  = ${certificateInfo.tbsCertificate.extensions?.subjectAltName?.uniformResourceIdentifier[0]}
                  applicationUri  = ${applicationUri}
-                 certificateFile = ${this.certificateFile}`));
+                 certificateFile = ${this.certificateFile}`
+            )
+        );
     }
 }

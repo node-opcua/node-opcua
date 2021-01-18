@@ -8,7 +8,7 @@ let realClearInterval;
 const doDebug = !!process.env.DEBUGTEST;
 
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
-describe("issue 696", function () {
+describe("issue 696", function() {
     before(() => {
         realSetInterval = global.setInterval;
         realClearInterval = global.clearInterval;
@@ -37,10 +37,10 @@ describe("issue 696", function () {
                 throw err;
             }
             finally {
-               await client.disconnect();
+                await client.disconnect();
             }
         }
-        test().should.be.rejectedWith(/The connection has been rejected/);
+        await test().should.be.rejectedWith(/NODE-OPCUA-E05/);
         if (doDebug) {
             console.log(`setIntervalCalls ${setIntervalCalls} vs. clearIntervalCalls ${clearIntervalCalls}`);
         }
