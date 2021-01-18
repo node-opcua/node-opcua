@@ -48,9 +48,11 @@ function createClientSocket(endpointUrl: string): Socket {
         case "websocket:":
         case "http:":
         case "https:FF":
-        default:
-            errorLog("[NODE-OPCUA-E05] this transport protocol is not supported :" + ep.protocol);
-            throw new Error("[NODE-OPCUA-E05] this transport protocol is not supported :" + ep.protocol);
+        default: {
+            const msg = "[NODE-OPCUA-E05] this transport protocol is not supported :" + ep.protocol;
+            errorLog(msg);
+            throw new Error(msg);
+        }
     }
 }
 
@@ -129,7 +131,7 @@ export class ClientTCP_transport extends TCP_transport {
         this.serverUri = "urn:" + gHostname + ":Sample";
         /* istanbul ignore next */
         if (doDebug) {
-            debugLog(chalk.cyan("ClientTCP_transport#connect(endpointUrl = "+ endpointUrl+ ")"));
+            debugLog(chalk.cyan("ClientTCP_transport#connect(endpointUrl = " + endpointUrl + ")"));
         }
         try {
             this._socket = createClientSocket(endpointUrl);
@@ -206,7 +208,10 @@ export class ClientTCP_transport extends TCP_transport {
         const _on_socket_end_for_connect = (err: Error | null) => {
             /* istanbul ignore next */
             if (doDebug) {
-                debugLog(chalk.cyan("ClientTCP_transport#connect -> _on_socket_end_for_connect Socket has been closed by server"), err);
+                debugLog(
+                    chalk.cyan("ClientTCP_transport#connect -> _on_socket_end_for_connect Socket has been closed by server"),
+                    err
+                );
             }
         };
 
