@@ -91,4 +91,36 @@ describe("issue #931 investigation", function() {
 
     });
 
+    it("931-Z connect disconnect no wait ", async () => {
+
+        const host = os.hostname();
+        const options = {
+            connectionStrategy: {
+                maxRetry: 100,
+                initialDelay: 100,
+                maxDelay: 200,
+            },
+            securityMode: MessageSecurityMode.SignAndEncrypt,
+            securityPolicy: SecurityPolicy.Basic256Sha256
+        };
+        const client = OPCUAClient.create(options);
+
+        let backoffCount = 0;
+        client.on("backoff", (retry, next) => {
+            backoffCount++;
+            debugLog("backoff", retry, next);
+        });
+
+        debugLog("Before Connect");
+        client.connect(`opc.tcp://${host}:20000`).catch((err) => {
+            debugLog("connection failed !", err.message);
+        });
+        debugLog("Connect in progress");
+        debugLog("now disconnecting");
+        await client.disconnect();
+        await wait(2000);
+        backoffCount.should.eql(0, "Backoff should stops when disconnect is called while connection is still in progress");
+
+    })
+
 });
