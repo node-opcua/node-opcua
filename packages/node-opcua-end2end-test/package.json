@@ -8,7 +8,7 @@
         "test": "mocha"
     },
     "dependencies": {
-        "node-opcua-pki": "^2.7.0"
+        "node-opcua-pki": "^2.8.0"
     },
     "devDependencies": {
         "@types/underscore": "^1.10.24",
@@ -25,7 +25,7 @@
         "node-opcua-client": "2.30.0",
         "node-opcua-client-proxy": "2.30.0",
         "node-opcua-constants": "2.29.0",
-        "node-opcua-crypto": "^1.6.0",
+        "node-opcua-crypto": "^1.7.0",
         "node-opcua-debug": "2.29.0",
         "node-opcua-extension-object": "2.29.0",
         "node-opcua-factory": "2.29.0",
