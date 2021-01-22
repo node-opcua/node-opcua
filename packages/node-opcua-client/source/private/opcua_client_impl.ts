@@ -12,7 +12,6 @@ import { callbackify } from "util";
 
 import { assert } from "node-opcua-assert";
 import { createFastUninitializedBuffer } from "node-opcua-buffer-utils";
-import { makeApplicationUrn } from "node-opcua-common";
 import {
     Certificate,
     exploreCertificate,
@@ -21,22 +20,12 @@ import {
     PrivateKeyPEM,
     toPem
 } from "node-opcua-crypto";
+
 import { LocalizedText } from "node-opcua-data-model";
-import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
-import { extractFullyQualifiedDomainName, getFullyQualifiedDomainName, getHostname, resolveFullyQualifiedDomainName } from "node-opcua-hostname";
-import {
-    ClientSecureChannelLayer,
-    computeSignature,
-    fromURI,
-    getCryptoFactory,
-    SecurityPolicy
-} from "node-opcua-secure-channel";
-import {
-    ApplicationDescriptionOptions,
-    ApplicationType,
-    EndpointDescription,
-    UserTokenType
-} from "node-opcua-service-endpoints";
+import { checkDebugFlag, make_debugLog, make_errorLog } from "node-opcua-debug";
+import { extractFullyQualifiedDomainName, getHostname, resolveFullyQualifiedDomainName } from "node-opcua-hostname";
+import { ClientSecureChannelLayer, computeSignature, fromURI, getCryptoFactory, SecurityPolicy } from "node-opcua-secure-channel";
+import { ApplicationDescriptionOptions, ApplicationType, EndpointDescription, UserTokenType } from "node-opcua-service-endpoints";
 import { MessageSecurityMode, UserTokenPolicy } from "node-opcua-service-secure-channel";
 import {
     ActivateSessionRequest,
@@ -79,9 +68,9 @@ interface TokenAndSignature {
     userTokenSignature: SignatureDataOptions;
 }
 
-const debugLog = make_debugLog(__filename);
 const doDebug = checkDebugFlag(__filename);
-const errorLog = debugLog;
+const debugLog = make_debugLog(__filename);
+const errorLog = make_errorLog(__filename);
 
 function validateServerNonce(serverNonce: Nonce | null): boolean {
     return !(serverNonce && serverNonce.length < 32) || (serverNonce && serverNonce.length === 0);
@@ -335,7 +324,9 @@ export class OPCUAClientImpl extends ClientBaseImpl implements OPCUAClient {
         // By default, the client is strict.
         if (options.hasOwnProperty("endpoint_must_exist")) {
             if (options.hasOwnProperty("endpointMustExist")) {
-                throw new Error("endpoint_must_exist is deprecated! you must now use endpointMustExist instead of endpoint_must_exist ")
+                throw new Error(
+                    "endpoint_must_exist is deprecated! you must now use endpointMustExist instead of endpoint_must_exist "
+                );
             }
             // later : console.log("Warning: endpoint_must_exist is now deprecated, use endpointMustExist instead");
             options.endpointMustExist = options.endpoint_must_exist;
@@ -771,7 +762,7 @@ export class OPCUAClientImpl extends ClientBaseImpl implements OPCUAClient {
         if (!this._secureChannel) {
             throw new Error("Invalid channel");
         }
-        assert(this.serverUri !== undefined, " must have a valid server URI "+ this.serverUri);
+        assert(this.serverUri !== undefined, " must have a valid server URI " + this.serverUri);
         assert(this.endpointUrl !== undefined, " must have a valid server endpointUrl");
         assert(this.endpoint);
 
@@ -1001,18 +992,17 @@ export class OPCUAClientImpl extends ClientBaseImpl implements OPCUAClient {
         let applicationUri: string;
         if (certificate) {
             const e = exploreCertificate(certificate);
-            if (e.tbsCertificate.extensions !== null) {
+            if (e.tbsCertificate.extensions?.subjectAltName?.uniformResourceIdentifier) {
                 applicationUri = e.tbsCertificate.extensions.subjectAltName.uniformResourceIdentifier[0];
             } else {
-                errorLog("Certificate has no extension");
+                errorLog("Certificate has no extensions.subjectAltName.uniformResourceIdentifier, ");
                 errorLog(toPem(certificate, "CERTIFICATE"));
-                applicationUri = makeApplicationUrn(getHostname(), this.applicationName);
+                applicationUri = this._getBuiltApplicationUri();
             }
         } else {
-            errorLog("client has no certificate");
-            applicationUri = makeApplicationUrn(getHostname(), this.applicationName);
+            applicationUri = this._getBuiltApplicationUri();
         }
-        return resolveFullyQualifiedDomainName(applicationUri);
+        return applicationUri;
     }
 
     /**

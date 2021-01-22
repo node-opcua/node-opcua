@@ -23,15 +23,11 @@ import {
     OPCUADiscoveryServer
 } from "node-opcua";
 import { readCertificate, exploreCertificate } from "node-opcua-crypto";
-import { 
-    createServerThatRegisterWithDiscoveryServer, 
-    ep, 
-    startDiscovery
- } from "./_helper";
+import { createServerThatRegisterWithDiscoveryServer, ep, startDiscovery } from "./_helper";
 
- const configFolder = path.join(__dirname, "../../tmp");
+const configFolder = path.join(__dirname, "../../tmp");
 
-import { checkDebugFlag, make_debugLog } from  "node-opcua-debug";
+import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 const debugLog = make_debugLog("TEST");
 const doDebug = checkDebugFlag("TEST");
 
@@ -51,7 +47,7 @@ process.on("uncaughtException", function (err) {
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 export function t(test: any) {
     describe("DS1 - DiscoveryServer1", function (this: any) {
-        this.timeout(30*1000);
+        this.timeout(30 * 1000);
 
         let discovery_server: OPCUADiscoveryServer | undefined;
         let discoveryServerEndpointUrl: string;
@@ -247,7 +243,6 @@ export function t(test: any) {
         }
 
         it("DS2-A should register server to the discover server 2", async () => {
-         
             const applicationUri = makeApplicationUrn(os.hostname(), "NodeOPCUA-Server");
 
             // there should be no endpoint exposed by an blank discovery server
@@ -318,7 +313,11 @@ export function t(test: any) {
         let discoveryServer: OPCUADiscoveryServer;
         let discoveryServerEndpointUrl: string;
 
-        let server1: OPCUAServer, server2: OPCUAServer, server3: OPCUAServer, server4: OPCUAServer, server5: OPCUAServer;
+        let server1: OPCUAServer;
+        let server2: OPCUAServer;
+        let server3: OPCUAServer;
+        let server4: OPCUAServer;
+        let server5: OPCUAServer;
 
         discoveryServerEndpointUrl = `opc.tcp://localhost:${port_discovery}`; // discovery_server.endpoint[0].endpointUrl;
 

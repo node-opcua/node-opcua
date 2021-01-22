@@ -9,6 +9,7 @@ import { EventEmitter } from "events";
 import { assert } from "node-opcua-assert";
 import { ErrorCallback, UAString } from "node-opcua-basic-types";
 import {
+    coerceLocalizedText,
     LocalizedTextLike,
     LocalizedTextOptions,
     OPCUAClientBase,
@@ -383,10 +384,15 @@ export class RegisterServerManager extends EventEmitter implements IRegisterServ
 
         // Retry Strategy must be set
         const client = OPCUAClientBase.create({
-            certificateFile: this.server.certificateFile,
             clientName: this.server.serverInfo.applicationUri!,
-            applicationName: this.server.serverInfo.applicationUri!,
+
+            applicationName: coerceLocalizedText(this.server.serverInfo.applicationName!)?.toString() || undefined,
+
+            applicationUri: this.server.serverInfo.applicationUri!,
+
             connectionStrategy: infinite_connectivity_strategy,
+
+            certificateFile: this.server.certificateFile,
             privateKeyFile: this.server.privateKeyFile
         }) as ClientBaseEx;
 
@@ -603,9 +609,12 @@ export class RegisterServerManager extends EventEmitter implements IRegisterServ
             certificateFile: server.certificateFile,
             privateKeyFile: server.privateKeyFile,
 
-            clientName: server.serverInfo.applicationUri!,
-            applicationName: server.serverInfo.applicationUri!,
-            
+            // xx clientName: server.serverInfo.applicationUri!,
+
+            applicationName: coerceLocalizedText(server.serverInfo.applicationName!)?.toString() || undefined,
+
+            applicationUri: server.serverInfo.applicationUri!,
+
             connectionStrategy: no_reconnect_connectivity_strategy
         };
 

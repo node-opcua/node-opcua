@@ -5,9 +5,9 @@ import * as os from "os";
 import * as path from "path";
 import { should } from "should";
 import { promisify } from "util";
-
+import { hostname } from "os";
 import { OPCUACertificateManager } from "node-opcua-certificate-manager";
-import { ClientSession, OPCUAClient, UserIdentityInfoUserName } from "node-opcua-client";
+import { ClientSession, makeApplicationUrn, OPCUAClient, UserIdentityInfoUserName } from "node-opcua-client";
 import {
     Certificate,
     convertPEMtoDER,
@@ -78,7 +78,7 @@ describe("Testing server configured with push certificate management", () => {
         clientCertificateFile = path.join(clientCertificateManager.rootDir, "own/certs/certificate.pem");
         // recreate certificate every time ! ( short date)
         await clientCertificateManager.createSelfSignedCertificate({
-            applicationUri: "NodeOPCUA-Client",
+            applicationUri: makeApplicationUrn(hostname(), "NodeOPCUA-Client"),
 
             subject: "CN=Test",
 

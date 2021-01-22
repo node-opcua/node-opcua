@@ -35,7 +35,7 @@ import {
     UAVariable,
     UAView
 } from "node-opcua-address-space";
-import { OPCUACertificateManager } from "node-opcua-certificate-manager";
+import { getDefaultCertificateManager, OPCUACertificateManager } from "node-opcua-certificate-manager";
 import { ServerState } from "node-opcua-common";
 import { Certificate, exploreCertificate, Nonce, toPem } from "node-opcua-crypto";
 import { AttributeIds, LocalizedText, NodeClass } from "node-opcua-data-model";
@@ -192,7 +192,7 @@ const default_build_info: BuildInfoOptions = {
     productUri: null, // << should be same as default_server_info.productUri?
     softwareVersion: package_info.version,
     buildNumber: "0",
-    buildDate: new Date(2020,1,1)
+    buildDate: new Date(2020, 1, 1)
     // xx buildDate: fs.statSync(package_json_file).mtime
 };
 
@@ -246,10 +246,10 @@ function getRequiredEndpointInfo(endpoint: EndpointDescription) {
         securityLevel: endpoint.securityLevel,
         securityMode: endpoint.securityMode,
         securityPolicyUri: endpoint.securityPolicyUri,
-        server: { 
+        server: {
             applicationUri: endpoint.server.applicationUri,
             applicationType: endpoint.server.applicationType,
-            applicationName: endpoint.server.applicationName,
+            applicationName: endpoint.server.applicationName
             // ... to be continued after verifying what fields are actually needed
         },
         transportProfileUri: endpoint.transportProfileUri,
@@ -496,12 +496,7 @@ function isMonitoringModeValid(monitoringMode: MonitoringMode): boolean {
  * @param isOnline
  * @param outer_callback
  */
-function _registerServer(
-    this: OPCUAServer,
-    discoveryServerEndpointUrl: string,
-    isOnline: boolean,
-    outer_callback: ErrorCallback
-) {
+function _registerServer(this: OPCUAServer, discoveryServerEndpointUrl: string, isOnline: boolean, outer_callback: ErrorCallback) {
     assert(typeof discoveryServerEndpointUrl === "string");
     assert(typeof isOnline === "boolean");
     const self = this;
@@ -816,7 +811,6 @@ const g_requestExactEndpointUrl: boolean = !!process.env.NODEOPCUA_SERVER_REQUES
  *
  */
 export class OPCUAServer extends OPCUABaseServer {
-
     static defaultShutdownTimeout: number = 100; // 250 ms
     /**
      * if requestExactEndpointUrl is set to true the server will only accept createSession that have a endpointUrl that strictly matches
@@ -977,7 +971,7 @@ export class OPCUAServer extends OPCUABaseServer {
         this.maxConnectionsPerEndpoint = options.maxConnectionsPerEndpoint || default_maxConnectionsPerEndpoint;
 
         // build Info
-        let buildInfo: BuildInfoOptions = { 
+        let buildInfo: BuildInfoOptions = {
             ...default_build_info,
             ...options.buildInfo
         };
@@ -1012,9 +1006,7 @@ export class OPCUAServer extends OPCUABaseServer {
         _installRegisterServerManager(this);
 
         if (!options.userCertificateManager) {
-            this.userCertificateManager = new OPCUACertificateManager({
-                name: "UserPKI"
-            });
+            this.userCertificateManager = getDefaultCertificateManager("UserPKI");
         } else {
             this.userCertificateManager = options.userCertificateManager;
         }
@@ -1022,7 +1014,6 @@ export class OPCUAServer extends OPCUABaseServer {
         // note: we need to delay initialization of endpoint as certain resources
         // such as %FQDN% might not be ready yet at this stage
         this._delayInit = async () => {
-
             /* istanbul ignore next */
             if (!options) {
                 throw new Error("Internal Error");
@@ -1100,7 +1091,7 @@ export class OPCUAServer extends OPCUABaseServer {
         const done = args[0] as (err?: Error) => void;
         assert(!this.initialized, "server is already initialized"); // already initialized ?
 
-        this._preInitTask.push(async ()=>{
+        this._preInitTask.push(async () => {
             /* istanbul ignore else */
             if (this._delayInit) {
                 await this._delayInit();
@@ -1108,18 +1099,19 @@ export class OPCUAServer extends OPCUABaseServer {
             }
         });
 
-        this.performPreInitialization().then(()=>{
-    
-            OPCUAServer.registry.register(this);
-            this.engine.initialize(this.options, () => {
-                setImmediate(() => {
-                    this.emit("post_initialize");
-                    done();
+        this.performPreInitialization()
+            .then(() => {
+                OPCUAServer.registry.register(this);
+                this.engine.initialize(this.options, () => {
+                    setImmediate(() => {
+                        this.emit("post_initialize");
+                        done();
+                    });
                 });
-            });    
-        }).catch((err) => {
-            done(err);
-        });
+            })
+            .catch((err) => {
+                done(err);
+            });
     }
 
     /**
@@ -1140,7 +1132,6 @@ export class OPCUAServer extends OPCUABaseServer {
             });
         }
         tasks.push((callback: ErrorCallback) => {
-            
             super.start((err?: Error | null) => {
                 if (err) {
                     this.shutdown((/*err2*/ err2?: Error) => {
@@ -1208,15 +1199,14 @@ export class OPCUAServer extends OPCUABaseServer {
         }
 
         this.userCertificateManager.dispose();
-        
-    
+
         this.engine.setServerState(ServerState.Shutdown);
 
         const shutdownTime = new Date(Date.now() + timeout);
         this.engine.setShutdownTime(shutdownTime);
 
         debugLog("OPCUAServer is now unregistering itself from  the discovery server " + this.buildInfo);
-        this.registerServerManager!.stop((err?: Error |null) => {
+        this.registerServerManager!.stop((err?: Error | null) => {
             debugLog("OPCUAServer unregistered from discovery server", err);
             setTimeout(() => {
                 this.engine.shutdown();
@@ -3447,7 +3437,6 @@ export class OPCUAServer extends OPCUABaseServer {
         await super.initializeCM();
         await this.userCertificateManager.initialize();
     }
-
 }
 
 export interface RaiseEventAuditEventData extends RaiseEventData {
@@ -3517,7 +3506,7 @@ export interface RaiseEventAuditActivateSessionEventData extends RaiseEventAudit
 }
 
 // tslint:disable:no-empty-interface
-export interface RaiseEventTransitionEventData extends RaiseEventData { }
+export interface RaiseEventTransitionEventData extends RaiseEventData {}
 
 export interface RaiseEventAuditUrlMismatchEventTypeData extends RaiseEventData {
     endpointUrl: PseudoVariantString;

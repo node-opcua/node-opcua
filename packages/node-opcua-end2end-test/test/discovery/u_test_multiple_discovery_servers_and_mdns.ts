@@ -1,7 +1,14 @@
-"use strict";
+import * as os from "os";
+import "should";
 
-import { OPCUAServer, findServers, findServersOnNetwork, RegisterServerMethod, OPCUABaseServer } from "node-opcua";
-const should = require("should");
+import {
+    OPCUAServer,
+    findServers,
+    findServersOnNetwork,
+    RegisterServerMethod,
+    OPCUABaseServer,
+    makeApplicationUrn
+} from "node-opcua";
 
 import { OPCUADiscoveryServer } from "node-opcua-server-discovery";
 import { createAndStartServer, ep, startDiscovery } from "./_helper";
@@ -12,15 +19,18 @@ const doDebug = checkDebugFlag("TEST");
 
 // add the tcp/ip endpoint with no security
 
+// tslint:disable-next-line: no-var-requires
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
-
 export function t(test: any) {
     describe("DS4 - Many discovery servers sharing ServerOnNetworks list", function (this: any) {
         this.timeout(30000);
 
-        let discoveryServer1: OPCUADiscoveryServer, discoveryServerEndpointUrl1: string;
-        let discoveryServer2: OPCUADiscoveryServer, discoveryServerEndpointUrl2: string;
-        let discoveryServer3: OPCUADiscoveryServer, discoveryServerEndpointUrl3: string;
+        let discoveryServer1: OPCUADiscoveryServer;
+        let discoveryServerEndpointUrl1: string;
+        let discoveryServer2: OPCUADiscoveryServer;
+        let discoveryServerEndpointUrl2: string;
+        let discoveryServer3: OPCUADiscoveryServer;
+        let discoveryServerEndpointUrl3: string;
 
         before(() => {
             OPCUAServer.registry.count().should.eql(0);
@@ -62,12 +72,14 @@ export function t(test: any) {
             discoveryServer2.registeredServerCount.should.equal(0);
             discoveryServer3.registeredServerCount.should.equal(0);
 
-            let server1: OPCUAServer, server2: OPCUAServer, server3: OPCUAServer;
+            let server1: OPCUAServer;
+            let server2: OPCUAServer;
+            let server3: OPCUAServer;
 
             if (doDebug) {
-                console.log("discoveryServerEndpointUrl1", discoveryServerEndpointUrl1);
-                console.log("discoveryServerEndpointUrl2", discoveryServerEndpointUrl2);
-                console.log("discoveryServerEndpointUrl3", discoveryServerEndpointUrl3);
+                debugLog("discoveryServerEndpointUrl1", discoveryServerEndpointUrl1);
+                debugLog("discoveryServerEndpointUrl2", discoveryServerEndpointUrl2);
+                debugLog("discoveryServerEndpointUrl3", discoveryServerEndpointUrl3);
             }
 
             let initialServerCount = 0;
@@ -95,12 +107,13 @@ export function t(test: any) {
             discoveryServer2.registeredServerCount.should.equal(1);
             discoveryServer3.registeredServerCount.should.equal(1);
 
+            const hostname = os.hostname();
             {
                 const data = await findServers(discoveryServerEndpointUrl1);
                 const { servers, endpoints } = data!;
                 servers.length.should.eql(2);
                 servers[0].applicationUri!.should.eql(`urn:localhost:LDS-${port_discover1}`);
-                servers[1].applicationUri!.should.eql("urn:A1");
+                servers[1].applicationUri!.should.eql(makeApplicationUrn(hostname, `A1`));
             }
             {
                 const data = await findServers(discoveryServerEndpointUrl2);
@@ -111,7 +124,7 @@ export function t(test: any) {
                 debugLog("servers[1].applicationUri = ", servers[1].applicationUri);
                 servers.length.should.eql(2);
                 servers[0].applicationUri!.should.eql(`urn:localhost:LDS-${port_discover2}`);
-                servers[1].applicationUri!.should.eql("urn:A2");
+                servers[1].applicationUri!.should.eql(makeApplicationUrn(hostname, `A2`));
             }
 
             await new Promise((resolve) => setTimeout(resolve, 1000));
@@ -121,7 +134,7 @@ export function t(test: any) {
                 const { servers, endpoints } = data!;
                 servers.length.should.eql(2);
                 servers[0].applicationUri!.should.eql(`urn:localhost:LDS-${port_discover3}`);
-                servers[1].applicationUri!.should.eql("urn:A3");
+                servers[1].applicationUri!.should.eql(makeApplicationUrn(hostname, `A3`));
             }
 
             await new Promise((resolve) => setTimeout(resolve, 1000));
@@ -151,7 +164,7 @@ export function t(test: any) {
                 if (doDebug) {
                     debugLog(servers!.map((x) => x.discoveryUrl).join("\n"));
                 }
-                //xxservers.length.should.eql(6);
+                // xxservers.length.should.eql(6);
                 debugLog("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx");
             }
 

@@ -7,15 +7,16 @@ import * as chalk from "chalk";
 import * as fs from "fs";
 import * as path from "path";
 import * as os from "os";
+import * as envPaths from "env-paths";
 
 import { assert } from "node-opcua-assert";
-import { ICertificateManager, OPCUACertificateManager } from "node-opcua-certificate-manager";
+import { getDefaultCertificateManager, ICertificateManager, OPCUACertificateManager } from "node-opcua-certificate-manager";
 import { IOPCUASecureObjectOptions, makeApplicationUrn, OPCUASecureObject } from "node-opcua-common";
 import { coerceLocalizedText, LocalizedText } from "node-opcua-data-model";
 import { installPeriodicClockAdjustment, uninstallPeriodicClockAdjustment } from "node-opcua-date-time";
 import { checkDebugFlag, make_debugLog, make_errorLog } from "node-opcua-debug";
 import { displayTraceFromThisProjectOnly } from "node-opcua-debug";
-import { extractFullyQualifiedDomainName, resolveFullyQualifiedDomainName } from "node-opcua-hostname";
+import { extractFullyQualifiedDomainName, getHostname, resolveFullyQualifiedDomainName } from "node-opcua-hostname";
 import { Message, Response, ServerSecureChannelLayer, ServerSecureChannelParent } from "node-opcua-secure-channel";
 import { FindServersRequest, FindServersResponse } from "node-opcua-service-discovery";
 import { ApplicationType, GetEndpointsResponse } from "node-opcua-service-endpoints";
@@ -29,7 +30,7 @@ import { matchUri } from "node-opcua-utils";
 import { OPCUAServerEndPoint } from "./server_end_point";
 import { IChannelData } from "./i_channel_data";
 import { ISocketData } from "./i_socket_data";
-import { _verifyCertificate } from "node-opcua-client";
+import { performCertificateSanityCheck } from "node-opcua-client";
 
 const doDebug = checkDebugFlag(__filename);
 const debugLog = make_debugLog(__filename);
@@ -108,17 +109,6 @@ const emptyCallback = () => {
     /* empty */
 };
 
-function getDefaultCertificateManager(): OPCUACertificateManager {
-    const envPaths = require("env-paths");
-    const config = envPaths("NodeOPCUA-Default").config;
-    return new OPCUACertificateManager({
-        name: "certificates",
-        rootFolder: path.join(config, "certificates"),
-
-        automaticallyAcceptUnknownCertificate: true
-    });
-}
-
 /**
  * @class OPCUABaseServer
  * @constructor
@@ -145,7 +135,7 @@ export class OPCUABaseServer extends OPCUASecureObject {
         options = options || ({} as OPCUABaseServerOptions);
 
         if (!options.serverCertificateManager) {
-            options.serverCertificateManager = getDefaultCertificateManager();
+            options.serverCertificateManager = getDefaultCertificateManager("PKI");
         }
         options.privateKeyFile = options.privateKeyFile || options.serverCertificateManager.privateKey;
         options.certificateFile =
@@ -167,6 +157,8 @@ export class OPCUABaseServer extends OPCUASecureObject {
 
         this.serverInfo = new ApplicationDescription(serverInfo);
 
+        assert(!this.serverInfo.applicationName.toString().match(/urn:/), "application name cannot be a urn");
+
         const __applicationUri = serverInfo.applicationUri || "";
 
         (this.serverInfo as any).__defineGetter__("applicationUri", function (this: any) {
@@ -182,25 +174,32 @@ export class OPCUABaseServer extends OPCUASecureObject {
         });
     }
 
-    protected async initializeCM(): Promise<void> {
-        await this.serverCertificateManager.initialize();
+    protected async createDefaultCertificate() {
         if (!fs.existsSync(this.certificateFile)) {
             const applicationUri = this.serverInfo.applicationUri!;
-            const hostname = require("os").hostname();
+            const hostname = getHostname();
             await this.serverCertificateManager.createSelfSignedCertificate({
                 applicationUri,
                 dns: [hostname],
                 // ip: await getIpAddresses(),
                 outputFile: this.certificateFile,
-                subject: "/CN=MyOPCUAServerApplicationName/O=Sterfive/L=Orleans/C=FR",
+
+                subject:
+                    `/CN=${this.serverInfo.applicationName.text}@${hostname}` +
+                    `/DC=${hostname}` +
+                    OPCUACertificateManager.defaultCertificateSubject,
 
                 startDate: new Date(),
                 validity: 365 * 10 // 10 years
             });
         }
+    }
+    protected async initializeCM(): Promise<void> {
+        await this.serverCertificateManager.initialize();
+        await this.createDefaultCertificate();
         debugLog("privateKey      = ", this.privateKeyFile, this.serverCertificateManager.privateKey);
         debugLog("certificateFile = ", this.certificateFile);
-        await _verifyCertificate.call(this, "server", this.serverCertificateManager, this.serverInfo.applicationUri!);
+        await performCertificateSanityCheck.call(this, "server", this.serverCertificateManager, this.serverInfo.applicationUri!);
     }
 
     /**

@@ -53,16 +53,10 @@ const userManager = {
     }
 };
 
-const server_certificate_file = constructFilename("certificates/server_selfsigned_cert_2048.pem");
-const server_certificate_privatekey_file = constructFilename("certificates/server_key_2048.pem");
-
 const server_options = {
     securityPolicies: [SecurityPolicy.Basic128Rsa15, SecurityPolicy.Basic256],
 
     securityModes: [MessageSecurityMode.Sign, MessageSecurityMode.SignAndEncrypt],
-
-    certificateFile: server_certificate_file,
-    privateKeyFile: server_certificate_privatekey_file,
 
     port,
 
@@ -70,8 +64,8 @@ const server_options = {
 
     serverInfo: {
         applicationName: { text: "NodeOPCUA", locale: "en" },
-        applicationUri: makeApplicationUrn(os.hostname(), "NodeOPCUA-Server"),
-        productUri: "NodeOPCUA-Server",
+        applicationUri: makeApplicationUrn(os.hostname(), "NodeOPCUA-SecureServer"),
+        productUri: "NodeOPCUA-SecureServer",
 
         discoveryProfileUri: null,
         discoveryUrls: [],

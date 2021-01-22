@@ -12,6 +12,10 @@ import { IOPCUASecureObjectOptions, OPCUASecureObject } from "node-opcua-common"
 import { Certificate, makeSHA1Thumbprint, Nonce } from "node-opcua-crypto";
 import { installPeriodicClockAdjustment, periodicClockAdjustment, uninstallPeriodicClockAdjustment } from "node-opcua-date-time";
 import { checkDebugFlag, make_debugLog, make_errorLog, make_warningLog } from "node-opcua-debug";
+
+import { makeApplicationUrn } from "node-opcua-common";
+import { getHostname, resolveFullyQualifiedDomainName } from "node-opcua-hostname";
+
 import {
     ClientSecureChannelLayer,
     coerceConnectionStrategy,
@@ -54,8 +58,8 @@ import {
     OPCUAClientBaseOptions
 } from "../client_base";
 import { ClientSessionImpl } from "./client_session_impl";
-import { OPCUACertificateManager } from "node-opcua-certificate-manager";
-import { _verifyCertificate } from "../verify";
+import { getDefaultCertificateManager, OPCUACertificateManager } from "node-opcua-certificate-manager";
+import { performCertificateSanityCheck } from "../verify";
 import { VerificationStatus } from "node-opcua-pki";
 
 // tslint:disable-next-line:no-var-requires
@@ -92,6 +96,7 @@ function __findEndpoint(this: OPCUAClientBase, endpointUrl: string, params: Find
 
     const options: OPCUAClientBaseOptions = {
         applicationName: params.applicationName,
+        applicationUri: params.applicationUri,
         certificateFile: params.certificateFile,
         clientCertificateManager: params.clientCertificateManager,
         connectionStrategy: params.connectionStrategy,
@@ -231,17 +236,6 @@ function _verify_serverCertificate(
 const forceEndpointDiscoveryOnConnect = !!parseInt(process.env.NODEOPCUA_CLIENT_FORCE_ENDPOINT_DISCOVERY || "0", 10);
 debugLog("forceEndpointDiscoveryOnConnect = ", forceEndpointDiscoveryOnConnect);
 
-function getDefaultCertificateManager(): OPCUACertificateManager {
-    const envPaths = require("env-paths");
-    const config = envPaths("NodeOPCUA-Default").config;
-    return new OPCUACertificateManager({
-        name: "certificates",
-        rootFolder: path.join(config, "certificates"),
-
-        automaticallyAcceptUnknownCertificate: true
-    });
-}
-
 class ClockAdjustment {
     constructor() {
         debugLog("installPeriodicClockAdjustment ", periodicClockAdjustment.timerInstallationCount);
@@ -335,6 +329,7 @@ export class ClientBaseImpl extends OPCUASecureObject implements OPCUAClientBase
     public endpointUrl: string;
     public discoveryUrl: string;
     public readonly applicationName: string;
+    private _applicationUri: string;
 
     /**
      * true if session shall periodically probe the server to keep the session alive and prevent timeout
@@ -366,13 +361,19 @@ export class ClientBaseImpl extends OPCUASecureObject implements OPCUAClientBase
         options = options || {};
 
         if (!options.clientCertificateManager) {
-            options.clientCertificateManager = getDefaultCertificateManager();
+            options.clientCertificateManager = getDefaultCertificateManager("PKI");
         }
         options.privateKeyFile = options.privateKeyFile || options.clientCertificateManager.privateKey;
         options.certificateFile =
-            options.certificateFile || path.join(options.clientCertificateManager.rootDir, "client_certificate.pem");
+            options.certificateFile || path.join(options.clientCertificateManager.rootDir, "own/certs/client_certificate.pem");
 
         super(options as IOPCUASecureObjectOptions);
+
+        this.applicationName = options.applicationName || "NodeOPCUA-Client";
+
+        assert(!this.applicationName.match(/urn:/), "applicationName should not be a URI");
+
+        this._applicationUri = options.applicationUri || this._getBuiltApplicationUri();
 
         this.disconnecting = false;
         this._internalState = "idle";
@@ -416,8 +417,6 @@ export class ClientBaseImpl extends OPCUASecureObject implements OPCUAClientBase
          * @type {boolean}
          */
         this.keepPendingSessionsOnDisconnect = options.keepPendingSessionsOnDisconnect || false;
-
-        this.applicationName = options.applicationName || "NodeOPCUA-Client";
 
         this.discoveryUrl = options.discoveryUrl || "";
     }
@@ -626,18 +625,19 @@ export class ClientBaseImpl extends OPCUASecureObject implements OPCUAClientBase
         );
     }
 
-    protected async initializeCM(): Promise<void> {
-        await this.clientCertificateManager.initialize();
+    protected async createDefaultCertificate() {
         if (!fs.existsSync(this.certificateFile)) {
-            const applicationUri: string = this.applicationName;
+            const applicationName = this.applicationName;
+            const applicationUri: string = this._getBuiltApplicationUri();
+            const hostname = getHostname();
             // this.serverInfo.applicationUri!;
-            const hostname = require("os").hostname();
             await this.clientCertificateManager.createSelfSignedCertificate({
                 applicationUri,
                 dns: [hostname],
                 // ip: await getIpAddresses(),
                 outputFile: this.certificateFile,
-                subject: "/CN=MyOPCUAClientApplicationName/O=Sterfive/L=Orleans/C=FR",
+                subject:
+                    `/CN=${applicationName}@${hostname}` + `/DC=${hostname}` + OPCUACertificateManager.defaultCertificateSubject,
 
                 startDate: new Date(),
                 validity: 365 * 10 // 10 years
@@ -646,12 +646,22 @@ export class ClientBaseImpl extends OPCUASecureObject implements OPCUAClientBase
             debugLog("                = ", this.clientCertificateManager.privateKey);
             debugLog("certificateFile = ", this.certificateFile);
         }
-
-        // istanbul ignore next
         if (!fs.existsSync(this.certificateFile)) {
             throw new Error(" cannot locate certificate file " + this.certificateFile);
         }
+    }
 
+    protected _getBuiltApplicationUri(): string {
+        if (!this._applicationUri) {
+            this._applicationUri = resolveFullyQualifiedDomainName(makeApplicationUrn(getHostname(), this.applicationName));
+        }
+        return this._applicationUri;
+    }
+
+    protected async initializeCM(): Promise<void> {
+        await this.clientCertificateManager.initialize();
+        await this.createDefaultCertificate();
+        // istanbul ignore next
         // istanbul ignore next
         if (!fs.existsSync(this.privateKeyFile)) {
             throw new Error(" cannot locate private key file " + this.privateKeyFile);
@@ -659,7 +669,7 @@ export class ClientBaseImpl extends OPCUASecureObject implements OPCUAClientBase
 
         if (this.disconnecting) return;
 
-        await _verifyCertificate.call(this, "client", this.clientCertificateManager, this.applicationName);
+        await performCertificateSanityCheck.call(this, "client", this.clientCertificateManager, this._getBuiltApplicationUri());
     }
 
     protected _internalState: InternalClientState;
@@ -1094,6 +1104,7 @@ export class ClientBaseImpl extends OPCUASecureObject implements OPCUAClientBase
         str += "        .randomisationFactor.... " + this.connectionStrategy.randomisationFactor + "\n";
         str += "  keepSessionAlive.............. " + this.keepSessionAlive + "\n";
         str += "  applicationName............... " + this.applicationName + "\n";
+        str += "  applicationUri................ " + this._getBuiltApplicationUri() + "\n";
         str += "  clientName.................... " + this.clientName + "\n";
 
         if (this._secureChannel) {
@@ -1136,7 +1147,7 @@ export class ClientBaseImpl extends OPCUASecureObject implements OPCUAClientBase
         const certificateFile = this.certificateFile;
         const privateKeyFile = this.privateKeyFile;
         const applicationName = this.applicationName;
-
+        const applicationUri = this._applicationUri;
         const params = {
             connectionStrategy: this.connectionStrategy,
             endpointMustExist: false,
@@ -1144,6 +1155,8 @@ export class ClientBaseImpl extends OPCUASecureObject implements OPCUAClientBase
             securityPolicy: this.securityPolicy,
 
             applicationName,
+            applicationUri,
+
             certificateFile,
             privateKeyFile,
 

@@ -20,11 +20,11 @@ const envPaths = require("env-paths");
 
 const paths = envPaths("node-opcua-local-discovery-server");
 const configFolder = paths.config;
-const pkiFolder = path.join(configFolder, "pki");
+const pkiFolder = path.join(configFolder, "PKI");
 const serverCertificateManager = new OPCUACertificateManager({
     automaticallyAcceptUnknownCertificate: true,
     rootFolder: pkiFolder,
-    name: "pki"
+    name: "PKI"
 });
 
 async function getIpAddresses() {
@@ -117,7 +117,7 @@ console.log("applicationName                         ", applicationName);
             console.log("Creating self-signed certificate", certificateFile);
 
             await serverCertificateManager.createSelfSignedCertificate({
-                applicationUri: applicationUri,
+                applicationUri,
                 dns: argv.alternateHostname ? [argv.alternateHostname, fqdn] : [fqdn],
                 ip: await getIpAddresses(),
                 outputFile: certificateFile,

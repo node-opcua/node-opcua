@@ -3,7 +3,16 @@ import * as os from "os";
 import * as fs from "fs";
 import * as chalk from "chalk";
 import "should";
-import { ErrorCallback, OPCUABaseServer, OPCUACertificateManager, OPCUADiscoveryServer, OPCUAServer, RegisterServerMethod } from "node-opcua";
+import {
+    assert,
+    ErrorCallback,
+    makeApplicationUrn,
+    OPCUABaseServer,
+    OPCUACertificateManager,
+    OPCUADiscoveryServer,
+    OPCUAServer,
+    RegisterServerMethod
+} from "node-opcua";
 import { make_debugLog, checkDebugFlag } from "node-opcua-debug";
 const debugLog = make_debugLog("TEST");
 const doDebug = checkDebugFlag("TEST");
@@ -32,14 +41,15 @@ export async function createServerThatRegisterWithDiscoveryServer(
     const serverCertificateManager = new OPCUACertificateManager({
         // keySize: 4096,
         automaticallyAcceptUnknownCertificate: true,
-        rootFolder: pkiFolder,
-        name: "pki" + name
+        name: "pki" + name,
+        rootFolder: pkiFolder
     });
     await serverCertificateManager.initialize();
-    const privateKeyFile = serverCertificateManager.privateKey;
     const certificateFile = path.join(serverCertificateManager.rootDir, "certificate_server" + name + ".pem");
 
-    const applicationUri = "urn:" + name;
+    assert(!name.match(/urn\:/));
+    const applicationName = name;
+    const applicationUri = makeApplicationUrn(os.hostname(), name);
 
     if (!fs.existsSync(certificateFile)) {
         await serverCertificateManager.createSelfSignedCertificate({
@@ -48,7 +58,8 @@ export async function createServerThatRegisterWithDiscoveryServer(
             // dns: argv.alternateHostname ? [argv.alternateHostname, fqdn] : [fqdn],
             // ip: await getIpAddresses(),
             outputFile: certificateFile,
-            subject: "/CN=Sterfive/DC=NodeOPCUA-LocalDiscoveryServer",
+            subject: `/CN=${applicationName}@${os.hostname()}/DC=NodeOPCUA-LocalDiscoveryServer`,
+
             startDate: new Date(),
             validity: 365 * 10
         });
@@ -57,14 +68,16 @@ export async function createServerThatRegisterWithDiscoveryServer(
     const server = new OPCUAServer({
         port,
         serverInfo: {
+            applicationName,
             applicationUri,
             productUri: "LDS-" + name
         },
-        registerServerMethod: RegisterServerMethod.LDS,
+
         discoveryServerEndpointUrl,
-        serverCertificateManager,
-        privateKeyFile,
-        certificateFile
+        registerServerMethod: RegisterServerMethod.LDS,
+
+        certificateFile,
+        serverCertificateManager
     });
     server.discoveryServerEndpointUrl.should.eql(discoveryServerEndpointUrl);
 
@@ -90,8 +103,8 @@ export function ep(server: OPCUABaseServer) {
 
 export async function createDiscovery(port: number): Promise<OPCUADiscoveryServer> {
     const serverCertificateManager = new OPCUACertificateManager({
-        rootFolder: path.join(configFolder, "PKI-Discovery" + port),
-        automaticallyAcceptUnknownCertificate: true
+        automaticallyAcceptUnknownCertificate: true,
+        rootFolder: path.join(configFolder, "PKI-Discovery" + port)
     });
     await serverCertificateManager.initialize();
 
@@ -107,6 +120,7 @@ export async function createDiscovery(port: number): Promise<OPCUADiscoveryServe
             // ip: await getIpAddresses(),
             outputFile: certificateFile,
             subject: "/CN=Sterfive/DC=NodeOPCUA-LocalDiscoveryServer",
+
             startDate: new Date(),
             validity: 365 * 10
         });
@@ -114,13 +128,13 @@ export async function createDiscovery(port: number): Promise<OPCUADiscoveryServe
 
     const discoveryServer = new OPCUADiscoveryServer({
         port,
-        serverCertificateManager,
         serverInfo: {
             applicationUri,
             productUri: "LDS-" + port
         },
-        privateKeyFile,
-        certificateFile
+
+        certificateFile,
+        serverCertificateManager
     });
     return discoveryServer;
 }
@@ -131,8 +145,7 @@ export async function startDiscovery(port: number): Promise<OPCUADiscoveryServer
     return discoveryServer;
 }
 
-
-const doTrace =  doDebug || process.env.TRACE;
+const doTrace = doDebug || process.env.TRACE;
 
 export type FF = (callback: ErrorCallback) => void;
 // add the tcp/ip endpoint with no security
@@ -144,10 +157,12 @@ export function f(func: FF): FF {
         .replace("then ", chalk.green("**THEN** "));
     const ff = function (callback: ErrorCallback) {
         if (doTrace) {
+            // tslint:disable-next-line: no-console
             console.log("         * " + title);
         }
-        func((err?: Error| null) => {
+        func((err?: Error | null) => {
             if (doDebug) {
+                // tslint:disable-next-line: no-console
                 console.log("         ! " + title);
             }
             callback(err!);
@@ -165,10 +180,12 @@ export async function fa(title: string, func: () => Promise<void>): Promise<void
 
     const ff = async () => {
         if (doTrace) {
+            // tslint:disable-next-line: no-console
             console.log("         * " + title);
         }
         await func();
         if (doDebug) {
+            // tslint:disable-next-line: no-console
             console.log("         ! " + title);
         }
     };

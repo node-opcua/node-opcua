@@ -5,7 +5,7 @@
 import { EventEmitter } from "events";
 import { assert } from "node-opcua-assert";
 import { DataValue, TimestampsToReturn, coerceTimestampsToReturn } from "node-opcua-data-value";
-import { checkDebugFlag, make_debugLog,make_warningLog } from "node-opcua-debug";
+import { checkDebugFlag, make_debugLog, make_warningLog } from "node-opcua-debug";
 import { MonitoringMode, MonitoringParametersOptions } from "node-opcua-service-subscription";
 import { StatusCode } from "node-opcua-status-code";
 import { Callback, ErrorCallback } from "node-opcua-status-code";
@@ -165,10 +165,10 @@ export class ClientMonitoredItemGroupImpl extends EventEmitter implements Client
                     this.emit("changed", monitoredItem, dataValue, index);
                 } catch (err) {
                     warningLog(
-`[NODE-OPCUA-W20] the monitoredItem.on('changed') handler has raised an exception.
+                        `[NODE-OPCUA-W20] the monitoredItem.on('changed') handler has raised an exception.
 error message : ${err.message}
 Please investigate the code of the event handler function to fix the error.`
-);
+                    );
                 }
             });
         });

@@ -73,7 +73,7 @@ function buildPrefix(mode: "E" | "D" | "W"): string {
     return file_line(mode, filename, callerLine);
 }
 
-function dump(mode: "E" | "D"| "W", args1: [any?, ...any[]]) {
+function dump(mode: "E" | "D" | "W", args1: [any?, ...any[]]) {
     const a2 = Object.values(args1) as [string, ...string[]];
     const output = format.apply(null, a2);
     let a1 = [buildPrefix(mode)];
@@ -113,9 +113,14 @@ export function make_debugLog(scriptFullPath: string): (...arg: any[]) => void {
 }
 
 export class MessageLogger extends EventEmitter {
-
+    constructor() {
+        super();
+    }
+    public on(eventName: "warningMessage" | "errorMessage", eventHandler: any): this {
+        return super.on(eventName, eventHandler);
+    }
 }
-export const messageLogger  = new MessageLogger();
+export const messageLogger = new MessageLogger();
 
 export function make_errorLog(context: string): (...arg: any[]) => void {
     function errorLogFunc(...args: [any?, ...any[]]) {
@@ -127,7 +132,7 @@ export function make_errorLog(context: string): (...arg: any[]) => void {
 
 export function make_warningLog(context: string): (...arg: any[]) => void {
     function errorLogFunc(...args: [any?, ...any[]]) {
-        const output =dump("W", args);
+        const output = dump("W", args);
         messageLogger.emit("warningMessage", output);
     }
 

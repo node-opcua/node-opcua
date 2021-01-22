@@ -19,10 +19,15 @@ const rootFolder = path.join(__dirname, "../../..");
 
 const port = parseInt(argv.port, 10) || 26555;
 
+// tslint:disable-next-line: no-var-requires
+const envPaths = require("env-paths");
+const config = envPaths("node-opcua-default").config;
+const pkiFolder = path.join(config, "PKI");
+
 const certificateManager = new OPCUACertificateManager({
     automaticallyAcceptUnknownCertificate: true,
-
-    rootFolder: path.join(__dirname, "certificate")
+    name: "PKI",
+    rootFolder: pkiFolder
 });
 
 const server_options = {
@@ -57,6 +62,7 @@ async function main() {
         installPushCertificateManagement(addressSpace, {
             applicationGroup: server.serverCertificateManager,
             userTokenGroup: server.userCertificateManager,
+
             applicationUri: server.serverInfo.applicationUri!
         });
 
