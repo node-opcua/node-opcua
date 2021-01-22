@@ -132,7 +132,7 @@
         "ltx": "^2.10.0",
         "mkdirp": "0.5.5",
         "mocha-clean": "^1.0.0",
-        "mocha-typescript": "^1.0.12",
+        "mocha-typescript": "^1.1.17",
         "node-opcua-crypto": "^1.7.0",
         "node-opcua-pki": "^2.8.0",
         "object.values": "^1.1.2",
