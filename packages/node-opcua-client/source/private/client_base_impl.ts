@@ -373,6 +373,7 @@ export class ClientBaseImpl extends OPCUASecureObject implements OPCUAClientBase
 
         assert(!this.applicationName.match(/urn:/), "applicationName should not be a URI");
 
+        // we need to delay _applicationUri initialization
         this._applicationUri = options.applicationUri || this._getBuiltApplicationUri();
 
         this.disconnecting = false;
@@ -653,7 +654,7 @@ export class ClientBaseImpl extends OPCUASecureObject implements OPCUAClientBase
 
     protected _getBuiltApplicationUri(): string {
         if (!this._applicationUri) {
-            this._applicationUri = resolveFullyQualifiedDomainName(makeApplicationUrn(getHostname(), this.applicationName));
+            this._applicationUri = makeApplicationUrn(getHostname(), this.applicationName);
         }
         return this._applicationUri;
     }
