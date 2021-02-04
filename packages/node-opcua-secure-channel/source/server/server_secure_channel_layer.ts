@@ -3,7 +3,6 @@
  */
 // tslint:disable:variable-name
 // tslint:disable:no-empty
-// tslint:disable:no-console
 // tslint:disable:max-line-length
 // tslint:disable:no-shadowed-variable
 // tslint:disable:no-var-requires
@@ -66,15 +65,18 @@ import {
 import { ICertificateManager } from "node-opcua-certificate-manager";
 
 import { ObjectRegistry } from "node-opcua-object-registry";
+import {
+    doPerfMonitoring,
+    doTraceMessage,
+    ServerTransactionStatistics,
+    traceRequestMessage,
+    traceResponseMessage,
+    _dump_transaction_statistics
+} from "../utils";
 
 const debugLog = make_debugLog(__filename);
 const doDebug = checkDebugFlag(__filename);
 const warningLog = make_warningLog(__filename);
-
-const doTraceMessage = process.env.NODEOPCUADEBUG && process.env.NODEOPCUADEBUG.indexOf("SERVERTRACE") >= 0;
-const doTraceRequest = process.env.NODEOPCUADEBUG && process.env.NODEOPCUADEBUG.indexOf("REQUEST") >= 0;
-const doTraceResponse = process.env.NODEOPCUADEBUG && process.env.NODEOPCUADEBUG.indexOf("RESPONSE") >= 0;
-const doPerfMonitoring = process.env.NODEOPCUADEBUG && process.env.NODEOPCUADEBUG.indexOf("PERF") >= 0;
 
 let gLastChannelId = 0;
 
@@ -128,66 +130,6 @@ export interface Message {
     session_statusCode?: StatusCode;
 }
 
-export interface ServerTransactionStatistics {
-    bytesRead: number;
-    bytesWritten: number;
-    lap_reception: number;
-    lap_processing: number;
-    lap_emission: number;
-}
-
-function _dump_transaction_statistics(stats?: ServerTransactionStatistics) {
-    if (stats) {
-        console.log("                Bytes Read : ", stats.bytesRead);
-        console.log("             Bytes Written : ", stats.bytesWritten);
-        if (doPerfMonitoring) {
-            console.log("   time to receive request : ", stats.lap_reception / 1000, " sec");
-            console.log("   time to process request : ", stats.lap_processing / 1000, " sec");
-            console.log("   time to send response   : ", stats.lap_emission / 1000, " sec");
-        }
-    }
-}
-
-function traceResponseMessage(response: Response, channelId: number) {
-    assert(response.responseHeader.requestHandle >= 0);
-    if (doTraceMessage) {
-        const requestId = response.responseHeader.requestHandle;
-        console.log(
-            chalk.cyan.bold(timestamp(), "   <<<< ------ "),
-            chalk.green.bold(response.schema.name.padEnd(32)),
-            "requestId=",
-            requestId.toString().padStart(6),
-            "channelId=",
-            channelId.toString().padStart(3),
-            "serviceResult",
-            response.responseHeader.serviceResult.toString()
-        );
-        if (doTraceResponse) {
-            console.log(response.toString());
-            console.log(chalk.cyan.bold("       <<<< ------n"));
-        }
-    }
-}
-
-// istanbul ignore next
-function traceRequestMessage(request: Request, channelId: number) {
-    if (doTraceMessage) {
-        const requestId = request.requestHeader.requestHandle;
-        console.log(
-            chalk.cyan.bold(timestamp(), "   >>>> ------ "),
-            chalk.yellow(request.schema.name.padEnd(32)),
-            "requestId=",
-            requestId.toString().padStart(6),
-            "channelId=",
-            channelId.toString().padStart(3)
-        );
-        if (doTraceRequest) {
-            console.log(request.toString());
-            console.log(chalk.cyan("   >>>> ------ \n"));
-        }
-    }
-}
-
 function isValidSecurityPolicy(securityPolicy: SecurityPolicy) {
     switch (securityPolicy) {
         case SecurityPolicy.None:
@@ -230,6 +172,9 @@ export function nonceAlreadyBeenUsed(nonce?: Buffer): boolean {
  */
 export class ServerSecureChannelLayer extends EventEmitter {
     public static throttleTime: number = 100;
+
+    private static g_counter: number = 0;
+    private _counter: number = ServerSecureChannelLayer.g_counter++;
 
     public get securityTokenCount() {
         assert(typeof this.lastTokenId === "number");
@@ -645,13 +590,14 @@ export class ServerSecureChannelLayer extends EventEmitter {
 
         /* istanbul ignore next */
         if (0 && doDebug) {
+            // tslint:disable-next-line: no-console
             console.log(" options ", options);
             analyze_object_binary_encoding((response as any) as BaseUAObject);
         }
 
         /* istanbul ignore next */
         if (doTraceMessage) {
-            traceResponseMessage(response, this.securityToken.channelId);
+            traceResponseMessage(response, this.securityToken.channelId, this._counter);
         }
 
         if (this._on_response) {
@@ -727,12 +673,12 @@ export class ServerSecureChannelLayer extends EventEmitter {
     private _start_security_token_watch_dog() {
         // install securityToken timeout watchdog
         this._securityTokenTimeout = setTimeout(() => {
-            console.log(
+            warningLog(
                 " Security token has really expired and shall be discarded !!!! (lifetime is = ",
                 this.securityToken.revisedLifetime,
                 ")"
             );
-            console.log(" Server will now refuse message with token ", this.securityToken.tokenId);
+            warningLog(" Server will now refuse message with token ", this.securityToken.tokenId);
             this._securityTokenTimeout = null;
         }, (this.securityToken.revisedLifetime * 120) / 100);
     }
@@ -828,7 +774,7 @@ export class ServerSecureChannelLayer extends EventEmitter {
     ) {
         /* istanbul ignore next */
         if (doTraceMessage) {
-            traceRequestMessage(request, channelId);
+            traceRequestMessage(request, channelId, this._counter);
         }
 
         assert(typeof callback === "function");
@@ -1104,7 +1050,7 @@ export class ServerSecureChannelLayer extends EventEmitter {
 
         /* istanbul ignore next */
         if (!this.securityHeader) {
-            console.log("Cannot find SecurityHeader !!!!!!!! ");
+            warningLog("Cannot find SecurityHeader !!!!!!!! ");
             return this.send_fatal_error_and_abort(StatusCodes.BadInternalError, "invalid request", message, callback);
         }
 
@@ -1113,7 +1059,7 @@ export class ServerSecureChannelLayer extends EventEmitter {
         this.clientNonce = request.clientNonce;
 
         if (nonceAlreadyBeenUsed(this.clientNonce)) {
-            console.log(chalk.red("SERVER with secure connection: Nonce has already been used"), this.clientNonce.toString("hex"));
+            warningLog(chalk.red("SERVER with secure connection: Nonce has already been used"), this.clientNonce.toString("hex"));
             serviceResult = StatusCodes.BadNonceInvalid;
         }
 
@@ -1130,7 +1076,7 @@ export class ServerSecureChannelLayer extends EventEmitter {
             this.serverNonce = crypto.randomBytes(cryptoFactory.symmetricKeyLength);
 
             if (this.clientNonce.length !== this.serverNonce.length) {
-                console.log(
+                warningLog(
                     chalk.red("warning client Nonce length doesn't match server nonce length"),
                     this.clientNonce.length,
                     " !== ",
@@ -1249,7 +1195,7 @@ export class ServerSecureChannelLayer extends EventEmitter {
     private _on_common_message(request: Request, msgType: string, requestId: number, channelId: number) {
         /* istanbul ignore next */
         if (doTraceMessage) {
-            traceRequestMessage(request, channelId);
+            traceRequestMessage(request, channelId, this._counter);
         }
 
         if (this.messageBuilder.sequenceHeader === null) {
@@ -1271,7 +1217,7 @@ export class ServerSecureChannelLayer extends EventEmitter {
             this._handle_OpenSecureChannelRequest(StatusCodes.Good, message, (/* err?: Error*/) => {});
         } else {
             if (request.schema.name === "CloseSecureChannelRequest") {
-                console.log("WARNING : RECEIVED a CloseSecureChannelRequest with msgType=" + msgType);
+                warningLog("WARNING : RECEIVED a CloseSecureChannelRequest with msgType=" + msgType);
                 this.close();
             } else {
                 if (doPerfMonitoring) {
@@ -1384,7 +1330,7 @@ export class ServerSecureChannelLayer extends EventEmitter {
         // expecting a OpenChannelRequest as first communication message
         if (!(request instanceof OpenSecureChannelRequest)) {
             description = "Expecting OpenSecureChannelRequest";
-            console.log(chalk.red("ERROR"), "BadCommunicationError: expecting a OpenChannelRequest as first communication message");
+            warningLog(chalk.red("ERROR"), "BadCommunicationError: expecting a OpenChannelRequest as first communication message");
             return this._on_OpenSecureChannelRequestError(StatusCodes.BadCommunicationError, description, message, callback);
         }
 
