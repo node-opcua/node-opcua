@@ -40,7 +40,7 @@ export class ClientSidePublishEngine {
     public isSuspended: boolean;
     public session: ClientSession | null;
     private subscriptionAcknowledgements: any[];
-    private readonly subscriptionMap: any;
+    private readonly subscriptionMap: { [key: number]: ClientSubscriptionImpl };
 
     constructor(session: ClientSession) {
         this.session = session;
@@ -122,17 +122,18 @@ export class ClientSidePublishEngine {
         this.session = null;
     }
 
-    public registerSubscription(subscription: any) {
+    public registerSubscription(subscription: ClientSubscription) {
         debugLog("ClientSidePublishEngine#registerSubscription ", subscription.subscriptionId);
 
+        const _subscription = subscription as ClientSubscriptionImpl;
         assert(arguments.length === 1);
         assert(isFinite(subscription.subscriptionId));
         assert(!this.subscriptionMap.hasOwnProperty(subscription.subscriptionId)); // already registered ?
-        assert(typeof subscription.onNotificationMessage === "function");
+        assert(typeof _subscription.onNotificationMessage === "function");
         assert(isFinite(subscription.timeoutHint));
 
         this.activeSubscriptionCount += 1;
-        this.subscriptionMap[subscription.subscriptionId] = subscription;
+        this.subscriptionMap[subscription.subscriptionId] = _subscription;
 
         this.timeoutHint = Math.min(Math.max(this.timeoutHint, subscription.timeoutHint), 0x7ffffff);
 
@@ -183,7 +184,7 @@ export class ClientSidePublishEngine {
     /***
      * get the client subscription from Id
      */
-    public getSubscription(subscriptionId: SubscriptionId): any {
+    public getSubscription(subscriptionId: SubscriptionId): ClientSubscription {
         assert(isFinite(subscriptionId) && subscriptionId > 0);
         assert(this.subscriptionMap.hasOwnProperty(subscriptionId));
         return this.subscriptionMap[subscriptionId];

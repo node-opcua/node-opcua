@@ -109,8 +109,7 @@ function makeQualifiedName(mm: RegExpMatchArray): QualifiedName {
  *      var relativePath = makeRelativePath("/Server.ServerStatus.CurrentTime");
  *
  */
-export function makeRelativePath(str: string, addressSpace?: any) {
-
+export function makeRelativePath(str: string, addressSpace?: any): RelativePath {
     let r: any = {
         elements: []
     };
@@ -135,17 +134,15 @@ export function makeRelativePath(str: string, addressSpace?: any) {
             isInverse = false;
             includeSubtypes = true;
         } else if (refStr === ".") {
-
             referenceTypeId = aggregatesReferenceTypeNodeId;
             isInverse = false;
             includeSubtypes = true;
         } else {
-
             // match  3 =>    "#" or null
-            includeSubtypes = (matches[3] !== "#");
+            includeSubtypes = matches[3] !== "#";
 
             // match  4 =>    "!" or null
-            isInverse = (matches[4] === "!");
+            isInverse = matches[4] === "!";
 
             // match 5
             // namespace match 6 ( ns:)
@@ -154,7 +151,6 @@ export function makeRelativePath(str: string, addressSpace?: any) {
             const name = matches[7];
             if (!matches[6]) {
                 referenceTypeId = resolveNodeId(name);
-
             } else {
                 // AddressSpace.prototype.findReferenceType = function (refType,namespace)
                 referenceTypeId = addressSpace.findReferenceType(name, ns);
@@ -164,7 +160,7 @@ export function makeRelativePath(str: string, addressSpace?: any) {
 
         const targetName = makeQualifiedName(matches);
 
-        r.elements.push({referenceTypeId, isInverse, includeSubtypes, targetName});
+        r.elements.push({ referenceTypeId, isInverse, includeSubtypes, targetName });
 
         str = str.substr(matches[0].length);
     }

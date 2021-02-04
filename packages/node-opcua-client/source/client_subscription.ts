@@ -258,6 +258,13 @@ export declare interface ClientSubscription {
 
     on(event: "error", eventHandler: (err: Error) => void): this;
 }
+export declare interface ClientSubscription {
+    _createMonitoredItem(
+        itemToMonitor: ReadValueIdOptions,
+        monitoringParameters: MonitoringParametersOptions,
+        timestampsToReturn: TimestampsToReturn
+    ): ClientMonitoredItem;
+}
 
 export class ClientSubscription {
     public static create(clientSession: ClientSession, options: ClientSubscriptionOptions): ClientSubscription {

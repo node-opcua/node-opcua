@@ -43,6 +43,8 @@ import { ClientMonitoredItemGroupImpl } from "./client_monitored_item_group_impl
 import { ClientMonitoredItemImpl } from "./client_monitored_item_impl";
 import { ClientSidePublishEngine } from "./client_publish_engine";
 import { ClientSessionImpl } from "./client_session_impl";
+import { ClientMonitoredItem } from "../client_monitored_item";
+import { ClientMonitoredItemToolbox } from "../client_monitored_item_toolbox";
 
 const debugLog = make_debugLog(__filename);
 const doDebug = checkDebugFlag(__filename);
@@ -89,23 +91,23 @@ async function promoteOpaqueStructureInNotificationData(
 const minimumMaxKeepAliveCount = 3;
 
 function displayKeepAliveWarning(sessionTimeout: number, maxKeepAliveCount: number, publishingInterval: number): boolean {
-   
     const keepAliveInterval = maxKeepAliveCount * publishingInterval;
 
     // istanbul ignore next
     if (sessionTimeout < keepAliveInterval) {
         warningLog(
             chalk.yellowBright(
-`[NODE-OPCUA-W09] The subscription parameters are not compatible with the session timeout !
+                `[NODE-OPCUA-W09] The subscription parameters are not compatible with the session timeout !
                   session timeout    = ${sessionTimeout}  milliseconds
                   maxKeepAliveCount  = ${maxKeepAliveCount}
-                  publishingInterval = ${publishingInterval} miliseconds"
+                  publishingInterval = ${publishingInterval} milliseconds"
 
                   It is important that the session timeout    ( ${chalk.red(sessionTimeout)} ms) is largely greater than :
-                      (maxKeepAliveCount*publishingInterval  =  ${chalk.red(keepAliveInterval)} ms), 
+                      (maxKeepAliveCount*publishingInterval  =  ${chalk.red(keepAliveInterval)} ms),
                   otherwise you may experience unexpected disconnection from the server if your monitored items are not
                   changing frequently.`
-));
+            )
+        );
 
         if (sessionTimeout < 3000 && publishingInterval <= 1000) {
             warningLog(`[NODE-OPCUA-W10] You'll need to increase your sessionTimeout significantly.`);
@@ -115,27 +117,26 @@ function displayKeepAliveWarning(sessionTimeout: number, maxKeepAliveCount: numb
             sessionTimeout < publishingInterval * minimumMaxKeepAliveCount &&
             maxKeepAliveCount <= minimumMaxKeepAliveCount + 2
         ) {
-            warningLog(`[NODE-OPCUA-W11] your publishingInterval interval is probably too large, consider reducting it.`);
+            warningLog(`[NODE-OPCUA-W11] your publishingInterval interval is probably too large, consider reducing it.`);
         }
 
-        const idealMaxKeepAliveCount = Math.max(4,Math.floor((sessionTimeout * 0.8) / publishingInterval - 0.5));
-        const idealPublishingInternal = Math.min(publishingInterval, sessionTimeout / (idealMaxKeepAliveCount +3));
+        const idealMaxKeepAliveCount = Math.max(4, Math.floor((sessionTimeout * 0.8) / publishingInterval - 0.5));
+        const idealPublishingInternal = Math.min(publishingInterval, sessionTimeout / (idealMaxKeepAliveCount + 3));
         const idealKeepAliveInterval = idealMaxKeepAliveCount * publishingInterval;
         warningLog(
-`[NODE-OPCUA-W12]  An ideal value for maxKeepAliveCount could be ${idealMaxKeepAliveCount}.
-                  An ideal value for publishingInterval coule be ${idealPublishingInternal} ms.
+            `[NODE-OPCUA-W12]  An ideal value for maxKeepAliveCount could be ${idealMaxKeepAliveCount}.
+                  An ideal value for publishingInterval could be ${idealPublishingInternal} ms.
                   This will make  your subscription emit a keep alive signal every ${idealKeepAliveInterval} ms
                   if no monitored items are generating notifications.
-                  for instance: 
+                  for instance:
                     const  client = OPCUAClient.create({
                         requestedSessionTimeout: 30* 60* 1000, // 30 minutes
                     });
 `
         );
 
-
         if (!ClientSubscription.ignoreNextWarning) {
-            throw new Error("[NODE-OPCUA-W09] The subscription parameters are not compatible with the session timeout ")
+            throw new Error("[NODE-OPCUA-W09] The subscription parameters are not compatible with the session timeout ");
         }
         return true;
     }
@@ -143,8 +144,6 @@ function displayKeepAliveWarning(sessionTimeout: number, maxKeepAliveCount: numb
 }
 
 export class ClientSubscriptionImpl extends EventEmitter implements ClientSubscription {
-   
-
     /**
      * the associated session
      * @property session
@@ -178,11 +177,11 @@ export class ClientSubscriptionImpl extends EventEmitter implements ClientSubscr
     public timeoutHint = 0;
     public publishEngine: ClientSidePublishEngine;
 
-    public  lastSequenceNumber: number;
+    public lastSequenceNumber: number;
     private lastRequestSentTime: Date;
     private _nextClientHandle = 0;
     private hasTimedOut: boolean;
- 
+
     constructor(session: ClientSession, options: ClientSubscriptionOptions) {
         super();
 
@@ -244,7 +243,6 @@ export class ClientSubscriptionImpl extends EventEmitter implements ClientSubscr
          * @type {boolean}
          */
         this.hasTimedOut = false;
-
 
         setImmediate(() => {
             this.__create_subscription((err?: Error) => {
@@ -338,20 +336,18 @@ export class ClientSubscriptionImpl extends EventEmitter implements ClientSubscr
 
         itemToMonitor.nodeId = resolveNodeId(itemToMonitor.nodeId!);
 
-        const monitoredItem = new ClientMonitoredItemImpl(this, itemToMonitor, requestedParameters, timestampsToReturn);
-
-        this._wait_for_subscription_to_be_ready((err?: Error) => {
-            if (err) {
-                return done(err);
-            }
-            monitoredItem._monitor((err1?: Error) => {
+        const monitoredItem = ClientMonitoredItem_create(
+            this,
+            itemToMonitor,
+            requestedParameters,
+            timestampsToReturn,
+            (err1?: Error | null, monitoredItem2?: ClientMonitoredItem) => {
                 if (err1) {
                     return done && done(err1);
                 }
-                done(err1 ? err1 : null, monitoredItem);
-            });
-        });
-        // xx return monitoredItem;
+                done(err1 || null, monitoredItem);
+            }
+        );
     }
 
     public async monitorItems(
@@ -651,7 +647,7 @@ export class ClientSubscriptionImpl extends EventEmitter implements ClientSubscr
 
             displayKeepAliveWarning(this.session.timeout, this.maxKeepAliveCount, this.publishingInterval);
             ClientSubscription.ignoreNextWarning = false;
- 
+
             if (doDebug) {
                 debugLog(chalk.yellow.bold("registering callback"));
                 debugLog(chalk.yellow.bold("publishingInterval               "), this.publishingInterval);
@@ -751,7 +747,7 @@ export class ClientSubscriptionImpl extends EventEmitter implements ClientSubscr
         }
     }
 
-    private onNotificationMessage(notificationMessage: NotificationMessage) {
+    public onNotificationMessage(notificationMessage: NotificationMessage) {
         assert(notificationMessage.hasOwnProperty("sequenceNumber"));
 
         this.lastSequenceNumber = notificationMessage.sequenceNumber;
@@ -848,8 +844,53 @@ export class ClientSubscriptionImpl extends EventEmitter implements ClientSubscr
         monitoredItemGroup.emit("terminated");
         this.monitoredItemGroups = this.monitoredItemGroups.filter((obj) => obj !== monitoredItemGroup);
     }
+    /**
+     * @private
+     * @param itemToMonitor
+     * @param monitoringParameters
+     * @param timestampsToReturn
+     */
+    public _createMonitoredItem(
+        itemToMonitor: ReadValueIdOptions,
+        monitoringParameters: MonitoringParametersOptions,
+        timestampsToReturn: TimestampsToReturn
+    ): ClientMonitoredItem {
+        /* istanbul ignore next*/
+        const monitoredItem = new ClientMonitoredItemImpl(this, itemToMonitor, monitoringParameters, timestampsToReturn);
+        return monitoredItem;
+    }
 }
 
+export function ClientMonitoredItem_create(
+    subscription: ClientSubscription,
+    itemToMonitor: ReadValueIdOptions,
+    monitoringParameters: MonitoringParametersOptions,
+    timestampsToReturn: TimestampsToReturn,
+    callback?: (err3?: Error | null, monitoredItem?: ClientMonitoredItem) => void
+): ClientMonitoredItem {
+    const monitoredItem = new ClientMonitoredItemImpl(subscription, itemToMonitor, monitoringParameters, timestampsToReturn);
+
+    setImmediate(() => {
+        (subscription as ClientSubscriptionImpl)._wait_for_subscription_to_be_ready((err?: Error) => {
+            if (err) {
+                if (callback) {
+                    callback(err);
+                }
+                return;
+            }
+            ClientMonitoredItemToolbox._toolbox_monitor(subscription, timestampsToReturn, [monitoredItem], (err1?: Error) => {
+                if (err1) {
+                    monitoredItem.emit("err", err1.message);
+                    monitoredItem.emit("terminated");
+                }
+                if (callback) {
+                    callback(err1, monitoredItem);
+                }
+            });
+        });
+    });
+    return monitoredItem;
+}
 // tslint:disable:no-var-requires
 // tslint:disable:max-line-length
 const thenify = require("thenify");
