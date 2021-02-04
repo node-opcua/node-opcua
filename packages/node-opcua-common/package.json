@@ -13,7 +13,7 @@
     "dependencies": {
         "node-opcua-assert": "2.29.0",
         "node-opcua-basic-types": "2.31.0",
-        "node-opcua-crypto": "^1.7.0",
+        "node-opcua-crypto": "^1.7.1",
         "node-opcua-data-model": "2.31.0",
         "node-opcua-factory": "2.31.0",
         "node-opcua-nodeid": "2.31.0",
