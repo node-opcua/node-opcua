@@ -258,7 +258,7 @@ function getRequiredEndpointInfo(endpoint: EndpointDescription) {
     // reduce even further by explicitly setting unwanted members to null
     e.server.productUri = null;
     e.server.applicationName = null as any;
-    //xxx e.server.applicationType = null as any;
+    // xx e.server.applicationType = null as any;
     e.server.gatewayServerUri = null;
     e.server.discoveryProfileUri = null;
     e.server.discoveryUrls = null;
@@ -279,8 +279,9 @@ function _serverEndpointsForCreateSessionResponse(server: OPCUAServer, endpointU
     // set to null. Only the recommended parameters shall be verified by the client.
     return server
         ._get_endpoints(endpointUrl)
-        .map(getRequiredEndpointInfo)
-        .filter((e) => matchUri(e.endpointUrl, endpointUrl) && !(e as any).restricted);
+        .filter((e) => !(e as any).restricted) // remove restricted endpoints
+        .filter((e) => matchUri(e.endpointUrl, endpointUrl))
+        .map(getRequiredEndpointInfo);
 }
 
 function adjustSecurityPolicy(

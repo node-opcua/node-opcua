@@ -204,7 +204,7 @@ export class ClientSubscriptionImpl extends EventEmitter implements ClientSubscr
         );
         // istanbul ignore next
         if (warningEmitted) {
-            console.warn(
+            warningLog(
                 JSON.stringify(
                     {
                         ...options
