@@ -157,9 +157,9 @@ export class UAObject extends BaseNode implements UAObjectPublic {
             );
         }
 
-        addinqueue(this);
+        addInQueue(this);
 
-        function addinqueue(obj: BaseNode) {
+        function addInQueue(obj: BaseNode) {
             const key: string = obj.nodeId.toString();
             if (!m[key]) {
                 m[key] = obj;
@@ -173,10 +173,10 @@ export class UAObject extends BaseNode implements UAObjectPublic {
             obj.emit("event", eventData);
 
             const elements1 = obj.findReferencesAsObject("HasNotifier", false);
-            elements1.forEach(addinqueue);
+            elements1.forEach(addInQueue);
 
             const elements2 = obj.findReferencesAsObject("HasEventSource", false);
-            elements2.forEach(addinqueue);
+            elements2.forEach(addInQueue);
         }
     }
     public _conditionRefresh(_cache?: any) {

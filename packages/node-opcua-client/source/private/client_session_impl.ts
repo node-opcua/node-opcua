@@ -1237,10 +1237,10 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession {
 
         // tslint:disable-next-line:no-empty
         subscription.on("error", (err) => {
-            //  if (callback) {
-            //      callback(err);
-            //      callback = null;
-            //  }
+            if (callback) {
+                callback(err);
+                callback = null;
+            }
         });
         subscription.on("started", () => {
             assert(subscription.session === this, "expecting a session here");
@@ -1490,19 +1490,21 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession {
                 if (!pendingTransactionMessageDisplayed) {
                     pendingTransactionMessageDisplayed = true;
                     // tslint:disable-next-line: no-console
-                    console.log(
+                    warningLog(
+                        "[NODE-OPCUA-W21]",
                         "Pending transactions: ",
                         privateThis.pendingTransactions.map((a: any) => a.request.constructor.name).join(" ")
                     );
                     // tslint:disable-next-line: no-console
-                    console.log(
+                    warningLog(
+                        "[NODE-OPCUA-W22]",
                         chalk.yellow(
                             "Warning : your opcua client is sending multiple requests simultaneously to the server",
                             request.constructor.name
-                        )
+                        ),
+                        "\n",
+                        chalk.yellow(" please fix your application code")
                     );
-                    // tslint:disable-next-line: no-console
-                    console.log(chalk.yellow("Warning : please fix your application code"));
                 }
             } else if (privateThis.pendingTransactions.length > 3) {
                 debugLog(

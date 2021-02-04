@@ -26,7 +26,7 @@ import { Callback, ErrorCallback } from "node-opcua-status-code";
 import { ClientMonitoredItem } from "../client_monitored_item";
 import { ClientMonitoredItemToolbox } from "../client_monitored_item_toolbox";
 import { ClientSubscription } from "../client_subscription";
-import { ClientSubscriptionImpl } from "./client_subscription_impl";
+import { ClientMonitoredItem_create, ClientSubscriptionImpl } from "./client_subscription_impl";
 
 const debugLog = make_debugLog(__filename);
 const doDebug = checkDebugFlag(__filename);
@@ -162,24 +162,6 @@ export class ClientMonitoredItemImpl extends EventEmitter implements ClientMonit
                 callback(err ? err : null, statusCodes![0]);
             }
         );
-    }
-
-    /**
-     * Creates the monitor item (monitoring mode = Reporting)
-     * @private
-     * @internal
-     */
-    public _monitor(done?: ErrorCallback) {
-        assert(done === undefined || typeof done === "function");
-        ClientMonitoredItemToolbox._toolbox_monitor(this.subscription, this.timestampsToReturn, [this], (err?: Error) => {
-            if (err) {
-                this.emit("err", err.message);
-                this.emit("terminated");
-            }
-            if (done) {
-                done(err);
-            }
-        });
     }
 
     /**
@@ -354,16 +336,6 @@ ClientMonitoredItem.create = (
     itemToMonitor: ReadValueIdOptions,
     monitoringParameters: MonitoringParametersOptions,
     timestampsToReturn: TimestampsToReturn
-) => {
-    const monitoredItem = new ClientMonitoredItemImpl(subscription, itemToMonitor, monitoringParameters, timestampsToReturn);
-
-    setImmediate(() => {
-        (subscription as ClientSubscriptionImpl)._wait_for_subscription_to_be_ready((err?: Error) => {
-            if (err) {
-                return;
-            }
-            monitoredItem._monitor((err1?: Error) => {});
-        });
-    });
-    return monitoredItem;
+): ClientMonitoredItem => {
+    return ClientMonitoredItem_create(subscription, itemToMonitor, monitoringParameters, timestampsToReturn);
 };
