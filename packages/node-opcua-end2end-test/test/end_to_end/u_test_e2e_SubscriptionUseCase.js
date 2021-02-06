@@ -1907,7 +1907,7 @@ module.exports = function(test) {
                     //
                     // at the beginning, both subscriptions will not send PublishRequest
 
-                    let longlifeSubscription, shortlifeSubscription;
+                    let longLifeSubscription, shortLifeSubscription;
                     async.series(
                         [
                             f(function create_long_life_subscription(callback) {
@@ -1924,7 +1924,7 @@ module.exports = function(test) {
                                     if (err) {
                                         return callback(err);
                                     }
-                                    longlifeSubscription = subscription;
+                                    longLifeSubscription = subscription;
                                     setImmediate(callback);
                                 });
                             }),
@@ -1943,25 +1943,25 @@ module.exports = function(test) {
                                     if (err) {
                                         return callback(err);
                                     }
-                                    shortlifeSubscription = subscription;
+                                    shortLifeSubscription = subscription;
                                     setImmediate(callback);
                                 });
                             }),
                             f(function wait_for_short_life_subscription_to_expire(callback) {
                                 // let's make sure that the subscription will expired
                                 const timeToWaitBeforeResendingPublishInterval =
-                                    shortlifeSubscription.publishingInterval *
-                                    (shortlifeSubscription.lifetimeCount + shortlifeSubscription.maxKeepAliveCount);
+                                    shortLifeSubscription.publishingInterval *
+                                    (shortLifeSubscription.lifetimeCount + shortLifeSubscription.maxKeepAliveCount);
 
                                 if (doDebug) {
-                                    console.log(shortlifeSubscription.toString());
+                                    console.log(shortLifeSubscription.toString());
                                     console.log(
                                         "timetoWaitBeforeResendingPublishInterval  :",
                                         timeToWaitBeforeResendingPublishInterval
                                     );
                                     console.log(
                                         "Count To WaitBeforeResendingPublishInterval  :",
-                                        timeToWaitBeforeResendingPublishInterval / shortlifeSubscription.publishingInterval
+                                        timeToWaitBeforeResendingPublishInterval / shortLifeSubscription.publishingInterval
                                     );
                                 }
 
@@ -1972,14 +1972,14 @@ module.exports = function(test) {
                                     repairUnpublishing(session);
                                 }, timeToWaitBeforeResendingPublishInterval);
 
-                                shortlifeSubscription.once("status_changed", function(statusCode) {
+                                shortLifeSubscription.once("status_changed", function(statusCode) {
                                     statusCode.should.eql(StatusCodes.BadTimeout);
                                     setImmediate(callback);
                                 });
                             }),
                             f(function terminate_short_life_subscription(callback) {
                                 const timeout =
-                                    shortlifeSubscription.publishingInterval * shortlifeSubscription.maxKeepAliveCount * 2;
+                                    shortLifeSubscription.publishingInterval * shortLifeSubscription.maxKeepAliveCount * 2;
                                 if (doDebug) {
                                     console.log("timeout = ", timeout);
                                 }
@@ -1987,14 +1987,14 @@ module.exports = function(test) {
                                 // but delay a little bit so we can verify that internalSendPublishRequest
                                 // is not called
                                 setTimeout(function() {
-                                    shortlifeSubscription.terminate(function(err) {
-                                        shortlifeSubscription.nb_keep_alive_received.should.be.equal(0);
+                                    shortLifeSubscription.terminate(function(err) {
+                                        shortLifeSubscription.nb_keep_alive_received.should.be.equal(0);
                                         setImmediate(callback);
                                     });
                                 }, timeout);
                             }),
                             f(function terminate_long_life_subscription(callback) {
-                                longlifeSubscription.terminate(function(err) {
+                                longLifeSubscription.terminate(function(err) {
                                     setImmediate(callback);
                                 });
                             })
@@ -2316,7 +2316,9 @@ module.exports = function(test) {
                 endpointUrl,
                 itemToMonitor,
                 function(session, subscription, monitoredItem, inner_done) {
+
                     let change_count = 0;
+                    subscription.publishingInterval.should.be.aboveOrEqual(100);
                     monitoredItem.on("changed", function(dataValue) {
                         //xx console.log("xx changed",dataValue.value.toString());
                         change_count += 1;
@@ -2329,15 +2331,15 @@ module.exports = function(test) {
                             },
                             function(callback) {
                                 // let's wait for first notification to be received
-                                monitoredItem.once("changed", function() {
+                                monitoredItem.once("changed", () => {
                                     // we reset change count,
                                     change_count = 0;
                                     callback();
                                 });
                             },
                             function(callback) {
-                                // wait 800 ms and verify that the subscription is not sending notification.
-                                setTimeout(function() {
+                                // wait at least 2 x publishingInterval ms and verify that the subscription is not sending notification.
+                                setTimeout(() => {
                                     change_count.should.equal(0);
                                     callback();
                                 }, 800);
@@ -2351,8 +2353,8 @@ module.exports = function(test) {
                             },
 
                             function(callback) {
-                                // wait 2000 ms and verify that the subscription is now sending notification.
-                                setTimeout(function() {
+                                // wait 1.5 ms and verify that the subscription is now sending notification.
+                                setTimeout(() => {
                                     change_count.should.be.greaterThan(1);
                                     callback();
                                 }, 2000); // wait at least 2 seconds as date resolution is 1 sec.
@@ -2367,6 +2369,15 @@ module.exports = function(test) {
 
         it("AZA3-K #ModifyMonitoredItemRequest : server should handle samplingInterval === -1", function(done) {
             const itemToMonitor = "ns=0;i=2258";
+
+            /** 
+             * The value - 1 indicates that the default sampling interval defined
+             * by the publishing interval of the Subscription is requested.A different
+             * sampling interval is used if the publishing interval is not a supported 
+             * sampling interval.Any negative number is interpreted as -1. The sampling
+             * interval is not changed if the publishing interval is changed by a
+             * subsequent call to the ModifySubscription Service.
+             */
 
             const parameters = {
                 samplingInterval: -1, // SAMPLING INTERVAL = -1

@@ -40,7 +40,7 @@ function perform_operation_on_subscription_with_parameters(client, endpointUrl, 
         async.series([
 
             function(callback) {
-                subscription = ClientSubscription.create(session,subscriptionParameters);
+                subscription = ClientSubscription.create(session, subscriptionParameters);
                 subscription.on("started", function() {
                     callback();
                 });
@@ -106,7 +106,7 @@ module.exports.perform_operation_on_subscription_with_parameters = perform_opera
 // callback function(session, subscriptionId,done)
 function perform_operation_on_subscription(client, endpointUrl, do_func, done_func) {
 
-    const subscriptionParameters =  {
+    const subscriptionParameters = {
         requestedPublishingInterval: 100,
         requestedLifetimeCount: 6000,
         requestedMaxKeepAliveCount: 100,
@@ -183,7 +183,7 @@ exports.perform_operation_on_raw_subscription = perform_operation_on_raw_subscri
 
 function perform_operation_on_monitoredItem(client, endpointUrl, monitoredItemId, func, done_func) {
 
-    var itemToMonitor;
+    let itemToMonitor;
     if (typeof monitoredItemId === "string") {
         itemToMonitor = {
             nodeId: resolveNodeId(monitoredItemId),

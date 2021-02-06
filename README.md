@@ -4,7 +4,7 @@ node-opcua
 node-opcua is an implementation of an OPC UA stack fully written in Typescript for NodeJS.
 
 
-[![NPM download](https://img.shields.io/npm/dm/node-opcua.svg)](http://www.npm-stats.com/~packages/node-opcua)
+[![NPM download](https://img.shields.io/npm/dm/node-opcua.svg)](https://www.npmtrends.com/node-opcua)
 [![NPM version](https://badge.fury.io/js/node-opcua.png)](http://badge.fury.io/js/node-opcua)
 [![Build Status](https://travis-ci.com/node-opcua/node-opcua.png?branch=master)](https://travis-ci.com/node-opcua/node-opcua)
 [![Build status](https://ci.appveyor.com/api/projects/status/8sgtm3n15aii98oc/branch/master?svg=true)](https://ci.appveyor.com/project/erossignon/node-opcua/branch/master)
