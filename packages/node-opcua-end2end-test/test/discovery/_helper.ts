@@ -7,6 +7,7 @@ import {
     assert,
     ErrorCallback,
     makeApplicationUrn,
+    makeSubject,
     OPCUABaseServer,
     OPCUACertificateManager,
     OPCUADiscoveryServer,
@@ -14,6 +15,7 @@ import {
     RegisterServerMethod
 } from "node-opcua";
 import { make_debugLog, checkDebugFlag } from "node-opcua-debug";
+
 const debugLog = make_debugLog("TEST");
 const doDebug = checkDebugFlag("TEST");
 
@@ -58,8 +60,7 @@ export async function createServerThatRegisterWithDiscoveryServer(
             // dns: argv.alternateHostname ? [argv.alternateHostname, fqdn] : [fqdn],
             // ip: await getIpAddresses(),
             outputFile: certificateFile,
-            subject: `/CN=${applicationName}@${os.hostname()}/DC=NodeOPCUA-LocalDiscoveryServer`,
-
+            subject: makeSubject(applicationName, os.hostname()),
             startDate: new Date(),
             validity: 365 * 10
         });

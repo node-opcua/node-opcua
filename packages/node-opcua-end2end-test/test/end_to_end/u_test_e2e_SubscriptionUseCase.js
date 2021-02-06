@@ -55,7 +55,7 @@ const f = require("../../test_helpers/display_function_name").f.bind(null, doDeb
 
 function trace_console_log() {
     const log1 = global.console.log;
-    global.console.log = function () {
+    global.console.log = function() {
         const t = new Error("").stack.split("\n")[2];
         if (t.match(/opcua/)) {
             log1.call(console, chalk.cyan(t));
@@ -67,27 +67,27 @@ function trace_console_log() {
 //xx trace_console_log();
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 
-module.exports = function (test) {
-    describe("AZA1- testing Client-Server subscription use case, on a fake server exposing the temperature device", function () {
+module.exports = function(test) {
+    describe("AZA1- testing Client-Server subscription use case, on a fake server exposing the temperature device", function() {
         let server, client, endpointUrl;
 
-        beforeEach(function (done) {
+        beforeEach(function(done) {
             client = OPCUAClient.create({});
             server = test.server;
             endpointUrl = test.endpointUrl;
             done();
         });
 
-        afterEach(function (done) {
+        afterEach(function(done) {
             client = null;
             done();
         });
 
-        it("AZA1-A should create a ClientSubscription to manage a subscription", function (done) {
+        it("AZA1-A should create a ClientSubscription to manage a subscription", function(done) {
             perform_operation_on_client_session(
                 client,
                 endpointUrl,
-                function (session, inner_done) {
+                function(session, inner_done) {
                     const subscription = ClientSubscription.create(session, {
                         requestedPublishingInterval: 100,
                         requestedLifetimeCount: 6000,
@@ -96,10 +96,10 @@ module.exports = function (test) {
                         publishingEnabled: true,
                         priority: 6
                     });
-                    subscription.on("started", function () {
-                        setTimeout(function () {
-                            subscription.terminate(function () {
-                                setTimeout(function () {
+                    subscription.on("started", function() {
+                        setTimeout(function() {
+                            subscription.terminate(function() {
+                                setTimeout(function() {
                                     inner_done();
                                 }, 200);
                             });
@@ -110,11 +110,11 @@ module.exports = function (test) {
             );
         });
 
-        it("AZA1-B should dump statistics ", function (done) {
+        it("AZA1-B should dump statistics ", function(done) {
             perform_operation_on_client_session(
                 client,
                 endpointUrl,
-                function (session, done) {
+                function(session, done) {
                     const subscription = ClientSubscription.create(session, {
                         requestedPublishingInterval: 100, // ms
                         requestedLifetimeCount: 6000,
@@ -123,8 +123,8 @@ module.exports = function (test) {
                         publishingEnabled: true,
                         priority: 6
                     });
-                    subscription.on("started", function () {
-                        setTimeout(function () {
+                    subscription.on("started", function() {
+                        setTimeout(function() {
                             subscription.terminate(done);
                         }, 200);
                     });
@@ -133,11 +133,11 @@ module.exports = function (test) {
             );
         });
 
-        it("AZA1-C a ClientSubscription should receive keep-alive events from the server", function (done) {
+        it("AZA1-C a ClientSubscription should receive keep-alive events from the server", function(done) {
             perform_operation_on_client_session(
                 client,
                 endpointUrl,
-                function (session, done) {
+                function(session, done) {
                     let nb_keep_alive_received = 0;
 
                     const subscription = ClientSubscription.create(session, {
@@ -148,18 +148,18 @@ module.exports = function (test) {
                         publishingEnabled: true,
                         priority: 6
                     });
-                    subscription.on("started", function () {
-                        setTimeout(function () {
-                            subscription.terminate(function () {
+                    subscription.on("started", function() {
+                        setTimeout(function() {
+                            subscription.terminate(function() {
                                 nb_keep_alive_received.should.be.greaterThan(0);
                                 done();
                             });
                         }, 1000);
                     });
-                    subscription.on("keepalive", function () {
+                    subscription.on("keepalive", function() {
                         nb_keep_alive_received += 1;
                     });
-                    subscription.on("terminated", function () {
+                    subscription.on("terminated", function() {
                         //xx console.log(" subscription has received ", nb_keep_alive_received, " keep-alive event(s)");
                     });
                 },
@@ -167,16 +167,16 @@ module.exports = function (test) {
             );
         });
 
-        xit("AZA1-D a ClientSubscription should survive longer than the life time", function (done) {
+        xit("AZA1-D a ClientSubscription should survive longer than the life time", function(done) {
             // todo
             done();
         });
 
-        it("AZA1-E should be possible to monitor an nodeId value with a ClientSubscription", function (done) {
+        it("AZA1-E should be possible to monitor an nodeId value with a ClientSubscription", function(done) {
             perform_operation_on_client_session(
                 client,
                 endpointUrl,
-                function (session, done) {
+                function(session, done) {
                     const subscription = ClientSubscription.create(session, {
                         requestedPublishingInterval: 150,
                         requestedLifetimeCount: 6000,
@@ -186,7 +186,7 @@ module.exports = function (test) {
                         priority: 6
                     });
 
-                    subscription.on("started", function () {});
+                    subscription.on("started", function() { });
 
                     const monitoredItem = ClientMonitoredItem.create(
                         subscription,
@@ -202,8 +202,8 @@ module.exports = function (test) {
                     );
 
                     // subscription.on("item_added",function(monitoredItem){
-                    monitoredItem.on("initialized", function () {
-                        monitoredItem.terminate(function () {
+                    monitoredItem.on("initialized", function() {
+                        monitoredItem.terminate(function() {
                             subscription.terminate(done);
                         });
                     });
@@ -212,11 +212,11 @@ module.exports = function (test) {
             );
         });
 
-        it("AZA1-F should be possible to monitor several nodeId value with a single client subscription", function (done) {
+        it("AZA1-F should be possible to monitor several nodeId value with a single client subscription", function(done) {
             perform_operation_on_client_session(
                 client,
                 endpointUrl,
-                function (session, callback) {
+                function(session, callback) {
                     const subscription = ClientSubscription.create(session, {
                         requestedPublishingInterval: 50,
                         requestedLifetimeCount: 6000,
@@ -241,7 +241,7 @@ module.exports = function (test) {
                     );
 
                     // subscription.on("item_added",function(monitoredItem){
-                    monitoredItemCurrentTime.on("changed", function (dataValue) {
+                    monitoredItemCurrentTime.on("changed", function(dataValue) {
                         should.exist(dataValue);
                         //xx console.log("xxxx current time", dataValue.value.value);
                         currentTime_changes++;
@@ -262,16 +262,16 @@ module.exports = function (test) {
                     );
 
                     let pumpSpeed_changes = 0;
-                    monitoredItemPumpSpeed.on("changed", function (dataValue) {
+                    monitoredItemPumpSpeed.on("changed", function(dataValue) {
                         should.exist(dataValue);
                         // console.log(" pump speed ", dataValue.value.value);
                         pumpSpeed_changes++;
                     });
 
-                    setTimeout(function () {
+                    setTimeout(function() {
                         pumpSpeed_changes.should.be.greaterThan(1);
                         currentTime_changes.should.be.greaterThan(1);
-                        subscription.terminate(function () {
+                        subscription.terminate(function() {
                             callback();
                         });
                     }, 2000);
@@ -280,19 +280,19 @@ module.exports = function (test) {
             );
         });
 
-        it("AZA1-G should terminate any pending subscription when the client is disconnected", function (done) {
+        it("AZA1-G should terminate any pending subscription when the client is disconnected", function(done) {
             let the_session;
 
             async.series(
                 [
                     // connect
-                    function (callback) {
+                    function(callback) {
                         client.connect(endpointUrl, callback);
                     },
 
                     // create session
-                    function (callback) {
-                        client.createSession(function (err, session) {
+                    function(callback) {
+                        client.createSession(function(err, session) {
                             if (!err) {
                                 the_session = session;
                             }
@@ -301,7 +301,7 @@ module.exports = function (test) {
                     },
 
                     // create subscription
-                    function (callback) {
+                    function(callback) {
                         const subscription = ClientSubscription.create(the_session, {
                             requestedPublishingInterval: 100,
                             requestedLifetimeCount: 6000,
@@ -310,7 +310,7 @@ module.exports = function (test) {
                             publishingEnabled: true,
                             priority: 6
                         });
-                        subscription.on("started", function () {
+                        subscription.on("started", function() {
                             const monitoredItem = ClientMonitoredItem.create(
                                 subscription,
                                 {
@@ -327,37 +327,37 @@ module.exports = function (test) {
                         });
                     },
                     // wait a little bit
-                    function (callback) {
-                        setTimeout(function () {
+                    function(callback) {
+                        setTimeout(function() {
                             // client.disconnect(done);
                             callback();
                         }, 100);
                     },
 
                     // now disconnect the client , without closing the subscription first
-                    function (callback) {
+                    function(callback) {
                         client.disconnect(callback);
                     }
                 ],
-                function (err) {
+                function(err) {
                     done(err);
                 }
             );
         });
 
-        it("AZA1-H should terminate any pending subscription when the client is disconnected twice", function (done) {
+        it("AZA1-H should terminate any pending subscription when the client is disconnected twice", function(done) {
             let the_session;
 
             async.series(
                 [
                     // connect
-                    function (callback) {
+                    function(callback) {
                         client.connect(endpointUrl, callback);
                     },
 
                     // create session
-                    function (callback) {
-                        client.createSession(function (err, session) {
+                    function(callback) {
+                        client.createSession(function(err, session) {
                             if (err) {
                                 return callback(err);
                             }
@@ -367,7 +367,7 @@ module.exports = function (test) {
                     },
 
                     // create subscription
-                    function (callback) {
+                    function(callback) {
                         const subscription = ClientSubscription.create(the_session, {
                             requestedPublishingInterval: 100,
                             requestedLifetimeCount: 6000,
@@ -376,7 +376,7 @@ module.exports = function (test) {
                             publishingEnabled: true,
                             priority: 6
                         });
-                        subscription.on("started", function () {
+                        subscription.on("started", function() {
                             // monitor some
                             const monitoredItem = ClientMonitoredItem.create(
                                 subscription,
@@ -400,20 +400,20 @@ module.exports = function (test) {
                     },
 
                     // wait a little bit and disconnect client
-                    function (callback) {
-                        setTimeout(function () {
+                    function(callback) {
+                        setTimeout(function() {
                             client.disconnect(callback);
                         }, 600);
                     },
 
                     // connect the same client again !!!!
-                    function (callback) {
+                    function(callback) {
                         client.connect(endpointUrl, callback);
                     },
 
                     // create session again
-                    function (callback) {
-                        client.createSession(function (err, session) {
+                    function(callback) {
+                        client.createSession(function(err, session) {
                             if (err) {
                                 return callback(err);
                             }
@@ -424,7 +424,7 @@ module.exports = function (test) {
                     },
 
                     // create subscription again
-                    function (callback) {
+                    function(callback) {
                         should.exist(the_session);
                         const subscription = ClientSubscription.create(the_session, {
                             requestedPublishingInterval: 100,
@@ -434,7 +434,7 @@ module.exports = function (test) {
                             publishingEnabled: true,
                             priority: 6
                         });
-                        subscription.on("started", function () {
+                        subscription.on("started", function() {
                             // monitor some again
                             const monitoredItem = ClientMonitoredItem.create(
                                 subscription,
@@ -455,23 +455,23 @@ module.exports = function (test) {
 
                     // now disconnect the client, without terminating the subscription &
                     // without closing the session first
-                    function (callback) {
-                        setTimeout(function () {
+                    function(callback) {
+                        setTimeout(function() {
                             client.disconnect(callback);
                         }, 400);
                     }
                 ],
-                function (err) {
+                function(err) {
                     done(err);
                 }
             );
         });
     });
 
-    describe("AZA2- testing server and subscription", function () {
+    describe("AZA2- testing server and subscription", function() {
         let server, client, endpointUrl;
 
-        beforeEach(function (done) {
+        beforeEach(function(done) {
             server = test.server;
             //xx server.restart(function() {
 
@@ -481,8 +481,8 @@ module.exports = function (test) {
             //xx });
         });
 
-        afterEach(function (done) {
-            client.disconnect(function (err) {
+        afterEach(function(done) {
+            client.disconnect(function(err) {
                 client = null;
                 done(err);
             });
@@ -508,7 +508,7 @@ module.exports = function (test) {
         //
         //}
 
-        it("AZA2-A should return BadTooManySubscriptions if too many subscriptions are opened", function (done) {
+        it("AZA2-A should return BadTooManySubscriptions if too many subscriptions are opened", function(done) {
             //XX on_freshly_started_server(function (inner_done) {
 
             const subscriptionIds = [];
@@ -523,7 +523,7 @@ module.exports = function (test) {
                         publishingEnabled: true, // Boolean
                         priority: 14 // Byte
                     },
-                    function (err, response) {
+                    function(err, response) {
                         if (!expected_error) {
                             should.not.exist(err);
                             subscriptionIds.push(response.subscriptionId);
@@ -541,49 +541,49 @@ module.exports = function (test) {
             perform_operation_on_client_session(
                 client,
                 endpointUrl,
-                function (session, done) {
+                function(session, done) {
                     async.series(
                         [
-                            function (callback) {
+                            function(callback) {
                                 const nbSessions = server.engine.currentSessionCount;
                                 server.engine.currentSessionCount.should.equal(nbSessions);
                                 callback();
                             },
-                            function (callback) {
+                            function(callback) {
                                 create_an_other_subscription(session, null, callback);
                             },
-                            function (callback) {
+                            function(callback) {
                                 create_an_other_subscription(session, null, callback);
                             },
-                            function (callback) {
+                            function(callback) {
                                 create_an_other_subscription(session, null, callback);
                             },
-                            function (callback) {
+                            function(callback) {
                                 create_an_other_subscription(session, null, callback);
                             },
-                            function (callback) {
+                            function(callback) {
                                 create_an_other_subscription(session, null, callback);
                             },
-                            function (callback) {
+                            function(callback) {
                                 create_an_other_subscription(session, "BadTooManySubscriptions", callback);
                             },
-                            function (callback) {
+                            function(callback) {
                                 create_an_other_subscription(session, "BadTooManySubscriptions", callback);
                             },
 
-                            function (callback) {
+                            function(callback) {
                                 session.deleteSubscriptions(
                                     {
                                         subscriptionIds: subscriptionIds
                                     },
-                                    function (err, response) {
+                                    function(err, response) {
                                         should.exist(response);
                                         callback(err);
                                     }
                                 );
                             }
                         ],
-                        function (err) {
+                        function(err) {
                             OPCUAServer.MAX_SUBSCRIPTION = MAX_SUBSCRIPTION_BACKUP;
                             done(err);
                         }
@@ -596,16 +596,16 @@ module.exports = function (test) {
 
         it(
             "AZA2-B a server should accept several Publish Requests from the client without sending notification immediately," +
-                " and should still be able to reply to other requests",
-            function (done) {
+            " and should still be able to reply to other requests",
+            function(done) {
                 let subscriptionId;
                 perform_operation_on_client_session(
                     client,
                     endpointUrl,
-                    function (session, done) {
+                    function(session, done) {
                         async.series(
                             [
-                                function (callback) {
+                                function(callback) {
                                     session.createSubscription(
                                         {
                                             requestedPublishingInterval: 1000, // Duration
@@ -615,19 +615,19 @@ module.exports = function (test) {
                                             publishingEnabled: true, // Boolean
                                             priority: 14 // Byte
                                         },
-                                        function (err, response) {
+                                        function(err, response) {
                                             subscriptionId = response.subscriptionId;
                                             callback(err);
                                         }
                                     );
                                 },
-                                function (callback) {
-                                    session.readVariableValue("RootFolder", function (err, dataValue, diagnosticInfos) {
+                                function(callback) {
+                                    session.readVariableValue("RootFolder", function(err, dataValue, diagnosticInfos) {
                                         should.exist(dataValue);
                                         callback(err);
                                     });
                                 },
-                                function (callback) {
+                                function(callback) {
                                     function publish_callback(err, response) {
                                         should.exist(response);
                                         should(err.message).match(/BadNoSubscription/);
@@ -642,24 +642,24 @@ module.exports = function (test) {
                                     session.publish({}, publish_callback);
                                     callback();
                                 },
-                                function (callback) {
-                                    session.readVariableValue("RootFolder", function (err, dataValue, diagnosticInfos) {
+                                function(callback) {
+                                    session.readVariableValue("RootFolder", function(err, dataValue, diagnosticInfos) {
                                         callback(err);
                                     });
                                 },
-                                function (callback) {
+                                function(callback) {
                                     session.deleteSubscriptions(
                                         {
                                             subscriptionIds: [subscriptionId]
                                         },
-                                        function (err, response) {
+                                        function(err, response) {
                                             should.exist(response);
                                             callback(err);
                                         }
                                     );
                                 }
                             ],
-                            function (err) {
+                            function(err) {
                                 done(err);
                             }
                         );
@@ -669,15 +669,15 @@ module.exports = function (test) {
             }
         );
 
-        it("AZA2-C A Subscription can be added and then deleted", function (done) {
+        it("AZA2-C A Subscription can be added and then deleted", function(done) {
             let subscriptionId;
             perform_operation_on_client_session(
                 client,
                 endpointUrl,
-                function (session, done) {
+                function(session, done) {
                     async.series(
                         [
-                            function (callback) {
+                            function(callback) {
                                 session.createSubscription(
                                     {
                                         requestedPublishingInterval: 100, // Duration
@@ -687,26 +687,26 @@ module.exports = function (test) {
                                         publishingEnabled: true, // Boolean
                                         priority: 14 // Byte
                                     },
-                                    function (err, response) {
+                                    function(err, response) {
                                         subscriptionId = response.subscriptionId;
                                         callback(err);
                                     }
                                 );
                             },
 
-                            function (callback) {
+                            function(callback) {
                                 session.deleteSubscriptions(
                                     {
                                         subscriptionIds: [subscriptionId]
                                     },
-                                    function (err, response) {
+                                    function(err, response) {
                                         should.exist(response);
                                         callback(err);
                                     }
                                 );
                             }
                         ],
-                        function (err) {
+                        function(err) {
                             done(err);
                         }
                     );
@@ -715,19 +715,19 @@ module.exports = function (test) {
             );
         });
 
-        it("AZA2-D #deleteSubscriptions -  should return serviceResult=BadNothingToDo if subscriptionIds is empty", function (done) {
+        it("AZA2-D #deleteSubscriptions -  should return serviceResult=BadNothingToDo if subscriptionIds is empty", function(done) {
             perform_operation_on_client_session(
                 client,
                 endpointUrl,
-                function (session, done) {
+                function(session, done) {
                     async.series(
                         [
-                            function (callback) {
+                            function(callback) {
                                 session.deleteSubscriptions(
                                     {
                                         subscriptionIds: []
                                     },
-                                    function (err, response) {
+                                    function(err, response) {
                                         should.exist(response);
                                         err.message.should.match(/BadNothingToDo/);
                                         callback();
@@ -735,7 +735,7 @@ module.exports = function (test) {
                                 );
                             }
                         ],
-                        function (err) {
+                        function(err) {
                             done(err);
                         }
                     );
@@ -744,11 +744,11 @@ module.exports = function (test) {
             );
         });
 
-        it("AZA2-E A MonitoredItem can be added to a subscription and then deleted", function (done) {
+        it("AZA2-E A MonitoredItem can be added to a subscription and then deleted", function(done) {
             perform_operation_on_subscription(
                 client,
                 endpointUrl,
-                function (session, subscription, callback) {
+                function(session, subscription, callback) {
                     const monitoredItem = ClientMonitoredItem.create(
                         subscription,
                         {
@@ -763,8 +763,8 @@ module.exports = function (test) {
                     );
 
                     // subscription.on("item_added",function(monitoredItem){
-                    monitoredItem.on("initialized", function () {
-                        monitoredItem.terminate(function () {
+                    monitoredItem.on("initialized", function() {
+                        monitoredItem.terminate(function() {
                             callback();
                         });
                     });
@@ -773,11 +773,11 @@ module.exports = function (test) {
             );
         });
 
-        it("AZA2-F should return BadNodeIdUnknown  if the client tries to monitored an non-existent node", function (done) {
+        it("AZA2-F should return BadNodeIdUnknown  if the client tries to monitored an non-existent node", function(done) {
             perform_operation_on_subscription(
                 client,
                 endpointUrl,
-                function (session, subscription, callback) {
+                function(session, subscription, callback) {
                     const itemToMonitor = {
                         nodeId: resolveNodeId("ns=0;s=**unknown**"),
                         attributeId: AttributeIds.Value
@@ -790,15 +790,15 @@ module.exports = function (test) {
 
                     const monitoredItem = ClientMonitoredItem.create(subscription, itemToMonitor, parameters);
 
-                    monitoredItem.on("err", function (statusMessage) {
+                    monitoredItem.on("err", function(statusMessage) {
                         console.log(" ERR event received");
                         statusMessage.should.eql(StatusCodes.BadNodeIdUnknown.toString());
                         callback();
                     });
 
                     // subscription.on("item_added",function(monitoredItem){
-                    monitoredItem.on("initialized", function () {
-                        monitoredItem.terminate(function () {
+                    monitoredItem.on("initialized", function() {
+                        monitoredItem.terminate(function() {
                             callback(new Error("Should not have been initialized"));
                         });
                     });
@@ -807,11 +807,11 @@ module.exports = function (test) {
             );
         });
 
-        it("AZA2-G should return BadAttributeIdInvalid if the client tries to monitored an invalid attribute", function (done) {
+        it("AZA2-G should return BadAttributeIdInvalid if the client tries to monitored an invalid attribute", function(done) {
             perform_operation_on_subscription(
                 client,
                 endpointUrl,
-                function (session, subscription, callback) {
+                function(session, subscription, callback) {
                     const monitoredItem = ClientMonitoredItem.create(
                         subscription,
                         {
@@ -825,7 +825,7 @@ module.exports = function (test) {
                         }
                     );
 
-                    monitoredItem.on("err", function (statusMessage) {
+                    monitoredItem.on("err", function(statusMessage) {
                         //xx console.log(" ERR event received");
 
                         statusMessage.should.eql(StatusCodes.BadAttributeIdInvalid.toString());
@@ -833,8 +833,8 @@ module.exports = function (test) {
                     });
 
                     // subscription.on("item_added",function(monitoredItem){
-                    monitoredItem.on("initialized", function () {
-                        monitoredItem.terminate(function () {
+                    monitoredItem.on("initialized", function() {
+                        monitoredItem.terminate(function() {
                             callback(new Error("Should not have been initialized"));
                         });
                     });
@@ -843,11 +843,11 @@ module.exports = function (test) {
             );
         });
 
-        it("AZA2-H should return BadIndexRangeInvalid if the client tries to monitored with an invalid index range", function (done) {
+        it("AZA2-H should return BadIndexRangeInvalid if the client tries to monitored with an invalid index range", function(done) {
             perform_operation_on_subscription(
                 client,
                 endpointUrl,
-                function (session, subscription, callback) {
+                function(session, subscription, callback) {
                     const monitoredItem = ClientMonitoredItem.create(
                         subscription,
                         {
@@ -862,14 +862,14 @@ module.exports = function (test) {
                         }
                     );
 
-                    monitoredItem.on("err", function (statusMessage) {
+                    monitoredItem.on("err", function(statusMessage) {
                         statusMessage.should.eql(StatusCodes.BadIndexRangeInvalid.toString());
                         callback();
                     });
 
                     // subscription.on("item_added",function(monitoredItem){
-                    monitoredItem.on("initialized", function () {
-                        monitoredItem.terminate(function () {
+                    monitoredItem.on("initialized", function() {
+                        monitoredItem.terminate(function() {
                             callback(new Error("monitoredItem.on('initialized') should not be called"));
                         });
                     });
@@ -878,11 +878,11 @@ module.exports = function (test) {
             );
         });
 
-        it("AZA2-I should return BadIndexRangeNoData on first notification if the client tries to monitored with 2D index range when a 1D index range is required", function (done) {
+        it("AZA2-I should return BadIndexRangeNoData on first notification if the client tries to monitored with 2D index range when a 1D index range is required", function(done) {
             perform_operation_on_subscription(
                 client,
                 endpointUrl,
-                function (session, subscription, callback) {
+                function(session, subscription, callback) {
                     const notificationMessageSpy = new sinon.spy();
                     subscription.on("raw_notification", notificationMessageSpy);
 
@@ -904,21 +904,21 @@ module.exports = function (test) {
                         }
                     );
 
-                    monitoredItem.on("err", function (statusMessage) {
+                    monitoredItem.on("err", function(statusMessage) {
                         //xx console.log("Monitored Item error",statusMessage);
                         statusMessage.should.eql(StatusCodes.BadIndexRangeInvalid.toString());
                         callback();
                     });
 
                     // subscription.on("item_added",function(monitoredItem){
-                    monitoredItem.on("initialized", function () {
+                    monitoredItem.on("initialized", function() {
                         //xx console.log("Monitored Item Initialized")
                     });
 
                     const monitoredItemOnChangedSpy = new sinon.spy();
                     monitoredItem.on("changed", monitoredItemOnChangedSpy);
 
-                    setTimeout(function () {
+                    setTimeout(function() {
                         //xx console.log(notificationMessageSpy.getCall(0).args[0].toString());
                         monitoredItemOnChangedSpy.getCall(0).args[0].statusCode.should.eql(StatusCodes.BadIndexRangeNoData);
                         monitoredItemOnChangedSpy.callCount.should.eql(1, "Only one reply");
@@ -929,7 +929,7 @@ module.exports = function (test) {
             );
         });
 
-        it("AZA2-J should not report notification if a monitored value array changes outside the monitored indexRange - 1", function (done) {
+        it("AZA2-J should not report notification if a monitored value array changes outside the monitored indexRange - 1", function(done) {
             // based on CTT : createMonitoredItems591025 - 015.js
             // Description:
             //  - Specify an item of type array. Do this for all configured supported data types.
@@ -941,7 +941,7 @@ module.exports = function (test) {
             perform_operation_on_subscription(
                 client,
                 endpointUrl,
-                function (session, subscription, callback) {
+                function(session, subscription, callback) {
                     const notificationMessageSpy = new sinon.spy();
                     subscription.on("raw_notification", notificationMessageSpy);
 
@@ -975,7 +975,7 @@ module.exports = function (test) {
                             indexRange: indexRange
                         };
 
-                        session.write(nodeToWrite, function (err, statusCode) {
+                        session.write(nodeToWrite, function(err, statusCode) {
                             if (!err) {
                                 statusCode.should.eql(StatusCodes.Good);
                             }
@@ -985,7 +985,7 @@ module.exports = function (test) {
                                     attributeId: AttributeIds.Value,
                                     nodeId: nodeId
                                 },
-                                function (err, dataValue) {
+                                function(err, dataValue) {
                                     should.not.exist(err);
                                     should.exist(dataValue);
                                     //xx console.log(" written ",dataValue.toString());
@@ -1011,12 +1011,12 @@ module.exports = function (test) {
                             TimestampsToReturn.Both
                         );
 
-                        monitoredItem.on("err", function (statusMessage) {
+                        monitoredItem.on("err", function(statusMessage) {
                             callback(new Error(statusMessage));
                         });
 
                         // subscription.on("item_added",function(monitoredItem){
-                        monitoredItem.on("initialized", function () {
+                        monitoredItem.on("initialized", function() {
                             callback();
                         });
 
@@ -1031,7 +1031,7 @@ module.exports = function (test) {
 
                             wait.bind(null, 300),
 
-                            function (callback) {
+                            function(callback) {
                                 monitoredItemOnChangedSpy.callCount.should.eql(1);
                                 monitoredItemOnChangedSpy.getCall(0).args[0].statusCode.should.eql(StatusCodes.Good);
                                 //xx console.log(monitoredItemOnChangedSpy.getCall(0).args[0].toString());
@@ -1045,7 +1045,7 @@ module.exports = function (test) {
 
                             write.bind(null, [200, 201], "0:1"),
                             wait.bind(null, 300),
-                            function (callback) {
+                            function(callback) {
                                 // no change ! there is no overlap
                                 //xx console.log(monitoredItemOnChangedSpy.getCall(1).args[0].value.toString());
                                 monitoredItemOnChangedSpy.callCount.should.eql(1);
@@ -1053,7 +1053,7 @@ module.exports = function (test) {
                             },
                             write.bind(null, [222, 333], "2:3"),
                             wait.bind(null, 300),
-                            function (callback) {
+                            function(callback) {
                                 // there is a overlap ! we should receive a monitoredItem On Change event
                                 monitoredItemOnChangedSpy.callCount.should.eql(2);
                                 monitoredItemOnChangedSpy
@@ -1069,7 +1069,7 @@ module.exports = function (test) {
             );
         });
 
-        it("AZA2-K should not report notification if a monitored value array changes outside the monitored indexRange", function (done) {
+        it("AZA2-K should not report notification if a monitored value array changes outside the monitored indexRange", function(done) {
             // based on CTT : createMonitoredItems591024 - 014.js
             // Description:
             //  - Specify an item of type array. Do this for all configured data types.
@@ -1083,7 +1083,7 @@ module.exports = function (test) {
             perform_operation_on_subscription(
                 client,
                 endpointUrl,
-                function (session, subscription, callback) {
+                function(session, subscription, callback) {
                     const notificationMessageSpy = new sinon.spy();
                     subscription.on("raw_notification", notificationMessageSpy);
 
@@ -1109,12 +1109,12 @@ module.exports = function (test) {
                             TimestampsToReturn.Both
                         );
 
-                        monitoredItem.on("err", function (statusMessage) {
+                        monitoredItem.on("err", function(statusMessage) {
                             callback(new Error(statusMessage));
                         });
 
                         // subscription.on("item_added",function(monitoredItem){
-                        monitoredItem.on("initialized", function () {
+                        monitoredItem.on("initialized", function() {
                             //xxconsole.log("Monitored Item Initialized")
                             callback();
                         });
@@ -1140,7 +1140,7 @@ module.exports = function (test) {
                             }
                         };
 
-                        session.write(nodeToWrite, function (err, statusCode) {
+                        session.write(nodeToWrite, function(err, statusCode) {
                             if (!err) {
                                 statusCode.should.eql(StatusCodes.Good);
                             }
@@ -1149,7 +1149,7 @@ module.exports = function (test) {
                                     attributeId: AttributeIds.Value,
                                     nodeId: nodeId
                                 },
-                                function (err, dataValue) {
+                                function(err, dataValue) {
                                     should.exist(dataValue);
                                     ///xx console.log(" written ",dataValue.value.toString());
                                     callback(err);
@@ -1171,7 +1171,7 @@ module.exports = function (test) {
                             wait.bind(null, 300),
                             write.bind(null, [10, 20, 13, 14, 15, 60]),
                             wait.bind(null, 300),
-                            function (callback) {
+                            function(callback) {
                                 //xx console.log(monitoredItemOnChangedSpy.getCall(0).args[0].toString());
                                 //xx console.log(monitoredItemOnChangedSpy.getCall(1).args[0].toString());
                                 //xx console.log(monitoredItemOnChangedSpy.getCall(2).args[0].toString());
@@ -1195,7 +1195,7 @@ module.exports = function (test) {
             );
         });
 
-        it("AZA2-K1 should not report notification if a monitored value & status are written but did not change", function (done) {
+        it("AZA2-K1 should not report notification if a monitored value & status are written but did not change", function(done) {
             const subscriptionParameters = {
                 requestedPublishingInterval: 100,
                 requestedLifetimeCount: 6000,
@@ -1222,7 +1222,7 @@ module.exports = function (test) {
                 client,
                 endpointUrl,
                 subscriptionParameters,
-                function (session, subscription, callback) {
+                function(session, subscription, callback) {
                     const notificationMessageSpy = new sinon.spy();
                     subscription.on("raw_notification", notificationMessageSpy);
                     subscription.on("raw_notification", (notf) => {
@@ -1251,12 +1251,12 @@ module.exports = function (test) {
                             TimestampsToReturn.Both
                         );
 
-                        monitoredItem.on("err", function (statusMessage) {
+                        monitoredItem.on("err", function(statusMessage) {
                             callback(new Error(statusMessage));
                         });
 
                         // subscription.on("item_added",function(monitoredItem){
-                        monitoredItem.on("initialized", function () {
+                        monitoredItem.on("initialized", function() {
                             //xxconsole.log("Monitored Item Initialized")
                             callback();
                         });
@@ -1288,7 +1288,7 @@ module.exports = function (test) {
                             }
                         };
 
-                        session.write(nodeToWrite, function (err, statusCode) {
+                        session.write(nodeToWrite, function(err, statusCode) {
                             if (!err) {
                                 statusCode.should.eql(StatusCodes.Good);
                             }
@@ -1297,7 +1297,7 @@ module.exports = function (test) {
                                     attributeId: AttributeIds.Value,
                                     nodeId: nodeId
                                 },
-                                function (err, dataValue) {
+                                function(err, dataValue) {
                                     should.exist(dataValue);
                                     // xx console.log(" written ",dataValue.toString());
                                     callback(err);
@@ -1322,7 +1322,7 @@ module.exports = function (test) {
                             write.bind(null, 1, StatusCodes.GoodWithOverflowBit),
                             wait.bind(null, 300),
 
-                            function (callback) {
+                            function(callback) {
                                 // wait until next notification received;
                                 const lambda = (response) => {
                                     if (doDebug) {
@@ -1349,7 +1349,7 @@ module.exports = function (test) {
                                 client.on("receive_response", lambda);
                             },
                             //xx wait.bind(null, subscription.publishingInterval * subscription.maxKeepAliveCount + 500),
-                            function (callback) {
+                            function(callback) {
                                 try {
                                     if (doDebug) {
                                         console.log(
@@ -1409,17 +1409,17 @@ module.exports = function (test) {
             });
         });
 
-        it("AZA2-M #CreateMonitoredItemRequest should return BadNothingToDo if CreateMonitoredItemRequest has no nodes to monitored", function (done) {
+        it("AZA2-M #CreateMonitoredItemRequest should return BadNothingToDo if CreateMonitoredItemRequest has no nodes to monitored", function(done) {
             perform_operation_on_subscription(
                 client,
                 endpointUrl,
-                function (session, subscription, callback) {
+                function(session, subscription, callback) {
                     const createMonitoredItemsRequest = new CreateMonitoredItemsRequest({
                         subscriptionId: subscription.subscriptionId,
                         timestampsToReturn: TimestampsToReturn.Neither,
                         itemsToCreate: []
                     });
-                    session.createMonitoredItems(createMonitoredItemsRequest, function (err, createMonitoredItemsResponse) {
+                    session.createMonitoredItems(createMonitoredItemsRequest, function(err, createMonitoredItemsResponse) {
                         should(err.message).match(/BadNothingToDo/);
                         createMonitoredItemsResponse.responseHeader.serviceResult.should.eql(StatusCodes.BadNothingToDo);
                         callback();
@@ -1429,11 +1429,11 @@ module.exports = function (test) {
             );
         });
 
-        it("AZA2-N #CreateMonitoredItemRequest should return BadIndexRangeInvalid if a invalid range is passed on CreateMonitoredItemRequest ", function (done) {
+        it("AZA2-N #CreateMonitoredItemRequest should return BadIndexRangeInvalid if a invalid range is passed on CreateMonitoredItemRequest ", function(done) {
             perform_operation_on_subscription(
                 client,
                 endpointUrl,
-                function (session, subscription, callback) {
+                function(session, subscription, callback) {
                     const nodeId = makeNodeId(VariableIds.Server_ServerArray);
                     const samplingInterval = 1000;
                     const itemToMonitor = new ReadValueId({
@@ -1458,7 +1458,7 @@ module.exports = function (test) {
                             }
                         ]
                     });
-                    session.createMonitoredItems(createMonitoredItemsRequest, function (err, createMonitoredItemsResponse) {
+                    session.createMonitoredItems(createMonitoredItemsRequest, function(err, createMonitoredItemsResponse) {
                         should.not.exist(err);
                         createMonitoredItemsResponse.responseHeader.serviceResult.should.eql(StatusCodes.Good);
 
@@ -1472,17 +1472,17 @@ module.exports = function (test) {
             );
         });
 
-        it("AZA2-O should return BadNothingToDo if ModifyMonitoredItemRequest has no nodes to monitored", function (done) {
+        it("AZA2-O should return BadNothingToDo if ModifyMonitoredItemRequest has no nodes to monitored", function(done) {
             perform_operation_on_subscription(
                 client,
                 endpointUrl,
-                function (session, subscription, callback) {
+                function(session, subscription, callback) {
                     const modifyMonitoredItemsRequest = new ModifyMonitoredItemsRequest({
                         subscriptionId: subscription.subscriptionId,
                         timestampsToReturn: TimestampsToReturn.Neither,
                         itemsToModify: []
                     });
-                    session.modifyMonitoredItems(modifyMonitoredItemsRequest, function (err, modifyMonitoredItemsResponse) {
+                    session.modifyMonitoredItems(modifyMonitoredItemsRequest, function(err, modifyMonitoredItemsResponse) {
                         should(err.message).match(/BadNothingToDo/);
                         modifyMonitoredItemsResponse.responseHeader.serviceResult.should.eql(StatusCodes.BadNothingToDo);
                         callback();
@@ -1492,16 +1492,16 @@ module.exports = function (test) {
             );
         });
 
-        it("AZA2-P should return BadNothingToDo if DeleteMonitoredItemsResponse has no nodes to delete", function (done) {
+        it("AZA2-P should return BadNothingToDo if DeleteMonitoredItemsResponse has no nodes to delete", function(done) {
             perform_operation_on_subscription(
                 client,
                 endpointUrl,
-                function (session, subscription, callback) {
+                function(session, subscription, callback) {
                     const deleteMonitoredItemsRequest = new DeleteMonitoredItemsRequest({
                         subscriptionId: subscription.subscriptionId,
                         monitoredItemIds: []
                     });
-                    session.deleteMonitoredItems(deleteMonitoredItemsRequest, function (err, deleteMonitoredItemsResponse) {
+                    session.deleteMonitoredItems(deleteMonitoredItemsRequest, function(err, deleteMonitoredItemsResponse) {
                         should(err.message).match(/BadNothingToDo/);
                         deleteMonitoredItemsResponse.responseHeader.serviceResult.should.eql(StatusCodes.BadNothingToDo);
                         callback();
@@ -1511,11 +1511,11 @@ module.exports = function (test) {
             );
         });
 
-        it("AZA2-Q A MonitoredItem should received changed event", function (done) {
+        it("AZA2-Q A MonitoredItem should received changed event", function(done) {
             perform_operation_on_subscription(
                 client,
                 endpointUrl,
-                function (session, subscription, inner_callback) {
+                function(session, subscription, inner_callback) {
                     const monitoredItem = ClientMonitoredItem.create(
                         subscription,
                         {
@@ -1529,18 +1529,18 @@ module.exports = function (test) {
                         }
                     );
 
-                    monitoredItem.on("initialized", function () {
+                    monitoredItem.on("initialized", function() {
                         //xx console.log("Initialized");
                     });
-                    monitoredItem.on("terminated", function () {
+                    monitoredItem.on("terminated", function() {
                         // xx console.log("monitored item terminated");
                     });
 
-                    monitoredItem.on("changed", function (dataValue) {
+                    monitoredItem.on("changed", function(dataValue) {
                         should.exist(dataValue);
                         // the changed event has been received !
                         // lets stop monitoring this item
-                        setImmediate(function () {
+                        setImmediate(function() {
                             monitoredItem.terminate(inner_callback);
                         });
                     });
@@ -1549,11 +1549,11 @@ module.exports = function (test) {
             );
         });
 
-        it("AZA2-R A Server should reject a CreateMonitoredItemRequest if timestamp is invalid ( catching error on monitored item )", function (done) {
+        it("AZA2-R A Server should reject a CreateMonitoredItemRequest if timestamp is invalid ( catching error on monitored item )", function(done) {
             perform_operation_on_subscription(
                 client,
                 endpointUrl,
-                function (session, subscription, callback) {
+                function(session, subscription, callback) {
                     const monitoredItem = ClientMonitoredItem.create(
                         subscription,
                         {
@@ -1571,16 +1571,17 @@ module.exports = function (test) {
 
                     let err_counter = 0;
                     // subscription.on("item_added",function(monitoredItem){
-                    monitoredItem.on("initialized", function () {});
+                    monitoredItem.on("initialized", function() { });
 
-                    monitoredItem.on("changed", function (dataValue) {
+                    monitoredItem.on("changed", function(dataValue) {
                         should.exist(dataValue);
                     });
-                    monitoredItem.on("err", function (err) {
+                    monitoredItem.on("err", function(err) {
                         should.exist(err);
                         err_counter++;
+                        console.log("err received => terminated event expected")
                     });
-                    monitoredItem.on("terminated", function () {
+                    monitoredItem.on("terminated", function() {
                         err_counter.should.eql(1);
                         callback();
                     });
@@ -1589,11 +1590,11 @@ module.exports = function (test) {
             );
         });
 
-        it("AZA2-SA A Server should reject a CreateMonitoredItemRequest if timestamp is invalid ( catching error on callback)", function (done) {
+        it("AZA2-SA A Server should reject a CreateMonitoredItemRequest if timestamp is invalid ( catching error on callback)", function(done) {
             perform_operation_on_subscription(
                 client,
                 endpointUrl,
-                function (session, subscription, callback) {
+                function(session, subscription, callback) {
                     const monitoredItem = ClientMonitoredItem.create(
                         subscription,
                         {
@@ -1607,10 +1608,10 @@ module.exports = function (test) {
                         },
                         TimestampsToReturn.Invalid // <= A invalid  TimestampsToReturn
                     );
-                    monitoredItem.on("initialized", function () {
+                    monitoredItem.on("initialized", function() {
                         callback(new Error("Should not get there"));
                     });
-                    monitoredItem.on("err", function () {
+                    monitoredItem.on("err", function() {
                         callback();
                     });
                 },
@@ -1618,11 +1619,11 @@ module.exports = function (test) {
             );
         });
 
-        it("AZA2-SB A Server should reject a CreateMonitoredItemRequest if timestamp is invalid ( catching error on callback)", function (done) {
+        it("AZA2-SB A Server should reject a CreateMonitoredItemRequest if timestamp is invalid ( catching error on callback)", function(done) {
             perform_operation_on_subscription(
                 client,
                 endpointUrl,
-                function (session, subscription, callback) {
+                function(session, subscription, callback) {
                     subscription.monitor(
                         {
                             nodeId: resolveNodeId("ns=0;i=2258"),
@@ -1634,7 +1635,7 @@ module.exports = function (test) {
                             queueSize: 1
                         },
                         TimestampsToReturn.Invalid, // <= A invalid  TimestampsToReturn
-                        function (err, monitoredItem) {
+                        function(err, monitoredItem) {
                             if (!err) {
                                 callback(new Error("Should not get there"));
                             } else {
@@ -1647,7 +1648,7 @@ module.exports = function (test) {
             );
         });
 
-        it("AZA2-T A Server should be able to revise publish interval to avoid trashing if client specify a very small or zero requestedPublishingInterval", function (done) {
+        it("AZA2-T A Server should be able to revise publish interval to avoid trashing if client specify a very small or zero requestedPublishingInterval", function(done) {
             // from spec OPCUA Version 1.02  Part 4 $5.13.2.2 : requestedPublishingInterval:
             // The negotiated value for this parameter returned in the response is used as the
             // default sampling interval for MonitoredItems assigned to this Subscription.
@@ -1656,12 +1657,12 @@ module.exports = function (test) {
             perform_operation_on_client_session(
                 client,
                 endpointUrl,
-                function (session, inner_done) {
+                function(session, inner_done) {
                     session.createSubscription(
                         {
                             requestedPublishingInterval: -1
                         },
-                        function (err, createSubscriptionResponse) {
+                        function(err, createSubscriptionResponse) {
                             createSubscriptionResponse.revisedPublishingInterval.should.be.greaterThan(10);
 
                             inner_done(err);
@@ -1672,15 +1673,15 @@ module.exports = function (test) {
             );
         });
 
-        it("AZA2-U should handle PublishRequest to confirm closed subscriptions", function (done) {
+        it("AZA2-U should handle PublishRequest to confirm closed subscriptions", function(done) {
             let subscriptionId;
             perform_operation_on_client_session(
                 client,
                 endpointUrl,
-                function (session, done) {
+                function(session, done) {
                     async.series(
                         [
-                            function (callback) {
+                            function(callback) {
                                 session.createSubscription(
                                     {
                                         requestedPublishingInterval: 200, // Duration
@@ -1690,7 +1691,7 @@ module.exports = function (test) {
                                         publishingEnabled: true, // Boolean
                                         priority: 14 // Byte
                                     },
-                                    function (err, response) {
+                                    function(err, response) {
                                         subscriptionId = response.subscriptionId;
                                         callback(err);
                                     }
@@ -1698,7 +1699,7 @@ module.exports = function (test) {
                             },
 
                             // create a monitored item so we have pending notificiation
-                            function (callback) {
+                            function(callback) {
                                 const namespaceIndex = 2;
                                 const nodeId = "s=" + "Scalar_Static_Int16";
 
@@ -1723,31 +1724,31 @@ module.exports = function (test) {
                                         }
                                     ]
                                 });
-                                session.createMonitoredItems(createMonitoredItemsRequest, function (err, results) {
+                                session.createMonitoredItems(createMonitoredItemsRequest, function(err, results) {
                                     callback(err);
                                 });
                             },
-                            function (callback) {
+                            function(callback) {
                                 setTimeout(callback, 300);
                             },
-                            function (callback) {
+                            function(callback) {
                                 session.deleteSubscriptions(
                                     {
                                         subscriptionIds: [subscriptionId]
                                     },
-                                    function (err, response) {
+                                    function(err, response) {
                                         callback(err);
                                     }
                                 );
                             },
 
-                            function (callback) {
-                                session.publish({}, function (err, publishResult) {
+                            function(callback) {
+                                session.publish({}, function(err, publishResult) {
                                     callback();
                                 });
                             }
                         ],
-                        function (err) {
+                        function(err) {
                             done(err);
                         }
                     );
@@ -1757,7 +1758,7 @@ module.exports = function (test) {
         });
     });
 
-    describe("AZA3- testing Client-Server subscription use case 2/2, on a fake server exposing the temperature device", function () {
+    describe("AZA3- testing Client-Server subscription use case 2/2, on a fake server exposing the temperature device", function() {
         let server, client, temperatureVariableId, endpointUrl;
 
         const nodeIdVariant = "ns=1;s=SomeDouble";
@@ -1767,7 +1768,7 @@ module.exports = function (test) {
         let subscriptionId = null;
         let samplingInterval = -1;
 
-        before(function (done) {
+        before(function(done) {
             server = test.server;
             endpointUrl = test.endpointUrl;
             temperatureVariableId = server.temperatureVariableId;
@@ -1792,7 +1793,7 @@ module.exports = function (test) {
             n1.minimumSamplingInterval.should.eql(0);
 
             let changeDetected = 0;
-            n1.on("value_changed", function (dataValue) {
+            n1.on("value_changed", function(dataValue) {
                 changeDetected += 1;
             });
 
@@ -1822,7 +1823,7 @@ module.exports = function (test) {
             done();
         });
 
-        beforeEach(function (done) {
+        beforeEach(function(done) {
             client = OPCUAClient.create({
                 keepSessionAlive: true,
                 requestedSessionTimeout: 240 * 1000 // 4 min ! make sure that session doesn't drop during test
@@ -1830,7 +1831,7 @@ module.exports = function (test) {
             done();
         });
 
-        afterEach(function (done) {
+        afterEach(function(done) {
             client = null;
             done();
         });
@@ -1844,22 +1845,22 @@ module.exports = function (test) {
         function my_CreateSubscription(session, subscriptionParameters, callback) {
             const subscription = ClientSubscription.create(session, subscriptionParameters);
 
-            subscription.once("started", function () {
+            subscription.once("started", function() {
                 callback(null, subscription);
             });
 
             // install a little keepalive counter
             subscription.nb_keep_alive_received = 0;
-            subscription.on("keepalive", function () {
+            subscription.on("keepalive", function() {
                 subscription.nb_keep_alive_received += 1;
             });
 
-            subscription.on("timeout", function () {
+            subscription.on("timeout", function() {
                 console.log("Subscription has timed out");
             });
         }
 
-        it("AZA3-A A server should send a StatusChangeNotification (BadTimeout) if the client doesn't send PublishRequest within the expected interval", function (done) {
+        it("AZA3-A A server should send a StatusChangeNotification (BadTimeout) if the client doesn't send PublishRequest within the expected interval", function(done) {
             if (process.platform === "darwin") {
                 return done(); // skipping on MacOS
             }
@@ -1880,7 +1881,7 @@ module.exports = function (test) {
             perform_operation_on_client_session(
                 client,
                 endpointUrl,
-                function (session, inner_done) {
+                function(session, inner_done) {
                     function setUnpublishing(session) {
                         // replace internalSendPublishRequest so that it doesn't do anything for a little while
                         // The publish engine is shared amongst all subscriptions and belongs to the  session object
@@ -1919,7 +1920,7 @@ module.exports = function (test) {
                                     priority: 6
                                 };
 
-                                my_CreateSubscription(session, subscriptionParameters, function (err, subscription) {
+                                my_CreateSubscription(session, subscriptionParameters, function(err, subscription) {
                                     if (err) {
                                         return callback(err);
                                     }
@@ -1938,7 +1939,7 @@ module.exports = function (test) {
                                     priority: 6
                                 };
 
-                                my_CreateSubscription(session, subscriptionParameters, function (err, subscription) {
+                                my_CreateSubscription(session, subscriptionParameters, function(err, subscription) {
                                     if (err) {
                                         return callback(err);
                                     }
@@ -1964,14 +1965,14 @@ module.exports = function (test) {
                                     );
                                 }
 
-                                setTimeout(function () {
+                                setTimeout(function() {
                                     if (doDebug) {
                                         console.log(" Restoring default Publishing behavior");
                                     }
                                     repairUnpublishing(session);
                                 }, timeToWaitBeforeResendingPublishInterval);
 
-                                shortlifeSubscription.once("status_changed", function (statusCode) {
+                                shortlifeSubscription.once("status_changed", function(statusCode) {
                                     statusCode.should.eql(StatusCodes.BadTimeout);
                                     setImmediate(callback);
                                 });
@@ -1985,15 +1986,15 @@ module.exports = function (test) {
                                 // let explicitly close the subscription by calling terminate
                                 // but delay a little bit so we can verify that internalSendPublishRequest
                                 // is not called
-                                setTimeout(function () {
-                                    shortlifeSubscription.terminate(function (err) {
+                                setTimeout(function() {
+                                    shortlifeSubscription.terminate(function(err) {
                                         shortlifeSubscription.nb_keep_alive_received.should.be.equal(0);
                                         setImmediate(callback);
                                     });
                                 }, timeout);
                             }),
                             f(function terminate_long_life_subscription(callback) {
-                                longlifeSubscription.terminate(function (err) {
+                                longlifeSubscription.terminate(function(err) {
                                     setImmediate(callback);
                                 });
                             })
@@ -2005,11 +2006,11 @@ module.exports = function (test) {
             );
         });
 
-        it("AZA3-B A subscription without a monitored item should not dropped too early ( see #59)", function (done) {
+        it("AZA3-B A subscription without a monitored item should not dropped too early ( see #59)", function(done) {
             perform_operation_on_client_session(
                 client,
                 endpointUrl,
-                function (session, inner_done) {
+                function(session, inner_done) {
                     const subscription = ClientSubscription.create(session, {
                         requestedPublishingInterval: 100,
                         requestedLifetimeCount: 6000,
@@ -2025,7 +2026,7 @@ module.exports = function (test) {
 
                     subscription.on("terminated", termination_is_a_failure);
 
-                    setTimeout(function () {
+                    setTimeout(function() {
                         subscription.removeListener("terminated", termination_is_a_failure);
                         inner_done();
                     }, 1000);
@@ -2034,11 +2035,11 @@ module.exports = function (test) {
             );
         });
 
-        it("AZA3-C #bytesRead #transactionsCount #bytesWritten", function (done) {
+        it("AZA3-C #bytesRead #transactionsCount #bytesWritten", function(done) {
             perform_operation_on_client_session(
                 client,
                 endpointUrl,
-                function (session, inner_done) {
+                function(session, inner_done) {
                     server.bytesRead.should.be.greaterThan(10);
                     server.transactionsCount.should.be.greaterThan(3);
                     server.bytesWritten.should.be.greaterThan(10);
@@ -2048,15 +2049,15 @@ module.exports = function (test) {
             );
         });
 
-        it("AZA3-D #CreateMonitoredItemsRequest : A server should return statusCode === BadSubscriptionIdInvalid when appropriate  ", function (done) {
+        it("AZA3-D #CreateMonitoredItemsRequest : A server should return statusCode === BadSubscriptionIdInvalid when appropriate  ", function(done) {
             perform_operation_on_client_session(
                 client,
                 endpointUrl,
-                function (session, inner_done) {
+                function(session, inner_done) {
                     const options = {
                         subscriptionId: 999 // << invalide subscription id
                     };
-                    session.createMonitoredItems(options, function (err, results) {
+                    session.createMonitoredItems(options, function(err, results) {
                         err.message.should.match(/BadSubscriptionIdInvalid/);
                         inner_done();
                     });
@@ -2065,14 +2066,14 @@ module.exports = function (test) {
             );
         });
 
-        it("AZA3-E #SetPublishingModeRequest: A server should set status codes to BadSubscriptionIdInvalid when appropriate  ", function (done) {
+        it("AZA3-E #SetPublishingModeRequest: A server should set status codes to BadSubscriptionIdInvalid when appropriate  ", function(done) {
             perform_operation_on_client_session(
                 client,
                 endpointUrl,
-                function (session, inner_done) {
+                function(session, inner_done) {
                     const publishingEnabled = true;
                     const subscriptionIds = [999]; //<< invalid subscription ID
-                    session.setPublishingMode(publishingEnabled, subscriptionIds, function (err, results) {
+                    session.setPublishingMode(publishingEnabled, subscriptionIds, function(err, results) {
                         results.should.be.instanceOf(Array);
                         results[0].should.eql(StatusCodes.BadSubscriptionIdInvalid);
                         inner_done(err);
@@ -2082,11 +2083,11 @@ module.exports = function (test) {
             );
         });
 
-        it("AZA3-F A server should suspend/resume publishing when client send a setPublishingMode Request ", function (done) {
+        it("AZA3-F A server should suspend/resume publishing when client send a setPublishingMode Request ", function(done) {
             perform_operation_on_client_session(
                 client,
                 endpointUrl,
-                function (session, inner_done) {
+                function(session, inner_done) {
                     const parameters = {
                         requestedPublishingInterval: 100,
                         requestedLifetimeCount: 6000,
@@ -2098,7 +2099,7 @@ module.exports = function (test) {
 
                     const subscription = ClientSubscription.create(session, parameters);
 
-                    subscription.on("terminated", function () {});
+                    subscription.on("terminated", function() { });
 
                     const itemToMonitor = {
                         nodeId: resolveNodeId("ns=0;i=2258"),
@@ -2112,7 +2113,7 @@ module.exports = function (test) {
                     const monitoredItem = ClientMonitoredItem.create(subscription, itemToMonitor, monitoringParameters);
 
                     let change_count = 0;
-                    monitoredItem.on("changed", function (dataValue) {
+                    monitoredItem.on("changed", function(dataValue) {
                         change_count += 1;
                         should.exist(dataValue);
                         //xx console.log("xxxxxxxxxxxx=> dataValue",dataValue.toString());
@@ -2120,46 +2121,46 @@ module.exports = function (test) {
 
                     async.series(
                         [
-                            function (callback) {
+                            function(callback) {
                                 // wait 400 milliseconds and verify that the subscription is sending some notification
-                                setTimeout(function () {
+                                setTimeout(function() {
                                     change_count.should.be.greaterThan(2);
                                     callback();
                                 }, 3600);
                             },
-                            function (callback) {
+                            function(callback) {
                                 // suspend subscription
-                                subscription.setPublishingMode(false, function (err) {
+                                subscription.setPublishingMode(false, function(err) {
                                     change_count = 0;
                                     callback(err);
                                 });
                             },
-                            function (callback) {
+                            function(callback) {
                                 // wait  400 milliseconds and verify that the subscription is  NOT sending any notification
-                                setTimeout(function () {
+                                setTimeout(function() {
                                     change_count.should.equal(0);
                                     callback();
                                 }, 400);
                             },
 
-                            function (callback) {
+                            function(callback) {
                                 // resume subscription
-                                subscription.setPublishingMode(true, function (err) {
+                                subscription.setPublishingMode(true, function(err) {
                                     change_count = 0;
                                     callback(err);
                                 });
                             },
 
-                            function (callback) {
+                            function(callback) {
                                 // wait 600 milliseconds and verify that the subscription is sending some notification again
-                                setTimeout(function () {
+                                setTimeout(function() {
                                     change_count.should.be.greaterThan(2);
                                     callback();
                                 }, 3600);
                             },
 
-                            function (callback) {
-                                subscription.terminate(function (err) {
+                            function(callback) {
+                                subscription.terminate(function(err) {
                                     callback(err);
                                 });
                             }
@@ -2171,11 +2172,11 @@ module.exports = function (test) {
             );
         });
 
-        it("AZA3-G A client should be able to create a subscription that have  publishingEnable=false", function (done) {
+        it("AZA3-G A client should be able to create a subscription that have  publishingEnable=false", function(done) {
             perform_operation_on_client_session(
                 client,
                 endpointUrl,
-                function (session, inner_done) {
+                function(session, inner_done) {
                     const subscription = ClientSubscription.create(session, {
                         requestedPublishingInterval: 100,
                         requestedLifetimeCount: 6000,
@@ -2185,7 +2186,7 @@ module.exports = function (test) {
                         priority: 6
                     });
 
-                    subscription.on("terminated", function () {});
+                    subscription.on("terminated", function() { });
                     const monitoredItem = ClientMonitoredItem.create(
                         subscription,
                         {
@@ -2200,15 +2201,15 @@ module.exports = function (test) {
                     );
 
                     let change_count = 0;
-                    monitoredItem.on("changed", function (dataValue) {
+                    monitoredItem.on("changed", function(dataValue) {
                         should.exist(dataValue);
                         change_count += 1;
                     });
                     async.series(
                         [
-                            function (callback) {
+                            function(callback) {
                                 // wait 400 ms and verify that the subscription is not sending notification.
-                                setTimeout(function () {
+                                setTimeout(function() {
                                     change_count.should.equal(0);
                                     callback();
                                 }, 400);
@@ -2221,18 +2222,18 @@ module.exports = function (test) {
             );
         });
 
-        it("AZA3-H #ModifyMonitoredItemRequest : server should send BadSubscriptionIdInvalid if client send a wrong subscription id", function (done) {
+        it("AZA3-H #ModifyMonitoredItemRequest : server should send BadSubscriptionIdInvalid if client send a wrong subscription id", function(done) {
             perform_operation_on_client_session(
                 client,
                 endpointUrl,
-                function (session, inner_done) {
+                function(session, inner_done) {
                     const modifyMonitoredItemsRequest = {
                         subscriptionId: 999,
                         timestampsToReturn: TimestampsToReturn.Neither,
                         itemsToModify: [{}]
                     };
 
-                    session.modifyMonitoredItems(modifyMonitoredItemsRequest, function (err) {
+                    session.modifyMonitoredItems(modifyMonitoredItemsRequest, function(err) {
                         err.message.should.match(/BadSubscriptionIdInvalid/);
                         inner_done();
                     });
@@ -2241,11 +2242,11 @@ module.exports = function (test) {
             );
         });
 
-        it("AZA3-I #ModifyMonitoredItemRequest : server should send BadSubscriptionIdInvalid if client send a wrong subscription id", function (done) {
+        it("AZA3-I #ModifyMonitoredItemRequest : server should send BadSubscriptionIdInvalid if client send a wrong subscription id", function(done) {
             perform_operation_on_client_session(
                 client,
                 endpointUrl,
-                function (session, inner_done) {
+                function(session, inner_done) {
                     const subscription = ClientSubscription.create(session, {
                         requestedPublishingInterval: 100,
                         requestedLifetimeCount: 6000,
@@ -2254,13 +2255,13 @@ module.exports = function (test) {
                         publishingEnabled: true,
                         priority: 6
                     });
-                    subscription.on("started", function () {
+                    subscription.on("started", function() {
                         const modifyMonitoredItemsRequest = {
                             subscriptionId: subscription.subscriptionId,
                             timestampsToReturn: TimestampsToReturn.Invalid
                         };
 
-                        session.modifyMonitoredItems(modifyMonitoredItemsRequest, function (err, modifyMonitoredItemsResponse) {
+                        session.modifyMonitoredItems(modifyMonitoredItemsRequest, function(err, modifyMonitoredItemsResponse) {
                             err.message.should.match(/BadTimestampsToReturnInvalid/);
                             inner_done();
                         });
@@ -2270,11 +2271,11 @@ module.exports = function (test) {
             );
         });
 
-        it("AZA3-J #ModifyMonitoredItemRequest : server should send BadMonitoredItemIdInvalid  if client send a wrong monitored item id", function (done) {
+        it("AZA3-J #ModifyMonitoredItemRequest : server should send BadMonitoredItemIdInvalid  if client send a wrong monitored item id", function(done) {
             perform_operation_on_client_session(
                 client,
                 endpointUrl,
-                function (session, inner_done) {
+                function(session, inner_done) {
                     const subscription = ClientSubscription.create(session, {
                         requestedPublishingInterval: 200,
                         requestedLifetimeCount: 60000,
@@ -2283,7 +2284,7 @@ module.exports = function (test) {
                         publishingEnabled: true,
                         priority: 6
                     });
-                    subscription.on("started", function () {
+                    subscription.on("started", function() {
                         const modifyMonitoredItemsRequest = {
                             subscriptionId: subscription.subscriptionId,
                             timestampsToReturn: TimestampsToReturn.Neither,
@@ -2295,7 +2296,7 @@ module.exports = function (test) {
                             ]
                         };
 
-                        session.modifyMonitoredItems(modifyMonitoredItemsRequest, function (err, modifyMonitoredItemsResponse) {
+                        session.modifyMonitoredItems(modifyMonitoredItemsRequest, function(err, modifyMonitoredItemsResponse) {
                             if (err) {
                                 return inner_done(err);
                             }
@@ -2314,44 +2315,44 @@ module.exports = function (test) {
                 client,
                 endpointUrl,
                 itemToMonitor,
-                function (session, subscription, monitoredItem, inner_done) {
+                function(session, subscription, monitoredItem, inner_done) {
                     let change_count = 0;
-                    monitoredItem.on("changed", function (dataValue) {
+                    monitoredItem.on("changed", function(dataValue) {
                         //xx console.log("xx changed",dataValue.value.toString());
                         change_count += 1;
                     });
 
                     async.series(
                         [
-                            function (callback) {
+                            function(callback) {
                                 setTimeout(callback, 1500);
                             },
-                            function (callback) {
+                            function(callback) {
                                 // let's wait for first notification to be received
-                                monitoredItem.once("changed", function () {
+                                monitoredItem.once("changed", function() {
                                     // we reset change count,
                                     change_count = 0;
                                     callback();
                                 });
                             },
-                            function (callback) {
+                            function(callback) {
                                 // wait 800 ms and verify that the subscription is not sending notification.
-                                setTimeout(function () {
+                                setTimeout(function() {
                                     change_count.should.equal(0);
                                     callback();
                                 }, 800);
                             },
 
-                            function (callback) {
+                            function(callback) {
                                 // let modify monitored item with new parameters.
-                                monitoredItem.modify(parameters, function (err, result) {
+                                monitoredItem.modify(parameters, function(err, result) {
                                     inner_func(err, result, callback);
                                 });
                             },
 
-                            function (callback) {
+                            function(callback) {
                                 // wait 2000 ms and verify that the subscription is now sending notification.
-                                setTimeout(function () {
+                                setTimeout(function() {
                                     change_count.should.be.greaterThan(1);
                                     callback();
                                 }, 2000); // wait at least 2 seconds as date resolution is 1 sec.
@@ -2364,7 +2365,7 @@ module.exports = function (test) {
             ); //
         }
 
-        it("AZA3-K #ModifyMonitoredItemRequest : server should handle samplingInterval === -1", function (done) {
+        it("AZA3-K #ModifyMonitoredItemRequest : server should handle samplingInterval === -1", function(done) {
             const itemToMonitor = "ns=0;i=2258";
 
             const parameters = {
@@ -2375,14 +2376,14 @@ module.exports = function (test) {
             test_modify_monitored_item(
                 itemToMonitor,
                 parameters,
-                function (err, results, callback) {
+                function(err, results, callback) {
                     callback(err);
                 },
                 done
             );
         });
 
-        it("AZA3-L #ModifyMonitoredItemRequest : server should handle samplingInterval === 0", function (done) {
+        it("AZA3-L #ModifyMonitoredItemRequest : server should handle samplingInterval === 0", function(done) {
             const itemToMonitor = "ns=0;i=2258";
 
             const parameters = {
@@ -2393,13 +2394,13 @@ module.exports = function (test) {
             test_modify_monitored_item(
                 itemToMonitor,
                 parameters,
-                function (err, results, callback) {
+                function(err, results, callback) {
                     callback(err);
                 },
                 done
             );
         });
-        it("AZA3-M #ModifyMonitoredItemsRequest : a client should be able to modify a monitored item", function (done) {
+        it("AZA3-M #ModifyMonitoredItemsRequest : a client should be able to modify a monitored item", function(done) {
             const itemToMonitor = "ns=0;i=2258";
             const parameters = {
                 samplingInterval: 20,
@@ -2409,7 +2410,7 @@ module.exports = function (test) {
             test_modify_monitored_item(
                 itemToMonitor,
                 parameters,
-                function (err, results, callback) {
+                function(err, results, callback) {
                     if (!err) {
                         results.revisedSamplingInterval.should.be.greaterThan(19);
                     }
@@ -2430,45 +2431,45 @@ module.exports = function (test) {
                 client,
                 endpointUrl,
                 itemToMonitor,
-                function (session, subscription, monitoredItem, inner_done) {
+                function(session, subscription, monitoredItem, inner_done) {
                     let change_count = 0;
-                    monitoredItem.on("changed", function (dataValue) {
+                    monitoredItem.on("changed", function(dataValue) {
                         //xx console.log("xx changed",dataValue.value.toString());
                         dataValue.value.toString().should.eql("Variant(Scalar<QualifiedName>, value: CurrentTime)");
                         change_count += 1;
                     });
                     async.series(
                         [
-                            function (callback) {
-                                setTimeout(function () {
+                            function(callback) {
+                                setTimeout(function() {
                                     change_count.should.eql(1);
                                     callback();
                                 }, 1000);
                             },
-                            function (callback) {
-                                monitoredItem.modify(parameters, function (err, result) {
+                            function(callback) {
+                                monitoredItem.modify(parameters, function(err, result) {
                                     callback(err);
                                 });
                             },
-                            function (callback) {
+                            function(callback) {
                                 // modifying monitoredItem parameters shall not cause the monitored Item to resend a data notification
-                                setTimeout(function () {
+                                setTimeout(function() {
                                     change_count.should.eql(1);
                                     callback();
                                 }, 1000);
                             },
 
                             // setting mode to disable
-                            function (callback) {
+                            function(callback) {
                                 monitoredItem.setMonitoringMode(MonitoringMode.Disabled, callback);
                             },
                             // setting mode to disable
-                            function (callback) {
+                            function(callback) {
                                 monitoredItem.setMonitoringMode(MonitoringMode.Reporting, callback);
                             },
-                            function (callback) {
+                            function(callback) {
                                 // Changing mode from Disabled to Reporting shall cause the monitored Item to resend a data notification
-                                setTimeout(function () {
+                                setTimeout(function() {
                                     change_count.should.eql(2);
                                     callback();
                                 }, 1000);
@@ -2481,7 +2482,7 @@ module.exports = function (test) {
             );
         }
 
-        it("AZA3-N #ModifyMonitoredItemRequest on a non-Value attribute: server should handle samplingInterval === 0", function (done) {
+        it("AZA3-N #ModifyMonitoredItemRequest on a non-Value attribute: server should handle samplingInterval === 0", function(done) {
             const parameters = {
                 samplingInterval: 0, // SAMPLING INTERVAL = 0 => use fastest allowed by server or event base
                 discardOldest: false,
@@ -2490,7 +2491,7 @@ module.exports = function (test) {
             test_modify_monitored_item_on_noValue_attribute(parameters, done);
         });
 
-        it("AZA3-O #ModifyMonitoredItemRequest on a non-Value attribute: server should handle samplingInterval > 0", function (done) {
+        it("AZA3-O #ModifyMonitoredItemRequest on a non-Value attribute: server should handle samplingInterval > 0", function(done) {
             const parameters = {
                 samplingInterval: 20,
                 discardOldest: false,
@@ -2499,7 +2500,7 @@ module.exports = function (test) {
             test_modify_monitored_item_on_noValue_attribute(parameters, done);
         });
 
-        it("AZA3-P #ModifyMonitoredItemRequest on a non-Value attribute: server should handle samplingInterval === -1", function (done) {
+        it("AZA3-P #ModifyMonitoredItemRequest on a non-Value attribute: server should handle samplingInterval === -1", function(done) {
             const parameters = {
                 samplingInterval: -1,
                 discardOldest: false,
@@ -2515,7 +2516,7 @@ module.exports = function (test) {
          * the attributeId set to a non-Value attribute. call Publish().
          * Expected Results: All service and operation level results are Good. Publish response contains a DataChangeNotification.
          */
-        it("AZA3-Q a monitored item with the nodeId set to that of a non-Variable node an  and the attributeId set to a non-Value attribute should send a DataChangeNotification", function (done) {
+        it("AZA3-Q a monitored item with the nodeId set to that of a non-Variable node an  and the attributeId set to a non-Value attribute should send a DataChangeNotification", function(done) {
             // Attributes, other than the  Value  Attribute, are only monitored for a change in value.
             // The filter is not used for these  Attributes. Any change in value for these  Attributes
             // causes a  Notification  to be  generated.
@@ -2523,7 +2524,7 @@ module.exports = function (test) {
             perform_operation_on_client_session(
                 client,
                 endpointUrl,
-                function (session, inner_done) {
+                function(session, inner_done) {
                     const subscription = ClientSubscription.create(session, {
                         requestedPublishingInterval: 10,
                         requestedLifetimeCount: 6000,
@@ -2533,7 +2534,7 @@ module.exports = function (test) {
                         priority: 6
                     });
 
-                    subscription.on("terminated", function () {
+                    subscription.on("terminated", function() {
                         //xx console.log(chalk.yellow(" subscription terminated "));
                         inner_done();
                     });
@@ -2554,44 +2555,44 @@ module.exports = function (test) {
                         TimestampsToReturn.Both
                     );
 
-                    monitoredItem.on("err", function (err) {
+                    monitoredItem.on("err", function(err) {
                         should.not.exist(err);
                     });
 
                     let change_count = 0;
 
-                    monitoredItem.on("changed", function (dataValue) {
+                    monitoredItem.on("changed", function(dataValue) {
                         //xx console.log("dataValue = ", dataValue.toString());
                         change_count += 1;
                     });
 
                     async.series(
                         [
-                            function (callback) {
-                                setTimeout(function () {
+                            function(callback) {
+                                setTimeout(function() {
                                     change_count.should.equal(1);
                                     callback();
                                 }, 1000);
                             },
-                            function (callback) {
+                            function(callback) {
                                 // on server side : modify displayName
                                 const node = server.engine.addressSpace.findNode(readValue.nodeId);
                                 node.displayName = "Changed Value";
                                 callback();
                             },
 
-                            function (callback) {
-                                setTimeout(function () {
+                            function(callback) {
+                                setTimeout(function() {
                                     change_count.should.equal(2);
                                     callback();
                                 }, 1000);
                             },
 
-                            function (callback) {
+                            function(callback) {
                                 subscription.terminate(callback);
                             }
                         ],
-                        function (err) {
+                        function(err) {
                             if (err) {
                                 done(err);
                             }
@@ -2602,7 +2603,7 @@ module.exports = function (test) {
             );
         });
 
-        it("AZA3-R Server should revise publishingInterval to be at least server minimum publishing interval", function (done) {
+        it("AZA3-R Server should revise publishingInterval to be at least server minimum publishing interval", function(done) {
             Subscription.minimumPublishingInterval.should.eql(50);
             const too_small_PublishingInterval = 30;
             const server_actualPublishingInterval = 100;
@@ -2612,10 +2613,10 @@ module.exports = function (test) {
             perform_operation_on_client_session(
                 client,
                 endpointUrl,
-                function (session, inner_done) {
+                function(session, inner_done) {
                     async.series(
                         [
-                            function (callback) {
+                            function(callback) {
                                 const createSubscriptionRequest = new CreateSubscriptionRequest({
                                     requestedPublishingInterval: too_small_PublishingInterval,
                                     requestedLifetimeCount: 60,
@@ -2625,7 +2626,7 @@ module.exports = function (test) {
                                     priority: 6
                                 });
 
-                                session.performMessageTransaction(createSubscriptionRequest, function (err, response) {
+                                session.performMessageTransaction(createSubscriptionRequest, function(err, response) {
                                     if (err) {
                                         return callback(err);
                                     }
@@ -2676,7 +2677,7 @@ module.exports = function (test) {
             perform_operation_on_client_session(
                 client,
                 endpointUrl,
-                function (session, inner_done) {
+                function(session, inner_done) {
                     async.series(
                         [
                             function read_minimumSamplingInterval(callback) {
@@ -2685,7 +2686,7 @@ module.exports = function (test) {
                                     nodeId: nodeId,
                                     attributeId: AttributeIds.MinimumSamplingInterval
                                 };
-                                session.read(nodeToRead, function (err, dataValue) {
+                                session.read(nodeToRead, function(err, dataValue) {
                                     if (err) {
                                         return callback(err);
                                     }
@@ -2698,7 +2699,7 @@ module.exports = function (test) {
                                     callback();
                                 });
                             },
-                            function (callback) {
+                            function(callback) {
                                 const createSubscriptionRequest = new CreateSubscriptionRequest({
                                     requestedPublishingInterval: requestedPublishingInterval,
                                     requestedLifetimeCount: 60,
@@ -2708,13 +2709,13 @@ module.exports = function (test) {
                                     priority: 6
                                 });
 
-                                session.performMessageTransaction(createSubscriptionRequest, function (err, response) {
+                                session.performMessageTransaction(createSubscriptionRequest, function(err, response) {
                                     subscriptionId = response.subscriptionId;
                                     callback(err);
                                 });
                             },
 
-                            function (callback) {
+                            function(callback) {
                                 const parameters = {
                                     samplingInterval: requestedSamplingInterval,
                                     discardOldest: false,
@@ -2734,7 +2735,7 @@ module.exports = function (test) {
 
                                 //xx console.log("createMonitoredItemsRequest = ", createMonitoredItemsRequest.toString());
 
-                                session.performMessageTransaction(createMonitoredItemsRequest, function (err, response) {
+                                session.performMessageTransaction(createMonitoredItemsRequest, function(err, response) {
                                     if (err) {
                                         return callback(err);
                                     }
@@ -2764,7 +2765,7 @@ module.exports = function (test) {
         const fastest_possible_sampling_rate = MonitoredItem.minimumSamplingInterval;
         fastest_possible_sampling_rate.should.eql(50);
 
-        it("AZA3-S when createMonitored Item samplingInterval is Zero server shall return the fastest possible sampling rate", function (done) {
+        it("AZA3-S when createMonitored Item samplingInterval is Zero server shall return the fastest possible sampling rate", function(done) {
             // Spec : OpcUA 1.03 part 4 page 125 7.16 MonitoringParameters:
             // The interval that defines the fastest rate at which the MonitoredItem(s) should be accessed and evaluated.
             // This interval is defined in milliseconds.
@@ -2772,7 +2773,7 @@ module.exports = function (test) {
             test_revised_sampling_interval(0, 0, fastest_possible_sampling_rate, done);
         });
 
-        it("AZA3-T when createMonitored Item samplingInterval is -1 (minus one) server shall return the sampling rate of the subscription 1/2", function (done) {
+        it("AZA3-T when createMonitored Item samplingInterval is -1 (minus one) server shall return the sampling rate of the subscription 1/2", function(done) {
             // Spec : OpcUA 1.03 part 4 page 125 7.16 MonitoringParameters:
             // The value -1 indicates that the default sampling interval defined by the publishing interval of the
             // Subscription is requested.
@@ -2783,20 +2784,20 @@ module.exports = function (test) {
             test_revised_sampling_interval(100, -1, 100, done);
         });
 
-        it("AZA3-U when createMonitored Item samplingInterval is -1 (minus one) server shall return the sampling rate of the subscription 2/2", function (done) {
+        it("AZA3-U when createMonitored Item samplingInterval is -1 (minus one) server shall return the sampling rate of the subscription 2/2", function(done) {
             test_revised_sampling_interval(200, -1, 200, done);
         });
 
-        it("AZA3-V when createMonitored Item samplingInterval is too small, server shall return the sampling rate of the subscription", function (done) {
+        it("AZA3-V when createMonitored Item samplingInterval is too small, server shall return the sampling rate of the subscription", function(done) {
             // Spec : OpcUA 1.03 part 4 page 125 7.16 MonitoringParameters:
             test_revised_sampling_interval(100, 10, fastest_possible_sampling_rate, done);
         });
 
         xit(
             "AZA3-W When a user adds a monitored item that the user is denied read access to, the add operation for the" +
-                " item shall succeed and the bad status  Bad_NotReadable  or  Bad_UserAccessDenied  shall be" +
-                " returned in the Publish response",
-            function (done) {
+            " item shall succeed and the bad status  Bad_NotReadable  or  Bad_UserAccessDenied  shall be" +
+            " returned in the Publish response",
+            function(done) {
                 done();
             }
         );
@@ -2821,11 +2822,11 @@ module.exports = function (test) {
                 }
             ];
 
-            setTimeout(function () {
-                session.write(nodesToWrite, function (err, statusCodes) {
+            setTimeout(function() {
+                session.write(nodesToWrite, function(err, statusCodes) {
                     statusCodes.length.should.eql(1);
                     statusCodes[0].should.eql(StatusCodes.Good);
-                    setTimeout(function () {
+                    setTimeout(function() {
                         callback(err);
                     }, 100);
                 });
@@ -2833,7 +2834,7 @@ module.exports = function (test) {
         }
 
         function sendPublishRequest(session, callback) {
-            session.publish({}, function (err, response) {
+            session.publish({}, function(err, response) {
                 try {
                     callback(err, response);
                 } catch (err) {
@@ -2848,7 +2849,7 @@ module.exports = function (test) {
 
             (typeof callback === "function").should.eql(true, "expecting a function");
 
-            session.performMessageTransaction(createSubscriptionRequest, function (err, response) {
+            session.performMessageTransaction(createSubscriptionRequest, function(err, response) {
                 response.subscriptionId.should.be.greaterThan(0);
                 subscriptionId = response.subscriptionId;
                 callback(err, response.subscriptionId, response);
@@ -2889,7 +2890,7 @@ module.exports = function (test) {
                 ]
             });
 
-            session.performMessageTransaction(createMonitoredItemsRequest, function (err, response) {
+            session.performMessageTransaction(createMonitoredItemsRequest, function(err, response) {
                 response.responseHeader.serviceResult.should.eql(StatusCodes.Good);
 
                 samplingInterval = response.results[0].revisedSamplingInterval;
@@ -2918,22 +2919,22 @@ module.exports = function (test) {
             perform_operation_on_client_session(
                 client,
                 endpointUrl,
-                function (session, inner_done) {
+                function(session, inner_done) {
                     async.series(
                         [
-                            function (callback) {
-                                createSubscription(session, function (err, id) {
+                            function(callback) {
+                                createSubscription(session, function(err, id) {
                                     id.should.be.greaterThan(0);
                                     callback(err);
                                 });
                             },
 
-                            function (callback) {
+                            function(callback) {
                                 createMonitoredItems(session, nodeId, parameters, itemToMonitor, callback);
                             },
 
-                            function (callback) {
-                                sendPublishRequest(session, function (err, response) {
+                            function(callback) {
+                                sendPublishRequest(session, function(err, response) {
                                     if (!err) {
                                         //Xx var notification = response.notificationMessage.notificationData[0].monitoredItems[0];
                                     }
@@ -2941,30 +2942,30 @@ module.exports = function (test) {
                                 });
                             },
 
-                            function (callback) {
+                            function(callback) {
                                 writeValue(nodeId, session, 1, callback);
                             },
-                            function (callback) {
+                            function(callback) {
                                 writeValue(nodeId, session, 2, callback);
                             },
-                            function (callback) {
+                            function(callback) {
                                 writeValue(nodeId, session, 3, callback);
                             },
-                            function (callback) {
+                            function(callback) {
                                 writeValue(nodeId, session, 4, callback);
                             },
-                            function (callback) {
+                            function(callback) {
                                 writeValue(nodeId, session, 5, callback);
                             },
-                            function (callback) {
+                            function(callback) {
                                 writeValue(nodeId, session, 6, callback);
                             },
-                            function (callback) {
+                            function(callback) {
                                 writeValue(nodeId, session, 7, callback);
                             },
 
-                            function (callback) {
-                                sendPublishRequest(session, function (err, response) {
+                            function(callback) {
+                                sendPublishRequest(session, function(err, response) {
                                     if (!err) {
                                         response.notificationMessage.notificationData.length.should.eql(1);
 
@@ -2988,7 +2989,7 @@ module.exports = function (test) {
             );
         }
 
-        it("#CTT1 - should make sure that only the latest value is returned when queue size is one and discard oldest is false", function (done) {
+        it("#CTT1 - should make sure that only the latest value is returned when queue size is one and discard oldest is false", function(done) {
             const samplingInterval = 0; // exception based
             const parameters = {
                 samplingInterval: samplingInterval,
@@ -2997,7 +2998,7 @@ module.exports = function (test) {
             };
             _test_with_queue_size_of_one(parameters, done);
         });
-        it("#CTT2 - should make sure that only the latest value is returned when queue size is one and discard oldest is true", function (done) {
+        it("#CTT2 - should make sure that only the latest value is returned when queue size is one and discard oldest is true", function(done) {
             const samplingInterval = 0; // exception based
             const parameters = {
                 samplingInterval: samplingInterval,
@@ -3017,50 +3018,50 @@ module.exports = function (test) {
             perform_operation_on_client_session(
                 client,
                 endpointUrl,
-                function (session, inner_done) {
+                function(session, inner_done) {
                     async.series(
                         [
-                            function (callback) {
+                            function(callback) {
                                 createSubscription(session, callback);
                             },
 
-                            function (callback) {
+                            function(callback) {
                                 createMonitoredItems(session, nodeId, parameters, itemToMonitor, callback);
                             },
 
-                            function (callback) {
-                                sendPublishRequest(session, function (err, response) {
+                            function(callback) {
+                                sendPublishRequest(session, function(err, response) {
                                     const notification = response.notificationMessage.notificationData[0].monitoredItems[0];
                                     callback(err);
                                 });
                             },
 
-                            function (callback) {
+                            function(callback) {
                                 writeValue(nodeId, session, 1, callback);
                             },
-                            function (callback) {
+                            function(callback) {
                                 writeValue(nodeId, session, 2, callback);
                             },
-                            function (callback) {
+                            function(callback) {
                                 writeValue(nodeId, session, 3, callback);
                             },
-                            function (callback) {
+                            function(callback) {
                                 writeValue(nodeId, session, 4, callback);
                             },
-                            function (callback) {
+                            function(callback) {
                                 writeValue(nodeId, session, 5, callback);
                             },
-                            function (callback) {
+                            function(callback) {
                                 writeValue(nodeId, session, 6, callback);
                             },
-                            function (callback) {
+                            function(callback) {
                                 writeValue(nodeId, session, 7, callback);
                             },
                             function wait_a_little_bit(callback) {
                                 setTimeout(callback, 1000);
                             },
-                            function (callback) {
-                                sendPublishRequest(session, function (err, response) {
+                            function(callback) {
+                                sendPublishRequest(session, function(err, response) {
                                     if (!err) {
                                         should(!!response.notificationMessage.notificationData).eql(true);
                                         response.notificationMessage.notificationData.length.should.eql(1);
@@ -3091,7 +3092,7 @@ module.exports = function (test) {
             );
         }
 
-        it("#CTT3 - should make sure that only the last 2 values are returned when queue size is two and discard oldest is TRUE", function (done) {
+        it("#CTT3 - should make sure that only the last 2 values are returned when queue size is two and discard oldest is TRUE", function(done) {
             const samplingInterval = 0;
             const parameters = {
                 samplingInterval: samplingInterval,
@@ -3102,7 +3103,7 @@ module.exports = function (test) {
             _test_with_queue_size_of_two(parameters, [6, 7], [StatusCodes.GoodWithOverflowBit, StatusCodes.Good], done);
         });
 
-        it("#CTT4 - should make sure that only the last 2 values are returned when queue size is two and discard oldest is false", function (done) {
+        it("#CTT4 - should make sure that only the last 2 values are returned when queue size is two and discard oldest is false", function(done) {
             const samplingInterval = 0;
             const parameters = {
                 samplingInterval: samplingInterval,
@@ -3112,7 +3113,7 @@ module.exports = function (test) {
             _test_with_queue_size_of_two(parameters, [1, 7], [StatusCodes.Good, StatusCodes.GoodWithOverflowBit], done);
         });
 
-        it("#CTT5 Monitoring a non-Variable node with delayed PublishRequest:", function (done) {
+        it("#CTT5 Monitoring a non-Variable node with delayed PublishRequest:", function(done) {
             // CTT Monitored Item Service / Monitor Basic / 001.js
             // Description:
             //     Create a monitored item with the nodeId set to that of a non-Variable node and
@@ -3136,19 +3137,19 @@ module.exports = function (test) {
             perform_operation_on_client_session(
                 client,
                 endpointUrl,
-                function (session, inner_done) {
+                function(session, inner_done) {
                     async.series(
                         [
-                            function (callback) {
+                            function(callback) {
                                 createSubscription(session, callback);
                             },
 
-                            function (callback) {
+                            function(callback) {
                                 createMonitoredItems(session, nodeId, parameters, itemToMonitor, callback);
                             },
 
-                            function (callback) {
-                                sendPublishRequest(session, function (err, response) {
+                            function(callback) {
+                                sendPublishRequest(session, function(err, response) {
                                     if (!err) {
                                         response.notificationMessage.notificationData.length.should.eql(1);
 
@@ -3167,11 +3168,11 @@ module.exports = function (test) {
             );
         });
 
-        it("#CTT6 Late Publish should have data", function (done) {
+        it("#CTT6 Late Publish should have data", function(done) {
             perform_operation_on_client_session(
                 client,
                 endpointUrl,
-                function (session, inner_done) {
+                function(session, inner_done) {
                     const nodeId = "ns=2;s=Scalar_Static_Double";
                     const samplingInterval = 500;
                     const parameters = {
@@ -3188,7 +3189,7 @@ module.exports = function (test) {
 
                     async.series(
                         [
-                            function (callback) {
+                            function(callback) {
                                 const publishingInterval = 100;
                                 const createSubscriptionRequest = new CreateSubscriptionRequest({
                                     requestedPublishingInterval: publishingInterval,
@@ -3198,26 +3199,26 @@ module.exports = function (test) {
                                     publishingEnabled: true,
                                     priority: 6
                                 });
-                                createSubscription2(session, createSubscriptionRequest, function (err, subscriptionId, response) {
+                                createSubscription2(session, createSubscriptionRequest, function(err, subscriptionId, response) {
                                     time_to_wait = response.revisedPublishingInterval * response.revisedLifetimeCount;
                                     callback(err);
                                 });
                             },
-                            function (callback) {
+                            function(callback) {
                                 //xx console.log(" SubscriptionId =",subscriptionId);
                                 callback();
                             },
-                            function (callback) {
+                            function(callback) {
                                 createMonitoredItems(session, nodeId, parameters, itemToMonitor, callback);
                             },
-                            function (callback) {
+                            function(callback) {
                                 setTimeout(callback, time_to_wait + 1500);
                             },
 
-                            function (callback) {
+                            function(callback) {
                                 //xx console.log("--------------");
                                 // we should get notified immediately that the session has timed out
-                                sendPublishRequest(session, function (err, response) {
+                                sendPublishRequest(session, function(err, response) {
                                     response.notificationMessage.notificationData.length.should.eql(1);
                                     const notificationData = response.notificationMessage.notificationData[0];
                                     //xx console.log(notificationData.toString());
@@ -3235,12 +3236,12 @@ module.exports = function (test) {
             );
         });
 
-        describe("#CTT - Monitored Value Change", function () {
-            it("should monitor a substring ", function (done) {
+        describe("#CTT - Monitored Value Change", function() {
+            it("should monitor a substring ", function(done) {
                 perform_operation_on_client_session(
                     client,
                     endpointUrl,
-                    function (session, inner_done) {
+                    function(session, inner_done) {
                         const nodeId = nodeIdString;
                         const samplingInterval = 0;
 
@@ -3258,16 +3259,16 @@ module.exports = function (test) {
 
                         async.series(
                             [
-                                function (callback) {
+                                function(callback) {
                                     createSubscription(session, callback);
                                 },
 
-                                function (callback) {
+                                function(callback) {
                                     createMonitoredItems(session, nodeId, parameters, itemToMonitor, callback);
                                 },
 
-                                function (callback) {
-                                    sendPublishRequest(session, function (err, response) {
+                                function(callback) {
+                                    sendPublishRequest(session, function(err, response) {
                                         const notification = response.notificationMessage.notificationData[0].monitoredItems[0];
                                         //xx console.log("notification", notification.toString());
                                         notification.value.value.value.should.eql("EFGHIJK");
@@ -3275,7 +3276,7 @@ module.exports = function (test) {
                                     });
                                 },
 
-                                function (callback) {
+                                function(callback) {
                                     const nodesToWrite = [
                                         {
                                             nodeId: nodeId,
@@ -3291,15 +3292,15 @@ module.exports = function (test) {
                                         }
                                     ];
 
-                                    session.write(nodesToWrite, function (err, statusCodes) {
+                                    session.write(nodesToWrite, function(err, statusCodes) {
                                         statusCodes.length.should.eql(1);
                                         statusCodes[0].should.eql(StatusCodes.Good);
                                         callback(err);
                                     });
                                 },
 
-                                function (callback) {
-                                    sendPublishRequest(session, function (err, response) {
+                                function(callback) {
+                                    sendPublishRequest(session, function(err, response) {
                                         const notification = response.notificationMessage.notificationData[0].monitoredItems[0];
                                         //xx console.log("notification", notification.toString());
                                         notification.value.value.value.should.eql("VUTSRQP");
@@ -3314,7 +3315,7 @@ module.exports = function (test) {
                 );
             });
 
-            it("ZZE it should return a publish Response with Bad_IndexRangeNoData , when the size of the monitored item change", function (done) {
+            it("ZZE it should return a publish Response with Bad_IndexRangeNoData , when the size of the monitored item change", function(done) {
                 // as per CTT test 036.js (MonitoredItem Service/Monitored Value Changed
                 // Create a monitored item of an array with an IndexRange of “2:4” (the array must currently have at least five elements).
                 // call Publish(). Write to the array such that the size changes to two elements (0:1). call Publish().
@@ -3324,7 +3325,7 @@ module.exports = function (test) {
                 perform_operation_on_client_session(
                     client,
                     endpointUrl,
-                    function (session, inner_done) {
+                    function(session, inner_done) {
                         samplingInterval = 0; // exception based
 
                         const nodeId = "ns=2;s=Scalar_Static_Array_Int32";
@@ -3355,7 +3356,7 @@ module.exports = function (test) {
                                     }
                                 }
                             };
-                            session.write(nodeToWrite, function (err, statusCode) {
+                            session.write(nodeToWrite, function(err, statusCode) {
                                 statusCode.should.eql(StatusCodes.Good);
 
                                 session.read(
@@ -3363,7 +3364,7 @@ module.exports = function (test) {
                                         attributeId: AttributeIds.Value,
                                         nodeId: nodeId
                                     },
-                                    function (err, dataValue) {
+                                    function(err, dataValue) {
                                         should.exist(dataValue);
                                         //xxconsole.log(" written ",dataValue.value.toString());
                                         callback(err);
@@ -3377,18 +3378,18 @@ module.exports = function (test) {
                                 // write initial value => [1,2,3,4,5,6,7,8,9,10]
                                 write_node.bind(null, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]),
 
-                                function (callback) {
+                                function(callback) {
                                     createSubscription(session, callback);
                                 },
 
-                                function (callback) {
+                                function(callback) {
                                     createMonitoredItems(session, nodeId, parameters, itemToMonitor, callback);
                                 },
-                                function (callback) {
+                                function(callback) {
                                     setTimeout(callback, 100);
                                 },
-                                function (callback) {
-                                    sendPublishRequest(session, function (err, response) {
+                                function(callback) {
+                                    sendPublishRequest(session, function(err, response) {
                                         const notification = response.notificationMessage.notificationData[0].monitoredItems[0];
                                         notification.value.statusCode.should.eql(StatusCodes.Good);
                                         notification.value.value.value.should.eql(new Int32Array([2, 3, 4]));
@@ -3398,8 +3399,8 @@ module.exports = function (test) {
 
                                 write_node.bind(null, [-1, -2]),
 
-                                function (callback) {
-                                    sendPublishRequest(session, function (err, response) {
+                                function(callback) {
+                                    sendPublishRequest(session, function(err, response) {
                                         const notification = response.notificationMessage.notificationData[0].monitoredItems[0];
                                         notification.value.statusCode.should.eql(StatusCodes.BadIndexRangeNoData);
                                         notification.value.value.value.should.eql(new Int32Array([]));
@@ -3408,18 +3409,18 @@ module.exports = function (test) {
                                 },
 
                                 write_node.bind(null, [-1, -2, -3]),
-                                function (callback) {
+                                function(callback) {
                                     setTimeout(callback, 100);
                                 },
 
                                 write_node.bind(null, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]),
 
-                                function (callback) {
+                                function(callback) {
                                     setTimeout(callback, 100);
                                 },
 
-                                function (callback) {
-                                    sendPublishRequest(session, function (err, response) {
+                                function(callback) {
+                                    sendPublishRequest(session, function(err, response) {
                                         if (!err) {
                                             response.notificationMessage.notificationData[0].monitoredItems.length.should.be.aboveOrEqual(
                                                 2,
@@ -3440,8 +3441,8 @@ module.exports = function (test) {
 
                                 write_node.bind(null, [0, 1, 2, 3]),
 
-                                function (callback) {
-                                    sendPublishRequest(session, function (err, response) {
+                                function(callback) {
+                                    sendPublishRequest(session, function(err, response) {
                                         const notification = response.notificationMessage.notificationData[0].monitoredItems[0];
                                         notification.value.statusCode.should.eql(StatusCodes.Good);
                                         notification.value.value.value.should.eql(new Int32Array([2, 3]));
@@ -3460,16 +3461,16 @@ module.exports = function (test) {
             });
         });
 
-        it("#ModifySubscriptionRequest: should return BadSubscriptionIdInvalid if client specifies a invalid subscriptionId", function (done) {
+        it("#ModifySubscriptionRequest: should return BadSubscriptionIdInvalid if client specifies a invalid subscriptionId", function(done) {
             perform_operation_on_client_session(
                 client,
                 endpointUrl,
-                function (session, inner_done) {
+                function(session, inner_done) {
                     const modifySubscriptionRequest = {
                         subscriptionId: 999
                     };
 
-                    session.modifySubscription(modifySubscriptionRequest, function (err) {
+                    session.modifySubscription(modifySubscriptionRequest, function(err) {
                         err.message.should.match(/BadSubscriptionIdInvalid/);
                         inner_done();
                     });
@@ -3478,11 +3479,11 @@ module.exports = function (test) {
             );
         });
 
-        it("#ModifySubscriptionRequest: should return StatusGood", function (done) {
+        it("#ModifySubscriptionRequest: should return StatusGood", function(done) {
             perform_operation_on_client_session(
                 client,
                 endpointUrl,
-                function (session, inner_done) {
+                function(session, inner_done) {
                     const subscription = ClientSubscription.create(session, {
                         requestedPublishingInterval: 10,
                         requestedLifetimeCount: 60000,
@@ -3492,24 +3493,24 @@ module.exports = function (test) {
                         priority: 6
                     });
 
-                    subscription.on("terminated", function () {
+                    subscription.on("terminated", function() {
                         //xx console.log(chalk.yellow(" subscription terminated "));
                     });
-                    subscription.on("started", function () {
+                    subscription.on("started", function() {
                         async.series(
                             [
-                                function (callback) {
+                                function(callback) {
                                     const modifySubscriptionRequest = {
                                         subscriptionId: subscription.subscriptionId,
                                         requestedPublishingInterval: 200
                                     };
-                                    session.modifySubscription(modifySubscriptionRequest, function (err, response) {
+                                    session.modifySubscription(modifySubscriptionRequest, function(err, response) {
                                         response.revisedPublishingInterval.should.eql(200);
 
                                         callback(err);
                                     });
                                 },
-                                function (callback) {
+                                function(callback) {
                                     subscription.terminate(callback);
                                 }
                             ],
@@ -3521,15 +3522,15 @@ module.exports = function (test) {
             );
         });
 
-        it("#SetMonitoringMode, should return BadSubscriptionIdInvalid when subscriptionId is invalid", function (done) {
+        it("#SetMonitoringMode, should return BadSubscriptionIdInvalid when subscriptionId is invalid", function(done) {
             perform_operation_on_client_session(
                 client,
                 endpointUrl,
-                function (session, inner_done) {
+                function(session, inner_done) {
                     const setMonitoringModeRequest = {
                         subscriptionId: 999
                     };
-                    session.setMonitoringMode(setMonitoringModeRequest, function (err) {
+                    session.setMonitoringMode(setMonitoringModeRequest, function(err) {
                         err.message.should.match(/BadSubscriptionIdInvalid/);
                         inner_done();
                     });
@@ -3538,16 +3539,16 @@ module.exports = function (test) {
             );
         });
 
-        it("#SetMonitoringMode, should return BadNothingToDo if monitoredItemId is empty", function (done) {
+        it("#SetMonitoringMode, should return BadNothingToDo if monitoredItemId is empty", function(done) {
             perform_operation_on_subscription(
                 client,
                 endpointUrl,
-                function (session, subscription, inner_done) {
+                function(session, subscription, inner_done) {
                     const setMonitoringModeRequest = {
                         subscriptionId: subscription.subscriptionId,
                         monitoredItemIds: []
                     };
-                    session.setMonitoringMode(setMonitoringModeRequest, function (err) {
+                    session.setMonitoringMode(setMonitoringModeRequest, function(err) {
                         err.message.should.match(/BadNothingToDo/);
                         inner_done();
                     });
@@ -3556,13 +3557,13 @@ module.exports = function (test) {
             );
         });
 
-        it("#SetMonitoringMode, should return BadMonitoredItemIdInvalid is monitoringMode is invalid", function (done) {
+        it("#SetMonitoringMode, should return BadMonitoredItemIdInvalid is monitoringMode is invalid", function(done) {
             const itemToMonitor = "ns=0;i=2254"; // temperatureVariableId;
             perform_operation_on_monitoredItem(
                 client,
                 endpointUrl,
                 itemToMonitor,
-                function (session, subscription, monitoredItem, inner_done) {
+                function(session, subscription, monitoredItem, inner_done) {
                     const setMonitoringModeRequest = new SetMonitoringModeRequest({
                         subscriptionId: subscription.subscriptionId,
                         monitoringMode: MonitoringMode.Reporting,
@@ -3571,7 +3572,7 @@ module.exports = function (test) {
 
                     setMonitoringModeRequest.monitoringMode = 42;
 
-                    session.setMonitoringMode(setMonitoringModeRequest, function (err) {
+                    session.setMonitoringMode(setMonitoringModeRequest, function(err) {
                         should.exist(err);
                         err.message.should.match(/BadMonitoringModeInvalid/);
                         inner_done();
@@ -3581,19 +3582,19 @@ module.exports = function (test) {
             );
         });
 
-        it("#SetMonitoringMode, should return BadMonitoredItemIdInvalid when monitoredItem is invalid", function (done) {
+        it("#SetMonitoringMode, should return BadMonitoredItemIdInvalid when monitoredItem is invalid", function(done) {
             const itemToMonitor = "ns=0;i=2254"; // temperatureVariableId;
             perform_operation_on_monitoredItem(
                 client,
                 endpointUrl,
                 itemToMonitor,
-                function (session, subscription, monitoredItem, inner_done) {
+                function(session, subscription, monitoredItem, inner_done) {
                     const setMonitoringModeRequest = {
                         subscriptionId: subscription.subscriptionId,
                         monitoringMode: MonitoringMode.Sampling,
                         monitoredItemIds: [monitoredItem.monitoredItemId + 9999]
                     };
-                    session.setMonitoringMode(setMonitoringModeRequest, function (err, response) {
+                    session.setMonitoringMode(setMonitoringModeRequest, function(err, response) {
                         response.results.length.should.eql(1);
                         response.results[0].should.eql(StatusCodes.BadMonitoredItemIdInvalid);
                         inner_done(err);
@@ -3603,19 +3604,19 @@ module.exports = function (test) {
             );
         });
 
-        it("#SetMonitoringMode, should return Good when request is valid", function (done) {
+        it("#SetMonitoringMode, should return Good when request is valid", function(done) {
             const itemToMonitor = "ns=0;i=2254"; // temperatureVariableId;
             perform_operation_on_monitoredItem(
                 client,
                 endpointUrl,
                 itemToMonitor,
-                function (session, subscription, monitoredItem, inner_done) {
+                function(session, subscription, monitoredItem, inner_done) {
                     const setMonitoringModeRequest = {
                         subscriptionId: subscription.subscriptionId,
                         monitoringMode: MonitoringMode.Sampling,
                         monitoredItemIds: [monitoredItem.monitoredItemId]
                     };
-                    session.setMonitoringMode(setMonitoringModeRequest, function (err, response) {
+                    session.setMonitoringMode(setMonitoringModeRequest, function(err, response) {
                         response.results.length.should.eql(1);
                         response.results[0].should.eql(StatusCodes.Good);
                         inner_done(err);
@@ -3625,7 +3626,7 @@ module.exports = function (test) {
             );
         });
 
-        it("#subscription operations should extend subscription lifetime", function (done) {
+        it("#subscription operations should extend subscription lifetime", function(done) {
             this.timeout(Math.max(200000, this.timeout()));
 
             // see CTT test063
@@ -3646,7 +3647,7 @@ module.exports = function (test) {
                     }
                 );
 
-                monitoredItem.on("initialized", function () {
+                monitoredItem.on("initialized", function() {
                     callback();
                 });
             }
@@ -3657,7 +3658,7 @@ module.exports = function (test) {
                     monitoringMode: MonitoringMode.Sampling,
                     monitoredItemIds: [monitoredItem.monitoredItemId]
                 };
-                session.setMonitoringMode(setMonitoringModeRequest, function (err, response) {
+                session.setMonitoringMode(setMonitoringModeRequest, function(err, response) {
                     response.results[0].should.eql(StatusCodes.Good);
                     callback(err);
                 });
@@ -3668,7 +3669,7 @@ module.exports = function (test) {
                     {
                         subscriptionIds: [subcription.subscriptionId]
                     },
-                    function (err, response) {
+                    function(err, response) {
                         should.exist(response);
                         callback(err);
                     }
@@ -3681,11 +3682,11 @@ module.exports = function (test) {
                 perform_operation_on_client_session(
                     client,
                     endpointUrl,
-                    function (session, done) {
+                    function(session, done) {
                         let subscription;
                         async.series(
                             [
-                                function (callback) {
+                                function(callback) {
                                     subscription = ClientSubscription.create(session, {
                                         requestedPublishingInterval: publishingInterval,
                                         requestedLifetimeCount: 60,
@@ -3694,20 +3695,20 @@ module.exports = function (test) {
                                         publishingEnabled: true,
                                         priority: 6
                                     });
-                                    subscription.on("started", function () {
+                                    subscription.on("started", function() {
                                         callback();
                                     });
                                 },
 
-                                function (callback) {
+                                function(callback) {
                                     do_func(session, subscription, callback);
                                 },
 
-                                function (callback) {
+                                function(callback) {
                                     subscription.terminate(callback);
                                 }
                             ],
-                            function (err) {
+                            function(err) {
                                 done(err);
                             }
                         );
@@ -3719,61 +3720,61 @@ module.exports = function (test) {
             my_perform_operation_on_subscription(
                 client,
                 endpointUrl,
-                function (session, subscription, inner_done) {
+                function(session, subscription, inner_done) {
                     subscription.publishingInterval.should.eql(publishingInterval);
                     subscription.maxKeepAliveCount.should.eql(10);
 
                     const waitingTime = subscription.publishingInterval * (subscription.maxKeepAliveCount - 3) - 100;
 
                     let nb_keep_alive_received = 0;
-                    subscription.on("keepalive", function () {
+                    subscription.on("keepalive", function() {
                         nb_keep_alive_received += 1;
                     });
 
                     async.series(
                         [
-                            function (callback) {
+                            function(callback) {
                                 nb_keep_alive_received.should.eql(0);
                                 callback();
                             },
-                            function (callback) {
+                            function(callback) {
                                 setTimeout(callback, subscription.publishingInterval * 2);
                             },
-                            function (callback) {
+                            function(callback) {
                                 nb_keep_alive_received.should.eql(1);
                                 callback();
                             },
 
-                            function (callback) {
+                            function(callback) {
                                 setTimeout(callback, waitingTime);
                             },
-                            function (callback) {
+                            function(callback) {
                                 step1(session, subscription, callback);
                             },
 
-                            function (callback) {
+                            function(callback) {
                                 nb_keep_alive_received.should.eql(1);
                                 callback();
                             },
 
-                            function (callback) {
+                            function(callback) {
                                 setTimeout(callback, waitingTime);
                             },
-                            function (callback) {
+                            function(callback) {
                                 step2(session, subscription, callback);
                             },
-                            function (callback) {
+                            function(callback) {
                                 nb_keep_alive_received.should.eql(1);
                                 callback();
                             },
 
-                            function (callback) {
+                            function(callback) {
                                 setTimeout(callback, waitingTime);
                             },
-                            function (callback) {
+                            function(callback) {
                                 step3(session, subscription, callback);
                             },
-                            function (callback) {
+                            function(callback) {
                                 nb_keep_alive_received.should.eql(1);
                                 callback();
                             }
@@ -3785,7 +3786,7 @@ module.exports = function (test) {
             );
         });
 
-        describe("#Republish", function () {
+        describe("#Republish", function() {
             let VALID_SUBSCRIPTION;
             let VALID_RETRANSMIT_SEQNUM = 0;
             const INVALID_SUBSCRIPTION = 1234;
@@ -3793,7 +3794,7 @@ module.exports = function (test) {
 
             let g_session;
             let client, fanSpeed;
-            before(function (done) {
+            before(function(done) {
                 VALID_RETRANSMIT_SEQNUM = 0;
 
                 client = OPCUAClient.create();
@@ -3807,11 +3808,11 @@ module.exports = function (test) {
                 perform_operation_on_client_session(
                     client,
                     endpointUrl,
-                    function (session, inner_done) {
+                    function(session, inner_done) {
                         g_session = session;
                         async.series(
                             [
-                                function (callback) {
+                                function(callback) {
                                     // CreateSubscriptionRequest
                                     const request = new CreateSubscriptionRequest({
                                         requestedPublishingInterval: 100,
@@ -3821,7 +3822,7 @@ module.exports = function (test) {
                                         publishingEnabled: true,
                                         priority: 6
                                     });
-                                    g_session.createSubscription(request, function (err, response) {
+                                    g_session.createSubscription(request, function(err, response) {
                                         if (err) {
                                             return callback(err);
                                         }
@@ -3830,7 +3831,7 @@ module.exports = function (test) {
                                     });
                                 },
 
-                                function (callback) {
+                                function(callback) {
                                     // CreateMonitoredItemsRequest
                                     const request = new CreateMonitoredItemsRequest({
                                         subscriptionId: VALID_SUBSCRIPTION,
@@ -3853,7 +3854,7 @@ module.exports = function (test) {
                                         ]
                                     });
 
-                                    g_session.createMonitoredItems(request, function (err, response) {
+                                    g_session.createMonitoredItems(request, function(err, response) {
                                         response.should.be.instanceof(CreateMonitoredItemsResponse);
                                         response.responseHeader.serviceResult.should.eql(StatusCodes.Good);
                                         response.results.length.should.eql(1);
@@ -3863,7 +3864,7 @@ module.exports = function (test) {
                                     });
                                 },
 
-                                function (callback) {
+                                function(callback) {
                                     fanSpeed.setValueFromSource(new Variant({ dataType: DataType.Double, value: 1 }));
                                     setTimeout(callback, 50);
                                     fanSpeed.setValueFromSource(new Variant({ dataType: DataType.Double, value: 2 }));
@@ -3872,12 +3873,12 @@ module.exports = function (test) {
 
                                 //publish_republish,
 
-                                function (callback) {
+                                function(callback) {
                                     // publish request now requires a subscriptions
                                     const request = new PublishRequest({
                                         subscriptionAcknowledgements: []
                                     });
-                                    g_session.publish(request, function (err, response) {
+                                    g_session.publish(request, function(err, response) {
                                         assert(response instanceof PublishResponse);
                                         assert(response.availableSequenceNumbers.length > 0);
                                         VALID_RETRANSMIT_SEQNUM = response.availableSequenceNumbers[0];
@@ -3896,13 +3897,13 @@ module.exports = function (test) {
                 );
             }
 
-            it("server should handle Republish request (BadMessageNotAvailable) ", function (done) {
-                inner_test(function (done) {
+            it("server should handle Republish request (BadMessageNotAvailable) ", function(done) {
+                inner_test(function(done) {
                     const request = new RepublishRequest({
                         subscriptionId: VALID_SUBSCRIPTION,
                         retransmitSequenceNumber: INVALID_RETRANSMIT_SEQNUM
                     });
-                    g_session.republish(request, function (err, response) {
+                    g_session.republish(request, function(err, response) {
                         should.exist(err);
                         response.should.be.instanceof(RepublishResponse);
                         response.responseHeader.serviceResult.should.eql(StatusCodes.BadMessageNotAvailable);
@@ -3911,15 +3912,15 @@ module.exports = function (test) {
                 }, done);
             });
 
-            it("server should handle Republish request (BadSubscriptionIdInvalid) ", function (done) {
-                inner_test(function (done) {
+            it("server should handle Republish request (BadSubscriptionIdInvalid) ", function(done) {
+                inner_test(function(done) {
                     VALID_RETRANSMIT_SEQNUM.should.not.eql(0);
 
                     const request = new RepublishRequest({
                         subscriptionId: INVALID_SUBSCRIPTION,
                         retransmitSequenceNumber: VALID_RETRANSMIT_SEQNUM
                     });
-                    g_session.republish(request, function (err, response) {
+                    g_session.republish(request, function(err, response) {
                         should.exist(err);
                         response.should.be.instanceof(RepublishResponse);
                         response.responseHeader.serviceResult.should.eql(StatusCodes.BadSubscriptionIdInvalid);
@@ -3928,8 +3929,8 @@ module.exports = function (test) {
                 }, done);
             });
 
-            it("server should handle Republish request (Good) ", function (done) {
-                inner_test(function (done) {
+            it("server should handle Republish request (Good) ", function(done) {
+                inner_test(function(done) {
                     VALID_RETRANSMIT_SEQNUM.should.not.eql(0);
 
                     const request = new RepublishRequest({
@@ -3937,7 +3938,7 @@ module.exports = function (test) {
                         retransmitSequenceNumber: VALID_RETRANSMIT_SEQNUM
                     });
 
-                    g_session.republish(request, function (err, response) {
+                    g_session.republish(request, function(err, response) {
                         response.should.be.instanceof(RepublishResponse);
                         response.responseHeader.serviceResult.should.eql(StatusCodes.Good);
                         done(err);

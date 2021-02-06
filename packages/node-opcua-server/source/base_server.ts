@@ -10,7 +10,7 @@ import * as os from "os";
 import * as envPaths from "env-paths";
 
 import { assert } from "node-opcua-assert";
-import { getDefaultCertificateManager, ICertificateManager, OPCUACertificateManager } from "node-opcua-certificate-manager";
+import { getDefaultCertificateManager, ICertificateManager, makeSubject, OPCUACertificateManager } from "node-opcua-certificate-manager";
 import { IOPCUASecureObjectOptions, makeApplicationUrn, OPCUASecureObject } from "node-opcua-common";
 import { coerceLocalizedText, LocalizedText } from "node-opcua-data-model";
 import { installPeriodicClockAdjustment, uninstallPeriodicClockAdjustment } from "node-opcua-date-time";
@@ -184,10 +184,7 @@ export class OPCUABaseServer extends OPCUASecureObject {
                 // ip: await getIpAddresses(),
                 outputFile: this.certificateFile,
 
-                subject:
-                    `/CN=${this.serverInfo.applicationName.text}@${hostname}` +
-                    `/DC=${hostname}` +
-                    OPCUACertificateManager.defaultCertificateSubject,
+                subject: makeSubject(this.serverInfo.applicationName.text!, hostname),
 
                 startDate: new Date(),
                 validity: 365 * 10 // 10 years

@@ -1860,10 +1860,11 @@ export class ServerEngine extends EventEmitter {
         if (subscriptionDiagnostics && subscriptionDiagnosticsArray) {
             const node = (subscriptionDiagnosticsArray as any)[subscription.id];
             removeElement(subscriptionDiagnosticsArray, subscriptionDiagnostics);
-            assert(
+            /*assert(
                 !(subscriptionDiagnosticsArray as any)[subscription.id],
                 " subscription node must have been removed from subscriptionDiagnosticsArray"
             );
+            */
         }
         debugLog("ServerEngine#_unexposeSubscriptionDiagnostics");
     }

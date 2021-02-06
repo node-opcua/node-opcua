@@ -58,7 +58,7 @@ import {
     OPCUAClientBaseOptions
 } from "../client_base";
 import { ClientSessionImpl } from "./client_session_impl";
-import { getDefaultCertificateManager, OPCUACertificateManager } from "node-opcua-certificate-manager";
+import { getDefaultCertificateManager, makeSubject, OPCUACertificateManager } from "node-opcua-certificate-manager";
 import { performCertificateSanityCheck } from "../verify";
 import { VerificationStatus } from "node-opcua-pki";
 
@@ -632,13 +632,13 @@ export class ClientBaseImpl extends OPCUASecureObject implements OPCUAClientBase
             const applicationUri: string = this._getBuiltApplicationUri();
             const hostname = getHostname();
             // this.serverInfo.applicationUri!;
+
             await this.clientCertificateManager.createSelfSignedCertificate({
                 applicationUri,
                 dns: [hostname],
                 // ip: await getIpAddresses(),
                 outputFile: this.certificateFile,
-                subject:
-                    `/CN=${applicationName}@${hostname}` + `/DC=${hostname}` + OPCUACertificateManager.defaultCertificateSubject,
+                subject: makeSubject(applicationName, hostname),
 
                 startDate: new Date(),
                 validity: 365 * 10 // 10 years
