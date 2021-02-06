@@ -1,3 +1,4 @@
+/* eslint-disable max-statements */
 "use strict";
 
 const should = require("should");
@@ -23,7 +24,7 @@ const { DataType, Variant, VariantArrayType } = require("node-opcua-variant");
 const { StatusCodes } = require("node-opcua-status-code");
 const encode_decode = require("node-opcua-basic-types");
 const { nodesets } = require("node-opcua-nodesets");
-
+const { Range, WriteValue } = require("node-opcua-types");
 
 const {
     Subscription,
@@ -193,9 +194,9 @@ describe("SM1 - Subscriptions and MonitoredItems", function() {
             done();
         });
     });
-    after(function() {
+    after(async () => {
         if (engine) {
-            engine.shutdown();
+            await engine.shutdown();
             engine.dispose();
             engine = null;
         }
@@ -232,14 +233,14 @@ describe("SM1 - Subscriptions and MonitoredItems", function() {
 
         subscription.monitoredItemCount.should.eql(0);
 
-        const monitoredItemCreateResult = subscription.createMonitoredItem(addressSpace, TimestampsToReturn.Both, monitoredItemCreateRequest);
-        monitoredItemCreateResult.statusCode.should.eql(StatusCodes.Good);
+        const createResult = subscription.createMonitoredItem(addressSpace, TimestampsToReturn.Both, monitoredItemCreateRequest);
+        createResult.statusCode.should.eql(StatusCodes.Good);
 
         subscription.monitoredItemCount.should.eql(1);
 
-        monitoredItemCreateResult.should.be.instanceOf(MonitoredItemCreateResult);
+        createResult.should.be.instanceOf(MonitoredItemCreateResult);
 
-        monitoredItemCreateResult.revisedSamplingInterval.should.eql(100);
+        createResult.revisedSamplingInterval.should.eql(100);
 
         subscription.on("terminated", function() {
             // monitored Item shall be deleted at this stage
@@ -273,7 +274,7 @@ describe("SM1 - Subscriptions and MonitoredItems", function() {
             }
         });
 
-        subscription.createMonitoredItem(addressSpace, TimestampsToReturn.Both, monitoredItemCreateRequest);
+        const createResult = subscription.createMonitoredItem(addressSpace, TimestampsToReturn.Both, monitoredItemCreateRequest);
         subscription.terminate();
         subscription.dispose();
     });
@@ -300,11 +301,11 @@ describe("SM1 - Subscriptions and MonitoredItems", function() {
             }
         });
 
-        const monitoredItemCreateResult = subscription.createMonitoredItem(addressSpace, TimestampsToReturn.Both, monitoredItemCreateRequest);
-        monitoredItemCreateResult.statusCode.should.eql(StatusCodes.Good);
-        monitoredItemCreateResult.revisedSamplingInterval.should.eql(100);
+        const createResult = subscription.createMonitoredItem(addressSpace, TimestampsToReturn.Both, monitoredItemCreateRequest);
+        createResult.statusCode.should.eql(StatusCodes.Good);
+        createResult.revisedSamplingInterval.should.eql(100);
 
-        const monitoredItem = subscription.getMonitoredItem(monitoredItemCreateResult.monitoredItemId);
+        const monitoredItem = subscription.getMonitoredItem(createResult.monitoredItemId);
 
         // data collection is done asynchronously => let give some time for this to happen
         this.clock.tick(5);
@@ -382,11 +383,11 @@ describe("SM1 - Subscriptions and MonitoredItems", function() {
         simulate_client_adding_publish_request(subscription.publishEngine);
         simulate_client_adding_publish_request(subscription.publishEngine);
 
-        const monitoredItemCreateResult = subscription.createMonitoredItem(addressSpace, TimestampsToReturn.Both, monitoredItemCreateRequest);
+        const createResult = subscription.createMonitoredItem(addressSpace, TimestampsToReturn.Both, monitoredItemCreateRequest);
 
-        monitoredItemCreateResult.statusCode.should.eql(StatusCodes.Good);
+        createResult.statusCode.should.eql(StatusCodes.Good);
 
-        const monitoredItem = subscription.getMonitoredItem(monitoredItemCreateResult.monitoredItemId);
+        const monitoredItem = subscription.getMonitoredItem(createResult.monitoredItemId);
         monitoredItem.samplingInterval.should.eql(100);
 
         // data collection is done asynchronously => let give some time for this to happen
@@ -461,10 +462,10 @@ describe("SM1 - Subscriptions and MonitoredItems", function() {
             }
         });
 
-        const monitoredItemCreateResult = subscription.createMonitoredItem(addressSpace, TimestampsToReturn.Both, monitoredItemCreateRequest);
-        monitoredItemCreateResult.statusCode.should.eql(StatusCodes.Good);
+        const createResult = subscription.createMonitoredItem(addressSpace, TimestampsToReturn.Both, monitoredItemCreateRequest);
+        createResult.statusCode.should.eql(StatusCodes.Good);
 
-        const monitoredItem = subscription.getMonitoredItem(monitoredItemCreateResult.monitoredItemId);
+        const monitoredItem = subscription.getMonitoredItem(createResult.monitoredItemId);
 
         const result = subscription.getMonitoredItems({});
         result.statusCode.should.eql(StatusCodes.Good);
@@ -524,8 +525,8 @@ describe("SM1 - Subscriptions and MonitoredItems", function() {
                 }
             });
 
-            const monitoredItemCreateResult1 = subscription.createMonitoredItem(addressSpace, TimestampsToReturn.Both, monitoredItemCreateRequest1);
-            monitoredItemCreateResult1.statusCode.should.eql(StatusCodes.BadMonitoredItemFilterUnsupported);
+            const createResult = subscription.createMonitoredItem(addressSpace, TimestampsToReturn.Both, monitoredItemCreateRequest1);
+            createResult.statusCode.should.eql(StatusCodes.BadMonitoredItemFilterUnsupported);
         }, done);
     });
 
@@ -554,16 +555,16 @@ describe("SM1 - Subscriptions and MonitoredItems", function() {
         on_subscription(function(subscription) {
 
             const monitoredItemCreateRequest1 = _create_MonitoredItemCreateRequest_with_deadbandValue(-10);
-            const monitoredItemCreateResult1 = subscription.createMonitoredItem(addressSpace, TimestampsToReturn.Both, monitoredItemCreateRequest1);
-            monitoredItemCreateResult1.statusCode.should.eql(StatusCodes.BadDeadbandFilterInvalid);
+            const createResult1 = subscription.createMonitoredItem(addressSpace, TimestampsToReturn.Both, monitoredItemCreateRequest1);
+            createResult1.statusCode.should.eql(StatusCodes.BadDeadbandFilterInvalid);
 
             const monitoredItemCreateRequest2 = _create_MonitoredItemCreateRequest_with_deadbandValue(110);
-            const monitoredItemCreateResult2 = subscription.createMonitoredItem(addressSpace, TimestampsToReturn.Both, monitoredItemCreateRequest2);
-            monitoredItemCreateResult2.statusCode.should.eql(StatusCodes.BadDeadbandFilterInvalid);
+            const createResult2 = subscription.createMonitoredItem(addressSpace, TimestampsToReturn.Both, monitoredItemCreateRequest2);
+            createResult2.statusCode.should.eql(StatusCodes.BadDeadbandFilterInvalid);
 
             const monitoredItemCreateRequest3 = _create_MonitoredItemCreateRequest_with_deadbandValue(90);
-            const monitoredItemCreateResult3 = subscription.createMonitoredItem(addressSpace, TimestampsToReturn.Both, monitoredItemCreateRequest3);
-            monitoredItemCreateResult3.statusCode.should.eql(StatusCodes.Good);
+            const createResult3 = subscription.createMonitoredItem(addressSpace, TimestampsToReturn.Both, monitoredItemCreateRequest3);
+            createResult3.statusCode.should.eql(StatusCodes.Good);
 
         }, done);
 
@@ -590,8 +591,8 @@ describe("SM1 - Subscriptions and MonitoredItems", function() {
                         })
                     }
                 });
-                const monitoredItemCreateResult = subscription.createMonitoredItem(addressSpace, TimestampsToReturn.Both, monitoredItemCreateRequest);
-                return monitoredItemCreateResult.statusCode;
+                const createResult = subscription.createMonitoredItem(addressSpace, TimestampsToReturn.Both, monitoredItemCreateRequest);
+                return createResult.statusCode;
             }
 
 
@@ -642,7 +643,7 @@ describe("SM1 - Subscriptions and MonitoredItems", function() {
             const n = addressSpace.findNode("ns=100;s=Static_Float");
             //xx console.log(n.toString());
 
-            subscription.createMonitoredItem(addressSpace, TimestampsToReturn.Both, monitoredItemCreateRequest);
+            const createResult = subscription.createMonitoredItem(addressSpace, TimestampsToReturn.Both, monitoredItemCreateRequest);
             // data collection is done asynchronously => let give some time for this to happen
             test.clock.tick(1);
         }
@@ -778,8 +779,8 @@ describe("SM1 - Subscriptions and MonitoredItems", function() {
                     })
                 }
             });
-            const monitoredItemCreateResult = subscription.createMonitoredItem(addressSpace, TimestampsToReturn.Both, monitoredItemCreateRequest);
-            return monitoredItemCreateResult.statusCode;
+            const createResult = subscription.createMonitoredItem(addressSpace, TimestampsToReturn.Both, monitoredItemCreateRequest);
+            return createResult.statusCode;
         }
 
 
@@ -889,11 +890,11 @@ describe("SM1 - Subscriptions and MonitoredItems", function() {
             });
 
 
-            const monitoredItemCreateResult = subscription.createMonitoredItem(addressSpace, TimestampsToReturn.Both, monitoredItemCreateRequest);
+            const createResult = subscription.createMonitoredItem(addressSpace, TimestampsToReturn.Both, monitoredItemCreateRequest);
 
-            monitoredItemCreateResult.statusCode.should.eql(StatusCodes.Good);
+            createResult.statusCode.should.eql(StatusCodes.Good);
 
-            const monitoredItem = subscription.getMonitoredItem(monitoredItemCreateResult.monitoredItemId);
+            const monitoredItem = subscription.getMonitoredItem(createResult.monitoredItemId);
 
             monitoredItem.queueSize.should.eql(10);
 
@@ -921,15 +922,15 @@ describe("SM1 - Subscriptions and MonitoredItems", function() {
             });
 
 
-            const monitoredItemCreateResult = subscription.createMonitoredItem(addressSpace, TimestampsToReturn.Both, monitoredItemCreateRequest);
+            const createResult = subscription.createMonitoredItem(addressSpace, TimestampsToReturn.Both, monitoredItemCreateRequest);
 
             if (doDebug) {
-                console.log(monitoredItemCreateResult.toString());
+                console.log(createResult.toString());
             }
 
-            monitoredItemCreateResult.statusCode.should.eql(StatusCodes.BadNodeIdUnknown);
+            createResult.statusCode.should.eql(StatusCodes.BadNodeIdUnknown);
 
-            const monitoredItem = subscription.getMonitoredItem(monitoredItemCreateResult.monitoredItemId);
+            const monitoredItem = subscription.getMonitoredItem(createResult.monitoredItemId);
             should.not.exist(monitoredItem);
 
             done();
@@ -958,15 +959,15 @@ describe("SM1 - Subscriptions and MonitoredItems", function() {
             });
 
 
-            const monitoredItemCreateResult = subscription.createMonitoredItem(addressSpace, TimestampsToReturn.Both, monitoredItemCreateRequest);
+            const createResult = subscription.createMonitoredItem(addressSpace, TimestampsToReturn.Both, monitoredItemCreateRequest);
 
             if (doDebug) {
-                console.log(monitoredItemCreateResult.toString());
+                console.log(createResult.toString());
             }
 
-            monitoredItemCreateResult.statusCode.should.eql(StatusCodes.Good);
+            createResult.statusCode.should.eql(StatusCodes.Good);
 
-            const monitoredItem = subscription.getMonitoredItem(monitoredItemCreateResult.monitoredItemId);
+            const monitoredItem = subscription.getMonitoredItem(createResult.monitoredItemId);
             should.exist(monitoredItem);
 
             simulate_publish_request_expected_statusCode(monitoredItem, StatusCodes.Good);
@@ -1084,14 +1085,14 @@ describe("SM1 - Subscriptions and MonitoredItems", function() {
             });
 
 
-            const monitoredItemCreateResult = subscription.createMonitoredItem(
+            const createResult = subscription.createMonitoredItem(
                 addressSpace, TimestampsToReturn.Both, monitoredItemCreateRequest);
 
             // data collection is done asynchronously => let give some time for this to happen
             test.clock.tick(5);
 
-            monitoredItemCreateResult.statusCode.should.eql(StatusCodes.Good);
-            const monitoredItem = subscription.getMonitoredItem(monitoredItemCreateResult.monitoredItemId);
+            createResult.statusCode.should.eql(StatusCodes.Good);
+            const monitoredItem = subscription.getMonitoredItem(createResult.monitoredItemId);
 
             monitoredItem.queueSize.should.eql(10);
             monitoredItem.queue.length.should.eql(1);
@@ -1199,15 +1200,15 @@ describe("SM1 - Subscriptions and MonitoredItems", function() {
             });
 
 
-            const monitoredItemCreateResult = subscription.createMonitoredItem(
+            const createResult = subscription.createMonitoredItem(
                 addressSpace, TimestampsToReturn.Both, monitoredItemCreateRequest);
 
 
             // data collection is done asynchronously => let give some time for this to happen
             test.clock.tick(5);
 
-            monitoredItemCreateResult.statusCode.should.eql(StatusCodes.Good);
-            const monitoredItem = subscription.getMonitoredItem(monitoredItemCreateResult.monitoredItemId);
+            createResult.statusCode.should.eql(StatusCodes.Good);
+            const monitoredItem = subscription.getMonitoredItem(createResult.monitoredItemId);
 
             // now modify monitoredItem setting a filter
             const res = monitoredItem.modify(null, new MonitoringParameters({
@@ -1256,13 +1257,13 @@ describe("SM1 - Subscriptions and MonitoredItems", function() {
         it("server should not allow monitoredItem sampling interval to be lesser than UAVariable minimumSampling interval", function(done) {
 
 
-
+            let subscription;
             try {
 
                 addressSpace.rootFolder.someVariable.minimumSamplingInterval = 1000;
                 addressSpace.rootFolder.someVariable.minimumSamplingInterval.should.eql(1000);
 
-                var subscription = new Subscription({
+                subscription = new Subscription({
                     publishingInterval: 1000,
                     maxKeepAliveCount: 20,
                     publishEngine: fake_publish_engine
@@ -1281,10 +1282,10 @@ describe("SM1 - Subscriptions and MonitoredItems", function() {
                 });
                 monitoredItemCreateRequest.requestedParameters.samplingInterval.should.eql(100, "Requesting a very small sampling interval");
 
-                const monitoredItemCreateResult = subscription.createMonitoredItem(addressSpace, TimestampsToReturn.Both, monitoredItemCreateRequest);
-                monitoredItemCreateResult.statusCode.should.eql(StatusCodes.Good);
+                const createResult = subscription.createMonitoredItem(addressSpace, TimestampsToReturn.Both, monitoredItemCreateRequest);
+                createResult.statusCode.should.eql(StatusCodes.Good);
 
-                const monitoredItem = subscription.getMonitoredItem(monitoredItemCreateResult.monitoredItemId);
+                const monitoredItem = subscription.getMonitoredItem(createResult.monitoredItemId);
 
                 monitoredItem.samplingInterval.should.eql(1000, "monitoredItem samplingInterval should match node minimumSamplingInterval");
 
@@ -1323,10 +1324,11 @@ describe("SM1 - Subscriptions and MonitoredItems", function() {
             addressSpace.rootFolder.someVariable.minimumSamplingInterval.should.eql(20);
             addressSpace.rootFolder.someVariable.minimumSamplingInterval.should.be.lessThan(MonitoredItem.minimumSamplingInterval);
 
+            let subscription;
 
             try {
 
-                var subscription = new Subscription({
+                subscription = new Subscription({
                     publishingInterval: 1000,
                     maxKeepAliveCount: 20,
                     publishEngine: fake_publish_engine
@@ -1347,10 +1349,10 @@ describe("SM1 - Subscriptions and MonitoredItems", function() {
                 });
                 monitoredItemCreateRequest.requestedParameters.samplingInterval.should.eql(10, "Requesting a very small sampling interval");
 
-                const monitoredItemCreateResult = subscription.createMonitoredItem(addressSpace, TimestampsToReturn.Both, monitoredItemCreateRequest);
-                monitoredItemCreateResult.statusCode.should.eql(StatusCodes.Good);
+                const createResult = subscription.createMonitoredItem(addressSpace, TimestampsToReturn.Both, monitoredItemCreateRequest);
+                createResult.statusCode.should.eql(StatusCodes.Good);
 
-                const monitoredItem = subscription.getMonitoredItem(monitoredItemCreateResult.monitoredItemId);
+                const monitoredItem = subscription.getMonitoredItem(createResult.monitoredItemId);
 
                 monitoredItem.samplingInterval.should.eql(MonitoredItem.minimumSamplingInterval, "monitoredItem samplingInterval should match node minimumSamplingInterval");
 
@@ -1420,8 +1422,8 @@ describe("SM2 - MonitoredItem advanced", function() {
             done();
         });
     });
-    after(function() {
-        engine.shutdown();
+    after(async () => {
+        await engine.shutdown();
         engine.dispose();
         engine = null;
     });
@@ -1482,10 +1484,10 @@ describe("SM2 - MonitoredItem advanced", function() {
                 }
             });
 
-            const monitoredItemCreateResult = subscription.createMonitoredItem(addressSpace, TimestampsToReturn.Both, monitoredItemCreateRequest);
-            monitoredItemCreateResult.statusCode.should.eql(StatusCodes.Good);
+            const createResult = subscription.createMonitoredItem(addressSpace, TimestampsToReturn.Both, monitoredItemCreateRequest);
+            createResult.statusCode.should.eql(StatusCodes.Good);
 
-            const monitoredItem = subscription.getMonitoredItem(monitoredItemCreateResult.monitoredItemId);
+            const monitoredItem = subscription.getMonitoredItem(createResult.monitoredItemId);
             should.exist(monitoredItem);
             return monitoredItem;
         }
@@ -1643,9 +1645,9 @@ describe("SM2 - MonitoredItem advanced", function() {
                     samplingInterval: 1200
                 }
             });
-            const monitoredItemCreateResult = subscription.createMonitoredItem(addressSpace, TimestampsToReturn.Both, monitoredItemCreateRequest);
-            monitoredItemCreateResult.statusCode.should.eql(StatusCodes.Good);
-            const monitoredItem = subscription.getMonitoredItem(monitoredItemCreateResult.monitoredItemId);
+            const createResult = subscription.createMonitoredItem(addressSpace, TimestampsToReturn.Both, monitoredItemCreateRequest);
+            createResult.statusCode.should.eql(StatusCodes.Good);
+            const monitoredItem = subscription.getMonitoredItem(createResult.monitoredItemId);
 
             return monitoredItem;
         }

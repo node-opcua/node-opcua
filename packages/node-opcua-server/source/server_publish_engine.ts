@@ -14,7 +14,7 @@ import { StatusCode, StatusCodes } from "node-opcua-status-code";
 import { PublishRequest, PublishResponse, SubscriptionAcknowledgement } from "node-opcua-types";
 import { Subscription } from "./server_subscription";
 import { SubscriptionState } from "./server_subscription";
-import { IServerSidePublishEngine, INotifMsg, IClosedOrTransferedSubscription } from "./i_server_side_publish_engine";
+import { IServerSidePublishEngine, INotifMsg, IClosedOrTransferredSubscription } from "./i_server_side_publish_engine";
 
 const debugLog = make_debugLog(__filename);
 const doDebug = checkDebugFlag(__filename);
@@ -86,7 +86,7 @@ export class ServerSidePublishEngine extends EventEmitter implements IServerSide
             )
         );
 
-        for(const subscription of Object.values(srcPublishEngine._subscriptions))  {
+        for (const subscription of Object.values(srcPublishEngine._subscriptions)) {
             assert((subscription.publishEngine as any) === srcPublishEngine);
 
             if (subscription.$session) {
@@ -165,7 +165,7 @@ export class ServerSidePublishEngine extends EventEmitter implements IServerSide
 
     private _publish_request_queue: PublishData[] = [];
     private _subscriptions: { [key: string]: Subscription };
-    private _closed_subscriptions: IClosedOrTransferedSubscription[] = [];
+    private _closed_subscriptions: IClosedOrTransferredSubscription[] = [];
 
     constructor(options?: ServerSidePublishEngineOptions) {
         super();
@@ -232,7 +232,7 @@ export class ServerSidePublishEngine extends EventEmitter implements IServerSide
      * get a array of subscription handled by the publish engine.
      */
     public get subscriptions(): Subscription[] {
-        return Object.values(this._subscriptions)
+        return Object.values(this._subscriptions);
     }
 
     /**
@@ -302,12 +302,9 @@ export class ServerSidePublishEngine extends EventEmitter implements IServerSide
 
     public get currentMonitoredItemCount(): number {
         const subscriptions = Object.values(this._subscriptions);
-        const result = subscriptions.reduce(
-            (cumul: number, subscription: Subscription) => {
-                return cumul + subscription.monitoredItemCount;
-            },
-            0
-        );
+        const result = subscriptions.reduce((cumul: number, subscription: Subscription) => {
+            return cumul + subscription.monitoredItemCount;
+        }, 0);
         assert(isFinite(result));
         return result;
     }
@@ -316,7 +313,7 @@ export class ServerSidePublishEngine extends EventEmitter implements IServerSide
         this._closed_subscriptions = this._closed_subscriptions.filter((s) => s.id !== subscriptionId);
     }
 
-    public on_close_subscription(subscription: IClosedOrTransferedSubscription): void {
+    public on_close_subscription(subscription: IClosedOrTransferredSubscription): void {
         debugLog("ServerSidePublishEngine#on_close_subscription", subscription.id);
         if (subscription.hasPendingNotifications) {
             debugLog(
@@ -395,7 +392,7 @@ export class ServerSidePublishEngine extends EventEmitter implements IServerSide
         callback = callback || dummy_function;
         assert(typeof callback === "function");
 
-        //istanbul ignore next
+        // istanbul ignore next
         if (!(request instanceof PublishRequest)) {
             throw new Error("Internal error : expecting a Publish Request here");
         }
@@ -406,8 +403,8 @@ export class ServerSidePublishEngine extends EventEmitter implements IServerSide
         const publishData: PublishData = {
             callback,
             request,
-            serverTimeWhenReceived: currentTime,
-            results: subscriptionAckResults
+            results: subscriptionAckResults,
+            serverTimeWhenReceived: currentTime
         };
 
         if (this.isSessionClosed) {

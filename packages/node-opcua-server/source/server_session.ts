@@ -414,7 +414,7 @@ export class ServerSession extends EventEmitter implements ISubscriber, ISession
      *         (shall be "Timeout", "Terminated" or "CloseSession")
      *
      */
-    public close(deleteSubscriptions: boolean, reason: string) {
+    public close(deleteSubscriptions: boolean, reason: string): void {
         debugLog(" closing session deleteSubscriptions = ", deleteSubscriptions);
         if (this.publishEngine) {
             this.publishEngine.onSessionClose();

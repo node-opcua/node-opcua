@@ -1,3 +1,4 @@
+/* eslint-disable max-statements */
 /* global: require,describe,it,before,beforeEach,after,afterEach */
 "use strict";
 
@@ -363,8 +364,8 @@ describe("Subscriptions", function() {
                     samplingInterval: 200
                 }
             });
-            const monitoredItemCreateResult = subscription.createMonitoredItem(addressSpace, TimestampsToReturn.Both, monitoredItemCreateRequest);
-            const monitoredItem = subscription.getMonitoredItem(monitoredItemCreateResult.monitoredItemId);
+            const createResult = subscription.createMonitoredItem(addressSpace, TimestampsToReturn.Both, monitoredItemCreateRequest);
+            const monitoredItem = subscription.getMonitoredItem(createResult.monitoredItemId);
 
             return monitoredItem;
         }
@@ -387,8 +388,8 @@ describe("Subscriptions", function() {
                 done();
             });
         });
-        after(function() {
-            engine.shutdown();
+        after(async () => {
+            await engine.shutdown();
             engine = null;
         });
 
@@ -483,8 +484,7 @@ describe("Subscriptions", function() {
 
         });
 
-        it(" - case 3 - publish Request arrives late (after first publishInterval is over)", function(done) {
-
+        it(" - case 3 - publish Request arrives late (after first publishInterval is over)", function() {
 
             const monitoredItem = add_mock_monitored_item2(subscription, someVariableNode);
 
@@ -509,7 +509,6 @@ describe("Subscriptions", function() {
             this.clock.tick(subscription.publishingInterval);
             keepalive_event_spy.callCount.should.eql(0);
 
-            done();
 
         });
 

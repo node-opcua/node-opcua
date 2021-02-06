@@ -250,9 +250,12 @@ function apply_filter(this: MonitoredItem, newDataValue: DataValue) {
     // return true; // keep
 }
 
-function setSemanticChangeBit(notification: QueueItem| DataValue): void {
+function setSemanticChangeBit(notification: QueueItem | DataValue): void {
     if (notification instanceof MonitoredItemNotification) {
-        notification.value.statusCode = StatusCode.makeStatusCode(notification.value.statusCode || StatusCodes.Good, "SemanticChanged");
+        notification.value.statusCode = StatusCode.makeStatusCode(
+            notification.value.statusCode || StatusCodes.Good,
+            "SemanticChanged"
+        );
     } else if (notification instanceof DataValue) {
         notification.statusCode = StatusCode.makeStatusCode(notification.statusCode || StatusCodes.Good, "SemanticChanged");
     }
@@ -554,15 +557,16 @@ export class MonitoredItem extends EventEmitter {
 
         // istanbul ignore next
         if (doDebug) {
-
             debugLog(
                 "MonitoredItem#recordValue",
                 this.node!.nodeId.toString(),
                 this.node!.browseName.toString(),
                 " has Changed = ",
                 !sameDataValue(dataValue, this.oldDataValue!),
-                "skipChangeTest = ", skipChangeTest,
-                "hasSemanticChanged = ", hasSemanticChanged
+                "skipChangeTest = ",
+                skipChangeTest,
+                "hasSemanticChanged = ",
+                hasSemanticChanged
             );
         }
 
@@ -571,7 +575,7 @@ export class MonitoredItem extends EventEmitter {
             debugLog("_enqueue_value => because hasSemanticChanged");
             setSemanticChangeBit(dataValue);
             this._semantic_version = (this.node as UAVariable).semantic_version;
-            return this._enqueue_value(dataValue);    
+            return this._enqueue_value(dataValue);
             debugLog("_enqueue_value => because hasSemanticChanged 2");
         }
 
@@ -964,7 +968,7 @@ export class MonitoredItem extends EventEmitter {
             // than the publishing interval of the Subscription, the MonitoredItem will be over
             // sampling and the Client will always receive the most up-to-date value.
             // The discard policy is ignored if the queue size is one.
-            // ensure queuesize
+            // ensure queue size
             if (!this.queue || this.queue.length !== 1) {
                 this.queue = [];
             }
@@ -1002,6 +1006,7 @@ export class MonitoredItem extends EventEmitter {
         // if dataFilter is specified ....
         if (this.filter && this.filter instanceof DataChangeFilter) {
             if (this.filter.trigger === DataChangeTrigger.Status) {
+                /** */
             }
         }
         dataValue = apply_timestamps(dataValue, this.timestampsToReturn, attributeId);
@@ -1013,7 +1018,7 @@ export class MonitoredItem extends EventEmitter {
 
     /**
      * @method _enqueue_value
-     * @param dataValue {DataValue} the dataValue to enquue
+     * @param dataValue {DataValue} the dataValue to enqueue
      * @private
      */
     private _enqueue_value(dataValue: DataValue) {
@@ -1053,11 +1058,11 @@ export class MonitoredItem extends EventEmitter {
         ) {
             throw new Error(
                 "dataValue.value.value cannot be the same object twice! " +
-                this.node!.browseName.toString() +
-                " " +
-                dataValue.toString() +
-                "  " +
-                chalk.cyan(this.oldDataValue.toString())
+                    this.node!.browseName.toString() +
+                    " " +
+                    dataValue.toString() +
+                    "  " +
+                    chalk.cyan(this.oldDataValue.toString())
             );
         }
 

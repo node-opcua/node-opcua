@@ -47,7 +47,7 @@ import {
 import { MonitoredItem, MonitoredItemOptions, ISubscription } from "./monitored_item";
 import { ServerSession } from "./server_session";
 import { validateFilter } from "./validate_filter";
-import { IServerSidePublishEngine, TransferedSubscription } from "./i_server_side_publish_engine";
+import { IServerSidePublishEngine, TransferredSubscription } from "./i_server_side_publish_engine";
 
 const debugLog = make_debugLog(__filename);
 const doDebug = checkDebugFlag(__filename);
@@ -184,87 +184,96 @@ function createSubscriptionDiagnostics(subscription: Subscription): Subscription
     const subscription_subscriptionDiagnostics = subscriptionDiagnostics as any;
     subscription_subscriptionDiagnostics.$subscription = subscription;
     // "sessionId"
-    subscription_subscriptionDiagnostics.__defineGetter__("sessionId", function (
-        this: SubscriptionDiagnosticsDataTypePriv
-    ): NodeId {
-        if (!this.$subscription) {
-            return NodeId.nullNodeId;
+    subscription_subscriptionDiagnostics.__defineGetter__(
+        "sessionId",
+        function (this: SubscriptionDiagnosticsDataTypePriv): NodeId {
+            if (!this.$subscription) {
+                return NodeId.nullNodeId;
+            }
+            return this.$subscription.getSessionId();
         }
-        return this.$subscription.getSessionId();
-    });
-    subscription_subscriptionDiagnostics.__defineGetter__("subscriptionId", function (
-        this: SubscriptionDiagnosticsDataTypePriv
-    ): number {
-        if (!this.$subscription) {
-            return 0;
+    );
+    subscription_subscriptionDiagnostics.__defineGetter__(
+        "subscriptionId",
+        function (this: SubscriptionDiagnosticsDataTypePriv): number {
+            if (!this.$subscription) {
+                return 0;
+            }
+            return this.$subscription.id;
         }
-        return this.$subscription.id;
-    });
+    );
     subscription_subscriptionDiagnostics.__defineGetter__("priority", function (this: SubscriptionDiagnosticsDataTypePriv): number {
         if (!this.$subscription) {
             return 0;
         }
         return this.$subscription.priority;
     });
-    subscription_subscriptionDiagnostics.__defineGetter__("publishingInterval", function (
-        this: SubscriptionDiagnosticsDataTypePriv
-    ): number {
-        if (!this.$subscription) {
-            return 0;
+    subscription_subscriptionDiagnostics.__defineGetter__(
+        "publishingInterval",
+        function (this: SubscriptionDiagnosticsDataTypePriv): number {
+            if (!this.$subscription) {
+                return 0;
+            }
+            return this.$subscription.publishingInterval;
         }
-        return this.$subscription.publishingInterval;
-    });
+    );
     subscription_subscriptionDiagnostics.__defineGetter__("maxLifetimeCount", function (this: SubscriptionDiagnosticsDataTypePriv) {
         return this.$subscription.lifeTimeCount;
     });
-    subscription_subscriptionDiagnostics.__defineGetter__("maxKeepAliveCount", function (
-        this: SubscriptionDiagnosticsDataTypePriv
-    ): number {
-        if (!this.$subscription) {
-            return 0;
+    subscription_subscriptionDiagnostics.__defineGetter__(
+        "maxKeepAliveCount",
+        function (this: SubscriptionDiagnosticsDataTypePriv): number {
+            if (!this.$subscription) {
+                return 0;
+            }
+            return this.$subscription.maxKeepAliveCount;
         }
-        return this.$subscription.maxKeepAliveCount;
-    });
-    subscription_subscriptionDiagnostics.__defineGetter__("maxNotificationsPerPublish", function (
-        this: SubscriptionDiagnosticsDataTypePriv
-    ): number {
-        if (!this.$subscription) {
-            return 0;
+    );
+    subscription_subscriptionDiagnostics.__defineGetter__(
+        "maxNotificationsPerPublish",
+        function (this: SubscriptionDiagnosticsDataTypePriv): number {
+            if (!this.$subscription) {
+                return 0;
+            }
+            return this.$subscription.maxNotificationsPerPublish;
         }
-        return this.$subscription.maxNotificationsPerPublish;
-    });
-    subscription_subscriptionDiagnostics.__defineGetter__("publishingEnabled", function (
-        this: SubscriptionDiagnosticsDataTypePriv
-    ): boolean {
-        if (!this.$subscription) {
-            return false;
+    );
+    subscription_subscriptionDiagnostics.__defineGetter__(
+        "publishingEnabled",
+        function (this: SubscriptionDiagnosticsDataTypePriv): boolean {
+            if (!this.$subscription) {
+                return false;
+            }
+            return this.$subscription.publishingEnabled;
         }
-        return this.$subscription.publishingEnabled;
-    });
-    subscription_subscriptionDiagnostics.__defineGetter__("monitoredItemCount", function (
-        this: SubscriptionDiagnosticsDataTypePriv
-    ): number {
-        if (!this.$subscription) {
-            return 0;
+    );
+    subscription_subscriptionDiagnostics.__defineGetter__(
+        "monitoredItemCount",
+        function (this: SubscriptionDiagnosticsDataTypePriv): number {
+            if (!this.$subscription) {
+                return 0;
+            }
+            return this.$subscription.monitoredItemCount;
         }
-        return this.$subscription.monitoredItemCount;
-    });
-    subscription_subscriptionDiagnostics.__defineGetter__("nextSequenceNumber", function (
-        this: SubscriptionDiagnosticsDataTypePriv
-    ): number {
-        if (!this.$subscription) {
-            return 0;
+    );
+    subscription_subscriptionDiagnostics.__defineGetter__(
+        "nextSequenceNumber",
+        function (this: SubscriptionDiagnosticsDataTypePriv): number {
+            if (!this.$subscription) {
+                return 0;
+            }
+            return this.$subscription._get_future_sequence_number();
         }
-        return this.$subscription._get_future_sequence_number();
-    });
-    subscription_subscriptionDiagnostics.__defineGetter__("disabledMonitoredItemCount", function (
-        this: SubscriptionDiagnosticsDataTypePriv
-    ): number {
-        if (!this.$subscription) {
-            return 0;
+    );
+    subscription_subscriptionDiagnostics.__defineGetter__(
+        "disabledMonitoredItemCount",
+        function (this: SubscriptionDiagnosticsDataTypePriv): number {
+            if (!this.$subscription) {
+                return 0;
+            }
+            return this.$subscription.disabledMonitoredItemCount;
         }
-        return this.$subscription.disabledMonitoredItemCount;
-    });
+    );
 
     /* those member of self.subscriptionDiagnostics are handled directly
 
@@ -377,6 +386,18 @@ export interface InternalNotification {
     publishTime: Date;
     start_tick: number;
 }
+
+export interface InternalCreateMonitoredItemResult {
+    monitoredItem?: MonitoredItem;
+    monitoredItemCreateRequest: MonitoredItemCreateRequest;
+    createResult: MonitoredItemCreateResult;
+}
+
+export interface MonitoredItemBase {
+    node: any | null;
+}
+export type CreateMonitoredItemHook = (subscription: Subscription, monitoredItem: MonitoredItemBase) => Promise<StatusCode>;
+export type DeleteMonitoredItemHook = (subscription: Subscription, monitoredItem: MonitoredItemBase) => Promise<StatusCode>;
 
 /**
  * The Subscription class used in the OPCUA server side.
@@ -802,15 +823,18 @@ export class Subscription extends EventEmitter {
      * @param timestampsToReturn  - the timestamp to return
      * @param monitoredItemCreateRequest - the parameters describing the monitored Item to create
      */
-    public createMonitoredItem(
+    public preCreateMonitoredItem(
         addressSpace: AddressSpace,
         timestampsToReturn: TimestampsToReturn,
         monitoredItemCreateRequest: MonitoredItemCreateRequest
-    ): MonitoredItemCreateResult {
+    ): InternalCreateMonitoredItemResult {
         assert(monitoredItemCreateRequest instanceof MonitoredItemCreateRequest);
 
-        function handle_error(statusCode: StatusCode): MonitoredItemCreateResult {
-            return new MonitoredItemCreateResult({ statusCode });
+        function handle_error(statusCode: StatusCode): InternalCreateMonitoredItemResult {
+            return {
+                createResult: new MonitoredItemCreateResult({ statusCode }),
+                monitoredItemCreateRequest
+            };
         }
 
         const itemToMonitor = monitoredItemCreateRequest.itemToMonitor;
@@ -855,30 +879,58 @@ export class Subscription extends EventEmitter {
         // xx var monitoringMode      = monitoredItemCreateRequest.monitoringMode; // Disabled, Sampling, Reporting
         // xx var requestedParameters = monitoredItemCreateRequest.requestedParameters;
 
-        const monitoredItemCreateResult = this._createMonitoredItemStep2(timestampsToReturn, monitoredItemCreateRequest, node);
+        const createResult = this._createMonitoredItemStep2(timestampsToReturn, monitoredItemCreateRequest, node);
 
-        assert(monitoredItemCreateResult.statusCode === StatusCodes.Good);
+        assert(createResult.statusCode === StatusCodes.Good);
 
-        const monitoredItem = this.getMonitoredItem(monitoredItemCreateResult.monitoredItemId);
-        assert(monitoredItem);
+        const monitoredItem = this.getMonitoredItem(createResult.monitoredItemId);
+        // istanbul ignore next
+        if (!monitoredItem) {
+            throw new Error("internal error");
+        }
 
         // TODO: fix old way to set node. !!!!
         monitoredItem.setNode(node);
 
         this.emit("monitoredItem", monitoredItem, itemToMonitor);
 
-        this._createMonitoredItemStep3(monitoredItem, monitoredItemCreateRequest);
-
-        return monitoredItemCreateResult;
+        return { monitoredItem, monitoredItemCreateRequest, createResult };
     }
 
+    public async applyOnMonitoredItem(functor: (monitoredItem: MonitoredItem) => Promise<void>): Promise<void> {
+        for (const m of Object.values(this.monitoredItems)) {
+            await functor(m);
+        }
+    }
+
+    public postCreateMonitoredItem(
+        monitoredItem: MonitoredItem,
+        monitoredItemCreateRequest: MonitoredItemCreateRequest,
+        createResult: MonitoredItemCreateResult
+    ): void {
+        this._createMonitoredItemStep3(monitoredItem, monitoredItemCreateRequest);
+    }
+
+    public createMonitoredItem(
+        addressSpace: AddressSpace,
+        timestampsToReturn: TimestampsToReturn,
+        monitoredItemCreateRequest: MonitoredItemCreateRequest
+    ): MonitoredItemCreateResult {
+        const { monitoredItem, createResult } = this.preCreateMonitoredItem(
+            addressSpace,
+            timestampsToReturn,
+            monitoredItemCreateRequest
+        );
+        this.postCreateMonitoredItem(monitoredItem!, monitoredItemCreateRequest, createResult);
+        return createResult;
+    }
     /**
      * get a monitoredItem by Id.
      * @param monitoredItemId : the id of the monitored item to get.
      * @return the monitored item matching monitoredItemId
      */
-    public getMonitoredItem(monitoredItemId: number | string): MonitoredItem {
-        return this.monitoredItems[monitoredItemId.toString()];
+    public getMonitoredItem(monitoredItemId: number | string): MonitoredItem | null {
+        return this.monitoredItems[monitoredItemId.toString()] || null;
     }
 
     /**
@@ -1056,8 +1108,8 @@ export class Subscription extends EventEmitter {
             debugLog(chalk.red("pendingPublishRequestCount"), this.publishEngine?.pendingPublishRequestCount);
             this._publish_pending_notifications();
         } else {
-            debugLog(chalk.red("Cannot  send GoodSubscriptionTransferred => lets create a TransferedSubscription "));
-            const ts = new TransferedSubscription({
+            debugLog(chalk.red("Cannot  send GoodSubscriptionTransferred => lets create a TransferredSubscription "));
+            const ts = new TransferredSubscription({
                 generator: this._sequence_number_generator,
                 id: this.id,
                 publishEngine: this.publishEngine
@@ -1561,6 +1613,8 @@ export class Subscription extends EventEmitter {
             revisedSamplingInterval: monitoredItem.samplingInterval,
             statusCode: StatusCodes.Good
         });
+
+        // this.emit("monitoredItem", monitoredItem, itemToMonitor);
         return monitoredItemCreateResult;
     }
 
@@ -1570,9 +1624,15 @@ export class Subscription extends EventEmitter {
      * @param monitoredItemCreateRequest
      * @private
      */
-    private _createMonitoredItemStep3(monitoredItem: MonitoredItem, monitoredItemCreateRequest: MonitoredItemCreateRequest): void {
+    public _createMonitoredItemStep3(
+        monitoredItem: MonitoredItem | null,
+        monitoredItemCreateRequest: MonitoredItemCreateRequest
+    ): void {
+        if (!monitoredItem) {
+            return;
+        }
         assert(monitoredItem.monitoringMode === MonitoringMode.Invalid);
-        assert(typeof monitoredItem.samplingFunc === "function");
+        assert(typeof monitoredItem.samplingFunc === "function", " expecting a sampling function here");
         const monitoringMode = monitoredItemCreateRequest.monitoringMode; // Disabled, Sampling, Reporting
         monitoredItem.setMonitoringMode(monitoringMode);
     }

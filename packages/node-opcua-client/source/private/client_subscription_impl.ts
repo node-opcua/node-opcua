@@ -883,10 +883,10 @@ export function ClientMonitoredItem_create(
                 return;
             }
             ClientMonitoredItemToolbox._toolbox_monitor(subscription, timestampsToReturn, [monitoredItem], (err1?: Error) => {
-                if (err1) {
-                    monitoredItem.emit("err", err1.message);
-                    monitoredItem.emit("terminated");
-                }
+                // if (err1) {
+                //     monitoredItem.emit("err", err1.message);
+                //     monitoredItem.emit("terminated");
+                // }
                 if (callback) {
                     callback(err1, monitoredItem);
                 }

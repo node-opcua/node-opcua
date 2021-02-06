@@ -130,7 +130,8 @@ import {
     UserIdentityToken,
     UserTokenPolicy,
     BrowseDescription,
-    BuildInfoOptions
+    BuildInfoOptions,
+    MonitoredItemCreateResult
 } from "node-opcua-types";
 import { DataType } from "node-opcua-variant";
 import { VariantArrayType } from "node-opcua-variant";
@@ -145,9 +146,9 @@ import { RegisterServerManagerHidden } from "./register_server_manager_hidden";
 import { RegisterServerManagerMDNSONLY } from "./register_server_manager_mdns_only";
 import { ServerCapabilitiesOptions } from "./server_capabilities";
 import { OPCUAServerEndPoint } from "./server_end_point";
-import { ServerEngine } from "./server_engine";
+import { ClosingReason, ServerEngine } from "./server_engine";
 import { ServerSession } from "./server_session";
-import { Subscription } from "./server_subscription";
+import { CreateMonitoredItemHook, DeleteMonitoredItemHook, Subscription } from "./server_subscription";
 import { ISocketData } from "./i_socket_data";
 import { IChannelData } from "./i_channel_data";
 
@@ -227,10 +228,10 @@ function moveSessionToChannel(session: ServerSession, channel: ServerSecureChann
     assert(session.channel!.channelId === channel.channelId);
 }
 
-function _attempt_to_close_some_old_unactivated_session(server: OPCUAServer) {
+async function _attempt_to_close_some_old_unactivated_session(server: OPCUAServer) {
     const session = server.engine!.getOldestUnactivatedSession();
     if (session) {
-        server.engine!.closeSession(session.authenticationToken, false, "Forcing");
+        await server.engine!.closeSession(session.authenticationToken, false, "Forcing");
     }
 }
 
@@ -764,6 +765,12 @@ export interface OPCUAServerOptions extends OPCUABaseServerOptions, OPCUAServerE
      * and store certificates from the connecting clients
      */
     serverCertificateManager?: OPCUACertificateManager;
+
+    /**
+     *
+     */
+    onCreateMonitoredItem?: CreateMonitoredItemHook;
+    onDeleteMonitoredItem?: DeleteMonitoredItemHook;
 }
 
 export interface OPCUAServer {
@@ -949,6 +956,7 @@ export class OPCUAServer extends OPCUABaseServer {
      * the user manager
      */
     public userManager: UserManagerOptions;
+    public readonly options: OPCUAServerOptions;
 
     private objectFactory?: Factory;
     private nonce: Nonce;
@@ -972,7 +980,7 @@ export class OPCUAServer extends OPCUABaseServer {
         this.maxConnectionsPerEndpoint = options.maxConnectionsPerEndpoint || default_maxConnectionsPerEndpoint;
 
         // build Info
-        let buildInfo: BuildInfoOptions = {
+        const buildInfo: BuildInfoOptions = {
             ...default_build_info,
             ...options.buildInfo
         };
@@ -1566,7 +1574,7 @@ export class OPCUAServer extends OPCUABaseServer {
     }
 
     // session services
-    protected _on_CreateSessionRequest(message: Message, channel: ServerSecureChannelLayer) {
+    protected async _on_CreateSessionRequest(message: Message, channel: ServerSecureChannelLayer) {
         const server = this;
         const request = message.request as CreateSessionRequest;
         assert(request instanceof CreateSessionRequest);
@@ -1586,7 +1594,7 @@ export class OPCUAServer extends OPCUABaseServer {
         // of service attacks, the Server shall close the oldest Session that is not activated before reaching the
         // maximum number of supported Sessions
         if (server.currentSessionCount >= server.maxAllowedSessionNumber) {
-            _attempt_to_close_some_old_unactivated_session(server);
+            await _attempt_to_close_some_old_unactivated_session(server);
         }
 
         // check if session count hasn't reach the maximum allowed sessions
@@ -2384,6 +2392,21 @@ export class OPCUAServer extends OPCUABaseServer {
         );
     }
 
+    private async _closeSession(authenticationToken: NodeId, deleteSubscriptions: boolean, reason: ClosingReason) {
+        const server = this;
+
+        //
+        if (deleteSubscriptions && this.options.onDeleteMonitoredItem) {
+            const session = this.getSession(authenticationToken);
+            if (session) {
+                const subscriptions = session.publishEngine.subscriptions;
+                for (const subscription of subscriptions) {
+                    await subscription.applyOnMonitoredItem(this.options.onDeleteMonitoredItem.bind(null, subscription) as any);
+                }
+            }
+        }
+        await server.engine.closeSession(authenticationToken, deleteSubscriptions, reason);
+    }
     /**
      * @method _on_CloseSessionRequest
      * @param message
@@ -2420,14 +2443,16 @@ export class OPCUAServer extends OPCUABaseServer {
         // session has been created but not activated !
         const wasNotActivated = session.status === "new";
 
-        server.engine.closeSession(request.requestHeader.authenticationToken, request.deleteSubscriptions, "CloseSession");
+        (async () => {
+            await this._closeSession(request.requestHeader.authenticationToken, request.deleteSubscriptions, "CloseSession");
 
-        // if (false && wasNotActivated) {
-        //  return sendError(StatusCodes.BadSessionNotActivated);
-        // }
+            // if (false && wasNotActivated) {
+            //  return sendError(StatusCodes.BadSessionNotActivated);
+            // }
 
-        response = new CloseSessionResponse({});
-        sendResponse(response);
+            response = new CloseSessionResponse({});
+            sendResponse(response);
+        })();
     }
 
     // browse services
@@ -2822,10 +2847,18 @@ export class OPCUAServer extends OPCUABaseServer {
             message,
             channel,
             async (session: ServerSession, subscriptionId: number) => {
-                const subscription = server.engine.findOrphanSubscription(subscriptionId);
+                let subscription = server.engine.findOrphanSubscription(subscriptionId);
+                // istanbul ignore next
                 if (subscription) {
-                    console.log("Deleting orphan subscription");
+                    warningLog("Deleting an orphan subscription", subscriptionId);
+
+                    await this._beforeDeleteSubscription(subscription);
                     return server.engine.deleteOrphanSubscription(subscription);
+                }
+
+                subscription = session.getSubscription(subscriptionId);
+                if (subscription) {
+                    await this._beforeDeleteSubscription(subscription);
                 }
 
                 return session.deleteSubscription(subscriptionId);
@@ -2891,9 +2924,22 @@ export class OPCUAServer extends OPCUABaseServer {
                     }
                 }
 
-                const results = request.itemsToCreate.map(
-                    subscription.createMonitoredItem.bind(subscription, addressSpace, timestampsToReturn)
-                );
+                const resultsPromise = request.itemsToCreate.map(async (monitoredItemCreateRequest) => {
+                    const { monitoredItem, createResult } = subscription.preCreateMonitoredItem(
+                        addressSpace,
+                        timestampsToReturn,
+                        monitoredItemCreateRequest
+                    );
+                    if (monitoredItem) {
+                        const options = this.options as OPCUAServerOptions;
+                        if (options.onCreateMonitoredItem) {
+                            await options.onCreateMonitoredItem(subscription, monitoredItem);
+                        }
+                        await subscription.postCreateMonitoredItem(monitoredItem, monitoredItemCreateRequest, createResult);
+                    }
+                    return createResult;
+                });
+                const results = await Promise.all(resultsPromise);
 
                 const response = new CreateMonitoredItemsResponse({
                     responseHeader: { serviceResult: StatusCodes.Good },
@@ -3049,9 +3095,18 @@ export class OPCUAServer extends OPCUABaseServer {
                         return sendError(StatusCodes.BadTooManyOperations);
                     }
                 }
-                const results = request.monitoredItemIds.map((monitoredItemId: number) => {
+
+                const resultsPromises = request.monitoredItemIds.map(async (monitoredItemId: number) => {
+                    if (this.options.onDeleteMonitoredItem) {
+                        const monitoredItem = subscription.getMonitoredItem(monitoredItemId);
+                        if (monitoredItem) {
+                            await this.options.onDeleteMonitoredItem(subscription, monitoredItem);
+                        }
+                    }
                     return subscription.removeMonitoredItem(monitoredItemId);
                 });
+
+                const results = await Promise.all(resultsPromises);
 
                 const response = new DeleteMonitoredItemsResponse({
                     diagnosticInfos: undefined,
@@ -3063,6 +3118,12 @@ export class OPCUAServer extends OPCUABaseServer {
         );
     }
 
+    protected async _beforeDeleteSubscription(subscription: Subscription) {
+        if (!this.options.onDeleteMonitoredItem) {
+            return;
+        }
+        await subscription.applyOnMonitoredItem(this.options.onDeleteMonitoredItem.bind(null, subscription) as any);
+    }
     protected _on_RepublishRequest(message: Message, channel: ServerSecureChannelLayer) {
         const request = message.request as RepublishRequest;
         assert(request instanceof RepublishRequest);
