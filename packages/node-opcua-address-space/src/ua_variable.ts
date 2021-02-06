@@ -19,7 +19,7 @@ import {
 } from "node-opcua-data-model";
 import { extractRange, sameDataValue, DataValue, DataValueLike } from "node-opcua-data-value";
 import { coerceClock, getCurrentClock, PreciseClock } from "node-opcua-date-time";
-import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
+import { checkDebugFlag, make_debugLog, make_errorLog } from "node-opcua-debug";
 import { ExtensionObject } from "node-opcua-extension-object";
 import { NodeId } from "node-opcua-nodeid";
 import { NumericRange } from "node-opcua-numeric-range";
@@ -68,6 +68,7 @@ import { EnumerationInfo, IEnumItem, UADataType } from "./ua_data_type";
 
 const debugLog = make_debugLog(__filename);
 const doDebug = checkDebugFlag(__filename);
+const errorLog = make_errorLog(__filename);
 
 function isGoodish(statusCode: StatusCode) {
     return statusCode.value < 0x10000000;
@@ -244,6 +245,20 @@ export function verifyRankAndDimensions(options: { valueRank?: number; arrayDime
         );
     }
 }
+
+type TimestampGetFunction1 = () => DataValue | Promise<DataValue>;
+type TimestampGetFunction2 = (callback: (err: Error | null, dataValue?: DataValue) => void) => void;
+type TimestampGetFunction = TimestampGetFunction1 | TimestampGetFunction2;
+
+type TimestampSetFunction1 = (this: UAVariable, dataValue: DataValue, indexRange: NumericRange) => void | Promise<void>;
+type TimestampSetFunction2 = (
+    this: UAVariable,
+    dataValue: DataValue,
+    indexRange: NumericRange,
+    callback: (err: Error | null, StatusCode: StatusCode) => void
+) => void;
+type TimestampSetFunction = TimestampSetFunction1 | TimestampSetFunction2;
+
 /**
  * A OPCUA Variable Node
  *
@@ -291,8 +306,8 @@ export class UAVariable extends BaseNode implements UAVariablePublic {
     public arrayDimensions: null | number[];
 
     public $extensionObject?: any;
-    public _timestamped_get_func: any;
-    public _timestamped_set_func: any;
+    public _timestamped_get_func?: TimestampGetFunction | null;
+    public _timestamped_set_func?: TimestampSetFunction | null;
     public _get_func: any;
     public _set_func: any;
     public refreshFunc?: (callback: DataValueCallback) => void;
@@ -404,8 +419,9 @@ export class UAVariable extends BaseNode implements UAVariablePublic {
         }
 
         if (this._timestamped_get_func) {
-            assert(this._timestamped_get_func.length === 0);
-            this._dataValue = this._timestamped_get_func();
+            if (this._timestamped_get_func.length === 0) {
+                this._dataValue = (this._timestamped_get_func as TimestampGetFunction1)() as DataValue;
+            }
         }
 
         let dataValue = this._dataValue;
@@ -708,7 +724,7 @@ export class UAVariable extends BaseNode implements UAVariablePublic {
             this,
             dataValue,
             indexRange,
-            (err: Error | null, statusCode1: StatusCode, correctedDataValue: DataValue) => {
+            (err: Error | null, statusCode1?: StatusCode, correctedDataValue?: DataValue) => {
                 if (!err) {
                     correctedDataValue = correctedDataValue || dataValue;
                     assert(correctedDataValue instanceof DataValue);
@@ -1011,7 +1027,7 @@ export class UAVariable extends BaseNode implements UAVariablePublic {
         }
 
         assert(typeof this._timestamped_set_func === "function");
-        assert(this._timestamped_set_func.length === 3);
+        assert(this._timestamped_set_func!.length === 3);
     }
 
     /**
@@ -1865,26 +1881,35 @@ function _Variable_bind_with_timestamped_get(this: UAVariable, options: any) {
     assert(!options.get, "should not specify 'get' when 'timestamped_get' exists ");
     assert(!this._timestamped_get_func);
 
-    const async_refresh_func = (callback: (err: Error | null, dataValue: DataValue) => void) => {
-        const dataValue = this._timestamped_get_func();
-        callback(null, dataValue);
+    const async_refresh_func = (callback: (err: Error | null, dataValue?: DataValue) => void) => {
+        Promise.resolve((this._timestamped_get_func! as TimestampGetFunction1).call(this))
+            .then((dataValue) => callback(null, dataValue))
+            .catch((err) => callback(err));
     };
 
     if (options.timestamped_get.length === 0) {
-        // sync version
-        this._timestamped_get_func = options.timestamped_get;
+        const timestamped_get = options.timestamped_get as TimestampGetFunction1;
+        // sync version | Promise version
+        this._timestamped_get_func = timestamped_get;
 
-        const dataValue_verify = this._timestamped_get_func();
+        const dataValue_verify = timestamped_get!.call(this);
+        // dataValue_verify should be a DataValue or a Promise
         /* istanbul ignore next */
-        if (!(dataValue_verify instanceof DataValue)) {
-            console.log(chalk.red(" Bind variable error: "), " the timestamped_get function must return a DataValue");
-            console.log("value_check.constructor.name ", dataValue_verify ? dataValue_verify.constructor.name : "null");
+        if (!(dataValue_verify instanceof DataValue) && typeof dataValue_verify.then !== "function") {
+            errorLog(
+                chalk.red(" Bind variable error: "),
+                " the timestamped_get function must return a DataValue or a Promise<DataValue>" +
+                    "\n value_check.constructor.name ",
+                dataValue_verify ? dataValue_verify.constructor.name : "null"
+            );
+
             throw new Error(" Bind variable error: " + " the timestamped_get function must return a DataValue");
         }
         _Variable_bind_with_async_refresh.call(this, { refreshFunc: async_refresh_func });
     } else if (options.timestamped_get.length === 1) {
         _Variable_bind_with_async_refresh.call(this, { refreshFunc: options.timestamped_get });
     } else {
+        errorLog("timestamped_get has a invalid number of argument , should be 0 or 1  ");
         throw new Error("timestamped_get has a invalid number of argument , should be 0 or 1  ");
     }
 }
@@ -1906,8 +1931,11 @@ function _Variable_bind_with_simple_get(this: UAVariable, options: any) {
 
         /* istanbul ignore next */
         if (!is_Variant_or_StatusCode(value)) {
-            console.log(chalk.red(" Bind variable error: "), " : the getter must return a Variant or a StatusCode");
-            console.log("value_check.constructor.name ", value ? value.constructor.name : "null");
+            errorLog(
+                chalk.red(" Bind variable error: "),
+                " : the getter must return a Variant or a StatusCode" + "\nvalue_check.constructor.name ",
+                value ? value.constructor.name : "null"
+            );
             throw new Error(
                 " bindVariable : the value getter function returns a invalid result ( expecting a Variant or a StatusCode !!!"
             );
