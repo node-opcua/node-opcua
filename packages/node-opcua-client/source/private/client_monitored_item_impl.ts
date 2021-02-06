@@ -206,9 +206,7 @@ export class ClientMonitoredItemImpl extends EventEmitter implements ClientMonit
      * @internal
      * @private
      */
-    public _prepare_for_monitoring() {
-        // : PrepareForMonitoringResult {
-
+    public _prepare_for_monitoring(): PrepareForMonitoringResult {
         assert(this.monitoringParameters.clientHandle === 4294967295, "should not have a client handle yet");
 
         const subscription = this.subscription as ClientSubscriptionImpl;
@@ -237,9 +235,11 @@ export class ClientMonitoredItemImpl extends EventEmitter implements ClientMonit
 
             // note : the EventFilter is used when monitoring Events.
             // @ts-ignore
-            this.monitoringParameters.filter = this.monitoringParameters.filter || new EventFilter({});
+            this.monitoringParameters.filter = this.monitoringParameters.filter! || new EventFilter({});
 
             const filter = this.monitoringParameters.filter;
+
+            // istanbul ignore next
             if (!filter) {
                 return { error: "Internal Error" };
             }

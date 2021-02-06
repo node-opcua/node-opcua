@@ -512,7 +512,11 @@ export class ClientSubscriptionImpl extends EventEmitter implements ClientSubscr
                                     throw new Error("Internal Error");
                                 }
                                 const monitoredItem = this.monitoredItems[clientHandle] as ClientMonitoredItemImpl;
-                                monitoredItem._applyResult(monitoredItemResult);
+                                if (monitoredItem) {
+                                    monitoredItem._applyResult(monitoredItemResult);
+                                } else {
+                                    warningLog("cannot find monitored item for clientHandle !:", clientHandle);
+                                }
                             });
                             innerCallback();
                         }
