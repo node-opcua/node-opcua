@@ -28,6 +28,7 @@ import {
 import { ApplicationType, EndpointDescription, MdnsDiscoveryConfiguration, RegisteredServerOptions } from "node-opcua-types";
 import { IRegisterServerManager } from "./i_register_server_manager";
 import { exploreCertificate } from "node-opcua-crypto";
+import { OPCUACertificateManager } from "node-opcua-certificate-manager";
 
 const doDebug = checkDebugFlag(__filename);
 const debugLog = make_debugLog(__filename);
@@ -109,7 +110,7 @@ function findSecureEndpoint(endpoints: EndpointDescription[]): EndpointDescripti
     return endpoints[0];
 }
 
-function constructRegisteredServer(server: _IServer, isOnline: boolean): RegisteredServerOptions {
+function constructRegisteredServer(server: IPartialServer, isOnline: boolean): RegisteredServerOptions {
     const discoveryUrls = server.getDiscoveryUrls();
     assert(!isOnline || discoveryUrls.length >= 1, "expecting some discoveryUrls if we go online ....");
 
@@ -119,11 +120,17 @@ function constructRegisteredServer(server: _IServer, isOnline: boolean): Registe
     const serverUri = info.tbsCertificate.extensions?.subjectAltName.uniformResourceIdentifier[0];
     // istanbul ignore next
     if (serverUri !== server.serverInfo.applicationUri) {
-        console.log(chalk.yellow("Warning certificate uniformResourceIdentifier doesn't match serverInfo.applicationUri"));
-        console.log(" subjectKeyIdentifier      : ", info.tbsCertificate.extensions?.subjectKeyIdentifier);
-        console.log(" subjectAltName            : ", info.tbsCertificate.extensions?.subjectAltName);
-        console.log(" commonName                : ", info.tbsCertificate.subject.commonName!);
-        console.log(" serverInfo.applicationUri : ", server.serverInfo.applicationUri);
+        warningLog(
+            chalk.yellow("Warning certificate uniformResourceIdentifier doesn't match serverInfo.applicationUri"),
+            "\n subjectKeyIdentifier      : ",
+            info.tbsCertificate.extensions?.subjectKeyIdentifier,
+            "\n subjectAltName            : ",
+            info.tbsCertificate.extensions?.subjectAltName,
+            "\n commonName                : ",
+            info.tbsCertificate.subject.commonName!,
+            "\n serverInfo.applicationUri : ",
+            server.serverInfo.applicationUri
+        );
     }
 
     // istanbul ignore next
@@ -153,14 +160,14 @@ function constructRegisteredServer(server: _IServer, isOnline: boolean): Registe
     };
     return s;
 }
-function constructRegisterServerRequest(serverB: _IServer, isOnline: boolean): RegisterServerRequest {
+function constructRegisterServerRequest(serverB: IPartialServer, isOnline: boolean): RegisterServerRequest {
     const server = constructRegisteredServer(serverB, isOnline);
     return new RegisterServerRequest({
         server
     });
 }
 
-function constructRegisterServer2Request(serverB: _IServer, isOnline: boolean): RegisterServer2Request {
+function constructRegisterServer2Request(serverB: IPartialServer, isOnline: boolean): RegisterServer2Request {
     const server = constructRegisteredServer(serverB, isOnline);
 
     return new RegisterServer2Request({
@@ -194,7 +201,7 @@ interface ClientBaseEx extends OPCUAClientBase {
     performMessageTransaction(request: RegisterServerRequest, callback: ResponseCallback<RegisterServerResponse>): void;
 }
 
-function sendRegisterServerRequest(server: _IServer, client: ClientBaseEx, isOnline: boolean, callback: ErrorCallback) {
+function sendRegisterServerRequest(server: IPartialServer, client: ClientBaseEx, isOnline: boolean, callback: ErrorCallback) {
     // try to send a RegisterServer2Request
     const request = constructRegisterServer2Request(server, isOnline);
 
@@ -209,7 +216,6 @@ function sendRegisterServerRequest(server: _IServer, client: ClientBaseEx, isOnl
             debugLog("RegisterServerManager#_registerServer" + " falling back to using sendRegisterServerRequest instead");
             // fall back to
             const request1 = constructRegisterServerRequest(server, isOnline);
-            // xx console.log("request",request.toString());
             client.performMessageTransaction(request1, (err1: Error | null, response1?: RegisterServerResponse) => {
                 if (!err1) {
                     debugLog(
@@ -231,7 +237,8 @@ function sendRegisterServerRequest(server: _IServer, client: ClientBaseEx, isOnl
     });
 }
 
-export interface _IServer {
+export interface IPartialServer {
+    serverCertificateManager: OPCUACertificateManager;
     certificateFile: string;
     privateKeyFile: string;
     serverType: ApplicationType;
@@ -245,7 +252,7 @@ export interface _IServer {
     getCertificate(): Buffer;
 }
 export interface RegisterServerManagerOptions {
-    server: _IServer;
+    server: IPartialServer;
     discoveryServerEndpointUrl: string;
 }
 /**
@@ -287,7 +294,7 @@ export class RegisterServerManager extends EventEmitter implements IRegisterServ
     public discoveryServerEndpointUrl: string;
     public timeout: number;
 
-    private server: _IServer | null;
+    private server: IPartialServer | null;
     private _registrationTimerId: NodeJS.Timer | null;
     private state: RegisterServerManagerStatus = RegisterServerManagerStatus.INACTIVE;
     private _registration_client: OPCUAClientBase | null = null;
@@ -383,6 +390,7 @@ export class RegisterServerManager extends EventEmitter implements IRegisterServ
         this.selectedEndpoint = undefined;
 
         // Retry Strategy must be set
+        this.server.serverCertificateManager.referenceCounter++;
         const client = OPCUAClientBase.create({
             clientName: this.server.serverInfo.applicationUri!,
 
@@ -391,6 +399,8 @@ export class RegisterServerManager extends EventEmitter implements IRegisterServ
             applicationUri: this.server.serverInfo.applicationUri!,
 
             connectionStrategy: infinite_connectivity_strategy,
+
+            clientCertificateManager: this.server.serverCertificateManager,
 
             certificateFile: this.server.certificateFile,
             privateKeyFile: this.server.privateKeyFile
@@ -597,14 +607,17 @@ export class RegisterServerManager extends EventEmitter implements IRegisterServ
         const selectedEndpoint = this.selectedEndpoint;
 
         if (!selectedEndpoint) {
-            console.log("Warning : cannot register server - no endpoint available");
+            warningLog("Warning : cannot register server - no endpoint available");
             return outer_callback(new Error("Cannot registerServer"));
         }
 
+        server.serverCertificateManager.referenceCounter++;
         const options: OPCUAClientBaseOptions = {
             securityMode: selectedEndpoint.securityMode,
             securityPolicy: coerceSecurityPolicy(selectedEndpoint.securityPolicyUri),
             serverCertificate: selectedEndpoint.serverCertificate,
+
+            clientCertificateManager: server.serverCertificateManager,
 
             certificateFile: server.certificateFile,
             privateKeyFile: server.privateKeyFile,
@@ -643,14 +656,17 @@ export class RegisterServerManager extends EventEmitter implements IRegisterServ
                                 "RegisterServerManager#_registerServer  " +
                                     "=> please check that you server certificate is trusted by the LDS"
                             );
-                            console.log(
+                            warningLog(
                                 "RegisterServer to the LDS  has failed during secure connection  " +
-                                    "=> please check that you server certificate is trusted by the LDS. err: " +
-                                    err.message
+                                    "=> please check that you server certificate is trusted by the LDS.",
+                                "\nerr: " + err.message,
+                                "\nLDS endpoint    :",
+                                selectedEndpoint?.endpointUrl!,
+                                "\nsecurity mode   :",
+                                MessageSecurityMode[selectedEndpoint.securityMode],
+                                "\nsecurity policy :",
+                                coerceSecurityPolicy(selectedEndpoint.securityPolicyUri)
                             );
-                            console.log("LDS endpoint    :", selectedEndpoint?.endpointUrl!);
-                            console.log("security mode   :", MessageSecurityMode[selectedEndpoint.securityMode]);
-                            console.log("security policy :", coerceSecurityPolicy(selectedEndpoint.securityPolicyUri));
                             // xx debugLog(options);
                             client.disconnect(() => {
                                 debugLog("RegisterServerManager#_registerServer client disconnected");

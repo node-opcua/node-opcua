@@ -74,7 +74,7 @@ export class OPCUACertificateManager extends CertificateManager implements ICert
     public static defaultCertificateSubject = "/O=Sterfive/L=Orleans/C=FR";
 
     public static registry = new ObjectRegistry({});
-    public isShared: boolean;
+    public referenceCounter: number;
     public automaticallyAcceptUnknownCertificate: boolean;
     /* */
     constructor(options: OPCUACertificateManagerOptions) {
@@ -91,7 +91,7 @@ export class OPCUACertificateManager extends CertificateManager implements ICert
         };
         super(_options);
 
-        this.isShared = false;
+        this.referenceCounter = 0;
 
         this.automaticallyAcceptUnknownCertificate = !!options.automaticallyAcceptUnknownCertificate;
     }
@@ -108,12 +108,14 @@ export class OPCUACertificateManager extends CertificateManager implements ICert
     }
 
     public async dispose(): Promise<void> {
-        if (!this.isShared) {
+        if (this.referenceCounter === 0) {
             if (this.initialized) {
                 // OPCUACertificateManager.registry.unregister(this);
             }
             await super.dispose();
             this.initialized = false;
+        } else {
+            this.referenceCounter--;
         }
     }
 

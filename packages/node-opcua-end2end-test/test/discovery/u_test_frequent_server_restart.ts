@@ -15,7 +15,8 @@ import {
     TimestampsToReturn,
     ErrorCallback,
     ApplicationType,
-    ClientSession
+    ClientSession,
+    OPCUACertificateManager
 } from "node-opcua";
 
 import { make_debugLog, checkDebugFlag } from "node-opcua-debug";
@@ -299,8 +300,9 @@ module.exports = () => {
 
         it("T0g- registration manager as a standalone object 2/2", function (done) {
             const registrationManager = new RegisterServerManager({
-                discoveryServerEndpointUrl: "opc.tcp://localhost:48481", //<< not existing
+                discoveryServerEndpointUrl: "opc.tcp://localhost:48481", // << not existing
                 server: {
+                    serverCertificateManager: new OPCUACertificateManager({}),
                     certificateFile: "",
                     privateKeyFile: "",
                     capabilitiesForMDNS: [],
@@ -335,6 +337,7 @@ module.exports = () => {
             const registrationManager = new RegisterServerManager({
                 discoveryServerEndpointUrl,
                 server: {
+                    serverCertificateManager: new OPCUACertificateManager({}),
                     certificateFile: "",
                     privateKeyFile: "",
                     capabilitiesForMDNS: [],

@@ -46,14 +46,10 @@ fs.existsSync(certificateFolder).should.eql(true, "expecting certificate store a
 // tslint:disable:no-var-requires
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("Testing secure client and server connection", () => {
-
-    const certificateManager = new OPCUACertificateManager({
-
-    });
-    
+    const certificateManager = new OPCUACertificateManager({});
 
     before(async () => {
-        certificateManager.isShared = true;
+        certificateManager.referenceCounter++;
         await certificateManager.initialize();
         const issuerCertificateFile = path.join(certificateFolder, "CA/public/cacert.pem");
         const issuerCertificate = readCertificate(issuerCertificateFile);
@@ -63,9 +59,9 @@ describe("Testing secure client and server connection", () => {
         const crl = await readCertificateRevocationList(issuerCertificateRevocationListFile);
         await certificateManager.addRevocationList(crl);
     });
-    
-    after(()=> {
-        certificateManager.isShared = false;
+
+    after(() => {
+        certificateManager.referenceCounter--;
         certificateManager.dispose();
     });
 
