@@ -1,5 +1,3 @@
-/*global describe,require,it */
-
 const should = require("should");
 
 const NumericRange = require("..").NumericRange;
@@ -271,6 +269,7 @@ describe("Testing numerical range", () => {
 
         it("it should extract a sub matrix when indexRange is a NumericRange.Matrix", () => {
 
+            /* cSpell:disable */
             const matrixString = [
                 "Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam ",
                 "nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat ",

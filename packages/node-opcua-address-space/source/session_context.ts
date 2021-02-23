@@ -78,7 +78,8 @@ export interface ISessionBase {
  */
 export interface IUserManager {
     /**  retrieve the roles of the given user
-     *  @returns semicolon separated list of roles*/
+     *  @returns semicolon separated list of roles
+     */
     getUserRole?: (user: string) => string;
 }
 export interface IServerBase {

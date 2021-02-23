@@ -507,8 +507,8 @@ function slice<U, T extends ArrayLike<U>>(arr: T, start: number, end: number): T
         res = (arr as any).slice(start, end);
     }
     if (res instanceof Uint8Array && arr instanceof Buffer) {
-        // note in iojs 3.00 onward standard Buffer are implemented differently and
-        // provides a buffer member and a subarray method, in fact in iojs 3.0
+        // note in io-js 3.00 onward standard Buffer are implemented differently and
+        // provides a buffer member and a subarray method, in fact in io-js 3.0
         // it seems that Buffer acts as a Uint8Array. in this very special case
         // we need to make sure that we end up with a Buffer object and not a Uint8Array.
         res = Buffer.from(res);
