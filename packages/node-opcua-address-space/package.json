@@ -19,7 +19,7 @@
         "async": "^3.2.0",
         "chalk": "^4.1.0",
         "dequeue": "^1.0.5",
-        "lodash": "4.17.20",
+        "lodash": "4.17.21",
         "node-opcua-assert": "2.29.0",
         "node-opcua-basic-types": "2.32.0",
         "node-opcua-client-dynamic-extension-object": "2.32.0",

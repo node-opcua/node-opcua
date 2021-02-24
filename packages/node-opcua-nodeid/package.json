@@ -13,7 +13,7 @@
     "dependencies": {
         "@types/lodash": "4.14.168",
         "chalk": "^4.1.0",
-        "lodash": "4.17.20",
+        "lodash": "4.17.21",
         "node-opcua-assert": "2.29.0",
         "node-opcua-constants": "2.29.0",
         "node-opcua-enum": "2.29.0",
