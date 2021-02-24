@@ -35,7 +35,7 @@ function r(arr) {
     return result;
 }
 module.exports = {
-    src: r([
+    entryPoints: r([
         "node-opcua",
         "node-opcua-client",
         "node-opcua-server",

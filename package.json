@@ -33,7 +33,7 @@
         "licences": " npx license-checker --production --summary",
         "alex": "npx alex documentation/*.md",
         "cost-of-modules": "npx cost-of-modules",
-        "typedoc": "typedoc  --excludeNotDocumented --excludePrivate --excludeProtected --excludeInternal -options typedoc.config.json",
+        "typedoc": "typedoc  --excludePrivate --excludeProtected --excludeInternal -options typedoc.config.json",
         "legal": "npx legally",
         "legal2": "npx npm-license-crawler"
     },

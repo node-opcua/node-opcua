@@ -1,4 +1,6 @@
-
+/**
+ * @module node-opcua-status-codes
+ */
 import { StatusCode } from "./opcua_status_code";
 
 export type ErrorCallback = (err?: Error) => void;
