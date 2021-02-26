@@ -309,6 +309,7 @@ type TimerKey = NodeJS.Timer;
 export interface ISubscription {
     $session?: any;
     subscriptionDiagnostics: SubscriptionDiagnosticsDataType;
+    getMonitoredItem(monitoredItemId: number): MonitoredItem | null;
 }
 
 function isSourceNewerThan(a: DataValue, b?: DataValue): boolean {
@@ -373,6 +374,8 @@ export class MonitoredItem extends EventEmitter {
     private _value_changed_callback: any;
     private _semantic_changed_callback: any;
     private _on_node_disposed_listener: any;
+    private _linkedItems?: number[];
+    private _triggeredNotifications?: QueueItem[];
 
     constructor(options: MonitoredItemOptions) {
         super();
@@ -438,8 +441,7 @@ export class MonitoredItem extends EventEmitter {
 
             // OPCUA 1.03 part 4 : $5.12.4
             // setting the mode to DISABLED causes all queued Notifications to be deleted
-            this.queue = [];
-            this.overflow = false;
+            this._empty_queue();
         } else {
             assert(this.monitoringMode === MonitoringMode.Sampling || this.monitoringMode === MonitoringMode.Reporting);
 
@@ -608,16 +610,82 @@ export class MonitoredItem extends EventEmitter {
                 return;
             }
         }
+
+        // processTriggerItems
+        this.triggerLinkedItems();
         // store last value
         this._enqueue_value(dataValue);
     }
 
-    get hasMonitoredItemNotifications(): boolean {
-        return this.queue.length > 0;
+    public hasLinkItem(linkedMonitoredItemId: number): boolean {
+        if (!this._linkedItems) {
+            return false;
+        }
+        return this._linkedItems.findIndex((x) => x === linkedMonitoredItemId) > 0;
+    }
+    public addLinkItem(linkedMonitoredItemId: number) {
+        this._linkedItems = this._linkedItems || [];
+        if (this.hasLinkItem(linkedMonitoredItemId)) {
+            return; // nothing to do
+        }
+        this._linkedItems.push(linkedMonitoredItemId);
+    }
+    public removeLinkItem(linkedMonitoredItemId: number): void {
+        if (!this._linkedItems) {
+            return;
+        }
+        const index = this._linkedItems.findIndex((x) => x === linkedMonitoredItemId);
+        if (index === -1) {
+            return;
+        }
+        this._linkedItems.splice(index, 1);
+    }
+    /**
+     * @internals
+     */
+    private triggerLinkedItems() {
+        if (!this.$subscription || !this._linkedItems) {
+            return;
+        }
+        // see https://reference.opcfoundation.org/v104/Core/docs/Part4/5.12.1/#5.12.1.6
+        for (const linkItem of this._linkedItems) {
+            const linkedMonitoredItem = this.$subscription.getMonitoredItem(linkItem);
+            if (!linkedMonitoredItem) {
+                // monitoredItem may have been deleted
+                continue;
+            }
+            if (linkedMonitoredItem.monitoringMode === MonitoringMode.Disabled) {
+                continue;
+            }
+            if (linkedMonitoredItem.monitoringMode === MonitoringMode.Reporting) {
+                continue;
+            }
+            assert(linkedMonitoredItem.monitoringMode === MonitoringMode.Sampling);
+
+            linkedMonitoredItem.trigger();
+        }
     }
 
-    public extractMonitoredItemNotifications() {
-        if (this.monitoringMode !== MonitoringMode.Reporting) {
+    get hasMonitoredItemNotifications(): boolean {
+        return this.queue.length > 0 || (this._triggeredNotifications !== undefined && this._triggeredNotifications.length > 0);
+    }
+
+    /**
+     * @internals
+     */
+    private trigger() {
+        this._triggeredNotifications = this._triggeredNotifications || [];
+        const notifications = this.extractMonitoredItemNotifications(true);
+        this._triggeredNotifications = ([] as QueueItem[]).concat(this._triggeredNotifications!, notifications);
+    }
+
+    public extractMonitoredItemNotifications(bForce: boolean = false): QueueItem[] {
+        if (!bForce && this.monitoringMode === MonitoringMode.Sampling && this._triggeredNotifications) {
+            const notifications1 = this._triggeredNotifications;
+            this._triggeredNotifications = undefined;
+            return notifications1;
+        }
+        if (!bForce && this.monitoringMode !== MonitoringMode.Reporting) {
             return [];
         }
         const notifications = this.queue;

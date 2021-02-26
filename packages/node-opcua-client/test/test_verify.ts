@@ -41,6 +41,7 @@ describe("Should verify certificate", function (this: any) {
             .map((x) => x.args[0])
             .join(" ");
 
-        msg.should.match(/.*\[NODE-OPCUA-W14\] The certificate subjectAltName uniformResourceIdentifier is missing.*/);
+        msg.
+        should.match(/.*\[NODE-OPCUA-W14\] The certificate subjectAltName uniformResourceIdentifier is missing.*/);
     });
 });
