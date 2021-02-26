@@ -122,12 +122,12 @@ export class ServerSidePublishEngine extends EventEmitter implements IServerSide
         assert(!destPublishEngine.getSubscriptionById(subscription.id));
         assert(srcPublishEngine.getSubscriptionById(subscription.id));
 
-        // remove pending StatusChangeNotificiation on the same session that may exist already
+        // remove pending StatusChangeNotification on the same session that may exist already
         destPublishEngine._purge_dangling_subscription(subscription.id);
 
         debugLog(chalk.cyan("ServerSidePublishEngine.transferSubscription live subscriptionId ="), subscription.subscriptionId);
 
-        //xx const internalNotification = subscription._flushSentNotifications();
+        // xx const internalNotification = subscription._flushSentNotifications();
         debugLog(chalk.cyan("ServerSidePublishEngine.transferSubscription with  = "), subscription.getAvailableSequenceNumbers());
 
         //  If the Server transfers the Subscription to the new Session, the Server shall issue a
@@ -213,12 +213,12 @@ export class ServerSidePublishEngine extends EventEmitter implements IServerSide
             const subscription = this.getSubscriptionById(subscriptionAcknowledgement.subscriptionId);
             if (!subscription) {
                 // // try to find the session
-                // const transferedSubscription = this._transfered_subscriptions.find(
+                // const transferredSubscription = this._transferred_subscriptions.find(
                 //   (s) => s.subscriptionId === subscriptionAcknowledgement.subscriptionId
                 // );
-                // if (transferedSubscription) {
-                //   debugLog("Subscription acknowledgeNotification done in tansfererd subscription ");
-                //   return transferedSubscription.acknowledgeNotification(subscriptionAcknowledgement.sequenceNumber);
+                // if (transferredSubscription) {
+                //   debugLog("Subscription acknowledgeNotification done in transferred subscription ");
+                //   return transferredSubscription.acknowledgeNotification(subscriptionAcknowledgement.sequenceNumber);
                 // }
                 return StatusCodes.BadSubscriptionIdInvalid;
             }
@@ -246,7 +246,7 @@ export class ServerSidePublishEngine extends EventEmitter implements IServerSide
 
         debugLog("ServerSidePublishEngine#add_subscription -  adding subscription with Id:", subscription.id);
         this._subscriptions[subscription.id] = subscription;
-        // xxsubscription._flushSentNotifications();
+        // xx subscription._flushSentNotifications();
         return subscription;
     }
 
@@ -387,6 +387,7 @@ export class ServerSidePublishEngine extends EventEmitter implements IServerSide
      * @param request
      * @param callback
      * @private
+     * @internal
      */
     public _on_PublishRequest(request: PublishRequest, callback?: any) {
         callback = callback || dummy_function;
@@ -477,6 +478,7 @@ export class ServerSidePublishEngine extends EventEmitter implements IServerSide
         }
 
         if (this._closed_subscriptions) {
+            /** */
         }
         const starving_subscription = /* this.findSubscriptionWaitingForFirstPublish() || */ findLateSubscriptionSortedByPriority();
         return starving_subscription;
@@ -575,7 +577,7 @@ export class ServerSidePublishEngine extends EventEmitter implements IServerSide
             traceLog("send_keep_alive_response  => invalid subscriptionId = ", subscriptionId);
             return false;
         }
-        // let check if we have avalabile PublishRequest to send the keep alive
+        // let check if we have available PublishRequest to send the keep alive
         if (this.pendingPublishRequestCount === 0 || subscription.hasPendingNotifications) {
             // we cannot send the keep alive PublishResponse
             return false;
@@ -621,7 +623,7 @@ export class ServerSidePublishEngine extends EventEmitter implements IServerSide
         this._publish_request_queue = parts[1]; // still valid
 
         const invalid_published_request = parts[0];
-        for (let publishData of invalid_published_request) {
+        for (const publishData of invalid_published_request) {
             console.log(chalk.cyan(" CANCELING TIMEOUT PUBLISH REQUEST "));
             this._send_error_for_request(publishData, StatusCodes.BadTimeout);
         }

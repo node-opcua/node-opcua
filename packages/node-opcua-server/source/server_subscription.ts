@@ -682,6 +682,47 @@ export class Subscription extends EventEmitter {
         }
     }
 
+    public setTriggering(triggeringItemId: number, linksToAdd: number[], linksToRemove: number[]) {
+        /** Bad_NothingToDo, Bad_TooManyOperations,Bad_SubscriptionIdInvalid, Bad_MonitoredItemIdInvalid */
+
+        if (linksToAdd.length === 0 && linksToRemove.length === 0) {
+            return { statusCode: StatusCodes.BadNothingToDo, addResults: [], removeResults: [] };
+        }
+        const triggeringItem = this.getMonitoredItem(triggeringItemId);
+
+        const monitoredItemsToAdd = linksToAdd.map((id) => this.getMonitoredItem(id));
+        const monitoredItemsToRemove = linksToRemove.map((id) => this.getMonitoredItem(id));
+
+        const addResults: StatusCodes[] = monitoredItemsToAdd.map((m) =>
+            m ? StatusCodes.Good : StatusCodes.BadMonitoredItemIdInvalid
+        );
+        const removeResults: StatusCodes[] = monitoredItemsToRemove.map((m) =>
+            m ? StatusCodes.Good : StatusCodes.BadMonitoredItemIdInvalid
+        );
+
+        if (!triggeringItem) {
+            return {
+                statusCode: StatusCodes.BadMonitoredItemIdInvalid,
+
+                addResults,
+                removeResults
+            };
+        }
+        //
+        monitoredItemsToAdd.forEach((m) => !m || triggeringItem.addLinkItem(m.monitoredItemId));
+        monitoredItemsToRemove.forEach((m) => !m || triggeringItem.removeLinkItem(m.monitoredItemId));
+
+        const statusCode: StatusCode = StatusCodes.Good;
+
+        // do binding
+
+        return {
+            statusCode,
+
+            addResults,
+            removeResults
+        };
+    }
     public dispose() {
         if (doDebug) {
             debugLog("Subscription#dispose", this.id, this.monitoredItemCount);
@@ -1103,7 +1144,7 @@ export class Subscription extends EventEmitter {
         ];
 
         if (this.publishEngine!.pendingPublishRequestCount) {
-            // the GoodSubscriptionTransferred can be prcessed immediatly
+            // the GoodSubscriptionTransferred can be processed immediately
             this._addNotificationMessage(notificationData);
             debugLog(chalk.red("pendingPublishRequestCount"), this.publishEngine?.pendingPublishRequestCount);
             this._publish_pending_notifications();
@@ -1332,7 +1373,7 @@ export class Subscription extends EventEmitter {
         debugLog("Subscription#_tick  aborted=", this.aborted, "state=", this.state.toString());
 
         if (this.aborted) {
-            // xx  console.log(" Log aborteds")
+            // xx  console.log(" Log aborted")
             // xx  // underlying channel has been aborted ...
             // xx self.publishEngine.cancelPendingPublishRequestBeforeChannelChange();
             // xx // let's still increase lifetime counter to detect timeout

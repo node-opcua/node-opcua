@@ -664,7 +664,7 @@ describe("SM1 - Subscriptions and MonitoredItems", function() {
 
         }
 
-        // maintree\Monitored Item Services\Monitor Items 100\Test Cases\002.js - createMonitoredItems100x3subscriptions
+        // mainTree\Monitored Item Services\Monitor Items 100\Test Cases\002.js - createMonitoredItems100x3subscriptions
         //
         // Subscription1
         //
@@ -1047,7 +1047,7 @@ describe("SM1 - Subscriptions and MonitoredItems", function() {
             should(!!node).not.eql(false);
             node.minimumSamplingInterval.should.be.belowOrEqual(100);
 
-            function simulate_nodevalue_change(currentValue) {
+            function simulate_node_value_change(currentValue) {
 
                 const v = new Variant({
                     dataType: DataType[dataType],
@@ -1064,7 +1064,7 @@ describe("SM1 - Subscriptions and MonitoredItems", function() {
             let notifs;
 
             let currentValue = writesFail[0];
-            simulate_nodevalue_change(currentValue);
+            simulate_node_value_change(currentValue);
 
             // create monitor item
             const monitoredItemCreateRequest = new MonitoredItemCreateRequest({
@@ -1126,26 +1126,26 @@ describe("SM1 - Subscriptions and MonitoredItems", function() {
 
             // write second value to node
             currentValue = writesFail[1];
-            simulate_nodevalue_change(currentValue);
+            simulate_node_value_change(currentValue);
             simulate_publish_request_and_check_one(undefined);
 
 
             // write third value to node
             currentValue = writesFail[2];
-            simulate_nodevalue_change(currentValue);
+            simulate_node_value_change(currentValue);
             simulate_publish_request_and_check_one(undefined);
 
             // ---------------------------------------------------------------------------------------------------------
             currentValue = writesPass[0];
-            simulate_nodevalue_change(currentValue);
+            simulate_node_value_change(currentValue);
             simulate_publish_request_and_check_one(currentValue);
 
             currentValue = writesPass[1];
-            simulate_nodevalue_change(currentValue);
+            simulate_node_value_change(currentValue);
             simulate_publish_request_and_check_one(currentValue);
 
             currentValue = writesPass[2];
-            simulate_nodevalue_change(currentValue);
+            simulate_node_value_change(currentValue);
             simulate_publish_request_and_check_one(currentValue);
 
         }
@@ -1465,7 +1465,7 @@ describe("SM2 - MonitoredItem advanced", function() {
             done();
         });
 
-        function numberOfnotifications(publishResponse) {
+        function numberOfNotifications(publishResponse) {
             const notificationData = publishResponse.notificationMessage.notificationData;
 
             return notificationData.reduce(function(accumulated, data) {
@@ -1567,29 +1567,29 @@ describe("SM2 - MonitoredItem advanced", function() {
 
             // verify that publishResponse has been send
             const publishResponse0 = spy_callback.getCall(0).args[1];
-            numberOfnotifications(publishResponse0).should.eql(0); // KeepAlive
+            numberOfNotifications(publishResponse0).should.eql(0); // KeepAlive
 
 
             const publishResponse1 = spy_callback.getCall(1).args[1];
-            numberOfnotifications(publishResponse1).should.not.be.greaterThan(subscription.maxNotificationsPerPublish + 1);
+            numberOfNotifications(publishResponse1).should.not.be.greaterThan(subscription.maxNotificationsPerPublish + 1);
             publishResponse1.moreNotifications.should.eql(true);
 
 
             spy_callback.callCount.should.eql(7);
 
             const publishResponse2 = spy_callback.getCall(2).args[1];
-            numberOfnotifications(publishResponse2).should.not.be.greaterThan(subscription.maxNotificationsPerPublish + 1);
+            numberOfNotifications(publishResponse2).should.not.be.greaterThan(subscription.maxNotificationsPerPublish + 1);
             publishResponse2.moreNotifications.should.eql(true);
 
             const publishResponse3 = spy_callback.getCall(4).args[1];
-            numberOfnotifications(publishResponse3).should.not.be.greaterThan(subscription.maxNotificationsPerPublish + 1);
+            numberOfNotifications(publishResponse3).should.not.be.greaterThan(subscription.maxNotificationsPerPublish + 1);
             publishResponse3.moreNotifications.should.eql(true);
 
             const publishResponse4 = spy_callback.getCall(5).args[1];
-            numberOfnotifications(publishResponse4).should.not.be.greaterThan(subscription.maxNotificationsPerPublish + 1);
+            numberOfNotifications(publishResponse4).should.not.be.greaterThan(subscription.maxNotificationsPerPublish + 1);
 
             const publishResponse5 = spy_callback.getCall(6).args[1];
-            numberOfnotifications(publishResponse5).should.not.be.greaterThan(subscription.maxNotificationsPerPublish + 1);
+            numberOfNotifications(publishResponse5).should.not.be.greaterThan(subscription.maxNotificationsPerPublish + 1);
             publishResponse5.moreNotifications.should.eql(false);
 
 

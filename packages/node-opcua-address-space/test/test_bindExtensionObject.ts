@@ -560,7 +560,7 @@ describe("Extension Object binding and sub  components On MachineVision", () => 
             throw new Error("Cannot find ResultType");
         }
     });
-    it("MachineVision-BindExtensionObject should instantitate a ResultType", () => {
+    it("MachineVision-BindExtensionObject should instantiate a ResultType", () => {
         const result = resultType.instantiate({
             browseName: `Result`,
             organizedBy: addressSpace.rootFolder.objects
@@ -570,7 +570,7 @@ describe("Extension Object binding and sub  components On MachineVision", () => 
             console.log(extObj?.toString());
         }
     });
-    it("MachineVision-BindExtensionObject should instantitate a ResultType", () => {
+    it("MachineVision-BindExtensionObject should instantiate a ResultType", () => {
         const partIdDataType = addressSpace.findDataType("PartIdDataType", nsMV)!;
         const partId = addressSpace.constructExtensionObject(partIdDataType, {
             description: "World",

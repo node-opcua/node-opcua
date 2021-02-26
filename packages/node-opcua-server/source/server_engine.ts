@@ -1568,7 +1568,7 @@ export class ServerEngine extends EventEmitter {
     /**
      * @method closeSession
      * @param authenticationToken
-     * @param deleteSubscriptions {Boolean} : true if sessions's subscription shall be deleted
+     * @param deleteSubscriptions {Boolean} : true if session's subscription shall be deleted
      * @param {String} [reason = "CloseSession"] the reason for closing the session (
      *                 shall be "Timeout", "Terminated" or "CloseSession")
      *
@@ -1793,7 +1793,7 @@ export class ServerEngine extends EventEmitter {
         const referenceTime = new Date(Date.now() - maxAge);
 
         assert(callback instanceof Function);
-        const objs: any = {};
+        const objectMap: any = {};
         for (const nodeToRefresh of nodesToRefresh) {
             // only consider node  for which the caller wants to read the Value attribute
             // assuming that Value is requested if attributeId is missing,
@@ -1810,19 +1810,19 @@ export class ServerEngine extends EventEmitter {
                 continue;
             }
             const key = obj.nodeId.toString();
-            if (objs[key]) {
+            if (objectMap[key]) {
                 continue;
             }
 
-            objs[key] = obj;
+            objectMap[key] = obj;
         }
-        if (Object.keys(objs).length === 0) {
+        if (Object.keys(objectMap).length === 0) {
             // nothing to do
             return callback(null, []);
         }
         // perform all asyncRefresh in parallel
         async.map(
-            objs,
+            objectMap,
             (obj: BaseNode, inner_callback: DataValueCallback) => {
                 if (obj.nodeClass !== NodeClass.Variable) {
                     inner_callback(
