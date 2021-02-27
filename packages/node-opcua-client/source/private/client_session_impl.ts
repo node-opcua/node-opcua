@@ -76,6 +76,9 @@ import {
     SetMonitoringModeResponse,
     SetPublishingModeRequest,
     SetPublishingModeResponse,
+    SetTriggeringRequestOptions,
+    SetTriggeringResponse,
+    SetTriggeringRequest,
     TransferSubscriptionsRequest,
     TransferSubscriptionsResponse
 } from "node-opcua-service-subscription";
@@ -472,9 +475,8 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession {
         callback: ResponseCallback<BrowseResult[]>
     ): void;
 
-    public browseNext(continuationPoint: Buffer, releaseContinuationPoints: boolean): Promise<BrowseResult>;
-
-    public browseNext(continuationPoints: Buffer[], releaseContinuationPoints: boolean): Promise<BrowseResult[]>;
+    public async browseNext(continuationPoint: Buffer, releaseContinuationPoints: boolean): Promise<BrowseResult>;
+    public async browseNext(continuationPoints: Buffer[], releaseContinuationPoints: boolean): Promise<BrowseResult[]>;
     public browseNext(...args: any[]): any {
         const arg0 = args[0];
         const isArray = Array.isArray(arg0);
@@ -1251,18 +1253,15 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession {
         });
     }
 
-    /**
-     * @method deleteSubscriptions
-     * @async
-     * @example:
-     *
-     *     session.deleteSubscriptions(request,function(err,response) {} );
-     */
     public deleteSubscriptions(
         options: DeleteSubscriptionsRequestLike,
         callback?: ResponseCallback<DeleteSubscriptionsResponse>
     ): any {
         this._defaultRequest(DeleteSubscriptionsRequest, DeleteSubscriptionsResponse, options, callback);
+    }
+
+    public setTriggering(request: SetTriggeringRequestOptions, callback?: ResponseCallback<SetTriggeringResponse>): any {
+        this._defaultRequest(SetTriggeringRequest, SetTriggeringResponse, request, callback);
     }
 
     /**
@@ -2284,6 +2283,7 @@ ClientSessionImpl.prototype.transferSubscriptions = thenify.withCallback(ClientS
 ClientSessionImpl.prototype.createMonitoredItems = thenify.withCallback(ClientSessionImpl.prototype.createMonitoredItems, opts);
 ClientSessionImpl.prototype.modifyMonitoredItems = thenify.withCallback(ClientSessionImpl.prototype.modifyMonitoredItems, opts);
 ClientSessionImpl.prototype.modifySubscription = thenify.withCallback(ClientSessionImpl.prototype.modifySubscription, opts);
+ClientSessionImpl.prototype.setTriggering = thenify.withCallback(ClientSessionImpl.prototype.setTriggering, opts);
 ClientSessionImpl.prototype.setMonitoringMode = thenify.withCallback(ClientSessionImpl.prototype.setMonitoringMode, opts);
 ClientSessionImpl.prototype.publish = thenify.withCallback(ClientSessionImpl.prototype.publish, opts);
 ClientSessionImpl.prototype.republish = thenify.withCallback(ClientSessionImpl.prototype.republish, opts);

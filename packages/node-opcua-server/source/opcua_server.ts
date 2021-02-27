@@ -109,6 +109,9 @@ import {
     SetMonitoringModeResponse,
     SetPublishingModeRequest,
     SetPublishingModeResponse,
+    SetTriggeringRequestOptions,
+    SetTriggeringRequest,
+    SetTriggeringResponse,
     TransferSubscriptionsRequest,
     TransferSubscriptionsResponse
 } from "node-opcua-service-subscription";
@@ -3111,6 +3114,56 @@ export class OPCUAServer extends OPCUABaseServer {
                 const response = new DeleteMonitoredItemsResponse({
                     diagnosticInfos: undefined,
                     results
+                });
+
+                sendResponse(response);
+            }
+        );
+    }
+    protected _on_SetTriggeringRequest(message: Message, channel: ServerSecureChannelLayer) {
+        const server = this;
+        const request = message.request as SetTriggeringRequest;
+        assert(request instanceof SetTriggeringRequest);
+
+        this._apply_on_Subscription(
+            SetTriggeringResponse,
+            message,
+            channel,
+            async (
+                session: ServerSession,
+                subscription: Subscription,
+                sendResponse: (response: Response) => void,
+                sendError: (statusCode: StatusCode) => void
+            ) => {
+                /* */
+                const { triggeringItemId, linksToAdd, linksToRemove } = request;
+
+                /**
+                 * The MaxMonitoredItemsPerCall Property indicates
+                 * [...]
+                 *  • the maximum size of the sum of the linksToAdd and linksToRemove arrays when a
+                 *    Client calls the SetTriggering Service.
+                 *
+                 */
+                const maxElements = (linksToAdd ? linksToAdd.length : 0) + (linksToRemove ? linksToRemove.length : 0);
+                if (server.engine.serverCapabilities.operationLimits.maxMonitoredItemsPerCall > 0) {
+                    if (maxElements > server.engine.serverCapabilities.operationLimits.maxMonitoredItemsPerCall) {
+                        return sendError(StatusCodes.BadTooManyOperations);
+                    }
+                }
+
+                const { addResults, removeResults, statusCode } = subscription.setTriggering(
+                    triggeringItemId,
+                    linksToAdd,
+                    linksToRemove
+                );
+                const response = new SetTriggeringResponse({
+                    responseHeader: { serviceResult: statusCode },
+
+                    addResults,
+                    removeResults,
+                    addDiagnosticInfos: null,
+                    removeDiagnosticInfos: null
                 });
 
                 sendResponse(response);
