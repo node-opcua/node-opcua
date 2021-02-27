@@ -7,7 +7,12 @@ import { EventEmitter } from "events";
 
 import { DiagnosticInfo } from "node-opcua-data-model";
 import { ReadValueIdOptions, TimestampsToReturn } from "node-opcua-service-read";
-import { MonitoringParametersOptions, NotificationMessage } from "node-opcua-service-subscription";
+import {
+    MonitoringMode,
+    MonitoringParametersOptions,
+    NotificationMessage,
+    SetTriggeringResponse
+} from "node-opcua-service-subscription";
 import { StatusCode } from "node-opcua-status-code";
 import { ErrorCallback } from "node-opcua-status-code";
 
@@ -160,12 +165,14 @@ export interface ClientSubscription extends EventEmitter {
     monitor(
         itemToMonitor: ReadValueIdOptions,
         requestedParameters: MonitoringParametersOptions,
-        timestampsToReturn: TimestampsToReturn
+        timestampsToReturn: TimestampsToReturn,
+        monitoringMode?: MonitoringMode
     ): Promise<ClientMonitoredItem>;
     monitor(
         itemToMonitor: ReadValueIdOptions,
         requestedParameters: MonitoringParametersOptions,
         timestampsToReturn: TimestampsToReturn,
+        monitoringMode: MonitoringMode,
         done: (err: Error | null, monitoredItem?: ClientMonitoredItem) => void
     ): void;
 
@@ -200,6 +207,18 @@ export interface ClientSubscription extends EventEmitter {
 
     getMonitoredItems(): Promise<MonitoredItemData>;
     getMonitoredItems(callback: (err: Error | null, result?: MonitoredItemData) => void): void;
+
+    setTriggering(
+        triggeringItem: ClientMonitoredItemBase,
+        linksToAdd: ClientMonitoredItemBase[] | null,
+        linksToRemove: ClientMonitoredItemBase[] | null,
+        callback: (err: Error | null, response?: SetTriggeringResponse) => void
+    ): void;
+    setTriggering(
+        triggeringItem: ClientMonitoredItemBase,
+        linksToAdd: ClientMonitoredItemBase[] | null,
+        linksToRemove: ClientMonitoredItemBase[] | null
+    ): Promise<SetTriggeringResponse>;
 
     terminate(): Promise<void>;
     terminate(callback: ErrorCallback): void;

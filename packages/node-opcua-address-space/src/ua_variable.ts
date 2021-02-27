@@ -623,7 +623,7 @@ export class UAVariable extends BaseNode implements UAVariablePublic {
             }
             if (
                 this.dataType.namespace === 0 &&
-                this.dataType.value == DataType.LocalizedText &&
+                this.dataType.value === DataType.LocalizedText &&
                 variant.dataType !== DataType.LocalizedText
             ) {
                 throw new Error("Variant must provide a valid LocalizedText" + variant.toString());
@@ -1260,7 +1260,7 @@ export class UAVariable extends BaseNode implements UAVariablePublic {
                 value: prepareVariantValue(dataType, this.$extensionObject[name])
             }));
              */
-
+            
             assert(propertyNode.readValue().statusCode.equals(StatusCodes.Good));
 
             const self = this;

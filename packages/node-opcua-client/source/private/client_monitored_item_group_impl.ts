@@ -42,7 +42,8 @@ export class ClientMonitoredItemGroupImpl extends EventEmitter implements Client
         subscription: ClientSubscription,
         itemsToMonitor: any[],
         monitoringParameters: any,
-        timestampsToReturn: TimestampsToReturn
+        timestampsToReturn: TimestampsToReturn,
+        monitoringMode: MonitoringMode = MonitoringMode.Reporting
     ) {
         super();
         assert(Array.isArray(itemsToMonitor));
@@ -56,13 +57,18 @@ export class ClientMonitoredItemGroupImpl extends EventEmitter implements Client
         assert(subscription.constructor.name === "ClientSubscriptionImpl");
 
         this.subscription = subscription;
+        this.timestampsToReturn = timestampsToReturn;
+        this.monitoringMode = monitoringMode;
 
         this.monitoredItems = itemsToMonitor.map((itemToMonitor) => {
-            return new ClientMonitoredItemImpl(subscription, itemToMonitor, monitoringParameters, TimestampsToReturn.Both);
+            return new ClientMonitoredItemImpl(
+                subscription,
+                itemToMonitor,
+                monitoringParameters,
+                TimestampsToReturn.Both,
+                this.monitoringMode
+            );
         });
-
-        this.timestampsToReturn = timestampsToReturn;
-        this.monitoringMode = MonitoringMode.Reporting;
     }
 
     public toString(): string {

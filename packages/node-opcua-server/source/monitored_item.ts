@@ -358,7 +358,7 @@ export class MonitoredItem extends EventEmitter {
     public filter: MonitoringFilter | null;
     public discardOldest: boolean = true;
     public queueSize: number = 0;
-    public clientHandle?: number;
+    public clientHandle: number;
     public $subscription?: ISubscription;
     public _samplingId?: TimerKey | string;
     public samplingFunc:
@@ -386,7 +386,7 @@ export class MonitoredItem extends EventEmitter {
         options.itemToMonitor = options.itemToMonitor || defaultItemToMonitor;
 
         this._samplingId = undefined;
-
+        this.clientHandle = -1; // invalid yet
         this.filter = null;
         this._set_parameters(options);
 

@@ -3,8 +3,6 @@
  */
 // tslint:disable:no-console
 
-import { TimestampsToReturn } from "node-opcua-data-value";
-
 import { Queue } from "./queue";
 import * as chalk from "chalk";
 import { EventEmitter } from "events";
@@ -15,9 +13,8 @@ import { SessionContext } from "node-opcua-address-space";
 import { assert } from "node-opcua-assert";
 import { Byte } from "node-opcua-basic-types";
 import { SubscriptionDiagnosticsDataType } from "node-opcua-common";
-import { NodeClass } from "node-opcua-data-model";
-import { AttributeIds } from "node-opcua-data-model";
-import { isValidDataEncoding } from "node-opcua-data-model";
+import { NodeClass, AttributeIds, isValidDataEncoding } from "node-opcua-data-model";
+import { TimestampsToReturn } from "node-opcua-data-value";
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 import { ExtensionObject } from "node-opcua-extension-object";
 import { NodeId } from "node-opcua-nodeid";
@@ -29,20 +26,16 @@ import {
     DataChangeNotification,
     EventNotificationList,
     MonitoringMode,
-    NotificationMessage,
-    StatusChangeNotification
-} from "node-opcua-service-subscription";
-import { DataChangeFilter, MonitoredItemCreateRequest } from "node-opcua-service-subscription";
-import { StatusCode, StatusCodes } from "node-opcua-status-code";
-import {
-    AggregateFilterResult,
-    ContentFilterResult,
-    EventFieldList,
-    EventFilterResult,
     MonitoredItemCreateResult,
     MonitoredItemNotification,
-    PublishResponse
-} from "node-opcua-types";
+    PublishResponse,
+    NotificationMessage,
+    StatusChangeNotification,
+    DataChangeFilter,
+    MonitoredItemCreateRequest
+} from "node-opcua-service-subscription";
+import { StatusCode, StatusCodes } from "node-opcua-status-code";
+import { AggregateFilterResult, ContentFilterResult, EventFieldList, EventFilterResult } from "node-opcua-types";
 
 import { MonitoredItem, MonitoredItemOptions, ISubscription } from "./monitored_item";
 import { ServerSession } from "./server_session";
@@ -339,7 +332,7 @@ export interface SubscriptionOptions {
     id?: number;
 }
 
-let g_monitoredItemId = 1;
+let g_monitoredItemId = Math.ceil(Math.random() * 100000);
 
 function getNextMonitoredItemId() {
     return g_monitoredItemId++;
@@ -682,8 +675,14 @@ export class Subscription extends EventEmitter {
         }
     }
 
-    public setTriggering(triggeringItemId: number, linksToAdd: number[], linksToRemove: number[]) {
+    public setTriggering(
+        triggeringItemId: number,
+        linksToAdd: number[] | null,
+        linksToRemove: number[] | null
+    ): { statusCode: StatusCode; addResults: StatusCode[]; removeResults: StatusCode[] } {
         /** Bad_NothingToDo, Bad_TooManyOperations,Bad_SubscriptionIdInvalid, Bad_MonitoredItemIdInvalid */
+        linksToAdd = linksToAdd || [];
+        linksToRemove = linksToRemove || [];
 
         if (linksToAdd.length === 0 && linksToRemove.length === 0) {
             return { statusCode: StatusCodes.BadNothingToDo, addResults: [], removeResults: [] };
@@ -693,10 +692,10 @@ export class Subscription extends EventEmitter {
         const monitoredItemsToAdd = linksToAdd.map((id) => this.getMonitoredItem(id));
         const monitoredItemsToRemove = linksToRemove.map((id) => this.getMonitoredItem(id));
 
-        const addResults: StatusCodes[] = monitoredItemsToAdd.map((m) =>
+        const addResults: StatusCode[] = monitoredItemsToAdd.map((m) =>
             m ? StatusCodes.Good : StatusCodes.BadMonitoredItemIdInvalid
         );
-        const removeResults: StatusCodes[] = monitoredItemsToRemove.map((m) =>
+        const removeResults: StatusCode[] = monitoredItemsToRemove.map((m) =>
             m ? StatusCodes.Good : StatusCodes.BadMonitoredItemIdInvalid
         );
 

@@ -13,10 +13,7 @@ import { DataValue } from "node-opcua-data-value";
 import { NodeId, NodeIdLike } from "node-opcua-nodeid";
 import { IBasicSession } from "node-opcua-pseudo-session";
 import { ErrorCallback } from "node-opcua-status-code";
-import {
-    BrowseDescriptionOptions,
-    BrowseResult
-} from "node-opcua-service-browse";
+import { BrowseDescriptionOptions, BrowseResult } from "node-opcua-service-browse";
 import { CallMethodRequest, CallMethodRequestOptions, CallMethodResult } from "node-opcua-service-call";
 import { EndpointDescription } from "node-opcua-service-endpoints";
 import { HistoryReadResult } from "node-opcua-service-history";
@@ -50,7 +47,10 @@ import {
     SetMonitoringModeResponse,
     TransferSubscriptionsRequest,
     TransferSubscriptionsRequestOptions,
-    TransferSubscriptionsResponse
+    TransferSubscriptionsResponse,
+    SetTriggeringRequest,
+    SetTriggeringResponse,
+    SetTriggeringRequestOptions
 } from "node-opcua-service-subscription";
 import { BrowsePath, BrowsePathResult } from "node-opcua-service-translate-browse-path";
 import { WriteValue, WriteValueOptions } from "node-opcua-service-write";
@@ -152,8 +152,8 @@ export interface ClientSession extends EventEmitter {
     on(event: "session_closed", eventHandler: (statusCode: StatusCode) => void): this;
 
     /**
-     *  session_restored is raised when the session and realted subscription
-     *  have been fullt repaired after a reconnection.
+     *  session_restored is raised when the session and related subscription
+     *  have been fully repaired after a reconnection.
      */
     on(event: "session_restored", eventHandler: () => void): this;
 
@@ -237,7 +237,7 @@ export interface ClientSessionCallService {
      * @method call
      *
      * @param methodsToCall {CallMethodRequest[]} the call method request array
-     * @param callbackstad
+     * @param callback
      *
      *
      * @example :
@@ -251,9 +251,9 @@ export interface ClientSessionCallService {
      *         new Variant({...}),
      *     ]
      * }];
-     * session.call(methodsToCall,function(err,callResutls) {
+     * session.call(methodsToCall,function(err,callResults) {
      *    if (!err) {
-     *         const callResult = callResutls[0];
+     *         const callResult = callResults[0];
      *         console.log(" statusCode = ",rep.statusCode);
      *         console.log(" inputArgumentResults[0] = ",callResult.inputArgumentResults[0].toString());
      *         console.log(" inputArgumentResults[1] = ",callResult.inputArgumentResults[1].toString());
@@ -403,6 +403,9 @@ export interface ClientSessionRawSubscriptionService {
     deleteMonitoredItems(request: DeleteMonitoredItemsRequestLike, callback: Callback<DeleteMonitoredItemsResponse>): void;
 
     deleteMonitoredItems(request: DeleteMonitoredItemsRequestLike): Promise<DeleteMonitoredItemsResponse>;
+
+    setTriggering(request: SetTriggeringRequestOptions): Promise<SetTriggeringResponse>;
+    setTriggering(request: SetTriggeringRequestOptions, callback: ResponseCallback<SetTriggeringResponse>): void;
 }
 
 // subscription service

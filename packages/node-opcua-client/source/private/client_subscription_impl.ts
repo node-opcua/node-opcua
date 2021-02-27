@@ -25,7 +25,10 @@ import {
     NotificationMessage,
     StatusChangeNotification,
     NotificationData,
-    EventNotificationList
+    EventNotificationList,
+    SetTriggeringResponse,
+    SetTriggeringRequest,
+    MonitoringMode
 } from "node-opcua-service-subscription";
 
 import { StatusCode, StatusCodes } from "node-opcua-status-code";
@@ -318,19 +321,22 @@ export class ClientSubscriptionImpl extends EventEmitter implements ClientSubscr
     public async monitor(
         itemToMonitor: ReadValueIdOptions,
         requestedParameters: MonitoringParametersOptions,
-        timestampsToReturn: TimestampsToReturn
+        timestampsToReturn: TimestampsToReturn,
+        monitoringMode: MonitoringMode
     ): Promise<ClientMonitoredItemBase>;
     public monitor(
         itemToMonitor: ReadValueIdOptions,
         requestedParameters: MonitoringParametersOptions,
         timestampsToReturn: TimestampsToReturn,
+        monitoringMode: MonitoringMode,
         done: Callback<ClientMonitoredItemBase>
     ): void;
     public monitor(...args: any[]): any {
         const itemToMonitor = args[0] as ReadValueIdOptions;
         const requestedParameters = args[1] as MonitoringParametersOptions;
         const timestampsToReturn = args[2] as TimestampsToReturn;
-        const done = args[3] as Callback<ClientMonitoredItemBase>;
+        const monitoringMode = typeof args[3] === "function" ? MonitoringMode.Reporting : (args[3] as MonitoringMode);
+        const done = (typeof args[3] === "function" ? args[3] : args[4]) as Callback<ClientMonitoredItemBase>;
 
         assert(typeof done === "function", "expecting a function here");
 
@@ -341,6 +347,7 @@ export class ClientSubscriptionImpl extends EventEmitter implements ClientSubscr
             itemToMonitor,
             requestedParameters,
             timestampsToReturn,
+            monitoringMode,
             (err1?: Error | null, monitoredItem2?: ClientMonitoredItem) => {
                 if (err1) {
                     return done && done(err1);
@@ -430,6 +437,53 @@ export class ClientSubscriptionImpl extends EventEmitter implements ClientSubscr
         });
     }
 
+    /**
+     *
+     */
+    public setTriggering(
+        triggeringItem: ClientMonitoredItemBase,
+        linksToAdd: ClientMonitoredItemBase[] | null,
+        linksToRemove?: ClientMonitoredItemBase[] | null
+    ): Promise<SetTriggeringResponse>;
+    public setTriggering(
+        triggeringItem: ClientMonitoredItemBase,
+        linksToAdd: ClientMonitoredItemBase[] | null,
+        linksToRemove: ClientMonitoredItemBase[] | null,
+        callback: Callback<SetTriggeringResponse>
+    ): void;
+    public setTriggering(...args: any[]): any {
+        const triggeringItem = args[0] as ClientMonitoredItemBase;
+        const linksToAdd = args[1] as ClientMonitoredItemBase[] | null;
+        const linksToRemove = args[2] as ClientMonitoredItemBase[] | null;
+        const callback = args[3] as Callback<SetTriggeringResponse>;
+        assert(typeof callback === "function");
+        const session = this.session as ClientSessionImpl;
+        if (!session) {
+            return callback(new Error("no session"));
+        }
+        const subscriptionId = this.subscriptionId as SubscriptionId;
+
+        const triggeringItemId = triggeringItem.monitoredItemId!;
+
+        const setTriggeringRequest = new SetTriggeringRequest({
+            linksToAdd: linksToAdd ? linksToAdd.map((i) => i.monitoredItemId!) : null,
+            linksToRemove: linksToRemove ? linksToRemove.map((i) => i.monitoredItemId!) : null,
+            subscriptionId,
+            triggeringItemId
+        });
+        session.setTriggering(setTriggeringRequest, (err: Error | null, response?: SetTriggeringResponse) => {
+            if (err) {
+                // use soft error, no exceptions
+                return callback(null, response);
+            }
+            // istanbul ignore next
+            if (!response) {
+                return callback(new Error("Internal Error"));
+            }
+            callback(null, response);
+        });
+    }
+
     public getMonitoredItems(): Promise<MonitoredItemData>;
     public getMonitoredItems(callback: Callback<MonitoredItemData>): void;
     public getMonitoredItems(...args: any[]): any {
@@ -459,10 +513,8 @@ export class ClientSubscriptionImpl extends EventEmitter implements ClientSubscr
                 },
                 (innerCallback: ErrorCallback) => {
                     const test = this.publishEngine.getSubscription(this.subscriptionId);
-                    assert(test === this);
 
                     // re-create monitored items
-
                     const itemsToCreate: MonitoredItemCreateRequestOptions[] = [];
 
                     for (const monitoredItem of Object.values(oldMonitoredItems)) {
@@ -857,10 +909,17 @@ export class ClientSubscriptionImpl extends EventEmitter implements ClientSubscr
     public _createMonitoredItem(
         itemToMonitor: ReadValueIdOptions,
         monitoringParameters: MonitoringParametersOptions,
-        timestampsToReturn: TimestampsToReturn
+        timestampsToReturn: TimestampsToReturn,
+        monitoringMode: MonitoringMode = MonitoringMode.Reporting
     ): ClientMonitoredItem {
         /* istanbul ignore next*/
-        const monitoredItem = new ClientMonitoredItemImpl(this, itemToMonitor, monitoringParameters, timestampsToReturn);
+        const monitoredItem = new ClientMonitoredItemImpl(
+            this,
+            itemToMonitor,
+            monitoringParameters,
+            timestampsToReturn,
+            monitoringMode
+        );
         return monitoredItem;
     }
 }
@@ -870,9 +929,16 @@ export function ClientMonitoredItem_create(
     itemToMonitor: ReadValueIdOptions,
     monitoringParameters: MonitoringParametersOptions,
     timestampsToReturn: TimestampsToReturn,
+    monitoringMode: MonitoringMode = MonitoringMode.Reporting,
     callback?: (err3?: Error | null, monitoredItem?: ClientMonitoredItem) => void
 ): ClientMonitoredItem {
-    const monitoredItem = new ClientMonitoredItemImpl(subscription, itemToMonitor, monitoringParameters, timestampsToReturn);
+    const monitoredItem = new ClientMonitoredItemImpl(
+        subscription,
+        itemToMonitor,
+        monitoringParameters,
+        timestampsToReturn,
+        monitoringMode
+    );
 
     setImmediate(() => {
         (subscription as ClientSubscriptionImpl)._wait_for_subscription_to_be_ready((err?: Error) => {
@@ -903,6 +969,7 @@ const opts = { multiArgs: false };
 ClientSubscriptionImpl.prototype.setPublishingMode = thenify.withCallback(ClientSubscriptionImpl.prototype.setPublishingMode);
 ClientSubscriptionImpl.prototype.monitor = thenify.withCallback(ClientSubscriptionImpl.prototype.monitor);
 ClientSubscriptionImpl.prototype.monitorItems = thenify.withCallback(ClientSubscriptionImpl.prototype.monitorItems);
+ClientSubscriptionImpl.prototype.setTriggering = thenify.withCallback(ClientSubscriptionImpl.prototype.setTriggering);
 ClientSubscriptionImpl.prototype.recreateSubscriptionAndMonitoredItem = thenify.withCallback(
     ClientSubscriptionImpl.prototype.recreateSubscriptionAndMonitoredItem
 );

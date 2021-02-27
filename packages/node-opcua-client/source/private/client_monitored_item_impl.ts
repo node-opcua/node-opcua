@@ -67,7 +67,8 @@ export class ClientMonitoredItemImpl extends EventEmitter implements ClientMonit
         subscription: ClientSubscription,
         itemToMonitor: ReadValueIdOptions,
         monitoringParameters: MonitoringParametersOptions,
-        timestampsToReturn: TimestampsToReturn
+        timestampsToReturn: TimestampsToReturn,
+        monitoringMode: MonitoringMode = MonitoringMode.Reporting
     ) {
         super();
 
@@ -78,7 +79,7 @@ export class ClientMonitoredItemImpl extends EventEmitter implements ClientMonit
 
         this.itemToMonitor = new ReadValueId(itemToMonitor);
         this.monitoringParameters = new MonitoringParameters(monitoringParameters);
-        this.monitoringMode = MonitoringMode.Reporting;
+        this.monitoringMode = monitoringMode;
         assert(this.monitoringParameters.clientHandle === 0xffffffff, "should not have a client handle yet");
 
         assert(subscription.session, "expecting session");
@@ -335,7 +336,8 @@ ClientMonitoredItem.create = (
     subscription: ClientSubscription,
     itemToMonitor: ReadValueIdOptions,
     monitoringParameters: MonitoringParametersOptions,
-    timestampsToReturn: TimestampsToReturn
+    timestampsToReturn: TimestampsToReturn,
+    monitoringMode: MonitoringMode = MonitoringMode.Reporting
 ): ClientMonitoredItem => {
-    return ClientMonitoredItem_create(subscription, itemToMonitor, monitoringParameters, timestampsToReturn);
+    return ClientMonitoredItem_create(subscription, itemToMonitor, monitoringParameters, timestampsToReturn, monitoringMode);
 };
