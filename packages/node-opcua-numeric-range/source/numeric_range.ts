@@ -7,6 +7,7 @@ import { decodeString, encodeString, UAString, UInt8 } from "node-opcua-basic-ty
 import { BinaryStream, OutputBinaryStream } from "node-opcua-binary-stream";
 import { registerBasicType } from "node-opcua-factory";
 import { StatusCode, StatusCodes } from "node-opcua-status-code";
+import { debuglog } from "util";
 
 // OPC.UA Part 4 7.21 Numerical Range
 // The syntax for the string contains one of the following two constructs. The first construct is the string
@@ -66,11 +67,11 @@ export const schemaNumericRange = {
 registerBasicType(schemaNumericRange);
 
 export enum NumericRangeType {
-    Empty,
-    SingleValue,
-    ArrayRange,
-    MatrixRange,
-    InvalidRange
+    Empty = 0,
+    SingleValue = 1,
+    ArrayRange = 2,
+    MatrixRange = 3,
+    InvalidRange = 4
 }
 
 // new Enum(["Empty", "SingleValue", "ArrayRange", "MatrixRange", "InvalidRange"]);
@@ -208,15 +209,6 @@ function _set_single_value(value: number | null): NumericalRange0 {
 
 function _check_range(numericalRange: NumericalRange0) {
     switch (numericalRange.type) {
-        case NumericRangeType.MatrixRange:
-            // istanbul ignore next
-            if (numericalRange.value === null) {
-                throw new Error("Internal Error");
-            }
-            return (
-                _valid_range(numericalRange.value[0][0], numericalRange.value[0][1]) &&
-                _valid_range(numericalRange.value[1][0], numericalRange.value[1][1])
-            );
         case NumericRangeType.ArrayRange:
             return _valid_range(numericalRange.value[0], numericalRange.value[1]);
     }
@@ -224,7 +216,13 @@ function _check_range(numericalRange: NumericalRange0) {
     throw new Error("unsupported case");
 }
 
-function _set_range_value(low: number, high: number): NumericalRangeArrayRange | NumericalRangeInvalid {
+function _set_range_value(low: number, high: number): NumericalRangeSingleValue | NumericalRangeArrayRange | NumericalRangeInvalid {
+    if (low === high) {
+        return {
+            type: NumericRangeType.SingleValue,
+            value: low
+        };
+    }
     const numericalRange: NumericalRangeArrayRange = {
         type: NumericRangeType.ArrayRange,
         value: [low, high]
@@ -249,13 +247,43 @@ function construct_from_values(value: number, secondValue?: number): NumericalRa
     }
 }
 
-function _construct_from_array(value: number[]): NumericalRange0 {
+function _construct_from_array(value: number[], value2?: any): NumericalRange0 {
     assert(value.length === 2);
-    if (isFinite(value[0]) && isFinite(value[1])) {
-        return _set_range_value(value[0], value[1]);
-    }
+
     // istanbul ignore next
-    return { type: NumericRangeType.InvalidRange, value: "" + value };
+    if (!isFinite(value[0]) || !isFinite(value[1])) {
+        return { type: NumericRangeType.InvalidRange, value: "" + value };
+    }
+    let range1 = _set_range_value(value[0], value[1]);
+    if (!value2) {
+        return range1;
+    }
+    // we have a matrix
+    const nr2 = new NumericRange(value2);
+    // istanbul ignore next
+    if (
+        nr2.type === NumericRangeType.InvalidRange ||
+        nr2.type === NumericRangeType.MatrixRange ||
+        nr2.type === NumericRangeType.Empty
+    ) {
+        return { type: NumericRangeType.InvalidRange, value: "" + value };
+    }
+    if (range1.type === NumericRangeType.SingleValue) {
+        range1 = {
+            type: NumericRangeType.ArrayRange,
+            value: [range1.value, range1.value]
+        };
+    }
+    if (nr2.type === NumericRangeType.SingleValue) {
+        nr2.type = NumericRangeType.ArrayRange;
+        nr2.value = [nr2.value as number, nr2.value as number];
+    }
+
+    // istanbul ignore next
+    return {
+        type: NumericRangeType.MatrixRange,
+        value: [range1.value as number[], nr2.value as number[]]
+    };
 }
 
 export class NumericRange implements NumericalRange1 {
@@ -295,7 +323,16 @@ export class NumericRange implements NumericalRange1 {
     public type: NumericRangeType;
     public value: NumericalRangeValueType;
 
-    constructor(value?: null | string | number | number[], secondValue?: number) {
+    constructor();
+    // tslint:disable-next-line: unified-signatures
+    constructor(value: string | null);
+    // tslint:disable-next-line: unified-signatures
+    constructor(value: number, secondValue?: number);
+    // tslint:disable-next-line: unified-signatures
+    constructor(value: number[]);
+    // tslint:disable-next-line: unified-signatures
+    constructor(value: number[], secondValue: number[]);
+    constructor(value?: null | string | number | number[], secondValue?: number | number[]) {
         this.type = NumericRangeType.InvalidRange;
         this.value = null;
 
@@ -305,12 +342,16 @@ export class NumericRange implements NumericalRange1 {
             const a = construct_from_string(value as string);
             this.type = a.type;
             this.value = a.value;
-        } else if (typeof value === "number" && isFinite(value)) {
+        } else if (
+            typeof value === "number" &&
+            isFinite(value) &&
+            (secondValue === undefined || (typeof secondValue === "number" && isFinite(secondValue)))
+        ) {
             const a = construct_from_values(value, secondValue);
             this.type = a.type;
             this.value = a.value;
         } else if (Array.isArray(value)) {
-            const a = _construct_from_array(value);
+            const a = _construct_from_array(value, secondValue);
             this.type = a.type;
             this.value = a.value;
         } else {
@@ -447,6 +488,44 @@ export class NumericRange implements NumericalRange1 {
         }
     }
 
+    public set_values_matrix(sourceToAlter: { matrix: Buffer | []; dimensions: number[] }, newMatrix: Buffer | []) {
+        const { matrix, dimensions } = sourceToAlter;
+        const self = this as NumericalRange0;
+        assert(dimensions, "expecting valid dimensions here");
+        if (self.type !== NumericRangeType.MatrixRange) {
+            // istanbul ignore next
+            return { matrix, statusCode: StatusCodes.BadTypeMismatch };
+        }
+
+        assert(dimensions.length === 2);
+        const nbRows = dimensions[0];
+        const nbCols = dimensions[1];
+        assert(sourceToAlter.matrix.length === nbRows * nbCols);
+        const [rowStart, rowEnd] = self.value[0];
+        const [colStart, colEnd] = self.value[1];
+
+        const nbRowInNew = rowEnd - rowStart + 1;
+        const nbColInNew = colEnd - colStart + 1;
+        if (nbRowInNew * nbColInNew !== newMatrix.length) {
+            return { matrix, statusCode: StatusCodes.BadTypeMismatch };
+        }
+        // check if the sub-matrix is in th range of the initial matrix
+        if (rowEnd >= nbRows || colEnd >= nbCols) {
+            // debugLog("out of band range => ", { rowEnd, nbRows, colEnd, nbCols });
+            return { matrix, statusCode: StatusCodes.BadTypeMismatch };
+        }
+        for (let row = rowStart; row <= rowEnd; row++) {
+            const ri = row - rowStart;
+            for (let col = colStart; col <= colEnd; col++) {
+                const ci = col - colStart;
+                matrix[row * nbCols + col] = newMatrix[ri * nbColInNew + ci];
+            }
+        }
+        return {
+            matrix,
+            statusCode: StatusCodes.Good
+        };
+    }
     public set_values(arrayToAlter: Buffer | [], newValues: Buffer | []) {
         assert_array_or_buffer(arrayToAlter);
         assert_array_or_buffer(newValues);
@@ -478,6 +557,7 @@ export class NumericRange implements NumericalRange1 {
         if (high_index >= arrayToAlter.length || low_index >= arrayToAlter.length) {
             return { array: [], statusCode: StatusCodes.BadIndexRangeNoData };
         }
+        // istanbul ignore next
         if (this.type !== NumericRangeType.Empty && newValues.length !== high_index - low_index + 1) {
             return { array: [], statusCode: StatusCodes.BadIndexRangeInvalid };
         }
@@ -676,7 +756,7 @@ export function encodeNumericRange(numericRange: NumericRange, stream: OutputBin
 }
 
 export function decodeNumericRange(stream: BinaryStream, _value?: NumericRange): NumericRange {
-    const str = decodeString(stream);
+    const str = decodeString(stream)!;
     return new NumericRange(str);
 }
 
