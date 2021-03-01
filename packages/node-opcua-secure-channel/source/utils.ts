@@ -28,6 +28,8 @@ import { StatusCode, StatusCodes } from "node-opcua-status-code";
 
 const clientFlag = (process.env?.NODEOPCUADEBUG?.match(/CLIENT{([^}]*)}/) || [])[1] || "";
 const serverFlag = (process.env?.NODEOPCUADEBUG?.match(/SERVER{([^}]*)}/) || [])[1] || "";
+const filter = new RegExp((process.env?.NODEOPCUADEBUG?.match(/FILTER{([^}]*)}/) || [])[1] || ".*");
+
 // console.log("serverFlag", serverFlag);
 // console.log("clientFlag", clientFlag);
 export const doTraceMessage = serverFlag.match(/TRACE/);
@@ -200,7 +202,7 @@ function statusCodeToString(s: StatusCode): string {
 
 // istanbul ignore next
 export function traceRequestMessage(request: Request, channelId: number, instance: number) {
-    if (doTraceMessage) {
+    if (doTraceMessage ) {
         const extra = _get_extraInfo(request);
         const size = evaluateBinarySize(request);
         const requestId = request.requestHeader.requestHandle;
@@ -213,7 +215,7 @@ export function traceRequestMessage(request: Request, channelId: number, instanc
             extra,
             size
         );
-        if (doTraceRequest) {
+        if (doTraceRequest && filter && request.constructor.name.match(filter)) {
             console.log(request.toString());
             console.log(chalk.cyan("   >>>>> ------ \n"));
         }
@@ -223,7 +225,7 @@ export function traceRequestMessage(request: Request, channelId: number, instanc
 // istanbul ignore next
 export function traceResponseMessage(response: Response, channelId: number, instance: number) {
     assert(response.responseHeader.requestHandle >= 0);
-    if (doTraceMessage) {
+    if (doTraceMessage ) {
         const extra = _get_extraInfo(response);
         const size = evaluateBinarySize(response);
         const requestId = response.responseHeader.requestHandle;
@@ -237,7 +239,7 @@ export function traceResponseMessage(response: Response, channelId: number, inst
             size,
             statusCodeToString(response.responseHeader.serviceResult)
         );
-        if (doTraceResponse) {
+        if (doTraceResponse && filter && response.constructor.name.match(filter)) {
             console.log(response.toString());
             console.log(chalk.cyan.bold("       <<<<< ------n"));
         }
