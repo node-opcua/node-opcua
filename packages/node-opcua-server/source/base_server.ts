@@ -10,7 +10,12 @@ import * as os from "os";
 import * as envPaths from "env-paths";
 
 import { assert } from "node-opcua-assert";
-import { getDefaultCertificateManager, ICertificateManager, makeSubject, OPCUACertificateManager } from "node-opcua-certificate-manager";
+import {
+    getDefaultCertificateManager,
+    ICertificateManager,
+    makeSubject,
+    OPCUACertificateManager
+} from "node-opcua-certificate-manager";
 import { IOPCUASecureObjectOptions, makeApplicationUrn, OPCUASecureObject } from "node-opcua-common";
 import { coerceLocalizedText, LocalizedText } from "node-opcua-data-model";
 import { installPeriodicClockAdjustment, uninstallPeriodicClockAdjustment } from "node-opcua-date-time";
@@ -58,7 +63,7 @@ const default_server_info = {
     productUri: "NodeOPCUA-Server",
 
     // A localized descriptive name for the application.
-    applicationName: { text: "NodeOPCUA", locale: null },
+    applicationName: { text: "NodeOPCUA", locale: "en" },
     applicationType: ApplicationType.Server,
     gatewayServerUri: "",
 
@@ -154,10 +159,20 @@ export class OPCUABaseServer extends OPCUASecureObject {
             ...options.serverInfo
         };
         serverInfo.applicationName = coerceLocalizedText(serverInfo.applicationName);
-
         this.serverInfo = new ApplicationDescription(serverInfo);
 
-        assert(!this.serverInfo.applicationName.toString().match(/urn:/), "application name cannot be a urn");
+        if (this.serverInfo.applicationName.toString().match(/urn:/)) {
+            errorLog("[NODE-OPCUA-E06] application name cannot be a urn", this.serverInfo.applicationName.toString());
+        }
+
+        this.serverInfo.applicationName!.locale = this.serverInfo.applicationName?.locale || "en";
+        
+        if (!this.serverInfo.applicationName?.locale) {
+            warningLog(
+                "[NODE-OPCUA-W24] the server applicationName must have a valid locale : ",
+                this.serverInfo.applicationName.toString()
+            );
+        }
 
         const __applicationUri = serverInfo.applicationUri || "";
 
@@ -362,10 +377,10 @@ export class OPCUABaseServer extends OPCUASecureObject {
             if (typeof handler === "function") {
                 handler.apply(this, arguments);
             } else {
-                errMessage = "[NODE-OPCUA-W07] UNSUPPORTED REQUEST !! " + request.schema.name;
+                errMessage = "[NODE-OPCUA-W07] Unsupported Service : " + request.schema.name;
                 warningLog(errMessage);
                 debugLog(chalk.red.bold(errMessage));
-                response = makeServiceFault(StatusCodes.BadNotImplemented, [errMessage]);
+                response = makeServiceFault(StatusCodes.BadServiceUnsupported, [errMessage]);
                 channel.send_response("MSG", response, message, emptyCallback);
             }
         } catch (err) {
@@ -500,7 +515,7 @@ export class OPCUABaseServer extends OPCUASecureObject {
         // a string with neutral locale (locale === null)
         // TODO: find a better way to handle this
         response.endpoints.forEach((endpoint: EndpointDescription) => {
-            endpoint.server.applicationName.locale = null;
+            endpoint.server.applicationName.locale = "en-US";
         });
 
         channel.send_response("MSG", response, message, emptyCallback);
@@ -517,7 +532,7 @@ export class OPCUABaseServer extends OPCUASecureObject {
         //   Service.  This can be achieved by preparing the result in advance.   The  Server  should  also add a
         //   short delay before starting processing of a request during high traffic conditions.
 
-        const shortDelay = 2;
+        const shortDelay = 100; // milliseconds
         setTimeout(() => {
             const request = message.request;
             assert(request.schema.name === "FindServersRequest");
