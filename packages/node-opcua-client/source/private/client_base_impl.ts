@@ -499,7 +499,7 @@ export class ClientBaseImpl extends OPCUASecureObject implements OPCUAClientBase
                             "the server certificate has changed,  we need to retrieve server certificate again: ",
                             err.message
                         );
-                        warningLog("old server certificate ", makeSHA1Thumbprint(this.serverCertificate!).toString("hex"));
+                        warningLog("old server certificate ", this.serverCertificate ? makeSHA1Thumbprint(this.serverCertificate!).toString("hex") : "undefined");
                         // the server may have shut down the channel because its certificate
                         // has changed ....
                         // let request the server certificate again ....

@@ -1,5 +1,4 @@
 "use strict";
-/*global describe, it, require*/
 const should = require("should");
 const sinon = require("sinon");
 
@@ -170,7 +169,7 @@ module.exports = function (test) {
                     resultMask: 63
                 };
                 const browseResult = await session.browse([browseDesc]);
-                // enumerate all sessions availables
+                // enumerate all sessions available
                 //xx console.log(browseResult[0].toString());
                 sessionDiagnosticsNodeId = browseResult[0].references[0].nodeId;
 
@@ -214,7 +213,7 @@ module.exports = function (test) {
                     resultMask: 63
                 };
                 const browseResult = await session.browse([browseDesc]);
-                // enumerate all sessions availables
+                // enumerate all sessions available
                 //xx console.log(browseResult[0].toString());
                 sessionDiagnosticsNodeId = browseResult[0].references[0].nodeId;
                 nbSessionDiagnostics = browseResult[0].references.length;
@@ -267,14 +266,14 @@ module.exports = function (test) {
         it("SDS2-F it should not be possible to read sessionSecurityDiagnostics with a secure connection and non admin user", async () => {
 
             const client = OPCUAClient.create(clientOptions);
-            const anomymous_connectionPoint = {
+            const anonymous_connectionPoint = {
                 endpointUrl: connectionPoint.endpointUrl,
                 userIdentity: {
                     type: UserTokenType.Anonymous,
                 }
             }
 
-            await  perform_operation_on_subscription_async(client, anomymous_connectionPoint, async (session, subscription) => {
+            await  perform_operation_on_subscription_async(client, anonymous_connectionPoint, async (session, subscription) => {
                 
                 const nodesToRead = [
                     {

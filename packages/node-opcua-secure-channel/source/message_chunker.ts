@@ -60,8 +60,8 @@ export class MessageChunker {
         options = options || {};
         options.securityHeader =
             options.securityHeader ||
-            new AsymmetricAlgorithmSecurityHeader({ 
-                securityPolicyUri: "http://opcfoundation.org/UA/SecurityPolicy#None" 
+            new AsymmetricAlgorithmSecurityHeader({
+                securityPolicyUri: "http://opcfoundation.org/UA/SecurityPolicy#None"
             });
 
         assert(options !== null && typeof options === "object");

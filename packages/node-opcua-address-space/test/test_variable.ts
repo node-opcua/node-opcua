@@ -10,7 +10,7 @@ import { NodeId, makeNodeId } from "node-opcua-nodeid";
 import { StatusCode, StatusCodes } from "node-opcua-status-code";
 import { DataType, Variant, VariantArrayType } from "node-opcua-variant";
 import { NumericRange } from "node-opcua-numeric-range";
-import { WriteValue } from "node-opcua-types";
+import { WriteValue, WriteValueOptions } from "node-opcua-types";
 import { StatusCodeCallback } from "node-opcua-status-code";
 
 const nodeset_filename = path.join(__dirname, "../test_helpers/test_fixtures/mini.Node.Set2.xml");
@@ -1375,14 +1375,16 @@ describe("testing UAVariable ", () => {
         const dataValue = await temperatureVar.readAttribute(context, AttributeIds.Value);
         dataValue.statusCode.should.eql(StatusCodes.UncertainInitialValue);
 
-        const writeValue = {
+        const writeValue: WriteValueOptions = {
             attributeId: AttributeIds.Value,
-            dataValue: {
-                dataType: "Double",
-                value: 32
+            value: {
+                value: {
+                    dataType: "Double",
+                    value: 32
+                }
             },
             nodeId
-        };
+        }
         const statusCode1 = await temperatureVar.writeAttribute(context, writeValue);
         statusCode1.should.eql(StatusCodes.Good);
     });
