@@ -19,7 +19,7 @@ import {
 } from "node-opcua-data-model";
 import { extractRange, sameDataValue, DataValue, DataValueLike } from "node-opcua-data-value";
 import { coerceClock, getCurrentClock, PreciseClock } from "node-opcua-date-time";
-import { checkDebugFlag, make_debugLog, make_errorLog } from "node-opcua-debug";
+import { checkDebugFlag, make_debugLog, make_errorLog, make_warningLog } from "node-opcua-debug";
 import { ExtensionObject } from "node-opcua-extension-object";
 import { NodeId } from "node-opcua-nodeid";
 import { NumericRange } from "node-opcua-numeric-range";
@@ -67,6 +67,7 @@ import { SessionContext } from "./session_context";
 import { EnumerationInfo, IEnumItem, UADataType } from "./ua_data_type";
 
 const debugLog = make_debugLog(__filename);
+const warningLog = make_warningLog(__filename);
 const doDebug = checkDebugFlag(__filename);
 const errorLog = make_errorLog(__filename);
 
@@ -138,14 +139,22 @@ function _dataType_toUADataType(addressSpace: AddressSpace, dataType: DataType):
  * @param nodeId
  * @return {boolean} true if the variant dataType is compatible with the Variable DataType
  */
-function validateDataType(addressSpace: AddressSpace, dataTypeNodeId: NodeId, variantDataType: DataType, nodeId: NodeId): boolean {
+function validateDataType(
+    addressSpace: AddressSpace,
+    dataTypeNodeId: NodeId,
+    variantDataType: DataType,
+    nodeId: NodeId,
+    allowNulls: boolean
+): boolean {
     if (variantDataType === DataType.ExtensionObject) {
         return true;
     }
-    if (variantDataType === DataType.Null) {
+    if (variantDataType === DataType.Null && allowNulls) {
         return true;
     }
-
+    if (variantDataType === DataType.Null && !allowNulls) {
+        return false;
+    }
     let builtInType: string;
     let builtInUADataType: UADataTypePublic;
 
@@ -735,27 +744,51 @@ export class UAVariable extends BaseNode implements UAVariablePublic {
                             return callback!(null, StatusCodes.BadIndexRangeInvalid);
                         }
 
-                        const newArr = correctedDataValue.value.value;
-                        // check that source data is an array
-                        if (correctedDataValue.value.arrayType !== VariantArrayType.Array) {
+                        const newArrayOrMatrix = correctedDataValue.value.value;
+
+                        if (correctedDataValue.value.arrayType === VariantArrayType.Array) {
+                            if (this._dataValue.value.arrayType !== VariantArrayType.Array) {
+                                return callback(null, StatusCodes.BadTypeMismatch);
+                            }
+                            // check that destination data is also an array
+                            assert(check_valid_array(this._dataValue.value.dataType, this._dataValue.value.value));
+                            const destArr = this._dataValue.value.value;
+                            const result = indexRange.set_values(destArr, newArrayOrMatrix);
+
+                            if (result.statusCode.isNot(StatusCodes.Good)) {
+                                return callback!(null, result.statusCode);
+                            }
+                            correctedDataValue.value.value = result.array;
+
+                            // scrap original array so we detect range
+                            this._dataValue.value.value = null;
+                        } else if (correctedDataValue.value.arrayType === VariantArrayType.Matrix) {
+                            const dimensions = this._dataValue.value.dimensions;
+                            if (this._dataValue.value.arrayType !== VariantArrayType.Matrix || !dimensions) {
+                                // not a matrix !
+                                return callback!(null, StatusCodes.BadTypeMismatch);
+                            }
+                            const matrix = this._dataValue.value.value;
+                            const result = indexRange.set_values_matrix(
+                                {
+                                    matrix,
+                                    dimensions
+                                },
+                                newArrayOrMatrix
+                            );
+                            if (result.statusCode.isNot(StatusCodes.Good)) {
+                                return callback!(null, result.statusCode);
+                            }
+                            correctedDataValue.value.dimensions = this._dataValue.value.dimensions;
+                            correctedDataValue.value.value = result.matrix;
+
+                            // scrap original array so we detect range
+                            this._dataValue.value.value = null;
+                        } else {
                             return callback!(null, StatusCodes.BadTypeMismatch);
                         }
-
-                        // check that destination data is also an array
-                        assert(check_valid_array(this._dataValue.value.dataType, this._dataValue.value.value));
-                        const destArr = this._dataValue.value.value;
-                        const result = indexRange.set_values(destArr, newArr);
-
-                        if (result.statusCode.isNot(StatusCodes.Good)) {
-                            return callback!(null, result.statusCode);
-                        }
-                        correctedDataValue.value.value = result.array;
-
-                        // scrap original array so we detect range
-                        this._dataValue.value.value = null;
                     }
                     this._internal_set_dataValue(correctedDataValue, indexRange);
-                    // xx this._dataValue = correctedDataValue;
                 }
                 callback!(err, statusCode1);
             }
@@ -767,6 +800,7 @@ export class UAVariable extends BaseNode implements UAVariablePublic {
         writeValueOptions: WriteValueOptions | WriteValue,
         callback?: (err: Error | null, statusCode?: StatusCode) => void
     ): any {
+        // istanbul ignore next
         if (!callback) {
             throw new Error("Internal error");
         }
@@ -1260,7 +1294,7 @@ export class UAVariable extends BaseNode implements UAVariablePublic {
                 value: prepareVariantValue(dataType, this.$extensionObject[name])
             }));
              */
-            
+
             assert(propertyNode.readValue().statusCode.equals(StatusCodes.Good));
 
             const self = this;
@@ -1588,7 +1622,7 @@ export class UAVariable extends BaseNode implements UAVariablePublic {
     }
 
     public _validate_DataType(variantDataType: DataType): boolean {
-        return validateDataType(this.addressSpace, this.dataType, variantDataType, this.nodeId);
+        return validateDataType(this.addressSpace, this.dataType, variantDataType, this.nodeId, /* allow Nulls */ false);
     }
 
     public _internal_set_dataValue(dataValue: DataValue, indexRange?: NumericRange | null) {
@@ -1596,6 +1630,12 @@ export class UAVariable extends BaseNode implements UAVariablePublic {
         assert(dataValue instanceof DataValue, "expecting dataValue to be a DataValue");
         assert(dataValue !== this._dataValue, "expecting dataValue to be different from previous DataValue instance");
 
+        // istanbul ignore next
+        if (dataValue.value.arrayType === VariantArrayType.Matrix)  {
+           if (dataValue.value.value.length !== 0 && dataValue.value.value.length !== dataValue.value.dimensions![0] * dataValue.value.dimensions![1]) {
+               warningLog("Internal Error: matrix dimension doesn't match : ", dataValue.toString());
+           }
+        }
         if (dataValue.value.dataType === DataType.ExtensionObject) {
             if (!this.checkExtensionObjectIsCorrect(dataValue.value.value)) {
                 console.log(dataValue.toString());

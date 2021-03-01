@@ -43,5 +43,6 @@ describe("testing Client - Umbrella-B ", function() {
     // typescripts tests starts here...
     require("./u_test_e2e_deadband_filter").t(test);
     require("./u_test_e2e_set_triggering").t(test);
+    require("./u_test_e2e_write_large_array_range").t(test);
 
 });
