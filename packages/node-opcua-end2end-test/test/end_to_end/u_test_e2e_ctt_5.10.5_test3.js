@@ -50,7 +50,7 @@ module.exports = function(test) {
 
         let subscription = null;
 
-        const nodeId = "ns=2;s=Scalar_Static_Int32";
+        const nodeId = "ns=2;s=Static_Scalar_Int32";
         let monitoredItem1;
         let subscription_raw_notification_event;
         let spy_publish;
@@ -167,7 +167,6 @@ module.exports = function(test) {
             }
 
             await perform_operation_on_subscription_async(client, endpointUrl, async (session) => {
-                console.log("Heree");
                 await f(create_subscription_and_monitor_item)(session);
                 await f(write_value_and_wait_for_change)(session);
                 await f(prevent_publish_request_acknowledgement)(session);

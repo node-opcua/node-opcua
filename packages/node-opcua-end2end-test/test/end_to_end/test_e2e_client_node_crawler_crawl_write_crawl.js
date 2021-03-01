@@ -3,7 +3,7 @@
 const should = require("should");
 const async = require("async");
 
-const { OPCUAClient, DataType, NodeCrawler, StatusCodes } = require("node-opcua");
+const { OPCUAClient, DataType, NodeCrawler, StatusCodes, AttributeIds } = require("node-opcua");
 
 const { make_debugLog, checkDebugFlag } = require("node-opcua-debug");
 const debugLog = make_debugLog("TEST");
@@ -16,7 +16,6 @@ const { build_address_space_for_conformance_testing } = require("node-opcua-addr
 
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("NodeCrawlerBase after write", function () {
-    const namespaceIndex = 411;
     const port = 2012;
 
     // this test could be particularly slow on RaspberryPi or BeagleBoneBlack
@@ -84,14 +83,21 @@ describe("NodeCrawlerBase after write", function () {
                         },
 
                         function (inner_done) {
-                            const nodeId = "ns=2;s=Scalar_Static_Boolean"; // coerceNodeId(2294);
+                            const nodeId = "ns=2;s=Static_Scalar_Boolean"; // coerceNodeId(2294);
 
-                            const dataValue = {
+                            const variantValue = {
                                 dataType: DataType.Boolean,
                                 value: true
                             };
 
-                            session.writeSingleNode(nodeId, dataValue, function (err, results) {
+                            const nodeToWrite = {
+                                nodeId,
+                                attributeId: AttributeIds.Value,
+                                value: {
+                                    value: variantValue
+                                }
+                            };
+                            session.write(nodeToWrite, (err, results) => {
                                 if (err) {
                                     return inner_done(err);
                                 }

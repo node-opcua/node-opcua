@@ -22,7 +22,7 @@ module.exports = function(test) {
         it("#214 -  DataChangeTrigger.StatusValueTimestamp", function(done) {
             // setup  mechanism to update a Variable value timestamp without changing the value
 
-            const nodeId = "ns=2;s=Scalar_Static_Double";
+            const nodeId = "ns=2;s=Static_Scalar_Double";
             const variable = test.server.engine.addressSpace.findNode(nodeId);
             const variant = new opcua.Variant({ dataType: opcua.DataType.Double, value: 3.14 });
 

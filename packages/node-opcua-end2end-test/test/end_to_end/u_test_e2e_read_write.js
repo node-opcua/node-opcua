@@ -35,7 +35,7 @@ module.exports = function(test) {
 
             perform_operation_on_client_session(client, endpointUrl, function(session, inner_done) {
 
-                const nodeId = "ns=2;s=Scalar_Static_Float";
+                const nodeId = "ns=2;s=Static_Scalar_Float";
 
                 const nodesToWrite = [
                     {
@@ -159,9 +159,9 @@ module.exports = function(test) {
 
         });
 
-        it("ZZZ reading ns=2;s=Scalar_Static_Int16 ", function(done) {
+        it("ZZZ reading ns=2;s=Static_Scalar_Int16 ", function(done) {
             perform_operation_on_client_session(client, endpointUrl, function(session, inner_done) {
-                const nodeId = "ns=2;s=Scalar_Static_Int16";
+                const nodeId = "ns=2;s=Static_Scalar_Int16";
 
                 const nodesToRead = [
                     {
@@ -228,7 +228,7 @@ module.exports = function(test) {
 
                 perform_operation_on_client_session(client, endpointUrl, function(session, inner_done) {
 
-                    const nodeId = "s=" + "Scalar_Static_Large_Array_Float";
+                    const nodeId = "s=" + "Static_Scalar_Large_Array_Float";
 
                     const nodeToRead = {
                         nodeId: nodeId,
@@ -249,7 +249,7 @@ module.exports = function(test) {
 
                 perform_operation_on_client_session(client, endpointUrl, function(session, inner_done) {
 
-                    const nodeId = "ns=2;s=Scalar_Static_Large_Array_Float";
+                    const nodeId = "ns=2;s=Static_Scalar_Large_Array_Float";
                     const nodeToRead = {
                         nodeId: nodeId,
                         attributeId: opcua.AttributeIds.Value,

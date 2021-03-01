@@ -888,7 +888,7 @@ module.exports = function(test) {
 
                     subscription.publishingInterval.should.eql(100);
 
-                    const nodeId = "ns=2;s=Scalar_Static_Array_Boolean";
+                    const nodeId = "ns=2;s=Static_Array_Boolean";
 
                     const monitoredItem = ClientMonitoredItem.create(
                         subscription,
@@ -949,7 +949,7 @@ module.exports = function(test) {
 
                     subscription.publishingInterval.should.eql(100);
 
-                    const nodeId = "ns=2;s=Scalar_Static_Array_Int32";
+                    const nodeId = "ns=2;s=Static_Array_Int32";
 
                     function wait(duration, callback) {
                         setTimeout(callback, duration); // make sure we get inital data
@@ -1091,7 +1091,7 @@ module.exports = function(test) {
 
                     subscription.publishingInterval.should.eql(100);
 
-                    const nodeId = "ns=2;s=Scalar_Static_Array_Int32";
+                    const nodeId = "ns=2;s=Static_Array_Int32";
 
                     function create_monitored_item(callback) {
                         const monitoredItem = ClientMonitoredItem.create(
@@ -1225,16 +1225,16 @@ module.exports = function(test) {
                 function(session, subscription, callback) {
                     const notificationMessageSpy = new sinon.spy();
                     subscription.on("raw_notification", notificationMessageSpy);
-                    subscription.on("raw_notification", (notf) => {
-                        // console.log(notf.toString());
+                    subscription.on("raw_notification", (notification) => {
+                        // console.log(notification.toString());
                     });
 
                     const monitoredItemOnChangedSpy = new sinon.spy();
-                    const subscription_raw_notificiationSpy = new sinon.spy();
+                    const subscription_raw_notificationSpy = new sinon.spy();
 
                     subscription.publishingInterval.should.eql(100);
 
-                    const nodeId = "ns=2;s=Scalar_Static_Int32";
+                    const nodeId = "ns=2;s=Static_Scalar_Int32";
 
                     function create_monitored_item(callback) {
                         const monitoredItem = ClientMonitoredItem.create(
@@ -1263,7 +1263,7 @@ module.exports = function(test) {
 
                         monitoredItem.on("changed", monitoredItemOnChangedSpy);
 
-                        subscription.on("raw_notification", subscription_raw_notificiationSpy);
+                        subscription.on("raw_notification", subscription_raw_notificationSpy);
                     }
 
                     function wait(duration, callback) {
@@ -1354,7 +1354,7 @@ module.exports = function(test) {
                                     if (doDebug) {
                                         console.log(
                                             "subscription_raw_notificiationSpy = ",
-                                            subscription_raw_notificiationSpy.callCount
+                                            subscription_raw_notificationSpy.callCount
                                         );
                                         console.log("monitoredItemOnChangedSpy         = ", monitoredItemOnChangedSpy.callCount);
                                         for (let i = 0; i < monitoredItemOnChangedSpy.callCount; i++) {
@@ -1383,7 +1383,7 @@ module.exports = function(test) {
         });
 
         it("AZA2-L disabled monitored item", async () => {
-            const nodeId = "ns=2;s=Scalar_Static_Int32";
+            const nodeId = "ns=2;s=Static_Scalar_Int32";
 
             const monitoredItemOnChangedSpy = new sinon.spy();
             await perform_operation_on_subscription_async(client, endpointUrl, async (session, subscription) => {
@@ -1701,7 +1701,7 @@ module.exports = function(test) {
                             // create a monitored item so we have pending notificiation
                             function(callback) {
                                 const namespaceIndex = 2;
-                                const nodeId = "s=" + "Scalar_Static_Int16";
+                                const nodeId = "s=" + "Static_Scalar_Int16";
 
                                 const node = server.engine.addressSpace.findNode(nodeId);
                                 const parameters = {
@@ -2671,12 +2671,12 @@ module.exports = function(test) {
             done
         ) {
             const forcedMinimumInterval = 1;
-            const nodeId = "ns=2;s=Scalar_Static_Int16";
+            const nodeId = "ns=2;s=Static_Scalar_Int16";
 
             const node = server.engine.addressSpace.findNode(nodeId);
             //xx console.log(chalk.cyan("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"),node.toString());
             const server_node =
-                test.server.engine.addressSpace.rootFolder.objects.simulation.scalar.scalar_static.scalar_static_int16;
+                test.server.engine.addressSpace.rootFolder.objects.simulation.scalar.Static_Scalar.Static_Scalar_int16;
             //xx console.log("server_node.minimumSamplingInterval = ",server_node.minimumSamplingInterval);
             server_node.minimumSamplingInterval = forcedMinimumInterval;
 
@@ -3184,7 +3184,7 @@ module.exports = function(test) {
                 client,
                 endpointUrl,
                 function(session, inner_done) {
-                    const nodeId = "ns=2;s=Scalar_Static_Double";
+                    const nodeId = "ns=2;s=Static_ScalarA_Double";
                     const samplingInterval = 500;
                     const parameters = {
                         samplingInterval: samplingInterval,
@@ -3339,7 +3339,7 @@ module.exports = function(test) {
                     function(session, inner_done) {
                         samplingInterval = 0; // exception based
 
-                        const nodeId = "ns=2;s=Scalar_Static_Array_Int32";
+                        const nodeId = "ns=2;s=Static_Array_Int32";
 
                         const parameters = {
                             samplingInterval: 0, // exception based : whenever value changes

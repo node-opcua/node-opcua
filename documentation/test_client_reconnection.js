@@ -98,8 +98,6 @@ const client = opcua.OPCUAClient.create({
     }
 });
 
-//const endpointUrl = "opc.tcp://" + require("os").hostname() + ":26543";
-//const nodeId = opcua.coerceNodeId("ns=2;s=Scalar_Static_Int32");
 const endpointUrl = "opc.tcp://" + require("os").hostname() + ":53530/OPCUA/SimulationServer";
 const nodeId = opcua.coerceNodeId("ns=3;s=Int32");
 const doDebug = true;
