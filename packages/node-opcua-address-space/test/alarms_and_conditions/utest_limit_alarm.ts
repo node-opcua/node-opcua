@@ -9,7 +9,6 @@ import { StatusCodes } from "node-opcua-status-code";
 import { DataType } from "node-opcua-variant";
 import { AddressSpace, UAObject, UAVariable } from "../..";
 
-
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 const debugLog = make_debugLog("TEST");
 const doDebug = checkDebugFlag("TEST");

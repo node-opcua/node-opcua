@@ -36,7 +36,6 @@ import { make_debugLog, checkDebugFlag } from "node-opcua-debug";
 const debugLog = make_debugLog("TEST");
 const doDebug = checkDebugFlag("TEST");
 
-
 const defaultRange = new Range({ low: -1000000, high: 100000 });
 
 function makeValuesOutsideDeadBand(currentValue: number, range: Range, percent: number, count: number): number[] {

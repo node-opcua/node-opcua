@@ -933,7 +933,7 @@ interface MakeEndpointDescriptionOptions {
     resourcePath?: string;
     allowAnonymous?: boolean; // default true
 
-    // allow unencrypted password in userNameIdentity
+    // allow un-encrypted password in userNameIdentity
     allowUnsecurePassword?: boolean; // default false
 
     restricted: boolean;

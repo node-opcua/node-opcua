@@ -1,6 +1,6 @@
-"use strict";
+    // tslint:disable: no-console
 
-const should = require("should");
+import * as should from "should";
 import * as async from "async";
 import * as fs from "fs";
 import * as os from "os";
@@ -40,10 +40,11 @@ const port5 = 2505;
 const port_discovery = 1235;
 // add the tcp/ip endpoint with no security
 
-process.on("uncaughtException", function (err) {
+process.on("uncaughtException",  (err) => {
     console.log(err);
 });
 
+// tslint:disable-next-line: no-var-requires
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 export function t(test: any) {
     describe("DS1 - DiscoveryServer1", function (this: any) {
