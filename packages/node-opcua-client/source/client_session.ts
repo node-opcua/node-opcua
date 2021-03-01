@@ -533,7 +533,7 @@ export interface ClientSessionDataTypeService {
      *   assert(dataType === opcua.DataType.DateTime);
      * });
      * // or
-     * nodeId = opcua.coerceNodeId("ns=2;s=Scalar_Static_ImagePNG");
+     * nodeId = opcua.coerceNodeId("ns=2;s=Static_Scalar_ImagePNG");
      * const dataType: await session.getBuildInDataType(nodeId);
      * assert(dataType === opcua.DataType.ByteString);
      * ```

@@ -1,8 +1,7 @@
 // Description: CloseSession while specifying DeleteSubscriptions=FALSE. Create a subscription with 1 monitored item.
 // When the session is closed, we are JUST going to close the Session. The subscription and monitoredItem will NOT be cleaned-up.
 // We'll then create another session. We'll try to TRANSFER the subscription to the new session. We're expecting the subscription to be present!
-// We ARE checking if TransferSubscription is Bad_NotImplemented. If so, then the test result is a Warning with a message of Inconclusive. */
-/*global it,describe,beforeEach*/
+// We ARE checking if TransferSubscription is Bad_NotImplemented. If so, then the test result is a Warning with a message of Inconclusive. 
 "use strict";
 const async = require("async");
 const should = require("should");
@@ -326,7 +325,7 @@ module.exports = function(test) {
             let the_session2;
 
             const itemToMonitor = new opcua.ReadValueId({
-                nodeId: "ns=2;s=Scalar_Static_Double",
+                nodeId: "ns=2;s=Static_Scalar_Double",
                 attributeId: opcua.AttributeIds.Value
             });
 

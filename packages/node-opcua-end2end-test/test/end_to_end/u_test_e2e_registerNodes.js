@@ -99,7 +99,7 @@ module.exports = function (test) {
         it("should register nodes and provide a alias that can be used on all operations", function (done) {
             perform_operation_on_client_session(client, endpointUrl, function (session, inner_done) {
 
-                const nodesToRegister = ["ns=2;s=Scalar_Static_Double"];
+                const nodesToRegister = ["ns=2;s=Static_Scalar_Double"];
                 let registeredNodeIds = [];
                 let dataValue1, dataValue2;
                 async.series([

@@ -48,7 +48,7 @@ module.exports = function(test) {
                     function read_initial_value(callback) {
 
                         const nodeToRead = {
-                            nodeId: coerceNodeId("s=Scalar_Static_Array_Byte", simulationNamespaceIndex),
+                            nodeId: coerceNodeId("s=Static_Array_Byte", simulationNamespaceIndex),
                             attributeId: AttributeIds.Value
                         };
 
@@ -66,7 +66,7 @@ module.exports = function(test) {
                     function write_byteString_in_arrayOfByte(callback) {
 
                         const nodeToWrite = {
-                            nodeId: coerceNodeId("s=Scalar_Static_Array_Byte", simulationNamespaceIndex),
+                            nodeId: coerceNodeId("s=Static_Array_Byte", simulationNamespaceIndex),
                             attributeId: AttributeIds.Value,
                             value: {
                                 value: {
