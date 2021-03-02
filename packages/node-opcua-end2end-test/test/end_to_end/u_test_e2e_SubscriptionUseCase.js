@@ -2676,7 +2676,7 @@ module.exports = function(test) {
             const node = server.engine.addressSpace.findNode(nodeId);
             //xx console.log(chalk.cyan("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"),node.toString());
             const server_node =
-                test.server.engine.addressSpace.rootFolder.objects.simulation.scalar.Static_Scalar.Static_Scalar_int16;
+                test.server.engine.addressSpace.rootFolder.objects.simulation.static["all Profiles"].scalars.int16;
             //xx console.log("server_node.minimumSamplingInterval = ",server_node.minimumSamplingInterval);
             server_node.minimumSamplingInterval = forcedMinimumInterval;
 
@@ -2885,6 +2885,7 @@ module.exports = function(test) {
         function createMonitoredItems(session, nodeId, parameters, itemToMonitor, callback) {
             /* backdoor */
             const node = server.engine.addressSpace.findNode(nodeId);
+            should.exist(node," " + nodeId.toString() + " must exist");
             node.minimumSamplingInterval.should.eql(0); // exception-based change notification
 
             //xx parameters.samplingInterval.should.eql(0);
@@ -3184,7 +3185,7 @@ module.exports = function(test) {
                 client,
                 endpointUrl,
                 function(session, inner_done) {
-                    const nodeId = "ns=2;s=Static_ScalarA_Double";
+                    const nodeId = "ns=2;s=Static_Scalar_Double";
                     const samplingInterval = 500;
                     const parameters = {
                         samplingInterval: samplingInterval,
