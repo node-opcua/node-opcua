@@ -28,7 +28,8 @@ import {
     LocalizedTextLike,
     NodeClass,
     QualifiedName,
-    QualifiedNameLike
+    QualifiedNameLike,
+    QualifiedNameOptions
 } from "node-opcua-data-model";
 import { DataValue, DataValueOptions, DataValueOptionsT, DataValueT } from "node-opcua-data-value";
 import { PreciseClock } from "node-opcua-date-time";
@@ -198,7 +199,8 @@ export declare class BaseNode extends EventEmitter {
 
     public allReferences(): Reference[];
 
-    public getChildByName(browseName: string | QualifiedName): BaseNode | null;
+    public getChildByName(browseName: QualifiedNameLike): BaseNode | null;
+    public getChildByName(browseName: string, namespaceIndex?: number): BaseNode | null;
 
     /**
      * this methods propagates the forward references to the pointed node
@@ -274,9 +276,11 @@ export interface VariableAttributes {
 }
 
 export interface IPropertyAndComponentHolder {
-    getComponentByName(componentName: QualifiedNameLike, namespaceIndex?: number): UAObject | UAVariable | null;
+    getComponentByName(componentName: QualifiedNameOptions): UAObject | UAVariable | null;
+    getComponentByName(componentName: string, namespaceIndex?: number): UAObject | UAVariable | null;
 
-    getPropertyByName(browseName: string, namespaceIndex?: number): UAVariable | null;
+    getPropertyByName(propertyName: QualifiedNameOptions): UAVariable | null;
+    getPropertyByName(propertyName: string, namespaceIndex?: number): UAVariable | null;
 
     getAggregates(): BaseNode[];
 
@@ -772,12 +776,15 @@ export interface UAObject extends BaseNode, EventRaiser, IPropertyAndComponentHo
     readonly hasMethods: boolean;
 
     //
+    getFolderElementByName(browseName: QualifiedNameOptions): BaseNode | null;
     getFolderElementByName(browseName: string, namespaceIndex?: number): BaseNode | null;
 
     // Method accessor
     getMethodById(nodeId: NodeId): UAMethod | null;
 
-    getMethodByName(methodName: string): UAMethod | null;
+    getMethodByName(methodName: QualifiedNameOptions): UAMethod | null;
+    getMethodByName(methodName: string, namespaceIndex?: number): UAMethod | null;
+    getMethodByName(methodName: QualifiedNameLike, namespaceIndex?: number): UAMethod | null;
 
     getMethods(): UAMethod[];
 
@@ -971,7 +978,8 @@ export declare interface UAObjectType extends BaseNode, IPropertyAndComponentHol
     // Method accessor
     getMethodById(nodeId: NodeId): UAMethod | null;
 
-    getMethodByName(methodName: string): UAMethod | null;
+    getMethodByName(methodName: QualifiedNameOptions): UAMethod | null;
+    getMethodByName(methodName: string, namespaceIndex?: number): UAMethod | null;
 
     getMethods(): UAMethod[];
 }

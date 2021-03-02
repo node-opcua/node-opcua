@@ -1,20 +1,23 @@
 "use strict";
-/* global require, process, __filename, it, before, beforeEach, after, afterEach */
 const should = require("should");
 const async = require("async");
 
-const opcua = require("node-opcua");
-
-const StatusCodes = opcua.StatusCodes;
-const Variant = opcua.Variant;
-const DataType = opcua.DataType;
-const DataValue = opcua.DataValue;
-const makeNodeId = opcua.makeNodeId;
-const ReferenceTypeIds = opcua.ReferenceTypeIds;
-const VariableIds = opcua.VariableIds;
-const VariantArrayType = opcua.VariantArrayType;
-
-const BrowseDirection = opcua.BrowseDirection;
+const {
+    BrowseDirection,
+    VariableIds,
+    AttributeIds,
+    StatusCodes,
+    Variant,
+    DataType,
+    DataValue,
+    ReferenceTypeIds,
+    makeNodeId,
+    VariantArrayType,
+    ReadRequest,
+    TimestampsToReturn,
+    OPCUAClient,
+    coerceNodeId
+} = require("node-opcua");
 
 const fail_fast_connectivity_strategy = {
     maxRetry: 1,
@@ -37,7 +40,7 @@ module.exports = function (test) {
         beforeEach(function (done) {
             endpointUrl = test.endpointUrl;
             temperatureVariableId = test.server.temperatureVariableId;
-            client = opcua.OPCUAClient.create(options);
+            client = OPCUAClient.create(options);
 
             client.connect(endpointUrl, function (err) {
                 if (err) {
@@ -101,12 +104,11 @@ module.exports = function (test) {
                 done(err);
             });
         });
-
         it("T8-11 - #ReadRequest : server should return BadNothingToDo when nodesToRead is empty", function (done) {
-            const request = new opcua.ReadRequest({
+            const request = new ReadRequest({
                 nodesToRead: [], //<< EMPTY
                 maxAge: 0,
-                timestampsToReturn: opcua.TimestampsToReturn.Both
+                timestampsToReturn: TimestampsToReturn.Both
             });
 
             g_session.performMessageTransaction(request, function (err /*, response */) {
@@ -117,10 +119,10 @@ module.exports = function (test) {
         });
 
         it("T8-12 - #ReadRequest : server should return BadTimestampsToReturnInvalid when timestampsToReturn is Invalid", function (done) {
-            const request = new opcua.ReadRequest({
-                nodesToRead: [{ nodeId: opcua.coerceNodeId("ns=0;i=2456") }],
+            const request = new ReadRequest({
+                nodesToRead: [{ nodeId: coerceNodeId("ns=0;i=2456") }],
                 maxAge: 0,
-                timestampsToReturn: opcua.TimestampsToReturn.Invalid
+                timestampsToReturn: TimestampsToReturn.Invalid
             });
 
             g_session.performMessageTransaction(request, function (err /*, response*/) {
@@ -180,9 +182,9 @@ module.exports = function (test) {
 
         it("T8-15b - #read :should return BadNothingToDo if nodesToRead is empty", function (done) {
             // CTT : Attribute ERR-011.js
-            const readRequest = new opcua.ReadRequest({
+            const readRequest = new ReadRequest({
                 maxAge: 0,
-                timestampsToReturn: opcua.TimestampsToReturn.Both,
+                timestampsToReturn: TimestampsToReturn.Both,
                 nodesToRead: []
             });
 
@@ -198,9 +200,9 @@ module.exports = function (test) {
 
         it("T8-15c - #read :should return BadNothingToDo if nodesToRead is null", function (done) {
             // CTT : Attribute ERR-011.js
-            const readRequest = new opcua.ReadRequest({
+            const readRequest = new ReadRequest({
                 maxAge: 0,
-                timestampsToReturn: opcua.TimestampsToReturn.Both,
+                timestampsToReturn: TimestampsToReturn.Both,
                 nodesToRead: null
             });
 
@@ -251,6 +253,7 @@ module.exports = function (test) {
             g_session.write(
                 {
                     nodeId: temperatureVariableId.nodeId,
+                    attributeId: AttributeIds.Value,
                     value: {
                         value: {
                             dataType: DataType.Double,

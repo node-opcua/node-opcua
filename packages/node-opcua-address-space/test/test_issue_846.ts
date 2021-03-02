@@ -4,7 +4,7 @@ import "should";
 import { AddressSpace, UAObject, SessionContext } from "..";
 import { generateAddressSpace } from "../nodeJS";
 import { nodesets } from "node-opcua-nodesets";
-import { UAVariable } from "../dist/src/ua_variable";
+import { UAVariable } from "..";
 import { DataType, Variant, VariantArrayType } from "node-opcua-variant";
 import { AttributeIds } from "node-opcua-data-model";
 

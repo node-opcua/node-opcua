@@ -1,4 +1,3 @@
-/* global xit,it,describe,beforeEach,afterEach*/
 "use strict";
 
 const async = require("async");
