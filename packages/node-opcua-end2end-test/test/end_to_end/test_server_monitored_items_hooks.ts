@@ -14,6 +14,7 @@ import {
 } from "node-opcua";
 import * as sinon from "sinon";
 import "should";
+import { get_mini_nodeset_filename } from "node-opcua-address-space/testHelpers";
 
 const onCreateMonitoredItem = sinon.spy(async function _onCreateMonitoredItem(
     subscription: Subscription,
@@ -31,10 +32,12 @@ const onDeleteMonitoredItem = sinon.spy(async function _onDeleteMonitoredItem(
     return StatusCodes.Good;
 });
 
+const port = 2030;
+
 async function createServer() {
     const server = new OPCUAServer({
-        nodeset_filename: [nodesets.standard],
-
+        nodeset_filename: [get_mini_nodeset_filename()],
+        port,
         onCreateMonitoredItem,
         onDeleteMonitoredItem
     });

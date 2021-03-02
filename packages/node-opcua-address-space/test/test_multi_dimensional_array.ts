@@ -42,10 +42,10 @@ describe("Multi-Dimensional Array", () => {
             arrayDimensions: defaultMatrixValue.dimensions,
             value: defaultMatrixValue
         });
-        matrixVariable.arrayDimensions.should.eql([4, 5]);
+        matrixVariable.arrayDimensions!.should.eql([4, 5]);
         const dataValueCheck = matrixVariable.readValue();
         dataValueCheck.value.arrayType.should.eql(VariantArrayType.Matrix);
-        dataValueCheck.value.dimensions.should.eql([4, 5]);
+        dataValueCheck.value.dimensions!.should.eql([4, 5]);
 
         arrayVariable = namespace1.addVariable({
             browseName: "ArrayVariable",
@@ -78,7 +78,7 @@ describe("Multi-Dimensional Array", () => {
 
         const dataValueCheck = matrixVariable.readValue();
         dataValueCheck.value.arrayType.should.eql(VariantArrayType.Matrix);
-        dataValueCheck.value.dimensions.should.eql([4, 5]);
+        dataValueCheck.value.dimensions!.should.eql([4, 5]);
         dataValueCheck.value.value.should.eql(
             // prettier-ignore
             new Float64Array([
@@ -110,7 +110,7 @@ describe("Multi-Dimensional Array", () => {
 
         const dataValueCheck = matrixVariable.readValue();
         dataValueCheck.value.arrayType.should.eql(VariantArrayType.Matrix);
-        dataValueCheck.value.dimensions.should.eql([4, 5]);
+        dataValueCheck.value.dimensions!.should.eql([4, 5]);
         dataValueCheck.value.value.should.eql(
             // prettier-ignore
             new Float64Array([
@@ -143,7 +143,7 @@ describe("Multi-Dimensional Array", () => {
 
         const dataValueCheck = matrixVariable.readValue();
         dataValueCheck.value.arrayType.should.eql(VariantArrayType.Matrix);
-        dataValueCheck.value.dimensions.should.eql([4, 5]);
+        dataValueCheck.value.dimensions!.should.eql([4, 5]);
         dataValueCheck.value.value.should.eql(
             // prettier-ignore
             new Float64Array([
@@ -175,7 +175,7 @@ describe("Multi-Dimensional Array", () => {
 
         const dataValueCheck = matrixVariable.readValue();
         dataValueCheck.value.arrayType.should.eql(VariantArrayType.Matrix);
-        dataValueCheck.value.dimensions.should.eql([4, 5]);
+        dataValueCheck.value.dimensions!.should.eql([4, 5]);
         dataValueCheck.value.value.should.eql(
             // prettier-ignore
             new Float64Array([
@@ -204,7 +204,7 @@ describe("Multi-Dimensional Array", () => {
 
         const dataValueCheck = matrixVariable.readValue();
         dataValueCheck.value.arrayType.should.eql(VariantArrayType.Matrix);
-        dataValueCheck.value.dimensions.should.eql([4, 5]);
+        dataValueCheck.value.dimensions!.should.eql([4, 5]);
         dataValueCheck.value.value.should.eql(
             // prettier-ignore
             new Float64Array([

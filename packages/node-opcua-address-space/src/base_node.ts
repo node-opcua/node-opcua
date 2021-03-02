@@ -18,10 +18,11 @@ import {
     makeNodeClassMask,
     NodeClass,
     QualifiedName,
-    QualifiedNameLike
+    QualifiedNameLike,
+    QualifiedNameOptions
 } from "node-opcua-data-model";
 import { DataValue } from "node-opcua-data-value";
-import { dumpIf } from "node-opcua-debug";
+import { dumpIf, make_warningLog } from "node-opcua-debug";
 import { makeNodeId, NodeId, NodeIdLike, resolveNodeId, sameNodeId } from "node-opcua-nodeid";
 import { NumericRange } from "node-opcua-numeric-range";
 import { ReferenceDescription } from "node-opcua-service-browse";
@@ -30,6 +31,7 @@ import { BrowseDescription, RelativePathElement } from "node-opcua-types";
 import * as utils from "node-opcua-utils";
 import { lowerFirstLetter } from "node-opcua-utils";
 import { DataType } from "node-opcua-variant";
+import { StringDecoder } from "string_decoder";
 
 import {
     AddReferenceOpts,
@@ -73,6 +75,7 @@ import { UAReferenceType } from "./ua_reference_type";
 // tslint:disable:no-console
 
 const doDebug = false;
+const warningLog = make_warningLog(__filename);
 
 function defaultBrowseFilterFunc(context?: SessionContext): boolean {
     return true;
@@ -535,6 +538,8 @@ export class BaseNode extends EventEmitter implements BaseNodePublic {
     /**
      * retrieve a component by name
      */
+    public getComponentByName(browseName: QualifiedNameOptions): UAVariablePublic | UAObjectPublic | null;
+    public getComponentByName(browseName: string, namespaceIndex?: number): UAVariablePublic | UAObjectPublic | null;
     public getComponentByName(browseName: QualifiedNameLike, namespaceIndex?: number): UAVariablePublic | UAObjectPublic | null {
         const components = this.getComponents();
         const select = _filter_by_browse_name(components, browseName, namespaceIndex);
@@ -542,7 +547,7 @@ export class BaseNode extends EventEmitter implements BaseNodePublic {
         if (select.length === 1) {
             const component = select[0];
             if (component.nodeClass === NodeClass.Method) {
-                console.log("please use getMethodByName to retrieve a method");
+                warningLog("please use getMethodByName to retrieve a method");
                 return null;
             }
             assert(component.nodeClass === NodeClass.Variable || component.nodeClass === NodeClass.Object);
@@ -555,21 +560,24 @@ export class BaseNode extends EventEmitter implements BaseNodePublic {
     /**
      * retrieve a property by name
      */
-    public getPropertyByName(browseName: string, namespaceIndex?: number): UAVariablePublic | null {
+    public getPropertyByName(browseName: QualifiedNameOptions): UAVariablePublic | null;
+    public getPropertyByName(browseName: string, namespaceIndex?: number): UAVariablePublic | null;
+    public getPropertyByName(browseName: QualifiedNameLike, namespaceIndex?: number): UAVariablePublic | null {
         const properties = this.getProperties();
         const select = _filter_by_browse_name(properties, browseName, namespaceIndex);
         assert(select.length <= 1, "BaseNode#getPropertyByName found duplicated reference");
         if (select.length === 1 && select[0].nodeClass !== NodeClass.Variable) {
-            throw new Error("Expecting a property to be of TypeVariable");
+            throw new Error("Expecting a property to be of nodeClass==NodeClass.Variable");
         }
         return select.length === 1 ? ((select[0] as any) as UAVariablePublic) : null;
     }
 
     /**
-     * retrieve a folder by name
+     * retrieve a folder element by name
      */
-    public getFolderElementByName(browseName: string, namespaceIndex?: number): BaseNode | null {
-        assert(typeof browseName === "string");
+    public getFolderElementByName(browseName: QualifiedNameOptions): BaseNode | null;
+    public getFolderElementByName(browseName: string, namespaceIndex?: number): BaseNode | null;
+    public getFolderElementByName(browseName: QualifiedNameLike, namespaceIndex?: number): BaseNode | null {
         const elements = this.getFolderElements();
         const select = _filter_by_browse_name(elements, browseName, namespaceIndex);
         return select.length === 1 ? select[0] : null;
@@ -608,7 +616,7 @@ export class BaseNode extends EventEmitter implements BaseNodePublic {
         return found || null;
     }
 
-    public getMethodByName(browseName: string, namespaceIndex?: number): UAMethodPublic | null {
+    public getMethodByName(browseName: QualifiedNameLike, namespaceIndex?: number): UAMethodPublic | null {
         const methods = this.getMethods();
         const select = _filter_by_browse_name(methods, browseName, namespaceIndex);
         assert(select.length <= 1, "BaseNode#getMethodByName found duplicated reference");
@@ -1070,7 +1078,9 @@ export class BaseNode extends EventEmitter implements BaseNodePublic {
         // return _private._cache._HasChildReferences;
     }
 
-    public getChildByName(browseName: string | QualifiedName): BaseNode | null {
+    public getChildByName(browseName: QualifiedNameOptions): BaseNode | null;
+    public getChildByName(browseName: string, namespaceIndex?: number): BaseNode | null;
+    public getChildByName(browseName: QualifiedNameLike, namespaceIndex?: number): BaseNode | null {
         // Attention: getChild doesn't care about namespace on browseName
         //            !!!!
         if (browseName instanceof QualifiedName) {
@@ -1091,7 +1101,7 @@ export class BaseNode extends EventEmitter implements BaseNodePublic {
                 _private._cache._childByNameMap[child.browseName.name!.toString()] = child;
             }
         }
-        const ret = _private._cache._childByNameMap[browseName] || null;
+        const ret = _private._cache._childByNameMap[browseName.toString()] || null;
         return ret;
     }
 
@@ -1367,11 +1377,15 @@ function _filter_by_browse_name<T extends BaseNodePublic>(
     namespaceIndex?: number
 ): T[] {
     let select: T[] = [];
-    if (namespaceIndex === null || namespaceIndex === undefined) {
+    if ((namespaceIndex === null || namespaceIndex === undefined) && (typeof browseName === "string")) {
         select = components.filter((c: T) => c.browseName.name!.toString() === browseName);
+        if (select && select.length > 1) {
+            warningLog("Multiple children exist with name ", browseName, " please specify a namespace index");
+        }
     } else {
+        const _browseName = coerceQualifiedName(typeof browseName=== "string" ? { name: browseName, namespaceIndex} : browseName)!;
         select = components.filter(
-            (c: T) => c.browseName.name!.toString() === browseName && c.browseName.namespaceIndex === namespaceIndex
+            (c: T) => c.browseName.name === _browseName.name && c.browseName.namespaceIndex === _browseName.namespaceIndex
         );
     }
     return select;
