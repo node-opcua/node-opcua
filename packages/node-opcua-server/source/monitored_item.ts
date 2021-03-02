@@ -192,26 +192,54 @@ function apply_dataChange_filter(this: MonitoredItem, newDataValue: DataValue, o
     }
 
     const trigger = this.filter.trigger;
-
+    // istanbul ignore next
+    if (doDebug) {
+        try {
+        debugLog("filter pass ?", DataChangeTrigger[trigger] ,this.oldDataValue?.toString(), newDataValue.toString());
+        if (
+            trigger === DataChangeTrigger.Status ||
+            trigger === DataChangeTrigger.StatusValue ||
+            trigger === DataChangeTrigger.StatusValueTimestamp
+        ) {
+            debugLog("statusCodeHasChanged ", statusCodeHasChanged(newDataValue, oldDataValue));
+        }
+        if (trigger === DataChangeTrigger.StatusValue || trigger === DataChangeTrigger.StatusValueTimestamp) {
+            debugLog(
+                "valueHasChanged ",
+                valueHasChanged.call(this, newDataValue, oldDataValue, this.filter!.deadbandType, this.filter!.deadbandValue)
+            );
+        }
+        if (trigger === DataChangeTrigger.StatusValueTimestamp) {
+            debugLog("timestampHasChanged ", timestampHasChanged(newDataValue.sourceTimestamp, oldDataValue.sourceTimestamp));
+        }
+    } catch(err) {
+        console.log(err);
+    }
+    }
     switch (trigger) {
-        case DataChangeTrigger.Status: // Status
+        case DataChangeTrigger.Status: {
+            //
+            //              Status
             //              Report a notification ONLY if the StatusCode associated with
             //              the value changes. See Table 166 for StatusCodes defined in
             //              this standard. Part 8 specifies additional StatusCodes that are
             //              valid in particular for device data.
             return statusCodeHasChanged(newDataValue, oldDataValue);
-
-        case DataChangeTrigger.StatusValue: // StatusValue
-            //              Report a notification if either the StatusCode or the value
-            //              change. The Deadband filter can be used in addition for
+        }
+        case DataChangeTrigger.StatusValue:
+        {
             //              filtering value changes.
+            //              change. The Deadband filter can be used in addition for
+            //              Report a notification if either the StatusCode or the value
+            //              StatusValue
             //              This is the default setting if no filter is set.
             return (
                 statusCodeHasChanged(newDataValue, oldDataValue) ||
                 valueHasChanged.call(this, newDataValue, oldDataValue, this.filter.deadbandType, this.filter.deadbandValue)
             );
-
+        }
         default:
+        {
             // StatusValueTimestamp
             //              Report a notification if either StatusCode, value or the
             //              SourceTimestamp change.
@@ -226,6 +254,7 @@ function apply_dataChange_filter(this: MonitoredItem, newDataValue: DataValue, o
                 statusCodeHasChanged(newDataValue, oldDataValue) ||
                 valueHasChanged.call(this, newDataValue, oldDataValue, this.filter.deadbandType, this.filter.deadbandValue)
             );
+        }
     }
     return false;
 }
@@ -591,7 +620,6 @@ export class MonitoredItem extends EventEmitter {
         }
 
         if (!apply_filter.call(this, dataValue)) {
-            debugLog("filter did not pass");
             return;
         }
 
@@ -623,22 +651,27 @@ export class MonitoredItem extends EventEmitter {
         }
         return this._linkedItems.findIndex((x) => x === linkedMonitoredItemId) > 0;
     }
-    public addLinkItem(linkedMonitoredItemId: number) {
+    public addLinkItem(linkedMonitoredItemId: number): StatusCode {
+        if (linkedMonitoredItemId === this.monitoredItemId) {
+            return StatusCodes.BadMonitoredItemIdInvalid;
+        }
         this._linkedItems = this._linkedItems || [];
         if (this.hasLinkItem(linkedMonitoredItemId)) {
-            return; // nothing to do
+            return StatusCodes.BadMonitoredItemIdInvalid; // nothing to do
         }
         this._linkedItems.push(linkedMonitoredItemId);
+        return StatusCodes.Good;
     }
-    public removeLinkItem(linkedMonitoredItemId: number): void {
-        if (!this._linkedItems) {
-            return;
+    public removeLinkItem(linkedMonitoredItemId: number): StatusCode {
+        if (!this._linkedItems || linkedMonitoredItemId === this.monitoredItemId) {
+            return StatusCodes.BadMonitoredItemIdInvalid;
         }
         const index = this._linkedItems.findIndex((x) => x === linkedMonitoredItemId);
         if (index === -1) {
-            return;
+            return StatusCodes.BadMonitoredItemIdInvalid;
         }
         this._linkedItems.splice(index, 1);
+        return StatusCodes.Good;
     }
     /**
      * @internals
@@ -662,6 +695,10 @@ export class MonitoredItem extends EventEmitter {
             }
             assert(linkedMonitoredItem.monitoringMode === MonitoringMode.Sampling);
 
+            // istanbul ignore next
+            if (doDebug) {
+                debugLog("triggerLinkedItems => ", this.node?.nodeId.toString(), linkedMonitoredItem.node?.nodeId.toString());
+            }
             linkedMonitoredItem.trigger();
         }
     }
@@ -674,9 +711,11 @@ export class MonitoredItem extends EventEmitter {
      * @internals
      */
     private trigger() {
-        this._triggeredNotifications = this._triggeredNotifications || [];
-        const notifications = this.extractMonitoredItemNotifications(true);
-        this._triggeredNotifications = ([] as QueueItem[]).concat(this._triggeredNotifications!, notifications);
+        setImmediate(() => {
+            this._triggeredNotifications = this._triggeredNotifications || [];
+            const notifications = this.extractMonitoredItemNotifications(true);
+            this._triggeredNotifications = ([] as QueueItem[]).concat(this._triggeredNotifications!, notifications);
+        });
     }
 
     public extractMonitoredItemNotifications(bForce: boolean = false): QueueItem[] {

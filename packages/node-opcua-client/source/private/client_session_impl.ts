@@ -962,6 +962,7 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession {
      * @param value   {Variant} - the value to write
      * @return {Promise<StatusCode>} - the status code of the write
      *
+     * @deprecated
      */
     public writeSingleNode(nodeId: NodeIdLike, value: VariantLike, callback: ResponseCallback<StatusCode>): void;
 

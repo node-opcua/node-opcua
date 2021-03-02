@@ -692,24 +692,28 @@ export class Subscription extends EventEmitter {
         const monitoredItemsToAdd = linksToAdd.map((id) => this.getMonitoredItem(id));
         const monitoredItemsToRemove = linksToRemove.map((id) => this.getMonitoredItem(id));
 
-        const addResults: StatusCode[] = monitoredItemsToAdd.map((m) =>
-            m ? StatusCodes.Good : StatusCodes.BadMonitoredItemIdInvalid
-        );
-        const removeResults: StatusCode[] = monitoredItemsToRemove.map((m) =>
-            m ? StatusCodes.Good : StatusCodes.BadMonitoredItemIdInvalid
-        );
-
         if (!triggeringItem) {
+            const removeResults1: StatusCode[] = monitoredItemsToRemove.map((m) =>
+                m ? StatusCodes.Good : StatusCodes.BadMonitoredItemIdInvalid
+            );
+            const addResults1: StatusCode[] = monitoredItemsToAdd.map((m) =>
+                m ? StatusCodes.Good : StatusCodes.BadMonitoredItemIdInvalid
+            );
             return {
                 statusCode: StatusCodes.BadMonitoredItemIdInvalid,
 
-                addResults,
-                removeResults
+                addResults: addResults1,
+                removeResults: removeResults1
             };
         }
         //
-        monitoredItemsToAdd.forEach((m) => !m || triggeringItem.addLinkItem(m.monitoredItemId));
-        monitoredItemsToRemove.forEach((m) => !m || triggeringItem.removeLinkItem(m.monitoredItemId));
+        // note: it seems that CTT imposed that we do remove before add
+        const removeResults = monitoredItemsToRemove.map((m) =>
+            !m ? StatusCodes.BadMonitoredItemIdInvalid : triggeringItem.removeLinkItem(m.monitoredItemId)
+        );
+        const addResults = monitoredItemsToAdd.map((m) =>
+            !m ? StatusCodes.BadMonitoredItemIdInvalid : triggeringItem.addLinkItem(m.monitoredItemId)
+        );
 
         const statusCode: StatusCode = StatusCodes.Good;
 
