@@ -18,7 +18,7 @@ import { DataType, VariantArrayType, Variant } from "node-opcua-variant";
 import { DataValue } from "node-opcua-data-value";
 import { AttributeIds } from "node-opcua-data-model";
 import { NodeId, coerceNodeId } from "node-opcua-nodeid";
-import { AddressSpace, Namespace, SessionContext } from "node-opcua-address-space";
+import { AddressSpace, Namespace, SessionContext, UAVariable } from "node-opcua-address-space";
 
 import { MonitoredItem, Subscription, ServerEngine, ServerSidePublishEngine, SubscriptionState } from "..";
 
@@ -132,14 +132,17 @@ describe("Subscriptions and MonitoredItems and triggering", function (this: any)
         test.clock = sinon.useFakeTimers(now);
     });
 
-    function install_spying_samplingFunc() {
-        unfreeze_data_source();
-        let sample_value = 0;
+    function multipleIncrement(nodeIds: NodeId[]) {
+        nodeIds.map((nodeId: NodeId) => {
+            const variable = addressSpace.findNode(nodeId) as UAVariable;
+            const dataValue = variable.readValue();
+            variable.setValueFromSource({ dataType: DataType.UInt32, value: dataValue.value.value + 1 });
+        });
+    }
+    function install_spying_samplingFunc(nodeId: NodeId) {
         const spy_samplingEventCall = sinon.spy((oldValue, callback) => {
-            if (!dataSourceFrozen) {
-                sample_value++;
-            }
-            const dataValue = new DataValue({ value: { dataType: DataType.UInt32, value: sample_value } });
+            const variable = addressSpace.findNode(nodeId) as UAVariable;
+            const dataValue = variable.readValue();
             callback(null, dataValue);
         });
         return spy_samplingEventCall;
@@ -166,8 +169,9 @@ describe("Subscriptions and MonitoredItems and triggering", function (this: any)
         subscription.state.should.equal(SubscriptionState.CREATING);
         send_response_for_request_spy.callCount.should.equal(0);
 
+        multipleIncrement([nodeIdV1, nodeIdV2, nodeIdV3, nodeIdV4]);
         subscription.on("monitoredItem", (monitoredItem) => {
-            monitoredItem.samplingFunc = install_spying_samplingFunc();
+            monitoredItem.samplingFunc = install_spying_samplingFunc(monitoredItem.node.nodeId);
         });
     });
     afterEach(() => {
@@ -191,7 +195,8 @@ describe("Subscriptions and MonitoredItems and triggering", function (this: any)
             monitoringMode,
             requestedParameters: {
                 clientHandle,
-                queueSize: 10,
+                discardOldest: true,
+                queueSize: 1,
                 samplingInterval: 100,
 
                 filter: null
@@ -244,7 +249,6 @@ describe("Subscriptions and MonitoredItems and triggering", function (this: any)
 
     it("STG-1 should return BadNothingToDo if linksToAdd and linksToRemove are empty", () => {
         const createResult1 = installMonitoredItem(nodeIdV1, 1, MonitoringMode.Reporting);
-
         const result = subscription.setTriggering(createResult1.monitoredItemId, [], []);
         result.statusCode.should.eql(StatusCodes.BadNothingToDo);
     });
@@ -311,6 +315,9 @@ describe("Subscriptions and MonitoredItems and triggering", function (this: any)
         const createResult1 = installMonitoredItem(nodeIdV1, 1, MonitoringMode.Reporting);
         const createResult2 = installMonitoredItem(nodeIdV2, 2, MonitoringMode.Sampling);
         const createResult3 = installMonitoredItem(nodeIdV3, 3, MonitoringMode.Sampling);
+
+        multipleIncrement([nodeIdV1, nodeIdV2, nodeIdV3]);
+        test.clock.tick(100);
         // wait initial notification on itm 1
         const publishedResponse0 = waitInitialNotification();
         {
@@ -328,10 +335,16 @@ describe("Subscriptions and MonitoredItems and triggering", function (this: any)
         result.addResults.should.eql([StatusCodes.Good, StatusCodes.Good]);
         result.removeResults.should.eql([]);
 
+        multipleIncrement([nodeIdV1, nodeIdV2, nodeIdV3]);
+        test.clock.tick(100);
+
         const publishResponse = waitNextNotification();
 
         publishResponse.notificationMessage.notificationData!.length.should.eql(1);
         const notifs = (publishResponse.notificationMessage.notificationData![0] as DataChangeNotification).monitoredItems!;
+
+        // console.log(publishResponse.notificationMessage.toString());
+
         notifs.length.should.eql(3);
         notifs[0].clientHandle.should.eql(1);
         notifs[1].clientHandle.should.eql(2);
@@ -342,6 +355,9 @@ describe("Subscriptions and MonitoredItems and triggering", function (this: any)
         result1.statusCode.should.eql(StatusCodes.Good);
         result1.removeResults.should.eql([StatusCodes.Good]);
         result1.addResults.should.eql([]);
+
+        multipleIncrement([nodeIdV1, nodeIdV2, nodeIdV3]);
+        test.clock.tick(100);
 
         const publishResponse1 = waitNextNotification();
 
@@ -370,6 +386,8 @@ describe("Subscriptions and MonitoredItems and triggering", function (this: any)
         result.addResults.should.eql([StatusCodes.Good, StatusCodes.Good]);
         result.removeResults.should.eql([]);
 
+        multipleIncrement([nodeIdV1, nodeIdV2, nodeIdV3]);
+        test.clock.tick(100);
         const publishResponse = waitNextNotification();
         publishResponse.notificationMessage.notificationData!.length.should.eql(0);
     });
@@ -395,6 +413,8 @@ describe("Subscriptions and MonitoredItems and triggering", function (this: any)
         result.addResults.should.eql([StatusCodes.Good, StatusCodes.Good]);
         result.removeResults.should.eql([]);
 
+        multipleIncrement([nodeIdV1, nodeIdV2, nodeIdV3]);
+        test.clock.tick(100);
         const publishResponse = waitNextNotification();
 
         publishResponse.notificationMessage.notificationData!.length.should.eql(1);
@@ -413,6 +433,8 @@ describe("Subscriptions and MonitoredItems and triggering", function (this: any)
             const createResult2 = installMonitoredItem(nodeIdV2, 2, MonitoringMode.Reporting);
             const createResult3 = installMonitoredItem(nodeIdV3, 3, MonitoringMode.Reporting);
 
+            multipleIncrement([nodeIdV1, nodeIdV2, nodeIdV3]);
+            test.clock.tick(100);
             const publishedResponse0 = waitInitialNotification();
             {
                 publishedResponse0.notificationMessage.notificationData!.length.should.eql(1);
@@ -432,6 +454,8 @@ describe("Subscriptions and MonitoredItems and triggering", function (this: any)
             result.addResults.should.eql([StatusCodes.Good, StatusCodes.Good]);
             result.removeResults.should.eql([]);
 
+            multipleIncrement([nodeIdV1, nodeIdV2, nodeIdV3]);
+            test.clock.tick(100);
             const publishResponse = waitNextNotification();
 
             publishResponse.notificationMessage.notificationData!.length.should.eql(1);
@@ -466,6 +490,8 @@ describe("Subscriptions and MonitoredItems and triggering", function (this: any)
             result.addResults.should.eql([StatusCodes.Good, StatusCodes.Good]);
             result.removeResults.should.eql([]);
 
+            multipleIncrement([nodeIdV1, nodeIdV2, nodeIdV3]);
+            test.clock.tick(100);
             const publishResponse = waitNextNotification();
 
             publishResponse.notificationMessage.notificationData!.length.should.eql(1);
@@ -474,4 +500,60 @@ describe("Subscriptions and MonitoredItems and triggering", function (this: any)
             notifs[0].clientHandle.should.eql(1);
         }
     );
+
+    it("STG-11 SetTriggering: Remove the same link twice.", () => {
+        const createResult1 = installMonitoredItem(nodeIdV1, 1, MonitoringMode.Reporting);
+        const createResult2 = installMonitoredItem(nodeIdV2, 2, MonitoringMode.Reporting);
+        const createResult3 = installMonitoredItem(nodeIdV3, 3, MonitoringMode.Reporting);
+
+        const result0 = subscription.setTriggering(
+            createResult1.monitoredItemId,
+            [createResult2.monitoredItemId, createResult3.monitoredItemId],
+            []
+        );
+        const result1 = subscription.setTriggering(createResult1.monitoredItemId, [], [createResult3.monitoredItemId]);
+        result1.statusCode.should.eql(StatusCodes.Good);
+        result1.removeResults.should.eql([StatusCodes.Good]);
+        result1.addResults.should.eql([]);
+
+        const result2 = subscription.setTriggering(createResult1.monitoredItemId, [], [createResult3.monitoredItemId]);
+        result2.statusCode.should.eql(StatusCodes.Good);
+        result2.removeResults.should.eql([StatusCodes.BadMonitoredItemIdInvalid]);
+        result2.addResults.should.eql([]);
+    });
+    it("STG-12 SetTriggering: LinksToAdd and LinksToRemove are both empty.", () => {
+        const createResult1 = installMonitoredItem(nodeIdV1, 1, MonitoringMode.Reporting);
+
+        const result0 = subscription.setTriggering(createResult1.monitoredItemId, [], []);
+        result0.statusCode.should.eql(StatusCodes.BadNothingToDo);
+    });
+    it("STG-13 SetTriggering: Specify the same item in both linksToAdd and linksToRemove.", () => {
+        const createResult1 = installMonitoredItem(nodeIdV1, 1, MonitoringMode.Reporting);
+        const createResult2 = installMonitoredItem(nodeIdV2, 2, MonitoringMode.Reporting);
+        const createResult3 = installMonitoredItem(nodeIdV3, 3, MonitoringMode.Reporting);
+
+        const result1 = subscription.setTriggering(
+            createResult1.monitoredItemId,
+            [createResult2.monitoredItemId, createResult3.monitoredItemId],
+            [createResult2.monitoredItemId, createResult3.monitoredItemId]
+        );
+        result1.statusCode.should.eql(StatusCodes.Good);
+        result1.addResults.should.eql([StatusCodes.Good, StatusCodes.Good]);
+        result1.removeResults.should.eql([StatusCodes.BadMonitoredItemIdInvalid, StatusCodes.BadMonitoredItemIdInvalid]);
+    });
+
+    it("STG-14 triggeringItem and linked items cannot be the same - add", () => {
+        const createResult1 = installMonitoredItem(nodeIdV1, 1, MonitoringMode.Reporting);
+        const result1 = subscription.setTriggering(createResult1.monitoredItemId, [createResult1.monitoredItemId], []);
+        result1.statusCode.should.eql(StatusCodes.Good);
+        result1.addResults.should.eql([StatusCodes.BadMonitoredItemIdInvalid]);
+        result1.removeResults.should.eql([]);
+    });
+    it("STG-15 triggeringItem and linked items cannot be the same - remove", () => {
+        const createResult1 = installMonitoredItem(nodeIdV1, 1, MonitoringMode.Reporting);
+        const result1 = subscription.setTriggering(createResult1.monitoredItemId, [], [createResult1.monitoredItemId]);
+        result1.statusCode.should.eql(StatusCodes.Good);
+        result1.addResults.should.eql([]);
+        result1.removeResults.should.eql([StatusCodes.BadMonitoredItemIdInvalid]);
+    });
 });

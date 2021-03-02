@@ -9,6 +9,7 @@ import {
     ClientSessionRawSubscriptionService,
     ClientSidePublishEngine,
     ClientSubscription,
+    coerceNodeId,
     DataChangeFilter,
     DataChangeNotification,
     DataChangeTrigger,
@@ -396,6 +397,205 @@ export function t(test: any) {
 
                 monitoredItems[0].clientHandle.should.eql(t.monitoringParameters.clientHandle);
                 monitoredItems[1].clientHandle.should.eql(l2.monitoringParameters.clientHandle);
+            }
+        });
+        it("SetTriggering-4: Deadband testing of Linked items.", async () => {
+            // note: based on 020.js in CTT ( set)
+            const { session, subscription, publishEngine } = s;
+
+            const raw_notification_spy = sinon.spy();
+            subscription.on("raw_notification", raw_notification_spy);
+
+            const namespaceArray = await session.readNamespaceArray();
+            const simulationNamespaceIndex = namespaceArray.indexOf("urn://node-opcua-simulator");
+            console.log("simulationNamespaceIndex = ", simulationNamespaceIndex);
+
+            const triggerNodeId = coerceNodeId(`ns=${simulationNamespaceIndex};s=Static_Scalar_UInt16`);
+            const linkedNodeId1 = coerceNodeId(`ns=${simulationNamespaceIndex};s=Static_Scalar_Byte`);
+            const linkedNodeId2 = coerceNodeId(`ns=${simulationNamespaceIndex};s=Static_Scalar_Float`);
+
+            // create monitored items
+            let m1: ClientMonitoredItem;
+            let l1: ClientMonitoredItem;
+            let l2: ClientMonitoredItem;
+
+            {
+                m1 = await subscription.monitor(
+                    {
+                        nodeId: triggerNodeId,
+                        attributeId: 13
+                    },
+                    {
+                        discardOldest: true,
+                        queueSize: 1,
+                        samplingInterval: 0,
+                        filter: null
+                    },
+                    TimestampsToReturn.Both,
+                    MonitoringMode.Reporting
+                );
+                l1 = await subscription.monitor(
+                    {
+                        nodeId: linkedNodeId1,
+                        attributeId: 13
+                    },
+                    {
+                        discardOldest: true,
+                        queueSize: 1,
+                        samplingInterval: 0,
+                        filter: new DataChangeFilter({
+                            deadbandType: DeadbandType.Absolute,
+                            deadbandValue: 5,
+                            trigger: DataChangeTrigger.StatusValue,
+                        })
+                    },
+                    TimestampsToReturn.Both,
+                    MonitoringMode.Sampling
+                );
+                l2 = await subscription.monitor(
+                    {
+                        nodeId: linkedNodeId2,
+                        attributeId: 13
+                    },
+                    {
+                        discardOldest: true,
+                        queueSize: 1,
+                        samplingInterval: 0,
+                        filter: new DataChangeFilter({
+                            deadbandType: DeadbandType.Absolute,
+                            deadbandValue: 0.5,
+                            trigger: DataChangeTrigger.StatusValue
+                        })
+                    },
+                    TimestampsToReturn.Both,
+                    MonitoringMode.Sampling
+                );
+            }
+
+            let m1Value = 100;
+            let l1Value = 100;
+            let l2Value = 100;
+            // write initial values
+            {
+                const statusCodes = await session.write([
+                    {
+                        nodeId: triggerNodeId,
+                        attributeId: AttributeIds.Value,
+                        value: { value: { dataType: DataType.UInt16, value: m1Value } }
+                    },
+                    {
+                        nodeId: linkedNodeId1,
+                        attributeId: AttributeIds.Value,
+                        value: { value: { dataType: DataType.Byte, value: l1Value } }
+                    },
+                    {
+                        nodeId: linkedNodeId2,
+                        attributeId: AttributeIds.Value,
+                        value: { value: { dataType: DataType.Float, value: l2Value } }
+                    }
+                ]);
+                statusCodes.should.eql([StatusCodes.Good, StatusCodes.Good, StatusCodes.Good]);
+            }
+
+            // setLinks
+            const result = await subscription.setTriggering(m1, [l1, l2], []);
+            result.addResults!.should.eql([StatusCodes.Good, StatusCodes.Good]);
+
+            await waitUntilKeepAlive(publishEngine, subscription);
+            raw_notification_spy.resetHistory();
+
+            m1Value += 1;
+            {
+                const statusCodes = await session.write([
+                    {
+                        nodeId: triggerNodeId,
+                        attributeId: AttributeIds.Value,
+                        value: { value: { dataType: DataType.UInt16, value: m1Value } }
+                    }
+                ]);
+            }
+
+            await waitUntilKeepAlive(publishEngine, subscription);
+            raw_notification_spy.callCount.should.eql(2, "must  have received a changed notification and one empty notif");
+            {
+                const notification = raw_notification_spy.getCall(0).args[0] as NotificationMessage;
+                // tslint:disable-next-line: no-unused-expression
+                doDebug && console.log(notification.toString());
+
+                const monitoredItems = (notification.notificationData![0] as DataChangeNotification).monitoredItems!;
+
+                monitoredItems.length.should.eql(3);
+
+                monitoredItems[0].clientHandle.should.eql(m1.monitoringParameters.clientHandle);
+                monitoredItems[1].clientHandle.should.eql(l1.monitoringParameters.clientHandle);
+                monitoredItems[2].clientHandle.should.eql(l2.monitoringParameters.clientHandle);
+            }
+
+            const deadbandValuesInt = [0, 6, 7, 6, 20];
+            const deadbandValuesFloat = [0.0, 0.6, 0.5, 0.6, 1.5];
+            const successes = [true, true, false, false, true];
+
+            for (let i = 0; i < deadbandValuesInt.length; i++) {
+                // console.log("############################################### =>", i);
+                raw_notification_spy.resetHistory();
+
+                m1Value += 1;
+                l1Value = deadbandValuesInt[i];
+                l2Value = deadbandValuesFloat[i];
+                await session.write([
+                    {
+                        nodeId: triggerNodeId,
+                        attributeId: AttributeIds.Value,
+                        value: { value: { dataType: DataType.UInt16, value: m1Value } }
+                    },
+                    {
+                        nodeId: linkedNodeId1,
+                        attributeId: AttributeIds.Value,
+                        value: { value: { dataType: DataType.Byte, value: l1Value } }
+                    },
+                    {
+                        nodeId: linkedNodeId2,
+                        attributeId: AttributeIds.Value,
+                        value: { value: { dataType: DataType.Float, value: l2Value } }
+                    }
+                ]);
+                const dataValuesVerif = await session.read([
+                    {
+                        nodeId: triggerNodeId,
+                        attributeId: AttributeIds.Value
+                    },
+                    {
+                        nodeId: linkedNodeId1,
+                        attributeId: AttributeIds.Value
+                    },
+                    {
+                        nodeId: linkedNodeId2,
+                        attributeId: AttributeIds.Value
+                    }
+                ]);
+                dataValuesVerif[0].value.value.should.eql(m1Value);
+                dataValuesVerif[1].value.value.should.eql(l1Value);
+               Math.abs(dataValuesVerif[2].value.value - l2Value).should.be.lessThan(1E-6);
+
+                await pause(10);
+                await waitUntilKeepAlive(publishEngine, subscription);
+
+                const notification = raw_notification_spy.getCall(0).args[0] as NotificationMessage;
+                // tslint:disable-next-line: no-unused-expression
+                doDebug && console.log(notification.toString());
+
+                const monitoredItems = (notification.notificationData![0] as DataChangeNotification).monitoredItems!;
+
+                if (successes[i]) {
+                    monitoredItems.length.should.eql(3);
+
+                    monitoredItems[0].clientHandle.should.eql(m1.monitoringParameters.clientHandle);
+                    monitoredItems[1].clientHandle.should.eql(l1.monitoringParameters.clientHandle);
+                    monitoredItems[2].clientHandle.should.eql(l2.monitoringParameters.clientHandle);
+                } else {
+                    monitoredItems.length.should.eql(1);
+                    monitoredItems[0].clientHandle.should.eql(m1.monitoringParameters.clientHandle);
+                }
             }
         });
     });
