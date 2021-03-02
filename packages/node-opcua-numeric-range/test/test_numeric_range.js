@@ -697,7 +697,7 @@ describe("Testing numerical range", () => {
                 [
                     -33, -34, -35,
                     -43, -44, -45
-                ]
+                   ]
             );
             r.statusCode.should.eql(StatusCodes.Good);
             matrix[2 * 10 + 3].should.eql(-33);
