@@ -337,7 +337,7 @@ export class NumericRange implements NumericalRange1 {
         this.value = null;
 
         assert(!value || !(value instanceof NumericRange), "use coerce to create a NumericRange");
-
+        assert(!secondValue || typeof secondValue === "number" || Array.isArray(secondValue));
         if (typeof value === "string") {
             const a = construct_from_string(value as string);
             this.type = a.type;
