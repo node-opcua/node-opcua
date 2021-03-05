@@ -3,7 +3,7 @@ import * as chalk from "chalk";
 import * as fs from "fs";
 import * as os from "os";
 import * as path from "path";
-import { should } from "should";
+import * as should  from "should";
 import { promisify } from "util";
 import { hostname } from "os";
 import { OPCUACertificateManager } from "node-opcua-certificate-manager";

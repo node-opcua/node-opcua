@@ -20,7 +20,6 @@
     "node-opcua-client-dynamic-extension-object": "2.34.0",
     "node-opcua-enum": "2.29.0",
     "node-opcua-factory": "2.34.0",
-    "node-opcua-generator": "2.34.0",
     "node-opcua-nodeid": "2.34.0",
     "node-opcua-nodesets": "2.29.0",
     "node-opcua-pseudo-session": "2.34.0",

@@ -23,7 +23,6 @@
         "node-opcua-types": "2.34.0"
     },
     "devDependencies": {
-        "node-opcua-generator": "2.34.0",
         "node-opcua-packet-analyzer": "2.34.0",
         "node-opcua-service-read": "2.34.0"
     },

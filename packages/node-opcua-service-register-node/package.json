@@ -20,7 +20,6 @@
         "node-opcua-types": "2.34.0"
     },
     "devDependencies": {
-        "node-opcua-generator": "2.34.0"
     },
     "author": "Etienne Rossignon",
     "license": "MIT",

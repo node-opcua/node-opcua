@@ -3,9 +3,9 @@ import * as path from "path";
 import { promisify } from "util";
 
 import { Certificate, convertPEMtoDER, makeSHA1Thumbprint, split_der, toPem } from "node-opcua-crypto";
-import { CertificateManager, g_config } from "node-opcua-pki";
+import { CertificateManager, g_config } from "node-opcua-certificate-manager";
 import { StatusCodes } from "node-opcua-status-code";
-import { should } from "should";
+import * as should  from "should";
 
 import { UpdateCertificateResult } from "../..";
 import { PushCertificateManagerServerImpl } from "../..";

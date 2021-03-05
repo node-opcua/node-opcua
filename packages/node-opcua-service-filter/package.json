@@ -25,7 +25,6 @@
         "node-opcua-variant": "2.34.0"
     },
     "devDependencies": {
-        "node-opcua-generator": "2.34.0",
         "node-opcua-service-secure-channel": "2.34.0",
         "should": "^13.2.3"
     },

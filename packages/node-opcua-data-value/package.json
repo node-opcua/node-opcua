@@ -25,7 +25,6 @@
     },
     "devDependencies": {
         "node-opcua-debug": "2.31.0",
-        "node-opcua-generator": "2.34.0",
         "node-opcua-numeric-range": "2.34.0",
         "node-opcua-packet-analyzer": "2.34.0",
         "should": "^13.2.3"

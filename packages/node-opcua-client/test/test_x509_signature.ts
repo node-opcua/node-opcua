@@ -27,7 +27,7 @@ import {
     UserIdentityToken,
     X509IdentityToken
 } from "node-opcua-types";
-import { should } from "should";
+import * as should  from "should";
 import { promisify } from "util";
 
 const doDebug = false;

@@ -1,5 +1,3 @@
-// tslint:disable:no-var-requires
-// tslint:disable:no-console
 import * as fs from "fs";
 import * as path from "path";
 

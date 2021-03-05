@@ -4,7 +4,7 @@ import * as fs from "fs";
 import { readCertificate } from "node-opcua-crypto";
 import { X509IdentityToken } from "node-opcua-types";
 import { DataType } from "node-opcua-variant";
-import { should } from "should";
+import * as should  from "should";
 import { AddressSpace, BaseNode, Namespace, SessionContext, UAObject } from "..";
 
 // let's make sure should don't get removed by typescript optimizer

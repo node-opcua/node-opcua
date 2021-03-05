@@ -1,0 +1,10 @@
+dependencies:
+  browser-process-hrtime: 1.0.0
+lockfileVersion: 5.2
+packages:
+  /browser-process-hrtime/1.0.0:
+    dev: false
+    resolution:
+      integrity: sha512-9o5UecI3GhkpM6DrXr69PblIuWxPKk9Y0jHBRhdocZ2y7YECBFCsHm79Pr3OyR2AvjhDkabFJaDJMYRazHgsow==
+specifiers:
+  browser-process-hrtime: ^1.0.0

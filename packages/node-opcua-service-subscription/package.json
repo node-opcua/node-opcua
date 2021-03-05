@@ -28,7 +28,6 @@
         "node-opcua-buffer-utils": "2.29.0",
         "node-opcua-data-model": "2.34.0",
         "node-opcua-debug": "2.31.0",
-        "node-opcua-generator": "2.34.0",
         "node-opcua-numeric-range": "2.34.0",
         "node-opcua-packet-analyzer": "2.34.0",
         "node-opcua-secure-channel": "2.34.0",

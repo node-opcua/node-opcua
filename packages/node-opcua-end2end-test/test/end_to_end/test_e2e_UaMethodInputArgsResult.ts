@@ -1,6 +1,5 @@
 import { ClientSession, DataType, DiagnosticInfo, OPCUAClient, OPCUAServer, StatusCodes } from "node-opcua";
-import "should";
-import should = require("should");
+import * as should from "should";
 
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("list status codes for input arguments", () => {

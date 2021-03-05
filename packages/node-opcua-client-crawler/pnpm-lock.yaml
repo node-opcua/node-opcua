@@ -1,0 +1,22 @@
+dependencies:
+  '@types/underscore': 1.11.0
+  async: 3.2.0
+  underscore: 1.12.0
+lockfileVersion: 5.2
+packages:
+  /@types/underscore/1.11.0:
+    dev: false
+    resolution:
+      integrity: sha512-ipNAQLgRnG0EWN1cTtfdVHp5AyTW/PAMJ1PxLN4bAKSHbusSZbj48mIHiydQpN7GgQrYqwfnvZ573OVfJm5Nzg==
+  /async/3.2.0:
+    dev: false
+    resolution:
+      integrity: sha512-TR2mEZFVOj2pLStYxLht7TyfuRzaydfpxr3k9RpHIzMgw7A64dzsdqCxH1WJyQdoe8T10nDXd9wnEigmiuHIZw==
+  /underscore/1.12.0:
+    dev: false
+    resolution:
+      integrity: sha512-21rQzss/XPMjolTiIezSu3JAjgagXKROtNrYFEOWK109qY1Uv2tVjPTZ1ci2HgvQDA16gHYSthQIJfB+XId/rQ==
+specifiers:
+  '@types/underscore': ^1.10.24
+  async: ^3.2.0
+  underscore: ^1.12.0

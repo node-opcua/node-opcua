@@ -1,0 +1,71 @@
+dependencies:
+  bomstrip: 0.1.4
+  ltx: 2.10.0
+  xml-writer: 1.7.0
+devDependencies:
+  should: 13.2.3
+lockfileVersion: 5.2
+packages:
+  /bomstrip/0.1.4:
+    dev: false
+    resolution:
+      integrity: sha1-aSNnOCHMVHEatlYtQIhSZVzBGys=
+  /inherits/2.0.4:
+    dev: false
+    resolution:
+      integrity: sha512-k/vGaX4/Yla3WzyMCvTQOXYeIHvqOKtnqBduzTHpzpQZzAskKMhZ2K+EnBiSM9zGSoIFeMpXKxa4dYeZIQqewQ==
+  /ltx/2.10.0:
+    dependencies:
+      inherits: 2.0.4
+    dev: false
+    resolution:
+      integrity: sha512-RB4zR6Mrp/0wTNS9WxMvpgfht/7u/8QAC9DpPD19opL/4OASPa28uoliFqeDkLUU8pQ4aeAfATBZmz1aSAHkMw==
+  /should-equal/2.0.0:
+    dependencies:
+      should-type: 1.4.0
+    dev: true
+    resolution:
+      integrity: sha512-ZP36TMrK9euEuWQYBig9W55WPC7uo37qzAEmbjHz4gfyuXrEUgF8cUvQVO+w+d3OMfPvSRQJ22lSm8MQJ43LTA==
+  /should-format/3.0.3:
+    dependencies:
+      should-type: 1.4.0
+      should-type-adaptors: 1.1.0
+    dev: true
+    resolution:
+      integrity: sha1-m/yPdPo5IFxT04w01xcwPidxJPE=
+  /should-type-adaptors/1.1.0:
+    dependencies:
+      should-type: 1.4.0
+      should-util: 1.0.1
+    dev: true
+    resolution:
+      integrity: sha512-JA4hdoLnN+kebEp2Vs8eBe9g7uy0zbRo+RMcU0EsNy+R+k049Ki+N5tT5Jagst2g7EAja+euFuoXFCa8vIklfA==
+  /should-type/1.4.0:
+    dev: true
+    resolution:
+      integrity: sha1-B1bYzoRt/QmEOmlHcZ36DUz/XPM=
+  /should-util/1.0.1:
+    dev: true
+    resolution:
+      integrity: sha512-oXF8tfxx5cDk8r2kYqlkUJzZpDBqVY/II2WhvU0n9Y3XYvAYRmeaf1PvvIvTgPnv4KJ+ES5M0PyDq5Jp+Ygy2g==
+  /should/13.2.3:
+    dependencies:
+      should-equal: 2.0.0
+      should-format: 3.0.3
+      should-type: 1.4.0
+      should-type-adaptors: 1.1.0
+      should-util: 1.0.1
+    dev: true
+    resolution:
+      integrity: sha512-ggLesLtu2xp+ZxI+ysJTmNjh2U0TsC+rQ/pfED9bUZZ4DKefP27D+7YJVVTvKsmjLpIi9jAa7itwDGkDDmt1GQ==
+  /xml-writer/1.7.0:
+    dev: false
+    engines:
+      node: '>=0.4.0'
+    resolution:
+      integrity: sha1-t28dWRwWomNOvbcDx729D9aBkGU=
+specifiers:
+  bomstrip: ^0.1.4
+  ltx: ^2.10.0
+  should: ^13.2.3
+  xml-writer: ^1.7.0
