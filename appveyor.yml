@@ -9,6 +9,7 @@ environment:
     # - nodejs_version: "11" (not supported any more)
     - nodejs_version: "12" 
     - nodejs_version: "14"
+    - nodejs_version: "15"
 
 platform:
   - x64
@@ -28,19 +29,18 @@ install:
   # Get the latest stable version of Node.js or io.js
   - ps: Install-Product node $env:nodejs_version $env:platform
   # install modules (using appveyor-retry to prevent EPERM bug)
-  - npm install -g npm
-  - npm install -g typescript@3.8.3 ts-node
+  - npm install -g npm pnpm typescript ts-node
   - set path=C:\Users\appveyor\AppData\Roaming\npm\;%path%
   - tsc --version
-  - appveyor-retry npm install
+  - appveyor-retry pnpm install
 
 # Post-install test scripts.
 test_script:
   # Output useful info for debugging.
   - node --version
-  - npm --version
+  - pnpm --version
   # run tests
-  - npm test
+  - pnpm test
   # run typescript in packages that have some
   # - node  ./node_modules/lerna/cli.js run test-typescript
 

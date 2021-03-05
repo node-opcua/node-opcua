@@ -8,6 +8,7 @@ import {
     publicEncrypt_long,
     readCertificate,
     readKeyPem,
+    DerivedKeys, 
     RSA_PKCS1_PADDING
 } from "node-opcua-crypto";
 import { AsymmetricAlgorithmSecurityHeader, SymmetricAlgorithmSecurityHeader } from "node-opcua-service-secure-channel";
@@ -100,7 +101,7 @@ const globalOptions = {
     algorithm: "aes-128-cbc"
 };
 
-export const derivedKeys = computeDerivedKeys(secret, seed, globalOptions);
+export const derivedKeys: DerivedKeys = computeDerivedKeys(secret, seed, globalOptions);
 
 export function iterateOnSymmetricEncryptedChunk(buffer: Buffer, callback: ChunkVisitorFunc) {
 

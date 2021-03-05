@@ -4,7 +4,7 @@ import * as path from "path";
 import { promisify } from "util";
 
 import * as rimraf from "rimraf";
-import { should } from "should";
+import * as should  from "should";
 
 import {
     Certificate,
@@ -18,7 +18,11 @@ import {
     toPem
 } from "node-opcua-crypto";
 import { getFullyQualifiedDomainName } from "node-opcua-hostname";
-import { CertificateAuthority, CertificateManager, g_config } from "node-opcua-pki";
+import { 
+    CertificateAuthority, 
+    CertificateManager, 
+    g_config 
+} from "node-opcua-certificate-manager";
 
 export const _tempFolder = path.join(__dirname, "../../temp");
 

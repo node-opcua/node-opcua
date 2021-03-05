@@ -1,4 +1,4 @@
-import {should } from "should";
+import * as should  from "should";
 import {
     ClientAlarm,
     ClientAlarmList,

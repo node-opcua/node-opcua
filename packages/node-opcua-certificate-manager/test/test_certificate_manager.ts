@@ -11,7 +11,7 @@ const _should = should; // make sure should is not removed during typescript com
 
 import { Certificate, readCertificate, makeSHA1Thumbprint, readCertificateRevocationList } from "node-opcua-crypto";
 import { OPCUACertificateManager, OPCUACertificateManagerOptions } from "../source";
-import { CertificateAuthority, CertificateManager } from "node-opcua-pki";
+import { CertificateAuthority, CertificateManager } from "..";
 
 async function t(a: number) {
     return await new Promise((resolve) => setTimeout(resolve, 1000));

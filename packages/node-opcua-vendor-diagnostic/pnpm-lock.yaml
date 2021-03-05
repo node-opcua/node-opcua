@@ -1,0 +1,10 @@
+dependencies:
+  humanize: 0.0.9
+lockfileVersion: 5.2
+packages:
+  /humanize/0.0.9:
+    dev: false
+    resolution:
+      integrity: sha1-GZT/rs3+nEQe0r2sdFK3u0yeQaQ=
+specifiers:
+  humanize: 0.0.9

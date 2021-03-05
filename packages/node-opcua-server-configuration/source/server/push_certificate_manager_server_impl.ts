@@ -8,11 +8,22 @@ import { promisify } from "util";
 
 import { assert } from "node-opcua-assert";
 import { ByteString, StatusCodes } from "node-opcua-basic-types";
-import { convertPEMtoDER, exploreCertificate, makeSHA1Thumbprint, readPrivateKey, toPem } from "node-opcua-crypto";
-import { Certificate, CertificatePEM, privateDecrypt_long, PrivateKey, PrivateKeyPEM, publicEncrypt_long } from "node-opcua-crypto";
+import {
+    convertPEMtoDER,
+    exploreCertificate,
+    makeSHA1Thumbprint,
+    readPrivateKey,
+    toPem,
+    Certificate,
+    CertificatePEM,
+    privateDecrypt_long,
+    PrivateKey,
+    PrivateKeyPEM,
+    publicEncrypt_long
+} from "node-opcua-crypto";
 import { checkDebugFlag, make_debugLog, make_errorLog } from "node-opcua-debug";
 import { NodeId, resolveNodeId, sameNodeId } from "node-opcua-nodeid";
-import { CertificateManager } from "node-opcua-pki";
+import { CertificateManager } from "node-opcua-certificate-manager";
 import { StatusCode } from "node-opcua-status-code";
 
 import {

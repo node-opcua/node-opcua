@@ -8,5 +8,5 @@ extension:
   - js
   - ts
 timeout: 50000
-parallel: true
+# parallel: true
 # jobs: 10

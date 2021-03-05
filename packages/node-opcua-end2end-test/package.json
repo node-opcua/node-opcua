@@ -29,7 +29,6 @@
         "node-opcua-debug": "2.31.0",
         "node-opcua-extension-object": "2.34.0",
         "node-opcua-factory": "2.34.0",
-        "node-opcua-generator": "2.34.0",
         "node-opcua-hostname": "2.29.0",
         "node-opcua-leak-detector": "2.31.0",
         "node-opcua-nodeid": "2.34.0",

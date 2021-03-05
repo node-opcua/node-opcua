@@ -6,7 +6,7 @@ import { generateAddressSpace } from "node-opcua-address-space/nodeJS";
 import { NodeClass } from "node-opcua-data-model";
 import { nodesets } from "node-opcua-nodesets";
 
-import { CertificateManager } from "node-opcua-pki";
+import { CertificateManager } from "node-opcua-certificate-manager";
 
 import { NodeId } from "node-opcua-nodeid";
 import { StatusCodes } from "node-opcua-status-code";

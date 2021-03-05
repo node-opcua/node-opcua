@@ -3,7 +3,7 @@ import {
     getFullyQualifiedDomainName,
     resolveFullyQualifiedDomainName
 } from "..";
-import { should } from "should";
+import * as should  from "should";
 
 // tslint:disable:no-console
 describe("hostname", () => {

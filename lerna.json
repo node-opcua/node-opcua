@@ -4,5 +4,6 @@
     "packages_extra/*"
   ],
   "version": "2.34.0",
+  "npmClient": "pnpm",
   "exact": true
 }

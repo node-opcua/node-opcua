@@ -711,16 +711,16 @@ export class UAVariable extends BaseNode implements UAVariablePublic {
             return callback!(null, statusCode);
         }
 
-        const write_func =
-            this._timestamped_set_func ||
-            ((
-                dataValue1: DataValue,
-                indexRange1: NumericRange,
-                callback1: (err: Error | null, statusCode: StatusCode, dataValue?: DataValue | null | undefined) => void
-            ) => {
-                // xx assert(!indexRange,"indexRange Not Implemented");
-                return _default_writable_timestamped_set_func.call(this, dataValue1, callback1);
-            });
+        function default_func(this: UAVariable,
+            dataValue1: DataValue,
+            indexRange1: NumericRange,
+            callback1: (err: Error | null, statusCode: StatusCode, dataValue?: DataValue | null | undefined) => void
+        ) {
+            // xx assert(!indexRange,"indexRange Not Implemented");
+            return _default_writable_timestamped_set_func.call(this, dataValue1, callback1);
+        }
+        const write_func = (this._timestamped_set_func || default_func ) as any;
+
 
         if (!write_func) {
             console.log(" warning " + this.nodeId.toString() + " " + this.browseName.toString() + " has no setter. \n");
@@ -1314,7 +1314,7 @@ export class UAVariable extends BaseNode implements UAVariablePublic {
                         propertyNode._dataValue.value.value = value;
                         return new DataValue(propertyNode._dataValue);
                     },
-                    timestamped_set(dataValue, callback) {
+                    timestamped_set(dataValue: DataValue, callback: CallbackT<StatusCode>) {
                         callback(null, StatusCodes.BadNotWritable);
                     }
                 },
@@ -1354,7 +1354,7 @@ export class UAVariable extends BaseNode implements UAVariablePublic {
                         d.value = new Variant(d.value);
                         return d;
                     },
-                    timestamped_set(dataValue, callback) {
+                    timestamped_set(dataValue: DataValue, callback: CallbackT<StatusCode>) {
                         const ext = dataValue.value.value;
                         if (!self.checkExtensionObjectIsCorrect(ext)) {
                             return callback(null, StatusCodes.BadInvalidArgument);

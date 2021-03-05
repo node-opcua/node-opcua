@@ -2,21 +2,25 @@ image: node:latest
 
 stages:
   - build
-  - test
 cache:
+  key: ${CI_COMMIT_REF_SLUG}
   paths:
+    - .npm/
     - node_modules/
     - packages/
+    - /root/.pnpm-store
 
-install_dependencies:
+build_and_test:
   stage: build
+  before_script:
+    - curl -L https://unpkg.com/@pnpm/self-installer | node
+    - pnpm config set store-dir /root/.pnpm-store
+    - pnpm install
   script:
-    - npm install
+    - pnpm run build
+    - pnpm test
   artifacts:
     paths:
       - node_modules/
       - packages/
 
-testing_testing:
-  stage: test
-  script: npm test

@@ -58,7 +58,6 @@
         "node-opcua-benchmarker": "2.29.0",
         "node-opcua-binary-stream": "2.29.0",
         "node-opcua-extension-object": "2.34.0",
-        "node-opcua-generator": "2.34.0",
         "node-opcua-leak-detector": "2.31.0",
         "node-opcua-nodesets": "2.29.0",
         "node-opcua-packet-analyzer": "2.34.0",
