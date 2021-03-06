@@ -1,6 +1,7 @@
 dependencies:
   browser-process-hrtime: 1.0.0
   chalk: 4.1.0
+  node-opcua-assert: link:../node-opcua-assert
 devDependencies:
   '@types/node': 14.14.31
   should: 13.2.3
@@ -173,5 +174,6 @@ specifiers:
   '@types/node': ^14.14.31
   browser-process-hrtime: ^1.0.0
   chalk: ^4.1.0
+  node-opcua-assert: 2.29.0
   should: ^13.2.3
   sinon: ^9.2.4

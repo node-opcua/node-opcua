@@ -1,37 +1,37 @@
 {
-	"name": "node-opcua-vendor-diagnostic",
-	"version": "2.34.0",
-	"description": "pure nodejs OPCUA SDK - module -vendor-diagnostic",
-	"main": "./dist/index.js",
-	"types": "./dist/index.d.ts",
-	"scripts": {
-		"build": "tsc -b",
-		"clean": "node -e \"require('rimraf').sync('dist');\"",
-		"test": "echo no test"
-	},
-	"dependencies": {
-		"humanize": "0.0.9",
-		"node-opcua-address-space": "2.34.0",
-		"node-opcua-assert": "2.29.0",
-		"node-opcua-constants": "2.29.0",
-		"node-opcua-server": "2.34.0",
-		"node-opcua-status-code": "2.34.0",
-		"node-opcua-variant": "2.34.0"
-	},
-	"author": "Etienne Rossignon",
-	"license": "MIT",
-	"repository": {
-		"type": "git",
-		"url": "git://github.com/node-opcua/node-opcua.git"
-	},
-	"keywords": [
-		"OPCUA",
-		"opcua",
-		"m2m",
-		"iot",
-		"opc ua",
-		"internet of things"
-	],
-	"homepage": "http://node-opcua.github.io/",
-	"gitHead": "07dcdd8e8c7f2b55544c6e23023093e35674829c"
+    "name": "node-opcua-vendor-diagnostic",
+    "version": "2.34.0",
+    "description": "pure nodejs OPCUA SDK - module -vendor-diagnostic",
+    "main": "./dist/index.js",
+    "types": "./dist/index.d.ts",
+    "scripts": {
+        "build": "tsc -b",
+        "clean": "node -e \"require('rimraf').sync('dist');\"",
+        "test": "echo no test"
+    },
+    "dependencies": {
+        "humanize": "0.0.9",
+        "node-opcua-address-space": "2.34.0",
+        "node-opcua-assert": "2.29.0",
+        "node-opcua-constants": "2.29.0",
+        "node-opcua-server": "2.34.0",
+        "node-opcua-status-code": "2.34.0",
+        "node-opcua-variant": "2.34.0"
+    },
+    "author": "Etienne Rossignon",
+    "license": "MIT",
+    "repository": {
+        "type": "git",
+        "url": "git://github.com/node-opcua/node-opcua.git"
+    },
+    "keywords": [
+        "OPCUA",
+        "opcua",
+        "m2m",
+        "iot",
+        "opc ua",
+        "internet of things"
+    ],
+    "homepage": "http://node-opcua.github.io/",
+    "gitHead": "07dcdd8e8c7f2b55544c6e23023093e35674829c"
 }

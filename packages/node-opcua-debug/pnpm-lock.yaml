@@ -1,6 +1,8 @@
 dependencies:
   chalk: 4.1.0
   hexy: 0.3.1
+  node-opcua-assert: link:../node-opcua-assert
+  node-opcua-buffer-utils: link:../node-opcua-buffer-utils
 devDependencies:
   should: 13.2.3
 lockfileVersion: 5.2
@@ -94,4 +96,6 @@ packages:
 specifiers:
   chalk: ^4.1.0
   hexy: ^0.3.1
+  node-opcua-assert: 2.29.0
+  node-opcua-buffer-utils: 2.29.0
   should: ^13.2.3

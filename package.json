@@ -10,14 +10,15 @@
         "test": "test"
     },
     "scripts": {
-        "preinstall": "node --eval \"!process.env.npm_config_user_agent.startsWith('pnpm/')&&(console.log('Use `pnpm install` to install dependencies in this repository')||true)&&process.exit(1)\"",
+        "preinstall": "node prevent_npm_install.js",
+        "postinstall": "pnpm build",
         "_x_preinstall": "npm i browserify -g",
-        "bootstrap": "node  ./node_modules/lerna/cli.js bootstrap",
-        "bootstrap-fast": "node  ./node_modules/lerna/cli.js bootstrap --ignore-scripts --no-sort",
+        "bootstrap": "pnpm recursive install && lerna bootstrap --concurrency 10 --ignore-scripts",
+        "bootstrap-fast": "pnpm recursive install",
         "build1": "node  ./node_modules/lerna/cli.js --stream --sort --concurrency=1 run build",
-        "build": "npm run generate && tsc -b packages",
-        "generate": "node  ./node_modules/lerna/cli.js run generate",
-        "postinstall": "npm run bootstrap && npm run build",
+        "build": "npm run generateWithPNPM && tsc -b packages",
+        "generateWithPNPM": "pnpm recursive run generate",
+        "generateWithLerna": "node  ./node_modules/lerna/cli.js run generate",
         "pretest": "node  ./node_modules/lerna/cli.js run pretest",
         "_old_test": "cd source && mocha test --color -R spec --recursive --timeout 200000 --bail",
         "test": "cd packages && node  --max-old-space-size=512 run_all_mocha_tests.js",
@@ -84,7 +85,7 @@
         "typedoc": "^0.20.28",
         "typedoc-plugin-lerna-packages": "^0.3.1",
         "typescript": "^4.1.5"
-     },
+    },
     "typings": "./packages/node-opcua/node-opcua.d.ts",
     "dependencies": {
         "@cucumber/cucumber": "^7.0.0",
@@ -131,7 +132,6 @@
         "ltx": "^2.10.0",
         "mkdirp": "0.5.5",
         "mocha-clean": "^1.0.0",
-        "mocha-typescript": "^1.1.17",
         "node-opcua-crypto": "^1.7.1",
         "node-opcua-pki": "^2.8.0",
         "object.values": "^1.1.3",

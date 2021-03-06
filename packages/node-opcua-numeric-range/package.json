@@ -17,7 +17,7 @@
         "node-opcua-binary-stream": "2.29.0",
         "node-opcua-factory": "2.34.0",
         "node-opcua-status-code": "2.34.0"
-    },
+            },
     "devDependencies": {
         "node-opcua-nodeid": "2.34.0",
         "node-opcua-packet-analyzer": "2.34.0",

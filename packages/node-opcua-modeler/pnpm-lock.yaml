@@ -1,19 +1,27 @@
 dependencies:
-  '@types/csv-parse': 1.2.2
   chalk: 4.1.0
   cli-table3: 0.6.0
   csv-parse: 4.15.3
+  node-opcua-address-space: link:../node-opcua-address-space
+  node-opcua-assert: link:../node-opcua-assert
+  node-opcua-basic-types: link:../node-opcua-basic-types
+  node-opcua-client-dynamic-extension-object: link:../node-opcua-client-dynamic-extension-object
+  node-opcua-data-model: link:../node-opcua-data-model
+  node-opcua-factory: link:../node-opcua-factory
+  node-opcua-nodeid: link:../node-opcua-nodeid
+  node-opcua-nodesets: link:../node-opcua-nodesets
+  node-opcua-numeric-range: link:../node-opcua-numeric-range
+  node-opcua-schemas: link:../node-opcua-schemas
+  node-opcua-service-translate-browse-path: link:../node-opcua-service-translate-browse-path
+  node-opcua-status-code: link:../node-opcua-status-code
+  node-opcua-types: link:../node-opcua-types
+  node-opcua-variant: link:../node-opcua-variant
+  node-opcua-xml2json: link:../node-opcua-xml2json
 devDependencies:
+  node-opcua-leak-detector: link:../node-opcua-leak-detector
   should: 13.2.3
 lockfileVersion: 5.2
 packages:
-  /@types/csv-parse/1.2.2:
-    dependencies:
-      csv-parse: 4.15.3
-    deprecated: This is a stub types definition. csv-parse provides its own type definitions, so you do not need this installed.
-    dev: false
-    resolution:
-      integrity: sha512-k33tLtRKTQxf7hQfMlkWoS2TQYsnpk1ibZN+rzbuCkeBs8m23nHTeDTF1wb/e7/MSLdtgCzqu3oM1I101kd6yw==
   /ansi-regex/5.0.0:
     dev: false
     engines:
@@ -158,8 +166,23 @@ packages:
     resolution:
       integrity: sha512-qpCAvRl9stuOHveKsn7HncJRvv501qIacKzQlO/+Lwxc9+0q2wLyv4Dfvt80/DPn2pqOBsJdDiogXGR9+OvwRw==
 specifiers:
-  '@types/csv-parse': ^1.2.2
   chalk: ^4.1.0
   cli-table3: ^0.6.0
   csv-parse: ^4.15.3
+  node-opcua-address-space: 2.34.0
+  node-opcua-assert: 2.29.0
+  node-opcua-basic-types: 2.34.0
+  node-opcua-client-dynamic-extension-object: 2.34.0
+  node-opcua-data-model: 2.34.0
+  node-opcua-factory: 2.34.0
+  node-opcua-leak-detector: 2.31.0
+  node-opcua-nodeid: 2.34.0
+  node-opcua-nodesets: 2.29.0
+  node-opcua-numeric-range: 2.34.0
+  node-opcua-schemas: 2.34.0
+  node-opcua-service-translate-browse-path: 2.34.0
+  node-opcua-status-code: 2.34.0
+  node-opcua-types: 2.34.0
+  node-opcua-variant: 2.34.0
+  node-opcua-xml2json: 2.34.0
   should: ^13.2.3

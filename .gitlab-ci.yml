@@ -8,19 +8,19 @@ cache:
     - .npm/
     - node_modules/
     - packages/
-    - /root/.pnpm-store
+    - ~/.pnpm-store
 
 build_and_test:
   stage: build
   before_script:
     - curl -L https://unpkg.com/@pnpm/self-installer | node
-    - pnpm config set store-dir /root/.pnpm-store
+    - pnpm config set store-dir ~/.pnpm-store
     - pnpm install
+    - pnpm recursive install
   script:
-    - pnpm run build
+    - pnpm build
     - pnpm test
+
   artifacts:
     paths:
-      - node_modules/
-      - packages/
 

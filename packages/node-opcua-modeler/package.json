@@ -12,7 +12,6 @@
   "author": "Etienne Rossignon",
   "license": "MIT",
   "dependencies": {
-    "@types/csv-parse": "^1.2.2",
     "chalk": "^4.1.0",
     "cli-table3": "^0.6.0",
     "csv-parse": "^4.15.3",
@@ -31,7 +30,7 @@
     "node-opcua-types": "2.34.0",
     "node-opcua-variant": "2.34.0",
     "node-opcua-xml2json": "2.34.0"
-  },
+      },
   "devDependencies": {
     "node-opcua-leak-detector": "2.31.0",
     "should": "^13.2.3"

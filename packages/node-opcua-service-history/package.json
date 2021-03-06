@@ -21,7 +21,7 @@
         "node-opcua-service-filter": "2.34.0",
         "node-opcua-service-secure-channel": "2.34.0",
         "node-opcua-types": "2.34.0"
-    },
+            },
     "devDependencies": {
         "node-opcua-packet-analyzer": "2.34.0",
         "node-opcua-service-read": "2.34.0"

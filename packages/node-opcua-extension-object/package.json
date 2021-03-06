@@ -18,7 +18,7 @@
     "node-opcua-debug": "2.31.0",
     "node-opcua-factory": "2.34.0",
     "node-opcua-nodeid": "2.34.0"
-  },
+      },
   "author": "Etienne Rossignon",
   "license": "MIT",
   "repository": {

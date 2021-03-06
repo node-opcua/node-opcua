@@ -1,3 +1,5 @@
+dependencies:
+  node-opcua-assert: link:../node-opcua-assert
 devDependencies:
   should: 13.2.3
 lockfileVersion: 5.2
@@ -41,4 +43,5 @@ packages:
     resolution:
       integrity: sha512-ggLesLtu2xp+ZxI+ysJTmNjh2U0TsC+rQ/pfED9bUZZ4DKefP27D+7YJVVTvKsmjLpIi9jAa7itwDGkDDmt1GQ==
 specifiers:
+  node-opcua-assert: 2.29.0
   should: ^13.2.3

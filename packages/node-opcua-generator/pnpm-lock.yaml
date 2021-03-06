@@ -1,6 +1,27 @@
 dependencies:
   chalk: 4.1.0
+  node-opcua-assert: link:../node-opcua-assert
+  node-opcua-basic-types: link:../node-opcua-basic-types
+  node-opcua-buffer-utils: link:../node-opcua-buffer-utils
+  node-opcua-constants: link:../node-opcua-constants
+  node-opcua-data-model: link:../node-opcua-data-model
+  node-opcua-data-value: link:../node-opcua-data-value
+  node-opcua-date-time: link:../node-opcua-date-time
+  node-opcua-debug: link:../node-opcua-debug
+  node-opcua-enum: link:../node-opcua-enum
+  node-opcua-factory: link:../node-opcua-factory
+  node-opcua-guid: link:../node-opcua-guid
+  node-opcua-nodeid: link:../node-opcua-nodeid
+  node-opcua-numeric-range: link:../node-opcua-numeric-range
+  node-opcua-schemas: link:../node-opcua-schemas
+  node-opcua-status-code: link:../node-opcua-status-code
+  node-opcua-utils: link:../node-opcua-utils
+  node-opcua-variant: link:../node-opcua-variant
+  node-opcua-xml2json: link:../node-opcua-xml2json
 devDependencies:
+  node-opcua-binary-stream: link:../node-opcua-binary-stream
+  node-opcua-extension-object: link:../node-opcua-extension-object
+  node-opcua-packet-analyzer: link:../node-opcua-packet-analyzer
   prettier: 2.2.1
   should: 13.2.3
   source-map-support: 0.5.19
@@ -121,6 +142,27 @@ packages:
       integrity: sha512-qOcYwxaByStAWrBf4x0fibwZvMRG+r4cQoTjbPtUlrWjBHbmCAww1i448U0GJ+3cNNEtebDteo/cHOR3xJ4wEw==
 specifiers:
   chalk: ^4.1.0
+  node-opcua-assert: 2.29.0
+  node-opcua-basic-types: 2.34.0
+  node-opcua-binary-stream: 2.29.0
+  node-opcua-buffer-utils: 2.29.0
+  node-opcua-constants: 2.29.0
+  node-opcua-data-model: 2.34.0
+  node-opcua-data-value: 2.34.0
+  node-opcua-date-time: 2.31.0
+  node-opcua-debug: 2.31.0
+  node-opcua-enum: 2.29.0
+  node-opcua-extension-object: 2.34.0
+  node-opcua-factory: 2.34.0
+  node-opcua-guid: 2.29.0
+  node-opcua-nodeid: 2.34.0
+  node-opcua-numeric-range: 2.34.0
+  node-opcua-packet-analyzer: 2.34.0
+  node-opcua-schemas: 2.34.0
+  node-opcua-status-code: 2.34.0
+  node-opcua-utils: 2.34.0
+  node-opcua-variant: 2.34.0
+  node-opcua-xml2json: 2.34.0
   prettier: ^2.2.1
   should: ^13.2.3
   source-map-support: ^0.5.19

@@ -1,7 +1,26 @@
 dependencies:
+  node-opcua-address-space: link:../node-opcua-address-space
+  node-opcua-assert: link:../node-opcua-assert
+  node-opcua-basic-types: link:../node-opcua-basic-types
+  node-opcua-certificate-manager: link:../node-opcua-certificate-manager
+  node-opcua-client: link:../node-opcua-client
   node-opcua-crypto: 1.7.1
+  node-opcua-data-model: link:../node-opcua-data-model
+  node-opcua-debug: link:../node-opcua-debug
+  node-opcua-hostname: link:../node-opcua-hostname
+  node-opcua-nodeid: link:../node-opcua-nodeid
+  node-opcua-nodesets: link:../node-opcua-nodesets
   node-opcua-pki: 2.8.0
+  node-opcua-pseudo-session: link:../node-opcua-pseudo-session
+  node-opcua-secure-channel: link:../node-opcua-secure-channel
+  node-opcua-server: link:../node-opcua-server
+  node-opcua-status-code: link:../node-opcua-status-code
+  node-opcua-types: link:../node-opcua-types
+  node-opcua-variant: link:../node-opcua-variant
 devDependencies:
+  node-opcua-binary-stream: link:../node-opcua-binary-stream
+  node-opcua-data-value: link:../node-opcua-data-value
+  node-opcua-leak-detector: link:../node-opcua-leak-detector
   should: 13.2.3
   sinon: 9.2.4
 lockfileVersion: 5.2
@@ -1382,7 +1401,26 @@ packages:
     resolution:
       integrity: sha1-x+sXyT4RLLEIb6bY5R+wZnt5pfk=
 specifiers:
+  node-opcua-address-space: 2.34.0
+  node-opcua-assert: 2.29.0
+  node-opcua-basic-types: 2.34.0
+  node-opcua-binary-stream: 2.29.0
+  node-opcua-certificate-manager: 2.34.0
+  node-opcua-client: 2.34.0
   node-opcua-crypto: ^1.7.1
+  node-opcua-data-model: 2.34.0
+  node-opcua-data-value: 2.34.0
+  node-opcua-debug: 2.31.0
+  node-opcua-hostname: 2.29.0
+  node-opcua-leak-detector: 2.31.0
+  node-opcua-nodeid: 2.34.0
+  node-opcua-nodesets: 2.29.0
   node-opcua-pki: ^2.8.0
+  node-opcua-pseudo-session: 2.34.0
+  node-opcua-secure-channel: 2.34.0
+  node-opcua-server: 2.34.0
+  node-opcua-status-code: 2.34.0
+  node-opcua-types: 2.34.0
+  node-opcua-variant: 2.34.0
   should: ^13.2.3
   sinon: ^9.2.4

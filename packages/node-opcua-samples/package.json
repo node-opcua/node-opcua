@@ -24,7 +24,7 @@
         "node-opcua-assert": "2.29.0",
         "node-opcua-pki": "^2.8.0",
         "node-opcua-server-configuration": "2.34.0",
-        "sprintf-js": "^1.1.2",
+                "sprintf-js": "^1.1.2",
         "treeify": "^1.1.0",
         "underscore": "^1.12.0",
         "yargs": "15.4.1"

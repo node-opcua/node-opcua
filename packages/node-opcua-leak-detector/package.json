@@ -15,7 +15,7 @@
         "node-opcua-assert": "2.29.0",
         "node-opcua-debug": "2.31.0",
         "node-opcua-object-registry": "2.31.0"
-    },
+            },
     "repository": {
         "type": "git",
         "url": "git://github.com/node-opcua/node-opcua.git"

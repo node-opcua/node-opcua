@@ -30,7 +30,7 @@
     "node-opcua-status-code": "2.34.0",
     "node-opcua-types": "2.34.0",
     "node-opcua-variant": "2.34.0"
-  },
+      },
   "devDependencies": {
     "node-opcua-binary-stream": "2.29.0",
     "node-opcua-data-value": "2.34.0",

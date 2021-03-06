@@ -1,0 +1,17 @@
+dependencies:
+  node-opcua-assert: link:../node-opcua-assert
+  node-opcua-basic-types: link:../node-opcua-basic-types
+  node-opcua-binary-stream: link:../node-opcua-binary-stream
+  node-opcua-factory: link:../node-opcua-factory
+  node-opcua-nodeid: link:../node-opcua-nodeid
+  node-opcua-service-secure-channel: link:../node-opcua-service-secure-channel
+  node-opcua-types: link:../node-opcua-types
+lockfileVersion: 5.2
+specifiers:
+  node-opcua-assert: 2.29.0
+  node-opcua-basic-types: 2.34.0
+  node-opcua-binary-stream: 2.29.0
+  node-opcua-factory: 2.34.0
+  node-opcua-nodeid: 2.34.0
+  node-opcua-service-secure-channel: 2.34.0
+  node-opcua-types: 2.34.0

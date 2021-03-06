@@ -18,7 +18,7 @@
     "node-opcua-factory": "2.34.0",
     "node-opcua-nodeid": "2.34.0",
     "node-opcua-types": "2.34.0"
-  },
+      },
   "devDependencies": {
     "should": "^13.2.3"
   },

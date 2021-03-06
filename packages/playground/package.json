@@ -13,7 +13,7 @@
     "node-opcua-client": "2.34.0",
     "node-opcua-modeler": "2.34.0",
     "node-opcua-utils": "2.34.0"
-  },
+      },
   "author": "Etienne Rossignon",
   "license": "MIT"
 }
