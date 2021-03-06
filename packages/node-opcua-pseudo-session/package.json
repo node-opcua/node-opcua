@@ -23,7 +23,7 @@
         "node-opcua-status-code": "2.34.0",
         "node-opcua-utils": "2.34.0",
         "node-opcua-variant": "2.34.0"
-    },
+            },
     "author": "Etienne Rossignon",
     "license": "MIT",
     "repository": {

@@ -37,7 +37,7 @@ Because nodeJs is a great framework to design asynchronous applications.
     $ cd mytest
     $ npm init 
     $ npm install node-opcua --unsafe-perms
-    $ # create your first app.js file !
+    $ # create your first app.js file!
 
 
 ### installing node-opcua samples as a node package
@@ -82,12 +82,12 @@ To get professional support, consider subscribing to the node-opcua membership c
 
 [![Professional Support](https://img.shields.io/static/v1?style=for-the-badge&label=Professional&message=Support&labelColor=blue&color=green&logo=data:image/svg%2bxml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbG5zOnhsaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIiB2ZXJzaW9uPSIxLjEiIGlkPSJMYXllcl8xIiB4PSIwcHgiIHk9IjBweCIgdmlld0JveD0iMCAwIDQ5MS41MiA0OTEuNTIiIHN0eWxlPSJlbmFibGUtYmFja2dyb3VuZDpuZXcgMCAwIDQ5MS41MiA0OTEuNTI7IiB4bWw6c3BhY2U9InByZXNlcnZlIj4NCjxnPg0KCTxnPg0KCQk8cGF0aCBkPSJNNDg3Ljk4OSwzODkuNzU1bC05My4xMDktOTIuOTc2Yy00LjgxMy00LjgwNi0xMi42NDItNC42NzQtMTcuMjczLDAuMzA3Yy03LjE0OCw3LjY4OS0xNC42NCwxNS41NTQtMjEuNzMsMjIuNjM0ICAgIGMtMC4yNzEsMC4yNy0wLjUwMSwwLjQ5My0wLjc2MywwLjc1NUw0NjcuMyw0MzIuNTA0YzguOTEtMTAuNjE0LDE2LjY1Ny0yMC40MSwyMS43My0yNi45NyAgICBDNDkyLjcyLDQwMC43NjIsNDkyLjI1NywzOTQuMDE5LDQ4Ny45ODksMzg5Ljc1NXoiLz4NCgk8L2c+DQo8L2c+DQo8Zz4NCgk8Zz4NCgkJPHBhdGggZD0iTTMzNC4zLDMzNy42NjFjLTM0LjMwNCwxMS4zNzktNzcuNTYsMC40MTMtMTE0LjU1NC0yOS41NDJjLTQ5LjAyMS0zOS42OTMtNzUuOTcyLTEwMi42NDItNjUuODM4LTE1MC41OTNMMzcuNjM0LDQxLjQxOCAgICBDMTcuNjUzLDU5LjQyNCwwLDc4LjU0NSwwLDkwYzAsMTQxLjc1MSwyNjAuMzQ0LDQxNS44OTYsNDAxLjUwMyw0MDAuOTMxYzExLjI5Ni0xLjE5OCwzMC4xNzYtMTguNjUxLDQ4LjA2Mi0zOC4xNjdMMzM0LjMsMzM3LjY2MSAgICB6Ii8+DQoJPC9nPg0KPC9nPg0KPGc+DQoJPGc+DQoJCTxwYXRoIGQ9Ik0xOTMuODU0LDk2LjA0MUwxMDEuMjEzLDMuNTNjLTQuMjI1LTQuMjItMTAuODgyLTQuNzI0LTE1LjY2NC0xLjE0NWMtNi42NTQsNC45ODMtMTYuNjQ4LDEyLjY1MS0yNy40NTMsMjEuNDk4ICAgIGwxMTEuOTQ1LDExMS43ODVjMC4wNjEtMC4wNiwwLjExMS0wLjExMywwLjE3Mi0wLjE3NGM3LjIzOC03LjIyOCwxNS4zNTUtMTQuODg1LDIzLjI5MS0yMi4xNjcgICAgQzE5OC41MzQsMTA4LjcxMywxOTguNjg0LDEwMC44NjMsMTkzLjg1NCw5Ni4wNDF6Ii8+DQoJPC9nPg0KPC9nPg0KPGc+DQo8L2c+DQo8Zz4NCjwvZz4NCjxnPg0KPC9nPg0KPGc+DQo8L2c+DQo8Zz4NCjwvZz4NCjxnPg0KPC9nPg0KPGc+DQo8L2c+DQo8Zz4NCjwvZz4NCjxnPg0KPC9nPg0KPGc+DQo8L2c+DQo8Zz4NCjwvZz4NCjxnPg0KPC9nPg0KPGc+DQo8L2c+DQo8Zz4NCjwvZz4NCjxnPg0KPC9nPg0KPC9zdmc+)](https://support.sterfive.com)
 
-or  contact [sterfive](https://www.sterfive.com) for dedicated consulting and more advanced support.
+or contact [sterfive](https://www.sterfive.com) for dedicated consulting and more advanced support.
 
 
  ## :heart: Supporting the development effort - Sponsors & Backers</span> 
 
-If you like node-opcua and if you are relying on node-opcua in one of your projects, please consider becoming a backer and [sponsoring us](https://github.com/sponsors/node-opcua), this will help us to maintain a high-quality stack and constant evolution of the stack. 
+If you like node-opcua and if you are relying on node-opcua in one of your projects, please consider becoming a backer and [sponsoring us](https://github.com/sponsors/node-opcua), this helps us to maintain a high-quality stack and constant evolution of the stack. 
 
 
 If your company would like to participate and influence the development of future versions of node-opcua please contact [sterfive](mailto:contact@sterfive.com).
@@ -110,14 +110,20 @@ Those are the items we would like to achieve in the next version of the API.
 
      $ git clone https://github.com/node-opcua/node-opcua.git
      $ cd node-opcua
-     $ npm install
+     $ npm install -g pnpm 
+     $ pnpm install
+     $ pnpm recursive install
+     $ pnpm build
      $ node packages/node-opcua-samples/bin/simple_server
     
 #### running the demo client from source
 
      $ git clone https://github.com/node-opcua/node-opcua.git
      $ cd node-opcua
-     $ npm install
+     $ npm install -g pnpm 
+     $ pnpm install
+     $ pnpm recursive install
+     $ pnpm build
      $ node packages/node-opcua-samples/bin/simple_client.js -e "opc.tcp://opcserver.mAutomation.net:4841" -n="ns=1;s=EVR2.system.RTC_SEC"
         
 
@@ -133,10 +139,11 @@ Those are the items we would like to achieve in the next version of the API.
 
     $ git clone git://github.com/node-opcua/node-opcua.git
     $ cd node-opcua
-    $ npm install
-    $ npm test
-
-
+    $ npm install -g pnpm 
+    $ pnpm install
+    $ pnpm recursive install
+    $ pnpm build
+ 
 
 [![NPM](https://nodei.co/npm/node-opcua.png?downloads=true&stars=true)](https://nodei.co/npm/node-opcua/)
 

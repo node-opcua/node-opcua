@@ -18,9 +18,7 @@
         "node-opcua-nodeid": "2.34.0",
         "node-opcua-service-secure-channel": "2.34.0",
         "node-opcua-types": "2.34.0"
-    },
-    "devDependencies": {
-    },
+            },
     "author": "Etienne Rossignon",
     "license": "MIT",
     "repository": {

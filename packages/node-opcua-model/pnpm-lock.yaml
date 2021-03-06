@@ -1,6 +1,21 @@
 dependencies:
   chalk: 4.1.0
+  node-opcua-address-space: link:../node-opcua-address-space
+  node-opcua-assert: link:../node-opcua-assert
+  node-opcua-basic-types: link:../node-opcua-basic-types
+  node-opcua-client: link:../node-opcua-client
+  node-opcua-client-dynamic-extension-object: link:../node-opcua-client-dynamic-extension-object
+  node-opcua-enum: link:../node-opcua-enum
+  node-opcua-factory: link:../node-opcua-factory
+  node-opcua-nodeid: link:../node-opcua-nodeid
+  node-opcua-nodesets: link:../node-opcua-nodesets
+  node-opcua-pseudo-session: link:../node-opcua-pseudo-session
+  node-opcua-schemas: link:../node-opcua-schemas
+  node-opcua-service-browse: link:../node-opcua-service-browse
+  node-opcua-status-code: link:../node-opcua-status-code
+  node-opcua-xml2json: link:../node-opcua-xml2json
 devDependencies:
+  node-opcua-leak-detector: link:../node-opcua-leak-detector
   should: 13.2.3
 lockfileVersion: 5.2
 packages:
@@ -87,4 +102,19 @@ packages:
       integrity: sha512-qpCAvRl9stuOHveKsn7HncJRvv501qIacKzQlO/+Lwxc9+0q2wLyv4Dfvt80/DPn2pqOBsJdDiogXGR9+OvwRw==
 specifiers:
   chalk: ^4.1.0
+  node-opcua-address-space: 2.34.0
+  node-opcua-assert: 2.29.0
+  node-opcua-basic-types: 2.34.0
+  node-opcua-client: 2.34.0
+  node-opcua-client-dynamic-extension-object: 2.34.0
+  node-opcua-enum: 2.29.0
+  node-opcua-factory: 2.34.0
+  node-opcua-leak-detector: 2.31.0
+  node-opcua-nodeid: 2.34.0
+  node-opcua-nodesets: 2.29.0
+  node-opcua-pseudo-session: 2.34.0
+  node-opcua-schemas: 2.34.0
+  node-opcua-service-browse: 2.34.0
+  node-opcua-status-code: 2.34.0
+  node-opcua-xml2json: 2.34.0
   should: ^13.2.3

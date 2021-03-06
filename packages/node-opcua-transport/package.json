@@ -24,7 +24,7 @@
         "node-opcua-status-code": "2.34.0",
         "node-opcua-types": "2.34.0",
         "node-opcua-utils": "2.34.0"
-    },
+            },
     "devDependencies": {
         "@types/node": "^14.14.31",
         "node-opcua-debug": "2.31.0",

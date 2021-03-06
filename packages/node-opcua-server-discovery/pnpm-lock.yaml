@@ -1,7 +1,18 @@
 dependencies:
   '@types/bonjour': 3.5.8
   bonjour: 3.5.0
+  node-opcua-assert: link:../node-opcua-assert
+  node-opcua-basic-types: link:../node-opcua-basic-types
+  node-opcua-certificate-manager: link:../node-opcua-certificate-manager
+  node-opcua-common: link:../node-opcua-common
+  node-opcua-debug: link:../node-opcua-debug
+  node-opcua-hostname: link:../node-opcua-hostname
   node-opcua-pki: 2.8.0
+  node-opcua-secure-channel: link:../node-opcua-secure-channel
+  node-opcua-server: link:../node-opcua-server
+  node-opcua-service-discovery: link:../node-opcua-service-discovery
+  node-opcua-service-endpoints: link:../node-opcua-service-endpoints
+  node-opcua-status-code: link:../node-opcua-status-code
 lockfileVersion: 5.2
 packages:
   /@nodelib/fs.scandir/2.1.4:
@@ -1440,4 +1451,15 @@ packages:
 specifiers:
   '@types/bonjour': ^3.5.8
   bonjour: ^3.5.0
+  node-opcua-assert: 2.29.0
+  node-opcua-basic-types: 2.34.0
+  node-opcua-certificate-manager: 2.34.0
+  node-opcua-common: 2.34.0
+  node-opcua-debug: 2.31.0
+  node-opcua-hostname: 2.29.0
   node-opcua-pki: ^2.8.0
+  node-opcua-secure-channel: 2.34.0
+  node-opcua-server: 2.34.0
+  node-opcua-service-discovery: 2.34.0
+  node-opcua-service-endpoints: 2.34.0
+  node-opcua-status-code: 2.34.0

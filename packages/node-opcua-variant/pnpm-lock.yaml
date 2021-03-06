@@ -1,7 +1,22 @@
+dependencies:
+  node-opcua-assert: link:../node-opcua-assert
+  node-opcua-basic-types: link:../node-opcua-basic-types
+  node-opcua-data-model: link:../node-opcua-data-model
+  node-opcua-enum: link:../node-opcua-enum
+  node-opcua-extension-object: link:../node-opcua-extension-object
+  node-opcua-factory: link:../node-opcua-factory
+  node-opcua-nodeid: link:../node-opcua-nodeid
+  node-opcua-utils: link:../node-opcua-utils
 devDependencies:
   '@types/lodash': 4.14.168
   '@types/underscore': 1.11.0
   lodash: 4.17.21
+  node-opcua-benchmarker: link:../node-opcua-benchmarker
+  node-opcua-binary-stream: link:../node-opcua-binary-stream
+  node-opcua-debug: link:../node-opcua-debug
+  node-opcua-numeric-range: link:../node-opcua-numeric-range
+  node-opcua-packet-analyzer: link:../node-opcua-packet-analyzer
+  node-opcua-status-code: link:../node-opcua-status-code
   should: 13.2.3
   source-map-support: 0.5.19
   underscore: 1.12.0
@@ -82,6 +97,20 @@ specifiers:
   '@types/lodash': 4.14.168
   '@types/underscore': ^1.10.24
   lodash: 4.17.21
+  node-opcua-assert: 2.29.0
+  node-opcua-basic-types: 2.34.0
+  node-opcua-benchmarker: 2.29.0
+  node-opcua-binary-stream: 2.29.0
+  node-opcua-data-model: 2.34.0
+  node-opcua-debug: 2.31.0
+  node-opcua-enum: 2.29.0
+  node-opcua-extension-object: 2.34.0
+  node-opcua-factory: 2.34.0
+  node-opcua-nodeid: 2.34.0
+  node-opcua-numeric-range: 2.34.0
+  node-opcua-packet-analyzer: 2.34.0
+  node-opcua-status-code: 2.34.0
+  node-opcua-utils: 2.34.0
   should: ^13.2.3
   source-map-support: ^0.5.19
   underscore: ^1.12.0

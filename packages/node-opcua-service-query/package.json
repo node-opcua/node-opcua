@@ -24,9 +24,7 @@
         "node-opcua-service-subscription": "2.34.0",
         "node-opcua-service-translate-browse-path": "2.34.0",
         "node-opcua-types": "2.34.0"
-    },
-    "devDependencies": {
-    },
+            },
     "author": "Etienne Rossignon",
     "license": "MIT",
     "repository": {

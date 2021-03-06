@@ -18,7 +18,7 @@
         "node-opcua-nodeid": "2.34.0",
         "node-opcua-service-secure-channel": "2.34.0",
         "node-opcua-types": "2.34.0"
-    },
+            },
     "devDependencies": {
         "node-opcua-date-time": "2.31.0",
         "node-opcua-debug": "2.31.0",

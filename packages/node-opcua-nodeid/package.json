@@ -18,7 +18,7 @@
         "node-opcua-constants": "2.29.0",
         "node-opcua-enum": "2.29.0",
         "node-opcua-guid": "2.29.0"
-    },
+            },
     "devDependencies": {
         "node-opcua-benchmarker": "2.29.0",
         "node-opcua-debug": "2.31.0",

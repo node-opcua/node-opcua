@@ -31,9 +31,8 @@
     "node-opcua-status-code": "2.34.0",
     "node-opcua-utils": "2.34.0",
     "node-opcua-variant": "2.34.0"
-  },
+      },
   "devDependencies": {
-    "mocha-typescript": "^1.1.17",
     "should": "^13.2.3",
     "source-map-support": "^0.5.19"
   },

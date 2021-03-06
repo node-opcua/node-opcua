@@ -1,4 +1,14 @@
+dependencies:
+  node-opcua-assert: link:../node-opcua-assert
+  node-opcua-basic-types: link:../node-opcua-basic-types
+  node-opcua-binary-stream: link:../node-opcua-binary-stream
+  node-opcua-enum: link:../node-opcua-enum
+  node-opcua-factory: link:../node-opcua-factory
+  node-opcua-nodeid: link:../node-opcua-nodeid
+  node-opcua-status-code: link:../node-opcua-status-code
+  node-opcua-utils: link:../node-opcua-utils
 devDependencies:
+  node-opcua-packet-analyzer: link:../node-opcua-packet-analyzer
   should: 13.2.3
   source-map-support: 0.5.19
 lockfileVersion: 5.2
@@ -59,5 +69,14 @@ packages:
     resolution:
       integrity: sha512-UjgapumWlbMhkBgzT7Ykc5YXUT46F0iKu8SGXq0bcwP5dz/h0Plj6enJqjz1Zbq2l5WaqYnrVbwWOWMyF3F47g==
 specifiers:
+  node-opcua-assert: 2.29.0
+  node-opcua-basic-types: 2.34.0
+  node-opcua-binary-stream: 2.29.0
+  node-opcua-enum: 2.29.0
+  node-opcua-factory: 2.34.0
+  node-opcua-nodeid: 2.34.0
+  node-opcua-packet-analyzer: 2.34.0
+  node-opcua-status-code: 2.34.0
+  node-opcua-utils: 2.34.0
   should: ^13.2.3
   source-map-support: ^0.5.19

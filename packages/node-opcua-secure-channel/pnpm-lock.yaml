@@ -3,10 +3,35 @@ dependencies:
   async: 3.2.0
   backoff: 2.5.0
   chalk: 4.1.0
+  node-opcua-assert: link:../node-opcua-assert
+  node-opcua-basic-types: link:../node-opcua-basic-types
+  node-opcua-binary-stream: link:../node-opcua-binary-stream
+  node-opcua-certificate-manager: link:../node-opcua-certificate-manager
+  node-opcua-chunkmanager: link:../node-opcua-chunkmanager
+  node-opcua-common: link:../node-opcua-common
   node-opcua-crypto: 1.7.1
+  node-opcua-debug: link:../node-opcua-debug
+  node-opcua-enum: link:../node-opcua-enum
+  node-opcua-factory: link:../node-opcua-factory
+  node-opcua-nodeid: link:../node-opcua-nodeid
+  node-opcua-object-registry: link:../node-opcua-object-registry
+  node-opcua-packet-analyzer: link:../node-opcua-packet-analyzer
+  node-opcua-service-secure-channel: link:../node-opcua-service-secure-channel
+  node-opcua-status-code: link:../node-opcua-status-code
+  node-opcua-transport: link:../node-opcua-transport
+  node-opcua-types: link:../node-opcua-types
+  node-opcua-utils: link:../node-opcua-utils
   underscore: 1.12.0
 devDependencies:
   '@types/node': 14.14.31
+  node-opcua-buffer-utils: link:../node-opcua-buffer-utils
+  node-opcua-leak-detector: link:../node-opcua-leak-detector
+  node-opcua-service-browse: link:../node-opcua-service-browse
+  node-opcua-service-endpoints: link:../node-opcua-service-endpoints
+  node-opcua-service-read: link:../node-opcua-service-read
+  node-opcua-service-session: link:../node-opcua-service-session
+  node-opcua-test-fixtures: link:../node-opcua-test-fixtures
+  node-opcua-test-helpers: link:../node-opcua-test-helpers
   should: 13.2.3
   sinon: 9.2.4
   source-map-support: 0.5.19
@@ -321,7 +346,32 @@ specifiers:
   async: ^3.2.0
   backoff: ^2.5.0
   chalk: ^4.1.0
+  node-opcua-assert: 2.29.0
+  node-opcua-basic-types: 2.34.0
+  node-opcua-binary-stream: 2.29.0
+  node-opcua-buffer-utils: 2.29.0
+  node-opcua-certificate-manager: 2.34.0
+  node-opcua-chunkmanager: 2.34.0
+  node-opcua-common: 2.34.0
   node-opcua-crypto: ^1.7.1
+  node-opcua-debug: 2.31.0
+  node-opcua-enum: 2.29.0
+  node-opcua-factory: 2.34.0
+  node-opcua-leak-detector: 2.31.0
+  node-opcua-nodeid: 2.34.0
+  node-opcua-object-registry: 2.31.0
+  node-opcua-packet-analyzer: 2.34.0
+  node-opcua-service-browse: 2.34.0
+  node-opcua-service-endpoints: 2.34.0
+  node-opcua-service-read: 2.34.0
+  node-opcua-service-secure-channel: 2.34.0
+  node-opcua-service-session: 2.34.0
+  node-opcua-status-code: 2.34.0
+  node-opcua-test-fixtures: 2.31.0
+  node-opcua-test-helpers: 2.29.0
+  node-opcua-transport: 2.34.0
+  node-opcua-types: 2.34.0
+  node-opcua-utils: 2.34.0
   should: ^13.2.3
   sinon: ^9.2.4
   source-map-support: ^0.5.19

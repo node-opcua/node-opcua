@@ -15,7 +15,7 @@
     "node-opcua-assert": "2.29.0",
     "node-opcua-debug": "2.31.0",
     "node-opcua-utils": "2.34.0",
-    "xml-writer": "^1.7.0"
+        "xml-writer": "^1.7.0"
   },
   "author": "Etienne Rossignon",
   "license": "MIT",

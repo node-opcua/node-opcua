@@ -19,7 +19,7 @@
     "node-opcua-nodeid": "2.34.0",
     "node-opcua-service-secure-channel": "2.34.0",
     "node-opcua-types": "2.34.0"
-  },
+      },
   "devDependencies": {
     "should": "^13.2.3",
     "sinon": "^9.2.4"
