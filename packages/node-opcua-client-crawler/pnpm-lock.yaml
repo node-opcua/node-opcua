@@ -32,7 +32,7 @@ packages:
     resolution:
       integrity: sha512-21rQzss/XPMjolTiIezSu3JAjgagXKROtNrYFEOWK109qY1Uv2tVjPTZ1ci2HgvQDA16gHYSthQIJfB+XId/rQ==
 specifiers:
-  '@types/underscore': ^1.10.24
+  '@types/underscore': ^1.11.0
   async: ^3.2.0
   node-opcua-address-space: 2.34.0
   node-opcua-assert: 2.29.0

@@ -1459,7 +1459,7 @@ packages:
     resolution:
       integrity: sha1-x+sXyT4RLLEIb6bY5R+wZnt5pfk=
 specifiers:
-  '@types/underscore': ^1.10.24
+  '@types/underscore': ^1.11.0
   '@types/yargs': 16.0.0
   easy-table: ^1.1.1
   exit: ^0.1.2

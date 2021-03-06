@@ -1,4 +1,3 @@
-const request = require("request");
 const fs = require("fs");
 const ProgressBar = require('progress');
 const _ = require("underscore");
