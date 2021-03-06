@@ -1508,7 +1508,7 @@ packages:
     resolution:
       integrity: sha1-x+sXyT4RLLEIb6bY5R+wZnt5pfk=
 specifiers:
-  '@types/underscore': ^1.10.24
+  '@types/underscore': ^1.11.0
   async: ^3.2.0
   delayed: ^2.0.0
   node-opcua: 2.34.0

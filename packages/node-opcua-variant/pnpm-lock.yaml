@@ -95,7 +95,7 @@ packages:
       integrity: sha512-21rQzss/XPMjolTiIezSu3JAjgagXKROtNrYFEOWK109qY1Uv2tVjPTZ1ci2HgvQDA16gHYSthQIJfB+XId/rQ==
 specifiers:
   '@types/lodash': 4.14.168
-  '@types/underscore': ^1.10.24
+  '@types/underscore': ^1.11.0
   lodash: 4.17.21
   node-opcua-assert: 2.29.0
   node-opcua-basic-types: 2.34.0
