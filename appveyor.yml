@@ -32,7 +32,7 @@ install:
   - npm install -g npm pnpm typescript ts-node
   - set path=C:\Users\appveyor\AppData\Roaming\npm\;%path%
   - tsc --version
-  - appveyor-retry pnpm install
+  - appveyor-retry pnpm recursive install
 
 # Post-install test scripts.
 test_script:
