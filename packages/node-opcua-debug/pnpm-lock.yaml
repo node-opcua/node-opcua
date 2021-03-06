@@ -96,6 +96,6 @@ packages:
 specifiers:
   chalk: ^4.1.0
   hexy: ^0.3.1
-  node-opcua-assert: 2.29.0
-  node-opcua-buffer-utils: 2.29.0
+  node-opcua-assert: 2.35.0
+  node-opcua-buffer-utils: 2.35.0
   should: ^13.2.3

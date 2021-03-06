@@ -71,9 +71,9 @@ packages:
 specifiers:
   bomstrip: ^0.1.4
   ltx: ^2.10.0
-  node-opcua-assert: 2.29.0
-  node-opcua-debug: 2.31.0
-  node-opcua-nodesets: 2.29.0
-  node-opcua-utils: 2.34.0
+  node-opcua-assert: 2.35.0
+  node-opcua-debug: 2.35.0
+  node-opcua-nodesets: 2.35.0
+  node-opcua-utils: 2.35.0
   should: ^13.2.3
   xml-writer: ^1.7.0

@@ -52,6 +52,6 @@ packages:
       integrity: sha512-ggLesLtu2xp+ZxI+ysJTmNjh2U0TsC+rQ/pfED9bUZZ4DKefP27D+7YJVVTvKsmjLpIi9jAa7itwDGkDDmt1GQ==
 specifiers:
   enum: 3.0.4
-  node-opcua-assert: 2.29.0
-  node-opcua-benchmarker: 2.29.0
+  node-opcua-assert: 2.35.0
+  node-opcua-benchmarker: 2.35.0
   should: ^13.2.3

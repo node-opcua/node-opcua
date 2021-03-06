@@ -51,13 +51,13 @@ packages:
     resolution:
       integrity: sha512-ggLesLtu2xp+ZxI+ysJTmNjh2U0TsC+rQ/pfED9bUZZ4DKefP27D+7YJVVTvKsmjLpIi9jAa7itwDGkDDmt1GQ==
 specifiers:
-  node-opcua-address-space: 2.34.0
-  node-opcua-assert: 2.29.0
-  node-opcua-data-model: 2.34.0
-  node-opcua-factory: 2.34.0
-  node-opcua-nodeid: 2.34.0
-  node-opcua-nodesets: 2.29.0
-  node-opcua-packet-analyzer: 2.34.0
-  node-opcua-utils: 2.34.0
-  node-opcua-variant: 2.34.0
+  node-opcua-address-space: 2.35.0
+  node-opcua-assert: 2.35.0
+  node-opcua-data-model: 2.35.0
+  node-opcua-factory: 2.35.0
+  node-opcua-nodeid: 2.35.0
+  node-opcua-nodesets: 2.35.0
+  node-opcua-packet-analyzer: 2.35.0
+  node-opcua-utils: 2.35.0
+  node-opcua-variant: 2.35.0
   should: ^13.2.3

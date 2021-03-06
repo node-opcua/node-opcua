@@ -1451,15 +1451,15 @@ packages:
 specifiers:
   '@types/bonjour': ^3.5.8
   bonjour: ^3.5.0
-  node-opcua-assert: 2.29.0
-  node-opcua-basic-types: 2.34.0
-  node-opcua-certificate-manager: 2.34.0
-  node-opcua-common: 2.34.0
-  node-opcua-debug: 2.31.0
-  node-opcua-hostname: 2.29.0
+  node-opcua-assert: 2.35.0
+  node-opcua-basic-types: 2.35.0
+  node-opcua-certificate-manager: 2.35.0
+  node-opcua-common: 2.35.0
+  node-opcua-debug: 2.35.0
+  node-opcua-hostname: 2.35.0
   node-opcua-pki: ^2.8.0
-  node-opcua-secure-channel: 2.34.0
-  node-opcua-server: 2.34.0
-  node-opcua-service-discovery: 2.34.0
-  node-opcua-service-endpoints: 2.34.0
-  node-opcua-status-code: 2.34.0
+  node-opcua-secure-channel: 2.35.0
+  node-opcua-server: 2.35.0
+  node-opcua-service-discovery: 2.35.0
+  node-opcua-service-endpoints: 2.35.0
+  node-opcua-status-code: 2.35.0

@@ -118,12 +118,12 @@ packages:
 specifiers:
   '@types/node': ^14.14.31
   chalk: ^4.1.0
-  node-opcua-assert: 2.29.0
-  node-opcua-basic-types: 2.34.0
-  node-opcua-binary-stream: 2.29.0
-  node-opcua-buffer-utils: 2.29.0
-  node-opcua-debug: 2.31.0
-  node-opcua-factory: 2.34.0
-  node-opcua-packet-assembler: 2.29.0
+  node-opcua-assert: 2.35.0
+  node-opcua-basic-types: 2.35.0
+  node-opcua-binary-stream: 2.35.0
+  node-opcua-buffer-utils: 2.35.0
+  node-opcua-debug: 2.35.0
+  node-opcua-factory: 2.35.0
+  node-opcua-packet-assembler: 2.35.0
   should: ^13.2.3
   source-map-support: ^0.5.19

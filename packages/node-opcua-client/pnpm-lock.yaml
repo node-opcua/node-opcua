@@ -1470,49 +1470,49 @@ specifiers:
   chalk: ^4.1.0
   delayed: ^2.0.0
   dequeue: ^1.0.5
-  node-opcua-address-space: 2.34.0
-  node-opcua-assert: 2.29.0
-  node-opcua-basic-types: 2.34.0
-  node-opcua-binary-stream: 2.29.0
-  node-opcua-buffer-utils: 2.29.0
-  node-opcua-certificate-manager: 2.34.0
-  node-opcua-client-dynamic-extension-object: 2.34.0
-  node-opcua-common: 2.34.0
-  node-opcua-constants: 2.29.0
+  node-opcua-address-space: 2.35.0
+  node-opcua-assert: 2.35.0
+  node-opcua-basic-types: 2.35.0
+  node-opcua-binary-stream: 2.35.0
+  node-opcua-buffer-utils: 2.35.0
+  node-opcua-certificate-manager: 2.35.0
+  node-opcua-client-dynamic-extension-object: 2.35.0
+  node-opcua-common: 2.35.0
+  node-opcua-constants: 2.35.0
   node-opcua-crypto: ^1.7.1
-  node-opcua-data-model: 2.34.0
-  node-opcua-data-value: 2.34.0
-  node-opcua-date-time: 2.31.0
-  node-opcua-debug: 2.31.0
-  node-opcua-extension-object: 2.34.0
-  node-opcua-factory: 2.34.0
-  node-opcua-hostname: 2.29.0
-  node-opcua-leak-detector: 2.31.0
-  node-opcua-nodeid: 2.34.0
-  node-opcua-nodesets: 2.29.0
-  node-opcua-object-registry: 2.31.0
+  node-opcua-data-model: 2.35.0
+  node-opcua-data-value: 2.35.0
+  node-opcua-date-time: 2.35.0
+  node-opcua-debug: 2.35.0
+  node-opcua-extension-object: 2.35.0
+  node-opcua-factory: 2.35.0
+  node-opcua-hostname: 2.35.0
+  node-opcua-leak-detector: 2.35.0
+  node-opcua-nodeid: 2.35.0
+  node-opcua-nodesets: 2.35.0
+  node-opcua-object-registry: 2.35.0
   node-opcua-pki: ^2.8.0
-  node-opcua-pseudo-session: 2.34.0
-  node-opcua-schemas: 2.34.0
-  node-opcua-secure-channel: 2.34.0
-  node-opcua-service-browse: 2.34.0
-  node-opcua-service-call: 2.34.0
-  node-opcua-service-discovery: 2.34.0
-  node-opcua-service-endpoints: 2.34.0
-  node-opcua-service-filter: 2.34.0
-  node-opcua-service-history: 2.34.0
-  node-opcua-service-query: 2.34.0
-  node-opcua-service-read: 2.34.0
-  node-opcua-service-register-node: 2.34.0
-  node-opcua-service-secure-channel: 2.34.0
-  node-opcua-service-session: 2.34.0
-  node-opcua-service-subscription: 2.34.0
-  node-opcua-service-translate-browse-path: 2.34.0
-  node-opcua-service-write: 2.34.0
-  node-opcua-status-code: 2.34.0
-  node-opcua-types: 2.34.0
-  node-opcua-utils: 2.34.0
-  node-opcua-variant: 2.34.0
+  node-opcua-pseudo-session: 2.35.0
+  node-opcua-schemas: 2.35.0
+  node-opcua-secure-channel: 2.35.0
+  node-opcua-service-browse: 2.35.0
+  node-opcua-service-call: 2.35.0
+  node-opcua-service-discovery: 2.35.0
+  node-opcua-service-endpoints: 2.35.0
+  node-opcua-service-filter: 2.35.0
+  node-opcua-service-history: 2.35.0
+  node-opcua-service-query: 2.35.0
+  node-opcua-service-read: 2.35.0
+  node-opcua-service-register-node: 2.35.0
+  node-opcua-service-secure-channel: 2.35.0
+  node-opcua-service-session: 2.35.0
+  node-opcua-service-subscription: 2.35.0
+  node-opcua-service-translate-browse-path: 2.35.0
+  node-opcua-service-write: 2.35.0
+  node-opcua-status-code: 2.35.0
+  node-opcua-types: 2.35.0
+  node-opcua-utils: 2.35.0
+  node-opcua-variant: 2.35.0
   once: ^1.4.0
   should: ^13.2.3
   sinon: ^9.2.4

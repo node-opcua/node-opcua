@@ -2,4 +2,4 @@ dependencies:
   node-opcua-assert: link:../node-opcua-assert
 lockfileVersion: 5.2
 specifiers:
-  node-opcua-assert: 2.29.0
+  node-opcua-assert: 2.35.0

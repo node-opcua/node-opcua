@@ -26,16 +26,16 @@ packages:
     resolution:
       integrity: sha512-RVZSIV5IG10Hk3enotrhvz0T9em6cyHBLkH/YAZuKqd8hRkKhSfCGIcP2KUY0EPxndzANBmNllzWPwak+bheSw==
 specifiers:
-  node-opcua-assert: 2.29.0
-  node-opcua-binary-stream: 2.29.0
-  node-opcua-data-model: 2.34.0
-  node-opcua-debug: 2.31.0
-  node-opcua-enum: 2.29.0
-  node-opcua-extension-object: 2.34.0
-  node-opcua-factory: 2.34.0
-  node-opcua-nodeid: 2.34.0
-  node-opcua-packet-analyzer: 2.34.0
-  node-opcua-utils: 2.34.0
-  node-opcua-variant: 2.34.0
-  node-opcua-xml2json: 2.34.0
+  node-opcua-assert: 2.35.0
+  node-opcua-binary-stream: 2.35.0
+  node-opcua-data-model: 2.35.0
+  node-opcua-debug: 2.35.0
+  node-opcua-enum: 2.35.0
+  node-opcua-extension-object: 2.35.0
+  node-opcua-factory: 2.35.0
+  node-opcua-nodeid: 2.35.0
+  node-opcua-packet-analyzer: 2.35.0
+  node-opcua-utils: 2.35.0
+  node-opcua-variant: 2.35.0
+  node-opcua-xml2json: 2.35.0
   thenify: ^3.3.1

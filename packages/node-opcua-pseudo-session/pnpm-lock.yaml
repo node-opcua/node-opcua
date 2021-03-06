@@ -13,15 +13,15 @@ dependencies:
   node-opcua-variant: link:../node-opcua-variant
 lockfileVersion: 5.2
 specifiers:
-  node-opcua-constants: 2.29.0
-  node-opcua-data-model: 2.34.0
-  node-opcua-data-value: 2.34.0
-  node-opcua-nodeid: 2.34.0
-  node-opcua-service-browse: 2.34.0
-  node-opcua-service-call: 2.34.0
-  node-opcua-service-read: 2.34.0
-  node-opcua-service-translate-browse-path: 2.34.0
-  node-opcua-service-write: 2.34.0
-  node-opcua-status-code: 2.34.0
-  node-opcua-utils: 2.34.0
-  node-opcua-variant: 2.34.0
+  node-opcua-constants: 2.35.0
+  node-opcua-data-model: 2.35.0
+  node-opcua-data-value: 2.35.0
+  node-opcua-nodeid: 2.35.0
+  node-opcua-service-browse: 2.35.0
+  node-opcua-service-call: 2.35.0
+  node-opcua-service-read: 2.35.0
+  node-opcua-service-translate-browse-path: 2.35.0
+  node-opcua-service-write: 2.35.0
+  node-opcua-status-code: 2.35.0
+  node-opcua-utils: 2.35.0
+  node-opcua-variant: 2.35.0

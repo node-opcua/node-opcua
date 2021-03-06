@@ -15,16 +15,16 @@ devDependencies:
   node-opcua-service-read: link:../node-opcua-service-read
 lockfileVersion: 5.2
 specifiers:
-  node-opcua-assert: 2.29.0
-  node-opcua-basic-types: 2.34.0
-  node-opcua-binary-stream: 2.29.0
-  node-opcua-data-model: 2.34.0
-  node-opcua-data-value: 2.34.0
-  node-opcua-extension-object: 2.34.0
-  node-opcua-factory: 2.34.0
-  node-opcua-nodeid: 2.34.0
-  node-opcua-packet-analyzer: 2.34.0
-  node-opcua-service-filter: 2.34.0
-  node-opcua-service-read: 2.34.0
-  node-opcua-service-secure-channel: 2.34.0
-  node-opcua-types: 2.34.0
+  node-opcua-assert: 2.35.0
+  node-opcua-basic-types: 2.35.0
+  node-opcua-binary-stream: 2.35.0
+  node-opcua-data-model: 2.35.0
+  node-opcua-data-value: 2.35.0
+  node-opcua-extension-object: 2.35.0
+  node-opcua-factory: 2.35.0
+  node-opcua-nodeid: 2.35.0
+  node-opcua-packet-analyzer: 2.35.0
+  node-opcua-service-filter: 2.35.0
+  node-opcua-service-read: 2.35.0
+  node-opcua-service-secure-channel: 2.35.0
+  node-opcua-types: 2.35.0
