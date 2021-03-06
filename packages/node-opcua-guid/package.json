@@ -2,7 +2,7 @@
     "name": "node-opcua-guid",
     "main": "./dist/index.js",
     "types": "./dist/index.d.ts",
-    "version": "2.35.0",
+    "version": "2.36.0",
     "description": "pure nodejs OPCUA SDK - module -guid",
     "scripts": {
         "build": "tsc -b",
