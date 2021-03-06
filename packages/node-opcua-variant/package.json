@@ -1,6 +1,6 @@
 {
     "name": "node-opcua-variant",
-    "version": "2.34.0",
+    "version": "2.35.0",
     "description": "pure nodejs OPCUA SDK - module -variant",
     "main": "./dist/index.js",
     "types": "./dist/index.d.ts",
@@ -10,25 +10,25 @@
         "clean": "node -e \"require('rimraf').sync('dist');\""
     },
     "dependencies": {
-        "node-opcua-assert": "2.29.0",
-        "node-opcua-basic-types": "2.34.0",
-        "node-opcua-data-model": "2.34.0",
-        "node-opcua-enum": "2.29.0",
-        "node-opcua-extension-object": "2.34.0",
-        "node-opcua-factory": "2.34.0",
-        "node-opcua-nodeid": "2.34.0",
-        "node-opcua-utils": "2.34.0"
-            },
+        "node-opcua-assert": "2.35.0",
+        "node-opcua-basic-types": "2.35.0",
+        "node-opcua-data-model": "2.35.0",
+        "node-opcua-enum": "2.35.0",
+        "node-opcua-extension-object": "2.35.0",
+        "node-opcua-factory": "2.35.0",
+        "node-opcua-nodeid": "2.35.0",
+        "node-opcua-utils": "2.35.0"
+    },
     "devDependencies": {
         "@types/lodash": "4.14.168",
         "@types/underscore": "^1.11.0",
         "lodash": "4.17.21",
-        "node-opcua-benchmarker": "2.29.0",
-        "node-opcua-binary-stream": "2.29.0",
-        "node-opcua-debug": "2.31.0",
-        "node-opcua-numeric-range": "2.34.0",
-        "node-opcua-packet-analyzer": "2.34.0",
-        "node-opcua-status-code": "2.34.0",
+        "node-opcua-benchmarker": "2.35.0",
+        "node-opcua-binary-stream": "2.35.0",
+        "node-opcua-debug": "2.35.0",
+        "node-opcua-numeric-range": "2.35.0",
+        "node-opcua-packet-analyzer": "2.35.0",
+        "node-opcua-status-code": "2.35.0",
         "should": "^13.2.3",
         "source-map-support": "^0.5.19",
         "underscore": "^1.12.0"

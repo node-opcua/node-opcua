@@ -1,6 +1,6 @@
 {
   "name": "node-opcua-constants",
-  "version": "2.29.0",
+  "version": "2.35.0",
   "description": "pure nodejs OPCUA SDK - module -constants",
   "scripts": {
     "clean": "node -e \"require('rimraf').sync('dist');\"",
@@ -25,7 +25,5 @@
     "internet of things"
   ],
   "homepage": "http://node-opcua.github.io/",
-  "gitHead": "e4d73afdfcccb3491423149d9b9785888f4ebb3c",
-  "dependencies": {
-      }
+  "gitHead": "e4d73afdfcccb3491423149d9b9785888f4ebb3c"
 }

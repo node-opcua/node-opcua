@@ -3,7 +3,7 @@
     "main": "./dist/index.js",
     "types": "./dist/index.d.ts",
     "browser": "./index_web.js",
-    "version": "2.29.0",
+    "version": "2.35.0",
     "description": "pure nodejs OPCUA SDK - module -nodesets",
     "scripts": {
         "build": "tsc -b",
@@ -25,7 +25,5 @@
         "internet of things"
     ],
     "homepage": "http://node-opcua.github.io/",
-    "gitHead": "e4d73afdfcccb3491423149d9b9785888f4ebb3c",
-    "dependencies": {
-            }
+    "gitHead": "e4d73afdfcccb3491423149d9b9785888f4ebb3c"
 }
