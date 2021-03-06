@@ -15,8 +15,8 @@ build_and_test:
   before_script:
     - curl -L https://unpkg.com/@pnpm/self-installer | node
     - pnpm config set store-dir ~/.pnpm-store
-    - pnpm install
-    - pnpm recursive install
+    - pnpm install --frozen-lockfile
+    - pnpm recursive install --frozen-lockfile
   script:
     - pnpm build
     - pnpm test
