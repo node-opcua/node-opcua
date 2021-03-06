@@ -158,7 +158,7 @@ describe("Testing Session with user certificate", () => {
     });
 
 
-    it("should fail to create a session with a invalid client certificate (outofdate)", async () => {
+    it("should fail to create a session with a invalid client certificate (out-of-date)", async () => {
 
         const userIdentity: UserIdentityInfoX509 = {
             certificateData: invalidClientCertificate,
