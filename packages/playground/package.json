@@ -1,6 +1,6 @@
 {
   "name": "playground",
-  "version": "2.36.2",
+  "version": "2.36.3",
   "description": "",
   "main": "sample1.js",
   "private": true,
@@ -11,7 +11,7 @@
     "node-opcua": "2.36.0",
     "node-opcua-assert": "2.35.0",
     "node-opcua-client": "2.36.0",
-    "node-opcua-modeler": "2.36.2",
+    "node-opcua-modeler": "2.36.3",
     "node-opcua-utils": "2.36.0"
   },
   "author": "Etienne Rossignon",
