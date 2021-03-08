@@ -60,14 +60,14 @@ packages:
 specifiers:
   '@types/node': ^14.14.31
   node-opcua-assert: 2.35.0
-  node-opcua-benchmarker: 2.35.0
-  node-opcua-binary-stream: 2.35.0
-  node-opcua-buffer-utils: 2.35.0
-  node-opcua-date-time: 2.35.0
-  node-opcua-debug: 2.35.0
-  node-opcua-enum: 2.35.0
-  node-opcua-guid: 2.35.0
-  node-opcua-nodeid: 2.35.0
-  node-opcua-status-code: 2.35.0
-  node-opcua-utils: 2.35.0
+  node-opcua-benchmarker: 2.36.0
+  node-opcua-binary-stream: 2.36.0
+  node-opcua-buffer-utils: 2.36.0
+  node-opcua-date-time: 2.36.0
+  node-opcua-debug: 2.36.0
+  node-opcua-enum: 2.36.0
+  node-opcua-guid: 2.36.0
+  node-opcua-nodeid: 2.36.0
+  node-opcua-status-code: 2.36.0
+  node-opcua-utils: 2.36.0
   should: ^13.2.3

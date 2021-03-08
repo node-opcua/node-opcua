@@ -54,8 +54,8 @@ packages:
 specifiers:
   chalk: ^4.1.0
   node-opcua-assert: 2.35.0
-  node-opcua-basic-types: 2.35.0
-  node-opcua-binary-stream: 2.35.0
-  node-opcua-debug: 2.35.0
-  node-opcua-factory: 2.35.0
-  node-opcua-nodeid: 2.35.0
+  node-opcua-basic-types: 2.36.0
+  node-opcua-binary-stream: 2.36.0
+  node-opcua-debug: 2.36.0
+  node-opcua-factory: 2.36.0
+  node-opcua-nodeid: 2.36.0

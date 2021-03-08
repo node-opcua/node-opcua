@@ -50,10 +50,10 @@ packages:
       integrity: sha512-ggLesLtu2xp+ZxI+ysJTmNjh2U0TsC+rQ/pfED9bUZZ4DKefP27D+7YJVVTvKsmjLpIi9jAa7itwDGkDDmt1GQ==
 specifiers:
   node-opcua-assert: 2.35.0
-  node-opcua-basic-types: 2.35.0
-  node-opcua-binary-stream: 2.35.0
-  node-opcua-data-model: 2.35.0
-  node-opcua-factory: 2.35.0
-  node-opcua-nodeid: 2.35.0
-  node-opcua-types: 2.35.0
+  node-opcua-basic-types: 2.36.0
+  node-opcua-binary-stream: 2.36.0
+  node-opcua-data-model: 2.36.0
+  node-opcua-factory: 2.36.0
+  node-opcua-nodeid: 2.36.0
+  node-opcua-types: 2.36.0
   should: ^13.2.3

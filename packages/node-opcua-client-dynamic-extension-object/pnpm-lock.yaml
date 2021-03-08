@@ -63,17 +63,17 @@ packages:
 specifiers:
   chalk: ^4.1.0
   node-opcua-assert: 2.35.0
-  node-opcua-binary-stream: 2.35.0
-  node-opcua-data-model: 2.35.0
-  node-opcua-data-value: 2.35.0
-  node-opcua-debug: 2.35.0
-  node-opcua-extension-object: 2.35.0
-  node-opcua-factory: 2.35.0
-  node-opcua-nodeid: 2.35.0
-  node-opcua-pseudo-session: 2.35.0
-  node-opcua-schemas: 2.35.0
-  node-opcua-service-browse: 2.35.0
-  node-opcua-service-translate-browse-path: 2.35.0
-  node-opcua-status-code: 2.35.0
-  node-opcua-types: 2.35.0
-  node-opcua-variant: 2.35.0
+  node-opcua-binary-stream: 2.36.0
+  node-opcua-data-model: 2.36.0
+  node-opcua-data-value: 2.36.0
+  node-opcua-debug: 2.36.0
+  node-opcua-extension-object: 2.36.0
+  node-opcua-factory: 2.36.0
+  node-opcua-nodeid: 2.36.0
+  node-opcua-pseudo-session: 2.36.0
+  node-opcua-schemas: 2.36.0
+  node-opcua-service-browse: 2.36.0
+  node-opcua-service-translate-browse-path: 2.36.0
+  node-opcua-status-code: 2.36.0
+  node-opcua-types: 2.36.0
+  node-opcua-variant: 2.36.0

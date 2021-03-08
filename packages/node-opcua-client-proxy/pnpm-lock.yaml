@@ -23,18 +23,18 @@ packages:
       integrity: sha512-TR2mEZFVOj2pLStYxLht7TyfuRzaydfpxr3k9RpHIzMgw7A64dzsdqCxH1WJyQdoe8T10nDXd9wnEigmiuHIZw==
 specifiers:
   async: ^3.2.0
-  node-opcua-address-space: 2.35.0
+  node-opcua-address-space: 2.36.0
   node-opcua-assert: 2.35.0
   node-opcua-constants: 2.35.0
-  node-opcua-data-model: 2.35.0
-  node-opcua-data-value: 2.35.0
-  node-opcua-nodeid: 2.35.0
-  node-opcua-pseudo-session: 2.35.0
-  node-opcua-service-browse: 2.35.0
-  node-opcua-service-call: 2.35.0
-  node-opcua-service-read: 2.35.0
-  node-opcua-service-subscription: 2.35.0
-  node-opcua-service-write: 2.35.0
-  node-opcua-status-code: 2.35.0
-  node-opcua-utils: 2.35.0
-  node-opcua-variant: 2.35.0
+  node-opcua-data-model: 2.36.0
+  node-opcua-data-value: 2.36.0
+  node-opcua-nodeid: 2.36.0
+  node-opcua-pseudo-session: 2.36.0
+  node-opcua-service-browse: 2.36.0
+  node-opcua-service-call: 2.36.0
+  node-opcua-service-read: 2.36.0
+  node-opcua-service-subscription: 2.36.0
+  node-opcua-service-write: 2.36.0
+  node-opcua-status-code: 2.36.0
+  node-opcua-utils: 2.36.0
+  node-opcua-variant: 2.36.0

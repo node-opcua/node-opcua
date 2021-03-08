@@ -142,13 +142,13 @@ packages:
       integrity: sha512-0fr/mIH1dlO+x7TlcMy+bIDqKPsw/70tVyeHW787goQjhmqaZe10uwLujubK9q9Lg6Fiho1KUKDYz0Z7k7g5/g==
 specifiers:
   node-opcua-assert: 2.35.0
-  node-opcua-basic-types: 2.35.0
-  node-opcua-binary-stream: 2.35.0
+  node-opcua-basic-types: 2.36.0
+  node-opcua-binary-stream: 2.36.0
   node-opcua-constants: 2.35.0
-  node-opcua-data-model: 2.35.0
-  node-opcua-factory: 2.35.0
-  node-opcua-nodeid: 2.35.0
-  node-opcua-service-secure-channel: 2.35.0
-  node-opcua-types: 2.35.0
+  node-opcua-data-model: 2.36.0
+  node-opcua-factory: 2.36.0
+  node-opcua-nodeid: 2.36.0
+  node-opcua-service-secure-channel: 2.36.0
+  node-opcua-types: 2.36.0
   should: ^13.2.3
   sinon: ^9.2.4

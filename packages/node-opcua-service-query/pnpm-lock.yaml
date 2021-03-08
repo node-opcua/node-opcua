@@ -15,15 +15,15 @@ dependencies:
 lockfileVersion: 5.2
 specifiers:
   node-opcua-assert: 2.35.0
-  node-opcua-basic-types: 2.35.0
-  node-opcua-binary-stream: 2.35.0
-  node-opcua-data-model: 2.35.0
-  node-opcua-factory: 2.35.0
-  node-opcua-nodeid: 2.35.0
-  node-opcua-numeric-range: 2.35.0
-  node-opcua-service-browse: 2.35.0
-  node-opcua-service-filter: 2.35.0
-  node-opcua-service-secure-channel: 2.35.0
-  node-opcua-service-subscription: 2.35.0
-  node-opcua-service-translate-browse-path: 2.35.0
-  node-opcua-types: 2.35.0
+  node-opcua-basic-types: 2.36.0
+  node-opcua-binary-stream: 2.36.0
+  node-opcua-data-model: 2.36.0
+  node-opcua-factory: 2.36.0
+  node-opcua-nodeid: 2.36.0
+  node-opcua-numeric-range: 2.36.0
+  node-opcua-service-browse: 2.36.0
+  node-opcua-service-filter: 2.36.0
+  node-opcua-service-secure-channel: 2.36.0
+  node-opcua-service-subscription: 2.36.0
+  node-opcua-service-translate-browse-path: 2.36.0
+  node-opcua-types: 2.36.0

@@ -5,4 +5,4 @@ devDependencies:
 lockfileVersion: 5.2
 specifiers:
   node-opcua-assert: 2.35.0
-  node-opcua-benchmarker: 2.35.0
+  node-opcua-benchmarker: 2.36.0

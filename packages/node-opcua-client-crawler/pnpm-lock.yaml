@@ -34,18 +34,18 @@ packages:
 specifiers:
   '@types/underscore': ^1.11.0
   async: ^3.2.0
-  node-opcua-address-space: 2.35.0
+  node-opcua-address-space: 2.36.0
   node-opcua-assert: 2.35.0
-  node-opcua-client: 2.35.0
+  node-opcua-client: 2.36.0
   node-opcua-constants: 2.35.0
-  node-opcua-data-model: 2.35.0
-  node-opcua-data-value: 2.35.0
-  node-opcua-debug: 2.35.0
-  node-opcua-factory: 2.35.0
-  node-opcua-nodeid: 2.35.0
-  node-opcua-service-browse: 2.35.0
-  node-opcua-status-code: 2.35.0
-  node-opcua-types: 2.35.0
-  node-opcua-utils: 2.35.0
-  node-opcua-variant: 2.35.0
+  node-opcua-data-model: 2.36.0
+  node-opcua-data-value: 2.36.0
+  node-opcua-debug: 2.36.0
+  node-opcua-factory: 2.36.0
+  node-opcua-nodeid: 2.36.0
+  node-opcua-service-browse: 2.36.0
+  node-opcua-status-code: 2.36.0
+  node-opcua-types: 2.36.0
+  node-opcua-utils: 2.36.0
+  node-opcua-variant: 2.36.0
   underscore: ^1.12.0

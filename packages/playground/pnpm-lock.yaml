@@ -6,8 +6,8 @@ dependencies:
   node-opcua-utils: link:../node-opcua-utils
 lockfileVersion: 5.2
 specifiers:
-  node-opcua: 2.35.0
+  node-opcua: 2.36.0
   node-opcua-assert: 2.35.0
-  node-opcua-client: 2.35.0
-  node-opcua-modeler: 2.35.0
-  node-opcua-utils: 2.35.0
+  node-opcua-client: 2.36.0
+  node-opcua-modeler: 2.36.3
+  node-opcua-utils: 2.36.0

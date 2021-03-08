@@ -11,13 +11,13 @@ dependencies:
   node-opcua-variant: link:../node-opcua-variant
 lockfileVersion: 5.2
 specifiers:
-  node-opcua-address-space: 2.35.0
+  node-opcua-address-space: 2.36.0
   node-opcua-assert: 2.35.0
-  node-opcua-basic-types: 2.35.0
-  node-opcua-data-access: 2.35.0
-  node-opcua-data-model: 2.35.0
-  node-opcua-data-value: 2.35.0
-  node-opcua-factory: 2.35.0
-  node-opcua-nodeid: 2.35.0
-  node-opcua-status-code: 2.35.0
-  node-opcua-variant: 2.35.0
+  node-opcua-basic-types: 2.36.0
+  node-opcua-data-access: 2.36.0
+  node-opcua-data-model: 2.36.0
+  node-opcua-data-value: 2.36.0
+  node-opcua-factory: 2.36.0
+  node-opcua-nodeid: 2.36.0
+  node-opcua-status-code: 2.36.0
+  node-opcua-variant: 2.36.0
