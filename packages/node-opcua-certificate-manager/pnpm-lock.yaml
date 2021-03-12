@@ -2,7 +2,7 @@ dependencies:
   '@types/mkdirp': 0.5.2
   chalk: 4.1.0
   delayed: 2.0.0
-  env-paths: 2.2.0
+  env-paths: 2.2.1
   mkdirp: 0.5.5
   node-opcua-assert: link:../node-opcua-assert
   node-opcua-basic-types: link:../node-opcua-basic-types
@@ -471,12 +471,12 @@ packages:
     dev: false
     resolution:
       integrity: sha512-+uw1inIHVPQoaVuHzRyXd21icM+cnt4CzD5rW+NC1wjOUSTOs+Te7FOv7AhN7vS9x/oIyhLP5PR1H+phQAHu5Q==
-  /env-paths/2.2.0:
+  /env-paths/2.2.1:
     dev: false
     engines:
       node: '>=6'
     resolution:
-      integrity: sha512-6u0VYSCo/OW6IoD5WCLLy9JUGARbamfSavcNXry/eu8aHVFei6CD3Sw+VGX5alea1i9pgPHW0mbu6Xj0uBh7gA==
+      integrity: sha512-+h1lkLKhZMTYjog1VEpJNG7NZJWcuc2DDk/qsqSTRRCOXiLjeQ1d1/udrUGhqMxUgAlwKNZ0cf2uqan5GLuS2A==
   /escalade/3.1.1:
     dev: false
     engines:
@@ -1440,7 +1440,7 @@ specifiers:
   chalk: ^4.1.0
   delayed: ^2.0.0
   dequeue: ^1.0.5
-  env-paths: ^2.2.0
+  env-paths: ^2.2.1
   mkdirp: 0.5.5
   node-opcua-assert: 2.35.0
   node-opcua-basic-types: 2.36.0

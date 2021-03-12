@@ -15,7 +15,7 @@
         "@types/mkdirp": "0.5.2",
         "chalk": "^4.1.0",
         "delayed": "^2.0.0",
-        "env-paths": "^2.2.0",
+        "env-paths": "^2.2.1",
         "mkdirp": "0.5.5",
         "node-opcua-assert": "2.35.0",
         "node-opcua-basic-types": "2.36.0",

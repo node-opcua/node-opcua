@@ -36,10 +36,10 @@
         "underscore": "^1.12.0"
     },
     "devDependencies": {
-        "@types/node": "^14.14.31",
+        "@types/node": "^14.14.33",
         "node-opcua-buffer-utils": "2.36.0",
         "node-opcua-leak-detector": "2.36.0",
-        "node-opcua-packet-analyzer": "2.34.0",
+        "node-opcua-packet-analyzer": "2.36.0",
         "node-opcua-service-browse": "2.36.0",
         "node-opcua-service-endpoints": "2.36.0",
         "node-opcua-service-read": "2.36.0",

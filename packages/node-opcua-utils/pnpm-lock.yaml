@@ -3,7 +3,7 @@ dependencies:
   chalk: 4.1.0
   node-opcua-assert: link:../node-opcua-assert
 devDependencies:
-  '@types/node': 14.14.31
+  '@types/node': 14.14.33
   should: 13.2.3
   sinon: 9.2.4
 lockfileVersion: 5.2
@@ -32,10 +32,10 @@ packages:
     dev: true
     resolution:
       integrity: sha512-+iTbntw2IZPb/anVDbypzfQa+ay64MW0Zo8aJ8gZPWMMK6/OubMVb6lUPMagqjOPnmtauXnFCACVl3O7ogjeqQ==
-  /@types/node/14.14.31:
+  /@types/node/14.14.33:
     dev: true
     resolution:
-      integrity: sha512-vFHy/ezP5qI0rFgJ7aQnjDXwAMrG0KqqIH7tQG5PPv3BWBayOPIQNBjVc/P6hhdZfMx51REc6tfDNXHUio893g==
+      integrity: sha512-oJqcTrgPUF29oUP8AsUqbXGJNuPutsetaa9kTQAQce5Lx5dTYWV02ScBiT/k1BX/Z7pKeqedmvp39Wu4zR7N7g==
   /ansi-styles/4.3.0:
     dependencies:
       color-convert: 2.0.1
@@ -171,7 +171,7 @@ packages:
     resolution:
       integrity: sha512-0fr/mIH1dlO+x7TlcMy+bIDqKPsw/70tVyeHW787goQjhmqaZe10uwLujubK9q9Lg6Fiho1KUKDYz0Z7k7g5/g==
 specifiers:
-  '@types/node': ^14.14.31
+  '@types/node': ^14.14.33
   browser-process-hrtime: ^1.0.0
   chalk: ^4.1.0
   node-opcua-assert: 2.35.0

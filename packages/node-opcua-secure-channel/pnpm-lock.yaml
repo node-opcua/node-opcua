@@ -23,7 +23,7 @@ dependencies:
   node-opcua-utils: link:../node-opcua-utils
   underscore: 1.12.0
 devDependencies:
-  '@types/node': 14.14.31
+  '@types/node': 14.14.33
   node-opcua-buffer-utils: link:../node-opcua-buffer-utils
   node-opcua-leak-detector: link:../node-opcua-leak-detector
   node-opcua-service-browse: link:../node-opcua-service-browse
@@ -62,10 +62,10 @@ packages:
     dev: true
     resolution:
       integrity: sha512-+iTbntw2IZPb/anVDbypzfQa+ay64MW0Zo8aJ8gZPWMMK6/OubMVb6lUPMagqjOPnmtauXnFCACVl3O7ogjeqQ==
-  /@types/node/14.14.31:
+  /@types/node/14.14.33:
     dev: true
     resolution:
-      integrity: sha512-vFHy/ezP5qI0rFgJ7aQnjDXwAMrG0KqqIH7tQG5PPv3BWBayOPIQNBjVc/P6hhdZfMx51REc6tfDNXHUio893g==
+      integrity: sha512-oJqcTrgPUF29oUP8AsUqbXGJNuPutsetaa9kTQAQce5Lx5dTYWV02ScBiT/k1BX/Z7pKeqedmvp39Wu4zR7N7g==
   /@types/underscore/1.11.0:
     dev: false
     resolution:
@@ -341,7 +341,7 @@ packages:
     resolution:
       integrity: sha512-21rQzss/XPMjolTiIezSu3JAjgagXKROtNrYFEOWK109qY1Uv2tVjPTZ1ci2HgvQDA16gHYSthQIJfB+XId/rQ==
 specifiers:
-  '@types/node': ^14.14.31
+  '@types/node': ^14.14.33
   '@types/underscore': ^1.11.0
   async: ^3.2.0
   backoff: ^2.5.0

@@ -1,6 +1,6 @@
 dependencies:
   bonjour: 3.5.0
-  env-paths: 2.2.0
+  env-paths: 2.2.1
   node-opcua: link:../node-opcua
   vorpal: 1.12.0
   vorpal-repl: 1.1.8
@@ -188,12 +188,12 @@ packages:
     dev: false
     resolution:
       integrity: sha512-MSjYzcWNOA0ewAHpz0MxpYFvwg6yjy1NG3xteoqz644VCo/RPgnr1/GGt+ic3iJTzQ8Eu3TdM14SawnVUmGE6A==
-  /env-paths/2.2.0:
+  /env-paths/2.2.1:
     dev: false
     engines:
       node: '>=6'
     resolution:
-      integrity: sha512-6u0VYSCo/OW6IoD5WCLLy9JUGARbamfSavcNXry/eu8aHVFei6CD3Sw+VGX5alea1i9pgPHW0mbu6Xj0uBh7gA==
+      integrity: sha512-+h1lkLKhZMTYjog1VEpJNG7NZJWcuc2DDk/qsqSTRRCOXiLjeQ1d1/udrUGhqMxUgAlwKNZ0cf2uqan5GLuS2A==
   /escape-string-regexp/1.0.5:
     dev: false
     engines:
@@ -650,7 +650,7 @@ packages:
       integrity: sha512-aePbxDmcYW++PaqBsJ+HYUFwCdv4LVvdnhBy78E57PIor8/OVvhMrADFFEDh8DHDFRv/O9i3lPhsENjO7QX0+A==
 specifiers:
   bonjour: ^3.5.0
-  env-paths: ^2.2.0
+  env-paths: ^2.2.1
   node-opcua: 2.36.0
   vorpal: ^1.12.0
   vorpal-repl: ^1.1.8

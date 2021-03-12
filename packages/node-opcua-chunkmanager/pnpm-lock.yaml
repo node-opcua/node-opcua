@@ -7,16 +7,16 @@ dependencies:
   node-opcua-factory: link:../node-opcua-factory
   node-opcua-packet-assembler: link:../node-opcua-packet-assembler
 devDependencies:
-  '@types/node': 14.14.31
+  '@types/node': 14.14.33
   node-opcua-debug: link:../node-opcua-debug
   should: 13.2.3
   source-map-support: 0.5.19
 lockfileVersion: 5.2
 packages:
-  /@types/node/14.14.31:
+  /@types/node/14.14.33:
     dev: true
     resolution:
-      integrity: sha512-vFHy/ezP5qI0rFgJ7aQnjDXwAMrG0KqqIH7tQG5PPv3BWBayOPIQNBjVc/P6hhdZfMx51REc6tfDNXHUio893g==
+      integrity: sha512-oJqcTrgPUF29oUP8AsUqbXGJNuPutsetaa9kTQAQce5Lx5dTYWV02ScBiT/k1BX/Z7pKeqedmvp39Wu4zR7N7g==
   /ansi-styles/4.3.0:
     dependencies:
       color-convert: 2.0.1
@@ -116,7 +116,7 @@ packages:
     resolution:
       integrity: sha512-qpCAvRl9stuOHveKsn7HncJRvv501qIacKzQlO/+Lwxc9+0q2wLyv4Dfvt80/DPn2pqOBsJdDiogXGR9+OvwRw==
 specifiers:
-  '@types/node': ^14.14.31
+  '@types/node': ^14.14.33
   chalk: ^4.1.0
   node-opcua-assert: 2.35.0
   node-opcua-basic-types: 2.36.0
