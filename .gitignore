@@ -1,4 +1,5 @@
 #package-lock.json
+
 yarn.lock
 .vs/
 .DS_Store
@@ -52,6 +53,8 @@ openssl-1.0.2-i386-win32.zip
 open*win*.zip
 CTTA/
 dist/
+distNodeJS/
+distHelpers/
 bin/.history*
 test_support/
 code_gen/1.02
