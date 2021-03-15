@@ -648,19 +648,7 @@ export class OPCUAClientImpl extends ClientBaseImpl implements OPCUAClient {
     ): Promise<any> {
         await this.withSessionAsync(connectionPoint, async (session: ClientSession) => {
             assert(session, " session must exist");
-            const subscription = new ClientSubscriptionImpl(session as ClientSessionImpl, parameters);
-
-            // tslint:disable-next-line:no-empty
-            subscription
-                .on("started", () => {})
-                .on("internal_error", (err: Error) => {
-                    debugLog(" received internal error", err.message);
-                })
-                .on("keepalive", () => {})
-                .on("terminated", (err?: Error) => {
-                    // console.log(" terminated");
-                });
-
+            const subscription = await session.createSubscription2(parameters);
             try {
                 const result = await func(session, subscription);
                 return result;

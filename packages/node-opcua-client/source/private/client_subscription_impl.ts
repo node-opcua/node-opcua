@@ -28,10 +28,12 @@ import {
     EventNotificationList,
     SetTriggeringResponse,
     SetTriggeringRequest,
-    MonitoringMode
+    MonitoringMode,
+    ModifySubscriptionRequestOptions,
+    ModifySubscriptionResponse
 } from "node-opcua-service-subscription";
 
-import { StatusCode, StatusCodes } from "node-opcua-status-code";
+import { CallbackT, StatusCode, StatusCodes } from "node-opcua-status-code";
 import { Callback, ErrorCallback } from "node-opcua-status-code";
 import * as utils from "node-opcua-utils";
 import { promoteOpaqueStructure } from "node-opcua-client-dynamic-extension-object";
@@ -41,7 +43,14 @@ import { IBasicSession } from "node-opcua-pseudo-session";
 import { ClientMonitoredItemBase } from "../client_monitored_item_base";
 import { ClientMonitoredItemGroup } from "../client_monitored_item_group";
 import { ClientSession, MonitoredItemData, SubscriptionId } from "../client_session";
-import { ClientHandle, ClientMonitoredItemBaseMap, ClientSubscription, ClientSubscriptionOptions } from "../client_subscription";
+import {
+    ClientHandle,
+    ClientMonitoredItemBaseMap,
+    ClientSubscription,
+    ClientSubscriptionOptions,
+    ModifySubscriptionOptions,
+    ModifySubscriptionResult
+} from "../client_subscription";
 import { ClientMonitoredItemGroupImpl } from "./client_monitored_item_group_impl";
 import { ClientMonitoredItemImpl } from "./client_monitored_item_impl";
 import { ClientSidePublishEngine } from "./client_publish_engine";
@@ -461,7 +470,7 @@ export class ClientSubscriptionImpl extends EventEmitter implements ClientSubscr
         if (!session) {
             return callback(new Error("no session"));
         }
-        const subscriptionId = this.subscriptionId as SubscriptionId;
+        const subscriptionId = this.subscriptionId;
 
         const triggeringItemId = triggeringItem.monitoredItemId!;
 
@@ -480,6 +489,37 @@ export class ClientSubscriptionImpl extends EventEmitter implements ClientSubscr
             if (!response) {
                 return callback(new Error("Internal Error"));
             }
+            callback(null, response);
+        });
+    }
+
+    // public subscription service
+    public modify(options: ModifySubscriptionOptions, callback: Callback<ModifySubscriptionResult>): void;
+    public modify(options: ModifySubscriptionOptions): Promise<ModifySubscriptionResult>;
+    public modify(...args: any[]): any {
+        const modifySubscriptionRequest = args[0] as ModifySubscriptionRequestOptions;
+        const callback = args[1] as Callback<ModifySubscriptionResult>;
+        const session = this.session as ClientSessionImpl;
+        if (!session) {
+            return callback(new Error("no session"));
+        }
+
+        modifySubscriptionRequest.subscriptionId = this.subscriptionId;
+
+        modifySubscriptionRequest.priority = modifySubscriptionRequest.priority === undefined ? this.priority : modifySubscriptionRequest.priority;
+        modifySubscriptionRequest.requestedLifetimeCount = modifySubscriptionRequest.requestedLifetimeCount === undefined ? this.lifetimeCount : modifySubscriptionRequest.requestedLifetimeCount;
+        modifySubscriptionRequest.requestedMaxKeepAliveCount = modifySubscriptionRequest.requestedMaxKeepAliveCount === undefined ? this.maxKeepAliveCount : modifySubscriptionRequest.requestedMaxKeepAliveCount;
+        modifySubscriptionRequest.requestedPublishingInterval = modifySubscriptionRequest.requestedPublishingInterval === undefined ? this.publishingInterval : modifySubscriptionRequest.requestedPublishingInterval;
+        modifySubscriptionRequest.maxNotificationsPerPublish = modifySubscriptionRequest.maxNotificationsPerPublish === undefined ? this.maxNotificationsPerPublish : modifySubscriptionRequest.maxNotificationsPerPublish;
+        
+        
+        session.modifySubscription(modifySubscriptionRequest, (err: Error | null, response?: ModifySubscriptionResponse) => {
+            if (err || !response) {
+                return callback(err);
+            }
+            this.publishingInterval = response.revisedPublishingInterval;
+            this.lifetimeCount = response.revisedLifetimeCount;
+            this.maxKeepAliveCount = response.revisedMaxKeepAliveCount;
             callback(null, response);
         });
     }
@@ -970,6 +1010,7 @@ ClientSubscriptionImpl.prototype.setPublishingMode = thenify.withCallback(Client
 ClientSubscriptionImpl.prototype.monitor = thenify.withCallback(ClientSubscriptionImpl.prototype.monitor);
 ClientSubscriptionImpl.prototype.monitorItems = thenify.withCallback(ClientSubscriptionImpl.prototype.monitorItems);
 ClientSubscriptionImpl.prototype.setTriggering = thenify.withCallback(ClientSubscriptionImpl.prototype.setTriggering);
+ClientSubscriptionImpl.prototype.modify = thenify.withCallback(ClientSubscriptionImpl.prototype.modify);
 ClientSubscriptionImpl.prototype.recreateSubscriptionAndMonitoredItem = thenify.withCallback(
     ClientSubscriptionImpl.prototype.recreateSubscriptionAndMonitoredItem
 );
