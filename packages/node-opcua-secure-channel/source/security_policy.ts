@@ -434,7 +434,7 @@ export function computeSignature(
     receiverPrivateKey: PrivateKeyPEM | null,
     securityPolicy: SecurityPolicy): SignatureData | undefined {
 
-    if (!senderNonce || !senderCertificate || !receiverPrivateKey) {
+    if (!senderNonce || !senderCertificate || senderCertificate.length === 0 || !receiverPrivateKey) {
         return undefined;
     }
 

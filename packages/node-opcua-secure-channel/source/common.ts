@@ -24,7 +24,7 @@ export type Request = RequestB | CloseSecureChannelRequest;
 export { ICertificateKeyPairProvider } from "node-opcua-common";
 
 export function extractFirstCertificateInChain(certificateChain?: Buffer | null): Buffer | null {
-    if (!certificateChain) {
+    if (!certificateChain || certificateChain.length === 0) {
         return null;
     }
     const c =  split_der(certificateChain);
