@@ -11,21 +11,39 @@ export function capitalizeFirstLetter(str: string): string {
 
 const ACode = "A".charCodeAt(0);
 const ZCode = "Z".charCodeAt(0);
-function isUpperCaseChar(c: string): boolean {
+export function isUpperCaseChar(c: string): boolean {
     const code = c.charCodeAt(0);
     return code >= ACode && code <= ZCode;
 }
 const aCode = "a".charCodeAt(0);
 const zCode = "z".charCodeAt(0);
-function isAlpha(c: string): boolean {
+export function isAlpha(c: string): boolean {
     const code = c.charCodeAt(0);
     return (code >= ACode && code <= ZCode) || (code >= aCode && code <= zCode);
 }
-function countUpperCase(str: string): number {
+
+export function countUpperCaseSlow(str: string): number {
     return str.split("").reduce((p, c) => p + (isUpperCaseChar(c) ? 1 : 0), 0);
 }
-function countAlpha(str: string): number {
+export function countAlphaSlow(str: string): number {
     return str.split("").reduce((p, c) => p + (isAlpha(c) ? 1 : 0), 0);
+}
+
+export function countUpperCase(str: string): number {
+    let count = 0;
+    const n = str.length
+    for (let i=0; i < n ; i++) {
+        count += isUpperCaseChar(str[i]) ? 1 : 0;
+    }
+    return count;
+}
+export function countAlpha(str: string): number {
+    let count = 0;
+    const n = str.length
+    for (let i=0; i < n ; i++) {
+        count += isAlpha(str[i]) ? 1 : 0;
+    }
+    return count;
 }
 
 /**
