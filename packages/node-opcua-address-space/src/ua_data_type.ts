@@ -269,6 +269,13 @@ export class UADataType extends BaseNode implements UADataTypePublic {
         }
         return _definition;
     }
+    public getDefinition(): DataTypeDefinition {
+        const d = this._getDefinition();
+        if (!d) {
+            throw new Error("DataType has no definition property");
+        }
+        return d;
+    }
 
     public install_extra_properties() {
         //

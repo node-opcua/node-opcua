@@ -246,7 +246,13 @@ export function verifyArguments_ArgumentList(
 
     return {
         inputArgumentResults,
-        statusCode: inputArgumentResults.includes(StatusCodes.BadTypeMismatch) ? StatusCodes.BadInvalidArgument : StatusCodes.Good
+        statusCode: 
+            (   
+                inputArgumentResults.includes(StatusCodes.BadTypeMismatch)  ||
+                inputArgumentResults.includes(StatusCodes.BadOutOfRange)
+            ) 
+            ? StatusCodes.BadInvalidArgument
+            : StatusCodes.Good
     };
 }
 
