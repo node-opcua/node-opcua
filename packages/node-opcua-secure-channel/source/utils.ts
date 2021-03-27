@@ -30,9 +30,10 @@ const clientFlag = (process.env?.NODEOPCUADEBUG?.match(/CLIENT{([^}]*)}/) || [])
 const serverFlag = (process.env?.NODEOPCUADEBUG?.match(/SERVER{([^}]*)}/) || [])[1] || "";
 const filter = new RegExp((process.env?.NODEOPCUADEBUG?.match(/FILTER{([^}]*)}/) || [])[1] || ".*");
 
+
 // console.log("serverFlag", serverFlag);
 // console.log("clientFlag", clientFlag);
-export const doTraceMessage = serverFlag.match(/TRACE/);
+export const doTraceServerMessage = serverFlag.match(/TRACE/);
 export const doTraceRequest = serverFlag.match(/REQUEST/);
 export const doTraceResponse = serverFlag.match(/RESPONSE/);
 export const doPerfMonitoring = serverFlag.match(/PERF/);
@@ -60,9 +61,9 @@ export function _dump_transaction_statistics(stats?: ServerTransactionStatistics
         console.log("                Bytes Read : ", stats.bytesRead);
         console.log("             Bytes Written : ", stats.bytesWritten);
         if (doPerfMonitoring) {
-            console.log("   time to receive request : ", stats.lap_reception / 1000, " sec");
-            console.log("   time to process request : ", stats.lap_processing / 1000, " sec");
-            console.log("   time to send response   : ", stats.lap_emission / 1000, " sec");
+            console.log("   time to receive request : ", (stats.lap_reception / 1000).toFixed(3), " sec");
+            console.log("   time to process request : ", (stats.lap_processing / 1000).toFixed(3), " sec");
+            console.log("   time to send response   : ", (stats.lap_emission / 1000).toFixed(3), " sec");
         }
     }
 }
@@ -202,7 +203,7 @@ function statusCodeToString(s: StatusCode): string {
 
 // istanbul ignore next
 export function traceRequestMessage(request: Request, channelId: number, instance: number) {
-    if (doTraceMessage ) {
+    if (doTraceServerMessage ) {
         const extra = _get_extraInfo(request);
         const size = evaluateBinarySize(request);
         const requestId = request.requestHeader.requestHandle;
@@ -225,7 +226,7 @@ export function traceRequestMessage(request: Request, channelId: number, instanc
 // istanbul ignore next
 export function traceResponseMessage(response: Response, channelId: number, instance: number) {
     assert(response.responseHeader.requestHandle >= 0);
-    if (doTraceMessage ) {
+    if (doTraceServerMessage ) {
         const extra = _get_extraInfo(response);
         const size = evaluateBinarySize(response);
         const requestId = response.responseHeader.requestHandle;
