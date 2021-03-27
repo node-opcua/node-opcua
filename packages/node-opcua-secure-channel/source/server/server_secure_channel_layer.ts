@@ -67,7 +67,7 @@ import { ICertificateManager } from "node-opcua-certificate-manager";
 import { ObjectRegistry } from "node-opcua-object-registry";
 import {
     doPerfMonitoring,
-    doTraceMessage,
+    doTraceServerMessage,
     ServerTransactionStatistics,
     traceRequestMessage,
     traceResponseMessage,
@@ -369,7 +369,8 @@ export class ServerSecureChannelLayer extends EventEmitter {
         });
 
         this.messageChunker = new MessageChunker({
-            securityHeader: this.securityHeader // for OPN
+            securityHeader: this.securityHeader, // for OPN
+            maxMessageSize: this.transport.maxMessageSize
         });
 
         this._tick0 = 0;
@@ -507,7 +508,9 @@ export class ServerSecureChannelLayer extends EventEmitter {
                 callback(err);
             } else {
                 this._rememberClientAddressAndPort();
-
+        
+                this.messageChunker.maxMessageSize = this.transport.maxMessageSize;
+        
                 // bind low level TCP transport to messageBuilder
                 this.transport.on("message", (messageChunk: Buffer) => {
                     assert(this.messageBuilder);
@@ -596,7 +599,7 @@ export class ServerSecureChannelLayer extends EventEmitter {
         }
 
         /* istanbul ignore next */
-        if (doTraceMessage) {
+        if (doTraceServerMessage) {
             traceResponseMessage(response, this.securityToken.channelId, this._counter);
         }
 
@@ -605,6 +608,8 @@ export class ServerSecureChannelLayer extends EventEmitter {
         }
 
         this._transactionsCount += 1;
+        
+ 
         this.messageChunker.chunkSecureMessage(
             msgType,
             options as ChunkMessageOptions,
@@ -623,6 +628,17 @@ export class ServerSecureChannelLayer extends EventEmitter {
         });
     }
 
+    
+    public getRemoteIPAddress(): string {
+        return  (this.transport?._socket as Socket)?.remoteAddress || "";
+    }
+    public getRemotePort(): number {
+        return  (this.transport?._socket as Socket)?.remotePort || 0;
+    }
+    public getRemoteFamily(): string {
+        return  (this.transport?._socket as Socket)?.remoteFamily || "";
+    }
+    
     /**
      * Abruptly close a Server SecureChannel ,by terminating the underlying transport.
      *
@@ -773,7 +789,7 @@ export class ServerSecureChannelLayer extends EventEmitter {
         channelId: number
     ) {
         /* istanbul ignore next */
-        if (doTraceMessage) {
+        if (doTraceServerMessage) {
             traceRequestMessage(request, channelId, this._counter);
         }
 
@@ -827,14 +843,11 @@ export class ServerSecureChannelLayer extends EventEmitter {
                 setImmediate(callback);
             }
 
+            /* istanbul ignore next */
             if (doPerfMonitoring) {
-                this._record_transaction_statistics();
-
-                /* istanbul ignore next */
-                if (doDebug) {
-                    // dump some statistics about transaction ( time and sizes )
-                    _dump_transaction_statistics(this.last_transaction_stats);
-                }
+            this._record_transaction_statistics();
+                // dump some statistics about transaction ( time and sizes )
+                _dump_transaction_statistics(this.last_transaction_stats);
             }
             this.emit("transaction_done");
         }
@@ -1136,6 +1149,10 @@ export class ServerSecureChannelLayer extends EventEmitter {
             serverProtocolVersion: this.protocolVersion
         });
 
+        if (doTraceServerMessage) {
+            console.log("Transport maxMessageSize = ", this.transport.maxMessageSize);
+            console.log("Transport maxChunkCount = ", this.transport.maxChunkCount);
+        }
         this.send_response("OPN", response, message, (/*err*/) => {
             const responseHeader = response.responseHeader;
             if (responseHeader.serviceResult !== StatusCodes.Good) {
@@ -1194,7 +1211,7 @@ export class ServerSecureChannelLayer extends EventEmitter {
 
     private _on_common_message(request: Request, msgType: string, requestId: number, channelId: number) {
         /* istanbul ignore next */
-        if (doTraceMessage) {
+        if (doTraceServerMessage) {
             traceRequestMessage(request, channelId, this._counter);
         }
 
@@ -1217,7 +1234,7 @@ export class ServerSecureChannelLayer extends EventEmitter {
             this._handle_OpenSecureChannelRequest(StatusCodes.Good, message, (/* err?: Error*/) => {});
         } else {
             if (request.schema.name === "CloseSecureChannelRequest") {
-                warningLog("WARNING : RECEIVED a CloseSecureChannelRequest with msgType=" + msgType);
+                warningLog("WARNING : RECEIVED a CloseSecureChannelRequest with msgType=", msgType);
                 this.close();
             } else {
                 if (doPerfMonitoring) {

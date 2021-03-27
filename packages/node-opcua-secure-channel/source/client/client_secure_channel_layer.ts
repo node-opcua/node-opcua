@@ -319,7 +319,8 @@ export class ClientSecureChannelLayer extends EventEmitter {
         this.protocolVersion = 0;
 
         this.messageChunker = new MessageChunker({
-            derivedKeys: null
+            derivedKeys: null,
+            // note maxMessageSize cannot be set at this stage, transport is not kown
         });
 
         this.defaultSecureTokenLifetime = options.defaultSecureTokenLifetime || 30000;
@@ -408,6 +409,9 @@ export class ClientSecureChannelLayer extends EventEmitter {
         str += "\n serverNonce  ............. : " + (this.serverNonce ? this.serverNonce.toString("hex") : "null");
         str += "\n clientNonce  ............. : " + (this.clientNonce ? this.clientNonce.toString("hex") : "null");
         str += "\n transportTimeout ......... : " + this.transportTimeout;
+        str += "\n maxMessageSize (to send..) : " + (this._transport?.parameters?.maxMessageSize || "<not set>");
+        str += "\n maxChunkCount  (to send..) : " + (this._transport?.parameters?.maxChunkCount || "<not set>");
+        str += "\n receiveBufferSize(server)  : " + (this._transport?.parameters?.receiveBufferSize || "<not set>");
         str += "\n";
         return str;
     }
@@ -485,6 +489,7 @@ export class ClientSecureChannelLayer extends EventEmitter {
 
         const transport = new ClientTCP_transport();
         transport.timeout = this.transportTimeout;
+
         debugLog("ClientSecureChannelLayer#create creating ClientTCP_transport with  transport.timeout = ", transport.timeout);
         assert(!this._pending_transport);
         this._pending_transport = transport;

@@ -14,12 +14,15 @@ import { timestamp } from "node-opcua-utils";
 
 import { SecureMessageChunkManager, SecureMessageChunkManagerOptions, SecurityHeader } from "./secure_message_chunk_manager";
 import { SequenceNumberGenerator } from "./sequence_number_generator";
+import { make_errorLog} from "node-opcua-debug";
 
 const doTraceChunk = process.env.NODEOPCUADEBUG && process.env.NODEOPCUADEBUG.indexOf("CHUNK") >= 0;
+const errorLog = make_errorLog(__dirname);
 
 export interface MessageChunkerOptions {
     securityHeader?: SecurityHeader;
     derivedKeys?: DerivedKeys | null;
+    maxMessageSize?: number;
 }
 
 export type MessageCallbackFunc = (chunk: Buffer | null) => void;
@@ -41,9 +44,12 @@ export class MessageChunker {
     private readonly sequenceNumberGenerator: SequenceNumberGenerator;
     private _stream?: BinaryStream;
     private derivedKeys?: DerivedKeys | null;
+    public maxMessageSize: number;
 
-    constructor(options: MessageChunkerOptions) {
+    constructor(options?: MessageChunkerOptions) {
+        options = options || {};
         this.sequenceNumberGenerator = new SequenceNumberGenerator();
+        this.maxMessageSize = options.maxMessageSize || 16 *1024*1024;
         this.update(options);
     }
 
@@ -81,7 +87,6 @@ export class MessageChunker {
 
         // calculate message size ( with its  encodingDefaultBinary)
         const binSize = message.binaryStoreSize() + 4;
-
         const stream = new BinaryStream(binSize);
         this._stream = stream;
 
@@ -117,6 +122,9 @@ export class MessageChunker {
                         "l=",
                         binSize.toString().padStart(6)
                     );
+                }
+                if (totalSize > this.maxMessageSize) {
+                    errorLog(`[NODE-OPCUA-E55] message size ${totalSize} exceeds the negociated message size ${this.maxMessageSize}`);
                 }
                 messageChunkCallback(null);
             });
