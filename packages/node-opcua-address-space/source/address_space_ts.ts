@@ -52,6 +52,7 @@ import {
     BrowsePathResult,
     BuildInfo,
     CallMethodResultOptions,
+    DataTypeDefinition,
     EnumValueType,
     EUInformation,
     EUInformationOptions,
@@ -877,6 +878,11 @@ export interface UADataType extends BaseNode {
     isSupertypeOf(referenceType: NodeIdLike | UADataType): boolean;
 
     getEncodingNode(encodingName: string): BaseNode | null;
+
+    /**
+     * 
+     */
+    getDefinition(): DataTypeDefinition;
 }
 
 export interface InstantiateOptions {
