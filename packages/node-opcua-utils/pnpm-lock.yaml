@@ -1,12 +1,12 @@
 lockfileVersion: 5.3
 
 specifiers:
-  '@types/node': ^14.14.33
+  '@types/node': ^14.14.37
   browser-process-hrtime: ^1.0.0
   chalk: ^4.1.0
   node-opcua-assert: 2.37.0
   should: ^13.2.3
-  sinon: ^9.2.4
+  sinon: ^10.0.0
 
 dependencies:
   browser-process-hrtime: 1.0.0
@@ -14,9 +14,9 @@ dependencies:
   node-opcua-assert: link:../node-opcua-assert
 
 devDependencies:
-  '@types/node': 14.14.33
+  '@types/node': 14.14.37
   should: 13.2.3
-  sinon: 9.2.4
+  sinon: 10.0.0
 
 packages:
 
@@ -44,8 +44,8 @@ packages:
     resolution: {integrity: sha512-+iTbntw2IZPb/anVDbypzfQa+ay64MW0Zo8aJ8gZPWMMK6/OubMVb6lUPMagqjOPnmtauXnFCACVl3O7ogjeqQ==}
     dev: true
 
-  /@types/node/14.14.33:
-    resolution: {integrity: sha512-oJqcTrgPUF29oUP8AsUqbXGJNuPutsetaa9kTQAQce5Lx5dTYWV02ScBiT/k1BX/Z7pKeqedmvp39Wu4zR7N7g==}
+  /@types/node/14.14.37:
+    resolution: {integrity: sha512-XYmBiy+ohOR4Lh5jE379fV2IU+6Jn4g5qASinhitfyO71b/sCo6MKsMLF5tc7Zf2CE8hViVQyYSobJNke8OvUw==}
     dev: true
 
   /ansi-styles/4.3.0:
@@ -153,8 +153,8 @@ packages:
       should-util: 1.0.1
     dev: true
 
-  /sinon/9.2.4:
-    resolution: {integrity: sha512-zljcULZQsJxVra28qIAL6ow1Z9tpattkCTEJR4RBP3TGc00FcttsP5pK284Nas5WjMZU5Yzy3kAIp3B3KRf5Yg==}
+  /sinon/10.0.0:
+    resolution: {integrity: sha512-XAn5DxtGVJBlBWYrcYKEhWCz7FLwZGdyvANRyK06419hyEpdT0dMc5A8Vcxg5SCGHc40CsqoKsc1bt1CbJPfNw==}
     dependencies:
       '@sinonjs/commons': 1.8.2
       '@sinonjs/fake-timers': 6.0.1

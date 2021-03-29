@@ -10,7 +10,7 @@
         "clean": "node -e \"require('rimraf').sync('dist');\""
     },
     "dependencies": {
-        "@types/async": "^3.2.5",
+        "@types/async": "^3.2.6",
         "node-opcua-address-space": "2.37.0",
         "node-opcua-constants": "2.35.0",
         "node-opcua-data-model": "2.37.0",
@@ -29,7 +29,7 @@
         "node-opcua-assert": "2.37.0",
         "node-opcua-leak-detector": "2.37.0",
         "should": "^13.2.3",
-        "sinon": "^9.2.4",
+        "sinon": "^10.0.0",
         "yargs": "15.4.1"
     },
     "author": "Etienne Rossignon",

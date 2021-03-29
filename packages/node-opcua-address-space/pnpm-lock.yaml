@@ -45,7 +45,7 @@ specifiers:
   pretty-error: ^3.0.3
   set-prototype-of: ^1.0.0
   should: ^13.2.3
-  sinon: ^9.2.4
+  sinon: ^10.0.0
   source-map-support: ^0.5.19
   thenify: ^3.3.1
   xml-writer: ^1.7.0
@@ -99,7 +99,7 @@ devDependencies:
   node-opcua-packet-analyzer: link:../node-opcua-packet-analyzer
   node-opcua-test-fixtures: link:../node-opcua-test-fixtures
   should: 13.2.3
-  sinon: 9.2.4
+  sinon: 10.0.0
   source-map-support: 0.5.19
 
 packages:
@@ -382,8 +382,8 @@ packages:
       should-util: 1.0.1
     dev: true
 
-  /sinon/9.2.4:
-    resolution: {integrity: sha512-zljcULZQsJxVra28qIAL6ow1Z9tpattkCTEJR4RBP3TGc00FcttsP5pK284Nas5WjMZU5Yzy3kAIp3B3KRf5Yg==}
+  /sinon/10.0.0:
+    resolution: {integrity: sha512-XAn5DxtGVJBlBWYrcYKEhWCz7FLwZGdyvANRyK06419hyEpdT0dMc5A8Vcxg5SCGHc40CsqoKsc1bt1CbJPfNw==}
     dependencies:
       '@sinonjs/commons': 1.8.2
       '@sinonjs/fake-timers': 6.0.1

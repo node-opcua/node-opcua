@@ -20,7 +20,7 @@ specifiers:
   node-opcua-utils: 2.37.0
   should: ^13.2.3
   source-map-support: ^0.5.19
-  underscore: ^1.12.0
+  underscore: ^1.12.1
 
 dependencies:
   node-opcua-assert: link:../node-opcua-assert
@@ -44,7 +44,7 @@ devDependencies:
   node-opcua-status-code: link:../node-opcua-status-code
   should: 13.2.3
   source-map-support: 0.5.19
-  underscore: 1.12.0
+  underscore: 1.12.1
 
 packages:
 
@@ -114,6 +114,6 @@ packages:
     engines: {node: '>=0.10.0'}
     dev: true
 
-  /underscore/1.12.0:
-    resolution: {integrity: sha512-21rQzss/XPMjolTiIezSu3JAjgagXKROtNrYFEOWK109qY1Uv2tVjPTZ1ci2HgvQDA16gHYSthQIJfB+XId/rQ==}
+  /underscore/1.12.1:
+    resolution: {integrity: sha512-hEQt0+ZLDVUMhebKxL4x1BTtDY7bavVofhZ9KZ4aI26X9SRaE+Y3m83XUL1UP2jn8ynjndwCCpEHdUG+9pP1Tw==}
     dev: true

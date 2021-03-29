@@ -17,7 +17,7 @@ specifiers:
   node-opcua-types: 2.37.0
   node-opcua-utils: 2.37.0
   node-opcua-variant: 2.37.0
-  underscore: ^1.12.0
+  underscore: ^1.12.1
 
 dependencies:
   '@types/underscore': 1.11.0
@@ -34,7 +34,7 @@ dependencies:
   node-opcua-types: link:../node-opcua-types
   node-opcua-utils: link:../node-opcua-utils
   node-opcua-variant: link:../node-opcua-variant
-  underscore: 1.12.0
+  underscore: 1.12.1
 
 devDependencies:
   node-opcua-address-space: link:../node-opcua-address-space
@@ -50,6 +50,6 @@ packages:
     resolution: {integrity: sha512-TR2mEZFVOj2pLStYxLht7TyfuRzaydfpxr3k9RpHIzMgw7A64dzsdqCxH1WJyQdoe8T10nDXd9wnEigmiuHIZw==}
     dev: false
 
-  /underscore/1.12.0:
-    resolution: {integrity: sha512-21rQzss/XPMjolTiIezSu3JAjgagXKROtNrYFEOWK109qY1Uv2tVjPTZ1ci2HgvQDA16gHYSthQIJfB+XId/rQ==}
+  /underscore/1.12.1:
+    resolution: {integrity: sha512-hEQt0+ZLDVUMhebKxL4x1BTtDY7bavVofhZ9KZ4aI26X9SRaE+Y3m83XUL1UP2jn8ynjndwCCpEHdUG+9pP1Tw==}
     dev: false
