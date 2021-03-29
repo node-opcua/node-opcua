@@ -51,7 +51,9 @@ import {
 } from "node-opcua-service-subscription";
 import { StatusCode, StatusCodes } from "node-opcua-status-code";
 import {
+    DataChangeNotification,
     EventFieldList,
+    EventNotificationList,
     MonitoringFilter,
     ReadValueIdOptions,
     SimpleAttributeOperand,
@@ -61,6 +63,8 @@ import { sameVariant, Variant } from "node-opcua-variant";
 
 import { appendToTimer, removeFromTimer } from "./node_sampler";
 import { validateFilter } from "./validate_filter";
+
+export type QueueItem = MonitoredItemNotification | EventFieldList;
 
 const defaultItemToMonitor: ReadValueIdOptions = new ReadValueId({
     attributeId: AttributeIds.Value,
@@ -195,26 +199,26 @@ function apply_dataChange_filter(this: MonitoredItem, newDataValue: DataValue, o
     // istanbul ignore next
     if (doDebug) {
         try {
-        debugLog("filter pass ?", DataChangeTrigger[trigger] ,this.oldDataValue?.toString(), newDataValue.toString());
-        if (
-            trigger === DataChangeTrigger.Status ||
-            trigger === DataChangeTrigger.StatusValue ||
-            trigger === DataChangeTrigger.StatusValueTimestamp
-        ) {
-            debugLog("statusCodeHasChanged ", statusCodeHasChanged(newDataValue, oldDataValue));
+            debugLog("filter pass ?", DataChangeTrigger[trigger], this.oldDataValue?.toString(), newDataValue.toString());
+            if (
+                trigger === DataChangeTrigger.Status ||
+                trigger === DataChangeTrigger.StatusValue ||
+                trigger === DataChangeTrigger.StatusValueTimestamp
+            ) {
+                debugLog("statusCodeHasChanged ", statusCodeHasChanged(newDataValue, oldDataValue));
+            }
+            if (trigger === DataChangeTrigger.StatusValue || trigger === DataChangeTrigger.StatusValueTimestamp) {
+                debugLog(
+                    "valueHasChanged ",
+                    valueHasChanged.call(this, newDataValue, oldDataValue, this.filter!.deadbandType, this.filter!.deadbandValue)
+                );
+            }
+            if (trigger === DataChangeTrigger.StatusValueTimestamp) {
+                debugLog("timestampHasChanged ", timestampHasChanged(newDataValue.sourceTimestamp, oldDataValue.sourceTimestamp));
+            }
+        } catch (err) {
+            console.log(err);
         }
-        if (trigger === DataChangeTrigger.StatusValue || trigger === DataChangeTrigger.StatusValueTimestamp) {
-            debugLog(
-                "valueHasChanged ",
-                valueHasChanged.call(this, newDataValue, oldDataValue, this.filter!.deadbandType, this.filter!.deadbandValue)
-            );
-        }
-        if (trigger === DataChangeTrigger.StatusValueTimestamp) {
-            debugLog("timestampHasChanged ", timestampHasChanged(newDataValue.sourceTimestamp, oldDataValue.sourceTimestamp));
-        }
-    } catch(err) {
-        console.log(err);
-    }
     }
     switch (trigger) {
         case DataChangeTrigger.Status: {
@@ -226,8 +230,7 @@ function apply_dataChange_filter(this: MonitoredItem, newDataValue: DataValue, o
             //              valid in particular for device data.
             return statusCodeHasChanged(newDataValue, oldDataValue);
         }
-        case DataChangeTrigger.StatusValue:
-        {
+        case DataChangeTrigger.StatusValue: {
             //              filtering value changes.
             //              change. The Deadband filter can be used in addition for
             //              Report a notification if either the StatusCode or the value
@@ -238,8 +241,7 @@ function apply_dataChange_filter(this: MonitoredItem, newDataValue: DataValue, o
                 valueHasChanged.call(this, newDataValue, oldDataValue, this.filter.deadbandType, this.filter.deadbandValue)
             );
         }
-        default:
-        {
+        default: {
             // StatusValueTimestamp
             //              Report a notification if either StatusCode, value or the
             //              SourceTimestamp change.
@@ -330,8 +332,6 @@ export interface BaseNode2 extends EventEmitter {
 
     readAttribute(context: SessionContext | null, attributeId: AttributeIds): DataValue;
 }
-
-export type QueueItem = MonitoredItemNotification | EventFieldList;
 
 type TimerKey = NodeJS.Timer;
 
@@ -495,6 +495,7 @@ export class MonitoredItem extends EventEmitter {
     public terminate() {
         this._stop_sampling();
     }
+    
 
     public dispose() {
         if (doDebug) {
@@ -542,6 +543,13 @@ export class MonitoredItem extends EventEmitter {
         );
     }
 
+    public toString(): string {
+        let str = "";
+        str += `monitored item nodeId : ${this.node?.nodeId.toString()} \n`;
+        str += `    sampling interval : ${this.samplingInterval} \n`;
+        str += `    monitoredItemId   : ${this.monitoredItemId} \n`;
+        return str;
+    }
     /**
      * @param dataValue       the whole dataValue
      * @param skipChangeTest  indicates whether recordValue should  not check that dataValue is really
@@ -641,6 +649,10 @@ export class MonitoredItem extends EventEmitter {
 
         // processTriggerItems
         this.triggerLinkedItems();
+        
+        if (doDebug) {
+            debugLog("RECORD VALUE ", this.node?.nodeId.toString());
+        }
         // store last value
         this._enqueue_value(dataValue);
     }
@@ -714,7 +726,10 @@ export class MonitoredItem extends EventEmitter {
         setImmediate(() => {
             this._triggeredNotifications = this._triggeredNotifications || [];
             const notifications = this.extractMonitoredItemNotifications(true);
-            this._triggeredNotifications = ([] as QueueItem[]).concat(this._triggeredNotifications!, notifications);
+            this._triggeredNotifications = ([] as QueueItem[]).concat(
+                this._triggeredNotifications!,
+                notifications
+            );
         });
     }
 
@@ -826,7 +841,7 @@ export class MonitoredItem extends EventEmitter {
 
             this.samplingFunc.call(this, this.oldDataValue!, (err: Error | null, newDataValue?: DataValue) => {
                 if (!this._samplingId) {
-                    // item has been dispose .... the monitored item has been disposed while the async sampling func
+                    // item has been disposed. The monitored item has been disposed while the async sampling func
                     // was taking place ... just ignore this
                     return;
                 }
@@ -948,18 +963,25 @@ export class MonitoredItem extends EventEmitter {
         return this.$subscription.$session;
     }
 
-    private async _start_sampling(recordInitialValue?: boolean): Promise<void> {
+    private _start_sampling(recordInitialValue?: boolean): void {
         // istanbul ignore next
         if (!this.node) {
             throw new Error("Internal Error");
         }
+        setImmediate(() => this.__start_sampling(recordInitialValue));
+    }
+    private __start_sampling(recordInitialValue?: boolean): void {
+        // istanbul ignore next
+        if (!this.node) {
+            return; // we just want to ignore here ...
+        }
+
         // make sure oldDataValue is scrapped so first data recording can happen
         this.oldDataValue = new DataValue({ statusCode: StatusCodes.BadDataUnavailable }); // unset initially
 
         this._stop_sampling();
 
         const context = new SessionContext({
-            // xx  server: this.server,
             session: this._getSession()
         });
 
@@ -1003,7 +1025,7 @@ export class MonitoredItem extends EventEmitter {
 
             // initiate first read
             if (recordInitialValue) {
-                await new Promise<void>((resolve: () => void) => {
+                /* await */ new Promise<void>((resolve: () => void) => {
                     (this.node as UAVariable).readValueAsync(context, (err: Error | null, dataValue?: DataValue) => {
                         if (!err && dataValue) {
                             this.recordValue(dataValue, true);
@@ -1015,13 +1037,8 @@ export class MonitoredItem extends EventEmitter {
         } else {
             this._set_timer();
             if (recordInitialValue) {
-                return new Promise((resolve) => {
-                    setImmediate(() => {
-                        // xx console.log("Record Initial Value ",this.node.nodeId.toString());
-                        // initiate first read (this requires this._samplingId to be set)
-                        this._on_sampling_timer();
-                        resolve();
-                    });
+                setImmediate(() => {
+                    this._on_sampling_timer();
                 });
             }
         }
@@ -1067,7 +1084,7 @@ export class MonitoredItem extends EventEmitter {
         // to do eventQueueOverFlowCount
     }
 
-    private _enqueue_notification(notification: MonitoredItemNotification | EventFieldList) {
+    private _enqueue_notification(notification: QueueItem) {
         if (this.queueSize === 1) {
             // https://reference.opcfoundation.org/v104/Core/docs/Part4/5.12.1/#5.12.1.5
             // If the queue size is one, the queue becomes a buffer that always contains the newest

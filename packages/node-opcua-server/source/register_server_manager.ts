@@ -389,12 +389,14 @@ export class RegisterServerManager extends EventEmitter implements IRegisterServ
         this._setState(RegisterServerManagerStatus.INITIALIZING);
         this.selectedEndpoint = undefined;
 
+        const applicationName = coerceLocalizedText(this.server.serverInfo.applicationName!)?.text || undefined;
+
         // Retry Strategy must be set
         this.server.serverCertificateManager.referenceCounter++;
         const client = OPCUAClientBase.create({
             clientName: this.server.serverInfo.applicationUri!,
 
-            applicationName: coerceLocalizedText(this.server.serverInfo.applicationName!)?.toString() || undefined,
+            applicationName,
 
             applicationUri: this.server.serverInfo.applicationUri!,
 
@@ -612,6 +614,9 @@ export class RegisterServerManager extends EventEmitter implements IRegisterServ
         }
 
         server.serverCertificateManager.referenceCounter++;
+
+        const applicationName: string| undefined = coerceLocalizedText(server.serverInfo.applicationName!)?.text || undefined;
+
         const options: OPCUAClientBaseOptions = {
             securityMode: selectedEndpoint.securityMode,
             securityPolicy: coerceSecurityPolicy(selectedEndpoint.securityPolicyUri),
@@ -624,7 +629,7 @@ export class RegisterServerManager extends EventEmitter implements IRegisterServ
 
             // xx clientName: server.serverInfo.applicationUri!,
 
-            applicationName: coerceLocalizedText(server.serverInfo.applicationName!)?.toString() || undefined,
+            applicationName,
 
             applicationUri: server.serverInfo.applicationUri!,
 

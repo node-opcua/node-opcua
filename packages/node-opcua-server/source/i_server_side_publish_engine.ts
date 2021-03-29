@@ -1,6 +1,7 @@
 import { Subscription, InternalNotification } from "./server_subscription";
-import { PublishResponseOptions, PublishResponse } from "node-opcua-types";
+import { PublishResponseOptions, PublishResponse, StatusChangeNotification } from "node-opcua-types";
 import assert from "node-opcua-assert";
+import { Queue } from "./queue";
 
 export interface INotifMsg {
     subscriptionId: number;
@@ -26,7 +27,7 @@ export interface IClosedOrTransferredSubscription {
 export class TransferredSubscription implements IClosedOrTransferredSubscription {
     public id: number;
     public publishEngine: any;
-    public _pending_notifications: InternalNotification[] = [];
+    public _pending_notification?: StatusChangeNotification;
     private _sequence_number_generator: any;
     constructor(options: { id: number; generator: any; publishEngine: any }) {
         this.id = options.id;
@@ -34,32 +35,31 @@ export class TransferredSubscription implements IClosedOrTransferredSubscription
         this.publishEngine = options.publishEngine;
     }
     public get hasPendingNotifications(): boolean {
-        return this._pending_notifications.length > 0;
+        return !!this._pending_notification;
     }
     dispose(): void {
-        this._pending_notifications = [];
+        this._pending_notification= undefined;
         this.publishEngine = null;
     }
     _publish_pending_notifications(): void {
-        const n = this._pending_notifications.shift()!;
-        const notificationMessage = n.notification;
-
+        assert(this._pending_notification);
+        const notificationMessage = this._pending_notification!;
+        this._pending_notification = undefined;
         const moreNotifications = false;
         const subscriptionId = this.id;
 
-        assert(notificationMessage.notificationData!.length > 0);
-        // ---------------------- to do : duplicated code
         const response = new PublishResponse({
             moreNotifications,
             notificationMessage: {
-                notificationData: notificationMessage.notificationData,
-                sequenceNumber: notificationMessage.sequenceNumber
+                notificationData: [notificationMessage ],
+                publishTime: new Date(),
+                sequenceNumber: 0xFFFFFFFF
             },
             subscriptionId
         });
-
+        
         // apply sequence number and store in sent_notifications queue
-        assert(notificationMessage.sequenceNumber === 0xffffffff);
+        assert(response.notificationMessage.sequenceNumber === 0xffffffff);
         response.notificationMessage.sequenceNumber = this._get_next_sequence_number();
         // xxx    this._sent_notifications.push(response.notificationMessage);
         // get available sequence number;

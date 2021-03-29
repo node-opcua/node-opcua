@@ -60,24 +60,27 @@ export class ClientMonitoredItemGroupImpl extends EventEmitter implements Client
         this.timestampsToReturn = timestampsToReturn;
         this.monitoringMode = monitoringMode;
 
-        this.monitoredItems = itemsToMonitor.map((itemToMonitor) => {
-            return new ClientMonitoredItemImpl(
+        this.monitoredItems = itemsToMonitor.map((itemToMonitor) => 
+             new ClientMonitoredItemImpl(
                 subscription,
                 itemToMonitor,
                 monitoringParameters,
                 TimestampsToReturn.Both,
                 this.monitoringMode
-            );
-        });
+            )
+        );
     }
 
     public toString(): string {
         let ret = "ClientMonitoredItemGroup : \n";
         ret +=
             "itemsToMonitor:       = [\n " +
-            this.monitoredItems.map((monitoredItem: ClientMonitoredItemBase) => monitoredItem.itemToMonitor.toString()).join("\n") +
+            this.monitoredItems.slice(0,10).map(
+                (monitoredItem: ClientMonitoredItemBase) => 
+                  //  monitoredItem.itemToMonitor.toString() + 
+                  monitoredItem.toString()).join("\n") +
             "\n];\n";
-        ret += "timestampsToReturn:   " + this.timestampsToReturn.toString() + "\n";
+        ret += "timestampsToReturn:   " + TimestampsToReturn[this.timestampsToReturn] + "\n";
         ret += "monitoringMode        " + MonitoringMode[this.monitoringMode];
         return ret;
     }
@@ -159,6 +162,8 @@ export class ClientMonitoredItemGroupImpl extends EventEmitter implements Client
         assert(done === undefined || typeof done === "function");
 
         this.monitoredItems.forEach((monitoredItem: ClientMonitoredItemBase, index: number) => {
+           
+  
             monitoredItem.on("changed", (dataValue: DataValue) => {
                 /**
                  * Notify the observers that a group MonitoredItem value has changed on the server side.

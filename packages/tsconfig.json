@@ -18,7 +18,8 @@
         "incremental": true,
         "composite": true
     },
-    "exclude": ["**/node_modules/*", "node_modules", "**/dist/*", "packages/*"],
+    "exclude": ["**/node_modules/*", "node_modules", "**/dist/*", "packages/*", "tmp/*"],
+    "include": [],
     "references": [
         { "path": "node-opcua" },
         {

@@ -26,7 +26,8 @@ import {
     UAServerStatus,
     UAVariable,
     UAServerDiagnostics,
-    BindVariableOptions
+    BindVariableOptions,
+    MethodFunctorCallback
 } from "node-opcua-address-space";
 
 import { generateAddressSpace } from "node-opcua-address-space/nodeJS";
@@ -81,7 +82,8 @@ import {
     WriteValue,
     ReadValueId,
     TimeZoneDataType,
-    ProgramDiagnosticDataType
+    ProgramDiagnosticDataType,
+    CallMethodResultOptions
 } from "node-opcua-types";
 import { DataType, isValidVariant, Variant, VariantArrayType, VariantLike } from "node-opcua-variant";
 
@@ -94,6 +96,7 @@ import { ServerSession } from "./server_session";
 import { Subscription } from "./server_subscription";
 import { sessionsCompatibleForTransfer } from "./sessions_compatible_for_transfer";
 import { NumericRange } from "node-opcua-numeric-range";
+import { UInt32 } from "node-opcua-basic-types";
 
 const debugLog = make_debugLog(__filename);
 const errorLog = make_errorLog(__filename);
@@ -112,11 +115,100 @@ function shutdownAndDisposeAddressSpace(this: ServerEngine) {
     }
 }
 
-// binding methods
-function getMonitoredItemsId(this: ServerEngine, inputArguments: any, context: SessionContext, callback: any) {
+function setSubscriptionDurable(
+    this: ServerEngine,
+    inputArguments: Variant[],
+    context: SessionContext,
+    callback: MethodFunctorCallback
+) {
+    // see https://reference.opcfoundation.org/v104/Core/docs/Part5/9.3/
+    // https://reference.opcfoundation.org/v104/Core/docs/Part4/6.8/
     assert(Array.isArray(inputArguments));
     assert(typeof callback === "function");
+    assert(context.hasOwnProperty("session"), " expecting a session id in the context object");
+    const session = context.session as ServerSession;
+    if (!session) {
+        return callback(null, { statusCode: StatusCodes.BadInternalError });
+    }
+    const subscriptionId = inputArguments[0].value as UInt32;
+    const lifetimeInHours = inputArguments[1].value as UInt32;
 
+    const subscription = session.getSubscription(subscriptionId);
+    if (!subscription) {
+        // subscription may belongs to a different session  that ours
+        if (this.findSubscription(subscriptionId)) {
+            // if yes, then access to  Subscription data should be denied
+            return callback(null, { statusCode: StatusCodes.BadUserAccessDenied });
+        }
+        return callback(null, { statusCode: StatusCodes.BadSubscriptionIdInvalid });
+    }
+    if (subscription.monitoredItemCount > 0) {
+        // This is returned when a Subscription already contains MonitoredItems.
+        return callback(null, { statusCode: StatusCodes.BadInvalidState });
+    }
+
+    /**
+     * MonitoredItems are used to monitor Variable Values for data changes and event notifier
+     * Objects for new Events. Subscriptions are used to combine data changes and events of
+     * the assigned MonitoredItems to an optimized stream of network messages. A reliable
+     * delivery is ensured as long as the lifetime of the Subscription and the queues in the
+     * MonitoredItems are long enough for a network interruption between OPC UA Client and
+     * Server. All queues that ensure reliable delivery are normally kept in memory and a
+     * Server restart would delete them.
+     * There are use cases where OPC UA Clients have no permanent network connection to the
+     * OPC UA Server or where reliable delivery of data changes and events is necessary
+     * even if the OPC UA Server is restarted or the network connection is interrupted
+     * for a longer time.
+     * To ensure this reliable delivery, the OPC UA Server must store collected data and
+     * events in non-volatile memory until the OPC UA Client has confirmed reception.
+     * It is possible that there will be data lost if the Server is not shut down gracefully
+     * or in case of power failure. But the OPC UA Server should store the queues frequently
+     * even if the Server is not shut down.
+     * The Method SetSubscriptionDurable defined in OPC 10000-5 is used to set a Subscription
+     * into this durable mode and to allow much longer lifetimes and queue sizes than for normal
+     * Subscriptions. The Method shall be called before the MonitoredItems are created in the
+     * durable Subscription. The Server shall verify that the Method is called within the
+     * Session context of the Session that owns the Subscription.
+     *
+     * A value of 0 for the parameter lifetimeInHours requests the highest lifetime supported by the Server.
+     */
+
+    const highestLifetimeInHours = 24 * 100;
+
+    const revisedLifetimeInHours =
+        lifetimeInHours === 0 ? highestLifetimeInHours : Math.max(1, Math.min(lifetimeInHours, highestLifetimeInHours));
+
+    // also adjust subscription life time
+    const currentLifeTimeInHours = (subscription.lifeTimeCount * subscription.publishingInterval) / (1000 * 60 * 60 );
+    if (currentLifeTimeInHours < revisedLifetimeInHours) {
+        const requestedLifetimeCount =  Math.ceil(revisedLifetimeInHours * (1000 * 60 * 60 ) / subscription.publishingInterval);
+
+        subscription.modify({ 
+            requestedMaxKeepAliveCount: subscription.maxKeepAliveCount,
+            requestedPublishingInterval: subscription.publishingInterval,
+            maxNotificationsPerPublish: subscription.maxNotificationsPerPublish,
+            priority: subscription.priority,
+            requestedLifetimeCount 
+        });
+
+    }
+
+    const callMethodResult = new CallMethodResult({
+        statusCode: StatusCodes.Good,
+        outputArguments: [{ dataType: DataType.UInt32, arrayType: VariantArrayType.Scalar, value: revisedLifetimeInHours }]
+    });
+    callback(null, callMethodResult);
+}
+
+// binding methods
+function getMonitoredItemsId(
+    this: ServerEngine,
+    inputArguments: Variant[],
+    context: SessionContext,
+    callback: MethodFunctorCallback
+) {
+    assert(Array.isArray(inputArguments));
+    assert(typeof callback === "function");
     assert(context.hasOwnProperty("session"), " expecting a session id in the context object");
 
     const session = context.session as ServerSession;
@@ -600,6 +692,8 @@ export class ServerEngine extends EventEmitter {
         assert(serverNamespace.index === 1);
 
         generateAddressSpace(this.addressSpace, options.nodeset_filename, () => {
+
+            /* istanbul ignore next */
             if (!this.addressSpace) {
                 throw new Error("Internal error");
             }
@@ -1023,6 +1117,7 @@ export class ServerEngine extends EventEmitter {
             bindExtraStuff();
 
             this.__internal_bindMethod(makeNodeId(MethodIds.Server_GetMonitoredItems), getMonitoredItemsId.bind(this));
+            this.__internal_bindMethod(makeNodeId(MethodIds.Server_SetSubscriptionDurable), setSubscriptionDurable.bind(this));
 
             // fix getMonitoredItems.outputArguments arrayDimensions
             const fixGetMonitoredItemArgs = () => {
@@ -1673,10 +1768,10 @@ export class ServerEngine extends EventEmitter {
         subscriptionId: number,
         sendInitialValues: boolean
     ): Promise<TransferResult> {
-        assert(session instanceof ServerSession);
-        assert(typeof subscriptionId === "number");
-        assert(typeof sendInitialValues === "boolean");
+ 
 
+
+        
         if (subscriptionId <= 0) {
             return new TransferResult({ statusCode: StatusCodes.BadSubscriptionIdInvalid });
         }
@@ -1694,6 +1789,7 @@ export class ServerEngine extends EventEmitter {
         if (!sessionsCompatibleForTransfer(subscription.$session, session)) {
             return new TransferResult({ statusCode: StatusCodes.BadUserAccessDenied });
         }
+
         // update diagnostics
         subscription.subscriptionDiagnostics.transferRequestCount++;
 

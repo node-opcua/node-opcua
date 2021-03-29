@@ -2191,7 +2191,7 @@
      <CleanupTestCase description="" name="cleanup.js" filename="Monitored Item Services/Monitor Alternate Encoding/Test Cases/cleanup.js" checkedState="0"/>
     </ConformanceUnit>
     <ConformanceUnit category="Server" description="Support the following MonitoredItem Services: CreateMonitoredItems, ModifyMonitoredItems, DeleteMonitoredItems, SetMonitoringMode." name="Monitor Basic" used="true">
-     <InitTestCase description="" name="initialize.js" filename="Monitored Item Services/Monitor Basic/Test Cases/initialize.js" checkedState="0"/>
+     <InitTestCase description="" name="initialize.js" filename="Monitored Item Services/Monitor Basic/Test Cases/initialize.js" checkedState="1"/>
      <TestCases>
       <TestCase description="CreateMonitoredItems: Create a monitored item with the nodeId set to that of a non-Variable node and the attributeId set to a non-Value attribute. Call Publish." name="001.js" filename="Monitored Item Services/Monitor Basic/Test Cases/001.js" checkedState="0"/>
       <TestCase description="ModifyMonitoredItems: Modify a single monitored item." name="002.js" filename="Monitored Item Services/Monitor Basic/Test Cases/002.js" checkedState="0"/>
@@ -2201,7 +2201,7 @@
       <TestCase description="ModifyMonitoredItems: Single item; ReturnTimestamp=Neither." name="006.js" filename="Monitored Item Services/Monitor Basic/Test Cases/006.js" checkedState="0"/>
       <TestCase description="ModifyMonitoredItems: Modify single monitoredItem, change queue length to 0." name="007.js" filename="Monitored Item Services/Monitor Basic/Test Cases/007.js" checkedState="0"/>
       <TestCase description="ModifyMonitoredItems: Modify the samplingInterval to 10 msec for one item." name="009.js" filename="Monitored Item Services/Monitor Basic/Test Cases/009.js" checkedState="0"/>
-      <TestCase description="ModifyMonitoredItems: Change the SamplingInterval for all items, vary the scanrate." name="010.js" filename="Monitored Item Services/Monitor Basic/Test Cases/010.js" checkedState="0"/>
+      <TestCase description="ModifyMonitoredItems: Change the SamplingInterval for all items, vary the scanrate." name="010.js" filename="Monitored Item Services/Monitor Basic/Test Cases/010.js" checkedState="1"/>
       <TestCase description="ModifyMonitoredItems: Modify the QueueSize of the first item to zero." name="011.js" filename="Monitored Item Services/Monitor Basic/Test Cases/011.js" checkedState="0"/>
       <TestCase description="ModifyMonitoredItems: Modify the QueueSize of the first item to maxInt." name="012.js" filename="Monitored Item Services/Monitor Basic/Test Cases/012.js" checkedState="0"/>
       <TestCase description="CreateMonitoredItems: large loop of create/delete." name="014.js" filename="Monitored Item Services/Monitor Basic/Test Cases/014.js" checkedState="0"/>
@@ -2262,7 +2262,7 @@
       <TestCase description="CreateMonitoredItems: Request deadband when server doesnt support them." name="Err-042.js" filename="Monitored Item Services/Monitor Basic/Test Cases/Err-042.js" checkedState="0"/>
       <TestCase description="Call ModifyMonitoredItems for a MonitoredItem in a subscription which was already created in another session." name="Err-043.js" filename="Monitored Item Services/Monitor Basic/Test Cases/Err-043.js" checkedState="0"/>
      </TestCases>
-     <CleanupTestCase description="" name="cleanup.js" filename="Monitored Item Services/Monitor Basic/Test Cases/cleanup.js" checkedState="0"/>
+     <CleanupTestCase description="" name="cleanup.js" filename="Monitored Item Services/Monitor Basic/Test Cases/cleanup.js" checkedState="1"/>
     </ConformanceUnit>
     <ConformanceUnit category="Server" description="Support at least 2 MonitoredItems per Subscription.&#xa;This number has to be supported for at least half of the required Subscriptions for half of the required Sessions." name="Monitor Items 2" used="true">
      <InitTestCase description="" name="initialize.js" filename="Monitored Item Services/Monitor Items 2/Test Cases/initialize.js" checkedState="0"/>
@@ -2609,36 +2609,36 @@
   <ConformanceGroup description="Security related ConformanceUnits that can be profiled." name="Security">
    <ConformanceUnits>
     <ConformanceUnit category="Security" description="A suite of algorithms that does NOT provide any security settings&#xa;SymmetricSignatureAlgorithm&#x9;-&#xa;SymmetricEncryptionAlgorithm&#x9;-&#xa;AsymmetricSignatureAlgorithm&#x9;-&#xa;SymmetricKeyWrapAlgorithm&#x9;-&#xa;AsymmetricEncryptionAlgorithm&#x9;-&#xa;KeyDerivationAlgorithm&#x9;PSha1&#x9;(h" name="Security None" used="true">
-     <InitTestCase description="" name="initialize.js" filename="Security/Security None/Test Cases/initialize.js" checkedState="1"/>
+     <InitTestCase description="" name="initialize.js" filename="Security/Security None/Test Cases/initialize.js" checkedState="0"/>
      <TestCases>
-      <TestCase description="Insecure channel. Provide certificates &amp; nonce. Expects channel to open." name="001.js" filename="Security/Security None/Test Cases/001.js" checkedState="1"/>
-      <TestCase description="Insecure channel. Provide nonce, no certificates. Expects channel to open." name="002.js" filename="Security/Security None/Test Cases/002.js" checkedState="1"/>
-      <TestCase description="Insecure channel. Provide Nonce, but no certificates. Expect channel to open." name="003.js" filename="Security/Security None/Test Cases/003.js" checkedState="1"/>
-      <TestCase description="Insecure channel. Do not pass certificate or nonce. Expect secure channel to open." name="004.js" filename="Security/Security None/Test Cases/004.js" checkedState="1"/>
-      <TestCase description="Provide an invalid Certificate (random ByteString). Expects channel to open." name="005.js" filename="Security/Security None/Test Cases/005.js" checkedState="1"/>
-      <TestCase description="DoS attempt by consuming Channels" name="006.js" filename="Security/Security None/Test Cases/006.js" checkedState="1"/>
-      <TestCase description="DoS attack #2; consume SecureChannels, but CreateSessions in some." name="007.js" filename="Security/Security None/Test Cases/007.js" checkedState="1"/>
+      <TestCase description="Insecure channel. Provide certificates &amp; nonce. Expects channel to open." name="001.js" filename="Security/Security None/Test Cases/001.js" checkedState="0"/>
+      <TestCase description="Insecure channel. Provide nonce, no certificates. Expects channel to open." name="002.js" filename="Security/Security None/Test Cases/002.js" checkedState="0"/>
+      <TestCase description="Insecure channel. Provide Nonce, but no certificates. Expect channel to open." name="003.js" filename="Security/Security None/Test Cases/003.js" checkedState="0"/>
+      <TestCase description="Insecure channel. Do not pass certificate or nonce. Expect secure channel to open." name="004.js" filename="Security/Security None/Test Cases/004.js" checkedState="0"/>
+      <TestCase description="Provide an invalid Certificate (random ByteString). Expects channel to open." name="005.js" filename="Security/Security None/Test Cases/005.js" checkedState="0"/>
+      <TestCase description="DoS attempt by consuming Channels" name="006.js" filename="Security/Security None/Test Cases/006.js" checkedState="0"/>
+      <TestCase description="DoS attack #2; consume SecureChannels, but CreateSessions in some." name="007.js" filename="Security/Security None/Test Cases/007.js" checkedState="0"/>
      </TestCases>
-     <CleanupTestCase description="" name="cleanup.js" filename="Security/Security None/Test Cases/cleanup.js" checkedState="1"/>
+     <CleanupTestCase description="" name="cleanup.js" filename="Security/Security None/Test Cases/cleanup.js" checkedState="0"/>
     </ConformanceUnit>
     <ConformanceUnit category="Security" description="User name password combination. Specific encryption of the password is required if no Message encryption is used." name="Security User Name Password" used="true">
-     <InitTestCase description="" name="initialize.js" filename="Security/Security User Name Password/Test Cases/initialize.js" checkedState="1"/>
+     <InitTestCase description="" name="initialize.js" filename="Security/Security User Name Password/Test Cases/initialize.js" checkedState="0"/>
      <TestCases>
-      <TestCase description="Insecure channel. Authenticate with success." name="001.js" filename="Security/Security User Name Password/Test Cases/001.js" checkedState="1"/>
-      <TestCase description="Secure channel. Authenticate with success." name="002.js" filename="Security/Security User Name Password/Test Cases/002.js" checkedState="1"/>
-      <TestCase description="Insecure channel; Empty username and password. Expect Bad_IdentityTokenInvalid." name="003.js" filename="Security/Security User Name Password/Test Cases/003.js" checkedState="1"/>
-      <TestCase description="Insecure channel. Non-existent user. Expecting Bad_IdentityTokenRejected." name="004.js" filename="Security/Security User Name Password/Test Cases/004.js" checkedState="1"/>
-      <TestCase description="Insecure channel. Valid username, password empty (serverNonce added). Expected result, Good or Bad_IdentityTokenRejected." name="005.js" filename="Security/Security User Name Password/Test Cases/005.js" checkedState="1"/>
-      <TestCase description="Insecure channel. Valid username, password empty (serverNonce missing). Expected result, Good or Bad_IdentityTokenRejected." name="006.js" filename="Security/Security User Name Password/Test Cases/006.js" checkedState="1"/>
-      <TestCase description="Insecure channel. Password is wrong. Expected Bad_IdentityTokenRejected." name="007.js" filename="Security/Security User Name Password/Test Cases/007.js" checkedState="1"/>
-      <TestCase description="Insecure channel. Username doesnt exist. Expects Bad_IdentityTokenRejected." name="008.js" filename="Security/Security User Name Password/Test Cases/008.js" checkedState="1"/>
-      <TestCase description="Insecure channel. policyId does not match server value. Expects Bad_IdentityTokenInvalid." name="009.js" filename="Security/Security User Name Password/Test Cases/009.js" checkedState="1"/>
-      <TestCase description="Insecure channel. encryptionAlgorithm does not match server value. Expects Bad_IdentityTokenInvalid." name="010.js" filename="Security/Security User Name Password/Test Cases/010.js" checkedState="1"/>
-      <TestCase description="Secure channel. encryptionAlgorithm=&quot;&quot;. Expects Bad_IdentityTokenInvalid." name="011.js" filename="Security/Security User Name Password/Test Cases/011.js" checkedState="1"/>
-      <TestCase description="Insecure channel. Valid username/password; user has no access. Expects Bad_UserAccessDenied." name="012.js" filename="Security/Security User Name Password/Test Cases/012.js" checkedState="1"/>
-      <TestCase description="Call GetEndpoints and verify that each provided PolicyId for UserIdentificationTokens is unique." name="015.js" filename="Security/Security User Name Password/Test Cases/015.js" checkedState="1"/>
+      <TestCase description="Insecure channel. Authenticate with success." name="001.js" filename="Security/Security User Name Password/Test Cases/001.js" checkedState="0"/>
+      <TestCase description="Secure channel. Authenticate with success." name="002.js" filename="Security/Security User Name Password/Test Cases/002.js" checkedState="0"/>
+      <TestCase description="Insecure channel; Empty username and password. Expect Bad_IdentityTokenInvalid." name="003.js" filename="Security/Security User Name Password/Test Cases/003.js" checkedState="0"/>
+      <TestCase description="Insecure channel. Non-existent user. Expecting Bad_IdentityTokenRejected." name="004.js" filename="Security/Security User Name Password/Test Cases/004.js" checkedState="0"/>
+      <TestCase description="Insecure channel. Valid username, password empty (serverNonce added). Expected result, Good or Bad_IdentityTokenRejected." name="005.js" filename="Security/Security User Name Password/Test Cases/005.js" checkedState="0"/>
+      <TestCase description="Insecure channel. Valid username, password empty (serverNonce missing). Expected result, Good or Bad_IdentityTokenRejected." name="006.js" filename="Security/Security User Name Password/Test Cases/006.js" checkedState="0"/>
+      <TestCase description="Insecure channel. Password is wrong. Expected Bad_IdentityTokenRejected." name="007.js" filename="Security/Security User Name Password/Test Cases/007.js" checkedState="0"/>
+      <TestCase description="Insecure channel. Username doesnt exist. Expects Bad_IdentityTokenRejected." name="008.js" filename="Security/Security User Name Password/Test Cases/008.js" checkedState="0"/>
+      <TestCase description="Insecure channel. policyId does not match server value. Expects Bad_IdentityTokenInvalid." name="009.js" filename="Security/Security User Name Password/Test Cases/009.js" checkedState="0"/>
+      <TestCase description="Insecure channel. encryptionAlgorithm does not match server value. Expects Bad_IdentityTokenInvalid." name="010.js" filename="Security/Security User Name Password/Test Cases/010.js" checkedState="0"/>
+      <TestCase description="Secure channel. encryptionAlgorithm=&quot;&quot;. Expects Bad_IdentityTokenInvalid." name="011.js" filename="Security/Security User Name Password/Test Cases/011.js" checkedState="0"/>
+      <TestCase description="Insecure channel. Valid username/password; user has no access. Expects Bad_UserAccessDenied." name="012.js" filename="Security/Security User Name Password/Test Cases/012.js" checkedState="0"/>
+      <TestCase description="Call GetEndpoints and verify that each provided PolicyId for UserIdentificationTokens is unique." name="015.js" filename="Security/Security User Name Password/Test Cases/015.js" checkedState="0"/>
      </TestCases>
-     <CleanupTestCase description="" name="cleanup.js" filename="Security/Security User Name Password/Test Cases/cleanup.js" checkedState="1"/>
+     <CleanupTestCase description="" name="cleanup.js" filename="Security/Security User Name Password/Test Cases/cleanup.js" checkedState="0"/>
     </ConformanceUnit>
     <ConformanceUnit category="Security" description="Support the OPC defined xml schema for importing and export security configuration information." name="Security Administration - XML Schema" used="true">
      <InitTestCase description="" name="initialize.js" filename="Security/Security Administration - XML Schema/Test Cases/initialize.js" checkedState="0"/>
@@ -2648,56 +2648,56 @@
      <CleanupTestCase description="" name="cleanup.js" filename="Security/Security Administration - XML Schema/Test Cases/cleanup.js" checkedState="0"/>
     </ConformanceUnit>
     <ConformanceUnit category="Security" description="A public/private key pair. Must be able to be adminstrativly disabled" name="Security User X509" used="true">
-     <InitTestCase description="" name="initialize.js" filename="Security/Security User X509/Test Cases/initialize.js" checkedState="1"/>
+     <InitTestCase description="" name="initialize.js" filename="Security/Security User X509/Test Cases/initialize.js" checkedState="0"/>
      <TestCases>
-      <TestCase description="Valid certificate for a valid connection" name="001.js" filename="Security/Security User X509/Test Cases/001.js" checkedState="1"/>
-      <TestCase description="Valid certificate for not-trusted user." name="002.js" filename="Security/Security User X509/Test Cases/002.js" checkedState="1"/>
-      <TestCase description="Not yet valid certificate; trusted" name="004.js" filename="Security/Security User X509/Test Cases/004.js" checkedState="1"/>
-      <TestCase description="Expired certificate" name="005.js" filename="Security/Security User X509/Test Cases/005.js" checkedState="1"/>
-      <TestCase description="Revoked user X509 cert." name="006.js" filename="Security/Security User X509/Test Cases/006.js" checkedState="1"/>
-      <TestCase description="ApplicationInstanceCertificate instead." name="007.js" filename="Security/Security User X509/Test Cases/007.js" checkedState="1"/>
-      <TestCase description="Specify different PolicyId" name="008.js" filename="Security/Security User X509/Test Cases/008.js" checkedState="1"/>
-      <TestCase description="Invalid user certificate." name="009.js" filename="Security/Security User X509/Test Cases/009.js" checkedState="1"/>
-      <TestCase description="Specify a valid certificate that has been issued by a local (i.e. not commercial CA like Verisign /Comodo etc.) certificate authority that is not trusted." name="010.js" filename="Security/Security User X509/Test Cases/010.js" checkedState="1"/>
-      <TestCase description="Specify a valid certificate that has been issued by a local (i.e. not commercial CA like Verisign /Comodo etc.) certificate authority that is trusted." name="011.js" filename="Security/Security User X509/Test Cases/011.js" checkedState="1"/>
-      <TestCase description="Specify a valid, trusted certificate that has been issued by a local (i.e. not commercial CA like Verisign /Comodo etc.) certificate authority that is not trusted but known." name="013.js" filename="Security/Security User X509/Test Cases/013.js" checkedState="1"/>
-      <TestCase description="Specify a valid, not trusted certificate that has been issued by a local (i.e. not commercial CA like Verisign /Comodo etc.) certificate authority that is not trusted but known." name="014.js" filename="Security/Security User X509/Test Cases/014.js" checkedState="1"/>
-      <TestCase description="Specify a not trusted certificate that has been revoked, and a server-specified policyId." name="015.js" filename="Security/Security User X509/Test Cases/015.js" checkedState="1"/>
-      <TestCase description="Specify a valid/trusted user certificate and provide an empty UserIdentitySignature." name="016.js" filename="Security/Security User X509/Test Cases/016.js" checkedState="1"/>
-      <TestCase description="Specify a valid/trusted user certificate and provide an invalid UserIdentitySignature." name="017.js" filename="Security/Security User X509/Test Cases/017.js" checkedState="1"/>
-      <TestCase description="Specify a valid/trusted user certificate and provide an UserIdentitySignature created using an invalid Algorithm." name="018.js" filename="Security/Security User X509/Test Cases/018.js" checkedState="1"/>
+      <TestCase description="Valid certificate for a valid connection" name="001.js" filename="Security/Security User X509/Test Cases/001.js" checkedState="0"/>
+      <TestCase description="Valid certificate for not-trusted user." name="002.js" filename="Security/Security User X509/Test Cases/002.js" checkedState="0"/>
+      <TestCase description="Not yet valid certificate; trusted" name="004.js" filename="Security/Security User X509/Test Cases/004.js" checkedState="0"/>
+      <TestCase description="Expired certificate" name="005.js" filename="Security/Security User X509/Test Cases/005.js" checkedState="0"/>
+      <TestCase description="Revoked user X509 cert." name="006.js" filename="Security/Security User X509/Test Cases/006.js" checkedState="0"/>
+      <TestCase description="ApplicationInstanceCertificate instead." name="007.js" filename="Security/Security User X509/Test Cases/007.js" checkedState="0"/>
+      <TestCase description="Specify different PolicyId" name="008.js" filename="Security/Security User X509/Test Cases/008.js" checkedState="0"/>
+      <TestCase description="Invalid user certificate." name="009.js" filename="Security/Security User X509/Test Cases/009.js" checkedState="0"/>
+      <TestCase description="Specify a valid certificate that has been issued by a local (i.e. not commercial CA like Verisign /Comodo etc.) certificate authority that is not trusted." name="010.js" filename="Security/Security User X509/Test Cases/010.js" checkedState="0"/>
+      <TestCase description="Specify a valid certificate that has been issued by a local (i.e. not commercial CA like Verisign /Comodo etc.) certificate authority that is trusted." name="011.js" filename="Security/Security User X509/Test Cases/011.js" checkedState="0"/>
+      <TestCase description="Specify a valid, trusted certificate that has been issued by a local (i.e. not commercial CA like Verisign /Comodo etc.) certificate authority that is not trusted but known." name="013.js" filename="Security/Security User X509/Test Cases/013.js" checkedState="0"/>
+      <TestCase description="Specify a valid, not trusted certificate that has been issued by a local (i.e. not commercial CA like Verisign /Comodo etc.) certificate authority that is not trusted but known." name="014.js" filename="Security/Security User X509/Test Cases/014.js" checkedState="0"/>
+      <TestCase description="Specify a not trusted certificate that has been revoked, and a server-specified policyId." name="015.js" filename="Security/Security User X509/Test Cases/015.js" checkedState="0"/>
+      <TestCase description="Specify a valid/trusted user certificate and provide an empty UserIdentitySignature." name="016.js" filename="Security/Security User X509/Test Cases/016.js" checkedState="0"/>
+      <TestCase description="Specify a valid/trusted user certificate and provide an invalid UserIdentitySignature." name="017.js" filename="Security/Security User X509/Test Cases/017.js" checkedState="0"/>
+      <TestCase description="Specify a valid/trusted user certificate and provide an UserIdentitySignature created using an invalid Algorithm." name="018.js" filename="Security/Security User X509/Test Cases/018.js" checkedState="0"/>
      </TestCases>
-     <CleanupTestCase description="" name="cleanup.js" filename="Security/Security User X509/Test Cases/cleanup.js" checkedState="1"/>
+     <CleanupTestCase description="" name="cleanup.js" filename="Security/Security User X509/Test Cases/cleanup.js" checkedState="0"/>
     </ConformanceUnit>
     <ConformanceUnit category="Security" description="Certificate will be validated as specified in OPC UA Part 4. This includes among others structure and signature examination. Allowing for some validation errors to be suppressed by administration directive." name="Security Certificate Validation" used="true">
-     <InitTestCase description="" name="initialize.js" filename="Security/Security Certificate Validation/Test Cases/initialize.js" checkedState="1"/>
+     <InitTestCase description="" name="initialize.js" filename="Security/Security Certificate Validation/Test Cases/initialize.js" checkedState="0"/>
      <TestCases>
-      <TestCase description="Insecure channel. Activate a session. Validate certificate per specification. Expects successful connection and valid certificate." name="001.js" filename="Security/Security Certificate Validation/Test Cases/001.js" checkedState="1"/>
-      <TestCase description="Connect using a client certificate signed by a not trusted but known CA where there is no revocation list available." name="002.js" filename="Security/Security Certificate Validation/Test Cases/002.js" checkedState="1"/>
-      <TestCase description="Attempt a secure session and send an empty clientCertificate." name="004.js" filename="Security/Security Certificate Validation/Test Cases/004.js" checkedState="1"/>
-      <TestCase description="Secure channel. Untrusted certificate. Expects BadSecurityChecksFailed." name="005.js" filename="Security/Security Certificate Validation/Test Cases/005.js" checkedState="1"/>
-      <TestCase description="Secure channel. Expired certificate. Expects Good or BadCertificateTimeInvalid" name="007.js" filename="Security/Security Certificate Validation/Test Cases/007.js" checkedState="1"/>
-      <TestCase description="Secure channel. Not-yet-valid certificate. Expects Good or BadCertificateTimeInvalid." name="008.js" filename="Security/Security Certificate Validation/Test Cases/008.js" checkedState="1"/>
-      <TestCase description="Secure channel. Issuer is unknown. Expects BadSecurityChecksFailed." name="009.js" filename="Security/Security Certificate Validation/Test Cases/009.js" checkedState="1"/>
-      <TestCase description="Secure channel. Certificate signed with wrong key. Expects BadSecurityChecksFailed." name="010.js" filename="Security/Security Certificate Validation/Test Cases/010.js" checkedState="1"/>
-      <TestCase description="Using an insecure connection (Security=None), activate a session while sending a certificate that has been revoked." name="013.js" filename="Security/Security Certificate Validation/Test Cases/013.js" checkedState="1"/>
-      <TestCase description="Attempt a secure Channel and send a CA certificate." name="029.js" filename="Security/Security Certificate Validation/Test Cases/029.js" checkedState="1"/>
-      <TestCase description="Connect with expired/untrusted certificate" name="033.js" filename="Security/Security Certificate Validation/Test Cases/033.js" checkedState="1"/>
-      <TestCase description="Secure channel. Issued certificate. Expects Good" name="037.js" filename="Security/Security Certificate Validation/Test Cases/037.js" checkedState="1"/>
-      <TestCase description="Encrypted channel using Revoked certificate" name="038.js" filename="Security/Security Certificate Validation/Test Cases/038.js" checkedState="1"/>
-      <TestCase description="Connect using an (trusted) issued certificate of a CA that has no revocation list available." name="042.js" filename="Security/Security Certificate Validation/Test Cases/042.js" checkedState="1"/>
-      <TestCase description="Connect using an (untrusted) issued certificate of a CA that has no revocation list available." name="043.js" filename="Security/Security Certificate Validation/Test Cases/043.js" checkedState="1"/>
-      <TestCase description="Connect using an (trusted) issued certificate of a CA that is not trusted but available." name="044.js" filename="Security/Security Certificate Validation/Test Cases/044.js" checkedState="1"/>
-      <TestCase description="Connect using an (untrusted) issued certificate of a CA that is not trusted but available." name="045.js" filename="Security/Security Certificate Validation/Test Cases/045.js" checkedState="1"/>
-      <TestCase description="Attempt a secure channel and send a (not trusted) certificate that was issued by an unknown (not trusted) CertificateAuthority." name="046.js" filename="Security/Security Certificate Validation/Test Cases/046.js" checkedState="1"/>
-      <TestCase description="Connect using a Revoked certificate that is not trusted." name="047.js" filename="Security/Security Certificate Validation/Test Cases/047.js" checkedState="1"/>
-      <TestCase description="Connect using a trusted client certificate." name="048.js" filename="Security/Security Certificate Validation/Test Cases/048.js" checkedState="1"/>
-      <TestCase description="Connect using a trusted client certificate (sha1-1024)." name="049.js" filename="Security/Security Certificate Validation/Test Cases/049.js" checkedState="1"/>
-      <TestCase description="Connect using a trusted client certificate (sha1-2048)." name="050.js" filename="Security/Security Certificate Validation/Test Cases/050.js" checkedState="1"/>
-      <TestCase description="Connect using a trusted client certificate (sha2-2048)." name="051.js" filename="Security/Security Certificate Validation/Test Cases/051.js" checkedState="1"/>
-      <TestCase description="Connect using a trusted client certificate (sha2-4096)." name="052.js" filename="Security/Security Certificate Validation/Test Cases/052.js" checkedState="1"/>
+      <TestCase description="Insecure channel. Activate a session. Validate certificate per specification. Expects successful connection and valid certificate." name="001.js" filename="Security/Security Certificate Validation/Test Cases/001.js" checkedState="0"/>
+      <TestCase description="Connect using a client certificate signed by a not trusted but known CA where there is no revocation list available." name="002.js" filename="Security/Security Certificate Validation/Test Cases/002.js" checkedState="0"/>
+      <TestCase description="Attempt a secure session and send an empty clientCertificate." name="004.js" filename="Security/Security Certificate Validation/Test Cases/004.js" checkedState="0"/>
+      <TestCase description="Secure channel. Untrusted certificate. Expects BadSecurityChecksFailed." name="005.js" filename="Security/Security Certificate Validation/Test Cases/005.js" checkedState="0"/>
+      <TestCase description="Secure channel. Expired certificate. Expects Good or BadCertificateTimeInvalid" name="007.js" filename="Security/Security Certificate Validation/Test Cases/007.js" checkedState="0"/>
+      <TestCase description="Secure channel. Not-yet-valid certificate. Expects Good or BadCertificateTimeInvalid." name="008.js" filename="Security/Security Certificate Validation/Test Cases/008.js" checkedState="0"/>
+      <TestCase description="Secure channel. Issuer is unknown. Expects BadSecurityChecksFailed." name="009.js" filename="Security/Security Certificate Validation/Test Cases/009.js" checkedState="0"/>
+      <TestCase description="Secure channel. Certificate signed with wrong key. Expects BadSecurityChecksFailed." name="010.js" filename="Security/Security Certificate Validation/Test Cases/010.js" checkedState="0"/>
+      <TestCase description="Using an insecure connection (Security=None), activate a session while sending a certificate that has been revoked." name="013.js" filename="Security/Security Certificate Validation/Test Cases/013.js" checkedState="0"/>
+      <TestCase description="Attempt a secure Channel and send a CA certificate." name="029.js" filename="Security/Security Certificate Validation/Test Cases/029.js" checkedState="0"/>
+      <TestCase description="Connect with expired/untrusted certificate" name="033.js" filename="Security/Security Certificate Validation/Test Cases/033.js" checkedState="0"/>
+      <TestCase description="Secure channel. Issued certificate. Expects Good" name="037.js" filename="Security/Security Certificate Validation/Test Cases/037.js" checkedState="0"/>
+      <TestCase description="Encrypted channel using Revoked certificate" name="038.js" filename="Security/Security Certificate Validation/Test Cases/038.js" checkedState="0"/>
+      <TestCase description="Connect using an (trusted) issued certificate of a CA that has no revocation list available." name="042.js" filename="Security/Security Certificate Validation/Test Cases/042.js" checkedState="0"/>
+      <TestCase description="Connect using an (untrusted) issued certificate of a CA that has no revocation list available." name="043.js" filename="Security/Security Certificate Validation/Test Cases/043.js" checkedState="0"/>
+      <TestCase description="Connect using an (trusted) issued certificate of a CA that is not trusted but available." name="044.js" filename="Security/Security Certificate Validation/Test Cases/044.js" checkedState="0"/>
+      <TestCase description="Connect using an (untrusted) issued certificate of a CA that is not trusted but available." name="045.js" filename="Security/Security Certificate Validation/Test Cases/045.js" checkedState="0"/>
+      <TestCase description="Attempt a secure channel and send a (not trusted) certificate that was issued by an unknown (not trusted) CertificateAuthority." name="046.js" filename="Security/Security Certificate Validation/Test Cases/046.js" checkedState="0"/>
+      <TestCase description="Connect using a Revoked certificate that is not trusted." name="047.js" filename="Security/Security Certificate Validation/Test Cases/047.js" checkedState="0"/>
+      <TestCase description="Connect using a trusted client certificate." name="048.js" filename="Security/Security Certificate Validation/Test Cases/048.js" checkedState="0"/>
+      <TestCase description="Connect using a trusted client certificate (sha1-1024)." name="049.js" filename="Security/Security Certificate Validation/Test Cases/049.js" checkedState="0"/>
+      <TestCase description="Connect using a trusted client certificate (sha1-2048)." name="050.js" filename="Security/Security Certificate Validation/Test Cases/050.js" checkedState="0"/>
+      <TestCase description="Connect using a trusted client certificate (sha2-2048)." name="051.js" filename="Security/Security Certificate Validation/Test Cases/051.js" checkedState="0"/>
+      <TestCase description="Connect using a trusted client certificate (sha2-4096)." name="052.js" filename="Security/Security Certificate Validation/Test Cases/052.js" checkedState="0"/>
      </TestCases>
-     <CleanupTestCase description="" name="cleanup.js" filename="Security/Security Certificate Validation/Test Cases/cleanup.js" checkedState="1"/>
+     <CleanupTestCase description="" name="cleanup.js" filename="Security/Security Certificate Validation/Test Cases/cleanup.js" checkedState="0"/>
     </ConformanceUnit>
     <ConformanceUnit category="Security" description="Allow the plant administrator to assign a plant specific instance Certificate and allow configuration of a plant specific CA for acceptance of Certificates" name="Security Certificate Administration" used="true">
      <InitTestCase description="" name="initialize.js" filename="Security/Security Certificate Administration/Test Cases/initialize.js" checkedState="0"/>
@@ -2707,34 +2707,34 @@
      <CleanupTestCase description="" name="cleanup.js" filename="Security/Security Certificate Administration/Test Cases/cleanup.js" checkedState="0"/>
     </ConformanceUnit>
     <ConformanceUnit category="Security" description="The CreateSession and ActivateSession service allow for a NULL/empty signiture and do not require Application Certificates or a Nonce.  This Conformance Unit is only valid for select security policies." name="Security None CreateSession ActivateSession" used="true">
-     <InitTestCase description="" name="initialize.js" filename="Security/Security None CreateSession ActivateSession/Test Cases/initialize.js" checkedState="1"/>
+     <InitTestCase description="" name="initialize.js" filename="Security/Security None CreateSession ActivateSession/Test Cases/initialize.js" checkedState="0"/>
      <TestCases>
-      <TestCase description="Insecure channel. Activate session while providing certificates/nonces. Expects connection success." name="001.js" filename="Security/Security None CreateSession ActivateSession/Test Cases/001.js" checkedState="1"/>
-      <TestCase description="Insecure channel. Activate session while providing a Nonce but no certificate. Expects connection success." name="002.js" filename="Security/Security None CreateSession ActivateSession/Test Cases/002.js" checkedState="1"/>
-      <TestCase description="Insecure channel. Activate session while providing a certificate, but no Nonce. Expects connection success." name="003.js" filename="Security/Security None CreateSession ActivateSession/Test Cases/003.js" checkedState="1"/>
-      <TestCase description="Insecure channel. Activate a session, but do not pass certificates or nonce. Expects connection success." name="004.js" filename="Security/Security None CreateSession ActivateSession/Test Cases/004.js" checkedState="1"/>
+      <TestCase description="Insecure channel. Activate session while providing certificates/nonces. Expects connection success." name="001.js" filename="Security/Security None CreateSession ActivateSession/Test Cases/001.js" checkedState="0"/>
+      <TestCase description="Insecure channel. Activate session while providing a Nonce but no certificate. Expects connection success." name="002.js" filename="Security/Security None CreateSession ActivateSession/Test Cases/002.js" checkedState="0"/>
+      <TestCase description="Insecure channel. Activate session while providing a certificate, but no Nonce. Expects connection success." name="003.js" filename="Security/Security None CreateSession ActivateSession/Test Cases/003.js" checkedState="0"/>
+      <TestCase description="Insecure channel. Activate a session, but do not pass certificates or nonce. Expects connection success." name="004.js" filename="Security/Security None CreateSession ActivateSession/Test Cases/004.js" checkedState="0"/>
      </TestCases>
-     <CleanupTestCase description="" name="cleanup.js" filename="Security/Security None CreateSession ActivateSession/Test Cases/cleanup.js" checkedState="1"/>
+     <CleanupTestCase description="" name="cleanup.js" filename="Security/Security None CreateSession ActivateSession/Test Cases/cleanup.js" checkedState="0"/>
     </ConformanceUnit>
     <ConformanceUnit category="Security" description="The CreateSession and ActivateSession backwards compatibility to 1.01" name="Security None CreateSession ActivateSession 1.01" used="true">
-     <InitTestCase description="" name="initialize.js" filename="Security/Security None CreateSession ActivateSession 1.01/Test Cases/initialize.js" checkedState="1"/>
+     <InitTestCase description="" name="initialize.js" filename="Security/Security None CreateSession ActivateSession 1.01/Test Cases/initialize.js" checkedState="0"/>
      <TestCases>
-      <TestCase description="1.01 Client passes a Certificate" name="001.js" filename="Security/Security None CreateSession ActivateSession 1.01/Test Cases/001.js" checkedState="1"/>
-      <TestCase description="Send expired client certificate" name="002.js" filename="Security/Security None CreateSession ActivateSession 1.01/Test Cases/002.js" checkedState="1"/>
-      <TestCase description="Send certificate for different computer" name="003.js" filename="Security/Security None CreateSession ActivateSession 1.01/Test Cases/003.js" checkedState="1"/>
-      <TestCase description="Send corrupted certificate" name="004.js" filename="Security/Security None CreateSession ActivateSession 1.01/Test Cases/004.js" checkedState="1"/>
+      <TestCase description="1.01 Client passes a Certificate" name="001.js" filename="Security/Security None CreateSession ActivateSession 1.01/Test Cases/001.js" checkedState="0"/>
+      <TestCase description="Send expired client certificate" name="002.js" filename="Security/Security None CreateSession ActivateSession 1.01/Test Cases/002.js" checkedState="0"/>
+      <TestCase description="Send certificate for different computer" name="003.js" filename="Security/Security None CreateSession ActivateSession 1.01/Test Cases/003.js" checkedState="0"/>
+      <TestCase description="Send corrupted certificate" name="004.js" filename="Security/Security None CreateSession ActivateSession 1.01/Test Cases/004.js" checkedState="0"/>
      </TestCases>
-     <CleanupTestCase description="" name="cleanup.js" filename="Security/Security None CreateSession ActivateSession 1.01/Test Cases/cleanup.js" checkedState="1"/>
+     <CleanupTestCase description="" name="cleanup.js" filename="Security/Security None CreateSession ActivateSession 1.01/Test Cases/cleanup.js" checkedState="0"/>
     </ConformanceUnit>
     <ConformanceUnit category="Security" description="A suite of algorithms that uses RSA15 as Key-Wrap-algorithm and 128-Bit for encryption algorithms.&#xa;SymmetricSignatureAlgorithm&#x9;HmacSha1&#x9;(http://www.w3.org/2000/09/xmldsig#hmac-sha1)&#xa;SymmetricEncryptionAlgorithm&#x9;Aes128&#x9;(http://www.w3.org/2001/04/xmlenc#a" name="Security Basic 128Rsa15" used="true">
-     <InitTestCase description="" name="initialize.js" filename="Security/Security Basic 128Rsa15/Test Cases/initialize.js" checkedState="1"/>
+     <InitTestCase description="" name="initialize.js" filename="Security/Security Basic 128Rsa15/Test Cases/initialize.js" checkedState="0"/>
      <TestCases>
-      <TestCase description="Create secure channel using Basic 128Rsa15; Sign only. Expects success." name="001.js" filename="Security/Security Basic 128Rsa15/Test Cases/001.js" checkedState="1"/>
-      <TestCase description="Create secure channel using Basic 128Rsa15 Sign&amp;Encrypt. Expects success." name="002.js" filename="Security/Security Basic 128Rsa15/Test Cases/002.js" checkedState="1"/>
-      <TestCase description="DoS attempt by consuming Channels" name="004.js" filename="Security/Security Basic 128Rsa15/Test Cases/004.js" checkedState="1"/>
-      <TestCase description="DoS attack #2; consume SecureChannels, but CreateSessions in some." name="005.js" filename="Security/Security Basic 128Rsa15/Test Cases/005.js" checkedState="1"/>
+      <TestCase description="Create secure channel using Basic 128Rsa15; Sign only. Expects success." name="001.js" filename="Security/Security Basic 128Rsa15/Test Cases/001.js" checkedState="0"/>
+      <TestCase description="Create secure channel using Basic 128Rsa15 Sign&amp;Encrypt. Expects success." name="002.js" filename="Security/Security Basic 128Rsa15/Test Cases/002.js" checkedState="0"/>
+      <TestCase description="DoS attempt by consuming Channels" name="004.js" filename="Security/Security Basic 128Rsa15/Test Cases/004.js" checkedState="0"/>
+      <TestCase description="DoS attack #2; consume SecureChannels, but CreateSessions in some." name="005.js" filename="Security/Security Basic 128Rsa15/Test Cases/005.js" checkedState="0"/>
      </TestCases>
-     <CleanupTestCase description="" name="cleanup.js" filename="Security/Security Basic 128Rsa15/Test Cases/cleanup.js" checkedState="1"/>
+     <CleanupTestCase description="" name="cleanup.js" filename="Security/Security Basic 128Rsa15/Test Cases/cleanup.js" checkedState="0"/>
     </ConformanceUnit>
     <ConformanceUnit category="Security" description="A suite of algorithms that uses SHA256 as Key-Wrap-algorithm and 256-Bit for encryption algorithms.&#xa;SymmetricSignatureAlgorithm&#x9;HmacSha256&#x9;(http://www.w3.org/2001/04/xmldsig-more#rsa-sha256)&#xa;SymmetricEncryptionAlgorithm&#x9;Aes256&#x9;(http://www.w3.org/2001/04/xmlenc#sha256" name="Security Basic 256Sha256" used="true">
      <InitTestCase description="" name="initialize.js" filename="Security/Security Basic 256Sha256/Test Cases/initialize.js" checkedState="0"/>
@@ -2767,18 +2767,18 @@
      <CleanupTestCase description="" name="cleanup.js" filename="Security/Security Aes256-Sha256-RsaPss/Test Cases/cleanup.js" checkedState="0"/>
     </ConformanceUnit>
     <ConformanceUnit category="Security" description="Allow configuration of the following  Security related items.&#xa;    * select the proper User identification policy (User Name/Password or X509 or Kerberos)&#xa;    * enable/disable the Security Policy &quot;None&quot; or other policies&#xa;   * set the permitted certifica" name="Security Administration" used="true">
-     <InitTestCase description="" name="initialize.js" filename="Security/Security Administration/Test Cases/initialize.js" checkedState="1"/>
+     <InitTestCase description="" name="initialize.js" filename="Security/Security Administration/Test Cases/initialize.js" checkedState="0"/>
      <TestCases>
-      <TestCase description="Please test this CU manually" name="manual.js" filename="Security/Security Administration/Test Cases/manual.js" checkedState="1"/>
+      <TestCase description="Please test this CU manually" name="manual.js" filename="Security/Security Administration/Test Cases/manual.js" checkedState="0"/>
      </TestCases>
-     <CleanupTestCase description="" name="cleanup.js" filename="Security/Security Administration/Test Cases/cleanup.js" checkedState="1"/>
+     <CleanupTestCase description="" name="cleanup.js" filename="Security/Security Administration/Test Cases/cleanup.js" checkedState="0"/>
     </ConformanceUnit>
     <ConformanceUnit category="Security" description="The server supports being able to be configured for no application authentication." name="Security - No Application Authentication" used="true">
-     <InitTestCase description="" name="initialize.js" filename="Security/Security - No Application Authentication/Test Cases/initialize.js" checkedState="1"/>
+     <InitTestCase description="" name="initialize.js" filename="Security/Security - No Application Authentication/Test Cases/initialize.js" checkedState="0"/>
      <TestCases>
-      <TestCase description="Please test this CU manually" name="manual.js" filename="Security/Security - No Application Authentication/Test Cases/manual.js" checkedState="1"/>
+      <TestCase description="Please test this CU manually" name="manual.js" filename="Security/Security - No Application Authentication/Test Cases/manual.js" checkedState="0"/>
      </TestCases>
-     <CleanupTestCase description="" name="cleanup.js" filename="Security/Security - No Application Authentication/Test Cases/cleanup.js" checkedState="1"/>
+     <CleanupTestCase description="" name="cleanup.js" filename="Security/Security - No Application Authentication/Test Cases/cleanup.js" checkedState="0"/>
     </ConformanceUnit>
     <ConformanceUnit category="Security" description="A suite of algorithms that 256-Bit for encryption algorithms&#xa;SymmetricSignatureAlgorithm&#x9;HmacSha1&#x9;(http://www.w3.org/2000/09/xmldsig#hmac-sha1)&#xa;SymmetricEncryptionAlgorithm&#x9;Aes256&#x9;(http://www.w3.org/2001/04/xmlenc#aes256-cbc)&#xa;AsymmetricSignatureAlgorit" name="Security Basic 256" used="true">
      <InitTestCase description="" name="initialize.js" filename="Security/Security Basic 256/Test Cases/initialize.js" checkedState="0"/>
@@ -2815,18 +2815,18 @@
      <CleanupTestCase description="" name="cleanup.js" filename="Security/Security User IssuedToken Kerberos Windows/Test Cases/cleanup.js" checkedState="0"/>
     </ConformanceUnit>
     <ConformanceUnit category="Security" description="Encryption required by security algorithms." name="Security Encryption Required" used="true">
-     <InitTestCase description="" name="initialize.js" filename="Security/Security Encryption Required/Test Cases/initialize.js" checkedState="1"/>
+     <InitTestCase description="" name="initialize.js" filename="Security/Security Encryption Required/Test Cases/initialize.js" checkedState="0"/>
      <TestCases>
-      <TestCase description="Please test this CU manually" name="manual.js" filename="Security/Security Encryption Required/Test Cases/manual.js" checkedState="1"/>
+      <TestCase description="Please test this CU manually" name="manual.js" filename="Security/Security Encryption Required/Test Cases/manual.js" checkedState="0"/>
      </TestCases>
-     <CleanupTestCase description="" name="cleanup.js" filename="Security/Security Encryption Required/Test Cases/cleanup.js" checkedState="1"/>
+     <CleanupTestCase description="" name="cleanup.js" filename="Security/Security Encryption Required/Test Cases/cleanup.js" checkedState="0"/>
     </ConformanceUnit>
     <ConformanceUnit category="Security" description="Signing required by security algorithms." name="Security Signing Required" used="true">
-     <InitTestCase description="" name="initialize.js" filename="Security/Security Signing Required/Test Cases/initialize.js" checkedState="1"/>
+     <InitTestCase description="" name="initialize.js" filename="Security/Security Signing Required/Test Cases/initialize.js" checkedState="0"/>
      <TestCases>
-      <TestCase description="Please test this CU manually" name="manual.js" filename="Security/Security Signing Required/Test Cases/manual.js" checkedState="1"/>
+      <TestCase description="Please test this CU manually" name="manual.js" filename="Security/Security Signing Required/Test Cases/manual.js" checkedState="0"/>
      </TestCases>
-     <CleanupTestCase description="" name="cleanup.js" filename="Security/Security Signing Required/Test Cases/cleanup.js" checkedState="1"/>
+     <CleanupTestCase description="" name="cleanup.js" filename="Security/Security Signing Required/Test Cases/cleanup.js" checkedState="0"/>
     </ConformanceUnit>
     <ConformanceUnit category="Security" description="Clock Synchronization." name="Security Time Synch - Configuration" used="true">
      <InitTestCase description="" name="initialize.js" filename="Security/Security Time Synch - Configuration/Test Cases/initialize.js" checkedState="0"/>
@@ -2850,11 +2850,11 @@
      <CleanupTestCase description="" name="cleanup.js" filename="Security/Security Time Synch - UA Based Support/Test Cases/cleanup.js" checkedState="0"/>
     </ConformanceUnit>
     <ConformanceUnit category="Security" description="Default application instance certificate." name="Security Default ApplicationInstanceCertificate" used="true">
-     <InitTestCase description="" name="initialize.js" filename="Security/Security Default ApplicationInstanceCertificate/Test Cases/initialize.js" checkedState="1"/>
+     <InitTestCase description="" name="initialize.js" filename="Security/Security Default ApplicationInstanceCertificate/Test Cases/initialize.js" checkedState="0"/>
      <TestCases>
-      <TestCase description="Please test this CU manually" name="manual.js" filename="Security/Security Default ApplicationInstanceCertificate/Test Cases/manual.js" checkedState="1"/>
+      <TestCase description="Please test this CU manually" name="manual.js" filename="Security/Security Default ApplicationInstanceCertificate/Test Cases/manual.js" checkedState="0"/>
      </TestCases>
-     <CleanupTestCase description="" name="cleanup.js" filename="Security/Security Time Synch - UA Based Support/Test Cases/cleanup.js" checkedState="1"/>
+     <CleanupTestCase description="" name="cleanup.js" filename="Security/Security Time Synch - UA Based Support/Test Cases/cleanup.js" checkedState="0"/>
     </ConformanceUnit>
     <ConformanceUnit category="Security" description="The Server supports being able to be configured for no application authentication, just User authentication and normal encryption/signing:&#xd;&#xa;– Configure server to accept all certificates&#xd;&#xa;– Certificates are just used for message security (signing and encryption)&#xd;&#xa;– Users level is used for authentication " name="Security No Application Authentication" used="true">
      <InitTestCase description="" name="initialize.js" filename="Security/Security No Application Authentication/Test Cases/initialize.js" checkedState="0"/>

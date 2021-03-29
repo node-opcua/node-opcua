@@ -1122,7 +1122,7 @@ describe("testing ServerEngine", () => {
         // Expect BadIndexRangeNoData
 
         const nodeId = "ns=1;s=TestVar";
-        before(function() {
+        before(() => {
             namespace.addVariable({
                 browseName: "TestVar",
                 dataType: "Double",
@@ -2087,7 +2087,7 @@ describe("testing ServerEngine", () => {
 
     describe("testing the ability to handle variable that returns a StatusCode rather than a Variant", () => {
 
-        before(function() {
+        before(() => {
             // add a variable that fails to provide a Variant.
             // we simulate the scenario where the variable represent a PLC value,
             // and for some reason, the server cannot access the PLC.
@@ -2137,7 +2137,7 @@ describe("testing ServerEngine", () => {
         let value1 = 0;
         let value2 = 0;
 
-        before(function() {
+        before(() => {
 
             // add a variable that provide a on demand refresh function
             namespace.addVariable({

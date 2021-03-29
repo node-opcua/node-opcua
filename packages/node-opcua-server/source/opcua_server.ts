@@ -939,8 +939,7 @@ export class OPCUAServer extends OPCUABaseServer {
     /**
      * the maximum number of subscription that can be created per server
      */
-    public static MAX_SUBSCRIPTION = 50;
-
+    public static MAX_SUBSCRIPTION = 50;   
     /**
      * the maximum number of concurrent sessions allowed on the server
      */
@@ -2903,6 +2902,7 @@ export class OPCUAServer extends OPCUABaseServer {
         const request = message.request as CreateMonitoredItemsRequest;
         assert(request instanceof CreateMonitoredItemsRequest);
 
+
         this._apply_on_Subscription(
             CreateMonitoredItemsResponse,
             message,
@@ -2927,23 +2927,35 @@ export class OPCUAServer extends OPCUABaseServer {
                     }
                 }
 
-                const resultsPromise = request.itemsToCreate.map(async (monitoredItemCreateRequest) => {
-                    const { monitoredItem, createResult } = subscription.preCreateMonitoredItem(
-                        addressSpace,
-                        timestampsToReturn,
-                        monitoredItemCreateRequest
-                    );
-                    if (monitoredItem) {
-                        const options = this.options as OPCUAServerOptions;
-                        if (options.onCreateMonitoredItem) {
-                            await options.onCreateMonitoredItem(subscription, monitoredItem);
+                const options = this.options as OPCUAServerOptions;
+                let results: MonitoredItemCreateResult[] =[];
+                if (options.onCreateMonitoredItem) {
+                    const resultsPromise = request.itemsToCreate.map( async (monitoredItemCreateRequest) => {
+                        const { monitoredItem, createResult } = subscription.preCreateMonitoredItem(
+                            addressSpace,
+                            timestampsToReturn,
+                            monitoredItemCreateRequest
+                        );
+                        if (monitoredItem) {
+                            await options.onCreateMonitoredItem!(subscription, monitoredItem);
+                            subscription.postCreateMonitoredItem(monitoredItem, monitoredItemCreateRequest, createResult);
+                        } 
+                        return createResult;
+                    });
+                    results = await Promise.all(resultsPromise);
+                } else {
+                    results = request.itemsToCreate.map( (monitoredItemCreateRequest) => {
+                        const { monitoredItem, createResult } = subscription.preCreateMonitoredItem(
+                            addressSpace,
+                            timestampsToReturn,
+                            monitoredItemCreateRequest
+                        );
+                        if (monitoredItem) {
+                            subscription.postCreateMonitoredItem(monitoredItem, monitoredItemCreateRequest, createResult);
                         }
-                        await subscription.postCreateMonitoredItem(monitoredItem, monitoredItemCreateRequest, createResult);
-                    }
-                    return createResult;
-                });
-                const results = await Promise.all(resultsPromise);
-
+                        return createResult;
+                    });
+                }
                 const response = new CreateMonitoredItemsResponse({
                     responseHeader: { serviceResult: StatusCodes.Good },
                     results
@@ -3109,14 +3121,19 @@ export class OPCUAServer extends OPCUABaseServer {
                     return subscription.removeMonitoredItem(monitoredItemId);
                 });
 
-                const results = await Promise.all(resultsPromises);
-
-                const response = new DeleteMonitoredItemsResponse({
-                    diagnosticInfos: undefined,
-                    results
-                });
-
-                sendResponse(response);
+                try {
+                    const results = await Promise.all(resultsPromises);
+                    
+                    const response = new DeleteMonitoredItemsResponse({
+                        diagnosticInfos: undefined,
+                        results
+                    });
+    
+                    sendResponse(response);    
+                } catch(err) {
+                    console.log(err);
+                    return sendError(StatusCodes.BadInternalError);
+                }
             }
         );
     }
