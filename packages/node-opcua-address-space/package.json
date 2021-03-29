@@ -63,7 +63,7 @@
         "node-opcua-packet-analyzer": "2.37.0",
         "node-opcua-test-fixtures": "2.37.0",
         "should": "^13.2.3",
-        "sinon": "^9.2.4",
+        "sinon": "^10.0.0",
         "source-map-support": "^0.5.19"
     },
     "author": "Etienne Rossignon",

@@ -20,7 +20,7 @@
     "node-opcua-debug": "2.37.0",
     "node-opcua-nodeid": "2.37.0",
     "node-opcua-nodesets": "2.36.0",
-    "node-opcua-pki": "^2.8.0",
+    "node-opcua-pki": "^2.9.7",
     "node-opcua-pseudo-session": "2.37.0",
     "node-opcua-secure-channel": "2.37.0",
     "node-opcua-server": "2.37.0",
@@ -36,7 +36,7 @@
     "node-opcua-data-value": "2.37.0",
     "node-opcua-leak-detector": "2.37.0",
     "should": "^13.2.3",
-    "sinon": "^9.2.4"
+    "sinon": "^10.0.0"
   },
   "author": "Etienne Rossignon",
   "license": "MIT",

@@ -24,18 +24,18 @@
         "node-opcua-crypto": "^1.7.1",
         "node-opcua-debug": "2.37.0",
         "node-opcua-object-registry": "2.37.0",
-        "node-opcua-pki": "^2.8.0",
         "node-opcua-status-code": "2.37.0",
         "node-opcua-utils": "2.37.0",
+        "node-opcua-pki": "^2.9.7",
         "once": "^1.4.0",
         "thenify": "^3.3.1"
     },
     "devDependencies": {
-        "@types/async": "^3.2.5",
+        "@types/async": "^3.2.6",
         "dequeue": "^1.0.5",
         "node-opcua-leak-detector": "2.37.0",
         "should": "^13.2.3",
-        "sinon": "^9.2.4"
+        "sinon": "^10.0.0"
     },
     "eslintConfig": {
         "env": {

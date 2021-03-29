@@ -1,7 +1,7 @@
 lockfileVersion: 5.3
 
 specifiers:
-  '@types/node': ^14.14.33
+  '@types/node': ^14.14.37
   node-opcua-assert: 2.37.0
   node-opcua-benchmarker: 2.37.0
   node-opcua-binary-stream: 2.37.0
@@ -27,15 +27,15 @@ dependencies:
   node-opcua-utils: link:../node-opcua-utils
 
 devDependencies:
-  '@types/node': 14.14.33
+  '@types/node': 14.14.37
   node-opcua-benchmarker: link:../node-opcua-benchmarker
   node-opcua-debug: link:../node-opcua-debug
   should: 13.2.3
 
 packages:
 
-  /@types/node/14.14.33:
-    resolution: {integrity: sha512-oJqcTrgPUF29oUP8AsUqbXGJNuPutsetaa9kTQAQce5Lx5dTYWV02ScBiT/k1BX/Z7pKeqedmvp39Wu4zR7N7g==}
+  /@types/node/14.14.37:
+    resolution: {integrity: sha512-XYmBiy+ohOR4Lh5jE379fV2IU+6Jn4g5qASinhitfyO71b/sCo6MKsMLF5tc7Zf2CE8hViVQyYSobJNke8OvUw==}
     dev: true
 
   /should-equal/2.0.0:

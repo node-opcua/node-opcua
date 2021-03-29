@@ -108,19 +108,12 @@ export class OPCUACertificateManager extends CertificateManager implements ICert
     public initialize(...args: any[]): any {
         const callback = args[0];
         assert(callback && callback instanceof Function);
-        if (!this.initialized) {
-            // OPCUACertificateManager.registry.register(this);
-        }
         return super.initialize(callback);
     }
 
     public async dispose(): Promise<void> {
         if (this.referenceCounter === 0) {
-            if (this.initialized) {
-                // OPCUACertificateManager.registry.unregister(this);
-            }
             await super.dispose();
-            this.initialized = false;
         } else {
             this.referenceCounter--;
         }

@@ -1,7 +1,7 @@
 lockfileVersion: 5.3
 
 specifiers:
-  '@types/node': ^14.14.33
+  '@types/node': ^14.14.37
   '@types/underscore': ^1.11.0
   async: ^3.2.0
   backoff: ^2.5.0
@@ -33,7 +33,7 @@ specifiers:
   node-opcua-types: 2.37.0
   node-opcua-utils: 2.37.0
   should: ^13.2.3
-  sinon: ^9.2.4
+  sinon: ^10.0.0
   source-map-support: ^0.5.19
   sprintf-js: ^1.1.2
   underscore: ^1.12.0
@@ -64,7 +64,7 @@ dependencies:
   underscore: 1.12.0
 
 devDependencies:
-  '@types/node': 14.14.33
+  '@types/node': 14.14.37
   node-opcua-buffer-utils: link:../node-opcua-buffer-utils
   node-opcua-leak-detector: link:../node-opcua-leak-detector
   node-opcua-service-browse: link:../node-opcua-service-browse
@@ -74,7 +74,7 @@ devDependencies:
   node-opcua-test-fixtures: link:../node-opcua-test-fixtures
   node-opcua-test-helpers: link:../node-opcua-test-helpers
   should: 13.2.3
-  sinon: 9.2.4
+  sinon: 10.0.0
   source-map-support: 0.5.19
   sprintf-js: 1.1.2
 
@@ -104,8 +104,8 @@ packages:
     resolution: {integrity: sha512-+iTbntw2IZPb/anVDbypzfQa+ay64MW0Zo8aJ8gZPWMMK6/OubMVb6lUPMagqjOPnmtauXnFCACVl3O7ogjeqQ==}
     dev: true
 
-  /@types/node/14.14.33:
-    resolution: {integrity: sha512-oJqcTrgPUF29oUP8AsUqbXGJNuPutsetaa9kTQAQce5Lx5dTYWV02ScBiT/k1BX/Z7pKeqedmvp39Wu4zR7N7g==}
+  /@types/node/14.14.37:
+    resolution: {integrity: sha512-XYmBiy+ohOR4Lh5jE379fV2IU+6Jn4g5qASinhitfyO71b/sCo6MKsMLF5tc7Zf2CE8hViVQyYSobJNke8OvUw==}
     dev: true
 
   /@types/underscore/1.11.0:
@@ -307,8 +307,8 @@ packages:
       should-util: 1.0.1
     dev: true
 
-  /sinon/9.2.4:
-    resolution: {integrity: sha512-zljcULZQsJxVra28qIAL6ow1Z9tpattkCTEJR4RBP3TGc00FcttsP5pK284Nas5WjMZU5Yzy3kAIp3B3KRf5Yg==}
+  /sinon/10.0.0:
+    resolution: {integrity: sha512-XAn5DxtGVJBlBWYrcYKEhWCz7FLwZGdyvANRyK06419hyEpdT0dMc5A8Vcxg5SCGHc40CsqoKsc1bt1CbJPfNw==}
     dependencies:
       '@sinonjs/commons': 1.8.2
       '@sinonjs/fake-timers': 6.0.1

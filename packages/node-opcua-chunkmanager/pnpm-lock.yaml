@@ -1,7 +1,7 @@
 lockfileVersion: 5.3
 
 specifiers:
-  '@types/node': ^14.14.33
+  '@types/node': ^14.14.37
   chalk: ^4.1.0
   node-opcua-assert: 2.37.0
   node-opcua-basic-types: 2.37.0
@@ -23,15 +23,15 @@ dependencies:
   node-opcua-packet-assembler: link:../node-opcua-packet-assembler
 
 devDependencies:
-  '@types/node': 14.14.33
+  '@types/node': 14.14.37
   node-opcua-debug: link:../node-opcua-debug
   should: 13.2.3
   source-map-support: 0.5.19
 
 packages:
 
-  /@types/node/14.14.33:
-    resolution: {integrity: sha512-oJqcTrgPUF29oUP8AsUqbXGJNuPutsetaa9kTQAQce5Lx5dTYWV02ScBiT/k1BX/Z7pKeqedmvp39Wu4zR7N7g==}
+  /@types/node/14.14.37:
+    resolution: {integrity: sha512-XYmBiy+ohOR4Lh5jE379fV2IU+6Jn4g5qASinhitfyO71b/sCo6MKsMLF5tc7Zf2CE8hViVQyYSobJNke8OvUw==}
     dev: true
 
   /ansi-styles/4.3.0:
