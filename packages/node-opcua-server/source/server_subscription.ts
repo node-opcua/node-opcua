@@ -7,7 +7,7 @@ import { Queue } from "./queue";
 import * as chalk from "chalk";
 import { EventEmitter } from "events";
 
-import { AddressSpace, BaseNode, Duration, UAObjectType, UAVariable } from "node-opcua-address-space";
+import { AddressSpace, BaseNode, Duration, UAObjectType } from "node-opcua-address-space";
 import { checkSelectClauses } from "node-opcua-address-space";
 import { SessionContext } from "node-opcua-address-space";
 import { assert } from "node-opcua-assert";
@@ -15,8 +15,7 @@ import { Byte } from "node-opcua-basic-types";
 import { SubscriptionDiagnosticsDataType } from "node-opcua-common";
 import { NodeClass, AttributeIds, isValidDataEncoding } from "node-opcua-data-model";
 import { TimestampsToReturn } from "node-opcua-data-value";
-import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
-import { ExtensionObject } from "node-opcua-extension-object";
+import { checkDebugFlag, make_debugLog, make_warningLog } from "node-opcua-debug";
 import { NodeId } from "node-opcua-nodeid";
 import { ObjectRegistry } from "node-opcua-object-registry";
 import { SequenceNumberGenerator } from "node-opcua-secure-channel";
@@ -35,15 +34,16 @@ import {
     MonitoredItemCreateRequest
 } from "node-opcua-service-subscription";
 import { StatusCode, StatusCodes } from "node-opcua-status-code";
-import { AggregateFilterResult, ContentFilterResult, EventFieldList, EventFilterResult } from "node-opcua-types";
+import { AggregateFilterResult, ContentFilterResult, EventFieldList, EventFilterResult, NotificationData } from "node-opcua-types";
 
-import { MonitoredItem, MonitoredItemOptions, ISubscription } from "./monitored_item";
+import { MonitoredItem, MonitoredItemOptions, QueueItem } from "./monitored_item";
 import { ServerSession } from "./server_session";
 import { validateFilter } from "./validate_filter";
 import { IServerSidePublishEngine, TransferredSubscription } from "./i_server_side_publish_engine";
 
 const debugLog = make_debugLog(__filename);
 const doDebug = checkDebugFlag(__filename);
+const warningLog = make_warningLog(__filename);
 const maxNotificationMessagesInQueue = 100;
 
 export interface SubscriptionDiagnosticsDataTypePriv extends SubscriptionDiagnosticsDataType {
@@ -102,9 +102,24 @@ function _adjust_publishingEnable(publishingEnabled?: boolean | null): boolean {
 }
 
 function _adjust_maxNotificationsPerPublish(maxNotificationsPerPublish?: number): number {
-    maxNotificationsPerPublish = maxNotificationsPerPublish === undefined ? 0 : maxNotificationsPerPublish;
+    assert(Subscription.maxNotificationPerPublishHighLimit > 0, "Subscription.maxNotificationPerPublishHighLimit must be positive");
+
+    maxNotificationsPerPublish = maxNotificationsPerPublish || 0;
     assert(typeof maxNotificationsPerPublish === "number");
-    return maxNotificationsPerPublish >= 0 ? maxNotificationsPerPublish : 0;
+
+    // must be strictly positive
+    maxNotificationsPerPublish = maxNotificationsPerPublish >= 0 ? maxNotificationsPerPublish : 0;
+
+    if (maxNotificationsPerPublish === 0) {
+        // if zero then => use our HighLimit
+        maxNotificationsPerPublish = Subscription.maxNotificationPerPublishHighLimit;
+    } else {
+        // if not zero then should be capped by maxNotificationPerPublishHighLimit
+        maxNotificationsPerPublish = Math.min(Subscription.maxNotificationPerPublishHighLimit, maxNotificationsPerPublish);
+    }
+
+    assert(maxNotificationsPerPublish !== 0 && maxNotificationsPerPublish <= Subscription.maxNotificationPerPublishHighLimit);
+    return maxNotificationsPerPublish;
 }
 
 function w(s: string | number, length: number): string {
@@ -113,10 +128,6 @@ function w(s: string | number, length: number): string {
 
 function t(d: Date): string {
     return w(d.getHours(), 2) + ":" + w(d.getMinutes(), 2) + ":" + w(d.getSeconds(), 2) + ":" + w(d.getMilliseconds(), 3);
-}
-
-function assert_validNotificationData(n: any) {
-    assert(n instanceof DataChangeNotification || n instanceof EventNotificationList || n instanceof StatusChangeNotification);
 }
 
 function _getSequenceNumbers(arr: NotificationMessage[]): number[] {
@@ -338,6 +349,36 @@ function getNextMonitoredItemId() {
     return g_monitoredItemId++;
 }
 
+// function myFilter<T>(t1: any, chunk: any[]): T[] {
+//     return chunk.filter(filter_instanceof.bind(null, t1));
+// }
+
+// function makeNotificationData(notifications_chunk: QueueItem): NotificationData {
+//     const dataChangedNotificationData = myFilter<MonitoredItemNotification>(MonitoredItemNotification, notifications_chunk);
+//     const eventNotificationListData = myFilter<EventFieldList>(EventFieldList, notifications_chunk);
+
+//     assert(notifications_chunk.length === dataChangedNotificationData.length + eventNotificationListData.length);
+
+//     const notifications: (DataChangeNotification | EventNotificationList)[] = [];
+
+//     // add dataChangeNotification
+//     if (dataChangedNotificationData.length) {
+//         const dataChangeNotification = new DataChangeNotification({
+//             diagnosticInfos: [],
+//             monitoredItems: dataChangedNotificationData
+//         });
+//         notifications.push(dataChangeNotification);
+//     }
+
+//     // add dataChangeNotification
+//     if (eventNotificationListData.length) {
+//         const eventNotificationList = new EventNotificationList({
+//             events: eventNotificationListData
+//         });
+//         notifications.push(eventNotificationList);
+//     }
+//     return notifications.length === 0 ? null : notifications;
+// }
 const INVALID_ID = -1;
 
 export type Notification = DataChangeNotification | EventNotificationList | StatusChangeNotification;
@@ -375,7 +416,8 @@ export interface GetMonitoredItemsResult {
 }
 
 export interface InternalNotification {
-    notification: NotificationMessage;
+    monitoredItemId?: number;
+    notification: QueueItem | StatusChangeNotification;
     publishTime: Date;
     start_tick: number;
 }
@@ -399,6 +441,9 @@ export class Subscription extends EventEmitter {
     public static minimumPublishingInterval: number = 50; // fastest possible
     public static defaultPublishingInterval: number = 1000; // one second
     public static maximumPublishingInterval: number = 1000 * 60 * 60 * 24 * 15; // 15 days
+    public static maxNotificationPerPublishHighLimit: number = 5000;
+    public static maxMonitoredItemCount: number = 20000;
+
     public static registry = new ObjectRegistry();
 
     public sessionId: NodeId;
@@ -455,11 +500,11 @@ export class Subscription extends EventEmitter {
     private _life_time_counter: number;
     private _keep_alive_counter: number = 0;
     private _pending_notifications: Queue<InternalNotification>;
-    private _sent_notifications: NotificationMessage[];
+    private _sent_notification_messages: NotificationMessage[];
     private readonly _sequence_number_generator: SequenceNumberGenerator;
-    private readonly monitoredItems: { [key: string]: MonitoredItem };
+    private readonly monitoredItems: { [key: number]: MonitoredItem };
     private timerId: any;
-    private _hasMonitoredItemNotifications: boolean = false;
+    private _hasUncollectedMonitoredItemNotifications: boolean = false;
 
     constructor(options: SubscriptionOptions) {
         super();
@@ -493,7 +538,7 @@ export class Subscription extends EventEmitter {
         // notification message that are ready to be sent to the client
         this._pending_notifications = new Queue<InternalNotification>();
 
-        this._sent_notifications = [];
+        this._sent_notification_messages = [];
 
         this._sequence_number_generator = new SequenceNumberGenerator();
 
@@ -518,6 +563,8 @@ export class Subscription extends EventEmitter {
 
         this.timerId = null;
         this._start_timer();
+
+        debugLog(chalk.green(`creating subscription ${this.id}`));
     }
 
     public getSessionId(): NodeId {
@@ -553,10 +600,10 @@ export class Subscription extends EventEmitter {
 
         this.publishingInterval = _adjust_publishing_interval(param.requestedPublishingInterval);
         this.maxKeepAliveCount = _adjust_maxKeepAliveCount(param.requestedMaxKeepAliveCount);
-        // this.publishingInterval);
+
         this.lifeTimeCount = _adjust_lifeTimeCount(param.requestedLifetimeCount, this.maxKeepAliveCount, this.publishingInterval);
 
-        this.maxNotificationsPerPublish = param.maxNotificationsPerPublish || 0;
+        this.maxNotificationsPerPublish = _adjust_maxNotificationsPerPublish(param.maxNotificationsPerPublish || 0);
         this.priority = param.priority || 0;
 
         this.resetLifeTimeAndKeepAliveCounters();
@@ -639,7 +686,7 @@ export class Subscription extends EventEmitter {
      */
     public terminate() {
         assert(arguments.length === 0);
-        debugLog("Subscription#terminate status", this.state);
+        debugLog("Subscription#terminate status", SubscriptionState[this.state]);
 
         if (this.state === SubscriptionState.CLOSED) {
             // todo verify if asserting is required here
@@ -655,7 +702,7 @@ export class Subscription extends EventEmitter {
         const keys = Object.keys(this.monitoredItems);
 
         for (const key of keys) {
-            const status = this.removeMonitoredItem(key);
+            const status = this.removeMonitoredItem(parseInt(key, 10));
             assert(status === StatusCodes.Good);
         }
         assert(this.monitoredItemCount === 0);
@@ -740,7 +787,7 @@ export class Subscription extends EventEmitter {
 
         this.publishEngine = undefined;
         this._pending_notifications.clear();
-        this._sent_notifications = [];
+        this._sent_notification_messages = [];
 
         this.sessionId = NodeId.nullNodeId;
 
@@ -775,22 +822,22 @@ export class Subscription extends EventEmitter {
     /**
      * number of sent notifications
      */
-    public get sentNotificationsCount(): number {
-        return this._sent_notifications.length;
+    public get sentNotificationMessageCount(): number {
+        return this._sent_notification_messages.length;
     }
 
     /**
      * @internal
      */
     public _flushSentNotifications() {
-        const tmp = this._sent_notifications;
-        this._sent_notifications = [];
+        const tmp = this._sent_notification_messages;
+        this._sent_notification_messages = [];
         return tmp;
     }
     /**
      * number of monitored items handled by this subscription
      */
-    public get monitoredItemCount() {
+    public get monitoredItemCount(): number {
         return Object.keys(this.monitoredItems).length;
     }
 
@@ -922,7 +969,10 @@ export class Subscription extends EventEmitter {
         }
         // xx var monitoringMode      = monitoredItemCreateRequest.monitoringMode; // Disabled, Sampling, Reporting
         // xx var requestedParameters = monitoredItemCreateRequest.requestedParameters;
-
+        // do we have enough room for new monitored items ?
+        if (this.monitoredItemCount >= Subscription.maxMonitoredItemCount) {
+            return handle_error(StatusCodes.BadTooManyMonitoredItems);
+        }
         const createResult = this._createMonitoredItemStep2(timestampsToReturn, monitoredItemCreateRequest, node);
 
         assert(createResult.statusCode === StatusCodes.Good);
@@ -973,21 +1023,21 @@ export class Subscription extends EventEmitter {
      * @param monitoredItemId : the id of the monitored item to get.
      * @return the monitored item matching monitoredItemId
      */
-    public getMonitoredItem(monitoredItemId: number | string): MonitoredItem | null {
-        return this.monitoredItems[monitoredItemId.toString()] || null;
+    public getMonitoredItem(monitoredItemId: number): MonitoredItem | null {
+        return this.monitoredItems[monitoredItemId] || null;
     }
 
     /**
      * remove a monitored Item from the subscription.
      * @param monitoredItemId : the id of the monitored item to get.
      */
-    public removeMonitoredItem(monitoredItemId: number | string): StatusCode {
+    public removeMonitoredItem(monitoredItemId: number): StatusCode {
         debugLog("Removing monitoredIem ", monitoredItemId);
         if (!this.monitoredItems.hasOwnProperty(monitoredItemId.toString())) {
             return StatusCodes.BadMonitoredItemIdInvalid;
         }
 
-        const monitoredItem = this.monitoredItems[monitoredItemId.toString()];
+        const monitoredItem = this.monitoredItems[monitoredItemId];
 
         monitoredItem.terminate();
 
@@ -1000,25 +1050,28 @@ export class Subscription extends EventEmitter {
          */
         this.emit("removeMonitoredItem", monitoredItem);
 
-        delete this.monitoredItems[monitoredItemId.toString()];
+        delete this.monitoredItems[monitoredItemId];
 
+        this._removePendingNotificationsFor(monitoredItemId);
+        // flush pending notifications
+        // assert(this._pending_notifications.size === 0);
         return StatusCodes.Good;
     }
 
     /**
      * rue if monitored Item have uncollected Notifications
      */
-    public get hasMonitoredItemNotifications(): boolean {
-        if (this._hasMonitoredItemNotifications) {
+    public get hasUncollectedMonitoredItemNotifications(): boolean {
+        if (this._hasUncollectedMonitoredItemNotifications) {
             return true;
         }
         const keys = Object.keys(this.monitoredItems);
         const n = keys.length;
         for (let i = 0; i < n; i++) {
-            const key = keys[i];
+            const key = parseInt(keys[i], 10);
             const monitoredItem = this.monitoredItems[key];
             if (monitoredItem.hasMonitoredItemNotifications) {
-                this._hasMonitoredItemNotifications = true;
+                this._hasUncollectedMonitoredItemNotifications = true;
                 return true;
             }
         }
@@ -1030,18 +1083,7 @@ export class Subscription extends EventEmitter {
     }
 
     public getMessageForSequenceNumber(sequenceNumber: number): NotificationMessage | null {
-        const notification_message = this._sent_notifications.find((e) => e.sequenceNumber === sequenceNumber);
-        // if (!notification_message) {
-        //   if (this._pending_notifications.size >= 0) {
-        //     for (const notification_message2 of this._pending_notifications.values()) {
-        //       if (notification_message2.sequenceNumber === sequenceNumber) {
-        //         return notification_message2;
-        //       }
-        //     }
-        //   }
-        //   debugLog("getMessageForSequenceNumber cannot find sequenceNumber", sequenceNumber);
-        //   return null;
-        // }
+        const notification_message = this._sent_notification_messages.find((e) => e.sequenceNumber === sequenceNumber);
         return notification_message || null;
     }
 
@@ -1060,7 +1102,7 @@ export class Subscription extends EventEmitter {
      *  and that haven't been acknowledged yet.
      */
     public getAvailableSequenceNumbers(): number[] {
-        const availableSequenceNumbers = _getSequenceNumbers(this._sent_notifications);
+        const availableSequenceNumbers = _getSequenceNumbers(this._sent_notification_messages);
         return availableSequenceNumbers;
     }
 
@@ -1070,7 +1112,7 @@ export class Subscription extends EventEmitter {
     public acknowledgeNotification(sequenceNumber: number): StatusCode {
         debugLog("acknowledgeNotification ", sequenceNumber);
         let foundIndex = -1;
-        this._sent_notifications.forEach((e: NotificationMessage, index: number) => {
+        this._sent_notification_messages.forEach((e: NotificationMessage, index: number) => {
             if (e.sequenceNumber === sequenceNumber) {
                 foundIndex = index;
             }
@@ -1085,7 +1127,7 @@ export class Subscription extends EventEmitter {
             if (doDebug) {
                 debugLog(chalk.yellow("acknowledging sequence "), chalk.cyan(sequenceNumber.toString()));
             }
-            this._sent_notifications.splice(foundIndex, 1);
+            this._sent_notification_messages.splice(foundIndex, 1);
             this.subscriptionDiagnostics.unacknowledgedMessageCount--;
             return StatusCodes.Good;
         }
@@ -1105,16 +1147,15 @@ export class Subscription extends EventEmitter {
             serverHandles: [] as number[],
             statusCode: StatusCodes.Good
         };
-        Object.keys(this.monitoredItems).forEach((monitoredItemId: string) => {
-            const monitoredItem = this.getMonitoredItem(monitoredItemId)!;
-
+        for (const monitoredItemId of Object.keys(this.monitoredItems)) {
+            const monitoredItem = this.getMonitoredItem(parseInt(monitoredItemId, 10))!;
             result.clientHandles.push(monitoredItem.clientHandle!);
             // TODO:  serverHandle is defined anywhere in the OPCUA Specification 1.02
             //        I am not sure what shall be reported for serverHandle...
             //        using monitoredItem.monitoredItemId instead...
             //        May be a clarification in the OPCUA Spec is required.
             result.serverHandles.push(parseInt(monitoredItemId, 10));
-        });
+        }
         return result;
     }
 
@@ -1140,11 +1181,9 @@ export class Subscription extends EventEmitter {
         // Good_SubscriptionTransferred to the old Session.
         debugLog(chalk.red(" Subscription => Notifying Transfer                                  "));
 
-        const notificationData = [
-            new StatusChangeNotification({
-                status: StatusCodes.GoodSubscriptionTransferred
-            })
-        ];
+        const notificationData = new StatusChangeNotification({
+            status: StatusCodes.GoodSubscriptionTransferred
+        });
 
         if (this.publishEngine!.pendingPublishRequestCount) {
             // the GoodSubscriptionTransferred can be processed immediately
@@ -1159,16 +1198,7 @@ export class Subscription extends EventEmitter {
                 publishEngine: this.publishEngine
             });
 
-            const notificationMessage = new NotificationMessage({
-                notificationData,
-                publishTime: new Date(),
-                sequenceNumber: 0xffffffff // not assigned yet !
-            });
-            ts._pending_notifications.push({
-                notification: notificationMessage,
-                publishTime: new Date(),
-                start_tick: this.publishIntervalCount
-            });
+            ts._pending_notification = notificationData;
             (this.publishEngine as any)._closed_subscriptions.push(ts);
         }
     }
@@ -1186,26 +1216,8 @@ export class Subscription extends EventEmitter {
         this.resetKeepAliveCounter();
     }
 
-    /**
-     *  _publish_pending_notifications send a "notification" event:
-     *
-     * @private
-     * @precondition
-     *     - pendingPublishRequestCount > 0
-     */
-    public _publish_pending_notifications(): void {
-        const publishEngine = this.publishEngine!;
-        const subscriptionId = this.id;
-        // preconditions
-        assert(publishEngine!.pendingPublishRequestCount > 0);
-        assert(this.hasPendingNotifications);
-
-        const notificationMessage = this._popNotificationToSend().notification;
-        const moreNotifications = this.hasPendingNotifications;
-
-        this.emit("notification", notificationMessage);
-        // Update counters .....
-        notificationMessage.notificationData!.forEach((notificationData: ExtensionObject | null) => {
+    private _updateCounters(notificationMessage: NotificationMessage) {
+        for (const notificationData of notificationMessage.notificationData || []) {
             // update diagnostics
             if (notificationData instanceof DataChangeNotification) {
                 const nbNotifs = notificationData.monitoredItems!.length;
@@ -1220,11 +1232,34 @@ export class Subscription extends EventEmitter {
                 // TODO
                 // note: :there is no way to count StatusChangeNotifications in opcua yet.
             }
-        });
+        }
+    }
+    /**
+     *  _publish_pending_notifications send a "notification" event:
+     *
+     * @private
+     * @precondition
+     *     - pendingPublishRequestCount > 0
+     */
+    public _publish_pending_notifications(): void {
+        const publishEngine = this.publishEngine!;
+        const subscriptionId = this.id;
+        // preconditions
+        assert(publishEngine!.pendingPublishRequestCount > 0);
+        assert(this.hasPendingNotifications);
+
+        const notificationMessage = this._popNotificationToSend();
+        if (notificationMessage.notificationData!.length === 0) {
+            return; // nothing to do
+        }
+        const moreNotifications = this.hasPendingNotifications;
+
+        this.emit("notification", notificationMessage);
+        // Update counters ....
+        this._updateCounters(notificationMessage);
 
         assert(notificationMessage.hasOwnProperty("sequenceNumber"));
         assert(notificationMessage.hasOwnProperty("notificationData"));
-        assert(notificationMessage.notificationData!.length > 0);
         // update diagnostics
         this.subscriptionDiagnostics.publishRequestCount += 1;
 
@@ -1232,15 +1267,13 @@ export class Subscription extends EventEmitter {
             moreNotifications,
             notificationMessage: {
                 notificationData: notificationMessage.notificationData,
-                sequenceNumber: notificationMessage.sequenceNumber
+                sequenceNumber: this._get_next_sequence_number()
             },
             subscriptionId
         });
 
-        // apply sequence number and store in sent_notifications queue
-        assert(notificationMessage.sequenceNumber === 0xffffffff);
-        response.notificationMessage.sequenceNumber = this._get_next_sequence_number();
-        this._sent_notifications.push(response.notificationMessage);
+        this._sent_notification_messages.push(response.notificationMessage);
+
         // get available sequence number;
         const availableSequenceNumbers = this.getAvailableSequenceNumbers();
         assert(
@@ -1262,7 +1295,8 @@ export class Subscription extends EventEmitter {
                 "Subscription sending a notificationMessage subscriptionId=",
                 subscriptionId,
                 "sequenceNumber = ",
-                notificationMessage.sequenceNumber.toString()
+                notificationMessage.sequenceNumber.toString(),
+                notificationMessage.notificationData?.map((x) => x?.constructor.name).join(" ")
             );
             // debugLog(notificationMessage.toString());
         }
@@ -1279,12 +1313,12 @@ export class Subscription extends EventEmitter {
 
         if (!this.publishingEnabled) {
             // no publish to do, except keep alive
-            debugLog("xxxxxxxxxxxxxxxxxxxxx no publish to do, except keep alive");
+            debugLog("    -> no publish to do, except keep alive");
             this._process_keepAlive();
             return;
         }
 
-        if (!this.hasPendingNotifications && this.hasMonitoredItemNotifications) {
+        if (!this.hasPendingNotifications && this.hasUncollectedMonitoredItemNotifications) {
             // collect notification from monitored items
             this._harvestMonitoredItems();
         }
@@ -1303,7 +1337,6 @@ export class Subscription extends EventEmitter {
                 setImmediate(this._tick.bind(this));
             }
         } else {
-            debugLog("xxxxxxxxxxxxxxxxxxxx!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
             this._process_keepAlive();
         }
     }
@@ -1313,12 +1346,10 @@ export class Subscription extends EventEmitter {
     }
 
     private _process_keepAlive() {
-        // xx assert(!self.publishingEnabled || (!self.hasPendingNotifications && !self.hasMonitoredItemNotifications));
-
         this.increaseKeepAliveCounter();
 
         if (this.keepAliveCounterHasExpired) {
-            debugLog("xxxxxxxxxxxxxxxxxxxx _process_keepAlive => keepAliveCounterHasExpired", this.id);
+            debugLog(`     ->  _process_keepAlive => keepAliveCounterHasExpired`);
             if (this._sendKeepAliveResponse()) {
                 this.resetLifeTimeAndKeepAliveCounters();
             } else {
@@ -1373,7 +1404,10 @@ export class Subscription extends EventEmitter {
      * @private
      */
     private _tick() {
-        debugLog("Subscription#_tick  aborted=", this.aborted, "state=", this.state.toString());
+        // istanbul ignore next
+        if (doDebug) {
+            debugLog(`Subscription#_tick id ${this.id} aborted=${this.aborted} state=${SubscriptionState[this.state]}`);
+        }
 
         if (this.aborted) {
             // xx  console.log(" Log aborted")
@@ -1383,7 +1417,7 @@ export class Subscription extends EventEmitter {
         }
 
         if (this.state === SubscriptionState.CLOSED) {
-            console.log("Warning: Subscription#_tick called while subscription is CLOSED");
+            warningLog(`Warning: Subscription#_tick id ${this.id}  called while subscription is CLOSED`);
             return;
         }
 
@@ -1395,8 +1429,8 @@ export class Subscription extends EventEmitter {
                 t(new Date()) + "  " + this._life_time_counter + "/" + this.lifeTimeCount + chalk.cyan("   Subscription#_tick"),
                 "  processing subscriptionId=",
                 this.id,
-                "hasMonitoredItemNotifications = ",
-                this.hasMonitoredItemNotifications,
+                "hasUncollectedMonitoredItemNotifications = ",
+                this.hasUncollectedMonitoredItemNotifications,
                 " publishingIntervalCount =",
                 this.publishIntervalCount
             );
@@ -1411,7 +1445,7 @@ export class Subscription extends EventEmitter {
         if (this.lifeTimeHasExpired) {
             /* istanbul ignore next */
             if (doDebug) {
-                debugLog(chalk.red.bold("Subscription " + this.id + " has expired !!!!! => Terminating"));
+                debugLog(chalk.red.bold(`Subscription ${this.id} has expired !!!!! => Terminating`));
             }
             /**
              * notify the subscription owner that the subscription has expired by exceeding its life time.
@@ -1422,7 +1456,7 @@ export class Subscription extends EventEmitter {
 
             // notify new terminated status only when subscription has timeout.
             debugLog("adding StatusChangeNotification notification message for BadTimeout subscription = ", this.id);
-            this._addNotificationMessage([new StatusChangeNotification({ status: StatusCodes.BadTimeout })]);
+            this._addNotificationMessage(new StatusChangeNotification({ status: StatusCodes.BadTimeout }));
 
             // kill timer and delete monitored items and transfer pending notification messages
             this.terminate();
@@ -1439,15 +1473,15 @@ export class Subscription extends EventEmitter {
 
         if (
             publishEngine.pendingPublishRequestCount === 0 &&
-            (this.hasPendingNotifications || this.hasMonitoredItemNotifications)
+            (this.hasPendingNotifications || this.hasUncollectedMonitoredItemNotifications)
         ) {
             // istanbul ignore next
             if (doDebug) {
                 debugLog(
                     "subscription set to LATE  hasPendingNotifications = ",
                     this.hasPendingNotifications,
-                    " hasMonitoredItemNotifications =",
-                    this.hasMonitoredItemNotifications
+                    " hasUncollectedMonitoredItemNotifications =",
+                    this.hasUncollectedMonitoredItemNotifications
                 );
             }
             this.state = SubscriptionState.LATE;
@@ -1458,7 +1492,7 @@ export class Subscription extends EventEmitter {
             if (this.hasPendingNotifications) {
                 // simply pop pending notification and send it
                 this.process_subscription();
-            } else if (this.hasMonitoredItemNotifications) {
+            } else if (this.hasUncollectedMonitoredItemNotifications) {
                 this.process_subscription();
             } else {
                 this._process_keepAlive();
@@ -1474,16 +1508,14 @@ export class Subscription extends EventEmitter {
     private _sendKeepAliveResponse(): boolean {
         const future_sequence_number = this._get_future_sequence_number();
 
-        debugLog(
-            "     -> Subscription#_sendKeepAliveResponse subscriptionId",
-            this.id,
-            " future_sequence_number ",
-            future_sequence_number
-        );
-
         if (this.publishEngine!.send_keep_alive_response(this.id, future_sequence_number)) {
             this.messageSent = true;
-
+            // istanbul ignore next
+            if (doDebug) {
+                debugLog(
+                    `    -> Subscription#_sendKeepAliveResponse subscriptionId ${this.id} future_sequence_number ${future_sequence_number}`
+                );
+            }
             /**
              * notify the subscription owner that a keepalive message has to be sent.
              * @event keepalive
@@ -1538,40 +1570,87 @@ export class Subscription extends EventEmitter {
     /**
      * @private
      */
-    private _addNotificationMessage(notificationData: Notification[]) {
-        assert(notificationData.length === 1 || notificationData.length === 2); // as per spec part 3.
-
+    private _addNotificationMessage(notificationData: QueueItem | StatusChangeNotification, monitoredItemId?: number) {
         // istanbul ignore next
         if (doDebug) {
             debugLog(chalk.yellow("Subscription#_addNotificationMessage"), notificationData.toString());
         }
-        assert_validNotificationData(notificationData[0]);
-
-        if (notificationData.length === 2) {
-            assert_validNotificationData(notificationData[1]);
-        }
-
-        const notificationMessage = new NotificationMessage({
-            notificationData,
-            publishTime: new Date(),
-            sequenceNumber: 0xffffffff // not assigned yet !
-        });
-
         this._pending_notifications.push({
-            notification: notificationMessage,
+            monitoredItemId,
+            notification: notificationData,
             publishTime: new Date(),
             start_tick: this.publishIntervalCount
         });
     }
 
     /**
+     * @internal
+     * @param monitoredItemId
+     */
+    private _removePendingNotificationsFor(monitoredItemId: number) {
+        const nbRemovedNotification = this._pending_notifications.filterOut((e) => e.monitoredItemId === monitoredItemId);
+        if (doDebug) {
+            debugLog(`Removed ${nbRemovedNotification} notifications`);
+        }
+    }
+    /**
      * Extract the next Notification that is ready to be sent to the client.
      * @return the Notification to send._pending_notifications
      */
-    private _popNotificationToSend(): InternalNotification {
+    private _popNotificationToSend(): NotificationMessage {
         assert(this._pending_notifications.size > 0);
-        const notification_message = this._pending_notifications.shift()!;
-        return notification_message;
+
+        const notificationMessage = new NotificationMessage({
+            sequenceNumber: 0xffffffff,
+            notificationData: [],
+            publishTime: new Date()
+        }); //
+
+        const dataChangeNotifications: DataChangeNotification = new DataChangeNotification({
+            monitoredItems: []
+        });
+        const eventNotificationList: EventNotificationList = new EventNotificationList({
+            events: []
+        });
+
+        let statusChangeNotification: StatusChangeNotification | undefined;
+
+        let i = 0;
+        let hasEventFieldList = 0;
+        let hasMonitoredItemNotification = 0;
+        const m = this.maxNotificationsPerPublish;
+        while (i < m && this._pending_notifications.size > 0) {
+            if (hasEventFieldList || hasMonitoredItemNotification) {
+                const notification1 = this._pending_notifications.first()!.notification;
+                if (notification1 instanceof StatusChangeNotification) {
+                    break;
+                }
+            }
+            const notification = this._pending_notifications.shift()!.notification;
+            if (notification instanceof MonitoredItemNotification) {
+                dataChangeNotifications.monitoredItems!.push(notification);
+                hasMonitoredItemNotification =1;
+            } else if (notification instanceof EventFieldList) {
+                eventNotificationList.events!.push(notification);
+                hasEventFieldList =1;
+            } else if (notification instanceof StatusChangeNotification) {
+                // to do
+                statusChangeNotification = notification;
+                break;
+            }
+            i += 1;
+        }
+
+        if (dataChangeNotifications.monitoredItems!.length) {
+            notificationMessage.notificationData!.push(dataChangeNotifications);
+        }
+        if (eventNotificationList.events!.length) {
+            notificationMessage.notificationData!.push(eventNotificationList);
+        }
+        if (statusChangeNotification) {
+            notificationMessage.notificationData!.push(statusChangeNotification);
+        }
+        return notificationMessage;
     }
 
     /**
@@ -1592,18 +1671,10 @@ export class Subscription extends EventEmitter {
         // case of a retransmission queue overflow, the oldest sent NotificationMessage gets deleted. If a
         // Subscription is transferred to another Session, the queued NotificationMessages for this
         // Subscription are moved from the old to the new Session.
-        if (maxNotificationMessagesInQueue <= this._sent_notifications.length) {
-            debugLog("discardOldSentNotifications = ", this._sent_notifications.length);
-            this._sent_notifications.splice(this._sent_notifications.length - maxNotificationMessagesInQueue);
+        if (maxNotificationMessagesInQueue <= this._sent_notification_messages.length) {
+            debugLog("discardOldSentNotifications = ", this._sent_notification_messages.length);
+            this._sent_notification_messages.splice(this._sent_notification_messages.length - maxNotificationMessagesInQueue);
         }
-        //
-        // var arr = _.filter(self._sent_notifications,function(notification){
-        //   return self.notificationHasExpired(notification);
-        // });
-        // var results = arr.map(function(notification){
-        //    return self.acknowledgeNotification(notification.sequenceNumber);
-        // });
-        // xx return results;
     }
 
     /**
@@ -1646,7 +1717,7 @@ export class Subscription extends EventEmitter {
         monitoredItem.$subscription = this;
 
         assert(monitoredItem.monitoredItemId === monitoredItemId);
-        this.monitoredItems[monitoredItemId.toString()] = monitoredItem;
+        this.monitoredItems[monitoredItemId] = monitoredItem;
 
         const filterResult = _process_filter(node, requestedParameters.filter);
 
@@ -1681,83 +1752,14 @@ export class Subscription extends EventEmitter {
         monitoredItem.setMonitoringMode(monitoringMode);
     }
 
-    // collect DataChangeNotification
-    private _collectNotificationData(): (EventNotificationList | DataChangeNotification)[][] {
-        let notifications = [];
-
-        // reset cache ...
-        this._hasMonitoredItemNotifications = false;
-
-        const all_notifications = new Queue<InternalNotification>();
-
-        // visit all monitored items
-        const keys = Object.keys(this.monitoredItems);
-        const n = keys.length;
-        for (let i = 0; i < n; i++) {
-            const key = keys[i];
-            const monitoredItem = this.monitoredItems[key];
-            notifications = monitoredItem.extractMonitoredItemNotifications();
-            add_all_in(notifications, all_notifications);
-        }
-
-        const notificationsMessage = [];
-
-        function myFilter<T>(t1: any, chunk: any[]): T[] {
-            return chunk.filter(filter_instanceof.bind(null, t1));
-        }
-        while (all_notifications.size > 0) {
-            // split into one or multiple dataChangeNotification with no more than
-            //  self.maxNotificationsPerPublish monitoredItems
-            const notifications_chunk = extract_notifications_chunk(all_notifications, this.maxNotificationsPerPublish);
-
-            // separate data for DataChangeNotification (MonitoredItemNotification) from data for
-            // EventNotificationList(EventFieldList)
-            const dataChangedNotificationData = myFilter<MonitoredItemNotification>(MonitoredItemNotification, notifications_chunk);
-            const eventNotificationListData = myFilter<EventFieldList>(EventFieldList, notifications_chunk);
-
-            assert(notifications_chunk.length === dataChangedNotificationData.length + eventNotificationListData.length);
-
-            notifications = [];
-
-            // add dataChangeNotification
-            if (dataChangedNotificationData.length) {
-                const dataChangeNotification = new DataChangeNotification({
-                    diagnosticInfos: [],
-                    monitoredItems: dataChangedNotificationData
-                });
-                notifications.push(dataChangeNotification);
-            }
-
-            // add dataChangeNotification
-            if (eventNotificationListData.length) {
-                const eventNotificationList = new EventNotificationList({
-                    events: eventNotificationListData
-                });
-
-                notifications.push(eventNotificationList);
-            }
-
-            assert(notifications.length === 1 || notifications.length === 2);
-            notificationsMessage.push(notifications);
-        }
-
-        assert(notificationsMessage instanceof Array);
-        return notificationsMessage;
-    }
-
     private _harvestMonitoredItems() {
-        // Only collect data change notification for the time being
-        const notificationData = this._collectNotificationData();
-        assert(notificationData instanceof Array);
-
-        // istanbul ignore next
-        if (doDebug) {
-            debugLog("Subscription#_harvestMonitoredItems =>", notificationData.length);
+        for (const monitoredItem of Object.values(this.monitoredItems)) {
+            const notifications_chunks = monitoredItem.extractMonitoredItemNotifications();
+            for (const chunk of notifications_chunks) {
+                this._addNotificationMessage(chunk, monitoredItem.monitoredItemId);
+            }
         }
-        notificationData.forEach((notificationMessage: any) => {
-            this._addNotificationMessage(notificationMessage);
-        });
-        this._hasMonitoredItemNotifications = false;
+        this._hasUncollectedMonitoredItemNotifications = false;
     }
 }
 
@@ -1777,12 +1779,6 @@ function extract_notifications_chunk<T>(monitoredItems: Queue<T>, maxNotificatio
         n--;
     }
     return chunk_monitoredItems;
-}
-
-function add_all_in<T>(notifications: any, allNotifications: Queue<T>): void {
-    for (const n of notifications) {
-        allNotifications.push(n);
-    }
 }
 
 function filter_instanceof(Class: any, e: any): boolean {

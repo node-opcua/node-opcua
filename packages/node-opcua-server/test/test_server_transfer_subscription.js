@@ -17,17 +17,14 @@ const { with_fake_timer } = require("./helper_with_fake_timer");
 const doDebug = !!process.env.TESTDEBUG;
 
 
-let requestHandle = 1;
-function sendPublishRequest(session/* : ServerSession */, publishHandler/* : () => void */) {
-    session.publishEngine._on_PublishRequest(new PublishRequest({ requestHeader: { requestHandle: 101 } }), publishHandler);
-    requestHandle++;
-}
+
 
 
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
-describe("ServerEngine Subscriptions Transfer", function() {
+describe("ServerEngine Subscriptions Transfer", function () {
 
 
+    const test = this;
     /**
      * @type {ServerEngine}
      */
@@ -60,6 +57,13 @@ describe("ServerEngine Subscriptions Transfer", function() {
         engine = null;
     });
 
+    let requestHandle = 1;
+    function sendPublishRequest(session/* : ServerSession */, publishHandler/* : () => void */) {
+        session.publishEngine._on_PublishRequest(new PublishRequest({ requestHeader: { requestHandle: 101 } }), publishHandler);
+        requestHandle++;
+        test.clock.tick(0);
+
+    }
 
 
     it("ST01 - should send keep alive when starving and no notification exists", async () => {
@@ -180,6 +184,7 @@ describe("ServerEngine Subscriptions Transfer", function() {
             });
 
 
+            subscription.maxNotificationsPerPublish.should.eql(10);
             // Given there is no Publish Request
             // when wait a very long time , longer than maxKeepAlive ,
             test.clock.tick(subscription.publishingInterval * subscription.maxKeepAliveCount * 2);
@@ -196,6 +201,8 @@ describe("ServerEngine Subscriptions Transfer", function() {
 
             {
                 const publishResponse = publishSpy.getCall(0).args[1];
+
+                // console.log(publishResponse.toString());
 
                 publishResponse.notificationMessage.notificationData.length.should.eql(1);
                 publishResponse.notificationMessage.notificationData[0].constructor.name.should.eql("StatusChangeNotification");

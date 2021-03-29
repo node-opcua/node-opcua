@@ -543,7 +543,7 @@ function perform_collection_of_test_with_various_client_configuration(prefix) {
 
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 const { dumpCertificate } = require("node-opcua-pki");
-describe("ZZA- testing Secure Client-Server communication", function() {
+describe("ZZB- testing Secure Client-Server communication", function() {
 
     this.timeout(Math.max(this.timeout(), 20001));
 

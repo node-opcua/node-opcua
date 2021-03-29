@@ -104,7 +104,7 @@ describe("Server Side MonitoredItem", () => {
         done();
     });
 
-    it("a MonitoredItem should trigger a read event according to sampling interval in Reporting mode", (done) => {
+    it("MI1 - a MonitoredItem should trigger a read event according to sampling interval in Reporting mode", (done) => {
 
         const monitoredItem = new MonitoredItem({
             clientHandle: 1,
@@ -127,6 +127,9 @@ describe("Server Side MonitoredItem", () => {
         monitoredItem.samplingFunc = spy_samplingEventCall;
 
         monitoredItem.setMonitoringMode(MonitoringMode.Reporting);
+
+        this.clock.tick(10); // monitored mode is set with a slight delay
+
         monitoredItem.isSampling.should.eql(true);
 
         this.clock.tick(2000);
@@ -138,7 +141,7 @@ describe("Server Side MonitoredItem", () => {
         done();
     });
 
-    it("a MonitoredItem should enqueue a new value and store it in a queue", (done) => {
+    it("MI2 - a MonitoredItem should enqueue a new value and store it in a queue", (done) => {
 
         const monitoredItem = new MonitoredItem({
             clientHandle: 1,

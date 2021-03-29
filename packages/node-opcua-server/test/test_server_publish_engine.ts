@@ -55,8 +55,10 @@ describe("Testing the server publish engine", function (this: any) {
     afterEach(() => {
         test.clock.restore();
     });
-
-    it("a server should send keep alive notifications", () => {
+    function flushPending() {
+        test.clock.tick(0)
+    }
+    it("ZDZ-3 a server should send keep alive notifications", () => {
         function pulse(nbInterval: number) {
             for (let i = 0; i < nbInterval; i++) {
                 test.clock.tick(subscription.publishingInterval);
@@ -83,6 +85,7 @@ describe("Testing the server publish engine", function (this: any) {
         // client sends a PublishRequest to the server
         const fakeRequest1 = new PublishRequest({ subscriptionAcknowledgements: [] });
         publish_server._on_PublishRequest(fakeRequest1);
+        flushPending();
 
         // publish request should be consumed immediately as subscription is late.
         publish_server.pendingPublishRequestCount.should.equal(0);
@@ -90,6 +93,8 @@ describe("Testing the server publish engine", function (this: any) {
 
         const fakeRequest2 = new PublishRequest({ subscriptionAcknowledgements: [] });
         publish_server._on_PublishRequest(fakeRequest2);
+        flushPending();
+
         publish_server.pendingPublishRequestCount.should.equal(1);
 
         pulse(19);
@@ -110,7 +115,7 @@ describe("Testing the server publish engine", function (this: any) {
         publish_server.dispose();
     });
 
-    it("a server should feed the availableSequenceNumbers in PublishResponse with sequence numbers that have not been acknowledged by the client", () => {
+    it("ZDZ-4 a server should feed the availableSequenceNumbers in PublishResponse with sequence numbers that have not been acknowledged by the client", () => {
         const serverSidePublishEngine = new ServerSidePublishEngine({});
         const send_response_for_request_spy = sinon.spy(serverSidePublishEngine, "_send_response_for_request");
 
@@ -134,7 +139,7 @@ describe("Testing the server publish engine", function (this: any) {
         // client sends a PublishRequest to the server
         const fakeRequest1 = new PublishRequest({ subscriptionAcknowledgements: [] });
         serverSidePublishEngine._on_PublishRequest(fakeRequest1);
-
+        
         test.clock.tick(subscription.publishingInterval);
         send_response_for_request_spy.callCount.should.equal(1); // initial still
 
@@ -143,6 +148,9 @@ describe("Testing the server publish engine", function (this: any) {
         // server should send a response for the first publish request with the above notification
         // in this response, there should be  one element in the availableSequenceNumbers.
         send_response_for_request_spy.callCount.should.equal(1);
+        
+        // console.log( send_response_for_request_spy.getCall(0).args[1].toString());
+
         send_response_for_request_spy.getCall(0).args[1].schema.name.should.equal("PublishResponse");
         send_response_for_request_spy.getCall(0).args[1].subscriptionId.should.eql(1234);
         send_response_for_request_spy.getCall(0).args[1].availableSequenceNumbers!.should.eql([1]);
@@ -150,6 +158,7 @@ describe("Testing the server publish engine", function (this: any) {
         // client sends a PublishRequest to the server ( with no acknowledgement)
         const fakeRequest2 = new PublishRequest({ subscriptionAcknowledgements: [] });
         serverSidePublishEngine._on_PublishRequest(fakeRequest2);
+        flushPending();
 
         // server has now some notification ready and send them to the client
         monitoredItem.simulateMonitoredItemAddingNotification();
@@ -181,9 +190,9 @@ describe("Testing the server publish engine", function (this: any) {
             subscriptionAcknowledgements: []
         });
         publish_server._on_PublishRequest(fakeRequest1);
+        flushPending();
 
-        test.clock.tick(2000);
-
+     
         send_response_for_request_spy.callCount.should.equal(1);
         send_response_for_request_spy.getCall(0).args[1].schema.name.should.equal("PublishResponse");
         send_response_for_request_spy.getCall(0).args[1].responseHeader.serviceResult.should.eql(StatusCodes.BadNoSubscription);
@@ -258,6 +267,7 @@ describe("Testing the server publish engine", function (this: any) {
 
         // simulate client sending PublishRequest ,and server doing nothing
         publish_server._on_PublishRequest(new PublishRequest({ requestHeader: { requestHandle: 1 } }));
+        flushPending();
 
         test.clock.tick(subscription.publishingInterval);
         send_response_for_request_spy.callCount.should.be.equal(1);
@@ -271,11 +281,13 @@ describe("Testing the server publish engine", function (this: any) {
         publish_server._on_PublishRequest(new PublishRequest({ requestHeader: { requestHandle: 4 } }));
         publish_server._on_PublishRequest(new PublishRequest({ requestHeader: { requestHandle: 5 } }));
         publish_server._on_PublishRequest(new PublishRequest({ requestHeader: { requestHandle: 6 } }));
+        flushPending();
 
         // en: the straw that broke the camel's back.
         // cSpell:disable
         // fr: la goute qui fait déborder le vase.
         publish_server._on_PublishRequest(new PublishRequest({ requestHeader: { requestHandle: 7 } }));
+        flushPending();
 
         send_response_for_request_spy.callCount.should.be.equal(2);
 
@@ -290,6 +302,7 @@ describe("Testing the server publish engine", function (this: any) {
         send_response_for_request_spy.getCall(1).args[1].results!.should.eql([]);
 
         publish_server._on_PublishRequest(new PublishRequest({ requestHeader: { requestHandle: 8 } }));
+        flushPending();
 
         send_response_for_request_spy.callCount.should.be.equal(3);
         // xx console.log(send_response_for_request_spy.getCall(2).args[1].responseHeader.toString());
@@ -324,6 +337,7 @@ describe("Testing the server publish engine", function (this: any) {
 
         // --------------------------------
         publish_server._on_PublishRequest(new PublishRequest());
+        flushPending();
 
         // server send a notification to the client
         monitoredItem.simulateMonitoredItemAddingNotification();
@@ -339,6 +353,7 @@ describe("Testing the server publish engine", function (this: any) {
 
         // --------------------------------
         publish_server._on_PublishRequest(new PublishRequest());
+        flushPending();
 
         monitoredItem.simulateMonitoredItemAddingNotification();
 
@@ -352,6 +367,9 @@ describe("Testing the server publish engine", function (this: any) {
         send_response_for_request_spy.getCall(1).args[1].results!.should.eql([]);
 
         publish_server._on_PublishRequest(new PublishRequest());
+        flushPending();
+
+        
         monitoredItem.simulateMonitoredItemAddingNotification();
 
         test.clock.tick(subscription.publishingInterval);
@@ -367,6 +385,8 @@ describe("Testing the server publish engine", function (this: any) {
                 subscriptionAcknowledgements: [{ subscriptionId: 1234, sequenceNumber: 2 }]
             })
         );
+        flushPending();
+
         subscription.getAvailableSequenceNumbers().should.eql([1, 3]);
 
         monitoredItem.simulateMonitoredItemAddingNotification();
@@ -385,6 +405,8 @@ describe("Testing the server publish engine", function (this: any) {
                 ]
             })
         );
+        flushPending();
+
         subscription.getAvailableSequenceNumbers().should.eql([4]);
 
         monitoredItem.simulateMonitoredItemAddingNotification();
@@ -429,6 +451,8 @@ describe("Testing the server publish engine", function (this: any) {
                 ]
             })
         );
+        flushPending();
+
 
         // server send a notification to the client
         monitoredItem.simulateMonitoredItemAddingNotification();
@@ -749,6 +773,8 @@ describe("Testing the server publish engine", function (this: any) {
         publish_server.pendingPublishRequestCount.should.eql(0, " No PublishRequest in queue");
 
         publish_server._on_PublishRequest(new PublishRequest());
+        test.clock.tick(0);
+        
         publish_server.pendingPublishRequestCount.should.eql(
             0,
             "starving subscription should have consumed this Request immediately"

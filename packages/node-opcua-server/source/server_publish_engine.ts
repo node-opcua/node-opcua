@@ -4,7 +4,7 @@
 // tslint:disable:no-console
 import * as chalk from "chalk";
 import { EventEmitter } from "events";
-import { partition, sortBy } from "underscore";
+import { partition, sortBy } from "lodash";
 
 import { assert } from "node-opcua-assert";
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
@@ -25,7 +25,7 @@ function traceLog(...args: [any?, ...any[]]) {
     }
     const a: string[] = args.map((x?: any) => x!);
     a.unshift(chalk.yellow(" TRACE "));
-    console.log.apply(null, a as [any?, ...any[]]);
+    debugLog.apply(null, a as [any?, ...any[]]);
 }
 
 export interface ServerSidePublishEngineOptions {
@@ -193,6 +193,13 @@ export class ServerSidePublishEngine extends EventEmitter implements IServerSide
         this.isSessionClosed = false;
     }
 
+    public toString() {
+        let str = "";
+        str += `maxPublishRequestInQueue ${this.maxPublishRequestInQueue}\n`;
+        str += `subscriptions ${Object.keys(this._subscriptions).join()}\n`;
+        str += `closed subscriptions ${this._closed_subscriptions.map((s)=> s.id).join()}\n`;
+        return str; 
+    }
     public dispose() {
         debugLog("ServerSidePublishEngine#dispose");
 
@@ -330,10 +337,10 @@ export class ServerSidePublishEngine extends EventEmitter implements IServerSide
 
         delete this._subscriptions[subscription.id];
 
-        if (this.subscriptionCount === 0) {
-            while (this._feed_closed_subscription()) {
-                /* keep looping */
-            }
+        while (this._feed_closed_subscription()) {
+            /* keep looping */
+        }
+        if (this.subscriptionCount === 0 && this._closed_subscriptions.length === 0) {
             this.cancelPendingPublishRequest();
         }
     }
@@ -350,7 +357,7 @@ export class ServerSidePublishEngine extends EventEmitter implements IServerSide
     public findLateSubscriptions(): Subscription[] {
         const subscriptions = Object.values(this._subscriptions);
         return subscriptions.filter((subscription: Subscription) => {
-            return subscription.state === SubscriptionState.LATE && subscription.publishingEnabled; // && subscription.hasMonitoredItemNotifications;
+            return subscription.state === SubscriptionState.LATE && subscription.publishingEnabled;
         });
     }
 
@@ -418,8 +425,8 @@ export class ServerSidePublishEngine extends EventEmitter implements IServerSide
                 this._publish_request_queue.push(publishData);
 
                 const processed = this._feed_closed_subscription();
-                assert(verif === this._publish_request_queue.length);
-                assert(processed);
+                //xx ( may be subscription has expired by themselve) assert(verif === this._publish_request_queue.length);
+                //xx  ( may be subscription has expired by themselve) assert(processed);
                 return;
             }
             traceLog("server has received a PublishRequest but has no subscription opened");
@@ -468,7 +475,7 @@ export class ServerSidePublishEngine extends EventEmitter implements IServerSide
                                 " ka=" +
                                 s.timeToKeepAlive +
                                 " m?=" +
-                                s.hasMonitoredItemNotifications +
+                                s.hasUncollectedMonitoredItemNotifications +
                                 "]"
                         )
                         .join(" \n")
@@ -484,14 +491,16 @@ export class ServerSidePublishEngine extends EventEmitter implements IServerSide
         return starving_subscription;
     }
     private _feed_late_subscription() {
-        if (!this.pendingPublishRequestCount) {
-            return;
-        }
-        const starving_subscription = this._find_starving_subscription();
-        if (starving_subscription) {
-            debugLog(chalk.bgWhite.red("feeding most late subscription subscriptionId  = "), starving_subscription.id);
-            starving_subscription.process_subscription();
-        }
+        setImmediate(() => {
+            if (!this.pendingPublishRequestCount) {
+                return;
+            }
+            const starving_subscription = this._find_starving_subscription();
+            if (starving_subscription) {
+                debugLog(chalk.bgWhite.red("feeding most late subscription subscriptionId  = "), starving_subscription.id);
+                starving_subscription.process_subscription();
+            }
+        });
     }
 
     private _feed_closed_subscription() {
@@ -499,21 +508,20 @@ export class ServerSidePublishEngine extends EventEmitter implements IServerSide
             return false;
         }
 
-        debugLog("ServerSidePublishEngine#_feed_closed_subscription");
-        if (this._closed_subscriptions.length) {
-            // process closed subscription
-            const closed_subscription = this._closed_subscriptions[0]!;
-            assert(closed_subscription.hasPendingNotifications);
-            traceLog("_feed_closed_subscription for closed_subscription ", closed_subscription.id);
-
-            closed_subscription?._publish_pending_notifications();
-            if (!closed_subscription?.hasPendingNotifications) {
-                closed_subscription.dispose();
-                this._closed_subscriptions.shift();
-            }
-            return true;
+        if (this._closed_subscriptions.length === 0) {
+            debugLog("ServerSidePublishEngine#_feed_closed_subscription  -> nothing to do");
+            return false;
         }
-        return false;
+        // process closed subscription
+        const closed_subscription = this._closed_subscriptions[0]!;
+        assert(closed_subscription.hasPendingNotifications);
+        debugLog("ServerSidePublishEngine#_feed_closed_subscription for closed_subscription ", closed_subscription.id);
+        closed_subscription?._publish_pending_notifications();
+        if (!closed_subscription?.hasPendingNotifications) {
+            closed_subscription.dispose();
+            this._closed_subscriptions.shift();
+        }
+        return true;
     }
 
     private _send_error_for_request(publishData: PublishData, statusCode: StatusCode): void {
@@ -525,12 +533,16 @@ export class ServerSidePublishEngine extends EventEmitter implements IServerSide
     }
 
     private _cancelPendingPublishRequest(statusCode: StatusCode): void {
-        debugLog(
-            chalk.red("Cancelling pending PublishRequest with statusCode  "),
-            statusCode.toString(),
-            " length =",
-            this._publish_request_queue.length
-        );
+        if (this._publish_request_queue) {
+            debugLog(
+                chalk.red("Cancelling pending PublishRequest with statusCode  "),
+                statusCode.toString(),
+                " length =",
+                this._publish_request_queue.length
+            );
+        } else {
+            debugLog(chalk.red("No pending PublishRequest to cancel"));
+        }
 
         for (const publishData of this._publish_request_queue) {
             this._send_error_for_request(publishData, statusCode);
@@ -580,13 +592,14 @@ export class ServerSidePublishEngine extends EventEmitter implements IServerSide
         // let check if we have available PublishRequest to send the keep alive
         if (this.pendingPublishRequestCount === 0 || subscription.hasPendingNotifications) {
             // we cannot send the keep alive PublishResponse
+            traceLog(
+                "send_keep_alive_response  => cannot send keep-aliave  (no PublishRequest left) subscriptionId = ",
+                subscriptionId
+            );
             return false;
         }
         debugLog(
-            "Sending keep alive response for subscription id ",
-            subscription.id,
-            subscription.publishingInterval,
-            subscription.maxKeepAliveCount
+            `Sending keep alive response for subscription id ${subscription.id} ${subscription.publishingInterval} ${subscription.maxKeepAliveCount}`
         );
         this._send_response(
             subscription,
@@ -624,12 +637,17 @@ export class ServerSidePublishEngine extends EventEmitter implements IServerSide
 
         const invalid_published_request = parts[0];
         for (const publishData of invalid_published_request) {
-            console.log(chalk.cyan(" CANCELING TIMEOUT PUBLISH REQUEST "));
+            if (doDebug) {
+                debugLog(chalk.cyan(" CANCELING TIMEOUT PUBLISH REQUEST "));
+            }
             this._send_error_for_request(publishData, StatusCodes.BadTimeout);
         }
     }
 
     public _send_response_for_request(publishData: PublishData, response: PublishResponse) {
+        if (doDebug) {
+            debugLog("_send_response_for_request ", response.toString());
+        }
         _assertValidPublishData(publishData);
         // xx assert(response.responseHeader.requestHandle !== 0,"expecting a valid requestHandle");
         response.results = publishData.results;

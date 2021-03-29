@@ -370,7 +370,7 @@ export class ClientBaseImpl extends OPCUASecureObject implements OPCUAClientBase
         super(options as IOPCUASecureObjectOptions);
 
         this.applicationName = options.applicationName || "NodeOPCUA-Client";
-
+        assert(!this.applicationName.match(/^locale=/), "applicationName badly converted from LocalizedText");
         assert(!this.applicationName.match(/urn:/), "applicationName should not be a URI");
 
         // we need to delay _applicationUri initialization

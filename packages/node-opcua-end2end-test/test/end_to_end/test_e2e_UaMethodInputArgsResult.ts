@@ -69,7 +69,7 @@ describe("list status codes for input arguments", () => {
         result.inputArgumentResults![0].should.eql(StatusCodes.Good);
     });
 
-    it("should return lib generated error", async () => {
+    it("should return lib generated BadTypeMismatch if argument type is wrong", async () => {
         const result = await clientSession.call({
             objectId: "ns=1;s=e2e",
             methodId: "ns=1;s=RingDoor",

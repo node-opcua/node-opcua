@@ -94,6 +94,8 @@ export class ClientMonitoredItemImpl extends EventEmitter implements ClientMonit
         ret += "monitoringParameters: " + this.monitoringParameters.toString() + "\n";
         ret += "timestampsToReturn:   " + this.timestampsToReturn.toString() + "\n";
         ret += "itemToMonitor         " + this.itemToMonitor.nodeId + "\n";
+        ret += "statusCode            " + this.statusCode?.toString() + "\n";
+        ret += "result =" + this.result?.toString() + "\n";
         return ret;
     }
 

@@ -183,7 +183,6 @@ export class ServerSession extends EventEmitter implements ISubscriber, ISession
     public getSessionId(): NodeId {
         return this.nodeId;
     }
-
     public endpoint?: EndpointDescription;
     public getEndpointDescription(): EndpointDescription {
         return this.endpoint!;

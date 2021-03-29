@@ -1,15 +1,6 @@
-const {
-    OPCUAClient,
-    ClientSubscription,
-    AttributeIds,
-    ClientMonitoredItemGroup,
-    StatusCodes,
-    ClientSidePublishEngine
-} = require("node-opcua");
-const { perform_operation_on_session_async } = require("../../test_helpers/perform_operation_on_client_session");
-const sinon = require("sinon");
+import { AttributeIds } from "node-opcua";
 
-const itemsToMonitor1 = [
+export const itemsToMonitor1 = [
     { nodeId: "ns=2;s=Static_Scalar_Boolean", attributeId: AttributeIds.Value },
     { nodeId: "ns=2;s=Static_Scalar_Byte", attributeId: AttributeIds.Value },
     { nodeId: "ns=2;s=Static_Scalar_ByteString", attributeId: AttributeIds.Value },
@@ -38,7 +29,7 @@ const itemsToMonitor1 = [
     { nodeId: "ns=2;s=Static_Scalar_ImageGIF", attributeId: AttributeIds.Value },
     { nodeId: "ns=2;s=Static_Scalar_ImagePNG", attributeId: AttributeIds.Value },
 ];
-const itemsToMonitor2 = [
+export const itemsToMonitor2 = [
 
     { nodeId: "ns=2;s=Static_Array_Boolean", attributeId: AttributeIds.Value },
     { nodeId: "ns=2;s=Static_Array_Byte", attributeId: AttributeIds.Value },
@@ -111,140 +102,3 @@ const itemsToMonitor2 = [
     { nodeId: "ns=2;s=UInt64MultiStateValueDiscrete", attributeId: AttributeIds.Value },
 ];
 
-const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
-
-module.exports = function(test) {
-
-    describe("Testing ctt 010  - Modify the samplingInterval of multiple nodes, where the first half are set to 1000 msec and the latter half 3000 msec", function() {
-
-        let old_publishRequestCountInPipeline = 0;
-        beforeEach(() => {
-            old_publishRequestCountInPipeline = ClientSidePublishEngine.publishRequestCountInPipeline;
-            ClientSidePublishEngine.publishRequestCountInPipeline = 1;
-        });
-
-        afterEach(() => {
-            ClientSidePublishEngine.publishRequestCountInPipeline = old_publishRequestCountInPipeline;
-        });
-        it("should create a large number of monitored item and alter samplingInterval for half of them", async () => {
-            const client = OPCUAClient.create();
-            const endpointUrl = test.endpointUrl;
-
-
-            await client.withSessionAsync(endpointUrl, async (session) => {
-
-                session.getPublishEngine().suspend(true);
-
-                const subscription = ClientSubscription.create(session, {
-                    requestedPublishingInterval: 200,
-                    requestedLifetimeCount: 10 * 60 * 1000,
-                    requestedMaxKeepAliveCount: 60,
-                    maxNotificationsPerPublish: 0,
-                    publishingEnabled: true,
-                    priority: 6
-                });
-
-                const subscription_raw_notification_event = sinon.spy();
-
-                subscription.on("raw_notification", subscription_raw_notification_event);
-
-                subscription.on("received_notifications", () => {
-                    console.log("...");
-                });
-
-                const options = {
-                    samplingInterval: 10,
-                    discardOldest: true,
-                    queueSize: 1
-                };
-
-                const itemsToMonitorX = [].concat(itemsToMonitor1, itemsToMonitor1, itemsToMonitor1, itemsToMonitor1, itemsToMonitor1, itemsToMonitor1, itemsToMonitor1, itemsToMonitor1);
-                const itemsToMonitorY = [].concat(itemsToMonitorX, itemsToMonitorX, itemsToMonitorX, itemsToMonitorX, itemsToMonitorX, itemsToMonitorX, itemsToMonitorX, itemsToMonitorX);
-                const itemsToMonitor = [].concat(itemsToMonitorY, itemsToMonitorY, itemsToMonitorY, itemsToMonitorY);
-
-                const monitoredItemGroup = ClientMonitoredItemGroup.create(subscription, itemsToMonitor, options);
-
-                await new Promise((resolve, reject) => {
-                    // subscription.on("item_added",function(monitoredItem){
-                    monitoredItemGroup.on("initialized", function() {
-
-                        const allGood = monitoredItemGroup.monitoredItems.filter((item, index) => item.statusCode !== StatusCodes.Good);
-                        if (allGood.length > 0) {
-                            console.log(" Initialized Failed!", monitoredItemGroup.monitoredItems.map((item, index) => itemsToMonitor[index].nodeId.toString().padEnd(20) + " " + item.statusCode.toString()).join("\n"));
-                            return reject(new Error("Initialization failed , some nodeId are "));
-                        }
-                        monitoredItemGroup.monitoredItems.length.should.eql(itemsToMonitor.length);
-                        resolve();
-                    });
-                });
-                console.log("Sending Publish request");
-
-                session.getPublishEngine().internalSendPublishRequest();
-                // session.getPublishEngine().suspend(true);
-
-                async function wait_notification() {
-                    if (subscription_raw_notification_event.callCount > 0) {
-                        return;
-                    }
-                    await new Promise((resolve) => setTimeout(resolve, 2000));
-                    await wait_notification();
-                }
-                await wait_notification();
-
-                function dumpNotificationResult() {
-                    console.log("notification received  = ", subscription_raw_notification_event.callCount);
-                    for (const c of subscription_raw_notification_event.getCalls()) {
-                        // console.log("Initial l=", c.args[0].notificationData.length.toString());
-                        for (const n of c.args[0].notificationData) {
-                            console.log(" monitoredItem changes = ", n.monitoredItems.length);
-                        }
-                    }
-                }
-
-                dumpNotificationResult();
-
-                subscription_raw_notification_event.getCall(0).args[0].notificationData[0].monitoredItems.length.should.eql(
-                    Math.min(itemsToMonitor.length, 5000));
-
-                subscription_raw_notification_event.resetHistory();
-                subscription_raw_notification_event.callCount.should.eql(0);
-
-                // --------------------------------------------------------------------------------------------------
-
-
-                const itemsToModify = itemsToMonitor.map((item, index) => {
-                    return {
-                        monitoredItemId: monitoredItemGroup.monitoredItems[index].monitoredItemId,
-                        requestedParameters: {
-                            samplingInterval: (index % 2) ? 3000 : 1000
-                        }
-                    }
-                })
-                await session.modifyMonitoredItems({
-                    subscriptionId: subscription.subscriptionId,
-                    itemsToModify
-                });
-
-                session.getPublishEngine().internalSendPublishRequest();
-                session.getPublishEngine().internalSendPublishRequest();
-                session.getPublishEngine().internalSendPublishRequest();
-
-                await new Promise((resolve) => setTimeout(resolve, 6000));
-
-                dumpNotificationResult();
-
-
-                await new Promise(resolve => {
-                    monitoredItemGroup.terminate(function() {
-                        console.log(" terminated !");
-                        resolve();
-                    });
-                });
-
-
-                await subscription.terminate();
-
-            });
-        });
-    });
-}
