@@ -8,7 +8,7 @@ import * as fs from "fs";
 import * as path from "path";
 import * as os from "os";
 import * as envPaths from "env-paths";
-
+import { withLock } from "@ster5/global-mutex";
 import { assert } from "node-opcua-assert";
 import {
     getDefaultCertificateManager,
@@ -166,7 +166,7 @@ export class OPCUABaseServer extends OPCUASecureObject {
         }
 
         this.serverInfo.applicationName!.locale = this.serverInfo.applicationName?.locale || "en";
-        
+
         if (!this.serverInfo.applicationName?.locale) {
             warningLog(
                 "[NODE-OPCUA-W24] the server applicationName must have a valid locale : ",
@@ -190,21 +190,28 @@ export class OPCUABaseServer extends OPCUASecureObject {
     }
 
     protected async createDefaultCertificate() {
-        if (!fs.existsSync(this.certificateFile)) {
-            const applicationUri = this.serverInfo.applicationUri!;
-            const hostname = getHostname();
-            await this.serverCertificateManager.createSelfSignedCertificate({
-                applicationUri,
-                dns: [hostname],
-                // ip: await getIpAddresses(),
-                outputFile: this.certificateFile,
 
-                subject: makeSubject(this.serverInfo.applicationName.text!, hostname),
-
-                startDate: new Date(),
-                validity: 365 * 10 // 10 years
-            });
+        if (fs.existsSync(this.certificateFile)) {
+            return;
         }
+        const lockfile = path.join(this.certificateFile + ".lock");
+        await withLock({ lockfile }, async () => {
+            if (!fs.existsSync(this.certificateFile)) {
+                const applicationUri = this.serverInfo.applicationUri!;
+                const hostname = getHostname();
+                await this.serverCertificateManager.createSelfSignedCertificate({
+                    applicationUri,
+                    dns: [hostname],
+                    // ip: await getIpAddresses(),
+                    outputFile: this.certificateFile,
+
+                    subject: makeSubject(this.serverInfo.applicationName.text!, hostname),
+
+                    startDate: new Date(),
+                    validity: 365 * 10 // 10 years
+                });
+            }
+        });
     }
     protected async initializeCM(): Promise<void> {
         await this.serverCertificateManager.initialize();
