@@ -70,6 +70,13 @@ describe("Testing server configured with push certificate management", () => {
     before(async () => {
         //
         await initializeHelpers();
+        if (!fs.existsSync(fakePKI)) {
+            fs.mkdirSync(fakePKI)
+        }
+        if (!fs.existsSync(fakeClientPKI)) {
+            fs.mkdirSync(fakeClientPKI)
+        }
+
         await certificateManager.initialize();
 
         //
@@ -99,10 +106,9 @@ describe("Testing server configured with push certificate management", () => {
             clientCertificateManager.addRevocationList(crl);
         }
     });
-    after(() => {
-        certificateManager.dispose();
-
-        clientCertificateManager.dispose();
+    after(async () => {
+        await certificateManager.dispose();
+        await clientCertificateManager.dispose();
     });
     it("SCT-1 should modify a server to support push certificate management", async () => {
         const server = new OPCUAServer({

@@ -227,14 +227,38 @@ module.exports = () => {
             async.series([createServer, shutdownServer], done);
         });
 
+        it("T0c0 - disposing  cerficiation manager during initialization ", function (done) {
+
+            const cm = new OPCUACertificateManager({
+               // rootFolder: 
+            });
+
+            async.series(
+                [
+                    f(function when_creating_a_opcua_certificate_manager(callback: ErrorCallback) {
+                        cm.initialize((err) =>{
+                            done();
+                        })
+                        callback();
+                    }),
+                    f(function disposing(callback: ErrorCallback) {
+                        cm.dispose();
+                    }),
+                ],
+                ()=>{
+
+                });
+        })
         it("T0c- should cancel a client that is attempting a connection on an existing server", function (done) {
             let client = OPCUAClient.create({});
             const endpoint = discoveryServerEndpointUrl;
             async.series(
                 [
                     f(function when_we_create_a_client_but_do_not_wait_for_connection(callback: ErrorCallback) {
-                        client.connect(endpoint, () => {
+                        client.connect(endpoint, (err) => {
                             /* nothing here */
+                            // console.log("Connect err = ", err ? err.message: null);
+                            done();
                         });
                         setImmediate(callback);
                     }),
@@ -246,7 +270,9 @@ module.exports = () => {
                         wait_a_few_seconds(callback);
                     })
                 ],
-                done
+                ()=>{
+                    /* nothing here => connect wil call done */
+                }
             );
         });
 
