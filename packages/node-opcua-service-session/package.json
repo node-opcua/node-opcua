@@ -1,6 +1,6 @@
 {
     "name": "node-opcua-service-session",
-    "version": "2.36.0",
+    "version": "2.37.0",
     "description": "pure nodejs OPCUA SDK - module -service-session",
     "main": "./dist/index.js",
     "types": "./dist/index.d.ts",
@@ -10,18 +10,18 @@
         "build": "tsc -b"
     },
     "dependencies": {
-        "node-opcua-assert": "2.35.0",
-        "node-opcua-basic-types": "2.36.0",
-        "node-opcua-binary-stream": "2.36.0",
-        "node-opcua-extension-object": "2.36.0",
-        "node-opcua-factory": "2.36.0",
-        "node-opcua-nodeid": "2.36.0",
-        "node-opcua-service-endpoints": "2.36.0",
-        "node-opcua-service-secure-channel": "2.36.0",
-        "node-opcua-types": "2.36.0"
+        "node-opcua-assert": "2.37.0",
+        "node-opcua-basic-types": "2.37.0",
+        "node-opcua-binary-stream": "2.37.0",
+        "node-opcua-extension-object": "2.37.0",
+        "node-opcua-factory": "2.37.0",
+        "node-opcua-nodeid": "2.37.0",
+        "node-opcua-service-endpoints": "2.37.0",
+        "node-opcua-service-secure-channel": "2.37.0",
+        "node-opcua-types": "2.37.0"
     },
     "devDependencies": {
-        "node-opcua-data-model": "2.36.0",
+        "node-opcua-data-model": "2.37.0",
         "node-opcua-service-endpoints": "2.36.0",
         "should": "^13.2.3"
     },
