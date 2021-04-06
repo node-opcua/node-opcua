@@ -1,12 +1,15 @@
-dependencies:
-  browser-process-hrtime: 1.0.0
-  node-opcua-assert: link:../node-opcua-assert
-lockfileVersion: 5.2
-packages:
-  /browser-process-hrtime/1.0.0:
-    dev: false
-    resolution:
-      integrity: sha512-9o5UecI3GhkpM6DrXr69PblIuWxPKk9Y0jHBRhdocZ2y7YECBFCsHm79Pr3OyR2AvjhDkabFJaDJMYRazHgsow==
+lockfileVersion: 5.3
+
 specifiers:
   browser-process-hrtime: ^1.0.0
   node-opcua-assert: 2.35.0
+
+dependencies:
+  browser-process-hrtime: 1.0.0
+  node-opcua-assert: link:../node-opcua-assert
+
+packages:
+
+  /browser-process-hrtime/1.0.0:
+    resolution: {integrity: sha512-9o5UecI3GhkpM6DrXr69PblIuWxPKk9Y0jHBRhdocZ2y7YECBFCsHm79Pr3OyR2AvjhDkabFJaDJMYRazHgsow==}
+    dev: false

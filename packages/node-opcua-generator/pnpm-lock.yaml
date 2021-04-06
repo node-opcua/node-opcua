@@ -1,145 +1,5 @@
-dependencies:
-  chalk: 4.1.0
-  node-opcua-assert: link:../node-opcua-assert
-  node-opcua-basic-types: link:../node-opcua-basic-types
-  node-opcua-buffer-utils: link:../node-opcua-buffer-utils
-  node-opcua-constants: link:../node-opcua-constants
-  node-opcua-data-model: link:../node-opcua-data-model
-  node-opcua-data-value: link:../node-opcua-data-value
-  node-opcua-date-time: link:../node-opcua-date-time
-  node-opcua-debug: link:../node-opcua-debug
-  node-opcua-enum: link:../node-opcua-enum
-  node-opcua-factory: link:../node-opcua-factory
-  node-opcua-guid: link:../node-opcua-guid
-  node-opcua-nodeid: link:../node-opcua-nodeid
-  node-opcua-numeric-range: link:../node-opcua-numeric-range
-  node-opcua-schemas: link:../node-opcua-schemas
-  node-opcua-status-code: link:../node-opcua-status-code
-  node-opcua-utils: link:../node-opcua-utils
-  node-opcua-variant: link:../node-opcua-variant
-  node-opcua-xml2json: link:../node-opcua-xml2json
-devDependencies:
-  node-opcua-binary-stream: link:../node-opcua-binary-stream
-  node-opcua-extension-object: link:../node-opcua-extension-object
-  node-opcua-packet-analyzer: link:../node-opcua-packet-analyzer
-  prettier: 2.2.1
-  should: 13.2.3
-  source-map-support: 0.5.19
-  typescript: 4.2.3
-lockfileVersion: 5.2
-packages:
-  /ansi-styles/4.3.0:
-    dependencies:
-      color-convert: 2.0.1
-    dev: false
-    engines:
-      node: '>=8'
-    resolution:
-      integrity: sha512-zbB9rCJAT1rbjiVDb2hqKFHNYLxgtk8NURxZ3IZwD3F6NtxbXZQCnnSi1Lkx+IDohdPlFp222wVALIheZJQSEg==
-  /buffer-from/1.1.1:
-    dev: true
-    resolution:
-      integrity: sha512-MQcXEUbCKtEo7bhqEs6560Hyd4XaovZlO/k9V3hjVUF/zwW7KBVdSK4gIt/bzwS9MbR5qob+F5jusZsb0YQK2A==
-  /chalk/4.1.0:
-    dependencies:
-      ansi-styles: 4.3.0
-      supports-color: 7.2.0
-    dev: false
-    engines:
-      node: '>=10'
-    resolution:
-      integrity: sha512-qwx12AxXe2Q5xQ43Ac//I6v5aXTipYrSESdOgzrN+9XjgEpyjpKuvSGaN4qE93f7TQTlerQQ8S+EQ0EyDoVL1A==
-  /color-convert/2.0.1:
-    dependencies:
-      color-name: 1.1.4
-    dev: false
-    engines:
-      node: '>=7.0.0'
-    resolution:
-      integrity: sha512-RRECPsj7iu/xb5oKYcsFHSppFNnsj/52OVTRKb4zP5onXwVF3zVmmToNcOfGC+CRDpfK/U584fMg38ZHCaElKQ==
-  /color-name/1.1.4:
-    dev: false
-    resolution:
-      integrity: sha512-dOy+3AuW3a2wNbZHIuMZpTcgjGuLU/uBL/ubcZF9OXbDo8ff4O8yVp5Bf0efS8uEoYo5q4Fx7dY9OgQGXgAsQA==
-  /has-flag/4.0.0:
-    dev: false
-    engines:
-      node: '>=8'
-    resolution:
-      integrity: sha512-EykJT/Q1KjTWctppgIAgfSO0tKVuZUjhgMr17kqTumMl6Afv3EISleU7qZUzoXDFTAHTDC4NOoG/ZxU3EvlMPQ==
-  /prettier/2.2.1:
-    dev: true
-    engines:
-      node: '>=10.13.0'
-    hasBin: true
-    resolution:
-      integrity: sha512-PqyhM2yCjg/oKkFPtTGUojv7gnZAoG80ttl45O6x2Ug/rMJw4wcc9k6aaf2hibP7BGVCCM33gZoGjyvt9mm16Q==
-  /should-equal/2.0.0:
-    dependencies:
-      should-type: 1.4.0
-    dev: true
-    resolution:
-      integrity: sha512-ZP36TMrK9euEuWQYBig9W55WPC7uo37qzAEmbjHz4gfyuXrEUgF8cUvQVO+w+d3OMfPvSRQJ22lSm8MQJ43LTA==
-  /should-format/3.0.3:
-    dependencies:
-      should-type: 1.4.0
-      should-type-adaptors: 1.1.0
-    dev: true
-    resolution:
-      integrity: sha1-m/yPdPo5IFxT04w01xcwPidxJPE=
-  /should-type-adaptors/1.1.0:
-    dependencies:
-      should-type: 1.4.0
-      should-util: 1.0.1
-    dev: true
-    resolution:
-      integrity: sha512-JA4hdoLnN+kebEp2Vs8eBe9g7uy0zbRo+RMcU0EsNy+R+k049Ki+N5tT5Jagst2g7EAja+euFuoXFCa8vIklfA==
-  /should-type/1.4.0:
-    dev: true
-    resolution:
-      integrity: sha1-B1bYzoRt/QmEOmlHcZ36DUz/XPM=
-  /should-util/1.0.1:
-    dev: true
-    resolution:
-      integrity: sha512-oXF8tfxx5cDk8r2kYqlkUJzZpDBqVY/II2WhvU0n9Y3XYvAYRmeaf1PvvIvTgPnv4KJ+ES5M0PyDq5Jp+Ygy2g==
-  /should/13.2.3:
-    dependencies:
-      should-equal: 2.0.0
-      should-format: 3.0.3
-      should-type: 1.4.0
-      should-type-adaptors: 1.1.0
-      should-util: 1.0.1
-    dev: true
-    resolution:
-      integrity: sha512-ggLesLtu2xp+ZxI+ysJTmNjh2U0TsC+rQ/pfED9bUZZ4DKefP27D+7YJVVTvKsmjLpIi9jAa7itwDGkDDmt1GQ==
-  /source-map-support/0.5.19:
-    dependencies:
-      buffer-from: 1.1.1
-      source-map: 0.6.1
-    dev: true
-    resolution:
-      integrity: sha512-Wonm7zOCIJzBGQdB+thsPar0kYuCIzYvxZwlBa87yi/Mdjv7Tip2cyVbLj5o0cFPN4EVkuTwb3GDDyUx2DGnGw==
-  /source-map/0.6.1:
-    dev: true
-    engines:
-      node: '>=0.10.0'
-    resolution:
-      integrity: sha512-UjgapumWlbMhkBgzT7Ykc5YXUT46F0iKu8SGXq0bcwP5dz/h0Plj6enJqjz1Zbq2l5WaqYnrVbwWOWMyF3F47g==
-  /supports-color/7.2.0:
-    dependencies:
-      has-flag: 4.0.0
-    dev: false
-    engines:
-      node: '>=8'
-    resolution:
-      integrity: sha512-qpCAvRl9stuOHveKsn7HncJRvv501qIacKzQlO/+Lwxc9+0q2wLyv4Dfvt80/DPn2pqOBsJdDiogXGR9+OvwRw==
-  /typescript/4.2.3:
-    dev: true
-    engines:
-      node: '>=4.2.0'
-    hasBin: true
-    resolution:
-      integrity: sha512-qOcYwxaByStAWrBf4x0fibwZvMRG+r4cQoTjbPtUlrWjBHbmCAww1i448U0GJ+3cNNEtebDteo/cHOR3xJ4wEw==
+lockfileVersion: 5.3
+
 specifiers:
   chalk: ^4.1.0
   node-opcua-assert: 2.35.0
@@ -167,3 +27,139 @@ specifiers:
   should: ^13.2.3
   source-map-support: ^0.5.19
   typescript: ^4.2.3
+
+dependencies:
+  chalk: 4.1.0
+  node-opcua-assert: link:../node-opcua-assert
+  node-opcua-basic-types: link:../node-opcua-basic-types
+  node-opcua-buffer-utils: link:../node-opcua-buffer-utils
+  node-opcua-constants: link:../node-opcua-constants
+  node-opcua-data-model: link:../node-opcua-data-model
+  node-opcua-data-value: link:../node-opcua-data-value
+  node-opcua-date-time: link:../node-opcua-date-time
+  node-opcua-debug: link:../node-opcua-debug
+  node-opcua-enum: link:../node-opcua-enum
+  node-opcua-factory: link:../node-opcua-factory
+  node-opcua-guid: link:../node-opcua-guid
+  node-opcua-nodeid: link:../node-opcua-nodeid
+  node-opcua-numeric-range: link:../node-opcua-numeric-range
+  node-opcua-schemas: link:../node-opcua-schemas
+  node-opcua-status-code: link:../node-opcua-status-code
+  node-opcua-utils: link:../node-opcua-utils
+  node-opcua-variant: link:../node-opcua-variant
+  node-opcua-xml2json: link:../node-opcua-xml2json
+
+devDependencies:
+  node-opcua-binary-stream: link:../node-opcua-binary-stream
+  node-opcua-extension-object: link:../node-opcua-extension-object
+  node-opcua-packet-analyzer: link:../node-opcua-packet-analyzer
+  prettier: 2.2.1
+  should: 13.2.3
+  source-map-support: 0.5.19
+  typescript: 4.2.3
+
+packages:
+
+  /ansi-styles/4.3.0:
+    resolution: {integrity: sha512-zbB9rCJAT1rbjiVDb2hqKFHNYLxgtk8NURxZ3IZwD3F6NtxbXZQCnnSi1Lkx+IDohdPlFp222wVALIheZJQSEg==}
+    engines: {node: '>=8'}
+    dependencies:
+      color-convert: 2.0.1
+    dev: false
+
+  /buffer-from/1.1.1:
+    resolution: {integrity: sha512-MQcXEUbCKtEo7bhqEs6560Hyd4XaovZlO/k9V3hjVUF/zwW7KBVdSK4gIt/bzwS9MbR5qob+F5jusZsb0YQK2A==}
+    dev: true
+
+  /chalk/4.1.0:
+    resolution: {integrity: sha512-qwx12AxXe2Q5xQ43Ac//I6v5aXTipYrSESdOgzrN+9XjgEpyjpKuvSGaN4qE93f7TQTlerQQ8S+EQ0EyDoVL1A==}
+    engines: {node: '>=10'}
+    dependencies:
+      ansi-styles: 4.3.0
+      supports-color: 7.2.0
+    dev: false
+
+  /color-convert/2.0.1:
+    resolution: {integrity: sha512-RRECPsj7iu/xb5oKYcsFHSppFNnsj/52OVTRKb4zP5onXwVF3zVmmToNcOfGC+CRDpfK/U584fMg38ZHCaElKQ==}
+    engines: {node: '>=7.0.0'}
+    dependencies:
+      color-name: 1.1.4
+    dev: false
+
+  /color-name/1.1.4:
+    resolution: {integrity: sha512-dOy+3AuW3a2wNbZHIuMZpTcgjGuLU/uBL/ubcZF9OXbDo8ff4O8yVp5Bf0efS8uEoYo5q4Fx7dY9OgQGXgAsQA==}
+    dev: false
+
+  /has-flag/4.0.0:
+    resolution: {integrity: sha512-EykJT/Q1KjTWctppgIAgfSO0tKVuZUjhgMr17kqTumMl6Afv3EISleU7qZUzoXDFTAHTDC4NOoG/ZxU3EvlMPQ==}
+    engines: {node: '>=8'}
+    dev: false
+
+  /prettier/2.2.1:
+    resolution: {integrity: sha512-PqyhM2yCjg/oKkFPtTGUojv7gnZAoG80ttl45O6x2Ug/rMJw4wcc9k6aaf2hibP7BGVCCM33gZoGjyvt9mm16Q==}
+    engines: {node: '>=10.13.0'}
+    hasBin: true
+    dev: true
+
+  /should-equal/2.0.0:
+    resolution: {integrity: sha512-ZP36TMrK9euEuWQYBig9W55WPC7uo37qzAEmbjHz4gfyuXrEUgF8cUvQVO+w+d3OMfPvSRQJ22lSm8MQJ43LTA==}
+    dependencies:
+      should-type: 1.4.0
+    dev: true
+
+  /should-format/3.0.3:
+    resolution: {integrity: sha1-m/yPdPo5IFxT04w01xcwPidxJPE=}
+    dependencies:
+      should-type: 1.4.0
+      should-type-adaptors: 1.1.0
+    dev: true
+
+  /should-type-adaptors/1.1.0:
+    resolution: {integrity: sha512-JA4hdoLnN+kebEp2Vs8eBe9g7uy0zbRo+RMcU0EsNy+R+k049Ki+N5tT5Jagst2g7EAja+euFuoXFCa8vIklfA==}
+    dependencies:
+      should-type: 1.4.0
+      should-util: 1.0.1
+    dev: true
+
+  /should-type/1.4.0:
+    resolution: {integrity: sha1-B1bYzoRt/QmEOmlHcZ36DUz/XPM=}
+    dev: true
+
+  /should-util/1.0.1:
+    resolution: {integrity: sha512-oXF8tfxx5cDk8r2kYqlkUJzZpDBqVY/II2WhvU0n9Y3XYvAYRmeaf1PvvIvTgPnv4KJ+ES5M0PyDq5Jp+Ygy2g==}
+    dev: true
+
+  /should/13.2.3:
+    resolution: {integrity: sha512-ggLesLtu2xp+ZxI+ysJTmNjh2U0TsC+rQ/pfED9bUZZ4DKefP27D+7YJVVTvKsmjLpIi9jAa7itwDGkDDmt1GQ==}
+    dependencies:
+      should-equal: 2.0.0
+      should-format: 3.0.3
+      should-type: 1.4.0
+      should-type-adaptors: 1.1.0
+      should-util: 1.0.1
+    dev: true
+
+  /source-map-support/0.5.19:
+    resolution: {integrity: sha512-Wonm7zOCIJzBGQdB+thsPar0kYuCIzYvxZwlBa87yi/Mdjv7Tip2cyVbLj5o0cFPN4EVkuTwb3GDDyUx2DGnGw==}
+    dependencies:
+      buffer-from: 1.1.1
+      source-map: 0.6.1
+    dev: true
+
+  /source-map/0.6.1:
+    resolution: {integrity: sha512-UjgapumWlbMhkBgzT7Ykc5YXUT46F0iKu8SGXq0bcwP5dz/h0Plj6enJqjz1Zbq2l5WaqYnrVbwWOWMyF3F47g==}
+    engines: {node: '>=0.10.0'}
+    dev: true
+
+  /supports-color/7.2.0:
+    resolution: {integrity: sha512-qpCAvRl9stuOHveKsn7HncJRvv501qIacKzQlO/+Lwxc9+0q2wLyv4Dfvt80/DPn2pqOBsJdDiogXGR9+OvwRw==}
+    engines: {node: '>=8'}
+    dependencies:
+      has-flag: 4.0.0
+    dev: false
+
+  /typescript/4.2.3:
+    resolution: {integrity: sha512-qOcYwxaByStAWrBf4x0fibwZvMRG+r4cQoTjbPtUlrWjBHbmCAww1i448U0GJ+3cNNEtebDteo/cHOR3xJ4wEw==}
+    engines: {node: '>=4.2.0'}
+    hasBin: true
+    dev: true

@@ -1,18 +1,5 @@
-dependencies:
-  node-opcua-assert: link:../node-opcua-assert
-  node-opcua-basic-types: link:../node-opcua-basic-types
-  node-opcua-binary-stream: link:../node-opcua-binary-stream
-  node-opcua-data-model: link:../node-opcua-data-model
-  node-opcua-factory: link:../node-opcua-factory
-  node-opcua-nodeid: link:../node-opcua-nodeid
-  node-opcua-numeric-range: link:../node-opcua-numeric-range
-  node-opcua-service-browse: link:../node-opcua-service-browse
-  node-opcua-service-filter: link:../node-opcua-service-filter
-  node-opcua-service-secure-channel: link:../node-opcua-service-secure-channel
-  node-opcua-service-subscription: link:../node-opcua-service-subscription
-  node-opcua-service-translate-browse-path: link:../node-opcua-service-translate-browse-path
-  node-opcua-types: link:../node-opcua-types
-lockfileVersion: 5.2
+lockfileVersion: 5.3
+
 specifiers:
   node-opcua-assert: 2.35.0
   node-opcua-basic-types: 2.36.0
@@ -27,3 +14,18 @@ specifiers:
   node-opcua-service-subscription: 2.36.0
   node-opcua-service-translate-browse-path: 2.36.0
   node-opcua-types: 2.36.0
+
+dependencies:
+  node-opcua-assert: link:../node-opcua-assert
+  node-opcua-basic-types: link:../node-opcua-basic-types
+  node-opcua-binary-stream: link:../node-opcua-binary-stream
+  node-opcua-data-model: link:../node-opcua-data-model
+  node-opcua-factory: link:../node-opcua-factory
+  node-opcua-nodeid: link:../node-opcua-nodeid
+  node-opcua-numeric-range: link:../node-opcua-numeric-range
+  node-opcua-service-browse: link:../node-opcua-service-browse
+  node-opcua-service-filter: link:../node-opcua-service-filter
+  node-opcua-service-secure-channel: link:../node-opcua-service-secure-channel
+  node-opcua-service-subscription: link:../node-opcua-service-subscription
+  node-opcua-service-translate-browse-path: link:../node-opcua-service-translate-browse-path
+  node-opcua-types: link:../node-opcua-types

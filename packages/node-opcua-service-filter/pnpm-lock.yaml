@@ -1,60 +1,5 @@
-dependencies:
-  node-opcua-assert: link:../node-opcua-assert
-  node-opcua-basic-types: link:../node-opcua-basic-types
-  node-opcua-binary-stream: link:../node-opcua-binary-stream
-  node-opcua-constants: link:../node-opcua-constants
-  node-opcua-data-model: link:../node-opcua-data-model
-  node-opcua-debug: link:../node-opcua-debug
-  node-opcua-factory: link:../node-opcua-factory
-  node-opcua-nodeid: link:../node-opcua-nodeid
-  node-opcua-numeric-range: link:../node-opcua-numeric-range
-  node-opcua-service-translate-browse-path: link:../node-opcua-service-translate-browse-path
-  node-opcua-status-code: link:../node-opcua-status-code
-  node-opcua-types: link:../node-opcua-types
-  node-opcua-variant: link:../node-opcua-variant
-devDependencies:
-  node-opcua-service-secure-channel: link:../node-opcua-service-secure-channel
-  should: 13.2.3
-lockfileVersion: 5.2
-packages:
-  /should-equal/2.0.0:
-    dependencies:
-      should-type: 1.4.0
-    dev: true
-    resolution:
-      integrity: sha512-ZP36TMrK9euEuWQYBig9W55WPC7uo37qzAEmbjHz4gfyuXrEUgF8cUvQVO+w+d3OMfPvSRQJ22lSm8MQJ43LTA==
-  /should-format/3.0.3:
-    dependencies:
-      should-type: 1.4.0
-      should-type-adaptors: 1.1.0
-    dev: true
-    resolution:
-      integrity: sha1-m/yPdPo5IFxT04w01xcwPidxJPE=
-  /should-type-adaptors/1.1.0:
-    dependencies:
-      should-type: 1.4.0
-      should-util: 1.0.1
-    dev: true
-    resolution:
-      integrity: sha512-JA4hdoLnN+kebEp2Vs8eBe9g7uy0zbRo+RMcU0EsNy+R+k049Ki+N5tT5Jagst2g7EAja+euFuoXFCa8vIklfA==
-  /should-type/1.4.0:
-    dev: true
-    resolution:
-      integrity: sha1-B1bYzoRt/QmEOmlHcZ36DUz/XPM=
-  /should-util/1.0.1:
-    dev: true
-    resolution:
-      integrity: sha512-oXF8tfxx5cDk8r2kYqlkUJzZpDBqVY/II2WhvU0n9Y3XYvAYRmeaf1PvvIvTgPnv4KJ+ES5M0PyDq5Jp+Ygy2g==
-  /should/13.2.3:
-    dependencies:
-      should-equal: 2.0.0
-      should-format: 3.0.3
-      should-type: 1.4.0
-      should-type-adaptors: 1.1.0
-      should-util: 1.0.1
-    dev: true
-    resolution:
-      integrity: sha512-ggLesLtu2xp+ZxI+ysJTmNjh2U0TsC+rQ/pfED9bUZZ4DKefP27D+7YJVVTvKsmjLpIi9jAa7itwDGkDDmt1GQ==
+lockfileVersion: 5.3
+
 specifiers:
   node-opcua-assert: 2.35.0
   node-opcua-basic-types: 2.36.0
@@ -71,3 +16,62 @@ specifiers:
   node-opcua-types: 2.36.0
   node-opcua-variant: 2.36.0
   should: ^13.2.3
+
+dependencies:
+  node-opcua-assert: link:../node-opcua-assert
+  node-opcua-basic-types: link:../node-opcua-basic-types
+  node-opcua-binary-stream: link:../node-opcua-binary-stream
+  node-opcua-constants: link:../node-opcua-constants
+  node-opcua-data-model: link:../node-opcua-data-model
+  node-opcua-debug: link:../node-opcua-debug
+  node-opcua-factory: link:../node-opcua-factory
+  node-opcua-nodeid: link:../node-opcua-nodeid
+  node-opcua-numeric-range: link:../node-opcua-numeric-range
+  node-opcua-service-translate-browse-path: link:../node-opcua-service-translate-browse-path
+  node-opcua-status-code: link:../node-opcua-status-code
+  node-opcua-types: link:../node-opcua-types
+  node-opcua-variant: link:../node-opcua-variant
+
+devDependencies:
+  node-opcua-service-secure-channel: link:../node-opcua-service-secure-channel
+  should: 13.2.3
+
+packages:
+
+  /should-equal/2.0.0:
+    resolution: {integrity: sha512-ZP36TMrK9euEuWQYBig9W55WPC7uo37qzAEmbjHz4gfyuXrEUgF8cUvQVO+w+d3OMfPvSRQJ22lSm8MQJ43LTA==}
+    dependencies:
+      should-type: 1.4.0
+    dev: true
+
+  /should-format/3.0.3:
+    resolution: {integrity: sha1-m/yPdPo5IFxT04w01xcwPidxJPE=}
+    dependencies:
+      should-type: 1.4.0
+      should-type-adaptors: 1.1.0
+    dev: true
+
+  /should-type-adaptors/1.1.0:
+    resolution: {integrity: sha512-JA4hdoLnN+kebEp2Vs8eBe9g7uy0zbRo+RMcU0EsNy+R+k049Ki+N5tT5Jagst2g7EAja+euFuoXFCa8vIklfA==}
+    dependencies:
+      should-type: 1.4.0
+      should-util: 1.0.1
+    dev: true
+
+  /should-type/1.4.0:
+    resolution: {integrity: sha1-B1bYzoRt/QmEOmlHcZ36DUz/XPM=}
+    dev: true
+
+  /should-util/1.0.1:
+    resolution: {integrity: sha512-oXF8tfxx5cDk8r2kYqlkUJzZpDBqVY/II2WhvU0n9Y3XYvAYRmeaf1PvvIvTgPnv4KJ+ES5M0PyDq5Jp+Ygy2g==}
+    dev: true
+
+  /should/13.2.3:
+    resolution: {integrity: sha512-ggLesLtu2xp+ZxI+ysJTmNjh2U0TsC+rQ/pfED9bUZZ4DKefP27D+7YJVVTvKsmjLpIi9jAa7itwDGkDDmt1GQ==}
+    dependencies:
+      should-equal: 2.0.0
+      should-format: 3.0.3
+      should-type: 1.4.0
+      should-type-adaptors: 1.1.0
+      should-util: 1.0.1
+    dev: true

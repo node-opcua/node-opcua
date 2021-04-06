@@ -1,200 +1,5 @@
-dependencies:
-  node-opcua-assert: link:../node-opcua-assert
-  node-opcua-basic-types: link:../node-opcua-basic-types
-  node-opcua-crypto: 1.7.1
-  node-opcua-data-model: link:../node-opcua-data-model
-  node-opcua-factory: link:../node-opcua-factory
-  node-opcua-nodeid: link:../node-opcua-nodeid
-  node-opcua-service-endpoints: link:../node-opcua-service-endpoints
-  node-opcua-service-secure-channel: link:../node-opcua-service-secure-channel
-  node-opcua-types: link:../node-opcua-types
-devDependencies:
-  '@types/node': 14.14.33
-  should: 13.2.3
-lockfileVersion: 5.2
-packages:
-  /@types/node/14.14.33:
-    dev: true
-    resolution:
-      integrity: sha512-oJqcTrgPUF29oUP8AsUqbXGJNuPutsetaa9kTQAQce5Lx5dTYWV02ScBiT/k1BX/Z7pKeqedmvp39Wu4zR7N7g==
-  /ansi-styles/4.3.0:
-    dependencies:
-      color-convert: 2.0.1
-    dev: false
-    engines:
-      node: '>=8'
-    resolution:
-      integrity: sha512-zbB9rCJAT1rbjiVDb2hqKFHNYLxgtk8NURxZ3IZwD3F6NtxbXZQCnnSi1Lkx+IDohdPlFp222wVALIheZJQSEg==
-  /asn1/0.2.4:
-    dependencies:
-      safer-buffer: 2.1.2
-    dev: false
-    resolution:
-      integrity: sha512-jxwzQpLQjSmWXgwaCZE9Nz+glAG01yF1QnWgbhGwHI5A6FRIEY6IVqtHhIepHqI7/kyEyQEagBC5mBEFlIYvdg==
-  /assert-plus/1.0.0:
-    dev: false
-    engines:
-      node: '>=0.8'
-    resolution:
-      integrity: sha1-8S4PPF13sLHN2RRpQuTpbB5N1SU=
-  /bcrypt-pbkdf/1.0.2:
-    dependencies:
-      tweetnacl: 0.14.5
-    dev: false
-    resolution:
-      integrity: sha1-pDAdOJtqQ/m2f/PKEaP2Y342Dp4=
-  /better-assert/1.0.2:
-    dependencies:
-      callsite: 1.0.0
-    dev: false
-    resolution:
-      integrity: sha1-QIZrnhueC1W0gYlDEeaPr/rrxSI=
-  /callsite/1.0.0:
-    dev: false
-    resolution:
-      integrity: sha1-KAOY5dZkvXQDi28JBRU+borxvCA=
-  /chalk/4.1.0:
-    dependencies:
-      ansi-styles: 4.3.0
-      supports-color: 7.2.0
-    dev: false
-    engines:
-      node: '>=10'
-    resolution:
-      integrity: sha512-qwx12AxXe2Q5xQ43Ac//I6v5aXTipYrSESdOgzrN+9XjgEpyjpKuvSGaN4qE93f7TQTlerQQ8S+EQ0EyDoVL1A==
-  /color-convert/2.0.1:
-    dependencies:
-      color-name: 1.1.4
-    dev: false
-    engines:
-      node: '>=7.0.0'
-    resolution:
-      integrity: sha512-RRECPsj7iu/xb5oKYcsFHSppFNnsj/52OVTRKb4zP5onXwVF3zVmmToNcOfGC+CRDpfK/U584fMg38ZHCaElKQ==
-  /color-name/1.1.4:
-    dev: false
-    resolution:
-      integrity: sha512-dOy+3AuW3a2wNbZHIuMZpTcgjGuLU/uBL/ubcZF9OXbDo8ff4O8yVp5Bf0efS8uEoYo5q4Fx7dY9OgQGXgAsQA==
-  /dashdash/1.14.1:
-    dependencies:
-      assert-plus: 1.0.0
-    dev: false
-    engines:
-      node: '>=0.10'
-    resolution:
-      integrity: sha1-hTz6D3y+L+1d4gMmuN1YEDX24vA=
-  /ecc-jsbn/0.1.2:
-    dependencies:
-      jsbn: 0.1.1
-      safer-buffer: 2.1.2
-    dev: false
-    resolution:
-      integrity: sha1-OoOpBOVDUyh4dMVkt1SThoSamMk=
-  /getpass/0.1.7:
-    dependencies:
-      assert-plus: 1.0.0
-    dev: false
-    resolution:
-      integrity: sha1-Xv+OPmhNVprkyysSgmBOi6YhSfo=
-  /has-flag/4.0.0:
-    dev: false
-    engines:
-      node: '>=8'
-    resolution:
-      integrity: sha512-EykJT/Q1KjTWctppgIAgfSO0tKVuZUjhgMr17kqTumMl6Afv3EISleU7qZUzoXDFTAHTDC4NOoG/ZxU3EvlMPQ==
-  /hexy/0.3.1:
-    dev: false
-    hasBin: true
-    resolution:
-      integrity: sha512-mUarDrcDM53Hwvlm/sMkFQ1TfxOzLhQlDEaSqpIaQV9b+8u7Ba+dPS7zf/Ivx0CVfGzMBbPwuRUUbFy+5vDD7A==
-  /jsbn/0.1.1:
-    dev: false
-    resolution:
-      integrity: sha1-peZUwuWi3rXyAdls77yoDA7y9RM=
-  /jsrsasign/10.1.12:
-    dev: false
-    resolution:
-      integrity: sha512-1IWDl3DQOxXJpShE+Sb7vYOw3RhclqkqLuLagScuQrxgzwpCcp2DJcRzW92O4eSCPqMWoGdNJVfY3TKMb/JBZQ==
-  /node-opcua-crypto/1.7.1:
-    dependencies:
-      better-assert: 1.0.2
-      chalk: 4.1.0
-      hexy: 0.3.1
-      jsrsasign: 10.1.12
-      sshpk: 1.16.1
-    dev: false
-    resolution:
-      integrity: sha512-h8qKcDKk2bQcsfZww2NxJ1yhYcl7LfBfrBgVpeAwC5w9J7aebM5zb5fuseWpifgvWD2R5CZvOnhlNOypNLkIRQ==
-  /safer-buffer/2.1.2:
-    dev: false
-    resolution:
-      integrity: sha512-YZo3K82SD7Riyi0E1EQPojLz7kpepnSQI9IyPbHHg1XXXevb5dJI7tpyN2ADxGcQbHG7vcyRHk0cbwqcQriUtg==
-  /should-equal/2.0.0:
-    dependencies:
-      should-type: 1.4.0
-    dev: true
-    resolution:
-      integrity: sha512-ZP36TMrK9euEuWQYBig9W55WPC7uo37qzAEmbjHz4gfyuXrEUgF8cUvQVO+w+d3OMfPvSRQJ22lSm8MQJ43LTA==
-  /should-format/3.0.3:
-    dependencies:
-      should-type: 1.4.0
-      should-type-adaptors: 1.1.0
-    dev: true
-    resolution:
-      integrity: sha1-m/yPdPo5IFxT04w01xcwPidxJPE=
-  /should-type-adaptors/1.1.0:
-    dependencies:
-      should-type: 1.4.0
-      should-util: 1.0.1
-    dev: true
-    resolution:
-      integrity: sha512-JA4hdoLnN+kebEp2Vs8eBe9g7uy0zbRo+RMcU0EsNy+R+k049Ki+N5tT5Jagst2g7EAja+euFuoXFCa8vIklfA==
-  /should-type/1.4.0:
-    dev: true
-    resolution:
-      integrity: sha1-B1bYzoRt/QmEOmlHcZ36DUz/XPM=
-  /should-util/1.0.1:
-    dev: true
-    resolution:
-      integrity: sha512-oXF8tfxx5cDk8r2kYqlkUJzZpDBqVY/II2WhvU0n9Y3XYvAYRmeaf1PvvIvTgPnv4KJ+ES5M0PyDq5Jp+Ygy2g==
-  /should/13.2.3:
-    dependencies:
-      should-equal: 2.0.0
-      should-format: 3.0.3
-      should-type: 1.4.0
-      should-type-adaptors: 1.1.0
-      should-util: 1.0.1
-    dev: true
-    resolution:
-      integrity: sha512-ggLesLtu2xp+ZxI+ysJTmNjh2U0TsC+rQ/pfED9bUZZ4DKefP27D+7YJVVTvKsmjLpIi9jAa7itwDGkDDmt1GQ==
-  /sshpk/1.16.1:
-    dependencies:
-      asn1: 0.2.4
-      assert-plus: 1.0.0
-      bcrypt-pbkdf: 1.0.2
-      dashdash: 1.14.1
-      ecc-jsbn: 0.1.2
-      getpass: 0.1.7
-      jsbn: 0.1.1
-      safer-buffer: 2.1.2
-      tweetnacl: 0.14.5
-    dev: false
-    engines:
-      node: '>=0.10.0'
-    hasBin: true
-    resolution:
-      integrity: sha512-HXXqVUq7+pcKeLqqZj6mHFUMvXtOJt1uoUx09pFW6011inTMxqI8BA8PM95myrIyyKwdnzjdFjLiE6KBPVtJIg==
-  /supports-color/7.2.0:
-    dependencies:
-      has-flag: 4.0.0
-    dev: false
-    engines:
-      node: '>=8'
-    resolution:
-      integrity: sha512-qpCAvRl9stuOHveKsn7HncJRvv501qIacKzQlO/+Lwxc9+0q2wLyv4Dfvt80/DPn2pqOBsJdDiogXGR9+OvwRw==
-  /tweetnacl/0.14.5:
-    dev: false
-    resolution:
-      integrity: sha1-WuaBd/GS1EViadEIr6k/+HQ/T2Q=
+lockfileVersion: 5.3
+
 specifiers:
   '@types/node': ^14.14.33
   node-opcua-assert: 2.35.0
@@ -207,3 +12,194 @@ specifiers:
   node-opcua-service-secure-channel: 2.36.0
   node-opcua-types: 2.36.0
   should: ^13.2.3
+
+dependencies:
+  node-opcua-assert: link:../node-opcua-assert
+  node-opcua-basic-types: link:../node-opcua-basic-types
+  node-opcua-crypto: 1.7.1
+  node-opcua-data-model: link:../node-opcua-data-model
+  node-opcua-factory: link:../node-opcua-factory
+  node-opcua-nodeid: link:../node-opcua-nodeid
+  node-opcua-service-endpoints: link:../node-opcua-service-endpoints
+  node-opcua-service-secure-channel: link:../node-opcua-service-secure-channel
+  node-opcua-types: link:../node-opcua-types
+
+devDependencies:
+  '@types/node': 14.14.33
+  should: 13.2.3
+
+packages:
+
+  /@types/node/14.14.33:
+    resolution: {integrity: sha512-oJqcTrgPUF29oUP8AsUqbXGJNuPutsetaa9kTQAQce5Lx5dTYWV02ScBiT/k1BX/Z7pKeqedmvp39Wu4zR7N7g==}
+    dev: true
+
+  /ansi-styles/4.3.0:
+    resolution: {integrity: sha512-zbB9rCJAT1rbjiVDb2hqKFHNYLxgtk8NURxZ3IZwD3F6NtxbXZQCnnSi1Lkx+IDohdPlFp222wVALIheZJQSEg==}
+    engines: {node: '>=8'}
+    dependencies:
+      color-convert: 2.0.1
+    dev: false
+
+  /asn1/0.2.4:
+    resolution: {integrity: sha512-jxwzQpLQjSmWXgwaCZE9Nz+glAG01yF1QnWgbhGwHI5A6FRIEY6IVqtHhIepHqI7/kyEyQEagBC5mBEFlIYvdg==}
+    dependencies:
+      safer-buffer: 2.1.2
+    dev: false
+
+  /assert-plus/1.0.0:
+    resolution: {integrity: sha1-8S4PPF13sLHN2RRpQuTpbB5N1SU=}
+    engines: {node: '>=0.8'}
+    dev: false
+
+  /bcrypt-pbkdf/1.0.2:
+    resolution: {integrity: sha1-pDAdOJtqQ/m2f/PKEaP2Y342Dp4=}
+    dependencies:
+      tweetnacl: 0.14.5
+    dev: false
+
+  /better-assert/1.0.2:
+    resolution: {integrity: sha1-QIZrnhueC1W0gYlDEeaPr/rrxSI=}
+    dependencies:
+      callsite: 1.0.0
+    dev: false
+
+  /callsite/1.0.0:
+    resolution: {integrity: sha1-KAOY5dZkvXQDi28JBRU+borxvCA=}
+    dev: false
+
+  /chalk/4.1.0:
+    resolution: {integrity: sha512-qwx12AxXe2Q5xQ43Ac//I6v5aXTipYrSESdOgzrN+9XjgEpyjpKuvSGaN4qE93f7TQTlerQQ8S+EQ0EyDoVL1A==}
+    engines: {node: '>=10'}
+    dependencies:
+      ansi-styles: 4.3.0
+      supports-color: 7.2.0
+    dev: false
+
+  /color-convert/2.0.1:
+    resolution: {integrity: sha512-RRECPsj7iu/xb5oKYcsFHSppFNnsj/52OVTRKb4zP5onXwVF3zVmmToNcOfGC+CRDpfK/U584fMg38ZHCaElKQ==}
+    engines: {node: '>=7.0.0'}
+    dependencies:
+      color-name: 1.1.4
+    dev: false
+
+  /color-name/1.1.4:
+    resolution: {integrity: sha512-dOy+3AuW3a2wNbZHIuMZpTcgjGuLU/uBL/ubcZF9OXbDo8ff4O8yVp5Bf0efS8uEoYo5q4Fx7dY9OgQGXgAsQA==}
+    dev: false
+
+  /dashdash/1.14.1:
+    resolution: {integrity: sha1-hTz6D3y+L+1d4gMmuN1YEDX24vA=}
+    engines: {node: '>=0.10'}
+    dependencies:
+      assert-plus: 1.0.0
+    dev: false
+
+  /ecc-jsbn/0.1.2:
+    resolution: {integrity: sha1-OoOpBOVDUyh4dMVkt1SThoSamMk=}
+    dependencies:
+      jsbn: 0.1.1
+      safer-buffer: 2.1.2
+    dev: false
+
+  /getpass/0.1.7:
+    resolution: {integrity: sha1-Xv+OPmhNVprkyysSgmBOi6YhSfo=}
+    dependencies:
+      assert-plus: 1.0.0
+    dev: false
+
+  /has-flag/4.0.0:
+    resolution: {integrity: sha512-EykJT/Q1KjTWctppgIAgfSO0tKVuZUjhgMr17kqTumMl6Afv3EISleU7qZUzoXDFTAHTDC4NOoG/ZxU3EvlMPQ==}
+    engines: {node: '>=8'}
+    dev: false
+
+  /hexy/0.3.1:
+    resolution: {integrity: sha512-mUarDrcDM53Hwvlm/sMkFQ1TfxOzLhQlDEaSqpIaQV9b+8u7Ba+dPS7zf/Ivx0CVfGzMBbPwuRUUbFy+5vDD7A==}
+    hasBin: true
+    dev: false
+
+  /jsbn/0.1.1:
+    resolution: {integrity: sha1-peZUwuWi3rXyAdls77yoDA7y9RM=}
+    dev: false
+
+  /jsrsasign/10.1.12:
+    resolution: {integrity: sha512-1IWDl3DQOxXJpShE+Sb7vYOw3RhclqkqLuLagScuQrxgzwpCcp2DJcRzW92O4eSCPqMWoGdNJVfY3TKMb/JBZQ==}
+    dev: false
+
+  /node-opcua-crypto/1.7.1:
+    resolution: {integrity: sha512-h8qKcDKk2bQcsfZww2NxJ1yhYcl7LfBfrBgVpeAwC5w9J7aebM5zb5fuseWpifgvWD2R5CZvOnhlNOypNLkIRQ==}
+    dependencies:
+      better-assert: 1.0.2
+      chalk: 4.1.0
+      hexy: 0.3.1
+      jsrsasign: 10.1.12
+      sshpk: 1.16.1
+    dev: false
+
+  /safer-buffer/2.1.2:
+    resolution: {integrity: sha512-YZo3K82SD7Riyi0E1EQPojLz7kpepnSQI9IyPbHHg1XXXevb5dJI7tpyN2ADxGcQbHG7vcyRHk0cbwqcQriUtg==}
+    dev: false
+
+  /should-equal/2.0.0:
+    resolution: {integrity: sha512-ZP36TMrK9euEuWQYBig9W55WPC7uo37qzAEmbjHz4gfyuXrEUgF8cUvQVO+w+d3OMfPvSRQJ22lSm8MQJ43LTA==}
+    dependencies:
+      should-type: 1.4.0
+    dev: true
+
+  /should-format/3.0.3:
+    resolution: {integrity: sha1-m/yPdPo5IFxT04w01xcwPidxJPE=}
+    dependencies:
+      should-type: 1.4.0
+      should-type-adaptors: 1.1.0
+    dev: true
+
+  /should-type-adaptors/1.1.0:
+    resolution: {integrity: sha512-JA4hdoLnN+kebEp2Vs8eBe9g7uy0zbRo+RMcU0EsNy+R+k049Ki+N5tT5Jagst2g7EAja+euFuoXFCa8vIklfA==}
+    dependencies:
+      should-type: 1.4.0
+      should-util: 1.0.1
+    dev: true
+
+  /should-type/1.4.0:
+    resolution: {integrity: sha1-B1bYzoRt/QmEOmlHcZ36DUz/XPM=}
+    dev: true
+
+  /should-util/1.0.1:
+    resolution: {integrity: sha512-oXF8tfxx5cDk8r2kYqlkUJzZpDBqVY/II2WhvU0n9Y3XYvAYRmeaf1PvvIvTgPnv4KJ+ES5M0PyDq5Jp+Ygy2g==}
+    dev: true
+
+  /should/13.2.3:
+    resolution: {integrity: sha512-ggLesLtu2xp+ZxI+ysJTmNjh2U0TsC+rQ/pfED9bUZZ4DKefP27D+7YJVVTvKsmjLpIi9jAa7itwDGkDDmt1GQ==}
+    dependencies:
+      should-equal: 2.0.0
+      should-format: 3.0.3
+      should-type: 1.4.0
+      should-type-adaptors: 1.1.0
+      should-util: 1.0.1
+    dev: true
+
+  /sshpk/1.16.1:
+    resolution: {integrity: sha512-HXXqVUq7+pcKeLqqZj6mHFUMvXtOJt1uoUx09pFW6011inTMxqI8BA8PM95myrIyyKwdnzjdFjLiE6KBPVtJIg==}
+    engines: {node: '>=0.10.0'}
+    hasBin: true
+    dependencies:
+      asn1: 0.2.4
+      assert-plus: 1.0.0
+      bcrypt-pbkdf: 1.0.2
+      dashdash: 1.14.1
+      ecc-jsbn: 0.1.2
+      getpass: 0.1.7
+      jsbn: 0.1.1
+      safer-buffer: 2.1.2
+      tweetnacl: 0.14.5
+    dev: false
+
+  /supports-color/7.2.0:
+    resolution: {integrity: sha512-qpCAvRl9stuOHveKsn7HncJRvv501qIacKzQlO/+Lwxc9+0q2wLyv4Dfvt80/DPn2pqOBsJdDiogXGR9+OvwRw==}
+    engines: {node: '>=8'}
+    dependencies:
+      has-flag: 4.0.0
+    dev: false
+
+  /tweetnacl/0.14.5:
+    resolution: {integrity: sha1-WuaBd/GS1EViadEIr6k/+HQ/T2Q=}
+    dev: false

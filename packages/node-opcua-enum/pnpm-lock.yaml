@@ -1,46 +1,56 @@
+lockfileVersion: 5.3
+
+specifiers:
+  enum: 3.0.4
+  node-opcua-assert: 2.35.0
+  node-opcua-benchmarker: 2.36.0
+  should: ^13.2.3
+
 dependencies:
   node-opcua-assert: link:../node-opcua-assert
+
 devDependencies:
   enum: 3.0.4
   node-opcua-benchmarker: link:../node-opcua-benchmarker
   should: 13.2.3
-lockfileVersion: 5.2
+
 packages:
+
   /enum/3.0.4:
+    resolution: {integrity: sha512-X+VaPeIut6Vh0nJq1sfSBQQuqVmjUpiheoR5RokqeRm4xkzsNZjOqK+gpSnW+BrEs5d9q7Wl+nf1LpolFDYp4g==}
+    engines: {node: '>=0.6.0'}
     dev: true
-    engines:
-      node: '>=0.6.0'
-    resolution:
-      integrity: sha512-X+VaPeIut6Vh0nJq1sfSBQQuqVmjUpiheoR5RokqeRm4xkzsNZjOqK+gpSnW+BrEs5d9q7Wl+nf1LpolFDYp4g==
+
   /should-equal/2.0.0:
+    resolution: {integrity: sha512-ZP36TMrK9euEuWQYBig9W55WPC7uo37qzAEmbjHz4gfyuXrEUgF8cUvQVO+w+d3OMfPvSRQJ22lSm8MQJ43LTA==}
     dependencies:
       should-type: 1.4.0
     dev: true
-    resolution:
-      integrity: sha512-ZP36TMrK9euEuWQYBig9W55WPC7uo37qzAEmbjHz4gfyuXrEUgF8cUvQVO+w+d3OMfPvSRQJ22lSm8MQJ43LTA==
+
   /should-format/3.0.3:
+    resolution: {integrity: sha1-m/yPdPo5IFxT04w01xcwPidxJPE=}
     dependencies:
       should-type: 1.4.0
       should-type-adaptors: 1.1.0
     dev: true
-    resolution:
-      integrity: sha1-m/yPdPo5IFxT04w01xcwPidxJPE=
+
   /should-type-adaptors/1.1.0:
+    resolution: {integrity: sha512-JA4hdoLnN+kebEp2Vs8eBe9g7uy0zbRo+RMcU0EsNy+R+k049Ki+N5tT5Jagst2g7EAja+euFuoXFCa8vIklfA==}
     dependencies:
       should-type: 1.4.0
       should-util: 1.0.1
     dev: true
-    resolution:
-      integrity: sha512-JA4hdoLnN+kebEp2Vs8eBe9g7uy0zbRo+RMcU0EsNy+R+k049Ki+N5tT5Jagst2g7EAja+euFuoXFCa8vIklfA==
+
   /should-type/1.4.0:
+    resolution: {integrity: sha1-B1bYzoRt/QmEOmlHcZ36DUz/XPM=}
     dev: true
-    resolution:
-      integrity: sha1-B1bYzoRt/QmEOmlHcZ36DUz/XPM=
+
   /should-util/1.0.1:
+    resolution: {integrity: sha512-oXF8tfxx5cDk8r2kYqlkUJzZpDBqVY/II2WhvU0n9Y3XYvAYRmeaf1PvvIvTgPnv4KJ+ES5M0PyDq5Jp+Ygy2g==}
     dev: true
-    resolution:
-      integrity: sha512-oXF8tfxx5cDk8r2kYqlkUJzZpDBqVY/II2WhvU0n9Y3XYvAYRmeaf1PvvIvTgPnv4KJ+ES5M0PyDq5Jp+Ygy2g==
+
   /should/13.2.3:
+    resolution: {integrity: sha512-ggLesLtu2xp+ZxI+ysJTmNjh2U0TsC+rQ/pfED9bUZZ4DKefP27D+7YJVVTvKsmjLpIi9jAa7itwDGkDDmt1GQ==}
     dependencies:
       should-equal: 2.0.0
       should-format: 3.0.3
@@ -48,10 +58,3 @@ packages:
       should-type-adaptors: 1.1.0
       should-util: 1.0.1
     dev: true
-    resolution:
-      integrity: sha512-ggLesLtu2xp+ZxI+ysJTmNjh2U0TsC+rQ/pfED9bUZZ4DKefP27D+7YJVVTvKsmjLpIi9jAa7itwDGkDDmt1GQ==
-specifiers:
-  enum: 3.0.4
-  node-opcua-assert: 2.35.0
-  node-opcua-benchmarker: 2.36.0
-  should: ^13.2.3

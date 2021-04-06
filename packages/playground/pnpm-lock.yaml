@@ -1,13 +1,15 @@
-dependencies:
-  node-opcua: link:../node-opcua
-  node-opcua-assert: link:../node-opcua-assert
-  node-opcua-client: link:../node-opcua-client
-  node-opcua-modeler: link:../node-opcua-modeler
-  node-opcua-utils: link:../node-opcua-utils
-lockfileVersion: 5.2
+lockfileVersion: 5.3
+
 specifiers:
   node-opcua: 2.36.0
   node-opcua-assert: 2.35.0
   node-opcua-client: 2.36.0
   node-opcua-modeler: 2.36.3
   node-opcua-utils: 2.36.0
+
+dependencies:
+  node-opcua: link:../node-opcua
+  node-opcua-assert: link:../node-opcua-assert
+  node-opcua-client: link:../node-opcua-client
+  node-opcua-modeler: link:../node-opcua-modeler
+  node-opcua-utils: link:../node-opcua-utils
