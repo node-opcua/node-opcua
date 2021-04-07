@@ -12,7 +12,7 @@
     "types": "./dist/index.d.ts",
     "dependencies": {
         "@ster5/global-mutex": "^1.1.1",
-        "@types/underscore": "^1.11.0",
+        "@types/underscore": "^1.11.1",
         "async": "^3.2.0",
         "bonjour": "^3.5.0",
         "browser-process-hrtime": "^1.0.0",

@@ -11,7 +11,7 @@
         "clean": "node -e \"require('rimraf').sync('dist');\""
     },
     "dependencies": {
-        "@types/underscore": "^1.11.0",
+        "@types/underscore": "^1.11.1",
         "async": "^3.2.0",
         "backoff": "^2.5.0",
         "chalk": "^4.1.0",

@@ -2,7 +2,7 @@ lockfileVersion: 5.3
 
 specifiers:
   '@types/lodash': 4.14.168
-  '@types/underscore': ^1.11.0
+  '@types/underscore': ^1.11.1
   lodash: 4.17.21
   node-opcua-assert: 2.37.0
   node-opcua-basic-types: 2.37.0
@@ -34,7 +34,7 @@ dependencies:
 
 devDependencies:
   '@types/lodash': 4.14.168
-  '@types/underscore': 1.11.0
+  '@types/underscore': 1.11.1
   lodash: 4.17.21
   node-opcua-benchmarker: link:../node-opcua-benchmarker
   node-opcua-binary-stream: link:../node-opcua-binary-stream
@@ -52,8 +52,8 @@ packages:
     resolution: {integrity: sha512-oVfRvqHV/V6D1yifJbVRU3TMp8OT6o6BG+U9MkwuJ3U8/CsDHvalRpsxBqivn71ztOFZBTfJMvETbqHiaNSj7Q==}
     dev: true
 
-  /@types/underscore/1.11.0:
-    resolution: {integrity: sha512-ipNAQLgRnG0EWN1cTtfdVHp5AyTW/PAMJ1PxLN4bAKSHbusSZbj48mIHiydQpN7GgQrYqwfnvZ573OVfJm5Nzg==}
+  /@types/underscore/1.11.1:
+    resolution: {integrity: sha512-mW23Xkp9HYgdMV7gnwuzqnPx6aG0J7xg/b7erQszOcyOizWylwCr9cgYM/BVVJHezUDxwyigG6+wCFQwCvyMBw==}
     dev: true
 
   /buffer-from/1.1.1:
