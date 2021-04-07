@@ -5,7 +5,7 @@ environment:
     # - nodejs_version: "6" (not supported anu more => lack of util.promisify )
     # - nodejs_version: "8" ( Jan 2021 -> not supported any more sicnce Jan 2020 - lack for await require by new version of mocha)
     # - nodejs_version: "9"  (not supported any more)
-    - nodejs_version: "10"
+    # - nodejs_version: "10" (not supported any mopre -> end of life 2021-04-30)
     # - nodejs_version: "11" (not supported any more)
     - nodejs_version: "12" 
     - nodejs_version: "14"

@@ -9,10 +9,11 @@ node_js:
   # dropped - "7"
   # dropped - "8"  - (January 2021 )( 'for await' not supported - required by latest version of mocha)
   # dropped - "9"
-  - "10"
+  # dropped - "10" (not supported any mopre -> end of life 2021-04-30)
   # - "11" not used yet => Lerna stack overflows!
   - "12"
   - "14"
+  - "15"
 os:
   - linux
   # - osx
