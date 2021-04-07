@@ -94,6 +94,7 @@ script:
         pnpm run pretest;
         make test-cov;
       else  
+        pnpm run pretest;
         pnpm test;
       fi ;
     fi ;

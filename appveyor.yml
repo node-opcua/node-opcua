@@ -40,6 +40,7 @@ test_script:
   - node --version
   - pnpm --version
   # run tests
+  - pnpm run pretest
   - pnpm test
   # run typescript in packages that have some
   # - node  ./node_modules/lerna/cli.js run test-typescript
