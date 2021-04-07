@@ -2,7 +2,7 @@ lockfileVersion: 5.3
 
 specifiers:
   '@types/node': ^14.14.37
-  '@types/underscore': ^1.11.0
+  '@types/underscore': ^1.11.1
   async: ^3.2.0
   backoff: ^2.5.0
   chalk: ^4.1.0
@@ -39,7 +39,7 @@ specifiers:
   underscore: ^1.12.0
 
 dependencies:
-  '@types/underscore': 1.11.0
+  '@types/underscore': 1.11.1
   async: 3.2.0
   backoff: 2.5.0
   chalk: 4.1.0
@@ -108,8 +108,8 @@ packages:
     resolution: {integrity: sha512-XYmBiy+ohOR4Lh5jE379fV2IU+6Jn4g5qASinhitfyO71b/sCo6MKsMLF5tc7Zf2CE8hViVQyYSobJNke8OvUw==}
     dev: true
 
-  /@types/underscore/1.11.0:
-    resolution: {integrity: sha512-ipNAQLgRnG0EWN1cTtfdVHp5AyTW/PAMJ1PxLN4bAKSHbusSZbj48mIHiydQpN7GgQrYqwfnvZ573OVfJm5Nzg==}
+  /@types/underscore/1.11.1:
+    resolution: {integrity: sha512-mW23Xkp9HYgdMV7gnwuzqnPx6aG0J7xg/b7erQszOcyOizWylwCr9cgYM/BVVJHezUDxwyigG6+wCFQwCvyMBw==}
     dev: false
 
   /ansi-styles/4.3.0:

@@ -15,7 +15,7 @@
         "@ster5/global-mutex": "1.1.1",
         "@types/async": "^3.2.6",
         "@types/once": "^1.4.0",
-        "@types/underscore": "^1.11.0",
+        "@types/underscore": "^1.11.1",
         "async": "^3.2.0",
         "callbackify": "^1.1.0",
         "chalk": "^4.1.0",
