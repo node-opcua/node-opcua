@@ -27,12 +27,13 @@ jobs:
     - run: npm install -g pnpm
     - run: pnpm recursive install
     - run: pnpm run build --if-present
+    - run: pnpm run pretest
     - run: pnpm test
   build:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node-version: [10.x, 14.x]
+        node-version: [14.x]
 
     steps:
     - uses: actions/checkout@v2
@@ -43,12 +44,13 @@ jobs:
     - run: npm install -g pnpm
     - run: pnpm recursive install
     - run: pnpm run build
+    - run: pnpm run pretest
     - run: pnpm test
   coverage:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node-version: [ 10.x]
+        node-version: [ 12.x]
     steps:
       - uses: actions/checkout@v2
       - name: Use Node.js ${{ matrix.node-version }}
