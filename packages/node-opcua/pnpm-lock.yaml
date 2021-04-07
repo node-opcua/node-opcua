@@ -2,54 +2,54 @@ lockfileVersion: 5.3
 
 specifiers:
   chalk: ^4.1.0
-  node-opcua-address-space: 2.36.0
-  node-opcua-address-space-for-conformance-testing: 2.36.0
-  node-opcua-aggregates: 2.36.0
-  node-opcua-assert: 2.35.0
-  node-opcua-basic-types: 2.36.0
-  node-opcua-binary-stream: 2.36.0
-  node-opcua-certificate-manager: 2.36.0
-  node-opcua-client: 2.36.0
-  node-opcua-client-crawler: 2.36.0
-  node-opcua-client-proxy: 2.36.0
-  node-opcua-common: 2.36.0
+  node-opcua-address-space: 2.37.0
+  node-opcua-address-space-for-conformance-testing: 2.37.0
+  node-opcua-aggregates: 2.37.0
+  node-opcua-assert: 2.37.0
+  node-opcua-basic-types: 2.37.0
+  node-opcua-binary-stream: 2.37.0
+  node-opcua-certificate-manager: 2.37.0
+  node-opcua-client: 2.37.0
+  node-opcua-client-crawler: 2.37.0
+  node-opcua-client-proxy: 2.37.0
+  node-opcua-common: 2.37.0
   node-opcua-constants: 2.35.0
   node-opcua-crypto: ^1.7.1
-  node-opcua-data-access: 2.36.0
-  node-opcua-data-model: 2.36.0
-  node-opcua-data-value: 2.36.0
-  node-opcua-debug: 2.36.0
-  node-opcua-enum: 2.36.0
-  node-opcua-factory: 2.36.0
-  node-opcua-hostname: 2.36.0
-  node-opcua-nodeid: 2.36.0
+  node-opcua-data-access: 2.37.0
+  node-opcua-data-model: 2.37.0
+  node-opcua-data-value: 2.37.0
+  node-opcua-debug: 2.37.0
+  node-opcua-enum: 2.37.0
+  node-opcua-factory: 2.37.0
+  node-opcua-hostname: 2.37.0
+  node-opcua-nodeid: 2.37.0
   node-opcua-nodesets: 2.36.0
-  node-opcua-numeric-range: 2.36.0
-  node-opcua-packet-analyzer: 2.36.0
-  node-opcua-secure-channel: 2.36.0
-  node-opcua-server: 2.36.0
-  node-opcua-server-discovery: 2.36.0
-  node-opcua-service-browse: 2.36.0
-  node-opcua-service-call: 2.36.0
-  node-opcua-service-discovery: 2.36.0
-  node-opcua-service-endpoints: 2.36.0
-  node-opcua-service-filter: 2.36.0
-  node-opcua-service-history: 2.36.0
-  node-opcua-service-node-management: 2.36.0
-  node-opcua-service-query: 2.36.0
-  node-opcua-service-read: 2.36.0
-  node-opcua-service-register-node: 2.36.0
-  node-opcua-service-secure-channel: 2.36.0
-  node-opcua-service-session: 2.36.0
-  node-opcua-service-subscription: 2.36.0
-  node-opcua-service-translate-browse-path: 2.36.0
-  node-opcua-service-write: 2.36.0
-  node-opcua-status-code: 2.36.0
-  node-opcua-transport: 2.36.0
-  node-opcua-types: 2.36.0
-  node-opcua-utils: 2.36.0
-  node-opcua-variant: 2.36.0
-  node-opcua-vendor-diagnostic: 2.36.0
+  node-opcua-numeric-range: 2.37.0
+  node-opcua-packet-analyzer: 2.37.0
+  node-opcua-secure-channel: 2.37.0
+  node-opcua-server: 2.37.0
+  node-opcua-server-discovery: 2.37.0
+  node-opcua-service-browse: 2.37.0
+  node-opcua-service-call: 2.37.0
+  node-opcua-service-discovery: 2.37.0
+  node-opcua-service-endpoints: 2.37.0
+  node-opcua-service-filter: 2.37.0
+  node-opcua-service-history: 2.37.0
+  node-opcua-service-node-management: 2.37.0
+  node-opcua-service-query: 2.37.0
+  node-opcua-service-read: 2.37.0
+  node-opcua-service-register-node: 2.37.0
+  node-opcua-service-secure-channel: 2.37.0
+  node-opcua-service-session: 2.37.0
+  node-opcua-service-subscription: 2.37.0
+  node-opcua-service-translate-browse-path: 2.37.0
+  node-opcua-service-write: 2.37.0
+  node-opcua-status-code: 2.37.0
+  node-opcua-transport: 2.37.0
+  node-opcua-types: 2.37.0
+  node-opcua-utils: 2.37.0
+  node-opcua-variant: 2.37.0
+  node-opcua-vendor-diagnostic: 2.37.0
   semver: ^7.3.4
   should: ^13.2.3
 
