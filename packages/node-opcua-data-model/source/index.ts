@@ -2,6 +2,7 @@
  * @module node-opcua-data-model
  */
 export * from "./access_level";
+export * from "./access_level_ex";
 export * from "./localized_text";
 export * from "./qualified_name";
 export * from "./diagnostic_info";
