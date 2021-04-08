@@ -56,7 +56,7 @@ export class QualifiedName extends BaseUAObject {
     constructor(options?: QualifiedNameOptions | null) {
         super();
         // for de-serialization
-        if (options === null) {
+        if (options === null || options === undefined) {
             this.namespaceIndex = 0;
             this.name = null;
             return;
@@ -66,8 +66,8 @@ export class QualifiedName extends BaseUAObject {
             const schema = QualifiedName.schema;
             check_options_correctness_against_schema(this, schema, options);
         }
-        this.namespaceIndex = options?.namespaceIndex || 0;
-        this.name = options?.name || null;
+        this.namespaceIndex = options.namespaceIndex || 0;
+        this.name = options.name || null;
     }
 
     /**
