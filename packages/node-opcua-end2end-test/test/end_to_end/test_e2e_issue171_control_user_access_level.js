@@ -3,26 +3,27 @@ const async = require("async");
 const should = require("should");
 const opcua = require("node-opcua");
 
-const OPCUAClient = opcua.OPCUAClient;
-const StatusCodes = opcua.StatusCodes;
+const {
+    OPCUAClient,
+    StatusCodes,
+    Permission,
+    WellKnownRoles,
+    AttributeIds
+} = opcua;
 
 const { build_server_with_temperature_device } = require("../../test_helpers/build_server_with_temperature_device");
 
-const { perform_operation_on_client_session } = require("../../test_helpers/perform_operation_on_client_session");
-
-
 const users = [
-    { username: "user1", password: "1", role: "admin" },
-    { username: "user1", password: "1", role: "operator" },
-    { username: "anonymous", password: "0", role: "guest" },
+    { username: "user1", password: "1", role: "ConfigureAdmin" },
+    { username: "user2", password: "2", role: "Operator" },
 
 ];
 
 // simplistic user manager for test purpose only ( do not use in production !)
 const userManager = {
 
-    isValidUser: function(username, password) {
-        const uIndex = users.findIndex(function(u) {
+    isValidUser: function (username, password) {
+        const uIndex = users.findIndex(function (u) {
             return u.username === username;
         });
         if (uIndex < 0) {
@@ -34,8 +35,8 @@ const userManager = {
         return true;
     },
 
-    getUserRole: function(username) {
-        const uIndex = users.findIndex(function(x) {
+    getUserRole: function (username) {
+        const uIndex = users.findIndex(function (x) {
             return x.username === username;
         });
         if (uIndex < 0) {
@@ -48,25 +49,25 @@ const userManager = {
 };
 
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
-describe("testing Client-Server with UserName/Password identity token", function() {
+describe("testing Client-Server with UserName/Password identity token", function () {
 
     let server, client, endpointUrl;
     let node1;
 
     const port = 2224;
 
-    before(function(done) {
+    before(function (done) {
 
         const options = {
             port,
             //xx            allowAnonymous: false
         };
 
-        server = build_server_with_temperature_device(options, function(err) {
+        server = build_server_with_temperature_device(options, function (err) {
 
             const permissionType1 = {
-                CurrentRead: ["*", "!guest"], // accept all, except guest
-                CurrentWrite: ["!*", "admin"]  // deny all except admint
+                [Permission.Read]: ["*", "!" + WellKnownRoles.Anonymous], // accept all, except guest(Anonymous)
+                [Permission.Write]: ["!*", WellKnownRoles.ConfigureAdmin]  // deny all except admin
             };
 
             endpointUrl = server.getEndpointUrl();
@@ -91,123 +92,70 @@ describe("testing Client-Server with UserName/Password identity token", function
         });
     });
 
-    beforeEach(function(done) {
+    beforeEach(() => {
         client = null;
-        done();
     });
 
-    afterEach(function(done) {
+    afterEach(() => {
         client = null;
-        done();
     });
 
-    after(function(done) {
-        server.shutdown(done);
+    after(async () => {
+        await server.shutdown();
     });
 
-    it("Anonymous user should not be able to read or to write V1 node value", function(done) {
+    async function read(session) {
+        const nodeToRead = {
+            nodeId: node1.nodeId.toString(),
+            attributeId: AttributeIds.Value,
+        };
+        const dataValue = await session.read(nodeToRead);
+        return dataValue.statusCode;
+    }
+
+
+    let _the_value = 45;
+
+    async function write(session) {
+        _the_value = _the_value + 1.12;
+        const nodesToWrite = [
+            {
+                nodeId: node1.nodeId.toString(),
+                attributeId: opcua.AttributeIds.Value,
+                value: /*new DataValue(*/{
+                    value: {/* Variant */dataType: opcua.DataType.Double, value: _the_value }
+                }
+            }
+        ];
+        const statusCodes = await session.write(nodesToWrite);
+        return statusCodes[0];
+    }
+    it("Anonymous user should not be able to read or to write V1 node value", async () => {
 
         const client = OPCUAClient.create();
 
-        function read(session, callback) {
-            const nodeToRead = {
-                nodeId: node1.nodeId.toString(),
-                attributeId: opcua.AttributeIds.Value,
-                indexRange: null,
-                dataEncoding: null
-            };
-            session.read(nodeToRead, function(err, dataValue) {
-                if (err) {
-                    return callback(err);
-                }
-                callback(err, dataValue.statusCode);
-            });
-        }
+        await client.withSessionAsync(endpointUrl, async (session) => {
+            // ---------------------------------------------------------------------------------
+            // As Anonymous user - access should be denied for read and write
+            // ---------------------------------------------------------------------------------
+            let statusCode = await read(session);
+            statusCode.should.eql(StatusCodes.BadUserAccessDenied);
 
-        let _the_value = 45;
+            statusCode = await write(session);
+            statusCode.should.eql(StatusCodes.BadUserAccessDenied);
 
-        function write(session, callback) {
-            _the_value = _the_value + 1.12;
-            const nodesToWrite = [
-                {
-                    nodeId: node1.nodeId.toString(),
-                    attributeId: opcua.AttributeIds.Value,
-                    value: /*new DataValue(*/{
-                        value: {/* Variant */dataType: opcua.DataType.Double, value: _the_value }
-                    }
-                }
-            ];
-            session.write(nodesToWrite, function(err, results) {
-                if (err) {
-                    return callback(err);
-                }
-                callback(err, results[0]);
-            });
-        }
+            // ---------------------------------------------------------------------------------
+            // As admin user - acess should be granted
+            // ---------------------------------------------------------------------------------
+            console.log("    impersonate user user1 on existing session");
+            const userIdentity = { userName: "user1", password: "1" };
+            await client.changeSessionIdentity(session, userIdentity);
 
-        perform_operation_on_client_session(client, endpointUrl, function(session, inner_done) {
+            statusCode = await read(session);
+            statusCode.should.eql(StatusCodes.Good);
+            statusCode = await write(session);
+            statusCode.should.eql(StatusCodes.Good);
 
-            async.series([
-
-                // ---------------------------------------------------------------------------------
-                // As Anonymous user
-                // ---------------------------------------------------------------------------------
-
-                function(callback) {
-                    read(session, function(err, statusCode) {
-                        if (err) {
-                            return callback(err);
-                        }
-                        statusCode.should.eql(StatusCodes.BadUserAccessDenied);
-                        callback();
-                    })
-                },
-                function(callback) {
-                    write(session, function(err, statusCode) {
-                        if (err) {
-                            return callback(err);
-                        }
-                        statusCode.should.eql(StatusCodes.BadUserAccessDenied);
-                        callback();
-                    })
-                },
-
-                // ---------------------------------------------------------------------------------
-                // As admin user
-                // ---------------------------------------------------------------------------------
-                function(callback) {
-                    console.log("    impersonate user user1 on existing session");
-                    const userIdentity = { userName: "user1", password: "1" };
-
-                    client.changeSessionIdentity(session, userIdentity, function(err) {
-                        if (err) {
-                            return callback(err);
-                        }
-                        callback();
-                    });
-                },
-
-                function(callback) {
-                    read(session, function(err, statusCode) {
-                        if (err) {
-                            return callback(err);
-                        }
-                        statusCode.should.eql(StatusCodes.Good);
-                        callback();
-                    });
-                },
-                function(callback) {
-                    write(session, function(err, statusCode) {
-                        if (err) {
-                            return callback(err);
-                        }
-                        statusCode.should.eql(StatusCodes.Good);
-                        callback();
-                    });
-                }
-            ], inner_done);
-
-        }, done);
+        });
     });
-
 });

@@ -15,7 +15,8 @@ import {
     AccessLevelFlag,
     makeAccessLevelFlag,
     AttributeIds,
-    isDataEncoding
+    isDataEncoding,
+    AccessLevelFlagString
 } from "node-opcua-data-model";
 import { extractRange, sameDataValue, DataValue, DataValueLike } from "node-opcua-data-value";
 import { coerceClock, getCurrentClock, PreciseClock } from "node-opcua-date-time";
@@ -27,6 +28,7 @@ import { WriteValue, WriteValueOptions } from "node-opcua-service-write";
 import { StatusCode, StatusCodes, CallbackT } from "node-opcua-status-code";
 import {
     HistoryReadResult,
+    PermissionType,
     ReadAtTimeDetails,
     ReadEventDetails,
     ReadProcessedDetails,
@@ -47,12 +49,13 @@ import {
     ContinuationPoint,
     DataValueCallback,
     HistoricalDataConfiguration,
+    isValidPermissions,
     IVariableHistorian,
-    Permissions,
     PseudoSession,
     UADataType as UADataTypePublic,
     UAVariable as UAVariablePublic,
-    UAVariableType
+    UAVariableType,
+    VariablePermissions
 } from "../source";
 import { BaseNode, InternalBaseNodeOptions } from "./base_node";
 import {
@@ -75,18 +78,16 @@ function isGoodish(statusCode: StatusCode) {
     return statusCode.value < 0x10000000;
 }
 
-export function adjust_accessLevel(accessLevel: any): AccessLevelFlag {
+export function adjust_accessLevel(accessLevel: string | number | null): AccessLevelFlag {
     accessLevel = utils.isNullOrUndefined(accessLevel) ? "CurrentRead | CurrentWrite" : accessLevel;
     accessLevel = makeAccessLevelFlag(accessLevel);
     assert(isFinite(accessLevel));
     return accessLevel;
 }
 
-export function adjust_userAccessLevel(userAccessLevel: any, accessLevel: any): AccessLevelFlag {
-    userAccessLevel = utils.isNullOrUndefined(userAccessLevel) ? "CurrentRead | CurrentWrite" : userAccessLevel;
-    userAccessLevel = makeAccessLevelFlag(userAccessLevel);
-    accessLevel = utils.isNullOrUndefined(accessLevel) ? "CurrentRead | CurrentWrite" : accessLevel;
-    accessLevel = makeAccessLevelFlag(accessLevel);
+export function adjust_userAccessLevel(userAccessLevel: string | number | null, accessLevel: string | number | null): AccessLevelFlag {
+    userAccessLevel = adjust_accessLevel(userAccessLevel);
+    accessLevel = adjust_accessLevel(accessLevel);
     return makeAccessLevelFlag(accessLevel & userAccessLevel);
 }
 
@@ -218,7 +219,7 @@ interface UAVariableOptions extends InternalBaseNodeOptions {
     userAccessLevel?: any;
     minimumSamplingInterval?: number; // default -1
     historizing?: number;
-    permissions?: Permissions;
+    permissions?: VariablePermissions;
     /* @param [options.permissions] {Permissions}
      * @param options.parentNodeId {NodeId}
      */
@@ -248,9 +249,9 @@ export function verifyRankAndDimensions(options: { valueRank?: number; arrayDime
     if (options.valueRank > 0 && options.arrayDimensions!.length !== options.valueRank) {
         throw new Error(
             "[CONFORMANCE] when valueRank> 0, arrayDimensions must have valueRank elements, this.valueRank =" +
-                options.valueRank +
-                "  whereas arrayDimensions.length =" +
-                options.arrayDimensions!.length
+            options.valueRank +
+            "  whereas arrayDimensions.length =" +
+            options.arrayDimensions!.length
         );
     }
 }
@@ -311,7 +312,7 @@ export class UAVariable extends BaseNode implements UAVariablePublic {
     public minimumSamplingInterval: number;
     public historizing: boolean;
     public semantic_version: number;
-    public _permissions: Permissions | null;
+    public _permissions: VariablePermissions | null;
     public arrayDimensions: null | number[];
 
     public $extensionObject?: any;
@@ -337,7 +338,7 @@ export class UAVariable extends BaseNode implements UAVariablePublic {
 
         this.accessLevel = adjust_accessLevel(options.accessLevel);
 
-        this.userAccessLevel = adjust_userAccessLevel(options.userAccessLevel, options.accessLevel);
+        this.userAccessLevel = adjust_userAccessLevel(options.userAccessLevel, this.accessLevel);
 
         this.minimumSamplingInterval = adjust_samplingInterval(options.minimumSamplingInterval || 0);
 
@@ -365,9 +366,10 @@ export class UAVariable extends BaseNode implements UAVariablePublic {
     }
 
     public isUserReadable(context: SessionContext): boolean {
+        if (!this.isReadable(context)) { return false; }
         if (context.checkPermission) {
             assert(context.checkPermission instanceof Function);
-            return context.checkPermission(this, "CurrentRead");
+            return context.checkPermission(this, PermissionType.Read);
         }
         return (this.userAccessLevel & AccessLevelFlag.CurrentRead) === AccessLevelFlag.CurrentRead;
     }
@@ -377,10 +379,11 @@ export class UAVariable extends BaseNode implements UAVariablePublic {
     }
 
     public isUserWritable(context: SessionContext): boolean {
+        if (!this.isWritable(context)) { return false; }
         assert(context instanceof SessionContext);
         if (context.checkPermission) {
             assert(context.checkPermission instanceof Function);
-            return context.checkPermission(this, "CurrentWrite");
+            return context.checkPermission(this, PermissionType.Write);
         }
         return (this.userAccessLevel & AccessLevelFlag.CurrentWrite) === AccessLevelFlag.CurrentWrite;
     }
@@ -447,10 +450,10 @@ export class UAVariable extends BaseNode implements UAVariablePublic {
         ) {
             debugLog(
                 chalk.red(" Warning:  UAVariable#readValue ") +
-                    chalk.cyan(this.browseName.toString()) +
-                    " (" +
-                    chalk.yellow(this.nodeId.toString()) +
-                    ") exists but dataValue has not been defined"
+                chalk.cyan(this.browseName.toString()) +
+                " (" +
+                chalk.yellow(this.nodeId.toString()) +
+                ") exists but dataValue has not been defined"
             );
         }
         return dataValue;
@@ -598,6 +601,8 @@ export class UAVariable extends BaseNode implements UAVariablePublic {
             case AttributeIds.Historizing:
                 return this._readHistorizing();
 
+            case AttributeIds.AccessLevelEx:
+                return this._readAccessLevelEx(context);
             default:
                 return BaseNode.prototype.readAttribute.call(this, context, attributeId);
         }
@@ -719,7 +724,7 @@ export class UAVariable extends BaseNode implements UAVariablePublic {
             // xx assert(!indexRange,"indexRange Not Implemented");
             return _default_writable_timestamped_set_func.call(this, dataValue1, callback1);
         }
-        const write_func = (this._timestamped_set_func || default_func ) as any;
+        const write_func = (this._timestamped_set_func || default_func) as any;
 
 
         if (!write_func) {
@@ -894,12 +899,13 @@ export class UAVariable extends BaseNode implements UAVariablePublic {
      * @example
      *
      *    const permissions = {
-     *        CurrentRead:  [ "*" ], // all users can read
-     *        CurrentWrite: [ "!*", "Administrator" ] // no one except administrator can write
+     *        [Permission.Read]:  [ "*" ], // all users can read
+     *        [Permission.Write]: [ "!*", "Administrator" ] // no one except administrator can write
      *    };
      *    node.setPermissions(permissions);
      */
-    public setPermissions(permissions: Permissions): void {
+    public setPermissions(permissions: VariablePermissions): void {
+        assert(isValidPermissions(permissions));
         this._permissions = permissions;
     }
 
@@ -1263,9 +1269,9 @@ export class UAVariable extends BaseNode implements UAVariablePublic {
                 console.log(this.$extensionObject?.toString());
                 throw new Error(
                     "bindExtensionObject: $extensionObject is incorrect: we are expecting a " +
-                        this.dataType.toString({ addressSpace: this.addressSpace }) +
-                        " but we got a " +
-                        this.$extensionObject?.constructor.name
+                    this.dataType.toString({ addressSpace: this.addressSpace }) +
+                    " but we got a " +
+                    this.$extensionObject?.constructor.name
                 );
             }
             return this.$extensionObject;
@@ -1631,10 +1637,10 @@ export class UAVariable extends BaseNode implements UAVariablePublic {
         assert(dataValue !== this._dataValue, "expecting dataValue to be different from previous DataValue instance");
 
         // istanbul ignore next
-        if (dataValue.value.arrayType === VariantArrayType.Matrix)  {
-           if (dataValue.value.value.length !== 0 && dataValue.value.value.length !== dataValue.value.dimensions![0] * dataValue.value.dimensions![1]) {
-               warningLog("Internal Error: matrix dimension doesn't match : ", dataValue.toString());
-           }
+        if (dataValue.value.arrayType === VariantArrayType.Matrix) {
+            if (dataValue.value.value.length !== 0 && dataValue.value.value.length !== dataValue.value.dimensions![0] * dataValue.value.dimensions![1]) {
+                warningLog("Internal Error: matrix dimension doesn't match : ", dataValue.toString());
+            }
         }
         if (dataValue.value.dataType === DataType.ExtensionObject) {
             if (!this.checkExtensionObjectIsCorrect(dataValue.value.value)) {
@@ -1715,6 +1721,16 @@ export class UAVariable extends BaseNode implements UAVariablePublic {
         const options = {
             statusCode: StatusCodes.Good,
             value: { dataType: DataType.Byte, value: convertAccessLevelFlagToByte(this.accessLevel) }
+        };
+        return new DataValue(options);
+    }
+
+    private _readAccessLevelEx(context: SessionContext): DataValue {
+        assert(context instanceof SessionContext);
+        const options = {
+            statusCode: StatusCodes.Good,
+            // Extra flags are not supported yet. to do: 
+            value: { dataType: DataType.UInt32, value: convertAccessLevelFlagToByte(this.accessLevel) }
         };
         return new DataValue(options);
     }
@@ -1812,30 +1828,39 @@ function _apply_default_timestamps(dataValue: DataValue): void {
 }
 
 function _calculateEffectiveUserAccessLevelFromPermission(
-    node: BaseNode,
+    node: UAVariable,
     context: SessionContext,
     userAccessLevel: AccessLevelFlag
 ) {
-    function __adjustFlag(flagName: string, userAccessLevel1: AccessLevelFlag): AccessLevelFlag {
-        assert(AccessLevelFlag.hasOwnProperty(flagName));
-        // xx if (userAccessLevel & AccessLevelFlag[flagName] === AccessLevelFlag[flagName]) {
-        if (context.checkPermission(node, flagName)) {
-            userAccessLevel1 = userAccessLevel1 | (AccessLevelFlag as any)[flagName];
+    function unsetFlag(flags: number, mask: number): number {
+        return flags & ~mask;
+    }
+    function setFlag(flags: number, mask: number): number {
+        return flags | mask;
+    }
+    function __adjustFlag(permissionType: PermissionType, access: AccessLevelFlag, userAccessLevel1: AccessLevelFlag): AccessLevelFlag {
+
+        if ((node.accessLevel & access) === 0 || (node.userAccessLevel & access) === 0) {
+            userAccessLevel1 = unsetFlag(userAccessLevel1, access);
+        } else {
+            if (!context.checkPermission(node, permissionType)) {
+                userAccessLevel1 = unsetFlag(userAccessLevel1, access);
+            }
         }
-        // xx }
         return userAccessLevel1;
     }
 
     if (context.checkPermission) {
-        userAccessLevel = 0;
+
+        userAccessLevel = node.userAccessLevel & node.accessLevel;
+ 
         assert(context.checkPermission instanceof Function);
-        userAccessLevel = __adjustFlag("CurrentRead", userAccessLevel);
-        userAccessLevel = __adjustFlag("CurrentWrite", userAccessLevel);
-        userAccessLevel = __adjustFlag("HistoryRead", userAccessLevel);
-        userAccessLevel = __adjustFlag("HistoryWrite", userAccessLevel);
-        userAccessLevel = __adjustFlag("SemanticChange", userAccessLevel);
-        userAccessLevel = __adjustFlag("StatusWrite", userAccessLevel);
-        userAccessLevel = __adjustFlag("TimestampWrite", userAccessLevel);
+        userAccessLevel = __adjustFlag(PermissionType.Read, AccessLevelFlag.CurrentRead, userAccessLevel);
+        userAccessLevel = __adjustFlag(PermissionType.Write, AccessLevelFlag.CurrentWrite, userAccessLevel);
+        userAccessLevel = __adjustFlag(PermissionType.Write, AccessLevelFlag.StatusWrite, userAccessLevel);
+        userAccessLevel = __adjustFlag(PermissionType.Write, AccessLevelFlag.TimestampWrite, userAccessLevel);
+        userAccessLevel = __adjustFlag(PermissionType.ReadHistory, AccessLevelFlag.HistoryRead, userAccessLevel);
+        userAccessLevel = __adjustFlag(PermissionType.DeleteHistory, AccessLevelFlag.HistoryWrite, userAccessLevel);
     }
     return userAccessLevel;
 }
@@ -1939,7 +1964,7 @@ function _Variable_bind_with_timestamped_get(this: UAVariable, options: any) {
             errorLog(
                 chalk.red(" Bind variable error: "),
                 " the timestamped_get function must return a DataValue or a Promise<DataValue>" +
-                    "\n value_check.constructor.name ",
+                "\n value_check.constructor.name ",
                 dataValue_verify ? dataValue_verify.constructor.name : "null"
             );
 

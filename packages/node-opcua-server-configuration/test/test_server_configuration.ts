@@ -1,6 +1,6 @@
 import * as path from "path";
 
-import { AddressSpace, IServerBase, ISessionBase, PseudoSession, SessionContext } from "node-opcua-address-space";
+import { AddressSpace, IServerBase, ISessionBase, PseudoSession, SessionContext, WellKnownRoles } from "node-opcua-address-space";
 import { generateAddressSpace } from "node-opcua-address-space/nodeJS";
 
 import { NodeClass } from "node-opcua-data-model";
@@ -23,7 +23,7 @@ describe("ServerConfiguration", () => {
     const opcuaServer: IServerBase = {
         userManager: {
             getUserRole(userName: string): string {
-                return "SecurityAdmin";
+                return [WellKnownRoles.AuthenticatedUser, WellKnownRoles.SecurityAdmin].join(";");
             }
         }
     };
@@ -149,7 +149,7 @@ describe("ServerConfiguration", () => {
             result.statusCode.should.eql(StatusCodes.Good);
         });
         xit("should implement UpdateCertificate", async () => {
-            installPushCertificateManagement(addressSpace, {applicationUri: "SomeUri"});
+            installPushCertificateManagement(addressSpace, { applicationUri: "SomeUri" });
 
             const pseudoSession = new PseudoSession(addressSpace, opcuaServer, session);
             const clientPushCertificateManager = new ClientPushCertificateManagement(pseudoSession);

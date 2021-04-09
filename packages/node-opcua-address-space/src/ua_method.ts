@@ -11,7 +11,7 @@ import { DataValue, DataValueLike } from "node-opcua-data-value";
 import { NodeId } from "node-opcua-nodeid";
 import { Argument } from "node-opcua-service-call";
 import { StatusCodes } from "node-opcua-status-code";
-import { CallMethodResultOptions } from "node-opcua-types";
+import { CallMethodResultOptions, PermissionType } from "node-opcua-types";
 import { Variant } from "node-opcua-variant";
 import { DataType, VariantLike } from "node-opcua-variant";
 import {
@@ -20,7 +20,8 @@ import {
     UAMethod as UAMethodPublic,
     UAObject as UAObjectPublic,
     UAObjectType,
-    Permissions
+    MethodPermissions,
+    isValidPermissions
 } from "../source";
 import { SessionContext } from "../source";
 import { BaseNode } from "./base_node";
@@ -50,7 +51,7 @@ export class UAMethod extends BaseNode implements UAMethodPublic {
     public value?: any;
     public methodDeclarationId: NodeId;
     public _getExecutableFlag?: (this: UAMethod, context: SessionContext) => boolean;
-    public _permissions: Permissions | null;
+    public _permissions: MethodPermissions | null;
     public _asyncExecutionFunction?: MethodFunctor;
 
     constructor(options: any) {
@@ -63,8 +64,12 @@ export class UAMethod extends BaseNode implements UAMethodPublic {
         }
     }
 
+    /**
+     *
+     * 
+     */
     public getExecutableFlag(context: SessionContext): boolean {
-        if (typeof this._asyncExecutionFunction !== "function") {
+        if (!this.isBound()) {
             return false;
         }
         if (this._getExecutableFlag) {
@@ -73,8 +78,12 @@ export class UAMethod extends BaseNode implements UAMethodPublic {
         return true;
     }
 
+    /**
+     * 
+     * @returns  true if the method is bound
+     */
     public isBound(): boolean {
-        return !!this._asyncExecutionFunction;
+        return typeof this._asyncExecutionFunction === "function";
     }
 
     public readAttribute(context: SessionContext, attributeId: AttributeIds): DataValue {
@@ -102,7 +111,9 @@ export class UAMethod extends BaseNode implements UAMethodPublic {
         return this._getArguments("OutputArguments");
     }
 
-    public setPermissions(permissions: Permissions): void {
+
+    public setPermissions(permissions: MethodPermissions): void {
+        assert(isValidPermissions(permissions));
         this._permissions = permissions;
     }
 
@@ -153,7 +164,7 @@ export class UAMethod extends BaseNode implements UAMethodPublic {
         }
 
         if (this._permissions && context.checkPermission) {
-            if (!context.checkPermission(this, "Execute")) {
+            if (!context.checkPermission(this, PermissionType.Call)) {
                 return callback(null, { statusCode: StatusCodes.BadUserAccessDenied });
             }
         }

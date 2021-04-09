@@ -17,7 +17,10 @@ const {
     BrowseDescription
 } = require("..");
 
-const doDebug = process.env["DEBUG"] ? true : false;
+const { checkDebugFlag, make_debugLog } = require("node-opcua-debug");
+
+const doDebug = checkDebugFlag("TEST");
+const debugLog = make_debugLog("TEST");
 
 describe("Testing Browse Service", function() {
 
@@ -29,7 +32,7 @@ describe("Testing Browse Service", function() {
         const browseResponse = new BrowseResponse({});
         browseResponse.should.have.property("responseHeader");
         if (doDebug) {
-            console.log(browseResponse.toString());
+            debugLog(browseResponse.toString());
         }
     });
 

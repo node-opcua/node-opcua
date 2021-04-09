@@ -7,12 +7,20 @@ import { assert } from "node-opcua-assert";
 // note : use specifically dist file to avoid modules that rely on fs
 import { Certificate, CertificateInternals, exploreCertificate } from "node-opcua-crypto";
 
-import { AccessLevelFlag, makeAccessLevelFlag } from "node-opcua-data-model";
+import { AccessLevelFlag, NodeClass } from "node-opcua-data-model";
 import { PreciseClock } from "node-opcua-date-time";
 import { NodeId } from "node-opcua-nodeid";
-import { AnonymousIdentityToken, MessageSecurityMode, UserNameIdentityToken, X509IdentityToken } from "node-opcua-types";
-
-import { BaseNode, ISessionContext, UAObject, UAObjectType } from "./address_space_ts";
+import { AnonymousIdentityToken, MessageSecurityMode, PermissionType, UserNameIdentityToken, X509IdentityToken } from "node-opcua-types";
+import { UAVariable as UAVariablePrivate } from "../src/ua_variable";
+import { UAMethod as UAMethodPrivate } from "../src/ua_method";
+import {
+    ISessionContext,
+    UAObject,
+    UAObjectType,
+    UAVariable,
+    UAMethod,
+    Permission
+} from "./address_space_ts";
 
 type UserIdentityToken = UserNameIdentityToken | AnonymousIdentityToken | X509IdentityToken;
 
@@ -55,6 +63,17 @@ export interface ISessionBase {
     getSessionId(): NodeId; // session NodeID
 }
 
+export enum WellKnownRoles {
+    Anonymous = "Anonymous",
+    AuthenticatedUser = "AuthenticatedUser",
+    Observer = "Observer",
+    Operator = "Operator",
+    Engineer = "Engineer",
+    Supervisor = "Supervisor",
+    ConfigureAdmin = "ConfigureAdmin",
+    SecurityAdmin = "SecurityAdmin"
+};
+
 /**
  * OPC Unified Architecture, Part 3 13 Release 1.04
  * 4.8.2 Well Known Roles
@@ -62,6 +81,7 @@ export interface ISessionBase {
  * for the well-known Roles are defined in Part 6.
  * Table 2 – Well-Known Roles
  * BrowseName           Suggested Permissions
+ * 
  * Anonymous            The Role has very limited access for use when a Session has anonymous credentials.
  * AuthenticatedUser    The Role has limited access for use when a Session has valid non-anonymous credentials
  *                      but has not been explicitly granted access to a Role.
@@ -73,14 +93,15 @@ export interface ISessionBase {
  * Supervisor           The Role is allowed to browse, read live data, read historical data/events, call Methods or
  *                      subscribe to data/events.
  * ConfigureAdmin       The Role is allowed to change the non-security related config
- * SystemAdmin          The Role is allowed to read and modify security related config
- *
+ * SecurityAdmin	    The Role is allowed to change security related settings.
  */
+export type WellKnownRolesSemiColumnSeperated = string;
 export interface IUserManager {
-    /**  retrieve the roles of the given user
+    /**  
+     * retrieve the roles of the given user
      *  @returns semicolon separated list of roles
      */
-    getUserRole?: (user: string) => string;
+    getUserRole?: (user: string) => WellKnownRolesSemiColumnSeperated;
 }
 export interface IServerBase {
     userManager?: IUserManager;
@@ -110,6 +131,9 @@ function hasOneRoleAllowed(permission: string[], roles: string[]) {
     return false;
 }
 
+function toPermissionKey(perm: PermissionType): keyof typeof Permission {
+    return PermissionType[perm] as (keyof typeof Permission);
+}
 export class SessionContext implements ISessionContext {
     public static defaultContext = new SessionContext({});
 
@@ -149,16 +173,16 @@ export class SessionContext implements ISessionContext {
         const username = getUserName(userIdentityToken);
 
         if (username === "anonymous") {
-            return "guest";
+            return "Anonymous";
         }
         if (!this.server || !this.server.userManager) {
-            return "default";
+            return "Anonymous";
         }
 
         assert(this.server != null, "expecting a server");
 
         if (typeof this.server.userManager.getUserRole !== "function") {
-            return "default";
+            return "Anonymous";
         }
         return this.server.userManager.getUserRole(username);
     }
@@ -166,40 +190,53 @@ export class SessionContext implements ISessionContext {
     /**
      * @method checkPermission
      * @param node
-     * @param action
+     * @param permission
      * @return {Boolean}
      */
-    public checkPermission(node: BaseNode, action: string): boolean {
-        // tslint:disable:no-bitwise
-        const lNode = node as any;
-
-        assert(AccessLevelFlag.hasOwnProperty(action));
-        const actionFlag: number = makeAccessLevelFlag(action);
-
-        if (!lNode._permissions) {
-            return (lNode.userAccessLevel & actionFlag) === actionFlag;
-        }
-
-        const permission: string[] = lNode._permissions[action];
-
-        if (!permission) {
-            return (lNode.userAccessLevel & actionFlag) === actionFlag;
-        }
-
+    public checkPermission(node: UAMethod | UAVariable, permission: PermissionType): boolean {
+        let permissionRole: string[] | undefined = undefined;
+        const permissionKey = toPermissionKey(permission);
         const userRole = this.getCurrentUserRole();
-
-        if (userRole === "default") {
-            return (lNode.userAccessLevel & actionFlag) === actionFlag;
-        }
-
-        const roles = userRole.split(";");
-
-        if (permission[0] === "*") {
-            // accept all except...
-            return !hasOneRoleDenied(permission, roles);
+        if (node.nodeClass === NodeClass.Variable) {
+            const nodeVariable = node as UAVariablePrivate;
+            permissionRole = nodeVariable._permissions
+                ? nodeVariable._permissions[permissionKey as (keyof typeof nodeVariable._permissions)]
+                : undefined;
+            if (!permissionRole /* || userRole === "default" */) {
+                switch (permission) {
+                    case PermissionType.Read:
+                        return (nodeVariable.userAccessLevel & AccessLevelFlag.CurrentRead) === AccessLevelFlag.CurrentRead;
+                    case PermissionType.Write:
+                        return (nodeVariable.userAccessLevel & AccessLevelFlag.CurrentWrite) === AccessLevelFlag.CurrentWrite;
+                    case PermissionType.InsertHistory:
+                    case PermissionType.DeleteHistory:
+                    case PermissionType.ModifyHistory:
+                        return (nodeVariable.userAccessLevel & AccessLevelFlag.HistoryWrite) === AccessLevelFlag.HistoryWrite;
+                    case PermissionType.ReadHistory:
+                        return (nodeVariable.userAccessLevel & AccessLevelFlag.HistoryRead) === AccessLevelFlag.HistoryRead;
+                }
+            }
+        } else if (node.nodeClass === NodeClass.Method) {
+            const nodeMethod = node as UAMethodPrivate;
+            permissionRole = nodeMethod._permissions
+                ? nodeMethod._permissions[permissionKey as (keyof typeof nodeMethod._permissions)]
+                : undefined;
+            if (!permissionRole || userRole === "default") {
+                return nodeMethod.getExecutableFlag(this);
+            }
         } else {
-            // deny a
-            return hasOneRoleAllowed(permission, roles) && !hasOneRoleDenied(permission, roles);
+            throw new Error("checkPermission node should be a UAVariable or a UAMethod");
+        }
+        if (!permissionRole) {
+            return false;
+        }
+        const roles = userRole.split(";");
+        if (permissionRole[0] === "*") {
+            // accept all except...
+            return !hasOneRoleDenied(permissionRole, roles);
+        } else {
+            // deny all except
+            return hasOneRoleAllowed(permissionRole, roles) && !hasOneRoleDenied(permissionRole, roles);
         }
     }
 }

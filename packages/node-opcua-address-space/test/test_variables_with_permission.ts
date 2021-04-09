@@ -1,12 +1,13 @@
 // tslint:disable:no-bitwise
 
-import { AttributeIds, makeAccessLevelFlag } from "node-opcua-data-model";
+import { accessLevelFlagToString, AttributeIds, makeAccessLevelFlag } from "node-opcua-data-model";
 import { AccessLevelFlag } from "node-opcua-data-model";
 import { BrowseDescription } from "node-opcua-service-browse";
 
-import { AddressSpace, Namespace, SessionContext, UAVariable } from "..";
+import { AddressSpace, Namespace, Permission, SessionContext, UAVariable } from "..";
 import { getMiniAddressSpace } from "../testHelpers";
 import { NodeId } from "node-opcua-nodeid";
+import { WellKnownRoles} from "..";
 
 // tslint:disable-next-line:no-var-requires
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
@@ -22,10 +23,11 @@ describe("AddressSpace : Variable.setPermissions", () => {
             namespace = addressSpace.getOwnNamespace();
 
             variable = namespace.addVariable({
-                accessLevel: 0x3f,
+                accessLevel:     makeAccessLevelFlag("CurrentRead | CurrentWrite | StatusWrite | HistoryRead | HistoryWrite | SemanticChange"),
+                userAccessLevel: makeAccessLevelFlag("CurrentRead | CurrentWrite | StatusWrite | HistoryRead | HistoryWrite | SemanticChange"),
+  
                 browseName: "SomeVar",
-                dataType: "Double",
-                userAccessLevel: 0x3f
+                dataType: "Double"
             });
             done(err);
         });
@@ -36,21 +38,23 @@ describe("AddressSpace : Variable.setPermissions", () => {
 
     it("should adjust userAccessLevel based on session Context permission", () => {
         variable.userAccessLevel.should.eql(0x3f);
+        accessLevelFlagToString(variable.userAccessLevel).should.eql("CurrentRead | CurrentWrite | StatusWrite | HistoryRead | HistoryWrite | SemanticChange");
         const dataValue1 = variable.readAttribute(null, AttributeIds.UserAccessLevel);
         dataValue1.value.value.should.eql(0x3f);
+        accessLevelFlagToString(dataValue1.value.value).should.eql("CurrentRead | CurrentWrite | StatusWrite | HistoryRead | HistoryWrite | SemanticChange");
     });
 
     it("should adjust userAccessLevel based on session Context permission", () => {
-        variable.userAccessLevel = 0;
-        variable.userAccessLevel.should.eql(0);
+        variable.userAccessLevel = makeAccessLevelFlag("CurrentRead | CurrentWrite");
+        variable.userAccessLevel.should.eql(0x03);
 
         variable.setPermissions({
-            CurrentRead: ["*"], // at the end we want CurrentReadAccess to All user
-            CurrentWrite: ["!*"] // and no write access at all
+            [Permission.Read]: ["*"], // at the end we want CurrentReadAccess to All user
+            [Permission.Write]: ["!*"] // and no write access at all
         });
 
         const dataValue1 = variable.readAttribute(null, AttributeIds.UserAccessLevel);
-        //dataValue1.value.value.should.eql(makeAccessLevelFlag("CurrentRead"));
+        accessLevelFlagToString(dataValue1.value.value).should.eql("CurrentRead");
     });
     it("should adjust userAccessLevel based on session Context permission", () => {
         const context = new SessionContext({
@@ -60,19 +64,19 @@ describe("AddressSpace : Variable.setPermissions", () => {
                 }
             }
         });
-        context.getCurrentUserRole = () => "Operator";
+        context.getCurrentUserRole = () => WellKnownRoles.Operator;
 
-        variable.userAccessLevel = 0;
-        variable.userAccessLevel.should.eql(0);
+        variable.userAccessLevel = makeAccessLevelFlag("CurrentRead | CurrentWrite");
+        variable.userAccessLevel.should.eql(0x03);
 
         variable.setPermissions({
-            CurrentRead: ["*"],
-            CurrentWrite: ["!*", "Administrator"]
+            [Permission.Read]: ["*"],
+            [Permission.Write]: ["!*", WellKnownRoles.ConfigureAdmin]
         });
         const dataValue1 = variable.readAttribute(context, AttributeIds.UserAccessLevel);
         dataValue1.value.value.should.eql(AccessLevelFlag.CurrentRead);
 
-        context.getCurrentUserRole = () => "Administrator";
+        context.getCurrentUserRole = () => WellKnownRoles.ConfigureAdmin;
         const dataValue2 = variable.readAttribute(context, AttributeIds.UserAccessLevel);
         dataValue2.value.value.should.eql(AccessLevelFlag.CurrentRead | AccessLevelFlag.CurrentWrite);
     });

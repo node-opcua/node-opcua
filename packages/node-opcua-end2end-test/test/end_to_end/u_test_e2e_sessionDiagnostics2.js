@@ -17,10 +17,14 @@ const {
     randomNodeId
 } = require("node-opcua");
 
-const sinon = require("sinon");
-module.exports = function(test) {
+const { checkDebugFlag, make_debugLog } = require("node-opcua-debug");
+const doDebug = checkDebugFlag("TEST");
+const debugLog = make_debugLog("TEST");
 
-    describe("SDS3 Testing SessionDiagnostics 2/2", function() {
+const sinon = require("sinon");
+module.exports = function (test) {
+
+    describe("SDS3 Testing SessionDiagnostics 2/2", function () {
 
         async function readServerDiagnostics(session) {
             const nodesToRead = [
@@ -90,7 +94,9 @@ module.exports = function(test) {
 
                 } catch (err) {
                     /* */
-                    console.log(err.message);
+                    if (doDebug) {
+                        debugLog(err.message);
+                    }
                 }
                 await client2.disconnect();
             }
@@ -124,11 +130,11 @@ module.exports = function(test) {
                             session2.authenticationToken = randomNodeId();
                             client2._activateSession(session2, (err) => {
                                 if (err) {
-                                    console.log("--> rejected - as expected A");
+                                    debugLog("--> rejected - as expected A");
 
                                     session2.authenticationToken = original;
                                     client2.closeSession(session2, true).then(() => {
-                                        console.log("--> rejected - as expected B");
+                                        debugLog("--> rejected - as expected B");
                                         return reject(err);
                                     });
                                 } else {
@@ -143,8 +149,10 @@ module.exports = function(test) {
 
                 } catch (err) {
                     /* */
-                    console.log(err.message);
-                    console.log(err);
+                    if (doDebug) {
+                        debugLog(err.message);
+                        debugLog(err);
+                    }
                 }
                 await client2.disconnect();
             }

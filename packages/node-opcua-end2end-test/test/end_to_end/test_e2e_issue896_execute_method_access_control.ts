@@ -1,11 +1,11 @@
-import {OPCUAClient, OPCUAServer, StatusCodes, UserTokenType} from "node-opcua";
+import {OPCUAClient, OPCUAServer, Permission, StatusCodes, UserTokenType, WellKnownRoles} from "node-opcua";
 import "should";
 
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("Issue #896: Check Authorization for UAMethods", () => {
     const users = [
-        {username: "Gandalf", password: "g", role: "admin"},
-        {username: "Frodo", password: "f", role: "guest"},
+        {username: "Gandalf", password: "g", role: [WellKnownRoles.AuthenticatedUser,WellKnownRoles.ConfigureAdmin].join(";")},
+        {username: "Frodo", password: "f", role: [WellKnownRoles.AuthenticatedUser].join(";")},
     ];
 
     const port = 2226;
@@ -39,7 +39,7 @@ describe("Issue #896: Check Authorization for UAMethods", () => {
             browseName: "doIt",
             nodeId: "ns=1;s=doIt",
             permissions: {
-                Execute: ["!*", "admin"]
+                 [Permission.Call]: ["!*", WellKnownRoles.ConfigureAdmin]
             }
         }).bindMethod((inputArguments, context, callback) => {
             wasExecuted = true;

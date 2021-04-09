@@ -1,14 +1,15 @@
 const { OPCUAClient } = require("..");
+const { checkDebugFlag } = require("node-opcua-debug");
 
 let setIntervalCalls = 0;
 let clearIntervalCalls = 0;
 let realSetInterval;
 let realClearInterval;
 
-const doDebug = !!process.env.DEBUGTEST;
+const doDebug = checkDebugFlag("TEST");
 
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
-describe("issue 696", function() {
+describe("issue 696", function () {
     before(() => {
         realSetInterval = global.setInterval;
         realClearInterval = global.clearInterval;

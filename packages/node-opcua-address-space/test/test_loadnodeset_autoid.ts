@@ -12,8 +12,8 @@ import { generateAddressSpace } from "../nodeJS";
 
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 
-const debugLog = make_debugLog(__filename);
-const doDebug = checkDebugFlag(__filename);
+const debugLog = make_debugLog("TEST");
+const doDebug = checkDebugFlag("TEST");
 
 
 describe("Testing AutoID custom types", async function (this: any) {
