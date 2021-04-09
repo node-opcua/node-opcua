@@ -56,6 +56,7 @@ import {
     EnumValueType,
     EUInformation,
     EUInformationOptions,
+    PermissionType,
     Range,
     RangeOptions,
     ReferenceDescription,
@@ -113,8 +114,7 @@ export declare function resolveReferenceNode(addressSpace: MinimalistAddressSpac
 
 export interface ISessionContext {
     getCurrentUserRole(): string;
-
-    checkPermission(node: BaseNode, action: AccessLevelFlag | string): boolean;
+    checkPermission(node: BaseNode, action: PermissionType): boolean;
 }
 
 export interface XmlWriter {
@@ -553,7 +553,7 @@ export interface UAVariable extends BaseNode, VariableAttributes, IPropertyAndCo
     // advanced
     touchValue(updateNow?: PreciseClock): void;
 
-    setPermissions(permissions: Permissions): void;
+    setPermissions(permissions: VariablePermissions): void;
 
     bindVariable(options: BindVariableOptions | VariantLike, overwrite?: boolean): void;
 
@@ -641,7 +641,7 @@ export interface AddMultiStateValueDiscreteOptions extends AddVariableOptionsWit
 }
 
 // tslint:disable:no-empty-interface
-export interface UAEventType extends UAObjectType {}
+export interface UAEventType extends UAObjectType { }
 
 export type EventTypeLike = string | NodeId | UAEventType;
 
@@ -813,6 +813,16 @@ export type MethodFunctor = (
     callback: MethodFunctorCallback
 ) => void;
 
+export function isValidPermissions(permissions: any) {
+    // all key must be numbers not string ...
+    for (const p in Object.keys(permissions)) {
+        if (parseInt(p).toString() !== p) {
+            throw new Error("Invalid permissions specified : " + JSON.stringify(permissions));
+        }
+    }
+    return true;
+}
+
 export declare class UAMethod extends BaseNode {
     public readonly nodeClass: NodeClass.Method;
     public readonly typeDefinitionObj: UAObjectType;
@@ -828,7 +838,7 @@ export declare class UAMethod extends BaseNode {
      */
     public _getExecutableFlag?: (sessionContext: SessionContext) => boolean;
 
-    public setPermissions(permissions: Permissions): void;
+    public setPermissions(permissions: MethodPermissions): void;
 
     public bindMethod(methodFunction: MethodFunctor): void;
 
@@ -1052,14 +1062,40 @@ export interface AddBaseNodeOptions {
     references?: AddReferenceOpts[];
 }
 
-export interface Permissions {
-    CurrentRead?: string[];
-    CurrentWrite?: string[];
-    HistoryRead?: string[];
-    HistoryWrite?: string[];
-    StatusWrite?: string[];
-    TimestampWrite?: string[];
-    Execute?: string[];
+
+export enum Permission {
+    "AddNode"= "AddNode",
+    "AddReference"= "AddReference",
+    "Browse"= "Browse",
+    "Call"= "Call",
+    "DeleteHistory" = "DeleteHistory",
+    "DeleteNode" = "DeleteNode",
+    "InsertHistory" = "InsertHistory",
+    "ModifyHistory" = "ModifyHistory",
+    "Read" = "Read",
+    "ReadHistory" = "ReadHistory",
+    "ReadRolePermissions" = "ReadRolePermissions",
+    "ReceiveEvents" = "ReceiveEvents",
+    "RemoveReference" = "RemoveReference",
+    "Write" = "Write",
+    "WriteAttribute" = "WriteAttribute",
+    "WriteHistorizing" = "WriteHistorizing",
+    "WriteRolePermissions" = "WriteRolePermissions"
+};
+
+
+export interface VariablePermissions {
+    "Read"?:  string[];
+    "Write"?:  string[];
+    "WriteAttribute"?:  string[];
+    "ReadHistory"?: string[];
+    "DeleteHistory"?:  string[];
+    "InsertHistory"?:  string[];
+    "ModifyHistory"?:  string[];
+    "Browse"?: string[];
+}
+export interface MethodPermissions {
+    "Call"?: string[];
 }
 
 export type AccessLevelString = string;
@@ -1478,7 +1514,7 @@ export declare interface Namespace {
 }
 
 // tslint:disable:no-empty-interface
-export interface Folder extends UAObject {}
+export interface Folder extends UAObject { }
 
 export type FolderType = UAObjectType;
 
@@ -1650,7 +1686,7 @@ export interface UACertificateGroup extends UAObject {
     trustListOutOfDate?: UATrustListOutOfDateAlarmType;
 }
 
-export interface UACertificateExpirationAlarmType extends UAEventType {}
+export interface UACertificateExpirationAlarmType extends UAEventType { }
 
 /**
  * This event is raised when a Trust List is changed.
@@ -1658,7 +1694,7 @@ export interface UACertificateExpirationAlarmType extends UAEventType {}
  * It shall also be raised when the AddCertificate or RemoveCertificate Method causes an
  * update to the Trust List.
  */
-export interface UATrustListOutOfDateAlarmType extends UAEventType {}
+export interface UATrustListOutOfDateAlarmType extends UAEventType { }
 
 export interface UACertificateGroupFolder extends Folder {
     /**
@@ -1690,9 +1726,9 @@ export interface UACertificateGroupFolder extends Folder {
     // <AdditionalGroup>
 }
 
-export interface UAKeyCredentialConfigurationFolder extends Folder {}
+export interface UAKeyCredentialConfigurationFolder extends Folder { }
 
-export interface UAUserTokenPolicy {}
+export interface UAUserTokenPolicy { }
 
 export interface UAAuthorizationService extends UAObject {
     // found in authorizationServices
@@ -1725,7 +1761,7 @@ export interface UAAuthorizationService extends UAObject {
     requestAccessToken?: UAMethod;
 }
 
-export interface UAAuthorizationServicesFolder extends Folder {}
+export interface UAAuthorizationServicesFolder extends Folder { }
 
 // partial UAServerConfiguration related to authorization service
 export interface UAServerConfiguration extends UAObject {
@@ -1810,7 +1846,7 @@ export interface UAServerConfiguration extends UAObject {
     supportedPrivateKeyFormats: UAVariableT<UAString[], DataType.String>;
 }
 
-export interface UADirectoryType {}
+export interface UADirectoryType { }
 
 /**
  *
@@ -1945,7 +1981,7 @@ export interface UAOperationLimits extends UAObject {
     maxMonitoredItemsPerCall?: UAVariableT<UInt32, DataType.UInt32>;
 }
 
-export interface IdentityMappingRuleType {}
+export interface IdentityMappingRuleType { }
 
 /**
  * The Properties and Methods of the Role contain sensitive security related information and
@@ -2597,7 +2633,7 @@ export interface UAVariableTypeT<T, DT extends DataType> extends UAVariableType 
     instantiate(options: InstantiateVariableOptions): UAVariableT<T, DT>;
 }
 
-export interface Property<T, DT extends DataType> extends UAVariableT<T, DT> {}
+export interface Property<T, DT extends DataType> extends UAVariableT<T, DT> { }
 
 export interface UAAggregateConfiguration extends UAObject {
     treatUncertainAsBad: UAVariableT<boolean, DataType.Boolean>;
@@ -2635,7 +2671,7 @@ export interface ConditionType extends UAObjectType {
     addComment: UAMethod;
 }
 
-export interface Enumeration extends UAVariable {}
+export interface Enumeration extends UAVariable { }
 
 // {{ Dynamic Array Variable
 export interface UADynamicVariableArray<T extends ExtensionObject> extends UAVariable {

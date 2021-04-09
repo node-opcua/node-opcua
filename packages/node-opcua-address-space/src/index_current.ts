@@ -42,3 +42,4 @@ export { NodeIdManager } from "../src/nodeid_manager";
 
 export * from "./alarms_and_conditions";
 export * from "./event_data";
+export { Permission } from "../source/address_space_ts";

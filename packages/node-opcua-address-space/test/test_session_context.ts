@@ -2,9 +2,9 @@ import * as path from "path";
 import * as fs from "fs";
 
 import { readCertificate } from "node-opcua-crypto";
-import { X509IdentityToken } from "node-opcua-types";
+import { PermissionType, X509IdentityToken } from "node-opcua-types";
 import { DataType } from "node-opcua-variant";
-import * as should  from "should";
+import * as should from "should";
 import { AddressSpace, BaseNode, Namespace, SessionContext, UAObject } from "..";
 
 // let's make sure should don't get removed by typescript optimizer
@@ -37,14 +37,14 @@ describe("SessionContext", () => {
     it("should provide a  default session context - checkPermission", () => {
         const context = SessionContext.defaultContext;
 
-        const someNode = addressSpace.getOwnNamespace().addVariable({
+        const someVariableNode = addressSpace.getOwnNamespace().addVariable({
             browseName: "SomeNode",
             dataType: DataType.Double,
             nodeId: "i=12",
             userAccessLevel: "CurrentRead"
         });
-        context.checkPermission(someNode, "CurrentRead").should.eql(true);
-        context.checkPermission(someNode, "CurrentWrite").should.eql(false);
+        context.checkPermission(someVariableNode, PermissionType.Read).should.eql(true);
+        context.checkPermission(someVariableNode, PermissionType.Write).should.eql(false);
     });
 });
 describe("SessionContext - with  dedicated SessionContext and certificate ", () => {
@@ -131,13 +131,34 @@ describe("SessionContext - with  dedicated SessionContext and certificate ", () 
     it("should provide a  default session context - checkPermission", () => {
         const context = sessionContext;
 
-        const someNode = addressSpace.getOwnNamespace().addVariable({
+        const someVariableNode = addressSpace.getOwnNamespace().addVariable({
             browseName: "SomeNode",
             dataType: DataType.Double,
             nodeId: "i=12",
             userAccessLevel: "CurrentRead"
         });
-        context.checkPermission(someNode, "CurrentRead").should.eql(true);
-        context.checkPermission(someNode, "CurrentWrite").should.eql(false);
+        context.checkPermission(someVariableNode, PermissionType.Read).should.eql(true);
+        context.checkPermission(someVariableNode, PermissionType.Write).should.eql(false);
     });
+
+
+    ///
+    it("should check execute permission on a method", () => {
+
+        const context = sessionContext;
+
+        const someObject = addressSpace.getOwnNamespace().addObject({
+            browseName: "SomeName",
+            nodeId: "i=13"
+        });
+
+        const someMethod = addressSpace.getOwnNamespace().addMethod(someObject, {
+            browseName: "SomeNode",
+            nodeId: "i=14",
+            executable: true,
+            userExecutable: true,
+        });
+        context.checkPermission(someMethod, PermissionType.Call);
+
+    })
 });

@@ -64,6 +64,18 @@ const userManager = {
             return true;
         }
         return false;
+    },
+    getUserRole: (username)  => {
+        if (username === "anonymous") {
+            return "Anonymous";
+        }
+        if (username === "user1") {
+            return "AuthenticatedUser;SecurityAdmin";
+        }
+        if (username === "user2") {
+            return "AuthenticatedUser;Engineer";
+        }
+        return "None";
     }
 };
 

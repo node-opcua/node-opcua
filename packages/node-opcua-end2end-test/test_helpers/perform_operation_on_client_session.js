@@ -117,7 +117,6 @@ function perform_operation_on_subscription(client, endpointUrl, do_func, done_fu
     perform_operation_on_subscription_with_parameters(client, endpointUrl, subscriptionParameters, do_func, done_func);
 
 }
-
 exports.perform_operation_on_subscription = perform_operation_on_subscription;
 
 async function perform_operation_on_subscription_async(

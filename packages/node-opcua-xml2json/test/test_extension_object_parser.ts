@@ -9,8 +9,8 @@ import {
 
 } from "..";
 
-const doDebug = checkDebugFlag(__filename);
-const debugLog = make_debugLog(__filename);
+const doDebug = checkDebugFlag("TEST");
+const debugLog = make_debugLog("TEST");
 
 const _should = should;
 

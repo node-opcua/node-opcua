@@ -49,7 +49,10 @@ module.exports = function (test) {
                 console.log("keep trying to connect "+ connectionPoint.endpointUrl)
             });
             
-            await perform_operation_on_subscription_async(client, connectionPoint, async (session, subscription) => {
+            // first attemp as Anonymous user
+            await client.withSessionAsync(
+                { endpointUrl: test.endpointUrl, userIdentity: { type:UserTokenType.Anonymous} },
+                async (session) => {
 
                 const nodesToRead = [
                     {
@@ -62,13 +65,46 @@ module.exports = function (test) {
                     },
                 ];
                 const dataValues = await session.read(nodesToRead);
-                const sessionDiagnostics = dataValues[0].value.value;
-                const sessionSecurityDiagnostics = dataValues[1].value.value;
-
-                should.exist(sessionSecurityDiagnostics);
+                
+                // ----------------------------------- SessionDiagnosticsArray
+                dataValues[0].statusCode.should.eql(StatusCodes.Good);
+                const sessionDiagnostics = dataValues[0].value.value; 
+               
+                // ----------------------------------- SessionSecurityDiagnosticsArray
+                dataValues[1].statusCode.should.eql(StatusCodes.BadUserAccessDenied); 
+                // const sessionSecurityDiagnostics = dataValues[1].value.value;
+                // should.exist(sessionSecurityDiagnostics);
 
                 // console.log(sessionSecurityDiagnostics.toString());
             });
+
+            // first attemp as Administrator user
+            await client.withSessionAsync(
+                connectionPoint,
+                async (session) => {
+
+                const nodesToRead = [
+                    {
+                        nodeId: makeNodeId(VariableIds.Server_ServerDiagnostics_SessionsDiagnosticsSummary_SessionDiagnosticsArray),
+                        attributeId: AttributeIds.Value
+                    },
+                    {
+                        nodeId: makeNodeId(VariableIds.Server_ServerDiagnostics_SessionsDiagnosticsSummary_SessionSecurityDiagnosticsArray),
+                        attributeId: AttributeIds.Value
+                    },
+                ];
+                const dataValues = await session.read(nodesToRead);
+                
+                // ----------------------------------- SessionDiagnosticsArray
+                dataValues[0].statusCode.should.eql(StatusCodes.Good);
+                const sessionDiagnostics = dataValues[0].value.value; 
+               
+                // ----------------------------------- SessionSecurityDiagnosticsArray
+                dataValues[1].statusCode.should.eql(StatusCodes.Good); 
+                const sessionSecurityDiagnostics = dataValues[1].value.value;
+                should.exist(sessionSecurityDiagnostics);
+                // console.log(sessionSecurityDiagnostics.toString());
+            });   
         });
 
         it("SDS2-B server should expose a SessionSecurityDiagnostics per Session", async () => {

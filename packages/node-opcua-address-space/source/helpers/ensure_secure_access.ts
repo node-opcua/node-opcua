@@ -1,9 +1,7 @@
 import { NodeClass } from "node-opcua-data-model";
 import { MessageSecurityMode } from "node-opcua-types";
-
-import { connect } from "http2";
-import { BaseNode, UAVariable } from "../address_space_ts";
-import { IChannelBase, SessionContext } from "../session_context";
+import { BaseNode, UAVariable, UAMethod, Permission } from "../address_space_ts";
+import { IChannelBase, SessionContext, WellKnownRoles } from "../session_context";
 
 function isChannelSecure(channel: IChannelBase): boolean {
     if (channel.securityMode === MessageSecurityMode.SignAndEncrypt) {
@@ -41,25 +39,32 @@ function replaceMethod(obj: any, method: string, func: any) {
         }
         return oldMethod.apply(this, args);
     };
-
 }
 /**
  * make sure that the given ia node can only be read
  * by Admistrrator user on a encrypted channel
  * @param node
- */
+
+*/
+const priviledgedRoles =   ["!*", WellKnownRoles.SecurityAdmin, WellKnownRoles.ConfigureAdmin, WellKnownRoles.Supervisor];
+
 export function ensureObjectIsSecure(node: BaseNode) {
 
     if (node.nodeClass === NodeClass.Variable) {
-
         replaceMethod(node, "isUserReadable", newIsUserReadable);
         const variable = node as UAVariable;
-
         variable.setPermissions({
-            CurrentRead: ["!*", "Supervisor", "ConfigAdmin", "SystemAdmin"],
-            CurrentWrite: ["!*"]
+            [Permission.Read]:        priviledgedRoles,
+            [Permission.Write]:       ["!*"],
+            [Permission.ReadHistory]: priviledgedRoles,
+            [Permission.Browse]:      priviledgedRoles,
         });
-
+    }
+    if (node.nodeClass === NodeClass.Method) {
+        const variable = node as UAMethod;
+        variable.setPermissions({
+            [Permission.Call]:        priviledgedRoles,
+        });
     }
     const children = node.findReferencesAsObject("Aggregates", true);
     for (const child of children) {

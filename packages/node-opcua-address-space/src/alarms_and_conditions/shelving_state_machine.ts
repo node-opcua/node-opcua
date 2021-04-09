@@ -17,8 +17,8 @@ import { UAVariable } from "../ua_variable";
 import { UAAlarmConditionBase } from "./ua_alarm_condition_base";
 
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
-const debugLog = make_debugLog("TEST");
-const doDebug = checkDebugFlag("TEST");
+const debugLog = make_debugLog(__filename);
+const doDebug = checkDebugFlag(__filename);
 
 export interface ShelvingStateMachine {
     unshelve: UAMethod;

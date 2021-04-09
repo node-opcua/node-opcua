@@ -12,9 +12,10 @@ import { coerceLocalizedText, coerceQualifiedName, makeAccessLevelFlag } from "n
 import { AddressSpace, dumpXml, Namespace, RootFolder, UAVariable } from "..";
 import { createBoilerType, getMiniAddressSpace } from "../testHelpers";
 import { generateAddressSpace } from "../nodeJS";
+import { checkDebugFlag } from "node-opcua-debug";
 const { createTemperatureSensorType  } = require("./fixture_temperature_sensor_type");
 
-const doDebug = process.env.DEBUGTEST || false;
+const doDebug = checkDebugFlag("TEST");
 
 // tslint:disable-next-line:no-var-requires
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
