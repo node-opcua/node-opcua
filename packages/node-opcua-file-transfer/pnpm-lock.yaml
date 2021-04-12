@@ -1,6 +1,7 @@
 lockfileVersion: 5.3
 
 specifiers:
+  memfs: ^3.2.2
   node-opcua-address-space: 2.37.0
   node-opcua-assert: 2.37.0
   node-opcua-basic-types: 2.37.0
@@ -13,7 +14,7 @@ specifiers:
   node-opcua-leak-detector: 2.37.0
   node-opcua-nodeid: 2.37.0
   node-opcua-nodesets: 2.36.0
-  node-opcua-pki: ^2.9.7
+  node-opcua-pki: ^2.9.8
   node-opcua-pseudo-session: 2.37.0
   node-opcua-secure-channel: 2.37.0
   node-opcua-server: 2.37.0
@@ -36,7 +37,7 @@ dependencies:
   node-opcua-debug: link:../node-opcua-debug
   node-opcua-nodeid: link:../node-opcua-nodeid
   node-opcua-nodesets: link:../node-opcua-nodesets
-  node-opcua-pki: 2.9.7
+  node-opcua-pki: 2.9.8
   node-opcua-pseudo-session: link:../node-opcua-pseudo-session
   node-opcua-secure-channel: link:../node-opcua-secure-channel
   node-opcua-server: link:../node-opcua-server
@@ -48,6 +49,7 @@ dependencies:
   node-opcua-variant: link:../node-opcua-variant
 
 devDependencies:
+  memfs: 3.2.2
   node-opcua-binary-stream: link:../node-opcua-binary-stream
   node-opcua-data-value: link:../node-opcua-data-value
   node-opcua-leak-detector: link:../node-opcua-leak-detector
@@ -486,6 +488,10 @@ packages:
     resolution: {integrity: sha1-VQKYfchxS+M5IJfzLgBxyd7gfPY=}
     dev: false
 
+  /fs-monkey/1.0.3:
+    resolution: {integrity: sha512-cybjIfiiE+pTWicSCLFHSrXZ6EilF30oh91FDP9S2B051prEa7QWfrVTQm10/dDpswBDXZugPa1Ogu8Yh+HV0Q==}
+    dev: true
+
   /fs.realpath/1.0.0:
     resolution: {integrity: sha1-FQStJSMVjKpA20onh8sBQRmU6k8=}
     dev: false
@@ -776,6 +782,13 @@ packages:
       semver: 6.3.0
     dev: false
 
+  /memfs/3.2.2:
+    resolution: {integrity: sha512-RE0CwmIM3CEvpcdK3rZ19BC4E6hv9kADkMN5rPduRak58cNArWLi/9jFLsa4rhsjfVxMP3v0jO7FHXq7SvFY5Q==}
+    engines: {node: '>= 4.0.0'}
+    dependencies:
+      fs-monkey: 1.0.3
+    dev: true
+
   /merge2/1.4.1:
     resolution: {integrity: sha512-8q7VEgMJW4J8tcfVPy8g09NcQwZdbwFEqhe/WZkoIzjn/3TGDwtOCYtXGxA3O8tPzpczCCDgv+P2P5y00ZJOOg==}
     engines: {node: '>= 8'}
@@ -824,8 +837,8 @@ packages:
       sshpk: 1.16.1
     dev: false
 
-  /node-opcua-pki/2.9.7:
-    resolution: {integrity: sha512-XuhwQaLeoQ8dNrBiZMR5vRvQ4JfwqUUDp/8oPfWAG9XJb6TWNrIKVMYZFAieyqWByEIFO7adJwVlhiosPjc9bQ==}
+  /node-opcua-pki/2.9.8:
+    resolution: {integrity: sha512-ZVxJzxZdcSqESgoJr/ttDibbttCU16fN7JIueABkOBa9t8AlF8MUdT227kKKhXvdGjgHlvPuv8JGI+Jz+SV/wQ==}
     hasBin: true
     dependencies:
       '@ster5/global-mutex': 1.1.1

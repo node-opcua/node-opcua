@@ -23,7 +23,7 @@
         "node-opcua": "2.37.0",
         "node-opcua-assert": "2.37.0",
         "node-opcua-server-configuration": "2.37.0",
-        "node-opcua-pki": "^2.9.7",
+        "node-opcua-pki": "^2.9.8",
         "sprintf-js": "^1.1.2",
         "treeify": "^1.1.0",
         "underscore": "^1.12.1",

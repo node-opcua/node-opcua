@@ -16,7 +16,7 @@ specifiers:
   node-opcua-debug: 2.37.0
   node-opcua-leak-detector: 2.37.0
   node-opcua-object-registry: 2.37.0
-  node-opcua-pki: ^2.9.7
+  node-opcua-pki: ^2.9.8
   node-opcua-status-code: 2.37.0
   node-opcua-utils: 2.37.0
   once: ^1.4.0
@@ -37,7 +37,7 @@ dependencies:
   node-opcua-crypto: 1.7.1
   node-opcua-debug: link:../node-opcua-debug
   node-opcua-object-registry: link:../node-opcua-object-registry
-  node-opcua-pki: 2.9.7
+  node-opcua-pki: 2.9.8
   node-opcua-status-code: link:../node-opcua-status-code
   node-opcua-utils: link:../node-opcua-utils
   once: 1.4.0
@@ -854,8 +854,8 @@ packages:
       sshpk: 1.16.1
     dev: false
 
-  /node-opcua-pki/2.9.7:
-    resolution: {integrity: sha512-XuhwQaLeoQ8dNrBiZMR5vRvQ4JfwqUUDp/8oPfWAG9XJb6TWNrIKVMYZFAieyqWByEIFO7adJwVlhiosPjc9bQ==}
+  /node-opcua-pki/2.9.8:
+    resolution: {integrity: sha512-ZVxJzxZdcSqESgoJr/ttDibbttCU16fN7JIueABkOBa9t8AlF8MUdT227kKKhXvdGjgHlvPuv8JGI+Jz+SV/wQ==}
     hasBin: true
     dependencies:
       '@ster5/global-mutex': 1.1.1
