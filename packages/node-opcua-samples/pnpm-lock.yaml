@@ -7,7 +7,7 @@ specifiers:
   exit: ^0.1.2
   node-opcua: 2.37.0
   node-opcua-assert: 2.37.0
-  node-opcua-pki: ^2.9.7
+  node-opcua-pki: ^2.9.8
   node-opcua-server-configuration: 2.37.0
   sprintf-js: ^1.1.2
   treeify: ^1.1.0
@@ -21,7 +21,7 @@ dependencies:
   exit: 0.1.2
   node-opcua: link:../node-opcua
   node-opcua-assert: link:../node-opcua-assert
-  node-opcua-pki: 2.9.7
+  node-opcua-pki: 2.9.8
   node-opcua-server-configuration: link:../node-opcua-server-configuration
   sprintf-js: 1.1.2
   treeify: 1.1.0
@@ -826,8 +826,8 @@ packages:
       sshpk: 1.16.1
     dev: false
 
-  /node-opcua-pki/2.9.7:
-    resolution: {integrity: sha512-XuhwQaLeoQ8dNrBiZMR5vRvQ4JfwqUUDp/8oPfWAG9XJb6TWNrIKVMYZFAieyqWByEIFO7adJwVlhiosPjc9bQ==}
+  /node-opcua-pki/2.9.8:
+    resolution: {integrity: sha512-ZVxJzxZdcSqESgoJr/ttDibbttCU16fN7JIueABkOBa9t8AlF8MUdT227kKKhXvdGjgHlvPuv8JGI+Jz+SV/wQ==}
     hasBin: true
     dependencies:
       '@ster5/global-mutex': 1.1.1

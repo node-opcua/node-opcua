@@ -26,7 +26,7 @@
         "node-opcua-object-registry": "2.37.0",
         "node-opcua-status-code": "2.37.0",
         "node-opcua-utils": "2.37.0",
-        "node-opcua-pki": "^2.9.7",
+        "node-opcua-pki": "^2.9.8",
         "once": "^1.4.0",
         "thenify": "^3.3.1"
     },

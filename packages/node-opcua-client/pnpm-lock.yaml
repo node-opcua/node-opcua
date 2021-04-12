@@ -31,7 +31,7 @@ specifiers:
   node-opcua-nodeid: 2.37.0
   node-opcua-nodesets: 2.36.0
   node-opcua-object-registry: 2.37.0
-  node-opcua-pki: ^2.9.7
+  node-opcua-pki: ^2.9.8
   node-opcua-pseudo-session: 2.37.0
   node-opcua-schemas: 2.37.0
   node-opcua-secure-channel: 2.37.0
@@ -84,7 +84,7 @@ dependencies:
   node-opcua-hostname: link:../node-opcua-hostname
   node-opcua-nodeid: link:../node-opcua-nodeid
   node-opcua-object-registry: link:../node-opcua-object-registry
-  node-opcua-pki: 2.9.7
+  node-opcua-pki: 2.9.8
   node-opcua-pseudo-session: link:../node-opcua-pseudo-session
   node-opcua-schemas: link:../node-opcua-schemas
   node-opcua-secure-channel: link:../node-opcua-secure-channel
@@ -914,8 +914,8 @@ packages:
       sshpk: 1.16.1
     dev: false
 
-  /node-opcua-pki/2.9.7:
-    resolution: {integrity: sha512-XuhwQaLeoQ8dNrBiZMR5vRvQ4JfwqUUDp/8oPfWAG9XJb6TWNrIKVMYZFAieyqWByEIFO7adJwVlhiosPjc9bQ==}
+  /node-opcua-pki/2.9.8:
+    resolution: {integrity: sha512-ZVxJzxZdcSqESgoJr/ttDibbttCU16fN7JIueABkOBa9t8AlF8MUdT227kKKhXvdGjgHlvPuv8JGI+Jz+SV/wQ==}
     hasBin: true
     dependencies:
       '@ster5/global-mutex': 1.1.1

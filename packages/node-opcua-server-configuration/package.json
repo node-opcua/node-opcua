@@ -22,12 +22,15 @@
         "node-opcua-hostname": "2.37.0",
         "node-opcua-nodeid": "2.37.0",
         "node-opcua-nodesets": "2.36.0",
-        "node-opcua-pki": "^2.9.7",
+        "node-opcua-pki": "^2.9.8",
         "node-opcua-pseudo-session": "2.37.0",
         "node-opcua-secure-channel": "2.37.0",
+        "node-opcua-file-transfer": "2.37.0",
         "node-opcua-server": "2.37.0",
         "node-opcua-status-code": "2.37.0",
+        "node-opcua-service-translate-browse-path": "2.37.0",
         "node-opcua-types": "2.37.0",
+        "memfs": "^3.2.2",
         "node-opcua-variant": "2.37.0"
     },
     "devDependencies": {
