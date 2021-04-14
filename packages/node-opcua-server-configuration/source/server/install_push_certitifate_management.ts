@@ -5,7 +5,7 @@ import * as chalk from "chalk";
 import * as fs from "fs";
 import * as os from "os";
 import * as path from "path";
-import { promisify } from "util";
+import { promisify, callbackify } from "util";
 
 import { assert } from "node-opcua-assert";
 import { OPCUACertificateManager } from "node-opcua-certificate-manager";
@@ -14,9 +14,10 @@ import { checkDebugFlag, make_debugLog, make_errorLog } from "node-opcua-debug";
 import { getFullyQualifiedDomainName } from "node-opcua-hostname";
 import { ICertificateKeyPairProvider } from "node-opcua-secure-channel";
 import { OPCUAServer, OPCUAServerEndPoint } from "node-opcua-server";
-import { ApplicationDescriptionOptions } from "node-opcua-types";
+import { ApplicationDescriptionOptions, CallMethodResultOptions } from "node-opcua-types";
 import { installPushCertificateManagement } from "../push_certificate_manager_helpers";
 import { ActionQueue } from "./push_certificate_manager_server_impl";
+
 
 const debugLog = make_debugLog("ServerConfiguration");
 const errorLog = make_errorLog("ServerConfiguration");
@@ -73,6 +74,10 @@ async function getIpAddresses(): Promise<string[]> {
     return ipAddresses;
 }
 
+
+/**
+ * 
+ */
 async function install(this: OPCUAServerPartial): Promise<void> {
     debugLog("install push certificate management", this.serverCertificateManager.rootDir);
 
@@ -122,6 +127,7 @@ async function install(this: OPCUAServerPartial): Promise<void> {
 
         //  await this.serverCertificateManager.trustCertificate( this.$$certificateChain);
     }
+
 }
 
 function getCertificateChainEP(this: OPCUAServerEndPoint): Certificate {
@@ -194,7 +200,7 @@ export async function installPushCertificateManagementOnServer(server: OPCUAServ
     if (!server.engine.addressSpace) {
         throw new Error(
             "Server must have a valid address space." +
-                "you need to call installPushCertificateManagementOnServer after server has been initialized"
+            "you need to call installPushCertificateManagementOnServer after server has been initialized"
         );
     }
     await install.call((server as any) as OPCUAServerPartial);
@@ -248,4 +254,5 @@ export async function installPushCertificateManagementOnServer(server: OPCUAServ
             }
         );
     });
+
 }

@@ -54,12 +54,12 @@ async function main() {
 
     console.log(chalk.yellow("  server PID          :"), process.pid);
 
-    server.on("post_initialize", () => {
+    server.on("post_initialize", async () => {
         const addressSpace = server.engine.addressSpace!;
         // to do: expose new nodeid here
         const ns = addressSpace.getNamespaceIndex("http://yourorganisation.org/my_data_type/");
 
-        installPushCertificateManagement(addressSpace, {
+        await installPushCertificateManagement(addressSpace, {
             applicationGroup: server.serverCertificateManager,
             userTokenGroup: server.userCertificateManager,
 
