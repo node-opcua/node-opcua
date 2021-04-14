@@ -109,6 +109,7 @@ function writeEnumeratedType(enumerationSchema: EnumerationDefinitionSchema) {
     write(`}`);
 
     write(`export const _enumeration${enumerationSchema.name} = registerEnumeration(schema${enumerationSchema.name});`);
+    write(`assert(_enumeration${enumerationSchema.name}.isFlaggable ===  ${isFlaggable});`);
 }
 
 function writeStructuredTypeWithSchema(structuredType: StructuredTypeSchema) {
