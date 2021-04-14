@@ -5,7 +5,8 @@
     "scripts": {
         "build": "tsc -b",
         "test": "mocha",
-        "clean": "node -e \"require('rimraf').sync('_generated_');require('rimraf').sync('dist');\""
+        "clean": "node -e \"require('rimraf').sync('_generated_');require('rimraf').sync('dist');\"",
+        "coverage": "npx nyc node ../../node_modules/mocha/bin/mocha"
     },
     "main": "./dist/index.js",
     "types": "./dist/index.d.ts",

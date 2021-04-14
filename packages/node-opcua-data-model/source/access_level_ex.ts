@@ -1,7 +1,7 @@
 import { BinaryStream, OutputBinaryStream } from "node-opcua-binary-stream";
 import { _accessLevelFlagToString } from "./access_level";
 import { registerBasicType } from "node-opcua-factory";
-
+import { _make_flag} from "./_make_flag";
 /**
  * from https://reference.opcfoundation.org/v104/Core/docs/Part3/8.58/:
  * 
@@ -36,27 +36,7 @@ import { registerBasicType } from "node-opcua-factory";
 // @example
 //      makeAccessLevelFlag("CurrentRead | CurrentWrite").should.eql(0x03);
 export function makeAccessLevelExFlag(str: string | number | null): AccessLevelExFlag {
-    if (typeof str === "number") {
-        const value = str as number;
-        if (value === 0) {
-            return AccessLevelExFlag.None;
-        }
-        return value as AccessLevelExFlag;
-    }
-
-    let accessFlag: AccessLevelExFlag | null;
-
-    if (str === "" || str === null) {
-        accessFlag = AccessLevelExFlag.None;
-    } else {
-        const flags = str.split(" | ");
-        accessFlag = 0;
-        for (const flag of flags) {
-            accessFlag |= (AccessLevelExFlag as any)[flag];
-        }
-    }
-
-    return accessFlag as AccessLevelExFlag;
+    return _make_flag(str,AccessLevelExFlag.None, AccessLevelExFlag) as AccessLevelExFlag;
 }
 
 export function randomAccessLevelEx(): AccessLevelExFlag {
