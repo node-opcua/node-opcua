@@ -27,8 +27,6 @@ import { get_mini_nodeset_filename } from "node-opcua-address-space/testHelpers"
 const { getFakePublishEngine } = require("./helper_fake_publish_engine");
 const mini_nodeset_filename = get_mini_nodeset_filename();
 
-const context = SessionContext.defaultContext;
-
 const doDebug = false;
 const now = new Date().getTime();
 
