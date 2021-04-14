@@ -49,13 +49,11 @@ import {
     ContinuationPoint,
     DataValueCallback,
     HistoricalDataConfiguration,
-    isValidPermissions,
     IVariableHistorian,
     PseudoSession,
     UADataType as UADataTypePublic,
     UAVariable as UAVariablePublic,
     UAVariableType,
-    VariablePermissions
 } from "../source";
 import { BaseNode, InternalBaseNodeOptions } from "./base_node";
 import {
@@ -85,7 +83,12 @@ export function adjust_accessLevel(accessLevel: string | number | null): AccessL
     return accessLevel;
 }
 
-export function adjust_userAccessLevel(userAccessLevel: string | number | null, accessLevel: string | number | null): AccessLevelFlag {
+export function adjust_userAccessLevel(
+    userAccessLevel: string | number | null | undefined, accessLevel: string | number | null
+): AccessLevelFlag | undefined {
+    if (userAccessLevel === undefined) {
+        return undefined;
+    }
     userAccessLevel = adjust_accessLevel(userAccessLevel);
     accessLevel = adjust_accessLevel(accessLevel);
     return makeAccessLevelFlag(accessLevel & userAccessLevel);
@@ -219,10 +222,6 @@ interface UAVariableOptions extends InternalBaseNodeOptions {
     userAccessLevel?: any;
     minimumSamplingInterval?: number; // default -1
     historizing?: number;
-    permissions?: VariablePermissions;
-    /* @param [options.permissions] {Permissions}
-     * @param options.parentNodeId {NodeId}
-     */
 }
 
 export function verifyRankAndDimensions(options: { valueRank?: number; arrayDimensions?: number[] | null }) {
@@ -307,12 +306,11 @@ export class UAVariable extends BaseNode implements UAVariablePublic {
      */
     public _dataValue: DataValue;
     public accessLevel: number;
-    public userAccessLevel: number;
+    public userAccessLevel?: number;
     public valueRank: number;
     public minimumSamplingInterval: number;
     public historizing: boolean;
     public semantic_version: number;
-    public _permissions: VariablePermissions | null;
     public arrayDimensions: null | number[];
 
     public $extensionObject?: any;
@@ -352,13 +350,23 @@ export class UAVariable extends BaseNode implements UAVariablePublic {
             this.bindVariable(options.value);
         }
 
-        this._permissions = null;
-        if (options.permissions) {
-            this.setPermissions(options.permissions);
-        }
         this.setMaxListeners(5000);
 
         this.semantic_version = 0;
+    }
+
+    private checkPrivateFlag(context: SessionContext, permission: PermissionType, accessLevel: AccessLevelFlag) {
+        assert(context instanceof SessionContext);
+        if (context.checkPermission) {
+            assert(context.checkPermission instanceof Function);
+            if (!context.checkPermission(this, permission)) {
+                return false;
+            }
+        }
+        if (this.userAccessLevel === undefined) {
+            return true;
+        }
+        return (this.userAccessLevel & accessLevel) === accessLevel;
     }
 
     public isReadable(context: SessionContext): boolean {
@@ -367,11 +375,7 @@ export class UAVariable extends BaseNode implements UAVariablePublic {
 
     public isUserReadable(context: SessionContext): boolean {
         if (!this.isReadable(context)) { return false; }
-        if (context.checkPermission) {
-            assert(context.checkPermission instanceof Function);
-            return context.checkPermission(this, PermissionType.Read);
-        }
-        return (this.userAccessLevel & AccessLevelFlag.CurrentRead) === AccessLevelFlag.CurrentRead;
+        return this.checkPrivateFlag(context, PermissionType.Read, AccessLevelFlag.CurrentRead);
     }
 
     public isWritable(context: SessionContext): boolean {
@@ -380,12 +384,7 @@ export class UAVariable extends BaseNode implements UAVariablePublic {
 
     public isUserWritable(context: SessionContext): boolean {
         if (!this.isWritable(context)) { return false; }
-        assert(context instanceof SessionContext);
-        if (context.checkPermission) {
-            assert(context.checkPermission instanceof Function);
-            return context.checkPermission(this, PermissionType.Write);
-        }
-        return (this.userAccessLevel & AccessLevelFlag.CurrentWrite) === AccessLevelFlag.CurrentWrite;
+        return this.checkPrivateFlag(context, PermissionType.Write, AccessLevelFlag.CurrentWrite);
     }
 
     /**
@@ -558,9 +557,7 @@ export class UAVariable extends BaseNode implements UAVariablePublic {
         indexRange?: NumericRange,
         dataEncoding?: string
     ): DataValue {
-        if (!context) {
-            context = SessionContext.defaultContext;
-        }
+        context = context || SessionContext.defaultContext;
         assert(context instanceof SessionContext);
 
         const options: DataValueLike = {};
@@ -659,9 +656,8 @@ export class UAVariable extends BaseNode implements UAVariablePublic {
     }
 
     public writeValue(context: SessionContext, dataValue: DataValue, ...args: any[]): any {
-        if (!context) {
-            context = SessionContext.defaultContext;
-        }
+        context = context || SessionContext.defaultContext;
+        assert(context instanceof SessionContext);
 
         if (!dataValue.sourceTimestamp) {
             // source timestamp was not specified by the caller
@@ -680,7 +676,6 @@ export class UAVariable extends BaseNode implements UAVariablePublic {
             dataValue.serverTimestamp = context.currentTime.timestamp;
             dataValue.serverPicoseconds = context.currentTime.picoseconds;
         }
-        assert(context instanceof SessionContext);
 
         // adjust arguments if optional indexRange Parameter is not given
         let indexRange: NumericRange | null = null;
@@ -801,7 +796,7 @@ export class UAVariable extends BaseNode implements UAVariablePublic {
     }
 
     public writeAttribute(
-        context: SessionContext,
+        context: SessionContext | null,
         writeValueOptions: WriteValueOptions | WriteValue,
         callback?: (err: Error | null, statusCode?: StatusCode) => void
     ): any {
@@ -811,6 +806,8 @@ export class UAVariable extends BaseNode implements UAVariablePublic {
         }
         const writeValue: WriteValue =
             writeValueOptions instanceof WriteValue ? (writeValueOptions as WriteValue) : new WriteValue(writeValueOptions);
+
+        context = context || SessionContext.defaultContext;
 
         assert(context instanceof SessionContext);
         assert(writeValue instanceof WriteValue);
@@ -890,23 +887,6 @@ export class UAVariable extends BaseNode implements UAVariablePublic {
         if (variable.parent && variable.parent.nodeClass === NodeClass.Variable) {
             (variable.parent as UAVariable).touchValue(now);
         }
-    }
-
-    /**
-     * setPermissions
-     * set the role and permissions
-     *
-     * @example
-     *
-     *    const permissions = {
-     *        [Permission.Read]:  [ "*" ], // all users can read
-     *        [Permission.Write]: [ "!*", "Administrator" ] // no one except administrator can write
-     *    };
-     *    node.setPermissions(permissions);
-     */
-    public setPermissions(permissions: VariablePermissions): void {
-        assert(isValidPermissions(permissions));
-        this._permissions = permissions;
     }
 
     /**
@@ -1770,6 +1750,7 @@ export class UAVariable extends BaseNode implements UAVariablePublic {
         };
         return new DataValue(options);
     }
+
 }
 
 // tslint:disable:no-var-requires
@@ -1827,20 +1808,21 @@ function _apply_default_timestamps(dataValue: DataValue): void {
     }
 }
 
+function unsetFlag(flags: number, mask: number): number {
+    return flags & ~mask;
+}
+function setFlag(flags: number, mask: number): number {
+    return flags | mask;
+}
+
 function _calculateEffectiveUserAccessLevelFromPermission(
     node: UAVariable,
     context: SessionContext,
-    userAccessLevel: AccessLevelFlag
-) {
-    function unsetFlag(flags: number, mask: number): number {
-        return flags & ~mask;
-    }
-    function setFlag(flags: number, mask: number): number {
-        return flags | mask;
-    }
+    userAccessLevel: AccessLevelFlag | undefined
+): AccessLevelFlag {
     function __adjustFlag(permissionType: PermissionType, access: AccessLevelFlag, userAccessLevel1: AccessLevelFlag): AccessLevelFlag {
 
-        if ((node.accessLevel & access) === 0 || (node.userAccessLevel & access) === 0) {
+        if ((node.accessLevel & access) === 0 || (userAccessLevel1 & access) === 0) {
             userAccessLevel1 = unsetFlag(userAccessLevel1, access);
         } else {
             if (!context.checkPermission(node, permissionType)) {
@@ -1849,11 +1831,9 @@ function _calculateEffectiveUserAccessLevelFromPermission(
         }
         return userAccessLevel1;
     }
-
+    userAccessLevel = node.userAccessLevel === undefined ? node.accessLevel : (node.userAccessLevel & node.accessLevel);
     if (context.checkPermission) {
 
-        userAccessLevel = node.userAccessLevel & node.accessLevel;
- 
         assert(context.checkPermission instanceof Function);
         userAccessLevel = __adjustFlag(PermissionType.Read, AccessLevelFlag.CurrentRead, userAccessLevel);
         userAccessLevel = __adjustFlag(PermissionType.Write, AccessLevelFlag.CurrentWrite, userAccessLevel);
@@ -1861,8 +1841,10 @@ function _calculateEffectiveUserAccessLevelFromPermission(
         userAccessLevel = __adjustFlag(PermissionType.Write, AccessLevelFlag.TimestampWrite, userAccessLevel);
         userAccessLevel = __adjustFlag(PermissionType.ReadHistory, AccessLevelFlag.HistoryRead, userAccessLevel);
         userAccessLevel = __adjustFlag(PermissionType.DeleteHistory, AccessLevelFlag.HistoryWrite, userAccessLevel);
+        return userAccessLevel;
+    } else {
+        return userAccessLevel;
     }
-    return userAccessLevel;
 }
 
 function adjustVariant2(this: UAVariable, variant: Variant): Variant {

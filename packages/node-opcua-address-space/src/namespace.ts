@@ -1969,7 +1969,7 @@ export class UANamespace implements NamespacePublic {
         _handle_hierarchy_parent(addressSpace, references, options);
 
         UANamespace_process_modelling_rule(references, options.modellingRule);
-
+        
         const method = this._createNode({
             browseName: options.browseName,
             description: options.description || "",
@@ -1979,7 +1979,7 @@ export class UANamespace implements NamespacePublic {
             nodeClass: NodeClass.Method,
             nodeId: options.nodeId,
             references,
-            permissions: options.permissions
+            rolePermissions: options.rolePermissions
         }) as UAMethod;
         assert(method.nodeId !== null);
         method.propagate_back_references();

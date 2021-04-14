@@ -908,12 +908,11 @@ function UAConditionBase_instantiate(
                 }
             }
 
-            const context = SessionContext.defaultContext;
             // set source Node (defined in UABaseEventType)
-            conditionNode.sourceNode.setValueFromSource(conditionSourceNode.readAttribute(context, AttributeIds.NodeId).value);
+            conditionNode.sourceNode.setValueFromSource(conditionSourceNode.readAttribute(null, AttributeIds.NodeId).value);
 
             // set source Name (defined in UABaseEventType)
-            conditionNode.sourceName.setValueFromSource(conditionSourceNode.readAttribute(context, AttributeIds.DisplayName).value);
+            conditionNode.sourceName.setValueFromSource(conditionSourceNode.readAttribute(null, AttributeIds.DisplayName).value);
         }
     }
 

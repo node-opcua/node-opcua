@@ -22,6 +22,7 @@ export type Duration = number;
 
 import {
     AccessLevelFlag,
+    AccessRestrictionsFlag,
     AttributeIds,
     BrowseDirection,
     LocalizedText,
@@ -60,6 +61,8 @@ import {
     Range,
     RangeOptions,
     ReferenceDescription,
+    RolePermissionType,
+    RolePermissionTypeOptions,
     ServerDiagnosticsSummaryDataType,
     ServerState,
     ServerStatusDataType,
@@ -143,6 +146,8 @@ export declare class BaseNode extends EventEmitter {
     public readonly nodeId: NodeId;
     public readonly modellingRule?: ModellingRuleType;
     public readonly parentNodeId?: NodeId;
+    public readonly accessRestrictions?: AccessRestrictionsFlag;
+    public readonly rolePermissions?: RolePermissionTypeOptions[];
 
     // access to parent namespace
     public readonly namespaceIndex: number;
@@ -221,6 +226,14 @@ export declare class BaseNode extends EventEmitter {
      * @return {ReferenceDescription[]}
      */
     public browseNode(browseDescription: BrowseDescriptionOptions, session?: SessionContext): ReferenceDescription[];
+
+
+    /**
+     * 
+     * @param rolePermissions 
+     */
+    setRolePermissions(rolePermissions: RolePermissionTypeOptions[]): void;
+
 }
 
 export declare class UAView extends BaseNode {
@@ -320,7 +333,7 @@ export interface UAVariable extends BaseNode, VariableAttributes, IPropertyAndCo
      *
      * The AccessLevelType is defined in 8.57.
      */
-    userAccessLevel: number;
+    userAccessLevel?: number;
 
     /**
      * This Attribute indicates whether the Value Attribute of the Variable is an array and how many dimensions
@@ -552,8 +565,6 @@ export interface UAVariable extends BaseNode, VariableAttributes, IPropertyAndCo
 
     // advanced
     touchValue(updateNow?: PreciseClock): void;
-
-    setPermissions(permissions: VariablePermissions): void;
 
     bindVariable(options: BindVariableOptions | VariantLike, overwrite?: boolean): void;
 
@@ -813,16 +824,6 @@ export type MethodFunctor = (
     callback: MethodFunctorCallback
 ) => void;
 
-export function isValidPermissions(permissions: any) {
-    // all key must be numbers not string ...
-    for (const p in Object.keys(permissions)) {
-        if (parseInt(p).toString() !== p) {
-            throw new Error("Invalid permissions specified : " + JSON.stringify(permissions));
-        }
-    }
-    return true;
-}
-
 export declare class UAMethod extends BaseNode {
     public readonly nodeClass: NodeClass.Method;
     public readonly typeDefinitionObj: UAObjectType;
@@ -837,8 +838,6 @@ export declare class UAMethod extends BaseNode {
      *
      */
     public _getExecutableFlag?: (sessionContext: SessionContext) => boolean;
-
-    public setPermissions(permissions: MethodPermissions): void;
 
     public bindMethod(methodFunction: MethodFunctor): void;
 
@@ -1060,43 +1059,18 @@ export interface AddBaseNodeOptions {
     modellingRule?: ModellingRuleType;
 
     references?: AddReferenceOpts[];
+
+    /**
+     * 
+     */
+    accessRestrictions?: AccessRestrictionsFlag;
+    /**
+     * 
+     */
+    rolePermissions?: RolePermissionTypeOptions[];
 }
 
 
-export enum Permission {
-    "AddNode"= "AddNode",
-    "AddReference"= "AddReference",
-    "Browse"= "Browse",
-    "Call"= "Call",
-    "DeleteHistory" = "DeleteHistory",
-    "DeleteNode" = "DeleteNode",
-    "InsertHistory" = "InsertHistory",
-    "ModifyHistory" = "ModifyHistory",
-    "Read" = "Read",
-    "ReadHistory" = "ReadHistory",
-    "ReadRolePermissions" = "ReadRolePermissions",
-    "ReceiveEvents" = "ReceiveEvents",
-    "RemoveReference" = "RemoveReference",
-    "Write" = "Write",
-    "WriteAttribute" = "WriteAttribute",
-    "WriteHistorizing" = "WriteHistorizing",
-    "WriteRolePermissions" = "WriteRolePermissions"
-};
-
-
-export interface VariablePermissions {
-    "Read"?:  string[];
-    "Write"?:  string[];
-    "WriteAttribute"?:  string[];
-    "ReadHistory"?: string[];
-    "DeleteHistory"?:  string[];
-    "InsertHistory"?:  string[];
-    "ModifyHistory"?:  string[];
-    "Browse"?: string[];
-}
-export interface MethodPermissions {
-    "Call"?: string[];
-}
 
 export type AccessLevelString = string;
 
@@ -1137,14 +1111,16 @@ export interface VariableStuff {
      * The AccessLevel Attribute is used to indicate how the Value of a Variable can be accessed
      * (read/write) and if it contains current and/or historic data. The AccessLevel does not take
      * any user access rights into account, i.e. although the Variable is writable this may be
-     * restricted to a certain user / user group. The AccessLevelType is defined in 8.57.
+     * restricted to a certain user / user group. 
+     * 
+     * https://reference.opcfoundation.org/v104/Core/docs/Part3/8.57/
      */
     accessLevel?: UInt32 | AccessLevelString;
 
     /**
      * The UserAccessLevel Attribute is used to indicate how the Value of a Variable can be accessed
      * (read/write) and if it contains current or historic data taking user access rights into account.
-     * The AccessLevelType is defined in 8.57.
+     * https://reference.opcfoundation.org/v104/Core/docs/Part3/8.57/
      */
     userAccessLevel?: UInt32 | AccessLevelString;
 
@@ -1182,12 +1158,8 @@ export interface AddVariableTypeOptions extends AddBaseNodeOptions, VariableStuf
 }
 
 export interface AddVariableOptionsWithoutValue extends AddBaseNodeOptions, VariableStuff {
-    permissions?: Permissions;
 }
 export interface AddVariableOptions extends AddVariableOptionsWithoutValue {
-    /**
-     * permissions
-     */
     // default value is "BaseVariableType";
     typeDefinition?: string | NodeId | UAVariableType;
     value?: VariantLike | BindVariableOptions;
@@ -1238,15 +1210,15 @@ export interface AddMethodOptions {
     componentOf?: NodeIdLike | BaseNode;
     executable?: boolean;
     userExecutable?: boolean;
-    permissions?: Permissions;
-}
+    accessRestrictions?: AccessRestrictionsFlag;
+    rolePermissions?: RolePermissionTypeOptions[];
+  }
 
 export interface AddMultiStateDiscreteOptions extends AddBaseNodeOptions, VariableStuff {
     enumStrings: string[]; // default value is "BaseVariableType";
     typeDefinition?: string | NodeId | UAVariableType;
-    permissions?: Permissions;
-    postInstantiateFunc?: (node: UAVariable) => void;
-    value?: number | VariantLike | BindVariableOptions;
+     postInstantiateFunc?: (node: UAVariable) => void;
+     value?: number | VariantLike | BindVariableOptions;
 }
 
 export interface AddReferenceTypeOptions extends AddBaseNodeOptions {

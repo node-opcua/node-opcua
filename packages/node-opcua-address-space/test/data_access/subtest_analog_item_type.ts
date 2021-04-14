@@ -4,7 +4,7 @@ import * as should from "should";
 
 import { Range } from "node-opcua-data-access";
 import { standardUnits } from "node-opcua-data-access";
-import { BrowseDirection } from "node-opcua-data-model";
+import { BrowseDirection, makeAccessLevelFlag } from "node-opcua-data-model";
 import { DataValue } from "node-opcua-data-value";
 import { BrowseDescription } from "node-opcua-service-browse";
 import { StatusCodes } from "node-opcua-status-code";
@@ -58,6 +58,8 @@ export function subtest_analog_item_type(maintest: any) {
                 }
 
             });
+
+            analogItem.accessLevel.should.eql(makeAccessLevelFlag("CurrentRead | CurrentWrite"));
 
             // xx console.log(JSON.stringify(analogItem,null," "));
             // analogItem.dataType.should.eql(addressSpace.findVariableType("AnalogItemType").nodeId);

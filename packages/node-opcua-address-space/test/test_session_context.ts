@@ -12,6 +12,7 @@ const keep_should = should;
 
 import { getMiniAddressSpace } from "../testHelpers";
 import { NodeId } from "node-opcua-nodeid";
+import { AttributeIds, makeAccessLevelFlag } from "node-opcua-data-model";
 
 const certificateFolder = path.join(__dirname, "../../node-opcua-samples/certificates");
 fs.existsSync(certificateFolder).should.eql(true, "expecting certificate store at " + certificateFolder);
@@ -44,7 +45,12 @@ describe("SessionContext", () => {
             userAccessLevel: "CurrentRead"
         });
         context.checkPermission(someVariableNode, PermissionType.Read).should.eql(true);
-        context.checkPermission(someVariableNode, PermissionType.Write).should.eql(false);
+        context.checkPermission(someVariableNode, PermissionType.Write).should.eql(true);
+        const dataValue = someVariableNode.readAttribute(context, AttributeIds.UserAccessLevel);
+        dataValue.value.value.should.eql(makeAccessLevelFlag("CurrentRead"));
+        someVariableNode.isUserWritable(context).should.eql(false);
+        someVariableNode.isUserReadable(context).should.eql(true);
+
     });
 });
 describe("SessionContext - with  dedicated SessionContext and certificate ", () => {
@@ -127,20 +133,6 @@ describe("SessionContext - with  dedicated SessionContext and certificate ", () 
         const context = sessionContext;
         context.getCurrentUserRole().should.eql("AuthenticatedUser;SecurityAdmin");
     });
-
-    it("should provide a  default session context - checkPermission", () => {
-        const context = sessionContext;
-
-        const someVariableNode = addressSpace.getOwnNamespace().addVariable({
-            browseName: "SomeNode",
-            dataType: DataType.Double,
-            nodeId: "i=12",
-            userAccessLevel: "CurrentRead"
-        });
-        context.checkPermission(someVariableNode, PermissionType.Read).should.eql(true);
-        context.checkPermission(someVariableNode, PermissionType.Write).should.eql(false);
-    });
-
 
     ///
     it("should check execute permission on a method", () => {

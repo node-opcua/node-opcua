@@ -298,12 +298,11 @@ describe("testing address space", () => {
         views[0].should.eql(view1);
         views[1].should.eql(view4);
 
-        const context = SessionContext.defaultContext;
-        view1.readAttribute(context, AttributeIds.EventNotifier).value.toString().should.eql("Variant(Scalar<UInt32>, value: 0)");
+        view1.readAttribute(null, AttributeIds.EventNotifier).value.toString().should.eql("Variant(Scalar<UInt32>, value: 0)");
         view1
-            .readAttribute(context, AttributeIds.ContainsNoLoops)
+            .readAttribute(null, AttributeIds.ContainsNoLoops)
             .value.toString()
             .should.eql("Variant(Scalar<Boolean>, value: false)");
-        view1.readAttribute(context, AttributeIds.BrowseName).value.value.toString().should.eql("1:View1");
+        view1.readAttribute(null, AttributeIds.BrowseName).value.value.toString().should.eql("1:View1");
     });
 });

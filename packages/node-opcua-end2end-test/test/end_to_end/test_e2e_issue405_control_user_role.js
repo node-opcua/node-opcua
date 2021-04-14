@@ -6,7 +6,10 @@ const {
     Permission,
     OPCUAClient,
     StatusCodes,
-    WellKnownRoles
+    WellKnownRoles,
+    allPermissions,
+    PermissionType,
+    UserTokenType
 } = require("node-opcua");
 
 const {
@@ -17,12 +20,12 @@ const users = [
     {
         username: "user1",
         password: "1",
-        role: WellKnownRoles.Operator,
+        role: [WellKnownRoles.AuthenticatedUser, WellKnownRoles.Operator].join(";"),
     },
     {
         username: "user2",
         password: "2",
-        role: WellKnownRoles.ConfigureAdmin
+        role: [WellKnownRoles.AuthenticatedUser, WellKnownRoles.ConfigureAdmin].join(";")
     },
 ];
 
@@ -70,13 +73,22 @@ describe("testing Client-Server with UserName/Password identity token", function
             port,
             //xx            allowAnonymous: false
         };
-
         server = build_server_with_temperature_device(options, function (err) {
 
-            const permissionType1 = {
-                [Permission.Read]: ["*", "!Anonymous"], // accept all, except guest, so 'operator' should be allowed
-                [Permission.Write]: ["!*", "ConfigureAdmin"]  // deny all except admin, so 'operator' should be denied
-            };
+            const rolePermissions = [
+                {
+                    roleId: WellKnownRoles.Anonymous,
+                    permissions: allPermissions & ~PermissionType.Read & ~PermissionType.Write
+                },
+                {
+                    roleId: WellKnownRoles.AuthenticatedUser,
+                    permissions: allPermissions & ~PermissionType.Write
+                },
+                {
+                    roleId: WellKnownRoles.ConfigureAdmin,
+                    permissions: allPermissions
+                }
+            ];
 
             endpointUrl = server.getEndpointUrl();
             // replace user manager with our custom one
@@ -92,10 +104,9 @@ describe("testing Client-Server with UserName/Password identity token", function
                 organizedBy: addressSpace.rootFolder.objects,
                 dataType: "Double",
                 value: { dataType: "Double", value: 3.14 },
-                permissions: permissionType1
+                rolePermissions
             });
-            //xx node1.permissions = permissionType1;
-
+ 
             done(err);
         });
     });
@@ -155,7 +166,7 @@ describe("testing Client-Server with UserName/Password identity token", function
             // As operator user
             // ---------------------------------------------------------------------------------
             console.log("    impersonate user user1 on existing session");
-            let userIdentity = { userName: "user1", password: "1" };
+            let userIdentity = { type: UserTokenType.UserName, userName: "user1", password: "1" };
 
             await client.changeSessionIdentity(session, userIdentity);
 
@@ -169,7 +180,7 @@ describe("testing Client-Server with UserName/Password identity token", function
             // As admin user
             // ---------------------------------------------------------------------------------
             console.log("    impersonate user user2 on existing session (user2 is admin)");
-            userIdentity = { userName: "user2", password: "2" };
+            userIdentity = { type: UserTokenType.UserName, userName: "user2", password: "2" };
             await client.changeSessionIdentity(session, userIdentity);
 
             statusCode = await read(session);
@@ -182,7 +193,7 @@ describe("testing Client-Server with UserName/Password identity token", function
             // Back as anonymous
             // ---------------------------------------------------------------------------------
             console.log("    impersonate anonymous user again");
-            userIdentity = {};
+            userIdentity = { type: UserTokenType.Anonymous };
 
             await client.changeSessionIdentity(session, userIdentity);
             statusCode = await read(session);

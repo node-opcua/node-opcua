@@ -28,6 +28,7 @@ import {
 import { generateAddressSpace } from "../nodeJS";
 
 import { create_minimalist_address_space_nodeset } from "../testHelpers";
+import { assert } from "sinon";
 
 const context = SessionContext.defaultContext;
 
@@ -101,7 +102,8 @@ describe("testing Variables ", () => {
         value.statusCode.should.eql(StatusCodes.Good);
 
         //https://reference.opcfoundation.org/v104/Core/docs/Part3/8.56/
-        value = v.readAttribute(context, AttributeIds.AccessRestrictions)
+        should(v.accessRestrictions).eql(undefined);
+        value = v.readAttribute(context, AttributeIds.AccessRestrictions);
         value.statusCode.name.should.eql("BadAttributeIdInvalid");
         // value.value.dataType.should.eql(DataType.UInt16);
         //value.value.value.should.eql(0x00);
