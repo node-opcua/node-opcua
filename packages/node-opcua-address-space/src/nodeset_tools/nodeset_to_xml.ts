@@ -765,30 +765,27 @@ function _dumpStructureDefinition(xw: XmlWriter, structureDefinition: StructureD
     }
 }
 function _dumpUADataTypeDefinition(xw: XmlWriter, node: UADataType) {
-    const $definition = node._getDefinition();
-    if (!$definition) {
+    
+    // to do remove DataType from base class
+
+    const definition = node._getDefinition(false);
+    if (!definition) {
         return;
     }
-    if ($definition instanceof EnumDefinition) {
+    if (definition instanceof EnumDefinition) {
         xw.startElement("Definition");
         xw.writeAttribute("Name", node.browseName.name!);
-        _dumpEnumDefinition(xw, $definition);
+        _dumpEnumDefinition(xw, definition);
         xw.endElement();
         return;
     }
-    if ($definition instanceof StructureDefinition) {
+    if (definition instanceof StructureDefinition) {
         xw.startElement("Definition");
         xw.writeAttribute("Name", node.browseName.name!);
-        if ($definition.structureType === StructureType.Union) {
+        if (definition.structureType === StructureType.Union) {
             xw.writeAttribute("IsUnion", "true");
         }
-        /*
-        // todo
-        $definition.baseDataType;
-        // todo
-        $definition.structureType;
-        */
-        _dumpStructureDefinition(xw, $definition);
+        _dumpStructureDefinition(xw, definition);
         xw.endElement();
         return;
     }

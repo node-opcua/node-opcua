@@ -17,6 +17,7 @@ import {
     EnumField,
     EnumFieldOptions,
     StructureDefinition,
+    StructureField,
     StructureType
 } from "node-opcua-types";
 import { isNullOrUndefined } from "node-opcua-utils";
@@ -64,6 +65,7 @@ export class UADataType extends BaseNode implements UADataTypePublic {
     public readonly nodeClass = NodeClass.DataType;
     public readonly definitionName: string = "";
     public readonly symbolicName: string;
+
     /**
      * returns true if this is a super type of baseType
      *
@@ -90,6 +92,7 @@ export class UADataType extends BaseNode implements UADataTypePublic {
     private enumStrings?: any;
     private enumValues?: any;
     private $definition?: DataTypeDefinition;
+    private $fullDefinition?: DataTypeDefinition;
 
     constructor(options: any) {
         super(options);
@@ -112,7 +115,7 @@ export class UADataType extends BaseNode implements UADataTypePublic {
                 options.value = { dataType: DataType.Boolean, value: !!this.isAbstract };
                 break;
             case AttributeIds.DataTypeDefinition:
-                const _definition = this._getDefinition();
+                const _definition = this._getDefinition(true);
                 if (_definition !== null) {
                     options.value = { dataType: DataType.ExtensionObject, value: _definition };
                 } else {
@@ -244,7 +247,11 @@ export class UADataType extends BaseNode implements UADataTypePublic {
         return indexes;
     }
 
-    public _getDefinition(): DataTypeDefinition | null {
+    public _getDefinition(mergeWithBase: boolean): DataTypeDefinition | null {
+
+        if (this.$fullDefinition !== undefined) {
+            return mergeWithBase ?this.$fullDefinition:  this.$definition!;
+        }
         if (!this.$definition) {
             const structure = this.addressSpace.findDataType("Structure")!;
             if (!structure) {
@@ -255,8 +262,16 @@ export class UADataType extends BaseNode implements UADataTypePublic {
                 this.$definition = new StructureDefinition({});
             }
         }
+
+        // https://reference.opcfoundation.org/v104/Core/docs/Part3/8.49/#Table34
+        // The list of fields that make up the data type.
+        // This definition assumes the structure has a sequential layout.
+        // The StructureField DataType is defined in 8.51.
+        // For Structures derived from another Structure DataType this list shall begin with the fields
+        // of the baseDataType followed by the fields of this StructureDefinition.
+ 
         // from OPC Unified Architecture, Part 6 86 Release 1.04
-        //  A DataTypeDefinition defines an abstract representation of a UADataType that can be used by
+        //  A DataTypeDefinition defines an abstract representation of _a UADataType that can be used by
         //  design tools to automatically create serialization code. The fields in the DataTypeDefinition type
         //  are defined in Table F.12.
         const _definition = this.$definition || null;
@@ -267,10 +282,23 @@ export class UADataType extends BaseNode implements UADataTypePublic {
                 _definition.baseDataType = subtype;
             }
         }
-        return _definition;
+        this.$fullDefinition = this.$definition?.clone();
+        
+        let _baseDefinition: DataTypeDefinition | null = null;
+        if (this.subtypeOfObj) {
+            _baseDefinition = (this.subtypeOfObj as UADataType)._getDefinition(mergeWithBase);
+        }
+        if (this.$fullDefinition && this.$definition instanceof StructureDefinition && _baseDefinition) {
+            const b = _baseDefinition as StructureDefinition;
+            if (b.fields?.length) {
+                const f = this.$fullDefinition as StructureDefinition;
+                f.fields = (<StructureField[]>[]).concat(b.fields!, f.fields!);    
+            }
+        }
+        return mergeWithBase ? this.$fullDefinition || null : this.$definition || null;
     }
     public getDefinition(): DataTypeDefinition {
-        const d = this._getDefinition();
+        const d = this._getDefinition(true);
         if (!d) {
             throw new Error("DataType has no definition property");
         }
@@ -289,7 +317,7 @@ export class UADataType extends BaseNode implements UADataTypePublic {
 }
 
 function dataTypeDefinition_toString(this: UADataType, options: ToStringOption) {
-    const definition = this._getDefinition();
+    const definition = this._getDefinition(false);
     if (!definition) {
         return;
     }
@@ -307,20 +335,20 @@ export function DataType_toString(this: UADataType, options: ToStringOption): vo
 
     options.add(
         options.padding +
-            chalk.yellow("          binaryEncodingNodeId: ") +
-            (this.binaryEncodingNodeId ? this.binaryEncodingNodeId.toString() : "<none>")
+        chalk.yellow("          binaryEncodingNodeId: ") +
+        (this.binaryEncodingNodeId ? this.binaryEncodingNodeId.toString() : "<none>")
     );
     options.add(
         options.padding +
-            chalk.yellow("          xmlEncodingNodeId   : ") +
-            (this.xmlEncodingNodeId ? this.xmlEncodingNodeId.toString() : "<none>")
+        chalk.yellow("          xmlEncodingNodeId   : ") +
+        (this.xmlEncodingNodeId ? this.xmlEncodingNodeId.toString() : "<none>")
     );
 
     if (this.subtypeOfObj) {
         options.add(
             options.padding +
-                chalk.yellow("          subtypeOfObj        : ") +
-                (this.subtypeOfObj ? this.subtypeOfObj.browseName.toString() : "")
+            chalk.yellow("          subtypeOfObj        : ") +
+            (this.subtypeOfObj ? this.subtypeOfObj.browseName.toString() : "")
         );
     }
     // references

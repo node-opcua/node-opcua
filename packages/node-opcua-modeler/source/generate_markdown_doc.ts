@@ -43,7 +43,7 @@ function dataTypeToMarkdown(dataType: UADataType): string {
     const addressSpace = dataType.addressSpace;
 
     const writer = new Writer();
-    const definition = (dataType as any).$definition as DataTypeDefinition;
+    const definition: DataTypeDefinition = (dataType as any).$definition;
 
     writer.writeLine("\nisAbstract: " + (dataType.isAbstract ? "Yes" : "No"));
     if (dataType.subtypeOfObj) {

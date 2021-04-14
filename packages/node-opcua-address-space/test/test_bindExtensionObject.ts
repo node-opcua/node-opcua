@@ -8,12 +8,9 @@ import { NodeIdLike } from "node-opcua-nodeid";
 import { StatusCodes } from "node-opcua-status-code";
 import {
     ApplicationDescription,
-    ApplicationDescriptionOptions,
-    BuildInfoOptions,
     ServerState,
     ServerStatusDataType,
     ServiceCounterDataType,
-    ServiceCounterDataTypeOptions,
     SessionDiagnosticsDataType
 } from "node-opcua-types";
 import { DataType } from "node-opcua-variant";
@@ -396,7 +393,7 @@ describe("Extension Object binding and sub  components\n", () => {
 
         it(
             "ZA3- updateExtensionObjectPartial: it should be possible to cascade changes " +
-                "by acting on the whole ExtensionObject",
+            "by acting on the whole ExtensionObject",
             () => {
                 spy_on_sessionDiagnostics_clientDescription_value_changed.callCount.should.eql(0);
 
@@ -429,7 +426,7 @@ describe("Extension Object binding and sub  components\n", () => {
 
         it(
             "ZA4- updateExtensionObjectPartial: it should be possible to cascade changes " +
-                "by acting on the whole ExtensionObject - middle",
+            "by acting on the whole ExtensionObject - middle",
             () => {
                 spy_on_sessionDiagnostics_totalRequestCount_value_changed.callCount.should.eql(0);
                 spy_on_sessionDiagnostics_totalRequestCount_errorCount_value_changed.callCount.should.eql(0);
@@ -460,7 +457,7 @@ describe("Extension Object binding and sub  components\n", () => {
 
         it(
             "ZA5- incrementExtensionObjectPartial: it should be possible to cascade changes " +
-                "by increasing a value on ExtensionObject",
+            "by increasing a value on ExtensionObject",
             () => {
                 sessionDiagnostics.totalRequestCount.totalCount.readValue().value.value.should.eql(0);
                 sessionDiagnostics.totalRequestCount.readValue().value.value.totalCount.should.eql(0);
@@ -493,7 +490,7 @@ describe("Extension Object binding and sub  components\n", () => {
 
         it(
             "ZA6- changing property values in extension object directly should propagates changes and notification " +
-                "to NodeVariables",
+            "to NodeVariables",
             () => {
                 _sessionDiagnostics.clientDescription.applicationUri = "applicationUri-1";
 
@@ -506,7 +503,7 @@ describe("Extension Object binding and sub  components\n", () => {
 });
 
 // tslint:disable-next-line: no-empty-interface
-interface UAMeasIdDataType extends UAVariable {}
+interface UAMeasIdDataType extends UAVariable { }
 // tslint:disable-next-line: no-empty-interface
 interface UAPartIdDataType extends UAVariable {
     id: UAVariableT<string, DataType.String>;
@@ -560,7 +557,7 @@ describe("Extension Object binding and sub  components On MachineVision", () => 
             throw new Error("Cannot find ResultType");
         }
     });
-    it("MachineVision-BindExtensionObject should instantiate a ResultType", () => {
+    it("MV1 MachineVision-BindExtensionObject should instantiate a ResultType", () => {
         const result = resultType.instantiate({
             browseName: `Result`,
             organizedBy: addressSpace.rootFolder.objects
@@ -570,12 +567,23 @@ describe("Extension Object binding and sub  components On MachineVision", () => 
             console.log(extObj?.toString());
         }
     });
-    it("MachineVision-BindExtensionObject should instantiate a ResultType", () => {
+    it("MV2 MachineVision-BindExtensionObject should instantiate a ResultType", () => {
         const partIdDataType = addressSpace.findDataType("PartIdDataType", nsMV)!;
         const partId = addressSpace.constructExtensionObject(partIdDataType, {
             description: "World",
             id: "Hello"
         });
+
+        const configurationIdDataType = addressSpace.findDataType("ConfigurationIdDataType", nsMV)!;
+        const rr = addressSpace.constructExtensionObject(configurationIdDataType, {
+            description: "some description",
+            hash: Buffer.from("DEADBEEF", "hex"),
+            id: "IIII",
+            version: "1.2"
+        });
+        should.exist((<any>rr).hash);
+        (<any>rr).hash.toString("hex").should.eql("deadbeef");
+
 
         const recipeIdExternalD = addressSpace.findDataType("RecipeIdExternalDataType", nsMV)!;
 
@@ -593,6 +601,12 @@ describe("Extension Object binding and sub  components On MachineVision", () => 
 
             resultContent: [{ dataType: DataType.ExtensionObject, value: a }]
         });
+        if (doDebug) {
+            console.log("extObj", extObj.toString());
+        }
+        should.exist((<any>extObj).internalConfigurationId.hash);
+        (<any>extObj).internalConfigurationId.hash.toString("hex").should.eql("deadbeef");
+
         const result = resultType.instantiate({
             browseName: `Result2`,
             organizedBy: addressSpace.rootFolder.objects,
@@ -601,6 +615,11 @@ describe("Extension Object binding and sub  components On MachineVision", () => 
                 value: extObj
             }
         }) as UAResultType;
+
+        const verif = result.readValue().value.value as any;
+        should.exist(verif.internalConfigurationId.hash);
+        verif.internalConfigurationId.hash.toString("hex").should.eql("deadbeef");
+
 
         if (doDebug) {
             console.log(result.readValue().value.value.toString());
