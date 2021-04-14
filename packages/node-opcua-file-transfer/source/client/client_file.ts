@@ -28,9 +28,9 @@ export class ClientFile {
 
     public static useGlobalMethod: boolean = false;
 
-    public fileHandle: number = 0;
-    private session: IBasicSession;
-    private readonly fileNodeId: NodeId;
+    public    fileHandle: number = 0;
+    protected session: IBasicSession;
+    protected readonly fileNodeId: NodeId;
 
     private openMethodNodeId?: NodeId;
     private closeMethodNodeId?: NodeId;
@@ -206,7 +206,7 @@ export class ClientFile {
         return dataValue.value.value;
     }
 
-    private async extractMethodsIds(): Promise<void> {
+    protected async extractMethodsIds(): Promise<void> {
 
         if (ClientFile.useGlobalMethod) {
             debugLog("Using GlobalMethodId");
@@ -282,7 +282,7 @@ export class ClientFile {
         this.sizeNodeId = results[7].targets![0].targetId;
     }
 
-    private async ensureInitialized() {
+    protected async ensureInitialized() {
         if (!this.openMethodNodeId) {
             await this.extractMethodsIds();
         }
