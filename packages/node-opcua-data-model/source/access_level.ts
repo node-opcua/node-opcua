@@ -5,6 +5,7 @@
  */
 import { BinaryStream, OutputBinaryStream } from "node-opcua-binary-stream";
 import { registerBasicType } from "node-opcua-factory";
+import { _make_flag } from "./_make_flag";
 
 
 export enum AccessLevelFlag {
@@ -28,27 +29,7 @@ export function convertAccessLevelFlagToByte(accessLevel: AccessLevelFlag): numb
 // @example
 //      makeAccessLevelFlag("CurrentRead | CurrentWrite").should.eql(0x03);
 export function makeAccessLevelFlag(str: string | number | null): AccessLevelFlag {
-    if (typeof str === "number") {
-        const value = str as number;
-        if (value === 0) {
-            return AccessLevelFlag.None;
-        }
-        return value as AccessLevelFlag;
-    }
-
-    let accessFlag: AccessLevelFlag | null;
-
-    if (str === "" || str === null) {
-        accessFlag = AccessLevelFlag.None;
-    } else {
-        const flags = str.split(" | ");
-        accessFlag = 0;
-        for (const flag of flags) {
-            accessFlag |= (AccessLevelFlag as any)[flag];
-        }
-    }
-
-    return accessFlag as AccessLevelFlag;
+    return _make_flag(str,AccessLevelFlag.None, AccessLevelFlag) as AccessLevelFlag;
 }
 
 export const coerceAccessLevelFlag = makeAccessLevelFlag;
