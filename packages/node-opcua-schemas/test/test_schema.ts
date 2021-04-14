@@ -548,3 +548,43 @@ describe("BSSGF - Binary Schemas Helper 5 (DerivedType -1)", () => {
 
     });
 });
+
+describe("BSHG - Binary Schema Helper 6 - Milo", () => {
+    let dataTypeFactory: DataTypeFactory;
+    let old_schema_helpers_doDebug = false;
+    before(async () => {
+        const sample_file = path.join(__dirname, "fixtures/sample_milo.xsd");
+
+        old_schema_helpers_doDebug = parameters.debugSchemaHelper;
+        parameters.debugSchemaHelper = true;
+        const sample = fs.readFileSync(sample_file, "ascii");
+        dataTypeFactory = new DataTypeFactory([]);
+        await parseBinaryXSDAsync(sample, idProvider, dataTypeFactory);
+    });
+
+    after(() => {
+        parameters.debugSchemaHelper = old_schema_helpers_doDebug;
+    });
+
+    it("BSHG-1 - should handle CustomUnionType", async () => {
+        const CustomUnionType = getOrCreateConstructor("CustomUnionType", dataTypeFactory);
+
+        const data1 = new CustomUnionType({ foo: 42 });
+        const reloadedData1 = encode_decode_round_trip_test(data1, (buffer: Buffer) => {
+            buffer.length.should.eql(4 /* optionalBit*/ + 4 /* UInt32 */);
+            const stream = new BinaryStream(buffer);
+            stream.readUInt32().should.eql(0x0001);
+            stream.readUInt32().should.eql(42);
+        });
+        console.log(reloadedData1.toJSON());
+
+        const data2 = new CustomUnionType({ bar: "Hello"});
+        const reloadedData2 = encode_decode_round_trip_test(data2, (buffer: Buffer) => {
+            buffer.length.should.eql(4 /* optionalBit*/ + 4 /* string length*/ + 5 /* Hello*/);
+        });
+        console.log(reloadedData1.toJSON());
+    });
+
+
+
+})

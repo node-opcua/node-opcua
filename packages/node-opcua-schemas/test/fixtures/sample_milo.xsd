@@ -1,0 +1,18 @@
+<opc:TypeDictionary xmlns:opc="http://opcfoundation.org/BinarySchema/" TargetNamespace="urn:eclipse:milo:opcua:server:demo" DefaultByteOrder="LittleEndian">
+    <opc:Import Namespace="http://opcfoundation.org/BinarySchema/"/>
+    <opc:EnumeratedType LengthInBits="32" Name="CustomEnumType">
+        <opc:EnumeratedValue Name="Field0" Value="0"/>
+        <opc:EnumeratedValue Name="Field1" Value="1"/>
+        <opc:EnumeratedValue Name="Field2" Value="2"/>
+    </opc:EnumeratedType>
+    <opc:StructuredType Name="CustomUnionType">
+        <opc:Field Name="SwitchField" TypeName="opc:UInt32"/>
+        <opc:Field Name="foo" TypeName="opc:UInt32" SwitchField="SwitchField" SwitchValue="1"/>
+        <opc:Field Name="bar" TypeName="opc:String" SwitchField="SwitchField" SwitchValue="2"/>
+    </opc:StructuredType>
+    <opc:StructuredType Name="CustomStructType">
+        <opc:Field Name="foo" TypeName="opc:String"/>
+        <opc:Field Name="bar" TypeName="opc:UInt32"/>
+        <opc:Field Name="baz" TypeName="opc:Boolean"/>
+    </opc:StructuredType>
+</opc:TypeDictionary>
