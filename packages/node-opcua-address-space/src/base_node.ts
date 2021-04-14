@@ -19,19 +19,19 @@ import {
     NodeClass,
     QualifiedName,
     QualifiedNameLike,
-    QualifiedNameOptions
+    QualifiedNameOptions,
+    AccessRestrictionsFlag,
 } from "node-opcua-data-model";
 import { DataValue } from "node-opcua-data-value";
 import { dumpIf, make_warningLog } from "node-opcua-debug";
-import { makeNodeId, NodeId, NodeIdLike, resolveNodeId, sameNodeId } from "node-opcua-nodeid";
+import { coerceNodeId, makeNodeId, NodeId, NodeIdLike, resolveNodeId, sameNodeId } from "node-opcua-nodeid";
 import { NumericRange } from "node-opcua-numeric-range";
 import { ReferenceDescription } from "node-opcua-service-browse";
 import { StatusCode, StatusCodes } from "node-opcua-status-code";
-import { BrowseDescription, RelativePathElement } from "node-opcua-types";
+import { BrowseDescription, PermissionType, RelativePathElement, RolePermissionType, RolePermissionTypeOptions } from "node-opcua-types";
 import * as utils from "node-opcua-utils";
 import { lowerFirstLetter } from "node-opcua-utils";
-import { DataType } from "node-opcua-variant";
-import { StringDecoder } from "string_decoder";
+import { DataType, VariantArrayType } from "node-opcua-variant";
 
 import {
     AddReferenceOpts,
@@ -50,6 +50,7 @@ import {
     UAVariable as UAVariablePublic,
     UAVariableT,
     UAVariableType as UAVariableTypePublic,
+    WellKnownRolesNodeId,
     XmlWriter
 } from "../source";
 import { UAStateVariable } from "../source/interfaces/state_machine/ua_state_variable";
@@ -98,6 +99,13 @@ export interface InternalBaseNodeOptions {
     description?: LocalizedTextLike | null;
 
     browseFilter?: (this: BaseNode, context?: SessionContext) => boolean;
+
+    /**
+     * https://reference.opcfoundation.org/v104/Core/docs/Part3/8.56/
+     */
+    accessRestrictions?: AccessRestrictionsFlag;
+    rolePermissions?: RolePermissionTypeOptions[];
+
 }
 
 function _is_valid_BrowseDirection(browseDirection: any) {
@@ -141,6 +149,10 @@ export function makeAttributeEventName(attributeId: AttributeIds) {
  *
  */
 export class BaseNode extends EventEmitter implements BaseNodePublic {
+
+    public accessRestrictions?: AccessRestrictionsFlag;
+    public rolePermissions?: RolePermissionTypeOptions[];
+
     public onFirstBrowseAction?: (this: BaseNodePublic) => Promise<void>;
 
     public get addressSpace(): AddressSpacePrivate {
@@ -320,6 +332,9 @@ export class BaseNode extends EventEmitter implements BaseNodePublic {
         for (const reference of options.references) {
             this.__addReference(reference);
         }
+
+        this.accessRestrictions = options.accessRestrictions;
+        this.rolePermissions = options.rolePermissions;
     }
 
     public getDisplayName(locale?: string): string {
@@ -672,6 +687,15 @@ export class BaseNode extends EventEmitter implements BaseNodePublic {
                 options.value = { dataType: DataType.UInt32, value: this.getUserWriteMask() };
                 break;
 
+            case AttributeIds.AccessRestrictions:
+                return this._readAccessRestrictions(context);
+
+            case AttributeIds.RolePermissions:
+                return this._readRolePermissions(context);
+
+            case AttributeIds.UserRolePermissions:
+                return this._readUserRolePermissions(context);
+
             default:
                 options.value = null;
                 options.statusCode = StatusCodes.BadAttributeIdInvalid;
@@ -682,10 +706,12 @@ export class BaseNode extends EventEmitter implements BaseNodePublic {
     }
 
     public writeAttribute(
-        context: SessionContext,
+        context: SessionContext | null,
         writeValue: any,
         callback: (err: Error | null, statusCode?: StatusCode) => void
     ) {
+        context = context || SessionContext.defaultContext;
+
         assert(context instanceof SessionContext);
         assert(typeof callback === "function");
 
@@ -1287,10 +1313,82 @@ export class BaseNode extends EventEmitter implements BaseNodePublic {
         this.emit(event_name, this.readAttribute(SessionContext.defaultContext, attributeId));
     }
 
+
     private _clear_caches() {
         const _private = BaseNode_getPrivate(this);
         _private._cache = {};
     }
+    private _readAccessRestrictions(context: SessionContext | null): DataValue {
+        // https://reference.opcfoundation.org/v104/Core/docs/Part3/8.56/
+        if (this.accessRestrictions === undefined) {
+            return new DataValue({ statusCode: StatusCodes.BadAttributeIdInvalid });
+        }
+
+        return new DataValue({
+            statusCode: StatusCodes.Good,
+            value: {
+                dataType: DataType.UInt16,
+                value: this.accessRestrictions
+            }
+        });
+    }
+    private _readRolePermissions(context: SessionContext | null): DataValue {
+
+        // https://reference.opcfoundation.org/v104/Core/docs/Part3/4.8.3/
+
+        // to do check that current user can read permission
+        if (context && !context?.checkPermission(this as any, PermissionType.ReadRolePermissions)) {
+            return new DataValue({
+                statusCode: StatusCodes.BadUserAccessDenied
+            });
+        }
+
+        if (this.rolePermissions === undefined) {
+            // to do : If not specified, the value of DefaultUserRolePermissions Property from
+            // the Namespace Metadata Object associated with the Node is used instead.
+            return new DataValue({
+                statusCode: StatusCodes.BadAttributeIdInvalid
+            });
+        }
+
+        const rolePermissions = this.rolePermissions
+            .map(
+                ({ roleId, permissions }) => {
+                    return new RolePermissionType({
+                        roleId: toRoleNodeId(roleId!),
+                        permissions
+                    })
+                });
+        return new DataValue({
+            statusCode: StatusCodes.Good,
+            value: {
+                dataType: DataType.ExtensionObject,
+                arrayType: VariantArrayType.Array,
+                value: rolePermissions
+            }
+        });
+    }
+
+    private _readUserRolePermissions(context: SessionContext | null): DataValue {
+        // for the time being ... 
+        return this._readRolePermissions(context);
+    }
+
+    /**
+    * 
+    * @param rolePermissions 
+    */
+    setRolePermissions(rolePermissions: RolePermissionTypeOptions[]): void {
+        this.rolePermissions = rolePermissions;
+    }
+
+}
+
+function toRoleNodeId(s: NodeIdLike): NodeId {
+    if (typeof s === "string") {
+        return resolveNodeId(WellKnownRolesNodeId[s as any]);
+    }
+    return coerceNodeId(s);
 }
 
 let displayWarning = true;
@@ -1357,8 +1455,8 @@ function _asObject<T extends BaseNode>(references: UAReferencePublic[], addressS
             // tslint:disable-next-line:no-console
             console.log(
                 chalk.red(" Warning :  object with nodeId ") +
-                    chalk.cyan(reference.nodeId.toString()) +
-                    chalk.red(" cannot be found in the address space !")
+                chalk.cyan(reference.nodeId.toString()) +
+                chalk.red(" cannot be found in the address space !")
             );
         }
         return (obj as any) as T;
@@ -1383,7 +1481,7 @@ function _filter_by_browse_name<T extends BaseNodePublic>(
             warningLog("Multiple children exist with name ", browseName, " please specify a namespace index");
         }
     } else {
-        const _browseName = coerceQualifiedName(typeof browseName=== "string" ? { name: browseName, namespaceIndex} : browseName)!;
+        const _browseName = coerceQualifiedName(typeof browseName === "string" ? { name: browseName, namespaceIndex } : browseName)!;
         select = components.filter(
             (c: T) => c.browseName.name === _browseName.name && c.browseName.namespaceIndex === _browseName.namespaceIndex
         );

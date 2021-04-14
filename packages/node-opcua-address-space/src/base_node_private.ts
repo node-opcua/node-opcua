@@ -135,8 +135,8 @@ export function BaseNode_toString(this: BaseNode, options: ToStringOption) {
     options.add(options.padding + chalk.yellow("          browseName          : ") + this.browseName.toString());
     options.add(
         options.padding +
-            chalk.yellow("          displayName         : ") +
-            this.displayName.map((f) => f.locale + " " + f.text).join(" | ")
+        chalk.yellow("          displayName         : ") +
+        this.displayName.map((f) => f.locale + " " + f.text).join(" | ")
     );
 
     options.add(
@@ -193,10 +193,10 @@ export function BaseNode_References_toString(this: BaseNode, options: ToStringOp
 
     options.add(
         options.padding +
-            chalk.yellow("          back_references     : ") +
-            chalk.cyan("  length =") +
-            br.length +
-            chalk.grey(" ( references held by other nodes involving this node)")
+        chalk.yellow("          back_references     : ") +
+        chalk.cyan("  length =") +
+        br.length +
+        chalk.grey(" ( references held by other nodes involving this node)")
     );
     // backward reference
     br.forEach(dump_reference.bind(null, false));
@@ -206,11 +206,11 @@ function _UAType_toString(this: UAReferenceTypePublic | UADataType | UAObjectTyp
     if (this.subtypeOfObj) {
         options.add(
             options.padding +
-                chalk.yellow("          subtypeOf           : ") +
-                this.subtypeOfObj.browseName.toString() +
-                " (" +
-                this.subtypeOfObj.nodeId.toString() +
-                ")"
+            chalk.yellow("          subtypeOf           : ") +
+            this.subtypeOfObj.browseName.toString() +
+            " (" +
+            this.subtypeOfObj.nodeId.toString() +
+            ")"
         );
     }
 }
@@ -219,11 +219,11 @@ function _UAInstance_toString(this: UAVariable | UAMethod | UAObject, options: T
     if (this.typeDefinitionObj) {
         options.add(
             options.padding +
-                chalk.yellow("          typeDefinition      : ") +
-                this.typeDefinitionObj.browseName.toString() +
-                " (" +
-                this.typeDefinitionObj.nodeId.toString() +
-                ")"
+            chalk.yellow("          typeDefinition      : ") +
+            this.typeDefinitionObj.browseName.toString() +
+            " (" +
+            this.typeDefinitionObj.nodeId.toString() +
+            ")"
         );
     }
 }
@@ -309,9 +309,11 @@ function AccessLevelFlags_toString(this: UAVariable, options: ToStringOption) {
     options.add(
         options.padding + chalk.yellow("          accessLevel         : ") + " " + accessLevelFlagToString(this.accessLevel)
     );
-    options.add(
-        options.padding + chalk.yellow("          userAccessLevel     : ") + " " + accessLevelFlagToString(this.userAccessLevel)
-    );
+    if (this.userAccessLevel !== undefined) {
+        options.add(
+            options.padding + chalk.yellow("          userAccessLevel     : ") + " " + accessLevelFlagToString(this.userAccessLevel)
+        );
+    }
 }
 export function VariableOrVariableType_toString(this: UAVariableType | UAVariable, options: ToStringOption) {
     assert(options);
@@ -329,9 +331,9 @@ export function VariableOrVariableType_toString(this: UAVariableType | UAVariabl
         if (this._dataValue) {
             options.add(
                 options.padding +
-                    chalk.yellow("          value               : ") +
-                    "\n" +
-                    options.indent(this._dataValue.toString(), options.padding + "                        | ")
+                chalk.yellow("          value               : ") +
+                "\n" +
+                options.indent(this._dataValue.toString(), options.padding + "                        | ")
             );
         }
     }
@@ -348,19 +350,19 @@ export function VariableOrVariableType_toString(this: UAVariableType | UAVariabl
     if (this.minimumSamplingInterval !== undefined) {
         options.add(
             options.padding +
-                chalk.yellow(" minimumSamplingInterval      : ") +
-                " " +
-                this.minimumSamplingInterval.toString() +
-                " ms"
+            chalk.yellow(" minimumSamplingInterval      : ") +
+            " " +
+            this.minimumSamplingInterval.toString() +
+            " ms"
         );
     }
     if (this.arrayDimensions) {
         options.add(
             options.padding +
-                chalk.yellow(" arrayDimension               : ") +
-                " [" +
-                this.arrayDimensions.join(",").toString() +
-                " ]"
+            chalk.yellow(" arrayDimension               : ") +
+            " [" +
+            this.arrayDimensions.join(",").toString() +
+            " ]"
         );
     }
 }
@@ -390,11 +392,11 @@ function _clone_collection_new(
             // tslint:disable-next-line:no-console
             console.log(
                 chalk.red("Warning : cannot clone node ") +
-                    node.browseName.toString() +
-                    " of class " +
-                    NodeClass[node.nodeClass].toString() +
-                    " while cloning " +
-                    newParent.browseName.toString()
+                node.browseName.toString() +
+                " of class " +
+                NodeClass[node.nodeClass].toString() +
+                " while cloning " +
+                newParent.browseName.toString()
             );
             continue;
         }

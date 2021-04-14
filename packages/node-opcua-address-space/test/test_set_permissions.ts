@@ -1,3 +1,4 @@
+import { AttributeIds, makeAccessLevelExFlag, makeAccessLevelFlag, makePermissionFlag } from "node-opcua-data-model";
 import { PermissionType } from "node-opcua-types";
 import { DataType } from "node-opcua-variant";
 import * as should  from "should";
@@ -5,8 +6,7 @@ import {
     AddressSpace, 
     UAObject, 
     Namespace, 
-    SessionContext, 
-    Permission,
+    SessionContext,
     WellKnownRoles,
 } from "..";
 
@@ -28,8 +28,9 @@ describe("Variable#setPermissions & checkPermission", () => {
         addressSpace.dispose();
     });
 
-    it("checkPermission-1 should obey default flags when variable has no specific permission", () => {
-        const context = SessionContext.defaultContext;
+    it("checkPermission-v1 should obey default flags when variable has no specific permission", () => {
+      
+        const context = new  SessionContext();
         context.getCurrentUserRole = () => {
             return [ WellKnownRoles.AuthenticatedUser, WellKnownRoles.Engineer ].join(";");
         };
@@ -40,10 +41,17 @@ describe("Variable#setPermissions & checkPermission", () => {
             userAccessLevel: "CurrentRead"
         });
         context.checkPermission(someNode, PermissionType.Read).should.eql(true);
-        context.checkPermission(someNode, PermissionType.Write).should.eql(false);
+        context.checkPermission(someNode, PermissionType.Write).should.eql(true);
+
+        const dataValue = someNode.readAttribute(context, AttributeIds.UserAccessLevel);
+        dataValue.value.value.should.eql(makeAccessLevelFlag("CurrentRead"));
+        someNode.isUserWritable(context).should.eql(false);
+        someNode.isUserReadable(context).should.eql(true);
+
+
     });
-    it("checkPermission-2 should obey default flags when variable has no specific permission", () => {
-        const context = SessionContext.defaultContext;
+    it("checkPermission-v2 should obey default flags when variable has no specific permission", () => {
+        const context = new  SessionContext();
         context.getCurrentUserRole = () => {
             return [ WellKnownRoles.AuthenticatedUser, WellKnownRoles.Engineer ].join(";");
         };
@@ -51,12 +59,16 @@ describe("Variable#setPermissions & checkPermission", () => {
         const someVariable1 = addressSpace.getOwnNamespace().addVariable({
             browseName: "SomeVariable1",
             dataType: DataType.Double,
+            accessLevel: "CurrentRead | CurrentWrite",
             userAccessLevel: "CurrentRead"
         });
-        someVariable1.setPermissions({
-            [Permission.Read]: ["!*", WellKnownRoles.Engineer],
-            [Permission.Write]: ["!*", WellKnownRoles.Engineer],
-        });
+        someVariable1.setRolePermissions([
+            { roleId: WellKnownRoles.Engineer, permissions: makePermissionFlag("Read | Write")}
+        ]);
+        // someVariable1.setPermissions({
+        //     [Permission.Read]: ["!*", WellKnownRoles.Engineer],
+        //     [Permission.Write]: ["!*", WellKnownRoles.Engineer],
+        // });
 
         context.checkPermission(someVariable1, PermissionType.Read).should.eql(true);
         context.checkPermission(someVariable1, PermissionType.Write).should.eql(true);
@@ -66,10 +78,13 @@ describe("Variable#setPermissions & checkPermission", () => {
             dataType: DataType.Double,
             userAccessLevel: "CurrentRead"
         });
-        someVariable2.setPermissions({
-            [Permission.Read]: ["!*", WellKnownRoles.ConfigureAdmin],
-            [Permission.Write]: ["!*", WellKnownRoles.ConfigureAdmin]
-        });
+        someVariable2.setRolePermissions([
+            { roleId: WellKnownRoles.ConfigureAdmin, permissions: makePermissionFlag("Read | Write")}
+        ]);
+        // someVariable2.setPermissions({
+        //     [Permission.Read]: ["!*", WellKnownRoles.ConfigureAdmin],
+        //     [Permission.Write]: ["!*", WellKnownRoles.ConfigureAdmin]
+        // });
 
         context.checkPermission(someVariable2, PermissionType.Read).should.eql(false);
         context.checkPermission(someVariable2, PermissionType.Write).should.eql(false);
@@ -79,10 +94,13 @@ describe("Variable#setPermissions & checkPermission", () => {
             dataType: DataType.Double,
             userAccessLevel: "CurrentRead"
         });
-        someVariable3.setPermissions({
-            [Permission.Read]: ["*", "!" + WellKnownRoles.Engineer],
-            [Permission.Write]: ["!*", "!" + WellKnownRoles.Engineer]
-        });
+        someVariable3.setRolePermissions([
+            { roleId: WellKnownRoles.ConfigureAdmin, permissions: makePermissionFlag("Read | Write")}
+        ]);
+        // someVariable3.setPermissions({
+        //     [Permission.Read]: ["*", "!" + WellKnownRoles.Engineer],
+        //     [Permission.Write]: ["!*", "!" + WellKnownRoles.Engineer]
+        // });
 
         context.checkPermission(someVariable3, PermissionType.Read).should.eql(false);
         context.checkPermission(someVariable3, PermissionType.Write).should.eql(false);
@@ -108,7 +126,7 @@ describe("Method#setPermissions & checkPermission", () => {
     after(() => {
         addressSpace.dispose();
     });
-    it("checkPermission-1 should obey default flags when method has no specific permission", () => {
+    it("checkPermission-m1 should obey default flags when method has no specific permission", () => {
   
         const someMethod = addressSpace.getOwnNamespace().addMethod(someObject, {
             browseName: "SomeNode",
@@ -117,7 +135,7 @@ describe("Method#setPermissions & checkPermission", () => {
         });
         someMethod.bindMethod(defaultMehod);
 
-        const context = SessionContext.defaultContext;
+        const context = new  SessionContext();
         context.getCurrentUserRole = () => {
             return "AuthenticatedUser;Engineer";
         };
@@ -125,8 +143,8 @@ describe("Method#setPermissions & checkPermission", () => {
         context.checkPermission(someMethod, PermissionType.Call).should.eql(true);
 
     });
-    it("checkPermission-2 should obey default flags when method has no specific permission", () => {
-        const context = SessionContext.defaultContext;
+    it("checkPermission-m2 should obey default flags when method has no specific permission", () => {
+        const context = new  SessionContext();
         context.getCurrentUserRole = () => {
             return "AuthenticatedUser;Engineer";
         };
@@ -138,9 +156,12 @@ describe("Method#setPermissions & checkPermission", () => {
         });
         someMethod.bindMethod(defaultMehod);
         
-        someMethod.setPermissions({
-            [Permission.Call]: ["!*", WellKnownRoles.Engineer],
-        });
+        someMethod.setRolePermissions([
+            { roleId: WellKnownRoles.Engineer, permissions: makePermissionFlag("Call")}
+        ]);
+        // someMethod.setPermissions({
+        //     [Permission.Call]: ["!*", WellKnownRoles.Engineer],
+        // });
 
         context.checkPermission(someMethod, PermissionType.Call).should.eql(true);
   
@@ -152,10 +173,12 @@ describe("Method#setPermissions & checkPermission", () => {
         });
         someMethod2.bindMethod(defaultMehod);
         
-        someMethod2.setPermissions({
-            [Permission.Call]: ["!*", WellKnownRoles.ConfigureAdmin]
-        });
-
+        someMethod2.setRolePermissions([
+            { roleId: WellKnownRoles.ConfigureAdmin, permissions: makePermissionFlag("Call")}
+        ]);
+        // someMethod2.setPermissions({
+        //     [Permission.Call]: ["!*", WellKnownRoles.ConfigureAdmin]
+        // });
         context.checkPermission(someMethod2, PermissionType.Call).should.eql(false);
  
         const someMethod3 = addressSpace.getOwnNamespace().addMethod(someObject, {
@@ -166,9 +189,12 @@ describe("Method#setPermissions & checkPermission", () => {
         someMethod3.bindMethod(defaultMehod);
 
         
-        someMethod3.setPermissions({
-            [Permission.Call]: ["!*", WellKnownRoles.ConfigureAdmin]
-        });
+        someMethod3.setRolePermissions([
+            { roleId: WellKnownRoles.ConfigureAdmin, permissions: makePermissionFlag("Call")}
+        ]);
+        // someMethod3.setPermissions({
+        //     [Permission.Call]: ["!*", WellKnownRoles.ConfigureAdmin]
+        // });
 
         context.checkPermission(someMethod3, PermissionType.Call).should.eql(false);
     });

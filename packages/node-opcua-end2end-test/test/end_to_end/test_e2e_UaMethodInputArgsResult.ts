@@ -9,7 +9,7 @@ describe("list status codes for input arguments", () => {
     });
 
     const client = OPCUAClient.create({
-        endpoint_must_exist: false
+        endpointMustExist: false
     });
     let clientSession: ClientSession;
 

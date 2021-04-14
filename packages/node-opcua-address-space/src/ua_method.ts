@@ -20,8 +20,6 @@ import {
     UAMethod as UAMethodPublic,
     UAObject as UAObjectPublic,
     UAObjectType,
-    MethodPermissions,
-    isValidPermissions
 } from "../source";
 import { SessionContext } from "../source";
 import { BaseNode } from "./base_node";
@@ -51,17 +49,13 @@ export class UAMethod extends BaseNode implements UAMethodPublic {
     public value?: any;
     public methodDeclarationId: NodeId;
     public _getExecutableFlag?: (this: UAMethod, context: SessionContext) => boolean;
-    public _permissions: MethodPermissions | null;
+ 
     public _asyncExecutionFunction?: MethodFunctor;
 
     constructor(options: any) {
         super(options);
         this.value = options.value;
         this.methodDeclarationId = options.methodDeclarationId;
-        this._permissions = null;
-        if (options.permissions) {
-            this.setPermissions(options.permissions);
-        }
     }
 
     /**
@@ -111,12 +105,6 @@ export class UAMethod extends BaseNode implements UAMethodPublic {
         return this._getArguments("OutputArguments");
     }
 
-
-    public setPermissions(permissions: MethodPermissions): void {
-        assert(isValidPermissions(permissions));
-        this._permissions = permissions;
-    }
-
     public bindMethod(async_func: MethodFunctor): void {
         assert(typeof async_func === "function");
         this._asyncExecutionFunction = async_func;
@@ -163,7 +151,7 @@ export class UAMethod extends BaseNode implements UAMethodPublic {
             return callback(null, { statusCode: StatusCodes.BadMethodInvalid });
         }
 
-        if (this._permissions && context.checkPermission) {
+        if (this.rolePermissions && context.checkPermission) {
             if (!context.checkPermission(this, PermissionType.Call)) {
                 return callback(null, { statusCode: StatusCodes.BadUserAccessDenied });
             }

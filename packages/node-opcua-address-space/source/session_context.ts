@@ -7,20 +7,22 @@ import { assert } from "node-opcua-assert";
 // note : use specifically dist file to avoid modules that rely on fs
 import { Certificate, CertificateInternals, exploreCertificate } from "node-opcua-crypto";
 
-import { AccessLevelFlag, NodeClass } from "node-opcua-data-model";
+import { AccessLevelFlag, allPermissions, NodeClass, PermissionFlag } from "node-opcua-data-model";
 import { PreciseClock } from "node-opcua-date-time";
-import { NodeId } from "node-opcua-nodeid";
-import { AnonymousIdentityToken, MessageSecurityMode, PermissionType, UserNameIdentityToken, X509IdentityToken } from "node-opcua-types";
-import { UAVariable as UAVariablePrivate } from "../src/ua_variable";
-import { UAMethod as UAMethodPrivate } from "../src/ua_method";
+import { NodeId, NodeIdLike } from "node-opcua-nodeid";
+import { AnonymousIdentityToken, MessageSecurityMode, PermissionType, RolePermissionTypeOptions, UserNameIdentityToken, X509IdentityToken } from "node-opcua-types";
 import {
     ISessionContext,
     UAObject,
     UAObjectType,
     UAVariable,
     UAMethod,
-    Permission
+    BaseNode,
 } from "./address_space_ts";
+import { ObjectIds } from "node-opcua-constants";
+
+
+export { PermissionType } from  "node-opcua-types";
 
 type UserIdentityToken = UserNameIdentityToken | AnonymousIdentityToken | X509IdentityToken;
 
@@ -66,14 +68,23 @@ export interface ISessionBase {
 export enum WellKnownRoles {
     Anonymous = "Anonymous",
     AuthenticatedUser = "AuthenticatedUser",
+    ConfigureAdmin = "ConfigureAdmin",
+    Engineer = "Engineer",
     Observer = "Observer",
     Operator = "Operator",
-    Engineer = "Engineer",
+    SecurityAdmin = "SecurityAdmin",
     Supervisor = "Supervisor",
-    ConfigureAdmin = "ConfigureAdmin",
-    SecurityAdmin = "SecurityAdmin"
 };
-
+export enum WellKnownRolesNodeId {
+    Anonymous = ObjectIds.WellKnownRole_Anonymous,
+    AuthenticatedUser = ObjectIds.WellKnownRole_AuthenticatedUser,
+    ConfigureAdmin = ObjectIds.WellKnownRole_ConfigureAdmin,
+    Engineer = ObjectIds.WellKnownRole_Engineer,
+    Observer = ObjectIds.WellKnownRole_Observer,
+    Operator = ObjectIds.WellKnownRole_Operator,
+    SecurityAdmin = ObjectIds.WellKnownRole_SecurityAdmin,
+    Supervisor = ObjectIds.WellKnownRole_Supervisor
+}
 /**
  * OPC Unified Architecture, Part 3 13 Release 1.04
  * 4.8.2 Well Known Roles
@@ -111,29 +122,17 @@ export interface SessionContextOptions {
     object?: UAObject | UAObjectType;
     server?: IServerBase /* OPCUAServer*/;
 }
+function getPermissionForRole(
+    rolePermissions: RolePermissionTypeOptions[],
+    role: NodeIdLike
+): PermissionFlag {
 
-function hasOneRoleDenied(permission: string[], roles: string[]): boolean {
-    for (const role of roles) {
-        const str = "!" + role;
-        if (permission.findIndex((x: string) => x === str) >= 0) {
-            return true; // user is explicitly denied
-        }
-    }
-    return false;
-}
-function hasOneRoleAllowed(permission: string[], roles: string[]) {
-    for (const role of roles) {
-        const str = role;
-        if (permission.findIndex((x: string) => x === str) >= 0) {
-            return true; // user is explicitly denied
-        }
-    }
-    return false;
+    const a = rolePermissions.find((r) => {
+        return r.roleId === role;
+    });
+    return a !== undefined ? a.permissions! |  PermissionFlag.None: PermissionFlag.None;
 }
 
-function toPermissionKey(perm: PermissionType): keyof typeof Permission {
-    return PermissionType[perm] as (keyof typeof Permission);
-}
 export class SessionContext implements ISessionContext {
     public static defaultContext = new SessionContext({});
 
@@ -161,7 +160,7 @@ export class SessionContext implements ISessionContext {
      */
     public getCurrentUserRole(): string {
         if (!this.session) {
-            return "default";
+            return "default"; // default context => no Session
         }
 
         assert(this.session != null, "expecting a session");
@@ -187,56 +186,32 @@ export class SessionContext implements ISessionContext {
         return this.server.userManager.getUserRole(username);
     }
 
+    public getPermissions(node: BaseNode): PermissionFlag {
+        if (!node.rolePermissions) {
+            // todo check permissions on namespace 
+            return allPermissions; // no permission specified => all access
+        }
+
+        const roles = this.getCurrentUserRole();
+        if (roles === "default") {
+            return allPermissions;
+        }
+
+        let orFlags: PermissionFlag = 0;
+        for (const role of roles.split(";")) {
+            // to do : improve with nodeId
+            orFlags = orFlags | getPermissionForRole(node.rolePermissions, role);
+        }
+        return orFlags;
+    }
     /**
      * @method checkPermission
      * @param node
-     * @param permission
+     * @param requestedPermission
      * @return {Boolean}
      */
-    public checkPermission(node: UAMethod | UAVariable, permission: PermissionType): boolean {
-        let permissionRole: string[] | undefined = undefined;
-        const permissionKey = toPermissionKey(permission);
-        const userRole = this.getCurrentUserRole();
-        if (node.nodeClass === NodeClass.Variable) {
-            const nodeVariable = node as UAVariablePrivate;
-            permissionRole = nodeVariable._permissions
-                ? nodeVariable._permissions[permissionKey as (keyof typeof nodeVariable._permissions)]
-                : undefined;
-            if (!permissionRole /* || userRole === "default" */) {
-                switch (permission) {
-                    case PermissionType.Read:
-                        return (nodeVariable.userAccessLevel & AccessLevelFlag.CurrentRead) === AccessLevelFlag.CurrentRead;
-                    case PermissionType.Write:
-                        return (nodeVariable.userAccessLevel & AccessLevelFlag.CurrentWrite) === AccessLevelFlag.CurrentWrite;
-                    case PermissionType.InsertHistory:
-                    case PermissionType.DeleteHistory:
-                    case PermissionType.ModifyHistory:
-                        return (nodeVariable.userAccessLevel & AccessLevelFlag.HistoryWrite) === AccessLevelFlag.HistoryWrite;
-                    case PermissionType.ReadHistory:
-                        return (nodeVariable.userAccessLevel & AccessLevelFlag.HistoryRead) === AccessLevelFlag.HistoryRead;
-                }
-            }
-        } else if (node.nodeClass === NodeClass.Method) {
-            const nodeMethod = node as UAMethodPrivate;
-            permissionRole = nodeMethod._permissions
-                ? nodeMethod._permissions[permissionKey as (keyof typeof nodeMethod._permissions)]
-                : undefined;
-            if (!permissionRole || userRole === "default") {
-                return nodeMethod.getExecutableFlag(this);
-            }
-        } else {
-            throw new Error("checkPermission node should be a UAVariable or a UAMethod");
-        }
-        if (!permissionRole) {
-            return false;
-        }
-        const roles = userRole.split(";");
-        if (permissionRole[0] === "*") {
-            // accept all except...
-            return !hasOneRoleDenied(permissionRole, roles);
-        } else {
-            // deny all except
-            return hasOneRoleAllowed(permissionRole, roles) && !hasOneRoleDenied(permissionRole, roles);
-        }
+    public checkPermission(node: UAMethod | UAVariable, requestedPermission: PermissionType): boolean {
+        const permissions = this.getPermissions(node);
+        return (permissions & requestedPermission) === requestedPermission;
     }
 }
