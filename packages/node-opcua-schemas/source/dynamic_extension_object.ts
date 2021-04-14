@@ -676,6 +676,7 @@ export function createDynamicObjectConstructor(
     let BaseClass: AnyConstructorFunc = DynamicExtensionObject as AnyConstructorFunc;
 
     if (schema.baseType !== "ExtensionObject"
+        && schema.baseType !== "OptionSet"
         && schema.baseType !== "DataTypeDescription"
         && schema.baseType !== "DataTypeDefinition"
         && schema.baseType !== "EnumValueType"

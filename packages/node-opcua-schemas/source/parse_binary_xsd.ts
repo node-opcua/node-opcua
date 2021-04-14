@@ -1,7 +1,6 @@
 /**
  * @module node-opcua-schemas
  */
-// tslint:disable:no-console
 // tslint:disable:object-literal-sort-keys
 // tslint:disable:no-empty
 
@@ -279,6 +278,11 @@ const state0: any = {
                                         // istanbul ignore next
                                         if (doDebug) {
                                             debugLog("field", field.name, " is part of a union  => ", switchField, " value #", field.switchValue);
+                                        }
+                                        // sometimes (like in Milo, baseType attribute is not specified)
+                                        if (!this.parent.attrs.baseType) {
+                                            this.parent.attrs.baseType = "Union";
+                                            this.parent.structuredType.baseType = "Union";
                                         }
                                     } else {
                                         field.switchBit = structuredType.bitFields ?
