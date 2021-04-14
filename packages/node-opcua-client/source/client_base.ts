@@ -147,6 +147,12 @@ export interface GetEndpointsOptions {
 }
 
 export interface OPCUAClientBase extends OPCUASecureObject {
+
+    /**
+     * certificate Manager
+     */
+    readonly clientCertificateManager: OPCUACertificateManager;
+
     /***
      *
      * @param endpointUrl the endpoint of the server to connect to ( i.e "opc.tcp://machine.name:3434/name" )
