@@ -1,3 +1,5 @@
+/* eslint-disable max-statements */
+/* eslint-disable no-inner-declarations */
 const sinon = require("sinon");
 
 const {
@@ -164,7 +166,7 @@ module.exports = function(test) {
                                     "acked: " + a.acked.id.value);
                                 //console.log(treeify.asTree(a.fields, true));
                             }
-                            for (a of alarms) {
+                            for (const a of alarms) {
                                 dd(a);
                             }
                         }
@@ -270,6 +272,9 @@ module.exports = function(test) {
                         alarms.length.should.eql(0);
 
                         await uninstallAlarmMonitoring(session);
+
+                        await pause();
+
                     } catch (err) {
                         console.log(err);
                         throw err;

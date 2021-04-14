@@ -123,7 +123,7 @@ function dumpDataTypeToBSD(xw: XmlWriter, dataType: UADataType, map: { [key: num
 
     const name: string = dataType.browseName.name!;
 
-    const def = dataType._getDefinition();
+    const def = dataType._getDefinition(false);
     if (def instanceof StructureDefinition) {
         dumpDataTypeStructure(xw, addressSpace, map, def, name);
     }

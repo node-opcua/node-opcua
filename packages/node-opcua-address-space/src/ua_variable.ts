@@ -1213,6 +1213,7 @@ export class UAVariable extends BaseNode implements UAVariablePublic {
             return null;
         }
 
+        // istanbul ignore next
         if (doDebug) {
             console.log(" ------------------------------ binding ", this.browseName.toString(), this.nodeId.toString());
         }
@@ -1307,13 +1308,13 @@ export class UAVariable extends BaseNode implements UAVariablePublic {
                 true
             );
         };
-
         const components = this.getComponents();
 
         // ------------------------------------------------------
         // make sure we have a structure
         // ------------------------------------------------------
         const s = this.readValue();
+        // istanbul ignore next
         if (this.dataTypeObj.isAbstract) {
             console.log("Warning the DataType associated with this Variable is abstract ", this.dataTypeObj.browseName.toString());
             console.log("You need to provide a extension object yourself ");
@@ -1366,7 +1367,7 @@ export class UAVariable extends BaseNode implements UAVariablePublic {
         // ------------------------------------------------------
         // now bind each member
         // ------------------------------------------------------
-        const definition = dt._getDefinition() as StructureDefinition;
+        const definition = dt._getDefinition(false) as StructureDefinition;
 
         // istanbul ignore next
         if (!definition) {
@@ -1402,6 +1403,7 @@ export class UAVariable extends BaseNode implements UAVariablePublic {
             const dataTypeNodeId = addressSpace.findCorrespondingBasicDataType(field.dataType);
             assert(this.$extensionObject.hasOwnProperty(camelCaseName));
 
+            // istanbul ignore next
             if (doDebug) {
                 const x = addressSpace.findNode(field.dataType)!.browseName.toString();
                 const basicType = addressSpace.findCorrespondingBasicDataType(field.dataType);
@@ -1419,7 +1421,6 @@ export class UAVariable extends BaseNode implements UAVariablePublic {
                     property.readValue().statusCode.toString()
                 );
             }
-
             if (this.$extensionObject[camelCaseName] !== undefined && dataTypeNodeId === DataType.ExtensionObject) {
                 assert(this.$extensionObject[camelCaseName] instanceof Object);
                 this.$extensionObject[camelCaseName] = new Proxy(this.$extensionObject[camelCaseName], makeHandler(property));

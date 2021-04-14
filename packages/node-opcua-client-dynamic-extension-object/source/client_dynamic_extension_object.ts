@@ -1129,6 +1129,7 @@ export async function convertDataTypeDefinitionToStructureTypeSchema(
     cache: { [key: string]: Cache }
 ): Promise<StructuredTypeSchema> {
     if (definition instanceof StructureDefinition) {
+
         const fields: FieldInterfaceOptions[] = [];
 
         const isUnion = definition.structureType === StructureType.Union;
