@@ -1,6 +1,8 @@
 // make sure extra error checking is made on object constructions
 // tslint:disable-next-line:no-var-requires
-import * as fs from "fs";
+import * as fsOrigin from "fs";
+import { fs as fsMemory } from "memfs";
+
 import * as os from "os";
 import * as path from "path";
 import * as should from "should";
@@ -11,14 +13,15 @@ import { generateAddressSpace } from "node-opcua-address-space/nodeJS";
 import { UInt64, extraStatusCodeBits, coerceUInt64 } from "node-opcua-basic-types";
 import { nodesets } from "node-opcua-nodesets";
 
-import { ClientFile, FileTypeData, getFileData, installFileType, OpenFileMode } from "..";
+import { ClientFile, FileTypeData, getFileData, OpenFileMode, installFileType, AbstractFs } from "..";
 import { MethodIds } from "node-opcua-client";
 
 // tslint:disable:no-var-requires
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 
-["with File object methods", "with FileType methods"].forEach((message) => {
+["with File object methods", "with FileType methods", "with memory file system"].forEach((message) => {
     const useGlobalMethod = !!message.match(/FileType/);
+    const withMemFS = message.match(/memory/);
 
     describe("FileTransfer " + message, () => {
         let addressSpace: AddressSpace;
@@ -45,6 +48,7 @@ const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 
         let opcuaFile: UAFileType;
         let opcuaFile2: UAFileType;
+        let fileSystem: AbstractFs;
 
         before(async () => {
             const namespace = addressSpace.getOwnNamespace();
@@ -58,12 +62,14 @@ const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
                 organizedBy: addressSpace.rootFolder.objects.server
             }) as UAFileType;
 
-            const tempFolder = await promisify(fs.mkdtemp)(path.join(os.tmpdir(), "test-"));
+            fileSystem = withMemFS ? (fsMemory as any as AbstractFs) : fsOrigin;
+
+            const tempFolder = withMemFS ? "/" : await promisify(fsOrigin.mkdtemp)(path.join(os.tmpdir(), "test-"));
 
             const filename = path.join(tempFolder, "tempFile1.txt");
-            await promisify(fs.writeFile)(filename, "content", "utf8");
+            await promisify(fileSystem.writeFile)(filename, "content", "utf8");
 
-            installFileType(opcuaFile, { filename });
+            installFileType(opcuaFile, { filename, fileSystem: withMemFS ? fileSystem : undefined });
 
             // install file 2
             opcuaFile2 = fileType.instantiate({
@@ -171,10 +177,10 @@ const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
             hasSucceeded.should.eql(false);
         });
 
-        it("should be possible to write a file - in create mode", async () => {
+        (withMemFS ? xit : it)("should be possible to write a file - in create mode", async () => {
             // Given a file on server side with some original content
             const fileData = getFileData(opcuaFile2);
-            fs.writeFileSync(fileData.filename, "!!! ORIGINAL CONTENT !!!", "utf-8");
+            await promisify(fileSystem.writeFile)(fileData.filename, "!!! ORIGINAL CONTENT !!!", "utf-8");
             await fileData.refresh();
 
             // Given a client that open the file (ReadWrite Mode)
@@ -188,13 +194,14 @@ const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
             await clientFile.close();
 
             // Then I should verify that the file now contains "#### REPLACE ####"
-            fs.readFileSync(fileData.filename, "utf-8").should.eql("#### REPLACE ####");
+            const content = await promisify(fileSystem.readFile)(fileData.filename, "utf-8");
+            content.should.eql("#### REPLACE ####");
         });
 
-        it("should be possible to write to a file - in append mode", async () => {
+        (withMemFS ? xit : it)("should be possible to write to a file - in append mode", async () => {
             // Given a file on server side with some original content
             const fileData = getFileData(opcuaFile2);
-            fs.writeFileSync(fileData.filename, "!!! ORIGINAL CONTENT !!!", "utf-8");
+            await promisify(fileSystem.writeFile)(fileData.filename, "!!! ORIGINAL CONTENT !!!", "utf-8");
             await fileData.refresh();
 
             // Given a client
@@ -220,8 +227,10 @@ const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
             await clientFile.close();
 
             // and I should verify that the file on the server side contains the expected data
-            fs.readFileSync(fileData.filename, "utf-8").should.eql("!!! ORIGINAL CONTENT !!!" + "#### REPLACE ####");
+            const content = (await promisify(fileSystem.readFile)(fileData.filename, "utf-8"));
+            content.should.eql("!!! ORIGINAL CONTENT !!!" + "#### REPLACE ####");
         });
+
 
         it("should not allow read method if Read bit is not set in open mode", async () => {
             // Given a OCUA File
@@ -249,9 +258,9 @@ const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
             hasSucceeded.should.eql(false);
         });
 
-        it("should allow file to grow", async () => {
+        (withMemFS ? xit : it)("should allow file to grow", async () => {
             const fileData = getFileData(opcuaFile2);
-            fs.writeFileSync(fileData.filename, "!!! ORIGINAL CONTENT !!!", "utf-8");
+            await promisify(fileSystem.writeFile)(fileData.filename, "!!! ORIGINAL CONTENT !!!", "utf-8");
             await fileData.refresh();
 
             // Given a client
@@ -272,7 +281,8 @@ const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
             const extraData = "#### SOMM MORE DATA ####";
             await clientFile.write(Buffer.from(extraData));
             // and I should verify that the file on the server side contains the expected data
-            fs.readFileSync(fileData.filename, "utf-8").should.eql("!!! ORIGINAL CONTENT !!!" + extraData);
+            const content = await promisify(fileSystem.readFile)(fileData.filename, "utf-8");
+            content.should.eql("!!! ORIGINAL CONTENT !!!" + extraData);
 
             // When I re-read file size and check that it has grown accordingly
             const newFileSize = await clientFile.size();
@@ -282,9 +292,9 @@ const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 
             await clientFile.close();
         });
-        it("file size must change on client size if file changes on server side", async () => {
+        (withMemFS ? xit : it)("file size must change on client size if file changes on server side", async () => {
             const fileData = getFileData(opcuaFile2);
-            fs.writeFileSync(fileData.filename, "1", "utf-8");
+            await promisify(fileSystem.writeFile)(fileData.filename, "1", "utf-8");
             await fileData.refresh();
 
             // Given a client
@@ -294,7 +304,7 @@ const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
             const size1 = await clientFile.size();
             size1.should.eql(coerceUInt64(1));
 
-            fs.writeFileSync(fileData.filename, "22", "utf-8");
+            await promisify(fileSystem.writeFile)(fileData.filename, "22", "utf-8");
             await fileData.refresh();
 
             const size2 = await clientFile.size();
@@ -306,7 +316,7 @@ const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
             (c2 as any).fileHandle = c1.fileHandle;
             (c1 as any).fileHandle = b;
         }
-        it("should not be possible to reuse filehandle generated by one session with an other session", async () => {
+        (withMemFS ? xit : it)("should not be possible to reuse filehandle generated by one session with an other session", async () => {
             // Given client 1
             const sessionA = new PseudoSession(addressSpace);
             const clientFileA = new ClientFile(sessionA, opcuaFile2.nodeId);
