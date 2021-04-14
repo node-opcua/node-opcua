@@ -9,6 +9,7 @@ import {
     PrivateKeyPEM} from "node-opcua-crypto";
 import {
     ConnectionStrategyOptions,
+    Message,
     SecurityPolicy
 } from "node-opcua-secure-channel";
 import {
