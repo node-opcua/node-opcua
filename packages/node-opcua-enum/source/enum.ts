@@ -86,10 +86,18 @@ export class EnumItem {
     }
 }
 
+function powerOfTwo(n: number): boolean
+{
+    return n && (!(n & (n-1))) ? true: false;
+}
 // check if enum is flaggable
 function checkIsFlaggable(enums: EnumItem[]): boolean {
     for (const e of enums) {
-        if (!(e.value !== 0 && !(e.value & e.value - 1))) {
+        const value =  +e.value;
+        if (isNaN(value)) {
+            continue; // skipping none number value
+        }
+        if ((value !== 0 && value !==1)  && !powerOfTwo(value)) {
             return false;
         }
     }
