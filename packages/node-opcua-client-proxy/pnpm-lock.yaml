@@ -2,21 +2,21 @@ lockfileVersion: 5.3
 
 specifiers:
   async: ^3.2.0
-  node-opcua-address-space: 2.37.0
+  node-opcua-address-space: 2.40.0
   node-opcua-assert: 2.37.0
   node-opcua-constants: 2.35.0
-  node-opcua-data-model: 2.37.0
-  node-opcua-data-value: 2.37.0
-  node-opcua-nodeid: 2.37.0
-  node-opcua-pseudo-session: 2.37.0
-  node-opcua-service-browse: 2.37.0
-  node-opcua-service-call: 2.37.0
-  node-opcua-service-read: 2.37.0
-  node-opcua-service-subscription: 2.37.0
-  node-opcua-service-write: 2.37.0
-  node-opcua-status-code: 2.37.0
-  node-opcua-utils: 2.37.0
-  node-opcua-variant: 2.37.0
+  node-opcua-data-model: 2.40.0
+  node-opcua-data-value: 2.40.0
+  node-opcua-nodeid: 2.40.0
+  node-opcua-pseudo-session: 2.40.0
+  node-opcua-service-browse: 2.40.0
+  node-opcua-service-call: 2.40.0
+  node-opcua-service-read: 2.40.0
+  node-opcua-service-subscription: 2.40.0
+  node-opcua-service-write: 2.40.0
+  node-opcua-status-code: 2.40.0
+  node-opcua-utils: 2.40.0
+  node-opcua-variant: 2.40.0
 
 dependencies:
   async: 3.2.0

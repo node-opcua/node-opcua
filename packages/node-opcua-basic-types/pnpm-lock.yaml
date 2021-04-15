@@ -3,16 +3,16 @@ lockfileVersion: 5.3
 specifiers:
   '@types/node': ^14.14.37
   node-opcua-assert: 2.37.0
-  node-opcua-benchmarker: 2.37.0
-  node-opcua-binary-stream: 2.37.0
-  node-opcua-buffer-utils: 2.37.0
-  node-opcua-date-time: 2.37.0
-  node-opcua-debug: 2.37.0
-  node-opcua-enum: 2.37.0
-  node-opcua-guid: 2.37.0
-  node-opcua-nodeid: 2.37.0
-  node-opcua-status-code: 2.37.0
-  node-opcua-utils: 2.37.0
+  node-opcua-benchmarker: 2.40.0
+  node-opcua-binary-stream: 2.40.0
+  node-opcua-buffer-utils: 2.40.0
+  node-opcua-date-time: 2.40.0
+  node-opcua-debug: 2.40.0
+  node-opcua-enum: 2.40.0
+  node-opcua-guid: 2.40.0
+  node-opcua-nodeid: 2.40.0
+  node-opcua-status-code: 2.40.0
+  node-opcua-utils: 2.40.0
   should: ^13.2.3
 
 dependencies:
