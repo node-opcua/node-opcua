@@ -1,9 +1,17 @@
+import assert from "node-opcua-assert";
 import { AttributeIds, NodeClass, QualifiedName } from "node-opcua-data-model";
 import { NodeId, resolveNodeId } from "node-opcua-nodeid";
 import { IBasicSession } from "node-opcua-pseudo-session";
-import { EnumDefinition } from "node-opcua-types";
-import { getBrowseName, getDescription } from "./utils";
+import { DataTypeDefinition, EnumDefinition, StructureDefinition } from "node-opcua-types";
+import { getBrowseName, getDefinition, getDescription } from "./utils";
 
+
+
+export interface Import {
+    name: string;
+    module: string;
+    namespace: number;
+}
 interface CacheInterface {
     namespace: {
         namespaceUri: string;
@@ -12,9 +20,12 @@ interface CacheInterface {
     }[];
     requestedSymbols: RequestedSymbol;
 }
+export interface RequestedSubSymbol {
+    subSymbols: { [key: string]: number };
+}
 interface RequestedSymbol {
     namespace: {
-        symbols: { [key: string]: number };
+        symbols: { [key: string]: RequestedSubSymbol };
     }[];
 }
 
@@ -34,7 +45,8 @@ export class Cache implements CacheInterface {
                 UAVariable: 1,
                 UAVariableT: 1,
                 UAMethod: 1,
-                UADataType: 1
+                UADataType: 1,
+                //  UAProperty: 1,
             },
             "node-opcua-variant": {
                 DataType: 1,
@@ -43,7 +55,10 @@ export class Cache implements CacheInterface {
             "node-opcua-data-model": {
                 LocalizedText: 1,
                 QualifiedName: 1,
-                DiagnosticInfo: 1
+                DiagnosticInfo: 1,
+            },
+            "node-opcua-data-access": {
+                EUInformation: 1,
             },
             "node-opcua-nodeid": {
                 NodeId: 1,
@@ -65,6 +80,9 @@ export class Cache implements CacheInterface {
                 UAString: 1,
                 DateTime: 1,
                 Guid: 1,
+            },
+            "node-opcua-data-value": {
+                DataValue: 1,
             }
         };
     }
@@ -72,35 +90,40 @@ export class Cache implements CacheInterface {
         this.requestedSymbols = { namespace: [] };
         this.requestedBasicTypes = {};
     }
-    referenceUA(type: string) {
-        this.requestedBasicTypes[type] = (this.requestedBasicTypes[type] || 0) + 1;
-    }
+
     referenceBasicType(basicType: string): string {
-        this.referenceUA(basicType);
+        this.requestedBasicTypes[basicType] = (this.requestedBasicTypes[basicType] || 0) + 1;
         return basicType;
     }
-    async referenceExtensionObject(session: IBasicSession, extensionObjectDataType: NodeId): Promise<string> {
-        const browseName = await getBrowseName(session, extensionObjectDataType);
-        const description = await getDescription(session, extensionObjectDataType);
-        const dataTypeName = makeTypeName(NodeClass.DataType, description, browseName, true, this);
-        return dataTypeName;
-    }
-    reference(namespaceIndex: number, t: string) {
+
+    _reference(namespaceIndex: number, typeName: string, mainTypeName?: string) {
+
+        if (namespaceIndex <= 0 && this.imports["node-opcua-address-space"][typeName]) {
+            this.referenceBasicType(typeName);
+            return;
+        }
         const filename = this.namespace[namespaceIndex]?.filename;
         if (!filename) {
             throw new Error("Cannot find namespace  " + namespaceIndex);
         }
-        this.namespace[namespaceIndex].symbols = this.namespace[namespaceIndex].symbols || {};
+        const symbols = this.namespace[namespaceIndex].symbols = this.namespace[namespaceIndex].symbols || {};
+        symbols[typeName] = (symbols[typeName] || 0) + 1;
 
-        this.namespace[namespaceIndex].symbols[t] = (this.namespace[namespaceIndex].symbols[t] || 0) + 1;
+        const ns = this.requestedSymbols.namespace[namespaceIndex] = this.requestedSymbols.namespace[namespaceIndex] || { namespace: [] };
+        ns.symbols = ns.symbols || {};
 
-        this.requestedSymbols.namespace[namespaceIndex] = this.requestedSymbols.namespace[namespaceIndex] || { namespace: [] };
-        this.requestedSymbols.namespace[namespaceIndex].symbols = this.requestedSymbols.namespace[namespaceIndex].symbols || {};
-        this.requestedSymbols.namespace[namespaceIndex].symbols[t] =
-            (this.requestedSymbols.namespace[namespaceIndex].symbols[t] || 0) + 1;
+        if (!mainTypeName) { mainTypeName = typeName };
+        const subs = ns.symbols[mainTypeName] = ns.symbols[mainTypeName] || { subSymbols: {} };
+        subs.subSymbols[typeName] = (subs.subSymbols[typeName] || 0) + 1;
     }
-    importType(namespaceIndex: number, typeName: string): void {
-        this.reference(namespaceIndex, typeName);
+
+    ensureImported(i: Import) {
+        if (i.namespace < 0) {
+            this.referenceBasicType(i.name);
+        } else {
+
+            this._reference(i.namespace, i.name, i.module);
+        }
     }
 }
 
@@ -111,6 +134,13 @@ function getTypescriptFile(browseName: QualifiedName, cache: Cache2) {
     return "_type-" + nn;
 }
 
+
+export async function referenceExtensionObject(session: IBasicSession, extensionObjectDataType: NodeId): Promise<Import> {
+    const browseName = await getBrowseName(session, extensionObjectDataType);
+    const definition = await getDefinition(session, extensionObjectDataType);
+    const dataTypeNameImport = makeTypeNameNew(NodeClass.DataType, definition, browseName);
+    return dataTypeNameImport;
+}
 export class Cache2 extends Cache {
     public outputFolder: string = "../tmp/";
     public namespaceArray: string[] = [];
@@ -122,11 +152,11 @@ export async function constructCache(session: IBasicSession): Promise<Cache2> {
     cache.namespaceArray = cache.namespaceArray.length
         ? cache.namespaceArray
         : (
-              await session.read({
-                  nodeId: resolveNodeId("Server_NamespaceArray"),
-                  attributeId: AttributeIds.Value
-              })
-          ).value.value;
+            await session.read({
+                nodeId: resolveNodeId("Server_NamespaceArray"),
+                attributeId: AttributeIds.Value
+            })
+        ).value.value;
 
     for (let namespaceIndex = 0; namespaceIndex < cache.namespaceArray.length; namespaceIndex++) {
         const namespaceUri = cache.namespaceArray[namespaceIndex];
@@ -139,33 +169,33 @@ export async function constructCache(session: IBasicSession): Promise<Cache2> {
     }
     return cache;
 }
-export function makeTypeName(
+
+function makeBasicTypeImport(name: string): Import {
+    return { name, module: "BasicType", namespace: -1 };
+}
+export function makeTypeNameNew(
     nodeClass: NodeClass,
-    description: any,
+    definition: DataTypeDefinition | null,
     browseName: QualifiedName,
-    doDeclare: boolean,
-    cache: Cache
-): string {
+): Import {
+    assert(!!browseName.name);
+
     let typeName = browseName.name!.toString();
-    if (typeName === "Enumeration") {
-        typeName = "Enumeration";
-        cache.referenceUA("Enumeration");
-        return "Enumeration";
-    } else  if (typeName === "BaseObjectType") {
-        typeName = "Object";
-        cache.referenceUA("UAObject");
-        return "UAObject";
+    if (typeName === "EUInformation") {
+        return makeBasicTypeImport("EUInformation");
+    } else if (typeName === "Enumeration") {
+        return makeBasicTypeImport("Enumeration");
+    } else if (typeName === "BaseObjectType") {
+        return makeBasicTypeImport("UAObject");
     } else if (typeName === "BaseVariableType") {
-        typeName = "VariableT";
-        cache.referenceUA("UAVariableT");
-        return "UAVariableT";
+        return makeBasicTypeImport("UAVariableT");
     } else if (typeName === "BaseDataType") {
-        typeName = "Data";
-        cache.referenceUA("UADataType");
-        return "UADataType";
+        return makeBasicTypeImport("UADataType");
     } else {
         let name = "";
         switch (nodeClass) {
+            case NodeClass.Method:
+                return makeBasicTypeImport("UAMethod");
             case NodeClass.Variable:
             case NodeClass.Object:
             case NodeClass.VariableType:
@@ -173,19 +203,88 @@ export function makeTypeName(
                 name = `UA${typeName.replace(/Type$/, "")}`;
                 break;
             case NodeClass.DataType:
-                if (description instanceof EnumDefinition) {
+                if (definition instanceof EnumDefinition) {
                     name = `${typeName.replace(/(DataType|Enumeration|Type)$/, "")}`;
                 } else {
                     name = `DT${typeName.replace(/(DataType|Enumeration|Type)$/, "")}`;
                 }
                 break;
         }
-        if (doDeclare) {
-            cache.importType(browseName.namespaceIndex, name);
-        }
         if (name === "") {
-            throw new Error("Internal Error "+ NodeClass[nodeClass] + " " + typeName);
+            throw new Error("Internal Error " + NodeClass[nodeClass] + " " + typeName + "browseName = " + browseName.toString());
         }
-        return name;
+        return { name, module: name, namespace: browseName.namespaceIndex };
     }
 }
+
+// function makeTypeNameDeprecated(
+//     nodeClass: NodeClass,
+//     definition: DataTypeDefinition | null,
+//     browseName: QualifiedName,
+//     doDeclare: boolean,
+//     cache?: Cache
+// ): string {
+//     const i = makeTypeNameNew(nodeClass, definition, browseName);
+//     return i.name;
+// }
+// export function makeTypeNameOld(
+//     nodeClass: NodeClass,
+//     definition: DataTypeDefinition | null,
+//     browseName: QualifiedName,
+//     doDeclare: boolean,
+//     cache?: Cache
+// ): string {
+//     if (!browseName.name) {
+//         return "";
+//     }
+//     let typeName = browseName.name!.toString();
+//     if (typeName == "EUInformation") {
+
+//         typeName = "EUInformation";
+//         cache && cache.referenceUA("EUInformation");
+//         return "EUInformation";
+//     }
+//     if (typeName === "Enumeration") {
+//         typeName = "Enumeration";
+//         cache && cache.referenceUA("Enumeration");
+//         return "Enumeration";
+//     } else if (typeName === "BaseObjectType") {
+//         typeName = "Object";
+//         cache && cache.referenceUA("UAObject");
+//         return "UAObject";
+//     } else if (typeName === "BaseVariableType") {
+//         typeName = "VariableT";
+//         cache && cache.referenceUA("UAVariableT");
+//         return "UAVariableT";
+//     } else if (typeName === "BaseDataType") {
+//         typeName = "Data";
+//         cache && cache.referenceUA("UADataType");
+//         return "UADataType";
+//     } else {
+//         let name = "";
+//         switch (nodeClass) {
+//             case NodeClass.Method:
+//                 return "UAMethod";
+//             case NodeClass.Variable:
+//             case NodeClass.Object:
+//             case NodeClass.VariableType:
+//             case NodeClass.ObjectType:
+//                 name = `UA${typeName.replace(/Type$/, "")}`;
+//                 break;
+//             case NodeClass.DataType:
+//                 if (definition instanceof EnumDefinition) {
+//                     name = `${typeName.replace(/(DataType|Enumeration|Type)$/, "")}`;
+//                 } else {
+//                     name = `DT${typeName.replace(/(DataType|Enumeration|Type)$/, "")}`;
+//                 }
+//                 break;
+//         }
+//         if (doDeclare) {
+//             cache && cache.importType(browseName.namespaceIndex, name);
+//         }
+//         if (name === "") {
+//             throw new Error("Internal Error " + NodeClass[nodeClass] + " " + typeName + "browseName = " + browseName.toString());
+//         }
+//         return name;
+//     }
+// }
