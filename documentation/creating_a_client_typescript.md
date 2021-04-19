@@ -46,7 +46,7 @@ import {
   ClientSubscription,
   TimestampsToReturn,
   MonitoringParametersOptions,
-  ReadValueIdLike,
+  ReadValueIdOptions,
   ClientMonitoredItem,
   DataValue
 } from "node-opcua";
@@ -253,7 +253,7 @@ subscription
 
 // install monitored item
 
-const itemToMonitor: ReadValueIdLike = {
+const itemToMonitor: ReadValueIdOptions = {
   nodeId: "ns=1;s=free_memory",
   attributeId: AttributeIds.Value
 };
