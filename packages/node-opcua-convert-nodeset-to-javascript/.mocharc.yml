@@ -2,7 +2,7 @@ recursive: true
 require:
   - ../../node_modules/should
   - ../../node_modules/ts-node/register
-timeout: 20000
+timeout: 2000000
 enable-source-maps: true
 spec:
   - test/**/*.ts

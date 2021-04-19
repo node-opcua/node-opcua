@@ -13,13 +13,7 @@ const { makeExpandedNodeId } = require("node-opcua-nodeid");
 const { Variant, DataType } = require("node-opcua-variant");
 
 const { nodeset } = require("node-opcua-nodesets");
-
-
-function getFixture(file) {
-    file = path.join(__dirname,"../test_fixtures",file);
-    existsSync(file).should.be.eql(true);
-    return file;
-}
+const {getFixture} = require("../test_fixtures/helper");
 
 describe("ComplexType read from XML NodeSET file shall be binary encode-able", function () {
 

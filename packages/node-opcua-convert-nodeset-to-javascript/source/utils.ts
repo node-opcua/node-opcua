@@ -50,7 +50,7 @@ export async function getFolderElements(session: IBasicSession, nodeId: NodeId):
     return browseResult.references || [];
 }
 
-export async function getModellingRule(session: IBasicSession, nodeId: NodeId): Promise<ModellingRuleType| null> {
+export async function getModellingRule(session: IBasicSession, nodeId: NodeId): Promise<ModellingRuleType | null> {
     const browseResult = await session.browse({
         browseDirection: BrowseDirection.Forward,
         includeSubtypes: true,
@@ -60,7 +60,7 @@ export async function getModellingRule(session: IBasicSession, nodeId: NodeId): 
         resultMask: 0xffff
     });
     if (!browseResult.references || browseResult.references.length === 0) {
-       return null;
+        return null;
         console.log(nodeId.toString());
         const browseName = await getBrowseName(session, nodeId);
         throw new Error("No modelling rule for " + nodeId.toString() + " " + browseName.toString());
@@ -68,30 +68,67 @@ export async function getModellingRule(session: IBasicSession, nodeId: NodeId): 
     return browseResult.references[0].browseName.name! as ModellingRuleType;
 }
 
-export async function getSubtypeNodeId(session: IBasicSession, nodeId: NodeId): Promise<ReferenceDescription> {
-    const browseResult = (await session.browse({
+export async function getSubtypeNodeIdIfAny(session: IBasicSession, nodeId: NodeId): Promise<ReferenceDescription | null> {
+
+    if (nodeId.isEmpty()) {
+        return null;
+    }
+    const browseResult = await session.browse({
         browseDirection: BrowseDirection.Inverse,
         includeSubtypes: true,
         nodeClassMask: 0, // NodeClassMask.ObjectType| NodeClass.VariableType,
         nodeId,
         referenceTypeId: resolveNodeId("HasSubtype"),
         resultMask: 0xffff
-    })) as BrowseResult;
+    });
     if (!browseResult.references || browseResult.references.length === 0) {
-        console.log(nodeId.toString());
-        throw new Error("No subtype");
+        return null;
     }
     return browseResult.references[0];
 }
-export async function getTypeDefinition(session: IBasicSession, nodeId: NodeId): Promise<ReferenceDescription> {
-    const browseResult = (await session.browse({
+export async function getSubtypeNodeId(session: IBasicSession, nodeId: NodeId): Promise<ReferenceDescription> {
+    const r = await getSubtypeNodeIdIfAny(session, nodeId);
+    if (!r) {
+        throw new Error("No Subtype");
+    }
+    return r;
+}
+
+export async function getTypeDefOrBaseType(session: IBasicSession, nodeId: NodeId): Promise<ReferenceDescription> {
+    let browseResult: BrowseResult = await session.browse({
         browseDirection: BrowseDirection.Forward,
         includeSubtypes: true,
         nodeClassMask: 0,
         nodeId,
         referenceTypeId: resolveNodeId("HasTypeDefinition"),
         resultMask: 0xffff
-    })) as BrowseResult;
+    });
+
+    if (!browseResult.references || browseResult.references.length === 0) {
+        browseResult = await session.browse({
+            browseDirection: BrowseDirection.Inverse,
+            includeSubtypes: true,
+            nodeClassMask: 0,
+            nodeId,
+            referenceTypeId: resolveNodeId("HasSubtype"),
+            resultMask: 0xffff
+        });
+    }
+    if (!browseResult.references || browseResult.references.length === 0) {
+        return new ReferenceDescription({});
+    }
+    return browseResult.references[0];
+
+}
+export async function getTypeDefinition(session: IBasicSession, nodeId: NodeId): Promise<ReferenceDescription> {
+    const browseResult = await session.browse({
+        browseDirection: BrowseDirection.Forward,
+        includeSubtypes: true,
+        nodeClassMask: 0,
+        nodeId,
+        referenceTypeId: resolveNodeId("HasTypeDefinition"),
+        resultMask: 0xffff
+    });
     if (!browseResult.references || browseResult.references.length === 0) {
         console.log(nodeId.toString());
         throw new Error("No subtype");
@@ -139,4 +176,15 @@ export async function convertNodeIdToDataTypeAsync(session: IBasicSession, dataT
     }
     const nodeId = references[0].nodeId;
     return convertNodeIdToDataTypeAsync(session, nodeId);
+}
+
+
+export async function getChildrenOrFolderElements(
+    session: IBasicSession,
+    nodeId: NodeId
+): Promise<ReferenceDescription[]> {
+
+    const c1 = await getChildren(session, nodeId);
+    const c2 = await getFolderElements(session, nodeId);
+    return (<ReferenceDescription[]>[]).concat(c1,c2);
 }

@@ -19,7 +19,6 @@ import {
 // tslint:disable-next-line:no-var-requires
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("Convert to Typescript", function (this: any) {
-    this.timeout(20000);
     let addressSpace: AddressSpace;
     before(async () => {
         addressSpace = AddressSpace.create();
@@ -29,7 +28,8 @@ describe("Convert to Typescript", function (this: any) {
             nodesets.adi,
             nodesets.autoId,
             nodesets.machineVision,
-            nodesets.commercialKitchenEquipment
+            nodesets.commercialKitchenEquipment,
+            nodesets.gds
         ]);
 
         const namespaceArrayVar = addressSpace.findNode("Server_NamespaceArray") as UAVariable;
@@ -57,20 +57,20 @@ describe("Convert to Typescript", function (this: any) {
         const deviceDataTypeNodeId = d.nodeId;
         const session = new PseudoSession(addressSpace);
 
-        
+
         const { content } = await convertTypeToTypescript(session, deviceDataTypeNodeId);
 
         fs.writeFileSync(path.join(__dirname, "../tmp/node-opcua-di.ts"), content);
 
-/*        content.should.eql(
-            `interface UATopologyElementType extends UABaseObjectType {
-}
-interface UAComponentType extends UATopologyElementType {
-}
-interface UADeviceType extends UAComponentType {
-}`
-        );
-        */
+        /*        content.should.eql(
+                    `interface UATopologyElementType extends UABaseObjectType {
+        }
+        interface UAComponentType extends UATopologyElementType {
+        }
+        interface UADeviceType extends UAComponentType {
+        }`
+                );
+                */
     });
     xit("should convert ChromatographDevice ", async () => {
         const nsADI = addressSpace.getNamespaceIndex("http://opcfoundation.org/UA/ADI/");
@@ -103,7 +103,15 @@ export interface UAChromatographDevice extends UAAnalyserDevice {
         );
     });
 
-    const colors = [chalk.grey, chalk.yellow, chalk.green, chalk.cyan, chalk.blue, chalk.greenBright];
+    const colors = [
+        chalk.grey,
+        chalk.yellow,
+        chalk.green,
+        chalk.cyan,
+        chalk.blue,
+        chalk.greenBright,
+        chalk.bgGreenBright
+    ];
     it("workThrough", async () => {
         const parents: any = {};
         const nodeVisitor = {
