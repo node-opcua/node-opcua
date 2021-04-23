@@ -197,7 +197,7 @@ async function onCertificateChange(server: OPCUAServer) {
 }
 
 export async function installPushCertificateManagementOnServer(server: OPCUAServer): Promise<void> {
-    if (!server.engine.addressSpace) {
+    if (!server.engine || !server.engine.addressSpace) {
         throw new Error(
             "Server must have a valid address space." +
             "you need to call installPushCertificateManagementOnServer after server has been initialized"

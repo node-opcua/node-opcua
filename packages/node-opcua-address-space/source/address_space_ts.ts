@@ -744,6 +744,15 @@ export interface PseudoVariantExtensionObjectArray {
     arrayType: VariantArrayType.Array;
     value: object[];
 }
+export interface PseudoVariantVariantArray {
+    dataType: "Variant" | DataType.Variant;
+    arrayType: VariantArrayType.Array;
+    value: Variant[];
+}
+export interface PseudoVariantVariant {
+    dataType: "Variant" | DataType.Variant;
+     value: Variant;
+}
 
 export type PseudoVariantNumber =
     | PseudoVariantUInt32
@@ -767,8 +776,9 @@ export type PseudoVariant =
     | PseudoVariantStatusCode
     | PseudoVariantNumber
     | PseudoVariantExtensionObject
-    | PseudoVariantExtensionObjectArray;
-
+    | PseudoVariantExtensionObjectArray
+    | PseudoVariantVariant
+    | PseudoVariantVariantArray;
 export interface RaiseEventData {
     $eventDataSource?: UAEventType;
 

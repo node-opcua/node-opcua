@@ -7,8 +7,10 @@ import { assert } from "node-opcua-assert";
 import { AggregateFunction } from "node-opcua-constants";
 import { DateTime } from "node-opcua-basic-types";
 import {
+    extractNamespaceDataType,
     ExtraDataTypeManager,
     getDataTypeDefinition,
+    getExtensionObjectConstructor,
     getExtraDataTypeManager,
     populateDataTypeManager,
     promoteOpaqueStructure,
@@ -263,6 +265,7 @@ function __findBasicDataType(
         });
     }
 }
+
 
 const emptyUint32Array = new Uint32Array(0);
 
@@ -2077,52 +2080,11 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession {
     ): void {}
 
     public async extractNamespaceDataType(): Promise<ExtraDataTypeManager> {
-        const sessionPriv: any = this as any;
-        if (!sessionPriv.$$extraDataTypeManager) {
-            const dataTypeManager = new ExtraDataTypeManager();
-
-            const namespaceArray = await sessionPriv.readNamespaceArray();
-            debugLog("Namespace Array = ", namespaceArray.join("\n                   "));
-            sessionPriv.$$extraDataTypeManager = dataTypeManager;
-            dataTypeManager.setNamespaceArray(namespaceArray);
-
-            for (let namespaceIndex = 1; namespaceIndex < namespaceArray.length; namespaceIndex++) {
-                const dataTypeFactory1 = new DataTypeFactory([getStandardDataTypeFactory()]);
-                dataTypeManager.registerDataTypeFactory(namespaceIndex, dataTypeFactory1);
-            }
-            await populateDataTypeManager(this, dataTypeManager);
-        }
-        return sessionPriv.$$extraDataTypeManager;
+        return extractNamespaceDataType(this);
     }
-
     public async getExtensionObjectConstructor(dataTypeNodeId: NodeId): Promise<AnyConstructorFunc> {
-        const privateThis = this as any;
-
-        if (!privateThis.dataTypeConstructor) {
-            privateThis.dataTypeConstructor = {};
-        }
-        const c = privateThis.dataTypeConstructor[dataTypeNodeId.toString()];
-        if (c) {
-            return c as AnyConstructorFunc;
-        }
-        await this.extractNamespaceDataType();
-        const sessionPriv: any = this as any;
-        if (!sessionPriv.$$extraDataTypeManager) {
-            throw new Error("Make sure to call await session.extractNamespaceDataType(); ");
-        }
-        const extraDataTypeManager = sessionPriv.$$extraDataTypeManager as ExtraDataTypeManager;
-
-        // make sure schema has been extracted
-        const schema = await getDataTypeDefinition(this, dataTypeNodeId, extraDataTypeManager);
-
-        // now resolve it
-        const constructor = extraDataTypeManager.getExtensionObjectConstructorFromDataType(dataTypeNodeId);
-
-        // put it in cache
-        privateThis.dataTypeConstructor[dataTypeNodeId.toString()] = constructor;
-        return constructor;
+        return getExtensionObjectConstructor(this, dataTypeNodeId);
     }
-
     /**
      *
      * @param dataType

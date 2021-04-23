@@ -17,9 +17,9 @@ function resolveDynamicExtensionObjectV(opaque: OpaqueStructure, dataTypeManager
             // tslint:disable-next-line:no-console
             console.log("Constructor = ", Constructor.name);
             // tslint:disable-next-line:no-console
-            console.log("opaqueStructure = ", opaque.nodeId.toString());
+            console.log("opaqueStructure = ", opaque?.nodeId?.toString());
             // tslint:disable-next-line:no-console
-            console.log("opaqueStructure = ", "0x" + opaque.buffer.toString("hex"));
+            console.log("opaqueStructure = ", "0x" + opaque?.buffer?.toString("hex"));
             // tslint:disable-next-line: no-console
             console.log(hexDump(opaque.buffer));
             // tslint:disable-next-line:no-console
@@ -47,8 +47,8 @@ export function resolveDynamicExtensionObject(variant: Variant, dataTypeManager:
     }
     if (variant.arrayType !== VariantArrayType.Scalar) {
         if (variant.value instanceof Array) {
-            variant.value = (variant.value as OpaqueStructure[]).map((v: OpaqueStructure) => {
-                const obj = resolveDynamicExtensionObjectV(v, dataTypeManager);
+            variant.value = (variant.value as any[]).map((v: any) => {
+                const obj = v instanceof OpaqueStructure ? resolveDynamicExtensionObjectV(v, dataTypeManager) : v;
                 return obj;
             });
         }
