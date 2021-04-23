@@ -24,6 +24,7 @@ import {
 import { ExpandedNodeId, makeExpandedNodeId, NodeId, resolveNodeId, sameNodeId } from "node-opcua-nodeid";
 import { browseAll, BrowseDescriptionLike, IBasicSession } from "node-opcua-pseudo-session";
 import {
+    AnyConstructorFunc,
     createDynamicObjectConstructor,
     DataTypeAndEncodingId,
     MapDataTypeAndEncodingIdProvider,
@@ -1201,3 +1202,59 @@ export async function convertDataTypeDefinitionToStructureTypeSchema(
     }
     throw new Error("Not Implemented");
 }
+
+
+
+export async function extractNamespaceDataType(session: IBasicSession): Promise<ExtraDataTypeManager> {
+     
+    const sessionPriv: any = session as any;
+    if (!sessionPriv.$$extraDataTypeManager) {
+        const dataTypeManager = new ExtraDataTypeManager();
+
+        const namespaceArray = await sessionPriv.readNamespaceArray();
+        debugLog("Namespace Array = ", namespaceArray.join("\n                   "));
+        sessionPriv.$$extraDataTypeManager = dataTypeManager;
+        dataTypeManager.setNamespaceArray(namespaceArray);
+
+        for (let namespaceIndex = 1; namespaceIndex < namespaceArray.length; namespaceIndex++) {
+            const dataTypeFactory1 = new DataTypeFactory([getStandardDataTypeFactory()]);
+            dataTypeManager.registerDataTypeFactory(namespaceIndex, dataTypeFactory1);
+        }
+        await populateDataTypeManager(session, dataTypeManager);
+    }
+    return sessionPriv.$$extraDataTypeManager;
+}
+
+
+export async function getExtensionObjectConstructor(
+    session: IBasicSession, 
+    dataTypeNodeId: NodeId
+):  Promise<AnyConstructorFunc>{
+            
+    const sessionPriv = session as any;
+
+    if (!sessionPriv.dataTypeConstructor) {
+        sessionPriv.dataTypeConstructor = {};
+    }
+    const c = sessionPriv.dataTypeConstructor[dataTypeNodeId.toString()];
+    if (c) {
+        return c as AnyConstructorFunc;
+    }
+    await extractNamespaceDataType(session);
+
+    if (!sessionPriv.$$extraDataTypeManager) {
+        throw new Error("Make sure to call await session.extractNamespaceDataType(); ");
+    }
+    const extraDataTypeManager = sessionPriv.$$extraDataTypeManager as ExtraDataTypeManager;
+
+    // make sure schema has been extracted
+    const schema = await getDataTypeDefinition(session, dataTypeNodeId, extraDataTypeManager);
+
+    // now resolve it
+    const constructor = extraDataTypeManager.getExtensionObjectConstructorFromDataType(dataTypeNodeId);
+
+    // put it in cache
+    sessionPriv.dataTypeConstructor[dataTypeNodeId.toString()] = constructor;
+    return constructor;
+}
+
