@@ -1485,6 +1485,12 @@ export class OPCUAServer extends OPCUABaseServer {
                 return callback(new Error(" Unsupported security Policy"));
             }
             const buff = cryptoFactory.asymmetricDecrypt(password, serverPrivateKey);
+
+            // server certificate may be invalid and asymmetricDecrypt may fail
+            if (!buff || buff.length <4) {
+                async.setImmediate(() => callback(null, false));
+            }
+            
             const length = buff.readUInt32LE(0) - serverNonce.length;
             password = buff.slice(4, 4 + length).toString("utf-8");
         }
