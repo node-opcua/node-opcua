@@ -371,7 +371,7 @@ export class OPCUAClientImpl extends ClientBaseImpl implements OPCUAClient {
         if (args.length === 1) {
             return this.createSession({ type: UserTokenType.Anonymous }, args[0]);
         }
-        const userIdentityInfo = args[0];
+        const userIdentityInfo = args[0] || { type: UserTokenType.Anonymous };
         const callback = args[1];
 
         this.userIdentityInfo = userIdentityInfo;
