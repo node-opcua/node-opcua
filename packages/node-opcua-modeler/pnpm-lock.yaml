@@ -1,9 +1,9 @@
 lockfileVersion: 5.3
 
 specifiers:
-  chalk: ^4.1.0
+  chalk: ^4.1.1
   cli-table3: ^0.6.0
-  csv-parse: ^4.15.3
+  csv-parse: ^4.15.4
   node-opcua-address-space: 2.40.0
   node-opcua-assert: 2.37.0
   node-opcua-basic-types: 2.40.0
@@ -24,9 +24,9 @@ specifiers:
   should: ^13.2.3
 
 dependencies:
-  chalk: 4.1.0
+  chalk: 4.1.1
   cli-table3: 0.6.0
-  csv-parse: 4.15.3
+  csv-parse: 4.15.4
   node-opcua-address-space: link:../node-opcua-address-space
   node-opcua-assert: link:../node-opcua-assert
   node-opcua-basic-types: link:../node-opcua-basic-types
@@ -62,8 +62,8 @@ packages:
       color-convert: 2.0.1
     dev: false
 
-  /chalk/4.1.0:
-    resolution: {integrity: sha512-qwx12AxXe2Q5xQ43Ac//I6v5aXTipYrSESdOgzrN+9XjgEpyjpKuvSGaN4qE93f7TQTlerQQ8S+EQ0EyDoVL1A==}
+  /chalk/4.1.1:
+    resolution: {integrity: sha512-diHzdDKxcU+bAsUboHLPEDQiw0qEe0qd7SYUn3HgcFlWgbDcfLGswOHYeGrHKzG9z6UYf01d9VFMfZxPM1xZSg==}
     engines: {node: '>=10'}
     dependencies:
       ansi-styles: 4.3.0
@@ -97,8 +97,8 @@ packages:
     dev: false
     optional: true
 
-  /csv-parse/4.15.3:
-    resolution: {integrity: sha512-jlTqDvLdHnYMSr08ynNfk4IAUSJgJjTKy2U5CQBSu4cN9vQOJonLVZP4Qo4gKKrIgIQ5dr07UwOJdi+lRqT12w==}
+  /csv-parse/4.15.4:
+    resolution: {integrity: sha512-OdBbFc0yZhOm17lSxqkirrHlFFVpKRT0wp4DAGoJelsP3LbGzV9LNr7XmM/lrr0uGkCtaqac9UhP8PDHXOAbMg==}
     dev: false
 
   /emoji-regex/8.0.0:

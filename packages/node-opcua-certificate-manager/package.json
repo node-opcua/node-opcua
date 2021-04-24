@@ -13,7 +13,7 @@
     "types": "./dist/index.d.ts",
     "dependencies": {
         "@types/mkdirp": "0.5.2",
-        "chalk": "^4.1.0",
+        "chalk": "^4.1.1",
         "delayed": "^2.0.0",
         "env-paths": "^2.2.1",
         "mkdirp": "0.5.5",

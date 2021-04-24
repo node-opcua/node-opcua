@@ -2,7 +2,7 @@ lockfileVersion: 5.3
 
 specifiers:
   '@types/lodash': 4.14.168
-  '@types/underscore': ^1.11.1
+  '@types/underscore': ^1.11.2
   lodash: 4.17.21
   node-opcua-assert: 2.37.0
   node-opcua-basic-types: 2.40.0
@@ -20,7 +20,7 @@ specifiers:
   node-opcua-utils: 2.40.0
   should: ^13.2.3
   source-map-support: ^0.5.19
-  underscore: ^1.12.1
+  underscore: ^1.13.1
 
 dependencies:
   node-opcua-assert: link:../node-opcua-assert
@@ -34,7 +34,7 @@ dependencies:
 
 devDependencies:
   '@types/lodash': 4.14.168
-  '@types/underscore': 1.11.1
+  '@types/underscore': 1.11.2
   lodash: 4.17.21
   node-opcua-benchmarker: link:../node-opcua-benchmarker
   node-opcua-binary-stream: link:../node-opcua-binary-stream
@@ -44,7 +44,7 @@ devDependencies:
   node-opcua-status-code: link:../node-opcua-status-code
   should: 13.2.3
   source-map-support: 0.5.19
-  underscore: 1.12.1
+  underscore: 1.13.1
 
 packages:
 
@@ -52,8 +52,8 @@ packages:
     resolution: {integrity: sha512-oVfRvqHV/V6D1yifJbVRU3TMp8OT6o6BG+U9MkwuJ3U8/CsDHvalRpsxBqivn71ztOFZBTfJMvETbqHiaNSj7Q==}
     dev: true
 
-  /@types/underscore/1.11.1:
-    resolution: {integrity: sha512-mW23Xkp9HYgdMV7gnwuzqnPx6aG0J7xg/b7erQszOcyOizWylwCr9cgYM/BVVJHezUDxwyigG6+wCFQwCvyMBw==}
+  /@types/underscore/1.11.2:
+    resolution: {integrity: sha512-Ls2ylbo7++ITrWk2Yc3G/jijwSq5V3GT0tlgVXEl2kKYXY3ImrtmTCoE2uyTWFRI5owMBriloZFWbE1SXOsE7w==}
     dev: true
 
   /buffer-from/1.1.1:
@@ -114,6 +114,6 @@ packages:
     engines: {node: '>=0.10.0'}
     dev: true
 
-  /underscore/1.12.1:
-    resolution: {integrity: sha512-hEQt0+ZLDVUMhebKxL4x1BTtDY7bavVofhZ9KZ4aI26X9SRaE+Y3m83XUL1UP2jn8ynjndwCCpEHdUG+9pP1Tw==}
+  /underscore/1.13.1:
+    resolution: {integrity: sha512-hzSoAVtJF+3ZtiFX0VgfFPHEDRm7Y/QPjGyNo4TVdnDTdft3tr8hEkD25a1jC+TjTuE7tkHGKkhwCgs9dgBB2g==}
     dev: true

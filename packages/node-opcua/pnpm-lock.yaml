@@ -1,7 +1,7 @@
 lockfileVersion: 5.3
 
 specifiers:
-  chalk: ^4.1.0
+  chalk: ^4.1.1
   node-opcua-address-space: 2.40.0
   node-opcua-address-space-for-conformance-testing: 2.40.0
   node-opcua-aggregates: 2.40.0
@@ -54,7 +54,7 @@ specifiers:
   should: ^13.2.3
 
 dependencies:
-  chalk: 4.1.0
+  chalk: 4.1.1
   node-opcua-address-space: link:../node-opcua-address-space
   node-opcua-address-space-for-conformance-testing: link:../node-opcua-address-space-for-conformance-testing
   node-opcua-aggregates: link:../node-opcua-aggregates
@@ -146,6 +146,14 @@ packages:
 
   /chalk/4.1.0:
     resolution: {integrity: sha512-qwx12AxXe2Q5xQ43Ac//I6v5aXTipYrSESdOgzrN+9XjgEpyjpKuvSGaN4qE93f7TQTlerQQ8S+EQ0EyDoVL1A==}
+    engines: {node: '>=10'}
+    dependencies:
+      ansi-styles: 4.3.0
+      supports-color: 7.2.0
+    dev: false
+
+  /chalk/4.1.1:
+    resolution: {integrity: sha512-diHzdDKxcU+bAsUboHLPEDQiw0qEe0qd7SYUn3HgcFlWgbDcfLGswOHYeGrHKzG9z6UYf01d9VFMfZxPM1xZSg==}
     engines: {node: '>=10'}
     dependencies:
       ansi-styles: 4.3.0

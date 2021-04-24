@@ -2,7 +2,7 @@ lockfileVersion: 5.3
 
 specifiers:
   '@ster5/global-mutex': ^1.1.1
-  '@types/underscore': ^1.11.1
+  '@types/underscore': ^1.11.2
   async: ^3.2.0
   bonjour: ^3.5.0
   browser-process-hrtime: ^1.0.0
@@ -59,7 +59,7 @@ specifiers:
 
 dependencies:
   '@ster5/global-mutex': 1.1.1
-  '@types/underscore': 1.11.1
+  '@types/underscore': 1.11.2
   async: 3.2.0
   bonjour: 3.5.0
   browser-process-hrtime: 1.0.0
@@ -179,8 +179,8 @@ packages:
       defer-to-connect: 1.1.3
     dev: false
 
-  /@types/underscore/1.11.1:
-    resolution: {integrity: sha512-mW23Xkp9HYgdMV7gnwuzqnPx6aG0J7xg/b7erQszOcyOizWylwCr9cgYM/BVVJHezUDxwyigG6+wCFQwCvyMBw==}
+  /@types/underscore/1.11.2:
+    resolution: {integrity: sha512-Ls2ylbo7++ITrWk2Yc3G/jijwSq5V3GT0tlgVXEl2kKYXY3ImrtmTCoE2uyTWFRI5owMBriloZFWbE1SXOsE7w==}
     dev: false
 
   /aggregate-error/3.1.0:
