@@ -337,12 +337,10 @@ function decodeFields(
 function ___fieldToJson(field: FieldType, value: any): any {
     switch (field.category) {
         case FieldCategory.complex:
-            return value.toJSON();
-            break;
+            return value ? value?.toJSON() : null;
         case FieldCategory.enumeration:
         case FieldCategory.basic:
-            return value instanceof Date ? new Date(value.getTime()) : (value.toJSON ? value.toJSON() : value);
-            break;
+            return value instanceof Date ? new Date(value.getTime()) : (value?.toJSON ? value?.toJSON() : value);
         default:
             /* istanbul ignore next*/
             throw new Error("Invalid category " + field.category + " " + FieldCategory[field.category]);
