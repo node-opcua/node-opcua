@@ -1,7 +1,7 @@
 /**
  * @module node-opcua-data-model
  */
- import { _make_flag } from "./_make_flag";
+import { _make_flag } from "./_make_flag";
 
 /**
  * https://reference.opcfoundation.org/v104/Core/docs/Part3/8.55/
@@ -137,7 +137,7 @@ export const allPermissions = PermissionFlag.Browse |
     PermissionFlag.AddNode;
 
 // @example
-//      makepermissionFlag("ReceiveEvents | RemoveReference");
+//      makePermissionFlag("ReceiveEvents | RemoveReference");
 export function makePermissionFlag(str: string | number | null): number {
     if (str === "All") {
         return allPermissions;

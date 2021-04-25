@@ -751,7 +751,7 @@ export interface PseudoVariantVariantArray {
 }
 export interface PseudoVariantVariant {
     dataType: "Variant" | DataType.Variant;
-     value: Variant;
+    value: Variant;
 }
 
 export type PseudoVariantNumber =
@@ -1222,13 +1222,13 @@ export interface AddMethodOptions {
     userExecutable?: boolean;
     accessRestrictions?: AccessRestrictionsFlag;
     rolePermissions?: RolePermissionTypeOptions[];
-  }
+}
 
 export interface AddMultiStateDiscreteOptions extends AddBaseNodeOptions, VariableStuff {
     enumStrings: string[]; // default value is "BaseVariableType";
     typeDefinition?: string | NodeId | UAVariableType;
-     postInstantiateFunc?: (node: UAVariable) => void;
-     value?: number | VariantLike | BindVariableOptions;
+    postInstantiateFunc?: (node: UAVariable) => void;
+    value?: number | VariantLike | BindVariableOptions;
 }
 
 export interface AddReferenceTypeOptions extends AddBaseNodeOptions {

@@ -22,7 +22,11 @@ import {
 import { ObjectIds } from "node-opcua-constants";
 
 
-export { PermissionType } from "node-opcua-types";
+export {
+    RolePermissionType,
+    RolePermissionTypeOptions,
+    PermissionType
+} from "node-opcua-types";
 
 type UserIdentityToken = UserNameIdentityToken | AnonymousIdentityToken | X509IdentityToken;
 
@@ -107,6 +111,9 @@ export enum WellKnownRolesNodeId {
  * SecurityAdmin	    The Role is allowed to change security related settings.
  */
 export type WellKnownRolesSemiColumnSeparated = string;
+
+
+
 export interface IUserManager {
     /**  
      * retrieve the roles of the given user
