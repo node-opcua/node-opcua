@@ -1,6 +1,6 @@
 {
     "name": "node-opcua-enum",
-    "version": "2.40.0",
+    "version": "2.41.0",
     "description": "pure nodejs OPCUA SDK - module -enum",
     "scripts": {
         "build": "tsc -b",
