@@ -1489,6 +1489,7 @@ export class OPCUAServer extends OPCUABaseServer {
             // server certificate may be invalid and asymmetricDecrypt may fail
             if (!buff || buff.length <4) {
                 async.setImmediate(() => callback(null, false));
+                return;
             }
             
             const length = buff.readUInt32LE(0) - serverNonce.length;
