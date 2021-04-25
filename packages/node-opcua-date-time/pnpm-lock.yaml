@@ -6,8 +6,8 @@ specifiers:
   long: ^4.0.0
   node-opcua-assert: 2.37.0
   node-opcua-benchmarker: 2.40.0
-  node-opcua-binary-stream: 2.40.0
-  node-opcua-debug: 2.40.0
+  node-opcua-binary-stream: 2.41.0
+  node-opcua-debug: 2.41.0
   should: ^13.2.3
 
 dependencies:

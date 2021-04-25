@@ -1,9 +1,12 @@
-/*global require,console,setTimeout */
 
 /// issues: #237 #288
 const opcua = require("node-opcua");
+const chalk = require("chalk");
 const async = require("async");
 const  _ = require("underscore");
+const path = require("paths");
+const fs = require("fs");
+
  
 function server_stuff() {
     let server;
@@ -135,7 +138,10 @@ async.series([
             }
             console.log("session timeout = ",session.timeout);
             the_session.on("keepalive",function(state) {
-                console.log(chalk.yellow("KeepAlive state="),state.toString()," pending request on server = "), the_subscription.publish_engine.nbPendingPublishRequests);
+                console.log(
+                    chalk.yellow("KeepAlive state="),
+                    state.toString(),
+                    " pending request on server = ", the_subscription.publish_engine.nbPendingPublishRequests);
 
             });
             the_session.on("session_closed" ,function(statusCode) {
@@ -234,8 +240,8 @@ async.series([
 
                     "session will expired in ", the_session.evaluateRemainingLifetime()/1000, " seconds",
 
-                    chalk.red("subscripiton will expirer in "),the_subscription.evaluateRemainingLifetime()/1000, " seconds",
-                    chalk.red("subscripiton?"),the_session.subscriptionCount);
+                    chalk.red("subscription will expirer in "),the_subscription.evaluateRemainingLifetime()/1000, " seconds",
+                    chalk.red("subscription?"),the_session.subscriptionCount);
             if (!the_session.isChannelValid() && false) {
                 //xx console.log(the_session.toString());
                 return; // ignore write as session is invalid for the time being
@@ -261,7 +267,7 @@ async.series([
                     counter += 1;
                     console.log("writing ",counter);
                 }
-                //xx tatusCode && statusCode.length===1) ? statusCode[0].toString():"");
+                //xx statusCode && statusCode.length===1) ? statusCode[0].toString():"");
             });
 
         },100);

@@ -9,15 +9,15 @@ specifiers:
   env-paths: ^2.2.1
   mkdirp: 0.5.5
   node-opcua-assert: 2.37.0
-  node-opcua-basic-types: 2.40.0
-  node-opcua-buffer-utils: 2.40.0
+  node-opcua-basic-types: 2.41.0
+  node-opcua-buffer-utils: 2.41.0
   node-opcua-constants: 2.35.0
   node-opcua-crypto: ^1.7.1
-  node-opcua-debug: 2.40.0
-  node-opcua-leak-detector: 2.40.0
-  node-opcua-object-registry: 2.40.0
+  node-opcua-debug: 2.41.0
+  node-opcua-leak-detector: 2.41.0
+  node-opcua-object-registry: 2.41.0
   node-opcua-pki: ^2.9.8
-  node-opcua-status-code: 2.40.0
+  node-opcua-status-code: 2.41.0
   node-opcua-utils: 2.40.0
   once: ^1.4.0
   should: ^13.2.3

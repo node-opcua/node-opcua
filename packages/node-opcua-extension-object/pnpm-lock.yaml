@@ -3,11 +3,11 @@ lockfileVersion: 5.3
 specifiers:
   chalk: ^4.1.0
   node-opcua-assert: 2.37.0
-  node-opcua-basic-types: 2.40.0
-  node-opcua-binary-stream: 2.40.0
-  node-opcua-debug: 2.40.0
-  node-opcua-factory: 2.40.0
-  node-opcua-nodeid: 2.40.0
+  node-opcua-basic-types: 2.41.0
+  node-opcua-binary-stream: 2.41.0
+  node-opcua-debug: 2.41.0
+  node-opcua-factory: 2.41.0
+  node-opcua-nodeid: 2.41.0
 
 dependencies:
   chalk: 4.1.0

@@ -2,12 +2,12 @@ lockfileVersion: 5.3
 
 specifiers:
   node-opcua-assert: 2.37.0
-  node-opcua-basic-types: 2.40.0
-  node-opcua-binary-stream: 2.40.0
-  node-opcua-factory: 2.40.0
-  node-opcua-nodeid: 2.40.0
-  node-opcua-packet-analyzer: 2.40.0
-  node-opcua-status-code: 2.40.0
+  node-opcua-basic-types: 2.41.0
+  node-opcua-binary-stream: 2.41.0
+  node-opcua-factory: 2.41.0
+  node-opcua-nodeid: 2.41.0
+  node-opcua-packet-analyzer: 2.41.0
+  node-opcua-status-code: 2.41.0
   node-opcua-test-helpers: 2.37.0
   should: ^13.2.3
 

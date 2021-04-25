@@ -5,18 +5,18 @@ specifiers:
   '@types/underscore': ^1.11.1
   lodash: 4.17.21
   node-opcua-assert: 2.37.0
-  node-opcua-basic-types: 2.40.0
+  node-opcua-basic-types: 2.41.0
   node-opcua-benchmarker: 2.40.0
-  node-opcua-binary-stream: 2.40.0
-  node-opcua-data-model: 2.40.0
-  node-opcua-debug: 2.40.0
-  node-opcua-enum: 2.40.0
-  node-opcua-extension-object: 2.40.0
-  node-opcua-factory: 2.40.0
-  node-opcua-nodeid: 2.40.0
-  node-opcua-numeric-range: 2.40.0
-  node-opcua-packet-analyzer: 2.40.0
-  node-opcua-status-code: 2.40.0
+  node-opcua-binary-stream: 2.41.0
+  node-opcua-data-model: 2.41.0
+  node-opcua-debug: 2.41.0
+  node-opcua-enum: 2.41.0
+  node-opcua-extension-object: 2.41.0
+  node-opcua-factory: 2.41.0
+  node-opcua-nodeid: 2.41.0
+  node-opcua-numeric-range: 2.41.0
+  node-opcua-packet-analyzer: 2.41.0
+  node-opcua-status-code: 2.41.0
   node-opcua-utils: 2.40.0
   should: ^13.2.3
   source-map-support: ^0.5.19

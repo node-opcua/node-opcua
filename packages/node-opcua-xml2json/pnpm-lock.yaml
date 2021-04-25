@@ -4,7 +4,7 @@ specifiers:
   bomstrip: ^0.1.4
   ltx: ^2.10.0
   node-opcua-assert: 2.37.0
-  node-opcua-debug: 2.40.0
+  node-opcua-debug: 2.41.0
   node-opcua-nodesets: 2.36.0
   node-opcua-utils: 2.40.0
   should: ^13.2.3

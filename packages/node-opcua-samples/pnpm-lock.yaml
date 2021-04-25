@@ -5,10 +5,10 @@ specifiers:
   '@types/yargs': 16.0.1
   easy-table: ^1.1.1
   exit: ^0.1.2
-  node-opcua: 2.40.0
+  node-opcua: 2.41.0
   node-opcua-assert: 2.37.0
   node-opcua-pki: ^2.9.8
-  node-opcua-server-configuration: 2.40.0
+  node-opcua-server-configuration: 2.41.0
   sprintf-js: ^1.1.2
   treeify: ^1.1.0
   underscore: ^1.12.1
