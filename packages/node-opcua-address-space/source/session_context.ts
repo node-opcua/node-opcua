@@ -22,7 +22,7 @@ import {
 import { ObjectIds } from "node-opcua-constants";
 
 
-export { PermissionType } from  "node-opcua-types";
+export { PermissionType } from "node-opcua-types";
 
 type UserIdentityToken = UserNameIdentityToken | AnonymousIdentityToken | X509IdentityToken;
 
@@ -106,13 +106,13 @@ export enum WellKnownRolesNodeId {
  * ConfigureAdmin       The Role is allowed to change the non-security related config
  * SecurityAdmin	    The Role is allowed to change security related settings.
  */
-export type WellKnownRolesSemiColumnSeperated = string;
+export type WellKnownRolesSemiColumnSeparated = string;
 export interface IUserManager {
     /**  
      * retrieve the roles of the given user
      *  @returns semicolon separated list of roles
      */
-    getUserRole?: (user: string) => WellKnownRolesSemiColumnSeperated;
+    getUserRole?: (user: string) => WellKnownRolesSemiColumnSeparated;
 }
 export interface IServerBase {
     userManager?: IUserManager;
@@ -130,7 +130,7 @@ function getPermissionForRole(
     const a = rolePermissions.find((r) => {
         return r.roleId === role;
     });
-    return a !== undefined ? a.permissions! |  PermissionFlag.None: PermissionFlag.None;
+    return a !== undefined ? a.permissions! | PermissionFlag.None : PermissionFlag.None;
 }
 
 export class SessionContext implements ISessionContext {

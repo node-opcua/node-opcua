@@ -1472,6 +1472,7 @@ export class OPCUAServer extends OPCUABaseServer {
 
         // decrypt password if necessary
         if (securityPolicy === SecurityPolicy.None) {
+            // not good, password was sent in clear text ... 
             password = password.toString();
         } else {
             const serverPrivateKey = this.getPrivateKey();

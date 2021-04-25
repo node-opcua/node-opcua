@@ -1166,7 +1166,6 @@ export class OPCUAClientImpl extends ClientBaseImpl implements OPCUAClient {
                 case UserTokenType.Certificate: {
                     const certificate = userIdentityInfo.certificateData;
                     const privateKey = userIdentityInfo.privateKey;
-
                     ({ userIdentityToken, userTokenSignature } = createX509IdentityToken(context, certificate, privateKey));
                     break;
                 }
