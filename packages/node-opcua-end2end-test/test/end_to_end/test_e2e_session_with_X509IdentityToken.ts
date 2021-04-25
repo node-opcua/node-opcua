@@ -21,7 +21,7 @@ const empty_nodeset_filename = get_empty_nodeset_filename();
 const certificateFolder = path.join(__dirname, "../../../node-opcua-samples/certificates");
 fs.existsSync(certificateFolder).should.eql(true, "expecting certificate store at " + certificateFolder);
 
-const tmpFolder= path.join(__dirname,"../../tmp");
+const tmpFolder = path.join(__dirname, "../../tmp");
 
 const port = 2231;
 
@@ -31,16 +31,16 @@ let endpointUrl: string;
 //        -outform der -out example.der -subj "/CN=example.com" -days 3650
 async function startServer(): Promise<OPCUAServer> {
 
-    
-    const serverCertificateManager= new OPCUACertificateManager({
-        rootFolder: path.join(tmpFolder,"serverPKI"+port),
+
+    const serverCertificateManager = new OPCUACertificateManager({
+        rootFolder: path.join(tmpFolder, "serverPKI" + port),
         automaticallyAcceptUnknownCertificate: false,
     });
     await serverCertificateManager.initialize();
 
 
-    const userCertificateManager= new OPCUACertificateManager({
-        rootFolder: path.join(tmpFolder,"userPKI"+port),
+    const userCertificateManager = new OPCUACertificateManager({
+        rootFolder: path.join(tmpFolder, "userPKI" + port),
         automaticallyAcceptUnknownCertificate: false,
     });
     await userCertificateManager.initialize();
@@ -51,7 +51,7 @@ async function startServer(): Promise<OPCUAServer> {
         serverCertificateManager,
 
         maxAllowedSessionNumber: 10,
-        
+
         nodeset_filename: empty_nodeset_filename,
         port,
     });
@@ -60,7 +60,7 @@ async function startServer(): Promise<OPCUAServer> {
     const issuerCertificateFile = path.join(certificateFolder, "CA/public/cacert.pem");
 
     const issuerCertificate = readCertificate(issuerCertificateFile);
-    
+
     await server.userCertificateManager.addIssuer(issuerCertificate);
     await server.serverCertificateManager.addIssuer(issuerCertificate);
 

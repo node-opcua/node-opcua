@@ -158,7 +158,7 @@ describe("issue171- testing Client-Server with UserName/Password identity token"
             statusCode.should.eql(StatusCodes.BadUserAccessDenied);
 
             // ---------------------------------------------------------------------------------
-            // As admin user - acess should be granted
+            // As admin user - access should be granted
             // ---------------------------------------------------------------------------------
             console.log("    impersonate user user1 on existing session (ConfigAdmin)");
             const userIdentity = { userName: "user1", password: "1" };

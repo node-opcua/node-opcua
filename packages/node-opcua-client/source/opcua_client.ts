@@ -61,9 +61,9 @@ export interface OPCUAClientOptions extends OPCUAClientBaseOptions {
      *      time between two transactions to the server.
      * 
      *    - If your client establishes a subscription with the server, make sure that 
-     *      (maxKeepAliveCount * publishingInterval) calculated with negociated values 
+     *      (maxKeepAliveCount * publishingInterval) calculated with negotiated values 
      *      from the server  stay by large below the session time out, as you make 
-     *      encourtered unexpected behavior.
+     *      encountered unexpected behavior.
      * 
      * @default 60000 - default value is 60 secondes
      */

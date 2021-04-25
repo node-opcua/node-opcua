@@ -12,7 +12,7 @@ import { StatusCodes } from "node-opcua-status-code";
 import { ErrorCallback } from "node-opcua-status-code";
 
 import { SubscriptionId } from "./client_session";
-import { ClientSessionImpl } from "./private/client_session_impl";
+import { ClientSessionImpl, Reconnectable } from "./private/client_session_impl";
 import { ClientSubscriptionImpl } from "./private/client_subscription_impl";
 import { OPCUAClientImpl } from "./private/opcua_client_impl";
 
@@ -358,26 +358,20 @@ function _repair_client_session(client: OPCUAClientImpl, session: ClientSessionI
         }
     });
 }
-type Callback = (err?: Error) => void;
-interface Reconnectable {
-    _reconnecting: {
-        reconnecting: boolean;
-        pending: Callback[];
-    };
-    pendingTransactions: any[];
-}
-export function repair_client_session(client: OPCUAClientImpl, session: ClientSessionImpl, callback: Callback): void {
+
+type EmptyCallback = (err?: Error) => void;
+
+export function repair_client_session(client: OPCUAClientImpl, session: ClientSessionImpl, callback: EmptyCallback): void {
     if (!client) {
         debugLog("Aborting reactivation of old session because user requested session to be close");
         return callback();
     }
-
     debugLog(chalk.yellow("Starting client session repair"));
     const privateSession = (session as any) as Reconnectable;
     privateSession._reconnecting = privateSession._reconnecting || { reconnecting: false, pending: [] };
     if (privateSession._reconnecting.reconnecting) {
         debugLog(chalk.bgCyan("Reconnecting already happening for session"), session.sessionId.toString());
-        privateSession._reconnecting.pending.push(callback);
+        privateSession._reconnecting.pendingCallbacks.push(callback);
         return;
     }
     privateSession._reconnecting.reconnecting = true;
@@ -393,13 +387,13 @@ export function repair_client_session(client: OPCUAClientImpl, session: ClientSe
         }
         debugLog(chalk.yellow("SESSION RESTORED"), session.sessionId.toString());
         session.emit("session_restored");
-        const otherCallbacks = privateSession._reconnecting.pending;
-        privateSession._reconnecting.pending = [];
+        const otherCallbacks = privateSession._reconnecting.pendingCallbacks;
+        privateSession._reconnecting.pendingCallbacks = [];
 
         // re-inject element in queue
         debugLog(chalk.yellow("re-injecting transaction queue"), transactionQueue.length);
         transactionQueue.forEach((e: any) => privateSession.pendingTransactions.push(e));
-        otherCallbacks.forEach((c: Callback) => c(err));
+        otherCallbacks.forEach((c: EmptyCallback) => c(err));
         callback(err);
     });
 }

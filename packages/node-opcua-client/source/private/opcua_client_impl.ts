@@ -296,6 +296,7 @@ function createUserNameIdentityToken(
     return identityToken;
 }
 
+
 /***
  * @constructor
  * @internal

@@ -259,7 +259,7 @@ function __findBasicDataType(
                 return callback(new Error("Internal Error"));
             }
 
-            browseResult.references = browseResult.references || /* istanbul ignore next */ [];
+            browseResult.references = browseResult.references || /* istanbul ignore next */[];
             const baseDataType = browseResult.references[0].nodeId;
             return __findBasicDataType(session, baseDataType, callback);
         });
@@ -271,6 +271,16 @@ const emptyUint32Array = new Uint32Array(0);
 
 import { repair_client_session } from "../reconnection";
 
+type EmptyCallback = (err?: Error) => void;
+
+export interface Reconnectable {
+    _reconnecting: {
+        reconnecting: boolean;
+        pendingCallbacks: EmptyCallback[];
+    };
+    pendingTransactions: any[];
+    pendingTransactionsCount: number;
+}
 /**
  * @class ClientSession
  * @param client {OPCUAClientImpl}
@@ -293,6 +303,14 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession {
     public _client: any;
     public _closed: boolean;
 
+
+    private _reconnecting: {
+        reconnecting: boolean;
+        pendingCallbacks: EmptyCallback[];
+        pendingTransactions: any[];
+        pendingTransactionsCount: number;
+    };
+
     /**
      * @internal
      */
@@ -312,7 +330,18 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession {
         this._closeEventHasBeenEmitted = false;
         this._client = client;
         this._publishEngine = null;
+
         this._closed = false;
+
+
+        this._reconnecting = {
+            reconnecting: false,
+            pendingCallbacks: [],
+            pendingTransactions: [],
+            pendingTransactionsCount: 0,
+        };
+
+
         this.requestedMaxReferencesPerNode = 10000;
         this.lastRequestSentTime = new Date(1, 1, 1970);
         this.lastResponseReceivedTime = new Date(1, 1, 1970);
@@ -333,7 +362,7 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession {
     }
 
     get isReconnecting() {
-        return this._client ? this._client.isReconnecting : false;
+        return this._client ? this._client.isReconnecting && !this._reconnecting?.reconnecting : false;
     }
 
     public getPublishEngine(): ClientSidePublishEngine {
@@ -449,8 +478,8 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession {
                     if (r.references && r.references.length > this.requestedMaxReferencesPerNode) {
                         warningLog(
                             chalk.yellow("warning") +
-                                " BrowseResponse : the server didn't take into" +
-                                " account our requestedMaxReferencesPerNode "
+                            " BrowseResponse : the server didn't take into" +
+                            " account our requestedMaxReferencesPerNode "
                         );
                         warningLog("        this.requestedMaxReferencesPerNode= " + this.requestedMaxReferencesPerNode);
                         warningLog("        got " + r.references.length + "for " + nodesToBrowse[i].nodeId.toString());
@@ -459,7 +488,7 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession {
                 }
             }
             for (const r of results) {
-                r.references = r.references || /* istanbul ignore next */ [];
+                r.references = r.references || /* istanbul ignore next */[];
             }
             assert(results[0] instanceof BrowseResult);
             return callback(null, isArray ? results : results[0]);
@@ -708,7 +737,7 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession {
                 return callback(new Error(response.responseHeader.serviceResult.toString()));
             }
 
-            response.results = response.results || /* istanbul ignore next */ [];
+            response.results = response.results || /* istanbul ignore next */[];
 
             assert(nodes.length === response.results.length);
 
@@ -800,7 +829,7 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession {
                 return callback(new Error(response.responseHeader.serviceResult.toString()));
             }
 
-            response.results = response.results || /* istanbul ignore next */ [];
+            response.results = response.results || /* istanbul ignore next */[];
 
             assert(nodesToRead.length === response.results.length);
 
@@ -943,7 +972,7 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession {
             if (response.responseHeader.serviceResult.isNot(StatusCodes.Good)) {
                 return callback(new Error(response.responseHeader.serviceResult.toString()));
             }
-            response.results = response.results || /* istanbul ignore next */ [];
+            response.results = response.results || /* istanbul ignore next */[];
             assert(nodesToWrite.length === response.results.length);
             callback(null, isArray ? response.results : response.results[0]);
         });
@@ -1165,7 +1194,7 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession {
                 warningLog(
                     chalk.yellow(
                         "please make sure to refactor your code and check that " +
-                            "the second argument of your callback function is named"
+                        "the second argument of your callback function is named"
                     ),
                     chalk.cyan("dataValue" + (isArray ? "s" : ""))
                 );
@@ -1198,7 +1227,7 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession {
 
             // perform ExtensionObject resolution
             promoteOpaqueStructureWithCallback(this, response.results!, () => {
-                response.results = response.results || /* istanbul ignore next */ [];
+                response.results = response.results || /* istanbul ignore next */[];
                 return callback(null, isArray ? response.results : response.results[0]);
             });
         });
@@ -1399,7 +1428,7 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession {
                 if (!response) {
                     return callback(new Error("Internal Error"));
                 }
-                response.results = response.results || /* istanbul ignore next */ [];
+                response.results = response.results || /* istanbul ignore next */[];
                 callback(err, isArray ? response.results : response.results[0]);
             }
         );
@@ -1444,7 +1473,7 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession {
             if (!response || !(response instanceof TranslateBrowsePathsToNodeIdsResponse)) {
                 return callback(new Error("Internal Error"));
             }
-            response.results = response.results || /* istanbul ignore next */ [];
+            response.results = response.results || /* istanbul ignore next */[];
 
             callback(null, isArray ? response.results : response.results[0]);
         });
@@ -1478,25 +1507,24 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession {
             return callback(new Error("Invalid Channel "));
         }
 
-        const privateThis = this as any;
-        privateThis.pendingTransactions = privateThis.pendingTransactions || [];
+        this._reconnecting.pendingTransactions = this._reconnecting.pendingTransactions || [];
+        this._reconnecting.pendingTransactionsCount = this._reconnecting.pendingTransactionsCount || 0;
 
         const isPublishRequest = request instanceof PublishRequest;
         if (isPublishRequest) {
             return this._performMessageTransaction(request, callback);
         }
 
-        privateThis.pendingTransactionsCount = privateThis.pendingTransactionsCount || 0;
-        if (privateThis.pendingTransactionsCount > 0) {
+        if (this._reconnecting.pendingTransactionsCount > 0) {
             /* istanbul ignore next */
-            if (privateThis.pendingTransactions.length > 10) {
+            if (this._reconnecting.pendingTransactions.length > 10) {
                 if (!pendingTransactionMessageDisplayed) {
                     pendingTransactionMessageDisplayed = true;
                     // tslint:disable-next-line: no-console
                     warningLog(
                         "[NODE-OPCUA-W21]",
                         "Pending transactions: ",
-                        privateThis.pendingTransactions.map((a: any) => a.request.constructor.name).join(" ")
+                        this._reconnecting.pendingTransactions.map((a: any) => a.request.constructor.name).join(" ")
                     );
                     // tslint:disable-next-line: no-console
                     warningLog(
@@ -1509,7 +1537,7 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession {
                         chalk.yellow(" please fix your application code")
                     );
                 }
-            } else if (privateThis.pendingTransactions.length > 3) {
+            } else if (this._reconnecting.pendingTransactions.length > 3) {
                 debugLog(
                     chalk.yellow(
                         "Warning : your client is sending multiple requests simultaneously to the server",
@@ -1517,18 +1545,17 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession {
                     )
                 );
             }
-            privateThis.pendingTransactions.push({ request, callback });
+            this._reconnecting.pendingTransactions.push({ request, callback });
             return;
         }
         this.processTransactionQueue(request, callback);
     }
     public processTransactionQueue = (request: Request, callback: (err: Error | null, response?: Response) => void) => {
-        const privateThis = this as any;
-        privateThis.pendingTransactionsCount = privateThis.pendingTransactionsCount || 0;
-        privateThis.pendingTransactionsCount++;
+        this._reconnecting.pendingTransactionsCount = this._reconnecting.pendingTransactionsCount || 0;
+        this._reconnecting.pendingTransactionsCount++;
 
         this._performMessageTransaction(request, (err: null | Error, response?: Response) => {
-            privateThis.pendingTransactionsCount--;
+            this._reconnecting.pendingTransactionsCount--;
 
             if (err && err.message.match(/BadSessionIdInvalid/) && request.constructor.name !== "ActivateSessionRequest") {
                 debugLog("Transaction on Invalid Session ", request.constructor.name);
@@ -1537,11 +1564,11 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession {
                 return;
             }
             callback(err, response);
-            const length = privateThis.pendingTransactions.length; // record length before callback is called !
+            const length = this._reconnecting.pendingTransactions.length; // record length before callback is called !
             if (length > 0) {
-                debugLog("processTransactionQueue => ", privateThis.pendingTransactions.length, " transaction(s) left in queue");
+                debugLog("processTransactionQueue => ", this._reconnecting.pendingTransactions.length, " transaction(s) left in queue");
                 // tslint:disable-next-line: no-shadowed-variable
-                const { request, callback } = privateThis.pendingTransactions.shift();
+                const { request, callback } = this._reconnecting.pendingTransactions.shift();
                 this.processTransactionQueue(request, callback);
             }
         });
@@ -1593,9 +1620,9 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession {
             if (response.responseHeader.serviceResult.isNot(StatusCodes.Good)) {
                 err = new Error(
                     " ServiceResult is " +
-                        response.responseHeader.serviceResult.toString() +
-                        " request was " +
-                        request.constructor.name
+                    response.responseHeader.serviceResult.toString() +
+                    " request was " +
+                    request.constructor.name
                 );
 
                 if (response && response.responseHeader.serviceDiagnostics) {
@@ -1842,7 +1869,7 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession {
                 return callback(new Error("Internal Error"));
             }
 
-            response.registeredNodeIds = response.registeredNodeIds || /* istanbul ignore next */ [];
+            response.registeredNodeIds = response.registeredNodeIds || /* istanbul ignore next */[];
 
             callback(null, response.registeredNodeIds);
         });
@@ -2044,32 +2071,32 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession {
 
     // tslint:disable:no-empty
     // ---------------------------------------- Alarm & condition stub
-    public disableCondition(): void {}
+    public disableCondition(): void { }
 
-    public enableCondition(): void {}
+    public enableCondition(): void { }
 
     public addCommentCondition(
         _conditionId: NodeIdLike,
         _eventId: Buffer,
         _comment: LocalizedTextLike,
         _callback?: Callback<StatusCode>
-    ): any {}
+    ): any { }
 
     public confirmCondition(
         _conditionId: NodeIdLike,
         _eventId: Buffer,
         _comment: LocalizedTextLike,
         _callback?: Callback<StatusCode>
-    ): any {}
+    ): any { }
 
     public acknowledgeCondition(
         _conditionId: NodeId,
         _eventId: Buffer,
         _comment: LocalizedTextLike,
         _callback?: Callback<StatusCode>
-    ): any {}
+    ): any { }
 
-    public findMethodId(_nodeId: NodeIdLike, _methodName: string, _callback?: ResponseCallback<NodeId>): any {}
+    public findMethodId(_nodeId: NodeIdLike, _methodName: string, _callback?: ResponseCallback<NodeId>): any { }
 
     public _callMethodCondition(
         _methodName: string,
@@ -2077,7 +2104,7 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession {
         _eventId: Buffer,
         _comment: LocalizedTextLike,
         _callback: Callback<StatusCode>
-    ): void {}
+    ): void { }
 
     public async extractNamespaceDataType(): Promise<ExtraDataTypeManager> {
         return extractNamespaceDataType(this);
