@@ -11,7 +11,7 @@
         "test": "echo no test"
     },
     "dependencies": {
-        "chalk": "^4.1.0",
+        "chalk": "4.1.1",
         "node-opcua-assert": "2.37.0",
         "node-opcua-basic-types": "2.41.0",
         "node-opcua-binary-stream": "2.41.0",

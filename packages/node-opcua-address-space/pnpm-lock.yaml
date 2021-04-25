@@ -3,7 +3,7 @@ lockfileVersion: 5.3
 specifiers:
   '@types/lodash': 4.14.168
   async: ^3.2.0
-  chalk: ^4.1.0
+  chalk: 4.1.1
   date-utils: ^1.2.21
   dequeue: ^1.0.5
   humanize: 0.0.9
@@ -53,7 +53,7 @@ specifiers:
 dependencies:
   '@types/lodash': 4.14.168
   async: 3.2.0
-  chalk: 4.1.0
+  chalk: 4.1.1
   dequeue: 1.0.5
   lodash: 4.17.21
   node-opcua-assert: link:../node-opcua-assert
@@ -160,8 +160,8 @@ packages:
     resolution: {integrity: sha512-MQcXEUbCKtEo7bhqEs6560Hyd4XaovZlO/k9V3hjVUF/zwW7KBVdSK4gIt/bzwS9MbR5qob+F5jusZsb0YQK2A==}
     dev: true
 
-  /chalk/4.1.0:
-    resolution: {integrity: sha512-qwx12AxXe2Q5xQ43Ac//I6v5aXTipYrSESdOgzrN+9XjgEpyjpKuvSGaN4qE93f7TQTlerQQ8S+EQ0EyDoVL1A==}
+  /chalk/4.1.1:
+    resolution: {integrity: sha512-diHzdDKxcU+bAsUboHLPEDQiw0qEe0qd7SYUn3HgcFlWgbDcfLGswOHYeGrHKzG9z6UYf01d9VFMfZxPM1xZSg==}
     engines: {node: '>=10'}
     dependencies:
       ansi-styles: 4.3.0

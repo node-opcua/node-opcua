@@ -17,7 +17,7 @@
     "dependencies": {
         "@types/lodash": "4.14.168",
         "async": "^3.2.0",
-        "chalk": "^4.1.0",
+        "chalk": "4.1.1",
         "dequeue": "^1.0.5",
         "lodash": "4.17.21",
         "node-opcua-assert": "2.37.0",

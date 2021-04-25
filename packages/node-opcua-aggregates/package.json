@@ -30,7 +30,7 @@
         "node-opcua-leak-detector": "2.41.0",
         "should": "^13.2.3",
         "sinon": "^10.0.0",
-        "yargs": "15.4.1"
+        "yargs": "16.2.0"
     },
     "author": "Etienne Rossignon",
     "license": "MIT",

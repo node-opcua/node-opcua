@@ -12,7 +12,7 @@
     },
     "dependencies": {
         "@types/lodash": "4.14.168",
-        "chalk": "^4.1.0",
+        "chalk": "4.1.1",
         "lodash": "4.17.21",
         "node-opcua-assert": "2.37.0",
         "node-opcua-constants": "2.35.0",

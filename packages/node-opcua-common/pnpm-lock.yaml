@@ -1,7 +1,7 @@
 lockfileVersion: 5.3
 
 specifiers:
-  '@types/node': ^14.14.37
+  '@types/node': 14.14.41
   node-opcua-assert: 2.37.0
   node-opcua-basic-types: 2.41.0
   node-opcua-crypto: ^1.7.1
@@ -25,13 +25,13 @@ dependencies:
   node-opcua-types: link:../node-opcua-types
 
 devDependencies:
-  '@types/node': 14.14.37
+  '@types/node': 14.14.41
   should: 13.2.3
 
 packages:
 
-  /@types/node/14.14.37:
-    resolution: {integrity: sha512-XYmBiy+ohOR4Lh5jE379fV2IU+6Jn4g5qASinhitfyO71b/sCo6MKsMLF5tc7Zf2CE8hViVQyYSobJNke8OvUw==}
+  /@types/node/14.14.41:
+    resolution: {integrity: sha512-dueRKfaJL4RTtSa7bWeTK1M+VH+Gns73oCgzvYfHZywRCoPSd8EkXBL0mZ9unPTveBn+D9phZBaxuzpwjWkW0g==}
     dev: true
 
   /ansi-styles/4.3.0:

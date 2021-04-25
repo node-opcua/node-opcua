@@ -2,12 +2,12 @@ lockfileVersion: 5.3
 
 specifiers:
   '@types/async': ^3.2.6
-  '@types/mkdirp': 0.5.2
-  chalk: ^4.1.0
+  '@types/mkdirp': 1.0.1
+  chalk: 4.1.1
   delayed: ^2.0.0
   dequeue: ^1.0.5
   env-paths: ^2.2.1
-  mkdirp: 0.5.5
+  mkdirp: 1.0.4
   node-opcua-assert: 2.37.0
   node-opcua-basic-types: 2.41.0
   node-opcua-buffer-utils: 2.41.0
@@ -25,11 +25,11 @@ specifiers:
   thenify: ^3.3.1
 
 dependencies:
-  '@types/mkdirp': 0.5.2
-  chalk: 4.1.0
+  '@types/mkdirp': 1.0.1
+  chalk: 4.1.1
   delayed: 2.0.0
   env-paths: 2.2.1
-  mkdirp: 0.5.5
+  mkdirp: 1.0.4
   node-opcua-assert: link:../node-opcua-assert
   node-opcua-basic-types: link:../node-opcua-basic-types
   node-opcua-buffer-utils: link:../node-opcua-buffer-utils
@@ -117,14 +117,14 @@ packages:
     resolution: {integrity: sha512-ZkrXnZLC1mc4b9QLKaSrsxV4oxTRs10OI2kgSApT8G0v1jrmqppSHUVQ15kLorzsFBTjvf7OKF4kAibuuNQ+xA==}
     dev: true
 
-  /@types/mkdirp/0.5.2:
-    resolution: {integrity: sha512-U5icWpv7YnZYGsN4/cmh3WD2onMY0aJIiTE6+51TwJCttdHvtCYmkBNOobHlXwrJRL0nkH9jH4kD+1FAdMN4Tg==}
+  /@types/mkdirp/1.0.1:
+    resolution: {integrity: sha512-HkGSK7CGAXncr8Qn/0VqNtExEE+PHMWb+qlR1faHMao7ng6P3tAaoWWBMdva0gL5h4zprjIO89GJOLXsMcDm1Q==}
     dependencies:
-      '@types/node': 14.14.31
+      '@types/node': 14.14.41
     dev: false
 
-  /@types/node/14.14.31:
-    resolution: {integrity: sha512-vFHy/ezP5qI0rFgJ7aQnjDXwAMrG0KqqIH7tQG5PPv3BWBayOPIQNBjVc/P6hhdZfMx51REc6tfDNXHUio893g==}
+  /@types/node/14.14.41:
+    resolution: {integrity: sha512-dueRKfaJL4RTtSa7bWeTK1M+VH+Gns73oCgzvYfHZywRCoPSd8EkXBL0mZ9unPTveBn+D9phZBaxuzpwjWkW0g==}
     dev: false
 
   /aggregate-error/3.1.0:
@@ -272,6 +272,14 @@ packages:
 
   /chalk/4.1.0:
     resolution: {integrity: sha512-qwx12AxXe2Q5xQ43Ac//I6v5aXTipYrSESdOgzrN+9XjgEpyjpKuvSGaN4qE93f7TQTlerQQ8S+EQ0EyDoVL1A==}
+    engines: {node: '>=10'}
+    dependencies:
+      ansi-styles: 4.3.0
+      supports-color: 7.2.0
+    dev: false
+
+  /chalk/4.1.1:
+    resolution: {integrity: sha512-diHzdDKxcU+bAsUboHLPEDQiw0qEe0qd7SYUn3HgcFlWgbDcfLGswOHYeGrHKzG9z6UYf01d9VFMfZxPM1xZSg==}
     engines: {node: '>=10'}
     dependencies:
       ansi-styles: 4.3.0
@@ -827,11 +835,10 @@ packages:
     resolution: {integrity: sha512-FM9nNUYrRBAELZQT3xeZQ7fmMOBg6nWNmJKTcgsJeaLstP/UODVpGsr5OhXhhXg6f+qtJ8uiZ+PUxkDWcgIXLw==}
     dev: false
 
-  /mkdirp/0.5.5:
-    resolution: {integrity: sha512-NKmAlESf6jMGym1++R0Ra7wvhV+wFW63FaSOFPwRahvea0gMUcGUhVeAg/0BC0wiv9ih5NYPB1Wn1UEI1/L+xQ==}
+  /mkdirp/1.0.4:
+    resolution: {integrity: sha512-vVqVZQyf3WLx2Shd0qJ9xuvqgAyKPLAiqITEtqW0oIUjzo3PePDd6fW9iFz30ef7Ysp/oiWqbhszeGWW2T6Gzw==}
+    engines: {node: '>=10'}
     hasBin: true
-    dependencies:
-      minimist: 1.2.5
     dev: false
 
   /nise/4.1.0:

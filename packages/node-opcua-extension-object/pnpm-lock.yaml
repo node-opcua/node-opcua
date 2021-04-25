@@ -1,7 +1,7 @@
 lockfileVersion: 5.3
 
 specifiers:
-  chalk: ^4.1.0
+  chalk: 4.1.1
   node-opcua-assert: 2.37.0
   node-opcua-basic-types: 2.41.0
   node-opcua-binary-stream: 2.41.0
@@ -10,7 +10,7 @@ specifiers:
   node-opcua-nodeid: 2.41.0
 
 dependencies:
-  chalk: 4.1.0
+  chalk: 4.1.1
   node-opcua-assert: link:../node-opcua-assert
   node-opcua-basic-types: link:../node-opcua-basic-types
   node-opcua-binary-stream: link:../node-opcua-binary-stream
@@ -27,8 +27,8 @@ packages:
       color-convert: 2.0.1
     dev: false
 
-  /chalk/4.1.0:
-    resolution: {integrity: sha512-qwx12AxXe2Q5xQ43Ac//I6v5aXTipYrSESdOgzrN+9XjgEpyjpKuvSGaN4qE93f7TQTlerQQ8S+EQ0EyDoVL1A==}
+  /chalk/4.1.1:
+    resolution: {integrity: sha512-diHzdDKxcU+bAsUboHLPEDQiw0qEe0qd7SYUn3HgcFlWgbDcfLGswOHYeGrHKzG9z6UYf01d9VFMfZxPM1xZSg==}
     engines: {node: '>=10'}
     dependencies:
       ansi-styles: 4.3.0

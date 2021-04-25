@@ -4,10 +4,10 @@ specifiers:
   '@ster5/global-mutex': 1.1.1
   '@types/async': ^3.2.6
   '@types/once': ^1.4.0
-  '@types/underscore': ^1.11.1
+  '@types/underscore': 1.11.2
   async: ^3.2.0
   callbackify: ^1.1.0
-  chalk: ^4.1.0
+  chalk: 4.1.1
   delayed: ^2.0.0
   dequeue: ^1.0.5
   node-opcua-address-space: 2.41.0
@@ -57,16 +57,16 @@ specifiers:
   should: ^13.2.3
   sinon: ^10.0.0
   thenify: ^3.3.1
-  underscore: ^1.12.1
+  underscore: 1.13.1
 
 dependencies:
   '@ster5/global-mutex': 1.1.1
   '@types/async': 3.2.6
   '@types/once': 1.4.0
-  '@types/underscore': 1.11.1
+  '@types/underscore': 1.11.2
   async: 3.2.0
   callbackify: 1.1.0
-  chalk: 4.1.0
+  chalk: 4.1.1
   delayed: 2.0.0
   node-opcua-assert: link:../node-opcua-assert
   node-opcua-basic-types: link:../node-opcua-basic-types
@@ -108,7 +108,7 @@ dependencies:
   node-opcua-variant: link:../node-opcua-variant
   once: 1.4.0
   thenify: 3.3.1
-  underscore: 1.12.1
+  underscore: 1.13.1
 
 devDependencies:
   dequeue: 1.0.5
@@ -191,8 +191,8 @@ packages:
     resolution: {integrity: sha512-cnEvTAVVRqF6OQg/4SLnbxQ0slZJHqZQDve5BzGhcIQtuMpPv8T5QNS2cBPa/W0jTxciqwn7bmJAIGe/bOJ5Kw==}
     dev: false
 
-  /@types/underscore/1.11.1:
-    resolution: {integrity: sha512-mW23Xkp9HYgdMV7gnwuzqnPx6aG0J7xg/b7erQszOcyOizWylwCr9cgYM/BVVJHezUDxwyigG6+wCFQwCvyMBw==}
+  /@types/underscore/1.11.2:
+    resolution: {integrity: sha512-Ls2ylbo7++ITrWk2Yc3G/jijwSq5V3GT0tlgVXEl2kKYXY3ImrtmTCoE2uyTWFRI5owMBriloZFWbE1SXOsE7w==}
     dev: false
 
   /aggregate-error/3.1.0:
@@ -344,6 +344,14 @@ packages:
 
   /chalk/4.1.0:
     resolution: {integrity: sha512-qwx12AxXe2Q5xQ43Ac//I6v5aXTipYrSESdOgzrN+9XjgEpyjpKuvSGaN4qE93f7TQTlerQQ8S+EQ0EyDoVL1A==}
+    engines: {node: '>=10'}
+    dependencies:
+      ansi-styles: 4.3.0
+      supports-color: 7.2.0
+    dev: false
+
+  /chalk/4.1.1:
+    resolution: {integrity: sha512-diHzdDKxcU+bAsUboHLPEDQiw0qEe0qd7SYUn3HgcFlWgbDcfLGswOHYeGrHKzG9z6UYf01d9VFMfZxPM1xZSg==}
     engines: {node: '>=10'}
     dependencies:
       ansi-styles: 4.3.0
@@ -1273,8 +1281,8 @@ packages:
       is-typedarray: 1.0.0
     dev: false
 
-  /underscore/1.12.1:
-    resolution: {integrity: sha512-hEQt0+ZLDVUMhebKxL4x1BTtDY7bavVofhZ9KZ4aI26X9SRaE+Y3m83XUL1UP2jn8ynjndwCCpEHdUG+9pP1Tw==}
+  /underscore/1.13.1:
+    resolution: {integrity: sha512-hzSoAVtJF+3ZtiFX0VgfFPHEDRm7Y/QPjGyNo4TVdnDTdft3tr8hEkD25a1jC+TjTuE7tkHGKkhwCgs9dgBB2g==}
     dev: false
 
   /unique-string/2.0.0:

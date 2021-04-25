@@ -11,7 +11,7 @@
         "node-opcua-pki": "^2.9.8"
     },
     "devDependencies": {
-        "@types/underscore": "^1.11.1",
+        "@types/underscore": "^1.11.2",
         "async": "^3.2.0",
         "delayed": "^2.0.0",
         "node-opcua": "2.41.0",
@@ -42,7 +42,7 @@
         "node-opcua-variant": "2.41.0",
         "should": "^13.2.3",
         "sinon": "^10.0.0",
-        "underscore": "^1.12.1",
+        "underscore": "^1.13.1",
         "yargs": "15.4.1"
     },
     "author": "Etienne Rossignon",
