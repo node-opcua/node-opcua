@@ -16,6 +16,7 @@ deprecated_*
 _generated_/
 tsconfig.json
 *.tsbuildinfo
+pnpm-lock.yaml
 tslint.*
 .mocharc.yaml
 certs/

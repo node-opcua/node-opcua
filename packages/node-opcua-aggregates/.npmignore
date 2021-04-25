@@ -2,4 +2,4 @@ test/
 test_helpers/
 tsconfig.json
 *.tsbuildinfo
-*.tsbuildinfo
+pnpm-lock.yaml

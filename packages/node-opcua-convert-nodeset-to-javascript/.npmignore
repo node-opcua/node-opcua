@@ -9,4 +9,5 @@ certificates/
 .vscode/
 tsconfig.json
 *.tsbuildinfo
+pnpm-lock.yaml
 tslint.*

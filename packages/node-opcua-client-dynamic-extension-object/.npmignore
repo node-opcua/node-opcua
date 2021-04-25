@@ -1,2 +1,3 @@
 tsconfig.json
 *.tsbuildinfo
+pnpm-lock.yaml

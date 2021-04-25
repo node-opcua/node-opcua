@@ -1,3 +1,5 @@
 temp/
 test/
 *.tsbuildinfo
+pnpm-lock.yaml
+tsconfig.json

@@ -4,5 +4,6 @@ test_to_fix/
 certificates/
 tsconfig.json
 *.tsbuildinfo
+pnpm-lock.yaml
 temp/
 tmp/

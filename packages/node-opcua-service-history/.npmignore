@@ -15,6 +15,7 @@ tmp/
 deprecated_*
 tsconfig.json
 *.tsbuildinfo
+pnpm-lock.yaml
 tslint.*
 .mocharc.yaml
 
