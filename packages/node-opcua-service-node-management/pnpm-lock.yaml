@@ -1,15 +1,15 @@
 lockfileVersion: 5.3
 
 specifiers:
-  node-opcua-assert: 2.37.0
-  node-opcua-basic-types: 2.41.0
-  node-opcua-binary-stream: 2.41.0
-  node-opcua-data-model: 2.41.0
-  node-opcua-extension-object: 2.41.0
-  node-opcua-factory: 2.41.0
-  node-opcua-nodeid: 2.41.0
-  node-opcua-service-secure-channel: 2.41.0
-  node-opcua-types: 2.41.0
+  node-opcua-assert: 2.41.1
+  node-opcua-basic-types: 2.41.1
+  node-opcua-binary-stream: 2.41.1
+  node-opcua-data-model: 2.41.1
+  node-opcua-extension-object: 2.41.1
+  node-opcua-factory: 2.41.1
+  node-opcua-nodeid: 2.41.1
+  node-opcua-service-secure-channel: 2.41.1
+  node-opcua-types: 2.41.1
 
 dependencies:
   node-opcua-assert: link:../node-opcua-assert

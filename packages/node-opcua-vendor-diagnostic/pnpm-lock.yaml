@@ -2,12 +2,12 @@ lockfileVersion: 5.3
 
 specifiers:
   humanize: 0.0.9
-  node-opcua-address-space: 2.41.0
-  node-opcua-assert: 2.37.0
-  node-opcua-constants: 2.35.0
-  node-opcua-server: 2.41.0
-  node-opcua-status-code: 2.41.0
-  node-opcua-variant: 2.41.0
+  node-opcua-address-space: 2.41.1
+  node-opcua-assert: 2.41.1
+  node-opcua-constants: 2.41.1
+  node-opcua-server: 2.41.1
+  node-opcua-status-code: 2.41.1
+  node-opcua-variant: 2.41.1
 
 dependencies:
   humanize: 0.0.9

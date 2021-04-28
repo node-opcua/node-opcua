@@ -6,32 +6,32 @@ specifiers:
   async: ^3.2.0
   backoff: ^2.5.0
   chalk: 4.1.1
-  node-opcua-assert: 2.37.0
-  node-opcua-basic-types: 2.41.0
-  node-opcua-binary-stream: 2.41.0
-  node-opcua-buffer-utils: 2.41.0
-  node-opcua-certificate-manager: 2.41.0
-  node-opcua-chunkmanager: 2.41.0
-  node-opcua-common: 2.41.0
+  node-opcua-assert: 2.41.1
+  node-opcua-basic-types: 2.41.1
+  node-opcua-binary-stream: 2.41.1
+  node-opcua-buffer-utils: 2.41.1
+  node-opcua-certificate-manager: 2.41.1
+  node-opcua-chunkmanager: 2.41.1
+  node-opcua-common: 2.41.1
   node-opcua-crypto: ^1.7.1
-  node-opcua-debug: 2.41.0
-  node-opcua-enum: 2.41.0
-  node-opcua-factory: 2.41.0
-  node-opcua-leak-detector: 2.41.0
-  node-opcua-nodeid: 2.41.0
-  node-opcua-object-registry: 2.41.0
-  node-opcua-packet-analyzer: 2.41.0
-  node-opcua-service-browse: 2.41.0
-  node-opcua-service-endpoints: 2.41.0
-  node-opcua-service-read: 2.41.0
-  node-opcua-service-secure-channel: 2.41.0
-  node-opcua-service-session: 2.41.0
-  node-opcua-status-code: 2.41.0
-  node-opcua-test-fixtures: 2.41.0
+  node-opcua-debug: 2.41.1
+  node-opcua-enum: 2.41.1
+  node-opcua-factory: 2.41.1
+  node-opcua-leak-detector: 2.41.1
+  node-opcua-nodeid: 2.41.1
+  node-opcua-object-registry: 2.41.1
+  node-opcua-packet-analyzer: 2.41.1
+  node-opcua-service-browse: 2.41.1
+  node-opcua-service-endpoints: 2.41.1
+  node-opcua-service-read: 2.41.1
+  node-opcua-service-secure-channel: 2.41.1
+  node-opcua-service-session: 2.41.1
+  node-opcua-status-code: 2.41.1
+  node-opcua-test-fixtures: 2.41.1
   node-opcua-test-helpers: 2.37.0
-  node-opcua-transport: 2.41.0
-  node-opcua-types: 2.41.0
-  node-opcua-utils: 2.40.0
+  node-opcua-transport: 2.41.1
+  node-opcua-types: 2.41.1
+  node-opcua-utils: 2.41.1
   should: ^13.2.3
   sinon: ^10.0.0
   source-map-support: ^0.5.19

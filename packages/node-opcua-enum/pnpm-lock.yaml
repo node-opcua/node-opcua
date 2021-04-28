@@ -2,8 +2,8 @@ lockfileVersion: 5.3
 
 specifiers:
   enum: 3.0.4
-  node-opcua-assert: 2.37.0
-  node-opcua-benchmarker: 2.40.0
+  node-opcua-assert: 2.41.1
+  node-opcua-benchmarker: 2.41.1
   should: ^13.2.3
 
 dependencies:

@@ -3,7 +3,7 @@ lockfileVersion: 5.3
 specifiers:
   bonjour: ^3.5.0
   env-paths: ^2.2.1
-  node-opcua: 2.41.0
+  node-opcua: 2.41.1
   vorpal: ^1.12.0
   vorpal-repl: ^1.1.8
   yargs: 15.4.1

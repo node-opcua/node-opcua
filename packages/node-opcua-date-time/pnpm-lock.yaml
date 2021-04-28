@@ -4,10 +4,10 @@ specifiers:
   bignumber.js: ^9.0.1
   browser-process-hrtime: ^1.0.0
   long: ^4.0.0
-  node-opcua-assert: 2.37.0
-  node-opcua-benchmarker: 2.40.0
-  node-opcua-binary-stream: 2.41.0
-  node-opcua-debug: 2.41.0
+  node-opcua-assert: 2.41.1
+  node-opcua-benchmarker: 2.41.1
+  node-opcua-binary-stream: 2.41.1
+  node-opcua-debug: 2.41.1
   should: ^13.2.3
 
 dependencies:
