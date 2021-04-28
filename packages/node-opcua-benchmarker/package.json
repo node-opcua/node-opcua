@@ -1,6 +1,6 @@
 {
     "name": "node-opcua-benchmarker",
-    "version": "2.40.0",
+    "version": "2.41.1",
     "description": "pure nodejs OPCUA SDK - module -benchmarker",
     "main": "./dist/index.js",
     "types": "./dist/index.d.ts",
@@ -11,7 +11,7 @@
     },
     "dependencies": {
         "browser-process-hrtime": "^1.0.0",
-        "node-opcua-assert": "2.37.0"
+        "node-opcua-assert": "2.41.1"
     },
     "author": "Etienne Rossignon",
     "license": "MIT",
