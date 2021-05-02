@@ -125,7 +125,7 @@ export class NodeId {
             default:
                 assert(this.identifierType === NodeIdType.BYTESTRING, "invalid identifierType in NodeId : " + this.identifierType);
                 if (this.value) {
-                    str = "ns=" + this.namespace + ";b=" + (this.value as Buffer).toString("hex");
+                    str = "ns=" + this.namespace + ";b=" + (this.value as Buffer).toString("base64");
                 } else {
                     str = "ns=" + this.namespace + ";b=<null>";
                 }
@@ -228,7 +228,7 @@ export function coerceNodeId(value: any, namespace?: number): NodeId {
             value = value.substr(2);
         } else if (twoFirst === "b=") {
             identifierType = NodeIdType.BYTESTRING;
-            value = Buffer.from(value.substr(2), "hex");
+            value = Buffer.from(value.substr(2), "base64");
         } else if (twoFirst === "g=") {
             identifierType = NodeIdType.GUID;
             value = value.substr(2);
@@ -245,7 +245,7 @@ export function coerceNodeId(value: any, namespace?: number): NodeId {
         } else if ((matches = regexNamespaceB.exec(value)) !== null) {
             identifierType = NodeIdType.BYTESTRING;
             namespace = parseInt(matches[1], 10);
-            value = Buffer.from(matches[2], "hex");
+            value = Buffer.from(matches[2], "base64");
         } else if ((matches = regexNamespaceG.exec(value)) !== null) {
             identifierType = NodeIdType.GUID;
             namespace = parseInt(matches[1], 10);

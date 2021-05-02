@@ -45,13 +45,13 @@ describe("testing NodeIds", function() {
 
     it("should create a OPAQUE nodeID", function() {
         const buffer = Buffer.alloc(4);
-        buffer.writeUInt32BE(0xdeadbeef, 0);
+        buffer.write("deadbeef", "base64");
 
         const nodeId = new NodeId(NodeIdType.BYTESTRING, buffer, 4);
-        nodeId.value.toString("hex").should.equal("deadbeef");
+        nodeId.value.toString("base64").should.equal("deadbeef");
         nodeId.namespace.should.equal(4);
         nodeId.identifierType.should.eql(NodeIdType.BYTESTRING);
-        nodeId.toString().should.eql("ns=4;b=deadbeef");
+        nodeId.toString().should.eql("ns=4;b=ZGVhZGJlZWY=");
     });
     it("should create a OPAQUE nodeID with null buffer", function() {
         const nodeId = new NodeId(NodeIdType.BYTESTRING, null, 4);
