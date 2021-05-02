@@ -51,7 +51,7 @@ describe("testing NodeIds", function() {
         nodeId.value.toString("hex").should.equal("deadbeef");
         nodeId.namespace.should.equal(4);
         nodeId.identifierType.should.eql(NodeIdType.BYTESTRING);
-        nodeId.toString().should.eql("ns=4;b=deadbeef");
+        nodeId.toString().should.eql("ns=4;b=3q2+7w==");
     });
     it("should create a OPAQUE nodeID with null buffer", function() {
         const nodeId = new NodeId(NodeIdType.BYTESTRING, null, 4);
@@ -152,7 +152,7 @@ describe("testing coerceNodeId", function() {
     })
     it("makeNodeId(buffer)", () => {
         const nodeId2 = makeNodeId(Buffer.from([1, 2, 3]));
-        nodeId2.toString().should.eql("ns=0;b=010203");
+        nodeId2.toString().should.eql("ns=0;b=AQID");
     })
     it("resolveNodeId", () => {
         resolveNodeId("i=12");
@@ -163,20 +163,20 @@ describe("testing coerceNodeId", function() {
         buffer.writeUInt32BE(0xb1dedada, 0);
         buffer.writeUInt32BE(0xb0b0abba, 4);
         const nodeId = coerceNodeId(buffer);
-        nodeId.toString().should.eql("ns=0;b=b1dedadab0b0abba");
-        nodeId.value.toString("hex").should.eql("b1dedadab0b0abba");
+        nodeId.toString().should.eql("ns=0;b=sd7a2rCwq7o=");
+        nodeId.value.toString("base64").should.eql("sd7a2rCwq7o=");
     });
 
     it("should coerce a OPAQUE buffer in a string ( with namespace ) ", function() {
-        const nodeId = coerceNodeId("ns=0;b=b1dedadab0b0abba");
+        const nodeId = coerceNodeId("ns=0;b=sd7a2rCwq7o=");
         nodeId.identifierType.should.eql(NodeIdType.BYTESTRING);
-        nodeId.toString().should.eql("ns=0;b=b1dedadab0b0abba");
+        nodeId.toString().should.eql("ns=0;b=sd7a2rCwq7o=");
         nodeId.value.toString("hex").should.eql("b1dedadab0b0abba");
     });
     it("should coerce a OPAQUE buffer in a string ( without namespace ) ", function() {
-        const nodeId = coerceNodeId("b=b1dedadab0b0abba");
+        const nodeId = coerceNodeId("b=sd7a2rCwq7o=");
         nodeId.identifierType.should.eql(NodeIdType.BYTESTRING);
-        nodeId.toString().should.eql("ns=0;b=b1dedadab0b0abba");
+        nodeId.toString().should.eql("ns=0;b=sd7a2rCwq7o=");
         nodeId.value.toString("hex").should.eql("b1dedadab0b0abba");
     });
     it("should coerce a GUID node id (without namespace)", function() {
