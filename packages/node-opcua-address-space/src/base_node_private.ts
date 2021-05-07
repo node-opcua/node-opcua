@@ -37,13 +37,15 @@ const g_weakMap = new WeakMap();
 
 interface BaseNodeCache {
     __address_space: AddressSpace | null;
-    _back_referenceIdx: any;
     _browseFilter?: (this: BaseNode, context?: SessionContext) => boolean;
     _cache: any;
     _description?: LocalizedText;
     _displayName: LocalizedText[];
     _parent?: BaseNodePublic | null;
-    _referenceIdx: any;
+
+    _back_referenceIdx: { [key: string]: Reference };
+    _referenceIdx: { [key: string]: Reference };
+
     _subtype_idxVersion: number;
     _subtype_idx: any;
 }
@@ -51,13 +53,15 @@ interface BaseNodeCache {
 export function BaseNode_initPrivate(self: BaseNode): BaseNodeCache {
     const _private: BaseNodeCache = {
         __address_space: null,
+
+        _referenceIdx: {},
         _back_referenceIdx: {},
+
         _browseFilter: undefined,
         _cache: {},
         _description: undefined,
         _displayName: [],
         _parent: undefined,
-        _referenceIdx: {},
         _subtype_idx: {},
         _subtype_idxVersion: 0
     };
@@ -69,12 +73,27 @@ export function BaseNode_removePrivate(self: BaseNode): void {
     // there is no need to delete object from weakmap
     // the GC will take care of this in due course
     // g_weakMap.delete(self);
+    const _private = BaseNode_getPrivate(self);
+    _private._cache = {};
+    _private.__address_space = null;
+    _private._back_referenceIdx = {};
+    _private._referenceIdx = {};
+    _private._description = undefined;
+    _private._displayName = [];
+
 }
 
 export function BaseNode_getPrivate(self: BaseNode): BaseNodeCache {
     return g_weakMap.get(self);
 }
 
+export function BaseNode_getCache(node: BaseNode): any {
+    return BaseNode_getPrivate(node)._cache;
+}
+export function BaseNode_clearCache(node: BaseNode): void {
+    const _private = BaseNode_getPrivate(node);
+    _private._cache = {};
+}
 const hasTypeDefinition_ReferenceTypeNodeId = resolveNodeId("HasTypeDefinition");
 
 export interface ToStringOption {
@@ -508,29 +527,29 @@ export function _clone(
     return cloneObj;
 }
 
+
 export function _handle_HierarchicalReference(node: BaseNode, reference: Reference) {
-    const _private = BaseNode_getPrivate(node);
-    if (_private._cache._childByNameMap) {
+    const _cache = BaseNode_getCache(node);
+    if (!reference.isForward)
+        return;
+    if (_cache._childByNameMap) {
         const addressSpace = node.addressSpace;
         const referenceType = Reference.resolveReferenceType(addressSpace, reference);
 
         if (referenceType) {
             const HierarchicalReferencesType = addressSpace.findReferenceType("HierarchicalReferences");
-
-            // xx console.log ("HierarchicalReferencesType",HierarchicalReferencesType.toString());
             if (referenceType.isSupertypeOf(HierarchicalReferencesType!)) {
                 assert(reference.isForward);
                 const targetNode = Reference.resolveReferenceNode(addressSpace, reference);
-                // Xx console.log(" adding object to map");
-                _private._cache._childByNameMap[targetNode.browseName!.name!.toString()] = targetNode;
+                _cache._childByNameMap[targetNode.browseName!.name!.toString()] = targetNode;
             }
         }
     }
 }
 
 function _remove_HierarchicalReference(node: BaseNode, reference: Reference) {
-    const _private = BaseNode_getPrivate(node);
-    if (_private._cache._childByNameMap) {
+    const _cache = BaseNode_getCache(node);
+    if (_cache._childByNameMap) {
         const addressSpace = node.addressSpace;
         const referenceType = Reference.resolveReferenceType(addressSpace, reference);
 
@@ -540,7 +559,7 @@ function _remove_HierarchicalReference(node: BaseNode, reference: Reference) {
                 assert(reference.isForward);
                 const targetNode = Reference.resolveReferenceNode(addressSpace, reference);
                 // Xx console.log(" adding object to map");
-                delete _private._cache._childByNameMap[targetNode.browseName!.name!.toString()];
+                delete _cache._childByNameMap[targetNode.browseName!.name!.toString()];
             }
         }
     }
@@ -645,38 +664,6 @@ export function BaseNode_add_backward_reference(this: BaseNode, reference: Refer
     (this as any)._clear_caches();
 }
 
-function _get_idx(referenceType: UAReferenceTypePublic): any {
-    const possibleReferenceTypes = referenceType.getAllSubtypes();
-    // create a index of reference type with browseName as key for faster search
-    const keys: any = {};
-    for (const refType of possibleReferenceTypes) {
-        keys[refType.nodeId.toString()] = refType;
-    }
-    return keys;
-}
-
-export const ReferenceTypeCounter = { count: 0 };
-
-/**
- * getSubtypeIndex
- * @returns {null|*}
- * @private
- */
-export function getSubtypeIndex(this: UAReferenceTypePublic): any {
-    const _cache = BaseNode_getPrivate((this as any) as BaseNode);
-
-    if (_cache._subtype_idxVersion < ReferenceTypeCounter.count) {
-        // the cache need to be invalidated
-        _cache._subtype_idx = null;
-    } else {
-        // tslint:disable:no-empty
-    }
-    if (!_cache._subtype_idx) {
-        _cache._subtype_idx = _get_idx(this);
-        _cache._subtype_idxVersion = ReferenceTypeCounter.count;
-    }
-    return _cache._subtype_idx;
-}
 
 export function apply_condition_refresh(this: BaseNode, _cache?: any) {
     // visit all notifiers recursively

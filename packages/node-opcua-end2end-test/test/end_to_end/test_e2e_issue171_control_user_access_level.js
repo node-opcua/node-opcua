@@ -8,14 +8,15 @@ const {
     StatusCodes,
     Permission,
     WellKnownRoles,
-    AttributeIds
+    AttributeIds,
+    makeRoles
 } = opcua;
 
 const { build_server_with_temperature_device } = require("../../test_helpers/build_server_with_temperature_device");
 
 const users = [
-    { username: "user1", password: "1", role: [WellKnownRoles.AuthenticatedUser, WellKnownRoles.ConfigureAdmin].join(';') },
-    { username: "user2", password: "2", role: [WellKnownRoles.AuthenticatedUser, WellKnownRoles.Operator].join(';') },
+    { username: "user1", password: "1", roles: makeRoles([WellKnownRoles.AuthenticatedUser, WellKnownRoles.ConfigureAdmin]) },
+    { username: "user2", password: "2", roles: makeRoles([WellKnownRoles.AuthenticatedUser, WellKnownRoles.Operator]) },
 
 ];
 
@@ -35,14 +36,14 @@ const userManager = {
         return true;
     },
 
-    getUserRole: function (username) {
+    getUserRoles: function (username) {
         const uIndex = users.findIndex(function (x) {
             return x.username === username;
         });
         if (uIndex < 0) {
-            return "unknown";
+            return makeRoles("Anonymous");
         }
-        const userRole = users[uIndex].role;
+        const userRole = users[uIndex].roles;
         return userRole;
     }
 

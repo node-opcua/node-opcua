@@ -355,7 +355,7 @@ export class UAVariable extends BaseNode implements UAVariablePublic {
         this.semantic_version = 0;
     }
 
-    private checkPrivateFlag(context: SessionContext, permission: PermissionType, accessLevel: AccessLevelFlag) {
+    private checkPermissionAndAccessLevelPrivate(context: SessionContext, permission: PermissionType, accessLevel: AccessLevelFlag) {
         assert(context instanceof SessionContext);
         if (context.checkPermission) {
             assert(context.checkPermission instanceof Function);
@@ -375,7 +375,7 @@ export class UAVariable extends BaseNode implements UAVariablePublic {
 
     public isUserReadable(context: SessionContext): boolean {
         if (!this.isReadable(context)) { return false; }
-        return this.checkPrivateFlag(context, PermissionType.Read, AccessLevelFlag.CurrentRead);
+        return this.checkPermissionAndAccessLevelPrivate(context, PermissionType.Read, AccessLevelFlag.CurrentRead);
     }
 
     public isWritable(context: SessionContext): boolean {
@@ -384,7 +384,7 @@ export class UAVariable extends BaseNode implements UAVariablePublic {
 
     public isUserWritable(context: SessionContext): boolean {
         if (!this.isWritable(context)) { return false; }
-        return this.checkPrivateFlag(context, PermissionType.Write, AccessLevelFlag.CurrentWrite);
+        return this.checkPermissionAndAccessLevelPrivate(context, PermissionType.Write, AccessLevelFlag.CurrentWrite);
     }
 
     /**
@@ -417,6 +417,10 @@ export class UAVariable extends BaseNode implements UAVariablePublic {
     public readValue(context?: SessionContext | null, indexRange?: NumericRange, dataEncoding?: string) {
         if (!context) {
             context = SessionContext.defaultContext;
+        }
+
+        if(context.isAccessRestricted(this)) {
+            return new DataValue({ statusCode: StatusCodes.BadSecurityModeInsufficient});
         }
 
         if (!this.isReadable(context)) {

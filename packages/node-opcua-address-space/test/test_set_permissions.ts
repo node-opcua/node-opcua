@@ -1,4 +1,5 @@
 import { AttributeIds, makeAccessLevelExFlag, makeAccessLevelFlag, makePermissionFlag } from "node-opcua-data-model";
+import { resolveNodeId } from "node-opcua-nodeid";
 import { PermissionType } from "node-opcua-types";
 import { DataType } from "node-opcua-variant";
 import * as should  from "should";
@@ -8,6 +9,7 @@ import {
     Namespace, 
     SessionContext,
     WellKnownRoles,
+    makeRoles,
 } from "..";
 
 // let's make sure should don't get removed by typescript optimizer
@@ -31,8 +33,8 @@ describe("Variable#setPermissions & checkPermission", () => {
     it("checkPermission-v1 should obey default flags when variable has no specific permission", () => {
       
         const context = new  SessionContext();
-        context.getCurrentUserRole = () => {
-            return [ WellKnownRoles.AuthenticatedUser, WellKnownRoles.Engineer ].join(";");
+        context.getCurrentUserRoles = () => {
+            return [ WellKnownRoles.AuthenticatedUser, WellKnownRoles.Engineer ].map((r: number )=>resolveNodeId(r));
         };
 
         const someNode = addressSpace.getOwnNamespace().addVariable({
@@ -52,8 +54,8 @@ describe("Variable#setPermissions & checkPermission", () => {
     });
     it("checkPermission-v2 should obey default flags when variable has no specific permission", () => {
         const context = new  SessionContext();
-        context.getCurrentUserRole = () => {
-            return [ WellKnownRoles.AuthenticatedUser, WellKnownRoles.Engineer ].join(";");
+        context.getCurrentUserRoles = () => {
+            return [ WellKnownRoles.AuthenticatedUser, WellKnownRoles.Engineer ].map((r: number )=>resolveNodeId(r));
         };
 
         const someVariable1 = addressSpace.getOwnNamespace().addVariable({
@@ -136,18 +138,14 @@ describe("Method#setPermissions & checkPermission", () => {
         someMethod.bindMethod(defaultMehod);
 
         const context = new  SessionContext();
-        context.getCurrentUserRole = () => {
-            return "AuthenticatedUser;Engineer";
-        };
+        context.getCurrentUserRoles = () => makeRoles([WellKnownRoles.AuthenticatedUser, WellKnownRoles.Engineer]);
 
         context.checkPermission(someMethod, PermissionType.Call).should.eql(true);
 
     });
     it("checkPermission-m2 should obey default flags when method has no specific permission", () => {
         const context = new  SessionContext();
-        context.getCurrentUserRole = () => {
-            return "AuthenticatedUser;Engineer";
-        };
+        context.getCurrentUserRoles = () => makeRoles([WellKnownRoles.AuthenticatedUser, WellKnownRoles.Engineer]);
 
         const someMethod = addressSpace.getOwnNamespace().addMethod(someObject, {
             browseName: "SomeNode",

@@ -5,7 +5,7 @@ import { readCertificate } from "node-opcua-crypto";
 import { PermissionType, X509IdentityToken } from "node-opcua-types";
 import { DataType } from "node-opcua-variant";
 import * as should from "should";
-import { AddressSpace, BaseNode, Namespace, SessionContext, UAObject } from "..";
+import { AddressSpace, BaseNode, Namespace, SessionContext, UAObject , makeRoles} from "..";
 
 // let's make sure should don't get removed by typescript optimizer
 const keep_should = should;
@@ -32,7 +32,7 @@ describe("SessionContext", () => {
 
     it("should provide a default session context - getCurrentUserRole", () => {
         const context = SessionContext.defaultContext;
-        context.getCurrentUserRole().should.eql("default");
+        context.getCurrentUserRoles().should.eql([]);
     });
 
     it("should provide a  default session context - checkPermission", () => {
@@ -89,14 +89,14 @@ describe("SessionContext - with  dedicated SessionContext and certificate ", () 
         // ConfigureAdmin     The Role is allowed to change the non-security related configuration settings.
         // SecurityAdmin      The Role is allowed to change security related settings.
 
-        getUserRole(username: string): string {
+        getUserRoles(username: string): NodeId[] {
             if (username === "anonymous") {
-                return "Anonymous";
+                return makeRoles("Anonymous");
             }
             if (username === "NodeOPCUA") {
-                return "AuthenticatedUser;SecurityAdmin";
+                return makeRoles("AuthenticatedUser;SecurityAdmin");
             }
-            return "None";
+            return makeRoles([]);
         }
     };
 
@@ -131,7 +131,9 @@ describe("SessionContext - with  dedicated SessionContext and certificate ", () 
 
     it("should provide a default session context - getCurrentUserRole", () => {
         const context = sessionContext;
-        context.getCurrentUserRole().should.eql("AuthenticatedUser;SecurityAdmin");
+        context.getCurrentUserRoles()
+            .map((s)=>s.toString()).join(";")
+            .should.eql("ns=0;i=15656;ns=0;i=15704");
     });
 
     ///

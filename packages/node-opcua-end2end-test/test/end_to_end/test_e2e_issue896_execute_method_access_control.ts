@@ -1,18 +1,19 @@
-import {allPermissions, OPCUAClient, OPCUAServer, StatusCodes, UserTokenType, WellKnownRoles} from "node-opcua";
+import {allPermissions, OPCUAClient, OPCUAServer, StatusCodes, UserTokenType, WellKnownRoles, makeRoles} from "node-opcua";
 import "should";
 
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("Issue #896: Check Authorization for UAMethods", () => {
     const users = [
-        {username: "Gandalf", password: "g", role: [WellKnownRoles.AuthenticatedUser,WellKnownRoles.ConfigureAdmin].join(";")},
-        {username: "Frodo", password: "f", role: [WellKnownRoles.AuthenticatedUser].join(";")},
+        {username: "Gandalf", password: "g", roles: makeRoles([WellKnownRoles.AuthenticatedUser,WellKnownRoles.ConfigureAdmin])},
+        {username: "Frodo", password: "f", roles:  makeRoles([WellKnownRoles.AuthenticatedUser])},
     ];
 
     const port = 2226;
     const server = new OPCUAServer({
         port,
         userManager: {
-            getUserRole: username => users.find(user => user.username === username)!.role,
+            getUserRoles: username => users.find(user => user.username === username)!.roles,
+            
             isValidUser(username, password) {
                 const user = users.find(user => user.username === username);
                 if (!user) return false;

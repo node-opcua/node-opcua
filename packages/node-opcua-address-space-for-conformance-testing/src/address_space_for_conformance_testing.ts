@@ -1462,11 +1462,11 @@ function add_sampleView(namespace: Namespace): void {
         nodeId: "s=SampleView"
     });
     view1.addReference({
-        nodeId: "i=2256",
+        nodeId: "i=2256",  // Server_Status
         referenceType: "Organizes"
     });
     view1.addReference({
-        nodeId: "i=11715",
+        nodeId: "i=11715", // Server_Namespaces
         referenceType: "Organizes"
     });
 

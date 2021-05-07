@@ -20,7 +20,6 @@ import {
     StructureField,
     StructureType
 } from "node-opcua-types";
-import { isNullOrUndefined } from "node-opcua-utils";
 import { DataType } from "node-opcua-variant";
 
 import { SessionContext, UADataType as UADataTypePublic, UAVariable } from "../source";
@@ -31,7 +30,9 @@ import { get_subtypeOf } from "./tool_isSupertypeOf";
 import { get_subtypeOfObj } from "./tool_isSupertypeOf";
 import { UAObject } from "./ua_object";
 import { StructuredTypeSchema } from "node-opcua-factory";
-
+import {
+    BaseNode_getCache
+} from "./base_node_private";
 export type ExtensionObjectConstructor = new (options: any) => ExtensionObject;
 export interface ExtensionObjectConstructorFuncWithSchema extends ExtensionObjectConstructor {
     schema: StructuredTypeSchema;
@@ -144,7 +145,7 @@ export class UADataType extends BaseNode implements UADataTypePublic {
     }
 
     public getEncodingNode(encoding_name: string): UAObject | null {
-        const _cache = BaseNode._getCache(this);
+        const _cache = BaseNode_getCache(this);
         const key = encoding_name + "Node";
         if (_cache[key] === undefined) {
             assert(encoding_name === "Default Binary" || encoding_name === "Default XML" || encoding_name === "Default JSON");
@@ -162,7 +163,7 @@ export class UADataType extends BaseNode implements UADataTypePublic {
     }
 
     public getEncodingNodeId(encoding_name: string): ExpandedNodeId | null {
-        const _cache = BaseNode._getCache(this);
+        const _cache = BaseNode_getCache(this);
         const key = encoding_name + "NodeId";
         if (_cache[key] === undefined) {
             const encoding = this.getEncodingNode(encoding_name);

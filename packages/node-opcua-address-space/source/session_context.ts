@@ -2,24 +2,49 @@
  * @module node-opcua-address-space
  */
 
-import { assert } from "node-opcua-assert";
-
-// note : use specifically dist file to avoid modules that rely on fs
-import { Certificate, CertificateInternals, exploreCertificate } from "node-opcua-crypto";
-
-import { AccessLevelFlag, allPermissions, NodeClass, PermissionFlag } from "node-opcua-data-model";
+import { 
+    assert 
+} from "node-opcua-assert";
+import {
+    Certificate,
+    CertificateInternals,
+    exploreCertificate
+} from "node-opcua-crypto";
+import {
+    AccessLevelFlag,
+    AccessRestrictionsFlag,
+    allPermissions,
+    AttributeIds,
+    NodeClass,
+    PermissionFlag
+} from "node-opcua-data-model";
 import { PreciseClock } from "node-opcua-date-time";
-import { NodeId, NodeIdLike } from "node-opcua-nodeid";
-import { AnonymousIdentityToken, MessageSecurityMode, PermissionType, RolePermissionTypeOptions, UserNameIdentityToken, X509IdentityToken } from "node-opcua-types";
+import {
+    NodeId,
+    NodeIdLike,
+    resolveNodeId,
+    sameNodeId
+} from "node-opcua-nodeid";
+import {
+    AnonymousIdentityToken,
+    MessageSecurityMode,
+    PermissionType,
+    RolePermissionType,
+    RolePermissionTypeOptions,
+    UserNameIdentityToken,
+    X509IdentityToken
+} from "node-opcua-types";
 import {
     ISessionContext,
     UAObject,
     UAObjectType,
     UAVariable,
     UAMethod,
+    Namespace,
     BaseNode,
 } from "./address_space_ts";
 import { ObjectIds } from "node-opcua-constants";
+import { StatusCodes } from "node-opcua-status-code";
 
 
 export {
@@ -70,14 +95,14 @@ export interface ISessionBase {
 }
 
 export enum WellKnownRoles {
-    Anonymous = "Anonymous",
-    AuthenticatedUser = "AuthenticatedUser",
-    ConfigureAdmin = "ConfigureAdmin",
-    Engineer = "Engineer",
-    Observer = "Observer",
-    Operator = "Operator",
-    SecurityAdmin = "SecurityAdmin",
-    Supervisor = "Supervisor",
+    Anonymous = ObjectIds.WellKnownRole_Anonymous,
+    AuthenticatedUser = ObjectIds.WellKnownRole_AuthenticatedUser,
+    ConfigureAdmin = ObjectIds.WellKnownRole_ConfigureAdmin,
+    Engineer = ObjectIds.WellKnownRole_Engineer,
+    Observer = ObjectIds.WellKnownRole_Observer,
+    Operator = ObjectIds.WellKnownRole_Operator,
+    SecurityAdmin = ObjectIds.WellKnownRole_SecurityAdmin,
+    Supervisor = ObjectIds.WellKnownRole_Supervisor,
 };
 export enum WellKnownRolesNodeId {
     Anonymous = ObjectIds.WellKnownRole_Anonymous,
@@ -119,7 +144,7 @@ export interface IUserManager {
      * retrieve the roles of the given user
      *  @returns semicolon separated list of roles
      */
-    getUserRole?: (user: string) => WellKnownRolesSemiColumnSeparated;
+    getUserRoles?: (user: string) => NodeId[];
 }
 export interface IServerBase {
     userManager?: IUserManager;
@@ -129,17 +154,83 @@ export interface SessionContextOptions {
     object?: UAObject | UAObjectType;
     server?: IServerBase /* OPCUAServer*/;
 }
+
 function getPermissionForRole(
-    rolePermissions: RolePermissionTypeOptions[],
-    role: NodeIdLike
+    rolePermissions: RolePermissionType[] | null,
+    role: NodeId
 ): PermissionFlag {
 
+    if (rolePermissions === null) {
+        return allPermissions;
+    }
     const a = rolePermissions.find((r) => {
-        return r.roleId === role;
+        return sameNodeId(resolveNodeId(r.roleId!),role);
     });
     return a !== undefined ? a.permissions! | PermissionFlag.None : PermissionFlag.None;
 }
 
+
+function getAccessRestrictionsOnNamespace(namespace: Namespace, context: SessionContext): AccessRestrictionsFlag {
+    const namespaces = namespace.addressSpace.rootFolder?.objects?.server?.namespaces;
+    if (!namespaces) {
+        return AccessRestrictionsFlag.None;
+    }
+    const uanamespaceObject = namespaces.getChildByName(namespace.namespaceUri);
+    if (!uanamespaceObject) {
+        return AccessRestrictionsFlag.None;
+    }
+    const defaultAccessRestriction = uanamespaceObject.getChildByName("defaultAccessRestriction");
+    if (defaultAccessRestriction) {
+        const dataValue = defaultAccessRestriction.readAttribute(null, AttributeIds.Value);
+        if (dataValue && dataValue.statusCode === StatusCodes.Good) {
+            return dataValue.value.value as AccessRestrictionsFlag;
+        }
+    }
+    return AccessRestrictionsFlag.None;
+}
+
+function getDefaultUserRolePermissionsOnNamespace(namespace: Namespace, context: SessionContext): RolePermissionType[] | null {
+
+    // find the 
+    //  RootFolder.Objects.Server.Namespaces[namespaceUrl]
+    if (!context.server) {
+        return null;
+    }
+    const namespaces = namespace.addressSpace.rootFolder?.objects?.server?.namespaces;
+    if (!namespaces) {
+        return null;
+    }
+    const uanamespaceObject = namespaces.getChildByName(namespace.namespaceUri);
+    if (!uanamespaceObject) {
+        return null;
+    }
+    const defaultUserRolePermissions = uanamespaceObject.getChildByName("DefaultUserRolePermissions");
+    if (defaultUserRolePermissions) {
+        const dataValue = defaultUserRolePermissions.readAttribute(null, AttributeIds.Value);
+        if (dataValue && dataValue.statusCode === StatusCodes.Good && dataValue.value.value && dataValue.value.value.length > 0) {
+            return dataValue.value.value as RolePermissionType[];
+        }
+    }
+    const defaultRolePermissions = uanamespaceObject.getChildByName("DefaultRolePermissions");
+    if (defaultRolePermissions) {
+        const dataValue = defaultRolePermissions.readAttribute(null, AttributeIds.Value);
+        if (dataValue && dataValue.statusCode === StatusCodes.Good) {
+            return dataValue.value.value as RolePermissionType[] | null;
+        }
+    }
+    return null;
+}
+
+export function makeRoles(roleIds: NodeIdLike[]|string|WellKnownRoles): NodeId[] {
+
+    if (typeof roleIds === "number") {
+        roleIds = [roleIds]
+    }
+    if (typeof roleIds === "string") {
+        roleIds = roleIds.split(";").map(r=>resolveNodeId("WellKnownRole_"+ r));
+    }
+    return roleIds.map((r)=> resolveNodeId(r));
+}
 export class SessionContext implements ISessionContext {
     public static defaultContext = new SessionContext({});
 
@@ -159,66 +250,138 @@ export class SessionContext implements ISessionContext {
     }
 
     /**
-     * getCurrentUserRole
+     * getCurrentUserRoles
      *
      * guest   => anonymous user (unauthenticated)
      * default => default authenticated user
      *
      */
-    public getCurrentUserRole(): string {
+    public getCurrentUserRoles(): NodeId[] {
         if (!this.session) {
-            return "default"; // default context => no Session
+            return []; // default context => no Session
         }
 
         assert(this.session != null, "expecting a session");
         const userIdentityToken = this.session.userIdentityToken;
         if (!userIdentityToken) {
-            throw new Error("session object must provide a userIdentityToken");
+            return [];
         }
+
+        const anonymous =  makeRoles([WellKnownRoles.Anonymous]);
 
         const username = getUserName(userIdentityToken);
 
         if (username === "anonymous") {
-            return "Anonymous";
+            return anonymous;
         }
         if (!this.server || !this.server.userManager) {
-            return "Anonymous";
+            return anonymous;
         }
 
         assert(this.server != null, "expecting a server");
 
-        if (typeof this.server.userManager.getUserRole !== "function") {
-            return "Anonymous";
+        if (typeof this.server.userManager.getUserRoles !== "function") {
+            return anonymous;
         }
-        return this.server.userManager.getUserRole(username);
+
+        const rolesNodeId = this.server.userManager.getUserRoles(username);
+    
+
+        if (rolesNodeId.findIndex((r)=> r.namespace === 0 && r.value === WellKnownRoles.AuthenticatedUser)<0) {
+            rolesNodeId.push(resolveNodeId(WellKnownRoles.AuthenticatedUser));
+        }
+        return rolesNodeId;
     }
 
-    public getPermissions(node: BaseNode): PermissionFlag {
-        if (!node.rolePermissions) {
-            // todo check permissions on namespace 
-            return allPermissions; // no permission specified => all access
-        }
 
-        const roles = this.getCurrentUserRole();
-        if (roles === "default") {
+    public getApplicableRolePermissions(node: BaseNode): RolePermissionType[] | null {
+        if (!node.rolePermissions) {
+            const namespace = node.namespace;
+            const defaultUserRolePermssions = getDefaultUserRolePermissionsOnNamespace(namespace, this);
+            return defaultUserRolePermssions;
+        }
+        return node.rolePermissions;
+    }
+    public getPermissions(node: BaseNode): PermissionFlag {
+
+        const applicableRolePermissions = this.getApplicableRolePermissions(node);
+
+        const roles = this.getCurrentUserRoles();
+        if (roles.length === 0) {
             return allPermissions;
         }
-
-        let orFlags: PermissionFlag = 0;
-        for (const role of roles.split(";")) {
-            // to do : improve with nodeId
-            orFlags = orFlags | getPermissionForRole(node.rolePermissions, role);
+        let orFlags: PermissionFlag = 0;        
+        for (const role of roles) {
+            orFlags = orFlags | getPermissionForRole(applicableRolePermissions, role);
         }
         return orFlags;
+    }
+    public getAccessRestrictions(node: BaseNode): AccessRestrictionsFlag {
+        if (node.accessRestrictions === undefined) {
+            const namespace = node.namespace;
+            const accessRestrictions = getAccessRestrictionsOnNamespace(namespace, this);
+            return accessRestrictions;
+        }
+        return node.accessRestrictions;
+    }
+
+
+    /**
+     * 
+     * @param node 
+     * @returns true if the browse is denied (access is restricted)
+     */
+    public isBrowseAccessRestricted(node: BaseNode): boolean {
+
+        const accessRestrictions = this.getAccessRestrictions(node);
+        if (accessRestrictions & AccessRestrictionsFlag.ApplyRestrictionsToBrowse) {
+            return this.isAccessRestricted(node);
+        }
+        return false;
+    }
+    /**
+     * 
+     * @param node 
+     * @returns true  if the context is access restricted
+     */
+    public isAccessRestricted(node: BaseNode): boolean {
+
+        const accessRestrictions = this.getAccessRestrictions(node);
+        if (accessRestrictions === AccessRestrictionsFlag.None) {
+            return false;
+        }
+        if( accessRestrictions & AccessRestrictionsFlag.SessionRequired) {
+            if (!this.session) {
+                return true;
+            } 
+        }
+        const securityMode = this.session?.channel?.securityMode;
+        if ( accessRestrictions & AccessRestrictionsFlag.SigningRequired) {
+            if ( securityMode !== MessageSecurityMode.Sign && securityMode !== MessageSecurityMode.SignAndEncrypt) {
+                return true;
+            }
+        }
+        if (accessRestrictions & AccessRestrictionsFlag.EncryptionRequired) {
+            if (securityMode !== MessageSecurityMode.SignAndEncrypt) {
+                return true;
+            }
+        }
+        return false;
     }
     /**
      * @method checkPermission
      * @param node
      * @param requestedPermission
-     * @return {Boolean}
+     * @return {Boolean} returns true of the current user is granted the requested Permission
      */
     public checkPermission(node: UAMethod | UAVariable, requestedPermission: PermissionType): boolean {
         const permissions = this.getPermissions(node);
         return (permissions & requestedPermission) === requestedPermission;
+    }
+
+    public currentUserHasRole(role: NodeIdLike) {
+        const currentUserRole = this.getCurrentUserRoles();
+        const n = resolveNodeId(role);
+        return currentUserRole.findIndex(r=> sameNodeId(r,n)) >=0;    
     }
 }

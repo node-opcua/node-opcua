@@ -109,7 +109,9 @@ export class Cache implements CacheInterface {
         const symbols = this.namespace[namespaceIndex].symbols = this.namespace[namespaceIndex].symbols || {};
         symbols[typeName] = (symbols[typeName] || 0) + 1;
 
-        const ns = this.requestedSymbols.namespace[namespaceIndex] = this.requestedSymbols.namespace[namespaceIndex] || { namespace: [] };
+        const ns = this.requestedSymbols.namespace[namespaceIndex] || { symbols: {} };
+        this.requestedSymbols.namespace[namespaceIndex]  = ns; 
+
         ns.symbols = ns.symbols || {};
 
         if (!mainTypeName) { mainTypeName = typeName };

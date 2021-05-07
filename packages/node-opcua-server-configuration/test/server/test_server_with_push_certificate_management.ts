@@ -8,6 +8,7 @@ import { promisify } from "util";
 import { hostname } from "os";
 import { OPCUACertificateManager } from "node-opcua-certificate-manager";
 import { ClientSession, makeApplicationUrn, OPCUAClient, UserIdentityInfoUserName } from "node-opcua-client";
+import { makeRoles } from "node-opcua-address-space";
 import {
     Certificate,
     convertPEMtoDER,
@@ -314,14 +315,14 @@ describe("Testing server configured with push certificate management", () => {
             // ConfigureAdmin     The Role is allowed to change the non-security related configuration settings.
             // SecurityAdmin      The Role is allowed to change security related settings.
 
-            getUserRole(username: string): string {
+            getUserRoles(username: string): NodeId[] {
                 if (username === "anonymous") {
-                    return "Anonymous";
+                    return makeRoles("Anonymous");
                 }
                 if (username === "admin") {
-                    return "AuthenticatedUser;SecurityAdmin";
+                    return makeRoles("AuthenticatedUser;SecurityAdmin");
                 }
-                return "None";
+                return makeRoles("Anonymous");
             }
         };
 

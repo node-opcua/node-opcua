@@ -9,12 +9,12 @@ import { assert } from "node-opcua-assert";
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 import { ExpandedNodeId, NodeId } from "node-opcua-nodeid";
 
-import { BasicTypeDefinition } from ".";
 import { ConstructorFunc, ConstructorFuncWithSchema } from "./constructor_type";
 import { BaseUAObject } from "./factories_baseobject";
 import { getBuildInType, hasBuiltInType } from "./factories_builtin_types";
 import { EnumerationDefinitionSchema, getEnumeration, hasEnumeration } from "./factories_enumerations";
 import { StructuredTypeSchema } from "./factories_structuredTypeSchema";
+import { BasicTypeDefinition } from "./types";
 
 const debugLog = make_debugLog(__filename);
 const doDebug = checkDebugFlag(__filename);

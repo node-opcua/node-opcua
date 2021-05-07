@@ -1,7 +1,7 @@
 import * as path from "path";
 import * as fs from "fs";
 
-import { AddressSpace, IServerBase, ISessionBase, PseudoSession, SessionContext, WellKnownRoles } from "node-opcua-address-space";
+import { AddressSpace, IServerBase, ISessionBase, PseudoSession, SessionContext, WellKnownRoles, makeRoles } from "node-opcua-address-space";
 import { generateAddressSpace } from "node-opcua-address-space/nodeJS";
 import { NodeClass } from "node-opcua-data-model";
 import { nodesets } from "node-opcua-nodesets";
@@ -23,8 +23,8 @@ describe("ServerConfiguration", () => {
 
     const opcuaServer: IServerBase = {
         userManager: {
-            getUserRole(userName: string): string {
-                return [WellKnownRoles.AuthenticatedUser, WellKnownRoles.SecurityAdmin].join(";");
+            getUserRoles(userName: string): NodeId[] {
+                return makeRoles([WellKnownRoles.AuthenticatedUser, WellKnownRoles.SecurityAdmin]);
             }
         }
     };

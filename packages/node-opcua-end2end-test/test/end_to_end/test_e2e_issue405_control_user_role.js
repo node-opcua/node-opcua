@@ -9,7 +9,8 @@ const {
     WellKnownRoles,
     allPermissions,
     PermissionType,
-    UserTokenType
+    UserTokenType,
+    makeRoles
 } = require("node-opcua");
 
 const {
@@ -20,12 +21,12 @@ const users = [
     {
         username: "user1",
         password: "1",
-        role: [WellKnownRoles.AuthenticatedUser, WellKnownRoles.Operator].join(";"),
+        roles: makeRoles([WellKnownRoles.AuthenticatedUser, WellKnownRoles.Operator]),
     },
     {
         username: "user2",
         password: "2",
-        role: [WellKnownRoles.AuthenticatedUser, WellKnownRoles.ConfigureAdmin].join(";")
+        roles: makeRoles([WellKnownRoles.AuthenticatedUser, WellKnownRoles.ConfigureAdmin])
     },
 ];
 
@@ -45,14 +46,14 @@ const userManager = {
         return true;
     },
 
-    getUserRole: function (username) {
+    getUserRoles: function (username)/*: NodeId[] */{
         const uIndex = users.findIndex(function (x) {
             return x.username === username;
         });
         if (uIndex < 0) {
-            return "Anonymous"; // by default were guest! ( i.e anonymous)
+            return makeRoles("Anonymous"); // by default were guest! ( i.e anonymous)
         }
-        const userRole = users[uIndex].role;
+        const userRole = users[uIndex].roles;
         return userRole;
     }
 

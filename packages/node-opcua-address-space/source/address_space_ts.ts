@@ -116,7 +116,7 @@ export declare function resolveReferenceType(addressSpace: MinimalistAddressSpac
 export declare function resolveReferenceNode(addressSpace: MinimalistAddressSpace, reference: UAReference): BaseNode;
 
 export interface ISessionContext {
-    getCurrentUserRole(): string;
+    getCurrentUserRoles(): NodeId[];
     checkPermission(node: BaseNode, action: PermissionType): boolean;
 }
 
@@ -147,7 +147,7 @@ export declare class BaseNode extends EventEmitter {
     public readonly modellingRule?: ModellingRuleType;
     public readonly parentNodeId?: NodeId;
     public readonly accessRestrictions?: AccessRestrictionsFlag;
-    public readonly rolePermissions?: RolePermissionTypeOptions[];
+    public readonly rolePermissions?: RolePermissionType[];
 
     // access to parent namespace
     public readonly namespaceIndex: number;
@@ -1037,6 +1037,13 @@ export declare class UAReferenceType extends BaseNode {
     public isSupertypeOf(baseType: UAReferenceType): boolean;
 
     public getAllSubtypes(): UAReferenceType[];
+
+    /**
+     * 
+     * @param reference 
+     */
+    public checkHasSubtype(referenceType: NodeId | Reference): boolean;
+
 }
 
 export enum EUEngineeringUnit {

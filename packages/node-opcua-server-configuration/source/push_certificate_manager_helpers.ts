@@ -6,7 +6,7 @@ import { callbackify } from "util";
 
 import { AddressSpace, MethodFunctor, SessionContext, UAMethod, UATrustList, WellKnownRoles } from "node-opcua-address-space";
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
-import { NodeId } from "node-opcua-nodeid";
+import { NodeId, resolveNodeId, sameNodeId } from "node-opcua-nodeid";
 import { StatusCodes } from "node-opcua-status-code";
 import { CallMethodResultOptions } from "node-opcua-types";
 import { DataType, Variant, VariantArrayType } from "node-opcua-variant";
@@ -38,8 +38,7 @@ function hasExpectedUserAccess(context: SessionContext) {
         !context.session.userIdentityToken) {
         return false;
     }
-    const currentUserRole = context.getCurrentUserRole();
-    return !!currentUserRole.match(WellKnownRoles.SecurityAdmin);
+    return context.currentUserHasRole(WellKnownRoles.SecurityAdmin);
 }
 
 function hasEncryptedChannel(context: SessionContext) {

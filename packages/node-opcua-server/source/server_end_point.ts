@@ -409,7 +409,7 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
     }
 
     public addRestrictedEndpointDescription(options: EndpointDescriptionParams) {
-        options = {...options};
+        options = { ...options };
         options.restricted = true;
         return this.addEndpointDescription(MessageSecurityMode.None, SecurityPolicy.None, options);
     }
@@ -429,8 +429,8 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
             options.alternateHostname = [options.alternateHostname];
         }
         // remove duplicates if any (uniq)
-        hostnames =  [...new Set(hostnames.concat(options.alternateHostname as string[]))];
- 
+        hostnames = [...new Set(hostnames.concat(options.alternateHostname as string[]))];
+
         for (const alternateHostname of hostnames) {
             const optionsE = options as EndpointDescriptionParams;
             optionsE.hostname = alternateHostname;
@@ -483,7 +483,7 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
         });
         this._server!.listen(
             this.port,
-            /*"::",*/ (err?: Error) => {
+            /*"::",*/(err?: Error) => {
                 // 'listening' listener
                 debugLog(chalk.green.bold("LISTENING TO PORT "), this.port, "err  ", err);
                 assert(!err, " cannot listen to port ");
@@ -663,7 +663,7 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
             debugLog(
                 chalk.bgWhite.cyan(
                     "OPCUAServerEndPoint#_on_client_connection " +
-                        "SERVER END POINT IS PROBABLY SHUTTING DOWN !!! - Connection is refused"
+                    "SERVER END POINT IS PROBABLY SHUTTING DOWN !!! - Connection is refused"
                 )
             );
             socket.end();
@@ -683,7 +683,7 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
                 console.log(
                     chalk.bgWhite.cyan(
                         "OPCUAServerEndPoint#_on_client_connection " +
-                            "The maximum number of connection has been reached - Connection is refused"
+                        "The maximum number of connection has been reached - Connection is refused"
                     )
                 );
                 const reason = "maxConnections reached (" + this.maxConnections + ")";
@@ -911,10 +911,19 @@ interface MakeEndpointDescriptionOptions {
      * @default  default hostname (default value will be full qualified domain name)
      */
     hostname: string;
+    /**
+     * 
+     */
     endpointUrl: string;
 
     serverCertificateChain: Certificate;
+    /**
+     * 
+     */
     securityMode: MessageSecurityMode;
+    /**
+     * 
+     */
     securityPolicy: SecurityPolicy;
 
     securityLevel?: number;
@@ -935,6 +944,12 @@ interface MakeEndpointDescriptionOptions {
 
     // allow un-encrypted password in userNameIdentity
     allowUnsecurePassword?: boolean; // default false
+    
+    /**
+     * onlyCertificateLessConnection
+     */
+     onlyCertificateLessConnection?: boolean;
+
 
     restricted: boolean;
 
@@ -1010,50 +1025,55 @@ function _makeEndpointDescription(options: MakeEndpointDescriptionOptions): Endp
             });
         }
 
-        userIdentityTokens.push({
-            policyId: u("username_basic256"),
-            tokenType: UserTokenType.UserName,
+        const onlyCertificateLessConnection = options.onlyCertificateLessConnection === undefined ? false : options.onlyCertificateLessConnection;
 
-            issuedTokenType: null,
-            issuerEndpointUrl: null,
-            securityPolicyUri: SecurityPolicy.Basic256
-        });
+        if (!onlyCertificateLessConnection) {
 
-        userIdentityTokens.push({
-            policyId: u("username_basic128Rsa15"),
-            tokenType: UserTokenType.UserName,
+            userIdentityTokens.push({
+                policyId: u("username_basic256"),
+                tokenType: UserTokenType.UserName,
 
-            issuedTokenType: null,
-            issuerEndpointUrl: null,
-            securityPolicyUri: SecurityPolicy.Basic128Rsa15
-        });
+                issuedTokenType: null,
+                issuerEndpointUrl: null,
+                securityPolicyUri: SecurityPolicy.Basic256
+            });
 
-        userIdentityTokens.push({
-            policyId: u("username_basic256Sha256"),
-            tokenType: UserTokenType.UserName,
+            userIdentityTokens.push({
+                policyId: u("username_basic128Rsa15"),
+                tokenType: UserTokenType.UserName,
 
-            issuedTokenType: null,
-            issuerEndpointUrl: null,
-            securityPolicyUri: SecurityPolicy.Basic256Sha256
-        });
+                issuedTokenType: null,
+                issuerEndpointUrl: null,
+                securityPolicyUri: SecurityPolicy.Basic128Rsa15
+            });
 
-        // X509
-        userIdentityTokens.push({
-            policyId: u("certificate_basic256"),
-            tokenType: UserTokenType.UserName,
+            userIdentityTokens.push({
+                policyId: u("username_basic256Sha256"),
+                tokenType: UserTokenType.UserName,
 
-            issuedTokenType: null,
-            issuerEndpointUrl: null,
-            securityPolicyUri: SecurityPolicy.Basic256
-        });
-        userIdentityTokens.push({
-            policyId: u("certificate_basic256Sha256"),
-            tokenType: UserTokenType.Certificate,
+                issuedTokenType: null,
+                issuerEndpointUrl: null,
+                securityPolicyUri: SecurityPolicy.Basic256Sha256
+            });
 
-            issuedTokenType: null,
-            issuerEndpointUrl: null,
-            securityPolicyUri: SecurityPolicy.Basic256Sha256
-        });
+            // X509
+            userIdentityTokens.push({
+                policyId: u("certificate_basic256"),
+                tokenType: UserTokenType.UserName,
+
+                issuedTokenType: null,
+                issuerEndpointUrl: null,
+                securityPolicyUri: SecurityPolicy.Basic256
+            });
+            userIdentityTokens.push({
+                policyId: u("certificate_basic256Sha256"),
+                tokenType: UserTokenType.Certificate,
+
+                issuedTokenType: null,
+                issuerEndpointUrl: null,
+                securityPolicyUri: SecurityPolicy.Basic256Sha256
+            });
+        }
     } else {
         // note:
         //  when channel session security is not "None",

@@ -803,20 +803,6 @@ export interface OPCUAServer {
     userCertificateManager: OPCUACertificateManager;
 }
 
-function getNodeIds(nodesToBrowse: BrowseDescription[]): NodeId[] {
-    // perform beforeBrowse action on nodes
-    const map = new Map<string, NodeId>();
-    for (const browseDescription of nodesToBrowse) {
-        const hash = browseDescription.nodeId.toString();
-        map.set(hash, browseDescription.nodeId);
-    }
-    const result: NodeId[] = [];
-    for (const nodeId of map.values()) {
-        result.push(nodeId);
-    }
-    return result;
-}
-
 const g_requestExactEndpointUrl: boolean = !!process.env.NODEOPCUA_SERVER_REQUEST_EXACT_ENDPOINT_URL;
 /**
  *
@@ -961,8 +947,7 @@ export class OPCUAServer extends OPCUABaseServer {
     public readonly options: OPCUAServerOptions;
 
     private objectFactory?: Factory;
-    private nonce: Nonce;
-    private protocolVersion: number = 0;
+  
     private _delayInit?: () => Promise<void>;
 
     constructor(options?: OPCUAServerOptions) {
@@ -997,10 +982,6 @@ export class OPCUAServer extends OPCUABaseServer {
                 return false;
             };
         }
-
-        this.nonce = this.makeServerNonce();
-
-        this.protocolVersion = 0;
 
         options.allowAnonymous = options.allowAnonymous === undefined ? true : !!options.allowAnonymous;
         /**

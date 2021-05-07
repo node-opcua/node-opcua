@@ -49,7 +49,7 @@ export class UAMethod extends BaseNode implements UAMethodPublic {
     public value?: any;
     public methodDeclarationId: NodeId;
     public _getExecutableFlag?: (this: UAMethod, context: SessionContext) => boolean;
- 
+
     public _asyncExecutionFunction?: MethodFunctor;
 
     constructor(options: any) {
@@ -132,11 +132,11 @@ export class UAMethod extends BaseNode implements UAMethodPublic {
         if (context.object.nodeClass !== NodeClass.Object && context.object.nodeClass !== NodeClass.ObjectType) {
             console.log(
                 "Method " +
-                    this.nodeId.toString() +
-                    " " +
-                    this.browseName.toString() +
-                    " called for a node that is not a Object/ObjectType but " +
-                    NodeClass[context.object.nodeClass]
+                this.nodeId.toString() +
+                " " +
+                this.browseName.toString() +
+                " called for a node that is not a Object/ObjectType but " +
+                NodeClass[context.object.nodeClass]
             );
             return callback(null, { statusCode: StatusCodes.BadNodeIdInvalid });
         }
@@ -145,16 +145,19 @@ export class UAMethod extends BaseNode implements UAMethodPublic {
             return callback(null, { statusCode: StatusCodes.BadInternalError });
         }
 
+
         if (!this.getExecutableFlag(context)) {
             console.log("Method " + this.nodeId.toString() + " " + this.browseName.toString() + " is not executable");
             // todo : find the correct Status code to return here
             return callback(null, { statusCode: StatusCodes.BadMethodInvalid });
         }
 
-        if (this.rolePermissions && context.checkPermission) {
-            if (!context.checkPermission(this, PermissionType.Call)) {
-                return callback(null, { statusCode: StatusCodes.BadUserAccessDenied });
-            }
+        if (context.isAccessRestricted(this)) {
+            return callback(null, { statusCode: StatusCodes.BadSecurityModeInsufficient });
+        }
+
+        if (!context.checkPermission(this, PermissionType.Call)) {
+            return callback(null, { statusCode: StatusCodes.BadUserAccessDenied });
         }
 
         // verify that input arguments are correct
