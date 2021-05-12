@@ -119,6 +119,7 @@ export class ClientSidePublishEngine {
     }
 
     public terminate() {
+        debugLog("Terminated ClientPublishEngine ")
         this.session = null;
     }
 
