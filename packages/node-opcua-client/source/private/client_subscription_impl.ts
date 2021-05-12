@@ -38,7 +38,7 @@ import { Callback, ErrorCallback } from "node-opcua-status-code";
 import * as utils from "node-opcua-utils";
 import { promoteOpaqueStructure } from "node-opcua-client-dynamic-extension-object";
 import { DataType, Variant } from "node-opcua-variant";
-import { IBasicSession } from "node-opcua-pseudo-session";
+import { createMonitoredItemsLimit, IBasicSession, readOperationLimits } from "node-opcua-pseudo-session";
 
 import { ClientMonitoredItemBase } from "../client_monitored_item_base";
 import { ClientMonitoredItemGroup } from "../client_monitored_item_group";
@@ -57,6 +57,7 @@ import { ClientSidePublishEngine } from "./client_publish_engine";
 import { ClientSessionImpl } from "./client_session_impl";
 import { ClientMonitoredItem } from "../client_monitored_item";
 import { ClientMonitoredItemToolbox } from "../client_monitored_item_toolbox";
+import { IBasicSessionWithSubscription } from "node-opcua-pseudo-session";
 
 const debugLog = make_debugLog(__filename);
 const doDebug = checkDebugFlag(__filename);
@@ -153,6 +154,18 @@ function displayKeepAliveWarning(sessionTimeout: number, maxKeepAliveCount: numb
         return true;
     }
     return false;
+}
+
+function createMonitoredItemsAndRespectOperationalLimits(
+    session: IBasicSession & IBasicSessionWithSubscription,
+    createMonitorItemsRequest: CreateMonitoredItemsRequest,
+    callback: (err: Error | null, response?: CreateMonitoredItemsResponse) => void) {
+    readOperationLimits(session).then((operationalLimits) => {
+        createMonitoredItemsLimit(operationalLimits.maxMonitoredItemsPerCall || 0, session, createMonitorItemsRequest)
+            .then((createMonitoredItemResponse) => callback(null, createMonitoredItemResponse))
+            .catch(callback);
+    }
+    ).catch(callback);
 }
 
 export class ClientSubscriptionImpl extends EventEmitter implements ClientSubscription {
@@ -511,8 +524,8 @@ export class ClientSubscriptionImpl extends EventEmitter implements ClientSubscr
         modifySubscriptionRequest.requestedMaxKeepAliveCount = modifySubscriptionRequest.requestedMaxKeepAliveCount === undefined ? this.maxKeepAliveCount : modifySubscriptionRequest.requestedMaxKeepAliveCount;
         modifySubscriptionRequest.requestedPublishingInterval = modifySubscriptionRequest.requestedPublishingInterval === undefined ? this.publishingInterval : modifySubscriptionRequest.requestedPublishingInterval;
         modifySubscriptionRequest.maxNotificationsPerPublish = modifySubscriptionRequest.maxNotificationsPerPublish === undefined ? this.maxNotificationsPerPublish : modifySubscriptionRequest.maxNotificationsPerPublish;
-        
-        
+
+
         session.modifySubscription(modifySubscriptionRequest, (err: Error | null, response?: ModifySubscriptionResponse) => {
             if (err || !response) {
                 return callback(err);
@@ -554,6 +567,7 @@ export class ClientSubscriptionImpl extends EventEmitter implements ClientSubscr
                 (innerCallback: ErrorCallback) => {
                     const test = this.publishEngine.getSubscription(this.subscriptionId);
 
+                    debugLog("recreating ", Object.keys(oldMonitoredItems).length, " monitored Items");
                     // re-create monitored items
                     const itemsToCreate: MonitoredItemCreateRequestOptions[] = [];
 
@@ -573,14 +587,14 @@ export class ClientSubscriptionImpl extends EventEmitter implements ClientSubscr
                     });
 
                     const session = this.session;
+                    // istanbul ignore next
                     if (!session) {
                         return innerCallback(new Error("no session"));
                     }
 
                     debugLog("Recreating ", itemsToCreate.length, " monitored items");
 
-                    session.createMonitoredItems(
-                        createMonitorItemsRequest,
+                    createMonitoredItemsAndRespectOperationalLimits(session, createMonitorItemsRequest,
                         (err: Error | null, response?: CreateMonitoredItemsResponse) => {
                             if (err) {
                                 debugLog("Recreating monitored item has failed with ", err.message);
@@ -616,6 +630,9 @@ export class ClientSubscriptionImpl extends EventEmitter implements ClientSubscr
                 }
             ],
             (err) => {
+                if (err) {
+                    warningLog(err.message);
+                }
                 callback(err!);
             }
         );
@@ -701,6 +718,7 @@ export class ClientSubscriptionImpl extends EventEmitter implements ClientSubscr
     private __create_subscription(callback: ErrorCallback) {
         assert(typeof callback === "function");
 
+        // istanbul ignore next
         if (!this.hasSession) {
             return callback(new Error("No Session"));
         }
@@ -726,9 +744,12 @@ export class ClientSubscriptionImpl extends EventEmitter implements ClientSubscr
                 }
                 return;
             }
+
+            /* istanbul ignore next */
             if (!response) {
                 return callback(new Error("internal error"));
             }
+            
             if (!this.hasSession) {
                 return callback(new Error("createSubscription has failed = > no session"));
             }
