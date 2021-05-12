@@ -1,7 +1,7 @@
 lockfileVersion: 5.3
 
 specifiers:
-  '@types/node': 14.14.41
+  '@types/node': 15.0.2
   browser-process-hrtime: ^1.0.0
   chalk: 4.1.1
   node-opcua-assert: 2.41.1
@@ -14,7 +14,7 @@ dependencies:
   node-opcua-assert: link:../node-opcua-assert
 
 devDependencies:
-  '@types/node': 14.14.41
+  '@types/node': 15.0.2
   should: 13.2.3
   sinon: 10.0.0
 
@@ -44,8 +44,8 @@ packages:
     resolution: {integrity: sha512-+iTbntw2IZPb/anVDbypzfQa+ay64MW0Zo8aJ8gZPWMMK6/OubMVb6lUPMagqjOPnmtauXnFCACVl3O7ogjeqQ==}
     dev: true
 
-  /@types/node/14.14.41:
-    resolution: {integrity: sha512-dueRKfaJL4RTtSa7bWeTK1M+VH+Gns73oCgzvYfHZywRCoPSd8EkXBL0mZ9unPTveBn+D9phZBaxuzpwjWkW0g==}
+  /@types/node/15.0.2:
+    resolution: {integrity: sha512-p68+a+KoxpoB47015IeYZYRrdqMUcpbK8re/zpFB8Ld46LHC1lPEbp3EXgkEhAYEcPvjJF6ZO+869SQ0aH1dcA==}
     dev: true
 
   /ansi-styles/4.3.0:

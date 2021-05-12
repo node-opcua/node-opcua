@@ -18,6 +18,7 @@
         "node-opcua-service-browse": "2.41.1",
         "node-opcua-service-call": "2.41.1",
         "node-opcua-service-read": "2.41.1",
+        "node-opcua-service-subscription": "2.41.1",
         "node-opcua-service-translate-browse-path": "2.41.1",
         "node-opcua-service-write": "2.41.1",
         "node-opcua-status-code": "2.41.1",

@@ -23,7 +23,7 @@ specifiers:
   node-opcua-utils: 2.41.1
   node-opcua-variant: 2.41.1
   node-opcua-xml2json: 2.41.1
-  prettier: ^2.2.1
+  prettier: ^2.3.0
   should: ^13.2.3
   source-map-support: ^0.5.19
   typescript: 4.2.4
@@ -53,7 +53,7 @@ devDependencies:
   node-opcua-binary-stream: link:../node-opcua-binary-stream
   node-opcua-extension-object: link:../node-opcua-extension-object
   node-opcua-packet-analyzer: link:../node-opcua-packet-analyzer
-  prettier: 2.2.1
+  prettier: 2.3.0
   should: 13.2.3
   source-map-support: 0.5.19
   typescript: 4.2.4
@@ -95,8 +95,8 @@ packages:
     engines: {node: '>=8'}
     dev: false
 
-  /prettier/2.2.1:
-    resolution: {integrity: sha512-PqyhM2yCjg/oKkFPtTGUojv7gnZAoG80ttl45O6x2Ug/rMJw4wcc9k6aaf2hibP7BGVCCM33gZoGjyvt9mm16Q==}
+  /prettier/2.3.0:
+    resolution: {integrity: sha512-kXtO4s0Lz/DW/IJ9QdWhAf7/NmPWQXkFr/r/WkR3vyI+0v8amTDxiaQSLzs8NBlytfLWX/7uQUMIW677yLKl4w==}
     engines: {node: '>=10.13.0'}
     hasBin: true
     dev: true
