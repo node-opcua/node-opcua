@@ -8,6 +8,7 @@ specifiers:
   node-opcua-service-browse: 2.41.1
   node-opcua-service-call: 2.41.1
   node-opcua-service-read: 2.41.1
+  node-opcua-service-subscription: 2.41.1
   node-opcua-service-translate-browse-path: 2.41.1
   node-opcua-service-write: 2.41.1
   node-opcua-status-code: 2.41.1
@@ -22,6 +23,7 @@ dependencies:
   node-opcua-service-browse: link:../node-opcua-service-browse
   node-opcua-service-call: link:../node-opcua-service-call
   node-opcua-service-read: link:../node-opcua-service-read
+  node-opcua-service-subscription: link:../node-opcua-service-subscription
   node-opcua-service-translate-browse-path: link:../node-opcua-service-translate-browse-path
   node-opcua-service-write: link:../node-opcua-service-write
   node-opcua-status-code: link:../node-opcua-status-code
