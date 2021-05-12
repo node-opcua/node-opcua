@@ -742,25 +742,31 @@ export class ClientSecureChannelLayer extends EventEmitter {
         if (response.responseHeader.requestHandle !== request.requestHeader.requestHandle) {
             const expected = request.requestHeader.requestHandle;
             const actual = response.responseHeader.requestHandle;
-            const moreInfo = "Request= " + request.schema.name + " Response = " + response.schema.name;
 
-            const message =
-                " WARNING SERVER responseHeader.requestHandle is invalid" +
-                ": expecting 0x" +
-                expected.toString(16) +
-                "(" +
-                expected +
-                ")" +
-                "  but got 0x" +
-                actual.toString(16) +
-                "(" +
-                actual +
-                ")" +
-                " ";
+            if (actual !== 0x0) {
+                // note some old OPCUA Server, like siemens with OPCUA 1.2 may send 0x00 as a 
+                // requestHandle, this is not harmful. THis happened with OpenSecureChannelRequest 
+                // so we only display the warning message if we have a real random discrepancy between the two requestHandle.
+                const moreInfo = "Request= " + request.schema.name + " Response = " + response.schema.name;
 
-            debugLog(chalk.red.bold(message), chalk.yellow(moreInfo));
-            console.log(chalk.red.bold(message), chalk.yellow(moreInfo));
-            console.log(request.toString());
+                const message =
+                    " WARNING SERVER responseHeader.requestHandle is invalid" +
+                    ": expecting 0x" +
+                    expected.toString(16) +
+                    "(" +
+                    expected +
+                    ")" +
+                    "  but got 0x" +
+                    actual.toString(16) +
+                    "(" +
+                    actual +
+                    ")" +
+                    " ";
+
+                debugLog(chalk.red.bold(message), chalk.yellow(moreInfo));
+                warningLog(chalk.red.bold(message), chalk.yellow(moreInfo));
+                warningLog(request.toString());
+            }
         }
 
         requestData.response = response;
