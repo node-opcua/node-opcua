@@ -9,3 +9,4 @@ dist*/**/*
 tmp_*
 a.*
 .clinic/
+pnpm-lock.yaml
