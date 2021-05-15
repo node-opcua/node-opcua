@@ -1,7 +1,0 @@
-lockfileVersion: 5.3
-
-specifiers:
-  node-opcua-assert: 2.41.1
-
-dependencies:
-  node-opcua-assert: link:../node-opcua-assert
