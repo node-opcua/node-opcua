@@ -3,7 +3,7 @@ import * as async from "async";
 import * as os from "os";
 
 import { OPCUAServer, OPCUADiscoveryServer, RegisterServerMethod, makeApplicationUrn } from "node-opcua";
-import { createDiscovery, createServerThatRegisterWithDiscoveryServer, f, fa } from "./_helper";
+import { createDiscovery, createServerThatRegisterWithDiscoveryServer, f, fa, pause } from "./_helper";
 import { make_debugLog } from "node-opcua-debug";
 const debugLog = make_debugLog("TEST");
 
@@ -46,12 +46,8 @@ export function t() {
 
         after(async () => {
             await stop_discovery_server();
-            await new Promise<void>((resolve) => {
-                setTimeout(() => {
-                    OPCUAServer.registry.count().should.eql(0);
-                    resolve();
-                }, 1000);
-            });
+            await pause(100);
+            OPCUAServer.registry.count().should.eql(0);
         });
 
         it("DS6-1 a server shall register itself to the LDS when the LDS comes online", async () => {

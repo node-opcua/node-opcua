@@ -494,28 +494,6 @@ function isMonitoringModeValid(monitoringMode: MonitoringMode): boolean {
     return monitoringMode !== MonitoringMode.Invalid && monitoringMode <= MonitoringMode.Reporting;
 }
 
-/**
- * @method registerServer
- * @async
- * @param discoveryServerEndpointUrl
- * @param isOnline
- * @param outer_callback
- */
-function _registerServer(this: OPCUAServer, discoveryServerEndpointUrl: string, isOnline: boolean, outer_callback: ErrorCallback) {
-    assert(typeof discoveryServerEndpointUrl === "string");
-    assert(typeof isOnline === "boolean");
-    const self = this;
-    if (!self.registerServerManager) {
-        throw new Error("Internal Error");
-    }
-    self.registerServerManager.discoveryServerEndpointUrl = discoveryServerEndpointUrl;
-    if (isOnline) {
-        self.registerServerManager.start(outer_callback);
-    } else {
-        self.registerServerManager.stop(outer_callback);
-    }
-}
-
 function _installRegisterServerManager(self: OPCUAServer) {
     assert(self instanceof OPCUAServer);
     assert(!self.registerServerManager);
