@@ -1,6 +1,6 @@
 {
   "name": "node-opcua-example",
-  "version": "2.42.0",
+  "version": "2.42.2",
   "description": "pure nodejs OPCUA SDK - module -status-code",
   "private": true,
   "main": "./dist/index.js",
