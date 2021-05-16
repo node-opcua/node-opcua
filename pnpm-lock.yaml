@@ -16,6 +16,7 @@ specifiers:
   '@types/rimraf': ^3.0.0
   '@types/sinon': 10.0.0
   '@types/underscore': 1.11.2
+  '@types/wordwrap': ^1.0.0
   '@types/yargs': 16.0.1
   '@typescript-eslint/parser': 4.23.0
   app-module-path: ^2.2.0
@@ -99,6 +100,8 @@ specifiers:
   unirest: ^0.6.0
   vorpal: ^1.12.0
   vorpal-repl: ^1.1.8
+  wordwrap: ^1.0.0
+  wrap-text: ^1.0.9
   xml-writer: ^1.7.0
   yargs: 16.2.0
 
@@ -115,6 +118,7 @@ dependencies:
   '@types/rimraf': 3.0.0
   '@types/sinon': 10.0.0
   '@types/underscore': 1.11.2
+  '@types/wordwrap': 1.0.0
   '@types/yargs': 16.0.1
   '@typescript-eslint/parser': 4.23.0_eslint@7.26.0+typescript@4.2.4
   async: 3.2.0
@@ -174,6 +178,8 @@ dependencies:
   unirest: 0.6.0
   vorpal: 1.12.0
   vorpal-repl: 1.1.8
+  wordwrap: 1.0.0
+  wrap-text: 1.0.9
   xml-writer: 1.7.0
   yargs: 16.2.0
 
@@ -1633,6 +1639,10 @@ packages:
 
   /@types/uuid/8.3.0:
     resolution: {integrity: sha512-eQ9qFW/fhfGJF8WKHGEHZEyVWfZxrT+6CLIJGBcZPfxUh/+BnEj+UCGYMlr9qZuX/2AltsvwrGqp0LhEW8D0zQ==}
+    dev: false
+
+  /@types/wordwrap/1.0.0:
+    resolution: {integrity: sha512-XknqsI3sxtVduA/zP475wjMPH/qaZB6teY+AGvZkNUPhwxAac/QuKt6fpJCY9iO6ZpDhBmu9iOHgLXK78hoEDA==}
     dev: false
 
   /@types/yargs-parser/20.2.0:
@@ -8815,6 +8825,10 @@ packages:
       ansi-styles: 4.3.0
       string-width: 4.2.2
       strip-ansi: 6.0.0
+
+  /wrap-text/1.0.9:
+    resolution: {integrity: sha512-NWfjspSgMDXQIMpKM56AwCQPI01OMFRYYJBh6dGNCfH7AOl+j/VqqbiopgJ4VuQfSluqLc+2ekqaPNpYAGZ/Vg==}
+    dev: false
 
   /wrappy/1.0.2:
     resolution: {integrity: sha1-tSQ9jz7BqjXxNkYFvA0QNuMKtp8=}

@@ -24,7 +24,8 @@
         "node-opcua-status-code": "2.41.1",
         "node-opcua-types": "2.41.1",
         "node-opcua-utils": "2.41.1",
-        "text-wrapper": "^2.0.2"
+        "wordwrap": "^1.0.0",
+        "@types/wordwrap": "^1.0.0"
     },
     "devDependencies": {
         "node-opcua-leak-detector": "2.41.1",

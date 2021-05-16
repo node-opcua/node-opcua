@@ -1,4 +1,4 @@
-import { wrapper } from "text-wrapper";
+import *  as wrap from "wordwrap";
 import {
     AttributeIds,
     LocalizedText,
@@ -39,6 +39,8 @@ import {
     RequestedSubSymbol
 } from "./cache";
 import assert from "node-opcua-assert";
+
+const wrapText = wrap(0,50);
 
 export async function convertDataTypeToTypescript(session: IBasicSession, dataTypeId: NodeId) {
     const definition = await getDefinition(session, dataTypeId);
@@ -690,7 +692,7 @@ function dumpUsedExport(currentType: string, namespaceIndex: number, cache: Cach
 }
 
 function toComment(prefix: string, description: string) {
-    var d = wrapper(description, { wrapOn: 78 });
+    var d = wrapText(description);
     return d
         .split("\n")
         .map((x) => prefix + x)
