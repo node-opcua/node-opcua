@@ -99,6 +99,7 @@
         "@types/rimraf": "^3.0.0",
         "@types/sinon": "10.0.0",
         "@types/underscore": "1.11.2",
+        "@types/wordwrap": "^1.0.0",
         "@types/yargs": "16.0.1",
         "@typescript-eslint/parser": "4.23.0",
         "async": "^3.2.0",
@@ -158,6 +159,8 @@
         "unirest": "^0.6.0",
         "vorpal": "^1.12.0",
         "vorpal-repl": "^1.1.8",
+        "wordwrap": "^1.0.0",
+        "wrap-text": "^1.0.9",
         "xml-writer": "^1.7.0",
         "yargs": "16.2.0"
     },
