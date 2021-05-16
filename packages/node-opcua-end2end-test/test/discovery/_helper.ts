@@ -15,11 +15,16 @@ import {
     RegisterServerMethod
 } from "node-opcua";
 import { make_debugLog, checkDebugFlag } from "node-opcua-debug";
+import { once } from "events";
 
 const debugLog = make_debugLog("TEST");
 const doDebug = checkDebugFlag("TEST");
 
 const configFolder = path.join(__dirname, "../../tmp");
+
+export async function pause(ms: number) {
+    await new Promise((resolve) => setTimeout(resolve, ms));
+}
 /**
  *
  * @param discoveryEndpointUrl
@@ -30,8 +35,8 @@ export async function createAndStartServer(discoveryEndpointUrl: string, port: n
     const server = await createServerThatRegisterWithDiscoveryServer(discoveryEndpointUrl, port, name);
     /* no await here on purpose */ server.start();
     // server registration takes place in parallel and should be checked independently
-    await new Promise((resolve) => server.on("serverRegistered", resolve));
-    await new Promise((resolve) => setTimeout(resolve, 100));
+    await once(server, "serverRegistered");
+    await pause(100);
     return server;
 }
 export async function createServerThatRegisterWithDiscoveryServer(

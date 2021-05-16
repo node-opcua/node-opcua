@@ -11,7 +11,7 @@ import {
 } from "node-opcua";
 
 import { OPCUADiscoveryServer } from "node-opcua-server-discovery";
-import { createAndStartServer, ep, startDiscovery } from "./_helper";
+import { createAndStartServer, ep, startDiscovery, pause } from "./_helper";
 
 import { make_debugLog, checkDebugFlag } from "node-opcua-debug";
 const debugLog = make_debugLog("TEST");
@@ -63,7 +63,7 @@ export function t(test: any) {
             await discoveryServer1.shutdown();
             await discoveryServer2.shutdown();
             await discoveryServer3.shutdown();
-            await new Promise((resolve) => setTimeout(resolve, 200));
+            await pause(500);
         });
 
         it("should register server to the discover server 1", async () => {
@@ -127,7 +127,7 @@ export function t(test: any) {
                 servers[1].applicationUri!.should.eql(makeApplicationUrn(hostname, `A2`));
             }
 
-            await new Promise((resolve) => setTimeout(resolve, 1000));
+            await pause(500);
 
             {
                 const data = await findServers(discoveryServerEndpointUrl3);
@@ -137,7 +137,7 @@ export function t(test: any) {
                 servers[1].applicationUri!.should.eql(makeApplicationUrn(hostname, `A3`));
             }
 
-            await new Promise((resolve) => setTimeout(resolve, 1000));
+            await pause(500);
 
             // query_discovery_server_for_available_servers_on_network
             {
@@ -171,6 +171,9 @@ export function t(test: any) {
             await server1.shutdown();
             await server2.shutdown();
             await server3.shutdown();
+
+            await pause(500);
         });
+
     });
 }
