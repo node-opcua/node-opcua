@@ -79,9 +79,11 @@ export class ClientSessionKeepAliveManager extends EventEmitter implements Clien
 
     private ping_server() {
         this._ping_server().then((delta) => {
+            if (!this.session || this.session.hasBeenClosed()) {
+                return; // stop here 
+            }
             if (this.timerId) {
                 const timeout = Math.max(1, this.checkInterval - delta);
-
                 this.timerId = setTimeout(() => this.ping_server(), timeout);
             }
         });
@@ -102,6 +104,9 @@ export class ClientSessionKeepAliveManager extends EventEmitter implements Clien
             return 0;
         }
 
+        if (!this.timerId) {
+            return 0; // keep-alive has been canceled .... 
+        }
         const now = Date.now(); // getCurrentClock().timestamp.getTime();
 
         const timeSinceLastServerContact = now - session.lastResponseReceivedTime.getTime();
@@ -118,6 +123,10 @@ export class ClientSessionKeepAliveManager extends EventEmitter implements Clien
         }
 
         if (session.isReconnecting) {
+            debugLog("ClientSessionKeepAliveManager#ping_server skipped because client is reconnecting");
+            return 0;
+        }
+        if (session.hasBeenClosed()) {
             debugLog("ClientSessionKeepAliveManager#ping_server skipped because client is reconnecting");
             return 0;
         }
