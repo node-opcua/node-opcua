@@ -973,6 +973,7 @@ export class ClientBaseImpl extends OPCUASecureObject implements OPCUAClientBase
             if (err) {
                 return callback(err);
             }
+            /* istanbul ignore next */
             if (!response || !(response instanceof FindServersResponse)) {
                 return callback(new Error("Internal Error"));
             }
@@ -1005,6 +1006,7 @@ export class ClientBaseImpl extends OPCUASecureObject implements OPCUAClientBase
             if (err) {
                 return callback(err);
             }
+            /* istanbul ignore next */
             if (!response || !(response instanceof FindServersOnNetworkResponse)) {
                 return new Error("Internal Error");
             }

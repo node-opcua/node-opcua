@@ -452,6 +452,7 @@ export class OPCUABaseServer extends OPCUASecureObject {
     public async suspendEndPoints(): Promise<void>;
     public suspendEndPoints(callback: (err?: Error) => void): void;
     public suspendEndPoints(callback?: (err?: Error) => void): void | Promise<void> {
+        /* istanbul ignore next */
         if (!callback) {
             throw new Error("Internal Error");
         }

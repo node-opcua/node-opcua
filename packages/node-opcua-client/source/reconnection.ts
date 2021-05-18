@@ -205,11 +205,13 @@ function repair_client_session_by_recreating_a_new_session(
                     return innerCallback(); // no need to transfer subscriptions
                 }
                 debugLog("    => asking server to transfer subscriptions = [", subscriptionsIds.join(", "), "]");
-                // Transfer subscriptions
+                
+                // Transfer subscriptions - ask for initial values....
                 const subscriptionsToTransfer = new TransferSubscriptionsRequest({
-                    sendInitialValues: false,
+                    sendInitialValues: true,
                     subscriptionIds: subscriptionsIds
                 });
+
 
                 if (newSession.getPublishEngine().nbPendingPublishRequests !== 0) {
                     warningLog("Warning : we should not be publishing here");
@@ -224,6 +226,8 @@ function repair_client_session_by_recreating_a_new_session(
                             // recreate the subscriptions on the server side
                             return innerCallback();
                         }
+                        
+                        // istanbul ignore next
                         if (!transferSubscriptionsResponse) {
                             return innerCallback(new Error("Internal Error"));
                         }

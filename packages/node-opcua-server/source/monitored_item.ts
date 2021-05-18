@@ -495,7 +495,7 @@ export class MonitoredItem extends EventEmitter {
     public terminate() {
         this._stop_sampling();
     }
-    
+
 
     public dispose() {
         if (doDebug) {
@@ -649,7 +649,7 @@ export class MonitoredItem extends EventEmitter {
 
         // processTriggerItems
         this.triggerLinkedItems();
-        
+
         if (doDebug) {
             debugLog("RECORD VALUE ", this.node?.nodeId.toString());
         }
@@ -863,6 +863,7 @@ export class MonitoredItem extends EventEmitter {
 
     private _stop_sampling() {
         // debugLog("MonitoredItem#_stop_sampling");
+        /* istanbul ignore next */
         if (!this.node) {
             throw new Error("Internal Error");
         }
@@ -1026,13 +1027,13 @@ export class MonitoredItem extends EventEmitter {
             // initiate first read
             if (recordInitialValue) {
                 /* await */ new Promise<void>((resolve: () => void) => {
-                    (this.node as UAVariable).readValueAsync(context, (err: Error | null, dataValue?: DataValue) => {
-                        if (!err && dataValue) {
-                            this.recordValue(dataValue, true);
-                        }
-                        resolve();
-                    });
+                (this.node as UAVariable).readValueAsync(context, (err: Error | null, dataValue?: DataValue) => {
+                    if (!err && dataValue) {
+                        this.recordValue(dataValue, true);
+                    }
+                    resolve();
                 });
+            });
             }
         } else {
             this._set_timer();
@@ -1182,11 +1183,11 @@ export class MonitoredItem extends EventEmitter {
         ) {
             throw new Error(
                 "dataValue.value.value cannot be the same object twice! " +
-                    this.node!.browseName.toString() +
-                    " " +
-                    dataValue.toString() +
-                    "  " +
-                    chalk.cyan(this.oldDataValue.toString())
+                this.node!.browseName.toString() +
+                " " +
+                dataValue.toString() +
+                "  " +
+                chalk.cyan(this.oldDataValue.toString())
             );
         }
 

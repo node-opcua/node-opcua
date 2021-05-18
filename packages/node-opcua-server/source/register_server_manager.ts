@@ -379,6 +379,7 @@ export class RegisterServerManager extends EventEmitter implements IRegisterServ
     }
 
     public _establish_initial_connection(outer_callback: ErrorCallback) {
+        /* istanbul ignore next */
         if (!this.server) {
             throw new Error("Internal Error");
         }

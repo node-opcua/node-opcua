@@ -63,6 +63,8 @@ export class ClientMonitoredItemToolbox {
             if (err) {
                 debugLog(chalk.red("ClientMonitoredItemBase#_toolbox_monitor:  ERROR in createMonitoredItems "));
             } else {
+
+                /* istanbul ignore next */
                 if (!response) {
                     return done(new Error("Internal Error"));
                 }

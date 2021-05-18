@@ -37,6 +37,7 @@ export function readHistoryServerCapabilities(
         if (err) {
             return callback(err);
         }
+        /* istanbul ignore next */
         if (!result) {
             return callback(new Error("Internal Error"));
         }
@@ -82,6 +83,7 @@ export function readHistoryServerCapabilities(
             if (innerErr) {
                 return callback(innerErr);
             }
+            /* istanbul ignore next */
             if (!results) {
                 return callback(new Error("Internal Error"));
             }
@@ -103,6 +105,7 @@ export function readHistoryServerCapabilities(
                 if (err2) {
                     return callback(err2);
                 }
+                /* istanbul ignore next */
                 if (!dataValues) {
                     return callback(new Error("Internal Error"));
                 }

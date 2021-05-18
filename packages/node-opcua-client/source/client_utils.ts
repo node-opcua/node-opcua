@@ -20,7 +20,7 @@ const hasPropertyRefId = resolveNodeId("HasProperty");
 function browsePathPropertyRequest(nodeId: NodeIdLike, propertyName: string): BrowsePath {
     return new BrowsePath({
         relativePath: /* RelativePath   */ {
-            elements: /* RelativePathElement */ [
+            elements: /* RelativePathElement */[
                 {
                     includeSubtypes: false,
                     isInverse: false,
@@ -103,6 +103,7 @@ export function readUAAnalogItem(session: ClientSession, nodeId: NodeIdLike, ...
             if (err1) {
                 return callback(err1);
             }
+            /* istanbul ignore next */
             if (!dataValues) {
                 return callback(new Error("Internal Error"));
             }

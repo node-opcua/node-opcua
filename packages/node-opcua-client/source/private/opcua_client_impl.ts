@@ -383,6 +383,7 @@ export class OPCUAClientImpl extends ClientBaseImpl implements OPCUAClient {
             if (err) {
                 callback(err);
             } else {
+                /* istanbul ignore next */
                 if (!session) {
                     return callback(new Error("Internal Error"));
                 }
