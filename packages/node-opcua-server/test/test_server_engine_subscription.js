@@ -17,6 +17,7 @@ const { with_fake_timer } = require("./helper_with_fake_timer");
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("ServerEngine Subscriptions service", function() {
 
+    const test = this;
     /**
      * @type {ServerEngine}
      */
@@ -230,11 +231,10 @@ describe("ServerEngine Subscriptions service", function() {
 
     it("ZDZ-1 create and terminate 2 subscriptions , with 4 publish requests", async () => {
 
-        await with_fake_timer.call(this, async () => {
+        await with_fake_timer.call(test, async () => {
 
             session = engine.createSession({ sessionTimeout: 100000000 });
 
-            const test = this;
 
 
             // CTT : deleteSub5106004
@@ -294,9 +294,8 @@ describe("ServerEngine Subscriptions service", function() {
 
     it("ZDZ-2 LifeTimeCount, the publish engine shall send a StatusChangeNotification to inform that a subscription has been closed because of lifetime timeout - with 2 subscriptions", async () => {
 
-        await with_fake_timer.call(this, async () => {
-            const test = this;
-
+        await with_fake_timer.call(test, async () => {
+ 
             session = engine.createSession({
                 sessionTimeout: 100000000
             });
@@ -374,9 +373,7 @@ describe("ServerEngine Subscriptions service", function() {
         // When the subscription times out and closed
         // And  When the client send a PublishRequest notification
         // Then the client shall receive the StatusChangeNotification
-        await with_fake_timer.call(this, async () => {
-
-            const test = this;
+        await with_fake_timer.call(test, async () => {
 
             session = engine.createSession({ sessionTimeout: 100000000 });
 
@@ -437,8 +434,7 @@ describe("ServerEngine Subscriptions service", function() {
         // When the subscription times out and closed
         // And  When the client send a PublishRequest notification
         // Then the client shall receive the StatusChangeNotification
-        await with_fake_timer.call(this, async () => {
-            const test = this;
+        await with_fake_timer.call(test, async () => {
 
             session = engine.createSession({ sessionTimeout: 100000000 });
 
@@ -486,8 +482,7 @@ describe("ServerEngine Subscriptions service", function() {
         // When the orphan subscription times out
         // Then subscription shall be disposed
 
-        await with_fake_timer.call(this, async () => {
-            const test = this;
+        await with_fake_timer.call(test, async () => {
 
             session = engine.createSession({ sessionTimeout: 100000000 });
 

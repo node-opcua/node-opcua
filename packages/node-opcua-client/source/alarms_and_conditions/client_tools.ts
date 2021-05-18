@@ -88,9 +88,9 @@ export function callConditionRefresh(subscription: ClientSubscription, callback?
     );
 }
 
-ClientSessionImpl.prototype.disableCondition = () => {};
+ClientSessionImpl.prototype.disableCondition = () => { };
 
-ClientSessionImpl.prototype.enableCondition = () => {};
+ClientSessionImpl.prototype.enableCondition = () => { };
 
 ClientSessionImpl.prototype.addCommentCondition = function (
     conditionId: NodeIdLike,
@@ -108,6 +108,7 @@ ClientSessionImpl.prototype.findMethodId = function (nodeId: NodeIdLike, methodN
         if (err) {
             return callback(err);
         }
+        /* istanbul ignore next */
         if (!result) {
             return callback(new Error("Internal Error"));
         }

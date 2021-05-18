@@ -135,6 +135,7 @@ function _getSequenceNumbers(arr: NotificationMessage[]): number[] {
 }
 
 function analyseEventFilterResult(node: BaseNode, eventFilter: EventFilter): EventFilterResult {
+    /* istanbul ignore next */
     if (!(eventFilter instanceof EventFilter)) {
         throw new Error("Internal Error");
     }
@@ -1278,7 +1279,7 @@ export class Subscription extends EventEmitter {
         const availableSequenceNumbers = this.getAvailableSequenceNumbers();
         assert(
             !response.notificationMessage ||
-                availableSequenceNumbers[availableSequenceNumbers.length - 1] === response.notificationMessage.sequenceNumber
+            availableSequenceNumbers[availableSequenceNumbers.length - 1] === response.notificationMessage.sequenceNumber
         );
         response.availableSequenceNumbers = availableSequenceNumbers;
 
@@ -1355,7 +1356,7 @@ export class Subscription extends EventEmitter {
             } else {
                 debugLog(
                     "     -> subscription.state === LATE , " +
-                        "because keepAlive Response cannot be send due to lack of PublishRequest"
+                    "because keepAlive Response cannot be send due to lack of PublishRequest"
                 );
                 this.state = SubscriptionState.LATE;
             }
@@ -1629,10 +1630,10 @@ export class Subscription extends EventEmitter {
             const notification = this._pending_notifications.shift()!.notification;
             if (notification instanceof MonitoredItemNotification) {
                 dataChangeNotifications.monitoredItems!.push(notification);
-                hasMonitoredItemNotification =1;
+                hasMonitoredItemNotification = 1;
             } else if (notification instanceof EventFieldList) {
                 eventNotificationList.events!.push(notification);
-                hasEventFieldList =1;
+                hasEventFieldList = 1;
             } else if (notification instanceof StatusChangeNotification) {
                 // to do
                 statusChangeNotification = notification;

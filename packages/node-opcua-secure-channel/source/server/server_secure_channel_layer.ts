@@ -508,9 +508,9 @@ export class ServerSecureChannelLayer extends EventEmitter {
                 callback(err);
             } else {
                 this._rememberClientAddressAndPort();
-        
+
                 this.messageChunker.maxMessageSize = this.transport.maxMessageSize;
-        
+
                 // bind low level TCP transport to messageBuilder
                 this.transport.on("message", (messageChunk: Buffer) => {
                     assert(this.messageBuilder);
@@ -608,8 +608,8 @@ export class ServerSecureChannelLayer extends EventEmitter {
         }
 
         this._transactionsCount += 1;
-        
- 
+
+
         this.messageChunker.chunkSecureMessage(
             msgType,
             options as ChunkMessageOptions,
@@ -628,17 +628,17 @@ export class ServerSecureChannelLayer extends EventEmitter {
         });
     }
 
-    
+
     public getRemoteIPAddress(): string {
-        return  (this.transport?._socket as Socket)?.remoteAddress || "";
+        return (this.transport?._socket as Socket)?.remoteAddress || "";
     }
     public getRemotePort(): number {
-        return  (this.transport?._socket as Socket)?.remotePort || 0;
+        return (this.transport?._socket as Socket)?.remotePort || 0;
     }
     public getRemoteFamily(): string {
-        return  (this.transport?._socket as Socket)?.remoteFamily || "";
+        return (this.transport?._socket as Socket)?.remoteFamily || "";
     }
-    
+
     /**
      * Abruptly close a Server SecureChannel ,by terminating the underlying transport.
      *
@@ -845,7 +845,7 @@ export class ServerSecureChannelLayer extends EventEmitter {
 
             /* istanbul ignore next */
             if (doPerfMonitoring) {
-            this._record_transaction_statistics();
+                this._record_transaction_statistics();
                 // dump some statistics about transaction ( time and sizes )
                 _dump_transaction_statistics(this.last_transaction_stats);
             }
@@ -857,6 +857,7 @@ export class ServerSecureChannelLayer extends EventEmitter {
         // install sign & sign-encrypt behavior
         if (this.securityMode === MessageSecurityMode.Sign || this.securityMode === MessageSecurityMode.SignAndEncrypt) {
             const cryptoFactory = this.messageBuilder.cryptoFactory;
+            /* istanbul ignore next */
             if (!cryptoFactory) {
                 throw new Error("Internal Error");
             }
@@ -1031,7 +1032,7 @@ export class ServerSecureChannelLayer extends EventEmitter {
     protected checkCertificateCallback(
         certificate: Certificate | null,
         callback: (err: Error | null, statusCode?: StatusCode) => void
-    ): void {}
+    ): void { }
 
     protected async checkCertificate(certificate: Certificate | null): Promise<StatusCode> {
         if (!certificate) {
@@ -1215,6 +1216,7 @@ export class ServerSecureChannelLayer extends EventEmitter {
             traceRequestMessage(request, channelId, this._counter);
         }
 
+        /* istanbul ignore next */
         if (this.messageBuilder.sequenceHeader === null) {
             throw new Error("Internal Error");
         }
@@ -1231,7 +1233,7 @@ export class ServerSecureChannelLayer extends EventEmitter {
             this.close();
         } else if (msgType === "OPN" && request.schema.name === "OpenSecureChannelRequest") {
             // intercept client request to renew security Token
-            this._handle_OpenSecureChannelRequest(StatusCodes.Good, message, (/* err?: Error*/) => {});
+            this._handle_OpenSecureChannelRequest(StatusCodes.Good, message, (/* err?: Error*/) => { });
         } else {
             if (request.schema.name === "CloseSecureChannelRequest") {
                 warningLog("WARNING : RECEIVED a CloseSecureChannelRequest with msgType=", msgType);
@@ -1249,7 +1251,7 @@ export class ServerSecureChannelLayer extends EventEmitter {
                         StatusCodes.BadCommunicationError,
                         "Invalid Channel Id specified " + this.securityToken.channelId,
                         message,
-                        () => {}
+                        () => { }
                     );
                 }
 
@@ -1289,8 +1291,8 @@ export class ServerSecureChannelLayer extends EventEmitter {
                 debugLog(
                     "receiverCertificateThumbprint do not match server certificate",
                     myCertificateThumbPrint.toString("hex") +
-                        " <> " +
-                        clientSecurityHeader.receiverCertificateThumbprint.toString("hex")
+                    " <> " +
+                    clientSecurityHeader.receiverCertificateThumbprint.toString("hex")
                 );
             }
             return thisIsMyCertificate;

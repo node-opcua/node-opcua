@@ -20,7 +20,7 @@ module.exports = function(test) {
             const client = OPCUAClient.create({
                 endpointMustExist: true,
                 keepSessionAlive: true,
-                requestedSessionTimeout: 100
+                requestedSessionTimeout: 1000
             });
 
             const endpointUrl = test.endpointUrl;
@@ -32,7 +32,7 @@ module.exports = function(test) {
                 debugLog("KeepAlive state=", ServerState[state], "count ", count);
                 keepAliveCounter += 1;
             });
-            await pause(1000);
+            await pause(5000);
             await session.close();
             debugLog("session is closed");
             await client.disconnect();

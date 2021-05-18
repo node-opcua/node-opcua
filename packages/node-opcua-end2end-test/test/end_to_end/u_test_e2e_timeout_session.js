@@ -3,6 +3,14 @@ const sinon = require("sinon");
 
 const { OPCUAClient } = require("node-opcua");
 
+const { make_warningLog } = require("node-opcua-debug");
+
+const warningLog = make_warningLog("TEST");
+
+async function pause(ms) {
+    return await new Promise((resolve)=>setTimeout(resolve,ms));
+}
+
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 module.exports = function(test) {
 
@@ -25,7 +33,7 @@ module.exports = function(test) {
             await client.connect(endpointUrl);
             const session = await client.createSession();
 
-            await new Promise((resolve) => setTimeout(resolve, client.requestedSessionTimeout * 2.00));
+            await pause(client.requestedSessionTimeout * 2);
 
             await session.close();
 
@@ -62,13 +70,13 @@ module.exports = function(test) {
 
             const keepalive_spy = sinon.spy();
             session.on("keepalive", keepalive_spy);
-            session.on("keepalive", () => console.log("keepalive"));
+            session.on("keepalive", () => warningLog("keepalive"));
             // let check that keep alive manager is active and as a checkInterval
             // which is below session Timeout
             session._keepAliveManager.checkInterval.should.eql(400);
 
             // now wait a little while
-            await new Promise((resolve) => setTimeout(resolve, 2000));
+            await pause(2000);
 
             await session.close();
             keepalive_spy.callCount.should.be.greaterThan(2);
@@ -95,10 +103,10 @@ module.exports = function(test) {
             // set a very short sessionTimeout
             client.requestedSessionTimeout = 1200;
 
-            //xx console.log("requestedSessionTimeout = ", client1.requestedSessionTimeout);
+            //xx warningLog("requestedSessionTimeout = ", client1.requestedSessionTimeout);
 
             const session = await client.createSession();
-            console.log("adjusted session timeout =", session.timeout);
+            warningLog("adjusted session timeout =", session.timeout);
             session.timeout.should.eql(client.requestedSessionTimeout);
 
             // let check that keep alive manager is active and as a checkInterval
@@ -107,21 +115,32 @@ module.exports = function(test) {
 
             session.on("keepalive", keepalive_spy);
             session.on("keepalive", () => {
-                console.log("What's going here ? We should not receive KEEPALIVE " +
+                warningLog("What's going here ? We should not receive KEEPALIVE " +
                     " as client is regularly communicating with server");
             });
 
-            const dataValue = await session.read({ nodeId: "ns=1;i=54" });
-
-            const timerId = setInterval(async () => {
-                await session.read({ nodeId: "ns=1;i=54" });
-            }, 300);
-
-            await new Promise((resolve) => setTimeout(() => {
-                clearInterval(timerId);
-                resolve();
-            }, 6000)
-            );
+            let dataValue = await session.read({ nodeId: "ns=1;i=54" });
+            await pause(100);
+            await session.read({ nodeId: "ns=1;i=54" });
+            await pause(100);
+            await session.read({ nodeId: "ns=1;i=54" });
+            await pause(100);
+            await session.read({ nodeId: "ns=1;i=54" });
+            await pause(100);
+            await session.read({ nodeId: "ns=1;i=54" });
+            await pause(100);
+            await session.read({ nodeId: "ns=1;i=54" });
+            await pause(100);
+            await session.read({ nodeId: "ns=1;i=54" });
+            await pause(100);
+            await session.read({ nodeId: "ns=1;i=54" });
+            await pause(100);
+            await session.read({ nodeId: "ns=1;i=54" });
+            await pause(100);
+            await session.read({ nodeId: "ns=1;i=54" });
+            await pause(100);
+            await session.read({ nodeId: "ns=1;i=54" });
+            await pause(100);
 
             await session.close();
             // client should not have send keepalive, as  normal transactions happens between

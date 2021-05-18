@@ -62,7 +62,6 @@ describe("ServerEngine Subscriptions Transfer", function () {
         session.publishEngine._on_PublishRequest(new PublishRequest({ requestHeader: { requestHandle: 101 } }), publishHandler);
         requestHandle++;
         test.clock.tick(0);
-
     }
 
 
@@ -70,7 +69,7 @@ describe("ServerEngine Subscriptions Transfer", function () {
         session1 = engine.createSession({ sessionTimeout: 10000 });
         const publishSpy = sinon.spy();
 
-        await with_fake_timer.call(this, async (test) => {
+        await with_fake_timer.call(test, async (test) => {
 
             const subscription = session1.createSubscription({
                 requestedPublishingInterval: 1000,  // Duration
@@ -119,7 +118,7 @@ describe("ServerEngine Subscriptions Transfer", function () {
         session1 = engine.createSession({ sessionTimeout: 10000 });
         const publishSpy = sinon.spy();
 
-        await with_fake_timer.call(this, async (test) => {
+        await with_fake_timer.call(test, async () => {
 
             const subscription = session1.createSubscription({
                 requestedPublishingInterval: 1000,  // Duration
@@ -172,7 +171,7 @@ describe("ServerEngine Subscriptions Transfer", function () {
         session1 = engine.createSession({ sessionTimeout: 10000 });
         const publishSpy = sinon.spy();
 
-        await with_fake_timer.call(this, async (test) => {
+        await with_fake_timer.call(test, async () => {
 
             const subscription = session1.createSubscription({
                 requestedPublishingInterval: 1000,  // Duration
@@ -237,45 +236,47 @@ describe("ServerEngine Subscriptions Transfer", function () {
     it("ST04 - should transfer a subscription - with no monitored items", async () => {
 
         session1 = engine.createSession({ sessionTimeout: 10000 });
-        const subscription = session1.createSubscription({
-            requestedPublishingInterval: 1000,  // Duration
-            requestedLifetimeCount: 10,         // Counter
-            requestedMaxKeepAliveCount: 10,     // Counter
-            maxNotificationsPerPublish: 10,     // Counter
-            publishingEnabled: true,            // Boolean
-            priority: 14                        // Byte
+
+        await with_fake_timer.call(test, async () => {
+
+   
+            const subscription = session1.createSubscription({
+                requestedPublishingInterval: 1000,  // Duration
+                requestedLifetimeCount: 10,         // Counter
+                requestedMaxKeepAliveCount: 10,     // Counter
+                maxNotificationsPerPublish: 10,     // Counter
+                publishingEnabled: true,            // Boolean
+                priority: 14                        // Byte
+            });
+
+            session2 = engine.createSession();
+
+            const transferResult = await engine.transferSubscription(session2, subscription.id, true);
+            transferResult.statusCode.should.eql(StatusCodes.Good);
+            transferResult.availableSequenceNumbers.length.should.eql(0);
+
+            // xx  console.log(transferResult.toString());
+
+            // ---------------------------------- Session1 should received a StatusChangeNotification event with GoodSubscriptionTransferred...
+            const publishSpy = sinon.spy();
+            sendPublishRequest(session1, publishSpy);
+            sendPublishRequest(session1, publishSpy);
+            sendPublishRequest(session1, publishSpy);
+            sendPublishRequest(session1, publishSpy);
+
+
+            publishSpy.callCount.should.eql(4);
+            //xx console.log(publishSpy.getCall(0).args[1].toString());
+
+            publishSpy.getCall(0).args[1].subscriptionId.should.eql(subscription.subscriptionId);
+            publishSpy.getCall(0).args[1].responseHeader.serviceResult.should.eql(StatusCodes.Good);
+            publishSpy.getCall(0).args[1].notificationMessage.sequenceNumber.should.eql(1);
+            publishSpy.getCall(0).args[1].notificationMessage.notificationData[0].constructor.name.should.eql("StatusChangeNotification");
+            publishSpy.getCall(0).args[1].notificationMessage.notificationData[0].status.should.eql(StatusCodes.GoodSubscriptionTransferred);
+
+
+            subscription.terminate();
         });
-
-
-
-        session2 = engine.createSession();
-
-        const transferResult = await engine.transferSubscription(session2, subscription.id, true);
-        transferResult.statusCode.should.eql(StatusCodes.Good);
-        transferResult.availableSequenceNumbers.length.should.eql(0);
-
-        // xx  console.log(transferResult.toString());
-
-        // ---------------------------------- Session1 should received a StatusChangeNotification event with GoodSubscriptionTransferred...
-        const publishSpy = sinon.spy();
-        sendPublishRequest(session1, publishSpy);
-        sendPublishRequest(session1, publishSpy);
-        sendPublishRequest(session1, publishSpy);
-        sendPublishRequest(session1, publishSpy);
-
-
-        publishSpy.callCount.should.eql(4);
-        //xx console.log(publishSpy.getCall(0).args[1].toString());
-
-        publishSpy.getCall(0).args[1].subscriptionId.should.eql(subscription.subscriptionId);
-        publishSpy.getCall(0).args[1].responseHeader.serviceResult.should.eql(StatusCodes.Good);
-        publishSpy.getCall(0).args[1].notificationMessage.sequenceNumber.should.eql(1);
-        publishSpy.getCall(0).args[1].notificationMessage.notificationData[0].constructor.name.should.eql("StatusChangeNotification");
-        publishSpy.getCall(0).args[1].notificationMessage.notificationData[0].status.should.eql(StatusCodes.GoodSubscriptionTransferred);
-
-
-        subscription.terminate();
-
     });
 
     it("ST05 - should transfer a subscription 2: with monitored items", async () => {
@@ -283,7 +284,7 @@ describe("ServerEngine Subscriptions Transfer", function () {
         session1 = engine.createSession({ sessionTimeout: 10000 });
         session2 = engine.createSession({ sessionTimeout: 10000 });
 
-        await with_fake_timer.call(this, async (test) => {
+        await with_fake_timer.call(test, async () => {
 
 
             // A/ Create a subscription
@@ -387,7 +388,7 @@ describe("ServerEngine Subscriptions Transfer", function () {
 
     it("ST06 - CTT 007 republish5105002 - republish after the subscriptions had been transferred to a different session", async () => {
 
-        await with_fake_timer.call(this, async (test) => {
+        await with_fake_timer.call(test, async () => {
             // create session1
             session1 = engine.createSession({ sessionTimeout: 100000 });
             // xx console.log("Session1 = ", session1.authenticationToken.toString());
@@ -482,7 +483,7 @@ describe("ServerEngine Subscriptions Transfer", function () {
             G/ call republish(). 
          */
 
-        await with_fake_timer.call(this, async (test) => {
+        await with_fake_timer.call(test, async () => {
 
             session1 = engine.createSession({ sessionTimeout: 100000 });
             // xx console.log("Session1 = ", session1.authenticationToken.toString());
@@ -607,7 +608,7 @@ describe("ServerEngine Subscriptions Transfer", function () {
 
     it("ST08 - Err-004.js (transferSubscription5106Err009)  delete multiple sessions where some have been transferred to other sessions", async () => {
 
-        await with_fake_timer.call(this, async (test) => {
+        await with_fake_timer.call(test, async () => {
             // create session1
             session1 = engine.createSession({ sessionTimeout: 100000 });
             // xx console.log("Session1 = ", session1.authenticationToken.toString());
@@ -700,7 +701,7 @@ describe("ServerEngine Subscriptions Transfer", function () {
                 Publish #3 yields the initial data change.
                 Note: We assume that the server purges the prior StatusChange notification message that was in the queue.
          */
-        await with_fake_timer.call(this, async (test) => {
+        await with_fake_timer.call(test, async () => {
             // Create 2 sessions.
 
             session1 = engine.createSession({ sessionTimeout: 100000 });

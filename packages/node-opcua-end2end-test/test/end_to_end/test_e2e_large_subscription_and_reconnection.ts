@@ -38,8 +38,7 @@ describe("[CLIENT] recreating large subscription during reconnection", () => {
         client.on("connection_failed", () => console.log("connection has failed"));
         client.on("after_reconnection", () => console.log("after reconnection"));
         client.on("connection_lost", () => console.log("connection lost"));
-        client.on("after_reconnection", () => console.log("after_reconnection"));
-
+ 
         client.on("send_request", (request) => {
         });
 
@@ -91,12 +90,12 @@ describe("[CLIENT] recreating large subscription during reconnection", () => {
 
         server = await startServer(maxMonitoredItemsPerCall);
 
-        // wait until reconnection is completedf
+        // wait until reconnection is completed
         while (session.isReconnecting && !isSessionRestored) {
             await pause(100);
         }
 
-        await pause(100);
+        await pause(600);
         console.log("------------------------------------------------------------")
 
         await session.close();

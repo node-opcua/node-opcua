@@ -2,7 +2,7 @@ import { Namespace, PseudoSession } from "..";
 import { AddressSpace,  } from "..";
 import { generateAddressSpace } from "../nodeJS";
 import * as path from "path";
-import { resolveNodeId , coerceNodeId} from "node-opcua-nodeId";
+import { resolveNodeId , coerceNodeId} from "node-opcua-nodeid";
 
 import { getBuiltInDataType } from "node-opcua-pseudo-session";
 import {promisify} from "util";

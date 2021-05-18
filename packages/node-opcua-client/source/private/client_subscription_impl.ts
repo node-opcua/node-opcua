@@ -449,6 +449,7 @@ export class ClientSubscriptionImpl extends EventEmitter implements ClientSubscr
             if (err) {
                 return callback(err);
             }
+            /* istanbul ignore next */
             if (!statusCode) {
                 return callback(new Error("Internal Error"));
             }
