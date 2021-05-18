@@ -182,6 +182,7 @@ export function getArgumentDefinitionHelper(
             if (err1) {
                 return callback(err1);
             }
+            /* istanbul ignore next */
             if (!dataValues) {
                 return callback(new Error("Internal Error"));
             }

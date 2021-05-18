@@ -16,19 +16,17 @@ import {
     promoteOpaqueStructure,
     resolveDynamicExtensionObject
 } from "node-opcua-client-dynamic-extension-object";
-import { ReferenceTypeIds } from "node-opcua-constants";
 import { Certificate, Nonce } from "node-opcua-crypto";
-import { attributeNameById, BrowseDirection, LocalizedTextLike, makeResultMask } from "node-opcua-data-model";
+import { attributeNameById, BrowseDirection, LocalizedTextLike } from "node-opcua-data-model";
 import { DataValue } from "node-opcua-data-value";
 import { checkDebugFlag, make_debugLog, make_errorLog, make_warningLog } from "node-opcua-debug";
 import { ExtensionObject, OpaqueStructure } from "node-opcua-extension-object";
-import { coerceNodeId, makeNodeId, NodeId, NodeIdLike, NodeIdType, resolveNodeId } from "node-opcua-nodeid";
-import { getArgumentDefinitionHelper, IBasicSession } from "node-opcua-pseudo-session";
+import { coerceNodeId, NodeId, NodeIdLike, resolveNodeId } from "node-opcua-nodeid";
+import { getBuiltInDataType, getArgumentDefinitionHelper, IBasicSession } from "node-opcua-pseudo-session";
 import { AnyConstructorFunc } from "node-opcua-schemas";
 import { requestHandleNotSetValue, SignatureData } from "node-opcua-secure-channel";
 import {
     BrowseDescription,
-    BrowseDescriptionOptions,
     BrowseRequest,
     BrowseResponse,
     BrowseResult
@@ -129,11 +127,9 @@ import { ClientSubscription } from "../client_subscription";
 import { Request, Response } from "../common";
 import { ClientSidePublishEngine } from "./client_publish_engine";
 import { ClientSubscriptionImpl } from "./client_subscription_impl";
-import { OPCUAClientImpl } from "./opcua_client_impl";
 
 export type ResponseCallback<T> = (err: Error | null, response?: T) => void;
 
-const resultMask = makeResultMask("ReferenceType");
 
 const helpAPIChange = process.env.DEBUG && process.env.DEBUG.match(/API/);
 const debugLog = make_debugLog(__filename);
@@ -221,49 +217,6 @@ function composeResult(nodes: any[], nodesToRead: ReadValueIdOptions[], dataValu
     }
 
     return results;
-}
-
-function __findBasicDataType(
-    session: ClientSession,
-    dataTypeId: NodeId,
-    callback: (err: Error | null, dataType?: DataType) => void
-) {
-    /* istanbul ignore next */
-    if (dataTypeId.identifierType !== NodeIdType.NUMERIC) {
-        throw new Error("Invalid NodeId Identifier type => Numeric expected");
-    }
-    assert(dataTypeId instanceof NodeId);
-
-    if (dataTypeId.value <= 25) {
-        // we have a well-known DataType
-        const dataTypeName = DataType[dataTypeId.value as number];
-        callback(null, dataTypeId.value as DataType);
-    } else {
-        // let's browse for the SuperType of this object
-        const nodeToBrowse = new BrowseDescription({
-            browseDirection: BrowseDirection.Inverse,
-            includeSubtypes: false,
-            nodeId: dataTypeId,
-            referenceTypeId: makeNodeId(ReferenceTypeIds.HasSubtype),
-            resultMask
-        });
-
-        session.browse(nodeToBrowse, (err: Error | null, browseResult?: BrowseResult) => {
-            /* istanbul ignore next */
-            if (err) {
-                return callback(err);
-            }
-
-            /* istanbul ignore next */
-            if (!browseResult) {
-                return callback(new Error("Internal Error"));
-            }
-
-            browseResult.references = browseResult.references || /* istanbul ignore next */[];
-            const baseDataType = browseResult.references[0].nodeId;
-            return __findBasicDataType(session, baseDataType, callback);
-        });
-    }
 }
 
 
@@ -2002,28 +1955,7 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession {
     public getBuiltInDataType(...args: any[]): any {
         const nodeId = args[0];
         const callback = args[1];
-
-        let dataTypeId = null;
-        const nodeToRead = {
-            attributeId: AttributeIds.DataType,
-            nodeId
-        };
-        this.read(nodeToRead, 0, (err: Error | null, dataValue?: DataValue) => {
-            if (err) {
-                return callback(err);
-            }
-            /* istanbul ignore next */
-            if (!dataValue) {
-                return callback(new Error("Internal Error"));
-            }
-            /* istanbul ignore next */
-            if (dataValue.statusCode.isNot(StatusCodes.Good)) {
-                return callback(new Error("cannot read DataType Attribute " + dataValue.statusCode.toString()));
-            }
-            dataTypeId = dataValue.value.value;
-            assert(dataTypeId instanceof NodeId);
-            __findBasicDataType(this, dataTypeId, callback);
-        });
+        return getBuiltInDataType(this,nodeId,callback);
     }
 
     public resumePublishEngine() {
