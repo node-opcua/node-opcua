@@ -8,7 +8,11 @@ const { ObjectIds, VariableIds, ObjectTypeIds } = require("node-opcua-constants"
 const { nodesets } = require("node-opcua-nodesets");
 const { makeTypeNameNew, Cache, constructCache } = require("../dist/cache");
 const { extractClassMemberDef, extractClassDefinition } = require("../dist/convert_to_typescript");
+const { make_debugLog} = require("node-opcua-debug");
+
+
 const should= require("should");
+const debugLog = make_debugLog("TEST");
 
 describe("A", () => {
     let addressSpace;
@@ -61,7 +65,7 @@ describe("A", () => {
         const parentNodeId = resolveNodeId(ObjectTypeIds.PubSubDiagnosticsWriterGroupType);
         const classDef = await extractClassDefinition(session, parentNodeId, cache);
         const a = await extractClassMemberDef(session, nodeId, classDef, cache);
-        console.log(a);
+        debugLog(a);
 
         a.browseName.toString().should.eql("Counters");
         //xx a.parentBrowseName.toString().should.eql("PubSubDiagnosticsWriterGroupType");
@@ -83,7 +87,7 @@ describe("A", () => {
         const classDef = await extractClassDefinition(session, parentNodeId, cache);
 
         const a = await extractClassMemberDef(session, nodeId, classDef, cache);
-        console.log(a);
+        debugLog(a);
 
         a.browseName.toString().should.eql("LiveValues");
         a.nodeClass.should.eql(NodeClass.Object);
@@ -104,7 +108,7 @@ describe("A", () => {
         const classDef = await extractClassDefinition(session, parentNodeId, cache);
 
         const a = await extractClassMemberDef(session, nodeId, classDef, cache);
-        console.log(a);
+        debugLog(a);
 
         a.name.should.eql("diagnosticsLevel");
         a.nodeClass.should.eql(NodeClass.Variable);
@@ -118,7 +122,7 @@ describe("A", () => {
         const classDef = await extractClassDefinition(session, parentNodeId, cache);
 
         const a = await extractClassMemberDef(session, nodeId, classDef, cache);
-        console.log(a);
+        debugLog(a);
 
         a.name.should.eql("counters");
         a.nodeClass.should.eql(NodeClass.Object);
@@ -134,7 +138,7 @@ describe("A", () => {
         const classDef = await extractClassDefinition(session, parentNodeId, cache);
 
         const a = await extractClassMemberDef(session, nodeId, classDef, cache);
-        console.log(a);
+        debugLog(a);
 
         a.name.should.eql("currentState");
         a.nodeClass.should.eql(NodeClass.Variable);
@@ -151,8 +155,7 @@ describe("A", () => {
         const classDef = await extractClassDefinition(session, parentNodeId, cache);
 
         const a = await extractClassMemberDef(session, nodeId, classDef, cache);
-        console.log(a);
-
+        debugLog(a);
         a.name.should.eql("parameterSet");
         a.nodeClass.should.eql(NodeClass.Object);
         a.childType.name.should.eql("UASpectrometerDevice_parameterSet");
@@ -169,7 +172,7 @@ describe("A", () => {
         const classDef = await extractClassDefinition(session, parentNodeId, cache);
 
         const a = await extractClassMemberDef(session, nodeId, classDef, cache);
-        console.log(a);
+        debugLog(a);
 
         a.name.should.eql("combiSteamer");
         a.nodeClass.should.eql(NodeClass.Object);
@@ -186,7 +189,7 @@ describe("A", () => {
 
         const classDef = await extractClassDefinition(session, parentNodeId, cache);
         const a = await extractClassMemberDef(session, nodeId, classDef, cache);
-        console.log(a);
+        debugLog(a);
 
         a.name.should.eql("powerup");
         a.nodeClass.should.eql(NodeClass.Object);
@@ -203,7 +206,7 @@ describe("A", () => {
         const parentNodeId = accessorySlotStateMachine.nodeId;
         const classDef = await extractClassDefinition(session, parentNodeId, cache);
     
-   //     console.log(JSON.stringify(classDef, null, " "));
+   //     debugLog(JSON.stringify(classDef, null, " "));
 
     });
     it("checkIfShouldExposeInnerDefinition", ()=>{

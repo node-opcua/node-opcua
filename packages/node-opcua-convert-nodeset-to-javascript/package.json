@@ -16,6 +16,7 @@
         "node-opcua-basic-types": "2.42.0",
         "node-opcua-constants": "2.42.0",
         "node-opcua-data-access": "2.42.0",
+        "node-opcua-debug": "2.42.0",
         "node-opcua-data-model": "2.42.0",
         "node-opcua-data-value": "2.42.0",
         "node-opcua-factory": "2.42.0",

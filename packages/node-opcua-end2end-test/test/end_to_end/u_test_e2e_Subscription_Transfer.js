@@ -155,7 +155,7 @@ module.exports = function (test) {
                     subscriptionIds: [the_subscriptionId],
                     sendInitialValues: true
                 });
-                
+
                 //xx console.log("response",response.toString());
                 response.results.length.should.eql(1);
                 response.results[0].statusCode.should.eql(StatusCodes.Good);
@@ -228,6 +228,7 @@ module.exports = function (test) {
                             response.results.length.should.eql(1);
                             response.results[0].statusCode.should.eql(StatusCodes.Good);
                             if (!err) {
+                                /* */
                             }
                             callback(err);
                         });
@@ -361,6 +362,7 @@ module.exports = function (test) {
                             response.results.length.should.eql(1);
                             response.results[0].statusCode.should.eql(StatusCodes.Good);
                             if (!err) {
+                                /** */
                             }
                             callback(err);
                         });
