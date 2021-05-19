@@ -44,11 +44,11 @@ describe("testing NodeIds", function() {
     });
 
     it("should create a OPAQUE nodeID", function() {
-        const buffer = Buffer.alloc(4);
-        buffer.write("deadbeef", "base64");
+        const buffer = Buffer.alloc(8);
+        buffer.write("deadbeef", "utf-8");
 
         const nodeId = new NodeId(NodeIdType.BYTESTRING, buffer, 4);
-        nodeId.value.toString("base64").should.equal("deadbeef");
+        nodeId.value.toString("utf-8").should.equal("deadbeef");
         nodeId.namespace.should.equal(4);
         nodeId.identifierType.should.eql(NodeIdType.BYTESTRING);
         nodeId.toString().should.eql("ns=4;b=ZGVhZGJlZWY=");
