@@ -609,16 +609,17 @@ export class ClientBaseImpl extends OPCUASecureObject implements OPCUAClientBase
                 },
                 // ------------------------------------------------- STEP 3 : GetEndpointsRequest
                 (innerCallback: ErrorCallback) => {
+                    assert(this._secureChannel !== null);
                     if (!this.knowsServerEndpoint) {
-                        assert(this._secureChannel !== null);
                         this.getEndpoints((err: Error | null /*, endpoints?: EndpointDescription[]*/) => {
-                            // Xx endpoints;
-                            assert(this._secureChannel !== null);
+                            if(this._secureChannel === null) {
+                                assert(this.disconnecting);
+                                innerCallback(new Error("disconnecting"));
+                            }
                             innerCallback(err ? err : undefined);
                         });
                     } else {
                         // end points are already known
-                        assert(this._secureChannel !== null);
                         innerCallback();
                     }
                 }
@@ -828,6 +829,8 @@ export class ClientBaseImpl extends OPCUASecureObject implements OPCUAClientBase
                         err.message +
                         ")"
                     );
+                } else if (err.message.match(/disconnecting/)) {
+                    /* */
                 } else {
                     debugLog(chalk.yellow("  - The client certificate may not be trusted by the server"));
                     err = new Error("The connection may have been rejected by server,\n" + "Err = (" + err.message + ")");
@@ -1463,6 +1466,12 @@ class TmpClient extends ClientBaseImpl {
             return callback!(new Error("premature disconnection 3"));
         }
         this._connectStep2(endpoint, (err?: Error) => {
+            if (this.disconnecting /*|| this._internalState === "disconnecting" */) {
+                debugLog("premature disconnection 2");
+                this.emit("connection_failed");
+                this._internalState = "idle";
+                return callback!(new Error("premature disconnection 3"));
+            }
             callback!(err);
         });
         /*    })

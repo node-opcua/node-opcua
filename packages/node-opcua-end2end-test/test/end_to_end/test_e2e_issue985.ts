@@ -79,14 +79,14 @@ const userManager = {
 
 async function waitForDisconnection(session: ClientSession): Promise<void> {
     if (!session.isReconnecting) {
-        await pause(1000);
+        await pause(100);
         return await waitForDisconnection(session);
     }
 }
 
 async function waitForReconnection(session: ClientSession): Promise<void> {
     if (session.isReconnecting) {
-        await pause(1000);
+        await pause(100);
         return await waitForReconnection(session);
     }
 }

@@ -352,9 +352,11 @@ export class RegisterServerManager extends EventEmitter implements IRegisterServ
             if (err) {
                 debugLog("RegisterServerManager#start => _establish_initial_connection has failed");
                 return callback(err);
+            }   
+            if (this.state !== RegisterServerManagerStatus.INITIALIZING) {
+                debugLog("RegisterServerManager#start => _establish_initial_connection has failed");
+                return callback();
             }
-
-            this._setState(RegisterServerManagerStatus.REGISTERING);
 
             this._registerServer(true, (err1?: Error | null) => {
                 if (this.state !== RegisterServerManagerStatus.REGISTERING) {
@@ -363,10 +365,11 @@ export class RegisterServerManager extends EventEmitter implements IRegisterServ
                 }
 
                 if (err1) {
-                    debugLog(
-                        "RegisterServerManager#start - registering server has failed ! " +
+                    warningLog(
+                        "RegisterServerManager#start - registering server has failed ! \n" +
                         "please check that your server certificate is accepted by the LDS"
                     );
+                    this._setState(RegisterServerManagerStatus.INACTIVE);
                     this._emitEvent("serverRegistrationFailure");
                 } else {
                     this._emitEvent("serverRegistered");
@@ -378,7 +381,7 @@ export class RegisterServerManager extends EventEmitter implements IRegisterServ
         });
     }
 
-    public _establish_initial_connection(outer_callback: ErrorCallback) {
+    private _establish_initial_connection(outer_callback: ErrorCallback) {
         /* istanbul ignore next */
         if (!this.server) {
             throw new Error("Internal Error");
@@ -469,6 +472,7 @@ export class RegisterServerManager extends EventEmitter implements IRegisterServ
                     this._serverEndpoints = registrationClient._serverEndpoints;
 
                     registrationClient.disconnect((err?: Error) => {
+                        this._registration_client = null;
                         callback(err);
                     });
                 },
@@ -483,8 +487,8 @@ export class RegisterServerManager extends EventEmitter implements IRegisterServ
                 if (this.state !== RegisterServerManagerStatus.INITIALIZING) {
                     debugLog("RegisterServerManager#_establish_initial_connection has been interrupted ", RegisterServerManagerStatus[this.state]);
                     this._setState(RegisterServerManagerStatus.INACTIVE);
-                    if (registrationClient) {
-                        registrationClient.disconnect((err2?: Error) => {
+                    if (this._registration_client) {
+                        this._registration_client.disconnect((err2?: Error) => {
                             this._registration_client = null;
                             outer_callback(new Error("Initialization has been canceled"));
                         });
@@ -495,20 +499,23 @@ export class RegisterServerManager extends EventEmitter implements IRegisterServ
                 }
                 if (err) {
                     this._setState(RegisterServerManagerStatus.INACTIVE);
-                    registrationClient.disconnect((err1?: Error) => {
-                        this._registration_client = null;
-                        debugLog("#######", !!err1);
-                        outer_callback(err);
-                    });
-                } else {
-                    outer_callback();
+                    if (this._registration_client) {
+                        this._registration_client.disconnect((err1?: Error) => {
+                            this._registration_client = null;
+                            debugLog("#######", !!err1);
+                            outer_callback(err);
+                        });
+                        return;
+                    }
                 }
+                outer_callback();
             }
         );
     }
 
     public _trigger_next() {
         assert(!this._registrationTimerId);
+        assert(this.state === RegisterServerManagerStatus.WAITING);
         // from spec 1.04 part 4:
         // The registration process is designed to be platform independent, robust and able to minimize
         // problems created by configuration errors. For that reason, Servers shall register themselves more
@@ -564,7 +571,7 @@ export class RegisterServerManager extends EventEmitter implements IRegisterServ
             this._registrationTimerId = null;
         }
 
-        this._cancel_pending_client_if_any((err?: Error | null) => {
+        this._cancel_pending_client_if_any(() => {
             debugLog("RegisterServerManager#stop  _cancel_pending_client_if_any done ", this.state);
 
             if (!this.selectedEndpoint || this.state === RegisterServerManagerStatus.INACTIVE) {
@@ -572,15 +579,10 @@ export class RegisterServerManager extends EventEmitter implements IRegisterServ
                 assert(this._registrationTimerId === null);
                 return callback();
             }
-
-            if (err) {
-                this._setState(RegisterServerManagerStatus.INACTIVE);
-                return callback(err);
-            }
             this._registerServer(false, () => {
                 this._setState(RegisterServerManagerStatus.INACTIVE);
                 this._emitEvent("serverUnregistered");
-                callback(err!);
+                callback();
             });
         });
     }
@@ -618,7 +620,18 @@ export class RegisterServerManager extends EventEmitter implements IRegisterServ
         const applicationName: string | undefined = coerceLocalizedText(server.serverInfo.applicationName!)?.text || undefined;
 
         const theStatus = isOnline ? RegisterServerManagerStatus.REGISTERING : RegisterServerManagerStatus.UNREGISTERING;
+
+        if (theStatus === this.state) {
+            warningLog(`Warning the server is already in the ${RegisterServerManagerStatus[theStatus]} state`);
+            return outer_callback();
+        }
+        assert(this.state === RegisterServerManagerStatus.INITIALIZING || this.state === RegisterServerManagerStatus.WAITING);
+        
         this._setState(theStatus);
+
+        if (this._registration_client) {
+            warningLog(`Warning there is already a registering/unregistering task taking place:  ${RegisterServerManagerStatus[this.state]} state`);
+        }
 
         const options: OPCUAClientBaseOptions = {
             securityMode: selectedEndpoint.securityMode,
@@ -676,8 +689,9 @@ export class RegisterServerManager extends EventEmitter implements IRegisterServ
                             );
                             // xx debugLog(options);
                             client.disconnect(() => {
+                                this._registration_client = null;
                                 debugLog("RegisterServerManager#_registerServer client disconnected");
-                                callback(err);
+                                callback(/* intentionally no error propagation*/);
                             });
                         } else {
                             callback();
@@ -687,7 +701,7 @@ export class RegisterServerManager extends EventEmitter implements IRegisterServ
                 (callback: ErrorCallback) => {
                     if (!this._registration_client) { callback(); return; }
                     sendRegisterServerRequest(this.server!, client as ClientBaseEx, isOnline, (err?: Error | null) => {
-                        callback(err!);
+                        callback(/* intentionally no error propagation*/);
                     });
                 },
                 // close_connection_with_lds
@@ -702,14 +716,17 @@ export class RegisterServerManager extends EventEmitter implements IRegisterServ
                     outer_callback();
                     return;
                 }
-                debugLog("RegisterServerManager#_registerServer end (isOnline", isOnline, ")");
-                this._registration_client = null;
-                outer_callback(err!);
+                this._registration_client.disconnect(() => {
+                    debugLog("RegisterServerManager#_registerServer end (isOnline", isOnline, ")");
+                    this._registration_client = null;
+                    outer_callback(err!);
+                });
+
             }
         );
     }
 
-    private _cancel_pending_client_if_any(callback: (err?: Error) => void) {
+    private _cancel_pending_client_if_any(callback: () => void) {
         debugLog("RegisterServerManager#_cancel_pending_client_if_any");
 
         if (this._registration_client) {
