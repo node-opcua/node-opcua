@@ -89,4 +89,35 @@ describe("Testing client alarm", () => {
         alarmList.length.should.eql(2);
 
      });
+
+     it("should emit 'newAlarm' and 'alarmChanged' when new alarm is added to the ClientAlarmList", () => {
+        const alarmList = new ClientAlarmList();
+
+        let newAlarmCreated = false;
+        let alarmChanged = false;
+        alarmList.on("newAlarm", (alarm: ClientAlarm) => {
+            newAlarmCreated = true;
+        });
+        alarmList.on("alarmChanged", (alarm: ClientAlarm) => {
+            alarmChanged = true;
+        });
+        
+
+        const alarm1_event1: EventStuff = {
+            ackedState: new VariantId(false, "Unack"),
+            activeState: new VariantId(true, "Active"),
+             conditionId: new Variant({ dataType: "NodeId", value: resolveNodeId("ns=1;s=Condition1")}),
+             confirmedState: new VariantId(false, "Unconfirmed"),
+             eventId: new Variant({ dataType: "ByteString", value: Buffer.from("1")}),
+             eventType: new Variant({ dataType: "NodeId", value: resolveNodeId("ns=1;s=EventType1")}),
+             retain: new Variant({value: false}),
+         };
+
+        alarmList.length.should.eql(0);
+
+        alarmList.update(alarm1_event1);
+        newAlarmCreated.should.eql(true);
+        alarmChanged.should.eql(true);
+        alarmList.length.should.eql(1);
+     })
 });
