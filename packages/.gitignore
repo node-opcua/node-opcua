@@ -8,3 +8,5 @@ package-lock.json
 dist*/**/*
 tmp_*
 a.*
+.clinic/
+pnpm-lock.yaml

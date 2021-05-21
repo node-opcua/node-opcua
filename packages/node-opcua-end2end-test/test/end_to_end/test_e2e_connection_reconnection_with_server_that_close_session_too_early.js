@@ -125,7 +125,7 @@ async function start_active_client_no_subscription(connectionStrategy) {
         debugLog(chalk.bgWhite.red(" !!!!!!!!!!!!!!!!!!!!!!!!  CONNECTION RE-ESTABLISHED !!!!!!!!!!!!!!!!!!!"));
     });
     client.on("backoff", function(number, delay) {
-        debugLog(chalk.bgWhite.yellow("backoff  attempt #"), number, " retrying in ", delay, " miliseconds");
+        debugLog(chalk.bgWhite.yellow("backoff  attempt #"), number, " retrying in ", delay, " milliseconds");
     });
 
     session = await client.createSession();

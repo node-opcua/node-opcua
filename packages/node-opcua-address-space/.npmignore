@@ -4,3 +4,4 @@ test_to_fix/
 tsconfig.json
 tsconfig_*.json
 *.tsbuildinfo
+pnpm-lock.yaml

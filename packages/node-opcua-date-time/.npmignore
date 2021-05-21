@@ -11,5 +11,6 @@ _test_generated/
 schemas/
 tsconfig.json
 *.tsbuildinfo
+pnpm-lock.yaml
 tslint.*
 

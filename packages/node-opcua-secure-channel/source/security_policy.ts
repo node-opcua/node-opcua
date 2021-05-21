@@ -85,7 +85,7 @@ function errorLog(...args: any[]) {
  *   -> CertificateSignatureAlgorithm - Sha256
  *
  *  Support for this security profile may require support for a second application instance certificate, with a larger
- *  keysize. Applications shall support multiple Application Instance Certificates if required by supported Security
+ *  key size. Applications shall support multiple Application Instance Certificates if required by supported Security
  *  Polices and use the certificate that is required for a given security endpoint.
  *
  *
@@ -120,7 +120,7 @@ export function fromURI(uri: string | null): SecurityPolicy {
     if (a.length < 2) {
         return SecurityPolicy.Invalid;
     }
-    const v = (SecurityPolicy as any)[ a[1] ];
+    const v = (SecurityPolicy as any)[a[1]];
     return v as SecurityPolicy || SecurityPolicy.Invalid;
 }
 
@@ -146,7 +146,7 @@ export function coerceSecurityPolicy(value?: any): SecurityPolicy {
     if (value === undefined) {
         return SecurityPolicy.None;
     }
-    if (value === "Basic128Rsa15" || value === "Basic256" ||  value === "Basic192Rsa15" || value === "None" || value === "Basic256Sha256" || value === "Basic256Rsa15") {
+    if (value === "Basic128Rsa15" || value === "Basic256" || value === "Basic192Rsa15" || value === "None" || value === "Basic256Sha256" || value === "Basic256Rsa15") {
         return (SecurityPolicy as any)[value as string] as SecurityPolicy;
     }
     if (!(
@@ -223,9 +223,9 @@ function RSAPKCS1V15SHA1_Sign(buffer: Buffer, privateKey: PrivateKeyPEM): Buffer
 
 function RSAPKCS1V15SHA256_Sign(buffer: Buffer, privateKey: PrivateKeyPEM): Buffer {
 
-// xx    if (privateKey instanceof Buffer) {
-// xx        privateKey = toPem(privateKey, "RSA PRIVATE KEY");
-// xx   }
+    // xx    if (privateKey instanceof Buffer) {
+    // xx        privateKey = toPem(privateKey, "RSA PRIVATE KEY");
+    // xx   }
     const params = {
         algorithm: "RSA-SHA256",
         privateKey,
@@ -280,7 +280,7 @@ export function computeDerivedKeys(self: CryptoFactory, serverNonce: Nonce, clie
             derivedServerKeys: computeDerivedKeys_ext(clientNonce, serverNonce, options),
         };
     } else {
-        return {derivedClientKeys: null, derivedServerKeys: null, algorithm: null};
+        return { derivedClientKeys: null, derivedServerKeys: null, algorithm: null };
     }
 }
 
@@ -434,11 +434,11 @@ export function computeSignature(
     receiverPrivateKey: PrivateKeyPEM | null,
     securityPolicy: SecurityPolicy): SignatureData | undefined {
 
-    if (!senderNonce || !senderCertificate || !receiverPrivateKey) {
+    if (!senderNonce || !senderCertificate || senderCertificate.length === 0 || !receiverPrivateKey) {
         return undefined;
     }
 
-    // Verify that senderCertifiate is not a chain
+    // Verify that senderCertificate is not a chain
     const chain = split_der(senderCertificate);
 
     const cryptoFactory = getCryptoFactory(securityPolicy);
@@ -481,10 +481,10 @@ export function verifySignature(
         // no signature provided
         return false;
     }
-    // Verify that senderCertifiate is not a chain
+    // Verify that senderCertificate is not a chain
     const chain = split_der(receiverCertificate);
 
-        
+
     assert(signature.signature instanceof Buffer);
     // This parameter is calculated by appending the clientNonce to the clientCertificate
     const dataToVerify = Buffer.concat([chain[0], receiverNonce]);
@@ -501,8 +501,8 @@ export interface SecureMessageChunkManagerOptionsPartial {
 
 }
 export function getOptionsForSymmetricSignAndEncrypt(
-  securityMode: MessageSecurityMode,
-  derivedKeys: DerivedKeys
+    securityMode: MessageSecurityMode,
+    derivedKeys: DerivedKeys
 ): SecureMessageChunkManagerOptionsPartial {
 
     assert(derivedKeys.hasOwnProperty("signatureLength"));
@@ -514,7 +514,7 @@ export function getOptionsForSymmetricSignAndEncrypt(
     };
     if (securityMode === MessageSecurityMode.SignAndEncrypt) {
         options = {
-            ...options, 
+            ...options,
             cipherBlockSize: derivedKeys.encryptingBlockSize,
             encryptBufferFunc: (chunk: Buffer) => encryptBufferWithDerivedKeys(chunk, derivedKeys),
             plainBlockSize: derivedKeys.encryptingBlockSize,

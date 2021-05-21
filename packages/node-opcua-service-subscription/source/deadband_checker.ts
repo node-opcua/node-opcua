@@ -72,7 +72,9 @@ function isOutsideDeadbandVariant(v1: Variant, v2: Variant, absoluteDeadBand: nu
         return false;
     } else {
         assert(v1.arrayType === VariantArrayType.Scalar);
-        assert(v1.dataType === v2.dataType);
+        if(v1.dataType !== v2.dataType) {
+            return true;
+        }
         return _isOutsideDeadbandScalar(v1.value, v2.value, v1.dataType, absoluteDeadBand);
     }
 }

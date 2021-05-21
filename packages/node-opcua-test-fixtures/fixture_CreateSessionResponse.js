@@ -1,9 +1,10 @@
 
 
-var makebuffer_from_trace = require("node-opcua-debug").makebuffer_from_trace;
+const { makeBufferFromTrace } = require("node-opcua-debug");
 
 
-exports.packet_CreateSessionResponse_1 = makebuffer_from_trace(function () {
+/* cSpell:disable */
+exports.packet_CreateSessionResponse_1 = makeBufferFromTrace(function() {
     /*
      00000000: 4d 53 47 43 ff 1f 00 00 46 00 00 00 01 00 00 00 04 00 00 00 03 00 00 00 01 00 d0 01 5b 0f 55 a3    MSGC....F.................P.[.U#
      00000020: 3f 23 cf 01 03 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 02 06 00 fb 2e 1d 23 05 00 00 20 00    ?#O....................{..#.....
@@ -263,7 +264,7 @@ exports.packet_CreateSessionResponse_1 = makebuffer_from_trace(function () {
      00001fe0: 53 65 72 76 65 72 30 1e 17 0d 31 32 30 38 31 36 31 30 33 31 30 33 5a 17 0d 33 37 30 34 30 37       Server0...120816103103Z..370407
      */
 });
-exports.packet_CreateSessionResponse_2 = makebuffer_from_trace(function () {
+exports.packet_CreateSessionResponse_2 = makeBufferFromTrace(function() {
     /*
      00000000: 4d 53 47 46 57 15 00 00 46 00 00 00 01 00 00 00 05 00 00 00 03 00 00 00 31 30 33 31 30 33 5a 30    MSGFW...F...............103103Z0
      00000020: 38 31 1b 30 19 06 0a 09 92 26 89 93 f2 2c 64 01 19 16 0b 58 4c 45 55 52 49 31 31 30 32 32 31 19    81.0.....&..r,d....XLEURI110221.
@@ -443,7 +444,7 @@ exports.packet_CreateSessionResponse_2 = makebuffer_from_trace(function () {
 //        1         2         3         4         5                   6
 //234567890123456789012345678901234567890123456789012345678901234567890123456789
 // another CreateSessionResponse in a single message chunk
-exports.packet_CreateSessionResponse_3 = makebuffer_from_trace(function () {
+exports.packet_CreateSessionResponse_3 = makeBufferFromTrace(function() {
     /*
      0000   4d 53 47 46 6d 12 00 00 99 ba 04 02 01 00 00 00  MSGFm...........
      0010   36 00 00 00 04 00 00 00 01 00 d0 01 10 76 47 cb  6............vG.

@@ -7,11 +7,16 @@ import * as chalk from "chalk";
 import * as fs from "fs";
 import * as path from "path";
 
+import { withLock } from "@ster5/global-mutex";
 import { assert } from "node-opcua-assert";
 import { IOPCUASecureObjectOptions, OPCUASecureObject } from "node-opcua-common";
 import { Certificate, makeSHA1Thumbprint, Nonce } from "node-opcua-crypto";
 import { installPeriodicClockAdjustment, periodicClockAdjustment, uninstallPeriodicClockAdjustment } from "node-opcua-date-time";
 import { checkDebugFlag, make_debugLog, make_errorLog, make_warningLog } from "node-opcua-debug";
+
+import { makeApplicationUrn } from "node-opcua-common";
+import { getHostname, resolveFullyQualifiedDomainName } from "node-opcua-hostname";
+
 import {
     ClientSecureChannelLayer,
     coerceConnectionStrategy,
@@ -54,9 +59,10 @@ import {
     OPCUAClientBaseOptions
 } from "../client_base";
 import { ClientSessionImpl } from "./client_session_impl";
-import { OPCUACertificateManager } from "node-opcua-certificate-manager";
-import { _verifyCertificate } from "../verify";
+import { getDefaultCertificateManager, makeSubject, OPCUACertificateManager } from "node-opcua-certificate-manager";
+import { performCertificateSanityCheck } from "../verify";
 import { VerificationStatus } from "node-opcua-pki";
+import { cpuUsage } from "process";
 
 // tslint:disable-next-line:no-var-requires
 const once = require("once");
@@ -79,7 +85,7 @@ interface MasterClient extends OPCUAClientBase {
 function __findEndpoint(this: OPCUAClientBase, endpointUrl: string, params: FindEndpointOptions, _callback: FindEndpointCallback) {
     const masterClient = this as MasterClient;
     debugLog("findEndpoint : endpointUrl = ", endpointUrl);
-
+    debugLog(" params ", params);
     assert(!masterClient._tmpClient);
 
     const callback = (err: Error | null, result?: FindEndpointResult) => {
@@ -89,12 +95,19 @@ function __findEndpoint(this: OPCUAClientBase, endpointUrl: string, params: Find
 
     const securityMode = params.securityMode;
     const securityPolicy = params.securityPolicy;
-
+    const connectionStrategy = params.connectionStrategy;
     const options: OPCUAClientBaseOptions = {
         applicationName: params.applicationName,
+        applicationUri: params.applicationUri,
         certificateFile: params.certificateFile,
         clientCertificateManager: params.clientCertificateManager,
-        connectionStrategy: params.connectionStrategy,
+
+        clientName: "EndpointFetcher",
+        connectionStrategy: {
+            maxRetry: 0, /* no- retry */
+            maxDelay: 2000,
+        },
+
         privateKeyFile: params.privateKeyFile
     };
 
@@ -178,10 +191,10 @@ function __findEndpoint(this: OPCUAClientBase, endpointUrl: string, params: Find
             return callback(
                 new Error(
                     "Cannot find an Endpoint matching " +
-                        " security mode: " +
-                        securityMode.toString() +
-                        " policy: " +
-                        securityPolicy.toString()
+                    " security mode: " +
+                    securityMode.toString() +
+                    " policy: " +
+                    securityPolicy.toString()
                 )
             );
         }
@@ -213,7 +226,12 @@ function _verify_serverCertificate(
             return callback(err);
         }
         if (status !== StatusCodes.Good) {
-            certificateManager.verifyCertificate(serverCertificate, (err: Error | null, status?: VerificationStatus) => {});
+            // do it again for debug purposes
+            if (doDebug) {
+                certificateManager.verifyCertificate(serverCertificate, (err1: Error | null, status1?: VerificationStatus) => {
+                    debugLog(status1);
+                });
+            }
             warningLog("serverCertificate = ", makeSHA1Thumbprint(serverCertificate).toString("hex"));
             warningLog("serverCertificate = ", serverCertificate.toString("base64"));
 
@@ -223,18 +241,8 @@ function _verify_serverCertificate(
     });
 }
 
-const forceEndpointDiscoveryOnConnect = !!parseInt(process.env.NODEOPCUA_CLIENT_FORCE_ENDPOINT_DISCOVERY || "0");
+const forceEndpointDiscoveryOnConnect = !!parseInt(process.env.NODEOPCUA_CLIENT_FORCE_ENDPOINT_DISCOVERY || "0", 10);
 debugLog("forceEndpointDiscoveryOnConnect = ", forceEndpointDiscoveryOnConnect);
-
-function getDefaultCertificateManager(): OPCUACertificateManager {
-    const envPaths = require("env-paths");
-    const config = envPaths("NodeOPCUA-Default").config;
-    return new OPCUACertificateManager({
-        name: "certificates",
-        rootFolder: path.join(config, "certificates"),
-        automaticallyAcceptUnknownCertificate: true
-    });
-}
 
 class ClockAdjustment {
     constructor() {
@@ -329,6 +337,7 @@ export class ClientBaseImpl extends OPCUASecureObject implements OPCUAClientBase
     public endpointUrl: string;
     public discoveryUrl: string;
     public readonly applicationName: string;
+    private _applicationUri: string;
 
     /**
      * true if session shall periodically probe the server to keep the session alive and prevent timeout
@@ -360,13 +369,20 @@ export class ClientBaseImpl extends OPCUASecureObject implements OPCUAClientBase
         options = options || {};
 
         if (!options.clientCertificateManager) {
-            options.clientCertificateManager = getDefaultCertificateManager();
+            options.clientCertificateManager = getDefaultCertificateManager("PKI");
         }
         options.privateKeyFile = options.privateKeyFile || options.clientCertificateManager.privateKey;
         options.certificateFile =
-            options.certificateFile || path.join(options.clientCertificateManager.rootDir, "client_certificate.pem");
+            options.certificateFile || path.join(options.clientCertificateManager.rootDir, "own/certs/client_certificate.pem");
 
         super(options as IOPCUASecureObjectOptions);
+
+        this.applicationName = options.applicationName || "NodeOPCUA-Client";
+        assert(!this.applicationName.match(/^locale=/), "applicationName badly converted from LocalizedText");
+        assert(!this.applicationName.match(/urn:/), "applicationName should not be a URI");
+
+        // we need to delay _applicationUri initialization
+        this._applicationUri = options.applicationUri || this._getBuiltApplicationUri();
 
         this.disconnecting = false;
         this._internalState = "idle";
@@ -410,8 +426,6 @@ export class ClientBaseImpl extends OPCUASecureObject implements OPCUAClientBase
          * @type {boolean}
          */
         this.keepPendingSessionsOnDisconnect = options.keepPendingSessionsOnDisconnect || false;
-
-        this.applicationName = options.applicationName || "NodeOPCUA-Client";
 
         this.discoveryUrl = options.discoveryUrl || "";
     }
@@ -464,6 +478,7 @@ export class ClientBaseImpl extends OPCUASecureObject implements OPCUAClientBase
         };
 
         const failAndRetry = (err: Error, message: string) => {
+            debugLog("failAndRetry; ", message);
             if (this.reconnectionIsCanceled) {
                 this.emit("reconnection_canceled");
                 return callback(new Error("Reconnection has been canceled - " + this.clientName));
@@ -488,12 +503,12 @@ export class ClientBaseImpl extends OPCUASecureObject implements OPCUAClientBase
                     if (err.message.match("Backoff aborted.")) {
                         return failAndRetry(err!, "cannot create secure channel (backoff aborted)");
                     }
-                    if (true || err!.message.match("BadCertificateInvalid")) {
+                    if (err!.message.match("BadCertificateInvalid") || err!.message.match(/_socket has been disconnected by third party/)) {
                         warningLog(
                             "the server certificate has changed,  we need to retrieve server certificate again: ",
                             err.message
                         );
-                        warningLog("old server certificate ", makeSHA1Thumbprint(this.serverCertificate!).toString("hex"));
+                        warningLog("old server certificate ", this.serverCertificate ? makeSHA1Thumbprint(this.serverCertificate!).toString("hex") : "undefined");
                         // the server may have shut down the channel because its certificate
                         // has changed ....
                         // let request the server certificate again ....
@@ -620,39 +635,72 @@ export class ClientBaseImpl extends OPCUASecureObject implements OPCUAClientBase
         );
     }
 
-    protected async initializeCM(): Promise<void> {
-        await this.clientCertificateManager.initialize();
-        if (!fs.existsSync(this.certificateFile)) {
-            const applicationUri: string = this.applicationName;
+    static async createCertificate(
+        clientCertificateManager: OPCUACertificateManager,
+        certificateFile: string,
+        applicationName: string,
+        applicationUri: string
+    ) {
+        if (!fs.existsSync(certificateFile)) {
+            const hostname = getHostname();
             // this.serverInfo.applicationUri!;
-            const hostname = require("os").hostname();
-            await this.clientCertificateManager.createSelfSignedCertificate({
+            await clientCertificateManager.createSelfSignedCertificate({
                 applicationUri,
                 dns: [hostname],
                 // ip: await getIpAddresses(),
-                outputFile: this.certificateFile,
-                subject: "/CN=MyOPCUAClientApplicationName/O=Sterfive/L=Orleans/C=FR",
+                outputFile: certificateFile,
+                subject: makeSubject(applicationName, hostname),
                 startDate: new Date(),
                 validity: 365 * 10 // 10 years
             });
-            debugLog("privateKey      = ", this.privateKeyFile);
-            debugLog("                = ", this.clientCertificateManager.privateKey);
-            debugLog("certificateFile = ", this.certificateFile);
         }
-
         // istanbul ignore next
-        if (!fs.existsSync(this.certificateFile)) {
-            throw new Error(" cannot locate certificate file " + this.certificateFile);
+        if (!fs.existsSync(certificateFile)) {
+            throw new Error(" cannot locate certificate file " + certificateFile);
         }
+    }
+    protected async createDefaultCertificate() {
+        if ((this as any)._increateDefaultCertificate) {
+            console.log("Rentreancy !:!!")
+        }
+        (this as any)._increateDefaultCertificate = true;
+        if (!fs.existsSync(this.certificateFile)) {
+            const lockfile = path.join(this.certificateFile + ".lock");
+            await withLock({ lockfile: lockfile, maxStaleDuration: 60 * 1000, retryInterval: 100 }, async () => {
+                if (this.disconnecting) {
+                    return;
+                }
+                await ClientBaseImpl.createCertificate(this.clientCertificateManager, this.certificateFile, this.applicationName, this._getBuiltApplicationUri())
+                debugLog("privateKey      = ", this.privateKeyFile);
+                debugLog("                = ", this.clientCertificateManager.privateKey);
+                debugLog("certificateFile = ", this.certificateFile);
+                const certificate = this.getCertificate();
+                const privateKey = this.getPrivateKey();
+            });
+        }
+        (this as any)._increateDefaultCertificate = false;
+    }
 
+    protected _getBuiltApplicationUri(): string {
+        if (!this._applicationUri) {
+            this._applicationUri = makeApplicationUrn(getHostname(), this.applicationName);
+        }
+        return this._applicationUri;
+    }
+
+    protected async initializeCM(): Promise<void> {
+        await this.clientCertificateManager.initialize();
+        await this.createDefaultCertificate();
         // istanbul ignore next
         if (!fs.existsSync(this.privateKeyFile)) {
             throw new Error(" cannot locate private key file " + this.privateKeyFile);
         }
 
         if (this.disconnecting) return;
-
-        await _verifyCertificate.call(this, "client", this.clientCertificateManager, this.applicationName);
+        const lockfile = path.join(this.certificateFile + ".lock");
+        await withLock({ lockfile: lockfile, maxStaleDuration: 60 * 1000, retryInterval: 100 }, async () => {
+            await performCertificateSanityCheck.call(this, "client", this.clientCertificateManager, this._getBuiltApplicationUri());
+        });
     }
 
     protected _internalState: InternalClientState;
@@ -773,12 +821,12 @@ export class ClientBaseImpl extends OPCUASecureObject implements OPCUAClientBase
                     debugLog(chalk.yellow("- The client cannot to :" + endpointUrl + ". Server is not reachable."));
                     err = new Error(
                         "The connection cannot be established with server " +
-                            endpointUrl +
-                            " .\n" +
-                            "Please check that the server is up and running or your network configuration.\n" +
-                            "Err = (" +
-                            err.message +
-                            ")"
+                        endpointUrl +
+                        " .\n" +
+                        "Please check that the server is up and running or your network configuration.\n" +
+                        "Err = (" +
+                        err.message +
+                        ")"
                     );
                 } else {
                     debugLog(chalk.yellow("  - The client certificate may not be trusted by the server"));
@@ -987,7 +1035,9 @@ export class ClientBaseImpl extends OPCUASecureObject implements OPCUAClientBase
         this.disconnecting = true;
 
         if (this._tmpClient) {
-            this._tmpClient.disconnect(() => {
+            this._tmpClient.disconnect((err) => {
+                this._tmpClient = undefined;
+                assert(!this._tmpClient);
                 this.disconnect(callback);
             });
             return;
@@ -1087,6 +1137,7 @@ export class ClientBaseImpl extends OPCUASecureObject implements OPCUAClientBase
         str += "        .randomisationFactor.... " + this.connectionStrategy.randomisationFactor + "\n";
         str += "  keepSessionAlive.............. " + this.keepSessionAlive + "\n";
         str += "  applicationName............... " + this.applicationName + "\n";
+        str += "  applicationUri................ " + this._getBuiltApplicationUri() + "\n";
         str += "  clientName.................... " + this.clientName + "\n";
 
         if (this._secureChannel) {
@@ -1129,7 +1180,7 @@ export class ClientBaseImpl extends OPCUASecureObject implements OPCUAClientBase
         const certificateFile = this.certificateFile;
         const privateKeyFile = this.privateKeyFile;
         const applicationName = this.applicationName;
-
+        const applicationUri = this._applicationUri;
         const params = {
             connectionStrategy: this.connectionStrategy,
             endpointMustExist: false,
@@ -1137,12 +1188,16 @@ export class ClientBaseImpl extends OPCUASecureObject implements OPCUAClientBase
             securityPolicy: this.securityPolicy,
 
             applicationName,
+            applicationUri,
+
             certificateFile,
             privateKeyFile,
 
             clientCertificateManager: this.clientCertificateManager
         };
         return __findEndpoint.call(this, discoveryUrl, params, (err: Error | null, result?: FindEndpointResult) => {
+
+
             if (err) {
                 return callback(err);
             }
@@ -1158,9 +1213,9 @@ export class ClientBaseImpl extends OPCUASecureObject implements OPCUAClientBase
                 // no matching end point can be found ...
                 const err1 = new Error(
                     "cannot find endpoint for securityMode=" +
-                        MessageSecurityMode[this.securityMode] +
-                        " policy = " +
-                        this.securityPolicy
+                    MessageSecurityMode[this.securityMode] +
+                    " policy = " +
+                    this.securityPolicy
                 );
                 return callback(err1);
             }
@@ -1169,7 +1224,10 @@ export class ClientBaseImpl extends OPCUASecureObject implements OPCUAClientBase
 
             _verify_serverCertificate(this.clientCertificateManager, endpoint.serverCertificate, (err1?: Error) => {
                 if (err1) {
-                    warningLog("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx _verify_serverCertificate", err1.message);
+                    warningLog("[NODE-OPCUA-W25] client's server certificate verification has failed ", err1.message);
+                    warningLog("                 ", this.clientCertificateManager.rootDir);
+                    warningLog("                 ", endpoint.serverCertificate.toString("base64").replace(/(.{80})/g, "$1\n                 "));
+                    warningLog("                 verify that server certificate is trusted or that server certificate issuer's certificate is present in the issuer folder");
                     return callback(err1);
                 }
                 this.serverCertificate = endpoint.serverCertificate;
@@ -1393,19 +1451,21 @@ class TmpClient extends ClientBaseImpl {
             return;
         }
         this._internalState = "connecting";
-        this.initializeCM()
-            .then(() => {
-                if (this.disconnecting || this._internalState === "disconnecting") {
-                    debugLog("premature disconnection 2");
-                    this.emit("connection_failed");
-                    this._internalState = "idle";
-                    return callback!(new Error("premature disconnection 3"));
-                }
-                this._connectStep2(endpoint, (err?: Error) => {
-                    callback!(err);
-                });
-            })
+        /* this.initializeCM()
+             .then(() => {
+         */
+        if (this.disconnecting /*|| this._internalState === "disconnecting" */) {
+            debugLog("premature disconnection 2");
+            this.emit("connection_failed");
+            this._internalState = "idle";
+            return callback!(new Error("premature disconnection 3"));
+        }
+        this._connectStep2(endpoint, (err?: Error) => {
+            callback!(err);
+        });
+        /*    })
             .catch((err) => callback!(err));
+        */
     }
 }
 

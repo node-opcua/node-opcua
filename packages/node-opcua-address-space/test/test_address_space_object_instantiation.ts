@@ -2,8 +2,9 @@ import * as should from "should";
 
 import { BrowseDirection } from "node-opcua-data-model";
 
-import { AddressSpace, UAObject, UAObjectType, UAVariable } from "..";
+import { AddressSpace, UAObject, UAObjectType, UAReferenceType, UAVariable } from "..";
 import { getMiniAddressSpace } from "../testHelpers";
+import { sameNodeId } from "node-opcua-nodeid";
 
 // tslint:disable-next-line:no-var-requires
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
@@ -20,14 +21,34 @@ describe("testing add new ObjectType ", () => {
 
     it("should instantiate a objectType that uses custom HasChild Property", () => {
 
+        addressSpace.isFrugal.should.eql(false);
+        const aggregatesReference = addressSpace.findReferenceType("Aggregates");
+
         const namespace = addressSpace.getOwnNamespace();
         // ------------ Add a new aggregate
-        const weezbeChildType = namespace.addReferenceType({
+        const hasWeezbeReferenceType = namespace.addReferenceType({
             browseName: "HasWeezbe",
             inverseName: "WeezbeOf",
             isAbstract: false,
-            subtypeOf: "Aggregates"
+            subtypeOf: aggregatesReference
         });
+
+        hasWeezbeReferenceType.subtypeOfObj.browseName.toString().should.eql("Aggregates");
+        sameNodeId(hasWeezbeReferenceType.subtypeOf, aggregatesReference.nodeId).should.eql(true);
+        hasWeezbeReferenceType.subtypeOfObj.should.eql(aggregatesReference);
+
+        //xx console.log(hasWeezbeReferenceType.isSupertypeOf(aggregatesReference));
+        //xx console.log(aggregatesReference.isSupertypeOf(hasWeezbeReferenceType));
+
+        hasWeezbeReferenceType.isSupertypeOf(aggregatesReference).should.eql(true);
+        const a: UAReferenceType[] = aggregatesReference.getAllSubtypes();
+        //xxconsole.log(a.map(a => a.browseName.toString()));
+
+        const hasChildReference = aggregatesReference.subtypeOfObj;
+        const b: UAReferenceType[] = hasChildReference.getAllSubtypes();
+        //xx console.log(b.map(b => b.browseName.toString()));
+
+        //xx console.log(hasWeezbeReferenceType.toString());
 
         const myObjectType = namespace.addObjectType({
             browseName: "MyObjectType"
@@ -40,7 +61,7 @@ describe("testing add new ObjectType ", () => {
 
         myObjectType.addReference({
             nodeId: weezbeChild,
-            referenceType: weezbeChildType.nodeId,
+            referenceType: hasWeezbeReferenceType.nodeId,
         });
 
         let aggregates = myObjectType.getAggregates();
@@ -58,18 +79,23 @@ describe("testing add new ObjectType ", () => {
         // aggregates.map(function(c){ return c.browseName.toString(); }).join(" "));
         aggregates.length.should.eql(1);
 
-        instance.findReferencesEx("1:HasWeezbe", BrowseDirection.Forward).length.should.eql(1);
+        //xx console.log(instance.toString());
 
+        instance.findReferencesEx("Aggregates", BrowseDirection.Forward).length.should.eql(1);
+        instance.findReferencesEx("HasChild", BrowseDirection.Forward).length.should.eql(1);
+
+        instance.findReferencesEx("1:HasWeezbe", BrowseDirection.Forward).length.should.eql(1);
+        //xx console.log("ins", instance.toString());
         const c = instance.getChildByName("MyWeezBe");
         should.exist(c);
 
     });
 
-    interface MySubObjectType1  extends UAObjectType {
+    interface MySubObjectType1 extends UAObjectType {
         property1: UAVariable;
         property2: UAVariable;
     }
-    interface MySubObject1  extends UAObject {
+    interface MySubObject1 extends UAObject {
         property1: UAVariable;
         property2: UAVariable;
     }

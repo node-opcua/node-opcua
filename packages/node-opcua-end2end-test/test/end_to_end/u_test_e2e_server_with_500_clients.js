@@ -4,10 +4,14 @@
 const async = require("async");
 const should = require("should");
 const chalk = require("chalk");
+const path = require("path");
+const fs = require("fs");
 
-const opcua = require("node-opcua");
+const {
+    getDefaultCertificateManager, 
+    OPCUAClient
+} = require("node-opcua");
 
-const OPCUAClient = opcua.OPCUAClient;
 
 const doDebug = false;
 
@@ -44,7 +48,8 @@ module.exports = function (test) {
 
         const options = {
             connectionStrategy: connectivity_strategy,
-            requestedSessionTimeout: 100000
+            requestedSessionTimeout: 100000,
+            clientCertificateManager: data.clientCertificateManager
         };
 
 
@@ -61,7 +66,7 @@ module.exports = function (test) {
             if(doDebug) { console.log(chalk.bgWhite.yellow("start_reconnection"),data.index); }
         });
         client1.on("backoff", function (number, delay) {
-            if(doDebug) { console.log(chalk.bgWhite.yellow("backoff"),data.index,number,delay);}
+            if(doDebug) { console.log(chalk.bgCyab.yellow("backoff ",data.index),number,delay);}
         });
 
         should.exist(first_client);
@@ -137,14 +142,28 @@ module.exports = function (test) {
 
     describe("AZAZ Testing " + MAXCONNECTIONS + " clients", function () {
 
-        before(function(done){
-            first_client= opcua.OPCUAClient.create();
+        let clientCertificateManager;
+
+        before(async () => {
+            clientCertificateManager = getDefaultCertificateManager("PKI");
+
+            await clientCertificateManager.initialize();
+
+            first_client= OPCUAClient.create({
+                clientCertificateManager: clientCertificateManager,
+                connectionStrategy: {
+                    initialDelay: 1000,
+                    maxRetry: 10,
+                }
+            });
             const endpointUrl = test.endpointUrl;
-            first_client.connect(endpointUrl, done);
+            await first_client.connect(endpointUrl);
 
         });
-        after(function(done){
-            first_client.disconnect(done);
+        after(async ()=>{
+            if (first_client) {
+                await first_client.disconnect();
+            }
         });
 
         it("AZAZ-A should accept many clients", function (done) {
@@ -157,13 +176,13 @@ module.exports = function (test) {
             const q = async.queue(client_session, nb);
 
             for (let i = 0; i < nb; i++) {
-                q.push({index: i});
+                q.push({index: i, clientCertificateManager: clientCertificateManager});
             }
 
             q.drain(() => {
                 //xx console.log("done");
                 done();
-            })  ;
+            });
         });
 
     });

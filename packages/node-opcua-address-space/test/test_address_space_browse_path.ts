@@ -98,7 +98,7 @@ describe("AddressSpace#browsePath", () => {
         result = addressSpace.browsePath(browsePath);
         result.statusCode.should.eql(StatusCodes.Good);
 
-        const evType = addressSpace.findNode(result.targets![0].targetId);
+        const evType = addressSpace.findNode(result.targets![0].targetId)!;
 
         // rowing upstream
         browsePath = makeBrowsePath(evType, "<!HasSubtype>BaseEventType<!Organizes>EventTypes<!Organizes>Types<!Organizes>Root");

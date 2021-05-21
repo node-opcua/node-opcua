@@ -14,7 +14,7 @@ import {
     UAVariable,
     Variant
 } from "node-opcua";
-import { should } from "should";
+import * as should  from "should";
 
 const _should = should;
 

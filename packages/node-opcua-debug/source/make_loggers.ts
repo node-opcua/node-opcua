@@ -9,6 +9,26 @@ import { format } from "util";
 
 const debugFlags: { [id: string]: boolean } = {};
 
+const sTraceFlag = process.env && process.env.DEBUG as string;
+
+// istanbul ignore next
+if (process.env && false) {
+    // this code can be activated to help detecting 
+    // when a external module overwrite one of the 
+    // environement variable that we may be using as well.
+    const old = { ...process.env };
+    const handler = {
+        get: function (obj: any, prop: string) {
+            return old[prop];
+        },
+        set: function (obj: any, prop: string, value: any) {
+            console.log("setting process.env = prop " + prop)
+            old[prop] = value;
+            return true;
+        }
+    }
+    process.env = new Proxy(old, handler);
+}
 const maxLines =
     process.env && process.env.NODEOPCUA_DEBUG_MAXLINE_PER_MESSAGE
         ? parseInt(process.env.NODEOPCUA_DEBUG_MAXLINE_PER_MESSAGE, 10)
@@ -24,13 +44,13 @@ function w(str: string, l: number): string {
 
 export function setDebugFlag(scriptFullPath: string, flag: boolean) {
     const filename = extractBasename(scriptFullPath);
-    if (process.env.DEBUG && process.env.DEBUG.length > 1 && flag) {
+    if (sTraceFlag && sTraceFlag.length > 1 && flag) {
         const decoratedFilename = chalk.yellow(w(filename, 60));
         console.log(
             " Setting debug for ",
             decoratedFilename,
             " to ",
-            (flag ? chalk.cyan : chalk.red)(flag.toString(), process.env.DEBUG)
+            (flag ? chalk.cyan : chalk.red)(flag.toString(), sTraceFlag)
         );
     }
     debugFlags[filename] = flag;
@@ -39,8 +59,8 @@ export function setDebugFlag(scriptFullPath: string, flag: boolean) {
 export function checkDebugFlag(scriptFullPath: string): boolean {
     const filename = extractBasename(scriptFullPath);
     let doDebug: boolean = debugFlags[filename];
-    if (process && process.env && process.env.DEBUG && !debugFlags.hasOwnProperty(filename)) {
-        doDebug = process.env.DEBUG.indexOf(filename) >= 0 || process.env.DEBUG.indexOf("ALL") >= 0;
+    if (sTraceFlag && !debugFlags.hasOwnProperty(filename)) {
+        doDebug = sTraceFlag.indexOf(filename) >= 0 || sTraceFlag.indexOf("ALL") >= 0;
         setDebugFlag(filename, doDebug);
     }
     return doDebug;
@@ -73,7 +93,7 @@ function buildPrefix(mode: "E" | "D" | "W"): string {
     return file_line(mode, filename, callerLine);
 }
 
-function dump(mode: "E" | "D"| "W", args1: [any?, ...any[]]) {
+function dump(mode: "E" | "D" | "W", args1: [any?, ...any[]]) {
     const a2 = Object.values(args1) as [string, ...string[]];
     const output = format.apply(null, a2);
     let a1 = [buildPrefix(mode)];
@@ -113,9 +133,14 @@ export function make_debugLog(scriptFullPath: string): (...arg: any[]) => void {
 }
 
 export class MessageLogger extends EventEmitter {
-
+    constructor() {
+        super();
+    }
+    public on(eventName: "warningMessage" | "errorMessage", eventHandler: any): this {
+        return super.on(eventName, eventHandler);
+    }
 }
-export const messageLogger  = new MessageLogger();
+export const messageLogger = new MessageLogger();
 
 export function make_errorLog(context: string): (...arg: any[]) => void {
     function errorLogFunc(...args: [any?, ...any[]]) {
@@ -127,7 +152,7 @@ export function make_errorLog(context: string): (...arg: any[]) => void {
 
 export function make_warningLog(context: string): (...arg: any[]) => void {
     function errorLogFunc(...args: [any?, ...any[]]) {
-        const output =dump("W", args);
+        const output = dump("W", args);
         messageLogger.emit("warningMessage", output);
     }
 

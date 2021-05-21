@@ -12,7 +12,7 @@ import {
     DataTypeFactory,
     parameters
 } from "node-opcua-factory";
-import { DataType, Variant } from "node-opcua-variant";
+import { DataType, Variant, VariantArrayType } from "node-opcua-variant";
 
 import { encode_decode_round_trip_test } from "node-opcua-packet-analyzer/test_helpers";
 
@@ -195,6 +195,55 @@ describe("BSHA - Binary Schemas Helper 1", () => {
                 console.log("Buffer = ", hexDump(buffer));
             }
         });
+    });
+
+    it("issue#982 - toJSON should not fail if one field is null", () => {
+
+        const StructureWithOptionalFields = getOrCreateConstructor("StructureWithOptionalFields", dataTypeFactory);
+        const structureWithOptionalFields2 = new StructureWithOptionalFields({
+            mandatoryInt32: 42,
+            mandatoryStringArray: [null],
+            optionalInt32: 43,
+            optionalStringArray: [null, null]
+        });
+
+        structureWithOptionalFields2.toJSON().should.eql({
+
+            "mandatoryInt32": 42,
+            "mandatoryStringArray": [
+                null
+            ],
+            "optionalInt32": 43,
+            "optionalStringArray": [
+                null, null
+            ]
+        });
+
+        const v = new Variant({
+            dataType: DataType.ExtensionObject,
+
+            arrayType: VariantArrayType.Array,
+            value: [
+                null,
+                structureWithOptionalFields2
+            ]
+        });
+
+        v.toJSON().should.eql(
+            {
+                dataType: 'ExtensionObject',
+                arrayType: 'Array',
+                value: [
+                    null,
+                    {
+                        mandatoryInt32: 42,
+                        optionalInt32: 43,
+                        mandatoryStringArray: [null],
+                        optionalStringArray: [null, null]
+                    }
+                ]
+
+            });
     });
 
 });
@@ -548,3 +597,43 @@ describe("BSSGF - Binary Schemas Helper 5 (DerivedType -1)", () => {
 
     });
 });
+
+describe("BSHG - Binary Schema Helper 6 - Milo", () => {
+    let dataTypeFactory: DataTypeFactory;
+    let old_schema_helpers_doDebug = false;
+    before(async () => {
+        const sample_file = path.join(__dirname, "fixtures/sample_milo.xsd");
+
+        old_schema_helpers_doDebug = parameters.debugSchemaHelper;
+        parameters.debugSchemaHelper = true;
+        const sample = fs.readFileSync(sample_file, "ascii");
+        dataTypeFactory = new DataTypeFactory([]);
+        await parseBinaryXSDAsync(sample, idProvider, dataTypeFactory);
+    });
+
+    after(() => {
+        parameters.debugSchemaHelper = old_schema_helpers_doDebug;
+    });
+
+    it("BSHG-1 - should handle CustomUnionType", async () => {
+        const CustomUnionType = getOrCreateConstructor("CustomUnionType", dataTypeFactory);
+
+        const data1 = new CustomUnionType({ foo: 42 });
+        const reloadedData1 = encode_decode_round_trip_test(data1, (buffer: Buffer) => {
+            buffer.length.should.eql(4 /* optionalBit*/ + 4 /* UInt32 */);
+            const stream = new BinaryStream(buffer);
+            stream.readUInt32().should.eql(0x0001);
+            stream.readUInt32().should.eql(42);
+        });
+        console.log(reloadedData1.toJSON());
+
+        const data2 = new CustomUnionType({ bar: "Hello" });
+        const reloadedData2 = encode_decode_round_trip_test(data2, (buffer: Buffer) => {
+            buffer.length.should.eql(4 /* optionalBit*/ + 4 /* string length*/ + 5 /* Hello*/);
+        });
+        console.log(reloadedData1.toJSON());
+    });
+
+
+
+})

@@ -19,7 +19,7 @@
       "spaces",
       4
     ],
-    "object-literal-sort-keys": true,
+    "object-literal-sort-keys": false,
     "max-line-length": false,
     "no-consecutive-blank-lines": true,
     "interface-name": [

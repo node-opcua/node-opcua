@@ -1,8 +1,6 @@
 /**
  * @module node-opcua-address-space
  */
-import * as chalk from "chalk";
-
 import { assert } from "node-opcua-assert";
 import * as ec from "node-opcua-basic-types";
 import { BinaryStream, BinaryStreamSizeCalculator, OutputBinaryStream } from "node-opcua-binary-stream";
@@ -11,13 +9,12 @@ import * as factories from "node-opcua-factory";
 import { NodeId, resolveNodeId } from "node-opcua-nodeid";
 import { Argument } from "node-opcua-service-call";
 import { StatusCode, StatusCodes } from "node-opcua-status-code";
-import { Variant, VariantLike, VariantOptions } from "node-opcua-variant";
+import { Variant } from "node-opcua-variant";
 import { DataType } from "node-opcua-variant";
 import { VariantArrayType } from "node-opcua-variant";
 
 import { NodeClass } from "node-opcua-data-model";
-import { ArgumentOptions } from "node-opcua-types";
-import { AddressSpace, UADataType, UAMethod, UAObject } from "../address_space_ts";
+import { AddressSpace, UAMethod, UAObject } from "../address_space_ts";
 
 const debugLog = make_debugLog(__filename);
 const doDebug = checkDebugFlag(__filename);
@@ -96,8 +93,6 @@ export function getMethodDeclaration_ArgumentList(
     objectId: NodeId,
     methodId: NodeId
 ): { statusCode: StatusCode; methodDeclaration?: UAMethod } {
-    assert(objectId instanceof NodeId);
-    assert(methodId instanceof NodeId);
     // find object in address space
     const obj = addressSpace.findNode(objectId) as UAObject;
     if (!obj) {
@@ -134,7 +129,6 @@ export function getMethodDeclaration_ArgumentList(
  * @private
  */
 function isArgumentValid(addressSpace: AddressSpace, argDefinition: Argument, arg: Variant): boolean {
-    assert(argDefinition instanceof Argument);
     assert(argDefinition.hasOwnProperty("dataType"));
     assert(argDefinition.hasOwnProperty("valueRank"));
 
@@ -200,16 +194,24 @@ export function verifyArguments_ArgumentList(
     inputArgumentResults?: StatusCode[];
     statusCode: StatusCode;
 } {
-    const inputArgumentResults: StatusCode[] = [];
-
-    if (methodInputArguments.length === 0 && !inputArguments) {
+    if (!inputArguments) {
         // it is possible to not provide inputArguments when method  has no arguments
-        return { statusCode: StatusCodes.Good };
+        return methodInputArguments.length === 0
+            ? { statusCode: StatusCodes.Good }
+            : { statusCode: StatusCodes.BadArgumentsMissing };
     }
-    if (methodInputArguments.length > 0 && !inputArguments) {
-        return { statusCode: StatusCodes.BadArgumentsMissing };
-    }
-    inputArguments = inputArguments || [];
+
+    const inputArgumentResults: StatusCode[] = methodInputArguments.map((methodInputArgument, index) => {
+        const argument = inputArguments![index];
+        if (!argument) {
+            return StatusCodes.BadNoData;
+        } else if (!isArgumentValid(addressSpace, methodInputArgument, argument)) {
+            return StatusCodes.BadTypeMismatch;
+        } else {
+            return StatusCodes.Good;
+        }
+    });
+
     if (methodInputArguments.length > inputArguments.length) {
         // istanbul ignore next
         if (doDebug) {
@@ -223,7 +225,7 @@ export function verifyArguments_ArgumentList(
                     inputArguments.length
             );
         }
-        return { statusCode: StatusCodes.BadArgumentsMissing };
+        return { inputArgumentResults, statusCode: StatusCodes.BadArgumentsMissing };
     }
 
     if (methodInputArguments.length < inputArguments.length) {
@@ -239,53 +241,19 @@ export function verifyArguments_ArgumentList(
                     inputArguments.length
             );
         }
-        return { statusCode: StatusCodes.BadTooManyArguments };
+        return { inputArgumentResults, statusCode: StatusCodes.BadTooManyArguments };
     }
 
-    let errorCount = 0;
-    for (let i = 0; i < methodInputArguments.length; i++) {
-        const argDefinition = methodInputArguments[i];
-
-        const arg = inputArguments[i];
-
-        // istanbul ignore next
-        if (doDebug) {
-            debugLog(
-                "verifyArguments_ArgumentList checking argument " +
-                    i +
-                    "\n        argDefinition is    : " +
-                    JSON.stringify(argDefinition) +
-                    "\n        corresponding arg is: " +
-                    JSON.stringify(arg)
-            );
-        }
-        if (!isArgumentValid(addressSpace, argDefinition, arg)) {
-            // istanbul ignore next
-            if (doDebug) {
-                debugLog(
-                    "verifyArguments_ArgumentList \n" +
-                        "         The client did specify a argument with the wrong data type.\n" +
-                        chalk.white("          expected : ") +
-                        argDefinition.dataType +
-                        "\n" +
-                        chalk.cyan("          actual   :") +
-                        arg.dataType
-                );
-            }
-            inputArgumentResults.push(StatusCodes.BadTypeMismatch);
-            errorCount += 1;
-        } else {
-            inputArgumentResults.push(StatusCodes.Good);
-        }
-    }
-    assert(inputArgumentResults.length === methodInputArguments.length);
-
-    const ret = {
+    return {
         inputArgumentResults,
-        statusCode: errorCount === 0 ? StatusCodes.Good : StatusCodes.BadInvalidArgument
+        statusCode: 
+            (   
+                inputArgumentResults.includes(StatusCodes.BadTypeMismatch)  ||
+                inputArgumentResults.includes(StatusCodes.BadOutOfRange)
+            ) 
+            ? StatusCodes.BadInvalidArgument
+            : StatusCodes.Good
     };
-
-    return ret;
 }
 
 export function build_retrieveInputArgumentsDefinition(addressSpace: AddressSpace) {

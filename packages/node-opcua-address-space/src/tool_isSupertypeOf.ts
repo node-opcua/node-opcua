@@ -7,7 +7,7 @@ import { NodeId, resolveNodeId } from "node-opcua-nodeid";
 import { sameNodeId } from "node-opcua-nodeid";
 import { BaseNode as BaseNodePublic, UADataType, UAObjectType, UAReference, UAReferenceType, UAVariableType } from "../source";
 import { BaseNode } from "./base_node";
-import { BaseNode_getPrivate } from "./base_node_private";
+import { BaseNode_getCache } from "./base_node_private";
 import { Reference } from "./reference";
 
 const HasSubTypeNodeId = resolveNodeId("HasSubtype");
@@ -110,15 +110,15 @@ export function get_subtypeOf<T extends BaseNode>(this: T): NodeId | null {
 }
 
 export function get_subtypeOfObj(this: BaseNode): BaseNode | null {
-    const _private = BaseNode_getPrivate(this);
+    const _cache = BaseNode_getCache(this);
 
-    if (!_private._cache._subtypeOfObj) {
+    if (!_cache._subtypeOfObj) {
         const is_subtype_of_ref = this.findReference("HasSubtype", false);
         if (is_subtype_of_ref) {
-            _private._cache._subtypeOfObj = Reference.resolveReferenceNode(this.addressSpace, is_subtype_of_ref);
+            _cache._subtypeOfObj = Reference.resolveReferenceNode(this.addressSpace, is_subtype_of_ref);
         } else {
-            _private._cache._subtypeOfObj = null;
+            _cache._subtypeOfObj = null;
         }
     }
-    return _private._cache._subtypeOfObj;
+    return _cache._subtypeOfObj;
 }

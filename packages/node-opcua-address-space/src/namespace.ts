@@ -539,8 +539,7 @@ export class UANamespace implements NamespacePublic {
             const subtypeOfNodeId = addressSpace._coerceType(options.subtypeOf, "References", NodeClass.ReferenceType);
 
             assert(subtypeOfNodeId);
-            // tslint:disable:no-console
-            console.log(chalk.cyan(subtypeOfNodeId.toString()));
+             
             options1.references.push({
                 isForward: false,
                 nodeId: subtypeOfNodeId,
@@ -1863,12 +1862,6 @@ export class UANamespace implements NamespacePublic {
     private _registerReferenceType(node: UAReferenceType) {
         assert(this.index === node.nodeId.namespace);
         assert(node.browseName instanceof QualifiedName);
-        if (!node.inverseName) {
-            // Inverse name is not required anymore in 1.0.4
-            // xx console.log("Warning : node has no inverse Name ",
-            // node.nodeId.toString(), node.browseName.toString());
-            node.inverseName = LocalizedText.coerce({ text: node.browseName.name! })!;
-        }
         const key: string = node.browseName.name!;
         this._referenceTypeMap.set(key, node);
         this._referenceTypeMapInv.set(node.inverseName.text!, node);
@@ -1969,7 +1962,7 @@ export class UANamespace implements NamespacePublic {
         _handle_hierarchy_parent(addressSpace, references, options);
 
         UANamespace_process_modelling_rule(references, options.modellingRule);
-
+        
         const method = this._createNode({
             browseName: options.browseName,
             description: options.description || "",
@@ -1979,7 +1972,7 @@ export class UANamespace implements NamespacePublic {
             nodeClass: NodeClass.Method,
             nodeId: options.nodeId,
             references,
-            permissions: options.permissions
+            rolePermissions: options.rolePermissions
         }) as UAMethod;
         assert(method.nodeId !== null);
         method.propagate_back_references();

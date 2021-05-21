@@ -1,26 +1,27 @@
 {
     "name": "node-opcua-data-model",
-    "version": "2.29.0",
+    "version": "2.42.0",
     "description": "pure nodejs OPCUA SDK - module -data-model",
     "scripts": {
         "build": "tsc -b",
         "test": "mocha",
-        "clean": "node -e \"require('rimraf').sync('_generated_');require('rimraf').sync('dist');\""
+        "clean": "node -e \"require('rimraf').sync('_generated_');require('rimraf').sync('dist');\"",
+        "coverage": "npx nyc node ../../node_modules/mocha/bin/mocha"
     },
     "main": "./dist/index.js",
     "types": "./dist/index.d.ts",
     "dependencies": {
-        "node-opcua-assert": "2.29.0",
-        "node-opcua-basic-types": "2.29.0",
-        "node-opcua-binary-stream": "2.29.0",
-        "node-opcua-enum": "2.29.0",
-        "node-opcua-factory": "2.29.0",
-        "node-opcua-nodeid": "2.29.0",
-        "node-opcua-status-code": "2.29.0",
-        "node-opcua-utils": "2.29.0"
+        "node-opcua-assert": "2.42.0",
+        "node-opcua-basic-types": "2.42.0",
+        "node-opcua-binary-stream": "2.42.0",
+        "node-opcua-enum": "2.42.0",
+        "node-opcua-factory": "2.42.0",
+        "node-opcua-nodeid": "2.42.0",
+        "node-opcua-status-code": "2.42.0",
+        "node-opcua-utils": "2.42.0"
     },
     "devDependencies": {
-        "node-opcua-packet-analyzer": "2.29.0",
+        "node-opcua-packet-analyzer": "2.42.0",
         "should": "^13.2.3",
         "source-map-support": "^0.5.19"
     },

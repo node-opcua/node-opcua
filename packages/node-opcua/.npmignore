@@ -2,3 +2,4 @@ out
 test
 tsconfig.json
 *.tsbuildinfo
+pnpm-lock.yaml

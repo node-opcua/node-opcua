@@ -19,10 +19,10 @@ describe("testing Client - Umbrella-B ", function() {
     const test = this;
     test.port = port;
 
-    before((done)     => beforeTest(test,done));
-    beforeEach((done) => beforeEachTest(test,done));
-    afterEach((done)  => afterEachTest(test,done));
-    after((done)      => afterTest(test,done));
+    before((done) => beforeTest(test, done));
+    beforeEach((done) => beforeEachTest(test, done));
+    afterEach((done) => afterEachTest(test, done));
+    after((done) => afterTest(test, done));
 
 
     require("./u_test_e2e_issue_610_timeoutHint_overflow")(test);
@@ -39,7 +39,12 @@ describe("testing Client - Umbrella-B ", function() {
     require("./u_test_e2e_endpoint_should_be_case_insensitive")(test);
     require("./u_test_e2e_keepAlive")(test);
     require("./u_test_e2e_createsSession_endpoints")(test);
-    
+
     // typescripts tests starts here...
     require("./u_test_e2e_deadband_filter").t(test);
+    require("./u_test_e2e_set_triggering").t(test);
+    require("./u_test_e2e_write_large_array_range").t(test);
+    require("./u_test_e2e_Subscription_modify_subscription").t(test);
+    require("./u_test_e2e_monitoring_larger_number2").t(test);
+
 });

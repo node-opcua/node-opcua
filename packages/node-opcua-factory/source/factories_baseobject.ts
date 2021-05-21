@@ -464,6 +464,12 @@ export class BaseUAObject {
         for (const field of schema.fields) {
             const value = self[field.name];
 
+            if (typeof field.switchValue === "number" ) {
+                // skip 
+                if (self["switchField"] !== field.switchValue) {
+                    continue;
+                }
+            }
             if (field.isArray) {
                 const cursorBefore = stream.length;
                 let nb = stream.readUInt32();

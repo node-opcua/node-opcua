@@ -1,7 +1,13 @@
 import { assert } from "node-opcua-assert";
-import { QualifiedName, ReferenceDescription, BrowseResult, NodeId } from "node-opcua-client";
+import { 
+    QualifiedName, 
+    ReferenceDescription, 
+    BrowseResult, 
+    NodeId 
+} from "node-opcua-client";
 import { debugLog } from "node-opcua-pki";
-import { CacheNode, UserData } from ".";
+import { CacheNode } from "./cache_node";
+import { UserData } from "./node_crawler_base";
 
 export type EmptyCallback = () => void;
 

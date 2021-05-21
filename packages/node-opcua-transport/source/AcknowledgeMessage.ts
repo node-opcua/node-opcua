@@ -99,4 +99,14 @@ export class AcknowledgeMessage extends BaseUAObject {
         this.maxMessageSize = decodeUInt32(stream);
         this.maxChunkCount = decodeUInt32(stream);
     }
+
+    public toString(): string {
+        let str = "";
+        str += 'protocolVersion   = ' + this.protocolVersion +'\n';
+        str += 'receiveBufferSize = ' + this.receiveBufferSize +'\n';
+        str += 'sendBufferSize    = ' + this.sendBufferSize +'\n';
+        str += 'maxMessageSize    = ' + this.maxMessageSize +'\n';
+        str += 'maxChunkCount     = ' + this.maxChunkCount +'\n'; 
+        return str;
+    }
 }

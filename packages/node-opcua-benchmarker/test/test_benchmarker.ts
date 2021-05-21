@@ -52,8 +52,8 @@ describe("Testing Benchmarker", () => {
             }));
         }
         await bench
-            .add("test1", test1)
-            .add("test2", test2)
+            .add("test1 - setImmediate", test1)
+            .add("test2 - process.nextTick", test2)
             .on("cycle", (message) => {
                 console.log(message);
             })

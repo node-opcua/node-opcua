@@ -19,7 +19,7 @@ const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 
 module.exports = function(test) {
 
-    describe("Testing MonitoredItem with TiemstampToReturn.Source #804", function() {
+    describe("Testing MonitoredItem with TimestampToReturn.Source #804", function() {
 
         let client, endpointUrl;
 
@@ -50,7 +50,7 @@ module.exports = function(test) {
 
                 let sourceTimestampCount = 0;
                 let serverTimestampCount = 0;
-                let notifCount = 0;
+                let notificationCount = 0;
                 const ids = [
                     "Scalar_Simulation_Double",
                     "Scalar_Simulation_Boolean",
@@ -68,21 +68,21 @@ module.exports = function(test) {
                         TimestampsToReturn.Source);
 
                     monitoredItem.on("changed", (dataValue) => {
-                        console.log(dataValue.toString());
+                        // console.log(dataValue.toString());
                         if (dataValue.sourceTimestamp) {
                             sourceTimestampCount++;
                         }
                         if (dataValue.serverTimestamp) {
                             serverTimestampCount++;
                         }
-                        notifCount++;
+                        notificationCount++;
                     });
                 });
 
                 subscription.once("started", function(subscriptionId) {
                     setTimeout(() => {
                         serverTimestampCount.should.eql(0);
-                        sourceTimestampCount.should.eql(notifCount);
+                        sourceTimestampCount.should.eql(notificationCount);
                         subscription.terminate(inner_done);
                     }, 3000);
 

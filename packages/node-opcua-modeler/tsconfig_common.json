@@ -18,6 +18,9 @@
             "path": "../node-opcua-basic-types"
         },
         {
+            "path": "../node-opcua-constants"
+        },
+        {
             "path": "../node-opcua-data-model"
         },
         {

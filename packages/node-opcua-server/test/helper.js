@@ -3,10 +3,8 @@
 const should = require("should");
 const sinon = require("sinon");
 
-const subscription_service = require("node-opcua-service-subscription");
-const StatusCodes = require("node-opcua-status-code").StatusCodes;
-
-const SubscriptionState = require("..").SubscriptionState;
+const { MonitoredItemNotification } = require("node-opcua-service-subscription");
+const { StatusCodes } = require("node-opcua-status-code");
 
 function add_mock_monitored_item(subscription) {
     // pretend we have a monitored item
@@ -29,7 +27,7 @@ function add_mock_monitored_item(subscription) {
             this.simulateMonitoredItemAddingNotification();
         }
     };
-    monitoredItem.__defineGetter__("hasMonitoredItemNotifications", function() {
+    monitoredItem.__defineGetter__("hasMonitoredItemNotifications", function () {
         return this.queue.length > 0;
     });
 
@@ -39,7 +37,7 @@ function add_mock_monitored_item(subscription) {
 
     monitoredItem.simulateMonitoredItemAddingNotification = function simulateMonitoredItemAddingNotification() {
 
-        monitoredItem.queue.push(new subscription_service.MonitoredItemNotification({
+        monitoredItem.queue.push(new MonitoredItemNotification({
             clientHandle: 1,
             value: {
                 statusCode: StatusCodes.Good,

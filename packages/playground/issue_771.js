@@ -5,20 +5,21 @@ const {
     OPCUAServer,
     OPCUAClient,
     UserTokenType,
+    makeRoles,
 } = require("node-opcua");
 
 
 const users = [
-    { username: "user1", password: "password1", role: "admin" },
-    { username: "user2", password: "password2", role: "operator" },
-    { username: "anonymous", password: "0", role: "guest" },
+    { username: "user1", password: "password1", roles: makeRoles("ConfigAdmin;SystemAdmin") },
+    { username: "user2", password: "password2", roles: makeRoles("Operator") },
+    { username: "anonymous", password: "0", roles: makeRoles("Anonymous") },
 ];
 
 // simplistic user manager for test purpose only ( do not use in production !)
 const userManager = {
 
-    isValidUser: function(username, password) {
-        const uIndex = users.findIndex(function(u) {
+    isValidUser: function (username, password) {
+        const uIndex = users.findIndex(function (u) {
             return u.username === username;
         });
         if (uIndex < 0) {
@@ -30,14 +31,14 @@ const userManager = {
         return true;
     },
 
-    getUserRole: function(username) {
-        const uIndex = users.findIndex(function(x) {
+    getUserRoles: function (username) {
+        const uIndex = users.findIndex(function (x) {
             return x.username === username;
         });
         if (uIndex < 0) {
-            return "unknown";
+            return makeRoles("Anonymous");
         }
-        const userRole = users[uIndex].role;
+        const userRole = users[uIndex].roles;
         return userRole;
     }
 

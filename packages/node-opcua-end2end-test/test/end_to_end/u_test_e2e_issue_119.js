@@ -1,4 +1,3 @@
-/*global it,describe,beforeEach,afterEach,require*/
 "use strict";
 
 const { assert } = require("node-opcua-assert");
@@ -135,7 +134,7 @@ module.exports = function(test) {
                         inner_done();
                     });
 
-                    const nodeId = "ns=2;s=Scalar_Static_Double";
+                    const nodeId = "ns=2;s=Static_Scalar_Double";
 
                     let count = 1.0;
 

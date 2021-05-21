@@ -15,7 +15,6 @@ import {
 } from "..";
 import { generateAddressSpace } from "../nodeJS";
 
-
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 const debugLog = make_debugLog("TEST");
 const doDebug = checkDebugFlag("TEST");
@@ -133,6 +132,37 @@ describe("verifyArguments_ArgumentList", () => {
         result.should.eql({
             inputArgumentResults: [StatusCodes.BadTypeMismatch],
             statusCode: StatusCodes.BadInvalidArgument
+        });
+    });
+
+    it("verifyArguments_ArgumentList - One UInt32 - BadArgumentsMissing", () => {
+        const args: Variant[] = [];
+        const result = verifyArguments_ArgumentList(addressSpace, methodInputArgumentsOneUInt32, args);
+        debugLog("statusCode             ", result.statusCode.toString());
+        result.should.eql({
+            inputArgumentResults: [StatusCodes.BadNoData],
+            statusCode: StatusCodes.BadArgumentsMissing
+        });
+    });
+    it("verifyArguments_ArgumentList - One UInt32 - BadTooManyArguments", () => {
+        const args = [new Variant({ dataType: DataType.UInt32, value: 1 }), new Variant({ dataType: DataType.UInt32, value: 1 })];
+        const result = verifyArguments_ArgumentList(addressSpace, methodInputArgumentsOneUInt32, args);
+        debugLog("statusCode             ", result.statusCode.toString());
+        result.should.eql({
+            inputArgumentResults: [StatusCodes.Good],
+            statusCode: StatusCodes.BadTooManyArguments
+        });
+    });
+    it("verifyArguments_ArgumentList - One UInt32 - BadTooManyArguments & BadTypeMismatch", () => {
+        const args = [
+            new Variant({ dataType: DataType.String, value: "Bad" }),
+            new Variant({ dataType: DataType.UInt32, value: 1 })
+        ];
+        const result = verifyArguments_ArgumentList(addressSpace, methodInputArgumentsOneUInt32, args);
+        debugLog("statusCode             ", result.statusCode.toString());
+        result.should.eql({
+            inputArgumentResults: [StatusCodes.BadTypeMismatch],
+            statusCode: StatusCodes.BadTooManyArguments
         });
     });
 

@@ -415,6 +415,7 @@ async function main() {
     if (argv.userName && argv.password) {
         userIdentity = {
             type: UserTokenType.UserName,
+
             password: argv.password as string,
             userName: argv.userName as string
         };

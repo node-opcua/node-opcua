@@ -21,9 +21,9 @@ describe("Testing the server  engine - View related ", function() {
             done();
         });
     });
-    afterEach(function() {
+    afterEach(async () => {
         should.exist(engine);
-        engine.shutdown();
+        await engine.shutdown();
         engine = null;
     });
 

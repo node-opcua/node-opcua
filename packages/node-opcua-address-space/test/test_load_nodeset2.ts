@@ -256,7 +256,7 @@ describe("testing NodeSet XML file loading", function (this: any) {
         should.exist(dataType);
 
         // TO DO : What should it be .
-        // (dataType as any)._getDefinition().should.be.instanceOf(StructureDefinition);
+        // (dataType as any)._getDefinition(false).should.be.instanceOf(StructureDefinition);
     });
 
     it("VV5 read datatype ", async () => {
@@ -268,7 +268,7 @@ describe("testing NodeSet XML file loading", function (this: any) {
 
         dataType.nodeId.toString().should.eql("ns=1;i=6244");
 
-        (dataType as any)._getDefinition().should.be.instanceOf(EnumDefinition);
+        (dataType as any)._getDefinition(true).should.be.instanceOf(EnumDefinition);
 
         // must have a EnumString property
         const enumStrings = dataType.getChildByName("EnumStrings")!;

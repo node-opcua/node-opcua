@@ -45,6 +45,7 @@ export interface FindEndpointOptions {
     certificateFile: string;
     privateKeyFile: string;
     applicationName: string;
+    applicationUri: string;
     clientCertificateManager: OPCUACertificateManager;
 }
 
@@ -61,6 +62,12 @@ export interface OPCUAClientBaseOptions {
      * @default "NodeOPCUA-Client"
      */
     applicationName?: string;
+
+    /**
+     * the application Uri
+     * @default: `urn:${hostname}:${applicationName}`
+     */
+    applicationUri?: string;
 
     connectionStrategy?: ConnectionStrategyOptions;
 
@@ -106,7 +113,6 @@ export interface OPCUAClientBaseOptions {
      */
     keepSessionAlive?: boolean;
 
-
     /**
      * certificate Manager
      */
@@ -114,14 +120,15 @@ export interface OPCUAClientBaseOptions {
 
     /**
      * client certificate pem file.
-     * @default "certificates/client_selfsigned_cert_2048.pem"
+     * @default `${clientCertificateManager/rootFolder}/own/certs/client_certificate.pem"
      */
     certificateFile?: string;
     /**
      * client private key pem file.
-     * @default "certificates/client_key_2048.pem"
+     * @default `${clientCertificateManager/rootFolder}/own/private/private_key.pem"
      */
     privateKeyFile?: string;
+
     /**
      * a client name string that will be used to generate session names.
      */
@@ -140,6 +147,12 @@ export interface GetEndpointsOptions {
 }
 
 export interface OPCUAClientBase extends OPCUASecureObject {
+
+    /**
+     * certificate Manager
+     */
+    readonly clientCertificateManager: OPCUACertificateManager;
+
     /***
      *
      * @param endpointUrl the endpoint of the server to connect to ( i.e "opc.tcp://machine.name:3434/name" )

@@ -21,9 +21,11 @@ import { TCPErrorMessage } from "./TCPErrorMessage";
 import { decodeMessage, packTcpMessage } from "./tools";
 
 import * as debug from "node-opcua-debug";
+import { doTraceHelloAck } from "./utils";
 
 const hexDump = debug.hexDump;
 const debugLog = debug.make_debugLog(__filename);
+const errorLog = debug.make_errorLog(__filename);
 const doDebug = debug.checkDebugFlag(__filename);
 
 type CallbackFunc = (err: null | Error) => void;
@@ -74,6 +76,12 @@ export class ServerTCP_transport extends TCP_transport {
         this.protocolVersion = 0;
     }
 
+    protected _write_chunk(messageChunk: Buffer): void {
+        if (messageChunk.length > this.sendBufferSize) {
+            errorLog("write chunk exceed sendBufferSize messageChunk length = ", messageChunk.length , "sendBufferSize = ", this.sendBufferSize);
+        }
+        super._write_chunk(messageChunk);
+    }
     /**
      * Initialize the server transport.
      *
@@ -148,8 +156,15 @@ export class ServerTCP_transport extends TCP_transport {
 
         this.receiveBufferSize = clamp_value(helloMessage.receiveBufferSize, 8192, 512 * 1024);
         this.sendBufferSize = clamp_value(helloMessage.sendBufferSize, 8192, 512 * 1024);
-        this.maxMessageSize = clamp_value(helloMessage.maxMessageSize, 100000, 16 * 1024 * 1024);
+        this.maxMessageSize = clamp_value(helloMessage.maxMessageSize, 100000, 64 * 1024 * 1024);
         this.maxChunkCount = clamp_value(helloMessage.maxChunkCount, 0, 65535);
+
+        // istanbul ignore next
+        if (doTraceHelloAck) {
+            console.log(`received Hello \n${helloMessage.toString()}`)
+        }
+
+        debugLog("Client accepts only message of size => ", this.maxMessageSize);
 
         const acknowledgeMessage = new AcknowledgeMessage({
             maxChunkCount: this.maxChunkCount,
@@ -158,6 +173,12 @@ export class ServerTCP_transport extends TCP_transport {
             receiveBufferSize: this.receiveBufferSize,
             sendBufferSize: this.sendBufferSize
         });
+
+        // istanbul ignore next
+        if (doTraceHelloAck) {
+            console.log(`sending Ack \n${acknowledgeMessage.toString()}`)
+        }
+
         const messageChunk = packTcpMessage("ACK", acknowledgeMessage);
 
         /* istanbul ignore next*/

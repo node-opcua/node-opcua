@@ -8,17 +8,24 @@ import * as mkdirp from "mkdirp";
 import envPaths from "env-paths";
 import { checkDebugFlag, make_debugLog, make_errorLog } from "node-opcua-debug";
 
-import { Certificate, exploreCertificateInfo, makeSHA1Thumbprint, readCertificate, split_der, toPem } from "node-opcua-crypto";
-import { CertificateManager, CertificateManagerOptions, CertificateStatus } from "node-opcua-pki";
+import {
+     Certificate, 
+     exploreCertificateInfo, makeSHA1Thumbprint, readCertificate, split_der, toPem 
+    } from "node-opcua-crypto";
+import { 
+    CertificateManager, 
+    CertificateManagerOptions, 
+    CertificateStatus 
+} from "node-opcua-pki";
 import { StatusCodes } from "node-opcua-status-code";
 import { StatusCode } from "node-opcua-status-code";
 
-import {  StatusCodeCallback } from "node-opcua-status-code";
-import { assert }from "node-opcua-assert";
+import { StatusCodeCallback } from "node-opcua-status-code";
+import { assert } from "node-opcua-assert";
 
 import { ObjectRegistry } from "node-opcua-object-registry";
 
-const paths = envPaths("NodeOPCUA");
+const paths = envPaths("node-opcua-default");
 
 const debugLog = make_debugLog(__filename);
 const errorLog = make_errorLog(__filename);
@@ -52,7 +59,7 @@ type ReadFileFunc = (filename: string, encoding: string, callback: (err: Error |
 export interface OPCUACertificateManagerOptions {
     /**
      * where to store the PKI
-     * default %APPDATA%/node-opcua
+     * default %APPDATA%/node-opcua-default
      */
     rootFolder?: null | string;
 
@@ -65,14 +72,16 @@ export interface OPCUACertificateManagerOptions {
     name?: string;
 
     /**
-     * 
+     *
      */
-    keySize?: 2048 | 3072 | 4096
+    keySize?: 2048 | 3072 | 4096;
 }
 
 export class OPCUACertificateManager extends CertificateManager implements ICertificateManager {
+    public static defaultCertificateSubject = "/O=Sterfive/L=Orleans/C=FR";
+
     public static registry = new ObjectRegistry({});
-    public isShared: boolean;
+    public referenceCounter: number;
     public automaticallyAcceptUnknownCertificate: boolean;
     /* */
     constructor(options: OPCUACertificateManagerOptions) {
@@ -89,7 +98,7 @@ export class OPCUACertificateManager extends CertificateManager implements ICert
         };
         super(_options);
 
-        this.isShared = false;
+        this.referenceCounter = 0;
 
         this.automaticallyAcceptUnknownCertificate = !!options.automaticallyAcceptUnknownCertificate;
     }
@@ -99,33 +108,26 @@ export class OPCUACertificateManager extends CertificateManager implements ICert
     public initialize(...args: any[]): any {
         const callback = args[0];
         assert(callback && callback instanceof Function);
-        if (!this.initialized) {
-            // OPCUACertificateManager.registry.register(this);
-        }
         return super.initialize(callback);
     }
 
     public async dispose(): Promise<void> {
-        if (!this.isShared) {
-            if (this.initialized) {
-               // OPCUACertificateManager.registry.unregister(this);
-            }
+        if (this.referenceCounter === 0) {
             await super.dispose();
-            this.initialized = false;    
+        } else {
+            this.referenceCounter--;
         }
     }
 
     public checkCertificate(certificateChain: Certificate): Promise<StatusCode>;
     public checkCertificate(certificateChain: Certificate, callback: StatusCodeCallback): void;
     public checkCertificate(certificateChain: Certificate, callback?: StatusCodeCallback): Promise<StatusCode> | void {
-
         // istanbul ignore next
         if (!callback || typeof callback !== "function") {
             throw new Error("Internal error");
         }
 
         this.verifyCertificate(certificateChain, (err1?: Error | null, status?: string) => {
-
             // istanbul ignore next
             if (err1) {
                 return callback!(err1);
@@ -166,3 +168,15 @@ const opts = { multiArgs: false };
 OPCUACertificateManager.prototype.checkCertificate = thenify.withCallback(OPCUACertificateManager.prototype.checkCertificate, opts);
 OPCUACertificateManager.prototype.getTrustStatus = thenify.withCallback(OPCUACertificateManager.prototype.getTrustStatus, opts);
 OPCUACertificateManager.prototype.initialize = thenify.withCallback(OPCUACertificateManager.prototype.initialize, opts);
+
+import * as path from "path";
+export function getDefaultCertificateManager(name: "PKI" | "UserPKI"): OPCUACertificateManager {
+    const config = envPaths("node-opcua-default").config;
+    const pkiFolder = path.join(config, name);
+    return new OPCUACertificateManager({
+        name,
+        rootFolder: pkiFolder,
+
+        automaticallyAcceptUnknownCertificate: true
+    });
+}

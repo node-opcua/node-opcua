@@ -16,7 +16,8 @@ import { ReadValueId, ReadValueIdOptions } from "node-opcua-service-read";
 import { WriteValueOptions } from "node-opcua-service-write";
 import { BrowsePath, BrowsePathResult } from "node-opcua-service-translate-browse-path";
 import { Variant } from "node-opcua-variant";
-import { StatusCode } from "node-opcua-status-code";
+import { StatusCode, StatusCodes } from "node-opcua-status-code";
+import { VariableIds } from "node-opcua-constants";
 
 export type BrowseDescriptionLike = string | BrowseDescriptionOptions;
 export type CallMethodRequestLike = CallMethodRequestOptions;
@@ -193,3 +194,16 @@ export function getArgumentDefinitionHelper(
         });
     });
 }
+
+export async function readNamespaceArray(session: IBasicSession): Promise<string[]>
+{
+    const dataValue = await session.read({
+        nodeId: resolveNodeId(VariableIds.Server_NamespaceArray), 
+        attributeId: AttributeIds.Value
+    });
+    if (dataValue.statusCode !== StatusCodes.Good) {
+        return [];
+    }
+    return dataValue.value.value as string[];
+}
+

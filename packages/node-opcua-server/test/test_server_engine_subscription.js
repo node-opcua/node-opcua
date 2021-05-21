@@ -3,7 +3,7 @@ const should = require("should");
 const sinon = require("sinon");
 
 const { MonitoringMode, PublishRequest } = require("node-opcua-service-subscription");
-const { StatusCodes } = require("node-opcua-status-code");
+const { StatusCodes, StatusCode } = require("node-opcua-status-code");
 const { TimestampsToReturn } = require("node-opcua-service-read");
 const { MonitoredItemCreateRequest } = require("node-opcua-service-subscription");
 
@@ -39,19 +39,20 @@ describe("ServerEngine Subscriptions service", function() {
         });
     });
 
-    afterEach(function() {
+    afterEach(async () => {
         session = null;
         should.exist(engine);
-        engine.shutdown();
+        await engine.shutdown();
         engine = null;
     });
 
-    it("should return an error when trying to delete an non-existing subscription", function() {
+    it("should return an error when trying to delete an non-existing subscription", async () => {
         session = engine.createSession();
-        session.deleteSubscription(-6789).should.eql(StatusCodes.BadSubscriptionIdInvalid);
+        const statusCode = await session.deleteSubscription(-6789);
+        statusCode.should.eql(StatusCodes.BadSubscriptionIdInvalid);
     });
 
-    it("should check the subscription live cycle", function() {
+    it("should check the subscription live cycle", async () => {
 
         session = engine.createSession();
         session.currentSubscriptionCount.should.equal(0);
@@ -72,7 +73,7 @@ describe("ServerEngine Subscriptions service", function() {
 
         session.getSubscription(subscription.id).should.equal(subscription);
 
-        const statusCode = session.deleteSubscription(subscription.id);
+        const statusCode = await session.deleteSubscription(subscription.id);
         statusCode.should.eql(StatusCodes.Good);
 
         session.currentSubscriptionCount.should.equal(0);
@@ -86,7 +87,7 @@ describe("ServerEngine Subscriptions service", function() {
 
     });
 
-    it("XCX session should emit a new_subscription and subscription_terminated event", function() {
+    it("XCX session should emit a new_subscription and subscription_terminated event", async () => {
 
         session = engine.createSession();
 
@@ -114,7 +115,8 @@ describe("ServerEngine Subscriptions service", function() {
         spyNew.callCount.should.eql(1);
         spyTerminated.callCount.should.eql(0);
 
-        const statusCode = session.deleteSubscription(subscription.id);
+        const statusCode = await session.deleteSubscription(subscription.id);
+        statusCode.should.be.instanceOf(StatusCode);
 
         spyNew.callCount.should.eql(1);
         spyTerminated.callCount.should.eql(1);
@@ -127,7 +129,7 @@ describe("ServerEngine Subscriptions service", function() {
 
     });
 
-    it("should maintain the correct number of cumulatedSubscriptionCount at the engine level", function() {
+    it("should maintain the correct number of cumulatedSubscriptionCount at the engine level", async () => {
 
         session = engine.createSession();
         const subscription_parameters = {
@@ -154,7 +156,7 @@ describe("ServerEngine Subscriptions service", function() {
         engine.currentSubscriptionCount.should.equal(2);
         engine.cumulatedSubscriptionCount.should.equal(2);
 
-        session.deleteSubscription(subscription2.id);
+        await session.deleteSubscription(subscription2.id);
         engine.currentSubscriptionCount.should.equal(1);
         engine.cumulatedSubscriptionCount.should.equal(2);
 
@@ -173,21 +175,21 @@ describe("ServerEngine Subscriptions service", function() {
         engine.cumulatedSubscriptionCount.should.equal(5);
 
         // close the session, asking to delete subscriptions
-        engine.closeSession(session2.authenticationToken, /* deleteSubscription */true);
+        await engine.closeSession(session2.authenticationToken, /* deleteSubscriptions */true);
 
         engine.currentSessionCount.should.equal(1);
         engine.cumulatedSessionCount.should.equal(2);
         engine.currentSubscriptionCount.should.equal(1);
         engine.cumulatedSubscriptionCount.should.equal(5);
 
-        session.deleteSubscription(subscription1.id);
+        await session.deleteSubscription(subscription1.id);
 
         engine.currentSubscriptionCount.should.equal(0);
         engine.cumulatedSubscriptionCount.should.equal(5);
 
     });
 
-    it("DDD delete a subscription with 2 outstanding PublishRequest", function() {
+    it("DDD delete a subscription with 2 outstanding PublishRequest", async () => {
 
         session = engine.createSession();
 
@@ -212,7 +214,7 @@ describe("ServerEngine Subscriptions service", function() {
 
         publishSpy.callCount.should.eql(0);
 
-        session.deleteSubscription(subscription1.id);
+        await session.deleteSubscription(subscription1.id);
         // after subscription has been deleted, the 2 outstanding publish request shall
         // be completed
         publishSpy.callCount.should.eql(2);
@@ -226,7 +228,7 @@ describe("ServerEngine Subscriptions service", function() {
     });
 
 
-    it("ZDZ create and terminate 2 subscriptions , with 4 publish requests", async () => {
+    it("ZDZ-1 create and terminate 2 subscriptions , with 4 publish requests", async () => {
 
         await with_fake_timer.call(this, async () => {
 
@@ -251,7 +253,7 @@ describe("ServerEngine Subscriptions service", function() {
             test.clock.tick(subscription1.publishingInterval);
             subscription1.state.should.eql(SubscriptionState.LATE);
 
-            session.deleteSubscription(subscription1.id);
+            await session.deleteSubscription(subscription1.id);
             subscription1.state.should.eql(SubscriptionState.CLOSED);
 
             const subscription2 = session.createSubscription(subscription_parameters);
@@ -270,7 +272,7 @@ describe("ServerEngine Subscriptions service", function() {
             test.clock.tick(subscription2.publishingInterval);
             subscription2.state.should.eql(SubscriptionState.KEEPALIVE);
 
-            session.deleteSubscription(subscription2.id);
+            await session.deleteSubscription(subscription2.id);
             subscription2.state.should.eql(SubscriptionState.CLOSED);
 
             publishSpy.callCount.should.eql(4);
@@ -283,14 +285,14 @@ describe("ServerEngine Subscriptions service", function() {
             publishSpy.getCall(2).args[1].responseHeader.serviceResult.should.eql(StatusCodes.BadNoSubscription);
             publishSpy.getCall(3).args[1].responseHeader.serviceResult.should.eql(StatusCodes.BadNoSubscription);
 
-            engine.closeSession(session.authenticationToken, true, "CloseSession");
+            await engine.closeSession(session.authenticationToken, true, "CloseSession");
 
         });
 
 
     });
 
-    it("ZDZ LifeTimeCount, the publish engine shall send a StatusChangeNotification to inform that a subscription has been closed because of lifetime timeout - with 2 subscriptions", async () => {
+    it("ZDZ-2 LifeTimeCount, the publish engine shall send a StatusChangeNotification to inform that a subscription has been closed because of lifetime timeout - with 2 subscriptions", async () => {
 
         await with_fake_timer.call(this, async () => {
             const test = this;
@@ -302,9 +304,9 @@ describe("ServerEngine Subscriptions service", function() {
             // CTT : deleteSub5106004
             const subscription_parameters = {
                 requestedPublishingInterval: 1000,  // Duration
-                requestedLifetimeCount: 60,    // Counter
-                requestedMaxKeepAliveCount: 10,    // Counter
-                maxNotificationsPerPublish: 10,    // Counter
+                requestedLifetimeCount: 60,         // Counter
+                requestedMaxKeepAliveCount: 10,     // Counter
+                maxNotificationsPerPublish: 10,     // Counter
                 publishingEnabled: true,            // Boolean
                 priority: 14                        // Byte
             };
@@ -317,8 +319,10 @@ describe("ServerEngine Subscriptions service", function() {
             test.clock.tick(subscription1.publishingInterval);
             subscription1.state.should.eql(SubscriptionState.LATE);
 
+            // wait until subscription expires entirely
             test.clock.tick(subscription1.publishingInterval * subscription1.lifeTimeCount);
             subscription1.state.should.eql(SubscriptionState.CLOSED);
+            
 
             const subscription2 = session.createSubscription(subscription_parameters);
             //xx console.log("subscription2", subscription2.subscriptionId);
@@ -334,13 +338,16 @@ describe("ServerEngine Subscriptions service", function() {
             session.publishEngine._on_PublishRequest(new PublishRequest({ requestHeader: { requestHandle: 103 } }), publishSpy);
             session.publishEngine._on_PublishRequest(new PublishRequest({ requestHeader: { requestHandle: 104 } }), publishSpy);
 
-            session.deleteSubscription(subscription2.id);
+            test.clock.tick(subscription2.publishingInterval);
+
+            await session.deleteSubscription(subscription2.id);
             test.clock.tick(subscription2.publishingInterval);
 
             publishSpy.callCount.should.eql(4);
-            //xx console.log(publishSpy.getCall(0).args[1].toString());
-            //xx console.log(publishSpy.getCall(1).args[1].toString());
-            //xx console.log(publishSpy.getCall(2).args[1].toString());
+            // console.log(publishSpy.getCall(0).args[1].toString());
+            // console.log(publishSpy.getCall(1).args[1].toString());
+            // console.log(publishSpy.getCall(2).args[1].toString());
+            // console.log(publishSpy.getCall(3).args[1].toString());
 
             publishSpy.getCall(0).args[1].responseHeader.serviceResult.should.eql(StatusCodes.Good);
             publishSpy.getCall(0).args[1].subscriptionId.should.eql(subscription1.id);
@@ -354,7 +361,7 @@ describe("ServerEngine Subscriptions service", function() {
             publishSpy.getCall(2).args[1].responseHeader.serviceResult.should.eql(StatusCodes.BadNoSubscription);
             publishSpy.getCall(3).args[1].responseHeader.serviceResult.should.eql(StatusCodes.BadNoSubscription);
 
-            engine.closeSession(session.authenticationToken, true, "CloseSession");
+            await engine.closeSession(session.authenticationToken, true, "CloseSession");
 
         });
 
@@ -367,7 +374,7 @@ describe("ServerEngine Subscriptions service", function() {
         // When the subscription times out and closed
         // And  When the client send a PublishRequest notification
         // Then the client shall receive the StatusChangeNotification
-        await with_fake_timer.call(this, () => {
+        await with_fake_timer.call(this, async () => {
 
             const test = this;
 
@@ -419,7 +426,7 @@ describe("ServerEngine Subscriptions service", function() {
             publishSpy.getCall(3).args[1].notificationMessage.sequenceNumber.should.eql(0);
             publishSpy.getCall(3).args[1].notificationMessage.notificationData.length.should.eql(0);
 
-            engine.closeSession(session.authenticationToken, true, "CloseSession");
+            await engine.closeSession(session.authenticationToken, true, "CloseSession");
         });
     });
 
@@ -467,7 +474,7 @@ describe("ServerEngine Subscriptions service", function() {
             publishSpy.getCall(0).args[1].notificationMessage.notificationData[0].constructor.name.should.eql("StatusChangeNotification");
             publishSpy.getCall(0).args[1].notificationMessage.notificationData[0].status.should.eql(StatusCodes.BadTimeout);
 
-            engine.closeSession(session.authenticationToken, true, "CloseSession");
+            await engine.closeSession(session.authenticationToken, true, "CloseSession");
         });
     });
 
@@ -514,8 +521,8 @@ describe("ServerEngine Subscriptions service", function() {
                 }
             });
 
-            const monitoredItemCreateResult = subscription.createMonitoredItem(engine.addressSpace, TimestampsToReturn.Both, monitoredItemCreateRequest);
-            monitoredItemCreateResult.statusCode.should.eql(StatusCodes.Good);
+            const createResult = subscription.createMonitoredItem(engine.addressSpace, TimestampsToReturn.Both, monitoredItemCreateRequest);
+            createResult.statusCode.should.eql(StatusCodes.Good);
 
 
             const deleteSubscriptions = false;

@@ -15,7 +15,8 @@ import {
     TimestampsToReturn,
     ErrorCallback,
     ApplicationType,
-    ClientSession
+    ClientSession,
+    OPCUACertificateManager
 } from "node-opcua";
 
 import { make_debugLog, checkDebugFlag } from "node-opcua-debug";
@@ -29,7 +30,6 @@ const port1 = 1241;
 const port_discovery = 1244;
 
 module.exports = () => {
-    
     const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
     describe("NodeRed -  testing frequent server restart within same process", function () {
         /**
@@ -44,13 +44,15 @@ module.exports = () => {
         let discoveryServer: OPCUADiscoveryServer;
         let discoveryServerEndpointUrl: string;
 
-        const startDiscoveryServer= f(function start_the_discovery_server(callback: ErrorCallback) {
+        const startDiscoveryServer = f(function start_the_discovery_server(callback: ErrorCallback) {
             // note : only one discovery server shall be run per machine
-            startDiscovery(port_discovery).then((_discoveryServer: OPCUADiscoveryServer)=>{
-                discoveryServer = _discoveryServer;
-                discoveryServerEndpointUrl = discoveryServer.getEndpointUrl();
-                callback()
-            }).catch(err=>callback(err));
+            startDiscovery(port_discovery)
+                .then((_discoveryServer: OPCUADiscoveryServer) => {
+                    discoveryServer = _discoveryServer;
+                    discoveryServerEndpointUrl = discoveryServer.getEndpointUrl();
+                    callback();
+                })
+                .catch((err) => callback(err));
         });
 
         const stopDiscoveryServer = f(function stop_the_discovery_server(callback: ErrorCallback) {
@@ -62,19 +64,20 @@ module.exports = () => {
         });
 
         let endpointUrl = "";
-        
-        const createServer = f(function start_an_opcua_server_that_registers_to_the_lds(callback: ErrorCallback) {
 
-            createServerThatRegisterWithDiscoveryServer(discoveryServerEndpointUrl,port1,"AZ").then(async (server: OPCUAServer)=>{
-                g_server = server;
-                await server.start();
-                server.endpoints.length.should.be.greaterThan(0);
-                endpointUrl = server.getEndpointUrl();
-                callback();
-            }).catch(err=>callback(err));
+        const createServer = f(function start_an_opcua_server_that_registers_to_the_lds(callback: ErrorCallback) {
+            createServerThatRegisterWithDiscoveryServer(discoveryServerEndpointUrl, port1, "AZ")
+                .then(async (server: OPCUAServer) => {
+                    g_server = server;
+                    await server.start();
+                    server.endpoints.length.should.be.greaterThan(0);
+                    endpointUrl = server.getEndpointUrl();
+                    callback();
+                })
+                .catch((err) => callback(err));
         });
 
-        const  shutdownServer = f(function shutdown_the_opcua_server(callback: ErrorCallback) {
+        const shutdownServer = f(function shutdown_the_opcua_server(callback: ErrorCallback) {
             g_server.shutdown(function () {
                 if (doDebug) {
                     debugLog("Server has been shot down");
@@ -92,43 +95,42 @@ module.exports = () => {
         let clients: ClientData[] = [];
 
         const connectManyClient = f(function connect_many_opcua_clients(callback: ErrorCallback) {
-            let clientCount =0;
+            let clientCount = 0;
             function addClient(callback: ErrorCallback) {
                 if (doDebug) {
                     debugLog(" creating client");
                 }
                 let client = OPCUAClient.create({
                     requestedSessionTimeout: 5000,
-                    clientName: "Client-"+clientCount
+                    clientName: "Client-" + clientCount
                 });
-                clientCount+=1;
+                clientCount += 1;
 
-            
-                client.on("connection_lost", ()=>{
+                client.on("connection_lost", () => {
                     debugLog("connection lost", client.clientName);
-                })
-                client.on("connection_reestablished", ()=>{
+                });
+                client.on("connection_reestablished", () => {
                     debugLog("connection reestablished", client.clientName);
-                })
-                client.on("reconnection_canceled", ()=>{
-                    debugLog("reconnection canceled ", client.clientName);              
-                })
-                client.on("after_reconnection", ()=>{
-                    debugLog("after_reconnection ", client.clientName);              
-                })
+                });
+                client.on("reconnection_canceled", () => {
+                    debugLog("reconnection canceled ", client.clientName);
+                });
+                client.on("after_reconnection", () => {
+                    debugLog("after_reconnection ", client.clientName);
+                });
                 client.connect(endpointUrl, (err?: Error) => {
                     if (err) return callback(err);
                     client.createSession(function (err, _session) {
                         if (err) return callback(err);
                         const session = _session!;
- 
-                        session.on("session_closed", ()=>{
+
+                        session.on("session_closed", () => {
                             debugLog("session closed - client", client.clientName);
                         });
-                        session.on("session_restored", ()=>{
+                        session.on("session_restored", () => {
                             debugLog("session restored - client", client.clientName);
                         });
-                        
+
                         const subscription = ClientSubscription.create(session, {
                             requestedPublishingInterval: 100,
                             requestedLifetimeCount: 1000,
@@ -140,10 +142,7 @@ module.exports = () => {
                         subscription
                             .on("started", function () {
                                 if (doDebug) {
-                                    debugLog(
-                                        "subscription started for 2 seconds - subscriptionId=",
-                                        subscription.subscriptionId
-                                    );
+                                    debugLog("subscription started for 2 seconds - subscriptionId=", subscription.subscriptionId);
                                 }
                             })
                             .on("keepalive", function () {
@@ -168,16 +167,14 @@ module.exports = () => {
                                 debugLog(dataValue.toString());
                             }
                         });
-                        clients.push({ client, session, subscription, monitoredItem});
+                        clients.push({ client, session, subscription, monitoredItem });
 
                         callback();
                     });
                 });
             }
 
-            async.parallel([
-                addClient, addClient, addClient, addClient, addClient, addClient
-            ], ()=>callback());
+            async.parallel([addClient, addClient, addClient, addClient, addClient, addClient], () => callback());
         });
 
         const shutdownClients = f(function disconnect_the_opcua_clients(callback: ErrorCallback) {
@@ -200,11 +197,9 @@ module.exports = () => {
                 });
             }
 
-            async.parallel([
-                removeClient, removeClient, removeClient, removeClient, removeClient, removeClient
-            ],()=>{
+            async.parallel([removeClient, removeClient, removeClient, removeClient, removeClient, removeClient], () => {
                 callback();
-                debugLog("------------------------------------------ clients terminated")
+                debugLog("------------------------------------------ clients terminated");
             });
         });
 
@@ -225,24 +220,46 @@ module.exports = () => {
         });
 
         it("T0a- should perform start/stop cycle efficiently ", function (done) {
-            async.series([
-                createServer,
-                wait_a_few_seconds,
-                shutdownServer
-            ], done);
+            async.series([createServer, wait_a_few_seconds, shutdownServer], done);
         });
 
         it("T0b- should perform start/stop cycle efficiently ", function (done) {
             async.series([createServer, shutdownServer], done);
         });
 
+        it("T0c0 - disposing  cerficiation manager during initialization ", function (done) {
+
+            const cm = new OPCUACertificateManager({
+               // rootFolder: 
+            });
+
+            async.series(
+                [
+                    f(function when_creating_a_opcua_certificate_manager(callback: ErrorCallback) {
+                        cm.initialize((err) =>{
+                            done();
+                        })
+                        callback();
+                    }),
+                    f(function disposing(callback: ErrorCallback) {
+                        cm.dispose();
+                    }),
+                ],
+                ()=>{
+
+                });
+        })
         it("T0c- should cancel a client that is attempting a connection on an existing server", function (done) {
             let client = OPCUAClient.create({});
             const endpoint = discoveryServerEndpointUrl;
             async.series(
                 [
                     f(function when_we_create_a_client_but_do_not_wait_for_connection(callback: ErrorCallback) {
-                        client.connect(endpoint,  () => { /* nothing here */});
+                        client.connect(endpoint, (err) => {
+                            /* nothing here */
+                            // console.log("Connect err = ", err ? err.message: null);
+                            done();
+                        });
                         setImmediate(callback);
                     }),
 
@@ -253,7 +270,9 @@ module.exports = () => {
                         wait_a_few_seconds(callback);
                     })
                 ],
-                done
+                ()=>{
+                    /* nothing here => connect wil call done */
+                }
             );
         });
 
@@ -307,17 +326,22 @@ module.exports = () => {
 
         it("T0g- registration manager as a standalone object 2/2", function (done) {
             const registrationManager = new RegisterServerManager({
-                discoveryServerEndpointUrl: "opc.tcp://localhost:48481", //<< not existing
+                discoveryServerEndpointUrl: "opc.tcp://localhost:48481", // << not existing
                 server: {
+                    serverCertificateManager: new OPCUACertificateManager({}),
                     certificateFile: "",
                     privateKeyFile: "",
                     capabilitiesForMDNS: [],
-                    getCertificate(): Buffer { return Buffer.alloc(0);},
-                    getDiscoveryUrls():string[] {return []},
+                    getCertificate(): Buffer {
+                        return Buffer.alloc(0);
+                    },
+                    getDiscoveryUrls(): string[] {
+                        return [];
+                    },
                     serverInfo: {
-                        applicationName: { text: ""},
+                        applicationName: { text: "" },
                         applicationUri: "SomeURI",
-                        productUri: null,
+                        productUri: null
                     },
                     serverType: ApplicationType.Server
                 }
@@ -339,15 +363,20 @@ module.exports = () => {
             const registrationManager = new RegisterServerManager({
                 discoveryServerEndpointUrl,
                 server: {
+                    serverCertificateManager: new OPCUACertificateManager({}),
                     certificateFile: "",
                     privateKeyFile: "",
                     capabilitiesForMDNS: [],
-                    getCertificate(): Buffer { return Buffer.alloc(0);},
-                    getDiscoveryUrls():string[] {return []},
+                    getCertificate(): Buffer {
+                        return Buffer.alloc(0);
+                    },
+                    getDiscoveryUrls(): string[] {
+                        return [];
+                    },
                     serverInfo: {
-                        applicationName: { text: ""},
+                        applicationName: { text: "" },
                         applicationUri: "SomeUri",
-                        productUri: null,
+                        productUri: null
                     },
                     serverType: ApplicationType.Server
                 }

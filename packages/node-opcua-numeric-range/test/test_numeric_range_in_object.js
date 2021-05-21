@@ -1,14 +1,21 @@
 "use strict";
-const BaseUAObject = require("node-opcua-factory").BaseUAObject;
-
 const should = require("should");
 
-const NumericRange = require("..").NumericRange;
-const encodeNumericRange = require("..").encodeNumericRange;
-const decodeNumericRange = require("..").decodeNumericRange;
 
-const encode_decode_round_trip_test = require("node-opcua-packet-analyzer/dist/test_helpers").encode_decode_round_trip_test;
-const json_encode_decode_round_trip_test = require("node-opcua-packet-analyzer/dist/test_helpers").json_encode_decode_round_trip_test;
+const { 
+    BaseUAObject  
+} = require("node-opcua-factory");
+
+const {
+    NumericRange ,
+    encodeNumericRange,
+    decodeNumericRange 
+} = require("..");
+
+const {
+    encode_decode_round_trip_test,
+    json_encode_decode_round_trip_test 
+} = require("node-opcua-packet-analyzer/dist/test_helpers");
 
 
 const schemaObjWithNumericRange = {

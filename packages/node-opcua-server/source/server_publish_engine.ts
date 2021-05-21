@@ -4,7 +4,7 @@
 // tslint:disable:no-console
 import * as chalk from "chalk";
 import { EventEmitter } from "events";
-import { partition, sortBy } from "underscore";
+import { partition, sortBy } from "lodash";
 
 import { assert } from "node-opcua-assert";
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
@@ -14,7 +14,7 @@ import { StatusCode, StatusCodes } from "node-opcua-status-code";
 import { PublishRequest, PublishResponse, SubscriptionAcknowledgement } from "node-opcua-types";
 import { Subscription } from "./server_subscription";
 import { SubscriptionState } from "./server_subscription";
-import { IServerSidePublishEngine, INotifMsg, IClosedOrTransferedSubscription } from "./i_server_side_publish_engine";
+import { IServerSidePublishEngine, INotifMsg, IClosedOrTransferredSubscription } from "./i_server_side_publish_engine";
 
 const debugLog = make_debugLog(__filename);
 const doDebug = checkDebugFlag(__filename);
@@ -25,7 +25,7 @@ function traceLog(...args: [any?, ...any[]]) {
     }
     const a: string[] = args.map((x?: any) => x!);
     a.unshift(chalk.yellow(" TRACE "));
-    console.log.apply(null, a as [any?, ...any[]]);
+    debugLog.apply(null, a as [any?, ...any[]]);
 }
 
 export interface ServerSidePublishEngineOptions {
@@ -86,7 +86,7 @@ export class ServerSidePublishEngine extends EventEmitter implements IServerSide
             )
         );
 
-        for(const subscription of Object.values(srcPublishEngine._subscriptions))  {
+        for (const subscription of Object.values(srcPublishEngine._subscriptions)) {
             assert((subscription.publishEngine as any) === srcPublishEngine);
 
             if (subscription.$session) {
@@ -122,12 +122,12 @@ export class ServerSidePublishEngine extends EventEmitter implements IServerSide
         assert(!destPublishEngine.getSubscriptionById(subscription.id));
         assert(srcPublishEngine.getSubscriptionById(subscription.id));
 
-        // remove pending StatusChangeNotificiation on the same session that may exist already
+        // remove pending StatusChangeNotification on the same session that may exist already
         destPublishEngine._purge_dangling_subscription(subscription.id);
 
         debugLog(chalk.cyan("ServerSidePublishEngine.transferSubscription live subscriptionId ="), subscription.subscriptionId);
 
-        //xx const internalNotification = subscription._flushSentNotifications();
+        // xx const internalNotification = subscription._flushSentNotifications();
         debugLog(chalk.cyan("ServerSidePublishEngine.transferSubscription with  = "), subscription.getAvailableSequenceNumbers());
 
         //  If the Server transfers the Subscription to the new Session, the Server shall issue a
@@ -165,7 +165,7 @@ export class ServerSidePublishEngine extends EventEmitter implements IServerSide
 
     private _publish_request_queue: PublishData[] = [];
     private _subscriptions: { [key: string]: Subscription };
-    private _closed_subscriptions: IClosedOrTransferedSubscription[] = [];
+    private _closed_subscriptions: IClosedOrTransferredSubscription[] = [];
 
     constructor(options?: ServerSidePublishEngineOptions) {
         super();
@@ -193,6 +193,13 @@ export class ServerSidePublishEngine extends EventEmitter implements IServerSide
         this.isSessionClosed = false;
     }
 
+    public toString() {
+        let str = "";
+        str += `maxPublishRequestInQueue ${this.maxPublishRequestInQueue}\n`;
+        str += `subscriptions ${Object.keys(this._subscriptions).join()}\n`;
+        str += `closed subscriptions ${this._closed_subscriptions.map((s)=> s.id).join()}\n`;
+        return str; 
+    }
     public dispose() {
         debugLog("ServerSidePublishEngine#dispose");
 
@@ -213,12 +220,12 @@ export class ServerSidePublishEngine extends EventEmitter implements IServerSide
             const subscription = this.getSubscriptionById(subscriptionAcknowledgement.subscriptionId);
             if (!subscription) {
                 // // try to find the session
-                // const transferedSubscription = this._transfered_subscriptions.find(
+                // const transferredSubscription = this._transferred_subscriptions.find(
                 //   (s) => s.subscriptionId === subscriptionAcknowledgement.subscriptionId
                 // );
-                // if (transferedSubscription) {
-                //   debugLog("Subscription acknowledgeNotification done in tansfererd subscription ");
-                //   return transferedSubscription.acknowledgeNotification(subscriptionAcknowledgement.sequenceNumber);
+                // if (transferredSubscription) {
+                //   debugLog("Subscription acknowledgeNotification done in transferred subscription ");
+                //   return transferredSubscription.acknowledgeNotification(subscriptionAcknowledgement.sequenceNumber);
                 // }
                 return StatusCodes.BadSubscriptionIdInvalid;
             }
@@ -232,7 +239,7 @@ export class ServerSidePublishEngine extends EventEmitter implements IServerSide
      * get a array of subscription handled by the publish engine.
      */
     public get subscriptions(): Subscription[] {
-        return Object.values(this._subscriptions)
+        return Object.values(this._subscriptions);
     }
 
     /**
@@ -246,7 +253,7 @@ export class ServerSidePublishEngine extends EventEmitter implements IServerSide
 
         debugLog("ServerSidePublishEngine#add_subscription -  adding subscription with Id:", subscription.id);
         this._subscriptions[subscription.id] = subscription;
-        // xxsubscription._flushSentNotifications();
+        // xx subscription._flushSentNotifications();
         return subscription;
     }
 
@@ -302,12 +309,9 @@ export class ServerSidePublishEngine extends EventEmitter implements IServerSide
 
     public get currentMonitoredItemCount(): number {
         const subscriptions = Object.values(this._subscriptions);
-        const result = subscriptions.reduce(
-            (cumul: number, subscription: Subscription) => {
-                return cumul + subscription.monitoredItemCount;
-            },
-            0
-        );
+        const result = subscriptions.reduce((cumul: number, subscription: Subscription) => {
+            return cumul + subscription.monitoredItemCount;
+        }, 0);
         assert(isFinite(result));
         return result;
     }
@@ -316,7 +320,7 @@ export class ServerSidePublishEngine extends EventEmitter implements IServerSide
         this._closed_subscriptions = this._closed_subscriptions.filter((s) => s.id !== subscriptionId);
     }
 
-    public on_close_subscription(subscription: IClosedOrTransferedSubscription): void {
+    public on_close_subscription(subscription: IClosedOrTransferredSubscription): void {
         debugLog("ServerSidePublishEngine#on_close_subscription", subscription.id);
         if (subscription.hasPendingNotifications) {
             debugLog(
@@ -333,10 +337,10 @@ export class ServerSidePublishEngine extends EventEmitter implements IServerSide
 
         delete this._subscriptions[subscription.id];
 
-        if (this.subscriptionCount === 0) {
-            while (this._feed_closed_subscription()) {
-                /* keep looping */
-            }
+        while (this._feed_closed_subscription()) {
+            /* keep looping */
+        }
+        if (this.subscriptionCount === 0 && this._closed_subscriptions.length === 0) {
             this.cancelPendingPublishRequest();
         }
     }
@@ -353,7 +357,7 @@ export class ServerSidePublishEngine extends EventEmitter implements IServerSide
     public findLateSubscriptions(): Subscription[] {
         const subscriptions = Object.values(this._subscriptions);
         return subscriptions.filter((subscription: Subscription) => {
-            return subscription.state === SubscriptionState.LATE && subscription.publishingEnabled; // && subscription.hasMonitoredItemNotifications;
+            return subscription.state === SubscriptionState.LATE && subscription.publishingEnabled;
         });
     }
 
@@ -390,12 +394,13 @@ export class ServerSidePublishEngine extends EventEmitter implements IServerSide
      * @param request
      * @param callback
      * @private
+     * @internal
      */
     public _on_PublishRequest(request: PublishRequest, callback?: any) {
         callback = callback || dummy_function;
         assert(typeof callback === "function");
 
-        //istanbul ignore next
+        // istanbul ignore next
         if (!(request instanceof PublishRequest)) {
             throw new Error("Internal error : expecting a Publish Request here");
         }
@@ -406,8 +411,8 @@ export class ServerSidePublishEngine extends EventEmitter implements IServerSide
         const publishData: PublishData = {
             callback,
             request,
-            serverTimeWhenReceived: currentTime,
-            results: subscriptionAckResults
+            results: subscriptionAckResults,
+            serverTimeWhenReceived: currentTime
         };
 
         if (this.isSessionClosed) {
@@ -420,8 +425,8 @@ export class ServerSidePublishEngine extends EventEmitter implements IServerSide
                 this._publish_request_queue.push(publishData);
 
                 const processed = this._feed_closed_subscription();
-                assert(verif === this._publish_request_queue.length);
-                assert(processed);
+                //xx ( may be subscription has expired by themselve) assert(verif === this._publish_request_queue.length);
+                //xx  ( may be subscription has expired by themselve) assert(processed);
                 return;
             }
             traceLog("server has received a PublishRequest but has no subscription opened");
@@ -470,7 +475,7 @@ export class ServerSidePublishEngine extends EventEmitter implements IServerSide
                                 " ka=" +
                                 s.timeToKeepAlive +
                                 " m?=" +
-                                s.hasMonitoredItemNotifications +
+                                s.hasUncollectedMonitoredItemNotifications +
                                 "]"
                         )
                         .join(" \n")
@@ -480,19 +485,22 @@ export class ServerSidePublishEngine extends EventEmitter implements IServerSide
         }
 
         if (this._closed_subscriptions) {
+            /** */
         }
         const starving_subscription = /* this.findSubscriptionWaitingForFirstPublish() || */ findLateSubscriptionSortedByPriority();
         return starving_subscription;
     }
     private _feed_late_subscription() {
-        if (!this.pendingPublishRequestCount) {
-            return;
-        }
-        const starving_subscription = this._find_starving_subscription();
-        if (starving_subscription) {
-            debugLog(chalk.bgWhite.red("feeding most late subscription subscriptionId  = "), starving_subscription.id);
-            starving_subscription.process_subscription();
-        }
+        setImmediate(() => {
+            if (!this.pendingPublishRequestCount) {
+                return;
+            }
+            const starving_subscription = this._find_starving_subscription();
+            if (starving_subscription) {
+                debugLog(chalk.bgWhite.red("feeding most late subscription subscriptionId  = "), starving_subscription.id);
+                starving_subscription.process_subscription();
+            }
+        });
     }
 
     private _feed_closed_subscription() {
@@ -500,21 +508,20 @@ export class ServerSidePublishEngine extends EventEmitter implements IServerSide
             return false;
         }
 
-        debugLog("ServerSidePublishEngine#_feed_closed_subscription");
-        if (this._closed_subscriptions.length) {
-            // process closed subscription
-            const closed_subscription = this._closed_subscriptions[0]!;
-            assert(closed_subscription.hasPendingNotifications);
-            traceLog("_feed_closed_subscription for closed_subscription ", closed_subscription.id);
-
-            closed_subscription?._publish_pending_notifications();
-            if (!closed_subscription?.hasPendingNotifications) {
-                closed_subscription.dispose();
-                this._closed_subscriptions.shift();
-            }
-            return true;
+        if (this._closed_subscriptions.length === 0) {
+            debugLog("ServerSidePublishEngine#_feed_closed_subscription  -> nothing to do");
+            return false;
         }
-        return false;
+        // process closed subscription
+        const closed_subscription = this._closed_subscriptions[0]!;
+        assert(closed_subscription.hasPendingNotifications);
+        debugLog("ServerSidePublishEngine#_feed_closed_subscription for closed_subscription ", closed_subscription.id);
+        closed_subscription?._publish_pending_notifications();
+        if (!closed_subscription?.hasPendingNotifications) {
+            closed_subscription.dispose();
+            this._closed_subscriptions.shift();
+        }
+        return true;
     }
 
     private _send_error_for_request(publishData: PublishData, statusCode: StatusCode): void {
@@ -526,12 +533,16 @@ export class ServerSidePublishEngine extends EventEmitter implements IServerSide
     }
 
     private _cancelPendingPublishRequest(statusCode: StatusCode): void {
-        debugLog(
-            chalk.red("Cancelling pending PublishRequest with statusCode  "),
-            statusCode.toString(),
-            " length =",
-            this._publish_request_queue.length
-        );
+        if (this._publish_request_queue) {
+            debugLog(
+                chalk.red("Cancelling pending PublishRequest with statusCode  "),
+                statusCode.toString(),
+                " length =",
+                this._publish_request_queue.length
+            );
+        } else {
+            debugLog(chalk.red("No pending PublishRequest to cancel"));
+        }
 
         for (const publishData of this._publish_request_queue) {
             this._send_error_for_request(publishData, statusCode);
@@ -578,16 +589,17 @@ export class ServerSidePublishEngine extends EventEmitter implements IServerSide
             traceLog("send_keep_alive_response  => invalid subscriptionId = ", subscriptionId);
             return false;
         }
-        // let check if we have avalabile PublishRequest to send the keep alive
+        // let check if we have available PublishRequest to send the keep alive
         if (this.pendingPublishRequestCount === 0 || subscription.hasPendingNotifications) {
             // we cannot send the keep alive PublishResponse
+            traceLog(
+                "send_keep_alive_response  => cannot send keep-aliave  (no PublishRequest left) subscriptionId = ",
+                subscriptionId
+            );
             return false;
         }
         debugLog(
-            "Sending keep alive response for subscription id ",
-            subscription.id,
-            subscription.publishingInterval,
-            subscription.maxKeepAliveCount
+            `Sending keep alive response for subscription id ${subscription.id} ${subscription.publishingInterval} ${subscription.maxKeepAliveCount}`
         );
         this._send_response(
             subscription,
@@ -624,13 +636,18 @@ export class ServerSidePublishEngine extends EventEmitter implements IServerSide
         this._publish_request_queue = parts[1]; // still valid
 
         const invalid_published_request = parts[0];
-        for (let publishData of invalid_published_request) {
-            console.log(chalk.cyan(" CANCELING TIMEOUT PUBLISH REQUEST "));
+        for (const publishData of invalid_published_request) {
+            if (doDebug) {
+                debugLog(chalk.cyan(" CANCELING TIMEOUT PUBLISH REQUEST "));
+            }
             this._send_error_for_request(publishData, StatusCodes.BadTimeout);
         }
     }
 
     public _send_response_for_request(publishData: PublishData, response: PublishResponse) {
+        if (doDebug) {
+            debugLog("_send_response_for_request ", response.toString());
+        }
         _assertValidPublishData(publishData);
         // xx assert(response.responseHeader.requestHandle !== 0,"expecting a valid requestHandle");
         response.results = publishData.results;

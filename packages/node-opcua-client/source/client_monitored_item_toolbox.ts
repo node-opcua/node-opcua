@@ -94,7 +94,7 @@ export class ClientMonitoredItemToolbox {
                 monitoredItemId: monitoredItem.monitoredItemId,
                 requestedParameters: {
                     ...parameters,
-                    clientHandle 
+                    clientHandle
                 }
             });
         });

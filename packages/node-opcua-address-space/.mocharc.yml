@@ -8,5 +8,5 @@ spec:
   - test/**/*.ts
   - test/**/*.js
 bail: true
-parallel: true
+parallel: false
 jobs: 32

@@ -6,6 +6,7 @@ import * as os from "os";
 import * as path from "path";
 import * as url from "url";
 import { callbackify } from "util";
+import * as envPaths from "env-paths";
 
 import { assert } from "node-opcua-assert";
 import { UAString } from "node-opcua-basic-types";
@@ -73,12 +74,11 @@ const defaultProductUri = "NodeOPCUA-LocalDiscoveryServer";
 const defaultApplicationUri = makeApplicationUrn(os.hostname(), defaultProductUri);
 
 function getDefaultCertificateManager(): OPCUACertificateManager {
-
-    const envPaths = require("env-paths");
-    const config  = envPaths(defaultProductUri).config;
+    const config = envPaths(defaultProductUri).config;
     return new OPCUACertificateManager({
-        name: "certificates",
-        rootFolder: path.join(config, "certificates"),
+        name: "PKI",
+        rootFolder: path.join(config, "PKI"),
+
         automaticallyAcceptUnknownCertificate: true
     });
 }
@@ -90,8 +90,6 @@ export class OPCUADiscoveryServer extends OPCUABaseServer {
     private _delayInit?: () => void;
 
     constructor(options: OPCUADiscoveryServerOptions) {
-
-    
         options.serverInfo = options.serverInfo || {};
         const serverInfo = options.serverInfo;
 
@@ -102,7 +100,9 @@ export class OPCUADiscoveryServer extends OPCUABaseServer {
         serverInfo.productUri = serverInfo.productUri || defaultProductUri;
 
         serverInfo.applicationName = serverInfo.applicationName || {
-             text: defaultProductUri, locale: null
+            text: defaultProductUri,
+
+            locale: null
         };
 
         serverInfo.gatewayServerUri = serverInfo.gatewayServerUri || "";
@@ -111,7 +111,6 @@ export class OPCUADiscoveryServer extends OPCUABaseServer {
 
         options.serverCertificateManager = options.serverCertificateManager || getDefaultCertificateManager();
 
- 
         super(options);
 
         this.bonjourHolder = new BonjourHolder();
@@ -125,7 +124,7 @@ export class OPCUADiscoveryServer extends OPCUABaseServer {
 
         this.mDnsResponder = undefined;
 
-        this._delayInit =async  (): Promise<void> => {
+        this._delayInit = async (): Promise<void> => {
             const endPoint = new OPCUAServerEndPoint({
                 port,
 
@@ -151,11 +150,11 @@ export class OPCUADiscoveryServer extends OPCUABaseServer {
     public start(done?: ErrorCallback): any {
         assert(!this.mDnsResponder);
         assert(Array.isArray(this.capabilitiesForMDNS));
-  
-        this._preInitTask.push(async ()=> {
+
+        this._preInitTask.push(async () => {
             await this._delayInit!();
         });
-         
+
         super.start((err?: Error | null) => {
             if (err) {
                 return done!(err);
@@ -184,15 +183,14 @@ export class OPCUADiscoveryServer extends OPCUABaseServer {
             this.mDnsResponder = undefined;
         }
         debugLog("stopping announcement of LDS on mDNS");
-        this.bonjourHolder._stop_announcedOnMulticastSubnetWithCallback((err?: Error|null) => {
-
+        this.bonjourHolder._stop_announcedOnMulticastSubnetWithCallback((err?: Error | null) => {
             if (err) {
                 console.log("Error ", err.message);
             }
             debugLog("stopping announcement of LDS on mDNS - DONE");
             debugLog("Shutting down Discovery Server");
-            super.shutdown(()=>{
-                setTimeout(() => done!(), 100)
+            super.shutdown(() => {
+                setTimeout(() => done!(), 100);
             });
         });
     }

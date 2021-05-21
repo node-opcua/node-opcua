@@ -19,9 +19,9 @@ const {
     checkDebugFlag
 } = require("node-opcua-debug");
 
-const debugLog = make_debugLog(__filename);
-const errorLog = make_debugLog(__filename);
-const doDebug = checkDebugFlag(__filename);
+const debugLog = make_debugLog("TEST");
+const errorLog = make_debugLog("TEST");
+const doDebug = checkDebugFlag("TEST");
 
 const { perform_operation_on_subscription } = require("../../test_helpers/perform_operation_on_client_session");
 

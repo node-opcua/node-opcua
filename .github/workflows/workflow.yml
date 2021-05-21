@@ -24,14 +24,16 @@ jobs:
       uses: actions/setup-node@v1
       with:
         node-version: ${{ matrix.node-version }}
-    - run: npm ci
-    - run: npm run build --if-present
-    - run: npm test
+    - run: npm install -g pnpm
+    - run: pnpm recursive install
+    - run: pnpm run build --if-present
+    - run: pnpm run pretest
+    - run: pnpm test
   build:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node-version: [10.x, 14.x]
+        node-version: [14.x]
 
     steps:
     - uses: actions/checkout@v2
@@ -39,14 +41,16 @@ jobs:
       uses: actions/setup-node@v1
       with:
         node-version: ${{ matrix.node-version }}
-    - run: npm ci
-    - run: npm run build
-    - run: npm test
+    - run: npm install -g pnpm
+    - run: pnpm recursive install
+    - run: pnpm run build
+    - run: pnpm run pretest
+    - run: pnpm test
   coverage:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node-version: [ 10.x]
+        node-version: [ 12.x]
     steps:
       - uses: actions/checkout@v2
       - name: Use Node.js ${{ matrix.node-version }}
@@ -56,9 +60,10 @@ jobs:
 
       - run: npm install -g nyc@14 istanbul coveralls codecov
       - run: npm install -g codeclimate-test-reporter
-      - run: npm ci 
-      - run: npm run build 
-      - run: npm run pretest
+      - run: npm install -g pnpm
+      - run: pnpm recursive install
+      - run: pnpm run build 
+      - run: pnpm run pretest
       - run: make test-cov     
         
       # - name: coveralls

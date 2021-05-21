@@ -33,8 +33,8 @@
     <Uri>http://opcfoundation.org/UA/PackML/</Uri>
   </NamespaceUris>
   <Models>
-    <Model ModelUri="http://opcfoundation.org/UA/PackML/" Version="1.1.0" PublicationDate="2020-05-28T08:03:15Z">
-      <RequiredModel ModelUri="http://opcfoundation.org/UA/" Version="1.04.3" PublicationDate="2019-09-09T00:00:00Z" />
+    <Model ModelUri="http://opcfoundation.org/UA/PackML/" Version="1.01" PublicationDate="2020-10-08T11:08:00Z">
+      <RequiredModel ModelUri="http://opcfoundation.org/UA/" Version="1.04.6" PublicationDate="2020-04-14T00:00:00Z" />
     </Model>
   </Models>
   <Aliases>
@@ -67,7 +67,6 @@
     <Alias Alias="Range">i=884</Alias>
     <Alias Alias="EUInformation">i=887</Alias>
     <Alias Alias="EnumValueType">i=7594</Alias>
-    <Alias Alias="PackMLVersionDataType">ns=1;i=13</Alias>
     <Alias Alias="PackMLCountDataType">ns=1;i=14</Alias>
     <Alias Alias="PackMLAlarmDataType">ns=1;i=15</Alias>
     <Alias Alias="PackMLDescriptorDataType">ns=1;i=16</Alias>
@@ -82,12 +81,12 @@
   </Aliases>
   <Extensions>
     <Extension>
-      <ua:ModelInfo Tool="UaModeler" Hash="lRJmueL/vgR94y120u6FcQ==" Version="1.6.3" xmlns:ua="http://unifiedautomation.com/Configuration/NodeSet.xsd" />
+      <ua:ModelInfo Tool="UaModeler" Hash="s0Zc/MSs3UwzZabvGXWkHg==" Version="1.6.4" xmlns:ua="http://unifiedautomation.com/Configuration/NodeSet.xsd" />
     </Extension>
   </Extensions>
   <UADataType NodeId="ns=1;i=11" BrowseName="1:ProductionMaintenanceModeEnum">
     <DisplayName>ProductionMaintenanceModeEnum</DisplayName>
-    <Documentation>https://reference.opcfoundation.org/v104/PackML/v100/docs/6.5.2</Documentation>
+    <Documentation>https://reference.opcfoundation.org/v104/PackML/v101/docs/6.5.2</Documentation>
     <References>
       <Reference ReferenceType="HasProperty">ns=1;i=194</Reference>
       <Reference ReferenceType="HasSubtype" IsForward="false">i=29</Reference>
@@ -185,7 +184,7 @@
   </UAVariable>
   <UADataType NodeId="ns=1;i=15" BrowseName="1:PackMLAlarmDataType">
     <DisplayName>PackMLAlarmDataType</DisplayName>
-    <Documentation>https://reference.opcfoundation.org/v104/PackML/v100/docs/6.8.2/#6.8.2.3</Documentation>
+    <Documentation>https://reference.opcfoundation.org/v104/PackML/v101/docs/6.8.2/#6.8.2.2</Documentation>
     <References>
       <Reference ReferenceType="HasEncoding">ns=1;i=74</Reference>
       <Reference ReferenceType="HasEncoding">ns=1;i=76</Reference>
@@ -239,7 +238,7 @@
   </UAVariable>
   <UADataType NodeId="ns=1;i=14" BrowseName="1:PackMLCountDataType">
     <DisplayName>PackMLCountDataType</DisplayName>
-    <Documentation>https://reference.opcfoundation.org/v104/PackML/v100/docs/6.5.3</Documentation>
+    <Documentation>https://reference.opcfoundation.org/v104/PackML/v101/docs/6.5.3</Documentation>
     <References>
       <Reference ReferenceType="HasEncoding">ns=1;i=69</Reference>
       <Reference ReferenceType="HasEncoding">ns=1;i=70</Reference>
@@ -287,7 +286,7 @@
   </UAVariable>
   <UADataType NodeId="ns=1;i=16" BrowseName="1:PackMLDescriptorDataType">
     <DisplayName>PackMLDescriptorDataType</DisplayName>
-    <Documentation>https://reference.opcfoundation.org/v104/PackML/v100/docs/6.5.4</Documentation>
+    <Documentation>https://reference.opcfoundation.org/v104/PackML/v101/docs/6.5.4</Documentation>
     <References>
       <Reference ReferenceType="HasEncoding">ns=1;i=77</Reference>
       <Reference ReferenceType="HasEncoding">ns=1;i=78</Reference>
@@ -332,7 +331,7 @@
   </UAVariable>
   <UADataType NodeId="ns=1;i=17" BrowseName="1:PackMLIngredientsDataType">
     <DisplayName>PackMLIngredientsDataType</DisplayName>
-    <Documentation>https://reference.opcfoundation.org/v104/PackML/v100/docs/6.5.5</Documentation>
+    <Documentation>https://reference.opcfoundation.org/v104/PackML/v101/docs/6.5.5</Documentation>
     <References>
       <Reference ReferenceType="HasEncoding">ns=1;i=79</Reference>
       <Reference ReferenceType="HasEncoding">ns=1;i=80</Reference>
@@ -371,7 +370,7 @@
   </UAVariable>
   <UADataType NodeId="ns=1;i=18" BrowseName="1:PackMLProductDataType">
     <DisplayName>PackMLProductDataType</DisplayName>
-    <Documentation>https://reference.opcfoundation.org/v104/PackML/v100/docs/6.5.6</Documentation>
+    <Documentation>https://reference.opcfoundation.org/v104/PackML/v101/docs/6.5.6</Documentation>
     <References>
       <Reference ReferenceType="HasEncoding">ns=1;i=81</Reference>
       <Reference ReferenceType="HasEncoding">ns=1;i=82</Reference>
@@ -413,7 +412,7 @@
   </UAVariable>
   <UADataType NodeId="ns=1;i=19" BrowseName="1:PackMLRemoteInterfaceDataType">
     <DisplayName>PackMLRemoteInterfaceDataType</DisplayName>
-    <Documentation>https://reference.opcfoundation.org/v104/PackML/v100/docs/6.5.7</Documentation>
+    <Documentation>https://reference.opcfoundation.org/v104/PackML/v101/docs/6.5.7</Documentation>
     <References>
       <Reference ReferenceType="HasEncoding">ns=1;i=83</Reference>
       <Reference ReferenceType="HasEncoding">ns=1;i=84</Reference>
@@ -456,45 +455,6 @@
       <uax:String xmlns:uax="http://opcfoundation.org/UA/2008/02/Types.xsd">//xs:element[@name='PackMLRemoteInterfaceDataType']</uax:String>
     </Value>
   </UAVariable>
-  <UADataType NodeId="ns=1;i=13" BrowseName="1:PackMLVersionDataType">
-    <DisplayName>PackMLVersionDataType</DisplayName>
-    <Documentation>https://reference.opcfoundation.org/v104/PackML/docs/6.5.8</Documentation>
-    <References>
-      <Reference ReferenceType="HasEncoding">ns=1;i=26</Reference>
-      <Reference ReferenceType="HasEncoding">ns=1;i=68</Reference>
-      <Reference ReferenceType="HasSubtype" IsForward="false">i=22</Reference>
-    </References>
-    <Definition Name="1:PackMLVersionDataType">
-      <Field Name="PackMLSpec" DataType="String">
-        <Description>The version of the PackML Specification supported by this interface.</Description>
-      </Field>
-      <Field Name="PackMLOPC" DataType="String">
-        <Description>The version of the PackML OPC UA Companion Specification implemented in this server.</Description>
-      </Field>
-    </Definition>
-  </UADataType>
-  <UAVariable NodeId="ns=1;i=230" BrowseName="1:PackMLVersionDataType" ParentNodeId="ns=1;i=195" DataType="String">
-    <DisplayName>PackMLVersionDataType</DisplayName>
-    <References>
-      <Reference ReferenceType="HasTypeDefinition">i=69</Reference>
-      <Reference ReferenceType="HasDescription" IsForward="false">ns=1;i=26</Reference>
-      <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=195</Reference>
-    </References>
-    <Value>
-      <uax:String xmlns:uax="http://opcfoundation.org/UA/2008/02/Types.xsd">PackMLVersionDataType</uax:String>
-    </Value>
-  </UAVariable>
-  <UAVariable NodeId="ns=1;i=231" BrowseName="1:PackMLVersionDataType" ParentNodeId="ns=1;i=197" DataType="String">
-    <DisplayName>PackMLVersionDataType</DisplayName>
-    <References>
-      <Reference ReferenceType="HasTypeDefinition">i=69</Reference>
-      <Reference ReferenceType="HasDescription" IsForward="false">ns=1;i=68</Reference>
-      <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=197</Reference>
-    </References>
-    <Value>
-      <uax:String xmlns:uax="http://opcfoundation.org/UA/2008/02/Types.xsd">//xs:element[@name='PackMLVersionDataType']</uax:String>
-    </Value>
-  </UAVariable>
   <UAVariable NodeId="ns=1;i=195" BrowseName="1:TypeDictionary" SymbolicName="TypeDictionary_BinarySchema" DataType="ByteString">
     <DisplayName>TypeDictionary</DisplayName>
     <Description>Collects the data type descriptions of http://opcfoundation.org/UA/PackML</Description>
@@ -507,7 +467,6 @@
       <Reference ReferenceType="HasComponent">ns=1;i=186</Reference>
       <Reference ReferenceType="HasComponent">ns=1;i=190</Reference>
       <Reference ReferenceType="HasComponent">ns=1;i=187</Reference>
-      <Reference ReferenceType="HasComponent">ns=1;i=230</Reference>
       <Reference ReferenceType="HasComponent" IsForward="false">i=93</Reference>
     </References>
     <Value>
@@ -561,17 +520,13 @@
         mFtZT0iQ21kVmFsdWUiLz4KICA8b3BjOkZpZWxkIFR5cGVOYW1lPSJvcGM6SW50MzIiIE5hb
         WU9Ik5vT2ZQYXJhbWV0ZXIiLz4KICA8b3BjOkZpZWxkIExlbmd0aEZpZWxkPSJOb09mUGFyY
         W1ldGVyIiBUeXBlTmFtZT0idG5zOlBhY2tNTERlc2NyaXB0b3JEYXRhVHlwZSIgTmFtZT0iU
-        GFyYW1ldGVyIi8+CiA8L29wYzpTdHJ1Y3R1cmVkVHlwZT4KIDxvcGM6U3RydWN0dXJlZFR5c
-        GUgQmFzZVR5cGU9InVhOkV4dGVuc2lvbk9iamVjdCIgTmFtZT0iUGFja01MVmVyc2lvbkRhd
-        GFUeXBlIj4KICA8b3BjOkZpZWxkIFR5cGVOYW1lPSJvcGM6Q2hhckFycmF5IiBOYW1lPSJQY
-        WNrTUxTcGVjIi8+CiAgPG9wYzpGaWVsZCBUeXBlTmFtZT0ib3BjOkNoYXJBcnJheSIgTmFtZ
-        T0iUGFja01MT1BDIi8+CiA8L29wYzpTdHJ1Y3R1cmVkVHlwZT4KIDxvcGM6RW51bWVyYXRlZ
-        FR5cGUgTGVuZ3RoSW5CaXRzPSIzMiIgTmFtZT0iUHJvZHVjdGlvbk1haW50ZW5hbmNlTW9kZ
-        UVudW0iPgogIDxvcGM6RW51bWVyYXRlZFZhbHVlIE5hbWU9IkludmFsaWQiIFZhbHVlPSIwI
-        i8+CiAgPG9wYzpFbnVtZXJhdGVkVmFsdWUgTmFtZT0iUHJvZHVjZSIgVmFsdWU9IjEiLz4KI
-        CA8b3BjOkVudW1lcmF0ZWRWYWx1ZSBOYW1lPSJNYWludGVuYW5jZSIgVmFsdWU9IjIiLz4KI
-        CA8b3BjOkVudW1lcmF0ZWRWYWx1ZSBOYW1lPSJNYW51YWwiIFZhbHVlPSIzIi8+CiA8L29wY
-        zpFbnVtZXJhdGVkVHlwZT4KPC9vcGM6VHlwZURpY3Rpb25hcnk+Cg==</uax:ByteString>
+        GFyYW1ldGVyIi8+CiA8L29wYzpTdHJ1Y3R1cmVkVHlwZT4KIDxvcGM6RW51bWVyYXRlZFR5c
+        GUgTGVuZ3RoSW5CaXRzPSIzMiIgTmFtZT0iUHJvZHVjdGlvbk1haW50ZW5hbmNlTW9kZUVud
+        W0iPgogIDxvcGM6RW51bWVyYXRlZFZhbHVlIE5hbWU9IkludmFsaWQiIFZhbHVlPSIwIi8+C
+        iAgPG9wYzpFbnVtZXJhdGVkVmFsdWUgTmFtZT0iUHJvZHVjZSIgVmFsdWU9IjEiLz4KICA8b
+        3BjOkVudW1lcmF0ZWRWYWx1ZSBOYW1lPSJNYWludGVuYW5jZSIgVmFsdWU9IjIiLz4KICA8b
+        3BjOkVudW1lcmF0ZWRWYWx1ZSBOYW1lPSJNYW51YWwiIFZhbHVlPSIzIi8+CiA8L29wYzpFb
+        nVtZXJhdGVkVHlwZT4KPC9vcGM6VHlwZURpY3Rpb25hcnk+Cg==</uax:ByteString>
     </Value>
   </UAVariable>
   <UAVariable NodeId="ns=1;i=196" BrowseName="NamespaceUri" ParentNodeId="ns=1;i=195" DataType="String">
@@ -597,7 +552,6 @@
       <Reference ReferenceType="HasComponent">ns=1;i=189</Reference>
       <Reference ReferenceType="HasComponent">ns=1;i=191</Reference>
       <Reference ReferenceType="HasComponent">ns=1;i=188</Reference>
-      <Reference ReferenceType="HasComponent">ns=1;i=231</Reference>
       <Reference ReferenceType="HasComponent" IsForward="false">i=92</Reference>
     </References>
     <Value>
@@ -717,20 +671,7 @@
         W50ZXJmYWNlRGF0YVR5cGUiIG5pbGxhYmxlPSJ0cnVlIi8+CiAgPC94czpzZXF1ZW5jZT4KI
         DwveHM6Y29tcGxleFR5cGU+CiA8eHM6ZWxlbWVudCB0eXBlPSJ0bnM6TGlzdE9mUGFja01MU
         mVtb3RlSW50ZXJmYWNlRGF0YVR5cGUiIG5hbWU9Ikxpc3RPZlBhY2tNTFJlbW90ZUludGVyZ
-        mFjZURhdGFUeXBlIiBuaWxsYWJsZT0idHJ1ZSIvPgogPHhzOmNvbXBsZXhUeXBlIG5hbWU9I
-        lBhY2tNTFZlcnNpb25EYXRhVHlwZSI+CiAgPHhzOnNlcXVlbmNlPgogICA8eHM6ZWxlbWVud
-        CBtaW5PY2N1cnM9IjAiIG1heE9jY3Vycz0iMSIgdHlwZT0ieHM6c3RyaW5nIiBuYW1lPSJQY
-        WNrTUxTcGVjIi8+CiAgIDx4czplbGVtZW50IG1pbk9jY3Vycz0iMCIgbWF4T2NjdXJzPSIxI
-        iB0eXBlPSJ4czpzdHJpbmciIG5hbWU9IlBhY2tNTE9QQyIvPgogIDwveHM6c2VxdWVuY2U+C
-        iA8L3hzOmNvbXBsZXhUeXBlPgogPHhzOmVsZW1lbnQgdHlwZT0idG5zOlBhY2tNTFZlcnNpb
-        25EYXRhVHlwZSIgbmFtZT0iUGFja01MVmVyc2lvbkRhdGFUeXBlIi8+CiA8eHM6Y29tcGxle
-        FR5cGUgbmFtZT0iTGlzdE9mUGFja01MVmVyc2lvbkRhdGFUeXBlIj4KICA8eHM6c2VxdWVuY
-        2U+CiAgIDx4czplbGVtZW50IG1pbk9jY3Vycz0iMCIgbWF4T2NjdXJzPSJ1bmJvdW5kZWQiI
-        HR5cGU9InRuczpQYWNrTUxWZXJzaW9uRGF0YVR5cGUiIG5hbWU9IlBhY2tNTFZlcnNpb25EY
-        XRhVHlwZSIgbmlsbGFibGU9InRydWUiLz4KICA8L3hzOnNlcXVlbmNlPgogPC94czpjb21wb
-        GV4VHlwZT4KIDx4czplbGVtZW50IHR5cGU9InRuczpMaXN0T2ZQYWNrTUxWZXJzaW9uRGF0Y
-        VR5cGUiIG5hbWU9Ikxpc3RPZlBhY2tNTFZlcnNpb25EYXRhVHlwZSIgbmlsbGFibGU9InRyd
-        WUiLz4KPC94czpzY2hlbWE+Cg==</uax:ByteString>
+        mFjZURhdGFUeXBlIiBuaWxsYWJsZT0idHJ1ZSIvPgo8L3hzOnNjaGVtYT4K</uax:ByteString>
     </Value>
   </UAVariable>
   <UAVariable NodeId="ns=1;i=198" BrowseName="NamespaceUri" ParentNodeId="ns=1;i=197" DataType="String">
@@ -746,7 +687,7 @@
   </UAVariable>
   <UAReferenceType NodeId="ns=1;i=22" BrowseName="1:HasAlarm">
     <DisplayName>HasAlarm</DisplayName>
-    <Documentation>https://reference.opcfoundation.org/v104/PackML/v100/docs/6.6.2</Documentation>
+    <Documentation>https://reference.opcfoundation.org/v104/PackML/v101/docs/6.6.2</Documentation>
     <References>
       <Reference ReferenceType="HasSubtype" IsForward="false">i=47</Reference>
     </References>
@@ -754,7 +695,7 @@
   </UAReferenceType>
   <UAReferenceType NodeId="ns=1;i=23" BrowseName="1:HasAlarmHistory">
     <DisplayName>HasAlarmHistory</DisplayName>
-    <Documentation>https://reference.opcfoundation.org/v104/PackML/v100/docs/6.6.3</Documentation>
+    <Documentation>https://reference.opcfoundation.org/v104/PackML/v101/docs/6.6.3</Documentation>
     <References>
       <Reference ReferenceType="HasSubtype" IsForward="false">i=47</Reference>
     </References>
@@ -762,7 +703,7 @@
   </UAReferenceType>
   <UAReferenceType NodeId="ns=1;i=21" BrowseName="1:HasInterlock">
     <DisplayName>HasInterlock</DisplayName>
-    <Documentation>https://reference.opcfoundation.org/v104/PackML/v100/docs/6.6.1</Documentation>
+    <Documentation>https://reference.opcfoundation.org/v104/PackML/v101/docs/6.6.1</Documentation>
     <References>
       <Reference ReferenceType="HasSubtype" IsForward="false">i=47</Reference>
     </References>
@@ -770,7 +711,7 @@
   </UAReferenceType>
   <UAReferenceType NodeId="ns=1;i=25" BrowseName="1:HasStopReason">
     <DisplayName>HasStopReason</DisplayName>
-    <Documentation>https://reference.opcfoundation.org/v104/PackML/v100/docs/6.6.5</Documentation>
+    <Documentation>https://reference.opcfoundation.org/v104/PackML/v101/docs/6.6.5</Documentation>
     <References>
       <Reference ReferenceType="HasSubtype" IsForward="false">i=47</Reference>
     </References>
@@ -778,7 +719,7 @@
   </UAReferenceType>
   <UAReferenceType NodeId="ns=1;i=24" BrowseName="1:HasWarning">
     <DisplayName>HasWarning</DisplayName>
-    <Documentation>https://reference.opcfoundation.org/v104/PackML/v100/docs/6.6.4</Documentation>
+    <Documentation>https://reference.opcfoundation.org/v104/PackML/v101/docs/6.6.4</Documentation>
     <References>
       <Reference ReferenceType="HasSubtype" IsForward="false">i=47</Reference>
     </References>
@@ -786,12 +727,12 @@
   </UAReferenceType>
   <UAObjectType NodeId="ns=1;i=5" BrowseName="1:PackMLAdminObjectType">
     <DisplayName>PackMLAdminObjectType</DisplayName>
-    <Documentation>https://reference.opcfoundation.org/v104/PackML/v100/docs/6.3.4</Documentation>
+    <Documentation>https://reference.opcfoundation.org/v104/PackML/v101/docs/6.3.4</Documentation>
     <References>
       <Reference ReferenceType="HasComponent">ns=1;i=252</Reference>
-      <Reference ReferenceType="HasAlarm">ns=1;i=6024</Reference>
+      <Reference ReferenceType="HasAlarm">ns=1;i=238</Reference>
       <Reference ReferenceType="HasComponent">ns=1;i=239</Reference>
-      <Reference ReferenceType="HasAlarmHistory">ns=1;i=6042</Reference>
+      <Reference ReferenceType="HasAlarmHistory">ns=1;i=240</Reference>
       <Reference ReferenceType="HasComponent">ns=1;i=241</Reference>
       <Reference ReferenceType="HasComponent">ns=1;i=253</Reference>
       <Reference ReferenceType="HasComponent">ns=1;i=247</Reference>
@@ -803,9 +744,9 @@
       <Reference ReferenceType="HasComponent">ns=1;i=120</Reference>
       <Reference ReferenceType="HasComponent">ns=1;i=249</Reference>
       <Reference ReferenceType="HasComponent">ns=1;i=248</Reference>
-      <Reference ReferenceType="HasStopReason">ns=1;i=6050</Reference>
+      <Reference ReferenceType="HasStopReason">ns=1;i=244</Reference>
       <Reference ReferenceType="HasComponent">ns=1;i=245</Reference>
-      <Reference ReferenceType="HasWarning">ns=1;i=6058</Reference>
+      <Reference ReferenceType="HasWarning">ns=1;i=242</Reference>
       <Reference ReferenceType="HasComponent">ns=1;i=243</Reference>
     </References>
   </UAObjectType>
@@ -817,7 +758,7 @@
       <Reference ReferenceType="HasModellingRule">i=80</Reference>
     </References>
   </UAVariable>
-  <UAVariable NodeId="ns=1;i=6024" BrowseName="1:Alarm" ParentNodeId="ns=1;i=5" DataType="PackMLAlarmDataType" ValueRank="1" ArrayDimensions="0">
+  <UAVariable NodeId="ns=1;i=238" BrowseName="1:Alarm" ParentNodeId="ns=1;i=5" DataType="PackMLAlarmDataType" ValueRank="1" ArrayDimensions="0">
     <DisplayName>Alarm</DisplayName>
     <References>
       <Reference ReferenceType="HasAlarm" IsForward="false">ns=1;i=5</Reference>
@@ -833,7 +774,7 @@
       <Reference ReferenceType="HasModellingRule">i=80</Reference>
     </References>
   </UAVariable>
-  <UAVariable NodeId="ns=1;i=6042" BrowseName="1:AlarmHistory" ParentNodeId="ns=1;i=5" DataType="PackMLAlarmDataType" ValueRank="1" ArrayDimensions="0">
+  <UAVariable NodeId="ns=1;i=240" BrowseName="1:AlarmHistory" ParentNodeId="ns=1;i=5" DataType="PackMLAlarmDataType" ValueRank="1" ArrayDimensions="0">
     <DisplayName>AlarmHistory</DisplayName>
     <References>
       <Reference ReferenceType="HasAlarmHistory" IsForward="false">ns=1;i=5</Reference>
@@ -921,7 +862,7 @@
       <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=5</Reference>
     </References>
   </UAVariable>
-  <UAVariable NodeId="ns=1;i=6050" BrowseName="1:StopReason" ParentNodeId="ns=1;i=5" DataType="PackMLAlarmDataType">
+  <UAVariable NodeId="ns=1;i=244" BrowseName="1:StopReason" ParentNodeId="ns=1;i=5" DataType="PackMLAlarmDataType">
     <DisplayName>StopReason</DisplayName>
     <References>
       <Reference ReferenceType="HasTypeDefinition">i=63</Reference>
@@ -937,7 +878,7 @@
       <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=5</Reference>
     </References>
   </UAVariable>
-  <UAVariable NodeId="ns=1;i=6058" BrowseName="1:Warning" ParentNodeId="ns=1;i=5" DataType="PackMLAlarmDataType" ValueRank="1" ArrayDimensions="0">
+  <UAVariable NodeId="ns=1;i=242" BrowseName="1:Warning" ParentNodeId="ns=1;i=5" DataType="PackMLAlarmDataType" ValueRank="1" ArrayDimensions="0">
     <DisplayName>Warning</DisplayName>
     <References>
       <Reference ReferenceType="HasTypeDefinition">i=63</Reference>
@@ -955,12 +896,12 @@
   </UAVariable>
   <UAObjectType NodeId="ns=1;i=6" BrowseName="1:PackMLBaseObjectType">
     <DisplayName>PackMLBaseObjectType</DisplayName>
-    <Documentation>https://reference.opcfoundation.org/v104/PackML/v100/docs/6.3.2</Documentation>
+    <Documentation>https://reference.opcfoundation.org/v104/PackML/v101/docs/6.3.2</Documentation>
     <References>
       <Reference ReferenceType="HasComponent">ns=1;i=73</Reference>
       <Reference ReferenceType="HasComponent">ns=1;i=88</Reference>
       <Reference ReferenceType="HasSubtype" IsForward="false">i=58</Reference>
-      <Reference ReferenceType="HasComponent">ns=1;i=6018</Reference>
+      <Reference ReferenceType="HasProperty">ns=1;i=221</Reference>
       <Reference ReferenceType="HasComponent">ns=1;i=403</Reference>
       <Reference ReferenceType="HasComponent">ns=1;i=404</Reference>
       <Reference ReferenceType="HasComponent">ns=1;i=400</Reference>
@@ -971,25 +912,15 @@
       <Reference ReferenceType="HasProperty">ns=1;i=218</Reference>
     </References>
   </UAObjectType>
-  <UAVariable NodeId="ns=1;i=6018" BrowseName="1:PackMLVersion" ParentNodeId="ns=1;i=6" DataType="PackMLVersionDataType">
+  <UAVariable NodeId="ns=1;i=221" BrowseName="1:PackMLVersion" ParentNodeId="ns=1;i=6" DataType="String">
     <DisplayName>PackMLVersion</DisplayName>
     <References>
-      <Reference ReferenceType="HasTypeDefinition">i=63</Reference>
       <Reference ReferenceType="HasModellingRule">i=80</Reference>
-      <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=6</Reference>
+      <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=6</Reference>
+      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
     </References>
     <Value>
-      <uax:ExtensionObject xmlns:uax="http://opcfoundation.org/UA/2008/02/Types.xsd">
-        <uax:TypeId>
-          <uax:Identifier>ns=1;i=68</uax:Identifier>
-        </uax:TypeId>
-        <uax:Body>
-          <PackMLVersionDataType xmlns="http://opcfoundation.org/UA/PackML/Types.xsd">
-            <PackMLSpec>TR88.00.02-2015</PackMLSpec>
-            <PackMLOPC>1.1.0</PackMLOPC>
-          </PackMLVersionDataType>
-        </uax:Body>
-      </uax:ExtensionObject>
+      <uax:String xmlns:uax="http://opcfoundation.org/UA/2008/02/Types.xsd">TR88.00.02-2015</uax:String>
     </Value>
   </UAVariable>
   <UAVariable NodeId="ns=1;i=218" BrowseName="1:TagID" ParentNodeId="ns=1;i=6" DataType="String">
@@ -1002,13 +933,13 @@
   </UAVariable>
   <UAObjectType NodeId="ns=1;i=4" BrowseName="1:PackMLStatusObjectType">
     <DisplayName>PackMLStatusObjectType</DisplayName>
-    <Documentation>https://reference.opcfoundation.org/v104/PackML/v100/docs/6.3.3</Documentation>
+    <Documentation>https://reference.opcfoundation.org/v104/PackML/v101/docs/6.3.3</Documentation>
     <References>
       <Reference ReferenceType="HasComponent">ns=1;i=232</Reference>
       <Reference ReferenceType="HasComponent">ns=1;i=211</Reference>
       <Reference ReferenceType="HasComponent">ns=1;i=224</Reference>
       <Reference ReferenceType="HasComponent">ns=1;i=219</Reference>
-      <Reference ReferenceType="HasInterlock">ns=1;i=6010</Reference>
+      <Reference ReferenceType="HasInterlock">ns=1;i=237</Reference>
       <Reference ReferenceType="HasComponent">ns=1;i=236</Reference>
       <Reference ReferenceType="HasSubtype" IsForward="false">i=58</Reference>
       <Reference ReferenceType="HasComponent">ns=1;i=121</Reference>
@@ -1072,12 +1003,12 @@
       <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
     </References>
   </UAVariable>
-  <UAVariable NodeId="ns=1;i=6010" BrowseName="1:MaterialInterlock" ParentNodeId="ns=1;i=4" DataType="Boolean" ValueRank="1" ArrayDimensions="0">
+  <UAVariable NodeId="ns=1;i=237" BrowseName="1:MaterialInterlock" ParentNodeId="ns=1;i=4" DataType="Boolean" ValueRank="1" ArrayDimensions="0">
     <DisplayName>MaterialInterlock</DisplayName>
     <References>
       <Reference ReferenceType="HasTypeDefinition">i=63</Reference>
-      <Reference ReferenceType="HasModellingRule">i=80</Reference>
       <Reference ReferenceType="HasInterlock" IsForward="false">ns=1;i=4</Reference>
+      <Reference ReferenceType="HasModellingRule">i=80</Reference>
     </References>
   </UAVariable>
   <UAVariable NodeId="ns=1;i=236" BrowseName="1:MaterialInterlocked" ParentNodeId="ns=1;i=4" DataType="Boolean">
@@ -1112,8 +1043,8 @@
       <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=4</Reference>
     </References>
   </UAVariable>
-  <UAVariable NodeId="ns=1;i=210" BrowseName="1:StateChangeInProgress" ParentNodeId="ns=1;i=4" DataType="Boolean">
-    <DisplayName>StateChangeInProgress</DisplayName>
+  <UAVariable NodeId="ns=1;i=210" BrowseName="1:StateChangeInProcess" ParentNodeId="ns=1;i=4" DataType="Boolean">
+    <DisplayName>StateChangeInProcess</DisplayName>
     <References>
       <Reference ReferenceType="HasTypeDefinition">i=63</Reference>
       <Reference ReferenceType="HasModellingRule">i=80</Reference>
@@ -1128,8 +1059,8 @@
       <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=4</Reference>
     </References>
   </UAVariable>
-  <UAVariable NodeId="ns=1;i=201" BrowseName="1:UnitModeChangeInProgress" ParentNodeId="ns=1;i=4" DataType="Boolean">
-    <DisplayName>UnitModeChangeInProgress</DisplayName>
+  <UAVariable NodeId="ns=1;i=201" BrowseName="1:UnitModeChangeInProcess" ParentNodeId="ns=1;i=4" DataType="Boolean">
+    <DisplayName>UnitModeChangeInProcess</DisplayName>
     <References>
       <Reference ReferenceType="HasTypeDefinition">i=63</Reference>
       <Reference ReferenceType="HasModellingRule">i=80</Reference>
@@ -1162,23 +1093,23 @@
   </UAVariable>
   <UAObjectType NodeId="ns=1;i=3" BrowseName="1:PackMLBaseStateMachineType">
     <DisplayName>PackMLBaseStateMachineType</DisplayName>
-    <Documentation>https://reference.opcfoundation.org/v104/PackML/v100/docs/6.3.6</Documentation>
+    <Documentation>https://reference.opcfoundation.org/v104/PackML/v101/docs/6.3.6</Documentation>
     <References>
       <Reference ReferenceType="HasComponent">ns=1;i=364</Reference>
       <Reference ReferenceType="HasComponent">ns=1;i=62</Reference>
       <Reference ReferenceType="HasComponent">ns=1;i=65</Reference>
       <Reference ReferenceType="HasComponent">ns=1;i=61</Reference>
       <Reference ReferenceType="HasComponent">ns=1;i=66</Reference>
-      <Reference ReferenceType="HasComponent">ns=1;i=6001</Reference>
-      <Reference ReferenceType="HasComponent">ns=1;i=6002</Reference>
+      <Reference ReferenceType="HasComponent">ns=1;i=167</Reference>
+      <Reference ReferenceType="HasComponent">ns=1;i=158</Reference>
       <Reference ReferenceType="HasComponent">ns=1;i=363</Reference>
-      <Reference ReferenceType="HasComponent">ns=1;i=5001</Reference>
+      <Reference ReferenceType="HasComponent">ns=1;i=71</Reference>
       <Reference ReferenceType="HasComponent">ns=1;i=67</Reference>
       <Reference ReferenceType="HasComponent">ns=1;i=64</Reference>
       <Reference ReferenceType="HasSubtype" IsForward="false">i=2771</Reference>
     </References>
   </UAObjectType>
-  <UAVariable NodeId="ns=1;i=6001" BrowseName="AvailableStates" ParentNodeId="ns=1;i=3" DataType="NodeId" ValueRank="1" ArrayDimensions="0">
+  <UAVariable NodeId="ns=1;i=167" BrowseName="AvailableStates" ParentNodeId="ns=1;i=3" DataType="NodeId" ValueRank="1" ArrayDimensions="0">
     <DisplayName>AvailableStates</DisplayName>
     <References>
       <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=3</Reference>
@@ -1186,7 +1117,7 @@
       <Reference ReferenceType="HasModellingRule">i=78</Reference>
     </References>
   </UAVariable>
-  <UAVariable NodeId="ns=1;i=6002" BrowseName="AvailableTransitions" ParentNodeId="ns=1;i=3" DataType="NodeId" ValueRank="1" ArrayDimensions="0">
+  <UAVariable NodeId="ns=1;i=158" BrowseName="AvailableTransitions" ParentNodeId="ns=1;i=3" DataType="NodeId" ValueRank="1" ArrayDimensions="0">
     <DisplayName>AvailableTransitions</DisplayName>
     <References>
       <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=3</Reference>
@@ -1194,30 +1125,35 @@
       <Reference ReferenceType="HasModellingRule">i=78</Reference>
     </References>
   </UAVariable>
-  <UAObject NodeId="ns=1;i=5001" BrowseName="1:Cleared" ParentNodeId="ns=1;i=3">
+  <UAObject NodeId="ns=1;i=71" BrowseName="1:Cleared" ParentNodeId="ns=1;i=3">
     <DisplayName>Cleared</DisplayName>
     <References>
       <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=3</Reference>
       <Reference ReferenceType="ToState" IsForward="false">ns=1;i=65</Reference>
       <Reference ReferenceType="FromState" IsForward="false">ns=1;i=67</Reference>
-      <Reference ReferenceType="HasProperty">ns=1;i=6020</Reference>
+      <Reference ReferenceType="HasSubStateMachine">ns=1;i=64</Reference>
+      <Reference ReferenceType="HasModellingRule">i=80</Reference>
+      <Reference ReferenceType="HasProperty">ns=1;i=178</Reference>
       <Reference ReferenceType="HasTypeDefinition">i=2307</Reference>
     </References>
   </UAObject>
-  <UAVariable NodeId="ns=1;i=6020" BrowseName="StateNumber" ParentNodeId="ns=1;i=5001" DataType="UInt32">
+  <UAVariable NodeId="ns=1;i=178" BrowseName="StateNumber" ParentNodeId="ns=1;i=71" DataType="UInt32">
     <DisplayName>StateNumber</DisplayName>
     <References>
       <Reference ReferenceType="HasModellingRule">i=78</Reference>
       <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
-      <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=5001</Reference>
+      <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=71</Reference>
     </References>
+    <Value>
+      <uax:UInt32 xmlns:uax="http://opcfoundation.org/UA/2008/02/Types.xsd">19</uax:UInt32>
+    </Value>
   </UAVariable>
   <UAObjectType NodeId="ns=1;i=1" BrowseName="1:PackMLExecuteStateMachineType">
     <DisplayName>PackMLExecuteStateMachineType</DisplayName>
-    <Documentation>https://reference.opcfoundation.org/v104/PackML/v100/docs/6.3.8</Documentation>
+    <Documentation>https://reference.opcfoundation.org/v104/PackML/v101/docs/6.3.8</Documentation>
     <References>
-      <Reference ReferenceType="HasComponent">ns=1;i=6005</Reference>
-      <Reference ReferenceType="HasComponent">ns=1;i=6006</Reference>
+      <Reference ReferenceType="HasComponent">ns=1;i=125</Reference>
+      <Reference ReferenceType="HasComponent">ns=1;i=126</Reference>
       <Reference ReferenceType="HasComponent">ns=1;i=38</Reference>
       <Reference ReferenceType="HasComponent">ns=1;i=51</Reference>
       <Reference ReferenceType="HasComponent">ns=1;i=37</Reference>
@@ -1259,7 +1195,7 @@
       <Reference ReferenceType="HasComponent">ns=1;i=100</Reference>
     </References>
   </UAObjectType>
-  <UAVariable NodeId="ns=1;i=6005" BrowseName="AvailableStates" ParentNodeId="ns=1;i=1" DataType="NodeId" ValueRank="1" ArrayDimensions="0">
+  <UAVariable NodeId="ns=1;i=125" BrowseName="AvailableStates" ParentNodeId="ns=1;i=1" DataType="NodeId" ValueRank="1" ArrayDimensions="0">
     <DisplayName>AvailableStates</DisplayName>
     <References>
       <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=1</Reference>
@@ -1267,7 +1203,7 @@
       <Reference ReferenceType="HasModellingRule">i=78</Reference>
     </References>
   </UAVariable>
-  <UAVariable NodeId="ns=1;i=6006" BrowseName="AvailableTransitions" ParentNodeId="ns=1;i=1" DataType="NodeId" ValueRank="1" ArrayDimensions="0">
+  <UAVariable NodeId="ns=1;i=126" BrowseName="AvailableTransitions" ParentNodeId="ns=1;i=1" DataType="NodeId" ValueRank="1" ArrayDimensions="0">
     <DisplayName>AvailableTransitions</DisplayName>
     <References>
       <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=1</Reference>
@@ -1277,10 +1213,10 @@
   </UAVariable>
   <UAObjectType NodeId="ns=1;i=2" BrowseName="1:PackMLMachineStateMachineType">
     <DisplayName>PackMLMachineStateMachineType</DisplayName>
-    <Documentation>https://reference.opcfoundation.org/v104/PackML/v100/docs/6.3.7</Documentation>
+    <Documentation>https://reference.opcfoundation.org/v104/PackML/v101/docs/6.3.7</Documentation>
     <References>
-      <Reference ReferenceType="HasComponent">ns=1;i=6021</Reference>
-      <Reference ReferenceType="HasComponent">ns=1;i=6022</Reference>
+      <Reference ReferenceType="HasComponent">ns=1;i=153</Reference>
+      <Reference ReferenceType="HasComponent">ns=1;i=154</Reference>
       <Reference ReferenceType="HasComponent">ns=1;i=55</Reference>
       <Reference ReferenceType="HasComponent">ns=1;i=58</Reference>
       <Reference ReferenceType="HasComponent">ns=1;i=56</Reference>
@@ -1295,7 +1231,7 @@
       <Reference ReferenceType="HasComponent">ns=1;i=57</Reference>
     </References>
   </UAObjectType>
-  <UAVariable NodeId="ns=1;i=6021" BrowseName="AvailableStates" ParentNodeId="ns=1;i=2" DataType="NodeId" ValueRank="1" ArrayDimensions="0">
+  <UAVariable NodeId="ns=1;i=153" BrowseName="AvailableStates" ParentNodeId="ns=1;i=2" DataType="NodeId" ValueRank="1" ArrayDimensions="0">
     <DisplayName>AvailableStates</DisplayName>
     <References>
       <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=2</Reference>
@@ -1303,7 +1239,7 @@
       <Reference ReferenceType="HasModellingRule">i=78</Reference>
     </References>
   </UAVariable>
-  <UAVariable NodeId="ns=1;i=6022" BrowseName="AvailableTransitions" ParentNodeId="ns=1;i=2" DataType="NodeId" ValueRank="1" ArrayDimensions="0">
+  <UAVariable NodeId="ns=1;i=154" BrowseName="AvailableTransitions" ParentNodeId="ns=1;i=2" DataType="NodeId" ValueRank="1" ArrayDimensions="0">
     <DisplayName>AvailableTransitions</DisplayName>
     <References>
       <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=2</Reference>
@@ -1313,19 +1249,19 @@
   </UAVariable>
   <UAObject NodeId="ns=1;i=72" BrowseName="1:PackMLObjects">
     <DisplayName>PackMLObjects</DisplayName>
-    <Documentation>https://reference.opcfoundation.org/v104/PackML/v100/docs/6.2</Documentation>
+    <Documentation>https://reference.opcfoundation.org/v104/PackML/v101/docs/6.2</Documentation>
     <References>
       <Reference ReferenceType="HasTypeDefinition">i=61</Reference>
       <Reference ReferenceType="Organizes" IsForward="false">i=85</Reference>
     </References>
   </UAObject>
-  <UAObject NodeId="ns=1;i=117" BrowseName="1:http://opcfoundation.org/UA/PackML" SymbolicName="http___opcfoundation_org_UA_PackML">
-    <DisplayName>http://opcfoundation.org/UA/PackML</DisplayName>
-    <Description>Provides the metadata for a namespace used by the server.</Description>
+  <UAObject NodeId="ns=1;i=117" BrowseName="1:http://opcfoundation.org/UA/PackML/" SymbolicName="http___opcfoundation_org_UA_PackML_">
+    <DisplayName>http://opcfoundation.org/UA/PackML/</DisplayName>
+    <Documentation>https://reference.opcfoundation.org/v104/PackML/v101/docs/8.1</Documentation>
     <References>
-      <Reference ReferenceType="HasComponent" IsForward="false">i=11715</Reference>
       <Reference ReferenceType="HasProperty">ns=1;i=354</Reference>
       <Reference ReferenceType="HasTypeDefinition">i=11616</Reference>
+      <Reference ReferenceType="HasComponent" IsForward="false">i=11715</Reference>
       <Reference ReferenceType="HasProperty">ns=1;i=355</Reference>
       <Reference ReferenceType="HasProperty">ns=1;i=356</Reference>
       <Reference ReferenceType="HasProperty">ns=1;i=357</Reference>
@@ -1336,61 +1272,53 @@
   </UAObject>
   <UAVariable NodeId="ns=1;i=354" BrowseName="IsNamespaceSubset" ParentNodeId="ns=1;i=117" DataType="Boolean">
     <DisplayName>IsNamespaceSubset</DisplayName>
-    <Description>If TRUE then the server only supports a subset of the namespace.</Description>
-    <References>
-      <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=117</Reference>
-      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
-    </References>
-  </UAVariable>
-  <UAVariable NodeId="ns=1;i=355" BrowseName="NamespacePublicationDate" ParentNodeId="ns=1;i=117" DataType="DateTime">
-    <DisplayName>NamespacePublicationDate</DisplayName>
-    <Description>The publication date for the namespace.</Description>
     <References>
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=117</Reference>
       <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
     </References>
     <Value>
-      <uax:DateTime xmlns:uax="http://opcfoundation.org/UA/2008/02/Types.xsd">2020-09-01T12:00:00Z</uax:DateTime>
+      <uax:Boolean xmlns:uax="http://opcfoundation.org/UA/2008/02/Types.xsd">false</uax:Boolean>
+    </Value>
+  </UAVariable>
+  <UAVariable NodeId="ns=1;i=355" BrowseName="NamespacePublicationDate" ParentNodeId="ns=1;i=117" DataType="DateTime">
+    <DisplayName>NamespacePublicationDate</DisplayName>
+    <References>
+      <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=117</Reference>
+      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
+    </References>
+    <Value>
+      <uax:DateTime xmlns:uax="http://opcfoundation.org/UA/2008/02/Types.xsd">2020-10-08T11:08:00Z</uax:DateTime>
     </Value>
   </UAVariable>
   <UAVariable NodeId="ns=1;i=356" BrowseName="NamespaceUri" ParentNodeId="ns=1;i=117" DataType="String">
     <DisplayName>NamespaceUri</DisplayName>
-    <Description>The URI of the namespace.</Description>
     <References>
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=117</Reference>
       <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
     </References>
     <Value>
-      <uax:String xmlns:uax="http://opcfoundation.org/UA/2008/02/Types.xsd">http://opcfoundation.org/UA/PackML</uax:String>
+      <uax:String xmlns:uax="http://opcfoundation.org/UA/2008/02/Types.xsd">http://opcfoundation.org/UA/PackML/</uax:String>
     </Value>
   </UAVariable>
   <UAVariable NodeId="ns=1;i=357" BrowseName="NamespaceVersion" ParentNodeId="ns=1;i=117" DataType="String">
     <DisplayName>NamespaceVersion</DisplayName>
-    <Description>The human readable string representing version of the namespace.</Description>
     <References>
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=117</Reference>
       <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
     </References>
     <Value>
-      <uax:String xmlns:uax="http://opcfoundation.org/UA/2008/02/Types.xsd">1.1.0</uax:String>
+      <uax:String xmlns:uax="http://opcfoundation.org/UA/2008/02/Types.xsd">1.01</uax:String>
     </Value>
   </UAVariable>
-  <UAVariable NodeId="ns=1;i=358" BrowseName="StaticNodeIdTypes" ParentNodeId="ns=1;i=117" DataType="IdType" ValueRank="1" ArrayDimensions="1">
+  <UAVariable NodeId="ns=1;i=358" BrowseName="StaticNodeIdTypes" ParentNodeId="ns=1;i=117" DataType="IdType" ValueRank="1" ArrayDimensions="0">
     <DisplayName>StaticNodeIdTypes</DisplayName>
-    <Description>A list of IdTypes for nodes which are the same in every server that exposes them.</Description>
     <References>
       <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=117</Reference>
     </References>
-    <Value>
-      <uax:ListOfInt32 xmlns:uax="http://opcfoundation.org/UA/2008/02/Types.xsd">
-        <uax:Int32>0</uax:Int32>
-      </uax:ListOfInt32>
-    </Value>
   </UAVariable>
-  <UAVariable NodeId="ns=1;i=359" BrowseName="StaticNumericNodeIdRange" ParentNodeId="ns=1;i=117" DataType="NumericRange" ValueRank="1">
+  <UAVariable NodeId="ns=1;i=359" BrowseName="StaticNumericNodeIdRange" ParentNodeId="ns=1;i=117" DataType="NumericRange" ValueRank="1" ArrayDimensions="0">
     <DisplayName>StaticNumericNodeIdRange</DisplayName>
-    <Description>A list of ranges for numeric node ids which are the same in every server that exposes them.</Description>
     <References>
       <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=117</Reference>
@@ -1398,96 +1326,11 @@
   </UAVariable>
   <UAVariable NodeId="ns=1;i=360" BrowseName="StaticStringNodeIdPattern" ParentNodeId="ns=1;i=117" DataType="String">
     <DisplayName>StaticStringNodeIdPattern</DisplayName>
-    <Description>A regular expression which matches string node ids are the same in every server that exposes them.</Description>
     <References>
       <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=117</Reference>
     </References>
   </UAVariable>
-  <UAObject NodeId="ns=1;i=5002" BrowseName="1:http://opcfoundation.org/UA/PackML/" SymbolicName="http___opcfoundation_org_UA_PackML_">
-    <DisplayName>http://opcfoundation.org/UA/PackML/</DisplayName>
-    <Documentation>https://reference.opcfoundation.org/v104/PackML/v100/docs/8.1</Documentation>
-    <References>
-      <Reference ReferenceType="HasProperty">ns=1;i=6012</Reference>
-      <Reference ReferenceType="HasTypeDefinition">i=11616</Reference>
-      <Reference ReferenceType="HasComponent" IsForward="false">i=11715</Reference>
-      <Reference ReferenceType="HasProperty">ns=1;i=6017</Reference>
-      <Reference ReferenceType="HasProperty">ns=1;i=6023</Reference>
-      <Reference ReferenceType="HasProperty">ns=1;i=6026</Reference>
-      <Reference ReferenceType="HasProperty">ns=1;i=6028</Reference>
-      <Reference ReferenceType="HasProperty">ns=1;i=6037</Reference>
-      <Reference ReferenceType="HasProperty">ns=1;i=6038</Reference>
-    </References>
-  </UAObject>
-  <UAVariable NodeId="ns=1;i=6012" BrowseName="IsNamespaceSubset" ParentNodeId="ns=1;i=5002" DataType="Boolean">
-    <DisplayName>IsNamespaceSubset</DisplayName>
-    <References>
-      <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=5002</Reference>
-      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
-    </References>
-    <Value>
-      <uax:Boolean xmlns:uax="http://opcfoundation.org/UA/2008/02/Types.xsd">false</uax:Boolean>
-    </Value>
-  </UAVariable>
-  <UAVariable NodeId="ns=1;i=6017" BrowseName="NamespacePublicationDate" ParentNodeId="ns=1;i=5002" DataType="DateTime">
-    <DisplayName>NamespacePublicationDate</DisplayName>
-    <References>
-      <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=5002</Reference>
-      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
-    </References>
-    <Value>
-      <uax:DateTime xmlns:uax="http://opcfoundation.org/UA/2008/02/Types.xsd">2020-05-28T08:03:15Z</uax:DateTime>
-    </Value>
-  </UAVariable>
-  <UAVariable NodeId="ns=1;i=6023" BrowseName="NamespaceUri" ParentNodeId="ns=1;i=5002" DataType="String">
-    <DisplayName>NamespaceUri</DisplayName>
-    <References>
-      <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=5002</Reference>
-      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
-    </References>
-    <Value>
-      <uax:String xmlns:uax="http://opcfoundation.org/UA/2008/02/Types.xsd">http://opcfoundation.org/UA/PackML/</uax:String>
-    </Value>
-  </UAVariable>
-  <UAVariable NodeId="ns=1;i=6026" BrowseName="NamespaceVersion" ParentNodeId="ns=1;i=5002" DataType="String">
-    <DisplayName>NamespaceVersion</DisplayName>
-    <References>
-      <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=5002</Reference>
-      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
-    </References>
-    <Value>
-      <uax:String xmlns:uax="http://opcfoundation.org/UA/2008/02/Types.xsd">1.1.0</uax:String>
-    </Value>
-  </UAVariable>
-  <UAVariable NodeId="ns=1;i=6028" BrowseName="StaticNodeIdTypes" ParentNodeId="ns=1;i=5002" DataType="IdType" ValueRank="1" ArrayDimensions="0">
-    <DisplayName>StaticNodeIdTypes</DisplayName>
-    <References>
-      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
-      <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=5002</Reference>
-    </References>
-  </UAVariable>
-  <UAVariable NodeId="ns=1;i=6037" BrowseName="StaticNumericNodeIdRange" ParentNodeId="ns=1;i=5002" DataType="NumericRange" ValueRank="1" ArrayDimensions="0">
-    <DisplayName>StaticNumericNodeIdRange</DisplayName>
-    <References>
-      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
-      <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=5002</Reference>
-    </References>
-  </UAVariable>
-  <UAVariable NodeId="ns=1;i=6038" BrowseName="StaticStringNodeIdPattern" ParentNodeId="ns=1;i=5002" DataType="String">
-    <DisplayName>StaticStringNodeIdPattern</DisplayName>
-    <References>
-      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
-      <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=5002</Reference>
-    </References>
-  </UAVariable>
-  <UAObject NodeId="ns=1;i=26" BrowseName="Default Binary" SymbolicName="DefaultBinary">
-    <DisplayName>Default Binary</DisplayName>
-    <References>
-      <Reference ReferenceType="HasTypeDefinition">i=76</Reference>
-      <Reference ReferenceType="HasEncoding" IsForward="false">ns=1;i=13</Reference>
-      <Reference ReferenceType="HasDescription">ns=1;i=230</Reference>
-    </References>
-  </UAObject>
   <UAObject NodeId="ns=1;i=27" BrowseName="1:Resetting">
     <DisplayName>Resetting</DisplayName>
     <Description>will typically cause a machine to sound a horn and place the machine in a state where components are energized awaiting a START command</Description>
@@ -1818,9 +1661,9 @@
     <DisplayName>ExecuteState</DisplayName>
     <Description>StateMachine that provides additional sube</Description>
     <References>
-      <Reference ReferenceType="HasComponent">ns=1;i=6033</Reference>
-      <Reference ReferenceType="HasComponent">ns=1;i=6035</Reference>
-      <Reference ReferenceType="HasComponent">ns=1;i=6016</Reference>
+      <Reference ReferenceType="HasComponent">ns=1;i=177</Reference>
+      <Reference ReferenceType="HasComponent">ns=1;i=160</Reference>
+      <Reference ReferenceType="HasComponent">ns=1;i=161</Reference>
       <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=2</Reference>
       <Reference ReferenceType="HasModellingRule">i=78</Reference>
       <Reference ReferenceType="HasTypeDefinition">ns=1;i=1</Reference>
@@ -1892,12 +1735,13 @@
   <UAObject NodeId="ns=1;i=64" BrowseName="1:MachineState">
     <DisplayName>MachineState</DisplayName>
     <References>
-      <Reference ReferenceType="HasComponent">ns=1;i=6029</Reference>
-      <Reference ReferenceType="HasComponent">ns=1;i=6031</Reference>
-      <Reference ReferenceType="HasComponent">ns=1;i=6025</Reference>
+      <Reference ReferenceType="HasComponent">ns=1;i=212</Reference>
+      <Reference ReferenceType="HasComponent">ns=1;i=204</Reference>
+      <Reference ReferenceType="HasComponent">ns=1;i=172</Reference>
       <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=3</Reference>
       <Reference ReferenceType="HasModellingRule">i=78</Reference>
       <Reference ReferenceType="HasTypeDefinition">ns=1;i=2</Reference>
+      <Reference ReferenceType="HasSubStateMachine" IsForward="false">ns=1;i=71</Reference>
     </References>
   </UAObject>
   <UAObject NodeId="ns=1;i=65" BrowseName="1:AbortedToCleared">
@@ -1906,7 +1750,7 @@
       <Reference ReferenceType="FromState">ns=1;i=62</Reference>
       <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=3</Reference>
       <Reference ReferenceType="HasCause">ns=1;i=363</Reference>
-      <Reference ReferenceType="ToState">ns=1;i=5001</Reference>
+      <Reference ReferenceType="ToState">ns=1;i=71</Reference>
       <Reference ReferenceType="HasProperty">ns=1;i=174</Reference>
       <Reference ReferenceType="HasTypeDefinition">i=2310</Reference>
     </References>
@@ -1926,18 +1770,10 @@
     <References>
       <Reference ReferenceType="HasCause">ns=1;i=364</Reference>
       <Reference ReferenceType="ToState">ns=1;i=61</Reference>
-      <Reference ReferenceType="FromState">ns=1;i=5001</Reference>
+      <Reference ReferenceType="FromState">ns=1;i=71</Reference>
       <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=3</Reference>
       <Reference ReferenceType="HasProperty">ns=1;i=176</Reference>
       <Reference ReferenceType="HasTypeDefinition">i=2310</Reference>
-    </References>
-  </UAObject>
-  <UAObject NodeId="ns=1;i=68" BrowseName="Default XML" SymbolicName="DefaultXml">
-    <DisplayName>Default XML</DisplayName>
-    <References>
-      <Reference ReferenceType="HasTypeDefinition">i=76</Reference>
-      <Reference ReferenceType="HasEncoding" IsForward="false">ns=1;i=13</Reference>
-      <Reference ReferenceType="HasDescription">ns=1;i=231</Reference>
     </References>
   </UAObject>
   <UAObject NodeId="ns=1;i=69" BrowseName="Default Binary" SymbolicName="DefaultBinary">
@@ -2065,17 +1901,17 @@
       <Reference ReferenceType="HasModellingRule">i=78</Reference>
       <Reference ReferenceType="HasTypeDefinition">ns=1;i=4</Reference>
       <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=6</Reference>
-      <Reference ReferenceType="HasComponent">ns=1;i=6009</Reference>
+      <Reference ReferenceType="HasComponent">ns=1;i=225</Reference>
       <Reference ReferenceType="HasProperty">ns=1;i=290</Reference>
     </References>
   </UAObject>
   <UAObject NodeId="ns=1;i=88" BrowseName="1:BaseStateMachine">
     <DisplayName>BaseStateMachine</DisplayName>
     <References>
-      <Reference ReferenceType="HasComponent">ns=1;i=6011</Reference>
-      <Reference ReferenceType="HasComponent">ns=1;i=6013</Reference>
+      <Reference ReferenceType="HasComponent">ns=1;i=259</Reference>
+      <Reference ReferenceType="HasComponent">ns=1;i=202</Reference>
       <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=6</Reference>
-      <Reference ReferenceType="HasComponent">ns=1;i=6007</Reference>
+      <Reference ReferenceType="HasComponent">ns=1;i=272</Reference>
       <Reference ReferenceType="HasComponent">ns=1;i=89</Reference>
       <Reference ReferenceType="HasModellingRule">i=78</Reference>
       <Reference ReferenceType="HasTypeDefinition">ns=1;i=3</Reference>
@@ -2084,9 +1920,9 @@
   <UAObject NodeId="ns=1;i=89" BrowseName="1:MachineState">
     <DisplayName>MachineState</DisplayName>
     <References>
-      <Reference ReferenceType="HasComponent">ns=1;i=6030</Reference>
-      <Reference ReferenceType="HasComponent">ns=1;i=6032</Reference>
-      <Reference ReferenceType="HasComponent">ns=1;i=6027</Reference>
+      <Reference ReferenceType="HasComponent">ns=1;i=214</Reference>
+      <Reference ReferenceType="HasComponent">ns=1;i=213</Reference>
+      <Reference ReferenceType="HasComponent">ns=1;i=262</Reference>
       <Reference ReferenceType="HasComponent">ns=1;i=90</Reference>
       <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=88</Reference>
       <Reference ReferenceType="HasModellingRule">i=78</Reference>
@@ -2097,9 +1933,9 @@
     <DisplayName>ExecuteState</DisplayName>
     <Description>StateMachine that provides additional sube</Description>
     <References>
-      <Reference ReferenceType="HasComponent">ns=1;i=6034</Reference>
-      <Reference ReferenceType="HasComponent">ns=1;i=6036</Reference>
-      <Reference ReferenceType="HasComponent">ns=1;i=6019</Reference>
+      <Reference ReferenceType="HasComponent">ns=1;i=223</Reference>
+      <Reference ReferenceType="HasComponent">ns=1;i=222</Reference>
+      <Reference ReferenceType="HasComponent">ns=1;i=266</Reference>
       <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=89</Reference>
       <Reference ReferenceType="HasModellingRule">i=78</Reference>
       <Reference ReferenceType="HasTypeDefinition">ns=1;i=1</Reference>
@@ -2160,7 +1996,7 @@
       <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=1</Reference>
     </References>
   </UAObject>
-  <UAVariable NodeId="ns=1;i=118" BrowseName="InputArguments" ParentNodeId="ns=1;i=362" DataType="Argument" ValueRank="1" ArrayDimensions="2">
+  <UAVariable NodeId="ns=1;i=118" BrowseName="InputArguments" ParentNodeId="ns=1;i=362" DataType="Argument" ValueRank="1" ArrayDimensions="1">
     <DisplayName>InputArguments</DisplayName>
     <References>
       <Reference ReferenceType="HasModellingRule">i=78</Reference>
@@ -2169,24 +2005,6 @@
     </References>
     <Value>
       <uax:ListOfExtensionObject xmlns:uax="http://opcfoundation.org/UA/2008/02/Types.xsd">
-        <uax:ExtensionObject>
-          <uax:TypeId>
-            <uax:Identifier>i=297</uax:Identifier>
-          </uax:TypeId>
-          <uax:Body>
-            <uax:Argument>
-              <uax:Name>ModeSelection</uax:Name>
-              <uax:DataType>
-                <uax:Identifier>i=17</uax:Identifier>
-              </uax:DataType>
-              <uax:ValueRank>-1</uax:ValueRank>
-              <uax:ArrayDimensions />
-              <uax:Description>
-                <uax:Text>The NodeId of the enumeration that describes the available modes</uax:Text>
-              </uax:Description>
-            </uax:Argument>
-          </uax:Body>
-        </uax:ExtensionObject>
         <uax:ExtensionObject>
           <uax:TypeId>
             <uax:Identifier>i=297</uax:Identifier>
@@ -2485,6 +2303,31 @@
       <uax:UInt32 xmlns:uax="http://opcfoundation.org/UA/2008/02/Types.xsd">1</uax:UInt32>
     </Value>
   </UAVariable>
+  <UAVariable NodeId="ns=1;i=160" BrowseName="AvailableTransitions" ParentNodeId="ns=1;i=56" DataType="NodeId" ValueRank="1" ArrayDimensions="0">
+    <DisplayName>AvailableTransitions</DisplayName>
+    <References>
+      <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=56</Reference>
+      <Reference ReferenceType="HasTypeDefinition">i=63</Reference>
+      <Reference ReferenceType="HasModellingRule">i=78</Reference>
+    </References>
+  </UAVariable>
+  <UAVariable NodeId="ns=1;i=161" BrowseName="CurrentState" ParentNodeId="ns=1;i=56" DataType="LocalizedText">
+    <DisplayName>CurrentState</DisplayName>
+    <References>
+      <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=56</Reference>
+      <Reference ReferenceType="HasTypeDefinition">i=2760</Reference>
+      <Reference ReferenceType="HasProperty">ns=1;i=162</Reference>
+      <Reference ReferenceType="HasModellingRule">i=78</Reference>
+    </References>
+  </UAVariable>
+  <UAVariable NodeId="ns=1;i=162" BrowseName="Id" ParentNodeId="ns=1;i=161" DataType="NodeId">
+    <DisplayName>Id</DisplayName>
+    <References>
+      <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=161</Reference>
+      <Reference ReferenceType="HasModellingRule">i=78</Reference>
+      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
+    </References>
+  </UAVariable>
   <UAVariable NodeId="ns=1;i=163" BrowseName="TransitionNumber" ParentNodeId="ns=1;i=57" DataType="UInt32">
     <DisplayName>TransitionNumber</DisplayName>
     <References>
@@ -2550,6 +2393,23 @@
       <uax:UInt32 xmlns:uax="http://opcfoundation.org/UA/2008/02/Types.xsd">18</uax:UInt32>
     </Value>
   </UAVariable>
+  <UAVariable NodeId="ns=1;i=172" BrowseName="CurrentState" ParentNodeId="ns=1;i=64" DataType="LocalizedText">
+    <DisplayName>CurrentState</DisplayName>
+    <References>
+      <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=64</Reference>
+      <Reference ReferenceType="HasTypeDefinition">i=2760</Reference>
+      <Reference ReferenceType="HasProperty">ns=1;i=173</Reference>
+      <Reference ReferenceType="HasModellingRule">i=78</Reference>
+    </References>
+  </UAVariable>
+  <UAVariable NodeId="ns=1;i=173" BrowseName="Id" ParentNodeId="ns=1;i=172" DataType="NodeId">
+    <DisplayName>Id</DisplayName>
+    <References>
+      <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=172</Reference>
+      <Reference ReferenceType="HasModellingRule">i=78</Reference>
+      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
+    </References>
+  </UAVariable>
   <UAVariable NodeId="ns=1;i=174" BrowseName="TransitionNumber" ParentNodeId="ns=1;i=65" DataType="UInt32">
     <DisplayName>TransitionNumber</DisplayName>
     <References>
@@ -2574,6 +2434,14 @@
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=67</Reference>
     </References>
   </UAVariable>
+  <UAVariable NodeId="ns=1;i=177" BrowseName="AvailableStates" ParentNodeId="ns=1;i=56" DataType="NodeId" ValueRank="1" ArrayDimensions="0">
+    <DisplayName>AvailableStates</DisplayName>
+    <References>
+      <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=56</Reference>
+      <Reference ReferenceType="HasTypeDefinition">i=63</Reference>
+      <Reference ReferenceType="HasModellingRule">i=78</Reference>
+    </References>
+  </UAVariable>
   <UAVariable NodeId="ns=1;i=179" BrowseName="TransitionNumber" ParentNodeId="ns=1;i=99" DataType="UInt32">
     <DisplayName>TransitionNumber</DisplayName>
     <References>
@@ -2582,12 +2450,52 @@
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=99</Reference>
     </References>
   </UAVariable>
+  <UAVariable NodeId="ns=1;i=202" BrowseName="AvailableTransitions" ParentNodeId="ns=1;i=88" DataType="NodeId" ValueRank="1" ArrayDimensions="0">
+    <DisplayName>AvailableTransitions</DisplayName>
+    <References>
+      <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=88</Reference>
+      <Reference ReferenceType="HasTypeDefinition">i=63</Reference>
+      <Reference ReferenceType="HasModellingRule">i=78</Reference>
+    </References>
+  </UAVariable>
+  <UAVariable NodeId="ns=1;i=204" BrowseName="AvailableTransitions" ParentNodeId="ns=1;i=64" DataType="NodeId" ValueRank="1" ArrayDimensions="0">
+    <DisplayName>AvailableTransitions</DisplayName>
+    <References>
+      <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=64</Reference>
+      <Reference ReferenceType="HasTypeDefinition">i=63</Reference>
+      <Reference ReferenceType="HasModellingRule">i=78</Reference>
+    </References>
+  </UAVariable>
   <UAVariable NodeId="ns=1;i=208" BrowseName="TransitionNumber" ParentNodeId="ns=1;i=100" DataType="UInt32">
     <DisplayName>TransitionNumber</DisplayName>
     <References>
       <Reference ReferenceType="HasModellingRule">i=78</Reference>
       <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=100</Reference>
+    </References>
+  </UAVariable>
+  <UAVariable NodeId="ns=1;i=212" BrowseName="AvailableStates" ParentNodeId="ns=1;i=64" DataType="NodeId" ValueRank="1" ArrayDimensions="0">
+    <DisplayName>AvailableStates</DisplayName>
+    <References>
+      <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=64</Reference>
+      <Reference ReferenceType="HasTypeDefinition">i=63</Reference>
+      <Reference ReferenceType="HasModellingRule">i=78</Reference>
+    </References>
+  </UAVariable>
+  <UAVariable NodeId="ns=1;i=213" BrowseName="AvailableTransitions" ParentNodeId="ns=1;i=89" DataType="NodeId" ValueRank="1" ArrayDimensions="0">
+    <DisplayName>AvailableTransitions</DisplayName>
+    <References>
+      <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=89</Reference>
+      <Reference ReferenceType="HasTypeDefinition">i=63</Reference>
+      <Reference ReferenceType="HasModellingRule">i=78</Reference>
+    </References>
+  </UAVariable>
+  <UAVariable NodeId="ns=1;i=214" BrowseName="AvailableStates" ParentNodeId="ns=1;i=89" DataType="NodeId" ValueRank="1" ArrayDimensions="0">
+    <DisplayName>AvailableStates</DisplayName>
+    <References>
+      <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=89</Reference>
+      <Reference ReferenceType="HasTypeDefinition">i=63</Reference>
+      <Reference ReferenceType="HasModellingRule">i=78</Reference>
     </References>
   </UAVariable>
   <UAVariable NodeId="ns=1;i=215" BrowseName="TransitionNumber" ParentNodeId="ns=1;i=101" DataType="UInt32">
@@ -2612,6 +2520,38 @@
       <Reference ReferenceType="HasModellingRule">i=78</Reference>
       <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=103</Reference>
+    </References>
+  </UAVariable>
+  <UAVariable NodeId="ns=1;i=222" BrowseName="AvailableTransitions" ParentNodeId="ns=1;i=90" DataType="NodeId" ValueRank="1" ArrayDimensions="0">
+    <DisplayName>AvailableTransitions</DisplayName>
+    <References>
+      <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=90</Reference>
+      <Reference ReferenceType="HasTypeDefinition">i=63</Reference>
+      <Reference ReferenceType="HasModellingRule">i=78</Reference>
+    </References>
+  </UAVariable>
+  <UAVariable NodeId="ns=1;i=223" BrowseName="AvailableStates" ParentNodeId="ns=1;i=90" DataType="NodeId" ValueRank="1" ArrayDimensions="0">
+    <DisplayName>AvailableStates</DisplayName>
+    <References>
+      <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=90</Reference>
+      <Reference ReferenceType="HasTypeDefinition">i=63</Reference>
+      <Reference ReferenceType="HasModellingRule">i=78</Reference>
+    </References>
+  </UAVariable>
+  <UAVariable NodeId="ns=1;i=225" BrowseName="1:UnitModeCurrent" ParentNodeId="ns=1;i=87" DataType="Enumeration">
+    <DisplayName>UnitModeCurrent</DisplayName>
+    <References>
+      <Reference ReferenceType="HasTypeDefinition">i=63</Reference>
+      <Reference ReferenceType="HasModellingRule">i=78</Reference>
+      <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=87</Reference>
+    </References>
+  </UAVariable>
+  <UAVariable NodeId="ns=1;i=227" BrowseName="Id" ParentNodeId="ns=1;i=266" DataType="NodeId">
+    <DisplayName>Id</DisplayName>
+    <References>
+      <Reference ReferenceType="HasModellingRule">i=78</Reference>
+      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
+      <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=266</Reference>
     </References>
   </UAVariable>
   <UAVariable NodeId="ns=1;i=255" BrowseName="1:CurMachSpeed" ParentNodeId="ns=1;i=87" DataType="Float">
@@ -2644,6 +2584,57 @@
     <DisplayName>EURange</DisplayName>
     <References>
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=257</Reference>
+      <Reference ReferenceType="HasModellingRule">i=78</Reference>
+      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
+    </References>
+  </UAVariable>
+  <UAVariable NodeId="ns=1;i=259" BrowseName="AvailableStates" ParentNodeId="ns=1;i=88" DataType="NodeId" ValueRank="1" ArrayDimensions="0">
+    <DisplayName>AvailableStates</DisplayName>
+    <References>
+      <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=88</Reference>
+      <Reference ReferenceType="HasTypeDefinition">i=63</Reference>
+      <Reference ReferenceType="HasModellingRule">i=78</Reference>
+    </References>
+  </UAVariable>
+  <UAVariable NodeId="ns=1;i=262" BrowseName="CurrentState" ParentNodeId="ns=1;i=89" DataType="LocalizedText">
+    <DisplayName>CurrentState</DisplayName>
+    <References>
+      <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=89</Reference>
+      <Reference ReferenceType="HasTypeDefinition">i=2760</Reference>
+      <Reference ReferenceType="HasProperty">ns=1;i=263</Reference>
+      <Reference ReferenceType="HasModellingRule">i=78</Reference>
+    </References>
+  </UAVariable>
+  <UAVariable NodeId="ns=1;i=263" BrowseName="Id" ParentNodeId="ns=1;i=262" DataType="NodeId">
+    <DisplayName>Id</DisplayName>
+    <References>
+      <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=262</Reference>
+      <Reference ReferenceType="HasModellingRule">i=78</Reference>
+      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
+    </References>
+  </UAVariable>
+  <UAVariable NodeId="ns=1;i=266" BrowseName="CurrentState" ParentNodeId="ns=1;i=90" DataType="LocalizedText">
+    <DisplayName>CurrentState</DisplayName>
+    <References>
+      <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=90</Reference>
+      <Reference ReferenceType="HasTypeDefinition">i=2760</Reference>
+      <Reference ReferenceType="HasProperty">ns=1;i=227</Reference>
+      <Reference ReferenceType="HasModellingRule">i=78</Reference>
+    </References>
+  </UAVariable>
+  <UAVariable NodeId="ns=1;i=272" BrowseName="CurrentState" ParentNodeId="ns=1;i=88" DataType="LocalizedText">
+    <DisplayName>CurrentState</DisplayName>
+    <References>
+      <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=88</Reference>
+      <Reference ReferenceType="HasTypeDefinition">i=2760</Reference>
+      <Reference ReferenceType="HasProperty">ns=1;i=273</Reference>
+      <Reference ReferenceType="HasModellingRule">i=78</Reference>
+    </References>
+  </UAVariable>
+  <UAVariable NodeId="ns=1;i=273" BrowseName="Id" ParentNodeId="ns=1;i=272" DataType="NodeId">
+    <DisplayName>Id</DisplayName>
+    <References>
+      <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=272</Reference>
       <Reference ReferenceType="HasModellingRule">i=78</Reference>
       <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
     </References>
@@ -2815,7 +2806,7 @@
             <uax:Argument>
               <uax:Name>InterlockId</uax:Name>
               <uax:DataType>
-                <uax:Identifier>i=17</uax:Identifier>
+                <uax:Identifier>i=6</uax:Identifier>
               </uax:DataType>
               <uax:ValueRank>-1</uax:ValueRank>
               <uax:ArrayDimensions />
@@ -2880,7 +2871,7 @@
   </UAVariable>
   <UAMethod NodeId="ns=1;i=361" BrowseName="1:Reset">
     <DisplayName>Reset</DisplayName>
-    <Documentation>https://reference.opcfoundation.org/v104/PackML/v100/docs/6.7.8</Documentation>
+    <Documentation>https://reference.opcfoundation.org/v104/PackML/v101/docs/6.7.8</Documentation>
     <References>
       <Reference ReferenceType="HasModellingRule">i=80</Reference>
       <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=1</Reference>
@@ -2889,7 +2880,7 @@
   </UAMethod>
   <UAMethod NodeId="ns=1;i=362" BrowseName="1:SetUnitMode">
     <DisplayName>SetUnitMode</DisplayName>
-    <Documentation>https://reference.opcfoundation.org/v104/PackML/v100/docs/6.7.2</Documentation>
+    <Documentation>https://reference.opcfoundation.org/v104/PackML/v101/docs/6.7.2</Documentation>
     <References>
       <Reference ReferenceType="HasProperty">ns=1;i=118</Reference>
       <Reference ReferenceType="HasModellingRule">i=78</Reference>
@@ -2898,7 +2889,7 @@
   </UAMethod>
   <UAMethod NodeId="ns=1;i=363" BrowseName="1:Clear">
     <DisplayName>Clear</DisplayName>
-    <Documentation>https://reference.opcfoundation.org/v104/PackML/v100/docs/6.7.6</Documentation>
+    <Documentation>https://reference.opcfoundation.org/v104/PackML/v101/docs/6.7.6</Documentation>
     <References>
       <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=3</Reference>
       <Reference ReferenceType="HasCause" IsForward="false">ns=1;i=65</Reference>
@@ -2907,7 +2898,7 @@
   </UAMethod>
   <UAMethod NodeId="ns=1;i=364" BrowseName="1:Abort">
     <DisplayName>Abort</DisplayName>
-    <Documentation>https://reference.opcfoundation.org/v104/PackML/v100/docs/6.7.5</Documentation>
+    <Documentation>https://reference.opcfoundation.org/v104/PackML/v101/docs/6.7.5</Documentation>
     <References>
       <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=3</Reference>
       <Reference ReferenceType="HasCause" IsForward="false">ns=1;i=67</Reference>
@@ -2916,7 +2907,7 @@
   </UAMethod>
   <UAMethod NodeId="ns=1;i=365" BrowseName="1:ToComplete">
     <DisplayName>ToComplete</DisplayName>
-    <Documentation>https://reference.opcfoundation.org/v104/PackML/docs/6.7.9</Documentation>
+    <Documentation>https://reference.opcfoundation.org/v104/PackML/v101/docs/6.7.9</Documentation>
     <References>
       <Reference ReferenceType="HasModellingRule">i=80</Reference>
       <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=1</Reference>
@@ -2925,7 +2916,7 @@
   </UAMethod>
   <UAMethod NodeId="ns=1;i=366" BrowseName="1:Hold">
     <DisplayName>Hold</DisplayName>
-    <Documentation>https://reference.opcfoundation.org/v104/PackML/v100/docs/6.7.14</Documentation>
+    <Documentation>https://reference.opcfoundation.org/v104/PackML/v101/docs/6.7.14</Documentation>
     <References>
       <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=1</Reference>
       <Reference ReferenceType="HasCause" IsForward="false">ns=1;i=45</Reference>
@@ -2939,7 +2930,7 @@
   </UAMethod>
   <UAMethod NodeId="ns=1;i=367" BrowseName="1:Suspend">
     <DisplayName>Suspend</DisplayName>
-    <Documentation>https://reference.opcfoundation.org/v104/PackML/v100/docs/6.7.12</Documentation>
+    <Documentation>https://reference.opcfoundation.org/v104/PackML/v101/docs/6.7.12</Documentation>
     <References>
       <Reference ReferenceType="HasModellingRule">i=80</Reference>
       <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=1</Reference>
@@ -2948,7 +2939,7 @@
   </UAMethod>
   <UAMethod NodeId="ns=1;i=368" BrowseName="1:Unhold">
     <DisplayName>Unhold</DisplayName>
-    <Documentation>https://reference.opcfoundation.org/v104/PackML/v100/docs/6.7.11</Documentation>
+    <Documentation>https://reference.opcfoundation.org/v104/PackML/v101/docs/6.7.11</Documentation>
     <References>
       <Reference ReferenceType="HasModellingRule">i=80</Reference>
       <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=1</Reference>
@@ -2957,7 +2948,7 @@
   </UAMethod>
   <UAMethod NodeId="ns=1;i=369" BrowseName="1:Start">
     <DisplayName>Start</DisplayName>
-    <Documentation>https://reference.opcfoundation.org/v104/PackML/v100/docs/6.7.10</Documentation>
+    <Documentation>https://reference.opcfoundation.org/v104/PackML/v101/docs/6.7.10</Documentation>
     <References>
       <Reference ReferenceType="HasProperty">ns=1;i=342</Reference>
       <Reference ReferenceType="HasModellingRule">i=80</Reference>
@@ -2967,7 +2958,7 @@
   </UAMethod>
   <UAMethod NodeId="ns=1;i=372" BrowseName="1:Unsuspend">
     <DisplayName>Unsuspend</DisplayName>
-    <Documentation>https://reference.opcfoundation.org/v104/PackML/v100/docs/6.7.13</Documentation>
+    <Documentation>https://reference.opcfoundation.org/v104/PackML/v101/docs/6.7.13</Documentation>
     <References>
       <Reference ReferenceType="HasModellingRule">i=80</Reference>
       <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=1</Reference>
@@ -2976,7 +2967,7 @@
   </UAMethod>
   <UAMethod NodeId="ns=1;i=375" BrowseName="1:Stop">
     <DisplayName>Stop</DisplayName>
-    <Documentation>https://reference.opcfoundation.org/v104/PackML/v100/docs/6.7.7</Documentation>
+    <Documentation>https://reference.opcfoundation.org/v104/PackML/v101/docs/6.7.7</Documentation>
     <References>
       <Reference ReferenceType="HasModellingRule">i=80</Reference>
       <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=2</Reference>
@@ -2993,7 +2984,7 @@
   </UAMethod>
   <UAMethod NodeId="ns=1;i=400" BrowseName="1:SetMachSpeed">
     <DisplayName>SetMachSpeed</DisplayName>
-    <Documentation>https://reference.opcfoundation.org/v104/PackML/v100/docs/6.7.3</Documentation>
+    <Documentation>https://reference.opcfoundation.org/v104/PackML/v101/docs/6.7.3</Documentation>
     <References>
       <Reference ReferenceType="HasProperty">ns=1;i=348</Reference>
       <Reference ReferenceType="HasModellingRule">i=78</Reference>
@@ -3002,7 +2993,7 @@
   </UAMethod>
   <UAMethod NodeId="ns=1;i=401" BrowseName="1:SetProduct">
     <DisplayName>SetProduct</DisplayName>
-    <Documentation>https://reference.opcfoundation.org/v104/PackML/v100/docs/6.7.4</Documentation>
+    <Documentation>https://reference.opcfoundation.org/v104/PackML/v101/docs/6.7.4</Documentation>
     <References>
       <Reference ReferenceType="HasProperty">ns=1;i=349</Reference>
       <Reference ReferenceType="HasModellingRule">i=78</Reference>
@@ -3011,7 +3002,7 @@
   </UAMethod>
   <UAMethod NodeId="ns=1;i=402" BrowseName="1:SetParameter">
     <DisplayName>SetParameter</DisplayName>
-    <Documentation>https://reference.opcfoundation.org/v104/PackML/v100/docs/6.7.17</Documentation>
+    <Documentation>https://reference.opcfoundation.org/v104/PackML/v101/docs/6.7.17</Documentation>
     <References>
       <Reference ReferenceType="HasProperty">ns=1;i=352</Reference>
       <Reference ReferenceType="HasModellingRule">i=78</Reference>
@@ -3020,7 +3011,7 @@
   </UAMethod>
   <UAMethod NodeId="ns=1;i=403" BrowseName="1:RemoteCommand">
     <DisplayName>RemoteCommand</DisplayName>
-    <Documentation>https://reference.opcfoundation.org/v104/PackML/v100/docs/6.7.15</Documentation>
+    <Documentation>https://reference.opcfoundation.org/v104/PackML/v101/docs/6.7.15</Documentation>
     <References>
       <Reference ReferenceType="HasProperty">ns=1;i=350</Reference>
       <Reference ReferenceType="HasModellingRule">i=80</Reference>
@@ -3029,173 +3020,11 @@
   </UAMethod>
   <UAMethod NodeId="ns=1;i=404" BrowseName="1:SetInterlock">
     <DisplayName>SetInterlock</DisplayName>
-    <Documentation>https://reference.opcfoundation.org/v104/PackML/v100/docs/6.7.16</Documentation>
+    <Documentation>https://reference.opcfoundation.org/v104/PackML/v101/docs/6.7.16</Documentation>
     <References>
       <Reference ReferenceType="HasProperty">ns=1;i=351</Reference>
       <Reference ReferenceType="HasModellingRule">i=80</Reference>
       <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=6</Reference>
     </References>
   </UAMethod>
-  <UAVariable NodeId="ns=1;i=6003" BrowseName="Id" ParentNodeId="ns=1;i=6007" DataType="NodeId">
-    <DisplayName>Id</DisplayName>
-    <References>
-      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
-      <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=6007</Reference>
-    </References>
-  </UAVariable>
-  <UAVariable NodeId="ns=1;i=6004" BrowseName="Id" ParentNodeId="ns=1;i=6016" DataType="NodeId">
-    <DisplayName>Id</DisplayName>
-    <References>
-      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
-      <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=6016</Reference>
-    </References>
-  </UAVariable>
-  <UAVariable NodeId="ns=1;i=6007" BrowseName="CurrentState" ParentNodeId="ns=1;i=88" DataType="LocalizedText">
-    <DisplayName>CurrentState</DisplayName>
-    <References>
-      <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=88</Reference>
-      <Reference ReferenceType="HasTypeDefinition">i=2760</Reference>
-      <Reference ReferenceType="HasProperty">ns=1;i=6003</Reference>
-    </References>
-  </UAVariable>
-  <UAVariable NodeId="ns=1;i=6008" BrowseName="Id" ParentNodeId="ns=1;i=6019" DataType="NodeId">
-    <DisplayName>Id</DisplayName>
-    <References>
-      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
-      <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=6019</Reference>
-    </References>
-  </UAVariable>
-  <UAVariable NodeId="ns=1;i=6009" BrowseName="1:UnitModeCurrent" ParentNodeId="ns=1;i=87" DataType="Enumeration">
-    <DisplayName>UnitModeCurrent</DisplayName>
-    <References>
-      <Reference ReferenceType="HasTypeDefinition">i=63</Reference>
-      <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=87</Reference>
-    </References>
-  </UAVariable>
-  <UAVariable NodeId="ns=1;i=6011" BrowseName="AvailableStates" ParentNodeId="ns=1;i=88" DataType="NodeId" ValueRank="1" ArrayDimensions="0">
-    <DisplayName>AvailableStates</DisplayName>
-    <References>
-      <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=88</Reference>
-      <Reference ReferenceType="HasTypeDefinition">i=63</Reference>
-      <Reference ReferenceType="HasModellingRule">i=78</Reference>
-    </References>
-  </UAVariable>
-  <UAVariable NodeId="ns=1;i=6013" BrowseName="AvailableTransitions" ParentNodeId="ns=1;i=88" DataType="NodeId" ValueRank="1" ArrayDimensions="0">
-    <DisplayName>AvailableTransitions</DisplayName>
-    <References>
-      <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=88</Reference>
-      <Reference ReferenceType="HasTypeDefinition">i=63</Reference>
-      <Reference ReferenceType="HasModellingRule">i=78</Reference>
-    </References>
-  </UAVariable>
-  <UAVariable NodeId="ns=1;i=6014" BrowseName="Id" ParentNodeId="ns=1;i=6025" DataType="NodeId">
-    <DisplayName>Id</DisplayName>
-    <References>
-      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
-      <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=6025</Reference>
-    </References>
-  </UAVariable>
-  <UAVariable NodeId="ns=1;i=6015" BrowseName="Id" ParentNodeId="ns=1;i=6027" DataType="NodeId">
-    <DisplayName>Id</DisplayName>
-    <References>
-      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
-      <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=6027</Reference>
-    </References>
-  </UAVariable>
-  <UAVariable NodeId="ns=1;i=6016" BrowseName="CurrentState" ParentNodeId="ns=1;i=56" DataType="LocalizedText">
-    <DisplayName>CurrentState</DisplayName>
-    <References>
-      <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=56</Reference>
-      <Reference ReferenceType="HasTypeDefinition">i=2760</Reference>
-      <Reference ReferenceType="HasProperty">ns=1;i=6004</Reference>
-    </References>
-  </UAVariable>
-  <UAVariable NodeId="ns=1;i=6019" BrowseName="CurrentState" ParentNodeId="ns=1;i=90" DataType="LocalizedText">
-    <DisplayName>CurrentState</DisplayName>
-    <References>
-      <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=90</Reference>
-      <Reference ReferenceType="HasTypeDefinition">i=2760</Reference>
-      <Reference ReferenceType="HasProperty">ns=1;i=6008</Reference>
-    </References>
-  </UAVariable>
-  <UAVariable NodeId="ns=1;i=6025" BrowseName="CurrentState" ParentNodeId="ns=1;i=64" DataType="LocalizedText">
-    <DisplayName>CurrentState</DisplayName>
-    <References>
-      <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=64</Reference>
-      <Reference ReferenceType="HasTypeDefinition">i=2760</Reference>
-      <Reference ReferenceType="HasProperty">ns=1;i=6014</Reference>
-    </References>
-  </UAVariable>
-  <UAVariable NodeId="ns=1;i=6027" BrowseName="CurrentState" ParentNodeId="ns=1;i=89" DataType="LocalizedText">
-    <DisplayName>CurrentState</DisplayName>
-    <References>
-      <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=89</Reference>
-      <Reference ReferenceType="HasTypeDefinition">i=2760</Reference>
-      <Reference ReferenceType="HasProperty">ns=1;i=6015</Reference>
-    </References>
-  </UAVariable>
-  <UAVariable NodeId="ns=1;i=6029" BrowseName="AvailableStates" ParentNodeId="ns=1;i=64" DataType="NodeId" ValueRank="1" ArrayDimensions="0">
-    <DisplayName>AvailableStates</DisplayName>
-    <References>
-      <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=64</Reference>
-      <Reference ReferenceType="HasTypeDefinition">i=63</Reference>
-      <Reference ReferenceType="HasModellingRule">i=78</Reference>
-    </References>
-  </UAVariable>
-  <UAVariable NodeId="ns=1;i=6030" BrowseName="AvailableStates" ParentNodeId="ns=1;i=89" DataType="NodeId" ValueRank="1" ArrayDimensions="0">
-    <DisplayName>AvailableStates</DisplayName>
-    <References>
-      <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=89</Reference>
-      <Reference ReferenceType="HasTypeDefinition">i=63</Reference>
-      <Reference ReferenceType="HasModellingRule">i=78</Reference>
-    </References>
-  </UAVariable>
-  <UAVariable NodeId="ns=1;i=6031" BrowseName="AvailableTransitions" ParentNodeId="ns=1;i=64" DataType="NodeId" ValueRank="1" ArrayDimensions="0">
-    <DisplayName>AvailableTransitions</DisplayName>
-    <References>
-      <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=64</Reference>
-      <Reference ReferenceType="HasTypeDefinition">i=63</Reference>
-      <Reference ReferenceType="HasModellingRule">i=78</Reference>
-    </References>
-  </UAVariable>
-  <UAVariable NodeId="ns=1;i=6032" BrowseName="AvailableTransitions" ParentNodeId="ns=1;i=89" DataType="NodeId" ValueRank="1" ArrayDimensions="0">
-    <DisplayName>AvailableTransitions</DisplayName>
-    <References>
-      <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=89</Reference>
-      <Reference ReferenceType="HasTypeDefinition">i=63</Reference>
-      <Reference ReferenceType="HasModellingRule">i=78</Reference>
-    </References>
-  </UAVariable>
-  <UAVariable NodeId="ns=1;i=6033" BrowseName="AvailableStates" ParentNodeId="ns=1;i=56" DataType="NodeId" ValueRank="1" ArrayDimensions="0">
-    <DisplayName>AvailableStates</DisplayName>
-    <References>
-      <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=56</Reference>
-      <Reference ReferenceType="HasTypeDefinition">i=63</Reference>
-      <Reference ReferenceType="HasModellingRule">i=78</Reference>
-    </References>
-  </UAVariable>
-  <UAVariable NodeId="ns=1;i=6034" BrowseName="AvailableStates" ParentNodeId="ns=1;i=90" DataType="NodeId" ValueRank="1" ArrayDimensions="0">
-    <DisplayName>AvailableStates</DisplayName>
-    <References>
-      <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=90</Reference>
-      <Reference ReferenceType="HasTypeDefinition">i=63</Reference>
-      <Reference ReferenceType="HasModellingRule">i=78</Reference>
-    </References>
-  </UAVariable>
-  <UAVariable NodeId="ns=1;i=6035" BrowseName="AvailableTransitions" ParentNodeId="ns=1;i=56" DataType="NodeId" ValueRank="1" ArrayDimensions="0">
-    <DisplayName>AvailableTransitions</DisplayName>
-    <References>
-      <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=56</Reference>
-      <Reference ReferenceType="HasTypeDefinition">i=63</Reference>
-      <Reference ReferenceType="HasModellingRule">i=78</Reference>
-    </References>
-  </UAVariable>
-  <UAVariable NodeId="ns=1;i=6036" BrowseName="AvailableTransitions" ParentNodeId="ns=1;i=90" DataType="NodeId" ValueRank="1" ArrayDimensions="0">
-    <DisplayName>AvailableTransitions</DisplayName>
-    <References>
-      <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=90</Reference>
-      <Reference ReferenceType="HasTypeDefinition">i=63</Reference>
-      <Reference ReferenceType="HasModellingRule">i=78</Reference>
-    </References>
-  </UAVariable>
 </UANodeSet>

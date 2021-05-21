@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <!--
- * Copyright (c) 2005-2020 The OPC Foundation, Inc. All rights reserved.
+ * Copyright (c) 2005-2021 The OPC Foundation, Inc. All rights reserved.
  *
  * OPC Foundation MIT License 1.00
  * 
@@ -34,7 +34,7 @@
     <Uri>http://opcfoundation.org/UA/DI/</Uri>
   </NamespaceUris>
   <Models>
-    <Model ModelUri="http://opcfoundation.org/UA/Machinery/" Version="1.0.0" PublicationDate="2020-09-25T00:00:00Z">
+    <Model ModelUri="http://opcfoundation.org/UA/Machinery/" Version="1.01.0" PublicationDate="2021-02-25T00:00:00Z">
       <RequiredModel ModelUri="http://opcfoundation.org/UA/" Version="1.04.7" PublicationDate="2020-07-15T00:00:00Z" />
       <RequiredModel ModelUri="http://opcfoundation.org/UA/DI/" Version="1.02.2" PublicationDate="2020-06-02T00:00:00Z" />
     </Model>
@@ -56,20 +56,21 @@
     <Alias Alias="IdType">i=256</Alias>
     <Alias Alias="NumericRange">i=291</Alias>
     <Alias Alias="HasInterface">i=17603</Alias>
+    <Alias Alias="HasAddIn">i=17604</Alias>
   </Aliases>
   <Extensions>
     <Extension>
-      <ua:ModelInfo Tool="UaModeler" Hash="T1XyRvvcd4LSoOq0PgQT2A==" Version="1.6.4" xmlns:ua="http://unifiedautomation.com/Configuration/NodeSet.xsd" />
+      <ua:ModelInfo Tool="UaModeler" Hash="1kZ2yQ20PUIIUHL71Tn8vA==" Version="1.6.5" xmlns:ua="http://unifiedautomation.com/Configuration/NodeSet.xsd" />
     </Extension>
   </Extensions>
   <UAObjectType NodeId="ns=1;i=1011" BrowseName="1:IMachineTagNameplateType" IsAbstract="true">
     <DisplayName>IMachineTagNameplateType</DisplayName>
     <Description Locale="en">Interface containing information of the identification of a machine set by the customer</Description>
-    <Documentation>https://reference.opcfoundation.org/v104/Machinery/v100/docs/8.5</Documentation>
+    <Documentation>https://reference.opcfoundation.org/v104/Machinery/v101/docs/8.5</Documentation>
     <References>
       <Reference ReferenceType="HasSubtype" IsForward="false">ns=2;i=15048</Reference>
-      <Reference ReferenceType="HasProperty">ns=1;i=6028</Reference>
       <Reference ReferenceType="HasInterface" IsForward="false">ns=1;i=1012</Reference>
+      <Reference ReferenceType="HasProperty">ns=1;i=6028</Reference>
     </References>
   </UAObjectType>
   <UAVariable NodeId="ns=1;i=6028" BrowseName="1:Location" ParentNodeId="ns=1;i=1011" DataType="String" AccessLevel="3">
@@ -84,15 +85,15 @@
   <UAObjectType NodeId="ns=1;i=1003" BrowseName="1:IMachineryItemVendorNameplateType" IsAbstract="true">
     <DisplayName>IMachineryItemVendorNameplateType</DisplayName>
     <Description Locale="en">Interface containing identification and nameplate information for a MachineryItem provided by the vendor</Description>
-    <Documentation>https://reference.opcfoundation.org/v104/Machinery/v100/docs/8.2</Documentation>
+    <Documentation>https://reference.opcfoundation.org/v104/Machinery/v101/docs/8.2</Documentation>
     <References>
       <Reference ReferenceType="HasSubtype" IsForward="false">ns=2;i=15035</Reference>
+      <Reference ReferenceType="HasInterface" IsForward="false">ns=1;i=1004</Reference>
       <Reference ReferenceType="HasProperty">ns=1;i=6027</Reference>
       <Reference ReferenceType="HasProperty">ns=1;i=6022</Reference>
       <Reference ReferenceType="HasProperty">ns=1;i=6026</Reference>
       <Reference ReferenceType="HasProperty">ns=1;i=6024</Reference>
       <Reference ReferenceType="HasProperty">ns=1;i=6025</Reference>
-      <Reference ReferenceType="HasInterface" IsForward="false">ns=1;i=1004</Reference>
     </References>
   </UAObjectType>
   <UAVariable NodeId="ns=1;i=6027" BrowseName="1:InitialOperationDate" ParentNodeId="ns=1;i=1003" DataType="DateTime">
@@ -143,11 +144,11 @@
   <UAObjectType NodeId="ns=1;i=1010" BrowseName="1:IMachineVendorNameplateType" IsAbstract="true">
     <DisplayName>IMachineVendorNameplateType</DisplayName>
     <Description Locale="en">Interface containing identification and nameplate information for a machine provided by the machine vendor</Description>
-    <Documentation>https://reference.opcfoundation.org/v104/Machinery/v100/docs/8.4</Documentation>
+    <Documentation>https://reference.opcfoundation.org/v104/Machinery/v101/docs/8.4</Documentation>
     <References>
       <Reference ReferenceType="HasSubtype" IsForward="false">ns=1;i=1003</Reference>
-      <Reference ReferenceType="HasProperty">ns=1;i=6023</Reference>
       <Reference ReferenceType="HasInterface" IsForward="false">ns=1;i=1012</Reference>
+      <Reference ReferenceType="HasProperty">ns=1;i=6023</Reference>
     </References>
   </UAObjectType>
   <UAVariable NodeId="ns=1;i=6023" BrowseName="2:ProductInstanceUri" ParentNodeId="ns=1;i=1010" DataType="String">
@@ -162,7 +163,7 @@
   <UAObjectType NodeId="ns=1;i=1004" BrowseName="1:MachineryItemIdentificationType" IsAbstract="true">
     <DisplayName>MachineryItemIdentificationType</DisplayName>
     <Description Locale="en">Contains information about the identification and nameplate of a MachineryItem</Description>
-    <Documentation>https://reference.opcfoundation.org/v104/Machinery/v100/docs/8.3</Documentation>
+    <Documentation>https://reference.opcfoundation.org/v104/Machinery/v101/docs/8.3</Documentation>
     <References>
       <Reference ReferenceType="HasProperty">ns=1;i=6013</Reference>
       <Reference ReferenceType="HasProperty">ns=1;i=6014</Reference>
@@ -319,7 +320,7 @@
   <UAObjectType NodeId="ns=1;i=1012" BrowseName="1:MachineIdentificationType">
     <DisplayName>MachineIdentificationType</DisplayName>
     <Description Locale="en">Contains information about the identification and nameplate of a machine</Description>
-    <Documentation>https://reference.opcfoundation.org/v104/Machinery/v100/docs/8.6</Documentation>
+    <Documentation>https://reference.opcfoundation.org/v104/Machinery/v101/docs/8.6</Documentation>
     <References>
       <Reference ReferenceType="HasProperty">ns=1;i=6030</Reference>
       <Reference ReferenceType="HasInterface">ns=1;i=1011</Reference>
@@ -361,10 +362,106 @@
       <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
     </References>
   </UAVariable>
+  <UAObjectType NodeId="ns=1;i=1005" BrowseName="1:MachineryComponentIdentificationType">
+    <DisplayName>MachineryComponentIdentificationType</DisplayName>
+    <Description Locale="en">Contains information about the identification and nameplate of a component</Description>
+    <Documentation>https://reference.opcfoundation.org/v104/Machinery/v101/docs/10.2</Documentation>
+    <References>
+      <Reference ReferenceType="HasProperty">ns=1;i=6016</Reference>
+      <Reference ReferenceType="HasProperty">ns=1;i=6017</Reference>
+      <Reference ReferenceType="HasSubtype" IsForward="false">ns=1;i=1004</Reference>
+    </References>
+  </UAObjectType>
+  <UAVariable NodeId="ns=1;i=6016" BrowseName="DefaultInstanceBrowseName" ParentNodeId="ns=1;i=1005" DataType="QualifiedName" AccessLevel="3">
+    <DisplayName>DefaultInstanceBrowseName</DisplayName>
+    <Description Locale="en">The default BrowseName for instances of the type.</Description>
+    <References>
+      <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=1005</Reference>
+      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
+    </References>
+    <Value>
+      <uax:QualifiedName xmlns:uax="http://opcfoundation.org/UA/2008/02/Types.xsd">
+        <uax:NamespaceIndex>2</uax:NamespaceIndex>
+        <uax:Name>Identification</uax:Name>
+      </uax:QualifiedName>
+    </Value>
+  </UAVariable>
+  <UAVariable NodeId="ns=1;i=6017" BrowseName="2:DeviceRevision" ParentNodeId="ns=1;i=1005" DataType="String" AccessLevel="3">
+    <DisplayName>DeviceRevision</DisplayName>
+    <Description Locale="en">A string representation of the overall revision level of the component. Often, it is increased when either the SoftwareRevision and / or the HardwareRevision of the component is increased. As an example, it can be used in ERP systems together with the ProductCode.</Description>
+    <References>
+      <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=1005</Reference>
+      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
+      <Reference ReferenceType="HasModellingRule">i=80</Reference>
+    </References>
+  </UAVariable>
+  <UAObjectType NodeId="ns=1;i=1006" BrowseName="1:MachineComponentsType">
+    <DisplayName>MachineComponentsType</DisplayName>
+    <Description Locale="en">Contains all identifiable components of a machine</Description>
+    <Documentation>https://reference.opcfoundation.org/v104/Machinery/v101/docs/11.2</Documentation>
+    <References>
+      <Reference ReferenceType="HasComponent">ns=1;i=5002</Reference>
+      <Reference ReferenceType="HasProperty">ns=1;i=6018</Reference>
+      <Reference ReferenceType="HasSubtype" IsForward="false">i=58</Reference>
+    </References>
+  </UAObjectType>
+  <UAObject NodeId="ns=1;i=5002" BrowseName="1:&lt;Component&gt;" SymbolicName="Component" ParentNodeId="ns=1;i=1006">
+    <DisplayName>&lt;Component&gt;</DisplayName>
+    <Description Locale="en">Represents the identifiable components of a machine.</Description>
+    <References>
+      <Reference ReferenceType="HasTypeDefinition">i=58</Reference>
+      <Reference ReferenceType="HasAddIn">ns=1;i=5003</Reference>
+      <Reference ReferenceType="HasModellingRule">i=11508</Reference>
+      <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=1006</Reference>
+    </References>
+  </UAObject>
+  <UAObject NodeId="ns=1;i=5003" BrowseName="2:Identification" ParentNodeId="ns=1;i=5002">
+    <DisplayName>Identification</DisplayName>
+    <Description Locale="en">Contains information about the identification and nameplate of a MachineryItem</Description>
+    <References>
+      <Reference ReferenceType="HasTypeDefinition">ns=1;i=1004</Reference>
+      <Reference ReferenceType="HasModellingRule">i=78</Reference>
+      <Reference ReferenceType="HasAddIn" IsForward="false">ns=1;i=5002</Reference>
+      <Reference ReferenceType="HasProperty">ns=1;i=6019</Reference>
+      <Reference ReferenceType="HasProperty">ns=1;i=6020</Reference>
+    </References>
+  </UAObject>
+  <UAVariable NodeId="ns=1;i=6019" BrowseName="2:Manufacturer" ParentNodeId="ns=1;i=5003" DataType="LocalizedText">
+    <DisplayName>Manufacturer</DisplayName>
+    <Description Locale="en">A human-readable, localized name of the manufacturer of the MachineryItem.</Description>
+    <References>
+      <Reference ReferenceType="HasModellingRule">i=78</Reference>
+      <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=5003</Reference>
+      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
+    </References>
+  </UAVariable>
+  <UAVariable NodeId="ns=1;i=6020" BrowseName="2:SerialNumber" ParentNodeId="ns=1;i=5003" DataType="String">
+    <DisplayName>SerialNumber</DisplayName>
+    <Description Locale="en">A string containing a unique production number of the manufacturer of the MachineryItem. The global uniqueness of the serial number is only given in the context of the manufacturer, and potentially the model. The value shall not change during the life-cycle of the MachineryItem.</Description>
+    <References>
+      <Reference ReferenceType="HasModellingRule">i=78</Reference>
+      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
+      <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=5003</Reference>
+    </References>
+  </UAVariable>
+  <UAVariable NodeId="ns=1;i=6018" BrowseName="DefaultInstanceBrowseName" ParentNodeId="ns=1;i=1006" DataType="QualifiedName" AccessLevel="3">
+    <DisplayName>DefaultInstanceBrowseName</DisplayName>
+    <Description Locale="en">The default BrowseName for instances of the type.</Description>
+    <References>
+      <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=1006</Reference>
+      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
+    </References>
+    <Value>
+      <uax:QualifiedName xmlns:uax="http://opcfoundation.org/UA/2008/02/Types.xsd">
+        <uax:NamespaceIndex>1</uax:NamespaceIndex>
+        <uax:Name>Components</uax:Name>
+      </uax:QualifiedName>
+    </Value>
+  </UAVariable>
   <UAObject NodeId="ns=1;i=1001" BrowseName="1:Machines" EventNotifier="1">
     <DisplayName>Machines</DisplayName>
     <Description Locale="en">This object is the entry point to machines managed in the server. All machines are directly referenced by this object.</Description>
-    <Documentation>https://reference.opcfoundation.org/v104/Machinery/v100/docs/9.2</Documentation>
+    <Documentation>https://reference.opcfoundation.org/v104/Machinery/v101/docs/9.2</Documentation>
     <References>
       <Reference ReferenceType="HasTypeDefinition">i=61</Reference>
       <Reference ReferenceType="Organizes" IsForward="false">i=85</Reference>
@@ -372,7 +469,7 @@
   </UAObject>
   <UAObject NodeId="ns=1;i=5001" BrowseName="1:http://opcfoundation.org/UA/Machinery/" SymbolicName="http___opcfoundation_org_UA_Machinery_">
     <DisplayName>http://opcfoundation.org/UA/Machinery/</DisplayName>
-    <Documentation>https://reference.opcfoundation.org/v104/Machinery/v100/docs/11.1</Documentation>
+    <Documentation>https://reference.opcfoundation.org/v104/Machinery/v101/docs/13.1</Documentation>
     <References>
       <Reference ReferenceType="HasProperty">ns=1;i=6031</Reference>
       <Reference ReferenceType="HasTypeDefinition">i=11616</Reference>
@@ -402,7 +499,7 @@
       <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
     </References>
     <Value>
-      <uax:DateTime xmlns:uax="http://opcfoundation.org/UA/2008/02/Types.xsd">2020-09-25T00:00:00Z</uax:DateTime>
+      <uax:DateTime xmlns:uax="http://opcfoundation.org/UA/2008/02/Types.xsd">2021-02-25T00:00:00Z</uax:DateTime>
     </Value>
   </UAVariable>
   <UAVariable NodeId="ns=1;i=6033" BrowseName="NamespaceUri" ParentNodeId="ns=1;i=5001" DataType="String">
@@ -422,7 +519,7 @@
       <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
     </References>
     <Value>
-      <uax:String xmlns:uax="http://opcfoundation.org/UA/2008/02/Types.xsd">1.0.0</uax:String>
+      <uax:String xmlns:uax="http://opcfoundation.org/UA/2008/02/Types.xsd">1.01.0</uax:String>
     </Value>
   </UAVariable>
   <UAVariable NodeId="ns=1;i=6035" BrowseName="StaticNodeIdTypes" ParentNodeId="ns=1;i=5001" DataType="IdType" ValueRank="1" ArrayDimensions="0">

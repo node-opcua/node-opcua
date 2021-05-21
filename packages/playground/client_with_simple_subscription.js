@@ -36,8 +36,6 @@ const endpointUri = "opc.tcp://localhost:48010";
 
             },
 
-            certificateFile: "./certificates/client_certificate.pem",
-            privateKeyFile: "./certificates/PKI/own/private/private_key.pem",
             defaultSecureTokenLifetime: 20000,
         });
 
@@ -68,7 +66,7 @@ const endpointUri = "opc.tcp://localhost:48010";
             console.log(client.toString());
         })
         client.on("lifetime_75", () => {
-            console.log("livetime_75 =>");
+            console.log("lifetime_75 =>");
         })
 
         await client.connect(endpointUri);
@@ -142,7 +140,7 @@ const endpointUri = "opc.tcp://localhost:48010";
 
         process.on("SIGINT", async () => {
             console.log(chalk.bgWhite(
-                "--------------------------------------------------- NOW STOPING CLIENT"));
+                "--------------------------------------------------- NOW STOPPING CLIENT"));
 
             clearInterval(timer);
             // await monitoredItem.terminate();

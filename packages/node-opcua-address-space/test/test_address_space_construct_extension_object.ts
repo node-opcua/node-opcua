@@ -33,9 +33,6 @@ import { generateAddressSpace } from "../nodeJS";
 import { WriteValue } from "node-opcua-service-write";
 import { make_debugLog, checkDebugFlag } from "node-opcua-debug";
 
-// make sure all namespace 0 data type are properly loaded
-const context = SessionContext.defaultContext;
-
 const debugLog = make_debugLog("TEST");
 const doDebug = checkDebugFlag("TEST");
 
@@ -287,7 +284,7 @@ describe("testing address space namespace loading", function (this: any) {
                 }
             }
         });
-        const statusCode = await serverStatus.buildInfo.productName.writeAttribute(context, writeValue);
+        const statusCode = await serverStatus.buildInfo.productName.writeAttribute(null, writeValue);
         statusCode.should.eql(StatusCodes.BadNotWritable);
 
         serverStatus.buildInfo.productName.readValue().value.value!.should.not.eql("productName3");

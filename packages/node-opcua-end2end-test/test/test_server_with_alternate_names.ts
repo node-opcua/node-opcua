@@ -1,7 +1,7 @@
 // tslint:disable:no-console
 import * as chalk from "chalk";
 import * as path from "path";
-import  "should";
+import "should";
 import * as os from "os";
 
 import {
@@ -35,23 +35,18 @@ const pkiFolder = path.join(config, "pki");
 let server: OPCUAServer;
 
 async function startServer() {
-
     const serverOptions: OPCUAServerOptions = {
+        serverCertificateManager: new OPCUACertificateManager({ rootFolder: pkiFolder }),
 
-        serverCertificateManager: new OPCUACertificateManager({ rootFolder: pkiFolder}),
- 
         port: port1,
 
-        nodeset_filename: [
-            nodesets.standard
-        ],
+        nodeset_filename: [nodesets.standard],
 
         serverInfo: {
             applicationUri: makeApplicationUrn(os.hostname(), "MiniNodeOPCUA-Server"),
             productUri: "Mini NodeOPCUA-Server",
 
             applicationName: { text: "Mini NodeOPCUA Server", locale: "en" }
-
         },
 
         alternateHostname: ["MyHostname1", "MyHostname2"],
@@ -78,7 +73,6 @@ async function stopServer() {
 }
 
 async function extractEndpoints(endpointUrl: string): Promise<EndpointDescription[]> {
-
     const client = OPCUAClient.create({
         endpointMustExist: false,
 
@@ -104,14 +98,10 @@ async function extractEndpoints(endpointUrl: string): Promise<EndpointDescriptio
 }
 
 async function startMultiHeadServer() {
-
     const serverOptions: OPCUAServerOptions = {
-
-        serverCertificateManager: new OPCUACertificateManager({ rootFolder: pkiFolder}),
+        serverCertificateManager: new OPCUACertificateManager({ rootFolder: pkiFolder }),
         isAuditing: false,
-        nodeset_filename: [
-            nodesets.standard
-        ],
+        nodeset_filename: [nodesets.standard],
         serverInfo: {
             applicationName: { text: "Mini NodeOPCUA Server", locale: "en" },
             applicationUri: makeApplicationUrn(os.hostname(), "MiniNodeOPCUA-Server"),
@@ -150,12 +140,7 @@ async function startMultiHeadServer() {
 
 function dumpEndpoints(endpoints: EndpointDescription[]): void {
     for (const e of endpoints) {
-        debugLog(
-            e.endpointUrl,
-            e.securityLevel,
-            MessageSecurityMode[e.securityMode],
-            e.securityPolicyUri
-        );
+        debugLog(e.endpointUrl, e.securityLevel, MessageSecurityMode[e.securityMode], e.securityPolicyUri);
         // debugLog(e.toString());
     }
 }
@@ -163,7 +148,6 @@ function dumpEndpoints(endpoints: EndpointDescription[]): void {
 // tslint:disable-next-line:no-var-requires
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("Testing server with alternate names", () => {
-
     before(async () => {
         await startServer();
     });
@@ -172,7 +156,6 @@ describe("Testing server with alternate names", () => {
     });
 
     it("should expose all end points", async () => {
-
         const endpointUrl = `opc.tcp://localhost:${port1}`;
         const endpoints = await extractEndpoints(endpointUrl);
         dumpEndpoints(endpoints);
@@ -181,7 +164,6 @@ describe("Testing server with alternate names", () => {
 });
 
 describe("Testing server with several endpoints on different TCP/IP port1", () => {
-
     before(async () => {
         await startMultiHeadServer();
     });
@@ -190,7 +172,6 @@ describe("Testing server with several endpoints on different TCP/IP port1", () =
     });
 
     it("should be possible to start a server that have endpoints on different port1", async () => {
-
         const endpointUrl1 = `opc.tcp://localhost:${port1}`;
         const endpointUrl2 = `opc.tcp://localhost:${port2}`;
 
@@ -203,6 +184,5 @@ describe("Testing server with several endpoints on different TCP/IP port1", () =
 
         endpoints1.length.should.eql(2 * 2);
         endpoints2.length.should.eql(2 * 2);
-
     });
 });

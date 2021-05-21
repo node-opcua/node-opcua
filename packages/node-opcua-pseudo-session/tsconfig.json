@@ -39,6 +39,9 @@
         },
         {
             "path": "../node-opcua-variant"
+        },
+        {
+            "path": "../node-opcua-service-subscription"
         }
     ],
     "exclude": ["node_modules", "dist"]

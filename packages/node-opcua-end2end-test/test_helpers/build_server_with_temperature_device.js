@@ -16,7 +16,8 @@ const {
     Variant,
     DataType,
     DataValue,
-    is_valid_endpointUrl
+    is_valid_endpointUrl,
+    makeRoles
 } = require("node-opcua");
 
 const doDebug = checkDebugFlag(__filename);
@@ -64,6 +65,18 @@ const userManager = {
             return true;
         }
         return false;
+    },
+    getUserRoles: (username) => {
+        if (username === "anonymous") {
+            return makeRoles("Anonymous");
+        }
+        if (username === "user1") {
+            return makeRoles("AuthenticatedUser;SecurityAdmin");
+        }
+        if (username === "user2") {
+            return makeRoles("AuthenticatedUser;Engineer");
+        }
+        return makeRoles([]);
     }
 };
 

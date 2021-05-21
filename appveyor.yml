@@ -5,10 +5,11 @@ environment:
     # - nodejs_version: "6" (not supported anu more => lack of util.promisify )
     # - nodejs_version: "8" ( Jan 2021 -> not supported any more sicnce Jan 2020 - lack for await require by new version of mocha)
     # - nodejs_version: "9"  (not supported any more)
-    - nodejs_version: "10"
+    # - nodejs_version: "10" (not supported any mopre -> end of life 2021-04-30)
     # - nodejs_version: "11" (not supported any more)
     - nodejs_version: "12" 
     - nodejs_version: "14"
+    - nodejs_version: "15"
 
 platform:
   - x64
@@ -28,19 +29,19 @@ install:
   # Get the latest stable version of Node.js or io.js
   - ps: Install-Product node $env:nodejs_version $env:platform
   # install modules (using appveyor-retry to prevent EPERM bug)
-  - npm install -g npm
-  - npm install -g typescript@3.8.3 ts-node
+  - npm install -g npm pnpm typescript ts-node
   - set path=C:\Users\appveyor\AppData\Roaming\npm\;%path%
   - tsc --version
-  - appveyor-retry npm install
+  - appveyor-retry pnpm recursive install
 
 # Post-install test scripts.
 test_script:
   # Output useful info for debugging.
   - node --version
-  - npm --version
+  - pnpm --version
   # run tests
-  - npm test
+  - pnpm run pretest
+  - pnpm test
   # run typescript in packages that have some
   # - node  ./node_modules/lerna/cli.js run test-typescript
 

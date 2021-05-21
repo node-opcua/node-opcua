@@ -1,7 +1,9 @@
 /**
  * @module node-opcua-file-transfer
  */
-import * as fs from "fs";
+import * as fsOrig from "fs";
+import {Stats, PathLike, OpenMode, NoParamCallback, WriteFileOptions} from "fs"
+
 import {
     callbackify,
     promisify
@@ -28,6 +30,40 @@ import { NodeId, sameNodeId } from "node-opcua-nodeid";
 const debugLog = make_debugLog("FileType");
 const errorLog = make_errorLog("FileType");
 const doDebug = checkDebugFlag("FileType");
+;
+import assert from "node-opcua-assert";
+export interface AbstractFs {
+ 
+   stat(path: PathLike, callback: (err: NodeJS.ErrnoException | null, stats: Stats) => void): void;
+
+   open(path: PathLike, flags: OpenMode, callback: (err: NodeJS.ErrnoException | null, fd: number) => void): void;
+   
+   write<TBuffer extends NodeJS.ArrayBufferView>(
+        fd: number,
+        buffer: TBuffer,
+        offset: number | undefined | null,
+        length: number | undefined | null,
+        position: number | undefined | null,
+        callback: (err: NodeJS.ErrnoException | null, bytesWritten: number, buffer: TBuffer) => void,
+    ): void;
+    
+    read<TBuffer extends NodeJS.ArrayBufferView>(
+        fd: number,
+        buffer: TBuffer,
+        offset: number,
+        length: number,
+        position: number | null,
+        callback: (err: NodeJS.ErrnoException | null, bytesRead: number, buffer: TBuffer) => void,
+    ): void;
+
+    close(fd: number, callback: NoParamCallback): void;
+
+    writeFile(path: PathLike | number, data: string | NodeJS.ArrayBufferView, options: WriteFileOptions, callback: NoParamCallback): void;
+
+    readFile(path: PathLike | number, options: { encoding: BufferEncoding; flag?: string; } | string, callback: (err: NodeJS.ErrnoException | null, data: string) => void): void;
+   // readFile(path: PathLike | number, options: { encoding?: null; flag?: string; } | undefined | null, callback: (err: NodeJS.ErrnoException | null, data: Buffer) => void): void;
+
+}
 
 /**
  *
@@ -45,12 +81,17 @@ export interface FileOptions {
      * an optional mimeType
      */
     mineType?: string;
+
+    fileSystem?: AbstractFs;
+
 }
 
 /**
  *
  */
 export class FileTypeData {
+
+    public _fs: AbstractFs;
     public filename: string = "";
     public maxSize: number = 0;
     public mimeType: string = "";
@@ -62,6 +103,7 @@ export class FileTypeData {
     constructor(options: FileOptions, file: UAFileType) {
 
         this.file = file;
+        this._fs = options.fileSystem || fsOrig;
 
         this.filename = options.filename;
         this.maxSize = options.maxSize!;
@@ -109,6 +151,8 @@ export class FileTypeData {
      */
     public async refresh(): Promise<void> {
 
+        const fs = this._fs;
+
         // lauch an async request to update filesize
         await (async function extractFileSize(self: FileTypeData) {
             try {
@@ -133,6 +177,7 @@ interface FileAccessData {
     handle: number;
     fd: number; // nodejs handler
     position: UInt64; // position in file
+    size: number; // size
     openMode: OpenFileMode;
     sessionId: NodeId;
 }
@@ -161,6 +206,7 @@ function _addFile(addressSpace: AddressSpace, context: SessionContext, openMode:
         handle: fileHandle,
         openMode,
         position: [0, 0],
+        size: 0,
         sessionId: context.session!.getSessionId()
     };
     _context.$$files[fileHandle] = _fileData;
@@ -284,7 +330,10 @@ async function _openFile(
     }
 
     const fileData = (context.object as any).$fileData as FileTypeData;
+
     const filename = fileData.filename;
+
+    const fs = _getFileSystem(context);
 
     try {
         _fileInfo.fd = await promisify(fs.open)(filename, flags);
@@ -292,15 +341,21 @@ async function _openFile(
         // update position
         _fileInfo.position = [0, 0];
 
+        const fileLength = (await promisify(fs.stat)(filename)).size;
+        _fileInfo.size = fileLength;
+
         // tslint:disable-next-line:no-bitwise
         if ((mode & OpenFileModeMask.AppendBit) === OpenFileModeMask.AppendBit) {
-            const p = (await promisify(fs.stat)(filename)).size;
-            _fileInfo.position[1] = p;
+            _fileInfo.position[1] = fileLength;
+        }
+        if ((mode & OpenFileModeMask.EraseExistingBit) === OpenFileModeMask.EraseExistingBit) {
+            _fileInfo.size = 0;
         }
 
         fileData.openCount += 1;
     } catch (err) {
         errorLog(err.message);
+        console.log(err.stack);
         return { statusCode: StatusCodes.BadUnexpectedError };
     }
 
@@ -319,6 +374,11 @@ async function _openFile(
 
 }
 
+function _getFileSystem(context: SessionContext) {
+    const fs: AbstractFs = (context.object as any).$fs;
+    return fs;
+}
+
 /**
  * Close is used to close a file represented by a FileType.
  * When a client closes a file the handle becomes invalid.
@@ -332,6 +392,9 @@ async function _closeFile(
     inputArguments: Variant[],
     context: SessionContext
 ): Promise<CallMethodResultOptions> {
+
+
+    const fs = _getFileSystem(context);
 
     const addressSpace = this.addressSpace;
 
@@ -371,6 +434,8 @@ async function _readFile(
 
     const addressSpace = this.addressSpace;
 
+    const fs = _getFileSystem(context);
+
     //  fileHandle A handle indicating the access request and thus indirectly the
     //  position inside the file.
     const fileHandle: UInt32 = inputArguments[0].value as UInt32;
@@ -378,7 +443,7 @@ async function _readFile(
     // Length Defines the length in bytes that should be returned in data, starting from the current
     // position of the file handle. If the end of file is reached all data until the end of the file is
     // returned. The Server is allowed to return less data than specified length.
-    const length: Int32 = inputArguments[1].value as Int32;
+    let length: Int32 = inputArguments[1].value as Int32;
 
     // Only positive values are allowed.
     if (length < 0) {
@@ -395,11 +460,13 @@ async function _readFile(
         return { statusCode: StatusCodes.BadInvalidState };
     }
 
+    length = Math.min(_fileInfo.size - _fileInfo.position[1], length) ;
+
     const data = Buffer.alloc(length);
 
-    let ret;
+    let ret: { bytesRead: number};
     try {
-        ret = await promisify(fs.read)(_fileInfo.fd, data, 0, length, _fileInfo.position[1]);
+        ret = (await promisify(fs.read)(_fileInfo.fd, data, 0, length, _fileInfo.position[1]))  as  any as { bytesRead: number};;
         _fileInfo.position[1] += ret.bytesRead;
     } catch (err) {
         errorLog("Read error : ", err.message);
@@ -422,7 +489,10 @@ async function _writeFile(
     context: SessionContext
 ): Promise<CallMethodResultOptions> {
 
+
     const addressSpace = this.addressSpace;
+
+    const fs = _getFileSystem(context);
 
     const fileHandle: UInt32 = inputArguments[0].value as UInt32;
 
@@ -442,7 +512,9 @@ async function _writeFile(
     let ret;
     try {
         ret = await promisify(fs.write)(_fileInfo.fd, data, 0, data.length, _fileInfo.position[1]);
-        _fileInfo.position[1] += ret.bytesWritten;
+        assert(typeof (ret as any).bytesWritten === "number");
+        _fileInfo.position[1] += (ret as any).bytesWritten;
+        _fileInfo.size = Math.max( _fileInfo.size, _fileInfo.position[1] );
 
         const fileTypeData = (context.object as any).$fileData as FileTypeData;
         debugLog(fileTypeData.fileSize);
@@ -534,11 +606,12 @@ export function installFileType(
         errorLog("File already installed ", file.nodeId.toString(), file.browseName.toString());
         return;
     }
+    (file as any).$fs = options.fileSystem || fsOrig;
 
     // make sure that FileType methods are also bound.
     install_method_handle_on_type(file.addressSpace);
 
-    // to protect the server we setup a maximum limite in bytes on the file
+    // to protect the server we setup a maximum limit in bytes on the file
     // if the client try to access or set the position above this limit
     // the server will return an error
     options.maxSize = (options.maxSize === undefined) ? defaultMaxSize : options.maxSize;

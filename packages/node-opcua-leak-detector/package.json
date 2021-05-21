@@ -1,6 +1,6 @@
 {
     "name": "node-opcua-leak-detector",
-    "version": "2.29.0",
+    "version": "2.42.0",
     "description": "pure nodejs OPCUA SDK - module -leak-detector",
     "main": "index.js",
     "scripts": {
@@ -11,10 +11,10 @@
     "author": "Etienne Rossignon",
     "license": "MIT",
     "dependencies": {
-        "chalk": "^4.1.0",
-        "node-opcua-assert": "2.29.0",
-        "node-opcua-debug": "2.29.0",
-        "node-opcua-object-registry": "2.29.0"
+        "chalk": "4.1.1",
+        "node-opcua-assert": "2.42.0",
+        "node-opcua-debug": "2.42.0",
+        "node-opcua-object-registry": "2.42.0"
     },
     "repository": {
         "type": "git",

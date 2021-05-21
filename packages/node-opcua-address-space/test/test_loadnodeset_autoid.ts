@@ -11,9 +11,12 @@ import { AddressSpace, ensureDatatypeExtracted } from "..";
 import { generateAddressSpace } from "../nodeJS";
 
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
+import { AttributeIds } from "node-opcua-data-model";
+import { StatusCodes } from "node-opcua-status-code";
+import { DataTypeDefinition, StructureDefinition } from "node-opcua-types";
 
-const debugLog = make_debugLog(__filename);
-const doDebug = checkDebugFlag(__filename);
+const debugLog = make_debugLog("TEST");
+const doDebug = checkDebugFlag("TEST");
 
 
 describe("Testing AutoID custom types", async function (this: any) {
@@ -70,7 +73,7 @@ describe("Testing AutoID custom types", async function (this: any) {
     }
 
     it("should construct a ScanResult ", async () => {
-        interface ScanResult extends ExtensionObject {}
+        interface ScanResult extends ExtensionObject { }
 
         const nsAutoId = addressSpace.getNamespaceIndex("http://opcfoundation.org/UA/AutoID/");
         nsAutoId.should.eql(2);
@@ -203,4 +206,35 @@ describe("Testing AutoID custom types", async function (this: any) {
         await resolveDynamicExtensionObject(v2, extraDataTypeManager);
         debugLog(v2.toString());
     });
+
+    it("KX The dataTypeDefinition of RfidScanResult shall contain base dataTypeDefinition ", () => {
+
+        const nsAutoId = addressSpace.getNamespaceIndex("http://opcfoundation.org/UA/AutoID/");
+
+        const scanResultDataTypeNode = addressSpace.findDataType("ScanResult", nsAutoId);
+        {
+            const dataValue = scanResultDataTypeNode.readAttribute(null, AttributeIds.DataTypeDefinition);
+            dataValue.statusCode.should.eql(StatusCodes.Good);
+            const dataTypeDefinition = dataValue.value.value as DataTypeDefinition;
+            dataTypeDefinition.should.be.instanceOf(StructureDefinition);
+
+            //Xx console.log(dataTypeDefinition.toString());
+            const structureDefinition = dataTypeDefinition as StructureDefinition;
+            structureDefinition.fields.length.should.eql(4);
+
+        }
+        const rfidScanResultDataTypeNode = addressSpace.findDataType("RfidScanResult", nsAutoId)!;
+
+        {
+            const dataValue = rfidScanResultDataTypeNode.readAttribute(null, AttributeIds.DataTypeDefinition);
+            dataValue.statusCode.should.eql(StatusCodes.Good);
+            const dataTypeDefinition = dataValue.value.value as DataTypeDefinition;
+            dataTypeDefinition.should.be.instanceOf(StructureDefinition);
+
+            //Xx console.log(dataTypeDefinition.toString());
+            const structureDefinition = dataTypeDefinition as StructureDefinition;
+            structureDefinition.fields.length.should.eql(5);
+        }
+    });
+
 });

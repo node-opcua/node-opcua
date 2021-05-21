@@ -2,7 +2,7 @@
     "name": "node-opcua-guid",
     "main": "./dist/index.js",
     "types": "./dist/index.d.ts",
-    "version": "2.29.0",
+    "version": "2.42.0",
     "description": "pure nodejs OPCUA SDK - module -guid",
     "scripts": {
         "build": "tsc -b",
@@ -11,7 +11,7 @@
         "test": "mocha"
     },
     "dependencies": {
-        "node-opcua-assert": "2.29.0"
+        "node-opcua-assert": "2.42.0"
     },
     "devDependencies": {
         "should": "^13.2.3"

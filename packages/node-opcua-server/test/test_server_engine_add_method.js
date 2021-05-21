@@ -52,8 +52,8 @@ describe("ServerEngine - addMethod", function() {
         });
 
     });
-    after(function() {
-        engine.shutdown();
+    after(async () => {
+        await engine.shutdown();
         engine = null;
     });
 

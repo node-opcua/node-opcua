@@ -14,9 +14,9 @@ const { makeNodeId } = require("node-opcua-nodeid");
 const { makeBuffer } = require("node-opcua-buffer-utils");
 
 const { verify_multi_chunk_message } = require("node-opcua-secure-channel/dist/test_helpers");
-const { encode_decode_round_trip_test  } = require("node-opcua-packet-analyzer/dist/test_helpers");
+const { encode_decode_round_trip_test } = require("node-opcua-packet-analyzer/dist/test_helpers");
 
-const { makebuffer_from_trace } = require("node-opcua-debug");
+const { makeBufferFromTrace } = require("node-opcua-debug");
 const { redirectToFile } = require("node-opcua-debug/nodeJS");
 
 describe("testing subscription objects", function() {
@@ -328,7 +328,7 @@ describe("CreateMonitoredItemsRequest with EventFilter parameters", function() {
 
     it("should decode this packet from PROSYS ANDROID app", function(done) {
 
-        const ws_CreateMonitoredItemsRequest = makebuffer_from_trace(function() {
+        const ws_CreateMonitoredItemsRequest = makeBufferFromTrace(function() {
             /*
              00000000: 4d 53 47 46 97 01 00 00 09 00 00 00 01 00 00 00 04 00 00 00 04 00 00 00 01 00 ef 02 05 00 00 10    MSGF......................o.....
              00000020: 00 00 00 0a 97 3a d3 aa ac 03 3c ef 5c dc 98 46 af 26 b3 f0 bf 9e 52 02 26 d0 01 94 00 00 00 00    .....:S*,.<o\\.F/&3p?.R.&P......

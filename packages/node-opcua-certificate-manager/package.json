@@ -1,6 +1,6 @@
 {
     "name": "node-opcua-certificate-manager",
-    "version": "2.29.0",
+    "version": "2.42.0",
     "description": "pure nodejs OPCUA SDK - module -client",
     "scripts": {
         "clean": "node -e \"require('rimraf').sync('certificates');\"  && node -e \"require('rimraf').sync('dist');\"",
@@ -12,30 +12,30 @@
     "main": "./dist/index.js",
     "types": "./dist/index.d.ts",
     "dependencies": {
-        "@types/mkdirp": "0.5.2",
-        "chalk": "^4.1.0",
+        "@types/mkdirp": "1.0.1",
+        "chalk": "4.1.1",
         "delayed": "^2.0.0",
-        "env-paths": "^2.2.0",
-        "mkdirp": "0.5.5",
-        "node-opcua-assert": "2.29.0",
-        "node-opcua-basic-types": "2.29.0",
-        "node-opcua-buffer-utils": "2.29.0",
-        "node-opcua-constants": "2.29.0",
-        "node-opcua-crypto": "^1.6.0",
-        "node-opcua-debug": "2.29.0",
-        "node-opcua-object-registry": "2.29.0",
-        "node-opcua-pki": "^2.7.0",
-        "node-opcua-status-code": "2.29.0",
-        "node-opcua-utils": "2.29.0",
+        "env-paths": "^2.2.1",
+        "mkdirp": "1.0.4",
+        "node-opcua-assert": "2.42.0",
+        "node-opcua-basic-types": "2.42.0",
+        "node-opcua-buffer-utils": "2.42.0",
+        "node-opcua-constants": "2.42.0",
+        "node-opcua-crypto": "^1.7.1",
+        "node-opcua-debug": "2.42.0",
+        "node-opcua-object-registry": "2.42.0",
+        "node-opcua-pki": "^2.9.8",
+        "node-opcua-status-code": "2.42.0",
+        "node-opcua-utils": "2.42.0",
         "once": "^1.4.0",
         "thenify": "^3.3.1"
     },
     "devDependencies": {
-        "@types/async": "^3.2.5",
+        "@types/async": "^3.2.6",
         "dequeue": "^1.0.5",
-        "node-opcua-leak-detector": "2.29.0",
+        "node-opcua-leak-detector": "2.42.0",
         "should": "^13.2.3",
-        "sinon": "^9.2.3"
+        "sinon": "^10.0.0"
     },
     "eslintConfig": {
         "env": {

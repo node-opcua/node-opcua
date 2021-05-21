@@ -1,9 +1,8 @@
-import { UAObject, UAVariableT, UAAddressSpaceFileType } from "node-opcua-address-space";
+import { UAObject, UAVariableT, UAAddressSpaceFileType, RolePermissionType } from "node-opcua-address-space";
 import { DataType } from "node-opcua-variant";
 import { NumericRange } from "node-opcua-numeric-range";
 
 export type IdType = any;
-export type RolePermissionType = any;
 /*
  * The BrowseName of instances of this type shall be derived from the represented namespace.
  * This can, for example, be done by using the index of the namespace in the NamespaceArray

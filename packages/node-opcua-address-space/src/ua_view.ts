@@ -27,8 +27,9 @@ export class UAView extends BaseNode implements UAViewPublic {
         this.eventNotifier = 0;
     }
 
-    public readAttribute(context: SessionContext, attributeId: AttributeIds): DataValue {
+    public readAttribute(context: SessionContext | null, attributeId: AttributeIds): DataValue {
 
+        context = context || SessionContext.defaultContext;
         assert(context instanceof SessionContext);
 
         const options: DataValueLike = {};

@@ -45,13 +45,18 @@ export function initialize_field(field: StructuredTypeField, value: any): any {
         }
     }
 
-    const defaultValue = _t.computer_default_value ? _t.computer_default_value(field.defaultValue) : field.defaultValue;
-    if (value === undefined) {
-        return defaultValue;
-    }
-    if (defaultValue === null) {
-        if (value === null) {
-            return null;
+    if (value === undefined || value === null) {
+        const defaultValue = _t.computer_default_value ? _t.computer_default_value(field.defaultValue) : field.defaultValue;
+        if (value === undefined) {
+            if (_t.coerce) {
+                return _t.coerce(defaultValue);
+            }
+            return defaultValue;
+        }
+        if (defaultValue === null) {
+            if (value === null) {
+                return null;
+            }
         }
     }
     if (_t.coerce) {

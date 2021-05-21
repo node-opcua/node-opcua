@@ -13,9 +13,7 @@ import {
     exploreCertificate,
     makeSHA1Thumbprint,
     readPrivateKey,
-    toPem
-} from "node-opcua-crypto";
-import {
+    toPem,
     Certificate,
     CertificatePEM,
     privateDecrypt_long,
@@ -25,7 +23,7 @@ import {
 } from "node-opcua-crypto";
 import { checkDebugFlag, make_debugLog, make_errorLog } from "node-opcua-debug";
 import { NodeId, resolveNodeId, sameNodeId } from "node-opcua-nodeid";
-import { CertificateManager } from "node-opcua-pki";
+import { CertificateManager } from "node-opcua-certificate-manager";
 import { StatusCode } from "node-opcua-status-code";
 
 import {
@@ -49,7 +47,6 @@ const defaultUserTokenGroup = resolveNodeId("ServerConfiguration_CertificateGrou
  * @param privateKey
  */
 function certificateMatchesPrivateKeyPEM(certificate: CertificatePEM, privateKey: PrivateKeyPEM): boolean {
-
     const initialBuffer = Buffer.from("Lorem Ipsum");
     const encryptedBuffer = publicEncrypt_long(initialBuffer, certificate, 256, 11);
     const decryptedBuffer = privateDecrypt_long(encryptedBuffer, privateKey, 256);
@@ -57,19 +54,16 @@ function certificateMatchesPrivateKeyPEM(certificate: CertificatePEM, privateKey
 }
 
 export function certificateMatchesPrivateKey(certificate: Certificate, privateKey: PrivateKey): boolean {
-
     const certificatePEM = toPem(certificate, "CERTIFICATE");
     const privateKeyPEM = toPem(privateKey, "RSA PRIVATE KEY");
     return certificateMatchesPrivateKeyPEM(certificatePEM, privateKeyPEM);
 }
 
 function findCertificateGroupName(certificateGroupNodeId: NodeId | string): string {
-
     if (typeof certificateGroupNodeId === "string") {
         return certificateGroupNodeId;
     }
-    if (sameNodeId(certificateGroupNodeId, NodeId.nullNodeId) ||
-      sameNodeId(certificateGroupNodeId, defaultApplicationGroup)) {
+    if (sameNodeId(certificateGroupNodeId, NodeId.nullNodeId) || sameNodeId(certificateGroupNodeId, defaultApplicationGroup)) {
         return "DefaultApplicationGroup";
     }
     if (sameNodeId(certificateGroupNodeId, defaultHttpsGroup)) {
@@ -116,7 +110,6 @@ export async function deleteFile(file: string): Promise<void> {
 }
 
 export async function moveFile(source: string, dest: string): Promise<void> {
-
     debugLog("moving file file \n source ", source, "\n =>\n dest ", dest);
     try {
         await copyFile(source, dest);
@@ -135,10 +128,9 @@ export async function moveFileWithBackup(source: string, dest: string): Promise<
 
 let fileCounter = 0;
 
-export type ActionQueue = Array<() => Promise<void>>;
+export type ActionQueue = (() => Promise<void>)[];
 
 export class PushCertificateManagerServerImpl extends EventEmitter implements PushCertificateManager {
-
     public applicationGroup?: CertificateManager;
     public userTokenGroup?: CertificateManager;
     public httpsGroup?: CertificateManager;
@@ -147,17 +139,15 @@ export class PushCertificateManagerServerImpl extends EventEmitter implements Pu
     private readonly _pendingTasks: Functor[] = [];
 
     private $$actionQueue: ActionQueue = [];
-    
+
     private applicationUri: string;
 
     constructor(options: PushCertificateManagerServerOptions) {
-
         super();
 
         this.applicationUri = options ? options.applicationUri : "";
 
         if (options) {
-
             this.applicationGroup = options.applicationGroup;
             this.userTokenGroup = options.userTokenGroup;
             this.httpsGroup = options.httpsGroup;
@@ -166,7 +156,10 @@ export class PushCertificateManagerServerImpl extends EventEmitter implements Pu
 
                 // istanbul ignore next
                 if (!(this.userTokenGroup instanceof CertificateManager)) {
-                    errorLog("Expecting this.userTokenGroup to be instanceof CertificateManager :", (this.userTokenGroup as any).constructor.name);
+                    errorLog(
+                        "Expecting this.userTokenGroup to be instanceof CertificateManager :",
+                        (this.userTokenGroup as any).constructor.name
+                    );
                     throw new Error("Expecting this.userTokenGroup to be instanceof CertificateManager ");
                 }
             }
@@ -202,13 +195,12 @@ export class PushCertificateManagerServerImpl extends EventEmitter implements Pu
     }
 
     public async createSigningRequest(
-      certificateGroupId: NodeId | string,
-      certificateTypeId: NodeId | string,
-      subjectName: string,
-      regeneratePrivateKey?: boolean,
-      nonce?: Buffer
+        certificateGroupId: NodeId | string,
+        certificateTypeId: NodeId | string,
+        subjectName: string,
+        regeneratePrivateKey?: boolean,
+        nonce?: Buffer
     ): Promise<CreateSigningRequestResult> {
-
         const certificateManager = this.getCertificateManager(certificateGroupId);
 
         if (!certificateManager) {
@@ -238,14 +230,14 @@ export class PushCertificateManagerServerImpl extends EventEmitter implements Pu
         }
 
         const options = {
-            subject: subjectName,
-            applicationUri: this.applicationUri
+            applicationUri: this.applicationUri,
+            subject: subjectName
         };
-        const csrfile = await certificateManager.createCertificateRequest(options);
-        const csrPEM = await promisify(fs.readFile)(csrfile, "utf8");
+        const csrFile = await certificateManager.createCertificateRequest(options);
+        const csrPEM = await promisify(fs.readFile)(csrFile, "utf8");
         const certificateSigningRequest = convertPEMtoDER(csrPEM);
 
-        this.addPendingTask(() => deleteFile(csrfile));
+        this.addPendingTask(() => deleteFile(csrFile));
 
         return {
             certificateSigningRequest,
@@ -254,19 +246,15 @@ export class PushCertificateManagerServerImpl extends EventEmitter implements Pu
     }
 
     public async getRejectedList(): Promise<GetRejectedListResult> {
-
         interface FileData {
             filename: string;
             stat: {
-                mtime: Date
+                mtime: Date;
             };
         }
 
         // rejectedList comes from each group
-        async function extractRejectedList(
-          group: CertificateManager | undefined,
-          certificateList: FileData[]
-        ): Promise<void> {
+        async function extractRejectedList(group: CertificateManager | undefined, certificateList: FileData[]): Promise<void> {
             if (!group) {
                 return;
             }
@@ -275,7 +263,7 @@ export class PushCertificateManagerServerImpl extends EventEmitter implements Pu
 
             const stat = promisify(fs.stat);
 
-            const promises1: Array<Promise<fs.Stats>> = [];
+            const promises1: Promise<fs.Stats>[] = [];
             for (const certFile of files) {
                 // read date
                 promises1.push(stat(path.join(rejectedFolder, certFile)));
@@ -296,12 +284,10 @@ export class PushCertificateManagerServerImpl extends EventEmitter implements Pu
         await extractRejectedList(this.httpsGroup, list);
 
         // now sort list from newer file to older file
-        list.sort((a: FileData, b: FileData) =>
-          b.stat.mtime.getTime() - a.stat.mtime.getTime()
-        );
+        list.sort((a: FileData, b: FileData) => b.stat.mtime.getTime() - a.stat.mtime.getTime());
 
         const readFile = promisify(fs.readFile);
-        const promises: Array<Promise<string>> = [];
+        const promises: Promise<string>[] = [];
         for (const item of list) {
             promises.push(readFile(item.filename, "utf8"));
         }
@@ -315,20 +301,19 @@ export class PushCertificateManagerServerImpl extends EventEmitter implements Pu
     }
 
     public async updateCertificate(
-      certificateGroupId: NodeId | string,
-      certificateTypeId: NodeId | string,
-      certificate: Buffer,
-      issuerCertificates: ByteString[]
+        certificateGroupId: NodeId | string,
+        certificateTypeId: NodeId | string,
+        certificate: Buffer,
+        issuerCertificates: ByteString[]
     ): Promise<UpdateCertificateResult>;
     public async updateCertificate(
-      certificateGroupId: NodeId | string,
-      certificateTypeId: NodeId | string,
-      certificate: Buffer,
-      issuerCertificates: ByteString[],
-      privateKeyFormat?: string,
-      privateKey?: Buffer
+        certificateGroupId: NodeId | string,
+        certificateTypeId: NodeId | string,
+        certificate: Buffer,
+        issuerCertificates: ByteString[],
+        privateKeyFormat?: string,
+        privateKey?: Buffer
     ): Promise<UpdateCertificateResult> {
-
         // Result Code                Description
         // BadInvalidArgument        The certificateTypeId or certificateGroupId is not valid.
         // BadCertificateInvalid     The Certificate is invalid or the format is not supported.
@@ -344,8 +329,7 @@ export class PushCertificateManagerServerImpl extends EventEmitter implements Pu
             };
         }
 
-        async function preinstallCertificate(self: PushCertificateManagerServerImpl) {
-
+        async function preInstallCertificate(self: PushCertificateManagerServerImpl) {
             const certFolder = path.join(certificateManager.rootDir, "own/certs");
             const certificateFileDER = path.join(certFolder, `_pending_certificate${fileCounter++}.der`);
             const certificateFilePEM = path.join(certFolder, `_pending_certificate${fileCounter++}.pem`);
@@ -359,11 +343,9 @@ export class PushCertificateManagerServerImpl extends EventEmitter implements Pu
             // put existing file in security by backing them up
             self.addPendingTask(() => moveFileWithBackup(certificateFileDER, destDER));
             self.addPendingTask(() => moveFileWithBackup(certificateFilePEM, destPEM));
-
         }
 
-        async function preinstallPrivateKey(self: PushCertificateManagerServerImpl) {
-
+        async function preInstallPrivateKey(self: PushCertificateManagerServerImpl) {
             assert(privateKeyFormat!.toUpperCase() === "PEM");
             assert(privateKey! instanceof Buffer); // could be DER or PEM in a buffer ?
 
@@ -373,11 +355,7 @@ export class PushCertificateManagerServerImpl extends EventEmitter implements Pu
             const privateKeyPEM = toPem(privateKey!, "RSA PRIVATE KEY");
             await promisify(fs.writeFile)(privateKeyFilePEM, privateKeyPEM, "utf-8");
 
-            // console.log("KYKY ", privateKeyPEM);
-            // console.log("KYKY certificateManager.privateKey = ", certificateManager.privateKey);
-
             self.addPendingTask(() => moveFileWithBackup(privateKeyFilePEM, certificateManager.privateKey));
-
         }
 
         // OPC Unified Architecture, Part 12 42 Release 1.04:
@@ -402,7 +380,6 @@ export class PushCertificateManagerServerImpl extends EventEmitter implements Pu
             // certificate is not yet valid
             debugLog("Certificate is not yet valid");
             return { statusCode: StatusCodes.BadSecurityChecksFailed };
-
         }
         if (certInfo.tbsCertificate.validity.notAfter.getTime() < now.getTime()) {
             // certificate is already out of date
@@ -416,7 +393,6 @@ export class PushCertificateManagerServerImpl extends EventEmitter implements Pu
         debugLog(" updateCertificate ", makeSHA1Thumbprint(certificate).toString("hex"));
 
         if (!privateKeyFormat || !privateKey) {
-
             // The Server shall report an error if the public key does not match the existing Certificate and
             // the privateKey was not provided.
             // privateKey is not provided, so check that the public key matches the existing certificate
@@ -429,14 +405,12 @@ export class PushCertificateManagerServerImpl extends EventEmitter implements Pu
             // a new certificate is provided for us,
             // we keep our private key
             // we do this in two stages
-            await preinstallCertificate(this);
+            await preInstallCertificate(this);
 
             return {
                 statusCode: StatusCodes.Good
             };
-
         } else if (privateKey) {
-
             // a private key has been provided by the caller !
             if (!privateKeyFormat) {
                 debugLog("the privateKeyFormat must be specified " + privateKeyFormat);
@@ -458,14 +432,13 @@ export class PushCertificateManagerServerImpl extends EventEmitter implements Pu
                 return { statusCode: StatusCodes.BadSecurityChecksFailed };
             }
 
-            await preinstallPrivateKey(this);
+            await preInstallPrivateKey(this);
 
-            await preinstallCertificate(this);
+            await preInstallCertificate(this);
 
             return {
                 statusCode: StatusCodes.Good
             };
-
         } else {
             // todo !
             return {
@@ -475,7 +448,6 @@ export class PushCertificateManagerServerImpl extends EventEmitter implements Pu
     }
 
     public async applyChanges(): Promise<StatusCode> {
-
         // ApplyChanges is used to tell the Server to apply any security changes.
         // This Method should only be called if a previous call to a Method that changed the
         // configuration returns applyChangesRequired=true.
@@ -509,9 +481,7 @@ export class PushCertificateManagerServerImpl extends EventEmitter implements Pu
         return StatusCodes.Good;
     }
 
-    private getCertificateManager(
-      certificateGroupId: NodeId | string
-    ): CertificateManager | null {
+    private getCertificateManager(certificateGroupId: NodeId | string): CertificateManager | null {
         const groupName = findCertificateGroupName(certificateGroupId);
         return this._map[groupName] || null;
     }
@@ -521,9 +491,8 @@ export class PushCertificateManagerServerImpl extends EventEmitter implements Pu
     }
 
     private async applyPendingTasks(): Promise<void> {
-
         debugLog("start applyPendingTasks");
-        const promises: Array<Promise<void>> = [];
+        const promises: Promise<void>[] = [];
         const t = this._pendingTasks.splice(0);
 
         if (false) {
@@ -547,5 +516,4 @@ export class PushCertificateManagerServerImpl extends EventEmitter implements Pu
             await first!();
         }
     }
-
 }

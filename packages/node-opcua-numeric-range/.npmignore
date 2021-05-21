@@ -11,5 +11,7 @@ _test_generated/
 schemas/
 pki/
 tmp/
+tsconfig.json
 *.tsbuildinfo
+pnpm-lock.yaml
 

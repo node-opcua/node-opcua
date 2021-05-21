@@ -31,7 +31,7 @@ the SecureChannel and report an error.
 
  */
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
-describe("testing behavior of secure Server ( server that only accept SIGN or SIGNANDENCRYPT channel", function() {
+describe("testing behavior of secure Server ( server that only accept Sign or SignAndEncrypt channel", function() {
     let server, client;
     let endpointUrl;
 

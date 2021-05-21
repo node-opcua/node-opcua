@@ -1,3 +1,4 @@
+/* eslint-disable max-statements */
 "use strict";
 
 const should = require("should");
@@ -23,7 +24,7 @@ const { DataType, Variant, VariantArrayType } = require("node-opcua-variant");
 const { StatusCodes } = require("node-opcua-status-code");
 const encode_decode = require("node-opcua-basic-types");
 const { nodesets } = require("node-opcua-nodesets");
-
+const { Range, WriteValue } = require("node-opcua-types");
 
 const {
     Subscription,
@@ -72,15 +73,15 @@ function install_spying_samplingFunc() {
     return spy_samplingEventCall;
 }
 
-
-function simulate_client_adding_publish_request(publishEngine, callback) {
-    callback = callback || function() {
-    };
+function _simulate_client_adding_publish_request(test, publishEngine, callback) {
+    callback = callback || (() => undefined);
     const publishRequest = new PublishRequest({});
     publishEngine._on_PublishRequest(publishRequest, callback);
+    test.clock.tick(0);
 }
 
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
+const { default: assert } = require("node-opcua-assert");
 describe("SM1 - Subscriptions and MonitoredItems", function() {
 
     this.timeout(Math.max(300000, this._timeout));
@@ -94,7 +95,11 @@ describe("SM1 - Subscriptions and MonitoredItems", function() {
     let engine;
     const test = this;
 
-    before(function(done) {
+    function simulate_client_adding_publish_request(publishEngine, callback) {
+        _simulate_client_adding_publish_request(test, publishEngine, callback);
+    }
+
+    before((done) => {
         engine = new ServerEngine();
         engine.initialize({ nodeset_filename: nodesets.standard }, function() {
 
@@ -193,22 +198,27 @@ describe("SM1 - Subscriptions and MonitoredItems", function() {
             done();
         });
     });
-    after(function() {
+    after(async () => {
         if (engine) {
-            engine.shutdown();
+            await engine.shutdown();
             engine.dispose();
             engine = null;
         }
     });
 
-    beforeEach(function() {
-        this.clock = sinon.useFakeTimers(now);
+    beforeEach(() => {
+        if (test.clock) {
+            throw new Error("Invalid sta");
+        }
+        test.clock = sinon.useFakeTimers(now);
     });
-    afterEach(function() {
-        this.clock.restore();
+    afterEach(() => {
+        test.clock.tick(1000);
+        test.clock.restore();
+        test.clock = undefined;
     });
 
-    it("a subscription should accept monitored item", function(done) {
+    it("a subscription should accept monitored item", (done) => {
 
         const subscription = new Subscription({
             publishingInterval: 1000,
@@ -232,14 +242,14 @@ describe("SM1 - Subscriptions and MonitoredItems", function() {
 
         subscription.monitoredItemCount.should.eql(0);
 
-        const monitoredItemCreateResult = subscription.createMonitoredItem(addressSpace, TimestampsToReturn.Both, monitoredItemCreateRequest);
-        monitoredItemCreateResult.statusCode.should.eql(StatusCodes.Good);
+        const createResult = subscription.createMonitoredItem(addressSpace, TimestampsToReturn.Both, monitoredItemCreateRequest);
+        createResult.statusCode.should.eql(StatusCodes.Good);
 
         subscription.monitoredItemCount.should.eql(1);
 
-        monitoredItemCreateResult.should.be.instanceOf(MonitoredItemCreateResult);
+        createResult.should.be.instanceOf(MonitoredItemCreateResult);
 
-        monitoredItemCreateResult.revisedSamplingInterval.should.eql(100);
+        createResult.revisedSamplingInterval.should.eql(100);
 
         subscription.on("terminated", function() {
             // monitored Item shall be deleted at this stage
@@ -250,7 +260,7 @@ describe("SM1 - Subscriptions and MonitoredItems", function() {
         subscription.dispose();
     });
 
-    it("a subscription should fire the event removeMonitoredItem", function(done) {
+    it("a subscription should fire the event removeMonitoredItem", (done) => {
 
         const subscription = new Subscription({
             publishingInterval: 1000,
@@ -261,7 +271,8 @@ describe("SM1 - Subscriptions and MonitoredItems", function() {
             monitoredItem.samplingFunc = install_spying_samplingFunc();
         });
 
-        subscription.on("removeMonitoredItem", done.bind(null, null));
+        const removeMonitoredItemSpy = sinon.spy();
+        subscription.on("removeMonitoredItem", removeMonitoredItemSpy);
 
         const monitoredItemCreateRequest = new MonitoredItemCreateRequest({
             itemToMonitor: { nodeId: someVariableNode },
@@ -273,12 +284,19 @@ describe("SM1 - Subscriptions and MonitoredItems", function() {
             }
         });
 
-        subscription.createMonitoredItem(addressSpace, TimestampsToReturn.Both, monitoredItemCreateRequest);
+        const createResult = subscription.createMonitoredItem(addressSpace, TimestampsToReturn.Both, monitoredItemCreateRequest);
+    
+        subscription.on("terminated", function() {
+            // monitored Item shall be deleted at this stage
+            subscription.monitoredItemCount.should.eql(0);
+            done();
+        });
         subscription.terminate();
         subscription.dispose();
+        removeMonitoredItemSpy.callCount.should.eql(1);
     });
 
-    it("a subscription should collect monitored item notification with _collectNotificationData", function(done) {
+    it("a subscription should collect monitored item notification with _harvestMonitoredItems", (done)  =>{
 
         const subscription = new Subscription({
             publishingInterval: 1000,
@@ -300,33 +318,33 @@ describe("SM1 - Subscriptions and MonitoredItems", function() {
             }
         });
 
-        const monitoredItemCreateResult = subscription.createMonitoredItem(addressSpace, TimestampsToReturn.Both, monitoredItemCreateRequest);
-        monitoredItemCreateResult.statusCode.should.eql(StatusCodes.Good);
-        monitoredItemCreateResult.revisedSamplingInterval.should.eql(100);
+        const createResult = subscription.createMonitoredItem(addressSpace, TimestampsToReturn.Both, monitoredItemCreateRequest);
+        createResult.statusCode.should.eql(StatusCodes.Good);
+        createResult.revisedSamplingInterval.should.eql(100);
 
-        const monitoredItem = subscription.getMonitoredItem(monitoredItemCreateResult.monitoredItemId);
+        const monitoredItem = subscription.getMonitoredItem(createResult.monitoredItemId);
 
         // data collection is done asynchronously => let give some time for this to happen
-        this.clock.tick(5);
+        test.clock.tick(5);
 
-        // at first, _collectNotificationData  should has 1 notification with current dataItem value
-        let notifications = subscription._collectNotificationData();
-        should(notifications.length).equal(1);
+        // at first, _harvestMonitoredItems  should has 1 notification with current dataItem value
+        subscription._harvestMonitoredItems();
+        should(subscription.pendingNotificationsCount).equal(1);
 
         // now simulate some data change
-        this.clock.tick(500);
+        test.clock.tick(500);
 
         monitoredItem.queue.length.should.eql(5);
 
-        // then, _collectNotificationData  should collect at least 2 values
-        notifications = subscription._collectNotificationData();
-        notifications.length.should.eql(1);
+        // then, _harvestMonitoredItems  should collect at least 2 values
+        subscription._harvestMonitoredItems();
+        subscription.pendingNotificationsCount.should.eql(6);
+        
+        const notifications = [...subscription._pending_notifications.values()];
+       
+        notifications[0].monitoredItemId.should.eql(monitoredItem.monitoredItemId);
 
-        notifications = notifications[0];
-        notifications.length.should.eql(1);
-
-        notifications[0].monitoredItems.length.should.eql(5);
-        notifications[0].monitoredItems[0].clientHandle.should.eql(monitoredItem.clientHandle);
+        subscription.on("terminated", () => {/** */});
 
         subscription.on("terminated", function() {
             done();
@@ -335,7 +353,7 @@ describe("SM1 - Subscriptions and MonitoredItems", function() {
         subscription.dispose();
     });
 
-    it("a subscription should collect monitored item notification at publishing interval", function(done) {
+    it("a subscription should collect monitored item notification at publishing interval", (done) => {
 
         unfreeze_data_source();
 
@@ -353,7 +371,7 @@ describe("SM1 - Subscriptions and MonitoredItems", function() {
 
         simulate_client_adding_publish_request(subscription.publishEngine);
 
-        this.clock.tick(subscription.publishingInterval);
+        test.clock.tick(subscription.publishingInterval);
         subscription.state.should.eql(SubscriptionState.KEEPALIVE);
 
         // Monitored item will report a new value every tick => 100 ms
@@ -382,33 +400,33 @@ describe("SM1 - Subscriptions and MonitoredItems", function() {
         simulate_client_adding_publish_request(subscription.publishEngine);
         simulate_client_adding_publish_request(subscription.publishEngine);
 
-        const monitoredItemCreateResult = subscription.createMonitoredItem(addressSpace, TimestampsToReturn.Both, monitoredItemCreateRequest);
+        const createResult = subscription.createMonitoredItem(addressSpace, TimestampsToReturn.Both, monitoredItemCreateRequest);
 
-        monitoredItemCreateResult.statusCode.should.eql(StatusCodes.Good);
+        createResult.statusCode.should.eql(StatusCodes.Good);
 
-        const monitoredItem = subscription.getMonitoredItem(monitoredItemCreateResult.monitoredItemId);
+        const monitoredItem = subscription.getMonitoredItem(createResult.monitoredItemId);
         monitoredItem.samplingInterval.should.eql(100);
 
         // data collection is done asynchronously => let give some time for this to happen
-        this.clock.tick(5);
+        test.clock.tick(5);
 
         // initial value shall already be in the queue
         monitoredItem.queue.length.should.eql(1);
 
-        this.clock.tick(29);
+        test.clock.tick(29);
         // now simulate some data change
-        this.clock.tick(100);
+        test.clock.tick(100);
         monitoredItem.queue.length.should.eql(2);
 
-        this.clock.tick(100);
+        test.clock.tick(100);
         monitoredItem.queue.length.should.eql(3);
 
-        this.clock.tick(100);
+        test.clock.tick(100);
         monitoredItem.queue.length.should.eql(4);
 
         freeze_data_source();
 
-        this.clock.tick(800);
+        test.clock.tick(800);
 
         // monitoredItem values should have been harvested by subscription timer by now
         monitoredItem.queue.length.should.eql(0);
@@ -418,18 +436,18 @@ describe("SM1 - Subscriptions and MonitoredItems", function() {
         unfreeze_data_source();
 
         // now let the subscription send a PublishResponse to the client
-        this.clock.tick(3 * 100);
+        test.clock.tick(3 * 100);
         monitoredItem.queue.length.should.eql(3);
 
         freeze_data_source();
-        this.clock.tick(800);
+        test.clock.tick(800);
 
         // monitoredItem values should have been harvested by subscription timer by now
         monitoredItem.queue.length.should.eql(0);
 
         spy_notification_event.callCount.should.be.equal(2);
 
-        subscription.on("terminated", function() {
+        subscription.on("terminated", () => {
             done();
         });
         subscription.terminate();
@@ -437,9 +455,10 @@ describe("SM1 - Subscriptions and MonitoredItems", function() {
 
         publishEngine.shutdown();
         publishEngine.dispose();
+        
     });
 
-    it("should provide a mean to access the monitored clientHandle ( using the standard OPCUA method getMonitoredItems)", function(done) {
+    it("should provide a mean to access the monitored clientHandle ( using the standard OPCUA method getMonitoredItems)", (done) => {
 
         const subscription = new Subscription({
             publishingInterval: 1000,
@@ -461,10 +480,10 @@ describe("SM1 - Subscriptions and MonitoredItems", function() {
             }
         });
 
-        const monitoredItemCreateResult = subscription.createMonitoredItem(addressSpace, TimestampsToReturn.Both, monitoredItemCreateRequest);
-        monitoredItemCreateResult.statusCode.should.eql(StatusCodes.Good);
+        const createResult = subscription.createMonitoredItem(addressSpace, TimestampsToReturn.Both, monitoredItemCreateRequest);
+        createResult.statusCode.should.eql(StatusCodes.Good);
 
-        const monitoredItem = subscription.getMonitoredItem(monitoredItemCreateResult.monitoredItemId);
+        const monitoredItem = subscription.getMonitoredItem(createResult.monitoredItemId);
 
         const result = subscription.getMonitoredItems({});
         result.statusCode.should.eql(StatusCodes.Good);
@@ -524,8 +543,8 @@ describe("SM1 - Subscriptions and MonitoredItems", function() {
                 }
             });
 
-            const monitoredItemCreateResult1 = subscription.createMonitoredItem(addressSpace, TimestampsToReturn.Both, monitoredItemCreateRequest1);
-            monitoredItemCreateResult1.statusCode.should.eql(StatusCodes.BadMonitoredItemFilterUnsupported);
+            const createResult = subscription.createMonitoredItem(addressSpace, TimestampsToReturn.Both, monitoredItemCreateRequest1);
+            createResult.statusCode.should.eql(StatusCodes.BadMonitoredItemFilterUnsupported);
         }, done);
     });
 
@@ -554,16 +573,16 @@ describe("SM1 - Subscriptions and MonitoredItems", function() {
         on_subscription(function(subscription) {
 
             const monitoredItemCreateRequest1 = _create_MonitoredItemCreateRequest_with_deadbandValue(-10);
-            const monitoredItemCreateResult1 = subscription.createMonitoredItem(addressSpace, TimestampsToReturn.Both, monitoredItemCreateRequest1);
-            monitoredItemCreateResult1.statusCode.should.eql(StatusCodes.BadDeadbandFilterInvalid);
+            const createResult1 = subscription.createMonitoredItem(addressSpace, TimestampsToReturn.Both, monitoredItemCreateRequest1);
+            createResult1.statusCode.should.eql(StatusCodes.BadDeadbandFilterInvalid);
 
             const monitoredItemCreateRequest2 = _create_MonitoredItemCreateRequest_with_deadbandValue(110);
-            const monitoredItemCreateResult2 = subscription.createMonitoredItem(addressSpace, TimestampsToReturn.Both, monitoredItemCreateRequest2);
-            monitoredItemCreateResult2.statusCode.should.eql(StatusCodes.BadDeadbandFilterInvalid);
+            const createResult2 = subscription.createMonitoredItem(addressSpace, TimestampsToReturn.Both, monitoredItemCreateRequest2);
+            createResult2.statusCode.should.eql(StatusCodes.BadDeadbandFilterInvalid);
 
             const monitoredItemCreateRequest3 = _create_MonitoredItemCreateRequest_with_deadbandValue(90);
-            const monitoredItemCreateResult3 = subscription.createMonitoredItem(addressSpace, TimestampsToReturn.Both, monitoredItemCreateRequest3);
-            monitoredItemCreateResult3.statusCode.should.eql(StatusCodes.Good);
+            const createResult3 = subscription.createMonitoredItem(addressSpace, TimestampsToReturn.Both, monitoredItemCreateRequest3);
+            createResult3.statusCode.should.eql(StatusCodes.Good);
 
         }, done);
 
@@ -590,8 +609,8 @@ describe("SM1 - Subscriptions and MonitoredItems", function() {
                         })
                     }
                 });
-                const monitoredItemCreateResult = subscription.createMonitoredItem(addressSpace, TimestampsToReturn.Both, monitoredItemCreateRequest);
-                return monitoredItemCreateResult.statusCode;
+                const createResult = subscription.createMonitoredItem(addressSpace, TimestampsToReturn.Both, monitoredItemCreateRequest);
+                return createResult.statusCode;
             }
 
 
@@ -608,10 +627,9 @@ describe("SM1 - Subscriptions and MonitoredItems", function() {
 
     });
 
-    it("With 3 subscriptions with monitored items", function() {
+    it("With 3 subscriptions with monitored items", () => {
 
-        test.clock = sinon.useFakeTimers(now);
-
+   
         const publishEngine = new ServerSidePublishEngine({});
 
         let _clientHandle = 1;
@@ -642,7 +660,7 @@ describe("SM1 - Subscriptions and MonitoredItems", function() {
             const n = addressSpace.findNode("ns=100;s=Static_Float");
             //xx console.log(n.toString());
 
-            subscription.createMonitoredItem(addressSpace, TimestampsToReturn.Both, monitoredItemCreateRequest);
+            const createResult = subscription.createMonitoredItem(addressSpace, TimestampsToReturn.Both, monitoredItemCreateRequest);
             // data collection is done asynchronously => let give some time for this to happen
             test.clock.tick(1);
         }
@@ -663,7 +681,7 @@ describe("SM1 - Subscriptions and MonitoredItems", function() {
 
         }
 
-        // maintree\Monitored Item Services\Monitor Items 100\Test Cases\002.js - createMonitoredItems100x3subscriptions
+        // mainTree\Monitored Item Services\Monitor Items 100\Test Cases\002.js - createMonitoredItems100x3subscriptions
         //
         // Subscription1
         //
@@ -745,11 +763,10 @@ describe("SM1 - Subscriptions and MonitoredItems", function() {
         subscription3.dispose();
         publishEngine.shutdown();
         publishEngine.dispose();
-        test.clock.restore();
-
+ 
     });
 
-    it("should return BadFilterNotAllowed if DeadBandFilter is specified on non-Numeric value monitored item", function() {
+    it("should return BadFilterNotAllowed if DeadBandFilter is specified on non-Numeric value monitored item", () => {
 
 
         const subscription = new Subscription({
@@ -778,8 +795,8 @@ describe("SM1 - Subscriptions and MonitoredItems", function() {
                     })
                 }
             });
-            const monitoredItemCreateResult = subscription.createMonitoredItem(addressSpace, TimestampsToReturn.Both, monitoredItemCreateRequest);
-            return monitoredItemCreateResult.statusCode;
+            const createResult = subscription.createMonitoredItem(addressSpace, TimestampsToReturn.Both, monitoredItemCreateRequest);
+            return createResult.statusCode;
         }
 
 
@@ -791,17 +808,11 @@ describe("SM1 - Subscriptions and MonitoredItems", function() {
 
     });
 
-    describe("MonitoredItem - Access Right - and Unknown Nodes", function() {
-
+    describe("MonitoredItem - Access Right - and Unknown Nodes", () => {
 
         let subscription = null;
 
-        let test = this;
-
-        beforeEach(function() {
-
-            test = this;
-
+        beforeEach(() => {
             subscription = new Subscription({
                 publishingInterval: 1000,
                 maxKeepAliveCount: 20,
@@ -826,11 +837,10 @@ describe("SM1 - Subscriptions and MonitoredItems", function() {
             });
 
         });
-        afterEach(function(done) {
+        afterEach(() => {
             subscription.terminate();
             subscription.dispose();
             subscription = null;
-            done();
         });
 
         function simulate_publish_request_expected_statusCode(monitoredItem, expectedStatusCode) {
@@ -856,7 +866,7 @@ describe("SM1 - Subscriptions and MonitoredItems", function() {
             }
         }
 
-        it("FGFG0 CreateMonitoredItems on an item to which the user does not have read-access; should succeed but Publish should return the error ", function() {
+        it("FGFG0 CreateMonitoredItems on an item to which the user does not have read-access; should succeed but Publish should return the error ", () => {
 
             // specs:
             // When a user adds a monitored item that the user is denied read access to, the add operation for
@@ -889,11 +899,11 @@ describe("SM1 - Subscriptions and MonitoredItems", function() {
             });
 
 
-            const monitoredItemCreateResult = subscription.createMonitoredItem(addressSpace, TimestampsToReturn.Both, monitoredItemCreateRequest);
+            const createResult = subscription.createMonitoredItem(addressSpace, TimestampsToReturn.Both, monitoredItemCreateRequest);
 
-            monitoredItemCreateResult.statusCode.should.eql(StatusCodes.Good);
+            createResult.statusCode.should.eql(StatusCodes.Good);
 
-            const monitoredItem = subscription.getMonitoredItem(monitoredItemCreateResult.monitoredItemId);
+            const monitoredItem = subscription.getMonitoredItem(createResult.monitoredItemId);
 
             monitoredItem.queueSize.should.eql(10);
 
@@ -904,7 +914,7 @@ describe("SM1 - Subscriptions and MonitoredItems", function() {
         });
 
 
-        it("FGFG1 should return BadNodeIdUnknown when trying to monitor an invalid node", function(done) {
+        it("FGFG1 should return BadNodeIdUnknown when trying to monitor an invalid node", () => {
 
             const nodeId = "ns=567;s=MyVariable";
 
@@ -921,20 +931,20 @@ describe("SM1 - Subscriptions and MonitoredItems", function() {
             });
 
 
-            const monitoredItemCreateResult = subscription.createMonitoredItem(addressSpace, TimestampsToReturn.Both, monitoredItemCreateRequest);
+            const createResult = subscription.createMonitoredItem(addressSpace, TimestampsToReturn.Both, monitoredItemCreateRequest);
 
             if (doDebug) {
-                console.log(monitoredItemCreateResult.toString());
+                console.log(createResult.toString());
             }
 
-            monitoredItemCreateResult.statusCode.should.eql(StatusCodes.BadNodeIdUnknown);
+            createResult.statusCode.should.eql(StatusCodes.BadNodeIdUnknown);
 
-            const monitoredItem = subscription.getMonitoredItem(monitoredItemCreateResult.monitoredItemId);
+            const monitoredItem = subscription.getMonitoredItem(createResult.monitoredItemId);
             should.not.exist(monitoredItem);
 
-            done();
         });
-        it("FGFG2 should eventually emit DataChangeNotification when trying to monitor an invalid node that become valid", function(done) {
+
+        it("FGFG2 should eventually emit DataChangeNotification when trying to monitor an invalid node that become valid", () => {
 
             const nodeVariable = namespace.addVariable({
                 browseName: "MyVar",
@@ -958,15 +968,15 @@ describe("SM1 - Subscriptions and MonitoredItems", function() {
             });
 
 
-            const monitoredItemCreateResult = subscription.createMonitoredItem(addressSpace, TimestampsToReturn.Both, monitoredItemCreateRequest);
+            const createResult = subscription.createMonitoredItem(addressSpace, TimestampsToReturn.Both, monitoredItemCreateRequest);
 
             if (doDebug) {
-                console.log(monitoredItemCreateResult.toString());
+                console.log(createResult.toString());
             }
 
-            monitoredItemCreateResult.statusCode.should.eql(StatusCodes.Good);
+            createResult.statusCode.should.eql(StatusCodes.Good);
 
-            const monitoredItem = subscription.getMonitoredItem(monitoredItemCreateResult.monitoredItemId);
+            const monitoredItem = subscription.getMonitoredItem(createResult.monitoredItemId);
             should.exist(monitoredItem);
 
             simulate_publish_request_expected_statusCode(monitoredItem, StatusCodes.Good);
@@ -978,8 +988,6 @@ describe("SM1 - Subscriptions and MonitoredItems", function() {
 
             simulate_publish_request_expected_statusCode(monitoredItem, StatusCodes.BadNodeIdInvalid);
 
-            done();
-
         });
 
     });
@@ -988,12 +996,8 @@ describe("SM1 - Subscriptions and MonitoredItems", function() {
 
         let subscription = null;
 
-        let test = this;
-
-        before(function() {
-
-            test = this;
-
+        before(() => {
+  
             subscription = new Subscription({
                 publishingInterval: 1000,
                 maxKeepAliveCount: 20,
@@ -1014,11 +1018,10 @@ describe("SM1 - Subscriptions and MonitoredItems", function() {
             });
 
         });
-        after(function(done) {
+        after(() => {
             subscription.terminate();
             subscription.dispose();
             subscription = null;
-            done();
         });
 
         const integerDeadband = 2;
@@ -1043,10 +1046,11 @@ describe("SM1 - Subscriptions and MonitoredItems", function() {
 
             const nodeId = "ns=1;s=Static_" + dataType;
             const node = engine.addressSpace.findNode(nodeId);
-            should(!!node).not.eql(false);
+            should.exists(node);
+
             node.minimumSamplingInterval.should.be.belowOrEqual(100);
 
-            function simulate_nodevalue_change(currentValue) {
+            function simulate_node_value_change(currentValue) {
 
                 const v = new Variant({
                     dataType: DataType[dataType],
@@ -1063,7 +1067,7 @@ describe("SM1 - Subscriptions and MonitoredItems", function() {
             let notifs;
 
             let currentValue = writesFail[0];
-            simulate_nodevalue_change(currentValue);
+            simulate_node_value_change(currentValue);
 
             // create monitor item
             const monitoredItemCreateRequest = new MonitoredItemCreateRequest({
@@ -1084,14 +1088,14 @@ describe("SM1 - Subscriptions and MonitoredItems", function() {
             });
 
 
-            const monitoredItemCreateResult = subscription.createMonitoredItem(
+            const createResult = subscription.createMonitoredItem(
                 addressSpace, TimestampsToReturn.Both, monitoredItemCreateRequest);
 
             // data collection is done asynchronously => let give some time for this to happen
             test.clock.tick(5);
 
-            monitoredItemCreateResult.statusCode.should.eql(StatusCodes.Good);
-            const monitoredItem = subscription.getMonitoredItem(monitoredItemCreateResult.monitoredItemId);
+            createResult.statusCode.should.eql(StatusCodes.Good);
+            const monitoredItem = subscription.getMonitoredItem(createResult.monitoredItemId);
 
             monitoredItem.queueSize.should.eql(10);
             monitoredItem.queue.length.should.eql(1);
@@ -1125,26 +1129,26 @@ describe("SM1 - Subscriptions and MonitoredItems", function() {
 
             // write second value to node
             currentValue = writesFail[1];
-            simulate_nodevalue_change(currentValue);
+            simulate_node_value_change(currentValue);
             simulate_publish_request_and_check_one(undefined);
 
 
             // write third value to node
             currentValue = writesFail[2];
-            simulate_nodevalue_change(currentValue);
+            simulate_node_value_change(currentValue);
             simulate_publish_request_and_check_one(undefined);
 
             // ---------------------------------------------------------------------------------------------------------
             currentValue = writesPass[0];
-            simulate_nodevalue_change(currentValue);
+            simulate_node_value_change(currentValue);
             simulate_publish_request_and_check_one(currentValue);
 
             currentValue = writesPass[1];
-            simulate_nodevalue_change(currentValue);
+            simulate_node_value_change(currentValue);
             simulate_publish_request_and_check_one(currentValue);
 
             currentValue = writesPass[2];
-            simulate_nodevalue_change(currentValue);
+            simulate_node_value_change(currentValue);
             simulate_publish_request_and_check_one(currentValue);
 
         }
@@ -1174,7 +1178,7 @@ describe("SM1 - Subscriptions and MonitoredItems", function() {
         });
 
 
-        it("ZZ0 testing with String and DeadBandFilter", function(done) {
+        it("ZZ0 testing with String and DeadBandFilter", () => {
 
             const nodeId = "ns=1;s=Static_LocalizedText";
 
@@ -1199,15 +1203,15 @@ describe("SM1 - Subscriptions and MonitoredItems", function() {
             });
 
 
-            const monitoredItemCreateResult = subscription.createMonitoredItem(
+            const createResult = subscription.createMonitoredItem(
                 addressSpace, TimestampsToReturn.Both, monitoredItemCreateRequest);
 
 
             // data collection is done asynchronously => let give some time for this to happen
             test.clock.tick(5);
 
-            monitoredItemCreateResult.statusCode.should.eql(StatusCodes.Good);
-            const monitoredItem = subscription.getMonitoredItem(monitoredItemCreateResult.monitoredItemId);
+            createResult.statusCode.should.eql(StatusCodes.Good);
+            const monitoredItem = subscription.getMonitoredItem(createResult.monitoredItemId);
 
             // now modify monitoredItem setting a filter
             const res = monitoredItem.modify(null, new MonitoringParameters({
@@ -1220,13 +1224,11 @@ describe("SM1 - Subscriptions and MonitoredItems", function() {
             /* MonitoredItemModifyResult*/
             res.statusCode.should.eql(StatusCodes.BadFilterNotAllowed);
 
-
-            done();
         });
     });
 
 
-    describe("MonitoredItem should set SemanticChanged bit on statusCode when appropriate", function() {
+    describe("MonitoredItem should set SemanticChanged bit on statusCode when appropriate", () => {
 
 
         function changeEURange(analogItem, done) {
@@ -1253,16 +1255,15 @@ describe("SM1 - Subscriptions and MonitoredItems", function() {
 
     describe("matching minimumSamplingInterval", function() {
 
-        it("server should not allow monitoredItem sampling interval to be lesser than UAVariable minimumSampling interval", function(done) {
+        it("server should not allow monitoredItem sampling interval to be lesser than UAVariable minimumSampling interval", (done) => {
 
-
-
+            let subscription;
             try {
 
                 addressSpace.rootFolder.someVariable.minimumSamplingInterval = 1000;
                 addressSpace.rootFolder.someVariable.minimumSamplingInterval.should.eql(1000);
 
-                var subscription = new Subscription({
+                subscription = new Subscription({
                     publishingInterval: 1000,
                     maxKeepAliveCount: 20,
                     publishEngine: fake_publish_engine
@@ -1281,10 +1282,10 @@ describe("SM1 - Subscriptions and MonitoredItems", function() {
                 });
                 monitoredItemCreateRequest.requestedParameters.samplingInterval.should.eql(100, "Requesting a very small sampling interval");
 
-                const monitoredItemCreateResult = subscription.createMonitoredItem(addressSpace, TimestampsToReturn.Both, monitoredItemCreateRequest);
-                monitoredItemCreateResult.statusCode.should.eql(StatusCodes.Good);
+                const createResult = subscription.createMonitoredItem(addressSpace, TimestampsToReturn.Both, monitoredItemCreateRequest);
+                createResult.statusCode.should.eql(StatusCodes.Good);
 
-                const monitoredItem = subscription.getMonitoredItem(monitoredItemCreateResult.monitoredItemId);
+                const monitoredItem = subscription.getMonitoredItem(createResult.monitoredItemId);
 
                 monitoredItem.samplingInterval.should.eql(1000, "monitoredItem samplingInterval should match node minimumSamplingInterval");
 
@@ -1305,8 +1306,6 @@ describe("SM1 - Subscriptions and MonitoredItems", function() {
 
                 monitoredItem.samplingInterval.should.eql(1000, "monitoredItem samplingInterval should match node minimumSamplingInterval");
 
-
-
             }
             catch (err) {
                 return done(err);
@@ -1318,15 +1317,16 @@ describe("SM1 - Subscriptions and MonitoredItems", function() {
             done();
 
         });
-        it("server should not allow monitoredItem sampling interval to be lesser than the MonitoredItem.minimumSamplingInterval limit (unless 0) ", function(done) {
+        it("server should not allow monitoredItem sampling interval to be lesser than the MonitoredItem.minimumSamplingInterval limit (unless 0) ", (done) => {
             addressSpace.rootFolder.someVariable.minimumSamplingInterval = 20;
             addressSpace.rootFolder.someVariable.minimumSamplingInterval.should.eql(20);
             addressSpace.rootFolder.someVariable.minimumSamplingInterval.should.be.lessThan(MonitoredItem.minimumSamplingInterval);
 
+            let subscription;
 
             try {
 
-                var subscription = new Subscription({
+                subscription = new Subscription({
                     publishingInterval: 1000,
                     maxKeepAliveCount: 20,
                     publishEngine: fake_publish_engine
@@ -1347,10 +1347,10 @@ describe("SM1 - Subscriptions and MonitoredItems", function() {
                 });
                 monitoredItemCreateRequest.requestedParameters.samplingInterval.should.eql(10, "Requesting a very small sampling interval");
 
-                const monitoredItemCreateResult = subscription.createMonitoredItem(addressSpace, TimestampsToReturn.Both, monitoredItemCreateRequest);
-                monitoredItemCreateResult.statusCode.should.eql(StatusCodes.Good);
+                const createResult = subscription.createMonitoredItem(addressSpace, TimestampsToReturn.Both, monitoredItemCreateRequest);
+                createResult.statusCode.should.eql(StatusCodes.Good);
 
-                const monitoredItem = subscription.getMonitoredItem(monitoredItemCreateResult.monitoredItemId);
+                const monitoredItem = subscription.getMonitoredItem(createResult.monitoredItemId);
 
                 monitoredItem.samplingInterval.should.eql(MonitoredItem.minimumSamplingInterval, "monitoredItem samplingInterval should match node minimumSamplingInterval");
 
@@ -1374,6 +1374,7 @@ describe("SM1 - Subscriptions and MonitoredItems", function() {
 
             }
             catch (err) {
+                console.log(err.message);
                 return done(err);
             }
             finally {
@@ -1393,7 +1394,17 @@ describe("SM2 - MonitoredItem advanced", function() {
     let someVariableNode;
     let engine;
     let publishEngine;
-    before(function(done) {
+
+
+    const test = this;
+    function simulate_client_adding_publish_request(publishEngine, callback) {
+        _simulate_client_adding_publish_request(test, publishEngine, callback);
+    }
+
+    before((done) => {
+        if(test.clock)  {
+            throw new Error("Internal Error");
+        }
         engine = new ServerEngine();
 
         engine.initialize({ nodeset_filename: mini_nodeset_filename }, function() {
@@ -1414,38 +1425,42 @@ describe("SM2 - MonitoredItem advanced", function() {
             const browsePath = makeBrowsePath("RootFolder", "/Objects/EventGeneratorObject");
 
             const opts = { addressSpace: engine.addressSpace };
-            //xx console.log("eventGeneratingObject",browsePath.toString(opts));
-            //xx console.log("eventGeneratingObject",eventGeneratingObject.toString(opts));
+            
+            // console.log("eventGeneratingObject",browsePath.toString(opts));
 
             done();
         });
     });
-    after(function() {
-        engine.shutdown();
+    after(async () => {
+        await engine.shutdown();
         engine.dispose();
         engine = null;
     });
 
 
-    beforeEach(function() {
-        this.clock = sinon.useFakeTimers(now);
+    beforeEach(() => {
+        if(test.clock)  {
+            throw new Error("Internal Error");
+        }
+        test.clock = sinon.useFakeTimers(now);
+  
         publishEngine = new ServerSidePublishEngine();
     });
 
-    afterEach(function() {
-        //xx publishEngine._feed_closed_subscription();
-        this.clock.tick(1000);
-        this.clock.restore();
+    afterEach(() => {
         if (publishEngine) {
             publishEngine.shutdown();
             publishEngine.dispose();
             publishEngine = null;
         }
+        test.clock.tick(1000);
+        test.clock.restore();
+        test.clock = null;
     });
 
     describe("SM2A - #maxNotificationsPerPublish", function() {
 
-        it("should have a proper maxNotificationsPerPublish default value", function(done) {
+        it("should have a proper maxNotificationsPerPublish default value", (done) => {
             const subscription = new Subscription({
                 publishEngine: publishEngine
             });
@@ -1455,7 +1470,7 @@ describe("SM2 - MonitoredItem advanced", function() {
 
             subscription.id = 1;
             publishEngine.add_subscription(subscription);
-            subscription.maxNotificationsPerPublish.should.eql(0);
+            subscription.maxNotificationsPerPublish.should.eql(Subscription.maxNotificationPerPublishHighLimit);
 
             subscription.terminate();
             subscription.dispose();
@@ -1463,7 +1478,7 @@ describe("SM2 - MonitoredItem advanced", function() {
             done();
         });
 
-        function numberOfnotifications(publishResponse) {
+        function numberOfNotifications(publishResponse) {
             const notificationData = publishResponse.notificationMessage.notificationData;
 
             return notificationData.reduce(function(accumulated, data) {
@@ -1482,10 +1497,10 @@ describe("SM2 - MonitoredItem advanced", function() {
                 }
             });
 
-            const monitoredItemCreateResult = subscription.createMonitoredItem(addressSpace, TimestampsToReturn.Both, monitoredItemCreateRequest);
-            monitoredItemCreateResult.statusCode.should.eql(StatusCodes.Good);
+            const createResult = subscription.createMonitoredItem(addressSpace, TimestampsToReturn.Both, monitoredItemCreateRequest);
+            createResult.statusCode.should.eql(StatusCodes.Good);
 
-            const monitoredItem = subscription.getMonitoredItem(monitoredItemCreateResult.monitoredItemId);
+            const monitoredItem = subscription.getMonitoredItem(createResult.monitoredItemId);
             should.exist(monitoredItem);
             return monitoredItem;
         }
@@ -1509,7 +1524,7 @@ describe("SM2 - MonitoredItem advanced", function() {
                 monitoredItem.samplingFunc = install_spying_samplingFunc();
             });
 
-            this.clock.tick(subscription.publishingInterval);
+            test.clock.tick(subscription.publishingInterval);
             simulate_client_adding_publish_request(publishEngine, spy_callback);
             simulate_client_adding_publish_request(publishEngine, spy_callback);
             simulate_client_adding_publish_request(publishEngine, spy_callback);
@@ -1536,13 +1551,13 @@ describe("SM2 - MonitoredItem advanced", function() {
             simulate_client_adding_publish_request(publishEngine, spy_callback);
 
             // now simulate some data change on monitored items
-            this.clock.tick(100);
-            this.clock.tick(100);
-            this.clock.tick(100);
-            this.clock.tick(100);
-            this.clock.tick(100);
+            test.clock.tick(100);
+            test.clock.tick(100);
+            test.clock.tick(100);
+            test.clock.tick(100);
+            test.clock.tick(100);
             // add an extra tick to allow all setImmediate call to be honoured
-            this.clock.tick(1);
+            test.clock.tick(1);
 
 
             freeze_data_source();
@@ -1553,7 +1568,7 @@ describe("SM2 - MonitoredItem advanced", function() {
             monitoredItem3.queue.length.should.eql(6);
             monitoredItem4.queue.length.should.eql(6);
 
-            this.clock.tick(800);
+            test.clock.tick(800);
 
             // now data should have been harvested
             // monitoredItem values should have been harvested by subscription timer by now
@@ -1565,29 +1580,29 @@ describe("SM2 - MonitoredItem advanced", function() {
 
             // verify that publishResponse has been send
             const publishResponse0 = spy_callback.getCall(0).args[1];
-            numberOfnotifications(publishResponse0).should.eql(0); // KeepAlive
+            numberOfNotifications(publishResponse0).should.eql(0); // KeepAlive
 
 
             const publishResponse1 = spy_callback.getCall(1).args[1];
-            numberOfnotifications(publishResponse1).should.not.be.greaterThan(subscription.maxNotificationsPerPublish + 1);
+            numberOfNotifications(publishResponse1).should.not.be.greaterThan(subscription.maxNotificationsPerPublish + 1);
             publishResponse1.moreNotifications.should.eql(true);
 
 
             spy_callback.callCount.should.eql(7);
 
             const publishResponse2 = spy_callback.getCall(2).args[1];
-            numberOfnotifications(publishResponse2).should.not.be.greaterThan(subscription.maxNotificationsPerPublish + 1);
+            numberOfNotifications(publishResponse2).should.not.be.greaterThan(subscription.maxNotificationsPerPublish + 1);
             publishResponse2.moreNotifications.should.eql(true);
 
             const publishResponse3 = spy_callback.getCall(4).args[1];
-            numberOfnotifications(publishResponse3).should.not.be.greaterThan(subscription.maxNotificationsPerPublish + 1);
+            numberOfNotifications(publishResponse3).should.not.be.greaterThan(subscription.maxNotificationsPerPublish + 1);
             publishResponse3.moreNotifications.should.eql(true);
 
             const publishResponse4 = spy_callback.getCall(5).args[1];
-            numberOfnotifications(publishResponse4).should.not.be.greaterThan(subscription.maxNotificationsPerPublish + 1);
+            numberOfNotifications(publishResponse4).should.not.be.greaterThan(subscription.maxNotificationsPerPublish + 1);
 
             const publishResponse5 = spy_callback.getCall(6).args[1];
-            numberOfnotifications(publishResponse5).should.not.be.greaterThan(subscription.maxNotificationsPerPublish + 1);
+            numberOfNotifications(publishResponse5).should.not.be.greaterThan(subscription.maxNotificationsPerPublish + 1);
             publishResponse5.moreNotifications.should.eql(false);
 
 
@@ -1643,9 +1658,9 @@ describe("SM2 - MonitoredItem advanced", function() {
                     samplingInterval: 1200
                 }
             });
-            const monitoredItemCreateResult = subscription.createMonitoredItem(addressSpace, TimestampsToReturn.Both, monitoredItemCreateRequest);
-            monitoredItemCreateResult.statusCode.should.eql(StatusCodes.Good);
-            const monitoredItem = subscription.getMonitoredItem(monitoredItemCreateResult.monitoredItemId);
+            const createResult = subscription.createMonitoredItem(addressSpace, TimestampsToReturn.Both, monitoredItemCreateRequest);
+            createResult.statusCode.should.eql(StatusCodes.Good);
+            const monitoredItem = subscription.getMonitoredItem(createResult.monitoredItemId);
 
             return monitoredItem;
         }
@@ -1759,7 +1774,7 @@ describe("SM2 - MonitoredItem advanced", function() {
 
             // simulate notification
             // now simulate some data change in 5 seconds 
-            this.clock.tick(1200 * 5);
+            test.clock.tick(1200 * 5);
 
             evtNotificationCounter.should.eql(5);
 
@@ -1773,8 +1788,6 @@ describe("SM2 - MonitoredItem advanced", function() {
             // todo
         });
     });
-
-
 });
 
 

@@ -30,6 +30,7 @@
             "typescript-starter": ["package/node-opcua/index.js"] // write tests without relative paths
         }
     },
+    "exclude": ["./documentation", "build"],
     "references": [
         {
             "path": "packages/node-opcua"

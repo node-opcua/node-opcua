@@ -9,10 +9,11 @@ node_js:
   # dropped - "7"
   # dropped - "8"  - (January 2021 )( 'for await' not supported - required by latest version of mocha)
   # dropped - "9"
-  - "10"
+  # dropped - "10" (not supported any mopre -> end of life 2021-04-30)
   # - "11" not used yet => Lerna stack overflows!
   - "12"
   - "14"
+  - "15"
 os:
   - linux
   # - osx
@@ -23,6 +24,8 @@ matrix:
     - os: osx
 
 before_install:
+  - curl -L https://unpkg.com/@pnpm/self-installer | node
+  - pnpm config set store-dir ~/.pnpm-store
   # make sure we have enough ephemeral port on MacOS
   # https://superuser.com/questions/145989/does-mac-os-x-throttle-the-rate-of-socket-creation
   # https://superuser.com/a/443168
@@ -58,21 +61,18 @@ before_script:
       fi;
     fi;
 
-  # memcpy only works with node version > 0.8 and <= 0.12, and not with io.js, at this time
-  - if [[ `node --version` == v0.12 ]]; then npm i memcpy ; fi
-  - if [[ `node --version` == v0.10* ]]; then npm i ursa@0.8.5 ; fi
-
 install:
-  - npm install -g npm
-  - npm install typescript -g
-  - npm install codecov -g
-  - npm ci
+  - npm install -g npm pnpm
+  - pnpm install typescript -g
+  - pnpm install codecov -g
+  - pnpm ci
 
 # keep the npm cache around to speed up installs
 cache:
-  npm: true
+  npm: false
   directories:
     - "certificates"
+    - "~/.pnpm-store"
 
 after_success:
   # only run code coverage on linux and latest nodejs version
@@ -88,14 +88,15 @@ script:
   - if [[ $TRAVIS_OS_NAME =~ ^osx$ ]];
     then
       export TESTPAGE=11;
-      npm test;
+      pnpm test;
     else  
       if [[ $TRAVIS_NODE_VERSION =~ ^10$ ]]; 
       then
-        npm run pretest;
+        pnpm run pretest;
         make test-cov;
       else  
-        npm test;
+        pnpm run pretest;
+        pnpm test;
       fi ;
     fi ;
     # lerna run test-typescript

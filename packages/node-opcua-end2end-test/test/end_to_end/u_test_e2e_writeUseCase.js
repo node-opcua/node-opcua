@@ -1,6 +1,4 @@
-    "use strict";
-/* global describe,it,before,after,beforeEach,afterEach*/
-
+"use strict";
 
 const async = require("async");
 const should = require("should");

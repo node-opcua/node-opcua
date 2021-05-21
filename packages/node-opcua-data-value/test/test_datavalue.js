@@ -1,8 +1,7 @@
 "use strict";
-/* global describe,it*/
 Error.stackTraceLimit = 1000;
 const util = require("util");
-
+const should = require("should");
 const {
     Variant,
     DataType,

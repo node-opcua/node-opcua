@@ -2,21 +2,22 @@ image: node:latest
 
 stages:
   - build
-  - test
 cache:
+  key: ${CI_COMMIT_REF_SLUG}
   paths:
+    - .npm/
     - node_modules/
     - packages/
+    - ~/.pnpm-store
 
-install_dependencies:
+build_and_test:
   stage: build
+  before_script:
+    - curl -L https://unpkg.com/@pnpm/self-installer | node
+    - pnpm config set store-dir ~/.pnpm-store
+    - pnpm install --frozen-lockfile=false
+    - pnpm recursive install --frozen-lockfile=false
   script:
-    - npm install
-  artifacts:
-    paths:
-      - node_modules/
-      - packages/
+    - pnpm build
+    - pnpm test
 
-testing_testing:
-  stage: test
-  script: npm test

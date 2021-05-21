@@ -120,4 +120,14 @@ export class HelloMessage extends BaseUAObject {
         this.maxChunkCount = decodeUInt32(stream);
         this.endpointUrl = decodeUAString(stream);
     }
+    public toString() {
+        let str = "";
+        str += 'protocolVersion   = ' + this.protocolVersion +'\n';
+        str += 'receiveBufferSize = ' + this.receiveBufferSize +'\n';
+        str += 'sendBufferSize    = ' + this.sendBufferSize +'\n';
+        str += 'maxMessageSize    = ' + this.maxMessageSize +'\n';
+        str += 'maxChunkCount     = ' + this.maxChunkCount +'\n';
+        str += 'endpointUrl       = ' + this.endpointUrl +'\n';
+        return str;
+    }
 }

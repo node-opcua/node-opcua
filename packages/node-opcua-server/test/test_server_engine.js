@@ -204,8 +204,8 @@ describe("testing ServerEngine", () => {
 
     });
 
-    after(function() {
-        engine.shutdown();
+    after(async () => {
+        await engine.shutdown();
         engine = null;
     });
 
@@ -711,7 +711,7 @@ describe("testing ServerEngine", () => {
 
     });
 
-    it("should handle a BrowseRequest of a session with a filtered result", () => {
+    it("should handle a BrowseRequest of a session with a filtered result", async () => {
 
         const objects = engine.addressSpace.rootFolder.objects;
         const filteredItemsFolder = objects.getFolderElementByName("filteredItemsFolder");
@@ -742,7 +742,7 @@ describe("testing ServerEngine", () => {
         results3[0].references.length.should.equal(1);
         results3[0].references[0].displayName.text.should.equal("filteredFolder3");
 
-        engine.closeSession(session.authenticationToken, true);
+        await engine.closeSession(session.authenticationToken, true);
 
     });
 
@@ -1122,7 +1122,7 @@ describe("testing ServerEngine", () => {
         // Expect BadIndexRangeNoData
 
         const nodeId = "ns=1;s=TestVar";
-        before(function() {
+        before(() => {
             namespace.addVariable({
                 browseName: "TestVar",
                 dataType: "Double",
@@ -1809,12 +1809,12 @@ describe("testing ServerEngine", () => {
         }
 
 
-        it("MAXA-1 qshould not cause dataValue to be refreshed if maxAge is greater than available dataValue", async () => {
+        it("MAXA-1 should not cause dataValue to be refreshed if maxAge is greater than available dataValue", async () => {
 
             const ns = engine.addressSpace.getOwnNamespace();
             const nodeId = "ns=1;s=MyVar";
             let refreshFuncSpy;
-            function given_a_variable_that_have_asyn_refresh() {
+            function given_a_variable_that_have_async_refresh() {
                 let value = 0;
                 const variable = ns.addVariable({ browseName: "SomeVarX", dataType: "Double", nodeId });
                 variable.bindVariable({
@@ -1836,7 +1836,7 @@ describe("testing ServerEngine", () => {
             }
 
 
-            given_a_variable_that_have_asyn_refresh();
+            given_a_variable_that_have_async_refresh();
 
             {
                 const dataValue = await when_I_read_the_value_with_max_age(nodeId, 0);
@@ -2087,7 +2087,7 @@ describe("testing ServerEngine", () => {
 
     describe("testing the ability to handle variable that returns a StatusCode rather than a Variant", () => {
 
-        before(function() {
+        before(() => {
             // add a variable that fails to provide a Variant.
             // we simulate the scenario where the variable represent a PLC value,
             // and for some reason, the server cannot access the PLC.
@@ -2137,7 +2137,7 @@ describe("testing ServerEngine", () => {
         let value1 = 0;
         let value2 = 0;
 
-        before(function() {
+        before(() => {
 
             // add a variable that provide a on demand refresh function
             namespace.addVariable({
@@ -2303,7 +2303,7 @@ describe("testing ServerEngine", () => {
 
 describe("ServerEngine advanced", () => {
 
-    it("ServerEngine#registerShutdownTask should execute shutdown tasks on shutdown", function(done) {
+    it("ServerEngine#registerShutdownTask should execute shutdown tasks on shutdown", async () => {
 
         const engine = new ServerEngine();
 
@@ -2312,14 +2312,13 @@ describe("ServerEngine advanced", () => {
 
         engine.registerShutdownTask(myFunc);
 
-        engine.shutdown();
+        await engine.shutdown();
 
         myFunc.calledOnce.should.eql(true);
 
-        done();
     });
 
-    it("ServerEngine#shutdown engine should take care of disposing session on shutdown", function(done) {
+    it("ServerEngine#shutdown engine should take care of disposing session on shutdown", async () => {
 
         const engine = new ServerEngine();
         const session1 = engine.createSession();
@@ -2330,9 +2329,9 @@ describe("ServerEngine advanced", () => {
         should.exist(session2);
         should.exist(session3);
 
-        engine.shutdown();
+        await engine.shutdown();
         // leaks will be detected if engine failed to dispose session
-        done();
+
     });
 
 });
@@ -2363,8 +2362,8 @@ describe("ServerEngine ServerStatus & ServerCapabilities", function(/*this: any*
         });
 
     });
-    after(function() {
-        engine.shutdown();
+    after(async () => {
+        await engine.shutdown();
         engine = null;
     });
     beforeEach(function() {
