@@ -1462,6 +1462,10 @@ describe("miscellaneous Variant tests", () => {
 
     it("coerceVariantType on Boolean", () => {
         coerceVariantType(DataType.Boolean, true).should.eql(true);
+        coerceVariantType(DataType.Boolean, false).should.eql(false);
+        coerceVariantType(DataType.Boolean, "true").should.eql(true);
+        coerceVariantType(DataType.Boolean, "false").should.eql(false);
+        coerceVariantType(DataType.Boolean, null).should.eql(null);
     });
 
     it("decodeVariant", () => {
