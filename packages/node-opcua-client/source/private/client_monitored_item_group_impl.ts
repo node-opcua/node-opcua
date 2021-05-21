@@ -5,7 +5,7 @@
 import { EventEmitter } from "events";
 import { assert } from "node-opcua-assert";
 import { DataValue, TimestampsToReturn, coerceTimestampsToReturn } from "node-opcua-data-value";
-import { checkDebugFlag, make_debugLog,make_warningLog } from "node-opcua-debug";
+import { checkDebugFlag, make_debugLog, make_warningLog } from "node-opcua-debug";
 import { MonitoringMode, MonitoringParametersOptions } from "node-opcua-service-subscription";
 import { StatusCode } from "node-opcua-status-code";
 import { Callback, ErrorCallback } from "node-opcua-status-code";
@@ -42,7 +42,8 @@ export class ClientMonitoredItemGroupImpl extends EventEmitter implements Client
         subscription: ClientSubscription,
         itemsToMonitor: any[],
         monitoringParameters: any,
-        timestampsToReturn: TimestampsToReturn
+        timestampsToReturn: TimestampsToReturn,
+        monitoringMode: MonitoringMode = MonitoringMode.Reporting
     ) {
         super();
         assert(Array.isArray(itemsToMonitor));
@@ -56,22 +57,30 @@ export class ClientMonitoredItemGroupImpl extends EventEmitter implements Client
         assert(subscription.constructor.name === "ClientSubscriptionImpl");
 
         this.subscription = subscription;
-
-        this.monitoredItems = itemsToMonitor.map((itemToMonitor) => {
-            return new ClientMonitoredItemImpl(subscription, itemToMonitor, monitoringParameters, TimestampsToReturn.Both);
-        });
-
         this.timestampsToReturn = timestampsToReturn;
-        this.monitoringMode = MonitoringMode.Reporting;
+        this.monitoringMode = monitoringMode;
+
+        this.monitoredItems = itemsToMonitor.map((itemToMonitor) => 
+             new ClientMonitoredItemImpl(
+                subscription,
+                itemToMonitor,
+                monitoringParameters,
+                TimestampsToReturn.Both,
+                this.monitoringMode
+            )
+        );
     }
 
     public toString(): string {
         let ret = "ClientMonitoredItemGroup : \n";
         ret +=
             "itemsToMonitor:       = [\n " +
-            this.monitoredItems.map((monitoredItem: ClientMonitoredItemBase) => monitoredItem.itemToMonitor.toString()).join("\n") +
+            this.monitoredItems.slice(0,10).map(
+                (monitoredItem: ClientMonitoredItemBase) => 
+                  //  monitoredItem.itemToMonitor.toString() + 
+                  monitoredItem.toString()).join("\n") +
             "\n];\n";
-        ret += "timestampsToReturn:   " + this.timestampsToReturn.toString() + "\n";
+        ret += "timestampsToReturn:   " + TimestampsToReturn[this.timestampsToReturn] + "\n";
         ret += "monitoringMode        " + MonitoringMode[this.monitoringMode];
         return ret;
     }
@@ -153,6 +162,8 @@ export class ClientMonitoredItemGroupImpl extends EventEmitter implements Client
         assert(done === undefined || typeof done === "function");
 
         this.monitoredItems.forEach((monitoredItem: ClientMonitoredItemBase, index: number) => {
+           
+  
             monitoredItem.on("changed", (dataValue: DataValue) => {
                 /**
                  * Notify the observers that a group MonitoredItem value has changed on the server side.
@@ -165,10 +176,10 @@ export class ClientMonitoredItemGroupImpl extends EventEmitter implements Client
                     this.emit("changed", monitoredItem, dataValue, index);
                 } catch (err) {
                     warningLog(
-`[NODE-OPCUA-W20] the monitoredItem.on('changed') handler has raised an exception.
+                        `[NODE-OPCUA-W20] the monitoredItem.on('changed') handler has raised an exception.
 error message : ${err.message}
 Please investigate the code of the event handler function to fix the error.`
-);
+                    );
                 }
             });
         });

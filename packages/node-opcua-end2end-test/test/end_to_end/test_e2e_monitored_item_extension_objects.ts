@@ -30,16 +30,15 @@ const _should = should;
 const port = 2228;
 let endpointUrl: string;
 
-let nsAutoId;
-
 // tslint:disable-next-line:no-var-requires
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
-describe("AZA1- testing Client-Server subscription use case, on a fake server exposing the temperature device", function () {
+describe("AZA1- testing Client-Server subscription use case, on a fake server exposing the temperature device", () => {
     let nodeId: NodeId;
     let scanResultNode: UAVariable;
 
     const server = new OPCUAServer({
         port,
+
         nodeset_filename: [nodesets.standard, nodesets.di, nodesets.autoId]
     });
 
@@ -161,6 +160,7 @@ describe("AZA1- testing Client-Server subscription use case, on a fake server ex
         await server.shutdown();
     });
 
+    const publishingInterval = 500;
     it("MIEO-1 - a client should not receive opaque structure when monitoring extension objects", async () => {
         const client = OPCUAClient.create({
             requestedSessionTimeout: 10000000,
@@ -172,7 +172,7 @@ describe("AZA1- testing Client-Server subscription use case, on a fake server ex
             publishingEnabled: true,
             requestedLifetimeCount: 10000,
             requestedMaxKeepAliveCount: 100,
-            requestedPublishingInterval: 100
+            requestedPublishingInterval: publishingInterval
         };
         await client.withSubscriptionAsync(
             endpointUrl,
@@ -211,7 +211,7 @@ describe("AZA1- testing Client-Server subscription use case, on a fake server ex
                         });
                     });
 
-                    await new Promise((resolve) => setTimeout(resolve, 1000));
+                    await new Promise<void>((resolve) => monitoredItem.once("changed", () => resolve()));
 
                     debugLog("changedSpy = ", changedSpy.getCalls().length);
                     /*RfidScanResult*/
@@ -237,7 +237,7 @@ describe("AZA1- testing Client-Server subscription use case, on a fake server ex
             publishingEnabled: true,
             requestedLifetimeCount: 10000,
             requestedMaxKeepAliveCount: 100,
-            requestedPublishingInterval: 100
+            requestedPublishingInterval: publishingInterval
         };
         await client.withSubscriptionAsync(
             endpointUrl,
@@ -309,7 +309,7 @@ describe("AZA1- testing Client-Server subscription use case, on a fake server ex
 
                     raiseRfidScanEvent();
 
-                    await new Promise((resolve) => setTimeout(resolve, 1000));
+                    await new Promise<void>((resolve) => monitoredItem.once("changed", () => resolve()));
 
                     debugLog("changedSpy = ", changedSpy.getCalls().length);
 

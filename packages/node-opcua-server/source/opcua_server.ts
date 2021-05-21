@@ -35,9 +35,9 @@ import {
     UAVariable,
     UAView
 } from "node-opcua-address-space";
-import { OPCUACertificateManager } from "node-opcua-certificate-manager";
+import { getDefaultCertificateManager, OPCUACertificateManager } from "node-opcua-certificate-manager";
 import { ServerState } from "node-opcua-common";
-import { Certificate, exploreCertificate, Nonce, toPem } from "node-opcua-crypto";
+import { Certificate, exploreCertificate, makeSHA1Thumbprint, Nonce, toPem } from "node-opcua-crypto";
 import { AttributeIds, LocalizedText, NodeClass } from "node-opcua-data-model";
 import { DataValue } from "node-opcua-data-value";
 import { dump, make_debugLog, make_errorLog, make_warningLog } from "node-opcua-debug";
@@ -109,6 +109,9 @@ import {
     SetMonitoringModeResponse,
     SetPublishingModeRequest,
     SetPublishingModeResponse,
+    SetTriggeringRequestOptions,
+    SetTriggeringRequest,
+    SetTriggeringResponse,
     TransferSubscriptionsRequest,
     TransferSubscriptionsResponse
 } from "node-opcua-service-subscription";
@@ -130,7 +133,8 @@ import {
     UserIdentityToken,
     UserTokenPolicy,
     BrowseDescription,
-    BuildInfoOptions
+    BuildInfoOptions,
+    MonitoredItemCreateResult
 } from "node-opcua-types";
 import { DataType } from "node-opcua-variant";
 import { VariantArrayType } from "node-opcua-variant";
@@ -145,9 +149,9 @@ import { RegisterServerManagerHidden } from "./register_server_manager_hidden";
 import { RegisterServerManagerMDNSONLY } from "./register_server_manager_mdns_only";
 import { ServerCapabilitiesOptions } from "./server_capabilities";
 import { OPCUAServerEndPoint } from "./server_end_point";
-import { ServerEngine } from "./server_engine";
+import { ClosingReason, ServerEngine } from "./server_engine";
 import { ServerSession } from "./server_session";
-import { Subscription } from "./server_subscription";
+import { CreateMonitoredItemHook, DeleteMonitoredItemHook, Subscription } from "./server_subscription";
 import { ISocketData } from "./i_socket_data";
 import { IChannelData } from "./i_channel_data";
 
@@ -192,7 +196,7 @@ const default_build_info: BuildInfoOptions = {
     productUri: null, // << should be same as default_server_info.productUri?
     softwareVersion: package_info.version,
     buildNumber: "0",
-    buildDate: new Date(2020,1,1)
+    buildDate: new Date(2020, 1, 1)
     // xx buildDate: fs.statSync(package_json_file).mtime
 };
 
@@ -227,10 +231,10 @@ function moveSessionToChannel(session: ServerSession, channel: ServerSecureChann
     assert(session.channel!.channelId === channel.channelId);
 }
 
-function _attempt_to_close_some_old_unactivated_session(server: OPCUAServer) {
+async function _attempt_to_close_some_old_unactivated_session(server: OPCUAServer) {
     const session = server.engine!.getOldestUnactivatedSession();
     if (session) {
-        server.engine!.closeSession(session.authenticationToken, false, "Forcing");
+        await server.engine!.closeSession(session.authenticationToken, false, "Forcing");
     }
 }
 
@@ -246,10 +250,10 @@ function getRequiredEndpointInfo(endpoint: EndpointDescription) {
         securityLevel: endpoint.securityLevel,
         securityMode: endpoint.securityMode,
         securityPolicyUri: endpoint.securityPolicyUri,
-        server: { 
+        server: {
             applicationUri: endpoint.server.applicationUri,
             applicationType: endpoint.server.applicationType,
-            applicationName: endpoint.server.applicationName,
+            applicationName: endpoint.server.applicationName
             // ... to be continued after verifying what fields are actually needed
         },
         transportProfileUri: endpoint.transportProfileUri,
@@ -258,7 +262,7 @@ function getRequiredEndpointInfo(endpoint: EndpointDescription) {
     // reduce even further by explicitly setting unwanted members to null
     e.server.productUri = null;
     e.server.applicationName = null as any;
-    //xxx e.server.applicationType = null as any;
+    // xx e.server.applicationType = null as any;
     e.server.gatewayServerUri = null;
     e.server.discoveryProfileUri = null;
     e.server.discoveryUrls = null;
@@ -279,8 +283,9 @@ function _serverEndpointsForCreateSessionResponse(server: OPCUAServer, endpointU
     // set to null. Only the recommended parameters shall be verified by the client.
     return server
         ._get_endpoints(endpointUrl)
-        .map(getRequiredEndpointInfo)
-        .filter((e) => matchUri(e.endpointUrl, endpointUrl));
+        .filter((e) => !(e as any).restricted) // remove restricted endpoints
+        .filter((e) => matchUri(e.endpointUrl, endpointUrl))
+        .map(getRequiredEndpointInfo);
 }
 
 function adjustSecurityPolicy(
@@ -489,33 +494,6 @@ function isMonitoringModeValid(monitoringMode: MonitoringMode): boolean {
     return monitoringMode !== MonitoringMode.Invalid && monitoringMode <= MonitoringMode.Reporting;
 }
 
-/**
- * @method registerServer
- * @async
- * @param discoveryServerEndpointUrl
- * @param isOnline
- * @param outer_callback
- */
-function _registerServer(
-    this: OPCUAServer,
-    discoveryServerEndpointUrl: string,
-    isOnline: boolean,
-    outer_callback: ErrorCallback
-) {
-    assert(typeof discoveryServerEndpointUrl === "string");
-    assert(typeof isOnline === "boolean");
-    const self = this;
-    if (!self.registerServerManager) {
-        throw new Error("Internal Error");
-    }
-    self.registerServerManager.discoveryServerEndpointUrl = discoveryServerEndpointUrl;
-    if (isOnline) {
-        self.registerServerManager.start(outer_callback);
-    } else {
-        self.registerServerManager.stop(outer_callback);
-    }
-}
-
 function _installRegisterServerManager(self: OPCUAServer) {
     assert(self instanceof OPCUAServer);
     assert(!self.registerServerManager);
@@ -624,7 +602,7 @@ export interface OPCUAServerEndpointOptions {
     alternateHostname?: string | string[];
 
     /**
-     *  true, if discovery service on unsecure channel shall be disabled
+     *  true, if discovery service on secure channel shall be disabled
      */
     disableDiscovery?: boolean;
 }
@@ -768,6 +746,12 @@ export interface OPCUAServerOptions extends OPCUABaseServerOptions, OPCUAServerE
      * and store certificates from the connecting clients
      */
     serverCertificateManager?: OPCUACertificateManager;
+
+    /**
+     *
+     */
+    onCreateMonitoredItem?: CreateMonitoredItemHook;
+    onDeleteMonitoredItem?: DeleteMonitoredItemHook;
 }
 
 export interface OPCUAServer {
@@ -797,26 +781,11 @@ export interface OPCUAServer {
     userCertificateManager: OPCUACertificateManager;
 }
 
-function getNodeIds(nodesToBrowse: BrowseDescription[]): NodeId[] {
-    // perform beforeBrowse action on nodes
-    const map = new Map<string, NodeId>();
-    for (const browseDescription of nodesToBrowse) {
-        const hash = browseDescription.nodeId.toString();
-        map.set(hash, browseDescription.nodeId);
-    }
-    const result: NodeId[] = [];
-    for (const nodeId of map.values()) {
-        result.push(nodeId);
-    }
-    return result;
-}
-
 const g_requestExactEndpointUrl: boolean = !!process.env.NODEOPCUA_SERVER_REQUEST_EXACT_ENDPOINT_URL;
 /**
  *
  */
 export class OPCUAServer extends OPCUABaseServer {
-
     static defaultShutdownTimeout: number = 100; // 250 ms
     /**
      * if requestExactEndpointUrl is set to true the server will only accept createSession that have a endpointUrl that strictly matches
@@ -935,7 +904,6 @@ export class OPCUAServer extends OPCUABaseServer {
      * the maximum number of subscription that can be created per server
      */
     public static MAX_SUBSCRIPTION = 50;
-
     /**
      * the maximum number of concurrent sessions allowed on the server
      */
@@ -954,10 +922,10 @@ export class OPCUAServer extends OPCUABaseServer {
      * the user manager
      */
     public userManager: UserManagerOptions;
+    public readonly options: OPCUAServerOptions;
 
     private objectFactory?: Factory;
-    private nonce: Nonce;
-    private protocolVersion: number = 0;
+  
     private _delayInit?: () => Promise<void>;
 
     constructor(options?: OPCUAServerOptions) {
@@ -977,7 +945,7 @@ export class OPCUAServer extends OPCUABaseServer {
         this.maxConnectionsPerEndpoint = options.maxConnectionsPerEndpoint || default_maxConnectionsPerEndpoint;
 
         // build Info
-        let buildInfo: BuildInfoOptions = { 
+        const buildInfo: BuildInfoOptions = {
             ...default_build_info,
             ...options.buildInfo
         };
@@ -992,10 +960,6 @@ export class OPCUAServer extends OPCUABaseServer {
                 return false;
             };
         }
-
-        this.nonce = this.makeServerNonce();
-
-        this.protocolVersion = 0;
 
         options.allowAnonymous = options.allowAnonymous === undefined ? true : !!options.allowAnonymous;
         /**
@@ -1012,9 +976,7 @@ export class OPCUAServer extends OPCUABaseServer {
         _installRegisterServerManager(this);
 
         if (!options.userCertificateManager) {
-            this.userCertificateManager = new OPCUACertificateManager({
-                name: "UserPKI"
-            });
+            this.userCertificateManager = getDefaultCertificateManager("UserPKI");
         } else {
             this.userCertificateManager = options.userCertificateManager;
         }
@@ -1022,7 +984,6 @@ export class OPCUAServer extends OPCUABaseServer {
         // note: we need to delay initialization of endpoint as certain resources
         // such as %FQDN% might not be ready yet at this stage
         this._delayInit = async () => {
-
             /* istanbul ignore next */
             if (!options) {
                 throw new Error("Internal Error");
@@ -1100,7 +1061,7 @@ export class OPCUAServer extends OPCUABaseServer {
         const done = args[0] as (err?: Error) => void;
         assert(!this.initialized, "server is already initialized"); // already initialized ?
 
-        this._preInitTask.push(async ()=>{
+        this._preInitTask.push(async () => {
             /* istanbul ignore else */
             if (this._delayInit) {
                 await this._delayInit();
@@ -1108,18 +1069,19 @@ export class OPCUAServer extends OPCUABaseServer {
             }
         });
 
-        this.performPreInitialization().then(()=>{
-    
-            OPCUAServer.registry.register(this);
-            this.engine.initialize(this.options, () => {
-                setImmediate(() => {
-                    this.emit("post_initialize");
-                    done();
+        this.performPreInitialization()
+            .then(() => {
+                OPCUAServer.registry.register(this);
+                this.engine.initialize(this.options, () => {
+                    setImmediate(() => {
+                        this.emit("post_initialize");
+                        done();
+                    });
                 });
-            });    
-        }).catch((err) => {
-            done(err);
-        });
+            })
+            .catch((err) => {
+                done(err);
+            });
     }
 
     /**
@@ -1140,7 +1102,6 @@ export class OPCUAServer extends OPCUABaseServer {
             });
         }
         tasks.push((callback: ErrorCallback) => {
-            
             super.start((err?: Error | null) => {
                 if (err) {
                     this.shutdown((/*err2*/ err2?: Error) => {
@@ -1208,15 +1169,14 @@ export class OPCUAServer extends OPCUABaseServer {
         }
 
         this.userCertificateManager.dispose();
-        
-    
+
         this.engine.setServerState(ServerState.Shutdown);
 
         const shutdownTime = new Date(Date.now() + timeout);
         this.engine.setShutdownTime(shutdownTime);
 
         debugLog("OPCUAServer is now unregistering itself from  the discovery server " + this.buildInfo);
-        this.registerServerManager!.stop((err?: Error |null) => {
+        this.registerServerManager!.stop((err?: Error | null) => {
             debugLog("OPCUAServer unregistered from discovery server", err);
             setTimeout(() => {
                 this.engine.shutdown();
@@ -1471,6 +1431,7 @@ export class OPCUAServer extends OPCUABaseServer {
 
         // decrypt password if necessary
         if (securityPolicy === SecurityPolicy.None) {
+            // not good, password was sent in clear text ... 
             password = password.toString();
         } else {
             const serverPrivateKey = this.getPrivateKey();
@@ -1483,7 +1444,15 @@ export class OPCUAServer extends OPCUABaseServer {
             if (!cryptoFactory) {
                 return callback(new Error(" Unsupported security Policy"));
             }
+
             const buff = cryptoFactory.asymmetricDecrypt(password, serverPrivateKey);
+
+            // server certificate may be invalid and asymmetricDecrypt may fail
+            if (!buff || buff.length < 4) {
+                async.setImmediate(() => callback(null, false));
+                return;
+            }
+
             const length = buff.readUInt32LE(0) - serverNonce.length;
             password = buff.slice(4, 4 + length).toString("utf-8");
         }
@@ -1575,7 +1544,7 @@ export class OPCUAServer extends OPCUABaseServer {
     }
 
     // session services
-    protected _on_CreateSessionRequest(message: Message, channel: ServerSecureChannelLayer) {
+    protected async _on_CreateSessionRequest(message: Message, channel: ServerSecureChannelLayer) {
         const server = this;
         const request = message.request as CreateSessionRequest;
         assert(request instanceof CreateSessionRequest);
@@ -1595,7 +1564,7 @@ export class OPCUAServer extends OPCUABaseServer {
         // of service attacks, the Server shall close the oldest Session that is not activated before reaching the
         // maximum number of supported Sessions
         if (server.currentSessionCount >= server.maxAllowedSessionNumber) {
-            _attempt_to_close_some_old_unactivated_session(server);
+            await _attempt_to_close_some_old_unactivated_session(server);
         }
 
         // check if session count hasn't reach the maximum allowed sessions
@@ -1768,7 +1737,7 @@ export class OPCUAServer extends OPCUABaseServer {
         const hasEncryption = true;
         // If the securityPolicyUri is None and none of the UserTokenPolicies requires encryption
         if (session.channel!.securityMode === MessageSecurityMode.None) {
-            // ToDo: Check that none of our unsecure endpoint has a a UserTokenPolicy that require encryption
+            // ToDo: Check that none of our insecure endpoint has a a UserTokenPolicy that require encryption
             // and set hasEncryption = false under this condition
         }
 
@@ -2393,6 +2362,21 @@ export class OPCUAServer extends OPCUABaseServer {
         );
     }
 
+    private async _closeSession(authenticationToken: NodeId, deleteSubscriptions: boolean, reason: ClosingReason) {
+        const server = this;
+
+        //
+        if (deleteSubscriptions && this.options.onDeleteMonitoredItem) {
+            const session = this.getSession(authenticationToken);
+            if (session) {
+                const subscriptions = session.publishEngine.subscriptions;
+                for (const subscription of subscriptions) {
+                    await subscription.applyOnMonitoredItem(this.options.onDeleteMonitoredItem.bind(null, subscription) as any);
+                }
+            }
+        }
+        await server.engine.closeSession(authenticationToken, deleteSubscriptions, reason);
+    }
     /**
      * @method _on_CloseSessionRequest
      * @param message
@@ -2429,14 +2413,16 @@ export class OPCUAServer extends OPCUABaseServer {
         // session has been created but not activated !
         const wasNotActivated = session.status === "new";
 
-        server.engine.closeSession(request.requestHeader.authenticationToken, request.deleteSubscriptions, "CloseSession");
+        (async () => {
+            await this._closeSession(request.requestHeader.authenticationToken, request.deleteSubscriptions, "CloseSession");
 
-        // if (false && wasNotActivated) {
-        //  return sendError(StatusCodes.BadSessionNotActivated);
-        // }
+            // if (false && wasNotActivated) {
+            //  return sendError(StatusCodes.BadSessionNotActivated);
+            // }
 
-        response = new CloseSessionResponse({});
-        sendResponse(response);
+            response = new CloseSessionResponse({});
+            sendResponse(response);
+        })();
     }
 
     // browse services
@@ -2831,10 +2817,18 @@ export class OPCUAServer extends OPCUABaseServer {
             message,
             channel,
             async (session: ServerSession, subscriptionId: number) => {
-                const subscription = server.engine.findOrphanSubscription(subscriptionId);
+                let subscription = server.engine.findOrphanSubscription(subscriptionId);
+                // istanbul ignore next
                 if (subscription) {
-                    console.log("Deleting orphan subscription");
+                    warningLog("Deleting an orphan subscription", subscriptionId);
+
+                    await this._beforeDeleteSubscription(subscription);
                     return server.engine.deleteOrphanSubscription(subscription);
+                }
+
+                subscription = session.getSubscription(subscriptionId);
+                if (subscription) {
+                    await this._beforeDeleteSubscription(subscription);
                 }
 
                 return session.deleteSubscription(subscriptionId);
@@ -2876,6 +2870,7 @@ export class OPCUAServer extends OPCUABaseServer {
         const request = message.request as CreateMonitoredItemsRequest;
         assert(request instanceof CreateMonitoredItemsRequest);
 
+
         this._apply_on_Subscription(
             CreateMonitoredItemsResponse,
             message,
@@ -2900,10 +2895,35 @@ export class OPCUAServer extends OPCUABaseServer {
                     }
                 }
 
-                const results = request.itemsToCreate.map(
-                    subscription.createMonitoredItem.bind(subscription, addressSpace, timestampsToReturn)
-                );
-
+                const options = this.options as OPCUAServerOptions;
+                let results: MonitoredItemCreateResult[] = [];
+                if (options.onCreateMonitoredItem) {
+                    const resultsPromise = request.itemsToCreate.map(async (monitoredItemCreateRequest) => {
+                        const { monitoredItem, createResult } = subscription.preCreateMonitoredItem(
+                            addressSpace,
+                            timestampsToReturn,
+                            monitoredItemCreateRequest
+                        );
+                        if (monitoredItem) {
+                            await options.onCreateMonitoredItem!(subscription, monitoredItem);
+                            subscription.postCreateMonitoredItem(monitoredItem, monitoredItemCreateRequest, createResult);
+                        }
+                        return createResult;
+                    });
+                    results = await Promise.all(resultsPromise);
+                } else {
+                    results = request.itemsToCreate.map((monitoredItemCreateRequest) => {
+                        const { monitoredItem, createResult } = subscription.preCreateMonitoredItem(
+                            addressSpace,
+                            timestampsToReturn,
+                            monitoredItemCreateRequest
+                        );
+                        if (monitoredItem) {
+                            subscription.postCreateMonitoredItem(monitoredItem, monitoredItemCreateRequest, createResult);
+                        }
+                        return createResult;
+                    });
+                }
                 const response = new CreateMonitoredItemsResponse({
                     responseHeader: { serviceResult: StatusCodes.Good },
                     results
@@ -3058,13 +3078,77 @@ export class OPCUAServer extends OPCUABaseServer {
                         return sendError(StatusCodes.BadTooManyOperations);
                     }
                 }
-                const results = request.monitoredItemIds.map((monitoredItemId: number) => {
+
+                const resultsPromises = request.monitoredItemIds.map(async (monitoredItemId: number) => {
+                    if (this.options.onDeleteMonitoredItem) {
+                        const monitoredItem = subscription.getMonitoredItem(monitoredItemId);
+                        if (monitoredItem) {
+                            await this.options.onDeleteMonitoredItem(subscription, monitoredItem);
+                        }
+                    }
                     return subscription.removeMonitoredItem(monitoredItemId);
                 });
 
-                const response = new DeleteMonitoredItemsResponse({
-                    diagnosticInfos: undefined,
-                    results
+                try {
+                    const results = await Promise.all(resultsPromises);
+
+                    const response = new DeleteMonitoredItemsResponse({
+                        diagnosticInfos: undefined,
+                        results
+                    });
+
+                    sendResponse(response);
+                } catch (err) {
+                    console.log(err);
+                    return sendError(StatusCodes.BadInternalError);
+                }
+            }
+        );
+    }
+    protected _on_SetTriggeringRequest(message: Message, channel: ServerSecureChannelLayer) {
+        const server = this;
+        const request = message.request as SetTriggeringRequest;
+        assert(request instanceof SetTriggeringRequest);
+
+        this._apply_on_Subscription(
+            SetTriggeringResponse,
+            message,
+            channel,
+            async (
+                session: ServerSession,
+                subscription: Subscription,
+                sendResponse: (response: Response) => void,
+                sendError: (statusCode: StatusCode) => void
+            ) => {
+                /* */
+                const { triggeringItemId, linksToAdd, linksToRemove } = request;
+
+                /**
+                 * The MaxMonitoredItemsPerCall Property indicates
+                 * [...]
+                 *  • the maximum size of the sum of the linksToAdd and linksToRemove arrays when a
+                 *    Client calls the SetTriggering Service.
+                 *
+                 */
+                const maxElements = (linksToAdd ? linksToAdd.length : 0) + (linksToRemove ? linksToRemove.length : 0);
+                if (server.engine.serverCapabilities.operationLimits.maxMonitoredItemsPerCall > 0) {
+                    if (maxElements > server.engine.serverCapabilities.operationLimits.maxMonitoredItemsPerCall) {
+                        return sendError(StatusCodes.BadTooManyOperations);
+                    }
+                }
+
+                const { addResults, removeResults, statusCode } = subscription.setTriggering(
+                    triggeringItemId,
+                    linksToAdd,
+                    linksToRemove
+                );
+                const response = new SetTriggeringResponse({
+                    responseHeader: { serviceResult: statusCode },
+
+                    addResults,
+                    removeResults,
+                    addDiagnosticInfos: null,
+                    removeDiagnosticInfos: null
                 });
 
                 sendResponse(response);
@@ -3072,6 +3156,12 @@ export class OPCUAServer extends OPCUABaseServer {
         );
     }
 
+    protected async _beforeDeleteSubscription(subscription: Subscription) {
+        if (!this.options.onDeleteMonitoredItem) {
+            return;
+        }
+        await subscription.applyOnMonitoredItem(this.options.onDeleteMonitoredItem.bind(null, subscription) as any);
+    }
     protected _on_RepublishRequest(message: Message, channel: ServerSecureChannelLayer) {
         const request = message.request as RepublishRequest;
         assert(request instanceof RepublishRequest);
@@ -3447,7 +3537,6 @@ export class OPCUAServer extends OPCUABaseServer {
         await super.initializeCM();
         await this.userCertificateManager.initialize();
     }
-
 }
 
 export interface RaiseEventAuditEventData extends RaiseEventData {

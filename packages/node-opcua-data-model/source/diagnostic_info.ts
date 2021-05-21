@@ -112,8 +112,7 @@ export class DiagnosticInfo extends BaseUAObject {
      * @extends BaseUAObject
      * @param  options {Object}
      */
-    constructor(options?: any) {
-        options = options || {};
+    constructor(options: DiagnosticInfoOptions = {}) {
         super();
         const schema = schemaDiagnosticInfo;
         /* istanbul ignore next */
@@ -145,7 +144,15 @@ export class DiagnosticInfo extends BaseUAObject {
 DiagnosticInfo.prototype.schema = DiagnosticInfo.schema;
 DiagnosticInfo.schema.fields[6].schema = DiagnosticInfo.schema;
 
-export type DiagnosticInfoOptions = any;
+export interface DiagnosticInfoOptions {
+    symbolicId?: Int32;
+    namespaceURI?: Int32;
+    locale?: Int32;
+    localizedText?: Int32;
+    additionalInfo?: UAString;
+    innerStatusCode?: StatusCode;
+    innerDiagnosticInfo?: DiagnosticInfo;
+}
 
 export enum DiagnosticInfo_EncodingByte {
     SymbolicId = 0x01,
@@ -341,7 +348,7 @@ export function encodeDiagnosticInfo(value: DiagnosticInfo | null, stream: Outpu
 }
 
 export function decodeDiagnosticInfo(stream: BinaryStream, _value?: DiagnosticInfo | null): DiagnosticInfo {
-    const value = _value || new DiagnosticInfo(null);
+    const value = _value || new DiagnosticInfo();
     value.decode(stream);
     return value;
 }

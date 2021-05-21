@@ -12,3 +12,6 @@ schemas/
 pki/
 tmp/
 *.tsbuildinfo
+pnpm-lock.yaml
+tsconfig.json
+

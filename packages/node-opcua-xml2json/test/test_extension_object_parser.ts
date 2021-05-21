@@ -1,7 +1,7 @@
 // tslint:disable:no-console
 import * as mocha from "mocha";
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
-import { should } from "should";
+import * as should  from "should";
 import {
     makeExtensionObjectReader,
     Definition,
@@ -9,8 +9,8 @@ import {
 
 } from "..";
 
-const doDebug = checkDebugFlag(__filename);
-const debugLog = make_debugLog(__filename);
+const doDebug = checkDebugFlag("TEST");
+const debugLog = make_debugLog("TEST");
 
 const _should = should;
 

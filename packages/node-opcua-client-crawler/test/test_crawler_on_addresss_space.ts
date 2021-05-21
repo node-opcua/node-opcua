@@ -1,4 +1,4 @@
-import { should } from "should";
+import * as should  from "should";
 import * as sinon from "sinon";
 
 import { AddressSpace, PseudoSession, UAVariable } from "node-opcua-address-space";

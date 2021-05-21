@@ -19,10 +19,15 @@ const rootFolder = path.join(__dirname, "../../..");
 
 const port = parseInt(argv.port, 10) || 26555;
 
+// tslint:disable-next-line: no-var-requires
+const envPaths = require("env-paths");
+const config = envPaths("node-opcua-default").config;
+const pkiFolder = path.join(config, "PKI");
+
 const certificateManager = new OPCUACertificateManager({
     automaticallyAcceptUnknownCertificate: true,
-
-    rootFolder: path.join(__dirname, "certificate")
+    name: "PKI",
+    rootFolder: pkiFolder
 });
 
 const server_options = {
@@ -49,14 +54,15 @@ async function main() {
 
     console.log(chalk.yellow("  server PID          :"), process.pid);
 
-    server.on("post_initialize", () => {
+    server.on("post_initialize", async () => {
         const addressSpace = server.engine.addressSpace!;
         // to do: expose new nodeid here
         const ns = addressSpace.getNamespaceIndex("http://yourorganisation.org/my_data_type/");
 
-        installPushCertificateManagement(addressSpace, {
+        await installPushCertificateManagement(addressSpace, {
             applicationGroup: server.serverCertificateManager,
             userTokenGroup: server.userCertificateManager,
+
             applicationUri: server.serverInfo.applicationUri!
         });
 

@@ -7,15 +7,21 @@ import * as chalk from "chalk";
 import * as fs from "fs";
 import * as path from "path";
 import * as os from "os";
-
+import * as envPaths from "env-paths";
+import { withLock } from "@ster5/global-mutex";
 import { assert } from "node-opcua-assert";
-import { ICertificateManager, OPCUACertificateManager } from "node-opcua-certificate-manager";
+import {
+    getDefaultCertificateManager,
+    ICertificateManager,
+    makeSubject,
+    OPCUACertificateManager
+} from "node-opcua-certificate-manager";
 import { IOPCUASecureObjectOptions, makeApplicationUrn, OPCUASecureObject } from "node-opcua-common";
 import { coerceLocalizedText, LocalizedText } from "node-opcua-data-model";
 import { installPeriodicClockAdjustment, uninstallPeriodicClockAdjustment } from "node-opcua-date-time";
 import { checkDebugFlag, make_debugLog, make_errorLog } from "node-opcua-debug";
 import { displayTraceFromThisProjectOnly } from "node-opcua-debug";
-import { extractFullyQualifiedDomainName, resolveFullyQualifiedDomainName } from "node-opcua-hostname";
+import { extractFullyQualifiedDomainName, getHostname, resolveFullyQualifiedDomainName } from "node-opcua-hostname";
 import { Message, Response, ServerSecureChannelLayer, ServerSecureChannelParent } from "node-opcua-secure-channel";
 import { FindServersRequest, FindServersResponse } from "node-opcua-service-discovery";
 import { ApplicationType, GetEndpointsResponse } from "node-opcua-service-endpoints";
@@ -29,12 +35,12 @@ import { matchUri } from "node-opcua-utils";
 import { OPCUAServerEndPoint } from "./server_end_point";
 import { IChannelData } from "./i_channel_data";
 import { ISocketData } from "./i_socket_data";
-import { _verifyCertificate } from "node-opcua-client";
+import { performCertificateSanityCheck } from "node-opcua-client";
 
 const doDebug = checkDebugFlag(__filename);
 const debugLog = make_debugLog(__filename);
 const errorLog = make_errorLog(__filename);
-const warningLog= errorLog;
+const warningLog = errorLog;
 
 function constructFilename(p: string): string {
     let filename = path.join(__dirname, "..", p);
@@ -49,7 +55,6 @@ function constructFilename(p: string): string {
 }
 
 const default_server_info = {
-
     // The globally unique identifier for the application instance. This URI is used as
     // ServerUri in Services if the application is a Server.
     applicationUri: makeApplicationUrn(os.hostname(), "NodeOPCUA-Server"),
@@ -58,7 +63,7 @@ const default_server_info = {
     productUri: "NodeOPCUA-Server",
 
     // A localized descriptive name for the application.
-    applicationName: { text: "NodeOPCUA", locale: null },
+    applicationName: { text: "NodeOPCUA", locale: "en" },
     applicationType: ApplicationType.Server,
     gatewayServerUri: "",
 
@@ -109,17 +114,6 @@ const emptyCallback = () => {
     /* empty */
 };
 
-function getDefaultCertificateManager(): OPCUACertificateManager {
-
-    const envPaths = require("env-paths");
-    const config  = envPaths("NodeOPCUA-Default").config;
-    return new OPCUACertificateManager({
-        name: "certificates",
-        rootFolder: path.join(config, "certificates"),
-        automaticallyAcceptUnknownCertificate: true
-    });
-}
-
 /**
  * @class OPCUABaseServer
  * @constructor
@@ -146,7 +140,7 @@ export class OPCUABaseServer extends OPCUASecureObject {
         options = options || ({} as OPCUABaseServerOptions);
 
         if (!options.serverCertificateManager) {
-            options.serverCertificateManager =  getDefaultCertificateManager();
+            options.serverCertificateManager = getDefaultCertificateManager("PKI");
         }
         options.privateKeyFile = options.privateKeyFile || options.serverCertificateManager.privateKey;
         options.certificateFile =
@@ -165,8 +159,20 @@ export class OPCUABaseServer extends OPCUASecureObject {
             ...options.serverInfo
         };
         serverInfo.applicationName = coerceLocalizedText(serverInfo.applicationName);
-
         this.serverInfo = new ApplicationDescription(serverInfo);
+
+        if (this.serverInfo.applicationName.toString().match(/urn:/)) {
+            errorLog("[NODE-OPCUA-E06] application name cannot be a urn", this.serverInfo.applicationName.toString());
+        }
+
+        this.serverInfo.applicationName!.locale = this.serverInfo.applicationName?.locale || "en";
+
+        if (!this.serverInfo.applicationName?.locale) {
+            warningLog(
+                "[NODE-OPCUA-W24] the server applicationName must have a valid locale : ",
+                this.serverInfo.applicationName.toString()
+            );
+        }
 
         const __applicationUri = serverInfo.applicationUri || "";
 
@@ -174,7 +180,6 @@ export class OPCUABaseServer extends OPCUASecureObject {
             return resolveFullyQualifiedDomainName(__applicationUri);
         });
 
-        
         this._preInitTask.push(async () => {
             const fqdn = await extractFullyQualifiedDomainName();
         });
@@ -184,27 +189,36 @@ export class OPCUABaseServer extends OPCUASecureObject {
         });
     }
 
+    protected async createDefaultCertificate() {
+
+        if (fs.existsSync(this.certificateFile)) {
+            return;
+        }
+        const lockfile = path.join(this.certificateFile + ".lock");
+        await withLock({ lockfile }, async () => {
+            if (!fs.existsSync(this.certificateFile)) {
+                const applicationUri = this.serverInfo.applicationUri!;
+                const hostname = getHostname();
+                await this.serverCertificateManager.createSelfSignedCertificate({
+                    applicationUri,
+                    dns: [hostname],
+                    // ip: await getIpAddresses(),
+                    outputFile: this.certificateFile,
+
+                    subject: makeSubject(this.serverInfo.applicationName.text!, hostname),
+
+                    startDate: new Date(),
+                    validity: 365 * 10 // 10 years
+                });
+            }
+        });
+    }
     protected async initializeCM(): Promise<void> {
         await this.serverCertificateManager.initialize();
-        if (!fs.existsSync(this.certificateFile)) {
-
-            const applicationUri = this.serverInfo.applicationUri!;
-            const hostname = require("os").hostname();
-            await this.serverCertificateManager.createSelfSignedCertificate({
-                applicationUri,
-                dns: [hostname],
-                // ip: await getIpAddresses(),
-                outputFile: this.certificateFile,
-                subject: "/CN=MyOPCUAServerApplicationName/O=Sterfive/L=Orleans/C=FR",
-                startDate: new Date(),
-                validity: 365 * 10, // 10 years 
-            });
-  
-        } 
+        await this.createDefaultCertificate();
         debugLog("privateKey      = ", this.privateKeyFile, this.serverCertificateManager.privateKey);
         debugLog("certificateFile = ", this.certificateFile);
-        await _verifyCertificate.call(this, "server", this.serverCertificateManager,  this.serverInfo.applicationUri!);
-
+        await performCertificateSanityCheck.call(this, "server", this.serverCertificateManager, this.serverInfo.applicationUri!);
     }
 
     /**
@@ -221,7 +235,7 @@ export class OPCUABaseServer extends OPCUASecureObject {
     }
 
     protected async performPreInitialization(): Promise<void> {
-        const tasks =   this._preInitTask;
+        const tasks = this._preInitTask;
         this._preInitTask = [];
         for (const task of tasks) {
             await task();
@@ -229,7 +243,6 @@ export class OPCUABaseServer extends OPCUASecureObject {
     }
 
     protected async startAsync(): Promise<void> {
-
         await this.performPreInitialization();
 
         const self = this;
@@ -357,7 +370,7 @@ export class OPCUABaseServer extends OPCUASecureObject {
                 chalk.green.bold("--------------------------------------------------------"),
                 channel.channelId,
                 request.schema.name
-            );    
+            );
         }
 
         let errMessage: string;
@@ -371,10 +384,10 @@ export class OPCUABaseServer extends OPCUASecureObject {
             if (typeof handler === "function") {
                 handler.apply(this, arguments);
             } else {
-                errMessage = "[NODE-OPCUA-W07] UNSUPPORTED REQUEST !! " + request.schema.name;
+                errMessage = "[NODE-OPCUA-W07] Unsupported Service : " + request.schema.name;
                 warningLog(errMessage);
                 debugLog(chalk.red.bold(errMessage));
-                response = makeServiceFault(StatusCodes.BadNotImplemented, [errMessage]);
+                response = makeServiceFault(StatusCodes.BadServiceUnsupported, [errMessage]);
                 channel.send_response("MSG", response, message, emptyCallback);
             }
         } catch (err) {
@@ -509,7 +522,7 @@ export class OPCUABaseServer extends OPCUASecureObject {
         // a string with neutral locale (locale === null)
         // TODO: find a better way to handle this
         response.endpoints.forEach((endpoint: EndpointDescription) => {
-            endpoint.server.applicationName.locale = null;
+            endpoint.server.applicationName.locale = "en-US";
         });
 
         channel.send_response("MSG", response, message, emptyCallback);
@@ -526,7 +539,7 @@ export class OPCUABaseServer extends OPCUASecureObject {
         //   Service.  This can be achieved by preparing the result in advance.   The  Server  should  also add a
         //   short delay before starting processing of a request during high traffic conditions.
 
-        const shortDelay = 2;
+        const shortDelay = 100; // milliseconds
         setTimeout(() => {
             const request = message.request;
             assert(request.schema.name === "FindServersRequest");

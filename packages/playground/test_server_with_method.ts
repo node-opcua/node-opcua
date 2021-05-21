@@ -86,7 +86,7 @@ async function callMethodFromServer(addressSpace: AddressSpace, nodeId: NodeIdLi
         const param2 = { dataType: DataType.UInt32, value: 1000 };
         const param3 = { dataType: DataType.String, value: "bar" };
 
-        const context = SessionContext.defaultContext as SessionContext;
+        const context = SessionContext.defaultContext;
 
         const callMethodResponse = await method.execute([param1, param2, param3], context);
 

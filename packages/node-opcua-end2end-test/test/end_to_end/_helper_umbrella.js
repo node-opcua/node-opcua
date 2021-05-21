@@ -1,5 +1,6 @@
 const async = require("async");
 const chalk = require("chalk");
+const { assert } = require("node-opcua-assert");
 
 const { 
     OPCUAClient,

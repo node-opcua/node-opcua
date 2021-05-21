@@ -4,8 +4,8 @@ const sinon = require("sinon");
 const { OPCUAClient } = require("node-opcua");
 
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
-module.exports = function (test) {
-    describe("Testing Client Connection ", function () {
+module.exports = function(test) {
+    describe("Testing Client Connection ", function() {
         this.timeout(2000);
         it("it should raise an error if connect is called with an empty endpoint", async () => {
             const client = OPCUAClient.create({});
@@ -29,7 +29,7 @@ module.exports = function (test) {
             const client = OPCUAClient.create({ connectionStrategy: { maxRetry: 0 } });
             const closeSpy = sinon.spy();
             client.on("close", closeSpy);
-            
+
             async function test() {
                 try {
                     await client.connect("invalid-proto://test-host");
@@ -41,15 +41,15 @@ module.exports = function (test) {
             test().should.be.rejectedWith(/The connection has been rejected/);
             closeSpy.callCount.should.eql(0);
         });
-    
+
         it("it should raise an error when connect is called while client is already connected", async () => {
             const client = OPCUAClient.create({});
             const closeSpy = sinon.spy();
             client.on("close", closeSpy);
-  
+
             await client.connect(test.endpointUrl);
             closeSpy.callCount.should.eql(0);
- 
+
             let _err;
             try {
                 await client.connect(test.endpointUrl);
@@ -67,7 +67,7 @@ module.exports = function (test) {
             const client = OPCUAClient.create({});
             const closeSpy = sinon.spy();
             client.on("close", closeSpy);
-  
+
             const p1 = client.connect(test.endpointUrl);
 
             let _err;
@@ -80,7 +80,7 @@ module.exports = function (test) {
                 closeSpy.callCount.should.eql(0);
                 await client.disconnect();
                 closeSpy.callCount.should.eql(1);
- 
+
             }
             should.exist(_err, " ");
             _err.message.should.match(/invalid internal state = connecting/);
@@ -98,39 +98,39 @@ module.exports = function (test) {
             const client = OPCUAClient.create({});
             const closeSpy = sinon.spy();
             client.on("close", closeSpy);
-  
+
             await client.connect(test.endpointUrl);
 
             closeSpy.callCount.should.eql(0);
-  
-            const p1 = client.disconnect();   
+
+            const p1 = client.disconnect();
             const p2 = client.disconnect();
-  
+
 
             await p2;
             await p1;
             closeSpy.callCount.should.eql(1);
         });
         it("it should  raise an warning if sessionTimeout are not compatible with subscription parameters", async () => {
-      
+
             const client = OPCUAClient.create({
                 requestedSessionTimeout: 1000,
             });
             await client.connect(test.endpointUrl);
             const session = await client.createSession();
- 
-           
+
+
             try {
                 const subscription = await session.createSubscription2({
                     maxNotificationsPerPublish: 10,
                     publishingEnabled: true,
                     requestedLifetimeCount: 100,
-    
+
                     requestedMaxKeepAliveCount: 100,
-                    publishingEnabled: 1000,
+                    requestedPublishingInterval: 1000,
                 });
-    
-            } catch(err) {
+
+            } catch (err) {
                 // [NODE-OPCUA-W09] The subscription parameters are not compatible with the session timeout
                 err.message.should.match(/\[NODE-OPCUA-W09\]/);
                 console.log(err.message);

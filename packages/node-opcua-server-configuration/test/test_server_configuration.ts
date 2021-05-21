@@ -1,16 +1,17 @@
 import * as path from "path";
+import * as fs from "fs";
 
-import { AddressSpace, IServerBase, ISessionBase, PseudoSession, SessionContext } from "node-opcua-address-space";
+import { AddressSpace, IServerBase, ISessionBase, PseudoSession, SessionContext, WellKnownRoles, makeRoles } from "node-opcua-address-space";
 import { generateAddressSpace } from "node-opcua-address-space/nodeJS";
-
 import { NodeClass } from "node-opcua-data-model";
 import { nodesets } from "node-opcua-nodesets";
-
-import { CertificateManager } from "node-opcua-pki";
-
+import { assert } from "node-opcua-assert";
+import { CertificateManager, OPCUACertificateManager } from "node-opcua-certificate-manager";
 import { NodeId } from "node-opcua-nodeid";
 import { StatusCodes } from "node-opcua-status-code";
 import { UserNameIdentityToken } from "node-opcua-types";
+import { readCertificate } from "node-opcua-crypto";
+
 import { ClientPushCertificateManagement, installPushCertificateManagement } from "..";
 import { initializeHelpers } from "./helpers/fake_certificate_authority";
 
@@ -22,8 +23,8 @@ describe("ServerConfiguration", () => {
 
     const opcuaServer: IServerBase = {
         userManager: {
-            getUserRole(userName: string): string {
-                return "SecurityAdmin";
+            getUserRoles(userName: string): NodeId[] {
+                return makeRoles([WellKnownRoles.AuthenticatedUser, WellKnownRoles.SecurityAdmin]);
             }
         }
     };
@@ -46,14 +47,19 @@ describe("ServerConfiguration", () => {
 
     const xmlFiles = [nodesets.standard];
     before(async () => {
-        await initializeHelpers();
+        try {
+            await initializeHelpers();
 
-        await applicationGroup.initialize();
-        await userTokenGroup.initialize();
+            await applicationGroup.initialize();
+            await userTokenGroup.initialize();
 
-        addressSpace = AddressSpace.create();
-        await generateAddressSpace(addressSpace, xmlFiles);
-        addressSpace.registerNamespace("Private");
+            addressSpace = AddressSpace.create();
+            await generateAddressSpace(addressSpace, xmlFiles);
+            addressSpace.registerNamespace("Private");
+        } catch (err) {
+            console.log(err);
+            throw err;
+        }
     });
     after(() => {
         addressSpace.dispose();
@@ -125,7 +131,7 @@ describe("ServerConfiguration", () => {
         // new Certificates.
 
         it("should implement createSigningRequest", async () => {
-            installPushCertificateManagement(addressSpace, { applicationGroup, userTokenGroup, applicationUri: "SomeURI" });
+            await installPushCertificateManagement(addressSpace, { applicationGroup, userTokenGroup, applicationUri: "SomeURI" });
 
             const server = addressSpace.rootFolder.objects.server;
             server.serverConfiguration.createSigningRequest.nodeClass.should.eql(NodeClass.Method);
@@ -149,7 +155,7 @@ describe("ServerConfiguration", () => {
             result.statusCode.should.eql(StatusCodes.Good);
         });
         xit("should implement UpdateCertificate", async () => {
-            installPushCertificateManagement(addressSpace, {applicationUri: "SomeUri"});
+            await installPushCertificateManagement(addressSpace, { applicationUri: "SomeUri" });
 
             const pseudoSession = new PseudoSession(addressSpace, opcuaServer, session);
             const clientPushCertificateManager = new ClientPushCertificateManagement(pseudoSession);
@@ -170,6 +176,47 @@ describe("ServerConfiguration", () => {
 
             result.statusCode.should.eql(StatusCodes.BadInvalidArgument);
             //            result.applyChangesRequired!.should.eql(true);
+        });
+
+
+        async function give_a_address_space_with_server_configuration_and_default_application_group() {
+            const rootFolder = path.join(__dirname, "../temp/pkipki");
+            const certificateManager = new OPCUACertificateManager({
+                rootFolder
+            });
+            await certificateManager.initialize();
+            const defaultApplicationGroup = addressSpace.rootFolder.objects.server.serverConfiguration.certificateGroups.defaultApplicationGroup;
+            (defaultApplicationGroup.trustList as any).$$certificateManager = certificateManager;
+
+        }
+        it("should provide trust list", async () => {
+
+            //------------------
+            await installPushCertificateManagement(
+                addressSpace, { applicationGroup, userTokenGroup, applicationUri: "SomeUri" });
+
+            const pseudoSession = new PseudoSession(addressSpace, opcuaServer, session);
+            const clientPushCertificateManager = new ClientPushCertificateManagement(pseudoSession);
+
+            const defaultApplicationGroup = await clientPushCertificateManager.getCertificateGroup("DefaultApplicationGroup");
+
+            const trustList = await defaultApplicationGroup.getTrustList();
+            let a = await trustList.readTrustedCertificateList();
+            console.log(a.toString());
+
+            // now add a certificate 
+            const certificateFile = path.join(__dirname, "../../node-opcua-samples/certificates/client_cert_2048.pem");
+            assert(fs.existsSync(certificateFile));
+
+            const certificate = await readCertificate(certificateFile);
+            await trustList.addCertificate(certificate, true);
+
+            a = await trustList.readTrustedCertificateList();
+            console.log(a.toString());
+            a.trustedCertificates.length.should.eql(1);
+            a.issuerCertificates.length.should.eql(0);
+            a.issuerCrls.length.should.eql(0);
+            a.trustedCrls.length.should.eql(0);
         });
     });
 });

@@ -1,6 +1,6 @@
 // tslint:disable:no-bitwise
 import "should";
-
+import * as should from "should";
 import { AccessLevelFlag } from "node-opcua-data-model";
 import { AddressSpace, Namespace } from "..";
 import { getMiniAddressSpace } from "../testHelpers";
@@ -72,7 +72,7 @@ describe("testing Variables ", () => {
         });
 
         v.accessLevel.should.eql(AccessLevelFlag.CurrentRead | AccessLevelFlag.CurrentWrite);
-        v.userAccessLevel.should.eql(AccessLevelFlag.CurrentRead | AccessLevelFlag.CurrentWrite);
+        should.not.exist(v.userAccessLevel);
     });
 
     // accessLevel CurrentRead
@@ -128,7 +128,8 @@ describe("testing Variables ", () => {
         });
 
         v.accessLevel.should.eql(AccessLevelFlag.CurrentRead);
-        v.userAccessLevel.should.eql(AccessLevelFlag.CurrentRead);
+        should.not.exist(v.userAccessLevel);
+
     });
 
     // accessLevel CurrentWrite
@@ -184,7 +185,7 @@ describe("testing Variables ", () => {
         });
 
         v.accessLevel.should.eql(AccessLevelFlag.CurrentWrite);
-        v.userAccessLevel.should.eql(AccessLevelFlag.CurrentWrite);
+        should.not.exist(v.userAccessLevel);
     });
 
     // accessLevel undefined
@@ -236,6 +237,6 @@ describe("testing Variables ", () => {
         });
 
         v.accessLevel.should.eql(AccessLevelFlag.CurrentRead | AccessLevelFlag.CurrentWrite);
-        v.userAccessLevel.should.eql(AccessLevelFlag.CurrentRead | AccessLevelFlag.CurrentWrite);
+        should.not.exist(v.userAccessLevel);
     });
 });

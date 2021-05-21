@@ -187,7 +187,7 @@ describe("testing Client-Server - Event", function() {
                             debugLog(" 8 --> client has been disconnected");
                             callback();
                         });
-                    }, 4000); // let's give client some time to attempt a reconnection
+                    }, 5000); // let's give client some time to attempt a reconnection
                 });
                 client.on("close", function(err) {
                     debugLog(" 8 --> client has sent 'close' event", err ? err.message : null);

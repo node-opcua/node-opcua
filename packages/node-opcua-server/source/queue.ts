@@ -10,6 +10,12 @@ export class Queue<T> {
         this.size = 0;
     }
 
+    public first(): T | undefined {
+        if (this.size === 0) {
+            return undefined;
+        }
+        return this._d.first() as T;  
+    }
     public shift(): T | undefined {
         if (this.size === 0) {
             return undefined;
@@ -21,6 +27,24 @@ export class Queue<T> {
     public push(value: T): void {
         this.size += 1;
         this._d.push(value);
+    }
+
+    public filterOut(predicate: (element: T)=> boolean): number {
+
+        let counter = 0;
+        let p = this._d.head.next;
+        while(p != this._d.head) {
+
+            const shouldRemove = predicate(p.data);
+            const pPrev = p;
+            p= p.next;
+            if (shouldRemove) {
+                this.size -= 1;
+                counter+=1;
+                pPrev.remove();
+            }
+        }
+        return counter;
     }
 
     public values(): Iterable<T> {

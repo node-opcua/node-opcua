@@ -23,7 +23,7 @@ const {
     ClientSecureChannelLayer
 } = require("node-opcua");
 
-const { make_debugLog, checkDebugFlag} = require("node-opcua-debug");
+const { make_debugLog, checkDebugFlag } = require("node-opcua-debug");
 const debugLog = make_debugLog("TEST");
 const doDebug = checkDebugFlag("TEST");
 
@@ -173,12 +173,10 @@ describe("testing Server resilience to DDOS attacks", function() {
         function step2_close_all_channels(callback) {
 
             async.eachLimit(channels, 1, function(channel, callback) {
-                //xxconsole.log(chalk.bgWhite.red(" CLOSING ======================================="),channel._transport.name);
                 channel.close(function(err) {
                     if (err) {
                         nbError++;
                     }
-                    //xxx console.log( "closing channel....",err,channel._transport.name);
                     callback();
                 });
             }, callback);
@@ -293,7 +291,7 @@ describe("testing Server resilience to DDOS attacks", function() {
 
         function step2_close_all_sessions(callback) {
             async.eachLimit(sessions, 2, function(session, callback) {
-                // some channel have been forcibly closed by the server, closing them will cause server to generate an errpr
+                // some channel have been forcibly closed by the server, closing them will cause server to generate an error
                 session.close(function(err) {
                     if (err) {
                         nbError++;
@@ -307,7 +305,7 @@ describe("testing Server resilience to DDOS attacks", function() {
         function step2_close_all_clients(callback) {
 
             async.eachLimit(clients, 1, function(client, callback) {
-                // some channel have been forcibly closed by the server, closing them will cause server to generate an errpr
+                // some channel have been forcibly closed by the server, closing them will cause server to generate an error
                 client.disconnect(function(err) {
                     if (err) {
                         nbError++;

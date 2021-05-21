@@ -12,9 +12,10 @@ import { coerceLocalizedText, coerceQualifiedName, makeAccessLevelFlag } from "n
 import { AddressSpace, dumpXml, Namespace, RootFolder, UAVariable } from "..";
 import { createBoilerType, getMiniAddressSpace } from "../testHelpers";
 import { generateAddressSpace } from "../nodeJS";
+import { checkDebugFlag } from "node-opcua-debug";
 const { createTemperatureSensorType  } = require("./fixture_temperature_sensor_type");
 
-const doDebug = process.env.DEBUGTEST || false;
+const doDebug = checkDebugFlag("TEST");
 
 // tslint:disable-next-line:no-var-requires
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
@@ -726,12 +727,14 @@ describe("nodeset2.xml with more than one referenced namespace", function (this:
             browseName: "TestUInt32Matrix",
             dataType: "UInt32",
 
-            arrayDimensions: [1, 2],
+            arrayDimensions: [1, 4],
             valueRank: 2,
 
             organizedBy: addressSpace.rootFolder.objects,
             value: {
+                arrayType: VariantArrayType.Matrix,
                 dataType: DataType.UInt32,
+                dimensions: [1, 4],
                 value: [1, 2, 3, 4]
             }
         });
@@ -745,7 +748,7 @@ describe("nodeset2.xml with more than one referenced namespace", function (this:
         r_xml2.split("\n").should.eql(xml2.split("\n"));
 
         r_xml2.should.match(/ValueRank=\"2\"/);
-        r_xml2.should.match(/ArrayDimensions=\"1,2\"/);
+        r_xml2.should.match(/ArrayDimensions=\"1,4\"/);
 
         // console.log(xml);
     });
@@ -754,13 +757,15 @@ describe("nodeset2.xml with more than one referenced namespace", function (this:
             browseName: "TestVariableType",
             dataType: "UInt32",
 
-            arrayDimensions: [1, 2],
+            arrayDimensions: [2, 3],
             valueRank: 2,
 
             organizedBy: addressSpace.rootFolder.objects,
             value: {
+                arrayType: VariantArrayType.Matrix,
                 dataType: DataType.UInt32,
-                value: [1, 2, 3, 4]
+                dimensions: [2, 3],
+                value: [1, 2, 3, 4,5,6]
             }
         });
 
@@ -773,7 +778,7 @@ describe("nodeset2.xml with more than one referenced namespace", function (this:
         r_xml2.split("\n").should.eql(xml2.split("\n"));
 
         r_xml2.should.match(/ValueRank=\"2\"/);
-        r_xml2.should.match(/ArrayDimensions=\"1,2\"/);
+        r_xml2.should.match(/ArrayDimensions=\"2,3"/);
 
         // console.log(xml);
     });

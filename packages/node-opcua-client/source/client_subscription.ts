@@ -4,11 +4,20 @@
 
 // tslint:disable:unified-signatures
 import { EventEmitter } from "events";
+import { Byte, Double, UInt32 } from "node-opcua-basic-types";
 
 import { DiagnosticInfo } from "node-opcua-data-model";
-import { ReadValueIdOptions, TimestampsToReturn } from "node-opcua-service-read";
-import { MonitoringParametersOptions, NotificationMessage } from "node-opcua-service-subscription";
-import { StatusCode } from "node-opcua-status-code";
+import { 
+    ReadValueIdOptions, 
+    TimestampsToReturn 
+} from "node-opcua-service-read";
+import {
+    MonitoringMode,
+    MonitoringParametersOptions,
+    NotificationMessage,
+    SetTriggeringResponse
+} from "node-opcua-service-subscription";
+import { Callback, StatusCode } from "node-opcua-status-code";
 import { ErrorCallback } from "node-opcua-status-code";
 
 import { ClientMonitoredItem } from "./client_monitored_item";
@@ -29,6 +38,20 @@ export type ClientHandle = number;
 
 export interface ClientMonitoredItemBaseMap {
     [key: string]: ClientMonitoredItemBase;
+}
+
+export interface ModifySubscriptionOptions {
+    requestedPublishingInterval?: Double ;
+    requestedLifetimeCount?: UInt32 ;
+    requestedMaxKeepAliveCount?: UInt32 ;
+    maxNotificationsPerPublish?: UInt32 ;
+    priority?: Byte ;
+}
+
+export interface ModifySubscriptionResult {
+    revisedPublishingInterval: Double;
+    revisedLifetimeCount: UInt32;
+    revisedMaxKeepAliveCount: UInt32;
 }
 
 export interface ClientSubscription extends EventEmitter {
@@ -160,13 +183,15 @@ export interface ClientSubscription extends EventEmitter {
     monitor(
         itemToMonitor: ReadValueIdOptions,
         requestedParameters: MonitoringParametersOptions,
-        timestampsToReturn: TimestampsToReturn
+        timestampsToReturn: TimestampsToReturn,
+        monitoringMode?: MonitoringMode
     ): Promise<ClientMonitoredItem>;
     monitor(
         itemToMonitor: ReadValueIdOptions,
         requestedParameters: MonitoringParametersOptions,
         timestampsToReturn: TimestampsToReturn,
-        done: (err: Error | null, monitoredItem?: ClientMonitoredItem) => void
+        monitoringMode: MonitoringMode,
+        callback: Callback<ClientMonitoredItem>
     ): void;
 
     /**
@@ -195,11 +220,27 @@ export interface ClientSubscription extends EventEmitter {
         itemsToMonitor: ReadValueIdOptions[],
         requestedParameters: MonitoringParametersOptions,
         timestampsToReturn: TimestampsToReturn,
-        done: (err: Error | null, monitoredItemGroup?: ClientMonitoredItemGroup) => void
+        callback: Callback<ClientMonitoredItemGroup>
     ): void;
 
     getMonitoredItems(): Promise<MonitoredItemData>;
     getMonitoredItems(callback: (err: Error | null, result?: MonitoredItemData) => void): void;
+
+    // public subscription service
+    modify(options: ModifySubscriptionOptions, callback: Callback<ModifySubscriptionResult>): void;
+    modify(options: ModifySubscriptionOptions): Promise<ModifySubscriptionResult>;
+
+    setTriggering(
+        triggeringItem: ClientMonitoredItemBase,
+        linksToAdd: ClientMonitoredItemBase[] | null,
+        linksToRemove: ClientMonitoredItemBase[] | null,
+        callback: Callback<SetTriggeringResponse>
+    ): void;
+    setTriggering(
+        triggeringItem: ClientMonitoredItemBase,
+        linksToAdd: ClientMonitoredItemBase[] | null,
+        linksToRemove: ClientMonitoredItemBase[] | null
+    ): Promise<SetTriggeringResponse>;
 
     terminate(): Promise<void>;
     terminate(callback: ErrorCallback): void;
@@ -257,6 +298,13 @@ export declare interface ClientSubscription {
     on(event: "status_changed", eventHandler: (status: StatusCode, diagnosticInfo: DiagnosticInfo) => void): this;
 
     on(event: "error", eventHandler: (err: Error) => void): this;
+}
+export declare interface ClientSubscription {
+    _createMonitoredItem(
+        itemToMonitor: ReadValueIdOptions,
+        monitoringParameters: MonitoringParametersOptions,
+        timestampsToReturn: TimestampsToReturn
+    ): ClientMonitoredItem;
 }
 
 export class ClientSubscription {

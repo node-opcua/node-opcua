@@ -6,7 +6,7 @@ import { StatusCode, StatusCodes } from "node-opcua-status-code";
 import { AggregateConfigurationOptions } from "node-opcua-types";
 export { AggregateConfigurationOptions } from "node-opcua-types";
 
-export interface AggregateConfigurationOptionsEx extends  AggregateConfigurationOptions {
+export interface AggregateConfigurationOptionsEx extends AggregateConfigurationOptions {
     stepped?: boolean;
 }
 export function isGoodish(statusCode: StatusCode): boolean {
@@ -35,11 +35,10 @@ interface DataValueWithIndex {
 }
 
 export function _findGoodDataValueBefore(
-  dataValues: DataValue[],
-  index: number,
-  bTreatUncertainAsBad: boolean
+    dataValues: DataValue[],
+    index: number,
+    bTreatUncertainAsBad: boolean
 ): DataValueWithIndex {
-
     index--;
     while (index >= 0) {
         const dataValue1 = dataValues[index];
@@ -56,15 +55,9 @@ export function _findGoodDataValueBefore(
         dataValue: new DataValue({ statusCode: StatusCodes.BadNoData }),
         index: -1
     };
-
 }
 
-export function _findGoodDataValueAfter(
-  dataValues: DataValue[],
-  index: number,
-  bTreatUncertainAsBad: boolean
-): DataValueWithIndex {
-
+export function _findGoodDataValueAfter(dataValues: DataValue[], index: number, bTreatUncertainAsBad: boolean): DataValueWithIndex {
     while (index < dataValues.length) {
         const dataValue1 = dataValues[index];
         if (!bTreatUncertainAsBad && !isBad(dataValue1.statusCode)) {
@@ -88,10 +81,7 @@ export function _findGoodDataValueAfter(
     };
 }
 
-
-export function adjustProcessingOptions(
-  options: AggregateConfigurationOptionsEx | null
-): AggregateConfigurationOptionsEx {
+export function adjustProcessingOptions(options: AggregateConfigurationOptionsEx | null): AggregateConfigurationOptionsEx {
     options = options || {};
     options.treatUncertainAsBad = options.treatUncertainAsBad || false;
     options.useSlopedExtrapolation = options.useSlopedExtrapolation || false;
@@ -102,7 +92,6 @@ export function adjustProcessingOptions(
 }
 
 export class Interval {
-
     public startTime: Date;
     public dataValues: DataValue[];
     public index: number;
@@ -168,12 +157,7 @@ export class Interval {
     }
 }
 
-export function getInterval(
-  startTime: Date,
-  duration: number,
-  indexHint: number,
-  dataValues: DataValue[]): Interval {
-
+export function getInterval(startTime: Date, duration: number, indexHint: number, dataValues: DataValue[]): Interval {
     let count = 0;
     let index = -1;
     for (let i = indexHint; i < dataValues.length; i++) {
@@ -195,8 +179,10 @@ export function getInterval(
 
     // check if interval is complete or partial (end or start)
     let isPartial = false;
-    if (index + count >= dataValues.length &&
-      dataValues[dataValues.length - 1].sourceTimestamp!.getTime() < (startTime.getTime() + duration)) {
+    if (
+        index + count >= dataValues.length &&
+        dataValues[dataValues.length - 1].sourceTimestamp!.getTime() < startTime.getTime() + duration
+    ) {
         isPartial = true;
     }
     if (index <= 0 && dataValues[0].sourceTimestamp!.getTime() > startTime.getTime()) {

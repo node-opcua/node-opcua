@@ -1,6 +1,6 @@
 {
     "name": "node-opcua-service-discovery",
-    "version": "2.29.0",
+    "version": "2.42.0",
     "description": "pure nodejs OPCUA SDK - module -service-discovery",
     "scripts": {
         "build": "tsc -b",
@@ -13,19 +13,16 @@
     "dependencies": {
         "@types/bonjour": "^3.5.8",
         "bonjour": "^3.5.0",
-        "node-opcua-assert": "2.29.0",
-        "node-opcua-basic-types": "2.29.0",
-        "node-opcua-binary-stream": "2.29.0",
-        "node-opcua-data-model": "2.29.0",
-        "node-opcua-debug": "2.29.0",
-        "node-opcua-factory": "2.29.0",
-        "node-opcua-nodeid": "2.29.0",
-        "node-opcua-service-endpoints": "2.29.0",
-        "node-opcua-service-secure-channel": "2.29.0",
-        "node-opcua-types": "2.29.0"
-    },
-    "devDependencies": {
-        "node-opcua-generator": "2.29.0"
+        "node-opcua-assert": "2.42.0",
+        "node-opcua-basic-types": "2.42.0",
+        "node-opcua-binary-stream": "2.42.0",
+        "node-opcua-data-model": "2.42.0",
+        "node-opcua-debug": "2.42.0",
+        "node-opcua-factory": "2.42.0",
+        "node-opcua-nodeid": "2.42.0",
+        "node-opcua-service-endpoints": "2.42.0",
+        "node-opcua-service-secure-channel": "2.42.0",
+        "node-opcua-types": "2.42.0"
     },
     "author": "Etienne Rossignon",
     "license": "MIT",

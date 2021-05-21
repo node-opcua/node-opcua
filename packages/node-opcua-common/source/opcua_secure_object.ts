@@ -74,6 +74,10 @@ export class OPCUASecureObject extends EventEmitter implements ICertificateKeyPa
         if (!this.certificateChain) {
             assert(fs.existsSync(this.certificateFile), "Certificate file must exist :" + this.certificateFile);
             this.certificateChain = _load_certificate(this.certificateFile);
+            if (  this.certificateChain  &&   this.certificateChain.length ===0) {
+                this.certificateChain = _load_certificate(this.certificateFile);
+                throw new Error("Invalid certificate length = 0 " + this.certificateFile);
+            }
         }
         return this.certificateChain;
     }

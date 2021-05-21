@@ -19,12 +19,12 @@ describe("testing Client - Umbrella-E ", function() {
     const test = this;
     test.port = port;
 
-    before((done)     => beforeTest(test,done));
-    beforeEach((done) => beforeEachTest(test,done));
-    afterEach((done)  => afterEachTest(test,done));
-    after((done)      => afterTest(test,done));
-    
+    before((done) => beforeTest(test, done));
+    beforeEach((done) => beforeEachTest(test, done));
+    afterEach((done) => afterEachTest(test, done));
+    after((done) => afterTest(test, done));
+
 
     require("./u_test_e2e_SubscriptionUseCase")(test);
 
- });
+});

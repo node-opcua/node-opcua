@@ -2,17 +2,56 @@
  * @module node-opcua-address-space
  */
 
-import { assert } from "node-opcua-assert";
-
-// note : use specifically dist file to avoid modules that rely on fs
-import { Certificate, CertificateInternals, exploreCertificate } from "node-opcua-crypto";
-
-import { AccessLevelFlag, makeAccessLevelFlag } from "node-opcua-data-model";
+import { 
+    assert 
+} from "node-opcua-assert";
+import {
+    Certificate,
+    CertificateInternals,
+    exploreCertificate
+} from "node-opcua-crypto";
+import {
+    AccessLevelFlag,
+    AccessRestrictionsFlag,
+    allPermissions,
+    AttributeIds,
+    NodeClass,
+    PermissionFlag
+} from "node-opcua-data-model";
 import { PreciseClock } from "node-opcua-date-time";
-import { NodeId } from "node-opcua-nodeid";
-import { AnonymousIdentityToken, MessageSecurityMode, UserNameIdentityToken, X509IdentityToken } from "node-opcua-types";
+import {
+    NodeId,
+    NodeIdLike,
+    resolveNodeId,
+    sameNodeId
+} from "node-opcua-nodeid";
+import {
+    AnonymousIdentityToken,
+    MessageSecurityMode,
+    PermissionType,
+    RolePermissionType,
+    RolePermissionTypeOptions,
+    UserNameIdentityToken,
+    X509IdentityToken
+} from "node-opcua-types";
+import {
+    ISessionContext,
+    UAObject,
+    UAObjectType,
+    UAVariable,
+    UAMethod,
+    Namespace,
+    BaseNode,
+} from "./address_space_ts";
+import { ObjectIds } from "node-opcua-constants";
+import { StatusCodes } from "node-opcua-status-code";
 
-import { BaseNode, ISessionContext, UAObject, UAObjectType } from "./address_space_ts";
+
+export {
+    RolePermissionType,
+    RolePermissionTypeOptions,
+    PermissionType
+} from "node-opcua-types";
 
 type UserIdentityToken = UserNameIdentityToken | AnonymousIdentityToken | X509IdentityToken;
 
@@ -55,6 +94,26 @@ export interface ISessionBase {
     getSessionId(): NodeId; // session NodeID
 }
 
+export enum WellKnownRoles {
+    Anonymous = ObjectIds.WellKnownRole_Anonymous,
+    AuthenticatedUser = ObjectIds.WellKnownRole_AuthenticatedUser,
+    ConfigureAdmin = ObjectIds.WellKnownRole_ConfigureAdmin,
+    Engineer = ObjectIds.WellKnownRole_Engineer,
+    Observer = ObjectIds.WellKnownRole_Observer,
+    Operator = ObjectIds.WellKnownRole_Operator,
+    SecurityAdmin = ObjectIds.WellKnownRole_SecurityAdmin,
+    Supervisor = ObjectIds.WellKnownRole_Supervisor,
+};
+export enum WellKnownRolesNodeId {
+    Anonymous = ObjectIds.WellKnownRole_Anonymous,
+    AuthenticatedUser = ObjectIds.WellKnownRole_AuthenticatedUser,
+    ConfigureAdmin = ObjectIds.WellKnownRole_ConfigureAdmin,
+    Engineer = ObjectIds.WellKnownRole_Engineer,
+    Observer = ObjectIds.WellKnownRole_Observer,
+    Operator = ObjectIds.WellKnownRole_Operator,
+    SecurityAdmin = ObjectIds.WellKnownRole_SecurityAdmin,
+    Supervisor = ObjectIds.WellKnownRole_Supervisor
+}
 /**
  * OPC Unified Architecture, Part 3 13 Release 1.04
  * 4.8.2 Well Known Roles
@@ -62,6 +121,7 @@ export interface ISessionBase {
  * for the well-known Roles are defined in Part 6.
  * Table 2 – Well-Known Roles
  * BrowseName           Suggested Permissions
+ * 
  * Anonymous            The Role has very limited access for use when a Session has anonymous credentials.
  * AuthenticatedUser    The Role has limited access for use when a Session has valid non-anonymous credentials
  *                      but has not been explicitly granted access to a Role.
@@ -73,13 +133,18 @@ export interface ISessionBase {
  * Supervisor           The Role is allowed to browse, read live data, read historical data/events, call Methods or
  *                      subscribe to data/events.
  * ConfigureAdmin       The Role is allowed to change the non-security related config
- * SystemAdmin          The Role is allowed to read and modify security related config
- *
+ * SecurityAdmin	    The Role is allowed to change security related settings.
  */
+export type WellKnownRolesSemiColumnSeparated = string;
+
+
+
 export interface IUserManager {
-    /**  retrieve the roles of the given user
-     *  @returns semicolon separated list of roles*/
-    getUserRole?: (user: string) => string;
+    /**  
+     * retrieve the roles of the given user
+     *  @returns semicolon separated list of roles
+     */
+    getUserRoles?: (user: string) => NodeId[];
 }
 export interface IServerBase {
     userManager?: IUserManager;
@@ -90,25 +155,82 @@ export interface SessionContextOptions {
     server?: IServerBase /* OPCUAServer*/;
 }
 
-function hasOneRoleDenied(permission: string[], roles: string[]): boolean {
-    for (const role of roles) {
-        const str = "!" + role;
-        if (permission.findIndex((x: string) => x === str) >= 0) {
-            return true; // user is explicitly denied
-        }
+function getPermissionForRole(
+    rolePermissions: RolePermissionType[] | null,
+    role: NodeId
+): PermissionFlag {
+
+    if (rolePermissions === null) {
+        return allPermissions;
     }
-    return false;
-}
-function hasOneRoleAllowed(permission: string[], roles: string[]) {
-    for (const role of roles) {
-        const str = role;
-        if (permission.findIndex((x: string) => x === str) >= 0) {
-            return true; // user is explicitly denied
-        }
-    }
-    return false;
+    const a = rolePermissions.find((r) => {
+        return sameNodeId(resolveNodeId(r.roleId!),role);
+    });
+    return a !== undefined ? a.permissions! | PermissionFlag.None : PermissionFlag.None;
 }
 
+
+function getAccessRestrictionsOnNamespace(namespace: Namespace, context: SessionContext): AccessRestrictionsFlag {
+    const namespaces = namespace.addressSpace.rootFolder?.objects?.server?.namespaces;
+    if (!namespaces) {
+        return AccessRestrictionsFlag.None;
+    }
+    const uanamespaceObject = namespaces.getChildByName(namespace.namespaceUri);
+    if (!uanamespaceObject) {
+        return AccessRestrictionsFlag.None;
+    }
+    const defaultAccessRestriction = uanamespaceObject.getChildByName("defaultAccessRestriction");
+    if (defaultAccessRestriction) {
+        const dataValue = defaultAccessRestriction.readAttribute(null, AttributeIds.Value);
+        if (dataValue && dataValue.statusCode === StatusCodes.Good) {
+            return dataValue.value.value as AccessRestrictionsFlag;
+        }
+    }
+    return AccessRestrictionsFlag.None;
+}
+
+function getDefaultUserRolePermissionsOnNamespace(namespace: Namespace, context: SessionContext): RolePermissionType[] | null {
+
+    // find the 
+    //  RootFolder.Objects.Server.Namespaces[namespaceUrl]
+    if (!context.server) {
+        return null;
+    }
+    const namespaces = namespace.addressSpace.rootFolder?.objects?.server?.namespaces;
+    if (!namespaces) {
+        return null;
+    }
+    const uanamespaceObject = namespaces.getChildByName(namespace.namespaceUri);
+    if (!uanamespaceObject) {
+        return null;
+    }
+    const defaultUserRolePermissions = uanamespaceObject.getChildByName("DefaultUserRolePermissions");
+    if (defaultUserRolePermissions) {
+        const dataValue = defaultUserRolePermissions.readAttribute(null, AttributeIds.Value);
+        if (dataValue && dataValue.statusCode === StatusCodes.Good && dataValue.value.value && dataValue.value.value.length > 0) {
+            return dataValue.value.value as RolePermissionType[];
+        }
+    }
+    const defaultRolePermissions = uanamespaceObject.getChildByName("DefaultRolePermissions");
+    if (defaultRolePermissions) {
+        const dataValue = defaultRolePermissions.readAttribute(null, AttributeIds.Value);
+        if (dataValue && dataValue.statusCode === StatusCodes.Good) {
+            return dataValue.value.value as RolePermissionType[] | null;
+        }
+    }
+    return null;
+}
+
+export function makeRoles(roleIds: NodeIdLike[]|string|WellKnownRoles): NodeId[] {
+
+    if (typeof roleIds === "number") {
+        roleIds = [roleIds]
+    }
+    if (typeof roleIds === "string") {
+        roleIds = roleIds.split(";").map(r=>resolveNodeId("WellKnownRole_"+ r));
+    }
+    return roleIds.map((r)=> resolveNodeId(r));
+}
 export class SessionContext implements ISessionContext {
     public static defaultContext = new SessionContext({});
 
@@ -128,77 +250,138 @@ export class SessionContext implements ISessionContext {
     }
 
     /**
-     * getCurrentUserRole
+     * getCurrentUserRoles
      *
      * guest   => anonymous user (unauthenticated)
      * default => default authenticated user
      *
      */
-    public getCurrentUserRole(): string {
+    public getCurrentUserRoles(): NodeId[] {
         if (!this.session) {
-            return "default";
+            return []; // default context => no Session
         }
 
         assert(this.session != null, "expecting a session");
         const userIdentityToken = this.session.userIdentityToken;
         if (!userIdentityToken) {
-            throw new Error("session object must provide a userIdentityToken");
+            return [];
         }
+
+        const anonymous =  makeRoles([WellKnownRoles.Anonymous]);
 
         const username = getUserName(userIdentityToken);
 
         if (username === "anonymous") {
-            return "guest";
+            return anonymous;
         }
         if (!this.server || !this.server.userManager) {
-            return "default";
+            return anonymous;
         }
 
         assert(this.server != null, "expecting a server");
 
-        if (typeof this.server.userManager.getUserRole !== "function") {
-            return "default";
+        if (typeof this.server.userManager.getUserRoles !== "function") {
+            return anonymous;
         }
-        return this.server.userManager.getUserRole(username);
+
+        const rolesNodeId = this.server.userManager.getUserRoles(username);
+    
+
+        if (rolesNodeId.findIndex((r)=> r.namespace === 0 && r.value === WellKnownRoles.AuthenticatedUser)<0) {
+            rolesNodeId.push(resolveNodeId(WellKnownRoles.AuthenticatedUser));
+        }
+        return rolesNodeId;
     }
 
+
+    public getApplicableRolePermissions(node: BaseNode): RolePermissionType[] | null {
+        if (!node.rolePermissions) {
+            const namespace = node.namespace;
+            const defaultUserRolePermssions = getDefaultUserRolePermissionsOnNamespace(namespace, this);
+            return defaultUserRolePermssions;
+        }
+        return node.rolePermissions;
+    }
+    public getPermissions(node: BaseNode): PermissionFlag {
+
+        const applicableRolePermissions = this.getApplicableRolePermissions(node);
+
+        const roles = this.getCurrentUserRoles();
+        if (roles.length === 0) {
+            return allPermissions;
+        }
+        let orFlags: PermissionFlag = 0;        
+        for (const role of roles) {
+            orFlags = orFlags | getPermissionForRole(applicableRolePermissions, role);
+        }
+        return orFlags;
+    }
+    public getAccessRestrictions(node: BaseNode): AccessRestrictionsFlag {
+        if (node.accessRestrictions === undefined) {
+            const namespace = node.namespace;
+            const accessRestrictions = getAccessRestrictionsOnNamespace(namespace, this);
+            return accessRestrictions;
+        }
+        return node.accessRestrictions;
+    }
+
+
+    /**
+     * 
+     * @param node 
+     * @returns true if the browse is denied (access is restricted)
+     */
+    public isBrowseAccessRestricted(node: BaseNode): boolean {
+
+        const accessRestrictions = this.getAccessRestrictions(node);
+        if (accessRestrictions & AccessRestrictionsFlag.ApplyRestrictionsToBrowse) {
+            return this.isAccessRestricted(node);
+        }
+        return false;
+    }
+    /**
+     * 
+     * @param node 
+     * @returns true  if the context is access restricted
+     */
+    public isAccessRestricted(node: BaseNode): boolean {
+
+        const accessRestrictions = this.getAccessRestrictions(node);
+        if (accessRestrictions === AccessRestrictionsFlag.None) {
+            return false;
+        }
+        if( accessRestrictions & AccessRestrictionsFlag.SessionRequired) {
+            if (!this.session) {
+                return true;
+            } 
+        }
+        const securityMode = this.session?.channel?.securityMode;
+        if ( accessRestrictions & AccessRestrictionsFlag.SigningRequired) {
+            if ( securityMode !== MessageSecurityMode.Sign && securityMode !== MessageSecurityMode.SignAndEncrypt) {
+                return true;
+            }
+        }
+        if (accessRestrictions & AccessRestrictionsFlag.EncryptionRequired) {
+            if (securityMode !== MessageSecurityMode.SignAndEncrypt) {
+                return true;
+            }
+        }
+        return false;
+    }
     /**
      * @method checkPermission
      * @param node
-     * @param action
-     * @return {Boolean}
+     * @param requestedPermission
+     * @return {Boolean} returns true of the current user is granted the requested Permission
      */
-    public checkPermission(node: BaseNode, action: string): boolean {
-        // tslint:disable:no-bitwise
-        const lNode = node as any;
+    public checkPermission(node: UAMethod | UAVariable, requestedPermission: PermissionType): boolean {
+        const permissions = this.getPermissions(node);
+        return (permissions & requestedPermission) === requestedPermission;
+    }
 
-        assert(AccessLevelFlag.hasOwnProperty(action));
-        const actionFlag: number = makeAccessLevelFlag(action);
-
-        if (!lNode._permissions) {
-            return (lNode.userAccessLevel & actionFlag) === actionFlag;
-        }
-
-        const permission: string[] = lNode._permissions[action];
-
-        if (!permission) {
-            return (lNode.userAccessLevel & actionFlag) === actionFlag;
-        }
-
-        const userRole = this.getCurrentUserRole();
-
-        if (userRole === "default") {
-            return (lNode.userAccessLevel & actionFlag) === actionFlag;
-        }
-
-        const roles = userRole.split(";");
-
-        if (permission[0] === "*") {
-            // accept all except...
-            return !hasOneRoleDenied(permission, roles);
-        } else {
-            // deny a
-            return hasOneRoleAllowed(permission, roles) && !hasOneRoleDenied(permission, roles);
-        }
+    public currentUserHasRole(role: NodeIdLike) {
+        const currentUserRole = this.getCurrentUserRoles();
+        const n = resolveNodeId(role);
+        return currentUserRole.findIndex(r=> sameNodeId(r,n)) >=0;    
     }
 }

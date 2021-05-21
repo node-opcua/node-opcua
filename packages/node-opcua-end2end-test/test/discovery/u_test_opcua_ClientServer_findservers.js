@@ -9,15 +9,15 @@ const port = 2005;
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 module.exports = () => {
     describe("DS5- testing OPCUA-Service Discovery Endpoint", function () {
-        let server, client, temperatureVariableId, endpointUrl;
+       
+        let server, endpointUrl;
 
         before((done) => {
-            server = build_server_with_temperature_device({ port }, function (err) {
+            server = build_server_with_temperature_device({ port },  (err) => {
                 if (err) {
                     return done(err);
                 }
                 endpointUrl = server.getEndpointUrl();
-                temperatureVariableId = server.temperatureVariableId;
                 done(err);
             });
         });
@@ -25,55 +25,54 @@ module.exports = () => {
             await server.shutdown();
         });
 
-        beforeEach(function (done) {
-            client = OPCUAClient.create({});
-            done();
-        });
-
-        afterEach(function (done) {
-            done();
-        });
-
         function make_on_connected_client(functor, done) {
             let connected = false;
+            const client = OPCUAClient.create({});
             const tasks = [
                 function (callback) {
-                    client.connect(endpointUrl, function (err) {
+                    client.connect(endpointUrl, (err) => {
                         connected = true;
                         callback(err);
                     });
                 },
 
                 function (callback) {
-                    functor(client, callback);
+                    try {
+                        functor(client, callback);
+                    } catch (err) {
+                        callback(err);
+                    }
                 },
 
                 function (callback) {
-                    client.disconnect(function (err) {
+                    client.disconnect((err) => {
                         connected = false;
                         callback(err);
                     });
                 }
             ];
-            async.series(tasks, function (err) {
+            async.series(tasks, (err1) => {
                 if (connected) {
-                    client.disconnect(function (err) {
+                    client.disconnect((err) => {
                         connected = false;
-                        done(err);
+                        if (err) {
+                            console.log(err);
+                        }
+                        done(err1);
                     });
                 } else {
-                    done(err);
+                    done(err1);
                 }
             });
         }
 
-        it("should answer a FindServers Request - without filters", function (done) {
+        it("should answer a FindServers Request - without filters", (done) => {
             // Every  Server  shall provide a  Discovery Endpoint  that supports this  Service;   however, the  Server
             // shall only return a single record that describes itself.  Gateway Servers  shall return a record for each
             // Server  that they provide access to plus (optionally) a record that allows the  Gateway Server  to be
             // accessed as an ordinary OPC UA  Server.
-            make_on_connected_client(function (client, callback) {
-                client.findServers(function (err, servers) {
+            make_on_connected_client((client, callback) => {
+                client.findServers((err, servers) => {
                     if (!err) {
                         servers.length.should.eql(1);
                     }
@@ -82,18 +81,18 @@ module.exports = () => {
             }, done);
         });
 
-        it("should answer a FindServers Request - with filters", function (done) {
-            make_on_connected_client(function (client, callback) {
+        it("should answer a FindServers Request - with filters", (done) => {
+            make_on_connected_client((client, callback) => {
                 const filters = {};
-                client.findServers(filters, function (err, servers) {
+                client.findServers(filters, (err, servers) => {
                     servers.length.should.eql(1);
                     callback(err);
                 });
             }, done);
         });
 
-        it("should answer FindServers Request and apply serverUris filter", function (done) {
-            make_on_connected_client(function (client, callback) {
+        it("should answer FindServers Request and apply serverUris filter", (done) => {
+            make_on_connected_client((client, callback) => {
                 const filters = {
                     serverUris: ["invalid server uri"]
                 };
@@ -105,13 +104,13 @@ module.exports = () => {
             }, done);
         });
 
-        it("should answer FindServers Request and apply endpointUri filter", function (done) {
-            make_on_connected_client(function (client, callback) {
+        it("should answer FindServers Request and apply endpointUri filter", (done) => {
+            make_on_connected_client((client, callback) => {
                 const filters = {
                     serverUris: ["invalid server uri"]
                 };
 
-                client.findServers(filters, function (err, servers) {
+                client.findServers(filters, (err, servers) => {
                     servers.length.should.eql(0);
                     callback(err);
                 });

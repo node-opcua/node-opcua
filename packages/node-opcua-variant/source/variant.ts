@@ -92,7 +92,7 @@ export interface VariantOptions2 {
 export class Variant extends BaseUAObject {
     public static schema = schemaVariant;
     public static coerce = _coerceVariant;
-
+    public static computer_default_value = () => new Variant({ dataType: DataType.Null });
     public dataType: DataType;
     public arrayType: VariantArrayType;
     public value: any;
@@ -232,10 +232,14 @@ export const VARIANT_ARRAY_DIMENSIONS_MASK = 0x40;
  */
 export const VARIANT_TYPE_MASK = 0x3f;
 
+const nullVariant = new Variant({ dataType: DataType.Null });
 /***
  * @private
  */
-export function encodeVariant(variant: Variant, stream: OutputBinaryStream): void {
+export function encodeVariant(variant: Variant | undefined | null, stream: OutputBinaryStream): void {
+    if (!variant) {
+        variant = nullVariant;
+    }
     let encodingByte = variant.dataType;
 
     if (variant.arrayType === VariantArrayType.Array || variant.arrayType === VariantArrayType.Matrix) {
@@ -409,7 +413,7 @@ function constructHook(options: VariantOptions | Variant): VariantOptions2 {
             // we do nothing here ....
             throw new Error(
                 "Variant#constructor : when using UInt64 ou Int64" +
-                " arrayType must be specified , as automatic detection cannot be made"
+                    " arrayType must be specified , as automatic detection cannot be made"
             );
         } else {
             options.arrayType = VariantArrayType.Array;
@@ -438,11 +442,11 @@ function constructHook(options: VariantOptions | Variant): VariantOptions2 {
             if (options.value.length !== calculate_product(options.dimensions)) {
                 throw new Error(
                     "Matrix Variant : invalid value size = options.value.length " +
-                    options.value.length +
-                    "!=" +
-                    calculate_product(options.dimensions) +
-                    " => " +
-                    JSON.stringify(options.dimensions)
+                        options.value.length +
+                        "!=" +
+                        calculate_product(options.dimensions) +
+                        " => " +
+                        JSON.stringify(options.dimensions)
                 );
             }
         }
@@ -457,14 +461,14 @@ function constructHook(options: VariantOptions | Variant): VariantOptions2 {
         if (!isValidVariant(options.arrayType, options.dataType, options.value, null)) {
             throw new Error(
                 "Invalid variant arrayType: " +
-                VariantArrayType[options.arrayType] +
-                "  dataType: " +
-                DataType[options.dataType] +
-                " value:" +
-                options.value +
-                " (javascript type = " +
-                typeof options.value +
-                " )"
+                    VariantArrayType[options.arrayType] +
+                    "  dataType: " +
+                    DataType[options.dataType] +
+                    " value:" +
+                    options.value +
+                    " (javascript type = " +
+                    typeof options.value +
+                    " )"
             );
         }
     }
@@ -519,7 +523,7 @@ export type BufferedArray2 =
 
 interface BufferedArrayConstructor {
     BYTES_PER_ELEMENT: number;
-    new(buffer: any): any;
+    new (buffer: any): any;
 }
 
 function convertTo(dataType: DataType, arrayTypeConstructor: BufferedArrayConstructor | null, value: any) {
@@ -678,7 +682,7 @@ function _decodeVariantArrayDebug(stream: BinaryStream, decode: any, tracer: any
     let i;
     let element;
     tracer.trace("start_array", "Variant", -1, cursorBefore, stream.length);
-    if (length === 0xFFFFFFFF) {
+    if (length === 0xffffffff) {
         // empty array
         tracer.trace("end_array", "Variant", stream.length);
         return;
@@ -805,10 +809,10 @@ export function coerceVariantType(dataType: DataType, value: any): any {
 function isValidScalarVariant(dataType: DataType, value: any): boolean {
     assert(
         value === null ||
-        DataType.Int64 === dataType ||
-        DataType.ByteString === dataType ||
-        DataType.UInt64 === dataType ||
-        !(value instanceof Array)
+            DataType.Int64 === dataType ||
+            DataType.ByteString === dataType ||
+            DataType.UInt64 === dataType ||
+            !(value instanceof Array)
     );
     assert(value === null || !(value instanceof Int32Array));
     assert(value === null || !(value instanceof Uint32Array));

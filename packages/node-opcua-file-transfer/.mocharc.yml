@@ -1,4 +1,4 @@
-recursive: true
+recursive: false
 require:
 - ../../node_modules/source-map-support/register
 - ../../node_modules/ts-node/register

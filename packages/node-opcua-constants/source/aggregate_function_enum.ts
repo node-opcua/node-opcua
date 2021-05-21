@@ -1,4 +1,4 @@
-import { ObjectIds } from ".";
+import { ObjectIds } from "./opcua_node_ids";
 
 export enum AggregateFunction {
     AnnotationCount = ObjectIds.AggregateFunction_AnnotationCount,

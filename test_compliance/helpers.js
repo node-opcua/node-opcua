@@ -30,7 +30,7 @@ var supportedType = [
 var ns = 411;
 
 var nodeIdSettings = {
-    arraysStatic: supportedType.map(function(type){ return  makeNodeId("Scalar_Static_Array_"  + type, ns); }),
+    arraysStatic: supportedType.map(function(type){ return  makeNodeId("Static_Array_"  + type, ns); }),
     securityAccess: {
         accessLevelCurrentReadNotCurrentWrite: makeNodeId("AccessLevel_CurrentRead_NotCurrentWrite", ns),
         accessLevel_CurrentWrite_NotCurrentRead: makeNodeId("AccessLevel_CurrentWrite_NotCurrentRead", ns)

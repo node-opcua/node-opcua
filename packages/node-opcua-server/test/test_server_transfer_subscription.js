@@ -1,3 +1,4 @@
+/* eslint-disable max-statements */
 /// reference 
 const should = require("should");
 const sinon = require("sinon");
@@ -16,17 +17,14 @@ const { with_fake_timer } = require("./helper_with_fake_timer");
 const doDebug = !!process.env.TESTDEBUG;
 
 
-let requestHandle = 1;
-function sendPublishRequest(session/* : ServerSession */, publishHandler/* : () => void */) {
-    session.publishEngine._on_PublishRequest(new PublishRequest({ requestHeader: { requestHandle: 101 } }), publishHandler);
-    requestHandle++;
-}
+
 
 
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
-describe("ServerEngine Subscriptions Transfer", function() {
+describe("ServerEngine Subscriptions Transfer", function () {
 
 
+    const test = this;
     /**
      * @type {ServerEngine}
      */
@@ -54,11 +52,18 @@ describe("ServerEngine Subscriptions Transfer", function() {
         session2 = null;
         if (engine) {
             should.exist(engine);
-            engine.shutdown();
+            await engine.shutdown();
         }
         engine = null;
     });
 
+    let requestHandle = 1;
+    function sendPublishRequest(session/* : ServerSession */, publishHandler/* : () => void */) {
+        session.publishEngine._on_PublishRequest(new PublishRequest({ requestHeader: { requestHandle: 101 } }), publishHandler);
+        requestHandle++;
+        test.clock.tick(0);
+
+    }
 
 
     it("ST01 - should send keep alive when starving and no notification exists", async () => {
@@ -179,6 +184,7 @@ describe("ServerEngine Subscriptions Transfer", function() {
             });
 
 
+            subscription.maxNotificationsPerPublish.should.eql(10);
             // Given there is no Publish Request
             // when wait a very long time , longer than maxKeepAlive ,
             test.clock.tick(subscription.publishingInterval * subscription.maxKeepAliveCount * 2);
@@ -195,6 +201,8 @@ describe("ServerEngine Subscriptions Transfer", function() {
 
             {
                 const publishResponse = publishSpy.getCall(0).args[1];
+
+                // console.log(publishResponse.toString());
 
                 publishResponse.notificationMessage.notificationData.length.should.eql(1);
                 publishResponse.notificationMessage.notificationData[0].constructor.name.should.eql("StatusChangeNotification");
@@ -414,7 +422,7 @@ describe("ServerEngine Subscriptions Transfer", function() {
 
             // transfer subscription
             const transferResult = await engine.transferSubscription(session2, subscription.id, true);
-            // the transertResult.availbeSequenceNumber shall be ZERO at this point because 
+            // the transfer result available SequenceNumber shall be ZERO at this point because 
             // we cannot validate in session2 notification that have been sent to session1
             transferResult.statusCode.should.eql(StatusCodes.Good);
             if (doDebug) {
@@ -456,8 +464,8 @@ describe("ServerEngine Subscriptions Transfer", function() {
             let msgSequence = subscription.getMessageForSequenceNumber(retransmitSequenceNumber);
             should(msgSequence).not.eql(null);
 
-            engine.closeSession(session1.authenticationToken, /*deleteSubscription=*/ true, /* reason =*/ "Terminated");
-            engine.closeSession(session2.authenticationToken, /*deleteSubscription=*/ true, /* reason =*/ "Terminated");
+            await engine.closeSession(session1.authenticationToken, /*deleteSubscriptions=*/ true, /* reason =*/ "Terminated");
+            await engine.closeSession(session2.authenticationToken, /*deleteSubscriptions=*/ true, /* reason =*/ "Terminated");
 
         });
 
@@ -539,7 +547,7 @@ describe("ServerEngine Subscriptions Transfer", function() {
             publishSpy1.resetHistory();
 
             // D/ Close the session but do not delete subscription.
-            engine.closeSession(session1.authenticationToken, /*deleteSubscription=*/ false, /* reason =*/ "Terminated");
+            await engine.closeSession(session1.authenticationToken, /*deleteSubscriptions=*/ false, /* reason =*/ "Terminated");
 
             // ------------------------------------------------------------- 
             // E/ Create a new session, 
@@ -549,7 +557,7 @@ describe("ServerEngine Subscriptions Transfer", function() {
             // F/  transfer the subscription, 
             const transferResult = await engine.transferSubscription(session2, subscription.id, true);
 
-            // the transertResult.availbeSequenceNumber shall be ZERO at this point because 
+            // the transfer result.available sequence number shall be ZERO at this point because 
             // we cannot validate in session2 notification that have been sent to session1
             transferResult.statusCode.should.eql(StatusCodes.Good);
             transferResult.availableSequenceNumbers.length.should.eql(4);
@@ -589,15 +597,15 @@ describe("ServerEngine Subscriptions Transfer", function() {
             should(notificationMessage).not.eql(null);
             notificationMessage.sequenceNumber.should.eql(4);
 
-            engine.closeSession(session2.authenticationToken, /*deleteSubscription=*/ true, /* reason =*/ "Terminated");
+            await engine.closeSession(session2.authenticationToken, /*deleteSubscriptions=*/ true, /* reason =*/ "Terminated");
 
 
-            engine.shutdown();
+            await engine.shutdown();
             engine = null;
         });
     });
 
-    it("ST08 - Err-004.js (transferSubscription5106Err009)  delete multiple sessions where some have been transfered to other sessions", async () => {
+    it("ST08 - Err-004.js (transferSubscription5106Err009)  delete multiple sessions where some have been transferred to other sessions", async () => {
 
         await with_fake_timer.call(this, async (test) => {
             // create session1
@@ -657,16 +665,16 @@ describe("ServerEngine Subscriptions Transfer", function() {
                 console.log(publishSpy1.getCall(1).args[1].toString());
                 console.log(publishSpy1.getCall(2).args[1].toString());
             }
-            /// Now delete all the subscriptions. Some should succeed and some should fail
-            session1.deleteSubscription(subscriptions[0].id).should.eql(StatusCodes.BadSubscriptionIdInvalid);
-            session1.deleteSubscription(subscriptions[1].id).should.eql(StatusCodes.Good);
-            session1.deleteSubscription(subscriptions[2].id).should.eql(StatusCodes.BadSubscriptionIdInvalid);
-            session1.deleteSubscription(subscriptions[3].id).should.eql(StatusCodes.Good);
-            session1.deleteSubscription(subscriptions[4].id).should.eql(StatusCodes.BadSubscriptionIdInvalid);
+            // Now delete all the subscriptions. Some should succeed and some should fail
+            (await session1.deleteSubscription(subscriptions[0].id)).should.eql(StatusCodes.BadSubscriptionIdInvalid);
+            (await session1.deleteSubscription(subscriptions[1].id)).should.eql(StatusCodes.Good);
+            (await session1.deleteSubscription(subscriptions[2].id)).should.eql(StatusCodes.BadSubscriptionIdInvalid);
+            (await session1.deleteSubscription(subscriptions[3].id)).should.eql(StatusCodes.Good);
+            (await session1.deleteSubscription(subscriptions[4].id)).should.eql(StatusCodes.BadSubscriptionIdInvalid);
 
 
-            engine.closeSession(session1.authenticationToken, /*deleteSubscription=*/ true, /* reason =*/ "Terminated");
-            engine.closeSession(session2.authenticationToken, /*deleteSubscription=*/ true, /* reason =*/ "Terminated");
+            await engine.closeSession(session1.authenticationToken, /*deleteSubscriptions=*/ true, /* reason =*/ "Terminated");
+            await engine.closeSession(session2.authenticationToken, /*deleteSubscriptions=*/ true, /* reason =*/ "Terminated");
 
         });
 
@@ -753,8 +761,8 @@ describe("ServerEngine Subscriptions Transfer", function() {
             }
             publishResponse3.notificationMessage.notificationData[0].constructor.name.should.eql("DataChangeNotification")
 
-            engine.closeSession(session1.authenticationToken, /*deleteSubscription=*/ true, /* reason =*/ "Terminated");
-            engine.closeSession(session2.authenticationToken, /*deleteSubscription=*/ true, /* reason =*/ "Terminated");
+            await engine.closeSession(session1.authenticationToken, /*deleteSubscriptions=*/ true, /* reason =*/ "Terminated");
+            await engine.closeSession(session2.authenticationToken, /*deleteSubscriptions=*/ true, /* reason =*/ "Terminated");
 
         });
 

@@ -1,6 +1,6 @@
 {
     "name": "node-opcua-utils",
-    "version": "2.29.0",
+    "version": "2.42.0",
     "description": "pure nodejs OPCUA SDK - module -utils",
     "main": "./dist/index.js",
     "types": "./dist/index.d.ts",
@@ -11,13 +11,13 @@
     },
     "dependencies": {
         "browser-process-hrtime": "^1.0.0",
-        "chalk": "^4.1.0",
-        "node-opcua-assert": "2.29.0"
+        "chalk": "4.1.1",
+        "node-opcua-assert": "2.42.0"
     },
     "devDependencies": {
-        "@types/node": "^14.14.20",
+        "@types/node": "15.0.2",
         "should": "^13.2.3",
-        "sinon": "^9.2.3"
+        "sinon": "^10.0.0"
     },
     "author": "Etienne Rossignon",
     "license": "MIT",

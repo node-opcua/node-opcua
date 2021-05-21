@@ -1,20 +1,19 @@
 // tslint:disable:variable-name
 // tslint:disable:max-line-length
-import { makebuffer_from_trace } from "node-opcua-debug";
+import { makeBufferFromTrace } from "node-opcua-debug";
 
-export const packet_cs_1 = makebuffer_from_trace(`
+export const packet_cs_1 = makeBufferFromTrace(`
 00000000: 48 45 4c 46 4f 00 00 00 00 00 00 00 ff ff 00 00 ff ff 00 00 00 00 40 00 00 00 00 00 2f 00 00 00    HELFO.................@...../...
 00000020: 6f 70 63 2e 74 63 70 3a 2f 2f 74 61 74 74 61 74 61 3a 36 32 35 34 33 2f 41 41 41 41 41 2f 41 67    opc.tcp://tattata:62543/AAAAA/Ag
 00000040: 67 72 65 67 61 74 69 6f 6e 53 65 72 76 65 72                                                       gregationServer
-`
-);
+`);
 
-export const packet_sc_1 = makebuffer_from_trace(`
+export const packet_sc_1 = makeBufferFromTrace(`
 00000000: 41 43 4b 46 1c 00 00 00 00 00 00 00 ff ff 00 00 ff ff 00 00 00 00 40 00 00 00 00 00                ACKF..................@.....
 `);
 
 // client -> server : packet length 132   => OpenSecureChannelRequest
-export const packet_cs_2 = makebuffer_from_trace(`
+export const packet_cs_2 = makeBufferFromTrace(`
 00000000: 4f 50 4e 46 84 00 00 00 00 00 00 00 2f 00 00 00 68 74 74 70 3a 2f 2f 6f 70 63 66 6f 75 6e 64 61    OPNF......../...http://opcfounda
 00000020: 74 69 6f 6e 2e 6f 72 67 2f 55 41 2f 53 65 63 75 72 69 74 79 50 6f 6c 69 63 79 23 4e 6f 6e 65 ff    tion.org/UA/SecurityPolicy#None.
 00000040: ff ff ff ff ff ff ff 01 00 00 00 02 00 00 00 01 00 be 01 00 00 43 b2 42 d9 d0 1d cf 01 00 00 00    .................>...C2BYP.O....
@@ -23,7 +22,7 @@ export const packet_cs_2 = makebuffer_from_trace(`
 `);
 
 // server -> client : packet length 135    => OpenSecureChannelResponse
-export const packet_sc_2 = makebuffer_from_trace(`
+export const packet_sc_2 = makeBufferFromTrace(`
 00000000: 4f 50 4e 46 87 00 00 00 0a 00 00 00 2f 00 00 00 68 74 74 70 3a 2f 2f 6f 70 63 66 6f 75 6e 64 61    OPNF......../...http://opcfounda
 00000020: 74 69 6f 6e 2e 6f 72 67 2f 55 41 2f 53 65 63 75 72 69 74 79 50 6f 6c 69 63 79 23 4e 6f 6e 65 ff    tion.org/UA/SecurityPolicy#None.
 00000040: ff ff ff ff ff ff ff 01 00 00 00 01 00 00 00 01 00 c1 01 4b 87 44 d9 d0 1d cf 01 01 00 00 00 00    .................A.K.DYP.O......
@@ -32,7 +31,7 @@ export const packet_sc_2 = makebuffer_from_trace(`
 `);
 
 // client -> server : packet length 116  => GetEndpointsRequest
-export const packet_cs_3 = makebuffer_from_trace(`
+export const packet_cs_3 = makeBufferFromTrace(`
 00000000: 4d 53 47 46 74 00 00 00 0a 00 00 00 01 00 00 00 02 00 00 00 01 00 00 00 01 00 ac 01 00 00 b7 19    MSGFt.....................,...7.
 00000020: 40 d9 d0 1d cf 01 01 00 00 00 00 00 00 00 ff ff ff ff 00 00 00 00 00 00 00 2f 00 00 00 6f 70 63    @YP.O..................../...opc
 00000040: 2e 74 63 70 3a 2f 2f 74 61 74 74 61 74 61 3a 36 32 35 34 33 2f 41 41 41 41 41 2f 41 67 67 72 65    .tcp://tattata:62543/AAAAA/Aggre
@@ -40,7 +39,7 @@ export const packet_cs_3 = makebuffer_from_trace(`
 `);
 
 //  server -> client : packet length 4380  => GetEndpointsResponse 1/2
-export const packet_sc_3_a = makebuffer_from_trace(`
+export const packet_sc_3_a = makeBufferFromTrace(`
 00000000: 4d 53 47 46 e0 1f 00 00 0a 00 00 00 01 00 00 00 02 00 00 00 01 00 00 00 01 00 af 01 ec 46 47 d9    MSGF....................../.lFGY
 00000020: d0 1d cf 01 01 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 06 00 00 00 2f 00 00 00 6f 70 63 2e    P.O...................../...opc.
 00000040: 74 63 70 3a 2f 2f 74 61 74 74 61 74 61 3a 36 32 35 34 32 2f 41 41 41 41 41 2f 41 67 67 72 65 67    tcp://tattata:62542/AAAAA/Aggreg
@@ -181,7 +180,7 @@ export const packet_sc_3_a = makebuffer_from_trace(`
 `);
 
 // server -> client : packet length 3780  => GetEndpointsResponse 2/2
-export const packet_sc_3_b = makebuffer_from_trace(`
+export const packet_sc_3_b = makeBufferFromTrace(`
  00000000: 03 00 00 30 82 03 20 30 82 02 89 a0 03 02 01 02 02 10 2e 1b cc fe 63 34 7b 47 9e d3 11 f9 fe a2    ...0...0............L~c4{G.S.y~"
  00000020: cd 64 30 0d 06 09 2a 86 48 86 f7 0d 01 01 05 05 00 30 3f 31 17 30 15 06 0a 09 92 26 89 93 f2 2c    Md0...*.H.w......0?1.0.....&..r,
  00000040: 64 01 19 16 07 74 61 74 74 61 74 61 31 24 30 22 06 03 55 04 03 13 1b 41 41 41 41 41 20 55 41 20    d....tattata1$0"..U....AAAAA.UA.
@@ -303,18 +302,18 @@ export const packet_sc_3_b = makebuffer_from_trace(`
  00000ec0: 61 72 79 00                                                                                        ary.
 `);
 // client -> server : packet length 57  => CloseSecureChannelRequest
-export const packet_cs_4 = makebuffer_from_trace(`
+export const packet_cs_4 = makeBufferFromTrace(`
 00000000: 43 4c 4f 46 39 00 00 00 0a 00 00 00 01 00 00 00 03 00 00 00 03 00 00 00 01 00 c4 01 00 00 95 78    CLOF9.....................D....x
 00000020: 65 d9 d0 1d cf 01 00 00 00 00 00 00 00 00 ff ff ff ff 00 00 00 00 00 00 00                         eYP.O....................
 `);
 
 // server -> client                      => CloseSecureChannelResponse
-export const packet_sc_5 = makebuffer_from_trace(`
+export const packet_sc_5 = makeBufferFromTrace(`
 00000000: 43 4c 4f 46 39 00 00 00 02 00 00 00 01 00 00 00 03 00 00 00 03 00 00 00 01 00 c4 01 00 00 cd e6    CLOF9.....................D...Mf
 00000020: 25 6b 8c 1f cf 01 00 00 00 00 00 00 00 00 ff ff ff ff 00 00 00 00 00 00 00                         %k..O....................
 `);
 
-export const packet_cs_6 = makebuffer_from_trace(`
+export const packet_cs_6 = makeBufferFromTrace(`
 00000000: 4d 53 47 46 4c 04 00 00 02 00 00 00 01 00 00 00 02 00 00 00 01 00 00 00 01 00 cd 01 00 00 16 12    MSGFL.....................M.....
 00000020: a8 62 a2 1f cf 01 01 00 00 00 ff 03 00 00 ff ff ff ff 00 00 00 00 00 00 00 20 00 00 00 75 72 6e    (b".O........................urn
 00000040: 3a 58 58 58 58 58 49 31 31 30 32 32 3a 55 41 20 53 61 6d 70 6c 65 20 43 6c 69 65 6e 74 29 00 00    :XXXXXI11022:UA.Sample.Client)..
@@ -353,7 +352,7 @@ export const packet_cs_6 = makebuffer_from_trace(`
 `);
 
 // ActivateSesionRequest
-export const packet_cs_7 = makebuffer_from_trace(`
+export const packet_cs_7 = makeBufferFromTrace(`
 0000   4d 53 47 46 8d 00 00 00 08 00 00 00 01 00 00 00  MSGF............
 0010   03 00 00 00 03 00 00 00 01 00 d3 01 05 00 00 20  ...............
 0020   00 00 00 48 09 ee e7 c3 5d bb ce df d0 7a 7d c0  ...H....]....z}.
@@ -366,7 +365,7 @@ export const packet_cs_7 = makebuffer_from_trace(`
 `);
 
 // ActivateSesionResponse
-export const packet_sc_7 = makebuffer_from_trace(`
+export const packet_sc_7 = makeBufferFromTrace(`
 0000   4d 53 47 46 60 00 00 00 08 00 00 00 01 00 00 00  MSGF............
 0010   03 00 00 00 03 00 00 00 01 00 d6 01 17 ff 83 6d  ...............m
 0020   17 21 cf 01 02 00 00 00 00 00 00 00 00 00 00 00  .!..............
@@ -375,6 +374,6 @@ export const packet_sc_7 = makebuffer_from_trace(`
 0050   20 bd 76 15 57 09 17 92 00 00 00 00 00 00 00 00  .v.W...........
 `);
 
-export const packect_outtec = makebuffer_from_trace(`
+export const packect_outtec = makeBufferFromTrace(`
 00000000: 43 4c 4f 46 18 00 00 00 0c 00 00 00 01 00 00 00 0f 00 00 00 0f 00 00 00
 `);

@@ -4,11 +4,25 @@ import * as path from "path";
 import { promisify } from "util";
 
 import * as rimraf from "rimraf";
-import { should } from "should";
+import * as should  from "should";
 
-import { Certificate, CertificateRevocationList, convertPEMtoDER, makeSHA1Thumbprint, PrivateKey, readCertificate, readCertificateRevocationList, split_der, toPem } from "node-opcua-crypto";
+import {
+    Certificate,
+    CertificateRevocationList,
+    convertPEMtoDER,
+    makeSHA1Thumbprint,
+    PrivateKey,
+    readCertificate,
+    readCertificateRevocationList,
+    split_der,
+    toPem
+} from "node-opcua-crypto";
 import { getFullyQualifiedDomainName } from "node-opcua-hostname";
-import { CertificateAuthority, CertificateManager, g_config } from "node-opcua-pki";
+import { 
+    CertificateAuthority, 
+    CertificateManager, 
+    g_config 
+} from "node-opcua-certificate-manager";
 
 export const _tempFolder = path.join(__dirname, "../../temp");
 
@@ -52,17 +66,15 @@ export async function produceCertificateAndPrivateKey(): Promise<{ certificate: 
     return { certificate, privateKey };
 }
 
-export async function _getFakeAutorityCertificate()
-    : Promise<{ certificate: Certificate, crl: CertificateRevocationList }> 
-    {
+export async function _getFakeAuthorityCertificate(): Promise<{ certificate: Certificate; crl: CertificateRevocationList }> {
     const certificateAuthority = new CertificateAuthority({
         keySize: 2048,
         location: path.join(_tempFolder, "CA")
     });
     await certificateAuthority.initialize();
-    const certificate =  readCertificate(certificateAuthority.caCertificate);
-    const crl = await readCertificateRevocationList(certificateAuthority.revocationList)
-    return { certificate, crl};
+    const certificate = readCertificate(certificateAuthority.caCertificate);
+    const crl = await readCertificateRevocationList(certificateAuthority.revocationList);
+    return { certificate, crl };
 }
 
 async function _produceCertificate(certificateSigningRequest: Buffer, startDate: Date, validity: number): Promise<Buffer> {

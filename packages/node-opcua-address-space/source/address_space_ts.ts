@@ -22,13 +22,15 @@ export type Duration = number;
 
 import {
     AccessLevelFlag,
+    AccessRestrictionsFlag,
     AttributeIds,
     BrowseDirection,
     LocalizedText,
     LocalizedTextLike,
     NodeClass,
     QualifiedName,
-    QualifiedNameLike
+    QualifiedNameLike,
+    QualifiedNameOptions
 } from "node-opcua-data-model";
 import { DataValue, DataValueOptions, DataValueOptionsT, DataValueT } from "node-opcua-data-value";
 import { PreciseClock } from "node-opcua-date-time";
@@ -51,12 +53,16 @@ import {
     BrowsePathResult,
     BuildInfo,
     CallMethodResultOptions,
+    DataTypeDefinition,
     EnumValueType,
     EUInformation,
     EUInformationOptions,
+    PermissionType,
     Range,
     RangeOptions,
     ReferenceDescription,
+    RolePermissionType,
+    RolePermissionTypeOptions,
     ServerDiagnosticsSummaryDataType,
     ServerState,
     ServerStatusDataType,
@@ -110,9 +116,8 @@ export declare function resolveReferenceType(addressSpace: MinimalistAddressSpac
 export declare function resolveReferenceNode(addressSpace: MinimalistAddressSpace, reference: UAReference): BaseNode;
 
 export interface ISessionContext {
-    getCurrentUserRole(): string;
-
-    checkPermission(node: BaseNode, action: AccessLevelFlag | string): boolean;
+    getCurrentUserRoles(): NodeId[];
+    checkPermission(node: BaseNode, action: PermissionType): boolean;
 }
 
 export interface XmlWriter {
@@ -141,6 +146,8 @@ export declare class BaseNode extends EventEmitter {
     public readonly nodeId: NodeId;
     public readonly modellingRule?: ModellingRuleType;
     public readonly parentNodeId?: NodeId;
+    public readonly accessRestrictions?: AccessRestrictionsFlag;
+    public readonly rolePermissions?: RolePermissionType[];
 
     // access to parent namespace
     public readonly namespaceIndex: number;
@@ -198,7 +205,8 @@ export declare class BaseNode extends EventEmitter {
 
     public allReferences(): Reference[];
 
-    public getChildByName(browseName: string | QualifiedName): BaseNode | null;
+    public getChildByName(browseName: QualifiedNameLike): BaseNode | null;
+    public getChildByName(browseName: string, namespaceIndex?: number): BaseNode | null;
 
     /**
      * this methods propagates the forward references to the pointed node
@@ -218,6 +226,14 @@ export declare class BaseNode extends EventEmitter {
      * @return {ReferenceDescription[]}
      */
     public browseNode(browseDescription: BrowseDescriptionOptions, session?: SessionContext): ReferenceDescription[];
+
+
+    /**
+     * 
+     * @param rolePermissions 
+     */
+    setRolePermissions(rolePermissions: RolePermissionTypeOptions[]): void;
+
 }
 
 export declare class UAView extends BaseNode {
@@ -274,9 +290,11 @@ export interface VariableAttributes {
 }
 
 export interface IPropertyAndComponentHolder {
-    getComponentByName(componentName: QualifiedNameLike, namespaceIndex?: number): UAObject | UAVariable | null;
+    getComponentByName(componentName: QualifiedNameOptions): UAObject | UAVariable | null;
+    getComponentByName(componentName: string, namespaceIndex?: number): UAObject | UAVariable | null;
 
-    getPropertyByName(browseName: string, namespaceIndex?: number): UAVariable | null;
+    getPropertyByName(propertyName: QualifiedNameOptions): UAVariable | null;
+    getPropertyByName(propertyName: string, namespaceIndex?: number): UAVariable | null;
 
     getAggregates(): BaseNode[];
 
@@ -315,7 +333,7 @@ export interface UAVariable extends BaseNode, VariableAttributes, IPropertyAndCo
      *
      * The AccessLevelType is defined in 8.57.
      */
-    userAccessLevel: number;
+    userAccessLevel?: number;
 
     /**
      * This Attribute indicates whether the Value Attribute of the Variable is an array and how many dimensions
@@ -548,8 +566,6 @@ export interface UAVariable extends BaseNode, VariableAttributes, IPropertyAndCo
     // advanced
     touchValue(updateNow?: PreciseClock): void;
 
-    setPermissions(permissions: Permissions): void;
-
     bindVariable(options: BindVariableOptions | VariantLike, overwrite?: boolean): void;
 
     bindExtensionObject(optionalExtensionObject?: ExtensionObject): ExtensionObject | null;
@@ -636,7 +652,7 @@ export interface AddMultiStateValueDiscreteOptions extends AddVariableOptionsWit
 }
 
 // tslint:disable:no-empty-interface
-export interface UAEventType extends UAObjectType {}
+export interface UAEventType extends UAObjectType { }
 
 export type EventTypeLike = string | NodeId | UAEventType;
 
@@ -728,6 +744,15 @@ export interface PseudoVariantExtensionObjectArray {
     arrayType: VariantArrayType.Array;
     value: object[];
 }
+export interface PseudoVariantVariantArray {
+    dataType: "Variant" | DataType.Variant;
+    arrayType: VariantArrayType.Array;
+    value: Variant[];
+}
+export interface PseudoVariantVariant {
+    dataType: "Variant" | DataType.Variant;
+    value: Variant;
+}
 
 export type PseudoVariantNumber =
     | PseudoVariantUInt32
@@ -751,8 +776,9 @@ export type PseudoVariant =
     | PseudoVariantStatusCode
     | PseudoVariantNumber
     | PseudoVariantExtensionObject
-    | PseudoVariantExtensionObjectArray;
-
+    | PseudoVariantExtensionObjectArray
+    | PseudoVariantVariant
+    | PseudoVariantVariantArray;
 export interface RaiseEventData {
     $eventDataSource?: UAEventType;
 
@@ -772,12 +798,15 @@ export interface UAObject extends BaseNode, EventRaiser, IPropertyAndComponentHo
     readonly hasMethods: boolean;
 
     //
+    getFolderElementByName(browseName: QualifiedNameOptions): BaseNode | null;
     getFolderElementByName(browseName: string, namespaceIndex?: number): BaseNode | null;
 
     // Method accessor
     getMethodById(nodeId: NodeId): UAMethod | null;
 
-    getMethodByName(methodName: string): UAMethod | null;
+    getMethodByName(methodName: QualifiedNameOptions): UAMethod | null;
+    getMethodByName(methodName: string, namespaceIndex?: number): UAMethod | null;
+    getMethodByName(methodName: QualifiedNameLike, namespaceIndex?: number): UAMethod | null;
 
     getMethods(): UAMethod[];
 
@@ -819,8 +848,6 @@ export declare class UAMethod extends BaseNode {
      *
      */
     public _getExecutableFlag?: (sessionContext: SessionContext) => boolean;
-
-    public setPermissions(permissions: Permissions): void;
 
     public bindMethod(methodFunction: MethodFunctor): void;
 
@@ -870,6 +897,11 @@ export interface UADataType extends BaseNode {
     isSupertypeOf(referenceType: NodeIdLike | UADataType): boolean;
 
     getEncodingNode(encodingName: string): BaseNode | null;
+
+    /**
+     * 
+     */
+    getDefinition(): DataTypeDefinition;
 }
 
 export interface InstantiateOptions {
@@ -971,7 +1003,8 @@ export declare interface UAObjectType extends BaseNode, IPropertyAndComponentHol
     // Method accessor
     getMethodById(nodeId: NodeId): UAMethod | null;
 
-    getMethodByName(methodName: string): UAMethod | null;
+    getMethodByName(methodName: QualifiedNameOptions): UAMethod | null;
+    getMethodByName(methodName: string, namespaceIndex?: number): UAMethod | null;
 
     getMethods(): UAMethod[];
 }
@@ -1004,6 +1037,13 @@ export declare class UAReferenceType extends BaseNode {
     public isSupertypeOf(baseType: UAReferenceType): boolean;
 
     public getAllSubtypes(): UAReferenceType[];
+
+    /**
+     * 
+     * @param reference 
+     */
+    public checkHasSubtype(referenceType: NodeId | Reference): boolean;
+
 }
 
 export enum EUEngineeringUnit {
@@ -1036,17 +1076,18 @@ export interface AddBaseNodeOptions {
     modellingRule?: ModellingRuleType;
 
     references?: AddReferenceOpts[];
+
+    /**
+     * 
+     */
+    accessRestrictions?: AccessRestrictionsFlag;
+    /**
+     * 
+     */
+    rolePermissions?: RolePermissionTypeOptions[];
 }
 
-export interface Permissions {
-    CurrentRead?: string[];
-    CurrentWrite?: string[];
-    HistoryRead?: string[];
-    HistoryWrite?: string[];
-    StatusWrite?: string[];
-    TimestampWrite?: string[];
-    Execute?: string[];
-}
+
 
 export type AccessLevelString = string;
 
@@ -1087,14 +1128,16 @@ export interface VariableStuff {
      * The AccessLevel Attribute is used to indicate how the Value of a Variable can be accessed
      * (read/write) and if it contains current and/or historic data. The AccessLevel does not take
      * any user access rights into account, i.e. although the Variable is writable this may be
-     * restricted to a certain user / user group. The AccessLevelType is defined in 8.57.
+     * restricted to a certain user / user group. 
+     * 
+     * https://reference.opcfoundation.org/v104/Core/docs/Part3/8.57/
      */
     accessLevel?: UInt32 | AccessLevelString;
 
     /**
      * The UserAccessLevel Attribute is used to indicate how the Value of a Variable can be accessed
      * (read/write) and if it contains current or historic data taking user access rights into account.
-     * The AccessLevelType is defined in 8.57.
+     * https://reference.opcfoundation.org/v104/Core/docs/Part3/8.57/
      */
     userAccessLevel?: UInt32 | AccessLevelString;
 
@@ -1132,12 +1175,8 @@ export interface AddVariableTypeOptions extends AddBaseNodeOptions, VariableStuf
 }
 
 export interface AddVariableOptionsWithoutValue extends AddBaseNodeOptions, VariableStuff {
-    permissions?: Permissions;
 }
 export interface AddVariableOptions extends AddVariableOptionsWithoutValue {
-    /**
-     * permissions
-     */
     // default value is "BaseVariableType";
     typeDefinition?: string | NodeId | UAVariableType;
     value?: VariantLike | BindVariableOptions;
@@ -1188,13 +1227,13 @@ export interface AddMethodOptions {
     componentOf?: NodeIdLike | BaseNode;
     executable?: boolean;
     userExecutable?: boolean;
-    permissions?: Permissions;
+    accessRestrictions?: AccessRestrictionsFlag;
+    rolePermissions?: RolePermissionTypeOptions[];
 }
 
 export interface AddMultiStateDiscreteOptions extends AddBaseNodeOptions, VariableStuff {
     enumStrings: string[]; // default value is "BaseVariableType";
     typeDefinition?: string | NodeId | UAVariableType;
-    permissions?: Permissions;
     postInstantiateFunc?: (node: UAVariable) => void;
     value?: number | VariantLike | BindVariableOptions;
 }
@@ -1464,7 +1503,7 @@ export declare interface Namespace {
 }
 
 // tslint:disable:no-empty-interface
-export interface Folder extends UAObject {}
+export interface Folder extends UAObject { }
 
 export type FolderType = UAObjectType;
 
@@ -1636,7 +1675,7 @@ export interface UACertificateGroup extends UAObject {
     trustListOutOfDate?: UATrustListOutOfDateAlarmType;
 }
 
-export interface UACertificateExpirationAlarmType extends UAEventType {}
+export interface UACertificateExpirationAlarmType extends UAEventType { }
 
 /**
  * This event is raised when a Trust List is changed.
@@ -1644,7 +1683,7 @@ export interface UACertificateExpirationAlarmType extends UAEventType {}
  * It shall also be raised when the AddCertificate or RemoveCertificate Method causes an
  * update to the Trust List.
  */
-export interface UATrustListOutOfDateAlarmType extends UAEventType {}
+export interface UATrustListOutOfDateAlarmType extends UAEventType { }
 
 export interface UACertificateGroupFolder extends Folder {
     /**
@@ -1676,9 +1715,9 @@ export interface UACertificateGroupFolder extends Folder {
     // <AdditionalGroup>
 }
 
-export interface UAKeyCredentialConfigurationFolder extends Folder {}
+export interface UAKeyCredentialConfigurationFolder extends Folder { }
 
-export interface UAUserTokenPolicy {}
+export interface UAUserTokenPolicy { }
 
 export interface UAAuthorizationService extends UAObject {
     // found in authorizationServices
@@ -1711,7 +1750,7 @@ export interface UAAuthorizationService extends UAObject {
     requestAccessToken?: UAMethod;
 }
 
-export interface UAAuthorizationServicesFolder extends Folder {}
+export interface UAAuthorizationServicesFolder extends Folder { }
 
 // partial UAServerConfiguration related to authorization service
 export interface UAServerConfiguration extends UAObject {
@@ -1796,7 +1835,7 @@ export interface UAServerConfiguration extends UAObject {
     supportedPrivateKeyFormats: UAVariableT<UAString[], DataType.String>;
 }
 
-export interface UADirectoryType {}
+export interface UADirectoryType { }
 
 /**
  *
@@ -1931,7 +1970,7 @@ export interface UAOperationLimits extends UAObject {
     maxMonitoredItemsPerCall?: UAVariableT<UInt32, DataType.UInt32>;
 }
 
-export interface IdentityMappingRuleType {}
+export interface IdentityMappingRuleType { }
 
 /**
  * The Properties and Methods of the Role contain sensitive security related information and
@@ -2583,7 +2622,7 @@ export interface UAVariableTypeT<T, DT extends DataType> extends UAVariableType 
     instantiate(options: InstantiateVariableOptions): UAVariableT<T, DT>;
 }
 
-export interface Property<T, DT extends DataType> extends UAVariableT<T, DT> {}
+export interface Property<T, DT extends DataType> extends UAVariableT<T, DT> { }
 
 export interface UAAggregateConfiguration extends UAObject {
     treatUncertainAsBad: UAVariableT<boolean, DataType.Boolean>;
@@ -2621,7 +2660,7 @@ export interface ConditionType extends UAObjectType {
     addComment: UAMethod;
 }
 
-export interface Enumeration extends UAVariable {}
+export interface Enumeration extends UAVariable { }
 
 // {{ Dynamic Array Variable
 export interface UADynamicVariableArray<T extends ExtensionObject> extends UAVariable {

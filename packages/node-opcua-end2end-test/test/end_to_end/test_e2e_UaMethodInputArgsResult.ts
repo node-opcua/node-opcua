@@ -1,5 +1,5 @@
-import { ClientSession, DataType, OPCUAClient, OPCUAServer, StatusCodes } from "node-opcua";
-import "should";
+import { ClientSession, DataType, DiagnosticInfo, OPCUAClient, OPCUAServer, StatusCodes } from "node-opcua";
+import * as should from "should";
 
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("list status codes for input arguments", () => {
@@ -9,7 +9,7 @@ describe("list status codes for input arguments", () => {
     });
 
     const client = OPCUAClient.create({
-        endpoint_must_exist: false
+        endpointMustExist: false
     });
     let clientSession: ClientSession;
 
@@ -31,6 +31,13 @@ describe("list status codes for input arguments", () => {
                 if (inputArguments[0].value === 0) {
                     return callback(null, {
                         statusCode: StatusCodes.BadInvalidArgument
+                    });
+                }
+                if (inputArguments[0].value > 9) {
+                    return callback(null, {
+                        statusCode: StatusCodes.BadInvalidArgument,
+                        inputArgumentResults: [StatusCodes.BadOutOfRange],
+                        inputArgumentDiagnosticInfos: [new DiagnosticInfo({ additionalInfo: "Hey dude, stop ringing the door" })]
                     });
                 }
                 if (inputArguments[0].value > 3) {
@@ -62,7 +69,7 @@ describe("list status codes for input arguments", () => {
         result.inputArgumentResults![0].should.eql(StatusCodes.Good);
     });
 
-    it("should return lib generated error", async () => {
+    it("should return lib generated BadTypeMismatch if argument type is wrong", async () => {
         const result = await clientSession.call({
             objectId: "ns=1;s=e2e",
             methodId: "ns=1;s=RingDoor",
@@ -90,5 +97,18 @@ describe("list status codes for input arguments", () => {
         });
         result.statusCode.should.eql(StatusCodes.BadInvalidArgument);
         result.inputArgumentResults![0].should.eql(StatusCodes.Good);
+    });
+
+    it("should return custom diagnostic infos", async () => {
+        const result = await clientSession.call({
+            objectId: "ns=1;s=e2e",
+            methodId: "ns=1;s=RingDoor",
+            inputArguments: [{ dataType: DataType.UInt16, value: 10 }]
+        });
+        result.statusCode.should.eql(StatusCodes.BadInvalidArgument);
+        result.inputArgumentResults![0].should.eql(StatusCodes.BadOutOfRange);
+        should.exist(result.inputArgumentDiagnosticInfos);
+        should.exist(result.inputArgumentDiagnosticInfos![0]);
+        result.inputArgumentDiagnosticInfos![0]!.additionalInfo!.should.eql("Hey dude, stop ringing the door");
     });
 });

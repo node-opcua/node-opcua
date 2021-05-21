@@ -6,4 +6,6 @@ test/
 test_to_fix/
 certificates/
 .vscode/
+tsconfig.json
 *.tsbuildinfo
+pnpm-lock.yaml

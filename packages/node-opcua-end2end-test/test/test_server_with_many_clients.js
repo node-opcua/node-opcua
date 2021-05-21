@@ -3,75 +3,94 @@ const chalk = require("chalk");
 const should = require("should");
 const { assert } = require("node-opcua-assert");
 const async = require("async");
+const fs = require("fs");
+const path = require("path");
+const os = require("os");
 
-const opcua = require("node-opcua");
+const {
+    OPCUACertificateManager,
+    ClientSession,
+    ClientSubscription,
+    OPCUAClient,
+    AttributeIds,
+    makeNodeId,
+    VariableIds,
+    ClientMonitoredItem,
+} = require("node-opcua");
 
-const ClientSession = opcua.ClientSession;
 
-const ClientSubscription = opcua.ClientSubscription;
-
-const OPCUAClient = opcua.OPCUAClient;
-const AttributeIds = opcua.AttributeIds;
-const makeNodeId = opcua.makeNodeId;
-const VariableIds = opcua.VariableIds;
-
-//xx opcua.utils.setDebugFlag(__filename,true);
-const debugLog = require("node-opcua-debug").make_debugLog(__filename);
+const debugLog = require("node-opcua-debug").make_debugLog("TEST");
 
 const port = 2003;
 const maxConnectionsPerEndpoint = 100;
 const maxAllowedSessionNumber = 50;
 
-const build_server_with_temperature_device = require("../test_helpers/build_server_with_temperature_device")
-    .build_server_with_temperature_device;
+const { build_server_with_temperature_device }= require("../test_helpers/build_server_with_temperature_device");
 
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
-describe("Functional test : one server with many concurrent clients", function() {
+describe("Functional test : one server with many concurrent clients", function () {
     let server, temperatureVariableId, endpointUrl;
 
-    this.timeout(Math.max(20000, this.timeout()));
+    this.timeout(Math.max(500000, this.timeout()));
 
     let serverCertificateChain = null;
-    before(function(done) {
+    before((done) => {
         server = build_server_with_temperature_device(
             {
                 port,
                 maxAllowedSessionNumber: maxAllowedSessionNumber,
                 maxConnectionsPerEndpoint: maxConnectionsPerEndpoint
             },
-            function(err) {
+             (err) => {
                 endpointUrl = server.getEndpointUrl();
                 temperatureVariableId = server.temperatureVariableId;
                 serverCertificateChain = server.getCertificateChain();
+                debugLog("server started");
                 done(err);
             }
         );
     });
 
-    beforeEach(function(done) {
+    let clientCertificateManager
+    before(async () => {
+
+        debugLog("endpointUrl =", endpointUrl);
+        const _tmpFolder = fs.mkdtempSync(path.join(os.tmpdir(), "xx"));
+        if (!fs.existsSync(_tmpFolder)) {
+            fs.mkdirSync(_tmpFolder);
+        }
+        // const p = path.
+        clientCertificateManager = new OPCUACertificateManager({
+            rootFolder: _tmpFolder
+        });
+        await clientCertificateManager.initialize();
+    })
+    beforeEach(async () => {
+        await clientCertificateManager.dispose();
+    });
+
+    afterEach((done) => {
         done();
     });
 
-    afterEach(function(done) {
-        done();
-    });
-
-    after(function(done) {
-        server.shutdown(function() {
+    after((done) => {
+        server.shutdown(() => {
             done();
         });
-    });
+    }); 
 
     const expectedSubscriptionCount = 0;
 
     function wait_randomly(callback) {
-        setTimeout(callback, Math.ceil(100 + Math.random() * 1500));
+        setImmediate(()=>setTimeout(callback, Math.ceil(100 + Math.random() * 100)));
     }
 
     function construct_client_scenario(data) {
+        debugLog("construct_client_scenario ", data.name);
         const client = OPCUAClient.create({
+            clientCertificateManager,
             serverCertificate: serverCertificateChain,
-            requestedSessionTimeout: 120 * 1000
+            requestedSessionTimeout: 120 * 1000 * 100
         });
 
         data.client = client;
@@ -85,8 +104,9 @@ describe("Functional test : one server with many concurrent clients", function()
             wait_randomly,
 
             // connect the client
-            function(callback) {
-                client.connect(endpointUrl, function(err) {
+            function (callback) {
+                debugLog(" connection", name);
+                client.connect(endpointUrl, function (err) {
                     debugLog(" Connecting client ", name);
                     callback(err);
                 });
@@ -94,8 +114,8 @@ describe("Functional test : one server with many concurrent clients", function()
             wait_randomly,
 
             // create the session
-            function(callback) {
-                client.createSession(function(err, session) {
+            function (callback) {
+                client.createSession( (err, session) => {
                     debugLog(" session created for ", name);
                     data.session = session;
                     debugLog(chalk.yellow.bold(" Error ="), err);
@@ -107,12 +127,12 @@ describe("Functional test : one server with many concurrent clients", function()
             wait_randomly,
 
             // create a monitor item
-            function(callback) {
+            function (callback) {
                 debugLog(" Creating monitored Item for client", name);
                 const session = data.session;
 
                 const subscription = ClientSubscription.create(session, {
-                    requestedPublishingInterval: 200,
+                    requestedPublishingInterval: 1000,
                     requestedLifetimeCount: 10 * 60 * 10,
                     requestedMaxKeepAliveCount: 10,
                     maxNotificationsPerPublish: 200,
@@ -120,7 +140,7 @@ describe("Functional test : one server with many concurrent clients", function()
                     priority: 6
                 });
 
-                subscription.on("started", function() {
+                subscription.on("started", () => {
                     debugLog(
                         chalk.yellow.bold("subscription started"),
                         chalk.cyan(name),
@@ -129,11 +149,11 @@ describe("Functional test : one server with many concurrent clients", function()
                     );
                 });
 
-                subscription.on("terminated", function() {
+                subscription.on("terminated", () => {
                     debugLog(chalk.red.bold("subscription terminated"), name);
                 });
 
-                const monitoredItem = opcua.ClientMonitoredItem.create(
+                const monitoredItem = ClientMonitoredItem.create(
                     subscription,
                     {
                         nodeId: makeNodeId(VariableIds.Server_ServerStatus_CurrentTime),
@@ -143,12 +163,12 @@ describe("Functional test : one server with many concurrent clients", function()
                 );
 
                 // subscription.on("item_added",function(monitoredItem){
-                monitoredItem.on("initialized", function() {
+                monitoredItem.on("initialized", () => {
                     //xx console.log("monitoredItem.monitoringParameters.samplingInterval",monitoredItem.monitoringParameters.samplingInterval);//);
                 });
 
                 let counter = 0;
-                monitoredItem.on("changed", function(dataValue) {
+                monitoredItem.on("changed", (dataValue) => {
                     debugLog(" client ", name, " received value change ", dataValue.value.value);
                     data.nb_received_changed_event += 1;
                     counter++;
@@ -162,8 +182,8 @@ describe("Functional test : one server with many concurrent clients", function()
             wait_randomly,
 
             // closing  session
-            function(callback) {
-                data.session.close(function(err) {
+            function (callback) {
+                data.session.close( true, (err) => {
                     debugLog(" closing session for  ", name);
                     callback(err);
                 });
@@ -172,9 +192,9 @@ describe("Functional test : one server with many concurrent clients", function()
             wait_randomly,
 
             // disconnect the client
-            function(callback) {
-                client.disconnect(function(err) {
-                    debugLog(" client ", name, " disconnected");
+            function (callback) {
+                client.disconnect(function (err) {
+                    debugLog(chalk.cyan("Closing ",name, " disconnected"))
                     callback(err);
                 });
             }
@@ -184,7 +204,7 @@ describe("Functional test : one server with many concurrent clients", function()
 
     it(
         "it should allow " + maxAllowedSessionNumber + " clients to connect and concurrently monitor some nodeId",
-        function(done) {
+        (done) => {
             const nb_clients = server.maxAllowedSessionNumber;
 
             const clients = [];
@@ -196,15 +216,20 @@ describe("Functional test : one server with many concurrent clients", function()
                 clients.push(data);
             }
 
-            async.map(
+            async.mapLimit(
                 clients,
-                function(data, callback) {
-                    async.series(data.tasks, function(err) {
-                        callback(err, data.nb_received_changed_event);
+                maxAllowedSessionNumber,
+                 (data, callback) => {
+                    async.series(data.tasks, (err) => {
+                        if (err) {
+                            console.log(err);
+                        }
+                        setImmediate(()=>
+                            callback(err, data.nb_received_changed_event));
                     });
                 },
-                function(err, results) {
-                    results.forEach(function(nb_received_changed_event, index, array) {
+                (err, results) => {
+                    results.forEach( (nb_received_changed_event, index, array) => {
                         nb_received_changed_event.should.be.greaterThan(
                             1,
                             "client " +

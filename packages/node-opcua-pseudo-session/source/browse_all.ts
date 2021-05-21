@@ -1,3 +1,6 @@
+/**
+ * @module node-opcua-pseudo-session
+ */
 import { BrowseResult } from "node-opcua-service-browse";
 import { IBasicSession, BrowseDescriptionLike } from "./basic_session_interface";
 

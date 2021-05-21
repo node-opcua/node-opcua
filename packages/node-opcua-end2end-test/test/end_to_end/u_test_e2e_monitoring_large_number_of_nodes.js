@@ -18,7 +18,10 @@ const {
     ClientMonitoredItem,
 } = require("node-opcua");
 
-const { perform_operation_on_client_session } = require("../../test_helpers/perform_operation_on_client_session");
+const { 
+    perform_operation_on_subscription_async,
+    perform_operation_on_client_session
+} = require("../../test_helpers/perform_operation_on_client_session");
 
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 module.exports = function (test) {
@@ -126,7 +129,7 @@ module.exports = function (test) {
             ];
 
             let ids50000 = ids;
-            while (ids50000.length < 5000) {
+            while (ids50000.length < 5000 + ids.length) {
                 ids50000 = ids50000.concat(ids);
             }
 
@@ -162,7 +165,7 @@ module.exports = function (test) {
                 return itemsToCreate;
             }
 
-            perform_operation_on_client_session(
+             perform_operation_on_client_session(
                 client,
                 endpointUrl,
                 function (session, inner_done) {
@@ -195,17 +198,10 @@ module.exports = function (test) {
                                 subscription.terminate(inner_done);
                                 return;
                             }
-                            //Xx console.log(response.toString());
-                            subscription.on("raw_notification", function (n) {
-                                //xx console.log(n.notificationData[0].monitoredItems[0].toString());
-
-                                n.notificationData[0].monitoredItems.length.should.eql(itemsToCreate.length);
-
-                                //xx console.log(notificationMessageSpy.callCount);
-                                //xx console.log(notificationMessageSpy.getCall(0).args[0].toString());
-                                //xx console.log(notificationMessageSpy.getCall(1).args[0].toString());
-
+                            subscription.once("raw_notification", function (n) {
                                 subscription.terminate(inner_done);
+                                n.notificationData[0].monitoredItems.length.should.eql(
+                                    Math.min(subscription.maxNotificationsPerPublish,itemsToCreate.length));
                             });
                         });
                     });

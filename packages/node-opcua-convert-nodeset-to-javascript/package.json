@@ -1,23 +1,37 @@
 {
     "name": "node-opcua-convert-nodeset-to-javascript",
-    "version": "2.30.0",
+    "version": "2.42.1",
     "description": "pure nodejs OPCUA SDK - module -convert-nodeset-to-javascript",
+    "types": "dist/index.d.ts",
+    "main": "dist/index.js",
     "scripts": {
-        "test": "mocha"
+        "test": "mocha && npm run test-generated",
+        "test-generated": "tsc --build tsconfig-generated.json"
     },
-    "main": "index.js",
     "dependencies": {
-        "node-opcua-address-space": "2.30.0",
-        "node-opcua-assert": "2.29.0",
-        "node-opcua-data-model": "2.29.0",
-        "node-opcua-factory": "2.29.0",
-        "node-opcua-nodeid": "2.29.0",
-        "node-opcua-utils": "2.29.0"
+        "@types/debug": "^4.1.5",
+        "@types/wordwrap": "^1.0.0",
+        "node-opcua-address-space": "2.42.0",
+        "node-opcua-assert": "2.42.0",
+        "node-opcua-basic-types": "2.42.0",
+        "node-opcua-constants": "2.42.0",
+        "node-opcua-data-access": "2.42.0",
+        "node-opcua-data-model": "2.42.0",
+        "node-opcua-data-value": "2.42.0",
+        "node-opcua-factory": "2.42.0",
+        "node-opcua-nodeid": "2.42.0",
+        "node-opcua-pseudo-session": "2.42.0",
+        "node-opcua-service-translate-browse-path": "2.42.0",
+        "node-opcua-status-code": "2.42.0",
+        "node-opcua-types": "2.42.0",
+        "node-opcua-utils": "2.42.0",
+        "wordwrap": "^1.0.0"
     },
     "devDependencies": {
-        "node-opcua-nodesets": "2.29.0",
-        "node-opcua-packet-analyzer": "2.29.0",
-        "node-opcua-variant": "2.29.0",
+        "node-opcua-leak-detector": "2.42.0",
+        "node-opcua-nodesets": "2.41.1",
+        "node-opcua-packet-analyzer": "2.42.0",
+        "node-opcua-variant": "2.42.0",
         "should": "^13.2.3"
     },
     "author": "Etienne Rossignon",

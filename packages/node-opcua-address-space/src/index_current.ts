@@ -40,7 +40,5 @@ export { VariableHistorian } from "./historical_access/address_space_historical_
 export { Reference } from "./reference";
 export { NodeIdManager } from "../src/nodeid_manager";
 
-export * from "./alarms_and_conditions/condition_info";
-export * from "./alarms_and_conditions/check_where_clause";
-export * from "./alarms_and_conditions/extract_event_fields";
+export * from "./alarms_and_conditions";
 export * from "./event_data";

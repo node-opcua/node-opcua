@@ -41,9 +41,10 @@ import { UAVariable } from "../ua_variable";
 import { UAVariableType } from "../ua_variable_type";
 import { constructNamespaceDependency } from "./construct_namespace_dependency";
 import { ExtensionObject } from "node-opcua-extension-object";
-import { make_debugLog } from "node-opcua-debug";
+import { make_debugLog, make_errorLog } from "node-opcua-debug";
 
 const debugLog = make_debugLog(__filename);
+const errorLog = make_errorLog(__filename);
 
 function _hash(node: BaseNode | Reference): string {
     return node.nodeId.toString();
@@ -309,9 +310,12 @@ function _dumpVariantValue(xw: XmlWriter, dataType: DataType, value: any) {
 
         case DataType.StatusCode:
         default:
+            errorLog( "_dumpVariantValue!! incomplete  dataType=" + dataType + " - v=" + DataType[dataType] + "  value = " + value);
+            /*
             throw new Error(
                 "_dumpVariantValue!! incomplete  dataType=" + dataType + " - v=" + DataType[dataType] + "  value = " + value
             );
+            */
     }
 }
 
@@ -351,7 +355,8 @@ function _dumpVariantInnerValue(xw: XmlWriter, dataType: DataType, value: any) {
         case DataType.ByteString:
         case DataType.StatusCode:
         default:
-            throw new Error("_dumpVariantInnerValue incomplete " + value + " " + "DataType=" + dataType + "=" + DataType[dataType]);
+            errorLog("_dumpVariantInnerValue incomplete " + value + " " + "DataType=" + dataType + "=" + DataType[dataType]);
+            //  throw new Error("_dumpVariantInnerValue incomplete " + value + " " + "DataType=" + dataType + "=" + DataType[dataType]);
     }
 }
 
@@ -534,7 +539,9 @@ function _dumpValue(xw: XmlWriter, node: UAVariable | UAVariableType, value: Var
             } else if (value.arrayType === VariantArrayType.Scalar) {
                 encodeXml(value.value);
             } else {
-                throw new Error("Unsupported case");
+                errorLog(node.toString());
+                errorLog("_dumpValue : unsupported case , Matrix of ExtensionObjects")
+                // throw new Error("Unsupported case");
             }
         }
     } else {
@@ -553,7 +560,9 @@ function _dumpValue(xw: XmlWriter, node: UAVariable | UAVariableType, value: Var
         } else if (value.arrayType === VariantArrayType.Scalar) {
             encodeXml(value.value);
         } else {
-            throw new Error("Unsupported case");
+            errorLog(node.toString());
+            errorLog("_dumpValue : unsupported case , Matrix");
+            // xx throw new Error("Unsupported case");
         }
     }
 
@@ -756,30 +765,27 @@ function _dumpStructureDefinition(xw: XmlWriter, structureDefinition: StructureD
     }
 }
 function _dumpUADataTypeDefinition(xw: XmlWriter, node: UADataType) {
-    const $definition = node._getDefinition();
-    if (!$definition) {
+    
+    // to do remove DataType from base class
+
+    const definition = node._getDefinition(false);
+    if (!definition) {
         return;
     }
-    if ($definition instanceof EnumDefinition) {
+    if (definition instanceof EnumDefinition) {
         xw.startElement("Definition");
         xw.writeAttribute("Name", node.browseName.name!);
-        _dumpEnumDefinition(xw, $definition);
+        _dumpEnumDefinition(xw, definition);
         xw.endElement();
         return;
     }
-    if ($definition instanceof StructureDefinition) {
+    if (definition instanceof StructureDefinition) {
         xw.startElement("Definition");
         xw.writeAttribute("Name", node.browseName.name!);
-        if ($definition.structureType === StructureType.Union) {
+        if (definition.structureType === StructureType.Union) {
             xw.writeAttribute("IsUnion", "true");
         }
-        /*
-        // todo
-        $definition.baseDataType;
-        // todo
-        $definition.structureType;
-        */
-        _dumpStructureDefinition(xw, $definition);
+        _dumpStructureDefinition(xw, definition);
         xw.endElement();
         return;
     }

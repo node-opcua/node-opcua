@@ -5,7 +5,7 @@ import * as chalk from "chalk";
 
 import { assert } from "node-opcua-assert";
 import { isValidByte } from "node-opcua-basic-types";
-import { NodeClass } from "node-opcua-data-model";
+import { NodeClass, QualifiedNameLike, QualifiedNameOptions } from "node-opcua-data-model";
 import { AttributeIds } from "node-opcua-data-model";
 import { DataValue, DataValueLike } from "node-opcua-data-value";
 import { getCurrentClock } from "node-opcua-date-time";
@@ -78,8 +78,10 @@ export class UAObject extends BaseNode implements UAObjectPublic {
         return this.getMethods().length > 0;
     }
 
-    public getMethodByName(methodName: string): UAMethodPublic | null {
-        return super.getMethodByName(methodName);
+    public getMethodByName(methodName: QualifiedNameOptions): UAMethodPublic | null;
+    public getMethodByName(methodName: string, namespaceIndex?: number): UAMethodPublic | null;
+    public getMethodByName(methodName: QualifiedNameLike, namespaceIndex?: number): UAMethodPublic | null {
+        return super.getMethodByName(methodName, namespaceIndex);
     }
 
     public getMethods(): UAMethodPublic[] {
@@ -157,9 +159,9 @@ export class UAObject extends BaseNode implements UAObjectPublic {
             );
         }
 
-        addinqueue(this);
+        addInQueue(this);
 
-        function addinqueue(obj: BaseNode) {
+        function addInQueue(obj: BaseNode) {
             const key: string = obj.nodeId.toString();
             if (!m[key]) {
                 m[key] = obj;
@@ -173,10 +175,10 @@ export class UAObject extends BaseNode implements UAObjectPublic {
             obj.emit("event", eventData);
 
             const elements1 = obj.findReferencesAsObject("HasNotifier", false);
-            elements1.forEach(addinqueue);
+            elements1.forEach(addInQueue);
 
             const elements2 = obj.findReferencesAsObject("HasEventSource", false);
-            elements2.forEach(addinqueue);
+            elements2.forEach(addInQueue);
         }
     }
     public _conditionRefresh(_cache?: any) {

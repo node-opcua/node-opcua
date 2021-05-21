@@ -720,7 +720,9 @@ export function AddressSpace_installHistoricalDataNode(this: AddressSpace, node:
 
     // tslint:disable:no-bitwise
     node.accessLevel = node.accessLevel | AccessLevelFlag.CurrentRead | AccessLevelFlag.HistoryRead;
-    node.userAccessLevel = node.userAccessLevel | AccessLevelFlag.CurrentRead | AccessLevelFlag.HistoryRead;
+    if (node.userAccessLevel!== undefined) {
+        node.userAccessLevel = node.userAccessLevel | AccessLevelFlag.CurrentRead | AccessLevelFlag.HistoryRead;
+    }
 
     const optionals = ["Stepped", "Definition", "MaxTimeInterval", "MinTimeInterval", "StartOfArchive", "StartOfOnlineArchive"];
 

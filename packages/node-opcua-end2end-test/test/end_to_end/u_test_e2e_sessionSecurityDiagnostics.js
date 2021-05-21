@@ -1,5 +1,4 @@
 "use strict";
-/*global describe, it, require*/
 const should = require("should");
 const sinon = require("sinon");
 
@@ -50,7 +49,10 @@ module.exports = function (test) {
                 console.log("keep trying to connect "+ connectionPoint.endpointUrl)
             });
             
-            await perform_operation_on_subscription_async(client, connectionPoint, async (session, subscription) => {
+            // first attemp as Anonymous user
+            await client.withSessionAsync(
+                { endpointUrl: test.endpointUrl, userIdentity: { type:UserTokenType.Anonymous} },
+                async (session) => {
 
                 const nodesToRead = [
                     {
@@ -63,13 +65,46 @@ module.exports = function (test) {
                     },
                 ];
                 const dataValues = await session.read(nodesToRead);
-                const sessionDiagnostics = dataValues[0].value.value;
-                const sessionSecurityDiagnostics = dataValues[1].value.value;
-
-                should.exist(sessionSecurityDiagnostics);
+                
+                // ----------------------------------- SessionDiagnosticsArray
+                dataValues[0].statusCode.should.eql(StatusCodes.Good);
+                const sessionDiagnostics = dataValues[0].value.value; 
+               
+                // ----------------------------------- SessionSecurityDiagnosticsArray
+                dataValues[1].statusCode.should.eql(StatusCodes.BadUserAccessDenied); 
+                // const sessionSecurityDiagnostics = dataValues[1].value.value;
+                // should.exist(sessionSecurityDiagnostics);
 
                 // console.log(sessionSecurityDiagnostics.toString());
             });
+
+            // first attemp as Administrator user
+            await client.withSessionAsync(
+                connectionPoint,
+                async (session) => {
+
+                const nodesToRead = [
+                    {
+                        nodeId: makeNodeId(VariableIds.Server_ServerDiagnostics_SessionsDiagnosticsSummary_SessionDiagnosticsArray),
+                        attributeId: AttributeIds.Value
+                    },
+                    {
+                        nodeId: makeNodeId(VariableIds.Server_ServerDiagnostics_SessionsDiagnosticsSummary_SessionSecurityDiagnosticsArray),
+                        attributeId: AttributeIds.Value
+                    },
+                ];
+                const dataValues = await session.read(nodesToRead);
+                
+                // ----------------------------------- SessionDiagnosticsArray
+                dataValues[0].statusCode.should.eql(StatusCodes.Good);
+                const sessionDiagnostics = dataValues[0].value.value; 
+               
+                // ----------------------------------- SessionSecurityDiagnosticsArray
+                dataValues[1].statusCode.should.eql(StatusCodes.Good); 
+                const sessionSecurityDiagnostics = dataValues[1].value.value;
+                should.exist(sessionSecurityDiagnostics);
+                // console.log(sessionSecurityDiagnostics.toString());
+            });   
         });
 
         it("SDS2-B server should expose a SessionSecurityDiagnostics per Session", async () => {
@@ -170,7 +205,7 @@ module.exports = function (test) {
                     resultMask: 63
                 };
                 const browseResult = await session.browse([browseDesc]);
-                // enumerate all sessions availables
+                // enumerate all sessions available
                 //xx console.log(browseResult[0].toString());
                 sessionDiagnosticsNodeId = browseResult[0].references[0].nodeId;
 
@@ -214,7 +249,7 @@ module.exports = function (test) {
                     resultMask: 63
                 };
                 const browseResult = await session.browse([browseDesc]);
-                // enumerate all sessions availables
+                // enumerate all sessions available
                 //xx console.log(browseResult[0].toString());
                 sessionDiagnosticsNodeId = browseResult[0].references[0].nodeId;
                 nbSessionDiagnostics = browseResult[0].references.length;
@@ -267,14 +302,14 @@ module.exports = function (test) {
         it("SDS2-F it should not be possible to read sessionSecurityDiagnostics with a secure connection and non admin user", async () => {
 
             const client = OPCUAClient.create(clientOptions);
-            const anomymous_connectionPoint = {
+            const anonymous_connectionPoint = {
                 endpointUrl: connectionPoint.endpointUrl,
                 userIdentity: {
                     type: UserTokenType.Anonymous,
                 }
             }
 
-            await  perform_operation_on_subscription_async(client, anomymous_connectionPoint, async (session, subscription) => {
+            await  perform_operation_on_subscription_async(client, anonymous_connectionPoint, async (session, subscription) => {
                 
                 const nodesToRead = [
                     {

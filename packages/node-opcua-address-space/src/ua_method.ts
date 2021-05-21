@@ -11,7 +11,7 @@ import { DataValue, DataValueLike } from "node-opcua-data-value";
 import { NodeId } from "node-opcua-nodeid";
 import { Argument } from "node-opcua-service-call";
 import { StatusCodes } from "node-opcua-status-code";
-import { CallMethodResultOptions } from "node-opcua-types";
+import { CallMethodResultOptions, PermissionType } from "node-opcua-types";
 import { Variant } from "node-opcua-variant";
 import { DataType, VariantLike } from "node-opcua-variant";
 import {
@@ -20,7 +20,6 @@ import {
     UAMethod as UAMethodPublic,
     UAObject as UAObjectPublic,
     UAObjectType,
-    Permissions
 } from "../source";
 import { SessionContext } from "../source";
 import { BaseNode } from "./base_node";
@@ -50,21 +49,21 @@ export class UAMethod extends BaseNode implements UAMethodPublic {
     public value?: any;
     public methodDeclarationId: NodeId;
     public _getExecutableFlag?: (this: UAMethod, context: SessionContext) => boolean;
-    public _permissions: Permissions | null;
+
     public _asyncExecutionFunction?: MethodFunctor;
 
     constructor(options: any) {
         super(options);
         this.value = options.value;
         this.methodDeclarationId = options.methodDeclarationId;
-        this._permissions = null;
-        if (options.permissions) {
-            this.setPermissions(options.permissions);
-        }
     }
 
+    /**
+     *
+     * 
+     */
     public getExecutableFlag(context: SessionContext): boolean {
-        if (typeof this._asyncExecutionFunction !== "function") {
+        if (!this.isBound()) {
             return false;
         }
         if (this._getExecutableFlag) {
@@ -73,8 +72,12 @@ export class UAMethod extends BaseNode implements UAMethodPublic {
         return true;
     }
 
+    /**
+     * 
+     * @returns  true if the method is bound
+     */
     public isBound(): boolean {
-        return !!this._asyncExecutionFunction;
+        return typeof this._asyncExecutionFunction === "function";
     }
 
     public readAttribute(context: SessionContext, attributeId: AttributeIds): DataValue {
@@ -100,10 +103,6 @@ export class UAMethod extends BaseNode implements UAMethodPublic {
 
     public getOutputArguments(): Argument[] {
         return this._getArguments("OutputArguments");
-    }
-
-    public setPermissions(permissions: Permissions): void {
-        this._permissions = permissions;
     }
 
     public bindMethod(async_func: MethodFunctor): void {
@@ -133,11 +132,11 @@ export class UAMethod extends BaseNode implements UAMethodPublic {
         if (context.object.nodeClass !== NodeClass.Object && context.object.nodeClass !== NodeClass.ObjectType) {
             console.log(
                 "Method " +
-                    this.nodeId.toString() +
-                    " " +
-                    this.browseName.toString() +
-                    " called for a node that is not a Object/ObjectType but " +
-                    NodeClass[context.object.nodeClass]
+                this.nodeId.toString() +
+                " " +
+                this.browseName.toString() +
+                " called for a node that is not a Object/ObjectType but " +
+                NodeClass[context.object.nodeClass]
             );
             return callback(null, { statusCode: StatusCodes.BadNodeIdInvalid });
         }
@@ -146,16 +145,19 @@ export class UAMethod extends BaseNode implements UAMethodPublic {
             return callback(null, { statusCode: StatusCodes.BadInternalError });
         }
 
+
         if (!this.getExecutableFlag(context)) {
             console.log("Method " + this.nodeId.toString() + " " + this.browseName.toString() + " is not executable");
             // todo : find the correct Status code to return here
             return callback(null, { statusCode: StatusCodes.BadMethodInvalid });
         }
 
-        if (this._permissions && context.checkPermission) {
-            if (!context.checkPermission(this, "Execute")) {
-                return callback(null, { statusCode: StatusCodes.BadUserAccessDenied });
-            }
+        if (context.isAccessRestricted(this)) {
+            return callback(null, { statusCode: StatusCodes.BadSecurityModeInsufficient });
+        }
+
+        if (!context.checkPermission(this, PermissionType.Call)) {
+            return callback(null, { statusCode: StatusCodes.BadUserAccessDenied });
         }
 
         // verify that input arguments are correct
@@ -181,7 +183,8 @@ export class UAMethod extends BaseNode implements UAMethodPublic {
                         callMethodResult.inputArgumentResults?.length === inputArguments?.length
                             ? callMethodResult.inputArgumentResults
                             : inputArguments?.map(() => StatusCodes.Good);
-                    callMethodResult.inputArgumentDiagnosticInfos = inputArgumentDiagnosticInfos;
+                    callMethodResult.inputArgumentDiagnosticInfos =
+                        callMethodResult.inputArgumentDiagnosticInfos || inputArgumentDiagnosticInfos;
 
                     // verify that output arguments are correct according to schema
                     // Todo : ...

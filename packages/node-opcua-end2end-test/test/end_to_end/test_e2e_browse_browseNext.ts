@@ -15,8 +15,7 @@ import {
     browseAll
 } from "node-opcua";
 import { spy } from "sinon";
-
-const should = require("should");
+import * as should from "should";
 const doDebug = false;
 
 // #519_NodeCrawler is not browsing some nodes

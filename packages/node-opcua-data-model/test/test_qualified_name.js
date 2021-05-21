@@ -6,11 +6,24 @@ const { QualifiedName, coerceQualifiedName, encodeQualifiedName, decodeQualified
 
 describe("QualifiedName", () => {
 
+    it("should construct a qualified name", () => {
+        const qn = new QualifiedName();
+        qn.namespaceIndex.should.eql(0);
+        should(qn.name === null).be.equal(true);
+        qn.isEmpty().should.eql(true);
+        qn.toString().should.eql("<null>");
+    });
 
     it("should construct a qualified name", () => {
         const qn = new QualifiedName({});
         qn.namespaceIndex.should.eql(0);
         should(qn.name === null).be.equal(true);
+        qn.isEmpty().should.eql(true);
+    });
+    it("should construct a qualified name", () => {
+        const qn = new QualifiedName({ name: "" });
+        qn.namespaceIndex.should.eql(0);
+        qn.isEmpty().should.eql(true);
     });
     it("testing qualified name toString", () => {
         const qn = new QualifiedName({ name: "Hello" });

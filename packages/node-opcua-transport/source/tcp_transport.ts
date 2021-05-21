@@ -17,6 +17,7 @@ import { writeTCPMessageHeader } from "./tools";
 
 const debugLog = debug.make_debugLog(__filename);
 const doDebug = debug.checkDebugFlag(__filename);
+const errorLog = debug.make_errorLog(__filename);
 
 let fakeSocket: any = { invalid: true };
 
@@ -90,7 +91,6 @@ export class TCP_transport extends EventEmitter {
 
         this._onSocketClosedHasBeenCalled = false;
         this._onSocketEndedHasBeenCalled = false;
-
         TCP_transport.registry.register(this);
     }
 
@@ -133,7 +133,6 @@ export class TCP_transport extends EventEmitter {
         const totalLength = length + this.headerSize;
         const buffer = createFastUninitializedBuffer(totalLength);
         writeTCPMessageHeader("MSG", chunkType, totalLength, buffer);
-
         this._pendingBuffer = buffer;
 
         return buffer;
@@ -154,7 +153,6 @@ export class TCP_transport extends EventEmitter {
             this._pendingBuffer === undefined || this._pendingBuffer === messageChunk,
             " write should be used with buffer created by createChunk"
         );
-
         const header = readRawMessageHeader(messageChunk);
         assert(header.length === messageChunk.length);
         assert(["F", "C", "A"].indexOf(header.messageHeader.isFinal) !== -1);

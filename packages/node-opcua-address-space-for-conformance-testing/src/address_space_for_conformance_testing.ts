@@ -70,7 +70,6 @@ function getRandomFuncForType(dataType: DataType): () => any {
 }
 
 function _findDataType(dataTypeName: string): DataType {
-
     const builtInDataTypeName = findBuiltInType(dataTypeName);
 
     const dataType = (DataType as any)[builtInDataTypeName.name];
@@ -104,21 +103,18 @@ function validate_value_or_array(isArray: boolean, variantValue: any, validatorF
     }
 }
 
-function makeVariant(dataTypeName: string, isArray: boolean, current_value: any) {
-    isArray = isArray === null ? false : isArray;
-    let arrayType = VariantArrayType.Scalar;
-    if (isArray) {
-        arrayType = VariantArrayType.Array;
-    }
+function makeVariant(dataTypeName: string, arrayType: VariantArrayType, dimensions: number[] | null, current_value: any) {
     const dataType = _findDataType(dataTypeName);
 
     const validatorFunc = getValidatorFuncForType(dataType);
 
+    const isArray = arrayType === VariantArrayType.Array || arrayType === VariantArrayType.Matrix;
     validate_value_or_array(isArray, current_value, validatorFunc);
 
     const variant = new Variant({
         dataType,
         arrayType,
+        dimensions,
         value: current_value
     });
     return variant;
@@ -130,17 +126,20 @@ function _add_variable(
     varName: string,
     dataTypeName: string,
     current_value: any,
-    isArray: boolean,
+    valueRank: number,
+    arrayDimensions: number[] | null,
     extra_name: string
 ): UAVariable {
     const addressSpace = namespace.addressSpace;
     assert(typeof extra_name === "string");
 
-    const variant = makeVariant(dataTypeName, isArray, current_value);
+    const arrayType = valueRank <= 0 ? VariantArrayType.Scalar : valueRank === 1 ? VariantArrayType.Array : VariantArrayType.Matrix;
 
-    const name = parent.browseName.name!.toString() + "_" + varName + extra_name;
+    const variant = makeVariant(dataTypeName, arrayType, arrayDimensions, current_value);
 
-    const nodeId = "s=" + name;
+    const name = varName + extra_name;
+
+    const nodeId = parent.nodeId.toString() + "_" + varName + extra_name;
 
     const placeholder = {
         variant
@@ -152,8 +151,8 @@ function _add_variable(
         dataType: varName,
         description: { locale: "en", text: name },
         nodeId,
-        valueRank: isArray ? 1 : -1,
-
+        valueRank,
+        arrayDimensions,
         accessLevel: makeAccessLevelFlag("CurrentRead | CurrentWrite"),
         userAccessLevel: makeAccessLevelFlag("CurrentRead | CurrentWrite"),
         value: variant
@@ -162,10 +161,17 @@ function _add_variable(
     return variable;
 }
 
-function add_variable(namespace: Namespace, parent: UAObject, name: string, realType: any, default_value: any, extra_name: string) {
+function add_scalar_variable(
+    namespace: Namespace,
+    parent: UAObject,
+    name: string,
+    realType: any,
+    default_value: any,
+    extra_name: string
+) {
     assert(typeof extra_name === "string");
     const initialValue = typeof default_value === "function" ? default_value() : default_value;
-    const variable = _add_variable(namespace, parent, name, realType, initialValue, false, extra_name);
+    const variable = _add_variable(namespace, parent, name, realType, initialValue, -1, null, extra_name);
     assert(variable.valueRank === -1);
     // tslint:disable-next-line: no-bitwise
     assert(variable.accessLevel === AccessLevelFlag.CurrentRead + AccessLevelFlag.CurrentWrite);
@@ -175,7 +181,7 @@ function add_variable(namespace: Namespace, parent: UAObject, name: string, real
     return variable;
 }
 
-function add_variable_array(
+function add_array_variable(
     namespace: Namespace,
     parent: UAObject,
     dataTypeName: string,
@@ -200,7 +206,50 @@ function add_variable_array(
 
     const current_value = buildVariantArray((DataType as any)[realTypeName], arrayLength, local_defaultValue);
 
-    const variable = _add_variable(namespace, parent, dataTypeName, realTypeName, current_value, true, extra_name);
+    const variable = _add_variable(namespace, parent, dataTypeName, realTypeName, current_value, 1, null, extra_name);
+
+    assert(variable.valueRank === 1);
+    assert(variable.accessLevel === AccessLevelFlag.CurrentRead + AccessLevelFlag.CurrentWrite);
+    assert(variable.userAccessLevel === AccessLevelFlag.CurrentRead + AccessLevelFlag.CurrentWrite);
+    assert(variable.historizing === false);
+}
+function add_multi_dimensional_array_variable(
+    namespace: Namespace,
+    parent: UAObject,
+    dataTypeName: string,
+    default_value: any,
+    realTypeName: string,
+    arrayLength: number,
+    extra_name: string
+): void {
+    assert(typeof dataTypeName === "string");
+    assert(typeof realTypeName === "string");
+
+    // istanbul ignore next
+    if (!(DataType as any)[realTypeName]) {
+        console.log("dataTypeName", dataTypeName);
+        console.log("realTypeName", realTypeName);
+    }
+
+    assert((DataType as any)[realTypeName], " expecting a valid real type");
+    arrayLength = arrayLength || 10;
+
+    const local_defaultValue = typeof default_value === "function" ? default_value() : default_value;
+
+    const current_value = buildVariantArray((DataType as any)[realTypeName], arrayLength * arrayLength, local_defaultValue);
+
+    const variable = _add_variable(
+        namespace,
+        parent,
+        dataTypeName,
+        realTypeName,
+        current_value,
+        2,
+        [arrayLength, arrayLength],
+        extra_name
+    );
+
+    assert(variable.valueRank === 2);
 
     assert(variable.accessLevel === AccessLevelFlag.CurrentRead + AccessLevelFlag.CurrentWrite);
     assert(variable.userAccessLevel === AccessLevelFlag.CurrentRead + AccessLevelFlag.CurrentWrite);
@@ -227,7 +276,7 @@ function add_mass_variables_of_type(
     for (let i = 0; i <= 99; i++) {
         const extra_name = "_" + ("00" + i.toString()).substr(-2);
         const local_defaultValue = typeof default_value === "function" ? default_value() : default_value;
-        _add_variable(namespace, scalarMass_Type, dataTypeName, realType, local_defaultValue, false, extra_name);
+        _add_variable(namespace, scalarMass_Type, dataTypeName, realType, local_defaultValue, -1, null, extra_name);
     }
 }
 
@@ -319,7 +368,7 @@ function add_simulation_variables(namespace: Namespace, scalarFolder: UAObject):
             throw new Error("a random function must exist for basicType " + dataTypeName);
         }
 
-        const variable = _add_variable(namespace, parent, dataTypeName, realTypeName, defaultValue, false, "");
+        const variable = _add_variable(namespace, parent, dataTypeName, realTypeName, defaultValue, -1, null, "");
 
         const value_to_change = {
             dataType,
@@ -430,30 +479,29 @@ function add_simulation_variables(namespace: Namespace, scalarFolder: UAObject):
     (addressSpace as any).registerShutdownTask(tearDown_Timer);
 }
 
-function add_scalar_static_variables(namespace: Namespace, scalarFolder: UAObject) {
-    const scalarStatic = namespace.addObject({
+function add_static_variables(namespace: Namespace, scalarFolder: UAObject) {
+    const staticScalarFolder = namespace.addObject({
         organizedBy: scalarFolder,
-        browseName: "Scalar_Static",
+        browseName: "Scalars",
         description: "This folder will contain one item per supported data-type.",
-        nodeId: "s=Scalar_Static"
+        nodeId: "s=Static_Scalar"
     });
 
     // add statics scalar Variables
     typeAndDefaultValue.forEach((e) => {
         const dataType = e.type;
         const realType = e.realType || dataType;
-
         const defaultValue = typeof e.defaultValue === "function" ? e.defaultValue() : e.defaultValue;
-        add_variable(namespace, scalarStatic, dataType, realType, defaultValue, "");
+        add_scalar_variable(namespace, staticScalarFolder, dataType, realType, defaultValue, "");
     });
 
     function setImage2(imageType: any, filename: string) {
-        const fullpath = path.join(__dirname, "../data", filename);
-        const imageNode = namespace.findNode("s=Scalar_Static_Image" + imageType) as UAVariable;
+        const fullPath = path.join(__dirname, "../data", filename);
+        const imageNode = namespace.findNode("s=Static_Scalar_Image" + imageType) as UAVariable;
 
         const options = {
             refreshFunc: (callback: (err: Error | null, dataValue: DataValue) => void) => {
-                fs.readFile(fullpath, (err, data) => {
+                fs.readFile(fullPath, (err, data) => {
                     if (err) {
                         return callback(
                             null,
@@ -473,14 +521,14 @@ function add_scalar_static_variables(namespace: Namespace, scalarFolder: UAObjec
     }
 
     function setImage(imageType: string, filename: string) {
-        const fullpath = path.join(__dirname, "../data", filename);
-        const imageNode = namespace.findNode("s=Scalar_Static_Image" + imageType) as UAVariable;
-        fs.readFile(fullpath, (err, data) => {
+        const fullPath = path.join(__dirname, "../data", filename);
+        const imageNode = namespace.findNode("s=Static_Scalar_Image" + imageType) as UAVariable;
+        fs.readFile(fullPath, (err, data) => {
             if (!err) {
                 assert(data instanceof Buffer);
                 imageNode.setValueFromSource(new Variant({ dataType: DataType.ByteString, value: data }));
             } else {
-                console.log("cannot load file =", fullpath);
+                console.log("cannot load file =", fullPath);
             }
         });
     }
@@ -490,21 +538,35 @@ function add_scalar_static_variables(namespace: Namespace, scalarFolder: UAObjec
     setImage("GIF", "gif-anime.gif");
     setImage("JPG", "tiger.jpg");
 
-    // add statics Array Variables
-    const scalarStaticArray = namespace.addObject({
+    // add static Array Variables
+    const staticArraysFolders = namespace.addObject({
         organizedBy: scalarFolder,
-        browseName: "Scalar_Static_Array",
+        browseName: "Arrays",
         description:
             "Single dimension, suggested size of 10-elements per array. Unsupported types will be missing from the address-space.",
-        nodeId: "s=Scalar_Static_Array"
+        nodeId: "s=Static_Array"
     });
     // add static Array
     typeAndDefaultValue.forEach((e) => {
         const dataType = e.type;
         const realType = e.realType || dataType;
-        add_variable_array(namespace, scalarStaticArray, dataType, e.defaultValue, realType, 10, "");
+        add_array_variable(namespace, staticArraysFolders, dataType, e.defaultValue, realType, 10, "");
     });
-    // add static Mass
+
+    // add static MultiDimension Array Variables
+    const staticMultiDimensionalArrays = namespace.addObject({
+        organizedBy: scalarFolder,
+        browseName: "Multi-Dimensional Arrays",
+        description:
+            "Single dimension, suggested size of 10-elements per array. Unsupported types will be missing from the address-space.",
+        nodeId: "s=Static_MultiDimensional_Array"
+    });
+    // add static Array
+    typeAndDefaultValue.forEach((e) => {
+        const dataType = e.type;
+        const realType = e.realType || dataType;
+        add_multi_dimensional_array_variable(namespace, staticMultiDimensionalArrays, dataType, e.defaultValue, realType, 10, "");
+    });
 }
 
 function add_access_right_variables(namespace: Namespace, parentFolder: UAObject): void {
@@ -792,8 +854,12 @@ function add_node_with_references(namespace: Namespace, simulation_folder: UAObj
             componentOf: referenceFolder,
             typeDefinition: "FolderType"
         });
-        namespace.addFolder(hasInverseAndForwardReferences, {
+        const nodeId = namespace.addFolder(hasInverseAndForwardReferences, {
             browseName: "ReferenceNode1"
+        });
+        hasInverseAndForwardReferences.addReference({
+            nodeId,
+            referenceType: "AlarmGroupMember"
         });
     })();
 
@@ -803,6 +869,44 @@ function add_node_with_references(namespace: Namespace, simulation_folder: UAObj
         componentOf: referenceFolder,
         typeDefinition: "FolderType"
     });
+    (() => {
+        const hasReferencesOfAReferenceTypeAndSubType = namespace.addObject({
+            browseName: "HasReferencesOfAReferenceTypeAndSubType",
+            nodeId: "s=Demo.CTT.References.HasReferencesOfAReferenceTypeAndSubType",
+            typeDefinition: "FolderType",
+            componentOf: referenceFolder
+        });
+        namespace.addVariable({
+            browseName: "ReferenceNode1",
+            propertyOf: hasReferencesOfAReferenceTypeAndSubType,
+            dataType: "UInt32"
+        });
+        namespace.addVariable({
+            browseName: "ReferenceNode2",
+            propertyOf: hasReferencesOfAReferenceTypeAndSubType,
+            dataType: "UInt32"
+        });
+        namespace.addVariable({
+            browseName: "ReferenceNode3",
+            propertyOf: hasReferencesOfAReferenceTypeAndSubType,
+            dataType: "UInt32"
+        });
+        namespace.addVariable({
+            browseName: "ReferenceNode4",
+            propertyOf: hasReferencesOfAReferenceTypeAndSubType,
+            dataType: "UInt32"
+        });
+        for (let i = 0; i < 4; i++) {
+            const a = namespace.addObject({
+                browseName: "AlarmSuppressionGroup" + i,
+                componentOf: referenceFolder
+            });
+            hasReferencesOfAReferenceTypeAndSubType.addReference({
+                nodeId: a,
+                referenceType: "HasAlarmSuppressionGroup"
+            });
+        }
+    })();
 }
 function add_path_10deep(namespace: Namespace, simulation_folder: UAObject) {
     let parent = simulation_folder;
@@ -824,14 +928,14 @@ function add_very_large_array_variables(namespace: Namespace, objectsFolder: UAO
     // add statics Array Variables
     const scalarStaticLargeArray = namespace.addObject({
         organizedBy: objectsFolder,
-        browseName: "Scalar_Static_Large_Array",
+        browseName: "Static_Scalar_Large_Array",
         description: "Single dimension, suggested size of 100k-elements per array.",
-        nodeId: "s=Scalar_Static_Large_Array"
+        nodeId: "s=Static_Scalar_Large_Array"
     });
     typeAndDefaultValue.forEach((e) => {
         const dataType = e.type;
         const realType = e.realType || dataType;
-        add_variable_array(namespace, scalarStaticLargeArray, dataType, e.defaultValue, realType, 50 * 1024, "");
+        add_array_variable(namespace, scalarStaticLargeArray, dataType, e.defaultValue, realType, 50 * 1024, "");
     });
 }
 
@@ -847,15 +951,15 @@ function add_very_large_array_variables(namespace: Namespace, objectsFolder: UAO
 //                                             |
 //                +-----------------------------+---------------------------------+
 //                |                             |                                 |
-//           TwoStateDiscreteType     MultiStateDiscreteType                MutliStateValueDiscreteType
+//           TwoStateDiscreteType     MultiStateDiscreteType                MultiStateValueDiscreteType
 //
 function add_analog_data_items(namespace: Namespace, parentFolder: UAObject): void {
     function _addDataItem(localParentFolder: UAObject, dataType: DataType, initialValue: any): void {
+        const name = DataType[dataType] + "DataItem";
 
-        const name = dataType + "DataItem";
         const nodeId = "s=" + name;
 
-        namespace.addDataItem({
+        const v = namespace.addDataItem({
             componentOf: localParentFolder,
             nodeId,
             browseName: name,
@@ -863,12 +967,16 @@ function add_analog_data_items(namespace: Namespace, parentFolder: UAObject): vo
             dataType,
             value: {
                 arrayType: VariantArrayType.Scalar,
-                dataType: dataType,
+                dataType,
                 value: initialValue
             }
         });
+        assert(
+            v.nodeId.toString() === `ns=${namespace.index};${nodeId}`,
+            `ns=${namespace.index};${nodeId}` + " " + v.nodeId.toString()
+        );
     }
-    function makeRange(dataType: DataType): {  engineeringUnitsRange: RangeOptions, instrumentRange: RangeOptions } {
+    function makeRange(dataType: DataType): { engineeringUnitsRange: RangeOptions; instrumentRange: RangeOptions } {
         let engineeringUnitsRange = { low: -200, high: 200 };
         let instrumentRange = { low: -200, high: 200 };
         if (DataType[dataType][0] === "U" || dataType === DataType.Byte) {
@@ -879,12 +987,11 @@ function add_analog_data_items(namespace: Namespace, parentFolder: UAObject): vo
     }
 
     function _addAnalogDataItem(localParentFolder: UAObject, dataType: DataType, initialValue: any): void {
- 
         const { engineeringUnitsRange, instrumentRange } = makeRange(dataType);
         assert(
             Array.isArray(initialValue) || (initialValue >= engineeringUnitsRange.low && initialValue <= engineeringUnitsRange.high)
         );
-        const name = (DataType as any)[dataType]+ "AnalogDataItem";
+        const name = (DataType as any)[dataType] + "AnalogDataItem";
         const nodeId = "s=" + name;
         // UAAnalogItem
         // add a UAAnalogItem
@@ -901,14 +1008,13 @@ function add_analog_data_items(namespace: Namespace, parentFolder: UAObject): vo
             dataType,
             value: {
                 arrayType: VariantArrayType.Scalar,
-                dataType: dataType,
+                dataType,
                 value: initialValue
             }
         });
     }
 
     function _addArrayAnalogDataItem(localParentFolder: UAObject, dataType: DataType, initialValue: any) {
- 
         const name = (DataType as any)[dataType] + "ArrayAnalogDataItem";
         const nodeId = "s=" + name;
         // UAAnalogItem
@@ -927,7 +1033,7 @@ function add_analog_data_items(namespace: Namespace, parentFolder: UAObject): vo
             dataType,
             value: {
                 arrayType: VariantArrayType.Array,
-                dataType: dataType,
+                dataType,
                 value: [initialValue, initialValue, initialValue, initialValue, initialValue]
             }
         });
@@ -1350,10 +1456,24 @@ function add_trigger_nodes(namespace: Namespace, parentFolder: UAObject): void {
 function add_sampleView(namespace: Namespace): void {
     const addressSpace = namespace.addressSpace;
 
-    namespace.addView({
+    const view1 = namespace.addView({
         organizedBy: addressSpace.rootFolder.views,
         browseName: "SampleView",
         nodeId: "s=SampleView"
+    });
+    view1.addReference({
+        nodeId: "i=2256",  // Server_Status
+        referenceType: "Organizes"
+    });
+    view1.addReference({
+        nodeId: "i=11715", // Server_Namespaces
+        referenceType: "Organizes"
+    });
+
+    const view2 = namespace.addView({
+        organizedBy: addressSpace.rootFolder.views,
+        browseName: "OtherSampleView",
+        nodeId: "s=OtherSampleView"
     });
 }
 
@@ -1369,20 +1489,27 @@ export function build_address_space_for_conformance_testing(addressSpace: Addres
 
     add_access_right_variables(namespace, simulationFolder);
 
-    const scalarFolder = namespace.addFolder(simulationFolder, {
-        browseName: "Scalar",
-        description: "Simply a parent folder"
+    const staticVariablesFolder = namespace.addFolder(simulationFolder, {
+        browseName: "Static"
     });
 
-    add_scalar_static_variables(namespace, scalarFolder);
+    const allProfileFolder = namespace.addFolder(staticVariablesFolder, {
+        browseName: "All Profiles"
+    });
+
+    // Scalars/Array/MultiDim array of all sorts
+    add_static_variables(namespace, allProfileFolder);
     if (options.mass_variables) {
-        add_mass_variables(namespace, scalarFolder);
+        add_mass_variables(namespace, allProfileFolder);
     }
-    add_simulation_variables(namespace, scalarFolder);
+    add_analog_data_items(namespace, allProfileFolder);
 
-    add_very_large_array_variables(namespace, scalarFolder);
+    const dynamicVariablesFolder = namespace.addFolder(simulationFolder, {
+        browseName: "Dynamic"
+    });
+    add_simulation_variables(namespace, dynamicVariablesFolder);
 
-    add_analog_data_items(namespace, simulationFolder);
+    add_very_large_array_variables(namespace, staticVariablesFolder);
 
     add_path_10deep(namespace, simulationFolder);
 

@@ -1,0 +1,30 @@
+{
+    "out": "../node-opcua.github.io/api_doc/2.32.0",
+    "exclude": [
+        "**/node_modules/**",
+        "**/*.spec.ts"
+    ],
+    "name": "NodeOPCUA reference documentation - public API",
+    "excludePrivate": true,
+    "readme": "documentation/readme_for_doc.md",
+    "gaID": "UA-25438821-3",
+    "gaSite": "node-opcua.github.io",
+    "theme": "documentation/typedoc_theme",
+    "entryPoints": [
+        "packages/node-opcua/source/index.ts",
+        "packages/node-opcua-nodeid/source/index.ts",
+        "packages/node-opcua-variant/source/index.ts",
+        "packages/node-opcua-server/source/index.ts",
+        "packages/node-opcua-client/source/index.ts",
+        "packages/node-opcua-address-space/source/index.ts",
+        "packages/node-opcua-basic-types/source/index.ts",
+        "packages/node-opcua-certificate-manager/source/index.ts",
+        "packages/node-opcua-data-access/source/index.ts",
+        "packages/node-opcua-data-model/source/index.ts",
+        "packages/node-opcua-data-value/source/index.ts",
+        "packages/node-opcua-guid/source/index.ts",
+        "packages/node-opcua-status-code/source/index.ts",
+        "packages/node-opcua-types/source/index.ts"
+    ],
+    "logger": "console"
+}

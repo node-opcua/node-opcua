@@ -12,5 +12,6 @@ schemas/
 pki/
 tsconfig.json
 *.tsbuildinfo
+pnpm-lock.yaml
 tslint.*
 
