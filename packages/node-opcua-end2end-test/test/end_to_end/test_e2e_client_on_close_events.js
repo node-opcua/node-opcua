@@ -182,7 +182,7 @@ describe("testing Client-Server - Event", function() {
                     debugLog("           and will try to reconnect");
 
                     setTimeout(() => {
-                        debugLog(" 6--> disconnecting client");
+                        debugLog(" 6--> disconnecting client (while reconnecting)");
                         client.disconnect(() => {
                             debugLog(" 8 --> client has been disconnected");
                             callback();
@@ -204,8 +204,8 @@ describe("testing Client-Server - Event", function() {
             function(callback) {
                 _client_backoff_event.callCount.should.be.greaterThan(0);
                 _client_received_close_event.callCount.should.eql(1);
-                should.not.exist(_client_received_close_event.getCall(0).args[0]);
-                // _client_received_close_event.getCall(0).args[0].message.should.match(/CONNREFUSED/);
+                should.exist(_client_received_close_event.getCall(0).args[0]);
+                _client_received_close_event.getCall(0).args[0].message.should.match(/Reconnection has been canceled/);
                 callback();
             }
 

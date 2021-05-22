@@ -18,8 +18,9 @@ const chalk = require("chalk");
 
 const { readCertificate } = require("node-opcua-crypto");
 
-const { make_debugLog, checkDebugFlag} = require("node-opcua-debug");
+const { make_debugLog, checkDebugFlag, make_errorLog} = require("node-opcua-debug");
 const debugLog = make_debugLog("TEST");
+const errorLog = make_errorLog("TEST")
 const doDebug = checkDebugFlag("TEST");
 
 const port = 2014;
@@ -101,7 +102,7 @@ describe("KJH1 testing basic Client-Server communication", function () {
         });
     });
 
-    it("T1 - a client should connect to a server and disconnect ", function (done) {
+    it("TR01 - a client should connect to a server and disconnect ", function (done) {
         server.currentChannelCount.should.equal(0);
 
         client.protocolVersion = 0;
@@ -125,7 +126,7 @@ describe("KJH1 testing basic Client-Server communication", function () {
         );
     });
 
-    it("T2 - a server should not accept a connection when the protocol version is incompatible", function (done) {
+    it("TR02 - a server should not accept a connection when the protocol version is incompatible", function (done) {
         client.protocolVersion = 0xdeadbeef; // set a invalid protocol version
         server.currentChannelCount.should.equal(0);
 
@@ -142,13 +143,18 @@ describe("KJH1 testing basic Client-Server communication", function () {
                 }
             ],
             function (err) {
-                server.currentChannelCount.should.equal(0);
-                done(err);
+                if (err) {
+                    return done(err);
+                }
+                setTimeout(()=>{
+                    server.currentChannelCount.should.equal(0);
+                    done(err);    
+                }, 10);
             }
         );
     });
 
-    it("T3 - a client shall be able to create a session with a anonymous token", function (done) {
+    it("TR03 - a client shall be able to create a session with a anonymous token", function (done) {
         server.currentChannelCount.should.equal(0);
 
         let g_session;
@@ -195,7 +201,7 @@ describe("KJH1 testing basic Client-Server communication", function () {
         );
     });
 
-    it("T4 - a client shall be able to reconnect if the first connection has failed", function (done) {
+    it("TR04 - a client shall be able to reconnect if the first connection has failed", function (done) {
         server.currentChannelCount.should.equal(0);
 
         client.protocolVersion = 0;
@@ -225,7 +231,7 @@ describe("KJH1 testing basic Client-Server communication", function () {
         );
     });
 
-    it("T5 - a client shall be able to connect & disconnect many times", function (done) {
+    it("TR05 - a client shall be able to connect & disconnect many times", function (done) {
         server.currentChannelCount.should.equal(0);
 
         function relax_for_a_little_while(callback) {
@@ -286,7 +292,7 @@ describe("KJH1 testing basic Client-Server communication", function () {
         );
     });
 
-    it("T6 - a client shall raise an error when trying to create a session on an invalid endpoint", function (done) {
+    it("TR06 - a client shall raise an error when trying to create a session on an invalid endpoint", function (done) {
         // this is explained here : see OPCUA Part 4 Version 1.02 $5.4.1 page 12:
         //   A  Client  shall verify the  HostName  specified in the  Server Certificate  is the same as the  HostName
         //   contained in the  endpointUrl  provided in the  EndpointDescription. If there is a difference  then  the
@@ -313,7 +319,7 @@ describe("KJH1 testing basic Client-Server communication", function () {
             done
         );
     });
-    it("T7 - calling connect on the client twice shall return a error the second time", function (done) {
+    it("TR07 - calling connect on the client twice shall return a error the second time", function (done) {
         server.currentChannelCount.should.equal(0);
 
         client.protocolVersion = 0;
@@ -458,7 +464,7 @@ describe("KJH2 testing ability for client to reconnect when server close connect
             securityMode: _options.securityMode || MessageSecurityMode.None,
             securityPolicy: _options.securityPolicy || SecurityPolicy.None,
             keepSessionAlive: true,
-            requestedSessionTimeout: _options.requestedSessionTimeout || requestedSessionTimeout,
+            // requestedSessionTimeout: _options.requestedSessionTimeout || requestedSessionTimeout,
             connectionStrategy: connectionStrategy,
             requestedSessionTimeout: 120 * 60 * 1000 // 2 hours
         });
@@ -611,7 +617,7 @@ describe("KJH2 testing ability for client to reconnect when server close connect
         done();
     }
 
-    it("TR1 - should be possible to reconnect client after the server closed the connection", function (done) {
+    it("TR10 - should be possible to reconnect client after the server closed the connection", function (done) {
         // steps:
         //  -     Given a running demo server
         //  - and Given a client that has been configured  with a fail fast reconnection strategy
@@ -658,7 +664,7 @@ describe("KJH2 testing ability for client to reconnect when server close connect
         );
     });
 
-    it("TR2 - a client should be able to reconnect automatically to the server when the server restarts after a server failure", function (done) {
+    it("TR11 - a client should be able to reconnect automatically to the server when the server restarts after a server failure", function (done) {
         // steps:
         //  -     Given a running demo server
         //  - and Given a client that has been configured  with a robust reconnection strategy
@@ -702,7 +708,7 @@ describe("KJH2 testing ability for client to reconnect when server close connect
         );
     });
 
-    it("TR2a - a client should be able to reconnect automatically to the server when the server restarts after a server failure", function (done) {
+    it("TR12 - a client should be able to reconnect automatically to the server when the server restarts after a server failure", function (done) {
         async.series(
             [
                 f(start_demo_server),
@@ -754,7 +760,7 @@ describe("KJH2 testing ability for client to reconnect when server close connect
         );
     });
 
-    it("TR3 - it should be possible to disconnect a client which is in the middle a reconnection sequence", function (done) {
+    it("TR13 - it should be possible to disconnect a client which is in the middle a reconnection sequence", function (done) {
         async.series(
             [
                 f(start_demo_server),
@@ -776,7 +782,7 @@ describe("KJH2 testing ability for client to reconnect when server close connect
         );
     });
 
-    it("TR4 - it should be possible to disconnect a client which is attempting to establish it's first connection to a unavailable server", function (done) {
+    it("TR14 - it should be possible to disconnect a client which is attempting to establish it's first connection to a unavailable server", function (done) {
         async.series(
             [
                 function (callback) {
@@ -1023,7 +1029,7 @@ describe("KJH2 testing ability for client to reconnect when server close connect
         // in this case, the server drops all Subscriptions due to max lifetime count exhausted.
     }
 
-    it("TR4 - verify that server can suspend socket connection - useful for testing purposes", function (done) {
+    it("TR15 - verify that server can suspend socket connection - useful for testing purposes", function (done) {
         async.series(
             [
                 f(start_demo_server),
@@ -1049,7 +1055,7 @@ describe("KJH2 testing ability for client to reconnect when server close connect
         );
     });
 
-    it("TR5 -a client with some active monitoring items should be able to seamlessly reconnect after a connection break - and retrieve missed notification without lost ( Republish)", function (done) {
+    it("TR16 - a client with some active monitoring items should be able to seamlessly reconnect after a connection break - and retrieve missed notification without lost ( Republish)", function (done) {
         async.series(
             [
                 f(start_demo_server),
@@ -1089,7 +1095,7 @@ describe("KJH2 testing ability for client to reconnect when server close connect
         );
     });
 
-    it("TR6 -  a client with some active monitoring items should be able to seamlessly reconnect after a very long connection break exceeding subscription lifetime", function (done) {
+    it("TR17 - a client with some active monitoring items should be able to seamlessly reconnect after a very long connection break exceeding subscription lifetime", function (done) {
         // a client with some active monitoring items should be able to seamlessly reconnect
         // after a very long connection break exceeding subscription lifetime.
         // In this case, the subscription on the server side has been deleted, therefore the client shall
@@ -1143,12 +1149,12 @@ describe("KJH2 testing ability for client to reconnect when server close connect
         );
     });
 
-    xit("TR7 -  a client with some active monitored items should be able to reconnect seamlessly after a very long connection break exceeding session life time", function (done) {
+    xit("TR18 - a client with some active monitored items should be able to reconnect seamlessly after a very long connection break exceeding session life time", function (done) {
         // to do
         async.series([], done);
     });
 
-    it("TR8 -  disconnecting during connect", function (done) {
+    it("TR19 -  disconnecting during connect", function (done) {
         // Given a client that has a infinite connection retry strategy,
         //   And that client#connect is call to connect to an non-existent server.
         //
@@ -1253,7 +1259,7 @@ describe("KJH2 testing ability for client to reconnect when server close connect
         );
     });
 
-    it("TR9 -  disconnecting during reconnect", function (done) {
+    it("TR20 -  disconnecting during reconnect", function (done) {
         // Given a client that has a infinite connection retry strategy,
         //   And the client has a lived connection with a server
         //   And that the connection has dropped ( backoff strategy taking place)
@@ -1291,7 +1297,7 @@ describe("KJH2 testing ability for client to reconnect when server close connect
         );
     });
 
-    it("TR10 -  a client should notify that the reconnection attempt is taking place with an event", function (done) {
+    it("TR21 -  a client should notify that the reconnection attempt is taking place with an event", function (done) {
         // Given a client and a server with an established connection
         // When the connection link dropped
         // Then the client shall raise an event to indicate that the reconnection process is now taking place.
@@ -1367,10 +1373,10 @@ describe("KJH2 testing ability for client to reconnect when server close connect
         );
     }
 
-    it("TR11-a -  a client with active monitoring should be able to reconnect after a EPIPE connection break cause local socket end has been shut down - no security ", function (done) {
+    it("TR22 -  a client with active monitoring should be able to reconnect after a EPIPE connection break cause local socket end has been shut down - no security ", function (done) {
         test_1({ securityMode: MessageSecurityMode.None, securityPolicy: SecurityPolicy.Node }, done);
     });
-    it("TR11-b -  a client with active monitoring should be able to reconnect after a EPIPE connection break cause local socket end has been shut down - with secure channel (#390)", function (done) {
+    it("TR23 -  a client with active monitoring should be able to reconnect after a EPIPE connection break cause local socket end has been shut down - with secure channel (#390)", function (done) {
         test_1(
             {
                 securityMode: MessageSecurityMode.SignAndEncrypt,
@@ -1380,7 +1386,7 @@ describe("KJH2 testing ability for client to reconnect when server close connect
         );
     });
 
-    it("TR12 -  a client with active monitored item should be able to reconnect and transfer subscriptions when session timeout", function (done) {
+    it("TR24 -  a client with active monitored item should be able to reconnect and transfer subscriptions when session timeout", function (done) {
         const requestedSessionTimeout = 5000;
 
         async.series(
@@ -1433,7 +1439,7 @@ describe("KJH2 testing ability for client to reconnect when server close connect
         );
     });
 
-    it("TR13 - a connected client shall be able to detect when a server has shut down and shall reconnect when server restarts", function (done) {
+    it("TR25 - a connected client shall be able to detect when a server has shut down and shall reconnect when server restarts", function (done) {
         async.series(
             [
                 f(start_demo_server),

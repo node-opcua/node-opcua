@@ -73,8 +73,11 @@ export class ClientSidePublishEngine {
     }
 
     public suspend(suspendedState: boolean) {
-        assert(this.isSuspended !== !!suspendedState, "publishEngine: invalid state");
-        this.isSuspended = !!suspendedState;
+        if (this.isSuspended === suspendedState) {
+            // nothing to do ...
+            return; 
+        }
+        this.isSuspended = suspendedState;
         if (!this.isSuspended) {
             this.replenish_publish_request_queue();
         }
@@ -441,10 +444,10 @@ export class ClientSidePublishEngine {
 
         setImmediate(() => {
             assert(typeof callback === "function");
-            (async as any).whilst(
-                (cb: any) => cb(null, !isDone),
+            async.whilst(
+                (cb: (err: null, truth: boolean) => boolean) => cb(null, !isDone),
                 sendRepublishFunc,
-                (err: Error | null) => {
+                (err?: Error | null) => {
                     debugLog("nbPendingPublishRequest = ", this.nbPendingPublishRequests);
                     debugLog(" _republish ends with ", err ? err.message : "null");
                     callback(err!);

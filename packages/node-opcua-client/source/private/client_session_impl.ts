@@ -315,7 +315,9 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession {
     }
 
     get isReconnecting() {
-        return this._client ? this._client.isReconnecting && !this._reconnecting?.reconnecting : false;
+        return this._client 
+            ? (this._client.isReconnecting || this._reconnecting?.reconnecting)
+            : false;
     }
 
     public getPublishEngine(): ClientSidePublishEngine {
@@ -1457,7 +1459,7 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession {
             // for a long time
             // we may need to queue this transaction, as a secure token may be being reprocessed
             debugLog(chalk.bgWhite.red("!!! Performing transaction on invalid channel !!! ", request.constructor.name));
-            return callback(new Error("Invalid Channel "));
+            return callback(new Error("Invalid Channel after performing transaction on " + request.constructor.name));
         }
 
         this._reconnecting.pendingTransactions = this._reconnecting.pendingTransactions || [];
