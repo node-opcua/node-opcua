@@ -6,6 +6,7 @@ import * as path from "path";
 import * as fs from "fs";
 import * as crypto from "crypto";
 import "should";
+import { make_warningLog } from "node-opcua-debug";
 
 import {
     nodesets,
@@ -29,6 +30,7 @@ import {
 } from "node-opcua";
 import { readCertificate, readPrivateKey, readPrivateKeyPEM } from "node-opcua-crypto";
 import should = require("should");
+const warningLog =make_warningLog("TEST");
 
 
 const doDebug = !!process.env.DEBUG;
@@ -78,21 +80,23 @@ const userManager = {
 };
 
 async function waitForDisconnection(session: ClientSession): Promise<void> {
-    if (!session.isReconnecting) {
+    while (!session.isReconnecting) {
+        doDebug && warningLog("session.isReconnecting  ", session.isReconnecting);
         await pause(100);
-        return await waitForDisconnection(session);
     }
+    doDebug && warningLog("session.isReconnecting  ", session.isReconnecting);
 }
 
 async function waitForReconnection(session: ClientSession): Promise<void> {
-    if (session.isReconnecting) {
+    while (session.isReconnecting) {
+        doDebug && warningLog("session.isReconnecting  ", session.isReconnecting);
         await pause(100);
-        return await waitForReconnection(session);
     }
+    doDebug && warningLog("session.isReconnecting  ", session.isReconnecting);
 }
 
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
-describe("test reconnection when server stops and change it privateKey and certificate then restart", function (this: any) {
+describe("test reconnection when server stops and change it privateKey and certificate then restart #985", function (this: any) {
     this.timeout(120 * 1000);
 
     const port = 2565;
@@ -187,40 +191,46 @@ describe("test reconnection when server stops and change it privateKey and certi
 
         const { client, session } = await createClient(endpointUrl, securityPolicy, securityMode, sessionTimeout);
 
+        let _err: Error;
+
         try {
             const privateKeyBefore = readPrivateKey(server.privateKeyFile).toString("hex");
 
             await server.shutdown();
-
+            warningLog("server has shutdown");
             await waitForDisconnection(session);
+            warningLog("client lost connection")
 
             await pause(waitDuration);
-            console.log("restarting server");
+            warningLog("restarting server - with a different private key");
             server = await startServer();
+            warningLog("server restarted")
 
             const privateKeyAfter = readPrivateKey(server.privateKeyFile).toString("hex");
-            privateKeyAfter.should.not.eql(privateKeyBefore);
+            privateKeyAfter.should.not.eql(privateKeyBefore, "expecting a different server private key");
 
+            warningLog("waiting for client session to be back and running");
             await waitForReconnection(session);
-
-            console.log(" Client should now be reconnected");
-
+            warningLog(" Client should now be reconnected");
             const dataValue = await session.read({ nodeId: "i=2258", attributeId: AttributeIds.Value });
 
             console.log(dataValue.toString());
         } catch (err) {
             console.log(err);
+            _err = err;
         } finally {
             await session.close();
             await client.disconnect();
             await server.shutdown();
         }
+
+        should.not.exist(_err);
     }
     it("T1- server should not crash when client re-establishes the connection - encrypted", async () => {
-        await test(SecurityPolicy.Basic256Sha256, MessageSecurityMode.SignAndEncrypt, 10000, 1000);
+        await test(SecurityPolicy.Basic256Sha256, MessageSecurityMode.SignAndEncrypt, 10000, 5000);
     });
     it("T2- server should not crash when client re-establishes the connection - clear", async () => {
-        await test(SecurityPolicy.None, MessageSecurityMode.None, 10000, 1000);
+        await test(SecurityPolicy.None, MessageSecurityMode.None, 10000, 5000);
     });
 
     it("T3- server should not crash when client re-establishes the connection - clear - session timeout", async () => {

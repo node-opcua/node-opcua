@@ -224,7 +224,9 @@ export interface ClientSecureChannelLayerOptions {
 export class ClientSecureChannelLayer extends EventEmitter {
     private static g_counter: number = 0;
     private _counter: number = ClientSecureChannelLayer.g_counter++;
-
+    private _bytesRead: number = 0;
+    private _bytesWritten: number = 0;
+    
     public static minTransactionTimeout = 10 * 1000; // 10 sec
     public static defaultTransactionTimeout = 60 * 1000; // 1 minute
 
@@ -238,11 +240,11 @@ export class ClientSecureChannelLayer extends EventEmitter {
     }
 
     get bytesRead(): number {
-        return this._transport ? this._transport.bytesRead : 0;
+        return this._bytesRead + (this._transport ? this._transport.bytesRead : 0);
     }
 
     get bytesWritten(): number {
-        return this._transport ? this._transport.bytesWritten : 0;
+        return this._bytesWritten + (this._transport ? this._transport.bytesWritten : 0);
     }
 
     get transactionsPerformed(): number {
@@ -858,6 +860,11 @@ export class ClientSecureChannelLayer extends EventEmitter {
          * @param err
          */
         this.emit("close", err);
+
+        //
+        this._bytesRead += this._transport?.bytesRead || 0;
+        this._bytesWritten += this._transport?.bytesWritten || 0;
+
         this._transport?.dispose();
         this._transport = undefined;
         this._cancel_pending_transactions(err);
