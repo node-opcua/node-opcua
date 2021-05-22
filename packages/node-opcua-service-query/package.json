@@ -1,6 +1,6 @@
 {
     "name": "node-opcua-service-query",
-    "version": "2.42.0",
+    "version": "2.43.0",
     "description": "pure nodejs OPCUA SDK - module -service-query",
     "scripts": {
         "build": "tsc -b",
@@ -21,7 +21,7 @@
         "node-opcua-service-browse": "2.42.0",
         "node-opcua-service-filter": "2.42.0",
         "node-opcua-service-secure-channel": "2.42.0",
-        "node-opcua-service-subscription": "2.42.0",
+        "node-opcua-service-subscription": "2.43.0",
         "node-opcua-service-translate-browse-path": "2.42.0",
         "node-opcua-types": "2.42.0"
     },
