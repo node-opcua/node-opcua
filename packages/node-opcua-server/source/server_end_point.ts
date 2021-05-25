@@ -44,7 +44,8 @@ function extractSocketData(socket: net.Socket, reason: string): ISocketData {
         remoteAddress,
         remoteFamily,
         remotePort,
-        timestamp: new Date()
+        timestamp: new Date(),
+        reason
     };
     return data;
 }

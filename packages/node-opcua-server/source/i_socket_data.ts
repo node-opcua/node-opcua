@@ -7,4 +7,5 @@ export interface ISocketData {
     remoteFamily?: string;
     remotePort?: number;
     timestamp: Date;
+    reason: string;
 }
