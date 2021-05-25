@@ -1,13 +1,13 @@
 /**
  * @module node-opcua-address-space
  */
-// tslint:disable:no-console
 import * as chalk from "chalk";
 import { assert } from "node-opcua-assert";
 
 import { AttributeIds } from "node-opcua-data-model";
 import { DiagnosticInfo, NodeClass } from "node-opcua-data-model";
 import { DataValue, DataValueLike } from "node-opcua-data-value";
+import { make_debugLog, make_warningLog } from "node-opcua-debug";
 import { NodeId } from "node-opcua-nodeid";
 import { Argument } from "node-opcua-service-call";
 import { StatusCodes } from "node-opcua-status-code";
@@ -26,6 +26,10 @@ import { BaseNode } from "./base_node";
 import { _clone } from "./base_node_private";
 import { _handle_hierarchy_parent } from "./namespace";
 import { UAVariable } from "./ua_variable";
+
+
+const warningLog = make_warningLog(__filename);
+const debugLog = make_debugLog(__filename);
 
 function default_check_valid_argument(arg: any) {
     return arg.constructor.name === "Argument";
@@ -130,7 +134,7 @@ export class UAMethod extends BaseNode implements UAMethodPublic {
 
         assert(context.object instanceof BaseNode);
         if (context.object.nodeClass !== NodeClass.Object && context.object.nodeClass !== NodeClass.ObjectType) {
-            console.log(
+            warningLog(
                 "Method " +
                 this.nodeId.toString() +
                 " " +
@@ -141,15 +145,14 @@ export class UAMethod extends BaseNode implements UAMethodPublic {
             return callback(null, { statusCode: StatusCodes.BadNodeIdInvalid });
         }
         if (!this._asyncExecutionFunction) {
-            console.log("Method " + this.nodeId.toString() + " " + this.browseName.toString() + " has not been bound");
+            warningLog("Method " + this.nodeId.toString() + " " + this.browseName.toString() + " has not been bound");
             return callback(null, { statusCode: StatusCodes.BadInternalError });
         }
 
 
         if (!this.getExecutableFlag(context)) {
-            console.log("Method " + this.nodeId.toString() + " " + this.browseName.toString() + " is not executable");
-            // todo : find the correct Status code to return here
-            return callback(null, { statusCode: StatusCodes.BadMethodInvalid });
+            warningLog("Method " + this.nodeId.toString() + " " + this.browseName.toString() + " is not executable");
+            return callback(null, { statusCode: StatusCodes.BadNotExecutable });
         }
 
         if (context.isAccessRestricted(this)) {
@@ -171,8 +174,8 @@ export class UAMethod extends BaseNode implements UAMethodPublic {
                 context,
                 (err: Error | null, callMethodResult: CallMethodResultOptions) => {
                     if (err) {
-                        console.log(err.message);
-                        console.log(err);
+                        debugLog(err.message);
+                        debugLog(err);
                     }
                     callMethodResult = callMethodResult || {};
 
@@ -198,9 +201,8 @@ export class UAMethod extends BaseNode implements UAMethodPublic {
                 }
             );
         } catch (err) {
-            // tslint:disable:no-console
-            console.log(chalk.red("ERR in method  handler"), err.message);
-            console.error(err.stack);
+            warningLog(chalk.red("ERR in method  handler"), err.message);
+            warningLog(err.stack);
             const callMethodResponse = { statusCode: StatusCodes.BadInternalError };
             callback(err, callMethodResponse);
         }

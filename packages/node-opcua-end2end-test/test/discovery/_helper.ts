@@ -32,14 +32,14 @@ export async function pause(ms: number) {
  * @param name
  */
 export async function createAndStartServer(discoveryEndpointUrl: string, port: number, name: string): Promise<OPCUAServer> {
-    const server = await createServerThatRegisterWithDiscoveryServer(discoveryEndpointUrl, port, name);
+    const server = await createServerThatRegistersItselfToTheDiscoveryServer(discoveryEndpointUrl, port, name);
     /* no await here on purpose */ server.start();
     // server registration takes place in parallel and should be checked independently
     await once(server, "serverRegistered");
     await pause(100);
     return server;
 }
-export async function createServerThatRegisterWithDiscoveryServer(
+export async function createServerThatRegistersItselfToTheDiscoveryServer(
     discoveryServerEndpointUrl: string,
     port: number,
     name: string

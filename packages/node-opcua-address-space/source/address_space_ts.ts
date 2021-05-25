@@ -1604,15 +1604,34 @@ export interface UAAddressSpaceFileType extends UAFileType {
 }
 
 /**
- * The Trust List file is a UA Binary encoded stream containing an instance of
- * TrustListDataType
+ * 
+ * this type defines a FileType that can be used to access a Trust List.
+ * The CertificateManager uses this type to implement the Pull Model.
+ * Servers use this type when implementing the Push Model.
+ * An instance of a TrustListType shall restrict access to appropriate users or applications.
+ *  This may be a CertificateManager administrative user that can change the contents of a 
+ * Trust List, it may be an Administrative user that is reading a Trust List to deploy to an 
+ * Application host or it may be an Application that can only access the Trust List assigned 
+ * to it.
+ * 
+ * The Trust List file is a UA Binary encoded stream containing an instance of TrustListDataType
+ * The Open Method shall not support modes other than Read (0x01) and the Write + EraseExisting (0x06).
+ * 
+ * When a Client opens the file for writing the Server will not actually update the Trust List
+ *  until the CloseAndUpdate Method is called. Simply calling Close will discard the updates. 
+ * The bit masks in TrustListDataType structure allow the Client to only update part of the 
+ * Trust List.
+ * When the CloseAndUpdate Method is called the Server will validate all new Certificates
+ *  and CRLs. If this validation fails the Trust List is not updated and the Server returns
+ *  the appropriate Certificate error code.
  */
 export interface UATrustList extends UAFileType {
     // methods
-    addCertificate: UAMethod;
+    addCertificate?: UAMethod;
+    removeCertificate?: UAMethod;
+
     closeAndUpdate: UAMethod;
-    openWithMask: UAMethod;
-    removeCertificate: UAMethod;
+    openWithMasks: UAMethod;
 
     // properties
 
