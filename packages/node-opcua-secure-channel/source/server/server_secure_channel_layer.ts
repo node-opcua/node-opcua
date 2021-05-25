@@ -1037,7 +1037,8 @@ export class ServerSecureChannelLayer extends EventEmitter {
     protected async checkCertificate(certificate: Certificate | null): Promise<StatusCode> {
         if (!certificate) {
             return StatusCodes.Good;
-        } // istanbul ignore script
+        } 
+        // istanbul ignore next
         if (!this.certificateManager) {
             return StatusCodes.BadInternalError;
         }

@@ -23,7 +23,7 @@ import {
     OPCUADiscoveryServer
 } from "node-opcua";
 import { readCertificate, exploreCertificate } from "node-opcua-crypto";
-import { createServerThatRegisterWithDiscoveryServer, ep, startDiscovery } from "./_helper";
+import { createServerThatRegistersItselfToTheDiscoveryServer, ep, startDiscovery } from "./_helper";
 
 const configFolder = path.join(__dirname, "../../tmp");
 
@@ -324,11 +324,11 @@ export function t(test: any) {
 
         before(async () => {
             OPCUAServer.registry.count().should.eql(0);
-            server1 = await createServerThatRegisterWithDiscoveryServer(discoveryServerEndpointUrl, port1, "AA");
-            server2 = await createServerThatRegisterWithDiscoveryServer(discoveryServerEndpointUrl, port2, "BB");
-            server3 = await createServerThatRegisterWithDiscoveryServer(discoveryServerEndpointUrl, port3, "CC");
-            server4 = await createServerThatRegisterWithDiscoveryServer(discoveryServerEndpointUrl, port4, "DD");
-            server5 = await createServerThatRegisterWithDiscoveryServer(discoveryServerEndpointUrl, port5, "EE");
+            server1 = await createServerThatRegistersItselfToTheDiscoveryServer(discoveryServerEndpointUrl, port1, "AA");
+            server2 = await createServerThatRegistersItselfToTheDiscoveryServer(discoveryServerEndpointUrl, port2, "BB");
+            server3 = await createServerThatRegistersItselfToTheDiscoveryServer(discoveryServerEndpointUrl, port3, "CC");
+            server4 = await createServerThatRegistersItselfToTheDiscoveryServer(discoveryServerEndpointUrl, port4, "DD");
+            server5 = await createServerThatRegistersItselfToTheDiscoveryServer(discoveryServerEndpointUrl, port5, "EE");
         });
 
         after(() => {

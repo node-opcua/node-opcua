@@ -4,7 +4,7 @@
 import { assert } from "node-opcua-assert";
 import * as ec from "node-opcua-basic-types";
 import { BinaryStream, BinaryStreamSizeCalculator, OutputBinaryStream } from "node-opcua-binary-stream";
-import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
+import { checkDebugFlag, make_debugLog, make_warningLog } from "node-opcua-debug";
 import * as factories from "node-opcua-factory";
 import { NodeId, resolveNodeId } from "node-opcua-nodeid";
 import { Argument } from "node-opcua-service-call";
@@ -17,6 +17,7 @@ import { NodeClass } from "node-opcua-data-model";
 import { AddressSpace, UAMethod, UAObject } from "../address_space_ts";
 
 const debugLog = make_debugLog(__filename);
+const warningLog = make_warningLog(__filename);
 const doDebug = checkDebugFlag(__filename);
 
 function myfindBuiltInType(dataType: DataType): any {
@@ -108,6 +109,7 @@ export function getMethodDeclaration_ArgumentList(
         // the method can be called
         objectMethod = addressSpace.findNode(methodId) as UAMethod;
         if (!objectMethod || objectMethod.nodeClass !== NodeClass.Method) {
+            warningLog("cannot find method with id", methodId.toString(), "object Id = ", objectId.toString());
             return { statusCode: StatusCodes.BadMethodInvalid };
         }
     }

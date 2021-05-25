@@ -20,7 +20,7 @@ import {
 } from "node-opcua";
 
 import { make_debugLog, checkDebugFlag } from "node-opcua-debug";
-import { createDiscovery, createServerThatRegisterWithDiscoveryServer, f, startDiscovery } from "./_helper";
+import { createServerThatRegistersItselfToTheDiscoveryServer, f, startDiscovery } from "./_helper";
 
 const debugLog = make_debugLog("TEST");
 const doDebug = checkDebugFlag("TEST");
@@ -66,7 +66,7 @@ module.exports = () => {
         let endpointUrl = "";
 
         const createServer = f(function start_an_opcua_server_that_registers_to_the_lds(callback: ErrorCallback) {
-            createServerThatRegisterWithDiscoveryServer(discoveryServerEndpointUrl, port1, "AZ")
+            createServerThatRegistersItselfToTheDiscoveryServer(discoveryServerEndpointUrl, port1, "AZ")
                 .then(async (server: OPCUAServer) => {
                     g_server = server;
                     await server.start();
@@ -101,7 +101,7 @@ module.exports = () => {
                     debugLog(" creating client");
                 }
                 let client = OPCUAClient.create({
-                    requestedSessionTimeout: 5000,
+                    requestedSessionTimeout: 10000,
                     clientName: "Client-" + clientCount
                 });
                 clientCount += 1;
@@ -204,11 +204,11 @@ module.exports = () => {
         });
 
         const wait_a_few_seconds = f(function wait_a_few_seconds(callback: ErrorCallback) {
-            setTimeout(callback, 800);
+            setTimeout(callback, 1200);
         });
 
         const wait_a_minute = f(function wait_a_minute(callback: ErrorCallback) {
-            setTimeout(callback, 4000);
+            setTimeout(callback, 12000);
         });
 
         before(function (done) {

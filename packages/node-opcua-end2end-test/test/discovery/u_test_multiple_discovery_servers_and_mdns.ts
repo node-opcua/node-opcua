@@ -36,7 +36,8 @@ export function t(test: any) {
             OPCUAServer.registry.count().should.eql(0);
         });
 
-        after(() => {
+        after(async () => {
+            await pause(500);
             OPCUAServer.registry.count().should.eql(0);
         });
 
