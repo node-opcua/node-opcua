@@ -4,10 +4,10 @@
 
 import { callbackify } from "util";
 
-import { AddressSpace, MethodFunctor, SessionContext, UAMethod, UATrustList, WellKnownRoles } from "node-opcua-address-space";
-import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
+import { AddressSpace, MethodFunctor, MethodFunctorCallback, SessionContext, UAMethod, UATrustList, WellKnownRoles } from "node-opcua-address-space";
+import { checkDebugFlag, make_debugLog, make_warningLog } from "node-opcua-debug";
 import { NodeId, resolveNodeId, sameNodeId } from "node-opcua-nodeid";
-import { StatusCodes } from "node-opcua-status-code";
+import { StatusCode, StatusCodes } from "node-opcua-status-code";
 import { CallMethodResultOptions } from "node-opcua-types";
 import { DataType, Variant, VariantArrayType } from "node-opcua-variant";
 import { NodeClass } from "node-opcua-data-model";
@@ -22,14 +22,15 @@ import {
     PushCertificateManagerServerOptions
 } from "./server/push_certificate_manager_server_impl";
 import { UAObject, UAFileType } from "node-opcua-address-space";
-import { AbstractFs, installFileType } from "node-opcua-file-transfer";
+import { AbstractFs, installFileType, OpenFileMode } from "node-opcua-file-transfer";
 import { OPCUACertificateManager } from "node-opcua-certificate-manager";
-import { writeTrustList } from "./server/trust_list_server";
+import { TrustListMasks, writeTrustList } from "./server/trust_list_server";
 import { fs as MemFs } from "memfs";
 import { CertificateManager } from "node-opcua-pki";
 
 const debugLog = make_debugLog("ServerConfiguration");
 const doDebug = checkDebugFlag("ServerConfiguration");
+const warningLog = make_warningLog("ServerConfiguration");
 const errorLog = debugLog;
 
 function hasExpectedUserAccess(context: SessionContext) {
@@ -288,7 +289,7 @@ async function _addCertificate(
     } else {
         await cm.addIssuer(certificate);
     }
-    console.log("_addCertificate - done");
+    warningLog("_addCertificate - done isTrustedCertificate= ", isTrustedCertificate);
     return { statusCode: StatusCodes.Good };
 
 }
@@ -385,27 +386,49 @@ export async function installPushCertificateManagement(
             const closeAndUpdate = trustList.getChildByName("CloseAndUpdate") as UAMethod;
             closeAndUpdate?.bindMethod(callbackify(_closeAndUpdate));
 
+
             // change open methos
             const open = trustList.getChildByName("Open") as UAMethod;
-
+            const openWithMasks = trustList.getChildByName("OpenWithMasks") as UAMethod;
             const _asyncExecutionFunction = (open as any)._asyncExecutionFunction as MethodFunctor;
-            open.bindMethod(function (this: any, inputArgs: Variant[], context: SessionContext, callback: any) {
-                //
-                const certificateMangaer = (trustList as any).$$certificateManager as OPCUACertificateManager || undefined;
-                if (certificateMangaer) {
-                    writeTrustList(MemFs as AbstractFs, filename, certificateMangaer).then(() => {
+
+            function openTrustList(this: any, trustMask: TrustListMasks, inputArgs: Variant[], context: SessionContext, callback: MethodFunctorCallback) {
+
+                // The Open Method shall not support modes other than Read (0x01) and the Write + EraseExisting (0x06).
+                const openMask = inputArgs[0].value as number;
+                if (openMask !== OpenFileMode.Read && openMask !== OpenFileMode.WriteEraseExisting) {
+                    return callback(null, { statusCode: StatusCodes.BadInvalidArgument})
+                }
+
+                // possible statusCode: Bad_UserAccessDenied	The current user does not have the rights required.
+                const certificateManager = (trustList as any).$$certificateManager as OPCUACertificateManager || undefined;
+                if (certificateManager) {
+                    writeTrustList(MemFs as AbstractFs, filename, trustMask, certificateManager).then(() => {
                         _asyncExecutionFunction.call(this, inputArgs, context, callback);
                     }).catch((err) => {
-                        callback(err);
+                        callback(err, { statusCode: StatusCodes.BadInternalError });
                     })
                 } else {
                     console.log("do something to update the document before we open it")
                     return _asyncExecutionFunction.call(this, inputArgs, context, callback);
                 }
+            }
+             
+            open.bindMethod(function (this: any, inputArgs: Variant[], context: SessionContext, callback: MethodFunctorCallback) {
+                openTrustList.call(this, TrustListMasks.All, inputArgs, context, callback);
+            })
+
+            // The OpenWithMasks Method allows a Client to read only the portion of the Trust List.
+            // This Method can only be used to read the Trust List.
+            openWithMasks.bindMethod(function (this: any, inputArgs: Variant[], context: SessionContext, callback: MethodFunctorCallback) {
+                const trustListMask = inputArgs[0].value as number;
+                inputArgs[0] = new Variant({ dataType: DataType.Byte, value: OpenFileMode.Read});
+                openTrustList.call(this, trustListMask, inputArgs, context, callback);
             })
 
             const addCertificate = trustList.getChildByName("AddCertificate") as UAMethod;
             addCertificate.bindMethod(callbackify(_addCertificate));
+
             const removeCertificate = trustList.getChildByName("RemoveCertificate") as UAMethod;
             removeCertificate.bindMethod(callbackify(_removeCertificate));
 

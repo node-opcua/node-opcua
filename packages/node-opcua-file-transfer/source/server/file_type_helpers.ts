@@ -151,12 +151,12 @@ export class FileTypeData {
      */
     public async refresh(): Promise<void> {
 
-        const fs = this._fs;
+        const abstractFs = this._fs;
 
         // lauch an async request to update filesize
         await (async function extractFileSize(self: FileTypeData) {
             try {
-                const stat = await promisify(fs.stat)(self.filename);
+                const stat = await promisify(abstractFs.stat)(self.filename);
                 self._fileSize = stat.size;
                 debugLog("original file size ", self.filename, " size = ", self._fileSize);
             } catch(err) {
@@ -333,15 +333,15 @@ async function _openFile(
 
     const filename = fileData.filename;
 
-    const fs = _getFileSystem(context);
+    const abstractFs = _getFileSystem(context);
 
     try {
-        _fileInfo.fd = await promisify(fs.open)(filename, flags);
+        _fileInfo.fd = await promisify(abstractFs.open)(filename, flags);
 
         // update position
         _fileInfo.position = [0, 0];
 
-        const fileLength = (await promisify(fs.stat)(filename)).size;
+        const fileLength = (await promisify(abstractFs.stat)(filename)).size;
         _fileInfo.size = fileLength;
 
         // tslint:disable-next-line:no-bitwise
@@ -394,7 +394,7 @@ async function _closeFile(
 ): Promise<CallMethodResultOptions> {
 
 
-    const fs = _getFileSystem(context);
+    const abstractFs = _getFileSystem(context);
 
     const addressSpace = this.addressSpace;
 
@@ -409,7 +409,7 @@ async function _closeFile(
 
     debugLog("Closing file handle ", fileHandle, "filename: ", data.filename, "openCount: ", data.openCount);
 
-    await promisify(fs.close)(_fileInfo.fd);
+    await promisify(abstractFs.close)(_fileInfo.fd);
     _close(addressSpace, context, _fileInfo);
     data.openCount -= 1;
 
@@ -434,7 +434,7 @@ async function _readFile(
 
     const addressSpace = this.addressSpace;
 
-    const fs = _getFileSystem(context);
+    const abstractFs = _getFileSystem(context);
 
     //  fileHandle A handle indicating the access request and thus indirectly the
     //  position inside the file.
@@ -464,10 +464,10 @@ async function _readFile(
 
     const data = Buffer.alloc(length);
 
-    let ret: { bytesRead: number};
+    let bytesRead: number = 0;
     try {
-        ret = (await promisify(fs.read)(_fileInfo.fd, data, 0, length, _fileInfo.position[1]))  as  any as { bytesRead: number};;
-        _fileInfo.position[1] += ret.bytesRead;
+        bytesRead = await promisify(abstractFs.read)(_fileInfo.fd, data, 0, length, _fileInfo.position[1]) ;
+        _fileInfo.position[1] += bytesRead;
     } catch (err) {
         errorLog("Read error : ", err.message);
         return { statusCode: StatusCodes.BadUnexpectedError };
@@ -477,7 +477,7 @@ async function _readFile(
     //     of the file is reached.
     return {
         outputArguments: [
-            { dataType: DataType.ByteString, value: data.slice(0, ret.bytesRead) }
+            { dataType: DataType.ByteString, value: data.slice(0, bytesRead) }
         ],
         statusCode: StatusCodes.Good
     };
@@ -492,7 +492,7 @@ async function _writeFile(
 
     const addressSpace = this.addressSpace;
 
-    const fs = _getFileSystem(context);
+    const abstractFs = _getFileSystem(context);
 
     const fileHandle: UInt32 = inputArguments[0].value as UInt32;
 
@@ -511,7 +511,7 @@ async function _writeFile(
 
     let ret;
     try {
-        ret = await promisify(fs.write)(_fileInfo.fd, data, 0, data.length, _fileInfo.position[1]);
+        ret = await promisify(abstractFs.write)(_fileInfo.fd, data, 0, data.length, _fileInfo.position[1]);
         assert(typeof (ret as any).bytesWritten === "number");
         _fileInfo.position[1] += (ret as any).bytesWritten;
         _fileInfo.size = Math.max( _fileInfo.size, _fileInfo.position[1] );
@@ -617,7 +617,7 @@ export function installFileType(
     options.maxSize = (options.maxSize === undefined) ? defaultMaxSize : options.maxSize;
 
     const $fileData = new FileTypeData(options, file);
-    (file as any).$fileData = $fileData;
+    (file as any).$  = $fileData;
 
     // ----- install mime type
     if (options.mineType) {

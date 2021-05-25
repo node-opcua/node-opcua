@@ -17,32 +17,61 @@ async function readAll(folder: string): Promise<Buffer[]> {
         if (ext === ".der" || ext === ".pem") {
             const buf = await readCertificate(file);
             results.push(buf);
-        }
-        if (ext === ".clr") {
+        } else if (ext === ".crl") {
             const buf = await readCertificateRevocationList(file);
             results.push(buf);
+        } else {
+            console.log(" unknown extesnion on file ", f);
         }
     }
     return results;
 }
 
-async function buildTrustList(certificateManager: OPCUACertificateManager): Promise<TrustListDataType> {
+export enum TrustListMasks {
+    None = 0,
+    TrustedCertificates = 1,
+    TrustedCrls = 2,
+    IssuerCertificates = 4,
+    IssuerCrls = 8,
+    All = 15,
+};
+
+export async function buildTrustList(
+    certificateManager: OPCUACertificateManager,
+    trustListFlag: TrustListMasks
+): Promise<TrustListDataType> {
     const trustList = new TrustListDataType({
-        issuerCertificates: [],
-        issuerCrls: [],
-        specifiedLists: 15,
-        trustedCertificates: [],
-        trustedCrls: [],
+        specifiedLists: trustListFlag,
+        issuerCertificates: undefined,
+        issuerCrls: undefined,
+        trustedCertificates: undefined,
+        trustedCrls: undefined,
     });
-    trustList.trustedCertificates = await readAll(certificateManager.trustedFolder);
-    trustList.trustedCrls = await readAll(certificateManager.crlFolder);
-    trustList.issuerCertificates = await readAll(certificateManager.issuersCertFolder);
-    trustList.issuerCrls = await readAll(certificateManager.issuersCrlFolder);
+    if ((trustListFlag & TrustListMasks.TrustedCertificates) === TrustListMasks.TrustedCertificates) {
+        trustList.trustedCertificates = await readAll(certificateManager.trustedFolder);
+    }
+    if ((trustListFlag & TrustListMasks.TrustedCrls) === TrustListMasks.TrustedCrls) {
+        trustList.trustedCrls = await readAll(certificateManager.crlFolder);
+    }
+    if ((trustListFlag & TrustListMasks.IssuerCertificates) === TrustListMasks.IssuerCertificates) {
+        trustList.issuerCertificates = await readAll(certificateManager.issuersCertFolder);
+    }
+    if ((trustListFlag & TrustListMasks.IssuerCrls) === TrustListMasks.IssuerCrls) {
+        trustList.issuerCrls = await readAll(certificateManager.issuersCrlFolder);
+    }
     return trustList;
 }
 
-export async function writeTrustList(fs: AbstractFs, filename: string, certificateManager: OPCUACertificateManager): Promise<void> {
-    const trustList = await buildTrustList(certificateManager);
+
+
+export async function writeTrustList(
+    fs: AbstractFs,
+    filename: string,
+    trustListFlag: TrustListMasks,
+
+    certificateManager: OPCUACertificateManager
+): Promise<void> {
+    const trustList = await buildTrustList(certificateManager, trustListFlag);
     const stream = new BinaryStream(trustList.binaryStoreSize());
     trustList.encode(stream);
     await new Promise<void>((resolve, reject) => {
