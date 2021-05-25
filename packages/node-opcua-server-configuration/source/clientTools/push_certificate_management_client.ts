@@ -6,7 +6,7 @@ import { makeNodeId, NodeId, resolveNodeId } from "node-opcua-nodeid";
 import { CallMethodRequestLike, IBasicSession } from "node-opcua-pseudo-session";
 import { StatusCode, StatusCodes } from "node-opcua-status-code";
 import { DataType, VariantArrayType, VariantLike } from "node-opcua-variant";
-import {ClientFile, OpenFileMode} from "node-opcua-file-transfer";
+import { ClientFile, OpenFileMode } from "node-opcua-file-transfer";
 import { AttributeIds, QualifiedName, QualifiedNameLike, coerceQualifiedName } from "node-opcua-data-model";
 import { makeBrowsePath } from "node-opcua-service-translate-browse-path";
 import { Certificate } from "node-opcua-crypto";
@@ -21,6 +21,7 @@ import {
 } from "../push_certificate_manager";
 
 import { ITrustList } from "../trust_list";
+import { TrustListMasks } from "../server/trust_list_server";
 
 
 const serverConfigurationNodeId = resolveNodeId("ServerConfiguration");
@@ -67,9 +68,10 @@ function findCertificateTypeIdNodeId(certificateTypeId: NodeId | string): NodeId
 
 export class TrustListClient extends ClientFile implements ITrustList {
 
-    private closeAndUpdateNodeId?:  NodeId;
+    private closeAndUpdateNodeId?: NodeId;
     private addCertificateNodeId?: NodeId;
     private removeCertificateNodeId?: NodeId;
+    private openWithMasksNodeId?: NodeId;
 
     constructor(session: IBasicSession, public nodeId: NodeId) {
         super(session, nodeId);
@@ -80,15 +82,21 @@ export class TrustListClient extends ClientFile implements ITrustList {
     async _extractMethodIds(): Promise<void> {
 
         const browseResults = await this.session.translateBrowsePath([
-            makeBrowsePath(this.nodeId, "/CloseAndUpdate"),
-            makeBrowsePath(this.nodeId, "/AddCertificate"),
-            makeBrowsePath(this.nodeId, "/RemoveCertificate")
+            makeBrowsePath(this.nodeId, "/CloseAndUpdate"),    // Optional
+            makeBrowsePath(this.nodeId, "/AddCertificate"),    // Optional
+            makeBrowsePath(this.nodeId, "/RemoveCertificate"), // Optional
+            makeBrowsePath(this.nodeId, "/OpenWithMasks")      // OpenWithMasks Mandatory
         ]);
-        
+
         this.closeAndUpdateNodeId = browseResults[0].targets![0].targetId;
         this.addCertificateNodeId = browseResults[1].targets![0].targetId;
         this.removeCertificateNodeId = browseResults[2].targets![0].targetId;
+        this.openWithMasksNodeId = browseResults[3].targets![0].targetId;
 
+        // istanbul ignore next
+        if (!this.openWithMasksNodeId || this.openWithMasksNodeId.isEmpty()) {
+            throw new Error("Cannot find mandatory method OpenWithMask on object");
+        }
     }
 
     protected async extractMethodsIds() {
@@ -96,7 +104,33 @@ export class TrustListClient extends ClientFile implements ITrustList {
         await this._extractMethodIds();
     }
 
-    async closeAndUpdate(applyChangesRequired: boolean ): Promise<boolean> {
+    async openWithMasks(trustListMask: TrustListMasks): Promise<number> {
+        // istanbul ignore next
+        if (this.fileHandle) {
+            throw new Error("File has already be opened");
+        }
+        await this.ensureInitialized();
+        // istanbul ignore next
+        if (!this.openWithMasksNodeId) {
+            throw new Error("OpenWithMasks doesn't exist");
+        }
+        const inputArguments = [
+            { dataType: DataType.UInt32, value: trustListMask },
+        ];
+        const methodToCall: CallMethodRequestLike = {
+            inputArguments,
+            methodId: this.openWithMasksNodeId,
+            objectId: this.nodeId
+        };
+        const callMethodResult = await this.session.call(methodToCall);
+        if (callMethodResult.statusCode !== StatusCodes.Good) {
+            throw new Error(callMethodResult.statusCode.name);
+        }
+        this.fileHandle = callMethodResult.outputArguments![0].value as number;
+        return this.fileHandle;
+    }
+
+    async closeAndUpdate(applyChangesRequired: boolean): Promise<boolean> {
         if (!this.fileHandle) {
             throw new Error("File has node been opened yet");
         }
@@ -105,7 +139,7 @@ export class TrustListClient extends ClientFile implements ITrustList {
             throw new Error("CloseAndUpdateMethod doesn't exist");
         }
         const inputArguments = [
-            { dataType: DataType.UInt32 , value: this.fileHandle },
+            { dataType: DataType.UInt32, value: this.fileHandle },
             { dataType: DataType.Boolean, value: !!applyChangesRequired },
         ];
         const methodToCall: CallMethodRequestLike = {
@@ -122,9 +156,9 @@ export class TrustListClient extends ClientFile implements ITrustList {
 
     async addCertificate(certificate: Certificate, isTrustedCertificate: boolean): Promise<StatusCode> {
         await this.ensureInitialized();
-       
+
         const inputArguments: VariantLike[] = [
-            { dataType: DataType.ByteString , value: certificate },
+            { dataType: DataType.ByteString, value: certificate },
             { dataType: DataType.Boolean, value: !!isTrustedCertificate },
         ];
         const methodToCall: CallMethodRequestLike = {
@@ -138,9 +172,9 @@ export class TrustListClient extends ClientFile implements ITrustList {
 
     async removeCertificate(thumbprint: string, isTrustedCertificate: boolean): Promise<StatusCode> {
         await this.ensureInitialized();
-       
+
         const inputArguments: VariantLike[] = [
-            { dataType: DataType.String , value: thumbprint },
+            { dataType: DataType.String, value: thumbprint },
             { dataType: DataType.Boolean, value: !!isTrustedCertificate },
         ];
         const methodToCall: CallMethodRequestLike = {
@@ -166,6 +200,16 @@ export class TrustListClient extends ClientFile implements ITrustList {
         trustList.decode(stream);
         return trustList;
     }
+    async readTrustedCertificateListWithMasks(trustListMask: TrustListMasks): Promise<TrustListDataType> {
+        // const size = await this.size();
+        const fileHandle = await this.openWithMasks(trustListMask);
+        const buff = await this.read(65525);
+        await this.close();
+        const stream = new BinaryStream(buff);
+        const trustList: TrustListDataType = new TrustListDataType();
+        trustList.decode(stream);
+        return trustList;
+    }
 
     async writeTrustedCertificateList(trustedList: TrustListDataType): Promise<boolean> {
         await this.open(OpenFileMode.Write);
@@ -174,7 +218,7 @@ export class TrustListClient extends ClientFile implements ITrustList {
         trustedList.encode(stream);
         return await this.closeAndUpdate(true);
     }
-     
+
 }
 export class CertificateGroup {
 
@@ -182,25 +226,25 @@ export class CertificateGroup {
 
     }
     async getCertificateTypes(): Promise<NodeId[]> {
-        const browsePathResult = await this.session.translateBrowsePath(makeBrowsePath(this.nodeId,"/CertifiateTypes"));
-        if (browsePathResult.statusCode !== StatusCodes.Good){
+        const browsePathResult = await this.session.translateBrowsePath(makeBrowsePath(this.nodeId, "/CertifiateTypes"));
+        if (browsePathResult.statusCode !== StatusCodes.Good) {
             throw new Error(browsePathResult.statusCode.name);
         }
         const certificateTypesNodeId = browsePathResult.targets![0].targetId;
-        const dataValue = await this.session.read({ nodeId: certificateTypesNodeId, attributeId: AttributeIds.Value});
+        const dataValue = await this.session.read({ nodeId: certificateTypesNodeId, attributeId: AttributeIds.Value });
         if (dataValue.statusCode !== StatusCodes.Good) {
             throw new Error(browsePathResult.statusCode.name);
         }
         return dataValue.value.value as NodeId[];
     }
     async getTrustList(): Promise<TrustListClient> {
-        const browsePathResult = await this.session.translateBrowsePath(makeBrowsePath(this.nodeId,"/TrustList"));
-        if (browsePathResult.statusCode !== StatusCodes.Good){
+        const browsePathResult = await this.session.translateBrowsePath(makeBrowsePath(this.nodeId, "/TrustList"));
+        if (browsePathResult.statusCode !== StatusCodes.Good) {
             throw new Error(browsePathResult.statusCode.name);
         }
         const trustListNodeId = browsePathResult.targets![0].targetId;
         return new TrustListClient(this.session, trustListNodeId);
-        
+
     }
 
 }
@@ -253,11 +297,11 @@ export class ClientPushCertificateManagement implements PushCertificateManager {
      * BadUserAccessDenied          The current user does not have the rights required.
      */
     public async createSigningRequest(
-      certificateGroupId: NodeId | string,
-      certificateTypeId: NodeId | string,
-      subjectName: string,
-      regeneratePrivateKey?: boolean,
-      nonce?: ByteString
+        certificateGroupId: NodeId | string,
+        certificateTypeId: NodeId | string,
+        subjectName: string,
+        regeneratePrivateKey?: boolean,
+        nonce?: ByteString
     ): Promise<CreateSigningRequestResult> {
 
         nonce = nonce || Buffer.alloc(0);
@@ -352,10 +396,10 @@ export class ClientPushCertificateManagement implements PushCertificateManager {
      *
      */
     public async updateCertificate(
-      certificateGroupId: NodeId | string,
-      certificateTypeId: NodeId | string,
-      certificate: Buffer,
-      issuerCertificates: Buffer[]
+        certificateGroupId: NodeId | string,
+        certificateTypeId: NodeId | string,
+        certificate: Buffer,
+        issuerCertificates: Buffer[]
     ): Promise<UpdateCertificateResult>;
     /**
      *
@@ -369,20 +413,20 @@ export class ClientPushCertificateManagement implements PushCertificateManager {
      *
      */
     public async updateCertificate(
-      certificateGroupId: NodeId | string,
-      certificateTypeId: NodeId | string,
-      certificate: Buffer,
-      issuerCertificates: Buffer[],
-      privateKeyFormat: string,
-      privateKey: Buffer
+        certificateGroupId: NodeId | string,
+        certificateTypeId: NodeId | string,
+        certificate: Buffer,
+        issuerCertificates: Buffer[],
+        privateKeyFormat: string,
+        privateKey: Buffer
     ): Promise<UpdateCertificateResult>;
     public async updateCertificate(
-      certificateGroupId: NodeId | string,
-      certificateTypeId: NodeId | string,
-      certificate: Buffer,
-      issuerCertificates: Buffer[],
-      privateKeyFormat?: string,
-      privateKey?: Buffer
+        certificateGroupId: NodeId | string,
+        certificateTypeId: NodeId | string,
+        certificate: Buffer,
+        issuerCertificates: Buffer[],
+        privateKeyFormat?: string,
+        privateKey?: Buffer
     ): Promise<UpdateCertificateResult> {
 
         const inputArguments: VariantLike[] = [
@@ -391,7 +435,7 @@ export class ClientPushCertificateManagement implements PushCertificateManager {
             { dataType: DataType.ByteString, value: certificate },
             { dataType: DataType.ByteString, arrayType: VariantArrayType.Array, value: issuerCertificates },
             { dataType: DataType.String, value: privateKeyFormat || "" },
-            { dataType: DataType.ByteString, value:  privateKeyFormat ? privateKey : Buffer.alloc(0) }
+            { dataType: DataType.ByteString, value: privateKeyFormat ? privateKey : Buffer.alloc(0) }
         ];
         const methodToCall: CallMethodRequestLike = {
             inputArguments,
@@ -469,15 +513,14 @@ export class ClientPushCertificateManagement implements PushCertificateManager {
         throw new Error("Not Implemented yet");
     }
 
-    
+
 
     /**
      * 
      * @param browseName 
      */
     public async getCertificateGroup(
-        browseName: QualifiedNameLike | "DefaultApplicationGroup" | "DefaultUserTokenGroup"): Promise<CertificateGroup>
-    {
+        browseName: QualifiedNameLike | "DefaultApplicationGroup" | "DefaultUserTokenGroup"): Promise<CertificateGroup> {
         browseName = coerceQualifiedName(browseName);
         if (browseName.toString() === "DefaultApplicationGroup") {
             return new CertificateGroup(this.session, resolveNodeId("ServerConfiguration_CertificateGroups_DefaultApplicationGroup"));

@@ -14,6 +14,7 @@ import { readCertificate } from "node-opcua-crypto";
 
 import { ClientPushCertificateManagement, installPushCertificateManagement } from "..";
 import { initializeHelpers } from "./helpers/fake_certificate_authority";
+import { TrustListMasks } from "../source/server/trust_list_server";
 
 // make sure extra error checking is made on object constructions
 // tslint:disable-next-line:no-var-requires
@@ -213,10 +214,56 @@ describe("ServerConfiguration", () => {
 
             a = await trustList.readTrustedCertificateList();
             console.log(a.toString());
-            a.trustedCertificates.length.should.eql(1);
-            a.issuerCertificates.length.should.eql(0);
-            a.issuerCrls.length.should.eql(0);
-            a.trustedCrls.length.should.eql(0);
+            a.trustedCertificates!.length.should.eql(1);
+            a.issuerCertificates!.length.should.eql(0);
+            a.issuerCrls!.length.should.eql(0);
+            a.trustedCrls!.length.should.eql(0);
         });
+
+        it("should provide trust list with masks - issuer certificates", async () => {
+
+            //------------------
+            await installPushCertificateManagement(
+                addressSpace, { applicationGroup, userTokenGroup, applicationUri: "SomeUri" });
+
+            const pseudoSession = new PseudoSession(addressSpace, opcuaServer, session);
+            const clientPushCertificateManager = new ClientPushCertificateManagement(pseudoSession);
+
+            const defaultApplicationGroup = await clientPushCertificateManager.getCertificateGroup("DefaultApplicationGroup");
+
+            const trustList = await defaultApplicationGroup.getTrustList();
+            let a = await trustList.readTrustedCertificateListWithMasks(TrustListMasks.IssuerCertificates);
+            console.log(a.toString());
+            a.trustedCertificates!.length.should.eql(0);
+            a.issuerCertificates!.length.should.eql(0);
+            a.issuerCrls!.length.should.eql(0);
+            a.trustedCrls!.length.should.eql(0);
+ 
+            // now add a certificate 
+            const certificateFile = path.join(__dirname, "../../node-opcua-samples/certificates/client_cert_2048.pem");
+            assert(fs.existsSync(certificateFile));
+
+            const certificate = await readCertificate(certificateFile);
+            await trustList.addCertificate(certificate, /*isTrustedCertificate =*/true);
+            await trustList.addCertificate(certificate, /*isTrustedCertificate =*/false);
+
+            a = await trustList.readTrustedCertificateListWithMasks(TrustListMasks.IssuerCertificates);
+            console.log(a.toString());
+            a.specifiedLists.should.eql(TrustListMasks.IssuerCertificates);
+            a.trustedCertificates!.length.should.eql(0);
+            a.issuerCertificates!.length.should.eql(1);
+            a.issuerCrls!.length.should.eql(0);
+            a.trustedCrls!.length.should.eql(0);
+
+            a = await trustList.readTrustedCertificateListWithMasks(TrustListMasks.TrustedCertificates);
+            console.log(a.toString());
+            a.specifiedLists.should.eql(TrustListMasks.TrustedCertificates);
+            a.trustedCertificates!.length.should.eql(1);
+            a.issuerCertificates!.length.should.eql(0);
+            a.issuerCrls!.length.should.eql(0);
+            a.trustedCrls!.length.should.eql(0);
+
+        });
+
     });
 });
