@@ -101,7 +101,7 @@ export class UAObject extends BaseNode implements UAObjectPublic {
             }
             eventType = eventTypeFound;
             if (!eventType || eventType.nodeClass !== NodeClass.ObjectType) {
-                throw new Error("eventType must exist and be an UAObjectType" + eventType!.toString());
+                throw new Error("eventType must exist and be an UAObjectType");
             }
         } else if (eventType instanceof NodeId) {
             const eventTypeFound = addressSpace.findNode(eventType) as BaseNode;

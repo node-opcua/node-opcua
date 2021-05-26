@@ -14,33 +14,6 @@ function constructFilename(filename: string): string {
     return path.join(__dirname, "../", filename);
 }
 
-const argv = yargs(process.argv)
-    .wrap(132)
-
-    .option("alternateHostname", {
-        alias: "a",
-        describe: "alternateHostname"
-    })
-
-    .option("port", {
-        alias: "p",
-        default: 26543
-    })
-
-    .option("silent", {
-        alias: "s",
-        default: false,
-        describe: "silent - no trace"
-    })
-    .option("maxAllowedSessionNumber", {
-        alias: "m",
-        default: 10
-    })
-
-    .help(true).argv;
-
-const port = argv.port || 26543;
-
 const userManager = {
     isValidUser: (userName: string, password: string) => {
         if (userName === "user1" && password === "password1") {
@@ -53,40 +26,69 @@ const userManager = {
     }
 };
 
-const server_options = {
-    securityPolicies: [SecurityPolicy.Basic128Rsa15, SecurityPolicy.Basic256],
-
-    securityModes: [MessageSecurityMode.Sign, MessageSecurityMode.SignAndEncrypt],
-
-    port,
-
-    nodeset_filename: [nodesets.standard, nodesets.di],
-
-    serverInfo: {
-        applicationName: { text: "NodeOPCUA", locale: "en" },
-        applicationUri: makeApplicationUrn(os.hostname(), "NodeOPCUA-SecureServer"),
-        productUri: "NodeOPCUA-SecureServer",
-
-        discoveryProfileUri: null,
-        discoveryUrls: [],
-        gatewayServerUri: null
-    },
-
-    buildInfo: {
-        buildDate: new Date(),
-        buildNumber: "1234"
-    },
-
-    userManager,
-
-    isAuditing: false
-};
-
-process.title = "Node OPCUA Server on port : " + server_options.port;
-
-// server_options.alternateHostname = argv.alternateHostname;
 
 async function main() {
+
+    const argv = await yargs(process.argv)
+        .wrap(132)
+
+        .option("alternateHostname", {
+            alias: "a",
+            describe: "alternateHostname"
+        })
+
+        .option("port", {
+            alias: "p",
+            default: 26543
+        })
+
+        .option("silent", {
+            alias: "s",
+            default: false,
+            describe: "silent - no trace"
+        })
+        .option("maxAllowedSessionNumber", {
+            alias: "m",
+            default: 10
+        })
+        .help(true).argv;
+
+
+    const port = argv.port || 26543;
+    // server_options.alternateHostname = argv.alternateHostname;
+
+    const server_options = {
+        securityPolicies: [SecurityPolicy.Basic128Rsa15, SecurityPolicy.Basic256],
+
+        securityModes: [MessageSecurityMode.Sign, MessageSecurityMode.SignAndEncrypt],
+
+        port,
+
+        nodeset_filename: [nodesets.standard, nodesets.di],
+
+        serverInfo: {
+            applicationName: { text: "NodeOPCUA", locale: "en" },
+            applicationUri: makeApplicationUrn(os.hostname(), "NodeOPCUA-SecureServer"),
+            productUri: "NodeOPCUA-SecureServer",
+
+            discoveryProfileUri: null,
+            discoveryUrls: [],
+            gatewayServerUri: null
+        },
+
+        buildInfo: {
+            buildDate: new Date(),
+            buildNumber: "1234"
+        },
+
+        userManager,
+
+        isAuditing: false
+    };
+
+    process.title = "Node OPCUA Server on port : " + server_options.port;
+
+
     const server = new OPCUAServer(server_options);
 
     server.on("post_initialize", () => {

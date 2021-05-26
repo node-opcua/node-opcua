@@ -9,15 +9,7 @@ import { installPushCertificateManagement } from "node-opcua-server-configuratio
 import * as path from "path";
 import * as yargs from "yargs";
 
-const argv = yargs.wrap(132).option("port", {
-    alias: "p",
-    default: "26543",
-    describe: "port to listen"
-}).argv;
-
 const rootFolder = path.join(__dirname, "../../..");
-
-const port = parseInt(argv.port, 10) || 26555;
 
 // tslint:disable-next-line: no-var-requires
 const envPaths = require("env-paths");
@@ -30,17 +22,27 @@ const certificateManager = new OPCUACertificateManager({
     rootFolder: pkiFolder
 });
 
-const server_options = {
-    port,
-
-    nodeset_filename: [nodesets.standard],
-
-    serverCertificateManager: certificateManager
-};
-
-process.title = "Node OPCUA Server on port : " + server_options.port;
 
 async function main() {
+
+    const argv = await yargs.wrap(132).option("port", {
+        alias: "p",
+        default: "26543",
+        describe: "port to listen"
+    }).argv;
+
+
+    const port = parseInt(argv.port, 10) || 26555;
+
+    const server_options = {
+        port,
+
+        nodeset_filename: [nodesets.standard],
+
+        serverCertificateManager: certificateManager
+    };
+
+    process.title = "Node OPCUA Server on port : " + server_options.port;
     const tmpFolder = path.join(__dirname, "../certificates/myApp");
 
     const applicationGroup = new CertificateManager({
