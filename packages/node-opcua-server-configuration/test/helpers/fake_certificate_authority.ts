@@ -1,4 +1,6 @@
 import * as fs from "fs";
+const { readFile, writeFile } = fs.promises;
+
 import * as os from "os";
 import * as path from "path";
 import { promisify } from "util";
@@ -29,7 +31,7 @@ export const _tempFolder = path.join(__dirname, "../../temp");
 export async function initializeHelpers() {
     await promisify(rimraf)(path.join(_tempFolder, "*"));
     try {
-        await promisify(fs.mkdir)(_tempFolder);
+        await fs.promises.mkdir(_tempFolder);
     } catch (err) {}
 }
 
@@ -56,11 +58,11 @@ export async function produceCertificateAndPrivateKey(): Promise<{ certificate: 
         outputFile: certFile
     });
 
-    const content = await promisify(fs.readFile)(certFile, "ascii");
+    const content = await readFile(certFile, "ascii");
     const certificate = convertPEMtoDER(content);
 
     const privateKeyFile = certificateManager.privateKey;
-    const privateKeyPEM = await promisify(fs.readFile)(privateKeyFile, "ascii");
+    const privateKeyPEM = await readFile(privateKeyFile, "ascii");
     const privateKey = convertPEMtoDER(privateKeyPEM);
 
     return { certificate, privateKey };
@@ -89,14 +91,14 @@ async function _produceCertificate(certificateSigningRequest: Buffer, startDate:
     const csrFilename = "signing_request.csr";
     const csrFile = path.join(certificateAuthority.rootDir, csrFilename);
 
-    await promisify(fs.writeFile)(csrFile, toPem(certificateSigningRequest, "CERTIFICATE REQUEST"), "utf8");
+    await writeFile(csrFile, toPem(certificateSigningRequest, "CERTIFICATE REQUEST"), "utf8");
 
     // --- generate the certificate
 
     const certificate = path.join(certificateAuthority.rootDir, "newCertificate.pem");
     if (fs.existsSync(certificate)) {
         // delete existing file
-        await promisify(fs.unlink)(certificate);
+        await fs.promises.unlink(certificate);
     }
 
     await certificateAuthority.signCertificateRequest(certificate, csrFile, {
@@ -106,7 +108,7 @@ async function _produceCertificate(certificateSigningRequest: Buffer, startDate:
         validity
     });
 
-    const certificatePEM = await promisify(fs.readFile)(certificate, "utf8");
+    const certificatePEM = await readFile(certificate, "utf8");
     return convertPEMtoDER(certificatePEM);
 }
 
@@ -137,7 +139,7 @@ export async function createSomeCertificate(certName: string): Promise<Buffer> {
     }
     const certFile = path.join(_tempFolder, certName);
 
-    const fileExists: boolean = await promisify(fs.exists)(certFile);
+    const fileExists: boolean = fs.existsSync(certFile);
     if (!fileExists) {
         await tmpGroup.createSelfSignedCertificate({
             applicationUri: "applicationUri",
@@ -152,7 +154,7 @@ export async function createSomeCertificate(certName: string): Promise<Buffer> {
         });
     }
 
-    const content = await promisify(fs.readFile)(certFile, "ascii");
+    const content = await readFile(certFile, "ascii");
     const certificate = convertPEMtoDER(content);
     return certificate;
 }

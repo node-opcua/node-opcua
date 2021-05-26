@@ -2,7 +2,7 @@
  * @module node-opcua-file-transfer
  */
 import * as fsOrig from "fs";
-import {Stats, PathLike, OpenMode, NoParamCallback, WriteFileOptions} from "fs"
+import { Stats, PathLike, OpenMode, NoParamCallback, WriteFileOptions } from "fs"
 
 import {
     callbackify,
@@ -32,13 +32,14 @@ const errorLog = make_errorLog("FileType");
 const doDebug = checkDebugFlag("FileType");
 ;
 import assert from "node-opcua-assert";
+import { reject } from "async";
 export interface AbstractFs {
- 
-   stat(path: PathLike, callback: (err: NodeJS.ErrnoException | null, stats: Stats) => void): void;
 
-   open(path: PathLike, flags: OpenMode, callback: (err: NodeJS.ErrnoException | null, fd: number) => void): void;
-   
-   write<TBuffer extends NodeJS.ArrayBufferView>(
+    stat(path: PathLike, callback: (err: NodeJS.ErrnoException | null, stats: Stats) => void): void;
+
+    open(path: PathLike, flags: OpenMode, callback: (err: NodeJS.ErrnoException | null, fd: number) => void): void;
+
+    write<TBuffer extends NodeJS.ArrayBufferView>(
         fd: number,
         buffer: TBuffer,
         offset: number | undefined | null,
@@ -46,7 +47,7 @@ export interface AbstractFs {
         position: number | undefined | null,
         callback: (err: NodeJS.ErrnoException | null, bytesWritten: number, buffer: TBuffer) => void,
     ): void;
-    
+
     read<TBuffer extends NodeJS.ArrayBufferView>(
         fd: number,
         buffer: TBuffer,
@@ -61,7 +62,7 @@ export interface AbstractFs {
     writeFile(path: PathLike | number, data: string | NodeJS.ArrayBufferView, options: WriteFileOptions, callback: NoParamCallback): void;
 
     readFile(path: PathLike | number, options: { encoding: BufferEncoding; flag?: string; } | string, callback: (err: NodeJS.ErrnoException | null, data: string) => void): void;
-   // readFile(path: PathLike | number, options: { encoding?: null; flag?: string; } | undefined | null, callback: (err: NodeJS.ErrnoException | null, data: Buffer) => void): void;
+    // readFile(path: PathLike | number, options: { encoding?: null; flag?: string; } | undefined | null, callback: (err: NodeJS.ErrnoException | null, data: Buffer) => void): void;
 
 }
 
@@ -159,9 +160,10 @@ export class FileTypeData {
                 const stat = await promisify(abstractFs.stat)(self.filename);
                 self._fileSize = stat.size;
                 debugLog("original file size ", self.filename, " size = ", self._fileSize);
-            } catch(err) {
+            } catch (err) {
                 self._fileSize = 0;
                 debugLog("Cannot access file ", self.filename);
+                console.log(err);
             }
         })(this);
 
@@ -460,14 +462,20 @@ async function _readFile(
         return { statusCode: StatusCodes.BadInvalidState };
     }
 
-    length = Math.min(_fileInfo.size - _fileInfo.position[1], length) ;
+    length = Math.min(_fileInfo.size - _fileInfo.position[1], length);
 
     const data = Buffer.alloc(length);
 
-    let bytesRead: number = 0;
+    let ret = { bytesRead: 0 };
     try {
-        bytesRead = await promisify(abstractFs.read)(_fileInfo.fd, data, 0, length, _fileInfo.position[1]) ;
-        _fileInfo.position[1] += bytesRead;
+        // note: we do not util.promise here as it has a wierd behavior...
+        ret = await new Promise((resolve, reject) =>
+            abstractFs.read(_fileInfo.fd, data, 0, length, _fileInfo.position[1], (err, bytesRead, buff) => {
+                if (err) { return reject(err); }
+                return resolve({ bytesRead });
+            })
+        );
+        _fileInfo.position[1] += ret.bytesRead;
     } catch (err) {
         errorLog("Read error : ", err.message);
         return { statusCode: StatusCodes.BadUnexpectedError };
@@ -477,7 +485,7 @@ async function _readFile(
     //     of the file is reached.
     return {
         outputArguments: [
-            { dataType: DataType.ByteString, value: data.slice(0, bytesRead) }
+            { dataType: DataType.ByteString, value: data.slice(0, ret.bytesRead) }
         ],
         statusCode: StatusCodes.Good
     };
@@ -509,12 +517,18 @@ async function _writeFile(
 
     const data: Buffer = inputArguments[1].value as Buffer;
 
-    let ret;
+    let ret = { bytesWritten: 0 };
     try {
-        ret = await promisify(abstractFs.write)(_fileInfo.fd, data, 0, data.length, _fileInfo.position[1]);
-        assert(typeof (ret as any).bytesWritten === "number");
-        _fileInfo.position[1] += (ret as any).bytesWritten;
-        _fileInfo.size = Math.max( _fileInfo.size, _fileInfo.position[1] );
+        // note: we do not util.promise here as it has a wierd behavior...
+        ret = await new Promise((resolve, reject) =>
+            abstractFs.write(_fileInfo.fd, data, 0, data.length, _fileInfo.position[1], (err, bytesWritten) => {
+                if (err) { return reject(err) }
+                return resolve({ bytesWritten });
+            })
+        );
+        assert(typeof ret.bytesWritten === "number");
+        _fileInfo.position[1] += ret.bytesWritten;
+        _fileInfo.size = Math.max(_fileInfo.size, _fileInfo.position[1]);
 
         const fileTypeData = (context.object as any).$fileData as FileTypeData;
         debugLog(fileTypeData.fileSize);
@@ -617,7 +631,7 @@ export function installFileType(
     options.maxSize = (options.maxSize === undefined) ? defaultMaxSize : options.maxSize;
 
     const $fileData = new FileTypeData(options, file);
-    (file as any).$  = $fileData;
+    (file as any).$fileData = $fileData;
 
     // ----- install mime type
     if (options.mineType) {

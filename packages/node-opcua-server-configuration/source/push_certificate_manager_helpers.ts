@@ -335,6 +335,8 @@ function bindCertificateManager(
         }
     }
 }
+
+
 export async function installPushCertificateManagement(
     addressSpace: AddressSpace,
     options: PushCertificateManagerServerOptions
@@ -355,12 +357,23 @@ export async function installPushCertificateManagement(
         value: ["PEM"]
     });
 
+
+    function install_method_handle_on_type(addressSpace: AddressSpace): void {
+        const serverConfigurationType = addressSpace.findObjectType("ServerConfigurationType")! as any;
+        if (serverConfigurationType.createSigningRequest.isBound()) {
+            return;
+        }
+        serverConfigurationType.createSigningRequest.bindMethod(callbackify(_createSigningRequest));
+        serverConfigurationType.getRejectedList.bindMethod(callbackify(_getRejectedList));
+        serverConfigurationType.updateCertificate.bindMethod(callbackify(_updateCertificate));
+        serverConfigurationType.applyChanges.bindMethod(callbackify(_applyChanges));
+    }
+    
+    install_method_handle_on_type(addressSpace);
+
     serverConfiguration.createSigningRequest.bindMethod(callbackify(_createSigningRequest));
-
     serverConfiguration.updateCertificate.bindMethod(callbackify(_updateCertificate));
-
     serverConfiguration.getRejectedList.bindMethod(callbackify(_getRejectedList));
-
     if (serverConfiguration.applyChanges) {
         serverConfiguration.applyChanges!.bindMethod(callbackify(_applyChanges));
     }

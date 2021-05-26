@@ -7,8 +7,9 @@
 //
 import * as chalk from "chalk";
 import * as fs from "fs";
-import * as os from "os";
-import { promisify } from "util";
+// node 14 onward : import { readFile } from "fs/promises";
+const { readFile }= fs.promises;
+
 // import * as prettier from "prettier";
 
 import { assert } from "node-opcua-assert";
@@ -31,7 +32,6 @@ import { makeWrite } from "./utils/write_func";
 const doDebug = checkDebugFlag(__filename);
 const debugLog = make_debugLog(__filename);
 
-const readFile = promisify(fs.readFile);
 
 const f = new LineFile1();
 

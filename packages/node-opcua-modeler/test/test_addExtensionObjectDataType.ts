@@ -1,6 +1,9 @@
 Error.stackTraceLimit = 100000;
 // tslint:disable: no-console
 import * as fs from "fs";
+// node 14 onward : import {  writeFile } from "fs/promises";
+const { writeFile }= fs.promises;
+
 import * as os from "os";
 import * as path from "path";
 import * as should from "should";
@@ -19,8 +22,6 @@ import {
     BaseNode
 } from "..";
 import { generateAddressSpace } from "node-opcua-address-space/nodeJS";
-
-const writeFile = promisify(fs.writeFile);
 
 const doDebug = false;
 
