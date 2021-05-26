@@ -3,9 +3,11 @@
  */
 import * as chalk from "chalk";
 import * as fs from "fs";
+// node 14 onward : import {  readFile } from "fs/promises";
+const { readFile } = fs.promises;
+
 import * as os from "os";
 import * as path from "path";
-import { promisify, callbackify } from "util";
 
 import { assert } from "node-opcua-assert";
 import { OPCUACertificateManager } from "node-opcua-certificate-manager";
@@ -87,7 +89,7 @@ async function install(this: OPCUAServerPartial): Promise<void> {
     );
 
     if (!this.$$privateKeyPEM) {
-        this.$$privateKeyPEM = await promisify(fs.readFile)(this.serverCertificateManager.privateKey, "utf8");
+        this.$$privateKeyPEM = await readFile(this.serverCertificateManager.privateKey, "utf8");
     }
 
     if (!this.$$certificateChain) {
@@ -121,7 +123,7 @@ async function install(this: OPCUAServerPartial): Promise<void> {
             debugLog("creating self signed certificate", options);
             await this.serverCertificateManager.createSelfSignedCertificate(options);
         }
-        const certificatePEM = await promisify(fs.readFile)(certificateFile, "utf8");
+        const certificatePEM = await readFile(certificateFile, "utf8");
 
         this.$$certificateChain = convertPEMtoDER(certificatePEM);
 

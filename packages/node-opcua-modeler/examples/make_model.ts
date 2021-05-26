@@ -19,8 +19,8 @@ import { generateAddressSpace } from "node-opcua-address-space/nodeJS";
 
 import { createBoilerType } from "node-opcua-address-space/testHelpers";
 
-const writeFile = promisify(fs.writeFile);
-const readFile = promisify(fs.readFile);
+// node 14 onward : import { writeFile } from "fs/promises";
+const { writeFile }= fs.promises;
 
 interface UABoilerTest extends UAObject {
     deviceHealth: UAVariable;

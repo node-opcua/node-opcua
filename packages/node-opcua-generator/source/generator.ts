@@ -5,9 +5,11 @@
 // tslint:disable:max-line-length
 // tslint:disable:no-console
 import * as fs from "fs";
+// node 14 onward : import { mkdir } from "fs/promises";
+const { mkdir }= fs.promises;
+
 import * as path from "path";
 import * as ts from "typescript";
-import { promisify } from "util";
 
 import { assert } from "node-opcua-assert";
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
@@ -17,9 +19,6 @@ import { get_class_TScript_filename, produce_TScript_code } from "./factory_code
 
 const debugLog = make_debugLog(__filename);
 const doDebug = checkDebugFlag(__filename);
-
-const fileExists = promisify(fs.exists);
-const mkdir = promisify(fs.mkdir);
 
 /**
  * @module opcua.miscellaneous
@@ -86,7 +85,7 @@ export async function generateCode(schemaName: string, localSchemaFile: string, 
 
     const currentFolder = process.cwd();
     //
-    const localSchemaFileExists = await fileExists(localSchemaFile);
+    const localSchemaFileExists = fs.existsSync(localSchemaFile);
 
     if (!localSchemaFileExists) {
         throw new Error(`Cannot find source file for schema ${schemaTypescriptFile}`);
@@ -96,14 +95,14 @@ export async function generateCode(schemaName: string, localSchemaFile: string, 
         generatedCodeFolder = path.join(currentFolder, "_generated_");
     }
 
-    const generatedCodeFolderExists = await fileExists(generatedCodeFolder);
+    const generatedCodeFolderExists = fs.existsSync(generatedCodeFolder);
     if (!generatedCodeFolderExists) {
         await mkdir(generatedCodeFolder);
     }
 
     const generatedTypescriptSource = path.join(generatedCodeFolder, "_" + schemaName + ".ts");
 
-    const generatedSourceExists = await fileExists(generatedTypescriptSource);
+    const generatedSourceExists = fs.existsSync(generatedTypescriptSource);
 
     let schemaFileIsNewer = false;
     let codeGeneratorIsNewer = true;

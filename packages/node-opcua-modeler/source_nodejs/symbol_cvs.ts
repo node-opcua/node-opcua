@@ -6,8 +6,8 @@ import { Parser } from "csv-parse";
 import { Symbols } from "..";
 import { toCSV } from "..";
 
-const writeFile = promisify(fs.writeFile);
-const readFile = promisify(fs.readFile);
+// node 14 onward : import { readFile, writeFile } from "fs/promises";
+const { readFile, writeFile }= fs.promises;
 
 export async function saveSymbolsToCSV(csvFilename: string, symbols: Symbols): Promise<void> {
     await writeFile(csvFilename, toCSV(symbols), "utf-8");

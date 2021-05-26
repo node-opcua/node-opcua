@@ -88,7 +88,7 @@ const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 
             const clientFile = new ClientFile(session, opcuaFile.nodeId);
 
-            const handle = await clientFile.open(1);
+            const handle = await clientFile.open(OpenFileMode.Read);
             handle.should.not.eql(0);
             /// clientFile.handle.should.eql(handle);
 

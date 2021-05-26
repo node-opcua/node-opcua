@@ -4,7 +4,8 @@
 import { EventEmitter } from "events";
 import * as fs from "fs";
 import * as path from "path";
-import { promisify } from "util";
+// node 14 onward : import {  readFile, writeFile, readdir } from "fs/promises";
+const { readFile, writeFile, readdir }= fs.promises;
 
 import { assert } from "node-opcua-assert";
 import { ByteString, StatusCodes } from "node-opcua-basic-types";
@@ -88,9 +89,9 @@ type Functor = () => Promise<void>;
 export async function copyFile(source: string, dest: string): Promise<void> {
     try {
         debugLog("copying file \n source ", source, "\n =>\n dest ", dest);
-        const sourceExist = await promisify(fs.exists)(source);
+        const sourceExist = fs.existsSync(source);
         if (sourceExist) {
-            await promisify(fs.copyFile)(source, dest);
+            await fs.promises.copyFile(source, dest);
         }
     } catch (err) {
         errorLog(err);
@@ -99,10 +100,10 @@ export async function copyFile(source: string, dest: string): Promise<void> {
 
 export async function deleteFile(file: string): Promise<void> {
     try {
-        const exists = await promisify(fs.exists)(file);
+        const exists = await fs.existsSync(file);
         if (exists) {
             debugLog("deleting file ", file);
-            await promisify(fs.unlink)(file);
+            await fs.promises.unlink(file);
         }
     } catch (err) {
         errorLog(err);
@@ -234,7 +235,7 @@ export class PushCertificateManagerServerImpl extends EventEmitter implements Pu
             subject: subjectName
         };
         const csrFile = await certificateManager.createCertificateRequest(options);
-        const csrPEM = await promisify(fs.readFile)(csrFile, "utf8");
+        const csrPEM = await readFile(csrFile, "utf8");
         const certificateSigningRequest = convertPEMtoDER(csrPEM);
 
         this.addPendingTask(() => deleteFile(csrFile));
@@ -259,9 +260,9 @@ export class PushCertificateManagerServerImpl extends EventEmitter implements Pu
                 return;
             }
             const rejectedFolder = path.join(group.rootDir, "rejected");
-            const files = await promisify(fs.readdir)(rejectedFolder);
+            const files = await readdir(rejectedFolder);
 
-            const stat = promisify(fs.stat);
+            const stat = fs.promises.stat;
 
             const promises1: Promise<fs.Stats>[] = [];
             for (const certFile of files) {
@@ -286,7 +287,6 @@ export class PushCertificateManagerServerImpl extends EventEmitter implements Pu
         // now sort list from newer file to older file
         list.sort((a: FileData, b: FileData) => b.stat.mtime.getTime() - a.stat.mtime.getTime());
 
-        const readFile = promisify(fs.readFile);
         const promises: Promise<string>[] = [];
         for (const item of list) {
             promises.push(readFile(item.filename, "utf8"));
@@ -334,8 +334,8 @@ export class PushCertificateManagerServerImpl extends EventEmitter implements Pu
             const certificateFileDER = path.join(certFolder, `_pending_certificate${fileCounter++}.der`);
             const certificateFilePEM = path.join(certFolder, `_pending_certificate${fileCounter++}.pem`);
 
-            await promisify(fs.writeFile)(certificateFileDER, certificate, "binary");
-            await promisify(fs.writeFile)(certificateFilePEM, toPem(certificate, "CERTIFICATE"));
+            await writeFile(certificateFileDER, certificate, "binary");
+            await writeFile(certificateFilePEM, toPem(certificate, "CERTIFICATE"));
 
             const destDER = path.join(certFolder, "certificate.der");
             const destPEM = path.join(certFolder, "certificate.pem");
@@ -353,7 +353,7 @@ export class PushCertificateManagerServerImpl extends EventEmitter implements Pu
             const privateKeyFilePEM = path.join(ownPrivateFolder, `_pending_private_key${fileCounter++}.pem`);
 
             const privateKeyPEM = toPem(privateKey!, "RSA PRIVATE KEY");
-            await promisify(fs.writeFile)(privateKeyFilePEM, privateKeyPEM, "utf-8");
+            await writeFile(privateKeyFilePEM, privateKeyPEM, "utf-8");
 
             self.addPendingTask(() => moveFileWithBackup(privateKeyFilePEM, certificateManager.privateKey));
         }

@@ -17,7 +17,6 @@ import {
     VariantArrayType
 } from "..";
 
-const writeFile = promisify(fs.writeFile);
 
 describe("loading very large DataType Definitions ", function (this: any) {
     this.timeout(10000);

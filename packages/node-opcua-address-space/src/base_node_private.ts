@@ -92,7 +92,9 @@ export function BaseNode_getCache(node: BaseNode): any {
 }
 export function BaseNode_clearCache(node: BaseNode): void {
     const _private = BaseNode_getPrivate(node);
-    _private._cache = {};
+    if (_private && _private._cache) {
+        _private._cache = {};
+    }
 }
 const hasTypeDefinition_ReferenceTypeNodeId = resolveNodeId("HasTypeDefinition");
 

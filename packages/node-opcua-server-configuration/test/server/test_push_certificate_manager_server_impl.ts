@@ -1,6 +1,7 @@
 import * as fs from "fs";
 import * as path from "path";
 import { promisify } from "util";
+const { readFile, writeFile } = fs.promises;
 
 import { Certificate, convertPEMtoDER, makeSHA1Thumbprint, split_der, toPem } from "node-opcua-crypto";
 import { CertificateManager, g_config } from "node-opcua-certificate-manager";
@@ -21,7 +22,7 @@ g_config.silent = true;
 
 async function getCertificateDER(manager: CertificateManager): Promise<Certificate> {
     const certificateFilename = path.join(manager.rootDir, "own/certs/certificate.pem");
-    const exists = await promisify(fs.exists)(certificateFilename);
+    const exists = fs.existsSync(certificateFilename);
     if (!exists) {
         await manager.createSelfSignedCertificate({
             applicationUri: "SomeText",
@@ -32,7 +33,7 @@ async function getCertificateDER(manager: CertificateManager): Promise<Certifica
             validity: 100
         });
     }
-    const certificatePEM = await promisify(fs.readFile)(certificateFilename, "utf8");
+    const certificatePEM = await readFile(certificateFilename, "utf8");
     const certificate = convertPEMtoDER(certificatePEM);
     return certificate;
 }
@@ -116,7 +117,7 @@ describe("Testing Server Side PushCertificateManager", () => {
             startDate: new Date(),
             validity: 365
         });
-        const certificateSigningRequestPEM = await promisify(fs.readFile)(filename, "ascii");
+        const certificateSigningRequestPEM = await readFile(filename, "ascii");
         const certificateSigningRequest = convertPEMtoDER(certificateSigningRequestPEM);
         const wrongCertificate = await produceCertificate(certificateSigningRequest);
 

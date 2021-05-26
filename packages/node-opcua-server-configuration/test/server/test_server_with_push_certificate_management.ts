@@ -1,6 +1,8 @@
 // tslint:disable:no-console
 import * as chalk from "chalk";
 import * as fs from "fs";
+const  { readFile, writeFile } = fs.promises;
+
 import * as os from "os";
 import * as path from "path";
 import * as should  from "should";
@@ -122,7 +124,7 @@ describe("Testing server configured with push certificate management", () => {
 
         await installPushCertificateManagementOnServer(server);
 
-        const privateKey1PEM = await promisify(fs.readFile)(server.serverCertificateManager.privateKey, "utf8");
+        const privateKey1PEM = await readFile(server.serverCertificateManager.privateKey, "utf8");
         const privateKey1 = convertPEMtoDER(privateKey1PEM);
         const privateKey2 = convertPEMtoDER(server.getPrivateKey());
         privateKey1.toString("base64").should.eql(privateKey2.toString("base64"));
@@ -345,7 +347,7 @@ describe("Testing server configured with push certificate management", () => {
         verifyServer(server);
 
         // Given that the server is configured to trust client certificate
-        const clientCertificatePEM = await promisify(fs.readFile)(clientCertificateFile, "utf8");
+        const clientCertificatePEM = await readFile(clientCertificateFile, "utf8");
         const clientCertificateDER = convertPEMtoDER(clientCertificatePEM);
         await server.serverCertificateManager.trustCertificate(clientCertificateDER);
 
@@ -466,7 +468,7 @@ describe("Testing server configured with push certificate management", () => {
         await server.start();
 
         step("Given that we known the server key pair before it is changed");
-        const privateKey1PEM = await promisify(fs.readFile)(server.serverCertificateManager.privateKey, "utf8");
+        const privateKey1PEM = await readFile(server.serverCertificateManager.privateKey, "utf8");
         const certificateBefore = server.getCertificate();
 
         const d1 = await new Promise<string>((resolve) => {
@@ -596,7 +598,7 @@ describe("Testing server configured with push certificate management", () => {
         const server = await constructServerWithPushCertificate();
 
         step("Given that we known the server key pair before it is changed");
-        const privateKey1PEM = await promisify(fs.readFile)(server.serverCertificateManager.privateKey, "utf8");
+        const privateKey1PEM = await readFile(server.serverCertificateManager.privateKey, "utf8");
         const certificateBefore = server.getCertificate();
         const privateKeyBefore = server.getPrivateKey();
 
