@@ -37,7 +37,6 @@ export function t(test: any) {
         });
 
         after(async () => {
-            await pause(500);
             OPCUAServer.registry.count().should.eql(0);
         });
 
@@ -49,7 +48,7 @@ export function t(test: any) {
         const port2 = 1302;
         const port3 = 1303;
 
-        beforeEach(async () => {
+        before(async () => {
             discoveryServer1 = await startDiscovery(port_discover1);
             discoveryServerEndpointUrl1 = ep(discoveryServer1);
 
@@ -60,11 +59,10 @@ export function t(test: any) {
             discoveryServerEndpointUrl3 = ep(discoveryServer3);
         });
 
-        afterEach(async () => {
+        after(async () => {
             await discoveryServer1.shutdown();
             await discoveryServer2.shutdown();
             await discoveryServer3.shutdown();
-            await pause(500);
         });
 
         it("should register server to the discover server 1", async () => {
@@ -172,9 +170,6 @@ export function t(test: any) {
             await server1.shutdown();
             await server2.shutdown();
             await server3.shutdown();
-
-            await pause(500);
         });
-
     });
 }

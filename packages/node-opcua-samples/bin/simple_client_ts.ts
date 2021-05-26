@@ -47,92 +47,6 @@ import { Certificate, toPem } from "node-opcua-crypto";
 const Table = require("easy-table");
 const treeify = require("treeify");
 
-// ts-node bin/simple_client.ts --endpoint  opc.tcp://localhost:53530/OPCUA/SimulationServer --node "ns=5;s=Sinusoid1"
-const argv = yargs(process.argv)
-    .wrap(132)
-    // .usage("Usage: $0 -d --endpoint <endpointUrl> [--securityMode (None|SignAndEncrypt|Sign)] [--securityPolicy (None|Basic256|Basic128Rsa15)] --node <node_id_to_monitor> --crawl")
-
-    .option("endpoint", {
-        alias: "e",
-        demandOption: true,
-        describe: "the end point to connect to "
-    })
-    .option("securityMode", {
-        alias: "s",
-        default: "None",
-        describe: "the security mode (  None Sign SignAndEncrypt )"
-    })
-    .option("securityPolicy", {
-        alias: "P",
-        default: "None",
-        describe: "the policy mode : (" + Object.keys(SecurityPolicy).join(" - ") + ")"
-    })
-    .option("userName", {
-        alias: "u",
-        describe: "specify the user name of a UserNameIdentityToken"
-    })
-    .option("password", {
-        alias: "p",
-        describe: "specify the password of a UserNameIdentityToken"
-    })
-    .option("node", {
-        alias: "n",
-        describe: "the nodeId of the value to monitor"
-    })
-    .option("timeout", {
-        alias: "t",
-        describe: " the timeout of the session in second =>  (-1 for infinity)"
-    })
-    .option("debug", {
-        alias: "d",
-        boolean: true,
-        describe: " display more verbose information"
-    })
-    .option("history", {
-        alias: "h",
-        describe: "make an historical read"
-    })
-    .option("crawl", {
-        alias: "c",
-        describe: "crawl"
-    })
-    .option("discovery", {
-        alias: "D",
-        describe: "specify the endpoint uri of discovery server (by default same as server endpoint uri)"
-    })
-    .example("simple_client  --endpoint opc.tcp://localhost:49230 -P=Basic256Rsa256 -s=Sign", "")
-    .example("simple_client  -e opc.tcp://localhost:49230 -P=Basic256Sha256 -s=Sign -u JoeDoe -p P@338@rd ", "")
-    .example('simple_client  --endpoint opc.tcp://localhost:49230  -n="ns=0;i=2258"', "").argv;
-
-const securityMode = coerceMessageSecurityMode(argv.securityMode!);
-if (securityMode === MessageSecurityMode.Invalid) {
-    throw new Error("Invalid Security mode");
-}
-
-const securityPolicy = coerceSecurityPolicy(argv.securityPolicy!);
-if (securityPolicy === SecurityPolicy.Invalid) {
-    throw new Error("Invalid securityPolicy");
-}
-
-const timeout = (argv.timeout as number) * 1000 || 20000;
-
-const monitored_node: NodeId = coerceNodeId((argv.node as string) || makeNodeId(VariableIds.Server_ServerStatus_CurrentTime));
-
-console.log(chalk.cyan("securityMode        = "), securityMode.toString());
-console.log(chalk.cyan("securityPolicy      = "), securityPolicy.toString());
-console.log(chalk.cyan("timeout             = "), timeout ? timeout : " Infinity ");
-console.log(" monitoring node id = ", monitored_node);
-
-const endpointUrl = argv.endpoint as string;
-
-if (!endpointUrl) {
-    yargs.showHelp();
-    process.exit(0);
-}
-const discoveryUrl = argv.discovery ? (argv.discovery as string) : endpointUrl;
-
-const doCrawling = !!argv.crawl;
-const doHistory = !!argv.history;
 
 function w(str: string, l: number): string {
     return (str + "                                      ").substr(0, l);
@@ -287,6 +201,95 @@ let the_session: ClientSession;
 let client: OPCUAClient;
 
 async function main() {
+
+    // ts-node bin/simple_client.ts --endpoint  opc.tcp://localhost:53530/OPCUA/SimulationServer --node "ns=5;s=Sinusoid1"
+    const argv = await yargs(process.argv)
+        .wrap(132)
+        // .usage("Usage: $0 -d --endpoint <endpointUrl> [--securityMode (None|SignAndEncrypt|Sign)] [--securityPolicy (None|Basic256|Basic128Rsa15)] --node <node_id_to_monitor> --crawl")
+
+        .option("endpoint", {
+            alias: "e",
+            demandOption: true,
+            describe: "the end point to connect to "
+        })
+        .option("securityMode", {
+            alias: "s",
+            default: "None",
+            describe: "the security mode (  None Sign SignAndEncrypt )"
+        })
+        .option("securityPolicy", {
+            alias: "P",
+            default: "None",
+            describe: "the policy mode : (" + Object.keys(SecurityPolicy).join(" - ") + ")"
+        })
+        .option("userName", {
+            alias: "u",
+            describe: "specify the user name of a UserNameIdentityToken"
+        })
+        .option("password", {
+            alias: "p",
+            describe: "specify the password of a UserNameIdentityToken"
+        })
+        .option("node", {
+            alias: "n",
+            describe: "the nodeId of the value to monitor"
+        })
+        .option("timeout", {
+            alias: "t",
+            describe: " the timeout of the session in second =>  (-1 for infinity)"
+        })
+        .option("debug", {
+            alias: "d",
+            boolean: true,
+            describe: " display more verbose information"
+        })
+        .option("history", {
+            alias: "h",
+            describe: "make an historical read"
+        })
+        .option("crawl", {
+            alias: "c",
+            describe: "crawl"
+        })
+        .option("discovery", {
+            alias: "D",
+            describe: "specify the endpoint uri of discovery server (by default same as server endpoint uri)"
+        })
+        .example("simple_client  --endpoint opc.tcp://localhost:49230 -P=Basic256Rsa256 -s=Sign", "")
+        .example("simple_client  -e opc.tcp://localhost:49230 -P=Basic256Sha256 -s=Sign -u JoeDoe -p P@338@rd ", "")
+        .example('simple_client  --endpoint opc.tcp://localhost:49230  -n="ns=0;i=2258"', "").argv;
+
+    const securityMode = coerceMessageSecurityMode(argv.securityMode!);
+    if (securityMode === MessageSecurityMode.Invalid) {
+        throw new Error("Invalid Security mode");
+    }
+
+    const securityPolicy = coerceSecurityPolicy(argv.securityPolicy!);
+    if (securityPolicy === SecurityPolicy.Invalid) {
+        throw new Error("Invalid securityPolicy");
+    }
+
+    const timeout = (argv.timeout as number) * 1000 || 20000;
+
+    const monitored_node: NodeId = coerceNodeId((argv.node as string) || makeNodeId(VariableIds.Server_ServerStatus_CurrentTime));
+
+    console.log(chalk.cyan("securityMode        = "), securityMode.toString());
+    console.log(chalk.cyan("securityPolicy      = "), securityPolicy.toString());
+    console.log(chalk.cyan("timeout             = "), timeout ? timeout : " Infinity ");
+    console.log(" monitoring node id = ", monitored_node);
+
+    const endpointUrl = argv.endpoint as string;
+
+    if (!endpointUrl) {
+        yargs.showHelp();
+        process.exit(0);
+    }
+    const discoveryUrl = argv.discovery ? (argv.discovery as string) : endpointUrl;
+
+    const doCrawling = !!argv.crawl;
+    const doHistory = !!argv.history;
+
+
     const optionsInitial: OPCUAClientOptions = {
         securityMode,
         securityPolicy,

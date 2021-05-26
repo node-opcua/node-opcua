@@ -239,7 +239,7 @@ export class BaseNode extends EventEmitter implements BaseNodePublic {
      * namespace uri
      */
     public get namespaceUri(): string {
-       return this.addressSpace.getNamespaceUri(this.namespaceIndex);
+        return this.addressSpace.getNamespaceUri(this.namespaceIndex);
     }
 
     /**
@@ -286,7 +286,7 @@ export class BaseNode extends EventEmitter implements BaseNodePublic {
     constructor(options: InternalBaseNodeOptions) {
         super();
 
- 
+
         assert(this.nodeClass === NodeClass.Unspecified, "must not be specify a nodeClass");
         assert(options.addressSpace); // expecting an address space
         assert(options.browseName instanceof QualifiedName, "Expecting a valid QualifiedName");
@@ -294,7 +294,7 @@ export class BaseNode extends EventEmitter implements BaseNodePublic {
         options.references = options.references || [];
 
         const _private = BaseNode_initPrivate(this);
-       _private.__address_space = options.addressSpace;
+        _private.__address_space = options.addressSpace;
 
         this.nodeId = resolveNodeId(options.nodeId);
 
@@ -397,7 +397,7 @@ export class BaseNode extends EventEmitter implements BaseNodePublic {
         const _private = BaseNode_getPrivate(this);
 
         isForward = utils.isNullOrUndefined(isForward) ? true : !!isForward;
- 
+
         const referenceTypeNode = this._coerceReferenceType(referenceType);
 
         const hash = "_ref_" + referenceTypeNode.nodeId.toString() + isForward.toString();
@@ -1076,7 +1076,7 @@ export class BaseNode extends EventEmitter implements BaseNodePublic {
         }
         assert(typeof browseName === "string");
         const node = this;
-      
+
         const _cache = BaseNode_getCache(this);
 
         const addressSpace = node.addressSpace;
@@ -1094,13 +1094,13 @@ export class BaseNode extends EventEmitter implements BaseNodePublic {
         return ret;
     }
 
-    get toStateNode() {
+    get toStateNode(): BaseNode | null {
         const nodes = this.findReferencesAsObject("ToState", true);
         assert(nodes.length <= 1);
         return nodes.length === 1 ? nodes[0] : null;
     }
 
-    get fromStateNode() {
+    get fromStateNode(): BaseNode | null {
         const nodes = this.findReferencesAsObject("FromState", true);
         assert(nodes.length <= 1);
         return nodes.length === 1 ? nodes[0] : null;
@@ -1131,7 +1131,7 @@ export class BaseNode extends EventEmitter implements BaseNodePublic {
      *
      */
     public dispose() {
-     
+
         this.emit("dispose");
 
         this.removeAllListeners();

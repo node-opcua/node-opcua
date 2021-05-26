@@ -58,6 +58,7 @@ module.exports = () => {
         const stopDiscoveryServer = f(function stop_the_discovery_server(callback: ErrorCallback) {
             if (!discoveryServer) return callback();
             discoveryServer.shutdown((err?: Error) => {
+                discoveryServer = null;
                 debugLog("discovery server stopped!", err);
                 callback(err);
             });
@@ -148,7 +149,7 @@ module.exports = () => {
                             .on("keepalive", function () {
                                 debugLog("keepalive");
                             })
-                            .on("terminated", function () {});
+                            .on("terminated", function () { });
                         const monitoredItem = ClientMonitoredItem.create(
                             subscription,
                             {
@@ -211,11 +212,11 @@ module.exports = () => {
             setTimeout(callback, 12000);
         });
 
-        before(function (done) {
+        before((done) => {
             startDiscoveryServer(done);
         });
 
-        after(function (done) {
+        after((done) => {
             stopDiscoveryServer(done);
         });
 
@@ -230,13 +231,13 @@ module.exports = () => {
         it("T0c0 - disposing  cerficiation manager during initialization ", function (done) {
 
             const cm = new OPCUACertificateManager({
-               // rootFolder: 
+                // rootFolder: 
             });
 
             async.series(
                 [
                     f(function when_creating_a_opcua_certificate_manager(callback: ErrorCallback) {
-                        cm.initialize((err) =>{
+                        cm.initialize((err) => {
                             done();
                         })
                         callback();
@@ -245,7 +246,7 @@ module.exports = () => {
                         cm.dispose();
                     }),
                 ],
-                ()=>{
+                () => {
 
                 });
         })
@@ -270,7 +271,7 @@ module.exports = () => {
                         wait_a_few_seconds(callback);
                     })
                 ],
-                ()=>{
+                () => {
                     /* nothing here => connect wil call done */
                 }
             );
@@ -349,7 +350,7 @@ module.exports = () => {
             async.series(
                 [
                     function (callback: ErrorCallback) {
-                        registrationManager.start(function () {});
+                        registrationManager.start(function () { });
                         callback(); // setImmediate(callback);
                     },
                     function (callback: ErrorCallback) {
@@ -384,7 +385,7 @@ module.exports = () => {
             async.series(
                 [
                     function (callback: ErrorCallback) {
-                        registrationManager.start(function () {});
+                        registrationManager.start(function () { });
                         callback(); // setImmediate(callback);
                     },
                     function (callback: ErrorCallback) {

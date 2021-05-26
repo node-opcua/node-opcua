@@ -3,10 +3,13 @@
  */
 import * as bonjour from "bonjour";
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
+import { ObjectRegistry } from "node-opcua-object-registry";
 import { acquireBonjour, releaseBonjour, ServerOnNetwork } from "node-opcua-service-discovery";
 
 const debugLog = make_debugLog(__filename);
 const doDebug = checkDebugFlag(__filename) || true;
+
+const registry = new ObjectRegistry();
 
 export class MDNSResponder {
     /**
@@ -20,6 +23,10 @@ export class MDNSResponder {
     private lastUpdateDate: Date = new Date();
 
     constructor() {
+
+
+        registry.register(this);
+        
         this.registeredServers = [];
 
         this.multicastDNS = acquireBonjour();
@@ -123,6 +130,7 @@ export class MDNSResponder {
 
     public dispose() {
         delete (this as any).multicastDNS;
+        registry.unregister(this);
         releaseBonjour();
     }
 }

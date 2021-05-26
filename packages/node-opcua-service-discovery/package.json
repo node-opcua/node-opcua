@@ -22,6 +22,7 @@
         "node-opcua-nodeid": "2.42.0",
         "node-opcua-service-endpoints": "2.42.0",
         "node-opcua-service-secure-channel": "2.42.0",
+        "node-opcua-object-registry": "2.42.0",
         "node-opcua-types": "2.42.0"
     },
     "author": "Etienne Rossignon",

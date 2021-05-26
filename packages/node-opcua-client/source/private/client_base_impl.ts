@@ -15,7 +15,7 @@ import { installPeriodicClockAdjustment, periodicClockAdjustment, uninstallPerio
 import { checkDebugFlag, make_debugLog, make_errorLog, make_warningLog } from "node-opcua-debug";
 
 import { makeApplicationUrn } from "node-opcua-common";
-import { getHostname, resolveFullyQualifiedDomainName } from "node-opcua-hostname";
+import { getHostname } from "node-opcua-hostname";
 
 import {
     ClientSecureChannelLayer,
@@ -62,7 +62,6 @@ import { ClientSessionImpl } from "./client_session_impl";
 import { getDefaultCertificateManager, makeSubject, OPCUACertificateManager } from "node-opcua-certificate-manager";
 import { performCertificateSanityCheck } from "../verify";
 import { VerificationStatus } from "node-opcua-pki";
-import { cpuUsage } from "process";
 
 // tslint:disable-next-line:no-var-requires
 const once = require("once");

@@ -9,11 +9,6 @@ import { Argv } from "yargs";
 
 Error.stackTraceLimit = Infinity;
 
-const argv = yargs.wrap(132).option("port", {
-    alias: "p",
-    default: "26543",
-    describe: "port to listen"
-}).argv;
 
 function constructFilename(filename: string): string {
     return path.join(__dirname, "../", filename);
@@ -21,22 +16,29 @@ function constructFilename(filename: string): string {
 
 const rootFolder = path.join(__dirname, "../../..");
 
-const port = parseInt(argv.port, 10) || 26555;
-const server_certificate_file = constructFilename("certificates/server_cert_2048.pem");
-const server_certificate_privatekey_file = constructFilename("certificates/server_key_2048.pem");
-
-const server_options = {
-    certificateFile: server_certificate_file,
-    privateKeyFile: server_certificate_privatekey_file,
-
-    port,
-
-    nodeset_filename: [nodesets.standard, path.join(rootFolder, "modeling/my_data_type.xml")]
-};
-
-process.title = "Node OPCUA Server on port : " + server_options.port;
-
 async function main() {
+
+    const argv = await yargs.wrap(132).option("port", {
+        alias: "p",
+        default: "26543",
+        describe: "port to listen"
+    }).argv;
+    const port = parseInt(argv.port, 10) || 26555;
+    const server_certificate_file = constructFilename("certificates/server_cert_2048.pem");
+    const server_certificate_privatekey_file = constructFilename("certificates/server_key_2048.pem");
+
+    const server_options = {
+        certificateFile: server_certificate_file,
+        privateKeyFile: server_certificate_privatekey_file,
+
+        port,
+
+        nodeset_filename: [nodesets.standard, path.join(rootFolder, "modeling/my_data_type.xml")]
+    };
+
+    process.title = "Node OPCUA Server on port : " + server_options.port;
+
+
     const server = new OPCUAServer(server_options);
 
     console.log(chalk.yellow("  server PID          :"), process.pid);

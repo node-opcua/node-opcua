@@ -19,6 +19,7 @@
 		"node-opcua-debug": "2.42.0",
 		"node-opcua-hostname": "2.42.0",
 		"node-opcua-pki": "^2.9.8",
+		"node-opcua-object-registry": "2.42.0",
 		"node-opcua-secure-channel": "2.43.0",
 		"node-opcua-server": "2.43.0",
 		"node-opcua-service-discovery": "2.42.0",
