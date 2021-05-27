@@ -64,6 +64,7 @@ export interface AbstractFs {
     readFile(path: PathLike | number, options: { encoding: BufferEncoding; flag?: string; } | string, callback: (err: NodeJS.ErrnoException | null, data: string) => void): void;
     // readFile(path: PathLike | number, options: { encoding?: null; flag?: string; } | undefined | null, callback: (err: NodeJS.ErrnoException | null, data: Buffer) => void): void;
 
+    existsSync(filename: string): boolean;
 }
 
 /**
@@ -157,13 +158,17 @@ export class FileTypeData {
         // lauch an async request to update filesize
         await (async function extractFileSize(self: FileTypeData) {
             try {
+                if (!abstractFs.existsSync(self.filename)) {
+                    self._fileSize =0;
+                    return;
+                }
                 const stat = await promisify(abstractFs.stat)(self.filename);
                 self._fileSize = stat.size;
                 debugLog("original file size ", self.filename, " size = ", self._fileSize);
             } catch (err) {
                 self._fileSize = 0;
                 debugLog("Cannot access file ", self.filename);
-                console.log(err);
+                // console.log(err);
             }
         })(this);
 

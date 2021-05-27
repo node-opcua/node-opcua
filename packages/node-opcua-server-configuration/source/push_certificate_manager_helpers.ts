@@ -26,7 +26,9 @@ import { AbstractFs, installFileType, OpenFileMode } from "node-opcua-file-trans
 import { OPCUACertificateManager } from "node-opcua-certificate-manager";
 import { TrustListMasks, writeTrustList } from "./server/trust_list_server";
 import { fs as MemFs } from "memfs";
-import { CertificateManager } from "node-opcua-pki";
+import { CertificateManager, SubjectOptions } from "node-opcua-pki";
+import { UAVariable } from "node-opcua-address-space/dist/src/ua_variable";
+import { ObjectTypeIds } from "node-opcua-constants";
 
 const debugLog = make_debugLog("ServerConfiguration");
 const doDebug = checkDebugFlag("ServerConfiguration");
@@ -75,6 +77,7 @@ function getPushCertificateManager(method: UAMethod): PushCertificateManager | n
     return null;
 }
 
+
 async function _createSigningRequest(
     this: UAMethod,
     inputArguments: Variant[],
@@ -88,18 +91,23 @@ async function _createSigningRequest(
     const nonceVariant = inputArguments[4];
 
     if (!expected(certificateGroupIdVariant, DataType.NodeId, VariantArrayType.Scalar)) {
+        warningLog("epecting an NodeId for certificateGroupId - 0");
         return { statusCode: StatusCodes.BadInvalidArgument };
     }
     if (!expected(certificateTypeIdVariant, DataType.NodeId, VariantArrayType.Scalar)) {
+        warningLog("epecting an NodeId for certificateTypeId - 1");
         return { statusCode: StatusCodes.BadInvalidArgument };
     }
     if (!expected(subjectNameVariant, DataType.String, VariantArrayType.Scalar)) {
+        warningLog("epecting an String for subjectName - 2");
         return { statusCode: StatusCodes.BadInvalidArgument };
     }
     if (!expected(regeneratePrivateKeyVariant, DataType.Boolean, VariantArrayType.Scalar)) {
+        warningLog("epecting an Boolean for regeneratePrivateKey - 3");
         return { statusCode: StatusCodes.BadInvalidArgument };
     }
-    if (!expected(regeneratePrivateKeyVariant, DataType.Boolean, VariantArrayType.Scalar)) {
+    if (!expected(nonceVariant, DataType.ByteString, VariantArrayType.Scalar)) {
+        warningLog("epecting an ByteString for nonceVariant - 4");
         return { statusCode: StatusCodes.BadInvalidArgument };
     }
 
@@ -392,7 +400,8 @@ export async function installPushCertificateManagement(
         const trustList = certificateGroup.getChildByName("TrustList");
         if (trustList) {
 
-            const filename = "/tmpFile" + counter; counter += 1;
+            const filename = `/tmpFile${counter}`;
+            counter += 1;
 
             installFileType(trustList as UAFileType, { filename, fileSystem: MemFs as AbstractFs });
 
@@ -449,6 +458,16 @@ export async function installPushCertificateManagement(
         }
     }
     const cg = serverConfiguration.certificateGroups.getComponents();
+
+    const defaultApplicationGroup = serverConfiguration.certificateGroups.getComponentByName("DefaultApplicationGroup")!;
+    const certificateTypes = defaultApplicationGroup.getPropertyByName("CertificateTypes") as UAVariable;
+    certificateTypes.setValueFromSource({ 
+        dataType: DataType.NodeId, 
+        arrayType: VariantArrayType.Array,
+        value: [
+            resolveNodeId(ObjectTypeIds.RsaSha256ApplicationCertificateType)
+        ]
+    });
     for (const certificateGroup of cg) {
         if (certificateGroup.nodeClass !== NodeClass.Object) {
             continue;

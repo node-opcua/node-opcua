@@ -4,8 +4,12 @@
 import { EventEmitter } from "events";
 import * as fs from "fs";
 import * as path from "path";
+import { promisify} from "util";
+import * as rimraf from "rimraf";
+
+
 // node 14 onward : import {  readFile, writeFile, readdir } from "fs/promises";
-const { readFile, writeFile, readdir }= fs.promises;
+const { readFile, writeFile, readdir } = fs.promises;
 
 import { assert } from "node-opcua-assert";
 import { ByteString, StatusCodes } from "node-opcua-basic-types";
@@ -20,9 +24,13 @@ import {
     privateDecrypt_long,
     PrivateKey,
     PrivateKeyPEM,
-    publicEncrypt_long
+    publicEncrypt_long,
+    explorePrivateKey,
+    readCertificate,
 } from "node-opcua-crypto";
-import { checkDebugFlag, make_debugLog, make_errorLog } from "node-opcua-debug";
+import { DirectoryName } from "node-opcua-crypto/dist/source/asn1";
+
+import { checkDebugFlag, make_debugLog, make_errorLog, make_warningLog } from "node-opcua-debug";
 import { NodeId, resolveNodeId, sameNodeId } from "node-opcua-nodeid";
 import { CertificateManager } from "node-opcua-certificate-manager";
 import { StatusCode } from "node-opcua-status-code";
@@ -33,9 +41,11 @@ import {
     PushCertificateManager,
     UpdateCertificateResult
 } from "../push_certificate_manager";
+import { SubjectOptions } from "node-opcua-pki";
 
 const debugLog = make_debugLog("ServerConfiguration");
 const errorLog = make_errorLog("ServerConfiguration");
+const warningLog = make_warningLog("ServerConfiguration");
 const doDebug = checkDebugFlag("ServerConfiguration");
 
 const defaultApplicationGroup = resolveNodeId("ServerConfiguration_CertificateGroups_DefaultApplicationGroup");
@@ -127,6 +137,28 @@ export async function moveFileWithBackup(source: string, dest: string): Promise<
     await moveFile(source, dest);
 }
 
+export function subjectToString(subject: SubjectOptions & DirectoryName): string {
+    let s = "";
+    subject.commonName && (s += `/CN=${subject.commonName}`);
+
+    subject.country && (s += `/C=${subject.country}`);
+    subject.countryName && (s += `/C=${subject.countryName}`);
+
+    subject.domainComponent && (s += `/DC=${subject.domainComponent}`);
+
+    subject.locality && (s += `/L=${subject.locality}`);
+    subject.localityName && (s += `/L=${subject.localityName}`);
+
+    subject.organization && (s += `/O=${subject.organization}`);
+    subject.organizationName && (s += `/O=${subject.organizationName}`);
+
+    subject.organizationUnitName && (s += `/OU=${subject.organizationUnitName}`);
+
+    subject.state && (s += `/ST=${subject.state}`);
+    subject.stateOrProvinceName && (s += `/ST=${subject.stateOrProvinceName}`);
+
+    return s;
+}
 let fileCounter = 0;
 
 export type ActionQueue = (() => Promise<void>)[];
@@ -138,7 +170,7 @@ export class PushCertificateManagerServerImpl extends EventEmitter implements Pu
 
     private readonly _map: { [key: string]: CertificateManager } = {};
     private readonly _pendingTasks: Functor[] = [];
-
+    private _tmpCertificateManager?: CertificateManager;
     private $$actionQueue: ActionQueue = [];
 
     private applicationUri: string;
@@ -198,11 +230,12 @@ export class PushCertificateManagerServerImpl extends EventEmitter implements Pu
     public async createSigningRequest(
         certificateGroupId: NodeId | string,
         certificateTypeId: NodeId | string,
-        subjectName: string,
+        subjectName: string | SubjectOptions | null,
         regeneratePrivateKey?: boolean,
         nonce?: Buffer
     ): Promise<CreateSigningRequestResult> {
-        const certificateManager = this.getCertificateManager(certificateGroupId);
+
+        let certificateManager = this.getCertificateManager(certificateGroupId);
 
         if (!certificateManager) {
             debugLog(" cannot find group ", certificateGroupId);
@@ -211,28 +244,74 @@ export class PushCertificateManagerServerImpl extends EventEmitter implements Pu
             };
         }
 
+        if (!subjectName) {
+            // reuse existing subjectName
+            const currentCertificateFilename = path.join(certificateManager.rootDir, "own/certs/certificate.pem");
+            if (!fs.existsSync(currentCertificateFilename)) {
+                errorLog("Cannot find existing certificate to extract subjectName", currentCertificateFilename);
+                return {
+                    statusCode: StatusCodes.BadInvalidState
+                }
+            }
+            const certificate = readCertificate(currentCertificateFilename);
+            const e = exploreCertificate(certificate);
+            subjectName = subjectToString(e.tbsCertificate.subject);
+            warningLog("reusing existing certificate subjectAltName = ", subjectName);
+        }
+
         // todo : at this time regenerate PrivateKey is not supported
         if (regeneratePrivateKey) {
             // The Server shall create a new Private Key which it stores until the
             // matching signed Certificate is uploaded with the UpdateCertificate Method.
             // Previously created Private Keys may be discarded if UpdateCertificate was not
             // called before calling this method again.
-            debugLog(" regeneratePrivateKey = true not supported yet");
 
-            // debugLog("generating a new private key ...");
-            // setEnv("RANDFILE", certificateManager.randomFile);
-            // await createPrivateKey(certificateManager.privateKey, certificateManager.keySize);
 
-            return {
-                statusCode: StatusCodes.BadInvalidArgument
-            };
+            // Additional entropy which the caller shall provide if regeneratePrivateKey is TRUE.
+            // It shall be at least 32 bytes long
+            if (!nonce || nonce.length < 32) {
+                make_warningLog(" nonce should be provided when regeneratePrivateKey is set, and length shall be greater than 32 bytes");
+                return {
+                    statusCode: StatusCodes.BadInvalidArgument
+                };
+            }
+
+            const location = path.join(certificateManager.rootDir, "tmp");
+            if (fs.existsSync(location)) {
+                await promisify(rimraf)(path.join(location));
+            }
+            if (!fs.existsSync(location)) {
+                await fs.promises.mkdir(location);
+            }
+
+            let destCertificateManager = certificateManager;
+            const keySize = (certificateManager as any).keySize; // because keySize is private !
+            certificateManager = new CertificateManager({
+                keySize,
+                location,
+            });
+            debugLog("generating a new private key ...");
+            await certificateManager.initialize();
+
+            this._tmpCertificateManager = certificateManager;
+
+            this.addPendingTask(async () => {
+                await moveFileWithBackup(certificateManager!.privateKey, destCertificateManager.privateKey)
+            });
+            this.addPendingTask(async () => {
+                 await promisify(rimraf)(path.join(location));
+            });
+
         } else {
             // The Server uses its existing Private Key
         }
 
+        if (typeof subjectName !== "string") {
+            return { statusCode: StatusCodes.BadInternalError };
+        }
         const options = {
             applicationUri: this.applicationUri,
-            subject: subjectName
+            subject: subjectName!
         };
         const csrFile = await certificateManager.createCertificateRequest(options);
         const csrPEM = await readFile(csrFile, "utf8");
@@ -393,10 +472,15 @@ export class PushCertificateManagerServerImpl extends EventEmitter implements Pu
         debugLog(" updateCertificate ", makeSHA1Thumbprint(certificate).toString("hex"));
 
         if (!privateKeyFormat || !privateKey) {
+            // first of all we need to find the future private key; 
+            // this one may have been created during the creation of the certficate signing request
+            // but is not active yet
+            const privateKeyDER = readPrivateKey(
+                this._tmpCertificateManager ? this._tmpCertificateManager.privateKey : certificateManager.privateKey);
+
             // The Server shall report an error if the public key does not match the existing Certificate and
             // the privateKey was not provided.
             // privateKey is not provided, so check that the public key matches the existing certificate
-            const privateKeyDER = readPrivateKey(certificateManager.privateKey);
             if (!certificateMatchesPrivateKey(certificate, privateKeyDER)) {
                 // certificate doesn't match privateKey
                 debugLog("certificate doesn't match privateKey");

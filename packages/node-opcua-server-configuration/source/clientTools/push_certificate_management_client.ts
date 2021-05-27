@@ -299,7 +299,7 @@ export class ClientPushCertificateManagement implements PushCertificateManager {
     public async createSigningRequest(
         certificateGroupId: NodeId | string,
         certificateTypeId: NodeId | string,
-        subjectName: string,
+        subjectName: string | null,
         regeneratePrivateKey?: boolean,
         nonce?: ByteString
     ): Promise<CreateSigningRequestResult> {

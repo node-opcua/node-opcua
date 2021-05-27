@@ -68,6 +68,9 @@
       "path": "../node-opcua-data-value"
     },
     {
+      "path": "../node-opcua-file-transfer"
+    },
+    {
       "path": "../node-opcua-leak-detector"
     }
   ]
