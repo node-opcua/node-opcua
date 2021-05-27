@@ -14,6 +14,7 @@
         "memfs": "^3.2.2",
         "node-opcua-address-space": "2.43.0",
         "node-opcua-assert": "2.42.0",
+        "node-opcua-constants": "2.42.0",
         "node-opcua-basic-types": "2.42.0",
         "node-opcua-certificate-manager": "2.42.0",
         "node-opcua-client": "2.43.0",
@@ -31,6 +32,7 @@
         "node-opcua-service-translate-browse-path": "2.42.0",
         "node-opcua-status-code": "2.42.0",
         "node-opcua-types": "2.42.0",
+        "rimraf": "^3.0.2",
         "node-opcua-variant": "2.42.0"
     },
     "devDependencies": {

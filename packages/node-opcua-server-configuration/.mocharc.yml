@@ -3,7 +3,7 @@ require:
 -  ../../node_modules/source-map-support/register
 - ../../node_modules/ts-node/register
 - ../../node_modules/should
-timeout: 20000
+timeout: 60000
 extension:
 - ts
 - js
