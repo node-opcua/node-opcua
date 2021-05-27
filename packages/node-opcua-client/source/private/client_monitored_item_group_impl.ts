@@ -190,7 +190,7 @@ Please investigate the code of the event handler function to fix the error.`
             this.monitoredItems,
             (err?: Error) => {
                 if (err) {
-                    this.emit("terminated");
+                    this.emit("terminated", err);
                 } else {
                     this.emit("initialized");
                     // set the event handler
