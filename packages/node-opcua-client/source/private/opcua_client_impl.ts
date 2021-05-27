@@ -22,7 +22,7 @@ import {
 } from "node-opcua-crypto";
 
 import { LocalizedText } from "node-opcua-data-model";
-import { checkDebugFlag, make_debugLog, make_errorLog } from "node-opcua-debug";
+import { checkDebugFlag, make_debugLog, make_errorLog, make_warningLog } from "node-opcua-debug";
 import { extractFullyQualifiedDomainName, getHostname, resolveFullyQualifiedDomainName } from "node-opcua-hostname";
 import { ClientSecureChannelLayer, computeSignature, fromURI, getCryptoFactory, SecurityPolicy } from "node-opcua-secure-channel";
 import { ApplicationDescriptionOptions, ApplicationType, EndpointDescription, UserTokenType } from "node-opcua-service-endpoints";
@@ -71,6 +71,7 @@ interface TokenAndSignature {
 const doDebug = checkDebugFlag(__filename);
 const debugLog = make_debugLog(__filename);
 const errorLog = make_errorLog(__filename);
+const warningLog = make_warningLog(__filename);
 
 function validateServerNonce(serverNonce: Nonce | null): boolean {
     return !(serverNonce && serverNonce.length < 32) || (serverNonce && serverNonce.length === 0);
@@ -329,7 +330,7 @@ export class OPCUAClientImpl extends ClientBaseImpl implements OPCUAClient {
                     "endpoint_must_exist is deprecated! you must now use endpointMustExist instead of endpoint_must_exist "
                 );
             }
-            // later : console.log("Warning: endpoint_must_exist is now deprecated, use endpointMustExist instead");
+            warningLog("Warning: endpoint_must_exist is now deprecated, use endpointMustExist instead");
             options.endpointMustExist = options.endpoint_must_exist;
         }
         this.endpointMustExist = isNullOrUndefined(options.endpointMustExist) ? true : !!options.endpointMustExist;
@@ -347,17 +348,17 @@ export class OPCUAClientImpl extends ClientBaseImpl implements OPCUAClient {
      * @method createSession
      *
      *
-     * @example :
+     * @example 
      *     // create a anonymous session
-     *     client.createSession(function(err,session) {
-     *       if (err) {} else {}
-     *     });
+     *     const session = await client.createSession();
      *
-     * @example :
+     * @example 
      *     // create a session with a userName and password
-     *     client.createSession({userName: "JoeDoe", password:"secret"}, function(err,session) {
-     *       if (err) {} else {}
-     *     });
+     *     const session = await client.createSession({
+     *            type: UserTokenType.UserName,
+     *            userName: "JoeDoe", 
+     *            password:"secret"
+     *      });
      *
      */
     public async createSession(userIdentityInfo?: UserIdentityInfo): Promise<ClientSession>;
