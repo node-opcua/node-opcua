@@ -15,7 +15,7 @@ export interface ClientMonitoredItemGroup extends EventEmitter, ClientMonitoredI
 
     on(event: "err", eventHandler: (message: string) => void): this;
 
-    on(event: "terminated", eventHandler: () => void): this;
+    on(event: "terminated", eventHandler: (error: Error) => void): this;
 
     on(event: "initialized", eventHandler: () => void): this;
 
