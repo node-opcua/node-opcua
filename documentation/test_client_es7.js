@@ -1,5 +1,5 @@
 const opcua = require("node-opcua");
-var os = require("os");
+const os = require("os");
 
 async function mytest() {
 
@@ -10,7 +10,7 @@ async function mytest() {
 
         await client.connect("opc.tcp://"+ os.hostname() + ":26543");
 
-        const session = await client.createSession({});
+        const session = await client.createSession();
 
         const readResult = await session.read({nodeId: "i=84"});
 
