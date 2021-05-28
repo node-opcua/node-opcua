@@ -9,12 +9,13 @@ import { assert } from "node-opcua-assert";
 import { CertificateManager, OPCUACertificateManager } from "node-opcua-certificate-manager";
 import { NodeId } from "node-opcua-nodeid";
 import { StatusCodes } from "node-opcua-status-code";
-import { UserNameIdentityToken } from "node-opcua-types";
+import { MessageSecurityMode, UserNameIdentityToken } from "node-opcua-types";
 import { readCertificate } from "node-opcua-crypto";
 
 import { ClientPushCertificateManagement, installPushCertificateManagement } from "..";
 import { initializeHelpers } from "./helpers/fake_certificate_authority";
 import { TrustListMasks } from "../source/server/trust_list_server";
+import { SecurityPolicy } from "node-opcua-secure-channel";
 
 // make sure extra error checking is made on object constructions
 // tslint:disable-next-line:no-var-requires
@@ -31,8 +32,13 @@ describe("ServerConfiguration", () => {
     };
     const session: ISessionBase = {
         userIdentityToken: new UserNameIdentityToken({
-            userName: "joedoe"
+            userName: "admin"
         }),
+        channel: {
+            securityMode: MessageSecurityMode.SignAndEncrypt,
+            securityPolicy: SecurityPolicy.Basic256Sha256,
+            clientCertificate: Buffer.from("dummy","ascii")
+        },
         getSessionId() {
             return NodeId.nullNodeId;
         }
@@ -137,7 +143,9 @@ describe("ServerConfiguration", () => {
             const server = addressSpace.rootFolder.objects.server;
             server.serverConfiguration.createSigningRequest.nodeClass.should.eql(NodeClass.Method);
 
-            const pseudoSession = new PseudoSession(addressSpace, opcuaServer, session);
+            const context = new SessionContext({ server: opcuaServer, session });
+            const pseudoSession = new PseudoSession(addressSpace, context);
+
             const clientPullCertificateManager = new ClientPushCertificateManagement(pseudoSession);
 
             const certificateGroupId = await clientPullCertificateManager.getCertificateGroupId("DefaultApplicationGroup");
@@ -158,7 +166,9 @@ describe("ServerConfiguration", () => {
         xit("should implement UpdateCertificate", async () => {
             await installPushCertificateManagement(addressSpace, { applicationUri: "SomeUri" });
 
-            const pseudoSession = new PseudoSession(addressSpace, opcuaServer, session);
+            const context = new SessionContext({ server: opcuaServer, session });
+            const pseudoSession = new PseudoSession(addressSpace, context);
+
             const clientPushCertificateManager = new ClientPushCertificateManagement(pseudoSession);
 
             const certificateGroupId = NodeId.nullNodeId;
@@ -196,7 +206,9 @@ describe("ServerConfiguration", () => {
             await installPushCertificateManagement(
                 addressSpace, { applicationGroup, userTokenGroup, applicationUri: "SomeUri" });
 
-            const pseudoSession = new PseudoSession(addressSpace, opcuaServer, session);
+            const context = new SessionContext({ server: opcuaServer, session });
+            const pseudoSession = new PseudoSession(addressSpace, context);
+
             const clientPushCertificateManager = new ClientPushCertificateManagement(pseudoSession);
 
             const defaultApplicationGroup = await clientPushCertificateManager.getCertificateGroup("DefaultApplicationGroup");
@@ -226,7 +238,9 @@ describe("ServerConfiguration", () => {
             await installPushCertificateManagement(
                 addressSpace, { applicationGroup, userTokenGroup, applicationUri: "SomeUri" });
 
-            const pseudoSession = new PseudoSession(addressSpace, opcuaServer, session);
+            const context = new SessionContext({ server: opcuaServer, session });
+            const pseudoSession = new PseudoSession(addressSpace, context);
+
             const clientPushCertificateManager = new ClientPushCertificateManagement(pseudoSession);
 
             const defaultApplicationGroup = await clientPushCertificateManager.getCertificateGroup("DefaultApplicationGroup");
@@ -238,7 +252,7 @@ describe("ServerConfiguration", () => {
             a.issuerCertificates!.length.should.eql(0);
             a.issuerCrls!.length.should.eql(0);
             a.trustedCrls!.length.should.eql(0);
- 
+
             // now add a certificate 
             const certificateFile = path.join(__dirname, "../../node-opcua-samples/certificates/client_cert_2048.pem");
             assert(fs.existsSync(certificateFile));

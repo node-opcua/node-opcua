@@ -234,6 +234,10 @@ export declare class BaseNode extends EventEmitter {
      */
     setRolePermissions(rolePermissions: RolePermissionTypeOptions[]): void;
 
+    /**
+     * setAccessRestriction
+     */
+    setAccessRestrictions(accessRestrictions: AccessRestrictionsFlag): void;
 }
 
 export declare class UAView extends BaseNode {

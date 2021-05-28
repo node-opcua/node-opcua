@@ -3326,9 +3326,11 @@ export class OPCUAServer extends OPCUABaseServer {
                 /* jshint validthis: true */
                 const addressSpace = server.engine.addressSpace!;
 
+                const context = new SessionContext({ session, server });
+
                 async.map(
                     request.methodsToCall,
-                    callMethodHelper.bind(null, server, session, addressSpace),
+                    callMethodHelper.bind(null, context, addressSpace),
                     (err?: Error | null, results?: (CallMethodResultOptions | undefined)[]) => {
                         /* istanbul ignore next */
                         if (err) {
