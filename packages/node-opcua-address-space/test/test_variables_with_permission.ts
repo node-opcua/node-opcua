@@ -15,10 +15,11 @@ import {
     ObjectIds
 } from "node-opcua-constants";
 
-import { AddressSpace, generateAddressSpaceRawCallback, Namespace, SessionContext, UAVariable } from "..";
+import { AddressSpace, Namespace, PseudoSession, SessionContext, UAVariable } from "..";
 import { getMiniAddressSpace } from "../testHelpers";
 import { NodeId, resolveNodeId } from "node-opcua-nodeid";
 import { WellKnownRoles, makeRoles } from "..";
+import "should";
 
 // tslint:disable-next-line:no-var-requires
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
@@ -118,6 +119,7 @@ describe("SPP1 AddressSpace: RoleAndPermissions resolving to Namespace Metadata"
     let addressSpace: AddressSpace;
     let namespace: Namespace;
     let variable: UAVariable;
+    let dataItem: UAVariable;
     let restrictedVariableSign: UAVariable;
     let restrictedVariableSignAndEncrypt: UAVariable;
 
@@ -219,7 +221,7 @@ describe("SPP1 AddressSpace: RoleAndPermissions resolving to Namespace Metadata"
             }),
             channel: {
                 securityMode: MessageSecurityMode.SignAndEncrypt,
-                securityPolicy:"",
+                securityPolicy: "",
                 clientCertificate: null,
             }
         }
@@ -282,8 +284,8 @@ describe("SPP1 AddressSpace: RoleAndPermissions resolving to Namespace Metadata"
             browseName: "SomeVar",
             dataType: "Double",
         });
-        variable.setValueFromSource({ dataType: DataType.Double, value: 0});
- 
+        variable.setValueFromSource({ dataType: DataType.Double, value: 0 });
+
         variable.nodeId.namespace.should.eql(namespace.index);
 
         const adiNamespace = addressSpace.rootFolder.objects.server.namespaces.getChildByName(nodesets.adi);
@@ -295,7 +297,7 @@ describe("SPP1 AddressSpace: RoleAndPermissions resolving to Namespace Metadata"
             dataType: "Double",
             accessRestrictions: AccessRestrictionsFlag.SigningRequired
         });
-        restrictedVariableSign.setValueFromSource({ dataType: DataType.Double, value: 0});
+        restrictedVariableSign.setValueFromSource({ dataType: DataType.Double, value: 0 });
 
         restrictedVariableSignAndEncrypt = namespace.addVariable({
             accessLevel: makeAccessLevelFlag("CurrentRead | CurrentWrite | StatusWrite | HistoryRead | HistoryWrite | SemanticChange"),
@@ -304,7 +306,14 @@ describe("SPP1 AddressSpace: RoleAndPermissions resolving to Namespace Metadata"
             dataType: "Double",
             accessRestrictions: AccessRestrictionsFlag.EncryptionRequired
         });
-        restrictedVariableSignAndEncrypt.setValueFromSource({ dataType: DataType.Double, value: 0});
+        restrictedVariableSignAndEncrypt.setValueFromSource({ dataType: DataType.Double, value: 0 });
+
+        dataItem = namespace.addAnalogDataItem({
+            browseName: "A",
+            dataType: DataType.Double,
+            definition: "A",
+            engineeringUnitsRange: { low: 10, high: 20 }
+        });
     });
     after(() => {
         addressSpace.dispose();
@@ -337,6 +346,31 @@ describe("SPP1 AddressSpace: RoleAndPermissions resolving to Namespace Metadata"
         restrictedVariableSignAndEncrypt.readValue(contextSecuritySign).statusCode.should.eql(StatusCodes.BadSecurityModeInsufficient);
         restrictedVariableSignAndEncrypt.readValue(contextSecuritySignAndEncrypt).statusCode.should.eql(StatusCodes.Good);
 
-    })
+    });
 
+    it("isBrowseAccessRestricted ", () => {
+        contextAdmin.isBrowseAccessRestricted(variable).should.eql(false);
+        contextAuthenticated.isBrowseAccessRestricted(variable).should.eql(false);
+        contextAnonymous.isBrowseAccessRestricted(variable).should.eql(true);
+    });
+
+    it("isBrowseAccessRestricted: session should browse node with BrowsePermission", async () => {
+
+        const session1 = new PseudoSession(addressSpace, contextAdmin);
+        const browseResult1 = await session1.browse({
+            nodeId: dataItem.nodeId
+        });
+        console.log(browseResult1.statusCode.toString(), browseResult1.references.length);
+        browseResult1.references.length.should.eql(3);
+    });
+    it("isBrowseAccessRestricted: session should not browse node without BrowsePermission ", async () => {
+
+        const session2 = new PseudoSession(addressSpace, contextAnonymous);
+        const browseResult2 = await session2.browse({
+            nodeId: dataItem.nodeId
+        });
+        console.log(browseResult2.statusCode.toString(), browseResult2.references.length);
+        browseResult2.references.length.should.eql(0);
+
+    });
 });

@@ -1105,6 +1105,7 @@ export class AddressSpace implements AddressSpacePrivate {
         }
 
         const obj = this.findNode(nodeId);
+
         if (!obj) {
             // Object Not Found
             browseResult.statusCode = StatusCodes.BadNodeIdUnknown;

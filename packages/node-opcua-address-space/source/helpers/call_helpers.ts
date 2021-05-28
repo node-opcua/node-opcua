@@ -12,7 +12,7 @@ import { Variant } from "node-opcua-variant";
 
 import { AddressSpace, UAMethod, UAObject } from "../address_space_ts";
 import { ensureDatatypeExtractedWithCallback } from "../loader/load_nodeset2";
-import { IServerBase, ISessionBase, SessionContext } from "../session_context";
+import { SessionContext } from "../session_context";
 import { getMethodDeclaration_ArgumentList, verifyArguments_ArgumentList } from "./argument_list";
 
 // Symbolic Id                   Description
@@ -33,8 +33,7 @@ import { getMethodDeclaration_ArgumentList, verifyArguments_ArgumentList } from 
 type ResponseCallback<T> = (err: Error | null, result?: T) => void;
 
 export function callMethodHelper(
-    server: IServerBase,
-    session: ISessionBase,
+    context: SessionContext,
     addressSpace: AddressSpace,
     callMethodRequest: CallMethodRequest,
     callback: ResponseCallback<CallMethodResultOptions>
@@ -65,13 +64,6 @@ export function callMethodHelper(
     if (methodObj.nodeClass !== NodeClass.Method) {
         return callback(null, { statusCode: StatusCodes.BadNodeIdInvalid });
     }
-
-    // invoke method on object
-    const context = new SessionContext({
-        object: addressSpace.findNode(objectId) as UAObject,
-        server,
-        session
-    });
 
     let l_extraDataTypeManager: ExtraDataTypeManager;
 

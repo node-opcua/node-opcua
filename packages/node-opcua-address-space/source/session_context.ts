@@ -333,11 +333,10 @@ export class SessionContext implements ISessionContext {
      */
     public isBrowseAccessRestricted(node: BaseNode): boolean {
 
-        const accessRestrictions = this.getAccessRestrictions(node);
-        if (accessRestrictions & AccessRestrictionsFlag.ApplyRestrictionsToBrowse) {
-            return this.isAccessRestricted(node);
+        if (this.checkPermission(node, PermissionType.Browse)) {
+            return false; // can browse
         }
-        return false;
+        return true; // browse restriction
     }
     /**
      * 
@@ -374,7 +373,7 @@ export class SessionContext implements ISessionContext {
      * @param requestedPermission
      * @return {Boolean} returns true of the current user is granted the requested Permission
      */
-    public checkPermission(node: UAMethod | UAVariable, requestedPermission: PermissionType): boolean {
+    public checkPermission(node: BaseNode, requestedPermission: PermissionType): boolean {
         const permissions = this.getPermissions(node);
         return (permissions & requestedPermission) === requestedPermission;
     }

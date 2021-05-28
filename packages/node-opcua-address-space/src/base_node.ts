@@ -859,6 +859,9 @@ export class BaseNode extends EventEmitter implements BaseNodePublic {
 
         references = _filter_by_userFilter.call(this, references, context);
 
+        if (context)  {
+            references = _filter_by_context(this,references, context);
+        }
         const referenceDescriptions = _constructReferenceDescription(addressSpace, references, browseDescription.resultMask);
 
         /* istanbul ignore next */
@@ -1340,6 +1343,11 @@ export class BaseNode extends EventEmitter implements BaseNodePublic {
         this.rolePermissions = coerceRolePermissions(rolePermissions);
     }
 
+    setAccessRestrictions(accessRestrictions: AccessRestrictionsFlag): void {
+        this.accessRestrictions = accessRestrictions;
+    }
+
+
 }
 
 function toRoleNodeId(s: NodeIdLike): NodeId {
@@ -1601,6 +1609,14 @@ function _filter_by_direction(references: Reference[], browseDirection: BrowseDi
         return references.filter(reverseOnly);
     }
 }
+function _filter_by_context(node: BaseNode, references: Reference[], context: SessionContext) : Reference[] {
+
+    if (!context.isBrowseAccessRestricted(node)) {
+        return references;
+    }
+    // browse access is restricted for forward 
+    return [];
+}
 
 function _filter_by_nodeClass(this: BaseNode, references: Reference[], nodeClassMask: number): Reference[] {
     assert(isFinite(nodeClassMask));
@@ -1626,16 +1642,19 @@ function _filter_by_userFilter(this: BaseNode, references: Reference[], context?
     const addressSpace = this.addressSpace;
     return references.filter((reference: Reference) => {
         const obj = resolveReferenceNode(addressSpace, reference) as BaseNode;
+        // istanbul ignore next
         if (!obj) {
             return false;
         }
 
         const _private = BaseNode_getPrivate(obj);
+        // istanbul ignore next
         if (!_private._browseFilter) {
             throw Error("Internal error : cannot find browseFilter");
         }
 
-        return _private._browseFilter.call(obj, context);
+        const filter1 = _private._browseFilter.call(obj, context);
+        return filter1;
     });
 }
 

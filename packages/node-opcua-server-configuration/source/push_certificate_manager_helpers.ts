@@ -8,9 +8,9 @@ import { AddressSpace, MethodFunctor, MethodFunctorCallback, SessionContext, UAM
 import { checkDebugFlag, make_debugLog, make_warningLog } from "node-opcua-debug";
 import { NodeId, resolveNodeId, sameNodeId } from "node-opcua-nodeid";
 import { StatusCode, StatusCodes } from "node-opcua-status-code";
-import { CallMethodResultOptions } from "node-opcua-types";
+import { CallMethodResultOptions, PermissionType, RolePermissionTypeOptions } from "node-opcua-types";
 import { DataType, Variant, VariantArrayType } from "node-opcua-variant";
-import { NodeClass } from "node-opcua-data-model";
+import { AccessRestrictionsFlag, allPermissions, makePermissionFlag, NodeClass } from "node-opcua-data-model";
 
 import { ByteString, UAString } from "node-opcua-basic-types";
 import { CreateSigningRequestResult, PushCertificateManager } from "./push_certificate_manager";
@@ -29,6 +29,7 @@ import { fs as MemFs } from "memfs";
 import { CertificateManager, SubjectOptions } from "node-opcua-pki";
 import { UAVariable } from "node-opcua-address-space/dist/src/ua_variable";
 import { ObjectTypeIds } from "node-opcua-constants";
+import { TrustList } from "./trust_list_impl";
 
 const debugLog = make_debugLog("ServerConfiguration");
 const doDebug = checkDebugFlag("ServerConfiguration");
@@ -354,9 +355,78 @@ export async function installPushCertificateManagement(
 
     const serverConfigurationPriv = serverConfiguration as any;
     if (serverConfigurationPriv.$pushCertificateManager) {
+        warningLog("PushCertificateManagement has already been installed");
         return;
-        throw new Error("PushCertificateManagement has already been installed");
     }
+
+    function installAccessRestrictions(serverConfiguration: UAObject) {
+
+        const rp1: RolePermissionTypeOptions[] = [
+            { 
+                roleId: WellKnownRoles.Anonymous,
+                permissions: PermissionType.Browse,
+            },
+            { 
+                roleId: WellKnownRoles.AuthenticatedUser,
+                permissions: PermissionType.Browse,
+            },
+            { 
+                roleId: WellKnownRoles.ConfigureAdmin,
+                permissions: makePermissionFlag("Browse | ReadRolePermissions | Read | ReadHistory | ReceiveEvents")
+            },
+             { 
+                roleId: WellKnownRoles.SecurityAdmin,
+                permissions: allPermissions
+            },
+        ];
+        const rp2: RolePermissionTypeOptions[] = [
+            { 
+                roleId: WellKnownRoles.SecurityAdmin,
+                permissions: allPermissions
+            },
+        ]
+        serverConfiguration.setRolePermissions(rp1);
+        serverConfiguration.setAccessRestrictions(AccessRestrictionsFlag.None);
+
+        const applyName = serverConfiguration.getMethodByName("ApplyChanges");
+        applyName?.setRolePermissions(rp2);
+        applyName?.setAccessRestrictions(AccessRestrictionsFlag.SigningRequired | AccessRestrictionsFlag.EncryptionRequired);
+
+        const createSigningRequest = serverConfiguration.getMethodByName("CreateSigningRequest");
+        createSigningRequest?.setRolePermissions(rp2);
+        createSigningRequest?.setAccessRestrictions(AccessRestrictionsFlag.SigningRequired | AccessRestrictionsFlag.EncryptionRequired);
+
+        const getRejectedList = serverConfiguration.getMethodByName("GetRejectedList");
+        getRejectedList?.setRolePermissions(rp2);
+        getRejectedList?.setAccessRestrictions(AccessRestrictionsFlag.SigningRequired | AccessRestrictionsFlag.EncryptionRequired);
+
+        const updateCertficate = serverConfiguration.getMethodByName("UpdateCertficate");
+        updateCertficate?.setRolePermissions(rp2);
+        updateCertficate?.setAccessRestrictions(AccessRestrictionsFlag.SigningRequired | AccessRestrictionsFlag.EncryptionRequired);
+   
+        const certificateGroups = serverConfiguration.getComponentByName("CertificateGroups")!;
+        certificateGroups.setRolePermissions(rp1);
+        certificateGroups.setAccessRestrictions(AccessRestrictionsFlag.None);
+
+        function installAccessRestrictionOnGroup(group: UAObject) {
+
+            const trustList = group.getComponentByName("TrustList")!;
+            for(const m of trustList.getComponents()) {
+                m?.setRolePermissions(rp2);
+                m?.setAccessRestrictions(AccessRestrictionsFlag.SigningRequired | AccessRestrictionsFlag.EncryptionRequired);                    
+            }
+        }
+        for(const group of certificateGroups.getComponents()) {
+            group?.setRolePermissions(rp2);
+            group?.setAccessRestrictions(AccessRestrictionsFlag.SigningRequired | AccessRestrictionsFlag.EncryptionRequired);
+            if (group.nodeClass === NodeClass.Object) {
+                installAccessRestrictionOnGroup(group as UAObject);
+            }
+        }
+    
+    }
+    installAccessRestrictions(serverConfiguration)
+
     serverConfigurationPriv.$pushCertificateManager = new PushCertificateManagerServerImpl(options);
 
     serverConfiguration.supportedPrivateKeyFormats.setValueFromSource({
