@@ -4,51 +4,49 @@
 
 import { callbackify } from "util";
 
-import { AddressSpace, MethodFunctor, MethodFunctorCallback, SessionContext, UAMethod, UATrustList, WellKnownRoles } from "node-opcua-address-space";
-import { checkDebugFlag, make_debugLog, make_warningLog } from "node-opcua-debug";
-import { NodeId, resolveNodeId, sameNodeId } from "node-opcua-nodeid";
-import { StatusCode, StatusCodes } from "node-opcua-status-code";
-import { CallMethodResultOptions, PermissionType, RolePermissionTypeOptions } from "node-opcua-types";
+import {
+    AddressSpace,
+    SessionContext,
+    UAMethod,
+    UATrustList,
+    UAObject,
+    UAVariable
+} from "node-opcua-address-space";
+import {
+    checkDebugFlag,
+    make_debugLog,
+    make_warningLog
+} from "node-opcua-debug";
+import { NodeId, resolveNodeId } from "node-opcua-nodeid";
+import { StatusCodes } from "node-opcua-status-code";
+import { CallMethodResultOptions } from "node-opcua-types";
 import { DataType, Variant, VariantArrayType } from "node-opcua-variant";
-import { AccessRestrictionsFlag, allPermissions, makePermissionFlag, NodeClass } from "node-opcua-data-model";
-
+import { AccessRestrictionsFlag, NodeClass } from "node-opcua-data-model";
 import { ByteString, UAString } from "node-opcua-basic-types";
-import { CreateSigningRequestResult, PushCertificateManager } from "./push_certificate_manager";
+import { ObjectTypeIds } from "node-opcua-constants";
+
+import {
+    CreateSigningRequestResult,
+    PushCertificateManager
+} from "../push_certificate_manager";
+
+
 import {
     installCertificateExpirationAlarm
-} from "./server/install_CertificateAlarm";
+} from "./install_CertificateAlarm";
 import {
     PushCertificateManagerServerImpl,
     PushCertificateManagerServerOptions
-} from "./server/push_certificate_manager_server_impl";
-import { UAObject, UAFileType } from "node-opcua-address-space";
-import { AbstractFs, installFileType, OpenFileMode } from "node-opcua-file-transfer";
-import { OPCUACertificateManager } from "node-opcua-certificate-manager";
-import { TrustListMasks, writeTrustList } from "./server/trust_list_server";
-import { fs as MemFs } from "memfs";
-import { CertificateManager, SubjectOptions } from "node-opcua-pki";
-import { UAVariable } from "node-opcua-address-space/dist/src/ua_variable";
-import { ObjectTypeIds } from "node-opcua-constants";
-import { TrustList } from "./trust_list_impl";
+} from "./push_certificate_manager_server_impl";
+import { installAccessRestrictionOnTrustList, promoteTrustList } from "./promote_trust_list";
+import { hasEncryptedChannel, hasExpectedUserAccess } from "./tools";
+import { rolePermissionAdminOnly, rolePermissionRestricted } from "./roles_and_permissions";
 
 const debugLog = make_debugLog("ServerConfiguration");
 const doDebug = checkDebugFlag("ServerConfiguration");
 const warningLog = make_warningLog("ServerConfiguration");
 const errorLog = debugLog;
 
-function hasExpectedUserAccess(context: SessionContext) {
-    if (!context ||
-        !context.session ||
-        !context.session.userIdentityToken) {
-        return false;
-    }
-    return context.currentUserHasRole(WellKnownRoles.SecurityAdmin);
-}
-
-function hasEncryptedChannel(context: SessionContext) {
-    // todo
-    return true;
-}
 
 function expected(
     variant: Variant | undefined,
@@ -271,57 +269,6 @@ async function _applyChanges(
     return { statusCode };
 }
 
-
-// in TrustList
-async function _addCertificate(
-    this: UAMethod,
-    inputArguments: Variant[],
-    context: SessionContext
-): Promise<CallMethodResultOptions> {
-
-    console.log("_addCertificate");
-    if (!hasEncryptedChannel(context)) {
-        return { statusCode: StatusCodes.BadSecurityModeInsufficient };
-    }
-    if (!hasExpectedUserAccess(context)) {
-        return { statusCode: StatusCodes.BadUserAccessDenied };
-    }
-    const trustList = context.object as UATrustList;
-    const cm = (trustList as any).$$certificateManager as CertificateManager || null;
-    if (!cm) {
-        return { statusCode: StatusCodes.BadInternalError };
-    }
-    const certificate: Buffer = inputArguments[0].value as Buffer;
-    const isTrustedCertificate: boolean = inputArguments[1].value as boolean;
-    if (isTrustedCertificate) {
-        await cm.trustCertificate(certificate);
-    } else {
-        await cm.addIssuer(certificate);
-    }
-    warningLog("_addCertificate - done isTrustedCertificate= ", isTrustedCertificate);
-    return { statusCode: StatusCodes.Good };
-
-}
-async function _removeCertificate(
-    this: UAMethod,
-    inputArguments: Variant[],
-    context: SessionContext
-): Promise<CallMethodResultOptions> {
-
-    if (!hasEncryptedChannel(context)) {
-        return { statusCode: StatusCodes.BadSecurityModeInsufficient };
-    }
-
-    if (!hasExpectedUserAccess(context)) {
-        return { statusCode: StatusCodes.BadUserAccessDenied };
-    }
-
-    return { statusCode: StatusCodes.Good };
-}
-
-
-let counter = 0;
-
 function bindCertificateManager(
     addressSpace: AddressSpace,
     options: PushCertificateManagerServerOptions
@@ -346,6 +293,14 @@ function bindCertificateManager(
 }
 
 
+export async function promoteCertificateGroup(certificateGroup: UAObject) {
+
+    const trustList = certificateGroup.getChildByName("TrustList") as UATrustList;
+    if (trustList) {
+        promoteTrustList(trustList);
+    }
+}
+
 export async function installPushCertificateManagement(
     addressSpace: AddressSpace,
     options: PushCertificateManagerServerOptions
@@ -361,69 +316,44 @@ export async function installPushCertificateManagement(
 
     function installAccessRestrictions(serverConfiguration: UAObject) {
 
-        const rp1: RolePermissionTypeOptions[] = [
-            { 
-                roleId: WellKnownRoles.Anonymous,
-                permissions: PermissionType.Browse,
-            },
-            { 
-                roleId: WellKnownRoles.AuthenticatedUser,
-                permissions: PermissionType.Browse,
-            },
-            { 
-                roleId: WellKnownRoles.ConfigureAdmin,
-                permissions: makePermissionFlag("Browse | ReadRolePermissions | Read | ReadHistory | ReceiveEvents")
-            },
-             { 
-                roleId: WellKnownRoles.SecurityAdmin,
-                permissions: allPermissions
-            },
-        ];
-        const rp2: RolePermissionTypeOptions[] = [
-            { 
-                roleId: WellKnownRoles.SecurityAdmin,
-                permissions: allPermissions
-            },
-        ]
-        serverConfiguration.setRolePermissions(rp1);
+        serverConfiguration.setRolePermissions(rolePermissionRestricted);
         serverConfiguration.setAccessRestrictions(AccessRestrictionsFlag.None);
 
         const applyName = serverConfiguration.getMethodByName("ApplyChanges");
-        applyName?.setRolePermissions(rp2);
+        applyName?.setRolePermissions(rolePermissionAdminOnly);
         applyName?.setAccessRestrictions(AccessRestrictionsFlag.SigningRequired | AccessRestrictionsFlag.EncryptionRequired);
 
         const createSigningRequest = serverConfiguration.getMethodByName("CreateSigningRequest");
-        createSigningRequest?.setRolePermissions(rp2);
+        createSigningRequest?.setRolePermissions(rolePermissionAdminOnly);
         createSigningRequest?.setAccessRestrictions(AccessRestrictionsFlag.SigningRequired | AccessRestrictionsFlag.EncryptionRequired);
 
         const getRejectedList = serverConfiguration.getMethodByName("GetRejectedList");
-        getRejectedList?.setRolePermissions(rp2);
+        getRejectedList?.setRolePermissions(rolePermissionAdminOnly);
         getRejectedList?.setAccessRestrictions(AccessRestrictionsFlag.SigningRequired | AccessRestrictionsFlag.EncryptionRequired);
 
         const updateCertficate = serverConfiguration.getMethodByName("UpdateCertficate");
-        updateCertficate?.setRolePermissions(rp2);
+        updateCertficate?.setRolePermissions(rolePermissionAdminOnly);
         updateCertficate?.setAccessRestrictions(AccessRestrictionsFlag.SigningRequired | AccessRestrictionsFlag.EncryptionRequired);
-   
+
         const certificateGroups = serverConfiguration.getComponentByName("CertificateGroups")!;
-        certificateGroups.setRolePermissions(rp1);
+        certificateGroups.setRolePermissions(rolePermissionRestricted);
         certificateGroups.setAccessRestrictions(AccessRestrictionsFlag.None);
 
         function installAccessRestrictionOnGroup(group: UAObject) {
 
             const trustList = group.getComponentByName("TrustList")!;
-            for(const m of trustList.getComponents()) {
-                m?.setRolePermissions(rp2);
-                m?.setAccessRestrictions(AccessRestrictionsFlag.SigningRequired | AccessRestrictionsFlag.EncryptionRequired);                    
+            if (trustList) {
+                installAccessRestrictionOnTrustList(trustList);
             }
         }
-        for(const group of certificateGroups.getComponents()) {
-            group?.setRolePermissions(rp2);
+        for (const group of certificateGroups.getComponents()) {
+            group?.setRolePermissions(rolePermissionAdminOnly);
             group?.setAccessRestrictions(AccessRestrictionsFlag.SigningRequired | AccessRestrictionsFlag.EncryptionRequired);
             if (group.nodeClass === NodeClass.Object) {
                 installAccessRestrictionOnGroup(group as UAObject);
             }
         }
-    
+
     }
     installAccessRestrictions(serverConfiguration)
 
@@ -446,7 +376,7 @@ export async function installPushCertificateManagement(
         serverConfigurationType.updateCertificate.bindMethod(callbackify(_updateCertificate));
         serverConfigurationType.applyChanges.bindMethod(callbackify(_applyChanges));
     }
-    
+
     install_method_handle_on_type(addressSpace);
 
     serverConfiguration.createSigningRequest.bindMethod(callbackify(_createSigningRequest));
@@ -458,81 +388,12 @@ export async function installPushCertificateManagement(
 
     installCertificateExpirationAlarm(addressSpace);
 
-
-    async function _closeAndUpdate(
-        this: UAMethod,
-        inputArguments: Variant[],
-        context: SessionContext
-    ): Promise<CallMethodResultOptions> {
-        return { statusCode: StatusCodes.Good };
-    }
-    async function promoteCertificateGroup(certificateGroup: UAObject) {
-        const trustList = certificateGroup.getChildByName("TrustList");
-        if (trustList) {
-
-            const filename = `/tmpFile${counter}`;
-            counter += 1;
-
-            installFileType(trustList as UAFileType, { filename, fileSystem: MemFs as AbstractFs });
-
-            const closeAndUpdate = trustList.getChildByName("CloseAndUpdate") as UAMethod;
-            closeAndUpdate?.bindMethod(callbackify(_closeAndUpdate));
-
-
-            // change open methos
-            const open = trustList.getChildByName("Open") as UAMethod;
-            const openWithMasks = trustList.getChildByName("OpenWithMasks") as UAMethod;
-            const _asyncExecutionFunction = (open as any)._asyncExecutionFunction as MethodFunctor;
-
-            function openTrustList(this: any, trustMask: TrustListMasks, inputArgs: Variant[], context: SessionContext, callback: MethodFunctorCallback) {
-
-                // The Open Method shall not support modes other than Read (0x01) and the Write + EraseExisting (0x06).
-                const openMask = inputArgs[0].value as number;
-                if (openMask !== OpenFileMode.Read && openMask !== OpenFileMode.WriteEraseExisting) {
-                    return callback(null, { statusCode: StatusCodes.BadInvalidArgument})
-                }
-
-                // possible statusCode: Bad_UserAccessDenied	The current user does not have the rights required.
-                const certificateManager = (trustList as any).$$certificateManager as OPCUACertificateManager || undefined;
-                if (certificateManager) {
-                    writeTrustList(MemFs as AbstractFs, filename, trustMask, certificateManager).then(() => {
-                        _asyncExecutionFunction.call(this, inputArgs, context, callback);
-                    }).catch((err) => {
-                        callback(err, { statusCode: StatusCodes.BadInternalError });
-                    })
-                } else {
-                    console.log("do something to update the document before we open it")
-                    return _asyncExecutionFunction.call(this, inputArgs, context, callback);
-                }
-            }
-             
-            open.bindMethod(function (this: any, inputArgs: Variant[], context: SessionContext, callback: MethodFunctorCallback) {
-                openTrustList.call(this, TrustListMasks.All, inputArgs, context, callback);
-            })
-
-            // The OpenWithMasks Method allows a Client to read only the portion of the Trust List.
-            // This Method can only be used to read the Trust List.
-            openWithMasks.bindMethod(function (this: any, inputArgs: Variant[], context: SessionContext, callback: MethodFunctorCallback) {
-                const trustListMask = inputArgs[0].value as number;
-                inputArgs[0] = new Variant({ dataType: DataType.Byte, value: OpenFileMode.Read});
-                openTrustList.call(this, trustListMask, inputArgs, context, callback);
-            })
-
-            const addCertificate = trustList.getChildByName("AddCertificate") as UAMethod;
-            addCertificate.bindMethod(callbackify(_addCertificate));
-
-            const removeCertificate = trustList.getChildByName("RemoveCertificate") as UAMethod;
-            removeCertificate.bindMethod(callbackify(_removeCertificate));
-
-
-        }
-    }
     const cg = serverConfiguration.certificateGroups.getComponents();
 
     const defaultApplicationGroup = serverConfiguration.certificateGroups.getComponentByName("DefaultApplicationGroup")!;
     const certificateTypes = defaultApplicationGroup.getPropertyByName("CertificateTypes") as UAVariable;
-    certificateTypes.setValueFromSource({ 
-        dataType: DataType.NodeId, 
+    certificateTypes.setValueFromSource({
+        dataType: DataType.NodeId,
         arrayType: VariantArrayType.Array,
         value: [
             resolveNodeId(ObjectTypeIds.RsaSha256ApplicationCertificateType)

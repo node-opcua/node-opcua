@@ -313,6 +313,7 @@ export class PushCertificateManagerServerImpl extends EventEmitter implements Pu
             applicationUri: this.applicationUri,
             subject: subjectName!
         };
+        await certificateManager.initialize();
         const csrFile = await certificateManager.createCertificateRequest(options);
         const csrPEM = await readFile(csrFile, "utf8");
         const certificateSigningRequest = convertPEMtoDER(csrPEM);

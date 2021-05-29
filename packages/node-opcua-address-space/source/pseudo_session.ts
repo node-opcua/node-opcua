@@ -36,6 +36,10 @@ import { ContinuationPointManager } from "./continuation_points/continuation_poi
 import { callMethodHelper } from "./helpers/call_helpers";
 import { SessionContext } from "./session_context";
 import { UAVariable } from "../src/ua_variable";
+import { make_errorLog } from "node-opcua-debug";
+
+
+const errorLog = make_errorLog("PseudoSession");
 /**
  * Pseudo session is an helper object that exposes the same async methods
  * than the ClientSession. It can be used on a server address space.
@@ -219,6 +223,7 @@ export class PseudoSession implements IBasicSession {
                     (err: Error | null, result?: CallMethodResultOptions) => {
                         let callMethodResult: CallMethodResult;
                         if (err) {
+                            errorLog("Internal Error = ", err);
                             callMethodResult = new CallMethodResult({
                                 statusCode: StatusCodes.BadInternalError
                             });

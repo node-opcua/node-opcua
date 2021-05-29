@@ -13,6 +13,7 @@
         "chalk": "4.1.1",
         "node-opcua-assert": "2.42.0",
         "node-opcua-binary-stream": "2.42.0",
+        "node-opcua-constants": "2.42.0",
         "node-opcua-data-model": "2.42.0",
         "node-opcua-data-value": "2.42.0",
         "node-opcua-debug": "2.42.0",

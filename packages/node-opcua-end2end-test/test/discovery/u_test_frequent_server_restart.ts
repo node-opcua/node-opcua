@@ -1,6 +1,5 @@
 import "should";
 import * as async from "async";
-import * as os from "os";
 import {
     OPCUAClient,
     ClientSubscription,
@@ -286,13 +285,13 @@ module.exports = () => {
             (server.registerServerManager as any).timeout = 100;
             async.series(
                 [
-                    function create_Server(callback: ErrorCallback) {
+                    f(function create_Server(callback: ErrorCallback) {
                         server.start(callback);
-                    },
+                    }),
 
-                    function close_client_while_connect_in_progress(callback: ErrorCallback) {
+                    f(function close_client_while_connect_in_progress(callback: ErrorCallback) {
                         server.shutdown(callback);
-                    }
+                    })
                 ],
                 done
             );

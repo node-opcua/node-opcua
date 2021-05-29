@@ -171,13 +171,13 @@ describe("ServerEngine - addMethod", function() {
         result = engine.browsePath(new BrowsePath(browsePath[1]));
         result.statusCode.should.eql(StatusCodes.Good);
 
-        objectMethod.execute(inputArguments, context, function(err, callMethodResponse) {
+        objectMethod.execute(null, inputArguments, context, (err, callMethodResponse) => {
 
-            done(err);
             callMethodResponse.statusCode.should.eql(StatusCodes.Good);
             callMethodResponse.outputArguments.length.should.eql(1);
             callMethodResponse.outputArguments[0].value.should.eql(["Whaff", "Whaff", "Whaff"]);
             // xx console.log(" Result = ", callMethodResponse.outputArguments[0].value);
+            done(err);
         });
 
     });

@@ -16,8 +16,8 @@ import { checkDebugFlag, make_debugLog, make_errorLog } from "node-opcua-debug";
 import { getFullyQualifiedDomainName } from "node-opcua-hostname";
 import { ICertificateKeyPairProvider } from "node-opcua-secure-channel";
 import { OPCUAServer, OPCUAServerEndPoint } from "node-opcua-server";
-import { ApplicationDescriptionOptions, CallMethodResultOptions } from "node-opcua-types";
-import { installPushCertificateManagement } from "../push_certificate_manager_helpers";
+import { ApplicationDescriptionOptions } from "node-opcua-types";
+import { installPushCertificateManagement } from "./push_certificate_manager_helpers";
 import { ActionQueue } from "./push_certificate_manager_server_impl";
 
 

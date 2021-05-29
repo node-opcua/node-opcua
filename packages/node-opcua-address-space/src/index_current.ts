@@ -29,6 +29,7 @@ export * from "./event_data";
 export { NamespaceOptions } from "./nodeid_manager";
 export { dumpXml } from "./nodeset_tools/nodeset_to_xml";
 export { dumpToBSD } from "./nodeset_tools/typedictionary_to_xml";
+export { adjustNamespaceArray } from "./nodeset_tools/adjust_namespace_array";
 
 export * from "./data_access/ua_analog_item";
 export * from "./data_access/ua_data_item";
