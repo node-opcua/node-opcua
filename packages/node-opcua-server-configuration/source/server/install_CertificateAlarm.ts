@@ -1,8 +1,6 @@
 /**
  * @module node-opcua-server-configuration-server
  */
-import { promisify } from "util";
-
 import {
     AddressSpace,
     UACertificateExpirationAlarm

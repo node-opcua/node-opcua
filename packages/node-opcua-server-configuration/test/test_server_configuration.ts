@@ -17,6 +17,7 @@ import { initializeHelpers } from "./helpers/fake_certificate_authority";
 import { TrustListMasks } from "../source/server/trust_list_server";
 import { SecurityPolicy } from "node-opcua-secure-channel";
 
+const doDebug = false;
 // make sure extra error checking is made on object constructions
 // tslint:disable-next-line:no-var-requires
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
@@ -37,7 +38,7 @@ describe("ServerConfiguration", () => {
         channel: {
             securityMode: MessageSecurityMode.SignAndEncrypt,
             securityPolicy: SecurityPolicy.Basic256Sha256,
-            clientCertificate: Buffer.from("dummy","ascii")
+            clientCertificate: Buffer.from("dummy", "ascii")
         },
         getSessionId() {
             return NodeId.nullNodeId;
@@ -45,17 +46,20 @@ describe("ServerConfiguration", () => {
     };
     const _tempFolder = path.join(__dirname, "../temp");
 
-    const applicationGroup = new CertificateManager({
-        location: path.join(_tempFolder, "application")
-    });
-    const userTokenGroup = new CertificateManager({
-        location: path.join(_tempFolder, "user")
-    });
+    let applicationGroup: CertificateManager;
+    let userTokenGroup: CertificateManager;
 
     const xmlFiles = [nodesets.standard];
-    before(async () => {
+    beforeEach(async () => {
         try {
             await initializeHelpers();
+
+            applicationGroup = new CertificateManager({
+                location: path.join(_tempFolder, "application")
+            });
+            userTokenGroup = new CertificateManager({
+                location: path.join(_tempFolder, "user")
+            });
 
             await applicationGroup.initialize();
             await userTokenGroup.initialize();
@@ -68,8 +72,11 @@ describe("ServerConfiguration", () => {
             throw err;
         }
     });
-    after(() => {
+    afterEach(() => {
         addressSpace.dispose();
+        applicationGroup.dispose();
+        userTokenGroup.dispose();
+
     });
 
     it("should expose a server configuration object", async () => {
@@ -133,7 +140,6 @@ describe("ServerConfiguration", () => {
         // Security when using the Push Management Model requires an encrypted channel and the use
         // of Administrator credentials for the Server that ensure only authorized users can update
         // Certificates or Trust Lists. In addition, separate Administrator credentials are required for the
-        // OPC Unified Architecture, Part 12 24 Release 1.04
         // CertificateManager that ensure only authorized users can register new Servers and request
         // new Certificates.
 
@@ -222,12 +228,13 @@ describe("ServerConfiguration", () => {
             assert(fs.existsSync(certificateFile));
 
             const certificate = await readCertificate(certificateFile);
-            await trustList.addCertificate(certificate, true);
+            const sc = await trustList.addCertificate(certificate, true);
+            sc.should.eql(StatusCodes.Good);
 
             a = await trustList.readTrustedCertificateList();
             console.log(a.toString());
             a.trustedCertificates!.length.should.eql(1);
-            a.issuerCertificates!.length.should.eql(0);
+            a.issuerCertificates!.length.should.eql(1); // the issuer certificate in the chain
             a.issuerCrls!.length.should.eql(0);
             a.trustedCrls!.length.should.eql(0);
         });
@@ -247,30 +254,40 @@ describe("ServerConfiguration", () => {
 
             const trustList = await defaultApplicationGroup.getTrustList();
             let a = await trustList.readTrustedCertificateListWithMasks(TrustListMasks.IssuerCertificates);
-            console.log(a.toString());
+            doDebug && console.log(a.toString());
             a.trustedCertificates!.length.should.eql(0);
             a.issuerCertificates!.length.should.eql(0);
             a.issuerCrls!.length.should.eql(0);
             a.trustedCrls!.length.should.eql(0);
 
             // now add a certificate 
-            const certificateFile = path.join(__dirname, "../../node-opcua-samples/certificates/client_cert_2048.pem");
-            assert(fs.existsSync(certificateFile));
+            {
+                const certificateFile = path.join(__dirname, "../../node-opcua-samples/certificates/client_cert_2048.pem");
+                assert(fs.existsSync(certificateFile));
+                const certificate = await readCertificate(certificateFile);
+                const sc = await trustList.addCertificate(certificate, /*isTrustedCertificate =*/false);
+                sc.should.eql(StatusCodes.Good);
+            }
+            {
+                const selfSignedCertificateFile = path.join(__dirname, "../../node-opcua-samples/certificates/client_selfsigned_cert_2048.pem");
+                assert(fs.existsSync(selfSignedCertificateFile));
+                const certificate = await readCertificate(selfSignedCertificateFile);
+                const sc = await trustList.addCertificate(certificate, /*isTrustedCertificate =*/true);
+                sc.should.eql(StatusCodes.Good);
 
-            const certificate = await readCertificate(certificateFile);
-            await trustList.addCertificate(certificate, /*isTrustedCertificate =*/true);
-            await trustList.addCertificate(certificate, /*isTrustedCertificate =*/false);
+            }
+
 
             a = await trustList.readTrustedCertificateListWithMasks(TrustListMasks.IssuerCertificates);
-            console.log(a.toString());
+            doDebug &&  console.log(a.toString());
             a.specifiedLists.should.eql(TrustListMasks.IssuerCertificates);
             a.trustedCertificates!.length.should.eql(0);
-            a.issuerCertificates!.length.should.eql(1);
+            a.issuerCertificates!.length.should.eql(2);
             a.issuerCrls!.length.should.eql(0);
             a.trustedCrls!.length.should.eql(0);
 
             a = await trustList.readTrustedCertificateListWithMasks(TrustListMasks.TrustedCertificates);
-            console.log(a.toString());
+            doDebug && console.log(a.toString());
             a.specifiedLists.should.eql(TrustListMasks.TrustedCertificates);
             a.trustedCertificates!.length.should.eql(1);
             a.issuerCertificates!.length.should.eql(0);

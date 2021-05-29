@@ -1027,7 +1027,9 @@ function _disable_method(inputArguments: VariantLike[], context: SessionContext,
     const conditionNode = context.object;
     assert(conditionNode);
 
+    // istanbul ignore next
     if (!(conditionNode instanceof UAConditionBase)) {
+        console.log("conditionNode is not a UAConditionBase ", conditionNode.toString())
         return callback(null, {
             statusCode: StatusCodes.BadNodeIdInvalid
         });

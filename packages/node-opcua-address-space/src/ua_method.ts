@@ -7,7 +7,7 @@ import { assert } from "node-opcua-assert";
 import { AttributeIds } from "node-opcua-data-model";
 import { DiagnosticInfo, NodeClass } from "node-opcua-data-model";
 import { DataValue, DataValueLike } from "node-opcua-data-value";
-import { make_debugLog, make_warningLog } from "node-opcua-debug";
+import { make_debugLog, make_errorLog, make_warningLog } from "node-opcua-debug";
 import { NodeId } from "node-opcua-nodeid";
 import { Argument } from "node-opcua-service-call";
 import { StatusCodes } from "node-opcua-status-code";
@@ -19,17 +19,19 @@ import {
     MethodFunctorCallback,
     UAMethod as UAMethodPublic,
     UAObject as UAObjectPublic,
-    UAObjectType,
 } from "../source";
 import { SessionContext } from "../source";
 import { BaseNode } from "./base_node";
 import { _clone } from "./base_node_private";
 import { _handle_hierarchy_parent } from "./namespace";
+import { UAObject } from "./ua_object";
+import { UAObjectType } from "./ua_object_type";
 import { UAVariable } from "./ua_variable";
 
 
 const warningLog = make_warningLog(__filename);
 const debugLog = make_debugLog(__filename);
+const errorLog = make_errorLog(__filename);
 
 function default_check_valid_argument(arg: any) {
     return arg.constructor.name === "Argument";
@@ -113,10 +115,10 @@ export class UAMethod extends BaseNode implements UAMethodPublic {
         assert(typeof async_func === "function");
         this._asyncExecutionFunction = async_func;
     }
-
-    public execute(inputArguments: null | VariantLike[], context: SessionContext): Promise<CallMethodResultOptions>;
-    public execute(inputArguments: null | VariantLike[], context: SessionContext, callback: MethodFunctorCallback): void;
-    public execute(inputArguments: VariantLike[] | null, context: SessionContext, callback?: MethodFunctorCallback): any {
+    public execute(object: UAObject | UAObjectType | null, inputArguments: null | VariantLike[], context: SessionContext): Promise<CallMethodResultOptions>;
+    public execute(object: UAObject | UAObjectType | null, inputArguments: null | VariantLike[], context: SessionContext, callback: MethodFunctorCallback): void;
+    public execute(object: UAObject | UAObjectType | null, inputArguments: VariantLike[] | null, context: SessionContext, callback?: MethodFunctorCallback): any {
+        // istanbul ignore next 
         if (!callback) {
             throw new Error("execute need to be promisified");
         }
@@ -127,13 +129,15 @@ export class UAMethod extends BaseNode implements UAMethodPublic {
         assert(context !== null && typeof context === "object");
         assert(typeof callback === "function");
 
-        // a context object must be provided
-        if (!context.object) {
-            context.object = this.parent;
+        object = object || this.parent as UAObject;
+
+        // istanbul ignore next
+        if (!object) {
+            errorLog("UAMethod#execute expects a valid object");
+            return callback(null, { statusCode: StatusCodes.BadInternalError });
         }
 
-        assert(context.object instanceof BaseNode);
-        if (context.object.nodeClass !== NodeClass.Object && context.object.nodeClass !== NodeClass.ObjectType) {
+        if (object.nodeClass !== NodeClass.Object && object.nodeClass !== NodeClass.ObjectType) {
             warningLog(
                 "Method " +
                 this.nodeId.toString() +
@@ -166,6 +170,8 @@ export class UAMethod extends BaseNode implements UAMethodPublic {
         // verify that input arguments are correct
         // todo :
         const inputArgumentDiagnosticInfos: DiagnosticInfo[] = [];
+
+        context.object = object;
 
         try {
             this._asyncExecutionFunction.call(

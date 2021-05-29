@@ -88,7 +88,7 @@ async function callMethodFromServer(addressSpace: AddressSpace, nodeId: NodeIdLi
 
         const context = SessionContext.defaultContext;
 
-        const callMethodResponse = await method.execute([param1, param2, param3], context);
+        const callMethodResponse = await method.execute(commands, [param1, param2, param3], context);
 
         console.log(callMethodResponse.outputArguments![0]!.toString());
     }

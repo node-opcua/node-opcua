@@ -120,7 +120,7 @@ describe("Testing Boiler System", () => {
         startMethod.getExecutableFlag(context).should.eql(true);
         suspendMethod.getExecutableFlag(context).should.eql(false);
 
-        const callMethodResponse = await haltMethod.execute([], context);
+        const callMethodResponse = await haltMethod.execute(null, [], context);
         if (doDebug) {
             console.log(chalk.bgWhite.cyan(" Halt has been called"), callMethodResponse.statusCode!.toString());
         }
@@ -129,7 +129,7 @@ describe("Testing Boiler System", () => {
         startMethod.getExecutableFlag(context).should.eql(false);
         suspendMethod.getExecutableFlag(context).should.eql(false);
 
-        const callMethodResponse1 = await resetMethod.execute([], context);
+        const callMethodResponse1 = await resetMethod.execute(null, [], context);
         if (doDebug) {
             console.log(chalk.bgWhite.cyan(" resetMethod has been called"), callMethodResponse1.statusCode!.toString());
         }
@@ -138,7 +138,7 @@ describe("Testing Boiler System", () => {
         startMethod.getExecutableFlag(context).should.eql(true);
         suspendMethod.getExecutableFlag(context).should.eql(false);
 
-        const callMethodResponse2 = await startMethod.execute([], context);
+        const callMethodResponse2 = await startMethod.execute(null,[], context);
 
         if (doDebug) {
             console.log(chalk.bgWhite.cyan(" startMethod has been called"), callMethodResponse2.statusCode!.toString());
@@ -148,7 +148,7 @@ describe("Testing Boiler System", () => {
         startMethod.getExecutableFlag(context).should.eql(false);
         suspendMethod.getExecutableFlag(context).should.eql(true);
 
-        const callMethodResponse3 = await suspendMethod.execute([], context);
+        const callMethodResponse3 = await suspendMethod.execute(null,[], context);
 
         if (doDebug) {
             console.log(chalk.bgWhite.cyan("suspendMethod has been called"), callMethodResponse3.statusCode!.toString());

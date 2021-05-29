@@ -1,7 +1,6 @@
 
-var assert = require("node-opcua-assert").assert;
-var StatusCodes = require("node-opcua").StatusCode;
-const makeAccessLevelFlag = require("node-opcua-data-model").makeAccessLevelFlag;
+const { assert } = require("node-opcua-assert");
+const { StatusCodes, AttributeIds, makeAccessLevelFlag }= require("node-opcua");
 
 //  Description: Write to a node whose AccessLevel does not contain write capabilities.
 
@@ -35,12 +34,12 @@ function check_expecting_no_error_and_one_datavalue_with_statusGood(err,dataValu
     }
     callback(err,dataValues);
 }
-function check_statusCodes_are_expected(err,statusCodes,expectedStatusCodes,extra_message,callback) {
+function check_statusCodes_are_expected(err,statusCodes/*: StatusCode[]*/,expectedStatusCodes,extra_message,callback) {
     if (!err) {
 
-        for( statusCode in statusCodes) {
+        for(const statusCode of statusCodes) {
 
-            var found = (expectedStatusCodes.indexOf(statusCodes) !== -1);
+            const found = (expectedStatusCodes.indexOf(statusCodes) !== -1);
             if (found) {
                 err = new Error(" Expecting statusCode  " + statusCode.toString() + " to be one of  "+ expectedStatusCodes.toString() );
                 break;
@@ -54,7 +53,7 @@ function check_statusCodes_are_expected(err,statusCodes,expectedStatusCodes,extr
 
 function read_attribute(session,nodeId,attributeId,callback) {
 
-    var nodesToRead = [];
+    const nodesToRead = [];
     nodesToRead.push({
         nodeId: nodeId,
         attributeId:attributeId,
@@ -75,7 +74,7 @@ function read_attribute(session,nodeId,attributeId,callback) {
 function read_value(session,nodeId,callback) {
     read_attribute(session,nodeId,AttributeIds.Value,function (err,dataValue) {
 
-        var variant = null;
+        let variant = null;
         if(!err) {
             variant = dataValue.value;
         }
@@ -88,7 +87,7 @@ function _read_access_level(session,nodeId,attributeId,callback) {
     assert(AttributeIds.AccessLevel === attributeId || AttributeIds.UserAccessLevel === attributeId," invalid attribute");
 
     read_attribute(session,nodeId,attributeId,function (err,dataValue){
-        var accessLevel = null;
+        let accessLevel = null;
         if (!err) {
             accessLevel = makeAccessLevelFlag(dataValue.value.value);
         }
@@ -106,7 +105,7 @@ function read_access_level(session,nodeId,callback) {
 function _write_node_value(session,nodeId,value,attributeId,expectedStatusCodes,callback) {
 
 
-    var nodesToWrite = [];
+    const nodesToWrite = [];
     nodesToWrite.push({
         nodeId: nodeId,
         attributeId:attributeId,
@@ -131,7 +130,7 @@ function write_node_value(session,nodeId,value,expectedStatusCodes,callback) {
 
 exports.register_test = function (options) {
 
-    var item = nodeIdSettings.securityAccess.accessLevelCurrentReadNotCurrentWrite;
+    const item = nodeIdSettings.securityAccess.accessLevelCurrentReadNotCurrentWrite;
 
     describe_on_session("\n    AddressSpace User Write Access : ",options,function() {
 

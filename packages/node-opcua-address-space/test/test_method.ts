@@ -168,6 +168,6 @@ describe("testing Method binding", () => {
 
         const inputArguments = [{ dataType: DataType.UInt32, value: 5 }];
 
-        const result = await server.getMonitoredItems.execute(inputArguments, context);
+        const result = await server.getMonitoredItems.execute(null,inputArguments, context);
     });
 });

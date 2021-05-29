@@ -253,7 +253,7 @@ export class AddressSpace implements AddressSpacePrivate {
                 version: "undefined"
             })
         );
-        return this._namespaceArray[index];
+         return this._namespaceArray[index];
     }
 
     /***

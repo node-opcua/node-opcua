@@ -867,9 +867,14 @@ export declare class UAMethod extends BaseNode {
      * @param context
      * @param callback
      */
-    public execute(inputArguments: VariantLike[] | null, context: SessionContext, callback: MethodFunctorCallback): void;
-
-    public execute(inputArguments: null | VariantLike[], context: SessionContext): Promise<CallMethodResultOptions>;
+    public execute(
+        object: UAObject | UAObjectType | null, 
+        inputArguments: VariantLike[] | null,
+        context: SessionContext, callback: MethodFunctorCallback): void;
+    public execute(
+        object: UAObject | UAObjectType | null, 
+        inputArguments: null | VariantLike[], 
+        context: SessionContext): Promise<CallMethodResultOptions>;
 
     public clone(options: any, optionalFilter?: any, extraInfo?: any): UAMethod;
 
@@ -2719,3 +2724,5 @@ export declare function removeElement<T extends ExtensionObject>(
 
 export declare function dumpXml(node: BaseNode, options: any): string;
 export declare function dumpToBSD(namespace: Namespace): string;
+export declare function adjustNamespaceArray(addressSpace: AddressSpace): void;
+  

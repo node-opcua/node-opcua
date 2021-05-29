@@ -74,7 +74,7 @@ export function utest_condition(test: any) {
 
             it(
                 "should be possible to enable and disable a condition using the enable & disable methods" +
-                    " ( as a client would do)",
+                " ( as a client would do)",
                 async () => {
                     const namespace = addressSpace.getOwnNamespace();
                     const condition = namespace.instantiateCondition(myCustomConditionType, {
@@ -116,7 +116,7 @@ export function utest_condition(test: any) {
 
                     condition.getEnabledState().should.eql(false);
 
-                    const callMethodResult1 = await condition.disable.execute([], context);
+                    const callMethodResult1 = await condition.disable.execute(null, [], context);
 
                     callMethodResult1.statusCode!.should.eql(StatusCodes.BadConditionAlreadyDisabled);
 
@@ -127,13 +127,13 @@ export function utest_condition(test: any) {
 
                     // calling enable when enable state is false should return Good
 
-                    const callMethodResult2 = await condition.enable.execute([], context);
+                    const callMethodResult2 = await condition.enable.execute(null, [], context);
                     callMethodResult2.statusCode!.should.eql(StatusCodes.Good);
                     condition.enabledState.id.readValue().value.value.should.eql(true);
                     condition.enabledState.readValue().value.value.text.should.eql("Enabled");
 
                     //  calling enable when enable state is already true should return BadConditionAlreadyEnabled
-                    const callMethodResult3 = await condition.enable.execute([], context);
+                    const callMethodResult3 = await condition.enable.execute(null, [], context);
 
                     callMethodResult3.statusCode!.should.eql(StatusCodes.BadConditionAlreadyEnabled);
                     condition.enabledState.id.readValue().value.value.should.eql(true);
@@ -415,7 +415,7 @@ export function utest_condition(test: any) {
                     //
                     new Variant({ dataType: DataType.LocalizedText, value: coerceLocalizedText("Some message") }),
                 ];
-                condition.addComment.execute(param, context, (err: Error | null, callMethodResult: CallMethodResultOptions) => {
+                condition.addComment.execute(null, param, context, (err: Error | null, callMethodResult: CallMethodResultOptions) => {
                     callMethodResult.statusCode!.should.equal(StatusCodes.Good);
                 });
 
@@ -446,7 +446,7 @@ export function utest_condition(test: any) {
 
                 const conditionType = addressSpace.findObjectType("ConditionType")! as ConditionType;
 
-                conditionType.addComment.execute(param, context, (err: Error | null, callMethodResult: CallMethodResultOptions) => {
+                conditionType.addComment.execute(condition, param, context, (err: Error | null, callMethodResult: CallMethodResultOptions) => {
                     callMethodResult.statusCode!.should.equal(StatusCodes.Good);
                 });
 
@@ -687,6 +687,7 @@ export function utest_condition(test: any) {
                     const subscriptionIdVar = new Variant({ dataType: DataType.UInt32, value: 2 });
 
                     conditionType.conditionRefresh.execute(
+                        condition,
                         [subscriptionIdVar],
                         context,
                         (err: Error | null, callMethodResult: CallMethodResultOptions) => {

@@ -16,7 +16,7 @@ import {
     UAMethod
 } from "node-opcua-address-space";
 import { Byte, Int32, UInt32, UInt64 } from "node-opcua-basic-types";
-import { checkDebugFlag, make_debugLog, make_errorLog } from "node-opcua-debug";
+import { checkDebugFlag, make_debugLog, make_errorLog, make_warningLog } from "node-opcua-debug";
 import { CallMethodResultOptions } from "node-opcua-service-call";
 import { StatusCodes } from "node-opcua-status-code";
 import { DataType, Variant, VariantArrayType } from "node-opcua-variant";
@@ -29,10 +29,11 @@ import { NodeId, sameNodeId } from "node-opcua-nodeid";
 
 const debugLog = make_debugLog("FileType");
 const errorLog = make_errorLog("FileType");
+const warningLog = make_warningLog("FileType");
 const doDebug = checkDebugFlag("FileType");
-;
+
 import assert from "node-opcua-assert";
-import { reject } from "async";
+
 export interface AbstractFs {
 
     stat(path: PathLike, callback: (err: NodeJS.ErrnoException | null, stats: Stats) => void): void;
@@ -159,7 +160,7 @@ export class FileTypeData {
         await (async function extractFileSize(self: FileTypeData) {
             try {
                 if (!abstractFs.existsSync(self.filename)) {
-                    self._fileSize =0;
+                    self._fileSize = 0;
                     return;
                 }
                 const stat = await promisify(abstractFs.stat)(self.filename);
@@ -167,8 +168,7 @@ export class FileTypeData {
                 debugLog("original file size ", self.filename, " size = ", self._fileSize);
             } catch (err) {
                 self._fileSize = 0;
-                debugLog("Cannot access file ", self.filename);
-                // console.log(err);
+                warningLog("Cannot access file ", self.filename, err.message);
             }
         })(this);
 
@@ -202,19 +202,25 @@ function _prepare(addressSpace: AddressSpace, context: SessionContext): FileType
     _context.$$files = _context.$$files || {};
     return _context as FileTypeM;
 }
-
+function _getSessionId(context: SessionContext) {
+    if (!context.session) {
+        return NodeId.nullNodeId;
+    }
+    assert(context.session && context.session.getSessionId);
+    return context.session?.getSessionId() || NodeId.nullNodeId
+}
 function _addFile(addressSpace: AddressSpace, context: SessionContext, openMode: OpenFileMode): UInt32 {
     const _context = _prepare(addressSpace, context);
     _context.$$currentFileHandle++;
     const fileHandle: number = _context.$$currentFileHandle;
-
+    const sessionId = _getSessionId(context);
     const _fileData: FileAccessData = {
         fd: -1,
         handle: fileHandle,
         openMode,
         position: [0, 0],
         size: 0,
-        sessionId: context.session!.getSessionId()
+        sessionId
     };
     _context.$$files[fileHandle] = _fileData;
 
@@ -224,7 +230,9 @@ function _addFile(addressSpace: AddressSpace, context: SessionContext, openMode:
 function _getFileInfo(addressSpace: AddressSpace, context: SessionContext, fileHandle: UInt32): FileAccessData | null {
     const _context = _prepare(addressSpace, context);
     const _fileInfo = _context.$$files[fileHandle];
-    if (!_fileInfo || !sameNodeId(_fileInfo.sessionId, context.session!.getSessionId())) {
+    const sessionId = _getSessionId(context);
+    
+    if (!_fileInfo || !sameNodeId(_fileInfo.sessionId, sessionId)) {
         errorLog("Invalid session ID this file descriptor doesn't belong to this session");
         return null;
     }
@@ -362,7 +370,7 @@ async function _openFile(
         fileData.openCount += 1;
     } catch (err) {
         errorLog(err.message);
-        console.log(err.stack);
+        errorLog(err.stack);
         return { statusCode: StatusCodes.BadUnexpectedError };
     }
 
@@ -525,12 +533,16 @@ async function _writeFile(
     let ret = { bytesWritten: 0 };
     try {
         // note: we do not util.promise here as it has a wierd behavior...
-        ret = await new Promise((resolve, reject) =>
+        ret = await new Promise((resolve, reject) => {
+
             abstractFs.write(_fileInfo.fd, data, 0, data.length, _fileInfo.position[1], (err, bytesWritten) => {
-                if (err) { return reject(err) }
+                if (err) {
+                    errorLog("Err", err);
+                    return reject(err);
+                }
                 return resolve({ bytesWritten });
             })
-        );
+        });
         assert(typeof ret.bytesWritten === "number");
         _fileInfo.position[1] += ret.bytesWritten;
         _fileInfo.size = Math.max(_fileInfo.size, _fileInfo.position[1]);

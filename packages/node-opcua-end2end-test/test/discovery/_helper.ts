@@ -158,6 +158,7 @@ export type FF = (callback: ErrorCallback) => void;
 export function f(func: FF): FF {
     const title = func.name
         .replace(/_/g, " ")
+        .replace(/^bound /,"")
         .replace("given ", chalk.green("**GIVEN** "))
         .replace("when ", chalk.green("**WHEN** "))
         .replace("then ", chalk.green("**THEN** "));
@@ -178,8 +179,9 @@ export function f(func: FF): FF {
 }
 
 export async function fa(title: string, func: () => Promise<void>): Promise<void> {
-    title = title
+    title= title
         .replace(/_/g, " ")
+        .replace(/^bound /,"")
         .replace("given ", chalk.green("**GIVEN** "))
         .replace("when ", chalk.green("**WHEN** "))
         .replace("then ", chalk.green("**THEN** "));

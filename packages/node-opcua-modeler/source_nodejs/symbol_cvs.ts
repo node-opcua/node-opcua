@@ -14,6 +14,10 @@ export async function saveSymbolsToCSV(csvFilename: string, symbols: Symbols): P
 }
 
 export async function getPresetSymbolsFromCSV(csvFilename: string): Promise<Symbols> {
+   
+   if (!fs.existsSync(csvFilename)) {
+       return [];
+   }
     try {
         const data = await readFile(csvFilename, "utf-8");
 
