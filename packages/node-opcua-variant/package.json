@@ -1,6 +1,6 @@
 {
     "name": "node-opcua-variant",
-    "version": "2.42.0",
+    "version": "2.44.0",
     "description": "pure nodejs OPCUA SDK - module -variant",
     "main": "./dist/index.js",
     "types": "./dist/index.d.ts",
@@ -11,13 +11,13 @@
     },
     "dependencies": {
         "node-opcua-assert": "2.42.0",
-        "node-opcua-basic-types": "2.42.0",
-        "node-opcua-data-model": "2.42.0",
+        "node-opcua-basic-types": "2.44.0",
+        "node-opcua-data-model": "2.44.0",
         "node-opcua-enum": "2.42.0",
-        "node-opcua-extension-object": "2.42.0",
-        "node-opcua-factory": "2.42.0",
-        "node-opcua-nodeid": "2.42.0",
-        "node-opcua-utils": "2.42.0"
+        "node-opcua-extension-object": "2.44.0",
+        "node-opcua-factory": "2.44.0",
+        "node-opcua-nodeid": "2.44.0",
+        "node-opcua-utils": "2.44.0"
     },
     "devDependencies": {
         "@types/lodash": "4.14.170",
@@ -26,8 +26,8 @@
         "node-opcua-benchmarker": "2.42.0",
         "node-opcua-binary-stream": "2.42.0",
         "node-opcua-debug": "2.42.0",
-        "node-opcua-numeric-range": "2.42.0",
-        "node-opcua-packet-analyzer": "2.42.0",
+        "node-opcua-numeric-range": "2.44.0",
+        "node-opcua-packet-analyzer": "2.44.0",
         "node-opcua-status-code": "2.42.0",
         "should": "^13.2.3",
         "source-map-support": "^0.5.19",
