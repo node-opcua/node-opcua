@@ -10,7 +10,7 @@ describe("OPCUA Client",function() {
         const client = OPCUAClient.create({});
 
     });
-    it("should create a ClientSecureChannerLayer", function () {
+    it("should create a ClientSecureChannelLayer", function () {
 
         const channel = new ClientSecureChannelLayer({});
         channel.dispose();
