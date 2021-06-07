@@ -297,12 +297,32 @@ function createUserNameIdentityToken(
     return identityToken;
 }
 
+function _adjustRevisedSessionTimeout(revisedSessionTimeout: number, requestedTimeout: number): number {
+    // Some old OPCUA Servers are known to report an invalid revisedSessionTimeout
+    // such as Siemens SimoCode Pro V.
+    // we need to adjust the value here, by guessing a sensible sessionTimeout value to use instead.
+    if (revisedSessionTimeout < 1e-10) {
+        warningLog(
+            `the revisedSessionTimeout ${revisedSessionTimeout} reported by the server is inconsistent and has been adjusted back to requestedTimeout ${requestedTimeout}`
+        );
+        return requestedTimeout;
+    }
+    if (revisedSessionTimeout < OPCUAClientImpl.minimumRevisedSessionTimeout) {
+         warningLog(
+             `the revisedSessionTimeout ${revisedSessionTimeout} is smaller than the minimum timeout (OPCUAClientImpl.minimumRevisedSessionTimeout = ${OPCUAClientImpl.minimumRevisedSessionTimeout}) and has been clamped to this value`
+         );
+         return OPCUAClientImpl.minimumRevisedSessionTimeout;
+    }
+    return revisedSessionTimeout;
+}
 
 /***
  * @constructor
  * @internal
  */
 export class OPCUAClientImpl extends ClientBaseImpl implements OPCUAClient {
+    public static minimumRevisedSessionTimeout: number = 100.00;
+
     public static create(options: OPCUAClientOptions): OPCUAClient {
         return new OPCUAClientImpl(options);
     }
@@ -348,15 +368,15 @@ export class OPCUAClientImpl extends ClientBaseImpl implements OPCUAClient {
      * @method createSession
      *
      *
-     * @example 
+     * @example
      *     // create a anonymous session
      *     const session = await client.createSession();
      *
-     * @example 
+     * @example
      *     // create a session with a userName and password
      *     const session = await client.createSession({
      *            type: UserTokenType.UserName,
-     *            userName: "JoeDoe", 
+     *            userName: "JoeDoe",
      *            password:"secret"
      *      });
      *
@@ -820,12 +840,13 @@ export class OPCUAClientImpl extends ClientBaseImpl implements OPCUAClient {
             session.name = request.sessionName || "";
             session.sessionId = response.sessionId;
             session.authenticationToken = response.authenticationToken;
-            session.timeout = response.revisedSessionTimeout;
+
+            session.timeout = _adjustRevisedSessionTimeout(response.revisedSessionTimeout, this.requestedSessionTimeout);
             session.serverNonce = response.serverNonce;
             session.serverCertificate = response.serverCertificate;
             session.serverSignature = response.serverSignature;
 
-            debugLog("revised session timeout = ", session.timeout);
+            debugLog("revised session timeout = ", session.timeout, response.revisedSessionTimeout);
 
             response.serverEndpoints = response.serverEndpoints || [];
 

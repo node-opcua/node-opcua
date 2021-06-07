@@ -208,4 +208,10 @@ export class OPCUAClient {
     public static create(options: OPCUAClientOptions): OPCUAClient {
         return new OPCUAClientImpl(options);
     }
+    public static set minimumRevisedSessionTimeout(minimumRevisedSessionTimeout: number) {
+        OPCUAClientImpl.minimumRevisedSessionTimeout = minimumRevisedSessionTimeout;
+    }
+    public static get minimumRevisedSessionTimeout() {
+        return OPCUAClientImpl.minimumRevisedSessionTimeout;
+    }
 }
