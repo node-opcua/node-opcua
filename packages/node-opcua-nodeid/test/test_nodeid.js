@@ -152,7 +152,7 @@ describe("testing coerceNodeId", function() {
     })
     it("makeNodeId(buffer)", () => {
         const nodeId2 = makeNodeId(Buffer.from([1, 2, 3]));
-        nodeId2.toString().should.eql("ns=0;b=010203");
+        nodeId2.toString().should.eql("ns=0;b=AQID");
     })
     it("resolveNodeId", () => {
         resolveNodeId("i=12");
@@ -163,21 +163,21 @@ describe("testing coerceNodeId", function() {
         buffer.writeUInt32BE(0xb1dedada, 0);
         buffer.writeUInt32BE(0xb0b0abba, 4);
         const nodeId = coerceNodeId(buffer);
-        nodeId.toString().should.eql("ns=0;b=b1dedadab0b0abba");
-        nodeId.value.toString("hex").should.eql("b1dedadab0b0abba");
+        nodeId.toString().should.eql("ns=0;b=sd7a2rCwq7o=");
+        nodeId.value.toString("base64").should.eql("sd7a2rCwq7o=");
     });
 
     it("should coerce a OPAQUE buffer in a string ( with namespace ) ", function() {
-        const nodeId = coerceNodeId("ns=0;b=b1dedadab0b0abba");
+        const nodeId = coerceNodeId("ns=0;b=dGVzdDEyMzQ1Cg==");
         nodeId.identifierType.should.eql(NodeIdType.BYTESTRING);
-        nodeId.toString().should.eql("ns=0;b=b1dedadab0b0abba");
-        nodeId.value.toString("hex").should.eql("b1dedadab0b0abba");
+        nodeId.toString().should.eql("ns=0;b=dGVzdDEyMzQ1Cg==");
+        nodeId.value.toString("base64").should.eql("dGVzdDEyMzQ1Cg==");
     });
     it("should coerce a OPAQUE buffer in a string ( without namespace ) ", function() {
-        const nodeId = coerceNodeId("b=b1dedadab0b0abba");
+        const nodeId = coerceNodeId("b=dGVzdDEyMzQ1Cg==");
         nodeId.identifierType.should.eql(NodeIdType.BYTESTRING);
-        nodeId.toString().should.eql("ns=0;b=b1dedadab0b0abba");
-        nodeId.value.toString("hex").should.eql("b1dedadab0b0abba");
+        nodeId.toString().should.eql("ns=0;b=dGVzdDEyMzQ1Cg==");
+        nodeId.value.toString("base64").should.eql("dGVzdDEyMzQ1Cg==");
     });
     it("should coerce a GUID node id (without namespace)", function() {
         const nodeId = coerceNodeId("g=1E14849E-3744-470d-8C7B-5F9110C2FA32");
