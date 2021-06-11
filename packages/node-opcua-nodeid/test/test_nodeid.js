@@ -48,7 +48,7 @@ describe("testing NodeIds", function() {
         buffer.writeUInt32BE(0xdeadbeef, 0);
 
         const nodeId = new NodeId(NodeIdType.BYTESTRING, buffer, 4);
-        nodeId.value.toString('hex').should.equal("deadbeef");
+        nodeId.value.toString("hex").should.equal("deadbeef");
         nodeId.namespace.should.equal(4);
         nodeId.identifierType.should.eql(NodeIdType.BYTESTRING);
         nodeId.toString().should.eql("ns=4;b=3q2+7w==");
@@ -168,16 +168,16 @@ describe("testing coerceNodeId", function() {
     });
 
     it("should coerce a OPAQUE buffer in a string ( with namespace ) ", function() {
-        const nodeId = coerceNodeId("ns=0;b=dGVzdDEyMzQ1Cg==");
+        const nodeId = coerceNodeId("ns=0;b=sd7a2rCwq7o=");
         nodeId.identifierType.should.eql(NodeIdType.BYTESTRING);
-        nodeId.toString().should.eql("ns=0;b=dGVzdDEyMzQ1Cg==");
-        nodeId.value.toString("base64").should.eql("dGVzdDEyMzQ1Cg==");
+        nodeId.toString().should.eql("ns=0;b=sd7a2rCwq7o=");
+        nodeId.value.toString("hex").should.eql("b1dedadab0b0abba");
     });
     it("should coerce a OPAQUE buffer in a string ( without namespace ) ", function() {
-        const nodeId = coerceNodeId("b=dGVzdDEyMzQ1Cg==");
+        const nodeId = coerceNodeId("b=sd7a2rCwq7o=");
         nodeId.identifierType.should.eql(NodeIdType.BYTESTRING);
-        nodeId.toString().should.eql("ns=0;b=dGVzdDEyMzQ1Cg==");
-        nodeId.value.toString("base64").should.eql("dGVzdDEyMzQ1Cg==");
+        nodeId.toString().should.eql("ns=0;b=sd7a2rCwq7o=");
+        nodeId.value.toString("hex").should.eql("b1dedadab0b0abba");
     });
     it("should coerce a GUID node id (without namespace)", function() {
         const nodeId = coerceNodeId("g=1E14849E-3744-470d-8C7B-5F9110C2FA32");
