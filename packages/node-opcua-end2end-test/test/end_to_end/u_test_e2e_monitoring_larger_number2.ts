@@ -1,5 +1,6 @@
 import {
     AddressSpace,
+    assert,
     AttributeIds,
     ClientSession,
     ClientSidePublishEngine,
@@ -22,6 +23,7 @@ import should = require("should");
 
 import { make_debugLog, checkDebugFlag } from "node-opcua-debug";
 import { itemsToMonitor1 } from "./_helpers_items_to_monitor";
+import { clearTimeout } from "timers";
 const debugLog = make_debugLog("TEST");
 const doDebug = checkDebugFlag("TEST");
 
@@ -35,7 +37,7 @@ function getInternalPublishEngine(session: ClientSession): ClientSidePublishEngi
 }
 export function t(test: any) {
     const options: OPCUAClientOptions = {
-        requestedSessionTimeout: 10000000,
+        requestedSessionTimeout: 10000000
     };
 
     async function createSession() {
@@ -47,7 +49,7 @@ export function t(test: any) {
         const publishEngine = getInternalPublishEngine(session);
         publishEngine.timeoutHint = 100000000; // for debugging with ease !
         // make sure we control how PublishRequest are send
-       // xx publishEngine.suspend(true);
+        // xx publishEngine.suspend(true);
 
         // create a subscriptions
         const subscription = ClientSubscription.create(session, {
@@ -126,7 +128,12 @@ export function t(test: any) {
             }
 
             const dataValues = await session.read(itemToMonitors);
-            console.log(dataValues.map(x=>x.statusCode.toString()).filter((x,index) => index %1000 === 0).join(" "));
+            console.log(
+                dataValues
+                    .map((x) => x.statusCode.toString())
+                    .filter((x, index) => index % 1000 === 0)
+                    .join(" ")
+            );
 
             const requesterParameters: MonitoringParametersOptions = {
                 discardOldest: true,
@@ -135,24 +142,40 @@ export function t(test: any) {
             };
 
             subscription.on("raw_notification", (notificationMessage: NotificationMessage) => {
-                console.log(notificationMessage.toString());
+                // console.log("row Notification = ", notificationMessage.toString());
             });
+            let counter = 0;
             let _err!: Error;
             try {
                 console.time("A");
                 const group = await subscription.monitorItems(itemToMonitors, requesterParameters, TimestampsToReturn.Both);
-              
-                console.log('set event handler on group');
-                group.on("changed", (monitoredItem, dataValue, index) => {
-                    if (index%1000===0) { console.log("index ", index); }
-                });
                 console.timeEnd("A");
 
-                await new Promise((resolve) => setTimeout(resolve, 10000));
+                console.log("set event handler on group");
+
+                console.time("B");
+
+                await new Promise<void>((resolve) => {
+                    const timerId = setTimeout(() => resolve(), 12000);
+                    group.on("changed", (monitoredItem, dataValue, index) => {
+                        counter++;
+                        if (counter === itemToMonitors.length) {
+                            clearTimeout(timerId);
+                            resolve();
+                        }
+                        if ((index +1)% 5000 === 0) {
+                            console.log("index ", index+1);
+                        }
+                    });
+                });
+
+                console.timeEnd("B");
+                //   await new Promise((resolve) => setTimeout(resolve, 10000));
             } catch (err) {
                 _err = err;
             }
             should.not.exist(_err, "not expecting any exception");
+            counter.should.eql(itemToMonitors.length);
         });
     });
 }

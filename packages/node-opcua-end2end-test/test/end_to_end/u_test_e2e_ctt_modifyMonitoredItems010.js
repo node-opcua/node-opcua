@@ -186,7 +186,7 @@ module.exports = function(test) {
                     if (subscription_raw_notification_event.callCount > 0) {
                         return;
                     }
-                    await new Promise((resolve) => setTimeout(resolve, 2000));
+                    await new Promise((resolve) => setTimeout(resolve, 3000));
                     await wait_notification();
                 }
                 await wait_notification();

@@ -62,7 +62,8 @@ describe("[CLIENT] recreating large subscription during reconnection", () => {
         const subscription = await session.createSubscription2({
             requestedLifetimeCount: 10,
             requestedPublishingInterval: 100,
-            requestedMaxKeepAliveCount: 5
+            requestedMaxKeepAliveCount: 5,
+            publishingEnabled: true
         });
 
         const nodeId = resolveNodeId("Server_ServerStatus_CurrentTime");

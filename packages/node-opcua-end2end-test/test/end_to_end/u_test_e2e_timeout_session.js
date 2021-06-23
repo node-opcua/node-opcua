@@ -40,6 +40,8 @@ module.exports = function(test) {
 
             await client.disconnect();
 
+            await pause(100);
+            
             if (test.server) {
                 test.server.engine.currentSessionCount.should.eql(0);
             }

@@ -163,7 +163,6 @@ export class ClientMonitoredItemGroupImpl extends EventEmitter implements Client
 
         this.monitoredItems.forEach((monitoredItem: ClientMonitoredItemBase, index: number) => {
            
-  
             monitoredItem.on("changed", (dataValue: DataValue) => {
                 /**
                  * Notify the observers that a group MonitoredItem value has changed on the server side.
@@ -190,19 +189,26 @@ Please investigate the code of the event handler function to fix the error.`
             this.monitoredItems,
             (err?: Error) => {
                 if (err) {
-                    this.emit("terminated", err);
+                    this._terminate_and_emit(err);
                 } else {
                     this.emit("initialized");
                     // set the event handler
                     const priv_subscription = this.subscription as ClientSubscriptionImpl;
                     priv_subscription._add_monitored_items_group(this);
                 }
-
                 if (done) {
                     done(err);
                 }
             }
         );
+    }
+    public _terminate_and_emit(err?: Error) {
+        assert(!(this as any)._terminated);
+        (this as any)._terminated = true;
+        if (err) {
+            this.emit("err", err.message);
+        }
+        this.emit("terminated", err);
     }
 }
 

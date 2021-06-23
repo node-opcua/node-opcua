@@ -159,13 +159,15 @@ function displayKeepAliveWarning(sessionTimeout: number, maxKeepAliveCount: numb
 function createMonitoredItemsAndRespectOperationalLimits(
     session: IBasicSession & IBasicSessionWithSubscription,
     createMonitorItemsRequest: CreateMonitoredItemsRequest,
-    callback: (err: Error | null, response?: CreateMonitoredItemsResponse) => void) {
-    readOperationLimits(session).then((operationalLimits) => {
-        createMonitoredItemsLimit(operationalLimits.maxMonitoredItemsPerCall || 0, session, createMonitorItemsRequest)
-            .then((createMonitoredItemResponse) => callback(null, createMonitoredItemResponse))
-            .catch(callback);
-    }
-    ).catch(callback);
+    callback: (err: Error | null, response?: CreateMonitoredItemsResponse) => void
+) {
+    readOperationLimits(session)
+        .then((operationalLimits) => {
+            createMonitoredItemsLimit(operationalLimits.maxMonitoredItemsPerCall || 0, session, createMonitorItemsRequest)
+                .then((createMonitoredItemResponse) => callback(null, createMonitoredItemResponse))
+                .catch(callback);
+        })
+        .catch(callback);
 }
 
 export class ClientSubscriptionImpl extends EventEmitter implements ClientSubscription {
@@ -520,12 +522,24 @@ export class ClientSubscriptionImpl extends EventEmitter implements ClientSubscr
 
         modifySubscriptionRequest.subscriptionId = this.subscriptionId;
 
-        modifySubscriptionRequest.priority = modifySubscriptionRequest.priority === undefined ? this.priority : modifySubscriptionRequest.priority;
-        modifySubscriptionRequest.requestedLifetimeCount = modifySubscriptionRequest.requestedLifetimeCount === undefined ? this.lifetimeCount : modifySubscriptionRequest.requestedLifetimeCount;
-        modifySubscriptionRequest.requestedMaxKeepAliveCount = modifySubscriptionRequest.requestedMaxKeepAliveCount === undefined ? this.maxKeepAliveCount : modifySubscriptionRequest.requestedMaxKeepAliveCount;
-        modifySubscriptionRequest.requestedPublishingInterval = modifySubscriptionRequest.requestedPublishingInterval === undefined ? this.publishingInterval : modifySubscriptionRequest.requestedPublishingInterval;
-        modifySubscriptionRequest.maxNotificationsPerPublish = modifySubscriptionRequest.maxNotificationsPerPublish === undefined ? this.maxNotificationsPerPublish : modifySubscriptionRequest.maxNotificationsPerPublish;
-
+        modifySubscriptionRequest.priority =
+            modifySubscriptionRequest.priority === undefined ? this.priority : modifySubscriptionRequest.priority;
+        modifySubscriptionRequest.requestedLifetimeCount =
+            modifySubscriptionRequest.requestedLifetimeCount === undefined
+                ? this.lifetimeCount
+                : modifySubscriptionRequest.requestedLifetimeCount;
+        modifySubscriptionRequest.requestedMaxKeepAliveCount =
+            modifySubscriptionRequest.requestedMaxKeepAliveCount === undefined
+                ? this.maxKeepAliveCount
+                : modifySubscriptionRequest.requestedMaxKeepAliveCount;
+        modifySubscriptionRequest.requestedPublishingInterval =
+            modifySubscriptionRequest.requestedPublishingInterval === undefined
+                ? this.publishingInterval
+                : modifySubscriptionRequest.requestedPublishingInterval;
+        modifySubscriptionRequest.maxNotificationsPerPublish =
+            modifySubscriptionRequest.maxNotificationsPerPublish === undefined
+                ? this.maxNotificationsPerPublish
+                : modifySubscriptionRequest.maxNotificationsPerPublish;
 
         session.modifySubscription(modifySubscriptionRequest, (err: Error | null, response?: ModifySubscriptionResponse) => {
             if (err || !response) {
@@ -595,7 +609,9 @@ export class ClientSubscriptionImpl extends EventEmitter implements ClientSubscr
 
                     debugLog("Recreating ", itemsToCreate.length, " monitored items");
 
-                    createMonitoredItemsAndRespectOperationalLimits(session, createMonitorItemsRequest,
+                    createMonitoredItemsAndRespectOperationalLimits(
+                        session,
+                        createMonitorItemsRequest,
                         (err: Error | null, response?: CreateMonitoredItemsResponse) => {
                             if (err) {
                                 debugLog("Recreating monitored item has failed with ", err.message);
@@ -750,7 +766,7 @@ export class ClientSubscriptionImpl extends EventEmitter implements ClientSubscr
             if (!response) {
                 return callback(new Error("internal error"));
             }
-            
+
             if (!this.hasSession) {
                 return callback(new Error("createSubscription has failed = > no session"));
             }
@@ -789,6 +805,7 @@ export class ClientSubscriptionImpl extends EventEmitter implements ClientSubscr
 
         const monitoredItems = notification.monitoredItems || [];
 
+        let repeated = 0;
         for (const monitoredItem of monitoredItems) {
             const monitorItemObj = this.monitoredItems[monitoredItem.clientHandle];
             if (monitorItemObj) {
@@ -807,7 +824,19 @@ export class ClientSubscriptionImpl extends EventEmitter implements ClientSubscr
                     const monitoredItemImpl = monitorItemObj as ClientMonitoredItemImpl;
                     monitoredItemImpl._notify_value_change(monitoredItem.value);
                 }
+            } else {
+                repeated += 1;
+                if (repeated === 1) {
+                    warningLog(
+                        "Receiving a notification for a unknown monitoredItem with clientHandle ",
+                        monitoredItem.clientHandle
+                    );
+                }
             }
+        }
+        // istanbul ignore next
+        if (repeated > 1) {
+            warningLog("previous message repeated", repeated, "times");
         }
     }
 
@@ -894,6 +923,7 @@ export class ClientSubscriptionImpl extends EventEmitter implements ClientSubscr
             promoteOpaqueStructureInNotificationData(this.session, notificationData).then(() => {
                 // now process all notifications
                 for (const notification of notificationData) {
+                    // istanbul ignore next
                     if (!notification) {
                         continue;
                     }
@@ -933,7 +963,7 @@ export class ClientSubscriptionImpl extends EventEmitter implements ClientSubscr
 
         setImmediate(() => {
             /**
-             * notify the observers tha the client subscription has terminated
+             * notify the observers that the client subscription has terminated
              * @event  terminated
              */
             this.subscriptionId = TERMINATED_SUBSCRIPTION_ID;
@@ -949,17 +979,14 @@ export class ClientSubscriptionImpl extends EventEmitter implements ClientSubscr
             return; // may be monitoredItem failed to be created  ....
         }
         assert(this.monitoredItems.hasOwnProperty(clientHandle));
-        /**
-         * Notify the observer that this monitored item has been terminated.
-         * @event terminated
-         */
-        monitoredItem.emit("terminated");
-        monitoredItem.removeAllListeners();
-        delete this.monitoredItems[clientHandle];
+
+        const priv = monitoredItem as ClientMonitoredItemImpl;
+        priv._terminate_and_emit();
+ 
     }
 
     public _removeGroup(monitoredItemGroup: ClientMonitoredItemGroup) {
-        monitoredItemGroup.emit("terminated");
+        (monitoredItemGroup as any)._terminate_and_emit();
         this.monitoredItemGroups = this.monitoredItemGroups.filter((obj) => obj !== monitoredItemGroup);
     }
     /**
@@ -1012,8 +1039,7 @@ export function ClientMonitoredItem_create(
             }
             ClientMonitoredItemToolbox._toolbox_monitor(subscription, timestampsToReturn, [monitoredItem], (err1?: Error) => {
                 if (err1) {
-                    monitoredItem.emit("err", err1.message);
-                    monitoredItem.emit("terminated");
+                    monitoredItem._terminate_and_emit(err1);
                 }
                 if (callback) {
                     callback(err1, monitoredItem);

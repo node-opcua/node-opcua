@@ -4,7 +4,7 @@
 import * as async from "async";
 import * as chalk from "chalk";
 import { assert } from "node-opcua-assert";
-import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
+import { checkDebugFlag, make_debugLog, make_warningLog } from "node-opcua-debug";
 import { PublishRequest, PublishResponse, RepublishRequest, RepublishResponse } from "node-opcua-service-subscription";
 import { StatusCodes } from "node-opcua-status-code";
 
@@ -15,7 +15,7 @@ import { ClientSubscriptionImpl } from "./client_subscription_impl";
 
 const debugLog = make_debugLog(__filename);
 const doDebug = checkDebugFlag(__filename);
-
+const warningLog = make_warningLog(__filename);
 /**
  * A client side implementation to deal with publish service.
  *
@@ -331,9 +331,9 @@ export class ClientSidePublishEngine {
                     );
                     active = false;
 
-                    debugLog(chalk.bgWhite.red(" WARNING : SERVER TELLS THAT TOO MANY" + " PUBLISH REQUEST HAS BEEN SEND ..."));
-                    debugLog(" On our side nbPendingPublishRequests = ", this.nbPendingPublishRequests);
-                    debugLog(" => nbMaxPublishRequestsAcceptedByServer =", this.nbMaxPublishRequestsAcceptedByServer);
+                    warningLog(chalk.bgWhite.red(" WARNING : SERVER TELLS THAT TOO MANY" + " PUBLISH REQUEST HAS BEEN SEND ..."));
+                    warningLog(" On our side nbPendingPublishRequests = ", this.nbPendingPublishRequests);
+                    warningLog(" => nbMaxPublishRequestsAcceptedByServer =", this.nbMaxPublishRequestsAcceptedByServer);
                 }
             } else {
                 if (doDebug) {
