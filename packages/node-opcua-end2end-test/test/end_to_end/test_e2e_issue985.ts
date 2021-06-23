@@ -191,7 +191,7 @@ describe("test reconnection when server stops and change it privateKey and certi
 
         const { client, session } = await createClient(endpointUrl, securityPolicy, securityMode, sessionTimeout);
 
-        let _err: Error;
+        let _err: Error | undefined;
 
         try {
             const privateKeyBefore = readPrivateKey(server.privateKeyFile).toString("hex");

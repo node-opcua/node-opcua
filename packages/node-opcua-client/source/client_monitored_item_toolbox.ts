@@ -56,12 +56,16 @@ export class ClientMonitoredItemToolbox {
             timestampsToReturn
         });
 
+         for (let i = 0; i < monitoredItems.length; i++) {
+             const monitoredItem = monitoredItems[i] as ClientMonitoredItemImpl;
+             monitoredItem._before_create();
+         }
         const session = subscription.session as ClientSessionImpl;
         assert(session, "expecting a valid session attached to the subscription ");
         session.createMonitoredItems(createMonitorItemsRequest, (err?: Error | null, response?: CreateMonitoredItemsResponse) => {
             /* istanbul ignore next */
             if (err) {
-                debugLog(chalk.red("ClientMonitoredItemBase#_toolbox_monitor:  ERROR in createMonitoredItems "));
+                debugLog(chalk.red("ClientMonitoredItemBase#_toolbox_monitor:  ERROR in createMonitoredItems " , err.message));
             } else {
 
                 /* istanbul ignore next */
@@ -92,6 +96,7 @@ export class ClientMonitoredItemToolbox {
 
         const itemsToModify = monitoredItems.map((monitoredItem: ClientMonitoredItemBase) => {
             const clientHandle = monitoredItem.monitoringParameters.clientHandle;
+            assert(clientHandle !== 4294967295);
             return new MonitoredItemModifyRequest({
                 monitoredItemId: monitoredItem.monitoredItemId,
                 requestedParameters: {

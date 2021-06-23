@@ -63,6 +63,9 @@ export class ClientMonitoredItemImpl extends EventEmitter implements ClientMonit
     public filterResult?: ExtensionObject;
     public timestampsToReturn: TimestampsToReturn;
 
+    private _pendingDataValue?: DataValue[];
+    private _pendingEvents?: Variant[][];
+
     constructor(
         subscription: ClientSubscription,
         itemToMonitor: ReadValueIdOptions,
@@ -173,6 +176,14 @@ export class ClientMonitoredItemImpl extends EventEmitter implements ClientMonit
      * @private
      */
     public _notify_value_change(value: DataValue) {
+        // it is possible that the first notification arrives before the CreateMonitoredItemsRequest is fully proceed
+        // in this case we need to put the dataValue aside so we can send the notification changed after
+        // the node-opcua client had time to fully install the on("changed") event handler
+        if (this.statusCode?.value === StatusCodes.BadDataUnavailable.value) {
+            this._pendingDataValue = this._pendingDataValue || [];
+            this._pendingDataValue.push(value);
+            return;
+        }
         /**
          * Notify the observers that the MonitoredItem value has changed on the server side.
          * @event changed
@@ -192,6 +203,11 @@ export class ClientMonitoredItemImpl extends EventEmitter implements ClientMonit
      * @private
      */
     public _notify_event(eventFields: Variant[]) {
+        if (this.statusCode?.value === StatusCodes.BadDataUnavailable.value) {
+            this._pendingEvents = this._pendingEvents || [];
+            this._pendingEvents.push(eventFields);
+            return;
+        }
         /**
          * Notify the observers that the MonitoredItem value has changed on the server side.
          * @event changed
@@ -295,6 +311,28 @@ export class ClientMonitoredItemImpl extends EventEmitter implements ClientMonit
             this.monitoringParameters.queueSize = monitoredItemResult.revisedQueueSize;
             this.filterResult = monitoredItemResult.filterResult || undefined;
         }
+
+        // some PublishRequest with DataNotificationChange might have been sent by the server, before the monitored
+        // item has been fully initialized it is time to process now any pending notification that were put on hold.
+        if (this._pendingDataValue) {
+            const dataValues = this._pendingDataValue;
+            this._pendingDataValue = undefined;
+            setImmediate(() => {
+                dataValues.map((dataValue) => this._notify_value_change(dataValue));
+            });
+        }
+
+        if (this._pendingEvents) {
+            const events = this._pendingEvents;
+            this._pendingEvents = undefined;
+            setImmediate(() => {
+                events.map((event) => this._notify_event(event));
+            });
+        }
+    }
+    public _before_create() {
+        const subscription = this.subscription as ClientSubscriptionImpl;
+        subscription._add_monitored_item(this.monitoringParameters.clientHandle, this);
     }
     /**
      * @internal
@@ -305,8 +343,6 @@ export class ClientMonitoredItemImpl extends EventEmitter implements ClientMonit
         this._applyResult(monitoredItemResult);
 
         if (this.statusCode === StatusCodes.Good) {
-            const subscription = this.subscription as ClientSubscriptionImpl;
-            subscription._add_monitored_item(this.monitoringParameters.clientHandle, this);
             /**
              * Notify the observers that the monitored item is now fully initialized.
              * @event initialized
@@ -314,14 +350,35 @@ export class ClientMonitoredItemImpl extends EventEmitter implements ClientMonit
             this.emit("initialized");
         } else {
             /**
-             * Notify the observers that the monitored item has failed to initialized.
+             * Notify the observers that the monitored item has failed to initialize.
              * @event err
              * @param statusCode {StatusCode}
              */
             const err = new Error(monitoredItemResult.statusCode.toString());
-            this.emit("err", err.message);
-            this.emit("terminated");
+            this._terminate_and_emit(err);
         }
+    }
+
+    public _terminate_and_emit(err?: Error) {
+        if (this.statusCode.value === StatusCodes.Bad.value) {
+            return; // already terminated
+        }
+        if (err) {
+            this.emit("err", err.message);
+        }
+        assert(!(this as any)._terminated);
+        (this as any)._terminated = true;
+        /**
+         * Notify the observer that this monitored item has been terminated.
+         * @event terminated
+         */
+        this.emit("terminated", err);
+        this.removeAllListeners();
+        this.statusCode = StatusCodes.Bad;
+
+        // also remove from subscription
+        const clientHandle = this.monitoringParameters.clientHandle;
+        delete this.subscription.monitoredItems[clientHandle];
     }
 }
 

@@ -40,7 +40,7 @@ module.exports = () => {
 
         let g_server: OPCUAServer;
 
-        let discoveryServer: OPCUADiscoveryServer;
+        let discoveryServer: OPCUADiscoveryServer| undefined = undefined;
         let discoveryServerEndpointUrl: string;
 
         const startDiscoveryServer = f(function start_the_discovery_server(callback: ErrorCallback) {
@@ -57,7 +57,7 @@ module.exports = () => {
         const stopDiscoveryServer = f(function stop_the_discovery_server(callback: ErrorCallback) {
             if (!discoveryServer) return callback();
             discoveryServer.shutdown((err?: Error) => {
-                discoveryServer = null;
+                discoveryServer = undefined;
                 debugLog("discovery server stopped!", err);
                 callback(err);
             });

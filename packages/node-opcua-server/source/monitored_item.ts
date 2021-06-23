@@ -16,7 +16,7 @@ import {
     checkWhereClause,
     AddressSpace
 } from "node-opcua-address-space";
-import { DateTime } from "node-opcua-basic-types";
+import { DateTime, UInt32 } from "node-opcua-basic-types";
 import { NodeClass, QualifiedNameOptions } from "node-opcua-data-model";
 import { AttributeIds } from "node-opcua-data-model";
 import {
@@ -387,7 +387,7 @@ export class MonitoredItem extends EventEmitter {
     public filter: MonitoringFilter | null;
     public discardOldest: boolean = true;
     public queueSize: number = 0;
-    public clientHandle: number;
+    public clientHandle: UInt32;
     public $subscription?: ISubscription;
     public _samplingId?: TimerKey | string;
     public samplingFunc:
@@ -415,7 +415,7 @@ export class MonitoredItem extends EventEmitter {
         options.itemToMonitor = options.itemToMonitor || defaultItemToMonitor;
 
         this._samplingId = undefined;
-        this.clientHandle = -1; // invalid yet
+        this.clientHandle = 0; // invalid 
         this.filter = null;
         this._set_parameters(options);
 
@@ -767,6 +767,8 @@ export class MonitoredItem extends EventEmitter {
             monitoringParameters.samplingInterval = MonitoredItem.minimumSamplingInterval; // fastest possible
         }
 
+        // spec says: Illegal request values for parameters that can be revised do not generate errors. Instead the
+        // server will choose default values and indicate them in the corresponding revised parameter
         this._set_parameters(monitoringParameters);
 
         this._adjust_queue_to_match_new_queue_size();
@@ -1047,8 +1049,11 @@ export class MonitoredItem extends EventEmitter {
 
     private _set_parameters(monitoredParameters: MonitoringParameters) {
         _validate_parameters(monitoredParameters);
-        this.clientHandle = monitoredParameters.clientHandle;
-
+        // only change clientHandle if it is valid (0<X<MAX)
+        if (monitoredParameters.clientHandle !== 0 && monitoredParameters.clientHandle !== 4294967295) {
+           this.clientHandle = monitoredParameters.clientHandle;
+        }
+ 
         // The Server may support data that is collected based on a sampling model or generated based on an
         // exception-based model. The fastest supported sampling interval may be equal to 0, which indicates
         // that the data item is exception-based rather than being sampled at some period. An exception-based
@@ -1127,6 +1132,9 @@ export class MonitoredItem extends EventEmitter {
     }
 
     private _makeDataChangeNotification(dataValue: DataValue): MonitoredItemNotification {
+        if (this.clientHandle === -1 || this.clientHandle === 4294967295) {
+            debugLog("Invalid client handle");
+        }
         const attributeId = this.itemToMonitor.attributeId;
         // if dataFilter is specified ....
         if (this.filter && this.filter instanceof DataChangeFilter) {
