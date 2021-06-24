@@ -1,6 +1,6 @@
 {
     "name": "node-opcua-pseudo-session",
-    "version": "2.44.0",
+    "version": "2.45.0",
     "description": "pure nodejs OPCUA SDK - module -client-proxy",
     "scripts": {
         "clean": "node -e \"require('rimraf').sync('dist');\"",
@@ -12,18 +12,18 @@
     "types": "./dist/index.d.ts",
     "dependencies": {
         "node-opcua-constants": "2.42.0",
-        "node-opcua-data-model": "2.44.0",
-        "node-opcua-data-value": "2.44.0",
-        "node-opcua-nodeid": "2.44.0",
-        "node-opcua-service-browse": "2.44.0",
-        "node-opcua-service-call": "2.44.0",
-        "node-opcua-service-read": "2.44.0",
-        "node-opcua-service-subscription": "2.44.0",
-        "node-opcua-service-translate-browse-path": "2.44.0",
-        "node-opcua-service-write": "2.44.0",
+        "node-opcua-data-model": "2.45.0",
+        "node-opcua-data-value": "2.45.0",
+        "node-opcua-nodeid": "2.45.0",
+        "node-opcua-service-browse": "2.45.0",
+        "node-opcua-service-call": "2.45.0",
+        "node-opcua-service-read": "2.45.0",
+        "node-opcua-service-subscription": "2.45.0",
+        "node-opcua-service-translate-browse-path": "2.45.0",
+        "node-opcua-service-write": "2.45.0",
         "node-opcua-status-code": "2.42.0",
         "node-opcua-utils": "2.44.0",
-        "node-opcua-variant": "2.44.0"
+        "node-opcua-variant": "2.45.0"
     },
     "author": "Etienne Rossignon",
     "license": "MIT",

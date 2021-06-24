@@ -1,6 +1,6 @@
 {
     "name": "node-opcua-service-filter",
-    "version": "2.44.0",
+    "version": "2.45.0",
     "description": "pure nodejs OPCUA SDK - module -service-filter",
     "main": "./dist/index.js",
     "types": "./dist/index.d.ts",
@@ -11,21 +11,21 @@
     },
     "dependencies": {
         "node-opcua-assert": "2.42.0",
-        "node-opcua-basic-types": "2.44.0",
+        "node-opcua-basic-types": "2.45.0",
         "node-opcua-binary-stream": "2.42.0",
         "node-opcua-constants": "2.42.0",
-        "node-opcua-data-model": "2.44.0",
+        "node-opcua-data-model": "2.45.0",
         "node-opcua-debug": "2.42.0",
-        "node-opcua-factory": "2.44.0",
-        "node-opcua-nodeid": "2.44.0",
-        "node-opcua-numeric-range": "2.44.0",
-        "node-opcua-service-translate-browse-path": "2.44.0",
+        "node-opcua-factory": "2.45.0",
+        "node-opcua-nodeid": "2.45.0",
+        "node-opcua-numeric-range": "2.45.0",
+        "node-opcua-service-translate-browse-path": "2.45.0",
         "node-opcua-status-code": "2.42.0",
-        "node-opcua-types": "2.44.0",
-        "node-opcua-variant": "2.44.0"
+        "node-opcua-types": "2.45.0",
+        "node-opcua-variant": "2.45.0"
     },
     "devDependencies": {
-        "node-opcua-service-secure-channel": "2.44.0",
+        "node-opcua-service-secure-channel": "2.45.0",
         "should": "^13.2.3"
     },
     "author": "Etienne Rossignon",
