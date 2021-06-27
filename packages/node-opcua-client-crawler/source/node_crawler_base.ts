@@ -3,7 +3,7 @@
  */
 import * as async from "async";
 import { EventEmitter } from "events";
-import {zip} from "underscore";
+import { zip } from "underscore";
 
 import { UAReferenceType } from "node-opcua-address-space";
 import { assert } from "node-opcua-assert";
@@ -11,7 +11,6 @@ import { BrowseDescriptionLike, ReadValueIdOptions, ResponseCallback } from "nod
 import { DataTypeDefinition } from "node-opcua-types";
 import { ReferenceTypeIds, VariableIds } from "node-opcua-constants";
 import {
-    AccessLevelFlag,
     AttributeIds,
     BrowseDirection,
     coerceLocalizedText,
@@ -25,8 +24,7 @@ import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 import { makeNodeId, NodeId, NodeIdLike, resolveNodeId, sameNodeId } from "node-opcua-nodeid";
 import { BrowseDescription, BrowseResult, ReferenceDescription } from "node-opcua-service-browse";
 import { StatusCodes } from "node-opcua-status-code";
-import { lowerFirstLetter } from "node-opcua-utils";
-import { Callback, ErrorCallback } from "node-opcua-status-code";
+import { ErrorCallback } from "node-opcua-status-code";
 import {
     CacheNodeReferenceType,
     CacheNodeVariableType,
@@ -71,7 +69,7 @@ function convertToStandardArray(a: number[] | Uint32Array | undefined): number[]
 
 //
 // some server do not expose the ReferenceType Node in their address space
-// ReferenceType are defined by the OPCUA standard and can be prepopulated in the crawler.
+// ReferenceType are defined by the OPCUA standard and can be pre-populated in the crawler.
 // Pre-populating the ReferenceType node in the crawler will also reduce the network traffic.
 //
 /*=
@@ -158,6 +156,8 @@ function getReferenceTypeId(referenceType: undefined | string | NodeId | UARefer
     return NodeId.nullNodeId;
 }
 
+export type ObjectMap = { [key: string]: object };
+
 // tslint:disable:max-classes-per-file
 /**
  * @class NodeCrawlerBase
@@ -200,16 +200,16 @@ export class NodeCrawlerBase extends EventEmitter implements NodeCrawlerEvents {
     public browseNextCounter: number = 0;
     public transactionCounter: number = 0;
     private readonly session: NodeCrawlerClientSession;
-    private readonly browseNameMap: any;
-    private readonly taskQueue: async.AsyncQueue<Task>;
+    private readonly browseNameMap: ObjectMap;
+    private readonly taskQueue: async.QueueObject<Task>;
     private readonly pendingReadTasks: TaskReadNode[];
     private readonly pendingBrowseTasks: TaskBrowseNode[];
     private readonly pendingBrowseNextTasks: TaskBrowseNext[];
 
-    protected readonly _objectCache: any;
-    protected readonly _objMap: any;
-    private _crawled: any;
-    private _visitedNode: any;
+    protected readonly _objectCache: { [key: string]: CacheNode };
+    protected readonly _objMap: ObjectMap;
+    private _crawled: Set<string>;
+    private _visitedNode: Set<string>;
     private _prePopulatedSet = new WeakSet();
 
     constructor(session: NodeCrawlerClientSession) {
@@ -223,6 +223,8 @@ export class NodeCrawlerBase extends EventEmitter implements NodeCrawlerEvents {
         this.browseNameMap = {};
         this._objectCache = {};
         this._objMap = {};
+        this._crawled = new Set<string>();
+        this._visitedNode = new Set<string>();
 
         this._initialize_referenceTypeId();
 
@@ -267,13 +269,7 @@ export class NodeCrawlerBase extends EventEmitter implements NodeCrawlerEvents {
         assert(this.pendingReadTasks.length === 0);
         assert(this.pendingBrowseTasks.length === 0);
         assert(this.pendingBrowseNextTasks.length === 0);
-        /*
-                this.session = null;
-                this.browseNameMap = null;
-                this._objectCache = null;
-                this._objectToBrowse = null;
-                this._objMap = null;
-        */
+
         this.pendingReadTasks.length = 0;
         this.pendingBrowseTasks.length = 0;
         this.pendingBrowseNextTasks.length = 0;
@@ -329,12 +325,7 @@ export class NodeCrawlerBase extends EventEmitter implements NodeCrawlerEvents {
     private _inner_crawl(nodeId: NodeId, userData: UserData, endCallback: ErrorCallback) {
         assert(userData !== null && typeof userData === "object");
         assert(typeof endCallback === "function");
-        assert(!this._visitedNode);
-        assert(!this._crawled);
-
-        this._visitedNode = {};
-        this._crawled = {};
-
+     
         let hasEnded = false;
 
         this.taskQueue.drain(() => {
@@ -342,8 +333,8 @@ export class NodeCrawlerBase extends EventEmitter implements NodeCrawlerEvents {
 
             if (!hasEnded) {
                 hasEnded = true;
-                this._visitedNode = null;
-                this._crawled = null;
+                this._visitedNode = new Set<string>();
+                this._crawled = new Set<string>();
                 this.emit("end");
                 endCallback();
             }
@@ -421,15 +412,14 @@ export class NodeCrawlerBase extends EventEmitter implements NodeCrawlerEvents {
     private _add_crawl_task(cacheNode: CacheNode, userData: any) {
         assert(userData);
         assert(this !== null && typeof this === "object");
-        assert(this._crawled !== null && typeof this._crawled === "object");
 
         const key = cacheNode.nodeId.toString();
 
         /* istanbul ignore else */
-        if (this._crawled.hasOwnProperty(key)) {
+        if (this._crawled.has(key)) {
             return;
         }
-        this._crawled[key] = 1;
+        this._crawled.add(key);
 
         const task: TaskCrawl = {
             func: NodeCrawlerBase.prototype._crawl_task,
@@ -661,13 +651,13 @@ export class NodeCrawlerBase extends EventEmitter implements NodeCrawlerEvents {
         const nodeId = task.param.cacheNode.nodeId;
         const key = nodeId.toString();
 
-        if (this._visitedNode.hasOwnProperty(key)) {
+        if (this._visitedNode.has(key)) {
             debugLog("skipping already visited", key);
             callback();
             return; // already visited
         }
         // mark as visited to avoid infinite recursion
-        this._visitedNode[key] = true;
+        this._visitedNode.add(key);
 
         const browseNodeAction = (err: Error | null, cacheNode1?: CacheNode) => {
             if (err || !cacheNode1) {
@@ -856,7 +846,7 @@ export class NodeCrawlerBase extends EventEmitter implements NodeCrawlerEvents {
         if (this.has_cache_NodeAttribute(nodeId, attributeId)) {
             callback(null, this.get_cache_NodeAttribute(nodeId, attributeId));
         } else {
-            this.browseNameMap[key] = "?";
+            this.browseNameMap[key] = { "?": 1 };
             this.pendingReadTasks.push({
                 action: (value: any, dataValue: DataValue) => {
                     if (attributeId === AttributeIds.Value) {

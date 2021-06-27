@@ -5,23 +5,27 @@ import { NodeIdLike, resolveNodeId } from "node-opcua-nodeid";
 import { assert } from "node-opcua-assert";
 import { ReferenceDescription } from "node-opcua-service-browse";
 import { ErrorCallback } from "node-opcua-status-code";
-import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
+import { checkDebugFlag, make_debugLog, make_warningLog } from "node-opcua-debug";
 
-import { NodeCrawlerBase, UserData } from "./node_crawler_base";
+import { NodeCrawlerBase, ObjectMap, UserData } from "./node_crawler_base";
 import { CacheNode, CacheNodeVariable, CacheNodeVariableType } from "./cache_node";
 import { TaskReconstruction, EmptyCallback, remove_cycle } from "./private";
 import { lowerFirstLetter } from "node-opcua-utils";
 
 const debugLog = make_debugLog(__filename);
+const warningLog = make_warningLog(__filename);
 const doDebug = checkDebugFlag(__filename);
+
+type Queue = async.QueueObject<TaskReconstruction>;
+type Pojo = object;
 
 export class NodeCrawler extends NodeCrawlerBase {
     /**
      *
      */
-    public read(nodeId: NodeIdLike): Promise<any>;
-    public read(nodeId: NodeIdLike, callback: (err: Error | null, obj?: any) => void): void;
-    public read(nodeId: NodeIdLike, callback?: (err: Error | null, obj?: any) => void): any {
+    public read(nodeId: NodeIdLike): Promise<Pojo>;
+    public read(nodeId: NodeIdLike, callback: (err: Error | null, obj?: Pojo) => void): void;
+    public read(nodeId: NodeIdLike, callback?: (err: Error | null, obj?: Pojo) => void): any {
         /* istanbul ignore next */
         if (!callback) {
             throw new Error("Invalid Error");
@@ -30,7 +34,8 @@ export class NodeCrawler extends NodeCrawlerBase {
         try {
             nodeId = resolveNodeId(nodeId);
         } /* istanbul ignore next */ catch (err) {
-            return callback(err);
+             callback(err);
+             return;
         }
 
         const key = nodeId.toString();
@@ -63,10 +68,10 @@ export class NodeCrawler extends NodeCrawlerBase {
         });
     }
 
-    private simplify_object(objMap: any, object: CacheNode, finalCallback: (err: Error | null, obj?: any) => void) {
+    private simplify_object(objMap: ObjectMap, object: CacheNode, finalCallback: (err: Error | null, obj?: Pojo) => void) {
         assert(typeof finalCallback === "function");
 
-        const queue = async.queue((task: TaskReconstruction, innerCallback: EmptyCallback) => {
+        const queue: Queue = async.queue((task: TaskReconstruction, innerCallback: EmptyCallback) => {
             setImmediate(() => {
                 assert(typeof task.func === "function");
                 task.func(task, innerCallback);
@@ -78,19 +83,24 @@ export class NodeCrawler extends NodeCrawlerBase {
 
         const key1 = object.nodeId.toString();
         queue.drain(() => {
-            const object1: any = this._objMap[key1];
+            const object1: Pojo = this._objMap[key1];
             remove_cycle(object1, finalCallback);
         });
     }
 
-    private _add_for_reconstruction(queue: any, objMap: any, object: CacheNode, extraFunc: (err: Error | null, obj?: any) => void) {
+    private _add_for_reconstruction(
+        queue: Queue,
+        objMap: ObjectMap,
+        object: CacheNode,
+        extraFunc: (err: Error | null, obj?: Pojo) => void
+    ) {
         assert(typeof extraFunc === "function");
         assert(typeof object.nodeId.toString() === "string");
 
         const task: TaskReconstruction = {
             data: object,
             func: (data, callback: ErrorCallback) => {
-                this._reconstruct_manageable_object(queue, objMap, object, (err: Error | null, obj?: any) => {
+                this._reconstruct_manageable_object(queue, objMap, object, (err: Error | null, obj?: Pojo) => {
                     extraFunc(err, obj);
                     callback(err || undefined);
                 });
@@ -100,10 +110,10 @@ export class NodeCrawler extends NodeCrawlerBase {
     }
 
     private _reconstruct_manageable_object(
-        queue: any,
-        objMap: any,
+        queue: Queue,
+        objMap: ObjectMap,
         object: CacheNode,
-        callback: (err: Error | null, obj?: any) => void
+        callback: (err: Error | null, obj?: Pojo) => void
     ) {
         assert(typeof callback === "function");
         assert(object);
@@ -159,16 +169,14 @@ export class NodeCrawler extends NodeCrawlerBase {
 
             /* istanbul ignore else */
             if (!referenceType) {
-                debugLog(chalk.red("Unknown reference type " + refIndex));
+                warningLog(chalk.red("Unknown reference type " + refIndex));
                 // debugLog(util.inspect(object, { colors: true, depth: 10 }));
-                // console.log(chalk.red("Unknown reference type " + refIndex));
-                // console.log(util.inspect(ref, { colors: true, depth: 10 }));
             }
             const reference = this._objectCache[ref.nodeId.toString()];
 
             /* istanbul ignore else */
             if (!reference) {
-                debugLog(
+                warningLog(
                     ref.nodeId.toString(),
                     "bn=",
                     ref.browseName.toString(),
@@ -176,7 +184,8 @@ export class NodeCrawler extends NodeCrawlerBase {
                     ref.nodeClass.toString(),
                     ref.typeDefinition.toString()
                 );
-                debugLog("#_reconstruct_manageable_object: Cannot find reference", ref.nodeId.toString(), "in cache");
+                warningLog("Crawler: Cannot find reference", ref.nodeId.toString(), "in cache");
+                warningLog("contact Sterfive's professional support for help to resolve");
             }
 
             if (reference) {
@@ -184,7 +193,7 @@ export class NodeCrawler extends NodeCrawlerBase {
                 reference.nodeClass = (ref as any).$nodeClass;
             }
             if (referenceType) {
-                const refName = lowerFirstLetter(referenceType.browseName.name);
+                const refName = lowerFirstLetter(referenceType?.browseName?.name|| "");
 
                 if (refName === "hasTypeDefinition") {
                     obj.typeDefinition = reference.browseName.name;
@@ -192,11 +201,7 @@ export class NodeCrawler extends NodeCrawlerBase {
                     if (!referenceMap[refName]) {
                         referenceMap[refName] = [];
                     }
-                    if (!reference.nodeId) {
-                        // tslint:disable-next-line: no-console
-                        console.log("node id ", reference.toString());
-                    }
-                    this._add_for_reconstruction(queue, objMap, reference, (err: Error | null, mObject: any) => {
+                    this._add_for_reconstruction(queue, objMap, reference, (err: Error | null, mObject?: object) => {
                         if (!err) {
                             referenceMap[refName].push(mObject);
                         }
