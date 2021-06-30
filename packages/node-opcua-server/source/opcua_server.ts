@@ -134,7 +134,8 @@ import {
     UserTokenPolicy,
     BrowseDescription,
     BuildInfoOptions,
-    MonitoredItemCreateResult
+    MonitoredItemCreateResult,
+    IssuedIdentityToken
 } from "node-opcua-types";
 import { DataType } from "node-opcua-variant";
 import { VariantArrayType } from "node-opcua-variant";
@@ -305,13 +306,14 @@ function adjustSecurityPolicy(
 
 function findUserTokenByPolicy(
     endpoint_description: EndpointDescription,
-    policyId: SecurityPolicy | string
+    userTokenType: UserTokenType,
+    policyId: SecurityPolicy | string | null
 ): UserTokenPolicy | null {
     assert(endpoint_description instanceof EndpointDescription);
-    const r = endpoint_description.userIdentityTokens!.filter((userIdentity: UserTokenPolicy) => {
-        assert(userIdentity.tokenType !== undefined);
-        return userIdentity.policyId === policyId;
-    });
+    const r = endpoint_description.userIdentityTokens!.filter(
+        (userIdentity: UserTokenPolicy) =>
+            userIdentity.tokenType === userTokenType && (!policyId || userIdentity.policyId === policyId)
+    );
     return r.length === 0 ? null : r[0];
 }
 
@@ -356,7 +358,18 @@ function sameIdentityToken(token1: UserIdentityToken, token2: UserIdentityToken)
     assert(false, " Not implemented yet");
     return false;
 }
-
+function getTokenType(userIdentityToken: UserIdentityToken): UserTokenType {
+    if (userIdentityToken instanceof AnonymousIdentityToken) {
+        return UserTokenType.Anonymous;
+    } else if (userIdentityToken instanceof UserNameIdentityToken) {
+        return UserTokenType.UserName;
+    } else if (userIdentityToken instanceof IssuedIdentityToken) {
+        return UserTokenType.IssuedToken;
+    } else if (userIdentityToken instanceof X509IdentityToken) {
+        return UserTokenType.Certificate;
+    }
+    return UserTokenType.Invalid;
+}
 function thumbprint(certificate?: Certificate): string {
     return certificate ? certificate.toString("base64") : "";
 }
@@ -925,7 +938,7 @@ export class OPCUAServer extends OPCUABaseServer {
     public readonly options: OPCUAServerOptions;
 
     private objectFactory?: Factory;
-  
+
     private _delayInit?: () => Promise<void>;
 
     constructor(options?: OPCUAServerOptions) {
@@ -1431,7 +1444,7 @@ export class OPCUAServer extends OPCUABaseServer {
 
         // decrypt password if necessary
         if (securityPolicy === SecurityPolicy.None) {
-            // not good, password was sent in clear text ... 
+            // not good, password was sent in clear text ...
             password = password.toString();
         } else {
             const serverPrivateKey = this.getPrivateKey();
@@ -1482,7 +1495,9 @@ export class OPCUAServer extends OPCUABaseServer {
             throw new Error("Invalid token");
         }
 
-        const userTokenPolicy = findUserTokenByPolicy(endpointDescription, userIdentityToken.policyId!);
+        const userTokenType = getTokenType(userIdentityToken);
+
+        const userTokenPolicy = findUserTokenByPolicy(endpointDescription, userTokenType, userIdentityToken.policyId!);
         if (!userTokenPolicy) {
             // cannot find token with this policyId
             return callback(null, StatusCodes.BadIdentityTokenInvalid);
@@ -1530,7 +1545,8 @@ export class OPCUAServer extends OPCUABaseServer {
         assert(userIdentityToken);
         assert(typeof callback === "function");
 
-        const userTokenPolicy = findUserTokenByPolicy(session.getEndpointDescription(), userIdentityToken.policyId!);
+        const userTokenType = getTokenType(userIdentityToken);
+        const userTokenPolicy = findUserTokenByPolicy(session.getEndpointDescription(), userTokenType, userIdentityToken.policyId!);
         assert(userTokenPolicy);
         // find if a userToken exists
         if (userIdentityToken instanceof UserNameIdentityToken) {
@@ -1646,9 +1662,10 @@ export class OPCUAServer extends OPCUABaseServer {
             return rejectConnection(StatusCodes.BadCertificateUriInvalid);
         }
 
-        function validate_security_endpoint(
-            channel1: ServerSecureChannelLayer
-        ): { errCode: StatusCode; endpoint?: EndpointDescription } {
+        function validate_security_endpoint(channel1: ServerSecureChannelLayer): {
+            errCode: StatusCode;
+            endpoint?: EndpointDescription;
+        } {
             debugLog("validate_security_endpoint = ", request.endpointUrl);
             let endpoints = server._get_endpoints(request.endpointUrl);
             // endpointUrl String The network address that the Client used to access the Session Endpoint.
@@ -2248,7 +2265,7 @@ export class OPCUAServer extends OPCUABaseServer {
         ) => Promise<void>
     ) {
         assert(typeof action_to_perform === "function");
-        const request = (message.request as unknown) as { subscriptionId: number };
+        const request = message.request as unknown as { subscriptionId: number };
         assert(request.hasOwnProperty("subscriptionId"));
 
         this._apply_on_SessionObject(
@@ -2285,7 +2302,7 @@ export class OPCUAServer extends OPCUABaseServer {
         action_to_perform: (session: ServerSession, subscriptionId: number) => Promise<T>
     ) {
         assert(typeof action_to_perform === "function");
-        const request = (message.request as unknown) as { subscriptionIds: number[] };
+        const request = message.request as unknown as { subscriptionIds: number[] };
         assert(request.hasOwnProperty("subscriptionIds"));
 
         this._apply_on_SessionObject(
@@ -2869,7 +2886,6 @@ export class OPCUAServer extends OPCUABaseServer {
 
         const request = message.request as CreateMonitoredItemsRequest;
         assert(request instanceof CreateMonitoredItemsRequest);
-
 
         this._apply_on_Subscription(
             CreateMonitoredItemsResponse,
@@ -3608,7 +3624,7 @@ export interface RaiseEventAuditActivateSessionEventData extends RaiseEventAudit
 }
 
 // tslint:disable:no-empty-interface
-export interface RaiseEventTransitionEventData extends RaiseEventData { }
+export interface RaiseEventTransitionEventData extends RaiseEventData {}
 
 export interface RaiseEventAuditUrlMismatchEventTypeData extends RaiseEventData {
     endpointUrl: PseudoVariantString;
