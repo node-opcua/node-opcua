@@ -151,6 +151,7 @@ export interface EndpointDescriptionParams {
     resourcePath?: string;
     alternateHostname?: string[];
     hostname: string;
+    securityPolicies: SecurityPolicy[];
 }
 
 export interface AddStandardEndpointDescriptionsParam {
@@ -354,7 +355,10 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
         options?: EndpointDescriptionParams
     ) {
         if (!options) {
-            options = { hostname: getFullyQualifiedDomainName() };
+            options = {
+                hostname: getFullyQualifiedDomainName(),
+                securityPolicies: [SecurityPolicy.Basic256Sha256]
+            };
         }
 
         options.allowAnonymous = options.allowAnonymous === undefined ? true : options.allowAnonymous;
@@ -404,7 +408,8 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
                 allowUnsecurePassword: options.allowUnsecurePassword,
                 resourcePath: options.resourcePath,
 
-                restricted: !!options.restricted
+                restricted: !!options.restricted,
+                securityPolicies: options?.securityPolicies || []
             })
         );
     }
@@ -484,7 +489,7 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
         });
         this._server!.listen(
             this.port,
-            /*"::",*/(err?: Error) => {
+            /*"::",*/ (err?: Error) => {
                 // 'listening' listener
                 debugLog(chalk.green.bold("LISTENING TO PORT "), this.port, "err  ", err);
                 assert(!err, " cannot listen to port ");
@@ -664,7 +669,7 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
             debugLog(
                 chalk.bgWhite.cyan(
                     "OPCUAServerEndPoint#_on_client_connection " +
-                    "SERVER END POINT IS PROBABLY SHUTTING DOWN !!! - Connection is refused"
+                        "SERVER END POINT IS PROBABLY SHUTTING DOWN !!! - Connection is refused"
                 )
             );
             socket.end();
@@ -684,7 +689,7 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
                 console.log(
                     chalk.bgWhite.cyan(
                         "OPCUAServerEndPoint#_on_client_connection " +
-                        "The maximum number of connection has been reached - Connection is refused"
+                            "The maximum number of connection has been reached - Connection is refused"
                     )
                 );
                 const reason = "maxConnections reached (" + this.maxConnections + ")";
@@ -865,11 +870,9 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
             // istanbul ignore next
             console.log(chalk.bgRed.white("PREVENTING DDOS ATTACK => Closing unused channels"));
 
-            const unused_channels: ServerSecureChannelLayer[] = this.getChannels().filter(
-                (channel1: ServerSecureChannelLayer) => {
-                    return !channel1.isOpened && !channel1.hasSession;
-                }
-            );
+            const unused_channels: ServerSecureChannelLayer[] = this.getChannels().filter((channel1: ServerSecureChannelLayer) => {
+                return !channel1.isOpened && !channel1.hasSession;
+            });
             if (unused_channels.length === 0) {
                 // all channels are in used , we cannot get any
 
@@ -913,17 +916,17 @@ interface MakeEndpointDescriptionOptions {
      */
     hostname: string;
     /**
-     * 
+     *
      */
     endpointUrl: string;
 
     serverCertificateChain: Certificate;
     /**
-     * 
+     *
      */
     securityMode: MessageSecurityMode;
     /**
-     * 
+     *
      */
     securityPolicy: SecurityPolicy;
 
@@ -945,16 +948,17 @@ interface MakeEndpointDescriptionOptions {
 
     // allow un-encrypted password in userNameIdentity
     allowUnsecurePassword?: boolean; // default false
-    
+
     /**
      * onlyCertificateLessConnection
      */
-     onlyCertificateLessConnection?: boolean;
-
+    onlyCertificateLessConnection?: boolean;
 
     restricted: boolean;
 
     collection: { [key: string]: number };
+
+    securityPolicies: SecurityPolicy[];
 }
 
 interface EndpointDescriptionEx extends EndpointDescription {
@@ -1026,54 +1030,65 @@ function _makeEndpointDescription(options: MakeEndpointDescriptionOptions): Endp
             });
         }
 
-        const onlyCertificateLessConnection = options.onlyCertificateLessConnection === undefined ? false : options.onlyCertificateLessConnection;
+        const onlyCertificateLessConnection =
+            options.onlyCertificateLessConnection === undefined ? false : options.onlyCertificateLessConnection;
 
         if (!onlyCertificateLessConnection) {
+            if (options.securityPolicies.indexOf(SecurityPolicy.Basic256) >= 0) {
+                userIdentityTokens.push({
+                    policyId: u("username_basic256"),
+                    tokenType: UserTokenType.UserName,
 
-            userIdentityTokens.push({
-                policyId: u("username_basic256"),
-                tokenType: UserTokenType.UserName,
+                    issuedTokenType: null,
+                    issuerEndpointUrl: null,
+                    securityPolicyUri: SecurityPolicy.Basic256
+                });
+            }
 
-                issuedTokenType: null,
-                issuerEndpointUrl: null,
-                securityPolicyUri: SecurityPolicy.Basic256
-            });
+            if (options.securityPolicies.indexOf(SecurityPolicy.Basic128Rsa15) >= 0) {
+                userIdentityTokens.push({
+                    policyId: u("username_basic128Rsa15"),
+                    tokenType: UserTokenType.UserName,
 
-            userIdentityTokens.push({
-                policyId: u("username_basic128Rsa15"),
-                tokenType: UserTokenType.UserName,
+                    issuedTokenType: null,
+                    issuerEndpointUrl: null,
+                    securityPolicyUri: SecurityPolicy.Basic128Rsa15
+                });
+            }
 
-                issuedTokenType: null,
-                issuerEndpointUrl: null,
-                securityPolicyUri: SecurityPolicy.Basic128Rsa15
-            });
+            if (options.securityPolicies.indexOf(SecurityPolicy.Basic256Sha256) >= 0) {
+                userIdentityTokens.push({
+                    policyId: u("username_basic256Sha256"),
+                    tokenType: UserTokenType.UserName,
 
-            userIdentityTokens.push({
-                policyId: u("username_basic256Sha256"),
-                tokenType: UserTokenType.UserName,
-
-                issuedTokenType: null,
-                issuerEndpointUrl: null,
-                securityPolicyUri: SecurityPolicy.Basic256Sha256
-            });
+                    issuedTokenType: null,
+                    issuerEndpointUrl: null,
+                    securityPolicyUri: SecurityPolicy.Basic256Sha256
+                });
+            }
 
             // X509
-            userIdentityTokens.push({
-                policyId: u("certificate_basic256"),
-                tokenType: UserTokenType.UserName,
+            if (options.securityPolicies.indexOf(SecurityPolicy.Basic256) >= 0) {
+                userIdentityTokens.push({
+                    policyId: u("certificate_basic256"),
+                    tokenType: UserTokenType.UserName,
 
-                issuedTokenType: null,
-                issuerEndpointUrl: null,
-                securityPolicyUri: SecurityPolicy.Basic256
-            });
-            userIdentityTokens.push({
-                policyId: u("certificate_basic256Sha256"),
-                tokenType: UserTokenType.Certificate,
+                    issuedTokenType: null,
+                    issuerEndpointUrl: null,
+                    securityPolicyUri: SecurityPolicy.Basic256
+                });
+            }
+            // Certificate
+            if (options.securityPolicies.indexOf(SecurityPolicy.Basic256Sha256) >= 0) {
+                userIdentityTokens.push({
+                    policyId: u("certificate_basic256Sha256"),
+                    tokenType: UserTokenType.Certificate,
 
-                issuedTokenType: null,
-                issuerEndpointUrl: null,
-                securityPolicyUri: SecurityPolicy.Basic256Sha256
-            });
+                    issuedTokenType: null,
+                    issuerEndpointUrl: null,
+                    securityPolicyUri: SecurityPolicy.Basic256Sha256
+                });
+            }
         }
     } else {
         // note:
