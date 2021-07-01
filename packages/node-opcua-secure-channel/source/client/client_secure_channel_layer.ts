@@ -823,7 +823,7 @@ export class ClientSecureChannelLayer extends EventEmitter {
         }
     }
 
-    private _cancel_pending_transactions(err?: Error) {
+    private _cancel_pending_transactions(err?: Error | null) {
         if (doDebug && this._requests) {
             debugLog(
                 "_cancel_pending_transactions  ",
@@ -845,7 +845,7 @@ export class ClientSecureChannelLayer extends EventEmitter {
         this._requests = {};
     }
 
-    private _on_transport_closed(err?: Error) {
+    private _on_transport_closed(err?: Error| null) {
         debugLog(" =>ClientSecureChannelLayer#_on_transport_closed  err=", err ? err.message : "null");
 
         if (this.__in_normal_close_operation) {
@@ -1060,15 +1060,11 @@ export class ClientSecureChannelLayer extends EventEmitter {
             this._on_receive_message_chunk(messageChunk);
         });
 
-        this._transport.on("close", (err: Error) => this._on_transport_closed(err));
+        this._transport.on("close", (err: Error|null) => this._on_transport_closed(err));
 
         this._transport.on("connection_break", () => {
             debugLog(chalk.red("Client => CONNECTION BREAK  <="));
             this._on_transport_closed(new Error("Connection Break"));
-        });
-
-        this._transport.on("error", (err: Error) => {
-            debugLog(" ERROR", err);
         });
 
         setImmediate(() => {

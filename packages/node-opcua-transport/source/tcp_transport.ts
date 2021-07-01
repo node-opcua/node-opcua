@@ -34,6 +34,14 @@ export function getFakeTransport() {
 
 let counter = 0;
 
+export interface TCP_transport {
+    on(eventName: "message", eventHandler: (message: Buffer) => void): this;
+    once(eventName: "message", eventHandler: (message: Buffer) => void): this;
+    on(eventName: "socket_closed", eventHandler: (err: Error | null) => void): this;
+    once(eventName: "socket_closed", eventHandler: (err: Error | null) => void): this;
+    on(eventName: "close", eventHandler: (err: Error | null) => void): this;
+    once(eventName: "close", eventHandler: (err: Error | null) => void): this;
+}
 // tslint:disable:class-name
 export class TCP_transport extends EventEmitter {
     private static registry = new ObjectRegistry();
@@ -315,6 +323,7 @@ export class TCP_transport extends EventEmitter {
         return false;
     }
 
+ 
     private _on_message_received(messageChunk: Buffer) {
         const hasCallback = this._fulfill_pending_promises(null, messageChunk);
         this.chunkReadCount++;

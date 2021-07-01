@@ -7,6 +7,21 @@ export const packet_cs_1 = makeBufferFromTrace(`
 00000020: 6f 70 63 2e 74 63 70 3a 2f 2f 74 61 74 74 61 74 61 3a 36 32 35 34 33 2f 41 41 41 41 41 2f 41 67    opc.tcp://tattata:62543/AAAAA/Ag
 00000040: 67 72 65 67 61 74 69 6f 6e 53 65 72 76 65 72                                                       gregationServer
 `);
+// same as packet_cs_1 but with a altered endpointUri Length = 0 ---ff added here-----------------+
+//                                                                                                |
+//                                                                                                v
+export const altered_packet_cs_1 = makeBufferFromTrace(`
+00000000: 48 45 4c 46 4f 00 00 00 00 00 00 00 ff ff 00 00 ff ff 00 00 00 00 40 00 00 00 00 00 2f ff 00 00    HELFO.................@...../...
+00000020: 6f 70 63 2e 74 63 70 3a 2f 2f 74 61 74 74 61 74 61 3a 36 32 35 34 33 2f 41 41 41 41 41 2f 41 67    opc.tcp://tattata:62543/AAAAA/Ag
+00000040: 67 72 65 67 61 74 69 6f 6e 53 65 72 76 65 72                                                       gregationServer
+`);
+
+export const altered_helloMessage2 =
+    Buffer.from("48454c46390000000000000000000100000001000000000000000000595555556f70632e7463703a2f2f6c6f63616c686f73743a343834302f", "hex");
+
+export const altered_helloMessage3 =
+    Buffer.from("48454c46390000000000000000000100000001000000000000000000020000106f70632e7463703a2f2f6c6f63616c686f73743a343834302f", "hex");
+    
 
 export const packet_sc_1 = makeBufferFromTrace(`
 00000000: 41 43 4b 46 1c 00 00 00 00 00 00 00 ff ff 00 00 ff ff 00 00 00 00 40 00 00 00 00 00                ACKF..................@.....
