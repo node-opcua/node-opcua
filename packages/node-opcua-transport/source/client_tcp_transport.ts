@@ -56,6 +56,17 @@ function createClientSocket(endpointUrl: string): Socket {
         }
     }
 }
+export interface ClientTCP_transport {
+    on(eventName: "message", eventHandler: (message: Buffer) => void): this;
+    once(eventName: "message", eventHandler: (message: Buffer) => void): this;
+    on(eventName: "socket_closed", eventHandler: (err: Error | null) => void): this;
+    once(eventName: "socket_closed", eventHandler: (err: Error | null) => void): this;
+    on(eventName: "close", eventHandler: (err: Error | null) => void): this;
+    once(eventName: "close", eventHandler: (err: Error | null) => void): this;
+//
+    on(eventName: "connection_break", eventHandler: () => void): this;
+    once(eventName: "connection_break", eventHandler: () => void): this;
+}
 
 /**
  * a ClientTCP_transport connects to a remote server socket and
