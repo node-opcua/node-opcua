@@ -43,6 +43,7 @@ export class RegisterServerManagerMDNSONLY
     }
 
     public start(callback: () => void) {
+        // istanbul ignore next
         if (!this.server) {
             throw new Error("internal error");
         }
@@ -61,6 +62,8 @@ export class RegisterServerManagerMDNSONLY
     }
 
     public dispose() {
+        assert(!this.bonjour.isStarted());
+        assert(this.server);
         this.server = undefined;
     }
 }

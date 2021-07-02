@@ -12,8 +12,8 @@ const {
     fakeAcknowledgeMessage
 } = require("../dist/test_helpers");
 
-const { packet_sc_2 } = require("node-opcua-transport/dist/test-fixtures");
-assert(packet_sc_2);
+const { openSecureChannelResponse1 } = require("node-opcua-transport/dist/test-fixtures");
+assert(openSecureChannelResponse1);
 
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("testing ClientSecureChannelLayer ", function() {
@@ -33,7 +33,7 @@ describe("testing ClientSecureChannelLayer ", function() {
             // client will send a "OPN" OpenSecureChannelRequest
             // Server will reply with this:
             function() {
-                return packet_sc_2 // OpenChannelResponse
+                return openSecureChannelResponse1 // OpenChannelResponse
             },
             // ---------------------------------------------------- Transaction 3
             // client will send a "CLO" CloseSecureChannelRequest
@@ -77,7 +77,7 @@ describe("testing ClientSecureChannelLayer ", function() {
             // ---------------------------------------------------- Transaction 2
             // client will send a "OPN" OpenSecureChannelRequest
             // Server will reply with this:
-            require("node-opcua-transport/dist/test-fixtures").packet_sc_2,
+            require("node-opcua-transport/dist/test-fixtures").openSecureChannelResponse1,
 
             // ---------------------------------------------------- Transaction 3
             // client will send a "CLO" CloseSecureChannelRequest
@@ -136,7 +136,7 @@ describe("testing ClientSecureChannelLayer ", function() {
             // ---------------------------------------------------- Transaction 2
             // client will send a "OPN" OpenSecureChannelRequest
             // Server will reply with this:
-            require("node-opcua-transport/dist/test-fixtures").packet_sc_2,
+            require("node-opcua-transport/dist/test-fixtures").openSecureChannelResponse1,
 
             // ---------------------------------------------------- Transaction 3
             // client will send a "CLO" CloseSecureChannelRequest

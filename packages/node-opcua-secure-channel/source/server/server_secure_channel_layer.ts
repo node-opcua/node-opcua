@@ -595,7 +595,7 @@ export class ServerSecureChannelLayer extends EventEmitter {
         if (0 && doDebug) {
             // tslint:disable-next-line: no-console
             console.log(" options ", options);
-            analyze_object_binary_encoding((response as any) as BaseUAObject);
+            analyze_object_binary_encoding(response as any as BaseUAObject);
         }
 
         /* istanbul ignore next */
@@ -609,11 +609,10 @@ export class ServerSecureChannelLayer extends EventEmitter {
 
         this._transactionsCount += 1;
 
-
         this.messageChunker.chunkSecureMessage(
             msgType,
             options as ChunkMessageOptions,
-            (response as any) as BaseUAObject,
+            response as any as BaseUAObject,
             (messageChunk: Buffer | null) => {
                 return this._send_chunk(callback, messageChunk);
             }
@@ -627,7 +626,6 @@ export class ServerSecureChannelLayer extends EventEmitter {
             });
         });
     }
-
 
     public getRemoteIPAddress(): string {
         return (this.transport?._socket as Socket)?.remoteAddress || "";
@@ -724,7 +722,7 @@ export class ServerSecureChannelLayer extends EventEmitter {
     }
 
     private _prepare_security_token(openSecureChannelRequest: OpenSecureChannelRequest) {
-        this.securityToken = (null as any) as ChannelSecurityToken;
+        this.securityToken = null as any as ChannelSecurityToken;
         if (openSecureChannelRequest.requestType === SecurityTokenRequestType.Renew) {
             this._stop_security_token_watch_dog();
         } else if (openSecureChannelRequest.requestType === SecurityTokenRequestType.Issue) {
@@ -825,9 +823,19 @@ export class ServerSecureChannelLayer extends EventEmitter {
 
     private _wait_for_open_secure_channel_request(callback: ErrorCallback, timeout: number) {
         this._install_wait_for_open_secure_channel_request_timeout(callback, timeout);
-        this.messageBuilder.once("message", (request: Request, msgType: string, requestId: number, channelId: number) => {
+
+        const errorHandler = (err: Error) => {
+            this.messageBuilder.removeListener("message", messageHandler);
+            this.close(() => {
+                callback(new Error("/Expecting OpenSecureChannelRequest to be valid " + err.message));
+            });
+        };
+        const messageHandler = (request: Request, msgType: string, requestId: number, channelId: number) => {
+            this.messageBuilder.removeListener("error", errorHandler);
             this._on_initial_open_secure_channel_request(callback, request, msgType, requestId, channelId);
-        });
+        };
+        this.messageBuilder.once("error", errorHandler);
+        this.messageBuilder.once("message", messageHandler);
     }
 
     private _send_chunk(callback: ErrorCallback | undefined, messageChunk: Buffer | null) {
@@ -1032,12 +1040,12 @@ export class ServerSecureChannelLayer extends EventEmitter {
     protected checkCertificateCallback(
         certificate: Certificate | null,
         callback: (err: Error | null, statusCode?: StatusCode) => void
-    ): void { }
+    ): void {}
 
     protected async checkCertificate(certificate: Certificate | null): Promise<StatusCode> {
         if (!certificate) {
             return StatusCodes.Good;
-        } 
+        }
         // istanbul ignore next
         if (!this.certificateManager) {
             return StatusCodes.BadInternalError;
@@ -1234,7 +1242,7 @@ export class ServerSecureChannelLayer extends EventEmitter {
             this.close();
         } else if (msgType === "OPN" && request.schema.name === "OpenSecureChannelRequest") {
             // intercept client request to renew security Token
-            this._handle_OpenSecureChannelRequest(StatusCodes.Good, message, (/* err?: Error*/) => { });
+            this._handle_OpenSecureChannelRequest(StatusCodes.Good, message, (/* err?: Error*/) => {});
         } else {
             if (request.schema.name === "CloseSecureChannelRequest") {
                 warningLog("WARNING : RECEIVED a CloseSecureChannelRequest with msgType=", msgType);
@@ -1252,7 +1260,7 @@ export class ServerSecureChannelLayer extends EventEmitter {
                         StatusCodes.BadCommunicationError,
                         "Invalid Channel Id specified " + this.securityToken.channelId,
                         message,
-                        () => { }
+                        () => {}
                     );
                 }
 
@@ -1292,8 +1300,8 @@ export class ServerSecureChannelLayer extends EventEmitter {
                 debugLog(
                     "receiverCertificateThumbprint do not match server certificate",
                     myCertificateThumbPrint.toString("hex") +
-                    " <> " +
-                    clientSecurityHeader.receiverCertificateThumbprint.toString("hex")
+                        " <> " +
+                        clientSecurityHeader.receiverCertificateThumbprint.toString("hex")
                 );
             }
             return thisIsMyCertificate;

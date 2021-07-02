@@ -5,12 +5,11 @@ const {
     fakeAcknowledgeMessage
 } = require("../dist/test_helpers");
 const {
-
     CloseSecureChannelRequest
 } = require("node-opcua-service-secure-channel");
 
 
-const { packet_sc_2 } = require("node-opcua-transport/dist/test-fixtures");
+const { openSecureChannelResponse1 } = require("node-opcua-transport/dist/test-fixtures");
 
 describe("test issue with final CLO message", () => {
 

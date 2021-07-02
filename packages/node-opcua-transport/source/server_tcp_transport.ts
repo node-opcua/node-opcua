@@ -206,11 +206,8 @@ export class ServerTCP_transport extends TCP_transport {
             if (err) {
                 this._abortWithError(StatusCodes.BadConnectionRejected, err.message, callback);
             } else {
-                if (!data) {
-                    throw new Error("Invalid Data");
-                }
                 // handle the HEL message
-                this._on_HEL_message(data, callback);
+                this._on_HEL_message(data!, callback);
             }
         });
     }
@@ -271,7 +268,8 @@ export class ServerTCP_transport extends TCP_transport {
                 this._helloReceived = true;
                 this._send_ACK_response(helloMessage);
             } catch (err) {
-                return this._abortWithError(StatusCodes.BadTcpMessageTypeInvalid, err.message, callback);
+                // connection rejected because of malformed message
+                return this._abortWithError(StatusCodes.BadConnectionRejected, err.message, callback);
             }
             callback(); // no Error
         } else {

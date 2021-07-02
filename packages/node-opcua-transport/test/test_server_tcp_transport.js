@@ -4,7 +4,7 @@ const { assert } = require("node-opcua-assert");
 
 const utils = require("node-opcua-utils");
 const debug = require("node-opcua-debug");
-const debugLog = debug.make_debugLog(__filename);
+const debugLog = debug.make_debugLog("TEST");
 
 const { BinaryStream } = require("node-opcua-binary-stream");
 const { readMessageHeader } = require("node-opcua-chunkmanager");
@@ -14,12 +14,12 @@ const { decodeMessage, packTcpMessage, ServerTCP_transport, HelloMessage, Acknow
 const DirectTransport = require("../dist/test_helpers").DirectTransport;
 
 const packets = require("../dist/test-fixtures");
-const helloMessage = packets.packet_cs_1;
-const altered_helloMessage = packets.altered_packet_cs_1;
-const openChannelRequest = packets.packet_cs_2;
-const not_an_helloMessage = packets.packet_cs_3;
-
-const { altered_helloMessage2, altered_helloMessage3} = packets;
+const helloMessage = packets.helloMessage1;
+const altered_helloMessage = packets.altered_helloMessage1;
+const openChannelRequest = packets.openChannelRequest1;
+const not_an_helloMessage = packets.getEndpointsRequest1;
+const { altered_openChannelRequest1, altered_openChannelRequest2 } = packets;
+const { altered_helloMessage2, altered_helloMessage3 } = packets;
 
 describe("testing ServerTCP_transport", function () {
     let fakeSocket;
@@ -35,7 +35,7 @@ describe("testing ServerTCP_transport", function () {
     it("should close the communication if the client initiates the communication with a message which is not HEL", function (done) {
         const transport = new ServerTCP_transport();
 
-        transport.init(fakeSocket.server, function (err) {
+        transport.init(fakeSocket.server, (err) => {
             assert(err);
             err.message.should.match(/Expecting 'HEL' message/);
         });
@@ -55,7 +55,7 @@ describe("testing ServerTCP_transport", function () {
 
     it("should bind a socket and process the HEL message by returning ACK", function (done) {
         const transport = new ServerTCP_transport();
-        transport.init(fakeSocket.server, function (err) {
+        transport.init(fakeSocket.server, (err) => {
             assert(!err);
         });
 
@@ -74,29 +74,36 @@ describe("testing ServerTCP_transport", function () {
         fakeSocket.client.write(helloMessage);
     });
 
-
     function test_malformedHelloMessage(altered_helloMessage, done) {
         const transport = new ServerTCP_transport();
-        transport.init(fakeSocket.server, (err) => {});
+
+        let initError;
+        transport.init(fakeSocket.server, (err) => {
+            initError = err;
+            debugLog("failed !", err.message);
+        });
 
         transport.on("message", (messageChunk) => {
             // console.log("message ", messageChunk);
             done(new Error("Not expecting an message"));
         });
         transport.on("close", (err) => {
-            console.log("close", err);
+            debugLog("close", err);
+            if (initError) {
+                initError.message.should.match(/BadConnectionRejected/);
+            }
             done();
         });
         fakeSocket.client.write(altered_helloMessage);
     }
 
-    it("1- should not crash is helloMessage  is malformed causing read overflow (bad endpoint uri length)", (done) => {
+    it("FUZZ1- should not crash is helloMessage  is malformed causing read overflow (bad endpoint uri length)", (done) => {
         test_malformedHelloMessage(altered_helloMessage, done);
     });
-    it("2- should not crash is helloMessage  is malformed causing read overflow (bad endpoint uri length)", (done) => {
+    it("FUZZ2- should not crash is helloMessage  is malformed causing read overflow (bad endpoint uri length)", (done) => {
         test_malformedHelloMessage(altered_helloMessage2, done);
     });
-    it("3- should not crash is helloMessage  is malformed causing read overflow (bad endpoint uri length)", (done) => {
+    it("FUZZ3- should not crash is helloMessage  is malformed causing read overflow (bad endpoint uri length)", (done) => {
         test_malformedHelloMessage(altered_helloMessage3, done);
     });
 
@@ -104,7 +111,7 @@ describe("testing ServerTCP_transport", function () {
         const transport = new ServerTCP_transport();
         transport.protocolVersion.should.eql(0);
         transport.protocolVersion = 10;
-        transport.init(fakeSocket.server, function (err) {
+        transport.init(fakeSocket.server, (err) => {
             assert(err);
             err.message.should.match(/BadProtocolVersionUnsupported/);
         });
@@ -139,11 +146,11 @@ describe("testing ServerTCP_transport", function () {
     function perform_sever_receiving_a_HEL_MESSAGE_followed_by_OpenChannelRequest_scenario(done) {
         const transport = new ServerTCP_transport();
 
-        transport.init(fakeSocket.server, function (err) {
+        transport.init(fakeSocket.server, (err) => {
             assert(!err);
         });
 
-        transport.on("message", function (messageChunk) {
+        transport.on("message", (messageChunk) => {
             utils.compare_buffers(messageChunk, openChannelRequest);
 
             // it should provide bytesRead and bytesWritten
@@ -206,7 +213,7 @@ describe("testing ServerTCP_transport", function () {
     it("WXWX1 (issue#504)  server transport accept bufferSize greater than 8192 byes", function (done) {
         const transport = new ServerTCP_transport();
 
-        transport.init(fakeSocket.server, function (err) {});
+        transport.init(fakeSocket.server, (err) => {});
         const helloMessage = new HelloMessage({
             protocolVersion: 0,
             receiveBufferSize: 8192,
@@ -232,7 +239,7 @@ describe("testing ServerTCP_transport", function () {
     it("WXWX2 (issue#504) server transport should not accept bufferSize lower than 8192 byes", function (done) {
         const transport = new ServerTCP_transport();
 
-        transport.init(fakeSocket.server, function (err) {});
+        transport.init(fakeSocket.server, (err) => {});
         const helloMessage = new HelloMessage({
             protocolVersion: 0,
             receiveBufferSize: 512,
@@ -258,7 +265,7 @@ describe("testing ServerTCP_transport", function () {
 
     it("Test CLO message at transport end ", function (done) {
         const transport = new ServerTCP_transport();
-        transport.init(fakeSocket.server, function (err) {});
+        transport.init(fakeSocket.server, (err) => {});
 
         transport.on("message", (messageChunk) => {
             // console.log("message ", messageChunk);

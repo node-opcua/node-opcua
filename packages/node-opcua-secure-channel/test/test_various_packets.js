@@ -34,8 +34,8 @@ xdescribe("testing with problematic packet", function () {
             throw new Error("should not get there");
         });
 
-        messageBuilder.feed(packets.packet_sc_3_a); // GEP response chunk  1
-        messageBuilder.feed(packets.packet_sc_3_b); // GEP response chunk  2
+        messageBuilder.feed(packets.getEndpointsRequest2_chunk1); // GEP response chunk  1
+        messageBuilder.feed(packets.getEndpointsRequest2_chunk2); // GEP response chunk  2
     });
 
     it("should not emit a \"invalid_sequence_number\" event when message have a 1-increased sequence number", function (done) {
@@ -59,8 +59,8 @@ xdescribe("testing with problematic packet", function () {
         });
 
 
-        messageBuilder.feed(packets.packet_cs_2); // OpenSecureChannelRequest chunk 2
-        messageBuilder.feed(packets.packet_cs_3); // OpenSecureChannelRequest chunk 3
+        messageBuilder.feed(packets.openChannelRequest1); // OpenSecureChannelRequest chunk 2
+        messageBuilder.feed(packets.getEndpointsRequest1); // OpenSecureChannelRequest chunk 3
 
     });
     it("should decode this problematic ReadResponse ", function (done) {

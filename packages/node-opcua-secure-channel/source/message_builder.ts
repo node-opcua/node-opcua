@@ -20,9 +20,9 @@ import {
     removePadding,
     verifyChunkSignatureWithDerivedKeys
 } from "node-opcua-crypto";
-import { checkDebugFlag, hexDump, make_debugLog } from "node-opcua-debug";
+import { checkDebugFlag, hexDump, make_debugLog, make_warningLog } from "node-opcua-debug";
 import { BaseUAObject, constructObject, hasConstructor } from "node-opcua-factory";
-import { ExpandedNodeId } from "node-opcua-nodeid";
+import { ExpandedNodeId, NodeId } from "node-opcua-nodeid";
 import { analyseExtensionObject } from "node-opcua-packet-analyzer";
 import {
     AsymmetricAlgorithmSecurityHeader,
@@ -50,6 +50,8 @@ import { timestamp } from "node-opcua-utils";
 
 const debugLog = make_debugLog(__filename);
 const doDebug = checkDebugFlag(__filename);
+const warningLog = make_warningLog(__filename);
+
 const doTraceChunk = process.env.NODEOPCUADEBUG && process.env.NODEOPCUADEBUG.indexOf("CHUNK") >= 0;
 
 export interface SecurityToken {
@@ -163,82 +165,89 @@ export class MessageBuilder extends MessageBuilderBase {
     }
 
     protected _read_headers(binaryStream: BinaryStream): boolean {
-        super._read_headers(binaryStream);
+        if (!super._read_headers(binaryStream)) {
+            return false;
+        }
 
         // istanbul ignore next
         if (!this.messageHeader) {
             throw new Error("internal error");
         }
-        assert(binaryStream.length === 12);
 
-        const msgType = this.messageHeader.msgType;
+        try {
+            assert(binaryStream.length === 12);
 
-        if (msgType === "HEL" || msgType === "ACK") {
-            this.securityPolicy = SecurityPolicy.None;
-        } else if (msgType === "ERR") {
-            // extract Error StatusCode and additional message
-            binaryStream.length = 8;
-            const errorCode = decodeStatusCode(binaryStream);
-            const message = decodeString(binaryStream);
+            const msgType = this.messageHeader.msgType;
 
-            /* istanbul ignore next */
-            if (doDebug) {
-                debugLog(chalk.red.bold(" ERROR RECEIVED FROM SENDER"), chalk.cyan(errorCode.toString()), message);
-                debugLog(hexDump(binaryStream.buffer));
-            }
-            if (doTraceChunk) {
-                console.log(
-                    timestamp(),
-                    chalk.red("   >$$ "),
-                    chalk.red(this.messageHeader.msgType),
-                    chalk.red("nbChunk = " + this.messageChunks.length.toString().padStart(3)),
-                    chalk.red("totalLength = " + this.totalMessageSize.toString().padStart(8)),
-                    "l=",
-                    this.messageHeader.length.toString().padStart(6),
-                    errorCode.toString(),
-                    message
-                );
+            if (msgType === "HEL" || msgType === "ACK") {
+                this.securityPolicy = SecurityPolicy.None;
+            } else if (msgType === "ERR") {
+                // extract Error StatusCode and additional message
+                binaryStream.length = 8;
+                const errorCode = decodeStatusCode(binaryStream);
+                const message = decodeString(binaryStream);
+
+                /* istanbul ignore next */
+                if (doDebug) {
+                    debugLog(chalk.red.bold(" ERROR RECEIVED FROM SENDER"), chalk.cyan(errorCode.toString()), message);
+                    debugLog(hexDump(binaryStream.buffer));
+                }
+                if (doTraceChunk) {
+                    console.log(
+                        timestamp(),
+                        chalk.red("   >$$ "),
+                        chalk.red(this.messageHeader.msgType),
+                        chalk.red("nbChunk = " + this.messageChunks.length.toString().padStart(3)),
+                        chalk.red("totalLength = " + this.totalMessageSize.toString().padStart(8)),
+                        "l=",
+                        this.messageHeader.length.toString().padStart(6),
+                        errorCode.toString(),
+                        message
+                    );
+                }
+                return true;
+            } else {
+                this.securityHeader = chooseSecurityHeader(msgType);
+                this.securityHeader.decode(binaryStream);
+
+                if (msgType === "OPN") {
+                    const asymmetricAlgorithmSecurityHeader = this.securityHeader as AsymmetricAlgorithmSecurityHeader;
+                    this.securityPolicy = fromURI(asymmetricAlgorithmSecurityHeader.securityPolicyUri);
+                    this.cryptoFactory = getCryptoFactory(this.securityPolicy);
+                }
+
+                if (!this._decrypt(binaryStream)) {
+                    return false;
+                }
+
+                this.sequenceHeader = new SequenceHeader();
+                this.sequenceHeader.decode(binaryStream);
+
+                /* istanbul ignore next */
+                if (doDebug) {
+                    debugLog(" Sequence Header", this.sequenceHeader);
+                }
+                if (doTraceChunk) {
+                    console.log(
+                        timestamp(),
+                        chalk.green("   >$$ "),
+                        chalk.green(this.messageHeader.msgType),
+                        chalk.green("nbChunk = " + this.messageChunks.length.toString().padStart(3)),
+                        chalk.green("totalLength = " + this.totalMessageSize.toString().padStart(8)),
+                        "l=",
+                        this.messageHeader.length.toString().padStart(6),
+                        "s=",
+                        this.sequenceHeader.sequenceNumber.toString().padEnd(4),
+                        "r=",
+                        this.sequenceHeader.requestId.toString().padEnd(4)
+                    );
+                }
+                this._validateSequenceNumber(this.sequenceHeader.sequenceNumber);
             }
             return true;
-        } else {
-            this.securityHeader = chooseSecurityHeader(msgType);
-            this.securityHeader.decode(binaryStream);
-
-            if (msgType === "OPN") {
-                const asymmetricAlgorithmSecurityHeader = this.securityHeader as AsymmetricAlgorithmSecurityHeader;
-                this.securityPolicy = fromURI(asymmetricAlgorithmSecurityHeader.securityPolicyUri);
-                this.cryptoFactory = getCryptoFactory(this.securityPolicy);
-            }
-
-            if (!this._decrypt(binaryStream)) {
-                return false;
-            }
-
-            this.sequenceHeader = new SequenceHeader();
-            this.sequenceHeader.decode(binaryStream);
-
-            /* istanbul ignore next */
-            if (doDebug) {
-                debugLog(" Sequence Header", this.sequenceHeader);
-            }
-            if (doTraceChunk) {
-                console.log(
-                    timestamp(),
-                    chalk.green("   >$$ "),
-                    chalk.green(this.messageHeader.msgType),
-                    chalk.green("nbChunk = " + this.messageChunks.length.toString().padStart(3)),
-                    chalk.green("totalLength = " + this.totalMessageSize.toString().padStart(8)),
-                    "l=",
-                    this.messageHeader.length.toString().padStart(6),
-                    "s=",
-                    this.sequenceHeader.sequenceNumber.toString().padEnd(4),
-                    "r=",
-                    this.sequenceHeader.requestId.toString().padEnd(4)
-                );
-            }
-            this._validateSequenceNumber(this.sequenceHeader.sequenceNumber);
+        } catch (err) {
+            return false;
         }
-        return true;
     }
 
     protected _decodeMessageBody(fullMessageBody: Buffer): boolean {
@@ -269,12 +278,17 @@ export class MessageBuilder extends MessageBuilderBase {
             this.emit("message", objMessage1, msgType, this.sequenceHeader.requestId, this.channelId);
             return true;
         }
+
         // read expandedNodeId:
-        const id = decodeExpandedNodeId(binaryStream);
+        let id: ExpandedNodeId;
+        try {
+            id = decodeExpandedNodeId(binaryStream);
+        } catch (err) {
+            return this._report_error(err.message);
+        }
 
         if (!this.objectFactory.hasConstructor(id)) {
-            this._report_error("cannot construct object with nodeID " + id);
-            return false;
+            return this._report_error("cannot construct object with nodeID " + id.toString());
         }
 
         let objMessage;
@@ -282,14 +296,12 @@ export class MessageBuilder extends MessageBuilderBase {
             // construct the object
             objMessage = this.objectFactory.constructObject(id);
         } catch (err) {
-            this._report_error("cannot construct object with nodeID " + id);
-            return false;
+            return this._report_error("cannot construct object with nodeID " + id);
         }
         // construct the object
 
         if (!objMessage) {
-            this._report_error("cannot construct object with nodeID " + id);
-            return false;
+            return this._report_error("cannot construct object with nodeID " + id);
         } else {
             if (this._safe_decode_message_body(fullMessageBody, objMessage, binaryStream)) {
                 /* istanbul ignore next */
@@ -341,9 +353,8 @@ export class MessageBuilder extends MessageBuilderBase {
             } else {
                 const message =
                     "cannot decode message  for valid object of type " + id.toString() + " " + objMessage.constructor.name;
-                console.log(message);
-                this._report_error(message);
-                return false;
+                warningLog(message);
+                return this._report_error(message);
             }
         }
         return true;
@@ -424,7 +435,7 @@ export class MessageBuilder extends MessageBuilderBase {
         }
 
         if (!this.cryptoFactory) {
-            this._report_error(" Security Policy " + this.securityPolicy + " is not implemented yet");
+            warningLog(" Security Policy " + this.securityPolicy + " is not implemented yet");
             return false;
         }
 
@@ -468,8 +479,8 @@ export class MessageBuilder extends MessageBuilderBase {
             /* istanbul ignore next */
             if (doDebug) {
                 debugLog(hexDump(binaryStream.buffer));
+                warningLog("Sign and Encrypt asymmetricVerify : Invalid packet signature");
             }
-            this._report_error("Sign and Encrypt asymmetricVerify : Invalid packet signature");
             return false;
         }
 
@@ -556,7 +567,9 @@ export class MessageBuilder extends MessageBuilderBase {
         // securityToken may have been renewed
         const securityTokenData = this._select_matching_token(symmetricAlgorithmSecurityHeader.tokenId);
         if (!securityTokenData) {
-            this._report_error("Security token data for token " + symmetricAlgorithmSecurityHeader.tokenId + " doesn't exist");
+            if (doDebug) {
+                debugLog("Security token data for token " + symmetricAlgorithmSecurityHeader.tokenId + " doesn't exist");
+            }
             return false;
         }
 
@@ -564,15 +577,15 @@ export class MessageBuilder extends MessageBuilderBase {
 
         // SecurityToken may have expired, in this case the MessageBuilder shall reject the message
         if (securityTokenData.securityToken.expired) {
-            this._report_error("Security token has expired : tokenId " + securityTokenData.securityToken.tokenId);
+            debugLog("Security token has expired : tokenId " + securityTokenData.securityToken.tokenId);
             return false;
         }
 
         // We shall decrypt it with the receiver private key.
         const buf = binaryStream.buffer.slice(binaryStream.length);
 
+        // istanbul ignore next
         if (!securityTokenData.derivedKeys) {
-            console.log("xxxxxxx NO DERIVED KEYX");
             return false;
         }
 
@@ -603,7 +616,7 @@ export class MessageBuilder extends MessageBuilderBase {
 
         const signatureIsOK = verifyChunkSignatureWithDerivedKeys(chunk, derivedKeys);
         if (!signatureIsOK) {
-            this._report_error("_decrypt_MSG : Sign and Encrypt : Invalid packet signature");
+            debugLog("_decrypt_MSG : Sign and Encrypt : Invalid packet signature");
             return false;
         }
 
