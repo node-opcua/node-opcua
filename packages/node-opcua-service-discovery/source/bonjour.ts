@@ -130,6 +130,10 @@ export class BonjourHolder {
         return true;
     }
 
+    public isStarted(): boolean {
+        return !!this._multicastDNS;
+    }
+    
     public _announcedOnMulticastSubnetWithCallback(options: Announcement, callback: (err: Error | null, result?: boolean) => void) {
         callback(new Error("Internal Error"));
     }
@@ -152,6 +156,7 @@ export class BonjourHolder {
             const stop = promisify(proxy);
             await stop.call(this);
             releaseBonjour();
+            await new Promise(resolve => setTimeout(resolve, 20));
             debugLog("stop announcement completed");
         }
     }

@@ -126,17 +126,21 @@ export class MessageBuilderBase extends EventEmitter {
     }
 
     protected _read_headers(binaryStream: BinaryStream): boolean {
-        this.messageHeader = readMessageHeader(binaryStream);
-        assert(binaryStream.length === 8, "expecting message header to be 8 bytes");
+        try {
+            this.messageHeader = readMessageHeader(binaryStream);
+            assert(binaryStream.length === 8, "expecting message header to be 8 bytes");
 
-        this.channelId = binaryStream.readUInt32();
-        assert(binaryStream.length === 12);
+            this.channelId = binaryStream.readUInt32();
+            assert(binaryStream.length === 12);
 
-        // verifying secure ChannelId
-        if (this._expectedChannelId && this.channelId !== this._expectedChannelId) {
-            return this._report_error("Invalid secure channel Id");
+            // verifying secure ChannelId
+            if (this._expectedChannelId && this.channelId !== this._expectedChannelId) {
+                return this._report_error("Invalid secure channel Id");
+            }
+            return true;
+        } catch (err) {
+            return false;
         }
-        return true;
     }
 
     protected _report_error(errorMessage: string): false {
@@ -179,7 +183,7 @@ export class MessageBuilderBase extends EventEmitter {
         const binaryStream = new BinaryStream(chunk);
 
         if (!this._read_headers(binaryStream)) {
-            return false;
+            return this._report_error(`Invalid message header detected`);
         }
 
         assert(binaryStream.length >= 12);
@@ -246,7 +250,6 @@ export class MessageBuilderBase extends EventEmitter {
             this.emit("full_message_body", fullMessageBody);
 
             this._decodeMessageBody(fullMessageBody);
-
             // be ready for next block
             this._init_new();
             return true;

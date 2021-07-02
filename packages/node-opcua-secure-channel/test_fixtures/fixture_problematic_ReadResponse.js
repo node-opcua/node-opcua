@@ -1,7 +1,6 @@
+"use strict";
 
-
-
-var makebuffer_from_trace = require("node-opcua-debug").makebuffer_from_trace;
+const { makebuffer_from_trace  } = require("node-opcua-debug");
 
 
 exports.packet_ReadResponse= makebuffer_from_trace(function () {

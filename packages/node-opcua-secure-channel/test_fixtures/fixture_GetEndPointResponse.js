@@ -1,17 +1,16 @@
 "use strict";
-var should = require("should");
-var assert = require("node-opcua-assert").assert;
 
-
-var endpoints_service = require("node-opcua-service-endpoints");
-
-var GetEndpointsResponse = endpoints_service.GetEndpointsResponse;
-
-
-var EndpointDescription = require("node-opcua-service-endpoints").EndpointDescription;
-var ApplicationType = require("node-opcua-service-endpoints").ApplicationType;
-var UserTokenType = require("node-opcua-service-endpoints").UserTokenType;
-var MessageSecurityMode = require("node-opcua-service-secure-channel").MessageSecurityMode;
+const should = require("should");
+const { assert} = require("node-opcua-assert");
+const { 
+    GetEndpointsResponse, 
+    EndpointDescription , 
+    ApplicationType, 
+    UserTokenType 
+} = require("node-opcua-service-endpoints");
+const { 
+    MessageSecurityMode  
+} = require("node-opcua-service-secure-channel");
 
 exports.fixture1 = (function () {
     // empty  GetEndpointsResponse
@@ -19,26 +18,18 @@ exports.fixture1 = (function () {
 
 })();
 
-exports.makeEndPoint = function () {
-
-    var data = {
+exports.makeEndPoint = function makeEndPoint() {
+    const data = {
         endpointUrl: "toto",
 
         server: {
-
             applicationUri: "OPCUA  node-js",
             productUri: "some product uri",
-            applicationName: {text: "Localised application name"},
+            applicationName: { text: "Localized application name" },
             applicationType: ApplicationType.ClientAndServer,
             gatewayServerUri: "gatewayServerUri",
             discoveryProfileUri: "discoveryProfileUri",
-            discoveryUrls: [
-                "discoveryUrls1",
-                "discoveryUrls2",
-                "discoveryUrls3",
-                "discoveryUrls4",
-                "discoveryUrls5"
-            ]
+            discoveryUrls: ["discoveryUrls1", "discoveryUrls2", "discoveryUrls3", "discoveryUrls4", "discoveryUrls5"]
         },
 
         serverCertificate: Buffer.alloc(256),
@@ -58,7 +49,7 @@ exports.makeEndPoint = function () {
         transportProfileUri: "",
         securityLevel: 36
     };
-    var value = new EndpointDescription(data);
+    const value = new EndpointDescription(data);
     assert(value.server);
     return value;
 };
@@ -67,7 +58,7 @@ exports.makeEndPoint = function () {
 exports.fixture2 = (function () {
 
 
-    var endPointResponse = new GetEndpointsResponse();
+    const endPointResponse = new GetEndpointsResponse();
     endPointResponse.endpoints.length.should.equal(0);
 
     endPointResponse.endpoints.push(exports.makeEndPoint());
@@ -84,7 +75,7 @@ exports.fixture2 = (function () {
 exports.fixture3 = (function () {
 
 
-    var endPointResponse = new GetEndpointsResponse();
+    const endPointResponse = new GetEndpointsResponse();
     endPointResponse.endpoints.length.should.equal(0);
 
     endPointResponse.endpoints.push(exports.makeEndPoint());
@@ -104,7 +95,7 @@ exports.fixture3 = (function () {
 exports.fixture4 = (function () {
 
 
-    var endPointResponse = new GetEndpointsResponse();
+    const endPointResponse = new GetEndpointsResponse();
     endPointResponse.endpoints.length.should.equal(0);
 
     endPointResponse.endpoints.push(exports.makeEndPoint());

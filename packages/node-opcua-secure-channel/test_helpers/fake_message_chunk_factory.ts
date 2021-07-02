@@ -1,4 +1,5 @@
 import * as fs from "fs";
+import { BinaryStream } from "node-opcua-binary-stream";
 import {
     computeDerivedKeys,
     encryptBufferWithDerivedKeys,
@@ -29,7 +30,7 @@ const sequenceNumberGenerator = new SequenceNumberGenerator();
 
 export type ChunkVisitorFunc = (err: Error | null, chunk?: Buffer) => void;
 
-export function iterateOnSignedMessageChunks(buffer: Buffer, callback: ChunkVisitorFunc) {
+export function iterateOnSignedMessageChunks(data: Buffer, callback: ChunkVisitorFunc) {
 
     const params = {
         algorithm: "RSA-SHA1",
@@ -56,7 +57,8 @@ export function iterateOnSignedMessageChunks(buffer: Buffer, callback: ChunkVisi
     const msgChunkManager = new SecureMessageChunkManager("OPN", options, securityHeader, sequenceNumberGenerator);
 
     msgChunkManager.on("chunk", (chunk: Buffer, final: boolean) => callback(null, chunk));
-    msgChunkManager.write(buffer, buffer.length);
+
+    msgChunkManager.write(data, data.length);
     msgChunkManager.end();
 }
 

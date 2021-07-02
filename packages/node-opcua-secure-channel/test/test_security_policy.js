@@ -5,19 +5,11 @@ const crypto_utils = require("node-opcua-crypto");
 
 const crypto = require("crypto");
 
-const SecurityPolicy = require("..").SecurityPolicy;
-const fromURI = require("..").fromURI;
-const toURI = require("..").toURI;
-const computeSignature = require("..").computeSignature;
-const verifySignature = require("..").verifySignature;
-
-
-const getFixture = require("node-opcua-test-fixtures").getFixture;
+const { SecurityPolicy, fromURI, toURI, computeSignature, verifySignature } = require("..");
+const { getFixture } = require("node-opcua-test-fixtures");
 
 describe("Security Policy", function () {
-
     it("should convert a security policy uri to an enum value", function () {
-
         let enumValue = fromURI("http://opcfoundation.org/UA/SecurityPolicy#None");
         enumValue.should.equal(SecurityPolicy.None);
 
@@ -26,10 +18,8 @@ describe("Security Policy", function () {
     });
 
     it("should return SecurityPolicy.Invalid if not supported", function () {
-
         const enumValue = fromURI("some invalid string");
         enumValue.should.equal(SecurityPolicy.Invalid);
-
     });
     it("should turn a Security Policy Enum value into an URI", function () {
         const uriValue = toURI(SecurityPolicy.Basic256Rsa15);
@@ -40,22 +30,14 @@ describe("Security Policy", function () {
         uriValue.should.equal("http://opcfoundation.org/UA/SecurityPolicy#Basic256Rsa15");
     });
     it("should thrown an exception when turning an invalid SecurityPolicy into an uri", function () {
-
         should(function () {
             const uriValue = toURI("<<invalid>>");
             uriValue.should.equal("<invalid>");
         }).throwError();
-
     });
-
-
 });
 
-
 describe("Security Policy computeSignature, verifySignature", function () {
-
-
-
     const senderCertificate = crypto_utils.readCertificate(getFixture("certs/server_cert_2048.pem"));
     const senderNonce = crypto.randomBytes(32);
 
@@ -68,35 +50,23 @@ describe("Security Policy computeSignature, verifySignature", function () {
     senderNonce.should.be.instanceOf(Buffer);
     receiverCertificate.should.be.instanceOf(Buffer);
 
-    beforeEach(function () {
-
-
-    });
+    beforeEach(function () {});
 
     it("should compute a Signature and verify a signature", function () {
-
         const signatureData = computeSignature(senderCertificate, senderNonce, receiverPrivateKey, securityPolicy);
 
         const bIsOk = verifySignature(senderCertificate, senderNonce, signatureData, receiverCertificate, securityPolicy);
 
         bIsOk.should.be.eql(true);
-
     });
 
     it("should not verify a signature that has been tampered", function () {
-
         const signatureData = computeSignature(senderCertificate, senderNonce, receiverPrivateKey, securityPolicy);
-
 
         signatureData.signature.writeUInt8((signatureData.signature.readUInt8(10) + 10) % 256, 10);
 
         const bIsOk = verifySignature(senderCertificate, senderNonce, signatureData, receiverCertificate, securityPolicy);
 
         bIsOk.should.be.eql(false);
-
     });
-
-
 });
-
-

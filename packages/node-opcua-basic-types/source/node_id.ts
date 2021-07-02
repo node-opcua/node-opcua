@@ -174,7 +174,7 @@ function _decodeNodeId(encodingByte: number, stream: BinaryStream, _nodeId?: Nod
                 //     " bin=", ("0000000000000000" + encodingByte.toString(2)).substr(-16),
                 //     encodingByte, encodingByte & 0x3f);
 
-                throw new Error(" encoding_byte = " + encodingByte.toString(16));
+                throw new Error("decodeNodeId: unknown encoding_byte = 0x" + encodingByte.toString(16));
             }
             namespace = stream.readUInt16();
             value = decodeGuid(stream);
