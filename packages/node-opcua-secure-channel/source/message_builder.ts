@@ -252,23 +252,21 @@ export class MessageBuilder extends MessageBuilderBase {
 
     protected _decodeMessageBody(fullMessageBody: Buffer): boolean {
         // istanbul ignore next
-        if (!this.messageHeader) {
-            throw new Error("internal error");
+        if (!this.messageHeader || !this.securityHeader) {
+            return this._report_error("internal error");
         }
 
-        const binaryStream = new BinaryStream(fullMessageBody);
         const msgType = this.messageHeader.msgType;
 
         if (msgType === "ERR") {
             // invalid message type
-            this._report_error("ERROR RECEIVED");
-            return false;
+            return this._report_error("ERROR RECEIVED");
         }
         if (msgType === "HEL" || msgType === "ACK") {
             // invalid message type
-            this._report_error("Invalid message type ( HEL/ACK )");
-            return false;
+            return this._report_error("Invalid message type ( HEL/ACK )");
         }
+
         if (msgType === "CLO" && fullMessageBody.length === 0 && this.sequenceHeader) {
             // The Client closes the connection by sending a CloseSecureChannel request and closing the
             // socket gracefully. When the Server receives this Message, it shall release all resources
@@ -279,36 +277,31 @@ export class MessageBuilder extends MessageBuilderBase {
             return true;
         }
 
+        const binaryStream = new BinaryStream(fullMessageBody);
+    
         // read expandedNodeId:
         let id: ExpandedNodeId;
         try {
             id = decodeExpandedNodeId(binaryStream);
         } catch (err) {
+            // this may happen if the message is not well formed or has been altered
+            // we better off reporting an error and abort the communication
             return this._report_error(err.message);
         }
 
         if (!this.objectFactory.hasConstructor(id)) {
+            // the datatype NodeId is not supported by the server and unknown in the factory
+            // we better off reporting an error and abort the communication
             return this._report_error("cannot construct object with nodeID " + id.toString());
         }
 
-        let objMessage;
-        try {
-            // construct the object
-            objMessage = this.objectFactory.constructObject(id);
-        } catch (err) {
-            return this._report_error("cannot construct object with nodeID " + id);
-        }
         // construct the object
+        const objMessage = this.objectFactory.constructObject(id);
 
         if (!objMessage) {
             return this._report_error("cannot construct object with nodeID " + id);
         } else {
             if (this._safe_decode_message_body(fullMessageBody, objMessage, binaryStream)) {
-                /* istanbul ignore next */
-                if (!this.sequenceHeader) {
-                    throw new Error("internal error");
-                }
-
                 /* istanbul ignore next */
                 if (doDebug) {
                     const o = objMessage as any;
@@ -337,7 +330,7 @@ export class MessageBuilder extends MessageBuilderBase {
                      * @param  msgType the message type ( "HEL","ACK","OPN","CLO" or "MSG" )
                      * @param  the request Id
                      */
-                    this.emit("message", objMessage, msgType, this.sequenceHeader.requestId, this.channelId);
+                    this.emit("message", objMessage, msgType, this.sequenceHeader!.requestId, this.channelId);
                 } catch (err) {
                     // this code catches a uncaught exception somewhere in one of the event handler
                     // this indicates a bug in the code that uses this class
@@ -351,10 +344,10 @@ export class MessageBuilder extends MessageBuilderBase {
                     debugLog(err.stack);
                 }
             } else {
-                const message =
-                    "cannot decode message  for valid object of type " + id.toString() + " " + objMessage.constructor.name;
-                warningLog(message);
-                return this._report_error(message);
+                warningLog("cannot decode message  for valid object of type " + id.toString() + " " + objMessage.constructor.name);
+                this.emit("invalid_message", objMessage);
+                // we don't report an error here, we just ignore the message
+                return false; // this._report_error(message);
             }
         }
         return true;
@@ -584,15 +577,12 @@ export class MessageBuilder extends MessageBuilderBase {
         // We shall decrypt it with the receiver private key.
         const buf = binaryStream.buffer.slice(binaryStream.length);
 
+        const derivedKeys = securityTokenData.derivedKeys;
+
         // istanbul ignore next
-        if (!securityTokenData.derivedKeys) {
+        if (!derivedKeys || derivedKeys.signatureLength === 0) {
             return false;
         }
-
-        const derivedKeys: DerivedKeys = securityTokenData.derivedKeys;
-
-        assert(derivedKeys !== null);
-        assert(derivedKeys.signatureLength > 0, " must provide a signature length");
 
         if (this.securityMode === MessageSecurityMode.SignAndEncrypt) {
             const decryptedBuffer = decryptBufferWithDerivedKeys(buf, derivedKeys);
@@ -666,17 +656,21 @@ export class MessageBuilder extends MessageBuilderBase {
             const options = this.objectFactory;
             objMessage.decode(binaryStream, options);
         } catch (err) {
-            console.log(err);
-            console.log(err.stack);
-            console.log(hexDump(fullMessageBody));
-            analyseExtensionObject(fullMessageBody, 0, 0);
+            warningLog("Decode message error : ", err.message);
 
-            console.log(" ---------------- block");
-            let i = 0;
-            this.messageChunks.forEach((messageChunk) => {
-                console.log(" ---------------- chunk i=", i++);
-                console.log(hexDump(messageChunk));
-            });
+            // istanbul ignore next
+            if (doDebug) {
+                debugLog(err.stack);
+                debugLog(hexDump(fullMessageBody));
+                analyseExtensionObject(fullMessageBody, 0, 0);
+
+                debugLog(" ---------------- block");
+                let i = 0;
+                this.messageChunks.forEach((messageChunk) => {
+                    debugLog(" ---------------- chunk i=", i++);
+                    debugLog(hexDump(messageChunk));
+                });
+            }
             return false;
         }
         return true;

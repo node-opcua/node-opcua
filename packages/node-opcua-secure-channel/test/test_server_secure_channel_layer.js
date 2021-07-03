@@ -7,12 +7,13 @@ const { ServerSecureChannelLayer, MessageSecurityMode, SecurityPolicy } = requir
 const debugLog = require("node-opcua-debug").make_debugLog(__filename);
 const { DirectTransport } = require("node-opcua-transport/dist/test_helpers");
 const { GetEndpointsResponse } = require("node-opcua-service-endpoints");
+const fixtures = require("node-opcua-transport/dist/test-fixtures");
 
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("testing ServerSecureChannelLayer ", function () {
     this.timeout(10000);
 
-    it("KK1 should create a ServerSecureChannelLayer", function () {
+    it("KK1 should create a ServerSecureChannelLayer", () => {
         let serverSecureChannel = new ServerSecureChannelLayer({});
         serverSecureChannel.setSecurity(MessageSecurityMode.None, SecurityPolicy.None);
         serverSecureChannel.timeout.should.be.greaterThan(100);
@@ -29,14 +30,14 @@ describe("testing ServerSecureChannelLayer ", function () {
         serverSecureChannel.setSecurity(MessageSecurityMode.None, SecurityPolicy.None);
         serverSecureChannel.timeout = 50;
 
-        serverSecureChannel.init(node.server, function (err) {
+        serverSecureChannel.init(node.server, (err) => {
             err.message.should.match(/Timeout/);
 
             serverSecureChannel.dispose();
             done();
         });
 
-        serverSecureChannel.on("abort", function () {
+        serverSecureChannel.on("abort", () => {
             console.log("Abort");
         });
     });
@@ -50,7 +51,7 @@ describe("testing ServerSecureChannelLayer ", function () {
         serverSecureChannel.setSecurity(MessageSecurityMode.None, SecurityPolicy.None);
         serverSecureChannel.timeout = 50;
 
-        serverSecureChannel.init(node.server, function (err) {
+        serverSecureChannel.init(node.server, (err) => {
             err.message.should.match(/Timeout waiting for OpenChannelRequest/);
             server_has_emitted_the_abort_message.should.eql(true);
 
@@ -58,7 +59,7 @@ describe("testing ServerSecureChannelLayer ", function () {
             done();
         });
 
-        serverSecureChannel.on("abort", function () {
+        serverSecureChannel.on("abort", () => {
             server_has_emitted_the_abort_message = true;
         });
 
@@ -76,10 +77,10 @@ describe("testing ServerSecureChannelLayer ", function () {
 
         serverSecureChannel.timeout = 1000;
 
-        serverSecureChannel.init(node.server, function (err) {
+        serverSecureChannel.init(node.server, (err) => {
             err.message.should.match(/Expecting OpenSecureChannelRequest/);
 
-            serverSecureChannel.close(function () {
+            serverSecureChannel.close(() => {
                 serverSecureChannel.dispose();
                 serverSecureChannel = null;
                 server_has_emitted_the_abort_message.should.equal(true);
@@ -87,14 +88,14 @@ describe("testing ServerSecureChannelLayer ", function () {
             });
         });
 
-        serverSecureChannel.on("abort", function () {
+        serverSecureChannel.on("abort", () => {
             server_has_emitted_the_abort_message = true;
         });
 
-        const { helloMessage1 } = require("node-opcua-transport/dist/test-fixtures"); // HEL
+        const { helloMessage1 } = fixtures; // HEL
         node.client.write(helloMessage1);
 
-        const { getEndpointsRequest1 } = require("node-opcua-transport/dist/test-fixtures"); // GetEndpointsRequest
+        const { getEndpointsRequest1 } = fixtures; // GetEndpointsRequest
         node.client.write(getEndpointsRequest1);
     });
 
@@ -104,21 +105,21 @@ describe("testing ServerSecureChannelLayer ", function () {
         let serverSecureChannel = new ServerSecureChannelLayer({});
         serverSecureChannel.setSecurity(MessageSecurityMode.None, SecurityPolicy.None);
         serverSecureChannel.timeout = 50; // milliseconds !
-        serverSecureChannel.init(node.server, function (err) {
+        serverSecureChannel.init(node.server, (err) => {
             should.not.exist(err);
-            serverSecureChannel.close(function () {
+            serverSecureChannel.close(() => {
                 serverSecureChannel.dispose();
                 done();
             });
         });
 
-        const { helloMessage1 } = require("node-opcua-transport/dist/test-fixtures"); // HEL
+        const { helloMessage1 } = fixtures; // HEL
         node.client.write(helloMessage1);
 
-        const { openChannelRequest1 } = require("node-opcua-transport/dist/test-fixtures"); // OPN
+        const { openChannelRequest1 } = fixtures; // OPN
         node.client.write(openChannelRequest1);
 
-        ///     serverSecureChannel.close(function () {
+        ///     serverSecureChannel.close(() => {
         ///            serverSecureChannel.dispose();
         ///      serverSecureChannel = null;
         /// });
@@ -133,29 +134,29 @@ describe("testing ServerSecureChannelLayer ", function () {
 
         serverSecureChannel.channelId = 8;
 
-        serverSecureChannel.init(node.server, function (err) {
+        serverSecureChannel.init(node.server, (err) => {
             should.not.exist(err);
 
             setImmediate(() => {
-                const { getEndpointsRequest1 } = require("node-opcua-transport/dist/test-fixtures"); // GetEndPoints
+                const { getEndpointsRequest1 } = fixtures; // GetEndPoints
                 getEndpointsRequest1.writeInt16LE(serverSecureChannel.channelId, 8);
                 node.client.write(getEndpointsRequest1);
             });
         });
         serverSecureChannel.on("message", function (message) {
             message.request.schema.name.should.equal("GetEndpointsRequest");
-            setImmediate(function () {
-                serverSecureChannel.close(function () {
+            setImmediate(() => {
+                serverSecureChannel.close(() => {
                     serverSecureChannel.dispose();
                     done();
                 });
             });
         });
 
-        const { helloMessage1 } = require("node-opcua-transport/dist/test-fixtures"); // HEL
+        const { helloMessage1 } = fixtures; // HEL
         node.client.write(helloMessage1);
 
-        const { openChannelRequest1  } = require("node-opcua-transport/dist/test-fixtures"); // OPN
+        const { openChannelRequest1 } = fixtures; // OPN
         node.client.write(openChannelRequest1);
 
         // serverSecureChannel.close(function() {
@@ -165,13 +166,13 @@ describe("testing ServerSecureChannelLayer ", function () {
         // });
     });
 
-    it("KK7 should handle a CloseSecureChannelRequest directly and emit a abort event", async function () {
+    it("KK7 should handle a CloseSecureChannelRequest directly and emit a abort event", async () => {
         const node = new DirectTransport();
 
         let serverSecureChannel = new ServerSecureChannelLayer({});
         serverSecureChannel.setSecurity(MessageSecurityMode.None, SecurityPolicy.None);
         serverSecureChannel.timeout = 50;
-        serverSecureChannel.init(node.server, function (err) {
+        serverSecureChannel.init(node.server, (err) => {
             should.not.exist(err);
         });
 
@@ -187,7 +188,7 @@ describe("testing ServerSecureChannelLayer ", function () {
         });
 
         let isDone = false;
-        serverSecureChannel.on("abort", function () {
+        serverSecureChannel.on("abort", () => {
             console.log("Receive Abort");
         });
         async function send(message) {
@@ -203,20 +204,20 @@ describe("testing ServerSecureChannelLayer ", function () {
             });
         }
         console.log("writing Hello");
-        const { helloMessage1 } = require("node-opcua-transport/dist/test-fixtures"); // HEL
+        const { helloMessage1 } = fixtures; // HEL
         await send(helloMessage1);
 
         console.log("writing fake_OpenSecureChannelRequest");
-        const { openChannelRequest1 } = require("node-opcua-transport/dist/test-fixtures"); // OPN
+        const { openChannelRequest1 } = fixtures; // OPN
         await send(openChannelRequest1);
 
         console.log("writing fake_GetEndpointsRequest");
-        const { getEndpointsRequest1  } = require("node-opcua-transport/dist/test-fixtures"); // GEP
+        const { getEndpointsRequest1 } = fixtures; // GEP
         getEndpointsRequest1.writeInt16LE(serverSecureChannel.channelId, 8);
         await send(getEndpointsRequest1);
 
         console.log("writing fake_CloseSecureChannelRequest");
-        const { closeSecureChannelRequest1 } = require("node-opcua-transport/dist/test-fixtures"); // CLO
+        const { closeSecureChannelRequest1 } = fixtures; // CLO
         closeSecureChannelRequest1.writeInt16LE(serverSecureChannel.channelId, 8);
         await send2(closeSecureChannelRequest1);
         console.log("done with fake_CloseSecureChannelRequest");
@@ -238,18 +239,20 @@ describe("testing ServerSecureChannelLayer ", function () {
 
         serverSecureChannel.timeout = 1000;
 
-        serverSecureChannel.init(node.server, function (err) {
-            err.message.should.match(/Expecting OpenSecureChannelRequest/);
+        let err;
+        serverSecureChannel.init(node.server, (_err) => {
+            err = _err;
 
-            serverSecureChannel.close(function () {
+            serverSecureChannel.close(() => {
                 serverSecureChannel.dispose();
                 serverSecureChannel = null;
                 server_has_emitted_the_abort_message.should.equal(true);
+                err.message.should.match(/Expecting OpenSecureChannelRequest/);
                 done();
             });
         });
 
-        serverSecureChannel.on("abort", function () {
+        serverSecureChannel.on("abort", () => {
             server_has_emitted_the_abort_message = true;
         });
 
@@ -258,15 +261,62 @@ describe("testing ServerSecureChannelLayer ", function () {
         }
     }
     it("FUZZ4- should not crash with a corrupted openChannelRequest message", (done) => {
-        const { helloMessage1, getEndpointsRequest1 } = require("node-opcua-transport/dist/test-fixtures");
+        const { helloMessage1, getEndpointsRequest1 } = fixtures;
         fuzzTest([helloMessage1, getEndpointsRequest1], done);
     });
     it("FUZZ5- should not crash with a corrupted openChannelRequest message", (done) => {
-        const { helloMessage1, altered_openChannelRequest1 } = require("node-opcua-transport/dist/test-fixtures"); // HEL
+        const { helloMessage1, altered_openChannelRequest1 } = fixtures; // HEL
         fuzzTest([helloMessage1, altered_openChannelRequest1], done);
     });
     it("FUZZ6- should not crash with a corrupted openChannelRequest message", (done) => {
-        const { helloMessage1, altered_openChannelRequest2 } = require("node-opcua-transport/dist/test-fixtures"); // HEL
+        const { helloMessage1, altered_openChannelRequest2 } = fixtures; // HEL
         fuzzTest([helloMessage1, altered_openChannelRequest2], done);
+    });
+    it("FUZZ7- should not crash with a corrupted request message", (done) => {
+        function test(messages, done) {
+            const node = new DirectTransport();
+
+            let server_has_emitted_the_abort_message = false;
+            let server_has_emitted_the_message_event = false;
+            let err;
+
+            let serverSecureChannel = new ServerSecureChannelLayer({});
+
+            serverSecureChannel.setSecurity(MessageSecurityMode.None, SecurityPolicy.None);
+            serverSecureChannel.timeout = 1000;
+
+            function terminate() {
+                server_has_emitted_the_abort_message.should.equal(false);
+                server_has_emitted_the_message_event.should.equal(false);
+                serverSecureChannel.close(() => {
+                    serverSecureChannel.dispose();
+                    serverSecureChannel = null;
+                    server_has_emitted_the_abort_message.should.equal(true);
+                    server_has_emitted_the_message_event.should.equal(false);
+                    should.not.exist(err);
+                    done();
+                });
+            }
+            serverSecureChannel.init(node.server, (_err) => {
+                err = _err;
+            });
+
+            serverSecureChannel.on("abort", () => {
+                server_has_emitted_the_abort_message = true;
+            });
+
+            serverSecureChannel.on("message", (message) => {
+                console.log("message ", message.request.toString());
+                server_has_emitted_the_message_event = true;
+            });
+
+            for (const m of messages) {
+                node.client.write(m);
+            }
+            setImmediate(() => terminate());
+        }
+
+        const { helloMessage1, openChannelRequest1, altered_getEndpointsRequest1 } = fixtures; // HEL
+        test([helloMessage1, openChannelRequest1, altered_getEndpointsRequest1], done);
     });
 });
