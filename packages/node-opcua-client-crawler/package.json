@@ -1,6 +1,6 @@
 {
 	"name": "node-opcua-client-crawler",
-	"version": "2.46.0",
+	"version": "2.47.0",
 	"main": "./dist/index.js",
 	"types": "./dist/index.d.ts",
 	"description": "pure nodejs OPCUA SDK - module -client-crawler",
@@ -15,21 +15,21 @@
 		"async": "^3.2.0",
 		"node-opcua-assert": "2.42.0",
 		"node-opcua-constants": "2.42.0",
-		"node-opcua-data-model": "2.45.0",
-		"node-opcua-data-value": "2.45.0",
+		"node-opcua-data-model": "2.47.0",
+		"node-opcua-data-value": "2.47.0",
 		"node-opcua-debug": "2.42.0",
-		"node-opcua-factory": "2.45.0",
+		"node-opcua-factory": "2.47.0",
 		"node-opcua-nodeid": "2.45.0",
-		"node-opcua-service-browse": "2.45.0",
+		"node-opcua-service-browse": "2.47.0",
 		"node-opcua-status-code": "2.42.0",
-		"node-opcua-types": "2.45.0",
+		"node-opcua-types": "2.47.0",
 		"node-opcua-utils": "2.44.0",
-		"node-opcua-variant": "2.45.0",
+		"node-opcua-variant": "2.47.0",
 		"underscore": "1.13.1"
 	},
 	"devDependencies": {
-		"node-opcua-address-space": "2.45.0",
-		"node-opcua-client": "2.45.0"
+		"node-opcua-address-space": "2.47.0",
+		"node-opcua-client": "2.47.0"
 	},
 	"author": "Etienne Rossignon",
 	"license": "MIT",
