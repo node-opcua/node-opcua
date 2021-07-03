@@ -797,6 +797,14 @@ export function coerceVariantType(dataType: DataType, value: any): any {
             }
             assert(value === null || value instanceof Buffer);
             break;
+        case DataType.Boolean:
+            if (value === "true") {
+                value = true;
+            } else if (value === "false") {
+                value = false;
+            }
+            assert(value === null || typeof value === "boolean");
+            break;
         default:
             assert(dataType !== undefined && dataType !== null, "Invalid DataType");
             break;
