@@ -74,6 +74,13 @@ export const getEndpointsRequest1 = makeBufferFromTrace(`
 00000060: 67 61 74 69 6f 6e 53 65 72 76 65 72 00 00 00 00 00 00 00 00                                        gationServer........
 `);
 
+export const altered_getEndpointsRequest1 = makeBufferFromTrace(`
+00000000: 4d 53 47 46 74 00 00 00 0a 00 00 00 01 00 00 00 02 00 00 00 01 00 00 00 01 00 ac 01 00 00 b7 19    MSGFt.....................,...7.
+00000020: 40 d9 d0 1d cf 01 01 00 00 00 00 00 00 00 ff ff ff ff 00 00 00 00 00 00 00 2f FF FF FF 6f 70 63    @YP.O..................../...opc
+00000040: 2e 74 63 70 3a 2f 2f 74 61 74 74 61 74 61 3a 36 32 35 34 33 2f 41 41 41 41 41 2f 41 67 67 72 65    .tcp://tattata:62543/AAAAA/Aggre
+00000060: 67 61 74 69 6f 6e 53 65 72 76 65 72 00 00 00 00 00 00 00 00                                        gationServer........
+`);
+
 //  server -> client : packet length 4380  => GetEndpointsResponse 1/2
 export const getEndpointsRequest2_chunk1 = makeBufferFromTrace(`
 00000000: 4d 53 47 46 e0 1f 00 00 0a 00 00 00 01 00 00 00 02 00 00 00 01 00 00 00 01 00 af 01 ec 46 47 d9    MSGF....................../.lFGY
