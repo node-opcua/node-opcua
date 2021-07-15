@@ -75,7 +75,7 @@ export class ClientFile {
 
     public async close(): Promise<void> {
         if (!this.fileHandle) {
-            throw new Error("File has node been opened yet");
+            throw new Error("File has not been opened yet");
         }
         await this.ensureInitialized();
 
@@ -97,7 +97,7 @@ export class ClientFile {
     public async getPosition(): Promise<UInt64> {
         await this.ensureInitialized();
         if (!this.fileHandle) {
-            throw new Error("File has node been opened yet");
+            throw new Error("File has not been opened yet");
         }
 
         const result = await this.session.call({
@@ -116,7 +116,7 @@ export class ClientFile {
     public async setPosition(position: UInt64 | UInt32): Promise<void> {
         await this.ensureInitialized();
         if (!this.fileHandle) {
-            throw new Error("File has node been opened yet");
+            throw new Error("File has not been opened yet");
         }
         if (typeof position === "number") {
             position = [0, position];
@@ -142,7 +142,7 @@ export class ClientFile {
     public async read(bytesToRead: Int32): Promise<Buffer> {
         await this.ensureInitialized();
         if (!this.fileHandle) {
-            throw new Error("File has node been opened yet");
+            throw new Error("File has not been opened yet");
         }
         const result = await this.session.call({
             inputArguments: [
@@ -168,7 +168,7 @@ export class ClientFile {
     public async write(data: Buffer): Promise<void> {
         await this.ensureInitialized();
         if (!this.fileHandle) {
-            throw new Error("File has node been opened yet");
+            throw new Error("File has not been opened yet");
         }
         const result = await this.session.call({
             inputArguments: [
