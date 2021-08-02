@@ -128,7 +128,7 @@ export class UAObjectType extends BaseNode implements UAObjectTypePublic {
             modellingRule: options.modellingRule
         };
 
-        const namespace = this.addressSpace.getOwnNamespace();
+        const namespace = options.namespace || this.addressSpace.getOwnNamespace();
 
         const instance = namespace.addObject(opts);
 

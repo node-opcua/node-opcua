@@ -14,20 +14,14 @@ import { StatusCodes } from "node-opcua-status-code";
 import { CallMethodResultOptions, PermissionType } from "node-opcua-types";
 import { Variant } from "node-opcua-variant";
 import { DataType, VariantLike } from "node-opcua-variant";
-import {
-    MethodFunctor,
-    MethodFunctorCallback,
-    UAMethod as UAMethodPublic,
-    UAObject as UAObjectPublic,
-} from "../source";
+import { MethodFunctor, MethodFunctorCallback, UAMethod as UAMethodPublic, UAObject as UAObjectPublic } from "../source";
 import { SessionContext } from "../source";
 import { BaseNode } from "./base_node";
-import { _clone } from "./base_node_private";
+import { CloneExtraInfo, CloneFilter, CloneOptions, _clone } from "./base_node_private";
 import { _handle_hierarchy_parent } from "./namespace";
 import { UAObject } from "./ua_object";
 import { UAObjectType } from "./ua_object_type";
 import { UAVariable } from "./ua_variable";
-
 
 const warningLog = make_warningLog(__filename);
 const debugLog = make_debugLog(__filename);
@@ -66,7 +60,7 @@ export class UAMethod extends BaseNode implements UAMethodPublic {
 
     /**
      *
-     * 
+     *
      */
     public getExecutableFlag(context: SessionContext): boolean {
         if (!this.isBound()) {
@@ -79,7 +73,7 @@ export class UAMethod extends BaseNode implements UAMethodPublic {
     }
 
     /**
-     * 
+     *
      * @returns  true if the method is bound
      */
     public isBound(): boolean {
@@ -115,10 +109,24 @@ export class UAMethod extends BaseNode implements UAMethodPublic {
         assert(typeof async_func === "function");
         this._asyncExecutionFunction = async_func;
     }
-    public execute(object: UAObject | UAObjectType | null, inputArguments: null | VariantLike[], context: SessionContext): Promise<CallMethodResultOptions>;
-    public execute(object: UAObject | UAObjectType | null, inputArguments: null | VariantLike[], context: SessionContext, callback: MethodFunctorCallback): void;
-    public execute(object: UAObject | UAObjectType | null, inputArguments: VariantLike[] | null, context: SessionContext, callback?: MethodFunctorCallback): any {
-        // istanbul ignore next 
+    public execute(
+        object: UAObject | UAObjectType | null,
+        inputArguments: null | VariantLike[],
+        context: SessionContext
+    ): Promise<CallMethodResultOptions>;
+    public execute(
+        object: UAObject | UAObjectType | null,
+        inputArguments: null | VariantLike[],
+        context: SessionContext,
+        callback: MethodFunctorCallback
+    ): void;
+    public execute(
+        object: UAObject | UAObjectType | null,
+        inputArguments: VariantLike[] | null,
+        context: SessionContext,
+        callback?: MethodFunctorCallback
+    ): any {
+        // istanbul ignore next
         if (!callback) {
             throw new Error("execute need to be promisified");
         }
@@ -129,7 +137,7 @@ export class UAMethod extends BaseNode implements UAMethodPublic {
         assert(context !== null && typeof context === "object");
         assert(typeof callback === "function");
 
-        object = object || this.parent as UAObject;
+        object = object || (this.parent as UAObject);
 
         // istanbul ignore next
         if (!object) {
@@ -140,11 +148,11 @@ export class UAMethod extends BaseNode implements UAMethodPublic {
         if (object.nodeClass !== NodeClass.Object && object.nodeClass !== NodeClass.ObjectType) {
             warningLog(
                 "Method " +
-                this.nodeId.toString() +
-                " " +
-                this.browseName.toString() +
-                " called for a node that is not a Object/ObjectType but " +
-                NodeClass[context.object.nodeClass]
+                    this.nodeId.toString() +
+                    " " +
+                    this.browseName.toString() +
+                    " called for a node that is not a Object/ObjectType but " +
+                    NodeClass[context.object.nodeClass]
             );
             return callback(null, { statusCode: StatusCodes.BadNodeIdInvalid });
         }
@@ -152,7 +160,6 @@ export class UAMethod extends BaseNode implements UAMethodPublic {
             warningLog("Method " + this.nodeId.toString() + " " + this.browseName.toString() + " has not been bound");
             return callback(null, { statusCode: StatusCodes.BadInternalError });
         }
-
 
         if (!this.getExecutableFlag(context)) {
             warningLog("Method " + this.nodeId.toString() + " " + this.browseName.toString() + " is not executable");
@@ -214,14 +221,17 @@ export class UAMethod extends BaseNode implements UAMethodPublic {
         }
     }
 
-    public clone(options: any, optionalFilter?: any, extraInfo?: any): UAMethodPublic {
+    public clone(options: CloneOptions, optionalFilter?: CloneFilter, extraInfo?: CloneExtraInfo): UAMethodPublic {
         assert(!options.componentOf || options.componentOf, "trying to create an orphan method ?");
 
+        const addressSpace = this.addressSpace;
         options = options || {};
-        options = { ...options, methodDeclarationId: this.nodeId };
+        options = {
+            ...options,
+            methodDeclarationId: this.nodeId
+        };
         options.references = options.references || [];
 
-        const addressSpace = this.addressSpace;
         _handle_hierarchy_parent(addressSpace, options.references, options);
 
         const clonedMethod = _clone.call(this, UAMethod, options, optionalFilter, extraInfo) as UAMethod;
@@ -230,7 +240,7 @@ export class UAMethod extends BaseNode implements UAMethodPublic {
         clonedMethod._getExecutableFlag = this._getExecutableFlag;
 
         if (options.componentOf) {
-            const m = options.componentOf.getMethodByName(clonedMethod.browseName.name);
+            const m = options.componentOf.getMethodByName(clonedMethod.browseName.name!);
             assert(m);
         }
         return clonedMethod as UAMethodPublic;

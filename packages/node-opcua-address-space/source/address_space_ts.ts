@@ -591,7 +591,7 @@ export interface UAVariable extends BaseNode, VariableAttributes, IPropertyAndCo
         callback: CallbackT<HistoryReadResult>
     ): void;
 
-    clone(options?: any, optionalFilter?: any, extraInfo?: any): UAVariable;
+    clone(options: CloneOptions, optionalFilter?: CloneFilter, extraInfo?: CloneExtraInfo): UAVariable;
 
     // ----------------- Event handlers
 
@@ -818,7 +818,7 @@ export interface UAObject extends BaseNode, EventRaiser, IPropertyAndComponentHo
 
     on(eventName: "event", eventHandler: (eventData: IEventData) => void): this;
 
-    clone(options: any, optionalFilter?: any, extraInfo?: any): UAObject;
+    clone(options: CloneOptions, optionalFilter?: CloneFilter, extraInfo?: CloneExtraInfo): UAObject;
 }
 
 // export interface CallMethodResult {
@@ -876,7 +876,7 @@ export declare class UAMethod extends BaseNode {
         inputArguments: null | VariantLike[], 
         context: SessionContext): Promise<CallMethodResultOptions>;
 
-    public clone(options: any, optionalFilter?: any, extraInfo?: any): UAMethod;
+    public clone(options: CloneOptions, optionalFilter?: CloneFilter, extraInfo?: CloneExtraInfo): UAMethod;
 
     public isBound(): boolean;
 }
@@ -961,21 +961,37 @@ export interface InstantiateOptions {
     eventSourceOf?: NodeIdLike | BaseNode;
 
     /**
+     * a list of components and properties names that have a HasModellingRule of Optional in the
+     * type definition that we want to instantiate.
+     * Note:
+     *  - the name must follow the OPCUA naming convention and match the browse name of the property (same case)
+     *  - the name can be composed to represent a path to a property or component
+     *
+     * @example
+     * 
+     * ```javascript
+     *   optionals: ["MyOptionalVariable", "MyOptionalMethod", "MyOptionalComponent.MyProperty"];
+     * ```
      *
      * @default: []
      */
     optionals?: string[];
-
     /**
      * modellingRule
      */
     modellingRule?: ModellingRuleType;
-
     /**
      * a (optional) predefined nodeId to assigned to the instance
      * If not specified, a default nodeid will be created.
      */
     nodeId?: NodeIdLike;
+
+    /**
+     * the namespace in which the node shall be instantiated
+     * (if not specified, the default instance namespace (`own namespace`)  of the addressSpace will be used)
+     */
+    namespace?: Namespace;
+
 }
 
 export interface InstantiateVariableOptions extends InstantiateOptions {
@@ -2584,6 +2600,7 @@ import { ConstructNodeIdOptions } from "../src/nodeid_manager";
 import { UATwoStateDiscrete } from "./interfaces/data_access/ua_two_state_discrete";
 import { UAMultiStateDiscrete } from "./interfaces/data_access/ua_multistate_discrete";
 import { UAMultiStateValueDiscrete } from "./interfaces/data_access/ua_multistate_value_discrete";
+import { CloneExtraInfo, CloneFilter, CloneOptions } from "../src/base_node_private";
 
 export class AddressSpace {
     public static historizerFactory: any;

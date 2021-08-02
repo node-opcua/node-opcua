@@ -124,9 +124,9 @@ export class AddressSpace implements AddressSpacePrivate {
         const rootFolder = this.findNode(this.resolveNodeId("RootFolder"));
         if (!rootFolder) {
             // throw new Error("AddressSpace doesn't contain rootFolder object");
-            return (null as unknown) as RootFolder;
+            return null as unknown as RootFolder;
         }
-        return (rootFolder as unknown) as RootFolder;
+        return rootFolder as unknown as RootFolder;
     }
 
     public static isNonEmptyQualifiedName = isNonEmptyQualifiedName;
@@ -253,7 +253,7 @@ export class AddressSpace implements AddressSpacePrivate {
                 version: "undefined"
             })
         );
-         return this._namespaceArray[index];
+        return this._namespaceArray[index];
     }
 
     /***
@@ -330,6 +330,7 @@ export class AddressSpace implements AddressSpacePrivate {
      *
      * @example
      *
+     * ```javascript
      *     const objectType = addressSpace.findObjectType("ns=0;i=58");
      *     objectType.browseName.toString().should.eql("BaseObjectType");
      *
@@ -346,6 +347,7 @@ export class AddressSpace implements AddressSpacePrivate {
      *     const objectType = addressSpace.findObjectType("36:CustomObjectType");
      *     objectType.nodeId.namespace.should.eql(36);
      *     objectType.browseName.toString().should.eql("BaseObjectType");
+     * ```
      */
     public findObjectType(objectType: NodeIdLike, namespaceIndex?: number): UAObjectTypePublic | null {
         if (objectType instanceof NodeId) {
@@ -363,6 +365,7 @@ export class AddressSpace implements AddressSpacePrivate {
      *
      * @example
      *
+     * ```javascript
      *     const objectType = addressSpace.findVariableType("ns=0;i=62");
      *     objectType.browseName.toString().should.eql("BaseVariableType");
      *
@@ -371,6 +374,7 @@ export class AddressSpace implements AddressSpacePrivate {
      *
      *     const objectType = addressSpace.findVariableType(resolveNodeId("ns=0;i=62"));
      *     objectType.browseName.toString().should.eql("BaseVariableType");
+     * ```
      */
     public findVariableType(variableType: string | NodeId, namespaceIndex?: number): UAVariableTypePublic | null {
         if (variableType instanceof NodeId) {
@@ -390,9 +394,10 @@ export class AddressSpace implements AddressSpacePrivate {
      *
      * @example
      *
+     * ```javascript
      *      const dataDouble = addressSpace.findDataType("Double");
-     *
      *      const dataDouble = addressSpace.findDataType(resolveNodeId("ns=0;i=3"));
+     * ```
      */
     public findDataType(dataType: number | string | NodeId | DataType, namespaceIndex?: number): UADataType | null {
         // startingNode i=24  :
@@ -495,9 +500,9 @@ export class AddressSpace implements AddressSpacePrivate {
      * @return {ReferenceType|null}
      *
      * refType could be
-     *    a string representing a nodeid       : e.g.    'i=9004' or ns=1;i=6030
-     *    a string representing a browse name  : e.g     'HasTypeDefinition'
-     *      in this case it should be in the alias list
+     *   - a string representing a nodeid       : e.g.    `i=9004` or ns=1;i=6030
+     *   - a string representing a browse name  : e.g     `"HasTypeDefinition"`.
+     *     In this case it should be in the alias list.
      *
      */
     public findReferenceType(refType: NodeIdLike, namespaceIndex?: number): UAReferenceType | null {
@@ -981,7 +986,7 @@ export class AddressSpace implements AddressSpacePrivate {
             throw new Error("getExtensionObjectConstructor: dataType has unexpected type" + dataType);
         }
         const _dataType = dataType as UADataType;
-       
+
         // to do verify that dataType is of type "Structure"
         /* istanbul ignore next */
         if (!_dataType.isSupertypeOf(this.findDataType("Structure")!)) {
@@ -1127,7 +1132,7 @@ export class AddressSpace implements AddressSpacePrivate {
         if (folder && !_isFolder(this, folder)) {
             throw new Error("Parent folder must be of FolderType " + folder.typeDefinition.toString());
         }
-        return (folder as any) as BaseNode;
+        return folder as any as BaseNode;
     }
 
     /**

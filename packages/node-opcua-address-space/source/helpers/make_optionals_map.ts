@@ -4,9 +4,20 @@
 import { assert } from "node-opcua-assert";
 
 /**
- * @method makeOptionalsMap
- * @param optionals
  * transform  optional into a map
+ * 
+ * @example
+ * ```javascript
+ * const optionals = [ "A", "B", "C.D" ];
+ * 
+ * const map = makeOptionalsMap(optionals);
+ * const map = {
+ *   A: {}
+ *   B: {}
+ *   C: {  D: {} }
+ * };
+ * ```
+ * 
  * @internal
  */
 
