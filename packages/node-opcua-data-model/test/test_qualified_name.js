@@ -1,11 +1,9 @@
-
 const { BinaryStream } = require("node-opcua-binary-stream");
 const should = require("should");
 
 const { QualifiedName, coerceQualifiedName, encodeQualifiedName, decodeQualifiedName } = require("..");
 
 describe("QualifiedName", () => {
-
     it("should construct a qualified name", () => {
         const qn = new QualifiedName();
         qn.namespaceIndex.should.eql(0);
@@ -20,11 +18,23 @@ describe("QualifiedName", () => {
         should(qn.name === null).be.equal(true);
         qn.isEmpty().should.eql(true);
     });
-    it("should construct a qualified name", () => {
+    it("should construct a qualified name - when empty string", () => {
         const qn = new QualifiedName({ name: "" });
         qn.namespaceIndex.should.eql(0);
         qn.isEmpty().should.eql(true);
     });
+    it("should construct a qualified name - when null", () => {
+        const qn = new QualifiedName({ name: null });
+        qn.namespaceIndex.should.eql(0);
+        qn.isEmpty().should.eql(true);
+    });
+    it("should construct a qualified name - from string", () => {
+        const qn = new QualifiedName("some-name");
+        qn.namespaceIndex.should.eql(0);
+        qn.name.should.eql("some-name");
+        qn.isEmpty().should.eql(false);
+    });
+
     it("testing qualified name toString", () => {
         const qn = new QualifiedName({ name: "Hello" });
         qn.toString().should.eql("Hello");
@@ -49,13 +59,12 @@ describe("QualifiedName", () => {
         const value = new QualifiedName({ namespaceIndex: 2, name: "Hello" });
         const qn = coerceQualifiedName(value);
         qn.toString().should.eql("2:Hello");
-    })
+    });
     it("QualifiedName#isEmpty", () => {
         const qn = new QualifiedName({});
         qn.isEmpty().should.eql(true);
     });
     it("encodeDecode QualifiedName", () => {
-
         const stream = new BinaryStream();
         const value = coerceQualifiedName("Hello");
         encodeQualifiedName(value, stream);
@@ -70,6 +79,5 @@ describe("QualifiedName", () => {
         const reloaded2 = new QualifiedName(null);
         decodeQualifiedName(stream, reloaded2);
         reloaded2.name.should.eql("Hello");
-
-    })
+    });
 });
