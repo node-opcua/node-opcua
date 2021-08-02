@@ -733,7 +733,7 @@ export function coerceVariantType(dataType: DataType, value: any): any {
         // [...]Enumeration are always encoded as Int32 on the wire [...]
 
         /* istanbul ignore next */
-        if (dataType !== DataType.Int32) {
+        if (dataType !== DataType.Int32 && dataType !== DataType.ExtensionObject) {
             throw new Error(
                 "expecting DataType.Int32 for enumeration values ;" + " got DataType." + dataType.toString() + " instead"
             );
