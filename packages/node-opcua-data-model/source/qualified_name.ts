@@ -53,13 +53,16 @@ export class QualifiedName extends BaseUAObject {
     public namespaceIndex: UInt16;
     public name: UAString;
 
-    constructor(options?: QualifiedNameOptions | null) {
+    constructor(options?: QualifiedNameOptions | null | string) {
         super();
         // for de-serialization
         if (options === null || options === undefined) {
             this.namespaceIndex = 0;
             this.name = null;
             return;
+        }
+        if (typeof options === "string") {
+            options = { name: options };
         }
         /* istanbul ignore next */
         if (parameters.debugSchemaHelper) {
