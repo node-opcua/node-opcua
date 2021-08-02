@@ -11,8 +11,8 @@ import { NodeClass } from "node-opcua-data-model";
 import { BrowseDirection } from "node-opcua-data-model";
 import { AttributeIds } from "node-opcua-data-model";
 import { DataValue, DataValueLike } from "node-opcua-data-value";
-import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
-import { coerceNodeId, makeNodeId, NodeId, NodeIdLike, sameNodeId } from "node-opcua-nodeid";
+import { checkDebugFlag, make_debugLog, make_warningLog } from "node-opcua-debug";
+import { coerceNodeId, makeNodeId, NodeId, sameNodeId } from "node-opcua-nodeid";
 import { StatusCodes } from "node-opcua-status-code";
 import { isNullOrUndefined } from "node-opcua-utils";
 import { DataType } from "node-opcua-variant";
@@ -36,17 +36,18 @@ import {
 
 import { AddressSpacePrivate } from "./address_space_private";
 import { BaseNode } from "./base_node";
-import { _clone_children_references, ToStringBuilder, UAVariable_toString, UAVariableType_toString } from "./base_node_private";
+import { _clone_children_references, ToStringBuilder, UAVariableType_toString, CloneFilter } from "./base_node_private";
 import { Reference } from "./reference";
 import { SessionContext } from "./session_context";
 import * as tools from "./tool_isSupertypeOf";
 import { get_subtypeOfObj } from "./tool_isSupertypeOf";
 import { get_subtypeOf } from "./tool_isSupertypeOf";
 import { UAObjectType } from "./ua_object_type";
-import { UAVariable, adjust_accessLevel, adjust_userAccessLevel, verifyRankAndDimensions } from "./ua_variable";
+import { verifyRankAndDimensions } from "./ua_variable";
 
 const debugLog = make_debugLog(__filename);
 const doDebug = checkDebugFlag(__filename);
+const warningLog = make_warningLog(__filename);
 
 export class UAVariableType extends BaseNode implements UAVariableTypePublic {
     public readonly nodeClass = NodeClass.VariableType;
@@ -144,20 +145,10 @@ export class UAVariableType extends BaseNode implements UAVariableTypePublic {
     /**
      * instantiate an object of this UAVariableType
      * The instantiation takes care of object type inheritance when constructing inner properties
-     * @method instantiate
-     * @param options
-     * @param options.browseName
-     * @param [options.description]
-     * @param [options.organizedBy]   the parent Folder holding this object
-     * @param [options.componentOf]   the parent Object holding this object
-     * @param [options.notifierOf]
-     * @param [options.eventSourceOf]
-     * @param [options.optionals]     array of browseName of optional component/property to instantiate.
-     * @param [options.modellingRule]
-     * @param [options.minimumSamplingInterval =0]
-     * @param [options.extensionObject =null]
+   
      * Note : HasComponent usage scope
      *
+     * ```text
      *    Source          |     Destination
      * -------------------+---------------------------
      *  Object            | Object, Variable,Method
@@ -165,7 +156,7 @@ export class UAVariableType extends BaseNode implements UAVariableTypePublic {
      * -------------------+---------------------------
      *  DataVariable      | Variable
      *  DataVariableType  |
-     *
+     * ```
      *
      *  see : OPCUA 1.03 page 44 $6.4 Instances of ObjectTypes and VariableTypes
      */
@@ -196,8 +187,8 @@ export class UAVariableType extends BaseNode implements UAVariableTypePublic {
 
         // istanbul ignore next
         if (!dataType || dataType.isEmpty()) {
-            console.warn(" options.dataType", options.dataType ? options.dataType.toString() : "<null>");
-            console.warn(" this.dataType", this.dataType ? this.dataType.toString() : "<null>");
+            warningLog(" options.dataType", options.dataType ? options.dataType.toString() : "<null>");
+            warningLog(" this.dataType", this.dataType ? this.dataType.toString() : "<null>");
             throw new Error(" A valid dataType must be specified");
         }
 
@@ -218,7 +209,7 @@ export class UAVariableType extends BaseNode implements UAVariableTypePublic {
             valueRank
         };
 
-        const namespace: Namespace = addressSpace.getOwnNamespace();
+        const namespace: Namespace = options.namespace || addressSpace.getOwnNamespace();
         const instance = namespace.addVariable(opts);
 
         // xx assert(instance.minimumSamplingInterval === options.minimumSamplingInterval);
@@ -249,7 +240,7 @@ export class UAVariableType extends BaseNode implements UAVariableTypePublic {
  * @param optionalsMap
  * @return {Boolean}
  */
-class MandatoryChildOrRequestedOptionalFilter {
+class MandatoryChildOrRequestedOptionalFilter implements CloneFilter {
     private readonly instance: BaseNodePublic;
     private readonly optionalsMap: any;
     private readonly references: Reference[];
@@ -301,7 +292,7 @@ class MandatoryChildOrRequestedOptionalFilter {
         }
     }
 
-    public filterFor(childInstance: UAVariableType) {
+    public filterFor(childInstance: UAVariableType): CloneFilter {
         const browseName: string = childInstance.browseName.name!;
 
         let map = {};

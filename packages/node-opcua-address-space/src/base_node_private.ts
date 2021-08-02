@@ -13,7 +13,8 @@ import {
     NodeClass,
     ResultMask
 } from "node-opcua-data-model";
-import { NodeId, resolveNodeId, sameNodeId } from "node-opcua-nodeid";
+import { make_warningLog } from "node-opcua-debug";
+import { NodeId, NodeIdLike, resolveNodeId, sameNodeId } from "node-opcua-nodeid";
 import { ReferenceDescription } from "node-opcua-types";
 import {
     AddressSpace,
@@ -21,7 +22,12 @@ import {
     UAConditionBase,
     UADataType,
     UAObjectType as UAObjectTypePublic,
-    UAReferenceType as UAReferenceTypePublic
+    UAReferenceType as UAReferenceTypePublic,
+    UAObject as UAObjectPublic,
+    UAReference,
+    AddReferenceOpts,
+    ConstructNodeIdOptions,
+    ModellingRuleType
 } from "../source";
 import { BaseNode as BaseNodePublic } from "../source";
 import { BaseNode } from "./base_node";
@@ -32,8 +38,12 @@ import { UAObject } from "./ua_object";
 import { UAObjectType } from "./ua_object_type";
 import { UAVariable } from "./ua_variable";
 import { UAVariableType } from "./ua_variable_type";
+import { Namespace } from "../source";
+import { QualifiedName } from "node-opcua-data-model";
 
 const g_weakMap = new WeakMap();
+
+const warningLog = make_warningLog(__filename);
 
 interface BaseNodeCache {
     __address_space: AddressSpace | null;
@@ -80,7 +90,6 @@ export function BaseNode_removePrivate(self: BaseNode): void {
     _private._referenceIdx = {};
     _private._description = undefined;
     _private._displayName = [];
-
 }
 
 export function BaseNode_getPrivate(self: BaseNode): BaseNodeCache {
@@ -103,7 +112,7 @@ export interface ToStringOption {
     cycleDetector: any;
     padding: string;
 
-    add(someline: string): void;
+    add(someLine: string): void;
     indent(a: string, b: string | null): void;
 }
 
@@ -156,8 +165,8 @@ export function BaseNode_toString(this: BaseNode, options: ToStringOption) {
     options.add(options.padding + chalk.yellow("          browseName          : ") + this.browseName.toString());
     options.add(
         options.padding +
-        chalk.yellow("          displayName         : ") +
-        this.displayName.map((f) => f.locale + " " + f.text).join(" | ")
+            chalk.yellow("          displayName         : ") +
+            this.displayName.map((f) => f.locale + " " + f.text).join(" | ")
     );
 
     options.add(
@@ -214,10 +223,10 @@ export function BaseNode_References_toString(this: BaseNode, options: ToStringOp
 
     options.add(
         options.padding +
-        chalk.yellow("          back_references     : ") +
-        chalk.cyan("  length =") +
-        br.length +
-        chalk.grey(" ( references held by other nodes involving this node)")
+            chalk.yellow("          back_references     : ") +
+            chalk.cyan("  length =") +
+            br.length +
+            chalk.grey(" ( references held by other nodes involving this node)")
     );
     // backward reference
     br.forEach(dump_reference.bind(null, false));
@@ -227,11 +236,11 @@ function _UAType_toString(this: UAReferenceTypePublic | UADataType | UAObjectTyp
     if (this.subtypeOfObj) {
         options.add(
             options.padding +
-            chalk.yellow("          subtypeOf           : ") +
-            this.subtypeOfObj.browseName.toString() +
-            " (" +
-            this.subtypeOfObj.nodeId.toString() +
-            ")"
+                chalk.yellow("          subtypeOf           : ") +
+                this.subtypeOfObj.browseName.toString() +
+                " (" +
+                this.subtypeOfObj.nodeId.toString() +
+                ")"
         );
     }
 }
@@ -240,11 +249,11 @@ function _UAInstance_toString(this: UAVariable | UAMethod | UAObject, options: T
     if (this.typeDefinitionObj) {
         options.add(
             options.padding +
-            chalk.yellow("          typeDefinition      : ") +
-            this.typeDefinitionObj.browseName.toString() +
-            " (" +
-            this.typeDefinitionObj.nodeId.toString() +
-            ")"
+                chalk.yellow("          typeDefinition      : ") +
+                this.typeDefinitionObj.browseName.toString() +
+                " (" +
+                this.typeDefinitionObj.nodeId.toString() +
+                ")"
         );
     }
 }
@@ -352,9 +361,9 @@ export function VariableOrVariableType_toString(this: UAVariableType | UAVariabl
         if (this._dataValue) {
             options.add(
                 options.padding +
-                chalk.yellow("          value               : ") +
-                "\n" +
-                options.indent(this._dataValue.toString(), options.padding + "                        | ")
+                    chalk.yellow("          value               : ") +
+                    "\n" +
+                    options.indent(this._dataValue.toString(), options.padding + "                        | ")
             );
         }
     }
@@ -371,23 +380,29 @@ export function VariableOrVariableType_toString(this: UAVariableType | UAVariabl
     if (this.minimumSamplingInterval !== undefined) {
         options.add(
             options.padding +
-            chalk.yellow(" minimumSamplingInterval      : ") +
-            " " +
-            this.minimumSamplingInterval.toString() +
-            " ms"
+                chalk.yellow(" minimumSamplingInterval      : ") +
+                " " +
+                this.minimumSamplingInterval.toString() +
+                " ms"
         );
     }
     if (this.arrayDimensions) {
         options.add(
             options.padding +
-            chalk.yellow(" arrayDimension               : ") +
-            " [" +
-            this.arrayDimensions.join(",").toString() +
-            " ]"
+                chalk.yellow(" arrayDimension               : ") +
+                " [" +
+                this.arrayDimensions.join(",").toString() +
+                " ]"
         );
     }
 }
 
+export type CloneExtraInfo = any;
+
+export interface CloneFilter {
+    shouldKeep(node: BaseNodePublic): boolean;
+    filterFor(childInstance: UAVariableType): CloneFilter;
+}
 /**
  * clone properties and methods
  * @private
@@ -395,44 +410,47 @@ export function VariableOrVariableType_toString(this: UAVariableType | UAVariabl
 function _clone_collection_new(
     this: BaseNodePublic,
     newParent: BaseNodePublic,
-    collectionRef: any,
-    optionalFilter: any,
-    extraInfo: any
+    collectionRef: UAReference[],
+    optionalFilter?: CloneFilter,
+    extraInfo?: CloneExtraInfo
 ): void {
+    const namespace = newParent.namespace;
+
     const addressSpace = newParent.addressSpace;
     assert(!optionalFilter || (typeof optionalFilter.shouldKeep === "function" && typeof optionalFilter.filterFor === "function"));
 
     for (const reference of collectionRef) {
-        const node = Reference.resolveReferenceNode(addressSpace, reference);
+        const node: BaseNodePublic = Reference.resolveReferenceNode(addressSpace, reference);
 
         // ensure node is of the correct type,
-        // it may happen that the xmlnodeset2 file was malformed
+        // it may happen that the xml nodeset2 file was malformed
 
         // istanbul ignore next
         if (typeof (node as any).clone !== "function") {
             // tslint:disable-next-line:no-console
-            console.log(
+            warningLog(
                 chalk.red("Warning : cannot clone node ") +
-                node.browseName.toString() +
-                " of class " +
-                NodeClass[node.nodeClass].toString() +
-                " while cloning " +
-                newParent.browseName.toString()
+                    node.browseName.toString() +
+                    " of class " +
+                    NodeClass[node.nodeClass].toString() +
+                    " while cloning " +
+                    newParent.browseName.toString()
             );
             continue;
         }
 
-        if (optionalFilter && !optionalFilter.shouldKeep(node)) {
+        if (optionalFilter && node && !optionalFilter.shouldKeep(node)) {
             continue; // skip this node
         }
 
         assert(reference.isForward);
         assert(reference.referenceType instanceof NodeId, "" + reference.referenceType.toString());
         const options = {
-            references: [{ referenceType: reference.referenceType, isForward: false, nodeId: newParent.nodeId }]
+            namespace,
+            references: [new Reference({ referenceType: reference.referenceType, isForward: false, nodeId: newParent.nodeId })]
         };
 
-        const clone = (node as any).clone(options, optionalFilter, extraInfo);
+        const clone = (node as UAVariable | UAMethod | UAObject).clone(options, optionalFilter, extraInfo);
 
         if (extraInfo) {
             extraInfo.registerClonedObject(node, clone);
@@ -443,15 +461,20 @@ function _clone_collection_new(
 export function _clone_children_references(
     this: BaseNodePublic,
     newParent: BaseNodePublic,
-    optionalFilter: any,
-    extraInfo: any
+    optionalFilter?: CloneFilter,
+    extraInfo?: CloneExtraInfo
 ): void {
     // find all reference that derives from the Aggregates
     const aggregatesRef = this.findReferencesEx("Aggregates", BrowseDirection.Forward);
     _clone_collection_new.call(this, newParent, aggregatesRef, optionalFilter, extraInfo);
 }
 
-export function _clone_non_hierarchical_references(this: BaseNode, newParent: BaseNodePublic, optionalFilter: any, extraInfo: any) {
+export function _clone_non_hierarchical_references(
+    this: BaseNode,
+    newParent: BaseNodePublic,
+    optionalFilter?: CloneFilter,
+    extraInfo?: CloneExtraInfo
+) {
     // clone only some non hierarchical_references that we do want to clone
     // such as
     //   HasSubStateMachine
@@ -460,18 +483,47 @@ export function _clone_non_hierarchical_references(this: BaseNode, newParent: Ba
     const references = this.findReferencesEx("HasSubStateMachine", BrowseDirection.Forward);
     _clone_collection_new.call(this, newParent, references, optionalFilter, extraInfo);
 }
+export interface CloneOptions /* extends ConstructNodeIdOptions */ {
+    namespace: Namespace;
+    references?: Reference[];
 
+    nodeId?: string | NodeIdLike | null;
+    nodeClass?: NodeClass;
+
+    browseName?: QualifiedName;
+    descriptions?: LocalizedText;
+    modellingRule?: ModellingRuleType;
+
+    // for variables
+    accessLevel?: number;
+    arrayDimensions?: number[] | null;
+    dataType?: NodeId;
+    historizing?: boolean;
+    minimumSamplingInterval?: number;
+    userAccessLevel?: number;
+    valueRank?: number;
+    // for objects
+    eventNotifier?: number;
+    symbolicName?: string;
+    // for methods
+    executable?: boolean;
+    methodDeclarationId?: NodeId;
+
+    // ------------
+    componentOf?: UAObjectTypePublic | UAObjectPublic;
+    
+}
 /**
  * @method _clone
  * @private
  */
-export function _clone(
-    this: UAObject | UAVariable | UAMethod,
+export function _clone<T extends UAObject | UAVariable | UAMethod>(
+    this: T,
     Constructor: any,
-    options: any,
-    optionalFilter: any,
-    extraInfo: any
-): BaseNode {
+    options: CloneOptions,
+    optionalFilter?: CloneFilter,
+    extraInfo?: CloneExtraInfo
+): T {
     assert(typeof Constructor === "function");
     assert(options !== null && typeof options === "object");
     assert(
@@ -479,46 +531,51 @@ export function _clone(
     );
     assert(!(this as any).subtypeOf, "We do not do cloning of Type yet");
 
-    options = {
+    const namespace = options.namespace;
+    const constructorOptions: any = {
         ...options,
-        addressSpace: this.addressSpace,
+        addressSpace: namespace.addressSpace,
         browseName: this.browseName,
         description: this.description,
         displayName: this.displayName,
         nodeClass: this.nodeClass
     };
-    options.references = options.references || [];
+    constructorOptions.references = options.references || [];
 
     if (this.typeDefinition) {
-        options.references.push({
-            isForward: true,
-            nodeId: this.typeDefinition,
-            referenceType: "HasTypeDefinition"
-        });
+        constructorOptions.references.push(
+            new Reference({
+                isForward: true,
+                nodeId: this.typeDefinition,
+                referenceType: resolveNodeId("HasTypeDefinition")
+            })
+        );
     }
 
-    if (!options.modellingRule) {
+    if (!constructorOptions.modellingRule) {
         if (this.modellingRule) {
             const modellingRuleNode = this.findReferencesAsObject("HasModellingRule")[0];
             assert(modellingRuleNode);
-            options.references.push({
-                isForward: true,
-                nodeId: modellingRuleNode.nodeId,
-                referenceType: "HasModellingRule"
-            });
+            constructorOptions.references.push(
+                new Reference({
+                    isForward: true,
+                    nodeId: modellingRuleNode.nodeId,
+                    referenceType: resolveNodeId("HasModellingRule")
+                })
+            );
         }
     } else {
-        UANamespace_process_modelling_rule(options.references, options.modellingRule);
+        UANamespace_process_modelling_rule(constructorOptions.references, constructorOptions.modellingRule);
     }
 
-    options.nodeId = this.addressSpace.getOwnNamespace().constructNodeId(options);
+    constructorOptions.nodeId = namespace.constructNodeId(constructorOptions as ConstructNodeIdOptions);
 
-    assert(options.nodeId instanceof NodeId);
+    assert(constructorOptions.nodeId instanceof NodeId);
 
-    const cloneObj = new Constructor(options);
+    const cloneObj = new Constructor(constructorOptions);
     this.addressSpace._register(cloneObj);
 
-    const newFilter = optionalFilter ? optionalFilter.filterFor(cloneObj) : null;
+    const newFilter = optionalFilter ? optionalFilter.filterFor(cloneObj) : undefined;
     _clone_children_references.call(this, cloneObj, newFilter, extraInfo);
     _clone_non_hierarchical_references.call(this, cloneObj, newFilter, extraInfo);
 
@@ -529,11 +586,9 @@ export function _clone(
     return cloneObj;
 }
 
-
 export function _handle_HierarchicalReference(node: BaseNode, reference: Reference) {
     const _cache = BaseNode_getCache(node);
-    if (!reference.isForward)
-        return;
+    if (!reference.isForward) return;
     if (_cache._childByNameMap) {
         const addressSpace = node.addressSpace;
         const referenceType = Reference.resolveReferenceType(addressSpace, reference);
@@ -665,7 +720,6 @@ export function BaseNode_add_backward_reference(this: BaseNode, reference: Refer
     _handle_HierarchicalReference(this, reference);
     (this as any)._clear_caches();
 }
-
 
 export function apply_condition_refresh(this: BaseNode, _cache?: any) {
     // visit all notifiers recursively

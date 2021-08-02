@@ -2,12 +2,12 @@ import * as should from "should";
 
 import { assert } from "node-opcua-assert";
 import { DataType } from "node-opcua-variant";
+import { NodeClass } from "node-opcua-data-model";
 
 import { AddressSpace, InstantiateObjectOptions, Namespace, UAObject, UAObjectType, UAVariable } from "..";
 
-import { NodeClass } from "node-opcua-data-model";
 import { getMiniAddressSpace } from "../testHelpers";
-import { createCameraType } from "./fixture_camera_type";
+import { createCameraType, FakeCameraType } from "./fixture_camera_type";
 import { createTemperatureSensorType, TemperatureSensor, TemperatureSensorType } from "./fixture_temperature_sensor_type";
 
 interface MockMachine extends UAObject {
@@ -86,10 +86,11 @@ const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("testing add new ObjectType ", () => {
     let addressSpace: AddressSpace;
     let namespace: Namespace;
-
+    let cameraType: FakeCameraType;
     before(async () => {
         addressSpace = await getMiniAddressSpace();
         namespace = addressSpace.getOwnNamespace();
+        cameraType = createCameraType(addressSpace);
     });
     after(() => {
         addressSpace.dispose();
@@ -145,21 +146,22 @@ describe("testing add new ObjectType ", () => {
     });
 
     it("should create a new CameraType with Method", async () => {
-        const cameraType = createCameraType(addressSpace);
-
         const camera1 = cameraType.instantiate({
             browseName: "Camera1",
-            organizedBy: "RootFolder"
+            organizedBy: addressSpace.rootFolder.objects
         });
 
         camera1.browseName.toString().should.eql("1:Camera1");
 
         // camera should have one component
         const c = camera1.getComponents();
-        c.length.should.eql(1, " expecting camera1 to have 1 component => the Method");
+        c.length.should.eql(2, " expecting camera1 to have 1 component => the Method");
 
         c[0].nodeClass.should.eql(NodeClass.Method);
         c[0].browseName.toString().should.eql("1:Trigger");
+
+        c[1].nodeClass.should.eql(NodeClass.Variable);
+        c[1].browseName.toString().should.eql("1:PictureTakenCount");
 
         cameraType.getComponents()[0].nodeClass.should.eql(NodeClass.Method);
         cameraType.getComponents()[0].nodeId.toString().should.not.eql(c[0].nodeId.toString());
@@ -172,5 +174,30 @@ describe("testing add new ObjectType ", () => {
             .getMethodByName("Trigger")!
             .methodDeclarationId.toString()
             .should.eql(cameraType.getMethodByName("Trigger")!.nodeId.toString());
+ 
+        camera1.trigger.nodeId.namespace.should.eql(1);
+        camera1.pictureTakenCount.nodeId.namespace.should.eql(1);
+ 
+    });
+
+    it("should be possible to instantiate a type in a custom namespace", async () => {
+        const namespace = addressSpace.registerNamespace("CustomNameSpace");
+
+        namespace.index.should.not.eql(1);
+        
+        const camera = cameraType.instantiate({
+            namespace,
+
+            browseName: "Camera2",
+            organizedBy: addressSpace.rootFolder.objects
+        });
+
+        camera.browseName.toString().should.eql(`${namespace.index}:Camera2`);
+
+        camera.nodeId.namespace.should.eql(namespace.index);
+        camera.getMethodByName("Trigger")!.nodeId.namespace.should.eql(namespace.index);
+
+        camera.pictureTakenCount.browseName.toString().should.eql("1:PictureTakenCount");
+        camera.pictureTakenCount.nodeId.namespace.should.eql(namespace.index);
     });
 });

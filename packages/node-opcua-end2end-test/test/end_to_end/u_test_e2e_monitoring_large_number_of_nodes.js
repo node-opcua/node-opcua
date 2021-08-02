@@ -16,9 +16,11 @@ const {
     TimestampsToReturn,
     CreateMonitoredItemsRequest,
     ClientMonitoredItem,
+    DataType,
+    coerceNodeId
 } = require("node-opcua");
 
-const { 
+const {
     perform_operation_on_subscription_async,
     perform_operation_on_client_session
 } = require("../../test_helpers/perform_operation_on_client_session");
@@ -73,7 +75,7 @@ module.exports = function (test) {
                         requestedMaxKeepAliveCount: 10,
                         maxNotificationsPerPublish: 20000,
                         publishingEnabled: true,
-                        priority: 6,
+                        priority: 6
                     });
 
                     const monitoredItems = [];
@@ -83,7 +85,7 @@ module.exports = function (test) {
                         "Scalar_Simulation_Boolean",
                         "Scalar_Simulation_String",
                         "Scalar_Simulation_Int64",
-                        "Scalar_Simulation_LocalizedText",
+                        "Scalar_Simulation_LocalizedText"
                     ];
                     ids.forEach(function (id) {
                         const nodeId = "ns=2;s=" + id;
@@ -98,7 +100,7 @@ module.exports = function (test) {
                     });
 
                     subscription.once("started", function (subscriptionId) {
-                        setTimeout( () => {
+                        setTimeout(() => {
                             subscription.terminate(inner_done);
                             Object.keys(changeByNodes).length.should.eql(ids.length);
                         }, 3000);
@@ -108,64 +110,63 @@ module.exports = function (test) {
             );
         });
 
-        it("should monitor a very large number of nodes (5000) ", function (done) {
-            const ids = [
-                "Scalar_Simulation_Double",
-                "Scalar_Simulation_Float",
-                "Scalar_Simulation_Boolean",
-                "Scalar_Simulation_String",
-                "Scalar_Simulation_Int64",
-                "Scalar_Simulation_Int32",
-                "Scalar_Simulation_Int16",
-                "Scalar_Simulation_SByte",
-                "Scalar_Simulation_UInt64",
-                "Scalar_Simulation_UInt32",
-                "Scalar_Simulation_UInt16",
-                "Scalar_Simulation_Byte",
-                "Scalar_Simulation_LocalizedText",
-                "Scalar_Simulation_ByteString",
-                "Scalar_Simulation_DateTime",
-                "Scalar_Simulation_Duration",
-            ];
+        const ids = [
+            "Scalar_Simulation_Double",
+            "Scalar_Simulation_Float",
+            "Scalar_Simulation_Boolean",
+            "Scalar_Simulation_String",
+            "Scalar_Simulation_Int64",
+            "Scalar_Simulation_Int32",
+            "Scalar_Simulation_Int16",
+            "Scalar_Simulation_SByte",
+            "Scalar_Simulation_UInt64",
+            "Scalar_Simulation_UInt32",
+            "Scalar_Simulation_UInt16",
+            "Scalar_Simulation_Byte",
+            "Scalar_Simulation_LocalizedText",
+            "Scalar_Simulation_ByteString",
+            "Scalar_Simulation_DateTime",
+            "Scalar_Simulation_Duration"
+        ];
 
-            let ids50000 = ids;
-            while (ids50000.length < 5000 + ids.length) {
-                ids50000 = ids50000.concat(ids);
-            }
+        let ids50000 = ids;
+        while (ids50000.length < 5000 + ids.length) {
+            ids50000 = ids50000.concat(ids);
+        }
 
-            function make5000Items() {
-                const itemsToCreate = [];
+        function make5000Items() {
+            const itemsToCreate = [];
 
-                let clientHandle = 1;
+            let clientHandle = 1;
 
-                ids50000.forEach(function (s) {
-                    const nodeId = "ns=2;s=" + s;
-                    const itemToMonitor = new ReadValueId({
-                        attributeId: AttributeIds.Value,
-                        nodeId: nodeId,
-                    });
-                    const monitoringMode = MonitoringMode.Reporting;
-                    clientHandle++;
-
-                    const monitoringParameters = new MonitoringParameters({
-                        clientHandle: clientHandle,
-                        samplingInterval: 100,
-                        filter: null,
-                        queueSize: 1,
-                        discardOldest: true,
-                    });
-
-                    const itemToCreate = {
-                        itemToMonitor: itemToMonitor,
-                        monitoringMode: monitoringMode,
-                        requestedParameters: monitoringParameters,
-                    };
-                    itemsToCreate.push(itemToCreate);
+            ids50000.forEach(function (s) {
+                const nodeId = "ns=2;s=" + s;
+                const itemToMonitor = new ReadValueId({
+                    attributeId: AttributeIds.Value,
+                    nodeId: nodeId
                 });
-                return itemsToCreate;
-            }
+                const monitoringMode = MonitoringMode.Reporting;
+                clientHandle++;
 
-             perform_operation_on_client_session(
+                const monitoringParameters = new MonitoringParameters({
+                    clientHandle: clientHandle,
+                    samplingInterval: 100,
+                    filter: null,
+                    queueSize: 1,
+                    discardOldest: true
+                });
+
+                const itemToCreate = {
+                    itemToMonitor: itemToMonitor,
+                    monitoringMode: monitoringMode,
+                    requestedParameters: monitoringParameters
+                };
+                itemsToCreate.push(itemToCreate);
+            });
+            return itemsToCreate;
+        }
+        it("should monitor a very large number of nodes (5000) ", function (done) {
+            perform_operation_on_client_session(
                 client,
                 endpointUrl,
                 function (session, inner_done) {
@@ -175,7 +176,7 @@ module.exports = function (test) {
                         requestedMaxKeepAliveCount: 3,
                         maxNotificationsPerPublish: 0, // unlimited
                         publishingEnabled: true,
-                        priority: 6,
+                        priority: 6
                     });
 
                     const notificationMessageSpy = new sinon.spy();
@@ -189,7 +190,7 @@ module.exports = function (test) {
                         const createMonitorItemsRequest = new CreateMonitoredItemsRequest({
                             subscriptionId: subscription.subscriptionId,
                             timestampsToReturn: timestampsToReturn,
-                            itemsToCreate: itemsToCreate,
+                            itemsToCreate: itemsToCreate
                         });
 
                         //xx console.log(createMonitorItemsRequest.toString());
@@ -201,13 +202,56 @@ module.exports = function (test) {
                             subscription.once("raw_notification", function (n) {
                                 subscription.terminate(inner_done);
                                 n.notificationData[0].monitoredItems.length.should.eql(
-                                    Math.min(subscription.maxNotificationsPerPublish,itemsToCreate.length));
+                                    Math.min(subscription.maxNotificationsPerPublish, itemsToCreate.length)
+                                );
                             });
                         });
                     });
                 },
                 done
             );
+        });
+        it("should fix issue#1008", async () => {
+            const parameters = {
+                requestedPublishingInterval: 100,
+                requestedLifetimeCount: 10,
+                requestedMaxKeepAliveCount: 10,
+                maxNotificationsPerPublish: 6000,
+                publishingEnabled: true,
+                priority: 10
+            };
+            await client.withSubscriptionAsync(endpointUrl, parameters, async (session, subscription) => {
+                const timestampsToReturn = TimestampsToReturn.Neither;
+
+                const itemsToCreate = make5000Items().slice(0,40);
+
+                console.log("itemsToCreate = ", itemsToCreate.length);
+                console.log("subscription.subscriptionId = ", subscription.subscriptionId);
+
+                const requesterParameters /* : MonitoringParametersOptions  */ = {
+                    discardOldest: true,
+                    queueSize: 100,
+                    samplingInterval: 10,
+                    filter: null,
+
+                };
+
+                //xx console.log(createMonitorItemsRequest.toString());
+                const group = await subscription.monitorItems(itemsToCreate, requesterParameters, timestampsToReturn);
+
+                await new Promise((resolve) => setTimeout(resolve, 1000));
+
+                const objectId = coerceNodeId("ns=0;i=2253"); // SERVER
+                const methodId = coerceNodeId("ns=0;i=11492"); // GetMonitoredItems
+                const inputArguments = [{ dataType: DataType.UInt32, value: subscription.subscriptionId }];
+                const methodToCall = {
+                    objectId,
+                    methodId,
+                    inputArguments
+                };
+                const result = await session.call(methodToCall);
+                console.log(result.toString());
+            });
         });
     });
 };

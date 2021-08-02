@@ -22,7 +22,7 @@ import {
 } from "../source";
 import { UAConditionBase } from "./alarms_and_conditions/ua_condition_base";
 import { BaseNode } from "./base_node";
-import { _clone, apply_condition_refresh, ToStringBuilder, UAObject_toString } from "./base_node_private";
+import { _clone, apply_condition_refresh, ToStringBuilder, UAObject_toString, CloneOptions, CloneFilter, CloneExtraInfo } from "./base_node_private";
 
 export class UAObject extends BaseNode implements UAObjectPublic {
     public readonly nodeClass = NodeClass.Object;
@@ -57,7 +57,7 @@ export class UAObject extends BaseNode implements UAObjectPublic {
         return new DataValue(options);
     }
 
-    public clone(options: any, optionalFilter?: any, extraInfo?: any): UAObject {
+    public clone(options: CloneOptions, optionalFilter?: CloneFilter, extraInfo?: CloneExtraInfo): UAObject {
         options = options || {};
         options = {
             ...options,

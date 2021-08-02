@@ -1181,7 +1181,7 @@ describe("testing UAVariable ", () => {
         variableInteger.readValue().value.dataType.should.eql(DataType.Int32);
         variableInteger.readValue().value.value.should.eql(1);
 
-        const variableIntegerClone = variableInteger.clone();
+        const variableIntegerClone = variableInteger.clone({namespace: variableInteger.namespace!});
         variableIntegerClone.nodeId.toString().should.not.eql(variableInteger.nodeId.toString());
 
         variableIntegerClone.browseName.toString().should.eql("1:some INTEGER Variable");

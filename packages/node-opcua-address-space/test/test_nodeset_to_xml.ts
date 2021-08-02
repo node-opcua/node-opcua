@@ -33,7 +33,7 @@ describe("testing nodeset to xml", () => {
         }
     });
 
-    it("should output a standard extension object datatype to xml (Argument)", () => {
+    it("KLKL1 should output a standard extension object datatype to xml (Argument)", () => {
         const argumentDataType = addressSpace.findDataType("Argument")!;
         if (doDebug) {
             console.log(argumentDataType.toString());
@@ -45,7 +45,7 @@ describe("testing nodeset to xml", () => {
         str.should.match(/Argument/);
     });
 
-    it("should output a standard Enum node to xml (ServerState)", () => {
+    it("KLKL2 should output a standard Enum node to xml (ServerState)", () => {
         // TemperatureSensorType
         const serverStateType = addressSpace.findDataType("ServerState")!;
         const str = dumpXml(serverStateType, {});
@@ -55,7 +55,7 @@ describe("testing nodeset to xml", () => {
         str.should.match(/CommunicationFault/);
     });
 
-    it("€€€ should output a custom Enum node to xml (MyEnumType) - Form1( with EnumStrings )", () => {
+    it("KLKL3 should output a custom Enum node to xml (MyEnumType) - Form1( with EnumStrings )", () => {
         const myEnumType = namespace.addEnumerationType({
             browseName: "MyEnumTypeForm1",
             enumeration: ["RUNNING", "STOPPED"]
@@ -75,7 +75,8 @@ describe("testing nodeset to xml", () => {
         str.should.match(/<Field Name="RUNNING" Value="0">/);
         str.should.match(/<Field Name="STOPPED" Value="1">/);
     });
-    it("€€ should output a custom Enum node to xml (MyEnumType) - Form2 ( with EnumValues )", () => {
+
+    it("KLKL4 should output a custom Enum node to xml (MyEnumType) - Form2 ( with EnumValues )", () => {
         const myEnumType = namespace.addEnumerationType({
             browseName: "MyEnumType",
             enumeration: [
@@ -94,7 +95,7 @@ describe("testing nodeset to xml", () => {
         str.should.match(/<Field Name="STOPPED" Value="20">/);
     });
 
-    it("should output a simple objectType node to xml", () => {
+    it("KLKL5 should output a simple objectType node to xml", () => {
         // TemperatureSensorType
         const temperatureSensorType = createTemperatureSensorType(addressSpace);
 
@@ -102,7 +103,7 @@ describe("testing nodeset to xml", () => {
         str.should.match(/UAObjectType/);
     });
 
-    it("should output a instance of a new ObjectType  to xml", () => {
+    it("KLKL6 should output a instance of a new ObjectType  to xml", () => {
         const ownNamespace = addressSpace.getOwnNamespace();
 
         // TemperatureSensorType
@@ -138,7 +139,7 @@ describe("testing nodeset to xml", () => {
         str.should.match(/UAObjectType/g);
     });
 
-    it("KLKL should output a instance of object with method  to xml", () => {
+    it("KLKL7 should output a instance of object with method  to xml", () => {
         const createCameraType = require("./fixture_camera_type").createCameraType;
 
         const cameraType = createCameraType(addressSpace);
@@ -157,10 +158,10 @@ describe("testing nodeset to xml", () => {
         str.should.match(/BrowseName="InputArguments"/);
         str.should.match(/BrowseName="OutputArguments"/);
         str.should.match(/<UAMethod NodeId="ns=1;i=1001" BrowseName="1:Trigger">/);
-        str.should.match(/<UAMethod NodeId="ns=1;i=1005" BrowseName="1:Trigger" MethodDeclarationId="ns=1;i=1001"/);
+        str.should.match(/<UAMethod NodeId="ns=1;i=[0-9]+" BrowseName="1:Trigger" MethodDeclarationId="ns=1;i=1001"/);
     });
 
-    it("should output an instance of variable type to xml", () => {
+    it("KLKL8 should output an instance of variable type to xml", () => {
         const ownNamespace = addressSpace.getOwnNamespace();
         const variableType = ownNamespace.addVariableType({ browseName: "MyCustomVariableType" });
 
@@ -171,7 +172,7 @@ describe("testing nodeset to xml", () => {
         str.should.match(/UAVariableType/g);
     });
 
-    it("should output a ReferenceType to xml", () => {
+    it("KLKL9 should output a ReferenceType to xml", () => {
         const ownNamespace = addressSpace.getOwnNamespace();
         const referenceType = ownNamespace.addReferenceType({
             browseName: "HasStuff",
@@ -187,7 +188,7 @@ describe("testing nodeset to xml", () => {
         str.should.match(/HasStuff/g);
     });
 
-    it("should output a Method to xml", () => {
+    it("KLKLA should output a Method to xml", () => {
         const ownNamespace = addressSpace.getOwnNamespace();
 
         const rootFolder = addressSpace.findNode("RootFolder")! as RootFolder;

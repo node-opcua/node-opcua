@@ -165,6 +165,7 @@ function implementProgramStateMachine(programStateMachine: UAObject): void {
                 methodToClone = programStateMachine.typeDefinitionObj!.subtypeOfObj!.getMethodByName(methodName)!;
             }
             methodToClone.clone({
+                namespace: programStateMachine.namespace,
                 componentOf: programStateMachine
             });
             method = programStateMachine.getMethodByName(methodName)!;
@@ -482,6 +483,7 @@ export function createBoilerType(namespace: Namespace): BoilerType {
         assert(!objectType.getMethodByName(methodName));
         const method = baseType.getMethodByName(methodName)!;
         const m = method.clone({
+            namespace,
             componentOf: objectType,
             modellingRule: "Mandatory"
         });

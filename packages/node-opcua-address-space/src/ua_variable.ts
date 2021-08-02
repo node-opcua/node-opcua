@@ -62,7 +62,10 @@ import {
     BaseNode_toString,
     ToStringBuilder,
     UAVariable_toString,
-    valueRankToString
+    valueRankToString,
+    CloneOptions,
+    CloneFilter,
+    CloneExtraInfo
 } from "./base_node_private";
 import { SessionContext } from "./session_context";
 import { EnumerationInfo, IEnumItem, UADataType } from "./ua_data_type";
@@ -1125,8 +1128,7 @@ export class UAVariable extends BaseNode implements UAVariablePublic {
         return super.getUserWriteMask();
     }
 
-    public clone(options?: any, optionalFilter?: any, extraInfo?: any): UAVariable {
-        options = options || {};
+    public clone(options: CloneOptions, optionalFilter?: CloneFilter, extraInfo?: CloneExtraInfo): UAVariable {
         options = {
             ...options,
             // check this eventNotifier: this.eventNotifier,

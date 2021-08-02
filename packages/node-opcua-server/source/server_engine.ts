@@ -229,15 +229,12 @@ function getMonitoredItemsId(
     }
     const result = subscription.getMonitoredItems();
     assert(result.statusCode);
-    assert(Array.isArray(result.serverHandles));
-    assert(Array.isArray(result.clientHandles));
     assert(result.serverHandles.length === result.clientHandles.length);
     const callMethodResult = new CallMethodResult({
         statusCode: result.statusCode,
-
         outputArguments: [
-            { dataType: DataType.UInt32, arrayType: VariantArrayType.Array, value: result.serverHandles },
-            { dataType: DataType.UInt32, arrayType: VariantArrayType.Array, value: result.clientHandles }
+            { dataType: DataType.UInt32, arrayType: VariantArrayType.Array, value: new Uint32Array(result.serverHandles) },
+            { dataType: DataType.UInt32, arrayType: VariantArrayType.Array, value: new Uint32Array(result.clientHandles) }
         ]
     });
     callback(null, callMethodResult);
