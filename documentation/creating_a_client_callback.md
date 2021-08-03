@@ -62,13 +62,13 @@ server is running. `UA/MyLittleServer` is the endpoint defined by the server and
 
 ```javascript
 const client = OPCUAClient.create({
-    endpoint_must_exist: false
+    endpointMustExist: false
 });
 _"adding some helpers to diagnose connection issues"
 ```
 
 > Note that by default, the `endpointUrl` must match the url exposed by the server, this means that `<hostname>` cannot be replaced by
-> an hostname alias or a straight ip address. To relax this restriction, one can use the `endpoint_must_exist: false`
+> an hostname alias or a straight ip address. To relax this restriction, one can use the `endpointMustExist: false`
 > option when creating the OPUA Client
 
 ### adding some helpers to diagnose connection issues

@@ -84,7 +84,7 @@ const certificateFile = path.join(certificateFolder, "client_selfsigned_cert_204
 const privateKeyFile =  path.join(certificateFolder, "client_key_2048.pem");
 
 const client = opcua.OPCUAClient.create({
-    endpoint_must_exist: false,
+    endpointMustExist: false,
     keepSessionAlive: true,
     requestedSessionTimeout: 60000,
 
