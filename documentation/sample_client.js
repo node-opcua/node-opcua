@@ -4,7 +4,7 @@
     // const endpointUrl = "opc.tcp://<hostname>:4334/UA/MyLittleServer";
     const endpointUrl = "opc.tcp://" + require("os").hostname() + ":4334/UA/MyLittleServer";
     const client = OPCUAClient.create({
-        endpoint_must_exist: false
+        endpointMustExist: false
     });
     client.on("backoff", (retry, delay) =>
       console.log(

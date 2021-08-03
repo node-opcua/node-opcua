@@ -38,7 +38,7 @@ const nodeId = "ns=1;i=1000"; // MyDevices
             NodeCrawler.follow(crawler, cacheNode, myUserData, "HasProperty", BrowseDirection.Forward);
         }
 
-        const client = OPCUAClient.create({ endpoint_must_exist: false });
+        const client = OPCUAClient.create({ endpointMustExist: false });
         client.on("backoff", () => { console.log("keep trying to connect"); });
         const pojo = await client.withSessionAsync(endpointUrl, async (session: ClientSession) => {
             const crawler = new NodeCrawler(session);

@@ -3,7 +3,7 @@ async function main() {
     try {
         const endpointUrl2 = "opc.tcp://localhost:48010";
         const client = OPCUAClient.create({
-            endpoint_must_exist: false
+            endpointMustExist: false
         });
         await client.connect(endpointUrl2);
         const session = await client.createSession();
