@@ -3,11 +3,7 @@ import { BrowseDescription, BrowseDirection, BrowseResult } from "node-opcua-ser
 import { DataType } from "node-opcua-variant";
 import { IBasicSession } from "./basic_session_interface";
 import { ReferenceTypeIds } from "node-opcua-constants";
-import { AttributeIds, makeResultMask } from "node-opcua-data-model";
-import { DataValue } from "node-opcua-data-value";
-import { StatusCodes } from "node-opcua-status-code";
-
-
+import { makeResultMask } from "node-opcua-data-model";
 
 const resultMask = makeResultMask("ReferenceType");
 

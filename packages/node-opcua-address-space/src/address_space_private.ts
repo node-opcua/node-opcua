@@ -5,8 +5,7 @@ import { ExtraDataTypeManager } from "node-opcua-client-dynamic-extension-object
 import { NodeClass, QualifiedNameLike } from "node-opcua-data-model";
 import { ExtensionObject } from "node-opcua-extension-object";
 import { NodeId, NodeIdLike } from "node-opcua-nodeid";
-import { BrowsePath, ModelChangeStructureDataType, ReadProcessedDetails, HistoryReadResult } from "node-opcua-types";
-import { ConstructorFuncWithSchema } from "node-opcua-factory";
+import { ModelChangeStructureDataType, ReadProcessedDetails, HistoryReadResult } from "node-opcua-types";
 import { NumericRange } from "node-opcua-numeric-range";
 import { CallbackT } from "node-opcua-status-code";
 

@@ -1,25 +1,13 @@
-import { DataValue } from "node-opcua-data-value";
 import { OpaqueStructure } from "node-opcua-extension-object";
 import { IBasicSession } from "node-opcua-pseudo-session";
 import { DataType, VariantArrayType, Variant } from "node-opcua-variant";
-
-import { populateDataTypeManager } from "./client_dynamic_extension_object";
-import { ExtraDataTypeManager } from "./extra_data_type_manager";
+//
+import { getExtraDataTypeManager } from "./get_extra_data_type_manager";
 import { resolveDynamicExtensionObject } from "./resolve_dynamic_extension_object";
 
-export async function getExtraDataTypeManager(
-    session: IBasicSession
-) {
-    const sessionPriv: any = session as any;
-    if (!sessionPriv.$$extraDataTypeManager) {
-        const extraDataTypeManager = new ExtraDataTypeManager();
-        await populateDataTypeManager(session, extraDataTypeManager);
-        sessionPriv.$$extraDataTypeManager = extraDataTypeManager;
-    }
-    return sessionPriv.$$extraDataTypeManager;
-}
 
 export interface PseudoDataValue { value: Variant };
+
 export async function promoteOpaqueStructure(
     session: IBasicSession,
     dataValues: PseudoDataValue[]
@@ -47,7 +35,7 @@ export async function promoteOpaqueStructure(
 
     const promises = dataValuesToFix.map(
         async (dataValue: PseudoDataValue) => {
-            return await resolveDynamicExtensionObject(dataValue.value, extraDataTypeManager)
+            return await resolveDynamicExtensionObject(session, dataValue.value, extraDataTypeManager)
         });
     // https://medium.com/swlh/dealing-with-multiple-promises-in-javascript-41d6c21f20ff
     await Promise.all(promises.map(p => p.catch(e => e)));

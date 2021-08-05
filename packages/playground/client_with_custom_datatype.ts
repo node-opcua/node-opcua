@@ -5,17 +5,12 @@ import * as os from "os";
 
 import {
     AttributeIds,
-    BrowseResult,
     ConnectionStrategyOptions,
-    ExtraDataTypeManager,
-    getDataTypeDefinition,
     MessageSecurityMode,
     NodeId,
     OPCUAClient,
     OPCUAClientOptions,
-    SecurityPolicy,
-    UserTokenType
-} from "node-opcua-client";
+    SecurityPolicy} from "node-opcua-client";
 
 const doDebug = true;
 
@@ -50,11 +45,7 @@ async function main() {
     const dataValueDataType = await session.read({ nodeId: variableNodeID, attributeId: AttributeIds.DataType });
     console.log(" DataType =", dataValueDataType.value.value.toString());
     const dataTypeNodeId = dataValueDataType.value.value as NodeId;
-
-    const extraDataTypeManager = await session.extractNamespaceDataType();
-
-    await getDataTypeDefinition(session, dataTypeNodeId, extraDataTypeManager);
-
+  
     const dataValueDataTypeBrowseName = await session.read({
         attributeId: AttributeIds.BrowseName,
         nodeId: dataValueDataType.value.value

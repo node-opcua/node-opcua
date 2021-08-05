@@ -30,6 +30,7 @@ export * from "./helpers/argument_list";
 export * from "./helpers/call_helpers";
 export * from "./helpers/ensure_secure_access";
 export { adjustBrowseDirection } from "./helpers/adjust_browse_direction";
+export { resolveOpaqueOnAddressSpace } from "./helpers/resolve_opaque_on_address_space";
 
 export { ContinuationPointManager } from "./continuation_points/continuation_point_manager";
 export { ensureDatatypeExtracted, ensureDatatypeExtractedWithCallback } from "./loader/load_nodeset2";

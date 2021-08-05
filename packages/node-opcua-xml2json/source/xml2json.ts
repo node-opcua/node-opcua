@@ -375,7 +375,7 @@ export class Xml2Json {
                 this.current_state._on_text(text);
             }
         });
-        parser.on("close", () => {
+        parser.once("close", () => {
             if (callback) {
                 (callback as any)(null, (this.current_state! as any)._pojo);
             }

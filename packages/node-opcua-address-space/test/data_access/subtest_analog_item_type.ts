@@ -1,5 +1,4 @@
 "use strict";
-import * as async from "async";
 import * as should from "should";
 
 import { Range } from "node-opcua-data-access";

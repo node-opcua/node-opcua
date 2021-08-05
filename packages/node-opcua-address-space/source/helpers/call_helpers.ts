@@ -2,19 +2,17 @@
  * @module node-opcua-address-space
  */
 import { assert } from "node-opcua-assert";
-import { ExtraDataTypeManager, resolveDynamicExtensionObject } from "node-opcua-client-dynamic-extension-object";
 import { NodeClass } from "node-opcua-data-model";
 import { NodeId } from "node-opcua-nodeid";
 import { CallMethodRequest } from "node-opcua-service-call";
 import { StatusCodes } from "node-opcua-status-code";
 import { CallMethodResultOptions } from "node-opcua-types";
 import { Variant } from "node-opcua-variant";
-import { UAObjectType } from "../../src/ua_object_type";
 
 import { AddressSpace, UAMethod, UAObject } from "../address_space_ts";
-import { ensureDatatypeExtractedWithCallback } from "../loader/load_nodeset2";
 import { SessionContext } from "../session_context";
 import { getMethodDeclaration_ArgumentList, verifyArguments_ArgumentList } from "./argument_list";
+import { resolveOpaqueOnAddressSpace } from "./resolve_opaque_on_address_space";
 
 // Symbolic Id                   Description
 // ----------------------------  -----------------------------------------------------------------------------
@@ -33,13 +31,13 @@ import { getMethodDeclaration_ArgumentList, verifyArguments_ArgumentList } from 
 // BadNoCommunication
 type ResponseCallback<T> = (err: Error | null, result?: T) => void;
 
+
 export function callMethodHelper(
     context: SessionContext,
     addressSpace: AddressSpace,
     callMethodRequest: CallMethodRequest,
     callback: ResponseCallback<CallMethodResultOptions>
 ): void {
-
     const objectId = callMethodRequest.objectId;
     const methodId = callMethodRequest.methodId;
     const inputArguments = callMethodRequest.inputArguments || [];
@@ -78,47 +76,38 @@ export function callMethodHelper(
         return callback(null, response);
     }
 
-    let l_extraDataTypeManager: ExtraDataTypeManager;
+    resolveOpaqueOnAddressSpace(addressSpace, inputArguments)
+        .then(() => {
+            methodObj.execute(
+                object,
+                inputArguments,
+                context,
+                (err: Error | null, callMethodResponse?: CallMethodResultOptions) => {
+                    /* istanbul ignore next */
+                    if (err) {
+                        return callback(err);
+                    }
+                    if (!callMethodResponse) {
+                        return callback(new Error("internal Error"));
+                    }
 
-    ensureDatatypeExtractedWithCallback(addressSpace, (err2: Error | null, extraDataTypeManager?: ExtraDataTypeManager) => {
-        if (err2) {
-            return callback(err2);
-        }
-        l_extraDataTypeManager = extraDataTypeManager!;
+                    callMethodResponse.inputArgumentResults =
+                        callMethodResponse.inputArgumentResults || response.inputArgumentResults || [];
+                    assert(callMethodResponse.statusCode);
 
-        // resolve opaque data structure from inputArguments
-        for (const variant of inputArguments) {
-            resolveDynamicExtensionObject(variant, l_extraDataTypeManager);
-        }
+                    if (callMethodResponse.statusCode === StatusCodes.Good) {
+                        assert(Array.isArray(callMethodResponse.outputArguments));
+                    }
 
-        methodObj.execute(object, inputArguments, context, (err: Error | null, callMethodResponse?: CallMethodResultOptions) => {
-            /* istanbul ignore next */
-            if (err) {
-                return callback(err);
-            }
-            if (!callMethodResponse) {
-                return callback(new Error("internal Error"));
-            }
+                    assert(Array.isArray(callMethodResponse.inputArgumentResults));
+                    assert(callMethodResponse.inputArgumentResults!.length === methodInputArguments.length);
 
-            callMethodResponse.inputArgumentResults =
-                callMethodResponse.inputArgumentResults || response.inputArgumentResults || [];
-            assert(callMethodResponse.statusCode);
-
-            if (callMethodResponse.statusCode === StatusCodes.Good) {
-                assert(Array.isArray(callMethodResponse.outputArguments));
-            }
-
-            assert(Array.isArray(callMethodResponse.inputArgumentResults));
-            assert(callMethodResponse.inputArgumentResults!.length === methodInputArguments.length);
-
-            if (callMethodResponse.outputArguments) {
-                const outputArguments = callMethodResponse.outputArguments || [];
-                for (const variant of outputArguments) {
-                    resolveDynamicExtensionObject(variant as Variant, l_extraDataTypeManager);
+                    const outputArguments = callMethodResponse.outputArguments || [];
+                    resolveOpaqueOnAddressSpace(addressSpace, outputArguments as Variant[])
+                        .then(() => callback(null, callMethodResponse))
+                        .catch(callback);
                 }
-            }
-
-            return callback(null, callMethodResponse);
-        });
-    });
+            );
+        })
+        .catch((err) => callback(err));
 }

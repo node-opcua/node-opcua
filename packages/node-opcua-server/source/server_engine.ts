@@ -27,7 +27,8 @@ import {
     UAVariable,
     UAServerDiagnostics,
     BindVariableOptions,
-    MethodFunctorCallback
+    MethodFunctorCallback,
+    PseudoSession
 } from "node-opcua-address-space";
 
 import { generateAddressSpace } from "node-opcua-address-space/nodeJS";
@@ -56,7 +57,7 @@ import { ReadRequest, TimestampsToReturn } from "node-opcua-service-read";
 import { TransferResult } from "node-opcua-service-subscription";
 
 import { CreateSubscriptionRequestLike } from "node-opcua-client";
-import { ExtraDataTypeManager, resolveDynamicExtensionObject } from "node-opcua-client-dynamic-extension-object";
+import { ExtraDataTypeManager } from "node-opcua-client-dynamic-extension-object";
 import { DataTypeIds, MethodIds, ObjectIds, VariableIds } from "node-opcua-constants";
 import { getCurrentClock, minOPCUADate } from "node-opcua-date-time";
 import { checkDebugFlag, make_debugLog, make_errorLog, make_warningLog, traceFromThisProjectOnly } from "node-opcua-debug";
@@ -97,6 +98,7 @@ import { Subscription } from "./server_subscription";
 import { sessionsCompatibleForTransfer } from "./sessions_compatible_for_transfer";
 import { NumericRange } from "node-opcua-numeric-range";
 import { UInt32 } from "node-opcua-basic-types";
+import { resolveOpaqueOnAddressSpace } from "node-opcua-address-space";
 
 const debugLog = make_debugLog(__filename);
 const errorLog = make_errorLog(__filename);
@@ -1387,18 +1389,18 @@ export class ServerEngine extends EventEmitter {
 
         context.currentTime = getCurrentClock();
 
-        let l_extraDataTypeManager: ExtraDataTypeManager;
-
-        const performWrite = (writeValue: WriteValue, inner_callback: StatusCodeCallback) => {
-            resolveDynamicExtensionObject(writeValue.value.value, l_extraDataTypeManager);
-            this.writeSingleNode(context, writeValue, inner_callback);
-        };
-
         ensureDatatypeExtractedWithCallback(
             this.addressSpace!,
             (err2: Error | null, extraDataTypeManager?: ExtraDataTypeManager) => {
-                l_extraDataTypeManager = extraDataTypeManager!;
-
+                if (err2) { 
+                    return callback(err2);
+                }    
+                const performWrite = (writeValue: WriteValue, inner_callback: StatusCodeCallback) => {
+                    resolveOpaqueOnAddressSpace(this.addressSpace!, writeValue.value.value!)
+                    .then(()=>{
+                        this.writeSingleNode(context, writeValue, inner_callback);
+                    }).catch(inner_callback);
+                };
                 // tslint:disable:array-type
                 async.map(nodesToWrite, performWrite, (err?: Error | null, statusCodes?: (StatusCode | undefined)[]) => {
                     assert(Array.isArray(statusCodes));

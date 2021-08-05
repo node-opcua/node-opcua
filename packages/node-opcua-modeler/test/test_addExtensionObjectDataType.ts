@@ -7,7 +7,6 @@ const { writeFile }= fs.promises;
 import * as os from "os";
 import * as path from "path";
 import * as should from "should";
-import { promisify } from "util";
 import {
     getDataTypeDictionary,
     addExtensionObjectDataType,
@@ -19,7 +18,6 @@ import {
     NodeId,
     nodesets,
     StructureDefinitionOptions,
-    BaseNode
 } from "..";
 import { generateAddressSpace } from "node-opcua-address-space/nodeJS";
 
@@ -80,7 +78,7 @@ describe("addExtensionObjectDataType", function (this: any) {
 
         // const tmpFile = await fs.promises.mkdtemp(os.tmpdir() + "test.NodeSet2.xml", "utf-8");
         const tmpFile = path.join(os.tmpdir(), "test.NodeSet2.xml");
-        // xx console.log("tmpFile =", tmpFile);
+        console.log("tmpFile =", tmpFile);
 
         // istanbul ignore next
         if (doDebug) {

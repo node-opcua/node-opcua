@@ -2,12 +2,11 @@ import * as mocha from "mocha";
 import * as should from "should";
 
 import { BinaryStream } from "node-opcua-binary-stream";
-import { resolveDynamicExtensionObject } from "node-opcua-client-dynamic-extension-object";
 import { ExtensionObject, OpaqueStructure } from "node-opcua-extension-object";
 import { nodesets } from "node-opcua-nodesets";
 import { DataType, Variant } from "node-opcua-variant";
 
-import { AddressSpace, ensureDatatypeExtracted } from "..";
+import { AddressSpace, ensureDatatypeExtracted, resolveOpaqueOnAddressSpace } from "..";
 import { generateAddressSpace } from "../nodeJS";
 
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
@@ -17,7 +16,6 @@ import { DataTypeDefinition, StructureDefinition } from "node-opcua-types";
 
 const debugLog = make_debugLog("TEST");
 const doDebug = checkDebugFlag("TEST");
-
 
 describe("Testing AutoID custom types", async function (this: any) {
     this.timeout(200000); // could be slow on appveyor !
@@ -73,7 +71,7 @@ describe("Testing AutoID custom types", async function (this: any) {
     }
 
     it("should construct a ScanResult ", async () => {
-        interface ScanResult extends ExtensionObject { }
+        interface ScanResult extends ExtensionObject {}
 
         const nsAutoId = addressSpace.getNamespaceIndex("http://opcfoundation.org/UA/AutoID/");
         nsAutoId.should.eql(2);
@@ -114,8 +112,7 @@ describe("Testing AutoID custom types", async function (this: any) {
         });
         const reload_v = encode_decode(v);
 
-        const extraDataTypeManager = await ensureDatatypeExtracted(addressSpace);
-        await resolveDynamicExtensionObject(reload_v, extraDataTypeManager);
+        await resolveOpaqueOnAddressSpace(addressSpace, reload_v);
 
         debugLog(reload_v.toString());
         debugLog(scanResult.toString());
@@ -186,8 +183,7 @@ describe("Testing AutoID custom types", async function (this: any) {
 
         const reload_v = encode_decode(v);
 
-        const extraDataTypeManager = await ensureDatatypeExtracted(addressSpace);
-        await resolveDynamicExtensionObject(reload_v, extraDataTypeManager);
+        await resolveOpaqueOnAddressSpace(addressSpace, reload_v);
 
         debugLog(reload_v.toString());
 
@@ -203,12 +199,12 @@ describe("Testing AutoID custom types", async function (this: any) {
         const v2 = new Variant();
         bs2.length = 0;
         v2.decode(bs2);
-        await resolveDynamicExtensionObject(v2, extraDataTypeManager);
+        await resolveOpaqueOnAddressSpace(addressSpace, v2);
+   
         debugLog(v2.toString());
     });
 
     it("KX The dataTypeDefinition of RfidScanResult shall contain base dataTypeDefinition ", () => {
-
         const nsAutoId = addressSpace.getNamespaceIndex("http://opcfoundation.org/UA/AutoID/");
 
         const scanResultDataTypeNode = addressSpace.findDataType("ScanResult", nsAutoId);
@@ -221,7 +217,6 @@ describe("Testing AutoID custom types", async function (this: any) {
             //Xx console.log(dataTypeDefinition.toString());
             const structureDefinition = dataTypeDefinition as StructureDefinition;
             structureDefinition.fields.length.should.eql(4);
-
         }
         const rfidScanResultDataTypeNode = addressSpace.findDataType("RfidScanResult", nsAutoId)!;
 
@@ -236,5 +231,4 @@ describe("Testing AutoID custom types", async function (this: any) {
             structureDefinition.fields.length.should.eql(5);
         }
     });
-
 });

@@ -76,7 +76,7 @@ export async function ensureDatatypeExtracted(addressSpace: any): Promise<ExtraD
 
         // now extract structure and enumeration from old form if
         const session = new PseudoSession(addressSpace);
-        await populateDataTypeManager(session, dataTypeManager);
+        await populateDataTypeManager(session, dataTypeManager, true);
     }
     return addressSpacePriv.$$extraDataTypeManager;
 }

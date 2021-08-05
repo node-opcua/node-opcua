@@ -1,4 +1,3 @@
-import * as async from "async";
 import * as fs from "fs";
 import { checkDebugFlag, make_debugLog, make_errorLog } from "node-opcua-debug";
 import { ErrorCallback } from "node-opcua-status-code";

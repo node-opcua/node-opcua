@@ -30,13 +30,16 @@
             "typescript-starter": ["package/node-opcua/index.js"] // write tests without relative paths
         }
     },
-    "exclude": ["./documentation", "build"],
+    "exclude": ["./documentation", "build" , "dist"],
     "references": [
         {
             "path": "packages/node-opcua"
         },
         {
             "path": "packages/node-opcua-model"
+        },
+        {
+            "path": "packages/node-opcua-modeler"
         }
     ],    
     "compileOnSave": false,

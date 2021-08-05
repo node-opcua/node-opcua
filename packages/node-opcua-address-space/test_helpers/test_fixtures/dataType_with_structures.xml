@@ -2,6 +2,12 @@
 <UANodeSet xmlns:xsd="http://www.w3.org/2001/XMLSchema" 
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" LastModified="2020-01-08T00:00:00Z" 
     xmlns="http://opcfoundation.org/UA/2011/03/UANodeSet.xsd">
+
+    <!-- 
+        Note: this model contains a Structure and expose it as per version 1.03 and below 
+              This means that the dataType has no dataTypeDefinition attributes and that the
+              structure is exposed in a embedded bsd file. 
+    -->
     <Models>
         <Model ModelUri="http://opcfoundation.org/UA/" Version="1.04.4" PublicationDate="2020-01-08T00:00:00Z" />
     </Models>
@@ -415,29 +421,7 @@
             <Reference ReferenceType="HasComponent" IsForward="false">i=7617</Reference>
         </References>
         <Value>
-            <String xmlns="http://opcfoundation.org/UA/2008/02/Types.xsd">ThreeDFrame
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            </String>
+            <String xmlns="http://opcfoundation.org/UA/2008/02/Types.xsd">ThreeDFrame</String>
         </Value>
     </UAVariable>
     <UAObject NodeId="i=18859" BrowseName="Default XML" SymbolicName="DefaultXml">
@@ -557,37 +541,6 @@
         </References>
         <Value>
             <String xmlns="http://opcfoundation.org/UA/2008/02/Types.xsd">ThreeDCartesianCoordinates
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
             </String>
         </Value>
     </UAVariable>

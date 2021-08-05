@@ -110,7 +110,10 @@ export function encodeExtensionObject(object: BaseUAObject | null, stream: Outpu
 
 // tslint:disable:max-classes-per-file
 export class OpaqueStructure extends ExtensionObject {
+
+    // the nodeId is the same as the encodingDefaultBinary
     public nodeId: NodeId;
+    
     public buffer: Buffer;
 
     constructor(nodeId: NodeId, buffer: Buffer) {
