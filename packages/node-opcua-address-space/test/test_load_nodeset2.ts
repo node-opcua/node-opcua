@@ -393,6 +393,9 @@ describe("testing NodeSet XML file loading", function (this: any) {
         await generateAddressSpace(addressSpace, xml_files);
         const dataType = addressSpace.findDataType("3DFrame", 0)!;
         should.exist(dataType, " expected to find 3DFrame DataType in addressSpace");
+
+        // now instantiate it
+        const frame = addressSpace.constructExtensionObject(dataType,{});
     });
 
     it("VV8 ----------", async () => {

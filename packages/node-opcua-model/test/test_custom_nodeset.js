@@ -3,7 +3,7 @@ const path = require("path");
 const fs = require("fs");
 
 const {
-    AddressSpace,
+    AddressSpace, adjustNamespaceArray,
 } = require("node-opcua-address-space");
 const { generateAddressSpace } = require("node-opcua-address-space/nodeJS");
 
@@ -12,15 +12,18 @@ const { parse_opcua_common } = require("..");
 const { nodesets } = require("node-opcua-nodesets");
 const should = require("should");
 
-
-async function parse_xml(nodeset_files) {
-
+async function createAddressSpace(nodesets/*: string[]*/)/*: AddressSpace */
+{
     const addressSpace = AddressSpace.create();
+    await generateAddressSpace(addressSpace, nodesets);
+    adjustNamespaceArray(addressSpace);
+    return addressSpace;
+}
+async function test_parse_opcua_common(nodesets) {
 
-    await generateAddressSpace(addressSpace, nodeset_files);
+    const addressSpace = await createAddressSpace(nodesets);
 
     const pseudoSession = new PseudoSession(addressSpace);
-
     const data = await parse_opcua_common(pseudoSession);
 
     addressSpace.dispose();
@@ -40,7 +43,7 @@ describe("testing custom nodeset", function() {
         fs.existsSync(nodeset_files[0]).should.eql(true);
         fs.existsSync(nodeset_files[1]).should.eql(true);
 
-        await parse_xml(nodeset_files);
+        await test_parse_opcua_common(nodeset_files);
     });
 
 });

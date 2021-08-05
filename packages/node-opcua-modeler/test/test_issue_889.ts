@@ -1,11 +1,11 @@
 import { spy } from "sinon";
-import { promisify } from "util";
-import * as fs from "fs";
 import "should";
+
 import { ExtraDataTypeManager, populateDataTypeManager } from "node-opcua-client-dynamic-extension-object";
+
 import { makeNodeId, NodeId } from "node-opcua-nodeid";
 import { nodesets } from "node-opcua-nodesets";
-import { AddressSpace, PseudoSession, UAVariable } from "node-opcua-address-space";
+import { AddressSpace, adjustNamespaceArray, PseudoSession, UAVariable } from "node-opcua-address-space";
 import { generateAddressSpace } from "node-opcua-address-space/nodeJS";
 
 import {
@@ -28,14 +28,7 @@ describe("loading very large DataType Definitions ", function (this: any) {
         addressSpace.registerNamespace(namespaceUri);
         const nodesetsXML = [nodesets.standard];
         await generateAddressSpace(addressSpace, nodesetsXML);
-
-        const serverNamespaceArrayNodeId = "i=2255"; // VariableIds.Server_NamespaceArray
-        const serverNamespaceArray = addressSpace.findNode(serverNamespaceArrayNodeId)! as UAVariable;
-        serverNamespaceArray.setValueFromSource({
-            arrayType: VariantArrayType.Array,
-            dataType: DataType.String,
-            value: addressSpace.getNamespaceArray().map((x) => x.namespaceUri)
-        });
+        adjustNamespaceArray(addressSpace);
     });
     after(() => {
         addressSpace.dispose();
@@ -88,9 +81,9 @@ describe("loading very large DataType Definitions ", function (this: any) {
         session.requestedMaxReferencesPerNode = 2;
 
         const dataTypeManager = new ExtraDataTypeManager();
-        await populateDataTypeManager(session, dataTypeManager);
+        await populateDataTypeManager(session, dataTypeManager, false);
 
-        browseSpy.callCount.should.eql(26);
-        browseNextSpy.callCount.should.eql(36);
+        browseSpy.callCount.should.eql(26); // was 26
+        browseNextSpy.callCount.should.eql(36); // was 36
     });
 });

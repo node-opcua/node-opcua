@@ -3,9 +3,13 @@
  */
 import { format } from "util";
 
-import assert from "node-opcua-assert";
-import { ConstructorFunc, DataTypeFactory, getStandardDataTypeFactory, StructuredTypeSchema } from "node-opcua-factory";
-import { ExpandedNodeId, NodeId } from "node-opcua-nodeid";
+import { assert } from "node-opcua-assert";
+import { 
+    ConstructorFunc, 
+    DataTypeFactory, 
+    getStandardDataTypeFactory 
+} from "node-opcua-factory";
+import { NodeId } from "node-opcua-nodeid";
 import { AnyConstructorFunc } from "node-opcua-schemas";
 
 export class ExtraDataTypeManager {

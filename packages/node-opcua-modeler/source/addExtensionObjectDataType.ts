@@ -1,8 +1,6 @@
 import {
-    AddressSpace,
     Namespace,
     PseudoSession,
-    Reference,
     UADataType,
     UAObject,
     UAVariable,
@@ -16,7 +14,7 @@ import { coerceQualifiedName, LocalizedTextLike, NodeClass, QualifiedNameLike } 
 import { ConstructorFuncWithSchema } from "node-opcua-factory";
 import { NodeId, resolveNodeId } from "node-opcua-nodeid";
 import { createDynamicObjectConstructor } from "node-opcua-schemas";
-import { StructureDefinition, StructureDefinitionOptions, StructureType } from "node-opcua-types";
+import { StructureDefinition, StructureDefinitionOptions } from "node-opcua-types";
 import { DataType, Variant } from "node-opcua-variant";
 
 /**
@@ -193,9 +191,6 @@ export async function addExtensionObjectDataType(namespace: Namespace, options: 
     );
     const Constructor = createDynamicObjectConstructor(schema, dataTypeFactory) as ConstructorFuncWithSchema;
 
-    // dataTypeFactory.registerClassDefinition
-    //        _dataType._extensionObjectConstructor = dataTypeManager.getExtensionObjectConstructorFromDataType(_dataType.nodeId);
-    // addressSpace.getExtensionObjectConstructor();
     return dataType;
 }
 

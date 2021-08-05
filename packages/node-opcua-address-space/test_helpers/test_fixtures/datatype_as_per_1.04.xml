@@ -1,0 +1,91 @@
+
+<?xml version="1.0" encoding="utf-8"?>
+<UANodeSet xmlns="http://opcfoundation.org/UA/2011/03/UANodeSet.xsd">
+    <NamespaceUris>
+        <Uri>http://A</Uri>
+        <Uri>http://B</Uri>
+        <Uri>http://C</Uri>
+    </NamespaceUris>
+    <Models>
+        <Model ModelUri="http://A" PublicationDate="2021-01-01T00:00:00Z" Version="1.00">
+            <RequiredModel ModelUri="http://opcfoundation.org/UA/" PublicationDate="2020-07-15T00:00:00Z" Version="1.04.7"/>
+        </Model>
+        <Model ModelUri="http://B" PublicationDate="2021-01-01T00:00:00Z" Version="1.00">
+            <RequiredModel ModelUri="http://opcfoundation.org/UA/" PublicationDate="2020-07-15T00:00:00Z" Version="1.04.7"/>
+        </Model>
+        <Model ModelUri="http://C" PublicationDate="2021-01-01T00:00:00Z" Version="1.00">
+            <RequiredModel ModelUri="http://opcfoundation.org/UA/" PublicationDate="2020-07-15T00:00:00Z" Version="1.04.7"/>
+            <RequiredModel ModelUri="http://A" PublicationDate="2021-01-01T00:00:00Z" Version="1.00"/>
+            <RequiredModel ModelUri="http://B" PublicationDate="2021-01-01T00:00:00Z" Version="1.00"/>
+        </Model>
+    </Models>
+    <Aliases>
+        <Alias Alias="Boolean">i=1</Alias>
+        <Alias Alias="UInt16">i=5</Alias>
+        <Alias Alias="UInt32">i=7</Alias>
+        <Alias Alias="Double">i=11</Alias>
+        <Alias Alias="DateTime">i=13</Alias>
+        <Alias Alias="String">i=12</Alias>
+        <Alias Alias="LocalizedText">i=21</Alias>
+        <Alias Alias="HasComponent">i=47</Alias>
+        <Alias Alias="HasProperty">i=46</Alias>
+        <Alias Alias="Organizes">i=35</Alias>
+        <Alias Alias="HasSubtype">i=45</Alias>
+        <Alias Alias="HasTypeDefinition">i=40</Alias>
+        <Alias Alias="HasModellingRule">i=37</Alias>
+        <Alias Alias="HasEncoding">i=38</Alias>
+        <Alias Alias="RolePermissionType">i=96</Alias>
+        <Alias Alias="IdType">i=256</Alias>
+        <Alias Alias="NumericRange">i=291</Alias>
+        <Alias Alias="HasInterface">i=17603</Alias>
+    </Aliases>
+
+
+    <UAObject SymbolicName="MyObject" NodeId="ns=3;i=5005" BrowseName="3:MyObject" ParentNodeId="ns=0;i=85">
+        <DisplayName>MyInterface</DisplayName>
+        <References>
+            <Reference ReferenceType="Organizes" IsForward="false">i=85</Reference>
+            <Reference ReferenceType="HasTypeDefinition">ns=2;i=1000</Reference>
+        </References>
+    </UAObject>
+
+    <UAVariable DataType="ns=1;i=3001" NodeId="ns=3;i=6019" BrowseName="2:MyVariable" ParentNodeId="ns=3;i=5005" UserAccessLevel="3" AccessLevel="3">
+        <DisplayName>InputData</DisplayName>
+        <References>
+            <Reference ReferenceType="HasComponent" IsForward="false">ns=3;i=5005</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=63</Reference>
+        </References>
+        <Extensions>
+            <Extension>
+                <si:VariableMapping>"PlantCommunication-Mixing"."InputData"</si:VariableMapping>
+            </Extension>
+        </Extensions>
+    </UAVariable>
+
+    <UADataType NodeId="ns=1;i=3001" BrowseName="1:MyStructure">
+        <DisplayName>MyStructure</DisplayName>
+        <References>
+            <Reference ReferenceType="HasSubtype" IsForward="false">i=22</Reference>
+            <Reference ReferenceType="HasEncoding">ns=1;i=5003</Reference>
+            <Reference ReferenceType="HasEncoding">ns=1;i=5004</Reference>
+        </References>
+        <Definition Name="1:MixingToFilling">
+            <Field DataType="Boolean" Name="Start"/>
+            <Field DataType="Boolean" Name="Stop"/>
+            <Field DataType="Boolean" Name="Hold"/>
+            <Field DataType="Double" Name="Amount"/>
+        </Definition>
+    </UADataType>
+    <UAObject SymbolicName="DefaultBinary" NodeId="ns=1;i=5003" BrowseName="Default Binary">
+        <DisplayName>Default Binary</DisplayName>
+        <References>
+            <Reference ReferenceType="HasTypeDefinition">i=76</Reference>
+        </References>
+    </UAObject>
+    <UAObject SymbolicName="DefaultXML" NodeId="ns=1;i=5004" BrowseName="Default XML">
+        <DisplayName>Default XML</DisplayName>
+        <References>
+            <Reference ReferenceType="HasTypeDefinition">i=76</Reference>
+        </References>
+    </UAObject>
+</UANodeSet>

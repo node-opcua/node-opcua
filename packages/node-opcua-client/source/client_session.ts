@@ -554,6 +554,9 @@ export interface ClientSessionNamespaceService {
 export interface ClientSessionExtensionObjectService {
     constructExtensionObject(dataType: NodeId, pojo: any): Promise<ExtensionObject>;
 
+    /**
+     * @private
+     */
     extractNamespaceDataType(): Promise<ExtraDataTypeManager>;
 }
 

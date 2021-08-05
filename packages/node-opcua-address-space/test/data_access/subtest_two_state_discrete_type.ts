@@ -1,19 +1,19 @@
 import * as should from "should";
 import * as fs from "fs";
-import * as path from "path";
 import sinon = require("sinon");
 
 import { AccessLevelFlag, coerceLocalizedText } from "node-opcua-data-model";
-import { DataType } from "node-opcua-variant";
-
-import { AddressSpace, Namespace, SessionContext, UAObject, UAObjectType } from "../..";
-import { UATwoStateDiscrete } from "../../dist/src/data_access/ua_two_state_discrete";
 import { nodesets } from "node-opcua-nodesets";
 import { getTempFilename } from "node-opcua-debug/nodeJS";
 import { CallbackT, StatusCode, StatusCodes } from "node-opcua-status-code";
 import { DataValue } from "node-opcua-data-value";
 import { getCurrentClock } from "node-opcua-date-time";
-import { generateAddressSpace } from "../../source_nodejs";
+import { DataType } from "node-opcua-variant";
+
+import { AddressSpace, Namespace, UAObject, UAObjectType } from "../..";
+import { SessionContext } from "../..";
+import { UATwoStateDiscrete } from "../..";
+import { generateAddressSpace } from "../../distNodeJS";
 
 const doDebug = false;
 

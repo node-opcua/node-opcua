@@ -3,7 +3,7 @@ import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 import { CallbackT, ErrorCallback } from "node-opcua-status-code";
 import { AddressSpace } from "../../src/address_space";
 import { adjustNamespaceArray } from "../../src/nodeset_tools/adjust_namespace_array";
-import { AddressSpace as AddressSpacePublic, UAVariable } from "../address_space_ts";
+import { AddressSpace as AddressSpacePublic } from "../address_space_ts";
 import { NodeSetLoader } from "./load_nodeset2";
 
 const doDebug = checkDebugFlag(__filename);

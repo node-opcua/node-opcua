@@ -4,9 +4,10 @@ import { DataValue } from "node-opcua-data-value";
 import { CallbackT, StatusCode, StatusCodes } from "node-opcua-status-code";
 import { Variant } from "node-opcua-variant";
 import { DataType } from "node-opcua-variant";
-import { AddressSpace, SessionContext, UAMultiStateDiscrete } from "../..";
 import { getCurrentClock } from "node-opcua-date-time";
 import * as sinon from "sinon";
+
+import { AddressSpace, SessionContext, UAMultiStateDiscrete } from "../..";
 
 export function subtest_multi_state_discrete_type(mainTest: { addressSpace: AddressSpace }) {
     describe("MultiStateDiscreteType", () => {

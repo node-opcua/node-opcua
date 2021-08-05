@@ -4,9 +4,9 @@ require:
   - ../../node_modules/ts-node/register
 timeout: 20000
 enable-source-maps: true
-spec:
-  - test/**/*.ts
-  - test/**/*.js
+extension: 
+  - .ts
+  - .js
 bail: true
 parallel: false
 jobs: 32

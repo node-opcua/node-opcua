@@ -2,12 +2,10 @@ import * as mocha from "mocha";
 import * as should from "should";
 
 import { BinaryStream } from "node-opcua-binary-stream";
-import { resolveDynamicExtensionObject } from "node-opcua-client-dynamic-extension-object";
-import { ExtensionObject } from "node-opcua-extension-object";
 import { nodesets } from "node-opcua-nodesets";
 import { DataType, Variant } from "node-opcua-variant";
 
-import { AddressSpace, ensureDatatypeExtracted } from "..";
+import { AddressSpace, ensureDatatypeExtracted, resolveOpaqueOnAddressSpace } from "..";
 import { generateAddressSpace } from "../nodeJS";
 
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
@@ -69,10 +67,15 @@ describe("Testing PackML custom types", async function (this: any) {
         });
         const reload_v = encode_decode(v);
 
-        const extraDataTypeManager = await ensureDatatypeExtracted(addressSpace);
-        await resolveDynamicExtensionObject(reload_v, extraDataTypeManager);
+        reload_v.value.constructor.name.should.eql("OpaqueStructure");
+
+        await resolveOpaqueOnAddressSpace(addressSpace, reload_v);
+
+        reload_v.value.constructor.name.should.eql("PackMLAlarmDataType");
 
         debugLog(reload_v.toString());
         debugLog(packMLAlarm.toString());
+
+        packMLAlarm.toString().should.eql(reload_v.value.toString());
     });
 });

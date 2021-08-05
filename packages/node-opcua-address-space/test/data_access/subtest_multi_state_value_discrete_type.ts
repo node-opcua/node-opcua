@@ -7,10 +7,11 @@ import { CallbackT, StatusCode, StatusCodes } from "node-opcua-status-code";
 import { Variant } from "node-opcua-variant";
 import { DataType } from "node-opcua-variant";
 import { VariantArrayType } from "node-opcua-variant";
-
-import { AddressSpace, Namespace, SessionContext, UAMultiStateValueDiscrete, UAObject, UAObjectType } from "../..";
 import { getCurrentClock } from "node-opcua-date-time";
 import * as sinon from "sinon";
+
+import { AddressSpace, Namespace, SessionContext, UAMultiStateValueDiscrete, UAObject, UAObjectType } from "../..";
+
 
 const context = new SessionContext();
 

@@ -9,6 +9,9 @@
     "include": ["source/**/*.ts"],
     "references": [
         {
+            "path": "../node-opcua-client-dynamic-extension-object"
+        },
+        {
             "path": "../node-opcua-address-space"
         },
         {

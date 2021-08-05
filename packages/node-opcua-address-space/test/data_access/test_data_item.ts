@@ -1,15 +1,11 @@
 import * as fs from "fs";
 
 import * as mocha from "mocha";
-
 import * as should from "should";
 
 import { standardUnits } from "node-opcua-data-access";
 import { nodesets } from "node-opcua-nodesets";
 import { encode_decode_round_trip_test } from "node-opcua-packet-analyzer/dist/test_helpers";
-import { AddressSpace } from "../..";
-import { generateAddressSpace } from "../../nodeJS";
-
 import { subtest_analog_item_semantic_changed } from "./subtest_analog_item_semantic_changed";
 import { subtest_analog_item_type } from "./subtest_analog_item_type";
 import { subtest_data_item_PercentDeadband } from "./subtest_data_item_PercentDeadband";
@@ -17,6 +13,9 @@ import { subtest_multi_state_discrete_type } from "./subtest_multi_state_discret
 import { subtest_multi_state_value_discrete_type } from "./subtest_multi_state_value_discrete_type";
 import { subtest_two_state_discrete_type } from "./subtest_two_state_discrete_type";
 import { subtest_Y_array_item_type } from "./subtest_Y_array_item_type";
+
+import { AddressSpace } from "../..";
+import { generateAddressSpace } from "../../nodeJS";
 
 // tslint:disable-next-line:no-var-requires
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;

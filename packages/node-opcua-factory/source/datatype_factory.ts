@@ -116,17 +116,25 @@ export class DataTypeFactory {
     //  ----------------------------
 
     public findConstructorForDataType(dataTypeNodeId: NodeId): ConstructorFuncWithSchema {
+        const constructor = this.getConstructorForDataType(dataTypeNodeId);
+        if (constructor) {
+            return constructor;
+        }
+        this.getConstructorForDataType(dataTypeNodeId);
+        throw new Error("Cannot find StructureType constructor for dataType " + dataTypeNodeId.toString());
+    }
+    public getConstructorForDataType(dataTypeNodeId: NodeId): ConstructorFuncWithSchema | null {
         const constructor = this._structureTypeConstructorByDataTypeMap.get(dataTypeNodeId.toString());
         if (constructor) {
             return constructor;
         }
         for (const factory of this.baseDataFactories) {
-            const constructor2 = factory.findConstructorForDataType(dataTypeNodeId);
+            const constructor2 = factory.getConstructorForDataType(dataTypeNodeId);
             if (constructor2) {
                 return constructor2;
             }
         }
-        throw new Error("Cannot find StructureType constructor for dataType " + dataTypeNodeId.toString());
+        return null;
     }
     // ----------------------------------------------------------------------------------------------------
     // Access by typeName
@@ -322,7 +330,7 @@ function dumpDataFactory(dataFactory: DataTypeFactory, write: any) {
 
         write("structureTypeName =", structureTypeName);
 
-        if (!dataFactory.findConstructorForDataType(schema.dataTypeNodeId)) {
+        if (!dataFactory.getConstructorForDataType(schema.dataTypeNodeId)) {
             write("  ( No constructor for " + schema.name + "  " + schema.dataTypeNodeId.toString());
         }
         if (!schema.encodingDefaultBinary) {
