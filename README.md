@@ -121,7 +121,7 @@ Those are the items we would like to achieve in the next version of the API.
   * Compliance testing and certification (CTT) 
   * Pub-sub support 
   * support for redundancy
-  * session less transations
+  * session less transactions
   * WebSocket transport
   * JTokens and OAuth
   * reversed connection
