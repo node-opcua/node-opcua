@@ -175,7 +175,7 @@ export declare class BaseNode extends EventEmitter {
 
     public writeAttribute(
         context: SessionContext,
-        writeValue: any,
+        writeValue: DataValueOptions,
         callback: (err: Error | null, statusCode?: StatusCode) => void
     ): void;
 
@@ -227,10 +227,9 @@ export declare class BaseNode extends EventEmitter {
      */
     public browseNode(browseDescription: BrowseDescriptionOptions, session?: SessionContext): ReferenceDescription[];
 
-
     /**
-     * 
-     * @param rolePermissions 
+     *
+     * @param rolePermissions
      */
     setRolePermissions(rolePermissions: RolePermissionTypeOptions[]): void;
 
