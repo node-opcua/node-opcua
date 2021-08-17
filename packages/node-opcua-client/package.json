@@ -1,6 +1,6 @@
 {
     "name": "node-opcua-client",
-    "version": "2.49.0",
+    "version": "2.50.0",
     "description": "pure nodejs OPCUA SDK - module -client",
     "scripts": {
         "clean": "node -e \"require('rimraf').sync('certificates');\"  && node -e \"require('rimraf').sync('dist');\"",
@@ -64,7 +64,7 @@
     },
     "devDependencies": {
         "dequeue": "^1.0.5",
-        "node-opcua-address-space": "2.49.0",
+        "node-opcua-address-space": "2.50.0",
         "node-opcua-binary-stream": "2.42.0",
         "node-opcua-factory": "2.49.0",
         "node-opcua-leak-detector": "2.42.0",

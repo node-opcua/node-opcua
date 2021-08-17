@@ -1,6 +1,6 @@
 {
     "name": "node-opcua-convert-nodeset-to-javascript",
-    "version": "2.49.0",
+    "version": "2.50.0",
     "description": "pure nodejs OPCUA SDK - module -convert-nodeset-to-javascript",
     "types": "dist/index.d.ts",
     "main": "dist/index.js",
@@ -11,7 +11,7 @@
     "dependencies": {
         "@types/debug": "^4.1.5",
         "@types/wordwrap": "^1.0.0",
-        "node-opcua-address-space": "2.49.0",
+        "node-opcua-address-space": "2.50.0",
         "node-opcua-assert": "2.42.0",
         "node-opcua-basic-types": "2.47.0",
         "node-opcua-constants": "2.42.0",
