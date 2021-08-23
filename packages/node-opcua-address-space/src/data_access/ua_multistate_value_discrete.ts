@@ -220,7 +220,7 @@ export function _addMultiStateValueDiscrete(
     if (options.value === undefined && enumValues[0]) {
         options.value = enumValues[0].value; // Int64
     }
-    let value: undefined | VariantLike | BindVariableOptions;
+    let value: undefined  | BindVariableOptions;
     if (typeof options.value === "number" || isValidUInt64(options.value)) {
         if (isValidUInt64(options.value)) {
             value = new Variant({

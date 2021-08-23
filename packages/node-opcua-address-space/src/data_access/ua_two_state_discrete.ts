@@ -104,7 +104,7 @@ export function _addTwoStateDiscrete(namespace: Namespace, options: AddTwoStateD
         throw new Error("expecting TwoStateDiscreteType to be defined , check nodeset xml file");
     }
 
-    let value: undefined | VariantLike | BindVariableOptions;
+    let value: undefined | BindVariableOptions;
     if (typeof options.value === "boolean") {
         value = new Variant({ dataType: DataType.Boolean, value: !!options.value });
     } else {

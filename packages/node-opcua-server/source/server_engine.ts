@@ -242,7 +242,7 @@ function getMonitoredItemsId(
     callback(null, callMethodResult);
 }
 
-function __bindVariable(self: ServerEngine, nodeId: NodeIdLike, options?: BindVariableOptions | VariantLike) {
+function __bindVariable(self: ServerEngine, nodeId: NodeIdLike, options?: BindVariableOptions) {
     options = options || {};
 
     const variable = self.addressSpace!.findNode(nodeId) as UAVariable;
