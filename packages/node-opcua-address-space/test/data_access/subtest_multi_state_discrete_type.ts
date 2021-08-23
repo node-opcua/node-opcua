@@ -90,8 +90,8 @@ export function subtest_multi_state_discrete_type(mainTest: { addressSpace: Addr
                 enumStrings: ["Red", "Orange", "Green"],
 
                 value: {
-                    timestamped_get: timestamped_get as any,
-                    timestamped_set: timestamped_set as any
+                    timestamped_get,
+                    timestamped_set
                 }
             });
 

@@ -12,7 +12,7 @@ import { QualifiedName } from "node-opcua-data-model";
 import { BrowseDirection } from "node-opcua-data-model";
 import { LocalizedText, NodeClass } from "node-opcua-data-model";
 import { dumpIf } from "node-opcua-debug";
-import { NodeIdType, resolveNodeId } from "node-opcua-nodeid";
+import { coerceNodeId, NodeIdLike, NodeIdType, resolveNodeId } from "node-opcua-nodeid";
 import { NodeId } from "node-opcua-nodeid";
 import { StatusCodes } from "node-opcua-status-code";
 import {
@@ -108,6 +108,7 @@ import { UAView } from "./ua_view";
 
 import { ConstructNodeIdOptions, NodeIdManager } from "./nodeid_manager";
 import { _addTwoStateDiscrete } from "./data_access/ua_two_state_discrete";
+import { option } from "yargs";
 
 function _makeHashKey(nodeId: NodeId): string | number {
     switch (nodeId.identifierType) {
@@ -1040,8 +1041,16 @@ export class UANamespace implements NamespacePublic {
             throw new Error("expecting YArrayItemType to be defined , check nodeset xml file");
         }
 
-        const dataType = options.dataType || "Float";
-
+        function toNodeId(options?: NodeIdLike | BaseNode | string | null): NodeId {
+            if (!options) {
+                return resolveNodeId(DataType.Float);
+            }
+            if (options.hasOwnProperty("nodeId") || options instanceof BaseNode) {
+                return (options as UADataType).nodeId;
+            }
+            return resolveNodeId(options);
+        }
+        const dataType = toNodeId(options.dataType as any); 
         const optionals = [];
         if (options.hasOwnProperty("instrumentRange")) {
             optionals.push("InstrumentRange");

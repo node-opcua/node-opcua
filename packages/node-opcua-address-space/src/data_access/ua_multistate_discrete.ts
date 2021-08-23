@@ -5,8 +5,7 @@ import { assert } from "node-opcua-assert";
 import { VariableTypeIds } from "node-opcua-constants";
 import { coerceLocalizedText, LocalizedText } from "node-opcua-data-model";
 import { StatusCode, StatusCodes } from "node-opcua-status-code";
-import { DataType, VariantArrayType, VariantLike } from "node-opcua-variant";
-import { Variant } from "node-opcua-variant";
+import { DataType, VariantArrayType , Variant } from "node-opcua-variant";
 
 import {
     AddMultiStateDiscreteOptions,
@@ -118,7 +117,7 @@ export function _addMultiStateDiscrete(namespace: Namespace, options: AddMultiSt
 
     options.value = options.value === undefined ? 0 : options.value;
 
-    let value: undefined | VariantLike | BindVariableOptions;
+    let value: undefined | BindVariableOptions;
     if (typeof options.value === "number") {
         value = new Variant({
             dataType: DataType.UInt32,

@@ -176,7 +176,7 @@ export interface TwoStateVariableInitializeOptions {
     isFalseSubStateOf?: NodeId | string | BaseNodePublic;
     isTrueSubStateOf?: NodeId | string | BaseNodePublic;
 
-    value?: boolean | VariantLike | BindVariableOptions;
+    value?: boolean | BindVariableOptions;
 }
 /***
  * @class UATwoStateVariable
