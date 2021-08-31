@@ -196,15 +196,56 @@ export declare class BaseNode extends EventEmitter {
 
     public install_extra_properties(): void;
 
-    public findReferencesEx(strReference: string, browseDirection?: BrowseDirection): UAReference[];
+    /**
+     * find all the references that are of type **`reference`** or a sub type of **`reference`**, in the
+     * direction specified by **`browseDirection`**
+     *
+     *  * BrowseDirection.Forward direction is implied if browseDirection flags is omitted.
+     */
+    public findReferencesEx(referenceType: string | NodeId | UAReferenceType, browseDirection?: BrowseDirection): UAReference[];
 
+    /**
+     * find all the references that are strictly of type **`reference`**.
+     * The isForward boolean flag specifies the direction of the references to be looked for.
+     *
+     * Forward direction is implied if omitted.
+     */
     public findReferences(referenceType: string | NodeId | UAReferenceType, isForward?: boolean): UAReference[];
 
-    public findReference(strReference: string, isForward?: boolean): UAReference | null;
+    /**
+     * find the the references that are strictly of type **`reference`**.
+     *
+     * The isForward boolean flag specifies the direction of the references to be looked for.
+     *
+     * Forward direction is implied if omitted.
+     *
+     * * will throw an exception  if more than one reference exists with the referenceType.
+     * * will return null if no reference exists.
+     */
+    public findReference(referenceType: string | NodeId | UAReferenceType, isForward?: boolean): UAReference | null;
 
-    public findReferencesExAsObject(strReference: string, browseDirection?: BrowseDirection): BaseNode[];
+    /**
+     * find all the nodes that are referenced by references of type **`reference`** or a sub type of **`reference`**, in the
+     * direction specified by **`browseDirection`**
+     *
+     *  * BrowseDirection.Forward direction is implied if browseDirection flags is omitted.
+     */
+    public findReferencesExAsObject(
+        referenceType: string | NodeId | UAReferenceType,
+        browseDirection?: BrowseDirection
+    ): BaseNode[];
 
-    public findReferencesAsObject(strReference: string, isForward: boolean): BaseNode[];
+    /**
+     *  find all the nodes that are referenced by references strictly of type **`reference`**.
+     *
+     * The isForward boolean flag specifies the direction of the references to be looked for.
+     *
+     * Forward direction is implied if omitted.
+     *
+     * * will throw an exception  if more than one reference exists with the referenceType.
+     * * will return null if no reference exists.
+     */
+    public findReferencesAsObject(referenceType: string | NodeId | UAReferenceType, isForward: boolean): BaseNode[];
 
     public allReferences(): Reference[];
 
@@ -657,7 +698,7 @@ export interface UADataItem extends UAVariable {
 }
 
 export interface AddAnalogDataItemOptions extends AddDataItemOptions {
-    value?:  BindVariableOptions;
+    value?: BindVariableOptions;
 
     engineeringUnitsRange?: {
         low: number;
@@ -1239,7 +1280,7 @@ export interface AddVariableOptionsWithoutValue extends AddBaseNodeOptions, Vari
 export interface AddVariableOptions extends AddVariableOptionsWithoutValue {
     // default value is "BaseVariableType";
     typeDefinition?: string | NodeId | UAVariableType;
-    value?:  BindVariableOptions;
+    value?: BindVariableOptions;
     postInstantiateFunc?: (node: UAVariable) => void;
 }
 
@@ -1295,7 +1336,7 @@ export interface AddMultiStateDiscreteOptions extends AddBaseNodeOptions, Variab
     enumStrings: string[]; // default value is "BaseVariableType";
     typeDefinition?: string | NodeId | UAVariableType;
     postInstantiateFunc?: (node: UAVariable) => void;
-    value?: number  | BindVariableOptions;
+    value?: number | BindVariableOptions;
 }
 
 export interface AddReferenceTypeOptions extends AddBaseNodeOptions {
@@ -1335,7 +1376,7 @@ export interface AddTwoStateVariableOptions extends AddStateVariableOptions {
     isFalseSubStateOf?: NodeId | string | BaseNode;
     isTrueSubStateOf?: NodeId | string | BaseNode;
 
-    value?: boolean  | BindVariableOptions;
+    value?: boolean | BindVariableOptions;
 }
 
 // BaseVariableType => BaseDataVariableType => DataItemType => DiscreteItemType => TwoStateDiscreteType
@@ -1346,7 +1387,7 @@ export interface AddTwoStateDiscreteOptions extends AddVariableOptionsWithoutVal
     isFalseSubStateOf?: NodeIdLike | BaseNode;
     isTrueSubStateOf?: NodeIdLike | BaseNode;
 
-    value?: boolean  | BindVariableOptions;
+    value?: boolean | BindVariableOptions;
 
     /** @example  "" */
     definition?: string;

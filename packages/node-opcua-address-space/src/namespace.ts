@@ -659,7 +659,7 @@ export class UANamespace implements NamespacePublic {
             node = nodeOrNodeId;
             nodeId = node.nodeId;
         }
-        // console.log("deleteNode", node?.toString());
+        // istanbul ignore next
         if (nodeId.namespace !== this.index) {
             throw new Error("this node doesn't belong to this namespace");
         }
@@ -687,10 +687,10 @@ export class UANamespace implements NamespacePublic {
 
             // recursively delete all nodes below in the hierarchy of nodes
             // TODO : a better idea would be to extract any references of type "HasChild"
-            const components = node.findReferences("HasComponent", true);
-            const properties = node.findReferences("HasProperty", true);
+            const components = node.findReferencesEx("HasComponent", BrowseDirection.Forward);
+            const properties = node.findReferencesEx("HasProperty", BrowseDirection.Forward);
             // TODO: shall we delete nodes pointed by "Organizes" links here ?
-            const subFolders = node.findReferences("Organizes", true);
+            const subFolders = node.findReferencesEx("Organizes", BrowseDirection.Forward);
 
             for (const r of components) {
                 deleteNodePointedByReference(r);

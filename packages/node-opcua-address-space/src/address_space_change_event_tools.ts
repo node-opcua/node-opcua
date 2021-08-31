@@ -148,7 +148,7 @@ export function _handle_delete_node_model_change_event(node: BaseNode) {
         return addressSpace.findNode(r.nodeId)! as BaseNode;
     });
 
-    const versionableNodes = parentNodes.filter((n: BaseNode) => !!n.nodeVersion);
+    const versionableNodes = parentNodes.filter((n: BaseNode) => !!n?.nodeVersion);
 
     if (versionableNodes.length >= 1 || !!node.nodeVersion) {
         addressSpace.modelChangeTransaction(() => {
