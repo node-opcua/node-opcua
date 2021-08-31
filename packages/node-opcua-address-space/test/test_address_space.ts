@@ -68,12 +68,11 @@ describe("testing address space", () => {
     });
 
     it("AddressSpace#deleteNode - should remove an object from the address space", () => {
-        const options = {
+       
+        const object = namespace.addObject( {
             browseName: "SomeObject",
             organizedBy: "ObjectsFolder"
-        };
-
-        const object = namespace.addObject(options);
+        });
 
         // object shall be found with a global nodeId search
         addressSpace.findNode(object.nodeId)!.should.eql(object);

@@ -20,7 +20,7 @@ import {
     QualifiedName,
     QualifiedNameLike,
     QualifiedNameOptions,
-    AccessRestrictionsFlag,
+    AccessRestrictionsFlag
 } from "node-opcua-data-model";
 import { DataValue } from "node-opcua-data-value";
 import { dumpIf, make_warningLog } from "node-opcua-debug";
@@ -28,7 +28,13 @@ import { coerceNodeId, makeNodeId, NodeId, NodeIdLike, resolveNodeId, sameNodeId
 import { NumericRange } from "node-opcua-numeric-range";
 import { ReferenceDescription } from "node-opcua-service-browse";
 import { StatusCode, StatusCodes } from "node-opcua-status-code";
-import { BrowseDescription, PermissionType, RelativePathElement, RolePermissionType, RolePermissionTypeOptions } from "node-opcua-types";
+import {
+    BrowseDescription,
+    PermissionType,
+    RelativePathElement,
+    RolePermissionType,
+    RolePermissionTypeOptions
+} from "node-opcua-types";
 import * as utils from "node-opcua-utils";
 import { lowerFirstLetter } from "node-opcua-utils";
 import { DataType, VariantArrayType } from "node-opcua-variant";
@@ -105,7 +111,6 @@ export interface InternalBaseNodeOptions {
      */
     accessRestrictions?: AccessRestrictionsFlag;
     rolePermissions?: RolePermissionTypeOptions[];
-
 }
 
 function _is_valid_BrowseDirection(browseDirection: any) {
@@ -118,7 +123,7 @@ function _is_valid_BrowseDirection(browseDirection: any) {
 
 function coerceRolePermissions(rolePermissions: RolePermissionTypeOptions[] | undefined): RolePermissionType[] | undefined {
     if (!rolePermissions) return undefined;
-    return rolePermissions.map(rp => new RolePermissionType(rp));
+    return rolePermissions.map((rp) => new RolePermissionType(rp));
 }
 
 export interface BaseNode {
@@ -154,7 +159,6 @@ export function makeAttributeEventName(attributeId: AttributeIds) {
  *
  */
 export class BaseNode extends EventEmitter implements BaseNodePublic {
-
     public accessRestrictions?: AccessRestrictionsFlag;
     public rolePermissions?: RolePermissionType[];
 
@@ -272,7 +276,6 @@ export class BaseNode extends EventEmitter implements BaseNodePublic {
         return makeAttributeEventName(attributeId);
     }
 
-
     public nodeClass: NodeClass = NodeClass.Unspecified;
     public readonly nodeId: NodeId;
     public readonly browseName: QualifiedName;
@@ -285,7 +288,6 @@ export class BaseNode extends EventEmitter implements BaseNodePublic {
      */
     constructor(options: InternalBaseNodeOptions) {
         super();
-
 
         assert(this.nodeClass === NodeClass.Unspecified, "must not be specify a nodeClass");
         assert(options.addressSpace); // expecting an address space
@@ -347,23 +349,15 @@ export class BaseNode extends EventEmitter implements BaseNodePublic {
     // ---------------------------------------------------------------------------------------------------
     // Finders
     // ---------------------------------------------------------------------------------------------------
-    public findReferencesEx(strReference: string | UAReferenceTypePublic, browseDirection?: BrowseDirection): UAReferencePublic[] {
+
+    public findReferencesEx(referenceType: string | NodeId | UAReferenceTypePublic, browseDirection?: BrowseDirection): UAReferencePublic[] {
         browseDirection = browseDirection !== undefined ? browseDirection : BrowseDirection.Forward;
         assert(_is_valid_BrowseDirection(browseDirection));
         assert(browseDirection !== BrowseDirection.Both);
+        
+        const referenceTypeNode = this._coerceReferenceType(referenceType);
 
-        let referenceType: UAReferenceTypePublic | null = null;
-        if (typeof strReference === "string") {
-            // xx strReference = strReference.browseName.toString();
-            referenceType = this.addressSpace.findReferenceType(strReference);
-            if (!referenceType) {
-                throw new Error("Cannot resolve referenceType : " + strReference);
-            }
-        } else {
-            referenceType = strReference;
-        }
-
-        if (!referenceType) {
+        if (!referenceTypeNode) {
             // note: when loading nodeset2.xml files, reference type may not exit yet
             // throw new Error("expecting valid reference name " + strReference);
             return [];
@@ -372,34 +366,34 @@ export class BaseNode extends EventEmitter implements BaseNodePublic {
         const isForward = browseDirection === BrowseDirection.Forward;
         const results: Reference[] = [];
 
-        function process(referenceIdx: { [key: string]: Reference }) {
+        const process = (referenceIdx: { [key: string]: Reference }) => {
             const references = Object.values(referenceIdx);
             for (const ref of references) {
-                if (ref.isForward === isForward && referenceType && referenceType.checkHasSubtype(ref.referenceType)) {
+                if (
+                    ref.isForward === isForward &&
+                    referenceTypeNode &&
+                    referenceTypeNode.checkHasSubtype(ref.referenceType)
+                ) {
                     results.push(ref);
                 }
             }
-        }
+        };
         const _private = BaseNode_getPrivate(this);
         process(_private._referenceIdx);
         process(_private._back_referenceIdx);
         return results;
     }
 
-    /**
-     * @method findReferences
-     * @param   referenceType {String|NodeId|ReferenceType} the referenceType as a string.
-     * @param  [isForward]  default=true
-     * @return an array with references
-     */
-    public findReferences(referenceType: string | NodeId | UAReferenceTypePublic, isForward?: boolean): UAReferencePublic[] {
+    public findReferences(referenceType: string | NodeId | UAReferenceTypePublic, isForward: boolean = true): UAReferencePublic[] {
         const _cache = BaseNode_getCache(this);
         const _private = BaseNode_getPrivate(this);
 
-        isForward = utils.isNullOrUndefined(isForward) ? true : !!isForward;
-
         const referenceTypeNode = this._coerceReferenceType(referenceType);
-
+        if (!referenceTypeNode) {
+            // note: when loading nodeset2.xml files, reference type may not exit yet
+            // throw new Error("expecting valid reference name " + strReference);
+            return [];
+        }
         const hash = "_ref_" + referenceTypeNode.nodeId.toString() + isForward.toString();
         if (_cache[hash]) {
             return _cache[hash];
@@ -431,29 +425,24 @@ export class BaseNode extends EventEmitter implements BaseNodePublic {
         return result;
     }
 
-    /**
-     * @method findReference
-     * @param strReference the referenceType as a string.
-     * @param [isForward]
-     * @return {Reference}
-     */
-    public findReference(strReference: string, isForward?: boolean): UAReferencePublic | null {
+    public findReference(strReference: string | NodeId | UAReferenceTypePublic, isForward?: boolean): UAReferencePublic | null {
         const refs = this.findReferences(strReference, isForward);
-        // yy if (optionalSymbolicName) {
-        // yy     // search reference that matches symbolic name
-        // yy     refs = refs.filter((ref: Reference) => ref.symbolicName === optionalSymbolicName);
-        // yy }
-        assert(refs.length === 1 || refs.length === 0, "findReference: expecting only one or zero element here");
-        return refs.length === 0 ? null : refs[0];
+        if (refs.length !== 1 && refs.length !== 0) {
+            throw new Error("findReference: expecting only one or zero element here");
+        }
+        return refs[0] || null;
     }
 
-    public findReferencesExAsObject(strReference: string, browseDirection?: BrowseDirection): BaseNode[] {
-        const references = this.findReferencesEx(strReference, browseDirection);
+    public findReferencesExAsObject(
+        referenceType: string | NodeId | UAReferenceTypePublic,
+        browseDirection?: BrowseDirection
+    ): BaseNode[] {
+        const references = this.findReferencesEx(referenceType, browseDirection);
         return _asObject<BaseNode>(references, this.addressSpace);
     }
 
-    public findReferencesAsObject(strReference: string, isForward?: boolean): BaseNode[] {
-        const references = this.findReferences(strReference, isForward);
+    public findReferencesAsObject(referenceType: string | NodeId | UAReferenceTypePublic, isForward?: boolean): BaseNode[] {
+        const references = this.findReferences(referenceType, isForward);
         return _asObject<BaseNode>(references, this.addressSpace);
     }
 
@@ -539,7 +528,7 @@ export class BaseNode extends EventEmitter implements BaseNodePublic {
                 return null;
             }
             assert(component.nodeClass === NodeClass.Variable || component.nodeClass === NodeClass.Object);
-            return (component as any) as UAVariablePublic | UAObjectPublic;
+            return component as any as UAVariablePublic | UAObjectPublic;
         } else {
             return null;
         }
@@ -557,7 +546,7 @@ export class BaseNode extends EventEmitter implements BaseNodePublic {
         if (select.length === 1 && select[0].nodeClass !== NodeClass.Variable) {
             throw new Error("Expecting a property to be of nodeClass==NodeClass.Variable");
         }
-        return select.length === 1 ? ((select[0] as any) as UAVariablePublic) : null;
+        return select.length === 1 ? (select[0] as any as UAVariablePublic) : null;
     }
 
     /**
@@ -575,7 +564,7 @@ export class BaseNode extends EventEmitter implements BaseNodePublic {
      * returns the list of nodes that this folder object organizes
      */
     public getFolderElements(): BaseNode[] {
-        return this.findReferencesAsObject("Organizes", true);
+        return this.findReferencesExAsObject("Organizes", BrowseDirection.Forward);
     }
 
     /**
@@ -803,7 +792,7 @@ export class BaseNode extends EventEmitter implements BaseNodePublic {
         }
 
         if (nodeIds.length === 0 && (this.nodeClass === NodeClass.ObjectType || this.nodeClass === NodeClass.VariableType)) {
-            const nodeType = (this as any) as UAVariableTypePublic;
+            const nodeType = this as any as UAVariableTypePublic;
 
             if (nodeType.subtypeOf) {
                 // browsing also InstanceDeclarations included in base type
@@ -859,8 +848,8 @@ export class BaseNode extends EventEmitter implements BaseNodePublic {
 
         references = _filter_by_userFilter.call(this, references, context);
 
-        if (context)  {
-            references = _filter_by_context(this,references, context);
+        if (context) {
+            references = _filter_by_context(this, references, context);
         }
         const referenceDescriptions = _constructReferenceDescription(addressSpace, references, browseDescription.resultMask);
 
@@ -972,9 +961,9 @@ export class BaseNode extends EventEmitter implements BaseNodePublic {
         }
 
         // make sure parent have extra properties updated
-        const parentComponents = this.findReferences("HasComponent", false);
-        const parentSubfolders = this.findReferences("Organizes", false);
-        const parentProperties = this.findReferences("HasProperty", false);
+        const parentComponents = this.findReferencesEx("HasComponent", BrowseDirection.Inverse);
+        const parentSubfolders = this.findReferencesEx("Organizes", BrowseDirection.Inverse);
+        const parentProperties = this.findReferencesEx("HasProperty", BrowseDirection.Inverse);
 
         for (const p of parentComponents) {
             install_extra_properties_on_parent(p);
@@ -1053,7 +1042,7 @@ export class BaseNode extends EventEmitter implements BaseNodePublic {
      * @return {UAStateVariable[]} return an array with the SubStates of this object.
      */
     public getFalseSubStates(): UAStateVariable[] {
-        return (this.findReferencesAsObject("HasFalseSubState") as unknown) as UAStateVariable[];
+        return this.findReferencesAsObject("HasFalseSubState") as unknown as UAStateVariable[];
     }
 
     /**
@@ -1061,7 +1050,7 @@ export class BaseNode extends EventEmitter implements BaseNodePublic {
      * @return {UAStateVariable[]} return an array with the SubStates of this object.
      */
     public getTrueSubStates(): UAStateVariable[] {
-        return (this.findReferencesAsObject("HasTrueSubState") as unknown) as UAStateVariable[];
+        return this.findReferencesAsObject("HasTrueSubState") as unknown as UAStateVariable[];
     }
 
     public findHierarchicalReferences(): UAReference[] {
@@ -1134,7 +1123,6 @@ export class BaseNode extends EventEmitter implements BaseNodePublic {
      *
      */
     public dispose() {
-
         this.emit("dispose");
 
         this.removeAllListeners();
@@ -1220,7 +1208,7 @@ export class BaseNode extends EventEmitter implements BaseNodePublic {
         BaseNode_add_backward_reference.call(this, reference);
     }
 
-    protected _coerceReferenceType(referenceType: string | NodeId | UAReferenceTypePublic): UAReferenceTypePublic {
+    protected _coerceReferenceType(referenceType: string | NodeId | UAReferenceTypePublic): UAReferenceTypePublic | null {
         let result: UAReferenceTypePublic;
         if (typeof referenceType === "string") {
             result = this.addressSpace.findReferenceType(referenceType)!;
@@ -1230,12 +1218,17 @@ export class BaseNode extends EventEmitter implements BaseNodePublic {
             }
         } else if (referenceType instanceof NodeId) {
             result = this.addressSpace.findNode(referenceType) as UAReferenceTypePublic;
+            if (!result) {
+                return null;
+            }
         } else {
             result = referenceType;
         }
+        assert(result, "reference must exists");
         assert(result.nodeClass === NodeClass.ReferenceType);
         return result as UAReferenceTypePublic;
     }
+
 
     private __addReference(referenceOpts: AddReferenceOpts): Reference {
         const _private = BaseNode_getPrivate(this);
@@ -1275,9 +1268,8 @@ export class BaseNode extends EventEmitter implements BaseNodePublic {
         this.emit(event_name, this.readAttribute(SessionContext.defaultContext, attributeId));
     }
 
-
     private _clear_caches() {
-        BaseNode_clearCache(this)
+        BaseNode_clearCache(this);
     }
     private _readAccessRestrictions(context: SessionContext | null): DataValue {
         // https://reference.opcfoundation.org/v104/Core/docs/Part3/8.56/
@@ -1294,7 +1286,6 @@ export class BaseNode extends EventEmitter implements BaseNodePublic {
         });
     }
     private _readRolePermissions(context: SessionContext | null): DataValue {
-
         // https://reference.opcfoundation.org/v104/Core/docs/Part3/4.8.3/
 
         // to do check that current user can read permission
@@ -1312,14 +1303,12 @@ export class BaseNode extends EventEmitter implements BaseNodePublic {
             });
         }
 
-        const rolePermissions = this.rolePermissions
-            .map(
-                ({ roleId, permissions }) => {
-                    return new RolePermissionType({
-                        roleId: toRoleNodeId(roleId!),
-                        permissions
-                    })
-                });
+        const rolePermissions = this.rolePermissions.map(({ roleId, permissions }) => {
+            return new RolePermissionType({
+                roleId: toRoleNodeId(roleId!),
+                permissions
+            });
+        });
         return new DataValue({
             statusCode: StatusCodes.Good,
             value: {
@@ -1331,14 +1320,14 @@ export class BaseNode extends EventEmitter implements BaseNodePublic {
     }
 
     private _readUserRolePermissions(context: SessionContext | null): DataValue {
-        // for the time being ... 
+        // for the time being ...
         return this._readRolePermissions(context);
     }
 
     /**
-    * 
-    * @param rolePermissions 
-    */
+     *
+     * @param rolePermissions
+     */
     setRolePermissions(rolePermissions: RolePermissionTypeOptions[]): void {
         this.rolePermissions = coerceRolePermissions(rolePermissions);
     }
@@ -1346,8 +1335,6 @@ export class BaseNode extends EventEmitter implements BaseNodePublic {
     setAccessRestrictions(accessRestrictions: AccessRestrictionsFlag): void {
         this.accessRestrictions = accessRestrictions;
     }
-
-
 }
 
 function toRoleNodeId(s: NodeIdLike): NodeId {
@@ -1421,11 +1408,11 @@ function _asObject<T extends BaseNode>(references: UAReferencePublic[], addressS
             // tslint:disable-next-line:no-console
             console.log(
                 chalk.red(" Warning :  object with nodeId ") +
-                chalk.cyan(reference.nodeId.toString()) +
-                chalk.red(" cannot be found in the address space !")
+                    chalk.cyan(reference.nodeId.toString()) +
+                    chalk.red(" cannot be found in the address space !")
             );
         }
-        return (obj as any) as T;
+        return obj as any as T;
     }
 
     function remove_null(o: any): boolean {
@@ -1441,13 +1428,15 @@ function _filter_by_browse_name<T extends BaseNodePublic>(
     namespaceIndex?: number
 ): T[] {
     let select: T[] = [];
-    if ((namespaceIndex === null || namespaceIndex === undefined) && (typeof browseName === "string")) {
+    if ((namespaceIndex === null || namespaceIndex === undefined) && typeof browseName === "string") {
         select = components.filter((c: T) => c.browseName.name!.toString() === browseName);
         if (select && select.length > 1) {
             warningLog("Multiple children exist with name ", browseName, " please specify a namespace index");
         }
     } else {
-        const _browseName = coerceQualifiedName(typeof browseName === "string" ? { name: browseName, namespaceIndex } : browseName)!;
+        const _browseName = coerceQualifiedName(
+            typeof browseName === "string" ? { name: browseName, namespaceIndex } : browseName
+        )!;
         select = components.filter(
             (c: T) => c.browseName.name === _browseName.name && c.browseName.namespaceIndex === _browseName.namespaceIndex
         );
@@ -1609,12 +1598,11 @@ function _filter_by_direction(references: Reference[], browseDirection: BrowseDi
         return references.filter(reverseOnly);
     }
 }
-function _filter_by_context(node: BaseNode, references: Reference[], context: SessionContext) : Reference[] {
-
+function _filter_by_context(node: BaseNode, references: Reference[], context: SessionContext): Reference[] {
     if (!context.isBrowseAccessRestricted(node)) {
         return references;
     }
-    // browse access is restricted for forward 
+    // browse access is restricted for forward
     return [];
 }
 
