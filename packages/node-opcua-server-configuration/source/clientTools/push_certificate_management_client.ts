@@ -226,7 +226,7 @@ export class CertificateGroup {
 
     }
     async getCertificateTypes(): Promise<NodeId[]> {
-        const browsePathResult = await this.session.translateBrowsePath(makeBrowsePath(this.nodeId, "/CertifiateTypes"));
+        const browsePathResult = await this.session.translateBrowsePath(makeBrowsePath(this.nodeId, "/CertificateTypes"));
         if (browsePathResult.statusCode !== StatusCodes.Good) {
             throw new Error(browsePathResult.statusCode.name);
         }
