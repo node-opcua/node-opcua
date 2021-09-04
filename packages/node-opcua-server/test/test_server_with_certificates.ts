@@ -6,6 +6,7 @@ import * as fs from "fs";
 const certificateFolder = path.join(__dirname, "../../node-opcua-samples/certificates");
 fs.existsSync(certificateFolder).should.eql(true, "expecting certificate store at " + certificateFolder);
 
+const port = 3021;
 describe("preventing server to start with invalid certificates/private key combination", () => {
     it("KP1: should raise a exception when attempting to start a server with key pair mistmatch", async () => {
         const certificateFile = path.join(certificateFolder, "server_cert_2048.pem");
@@ -39,6 +40,7 @@ describe("preventing server to start with invalid certificates/private key combi
         fs.existsSync(privateKeyFile).should.eql(true);
 
         const server = new OPCUAServer({
+            port,
             certificateFile,
             privateKeyFile
         });
@@ -54,6 +56,7 @@ describe("preventing server to start with invalid certificates/private key combi
         fs.existsSync(privateKeyFile).should.eql(true);
 
         const server = new OPCUAServer({
+            port,
             certificateFile,
             privateKeyFile
         });
@@ -69,6 +72,7 @@ describe("preventing server to start with invalid certificates/private key combi
         fs.existsSync(privateKeyFile).should.eql(true);
 
         const server = new OPCUAServer({
+            port,
             certificateFile,
             privateKeyFile
         });
