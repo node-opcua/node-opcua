@@ -49,7 +49,7 @@ module.exports = function (test) {
                 console.log("keep trying to connect "+ connectionPoint.endpointUrl)
             });
             
-            // first attemp as Anonymous user
+            // first attempt as Anonymous user
             await client.withSessionAsync(
                 { endpointUrl: test.endpointUrl, userIdentity: { type:UserTokenType.Anonymous} },
                 async (session) => {
@@ -78,7 +78,7 @@ module.exports = function (test) {
                 // console.log(sessionSecurityDiagnostics.toString());
             });
 
-            // first attemp as Administrator user
+            // first attempt as Administrator user
             await client.withSessionAsync(
                 connectionPoint,
                 async (session) => {
@@ -294,7 +294,7 @@ module.exports = function (test) {
                 const dataValues = await session.read(nodesToRead);
  
                 dataValues[0].statusCode.should.eql(StatusCodes.Good);
-                dataValues[1].statusCode.should.eql(StatusCodes.BadUserAccessDenied);
+                dataValues[1].statusCode.should.eql(StatusCodes.BadSecurityModeInsufficient);
              });
 
         });
@@ -324,7 +324,7 @@ module.exports = function (test) {
                 const dataValues = await session.read(nodesToRead);
  
                 dataValues[0].statusCode.should.eql(StatusCodes.Good);
-                dataValues[1].statusCode.should.eql(StatusCodes.BadUserAccessDenied);
+                dataValues[1].statusCode.should.eql(StatusCodes.BadSecurityModeInsufficient);
              });
 
         });
