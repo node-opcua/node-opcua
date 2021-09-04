@@ -2494,7 +2494,7 @@ export class OPCUAServer extends OPCUABaseServer {
                 (f as any)(request.nodesToBrowse, context, (err?: Error | null, results?: BrowseResult[]) => {
                     // istanbul ignore next
                     if (!results) {
-                        throw new Error("internal error");
+                        throw new Error("internal error : " + err?.message);
                     }
 
                     assert(results[0].schema.name === "BrowseResult");
