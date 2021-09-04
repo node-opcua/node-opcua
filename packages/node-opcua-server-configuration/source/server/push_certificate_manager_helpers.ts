@@ -90,23 +90,23 @@ async function _createSigningRequest(
     const nonceVariant = inputArguments[4];
 
     if (!expected(certificateGroupIdVariant, DataType.NodeId, VariantArrayType.Scalar)) {
-        warningLog("epecting an NodeId for certificateGroupId - 0");
+        warningLog("expecting an NodeId for certificateGroupId - 0");
         return { statusCode: StatusCodes.BadInvalidArgument };
     }
     if (!expected(certificateTypeIdVariant, DataType.NodeId, VariantArrayType.Scalar)) {
-        warningLog("epecting an NodeId for certificateTypeId - 1");
+        warningLog("expecting an NodeId for certificateTypeId - 1");
         return { statusCode: StatusCodes.BadInvalidArgument };
     }
     if (!expected(subjectNameVariant, DataType.String, VariantArrayType.Scalar)) {
-        warningLog("epecting an String for subjectName - 2");
+        warningLog("expecting an String for subjectName - 2");
         return { statusCode: StatusCodes.BadInvalidArgument };
     }
     if (!expected(regeneratePrivateKeyVariant, DataType.Boolean, VariantArrayType.Scalar)) {
-        warningLog("epecting an Boolean for regeneratePrivateKey - 3");
+        warningLog("expecting an Boolean for regeneratePrivateKey - 3");
         return { statusCode: StatusCodes.BadInvalidArgument };
     }
     if (!expected(nonceVariant, DataType.ByteString, VariantArrayType.Scalar)) {
-        warningLog("epecting an ByteString for nonceVariant - 4");
+        warningLog("expecting an ByteString for nonceVariant - 4");
         return { statusCode: StatusCodes.BadInvalidArgument };
     }
 
@@ -314,6 +314,8 @@ export async function installPushCertificateManagement(
         return;
     }
 
+    const accessRestrictionFlag = AccessRestrictionsFlag.SigningRequired | AccessRestrictionsFlag.EncryptionRequired;
+
     function installAccessRestrictions(serverConfiguration: UAObject) {
 
         serverConfiguration.setRolePermissions(rolePermissionRestricted);
@@ -325,15 +327,15 @@ export async function installPushCertificateManagement(
 
         const createSigningRequest = serverConfiguration.getMethodByName("CreateSigningRequest");
         createSigningRequest?.setRolePermissions(rolePermissionAdminOnly);
-        createSigningRequest?.setAccessRestrictions(AccessRestrictionsFlag.SigningRequired | AccessRestrictionsFlag.EncryptionRequired);
+        createSigningRequest?.setAccessRestrictions(accessRestrictionFlag);
 
         const getRejectedList = serverConfiguration.getMethodByName("GetRejectedList");
         getRejectedList?.setRolePermissions(rolePermissionAdminOnly);
-        getRejectedList?.setAccessRestrictions(AccessRestrictionsFlag.SigningRequired | AccessRestrictionsFlag.EncryptionRequired);
+        getRejectedList?.setAccessRestrictions(accessRestrictionFlag);
 
-        const updateCertficate = serverConfiguration.getMethodByName("UpdateCertficate");
-        updateCertficate?.setRolePermissions(rolePermissionAdminOnly);
-        updateCertficate?.setAccessRestrictions(AccessRestrictionsFlag.SigningRequired | AccessRestrictionsFlag.EncryptionRequired);
+        const updateCertificate = serverConfiguration.getMethodByName("UpdateCertificate");
+        updateCertificate?.setRolePermissions(rolePermissionAdminOnly);
+        updateCertificate?.setAccessRestrictions(accessRestrictionFlag);
 
         const certificateGroups = serverConfiguration.getComponentByName("CertificateGroups")!;
         certificateGroups.setRolePermissions(rolePermissionRestricted);
