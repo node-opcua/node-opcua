@@ -341,7 +341,6 @@ const typeAndDefaultValue = [
             return new QualifiedName();
         }
     },
-    { type: "Time", realType: "String", defaultValue: "00:00:00" },
     { type: "UInt64", defaultValue: [0, 0] },
     { type: "Int64", defaultValue: [0, 0] },
     // xx {type: "Variant",   realType:   "Variant", defaultValue:  {} },

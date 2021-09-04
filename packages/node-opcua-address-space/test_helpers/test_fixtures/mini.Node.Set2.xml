@@ -671,13 +671,6 @@
             <Reference ReferenceType="HasSubtype" IsForward="false">i=11</Reference>
         </References>
     </UADataType>
-    <UADataType NodeId="i=292" BrowseName="Time">
-        <DisplayName>Time</DisplayName>
-        <Description>A time value specified as HH:MM:SS.SSS.</Description>
-        <References>
-            <Reference ReferenceType="HasSubtype" IsForward="false">i=12</Reference>
-        </References>
-    </UADataType>
     <UADataType NodeId="i=294" BrowseName="UtcTime">
         <DisplayName>UtcTime</DisplayName>
         <References>
