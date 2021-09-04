@@ -724,7 +724,7 @@ export class ServerSession extends EventEmitter implements ISubscriber, ISession
 
                 Object.defineProperty(this._sessionSecurityDiagnostics, "clientUserIdOfSession", {
                     get(this: any) {
-                        return ""; // UAString
+                        return ""; // UAString // TO DO : implement
                     }
                 });
 

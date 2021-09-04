@@ -442,9 +442,9 @@ export class Subscription extends EventEmitter {
     public static minimumPublishingInterval: number = 50; // fastest possible
     public static defaultPublishingInterval: number = 1000; // one second
     public static maximumPublishingInterval: number = 1000 * 60 * 60 * 24 * 15; // 15 days
-    public static maxNotificationPerPublishHighLimit: number = 5000;
+    public static maxNotificationPerPublishHighLimit: number = 1000;
     public static maxMonitoredItemCount: number = 20000;
-
+        
     public static registry = new ObjectRegistry();
 
     public sessionId: NodeId;
