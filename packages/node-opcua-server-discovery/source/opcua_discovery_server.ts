@@ -178,10 +178,6 @@ export class OPCUADiscoveryServer extends OPCUABaseServer {
     public async shutdown(): Promise<void>;
     public shutdown(done: ErrorCallback): void;
     public shutdown(done?: ErrorCallback): any {
-        if (this.mDnsResponder) {
-            this.mDnsResponder.dispose();
-            this.mDnsResponder = undefined;
-        }
         debugLog("stopping announcement of LDS on mDNS");
         this.bonjourHolder._stop_announcedOnMulticastSubnetWithCallback((err?: Error | null) => {
             if (err) {
@@ -190,7 +186,11 @@ export class OPCUADiscoveryServer extends OPCUABaseServer {
             debugLog("stopping announcement of LDS on mDNS - DONE");
             debugLog("Shutting down Discovery Server");
             super.shutdown(() => {
-                setTimeout(() => done!(), 100);
+                if (this.mDnsResponder) {
+                    this.mDnsResponder.dispose();
+                    this.mDnsResponder = undefined;
+                }
+                setTimeout(() => done!(), 200);
             });
         });
     }
@@ -357,7 +357,7 @@ export class OPCUADiscoveryServer extends OPCUABaseServer {
         rawServer: RegisteredServer,
         discoveryConfigurations?: MdnsDiscoveryConfiguration[]
     ): Promise<Response> {
-        const server = (rawServer as any) as RegisteredServerExtended;
+        const server = rawServer as any as RegisteredServerExtended;
 
         if (!discoveryConfigurations) {
             discoveryConfigurations = [
