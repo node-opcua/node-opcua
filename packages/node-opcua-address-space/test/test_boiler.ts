@@ -91,10 +91,11 @@ describe("Testing Boiler System", () => {
 
         // xx boiler.inputPipe.displayName.text.toString().should.eql("Pipe1001");
 
-        boiler.inputPipe.modellingRule!.should.eql("Mandatory");
-        boiler.outputPipe.modellingRule!.should.eql("Mandatory");
-        boiler.boilerDrum.modellingRule!.should.eql("Mandatory");
-        boiler.simulation.modellingRule!.should.eql("Mandatory");
+        // proper instances should not have modellingRule specified
+        should.not.exist(boiler.inputPipe.modellingRule);
+        should.not.exist(boiler.outputPipe.modellingRule);
+        should.not.exist(boiler.boilerDrum.modellingRule);
+        should.not.exist(boiler.simulation.modellingRule);
 
         boiler.getNotifiers().length.should.eql(3);
         boiler.getEventSources().length.should.eql(1);

@@ -5,11 +5,11 @@ import { assert } from "node-opcua-assert";
 
 /**
  * transform  optional into a map
- * 
+ *
  * @example
  * ```javascript
  * const optionals = [ "A", "B", "C.D" ];
- * 
+ *
  * const map = makeOptionalsMap(optionals);
  * const map = {
  *   A: {}
@@ -17,21 +17,20 @@ import { assert } from "node-opcua-assert";
  *   C: {  D: {} }
  * };
  * ```
- * 
+ *
  * @internal
  */
-
-export function makeOptionalsMap(
-  optionals?: string[] | null
-): { [key: string]: any }  {
-
-    const resultMap = {};
+export interface OptionalMap {
+    [key: string]: OptionalMap;
+}
+export function makeOptionalsMap(optionals?: string[] | null): OptionalMap {
+    const resultMap: OptionalMap = {};
     if (!optionals) {
         return resultMap;
     }
     assert(optionals instanceof Array);
 
-    function insertInMap(map: any, s: any): any {
+    function insertInMap(map: OptionalMap, s: string[]): void {
         const key = s[0];
 
         if (!map[key]) {
@@ -43,9 +42,8 @@ export function makeOptionalsMap(
     }
 
     for (const opt of optionals) {
-        const s = opt.split(".");
+        const s: string[] = opt.split(".");
         insertInMap(resultMap, s);
-
     }
     return resultMap;
 }
