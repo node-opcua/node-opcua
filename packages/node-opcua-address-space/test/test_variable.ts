@@ -393,7 +393,7 @@ describe("testing Variable#bindVariable", () => {
             dataValueCheck1.statusCode.should.eql(StatusCodes.Good);
             dataValueCheck1.value.value.should.eql(100);
 
-            // When we write a differente value
+            // When we write a different value
             const dataValue = new DataValue({
                 value: {
                     dataType: DataType.Double,
@@ -954,7 +954,7 @@ describe("testing Variable#writeValue Array", () => {
     });
 
     it("A6 - should write a ByteString into a Array of Byte", async () => {
-        // as  per CTT write Attibute test 007
+        // as  per CTT write Attribute test 007
 
         const variable2 = namespace.addVariable({
             browseName: "SomeArrayOfByte",

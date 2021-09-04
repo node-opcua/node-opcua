@@ -50,12 +50,13 @@ const restrictedPermissions = [
     { roleId: WellKnownRoles.SecurityAdmin, permissions: allPermissions },
     { roleId: WellKnownRoles.ConfigureAdmin, permissions: allPermissions },
     { roleId: WellKnownRoles.Supervisor, permissions: allPermissions },
-
     { roleId: WellKnownRoles.Operator, permissions: makePermissionFlag("Browse") },
-    { roleId: WellKnownRoles.Anonymous, permissions: makePermissionFlag("Browse") },
-    { roleId: WellKnownRoles.AuthenticatedUser, permissions: makePermissionFlag("Browse") },
     { roleId: WellKnownRoles.Engineer, permissions: makePermissionFlag("Browse") },
     { roleId: WellKnownRoles.Observer, permissions: makePermissionFlag("Browse") }
+/*
+    { roleId: WellKnownRoles.Anonymous, permissions: makePermissionFlag("Browse") },
+    { roleId: WellKnownRoles.AuthenticatedUser, permissions: makePermissionFlag("Browse") },
+*/
 ];
 const restrictedAccessFlag = makeAccessRestrictionsFlag("SigningRequired | EncryptionRequired");
 /**

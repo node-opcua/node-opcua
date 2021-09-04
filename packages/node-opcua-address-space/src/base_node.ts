@@ -76,6 +76,7 @@ import {
     BaseNode_clearCache
 } from "./base_node_private";
 import { MinimalistAddressSpace, Reference } from "./reference";
+import { coerceRolePermissions } from "./role_permissions";
 
 // tslint:disable:no-var-requires
 // tslint:disable:no-bitwise
@@ -119,11 +120,6 @@ function _is_valid_BrowseDirection(browseDirection: any) {
         browseDirection === BrowseDirection.Inverse ||
         browseDirection === BrowseDirection.Both
     );
-}
-
-function coerceRolePermissions(rolePermissions: RolePermissionTypeOptions[] | undefined): RolePermissionType[] | undefined {
-    if (!rolePermissions) return undefined;
-    return rolePermissions.map((rp) => new RolePermissionType(rp));
 }
 
 export interface BaseNode {
@@ -350,11 +346,14 @@ export class BaseNode extends EventEmitter implements BaseNodePublic {
     // Finders
     // ---------------------------------------------------------------------------------------------------
 
-    public findReferencesEx(referenceType: string | NodeId | UAReferenceTypePublic, browseDirection?: BrowseDirection): UAReferencePublic[] {
+    public findReferencesEx(
+        referenceType: string | NodeId | UAReferenceTypePublic,
+        browseDirection?: BrowseDirection
+    ): UAReferencePublic[] {
         browseDirection = browseDirection !== undefined ? browseDirection : BrowseDirection.Forward;
         assert(_is_valid_BrowseDirection(browseDirection));
         assert(browseDirection !== BrowseDirection.Both);
-        
+
         const referenceTypeNode = this._coerceReferenceType(referenceType);
 
         if (!referenceTypeNode) {
@@ -369,11 +368,7 @@ export class BaseNode extends EventEmitter implements BaseNodePublic {
         const process = (referenceIdx: { [key: string]: Reference }) => {
             const references = Object.values(referenceIdx);
             for (const ref of references) {
-                if (
-                    ref.isForward === isForward &&
-                    referenceTypeNode &&
-                    referenceTypeNode.checkHasSubtype(ref.referenceType)
-                ) {
+                if (ref.isForward === isForward && referenceTypeNode && referenceTypeNode.checkHasSubtype(ref.referenceType)) {
                     results.push(ref);
                 }
             }
@@ -1229,7 +1224,6 @@ export class BaseNode extends EventEmitter implements BaseNodePublic {
         return result as UAReferenceTypePublic;
     }
 
-
     private __addReference(referenceOpts: AddReferenceOpts): Reference {
         const _private = BaseNode_getPrivate(this);
 
@@ -1337,7 +1331,7 @@ export class BaseNode extends EventEmitter implements BaseNodePublic {
                     permissions
                 });
             })
-            .filter(({ roleId }) => context1.currentUserHasRole(roleId)); 
+            .filter(({ roleId }) => context1.currentUserHasRole(roleId));
         return new DataValue({
             statusCode: StatusCodes.Good,
             value: {
@@ -1355,9 +1349,20 @@ export class BaseNode extends EventEmitter implements BaseNodePublic {
     setRolePermissions(rolePermissions: RolePermissionTypeOptions[]): void {
         this.rolePermissions = coerceRolePermissions(rolePermissions);
     }
-
+    getRolePermissions(inherited: boolean): RolePermissionType[] | null {
+        if (this.rolePermissions === undefined && inherited) {
+            return this.namespace.getDefaultRolePermissions();
+        }
+        return this.rolePermissions || null;
+    }
     setAccessRestrictions(accessRestrictions: AccessRestrictionsFlag): void {
         this.accessRestrictions = accessRestrictions;
+    }
+    getAccessRestrictions(inherited: boolean): AccessRestrictionsFlag {
+        if (this.accessRestrictions === undefined && inherited) {
+            return this.namespace.getDefaultAccessRestrictions();
+        }
+        return this.accessRestrictions || AccessRestrictionsFlag.None;
     }
 }
 
@@ -1621,12 +1626,18 @@ function _filter_by_direction(references: Reference[], browseDirection: BrowseDi
         return references.filter(reverseOnly);
     }
 }
+/*
 function _filter_by_context(node: BaseNode, references: Reference[], context: SessionContext): Reference[] {
     if (!context.isBrowseAccessRestricted(node)) {
         return references;
     }
     // browse access is restricted for forward
     return [];
+}
+*/
+function _filter_by_context(node: BaseNode, references: Reference[], context: SessionContext): Reference[] {
+    const addressSpace = node.addressSpace;
+    return references.filter((reference) => !context.isBrowseAccessRestricted(resolveReferenceNode(addressSpace, reference)));
 }
 
 function _filter_by_nodeClass(this: BaseNode, references: Reference[], nodeClassMask: number): Reference[] {
