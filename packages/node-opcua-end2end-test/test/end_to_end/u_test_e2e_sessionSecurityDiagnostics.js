@@ -324,7 +324,7 @@ module.exports = function (test) {
                 const dataValues = await session.read(nodesToRead);
  
                 dataValues[0].statusCode.should.eql(StatusCodes.Good);
-                dataValues[1].statusCode.should.eql(StatusCodes.BadSecurityModeInsufficient);
+                dataValues[1].statusCode.should.eql(StatusCodes.BadUserAccessDenied);
              });
 
         });

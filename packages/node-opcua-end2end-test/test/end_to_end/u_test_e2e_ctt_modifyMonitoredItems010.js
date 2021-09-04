@@ -4,7 +4,8 @@ const {
     AttributeIds,
     ClientMonitoredItemGroup,
     StatusCodes,
-    ClientSidePublishEngine
+    ClientSidePublishEngine,
+    Subscription
 } = require("node-opcua");
 const { perform_operation_on_session_async } = require("../../test_helpers/perform_operation_on_client_session");
 const sinon = require("sinon");
@@ -203,8 +204,11 @@ module.exports = function(test) {
 
                 dumpNotificationResult();
 
-                subscription_raw_notification_event.getCall(0).args[0].notificationData[0].monitoredItems.length.should.eql(
-                    Math.min(itemsToMonitor.length, 5000));
+                subscription_raw_notification_event
+                    .getCall(0)
+                    .args[0].notificationData[0].monitoredItems.length.should.eql(
+                        Math.min(itemsToMonitor.length, Subscription.maxNotificationPerPublishHighLimit)
+                    );
 
                 subscription_raw_notification_event.resetHistory();
                 subscription_raw_notification_event.callCount.should.eql(0);
