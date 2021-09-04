@@ -1,6 +1,6 @@
-import { allPermissions, NodeClass } from "node-opcua-data-model";
+import { allPermissions, BrowseDirection, makeAccessRestrictionsFlag, makePermissionFlag, NodeClass } from "node-opcua-data-model";
 import { MessageSecurityMode } from "node-opcua-types";
-import { BaseNode, UAVariable, UAMethod } from "../address_space_ts";
+import { BaseNode, UAVariable, UAMethod, UAObject } from "../address_space_ts";
 import { IChannelBase, SessionContext, WellKnownRoles } from "../session_context";
 
 function isChannelSecure(channel: IChannelBase): boolean {
@@ -30,7 +30,7 @@ function newIsUserReadable(this: BaseNode, context: SessionContext): boolean {
 function replaceMethod(obj: any, method: string, func: any) {
     const oldMethod = obj[method];
     if (!oldMethod) {
-        throw new Error("Icannot find method " + method + " on object " + obj.browseName.toString());
+        throw new Error("I cannot find method " + method + " on object " + obj.browseName.toString());
     }
     obj[method] = function (this: any, ...args: any[]) {
         const ret = func.apply(this, args);
@@ -42,32 +42,46 @@ function replaceMethod(obj: any, method: string, func: any) {
 }
 /**
  * make sure that the given ia node can only be read
- * by Admistrrator user on a encrypted channel
+ * by Administrator user on a encrypted channel
  * @param node
 
 */
-const priviledgedRoles =   ["!*", WellKnownRoles.SecurityAdmin, WellKnownRoles.ConfigureAdmin, WellKnownRoles.Supervisor];
+const restrictedPermissions = [
+    { roleId: WellKnownRoles.SecurityAdmin, permissions: allPermissions },
+    { roleId: WellKnownRoles.ConfigureAdmin, permissions: allPermissions },
+    { roleId: WellKnownRoles.Supervisor, permissions: allPermissions },
 
+    { roleId: WellKnownRoles.Operator, permissions: makePermissionFlag("Browse") },
+    { roleId: WellKnownRoles.Anonymous, permissions: makePermissionFlag("Browse") },
+    { roleId: WellKnownRoles.AuthenticatedUser, permissions: makePermissionFlag("Browse") },
+    { roleId: WellKnownRoles.Engineer, permissions: makePermissionFlag("Browse") },
+    { roleId: WellKnownRoles.Observer, permissions: makePermissionFlag("Browse") }
+];
+const restrictedAccessFlag = makeAccessRestrictionsFlag("SigningRequired | EncryptionRequired");
+/**
+ * this method install the access right restriction on the given node and its children
+ * values will only be available to user with role Administrator or supervisor and 
+ * with a signed and encrypted channel.
+ * 
+ * @param node the node which permissions are to be adjusted
+ */
 export function ensureObjectIsSecure(node: BaseNode) {
 
+    node.setAccessRestrictions(restrictedAccessFlag);
     if (node.nodeClass === NodeClass.Variable) {
-        replaceMethod(node, "isUserReadable", newIsUserReadable);
+        // replaceMethod(node, "isUserReadable", newIsUserReadable);
         const variable = node as UAVariable;
-        variable.setRolePermissions([
-            { roleId: WellKnownRoles.SecurityAdmin, permissions: allPermissions},
-            { roleId: WellKnownRoles.ConfigureAdmin, permissions: allPermissions},
-            { roleId: WellKnownRoles.Supervisor, permissions: allPermissions},
-        ]);
+        variable.setRolePermissions(restrictedPermissions);
     }
     if (node.nodeClass === NodeClass.Method) {
-        const variable = node as UAMethod;
-        variable.setRolePermissions([
-            { roleId: WellKnownRoles.SecurityAdmin, permissions: allPermissions},
-            { roleId: WellKnownRoles.ConfigureAdmin, permissions: allPermissions},
-            { roleId: WellKnownRoles.Supervisor, permissions: allPermissions},
-        ]);
+        const method = node as UAMethod;
+        method.setRolePermissions(restrictedPermissions);
     }
-    const children = node.findReferencesAsObject("Aggregates", true);
+    if (node.nodeClass === NodeClass.Object) {
+        const object = node as UAObject;
+        object.setRolePermissions(restrictedPermissions);
+    }
+    const children = node.findReferencesExAsObject("Aggregates", BrowseDirection.Forward);
     for (const child of children) {
         ensureObjectIsSecure(child);
     }

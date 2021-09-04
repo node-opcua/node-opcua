@@ -539,7 +539,9 @@ export interface UAVariable extends BaseNode, VariableAttributes, IPropertyAndCo
      *  |BadDataEncodingUnsupported  | The server does not support the requested data encoding for the node. This result is used if a dataEncoding can be applied but the passed data encoding is not known to the Server.|
      *  |BadNotReadable              | The access level does not allow reading or subscribing to the Node.|
      *  |BadUserAccessDenied         | User does not have permission to perform the requested operation. (table 165)|
-     */
+     *  | BadSecurityModeInsufficient | The operation is not permitted over the current secure channel. |
+     *  | BadInsufficientPrivileges   | The user does not have enough privileges to perform the requested operation.  
+    */
     readValue(context?: SessionContext | null, indexRange?: NumericRange, dataEncoding?: QualifiedNameLike | null): DataValue;
 
     readValueAsync(context?: SessionContext | null): Promise<DataValue>;
@@ -1072,6 +1074,11 @@ export interface InstantiateOptions {
      * (if not specified, the default instance namespace (`own namespace`)  of the addressSpace will be used)
      */
     namespace?: Namespace;
+
+    /**
+     * shall we also replicate the HasModelling rule reference ?
+     */
+    copyAlsoModellingRules?: boolean;
 }
 
 export interface InstantiateVariableOptions extends InstantiateOptions {
@@ -1083,6 +1090,8 @@ export interface InstantiateVariableOptions extends InstantiateOptions {
     propertyOf?: NodeIdLike | UAObject | UAObjectType | UAVariable | UAVariableType | UAMethod;
     value?: BindVariableOptions;
     valueRank?: number;
+
+
 }
 
 export interface InstantiateObjectOptions extends InstantiateOptions {
