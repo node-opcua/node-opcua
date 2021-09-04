@@ -35,7 +35,7 @@ export async function acknowledgeCondition(session: ClientSession, eventStuff: E
         const eventId = eventStuff.eventId.value;
         return await session.acknowledgeCondition(conditionId, eventId, comment);
     } catch (err) {
-        errorLog("Acknwoledding alarm has failed !", err);
+        errorLog("Acknowledging alarm has failed !", err);
         return StatusCodes.BadInternalError;
     }
 }
@@ -46,7 +46,7 @@ export async function confirmCondition(session: ClientSession, eventStuff: Event
         const eventId = eventStuff.eventId.value;
         return await session.confirmCondition(conditionId, eventId, comment);
     } catch (err) {
-        errorLog("Acknwoledding alarm has failed !", err);
+        errorLog("Acknowledging alarm has failed !", err);
         return StatusCodes.BadInternalError;
     }
 }
@@ -139,7 +139,7 @@ export async function findActiveConditions(session: ClientSession): Promise<Even
             callConditionRefresh(subscription);
         } catch (err) {
             // it is possible that server do not implement conditionRefresh ...
-            debugLog("Server may not implement conditionRefresh", err.message);
+            debugLog("Server may not implement conditionRefresh", err);
         }
     });
 

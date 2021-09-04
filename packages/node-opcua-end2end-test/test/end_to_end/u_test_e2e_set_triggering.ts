@@ -248,7 +248,7 @@ export function t(test: any) {
                 result.addResults?.length.should.eql(0);
                 result.responseHeader.serviceResult.should.eql(StatusCodes.BadNothingToDo);
             } catch (err) {
-                _err = err;
+                _err = err as Error;
             }
             should.not.exist(_err, "not expecting any exception");
 

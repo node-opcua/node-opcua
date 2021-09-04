@@ -28,7 +28,7 @@ const port2 = 3018;
 
 Error.stackTraceLimit = Infinity;
 
-const envPaths = require("env-paths");
+import envPaths = require("env-paths");
 const config = envPaths("MiniNodeOPCUA-Server").config;
 const pkiFolder = path.join(config, "pki");
 
@@ -58,7 +58,9 @@ async function startServer() {
     try {
         await server.start();
     } catch (err) {
-        errorLog(" Server failed to start ... exiting => err:", err.message);
+        if (err instanceof Error) {
+            errorLog(" Server failed to start ... exiting => err:", err.message);
+        }
         return;
     }
     for (const endpoint of server.endpoints) {
@@ -91,7 +93,9 @@ async function extractEndpoints(endpointUrl: string): Promise<EndpointDescriptio
         await client.disconnect();
         return endpoints;
     } catch (err) {
-        errorLog("Client error ", err.message);
+        if (err instanceof Error) {
+            errorLog("Client error ", err.message);
+        }
         errorLog(err);
         return [];
     }
@@ -133,7 +137,9 @@ async function startMultiHeadServer() {
     try {
         await server.start();
     } catch (err) {
-        errorLog(" Server failed to start ... exiting => err:", err.message);
+        if (err instanceof Error) {
+            errorLog(" Server failed to start ... exiting => err:", err.message);
+        }
         return;
     }
 }

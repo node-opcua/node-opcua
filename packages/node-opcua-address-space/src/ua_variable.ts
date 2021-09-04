@@ -823,7 +823,9 @@ export class UAVariable extends BaseNode implements UAVariablePublic {
                     try {
                         this._internal_set_dataValue(correctedDataValue, indexRange);
                     } catch (err) {
-                        warningLog(err.message);
+                        if (err instanceof Error) {
+                            warningLog(err.message);
+                        }
                         return callback!(null, StatusCodes.BadInternalError);
                     }
                 }
@@ -1144,9 +1146,11 @@ export class UAVariable extends BaseNode implements UAVariablePublic {
             // istanbul ignore next
             if (doDebug) {
                 debugLog(chalk.red("func readValueAsync has failed "));
-                debugLog(" stack", err.stack);
+                if (err instanceof Error) {
+                    debugLog(" stack", err.stack);
+                }
             }
-            satisfy_callbacks(err);
+            satisfy_callbacks(err as Error);
         }
     }
 
@@ -1976,7 +1980,7 @@ function _Variable_bind_with_timestamped_get(this: UAVariable, options: any) {
     const async_refresh_func = (callback: (err: Error | null, dataValue?: DataValue) => void) => {
         Promise.resolve((this._timestamped_get_func! as TimestampGetFunction1).call(this))
             .then((dataValue) => callback(null, dataValue))
-            .catch((err) => callback(err));
+            .catch((err) => callback(err as Error));
     };
 
     if (options.timestamped_get.length === 0) {

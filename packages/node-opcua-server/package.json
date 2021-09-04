@@ -12,8 +12,8 @@
     "types": "./dist/index.d.ts",
     "dependencies": {
         "@ster5/global-mutex": "^1.1.1",
-        "@types/underscore": "1.11.2",
-        "async": "^3.2.0",
+        "@types/underscore": "1.11.3",
+        "async": "^3.2.1",
         "bonjour": "^3.5.0",
         "browser-process-hrtime": "^1.0.0",
         "dequeue": "^1.0.5",
@@ -26,7 +26,7 @@
         "node-opcua-client-dynamic-extension-object": "2.49.0",
         "node-opcua-common": "2.49.0",
         "node-opcua-constants": "2.42.0",
-        "node-opcua-crypto": "^1.7.1",
+        "node-opcua-crypto": "^1.7.3",
         "node-opcua-data-model": "2.49.0",
         "node-opcua-data-value": "2.49.0",
         "node-opcua-date-time": "2.42.0",
@@ -39,7 +39,7 @@
         "node-opcua-nodesets": "2.41.1",
         "node-opcua-numeric-range": "2.49.0",
         "node-opcua-object-registry": "2.42.0",
-        "node-opcua-pki": "^2.9.8",
+        "node-opcua-pki": "^2.11.2",
         "node-opcua-secure-channel": "2.49.0",
         "node-opcua-service-browse": "2.49.0",
         "node-opcua-service-call": "2.49.0",
@@ -67,7 +67,7 @@
         "node-opcua-test-helpers": "2.42.0",
         "node-opcua-transport": "2.49.0",
         "should": "^13.2.3",
-        "sinon": "^11.1.1"
+        "sinon": "^11.1.2"
     },
     "author": "Etienne Rossignon",
     "license": "MIT",

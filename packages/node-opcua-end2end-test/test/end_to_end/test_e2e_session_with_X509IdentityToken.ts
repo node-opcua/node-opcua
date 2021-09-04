@@ -149,7 +149,7 @@ describe("Testing Session with user certificate", () => {
             await session.close();
 
         } catch (err) {
-            exceptionCaught = err;
+            exceptionCaught = err as Error;
         }
         should(exceptionCaught).not.be.null();
 
@@ -170,7 +170,7 @@ describe("Testing Session with user certificate", () => {
             const session = await client!.createSession(userIdentity);
             await session.close();
         } catch (err) {
-            exceptionCaught = err;
+            exceptionCaught = err as Error;
         }
         should(exceptionCaught).not.be.null();
 
@@ -188,7 +188,7 @@ describe("Testing Session with user certificate", () => {
             const session = await client!.createSession(userIdentity);
             await session.close();
         } catch (err) {
-            exceptionCaught = err;
+            exceptionCaught = err as Error;
         }
         should(exceptionCaught).not.be.null();
     });

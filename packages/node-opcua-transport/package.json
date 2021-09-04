@@ -10,7 +10,7 @@
         "clean": "node -e \"require('rimraf').sync('dist');\""
     },
     "dependencies": {
-        "chalk": "4.1.1",
+        "chalk": "4.1.2",
         "node-opcua-assert": "2.42.0",
         "node-opcua-basic-types": "2.47.0",
         "node-opcua-binary-stream": "2.42.0",
@@ -26,10 +26,10 @@
         "node-opcua-utils": "2.44.0"
     },
     "devDependencies": {
-        "@types/node": "15.6.1",
+        "@types/node": "16.7.10",
         "node-opcua-debug": "2.42.0",
         "should": "^13.2.3",
-        "sinon": "^11.1.1"
+        "sinon": "^11.1.2"
     },
     "author": "Etienne Rossignon",
     "license": "MIT",

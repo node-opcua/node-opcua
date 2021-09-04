@@ -217,7 +217,7 @@ describe("test reconnection when server stops and change it privateKey and certi
             console.log(dataValue.toString());
         } catch (err) {
             console.log(err);
-            _err = err;
+            _err = err as Error;
         } finally {
             await session.close();
             await client.disconnect();
@@ -265,7 +265,7 @@ describe("test reconnection when server stops and change it privateKey and certi
             await session.close();
 
         } catch (err) {
-            _capturedError = err;
+            _capturedError = err as Error;
             console.log(_capturedError!.message)
         } finally {
             await client.disconnect();
@@ -334,7 +334,7 @@ describe("test reconnection when server stops and change it privateKey and certi
             await session.close();
 
         } catch (err) {
-            _capturedError = err;
+            _capturedError = err as Error;
             console.log(_capturedError!.message)
         } finally {
             await client.disconnect();
@@ -407,7 +407,7 @@ describe("test reconnection when server stops and change it privateKey and certi
             await session.close();
 
         } catch (err) {
-            _capturedError = err;
+            _capturedError = err as Error;
             console.log(_capturedError!.message)
         } finally {
             await client.disconnect();

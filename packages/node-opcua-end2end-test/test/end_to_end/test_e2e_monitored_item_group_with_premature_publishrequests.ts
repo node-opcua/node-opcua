@@ -72,7 +72,7 @@ describe("[CLIENT] monitoredItem group when NotificationChange arrive before Cre
         try {
             await f();
         } catch (err) {
-            _err = err;
+            _err = err as Error;
         }
         ServerSecureChannelLayer.prototype.send_response = old;
         if (_err) throw _err;
@@ -107,7 +107,7 @@ describe("[CLIENT] monitoredItem group when NotificationChange arrive before Cre
         try {
             await f(subscription);
         } catch (err) {
-            _err = err;
+            _err = err as Error;
         }
         await subscription.terminate();
         await session.close();

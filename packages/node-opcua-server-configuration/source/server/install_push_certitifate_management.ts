@@ -20,7 +20,6 @@ import { ApplicationDescriptionOptions } from "node-opcua-types";
 import { installPushCertificateManagement } from "./push_certificate_manager_helpers";
 import { ActionQueue } from "./push_certificate_manager_server_impl";
 
-
 const debugLog = make_debugLog("ServerConfiguration");
 const errorLog = make_errorLog("ServerConfiguration");
 const doDebug = checkDebugFlag("ServerConfiguration");
@@ -76,9 +75,8 @@ async function getIpAddresses(): Promise<string[]> {
     return ipAddresses;
 }
 
-
 /**
- * 
+ *
  */
 async function install(this: OPCUAServerPartial): Promise<void> {
     debugLog("install push certificate management", this.serverCertificateManager.rootDir);
@@ -129,7 +127,6 @@ async function install(this: OPCUAServerPartial): Promise<void> {
 
         //  await this.serverCertificateManager.trustCertificate( this.$$certificateChain);
     }
-
 }
 
 function getCertificateChainEP(this: OPCUAServerEndPoint): Certificate {
@@ -164,7 +161,7 @@ async function onCertificateAboutToChange(server: OPCUAServer) {
 async function onCertificateChange(server: OPCUAServer) {
     debugLog("on CertificateChanged");
 
-    const _server = (server as any) as OPCUAServerPartial;
+    const _server = server as any as OPCUAServerPartial;
 
     _server.$$privateKeyPEM = fs.readFileSync(server.serverCertificateManager.privateKey, "utf8");
     const certificateFile = path.join(server.serverCertificateManager.rootDir, "own/certs/certificate.pem");
@@ -192,7 +189,9 @@ async function onCertificateChange(server: OPCUAServer) {
             debugLog(chalk.yellow("channels have been closed -> client should reconnect "));
         } catch (err) {
             // tslint:disable:no-console
-            errorLog("Error in CertificateChanged handler ", err.message);
+            if (err instanceof Error) {
+                errorLog("Error in CertificateChanged handler ", err.message);
+            }
             debugLog("err = ", err);
         }
     }, 2000);
@@ -202,10 +201,10 @@ export async function installPushCertificateManagementOnServer(server: OPCUAServ
     if (!server.engine || !server.engine.addressSpace) {
         throw new Error(
             "Server must have a valid address space." +
-            "you need to call installPushCertificateManagementOnServer after server has been initialized"
+                "you need to call installPushCertificateManagementOnServer after server has been initialized"
         );
     }
-    await install.call((server as any) as OPCUAServerPartial);
+    await install.call(server as any as OPCUAServerPartial);
 
     server.getCertificate = getCertificate;
     server.getCertificateChain = getCertificateChain;
@@ -239,22 +238,17 @@ export async function installPushCertificateManagementOnServer(server: OPCUAServ
     assert(serverConfigurationPriv.$pushCertificateManager);
 
     serverConfigurationPriv.$pushCertificateManager.on("CertificateAboutToChange", (actionQueue: ActionQueue) => {
-        actionQueue.push(
-            async (): Promise<void> => {
-                debugLog("CertificateAboutToChange Event received");
-                await onCertificateAboutToChange(server);
-                debugLog("CertificateAboutToChange Event processed");
-            }
-        );
+        actionQueue.push(async (): Promise<void> => {
+            debugLog("CertificateAboutToChange Event received");
+            await onCertificateAboutToChange(server);
+            debugLog("CertificateAboutToChange Event processed");
+        });
     });
     serverConfigurationPriv.$pushCertificateManager.on("CertificateChanged", (actionQueue: ActionQueue) => {
-        actionQueue.push(
-            async (): Promise<void> => {
-                debugLog("CertificateChanged Event received");
-                await onCertificateChange(server);
-                debugLog("CertificateChanged Event processed");
-            }
-        );
+        actionQueue.push(async (): Promise<void> => {
+            debugLog("CertificateChanged Event received");
+            await onCertificateChange(server);
+            debugLog("CertificateChanged Event processed");
+        });
     });
-
 }

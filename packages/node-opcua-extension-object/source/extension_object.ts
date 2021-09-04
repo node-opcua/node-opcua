@@ -175,7 +175,7 @@ export function decodeExtensionObject(stream: BinaryStream, _value?: ExtensionOb
             try {
                 object.decode(stream);
             } catch (err) {
-                debugLog("Cannot decode object ", err.message);
+                debugLog("Cannot decode object ", err);
             }
         }
     }

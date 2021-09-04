@@ -7,7 +7,6 @@ import * as chalk from "chalk";
 import * as fs from "fs";
 import * as path from "path";
 import * as os from "os";
-import * as envPaths from "env-paths";
 import { withLock } from "@ster5/global-mutex";
 import { assert } from "node-opcua-assert";
 import {
@@ -190,7 +189,6 @@ export class OPCUABaseServer extends OPCUASecureObject {
     }
 
     protected async createDefaultCertificate() {
-
         if (fs.existsSync(this.certificateFile)) {
             return;
         }
@@ -288,9 +286,7 @@ export class OPCUABaseServer extends OPCUASecureObject {
             endpoint._on_openSecureChannelFailure = _on_openSecureChannelFailure;
             endpoint.on("openSecureChannelFailure", endpoint._on_openSecureChannelFailure);
 
-            promises.push(
-                new Promise<void>((resolve, reject) => endpoint.start((err) => (err ? reject(err) : resolve())))
-            );
+            promises.push(new Promise<void>((resolve, reject) => endpoint.start((err) => (err ? reject(err) : resolve()))));
         }
         await Promise.all(promises);
     }
@@ -395,15 +391,16 @@ export class OPCUABaseServer extends OPCUASecureObject {
             const errMessage1 = "[NODE-OPCUA-W08] EXCEPTION CAUGHT WHILE PROCESSING REQUEST !! " + request.schema.name;
             warningLog(chalk.red.bold(errMessage1));
             warningLog(request.toString());
-            displayTraceFromThisProjectOnly(err);
+            displayTraceFromThisProjectOnly(err as Error);
 
             let additional_messages = [];
             additional_messages.push("EXCEPTION CAUGHT WHILE PROCESSING REQUEST !!! " + request.schema.name);
-            additional_messages.push(err.message);
-            if (err.stack) {
-                additional_messages = additional_messages.concat(err.stack.split("\n"));
+            if (err instanceof Error) {
+                additional_messages.push(err.message);
+                if (err.stack) {
+                    additional_messages = additional_messages.concat(err.stack.split("\n"));
+                }
             }
-
             response = makeServiceFault(StatusCodes.BadInternalError, additional_messages);
 
             channel.send_response("MSG", response, message, emptyCallback);

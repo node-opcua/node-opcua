@@ -165,7 +165,6 @@ function _dumpLocalizedText(xw: XmlWriter, v: LocalizedText) {
     xw.endElement();
 }
 function _dumpQualifiedName(xw: XmlWriter, v: QualifiedName) {
-
     const t = translateBrowseName(xw, v);
     if (t.name) {
         xw.startElement("Name");
@@ -310,8 +309,8 @@ function _dumpVariantValue(xw: XmlWriter, dataType: DataType, value: any) {
 
         case DataType.StatusCode:
         default:
-            errorLog( "_dumpVariantValue!! incomplete  dataType=" + dataType + " - v=" + DataType[dataType] + "  value = " + value);
-            /*
+            errorLog("_dumpVariantValue!! incomplete  dataType=" + dataType + " - v=" + DataType[dataType] + "  value = " + value);
+        /*
             throw new Error(
                 "_dumpVariantValue!! incomplete  dataType=" + dataType + " - v=" + DataType[dataType] + "  value = " + value
             );
@@ -356,7 +355,7 @@ function _dumpVariantInnerValue(xw: XmlWriter, dataType: DataType, value: any) {
         case DataType.StatusCode:
         default:
             errorLog("_dumpVariantInnerValue incomplete " + value + " " + "DataType=" + dataType + "=" + DataType[dataType]);
-            //  throw new Error("_dumpVariantInnerValue incomplete " + value + " " + "DataType=" + dataType + "=" + DataType[dataType]);
+        //  throw new Error("_dumpVariantInnerValue incomplete " + value + " " + "DataType=" + dataType + "=" + DataType[dataType]);
     }
 }
 
@@ -394,7 +393,9 @@ function _dumpVariantExtensionObjectValue_Body(xw: XmlWriter, schema: Structured
                         const baseType = findBaseDataType(field);
                         _dumpVariantInnerValue(xw, baseType, v);
                     } catch (err) {
-                        console.log("Error in _dumpVariantExtensionObjectValue_Body !!!", err.message);
+                        if (err instanceof Error) {
+                            console.log("Error in _dumpVariantExtensionObjectValue_Body !!!", err.message);
+                        }
                         console.log(schema.name);
                         console.log(field);
                         // throw err;
@@ -540,7 +541,7 @@ function _dumpValue(xw: XmlWriter, node: UAVariable | UAVariableType, value: Var
                 encodeXml(value.value);
             } else {
                 errorLog(node.toString());
-                errorLog("_dumpValue : unsupported case , Matrix of ExtensionObjects")
+                errorLog("_dumpValue : unsupported case , Matrix of ExtensionObjects");
                 // throw new Error("Unsupported case");
             }
         }
@@ -704,7 +705,7 @@ function coerceInt64ToInt32(int64: Int64): number {
     }
     if (int64[0] !== 0) {
         debugLog("coerceInt64ToInt32 , loosing high word in conversion");
-    };
+    }
     return int64[1];
 }
 
@@ -765,7 +766,6 @@ function _dumpStructureDefinition(xw: XmlWriter, structureDefinition: StructureD
     }
 }
 function _dumpUADataTypeDefinition(xw: XmlWriter, node: UADataType) {
-    
     // to do remove DataType from base class
 
     const definition = node._getDefinition(false);
@@ -894,11 +894,11 @@ function dumpUAVariableType(xw: XmlWriter, node: UAVariableType) {
             // throw new Error(" cannot find datatype " + node.dataType);
             console.log(
                 " cannot find datatype " +
-                node.dataType +
-                " for node " +
-                node.browseName.toString() +
-                " id =" +
-                node.nodeId.toString()
+                    node.dataType +
+                    " for node " +
+                    node.browseName.toString() +
+                    " id =" +
+                    node.nodeId.toString()
             );
         } else {
             const dataTypeName = b(xw, resolveDataTypeName(addressSpace, dataTypeNode.nodeId));

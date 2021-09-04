@@ -10,7 +10,7 @@
 	"main": "./dist/index.js",
 	"types": "./dist/index.d.ts",
 	"dependencies": {
-		"@types/bonjour": "^3.5.8",
+		"@types/bonjour": "^3.5.9",
 		"bonjour": "^3.5.0",
 		"node-opcua-assert": "2.42.0",
 		"node-opcua-basic-types": "2.47.0",
@@ -19,7 +19,7 @@
 		"node-opcua-debug": "2.42.0",
 		"node-opcua-hostname": "2.42.0",
 		"node-opcua-object-registry": "2.42.0",
-		"node-opcua-pki": "^2.9.8",
+		"node-opcua-pki": "^2.11.2",
 		"node-opcua-secure-channel": "2.49.0",
 		"node-opcua-server": "2.50.0",
 		"node-opcua-service-discovery": "2.49.0",

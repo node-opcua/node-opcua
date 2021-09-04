@@ -26,7 +26,7 @@ import {
     toPem
 } from "node-opcua-crypto";
 import { CertificateAuthority } from "node-opcua-pki";
-import { OPCUACertificateManager } from "node-opcua-certificate-manager"
+import { OPCUACertificateManager } from "node-opcua-certificate-manager";
 
 import { CertificateType } from "../source";
 import { ClientPushCertificateManagement } from "../source/clientTools";
@@ -35,7 +35,6 @@ import { TrustListDataType } from "node-opcua-types";
 const endpointUrl = "opc.tcp://localhost:48010";
 
 function dumpCertificateInfo(certificate: Certificate) {
-
     console.log("thumbprint ", makeSHA1Thumbprint(certificate).toString("hex").toUpperCase());
     const i = exploreCertificate(certificate);
     console.log(" serial number       : ", i.tbsCertificate.serialNumber);
@@ -73,7 +72,6 @@ async function dumpApplicationTrustedCertificates(session: IBasicSession) {
     const trustList = await applicationGroup.getTrustList();
     const tl = await trustList.readTrustedCertificateList();
     dumpTrustedList(tl);
-
 }
 
 async function dumpUserTokenTrustedCertificates(session: IBasicSession) {
@@ -99,20 +97,31 @@ async function getRejectedList(session: IBasicSession) {
 }
 
 async function dumpServerConfiguration(session: IBasicSession) {
-    const capabilitiesDataValue = await session.read({ nodeId: resolveNodeId("ServerConfiguration_ServerCapabilities"), attributeId: AttributeIds.Value });
+    const capabilitiesDataValue = await session.read({
+        nodeId: resolveNodeId("ServerConfiguration_ServerCapabilities"),
+        attributeId: AttributeIds.Value
+    });
     const capabilities = capabilitiesDataValue.value.value as string[];
     console.log(" server capabilities  : ", capabilities.join(","));
 
-
-    const multicastDnsEnabledDataValue = await session.read({ nodeId: resolveNodeId("ServerConfiguration_MulticastDnsEnabled"), attributeId: AttributeIds.Value });
+    const multicastDnsEnabledDataValue = await session.read({
+        nodeId: resolveNodeId("ServerConfiguration_MulticastDnsEnabled"),
+        attributeId: AttributeIds.Value
+    });
     const multicastDnsEnabled = multicastDnsEnabledDataValue.value.value as boolean;
     console.log(" multicastDns enabled : ", multicastDnsEnabled);
 
-    const maxTrustListSizeDataValue = await session.read({ nodeId: resolveNodeId("ServerConfiguration_MaxTrustListSize"), attributeId: AttributeIds.Value });
+    const maxTrustListSizeDataValue = await session.read({
+        nodeId: resolveNodeId("ServerConfiguration_MaxTrustListSize"),
+        attributeId: AttributeIds.Value
+    });
     const maxTrustListSize = maxTrustListSizeDataValue.value.value as number;
     console.log(" max trust list size  : ", maxTrustListSize);
 
-    const supportedPrivateKeyFormatsDataValue = await session.read({ nodeId: resolveNodeId("ServerConfiguration_SupportedPrivateKeyFormats"), attributeId: AttributeIds.Value });
+    const supportedPrivateKeyFormatsDataValue = await session.read({
+        nodeId: resolveNodeId("ServerConfiguration_SupportedPrivateKeyFormats"),
+        attributeId: AttributeIds.Value
+    });
     const supportedPrivateKeyFormats = supportedPrivateKeyFormatsDataValue.value.value as string[];
     console.log(" key format           : ", supportedPrivateKeyFormats.join(","));
     //
@@ -121,8 +130,6 @@ async function dumpServerConfiguration(session: IBasicSession) {
     await dumpUserTokenTrustedCertificates(session);
     //
     await getRejectedList(session);
-
-
 }
 
 async function addApplicationCertificate(session: IBasicSession) {
@@ -136,11 +143,8 @@ async function addApplicationCertificate(session: IBasicSession) {
     await trustList.addCertificate(certificate, true);
 }
 
-async function addApplicationIssuerCertificateAndCRL(session: IBasicSession) {
-    
-}
+async function addApplicationIssuerCertificateAndCRL(session: IBasicSession) {}
 async function replaceServerCertificate(session: IBasicSession, caAuthority: CertificateAuthority) {
-
     const certificateAutorityhPath = path.join(caAuthority.location);
     const caCertificate = await readCertificate(caAuthority.caCertificate);
     // also get crl
@@ -149,19 +153,13 @@ async function replaceServerCertificate(session: IBasicSession, caAuthority: Cer
     // get signing request
     const s = new ClientPushCertificateManagement(session);
     const ag = await s.getApplicationGroup();
-    const csr = await s.createSigningRequest(
-        "DefaultApplicationGroup",
-        CertificateType.RsaSha256Application,
-        "CN=toto",
-        false
-    );
+    const csr = await s.createSigningRequest("DefaultApplicationGroup", CertificateType.RsaSha256Application, "CN=toto", false);
     if (csr.statusCode !== StatusCodes.Good) {
         console.log("Signing Request = ", csr.statusCode.toString());
         throw new Error(csr.statusCode.name);
     }
 
     console.log(csr.certificateSigningRequest?.toString("base64"));
-
 
     const certificateFile = path.join(certificateAutorityhPath, "demo.pem");
     const csrFilename = path.join(certificateAutorityhPath, "csr.pem");
@@ -190,12 +188,10 @@ async function replaceServerCertificate(session: IBasicSession, caAuthority: Cer
     const tl = await a.getTrustList();
     tl.addCertificate(caCertificate, false);
 
-    const result = await s.updateCertificate(
-        "DefaultApplicationGroup",
-        CertificateType.RsaSha256Application,
-        certificates[0],
-        [certificates[1], crl]
-    );
+    const result = await s.updateCertificate("DefaultApplicationGroup", CertificateType.RsaSha256Application, certificates[0], [
+        certificates[1],
+        crl
+    ]);
     if (result.statusCode !== StatusCodes.Good) {
         throw new Error("updateCertificate failed " + csr.statusCode.name);
     }
@@ -208,11 +204,11 @@ async function replaceServerCertificate(session: IBasicSession, caAuthority: Cer
     }
 }
 (async () => {
-
     try {
-
         const configFolder = path.join(__dirname, "../temp/aa");
-        if (!fs.existsSync(configFolder)) { fs.mkdirSync(configFolder); }
+        if (!fs.existsSync(configFolder)) {
+            fs.mkdirSync(configFolder);
+        }
 
         // --------------------------------------------------------------- CA Authority
         const certificateAutorityhPath = path.join(configFolder, "CA");
@@ -225,7 +221,6 @@ async function replaceServerCertificate(session: IBasicSession, caAuthority: Cer
         const caCertificate = await readCertificate(caAuthority.caCertificate);
         const crl = await readCertificateRevocationList(caAuthority.revocationList);
 
-
         // --------------------------------------------------------------- Client PKI
         const hostname = os.hostname();
         const applicationUri = makeApplicationUrn(hostname, "Client");
@@ -234,7 +229,7 @@ async function replaceServerCertificate(session: IBasicSession, caAuthority: Cer
         const clientCertificateManager = new OPCUACertificateManager({
             automaticallyAcceptUnknownCertificate: true,
             rootFolder: pkiPath,
-            keySize: 4096,
+            keySize: 4096
         });
         await clientCertificateManager.initialize();
         const certificateFile = path.join(clientCertificateManager.rootDir, "own/certs/client_certificate.pem");
@@ -242,7 +237,7 @@ async function replaceServerCertificate(session: IBasicSession, caAuthority: Cer
             await clientCertificateManager.createSelfSignedCertificate({
                 applicationUri,
                 startDate: new Date(),
-                endDate: (new Date(Date.now() + 1000 * 60 * 60 * 24 * 365)),
+                endDate: new Date(Date.now() + 1000 * 60 * 60 * 24 * 365),
                 validity: 365,
                 subject: "CN=Sterfive",
                 dns: [hostname],
@@ -268,36 +263,39 @@ async function replaceServerCertificate(session: IBasicSession, caAuthority: Cer
             certificateFile
         });
 
-        await client.withSessionAsync({
-            endpointUrl,
-            userIdentity: { type: UserTokenType.UserName, userName: "root", password: "secret" }
-        }, async (session) => {
+        await client.withSessionAsync(
+            {
+                endpointUrl,
+                userIdentity: { type: UserTokenType.UserName, userName: "root", password: "secret" }
+            },
+            async (session) => {
+                try {
+                    await dumpServerConfiguration(session);
 
-            try {
+                    // add application certificate
 
-                await dumpServerConfiguration(session);
+                    await addApplicationCertificate(session);
 
-                // add application certificate
+                    await dumpServerConfiguration(session);
 
-                await addApplicationCertificate(session);
+                    // add issuer certificate + crl
+                    await addApplicationIssuerCertificateAndCRL(session);
 
-                await dumpServerConfiguration(session);
+                    // await replaceServerCertificate(session, caAuthority);
 
-                // add issuer certificate + crl
-                await addApplicationIssuerCertificateAndCRL(session);
-
-                // await replaceServerCertificate(session, caAuthority);
-
-                console.log("done");
-            } catch (err) {
-                console.log("Error ", err.message);
-                console.log(err);
+                    console.log("done");
+                } catch (err) {
+                    if (err instanceof Error) {
+                        console.log("Error ", err.message);
+                    }
+                    console.log(err);
+                }
             }
-        })
+        );
     } catch (err) {
-        console.log("Error ", err.message);
+        if (err instanceof Error) {
+            console.log("Error ", err.message);
+        }
         console.log(err);
-
     }
-
 })();

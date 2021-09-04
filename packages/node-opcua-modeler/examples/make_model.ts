@@ -20,7 +20,7 @@ import { generateAddressSpace } from "node-opcua-address-space/nodeJS";
 import { createBoilerType } from "node-opcua-address-space/testHelpers";
 
 // node 14 onward : import { writeFile } from "fs/promises";
-const { writeFile }= fs.promises;
+const { writeFile } = fs.promises;
 
 interface UABoilerTest extends UAObject {
     deviceHealth: UAVariable;
@@ -143,7 +143,9 @@ async function testNamespace() {
         // now test the nodeset
         await testNamespace();
     } catch (err) {
-        console.log("err", err.message);
+        if (err instanceof Error) {
+            console.log("err", err.message);
+        }
         console.log(err);
     }
     console.log("done");

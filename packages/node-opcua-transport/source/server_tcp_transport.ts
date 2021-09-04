@@ -269,7 +269,7 @@ export class ServerTCP_transport extends TCP_transport {
                 this._send_ACK_response(helloMessage);
             } catch (err) {
                 // connection rejected because of malformed message
-                return this._abortWithError(StatusCodes.BadConnectionRejected, err.message, callback);
+                return this._abortWithError(StatusCodes.BadConnectionRejected, err instanceof Error  ? err.message: "", callback);
             }
             callback(); // no Error
         } else {

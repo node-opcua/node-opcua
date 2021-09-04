@@ -1516,7 +1516,9 @@ export function makeStuff(addressSpace: AddressSpacePublic) {
                 } catch (err) {
                     // istanbul ignore next
                     // tslint:disable:no-console
-                    console.log(" performPostLoadingTasks Err  => ", err.message, "\n", err);
+                    if (err instanceof Error) {
+                        console.log(" performPostLoadingTasks Err  => ", err.message, "\n", err);
+                    }
                     await task(addressSpace1);
                 }
             }

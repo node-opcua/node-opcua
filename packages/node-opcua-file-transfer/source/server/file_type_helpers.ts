@@ -2,29 +2,18 @@
  * @module node-opcua-file-transfer
  */
 import * as fsOrig from "fs";
-import { Stats, PathLike, OpenMode, NoParamCallback, WriteFileOptions } from "fs"
+import { Stats, PathLike, OpenMode, NoParamCallback, WriteFileOptions } from "fs";
 
-import {
-    callbackify,
-    promisify
-} from "util";
+import { callbackify, promisify } from "util";
 
-import {
-    AddressSpace,
-    SessionContext,
-    UAFileType,
-    UAMethod
-} from "node-opcua-address-space";
+import { AddressSpace, SessionContext, UAFileType, UAMethod } from "node-opcua-address-space";
 import { Byte, Int32, UInt32, UInt64 } from "node-opcua-basic-types";
 import { checkDebugFlag, make_debugLog, make_errorLog, make_warningLog } from "node-opcua-debug";
 import { CallMethodResultOptions } from "node-opcua-service-call";
 import { StatusCodes } from "node-opcua-status-code";
 import { DataType, Variant, VariantArrayType } from "node-opcua-variant";
 
-import {
-    OpenFileMode,
-    OpenFileModeMask
-} from "../open_mode";
+import { OpenFileMode, OpenFileModeMask } from "../open_mode";
 import { NodeId, sameNodeId } from "node-opcua-nodeid";
 
 const debugLog = make_debugLog("FileType");
@@ -35,7 +24,6 @@ const doDebug = checkDebugFlag("FileType");
 import assert from "node-opcua-assert";
 
 export interface AbstractFs {
-
     stat(path: PathLike, callback: (err: NodeJS.ErrnoException | null, stats: Stats) => void): void;
 
     open(path: PathLike, flags: OpenMode, callback: (err: NodeJS.ErrnoException | null, fd: number) => void): void;
@@ -46,7 +34,7 @@ export interface AbstractFs {
         offset: number | undefined | null,
         length: number | undefined | null,
         position: number | undefined | null,
-        callback: (err: NodeJS.ErrnoException | null, bytesWritten: number, buffer: TBuffer) => void,
+        callback: (err: NodeJS.ErrnoException | null, bytesWritten: number, buffer: TBuffer) => void
     ): void;
 
     read<TBuffer extends NodeJS.ArrayBufferView>(
@@ -55,14 +43,23 @@ export interface AbstractFs {
         offset: number,
         length: number,
         position: number | null,
-        callback: (err: NodeJS.ErrnoException | null, bytesRead: number, buffer: TBuffer) => void,
+        callback: (err: NodeJS.ErrnoException | null, bytesRead: number, buffer: TBuffer) => void
     ): void;
 
     close(fd: number, callback: NoParamCallback): void;
 
-    writeFile(path: PathLike | number, data: string | NodeJS.ArrayBufferView, options: WriteFileOptions, callback: NoParamCallback): void;
+    writeFile(
+        path: PathLike | number,
+        data: string | NodeJS.ArrayBufferView,
+        options: WriteFileOptions,
+        callback: NoParamCallback
+    ): void;
 
-    readFile(path: PathLike | number, options: { encoding: BufferEncoding; flag?: string; } | string, callback: (err: NodeJS.ErrnoException | null, data: string) => void): void;
+    readFile(
+        path: PathLike | number,
+        options: { encoding: BufferEncoding; flag?: string } | string,
+        callback: (err: NodeJS.ErrnoException | null, data: string) => void
+    ): void;
     // readFile(path: PathLike | number, options: { encoding?: null; flag?: string; } | undefined | null, callback: (err: NodeJS.ErrnoException | null, data: Buffer) => void): void;
 
     existsSync(filename: string): boolean;
@@ -86,14 +83,12 @@ export interface FileOptions {
     mineType?: string;
 
     fileSystem?: AbstractFs;
-
 }
 
 /**
  *
  */
 export class FileTypeData {
-
     public _fs: AbstractFs;
     public filename: string = "";
     public maxSize: number = 0;
@@ -104,7 +99,6 @@ export class FileTypeData {
     private _fileSize: number = 0;
 
     constructor(options: FileOptions, file: UAFileType) {
-
         this.file = file;
         this._fs = options.fileSystem || fsOrig;
 
@@ -113,19 +107,24 @@ export class FileTypeData {
         this.mimeType = options.mineType || "";
         // openCount indicates the number of currently valid file handles on the file.
         this._openCount = 0;
-        file.openCount.bindVariable({
-            get: () => new Variant({ dataType: DataType.UInt16, value: this._openCount })
-        }, true);
+        file.openCount.bindVariable(
+            {
+                get: () => new Variant({ dataType: DataType.UInt16, value: this._openCount })
+            },
+            true
+        );
         file.openCount.minimumSamplingInterval = 0; // changed immediatly
 
-        file.size.bindVariable({
-            get: () => new Variant({ dataType: DataType.UInt64, value: this._fileSize })
-        }, true);
+        file.size.bindVariable(
+            {
+                get: () => new Variant({ dataType: DataType.UInt64, value: this._fileSize })
+            },
+            true
+        );
 
         file.size.minimumSamplingInterval = 0; // changed immediatly
 
         this.refresh();
-
     }
 
     public set openCount(value: number) {
@@ -153,7 +152,6 @@ export class FileTypeData {
      *
      */
     public async refresh(): Promise<void> {
-
         const abstractFs = this._fs;
 
         // lauch an async request to update filesize
@@ -168,12 +166,12 @@ export class FileTypeData {
                 debugLog("original file size ", self.filename, " size = ", self._fileSize);
             } catch (err) {
                 self._fileSize = 0;
-                warningLog("Cannot access file ", self.filename, err.message);
+                if (err instanceof Error) {
+                    warningLog("Cannot access file ", self.filename, err.message);
+                }
             }
         })(this);
-
     }
-
 }
 
 export function getFileData(opcuaFile2: UAFileType) {
@@ -194,8 +192,7 @@ interface FileTypeM {
     $$files: { [key: number]: FileAccessData };
 }
 
-interface AddressSpacePriv extends AddressSpace, FileTypeM {
-}
+interface AddressSpacePriv extends AddressSpace, FileTypeM {}
 function _prepare(addressSpace: AddressSpace, context: SessionContext): FileTypeM {
     const _context = addressSpace as AddressSpacePriv;
     _context.$$currentFileHandle = _context.$$currentFileHandle ? _context.$$currentFileHandle : 41;
@@ -207,7 +204,7 @@ function _getSessionId(context: SessionContext) {
         return NodeId.nullNodeId;
     }
     assert(context.session && context.session.getSessionId);
-    return context.session?.getSessionId() || NodeId.nullNodeId
+    return context.session?.getSessionId() || NodeId.nullNodeId;
 }
 function _addFile(addressSpace: AddressSpace, context: SessionContext, openMode: OpenFileMode): UInt32 {
     const _context = _prepare(addressSpace, context);
@@ -231,13 +228,12 @@ function _getFileInfo(addressSpace: AddressSpace, context: SessionContext, fileH
     const _context = _prepare(addressSpace, context);
     const _fileInfo = _context.$$files[fileHandle];
     const sessionId = _getSessionId(context);
-    
+
     if (!_fileInfo || !sameNodeId(_fileInfo.sessionId, sessionId)) {
         errorLog("Invalid session ID this file descriptor doesn't belong to this session");
         return null;
     }
     return _fileInfo;
-
 }
 
 function _close(addressSpace: AddressSpace, context: SessionContext, fileData: FileAccessData) {
@@ -293,12 +289,7 @@ function toNodeJSMode(opcuaMode: OpenFileMode): string {
  * @private
  */
 
-async function _openFile(
-    this: UAMethod,
-    inputArguments: Variant[],
-    context: SessionContext
-): Promise<CallMethodResultOptions> {
-
+async function _openFile(this: UAMethod, inputArguments: Variant[], context: SessionContext): Promise<CallMethodResultOptions> {
     const addressSpace = this.addressSpace;
     const mode = inputArguments[0].value as Byte;
 
@@ -369,8 +360,10 @@ async function _openFile(
 
         fileData.openCount += 1;
     } catch (err) {
-        errorLog(err.message);
-        errorLog(err.stack);
+        if (err instanceof Error) {
+            errorLog(err.message);
+            errorLog(err.stack);
+        }
         return { statusCode: StatusCodes.BadUnexpectedError };
     }
 
@@ -386,7 +379,6 @@ async function _openFile(
         statusCode: StatusCodes.Good
     };
     return callMethodResult;
-
 }
 
 function _getFileSystem(context: SessionContext) {
@@ -402,13 +394,7 @@ function _getFileSystem(context: SessionContext) {
  * @param context
  * @private
  */
-async function _closeFile(
-    this: UAMethod,
-    inputArguments: Variant[],
-    context: SessionContext
-): Promise<CallMethodResultOptions> {
-
-
+async function _closeFile(this: UAMethod, inputArguments: Variant[], context: SessionContext): Promise<CallMethodResultOptions> {
     const abstractFs = _getFileSystem(context);
 
     const addressSpace = this.addressSpace;
@@ -441,12 +427,7 @@ async function _closeFile(
  * @param context
  * @private
  */
-async function _readFile(
-    this: UAMethod,
-    inputArguments: Variant[],
-    context: SessionContext
-): Promise<CallMethodResultOptions> {
-
+async function _readFile(this: UAMethod, inputArguments: Variant[], context: SessionContext): Promise<CallMethodResultOptions> {
     const addressSpace = this.addressSpace;
 
     const abstractFs = _getFileSystem(context);
@@ -484,33 +465,29 @@ async function _readFile(
         // note: we do not util.promise here as it has a wierd behavior...
         ret = await new Promise((resolve, reject) =>
             abstractFs.read(_fileInfo.fd, data, 0, length, _fileInfo.position[1], (err, bytesRead, buff) => {
-                if (err) { return reject(err); }
+                if (err) {
+                    return reject(err);
+                }
                 return resolve({ bytesRead });
             })
         );
         _fileInfo.position[1] += ret.bytesRead;
     } catch (err) {
-        errorLog("Read error : ", err.message);
+        if (err instanceof Error) {
+            errorLog("Read error : ", err.message);
+        }
         return { statusCode: StatusCodes.BadUnexpectedError };
     }
 
     //   Data Contains the returned data of the file. If the ByteString is empty it indicates that the end
     //     of the file is reached.
     return {
-        outputArguments: [
-            { dataType: DataType.ByteString, value: data.slice(0, ret.bytesRead) }
-        ],
+        outputArguments: [{ dataType: DataType.ByteString, value: data.slice(0, ret.bytesRead) }],
         statusCode: StatusCodes.Good
     };
 }
 
-async function _writeFile(
-    this: UAMethod,
-    inputArguments: Variant[],
-    context: SessionContext
-): Promise<CallMethodResultOptions> {
-
-
+async function _writeFile(this: UAMethod, inputArguments: Variant[], context: SessionContext): Promise<CallMethodResultOptions> {
     const addressSpace = this.addressSpace;
 
     const abstractFs = _getFileSystem(context);
@@ -534,14 +511,13 @@ async function _writeFile(
     try {
         // note: we do not util.promise here as it has a wierd behavior...
         ret = await new Promise((resolve, reject) => {
-
             abstractFs.write(_fileInfo.fd, data, 0, data.length, _fileInfo.position[1], (err, bytesWritten) => {
                 if (err) {
                     errorLog("Err", err);
                     return reject(err);
                 }
                 return resolve({ bytesWritten });
-            })
+            });
         });
         assert(typeof ret.bytesWritten === "number");
         _fileInfo.position[1] += ret.bytesWritten;
@@ -551,9 +527,10 @@ async function _writeFile(
         debugLog(fileTypeData.fileSize);
         fileTypeData.fileSize = Math.max(fileTypeData.fileSize, _fileInfo.position[1]);
         debugLog(fileTypeData.fileSize);
-
     } catch (err) {
-        errorLog("Write error : ", err.message);
+        if (err instanceof Error) {
+            errorLog("Write error : ", err.message);
+        }
         return { statusCode: StatusCodes.BadUnexpectedError };
     }
 
@@ -561,7 +538,6 @@ async function _writeFile(
         outputArguments: [],
         statusCode: StatusCodes.Good
     };
-
 }
 
 async function _setPositionFile(
@@ -569,7 +545,6 @@ async function _setPositionFile(
     inputArguments: Variant[],
     context: SessionContext
 ): Promise<CallMethodResultOptions> {
-
     const addressSpace = this.addressSpace;
 
     const fileHandle: UInt32 = inputArguments[0].value as UInt32;
@@ -588,7 +563,6 @@ async function _getPositionFile(
     inputArguments: Variant[],
     context: SessionContext
 ): Promise<CallMethodResultOptions> {
-
     const addressSpace = this.addressSpace;
 
     const fileHandle: UInt32 = inputArguments[0].value as UInt32;
@@ -599,11 +573,13 @@ async function _getPositionFile(
     }
 
     return {
-        outputArguments: [{
-            arrayType: VariantArrayType.Scalar,
-            dataType: DataType.UInt64,
-            value: _fileInfo.position
-        }],
+        outputArguments: [
+            {
+                arrayType: VariantArrayType.Scalar,
+                dataType: DataType.UInt64,
+                value: _fileInfo.position
+            }
+        ],
         statusCode: StatusCodes.Good
     };
 }
@@ -628,11 +604,7 @@ function install_method_handle_on_type(addressSpace: AddressSpace): void {
  * @param file the OPCUA Node that has a typeDefinition of FileType
  * @param options the options
  */
-export function installFileType(
-    file: UAFileType,
-    options: FileOptions
-) {
-
+export function installFileType(file: UAFileType, options: FileOptions) {
     if ((file as any).$fileData) {
         errorLog("File already installed ", file.nodeId.toString(), file.browseName.toString());
         return;
@@ -645,7 +617,7 @@ export function installFileType(
     // to protect the server we setup a maximum limit in bytes on the file
     // if the client try to access or set the position above this limit
     // the server will return an error
-    options.maxSize = (options.maxSize === undefined) ? defaultMaxSize : options.maxSize;
+    options.maxSize = options.maxSize === undefined ? defaultMaxSize : options.maxSize;
 
     const $fileData = new FileTypeData(options, file);
     (file as any).$fileData = $fileData;
@@ -665,5 +637,4 @@ export function installFileType(
     file.write.bindMethod(callbackify(_writeFile));
     file.setPosition.bindMethod(callbackify(_setPositionFile));
     file.getPosition.bindMethod(callbackify(_getPositionFile));
-
 }

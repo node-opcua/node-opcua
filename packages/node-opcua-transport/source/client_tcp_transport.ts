@@ -152,7 +152,7 @@ export class ClientTCP_transport extends TCP_transport {
             if (doDebug) {
                 debugLog("CreateClientSocket has failed");
             }
-            return callback(err);
+            return callback(err as Error);
         }
 
         const _on_socket_error_after_connection = (err: Error) => {
