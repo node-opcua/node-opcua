@@ -41,3 +41,5 @@ export * from "../src/alarms_and_conditions";
 export { Reference } from "../src/reference";
 export { NodeIdManager, ConstructNodeIdOptions } from "../src/nodeid_manager";
 export * from "../src/event_data";
+export * from "./ua_namespace_meta_data_type";
+export * from "./set_namespace_meta_data";

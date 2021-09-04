@@ -1,6 +1,6 @@
 import { BaseNode, Reference, UAObjectType, UAVariable } from "node-opcua-address-space";
 import { NodeClass } from "node-opcua-data-model";
-import { resolveNodeId } from "node-opcua-nodeid";
+import { NodeId, resolveNodeId } from "node-opcua-nodeid";
 import { DataType } from "node-opcua-variant";
 import { TableHelper } from "./tableHelper";
 
@@ -55,7 +55,7 @@ export function displayNodeElement(node: BaseNode, options?: DisplayNodeOptions)
         if (!ref.isForward) {
             return;
         }
-        if (ref.referenceType === resolveNodeId("HasSubtype")) {
+        if (NodeId.sameNodeId(ref.referenceType, hasSubtypeNodeId)) {
             return; // ignore forward HasSubtype
         }
         // ignore subtype references

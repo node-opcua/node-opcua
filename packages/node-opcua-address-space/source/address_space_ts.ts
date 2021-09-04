@@ -277,10 +277,13 @@ export declare class BaseNode extends EventEmitter {
      */
     setRolePermissions(rolePermissions: RolePermissionTypeOptions[]): void;
 
+    getRolePermissions(inherited: boolean): RolePermissionType[] | null;
+
     /**
      * setAccessRestriction
      */
     setAccessRestrictions(accessRestrictions: AccessRestrictionsFlag): void;
+    getAccessRestrictions(inherited: boolean): AccessRestrictionsFlag | null;
 }
 
 export declare class UAView extends BaseNode {
@@ -1610,6 +1613,12 @@ export declare interface Namespace {
         referenceTypeIds: { [key: string]: string };
         objectTypeIds: { [key: string]: string };
     };
+
+    // roles& Permission & access Restrictions
+    setDefaultRolePermissions(rolePermissions: RolePermissionTypeOptions[]|null): void;
+    getDefaultRolePermissions(): RolePermissionType[] | null;
+    setDefaultAccessRestrictions(accessRestrictions: AccessRestrictionsFlag): void;
+    getDefaultAccessRestrictions(): AccessRestrictionsFlag;
 }
 
 // tslint:disable:no-empty-interface

@@ -7,7 +7,7 @@ import * as chalk from "chalk";
 import { assert } from "node-opcua-assert";
 import { coerceInt64 } from "node-opcua-basic-types";
 import { AxisScaleEnumeration } from "node-opcua-data-access";
-import { coerceLocalizedText, QualifiedNameLike } from "node-opcua-data-model";
+import { AccessRestrictionsFlag, coerceLocalizedText, QualifiedNameLike } from "node-opcua-data-model";
 import { QualifiedName } from "node-opcua-data-model";
 import { BrowseDirection } from "node-opcua-data-model";
 import { LocalizedText, NodeClass } from "node-opcua-data-model";
@@ -23,7 +23,9 @@ import {
     EnumField,
     EnumValueType,
     EUInformation,
-    Range
+    Range,
+    RolePermissionType,
+    RolePermissionTypeOptions
 } from "node-opcua-types";
 import * as utils from "node-opcua-utils";
 import { DataType, Variant, VariantArrayType } from "node-opcua-variant";
@@ -109,6 +111,7 @@ import { UAView } from "./ua_view";
 import { ConstructNodeIdOptions, NodeIdManager } from "./nodeid_manager";
 import { _addTwoStateDiscrete } from "./data_access/ua_two_state_discrete";
 import { option } from "yargs";
+import { coerceRolePermissions } from "./role_permissions";
 
 function _makeHashKey(nodeId: NodeId): string | number {
     switch (nodeId.identifierType) {
@@ -208,6 +211,8 @@ export class UANamespace implements NamespacePublic {
     private _nodeIdManager: NodeIdManager;
     private _nodeid_index: Map<string | number, BaseNode>;
     private _aliases: Map<string, NodeId>;
+    private defaultAccessRestrictions?: AccessRestrictionsFlag;
+    private defaultRolePermissions?: RolePermissionType[];
 
     constructor(options: any) {
         assert(typeof options.namespaceUri === "string");
@@ -540,7 +545,7 @@ export class UANamespace implements NamespacePublic {
             const subtypeOfNodeId = addressSpace._coerceType(options.subtypeOf, "References", NodeClass.ReferenceType);
 
             assert(subtypeOfNodeId);
-             
+
             options1.references.push({
                 isForward: false,
                 nodeId: subtypeOfNodeId,
@@ -603,7 +608,7 @@ export class UANamespace implements NamespacePublic {
      * @internal
      */
     public createNode(options: CreateNodeOptions): BaseNode {
-        let node: BaseNode = (null as any) as BaseNode;
+        let node: BaseNode = null as any as BaseNode;
 
         const addressSpace = this.addressSpace;
         addressSpace.modelChangeTransaction(() => {
@@ -1050,7 +1055,7 @@ export class UANamespace implements NamespacePublic {
             }
             return resolveNodeId(options);
         }
-        const dataType = toNodeId(options.dataType as any); 
+        const dataType = toNodeId(options.dataType as any);
         const optionals = [];
         if (options.hasOwnProperty("instrumentRange")) {
             optionals.push("InstrumentRange");
@@ -1590,6 +1595,20 @@ export class UANamespace implements NamespacePublic {
         return UAOffNormalAlarm.instantiate(this, "OffNormalAlarmType", options, data);
     }
 
+    // default roles and permissions
+    public setDefaultRolePermissions(rolePermissions: RolePermissionTypeOptions[]|null): void {
+        this.defaultRolePermissions = rolePermissions ? coerceRolePermissions(rolePermissions) : undefined;
+    }
+    public getDefaultRolePermissions(): RolePermissionType[] | null {
+        return this.defaultRolePermissions || null;
+    }
+    public setDefaultAccessRestrictions(accessRestrictions: AccessRestrictionsFlag): void {
+        this.defaultAccessRestrictions = accessRestrictions;
+    }
+    public getDefaultAccessRestrictions(): AccessRestrictionsFlag {
+        return this.defaultAccessRestrictions || AccessRestrictionsFlag.None;
+    }
+
     // --- internal stuff
     public constructNodeId(options: ConstructNodeIdOptions): NodeId {
         return this._nodeIdManager.constructNodeId(options);
@@ -1971,7 +1990,7 @@ export class UANamespace implements NamespacePublic {
         _handle_hierarchy_parent(addressSpace, references, options);
 
         UANamespace_process_modelling_rule(references, options.modellingRule);
-        
+
         const method = this._createNode({
             browseName: options.browseName,
             description: options.description || "",
@@ -2155,3 +2174,4 @@ function _handle_node_version(node: BaseNode, options: any) {
         nodeVersion.setValueFromSource({ dataType: "String", value: initialValue });
     }
 }
+
