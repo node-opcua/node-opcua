@@ -1,6 +1,7 @@
 import { AttributeIds, CreateMonitoredItemsResponse, OPCUAClient, OPCUAServer, resolveNodeId, StatusCodes, TimestampsToReturn } from "node-opcua";
 import "should";
 
+const port = 3020;
 async function pause(ms: number) {
     return await new Promise((resolve) => setTimeout(resolve, ms));
 }
@@ -10,6 +11,7 @@ describe("[CLIENT] recreating large subscription during reconnection", () => {
     let server: OPCUAServer;
     async function startServer(maxMonitoredItemsPerCall: number) {
         server = new OPCUAServer({
+            port,
             serverCapabilities: {
                 operationLimits: {
                     maxMonitoredItemsPerCall,
