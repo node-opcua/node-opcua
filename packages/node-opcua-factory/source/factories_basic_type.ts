@@ -112,7 +112,7 @@ registerBasicType({ name: "UtcTime", subType: "DateTime" });
 // already ? registerBasicType({name: "UInt8",    subType: "Byte"});
 registerBasicType({ name: "Char", subType: "Byte" });
 // xx registerBasicType({name:"XmlElement" ,subType:"String"  });
-registerBasicType({ name: "Time", subType: "String" });
+// xx registerBasicType({ name: "Time", subType: "String" });
 // string in the form "en-US" or "de-DE" or "fr" etc...
 
 registerBasicType({

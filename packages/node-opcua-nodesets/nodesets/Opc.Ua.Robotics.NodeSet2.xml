@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8" ?>
+<?xml version="1.0" encoding="utf-8"?>
 <!--
  * Copyright (c) 2005-2020 The OPC Foundation, Inc. All rights reserved.
  *
@@ -28,13 +28,13 @@
  * http://opcfoundation.org/License/MIT/1.00/
 -->
 
-<UANodeSet xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" LastModified="2019-05-06T00:00:00Z" xmlns="http://opcfoundation.org/UA/2011/03/UANodeSet.xsd">
+<UANodeSet xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" LastModified="2021-05-20T00:00:00Z" xmlns="http://opcfoundation.org/UA/2011/03/UANodeSet.xsd">
   <NamespaceUris>
     <Uri>http://opcfoundation.org/UA/Robotics/</Uri>
     <Uri>http://opcfoundation.org/UA/DI/</Uri>
   </NamespaceUris>
   <Models>
-    <Model ModelUri="http://opcfoundation.org/UA/Robotics/" Version="1.0.0" PublicationDate="2019-05-06T00:00:00Z">
+    <Model ModelUri="http://opcfoundation.org/UA/Robotics/" Version="1.01.2" PublicationDate="2021-05-20T00:00:00Z">
       <RequiredModel ModelUri="http://opcfoundation.org/UA/" Version="1.04" PublicationDate="2019-05-01T00:00:00Z" />
       <RequiredModel ModelUri="http://opcfoundation.org/UA/DI/" Version="1.02" PublicationDate="2019-05-01T00:00:00Z" />
     </Model>
@@ -111,7 +111,7 @@
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=15011</Reference>
     </References>
     <Value>
-      <String xmlns="http://opcfoundation.org/UA/2008/02/Types.xsd">0.93</String>
+      <String xmlns="http://opcfoundation.org/UA/2008/02/Types.xsd">1.01</String>
     </Value>
   </UAVariable>
   <UAVariable NodeId="ns=1;i=15091" BrowseName="NamespacePublicationDate" ParentNodeId="ns=1;i=15011" DataType="DateTime">
@@ -121,7 +121,7 @@
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=15011</Reference>
     </References>
     <Value>
-      <DateTime xmlns="http://opcfoundation.org/UA/2008/02/Types.xsd">2019-01-23T00:00:00Z</DateTime>
+      <DateTime xmlns="http://opcfoundation.org/UA/2008/02/Types.xsd">2020-05-20T00:00:00Z</DateTime>
     </Value>
   </UAVariable>
   <UAVariable NodeId="ns=1;i=15114" BrowseName="IsNamespaceSubset" ParentNodeId="ns=1;i=15011" DataType="Boolean">
@@ -152,11 +152,6 @@
       <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=15011</Reference>
     </References>
-    <Value>
-      <ListOfString xmlns="http://opcfoundation.org/UA/2008/02/Types.xsd">
-        <String>1:65535</String>
-      </ListOfString>
-    </Value>
   </UAVariable>
   <UAVariable NodeId="ns=1;i=15209" BrowseName="StaticStringNodeIdPattern" ParentNodeId="ns=1;i=15011" DataType="String">
     <DisplayName>StaticStringNodeIdPattern</DisplayName>
@@ -805,7 +800,7 @@
   </UAVariable>
   <UAObject NodeId="ns=1;i=18344" BrowseName="1:&lt;PowerTrainIdentifier&gt;" SymbolicName="PowerTrainIdentifier" ParentNodeId="ns=1;i=16601">
     <DisplayName>&lt;PowerTrainIdentifier&gt;</DisplayName>
-    <Description>The Requires reference provides the relationship of axes to power trains. For complex kinematics this does not need to be a one to one relationship, because more than one power train might influence the motion of one axis. This reference connects all power trains to an axis that must be actively driven when only this axis should move and all other axes should stand still. Virtual axes that are not actively driven by a power train do not have this reference.</Description>
+    <Description>The Requires reference provides the relationship of axes to powertrains. For complex kinematics this does not need to be a one to one relationship, because more than one power train might influence the motion of one axis. This reference connects all power trains to an axis that must be actively driven when only this axis should move and all other axes should stand still. Virtual axes that are not actively driven by a power train do not have this reference.</Description>
     <References>
       <Reference ReferenceType="HasTypeDefinition">ns=1;i=16794</Reference>
       <Reference ReferenceType="HasModellingRule">i=11508</Reference>
@@ -814,7 +809,7 @@
   </UAObject>
   <UAObjectType NodeId="ns=1;i=16794" BrowseName="1:PowerTrainType">
     <DisplayName>PowerTrainType</DisplayName>
-    <Description>The PowerTrainType represents instances of power trains of a motion device.</Description>
+    <Description>The PowerTrainType represents instances of powertrains of a motion device.</Description>
     <Documentation>https://reference.opcfoundation.org/v104/Robotics/v100/docs/7.4.2</Documentation>
     <References>
       <Reference ReferenceType="HasComponent">ns=1;i=15998</Reference>
@@ -971,7 +966,7 @@
   </UAVariable>
   <UAObject NodeId="ns=1;i=18536" BrowseName="1:&lt;AxisIdentifier&gt;" SymbolicName="AxisIdentifier" ParentNodeId="ns=1;i=16794">
     <DisplayName>&lt;AxisIdentifier&gt;</DisplayName>
-    <Description>Moves is a reference to provide the relationship of power trains to axes. For complex kinematics this does not need to be a one to one relationship, because a power train might influence the motion of more than one axis. This reference connects all axis to a power train that that move when only this power train moves and all other powertains stand still.</Description>
+    <Description>Moves is a reference to provide the relationship of powertrains to axes. For complex kinematics this does not need to be a one to one relationship, because a powertrain might influence the motion of more than one axis. This reference connects all axis to a powertrain that that move when only this powertrain moves and all other powertrains stand still.</Description>
     <References>
       <Reference ReferenceType="HasComponent">ns=1;i=18537</Reference>
       <Reference ReferenceType="HasProperty">ns=1;i=18570</Reference>
@@ -1019,7 +1014,7 @@
   </UAVariable>
   <UAObject NodeId="ns=1;i=18613" BrowseName="1:&lt;PowerTrainIdentifier&gt;" SymbolicName="PowerTrainIdentifier" ParentNodeId="ns=1;i=16794">
     <DisplayName>&lt;PowerTrainIdentifier&gt;</DisplayName>
-    <Description>HasSlave is a reference to provide the master-slave relationship of power trains which provide torque for a common axis. The InverseName is IsSlaveOf.</Description>
+    <Description>HasSlave is a reference to provide the master-slave relationship of powertrains which provide torque for a common axis. The InverseName is IsSlaveOf.</Description>
     <References>
       <Reference ReferenceType="HasTypeDefinition">ns=1;i=16794</Reference>
       <Reference ReferenceType="HasModellingRule">i=11508</Reference>
@@ -1036,7 +1031,6 @@
       <Reference ReferenceType="HasProperty">ns=1;i=17103</Reference>
       <Reference ReferenceType="HasProperty">ns=1;i=17109</Reference>
       <Reference ReferenceType="HasProperty">ns=1;i=17104</Reference>
-      <Reference ReferenceType="ns=1;i=18181">ns=1;i=18727</Reference>
       <Reference ReferenceType="ns=1;i=18180">ns=1;i=18763</Reference>
       <Reference ReferenceType="HasSubtype" IsForward="false">ns=2;i=15063</Reference>
     </References>
@@ -1121,82 +1115,9 @@
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=1019</Reference>
     </References>
   </UAVariable>
-  <UAObject NodeId="ns=1;i=18727" BrowseName="1:&lt;GearIdentifier&gt;" SymbolicName="GearIdentifier" ParentNodeId="ns=1;i=1019">
-    <DisplayName>&lt;GearIdentifier&gt;</DisplayName>
-    <Description>IsConnectedTo is a reference to provide the relationship between a motor and a gear of a power train.</Description>
-    <References>
-      <Reference ReferenceType="HasProperty">ns=1;i=18748</Reference>
-      <Reference ReferenceType="HasProperty">ns=1;i=18750</Reference>
-      <Reference ReferenceType="HasProperty">ns=1;i=18756</Reference>
-      <Reference ReferenceType="HasProperty">ns=1;i=18751</Reference>
-      <Reference ReferenceType="HasComponent">ns=1;i=18761</Reference>
-      <Reference ReferenceType="HasTypeDefinition">ns=1;i=1022</Reference>
-      <Reference ReferenceType="HasModellingRule">i=11508</Reference>
-      <Reference ReferenceType="ns=1;i=18181" IsForward="false">ns=1;i=1019</Reference>
-    </References>
-  </UAObject>
-  <UAVariable NodeId="ns=1;i=18748" BrowseName="2:Manufacturer" ParentNodeId="ns=1;i=18727" DataType="LocalizedText">
-    <DisplayName>Manufacturer</DisplayName>
-    <References>
-      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
-      <Reference ReferenceType="HasModellingRule">i=78</Reference>
-      <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=18727</Reference>
-    </References>
-  </UAVariable>
-  <UAVariable NodeId="ns=1;i=18750" BrowseName="2:Model" ParentNodeId="ns=1;i=18727" DataType="LocalizedText">
-    <DisplayName>Model</DisplayName>
-    <References>
-      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
-      <Reference ReferenceType="HasModellingRule">i=78</Reference>
-      <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=18727</Reference>
-    </References>
-  </UAVariable>
-  <UAVariable NodeId="ns=1;i=18756" BrowseName="2:ProductCode" ParentNodeId="ns=1;i=18727" DataType="String">
-    <DisplayName>ProductCode</DisplayName>
-    <References>
-      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
-      <Reference ReferenceType="HasModellingRule">i=78</Reference>
-      <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=18727</Reference>
-    </References>
-  </UAVariable>
-  <UAVariable NodeId="ns=1;i=18751" BrowseName="2:SerialNumber" ParentNodeId="ns=1;i=18727" DataType="String">
-    <DisplayName>SerialNumber</DisplayName>
-    <References>
-      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
-      <Reference ReferenceType="HasModellingRule">i=78</Reference>
-      <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=18727</Reference>
-    </References>
-  </UAVariable>
-  <UAVariable NodeId="ns=1;i=18761" BrowseName="1:GearRatio" ParentNodeId="ns=1;i=18727" DataType="i=18806">
-    <DisplayName>GearRatio</DisplayName>
-    <Description>The transmission ratio of the gear expressed as a fraction as input velocity (motor side) by output velocity (load side).</Description>
-    <References>
-      <Reference ReferenceType="HasComponent">ns=1;i=15613</Reference>
-      <Reference ReferenceType="HasComponent">ns=1;i=15614</Reference>
-      <Reference ReferenceType="HasTypeDefinition">i=17709</Reference>
-      <Reference ReferenceType="HasModellingRule">i=78</Reference>
-      <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=18727</Reference>
-    </References>
-  </UAVariable>
-  <UAVariable NodeId="ns=1;i=15613" BrowseName="Numerator" ParentNodeId="ns=1;i=18761" DataType="Int32">
-    <DisplayName>Numerator</DisplayName>
-    <References>
-      <Reference ReferenceType="HasTypeDefinition">i=63</Reference>
-      <Reference ReferenceType="HasModellingRule">i=78</Reference>
-      <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=18761</Reference>
-    </References>
-  </UAVariable>
-  <UAVariable NodeId="ns=1;i=15614" BrowseName="Denominator" ParentNodeId="ns=1;i=18761" DataType="UInt32">
-    <DisplayName>Denominator</DisplayName>
-    <References>
-      <Reference ReferenceType="HasTypeDefinition">i=63</Reference>
-      <Reference ReferenceType="HasModellingRule">i=78</Reference>
-      <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=18761</Reference>
-    </References>
-  </UAVariable>
-  <UAObject NodeId="ns=1;i=18763" BrowseName="1:&lt;DriveIdentifiier&gt;" SymbolicName="DriveIdentifiier" ParentNodeId="ns=1;i=1019">
-    <DisplayName>&lt;DriveIdentifiier&gt;</DisplayName>
-    <Description>IsDrivenBy is a reference to provide a relationship from a motor to a drive, which can be a multi-slot-drive or single slot drive. The TypeDefinition of the reference destination as BaseObjectType provides the possibility to point to a slot of a mulit-slot-drive or a motor-integrated-drive. If this reference points to a physical drive (and not a drive slot) it should point to an DriveType.</Description>
+  <UAObject NodeId="ns=1;i=18763" BrowseName="1:&lt;DriveIdentifier&gt;" SymbolicName="DriveIdentifier" ParentNodeId="ns=1;i=1019">
+    <DisplayName>&lt;DriveIdentifier&gt;</DisplayName>
+    <Description>IsDrivenBy is a reference to provide a relationship from a motor to a drive, which can be a multi-slot-drive or single slot drive. The TypeDefinition of the reference destination as BaseObjectType provides the possibility to point to a slot of a multi-slot-drive or a motor-integrated-drive. If this reference points to a physical drive (and not a drive slot) it should point to an DriveType.</Description>
     <References>
       <Reference ReferenceType="HasTypeDefinition">i=58</Reference>
       <Reference ReferenceType="HasModellingRule">i=11508</Reference>
@@ -1205,7 +1126,7 @@
   </UAObject>
   <UAObjectType NodeId="ns=1;i=1022" BrowseName="1:GearType">
     <DisplayName>GearType</DisplayName>
-    <Description>The GearType describes a gear in a power train, e.g. a gear box or a spindle.</Description>
+    <Description>The GearType describes a gear in a powertrain, e.g. a gear box or a spindle.</Description>
     <Documentation>https://reference.opcfoundation.org/v104/Robotics/v100/docs/7.6.2</Documentation>
     <References>
       <Reference ReferenceType="HasProperty">ns=1;i=17152</Reference>
@@ -1214,7 +1135,6 @@
       <Reference ReferenceType="HasProperty">ns=1;i=17155</Reference>
       <Reference ReferenceType="HasComponent">ns=1;i=15941</Reference>
       <Reference ReferenceType="HasComponent">ns=1;i=17165</Reference>
-      <Reference ReferenceType="ns=1;i=18181">ns=1;i=18764</Reference>
       <Reference ReferenceType="HasSubtype" IsForward="false">ns=2;i=15063</Reference>
     </References>
   </UAObjectType>
@@ -1284,80 +1204,6 @@
       <Reference ReferenceType="HasTypeDefinition">i=63</Reference>
       <Reference ReferenceType="HasModellingRule">i=80</Reference>
       <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=1022</Reference>
-    </References>
-  </UAVariable>
-  <UAObject NodeId="ns=1;i=18764" BrowseName="1:&lt;MotorIdentifier&gt;" SymbolicName="MotorIdentifier" ParentNodeId="ns=1;i=1022">
-    <DisplayName>&lt;MotorIdentifier&gt;</DisplayName>
-    <Description>IsConnectedTo is a reference to provide the relationship between a motor and a gear of a power train.</Description>
-    <References>
-      <Reference ReferenceType="HasComponent">ns=1;i=18765</Reference>
-      <Reference ReferenceType="HasProperty">ns=1;i=18785</Reference>
-      <Reference ReferenceType="HasProperty">ns=1;i=18787</Reference>
-      <Reference ReferenceType="HasProperty">ns=1;i=18793</Reference>
-      <Reference ReferenceType="HasProperty">ns=1;i=18788</Reference>
-      <Reference ReferenceType="HasTypeDefinition">ns=1;i=1019</Reference>
-      <Reference ReferenceType="HasModellingRule">i=11508</Reference>
-      <Reference ReferenceType="ns=1;i=18181" IsForward="false">ns=1;i=1022</Reference>
-    </References>
-  </UAObject>
-  <UAObject NodeId="ns=1;i=18765" BrowseName="2:ParameterSet" ParentNodeId="ns=1;i=18764">
-    <DisplayName>ParameterSet</DisplayName>
-    <Description>Flat list of Parameters</Description>
-    <References>
-      <Reference ReferenceType="HasComponent">ns=1;i=18799</Reference>
-      <Reference ReferenceType="HasTypeDefinition">i=58</Reference>
-      <Reference ReferenceType="HasModellingRule">i=78</Reference>
-      <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=18764</Reference>
-    </References>
-  </UAObject>
-  <UAVariable NodeId="ns=1;i=18799" BrowseName="1:MotorTemperature" ParentNodeId="ns=1;i=18765" DataType="Double">
-    <DisplayName>MotorTemperature</DisplayName>
-    <Description>The motor temperature provides the temperature of the motor. If there is no temperature sensor the value is set to \"null\".</Description>
-    <References>
-      <Reference ReferenceType="HasProperty">ns=1;i=18804</Reference>
-      <Reference ReferenceType="HasTypeDefinition">i=17497</Reference>
-      <Reference ReferenceType="HasModellingRule">i=78</Reference>
-      <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=18765</Reference>
-    </References>
-  </UAVariable>
-  <UAVariable NodeId="ns=1;i=18804" BrowseName="EngineeringUnits" ParentNodeId="ns=1;i=18799" DataType="i=887">
-    <DisplayName>EngineeringUnits</DisplayName>
-    <References>
-      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
-      <Reference ReferenceType="HasModellingRule">i=78</Reference>
-      <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=18799</Reference>
-    </References>
-  </UAVariable>
-  <UAVariable NodeId="ns=1;i=18785" BrowseName="2:Manufacturer" ParentNodeId="ns=1;i=18764" DataType="LocalizedText">
-    <DisplayName>Manufacturer</DisplayName>
-    <References>
-      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
-      <Reference ReferenceType="HasModellingRule">i=78</Reference>
-      <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=18764</Reference>
-    </References>
-  </UAVariable>
-  <UAVariable NodeId="ns=1;i=18787" BrowseName="2:Model" ParentNodeId="ns=1;i=18764" DataType="LocalizedText">
-    <DisplayName>Model</DisplayName>
-    <References>
-      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
-      <Reference ReferenceType="HasModellingRule">i=78</Reference>
-      <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=18764</Reference>
-    </References>
-  </UAVariable>
-  <UAVariable NodeId="ns=1;i=18793" BrowseName="2:ProductCode" ParentNodeId="ns=1;i=18764" DataType="String">
-    <DisplayName>ProductCode</DisplayName>
-    <References>
-      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
-      <Reference ReferenceType="HasModellingRule">i=78</Reference>
-      <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=18764</Reference>
-    </References>
-  </UAVariable>
-  <UAVariable NodeId="ns=1;i=18788" BrowseName="2:SerialNumber" ParentNodeId="ns=1;i=18764" DataType="String">
-    <DisplayName>SerialNumber</DisplayName>
-    <References>
-      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
-      <Reference ReferenceType="HasModellingRule">i=78</Reference>
-      <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=18764</Reference>
     </References>
   </UAVariable>
   <UAObjectType NodeId="ns=1;i=1013" BrowseName="1:SafetyStateType">
@@ -1683,7 +1529,7 @@
   </UAVariable>
   <UAVariable NodeId="ns=1;i=17377" BrowseName="1:InputVoltage" ParentNodeId="ns=1;i=5004" DataType="Double">
     <DisplayName>InputVoltage</DisplayName>
-    <Description>The input voltage of the controller which can be a configured value. To distuinguish between an AC or DC supply the optional property Definition of the base type DataItemType shall be used.</Description>
+    <Description>The input voltage of the controller which can be a configured value. To distinguish between an AC or DC supply the optional property Definition of the base type DataItemType shall be used.</Description>
     <References>
       <Reference ReferenceType="HasProperty">ns=1;i=17382</Reference>
       <Reference ReferenceType="HasTypeDefinition">i=17497</Reference>
@@ -1888,7 +1734,7 @@
   </UAVariable>
   <UAVariable NodeId="ns=1;i=18914" BrowseName="2:ComponentName" ParentNodeId="ns=1;i=18881" DataType="LocalizedText">
     <DisplayName>ComponentName</DisplayName>
-    <Description>A user writeable name provided by the vendor, integrator or user of the device.</Description>
+    <Description>A user writable name provided by the vendor, integrator or user of the device.</Description>
     <References>
       <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
       <Reference ReferenceType="HasModellingRule">i=78</Reference>
@@ -2129,7 +1975,7 @@
   </UAVariable>
   <UAVariable NodeId="ns=1;i=17873" BrowseName="2:ComponentName" ParentNodeId="ns=1;i=1011" DataType="LocalizedText">
     <DisplayName>ComponentName</DisplayName>
-    <Description>A user writeable name provided by the vendor, integrator or user of the device.</Description>
+    <Description>A user writable name provided by the vendor, integrator or user of the device.</Description>
     <References>
       <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
       <Reference ReferenceType="HasModellingRule">i=78</Reference>
@@ -2381,7 +2227,7 @@
   </UAVariable>
   <UAObjectType NodeId="ns=1;i=18175" BrowseName="1:UserType">
     <DisplayName>UserType</DisplayName>
-    <Description>The UserType ObjectType describes information of the registred user groups within the control system.</Description>
+    <Description>The UserType ObjectType describes information of the registered user groups within the control system.</Description>
     <Documentation>https://reference.opcfoundation.org/v104/Robotics/v100/docs/7.13.2</Documentation>
     <References>
       <Reference ReferenceType="HasProperty">ns=1;i=18176</Reference>
@@ -2418,7 +2264,7 @@
   </UAReferenceType>
   <UAReferenceType NodeId="ns=1;i=18178" BrowseName="1:Moves">
     <DisplayName>Moves</DisplayName>
-    <Description>Reference: Describe the coupling between a power train and the axes from the power train point of view.</Description>
+    <Description>Reference: Describe the coupling between a powertrain and the axes from the powertrain point of view.</Description>
     <Documentation>https://reference.opcfoundation.org/v104/Robotics/v100/docs/8.3</Documentation>
     <References>
       <Reference ReferenceType="HasSubtype" IsForward="false">i=33</Reference>
@@ -2427,7 +2273,7 @@
   </UAReferenceType>
   <UAReferenceType NodeId="ns=1;i=18179" BrowseName="1:Requires">
     <DisplayName>Requires</DisplayName>
-    <Description>Reference: Describe the coupling between a power train and axes from the axis point of view. An axis has a Requires reference to all powertrains that need to move such that only this single axis moves.</Description>
+    <Description>Reference: Describe the coupling between a powertrain and axes from the axis point of view. An axis has a Requires reference to all powertrains that need to move such that only this single axis moves.</Description>
     <Documentation>https://reference.opcfoundation.org/v104/Robotics/v100/docs/8.4</Documentation>
     <References>
       <Reference ReferenceType="HasSubtype" IsForward="false">i=33</Reference>
@@ -2462,7 +2308,7 @@
   </UAReferenceType>
   <UAReferenceType NodeId="ns=1;i=18183" BrowseName="1:HasSlave">
     <DisplayName>HasSlave</DisplayName>
-    <Description>Reference: Provide the master-slave relationship of power trains which provide torque for a common axis. The InverseName is IsSlaveOf.</Description>
+    <Description>Reference: Provide the master-slave relationship of powertrains which provide torque for a common axis. The InverseName is IsSlaveOf.</Description>
     <Documentation>https://reference.opcfoundation.org/v104/Robotics/v100/docs/8.8</Documentation>
     <References>
       <Reference ReferenceType="HasSubtype" IsForward="false">i=33</Reference>
