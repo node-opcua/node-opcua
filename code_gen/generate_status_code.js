@@ -15,7 +15,7 @@ const codeMap = {};
 const code_list = [];
 
 
-const datafolder = path.join(__dirname, "1.04");
+const dataFolder = path.join(__dirname, "1.04");
 
 
 const parser = csv.parse({
@@ -23,7 +23,7 @@ const parser = csv.parse({
 }).on("readable", function () {
 
     let record;
-    while (!!(record = this.read())) {
+    while ((record = this.read())) {
         const codeName = record[0];
         console.log(record.length ,record);
         code_list.push({
@@ -39,7 +39,7 @@ const parser = csv.parse({
 
 });
 
-fs.createReadStream(path.join(datafolder, "/StatusCode.csv")).pipe(parser);
+fs.createReadStream(path.join(dataFolder, "/StatusCode.csv")).pipe(parser);
 
 function parseStatusCodeXML_not_used_anymore() {
 
@@ -94,16 +94,15 @@ import { ConstantStatusCode, StatusCode } from \"./opcua_status_code\";\n`);
 
     outFile.write(" export class StatusCodes  { \n");
 
-    outFile.write(" /** Good: No Error */\n");
-    outFile.write(" static Good: ConstantStatusCode =  new ConstantStatusCode({ name:'Good', value: 0, description:'No Error' });\n");
+    // outFile.write(" /** Good: No Error */\n");
+    // outFile.write(" static Good: ConstantStatusCode =  new ConstantStatusCode({ name:'Good', value: 0, description:'No Error' });\n");
 
-    outFile.write(`/** The value is bad but no specific reason is known. */`);
-    outFile.write(" static Bad: ConstantStatusCode =  new ConstantStatusCode({ name:'Bad', value: 0x80000000, description:'The value is bad but no specific reason is known.' });\n");
+    // outFile.write(`/** The value is bad but no specific reason is known. */`);
+    // outFile.write(" static Bad: ConstantStatusCode =  new ConstantStatusCode({ name:'Bad', value: 0x80000000, description:'The value is bad but no specific reason is known.' });\n");
         
-    outFile.write(`/** The value is uncertain but no specific reason is known. */`);
-    outFile.write(" static Uncertain: ConstantStatusCode =  new ConstantStatusCode({ name:'Uncertain', value: 0x40000000, description:'The value is uncertain but no specific reason is known.' });\n");
+    // outFile.write(`/** The value is uncertain but no specific reason is known. */`);
+    // outFile.write(" static Uncertain: ConstantStatusCode =  new ConstantStatusCode({ name:'Uncertain', value: 0x40000000, description:'The value is uncertain but no specific reason is known.' });\n");
 
-    outFile.write(" static GoodWithOverflowBit= StatusCode.makeStatusCode(StatusCodes.Good, `Overflow | InfoTypeDataValue`);");
 
     const sep = " ";
 
@@ -113,5 +112,6 @@ import { ConstantStatusCode, StatusCode } from \"./opcua_status_code\";\n`);
           sep, obj.name, "\"" + obj.name + "\"", "0x" + obj.value.toString(16), obj.description);
         outFile.write(s);
     });
+    outFile.write(" static GoodWithOverflowBit= StatusCode.makeStatusCode(StatusCodes.Good, `Overflow | InfoTypeDataValue`);\n");
     outFile.write("};\n");
 }

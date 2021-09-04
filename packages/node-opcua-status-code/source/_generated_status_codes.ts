@@ -5,11 +5,13 @@
 // this file has been automatically generated
 import { ConstantStatusCode, StatusCode } from "./opcua_status_code";
  export class StatusCodes  { 
- /** Good: No Error */
- static Good: ConstantStatusCode =  new ConstantStatusCode({ name:'Good', value: 0, description:'No Error' });
-/** The value is bad but no specific reason is known. */ static Bad: ConstantStatusCode =  new ConstantStatusCode({ name:'Bad', value: 0x80000000, description:'The value is bad but no specific reason is known.' });
-/** The value is uncertain but no specific reason is known. */ static Uncertain: ConstantStatusCode =  new ConstantStatusCode({ name:'Uncertain', value: 0x40000000, description:'The value is uncertain but no specific reason is known.' });
- static GoodWithOverflowBit= StatusCode.makeStatusCode(StatusCodes.Good, `Overflow | InfoTypeDataValue`); /** An unexpected error occurred. */
+ /** The operation succeeded. */
+  static                                     Good: ConstantStatusCode = new ConstantStatusCode({ name:                                   "Good" , value:    0x0  ,description: "The operation succeeded."});
+ /** The operation was uncertain. */
+  static                                Uncertain: ConstantStatusCode = new ConstantStatusCode({ name:                              "Uncertain" , value: 0x40000000  ,description: "The operation was uncertain."});
+ /** The operation failed. */
+  static                                      Bad: ConstantStatusCode = new ConstantStatusCode({ name:                                    "Bad" , value: 0x80000000  ,description: "The operation failed."});
+ /** An unexpected error occurred. */
   static                       BadUnexpectedError: ConstantStatusCode = new ConstantStatusCode({ name:                     "BadUnexpectedError" , value: 0x80010000  ,description: "An unexpected error occurred."});
  /** An internal error occurred as a result of a programming or configuration error. */
   static                         BadInternalError: ConstantStatusCode = new ConstantStatusCode({ name:                       "BadInternalError" , value: 0x80020000  ,description: "An internal error occurred as a result of a programming or configuration error."});
@@ -303,6 +305,8 @@ import { ConstantStatusCode, StatusCode } from "./opcua_status_code";
   static                        BadNoSubscription: ConstantStatusCode = new ConstantStatusCode({ name:                      "BadNoSubscription" , value: 0x80790000  ,description: "There is no subscription available for this session."});
  /** The sequence number is unknown to the server. */
   static                 BadSequenceNumberUnknown: ConstantStatusCode = new ConstantStatusCode({ name:               "BadSequenceNumberUnknown" , value: 0x807a0000  ,description: "The sequence number is unknown to the server."});
+ /** The Server does not support retransmission queue and acknowledgement of sequence numbers is not available. */
+  static      GoodRetransmissionQueueNotSupported: ConstantStatusCode = new ConstantStatusCode({ name:    "GoodRetransmissionQueueNotSupported" , value: 0xdf0000  ,description: "The Server does not support retransmission queue and acknowledgement of sequence numbers is not available."});
  /** The requested notification message is no longer available. */
   static                   BadMessageNotAvailable: ConstantStatusCode = new ConstantStatusCode({ name:                 "BadMessageNotAvailable" , value: 0x807b0000  ,description: "The requested notification message is no longer available."});
  /** The client of the current session does not support one or more Profiles that are necessary for the subscription. */
@@ -317,8 +321,8 @@ import { ConstantStatusCode, StatusCode } from "./opcua_status_code";
   static                 BadTcpMessageTypeInvalid: ConstantStatusCode = new ConstantStatusCode({ name:               "BadTcpMessageTypeInvalid" , value: 0x807e0000  ,description: "The type of the message specified in the header invalid."});
  /** The SecureChannelId and/or TokenId are not currently in use. */
   static               BadTcpSecureChannelUnknown: ConstantStatusCode = new ConstantStatusCode({ name:             "BadTcpSecureChannelUnknown" , value: 0x807f0000  ,description: "The SecureChannelId and/or TokenId are not currently in use."});
- /** The size of the message specified in the header is too large. */
-  static                    BadTcpMessageTooLarge: ConstantStatusCode = new ConstantStatusCode({ name:                  "BadTcpMessageTooLarge" , value: 0x80800000  ,description: "The size of the message specified in the header is too large."});
+ /** The size of the message chunk specified in the header is too large. */
+  static                    BadTcpMessageTooLarge: ConstantStatusCode = new ConstantStatusCode({ name:                  "BadTcpMessageTooLarge" , value: 0x80800000  ,description: "The size of the message chunk specified in the header is too large."});
  /** There are not enough resources to process the request. */
   static                 BadTcpNotEnoughResources: ConstantStatusCode = new ConstantStatusCode({ name:               "BadTcpNotEnoughResources" , value: 0x80810000  ,description: "There are not enough resources to process the request."});
  /** An internal error occurred. */
@@ -431,6 +435,10 @@ import { ConstantStatusCode, StatusCode } from "./opcua_status_code";
   static                     BadRequestNotAllowed: ConstantStatusCode = new ConstantStatusCode({ name:                   "BadRequestNotAllowed" , value: 0x80e40000  ,description: "The request was rejected by the server because it did not meet the criteria set by the server."});
  /** The request has not been processed by the server yet. */
   static                    BadRequestNotComplete: ConstantStatusCode = new ConstantStatusCode({ name:                  "BadRequestNotComplete" , value: 0x81130000  ,description: "The request has not been processed by the server yet."});
+ /** The device identity needs a ticket before it can be accepted. */
+  static                        BadTicketRequired: ConstantStatusCode = new ConstantStatusCode({ name:                      "BadTicketRequired" , value: 0x811f0000  ,description: "The device identity needs a ticket before it can be accepted."});
+ /** The device identity needs a ticket before it can be accepted. */
+  static                         BadTicketInvalid: ConstantStatusCode = new ConstantStatusCode({ name:                       "BadTicketInvalid" , value: 0x81200000  ,description: "The device identity needs a ticket before it can be accepted."});
  /** The value does not come from the real source and has been edited by the server. */
   static                               GoodEdited: ConstantStatusCode = new ConstantStatusCode({ name:                             "GoodEdited" , value: 0xdc0000  ,description: "The value does not come from the real source and has been edited by the server."});
  /** There was an error in execution of these post-actions. */
@@ -445,6 +453,24 @@ import { ConstantStatusCode, StatusCode } from "./opcua_status_code";
   static           UncertainDependentValueChanged: ConstantStatusCode = new ConstantStatusCode({ name:         "UncertainDependentValueChanged" , value: 0x40e20000  ,description: "A dependent value has been changed but the change has not been applied to the device. The quality of the dominant variable is uncertain."});
  /** A dependent value has been changed but the change has not been applied to the device. The quality of the dominant variable is Bad. */
   static                 BadDependentValueChanged: ConstantStatusCode = new ConstantStatusCode({ name:               "BadDependentValueChanged" , value: 0x80e30000  ,description: "A dependent value has been changed but the change has not been applied to the device. The quality of the dominant variable is Bad."});
+ /** It is delivered with a dominant Variable value when a dependent Variable has changed but the change has not been applied. */
+  static         GoodEdited_DependentValueChanged: ConstantStatusCode = new ConstantStatusCode({ name:       "GoodEdited_DependentValueChanged" , value: 0x1160000  ,description: "It is delivered with a dominant Variable value when a dependent Variable has changed but the change has not been applied."});
+ /** It is delivered with a dependent Variable value when a dominant Variable has changed but the change has not been applied. */
+  static          GoodEdited_DominantValueChanged: ConstantStatusCode = new ConstantStatusCode({ name:        "GoodEdited_DominantValueChanged" , value: 0x1170000  ,description: "It is delivered with a dependent Variable value when a dominant Variable has changed but the change has not been applied."});
+ /** It is delivered with a dependent Variable value when a dominant or dependent Variable has changed but change has not been applied. */
+  static GoodEdited_DominantValueChanged_DependentValueChanged: ConstantStatusCode = new ConstantStatusCode({ name: "GoodEdited_DominantValueChanged_DependentValueChanged" , value: 0x1180000  ,description: "It is delivered with a dependent Variable value when a dominant or dependent Variable has changed but change has not been applied."});
+ /** It is delivered with a Variable value when Variable has changed but the value is not legal. */
+  static                     BadEdited_OutOfRange: ConstantStatusCode = new ConstantStatusCode({ name:                   "BadEdited_OutOfRange" , value: 0x81190000  ,description: "It is delivered with a Variable value when Variable has changed but the value is not legal."});
+ /** It is delivered with a Variable value when a source Variable has changed but the value is not legal. */
+  static               BadInitialValue_OutOfRange: ConstantStatusCode = new ConstantStatusCode({ name:             "BadInitialValue_OutOfRange" , value: 0x811a0000  ,description: "It is delivered with a Variable value when a source Variable has changed but the value is not legal."});
+ /** It is delivered with a dependent Variable value when a dominant Variable has changed and the value is not legal. */
+  static       BadOutOfRange_DominantValueChanged: ConstantStatusCode = new ConstantStatusCode({ name:     "BadOutOfRange_DominantValueChanged" , value: 0x811b0000  ,description: "It is delivered with a dependent Variable value when a dominant Variable has changed and the value is not legal."});
+ /** It is delivered with a dependent Variable value when a dominant Variable has changed, the value is not legal and the change has not been applied. */
+  static BadEdited_OutOfRange_DominantValueChanged: ConstantStatusCode = new ConstantStatusCode({ name: "BadEdited_OutOfRange_DominantValueChanged" , value: 0x811c0000  ,description: "It is delivered with a dependent Variable value when a dominant Variable has changed, the value is not legal and the change has not been applied."});
+ /** It is delivered with a dependent Variable value when a dominant or dependent Variable has changed and the value is not legal. */
+  static BadOutOfRange_DominantValueChanged_DependentValueChanged: ConstantStatusCode = new ConstantStatusCode({ name: "BadOutOfRange_DominantValueChanged_DependentValueChanged" , value: 0x811d0000  ,description: "It is delivered with a dependent Variable value when a dominant or dependent Variable has changed and the value is not legal."});
+ /** It is delivered with a dependent Variable value when a dominant or dependent Variable has changed, the value is not legal and the change has not been applied. */
+  static BadEdited_OutOfRange_DominantValueChanged_DependentValueChanged: ConstantStatusCode = new ConstantStatusCode({ name: "BadEdited_OutOfRange_DominantValueChanged_DependentValueChanged" , value: 0x811e0000  ,description: "It is delivered with a dependent Variable value when a dominant or dependent Variable has changed, the value is not legal and the change has not been applied."});
  /** The communication layer has raised an event. */
   static                   GoodCommunicationEvent: ConstantStatusCode = new ConstantStatusCode({ name:                 "GoodCommunicationEvent" , value: 0xa70000  ,description: "The communication layer has raised an event."});
  /** The system is shutting down. */
@@ -479,4 +505,5 @@ import { ConstantStatusCode, StatusCode } from "./opcua_status_code";
   static                           BadSyntaxError: ConstantStatusCode = new ConstantStatusCode({ name:                         "BadSyntaxError" , value: 0x80b60000  ,description: "A value had an invalid syntax."});
  /** The operation could not be finished because all available connections are in use. */
   static                 BadMaxConnectionsReached: ConstantStatusCode = new ConstantStatusCode({ name:               "BadMaxConnectionsReached" , value: 0x80b70000  ,description: "The operation could not be finished because all available connections are in use."});
+ static GoodWithOverflowBit= StatusCode.makeStatusCode(StatusCodes.Good, `Overflow | InfoTypeDataValue`);
 };
