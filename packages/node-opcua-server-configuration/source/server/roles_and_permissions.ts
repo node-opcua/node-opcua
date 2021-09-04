@@ -24,4 +24,12 @@ export const rolePermissionAdminOnly: RolePermissionTypeOptions[] = [
         roleId: WellKnownRoles.SecurityAdmin,
         permissions: allPermissions
     },
-]
+    {
+        roleId: WellKnownRoles.Anonymous,
+        permissions: PermissionType.Browse
+    },
+    {
+        roleId: WellKnownRoles.AuthenticatedUser,
+        permissions: PermissionType.Browse
+    }
+];

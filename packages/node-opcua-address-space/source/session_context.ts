@@ -175,11 +175,11 @@ function getAccessRestrictionsOnNamespace(namespace: Namespace, context: Session
     if (!namespaces) {
         return AccessRestrictionsFlag.None;
     }
-    const uanamespaceObject = namespaces.getChildByName(namespace.namespaceUri);
-    if (!uanamespaceObject) {
+    const namespaceObject = namespaces.getChildByName(namespace.namespaceUri);
+    if (!namespaceObject) {
         return AccessRestrictionsFlag.None;
     }
-    const defaultAccessRestriction = uanamespaceObject.getChildByName("defaultAccessRestriction");
+    const defaultAccessRestriction = namespaceObject.getChildByName("defaultAccessRestriction");
     if (defaultAccessRestriction) {
         const dataValue = defaultAccessRestriction.readAttribute(null, AttributeIds.Value);
         if (dataValue && dataValue.statusCode === StatusCodes.Good) {
