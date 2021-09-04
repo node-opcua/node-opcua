@@ -294,7 +294,7 @@ async function _extractDataTypeDictionaryFromDefinition(
             const Constructor = createDynamicObjectConstructor(schema, dataTypeFactory) as ConstructorFuncWithSchema;
             assert(Constructor.schema === schema);
         } catch (err) {
-            console.log("Constructor verification err: ", err.message);
+            console.log("Constructor verification err: ", (<Error>err).message);
             console.log("For this reason class " + className + " has not been registered");
             console.log(err);
         }
@@ -442,7 +442,7 @@ async function _exploreDataTypeDefinition(
                 debugLog(testObject.toString());
             } catch (err) {
                 debugLog("         Error cannot construct Extension Object " + name);
-                debugLog("         " + err.message);
+                debugLog("         " + (<Error>err).message);
             }
         }
     }

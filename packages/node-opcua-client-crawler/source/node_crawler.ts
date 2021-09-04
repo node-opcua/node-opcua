@@ -34,7 +34,7 @@ export class NodeCrawler extends NodeCrawlerBase {
         try {
             nodeId = resolveNodeId(nodeId);
         } /* istanbul ignore next */ catch (err) {
-             callback(err);
+             callback(err as Error);
              return;
         }
 

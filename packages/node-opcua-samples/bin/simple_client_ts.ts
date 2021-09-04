@@ -47,7 +47,6 @@ import { Certificate, toPem } from "node-opcua-crypto";
 const Table = require("easy-table");
 const treeify = require("treeify");
 
-
 function w(str: string, l: number): string {
     return (str + "                                      ").substr(0, l);
 }
@@ -188,7 +187,9 @@ async function monitorAlarm(subscription: ClientSubscription, alarmNodeId: NodeI
     try {
         await callConditionRefresh(subscription);
     } catch (err) {
-        console.log(" monitorAlarm failed , may be your server doesn't support A&E", err.message);
+        if (err instanceof Error) {
+            console.log(" monitorAlarm failed , may be your server doesn't support A&E", err.message);
+        }
     }
 }
 
@@ -201,7 +202,6 @@ let the_session: ClientSession;
 let client: OPCUAClient;
 
 async function main() {
-
     // ts-node bin/simple_client.ts --endpoint  opc.tcp://localhost:53530/OPCUA/SimulationServer --node "ns=5;s=Sinusoid1"
     const argv = await yargs(process.argv)
         .wrap(132)
@@ -289,7 +289,6 @@ async function main() {
     const doCrawling = !!argv.crawl;
     const doHistory = !!argv.history;
 
-
     const optionsInitial: OPCUAClientOptions = {
         securityMode,
         securityPolicy,
@@ -320,7 +319,9 @@ async function main() {
         console.log(" Connected ! exact endpoint url is ", client.endpointUrl);
     } catch (err) {
         console.log(chalk.red(" Cannot connect to ") + endpointUrl);
-        console.log(" Error = ", err.message);
+        if (err instanceof Error) {
+            console.log(" Error = ", err.message);
+        }
         return;
     }
 
@@ -581,7 +582,9 @@ async function main() {
             " -----------------------------------------------------------------------------------------------------------------"
         );
     } catch (err) {
-        console.log(" Server is not supporting queryFirst err=", err.message);
+        if (err instanceof Error) {
+            console.log(" Server is not supporting queryFirst err=", err.message);
+        }
     }
     // create Read
     if (doHistory) {
@@ -658,7 +661,9 @@ async function main() {
         console.log("MonitoredItems clientHandles", results1.clientHandles);
         console.log("MonitoredItems serverHandles", results1.serverHandles);
     } catch (err) {
-        console.log("Server doesn't seems to implement getMonitoredItems method ", err.message);
+        if (err instanceof Error) {
+            console.log("Server doesn't seems to implement getMonitoredItems method ", err.message);
+        }
     }
     // get_monitored_item
 

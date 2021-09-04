@@ -11,13 +11,13 @@
     },
     "dependencies": {
         "browser-process-hrtime": "^1.0.0",
-        "chalk": "4.1.1",
+        "chalk": "4.1.2",
         "node-opcua-assert": "2.42.0"
     },
     "devDependencies": {
-        "@types/node": "15.6.1",
+        "@types/node": "16.7.10",
         "should": "^13.2.3",
-        "sinon": "^11.1.1"
+        "sinon": "^11.1.2"
     },
     "author": "Etienne Rossignon",
     "license": "MIT",

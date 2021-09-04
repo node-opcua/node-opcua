@@ -8,11 +8,11 @@
         "test": "mocha"
     },
     "dependencies": {
-        "node-opcua-pki": "^2.9.8"
+        "node-opcua-pki": "^2.11.2"
     },
     "devDependencies": {
-        "@types/underscore": "^1.11.2",
-        "async": "^3.2.0",
+        "@types/underscore": "^1.11.3",
+        "async": "^3.2.1",
         "delayed": "^2.0.0",
         "node-opcua": "2.50.0",
         "node-opcua-address-space": "2.50.0",
@@ -25,7 +25,7 @@
         "node-opcua-client": "2.50.0",
         "node-opcua-client-proxy": "2.50.0",
         "node-opcua-constants": "2.42.0",
-        "node-opcua-crypto": "^1.7.1",
+        "node-opcua-crypto": "^1.7.3",
         "node-opcua-debug": "2.42.0",
         "node-opcua-extension-object": "2.49.0",
         "node-opcua-factory": "2.49.0",
@@ -41,7 +41,7 @@
         "node-opcua-service-secure-channel": "2.49.0",
         "node-opcua-variant": "2.49.0",
         "should": "^13.2.3",
-        "sinon": "^11.1.1",
+        "sinon": "^11.1.2",
         "underscore": "^1.13.1",
         "yargs": "15.4.1"
     },

@@ -1,19 +1,8 @@
-import * as fs from "fs";
-import * as path from "path";
-
-import {
-    Certificate,
-    PrivateKey,
-    readCertificate,
-    readPrivateKey
-} from "node-opcua-crypto";
 
 import { OPCUAClient } from "../packages/node-opcua-client";
 
 async function main() {
-
     try {
-
         const endpointUrl2 = "opc.tcp://localhost:48010";
 
         const client = OPCUAClient.create({
@@ -25,11 +14,11 @@ async function main() {
 
         await session.close();
 
-        await
-          client.disconnect();
+        await client.disconnect();
     } catch (err) {
-
-        console.log(err.message);
+        if (err instanceof Error) {
+            console.log(err.message);
+        }
         process.exit(0);
     }
 }

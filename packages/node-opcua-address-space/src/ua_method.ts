@@ -214,10 +214,12 @@ export class UAMethod extends BaseNode implements UAMethodPublic {
                 }
             );
         } catch (err) {
-            warningLog(chalk.red("ERR in method  handler"), err.message);
-            warningLog(err.stack);
+            if (err instanceof Error) {
+                warningLog(chalk.red("ERR in method  handler"), err.message);
+                warningLog(err.stack);
+            }
             const callMethodResponse = { statusCode: StatusCodes.BadInternalError };
-            callback(err, callMethodResponse);
+            callback(err as Error, callMethodResponse);
         }
     }
 

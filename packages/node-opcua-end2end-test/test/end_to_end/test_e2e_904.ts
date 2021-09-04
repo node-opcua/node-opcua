@@ -122,7 +122,7 @@ describe("#904 - Client should connect to server that do not provide ServerNonce
             await func();
         } catch (err) {
             // we are expecting this exception here!
-            if (doDebug) {
+            if (doDebug && err instanceof Error) {
                 console.log(err.message);
             }
             exceptionCaught = true;

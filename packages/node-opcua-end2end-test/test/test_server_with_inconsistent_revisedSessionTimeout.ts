@@ -26,12 +26,14 @@ async function startServer() {
     try {
         await server.start();
     } catch (err) {
-        errorLog(" Server failed to start ... exiting => err:", err.message);
+        if (err instanceof Error) {
+            errorLog(" Server failed to start ... exiting => err:", err.message);
+        }
         return;
     }
     server.on("response", (response) => {
         if (response instanceof CreateSessionResponse) {
-            if (weirdRevisedSessionTimeout >= 0){
+            if (weirdRevisedSessionTimeout >= 0) {
                 response.revisedSessionTimeout = weirdRevisedSessionTimeout;
             }
         }

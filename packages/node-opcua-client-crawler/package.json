@@ -11,8 +11,8 @@
 		"test": "mocha "
 	},
 	"dependencies": {
-		"@types/underscore": "1.11.2",
-		"async": "^3.2.0",
+		"@types/underscore": "1.11.3",
+		"async": "^3.2.1",
 		"node-opcua-assert": "2.42.0",
 		"node-opcua-constants": "2.42.0",
 		"node-opcua-data-model": "2.49.0",

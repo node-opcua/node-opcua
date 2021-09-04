@@ -563,8 +563,8 @@ export class OPCUAClientImpl extends ClientBaseImpl implements OPCUAClient {
                         });
                     } catch (err) {
                         console.log("Exception catch in inner function,  check your code ", err);
-                        errorLog("OPCUAClientImpl#withClientSession", err.message);
-                        the_error = err;
+                        errorLog("OPCUAClientImpl#withClientSession", (<Error>err).message);
+                        the_error = err as Error;
                         innerCallback();
                     }
                 },
@@ -629,7 +629,7 @@ export class OPCUAClientImpl extends ClientBaseImpl implements OPCUAClient {
                     });
                 } catch (err) {
                     debugLog(err);
-                    done(err);
+                    done(err as Error);
                 }
             },
             callback
@@ -676,7 +676,7 @@ export class OPCUAClientImpl extends ClientBaseImpl implements OPCUAClient {
                 const result = await func(session, subscription);
                 return result;
             } catch (err) {
-                console.log("withSubscriptionAsync inner function failed ", err.message);
+                console.log("withSubscriptionAsync inner function failed ", (<Error>err).message);
                 throw err;
             } finally {
                 await subscription.terminate();
@@ -1201,7 +1201,7 @@ export class OPCUAClientImpl extends ClientBaseImpl implements OPCUAClient {
             if (typeof err === "string") {
                 return callback(new Error("Create identity token failed " + userIdentityInfo.type + " " + err));
             }
-            return callback(err);
+            return callback(err as Error);
         }
         return callback(null, { userIdentityToken, userTokenSignature });
     }

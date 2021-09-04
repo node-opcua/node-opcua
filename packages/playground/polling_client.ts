@@ -21,11 +21,10 @@ const endpointUri = "opc.tcp://" + os.hostname() + ":48010";
 const doDebug = true;
 
 async function main() {
-
     const connectionStrategy: ConnectionStrategyOptions = {
         initialDelay: 1000,
         maxDelay: 20000, // retry every 20 seconds
-        maxRetry: 2, // maxRetry: 0xFFFFF // we need a large number here
+        maxRetry: 2 // maxRetry: 0xFFFFF // we need a large number here
     };
 
     const options: OPCUAClientOptions = {
@@ -35,7 +34,7 @@ async function main() {
         keepSessionAlive: false,
         requestedSessionTimeout: 60000, // 1 minute
         securityMode: MessageSecurityMode.None,
-        securityPolicy: SecurityPolicy.None,
+        securityPolicy: SecurityPolicy.None
     };
 
     const client = OPCUAClient.create(options);
@@ -71,7 +70,6 @@ async function main() {
     // Note that Pooling is **not** the recommended way to monitored
     // change of a UA Variable! Use Subscription instead ....
     const timerId = setInterval(async () => {
-
         if (client.isReconnecting) {
             console.log(" suspending OPCUA read while connection is lost");
             return;
@@ -85,9 +83,10 @@ async function main() {
             console.log(dataValue.statusCode.toString(), dataValue.value.toString());
             console.log(" now un-plug and re-plug the network cable to test node-opcua automatic reconnection");
         } catch (err) {
-            console.log(" Error while reading value", err.message);
+            if (err instanceof Error) {
+                console.log(" Error while reading value", err.message);
+            }
         }
-
     }, 2000);
 
     setTimeout(async () => {

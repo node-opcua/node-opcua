@@ -16,7 +16,7 @@ Error.stackTraceLimit = Infinity;
 
 const port = 26544;
 
-const envPaths = require("env-paths");
+import envPaths = require("env-paths");
 const config = envPaths("MiniNodeOPCUA-Server").config;
 const pkiFolder = path.join(config, "PKI");
 

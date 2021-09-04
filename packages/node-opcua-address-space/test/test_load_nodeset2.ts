@@ -205,7 +205,7 @@ describe("testing NodeSet XML file loading", function (this: any) {
         try {
             await generateAddressSpace(addressSpace, xml_files);
         } catch (err) {
-            _err = err;
+            _err = err as Error;
         }
         should.exists(_err);
         _err!.message.should.match(/.*NODE-OPCUA-E.*/);

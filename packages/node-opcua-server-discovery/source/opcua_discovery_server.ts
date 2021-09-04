@@ -6,7 +6,7 @@ import * as os from "os";
 import * as path from "path";
 import * as url from "url";
 import { callbackify } from "util";
-import * as envPaths from "env-paths";
+import envPaths = require("env-paths");
 
 import { assert } from "node-opcua-assert";
 import { UAString } from "node-opcua-basic-types";

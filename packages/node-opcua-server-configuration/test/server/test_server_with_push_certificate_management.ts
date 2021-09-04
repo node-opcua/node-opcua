@@ -436,7 +436,9 @@ describe("Testing server configured with push certificate management", () => {
 
             await session.close();
         } catch (err) {
-            errorLog("Cannot reconnect a client !!!! ", err.message, "\n", err);
+            if (err instanceof Error) {
+                errorLog("Cannot reconnect a client !!!! ", err.message, "\n", err);
+            }
         } finally {
             await client.disconnect();
         }

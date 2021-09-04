@@ -2178,13 +2178,15 @@ export class OPCUAServer extends OPCUABaseServer {
                 }
                 return channel.send_response("MSG", response1, message);
             } catch (err) {
-                // istanbul ignore next
-                errorLog(
-                    "Internal error in issuing response\nplease contact support@sterfive.com",
-                    message.request.toString(),
-                    "\n",
-                    response1.toString()
-                );
+                if (err instanceof Error) {
+                    // istanbul ignore next
+                    errorLog(
+                        "Internal error in issuing response\nplease contact support@sterfive.com",
+                        message.request.toString(),
+                        "\n",
+                        response1.toString()
+                    );
+                }
                 // istanbul ignore next
                 throw err;
             }

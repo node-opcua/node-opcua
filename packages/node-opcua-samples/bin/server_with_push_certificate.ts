@@ -11,8 +11,7 @@ import * as yargs from "yargs";
 
 const rootFolder = path.join(__dirname, "../../..");
 
-// tslint:disable-next-line: no-var-requires
-const envPaths = require("env-paths");
+import envPaths = require("env-paths");
 const config = envPaths("node-opcua-default").config;
 const pkiFolder = path.join(config, "PKI");
 

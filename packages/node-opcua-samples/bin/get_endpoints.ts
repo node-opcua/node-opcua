@@ -21,9 +21,7 @@ import { Certificate, toPem } from "node-opcua-crypto";
 const Table = require("easy-table");
 const treeify = require("treeify");
 
-
 async function main() {
-
     // ts-node bin/simple_client.ts --endpoint  opc.tcp://localhost:53530/OPCUA/SimulationServer --node "ns=5;s=Sinusoid1"
     const argv = await yargs(process.argv)
         .wrap(132)
@@ -97,7 +95,9 @@ async function main() {
         await client.connect(endpointUrl);
     } catch (err) {
         console.log(chalk.red(" Cannot connect to ") + endpointUrl);
-        console.log(" Error = ", err.message);
+        if (err instanceof Error) {
+            console.log(" Error = ", err.message);
+        }
         return;
     }
 

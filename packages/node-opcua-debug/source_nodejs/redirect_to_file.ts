@@ -57,7 +57,7 @@ export function redirectToFile(tmpFile: string, actionFct: Function, callback: (
 
             f.end(() => {
                 if (callback) {
-                    callback(err);
+                    callback(err as Error);
                 }
             });
         } finally {

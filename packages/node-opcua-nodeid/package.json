@@ -11,8 +11,8 @@
         "test": "mocha"
     },
     "dependencies": {
-        "@types/lodash": "4.14.170",
-        "chalk": "4.1.1",
+        "@types/lodash": "4.14.172",
+        "chalk": "4.1.2",
         "lodash": "4.17.21",
         "node-opcua-assert": "2.42.0",
         "node-opcua-constants": "2.42.0",

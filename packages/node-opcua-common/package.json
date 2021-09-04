@@ -13,7 +13,7 @@
     "dependencies": {
         "node-opcua-assert": "2.42.0",
         "node-opcua-basic-types": "2.47.0",
-        "node-opcua-crypto": "^1.7.1",
+        "node-opcua-crypto": "^1.7.3",
         "node-opcua-data-model": "2.49.0",
         "node-opcua-factory": "2.49.0",
         "node-opcua-nodeid": "2.45.0",
@@ -22,7 +22,7 @@
         "node-opcua-types": "2.49.0"
     },
     "devDependencies": {
-        "@types/node": "15.6.1",
+        "@types/node": "16.7.10",
         "should": "^13.2.3"
     },
     "author": "Etienne Rossignon",

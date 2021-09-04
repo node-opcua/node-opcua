@@ -7,17 +7,16 @@ import { Symbols } from "..";
 import { toCSV } from "..";
 
 // node 14 onward : import { readFile, writeFile } from "fs/promises";
-const { readFile, writeFile }= fs.promises;
+const { readFile, writeFile } = fs.promises;
 
 export async function saveSymbolsToCSV(csvFilename: string, symbols: Symbols): Promise<void> {
     await writeFile(csvFilename, toCSV(symbols), "utf-8");
 }
 
 export async function getPresetSymbolsFromCSV(csvFilename: string): Promise<Symbols> {
-   
-   if (!fs.existsSync(csvFilename)) {
-       return [];
-   }
+    if (!fs.existsSync(csvFilename)) {
+        return [];
+    }
     try {
         const data = await readFile(csvFilename, "utf-8");
 
@@ -44,8 +43,10 @@ export async function getPresetSymbolsFromCSV(csvFilename: string): Promise<Symb
         });
         return records as Symbols;
     } catch (err) {
-        // tslint:disable-next-line: no-console
-        console.log("getPresetSymbols err = ", err.message);
+        if (err instanceof Error) {
+            // tslint:disable-next-line: no-console
+            console.log("getPresetSymbols err = ", err.message);
+        }
         return [];
     }
 }

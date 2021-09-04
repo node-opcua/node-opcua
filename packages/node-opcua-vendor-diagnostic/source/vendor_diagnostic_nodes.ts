@@ -61,7 +61,9 @@ export function install_optional_cpu_and_memory_usage_node(server: any) {
         const usage_module = "usage"; // we use a variable here to prevent error in webpack
         usage = require(usage_module); // a warning will be generated here with webpack as the module name is not a litteral
     } catch (err) {
-        console.log("err", err.message);
+        if (err instanceof Error) {
+            console.log("err", err.message);
+        }
         usage = null;
         // xx return;
     }

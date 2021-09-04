@@ -278,7 +278,7 @@ export class MessageBuilder extends MessageBuilderBase {
         }
 
         const binaryStream = new BinaryStream(fullMessageBody);
-    
+
         // read expandedNodeId:
         let id: ExpandedNodeId;
         try {
@@ -286,7 +286,7 @@ export class MessageBuilder extends MessageBuilderBase {
         } catch (err) {
             // this may happen if the message is not well formed or has been altered
             // we better off reporting an error and abort the communication
-            return this._report_error(err.message);
+            return this._report_error(err instanceof Error ? err.message: " err");
         }
 
         if (!this.objectFactory.hasConstructor(id)) {
@@ -341,7 +341,9 @@ export class MessageBuilder extends MessageBuilderBase {
                         debugLog(err);
                     }
                     debugLog(chalk.red("MessageBuilder : ERROR DETECTED IN event handler"));
-                    debugLog(err.stack);
+                    if (err instanceof Error) {
+                        debugLog(err.stack);
+                    }
                 }
             } else {
                 warningLog("cannot decode message  for valid object of type " + id.toString() + " " + objMessage.constructor.name);
@@ -656,20 +658,22 @@ export class MessageBuilder extends MessageBuilderBase {
             const options = this.objectFactory;
             objMessage.decode(binaryStream, options);
         } catch (err) {
-            warningLog("Decode message error : ", err.message);
+            if (err instanceof Error) {
+                warningLog("Decode message error : ", err.message);
 
-            // istanbul ignore next
-            if (doDebug) {
-                debugLog(err.stack);
-                debugLog(hexDump(fullMessageBody));
-                analyseExtensionObject(fullMessageBody, 0, 0);
+                // istanbul ignore next
+                if (doDebug) {
+                    debugLog(err.stack);
+                    debugLog(hexDump(fullMessageBody));
+                    analyseExtensionObject(fullMessageBody, 0, 0);
 
-                debugLog(" ---------------- block");
-                let i = 0;
-                this.messageChunks.forEach((messageChunk) => {
-                    debugLog(" ---------------- chunk i=", i++);
-                    debugLog(hexDump(messageChunk));
-                });
+                    debugLog(" ---------------- block");
+                    let i = 0;
+                    this.messageChunks.forEach((messageChunk) => {
+                        debugLog(" ---------------- chunk i=", i++);
+                        debugLog(hexDump(messageChunk));
+                    });
+                }
             }
             return false;
         }

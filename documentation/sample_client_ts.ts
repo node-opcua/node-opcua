@@ -137,7 +137,9 @@ async function main() {
     await client.disconnect();
     console.log("done !");
   } catch(err) {
-    console.log("An error has occured : ",err);
+    if (err instanceof Error) {
+        console.log("An error has occurred : ", err);
+    }
   }
 }
 main();

@@ -11,7 +11,7 @@
     "main": "./dist/index.js",
     "types": "./dist/index.d.ts",
     "dependencies": {
-        "async": "^3.2.0",
+        "async": "^3.2.1",
         "node-opcua-address-space": "2.50.0",
         "node-opcua-assert": "2.42.0",
         "node-opcua-constants": "2.42.0",

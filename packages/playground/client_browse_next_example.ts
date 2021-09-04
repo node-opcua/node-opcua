@@ -14,7 +14,8 @@ import {
     SecurityPolicy,
     StatusCode,
     StatusCodes,
-    UserTokenType, Variant
+    UserTokenType,
+    Variant
 } from "node-opcua-client";
 
 // this test requires UA C++ Demo Server
@@ -24,7 +25,6 @@ const endpointUri = "opc.tcp://" + os.hostname() + ":48010";
 const doDebug = true;
 
 async function main() {
-
     const connectionStrategy: ConnectionStrategyOptions = {
         initialDelay: 1000,
         maxRetry: 1
@@ -55,7 +55,6 @@ async function main() {
         ],
         methodId: addNodeMethodNodeId,
         objectId: "ns=2;s=Demo.Massfolder_Static"
-
     });
     console.log(result.toString());
 
@@ -65,7 +64,6 @@ async function main() {
     };
 
     try {
-
         let browseResult = await session.browse(nodeToBrowse);
         console.log("BrowseResult = ", browseResult.toString());
         if (browseResult.statusCode === StatusCodes.Good) {
@@ -73,7 +71,6 @@ async function main() {
             console.log("reading initial ", browseResult.references!.length, "elements");
             let continuationPoint = browseResult.continuationPoint;
             while (continuationPoint) {
-
                 browseResult = await session.browseNext(continuationPoint, false);
                 console.log("reading extra ", browseResult.references!.length);
 
@@ -83,7 +80,9 @@ async function main() {
             console.log("BrowseResult = ", browseResult.statusCode.toString());
         }
     } catch (err) {
-        console.log("err", err.message);
+        if (err instanceof Error) {
+            console.log("err", err.message);
+        }
         console.log(err);
     }
 

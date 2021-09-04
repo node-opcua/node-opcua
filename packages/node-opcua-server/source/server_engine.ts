@@ -181,18 +181,17 @@ function setSubscriptionDurable(
         lifetimeInHours === 0 ? highestLifetimeInHours : Math.max(1, Math.min(lifetimeInHours, highestLifetimeInHours));
 
     // also adjust subscription life time
-    const currentLifeTimeInHours = (subscription.lifeTimeCount * subscription.publishingInterval) / (1000 * 60 * 60 );
+    const currentLifeTimeInHours = (subscription.lifeTimeCount * subscription.publishingInterval) / (1000 * 60 * 60);
     if (currentLifeTimeInHours < revisedLifetimeInHours) {
-        const requestedLifetimeCount =  Math.ceil(revisedLifetimeInHours * (1000 * 60 * 60 ) / subscription.publishingInterval);
+        const requestedLifetimeCount = Math.ceil((revisedLifetimeInHours * (1000 * 60 * 60)) / subscription.publishingInterval);
 
-        subscription.modify({ 
+        subscription.modify({
             requestedMaxKeepAliveCount: subscription.maxKeepAliveCount,
             requestedPublishingInterval: subscription.publishingInterval,
             maxNotificationsPerPublish: subscription.maxNotificationsPerPublish,
             priority: subscription.priority,
-            requestedLifetimeCount 
+            requestedLifetimeCount
         });
-
     }
 
     const callMethodResult = new CallMethodResult({
@@ -431,7 +430,7 @@ export class ServerEngine extends EventEmitter {
         }
 
         this._shutdownTask = [];
-        this._serverStatus = (null as any) as ServerStatusDataType;
+        this._serverStatus = null as any as ServerStatusDataType;
         this._internalState = "disposed";
         this.removeAllListeners();
 
@@ -691,7 +690,6 @@ export class ServerEngine extends EventEmitter {
         assert(serverNamespace.index === 1);
 
         generateAddressSpace(this.addressSpace, options.nodeset_filename, () => {
-
             /* istanbul ignore next */
             if (!this.addressSpace) {
                 throw new Error("Internal error");
@@ -1231,7 +1229,9 @@ export class ServerEngine extends EventEmitter {
                         await node.onFirstBrowseAction();
                         node.onFirstBrowseAction = undefined;
                     } catch (err) {
-                        console.log("onFirstBrowseAction method has failed", err.message);
+                        if (err instanceof Error) {
+                            console.log("onFirstBrowseAction method has failed", err.message);
+                        }
                         console.log(err);
                     }
                     assert(node.onFirstBrowseAction === undefined, "expansion can only be made once");
@@ -1392,14 +1392,15 @@ export class ServerEngine extends EventEmitter {
         ensureDatatypeExtractedWithCallback(
             this.addressSpace!,
             (err2: Error | null, extraDataTypeManager?: ExtraDataTypeManager) => {
-                if (err2) { 
+                if (err2) {
                     return callback(err2);
-                }    
+                }
                 const performWrite = (writeValue: WriteValue, inner_callback: StatusCodeCallback) => {
                     resolveOpaqueOnAddressSpace(this.addressSpace!, writeValue.value.value!)
-                    .then(()=>{
-                        this.writeSingleNode(context, writeValue, inner_callback);
-                    }).catch(inner_callback);
+                        .then(() => {
+                            this.writeSingleNode(context, writeValue, inner_callback);
+                        })
+                        .catch(inner_callback);
                 };
                 // tslint:disable:array-type
                 async.map(nodesToWrite, performWrite, (err?: Error | null, statusCodes?: (StatusCode | undefined)[]) => {
@@ -1767,10 +1768,6 @@ export class ServerEngine extends EventEmitter {
         subscriptionId: number,
         sendInitialValues: boolean
     ): Promise<TransferResult> {
- 
-
-
-        
         if (subscriptionId <= 0) {
             return new TransferResult({ statusCode: StatusCodes.BadSubscriptionIdInvalid });
         }

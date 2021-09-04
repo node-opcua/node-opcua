@@ -176,7 +176,7 @@ export class ClientMonitoredItemGroupImpl extends EventEmitter implements Client
                 } catch (err) {
                     warningLog(
                         `[NODE-OPCUA-W20] the monitoredItem.on('changed') handler has raised an exception.
-error message : ${err.message}
+error message : ${(<Error>err).message}
 Please investigate the code of the event handler function to fix the error.`
                     );
                 }
