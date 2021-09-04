@@ -1291,7 +1291,7 @@ export class BaseNode extends EventEmitter implements BaseNodePublic {
         // to do check that current user can read permission
         if (context && !context?.checkPermission(this as any, PermissionType.ReadRolePermissions)) {
             return new DataValue({
-                statusCode: StatusCodes.BadUserAccessDenied
+                statusCode: StatusCodes.BadSecurityModeInsufficient
             });
         }
 
@@ -1320,8 +1320,32 @@ export class BaseNode extends EventEmitter implements BaseNodePublic {
     }
 
     private _readUserRolePermissions(context: SessionContext | null): DataValue {
+        if (this.rolePermissions === undefined) {
+            // to do : If not specified, the value of DefaultUserRolePermissions Property from
+            // the Namespace Metadata Object associated with the Node is used instead.
+            return new DataValue({
+                statusCode: StatusCodes.BadAttributeIdInvalid
+            });
+        }
+        const context1: SessionContext = context === null ? SessionContext.defaultContext : context;
         // for the time being ...
-        return this._readRolePermissions(context);
+        // get user Permission
+        const rolePermissions = this.rolePermissions
+            .map(({ roleId, permissions }) => {
+                return new RolePermissionType({
+                    roleId: toRoleNodeId(roleId!),
+                    permissions
+                });
+            })
+            .filter(({ roleId }) => context1.currentUserHasRole(roleId)); 
+        return new DataValue({
+            statusCode: StatusCodes.Good,
+            value: {
+                dataType: DataType.ExtensionObject,
+                arrayType: VariantArrayType.Array,
+                value: rolePermissions
+            }
+        });
     }
 
     /**
@@ -1363,7 +1387,6 @@ function toString_ReferenceDescription(ref: Reference, options: { addressSpace: 
     return str;
 }
 
-/* jshint latedef: false */
 function _setup_parent_item(this: BaseNode, references: { [key: string]: any }): BaseNodePublic | null {
     references = Object.values(references);
 
@@ -1475,12 +1498,12 @@ function _propagate_ref(this: BaseNode, addressSpace: MinimalistAddressSpace, re
     // xx if (!referenceType.isSupertypeOf(hierarchicalReferencesId)) { return; }
     const related_node = resolveReferenceNode(addressSpace, reference) as BaseNode;
     if (related_node) {
-        // verify that reference doesn't point to object itthis (see mantis 3099)
+        // verify that reference doesn't point to object it this (see mantis 3099)
         if (sameNodeId(reference.nodeId, this.nodeId)) {
             // istanbul ignore next
             if (displayWarningReferencePointingToItSelf) {
                 // this could happen with method
-                console.warn("  Warning: a Reference is pointing to itthis ", this.nodeId.toString(), this.browseName.toString());
+                console.warn("  Warning: a Reference is pointing to this ", this.nodeId.toString(), this.browseName.toString());
                 displayWarningReferencePointingToItSelf = false;
             }
         }

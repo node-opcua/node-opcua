@@ -31,7 +31,7 @@ export interface AddressSpacePrivate extends AddressSpace {
 
     _condition_refresh_in_progress: boolean;
 
-    _coerceNode(node: string | BaseNodePublic | NodeId): BaseNodePublic | null;
+    _coerceNode(node: string | BaseNodePublic | NodeIdLike): BaseNodePublic | null;
 
     _coerceFolder(folder: string | BaseNodePublic | NodeId): BaseNodePublic | null;
 

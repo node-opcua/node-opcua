@@ -21,8 +21,7 @@ import { Reference } from "./reference";
 import { SessionContext } from "./session_context";
 import { get_subtypeOf, get_subtypeOfObj } from "./tool_isSupertypeOf";
 import * as tools from "./tool_isSupertypeOf";
-import { assertUnusedChildBrowseName, initialize_properties_and_components } from "./ua_variable_type";
-
+import { assertUnusedChildBrowseName, initialize_properties_and_components, topMostParentIsObjectTypeOrVariableType } from "./ua_variable_type";
 
 export class UAObjectType extends BaseNode implements UAObjectTypePublic {
     public readonly nodeClass = NodeClass.ObjectType;
@@ -37,7 +36,7 @@ export class UAObjectType extends BaseNode implements UAObjectTypePublic {
         return get_subtypeOf.call(this);
     }
     public get subtypeOfObj(): UAObjectTypePublic | null {
-        return (get_subtypeOfObj.call(this) as any) as UAObjectTypePublic;
+        return get_subtypeOfObj.call(this) as any as UAObjectTypePublic;
     }
     public isSupertypeOf = tools.construct_isSupertypeOf<UAObjectTypePublic>(UAObjectType);
 
@@ -109,6 +108,9 @@ export class UAObjectType extends BaseNode implements UAObjectTypePublic {
 
         const references: Reference[] = [];
 
+        const copyAlsoModellingRules = topMostParentIsObjectTypeOrVariableType(addressSpace, options);
+
+                
         const opts: AddObjectOptions = {
             browseName: options.browseName,
             componentOf: options.componentOf,
@@ -132,7 +134,7 @@ export class UAObjectType extends BaseNode implements UAObjectTypePublic {
 
         const instance = namespace.addObject(opts);
 
-        initialize_properties_and_components(instance, baseObjectType, this, options.optionals);
+        initialize_properties_and_components(instance, baseObjectType, this, copyAlsoModellingRules, options.optionals);
 
         assert(instance.typeDefinition.toString() === this.nodeId.toString());
 

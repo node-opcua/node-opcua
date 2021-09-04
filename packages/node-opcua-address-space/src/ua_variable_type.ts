@@ -7,13 +7,15 @@ import * as chalk from "chalk";
 
 import { assert } from "node-opcua-assert";
 import { UInt32 } from "node-opcua-basic-types";
-import { NodeClass } from "node-opcua-data-model";
+import { ReferenceTypeIds } from "node-opcua-constants";
+import { coerceQualifiedName, NodeClass, QualifiedName, QualifiedNameLike } from "node-opcua-data-model";
 import { BrowseDirection } from "node-opcua-data-model";
 import { AttributeIds } from "node-opcua-data-model";
 import { DataValue, DataValueLike } from "node-opcua-data-value";
 import { checkDebugFlag, make_debugLog, make_warningLog } from "node-opcua-debug";
-import { coerceNodeId, makeNodeId, NodeId, sameNodeId } from "node-opcua-nodeid";
+import { coerceNodeId, makeNodeId, NodeId, NodeIdLike, sameNodeId } from "node-opcua-nodeid";
 import { StatusCodes } from "node-opcua-status-code";
+import { InstanceNode } from "node-opcua-types";
 import { isNullOrUndefined } from "node-opcua-utils";
 import { DataType } from "node-opcua-variant";
 import { Variant } from "node-opcua-variant";
@@ -25,7 +27,9 @@ import {
     BaseNode as BaseNodePublic,
     InstantiateVariableOptions,
     makeOptionalsMap,
+    ModellingRuleType,
     Namespace,
+    OptionalMap,
     UAMethod as UAMethodPublic,
     UAObject as UAObjectPublic,
     UAObjectType as UAObjectTypePublic,
@@ -42,13 +46,46 @@ import { SessionContext } from "./session_context";
 import * as tools from "./tool_isSupertypeOf";
 import { get_subtypeOfObj } from "./tool_isSupertypeOf";
 import { get_subtypeOf } from "./tool_isSupertypeOf";
+import { UAMethod } from "./ua_method";
+import { UAObject } from "./ua_object";
 import { UAObjectType } from "./ua_object_type";
-import { verifyRankAndDimensions } from "./ua_variable";
+import { UAVariable, verifyRankAndDimensions } from "./ua_variable";
 
 const debugLog = make_debugLog(__filename);
 const doDebug = checkDebugFlag(__filename);
 const warningLog = make_warningLog(__filename);
 
+interface InstantiateS {
+    propertyOf?: any;
+    componentOf?: any;
+    modellingRule?: ModellingRuleType;
+}
+export function topMostParentIsObjectTypeOrVariableType(addressSpace: AddressSpacePrivate, options: InstantiateS): boolean {
+    if (options.modellingRule) {
+        return true;
+    }
+
+    const parent = options.propertyOf || options.componentOf;
+    if (!parent) {
+        return false;
+    }
+    const parentNode = addressSpace._coerceNode(parent);
+    if (!parentNode) {
+        return false;
+    }
+
+    let currentNode: BaseNodePublic | null= parentNode;
+    while (currentNode) {
+        const nodeClass = parentNode.nodeClass;
+        if (nodeClass === NodeClass.ObjectType || nodeClass === NodeClass.VariableType) {
+            return true;
+        }
+        if (nodeClass === NodeClass.Object || nodeClass === NodeClass.Variable || nodeClass === NodeClass.Method) {
+        }
+        currentNode = currentNode.findReferencesEx("HasChild", BrowseDirection.Inverse)[0]?.node as BaseNodePublic;
+    }
+    return false;
+}
 export class UAVariableType extends BaseNode implements UAVariableTypePublic {
     public readonly nodeClass = NodeClass.VariableType;
 
@@ -192,6 +229,8 @@ export class UAVariableType extends BaseNode implements UAVariableTypePublic {
             throw new Error(" A valid dataType must be specified");
         }
 
+        const copyAlsoModellingRules = topMostParentIsObjectTypeOrVariableType(addressSpace, options);
+
         const opts: AddVariableOptions = {
             arrayDimensions,
             browseName: options.browseName,
@@ -214,7 +253,7 @@ export class UAVariableType extends BaseNode implements UAVariableTypePublic {
 
         // xx assert(instance.minimumSamplingInterval === options.minimumSamplingInterval);
 
-        initialize_properties_and_components(instance, baseVariableType, this, options.optionals);
+        initialize_properties_and_components(instance, baseVariableType, this, copyAlsoModellingRules, options.optionals);
 
         // if VariableType is a type of Structure DataType
         // we need to instantiate a dataValue
@@ -292,7 +331,7 @@ class MandatoryChildOrRequestedOptionalFilter implements CloneFilter {
         }
     }
 
-    public filterFor(childInstance: UAVariableType): CloneFilter {
+    public filterFor(childInstance: UAVariable | UAObject | UAMethod): CloneFilter {
         const browseName: string = childInstance.browseName.name!;
 
         let map = {};
@@ -404,7 +443,7 @@ class CloneHelper {
 function _initialize_properties_and_components<
     B extends UAObjectPublic | UAVariablePublic | UAMethodPublic,
     T extends UAObjectTypePublic | UAVariableTypePublic
->(instance: B, topMostType: T, typeNode: T, optionalsMap: any, extraInfo: any) {
+>(instance: B, topMostType: T, typeNode: T, copyAlsoModellingRules: boolean, optionalsMap: OptionalMap, extraInfo: CloneHelper) {
     if (doDebug) {
         console.log("instance browseName =", instance.browseName.toString());
         console.log("typeNode         =", typeNode.browseName.toString());
@@ -429,10 +468,10 @@ function _initialize_properties_and_components<
 
     const filter = new MandatoryChildOrRequestedOptionalFilter(instance, optionalsMap);
 
-    _clone_children_references.call(typeNode, instance as BaseNodePublic, filter, extraInfo);
+    _clone_children_references(typeNode, instance, copyAlsoModellingRules, filter, extraInfo);
 
     // get properties and components from base class
-    _initialize_properties_and_components(instance, topMostType, baseType, optionalsMap, extraInfo);
+    _initialize_properties_and_components(instance, topMostType, baseType, copyAlsoModellingRules, optionalsMap, extraInfo);
 }
 
 /**
@@ -441,7 +480,7 @@ function _initialize_properties_and_components<
  * @param parent
  * @param childBrowseName
  */
-function hasChildWithBrowseName(parent: BaseNode, childBrowseName: string): boolean {
+function hasChildWithBrowseName(parent: BaseNode, childBrowseName: QualifiedName): boolean {
     if (!parent) {
         throw Error("Internal error");
     }
@@ -450,7 +489,7 @@ function hasChildWithBrowseName(parent: BaseNode, childBrowseName: string): bool
 
     return (
         children.filter((child: BaseNodePublic) => {
-            return child.browseName.name!.toString() === childBrowseName;
+            return child.browseName.name?.toString() === childBrowseName.name?.toString();
         }).length > 0
     );
 }
@@ -463,10 +502,9 @@ function getParent(addressSpace: AddressSpace, options: any) {
     return parent;
 }
 
-export function assertUnusedChildBrowseName(addressSpace: AddressSpacePrivate, options: any) {
-    function resolveOptionalObject(node: BaseNodePublic): BaseNodePublic | null {
-        return node! ? addressSpace._coerceNode(node) : null;
-    }
+export function assertUnusedChildBrowseName(addressSpace: AddressSpacePrivate, options: InstantiateVariableOptions) {
+    const resolveOptionalObject = (node: BaseNodePublic | NodeIdLike | undefined): BaseNodePublic | undefined =>
+        node ? addressSpace._coerceNode(node) || undefined : undefined;
 
     options.componentOf = resolveOptionalObject(options.componentOf);
     options.organizedBy = resolveOptionalObject(options.organizedBy);
@@ -483,7 +521,7 @@ export function assertUnusedChildBrowseName(addressSpace: AddressSpacePrivate, o
     }
     // istanbul ignore next
     // verify that no components already exists in parent
-    if (parent && hasChildWithBrowseName(parent, options.browseName)) {
+    if (parent && hasChildWithBrowseName(parent, coerceQualifiedName(options.browseName))) {
         throw new Error(
             "object " +
                 parent.browseName.name!.toString() +
@@ -496,9 +534,13 @@ export function assertUnusedChildBrowseName(addressSpace: AddressSpacePrivate, o
 exports.assertUnusedChildBrowseName = assertUnusedChildBrowseName;
 exports.initialize_properties_and_components = initialize_properties_and_components;
 
-const hasTypeDefinitionNodeId = makeNodeId(40);
-const hasModellingRuleNodeId = makeNodeId(37);
+const hasTypeDefinitionNodeId = makeNodeId(ReferenceTypeIds.HasTypeDefinition);
+const hasModellingRuleNodeId = makeNodeId(ReferenceTypeIds.HasModellingRule);
 
+/**
+ * remove unwanted reference such as HasTypeDefinition and HasModellingRule
+ * from the list
+ */
 function _remove_unwanted_ref(references: UAReference[]): UAReference[] {
     // filter out HasTypeDefinition (i=40) , HasModellingRule (i=37);
     references = references.filter(
@@ -509,8 +551,11 @@ function _remove_unwanted_ref(references: UAReference[]): UAReference[] {
     return references;
 }
 
-// todo: MEMOIZE this method
+/**
+ *
+ */
 function findNonHierarchicalReferences(originalObject: BaseNodePublic): UAReference[] {
+    // todo: MEMOIZE this method
     const addressSpace: AddressSpace = originalObject.addressSpace;
     const referenceId = addressSpace.findReferenceType("NonHierarchicalReferences");
     if (!referenceId) {
@@ -518,7 +563,7 @@ function findNonHierarchicalReferences(originalObject: BaseNodePublic): UARefere
     }
     assert(referenceId);
 
-    // we need to explore
+    // we need to explore the non hierarchical references backwards
     let references = originalObject.findReferencesEx("NonHierarchicalReferences", BrowseDirection.Inverse);
 
     references = ([] as UAReference[]).concat(
@@ -668,14 +713,14 @@ function reconstructFunctionalGroupType(extraInfo: any) {
 export function initialize_properties_and_components<
     B extends UAObjectPublic | UAVariablePublic | UAMethodPublic,
     T extends UAVariableTypePublic | UAObjectTypePublic
->(instance: B, topMostType: T, nodeType: T, optionals?: string[]): void {
+>(instance: B, topMostType: T, nodeType: T, copyAlsoModellingRules: boolean, optionals?: string[]): void {
     const extraInfo = new CloneHelper();
 
     extraInfo.registerClonedObject(nodeType, instance);
 
     const optionalsMap = makeOptionalsMap(optionals);
 
-    _initialize_properties_and_components(instance, topMostType, nodeType, optionalsMap, extraInfo);
+    _initialize_properties_and_components(instance, topMostType, nodeType, copyAlsoModellingRules, optionalsMap, extraInfo);
 
     reconstructFunctionalGroupType(extraInfo);
 

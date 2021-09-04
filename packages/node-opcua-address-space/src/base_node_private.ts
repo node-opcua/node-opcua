@@ -80,7 +80,7 @@ export function BaseNode_initPrivate(self: BaseNode): BaseNodeCache {
 }
 
 export function BaseNode_removePrivate(self: BaseNode): void {
-    // there is no need to delete object from weakmap
+    // there is no need to delete object from weak map
     // the GC will take care of this in due course
     // g_weakMap.delete(self);
     const _private = BaseNode_getPrivate(self);
@@ -177,7 +177,7 @@ export function BaseNode_toString(this: BaseNode, options: ToStringOption) {
 export function BaseNode_References_toString(this: BaseNode, options: ToStringOption) {
     const _private = BaseNode_getPrivate(this);
 
-    const dispOptions = {
+    const displayOptions = {
         addressSpace: this.addressSpace
     };
 
@@ -194,7 +194,7 @@ export function BaseNode_References_toString(this: BaseNode, options: ToStringOp
         const o = Reference.resolveReferenceNode(addressSpace, reference);
         const name = o ? o.browseName.toString() : "<???>";
         options.add(
-            options.padding + chalk.yellow("               +-> ") + reference.toString(dispOptions) + " " + chalk.cyan(name)
+            options.padding + chalk.yellow("               +-> ") + reference.toString(displayOptions) + " " + chalk.cyan(name)
         );
 
         // ignore HasTypeDefinition as it has been already handled
@@ -401,16 +401,16 @@ export type CloneExtraInfo = any;
 
 export interface CloneFilter {
     shouldKeep(node: BaseNodePublic): boolean;
-    filterFor(childInstance: UAVariableType): CloneFilter;
+    filterFor(childInstance: UAVariable | UAObject | UAMethod): CloneFilter;
 }
 /**
  * clone properties and methods
  * @private
  */
 function _clone_collection_new(
-    this: BaseNodePublic,
     newParent: BaseNodePublic,
     collectionRef: UAReference[],
+    copyAlsoModellingRules: boolean,
     optionalFilter?: CloneFilter,
     extraInfo?: CloneExtraInfo
 ): void {
@@ -447,7 +447,8 @@ function _clone_collection_new(
         assert(reference.referenceType instanceof NodeId, "" + reference.referenceType.toString());
         const options = {
             namespace,
-            references: [new Reference({ referenceType: reference.referenceType, isForward: false, nodeId: newParent.nodeId })]
+            references: [new Reference({ referenceType: reference.referenceType, isForward: false, nodeId: newParent.nodeId })],
+            copyAlsoModellingRules
         };
 
         const clone = (node as UAVariable | UAMethod | UAObject).clone(options, optionalFilter, extraInfo);
@@ -459,30 +460,34 @@ function _clone_collection_new(
 }
 
 export function _clone_children_references(
-    this: BaseNodePublic,
+    node: BaseNodePublic,
     newParent: BaseNodePublic,
+    copyAlsoModellingRules: boolean,
     optionalFilter?: CloneFilter,
     extraInfo?: CloneExtraInfo
 ): void {
     // find all reference that derives from the Aggregates
-    const aggregatesRef = this.findReferencesEx("Aggregates", BrowseDirection.Forward);
-    _clone_collection_new.call(this, newParent, aggregatesRef, optionalFilter, extraInfo);
+    const aggregatesRef = node.findReferencesEx("Aggregates", BrowseDirection.Forward);
+    _clone_collection_new(newParent, aggregatesRef, copyAlsoModellingRules, optionalFilter, extraInfo);
 }
 
 export function _clone_non_hierarchical_references(
-    this: BaseNode,
+    node: BaseNode,
     newParent: BaseNodePublic,
+    copyAlsoModellingRules: boolean,
     optionalFilter?: CloneFilter,
     extraInfo?: CloneExtraInfo
 ) {
     // clone only some non hierarchical_references that we do want to clone
-    // such as
+    // such as: 
     //   HasSubStateMachine
+    //   (may be other as well later ... to do )
     assert(newParent instanceof BaseNode);
     // find all reference that derives from the HasSubStateMachine
-    const references = this.findReferencesEx("HasSubStateMachine", BrowseDirection.Forward);
-    _clone_collection_new.call(this, newParent, references, optionalFilter, extraInfo);
+    const references = node.findReferencesEx("HasSubStateMachine", BrowseDirection.Forward);
+    _clone_collection_new(newParent, references, copyAlsoModellingRules, optionalFilter, extraInfo);
 }
+
 export interface CloneOptions /* extends ConstructNodeIdOptions */ {
     namespace: Namespace;
     references?: Reference[];
@@ -511,7 +516,8 @@ export interface CloneOptions /* extends ConstructNodeIdOptions */ {
 
     // ------------
     componentOf?: UAObjectTypePublic | UAObjectPublic;
-    
+
+    copyAlsoModellingRules?: boolean;
 }
 /**
  * @method _clone
@@ -519,7 +525,7 @@ export interface CloneOptions /* extends ConstructNodeIdOptions */ {
  */
 export function _clone<T extends UAObject | UAVariable | UAMethod>(
     this: T,
-    Constructor: any,
+    Constructor: new (options: any) => T,
     options: CloneOptions,
     optionalFilter?: CloneFilter,
     extraInfo?: CloneExtraInfo
@@ -553,7 +559,7 @@ export function _clone<T extends UAObject | UAVariable | UAMethod>(
     }
 
     if (!constructorOptions.modellingRule) {
-        if (this.modellingRule) {
+        if (this.modellingRule && options.copyAlsoModellingRules) {
             const modellingRuleNode = this.findReferencesAsObject("HasModellingRule")[0];
             assert(modellingRuleNode);
             constructorOptions.references.push(
@@ -575,9 +581,11 @@ export function _clone<T extends UAObject | UAVariable | UAMethod>(
     const cloneObj = new Constructor(constructorOptions);
     this.addressSpace._register(cloneObj);
 
+     options.copyAlsoModellingRules = options.copyAlsoModellingRules || false;
+     
     const newFilter = optionalFilter ? optionalFilter.filterFor(cloneObj) : undefined;
-    _clone_children_references.call(this, cloneObj, newFilter, extraInfo);
-    _clone_non_hierarchical_references.call(this, cloneObj, newFilter, extraInfo);
+    _clone_children_references(this, cloneObj, options.copyAlsoModellingRules, newFilter, extraInfo);
+    _clone_non_hierarchical_references(this, cloneObj, options.copyAlsoModellingRules, newFilter, extraInfo);
 
     cloneObj.propagate_back_references();
 

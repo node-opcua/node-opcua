@@ -1,6 +1,6 @@
 // tslint:disable:max-line-length
 import { assert } from "node-opcua-assert";
-import { DataTypeIds } from "node-opcua-constants";
+import { DataTypeIds, ReferenceTypeIds } from "node-opcua-constants";
 import { BrowseDirection } from "node-opcua-data-model";
 import { AttributeIds } from "node-opcua-data-model";
 import { NodeId } from "node-opcua-nodeid";
@@ -68,8 +68,7 @@ describe("testing address space", () => {
     });
 
     it("AddressSpace#deleteNode - should remove an object from the address space", () => {
-       
-        const object = namespace.addObject( {
+        const object = namespace.addObject({
             browseName: "SomeObject",
             organizedBy: "ObjectsFolder"
         });
@@ -182,6 +181,22 @@ describe("testing address space", () => {
         should(object.getChildByName("Property1")).eql(null);
         object.getChildByName("Component2")!.browseName.toString().should.eql("1:Component2");
         should(object.getChildByName("Property2")).eql(null);
+    });
+
+    it("AddressSpace#deleteNode - should remove a component with HasOrderedComponent", () => {
+        const object = namespace.addObject({ browseName: "MyObject1" });
+
+        const component = namespace.addObject({ browseName: "MyComponent" });
+        object.addReference({
+            nodeId: component,
+            referenceType: resolveNodeId(ReferenceTypeIds.HasOrderedComponent),
+            isForward: true
+        });
+        should.exist(object.getChildByName("MyComponent"));
+        object.getComponentByName("MyComponent")!.browseName.toString().should.eql("1:MyComponent");
+
+        addressSpace.deleteNode(component);
+        should.not.exist( object.getChildByName("MyComponent"));
     });
 
     it("AddressSpace#findCorrespondingBasicDataType i=13 => DataType.String", () => {
