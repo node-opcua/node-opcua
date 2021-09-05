@@ -2157,16 +2157,7 @@ async function promoteOpaqueStructure2(session: IBasicSession, callMethodResult:
     if (!callMethodResult || !callMethodResult.outputArguments || callMethodResult.outputArguments.length === 0) {
         return;
     }
-
-    // construct dataTypeManager if not already present
-    const extraDataTypeManager = await getExtraDataTypeManager(session);
-
-    const promises = callMethodResult.outputArguments.map(async (value: Variant) => {
-        if (value.dataType === DataType.ExtensionObject) {
-            await resolveDynamicExtensionObject(session, value, extraDataTypeManager);
-        }
-    });
-    await Promise.all(promises);
+    await promoteOpaqueStructure(session, callMethodResult.outputArguments.map((a)=>({value: a})));
 }
 
 async function promoteOpaqueStructure3(session: IBasicSession, callMethodResults: CallMethodResult[]): Promise<void> {
