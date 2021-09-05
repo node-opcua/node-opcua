@@ -16,7 +16,7 @@ import {
 import { DataType } from "node-opcua-variant";
 import { nodesets } from "node-opcua-nodesets";
 
-import { AddressSpace, RootFolder, UAVariable, UAVariableT, Namespace, UADataType, UAVariableType } from "..";
+import { AddressSpace, UARootFolder, UAVariable, UAVariableT, Namespace, UADataType, UAVariableType } from "..";
 import { getMiniAddressSpace } from "../testHelpers";
 import { generateAddressSpace } from "../nodeJS";
 
@@ -97,7 +97,7 @@ describe("Extension Object binding and sub  components\n", () => {
 
     describe("bindObject", () => {
         it("ZZ1 - should handle a Variable containing a ServiceCounterDataType", () => {
-            const rootFolder = addressSpace.findNode("RootFolder")! as RootFolder;
+            const rootFolder = addressSpace.findNode("RootFolder")! as UARootFolder;
 
             const serviceCounterDataType = addressSpace.findDataType("ServiceCounterDataType")!;
             serviceCounterDataType.browseName.toString().should.eql("ServiceCounterDataType");
@@ -149,7 +149,7 @@ describe("Extension Object binding and sub  components\n", () => {
         });
 
         it("ZZ2 - should handle a Variable containing a ServerStatus", () => {
-            const rootFolder = addressSpace.findNode("RootFolder")! as RootFolder;
+            const rootFolder = addressSpace.findNode("RootFolder")! as UARootFolder;
 
             const serverStatusDataType = addressSpace.findDataType("ServerStatusDataType")!;
             serverStatusDataType.browseName.toString().should.eql("ServerStatusDataType");
@@ -202,7 +202,7 @@ describe("Extension Object binding and sub  components\n", () => {
         });
 
         it("ZZ3 - should handle a Variable containing a SessionDiagnostic", () => {
-            const rootFolder = addressSpace.findNode("RootFolder")! as RootFolder;
+            const rootFolder = addressSpace.findNode("RootFolder")! as UARootFolder;
 
             const sessionDiagnosticsDataType = addressSpace.findDataType("SessionDiagnosticsDataType")!;
             sessionDiagnosticsDataType.browseName.toString().should.eql("SessionDiagnosticsDataType");
@@ -278,7 +278,7 @@ describe("Extension Object binding and sub  components\n", () => {
         let counter = 0;
 
         beforeEach(() => {
-            const rootFolder = addressSpace.findNode("RootFolder")! as RootFolder;
+            const rootFolder = addressSpace.findNode("RootFolder")! as UARootFolder;
 
             const sessionDiagnosticsDataType = addressSpace.findDataType("SessionDiagnosticsDataType")!;
             const sessionDiagnosticsVariableType = addressSpace.findVariableType("SessionDiagnosticsVariableType")!;

@@ -6,7 +6,7 @@ import { Stats, PathLike, OpenMode, NoParamCallback, WriteFileOptions } from "fs
 
 import { callbackify, promisify } from "util";
 
-import { AddressSpace, SessionContext, UAFileType, UAMethod } from "node-opcua-address-space";
+import { AddressSpace, IAddressSpace, ISessionContext, UAFile, UAFile_Base, UAMethod, UAObjectType } from "node-opcua-address-space";
 import { Byte, Int32, UInt32, UInt64 } from "node-opcua-basic-types";
 import { checkDebugFlag, make_debugLog, make_errorLog, make_warningLog } from "node-opcua-debug";
 import { CallMethodResultOptions } from "node-opcua-service-call";
@@ -85,6 +85,9 @@ export interface FileOptions {
     fileSystem?: AbstractFs;
 }
 
+export interface UAFileType extends UAObjectType, UAFile_Base {
+    
+}
 /**
  *
  */
@@ -94,11 +97,11 @@ export class FileTypeData {
     public maxSize: number = 0;
     public mimeType: string = "";
 
-    private file: UAFileType;
+    private file: UAFile;
     private _openCount: number = 0;
     private _fileSize: number = 0;
 
-    constructor(options: FileOptions, file: UAFileType) {
+    constructor(options: FileOptions, file: UAFile) {
         this.file = file;
         this._fs = options.fileSystem || fsOrig;
 
@@ -192,21 +195,21 @@ interface FileTypeM {
     $$files: { [key: number]: FileAccessData };
 }
 
-interface AddressSpacePriv extends AddressSpace, FileTypeM {}
-function _prepare(addressSpace: AddressSpace, context: SessionContext): FileTypeM {
+interface AddressSpacePriv extends IAddressSpace, FileTypeM {}
+function _prepare(addressSpace: IAddressSpace, context: ISessionContext): FileTypeM {
     const _context = addressSpace as AddressSpacePriv;
     _context.$$currentFileHandle = _context.$$currentFileHandle ? _context.$$currentFileHandle : 41;
     _context.$$files = _context.$$files || {};
     return _context as FileTypeM;
 }
-function _getSessionId(context: SessionContext) {
+function _getSessionId(context: ISessionContext) {
     if (!context.session) {
         return NodeId.nullNodeId;
     }
     assert(context.session && context.session.getSessionId);
     return context.session?.getSessionId() || NodeId.nullNodeId;
 }
-function _addFile(addressSpace: AddressSpace, context: SessionContext, openMode: OpenFileMode): UInt32 {
+function _addFile(addressSpace: IAddressSpace, context: ISessionContext, openMode: OpenFileMode): UInt32 {
     const _context = _prepare(addressSpace, context);
     _context.$$currentFileHandle++;
     const fileHandle: number = _context.$$currentFileHandle;
@@ -224,7 +227,7 @@ function _addFile(addressSpace: AddressSpace, context: SessionContext, openMode:
     return fileHandle;
 }
 
-function _getFileInfo(addressSpace: AddressSpace, context: SessionContext, fileHandle: UInt32): FileAccessData | null {
+function _getFileInfo(addressSpace: IAddressSpace, context: ISessionContext, fileHandle: UInt32): FileAccessData | null {
     const _context = _prepare(addressSpace, context);
     const _fileInfo = _context.$$files[fileHandle];
     const sessionId = _getSessionId(context);
@@ -236,7 +239,7 @@ function _getFileInfo(addressSpace: AddressSpace, context: SessionContext, fileH
     return _fileInfo;
 }
 
-function _close(addressSpace: AddressSpace, context: SessionContext, fileData: FileAccessData) {
+function _close(addressSpace: IAddressSpace, context: ISessionContext, fileData: FileAccessData) {
     const _context = _prepare(addressSpace, context);
     delete _context.$$files[fileData.fd];
 }
@@ -289,7 +292,7 @@ function toNodeJSMode(opcuaMode: OpenFileMode): string {
  * @private
  */
 
-async function _openFile(this: UAMethod, inputArguments: Variant[], context: SessionContext): Promise<CallMethodResultOptions> {
+async function _openFile(this: UAMethod, inputArguments: Variant[], context: ISessionContext): Promise<CallMethodResultOptions> {
     const addressSpace = this.addressSpace;
     const mode = inputArguments[0].value as Byte;
 
@@ -381,7 +384,7 @@ async function _openFile(this: UAMethod, inputArguments: Variant[], context: Ses
     return callMethodResult;
 }
 
-function _getFileSystem(context: SessionContext) {
+function _getFileSystem(context: ISessionContext) {
     const fs: AbstractFs = (context.object as any).$fs;
     return fs;
 }
@@ -394,7 +397,7 @@ function _getFileSystem(context: SessionContext) {
  * @param context
  * @private
  */
-async function _closeFile(this: UAMethod, inputArguments: Variant[], context: SessionContext): Promise<CallMethodResultOptions> {
+async function _closeFile(this: UAMethod, inputArguments: Variant[], context: ISessionContext): Promise<CallMethodResultOptions> {
     const abstractFs = _getFileSystem(context);
 
     const addressSpace = this.addressSpace;
@@ -427,7 +430,7 @@ async function _closeFile(this: UAMethod, inputArguments: Variant[], context: Se
  * @param context
  * @private
  */
-async function _readFile(this: UAMethod, inputArguments: Variant[], context: SessionContext): Promise<CallMethodResultOptions> {
+async function _readFile(this: UAMethod, inputArguments: Variant[], context: ISessionContext): Promise<CallMethodResultOptions> {
     const addressSpace = this.addressSpace;
 
     const abstractFs = _getFileSystem(context);
@@ -487,7 +490,7 @@ async function _readFile(this: UAMethod, inputArguments: Variant[], context: Ses
     };
 }
 
-async function _writeFile(this: UAMethod, inputArguments: Variant[], context: SessionContext): Promise<CallMethodResultOptions> {
+async function _writeFile(this: UAMethod, inputArguments: Variant[], context: ISessionContext): Promise<CallMethodResultOptions> {
     const addressSpace = this.addressSpace;
 
     const abstractFs = _getFileSystem(context);
@@ -543,7 +546,7 @@ async function _writeFile(this: UAMethod, inputArguments: Variant[], context: Se
 async function _setPositionFile(
     this: UAMethod,
     inputArguments: Variant[],
-    context: SessionContext
+    context: ISessionContext
 ): Promise<CallMethodResultOptions> {
     const addressSpace = this.addressSpace;
 
@@ -561,7 +564,7 @@ async function _setPositionFile(
 async function _getPositionFile(
     this: UAMethod,
     inputArguments: Variant[],
-    context: SessionContext
+    context: ISessionContext
 ): Promise<CallMethodResultOptions> {
     const addressSpace = this.addressSpace;
 
@@ -586,7 +589,7 @@ async function _getPositionFile(
 
 export const defaultMaxSize = 100000000;
 
-function install_method_handle_on_type(addressSpace: AddressSpace): void {
+function install_method_handle_on_type(addressSpace: IAddressSpace): void {
     const fileType = addressSpace.findObjectType("FileType") as any;
     if (fileType.open.isBound()) {
         return;
@@ -604,7 +607,7 @@ function install_method_handle_on_type(addressSpace: AddressSpace): void {
  * @param file the OPCUA Node that has a typeDefinition of FileType
  * @param options the options
  */
-export function installFileType(file: UAFileType, options: FileOptions) {
+export function installFileType(file: UAFile, options: FileOptions) {
     if ((file as any).$fileData) {
         errorLog("File already installed ", file.nodeId.toString(), file.browseName.toString());
         return;

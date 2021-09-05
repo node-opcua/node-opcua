@@ -3,13 +3,11 @@
  */
 
 import { assert } from "node-opcua-assert";
-import { Certificate, CertificateInternals, exploreCertificate } from "node-opcua-crypto";
+import { CertificateInternals, exploreCertificate } from "node-opcua-crypto";
 import {
-    AccessLevelFlag,
     AccessRestrictionsFlag,
     allPermissions,
     AttributeIds,
-    NodeClass,
     PermissionFlag
 } from "node-opcua-data-model";
 import { PreciseClock } from "node-opcua-date-time";
@@ -19,13 +17,13 @@ import {
     MessageSecurityMode,
     PermissionType,
     RolePermissionType,
-    RolePermissionTypeOptions,
     UserNameIdentityToken,
     X509IdentityToken
 } from "node-opcua-types";
-import { ISessionContext, UAObject, UAObjectType, UAVariable, UAMethod, Namespace, BaseNode } from "./address_space_ts";
+import { ISessionContext, UAObject, UAObjectType, UAVariable, INamespace, BaseNode, ISessionBase } from "node-opcua-address-space-base";
 import { ObjectIds } from "node-opcua-constants";
 import { StatusCodes } from "node-opcua-status-code";
+import { NamespacePrivate } from "../src/namespace_private";
 
 export { RolePermissionType, RolePermissionTypeOptions, PermissionType } from "node-opcua-types";
 
@@ -53,22 +51,9 @@ function getUserName(userIdentityToken: UserIdentityToken): string {
     throw new Error("Invalid user identity token");
 }
 
-export interface IChannelBase {
-    clientCertificate: Certificate | null;
-    // clientNonce: Buffer | null;
-    securityMode: MessageSecurityMode;
-    securityPolicy: string;
-}
 /**
  *
  */
-export interface ISessionBase {
-    userIdentityToken?: UserIdentityToken;
-
-    channel?: IChannelBase;
-
-    getSessionId(): NodeId; // session NodeID
-}
 
 export enum WellKnownRoles {
     Anonymous = ObjectIds.WellKnownRole_Anonymous,
@@ -123,6 +108,7 @@ export interface IUserManager {
 export interface IServerBase {
     userManager?: IUserManager;
 }
+
 export interface SessionContextOptions {
     session?: ISessionBase /* ServerSession */;
     object?: UAObject | UAObjectType;
@@ -142,7 +128,7 @@ function getPermissionForRole(rolePermissions: RolePermissionType[] | null, role
 function isDefaultContext(context: SessionContext) {
     return context === SessionContext.defaultContext;
 }
-function getAccessRestrictionsOnNamespace(namespace: Namespace, context: SessionContext): AccessRestrictionsFlag {
+function getAccessRestrictionsOnNamespace(namespace: NamespacePrivate, context: SessionContext): AccessRestrictionsFlag {
     // ignore permission when default context is provided (to avoid recursion)
     if (isDefaultContext(context)) {
         return AccessRestrictionsFlag.None;
@@ -165,7 +151,7 @@ function getAccessRestrictionsOnNamespace(namespace: Namespace, context: Session
     return AccessRestrictionsFlag.None;
 }
 
-function getDefaultUserRolePermissionsOnNamespace(namespace: Namespace, context: SessionContext): RolePermissionType[] | null {
+function getDefaultUserRolePermissionsOnNamespace(namespace: NamespacePrivate, context: SessionContext): RolePermissionType[] | null {
     // ignore permission when default context is provided
     if (isDefaultContext(context)) {
         return null;
@@ -211,7 +197,7 @@ export class SessionContext implements ISessionContext {
     public object: any;
     public currentTime?: PreciseClock;
     public continuationPoints: any = {};
-    public userIdentity: any;
+    public userIdentity?: string;
     public readonly session?: ISessionBase;
     public readonly server?: IServerBase;
 
@@ -268,7 +254,7 @@ export class SessionContext implements ISessionContext {
 
     public getApplicableRolePermissions(node: BaseNode): RolePermissionType[] | null {
         if (!node.rolePermissions) {
-            const namespace = node.namespace;
+            const namespace = node.namespace as NamespacePrivate;
             const defaultUserRolePermissions = getDefaultUserRolePermissionsOnNamespace(namespace, this);
             return defaultUserRolePermissions;
         }
@@ -289,7 +275,7 @@ export class SessionContext implements ISessionContext {
     }
     public getAccessRestrictions(node: BaseNode): AccessRestrictionsFlag {
         if (node.accessRestrictions === undefined) {
-            const namespace = node.namespace;
+            const namespace = node.namespace as NamespacePrivate;
             const accessRestrictions = getAccessRestrictionsOnNamespace(namespace, this);
             return accessRestrictions;
         }
@@ -346,7 +332,7 @@ export class SessionContext implements ISessionContext {
         return (permissions & requestedPermission) === requestedPermission;
     }
 
-    public currentUserHasRole(role: NodeIdLike) {
+    public currentUserHasRole(role: NodeIdLike): boolean {
         const currentUserRole = this.getCurrentUserRoles();
         const n = resolveNodeId(role);
         return currentUserRole.findIndex((r) => sameNodeId(r, n)) >= 0;

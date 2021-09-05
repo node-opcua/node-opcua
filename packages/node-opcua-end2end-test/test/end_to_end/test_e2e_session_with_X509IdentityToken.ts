@@ -203,8 +203,8 @@ describe("Testing Session with user certificate", () => {
         try {
             const session = await client!.createSession(userIdentity);
             await session.close();
-        } catch (err) {
-            exceptionCaught = err;
+        } catch (err: any) {
+            exceptionCaught = err; 
         }
         should(exceptionCaught).not.be.null();
     });

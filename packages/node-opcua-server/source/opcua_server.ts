@@ -33,6 +33,7 @@ import {
     SessionContext,
     UAObject,
     UAVariable,
+    ISessionContext,
     UAView
 } from "node-opcua-address-space";
 import { getDefaultCertificateManager, OPCUACertificateManager } from "node-opcua-certificate-manager";
@@ -387,7 +388,7 @@ function thumbprint(certificate?: Certificate): string {
  */
 function monitoredItem_read_and_record_value(
     self: MonitoredItem,
-    context: SessionContext | null,
+    context: ISessionContext | null,
     oldValue: DataValue,
     node: UAVariable,
     itemToMonitor: any,
@@ -413,7 +414,7 @@ function monitoredItem_read_and_record_value(
  */
 function monitoredItem_read_and_record_value_async(
     self: MonitoredItem,
-    context: SessionContext,
+    context: ISessionContext,
     oldValue: DataValue,
     node: UAVariable,
     itemToMonitor: any,
@@ -432,7 +433,7 @@ function monitoredItem_read_and_record_value_async(
 }
 
 function build_scanning_node_function(
-    context: SessionContext,
+    context: ISessionContext,
     addressSpace: AddressSpace,
     monitoredItem: MonitoredItem,
     itemToMonitor: any
@@ -496,7 +497,7 @@ function build_scanning_node_function(
     }
 }
 
-function prepareMonitoredItem(context: SessionContext, addressSpace: AddressSpace, monitoredItem: MonitoredItem) {
+function prepareMonitoredItem(context: ISessionContext, addressSpace: AddressSpace, monitoredItem: MonitoredItem) {
     const itemToMonitor = monitoredItem.itemToMonitor;
     const readNodeFunc = build_scanning_node_function(context, addressSpace, monitoredItem, itemToMonitor);
     monitoredItem.samplingFunc = readNodeFunc;

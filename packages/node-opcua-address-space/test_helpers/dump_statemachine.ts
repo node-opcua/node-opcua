@@ -18,9 +18,9 @@
  * }
  * @param stateMachineType
  */
-import { BaseNode, State, StateMachine, Transition, UAObject } from "..";
+import { BaseNode, UAState, UAStateMachineEx, UATransition, UAObject, UATransitionEx } from "..";
 
-export function dumpStateMachineToPlantUML(stateMachineType: StateMachine) {
+export function dumpStateMachineToPlantUML(stateMachineType: UAStateMachineEx) {
     function w(str: string) {
         console.log(str);
     }
@@ -53,7 +53,7 @@ export function dumpStateMachineToPlantUML(stateMachineType: StateMachine) {
 
     stateMachineType.states.forEach((state: UAObject) => w(" " + s(state) + ": " + n(state)));
 
-    stateMachineType.transitions.forEach((transition: Transition) =>
+    stateMachineType.transitions.forEach((transition: UATransitionEx) =>
         w("  " + s(transition.fromStateNode!) + " --> " + s(transition.toStateNode!) + " : " + t(transition))
     );
 
@@ -109,7 +109,7 @@ export function dumpStateMachineToPlantUML(stateMachineType: StateMachine) {
  */
 export function dumpStateMachineToGraphViz(
     /*StateMachineProxy*/
-    stateMachineType: StateMachine
+    stateMachineType: UAStateMachineEx
 ) {
     function w(str: string) {
         console.log(str);
@@ -135,9 +135,9 @@ export function dumpStateMachineToGraphViz(
         w("  _" + s_full(stateMachineType.initialState!) + " ;");
     }
     w("node [ shape = circle];");
-    stateMachineType.states.forEach((state: State) => w("   _" + s_full(state)));
+    stateMachineType.states.forEach((state: UAState) => w("   _" + s_full(state)));
 
-    stateMachineType.transitions.forEach((transition: Transition) =>
+    stateMachineType.transitions.forEach((transition) =>
         w(
             "  _" +
                 s(transition.fromStateNode!) +

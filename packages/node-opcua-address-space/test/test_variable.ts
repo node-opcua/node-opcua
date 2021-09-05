@@ -21,7 +21,7 @@ import {
     DataValueCallback,
     Namespace,
     PseudoSession,
-    RootFolder,
+    UARootFolder,
     SessionContext,
     UAVariable
 } from "..";
@@ -124,7 +124,7 @@ type Done = () => void;
 describe("Address Space : add Variable :  testing various variations for specifying dataType", () => {
     let addressSpace: AddressSpace;
     let namespace: Namespace;
-    let rootFolder: RootFolder;
+    let rootFolder: UARootFolder;
 
     before((done: Done) => {
         addressSpace = AddressSpace.create();
@@ -132,7 +132,7 @@ describe("Address Space : add Variable :  testing various variations for specify
             namespace = addressSpace.registerNamespace("Private");
             namespace.index.should.eql(1);
 
-            rootFolder = addressSpace.findNode("RootFolder")! as RootFolder;
+            rootFolder = addressSpace.findNode("RootFolder")! as UARootFolder;
 
             done();
         });
@@ -245,7 +245,7 @@ describe("Address Space : add Variable :  testing various variations for specify
 describe("testing Variable#bindVariable", () => {
     let addressSpace: AddressSpace;
     let namespace: Namespace;
-    let rootFolder: RootFolder;
+    let rootFolder: UARootFolder;
 
     before(async () => {
         addressSpace = AddressSpace.create();
@@ -255,7 +255,7 @@ describe("testing Variable#bindVariable", () => {
         addressSpace.registerNamespace("Private");
         namespace = addressSpace.getOwnNamespace();
         namespace.index.should.eql(1);
-        rootFolder = addressSpace.findNode("RootFolder")! as RootFolder;
+        rootFolder = addressSpace.findNode("RootFolder")! as UARootFolder;
     });
     after(() => {
         if (addressSpace) {
@@ -702,7 +702,7 @@ describe("testing Variable#bindVariable", () => {
 describe("testing Variable#writeValue Scalar", () => {
     let addressSpace: AddressSpace;
     let namespace: Namespace;
-    let rootFolder: RootFolder;
+    let rootFolder: UARootFolder;
     let variable: UAVariable;
 
     before((done: (err?: Error) => void) => {
@@ -714,7 +714,7 @@ describe("testing Variable#writeValue Scalar", () => {
 
             namespace = addressSpace.getOwnNamespace();
 
-            rootFolder = addressSpace.findNode("RootFolder")! as RootFolder;
+            rootFolder = addressSpace.findNode("RootFolder")! as UARootFolder;
 
             variable = namespace.addVariable({
                 accessLevel: "CurrentRead | CurrentWrite",
@@ -779,7 +779,7 @@ describe("testing Variable#writeValue Scalar", () => {
 describe("testing Variable#writeValue Array", () => {
     let addressSpace: AddressSpace;
     let namespace: Namespace;
-    let rootFolder: RootFolder;
+    let rootFolder: UARootFolder;
     let variable: UAVariable;
 
     before((done: (err?: Error) => void) => {
@@ -788,7 +788,7 @@ describe("testing Variable#writeValue Array", () => {
             addressSpace.registerNamespace("Private");
             namespace = addressSpace.getOwnNamespace();
 
-            rootFolder = addressSpace.findNode("RootFolder")! as RootFolder;
+            rootFolder = addressSpace.findNode("RootFolder")! as UARootFolder;
 
             variable = addressSpace.getOwnNamespace().addVariable({
                 accessLevel: "CurrentRead | CurrentWrite",
@@ -999,7 +999,7 @@ describe("testing Variable#writeValue Array", () => {
 describe("testing Variable#writeValue on Integer", () => {
     let addressSpace: AddressSpace;
     let namespace: Namespace;
-    let rootFolder: RootFolder;
+    let rootFolder: UARootFolder;
     let variableNotInteger: UAVariable;
     let variableInt32: UAVariable;
 
@@ -1009,7 +1009,7 @@ describe("testing Variable#writeValue on Integer", () => {
             addressSpace.registerNamespace("Private");
             namespace = addressSpace.getOwnNamespace();
 
-            rootFolder = addressSpace.findNode("RootFolder")! as RootFolder;
+            rootFolder = addressSpace.findNode("RootFolder")! as UARootFolder;
 
             variableNotInteger = namespace.addVariable({
                 accessLevel: "CurrentRead | CurrentWrite",
@@ -1125,7 +1125,7 @@ describe("testing Variable#writeValue on Integer", () => {
 describe("testing UAVariable ", () => {
     let addressSpace: AddressSpace;
     let namespace: Namespace;
-    let rootFolder: RootFolder;
+    let rootFolder: UARootFolder;
     let variableInteger: UAVariable;
     let notReadableVariable: UAVariable;
 
@@ -1138,7 +1138,7 @@ describe("testing UAVariable ", () => {
 
             if (!err) {
                 addressSpace.registerNamespace("Private");
-                rootFolder = addressSpace.findNode("RootFolder")! as RootFolder;
+                rootFolder = addressSpace.findNode("RootFolder")! as UARootFolder;
 
                 variableInteger = namespace.addVariable({
                     accessLevel: "CurrentRead | CurrentWrite",
@@ -1222,7 +1222,7 @@ describe("testing UAVariable ", () => {
     });
 
     it("UAVariable#readValueAsync should cope with faulty refreshFunc -- calling callback with an error", async () => {
-        rootFolder = addressSpace.findNode("RootFolder")! as RootFolder;
+        rootFolder = addressSpace.findNode("RootFolder")! as UARootFolder;
 
         const temperatureVar = namespace.addVariable({
             browseName: "BadVar",
@@ -1247,13 +1247,13 @@ describe("testing UAVariable ", () => {
         try {
             const dataValue = await temperatureVar.readValueAsync(context);
         } catch (err) {
-            _err = err;
+            _err = err as Error;
         }
         should.exist(_err);
     });
 
     it("UAVariable#readValueAsync should cope with faulty refreshFunc - crashing inside refreshFunc", async () => {
-        rootFolder = addressSpace.findNode("RootFolder")! as RootFolder;
+        rootFolder = addressSpace.findNode("RootFolder")! as UARootFolder;
         const temperatureVar = namespace.addVariable({
             browseName: "BadVar2",
             dataType: "Double",
@@ -1266,17 +1266,17 @@ describe("testing UAVariable ", () => {
             }
         });
 
-        let _err: any;
+        let _err: Error;
         try {
             await temperatureVar.readValueAsync(context);
         } catch (err) {
-            _err = err;
+            _err = err as Error;
         }
         should.exist(_err);
     });
 
     it("UAVariable#readValueAsync  should be re-entrant", async () => {
-        rootFolder = addressSpace.findNode("RootFolder")! as RootFolder;
+        rootFolder = addressSpace.findNode("RootFolder")! as UARootFolder;
 
         const temperatureVar = namespace.addVariable({
             browseName: "Temperature",

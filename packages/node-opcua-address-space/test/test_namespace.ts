@@ -31,12 +31,12 @@ describe("AddressSpace Namespace", () => {
 
     });
 
-    it("should create a object in the namespace", () => {
+    it("should create a object in the namespace (with internalCreateNode)", () => {
 
         const addressSpace = AddressSpace.create();
         const namespace1 = addressSpace.registerNamespace("https://mynamespace");
 
-        const node = namespace1._createNode({
+        const node = namespace1.internalCreateNode({
             browseName: "Toto",
             nodeClass: NodeClass.Object,
             nodeId: "s=TOTO"

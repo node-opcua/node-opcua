@@ -233,7 +233,7 @@ export async function installPushCertificateManagementOnServer(server: OPCUAServ
         applicationUri: server.serverInfo.applicationUri! || "InvalidURI"
     });
 
-    const serverConfiguration = server.engine.addressSpace.rootFolder.objects.server.serverConfiguration;
+    const serverConfiguration = server.engine.addressSpace.rootFolder.objects.server.getChildByName("ServerConfiguration")!;
     const serverConfigurationPriv = serverConfiguration as any;
     assert(serverConfigurationPriv.$pushCertificateManager);
 

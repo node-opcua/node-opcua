@@ -13,7 +13,7 @@ import { UAAnalogItem } from "../..";
 
 const context = SessionContext.defaultContext;
 
-async function modifyEURange(analogItem: UAAnalogItem) {
+async function modifyEURange<T,DT extends DataType>(analogItem: UAAnalogItem<T, DT>) {
 
     const dataValueOrg = analogItem.readAttribute(context, AttributeIds.Value);
 
@@ -40,7 +40,7 @@ export function subtest_analog_item_semantic_changed(maintest: any) {
     describe("AnalogDataItem and semantic changes", () => {
 
         let addressSpace: AddressSpace;
-        let analogItem: UAAnalogItem;
+        let analogItem: UAAnalogItem<number,DataType.Double>;
         beforeEach(() => {
 
             addressSpace = maintest.addressSpace;

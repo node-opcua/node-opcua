@@ -18,7 +18,7 @@ function getRandomDouble(min: number, max: number) {
     return Math.random() * (max - min) + min;
 }
 
-export function isValidFloat(value: any): boolean {
+export function isValidFloat(value: number): boolean {
     if (!isFinite(value)) {
         return false;
     }
@@ -47,7 +47,7 @@ export function decodeFloat(stream: BinaryStream, value?: number): Float {
     return stream.readFloat();
 }
 
-export function isValidDouble(value: any): boolean {
+export function isValidDouble(value: number): boolean {
     if (!isFinite(value)) {
         return false;
     }
@@ -60,11 +60,11 @@ export function randomDouble(): Double {
     return getRandomDouble(-1000000, 1000000);
 }
 
-export function encodeDouble(value: Double, stream: OutputBinaryStream) {
+export function encodeDouble(value: Double, stream: OutputBinaryStream): void {
     stream.writeDouble(value);
 }
 
-export function decodeDouble(stream: BinaryStream, value?: number) {
+export function decodeDouble(stream: BinaryStream, value?: number): Double {
     return stream.readDouble();
 }
 

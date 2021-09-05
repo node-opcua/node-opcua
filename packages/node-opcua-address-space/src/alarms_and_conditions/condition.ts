@@ -4,8 +4,6 @@
 // tslint:disable:no-console
 // tslint:disable:no-var-requires
 require("set-prototype-of");
-
-import { EventEmitter } from "events";
 import { assert } from "node-opcua-assert";
 import { LocalizedText, LocalizedTextLike } from "node-opcua-data-model";
 import { minDate } from "node-opcua-factory";
@@ -55,7 +53,7 @@ function prepare_date(sourceTimestamp: { value: Date } | null) {
  * The Server may choose to continue to test for a Condition instance while it is
  Disabled. However, no Event Notifications will be generated while the Condition
  instance is disabled.
- * For any Condition that exists in the AddressSpace the Attributes and the following
+ * For any Condition that exists in the Address Space the Attributes and the following
  Variables will continue to have valid values even in the Disabled state; EventId, Event
  Type, Source Node, Source Name, Time, and EnabledState.
  Other properties may no longer provide current valid values.
@@ -72,7 +70,7 @@ function prepare_date(sourceTimestamp: { value: Date } | null) {
  // a subtype of NonHierarchicalReferences.
  // The semantic of this ReferenceType is to specify the relationship between a ConditionSource
  // and its Conditions. Each ConditionSource shall be the target of a HasEventSource Reference
- // or a sub type of HasEventSource. The AddressSpace organisation that shall be provided for
+ // or a sub type of HasEventSource. The Address Space organisation that shall be provided for
  // Clients to detect Conditions and ConditionSources is defined in Clause 6. Various examples
  // for the use of this ReferenceType can be found in B.2.
  // HasCondition References can be used in the Type definition of an Object or a Variable. In this

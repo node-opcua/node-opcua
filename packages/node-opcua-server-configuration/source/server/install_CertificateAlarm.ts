@@ -3,7 +3,8 @@
  */
 import {
     AddressSpace,
-    UACertificateExpirationAlarm
+    UACertificateExpirationAlarm,
+    UACertificateExpirationAlarmImpl
 } from "node-opcua-address-space";
 import {
     checkDebugFlag,
@@ -37,7 +38,7 @@ export function installCertificateExpirationAlarm(addressSpace: AddressSpace) {
         normalState: NodeId.nullNodeId
     };
     const data = {};
-    const alarm = UACertificateExpirationAlarm.instantiate(namespace, options, data);
+    const alarm = UACertificateExpirationAlarmImpl.instantiate(namespace, options, data);
     // const alarm = namespace.instantiateOffNormalAlarm({) as UACertificateExpirationAlarm;
     alarm.currentBranch().setRetain(true);
     alarm.activeState.setValue(false);

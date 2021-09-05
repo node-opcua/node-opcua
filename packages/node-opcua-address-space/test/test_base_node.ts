@@ -5,7 +5,7 @@ import * as sinon from "sinon";
 import { BrowseDirection } from "node-opcua-data-model";
 import { NodeId, resolveNodeId } from "node-opcua-nodeid";
 
-import { AddressSpace, Namespace, RootFolder, UAObjectType, UAReferenceType } from "..";
+import { AddressSpace, Namespace, UARootFolder, UAObjectType, UAReferenceType } from "..";
 import { getMiniAddressSpace } from "../testHelpers";
 
 // tslint:disable-next-line:no-var-requires
@@ -13,7 +13,7 @@ const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("Testing UAObject", () => {
     let addressSpace: AddressSpace;
     let namespace: Namespace;
-    let rootFolder: RootFolder;
+    let rootFolder: UARootFolder;
     let organizesReferenceType: UAReferenceType;
     let hasTypeDefinitionReferenceType: UAReferenceType;
     let baseObjectType: UAObjectType;
@@ -21,7 +21,7 @@ describe("Testing UAObject", () => {
     before(async () => {
         addressSpace = await getMiniAddressSpace();
         namespace = addressSpace.getOwnNamespace();
-        rootFolder = addressSpace.findNode("RootFolder")! as RootFolder;
+        rootFolder = addressSpace.findNode("RootFolder")! as UARootFolder;
         organizesReferenceType = addressSpace.findReferenceType("Organizes")!;
         hasTypeDefinitionReferenceType = addressSpace.findReferenceType("HasTypeDefinition")!;
         baseObjectType = addressSpace.findObjectType("BaseObjectType")!;

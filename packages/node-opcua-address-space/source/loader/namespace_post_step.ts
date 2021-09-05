@@ -1,21 +1,22 @@
 import { NodeClass } from "node-opcua-data-model";
 import { make_debugLog, checkDebugFlag } from "node-opcua-debug";
 
-import { UAObject } from "../../src/ua_object";
-import { UAVariable } from "../../src/ua_variable";
-import { AddressSpace } from "../address_space_ts";
-import { UANamespace } from "./../../src/namespace";
+import { UAObject, UAVariable, IAddressSpace, INamespace } from "node-opcua-address-space-base";
+import { NamespacePrivate } from "../../src/namespace_private";
+
 
 const debugLog = make_debugLog(__filename);
 const doDebug = checkDebugFlag(__filename);
 
 export const g_promotableObject: { [key: string]: (node: any) => any } = {};
 
-export async function promoteObjectAndVariablesInNamespace(namespace: UANamespace) {
-    for (const a of namespace.nodeIterator()) {
+export async function promoteObjectAndVariablesInNamespace(namespace: INamespace) {
+    const namespaceP = namespace as NamespacePrivate;
+    for (const a of namespaceP.nodeIterator()) {
         if (a.nodeClass === NodeClass.Object || a.nodeClass === NodeClass.Variable) {
-            if (a.typeDefinition) {
-                const promoter = g_promotableObject[a.typeDefinition.toString()];
+            const aa = a as (UAObject | UAVariable);
+            if (aa.typeDefinition) {
+                const promoter = g_promotableObject[aa.typeDefinition.toString()];
                 if (promoter) {
                     const before = a.constructor.name;
                     promoter(a as UAObject | UAVariable);
@@ -28,8 +29,8 @@ export async function promoteObjectAndVariablesInNamespace(namespace: UANamespac
         }
     }
 }
-export async function promoteObjectsAndVariables(addressSpace: AddressSpace) {
+export async function promoteObjectsAndVariables(addressSpace: IAddressSpace) {
     for (const namespace of addressSpace.getNamespaceArray()) {
-        promoteObjectAndVariablesInNamespace(namespace as UANamespace);
+        promoteObjectAndVariablesInNamespace(namespace);
     }
 }

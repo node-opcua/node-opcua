@@ -10,12 +10,12 @@ import { StatusCodes } from "node-opcua-status-code";
 import { SimpleAttributeOperand } from "node-opcua-types";
 import { DataType, Variant, VariantLike } from "node-opcua-variant";
 
-import { SessionContext } from "../source";
 import {
-    BaseNode as BaseNodePublic,
+    ISessionContext,
+    BaseNode,
     IEventData,
-    UAVariable as UAVariablePublic
-} from "../source/address_space_ts";
+    UAVariable
+} from "node-opcua-address-space-base";
 
 /**
  * @class EventData
@@ -25,11 +25,11 @@ import {
 export class EventData implements IEventData {
 
     public eventId: NodeId;
-    public $eventDataSource: BaseNodePublic;
+    public $eventDataSource: BaseNode;
 
     private __nodes: { [key: string]: Variant };
 
-    constructor(eventTypeNode: BaseNodePublic) {
+    constructor(eventTypeNode: BaseNode) {
         this.__nodes = {};
         this.eventId = NodeId.nullNodeId;
         this.$eventDataSource = eventTypeNode;
@@ -75,7 +75,7 @@ export class EventData implements IEventData {
         return browsePathResult.targets[0].targetId;
     }
 
-    public setValue(lowerName: string, node: BaseNodePublic, variant: VariantLike): void {
+    public setValue(lowerName: string, node: BaseNode, variant: VariantLike): void {
         const eventData = this as any;
         eventData[lowerName] = Variant.coerce(variant); /// _coerceVariant(variant);
         eventData.__nodes[node.nodeId.toString()] = eventData[lowerName];
@@ -86,7 +86,7 @@ export class EventData implements IEventData {
      * @param selectClause {SimpleAttributeOperand}
      * @return {Variant}
      */
-    public readValue(sessionContext: SessionContext, nodeId: NodeId, selectClause: SimpleAttributeOperand): Variant {
+    public readValue(sessionContext: ISessionContext, nodeId: NodeId, selectClause: SimpleAttributeOperand): Variant {
         assert(nodeId instanceof NodeId);
         assert(selectClause instanceof SimpleAttributeOperand);
         assert(nodeId instanceof NodeId);
@@ -102,7 +102,7 @@ export class EventData implements IEventData {
         }
 
         if (node.nodeClass === NodeClass.Variable && selectClause.attributeId === AttributeIds.Value) {
-            const nodeVariable = node as UAVariablePublic;
+            const nodeVariable = node as UAVariable;
             return prepare(nodeVariable.readValue(sessionContext, selectClause.indexRange));
         }
         return prepare(node.readAttribute(sessionContext, selectClause.attributeId));

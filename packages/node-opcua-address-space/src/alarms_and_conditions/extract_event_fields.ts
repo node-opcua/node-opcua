@@ -1,12 +1,10 @@
+import { IEventData, ISessionContext, UAObject } from "node-opcua-address-space-base";
 import { assert } from "node-opcua-assert";
 import { AttributeIds } from "node-opcua-data-model";
 import { resolveNodeId } from "node-opcua-nodeid";
 import { SimpleAttributeOperand } from "node-opcua-types";
 import { DataType, Variant } from "node-opcua-variant";
 
-import { IEventData } from "../../source/address_space_ts";
-import { SessionContext } from "../session_context";
-import { UAObject } from "../ua_object";
 
 function assert_valid_event_data(eventData: IEventData) {
     assert(typeof eventData.resolveSelectClause === "function");
@@ -20,7 +18,7 @@ function assert_valid_event_data(eventData: IEventData) {
  * @param eventData
  * @param selectClause
  */
-function extractEventField(sessionContext: SessionContext, eventData: IEventData, selectClause: SimpleAttributeOperand): Variant {
+function extractEventField(sessionContext: ISessionContext, eventData: IEventData, selectClause: SimpleAttributeOperand): Variant {
     assert_valid_event_data(eventData);
     assert(selectClause instanceof SimpleAttributeOperand);
 
@@ -95,11 +93,10 @@ function extractEventField(sessionContext: SessionContext, eventData: IEventData
  * @param eventData : a pseudo Node that provides a browse Method and a readValue(nodeId)
  */
 export function extractEventFields(
-    sessionContext: SessionContext,
+    sessionContext: ISessionContext,
     selectClauses: SimpleAttributeOperand[],
     eventData: IEventData
 ): Variant[] {
-    assert(sessionContext instanceof SessionContext);
     assert_valid_event_data(eventData);
     assert(Array.isArray(selectClauses));
     assert(selectClauses.length === 0 || selectClauses[0] instanceof SimpleAttributeOperand);

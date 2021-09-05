@@ -45,6 +45,6 @@ function invert(a: { [key: string]: string | number }) {
 }
 export const attributeNameById = invert(AttributeIds);
 
-export function isValidAttributeId(attributeId: number) {
+export function isValidAttributeId(attributeId: number): boolean {
     return attributeId >= 1 && attributeId < AttributeIds.LAST;
 }

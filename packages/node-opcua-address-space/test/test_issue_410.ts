@@ -20,7 +20,7 @@ describe("AnalogDataItem ValuePrecision issue #410", () => {
     const nodesetFilename = nodesets.standard;
 
     let addressSpace: AddressSpace;
-    let analogItem: UAAnalogItem;
+    let analogItem: UAAnalogItem<number, DataType.Double>;
 
     before(async () => {
         addressSpace = AddressSpace.create();

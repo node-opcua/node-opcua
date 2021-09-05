@@ -1,8 +1,9 @@
 import * as fs from "fs";
 import { checkDebugFlag, make_debugLog, make_errorLog } from "node-opcua-debug";
 import { ErrorCallback } from "node-opcua-status-code";
-import { AddressSpace as AddressSpacePublic } from "../dist/source";
-import { generateAddressSpaceRawCallback } from "../dist/source";
+import { IAddressSpace } from "node-opcua-address-space-base";
+
+import { generateAddressSpaceRawCallback } from "..";
 const doDebug = checkDebugFlag(__filename);
 const debugLog = make_debugLog(__filename);
 const errorLog = make_errorLog(__filename);
@@ -20,12 +21,12 @@ export function readNodeSet2XmlFile(xmlFile: string, callback: (err: Error | nul
     });
 }
 export function generateAddressSpace(
-    addressSpace: AddressSpacePublic,
+    addressSpace: IAddressSpace,
     xmlFiles: string | string[],
     callback: (err?: Error) => void
 ): void;
-export function generateAddressSpace(addressSpace: AddressSpacePublic, xmlFiles: string | string[]): Promise<void>;
-export function generateAddressSpace(addressSpace: AddressSpacePublic, xmlFiles: string | string[], callback?: ErrorCallback): any {
+export function generateAddressSpace(addressSpace: IAddressSpace, xmlFiles: string | string[]): Promise<void>;
+export function generateAddressSpace(addressSpace: IAddressSpace, xmlFiles: string | string[], callback?: ErrorCallback): any {
     generateAddressSpaceRawCallback(addressSpace, xmlFiles, readNodeSet2XmlFile, callback);
 }
 

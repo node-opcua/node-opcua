@@ -105,7 +105,7 @@ export function utest_limit_alarm(test: any) {
                 lowLimit: 1.0,
                 lowLowLimit: -10.0
             });
-            alarm.constructor.name.should.eql("UAExclusiveLimitAlarm");
+            alarm.constructor.name.should.eql("UAExclusiveLimitAlarmImpl");
 
             const spyOnEvent = sinon.spy();
 
@@ -222,7 +222,7 @@ export function utest_limit_alarm(test: any) {
                 lowLimit: -1.0,
                 lowLowLimit: -10.0
             });
-            alarm.constructor.name.should.eql("UANonExclusiveLimitAlarm");
+            alarm.constructor.name.should.eql("UANonExclusiveLimitAlarmImpl");
 
             alarm.inputNode.readValue().value.value.should.eql(variableWithAlarm.nodeId);
             alarm.getInputNodeNode()!.should.eql(variableWithAlarm);

@@ -1,9 +1,10 @@
+import { INamespace } from "node-opcua-address-space-base";
 import { NamespacePrivate } from "../namespace_private";
-import { Namespace } from "../../source/address_space_ts";
+import { BaseNodeImpl, getReferenceType } from "../base_node_impl";
 
-export function constructNamespaceDependency(namespace: NamespacePrivate): Namespace[] {
+export function constructNamespaceDependency(namespace: INamespace): INamespace[] {
     const addressSpace = namespace.addressSpace;
-
+    const namespace_ = namespace as NamespacePrivate;
     // navigate all namespace recursively to
     // find dependency
     const dependency = [];
@@ -18,12 +19,12 @@ export function constructNamespaceDependency(namespace: NamespacePrivate): Names
         depMap.add(namespace.index);
     }
 
-    for (const node of namespace.nodeIterator()) {
+    for (const node of namespace_.nodeIterator()) {
         // visit all reference
-        const references = node.ownReferences();
+        const references = (<BaseNodeImpl>node).ownReferences();
         for (const reference of references) {
             // check referenceId
-            const namespaceIndex = reference._referenceType!.nodeId.namespace;
+            const namespaceIndex = getReferenceType(reference)!.nodeId.namespace;
             if (!depMap.has(namespaceIndex)) {
                 depMap.add(namespaceIndex);
                 dependency.push(addressSpace.getNamespace(namespaceIndex));

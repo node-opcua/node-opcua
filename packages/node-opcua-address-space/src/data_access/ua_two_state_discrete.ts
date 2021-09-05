@@ -1,26 +1,37 @@
 import assert from "node-opcua-assert";
-import { coerceLocalizedText, LocalizedText, LocalizedTextLike } from "node-opcua-data-model";
+import { coerceLocalizedText, LocalizedText, LocalizedTextLike, QualifiedNameLike } from "node-opcua-data-model";
 import { DataType, Variant, VariantLike } from "node-opcua-variant";
-import { UATwoStateDiscrete as UATwoStateDiscretePublic } from "../../source/interfaces/data_access/ua_two_state_discrete";
-import { UAVariable } from "../ua_variable";
-
-import {
-    AddTwoStateDiscreteOptions,
-    Namespace,
-    Property,
-    UAVariable as UAVariablePublic,
-    UAVariableT,
-    BindVariableOptions
-} from "../../source/address_space_ts";
 import { VariableTypeIds } from "node-opcua-constants";
-import { registerNodePromoter } from "../../source/loader/register_node_promoter";
-import { add_dataItem_stuff } from "./ua_data_item";
+import {
+    INamespace,
+    UAVariable,
+    BindVariableOptions,
+    UAProperty,
+    ISessionContext
+} from "node-opcua-address-space-base";
+import { DataValueT } from "node-opcua-data-value";
+import { NumericRange } from "node-opcua-numeric-range";
 
-export interface UATwoStateDiscrete {
-    falseState: UAVariableT<LocalizedText, DataType.LocalizedText>;
-    trueState: UAVariableT<LocalizedText, DataType.LocalizedText>;
+import { UAVariableImpl } from "../ua_variable_impl";
+import { registerNodePromoter } from "../../source/loader/register_node_promoter";
+import { add_dataItem_stuff } from "./add_dataItem_stuff";
+import { AddTwoStateDiscreteOptions } from "../../source/address_space_ts";
+import { UATwoStateDiscreteEx } from "../../source/interfaces/data_access/ua_two_state_discrete_ex";
+
+export interface UATwoStateDiscreteImpl {
+    falseState: UAProperty<LocalizedText, /*c*/ DataType.LocalizedText>;
+    trueState: UAProperty<LocalizedText, /*c*/ DataType.LocalizedText>;
+
+    readValue(
+        context?: ISessionContext | null,
+        indexRange?: NumericRange,
+        dataEncoding?: QualifiedNameLike | null
+    ): DataValueT<boolean, DataType.Boolean>;
+    
+    readValueAsync(context: ISessionContext | null, callback?: any): any;
+    
 }
-export class UATwoStateDiscrete extends UAVariable implements UATwoStateDiscretePublic {
+export class UATwoStateDiscreteImpl extends UAVariableImpl implements UATwoStateDiscreteEx {
     /*
      * @private
      */
@@ -35,14 +46,22 @@ export class UATwoStateDiscrete extends UAVariable implements UATwoStateDiscrete
         if (falseState) {
             falseState.on("value_changed", handler);
         } else {
-            console.warn("warning: UATwoStateDiscrete -> a FalseState property is mandatory ", this.browseName.toString(), this.nodeId.toString());
+            console.warn(
+                "warning: UATwoStateDiscrete -> a FalseState property is mandatory ",
+                this.browseName.toString(),
+                this.nodeId.toString()
+            );
         }
         const trueState = this.getPropertyByName("TrueState");
         /* istanbul ignore else */
         if (trueState) {
             trueState.on("value_changed", handler);
         } else {
-            console.warn("waring: UATwoStateDiscrete -> a TrueState property is mandatory", this.browseName.toString(), this.nodeId.toString());
+            console.warn(
+                "waring: UATwoStateDiscrete -> a TrueState property is mandatory",
+                this.browseName.toString(),
+                this.nodeId.toString()
+            );
         }
     }
     setValue(value: boolean | LocalizedTextLike) {
@@ -77,24 +96,25 @@ export class UATwoStateDiscrete extends UAVariable implements UATwoStateDiscrete
     }
 
     public clone(options1: any, optionalFilter: any, extraInfo: any): UAVariable {
-        const variable1 = UAVariable.prototype.clone.call(this, options1, optionalFilter, extraInfo);
+        const variable1 = UAVariableImpl.prototype.clone.call(this, options1, optionalFilter, extraInfo);
         promoteToTwoStateDiscrete(variable1);
         return variable1;
     }
 }
-export function promoteToTwoStateDiscrete(node: UAVariablePublic): UATwoStateDiscretePublic {
-    if (node instanceof UATwoStateDiscrete) {
-        return node; // already promoted
+
+export function promoteToTwoStateDiscrete(node: UAVariable): UATwoStateDiscreteEx {
+    if (node instanceof UATwoStateDiscreteImpl) {
+        return node as unknown as UATwoStateDiscreteEx; // already promoted
     }
-    Object.setPrototypeOf(node, UATwoStateDiscrete.prototype);
-    assert(node instanceof UATwoStateDiscrete, "should now  be a UATwoStateDiscrete");
-    const _node = node as UATwoStateDiscrete;
+    Object.setPrototypeOf(node, UATwoStateDiscreteImpl.prototype);
+    assert(node instanceof UATwoStateDiscreteImpl, "should now  be a UATwoStateDiscrete");
+    const _node = node as UATwoStateDiscreteImpl;
     _node._post_initialize();
-    return _node;
+    return _node as unknown as UATwoStateDiscreteEx;
 }
 registerNodePromoter(VariableTypeIds.TwoStateDiscreteType, promoteToTwoStateDiscrete);
 
-export function _addTwoStateDiscrete(namespace: Namespace, options: AddTwoStateDiscreteOptions) {
+export function _addTwoStateDiscrete(namespace: INamespace, options: AddTwoStateDiscreteOptions): UATwoStateDiscreteEx {
     const addressSpace = namespace.addressSpace;
 
     assert(!options.hasOwnProperty("ValuePrecision"));
@@ -130,7 +150,7 @@ export function _addTwoStateDiscrete(namespace: Namespace, options: AddTwoStateD
     const dataValueVerif = variable.readValue();
     assert(dataValueVerif.value.dataType === DataType.Boolean);
     */
-    const handler = variable.handle_semantic_changed.bind(variable);
+    const handler = (variable as UAVariableImpl).handle_semantic_changed.bind(variable);
 
     add_dataItem_stuff(variable, options);
 

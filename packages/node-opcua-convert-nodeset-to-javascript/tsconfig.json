@@ -11,6 +11,9 @@
             "path": "../node-opcua-address-space"
         },
         {
+            "path": "../node-opcua-address-space-base"
+        },
+        {
             "path": "../node-opcua-assert"
         },
         {

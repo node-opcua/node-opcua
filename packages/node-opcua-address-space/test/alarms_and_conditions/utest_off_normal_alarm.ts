@@ -2,8 +2,9 @@
 import * as should from "should";
 import * as sinon from "sinon";
 
-import { DataType } from "node-opcua-variant";
-import { AddressSpace, Namespace, UAMultiStateDiscrete, UAObject, UAVariable } from "../..";
+import { DataType, Variant } from "node-opcua-variant";
+import { AddressSpace, Namespace, UAObject, UAVariable } from "../..";
+import { UAMultiStateDiscreteEx } from "../..";
 
 export function utest_off_normal_alarm(test: any) {
 
@@ -14,8 +15,8 @@ export function utest_off_normal_alarm(test: any) {
         let variableWithAlarm: UAVariable;
         let setpointNodeNode: UAVariable;
         let namespace: Namespace;
-        let normalStateNode: UAMultiStateDiscrete;
-        let multiStateDiscreteNode: UAMultiStateDiscrete;
+        let normalStateNode: UAMultiStateDiscreteEx<string, DataType.String>;
+        let multiStateDiscreteNode: UAMultiStateDiscreteEx<string, DataType.String>;
         before(() => {
 
             addressSpace = test.addressSpace;
@@ -26,13 +27,13 @@ export function utest_off_normal_alarm(test: any) {
             variableWithAlarm = test.variableWithAlarm;
             setpointNodeNode = test.setpointNodeNode;
 
-            multiStateDiscreteNode = namespace.addMultiStateDiscrete({
+            multiStateDiscreteNode = namespace.addMultiStateDiscrete<string, DataType.String>({
                 browseName: "MyMultiStateDiscreteVariable1",
                 enumStrings: ["Red", "Orange", "Green"],
                 organizedBy: addressSpace.rootFolder.objects,
                 value: 1 // Orange
             });
-            normalStateNode = namespace.addMultiStateDiscrete({
+            normalStateNode = namespace.addMultiStateDiscrete<string, DataType.String>({
                 browseName: "MyMultiStateDiscreteVariable2",
                 enumStrings: ["Red", "Orange", "Green"],
                 organizedBy: addressSpace.rootFolder.objects,

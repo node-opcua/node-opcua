@@ -641,10 +641,14 @@ export function sameDataValue(v1: DataValue, v2: DataValue, timestampsToReturn?:
     return sameVariant(v1.value, v2.value);
 }
 
-export interface DataValueT<T, DT extends DataType> extends DataValue {
-    value: VariantT<T, DT>;
-}
-
 export interface DataValueOptionsT<T, DT extends DataType> extends DataValueOptions {
     value: VariantOptionsT<T, DT>;
+}
+
+
+export declare interface DataValueT<T, DT extends DataType> extends DataValue {
+    value: VariantT<T, DT>;
+}
+export class DataValueT<T, DT extends DataType> extends DataValue {
+
 }

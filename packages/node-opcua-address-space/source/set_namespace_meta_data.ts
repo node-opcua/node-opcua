@@ -1,12 +1,12 @@
-import { Namespace, UAObject, UAVariable } from "./address_space_ts";
-import { UANamespaceMetadataType } from "./ua_namespace_meta_data_type";
+import { INamespace, UAObject, UAVariable } from "node-opcua-address-space-base";
+import { UANamespaceMetadata } from "node-opcua-nodeset-ua";
 import { DataType, Variant, VariantArrayType } from "node-opcua-variant";
 
 function specialEncode(namespaceUri: string): string {
     return namespaceUri;
 }
 
-export function setNamespaceMetaData(namespace: Namespace) {
+export function setNamespaceMetaData(namespace: INamespace) {
     // NamespaceMetadataType
     const addressSpace = namespace.addressSpace;
     const namespaceMetadataType = addressSpace.findObjectType("NamespaceMetadataType");
@@ -27,7 +27,7 @@ export function setNamespaceMetaData(namespace: Namespace) {
 
     /* istanbul ignore next */
     if (existingMetaData) {
-        throw new Error("Namespace meta data already exists for " + deriveName);
+        throw new Error("INamespace meta data already exists for " + deriveName);
     }
     const metaData = namespaceMetadataType.instantiate({
         browseName: deriveName,
@@ -38,7 +38,7 @@ export function setNamespaceMetaData(namespace: Namespace) {
             "DefaultUserRolePermissions"
             // "NamespaceFile"
         ]
-    }) as UANamespaceMetadataType;
+    }) as UANamespaceMetadata;
 
     // FIX ME namespaceUri collides with UAObject.namespaceUri  !!!!
     const namespaceUri = metaData.getChildByName("NamespaceUri") as UAVariable;

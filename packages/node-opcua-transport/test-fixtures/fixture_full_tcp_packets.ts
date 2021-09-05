@@ -420,3 +420,13 @@ export const activateSesionResponse = makeBufferFromTrace(`
 export const packect_outtec = makeBufferFromTrace(`
 00000000: 43 4c 4f 46 18 00 00 00 0c 00 00 00 01 00 00 00 0f 00 00 00 0f 00 00 00
 `);
+
+export const random_packet = makeBufferFromTrace(`
+0000   4d 53 47 46 70 00 00 00 23 00 00 00 bd 00 00 00   MSGFp...#.......
+0010   7a fc d2 8c 61 b3 16 e5 40 7d b4 63 d3 64 cd 2c   z...a...@}.c.d.,
+0020   06 d1 9a dc 61 3e fe 8c 8d ab 3c ec be bd cf 9c   ....a>....<.....
+0030   cc 35 5d 2c 41 42 ac e4 cc a2 0a 0b a7 63 c1 c8   .5],AB.......c..
+0040   a9 33 d7 ee 38 7f 8a c2 45 d5 5a a9 be 86 c8 c2   .3..8...E.Z.....
+0050   4d 81 b7 4d 1c b4 69 b8 73 d9 b2 0c 9f a4 d0 18   M..M..i.s.......
+0060   3d ce bc 37 98 25 2c 0d f0 59 80 b2 b1 6f 95 03   =..7.%,..Y...o..
+`)

@@ -5,7 +5,7 @@ import { BinaryStream, OutputBinaryStream } from "node-opcua-binary-stream";
 
 import { decodeUAString, encodeUAString, UAString } from "./string";
 
-export function validateLocaleId(value: any): boolean {
+export function validateLocaleId(value: unknown): boolean {
     // TODO : check that localeID is well-formed
     // see part 3 $8.4 page 63
     return true;

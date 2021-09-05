@@ -1,8 +1,7 @@
 // tslint:disable:max-statements
 import * as should from "should";
 import { Variant } from "node-opcua-variant";
-import { AddressSpace, UAObject, UAVariable } from "../..";
-import { UANonExclusiveDeviationAlarm } from "../..";
+import { AddressSpace, UANonExclusiveDeviationAlarmEx, UAObject, UAVariable } from "../..";
 
 export function utest_non_exclusive_deviation_alarm(test: any) {
 
@@ -27,7 +26,7 @@ export function utest_non_exclusive_deviation_alarm(test: any) {
 
         describe("NonExclusiveDeviationAlarm", () => {
 
-            let alarm: UANonExclusiveDeviationAlarm;
+            let alarm: UANonExclusiveDeviationAlarmEx;
             before(() => {
                 setpointNodeNode.setValueFromSource({ dataType: "Double", value: 0 });
                 variableWithAlarm.setValueFromSource({ dataType: "Double", value: 0 });

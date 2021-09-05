@@ -23,11 +23,14 @@ describe("PseudoSession", () => {
     });
 
     it("should browse a single node ", async () => {
+
+        // console.log(addressSpace.findNode("i=84")!.toString());
+
         const nodeToBrowse = /*BrowseDescription*/ {
             browseDirection: BrowseDirection.Forward,
             includeSubtypes: false,
             nodeClassMask: makeNodeClassMask("Object"),
-            nodeId: "i=84",
+            nodeId: "i=84", // RootFolder
             referenceTypeId: null,
             resultMask: makeResultMask("ReferenceType | IsForward | BrowseName | NodeClass | TypeDefinition")
         };

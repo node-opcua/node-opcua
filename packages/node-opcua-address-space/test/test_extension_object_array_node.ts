@@ -9,7 +9,8 @@ import {
     AddressSpace,
     createExtObjArrayNode,
     removeElement,
-    SubscriptionDiagnosticsVariable,
+    UASubscriptionDiagnostics,
+    DTSubscriptionDiagnostics,
     UADataType,
     UAVariable
 } from "..";
@@ -57,7 +58,7 @@ describe("Extension Object Array Node (or Complex Variable)", () => {
         const options = {
             subscriptionId: counter
         };
-        const elementNode = addElement(options, arr) as SubscriptionDiagnosticsVariable;
+        const elementNode = addElement(options, arr) as UASubscriptionDiagnostics<DTSubscriptionDiagnostics>;
 
         arr.readValue().value.value.length.should.eql(1, "expecting a new element in array");
 
@@ -163,7 +164,7 @@ describe("Extension Object Array Node (or Complex Variable)", () => {
         const item1 = subscriptionDiagnosticsType.instantiate({
             browseName: "testing",
             componentOf: addressSpace.rootFolder
-        }) as SubscriptionDiagnosticsVariable;
+        }) as UASubscriptionDiagnostics<DTSubscriptionDiagnostics>;
 
         should.exist(item1.$extensionObject, "item1 must expose an extension object");
         should.exist(item1.$extensionObject.enableCount, "item1 must expose an extension object");
@@ -220,7 +221,7 @@ describe("Extension Object Array Node (or Complex Variable)", () => {
         const item1 = subscriptionDiagnosticsType.instantiate({
             browseName,
             extensionObject: extObj
-        }) as SubscriptionDiagnosticsVariable;
+        }) as UASubscriptionDiagnostics<DTSubscriptionDiagnostics>;
 
         should.exist(item1.$extensionObject, "item1 must expose an extension object");
         should.exist(item1.$extensionObject.enableCount, "item1 must expose an extension object");

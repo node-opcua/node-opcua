@@ -3,11 +3,8 @@
  */
 import { assert } from "node-opcua-assert";
 import { StatusCode, StatusCodes } from "node-opcua-status-code";
-import {
-    BrowseResultOptions,
-    ReferenceDescription
-} from "node-opcua-types";
-import { ContinuationPoint } from "../address_space_ts";
+import { BrowseResultOptions, ReferenceDescription } from "node-opcua-types";
+import { ContinuationPoint } from "node-opcua-address-space-base";
 
 let counter = 0;
 
@@ -24,7 +21,6 @@ export interface ContinuationPointInfo extends BrowseResultOptions {
 }
 
 export class ContinuationPointManager {
-
     private readonly _map: any;
 
     constructor() {
@@ -37,7 +33,6 @@ export class ContinuationPointManager {
      * @param maxBrowseContinuationPoint
      */
     public hasReachMaximum(maxBrowseContinuationPoint: number): boolean {
-
         if (maxBrowseContinuationPoint === 0) {
             return false;
         }
@@ -46,7 +41,6 @@ export class ContinuationPointManager {
     }
 
     public register(maxElements: number, values: ReferenceDescription[]): ContinuationPointInfo {
-
         maxElements = maxElements || values.length;
         if (maxElements >= values.length) {
             return {
@@ -76,11 +70,9 @@ export class ContinuationPointManager {
         this._map[keyHash] = data;
 
         return result;
-
     }
 
     public getNext(continuationPoint: ContinuationPoint): ContinuationPointInfo {
-
         if (!continuationPoint) {
             return { statusCode: StatusCodes.BadContinuationPointInvalid };
         }
@@ -107,7 +99,6 @@ export class ContinuationPointManager {
     }
 
     public cancel(continuationPoint: ContinuationPoint): ContinuationPointInfo {
-
         if (!continuationPoint) {
             return { statusCode: StatusCodes.BadContinuationPointInvalid };
         }

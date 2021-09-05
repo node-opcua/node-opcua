@@ -8,9 +8,8 @@ import { CallMethodRequest } from "node-opcua-service-call";
 import { StatusCodes } from "node-opcua-status-code";
 import { CallMethodResultOptions } from "node-opcua-types";
 import { Variant } from "node-opcua-variant";
+import { ISessionContext, IAddressSpace, UAMethod, UAObject } from "node-opcua-address-space-base";
 
-import { AddressSpace, UAMethod, UAObject } from "../address_space_ts";
-import { SessionContext } from "../session_context";
 import { getMethodDeclaration_ArgumentList, verifyArguments_ArgumentList } from "./argument_list";
 import { resolveOpaqueOnAddressSpace } from "./resolve_opaque_on_address_space";
 
@@ -33,8 +32,8 @@ type ResponseCallback<T> = (err: Error | null, result?: T) => void;
 
 
 export function callMethodHelper(
-    context: SessionContext,
-    addressSpace: AddressSpace,
+    context: ISessionContext,
+    addressSpace: IAddressSpace,
     callMethodRequest: CallMethodRequest,
     callback: ResponseCallback<CallMethodResultOptions>
 ): void {

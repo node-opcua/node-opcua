@@ -1,9 +1,9 @@
 import { AttributeIds, BrowseDirection, makeNodeClassMask } from "node-opcua-data-model";
 import { NodeClass } from "node-opcua-data-model";
 import { redirectToFile } from "node-opcua-debug/nodeJS";
-import { makeNodeId, NodeId } from "node-opcua-nodeid";
+import { makeNodeId, NodeId, resolveNodeId } from "node-opcua-nodeid";
 import { StatusCodes } from "node-opcua-status-code";
-import { ReferenceDescription } from "node-opcua-types";
+import { ReferenceDescription, BrowseDescription } from "node-opcua-types";
 import { DataType } from "node-opcua-variant";
 
 import {
@@ -11,7 +11,7 @@ import {
     adjustBrowseDirection,
     BaseNode,
     dumpReferenceDescriptions,
-    RootFolder,
+    UARootFolder,
     SessionContext,
     UAReference,
     UAReferenceType
@@ -26,7 +26,7 @@ const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 
 describe("testing ReferenceType", () => {
     let addressSpace: AddressSpace;
-    let rootFolder: RootFolder;
+    let rootFolder: UARootFolder;
 
     before(async () => {
         addressSpace = await getMiniAddressSpace();
@@ -111,13 +111,13 @@ describe("testing ReferenceType", () => {
     });
 
     it("should return 1 refs for browseNode on RootFolder ,  NonHierarchicalReferences, includeSubtypes  ", () => {
-        const references = rootFolder.browseNode({
+        const references = rootFolder.browseNode(new BrowseDescription({
             browseDirection: BrowseDirection.Forward,
             includeSubtypes: true,
             nodeClassMask: 0, // 0 = all nodes
-            referenceTypeId: "NonHierarchicalReferences",
+            referenceTypeId: resolveNodeId("NonHierarchicalReferences"),
             resultMask: 0x3f
-        });
+        }));
         references.length.should.equal(1);
     });
 

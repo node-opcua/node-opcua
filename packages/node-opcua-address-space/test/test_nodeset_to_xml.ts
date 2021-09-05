@@ -9,7 +9,7 @@ import { Variant } from "node-opcua-variant";
 import { nodesets } from "node-opcua-nodesets";
 import { coerceLocalizedText, coerceQualifiedName, makeAccessLevelFlag } from "node-opcua-data-model";
 
-import { AddressSpace, dumpXml, Namespace, RootFolder, UAVariable } from "..";
+import { AddressSpace, dumpXml, Namespace, UAVariable, UARootFolder } from "..";
 import { createBoilerType, getMiniAddressSpace } from "../testHelpers";
 import { generateAddressSpace } from "../nodeJS";
 import { checkDebugFlag } from "node-opcua-debug";
@@ -117,7 +117,7 @@ describe("testing nodeset to xml", () => {
             value: new Variant({ dataType: DataType.Double, value: 19.5 })
         });
 
-        const parentFolder = addressSpace.findNode("RootFolder")! as RootFolder;
+        const parentFolder = addressSpace.findNode("RootFolder")! as UARootFolder;
         parentFolder.browseName.toString().should.eql("Root");
 
         // variation 1
@@ -191,7 +191,7 @@ describe("testing nodeset to xml", () => {
     it("KLKLA should output a Method to xml", () => {
         const ownNamespace = addressSpace.getOwnNamespace();
 
-        const rootFolder = addressSpace.findNode("RootFolder")! as RootFolder;
+        const rootFolder = addressSpace.findNode("RootFolder")! as UARootFolder;
 
         const obj1 = ownNamespace.addObject({
             browseName: "Object",
@@ -522,7 +522,7 @@ describe("nodeset2.xml with more than one referenced namespace", function (this:
 
         addressSpace
             .getNamespaceArray()
-            .map((x: Namespace) => x.namespaceUri)
+            .map((x) => x.namespaceUri)
             .should.eql([
                 "http://opcfoundation.org/UA/", // 0
                 "ServerNamespaceURI", // 1

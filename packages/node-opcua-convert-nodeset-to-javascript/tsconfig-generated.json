@@ -9,5 +9,5 @@
     "references": [
      ],
     "exclude": ["node_modules", "dist", "test", "source/*"],
-    "include": ["./tmp/_type-*/*.ts"]
+    "include": ["./tmp/node-opcua-nodeset*/index.d.ts"]
 }

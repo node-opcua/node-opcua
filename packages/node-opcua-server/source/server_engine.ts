@@ -28,7 +28,8 @@ import {
     UAServerDiagnostics,
     BindVariableOptions,
     MethodFunctorCallback,
-    PseudoSession
+    ISessionContext,
+    DTServerStatus,        
 } from "node-opcua-address-space";
 
 import { generateAddressSpace } from "node-opcua-address-space/nodeJS";
@@ -120,7 +121,7 @@ function shutdownAndDisposeAddressSpace(this: ServerEngine) {
 function setSubscriptionDurable(
     this: ServerEngine,
     inputArguments: Variant[],
-    context: SessionContext,
+    context: ISessionContext,
     callback: MethodFunctorCallback
 ) {
     // see https://reference.opcfoundation.org/v104/Core/docs/Part5/9.3/
@@ -205,7 +206,7 @@ function setSubscriptionDurable(
 function getMonitoredItemsId(
     this: ServerEngine,
     inputArguments: Variant[],
-    context: SessionContext,
+    context: ISessionContext,
     callback: MethodFunctorCallback
 ) {
     assert(Array.isArray(inputArguments));
@@ -865,9 +866,8 @@ export class ServerEngine extends EventEmitter {
                         this.serverDiagnosticsEnabled = newFlag;
                     }
                 );
-
                 const nodeId = makeNodeId(VariableIds.Server_ServerDiagnostics_ServerDiagnosticsSummary);
-                const serverDiagnosticsSummaryNode = addressSpace.findNode(nodeId) as UAServerDiagnosticsSummary;
+                const serverDiagnosticsSummaryNode = addressSpace.findNode(nodeId) as UAServerDiagnosticsSummary<ServerDiagnosticsSummaryDataType>;
 
                 if (serverDiagnosticsSummaryNode) {
                     serverDiagnosticsSummaryNode.bindExtensionObject(this.serverDiagnosticsSummary);
@@ -877,7 +877,7 @@ export class ServerEngine extends EventEmitter {
             };
 
             const bindServerStatus = () => {
-                const serverStatusNode = addressSpace.findNode(makeNodeId(VariableIds.Server_ServerStatus)) as UAServerStatus;
+                const serverStatusNode = addressSpace.findNode(makeNodeId(VariableIds.Server_ServerStatus)) as UAServerStatus<DTServerStatus>;
 
                 if (!serverStatusNode) {
                     return;
@@ -1213,12 +1213,12 @@ export class ServerEngine extends EventEmitter {
      * @param [context]
      * @return  the browse result
      */
-    public browseSingleNode(nodeId: NodeIdLike, browseDescription: BrowseDescription, context?: SessionContext): BrowseResult {
+    public browseSingleNode(nodeId: NodeIdLike, browseDescription: BrowseDescription, context?: ISessionContext): BrowseResult {
         const addressSpace = this.addressSpace!;
         return addressSpace.browseSingleNode(nodeId, browseDescription, context);
     }
 
-    public async browseWithAutomaticExpansion(nodesToBrowse: BrowseDescription[], context?: SessionContext) {
+    public async browseWithAutomaticExpansion(nodesToBrowse: BrowseDescription[], context?: ISessionContext) {
         // do expansion first
         for (const browseDescription of nodesToBrowse) {
             const nodeId = resolveNodeId(browseDescription.nodeId);
@@ -1243,7 +1243,7 @@ export class ServerEngine extends EventEmitter {
     /**
      *
      */
-    public browse(nodesToBrowse: BrowseDescription[], context?: SessionContext): BrowseResult[] {
+    public browse(nodesToBrowse: BrowseDescription[], context?: ISessionContext): BrowseResult[] {
         const results: BrowseResult[] = [];
         for (const browseDescription of nodesToBrowse) {
             const nodeId = resolveNodeId(browseDescription.nodeId);
@@ -1263,7 +1263,7 @@ export class ServerEngine extends EventEmitter {
      * @return DataValue
      */
     public readSingleNode(
-        context: SessionContext,
+        context: ISessionContext,
         nodeId: NodeId | string,
         attributeId: AttributeIds,
         timestampsToReturn?: TimestampsToReturn
@@ -1302,7 +1302,7 @@ export class ServerEngine extends EventEmitter {
      *
      *  @return  an array of DataValue
      */
-    public read(context: SessionContext, readRequest: ReadRequest): DataValue[] {
+    public read(context: ISessionContext, readRequest: ReadRequest): DataValue[] {
         assert(context instanceof SessionContext);
         assert(readRequest instanceof ReadRequest);
         assert(readRequest.maxAge >= 0);
@@ -1344,7 +1344,7 @@ export class ServerEngine extends EventEmitter {
      * @async
      */
     public writeSingleNode(
-        context: SessionContext,
+        context: ISessionContext,
         writeValue: WriteValue,
         callback: (err: Error | null, statusCode?: StatusCode) => void
     ) {
@@ -1380,7 +1380,7 @@ export class ServerEngine extends EventEmitter {
      * @async
      */
     public write(
-        context: SessionContext,
+        context: ISessionContext,
         nodesToWrite: WriteValue[],
         callback: (err: Error | null, statusCodes?: StatusCode[]) => void
     ) {
@@ -1415,7 +1415,7 @@ export class ServerEngine extends EventEmitter {
      *
      */
     public historyReadSingleNode(
-        context: SessionContext,
+        context: ISessionContext,
         nodeId: NodeId,
         attributeId: AttributeIds,
         historyReadDetails: ReadRawModifiedDetails | ReadEventDetails | ReadProcessedDetails | ReadAtTimeDetails,
@@ -1458,7 +1458,7 @@ export class ServerEngine extends EventEmitter {
      *  @param callback.results {HistoryReadResult[]}
      */
     public historyRead(
-        context: SessionContext,
+        context: ISessionContext,
         historyReadRequest: HistoryReadRequest,
         callback: (err: Error | null, results: HistoryReadResult[]) => void
     ) {
@@ -2013,7 +2013,7 @@ export class ServerEngine extends EventEmitter {
         return namespace.findNode2(nodeId)!;
     }
 
-    private _readSingleNode(context: SessionContext, nodeToRead: ReadValueId, timestampsToReturn?: TimestampsToReturn): DataValue {
+    private _readSingleNode(context: ISessionContext, nodeToRead: ReadValueId, timestampsToReturn?: TimestampsToReturn): DataValue {
         assert(context instanceof SessionContext);
         const nodeId: NodeId = nodeToRead.nodeId!;
         const attributeId: AttributeIds = nodeToRead.attributeId!;
@@ -2047,7 +2047,7 @@ export class ServerEngine extends EventEmitter {
     }
 
     private _historyReadSingleNode(
-        context: SessionContext,
+        context: ISessionContext,
         nodeToRead: HistoryReadValueId,
         historyReadDetails: HistoryReadDetails,
         timestampsToReturn: TimestampsToReturn,

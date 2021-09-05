@@ -108,7 +108,7 @@ describe("AddressSpace#deleteNode-b", () => {
         });
 
         // install inputNode Node monitoring for change
-        alarmNode._installInputNodeMonitoring(options.inputNode);
+        alarmNode.installInputNodeMonitoring(options.inputNode);
         alarmNode.activeState.setValue(false);
 
         return alarmNode;

@@ -7,8 +7,8 @@ import { StatusCodes } from "node-opcua-status-code";
 import { DataType } from "node-opcua-variant";
 import {
     AddressSpace,
-    UAAcknowledgeableConditionBase,
-    UAAlarmConditionBase,
+    UAAcknowledgeableConditionEx,
+    UAAcknowledgeableConditionImpl,
     UAObject
 } from "../..";
 
@@ -47,7 +47,7 @@ export function utest_acknowledgeable_condition(test: any) {
                 conditionSource: source
             }, {
                 "enabledState.id": { dataType: DataType.Boolean, value: true }
-            }) as UAAcknowledgeableConditionBase;
+            }) as UAAcknowledgeableConditionImpl;
 
             // HasTrueSubState and HasFalseSubState relationship must be maintained
             condition.ackedState.isTrueSubStateOf!.should.eql(condition.enabledState);
@@ -64,7 +64,7 @@ export function utest_acknowledgeable_condition(test: any) {
                 conditionSource: source
             }, {
                 "enabledState.id": { dataType: DataType.Boolean, value: true }
-            }) as UAAcknowledgeableConditionBase;
+            }) as UAAcknowledgeableConditionImpl;
 
             // HasTrueSubState and HasFalseSubState relationship must be maintained
             condition.ackedState.isTrueSubStateOf!.should.eql(condition.enabledState);
@@ -81,7 +81,7 @@ export function utest_acknowledgeable_condition(test: any) {
                 optionals: ["ConfirmedState", "Confirm"]
             }, {
                 "enabledState.id": { dataType: DataType.Boolean, value: true }
-            }) as UAAcknowledgeableConditionBase;
+            }) as UAAcknowledgeableConditionImpl;
 
             condition.confirmedState!.browseName.toString();
             condition.ackedState.isTrueSubStateOf!.should.eql(condition.enabledState);
@@ -99,7 +99,7 @@ export function utest_acknowledgeable_condition(test: any) {
                 optionals: ["SuppressedState", "ShelvingState", "ConfirmedState", "Confirm"]
             }, {
                 "enabledState.id": { dataType: DataType.Boolean, value: true }
-            }) as UAAlarmConditionBase;
+            });
 
             should.exist(condition.confirmedState);
             should.exist(condition.confirm);

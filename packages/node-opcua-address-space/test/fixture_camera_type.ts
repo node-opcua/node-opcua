@@ -2,7 +2,7 @@ import * as should from "should";
 
 import { QualifiedName } from "node-opcua-data-model";
 import { DataType } from "node-opcua-variant";
-import { AddressSpace, InstantiateOptions, UAMethod, UAObject, UAObjectType, UAVariableT } from "..";
+import { IAddressSpace, UAMethod, UAObject, UAObjectType, UAVariableT, InstantiateObjectOptions } from "..";
 
 export interface FakeCamera extends UAObject {
     trigger: UAMethod;
@@ -10,10 +10,10 @@ export interface FakeCamera extends UAObject {
 }
 export interface FakeCameraType extends UAObjectType {
     trigger: UAMethod;
-    instantiate(options: InstantiateOptions): FakeCamera;
+    instantiate(options: InstantiateObjectOptions): FakeCamera;
 }
 
-export function createCameraType(addressSpace: AddressSpace): FakeCameraType {
+export function createCameraType(addressSpace: IAddressSpace): FakeCameraType {
     const namespace = addressSpace.getOwnNamespace();
 
     let cameraType = namespace.findObjectType("CameraType") as FakeCameraType;
@@ -57,7 +57,7 @@ export function createCameraType(addressSpace: AddressSpace): FakeCameraType {
         description: "The number of pictures taken since the last reset",
         dataType: "UInt32",
         modellingRule: "Mandatory",
-        componentOf: cameraType,
+        componentOf: cameraType
     });
 
     return cameraType as FakeCameraType;

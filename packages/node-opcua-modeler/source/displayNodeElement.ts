@@ -1,4 +1,11 @@
-import { BaseNode, Reference, UAObjectType, UAVariable } from "node-opcua-address-space";
+import {
+    BaseNode,
+    UAReference,
+    UAObjectType,
+    UAVariable,
+    resolveReferenceNode,
+    resolveReferenceType
+} from "node-opcua-address-space";
 import { NodeClass } from "node-opcua-data-model";
 import { NodeId, resolveNodeId } from "node-opcua-nodeid";
 import { DataType } from "node-opcua-variant";
@@ -50,8 +57,8 @@ export function displayNodeElement(node: BaseNode, options?: DisplayNodeOptions)
 
     const descriptions: any = [];
 
-    function dumpReference(ref: Reference, filter?: string) {
-        Reference.resolveReferenceNode(node.addressSpace, ref);
+    function dumpReference(ref: UAReference, filter?: string) {
+        resolveReferenceNode(node.addressSpace, ref);
         if (!ref.isForward) {
             return;
         }
@@ -68,7 +75,7 @@ export function displayNodeElement(node: BaseNode, options?: DisplayNodeOptions)
         const dir = ref.isForward ? " " : " ";
         const refNode = ref.node!;
 
-        const refType = ref._referenceType!;
+        const refType = resolveReferenceType(node.addressSpace, ref);
         if (filter) {
             if (refType.browseName.toString() !== filter) {
                 return;
@@ -128,7 +135,7 @@ export function displayNodeElement(node: BaseNode, options?: DisplayNodeOptions)
 
     const m = {};
 
-    function dumpReferences(_references: Reference[]) {
+    function dumpReferences(_references: UAReference[]) {
         // xx for (const ref of references) {
         // xx  dumpReference(ref, "HasSubtype");
         // xx }

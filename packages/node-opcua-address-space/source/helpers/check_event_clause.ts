@@ -6,7 +6,7 @@ import { NodeClass } from "node-opcua-data-model";
 import { SimpleAttributeOperand } from "node-opcua-service-filter";
 import { constructBrowsePathFromQualifiedName } from "node-opcua-service-translate-browse-path";
 import { StatusCode, StatusCodes } from "node-opcua-status-code";
-import { BaseNode, UAObjectType } from "../address_space_ts";
+import { BaseNode, UAObjectType } from "node-opcua-address-space-base";
 
 /**
  * @method checkSelectClause

@@ -7,7 +7,7 @@ import { Variant } from "node-opcua-variant";
 import { DataType } from "node-opcua-variant";
 import { VariantArrayType } from "node-opcua-variant";
 
-import { AddressSpace, Folder, Namespace } from "../..";
+import { AddressSpace, UAFolder, Namespace } from "../..";
 
 export function subtest_Y_array_item_type(maintest: any) {
 
@@ -22,9 +22,9 @@ export function subtest_Y_array_item_type(maintest: any) {
             should(addressSpace).be.instanceof(AddressSpace);
         });
 
-        let objectsFolder: Folder;
+        let objectsFolder: UAFolder;
         before(() => {
-            objectsFolder = addressSpace.findNode("ObjectsFolder")! as Folder;
+            objectsFolder = addressSpace.findNode("ObjectsFolder")! as UAFolder;
             objectsFolder.browseName.toString().should.eql("Objects");
         });
 
@@ -83,7 +83,7 @@ export function subtest_Y_array_item_type(maintest: any) {
             yArrayItem.title.readValue().value.value.text!.should.eql("My Little YArray Item");
 
             // access xAxisDefinition from extension object
-            const x = yArrayItem.xAxisDefinition.readValue().value.value as AxisInformation;
+            const x = yArrayItem.xAxisDefinition.readValue().value.value;
 
             x.engineeringUnits.should.eql(standardUnits.second);
             x.title!.text!.should.eql("the X axis legend");

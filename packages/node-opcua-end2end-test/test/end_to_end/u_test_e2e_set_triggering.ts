@@ -278,7 +278,7 @@ export function t(test: any) {
                 // console.log(result.toString());
             } catch (err) {
                 console.log(err);
-                _err = err;
+                _err = err as Error;
             }
             should.not.exist(_err, "not expecting any an exception");
         });

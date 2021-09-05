@@ -6,13 +6,13 @@ import { createFastUninitializedBuffer } from "node-opcua-buffer-utils";
 
 import { getRandomInt } from "./utils";
 
-export function isValidByteString(value: any): boolean {
+export function isValidByteString(value: unknown): boolean {
     return value === null || value instanceof Buffer;
 }
 
 export type ByteString = Buffer;
 
-export function randomByteString(value: any, len: number): ByteString {
+export function randomByteString(value: unknown, len: number): ByteString {
     len = len || getRandomInt(1, 200);
     const b = createFastUninitializedBuffer(len);
     for (let i = 0; i < len; i++) {
@@ -21,7 +21,7 @@ export function randomByteString(value: any, len: number): ByteString {
     return b;
 }
 
-export function encodeByteString(byteString: ByteString, stream: OutputBinaryStream) {
+export function encodeByteString(byteString: ByteString, stream: OutputBinaryStream): void {
     stream.writeByteStream(byteString);
 }
 

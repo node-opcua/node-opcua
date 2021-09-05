@@ -1,26 +1,17 @@
 import {
-    SessionContext,
-    IEventData,
-    AddressSpace,
-    extractEventFields
-} from "../../source";
-import {
     ContentFilter, FilterOperator, LiteralOperand, SimpleAttributeOperand, FilterOperand, ElementOperand
 } from "node-opcua-types";
 import { DataType } from "node-opcua-variant";
 import { NodeClass } from "node-opcua-data-model";
-
-import { UAObjectType } from "../ua_object_type";
-import { UAReferenceType } from "../ua_reference_type";
-import { UAVariableType } from "../ua_variable_type";
-import { UAObject } from "../ua_object";
 import { ExtensionObject } from "node-opcua-extension-object";
 import { NodeId, sameNodeId } from "node-opcua-nodeid";
-import { UAVariable } from "../ua_variable";
+import { IAddressSpace, IEventData, ISessionContext, UAObject, UAObjectType, UAReferenceType, UAVariableType } from "node-opcua-address-space-base";
+import { extractEventFields } from "./extract_event_fields";
+import { SessionContext } from "../../source/session_context";
 
 function checkNot(
-    addressSpace: AddressSpace,
-    sessionContext: SessionContext,
+    addressSpace: IAddressSpace,
+    sessionContext: ISessionContext,
     whereClause: ContentFilter,
     eventData: IEventData,
     filteredOperands: FilterOperand[]
@@ -34,7 +25,7 @@ function checkNot(
 }
 
 function checkOfType(
-    addressSpace: AddressSpace,
+    addressSpace: IAddressSpace,
     ofType: LiteralOperand,
     eventData: IEventData
 ): boolean {
@@ -63,10 +54,10 @@ function checkOfType(
     if (!node) {
         throw new Error("cannot find  node " + eventData.$eventDataSource?.toString());
     }
-    if (node instanceof UAObjectType) {
+    if (node.nodeClass === NodeClass.ObjectType) {
         return node.isSupertypeOf(ofTypeNode);
     }
-    if (node instanceof UAObject && node.typeDefinitionObj) {
+    if (node.nodeClass === NodeClass.Object && node.typeDefinitionObj) {
         return node.typeDefinitionObj.isSupertypeOf(ofTypeNode);
     }
     return true;
@@ -79,7 +70,7 @@ function _extractValue(operand: SimpleAttributeOperand, eventData: IEventData): 
 }
 
 function checkInList(
-    addressSpace: AddressSpace,
+    addressSpace: IAddressSpace,
     filterOperands: ExtensionObject[],
     eventData: IEventData
 ): boolean {
@@ -111,8 +102,8 @@ function checkInList(
 }
 
 export function __checkWhereClause(
-    addressSpace: AddressSpace,
-    sessionContext: SessionContext,
+    addressSpace: IAddressSpace,
+    sessionContext: ISessionContext,
     whereClause: ContentFilter,
     index: number,
     eventData: IEventData
@@ -144,8 +135,8 @@ export function __checkWhereClause(
 }
 
 export function checkWhereClause(
-    addressSpace: AddressSpace,
-    sessionContext: SessionContext,
+    addressSpace: IAddressSpace,
+    sessionContext: ISessionContext,
     whereClause: ContentFilter,
     eventData: IEventData
 ): boolean {

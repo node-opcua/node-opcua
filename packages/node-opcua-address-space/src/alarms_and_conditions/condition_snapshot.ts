@@ -3,24 +3,24 @@
  */
 import { EventEmitter } from "events";
 
+import { IEventData, UAVariable , BaseNode, ISessionContext, UAObject} from "node-opcua-address-space-base";
 import { assert } from "node-opcua-assert";
 import { UInt16 } from "node-opcua-basic-types";
 import { coerceLocalizedText, LocalizedText, LocalizedTextLike, NodeClass } from "node-opcua-data-model";
 import { DataValue } from "node-opcua-data-value";
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 import { NodeId } from "node-opcua-nodeid";
+import { UAAcknowledgeableCondition, UACondition, UACondition_Base } from "node-opcua-nodeset-ua";
 import { StatusCode, StatusCodes } from "node-opcua-status-code";
 import { SimpleAttributeOperand, TimeZoneDataType } from "node-opcua-types";
 import * as utils from "node-opcua-utils";
 import { DataType, Variant } from "node-opcua-variant";
+import { UtcTime } from "../../source/interfaces/state_machine/ua_state_machine_type";
 
-import { IEventData, SessionContext, UAAcknowledgeableConditionBase, UtcTime } from "../../source";
-import { BaseNode } from "../base_node";
 import { EventData } from "../event_data";
-import { UATwoStateVariable } from "../state_machine/ua_two_state_variable";
-import { UAVariable } from "../ua_variable";
+import { UATwoStateVariableImpl } from "../state_machine/ua_two_state_variable";
 import { _setAckedState } from "./condition";
-import { UAConditionBase } from "./ua_condition_base";
+import { UAConditionImpl } from "./ua_condition_impl";
 
 const debugLog = make_debugLog(__filename);
 const doDebug = checkDebugFlag(__filename);
@@ -59,7 +59,7 @@ function _visit(self: any, node: BaseNode, prefix: string): void {
 function _record_condition_state(self: any, condition: any) {
     self._map = {};
     self._node_index = {};
-    assert(condition instanceof UAConditionBase);
+    assert(condition instanceof UAConditionImpl);
     _visit(self, condition, "");
 }
 
@@ -153,7 +153,7 @@ const _varTable = {
 export class ConditionSnapshot extends EventEmitter {
     public static normalizeName = normalizeName;
 
-    public condition: UAConditionBase;
+    public condition: BaseNode;
     public eventData: IEventData | null = null;
     public branchId: NodeId | null = null;
     private _map: { [key: string]: Variant } = {};
@@ -166,7 +166,7 @@ export class ConditionSnapshot extends EventEmitter {
      * @param branchId
      * @constructor
      */
-    constructor(condition: UAConditionBase, branchId: NodeId) {
+    constructor(condition: BaseNode, branchId: NodeId) {
         super();
         assert(branchId instanceof NodeId);
         // xx self.branchId = branchId;
@@ -185,8 +185,8 @@ export class ConditionSnapshot extends EventEmitter {
         if (this.branchId === NodeId.nullNodeId) {
             _ensure_condition_values_correctness(this, this.condition!, "", []);
         }
-
-        const isDisabled = !this.condition!.getEnabledState();
+        const c = this.condition as UAConditionImpl;
+        const isDisabled = !c.getEnabledState();
         const eventData = new EventData(this.condition!);
         for (const key of Object.keys(this._map)) {
             const node = this._node_index[key];
@@ -215,8 +215,10 @@ export class ConditionSnapshot extends EventEmitter {
     /**
      *
      */
-    public readValue(sessionContext: SessionContext, nodeId: NodeId, selectClause: SimpleAttributeOperand): Variant {
-        const isDisabled = !this.condition!.getEnabledState();
+    public readValue(sessionContext: ISessionContext, nodeId: NodeId, selectClause: SimpleAttributeOperand): Variant {
+       
+        const c = this.condition as UAConditionImpl;
+        const isDisabled = !c.getEnabledState();
         if (isDisabled) {
             return disabledVar;
         }
@@ -232,7 +234,9 @@ export class ConditionSnapshot extends EventEmitter {
     }
 
     public _get_var(varName: string): any {
-        if (!this.condition.getEnabledState() && !_varTable.hasOwnProperty(varName)) {
+        
+        const c = this.condition as UAConditionImpl;
+        if (!c.getEnabledState() && !_varTable.hasOwnProperty(varName)) {
             // xx console.log("ConditionSnapshot#_get_var condition enabled =", self.condition.getEnabledState());
             return disabledVar;
         }
@@ -482,7 +486,8 @@ export class ConditionSnapshot extends EventEmitter {
      * @return {UInt16}
      */
     public getSeverity(): UInt16 {
-        assert(this.condition.getEnabledState(), "condition must be enabled");
+        const c = this.condition as UAConditionImpl;
+        assert(c.getEnabledState(), "condition must be enabled");
         const value = this._get_var("severity");
         return +value;
     }
@@ -597,7 +602,7 @@ export class ConditionSnapshot extends EventEmitter {
     // -- ACKNOWLEDGEABLE -------------------------------------------------------------------
 
     public getAckedState(): boolean {
-        const acknowledgeableCondition = this.condition as UAAcknowledgeableConditionBase;
+        const acknowledgeableCondition = this.condition as UAAcknowledgeableCondition;
         if (!acknowledgeableCondition.ackedState) {
             throw new Error(
                 "Node " +
@@ -617,14 +622,14 @@ export class ConditionSnapshot extends EventEmitter {
     }
 
     public getConfirmedState(): boolean {
-        const acknowledgeableCondition = this.condition as UAAcknowledgeableConditionBase;
+        const acknowledgeableCondition = this.condition as UAAcknowledgeableCondition;
         assert(acknowledgeableCondition.confirmedState, "Must have a confirmed state");
         return this._get_twoStateVariable("confirmedState");
     }
 
     public setConfirmedStateIfExists(confirmedState: boolean) {
         confirmedState = !!confirmedState;
-        const acknowledgeableCondition = this.condition as UAAcknowledgeableConditionBase;
+        const acknowledgeableCondition = this.condition as UAAcknowledgeableCondition;
         if (!acknowledgeableCondition.confirmedState) {
             // no condition node has been defined (this is valid)
             // confirm state cannot be set
@@ -635,7 +640,7 @@ export class ConditionSnapshot extends EventEmitter {
     }
 
     public setConfirmedState(confirmedState: boolean) {
-        const acknowledgeableCondition = this.condition as UAAcknowledgeableConditionBase;
+        const acknowledgeableCondition = this.condition as UAAcknowledgeableCondition;
         assert(acknowledgeableCondition.confirmedState, "Must have a confirmed state.  Add ConfirmedState to the optionals");
         return this.setConfirmedStateIfExists(confirmedState);
     }
@@ -683,7 +688,7 @@ export class ConditionSnapshot extends EventEmitter {
         //   public condition: any = null;
         //   public eventData: any = null;
         //   public branchId: NodeId | null = null;
-        const t = this.condition.addressSpace.findNode(this.condition.typeDefinition)!;
+        const t = this.condition.addressSpace.findNode((this.condition as UAObject).typeDefinition)!;
         return (
             "" +
             "condition: " +
@@ -727,7 +732,7 @@ export class ConditionSnapshot extends EventEmitter {
         if (!twoStateNode) {
             throw new Error("Cannot find twoState Variable with name " + varName);
         }
-        if (!(twoStateNode instanceof UATwoStateVariable)) {
+        if (!(twoStateNode instanceof UATwoStateVariableImpl)) {
             throw new Error("Cannot find twoState Variable with name " + varName + " " + twoStateNode);
         }
 
@@ -741,7 +746,7 @@ export class ConditionSnapshot extends EventEmitter {
 
         // also change ConditionNode if we are on currentBranch
         if (this.isCurrentBranch()) {
-            assert(twoStateNode instanceof UATwoStateVariable);
+            assert(twoStateNode instanceof UATwoStateVariableImpl);
             twoStateNode.setValue(value);
             // xx console.log("Is current branch", twoStateNode.toString(),variant.toString());
             // xx console.log("  = ",twoStateNode.getValue());

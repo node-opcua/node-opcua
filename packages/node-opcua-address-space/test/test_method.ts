@@ -5,7 +5,7 @@ import { StatusCodes } from "node-opcua-status-code";
 import { DataType, Variant, VariantLike } from "node-opcua-variant";
 
 import { NodeClass } from "node-opcua-types";
-import { AddressSpace, Namespace, RootFolder, UAMethod } from "..";
+import { AddressSpace, Namespace, UARootFolder, UAMethod } from "..";
 import { SessionContext } from "..";
 import { getMiniAddressSpace } from "../testHelpers";
 
@@ -133,7 +133,7 @@ describe("testing Method in address space", () => {
 
 describe("testing Method binding", () => {
     let addressSpace: AddressSpace;
-    let rootFolder: RootFolder;
+    let rootFolder: UARootFolder;
 
     before(async () => {
         addressSpace = await getMiniAddressSpace();
