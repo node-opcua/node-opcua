@@ -12,10 +12,10 @@
     "main": "./dist/index.js",
     "types": "./dist/index.d.ts",
     "dependencies": {
-        "@ster5/global-mutex": "1.1.1",
+        "@ster5/global-mutex": "^1.1.1",
         "@types/async": "^3.2.7",
         "@types/once": "^1.4.0",
-        "@types/underscore": "1.11.3",
+        "@types/underscore": "^1.11.3",
         "async": "^3.2.1",
         "callbackify": "^1.1.0",
         "chalk": "4.1.2",
@@ -60,7 +60,7 @@
         "node-opcua-variant": "2.49.0",
         "once": "^1.4.0",
         "thenify": "^3.3.1",
-        "underscore": "1.13.1"
+        "underscore": "^1.13.1"
     },
     "devDependencies": {
         "dequeue": "^1.0.5",

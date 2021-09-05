@@ -12,7 +12,7 @@
         "node": ">=8.10"
     },
     "dependencies": {
-        "chalk": "^4.1.2",
+        "chalk": "4.1.2",
         "node-opcua-address-space": "2.50.0",
         "node-opcua-address-space-for-conformance-testing": "2.50.0",
         "node-opcua-aggregates": "2.50.0",
