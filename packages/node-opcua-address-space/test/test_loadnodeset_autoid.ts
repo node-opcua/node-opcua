@@ -6,13 +6,14 @@ import { ExtensionObject, OpaqueStructure } from "node-opcua-extension-object";
 import { nodesets } from "node-opcua-nodesets";
 import { DataType, Variant } from "node-opcua-variant";
 
-import { AddressSpace, ensureDatatypeExtracted, resolveOpaqueOnAddressSpace } from "..";
+import { AddressSpace, adjustNamespaceArray, ensureDatatypeExtracted, PseudoSession, resolveOpaqueOnAddressSpace } from "..";
 import { generateAddressSpace } from "../nodeJS";
 
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 import { AttributeIds } from "node-opcua-data-model";
 import { StatusCodes } from "node-opcua-status-code";
-import { DataTypeDefinition, StructureDefinition } from "node-opcua-types";
+import { CallMethodResult, DataTypeDefinition, StructureDefinition } from "node-opcua-types";
+import { getExtraDataTypeManager, promoteOpaqueStructure } from "node-opcua-client-dynamic-extension-object";
 
 const debugLog = make_debugLog("TEST");
 const doDebug = checkDebugFlag("TEST");
@@ -25,6 +26,7 @@ describe("Testing AutoID custom types", async function (this: any) {
         addressSpace = AddressSpace.create();
         const namespace0 = addressSpace.getDefaultNamespace();
 
+        
         await generateAddressSpace(addressSpace, [nodesets.standard, nodesets.di, nodesets.autoId]);
         await ensureDatatypeExtracted(addressSpace);
     });
@@ -200,7 +202,7 @@ describe("Testing AutoID custom types", async function (this: any) {
         bs2.length = 0;
         v2.decode(bs2);
         await resolveOpaqueOnAddressSpace(addressSpace, v2);
-   
+
         debugLog(v2.toString());
     });
 
@@ -230,5 +232,44 @@ describe("Testing AutoID custom types", async function (this: any) {
             const structureDefinition = dataTypeDefinition as StructureDefinition;
             structureDefinition.fields.length.should.eql(5);
         }
+    });
+    it("GHU - should promote the OpaqueStructure of an array of variant containing Extension Object", async () => {
+        const nsAutoId = addressSpace.getNamespaceIndex("http://opcfoundation.org/UA/AutoID/");
+        const rfidScanResultDataTypeNode = addressSpace.findDataType("RfidScanResult", nsAutoId)!;
+        const extObj1 = addressSpace.constructExtensionObject(rfidScanResultDataTypeNode, {});
+        const extObj2 = addressSpace.constructExtensionObject(rfidScanResultDataTypeNode, {});
+
+        const callResult = new CallMethodResult({
+            statusCode: StatusCodes.Good,
+            outputArguments: [
+                new Variant({
+                    dataType: DataType.ExtensionObject,
+                    value: [extObj1, extObj2]
+                })
+            ]
+        });
+
+        const v = new Variant({
+            dataType: DataType.ExtensionObject,
+            value: callResult
+        });
+        // re-encode reload_vso that we keep the Opaque structure
+        const reload_v2 = encode_decode(v);
+        reload_v2.value.should.be.instanceOf(CallMethodResult);
+        const callbackResult2 = reload_v2.value as CallMethodResult;
+        callbackResult2.outputArguments.length.should.eql(1);
+        callbackResult2.outputArguments[0].dataType.should.eql(DataType.ExtensionObject);
+        callbackResult2.outputArguments[0].value.length.should.eql(2);
+        callbackResult2.outputArguments[0].value[0].should.be.instanceOf(OpaqueStructure);
+        callbackResult2.outputArguments[0].value[1].should.be.instanceOf(OpaqueStructure);
+        
+        const session = new PseudoSession(addressSpace);
+        const extraDataTypeManager = await getExtraDataTypeManager(session);
+        await promoteOpaqueStructure(session, callbackResult2.outputArguments.map((a)=>({value: a})));
+
+        callbackResult2.outputArguments[0].value[0].should.not.be.instanceOf(OpaqueStructure);
+        callbackResult2.outputArguments[0].value[1].should.not.be.instanceOf(OpaqueStructure);
+
+        debugLog(reload_v2.toString());
     });
 });

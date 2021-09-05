@@ -89,8 +89,8 @@ export async function resolveDynamicExtensionObject(
     if (variant.arrayType !== VariantArrayType.Scalar) {
         if (variant.value instanceof Array) {
             for (let i = 0; i < variant.value.length; i++) {
-                if (variant.value instanceof OpaqueStructure) {
-                    variant.value = await resolveDynamicExtensionObjectV(session, variant.value, dataTypeManager);
+                if (variant.value[i] instanceof OpaqueStructure) {
+                    variant.value[i] = await resolveDynamicExtensionObjectV(session, variant.value[i], dataTypeManager);
                 }
             }
         }

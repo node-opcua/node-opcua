@@ -5,12 +5,9 @@ import { IBasicSession, readNamespaceArray } from "node-opcua-pseudo-session";
 import { ExtraDataTypeManager } from "./extra_data_type_manager";
 import { populateDataTypeManager } from "./populate_data_type_manager";
 
-
-
 const doDebug = checkDebugFlag(__filename);
 const debugLog = make_debugLog(__filename);
 const errorLog = make_errorLog(__filename);
-
 
 interface IBasicSessionEx extends IBasicSession {
     $$extraDataTypeManager?: ExtraDataTypeManager;
@@ -22,6 +19,7 @@ export async function getExtraDataTypeManager(session: IBasicSession): Promise<E
         const dataTypeManager = new ExtraDataTypeManager();
 
         const namespaceArray = await readNamespaceArray(sessionPriv);
+        // istanbul ignore next
         if (namespaceArray.length === 0) {
             errorLog("namespaceArray is not populated ! Your server must expose a list of namespace ");
         }
@@ -36,6 +34,10 @@ export async function getExtraDataTypeManager(session: IBasicSession): Promise<E
             dataTypeManager.registerDataTypeFactory(namespaceIndex, dataTypeFactory1);
         }
         await populateDataTypeManager(session, dataTypeManager, false);
+    }
+    // istanbul ignore next
+    if (sessionPriv.$$extraDataTypeManager.namespaceArray.length === 0) {
+        throw new Error("namespaceArray is not populated ! Your server must expose a list of namespace ");
     }
     return sessionPriv.$$extraDataTypeManager;
 }

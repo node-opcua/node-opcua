@@ -21,7 +21,7 @@ export function generateAddressSpaceRawCallback(
 ): void {
     // istanbul ignore next
     if (!callback) {
-        throw new Error("Internal Error");
+        throw new Error("Internal Error; :callback missing");
     }
     const nodesetLoader = new NodeSetLoader(addressSpace as AddressSpace);
 
@@ -50,8 +50,10 @@ export function generateAddressSpaceRawCallback(
                     nodesetLoader.addNodeSet(xmlData!, callback1);
                 },
                 (err?: Error | null) => {
-                    adjustNamespaceArray(addressSpace);
-                    nodesetLoader.terminate(callback!);
+                    nodesetLoader.terminate(() => {
+                        adjustNamespaceArray(addressSpace);
+                        callback!();
+                    });
                 }
             );
         }
