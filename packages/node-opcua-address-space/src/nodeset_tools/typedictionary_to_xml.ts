@@ -2,12 +2,11 @@ import { assert } from "node-opcua-assert";
 import { StructureDefinition, EnumDefinition, EnumDescription } from "node-opcua-types";
 import { constructNamespaceDependency } from "./construct_namespace_dependency";
 import { NodeId } from "node-opcua-nodeid";
-
-import { XmlWriter, Namespace } from "../../source/address_space_ts";
-import { UADataType } from "../ua_data_type";
-import { AddressSpace } from "../address_space";
 import { AddressSpacePrivate } from "../address_space_private";
-import { UANamespace } from "../namespace";
+import { XmlWriter } from "../../source/xml_writer";
+import { IAddressSpace, INamespace, UADataType } from "node-opcua-address-space-base";
+import { UADataTypeImpl } from "../ua_data_type_impl";
+import { NamespacePrivate } from "../namespace_private";
 
 // tslint:disable-next-line: no-var-requires
 const XMLWriter = require("xml-writer");
@@ -40,7 +39,7 @@ function buildXmlName(addressSpace: AddressSpacePrivate, map: { [key: number]: s
 }
 function dumpDataTypeStructure(
     xw: XmlWriter,
-    addressSpace: AddressSpacePrivate,
+    addressSpace: IAddressSpace,
     map: { [key: number]: string },
     structureDefinition: StructureDefinition,
     name: string,
@@ -48,7 +47,7 @@ function dumpDataTypeStructure(
 ) {
     xw.startElement("opc:StructuredType");
     xw.writeAttribute("Name", name);
-    xw.writeAttribute("BaseType", buildXmlName(addressSpace, map, structureDefinition.baseDataType));
+    xw.writeAttribute("BaseType", buildXmlName(addressSpace as AddressSpacePrivate, map, structureDefinition.baseDataType));
 
     if (doc) {
         xw.startElement("opc:Documentation");
@@ -105,7 +104,7 @@ function dumpDataTypeStructure(
         xw.startElement("opc:Field");
         xw.writeAttribute("Name", f.name!);
 
-        const typeName = buildXmlName(addressSpace, map, f.dataType);
+        const typeName = buildXmlName(addressSpace as AddressSpacePrivate, map, f.dataType);
         xw.writeAttribute("TypeName", typeName);
         if (isArray) {
             xw.writeAttribute("LengthField", "NoOf" + f.name!);
@@ -123,7 +122,7 @@ function dumpDataTypeToBSD(xw: XmlWriter, dataType: UADataType, map: { [key: num
 
     const name: string = dataType.browseName.name!;
 
-    const def = dataType._getDefinition(false);
+    const def = (<UADataTypeImpl>dataType)._getDefinition(false);
     if (def instanceof StructureDefinition) {
         dumpDataTypeStructure(xw, addressSpace, map, def, name);
     }
@@ -132,11 +131,11 @@ function dumpDataTypeToBSD(xw: XmlWriter, dataType: UADataType, map: { [key: num
     }
 }
 
-function shortcut(namespace: Namespace) {
+function shortcut(namespace: INamespace) {
     return "n" + namespace.index;
 }
-export function dumpToBSD(namespace: UANamespace) {
-    const dependency: Namespace[] = constructNamespaceDependency(namespace);
+export function dumpToBSD(namespace: NamespacePrivate) {
+    const dependency: INamespace[] = constructNamespaceDependency(namespace);
 
     const addressSpace = namespace.addressSpace;
 

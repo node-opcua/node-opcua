@@ -20,44 +20,48 @@ import {
     BrowsePathResult,
     BrowsePathTargetOptions,
     BrowseResultOptions,
+    ModelChangeStructureDataType,
     RelativePathElement
 } from "node-opcua-types";
 import * as utils from "node-opcua-utils";
 import { lowerFirstLetter } from "node-opcua-utils";
-import { DataType, Variant, VariantT } from "node-opcua-variant";
+import { DataType, Variant, VariantArrayType, VariantT } from "node-opcua-variant";
 import {
     AddReferenceOpts,
-    AddressSpace as AddressSpacePublic,
-    adjustBrowseDirection,
     IEventData,
-    IHistoricalDataNodeOptions,
-    RootFolder,
-    SessionContext,
+    ISessionContext,
     UAEventType,
-    UAEventType as UAEventTypePublic,
-    UAObjectType as UAObjectTypePublic,
     UAReference,
-    UAReferenceType as UAReferenceTypePublic,
-    UAVariableType as UAVariableTypePublic
-} from "../source";
+    IHistoricalDataNodeOptions,
+    UAVariable,
+    UADataType,
+    UAObjectType,
+    BaseNode,
+    UAMethod,
+    UAVariableType,
+    UAReferenceType,
+    UAObject,
+    UAView
+} from "node-opcua-address-space-base";
+
 import { AddressSpacePrivate } from "./address_space_private";
-import { UAAcknowledgeableConditionBase } from "./alarms_and_conditions";
-import { UAConditionBase } from "./alarms_and_conditions";
-import { BaseNode } from "./base_node";
+import { UAAcknowledgeableConditionImpl, UAConditionImpl } from "./alarms_and_conditions";
+
 import { EventData } from "./event_data";
 import { AddressSpace_installHistoricalDataNode } from "./historical_access/address_space_historical_data_node";
-import { UANamespace } from "./namespace";
-import { isNonEmptyQualifiedName } from "./namespace";
+import { UANamespace } from "./namespace_impl";
+import { isNonEmptyQualifiedName } from "./namespace_impl";
 import { NamespacePrivate } from "./namespace_private";
-import { Reference } from "./reference";
-import { UADataType, ExtensionObjectConstructorFuncWithSchema } from "./ua_data_type";
-import { UAMethod } from "./ua_method";
-import { UAObject } from "./ua_object";
-import { UAObjectType } from "./ua_object_type";
-import { UAReferenceType } from "./ua_reference_type";
-import { UAVariable } from "./ua_variable";
-import { UAVariableType } from "./ua_variable_type";
-import { UAView } from "./ua_view";
+import { ExtensionObjectConstructorFuncWithSchema, UADataTypeImpl } from "./ua_data_type_impl";
+import { UAObjectTypeImpl } from "./ua_object_type_impl";
+import { UAObjectImpl } from "./ua_object_impl";
+import { ReferenceImpl } from "./reference_impl";
+import { adjustBrowseDirection } from "../source/helpers/adjust_browse_direction";
+import { UARootFolder } from "../source/ua_root_folder";
+import { UAVariableImpl } from "./ua_variable_impl";
+import { Namespace } from "../source/namespace";
+import { UAReferenceTypeImpl } from "./ua_reference_type_impl";
+import { BaseNodeImpl } from "./base_node_impl";
 
 const doDebug = false;
 // tslint:disable-next-line:no-var-requires
@@ -120,19 +124,19 @@ type ShutdownTask = (this: AddressSpace) => void;
  *     const addressSpace = AddressSpace.create();
  */
 export class AddressSpace implements AddressSpacePrivate {
-    public get rootFolder(): RootFolder {
+    public get rootFolder(): UARootFolder {
         const rootFolder = this.findNode(this.resolveNodeId("RootFolder"));
         if (!rootFolder) {
             // throw new Error("AddressSpace doesn't contain rootFolder object");
-            return null as unknown as RootFolder;
+            return null as unknown as UARootFolder;
         }
-        return rootFolder as unknown as RootFolder;
+        return rootFolder as unknown as UARootFolder;
     }
 
     public static isNonEmptyQualifiedName = isNonEmptyQualifiedName;
     public static historizerFactory?: any;
 
-    public static create(): AddressSpacePublic {
+    public static create(): AddressSpace {
         return new AddressSpace();
     }
 
@@ -149,10 +153,10 @@ export class AddressSpace implements AddressSpacePrivate {
 
     public readonly isNodeIdString = isNodeIdString;
     private readonly _private_namespaceIndex: number;
-    private readonly _namespaceArray: NamespacePrivate[];
+    private readonly _namespaceArray: UANamespace[];
     private _shutdownTask: ShutdownTask[] = [];
     private _modelChangeTransactionCounter: number = 0;
-    private _modelChanges: any[] = [];
+    private _modelChanges: ModelChangeStructureDataType[] = [];
 
     constructor() {
         this._private_namespaceIndex = 1;
@@ -182,7 +186,7 @@ export class AddressSpace implements AddressSpacePrivate {
      * @param {string|number} namespace index or namespace uri.
      * @return {NameSpace} the namespace
      */
-    public getNamespace(namespaceIndexOrName: string | number): NamespacePrivate {
+    public getNamespace(namespaceIndexOrName: string | number): UANamespace {
         if (typeof namespaceIndexOrName === "number") {
             const namespaceIndex = namespaceIndexOrName;
             assert(namespaceIndex >= 0 && namespaceIndex < this._namespaceArray.length, "invalid namespace index ( out of bound)");
@@ -297,7 +301,9 @@ export class AddressSpace implements AddressSpacePrivate {
 
     public findMethod(nodeId: NodeId | string): UAMethod | null {
         const node = this.findNode(nodeId);
-        assert(node instanceof UAMethod);
+        if (!node || node.nodeClass !== NodeClass.Method) {
+            return null;
+        }
         return node as UAMethod;
     }
 
@@ -349,7 +355,7 @@ export class AddressSpace implements AddressSpacePrivate {
      *     objectType.browseName.toString().should.eql("BaseObjectType");
      * ```
      */
-    public findObjectType(objectType: NodeIdLike, namespaceIndex?: number): UAObjectTypePublic | null {
+    public findObjectType(objectType: NodeIdLike, namespaceIndex?: number): UAObjectType | null {
         if (objectType instanceof NodeId) {
             return _find_by_node_id<UAObjectType>(this, objectType, namespaceIndex);
         }
@@ -376,7 +382,7 @@ export class AddressSpace implements AddressSpacePrivate {
      *     objectType.browseName.toString().should.eql("BaseVariableType");
      * ```
      */
-    public findVariableType(variableType: string | NodeId, namespaceIndex?: number): UAVariableTypePublic | null {
+    public findVariableType(variableType: string | NodeId, namespaceIndex?: number): UAVariableType | null {
         if (variableType instanceof NodeId) {
             return _find_by_node_id<UAVariableType>(this, variableType, namespaceIndex);
         }
@@ -457,7 +463,7 @@ export class AddressSpace implements AddressSpacePrivate {
             }
         }
         /* istanbul ignore next */
-        if (!(dataTypeNode instanceof UADataType)) {
+        if (!(dataTypeNode instanceof UADataTypeImpl)) {
             throw new Error(
                 "we are expecting an UADataType here :  " +
                     _orig_dataTypeNode.toString() +
@@ -507,10 +513,10 @@ export class AddressSpace implements AddressSpacePrivate {
      */
     public findReferenceType(refType: NodeIdLike, namespaceIndex?: number): UAReferenceType | null {
         // startingNode ns=0;i=31 : References
-        //  References i=31
-        //  +->(hasSubtype) NonHierarchicalReferences
+        //  +-> References i=31
+        //           +->(hasSubtype) NonHierarchicalReferences
         //                  +->(hasSubtype) HasTypeDefinition
-        //  +->(hasSubtype) HierarchicalReferences
+        //           +->(hasSubtype) HierarchicalReferences
         //                  +->(hasSubtype) HasChild/ChildOf
         //                                  +->(hasSubtype) Aggregates/AggregatedBy
         //                                                  +-> HasProperty/PropertyOf
@@ -585,8 +591,8 @@ export class AddressSpace implements AddressSpacePrivate {
     public findEventType(eventTypeId: NodeIdLike | UAEventType, namespaceIndex?: number): UAEventType | null {
         let eventType: UAEventType;
 
-        if (eventTypeId instanceof BaseNode) {
-            eventType = eventTypeId as UAEventType;
+        if (eventTypeId instanceof BaseNodeImpl) {
+            eventType = eventTypeId as BaseNode as UAEventType;
         } else {
             eventType = this.findObjectType(eventTypeId as NodeIdLike, namespaceIndex) as UAEventType;
         }
@@ -654,7 +660,7 @@ export class AddressSpace implements AddressSpacePrivate {
      *
      * @private
      */
-    public constructEventData(eventTypeId: UAEventTypePublic, data: any): IEventData {
+    public constructEventData(eventTypeId: UAEventType, data: any): IEventData {
         const addressSpace = this;
 
         data = data || {};
@@ -663,7 +669,7 @@ export class AddressSpace implements AddressSpacePrivate {
         let eventTypeNode = eventTypeId;
 
         // make sure that eventType is really a object that derived from EventType
-        if (eventTypeId instanceof UAObjectType) {
+        if (eventTypeId instanceof UAObjectTypeImpl) {
             eventTypeNode = addressSpace.findEventType(eventTypeId)!;
         }
 
@@ -671,7 +677,7 @@ export class AddressSpace implements AddressSpacePrivate {
         if (!eventTypeNode) {
             throw new Error(" cannot find EvenType for " + eventTypeId);
         }
-        assert(eventTypeNode instanceof UAObjectType, "eventTypeId must represent a UAObjectType");
+        assert(eventTypeNode instanceof UAObjectTypeImpl, "eventTypeId must represent a UAObjectType");
 
         // eventId
         assert(!data.hasOwnProperty("eventId"), "eventId constructEventData : options object should not have eventId property");
@@ -981,11 +987,11 @@ export class AddressSpace implements AddressSpacePrivate {
             dataType = tmp as UADataType;
         }
         /* istanbul ignore next */
-        if (!(dataType instanceof UADataType)) {
+        if (!(dataType instanceof UADataTypeImpl)) {
             // may be dataType was the NodeId of the "Binary Encoding" node
             throw new Error("getExtensionObjectConstructor: dataType has unexpected type" + dataType);
         }
-        const _dataType = dataType as UADataType;
+        const _dataType = dataType as UADataTypeImpl;
 
         // to do verify that dataType is of type "Structure"
         /* istanbul ignore next */
@@ -1070,7 +1076,7 @@ export class AddressSpace implements AddressSpacePrivate {
      * @param [session]
      * @return {BrowseResult}
      */
-    public browseSingleNode(nodeId: NodeIdLike, browseDescription: BrowseDescription, context?: SessionContext): BrowseResult {
+    public browseSingleNode(nodeId: NodeIdLike, browseDescription: BrowseDescription, context?: ISessionContext): BrowseResult {
         const browseResult: BrowseResultOptions = {
             continuationPoint: undefined,
             references: null,
@@ -1102,7 +1108,7 @@ export class AddressSpace implements AddressSpacePrivate {
                 (browseDescription as any).referenceTypeId = null;
             } else {
                 const rf = this.findNode(browseDescription.referenceTypeId);
-                if (!rf || !(rf instanceof UAReferenceType)) {
+                if (!rf || !(rf instanceof UAReferenceTypeImpl)) {
                     browseResult.statusCode = StatusCodes.BadReferenceTypeIdInvalid;
                     return new BrowseResult(browseResult);
                 }
@@ -1141,7 +1147,7 @@ export class AddressSpace implements AddressSpacePrivate {
      * @param modelChange
      * @private
      */
-    public _collectModelChange(view: UAView | null, modelChange: any) {
+    public _collectModelChange(view: UAView | null, modelChange: ModelChangeStructureDataType) {
         // xx console.log("in _collectModelChange", modelChange.verb, verbFlags.get(modelChange.verb).toString());
         this._modelChanges.push(modelChange);
     }
@@ -1170,7 +1176,7 @@ export class AddressSpace implements AddressSpacePrivate {
         q.push(node);
 
         const objectsFolder = addressSpace.rootFolder.objects;
-        assert(objectsFolder instanceof UAObject);
+        assert(objectsFolder instanceof UAObjectImpl);
 
         const results: UAView[] = [];
 
@@ -1179,7 +1185,7 @@ export class AddressSpace implements AddressSpacePrivate {
 
             const references = node.findReferencesEx("HierarchicalReferences", BrowseDirection.Inverse);
 
-            const parentNodes = references.map((r: UAReference) => Reference.resolveReferenceNode(addressSpace, r) as BaseNode);
+            const parentNodes = references.map((r: UAReference) => ReferenceImpl.resolveReferenceNode(addressSpace, r) as BaseNode);
 
             for (const parent of parentNodes) {
                 if (sameNodeId(parent.nodeId, objectsFolder.nodeId)) {
@@ -1245,7 +1251,11 @@ export class AddressSpace implements AddressSpacePrivate {
                         // xx console.log("xx raising event on server object");
                         addressSpace.rootFolder.objects.server.raiseEvent(eventTypeNode, {
                             // Part 5 - 6.4.32 GeneralModelChangeEventType
-                            changes: { dataType: "ExtensionObject", value: this._modelChanges }
+                            changes: { 
+                                dataType: DataType.ExtensionObject, 
+                                arrayType: VariantArrayType.Array,
+                                value: this._modelChanges
+                            }
                         });
                     }
                 }
@@ -1270,8 +1280,8 @@ export class AddressSpace implements AddressSpacePrivate {
      * @param params.isForward  {Boolean} default value: true;
      * @return {Object} a new reference object  with the normalized name { referenceType: <value>, isForward: <flag>}
      */
-    public normalizeReferenceType(params: AddReferenceOpts | Reference): Reference {
-        if (params instanceof Reference) {
+    public normalizeReferenceType(params: AddReferenceOpts | ReferenceImpl): UAReference {
+        if (params instanceof ReferenceImpl) {
             // a reference has already been normalized
             return params;
         }
@@ -1285,8 +1295,8 @@ export class AddressSpace implements AddressSpacePrivate {
         // referenceType = OrganizedBy , isForward = false =>  referenceType = Organizes , isForward =  **true**
 
         // ----------------------------------------------- handle referenceType
-        if (params.referenceType instanceof UAReferenceType) {
-            params.referenceType = params.referenceType as UAReferenceType;
+        if (params.referenceType instanceof UAReferenceTypeImpl) {
+            params.referenceType = params.referenceType as UAReferenceTypeImpl;
             params.referenceType = params.referenceType.nodeId;
         } else if (typeof params.referenceType === "string") {
             const inv = this.findReferenceTypeFromInverseName(params.referenceType);
@@ -1305,7 +1315,7 @@ export class AddressSpace implements AddressSpacePrivate {
         assert(params.referenceType instanceof NodeId);
 
         // ----------- now resolve target NodeId;
-        if (params.nodeId instanceof BaseNode) {
+        if (params.nodeId instanceof BaseNodeImpl) {
             assert(!params.hasOwnProperty("node"));
             params.node = params.nodeId as BaseNode;
             params.nodeId = params.node.nodeId;
@@ -1324,21 +1334,21 @@ export class AddressSpace implements AddressSpacePrivate {
             }
             params.nodeId = _nodeId;
         }
-        return new Reference(params);
+        return new ReferenceImpl(params);
     }
 
     /**
      *
      * @param references
      */
-    public normalizeReferenceTypes(references: AddReferenceOpts[] | Reference[] | null): Reference[] {
+    public normalizeReferenceTypes(references: AddReferenceOpts[] | ReferenceImpl[] | null): UAReference[] {
         if (!references || references.length === 0) {
             return [];
         }
-        references = references as Reference[] | AddReferenceOpts[];
+        references = references as UAReference[] | AddReferenceOpts[];
         assert(Array.isArray(references));
 
-        return (references as any).map((el: Reference | AddReferenceOpts) => this.normalizeReferenceType(el));
+        return (references as any).map((el: UAReference | AddReferenceOpts) => this.normalizeReferenceType(el));
     }
 
     // -- Historical Node  -----------------------------------------------------------------------------------------
@@ -1348,7 +1358,7 @@ export class AddressSpace implements AddressSpacePrivate {
      * @param options
      */
     public installHistoricalDataNode(node: UAVariable, options?: IHistoricalDataNodeOptions): void {
-        AddressSpace_installHistoricalDataNode.call(this, node, options);
+        AddressSpace_installHistoricalDataNode.call(this, node as UAVariableImpl, options);
     }
 
     // -- Alarms & Conditions  -----------------------------------------------------------------------------------------
@@ -1356,8 +1366,8 @@ export class AddressSpace implements AddressSpacePrivate {
      *
      */
     public installAlarmsAndConditionsService() {
-        UAConditionBase.install_condition_refresh_handle(this);
-        UAAcknowledgeableConditionBase.install_method_handle_on_type(this);
+        UAConditionImpl.install_condition_refresh_handle(this);
+        UAAcknowledgeableConditionImpl.install_method_handle_on_type(this);
     }
 
     // -- internal stuff -----------------------------------------------------------------------------------------------
@@ -1371,12 +1381,12 @@ export class AddressSpace implements AddressSpacePrivate {
         }
 
         // coerce to BaseNode object
-        if (node instanceof BaseNode) {
+        if (node instanceof BaseNodeImpl) {
             return node as BaseNode;
         }
         // it's a node id like
         // coerce parent folder to an object
-        const returnValue = this.findNode(resolveNodeId(node));
+        const returnValue = this.findNode(resolveNodeId(node as NodeIdLike));
         /*
          if (!hasTypeDefinition(node as BaseNode)) {
              node = this.findNode(node.nodeId) || node;
@@ -1415,19 +1425,19 @@ export class AddressSpace implements AddressSpacePrivate {
         if (!topMostBaseTypeNode) {
             throw new Error("Cannot find topMostBaseTypeNode " + topMostBaseType.toString());
         }
-        assert(topMostBaseTypeNode instanceof BaseNode);
+        assert(topMostBaseTypeNode instanceof BaseNodeImpl);
         assert(topMostBaseTypeNode.nodeClass === nodeClass);
 
         if (!baseType) {
             return topMostBaseTypeNode;
         }
 
-        assert(typeof baseType === "string" || baseType instanceof BaseNode);
+        assert(typeof baseType === "string" || baseType instanceof BaseNodeImpl);
         let baseTypeNode: T;
-        if (baseType instanceof BaseNode) {
-            baseTypeNode = baseType as T;
+        if (baseType instanceof BaseNodeImpl) {
+            baseTypeNode = baseType as BaseNode as T;
         } else {
-            baseTypeNode = this.findNode(baseType) as T;
+            baseTypeNode = this.findNode(baseType as NodeIdLike) as T;
         }
 
         /* istanbul ignore next*/
@@ -1474,7 +1484,7 @@ export class AddressSpace implements AddressSpacePrivate {
     }
 
     private _coerce_Type(dataType: BaseNode | string | NodeId, typeMap: any, typeMapName: string, finderMethod: any): NodeId {
-        if (dataType instanceof BaseNode) {
+        if (dataType instanceof BaseNodeImpl) {
             dataType = dataType.nodeId;
         }
         assert(typeMap !== null && typeof typeMap === "object");
@@ -1495,7 +1505,7 @@ export class AddressSpace implements AddressSpacePrivate {
         } else if (typeof dataType === "number") {
             nodeId = makeNodeId(dataType, 0);
         } else {
-            nodeId = resolveNodeId(dataType);
+            nodeId = resolveNodeId(dataType as NodeIdLike);
         }
         /* istanbul ignore next */
         if (nodeId == null || !(nodeId instanceof NodeId)) {
@@ -1520,7 +1530,7 @@ export class AddressSpace implements AddressSpacePrivate {
         }
     }
 
-    private _findReferenceType(refType: NodeId | string, namespaceIndex?: number): UAReferenceTypePublic | null {
+    private _findReferenceType(refType: NodeId | string, namespaceIndex?: number): UAReferenceType | null {
         if (refType instanceof NodeId) {
             return _find_by_node_id<UAReferenceType>(this, refType, namespaceIndex);
         }
@@ -1530,7 +1540,7 @@ export class AddressSpace implements AddressSpacePrivate {
 }
 
 function _getNamespace(addressSpace: AddressSpace, nodeOrNodId: BaseNode | NodeId): NamespacePrivate {
-    const nodeId: NodeId = nodeOrNodId instanceof BaseNode ? nodeOrNodId.nodeId : (nodeOrNodId as NodeId);
+    const nodeId: NodeId = nodeOrNodId instanceof BaseNodeImpl ? nodeOrNodId.nodeId : (nodeOrNodId as NodeId);
     return addressSpace.getNamespace(nodeId.namespace);
 }
 
@@ -1540,7 +1550,7 @@ function _find_by_node_id<T extends BaseNode>(addressSpace: AddressSpace, nodeId
 }
 
 /**
- * return true if nodeId is a Folder
+ * return true if nodeId is a UAFolder
  * @method _isFolder
  * @param addressSpace
  * @param folder
@@ -1549,14 +1559,14 @@ function _find_by_node_id<T extends BaseNode>(addressSpace: AddressSpace, nodeId
  */
 function _isFolder(addressSpace: AddressSpace, folder: UAObject): boolean {
     const folderType = addressSpace.findObjectType("FolderType")!;
-    assert(folder instanceof BaseNode);
+    assert(folder instanceof BaseNodeImpl);
     assert(folder.typeDefinitionObj);
     return folder.typeDefinitionObj.isSupertypeOf(folderType);
 }
 
 function _increase_version_number(node: BaseNode | null) {
     if (node && node.nodeVersion) {
-        const previousValue = parseInt(node.nodeVersion.readValue().value.value, 10);
+        const previousValue = parseInt(node.nodeVersion.readValue().value.value!, 10);
         node.nodeVersion.setValueFromSource({
             dataType: DataType.String,
             value: (previousValue + 1).toString()

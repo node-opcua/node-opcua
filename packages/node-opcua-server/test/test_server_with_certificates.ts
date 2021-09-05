@@ -24,7 +24,7 @@ describe("preventing server to start with invalid certificates/private key combi
         try {
             await server.start();
         } catch (err) {
-            _err = err;
+            _err = err as Error;
         } finally {
             await server?.shutdown();
             server?.dispose();

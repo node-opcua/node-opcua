@@ -3,11 +3,19 @@
  */
 import { assert } from "node-opcua-assert";
 import { NodeId } from "node-opcua-nodeid";
-import { AddReferenceOpts, ConstructNodeIdOptions, CreateNodeOptions, ModellingRuleType, Namespace } from "../source";
-import { AddressSpacePrivate } from "./address_space_private";
-import { BaseNode } from "./base_node";
+import {
+    AddReferenceOpts,
+    BaseNode,
+    ConstructNodeIdOptions,
+    CreateNodeOptions,
+    ModellingRuleType,
+    INamespace,
+    UADataType
+} from "node-opcua-address-space-base";
 
-export interface NamespacePrivate extends Namespace {
+import { AddressSpacePrivate } from "./address_space_private";
+
+export interface NamespacePrivate extends INamespace {
     addressSpace: AddressSpacePrivate;
 
     nodeIterator(): IterableIterator<BaseNode>;
@@ -22,7 +30,9 @@ export interface NamespacePrivate extends Namespace {
 
     _deleteNode(node: BaseNode): void;
 
-    _createNode(options: CreateNodeOptions): BaseNode;
+    internalCreateNode(options: CreateNodeOptions): BaseNode;
+    
+    _dataTypeIterator(): IterableIterator<UADataType>;
 }
 
 export declare const NamespacePrivate: new (options: any) => NamespacePrivate;

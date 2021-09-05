@@ -1,6 +1,6 @@
 /**
  * @module node-opcua-address-space
- * @class AddressSpace
+ * @class IAddressSpace
  */
 // tslint:disable:no-console
 
@@ -20,20 +20,22 @@ import {
 } from "node-opcua-service-history";
 import { StatusCodes } from "node-opcua-status-code";
 import { CallbackT } from "node-opcua-status-code";
-import { ObjectIds } from "node-opcua-constants";
-import { NodeId } from "node-opcua-nodeid";
 
 import { DataType } from "node-opcua-variant";
 import {
-    AddressSpace as AddressSpacePublic,
+    IAddressSpace,
     ContinuationPoint,
-    HistoricalDataConfiguration,
+    ContinuationPointData,
     IVariableHistorian,
-    IVariableHistorianOptions
-} from "../../source";
-import { AddressSpace } from "../address_space";
-import { SessionContext } from "../session_context";
-import { UAVariable } from "../ua_variable";
+    IVariableHistorianOptions,
+    UAVariable
+} from "node-opcua-address-space-base";
+import { ISessionContext } from "node-opcua-address-space-base";
+import { UAVariableImpl } from "../ua_variable_impl";
+import { AddressSpace } from "../../source/address_space_ts";
+import { AddressSpacePrivate } from "../address_space_private";
+import { UAHistoricalDataConfiguration } from "node-opcua-nodeset-ua";
+
 // tslint:disable:no-var-requires
 const Dequeue = require("dequeue");
 
@@ -158,7 +160,7 @@ export class VariableHistorian implements IVariableHistorian {
 
         if (this._timeline.length >= this._maxOnlineValues || this._timeline.length === 1) {
             const first = this._timeline.first();
-            this.node._update_startOfOnlineArchive(first.sourceTimestamp);
+            (this.node as UAVariableImpl)._update_startOfOnlineArchive(first.sourceTimestamp);
             // we update the node startOnlineDate
         }
     }
@@ -181,32 +183,32 @@ export class VariableHistorian implements IVariableHistorian {
     }
 }
 
-function _get_startOfOfflineArchive(node: UAVariable) {
+function _get_startOfOfflineArchive(node: UAVariableImpl) {
     if (!node.$historicalDataConfiguration) {
         throw new Error("this variable has no HistoricalDataConfiguration");
     }
-    return node.$historicalDataConfiguration.startOfArchive.readValue();
+    return node.$historicalDataConfiguration.startOfArchive?.readValue();
 }
 
-function _get_startOfArchive(node: UAVariable) {
+function _get_startOfArchive(node: UAVariableImpl) {
     if (!node.$historicalDataConfiguration) {
         throw new Error("this variable has no HistoricalDataConfiguration");
     }
-    return node.$historicalDataConfiguration!.startOfArchive.readValue();
+    return node.$historicalDataConfiguration!.startOfArchive?.readValue();
 }
 
-function _update_startOfArchive(this: UAVariable, newDate: Date): void {
+function _update_startOfArchive(this: UAVariableImpl, newDate: Date): void {
     const node = this;
     if (!node.$historicalDataConfiguration) {
         throw new Error("this variable has no HistoricalDataConfiguration");
     }
-    node.$historicalDataConfiguration.startOfArchive.setValueFromSource({
+    node.$historicalDataConfiguration.startOfArchive?.setValueFromSource({
         dataType: DataType.DateTime,
         value: newDate
     });
 }
 
-function _update_startOfOnlineArchive(this: UAVariable, newDate: Date): void {
+function _update_startOfOnlineArchive(this: UAVariableImpl, newDate: Date): void {
     const node = this;
     if (!node.$historicalDataConfiguration) {
         throw new Error("this variable has no HistoricalDataConfiguration");
@@ -216,26 +218,26 @@ function _update_startOfOnlineArchive(this: UAVariable, newDate: Date): void {
     // in the archive either online or offline.
     // The StartOfOnlineArchive Variable specifies the date of the earliest data
     // in the online archive.
-    node.$historicalDataConfiguration.startOfOnlineArchive.setValueFromSource({
+    node.$historicalDataConfiguration.startOfOnlineArchive?.setValueFromSource({
         dataType: DataType.DateTime,
         value: newDate
     });
 
     const startOfArchiveDataValue = _get_startOfOfflineArchive(node);
-    if (
+    if (startOfArchiveDataValue && (
         startOfArchiveDataValue.statusCode !== StatusCodes.Good ||
         !startOfArchiveDataValue.value ||
         !startOfArchiveDataValue.value.value ||
-        startOfArchiveDataValue.value.value.getTime() >= newDate.getTime()
+        startOfArchiveDataValue.value.value.getTime() >= newDate.getTime())
     ) {
         node._update_startOfArchive(newDate);
     }
 }
 
-UAVariable.prototype._update_startOfOnlineArchive = _update_startOfOnlineArchive;
-UAVariable.prototype._update_startOfArchive = _update_startOfArchive;
+UAVariableImpl.prototype._update_startOfOnlineArchive = _update_startOfOnlineArchive;
+UAVariableImpl.prototype._update_startOfArchive = _update_startOfArchive;
 
-function _historyPush(this: UAVariable, newDataValue: DataValue) {
+function _historyPush(this: UAVariableImpl, newDataValue: DataValue) {
     const node = this;
     if (!node.varHistorian) {
         throw new Error("this variable has no HistoricalDataConfiguration");
@@ -255,7 +257,7 @@ function createContinuationPoint(): ContinuationPoint {
 
 function _historyReadModify(
     this: UAVariable,
-    context: SessionContext,
+    context: ISessionContext,
     historyReadRawModifiedDetails: any,
     indexRange: NumericRange | null,
     dataEncoding: QualifiedNameLike | null,
@@ -320,7 +322,7 @@ function _historyReadModify(
 }
 
 function _historyReadRawAsync(
-    this: UAVariable,
+    this: UAVariableImpl,
     historyReadRawModifiedDetails: ReadRawModifiedDetails,
     maxNumberToExtract: number,
     isReversed: boolean,
@@ -335,7 +337,7 @@ function _historyReadRawAsync(
 
 function _historyReadRaw(
     this: UAVariable,
-    context: SessionContext,
+    context: ISessionContext,
     historyReadRawModifiedDetails: ReadRawModifiedDetails,
     indexRange: NumericRange | null,
     dataEncoding: QualifiedNameLike | null,
@@ -426,7 +428,7 @@ function _historyReadRaw(
     // the Bad_TimestampNotSupported StatusCode.
 
     if (continuationPoint) {
-        const cnt = context.continuationPoints ? context.continuationPoints[continuationPoint.toString("hex")] : null;
+        const cnt: ContinuationPointData | null = context.continuationPoints ? context.continuationPoints[continuationPoint.toString("hex")] : null;
         if (!cnt) {
             // invalid continuation point
             const result1 = new HistoryReadResult({
@@ -439,7 +441,7 @@ function _historyReadRaw(
         if (cnt.dataValues.length > 0) {
             //
         } else {
-            context.continuationPoints[continuationPoint.toString("hex")] = null;
+            context.continuationPoints![continuationPoint.toString("hex")] = null;
             continuationPoint = null;
         }
         const result2 = new HistoryReadResult({
@@ -493,7 +495,7 @@ function _historyReadRaw(
         }
     }
 
-    node._historyReadRawAsync(
+    (node as UAVariableImpl)._historyReadRawAsync(
         historyReadRawModifiedDetails,
         maxNumberToExtract,
         isReversed,
@@ -536,14 +538,14 @@ function _historyReadRaw(
 
 function _historyReadRawModify(
     this: UAVariable,
-    context: SessionContext,
+    context: ISessionContext,
     historyReadRawModifiedDetails: ReadRawModifiedDetails,
     indexRange: NumericRange | null,
     dataEncoding: QualifiedNameLike | null,
     continuationPoint: ContinuationPoint | null,
     callback: CallbackT<HistoryReadResult>
 ) {
-    const node = this;
+    const node = this as UAVariableImpl;
 
     assert(historyReadRawModifiedDetails instanceof ReadRawModifiedDetails);
 
@@ -562,15 +564,14 @@ function _historyReadRawModify(
 }
 
 function _historyRead(
-    this: UAVariable,
-    context: SessionContext,
+    this: UAVariableImpl,
+    context: ISessionContext,
     historyReadDetails: ReadRawModifiedDetails | ReadEventDetails | ReadProcessedDetails | ReadAtTimeDetails,
     indexRange: NumericRange | null,
     dataEncoding: QualifiedNameLike | null,
     continuationPoint: ContinuationPoint | null,
     callback: CallbackT<HistoryReadResult>
 ) {
-    assert(context instanceof SessionContext);
     assert(callback instanceof Function);
     const node = this;
     if (historyReadDetails instanceof ReadRawModifiedDetails) {
@@ -622,7 +623,7 @@ function _historyRead(
         });
         return callback(null, result);
     } else if (historyReadDetails instanceof ReadProcessedDetails) {
-        const addressSpace = this.addressSpace;
+        const addressSpace = this.addressSpace as AddressSpacePrivate;
         if (!addressSpace._readProcessedDetails) {
             const result = new HistoryReadResult({
                 historyData: new HistoryData({}),
@@ -679,7 +680,7 @@ function _historyRead(
     }
 }
 
-function on_value_change(this: UAVariable, newDataValue: DataValue): void {
+function on_value_change(this: UAVariableImpl, newDataValue: DataValue): void {
     this._historyPush.call(this, newDataValue);
 }
 
@@ -689,8 +690,10 @@ function on_value_change(this: UAVariable, newDataValue: DataValue): void {
  * @param [options] {Object}
  * @param [options.maxOnlineValues = 1000]
  */
-export function AddressSpace_installHistoricalDataNode(this: AddressSpace, node: UAVariable, options?: IVariableHistorianOptions) {
-    AddressSpacePublic.historizerFactory = AddressSpacePublic.historizerFactory || {
+export function AddressSpace_installHistoricalDataNode(this: IAddressSpace, node: UAVariableImpl, options?: IVariableHistorianOptions) {
+   
+   
+    AddressSpace.historizerFactory = AddressSpace.historizerFactory || {
         create(node1: UAVariable, options1: IVariableHistorianOptions) {
             return new VariableHistorian(node1, options1);
         }
@@ -710,7 +713,7 @@ export function AddressSpace_installHistoricalDataNode(this: AddressSpace, node:
     node._historyReadRaw = _historyReadRaw;
     node._historyReadRawAsync = _historyReadRawAsync;
 
-    node.varHistorian = (options as any).historian || AddressSpacePublic.historizerFactory.create(node, options);
+    node.varHistorian = (options as any).historian || AddressSpace.historizerFactory.create(node, options);
 
     const historicalDataConfigurationType = addressSpace.findObjectType("HistoricalDataConfigurationType");
     if (!historicalDataConfigurationType) {
@@ -731,7 +734,7 @@ export function AddressSpace_installHistoricalDataNode(this: AddressSpace, node:
     const historicalDataConfiguration = historicalDataConfigurationType.instantiate({
         browseName: { name: "HA Configuration", namespaceIndex: 0 },
         optionals
-    }) as HistoricalDataConfiguration;
+    }) as UAHistoricalDataConfiguration;
 
     // All Historical Configuration Objects shall be referenced using the HasHistoricalConfiguration ReferenceType.
     node.addReference({
@@ -750,18 +753,18 @@ export function AddressSpace_installHistoricalDataNode(this: AddressSpace, node:
 
     // The MaxTimeInterval Variable specifies the maximum interval between data points in the
     // history repository regardless of their value change (see Part 3 for definition of Duration).
-    historicalDataConfiguration.maxTimeInterval.setValueFromSource({ dataType: "Duration", value: 10 * 1000 });
+    historicalDataConfiguration.maxTimeInterval?.setValueFromSource({ dataType: "Duration", value: 10 * 1000 });
 
     // The MinTimeInterval Variable specifies the minimum interval between data points in the
     // history repository regardless of their value change
-    historicalDataConfiguration.minTimeInterval.setValueFromSource({ dataType: "Duration", value: 0.1 * 1000 });
+    historicalDataConfiguration.minTimeInterval?.setValueFromSource({ dataType: "Duration", value: 0.1 * 1000 });
 
     // The StartOfArchive Variable specifies the date before which there is no data in the archive
     //  either online or offline.
 
     // The StartOfOnlineArchive Variable specifies the date of the earliest data in the online archive.
     const startOfOnlineArchive = new Date();
-    historicalDataConfiguration.startOfOnlineArchive.setValueFromSource({
+    historicalDataConfiguration.startOfOnlineArchive?.setValueFromSource({
         dataType: DataType.DateTime,
         value: startOfOnlineArchive
     });

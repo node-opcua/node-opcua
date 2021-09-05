@@ -7,30 +7,26 @@
  
  import {
      AddressSpace,
-     BaseNode,
      MethodFunctor,
      MethodFunctorCallback,
      SessionContext,
      UAMethod,
      UATrustList,
-     WellKnownRoles,
      UAObject,
-     UAFileType,
-     UAVariable
+     UAVariable,
+     ISessionContext,
+     IAddressSpace
  } from "node-opcua-address-space";
  import {
      checkDebugFlag,
      make_debugLog,
      make_warningLog
  } from "node-opcua-debug";
- import { NodeId, resolveNodeId, sameNodeId } from "node-opcua-nodeid";
- import { StatusCode, StatusCodes } from "node-opcua-status-code";
- import { AddReferencesItem, CallMethodResultOptions, MessageSecurityMode, PermissionType, RolePermissionTypeOptions } from "node-opcua-types";
- import { DataType, Variant, VariantArrayType } from "node-opcua-variant";
- import { AccessRestrictionsFlag, allPermissions, makePermissionFlag, NodeClass } from "node-opcua-data-model";
- import { ByteString, UAString } from "node-opcua-basic-types";
+ import { StatusCodes } from "node-opcua-status-code";
+ import { CallMethodResultOptions } from "node-opcua-types";
+ import { DataType, Variant } from "node-opcua-variant";
+ import { AccessRestrictionsFlag } from "node-opcua-data-model";
  import { CertificateManager } from "node-opcua-pki";
- import { ObjectTypeIds } from "node-opcua-constants";
  import { AbstractFs, installFileType, OpenFileMode } from "node-opcua-file-transfer";
  import { OPCUACertificateManager } from "node-opcua-certificate-manager";
  
@@ -57,7 +53,7 @@ function trustListIsAlreadyOpened(trustList: UATrustList): boolean {
 async function _closeAndUpdate(
     this: UAMethod,
     inputArguments: Variant[],
-    context: SessionContext
+    context: ISessionContext
 ): Promise<CallMethodResultOptions> {
     return { statusCode: StatusCodes.Good };
 }
@@ -67,7 +63,7 @@ async function _closeAndUpdate(
 async function _addCertificate(
     this: UAMethod,
     inputArguments: Variant[],
-    context: SessionContext
+    context: ISessionContext
 ): Promise<CallMethodResultOptions> {
 
     // If the Certificate is issued by a CA then the Client shall provide the entire
@@ -120,7 +116,7 @@ async function _addCertificate(
 async function _removeCertificate(
     this: UAMethod,
     inputArguments: Variant[],
-    context: SessionContext
+    context: ISessionContext
 ): Promise<CallMethodResultOptions> {
 
     if (!hasEncryptedChannel(context)) {
@@ -157,7 +153,7 @@ export async function promoteTrustList(trustList: UATrustList) {
     const removeCertificate = trustList.getChildByName("RemoveCertificate") as UAMethod;
 
 
-    function _openTrustList(this: any, trustMask: TrustListMasks, inputArgs: Variant[], context: SessionContext, callback: MethodFunctorCallback) {
+    function _openTrustList(this: any, trustMask: TrustListMasks, inputArgs: Variant[], context: ISessionContext, callback: MethodFunctorCallback) {
 
         if (trustListIsAlreadyOpened(trustList)) {
             return callback(null, { statusCode: StatusCodes.BadInvalidState })
@@ -190,13 +186,13 @@ export async function promoteTrustList(trustList: UATrustList) {
         }
     }
 
-    function _openCallback(this: any, inputArgs: Variant[], context: SessionContext, callback: MethodFunctorCallback) {
+    function _openCallback(this: any, inputArgs: Variant[], context: ISessionContext, callback: MethodFunctorCallback) {
         _openTrustList.call(this, TrustListMasks.All, inputArgs, context, callback);
     }
 
     open.bindMethod(_openCallback);
 
-    function _openWithMaskCallback(this: any, inputArgs: Variant[], context: SessionContext, callback: MethodFunctorCallback) {
+    function _openWithMaskCallback(this: any, inputArgs: Variant[], context: ISessionContext, callback: MethodFunctorCallback) {
         const trustListMask = inputArgs[0].value as number;
         inputArgs[0] = new Variant({ dataType: DataType.Byte, value: OpenFileMode.Read });
         _openTrustList.call(this, trustListMask, inputArgs, context, callback);
@@ -209,7 +205,7 @@ export async function promoteTrustList(trustList: UATrustList) {
     closeAndUpdate?.bindMethod(callbackify(_closeAndUpdate));
 
 
-    function install_method_handle_on_TrustListType(addressSpace: AddressSpace): void {
+    function install_method_handle_on_TrustListType(addressSpace: IAddressSpace): void {
         const fileType = addressSpace.findObjectType("TrustListType") as any;
         if (!fileType || fileType.addCertificate.isBound()) {
             return;

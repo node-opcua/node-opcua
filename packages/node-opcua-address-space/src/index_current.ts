@@ -14,9 +14,9 @@ export * from "../source/helpers/ensure_secure_access";
 export * from "../source/helpers/resolve_opaque_on_address_space";
 export * from "../source/interfaces/alarms_and_conditions/condition_info_i";
 export * from "../source/set_namespace_meta_data";
-export * from "../source/ua_namespace_meta_data_type";
+export * from "../source/namespace";
 
-export { UACertificateExpirationAlarm } from "./alarms_and_conditions";
+export { UACertificateExpirationAlarmImpl } from "./alarms_and_conditions";
 
 export { ensureDatatypeExtracted, ensureDatatypeExtractedWithCallback } from "../source/loader/load_nodeset2";
 export * from "../source/loader/generateAddressSpaceRaw";
@@ -24,9 +24,9 @@ export * from "../source/loader/generateAddressSpaceRaw";
 export { ContinuationPointManager } from "../source/continuation_points/continuation_point_manager";
 
 export { promoteToStateMachine } from "./state_machine/finite_state_machine";
+export * from "../source/interfaces/state_machine/ua_transition_ex";
 
-export * from "./namespace";
-export * from "./base_node";
+export * from "./namespace_impl";
 export * from "./extension_object_array_node";
 export * from "./event_data";
 
@@ -34,16 +34,19 @@ export { NamespaceOptions } from "./nodeid_manager";
 export { dumpXml } from "./nodeset_tools/nodeset_to_xml";
 export { dumpToBSD } from "./nodeset_tools/typedictionary_to_xml";
 export { adjustNamespaceArray } from "./nodeset_tools/adjust_namespace_array";
+export { makeAttributeEventName } from "./base_node_impl";
+export { resolveReferenceNode, resolveReferenceType } from "./reference_impl";
 
-export * from "./data_access/ua_analog_item";
-export * from "./data_access/ua_data_item";
-export * from "./data_access/ua_multistate_discrete";
+export * from "./data_access/check_variant_compatibility_ua_analog_item";
+export * from "./data_access/add_dataItem_stuff";
+export * from "./data_access/ua_multistate_discrete_impl";
 export * from "./data_access/ua_multistate_value_discrete";
 export * from "./data_access/ua_two_state_discrete";
 
 export { VariableHistorian } from "./historical_access/address_space_historical_data_node";
-export { Reference } from "./reference";
 export { NodeIdManager } from "../src/nodeid_manager";
 
 export * from "./alarms_and_conditions";
 export * from "./event_data";
+
+export * from "node-opcua-nodeset-ua";

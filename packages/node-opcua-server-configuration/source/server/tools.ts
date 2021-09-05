@@ -1,7 +1,7 @@
-import { SessionContext, WellKnownRoles } from "node-opcua-address-space";
+import { ISessionContext, SessionContext, WellKnownRoles } from "node-opcua-address-space";
 import { MessageSecurityMode } from "node-opcua-secure-channel";
 
-export function hasExpectedUserAccess(context: SessionContext) {
+export function hasExpectedUserAccess(context: ISessionContext) {
     if (!context ||
         !context.session ||
         !context.session.userIdentityToken) {
@@ -10,7 +10,7 @@ export function hasExpectedUserAccess(context: SessionContext) {
     return context.currentUserHasRole(WellKnownRoles.SecurityAdmin);
 }
 
-export function hasEncryptedChannel(context: SessionContext) {
+export function hasEncryptedChannel(context: ISessionContext) {
     return !!(context.session?.channel?.securityMode === MessageSecurityMode.SignAndEncrypt);
 }
 

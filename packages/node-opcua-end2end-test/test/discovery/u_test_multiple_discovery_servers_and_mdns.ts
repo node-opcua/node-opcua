@@ -5,8 +5,6 @@ import {
     OPCUAServer,
     findServers,
     findServersOnNetwork,
-    RegisterServerMethod,
-    OPCUABaseServer,
     makeApplicationUrn
 } from "node-opcua";
 

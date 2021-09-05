@@ -2,22 +2,25 @@
  * @module node-opcua-address-space
  */
 import { assert } from "node-opcua-assert";
-import { AddressSpace, UAVariable, UANonExclusiveLimitAlarm, UAExclusiveLimitAlarm } from "..";
+import { AddressSpace, UAExclusiveLimitAlarmImpl, UAObject, UAVariable} from "..";
+import { UANonExclusiveLimitAlarmEx , UAExclusiveLimitAlarmEx } from "..";
 
 export interface IAlarmTestData {
     tankLevel: UAVariable;
-    tankLevelCondition: UAExclusiveLimitAlarm;
+    tankLevelCondition: UAExclusiveLimitAlarmEx;
     tankLevel2: UAVariable;
-    tankLevelCondition2: UANonExclusiveLimitAlarm;
+    tankLevelCondition2: UANonExclusiveLimitAlarmEx;
     tankTripCondition: null;
 }
 
 export function construct_demo_alarm_in_address_space(test: IAlarmTestData, addressSpace: AddressSpace) {
+    
     const a = addressSpace as any;
     if (a.construct_demo_alarm_in_address_space_called) {
         return;
     }
     a.construct_demo_alarm_in_address_space_called = true;
+
     addressSpace.installAlarmsAndConditionsService();
 
     const namespace = addressSpace.getOwnNamespace();
@@ -68,14 +71,22 @@ export function construct_demo_alarm_in_address_space(test: IAlarmTestData, addr
             "ConfirmedState",
             "Confirm" // confirm state and confirm Method
         ]
-    });
+    }) as UAExclusiveLimitAlarmImpl;
+    
     assert(tankLevelCondition.browseName.toString() === "1:TankLevelCondition");
 
     assert(tankLevel.findReferences("HasCondition").length === 1);
     assert(tankLevel.findReferencesAsObject("HasCondition", true).length === 1);
       
-    assert("1:TankLevelCondition" === tankLevel.findReferencesAsObject("HasCondition", true)[0].browseName.toString());
-    assert("UAExclusiveLimitAlarm" === tankLevel.findReferencesAsObject("HasCondition", true)[0].constructor.name.toString());
+    const conditionName = tankLevel.findReferencesAsObject("HasCondition", true)[0].browseName.toString();
+    const conditionTypeDefinition =  (tankLevel.findReferencesAsObject("HasCondition", true)[0] as UAObject).typeDefinitionObj.browseName.toString();
+    const conditionJavascriptClass = tankLevel.findReferencesAsObject("HasCondition", true)[0].constructor.name.toString();
+    if (false) {
+        console.log(conditionName, conditionTypeDefinition, conditionJavascriptClass);
+    }
+    assert("1:TankLevelCondition" === conditionName);
+    assert("ExclusiveLimitAlarmType" === conditionTypeDefinition)
+    assert("UAExclusiveLimitAlarmImpl" === conditionJavascriptClass);
 
     // ----------------------------------------------------------------
     // tripAlarm that signals that the "Tank lid" is opened

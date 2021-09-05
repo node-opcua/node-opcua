@@ -2,6 +2,7 @@
  * @module node-opca-aggregates
  */
 import { SessionContext, UAVariable } from "node-opcua-address-space";
+import { NodeClass } from "node-opcua-data-model";
 import { DataValue } from "node-opcua-data-value";
 import { HistoryData, HistoryReadResult, ReadRawModifiedDetails } from "node-opcua-service-history";
 import { StatusCode } from "node-opcua-status-code";
@@ -68,7 +69,7 @@ export function getAggregateData(
 ) {
 
     /* istanbul ignore next */
-    if (!(node.constructor.name === "UAVariable")) {
+    if (node.nodeClass !== NodeClass.Variable) {
         throw new Error("node must be UAVariable");
     }
 

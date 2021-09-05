@@ -6,6 +6,7 @@ import { promisify } from "util";
 
 import { assert } from "node-opcua-assert";
 import { DataValue } from "node-opcua-data-value";
+import { make_errorLog } from "node-opcua-debug";
 import { NodeId, resolveNodeId, NodeIdType } from "node-opcua-nodeid";
 import {
     ArgumentDefinition,
@@ -18,25 +19,20 @@ import {
 } from "node-opcua-pseudo-session";
 import {
     BrowseDescription,
-    BrowseDescriptionOptions,
-    BrowseNextResponse,
-    BrowseRequest,
-    BrowseResponse,
     BrowseResult
 } from "node-opcua-service-browse";
 import { CallMethodRequest, CallMethodResult, CallMethodResultOptions } from "node-opcua-service-call";
 import { BrowsePath, BrowsePathResult } from "node-opcua-service-translate-browse-path";
 import { StatusCodes, StatusCode } from "node-opcua-status-code";
 import { NodeClass, AttributeIds } from "node-opcua-data-model";
-import { MessageSecurityMode, ReadValueId, WriteValueOptions, WriteValue, ReadValueIdOptions } from "node-opcua-types";
+import { ReadValueId, WriteValueOptions, WriteValue, ReadValueIdOptions, BrowseDescriptionOptions } from "node-opcua-types";
 import { randomGuid } from "node-opcua-basic-types";
 
-import { AddressSpace } from "./address_space_ts";
+import {IAddressSpace, UAVariable, ISessionContext } from "node-opcua-address-space-base";
+
 import { ContinuationPointManager } from "./continuation_points/continuation_point_manager";
 import { callMethodHelper } from "./helpers/call_helpers";
 import { SessionContext } from "./session_context";
-import { UAVariable } from "../src/ua_variable";
-import { make_errorLog } from "node-opcua-debug";
 
 
 const errorLog = make_errorLog("PseudoSession");
@@ -49,17 +45,15 @@ const errorLog = make_errorLog("PseudoSession");
  * operations that uses browse, translate, read, write etc similar
  * whether we work inside a server or through a client session.
  *
- * @param addressSpace {AddressSpace}
- * @constructor
  */
 export class PseudoSession implements IBasicSession {
     public requestedMaxReferencesPerNode: number = 0;
     private _sessionId: NodeId = new NodeId(NodeIdType.GUID, randomGuid());
-    private readonly addressSpace: AddressSpace;
+    private readonly addressSpace: IAddressSpace;
     private readonly continuationPointManager: ContinuationPointManager;
-    private readonly context: SessionContext;
+    private readonly context: ISessionContext;
 
-    constructor(addressSpace: AddressSpace, context?: SessionContext) {
+    constructor(addressSpace: IAddressSpace, context?: ISessionContext) {
         this.addressSpace = addressSpace;
         const self = this;
         this.context = context || SessionContext.defaultContext;
@@ -80,11 +74,11 @@ export class PseudoSession implements IBasicSession {
                 nodesToBrowse = [nodesToBrowse as BrowseDescriptionLike];
             }
             let results: BrowseResult[] = [];
-            for (let browseDescription of nodesToBrowse as any[]) {
-                browseDescription.referenceTypeId = resolveNodeId(browseDescription.referenceTypeId);
-                browseDescription = new BrowseDescription(browseDescription);
-                const nodeId = resolveNodeId(browseDescription.nodeId);
-                const r = this.addressSpace.browseSingleNode(nodeId, browseDescription, this.context);
+            for (let browseDescription of nodesToBrowse as BrowseDescriptionOptions[]) {
+                browseDescription.referenceTypeId = resolveNodeId(browseDescription.referenceTypeId!);
+                const _browseDescription = browseDescription instanceof BrowseDescription ?  browseDescription : new BrowseDescription(browseDescription);
+                const nodeId = resolveNodeId(_browseDescription.nodeId);
+                const r = this.addressSpace.browseSingleNode(nodeId, _browseDescription, this.context);
                 results.push(r);
             }
 

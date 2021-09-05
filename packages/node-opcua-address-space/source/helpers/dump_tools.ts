@@ -9,11 +9,11 @@ import { BrowseDirection } from "node-opcua-data-model";
 import { NodeId, NodeIdLike } from "node-opcua-nodeid";
 import { BrowseDescription, BrowseDescriptionOptions, ReferenceDescription } from "node-opcua-types";
 
-import { AddressSpace, BaseNode, UAReference, UAReferenceType as UAReferenceTypePublic } from "../address_space_ts";
+import { IAddressSpace, BaseNode, UAReference, UAReferenceType as UAReferenceTypePublic } from "node-opcua-address-space-base";
 
-import { resolveReferenceType } from "../../src/reference";
+import { resolveReferenceType } from "../../src/reference_impl";
 
-export function referenceTypeToString(addressSpace: AddressSpace, referenceTypeId: NodeIdLike | null): string {
+export function referenceTypeToString(addressSpace: IAddressSpace, referenceTypeId: NodeIdLike | null): string {
     // istanbul ignore next
     if (!referenceTypeId) {
         return "<null> ";
@@ -23,13 +23,13 @@ export function referenceTypeToString(addressSpace: AddressSpace, referenceTypeI
     }
 }
 
-function nodeIdInfo(addressSpace: AddressSpace, nodeId: NodeId): string {
+function nodeIdInfo(addressSpace: IAddressSpace, nodeId: NodeId): string {
     const obj = addressSpace.findNode(nodeId);
     const name = obj ? obj.browseName.toString() : " <????>";
     return nodeId.toString() + " [ " + name + " ]";
 }
 
-export function dumpReferenceDescription(addressSpace: AddressSpace, referenceDescription: ReferenceDescription): void {
+export function dumpReferenceDescription(addressSpace: IAddressSpace, referenceDescription: ReferenceDescription): void {
     assert(referenceDescription.referenceTypeId); // must be known;
 
     console.log(chalk.red("referenceDescription"));
@@ -41,7 +41,7 @@ export function dumpReferenceDescription(addressSpace: AddressSpace, referenceDe
     console.log("    typeDefinition  : ", nodeIdInfo(addressSpace, referenceDescription.typeDefinition));
 }
 
-export function dumpReferenceDescriptions(addressSpace: AddressSpace, referenceDescriptions: ReferenceDescription[]): void {
+export function dumpReferenceDescriptions(addressSpace: IAddressSpace, referenceDescriptions: ReferenceDescription[]): void {
     referenceDescriptions.forEach((r: ReferenceDescription) => dumpReferenceDescription(addressSpace, r));
 }
 
@@ -67,11 +67,11 @@ export function dumpBrowseDescription(node: BaseNode, _browseDescription: Browse
 
 /**
  * @method dumpReferences
- * @param addressSpace    {AddressSpace}
+ * @param addressSpace    {IAddressSpace}
  * @param references  {Array<Reference>|null}
  * @static
  */
-export function dumpReferences(addressSpace: AddressSpace, references: UAReference[]) {
+export function dumpReferences(addressSpace: IAddressSpace, references: UAReference[]) {
     assert(addressSpace);
     for (const reference of references) {
         const referenceType = resolveReferenceType(addressSpace, reference);

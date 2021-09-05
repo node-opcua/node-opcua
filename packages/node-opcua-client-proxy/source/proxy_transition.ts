@@ -1,7 +1,7 @@
 /**
  * @module node-opcua-client-proxy
  */
-export class  ProxyTransition {
+export class ProxyTransition {
 
     private _node: any;
 

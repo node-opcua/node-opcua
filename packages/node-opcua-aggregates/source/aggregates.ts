@@ -6,7 +6,7 @@ import { makeNodeId } from "node-opcua-nodeid";
 import * as utils from "node-opcua-utils";
 import { DataType } from "node-opcua-variant";
 
-import { AddressSpace, BaseNode, UAObject, UAServerCapabilities, UAVariable } from "node-opcua-address-space";
+import { AddressSpace, BaseNode, UAHistoryServerCapabilities, UAHistoryServerCapabilities_Base, UAObject, UAServerCapabilities, UAVariable } from "node-opcua-address-space";
 import { AggregateConfigurationOptionsEx } from "./interval";
 import { AddressSpacePrivate } from "node-opcua-address-space/src/address_space_private";
 import { readProcessedDetails } from "./read_processed_details";
@@ -152,13 +152,16 @@ export type AggregateFunctionName =
     | "WorstQuality"
     | "WorstQuality2";
 
+interface UAHistoryServerCapabilitiesWithH extends UAServerCapabilities {
+    historyServerCapabilities: UAHistoryServerCapabilities;
+}
 function addAggregateFunctionSupport(addressSpace: AddressSpace, functionName: number): void {
     /* istanbul ignore next */
     if (!functionName) {
         throw new Error("Invalid function name");
     }
 
-    const serverCapabilities = addressSpace.rootFolder.objects.server.serverCapabilities;
+    const serverCapabilities = addressSpace.rootFolder.objects.server.serverCapabilities as UAHistoryServerCapabilitiesWithH;
 
     /* istanbul ignore next */
     if (!serverCapabilities.historyServerCapabilities) {
@@ -228,7 +231,7 @@ export function addAggregateSupport(addressSpace: AddressSpace) {
     addAggregateFunctionSupport(addressSpace, AggregateFunction.Average);
 
     const addressSpaceInternal = (addressSpace as unknown) as AddressSpacePrivate;
-    addressSpaceInternal._readProcessedDetails = readProcessedDetails as any;
+    addressSpaceInternal._readProcessedDetails = readProcessedDetails;
 }
 
 export function installAggregateConfigurationOptions(node: UAVariable, options: AggregateConfigurationOptionsEx) {

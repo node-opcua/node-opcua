@@ -172,7 +172,7 @@ export function t(test: any) {
                 console.timeEnd("B");
                 //   await new Promise((resolve) => setTimeout(resolve, 10000));
             } catch (err) {
-                _err = err;
+                _err = err as Error;
             }
             should.not.exist(_err, "not expecting any exception");
             counter.should.eql(itemToMonitors.length);

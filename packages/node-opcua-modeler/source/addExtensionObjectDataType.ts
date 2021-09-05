@@ -6,7 +6,10 @@ import {
     UAVariable,
     UAVariableT,
     UAVariableType,
-    dumpToBSD
+    dumpToBSD,
+    UADataTypeDictionary,
+    DTDataTypeDefinition,
+    UAProperty
 } from "node-opcua-address-space";
 import assert from "node-opcua-assert";
 import { convertDataTypeDefinitionToStructureTypeSchema, ExtraDataTypeManager } from "node-opcua-client-dynamic-extension-object";
@@ -35,13 +38,7 @@ export function getOrCreateDataTypeSystem(namespace: Namespace): UAObject {
     return opcBinaryTypeSystem;
 }
 
-export interface UADataTypeDictionary extends UAVariable {
-    deprecated: UAVariableT<boolean, DataType.Boolean>;
-    _namespaceUri: UAVariableT<string, DataType.Boolean>; // Collides !!!
-    dataTypeVersion: UAVariableT<string, DataType.Boolean>;
-}
-
-export function getDataTypeDictionary(namespace: Namespace): UADataTypeDictionary {
+export function getDataTypeDictionary(namespace: Namespace): UADataTypeDictionary<Buffer> {
     const addressSpace = namespace.addressSpace;
 
     const opcBinaryTypeSystem = getOrCreateDataTypeSystem(namespace);
@@ -53,7 +50,7 @@ export function getDataTypeDictionary(namespace: Namespace): UADataTypeDictionar
     if (node) {
         assert(node.nodeClass === NodeClass.Variable);
         // already exits ....
-        return node as UADataTypeDictionary;
+        return node as UADataTypeDictionary<Buffer>;
     }
 
     const dataTypeDictionaryType = addressSpace.findVariableType("DataTypeDictionaryType");
@@ -68,7 +65,7 @@ export function getDataTypeDictionary(namespace: Namespace): UADataTypeDictionar
         componentOf: opcBinaryTypeSystem,
 
         optionals: ["Deprecated", "DataTypeVersion", "NamespaceUri"]
-    }) as UADataTypeDictionary;
+    }) as UADataTypeDictionary<Buffer>;
 
     dataTypeDictionary.bindVariable({
         get: () => {

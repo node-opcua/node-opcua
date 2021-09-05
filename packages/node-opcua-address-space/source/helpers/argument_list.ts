@@ -14,7 +14,7 @@ import { DataType } from "node-opcua-variant";
 import { VariantArrayType } from "node-opcua-variant";
 
 import { NodeClass } from "node-opcua-data-model";
-import { AddressSpace, UAMethod, UAObject } from "../address_space_ts";
+import { IAddressSpace, UAMethod, UAObject } from "node-opcua-address-space-base";
 
 const debugLog = make_debugLog(__filename);
 const warningLog = make_warningLog(__filename);
@@ -90,7 +90,7 @@ export function binaryStoreSize_ArgumentList(description: any, args: any) {
 }
 
 export function getMethodDeclaration_ArgumentList(
-    addressSpace: AddressSpace,
+    addressSpace: IAddressSpace,
     objectId: NodeId,
     methodId: NodeId
 ): { statusCode: StatusCode; methodDeclaration?: UAMethod } {
@@ -130,7 +130,7 @@ export function getMethodDeclaration_ArgumentList(
 /**
  * @private
  */
-function isArgumentValid(addressSpace: AddressSpace, argDefinition: Argument, arg: Variant): boolean {
+function isArgumentValid(addressSpace: IAddressSpace, argDefinition: Argument, arg: Variant): boolean {
     assert(argDefinition.hasOwnProperty("dataType"));
     assert(argDefinition.hasOwnProperty("valueRank"));
 
@@ -189,7 +189,7 @@ function isArgumentValid(addressSpace: AddressSpace, argDefinition: Argument, ar
  * @return statusCode,inputArgumentResults
  */
 export function verifyArguments_ArgumentList(
-    addressSpace: AddressSpace,
+    addressSpace: IAddressSpace,
     methodInputArguments: Argument[],
     inputArguments?: Variant[]
 ): {
@@ -258,7 +258,7 @@ export function verifyArguments_ArgumentList(
     };
 }
 
-export function build_retrieveInputArgumentsDefinition(addressSpace: AddressSpace) {
+export function build_retrieveInputArgumentsDefinition(addressSpace: IAddressSpace) {
     const the_address_space = addressSpace;
     return (objectId: NodeId, methodId: NodeId) => {
         const response = getMethodDeclaration_ArgumentList(the_address_space, objectId, methodId);

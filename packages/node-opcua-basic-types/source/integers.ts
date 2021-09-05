@@ -5,7 +5,7 @@ import { assert } from "node-opcua-assert";
 import { BinaryStream, OutputBinaryStream } from "node-opcua-binary-stream";
 import { getRandomInt } from "./utils";
 
-export function isValidUInt16(value: any): boolean {
+export function isValidUInt16(value: number): boolean {
     if (!isFinite(value)) {
         return false;
     }
@@ -39,7 +39,7 @@ export function decodeUInt16(stream: BinaryStream, value?: number): UInt16 {
     return stream.readUInt16() as UInt16;
 }
 
-export function isValidInt16(value: any): boolean {
+export function isValidInt16(value: number): boolean {
     if (!isFinite(value)) {
         return false;
     }
@@ -59,7 +59,7 @@ export function decodeInt16(stream: BinaryStream, value?: number): Int16 {
     return stream.readInt16() as Int16;
 }
 
-export function isValidInt32(value: any): boolean {
+export function isValidInt32(value: number): boolean {
     if (!isFinite(value)) {
         return false;
     }
@@ -79,7 +79,7 @@ export function decodeInt32(stream: BinaryStream, value?: number): Int32 {
     return stream.readInteger() as Int32;
 }
 
-export function isValidUInt32(value: any): boolean {
+export function isValidUInt32(value: number): boolean {
     if (!isFinite(value)) {
         return false;
     }
@@ -90,7 +90,7 @@ export function randomUInt32(): UInt32 {
     return getRandomInt(0, 0xffffffff);
 }
 
-export function encodeUInt32(value: UInt32, stream: OutputBinaryStream) {
+export function encodeUInt32(value: UInt32, stream: OutputBinaryStream): void {
     stream.writeUInt32(value);
 }
 
@@ -98,7 +98,7 @@ export function decodeUInt32(stream: BinaryStream, value?: number): UInt32 {
     return stream.readUInt32() as UInt32;
 }
 
-export function isValidInt8(value: any): boolean {
+export function isValidInt8(value: number): boolean {
     if (!isFinite(value)) {
         return false;
     }
@@ -123,7 +123,7 @@ export const randomSByte = randomInt8;
 export const encodeSByte = encodeInt8;
 export const decodeSByte = decodeInt8;
 
-export function isValidUInt8(value: any): boolean {
+export function isValidUInt8(value: number): boolean {
     if (!isFinite(value)) {
         return false;
     }
@@ -147,7 +147,7 @@ export const randomByte = randomUInt8;
 export const encodeByte = encodeUInt8;
 export const decodeByte = decodeUInt8;
 
-export function isValidUInt64(value: any): boolean {
+export function isValidUInt64(value?: number | number[]): boolean {
     return value instanceof Array && value.length === 2;
 }
 
@@ -155,7 +155,7 @@ export function randomUInt64(): UInt64 {
     return [getRandomInt(0, 0xffffffff), getRandomInt(0, 0xffffffff)];
 }
 
-export function encodeUInt64(value: UInt64 | number, stream: OutputBinaryStream) {
+export function encodeUInt64(value: UInt64 | number, stream: OutputBinaryStream): void  {
     if (typeof value === "number") {
         const arr = coerceUInt64(value);
         stream.writeUInt32(arr[1]);
@@ -172,7 +172,7 @@ export function decodeUInt64(stream: BinaryStream, value?: UInt64): UInt64 {
     return constructInt64(high, low);
 }
 
-export function constructInt64(high: UInt32, low: UInt32) {
+export function constructInt64(high: UInt32, low: UInt32): Int64 {
     assert(low >= 0 && low <= 0xffffffff);
     assert(high >= 0 && high <= 0xffffffff);
     return [high, low];
@@ -284,7 +284,7 @@ export function coerceUInt32(value: null | string | number | EnumItemLike): UInt
     if (value === null || value === undefined) {
         return 0;
     }
-    if (value && value.hasOwnProperty("value")) {
+    if (value && Object.prototype.hasOwnProperty.call(value, "value")) {
         // xx assert(value.constructor.name === "EnumItem");
         return coerceUInt32((value as EnumItemLike).value);
     }

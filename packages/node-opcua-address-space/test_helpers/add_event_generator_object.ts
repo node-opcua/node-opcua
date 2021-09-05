@@ -3,9 +3,10 @@
  */
 import { StatusCodes } from "node-opcua-status-code";
 import { DataType, Variant } from "node-opcua-variant";
-import { Folder, MethodFunctor, MethodFunctorCallback, Namespace, SessionContext } from "..";
+import { INamespace, UAObject, ISessionContext, MethodFunctorCallback } from "node-opcua-address-space-base";
+import { UAFolder   } from "node-opcua-nodeset-ua";
 
-export function add_eventGeneratorObject(namespace: Namespace, parentFolder: Folder | string) {
+export function add_eventGeneratorObject(namespace: INamespace, parentFolder: UAFolder | string) {
     const myEvtType = namespace.addEventType({
         browseName: "MyEventType",
         subtypeOf: "BaseEventType" // should be implicit
@@ -39,7 +40,7 @@ export function add_eventGeneratorObject(namespace: Namespace, parentFolder: Fol
         outputArguments: []
     });
 
-    method.bindMethod((inputArguments: Variant[], context: SessionContext, callback: MethodFunctorCallback) => {
+    method.bindMethod((inputArguments: Variant[], context: ISessionContext, callback: MethodFunctorCallback) => {
         // xx console.log("In Event Generator Method");
         // xx console.log(this.toString());
         // xx console.log(context.object.toString());
@@ -49,8 +50,8 @@ export function add_eventGeneratorObject(namespace: Namespace, parentFolder: Fol
         const message = inputArguments[0].value || "Hello from Event Generator Object";
         const severity = inputArguments[1].value || 0;
 
-        const myEventType = namespace.addressSpace.findEventType("MyEventType", namespace.index);
-        context.object.raiseEvent(myEventType, {
+        const myEventType = namespace.addressSpace.findEventType("MyEventType", namespace.index)!;
+        (context.object as UAObject).raiseEvent(myEventType, {
             message: {
                 dataType: DataType.LocalizedText,
                 value: { text: message }

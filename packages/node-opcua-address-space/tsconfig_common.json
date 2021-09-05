@@ -14,8 +14,14 @@
     "include": [
         "source/**/*.ts",
         "src/**/*.ts"
-    ],
+],
     "references": [
+        {
+            "path": "../node-opcua-address-space-base"
+        },
+        {
+            "path": "../node-opcua-nodeset-ua"
+        },
         {
             "path": "../node-opcua-assert"
         },

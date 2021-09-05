@@ -2,45 +2,54 @@
  * @module node-opcua-address-space.DataAccess
  */
 import { assert } from "node-opcua-assert";
-import { DataType, Variant, VariantArrayType, VariantLike } from "node-opcua-variant";
+import { DataType, Variant, VariantArrayType } from "node-opcua-variant";
 import { coerceInt32, coerceUInt64, Int64, isValidUInt64 } from "node-opcua-basic-types";
-import { coerceLocalizedText, LocalizedText } from "node-opcua-data-model";
-import { DataValue } from "node-opcua-data-value";
+import { coerceLocalizedText, LocalizedText, QualifiedNameLike } from "node-opcua-data-model";
+import { DataValue, DataValueT } from "node-opcua-data-value";
 import { StatusCodes } from "node-opcua-status-code";
 import { StatusCode } from "node-opcua-status-code";
-import { EnumValueType } from "node-opcua-types";
-
-import {
-    AddMultiStateValueDiscreteOptions,
-    BindVariableOptions,
-    Namespace,
-    Property,
-    UAVariable as UAVariablePublic
-} from "../../source/address_space_ts";
-import { UAMultiStateValueDiscrete as UAMultiStateValueDiscretePublic } from "../../source/interfaces/data_access/ua_multistate_value_discrete";
-import { UAVariable } from "../ua_variable";
+import { NumericRange } from "node-opcua-numeric-range";
+import { DTEnumValue } from "node-opcua-nodeset-ua";
+import { BindVariableOptions, INamespace, UAVariable, UAProperty, ISessionContext } from "node-opcua-address-space-base";
 import { VariableTypeIds } from "node-opcua-constants";
+
 import { registerNodePromoter } from "../../source/loader/register_node_promoter";
 import { coerceEnumValues } from "../../source/helpers/coerce_enum_value";
-import { add_dataItem_stuff } from "./ua_data_item";
+import { UAMultiStateValueDiscreteEx } from "../../source/interfaces/data_access/ua_multistate_value_discrete_ex";
+import { AddMultiStateValueDiscreteOptions } from "../../source/address_space_ts";
 
-function install_synchronization(variable: UAMultiStateValueDiscrete) {
-    variable.on("value_changed", (value: DataValue) => {
-        const valueAsTextNode = variable.valueAsText || (variable.getComponentByName("ValueAsText") as UAVariable);
+import { add_dataItem_stuff } from "./add_dataItem_stuff";
+import { UAVariableImpl } from "../ua_variable_impl";
+
+function install_synchronization<T, DT extends DataType>(variable: UAMultiStateValueDiscreteEx<T, DT>) {
+    const _variable = variable as UAMultiStateValueDiscreteEx<T, DT>;
+    _variable.on("value_changed", (value: DataValue) => {
+        const valueAsTextNode = variable.valueAsText || (_variable.getComponentByName("ValueAsText") as UAVariable);
         if (!valueAsTextNode) {
             return;
         }
-        const valueAsText1 = variable._findValueAsText(value.value.value);
+        const valueAsText1 = _variable.findValueAsText(value.value.value);
         valueAsTextNode.setValueFromSource(valueAsText1);
     });
-    variable.emit("value_changed", variable.readValue());
+    _variable.emit("value_changed", _variable.readValue());
 }
 
-export interface UAMultiStateValueDiscrete {
-    enumValues: Property<EnumValueType[], DataType.ExtensionObject>;
-    valueAsText: Property<LocalizedText, DataType.LocalizedText>;
+export interface UAMultiStateValueDiscreteImpl<T, DT extends DataType> {
+    enumValues: UAProperty<DTEnumValue[], DataType.ExtensionObject>;
+    valueAsText: UAProperty<LocalizedText, DataType.LocalizedText>;
+
+    readValue(
+        context?: ISessionContext | null,
+        indexRange?: NumericRange,
+        dataEncoding?: QualifiedNameLike | null
+    ): DataValueT<T, DT>;
+
+    readValueAsync(context: ISessionContext | null, callback?: any): any;
 }
-export class UAMultiStateValueDiscrete extends UAVariable implements UAMultiStateValueDiscretePublic {
+export class UAMultiStateValueDiscreteImpl<T, DT extends DataType>
+    extends UAVariableImpl
+    implements UAMultiStateValueDiscreteEx<T, DT>
+{
     public setValue(value: string | number | Int64): void {
         if (typeof value === "string") {
             const enumValues = this.enumValues.readValue().value.value;
@@ -60,7 +69,7 @@ export class UAMultiStateValueDiscrete extends UAVariable implements UAMultiStat
     }
 
     public getValueAsNumber(): number {
-        return this.readValue().value.value;
+        return this.readValue().value.value as unknown as number;
     }
 
     public checkVariantCompatibility(value: Variant): StatusCode {
@@ -72,8 +81,8 @@ export class UAMultiStateValueDiscrete extends UAVariable implements UAMultiStat
         return StatusCodes.Good;
     }
 
-    public clone(options1: any, optionalFilter: any, extraInfo: any): UAMultiStateValueDiscrete {
-        const variable1 = UAVariable.prototype.clone.call(this, options1, optionalFilter, extraInfo);
+    public clone<T, DT extends DataType>(options1: any, optionalFilter: any, extraInfo: any): UAMultiStateValueDiscreteImpl<T, DT> {
+        const variable1 = UAVariableImpl.prototype.clone.call(this, options1, optionalFilter, extraInfo);
         return promoteToMultiStateValueDiscrete(variable1);
     }
 
@@ -82,8 +91,8 @@ export class UAMultiStateValueDiscrete extends UAVariable implements UAMultiStat
      */
     public _isValueInRange(value: number): boolean {
         // MultiStateValueDiscreteType
-        const enumValues = this.enumValues.readValue().value.value as EnumValueType[];
-        const e = enumValues.findIndex((x: EnumValueType) => coerceInt32(x.value) === value);
+        const enumValues = this.enumValues.readValue().value.value as DTEnumValue[];
+        const e = enumValues.findIndex((x: DTEnumValue) => coerceInt32(x.value) === value);
         return !(e === -1);
     }
     /**
@@ -126,7 +135,7 @@ export class UAMultiStateValueDiscrete extends UAVariable implements UAMultiStat
      *
      * @private
      */
-    public _findValueAsText(value?: number | Int64): Variant {
+    public findValueAsText(value?: number | Int64): Variant {
         const enumValueIndex = this._enumValueIndex();
 
         if (value === undefined) {
@@ -185,22 +194,22 @@ export class UAMultiStateValueDiscrete extends UAVariable implements UAMultiStat
     }
 }
 
-export function promoteToMultiStateValueDiscrete(node: UAVariablePublic): UAMultiStateValueDiscrete {
-    if (node instanceof UAMultiStateValueDiscrete) {
+export function promoteToMultiStateValueDiscrete<T, DT extends DataType>(node: UAVariable): UAMultiStateValueDiscreteImpl<T, DT> {
+    if (node instanceof UAMultiStateValueDiscreteImpl) {
         return node; // already promoted
     }
-    Object.setPrototypeOf(node, UAMultiStateValueDiscrete.prototype);
-    assert(node instanceof UAMultiStateValueDiscrete, "should now  be a State Machine");
-    (node as UAMultiStateValueDiscrete)._post_initialize();
-    return node as UAMultiStateValueDiscrete;
+    Object.setPrototypeOf(node, UAMultiStateValueDiscreteImpl.prototype);
+    assert(node instanceof UAMultiStateValueDiscreteImpl, "should now  be a State Machine");
+    (node as UAMultiStateValueDiscreteImpl<T, DT>)._post_initialize();
+    return node as UAMultiStateValueDiscreteImpl<T, DT>;
 }
 
 registerNodePromoter(VariableTypeIds.MultiStateValueDiscreteType, promoteToMultiStateValueDiscrete);
 
-export function _addMultiStateValueDiscrete(
-    namespace: Namespace,
+export function _addMultiStateValueDiscrete<T, DT extends DataType>(
+    namespace: INamespace,
     options: AddMultiStateValueDiscreteOptions
-): UAMultiStateValueDiscretePublic {
+): UAMultiStateValueDiscreteEx<T, DT> {
     assert(options.hasOwnProperty("enumValues"));
     assert(!options.hasOwnProperty("ValuePrecision"));
 
@@ -220,9 +229,9 @@ export function _addMultiStateValueDiscrete(
     if (options.value === undefined && enumValues[0]) {
         options.value = enumValues[0].value; // Int64
     }
-    let value: undefined  | BindVariableOptions;
-    if (typeof options.value === "number" || isValidUInt64(options.value)) {
-        if (isValidUInt64(options.value)) {
+    let value: undefined | BindVariableOptions;
+    if (typeof options.value === "number" || isValidUInt64(options.value as number | number[])) {
+        if (isValidUInt64(options.value as number | number[])) {
             value = new Variant({
                 dataType: DataType.UInt32,
                 value: (options.value as Int64)[1] // Low word
@@ -247,7 +256,7 @@ export function _addMultiStateValueDiscrete(
         valueRank: -1 // -1 : Scalar
     };
 
-    const variable = namespace.addVariable(cloned_options) as UAMultiStateValueDiscretePublic;
+    const variable = namespace.addVariable(cloned_options) as UAMultiStateValueDiscreteEx<T, DT>;
 
     add_dataItem_stuff(variable, options);
 

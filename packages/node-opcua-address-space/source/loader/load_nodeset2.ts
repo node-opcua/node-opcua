@@ -38,21 +38,20 @@ import { CallbackT, ErrorCallback, isValidGuid, StatusCodes } from "node-opcua-b
 
 import {
     AddReferenceTypeOptions,
-    AddressSpace as AddressSpacePublic,
+    IAddressSpace,
+    BaseNode,
     CreateNodeOptions,
-    Namespace,
-    PseudoSession
-} from "../../source";
-import { AddressSpace } from "../../src/address_space";
-import { AddressSpacePrivate } from "../../src/address_space_private";
-import { BaseNode } from "../../src/base_node";
-import { NamespacePrivate } from "../../src/namespace_private";
-import { UADataType } from "../../src/ua_data_type";
-import { UAVariable } from "../../src/ua_variable";
-import { UAVariableType } from "../../src/ua_variable_type";
+    INamespace,
+    UADataType,
+    UAVariable,
+    UAVariableType,
+} from "node-opcua-address-space-base";
 
+import { AddressSpacePrivate } from "../../src/address_space_private";
+import { NamespacePrivate } from "../../src/namespace_private";
 import * as PrettyError from "pretty-error";
 import { promoteObjectsAndVariables } from "./namespace_post_step";
+import { PseudoSession } from "../pseudo_session";
 const pe = new PrettyError();
 
 const doDebug = checkDebugFlag(__filename);
@@ -63,8 +62,8 @@ export async function ensureDatatypeExtracted(addressSpace: any): Promise<ExtraD
     if (!addressSpacePriv.$$extraDataTypeManager) {
         const dataTypeManager = new ExtraDataTypeManager();
 
-        const namespaceArray = addressSpace.getNamespaceArray().map((n: Namespace) => n.namespaceUri);
-        debugLog("Namespace Array = ", namespaceArray.join("\n                   "));
+        const namespaceArray = addressSpace.getNamespaceArray().map((n: INamespace) => n.namespaceUri);
+        debugLog("INamespace Array = ", namespaceArray.join("\n                   "));
         dataTypeManager.setNamespaceArray(namespaceArray);
         addressSpacePriv.$$extraDataTypeManager = dataTypeManager;
 
@@ -82,7 +81,7 @@ export async function ensureDatatypeExtracted(addressSpace: any): Promise<ExtraD
 }
 
 export function ensureDatatypeExtractedWithCallback(
-    addressSpace: AddressSpacePublic,
+    addressSpace: IAddressSpace,
     callback: CallbackT<ExtraDataTypeManager>
 ): void {
     ensureDatatypeExtracted(addressSpace)
@@ -90,7 +89,7 @@ export function ensureDatatypeExtractedWithCallback(
         .catch((err) => callback(err));
 }
 
-function findDataTypeNode(addressSpace: AddressSpace, encodingNodeId: NodeId): UADataType {
+function findDataTypeNode(addressSpace: IAddressSpace, encodingNodeId: NodeId): UADataType {
     const encodingNode = addressSpace.findNode(encodingNodeId)!;
 
     // istanbul ignore next
@@ -116,7 +115,7 @@ function findDataTypeNode(addressSpace: AddressSpace, encodingNodeId: NodeId): U
 }
 
 async function decodeXmlObject(
-    addressSpace2: AddressSpace,
+    addressSpace2: IAddressSpace,
     xmlEncodingNodeId: NodeId,
     xmlBody: string
 ): Promise<ExtensionObject | null> {
@@ -188,21 +187,19 @@ function makeStructureDefinition(name: string, definitionFields: StructureFieldO
     return sd;
 }
 
-function __make_back_references(namespace: NamespacePrivate) {
-    for (const node of namespace.nodeIterator()) {
+function __make_back_references(namespace: INamespace) {
+    const namespaceP = namespace as NamespacePrivate;
+    for (const node of namespaceP.nodeIterator()) {
         node.propagate_back_references();
     }
-    for (const node of namespace.nodeIterator()) {
+    for (const node of namespaceP.nodeIterator()) {
         node.install_extra_properties();
     }
 }
 
-/**
- * @method make_back_references
- * @param addressSpace  {AddressSpace}
- */
-function make_back_references(addressSpace: AddressSpace): void {
-    addressSpace.suspendBackReference = false;
+function make_back_references(addressSpace: IAddressSpace): void {
+    const addressSpacePrivate = addressSpace as AddressSpacePrivate;
+    addressSpacePrivate.suspendBackReference = false;
     addressSpace.getNamespaceArray().map(__make_back_references);
 }
 
@@ -216,17 +213,17 @@ function convertAccessLevel(accessLevel?: string | null): AccessLevelFlag {
     return makeAccessLevelFlag(accessLevelN);
 }
 
-type Task = (addressSpace: AddressSpace) => Promise<void>;
+type Task = (addressSpace: IAddressSpace) => Promise<void>;
 
 function makeDefaultVariant2(
-    addressSpace: AddressSpacePublic,
+    addressSpace: IAddressSpace,
     dataTypeNode: NodeId,
     valueRank: number
 ): VariantOptions | undefined {
     const variant: VariantOptions = { dataType: DataType.Null };
     return variant;
 }
-function makeDefaultVariant(addressSpace: AddressSpacePublic, dataTypeNode: NodeId, valueRank: number): VariantOptions | undefined {
+function makeDefaultVariant(addressSpace: IAddressSpace, dataTypeNode: NodeId, valueRank: number): VariantOptions | undefined {
     let variant: VariantOptions = { dataType: DataType.Null };
 
     const nodeDataType = addressSpace.findNode(dataTypeNode);
@@ -274,9 +271,9 @@ function makeDefaultVariant(addressSpace: AddressSpacePublic, dataTypeNode: Node
     return variant;
 }
 
-export function makeStuff(addressSpace: AddressSpacePublic) {
-    const addressSpace1 = addressSpace as AddressSpace;
-
+export function makeStuff(addressSpace: IAddressSpace) {
+    
+    const addressSpace1 = addressSpace as AddressSpacePrivate;
     addressSpace1.suspendBackReference = true;
 
     let postTasks: Task[] = [];
@@ -339,7 +336,7 @@ export function makeStuff(addressSpace: AddressSpacePublic) {
         } // already translated
 
         const namespace = addressSpace1.getNamespace(params.nodeId.namespace);
-        return namespace._createNode(params) as BaseNode;
+        return namespace.internalCreateNode(params) as BaseNode;
     }
 
     function _register_namespace_uri(namespaceUri: string): NamespacePrivate {
@@ -571,7 +568,7 @@ export function makeStuff(addressSpace: AddressSpacePublic) {
             const definitionName = dataTypeNode.browseName.name!;
 
             let alreadyCalled = false;
-            const processBasicDataType = async (addressSpace2: AddressSpace) => {
+            const processBasicDataType = async (addressSpace2: IAddressSpace) => {
                 assert(!alreadyCalled);
                 alreadyCalled = true;
 
@@ -924,7 +921,7 @@ export function makeStuff(addressSpace: AddressSpacePublic) {
                             debugLog("xxxx ", chalk.yellow(xmlBody));
                         }
                         const postTaskData = self.postTaskData;
-                        const task = async (addressSpace2: AddressSpace) => {
+                        const task = async (addressSpace2: IAddressSpace) => {
                             const extensionObject: ExtensionObject | null = await decodeXmlObject(
                                 addressSpace2,
                                 xmlEncodingNodeId,
@@ -1245,7 +1242,7 @@ export function makeStuff(addressSpace: AddressSpacePublic) {
                     if (!data.variant) {
                         data.nodeId = this.parent.parent.obj.nodeId;
                         this.postTaskData = null;
-                        const task = async (addressSpace2: AddressSpace) => {
+                        const task = async (addressSpace2: IAddressSpace) => {
                             data.variant.value = data.postponedExtensionObject;
                             assert(data.nodeId, "expecting a nodeid");
                             const node = addressSpace2.findNode(data.nodeId)!;
@@ -1255,7 +1252,7 @@ export function makeStuff(addressSpace: AddressSpacePublic) {
                             }
                             if (node.nodeClass === NodeClass.VariableType) {
                                 const v = node as UAVariableType;
-                                v.value.value = data.variant.value;
+                                (v as any/*fix me*/).value.value = data.variant.value;
                             }
                         };
                         postTasks3.push(task);
@@ -1298,7 +1295,7 @@ export function makeStuff(addressSpace: AddressSpacePublic) {
             let variable: UAVariable;
             if (this.obj.value) {
                 const capturedValue = this.obj.value;
-                const task = async (addressSpace2: AddressSpace) => {
+                const task = async (addressSpace2: IAddressSpace) => {
                     if (false && doDebug) {
                         debugLog("1 setting value to ", variable.nodeId.toString(), new Variant(capturedValue).toString());
                     }
@@ -1306,7 +1303,7 @@ export function makeStuff(addressSpace: AddressSpacePublic) {
                 };
                 postTaskInitializeVariable.push(task);
             } else {
-                const task = async (addressSpace2: AddressSpace) => {
+                const task = async (addressSpace2: IAddressSpace) => {
                     const dataTypeNode = variable.dataType;
                     const valueRank = variable.valueRank;
                     const value = makeDefaultVariant(addressSpace, dataTypeNode, valueRank);
@@ -1491,8 +1488,8 @@ export function makeStuff(addressSpace: AddressSpacePublic) {
 
         // setting up Server_NamespaceArray
 
-        if (addressSpace.rootFolder?.objects?.server?.namespaceArray) {
-            addressSpace.rootFolder.objects.server.namespaceArray.setValueFromSource({
+        if (addressSpace1.rootFolder?.objects?.server?.namespaceArray) {
+            addressSpace1.rootFolder.objects.server.namespaceArray.setValueFromSource({
                 arrayType: VariantArrayType.Array,
                 dataType: DataType.String,
                 value: addressSpace1.getNamespaceArray().map((ns) => ns.namespaceUri)
@@ -1501,7 +1498,7 @@ export function makeStuff(addressSpace: AddressSpacePublic) {
             if (doDebug) {
                 debugLog(
                     "addressSpace NS = ",
-                    addressSpace.rootFolder.objects.server.namespaceArray.readValue().value.value.join(" ")
+                    addressSpace1.rootFolder.objects.server.namespaceArray.readValue().value.value.join(" ")
                 );
             }
         }
@@ -1583,7 +1580,7 @@ export function makeStuff(addressSpace: AddressSpacePublic) {
 }
 export class NodeSetLoader {
     _s: any;
-    constructor(addressSpace: AddressSpace) {
+    constructor(addressSpace: IAddressSpace) {
         this._s = makeStuff(addressSpace);
     }
     addNodeSet(xmlData: string, callback: ErrorCallback) {

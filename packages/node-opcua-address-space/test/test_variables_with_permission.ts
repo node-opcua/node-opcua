@@ -15,7 +15,7 @@ import {
 import { ObjectIds } from "node-opcua-constants";
 import { StatusCodes } from "node-opcua-status-code";
 
-import { UAObject, AddressSpace, Namespace, PseudoSession, SessionContext, setNamespaceMetaData, UAVariable } from "..";
+import { UAObject, Namespace, PseudoSession, SessionContext, setNamespaceMetaData, UAVariable, AddressSpace } from "..";
 import { getMiniAddressSpace } from "../testHelpers";
 import { NodeId, resolveNodeId } from "node-opcua-nodeid";
 import { WellKnownRoles, makeRoles } from "..";

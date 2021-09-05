@@ -32,7 +32,6 @@ const { build_address_space_for_conformance_testing } = require("node-opcua-addr
  * @param parentNode
  */
 function addTestUAAnalogItem(parentNode) {
-    //xx    assert(parentNode instanceof BaseNode);
 
     const addressSpace = parentNode.addressSpace;
     const namespace = addressSpace.getOwnNamespace();

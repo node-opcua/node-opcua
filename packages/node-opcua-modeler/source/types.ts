@@ -1,1 +1,1 @@
-export { UANamespaceMetadataType } from "node-opcua-address-space";
+export { UANamespaceMetadata } from "node-opcua-address-space";

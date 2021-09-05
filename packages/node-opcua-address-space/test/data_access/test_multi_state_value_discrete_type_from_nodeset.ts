@@ -4,8 +4,10 @@ import * as should from "should";
 
 import { nodesets } from "node-opcua-nodesets";
 
-import { AddressSpace, UAVariable, UAMultiStateValueDiscrete, UAMultiStateDiscrete } from "../..";
+import { AddressSpace, UAVariable, UAMultiStateValueDiscrete, UAMultiStateDiscrete, UAMultiStateValueDiscreteEx, UAMultiStateDiscreteEx } from "../..";
 import { generateAddressSpace } from "../../nodeJS";
+import { StatusCodes } from "node-opcua-status-code";
+import { DataType } from "node-opcua-variant";
 
 // tslint:disable-next-line:no-var-requires
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
@@ -36,8 +38,9 @@ describe("MultiStateValueDiscreteType - 2", () => {
         const variable = addressSpace.findNode("ns=2;i=16003") as UAVariable;
         variable.browseName.toString().should.eql("2:VariableMultiStateValueDiscrete");
 
-        const multiStateValueDiscreteVar = variable as UAMultiStateValueDiscrete;
+        const multiStateValueDiscreteVar = variable as UAMultiStateValueDiscreteEx<number, DataType.UInt32>;
         // no need tp promote explicitly anymore promoteToMultiStateValueDiscrete(variable);
+
 
         multiStateValueDiscreteVar.setValue(1);
         multiStateValueDiscreteVar.getValueAsNumber().should.eql(1);
@@ -64,6 +67,10 @@ describe("MultiStateValueDiscreteType - 2", () => {
             multiStateValueDiscreteVar.setValue(12345);
         }).throw();
         multiStateValueDiscreteVar.getValueAsNumber().should.eql(3);
+
+        /// STANDARD READ
+        multiStateValueDiscreteVar.readValue().value.value.should.eql(3);
+        multiStateValueDiscreteVar.readValue().statusCode.should.eql(StatusCodes.Good);
     });
 
     it("ZYZ-2 it should promoteToMultiStateDiscrete from an existing nodeset", async () => {
@@ -72,7 +79,7 @@ describe("MultiStateValueDiscreteType - 2", () => {
         const variable = addressSpace.findNode("ns=2;i=26001") as UAVariable;
         variable.browseName.toString().should.eql("2:VariableMultiStateDiscrete");
 
-        const multiStateDiscreteVar = variable as UAMultiStateDiscrete;
+        const multiStateDiscreteVar = variable as UAMultiStateDiscreteEx<number, DataType.UInt32>;
         // no need tp promote explicitly anymore promoteToMultiStateDiscrete(variable);
 
         multiStateDiscreteVar.setValue(1);

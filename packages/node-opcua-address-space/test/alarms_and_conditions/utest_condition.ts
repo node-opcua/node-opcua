@@ -13,16 +13,11 @@ import { Variant } from "node-opcua-variant";
 import { coerceLocalizedText } from "node-opcua-data-model";
 import {
     AddressSpace,
-    BaseNode,
     ConditionInfo,
-    ConditionSnapshot,
-    ConditionType,
     SessionContext,
-    UAAlarmConditionBase,
-    UAConditionBase,
+    UAConditionEx,
     UAEventType,
     UAObject,
-    UAVariable,
 } from "../..";
 
 export function utest_condition(test: any) {
@@ -142,7 +137,7 @@ export function utest_condition(test: any) {
             );
 
             describe("Testing Branches ", () => {
-                let condition: UAConditionBase;
+                let condition: UAConditionEx;
 
                 before(() => {
                     const namespace = addressSpace.getOwnNamespace();
@@ -444,7 +439,7 @@ export function utest_condition(test: any) {
                     new Variant({ dataType: DataType.LocalizedText, value: coerceLocalizedText("Some message") }),
                 ];
 
-                const conditionType = addressSpace.findObjectType("ConditionType")! as ConditionType;
+                const conditionType = addressSpace.findObjectType("ConditionType")! as unknown as UAConditionEx;
 
                 conditionType.addComment.execute(condition, param, context, (err: Error | null, callMethodResult: CallMethodResultOptions) => {
                     callMethodResult.statusCode!.should.equal(StatusCodes.Good);
@@ -667,7 +662,7 @@ export function utest_condition(test: any) {
                     condition.currentBranch().setRetain(true);
 
                     // conditionRefresh shall be called from ConditionType
-                    const conditionType = addressSpace.findObjectType("ConditionType")! as ConditionType;
+                    const conditionType = addressSpace.findObjectType("ConditionType")!;
 
                     const context = new SessionContext({
                         object: conditionType,
@@ -686,7 +681,7 @@ export function utest_condition(test: any) {
 
                     const subscriptionIdVar = new Variant({ dataType: DataType.UInt32, value: 2 });
 
-                    conditionType.conditionRefresh.execute(
+                    conditionType.getMethodByName("ConditionRefresh")!.execute(
                         condition,
                         [subscriptionIdVar],
                         context,

@@ -6,7 +6,7 @@ import { BinaryStream, OutputBinaryStream } from "node-opcua-binary-stream";
 
 import { getRandomInt } from "./utils";
 
-export function isValidString(value: any): boolean {
+export function isValidString(value: unknown): boolean {
     return typeof value === "string";
 }
 

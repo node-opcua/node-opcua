@@ -2621,7 +2621,7 @@ module.exports = function (test) {
                             function (callback) {
                                 // on server side : modify displayName
                                 const node = server.engine.addressSpace.findNode(readValue.nodeId);
-                                node.displayName = "Changed Value";
+                                node.setDisplayName("Changed Value");
                                 callback();
                             },
 

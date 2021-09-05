@@ -10,7 +10,9 @@ import {
     UAMethod,
     UATrustList,
     UAObject,
-    UAVariable
+    UAVariable,
+    UAServerConfiguration,
+    ISessionContext
 } from "node-opcua-address-space";
 import {
     checkDebugFlag,
@@ -67,7 +69,7 @@ function expected(
 
 function getPushCertificateManager(method: UAMethod): PushCertificateManager | null {
 
-    const serverConfiguration = method.addressSpace.rootFolder.objects.server.serverConfiguration;
+    const serverConfiguration = method.addressSpace.rootFolder.objects.server.getChildByName("ServerConfiguration");
     const serverConfigurationPriv = serverConfiguration as any;
     if (serverConfigurationPriv.$pushCertificateManager) {
         return serverConfigurationPriv.$pushCertificateManager;
@@ -80,7 +82,7 @@ function getPushCertificateManager(method: UAMethod): PushCertificateManager | n
 async function _createSigningRequest(
     this: UAMethod,
     inputArguments: Variant[],
-    context: SessionContext
+    context: ISessionContext
 ): Promise<CallMethodResultOptions> {
 
     const certificateGroupIdVariant = inputArguments[0];
@@ -155,7 +157,7 @@ async function _createSigningRequest(
 async function _updateCertificate(
     this: UAMethod,
     inputArguments: Variant[],
-    context: SessionContext
+    context: ISessionContext
 ): Promise<CallMethodResultOptions> {
 
     const certificateGroupId: NodeId = inputArguments[0].value as NodeId;
@@ -213,7 +215,7 @@ async function _updateCertificate(
 async function _getRejectedList(
     this: UAMethod,
     inputArguments: Variant[],
-    context: SessionContext
+    context: ISessionContext
 ): Promise<CallMethodResultOptions> {
 
     if (!hasEncryptedChannel(context)) {
@@ -249,7 +251,7 @@ async function _getRejectedList(
 async function _applyChanges(
     this: UAMethod,
     inputArguments: Variant[],
-    context: SessionContext
+    context: ISessionContext
 ): Promise<CallMethodResultOptions> {
 
     // This Method requires an encrypted channel and that the Client provide credentials with
@@ -274,7 +276,7 @@ function bindCertificateManager(
     options: PushCertificateManagerServerOptions
 ) {
 
-    const serverConfiguration = addressSpace.rootFolder.objects.server.serverConfiguration;
+    const serverConfiguration = addressSpace.rootFolder.objects.server.getChildByName("ServerConfiguration")! as UAServerConfiguration;
 
     const defaultApplicationGroup = serverConfiguration.certificateGroups.getComponentByName("DefaultApplicationGroup");
     if (defaultApplicationGroup) {
@@ -306,7 +308,7 @@ export async function installPushCertificateManagement(
     options: PushCertificateManagerServerOptions
 ): Promise<void> {
 
-    const serverConfiguration = addressSpace.rootFolder.objects.server.serverConfiguration;
+    const serverConfiguration = addressSpace.rootFolder.objects.server.getChildByName("ServerConfiguration")! as UAServerConfiguration;
 
     const serverConfigurationPriv = serverConfiguration as any;
     if (serverConfigurationPriv.$pushCertificateManager) {

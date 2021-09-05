@@ -13,7 +13,7 @@ import { DataType } from "node-opcua-variant";
 import { Variant } from "node-opcua-variant";
 
 import { DataValue } from "node-opcua-data-value";
-import { AddressSpace, BaseNode, ConditionSnapshot, SessionContext, UAAlarmConditionBase, UAObject, UAVariable } from "../..";
+import { AddressSpace, BaseNode, ConditionSnapshot, SessionContext, UAAlarmConditionEx, UAAlarmConditionImpl, UAObject, UAVariable } from "../..";
 
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 const debugLog = make_debugLog("TEST");
@@ -51,11 +51,11 @@ export function utest_alarm_condition(test: any) {
                 componentOf: source,
                 conditionSource: source,
                 inputNode: variableWithAlarm
-            });
+            }) as UAAlarmConditionImpl;
 
-            alarm.constructor.name.should.eql("UAAlarmConditionBase");
-            should.not.exist((alarm as any).maxTimedShelved);
-            should.not.exist((alarm as any).confirmedState);
+            alarm.constructor.name.should.eql("UAAlarmConditionImpl");
+            should.not.exist(alarm.maxTimeShelved);
+            should.not.exist(alarm.confirmedState);
             // HasTrueSubState and HasFalseSubState relationship must be maintained
             alarm.enabledState.getTrueSubStates().length.should.eql(2);
             alarm.browseName.toString().should.eql("1:AlarmCondition2");
@@ -94,7 +94,7 @@ export function utest_alarm_condition(test: any) {
         });
 
         describe("should instantiate AlarmConditionType with ConfirmedState", async () => {
-            let alarm: UAAlarmConditionBase;
+            let alarm: UAAlarmConditionEx;
             before(() => {
                 alarm = addressSpace.getOwnNamespace().instantiateAlarmCondition(
                     "AlarmConditionType",
@@ -147,7 +147,7 @@ export function utest_alarm_condition(test: any) {
                 // playing with suppressed State
                 // ---------------------------------------------------------------------------------------------
                 // we can set suppressedState this way ( by setting the id as a boolean)
-                alarm.suppressedState.constructor.name.should.eql("UATwoStateVariable");
+                alarm.suppressedState.constructor.name.should.eql("UATwoStateVariableImpl");
 
                 alarm.suppressedState.setValue(true);
                 alarm.suppressedState.getValue().should.eql(true);
@@ -162,8 +162,7 @@ export function utest_alarm_condition(test: any) {
                 // ---------------------------------------------------------------------------------------------
                 // playing with ShelvingState
                 // ---------------------------------------------------------------------------------------------
-                alarm.shelvingState.constructor.name.should.eql("ShelvingStateMachine");
-
+            
                 function getBrowseName(x: BaseNode): string {
                     return x.browseName.toString();
                 }
@@ -181,7 +180,7 @@ export function utest_alarm_condition(test: any) {
             });
 
             it("checking shelving state behavior with automatic unshelving", async () => {
-                alarm.shelvingState.constructor.name.should.eql("ShelvingStateMachine");
+                alarm.shelvingState.constructor.name.should.eql("UAShelvedStateMachineEx");
 
                 alarm.shelvingState.setState("Unshelved");
                 alarm.shelvingState.getCurrentState()!.should.eql("Unshelved");
@@ -240,7 +239,7 @@ export function utest_alarm_condition(test: any) {
                 // ---------------------------------------------------------------------------------------------
                 // playing with suppressedOrShelved ( automatically updated)
                 // ---------------------------------------------------------------------------------------------
-                alarm.suppressedOrShelved.constructor.name.should.eql("UAVariable");
+                alarm.suppressedOrShelved.constructor.name.should.eql("UAVariableImpl");
                 alarm.suppressedOrShelved.dataType.toString().should.eql("ns=0;i=1"); // Boolean
 
                 alarm.shelvingState.setState("Unshelved");
@@ -372,7 +371,7 @@ export function utest_alarm_condition(test: any) {
                 conditionSource: source,
                 inputNode: NodeId.nullNodeId,
                 optionals: ["ConfirmedState", "Confirm"]
-            });
+            }) as UAAlarmConditionImpl;
 
             // confirmed:  --------------+           +-------------------+      +----------------
             //                           +-----------+                   +------+
@@ -508,7 +507,7 @@ export function utest_alarm_condition(test: any) {
                         // Step 3 : Alarm goes inactive
                         //    branchId  |  Active  | Acked | Confirmed | Retain |
                         // 1) null      |  False   | true  | false     | true   |
-                        condition.desactivateAlarm();
+                        condition.deactivateAlarm();
                         should(condition.branchId.readValue().value.value).eql(NodeId.nullNodeId);
                         should(condition.activeState.readValue().value.value.text).eql("Inactive");
                         should(condition.ackedState.readValue().value.value.text).eql("Acknowledged");
@@ -590,7 +589,7 @@ export function utest_alarm_condition(test: any) {
                         //    branchId  |  Active  | Acked | Confirmed | Retain |
                         //    null      |  fals    | false | true      | true   |
 
-                        condition.desactivateAlarm();
+                        condition.deactivateAlarm();
 
                         should(condition.branchId.readValue().value.value).eql(NodeId.nullNodeId);
                         should(condition.activeState.readValue().value.value.text).eql("Inactive");

@@ -2,8 +2,8 @@
 import { Benchmarker } from "node-opcua-benchmarker";
 import { BinaryStream, OutputBinaryStream } from "node-opcua-binary-stream";
 import { Guid, isValidGuid } from "node-opcua-guid";
-import { encodeGuid, randomGuid } from "..";
 import * as should from "should";
+import { encodeGuid, randomGuid } from "..";
 
 function write_UInt16Old(stream: OutputBinaryStream, guid: string, starts: number[]) {
     const n = starts.length;
@@ -121,7 +121,7 @@ describe("Map vs Object", () => {
                 counter = (counter + 1) % 120000;
             })
             .add("with Object", () => {
-                _map.hasOwnProperty(counter.toString());
+                Object.prototype.hasOwnProperty.call(_map,counter.toString());
                 counter = (counter + 1) % 120000;
             })
             .on("cycle", (message) => {

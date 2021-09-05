@@ -5,6 +5,7 @@ import { Variant } from "node-opcua-variant";
 import {
     AddressSpace,
     UAExclusiveDeviationAlarm,
+    UAExclusiveDeviationAlarmEx,
     UAObject,
     UAVariable
 } from "../..";
@@ -36,7 +37,7 @@ export function utest_exclusive_deviation_alarm(test: any) {
 
         describe("ExclusiveDeviationAlarm", () => {
 
-            let alarm: UAExclusiveDeviationAlarm;
+            let alarm: UAExclusiveDeviationAlarmEx;
             before(() => {
 
                 setpointNodeNode.setValueFromSource({ dataType: "Double", value: 0 });

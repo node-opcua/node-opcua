@@ -53,7 +53,7 @@ describe("Testing client that have policyId = null in Activate Session for anony
             const session = await client.createSession();
             await session.close();
         } catch (_err) {
-            err = _err;
+            err = _err as Error;
             console.log("err =", err.message);
         }
         await client.disconnect();

@@ -62,10 +62,10 @@ function nodeID_encodingByte(nodeId: NodeId): number {
         encodingByte = encodingByte | EnumNodeIdEncoding.Guid;
     }
 
-    if (nodeId.hasOwnProperty("namespaceUri") && (nodeId as ExpandedNodeId).namespaceUri) {
+    if (Object.prototype.hasOwnProperty.call(nodeId,"namespaceUri") && (nodeId as ExpandedNodeId).namespaceUri) {
         encodingByte = encodingByte | EnumNodeIdEncoding.NamespaceUriFlag;
     }
-    if (nodeId.hasOwnProperty("serverIndex") && (nodeId as ExpandedNodeId).serverIndex) {
+    if (Object.prototype.hasOwnProperty.call(nodeId,"serverIndex") && (nodeId as ExpandedNodeId).serverIndex) {
         encodingByte = encodingByte | EnumNodeIdEncoding.ServerIndexFlag;
     }
     return encodingByte;
@@ -122,7 +122,7 @@ export function encodeNodeId(nodeId: NodeId, stream: OutputBinaryStream): void {
     _encodeNodeId(encodingByte, nodeId, stream);
 }
 
-export function encodeExpandedNodeId(expandedNodeId: ExpandedNodeId, stream: OutputBinaryStream) {
+export function encodeExpandedNodeId(expandedNodeId: ExpandedNodeId, stream: OutputBinaryStream): void {
     assert(expandedNodeId, "encodeExpandedNodeId: must provide a valid expandedNodeId");
     const encodingByte = nodeID_encodingByte(expandedNodeId);
     _encodeNodeId(encodingByte, expandedNodeId, stream);

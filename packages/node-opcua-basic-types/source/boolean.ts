@@ -4,11 +4,11 @@
 import { assert } from "node-opcua-assert";
 import { BinaryStream, OutputBinaryStream } from "node-opcua-binary-stream";
 
-export function isValidBoolean(value: any): boolean {
+export function isValidBoolean(value: unknown): boolean {
     return typeof value === "boolean";
 }
 
-export function randomBoolean() {
+export function randomBoolean(): boolean {
     return Math.random() > 0.5;
 }
 

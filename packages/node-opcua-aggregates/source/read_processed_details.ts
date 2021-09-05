@@ -1,6 +1,6 @@
 import * as async from "async";
 import { AggregateFunction } from "node-opcua-constants";
-import { SessionContext, ContinuationPoint, UAVariable } from "node-opcua-address-space";
+import { ISessionContext, ContinuationPoint, UAVariable } from "node-opcua-address-space";
 import { NumericRange } from "node-opcua-numeric-range";
 import { QualifiedNameLike } from "node-opcua-data-model";
 import { CallbackT, StatusCodes } from "node-opcua-status-code";
@@ -22,7 +22,7 @@ import { getAverageData } from "./average";
 
 export function readProcessedDetails(
     variable: UAVariable,
-    context: SessionContext,
+    context: ISessionContext,
     historyReadDetails: ReadProcessedDetails,
     indexRange: NumericRange | null,
     dataEncoding: QualifiedNameLike | null,

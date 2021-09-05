@@ -6,15 +6,16 @@ import { assert } from "node-opcua-assert";
 import * as should from "should";
 
 import { standardUnits } from "node-opcua-data-access";
+import { DataType } from "node-opcua-variant";
 import { nodesets, constructNodesetFilename } from "node-opcua-nodesets";
-import { AddressSpace, RootFolder, UAAnalogItem, UAObject, UAObjectType } from "..";
+import { AddressSpace, UARootFolder, UAAnalogItem, UAObject, UAObjectType } from "..";
 import { generateAddressSpace } from "../nodeJS";
 
 interface MyCustomType extends UAObjectType {
-    temperature: UAAnalogItem;
+    temperature: UAAnalogItem<number, DataType.Double>;
 }
 interface MyCustom extends UAObject {
-    temperature: UAAnalogItem;
+    temperature: UAAnalogItem<number, DataType.Double>;
 }
 
 function createCustomType(addressSpace: AddressSpace): MyCustomType {
@@ -102,7 +103,7 @@ describe("issue #108", () => {
 
         await generateAddressSpace(addressSpace, xml_files);
 
-        const deviceSet = addressSpace.findNode("RootFolder")! as RootFolder;
+        const deviceSet = addressSpace.findNode("RootFolder")! as UARootFolder;
 
         const ftnirType = addressSpace.findObjectType("3:FTNIRSimulatorDeviceType")!;
 

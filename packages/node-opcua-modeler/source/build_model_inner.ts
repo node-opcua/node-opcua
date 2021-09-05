@@ -1,4 +1,6 @@
-import { AddressSpace, Namespace, NodeIdManager, XmlLoaderFunc, generateAddressSpaceRaw } from "node-opcua-address-space";
+import { 
+    AddressSpace, 
+    Namespace, NodeIdManager, XmlLoaderFunc, generateAddressSpaceRaw } from "node-opcua-address-space";
 import { buildDocumentationToString } from "./generate_markdown_doc";
 import { Symbols } from "./symbol";
 

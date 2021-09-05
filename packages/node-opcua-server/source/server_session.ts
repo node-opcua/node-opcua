@@ -16,8 +16,10 @@ import {
     removeElement,
     UADynamicVariableArray,
     UAObject,
-    UASessionDiagnostics,
-    UASessionSecurityDiagnostics
+    UASessionDiagnosticsVariable,
+    UASessionSecurityDiagnostics,
+    DTSessionDiagnostics,
+    DTSessionSecurityDiagnostics
 } from "node-opcua-address-space";
 
 import { assert } from "node-opcua-assert";
@@ -105,8 +107,8 @@ export class ServerSession extends EventEmitter implements ISubscriber, ISession
     public sessionObject: any;
     public readonly creationDate: Date;
     public sessionTimeout: number;
-    public sessionDiagnostics?: UASessionDiagnostics;
-    public sessionSecurityDiagnostics?: UASessionSecurityDiagnostics;
+    public sessionDiagnostics?: UASessionDiagnosticsVariable<DTSessionDiagnostics>;
+    public sessionSecurityDiagnostics?: UASessionSecurityDiagnostics<DTSessionSecurityDiagnostics>;
     public subscriptionDiagnosticsArray?: UADynamicVariableArray<SubscriptionDiagnosticsDataType>;
     public channel?: ServerSecureChannelLayer;
     public nonce?: Buffer;
@@ -321,7 +323,7 @@ export class ServerSession extends EventEmitter implements ISubscriber, ISession
      */
     public getSessionDiagnosticsArray(): UADynamicVariableArray<SessionDiagnosticsDataType> {
         const server = this.addressSpace!.rootFolder.objects.server;
-        return server.serverDiagnostics.sessionsDiagnosticsSummary.sessionDiagnosticsArray;
+        return server.serverDiagnostics.sessionsDiagnosticsSummary.sessionDiagnosticsArray as any;
     }
 
     /**
@@ -329,7 +331,7 @@ export class ServerSession extends EventEmitter implements ISubscriber, ISession
      */
     public getSessionSecurityDiagnosticsArray(): UADynamicVariableArray<SessionSecurityDiagnosticsDataType> {
         const server = this.addressSpace!.rootFolder.objects.server;
-        return server.serverDiagnostics.sessionsDiagnosticsSummary.sessionSecurityDiagnosticsArray;
+        return server.serverDiagnostics.sessionsDiagnosticsSummary.sessionSecurityDiagnosticsArray as any;
     }
 
     /**
@@ -685,7 +687,7 @@ export class ServerSession extends EventEmitter implements ISubscriber, ISession
                     componentOf: this.sessionObject,
                     extensionObject: this._sessionDiagnostics,
                     minimumSamplingInterval: 2000 // 2 seconds
-                }) as UASessionDiagnostics;
+                }) as UASessionDiagnosticsVariable<DTSessionDiagnostics>;
 
                 this._sessionDiagnostics = this.sessionDiagnostics.$extensionObject as SessionDiagnosticsDataTypeEx;
                 assert(this._sessionDiagnostics.$session === this);
@@ -773,7 +775,7 @@ export class ServerSession extends EventEmitter implements ISubscriber, ISession
                     componentOf: this.sessionObject,
                     extensionObject: this._sessionSecurityDiagnostics,
                     minimumSamplingInterval: 2000 // 2 seconds
-                }) as UASessionSecurityDiagnostics;
+                }) as UASessionSecurityDiagnostics<DTSessionSecurityDiagnostics>;
 
                 ensureObjectIsSecure(this.sessionSecurityDiagnostics);
 

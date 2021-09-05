@@ -6,7 +6,7 @@
 // For instance if ServerStatus
 //    const ServerStatusDataType = addressSpace.findDataType("ServerStatus");
 //    const serverStatus  = addressSpace.constructExtensionObject(ServerStatusDataType);
-//    serverStatus.constructor.name.should.eql("ServerStatus");
+//    serverStatus.constructor.name.should.eql("<<ServerStatus");
 //
 //
 
@@ -28,7 +28,7 @@ import { DataType } from "node-opcua-variant";
 import { Variant } from "node-opcua-variant";
 import { VariableIds } from "node-opcua-constants";
 import { nodesets } from "node-opcua-nodesets";
-import { AddressSpace, BaseNode, Namespace, SessionContext, UAServerStatus } from "..";
+import { AddressSpace, BaseNode, Namespace, SessionContext, UAServerStatus, DTServerStatus } from "..";
 import { generateAddressSpace } from "../nodeJS";
 import { WriteValue } from "node-opcua-service-write";
 import { make_debugLog, checkDebugFlag } from "node-opcua-debug";
@@ -209,7 +209,7 @@ describe("testing address space namespace loading", function (this: any) {
         // in this test, we verify that we can easily bind the Server_ServerStatus object
         // the process shall automatically bind variables and substructures recursively
 
-        const serverStatus = addressSpace.findNode(makeNodeId(VariableIds.Server_ServerStatus))! as UAServerStatus;
+        const serverStatus = addressSpace.findNode(makeNodeId(VariableIds.Server_ServerStatus))! as UAServerStatus<DTServerStatus>;
         serverStatus.browseName.toString().should.eql("ServerStatus");
 
         // before bindExtensionObject is called, startTime property exists but is not bound
