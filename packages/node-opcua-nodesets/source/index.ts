@@ -46,6 +46,7 @@ const machineryNodeSetFilename = constructNodesetFilename("Opc.Ua.Machinery.Node
 const cncNodeSetFilename = constructNodesetFilename("Opc.Ua.CNC.NodeSet.xml");
 const commercialKitchenEquipmentNodeSetFilename = constructNodesetFilename("Opc.Ua.CommercialKitchenEquipment.NodeSet2.xml");
 const machineToolNodeSetFilename = constructNodesetFilename("Opc.Ua.MachineTool.NodeSet2.xml");
+const iaNodeSetFilename = constructNodesetFilename("Opc.Ua.IA.NodeSet2.xml");
 export const nodesets = {
     adi: adiNodeSetFilename,
 
@@ -69,7 +70,10 @@ export const nodesets = {
 
     commercialKitchenEquipment: commercialKitchenEquipmentNodeSetFilename,
 
-    machineTool: machineToolNodeSetFilename
+    ia: iaNodeSetFilename,
+
+    machineTool: machineToolNodeSetFilename,
+
 };
 
 function makeDeprecated(id: string, newName: keyof typeof nodesets) {
