@@ -13,11 +13,11 @@ import { UAFiniteStateMachine, UAFiniteStateMachine_Base } from "./ua_finite_sta
 import { UAProgramDiagnostic2 } from "./ua_program_diagnostic_2"
 import { UAState } from "./ua_state"
 import { UATransition } from "./ua_transition"
-export interface UAProgramStateMachine_currentState<T extends LocalizedText/*j*/> extends UAStateVariable<T> { // Variable
+export interface UAProgramStateMachine_currentState<T extends LocalizedText/*j*/> extends Omit<UAStateVariable<T>, "id"|"number"> { // Variable
       id: UAProperty<NodeId, /*z*/DataType.NodeId>;
       number: UAProperty<UInt32, /*z*/DataType.UInt32>;
 }
-export interface UAProgramStateMachine_lastTransition<T extends LocalizedText/*j*/> extends UATransitionVariable<T> { // Variable
+export interface UAProgramStateMachine_lastTransition<T extends LocalizedText/*j*/> extends Omit<UATransitionVariable<T>, "id"|"number"|"transitionTime"> { // Variable
       id: UAProperty<NodeId, /*z*/DataType.NodeId>;
       number: UAProperty<UInt32, /*z*/DataType.UInt32>;
       transitionTime: UAProperty<Date, /*z*/DataType.DateTime>;
