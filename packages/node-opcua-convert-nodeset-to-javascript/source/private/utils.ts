@@ -64,10 +64,12 @@ export async function getModellingRule(session: IBasicSession, nodeId: NodeId): 
         resultMask: 0xffff
     });
     if (!browseResult.references || browseResult.references.length === 0) {
-        return null;
+        return null; 
+        /* 
         console.log(nodeId.toString());
         const browseName = await getBrowseName(session, nodeId);
         throw new Error("No modelling rule for " + nodeId.toString() + " " + browseName.toString());
+        */
     }
     return browseResult.references[0].browseName.name! as ModellingRuleType;
 }
@@ -204,10 +206,7 @@ export async function getChildrenOrFolderElements(session: IBasicSession, nodeId
     const c2 = await getFolderElements(session, nodeId);
     return (<ReferenceDescription[]>[]).concat(c1, c2);
 }
-export async function getValueRank(
-    session: IBasicSession,
-    nodeId: NodeId,
-  ): Promise<number> {
-    const valueRankDataValue = await session.read({nodeId, attributeId: AttributeIds.ValueRank});
+export async function getValueRank(session: IBasicSession, nodeId: NodeId): Promise<number> {
+    const valueRankDataValue = await session.read({ nodeId, attributeId: AttributeIds.ValueRank });
     return valueRankDataValue.value.value;
 }

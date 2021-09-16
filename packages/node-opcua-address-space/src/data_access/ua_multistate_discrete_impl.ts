@@ -81,7 +81,7 @@ export class UAMultiStateDiscreteImpl<T, DT extends DataType> extends UAVariable
         return StatusCodes.Good;
     }
 
-    public _post_initialize() {
+    public _post_initialize(): void {
         /* empty */
     }
 

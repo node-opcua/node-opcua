@@ -1,7 +1,7 @@
+import * as path from "path";
 import { AddressSpace, PseudoSession } from "node-opcua-address-space";
 import { generateAddressSpace } from "node-opcua-address-space/nodeJS";
 import { nodesets } from "node-opcua-nodesets";
-import * as path from "path";
 import { convertNamespaceTypeToTypescript } from "./convert_namespace_to_typescript";
 
 async function main() {
