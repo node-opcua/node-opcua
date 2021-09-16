@@ -22,19 +22,19 @@ export interface UAAnalyserDevice_parameterSet extends UAObject { // Object
        * configData
        * Optional analyser device large configuration
        */
-      configData?: UAFileundefined;
+      configData?: UAFile;
 }
 export interface UAAnalyserDevice_methodSet extends UAObject { // Object
-      getConfiguration: UAMethodundefined;
-      setConfiguration: UAMethodundefined;
-      getConfigDataDigest: UAMethodundefined;
-      compareConfigDataDigest: UAMethodundefined;
-      resetAllChannels: UAMethodundefined;
-      startAllChannels: UAMethodundefined;
-      stopAllChannels: UAMethodundefined;
-      abortAllChannels: UAMethodundefined;
-      gotoOperating: UAMethodundefined;
-      gotoMaintenance: UAMethodundefined;
+      getConfiguration: UAMethod;
+      setConfiguration: UAMethod;
+      getConfigDataDigest: UAMethod;
+      compareConfigDataDigest: UAMethod;
+      resetAllChannels: UAMethod;
+      startAllChannels: UAMethod;
+      stopAllChannels: UAMethod;
+      abortAllChannels: UAMethod;
+      gotoOperating: UAMethod;
+      gotoMaintenance: UAMethod;
 }
 export interface UAAnalyserDevice_identification extends UAFunctionalGroup { // Object
       /**
@@ -59,7 +59,7 @@ export interface UAAnalyserDevice_configuration extends UAFunctionalGroup { // O
        * configData
        * Optional analyser device large configuration
        */
-      configData?: UAFileundefined;
+      configData?: UAFile;
 }
 export interface UAAnalyserDevice_status extends UAFunctionalGroup { // Object
       /**

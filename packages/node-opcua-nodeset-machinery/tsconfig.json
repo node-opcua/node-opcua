@@ -1,0 +1,22 @@
+{
+  "extends": "../tsconfig.json",
+  "compilerOptions": {
+        "rootDir": "source",
+        "outDir": "dist",
+        "composite": true
+   },
+   "include": [
+        "source/*.ts",
+   ],
+   "references": [
+     { "path": "../node-opcua-address-space-base" },
+     { "path": "../node-opcua-basic-types" },
+     { "path": "../node-opcua-data-model" },
+     { "path": "../node-opcua-nodeset-di" },
+     { "path": "../node-opcua-variant" }
+   ],
+   "exclude": [
+     "node_modules",
+     "dist"
+   ]
+}
