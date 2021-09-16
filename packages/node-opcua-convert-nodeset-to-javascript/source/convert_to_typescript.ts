@@ -1,10 +1,13 @@
 import * as wrap from "wordwrap";
-import { AttributeIds, LocalizedText, NodeClass, QualifiedName } from "node-opcua-data-model";
+import { LocalizedText, NodeClass, QualifiedName } from "node-opcua-data-model";
 import { NodeId } from "node-opcua-nodeid";
 import { IBasicSession } from "node-opcua-pseudo-session";
 import { EnumDefinition, ReferenceDescription, StructureDefinition, _enumerationDataChangeTrigger } from "node-opcua-types";
 import { LineFile, lowerFirstLetter } from "node-opcua-utils";
 import { DataType } from "node-opcua-variant";
+import assert from "node-opcua-assert";
+import { ModellingRuleType } from "node-opcua-address-space-base";
+import * as chalk from "chalk";
 import {
     convertNodeIdToDataTypeAsync,
     getBrowseName,
@@ -18,24 +21,20 @@ import {
     getTypeDefOrBaseType,
     getChildrenOrFolderElements,
     getDataTypeNodeId,
-    isExtensionObject,
     extractBasicDataType,
     getValueRank
 } from "./private/utils";
 
 import { Cache, constructCache, Import, makeTypeNameNew, referenceExtensionObject, RequestedSubSymbol } from "./private/cache";
-import assert from "node-opcua-assert";
 import { Options } from "./options";
 import { toFilename } from "./private/to_filename";
-import { ModellingRuleType } from "node-opcua-address-space-base";
-import * as chalk from "chalk";
 
 const wrapText = wrap(0, 50);
 const f2 = (str: string) => str.padEnd(50, "-");
 const f1 = (str: string) => str.padEnd(50, " ");
 const baseExtension = "_Base";
 
-export async function convertDataTypeToTypescript(session: IBasicSession, dataTypeId: NodeId) {
+export async function convertDataTypeToTypescript(session: IBasicSession, dataTypeId: NodeId): Promise<void> {
     const definition = await getDefinition(session, dataTypeId);
     const browseName = await getBrowseName(session, dataTypeId);
 
@@ -44,6 +43,7 @@ export async function convertDataTypeToTypescript(session: IBasicSession, dataTy
     if (definition && definition instanceof StructureDefinition) {
         f.write(`interface ${dataTypeTypescriptName} {`);
         for (const field of definition.fields || []) {
+            /** */
         }
         f.write(`}`);
     }
@@ -61,8 +61,10 @@ function toJavascritPropertyName(childName: string): string {
     if (childName === "displayName") {
         childName = "$displayName";
     }
-
-    return childName.replace(/\</g, "$").replace(/>/g, "$").replace(/ |\./g, "_").replace(/#/g, "_");
+    if (childName === "eventNotifier") {
+        childName = "$eventNotifier";
+    }
+    return childName.replace(/</g, "$").replace(/>/g, "$").replace(/ |\./g, "_").replace(/#/g, "_");
 }
 
 function quotifyIfNecessary(s: string): string {
@@ -87,6 +89,7 @@ async function getCorrepondingJavascriptType2(
     return { dataType: q.dataType, jtype: q.jtype + (valueRank >= 1 ? "[]" : "") };
 }
 
+// eslint-disable-next-line complexity
 async function getCorrepondingJavascriptType(
     session: IBasicSession,
     dataTypeNodeId: NodeId,
@@ -154,12 +157,6 @@ async function getCorrepondingJavascriptType(
             return { dataType, jtype: referenceBasicType("StatusCode") };
         case DataType.String:
             return { dataType, jtype: referenceBasicType("UAString") };
-        case DataType.UInt16:
-            return { dataType, jtype: referenceBasicType("UInt16") };
-        case DataType.UInt32:
-            return { dataType, jtype: referenceBasicType("UInt32") };
-        case DataType.UInt64:
-            return { dataType, jtype: referenceBasicType("UInt64") };
         case DataType.Variant:
             return { dataType, jtype: referenceBasicType("Variant") };
         case DataType.XmlElement:
@@ -217,7 +214,7 @@ export async function extractClassDefinition(session: IBasicSession, nodeId: Nod
     const superType = (await getSubtypeNodeIdIfAny(session, nodeId)) || undefined;
 
     const dataTypeNodeId = await getDataTypeNodeId(session, nodeId);
-    let dataTypeName: string = "";
+    let dataTypeName = "";
     let dataType: DataType = DataType.Null;
     let dataTypeImport: Import[] | undefined = undefined;
     if (nodeClass === NodeClass.VariableType) {
@@ -358,7 +355,7 @@ async function classify(session: IBasicSession, refs: ReferenceDescription[]): P
 }
 
 async function extractAllMembers(session: IBasicSession, classDef: ClassDefinition, cache: Cache) {
-    let m = [...classDef.children];
+    const m = [...classDef.children];
     let s = classDef;
     while (s.baseClassDef) {
         s = s.baseClassDef;
@@ -479,7 +476,7 @@ async function _extractLocalMembers(session: IBasicSession, classMember: ClassMe
     return children2;
 }
 function isUnspecifiedDataType(dataType?: DataType): boolean {
-    return dataType === DataType.Null || dataType === DataType.Variant
+    return dataType === DataType.Null || dataType === DataType.Variant;
 }
 async function extractVariableExtra(session: IBasicSession, nodeId: NodeId, cache: Cache, classMember: ClassMember) {
     const typeToReference: Import[] = [];
@@ -515,7 +512,7 @@ async function extractVariableExtra(session: IBasicSession, nodeId: NodeId, cach
          */
         let suffixInstantiate = "";
         if (isUnspecifiedDataType(dataType)) {
-            if (typeDefCD.dataType !== DataType.Null) {
+            if (!isUnspecifiedDataType(typeDefCD.dataType)) {
                 suffixInstantiate = "<any>";
             } else {
                 suffixInstantiate = "<any, any>";
@@ -539,6 +536,7 @@ interface ClassDefinitionB {
     };
     interfaceName: Import;
 }
+// eslint-disable-next-line max-statements
 export async function extractClassMemberDef(
     session: IBasicSession,
     nodeId: NodeId,
@@ -579,9 +577,9 @@ export async function extractClassMemberDef(
         assert(!innerClass);
 
         // let's extract the member that are theorically defined in the member
-        let membersReference = await extractAllMembers(session, classDef, cache);
+        const membersReference = await extractAllMembers(session, classDef, cache);
         // find member exposed by this member
-        let membersInstance: Classified = await classify(session, children);
+        const membersInstance: Classified = await classify(session, children);
 
         // if (name==="powerup") {
         //     dump1(membersReference);
@@ -672,9 +670,12 @@ async function preDumpChildren(session: IBasicSession, padding: string, classDef
         }
         cache.ensureImported(childBase);
         if (innerClass.name === "UAPubSubDiagnostics_counters" || innerClass.name === "UAProgramStateMachine_currentState") {
-      //      debugger;
+            //      debugger;
         }
-        f.write(`export interface ${innerClass.name}${suffix2} extends ${childBase.name}${suffix3} { // ${NodeClass[nodeClass]}`);
+        const baseStuff = getBaseClassWithOmit2(memberDef);
+
+        //f.write(`export interface ${innerClass.name}${suffix2} extends ${childBase.name}${suffix3} { // ${NodeClass[nodeClass]}`);
+        f.write(`export interface ${innerClass.name}${suffix2} extends ${baseStuff} { // ${NodeClass[nodeClass]}`);
         await dumpChildren(session, padding + "  ", memberDef.children2, f, cache);
         f.write("}");
     }
@@ -689,17 +690,16 @@ function dumpChildren(session: IBasicSession, padding: string, children: ClassMe
 
         if (modellingRule === "MandatoryPlaceholder" || modellingRule === "OptionalPlaceholder") continue;
         cache.ensureImported(childType);
-
-        // in rare circonstancies, the ua child name may collide with a javascript member on the ua class
-        const ajustedName = name === "eventNotifier" ? name +"_" : name;
-
+        const adjustedName = toJavascritPropertyName(name);
         if (description.text) {
             f.write(`${padding}/**`);
             f.write(`${padding} * ${name || ""}`);
             f.write(toComment(`${padding} * `, description.text || ""));
             f.write(`${padding} */`);
         }
-        f.write(`${padding}${quotifyIfNecessary(ajustedName)}${isOptional ? "?" : ""}: ${childType.name}${suffixInstantiate};`);
+        f.write(
+            `${padding}${quotifyIfNecessary(adjustedName)}${isOptional ? "?" : ""}: ${childType.name}${suffixInstantiate || ""};`
+        );
     }
 }
 // now from other namespace
@@ -710,10 +710,10 @@ const getSubSymbolList = (s: RequestedSubSymbol) => {
     }
     return subSymbolList;
 };
-export function findUsedImport(namespaceIndex: number, cache: Cache) {
+export function findUsedImport(namespaceIndex: number, cache: Cache): string[] {
     const usedImport: string[] = [];
     // from standard types
-    for (let imp of Object.keys(cache.imports)) {
+    for (const imp of Object.keys(cache.imports)) {
         const symbolToImport = Object.keys(cache.imports[imp]).filter((f) =>
             Object.prototype.hasOwnProperty.call(cache.requestedBasicTypes, f)
         );
@@ -740,7 +740,7 @@ export function findUsedImport(namespaceIndex: number, cache: Cache) {
 function dumpUsedExport(currentType: string, namespaceIndex: number, cache: Cache, f?: LineFile): string {
     f = f || new LineFile();
 
-    for (let imp of Object.keys(cache.imports)) {
+    for (const imp of Object.keys(cache.imports)) {
         const symbolToImport = Object.keys(cache.imports[imp]).filter(
             (f) => f !== currentType && Object.prototype.hasOwnProperty.call(cache.requestedBasicTypes, f)
         );
@@ -776,13 +776,14 @@ function dumpUsedExport(currentType: string, namespaceIndex: number, cache: Cach
 }
 
 function toComment(prefix: string, description: string) {
-    var d = wrapText(description);
+    const d = wrapText(description);
     return d
         .split("\n")
         .map((x) => prefix + x)
         .join("\n");
 }
 export type Type = "enum" | "basic" | "structure" | "ua";
+// eslint-disable-next-line max-statements
 export async function _exportDataTypeToTypescript(
     session: IBasicSession,
     nodeId: NodeId,
@@ -844,7 +845,7 @@ export async function _exportDataTypeToTypescript(
             f.write(`export interface ${interfaceName} extends ${baseInterfaceName}  {`);
         }
         for (const field of definition.fields!) {
-            let fieldName = toJavascritPropertyName(field.name!);
+            const fieldName = toJavascritPropertyName(field.name!);
             // special case ! fieldName=
             if (field.description.text) {
                 f.write(`/** ${field.description.text}*/`);
@@ -902,10 +903,56 @@ function calculateChevrons(classDef: ClassDefinition, classDefDerived?: { dataTy
 
     return { chevronsDef, chevronsUse, chevronsExtend };
 }
+// find the structure member that are already in base structure definition and that are replicated here
+// we will have to use the Omit<Base,"member1" |"member2"> typescript pattern to avoid issues
+function extractMembersRecursively(classDef?: ClassDefinition | null): string[] {
+    if (!classDef) {
+        return [];
+    }
+    const m = classDef.members.map((m) => m.name);
+    if (classDef.baseClassDef) {
+        const m2 = extractMembersRecursively(classDef.baseClassDef);
+        return m.concat(m2);
+    }
+    return m;
+}
+function getBaseClassWithOmit(classDef: ClassDefinition) {
+    const { baseInterfaceName, members } = classDef;
 
+    const allMembers = extractMembersRecursively(classDef.baseClassDef);
+    const conflictingMembers = members.filter((m) => allMembers.indexOf(m.name) !== -1);
+    //console.log(allMembers.join(" "));
+    if (conflictingMembers.length) {
+      //  console.log("conflictingMembers = ", conflictingMembers.map((a) => a.name).join(" "));
+    }
+    const chBase = calculateChevrons(classDef.baseClassDef!, classDef);
+
+    let baseStuff = `${baseInterfaceName?.name}${chBase.chevronsUse}`;
+    if (conflictingMembers.length) {
+        baseStuff = `Omit<${baseStuff}, ${conflictingMembers.map((a) => `"${a.name}"`).join("|")}>`;
+    }
+    return baseStuff;
+}
+function getBaseClassWithOmit2(classMember: ClassMember) {
+    const members = classMember.children2;
+    const allMembers = extractMembersRecursively(classMember.classDef);
+    const conflictingMembers = members.filter((m) => allMembers.indexOf(m.name) !== -1);
+    //console.log(allMembers.join(" "));
+    if (conflictingMembers.length) {
+        console.log("conflictingMembers = ", conflictingMembers.map((a) => a.name).join(" "));
+    }
+    const childBase = classMember.childBase;
+    
+    let baseStuff = `${childBase?.name}${classMember.suffix3}`;
+    if (conflictingMembers.length) {
+        baseStuff = `Omit<${baseStuff}, ${conflictingMembers.map((a) => `"${a.name}"`).join("|")}>`;
+    }
+    return baseStuff;
+}
 /**
  *  nodeId : a DataType, ReferenceType,AObjectType, VariableType node
  */
+// eslint-disable-next-line max-statements
 export async function _convertTypeToTypescript(
     session: IBasicSession,
     nodeId: NodeId,
@@ -961,25 +1008,6 @@ export async function _convertTypeToTypescript(
     cache.ensureImported(baseInterfaceName!);
     cache.ensureImported({ ...baseInterfaceName!, name: baseInterfaceName!.name + `${baseExtension}` });
 
-    // find the structure member that are already in base structure definition and that are replicated here
-    // we will have to use the Omit<Base,"member1" |"member2"> typescript pattern to avoid issues
-    function extractAllMembers(classDef?: ClassDefinition | null): string[] {
-        if (!classDef) {
-            return [];
-        }
-        const m = classDef.members.map((m) => m.name);
-        if (classDef.baseClassDef) {
-            const m2 = extractAllMembers(classDef.baseClassDef);
-            return m.concat(m2);
-        }
-        return m;
-    }
-    const allMembers = extractAllMembers(classDef.baseClassDef);
-    const conflictingMembers = members.filter((m) => allMembers.indexOf(m.name) !== -1);
-    //console.log(allMembers.join(" "));
-    if (conflictingMembers.length) {
-        console.log("conflictingMembers = ", conflictingMembers.map((a) => a.name).join(" "));
-    }
     const ch = calculateChevrons(classDef);
 
     if (nodeClass === NodeClass.VariableType) {
@@ -1015,11 +1043,7 @@ export async function _convertTypeToTypescript(
     await dumpChildren(session, "    ", members, f, cache);
     f.write(`}`);
 
-    const chBase = calculateChevrons(classDef.baseClassDef!, classDef);
-    let baseStuff = `${baseInterfaceName?.name}${chBase.chevronsUse}`;
-    if (conflictingMembers.length) {
-        baseStuff = `Omit<${baseStuff}, ${conflictingMembers.map((a) => `"${a.name}"`).join("|")}>`;
-    }
+    const baseStuff = getBaseClassWithOmit(classDef);
 
     if (nodeClass === NodeClass.VariableType) {
         cache.referenceBasicType("DataType");

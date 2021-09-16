@@ -1,9 +1,12 @@
+import * as path from "path";
 import assert from "node-opcua-assert";
 import { AttributeIds, NodeClass, QualifiedName } from "node-opcua-data-model";
 import { NodeId, resolveNodeId } from "node-opcua-nodeid";
 import { IBasicSession } from "node-opcua-pseudo-session";
-import { DataTypeDefinition, EnumDefinition, StructureDefinition } from "node-opcua-types";
-import { getBrowseName, getDefinition, getDescription } from "./utils";
+import { DataTypeDefinition, EnumDefinition } from "node-opcua-types";
+import { kebabCase } from "case-anything";
+import { Options } from "../options";
+import { getBrowseName, getDefinition } from "./utils";
 
 export interface Import {
     name: string;
@@ -85,7 +88,7 @@ export class Cache implements CacheInterface {
             }
         };
     }
-    resetRequire() {
+    resetRequire(): void {
         this.requestedSymbols = { namespace: [] };
         this.requestedBasicTypes = {};
     }
@@ -95,7 +98,7 @@ export class Cache implements CacheInterface {
         return basicType;
     }
 
-    _reference(namespaceIndex: number, typeName: string, mainTypeName?: string) {
+    _reference(namespaceIndex: number, typeName: string, mainTypeName?: string): void {
         if (namespaceIndex <= 0 && this.imports["node-opcua-address-space-base"][typeName]) {
             this.referenceBasicType(typeName);
             return;
@@ -121,7 +124,7 @@ export class Cache implements CacheInterface {
         subs.subSymbols[typeName] = (subs.subSymbols[typeName] || 0) + 1;
     }
 
-    ensureImported(i: Import) {
+    ensureImported(i: Import): void {
         if (i.namespace < 0) {
             this.referenceBasicType(i.name);
         } else {
@@ -130,9 +133,6 @@ export class Cache implements CacheInterface {
     }
 }
 
-import * as path from "path";
-import { Options } from "../options";
-import { camelCase, pascalCase, kebabCase, snakeCase, constantCase } from "case-anything";
 
 function getSourceFolderForNamespace(browseName: QualifiedName, options: Options, cache: Cache2) {
     const ns = browseName.namespaceIndex;
@@ -190,7 +190,7 @@ function makeBasicTypeImport(name: string): Import {
 export function makeTypeNameNew(nodeClass: NodeClass, definition: DataTypeDefinition | null, browseName: QualifiedName, suffix?: string): Import {
     assert(browseName && !!browseName.name, "expecting a class name here");
 
-    let typeName = browseName.name!.toString();
+    const typeName = browseName.name!.toString();
     if (typeName === "EUInformation") {
         return makeBasicTypeImport("EUInformation");
     } else if (typeName === "Enumeration") {

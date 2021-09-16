@@ -19,20 +19,19 @@ async function _walkThroughTypes(
     level = level || 0;
 
     if (!parent) {
-
         const dataValues = await session.read([
-            {nodeId, attributeId: AttributeIds.BrowseName},
-            {nodeId, attributeId: AttributeIds.NodeClass},
-        ])
+            { nodeId, attributeId: AttributeIds.BrowseName },
+            { nodeId, attributeId: AttributeIds.NodeClass }
+        ]);
         const browseName = dataValues[0].value.value as QualifiedName;
         const nodeClass = dataValues[1].value.value as NodeClass;
         parent = new ReferenceDescription({
             isForward: true,
-            nodeId: nodeId as ExpandedNodeId, 
-            browseName, 
+            nodeId: nodeId as ExpandedNodeId,
+            browseName,
             nodeClass,
-            referenceTypeId:  resolveNodeId("HasSubtype"),
-            // typeDefinition,  
+            referenceTypeId: resolveNodeId("HasSubtype")
+            // typeDefinition,
         });
     }
     const browseResult = await session.browse({
@@ -52,23 +51,23 @@ async function _walkThroughTypes(
     }
 }
 
-export async function walkThroughReferenceTypes(session: IBasicSession, nodeVisitor?: NodeVisitor) {
+export async function walkThroughReferenceTypes(session: IBasicSession, nodeVisitor?: NodeVisitor): Promise<void> {
     const baseReferenceTypeNodeId = resolveNodeId("References");
     await _walkThroughTypes(session, baseReferenceTypeNodeId, nodeVisitor);
 }
-export async function walkThroughDataTypes(session: IBasicSession, nodeVisitor?: NodeVisitor) {
+export async function walkThroughDataTypes(session: IBasicSession, nodeVisitor?: NodeVisitor): Promise<void> {
     const baseDataTypeTypeNodeId = resolveNodeId("BaseDataType");
     await _walkThroughTypes(session, baseDataTypeTypeNodeId, nodeVisitor);
 }
-export async function walkThroughInterfaceTypes(session: IBasicSession, nodeVisitor?: NodeVisitor) {
+export async function walkThroughInterfaceTypes(session: IBasicSession, nodeVisitor?: NodeVisitor): Promise<void> {
     const baseInterfaceTypeNodeId = resolveNodeId("BaseInterfaceType");
     await _walkThroughTypes(session, baseInterfaceTypeNodeId, nodeVisitor);
 }
-export async function walkThroughObjectTypes(session: IBasicSession, nodeVisitor?: NodeVisitor) {
+export async function walkThroughObjectTypes(session: IBasicSession, nodeVisitor?: NodeVisitor): Promise<void> {
     const baseObjectType = resolveNodeId("BaseObjectType");
     await _walkThroughTypes(session, baseObjectType, nodeVisitor);
 }
-export async function walkThroughVariableTypes(session: IBasicSession, nodeVisitor?: NodeVisitor) {
+export async function walkThroughVariableTypes(session: IBasicSession, nodeVisitor?: NodeVisitor): Promise<void> {
     const baseObjectType = resolveNodeId("BaseVariableType");
     await _walkThroughTypes(session, baseObjectType, nodeVisitor);
 }
