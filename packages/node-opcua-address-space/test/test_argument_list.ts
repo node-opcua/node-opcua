@@ -1,10 +1,11 @@
 import * as should from "should";
-import { DataType, VariantArrayType, Variant } from "node-opcua-variant";
-import { nodesets } from "node-opcua-nodesets";
-import { Argument } from "node-opcua-types";
-import { resolveNodeId } from "node-opcua-nodeid";
-import { StatusCodes } from "node-opcua-status-code";
 import { BinaryStream } from "node-opcua-binary-stream";
+import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
+import { resolveNodeId } from "node-opcua-nodeid";
+import { nodesets } from "node-opcua-nodesets";
+import { StatusCodes } from "node-opcua-status-code";
+import { Argument } from "node-opcua-types";
+import { DataType, VariantArrayType, Variant } from "node-opcua-variant";
 
 import {
     binaryStoreSize_ArgumentList,
@@ -15,7 +16,7 @@ import {
 } from "..";
 import { generateAddressSpace } from "../nodeJS";
 
-import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
+
 const debugLog = make_debugLog("TEST");
 const doDebug = checkDebugFlag("TEST");
 

@@ -4,7 +4,7 @@ import { IAddressSpace } from "node-opcua-address-space-base";
 import { PseudoSession } from "../pseudo_session";
 import { ensureDatatypeExtracted } from "../loader/load_nodeset2";
 
-export async function resolveOpaqueOnAddressSpace(addressSpace: IAddressSpace, variants: (Variant | null) | (Variant | null)[]) {
+export async function resolveOpaqueOnAddressSpace(addressSpace: IAddressSpace, variants: (Variant | null) | (Variant | null)[]): Promise<void> {
     if (!variants) {
         return;
     }

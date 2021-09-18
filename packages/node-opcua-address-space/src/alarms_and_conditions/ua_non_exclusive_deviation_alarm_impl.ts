@@ -11,6 +11,7 @@ import { UANonExclusiveDeviationAlarm_Base, UANonExclusiveLimitAlarm_Base } from
 
 import { UAVariable, UAVariableT } from "../../source";
 import { NamespacePrivate } from "../namespace_private";
+import { AddressSpace } from "../address_space";
 import {
     DeviationAlarmHelper_getSetpointNodeNode,
     DeviationAlarmHelper_getSetpointValue,
@@ -20,7 +21,6 @@ import {
 } from "./deviation_alarm_helper";
 import { UALimitAlarmImpl } from "./ua_limit_alarm_impl";
 import { UANonExclusiveLimitAlarmEx, UANonExclusiveLimitAlarmImpl } from "./ua_non_exclusive_limit_alarm_impl";
-import { AddressSpace } from "../address_space";
 
 export interface UANonExclusiveDeviationAlarmEx
     extends Omit<
@@ -80,7 +80,7 @@ export class UANonExclusiveDeviationAlarmImpl extends UANonExclusiveLimitAlarmIm
         return alarm;
     }
 
-    public _setStateBasedOnInputValue(value: number) {
+    public _setStateBasedOnInputValue(value: number): void {
         const setpointValue = this.getSetpointValue();
         if (setpointValue === null) {
             throw new Error("Cannot access setpoint Value");

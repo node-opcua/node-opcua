@@ -1,22 +1,20 @@
 /**
  * @module node-opcua-address-space.AlarmsAndConditions
  */
-import { assert } from "node-opcua-assert";
+ import { UAAcknowledgeableCondition_Base,  UAAcknowledgeableCondition, UACondition } from "node-opcua-nodeset-ua";
+ import { assert } from "node-opcua-assert";
 import { LocalizedText, LocalizedTextLike } from "node-opcua-data-model";
 import { NodeId } from "node-opcua-nodeid";
-import { StatusCodes } from "node-opcua-status-code";
+import { StatusCode, StatusCodes } from "node-opcua-status-code";
 import { DataType, VariantLike } from "node-opcua-variant";
 import { INamespace, RaiseEventData, ISessionContext, UAEventType, UAMethod } from "node-opcua-address-space-base";
 
+import { UATwoStateVariableEx } from "../../source/ua_two_state_variable_ex";
 import { AddressSpacePrivate } from "../address_space_private";
 import { _install_TwoStateVariable_machinery  } from "../state_machine/ua_two_state_variable";
 import { _setAckedState } from "./condition";
 import { ConditionSnapshot } from "./condition_snapshot";
 import { UAConditionHelper, UAConditionImpl, UAConditionEx } from "./ua_condition_impl";
-import { UAAcknowledgeableCondition_Base,  UAAcknowledgeableCondition, UACondition } from "node-opcua-nodeset-ua";
-import { UATwoStateVariableEx } from "../../source/ua_two_state_variable_ex";
-
-
 
 export interface UAAcknowledgeableConditionHelper extends UAConditionHelper {
     ///
@@ -104,7 +102,7 @@ export class UAAcknowledgeableConditionImpl extends UAConditionImpl implements U
         return conditionNode;
     }
 
-    public static install_method_handle_on_type(addressSpace: AddressSpacePrivate) {
+    public static install_method_handle_on_type(addressSpace: AddressSpacePrivate): void {
         const acknowledgeableConditionType = addressSpace.findEventType("AcknowledgeableConditionType");
         assert(acknowledgeableConditionType !== null);
         (acknowledgeableConditionType as any).acknowledge.bindMethod(_acknowledge_method);
@@ -149,7 +147,7 @@ export class UAAcknowledgeableConditionImpl extends UAConditionImpl implements U
         this.raiseEvent("AuditConditionAcknowledgeEventType", eventData);
     }
 
-    public _raiseAuditConditionConfirmEvent(branch: ConditionSnapshot) {
+    public _raiseAuditConditionConfirmEvent(branch: ConditionSnapshot): void {
         // raise the AuditConditionConfirmEventType
         const eventData: RaiseEventData = {
             actionTimeStamp: { dataType: DataType.DateTime, value: new Date() },
@@ -188,17 +186,15 @@ export class UAAcknowledgeableConditionImpl extends UAConditionImpl implements U
         comment: string | LocalizedTextLike | LocalizedText,
         branch: ConditionSnapshot,
         message: string
-    ) {
+    ): StatusCode {
         assert(typeof message === "string");
-
-        const conditionNode = this;
 
         const statusCode = _setAckedState(branch, true, conditionEventId, comment);
         if (statusCode !== StatusCodes.Good) {
             return statusCode;
         }
 
-        if (conditionNode.confirmedState) {
+        if (this.confirmedState) {
             // alarm has a confirmed state !
             // we should be waiting for confirmation now
             branch.setConfirmedState(false);
@@ -209,9 +205,9 @@ export class UAAcknowledgeableConditionImpl extends UAConditionImpl implements U
 
         branch.setComment(comment);
 
-        conditionNode.raiseNewBranchState(branch);
+        this.raiseNewBranchState(branch);
 
-        conditionNode._raiseAuditConditionAcknowledgeEvent(branch);
+        this._raiseAuditConditionAcknowledgeEvent(branch);
 
         /**
          * @event acknowledged
@@ -220,7 +216,7 @@ export class UAAcknowledgeableConditionImpl extends UAConditionImpl implements U
          * @param  branch    {ConditionSnapshot}
          * raised when the alarm branch has been acknowledged
          */
-        conditionNode.emit("acknowledged", conditionEventId, comment, branch);
+        this.emit("acknowledged", conditionEventId, comment, branch);
 
         return StatusCodes.Good;
     }
@@ -238,11 +234,10 @@ export class UAAcknowledgeableConditionImpl extends UAConditionImpl implements U
         comment: string | LocalizedTextLike,
         branch: ConditionSnapshot,
         message: string
-    ): any {
+    ): void {
         assert(typeof message === "string");
         assert(comment instanceof LocalizedText);
 
-        const conditionNode = this;
         // xx var eventId = branch.getEventId();
         assert(branch.getEventId().toString("hex") === conditionEventId.toString("hex"));
         branch.setConfirmedState(true);
@@ -251,10 +246,10 @@ export class UAAcknowledgeableConditionImpl extends UAConditionImpl implements U
         branch.setRetain(false);
         branch.setComment(comment);
 
-        conditionNode._raiseAuditConditionCommentEvent(message, conditionEventId, comment);
-        conditionNode._raiseAuditConditionConfirmEvent(branch);
+        this._raiseAuditConditionCommentEvent(message, conditionEventId, comment);
+        this._raiseAuditConditionConfirmEvent(branch);
 
-        conditionNode.raiseNewBranchState(branch);
+        this.raiseNewBranchState(branch);
 
         /**
          * @event confirmed
@@ -263,7 +258,7 @@ export class UAAcknowledgeableConditionImpl extends UAConditionImpl implements U
          * @param  eventId
          * raised when the alarm branch has been confirmed
          */
-        conditionNode.emit("confirmed", conditionEventId, comment, branch);
+        this.emit("confirmed", conditionEventId, comment, branch);
     }
 
     /**
@@ -271,18 +266,17 @@ export class UAAcknowledgeableConditionImpl extends UAConditionImpl implements U
      * @param branch
      * @param comment
      */
-    public autoConfirmBranch(branch: ConditionSnapshot, comment: LocalizedTextLike) {
+    public autoConfirmBranch(branch: ConditionSnapshot, comment: LocalizedTextLike): void {
         assert(branch instanceof ConditionSnapshot);
         if (!this.confirmedState) {
             // no confirmedState => ignoring
             return;
         }
         assert(!branch.getConfirmedState(), "already confirmed ?");
-        const conditionNode = this;
         const conditionEventId = branch.getEventId();
         // tslint:disable-next-line:no-console
         console.log("autoConfirmBranch getAckedState ", branch.getAckedState());
-        conditionNode._confirm_branch(conditionEventId, comment, branch, "Server/Confirm");
+        this._confirm_branch(conditionEventId, comment, branch, "Server/Confirm");
     }
 
     /**
@@ -290,7 +284,7 @@ export class UAAcknowledgeableConditionImpl extends UAConditionImpl implements U
      * @param branch {ConditionSnapshot}
      * @param comment {String|LocalizedText}
      */
-    public acknowledgeAndAutoConfirmBranch(branch: ConditionSnapshot, comment: string | LocalizedTextLike | LocalizedText) {
+    public acknowledgeAndAutoConfirmBranch(branch: ConditionSnapshot, comment: string | LocalizedTextLike | LocalizedText): void {
         comment = LocalizedText.coerce(comment)!;
         const conditionEventId = branch.getEventId();
         branch.setRetain(false);

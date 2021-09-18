@@ -3,17 +3,15 @@
  */
 import * as chalk from "chalk";
 
+import { UAReference, BaseNode, UAObject, UAVariable } from "node-opcua-address-space-base";
 import { assert } from "node-opcua-assert";
-import { ModelChangeStructureDataType } from "node-opcua-types";
-import { NodeClass } from "node-opcua-data-model";
-import { BrowseDirection } from "node-opcua-data-model";
+import { BrowseDirection, NodeClass } from "node-opcua-data-model";
 import { Enum, EnumItem } from "node-opcua-enum";
 import { NodeId } from "node-opcua-nodeid";
-import { UAReference, BaseNode, UAObject, UAVariable } from "node-opcua-address-space-base";
+import { ModelChangeStructureDataType } from "node-opcua-types";
 
 import { AddressSpacePrivate } from "./address_space_private";
 import { BaseNodeImpl } from "./base_node_impl";
-
 
 const verbFlags = new Enum({
     //                         NodeAdded        0         Indicates the affected Node has been added.
@@ -44,7 +42,7 @@ function makeVerb(verbs: any): number {
     return e.value;
 }
 
-export function _handle_add_reference_change_event(node1: BaseNode, node2id: NodeId) {
+export function _handle_add_reference_change_event(node1: BaseNode, node2id: NodeId): void {
     const addressSpace = node1.addressSpace as AddressSpacePrivate;
 
     const node2 = addressSpace.findNode(node2id)! as BaseNode;
@@ -54,7 +52,7 @@ export function _handle_add_reference_change_event(node1: BaseNode, node2id: Nod
         addressSpace.modelChangeTransaction(() => {
             function _getTypeDef(node: BaseNode) {
                 if (node.nodeClass === NodeClass.Object || node.nodeClass === NodeClass.Variable) {
-                    return (<UAVariable|UAObject>node).typeDefinitionObj.nodeId;
+                    return (<UAVariable | UAObject>node).typeDefinitionObj.nodeId;
                 }
                 return null;
             }
@@ -100,7 +98,7 @@ try {
     //
 }
 
-export function _handle_model_change_event(node: BaseNodeImpl) {
+export function _handle_model_change_event(node: BaseNodeImpl): void {
     const addressSpace = node.addressSpace as AddressSpacePrivate;
     //
     const parent = node.parent!;
@@ -140,7 +138,7 @@ export function _handle_model_change_event(node: BaseNodeImpl) {
     }
 }
 
-export function _handle_delete_node_model_change_event(node: BaseNode) {
+export function _handle_delete_node_model_change_event(node: BaseNode): void {
     const addressSpace = node.addressSpace as AddressSpacePrivate;
 
     // get backward references

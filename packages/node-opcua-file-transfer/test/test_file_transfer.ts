@@ -1,20 +1,21 @@
 // make sure extra error checking is made on object constructions
 // tslint:disable-next-line:no-var-requires
 import * as fsOrigin from "fs";
-import { fs as fsMemory } from "memfs";
-
 import * as os from "os";
 import * as path from "path";
-import * as should from "should";
 import { promisify } from "util";
 
-import { AddressSpace, PseudoSession, SessionContext, UAFileType, UAMethod } from "node-opcua-address-space";
+import { fs as fsMemory } from "memfs";
+
+import * as should from "should";
+
+import { AddressSpace, PseudoSession, SessionContext, UAFile } from "node-opcua-address-space";
 import { generateAddressSpace } from "node-opcua-address-space/nodeJS";
-import { UInt64, extraStatusCodeBits, coerceUInt64, coerceNodeId } from "node-opcua-basic-types";
+import { UInt64, coerceUInt64, coerceNodeId } from "node-opcua-basic-types";
+import { MethodIds } from "node-opcua-client";
 import { nodesets } from "node-opcua-nodesets";
 
-import { ClientFile, FileTypeData, getFileData, OpenFileMode, installFileType, AbstractFs } from "..";
-import { MethodIds, NodeId } from "node-opcua-client";
+import { ClientFile, getFileData, OpenFileMode, installFileType, AbstractFs } from "..";
 
 // tslint:disable:no-var-requires
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
@@ -46,8 +47,8 @@ const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
             addressSpace.dispose();
         });
 
-        let opcuaFile: UAFileType;
-        let opcuaFile2: UAFileType;
+        let opcuaFile: UAFile;
+        let opcuaFile2: UAFile;
         let fileSystem: AbstractFs;
 
         before(async () => {
@@ -60,7 +61,7 @@ const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
             opcuaFile = fileType.instantiate({
                 browseName: "FileTransferObj",
                 organizedBy: addressSpace.rootFolder.objects.server
-            }) as UAFileType;
+            }) as UAFile;
 
             fileSystem = withMemFS ? (fsMemory as any as AbstractFs) : fsOrigin;
 
@@ -75,7 +76,7 @@ const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
             opcuaFile2 = fileType.instantiate({
                 browseName: "FileTransferObj2",
                 organizedBy: addressSpace.rootFolder.objects.server
-            }) as UAFileType;
+            }) as UAFile;
             const filename2 = path.join(tempFolder, "tempFile2.txt");
             installFileType(opcuaFile2, { filename: filename2 });
         });

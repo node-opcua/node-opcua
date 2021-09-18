@@ -3,14 +3,14 @@
  */
 import { EventEmitter } from "events";
 
-import { IEventData, UAVariable , BaseNode, ISessionContext, UAObject} from "node-opcua-address-space-base";
+import { IEventData, UAVariable, BaseNode, ISessionContext, UAObject } from "node-opcua-address-space-base";
 import { assert } from "node-opcua-assert";
 import { UInt16 } from "node-opcua-basic-types";
 import { coerceLocalizedText, LocalizedText, LocalizedTextLike, NodeClass } from "node-opcua-data-model";
 import { DataValue } from "node-opcua-data-value";
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 import { NodeId } from "node-opcua-nodeid";
-import { UAAcknowledgeableCondition, UACondition, UACondition_Base } from "node-opcua-nodeset-ua";
+import { UAAcknowledgeableCondition } from "node-opcua-nodeset-ua";
 import { StatusCode, StatusCodes } from "node-opcua-status-code";
 import { SimpleAttributeOperand, TimeZoneDataType } from "node-opcua-types";
 import * as utils from "node-opcua-utils";
@@ -194,7 +194,7 @@ export class ConditionSnapshot extends EventEmitter {
                 debugLog("cannot node for find key", key);
                 continue;
             }
-            if (isDisabled && !_varTable.hasOwnProperty(key)) {
+            if (isDisabled && !Object.prototype.hasOwnProperty.call(_varTable, key)) {
                 eventData.setValue(key, node, disabledVar);
             } else {
                 eventData.setValue(key, node, this._map[key]);
@@ -216,7 +216,6 @@ export class ConditionSnapshot extends EventEmitter {
      *
      */
     public readValue(sessionContext: ISessionContext, nodeId: NodeId, selectClause: SimpleAttributeOperand): Variant {
-       
         const c = this.condition as UAConditionImpl;
         const isDisabled = !c.getEnabledState();
         if (isDisabled) {
@@ -234,9 +233,8 @@ export class ConditionSnapshot extends EventEmitter {
     }
 
     public _get_var(varName: string): any {
-        
         const c = this.condition as UAConditionImpl;
-        if (!c.getEnabledState() && !_varTable.hasOwnProperty(varName)) {
+        if (!c.getEnabledState() && !Object.prototype.hasOwnProperty.call(_varTable, varName)) {
             // xx console.log("ConditionSnapshot#_get_var condition enabled =", self.condition.getEnabledState());
             return disabledVar;
         }
@@ -246,10 +244,10 @@ export class ConditionSnapshot extends EventEmitter {
         return variant.value;
     }
 
-    public _set_var(varName: string, dataType: DataType, value: any) {
+    public _set_var(varName: string, dataType: DataType, value: unknown): void {
         const key = normalizeName(varName);
         // istanbul ignore next
-        if (!this._map.hasOwnProperty(key)) {
+        if (!Object.prototype.hasOwnProperty.call(this._map, key)) {
             if (doDebug) {
                 debugLog(" cannot find node " + varName);
                 debugLog("  map=", Object.keys(this._map).join(" "));
@@ -307,7 +305,7 @@ export class ConditionSnapshot extends EventEmitter {
      * @method setRetain
      * @param retainFlag {Boolean}
      */
-    public setRetain(retainFlag: boolean) {
+    public setRetain(retainFlag: boolean): void {
         retainFlag = !!retainFlag;
         return this._set_var("retain", DataType.Boolean, retainFlag);
     }
@@ -316,7 +314,7 @@ export class ConditionSnapshot extends EventEmitter {
      * @method renewEventId
      *
      */
-    public renewEventId() {
+    public renewEventId(): void {
         const addressSpace = this.condition.addressSpace;
         // create a new event  Id for this new condition
         const eventId = addressSpace.generateEventId();
@@ -383,7 +381,7 @@ export class ConditionSnapshot extends EventEmitter {
      * @method setMessage
      * @param txtMessage {LocalizedText}
      */
-    public setMessage(txtMessage: LocalizedTextLike | LocalizedText) {
+    public setMessage(txtMessage: LocalizedTextLike | LocalizedText): void {
         const txtMessage1 = coerceLocalizedText(txtMessage);
         return this._set_var("message", DataType.LocalizedText, txtMessage1);
     }
@@ -392,7 +390,7 @@ export class ConditionSnapshot extends EventEmitter {
      * @method setClientUserId
      * @param userIdentity {String}
      */
-    public setClientUserId(userIdentity: string) {
+    public setClientUserId(userIdentity: string): void {
         return this._set_var("clientUserId", DataType.String, userIdentity.toString());
     }
 
@@ -536,7 +534,7 @@ export class ConditionSnapshot extends EventEmitter {
      * @method setReceiveTime
      * @param time {Date} : UTCTime
      */
-    public setReceiveTime(time: UtcTime) {
+    public setReceiveTime(time: UtcTime): void {
         assert(time instanceof Date);
         return this._set_var("receiveTime", DataType.DateTime, time);
     }
@@ -615,7 +613,7 @@ export class ConditionSnapshot extends EventEmitter {
         return this._get_twoStateVariable("ackedState");
     }
 
-    public setAckedState(ackedState: boolean) {
+    public setAckedState(ackedState: boolean): StatusCode {
         ackedState = !!ackedState;
 
         return _setAckedState(this, ackedState);
@@ -627,7 +625,7 @@ export class ConditionSnapshot extends EventEmitter {
         return this._get_twoStateVariable("confirmedState");
     }
 
-    public setConfirmedStateIfExists(confirmedState: boolean) {
+    public setConfirmedStateIfExists(confirmedState: boolean): void {
         confirmedState = !!confirmedState;
         const acknowledgeableCondition = this.condition as UAAcknowledgeableCondition;
         if (!acknowledgeableCondition.confirmedState) {
@@ -639,7 +637,7 @@ export class ConditionSnapshot extends EventEmitter {
         return this._set_twoStateVariable("confirmedState", confirmedState);
     }
 
-    public setConfirmedState(confirmedState: boolean) {
+    public setConfirmedState(confirmedState: boolean): void {
         const acknowledgeableCondition = this.condition as UAAcknowledgeableCondition;
         assert(acknowledgeableCondition.confirmedState, "Must have a confirmed state.  Add ConfirmedState to the optionals");
         return this.setConfirmedStateIfExists(confirmedState);
@@ -680,7 +678,7 @@ export class ConditionSnapshot extends EventEmitter {
     }
 
     // tslint:disable:no-empty
-    public setShelvingState() {
+    public setShelvingState(): void {
         // todo
     }
 
@@ -718,7 +716,7 @@ export class ConditionSnapshot extends EventEmitter {
      * @param value
      * @private
      */
-    public _set_twoStateVariable(varName: string, value: any): void {
+    public _set_twoStateVariable(varName: string, value: boolean): void {
         value = !!value;
 
         const hrKey = ConditionSnapshot.normalizeName(varName);
@@ -747,7 +745,7 @@ export class ConditionSnapshot extends EventEmitter {
         // also change ConditionNode if we are on currentBranch
         if (this.isCurrentBranch()) {
             assert(twoStateNode instanceof UATwoStateVariableImpl);
-            twoStateNode.setValue(value);
+            twoStateNode.setValue(value as boolean);
             // xx console.log("Is current branch", twoStateNode.toString(),variant.toString());
             // xx console.log("  = ",twoStateNode.getValue());
         }

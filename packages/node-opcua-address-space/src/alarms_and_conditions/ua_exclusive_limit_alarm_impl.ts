@@ -2,10 +2,10 @@
  * @module node-opcua-address-space.AlarmsAndConditions
  */
 import { assert } from "node-opcua-assert";
-import { LocalizedText } from "node-opcua-data-model";
 import { NodeId } from "node-opcua-nodeid";
-import { BaseNode, UAObject } from "node-opcua-address-space-base";
-import { UAExclusiveLimitAlarm, UAExclusiveLimitAlarm_Base, UAExclusiveLimitStateMachine } from "node-opcua-nodeset-ua";
+import { UAObject } from "node-opcua-address-space-base";
+import { UAExclusiveLimitAlarm, UAExclusiveLimitAlarm_Base } from "node-opcua-nodeset-ua";
+
 import { UAEventType, UAExclusiveLimitStateMachineEx } from "../../source";
 import { UATwoStateVariableEx } from "../../source/ua_two_state_variable_ex";
 import { NamespacePrivate } from "../namespace_private";
@@ -101,7 +101,7 @@ export class UAExclusiveLimitAlarmImpl extends UALimitAlarmImpl implements UAExc
         super._signalNewCondition(stateName, isActive, value);
     }
 
-    public _setStateBasedOnInputValue(value: number) {
+    public _setStateBasedOnInputValue(value: number): void {
         assert(isFinite(value));
         let isActive = false;
 

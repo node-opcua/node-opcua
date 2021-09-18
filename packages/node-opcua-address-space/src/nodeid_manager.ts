@@ -117,7 +117,7 @@ export class NodeIdManager {
             const m = browseName
                 .name!.toString()
                 .replace(/[ ]/g, "")
-                .replace(/(\<|\>)/g, "");
+                .replace(/(<|>)/g, "");
             return m;
         }
         let nodeId = options.nodeId;

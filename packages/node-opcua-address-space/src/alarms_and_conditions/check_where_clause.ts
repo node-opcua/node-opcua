@@ -6,8 +6,9 @@ import { NodeClass } from "node-opcua-data-model";
 import { ExtensionObject } from "node-opcua-extension-object";
 import { NodeId, sameNodeId } from "node-opcua-nodeid";
 import { IAddressSpace, IEventData, ISessionContext, UAObject, UAObjectType, UAReferenceType, UAVariableType } from "node-opcua-address-space-base";
-import { extractEventFields } from "./extract_event_fields";
+
 import { SessionContext } from "../../source/session_context";
+import { extractEventFields } from "./extract_event_fields";
 
 function checkNot(
     addressSpace: IAddressSpace,
@@ -131,7 +132,6 @@ export function __checkWhereClause(
             console.log("whereClause = ", whereClause.toString());
             throw new Error("Only OfType operator are allowed in checkWhereClause")
     }
-    return true;
 }
 
 export function checkWhereClause(

@@ -3,7 +3,7 @@ import { UAConditionImpl } from "./alarms_and_conditions/ua_condition_impl";
 import { BaseNodeImpl } from "./base_node_impl";
 import { UAObjectImpl } from "./ua_object_impl";
 
-export function apply_condition_refresh(this: BaseNodeImpl, _cache?: any) {
+export function apply_condition_refresh(this: BaseNodeImpl, _cache?: any): void {
     // visit all notifiers recursively
     _cache = _cache || {};
     const notifiers = this.getNotifiers();

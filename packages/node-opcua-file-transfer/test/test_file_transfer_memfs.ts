@@ -1,19 +1,9 @@
-import * as os from "os";
-import * as path from "path";
-import * as should from "should";
-import { promisify } from "util";
-import { fs as MemFs}  from 'memfs';
 
-import { AddressSpace, PseudoSession, SessionContext, UAFileType, UAMethod } from "node-opcua-address-space";
+
+import { AddressSpace, UAFile } from "node-opcua-address-space";
 import { generateAddressSpace } from "node-opcua-address-space/nodeJS";
-import { UInt64, extraStatusCodeBits, coerceUInt64 } from "node-opcua-basic-types";
 import { nodesets } from "node-opcua-nodesets";
-
-import { AbstractFs, ClientFile, FileTypeData, getFileData, installFileType, OpenFileMode } from "..";
-import { MethodIds } from "node-opcua-client";
-
-
-
+import { } from "..";
 
 describe("FileTransfer with virtual file system", ()=>{
 
@@ -29,10 +19,10 @@ describe("FileTransfer with virtual file system", ()=>{
     });
 
 
-    let opcuaFile: UAFileType;
-    let opcuaFile2: UAFileType;
+    let opcuaFile: UAFile;
+    let opcuaFile2: UAFile;
 
     it("should ", async ()=>{
-
+        /** todo  */
     })
 });

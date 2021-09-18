@@ -1,9 +1,10 @@
+/* eslint-disable max-statements */
 /**
  * @module node-opcua-address-space.AlarmsAndConditions
  */
 import { UAEventType } from "node-opcua-address-space-base";
 import { assert } from "node-opcua-assert";
-import { LocalizedText, NodeClass } from "node-opcua-data-model";
+import { NodeClass } from "node-opcua-data-model";
 import { DataValue } from "node-opcua-data-value";
 import { NodeId } from "node-opcua-nodeid";
 import { UALimitAlarm_Base , UALimitAlarm} from "node-opcua-nodeset-ua";
@@ -67,29 +68,28 @@ export class UALimitAlarmImpl extends UAAlarmConditionImpl implements UALimitAla
     ): UALimitAlarmImpl {
         const addressSpace = namespace.addressSpace;
 
-        /* eslint max-instructions: off */
         // must provide a inputNode
-        // xx assert(options.hasOwnProperty("conditionOf")); // must provide a conditionOf
-        assert(options.hasOwnProperty("inputNode"), "UALimitAlarm.instantiate: options must provide the inputNode");
+        // xx assert(Object.prototype.hasOwnProperty.call(options,"conditionOf")); // must provide a conditionOf
+        assert(Object.prototype.hasOwnProperty.call(options,"inputNode"), "UALimitAlarm.instantiate: options must provide the inputNode");
 
         options.optionals = options.optionals || [];
         let count = 0;
-        if (options.hasOwnProperty("highHighLimit")) {
+        if (Object.prototype.hasOwnProperty.call(options,"highHighLimit")) {
             options.optionals.push("HighHighLimit");
             options.optionals.push("HighHighState");
             count++;
         }
-        if (options.hasOwnProperty("highLimit")) {
+        if (Object.prototype.hasOwnProperty.call(options,"highLimit")) {
             options.optionals.push("HighLimit");
             options.optionals.push("HighState");
             count++;
         }
-        if (options.hasOwnProperty("lowLimit")) {
+        if (Object.prototype.hasOwnProperty.call(options,"lowLimit")) {
             options.optionals.push("LowLimit");
             options.optionals.push("LowState");
             count++;
         }
-        if (options.hasOwnProperty("lowLowLimit")) {
+        if (Object.prototype.hasOwnProperty.call(options,"lowLowLimit")) {
             options.optionals.push("LowLowLimit");
             options.optionals.push("LowLowState");
             count++;
@@ -125,16 +125,16 @@ export class UALimitAlarmImpl extends UAAlarmConditionImpl implements UALimitAla
 
         alarmNode._dataType = dataType;
 
-        if (options.hasOwnProperty("highHighLimit")) {
+        if (Object.prototype.hasOwnProperty.call(options,"highHighLimit")) {
             alarmNode.setHighHighLimit(options.highHighLimit);
         }
-        if (options.hasOwnProperty("highLimit")) {
+        if (Object.prototype.hasOwnProperty.call(options,"highLimit")) {
             alarmNode.setHighLimit(options.highLimit);
         }
-        if (options.hasOwnProperty("lowLimit")) {
+        if (Object.prototype.hasOwnProperty.call(options,"lowLimit")) {
             alarmNode.setLowLimit(options.lowLimit);
         }
-        if (options.hasOwnProperty("lowLowLimit")) {
+        if (Object.prototype.hasOwnProperty.call(options,"lowLowLimit")) {
             alarmNode.setLowLowLimit(options.lowLowLimit);
         }
 
@@ -269,7 +269,7 @@ export class UALimitAlarmImpl extends UAAlarmConditionImpl implements UALimitAla
         this._setStateBasedOnInputValue(value);
     }
 
-    protected _setStateBasedOnInputValue(value: number) {
+    protected _setStateBasedOnInputValue(value: number): void {
         throw new Error("_setStateBasedOnInputValue must be overriden");
     }
 
@@ -292,7 +292,7 @@ export class UALimitAlarmImpl extends UAAlarmConditionImpl implements UALimitAla
         }
     }
 
-    protected evaluateConditionsAfterEnabled() {
+    protected evaluateConditionsAfterEnabled():void {
         assert(this.getEnabledState() === true);
         // simulate input value event
         const input = this.getInputNodeNode();

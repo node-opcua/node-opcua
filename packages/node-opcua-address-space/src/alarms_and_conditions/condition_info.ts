@@ -35,17 +35,17 @@ export class ConditionInfo {
         this.message = null;
         this.retain = null;
 
-        if (options.hasOwnProperty("message") && options.message) {
+        if (Object.prototype.hasOwnProperty.call(options, "message") && options.message) {
             this.message = LocalizedText.coerce(options.message);
         }
-        if (options.hasOwnProperty("quality") && options.quality !== null) {
+        if (Object.prototype.hasOwnProperty.call(options, "quality") && options.quality !== null) {
             this.quality = options.quality!;
         }
-        if (options.hasOwnProperty("severity") && options.severity !== null) {
+        if (Object.prototype.hasOwnProperty.call(options, "severity") && options.severity !== null) {
             assert(typeof options.severity === "number");
             this.severity = options.severity!;
         }
-        if (options.hasOwnProperty("retain") && options.retain !== null) {
+        if (Object.prototype.hasOwnProperty.call(options, "retain") && options.retain !== null) {
             assert(typeof options.retain === "boolean");
             this.retain = options.retain!;
         }

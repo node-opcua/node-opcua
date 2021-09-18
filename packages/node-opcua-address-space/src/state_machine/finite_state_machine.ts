@@ -2,6 +2,7 @@
  * @module node-opcua-address-space
  */
 import * as chalk from "chalk";
+import { UAState, UAStateVariable, UATransition, UATransition_Base,  UATransitionVariable } from "node-opcua-nodeset-ua";
 import { assert } from "node-opcua-assert";
 import { ObjectTypeIds } from "node-opcua-constants";
 import { coerceLocalizedText, LocalizedText, NodeClass } from "node-opcua-data-model";
@@ -9,11 +10,11 @@ import { AttributeIds } from "node-opcua-data-model";
 import { NodeId } from "node-opcua-nodeid";
 import { StatusCodes } from "node-opcua-status-code";
 import { DataType } from "node-opcua-variant";
-import { BaseNode, UAObject } from "node-opcua-address-space-base";
+import { BaseNode, UAMethod, UAObject, UAObjectType, UAVariable } from "node-opcua-address-space-base";
 import { registerNodePromoter } from "../../source/loader/register_node_promoter";
+
 import { UAStateMachineEx, TransitionSelector } from "../../source/interfaces/state_machine/ua_state_machine_type";
 import { UAObjectImpl } from "../ua_object_impl";
-import { UAState, UAStateVariable, UATransition, UATransition_Base,  UATransitionVariable } from "node-opcua-nodeset-ua";
 import { UATransitionEx } from "../../source/interfaces/state_machine/ua_transition_ex";
 import { BaseNodeImpl } from "../base_node_impl";
 
@@ -24,15 +25,14 @@ export declare interface UATransitionImpl extends UATransition,  UATransitionEx 
 export class UATransitionImpl implements UATransition,  UATransitionEx  {}
 
 
-function getComponentFromTypeAndSubtype(typeDef: any): any[] {
-    const components_parts = [];
+function getComponentFromTypeAndSubtype(typeDef: UAObjectType): UAObject[] {
+    const components_parts: BaseNode[][] = [];
     components_parts.push(typeDef.getComponents());
-
     while (typeDef.subtypeOfObj) {
         typeDef = typeDef.subtypeOfObj;
         components_parts.push(typeDef.getComponents());
     }
-    return [].concat.apply([], components_parts);
+    return Array.prototype.concat.apply([], components_parts).filter((x: BaseNode) => x.nodeClass === NodeClass.Object);
 }
 
 export interface UAStateMachineImpl {
@@ -104,7 +104,7 @@ export class UAStateMachineImpl extends UAObjectImpl implements UAStateMachineEx
             return c.typeDefinitionObj.isSupertypeOf(stateType);
         });
 
-        return comp;
+        return comp as UAState[];
     }
 
     public get states(): UAState[] {
@@ -129,21 +129,22 @@ export class UAStateMachineImpl extends UAObjectImpl implements UAStateMachineEx
         const addressSpace = this.addressSpace;
 
         const transitionType = addressSpace.findObjectType("TransitionType");
+        // istanbul ignore next
+        if (!transitionType) {
+            throw new Error("cannot find TransitionType");
+        }
         const typeDef = this.typeDefinitionObj;
 
         let comp = getComponentFromTypeAndSubtype(typeDef);
 
         comp = comp.filter((c) => {
-            if (!c.typeDefinitionObj) {
-                debugger;
-            }
             if (!c.typeDefinitionObj || c.typeDefinitionObj.nodeClass !== NodeClass.ObjectType) {
                 return false;
             }
             return c.typeDefinitionObj.isSupertypeOf(transitionType);
         });
 
-        return comp;
+        return comp as UATransitionEx[];
     }
 
     public get transitions(): UATransitionEx[] {
@@ -154,7 +155,7 @@ export class UAStateMachineImpl extends UAObjectImpl implements UAStateMachineEx
      * return the node InitialStateType
      * @property initialState
      */
-    get initialState(): UAState {
+    get initialState(): UAState | null {
         const addressSpace = this.addressSpace;
 
         const initialStateType = addressSpace.findObjectType("InitialStateType");
@@ -168,7 +169,7 @@ export class UAStateMachineImpl extends UAObjectImpl implements UAStateMachineEx
         if (comp.length > 1) {
             throw new Error(" More than 1 initial state in stateMachine");
         }
-        return comp.length === 0 ? null : comp[0];
+        return comp.length === 0 ? null : comp[0] as UAState;
     }
 
     /**

@@ -2,17 +2,14 @@
  * @module node-opcua-address-space.AlarmsAndConditions
  */
 import { assert } from "node-opcua-assert";
-import { LocalizedText } from "node-opcua-data-model";
 import { DataValue } from "node-opcua-data-value";
 import { NodeId } from "node-opcua-nodeid";
-import { UAOffNormalAlarm, UAOffNormalAlarm_Base } from "node-opcua-nodeset-ua";
+import { UAOffNormalAlarm_Base } from "node-opcua-nodeset-ua";
 import { StatusCodes } from "node-opcua-status-code";
 import * as utils from "node-opcua-utils";
 import { DataType } from "node-opcua-variant";
 import { INamespace, UAVariable } from "../../source";
-import { UATwoStateVariableEx } from "../../source/ua_two_state_variable_ex";
 import { AddressSpacePrivate } from "../address_space_private";
-import { NamespacePrivate } from "../namespace_private";
 import { UADiscreteAlarmEx, UADiscreteAlarmImpl } from "./ua_discrete_alarm_impl";
 
 function isEqual(value1: any, value2: any) {
@@ -68,11 +65,11 @@ export class UAOffNormalAlarmImpl extends UADiscreteAlarmImpl implements UAOffNo
             throw new Error("cannot find offNormalAlarmType");
         }
 
-        assert(options.hasOwnProperty("inputNode"), "must provide inputNode"); // must provide a inputNode
-        assert(options.hasOwnProperty("normalState"), "must provide a normalState Node"); // must provide a inputNode
+        assert(Object.prototype.hasOwnProperty.call(options,"inputNode"), "must provide inputNode"); // must provide a inputNode
+        assert(Object.prototype.hasOwnProperty.call(options,"normalState"), "must provide a normalState Node"); // must provide a inputNode
         options.optionals = options.optionals || [];
 
-        assert(options.hasOwnProperty("inputNode"), "must provide inputNode"); // must provide a inputNode
+        assert(Object.prototype.hasOwnProperty.call(options,"inputNode"), "must provide inputNode"); // must provide a inputNode
         const alarmNode = UADiscreteAlarmImpl.instantiate(namespace, limitAlarmTypeId, options, data) as UAOffNormalAlarmImpl;
         Object.setPrototypeOf(alarmNode, UAOffNormalAlarmImpl.prototype);
 
@@ -141,8 +138,7 @@ export class UAOffNormalAlarmImpl extends UADiscreteAlarmImpl implements UAOffNo
         throw new Error("Not Implemented yet");
     }
 
-    public _updateAlarmState(normalStateValue?: any, inputValue?: any) {
-        const alarm = this;
+    public _updateAlarmState(normalStateValue?: any, inputValue?: any): void {
 
         if (utils.isNullOrUndefined(normalStateValue) || utils.isNullOrUndefined(inputValue)) {
             this.activeState.setValue(false);
@@ -150,14 +146,14 @@ export class UAOffNormalAlarmImpl extends UADiscreteAlarmImpl implements UAOffNo
         }
         const isActive = !isEqual(normalStateValue, inputValue);
 
-        if (isActive === alarm.activeState.getValue()) {
+        if (isActive === this.activeState.getValue()) {
             // no change => ignore !
             return;
         }
 
         const stateName = isActive ? "Active" : "Inactive";
         // also raise the event
-        alarm._signalNewCondition(stateName, isActive, "");
+        this._signalNewCondition(stateName, isActive, "");
     }
 
     public _onInputDataValueChange(dataValue: DataValue): void {

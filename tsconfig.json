@@ -40,6 +40,47 @@
         },
         {
             "path": "packages/node-opcua-modeler"
+        },
+        {
+            "path": "packages/node-opcua-nodeset-di"
+        },
+        {
+            "path": "packages/node-opcua-nodeset-adi"
+        },
+        {
+            "path": "packages/node-opcua-nodeset-ia"
+        }
+        ,
+        {
+            "path": "packages/node-opcua-nodeset-auto-id"
+        }
+        ,
+        {
+            "path": "packages/node-opcua-nodeset-cnc"
+        }
+        ,
+        {
+            "path": "packages/node-opcua-nodeset-commercial-kitchen-equipment"
+        }
+        ,
+        {
+            "path": "packages/node-opcua-nodeset-gds"
+        }
+        ,
+        {
+            "path": "packages/node-opcua-nodeset-machine-tool"
+        }
+        ,
+        {
+            "path": "packages/node-opcua-nodeset-machine-vision"
+        }
+        ,
+        {
+            "path": "packages/node-opcua-nodeset-machinery"
+        }
+        ,
+        {
+            "path": "packages/node-opcua-nodeset-robotics"
         }
     ],    
     "compileOnSave": false,

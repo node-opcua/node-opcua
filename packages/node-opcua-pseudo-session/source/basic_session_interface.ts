@@ -117,7 +117,7 @@ export function getArgumentDefinitionHelper(
     session: IBasicSession,
     methodId: MethodId,
     callback: ResponseCallback<ArgumentDefinition>
-) {
+): void {
     const browseDescription = new BrowseDescription({
         browseDirection: BrowseDirection.Forward,
         includeSubtypes: true,

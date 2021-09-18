@@ -72,8 +72,8 @@ const _enumerations: Map<string, EnumerationDefinitionSchema> = new Map<string, 
  * @return {Enum}
  */
 export function registerEnumeration(options: EnumerationDefinitionOptions): Enum {
-    assert(options.hasOwnProperty("name"));
-    assert(options.hasOwnProperty("enumValues"));
+    assert(Object.prototype.hasOwnProperty.call(options,"name"));
+    assert(Object.prototype.hasOwnProperty.call(options,"enumValues"));
     const name = options.name;
 
     if (_enumerations.hasOwnProperty(name)) {

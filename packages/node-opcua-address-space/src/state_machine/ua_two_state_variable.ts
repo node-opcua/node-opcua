@@ -97,7 +97,7 @@ function _getEffectiveDisplayName<T, DT extends DataType>(
 }
 
 function _getHumanReadableString(node: UATwoStateVariableImpl): DataValueT<LocalizedText, DataType.LocalizedText> {
-    let dataValue = node.id.readValue();
+    const dataValue = node.id.readValue();
 
     if (dataValue.statusCode !== StatusCodes.Good) {
         const _c = dataValue.clone() as DataValueT<LocalizedText, DataType.LocalizedText>;
@@ -130,7 +130,7 @@ export function _install_TwoStateVariable_machinery(
     assert(node.minimumSamplingInterval === 0);
     assert(node.typeDefinitionObj.browseName.toString() === "TwoStateVariableType");
     assert(node.dataTypeObj.browseName.toString() === "LocalizedText");
-    assert(node.hasOwnProperty("valueRank") && (node.valueRank === -1 || node.valueRank === 0));
+    assert(Object.prototype.hasOwnProperty.call(node,"valueRank") && (node.valueRank === -1 || node.valueRank === 0));
 
     // promote node into a UATwoStateVariable
     const _node = promoteToTwoStateVariable(node);
@@ -206,35 +206,34 @@ export class UATwoStateVariableImpl extends UAVariableImplT<LocalizedText, DataT
         return super.isTrueSubStateOf as UATwoStateVariableEx;
     }
 
-    public initialize(options: TwoStateVariableInitializeOptions) {
-        const node = this;
+    public initialize(options: TwoStateVariableInitializeOptions): void {
 
         if (options.trueState) {
             assert(!!options.falseState);
             assert(typeof options.trueState === "string");
             assert(typeof options.falseState === "string");
 
-            if (node.falseState) {
-                node.falseState.setValueFromSource({
+            if (this.falseState) {
+                this.falseState.setValueFromSource({
                     dataType: DataType.LocalizedText,
                     value: coerceLocalizedText(options.falseState)
                 });
             } else {
-                node._trueState = coerceLocalizedText(options.trueState)!.text!;
+                this._trueState = coerceLocalizedText(options.trueState)!.text!;
             }
-            if (node.trueState) {
-                node.trueState.setValueFromSource({
+            if (this.trueState) {
+                this.trueState.setValueFromSource({
                     dataType: DataType.LocalizedText,
                     value: coerceLocalizedText(options.trueState)
                 });
             } else {
-                node._falseState = coerceLocalizedText(options.falseState)!.text!;
+                this._falseState = coerceLocalizedText(options.falseState)!.text!;
             }
         }
 
         // handle isTrueSubStateOf
         if (options.isTrueSubStateOf) {
-            node.addReference({
+            this.addReference({
                 isForward: false,
                 nodeId: options.isTrueSubStateOf,
                 referenceType: "HasTrueSubState"
@@ -242,7 +241,7 @@ export class UATwoStateVariableImpl extends UAVariableImplT<LocalizedText, DataT
         }
 
         if (options.isFalseSubStateOf) {
-            node.addReference({
+            this.addReference({
                 isForward: false,
                 nodeId: options.isFalseSubStateOf,
                 referenceType: "HasFalseSubState"
@@ -250,7 +249,7 @@ export class UATwoStateVariableImpl extends UAVariableImplT<LocalizedText, DataT
         }
 
         if (options.value === undefined) {
-            node.id.setValueFromSource(
+            this.id.setValueFromSource(
                 {
                     dataType: "Boolean",
                     value: false
@@ -258,39 +257,38 @@ export class UATwoStateVariableImpl extends UAVariableImplT<LocalizedText, DataT
                 StatusCodes.UncertainInitialValue
             );
         } else if (typeof options.value === "boolean") {
-            node.id.setValueFromSource(
+            this.id.setValueFromSource(
                 {
                     dataType: "Boolean",
                     value: options.value
                 },
                 StatusCodes.Good
             );
-        } else if (options.value.hasOwnProperty("dataType")) {
+        } else if (Object.prototype.hasOwnProperty.call(options.value,"dataType")) {
             assert((options.value as VariantLike).dataType === DataType.Boolean);
-            node.id.setValueFromSource(options.value as VariantLike, StatusCodes.Good);
+            this.id.setValueFromSource(options.value as VariantLike, StatusCodes.Good);
         } else {
-            node.id.bindVariable(options.value);
+            this.id.bindVariable(options.value);
         }
         this._postInitialize();
     }
 
-    public _postInitialize() {
-        const node = this;
-        if (node.effectiveTransitionTime) {
+    public _postInitialize(): void {
+        if (this.effectiveTransitionTime) {
             // install "value_changed" event handler on SubState that are already defined
-            const subStates = node.getTrueSubStates().concat(node.getFalseSubStates());
+            const subStates = this.getTrueSubStates().concat(this.getFalseSubStates());
             for (const subState of subStates) {
-                subState.on("value_changed", () => _updateEffectiveTransitionTime(node));
+                subState.on("value_changed", () => _updateEffectiveTransitionTime(this));
             }
         }
 
         // it should be possible to define a trueState and falseState LocalizedText even if
         // the trueState or FalseState node is not exposed. Therefore we need to store their value
         // into dedicated variables.
-        node.id.on("value_changed", () => {
-            node._internal_set_dataValue(_getHumanReadableString(node));
+        this.id.on("value_changed", () => {
+            this._internal_set_dataValue(_getHumanReadableString(this));
         });
-        node._internal_set_dataValue(_getHumanReadableString(node));
+        this._internal_set_dataValue(_getHumanReadableString(this));
 
         // todo : also set the effectiveDisplayName if present
 
@@ -303,29 +301,28 @@ export class UATwoStateVariableImpl extends UAVariableImplT<LocalizedText, DataT
         //
         // EffectiveDisplayName will be constructed by adding the EnableState
         // and the State of the addTrue state
-        if (node.effectiveDisplayName) {
-            node.id.on("value_changed", () => {
-                (node.effectiveDisplayName! as UAVariableImpl)._internal_set_dataValue(_getEffectiveDisplayName(node));
+        if (this.effectiveDisplayName) {
+            this.id.on("value_changed", () => {
+                (this.effectiveDisplayName! as UAVariableImpl)._internal_set_dataValue(_getEffectiveDisplayName(this));
             });
-            (node.effectiveDisplayName! as UAVariableImpl)._internal_set_dataValue(_getEffectiveDisplayName(node));
+            (this.effectiveDisplayName! as UAVariableImpl)._internal_set_dataValue(_getEffectiveDisplayName(this));
         }
     }
     /**
      * @method setValue
      * @param boolValue {Boolean}
      */
-    public setValue(boolValue: boolean) {
-        const node = this;
+    public setValue(boolValue: boolean): void {
         assert(typeof boolValue === "boolean");
-        const dataValue = node.id!.readValue();
+        const dataValue = this.id!.readValue();
         const oldValue = dataValue.value.value;
         if (dataValue.statusCode === StatusCodes.Good && boolValue === oldValue) {
             return; // nothing to do
         }
         //
-        node.id.setValueFromSource(new Variant({ dataType: DataType.Boolean, value: boolValue }));
-        _updateTransitionTime(node);
-        _updateEffectiveTransitionTime(node);
+        this.id.setValueFromSource(new Variant({ dataType: DataType.Boolean, value: boolValue }));
+        _updateTransitionTime(this);
+        _updateEffectiveTransitionTime(this);
     }
 
     /**
@@ -333,8 +330,7 @@ export class UATwoStateVariableImpl extends UAVariableImplT<LocalizedText, DataT
      * @return {Boolean}
      */
     public getValue(): boolean {
-        const node = this;
-        const dataValue = node.id!.readValue();
+        const dataValue = this.id!.readValue();
         assert(dataValue.statusCode === StatusCodes.Good);
         assert(dataValue.value.dataType === DataType.Boolean);
         return dataValue.value.value;
@@ -345,8 +341,7 @@ export class UATwoStateVariableImpl extends UAVariableImplT<LocalizedText, DataT
      * @return {string}
      */
     public getValueAsString(): string {
-        const node = this;
-        const dataValue = node.readValue();
+        const dataValue = this.readValue();
         assert(dataValue.statusCode === StatusCodes.Good);
         assert(dataValue.value.dataType === DataType.LocalizedText);
         return dataValue.value.value.text?.toString() || "";

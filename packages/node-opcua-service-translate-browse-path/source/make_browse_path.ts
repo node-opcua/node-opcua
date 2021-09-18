@@ -12,7 +12,7 @@ export declare type NodeIdLikeOrWithNodeId =
           nodeId: NodeId;
       };
 function _get_nodeId(node: NodeIdLikeOrWithNodeId): NodeId {
-    if (node.hasOwnProperty("nodeId")) {
+    if (Object.prototype.hasOwnProperty.call(node,"nodeId")) {
         return (node as any).nodeId;
     }
     return resolveNodeId(node as NodeIdLike);

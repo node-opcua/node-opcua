@@ -15,7 +15,7 @@ export function isNodeIdString(str: string): boolean {
 
 function is_valid_reference(ref: UAReference): boolean {
     const hasRequestedProperties =
-        ref.hasOwnProperty("referenceType") && ref.hasOwnProperty("nodeId") && !utils.isNullOrUndefined(ref.isForward);
+        Object.prototype.hasOwnProperty.call(ref,"referenceType") && Object.prototype.hasOwnProperty.call(ref,"nodeId") && !utils.isNullOrUndefined(ref.isForward);
 
     if (!hasRequestedProperties) {
         return false;

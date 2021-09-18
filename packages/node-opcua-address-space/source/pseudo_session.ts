@@ -1,8 +1,8 @@
 /**
  * @module node-opcua-address-space
  */
-import * as async from "async";
 import { promisify } from "util";
+import * as async from "async";
 
 import { assert } from "node-opcua-assert";
 import { DataValue } from "node-opcua-data-value";
@@ -17,23 +17,19 @@ import {
     MethodId,
     ResponseCallback
 } from "node-opcua-pseudo-session";
-import {
-    BrowseDescription,
-    BrowseResult
-} from "node-opcua-service-browse";
+import { BrowseDescription, BrowseResult } from "node-opcua-service-browse";
 import { CallMethodRequest, CallMethodResult, CallMethodResultOptions } from "node-opcua-service-call";
 import { BrowsePath, BrowsePathResult } from "node-opcua-service-translate-browse-path";
 import { StatusCodes, StatusCode } from "node-opcua-status-code";
 import { NodeClass, AttributeIds } from "node-opcua-data-model";
-import { ReadValueId, WriteValueOptions, WriteValue, ReadValueIdOptions, BrowseDescriptionOptions } from "node-opcua-types";
+import { WriteValueOptions, ReadValueIdOptions, BrowseDescriptionOptions } from "node-opcua-types";
 import { randomGuid } from "node-opcua-basic-types";
 
-import {IAddressSpace, UAVariable, ISessionContext } from "node-opcua-address-space-base";
+import { IAddressSpace, UAVariable, ISessionContext } from "node-opcua-address-space-base";
 
 import { ContinuationPointManager } from "./continuation_points/continuation_point_manager";
 import { callMethodHelper } from "./helpers/call_helpers";
 import { SessionContext } from "./session_context";
-
 
 const errorLog = make_errorLog("PseudoSession");
 /**
@@ -47,7 +43,7 @@ const errorLog = make_errorLog("PseudoSession");
  *
  */
 export class PseudoSession implements IBasicSession {
-    public requestedMaxReferencesPerNode: number = 0;
+    public requestedMaxReferencesPerNode = 0;
     private _sessionId: NodeId = new NodeId(NodeIdType.GUID, randomGuid());
     private readonly addressSpace: IAddressSpace;
     private readonly continuationPointManager: ContinuationPointManager;
@@ -55,7 +51,6 @@ export class PseudoSession implements IBasicSession {
 
     constructor(addressSpace: IAddressSpace, context?: ISessionContext) {
         this.addressSpace = addressSpace;
-        const self = this;
         this.context = context || SessionContext.defaultContext;
         this.continuationPointManager = new ContinuationPointManager();
     }
@@ -74,9 +69,10 @@ export class PseudoSession implements IBasicSession {
                 nodesToBrowse = [nodesToBrowse as BrowseDescriptionLike];
             }
             let results: BrowseResult[] = [];
-            for (let browseDescription of nodesToBrowse as BrowseDescriptionOptions[]) {
+            for (const browseDescription of nodesToBrowse as BrowseDescriptionOptions[]) {
                 browseDescription.referenceTypeId = resolveNodeId(browseDescription.referenceTypeId!);
-                const _browseDescription = browseDescription instanceof BrowseDescription ?  browseDescription : new BrowseDescription(browseDescription);
+                const _browseDescription =
+                    browseDescription instanceof BrowseDescription ? browseDescription : new BrowseDescription(browseDescription);
                 const nodeId = resolveNodeId(_browseDescription.nodeId);
                 const r = this.addressSpace.browseSingleNode(nodeId, _browseDescription, this.context);
                 results.push(r);
@@ -101,26 +97,26 @@ export class PseudoSession implements IBasicSession {
     public read(nodesToRead: ReadValueIdOptions[], callback: ResponseCallback<DataValue[]>): void;
     public read(nodeToRead: ReadValueIdOptions): Promise<DataValue>;
     public read(nodesToRead: ReadValueIdOptions[]): Promise<DataValue[]>;
-    public read(nodesToRead: any, callback?: ResponseCallback<any>): any {
+    public read(nodesToRead: ReadValueIdOptions[] | ReadValueIdOptions, callback?: ResponseCallback<any>): any {
         const isArray = Array.isArray(nodesToRead);
         if (!isArray) {
-            nodesToRead = [nodesToRead];
+            nodesToRead = [nodesToRead as ReadValueIdOptions];
         }
+        const _nodesToRead = nodesToRead as ReadValueIdOptions[];
+        const context = this.context;
 
-        const context =  this.context;
-        
         setImmediate(() => {
             async.map(
-                nodesToRead,
-                (nodeToRead: ReadValueId, innerCallback: any) => {
-                    const obj = this.addressSpace.findNode(nodeToRead.nodeId);
+                _nodesToRead,
+                (nodeToRead: ReadValueIdOptions, innerCallback: any) => {
+                    const obj = this.addressSpace.findNode(nodeToRead.nodeId!);
                     if (!obj || obj.nodeClass !== NodeClass.Variable || nodeToRead.attributeId !== AttributeIds.Value) {
                         return innerCallback();
                     }
                     (obj as UAVariable).readValueAsync(context, innerCallback);
                 },
                 (err) => {
-                    const dataValues = nodesToRead.map((nodeToRead: ReadValueIdOptions) => {
+                    const dataValues = _nodesToRead.map((nodeToRead: ReadValueIdOptions) => {
                         assert(!!nodeToRead.nodeId, "expecting a nodeId");
                         assert(!!nodeToRead.attributeId, "expecting a attributeId");
 
@@ -158,7 +154,7 @@ export class PseudoSession implements IBasicSession {
     public browseNext(continuationPoint: Buffer, releaseContinuationPoints: boolean): Promise<BrowseResult>;
 
     public browseNext(continuationPoints: Buffer[], releaseContinuationPoints: boolean): Promise<BrowseResult[]>;
-    public browseNext(continuationPoints: Buffer | Buffer[], releaseContinuationPoints: boolean, callback?: any): any {
+    public browseNext(continuationPoints: Buffer | Buffer[], releaseContinuationPoints: boolean, callback?: ResponseCallback<any>): any {
         setImmediate(() => {
             if (continuationPoints instanceof Buffer) {
                 return this.browseNext([continuationPoints], releaseContinuationPoints, (err, _results) => {
@@ -167,7 +163,6 @@ export class PseudoSession implements IBasicSession {
                     }
                     callback!(null, _results![0]);
                 });
-                return;
             }
             let results: any;
             if (releaseContinuationPoints) {
@@ -244,7 +239,7 @@ export class PseudoSession implements IBasicSession {
     public translateBrowsePath(browsePath: BrowsePath, callback: ResponseCallback<BrowsePathResult>): void;
     public translateBrowsePath(browsePath: BrowsePath): Promise<BrowsePathResult>;
     public translateBrowsePath(browsePaths: BrowsePath[]): Promise<BrowsePathResult[]>;
-    public translateBrowsePath(browsePaths: BrowsePath[] | BrowsePath, callback?: any): any {
+    public translateBrowsePath(browsePaths: BrowsePath[] | BrowsePath, callback?: ResponseCallback<any>): any {
         const isArray = Array.isArray(browsePaths);
         if (!isArray) {
             browsePaths = [browsePaths as BrowsePath];
@@ -258,25 +253,23 @@ export class PseudoSession implements IBasicSession {
     public write(nodesToWrite: WriteValueOptions[], callback: ResponseCallback<StatusCode[]>): void;
     public write(nodeToWrite: WriteValueOptions): Promise<StatusCode>;
     public write(nodesToWrite: WriteValueOptions[]): Promise<StatusCode[]>;
-    public write(nodesToWrite: any, callback?: ResponseCallback<any>): any {
-        const isArray = Array.isArray(nodesToWrite);
-        if (!isArray) {
-            nodesToWrite = [nodesToWrite];
-        }
+    public write(nodesToWrite: WriteValueOptions[] | WriteValueOptions, callback?: ResponseCallback<any>): any {
+        const isArray = nodesToWrite instanceof Array;
+        const _nodesToWrite: WriteValueOptions[]  = !isArray ? [nodesToWrite]: nodesToWrite;
         const context = this.context;
         setImmediate(() => {
-            const statusCodesPromises: Promise<StatusCode>[] = nodesToWrite.map((nodeToWrite: WriteValue) => {
+            const statusCodesPromises = _nodesToWrite.map((nodeToWrite: WriteValueOptions) => {
                 assert(!!nodeToWrite.nodeId, "expecting a nodeId");
                 assert(!!nodeToWrite.attributeId, "expecting a attributeId");
 
                 const nodeId = nodeToWrite.nodeId!;
                 const obj = this.addressSpace.findNode(nodeId);
                 if (!obj) {
-                    return new DataValue({ statusCode: StatusCodes.BadNodeIdUnknown });
+                    return  StatusCodes.BadNodeIdUnknown;
                 }
                 return promisify(obj.writeAttribute).call(obj, context, nodeToWrite);
             });
-            Promise.all(statusCodesPromises).then((statusCodes: StatusCodes[]) => {
+            Promise.all(statusCodesPromises).then((statusCodes) => {
                 callback!(null, isArray ? statusCodes : statusCodes[0]);
             });
         });

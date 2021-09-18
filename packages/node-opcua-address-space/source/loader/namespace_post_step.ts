@@ -10,7 +10,7 @@ const doDebug = checkDebugFlag(__filename);
 
 export const g_promotableObject: { [key: string]: (node: any) => any } = {};
 
-export async function promoteObjectAndVariablesInNamespace(namespace: INamespace) {
+export async function promoteObjectAndVariablesInNamespace(namespace: INamespace): Promise<void> {
     const namespaceP = namespace as NamespacePrivate;
     for (const a of namespaceP.nodeIterator()) {
         if (a.nodeClass === NodeClass.Object || a.nodeClass === NodeClass.Variable) {
@@ -29,7 +29,7 @@ export async function promoteObjectAndVariablesInNamespace(namespace: INamespace
         }
     }
 }
-export async function promoteObjectsAndVariables(addressSpace: IAddressSpace) {
+export async function promoteObjectsAndVariables(addressSpace: IAddressSpace): Promise<void> {
     for (const namespace of addressSpace.getNamespaceArray()) {
         promoteObjectAndVariablesInNamespace(namespace);
     }

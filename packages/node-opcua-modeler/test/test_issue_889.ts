@@ -2,8 +2,7 @@ import { spy } from "sinon";
 import "should";
 
 import { ExtraDataTypeManager, populateDataTypeManager } from "node-opcua-client-dynamic-extension-object";
-
-import { makeNodeId, NodeId } from "node-opcua-nodeid";
+import { NodeId } from "node-opcua-nodeid";
 import { nodesets } from "node-opcua-nodesets";
 import { AddressSpace, adjustNamespaceArray, PseudoSession, UAVariable } from "node-opcua-address-space";
 import { generateAddressSpace } from "node-opcua-address-space/nodeJS";
@@ -12,9 +11,7 @@ import {
     addExtensionObjectDataType,
     DataType,
     ExtensionObjectDefinition,
-    StructureDefinitionOptions,
-    Variant,
-    VariantArrayType
+    StructureDefinitionOptions
 } from "..";
 
 

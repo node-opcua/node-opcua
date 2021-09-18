@@ -10,6 +10,7 @@ import { AttributeIds } from "node-opcua-data-model";
 import { DataValue, DataValueLike } from "node-opcua-data-value";
 import { getCurrentClock } from "node-opcua-date-time";
 import { NodeId } from "node-opcua-nodeid";
+import { NumericRange } from "node-opcua-numeric-range";
 import { StatusCodes } from "node-opcua-status-code";
 import { DataType } from "node-opcua-variant";
 import {
@@ -25,7 +26,6 @@ import {
 import { BaseNodeImpl } from "./base_node_impl";
 import { _clone, ToStringBuilder, UAObject_toString } from "./base_node_private";
 import { apply_condition_refresh } from "./apply_condition_refresh";
-import { NumericRange } from "node-opcua-numeric-range";
 
 export class UAObjectImpl extends BaseNodeImpl implements UAObject {
     public readonly nodeClass = NodeClass.Object;

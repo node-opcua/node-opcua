@@ -2,21 +2,16 @@ import assert from "node-opcua-assert";
 import { coerceLocalizedText, LocalizedText, LocalizedTextLike, QualifiedNameLike } from "node-opcua-data-model";
 import { DataType, Variant, VariantLike } from "node-opcua-variant";
 import { VariableTypeIds } from "node-opcua-constants";
-import {
-    INamespace,
-    UAVariable,
-    BindVariableOptions,
-    UAProperty,
-    ISessionContext
-} from "node-opcua-address-space-base";
+import { INamespace, UAVariable, BindVariableOptions, UAProperty, ISessionContext } from "node-opcua-address-space-base";
 import { DataValueT } from "node-opcua-data-value";
 import { NumericRange } from "node-opcua-numeric-range";
 
 import { UAVariableImpl } from "../ua_variable_impl";
 import { registerNodePromoter } from "../../source/loader/register_node_promoter";
-import { add_dataItem_stuff } from "./add_dataItem_stuff";
 import { AddTwoStateDiscreteOptions } from "../../source/address_space_ts";
 import { UATwoStateDiscreteEx } from "../../source/interfaces/data_access/ua_two_state_discrete_ex";
+
+import { add_dataItem_stuff } from "./add_dataItem_stuff";
 
 export interface UATwoStateDiscreteImpl {
     falseState: UAProperty<LocalizedText, /*c*/ DataType.LocalizedText>;
@@ -27,15 +22,14 @@ export interface UATwoStateDiscreteImpl {
         indexRange?: NumericRange,
         dataEncoding?: QualifiedNameLike | null
     ): DataValueT<boolean, DataType.Boolean>;
-    
+
     readValueAsync(context: ISessionContext | null, callback?: any): any;
-    
 }
 export class UATwoStateDiscreteImpl extends UAVariableImpl implements UATwoStateDiscreteEx {
     /*
      * @private
      */
-    _post_initialize() {
+    _post_initialize(): void {
         // The StatusCode SemanticsChanged bit shall be set if any of the FalseState or TrueState
         // (changes can cause misinterpretation by users or (scripting) programs) Properties are changed
         // (see section 5.2 for additional information).
@@ -64,7 +58,7 @@ export class UATwoStateDiscreteImpl extends UAVariableImpl implements UATwoState
             );
         }
     }
-    setValue(value: boolean | LocalizedTextLike) {
+    setValue(value: boolean | LocalizedTextLike): void {
         if (typeof value === "boolean") {
             this.setValueFromSource({ dataType: DataType.Boolean, value });
         } else {
@@ -117,7 +111,7 @@ registerNodePromoter(VariableTypeIds.TwoStateDiscreteType, promoteToTwoStateDisc
 export function _addTwoStateDiscrete(namespace: INamespace, options: AddTwoStateDiscreteOptions): UATwoStateDiscreteEx {
     const addressSpace = namespace.addressSpace;
 
-    assert(!options.hasOwnProperty("ValuePrecision"));
+    assert(!Object.prototype.hasOwnProperty.call(options, "ValuePrecision"));
 
     const twoStateDiscreteType = addressSpace.findVariableType("TwoStateDiscreteType");
     if (!twoStateDiscreteType) {

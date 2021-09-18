@@ -3,6 +3,7 @@ import * as async from "async";
 import * as should from "should";
 import * as sinon from "sinon";
 
+import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 import { LocalizedText } from "node-opcua-data-model";
 import { coerceLocalizedText } from "node-opcua-data-model";
 import { NodeId } from "node-opcua-nodeid";
@@ -15,11 +16,10 @@ import { Variant } from "node-opcua-variant";
 import { DataValue } from "node-opcua-data-value";
 import { AddressSpace, BaseNode, ConditionSnapshot, SessionContext, UAAlarmConditionEx, UAAlarmConditionImpl, UAObject, UAVariable } from "../..";
 
-import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 const debugLog = make_debugLog("TEST");
 const doDebug = checkDebugFlag("TEST");
 
-export function utest_alarm_condition(test: any) {
+export function utest_alarm_condition(test: any): void {
     describe("AlarmConditionType", () => {
         let addressSpace: AddressSpace;
         let source: UAObject;
@@ -195,7 +195,7 @@ export function utest_alarm_condition(test: any) {
                 const context = new SessionContext();
 
                 const values: any[] = [];
-                let _timer: any;
+                
 
                 // function calling_timedShelve(callback) {
                 const callMethodResponse1 = await alarm.shelvingState.timedShelve.execute(null, [shelvingTime], context);
@@ -218,7 +218,7 @@ export function utest_alarm_condition(test: any) {
 
                 let previous = timeShelvedDuration + 1;
 
-                _timer = setInterval(() => {
+                const _timer = setInterval(() => {
                     const variant = alarm.shelvingState.unshelveTime.readValue().value;
                     variant.dataType.should.eql(DataType.Double);
 

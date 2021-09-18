@@ -6,7 +6,7 @@ function specialEncode(namespaceUri: string): string {
     return namespaceUri;
 }
 
-export function setNamespaceMetaData(namespace: INamespace) {
+export function setNamespaceMetaData(namespace: INamespace): void {
     // NamespaceMetadataType
     const addressSpace = namespace.addressSpace;
     const namespaceMetadataType = addressSpace.findObjectType("NamespaceMetadataType");

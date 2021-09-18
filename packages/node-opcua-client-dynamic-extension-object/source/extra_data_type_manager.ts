@@ -21,15 +21,15 @@ export class ExtraDataTypeManager {
         /* */
     }
 
-    public setNamespaceArray(namespaceArray: string[]) {
+    public setNamespaceArray(namespaceArray: string[]): void {
         this.namespaceArray = namespaceArray;
     }
 
     public hasDataTypeFactory(namespaceIndex: number): boolean {
-        return !!this.dataTypeFactoryMapByNamespace.hasOwnProperty(namespaceIndex);
+        return !!Object.prototype.hasOwnProperty.call(this.dataTypeFactoryMapByNamespace,namespaceIndex);
     }
 
-    public registerDataTypeFactory(namespaceIndex: number, dataTypeFactory: DataTypeFactory) {
+    public registerDataTypeFactory(namespaceIndex: number, dataTypeFactory: DataTypeFactory): void {
         /* istanbul ignore next */
         assert(namespaceIndex !== 0, "registerTypeDictionary cannot be used for namespace 0");
         if (this.hasDataTypeFactory(namespaceIndex)) {

@@ -65,8 +65,8 @@ export function interpolatedValue(interval: Interval, options: AggregateConfigur
 
     options = adjustProcessingOptions(options);
 
-    assert(options.hasOwnProperty("useSlopedExtrapolation"));
-    assert(options.hasOwnProperty("treatUncertainAsBad"));
+    assert(Object.prototype.hasOwnProperty.call(options,"useSlopedExtrapolation"));
+    assert(Object.prototype.hasOwnProperty.call(options,"treatUncertainAsBad"));
 
     const bTreatUncertainAsBad = options.treatUncertainAsBad!;
 

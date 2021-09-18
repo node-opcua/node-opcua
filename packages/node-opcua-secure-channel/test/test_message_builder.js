@@ -1,6 +1,7 @@
 const should = require("should");
 
-const MessageBuilder = require("..").MessageBuilder;
+const { MessageBuilder } = require("..");
+const { SecurityPolicy, MessageSecurityMode} = require("..");
 
 const packets = require("node-opcua-transport/dist/test-fixtures");
 
@@ -103,8 +104,7 @@ describe("MessageBuilder", function () {
             .on("message", (message) => {})
             .on("error", (err) => {
                 console.log(err);
-
-                throw new Error("should not get there");
+                done(Error("should not get there"));
             })
             .on("invalid_sequence_number", function (expected, found) {
                 //xx console.log("expected ",expected);
@@ -114,5 +114,22 @@ describe("MessageBuilder", function () {
 
         messageBuilder.feed(packets.openChannelRequest1);
         messageBuilder.feed(packets.openChannelRequest1);
+    });
+
+    it("some random packet - encrypted ", (done) => {
+        const messageBuilder = new MessageBuilder({
+        });
+        messageBuilder.setSecurity(MessageSecurityMode.Sign, SecurityPolicy.Basic256);
+        messageBuilder
+            .on("message", (message) => {})
+            .on("error", (err) => {
+                console.log(err);
+                done();
+            })
+            .on("invalid_sequence_number", function (expected, found) {
+                done(new Error("should not get there"));
+            });
+
+        messageBuilder.feed(packets.random_packet);
     });
 });

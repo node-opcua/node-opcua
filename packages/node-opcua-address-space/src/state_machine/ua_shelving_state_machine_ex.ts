@@ -10,13 +10,14 @@ import { assert } from "node-opcua-assert";
 import { StatusCodes } from "node-opcua-status-code";
 import { DataType, Variant, VariantLike } from "node-opcua-variant";
 
-import { UAProperty, MethodFunctorCallback, ISessionContext, UAMethod, UAVariable, UAObject } from "node-opcua-address-space-base";
+import { UAProperty, MethodFunctorCallback, ISessionContext, UAMethod, UAObject } from "node-opcua-address-space-base";
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
-import { UAShelvedStateMachine, UAShelvedStateMachine_Base, UAState, UATransition } from "node-opcua-nodeset-ua";
+import { UAShelvedStateMachine_Base, UAState } from "node-opcua-nodeset-ua";
 
-import { promoteToStateMachine, UAStateMachineImpl } from "./finite_state_machine";
 import { UAAlarmConditionImpl } from "../alarms_and_conditions/ua_alarm_condition_impl";
 import { UATransitionEx } from "../../source/interfaces/state_machine/ua_transition_ex";
+
+import { promoteToStateMachine, UAStateMachineImpl } from "./finite_state_machine";
 
 const debugLog = make_debugLog(__filename);
 const doDebug = checkDebugFlag(__filename);

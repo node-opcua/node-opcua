@@ -18,9 +18,9 @@ import {
     UAReference
 } from "node-opcua-address-space-base";
 
+import { SessionContext } from "../source/session_context";
 import { BaseNodeImpl } from "./base_node_impl";
 import { ToStringBuilder, UAObjectType_toString } from "./base_node_private";
-import { SessionContext } from "../source/session_context";
 import { get_subtypeOf, get_subtypeOfObj } from "./tool_isSupertypeOf";
 import * as tools from "./tool_isSupertypeOf";
 import { assertUnusedChildBrowseName, initialize_properties_and_components, topMostParentIsObjectTypeOrVariableType } from "./ua_variable_type_impl";
@@ -101,8 +101,8 @@ export class UAObjectTypeImpl extends BaseNodeImpl implements UAObjectType {
             "expecting a browse name"
         );
 
-        assert(!options.hasOwnProperty("propertyOf"), "an Object shall not be a PropertyOf an other object");
-        assert(!options.hasOwnProperty("optional"), "do you mean optionals ?");
+        assert(!Object.prototype.hasOwnProperty.call(options,"propertyOf"), "an Object shall not be a PropertyOf an other object");
+        assert(!Object.prototype.hasOwnProperty.call(options,"optional"), "do you mean optionals ?");
 
         assertUnusedChildBrowseName(addressSpace, options);
 

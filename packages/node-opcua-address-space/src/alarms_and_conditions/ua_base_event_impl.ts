@@ -32,8 +32,7 @@ export class UABaseEventImpl extends UAObjectImpl implements UABaseEventEx {
      */
     public setSourceName(name: string): void {
         assert(typeof name === "string");
-        const self = this;
-        self.sourceName.setValueFromSource(
+        this.sourceName.setValueFromSource(
           new Variant({
               dataType: DataType.String,
               value: name
@@ -46,8 +45,7 @@ export class UABaseEventImpl extends UAObjectImpl implements UABaseEventEx {
      * @param node {NodeId|UAObject}
      */
     public setSourceNode(node: NodeId | BaseNode): void {
-        const self = this;
-        self.sourceNode.setValueFromSource(
+        this.sourceNode.setValueFromSource(
           new Variant({
               dataType: DataType.NodeId,
               value: (node as any).nodeId ? (node as any).nodeId : node

@@ -2,8 +2,7 @@
  * @module node-opcua-address-space
  */
 
-import * as util from "util";
-
+import { UAReference, UAReferenceType } from "node-opcua-address-space-base";
 import { assert } from "node-opcua-assert";
 import { coerceLocalizedText, LocalizedTextOptions } from "node-opcua-data-model";
 import { LocalizedText, NodeClass } from "node-opcua-data-model";
@@ -21,7 +20,6 @@ import { ReferenceImpl } from "./reference_impl";
 import {
     BaseNode_getCache
 } from "./base_node_private";
-import { UAReference, UAReferenceType } from "node-opcua-address-space-base";
 
 
 const ReferenceTypeCounter = { count: 0 };
@@ -156,7 +154,7 @@ export class UAReferenceTypeImpl extends BaseNodeImpl implements UAReferenceType
         return str;
     }
 
-    public install_extra_properties(): void { }
+    public install_extra_properties(): void { /**  */ }
 
     /**
      * returns a array of all ReferenceTypes in the addressSpace that are self or a subType of self
@@ -166,7 +164,7 @@ export class UAReferenceTypeImpl extends BaseNodeImpl implements UAReferenceType
         return _getAllSubtypes(this);
     }
 
-    public checkHasSubtype(ref: UAReference | NodeId) {
+    public checkHasSubtype(ref: UAReference | NodeId): boolean {
         const _index = _getSubtypeIndex(this);
         const referenceTypeNodeId = ref instanceof ReferenceImpl ? ref.nodeId : ref as NodeId;
         const _key = referenceTypeNodeId.toString();

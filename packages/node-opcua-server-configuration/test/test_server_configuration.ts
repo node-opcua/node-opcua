@@ -1,7 +1,7 @@
 import * as path from "path";
 import * as fs from "fs";
 
-import { AddressSpace, IServerBase, ISessionBase, PseudoSession, SessionContext, WellKnownRoles, makeRoles } from "node-opcua-address-space";
+import { AddressSpace, IServerBase, ISessionBase, PseudoSession, SessionContext, WellKnownRoles, makeRoles, UAServer, UAServerConfiguration } from "node-opcua-address-space";
 import { generateAddressSpace } from "node-opcua-address-space/nodeJS";
 import { NodeClass } from "node-opcua-data-model";
 import { nodesets } from "node-opcua-nodesets";
@@ -11,11 +11,12 @@ import { NodeId } from "node-opcua-nodeid";
 import { StatusCodes } from "node-opcua-status-code";
 import { MessageSecurityMode, UserNameIdentityToken } from "node-opcua-types";
 import { readCertificate } from "node-opcua-crypto";
+import { SecurityPolicy } from "node-opcua-secure-channel";
 
 import { ClientPushCertificateManagement, installPushCertificateManagement } from "..";
-import { initializeHelpers } from "./helpers/fake_certificate_authority";
 import { TrustListMasks } from "../source/server/trust_list_server";
-import { SecurityPolicy } from "node-opcua-secure-channel";
+
+import { initializeHelpers } from "./helpers/fake_certificate_authority";
 
 const doDebug = false;
 // make sure extra error checking is made on object constructions
@@ -84,8 +85,11 @@ describe("ServerConfiguration", () => {
         server.should.have.ownProperty("serverConfiguration");
     });
 
+    interface UAServerWithConfiguration extends UAServer {
+        serverConfiguration: UAServerConfiguration;
+    }
     it("should expose a server configuration object - Certificate Management", async () => {
-        const server = addressSpace.rootFolder.objects.server;
+        const server = addressSpace.rootFolder.objects.server as UAServerWithConfiguration;
 
         // folders
         server.serverConfiguration.should.have.ownProperty("certificateGroups");
@@ -115,11 +119,11 @@ describe("ServerConfiguration", () => {
     });
 
     it("should expose a server configuration object - KeyCredential Management", async () => {
-        const server = addressSpace.rootFolder.objects.server;
+        const server = addressSpace.rootFolder.objects.server as UAServerWithConfiguration;
         server.serverConfiguration.should.have.ownProperty("keyCredentialConfiguration");
     });
     it("should expose a server configuration object - Authorization Management", async () => {
-        const server = addressSpace.rootFolder.objects.server;
+        const server = addressSpace.rootFolder.objects.server as UAServerWithConfiguration;
         server.serverConfiguration.should.have.ownProperty("authorizationServices");
     });
 
@@ -146,7 +150,7 @@ describe("ServerConfiguration", () => {
         it("should implement createSigningRequest", async () => {
             await installPushCertificateManagement(addressSpace, { applicationGroup, userTokenGroup, applicationUri: "SomeURI" });
 
-            const server = addressSpace.rootFolder.objects.server;
+            const server = addressSpace.rootFolder.objects.server as UAServerWithConfiguration;
             server.serverConfiguration.createSigningRequest.nodeClass.should.eql(NodeClass.Method);
 
             const context = new SessionContext({ server: opcuaServer, session });
@@ -202,7 +206,8 @@ describe("ServerConfiguration", () => {
                 rootFolder
             });
             await certificateManager.initialize();
-            const defaultApplicationGroup = addressSpace.rootFolder.objects.server.serverConfiguration.certificateGroups.defaultApplicationGroup;
+            const server = addressSpace.rootFolder.objects.server as UAServerWithConfiguration;
+            const defaultApplicationGroup = server .serverConfiguration.certificateGroups.defaultApplicationGroup;
             (defaultApplicationGroup.trustList as any).$$certificateManager = certificateManager;
 
         }

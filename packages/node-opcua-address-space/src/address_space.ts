@@ -2,8 +2,8 @@
  * @module node-opcua-address-space
  */
 
-import * as chalk from "chalk";
 import { randomBytes } from "crypto";
+import * as chalk from "chalk";
 
 import { assert } from "node-opcua-assert";
 import { ExtraDataTypeManager } from "node-opcua-client-dynamic-extension-object";
@@ -44,9 +44,11 @@ import {
     UAView
 } from "node-opcua-address-space-base";
 
+import { adjustBrowseDirection } from "../source/helpers/adjust_browse_direction";
+import { UARootFolder } from "../source/ua_root_folder";
+
 import { AddressSpacePrivate } from "./address_space_private";
 import { UAAcknowledgeableConditionImpl, UAConditionImpl } from "./alarms_and_conditions";
-
 import { EventData } from "./event_data";
 import { AddressSpace_installHistoricalDataNode } from "./historical_access/address_space_historical_data_node";
 import { UANamespace } from "./namespace_impl";
@@ -56,10 +58,7 @@ import { ExtensionObjectConstructorFuncWithSchema, UADataTypeImpl } from "./ua_d
 import { UAObjectTypeImpl } from "./ua_object_type_impl";
 import { UAObjectImpl } from "./ua_object_impl";
 import { ReferenceImpl } from "./reference_impl";
-import { adjustBrowseDirection } from "../source/helpers/adjust_browse_direction";
-import { UARootFolder } from "../source/ua_root_folder";
 import { UAVariableImpl } from "./ua_variable_impl";
-import { Namespace } from "../source/namespace";
 import { UAReferenceTypeImpl } from "./ua_reference_type_impl";
 import { BaseNodeImpl } from "./base_node_impl";
 
@@ -109,7 +108,7 @@ function _extract_namespace_and_browse_name_as_string(
  * @param str
  * @type {boolean}
  */
-function isNodeIdString(str: any) {
+function isNodeIdString(str: unknown): boolean {
     if (typeof str !== "string") {
         return false;
     }
@@ -146,16 +145,16 @@ export class AddressSpace implements AddressSpacePrivate {
      * @internal
      * @private
      */
-    public suspendBackReference: boolean = false;
-    public isFrugal: boolean = false;
+    public suspendBackReference = false;
+    public isFrugal = false;
     public historizingNodes?: { [key: string]: UAVariable } = {};
-    public _condition_refresh_in_progress: boolean = false;
+    public _condition_refresh_in_progress = false;
 
     public readonly isNodeIdString = isNodeIdString;
     private readonly _private_namespaceIndex: number;
     private readonly _namespaceArray: UANamespace[];
     private _shutdownTask: ShutdownTask[] = [];
-    private _modelChangeTransactionCounter: number = 0;
+    private _modelChangeTransactionCounter = 0;
     private _modelChanges: ModelChangeStructureDataType[] = [];
 
     constructor() {
@@ -241,7 +240,7 @@ export class AddressSpace implements AddressSpacePrivate {
      * @param namespaceUri {string}
      * @returns {Namespace}
      */
-    public registerNamespace(namespaceUri: string) {
+    public registerNamespace(namespaceUri: string): UANamespace {
         let index = this._namespaceArray.findIndex((ns) => ns.namespaceUri === namespaceUri);
         if (index !== -1) {
             assert((this._namespaceArray[index].addressSpace as any) === (this as any));
@@ -661,8 +660,6 @@ export class AddressSpace implements AddressSpacePrivate {
      * @private
      */
     public constructEventData(eventTypeId: UAEventType, data: any): IEventData {
-        const addressSpace = this;
-
         data = data || {};
 
         // construct the reference dataStructure to store event Data
@@ -670,7 +667,7 @@ export class AddressSpace implements AddressSpacePrivate {
 
         // make sure that eventType is really a object that derived from EventType
         if (eventTypeId instanceof UAObjectTypeImpl) {
-            eventTypeNode = addressSpace.findEventType(eventTypeId)!;
+            eventTypeNode = this.findEventType(eventTypeId)!;
         }
 
         /* istanbul ignore next */
@@ -680,19 +677,22 @@ export class AddressSpace implements AddressSpacePrivate {
         assert(eventTypeNode instanceof UAObjectTypeImpl, "eventTypeId must represent a UAObjectType");
 
         // eventId
-        assert(!data.hasOwnProperty("eventId"), "eventId constructEventData : options object should not have eventId property");
-        data.eventId = data.eventId || addressSpace.generateEventId();
+        assert(
+            !Object.prototype.hasOwnProperty.call(data, "eventId"),
+            "eventId constructEventData : options object should not have eventId property"
+        );
+        data.eventId = data.eventId || this.generateEventId();
 
         // eventType
         data.eventType = { dataType: DataType.NodeId, value: eventTypeNode.nodeId };
 
         // sourceNode
-        assert(data.hasOwnProperty("sourceNode"), "expecting a source node to be defined");
+        assert(Object.prototype.hasOwnProperty.call(data, "sourceNode"), "expecting a source node to be defined");
         data.sourceNode = new Variant(data.sourceNode);
         assert(data.sourceNode.dataType === DataType.NodeId);
 
         // sourceName
-        const sourceNode = addressSpace.findNode(data.sourceNode.value)!;
+        const sourceNode = this.findNode(data.sourceNode.value)!;
 
         data.sourceName = data.sourceName || {
             dataType: DataType.String,
@@ -722,7 +722,7 @@ export class AddressSpace implements AddressSpacePrivate {
         // xx // reminder : event type cannot be instantiated directly !
         // xx assert(eventTypeNode.isAbstract);
 
-        const baseObjectType = addressSpace.findObjectType("BaseObjectType"); // i=58
+        const baseObjectType = this.findObjectType("BaseObjectType"); // i=58
         /* istanbul ignore next */
         if (!baseObjectType) {
             throw new Error("BaseObjectType must be defined in the address space");
@@ -736,7 +736,7 @@ export class AddressSpace implements AddressSpacePrivate {
             // xx if (doDebug) { debugLog("      " + lowerName.toString()); }
 
             visitedProperties[lowerName] = node;
-            if (data.hasOwnProperty(lowerName)) {
+            if (Object.prototype.hasOwnProperty.call(data, lowerName)) {
                 eventData.setValue(lowerName, node, data[lowerName]);
                 // xx eventData[lowerName] = _coerceVariant(data[lowerName]);
             } else {
@@ -773,7 +773,7 @@ export class AddressSpace implements AddressSpacePrivate {
                     return;
                 }
                 /* istanbul ignore next */
-                if (!visitedProperties.hasOwnProperty(k)) {
+                if (!Object.prototype.hasOwnProperty.call(visitedProperties, k)) {
                     throw new Error(
                         " cannot find property '" +
                             k +
@@ -786,7 +786,7 @@ export class AddressSpace implements AddressSpacePrivate {
             });
         }
 
-        function populate_data(self: any, eventData1: any) {
+        const populate_data = (self: any, eventData1: any) => {
             if (sameNodeId(baseObjectType!.nodeId, self.nodeId)) {
                 return; // nothing to do
             }
@@ -797,7 +797,7 @@ export class AddressSpace implements AddressSpacePrivate {
                 throw new Error("Object " + self.browseName.toString() + " with nodeId " + self.nodeId + " has no Type");
             }
 
-            const baseType = addressSpace.findNode(baseTypeNodeId);
+            const baseType = this.findNode(baseTypeNodeId);
             /* istanbul ignore next */
             if (!baseType) {
                 throw new Error(chalk.red("Cannot find object with nodeId ") + baseTypeNodeId);
@@ -842,7 +842,7 @@ export class AddressSpace implements AddressSpacePrivate {
                     }
                 }
             }
-        }
+        };
 
         const eventData = new EventData(eventTypeNode);
 
@@ -1036,7 +1036,7 @@ export class AddressSpace implements AddressSpacePrivate {
      * cleanup all resources maintained by this addressSpace.
      * @method dispose
      */
-    public dispose() {
+    public dispose(): void {
         this._namespaceArray.map((namespace: NamespacePrivate) => namespace.dispose());
         AddressSpace.registry.unregister(this);
         /* istanbul ignore next */
@@ -1055,7 +1055,7 @@ export class AddressSpace implements AddressSpacePrivate {
         this._shutdownTask.push(task);
     }
 
-    public shutdown() {
+    public shutdown(): void {
         if (!this._shutdownTask) {
             return;
         }
@@ -1167,7 +1167,6 @@ export class AddressSpace implements AddressSpacePrivate {
      * @private
      */
     public extractRootViews(node: UAObject | UAVariable): UAView[] {
-        const addressSpace = this;
         assert(node.nodeClass === NodeClass.Object || node.nodeClass === NodeClass.Variable);
 
         const visitedMap: any = {};
@@ -1175,7 +1174,7 @@ export class AddressSpace implements AddressSpacePrivate {
         const q = new Dequeue();
         q.push(node);
 
-        const objectsFolder = addressSpace.rootFolder.objects;
+        const objectsFolder = this.rootFolder.objects;
         assert(objectsFolder instanceof UAObjectImpl);
 
         const results: UAView[] = [];
@@ -1185,7 +1184,7 @@ export class AddressSpace implements AddressSpacePrivate {
 
             const references = node.findReferencesEx("HierarchicalReferences", BrowseDirection.Inverse);
 
-            const parentNodes = references.map((r: UAReference) => ReferenceImpl.resolveReferenceNode(addressSpace, r) as BaseNode);
+            const parentNodes = references.map((r: UAReference) => ReferenceImpl.resolveReferenceNode(this, r) as BaseNode);
 
             for (const parent of parentNodes) {
                 if (sameNodeId(parent.nodeId, objectsFolder.nodeId)) {
@@ -1195,7 +1194,7 @@ export class AddressSpace implements AddressSpacePrivate {
                     results.push(parent as UAView);
                 } else {
                     const key = parent.nodeId.toString();
-                    if (visitedMap.hasOwnProperty(key)) {
+                    if (Object.prototype.hasOwnProperty.call(visitedMap,key)) {
                         continue;
                     }
                     visitedMap[key] = parent;
@@ -1211,9 +1210,8 @@ export class AddressSpace implements AddressSpacePrivate {
      * @param func
      * @private
      */
-    public modelChangeTransaction(func: any) {
-        const addressSpace = this;
-
+    public modelChangeTransaction(func: any): void {
+    
         this._modelChangeTransactionCounter = this._modelChangeTransactionCounter || 0;
 
         function beginModelChange(this: AddressSpace) {
@@ -1239,20 +1237,20 @@ export class AddressSpace implements AddressSpacePrivate {
                 // const nodeIds = _.uniq(this._modelChanges.map((c: any) => c.affected));
                 const nodeIds = [...new Set(this._modelChanges.map((c: any) => c.affected))];
 
-                const nodes = nodeIds.map((nodeId: NodeId) => addressSpace.findNode(nodeId)!);
+                const nodes = nodeIds.map((nodeId: NodeId) => this.findNode(nodeId)!);
 
                 nodes.forEach(_increase_version_number);
                 // raise events
 
                 if (this.rootFolder.objects.server) {
-                    const eventTypeNode = addressSpace.findEventType("GeneralModelChangeEventType");
+                    const eventTypeNode = this.findEventType("GeneralModelChangeEventType");
 
                     if (eventTypeNode) {
                         // xx console.log("xx raising event on server object");
-                        addressSpace.rootFolder.objects.server.raiseEvent(eventTypeNode, {
+                        this.rootFolder.objects.server.raiseEvent(eventTypeNode, {
                             // Part 5 - 6.4.32 GeneralModelChangeEventType
-                            changes: { 
-                                dataType: DataType.ExtensionObject, 
+                            changes: {
+                                dataType: DataType.ExtensionObject,
                                 arrayType: VariantArrayType.Array,
                                 value: this._modelChanges
                             }
@@ -1268,6 +1266,7 @@ export class AddressSpace implements AddressSpacePrivate {
         try {
             func();
         } catch (err) {
+            console.log("err");
             throw err;
         } finally {
             endModelChange.call(this);
@@ -1316,7 +1315,7 @@ export class AddressSpace implements AddressSpacePrivate {
 
         // ----------- now resolve target NodeId;
         if (params.nodeId instanceof BaseNodeImpl) {
-            assert(!params.hasOwnProperty("node"));
+            assert(!Object.prototype.hasOwnProperty.call(params,"node"));
             params.node = params.nodeId as BaseNode;
             params.nodeId = params.node.nodeId;
         } else {
@@ -1365,7 +1364,7 @@ export class AddressSpace implements AddressSpacePrivate {
     /**
      *
      */
-    public installAlarmsAndConditionsService() {
+    public installAlarmsAndConditionsService(): void {
         UAConditionImpl.install_condition_refresh_handle(this);
         UAAcknowledgeableConditionImpl.install_method_handle_on_type(this);
     }

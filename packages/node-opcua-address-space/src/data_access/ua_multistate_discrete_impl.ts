@@ -8,11 +8,11 @@ import { StatusCode, StatusCodes } from "node-opcua-status-code";
 import { DataType, VariantArrayType, Variant } from "node-opcua-variant";
 import { BindVariableOptions, INamespace, UAVariable, UAProperty } from "node-opcua-address-space-base";
 
+import { UAMultiStateDiscrete, UAMultiStateDiscrete_Base } from "node-opcua-nodeset-ua";
 import { registerNodePromoter } from "../../source/loader/register_node_promoter";
-import { add_dataItem_stuff } from "./add_dataItem_stuff";
 import { UAVariableImpl } from "../ua_variable_impl";
 import { AddMultiStateDiscreteOptions } from "../../source/address_space_ts";
-import { UAMultiStateDiscrete, UAMultiStateDiscrete_Base } from "node-opcua-nodeset-ua";
+import { add_dataItem_stuff } from "./add_dataItem_stuff";
 
 export { UAMultiStateDiscrete } from "node-opcua-nodeset-ua";
 
@@ -111,8 +111,8 @@ registerNodePromoter(VariableTypeIds.MultiStateDiscreteType, promoteToMultiState
 
 export function _addMultiStateDiscrete<T,DT extends DataType>(namespace: INamespace, options: AddMultiStateDiscreteOptions): UAMultiStateDiscreteImpl<T,DT> {
     const addressSpace = namespace.addressSpace;
-    assert(options.hasOwnProperty("enumStrings"));
-    assert(!options.hasOwnProperty("ValuePrecision"));
+    assert(Object.prototype.hasOwnProperty.call(options,"enumStrings"));
+    assert(!Object.prototype.hasOwnProperty.call(options,"ValuePrecision"));
 
     const multiStateDiscreteType = addressSpace.findVariableType("MultiStateDiscreteType");
     if (!multiStateDiscreteType) {

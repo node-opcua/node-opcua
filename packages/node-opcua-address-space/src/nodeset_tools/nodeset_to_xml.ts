@@ -1,3 +1,5 @@
+/* eslint-disable max-statements */
+/* eslint-disable complexity */
 /**
  * @module node-opcua-address-space
  */
@@ -24,7 +26,18 @@ import {
 import { NodeId, resolveNodeId } from "node-opcua-nodeid";
 import * as utils from "node-opcua-utils";
 import { Variant, VariantArrayType, DataType } from "node-opcua-variant";
-import { IAddressSpace, BaseNode, INamespace, UADataType, UAMethod, UAObject, UAReference, UAReferenceType, UAVariable, UAVariableType } from "node-opcua-address-space-base";
+import {
+    IAddressSpace,
+    BaseNode,
+    INamespace,
+    UADataType,
+    UAMethod,
+    UAObject,
+    UAReference,
+    UAReferenceType,
+    UAVariable,
+    UAVariableType
+} from "node-opcua-address-space-base";
 import { Int64, minOPCUADate } from "node-opcua-basic-types";
 import { BrowseDescription, EnumDefinition, StructureDefinition, StructureField, StructureType } from "node-opcua-types";
 
@@ -32,7 +45,6 @@ import { AddressSpacePrivate } from "../address_space_private";
 
 import { XmlWriter } from "../../source/xml_writer";
 import { NamespacePrivate } from "../namespace_private";
-import { constructNamespaceDependency } from "./construct_namespace_dependency";
 import { ReferenceImpl } from "../reference_impl";
 import { BaseNodeImpl, getReferenceType } from "../base_node_impl";
 import { UAReferenceTypeImpl } from "../ua_reference_type_impl";
@@ -43,6 +55,8 @@ import { UANamespace } from "../namespace_impl";
 import { UAMethodImpl } from "../ua_method_impl";
 import { UADataTypeImpl } from "../ua_data_type_impl";
 import { UAVariableTypeImpl } from "../ua_variable_type_impl";
+
+import { constructNamespaceDependency } from "./construct_namespace_dependency";
 // tslint:disable:no-var-requires
 const XMLWriter = require("xml-writer");
 
@@ -396,6 +410,7 @@ function _dumpVariantExtensionObjectValue_Body(xw: XmlWriter, schema: Structured
                         const baseType = findBaseDataType(field);
                         _dumpVariantInnerValue(xw, baseType, v);
                     } catch (err) {
+                        // eslint-disable-next-line max-depth
                         if (err instanceof Error) {
                             console.log("Error in _dumpVariantExtensionObjectValue_Body !!!", err.message);
                         }
@@ -477,7 +492,7 @@ function _isDefaultValue(value: Variant): boolean {
                     return true;
                 }
                 break;
-            case DataType.UInt64:
+            case DataType.Int64:
             case DataType.UInt64:
                 if (0 === coerceInt64ToInt32(value.value)) {
                     return true;
@@ -487,9 +502,11 @@ function _isDefaultValue(value: Variant): boolean {
                 if (!value.value) {
                     return true;
                 }
-                const l = value.value as LocalizedText;
-                if (!l.locale && !l.text) {
-                    return true;
+                {
+                    const l = value.value as LocalizedText;
+                    if (!l.locale && !l.text) {
+                        return true;
+                    }
                 }
                 break;
         }
@@ -680,15 +697,15 @@ function dumpCommonAttributes(xw: XmlWriter, node: BaseNode) {
     xw.writeAttribute("NodeId", n(xw, node.nodeId));
     xw.writeAttribute("BrowseName", b(xw, node.browseName));
 
-    if (node.hasOwnProperty("symbolicName")) {
+    if (Object.prototype.hasOwnProperty.call(node,"symbolicName")) {
         xw.writeAttribute("SymbolicName", (node as any).symbolicName);
     }
-    if (node.hasOwnProperty("isAbstract")) {
+    if (Object.prototype.hasOwnProperty.call(node,"isAbstract")) {
         if ((node as any).isAbstract) {
             xw.writeAttribute("IsAbstract", (node as any).isAbstract ? "true" : "false");
         }
     }
-    if (node.hasOwnProperty("accessLevel")) {
+    if (Object.prototype.hasOwnProperty.call(node,"accessLevel")) {
         // CurrentRead is by default
         if ((node as UAVariable).accessLevel !== currentReadFlag) {
             xw.writeAttribute("AccessLevel", (node as UAVariable).accessLevel.toString());
@@ -865,7 +882,6 @@ function dumpUAVariable(xw: XmlWriter, node: UAVariable) {
     dumpAggregates(xw, node);
 }
 
-
 function dumpUAVariableType(xw: XmlWriter, node: UAVariableType) {
     xw.visitedNode = xw.visitedNode || {};
     assert(!xw.visitedNode[_hash(node)]);
@@ -912,7 +928,6 @@ function dumpUAVariableType(xw: XmlWriter, node: UAVariableType) {
 
     dumpAggregates(xw, node);
 }
-
 
 function dumpUAObject(xw: XmlWriter, node: UAObject) {
     xw.writeComment("Object - " + b(xw, node.browseName) + " {{{{ ");
@@ -987,7 +1002,6 @@ function dumpUAObjectType(xw: XmlWriter, node: UAObjectTypeImpl) {
 
     xw.writeComment("ObjectType - " + b(xw, node.browseName) + " }}}}");
 }
-
 
 function dumpUAMethod(xw: XmlWriter, node: UAMethod) {
     _markAsVisited(xw, node);
@@ -1128,7 +1142,7 @@ function sortByBrowseName(x: BaseNode, y: BaseNode): number {
     return 0;
 }
 
-export function dumpXml(node: BaseNode, options: any) {
+export function dumpXml(node: BaseNode, options: any): void {
     const namespace = node.namespace as NamespacePrivate;
 
     // make a first visit so that we determine which node to output and in which order
@@ -1161,7 +1175,6 @@ export function dumpXml(node: BaseNode, options: any) {
     xw.endDocument();
     return xw.toString();
 }
-
 
 UAMethodImpl.prototype.dumpXML = function (xw) {
     dumpUAMethod(xw, this);
@@ -1255,7 +1268,7 @@ UANamespace.prototype.toNodeset2XML = function (this: UANamespace) {
         if (result.length === 1) {
             xw.writeComment("DataSystem");
             const dataSystemType = addressSpace.findNode(result[0].nodeId)! as UAVariable;
-            dumpNodeInXml(xw,dataSystemType);
+            dumpNodeInXml(xw, dataSystemType);
         }
     }
     // -------------- DataTypes
@@ -1265,7 +1278,7 @@ UANamespace.prototype.toNodeset2XML = function (this: UANamespace) {
         // xx xw.writeComment(" "+ objectTypes.map(x=>x.browseName.name.toString()).join(" "));
         for (const dataType of dataTypes) {
             if (!xw.visitedNode[_hash(dataType)]) {
-                dumpNodeInXml(xw,dataType);
+                dumpNodeInXml(xw, dataType);
             }
         }
     }
@@ -1275,7 +1288,7 @@ UANamespace.prototype.toNodeset2XML = function (this: UANamespace) {
     // xx xw.writeComment(" "+ objectTypes.map(x=>x.browseName.name.toString()).join(" "));
     for (const objectType of objectTypes) {
         if (!xw.visitedNode[_hash(objectType)]) {
-            dumpNodeInXml(xw,objectType);
+            dumpNodeInXml(xw, objectType);
         }
     }
 
@@ -1285,7 +1298,7 @@ UANamespace.prototype.toNodeset2XML = function (this: UANamespace) {
     // xx xw.writeComment("ObjectTypes "+ variableTypes.map(x=>x.browseName.name.toString()).join(" "));
     for (const variableType of variableTypes) {
         if (!xw.visitedNode[_hash(variableType)]) {
-            dumpNodeInXml(xw,variableType);
+            dumpNodeInXml(xw, variableType);
         }
     }
 

@@ -29,7 +29,8 @@ import {
     UAObject,
     UAObjectType,
     UAVariableType,
-    ISessionContext, UAReference,
+    ISessionContext,
+    UAReference,
     CloneOptions
 } from "node-opcua-address-space-base";
 import { DataValue } from "node-opcua-data-value";
@@ -116,9 +117,9 @@ export interface ToStringOption {
 }
 
 export class ToStringBuilder implements ToStringOption {
-    public level: number = 0;
+    public level = 0;
     public cycleDetector: any = {};
-    public padding: string = "";
+    public padding = "";
 
     private str: string[] = [];
 
@@ -151,7 +152,7 @@ function is_already_processed(options: ToStringOption, nodeId: NodeId): boolean 
     return !!options.cycleDetector[nodeId.toString()];
 }
 
-export function BaseNode_toString(this: BaseNode, options: ToStringOption) {
+export function BaseNode_toString(this: BaseNode, options: ToStringOption): void {
     options.level = options.level || 1;
 
     set_as_processed(options, this.nodeId);
@@ -173,7 +174,7 @@ export function BaseNode_toString(this: BaseNode, options: ToStringOption) {
     );
 }
 
-export function BaseNode_References_toString(this: BaseNode, options: ToStringOption) {
+export function BaseNode_References_toString(this: BaseNode, options: ToStringOption): void {
     const _private = BaseNode_getPrivate(this);
 
     const displayOptions = {
@@ -218,7 +219,7 @@ export function BaseNode_References_toString(this: BaseNode, options: ToStringOp
     // direct reference
     (Object.values(_private._referenceIdx) as UAReference[]).forEach(dump_reference.bind(null, true));
 
-    const br = (Object.values(_private._back_referenceIdx)).map((x) => x);
+    const br = Object.values(_private._back_referenceIdx).map((x) => x);
 
     options.add(
         options.padding +
@@ -342,7 +343,7 @@ function AccessLevelFlags_toString(this: UAVariable, options: ToStringOption) {
         );
     }
 }
-export function VariableOrVariableType_toString(this: UAVariableType | UAVariable, options: ToStringOption) {
+export function VariableOrVariableType_toString(this: UAVariableType | UAVariable, options: ToStringOption): void {
     assert(options);
     if (this.dataType) {
         const addressSpace = this.addressSpace;
@@ -362,7 +363,7 @@ export function VariableOrVariableType_toString(this: UAVariableType | UAVariabl
         }
     }
 
-    if (this.hasOwnProperty("valueRank")) {
+    if (Object.prototype.hasOwnProperty.call(this, "valueRank")) {
         if (this.valueRank !== undefined) {
             options.add(
                 options.padding + chalk.yellow("          valueRank           : ") + " " + valueRankToString(this.valueRank)
@@ -465,9 +466,9 @@ export function _clone_non_hierarchical_references(
     copyAlsoModellingRules: boolean,
     optionalFilter?: CloneFilter,
     extraInfo?: CloneExtraInfo
-) {
+): void {
     // clone only some non hierarchical_references that we do want to clone
-    // such as: 
+    // such as:
     //   HasSubStateMachine
     //   (may be other as well later ... to do )
     assert(newParent instanceof BaseNodeImpl);
@@ -505,7 +506,7 @@ export function _clone<T extends UAObject | UAVariable | UAMethod>(
     };
     constructorOptions.references = options.references || [];
 
-    if (this.nodeClass  === NodeClass.Variable || this.nodeClass === NodeClass.Object){
+    if (this.nodeClass === NodeClass.Variable || this.nodeClass === NodeClass.Object) {
         const voThis = this as UAObject | UAVariable;
         if (voThis.typeDefinition) {
             constructorOptions.references.push(
@@ -541,8 +542,8 @@ export function _clone<T extends UAObject | UAVariable | UAMethod>(
     const cloneObj = new Constructor(constructorOptions);
     (this.addressSpace as AddressSpacePrivate)._register(cloneObj);
 
-     options.copyAlsoModellingRules = options.copyAlsoModellingRules || false;
-     
+    options.copyAlsoModellingRules = options.copyAlsoModellingRules || false;
+
     const newFilter = optionalFilter ? optionalFilter.filterFor(cloneObj) : undefined;
     _clone_children_references(this, cloneObj, options.copyAlsoModellingRules, newFilter, extraInfo);
     _clone_non_hierarchical_references(this, cloneObj, options.copyAlsoModellingRules, newFilter, extraInfo);
@@ -554,7 +555,7 @@ export function _clone<T extends UAObject | UAVariable | UAMethod>(
     return cloneObj;
 }
 
-export function _handle_HierarchicalReference(node: BaseNode, reference: UAReference) {
+export function _handle_HierarchicalReference(node: BaseNode, reference: UAReference): void {
     const _cache = BaseNode_getCache(node);
     if (!reference.isForward) return;
     if (_cache._childByNameMap) {
@@ -652,7 +653,7 @@ export function BaseNode_remove_backward_reference(this: BaseNode, reference: UA
 export function BaseNode_add_backward_reference(this: BaseNode, reference: UAReference): void {
     const _private = BaseNode_getPrivate(this);
 
-    const h =  (<ReferenceImpl>reference).hash;
+    const h = (<ReferenceImpl>reference).hash;
     assert(typeof h === "string");
     // istanbul ignore next
     if (_private._referenceIdx[h]) {
@@ -687,4 +688,3 @@ export function BaseNode_add_backward_reference(this: BaseNode, reference: UARef
     _handle_HierarchicalReference(this, reference);
     (this as any)._clear_caches();
 }
-

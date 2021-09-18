@@ -36,15 +36,17 @@ import {
     CloneFilter
 } from "node-opcua-address-space-base";
 
+
+import { SessionContext } from "../source/session_context";
+import { makeOptionalsMap, OptionalMap } from "../source/helpers/make_optionals_map";
+
 import { AddressSpacePrivate } from "./address_space_private";
 import { BaseNodeImpl } from "./base_node_impl";
 import { _clone_children_references, ToStringBuilder, UAVariableType_toString  } from "./base_node_private";
-import { SessionContext } from "../source/session_context";
 import * as tools from "./tool_isSupertypeOf";
 import { get_subtypeOfObj } from "./tool_isSupertypeOf";
 import { get_subtypeOf } from "./tool_isSupertypeOf";
 import { verifyRankAndDimensions } from "./ua_variable_impl";
-import { makeOptionalsMap, OptionalMap } from "../source/helpers/make_optionals_map";
 
 const debugLog = make_debugLog(__filename);
 const doDebug = checkDebugFlag(__filename);
@@ -76,6 +78,7 @@ export function topMostParentIsObjectTypeOrVariableType(addressSpace: AddressSpa
             return true;
         }
         if (nodeClass === NodeClass.Object || nodeClass === NodeClass.Variable || nodeClass === NodeClass.Method) {
+            /** */
         }
         currentNode = currentNode.findReferencesEx("HasChild", BrowseDirection.Inverse)[0]?.node as BaseNode;
     }
@@ -124,7 +127,7 @@ export class UAVariableTypeImpl extends BaseNodeImpl implements UAVariableType {
         }
     }
 
-    public readAttribute(context: SessionContext | null, attributeId: AttributeIds) {
+    public readAttribute(context: SessionContext | null, attributeId: AttributeIds): DataValue {
         assert(!context || context instanceof SessionContext);
 
         const options: DataValueLike = {};
@@ -134,7 +137,7 @@ export class UAVariableTypeImpl extends BaseNodeImpl implements UAVariableType {
                 options.statusCode = StatusCodes.Good;
                 break;
             case AttributeIds.Value:
-                if (this.hasOwnProperty("value") && this.value !== undefined) {
+                if (Object.prototype.hasOwnProperty.call(this,"value") && this.value !== undefined) {
                     assert(this.value.schema.name === "Variant");
                     options.value = this.value;
                     options.statusCode = StatusCodes.Good;
@@ -201,7 +204,7 @@ export class UAVariableTypeImpl extends BaseNodeImpl implements UAVariableType {
             typeof options.browseName === "string" || (options.browseName !== null && typeof options.browseName === "object"),
             "expecting a browse name"
         );
-        assert(!options.hasOwnProperty("propertyOf"), "Use addressSpace#addVariable({ propertyOf: xxx}); to add a property");
+        assert(!Object.prototype.hasOwnProperty.call(options,"propertyOf"), "Use addressSpace#addVariable({ propertyOf: xxx}); to add a property");
 
         assertUnusedChildBrowseName(addressSpace, options);
 
@@ -497,7 +500,7 @@ function getParent(addressSpace: IAddressSpace, options: any) {
     return parent;
 }
 
-export function assertUnusedChildBrowseName(addressSpace: AddressSpacePrivate, options: InstantiateVariableOptions) {
+export function assertUnusedChildBrowseName(addressSpace: AddressSpacePrivate, options: InstantiateVariableOptions): void {
     const resolveOptionalObject = (node: BaseNode | NodeIdLike | undefined): BaseNode | undefined =>
         node ? addressSpace._coerceNode(node) || undefined : undefined;
 

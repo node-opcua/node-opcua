@@ -5,29 +5,24 @@ import * as chalk from "chalk";
 
 import { assert } from "node-opcua-assert";
 import { NodeClass, QualifiedNameLike } from "node-opcua-data-model";
+import { StructuredTypeSchema } from "node-opcua-factory";
 import { AttributeIds } from "node-opcua-data-model";
 import { DataValue, DataValueLike } from "node-opcua-data-value";
 import { ExtensionObject } from "node-opcua-extension-object";
 import { ExpandedNodeId, NodeId } from "node-opcua-nodeid";
 import { NumericRange } from "node-opcua-numeric-range";
 import { StatusCodes } from "node-opcua-status-code";
-import {
-    DataTypeDefinition,
-    StructureDefinition,
-    StructureField} from "node-opcua-types";
+import { DataTypeDefinition, StructureDefinition, StructureField } from "node-opcua-types";
 import { DataType } from "node-opcua-variant";
-
 import { UAObject, ISessionContext, UADataType, UAVariable, BaseNode } from "node-opcua-address-space-base";
+
+import { SessionContext } from "../source/session_context";
 import { BaseNodeImpl } from "./base_node_impl";
 import { BaseNode_References_toString, BaseNode_toString, ToStringBuilder, ToStringOption } from "./base_node_private";
 import * as tools from "./tool_isSupertypeOf";
 import { get_subtypeOf } from "./tool_isSupertypeOf";
 import { get_subtypeOfObj } from "./tool_isSupertypeOf";
-import { StructuredTypeSchema } from "node-opcua-factory";
-import {
-    BaseNode_getCache
-} from "./base_node_private";
-import { SessionContext } from "../source/session_context";
+import { BaseNode_getCache } from "./base_node_private";
 
 export type ExtensionObjectConstructor = new (options: any) => ExtensionObject;
 export interface ExtensionObjectConstructorFuncWithSchema extends ExtensionObjectConstructor {
@@ -79,7 +74,7 @@ export class UADataTypeImpl extends BaseNodeImpl implements UADataType {
     }
 
     public get subtypeOfObj(): UADataType | null {
-        return (get_subtypeOfObj.call(this) as any) as UADataType;
+        return get_subtypeOfObj.call(this) as any as UADataType;
     }
 
     public isSupertypeOf = tools.construct_isSupertypeOf<UADataType>(UADataTypeImpl);
@@ -103,10 +98,10 @@ export class UADataTypeImpl extends BaseNodeImpl implements UADataType {
     }
 
     public readAttribute(
-        context: ISessionContext | null, 
+        context: ISessionContext | null,
         attributeId: AttributeIds,
         indexRange?: NumericRange,
-        dataEncoding?: QualifiedNameLike | null,
+        dataEncoding?: QualifiedNameLike | null
     ): DataValue {
         assert(!context || context instanceof SessionContext);
 
@@ -117,11 +112,13 @@ export class UADataTypeImpl extends BaseNodeImpl implements UADataType {
                 options.value = { dataType: DataType.Boolean, value: !!this.isAbstract };
                 break;
             case AttributeIds.DataTypeDefinition:
-                const _definition = this._getDefinition(true);
-                if (_definition !== null) {
-                    options.value = { dataType: DataType.ExtensionObject, value: _definition };
-                } else {
-                    options.statusCode = StatusCodes.BadAttributeIdInvalid;
+                {
+                    const _definition = this._getDefinition(true);
+                    if (_definition !== null) {
+                        options.value = { dataType: DataType.ExtensionObject, value: _definition };
+                    } else {
+                        options.statusCode = StatusCodes.BadAttributeIdInvalid;
+                    }
                 }
                 break;
             default:
@@ -250,9 +247,8 @@ export class UADataTypeImpl extends BaseNodeImpl implements UADataType {
     }
 
     public _getDefinition(mergeWithBase: boolean): DataTypeDefinition | null {
-
         if (this.$fullDefinition !== undefined) {
-            return mergeWithBase ?this.$fullDefinition:  this.$definition!;
+            return mergeWithBase ? this.$fullDefinition : this.$definition!;
         }
         if (!this.$definition) {
             const structure = this.addressSpace.findDataType("Structure")!;
@@ -271,7 +267,7 @@ export class UADataTypeImpl extends BaseNodeImpl implements UADataType {
         // The StructureField DataType is defined in 8.51.
         // For Structures derived from another Structure DataType this list shall begin with the fields
         // of the baseDataType followed by the fields of this StructureDefinition.
- 
+
         // from OPC Unified Architecture, Part 6 86 Release 1.04
         //  A DataTypeDefinition defines an abstract representation of _a UADataType that can be used by
         //  design tools to automatically create serialization code. The fields in the DataTypeDefinition type
@@ -285,7 +281,7 @@ export class UADataTypeImpl extends BaseNodeImpl implements UADataType {
             }
         }
         this.$fullDefinition = this.$definition?.clone();
-        
+
         let _baseDefinition: DataTypeDefinition | null = null;
         if (this.subtypeOfObj) {
             _baseDefinition = (this.subtypeOfObj as UADataTypeImpl)._getDefinition(mergeWithBase);
@@ -294,7 +290,7 @@ export class UADataTypeImpl extends BaseNodeImpl implements UADataType {
             const b = _baseDefinition as StructureDefinition;
             if (b.fields?.length) {
                 const f = this.$fullDefinition as StructureDefinition;
-                f.fields = (<StructureField[]>[]).concat(b.fields!, f.fields!);    
+                f.fields = (<StructureField[]>[]).concat(b.fields!, f.fields!);
             }
         }
         return mergeWithBase ? this.$fullDefinition || null : this.$definition || null;
@@ -307,7 +303,7 @@ export class UADataTypeImpl extends BaseNodeImpl implements UADataType {
         return d;
     }
 
-    public install_extra_properties() {
+    public install_extra_properties(): void {
         //
     }
 
@@ -337,20 +333,20 @@ export function DataType_toString(this: UADataTypeImpl, options: ToStringOption)
 
     options.add(
         options.padding +
-        chalk.yellow("          binaryEncodingNodeId: ") +
-        (this.binaryEncodingNodeId ? this.binaryEncodingNodeId.toString() : "<none>")
+            chalk.yellow("          binaryEncodingNodeId: ") +
+            (this.binaryEncodingNodeId ? this.binaryEncodingNodeId.toString() : "<none>")
     );
     options.add(
         options.padding +
-        chalk.yellow("          xmlEncodingNodeId   : ") +
-        (this.xmlEncodingNodeId ? this.xmlEncodingNodeId.toString() : "<none>")
+            chalk.yellow("          xmlEncodingNodeId   : ") +
+            (this.xmlEncodingNodeId ? this.xmlEncodingNodeId.toString() : "<none>")
     );
 
     if (this.subtypeOfObj) {
         options.add(
             options.padding +
-            chalk.yellow("          subtypeOfObj        : ") +
-            (this.subtypeOfObj ? this.subtypeOfObj.browseName.toString() : "")
+                chalk.yellow("          subtypeOfObj        : ") +
+                (this.subtypeOfObj ? this.subtypeOfObj.browseName.toString() : "")
         );
     }
     // references

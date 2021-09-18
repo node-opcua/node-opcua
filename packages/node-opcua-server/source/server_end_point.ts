@@ -220,9 +220,9 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
     constructor(options: OPCUAServerEndPointOptions) {
         super();
 
-        assert(!options.hasOwnProperty("certificate"), "expecting a certificateChain instead");
-        assert(options.hasOwnProperty("certificateChain"), "expecting a certificateChain");
-        assert(options.hasOwnProperty("privateKey"));
+        assert(!Object.prototype.hasOwnProperty.call(options,"certificate"), "expecting a certificateChain instead");
+        assert(Object.prototype.hasOwnProperty.call(options,"certificateChain"), "expecting a certificateChain");
+        assert(Object.prototype.hasOwnProperty.call(options,"privateKey"));
 
         this.certificateManager = options.certificateManager;
 
@@ -999,8 +999,8 @@ function estimateSecurityLevel(securityMode: MessageSecurityMode, securityPolicy
  */
 function _makeEndpointDescription(options: MakeEndpointDescriptionOptions): EndpointDescriptionEx {
     assert(isFinite(options.port), "expecting a valid port number");
-    assert(options.hasOwnProperty("serverCertificateChain"));
-    assert(!options.hasOwnProperty("serverCertificate"));
+    assert(Object.prototype.hasOwnProperty.call(options,"serverCertificateChain"));
+    assert(!Object.prototype.hasOwnProperty.call(options,"serverCertificate"));
     assert(!!options.securityMode); // s.MessageSecurityMode
     assert(!!options.securityPolicy);
     assert(options.server !== null && typeof options.server === "object");
