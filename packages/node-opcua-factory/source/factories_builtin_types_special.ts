@@ -35,7 +35,7 @@ function _self_coerce(constructor: any) {
     };
 }
 
-export function registerSpecialVariantEncoder(constructor: ConstructorFunc) {
+export function registerSpecialVariantEncoder(constructor: ConstructorFunc): void {
     assert(typeof constructor === "function");
 
     const name = constructor.prototype.schema.name;

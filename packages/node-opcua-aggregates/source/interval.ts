@@ -139,7 +139,7 @@ export class Interval {
         return _findGoodDataValueAfter(this.dataValues, this.index, bTreatUncertainAsBad);
     }
 
-    public toString() {
+    public toString(): string {
         let str = "";
         str += "startTime " + this.startTime.toUTCString() + "\n";
         str += "start     " + this.index + "  ";

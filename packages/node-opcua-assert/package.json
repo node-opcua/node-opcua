@@ -8,7 +8,7 @@
         "build": "tsc -b",
         "test": "echo nothing to do",
         "clean": "node -e \"require('rimraf').sync('dist');\"",
-        "lint": "tslint source/**/*.ts"
+        "lint": "eslint source/**/*.ts"
     },
     "dependencies": {
         "better-assert": "^1.0.2",

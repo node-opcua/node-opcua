@@ -9,7 +9,7 @@ const displayAssert = process.env.DISPLAY_ASSERT ? true : false;
 
 type func = (...args: any[]) => any;
 
-export function assert(cond: boolean | object | null | undefined | func, message?: string): void {
+export function assert(cond: boolean | unknown | null | undefined | func, message?: string): void {
     if (!cond) {
         const err = new Error(message);
         // istanbul ignore next

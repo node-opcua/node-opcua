@@ -65,8 +65,7 @@ import { makeExpandedNodeId, makeNodeId } from "node-opcua-nodeid";
 import { coerceStatusCode, decodeStatusCode, encodeStatusCode, StatusCodes } from "node-opcua-status-code";
 import { BasicTypeDefinition, BasicTypeDefinitionOptions, FieldCategory, TypeSchemaBase } from "./types";
 
-// tslint:disable:no-empty
-// tslint:enable:no-unused-variable
+// eslint-disable-next-line @typescript-eslint/no-empty-function
 function defaultEncode(value: any, stream: OutputBinaryStream): void {}
 
 function defaultDecode(stream: BinaryStream): any {
@@ -109,6 +108,7 @@ function decodeAny(stream: BinaryStream) {
     assert(false, "type 'Any' cannot be decoded");
 }
 
+// eslint-disable-next-line @typescript-eslint/no-empty-function
 function encodeNull(value: any, stream: OutputBinaryStream): void {}
 
 function decodeNull(stream: BinaryStream): any {
@@ -376,6 +376,6 @@ export function findBuiltInType(dataTypeName: string): BasicTypeDefinition {
     return t;
 }
 
-export function getTypeMap() {
+export function getTypeMap(): Map<string, BasicTypeSchema> {
     return _defaultTypeMap;
 }

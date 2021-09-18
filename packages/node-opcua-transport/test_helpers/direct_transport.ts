@@ -4,14 +4,12 @@ import { setFakeTransport } from "../source";
 import { HalfComChannel } from "./half_com_channel";
 
 export class DirectTransport extends EventEmitter {
-
     public client: HalfComChannel;
     public server: HalfComChannel;
     public url: string;
 
     private _responses?: any[];
     constructor() {
-
         super();
 
         this.client = new HalfComChannel();
@@ -46,15 +44,14 @@ export class DirectTransport extends EventEmitter {
         });
 
         this.url = "fake://localhost:2033/SomeAddress";
-
     }
 
-    public initialize(done: () => void) {
+    public initialize(done: () => void): void {
         setFakeTransport(this.client);
         done();
     }
 
-    public shutdown(done: () => void) {
+    public shutdown(done: () => void): void {
         this.client.end();
         this.server.end();
         if (done) {
@@ -62,17 +59,15 @@ export class DirectTransport extends EventEmitter {
         }
     }
 
-    public popResponse() {
+    public popResponse(): any {
         if (!this._responses) {
             return null;
         }
         return this._responses.shift();
-
     }
 
-    public pushResponse(func: any) {
+    public pushResponse(func: any): void {
         this._responses = this._responses || [];
         this._responses.push(func);
     }
-
 }

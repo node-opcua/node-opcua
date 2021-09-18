@@ -15,7 +15,7 @@ function _encode_enumeration(typedEnum: Enum, value: number, stream: OutputBinar
 
 function _decode_enumeration(typedEnum: Enum, stream: BinaryStream): number {
     const value = stream.readInteger();
-    const e = (typedEnum.get(value) as any) as string;
+    const e = typedEnum.get(value) as any as string;
     // istanbul ignore next
     if (!e) {
         throw new Error("cannot  coerce value=" + value + " to " + typedEnum.constructor.name);
@@ -72,11 +72,11 @@ const _enumerations: Map<string, EnumerationDefinitionSchema> = new Map<string, 
  * @return {Enum}
  */
 export function registerEnumeration(options: EnumerationDefinitionOptions): Enum {
-    assert(Object.prototype.hasOwnProperty.call(options,"name"));
-    assert(Object.prototype.hasOwnProperty.call(options,"enumValues"));
+    assert(Object.prototype.hasOwnProperty.call(options, "name"));
+    assert(Object.prototype.hasOwnProperty.call(options, "enumValues"));
     const name = options.name;
 
-    if (_enumerations.hasOwnProperty(name)) {
+    if (Object.prototype.hasOwnProperty.call(_enumerations, name)) {
         throw new Error("factories.registerEnumeration : Enumeration " + options.name + " has been already inserted");
     }
     const enumerationDefinition = new EnumerationDefinitionSchema(options);

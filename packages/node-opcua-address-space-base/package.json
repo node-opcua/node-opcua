@@ -10,7 +10,7 @@
     "scripts": {
         "build": "tsc -b",
         "test": "mocha",
-        "lint": "tslint source/**/*.ts",
+        "lint": "eslint source/**/*.ts",
         "clean": "node -e \"require('rimraf').sync('dist');\"",
         "c": "mocha --version"
     },

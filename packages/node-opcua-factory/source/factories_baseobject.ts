@@ -1,9 +1,12 @@
+/* eslint-disable prefer-rest-params */
+/* eslint-disable complexity */
 /**
  * @module node-opcua-factory
  */
 // tslint:disable:no-shadowed-variable
 import * as chalk from "chalk";
 import { assert } from "node-opcua-assert";
+import { AttributeIds } from "node-opcua-basic-types";
 import { BinaryStream, BinaryStreamSizeCalculator, OutputBinaryStream } from "node-opcua-binary-stream";
 import { hexDump } from "node-opcua-debug";
 import { NodeId } from "node-opcua-nodeid";
@@ -11,11 +14,10 @@ import * as utils from "node-opcua-utils";
 
 import { getBuildInType } from "./factories_builtin_types";
 import { getEnumeration, hasEnumeration } from "./factories_enumerations";
-import { callConstructor, DataTypeFactory } from "./datatype_factory";
+import { DataTypeFactory } from "./datatype_factory";
 import { getStructureTypeConstructor } from "./factories_factories";
 import { get_base_schema, StructuredTypeSchema } from "./factories_structuredTypeSchema";
 import { EnumerationDefinition, FieldCategory, StructuredTypeField, BuiltInTypeDefinition, FieldType } from "./types";
-import { AttributeIds } from "node-opcua-basic-types";
 
 function r(str: string, length = 30) {
     return (str + "                                ").substr(0, length);
@@ -50,7 +52,7 @@ function _decode_member_(value: any, field: StructuredTypeField, stream: BinaryS
             }
             // assert(typeof field.fieldTypeConstructor === "function");
             const constructor = field.fieldTypeConstructor;
-            value = callConstructor(constructor);
+            value = new constructor();
             value.decodeDebug(stream, options);
         }
     }
@@ -122,7 +124,9 @@ interface ExploreParams {
     padding: string;
     lines: string[];
 }
-function _exploreObject(self: BaseUAObject, field: StructuredTypeField, data: ExploreParams, args: any) {
+// eslint-disable-next-line complexity
+// eslint-disable-next-line max-statements
+function _exploreObject(self: BaseUAObject, field: StructuredTypeField, data: ExploreParams, args: any): void {
     if (!self) {
         return;
     }
@@ -217,6 +221,7 @@ function _exploreObject(self: BaseUAObject, field: StructuredTypeField, data: Ex
                 } else if (fieldType === "DateTime" || fieldType === "UtcTime") {
                     value = value && value.toISOString ? value.toISOString() : value;
                 } else if (typeof value === "object" && value !== null && value !== undefined) {
+                    // eslint-disable-next-line prefer-spread
                     value = value.toString.apply(value, args);
                 }
                 str =
@@ -298,23 +303,25 @@ function _exploreObject(self: BaseUAObject, field: StructuredTypeField, data: Ex
 
     switch (category) {
         case FieldCategory.enumeration:
-            const s = field.schema as EnumerationDefinition;
+            {
+                const s = field.schema as EnumerationDefinition;
 
-            // istanbul ignore next
-            if (!s.typedEnum) {
-                // tslint:disable:no-console
-                console.log("xxxx cannot find typeEnum", s);
-            }
-            // istanbul ignore next
-            if (!s.typedEnum.get(value)) {
-                // tslint:disable:no-console
-                (s.typedEnum as any)._isFlaggable = true;
-                console.log("xxxx cannot find typeEnum value ", value);
-                str = fieldNameF + " " + fieldTypeF + ": " + s.name + "." + s.typedEnum.get(value) + " ( " + value + ")";
-                data.lines.push(str);
-            } else {
-                str = fieldNameF + " " + fieldTypeF + ": " + s.name + "." + s.typedEnum.get(value)!.key + " ( " + value + ")";
-                data.lines.push(str);
+                // istanbul ignore next
+                if (!s.typedEnum) {
+                    // tslint:disable:no-console
+                    console.log("xxxx cannot find typeEnum", s);
+                }
+                // istanbul ignore next
+                if (!s.typedEnum.get(value)) {
+                    // tslint:disable:no-console
+                    (s.typedEnum as any)._isFlaggable = true;
+                    console.log("xxxx cannot find typeEnum value ", value);
+                    str = fieldNameF + " " + fieldTypeF + ": " + s.name + "." + s.typedEnum.get(value) + " ( " + value + ")";
+                    data.lines.push(str);
+                } else {
+                    str = fieldNameF + " " + fieldTypeF + ": " + s.name + "." + s.typedEnum.get(value)!.key + " ( " + value + ")";
+                    data.lines.push(str);
+                }
             }
             break;
         case FieldCategory.basic:
@@ -390,7 +397,9 @@ export interface BaseUAObject {
  * @constructor
  */
 export class BaseUAObject {
-    constructor() {}
+    constructor() {
+        /**  */
+    }
 
     /**
      * Encode the object to the binary stream.
@@ -398,7 +407,9 @@ export class BaseUAObject {
      * @method encode
      * @param stream {BinaryStream}
      */
-    public encode(stream: OutputBinaryStream): void {}
+    public encode(stream: OutputBinaryStream): void {
+        /** */
+    }
 
     /**
      * Decode the object from the binary stream.
@@ -406,7 +417,9 @@ export class BaseUAObject {
      * @method decode
      * @param stream {BinaryStream}
      */
-    public decode(stream: BinaryStream): void {}
+    public decode(stream: BinaryStream): void {
+        /** */
+    }
 
     /**
      * Calculate the required size to store this object in a binary stream.
@@ -424,14 +437,14 @@ export class BaseUAObject {
      * @return {String}
      */
     public toString(...args: any[]): string {
-        if (this.schema && this.schema.hasOwnProperty("toString")) {
+        if (this.schema && Object.prototype.hasOwnProperty.call(this.schema, "toString")) {
             return this.schema.toString.apply(this, arguments as any);
         } else {
             if (!this.explore) {
                 // xx console.log(util.inspect(this));
                 return Object.prototype.toString.apply(this, arguments as any);
             }
-            return this.explore.apply(this, arguments as any);
+            return this.explore();
         }
     }
 
@@ -464,8 +477,8 @@ export class BaseUAObject {
         for (const field of schema.fields) {
             const value = self[field.name];
 
-            if (typeof field.switchValue === "number" ) {
-                // skip 
+            if (typeof field.switchValue === "number") {
+                // skip
                 if (self["switchField"] !== field.switchValue) {
                     continue;
                 }

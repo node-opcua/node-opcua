@@ -142,7 +142,7 @@ export class ProxyBaseNode extends EventEmitter {
         });
     }
 
-    public toString() {
+    public toString(): string {
 
         const str = [];
         str.push(" ProxyObject ");

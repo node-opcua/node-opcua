@@ -2,7 +2,6 @@
  * @module node-opcua-factory
  */
 import * as chalk from "chalk";
-import { CommonInterface, FieldCategory, FieldInterfaceOptions, FieldType, StructuredTypeOptions, TypeSchemaBase } from "./types";
 
 import { assert } from "node-opcua-assert";
 import { BinaryStream } from "node-opcua-binary-stream";
@@ -14,6 +13,7 @@ import { getEnumeration, hasEnumeration } from "./factories_enumerations";
 import { getStructuredTypeSchema, getStructureTypeConstructor, hasStructuredType } from "./factories_factories";
 import { parameters } from "./factories_schema_helpers";
 import { DataTypeFactory } from "./datatype_factory";
+import { CommonInterface, FieldCategory, FieldInterfaceOptions, FieldType, StructuredTypeOptions, TypeSchemaBase } from "./types";
 
 function figureOutFieldCategory(field: FieldInterfaceOptions): FieldCategory {
     const fieldType = field.fieldType;
@@ -165,7 +165,7 @@ export class StructuredTypeSchema extends TypeSchemaBase {
         this._possibleFields = this.fields.map((field) => field.name);
         this._baseSchema = null;
     }
-    public toString() {
+    public toString(): string {
         const str: string[] = [];
         str.push("name           = " + this.name);
         str.push("baseType       = " + this.baseType);
@@ -199,7 +199,7 @@ export class StructuredTypeSchema extends TypeSchemaBase {
  * @return {*}
  *
  */
-export function get_base_schema(schema: StructuredTypeSchema) {
+export function get_base_schema(schema: StructuredTypeSchema): StructuredTypeSchema | null {
     let baseSchema = schema._baseSchema;
     if (baseSchema) {
         return baseSchema;
@@ -234,10 +234,9 @@ export function get_base_schema(schema: StructuredTypeSchema) {
 /**
  * extract a list of all possible fields for a schema
  * (by walking up the inheritance chain)
- * @method extract_all_fields
  *
  */
-export function extract_all_fields(schema: StructuredTypeSchema) {
+export function extract_all_fields(schema: StructuredTypeSchema): string[] {
     // returns cached result if any
     // istanbul ignore next
     if (schema._possibleFields) {

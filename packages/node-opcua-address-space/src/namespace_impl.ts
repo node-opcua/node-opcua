@@ -57,6 +57,20 @@ import {
     UAVariableType,
     UAView
 } from "node-opcua-address-space-base";
+import { UAAnalogItem, UADataItem, UAInitialState, UAState, UAYArrayItem } from "node-opcua-nodeset-ua";
+
+import {
+    AddMultiStateDiscreteOptions,
+    AddMultiStateValueDiscreteOptions,
+    AddTwoStateDiscreteOptions,
+    AddTwoStateVariableOptions
+} from "../source/address_space_ts";
+import { UAStateMachineEx } from "../source/interfaces/state_machine/ua_state_machine_type";
+import { UATransitionEx } from "../source/interfaces/state_machine/ua_transition_ex";
+import { UAAlarmConditionEx, UAAlarmConditionImpl, UATwoStateDiscreteEx, UAYArrayItemEx } from "../source";
+import { AddAnalogDataItemOptions, AddDataItemOptions } from "../source/namespace_data_access";
+import { UATwoStateVariableEx } from "../source/ua_two_state_variable_ex";
+import { UAMultiStateValueDiscreteEx } from "../source/interfaces/data_access/ua_multistate_value_discrete_ex";
 
 import { _handle_delete_node_model_change_event, _handle_model_change_event } from "./address_space_change_event_tools";
 import { AddressSpacePrivate } from "./address_space_private";
@@ -92,31 +106,12 @@ import { ConstructNodeIdOptions, NodeIdManager } from "./nodeid_manager";
 import { _addTwoStateDiscrete } from "./data_access/ua_two_state_discrete";
 import { coerceRolePermissions } from "./role_permissions";
 import { UAObjectImpl } from "./ua_object_impl";
-import {
-    AddMultiStateDiscreteOptions,
-    AddMultiStateValueDiscreteOptions,
-    AddTwoStateDiscreteOptions,
-    AddTwoStateVariableOptions
-} from "../source/address_space_ts";
 import { UADataTypeImpl } from "./ua_data_type_impl";
-import { UAStateMachineEx } from "../source/interfaces/state_machine/ua_state_machine_type";
-import { UATransitionEx } from "../source/interfaces/state_machine/ua_transition_ex";
 import { UAObjectTypeImpl } from "./ua_object_type_impl";
 import { UAMethodImpl } from "./ua_method_impl";
 import { UAVariableTypeImpl } from "./ua_variable_type_impl";
 import { UAReferenceTypeImpl } from "./ua_reference_type_impl";
-import { UAAlarmConditionEx, UAAlarmConditionImpl, UATwoStateDiscreteEx, UAYArrayItemEx } from "../source";
-import {
-    UAAnalogItem,
-    UADataItem,
-    UAInitialState,
-    UAState,
-    UAYArrayItem
-} from "node-opcua-nodeset-ua";
-import { AddAnalogDataItemOptions, AddDataItemOptions } from "../source/namespace_data_access";
-import { UATwoStateVariableEx } from "../source/ua_two_state_variable_ex";
 import { UAViewImpl } from "./ua_view_impl";
-import { UAMultiStateValueDiscreteEx } from "../source/interfaces/data_access/ua_multistate_value_discrete_ex";
 import { UAStateMachineImpl, UATransitionImpl } from "./state_machine/finite_state_machine";
 import { _addMultiStateValueDiscrete } from "./data_access/ua_multistate_value_discrete";
 
@@ -207,7 +202,7 @@ export class UANamespace implements NamespacePrivate {
     public addressSpace: AddressSpacePrivate;
     public readonly index: number;
 
-    public version: number = 0;
+    public version = 0;
     public publicationDate: Date = new Date(1900, 0, 1);
 
     private _objectTypeMap: Map<string, UAObjectType>;
@@ -246,7 +241,7 @@ export class UANamespace implements NamespacePrivate {
         return this.index === 0 ? this : (this.addressSpace.getDefaultNamespace() as UANamespace);
     }
 
-    public dispose() {
+    public dispose(): void {
         for (const node of this.nodeIterator()) {
             (<BaseNodeImpl>node).dispose();
         }
@@ -390,9 +385,12 @@ export class UANamespace implements NamespacePrivate {
      *
      */
     public addObjectType(options: AddObjectTypeOptions): UAObjectType {
-        assert(!Object.prototype.hasOwnProperty.call(options,"dataType"), "an objectType should not have a dataType");
-        assert(!Object.prototype.hasOwnProperty.call(options,"valueRank"), "an objectType should not have a valueRank");
-        assert(!Object.prototype.hasOwnProperty.call(options,"arrayDimensions"), "an objectType should not have a arrayDimensions");
+        assert(!Object.prototype.hasOwnProperty.call(options, "dataType"), "an objectType should not have a dataType");
+        assert(!Object.prototype.hasOwnProperty.call(options, "valueRank"), "an objectType should not have a valueRank");
+        assert(
+            !Object.prototype.hasOwnProperty.call(options, "arrayDimensions"),
+            "an objectType should not have a arrayDimensions"
+        );
         return this._addObjectOrVariableType(options, "BaseObjectType", NodeClass.ObjectType) as UAObjectType;
     }
 
@@ -412,7 +410,7 @@ export class UANamespace implements NamespacePrivate {
      *
      */
     public addVariableType(options: AddVariableTypeOptions): UAVariableType {
-        assert(!Object.prototype.hasOwnProperty.call(options,"arrayDimension"), "Do you mean ArrayDimensions ?");
+        assert(!Object.prototype.hasOwnProperty.call(options, "arrayDimension"), "Do you mean ArrayDimensions ?");
 
         // dataType
         options.dataType = options.dataType || "Int32";
@@ -446,7 +444,7 @@ export class UANamespace implements NamespacePrivate {
      */
     public addVariable(options: AddVariableOptions): UAVariable {
         assert(arguments.length === 1, "Invalid arguments IAddressSpace#addVariable now takes only one argument.");
-        if (Object.prototype.hasOwnProperty.call(options,"propertyOf") && options.propertyOf) {
+        if (Object.prototype.hasOwnProperty.call(options, "propertyOf") && options.propertyOf) {
             assert(!options.typeDefinition || options.typeDefinition === "PropertyType");
             options.typeDefinition = options.typeDefinition || "PropertyType";
         } else {
@@ -458,8 +456,8 @@ export class UANamespace implements NamespacePrivate {
     public addView(options: AddViewOptions): UAView {
         assert(arguments.length === 1, "Namespace#addView expecting a single argument");
         assert(options);
-        assert(Object.prototype.hasOwnProperty.call(options,"browseName"));
-        assert(Object.prototype.hasOwnProperty.call(options,"organizedBy"));
+        assert(Object.prototype.hasOwnProperty.call(options, "browseName"));
+        assert(Object.prototype.hasOwnProperty.call(options, "organizedBy"));
         const browseName = options.browseName;
         assert(typeof browseName === "string");
 
@@ -541,8 +539,7 @@ export class UANamespace implements NamespacePrivate {
      * @param options.inverseName
      */
     public addReferenceType(options: AddReferenceTypeOptions): UAReferenceType {
-        const namespace = this;
-        const addressSpace = namespace.addressSpace;
+        const addressSpace = this.addressSpace;
 
         const options1 = options as any;
         options1.nodeClass = NodeClass.ReferenceType;
@@ -559,7 +556,7 @@ export class UANamespace implements NamespacePrivate {
                 referenceType: "HasSubtype"
             });
         }
-        const node = namespace.internalCreateNode(options1) as UAReferenceType;
+        const node = this.internalCreateNode(options1) as UAReferenceType;
 
         node.propagate_back_references();
 
@@ -576,9 +573,9 @@ export class UANamespace implements NamespacePrivate {
      * @method createDataType
      */
     public createDataType(options: CreateDataTypeOptions): UADataType {
-        assert(Object.prototype.hasOwnProperty.call(options,"isAbstract"), "must provide isAbstract");
-        assert(!Object.prototype.hasOwnProperty.call(options,"nodeClass"));
-        assert(Object.prototype.hasOwnProperty.call(options,"browseName"), "must provide a browseName");
+        assert(Object.prototype.hasOwnProperty.call(options, "isAbstract"), "must provide isAbstract");
+        assert(!Object.prototype.hasOwnProperty.call(options, "nodeClass"));
+        assert(Object.prototype.hasOwnProperty.call(options, "browseName"), "must provide a browseName");
 
         const options1 = options as any;
         options1.nodeClass = NodeClass.DataType;
@@ -622,7 +619,7 @@ export class UANamespace implements NamespacePrivate {
             assert(isNonEmptyQualifiedName(options.browseName));
             // xx assert(Object.prototype.hasOwnProperty.call(options,"browseName") && options.browseName.length > 0);
 
-            assert(Object.prototype.hasOwnProperty.call(options,"nodeClass"));
+            assert(Object.prototype.hasOwnProperty.call(options, "nodeClass"));
             options.references = addressSpace.normalizeReferenceTypes(options.references);
 
             const references = _copy_references(options.references);
@@ -769,7 +766,7 @@ export class UANamespace implements NamespacePrivate {
         options.subtypeOf = options.subtypeOf || "BaseEventType";
         // are eventType always abstract ?? No => Condition can be instantiated!
         // but, by default is abstract is true
-        options.isAbstract = Object.prototype.hasOwnProperty.call(options,"isAbstract") ? !!options.isAbstract : true;
+        options.isAbstract = Object.prototype.hasOwnProperty.call(options, "isAbstract") ? !!options.isAbstract : true;
         return this.addObjectType(options);
     }
 
@@ -786,15 +783,14 @@ export class UANamespace implements NamespacePrivate {
      * @return {UAVariable}
      */
     public addDataItem<T, DT extends DataType>(options: AddDataItemOptions): UADataItem<T, DT> {
-        const namespace = this;
-        const addressSpace = namespace.addressSpace;
+        const addressSpace = this.addressSpace;
         const dataType = options.dataType || "Number";
 
         const dataItemType = addressSpace.findVariableType("DataItemType");
         if (!dataItemType) {
             throw new Error("Cannot find DataItemType");
         }
-        const variable = namespace.addVariable({
+        const variable = this.addVariable({
             ...options,
             dataType,
             typeDefinition: dataItemType.nodeId
@@ -854,10 +850,9 @@ export class UANamespace implements NamespacePrivate {
      * @return {UAVariable}
      */
     public addAnalogDataItem<T, DT extends DataType>(options: AddAnalogDataItemOptions): UAAnalogItem<T, DT> {
-        const namespace = this;
-        const addressSpace = namespace.addressSpace;
+        const addressSpace = this.addressSpace;
 
-        assert(Object.prototype.hasOwnProperty.call(options,"engineeringUnitsRange"), "expecting engineeringUnitsRange");
+        assert(Object.prototype.hasOwnProperty.call(options, "engineeringUnitsRange"), "expecting engineeringUnitsRange");
 
         const dataType = options.dataType || "Number";
 
@@ -869,7 +864,7 @@ export class UANamespace implements NamespacePrivate {
 
         const clone_options = { ...options, dataType, typeDefinition: analogItemType.nodeId } as AddVariableOptions;
 
-        const variable = namespace.addVariable(clone_options) as UAVariableImpl;
+        const variable = this.addVariable(clone_options) as UAVariableImpl;
 
         // var variable = namespace.addVariable({
         //    componentOf:     options.componentOf,
@@ -898,7 +893,7 @@ export class UANamespace implements NamespacePrivate {
         // prepared to handle this.
         //     Example:    EURange ::= {-200.0,1400.0}
 
-        const euRange = namespace.addVariable({
+        const euRange = this.addVariable({
             browseName: { name: "EURange", namespaceIndex: 0 },
             dataType: "Range",
             minimumSamplingInterval: 0,
@@ -916,8 +911,8 @@ export class UANamespace implements NamespacePrivate {
         const handler = variable.handle_semantic_changed.bind(variable);
         euRange.on("value_changed", handler);
 
-        if (Object.prototype.hasOwnProperty.call(options,"instrumentRange")) {
-            const instrumentRange = namespace.addVariable({
+        if (Object.prototype.hasOwnProperty.call(options, "instrumentRange")) {
+            const instrumentRange = this.addVariable({
                 accessLevel: "CurrentRead | CurrentWrite",
                 browseName: { name: "InstrumentRange", namespaceIndex: 0 },
                 dataType: "Range",
@@ -934,14 +929,14 @@ export class UANamespace implements NamespacePrivate {
             instrumentRange.on("value_changed", handler);
         }
 
-        if (Object.prototype.hasOwnProperty.call(options,"engineeringUnits")) {
+        if (Object.prototype.hasOwnProperty.call(options, "engineeringUnits")) {
             const engineeringUnits = new EUInformation(options.engineeringUnits);
             assert(engineeringUnits instanceof EUInformation, "expecting engineering units");
 
             // EngineeringUnits  specifies the units for the   DataItem‟s value (e.g., degree, hertz, seconds).   The
             // EUInformation   type is specified in   5.6.3.
 
-            const eu = namespace.addVariable({
+            const eu = this.addVariable({
                 accessLevel: "CurrentRead",
                 browseName: { name: "EngineeringUnits", namespaceIndex: 0 },
                 dataType: "EUInformation",
@@ -1044,8 +1039,8 @@ export class UANamespace implements NamespacePrivate {
      * @param options.value
      */
     public addYArrayItem<DT extends DataType.Double | DataType.Float>(options: AddYArrayItemOptions): UAYArrayItemEx<DT> {
-        assert(Object.prototype.hasOwnProperty.call(options,"engineeringUnitsRange"), "expecting engineeringUnitsRange");
-        assert(Object.prototype.hasOwnProperty.call(options,"axisScaleType"), "expecting axisScaleType");
+        assert(Object.prototype.hasOwnProperty.call(options, "engineeringUnitsRange"), "expecting engineeringUnitsRange");
+        assert(Object.prototype.hasOwnProperty.call(options, "axisScaleType"), "expecting axisScaleType");
         assert(options.xAxisDefinition !== null && typeof options.xAxisDefinition === "object", "expecting a xAxisDefinition");
 
         const addressSpace = this.addressSpace;
@@ -1059,14 +1054,14 @@ export class UANamespace implements NamespacePrivate {
             if (!options) {
                 return resolveNodeId(DataType.Float);
             }
-            if (Object.prototype.hasOwnProperty.call(options,"nodeId") || options instanceof BaseNodeImpl) {
+            if (Object.prototype.hasOwnProperty.call(options, "nodeId") || options instanceof BaseNodeImpl) {
                 return (options as UADataType).nodeId;
             }
             return resolveNodeId(options as NodeIdLike);
         }
         const dataType = toNodeId(options.dataType as any);
         const optionals = [];
-        if (Object.prototype.hasOwnProperty.call(options,"instrumentRange")) {
+        if (Object.prototype.hasOwnProperty.call(options, "instrumentRange")) {
             optionals.push("InstrumentRange");
         }
         const variable = YArrayItemType.instantiate({
@@ -1074,7 +1069,7 @@ export class UANamespace implements NamespacePrivate {
             componentOf: options.componentOf,
             dataType,
             optionals
-        }) as UAYArrayItemEx<DataType.Float|DataType.Double>;
+        }) as UAYArrayItemEx<DataType.Float | DataType.Double>;
 
         function coerceAxisScale(value: any) {
             const ret = AxisScaleEnumeration[value];
@@ -1091,7 +1086,7 @@ export class UANamespace implements NamespacePrivate {
             })
         );
 
-        if (Object.prototype.hasOwnProperty.call(options,"instrumentRange") && variable.instrumentRange) {
+        if (Object.prototype.hasOwnProperty.call(options, "instrumentRange") && variable.instrumentRange) {
             variable.instrumentRange.setValueFromSource(
                 new Variant({
                     dataType: DataType.ExtensionObject,
@@ -1145,9 +1140,9 @@ export class UANamespace implements NamespacePrivate {
             "expecting a valid parent object"
         );
 
-        assert(Object.prototype.hasOwnProperty.call(options,"browseName"));
-        assert(!Object.prototype.hasOwnProperty.call(options,"inputArguments") || Array.isArray(options.inputArguments));
-        assert(!Object.prototype.hasOwnProperty.call(options,"outputArguments") || Array.isArray(options.outputArguments));
+        assert(Object.prototype.hasOwnProperty.call(options, "browseName"));
+        assert(!Object.prototype.hasOwnProperty.call(options, "inputArguments") || Array.isArray(options.inputArguments));
+        assert(!Object.prototype.hasOwnProperty.call(options, "outputArguments") || Array.isArray(options.outputArguments));
 
         options.componentOf = parentObject;
 
@@ -1287,12 +1282,11 @@ export class UANamespace implements NamespacePrivate {
         // When it is used to define the string representation of an Enumeration DataType, the value range
         // is limited to Int32, because the Enumeration DataType is a subtype of Int32. Part 8 specifies
         // other usages where the actual value might be between 8 and 64 Bit.
-        const self = this;
 
         assert(typeof options.browseName === "string");
         assert(Array.isArray(options.enumeration));
 
-        const addressSpace = self.addressSpace;
+        const addressSpace = this.addressSpace;
         let definition;
         const enumerationType = addressSpace.findDataType("Enumeration")!;
         assert(enumerationType.nodeId instanceof NodeId);
@@ -1308,7 +1302,7 @@ export class UANamespace implements NamespacePrivate {
             references
         };
 
-        const enumType = self.internalCreateNode(opts) as UADataType; //  as UAEnumeration;
+        const enumType = this.internalCreateNode(opts) as UADataType; //  as UAEnumeration;
 
         enumType.propagate_back_references();
 
@@ -1323,7 +1317,7 @@ export class UANamespace implements NamespacePrivate {
                 value: definition
             });
 
-            const enumStrings = self.addVariable({
+            const enumStrings = this.addVariable({
                 browseName: { name: "EnumStrings", namespaceIndex: 0 },
                 dataType: "LocalizedText",
                 description: "",
@@ -1371,7 +1365,7 @@ export class UANamespace implements NamespacePrivate {
                 value: definition
             });
 
-            const enumValues = self.addVariable({
+            const enumValues = this.addVariable({
                 browseName: { name: "EnumValues", namespaceIndex: 0 },
                 dataType: "EnumValueType",
                 description: undefined,
@@ -1439,8 +1433,7 @@ export class UANamespace implements NamespacePrivate {
         stateNumber: number,
         isInitialState: boolean
     ): UAState | UAInitialState {
-        const namespace = this;
-        const addressSpace = namespace.addressSpace;
+        const addressSpace = this.addressSpace;
 
         isInitialState = !!isInitialState;
 
@@ -1481,8 +1474,7 @@ export class UANamespace implements NamespacePrivate {
         toState: string,
         transitionNumber: number
     ): UATransitionEx {
-        const namespace = this;
-        const addressSpace = namespace.addressSpace;
+        const addressSpace = this.addressSpace;
 
         const _component = component as UAStateMachineImpl;
 
@@ -1541,8 +1533,7 @@ export class UANamespace implements NamespacePrivate {
      * @return {UATwoStateVariable}
      */
     public addTwoStateVariable(options: AddTwoStateVariableOptions): UATwoStateVariableEx {
-        const namespace = this;
-        return _addTwoStateVariable(namespace, options);
+        return _addTwoStateVariable(this, options);
     }
 
     /**
@@ -1552,8 +1543,7 @@ export class UANamespace implements NamespacePrivate {
      * @return {UATwoStateDiscrete}
      */
     public addTwoStateDiscrete(options: AddTwoStateDiscreteOptions): UATwoStateDiscreteEx {
-        const namespace = this;
-        return _addTwoStateDiscrete(namespace, options);
+        return _addTwoStateDiscrete(this, options);
     }
 
     // --- Alarms & Conditions -------------------------------------------------
@@ -1566,7 +1556,6 @@ export class UANamespace implements NamespacePrivate {
         options: any,
         data: any
     ): UAAcknowledgeableConditionImpl {
-        // @ts-ignore
         return UAAcknowledgeableConditionImpl.instantiate(this, conditionTypeId, options, data);
     }
 
@@ -1639,7 +1628,7 @@ export class UANamespace implements NamespacePrivate {
             throw new Error("node must belongs to this namespace");
         }
         assert(node.nodeId.namespace === this.index, "node must belongs to this namespace");
-        assert(Object.prototype.hasOwnProperty.call(node,"browseName"), "Node must have a browseName");
+        assert(Object.prototype.hasOwnProperty.call(node, "browseName"), "Node must have a browseName");
         // assert(node.browseName.namespaceIndex === this.index,"browseName must belongs to this namespace");
 
         const hashKey = _makeHashKey(node.nodeId);
@@ -1820,7 +1809,7 @@ export class UANamespace implements NamespacePrivate {
         assert(!options.nodeClass);
         assert(options.browseName);
         assert(typeof options.browseName === "string");
-        if (Object.prototype.hasOwnProperty.call(options,"references")) {
+        if (Object.prototype.hasOwnProperty.call(options, "references")) {
             throw new Error("options.references should not be provided, use options.subtypeOf instead");
         }
         const references: UAReference[] = [];
@@ -1828,7 +1817,7 @@ export class UANamespace implements NamespacePrivate {
         function process_subtypeOf_options(this: UANamespace, options2: any, references1: AddReferenceOpts[]) {
             // check common misspelling mistake
             assert(!options2.subTypeOf, "misspell error : it should be 'subtypeOf' instead");
-            if (options2.hasOwnProperty("hasTypeDefinition")) {
+            if (Object.prototype.hasOwnProperty.call(options2, "hasTypeDefinition")) {
                 throw new Error("hasTypeDefinition option is invalid. Do you mean typeDefinition instead ?");
             }
             assert(!options2.typeDefinition, " do you mean subtypeOf ?");
@@ -1931,15 +1920,15 @@ export class UANamespace implements NamespacePrivate {
         }
         const baseDataVariableTypeId = baseDataVariableType.nodeId;
 
-        assert(Object.prototype.hasOwnProperty.call(options,"browseName"), "options.browseName must be provided");
-        assert(Object.prototype.hasOwnProperty.call(options,"dataType"), "options.dataType must be provided");
+        assert(Object.prototype.hasOwnProperty.call(options, "browseName"), "options.browseName must be provided");
+        assert(Object.prototype.hasOwnProperty.call(options, "dataType"), "options.dataType must be provided");
 
         options.historizing = !!options.historizing;
 
         // xx assert(this.FolderTypeId && this.BaseObjectTypeId); // is default address space generated.?
 
         // istanbul ignore next
-        if (Object.prototype.hasOwnProperty.call(options,"hasTypeDefinition")) {
+        if (Object.prototype.hasOwnProperty.call(options, "hasTypeDefinition")) {
             throw new Error("hasTypeDefinition option is invalid. Do you mean typeDefinition instead ?");
         }
         // ------------------------------------------ TypeDefinition
@@ -2134,9 +2123,9 @@ export function _handle_hierarchy_parent(addressSpace: AddressSpacePrivate, refe
 }
 
 function _copy_reference(reference: UAReference): AddReferenceOpts {
-    assert(Object.prototype.hasOwnProperty.call(reference,"referenceType"));
-    assert(Object.prototype.hasOwnProperty.call(reference,"isForward"));
-    assert(Object.prototype.hasOwnProperty.call(reference,"nodeId"));
+    assert(Object.prototype.hasOwnProperty.call(reference, "referenceType"));
+    assert(Object.prototype.hasOwnProperty.call(reference, "isForward"));
+    assert(Object.prototype.hasOwnProperty.call(reference, "nodeId"));
     assert(reference.nodeId instanceof NodeId);
     return {
         isForward: reference.isForward,

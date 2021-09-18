@@ -1,9 +1,10 @@
 /**
  * @module node-opcua-transport
  */
-import * as chalk from "chalk";
 import { EventEmitter } from "events";
 import { Socket } from "net";
+
+import * as chalk from "chalk";
 
 import { assert } from "node-opcua-assert";
 import { createFastUninitializedBuffer } from "node-opcua-buffer-utils";
@@ -19,13 +20,17 @@ const debugLog = debug.make_debugLog(__filename);
 const doDebug = debug.checkDebugFlag(__filename);
 const errorLog = debug.make_errorLog(__filename);
 
-let fakeSocket: any = { invalid: true };
+export interface MockSocket {
+    invalid?: boolean;
+    [key:string]: any;
+}
+let fakeSocket: MockSocket = { invalid: true };
 
-export function setFakeTransport(mockSocket: any) {
+export function setFakeTransport(mockSocket: MockSocket): void {
     fakeSocket = mockSocket;
 }
 
-export function getFakeTransport() {
+export function getFakeTransport(): any {
     if (fakeSocket.invalid) {
         throw new Error("getFakeTransport: setFakeTransport must be called first  - BadProtocolVersionUnsupported");
     }
@@ -36,10 +41,11 @@ let counter = 0;
 
 export interface TCP_transport {
     on(eventName: "message", eventHandler: (message: Buffer) => void): this;
-    once(eventName: "message", eventHandler: (message: Buffer) => void): this;
     on(eventName: "socket_closed", eventHandler: (err: Error | null) => void): this;
-    once(eventName: "socket_closed", eventHandler: (err: Error | null) => void): this;
     on(eventName: "close", eventHandler: (err: Error | null) => void): this;
+
+    once(eventName: "message", eventHandler: (message: Buffer) => void): this;
+    once(eventName: "socket_closed", eventHandler: (err: Error | null) => void): this;
     once(eventName: "close", eventHandler: (err: Error | null) => void): this;
 }
 // tslint:disable:class-name
@@ -109,7 +115,7 @@ export class TCP_transport extends EventEmitter {
         debugLog("Setting socket " + this.name + " timeout = ", value);
         this._timeout = value;
     }
-    public dispose() {
+    public dispose(): void {
         this._cleanup_timers();
         assert(!this._timerId);
         if (this._socket) {
@@ -156,7 +162,7 @@ export class TCP_transport extends EventEmitter {
      *  - once a message chunk has been written, it is possible to call ```createChunk``` again.
      *
      */
-    public write(messageChunk: Buffer) {
+    public write(messageChunk: Buffer): void {
         assert(
             this._pendingBuffer === undefined || this._pendingBuffer === messageChunk,
             " write should be used with buffer created by createChunk"
@@ -210,7 +216,7 @@ export class TCP_transport extends EventEmitter {
         return this._socket !== null && !this._socket.destroyed && !this._disconnecting;
     }
 
-    protected _write_chunk(messageChunk: Buffer) {
+    protected _write_chunk(messageChunk: Buffer): void {
         if (this._socket !== null) {
             this.bytesWritten += messageChunk.length;
             this.chunkWrittenCount++;
@@ -218,7 +224,7 @@ export class TCP_transport extends EventEmitter {
         }
     }
 
-    protected on_socket_ended(err: Error | null) {
+    protected on_socket_ended(err: Error | null): void {
         assert(!this._onSocketEndedHasBeenCalled);
         this._onSocketEndedHasBeenCalled = true; // we don't want to send close event twice ...
         /**
@@ -234,7 +240,7 @@ export class TCP_transport extends EventEmitter {
      * @param socket {Socket}
      * @protected
      */
-    protected _install_socket(socket: Socket) {
+    protected _install_socket(socket: Socket): void {
         assert(socket);
         this._socket = socket;
         if (doDebug) {
@@ -270,7 +276,7 @@ export class TCP_transport extends EventEmitter {
         });
     }
 
-    public prematureTerminate(err: Error) {
+    public prematureTerminate(err: Error): void {
         debugLog("prematureTerminate", err ? err.message : "");
         if (this._socket) {
             err.message = "EPIPE_" + err.message;
@@ -298,7 +304,7 @@ export class TCP_transport extends EventEmitter {
      * an error, the callback function will be called with an Error.
      *
      */
-    protected _install_one_time_message_receiver(callback: CallbackWithData) {
+    protected _install_one_time_message_receiver(callback: CallbackWithData): void {
         assert(!this._theCallback, "callback already set");
         assert(typeof callback === "function");
         this._theCallback = callback;
@@ -323,7 +329,6 @@ export class TCP_transport extends EventEmitter {
         return false;
     }
 
- 
     private _on_message_received(messageChunk: Buffer) {
         const hasCallback = this._fulfill_pending_promises(null, messageChunk);
         this.chunkReadCount++;

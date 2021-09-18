@@ -1,15 +1,11 @@
 /**
  * @module node-opcua-common
  */
-import * as chalk from "chalk";
 import { EventEmitter } from "events";
 import * as fs from "fs";
+
 import { assert } from "node-opcua-assert";
-import {
-    Certificate,
-    PrivateKeyPEM, readCertificate,
-    readKeyPem, split_der
-} from "node-opcua-crypto";
+import { Certificate, PrivateKeyPEM, readCertificate, readKeyPem, split_der } from "node-opcua-crypto";
 
 export interface ICertificateKeyPairProvider {
     getCertificate(): Certificate;
@@ -40,7 +36,6 @@ export interface IOPCUASecureObjectOptions {
  * @constructor
  */
 export class OPCUASecureObject extends EventEmitter implements ICertificateKeyPairProvider {
-
     public readonly certificateFile: string;
     public readonly privateKeyFile: string;
 
@@ -49,7 +44,6 @@ export class OPCUASecureObject extends EventEmitter implements ICertificateKeyPa
     private privateKeyPEM: null | PrivateKeyPEM;
 
     constructor(options: IOPCUASecureObjectOptions) {
-
         super();
         this.certificate = null;
         this.certificateChain = null;
@@ -74,7 +68,7 @@ export class OPCUASecureObject extends EventEmitter implements ICertificateKeyPa
         if (!this.certificateChain) {
             assert(fs.existsSync(this.certificateFile), "Certificate file must exist :" + this.certificateFile);
             this.certificateChain = _load_certificate(this.certificateFile);
-            if (  this.certificateChain  &&   this.certificateChain.length ===0) {
+            if (this.certificateChain && this.certificateChain.length === 0) {
                 this.certificateChain = _load_certificate(this.certificateFile);
                 throw new Error("Invalid certificate length = 0 " + this.certificateFile);
             }

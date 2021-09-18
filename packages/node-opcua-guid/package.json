@@ -6,7 +6,7 @@
     "description": "pure nodejs OPCUA SDK - module -guid",
     "scripts": {
         "build": "tsc -b",
-        "lint": "tslint source/**/*.ts",
+        "lint": "eslint source/**/*.ts",
         "clean": "node -e \"require('rimraf').sync('dist');\"",
         "test": "mocha"
     },

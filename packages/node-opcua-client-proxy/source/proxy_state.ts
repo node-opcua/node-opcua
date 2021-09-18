@@ -25,7 +25,7 @@ export class ProxyState {
         return this._node.nodeId;
     }
 
-    public toString() {
+    public toString(): string {
 
         return "state " + this.browseName + " stateNumber :" + this.stateNumber.toString();
     }

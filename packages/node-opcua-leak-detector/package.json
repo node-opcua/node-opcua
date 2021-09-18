@@ -4,7 +4,7 @@
     "description": "pure nodejs OPCUA SDK - module -leak-detector",
     "main": "index.js",
     "scripts": {
-        "lint": "tslint source/**/*.ts",
+        "lint": "eslint src/**/*.js",
         "clean": "node -e \"require('rimraf').sync('dist');\"",
         "test": "echo no test"
     },

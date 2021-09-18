@@ -6,7 +6,7 @@
     "types": "./dist/source/index.d.ts",
     "scripts": {
         "build": "tsc -b",
-        "lint": "tslint source/**/*.ts",
+        "lint": "eslint source/**/*.ts",
         "test": "mocha",
         "clean": "node -e \"require('rimraf').sync('dist');\""
     },

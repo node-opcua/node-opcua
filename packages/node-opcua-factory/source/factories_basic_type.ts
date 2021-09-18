@@ -46,7 +46,7 @@ export interface BasicTypeOptions {
  *
  * @param [schema.toJSON]optional, a method to convert a value into the request type.
  */
-export function registerBasicType(schema: BasicTypeOptions) {
+export function registerBasicType(schema: BasicTypeOptions): void {
     const exists: boolean = hasBuiltInType(schema.name);
 
     /* istanbul ignore next */

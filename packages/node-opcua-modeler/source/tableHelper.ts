@@ -55,7 +55,7 @@ export class TableHelper {
         const row2 = row.map((c: any) => (c.content) ? c.content : c);
         this.rows.push(row2);
     }
-    public toString() {
+    public toString(): string {
         return this.table.toString();
     }
     public toMarkdownTable() {

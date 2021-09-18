@@ -1,16 +1,15 @@
 /**
  * @module node-opcua-transport
  */
-import {
-    decodeUAString, decodeUInt32, encodeUAString,
-    encodeUInt32, UAString, UInt32
-} from "node-opcua-basic-types";
+import { decodeUAString, decodeUInt32, encodeUAString, encodeUInt32, UAString, UInt32 } from "node-opcua-basic-types";
 import { BinaryStream, OutputBinaryStream } from "node-opcua-binary-stream";
 import {
     BaseUAObject,
-    buildStructuredType, check_options_correctness_against_schema,
+    buildStructuredType,
+    check_options_correctness_against_schema,
     initialize_field,
-    parameters, StructuredTypeSchema
+    parameters,
+    StructuredTypeSchema
 } from "node-opcua-factory";
 
 const schemaHelloMessage: StructuredTypeSchema = buildStructuredType({
@@ -68,7 +67,6 @@ export interface HelloMessageOptions {
 }
 
 export class HelloMessage extends BaseUAObject {
-
     public static possibleFields: string[] = [
         "protocolVersion",
         "receiveBufferSize",
@@ -120,14 +118,14 @@ export class HelloMessage extends BaseUAObject {
         this.maxChunkCount = decodeUInt32(stream);
         this.endpointUrl = decodeUAString(stream);
     }
-    public toString() {
+    public toString(): string {
         let str = "";
-        str += 'protocolVersion   = ' + this.protocolVersion +'\n';
-        str += 'receiveBufferSize = ' + this.receiveBufferSize +'\n';
-        str += 'sendBufferSize    = ' + this.sendBufferSize +'\n';
-        str += 'maxMessageSize    = ' + this.maxMessageSize +'\n';
-        str += 'maxChunkCount     = ' + this.maxChunkCount +'\n';
-        str += 'endpointUrl       = ' + this.endpointUrl +'\n';
+        str += "protocolVersion   = " + this.protocolVersion + "\n";
+        str += "receiveBufferSize = " + this.receiveBufferSize + "\n";
+        str += "sendBufferSize    = " + this.sendBufferSize + "\n";
+        str += "maxMessageSize    = " + this.maxMessageSize + "\n";
+        str += "maxChunkCount     = " + this.maxChunkCount + "\n";
+        str += "endpointUrl       = " + this.endpointUrl + "\n";
         return str;
     }
 }

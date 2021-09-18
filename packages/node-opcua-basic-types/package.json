@@ -8,7 +8,7 @@
         "build": "tsc -b",
         "test": "echo none",
         "clean": "node -e \"require('rimraf').sync('dist');\"",
-        "lint": "tslint source/*.ts"
+        "lint": "eslint source/*.ts"
     },
     "dependencies": {
         "node-opcua-assert": "2.51.0",

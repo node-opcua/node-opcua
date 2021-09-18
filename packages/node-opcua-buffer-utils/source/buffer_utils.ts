@@ -11,11 +11,7 @@
 //  in node 0.11 new Buffer
 //
 // tslint:disable-next-line:ban-types
-export const createFastUninitializedBuffer: Function =
-    Buffer.allocUnsafe
-    /* ? Buffer.allocUnsafe :  (size: number) => {
-        return new Buffer(size);
-    }*/;
+export const createFastUninitializedBuffer = Buffer.allocUnsafe;
 
 /**
  * @method makeBuffer

@@ -1,5 +1,4 @@
-// tslint:disable:no-empty
-// tslint:disable:unused-variable
+/* eslint-disable @typescript-eslint/no-empty-function */
 import { EventEmitter } from "events";
 import { assert } from "node-opcua-assert";
 
@@ -11,7 +10,7 @@ export class HalfComChannel extends EventEmitter {
         this._hasEnded = false;
     }
 
-    public write(data: string | Buffer) {
+    public write(data: string | Buffer): void {
 
         if (typeof data === "string") {
             data = Buffer.from(data);
@@ -21,7 +20,7 @@ export class HalfComChannel extends EventEmitter {
         this.emit("send_data", copy);
     }
 
-    public end() {
+    public end(): void {
         if (!this._hasEnded) {
             assert(!this._hasEnded, "half communication channel has already ended !");
             this._hasEnded = true;
@@ -30,9 +29,9 @@ export class HalfComChannel extends EventEmitter {
         }
     }
 
-    public destroy() {
+    public destroy(): void {
     }
 
-    public setTimeout() {
+    public setTimeout(): void {
     }
 }

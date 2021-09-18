@@ -175,7 +175,7 @@ export class ClientMonitoredItemImpl extends EventEmitter implements ClientMonit
      * @param value
      * @private
      */
-    public _notify_value_change(value: DataValue) {
+    public _notify_value_change(value: DataValue): void {
         // it is possible that the first notification arrives before the CreateMonitoredItemsRequest is fully proceed
         // in this case we need to put the dataValue aside so we can send the notification changed after
         // the node-opcua client had time to fully install the on("changed") event handler
@@ -202,7 +202,7 @@ export class ClientMonitoredItemImpl extends EventEmitter implements ClientMonit
      * @param eventFields
      * @private
      */
-    public _notify_event(eventFields: Variant[]) {
+    public _notify_event(eventFields: Variant[]): void {
         if (this.statusCode?.value === StatusCodes.BadDataUnavailable.value) {
             this._pendingEvents = this._pendingEvents || [];
             this._pendingEvents.push(eventFields);
@@ -253,7 +253,6 @@ export class ClientMonitoredItemImpl extends EventEmitter implements ClientMonit
             // toDO
 
             // note : the EventFilter is used when monitoring Events.
-            // @ts-ignore
             this.monitoringParameters.filter = this.monitoringParameters.filter! || new EventFilter({});
 
             const filter = this.monitoringParameters.filter;
@@ -300,7 +299,7 @@ export class ClientMonitoredItemImpl extends EventEmitter implements ClientMonit
      * @param monitoredItemResult
      * @private
      */
-    public _applyResult(monitoredItemResult: MonitoredItemCreateResult) {
+    public _applyResult(monitoredItemResult: MonitoredItemCreateResult): void {
         this.statusCode = monitoredItemResult.statusCode;
 
         /* istanbul ignore else */
@@ -330,7 +329,7 @@ export class ClientMonitoredItemImpl extends EventEmitter implements ClientMonit
             });
         }
     }
-    public _before_create() {
+    public _before_create(): void {
         const subscription = this.subscription as ClientSubscriptionImpl;
         subscription._add_monitored_item(this.monitoringParameters.clientHandle, this);
     }
@@ -339,7 +338,7 @@ export class ClientMonitoredItemImpl extends EventEmitter implements ClientMonit
      * @param monitoredItemResult
      * @private
      */
-    public _after_create(monitoredItemResult: MonitoredItemCreateResult) {
+    public _after_create(monitoredItemResult: MonitoredItemCreateResult): void {
         this._applyResult(monitoredItemResult);
 
         if (this.statusCode === StatusCodes.Good) {
@@ -359,7 +358,7 @@ export class ClientMonitoredItemImpl extends EventEmitter implements ClientMonit
         }
     }
 
-    public _terminate_and_emit(err?: Error) {
+    public _terminate_and_emit(err?: Error): void {
         if (this.statusCode.value === StatusCodes.Bad.value) {
             return; // already terminated
         }

@@ -6,7 +6,7 @@
         "clean": "node -e \"require('rimraf').sync('certificates');\"  && node -e \"require('rimraf').sync('dist');\"",
         "test": "mocha",
         "build": "tsc -b",
-        "lint": "tslint source/**/*.ts",
+        "lint": "eslint source/**/*.ts",
         "doc": "typedoc --options typedoc.js"
     },
     "main": "./dist/index.js",

@@ -135,7 +135,7 @@ export function encodeExpandedNodeId(expandedNodeId: ExpandedNodeId, stream: Out
 }
 
 function _decodeNodeId(encodingByte: number, stream: BinaryStream, _nodeId?: NodeId): NodeId {
-    let value;
+    let value: number | string | Guid | Buffer;
     let namespace;
     let identifierType;
     /*jslint bitwise: true */
@@ -158,7 +158,7 @@ function _decodeNodeId(encodingByte: number, stream: BinaryStream, _nodeId?: Nod
             break;
         case EnumNodeIdEncoding.String:
             namespace = stream.readUInt16();
-            value = decodeString(stream);
+            value = decodeString(stream) || "";
             identifierType = NodeIdType.STRING;
             break;
         case EnumNodeIdEncoding.ByteString:

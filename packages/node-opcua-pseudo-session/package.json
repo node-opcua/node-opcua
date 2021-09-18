@@ -5,7 +5,7 @@
     "scripts": {
         "clean": "node -e \"require('rimraf').sync('dist');\"",
         "build": "tsc -b",
-        "lint": "tslint source/**/*.ts",
+        "lint": "eslint source/**/*.ts",
         "test": "echo mocha test"
     },
     "main": "./dist/index.js",

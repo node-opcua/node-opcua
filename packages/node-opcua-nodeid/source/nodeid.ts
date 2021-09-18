@@ -72,7 +72,7 @@ export class NodeId {
      * @param value            - the node id value. The type of Value depends on identifierType.
      * @param namespace        - the index of the related namespace (optional , default value = 0 )
      */
-    constructor(identifierType?: NodeIdType | null, value?: any, namespace?: number) {
+    constructor(identifierType?: NodeIdType | null, value?: number | string | Buffer | Guid, namespace?: number) {
         if (identifierType === null || identifierType === undefined) {
             this.identifierType = NodeIdType.NUMERIC;
             this.value = 0;
@@ -80,7 +80,7 @@ export class NodeId {
             return;
         }
         this.identifierType = identifierType;
-        this.value = value;
+        this.value = value || 0;
         this.namespace = namespace || 0;
 
         // namespace shall be a UInt16
@@ -204,7 +204,7 @@ const regexNamespaceG = /ns=([0-9]+);g=(.*)/;
  * @param value
  * @param namespace {number}
  */
-export function coerceNodeId(value: any, namespace?: number): NodeId {
+export function coerceNodeId(value: unknown, namespace?: number): NodeId {
     let matches;
     let twoFirst;
     if (value instanceof NodeId) {
@@ -257,13 +257,13 @@ export function coerceNodeId(value: any, namespace?: number): NodeId {
         identifierType = NodeIdType.BYTESTRING;
     } else if (value instanceof Object) {
         // it could be a Enum or a NodeId Like object
-        const tmp = value;
+        const tmp = value as any;
         value = tmp.value;
         namespace = namespace || tmp.namespace;
         identifierType = tmp.identifierType || identifierType;
-        return new NodeId(identifierType, value, namespace);
+        return new NodeId(identifierType, value as any, namespace);
     }
-    return new NodeId(identifierType, value, namespace);
+    return new NodeId(identifierType, value as any, namespace);
 }
 
 const regEx1 = /^(s|g|b|i|ns)=/;
@@ -276,7 +276,7 @@ const regEx1 = /^(s|g|b|i|ns)=/;
  * @param [namespace]=0 {Number} the node id namespace
  * @return {NodeId}
  */
-export function makeNodeId(value: string | Buffer | number, namespace?: number) {
+export function makeNodeId(value: string | Buffer | number, namespace?: number): NodeId {
     value = value || 0;
     namespace = namespace || 0;
 
@@ -310,7 +310,7 @@ const regName = /[a-zA-Z_].*/;
 (function build_standard_nodeid_indexes() {
     function expand_map(directIndex: any) {
         for (const name in directIndex) {
-            if (directIndex.hasOwnProperty(name) && regName.exec(name) !== null) {
+            if (Object.prototype.hasOwnProperty.call(directIndex, name) && regName.exec(name) !== null) {
                 const value = directIndex[name];
                 _nodeIdToNameIndex[value] = name;
                 _nameToNodeIdIndex[name] = new NodeId(NodeIdType.NUMERIC, value, 0);

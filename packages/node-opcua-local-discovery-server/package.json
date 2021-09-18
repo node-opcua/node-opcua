@@ -8,7 +8,7 @@
     "node-opcua-local-discovery-server": "./bin/local-discovery-server.js"
   },
   "scripts": {
-    "lint": "tslint source/**/*.ts",
+    "lint": "eslint source/**/*.ts",
     "test": "echo no test",
     "build-docker": "docker build . -t lds"
   },

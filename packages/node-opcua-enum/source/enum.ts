@@ -30,7 +30,7 @@ export class EnumItem {
      * @param  {EnumItem | String | Number} item The object to check with.
      * @return {Boolean}                          The check result.
      */
-    public is(item: any): boolean {
+    public is(item: EnumItem|string|number): boolean {
         if (item instanceof EnumItem) {
             return this.value === item.value;
         } else if (typeof item === "string") {
@@ -151,7 +151,7 @@ export class Enum {
         this._isFlaggable = isFlaggable;
     }
     
-    public get isFlaggable() {
+    public get isFlaggable(): boolean {
         return this._isFlaggable;
     }
     /**

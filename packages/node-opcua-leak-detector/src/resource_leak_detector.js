@@ -17,18 +17,17 @@ const monitor_intervals = false;
 
 
 function ResourceLeakDetector() {
-    const self = this;
 
-    self.setIntervalCallCount = 0;
-    self.clearIntervalCallCount = 0;
+    this.setIntervalCallCount = 0;
+    this.clearIntervalCallCount = 0;
 
-    self.setTimeoutCallCount = 0;
-    self.clearTimeoutCallCount = 0;
-    self.honoredTimeoutFuncCallCount = 0;
-    self.setTimeoutCallPendingCount = 0;
+    this.setTimeoutCallCount = 0;
+    this.clearTimeoutCallCount = 0;
+    this.honoredTimeoutFuncCallCount = 0;
+    this.setTimeoutCallPendingCount = 0;
 
-    self.interval_map = {};
-    self.timeout_map = {};
+    this.interval_map = {};
+    this.timeout_map = {};
 }
 
 /**
@@ -40,22 +39,20 @@ function ResourceLeakDetector() {
 ResourceLeakDetector.prototype.verify_registry_counts = function(info) {
     const errorMessages = [];
 
-    const self = this;
-
-    if (self.clearIntervalCallCount !== self.setIntervalCallCount) {
+    if (this.clearIntervalCallCount !== this.setIntervalCallCount) {
         errorMessages.push(" setInterval doesn't match number of clearInterval calls : \n      " +
-            " setIntervalCallCount = " + self.setIntervalCallCount +
-            " clearIntervalCallCount = " + self.clearIntervalCallCount);
+            " setIntervalCallCount = " + this.setIntervalCallCount +
+            " clearIntervalCallCount = " + this.clearIntervalCallCount);
     }
-    if ((self.clearTimeoutCallCount + self.honoredTimeoutFuncCallCount) !== self.setTimeoutCallCount) {
+    if ((this.clearTimeoutCallCount + this.honoredTimeoutFuncCallCount) !== this.setTimeoutCallCount) {
         errorMessages.push(" setTimeout doesn't match number of clearTimeout or achieved timer calls : \n     " +
-            " setTimeoutCallCount = " + self.setTimeoutCallCount +
-            " clearTimeoutCallCount = " + self.clearTimeoutCallCount +
-            " honoredTimeoutFuncCallCount = " + self.honoredTimeoutFuncCallCount);
+            " setTimeoutCallCount = " + this.setTimeoutCallCount +
+            " clearTimeoutCallCount = " + this.clearTimeoutCallCount +
+            " honoredTimeoutFuncCallCount = " + this.honoredTimeoutFuncCallCount);
     }
-    if (self.setTimeoutCallPendingCount !== 0) {
+    if (this.setTimeoutCallPendingCount !== 0) {
         errorMessages.push(" setTimeoutCallPendingCount is not zero: some timer are still pending " +
-            self.setTimeoutCallPendingCount);
+            this.setTimeoutCallPendingCount);
     }
 
     const monitoredResource = ObjectRegistry.registries;
@@ -80,16 +77,16 @@ ResourceLeakDetector.prototype.verify_registry_counts = function(info) {
 
             console.log("----------------------------------------------- more info");
 
-            console.log(chalk.cyan("test filename                    : "), self.ctx ? self.ctx.test.parent.file + "  " + self.ctx.test.parent.title : "???");
-            console.log(chalk.cyan("setInterval/clearInterval leaks  : "), Object.entries(self.interval_map).length);
-            for (const [key, value] of Object.entries(self.interval_map)) {
+            console.log(chalk.cyan("test filename                    : "), this.ctx ? this.ctx.test.parent.file + "  " + this.ctx.test.parent.title : "???");
+            console.log(chalk.cyan("setInterval/clearInterval leaks  : "), Object.entries(this.interval_map).length);
+            for (const [key, value] of Object.entries(this.interval_map)) {
                 if (value && !value.disposed) {
                     console.log("key =", key, "value.disposed = ", value.disposed);
                     console.log(value.stack);//.split("\n"));
                 }
             }
-            console.log(chalk.cyan("setTimeout/clearTimeout leaks    : "), Object.entries(self.timeout_map).length);
-            for (const [key, value] of Object.entries(self.timeout_map)) {
+            console.log(chalk.cyan("setTimeout/clearTimeout leaks    : "), Object.entries(this.timeout_map).length);
+            for (const [key, value] of Object.entries(this.timeout_map)) {
                 if (value && !value.disposed) {
                     console.log("setTimeout key =", key, "value.disposed = ", value.disposed);
                     console.log(value.stack);//.split("\n"));
@@ -118,6 +115,7 @@ ResourceLeakDetector.prototype.start = function(info) {
     global.ResourceLeakDetectorStarted = true;
 
     const self = ResourceLeakDetector.singleton;
+
     if (trace) {
         console.log(" starting resourceLeakDetector");
     }
@@ -296,7 +294,7 @@ ResourceLeakDetector.prototype.start = function(info) {
 };
 
 ResourceLeakDetector.prototype.check = function() {
-
+    /**  */
 };
 
 ResourceLeakDetector.prototype.stop = function(info) {
@@ -360,8 +358,7 @@ exports.installResourceLeakDetector = function(isGlobal, func) {
     if (isGlobal) {
         before(function() {
             testHasFailed = false;
-            const self = this;
-            resourceLeakDetector.ctx = self.test.ctx;
+            resourceLeakDetector.ctx = this.test.ctx;
             resourceLeakDetector.start();
             // make sure we start with a garbage collected situation
             if (global.gc) {
@@ -392,9 +389,7 @@ exports.installResourceLeakDetector = function(isGlobal, func) {
             if (global.gc) {
                 global.gc(true);
             }
-
-            const self = this;
-            resourceLeakDetector.ctx = self.test.ctx;
+            resourceLeakDetector.ctx = this.test.ctx;
             resourceLeakDetector.start();
         });
         afterEach(function() {

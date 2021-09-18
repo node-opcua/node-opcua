@@ -1,9 +1,8 @@
 /**
  * @module node-opcua-factory
  */
-// tslint:disable:no-console
-import * as chalk from "chalk";
 import * as util from "util";
+import * as chalk from "chalk";
 
 import { assert } from "node-opcua-assert";
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
@@ -42,7 +41,7 @@ export class DataTypeFactory {
         this.baseDataFactories = baseDataFactories;
     }
     // -----------------------------
-    public registerSimpleType(name: string, dataTypeNodeId: NodeId, def: BasicTypeDefinition) {
+    public registerSimpleType(name: string, dataTypeNodeId: NodeId, def: BasicTypeDefinition): void {
         // istanbul ignore next
         if (this._simpleTypes.has(name)) {
             throw new Error("registerSimpleType " + name + " already register");
@@ -257,10 +256,10 @@ export class DataTypeFactory {
             return new BaseUAObject();
             // throw new Error("Cannot find constructor for " + expandedNodeId.toString());
         }
-        return callConstructor(constructor);
+        return new constructor();
     }
 
-    public associateWithBinaryEncoding(className: string, expandedNodeId: ExpandedNodeId) {
+    public associateWithBinaryEncoding(className: string, expandedNodeId: ExpandedNodeId): void {
         const classConstructor = this.getStructureTypeConstructor(className);
         if (doDebug) {
             debugLog(" associateWithBinaryEncoding ", className, expandedNodeId.toString());
@@ -359,10 +358,4 @@ function verifyExpandedNodeId(expandedNodeId: NodeId): boolean {
 
 function makeExpandedNodeIdKey(expandedNodeId: NodeId): string {
     return expandedNodeId.toString();
-}
-
-export function callConstructor(constructor: ConstructorFunc): BaseUAObject {
-    assert(typeof constructor === "function");
-    const constructorFunc: any = constructor.bind.apply(constructor, arguments as any);
-    return new constructorFunc();
 }

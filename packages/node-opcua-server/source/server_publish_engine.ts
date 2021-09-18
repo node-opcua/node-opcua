@@ -193,7 +193,7 @@ export class ServerSidePublishEngine extends EventEmitter implements IServerSide
         this.isSessionClosed = false;
     }
 
-    public toString() {
+    public toString(): string {
         let str = "";
         str += `maxPublishRequestInQueue ${this.maxPublishRequestInQueue}\n`;
         str += `subscriptions ${Object.keys(this._subscriptions).join()}\n`;

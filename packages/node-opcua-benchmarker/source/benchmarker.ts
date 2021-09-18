@@ -103,7 +103,7 @@ export class Benchmarker extends EventEmitter implements IBenchmarkerEvent {
      * run the benchmark
      * @param options
      */
-    public async run(options?: IRunOptions) {
+    public async run(options?: IRunOptions): Promise<Benchmarker> {
 
         options = options || {};
         options.max_time = !options.max_time ? 0.5 : options.max_time;

@@ -12,7 +12,7 @@ function trim(str: string, length?: number): string {
     return str.substr(0, Math.min(str.length, length));
 }
 
-function fqdn(callback: (err: Error | null, fqdn?: string) => void) {
+function fqdn(callback: (err: Error | null, fqdn?: string) => void): void {
     const uqdn = os.hostname();
 
     dns.lookup(uqdn, { hints: dns.ADDRCONFIG }, (err1: Error | null, ip: string) => {
@@ -61,18 +61,18 @@ export async function extractFullyQualifiedDomainName(): Promise<string> {
     return _fullyQualifiedDomainNameInCache!;
 }
 
-export async function prepareFQDN() {
+export async function prepareFQDN(): Promise<void> {
     _fullyQualifiedDomainNameInCache = await extractFullyQualifiedDomainName();
 }
 
-export function getFullyQualifiedDomainName(optional_max_length?: number) {
+export function getFullyQualifiedDomainName(optional_max_length?: number): string {
     if (!_fullyQualifiedDomainNameInCache) {
         throw new Error("FullyQualifiedDomainName computation is not completed yet");
     }
     return _fullyQualifiedDomainNameInCache ? trim(_fullyQualifiedDomainNameInCache, optional_max_length) : "%FQDN%";
 }
 
-export function getHostname() {
+export function getHostname(): string {
     return os.hostname();
 }
 

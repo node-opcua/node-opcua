@@ -125,12 +125,6 @@ export interface EnumerationDefinition extends CommonInterface {
 
 export type TypeDefinition = BuiltInTypeDefinition | EnumerationDefinition | BasicTypeDefinition | TypeSchemaBase;
 
-// tslint:disable-next-line:no-empty
-function defaultEncode(value: any, stream: BinaryStream): void {}
-
-// tslint:disable-next-line:no-empty
-function defaultDecode(stream: BinaryStream): void {}
-
 /**
  * @class TypeSchemaBase
  * @param options {Object}
@@ -166,7 +160,7 @@ export class TypeSchemaBase implements CommonInterface {
      * @param defaultValue {*} the default value
      * @return {*}
      */
-    public computer_default_value(defaultValue: any): any {
+    public computer_default_value(defaultValue: unknown): any {
         if (defaultValue === undefined) {
             defaultValue = this.defaultValue;
         }

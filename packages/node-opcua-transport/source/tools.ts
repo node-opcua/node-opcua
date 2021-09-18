@@ -8,20 +8,27 @@ import { BinaryStream, OutputBinaryStream } from "node-opcua-binary-stream";
 import { createFastUninitializedBuffer } from "node-opcua-buffer-utils";
 import { readMessageHeader } from "node-opcua-chunkmanager";
 import { BaseUAObject } from "node-opcua-factory";
+
 import { TCPErrorMessage } from "./TCPErrorMessage";
-import { UrlWithStringQuery } from "url";
 
 function is_valid_msg_type(msgType: string): boolean {
-    assert(["HEL", "ACK", "ERR",   // Connection Layer
-        "OPN", "MSG", "CLO"    // OPC Unified Architecture, Part 6 page 36
-    ].indexOf(msgType) >= 0, "invalid message type  " + msgType);
+    assert(
+        [
+            "HEL",
+            "ACK",
+            "ERR", // Connection Layer
+            "OPN",
+            "MSG",
+            "CLO" // OPC Unified Architecture, Part 6 page 36
+        ].indexOf(msgType) >= 0,
+        "invalid message type  " + msgType
+    );
     return true;
 }
 
 export type ConstructorFunc = new (...args: any[]) => BaseUAObject;
 
 export function decodeMessage(stream: BinaryStream, classNameConstructor: ConstructorFunc): BaseUAObject {
-
     assert(stream instanceof BinaryStream);
     assert(classNameConstructor instanceof Function, " expecting a function for " + classNameConstructor);
 
@@ -41,7 +48,6 @@ export function decodeMessage(stream: BinaryStream, classNameConstructor: Constr
 }
 
 export function packTcpMessage(msgType: string, encodableObject: BaseUAObject): Buffer {
-
     assert(is_valid_msg_type(msgType));
 
     const messageChunk = createFastUninitializedBuffer(encodableObject.binaryStoreSize() + 8);
@@ -50,17 +56,16 @@ export function packTcpMessage(msgType: string, encodableObject: BaseUAObject): 
     encodeMessage(msgType, encodableObject, stream);
 
     return messageChunk;
-
 }
 
 // opc.tcp://xleuri11022:51210/UA/SampleServer
 export function parseEndpointUrl(endpointUrl: string): url.Url {
-    const _url =  url.parse(endpointUrl);
+    const _url = url.parse(endpointUrl);
     if (!_url.protocol || !_url.hostname) {
         throw new Error("Invalid endpoint url " + endpointUrl);
     }
     return _url;
-/*
+    /*
     const r = /^([a-z.]*):\/\/([a-zA-Z_\-.\-0-9]*):([0-9]*)(\/.*){0,1}/;
 
     const matches = r.exec(endpointUrl);
@@ -82,11 +87,15 @@ export function parseEndpointUrl(endpointUrl: string): url.Url {
 
 export function is_valid_endpointUrl(endpointUrl: string): boolean {
     const e = parseEndpointUrl(endpointUrl);
-    return e.hasOwnProperty("hostname");
+    return Object.prototype.hasOwnProperty.call(e, "hostname");
 }
 
-export function writeTCPMessageHeader(msgType: string, chunkType: string, totalLength: number, stream: OutputBinaryStream) {
-
+export function writeTCPMessageHeader(
+    msgType: string,
+    chunkType: string,
+    totalLength: number,
+    stream: OutputBinaryStream | Buffer
+): void {
     if (stream instanceof Buffer) {
         stream = new BinaryStream(stream);
     }
@@ -103,7 +112,6 @@ export function writeTCPMessageHeader(msgType: string, chunkType: string, totalL
 }
 
 function encodeMessage(msgType: string, messageContent: BaseUAObject, stream: OutputBinaryStream) {
-
     // the length of the message, in bytes. (includes the 8 bytes of the message header)
     const totalLength = messageContent.binaryStoreSize() + 8;
 

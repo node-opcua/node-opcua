@@ -73,7 +73,7 @@ export class ExpandedNodeId extends NodeId {
      * @method toString
      * @return {string}
      */
-    public toString() {
+    public toString(): string {
         let str = NodeId.prototype.toString.call(this);
         if (this.namespaceUri) {
             str += ";namespaceUri:" + this.namespaceUri;
@@ -94,7 +94,7 @@ export class ExpandedNodeId extends NodeId {
     }
 }
 
-export function coerceExpandedNodeId(value: any): ExpandedNodeId {
+export function coerceExpandedNodeId(value: unknown): ExpandedNodeId {
     const n = coerceNodeId(value);
     return new ExpandedNodeId(n.identifierType, n.value, n.namespace, /*namespaceUri*/ null, /*serverIndex*/ 0);
 }
@@ -105,7 +105,7 @@ export function coerceExpandedNodeId(value: any): ExpandedNodeId {
  * @param [namespace=0] the namespace
  * @return {ExpandedNodeId}
  */
-export function makeExpandedNodeId(value: any, namespace?: number) {
+export function makeExpandedNodeId(value: unknown, namespace?: number): ExpandedNodeId {
     if (value === undefined && namespace === undefined) {
         return new ExpandedNodeId(NodeIdType.NUMERIC, 0, 0, null, 0);
     }
@@ -124,7 +124,7 @@ export function makeExpandedNodeId(value: any, namespace?: number) {
         return new ExpandedNodeId(n.identifierType, n.value, n.namespace, namespaceUri, serverIndex);
     }
 
-    const valueInt = parseInt(value, 10);
+    const valueInt = parseInt(value as string, 10);
     if (!isFinite(valueInt)) {
         throw new Error(" cannot makeExpandedNodeId out of " + value);
     }

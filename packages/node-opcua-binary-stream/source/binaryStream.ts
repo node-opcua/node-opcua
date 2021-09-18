@@ -445,7 +445,7 @@ export class BinaryStream {
  * @param str {String}
  * @internal
  */
-export function calculateByteLength(str: string) {
+export function calculateByteLength(str: string): number {
     // returns the byte length of an utf8 string
     let s = str.length;
     for (let i = s - 1; i >= 0; i--) {
