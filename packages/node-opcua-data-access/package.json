@@ -2,7 +2,7 @@
   "name": "node-opcua-data-access",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
-  "version": "2.51.0",
+  "version": "2.52.0",
   "description": "pure nodejs OPCUA SDK - module -data-access",
   "scripts": {
     "build": "tsc -b",
@@ -11,13 +11,13 @@
     "lint": "eslint source/**/*.ts"
   },
   "dependencies": {
-    "node-opcua-assert": "2.51.0",
-    "node-opcua-basic-types": "2.51.0",
-    "node-opcua-binary-stream": "2.51.0",
-    "node-opcua-data-model": "2.51.0",
-    "node-opcua-factory": "2.51.0",
-    "node-opcua-nodeid": "2.51.0",
-    "node-opcua-types": "2.51.0"
+    "node-opcua-assert": "2.52.0",
+    "node-opcua-basic-types": "2.52.0",
+    "node-opcua-binary-stream": "2.52.0",
+    "node-opcua-data-model": "2.52.0",
+    "node-opcua-factory": "2.52.0",
+    "node-opcua-nodeid": "2.52.0",
+    "node-opcua-types": "2.52.0"
   },
   "devDependencies": {
     "should": "^13.2.3"
