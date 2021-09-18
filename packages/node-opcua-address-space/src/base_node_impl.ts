@@ -1404,7 +1404,7 @@ function _setup_parent_item(this: BaseNode, references: { [key: string]: any }):
     const addressSpace = this.addressSpace;
 
     if (references.length > 0) {
-        references = this.findReferencesEx("HasAggregate", BrowseDirection.Inverse);
+        references = this.findReferencesEx("Aggregates", BrowseDirection.Inverse);
 
         if (references.length >= 1) {
             // istanbul ignore next
@@ -1412,7 +1412,7 @@ function _setup_parent_item(this: BaseNode, references: { [key: string]: any }):
                 if (displayWarning) {
                     const options = { addressSpace };
                     // tslint:disable-next-line:no-console
-                    console.warn("  More than one HasAggregate reference have been found for parent of object");
+                    console.warn("  More than one Aggregates reference have been found for parent of object");
                     // tslint:disable-next-line:no-console
                     console.warn("    object node id:", this.nodeId.toString(), chalk.cyan(this.browseName.toString()));
                     // tslint:disable-next-line:no-console
