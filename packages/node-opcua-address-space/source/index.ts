@@ -11,7 +11,6 @@ export * from "./interfaces/state_machine/ua_transition_ex";
 
 export * from "./interfaces/ua_subscription_diagnostics_variable_ex";
 
-export * from "./interfaces/data_access/ua_discrete_item";
 export * from "./interfaces/data_access/ua_multistate_discrete_ex";
 export * from "./interfaces/data_access/ua_multistate_value_discrete_ex";
 export * from "./interfaces/data_access/ua_two_state_discrete_ex";

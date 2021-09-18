@@ -66,7 +66,7 @@ const restrictedAccessFlag = makeAccessRestrictionsFlag("SigningRequired | Encry
  *
  * @param node the node which permissions are to be adjusted
  */
-export function ensureObjectIsSecure(node: BaseNode) {
+export function ensureObjectIsSecure(node: BaseNode): void {
     node.setAccessRestrictions(restrictedAccessFlag);
     if (node.nodeClass === NodeClass.Variable) {
         // replaceMethod(node, "isUserReadable", newIsUserReadable);

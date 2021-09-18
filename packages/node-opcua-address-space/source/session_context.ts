@@ -4,12 +4,7 @@
 
 import { assert } from "node-opcua-assert";
 import { CertificateInternals, exploreCertificate } from "node-opcua-crypto";
-import {
-    AccessRestrictionsFlag,
-    allPermissions,
-    AttributeIds,
-    PermissionFlag
-} from "node-opcua-data-model";
+import { AccessRestrictionsFlag, allPermissions, AttributeIds, PermissionFlag } from "node-opcua-data-model";
 import { PreciseClock } from "node-opcua-date-time";
 import { NodeId, NodeIdLike, resolveNodeId, sameNodeId } from "node-opcua-nodeid";
 import {
@@ -20,7 +15,14 @@ import {
     UserNameIdentityToken,
     X509IdentityToken
 } from "node-opcua-types";
-import { ISessionContext, UAObject, UAObjectType, UAVariable, INamespace, BaseNode, ISessionBase } from "node-opcua-address-space-base";
+import {
+    ISessionContext,
+    UAObject,
+    UAObjectType,
+    UAVariable,
+    BaseNode,
+    ISessionBase
+} from "node-opcua-address-space-base";
 import { ObjectIds } from "node-opcua-constants";
 import { StatusCodes } from "node-opcua-status-code";
 import { NamespacePrivate } from "../src/namespace_private";
@@ -45,7 +47,7 @@ function getUserName(userIdentityToken: UserIdentityToken): string {
         if (userIdentityToken.policyId === "anonymous") {
             return "anonymous";
         }
-        assert(userIdentityToken.hasOwnProperty("userName"));
+        assert(Object.prototype.hasOwnProperty.call(userIdentityToken, "userName"));
         return userIdentityToken.userName!;
     }
     throw new Error("Invalid user identity token");
@@ -151,7 +153,10 @@ function getAccessRestrictionsOnNamespace(namespace: NamespacePrivate, context: 
     return AccessRestrictionsFlag.None;
 }
 
-function getDefaultUserRolePermissionsOnNamespace(namespace: NamespacePrivate, context: SessionContext): RolePermissionType[] | null {
+function getDefaultUserRolePermissionsOnNamespace(
+    namespace: NamespacePrivate,
+    context: SessionContext
+): RolePermissionType[] | null {
     // ignore permission when default context is provided
     if (isDefaultContext(context)) {
         return null;

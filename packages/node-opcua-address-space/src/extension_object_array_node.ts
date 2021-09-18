@@ -175,11 +175,11 @@ export function bindExtObjArrayNode<T extends ExtensionObject>(
     uaArrayVariableNode.$$getElementBrowseName = function (this: any, extObj: ExtensionObject) {
         const indexPropertyName1 = this.$$indexPropertyName;
 
-        if (!extObj.hasOwnProperty(indexPropertyName1)) {
+        if (!Object.prototype.hasOwnProperty.call(extObj,indexPropertyName1)) {
             console.log(" extension object do not have ", indexPropertyName1, extObj);
         }
         // assert(extObj.constructor === addressSpace.constructExtensionObject(dataType));
-        assert(extObj.hasOwnProperty(indexPropertyName1));
+        assert(Object.prototype.hasOwnProperty.call(extObj,indexPropertyName1));
         const browseName = (extObj as any)[indexPropertyName1].toString();
         return browseName;
     };

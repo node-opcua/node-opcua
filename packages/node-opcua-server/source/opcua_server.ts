@@ -4,11 +4,13 @@
 // tslint:disable:no-console
 // tslint:disable:max-line-length
 // tslint:disable:unified-signatures
-import * as async from "async";
-import * as chalk from "chalk";
+
 import * as crypto from "crypto";
 import { EventEmitter } from "events";
 import { callbackify } from "util";
+
+import * as async from "async";
+import * as chalk from "chalk";
 
 import { extractFullyQualifiedDomainName, getFullyQualifiedDomainName } from "node-opcua-hostname";
 
@@ -3520,7 +3522,7 @@ export class OPCUAServer extends OPCUABaseServer {
 
         /* istanbul ignore next */
         if (
-            !endpointOptions.hasOwnProperty("port") ||
+            !Object.prototype.hasOwnProperty.call(endpointOptions,"port") ||
             !isFinite(endpointOptions.port!) ||
             typeof endpointOptions.port !== "number"
         ) {

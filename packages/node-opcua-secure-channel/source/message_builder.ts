@@ -32,8 +32,9 @@ import {
 } from "node-opcua-service-secure-channel";
 import { decodeStatusCode } from "node-opcua-status-code";
 import { MessageBuilderBase } from "node-opcua-transport";
-
+import { timestamp } from "node-opcua-utils";
 import { SequenceHeader } from "node-opcua-chunkmanager";
+
 import { chooseSecurityHeader, SymmetricAlgorithmSecurityHeader } from "./secure_channel_service";
 
 import { SecurityHeader } from "./secure_message_chunk_manager";
@@ -46,7 +47,6 @@ import {
     getCryptoFactory,
     SecurityPolicy
 } from "./security_policy";
-import { timestamp } from "node-opcua-utils";
 
 const debugLog = make_debugLog(__filename);
 const doDebug = checkDebugFlag(__filename);
@@ -148,8 +148,8 @@ export class MessageBuilder extends MessageBuilderBase {
         this.privateKey = invalidPrivateKey;
     }
 
-    public pushNewToken(securityToken: SecurityToken, derivedKeys: DerivedKeys | null) {
-        assert(securityToken.hasOwnProperty("tokenId"));
+    public pushNewToken(securityToken: SecurityToken, derivedKeys: DerivedKeys | null): void {
+        assert(Object.prototype.hasOwnProperty.call(securityToken, "tokenId"));
 
         // TODO: make sure this list doesn't grow indefinitely
         this._tokenStack = this._tokenStack || [];
@@ -286,7 +286,7 @@ export class MessageBuilder extends MessageBuilderBase {
         } catch (err) {
             // this may happen if the message is not well formed or has been altered
             // we better off reporting an error and abort the communication
-            return this._report_error(err instanceof Error ? err.message: " err");
+            return this._report_error(err instanceof Error ? err.message : " err");
         }
 
         if (!this.objectFactory.hasConstructor(id)) {
@@ -568,7 +568,7 @@ export class MessageBuilder extends MessageBuilderBase {
             return false;
         }
 
-        assert(securityTokenData.hasOwnProperty("derivedKeys"));
+        assert(Object.prototype.hasOwnProperty.call(securityTokenData, "derivedKeys"));
 
         // SecurityToken may have expired, in this case the MessageBuilder shall reject the message
         if (securityTokenData.securityToken.expired) {

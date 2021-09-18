@@ -26,9 +26,9 @@ export { OpenFileMode } from "../open_mode";
  */
 export class ClientFile {
 
-    public static useGlobalMethod: boolean = false;
+    public static useGlobalMethod = false;
 
-    public    fileHandle: number = 0;
+    public    fileHandle = 0;
     protected session: IBasicSession;
     protected readonly fileNodeId: NodeId;
 
@@ -206,6 +206,7 @@ export class ClientFile {
         return dataValue.value.value;
     }
 
+    // eslint-disable-next-line max-statements
     protected async extractMethodsIds(): Promise<void> {
 
         if (ClientFile.useGlobalMethod) {
@@ -282,7 +283,7 @@ export class ClientFile {
         this.sizeNodeId = results[7].targets![0].targetId;
     }
 
-    protected async ensureInitialized() {
+    protected async ensureInitialized(): Promise<void> {
         if (!this.openMethodNodeId) {
             await this.extractMethodsIds();
         }

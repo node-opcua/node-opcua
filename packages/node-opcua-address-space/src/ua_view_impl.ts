@@ -9,8 +9,8 @@ import { StatusCodes } from "node-opcua-status-code";
 import { DataType } from "node-opcua-variant";
 import { ISessionContext, UAView  } from "node-opcua-address-space-base";
 
-import { BaseNodeImpl, InternalBaseNodeOptions } from "./base_node_impl";
 import { SessionContext } from "../source/session_context";
+import { BaseNodeImpl, InternalBaseNodeOptions } from "./base_node_impl";
 
 export interface InternalViewOptions extends InternalBaseNodeOptions {
     containsNoLoops?: boolean;

@@ -344,8 +344,8 @@ export class OPCUAClientImpl extends ClientBaseImpl implements OPCUAClient {
         // if set to true , create Session will only accept connection from server which endpoint_url has been reported
         // by GetEndpointsRequest.
         // By default, the client is strict.
-        if (options.hasOwnProperty("endpoint_must_exist")) {
-            if (options.hasOwnProperty("endpointMustExist")) {
+        if (Object.prototype.hasOwnProperty.call(options,"endpoint_must_exist")) {
+            if (Object.prototype.hasOwnProperty.call(options,"endpointMustExist")) {
                 throw new Error(
                     "endpoint_must_exist is deprecated! you must now use endpointMustExist instead of endpoint_must_exist "
                 );

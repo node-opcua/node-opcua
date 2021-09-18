@@ -18,16 +18,11 @@ import {
     UAInitialState_Base,
     UAState,
     UAState_Base,
-    UAStateMachine,
     UAStateMachine_Base,
-    UAStateVariable,
-    UATransition,
     UATransition_Base,
-    UATransitionEvent_Base,
-    UATransitionVariable
-} from "node-opcua-nodeset-ua";
+    UATransitionEvent_Base} from "node-opcua-nodeset-ua";
 
-import { UATransitionEx } from "../../../source/interfaces/state_machine/ua_transition_ex";
+import { UATransitionEx } from "./ua_transition_ex";
 
 export type UtcTime = DateTime;
 

@@ -1,7 +1,7 @@
 /**
  * @module node-opcua-address-space
  */
-import { UAVariable, UAVariableT } from "node-opcua-address-space-base";
+import { UAVariableT } from "node-opcua-address-space-base";
 import { LocalizedText } from "node-opcua-data-model";
 import { UAStateVariable, UATwoStateVariable_Base } from "node-opcua-nodeset-ua";
 import { DataType } from "node-opcua-variant";

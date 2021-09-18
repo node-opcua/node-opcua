@@ -6,22 +6,22 @@ import { Stats, PathLike, OpenMode, NoParamCallback, WriteFileOptions } from "fs
 
 import { callbackify, promisify } from "util";
 
+import { assert } from "node-opcua-assert";
 import { AddressSpace, IAddressSpace, ISessionContext, UAFile, UAFile_Base, UAMethod, UAObjectType } from "node-opcua-address-space";
 import { Byte, Int32, UInt32, UInt64 } from "node-opcua-basic-types";
 import { checkDebugFlag, make_debugLog, make_errorLog, make_warningLog } from "node-opcua-debug";
+import { NodeId, sameNodeId } from "node-opcua-nodeid";
 import { CallMethodResultOptions } from "node-opcua-service-call";
 import { StatusCodes } from "node-opcua-status-code";
 import { DataType, Variant, VariantArrayType } from "node-opcua-variant";
 
 import { OpenFileMode, OpenFileModeMask } from "../open_mode";
-import { NodeId, sameNodeId } from "node-opcua-nodeid";
 
 const debugLog = make_debugLog("FileType");
 const errorLog = make_errorLog("FileType");
 const warningLog = make_warningLog("FileType");
 const doDebug = checkDebugFlag("FileType");
 
-import assert from "node-opcua-assert";
 
 export interface AbstractFs {
     stat(path: PathLike, callback: (err: NodeJS.ErrnoException | null, stats: Stats) => void): void;
@@ -93,13 +93,13 @@ export interface UAFileType extends UAObjectType, UAFile_Base {
  */
 export class FileTypeData {
     public _fs: AbstractFs;
-    public filename: string = "";
-    public maxSize: number = 0;
-    public mimeType: string = "";
+    public filename= "";
+    public maxSize = 0;
+    public mimeType = "";
 
     private file: UAFile;
-    private _openCount: number = 0;
-    private _fileSize: number = 0;
+    private _openCount = 0;
+    private _fileSize = 0;
 
     constructor(options: FileOptions, file: UAFile) {
         this.file = file;
@@ -177,7 +177,7 @@ export class FileTypeData {
     }
 }
 
-export function getFileData(opcuaFile2: UAFileType) {
+export function getFileData(opcuaFile2: UAFileType): FileTypeData {
     return (opcuaFile2 as any).$fileData as FileTypeData;
 }
 
@@ -607,7 +607,7 @@ function install_method_handle_on_type(addressSpace: IAddressSpace): void {
  * @param file the OPCUA Node that has a typeDefinition of FileType
  * @param options the options
  */
-export function installFileType(file: UAFile, options: FileOptions) {
+export function installFileType(file: UAFile, options: FileOptions): void {
     if ((file as any).$fileData) {
         errorLog("File already installed ", file.nodeId.toString(), file.browseName.toString());
         return;

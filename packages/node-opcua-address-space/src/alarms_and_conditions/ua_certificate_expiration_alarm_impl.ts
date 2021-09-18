@@ -4,8 +4,8 @@
 import { DateTime } from "node-opcua-basic-types";
 import { DataType } from "node-opcua-variant";
 import { UACertificateExpirationAlarm, UACertificateExpirationAlarm_Base } from "node-opcua-nodeset-ua";
-import { UASystemOffNormalAlarmImpl } from "./ua_system_off_normal_alarm_impl";
 import { INamespace } from "node-opcua-address-space-base";
+import { UASystemOffNormalAlarmImpl } from "./ua_system_off_normal_alarm_impl";
 
 export interface UACertificateExpirationAlarmEx
     extends Omit<
@@ -41,7 +41,7 @@ export class UACertificateExpirationAlarmImpl extends UASystemOffNormalAlarmImpl
         return this.expirationDate.readValue().value.value;
     }
 
-    public setExpirationDate(value: Date) {
+    public setExpirationDate(value: Date): void {
         return this.expirationDate.setValueFromSource({
             dataType: DataType.DateTime,
             value

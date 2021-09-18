@@ -41,11 +41,11 @@ interface add_dataItem_stuffOptions {
     valuePrecision?: number;
     modellingRule?: ModellingRuleType;
 }
-export function add_dataItem_stuff(variable: UAVariable, options: add_dataItem_stuffOptions) {
+export function add_dataItem_stuff(variable: UAVariable, options: add_dataItem_stuffOptions) :void{
     const addressSpace = variable.addressSpace;
     const namespace = addressSpace.getNamespace(variable.nodeId.namespace);
 
-    if (options.hasOwnProperty("definition")) {
+    if (Object.prototype.hasOwnProperty.call(options,"definition")) {
         namespace.addVariable({
             browseName: { name: "Definition", namespaceIndex: 0 },
             dataType: "String",
@@ -58,7 +58,7 @@ export function add_dataItem_stuff(variable: UAVariable, options: add_dataItem_s
         });
     }
 
-    if (options.hasOwnProperty("valuePrecision")) {
+    if (Object.prototype.hasOwnProperty.call(options,"valuePrecision")) {
         assert(typeof options.valuePrecision === "number");
 
         namespace.addVariable({

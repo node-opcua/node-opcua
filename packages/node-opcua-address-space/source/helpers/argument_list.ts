@@ -23,8 +23,11 @@ const doDebug = checkDebugFlag(__filename);
 function myfindBuiltInType(dataType: DataType): any {
     return factories.findBuiltInType(DataType[dataType]);
 }
-
-export function encode_ArgumentList(definition: any[], args: any, stream: OutputBinaryStream) {
+export interface ArgumentDef {
+    dataType: DataType
+    valueRank?: undefined | number;
+}
+export function encode_ArgumentList(definition: ArgumentDef[], args: any[], stream: OutputBinaryStream): void {
     assert(definition.length === args.length);
 
     assert(Array.isArray(definition));
@@ -52,7 +55,7 @@ export function encode_ArgumentList(definition: any[], args: any, stream: Output
     }
 }
 
-export function decode_ArgumentList(definition: any[], stream: BinaryStream): any[] {
+export function decode_ArgumentList(definition: ArgumentDef[], stream: BinaryStream): any[] {
     if (!Array.isArray(definition)) {
         throw new Error(
             "This BaseDataType cannot be decoded because it has no definition.\n" +
@@ -79,7 +82,7 @@ export function decode_ArgumentList(definition: any[], stream: BinaryStream): an
     return args;
 }
 
-export function binaryStoreSize_ArgumentList(description: any, args: any) {
+export function binaryStoreSize_ArgumentList(description: ArgumentDef[], args: any[]): number {
     assert(Array.isArray(description));
     assert(Array.isArray(args));
     assert(args.length === description.length);
@@ -131,8 +134,8 @@ export function getMethodDeclaration_ArgumentList(
  * @private
  */
 function isArgumentValid(addressSpace: IAddressSpace, argDefinition: Argument, arg: Variant): boolean {
-    assert(argDefinition.hasOwnProperty("dataType"));
-    assert(argDefinition.hasOwnProperty("valueRank"));
+    assert(Object.prototype.hasOwnProperty.call(argDefinition, "dataType"));
+    assert(Object.prototype.hasOwnProperty.call(argDefinition, "valueRank"));
 
     const argDefDataType = addressSpace.findDataType(argDefinition.dataType);
     const argDataType = addressSpace.findDataType(resolveNodeId(arg.dataType));
@@ -248,17 +251,16 @@ export function verifyArguments_ArgumentList(
 
     return {
         inputArgumentResults,
-        statusCode: 
-            (   
-                inputArgumentResults.includes(StatusCodes.BadTypeMismatch)  ||
-                inputArgumentResults.includes(StatusCodes.BadOutOfRange)
-            ) 
-            ? StatusCodes.BadInvalidArgument
-            : StatusCodes.Good
+        statusCode:
+            inputArgumentResults.includes(StatusCodes.BadTypeMismatch) || inputArgumentResults.includes(StatusCodes.BadOutOfRange)
+                ? StatusCodes.BadInvalidArgument
+                : StatusCodes.Good
     };
 }
 
-export function build_retrieveInputArgumentsDefinition(addressSpace: IAddressSpace) {
+export function build_retrieveInputArgumentsDefinition(
+    addressSpace: IAddressSpace
+): (objectId: NodeId, methodId: NodeId) => Argument[] {
     const the_address_space = addressSpace;
     return (objectId: NodeId, methodId: NodeId) => {
         const response = getMethodDeclaration_ArgumentList(the_address_space, objectId, methodId);

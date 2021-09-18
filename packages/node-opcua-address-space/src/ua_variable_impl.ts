@@ -1,3 +1,5 @@
+/* eslint-disable max-statements */
+/* eslint-disable complexity */
 /**
  * @module node-opcua-address-space
  */
@@ -5,8 +7,9 @@
 // tslint:disable:no-console
 // tslint:disable:max-line-length
 import * as chalk from "chalk";
-import { assert } from "node-opcua-assert";
 
+import { GetFunc, SetFunc } from "node-opcua-address-space-base";
+import { assert } from "node-opcua-assert";
 import {
     isValidDataEncoding,
     convertAccessLevelFlagToByte,
@@ -17,15 +20,7 @@ import {
     AttributeIds,
     isDataEncoding
 } from "node-opcua-data-model";
-import {
-    extractRange,
-    sameDataValue,
-    DataValue,
-    DataValueLike,
-    DataValueOptions,
-    DataValueOptionsT,
-    DataValueT
-} from "node-opcua-data-value";
+import { extractRange, sameDataValue, DataValue, DataValueLike, DataValueT } from "node-opcua-data-value";
 import { coerceClock, getCurrentClock, PreciseClock } from "node-opcua-date-time";
 import { checkDebugFlag, make_debugLog, make_errorLog, make_warningLog } from "node-opcua-debug";
 import { ExtensionObject } from "node-opcua-extension-object";
@@ -48,7 +43,6 @@ import * as utils from "node-opcua-utils";
 import { lowerFirstLetter } from "node-opcua-utils";
 import { Variant, VariantLike, DataType, sameVariant, VariantArrayType, adjustVariant } from "node-opcua-variant";
 import { StatusCodeCallback } from "node-opcua-status-code";
-
 import {
     IAddressSpace,
     BindVariableOptions,
@@ -69,11 +63,10 @@ import {
 } from "node-opcua-address-space-base";
 import { UAHistoricalDataConfiguration } from "node-opcua-nodeset-ua";
 
+import { SessionContext } from "../source/session_context";
 import { BaseNodeImpl, InternalBaseNodeOptions } from "./base_node_impl";
 import { _clone, ToStringBuilder, UAVariable_toString, valueRankToString } from "./base_node_private";
-import { SessionContext } from "../source/session_context";
 import { EnumerationInfo, IEnumItem, UADataTypeImpl } from "./ua_data_type_impl";
-import { GetFunc, SetFunc } from "node-opcua-address-space-base";
 import { apply_condition_refresh } from "./apply_condition_refresh";
 
 const debugLog = make_debugLog(__filename);
@@ -234,7 +227,7 @@ interface UAVariableOptions extends InternalBaseNodeOptions {
     historizing?: number;
 }
 
-export function verifyRankAndDimensions(options: { valueRank?: number; arrayDimensions?: number[] | null }) {
+export function verifyRankAndDimensions(options: { valueRank?: number; arrayDimensions?: number[] | null }): void {
     // evaluate valueRank arrayDimensions is specified but valueRank is null
     if (options.arrayDimensions && options.valueRank === undefined) {
         options.valueRank = options.arrayDimensions.length;
@@ -560,7 +553,7 @@ export class UAVariableImpl extends BaseNodeImpl implements UAVariable {
         const enumInfo = this._getEnumerationInfo();
 
         if (typeof value === "string") {
-            if (!enumInfo.nameIndex.hasOwnProperty(value)) {
+            if (!Object.prototype.hasOwnProperty.call(enumInfo.nameIndex, value)) {
                 const possibleValues = Object.keys(enumInfo.nameIndex).join(",");
                 throw new Error("UAVariable#writeEnumValue: cannot find value " + value + " in [" + possibleValues + "]");
             }
@@ -644,8 +637,7 @@ export class UAVariableImpl extends BaseNodeImpl implements UAVariable {
     /**
      * setValueFromSource is used to let the device sets the variable values
      * this method also records the current time as sourceTimestamp and serverTimestamp.
-     * the method broadcasts an "value_changed" event
-     *
+.     *
      * The method will raise an exception if the value is not compatible with the dataType and expected dimension
      *
      * @method setValueFromSource
@@ -653,10 +645,10 @@ export class UAVariableImpl extends BaseNodeImpl implements UAVariable {
      * @param [statusCode  {StatusCode} = StatusCodes.Good]
      * @param [sourceTimestamp= Now]
      */
-    public setValueFromSource(variant: VariantLike, statusCode?: StatusCode, sourceTimestamp?: Date) {
+    public setValueFromSource(variant: VariantLike, statusCode?: StatusCode, sourceTimestamp?: Date): void {
         statusCode = statusCode || StatusCodes.Good;
         // istanbul ignore next
-        if (variant.hasOwnProperty("value")) {
+        if (Object.prototype.hasOwnProperty.call(variant, "value")) {
             if (variant.dataType === null || variant.dataType === undefined) {
                 throw new Error("Variant must provide a valid dataType" + variant.toString());
             }
@@ -924,23 +916,22 @@ export class UAVariableImpl extends BaseNodeImpl implements UAVariable {
      * @param optionalNow.picoseconds  {Number}
      */
     public touchValue(optionalNow?: PreciseClock): void {
-        const variable = this;
         const now = optionalNow || getCurrentClock();
-        variable._dataValue.sourceTimestamp = now.timestamp;
-        variable._dataValue.sourcePicoseconds = now.picoseconds;
-        variable._dataValue.serverTimestamp = now.timestamp;
-        variable._dataValue.serverPicoseconds = now.picoseconds;
+        this._dataValue.sourceTimestamp = now.timestamp;
+        this._dataValue.sourcePicoseconds = now.picoseconds;
+        this._dataValue.serverTimestamp = now.timestamp;
+        this._dataValue.serverPicoseconds = now.picoseconds;
 
-        variable._dataValue.statusCode = StatusCodes.Good;
+        this._dataValue.statusCode = StatusCodes.Good;
 
-        if (variable.minimumSamplingInterval === 0) {
-            if (variable.listenerCount("value_changed") > 0) {
-                const clonedDataValue = variable.readValue();
-                variable.emit("value_changed", clonedDataValue);
+        if (this.minimumSamplingInterval === 0) {
+            if (this.listenerCount("value_changed") > 0) {
+                const clonedDataValue = this.readValue();
+                this.emit("value_changed", clonedDataValue);
             }
         }
-        if (variable.parent && variable.parent.nodeClass === NodeClass.Variable) {
-            (variable.parent as UAVariable).touchValue(now);
+        if (this.parent && this.parent.nodeClass === NodeClass.Variable) {
+            (this.parent as UAVariable).touchValue(now);
         }
     }
 
@@ -1204,7 +1195,7 @@ export class UAVariableImpl extends BaseNodeImpl implements UAVariable {
         return dt as UADataType;
     }
 
-    public get dataTypeObj() {
+    public get dataTypeObj(): UADataType {
         return this.getDataTypeNode();
     }
 
@@ -1330,6 +1321,7 @@ export class UAVariableImpl extends BaseNodeImpl implements UAVariable {
 
             assert(propertyNode.readValue().statusCode.equals(StatusCodes.Good));
 
+            // eslint-disable-next-line @typescript-eslint/no-this-alias
             const self = this;
             propertyNode.bindVariable(
                 {
@@ -1379,6 +1371,7 @@ export class UAVariableImpl extends BaseNodeImpl implements UAVariable {
             });
             this.setValueFromSource(theValue, StatusCodes.Good);
 
+            // eslint-disable-next-line @typescript-eslint/no-this-alias
             const self = this;
             this.bindVariable(
                 {
@@ -1448,7 +1441,7 @@ export class UAVariableImpl extends BaseNodeImpl implements UAVariable {
                 field.dataType = this.resolveNodeId("BaseDataType");
             }
             const dataTypeNodeId = addressSpace.findCorrespondingBasicDataType(field.dataType);
-            assert(this.$extensionObject.hasOwnProperty(camelCaseName));
+            assert(Object.prototype.hasOwnProperty.call(this.$extensionObject, camelCaseName));
 
             // istanbul ignore next
             if (doDebug) {
@@ -1494,9 +1487,11 @@ export class UAVariableImpl extends BaseNodeImpl implements UAVariable {
                     });
                 }
 
+                // eslint-disable-next-line @typescript-eslint/no-this-alias
                 const self = this;
                 property.camelCaseName = camelCaseName;
                 property.setValueFromSource = function (this: any, variant: VariantLike) {
+                    // eslint-disable-next-line @typescript-eslint/no-this-alias
                     const inner_this = this;
                     variant = Variant.coerce(variant);
                     // xx console.log("PropertySetValueFromSource this", inner_this.nodeId.toString(), inner_this.browseName.toString(), variant.toString(), inner_this.dataType.toString());
@@ -1512,12 +1507,12 @@ export class UAVariableImpl extends BaseNodeImpl implements UAVariable {
         return this.$extensionObject;
     }
 
-    public updateExtensionObjectPartial(partialExtensionObject: any) {
+    public updateExtensionObjectPartial(partialExtensionObject: any): ExtensionObject {
         setExtensionObjectValue(this, partialExtensionObject);
         return this.$extensionObject;
     }
 
-    public incrementExtensionObjectPartial(path: any) {
+    public incrementExtensionObjectPartial(path: string | string[]): void {
         let name;
         if (typeof path === "string") {
             path = path.split(".");
@@ -1552,11 +1547,11 @@ export class UAVariableImpl extends BaseNodeImpl implements UAVariable {
         setExtensionObjectValue(this, partialData);
     }
 
-    public constructExtensionObjectFromComponents() {
+    public constructExtensionObjectFromComponents(): any {
         return this.readValue().value.value;
     }
 
-    public toString() {
+    public toString(): string {
         const options = new ToStringBuilder();
         UAVariable_toString.call(this, options);
         return options.toString();
@@ -1568,7 +1563,12 @@ export class UAVariableImpl extends BaseNodeImpl implements UAVariable {
 
     public historyRead(
         context: ISessionContext,
-        historyReadDetails: HistoryReadDetails | ReadRawModifiedDetails | ReadEventDetails | ReadProcessedDetails | ReadAtTimeDetails,
+        historyReadDetails:
+            | HistoryReadDetails
+            | ReadRawModifiedDetails
+            | ReadEventDetails
+            | ReadProcessedDetails
+            | ReadAtTimeDetails,
         indexRange: NumericRange | null,
         dataEncoding: QualifiedNameLike | null,
         continuationPoint?: ContinuationPoint
@@ -1576,7 +1576,12 @@ export class UAVariableImpl extends BaseNodeImpl implements UAVariable {
 
     public historyRead(
         context: ISessionContext,
-        historyReadDetails: HistoryReadDetails | ReadRawModifiedDetails | ReadEventDetails | ReadProcessedDetails | ReadAtTimeDetails,
+        historyReadDetails:
+            | HistoryReadDetails
+            | ReadRawModifiedDetails
+            | ReadEventDetails
+            | ReadProcessedDetails
+            | ReadAtTimeDetails,
         indexRange: NumericRange | null,
         dataEncoding: QualifiedNameLike | null,
         continuationPoint: ContinuationPoint | null,
@@ -1584,7 +1589,12 @@ export class UAVariableImpl extends BaseNodeImpl implements UAVariable {
     ): void;
     public historyRead(
         context: ISessionContext,
-        historyReadDetails: HistoryReadDetails | ReadRawModifiedDetails | ReadEventDetails | ReadProcessedDetails | ReadAtTimeDetails,
+        historyReadDetails:
+            | HistoryReadDetails
+            | ReadRawModifiedDetails
+            | ReadEventDetails
+            | ReadProcessedDetails
+            | ReadAtTimeDetails,
         indexRange: NumericRange | null,
         dataEncoding: QualifiedNameLike | null,
         continuationPoint?: ContinuationPoint | null,
@@ -1626,7 +1636,12 @@ export class UAVariableImpl extends BaseNodeImpl implements UAVariable {
 
     public _historyRead(
         context: ISessionContext,
-        historyReadDetails: HistoryReadDetails | ReadRawModifiedDetails | ReadEventDetails | ReadProcessedDetails | ReadAtTimeDetails,
+        historyReadDetails:
+            | HistoryReadDetails
+            | ReadRawModifiedDetails
+            | ReadEventDetails
+            | ReadProcessedDetails
+            | ReadAtTimeDetails,
         indexRange: NumericRange | null,
         dataEncoding: QualifiedNameLike | null,
         continuationPoint: ContinuationPoint | null,
@@ -1727,11 +1742,11 @@ export class UAVariableImpl extends BaseNodeImpl implements UAVariable {
         }
     }
 
-    public _conditionRefresh(_cache?: any) {
+    public _conditionRefresh(_cache?: any): void {
         apply_condition_refresh.call(this, _cache);
     }
 
-    public handle_semantic_changed() {
+    public handle_semantic_changed(): void {
         this.semantic_version = this.semantic_version + 1;
         this.emit("semantic_changed");
     }
@@ -2168,7 +2183,10 @@ function bind_getter(this: UAVariableImpl, options: GetterOptions) {
         // variation 3
         _Variable_bind_with_async_refresh.call(this, options);
     } else {
-        assert(!options.hasOwnProperty("set"), "getter is missing : a getter must be provided if a setter is provided");
+        assert(
+            !Object.prototype.hasOwnProperty.call(options, "set"),
+            "getter is missing : a getter must be provided if a setter is provided"
+        );
         // xx bind_variant.call(this,options);
         if (options.dataType !== undefined) {
             // if (options.dataType !== DataType.ExtensionObject) {
@@ -2250,11 +2268,7 @@ export interface UAVariableImplT<T, DT extends DataType> extends UAVariableImpl,
         indexRange: NumericRange | null,
         callback: StatusCodeCallback
     ): void;
-    writeValue(
-        context: ISessionContext,
-        dataValue: DataValueT<T, DT>,
-        callback: StatusCodeCallback
-    ): void;
+    writeValue(context: ISessionContext, dataValue: DataValueT<T, DT>, callback: StatusCodeCallback): void;
     writeValue(context: ISessionContext, dataValue: DataValueT<T, DT>, indexRange?: NumericRange | null): Promise<StatusCode>;
 }
 export class UAVariableImplT<T, DT extends DataType> extends UAVariableImpl {}

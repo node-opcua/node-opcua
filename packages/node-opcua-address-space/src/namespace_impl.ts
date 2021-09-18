@@ -390,9 +390,9 @@ export class UANamespace implements NamespacePrivate {
      *
      */
     public addObjectType(options: AddObjectTypeOptions): UAObjectType {
-        assert(!options.hasOwnProperty("dataType"), "an objectType should not have a dataType");
-        assert(!options.hasOwnProperty("valueRank"), "an objectType should not have a valueRank");
-        assert(!options.hasOwnProperty("arrayDimensions"), "an objectType should not have a arrayDimensions");
+        assert(!Object.prototype.hasOwnProperty.call(options,"dataType"), "an objectType should not have a dataType");
+        assert(!Object.prototype.hasOwnProperty.call(options,"valueRank"), "an objectType should not have a valueRank");
+        assert(!Object.prototype.hasOwnProperty.call(options,"arrayDimensions"), "an objectType should not have a arrayDimensions");
         return this._addObjectOrVariableType(options, "BaseObjectType", NodeClass.ObjectType) as UAObjectType;
     }
 
@@ -412,7 +412,7 @@ export class UANamespace implements NamespacePrivate {
      *
      */
     public addVariableType(options: AddVariableTypeOptions): UAVariableType {
-        assert(!options.hasOwnProperty("arrayDimension"), "Do you mean ArrayDimensions ?");
+        assert(!Object.prototype.hasOwnProperty.call(options,"arrayDimension"), "Do you mean ArrayDimensions ?");
 
         // dataType
         options.dataType = options.dataType || "Int32";
@@ -446,7 +446,7 @@ export class UANamespace implements NamespacePrivate {
      */
     public addVariable(options: AddVariableOptions): UAVariable {
         assert(arguments.length === 1, "Invalid arguments IAddressSpace#addVariable now takes only one argument.");
-        if (options.hasOwnProperty("propertyOf") && options.propertyOf) {
+        if (Object.prototype.hasOwnProperty.call(options,"propertyOf") && options.propertyOf) {
             assert(!options.typeDefinition || options.typeDefinition === "PropertyType");
             options.typeDefinition = options.typeDefinition || "PropertyType";
         } else {
@@ -458,8 +458,8 @@ export class UANamespace implements NamespacePrivate {
     public addView(options: AddViewOptions): UAView {
         assert(arguments.length === 1, "Namespace#addView expecting a single argument");
         assert(options);
-        assert(options.hasOwnProperty("browseName"));
-        assert(options.hasOwnProperty("organizedBy"));
+        assert(Object.prototype.hasOwnProperty.call(options,"browseName"));
+        assert(Object.prototype.hasOwnProperty.call(options,"organizedBy"));
         const browseName = options.browseName;
         assert(typeof browseName === "string");
 
@@ -576,9 +576,9 @@ export class UANamespace implements NamespacePrivate {
      * @method createDataType
      */
     public createDataType(options: CreateDataTypeOptions): UADataType {
-        assert(options.hasOwnProperty("isAbstract"), "must provide isAbstract");
-        assert(!options.hasOwnProperty("nodeClass"));
-        assert(options.hasOwnProperty("browseName"), "must provide a browseName");
+        assert(Object.prototype.hasOwnProperty.call(options,"isAbstract"), "must provide isAbstract");
+        assert(!Object.prototype.hasOwnProperty.call(options,"nodeClass"));
+        assert(Object.prototype.hasOwnProperty.call(options,"browseName"), "must provide a browseName");
 
         const options1 = options as any;
         options1.nodeClass = NodeClass.DataType;
@@ -620,9 +620,9 @@ export class UANamespace implements NamespacePrivate {
         const addressSpace = this.addressSpace;
         addressSpace.modelChangeTransaction(() => {
             assert(isNonEmptyQualifiedName(options.browseName));
-            // xx assert(options.hasOwnProperty("browseName") && options.browseName.length > 0);
+            // xx assert(Object.prototype.hasOwnProperty.call(options,"browseName") && options.browseName.length > 0);
 
-            assert(options.hasOwnProperty("nodeClass"));
+            assert(Object.prototype.hasOwnProperty.call(options,"nodeClass"));
             options.references = addressSpace.normalizeReferenceTypes(options.references);
 
             const references = _copy_references(options.references);
@@ -769,7 +769,7 @@ export class UANamespace implements NamespacePrivate {
         options.subtypeOf = options.subtypeOf || "BaseEventType";
         // are eventType always abstract ?? No => Condition can be instantiated!
         // but, by default is abstract is true
-        options.isAbstract = options.hasOwnProperty("isAbstract") ? !!options.isAbstract : true;
+        options.isAbstract = Object.prototype.hasOwnProperty.call(options,"isAbstract") ? !!options.isAbstract : true;
         return this.addObjectType(options);
     }
 
@@ -857,7 +857,7 @@ export class UANamespace implements NamespacePrivate {
         const namespace = this;
         const addressSpace = namespace.addressSpace;
 
-        assert(options.hasOwnProperty("engineeringUnitsRange"), "expecting engineeringUnitsRange");
+        assert(Object.prototype.hasOwnProperty.call(options,"engineeringUnitsRange"), "expecting engineeringUnitsRange");
 
         const dataType = options.dataType || "Number";
 
@@ -916,7 +916,7 @@ export class UANamespace implements NamespacePrivate {
         const handler = variable.handle_semantic_changed.bind(variable);
         euRange.on("value_changed", handler);
 
-        if (options.hasOwnProperty("instrumentRange")) {
+        if (Object.prototype.hasOwnProperty.call(options,"instrumentRange")) {
             const instrumentRange = namespace.addVariable({
                 accessLevel: "CurrentRead | CurrentWrite",
                 browseName: { name: "InstrumentRange", namespaceIndex: 0 },
@@ -934,7 +934,7 @@ export class UANamespace implements NamespacePrivate {
             instrumentRange.on("value_changed", handler);
         }
 
-        if (options.hasOwnProperty("engineeringUnits")) {
+        if (Object.prototype.hasOwnProperty.call(options,"engineeringUnits")) {
             const engineeringUnits = new EUInformation(options.engineeringUnits);
             assert(engineeringUnits instanceof EUInformation, "expecting engineering units");
 
@@ -1044,8 +1044,8 @@ export class UANamespace implements NamespacePrivate {
      * @param options.value
      */
     public addYArrayItem<DT extends DataType.Double | DataType.Float>(options: AddYArrayItemOptions): UAYArrayItemEx<DT> {
-        assert(options.hasOwnProperty("engineeringUnitsRange"), "expecting engineeringUnitsRange");
-        assert(options.hasOwnProperty("axisScaleType"), "expecting axisScaleType");
+        assert(Object.prototype.hasOwnProperty.call(options,"engineeringUnitsRange"), "expecting engineeringUnitsRange");
+        assert(Object.prototype.hasOwnProperty.call(options,"axisScaleType"), "expecting axisScaleType");
         assert(options.xAxisDefinition !== null && typeof options.xAxisDefinition === "object", "expecting a xAxisDefinition");
 
         const addressSpace = this.addressSpace;
@@ -1059,14 +1059,14 @@ export class UANamespace implements NamespacePrivate {
             if (!options) {
                 return resolveNodeId(DataType.Float);
             }
-            if (options.hasOwnProperty("nodeId") || options instanceof BaseNodeImpl) {
+            if (Object.prototype.hasOwnProperty.call(options,"nodeId") || options instanceof BaseNodeImpl) {
                 return (options as UADataType).nodeId;
             }
             return resolveNodeId(options as NodeIdLike);
         }
         const dataType = toNodeId(options.dataType as any);
         const optionals = [];
-        if (options.hasOwnProperty("instrumentRange")) {
+        if (Object.prototype.hasOwnProperty.call(options,"instrumentRange")) {
             optionals.push("InstrumentRange");
         }
         const variable = YArrayItemType.instantiate({
@@ -1091,7 +1091,7 @@ export class UANamespace implements NamespacePrivate {
             })
         );
 
-        if (options.hasOwnProperty("instrumentRange") && variable.instrumentRange) {
+        if (Object.prototype.hasOwnProperty.call(options,"instrumentRange") && variable.instrumentRange) {
             variable.instrumentRange.setValueFromSource(
                 new Variant({
                     dataType: DataType.ExtensionObject,
@@ -1145,9 +1145,9 @@ export class UANamespace implements NamespacePrivate {
             "expecting a valid parent object"
         );
 
-        assert(options.hasOwnProperty("browseName"));
-        assert(!options.hasOwnProperty("inputArguments") || Array.isArray(options.inputArguments));
-        assert(!options.hasOwnProperty("outputArguments") || Array.isArray(options.outputArguments));
+        assert(Object.prototype.hasOwnProperty.call(options,"browseName"));
+        assert(!Object.prototype.hasOwnProperty.call(options,"inputArguments") || Array.isArray(options.inputArguments));
+        assert(!Object.prototype.hasOwnProperty.call(options,"outputArguments") || Array.isArray(options.outputArguments));
 
         options.componentOf = parentObject;
 
@@ -1639,7 +1639,7 @@ export class UANamespace implements NamespacePrivate {
             throw new Error("node must belongs to this namespace");
         }
         assert(node.nodeId.namespace === this.index, "node must belongs to this namespace");
-        assert(node.hasOwnProperty("browseName"), "Node must have a browseName");
+        assert(Object.prototype.hasOwnProperty.call(node,"browseName"), "Node must have a browseName");
         // assert(node.browseName.namespaceIndex === this.index,"browseName must belongs to this namespace");
 
         const hashKey = _makeHashKey(node.nodeId);
@@ -1820,7 +1820,7 @@ export class UANamespace implements NamespacePrivate {
         assert(!options.nodeClass);
         assert(options.browseName);
         assert(typeof options.browseName === "string");
-        if (options.hasOwnProperty("references")) {
+        if (Object.prototype.hasOwnProperty.call(options,"references")) {
             throw new Error("options.references should not be provided, use options.subtypeOf instead");
         }
         const references: UAReference[] = [];
@@ -1931,15 +1931,15 @@ export class UANamespace implements NamespacePrivate {
         }
         const baseDataVariableTypeId = baseDataVariableType.nodeId;
 
-        assert(options.hasOwnProperty("browseName"), "options.browseName must be provided");
-        assert(options.hasOwnProperty("dataType"), "options.dataType must be provided");
+        assert(Object.prototype.hasOwnProperty.call(options,"browseName"), "options.browseName must be provided");
+        assert(Object.prototype.hasOwnProperty.call(options,"dataType"), "options.dataType must be provided");
 
         options.historizing = !!options.historizing;
 
         // xx assert(this.FolderTypeId && this.BaseObjectTypeId); // is default address space generated.?
 
         // istanbul ignore next
-        if (options.hasOwnProperty("hasTypeDefinition")) {
+        if (Object.prototype.hasOwnProperty.call(options,"hasTypeDefinition")) {
             throw new Error("hasTypeDefinition option is invalid. Do you mean typeDefinition instead ?");
         }
         // ------------------------------------------ TypeDefinition
@@ -2134,9 +2134,9 @@ export function _handle_hierarchy_parent(addressSpace: AddressSpacePrivate, refe
 }
 
 function _copy_reference(reference: UAReference): AddReferenceOpts {
-    assert(reference.hasOwnProperty("referenceType"));
-    assert(reference.hasOwnProperty("isForward"));
-    assert(reference.hasOwnProperty("nodeId"));
+    assert(Object.prototype.hasOwnProperty.call(reference,"referenceType"));
+    assert(Object.prototype.hasOwnProperty.call(reference,"isForward"));
+    assert(Object.prototype.hasOwnProperty.call(reference,"nodeId"));
     assert(reference.nodeId instanceof NodeId);
     return {
         isForward: reference.isForward,

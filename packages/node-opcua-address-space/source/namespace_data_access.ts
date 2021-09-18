@@ -1,9 +1,8 @@
 import { AddVariableOptionsWithoutValue, AddYArrayItemOptions, BindVariableOptions } from "node-opcua-address-space-base";
-import { LocalizedText } from "node-opcua-data-model";
 import { NodeIdLike } from "node-opcua-nodeid";
-import { UAAnalogItem, UADataItem, UAYArrayItem } from "node-opcua-nodeset-ua";
+import { UAAnalogItem, UADataItem } from "node-opcua-nodeset-ua";
 import { EUInformation, EUInformationOptions } from "node-opcua-types";
-import { DataType, Variant, VariantArrayType } from "node-opcua-variant";
+import { DataType, VariantArrayType } from "node-opcua-variant";
 
 import { UAMultiStateDiscreteEx } from "./interfaces/data_access/ua_multistate_discrete_ex";
 import { UAMultiStateValueDiscreteEx } from "./interfaces/data_access/ua_multistate_value_discrete_ex";

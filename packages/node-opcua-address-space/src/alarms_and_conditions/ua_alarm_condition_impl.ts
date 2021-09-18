@@ -4,22 +4,25 @@
 import { isEqual } from "lodash";
 
 import { assert } from "node-opcua-assert";
-import { LocalizedText, NodeClass } from "node-opcua-data-model";
+import { NodeClass } from "node-opcua-data-model";
 import { DataValue } from "node-opcua-data-value";
 import { NodeId } from "node-opcua-nodeid";
 import { StatusCodes } from "node-opcua-status-code";
 import { DataType } from "node-opcua-variant";
-import {
-    UAAlarmCondition_Base,
-} from "node-opcua-nodeset-ua";
+import { UAAlarmCondition_Base } from "node-opcua-nodeset-ua";
 
 import { BaseNode, INamespace, UAEventType, UAVariable } from "../../source";
 import { _install_TwoStateVariable_machinery } from "../state_machine/ua_two_state_variable";
-import { ConditionInfo } from "./condition_info";
 import { UAShelvedStateMachineEx, _clear_timer_if_any } from "../state_machine/ua_shelving_state_machine_ex";
-import { UAAcknowledgeableConditionEx, UAAcknowledgeableConditionHelper, UAAcknowledgeableConditionImpl } from "./ua_acknowledgeable_condition_impl";
 import { UATwoStateVariableEx } from "../../source/ua_two_state_variable_ex";
 import { AddressSpacePrivate } from "../address_space_private";
+
+import { ConditionInfo } from "./condition_info";
+import {
+    UAAcknowledgeableConditionEx,
+    UAAcknowledgeableConditionHelper,
+    UAAcknowledgeableConditionImpl
+} from "./ua_acknowledgeable_condition_impl";
 
 function _update_suppressedOrShelved(alarmNode: UAAlarmConditionImpl) {
     alarmNode.suppressedOrShelved.setValueFromSource({
@@ -38,12 +41,11 @@ export interface UAAlarmConditionHelper extends UAAcknowledgeableConditionHelper
     getInputNodeValue(): any | null;
     updateState(): void;
     getCurrentConditionInfo(): ConditionInfo;
-    
+
     installInputNodeMonitoring(inputNode: BaseNode | NodeId): void;
 }
 
 export declare interface UAAlarmConditionEx extends UAAlarmConditionHelper, UAAlarmCondition_Base, UAAcknowledgeableConditionEx {
-
     on(eventName: string, eventHandler: any): this;
 
     enabledState: UATwoStateVariableEx;
@@ -52,7 +54,7 @@ export declare interface UAAlarmConditionEx extends UAAlarmConditionHelper, UAAl
     confirmedState?: UATwoStateVariableEx;
 
     suppressedState?: UATwoStateVariableEx;
-    
+
     outOfServiceState?: UATwoStateVariableEx;
     shelvingState?: UAShelvedStateMachineEx;
     silenceState?: UATwoStateVariableEx;
@@ -64,7 +66,6 @@ export declare interface UAAlarmConditionImpl extends UAAlarmConditionEx, UAAckn
 }
 
 export class UAAlarmConditionImpl extends UAAcknowledgeableConditionImpl implements UAAlarmConditionEx {
-
     public static MaxDuration = Math.pow(2, 31);
 
     public static instantiate(
@@ -74,8 +75,8 @@ export class UAAlarmConditionImpl extends UAAcknowledgeableConditionImpl impleme
         data: any
     ): UAAlarmConditionImpl {
         const addressSpace = namespace.addressSpace;
-        // xx assert(options.hasOwnProperty("conditionOf")); // must provide a conditionOf
-        assert(options.hasOwnProperty("inputNode")); // must provide a inputNode
+        // xx assert(Object.prototype.hasOwnProperty.call(options,"conditionOf")); // must provide a conditionOf
+        assert(Object.prototype.hasOwnProperty.call(options, "inputNode")); // must provide a inputNode
         const alarmConditionType = addressSpace.findEventType(alarmConditionTypeId);
 
         /* istanbul ignore next */
@@ -90,7 +91,7 @@ export class UAAlarmConditionImpl extends UAAcknowledgeableConditionImpl impleme
         }
 
         options.optionals = options.optionals || [];
-        if (options.hasOwnProperty("maxTimeShelved")) {
+        if (Object.prototype.hasOwnProperty.call(options, "maxTimeShelved")) {
             options.optionals.push("MaxTimeShelved");
             assert(isFinite(options.maxTimeShelved));
         }
@@ -213,15 +214,14 @@ export class UAAlarmConditionImpl extends UAAcknowledgeableConditionImpl impleme
         return alarmNode;
     }
 
-    public dispose() {
+    public dispose(): void {
         if (this.shelvingState) {
             _clear_timer_if_any(this.shelvingState);
         }
         super.dispose();
     }
 
-
-    public activateAlarm() {
+    public activateAlarm(): void {
         // will set acknowledgeable to false and retain to true
         const branch = this.currentBranch();
         branch.setRetain(true);
@@ -229,7 +229,7 @@ export class UAAlarmConditionImpl extends UAAcknowledgeableConditionImpl impleme
         branch.setAckedState(false);
     }
 
-    public deactivateAlarm() {
+    public deactivateAlarm(): void {
         const branch = this.currentBranch();
         branch.setRetain(true);
         branch.setActiveState(false);
@@ -238,7 +238,7 @@ export class UAAlarmConditionImpl extends UAAcknowledgeableConditionImpl impleme
     /**
      * @deprecated use deactivateAlarm instead (with no s after de-activate)
      */
-    public desactivateAlarm() {
+    public desactivateAlarm(): void {
         this.deactivateAlarm();
     }
 
@@ -260,15 +260,14 @@ export class UAAlarmConditionImpl extends UAAcknowledgeableConditionImpl impleme
     }
 
     public getSuppressedOrShelved(): boolean {
-        const node = this;
-        return node.suppressedOrShelved.readValue().value.value;
+        return this.suppressedOrShelved.readValue().value.value;
     }
 
     /**
-      *
+     *
      * note: duration must be greater than 10ms and lesser than 2**31 ms
      */
-    public setMaxTimeShelved(duration: number) {
+    public setMaxTimeShelved(duration: number): void {
         if (duration < 10 || duration >= Math.pow(2, 31)) {
             throw new Error(" Invalid maxTimeShelved duration: " + duration + "  must be [10,2**31] ");
         }
@@ -282,13 +281,12 @@ export class UAAlarmConditionImpl extends UAAcknowledgeableConditionImpl impleme
      * note: return a  Duration
      */
     public getMaxTimeShelved(): number {
-        const node = this;
-        if (!node.maxTimeShelved) {
+        if (!this.maxTimeShelved) {
             // if maxTimeShelved is not provided we assume MaxDuration
             assert(UAAlarmConditionImpl.MaxDuration <= 2147483648, "MaxDuration cannot be greater than 2**31");
             return UAAlarmConditionImpl.MaxDuration;
         }
-        const dataValue = node.maxTimeShelved.readValue();
+        const dataValue = this.maxTimeShelved.readValue();
         assert(dataValue.value.dataType === DataType.Double); // Double <= Duration
         return dataValue.value.value;
     }
@@ -321,13 +319,13 @@ export class UAAlarmConditionImpl extends UAAcknowledgeableConditionImpl impleme
         return node.readValue().value.value;
     }
 
-    public updateState() {
+    public updateState(): void {
         const node = this.getInputNodeNode() as UAVariable;
         const dataValue = node.readValue();
         this._onInputDataValueChange(dataValue);
     }
 
-    public _onInputDataValueChange(newValue: DataValue) {
+    public _onInputDataValueChange(newValue: DataValue): void {
         // xx console.log("class=",this.constructor.name,this.browseName.toString());
         // xx throw new Error("_onInputDataValueChange must be overridden");
     }
@@ -340,8 +338,7 @@ export class UAAlarmConditionImpl extends UAAcknowledgeableConditionImpl impleme
      * @return {void}
      * @protected
      */
-    public installInputNodeMonitoring(inputNode: BaseNode | NodeId) {
-        const alarm = this;
+    public installInputNodeMonitoring(inputNode: BaseNode | NodeId): void {
         /**
          *
          * The InputNode Property provides the NodeId of the Variable the Value of which is used as
@@ -352,18 +349,18 @@ export class UAAlarmConditionImpl extends UAAcknowledgeableConditionImpl impleme
          * @property inputNode
          * @type     UAVariable
          */
-        assert(alarm.inputNode.nodeClass === NodeClass.Variable);
+        assert(this.inputNode.nodeClass === NodeClass.Variable);
 
         const addressSpace = this.addressSpace as AddressSpacePrivate;
         assert(inputNode, " must provide options.inputNode (NodeId or BaseNode object)");
 
         if (inputNode instanceof NodeId) {
-            alarm.inputNode.setValueFromSource({
+            this.inputNode.setValueFromSource({
                 dataType: DataType.NodeId,
                 value: inputNode as NodeId
             });
         } else {
-            alarm.inputNode.setValueFromSource({
+            this.inputNode.setValueFromSource({
                 dataType: "NodeId",
                 value: (inputNode as BaseNode).nodeId
             });
@@ -374,34 +371,32 @@ export class UAAlarmConditionImpl extends UAAcknowledgeableConditionImpl impleme
                 console.log(" cannot find nodeId ", inputNode);
             } else {
                 assert(_node, "Expecting a valid input node");
-                alarm.inputNode.setValueFromSource({
+                this.inputNode.setValueFromSource({
                     dataType: DataType.NodeId,
                     value: _node.nodeId
                 });
             }
 
-            const inputNode2 = alarm.getInputNodeNode();
+            const inputNode2 = this.getInputNodeNode();
             if (!inputNode2 || inputNode2 === null) {
                 throw new Error("Invalid input node");
             }
             inputNode2.on("value_changed", (newDataValue: DataValue /*, oldDataValue */) => {
-                if (!alarm.getEnabledState()) {
+                if (!this.getEnabledState()) {
                     // disabled alarms shall ignored input node value change event
                     // (alarm shall be reevaluated when EnabledState goes back to true)
                     return;
                 }
-                alarm._onInputDataValueChange(newDataValue);
+                this._onInputDataValueChange(newDataValue);
             });
         }
     }
 
     public getCurrentConditionInfo(): ConditionInfo {
-        const alarm = this;
-
-        const oldSeverity = alarm.currentBranch().getSeverity();
-        const oldQuality = alarm.currentBranch().getQuality();
-        const oldMessage = alarm.currentBranch().getMessage();
-        const oldRetain = alarm.currentBranch().getRetain();
+        const oldSeverity = this.currentBranch().getSeverity();
+        const oldQuality = this.currentBranch().getQuality();
+        const oldMessage = this.currentBranch().getMessage();
+        const oldRetain = this.currentBranch().getRetain();
 
         const oldConditionInfo = new ConditionInfo({
             message: oldMessage,
@@ -464,57 +459,55 @@ export class UAAlarmConditionImpl extends UAAcknowledgeableConditionImpl impleme
         }
     }
 
-    public _signalInitialCondition() {
-        const alarm = this;
-        alarm.currentBranch().setActiveState(false);
-        alarm.currentBranch().setAckedState(true);
+    public _signalInitialCondition(): void {
+        this.currentBranch().setActiveState(false);
+        this.currentBranch().setAckedState(true);
     }
     public _signalNewCondition(stateName: string | null, isActive?: boolean, value?: string): void {
-        const alarm = this;
         // xx if(stateName === null) {
         // xx     alarm.currentBranch().setActiveState(false);
         // xx     alarm.currentBranch().setAckedState(true);
         // xx     return;
         // xx }
         // disabled alarm shall not generate new condition events
-        assert(alarm.getEnabledState() === true);
+        assert(this.getEnabledState() === true);
         // xx assert(isActive !== alarm.activeState.getValue());
 
-        const oldConditionInfo = alarm.getCurrentConditionInfo();
-        const newConditionInfo = alarm._calculateConditionInfo(stateName, !!isActive, value!, oldConditionInfo);
+        const oldConditionInfo = this.getCurrentConditionInfo();
+        const newConditionInfo = this._calculateConditionInfo(stateName, !!isActive, value!, oldConditionInfo);
 
         // detect potential internal bugs due to misused of _signalNewCondition
         if (isEqual(oldConditionInfo, newConditionInfo)) {
             // tslint:disable-next-line:no-console
             console.log(oldConditionInfo);
             throw new Error(
-                "condition values have not change, shall we really raise an event ? alarm " + alarm.browseName.toString()
+                "condition values have not change, shall we really raise an event ? alarm " + this.browseName.toString()
             );
         }
         assert(!isEqual(oldConditionInfo, newConditionInfo), "condition values have not change, shall we really raise an event ?");
 
         if (isActive) {
-            alarm.currentBranch().setActiveState(true);
-            alarm.currentBranch().setAckedState(false);
-            alarm.raiseNewCondition(newConditionInfo);
+            this.currentBranch().setActiveState(true);
+            this.currentBranch().setAckedState(false);
+            this.raiseNewCondition(newConditionInfo);
         } else {
-            if (alarm.currentBranch().getAckedState() === false) {
+            if (this.currentBranch().getAckedState() === false) {
                 // prior state need acknowledgement
                 // note : TODO : timestamp of branch and new state of current branch must be identical
 
-                if (alarm.currentBranch().getRetain()) {
+                if (this.currentBranch().getRetain()) {
                     // we need to create a new branch so the previous state could be acknowledged
-                    const newBranch = alarm.createBranch();
+                    const newBranch = this.createBranch();
                     assert(newBranch.getBranchId() !== NodeId.nullNodeId);
                     // also raised a new Event for the new branch as branchId has changed
-                    alarm.raiseNewBranchState(newBranch);
+                    this.raiseNewBranchState(newBranch);
                 }
             }
 
-            alarm.currentBranch().setActiveState(false);
-            alarm.currentBranch().setAckedState(true);
+            this.currentBranch().setActiveState(false);
+            this.currentBranch().setAckedState(true);
 
-            alarm.raiseNewCondition(newConditionInfo);
+            this.raiseNewCondition(newConditionInfo);
         }
     }
 }

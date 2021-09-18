@@ -17,9 +17,9 @@ import { registerNodePromoter } from "../../source/loader/register_node_promoter
 import { coerceEnumValues } from "../../source/helpers/coerce_enum_value";
 import { UAMultiStateValueDiscreteEx } from "../../source/interfaces/data_access/ua_multistate_value_discrete_ex";
 import { AddMultiStateValueDiscreteOptions } from "../../source/address_space_ts";
+import { UAVariableImpl } from "../ua_variable_impl";
 
 import { add_dataItem_stuff } from "./add_dataItem_stuff";
-import { UAVariableImpl } from "../ua_variable_impl";
 
 function install_synchronization<T, DT extends DataType>(variable: UAMultiStateValueDiscreteEx<T, DT>) {
     const _variable = variable as UAMultiStateValueDiscreteEx<T, DT>;
@@ -116,7 +116,7 @@ export class UAMultiStateValueDiscreteImpl<T, DT extends DataType>
      *
      * @private
      */
-    public _setValue(value: Int64) {
+    public _setValue(value: Int64): void {
         // check that value is in bound
         if (!this._isValueInRange(coerceInt32(value))) {
             throw new Error("UAMultiStateValueDiscrete#_setValue out of range " + value);
@@ -167,7 +167,7 @@ export class UAMultiStateValueDiscreteImpl<T, DT extends DataType>
      *
      * @private
      */
-    public _post_initialize() {
+    public _post_initialize():void {
         // MultiStateValueDiscrete Variables can have any numeric Data Type;
         // this includes signed and unsigned integers from 8 to 64 Bit length.
 
@@ -210,8 +210,8 @@ export function _addMultiStateValueDiscrete<T, DT extends DataType>(
     namespace: INamespace,
     options: AddMultiStateValueDiscreteOptions
 ): UAMultiStateValueDiscreteEx<T, DT> {
-    assert(options.hasOwnProperty("enumValues"));
-    assert(!options.hasOwnProperty("ValuePrecision"));
+    assert(Object.prototype.hasOwnProperty.call(options, "enumValues"));
+    assert(!Object.prototype.hasOwnProperty.call(options, "ValuePrecision"));
 
     const addressSpace = namespace.addressSpace;
 

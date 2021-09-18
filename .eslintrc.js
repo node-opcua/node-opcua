@@ -44,6 +44,14 @@ module.exports = {
                 groups: ["builtin", "external", "internal", "parent", "sibling", "index"]
             }
         ],
+        /* too constraining 
+        "sort-imports": ["warn", {
+            "ignoreCase": true,
+            "ignoreDeclarationSort": false,
+            "ignoreMemberSort": true,
+            "allowSeparatedGroups": true
+        }],
+        */
         "no-dupe-class-members": 0,
         strict: 0, // controls location of Use Strict Directives
         "no-underscore-dangle": 0, // disallow dangling underscores in identifiers
@@ -70,7 +78,6 @@ module.exports = {
         "no-var": 2,
         "no-empty": 1,
         "no-unreachable": 1,
-        "no-constant-condition": 1
     },
     plugins: [
         "@typescript-eslint",

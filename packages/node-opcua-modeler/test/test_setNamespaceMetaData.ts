@@ -1,11 +1,11 @@
 import * as should from "should";
-import { removeDecoration } from "./test_helpers";
 
 import { AddressSpace } from "node-opcua-address-space";
 import { generateAddressSpace } from "node-opcua-address-space/nodeJS";
-
 import { nodesets } from "node-opcua-nodesets";
+
 import { displayNodeElement, setNamespaceMetaData } from "..";
+import { removeDecoration } from "./test_helpers";
 
 // tslint:disable-next-line: no-var-requires
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;

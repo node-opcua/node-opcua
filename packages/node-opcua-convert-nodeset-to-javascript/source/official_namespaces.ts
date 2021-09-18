@@ -1,6 +1,6 @@
 
 
-const officialNamespaces = {
+export const officialNamespaces = {
     "standard": {
         location: "node-opcua-ua-types-ua"
     },

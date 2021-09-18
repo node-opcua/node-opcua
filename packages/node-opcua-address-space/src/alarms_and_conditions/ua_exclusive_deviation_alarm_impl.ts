@@ -8,18 +8,19 @@ import { DataType } from "node-opcua-variant";
 import { UAExclusiveDeviationAlarm_Base } from "node-opcua-nodeset-ua";
 
 import { UAVariable, UAVariableT } from "../../source";
+import { AddressSpace } from "../address_space";
 import { NamespacePrivate } from "../namespace_private";
 import {
     DeviationAlarmHelper_getSetpointNodeNode,
     DeviationAlarmHelper_getSetpointValue,
     DeviationAlarmHelper_install_setpoint,
     DeviationAlarmHelper_onSetpointDataValueChange,
-    DeviationStuff
+    DeviationStuff,
+    InstallSetPointOptions
 } from "./deviation_alarm_helper";
 
 import { UAExclusiveLimitAlarmEx, UAExclusiveLimitAlarmImpl } from "./ua_exclusive_limit_alarm_impl";
 import { UALimitAlarmImpl } from "./ua_limit_alarm_impl";
-import { AddressSpace } from "../address_space";
 
 export interface UAExclusiveDeviationAlarmEx
     extends Omit<
@@ -82,11 +83,11 @@ export class UAExclusiveDeviationAlarmImpl extends UAExclusiveLimitAlarmImpl imp
         DeviationAlarmHelper_onSetpointDataValueChange.call(this, dataValue);
     }
 
-    public _install_setpoint(options: any): any {
+    public _install_setpoint(options: InstallSetPointOptions): any {
         return DeviationAlarmHelper_install_setpoint.call(this, options);
     }
 
-    public _setStateBasedOnInputValue(value: number) {
+    public _setStateBasedOnInputValue(value: number):void  {
         const setpointValue = this.getSetpointValue();
         if (setpointValue === null) {
             return;

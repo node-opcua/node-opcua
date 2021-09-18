@@ -7,16 +7,16 @@ require("set-prototype-of");
 import { assert } from "node-opcua-assert";
 import { LocalizedText, LocalizedTextLike } from "node-opcua-data-model";
 import { minDate } from "node-opcua-factory";
-import { StatusCodes } from "node-opcua-status-code";
+import { StatusCode, StatusCodes } from "node-opcua-status-code";
 
 import { ConditionSnapshot } from "./condition_snapshot";
 
 export function _setAckedState(
     self: ConditionSnapshot,
-    requestedAckedState: any,
+    requestedAckedState: boolean,
     conditionEventId?: Buffer,
     comment?: string | LocalizedText | LocalizedTextLike
-) {
+): StatusCode {
 
     assert(self instanceof ConditionSnapshot);
 

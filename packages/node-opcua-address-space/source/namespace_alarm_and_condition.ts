@@ -1,17 +1,5 @@
 import { UAEventType } from "node-opcua-address-space-base";
 import { NodeId } from "node-opcua-nodeid";
-import {
-    UAAcknowledgeableCondition,
-    UAAlarmCondition,
-    UACondition,
-    UADiscreteAlarm,
-    UAExclusiveDeviationAlarm,
-    UAExclusiveLimitAlarm,
-    UALimitAlarm,
-    UANonExclusiveDeviationAlarm,
-    UANonExclusiveLimitAlarm,
-    UAOffNormalAlarm
-} from "node-opcua-nodeset-ua";
 import { UAAcknowledgeableConditionEx } from "../src/alarms_and_conditions/ua_acknowledgeable_condition_impl";
 import { UAAlarmConditionEx } from "../src/alarms_and_conditions/ua_alarm_condition_impl";
 import { UAConditionEx } from "../src/alarms_and_conditions/ua_condition_impl";

@@ -109,10 +109,10 @@ export class ReaderState extends ReaderStateBase {
     public parser: any;
     public attrs?: XmlAttributes;
     public chunks: any[] = [];
-    public text: string = "";
-    public name?: string = "";
-    public level: number = -1;
-    public currentLevel: number = -1;
+    public text = "";
+    public name? = "";
+    public level = -1;
+    public currentLevel = -1;
 
     public engine?: Xml2Json;
 
@@ -144,7 +144,7 @@ export class ReaderState extends ReaderStateBase {
      * @param engine
      * @protected
      */
-    public _on_init(elementName: string, attrs: XmlAttributes, parent: IReaderState, level: number, engine: Xml2Json) {
+    public _on_init(elementName: string, attrs: XmlAttributes, parent: IReaderState, level: number, engine: Xml2Json): void {
         this.name = elementName;
         this.parent = parent;
         this.engine = engine;
@@ -158,7 +158,7 @@ export class ReaderState extends ReaderStateBase {
         }
     }
 
-    public _on_finish() {
+    public _on_finish(): void {
         if (this._finish) {
             this._finish();
         }
@@ -170,7 +170,7 @@ export class ReaderState extends ReaderStateBase {
      * @param attrs
      * @protected
      */
-    public _on_startElement(level: number, elementName: string, attrs: XmlAttributes) {
+    public _on_startElement(level: number, elementName: string, attrs: XmlAttributes): void {
         this.currentLevel = level;
         // console.log("wxxxx _on_startElement#" + this.name, elementName, this.currentLevel);
 
@@ -180,7 +180,7 @@ export class ReaderState extends ReaderStateBase {
         if (this._startElement) {
             this._startElement(elementName, attrs);
         }
-        if (this.engine && this.parser.hasOwnProperty(elementName)) {
+        if (this.engine && Object.prototype.hasOwnProperty.call(this.parser, elementName)) {
             // console.log("promoting ", elementName, this.level);
             this.engine._promote(this.parser[elementName], level, elementName, attrs);
         }
@@ -211,7 +211,11 @@ export class ReaderState extends ReaderStateBase {
             this.chunks = [];
             // this is the end
             this._on_finish();
-            if (this.parent && (this.parent as any).parser && (this.parent as any).parser.hasOwnProperty(elementName)) {
+            if (
+                this.parent &&
+                (this.parent as any).parser &&
+                Object.prototype.hasOwnProperty.call((this.parent as any).parser, elementName)
+            ) {
                 // console.log("xxx    demoting#" + this.name, elementName, this.level);
                 this.engine!._demote(this, level, elementName);
             }
@@ -288,7 +292,7 @@ function resolve_namespace(name: string) {
  *   });
  */
 export class Xml2Json {
-    public currentLevel: number = 0;
+    public currentLevel = 0;
     private state_stack: any[] = [];
     private current_state: IReaderState | null = null;
 
@@ -319,7 +323,7 @@ export class Xml2Json {
      * @private
      * @internal
      */
-    public _promote(new_state: IReaderState, level: number, name?: string, attr?: XmlAttributes) {
+    public _promote(new_state: IReaderState, level: number, name?: string, attr?: XmlAttributes): void {
         attr = attr || {};
         this.state_stack.push({
             backup: {},
@@ -336,7 +340,7 @@ export class Xml2Json {
      * @private
      * @internal
      */
-    public _demote(cur_state: IReaderState, level: number, elementName: string) {
+    public _demote(cur_state: IReaderState, level: number, elementName: string): void {
         ///  assert(this.current_state === cur_state);
         const { state, backup } = this.state_stack.pop();
         this.current_state = state;

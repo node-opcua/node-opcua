@@ -1,3 +1,4 @@
+/* eslint-disable max-statements */
 /**
  * @module node-opcua-address-space.AlarmsAndConditions
  */
@@ -50,19 +51,19 @@ export class UANonExclusiveLimitAlarmImpl extends UALimitAlarmImpl implements UA
 
         options.optionals = options.optionals || [];
 
-        if (options.hasOwnProperty("lowLowLimit")) {
+        if (Object.prototype.hasOwnProperty.call(options,"lowLowLimit")) {
             options.optionals.push("LowLowLimit");
             options.optionals.push("LowLowState");
         }
-        if (options.hasOwnProperty("lowLimit")) {
+        if (Object.prototype.hasOwnProperty.call(options,"lowLimit")) {
             options.optionals.push("LowLimit");
             options.optionals.push("LowState");
         }
-        if (options.hasOwnProperty("highLimit")) {
+        if (Object.prototype.hasOwnProperty.call(options,"highLimit")) {
             options.optionals.push("HighLimit");
             options.optionals.push("HighState");
         }
-        if (options.hasOwnProperty("highHighLimit")) {
+        if (Object.prototype.hasOwnProperty.call(options,"highHighLimit")) {
             options.optionals.push("HighHighLimit");
             options.optionals.push("HighHighState");
         }
@@ -92,7 +93,7 @@ export class UANonExclusiveLimitAlarmImpl extends UALimitAlarmImpl implements UA
                 trueState: "LowLow active"
             });
             alarm.lowLowState.setValue(false);
-            assert(alarm.hasOwnProperty("lowLowLimit"));
+            assert(Object.prototype.hasOwnProperty.call(alarm,"lowLowLimit"));
         }
         if (alarm.lowState) {
             _install_TwoStateVariable_machinery(alarm.lowState, {
@@ -100,7 +101,7 @@ export class UANonExclusiveLimitAlarmImpl extends UALimitAlarmImpl implements UA
                 trueState: "Low active"
             });
             alarm.lowState.setValue(false);
-            assert(alarm.hasOwnProperty("lowLimit"));
+            assert(Object.prototype.hasOwnProperty.call(alarm,"lowLimit"));
         }
         if (alarm.highState) {
             _install_TwoStateVariable_machinery(alarm.highState, {
@@ -108,7 +109,7 @@ export class UANonExclusiveLimitAlarmImpl extends UALimitAlarmImpl implements UA
                 trueState: "High active"
             });
             alarm.highState.setValue(false);
-            assert(alarm.hasOwnProperty("highLimit"));
+            assert(Object.prototype.hasOwnProperty.call(alarm,"highLimit"));
         }
         if (alarm.highHighState) {
             _install_TwoStateVariable_machinery(alarm.highHighState, {
@@ -116,7 +117,7 @@ export class UANonExclusiveLimitAlarmImpl extends UALimitAlarmImpl implements UA
                 trueState: "HighHigh active"
             });
             alarm.highHighState.setValue(false);
-            assert(alarm.hasOwnProperty("highHighLimit"));
+            assert(Object.prototype.hasOwnProperty.call(alarm,"highHighLimit"));
         }
 
         alarm.activeState.setValue(false);
@@ -181,15 +182,13 @@ export class UANonExclusiveLimitAlarmImpl extends UALimitAlarmImpl implements UA
     protected _setStateBasedOnInputValue(value: number): void {
         assert(isFinite(value), "expecting a valid value here");
 
-        const alarm = this;
-
         let isActive = false;
 
         const states: any = {
-            highHigh: alarm.highHighState ? alarm.highHighState.getValue() : "unset",
-            high: alarm.highState ? alarm.highState.getValue() : "unset",
-            low: alarm.lowState ? alarm.lowState.getValue() : "unset",
-            lowLow: alarm.lowLowState ? alarm.lowLowState.getValue() : "unset"
+            highHigh: this.highHighState ? this.highHighState.getValue() : "unset",
+            high: this.highState ? this.highState.getValue() : "unset",
+            low: this.lowState ? this.lowState.getValue() : "unset",
+            lowLow: this.lowLowState ? this.lowLowState.getValue() : "unset"
         };
 
         let count = 0;
@@ -206,20 +205,20 @@ export class UANonExclusiveLimitAlarmImpl extends UALimitAlarmImpl implements UA
         }
 
         ___p("highHigh", () => {
-            return alarm.getHighHighLimit() < value;
+            return this.getHighHighLimit() < value;
         });
         ___p("high", () => {
-            return alarm.getHighLimit() < value;
+            return this.getHighLimit() < value;
         });
         ___p("low", () => {
-            return alarm.getLowLimit() > value;
+            return this.getLowLimit() > value;
         });
         ___p("lowLow", () => {
-            return alarm.getLowLowLimit() > value;
+            return this.getLowLowLimit() > value;
         });
 
         if (count > 0) {
-            alarm._signalNewCondition2(states, isActive, value.toString());
+            this._signalNewCondition2(states, isActive, value.toString());
         }
     }
 }

@@ -1,14 +1,13 @@
 /**
  * @module node-opcua-server-configuration-server
  */
-import * as chalk from "chalk";
 import * as fs from "fs";
-// node 14 onward : import {  readFile } from "fs/promises";
-const { readFile } = fs.promises;
-
 import * as os from "os";
 import * as path from "path";
 
+import * as chalk from "chalk";
+
+import { UAServerConfiguration } from "node-opcua-address-space";
 import { assert } from "node-opcua-assert";
 import { OPCUACertificateManager } from "node-opcua-certificate-manager";
 import { Certificate, convertPEMtoDER, makeSHA1Thumbprint, PrivateKeyPEM, split_der } from "node-opcua-crypto";
@@ -18,7 +17,10 @@ import { ICertificateKeyPairProvider } from "node-opcua-secure-channel";
 import { OPCUAServer, OPCUAServerEndPoint } from "node-opcua-server";
 import { ApplicationDescriptionOptions } from "node-opcua-types";
 import { installPushCertificateManagement } from "./push_certificate_manager_helpers";
-import { ActionQueue } from "./push_certificate_manager_server_impl";
+import { ActionQueue, PushCertificateManagerServerImpl } from "./push_certificate_manager_server_impl";
+
+// node 14 onward : import {  readFile } from "fs/promises";
+const { readFile } = fs.promises;
 
 const debugLog = make_debugLog("ServerConfiguration");
 const errorLog = make_errorLog("ServerConfiguration");
@@ -197,6 +199,9 @@ async function onCertificateChange(server: OPCUAServer) {
     }, 2000);
 }
 
+interface UAServerConfigurationEx extends UAServerConfiguration {
+    $pushCertificateManager: PushCertificateManagerServerImpl;
+}
 export async function installPushCertificateManagementOnServer(server: OPCUAServer): Promise<void> {
     if (!server.engine || !server.engine.addressSpace) {
         throw new Error(
@@ -234,7 +239,7 @@ export async function installPushCertificateManagementOnServer(server: OPCUAServ
     });
 
     const serverConfiguration = server.engine.addressSpace.rootFolder.objects.server.getChildByName("ServerConfiguration")!;
-    const serverConfigurationPriv = serverConfiguration as any;
+    const serverConfigurationPriv = serverConfiguration as UAServerConfigurationEx;
     assert(serverConfigurationPriv.$pushCertificateManager);
 
     serverConfigurationPriv.$pushCertificateManager.on("CertificateAboutToChange", (actionQueue: ActionQueue) => {

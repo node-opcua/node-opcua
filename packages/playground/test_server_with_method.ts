@@ -10,7 +10,8 @@ import {
     StatusCodes,
     UAMethod,
     UAObject,
-    Variant
+    Variant,
+    ISessionContext
 } from "node-opcua";
 
 function installObjectWithMethod(addressSpace: AddressSpace): UAObject {
@@ -54,7 +55,7 @@ function installObjectWithMethod(addressSpace: AddressSpace): UAObject {
     methodI.bindMethod(function (
         this: UAMethod,
         inputArguments: Variant[],
-        context: SessionContext,
+        context: ISessionContext,
         callback: MethodFunctorCallback
     ) {
         const callMethodResult = {

@@ -9,6 +9,7 @@ import { DiagnosticInfo, NodeClass } from "node-opcua-data-model";
 import { DataValue, DataValueLike } from "node-opcua-data-value";
 import { make_debugLog, make_errorLog, make_warningLog } from "node-opcua-debug";
 import { NodeId } from "node-opcua-nodeid";
+import { NumericRange } from "node-opcua-numeric-range";
 import { Argument } from "node-opcua-service-call";
 import { StatusCodes } from "node-opcua-status-code";
 import { CallMethodResultOptions, PermissionType } from "node-opcua-types";
@@ -20,7 +21,6 @@ import { _clone } from "./base_node_private";
 import { _handle_hierarchy_parent } from "./namespace_impl";
 import { BaseNodeImpl } from "./base_node_impl";
 import { AddressSpacePrivate } from "./address_space_private";
-import { NumericRange } from "node-opcua-numeric-range";
 
 const warningLog = make_warningLog(__filename);
 const debugLog = make_debugLog(__filename);
@@ -232,7 +232,6 @@ export class UAMethodImpl extends BaseNodeImpl implements UAMethod {
         assert(!options.componentOf || options.componentOf, "trying to create an orphan method ?");
 
         const addressSpace = this.addressSpace as AddressSpacePrivate;
-        options = options || {};
         options = {
             ...options,
             methodDeclarationId: this.nodeId

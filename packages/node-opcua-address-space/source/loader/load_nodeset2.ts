@@ -1,12 +1,22 @@
+/* eslint-disable max-statements */
 /**
  * @module node-opcua-address-space
  */
 import * as chalk from "chalk";
-
-import { assert } from "node-opcua-assert";
 import * as ec from "node-opcua-basic-types";
+import {
+    AddReferenceTypeOptions,
+    BaseNode,
+    CreateNodeOptions,
+    IAddressSpace,
+    INamespace,
+    UADataType,
+    UAVariable,
+    UAVariableType
+} from "node-opcua-address-space-base";
+import { assert } from "node-opcua-assert";
+import { CallbackT, isValidGuid, StatusCodes } from "node-opcua-basic-types";
 import { ExtraDataTypeManager, populateDataTypeManager } from "node-opcua-client-dynamic-extension-object";
-import { EnumValueType } from "node-opcua-types";
 import { EUInformation } from "node-opcua-data-access";
 import {
     AccessLevelFlag,
@@ -14,51 +24,44 @@ import {
     makeAccessLevelFlag,
     NodeClass,
     QualifiedName,
-    QualifiedNameLike,
     QualifiedNameOptions,
     stringToQualifiedName
 } from "node-opcua-data-model";
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 import { ExtensionObject } from "node-opcua-extension-object";
-import { findSimpleType, getStandardDataTypeFactory, DataTypeFactory } from "node-opcua-factory";
+import { DataTypeFactory, findSimpleType, getStandardDataTypeFactory } from "node-opcua-factory";
 import { NodeId, resolveNodeId } from "node-opcua-nodeid";
 import { Argument } from "node-opcua-service-call";
-import { EnumDefinition, Range, StructureDefinition, StructureType, StructureFieldOptions } from "node-opcua-types";
-import { DataType, VariantArrayType, VariantOptions, Variant } from "node-opcua-variant";
-import { ParserLike, ReaderState, ReaderStateParserLike, Xml2Json, XmlAttributes } from "node-opcua-xml2json";
-
+import { EnumDefinition, EnumValueType, Range, StructureDefinition, StructureFieldOptions, StructureType } from "node-opcua-types";
+import { DataType, Variant, VariantArrayType, VariantOptions } from "node-opcua-variant";
 import {
     _definitionParser,
     Definition,
     FragmentClonerParser,
     InternalFragmentClonerReaderState,
-    makeExtensionObjectReader
+    makeExtensionObjectReader,
+    ParserLike,
+    ReaderState,
+    ReaderStateParserLike,
+    Xml2Json,
+    XmlAttributes,
+    Callback,
+    SimpleCallback
 } from "node-opcua-xml2json";
-import { CallbackT, ErrorCallback, isValidGuid, StatusCodes } from "node-opcua-basic-types";
-
-import {
-    AddReferenceTypeOptions,
-    IAddressSpace,
-    BaseNode,
-    CreateNodeOptions,
-    INamespace,
-    UADataType,
-    UAVariable,
-    UAVariableType,
-} from "node-opcua-address-space-base";
+import * as PrettyError from "pretty-error";
 
 import { AddressSpacePrivate } from "../../src/address_space_private";
 import { NamespacePrivate } from "../../src/namespace_private";
-import * as PrettyError from "pretty-error";
-import { promoteObjectsAndVariables } from "./namespace_post_step";
 import { PseudoSession } from "../pseudo_session";
+import { promoteObjectsAndVariables } from "./namespace_post_step";
+
 const pe = new PrettyError();
 
 const doDebug = checkDebugFlag(__filename);
 const debugLog = make_debugLog(__filename);
 
-export async function ensureDatatypeExtracted(addressSpace: any): Promise<ExtraDataTypeManager> {
-    const addressSpacePriv: any = addressSpace as any;
+export async function ensureDatatypeExtracted(addressSpace: IAddressSpace): Promise<ExtraDataTypeManager> {
+    const addressSpacePriv: any = addressSpace as AddressSpacePrivate;
     if (!addressSpacePriv.$$extraDataTypeManager) {
         const dataTypeManager = new ExtraDataTypeManager();
 
@@ -80,10 +83,7 @@ export async function ensureDatatypeExtracted(addressSpace: any): Promise<ExtraD
     return addressSpacePriv.$$extraDataTypeManager;
 }
 
-export function ensureDatatypeExtractedWithCallback(
-    addressSpace: IAddressSpace,
-    callback: CallbackT<ExtraDataTypeManager>
-): void {
+export function ensureDatatypeExtractedWithCallback(addressSpace: IAddressSpace, callback: CallbackT<ExtraDataTypeManager>): void {
     ensureDatatypeExtracted(addressSpace)
         .then((result: ExtraDataTypeManager) => callback(null, result))
         .catch((err) => callback(err));
@@ -136,7 +136,7 @@ async function decodeXmlObject(
             if (!name) {
                 return { name: "", fields: [] };
             }
-            return (dataTypeFactory.getStructuredTypeSchema(name) as any) as Definition;
+            return dataTypeFactory.getStructuredTypeSchema(name) as any as Definition;
         }
     };
     const reader = makeExtensionObjectReader(dataTypeName, definitionMap, {});
@@ -174,8 +174,8 @@ function makeStructureDefinition(name: string, definitionFields: StructureFieldO
     const structureType = isUnion
         ? StructureType.Union
         : hasOptionalFields
-            ? StructureType.StructureWithOptionalFields
-            : StructureType.Structure;
+        ? StructureType.StructureWithOptionalFields
+        : StructureType.Structure;
 
     const sd = new StructureDefinition({
         baseDataType: undefined,
@@ -215,11 +215,7 @@ function convertAccessLevel(accessLevel?: string | null): AccessLevelFlag {
 
 type Task = (addressSpace: IAddressSpace) => Promise<void>;
 
-function makeDefaultVariant2(
-    addressSpace: IAddressSpace,
-    dataTypeNode: NodeId,
-    valueRank: number
-): VariantOptions | undefined {
+function makeDefaultVariant2(addressSpace: IAddressSpace, dataTypeNode: NodeId, valueRank: number): VariantOptions | undefined {
     const variant: VariantOptions = { dataType: DataType.Null };
     return variant;
 }
@@ -271,8 +267,7 @@ function makeDefaultVariant(addressSpace: IAddressSpace, dataTypeNode: NodeId, v
     return variant;
 }
 
-export function makeStuff(addressSpace: IAddressSpace) {
-    
+export function makeStuff(addressSpace: IAddressSpace): any {
     const addressSpace1 = addressSpace as AddressSpacePrivate;
     addressSpace1.suspendBackReference = true;
 
@@ -641,8 +636,8 @@ export function makeStuff(addressSpace: IAddressSpace) {
     };
     interface QualifiedNameParserChild {
         parent: {
-            qualifiedName: QualifiedNameOptions
-        },
+            qualifiedName: QualifiedNameOptions;
+        };
         text: string;
     }
     const qualifiedName_parser = {
@@ -662,7 +657,7 @@ export function makeStuff(addressSpace: IAddressSpace) {
                 NamespaceIndex: {
                     finish(this: QualifiedNameParserChild) {
                         const ns = parseInt(this.text, 10);
-                        const t = _translateNodeId(resolveNodeId(`ns=${ns};i=1`).toString())
+                        const t = _translateNodeId(resolveNodeId(`ns=${ns};i=1`).toString());
                         this.parent.qualifiedName.namespaceIndex = t.namespace;
                     }
                 }
@@ -870,7 +865,7 @@ export function makeStuff(addressSpace: IAddressSpace) {
                 self.extensionObject = null;
                 self.extensionObjectPojo = null;
 
-                if (!this.parser.hasOwnProperty(elementName)) {
+                if (!Object.prototype.hasOwnProperty.call(this.parser, elementName)) {
                     // treat it as a opaque XML bloc for the time being
                     // until we find the definition of this object, so we know how to interpret the fields
                     this._cloneFragment = new InternalFragmentClonerReaderState();
@@ -1252,7 +1247,7 @@ export function makeStuff(addressSpace: IAddressSpace) {
                             }
                             if (node.nodeClass === NodeClass.VariableType) {
                                 const v = node as UAVariableType;
-                                (v as any/*fix me*/).value.value = data.variant.value;
+                                (v as any) /*fix me*/.value.value = data.variant.value;
                             }
                         };
                         postTasks3.push(task);
@@ -1292,6 +1287,7 @@ export function makeStuff(addressSpace: IAddressSpace) {
                 this.obj.value = makeDefaultVariant(addressSpace, dataTypeNode, valueRank);
             }
             */
+            // eslint-disable-next-line prefer-const
             let variable: UAVariable;
             if (this.obj.value) {
                 const capturedValue = this.obj.value;
@@ -1483,7 +1479,7 @@ export function makeStuff(addressSpace: IAddressSpace) {
 
     const parser = new Xml2Json(state_0);
 
-    function terminate(callback: ErrorCallback) {
+    function terminate(callback: SimpleCallback) {
         make_back_references(addressSpace1);
 
         // setting up Server_NamespaceArray
@@ -1568,7 +1564,7 @@ export function makeStuff(addressSpace: IAddressSpace) {
                 callback!(err1);
             });
     }
-    function addNodeSet(xmlData: string, callback1: ErrorCallback) {
+    function addNodeSet(xmlData: string, callback1: SimpleCallback) {
         _reset_namespace_translation();
         parser.parseString(xmlData, callback1);
     }
@@ -1583,7 +1579,7 @@ export class NodeSetLoader {
     constructor(addressSpace: IAddressSpace) {
         this._s = makeStuff(addressSpace);
     }
-    addNodeSet(xmlData: string, callback: ErrorCallback) {
+    addNodeSet(xmlData: string, callback: ErrorCallback): void {
         if (!callback) {
             throw new Error("Expecting callback function");
         }
@@ -1598,7 +1594,7 @@ export class NodeSetLoader {
         });
     }
 
-    terminate(callback: ErrorCallback) {
+    terminate(callback: ErrorCallback): void {
         this._s.terminate(callback);
     }
 }

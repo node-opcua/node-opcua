@@ -404,7 +404,7 @@ export class ServerEngine extends EventEmitter {
             this._applicationUri = options.applicationUri || "<unset _applicationUri>";
         }
 
-        options.serverDiagnosticsEnabled = options.hasOwnProperty("serverDiagnosticsEnable")
+        options.serverDiagnosticsEnabled = Object.prototype.hasOwnProperty.call(options,"serverDiagnosticsEnable")
             ? options.serverDiagnosticsEnabled
             : true;
 

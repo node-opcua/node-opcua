@@ -5,13 +5,14 @@ import { assert } from "node-opcua-assert";
 import { Int64 } from "node-opcua-basic-types";
 import { coerceLocalizedText } from "node-opcua-data-model";
 import { EnumValueType } from "node-opcua-types";
+import { EnumValueTypeOptionsLike } from "../address_space_ts";
 
-export function coerceEnumValues(enumValues: any): EnumValueType[] {
+export function coerceEnumValues(enumValues: EnumValueTypeOptionsLike[] | { [key: string]: number| Int64 }): EnumValueType[] {
     if (Array.isArray(enumValues)) {
         //
         return enumValues.map((en: any) => {
-            assert(en.hasOwnProperty("value"));
-            assert(en.hasOwnProperty("displayName"));
+            assert(Object.prototype.hasOwnProperty.call(en,"value"));
+            assert(Object.prototype.hasOwnProperty.call(en,"displayName"));
             return new EnumValueType({
                 displayName: coerceLocalizedText(en.displayName),
                 value: en.value

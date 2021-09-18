@@ -71,7 +71,7 @@ export function dumpBrowseDescription(node: BaseNode, _browseDescription: Browse
  * @param references  {Array<Reference>|null}
  * @static
  */
-export function dumpReferences(addressSpace: IAddressSpace, references: UAReference[]) {
+export function dumpReferences(addressSpace: IAddressSpace, references: UAReference[]): void {
     assert(addressSpace);
     for (const reference of references) {
         const referenceType = resolveReferenceType(addressSpace, reference);

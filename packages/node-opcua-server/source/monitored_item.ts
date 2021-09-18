@@ -409,7 +409,7 @@ export class MonitoredItem extends EventEmitter {
     constructor(options: MonitoredItemOptions) {
         super();
 
-        assert(options.hasOwnProperty("monitoredItemId"));
+        assert(Object.prototype.hasOwnProperty.call(options,"monitoredItemId"));
         assert(!options.monitoringMode, "use setMonitoring mode explicitly to activate the monitored item");
 
         options.itemToMonitor = options.itemToMonitor || defaultItemToMonitor;

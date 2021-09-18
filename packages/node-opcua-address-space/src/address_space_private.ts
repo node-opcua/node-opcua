@@ -23,9 +23,10 @@ import {
     UAVariable
 } from "node-opcua-address-space-base";
 
+import { UARootFolder } from "../source/ua_root_folder";
+
 import { NamespacePrivate } from "./namespace_private";
 import { ExtensionObjectConstructorFuncWithSchema } from "./ua_data_type_impl";
-import { UARootFolder } from "../source/ua_root_folder";
 import { UANamespace} from "./namespace_impl";
 
 export interface AddressSpacePrivate extends IAddressSpace {
