@@ -36,13 +36,12 @@ import {
     CloneFilter
 } from "node-opcua-address-space-base";
 
-
 import { SessionContext } from "../source/session_context";
 import { makeOptionalsMap, OptionalMap } from "../source/helpers/make_optionals_map";
 
 import { AddressSpacePrivate } from "./address_space_private";
-import { BaseNodeImpl } from "./base_node_impl";
-import { _clone_children_references, ToStringBuilder, UAVariableType_toString  } from "./base_node_private";
+import { BaseNodeImpl, InternalBaseNodeOptions } from "./base_node_impl";
+import { _clone_children_references, ToStringBuilder, UAVariableType_toString } from "./base_node_private";
 import * as tools from "./tool_isSupertypeOf";
 import { get_subtypeOfObj } from "./tool_isSupertypeOf";
 import { get_subtypeOf } from "./tool_isSupertypeOf";
@@ -71,7 +70,7 @@ export function topMostParentIsObjectTypeOrVariableType(addressSpace: AddressSpa
         return false;
     }
 
-    let currentNode: BaseNode | null= parentNode;
+    let currentNode: BaseNode | null = parentNode;
     while (currentNode) {
         const nodeClass = parentNode.nodeClass;
         if (nodeClass === NodeClass.ObjectType || nodeClass === NodeClass.VariableType) {
@@ -83,6 +82,15 @@ export function topMostParentIsObjectTypeOrVariableType(addressSpace: AddressSpa
         currentNode = currentNode.findReferencesEx("HasChild", BrowseDirection.Inverse)[0]?.node as BaseNode;
     }
     return false;
+}
+export interface UAVariableTypeOptions extends InternalBaseNodeOptions {
+    /**  */
+    valueRank?: number;
+    arrayDimensions?: number[] | null;
+    historizing?: boolean;
+    isAbstract?: boolean;
+    value?: any;
+    dataType: NodeIdLike;
 }
 export class UAVariableTypeImpl extends BaseNodeImpl implements UAVariableType {
     public readonly nodeClass = NodeClass.VariableType;
@@ -105,17 +113,17 @@ export class UAVariableTypeImpl extends BaseNodeImpl implements UAVariableType {
     public readonly value: any;
     public historizing: boolean;
 
-    constructor(options: any) {
+    constructor(options: UAVariableTypeOptions) {
         super(options);
 
         verifyRankAndDimensions(options);
-        this.valueRank = options.valueRank;
-        this.arrayDimensions = options.arrayDimensions;
+        this.valueRank = options.valueRank || -1;
+        this.arrayDimensions = options.arrayDimensions || null;
 
         this.minimumSamplingInterval = 0;
 
-        this.historizing = isNullOrUndefined(options.historizing) ? false : options.historizing;
-        this.isAbstract = isNullOrUndefined(options.isAbstract) ? false : options.isAbstract;
+        this.historizing = isNullOrUndefined(options.historizing) ? false : options.historizing as boolean;
+        this.isAbstract = isNullOrUndefined(options.isAbstract) ? false : options.isAbstract as boolean;
 
         this.value = options.value; // optional default value for instances of this UAVariableType
 
@@ -137,7 +145,7 @@ export class UAVariableTypeImpl extends BaseNodeImpl implements UAVariableType {
                 options.statusCode = StatusCodes.Good;
                 break;
             case AttributeIds.Value:
-                if (Object.prototype.hasOwnProperty.call(this,"value") && this.value !== undefined) {
+                if (Object.prototype.hasOwnProperty.call(this, "value") && this.value !== undefined) {
                     assert(this.value.schema.name === "Variant");
                     options.value = this.value;
                     options.statusCode = StatusCodes.Good;
@@ -204,7 +212,10 @@ export class UAVariableTypeImpl extends BaseNodeImpl implements UAVariableType {
             typeof options.browseName === "string" || (options.browseName !== null && typeof options.browseName === "object"),
             "expecting a browse name"
         );
-        assert(!Object.prototype.hasOwnProperty.call(options,"propertyOf"), "Use addressSpace#addVariable({ propertyOf: xxx}); to add a property");
+        assert(
+            !Object.prototype.hasOwnProperty.call(options, "propertyOf"),
+            "Use addressSpace#addVariable({ propertyOf: xxx}); to add a property"
+        );
 
         assertUnusedChildBrowseName(addressSpace, options);
 
@@ -386,10 +397,10 @@ interface CloneInfo {
 class CloneHelper {
     private readonly mapOrgToClone: Map<string, CloneInfo> = new Map();
 
-    public registerClonedObject<
-        TT extends UAVariableType | UAObjectType,
-        T extends UAObject | UAVariable | UAMethod
-    >(objInType: TT, clonedObj: T) {
+    public registerClonedObject<TT extends UAVariableType | UAObjectType, T extends UAObject | UAVariable | UAMethod>(
+        objInType: TT,
+        clonedObj: T
+    ) {
         this.mapOrgToClone.set(objInType.nodeId.toString(), {
             cloned: clonedObj,
             original: objInType
@@ -438,10 +449,14 @@ class CloneHelper {
 //  => null (no modelling rule ) => Not Installed
 //
 
-function _initialize_properties_and_components<
-    B extends UAObject | UAVariable | UAMethod,
-    T extends UAObjectType | UAVariableType
->(instance: B, topMostType: T, typeNode: T, copyAlsoModellingRules: boolean, optionalsMap: OptionalMap, extraInfo: CloneHelper) {
+function _initialize_properties_and_components<B extends UAObject | UAVariable | UAMethod, T extends UAObjectType | UAVariableType>(
+    instance: B,
+    topMostType: T,
+    typeNode: T,
+    copyAlsoModellingRules: boolean,
+    optionalsMap: OptionalMap,
+    extraInfo: CloneHelper
+) {
     if (doDebug) {
         console.log("instance browseName =", instance.browseName.toString());
         console.log("typeNode         =", typeNode.browseName.toString());
