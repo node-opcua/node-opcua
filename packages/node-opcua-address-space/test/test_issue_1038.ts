@@ -1,13 +1,14 @@
-import { Namespace, PseudoSession } from "..";
-import { AddressSpace, UAVariable } from "..";
-import { generateAddressSpace } from "../nodeJS";
-import { resolveNodeId, coerceNodeId } from "node-opcua-nodeid";
+import "should";
 
+import { resolveNodeId, coerceNodeId } from "node-opcua-nodeid";
 import { DataType, Variant, VariantArrayType } from "node-opcua-variant";
 import { nodesets } from "node-opcua-nodesets";
 import { AttributeIds } from "node-opcua-data-model";
-import "should";
 import { StatusCodes } from "node-opcua-status-code";
+
+import { Namespace, PseudoSession } from "..";
+import { AddressSpace, UAVariable } from "..";
+import { generateAddressSpace } from "../nodeJS";
 
 // tslint:disable-next-line:no-var-requires
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
@@ -41,7 +42,18 @@ describe("testing github issue #1038", () => {
             dataType: DataType.Double,
             arrayType: VariantArrayType.Matrix,
             dimensions: [3, 4, 2],
-            value: new Float64Array([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12])
+            value: new Float64Array([
+                1, 2, 3, 
+                4, 5, 6, 
+                7, 8, 9, 
+                10, 11, 12,
+
+                1, 2, 3, 
+                4, 5, 6, 
+                7, 8, 9, 
+                10, 11, 12,
+             
+           ])
         });
         const statusCode0 = await pseudoSession.write({
             nodeId: coerceNodeId("ns=1;s=Variable"),

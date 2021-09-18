@@ -67,7 +67,7 @@ import { SessionContext } from "../source/session_context";
 import { BaseNodeImpl, InternalBaseNodeOptions } from "./base_node_impl";
 import { _clone, ToStringBuilder, UAVariable_toString, valueRankToString } from "./base_node_private";
 import { EnumerationInfo, IEnumItem, UADataTypeImpl } from "./ua_data_type_impl";
-import { apply_condition_refresh } from "./apply_condition_refresh";
+import { apply_condition_refresh, ConditionRefreshCache } from "./apply_condition_refresh";
 
 const debugLog = make_debugLog(__filename);
 const warningLog = make_warningLog(__filename);
@@ -1091,7 +1091,7 @@ export class UAVariableImpl extends BaseNodeImpl implements UAVariable {
      */
     public readValueAsync(context: ISessionContext | null, callback: CallbackT<DataValue>): void;
     public readValueAsync(context: ISessionContext | null): Promise<DataValue>;
-    public readValueAsync(context: ISessionContext | null, callback?: any): any {
+    public readValueAsync(context: ISessionContext | null, callback?: CallbackT<DataValue>): any {
         if (!context) {
             context = SessionContext.defaultContext;
         }
@@ -1507,7 +1507,7 @@ export class UAVariableImpl extends BaseNodeImpl implements UAVariable {
         return this.$extensionObject;
     }
 
-    public updateExtensionObjectPartial(partialExtensionObject: any): ExtensionObject {
+    public updateExtensionObjectPartial(partialExtensionObject?: {[key:string]: any}): ExtensionObject {
         setExtensionObjectValue(this, partialExtensionObject);
         return this.$extensionObject;
     }
@@ -1669,7 +1669,7 @@ export class UAVariableImpl extends BaseNodeImpl implements UAVariable {
 
     public _historyReadModify(
         context: ISessionContext,
-        historyReadRawModifiedDetails: any,
+        historyReadRawModifiedDetails: ReadRawModifiedDetails,
         indexRange: NumericRange | null,
         dataEncoding: QualifiedNameLike | null,
         continuationPoint: ContinuationPoint | null,
@@ -1742,7 +1742,7 @@ export class UAVariableImpl extends BaseNodeImpl implements UAVariable {
         }
     }
 
-    public _conditionRefresh(_cache?: any): void {
+    public _conditionRefresh(_cache?: ConditionRefreshCache): void {
         apply_condition_refresh.call(this, _cache);
     }
 

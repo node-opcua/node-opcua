@@ -167,7 +167,7 @@ export class VariableHistorian implements IVariableHistorian {
     }
 
     public extractDataValues(
-        historyReadRawModifiedDetails: any,
+        historyReadRawModifiedDetails: ReadRawModifiedDetails,
         maxNumberToExtract: number,
         isReversed: boolean,
         reverseDataValue: boolean,
