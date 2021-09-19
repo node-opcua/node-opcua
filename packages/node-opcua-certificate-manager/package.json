@@ -1,6 +1,6 @@
 {
     "name": "node-opcua-certificate-manager",
-    "version": "2.52.0",
+    "version": "2.53.0",
     "description": "pure nodejs OPCUA SDK - module -client",
     "scripts": {
         "clean": "node -e \"require('rimraf').sync('certificates');\"  && node -e \"require('rimraf').sync('dist');\"",
@@ -18,7 +18,7 @@
         "env-paths": "2.2.1",
         "mkdirp": "1.0.4",
         "node-opcua-assert": "2.52.0",
-        "node-opcua-basic-types": "2.52.0",
+        "node-opcua-basic-types": "2.53.0",
         "node-opcua-buffer-utils": "2.52.0",
         "node-opcua-constants": "2.52.0",
         "node-opcua-crypto": "^1.7.4",
