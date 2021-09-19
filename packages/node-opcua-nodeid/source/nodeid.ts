@@ -45,7 +45,19 @@ export enum NodeIdType {
      */
     BYTESTRING = 0x04
 }
-
+/*function defaultValue(identifierType: NodeIdType.BYTESTRING): null;
+function defaultValue(identifierType: NodeIdType.STRING): null;
+function defaultValue(identifierType: NodeIdType.NUMERIC): 0;
+function defaultValue(identifierType: NodeIdType.GUID): null;
+*/
+function defaultValue(identifierType: NodeIdType): string | number| Buffer {
+    switch(identifierType) {
+        case NodeIdType.GUID : return emptyGuid;
+        case NodeIdType.BYTESTRING : return null as any as Buffer;// Buffer.alloc(0);
+        case NodeIdType.STRING : return "";
+        case NodeIdType.NUMERIC : return 0;
+    }
+}
 /**
  * Construct a node ID
  *
@@ -64,7 +76,7 @@ export class NodeId {
     public static sameNodeId: (n1: NodeId, n2: NodeId) => boolean;
 
     public identifierType: NodeIdType;
-    public value: number | string | Buffer | Guid;
+    public value: number | string | Buffer | Guid;;
     public namespace: number;
 
     /**
@@ -79,14 +91,15 @@ export class NodeId {
             this.namespace = 0;
             return;
         }
+
         this.identifierType = identifierType;
-        this.value = value || 0;
+        this.value = value || defaultValue(identifierType);
         this.namespace = namespace || 0;
 
         // namespace shall be a UInt16
         assert(this.namespace >= 0 && this.namespace <= 0xffff);
 
-        assert(this.identifierType !== NodeIdType.NUMERIC || (this.value >= 0 && this.value <= 0xffffffff));
+        assert(this.identifierType !== NodeIdType.NUMERIC || (this.value !== null && this.value >= 0 && this.value <= 0xffffffff));
         assert(this.identifierType !== NodeIdType.GUID || isValidGuid(this.value as string));
         assert(this.identifierType !== NodeIdType.STRING || typeof this.value === "string");
     }
@@ -135,7 +148,7 @@ export class NodeId {
         if (addressSpace) {
             if (this.namespace === 0 && this.identifierType === NodeIdType.NUMERIC) {
                 // find standard browse name
-                const name = reverse_map(this.value.toString()) || "<undefined>";
+                const name = reverse_map((this.value||0).toString()) || "<undefined>";
                 str += " " + chalk.green.bold(name);
             } else if (addressSpace.findNode) {
                 // let use the provided address space to figure out the browseNode of this node.
