@@ -15,7 +15,7 @@ import {
     UAVariableType
 } from "node-opcua-address-space-base";
 import { assert } from "node-opcua-assert";
-import { CallbackT, isValidGuid, StatusCodes } from "node-opcua-basic-types";
+import { isValidGuid, StatusCodes } from "node-opcua-basic-types";
 import { ExtraDataTypeManager, populateDataTypeManager } from "node-opcua-client-dynamic-extension-object";
 import { EUInformation } from "node-opcua-data-access";
 import {
@@ -32,6 +32,7 @@ import { ExtensionObject } from "node-opcua-extension-object";
 import { DataTypeFactory, findSimpleType, getStandardDataTypeFactory } from "node-opcua-factory";
 import { NodeId, resolveNodeId } from "node-opcua-nodeid";
 import { Argument } from "node-opcua-service-call";
+import { CallbackT, ErrorCallback } from "node-opcua-status-code";
 import { EnumDefinition, EnumValueType, Range, StructureDefinition, StructureFieldOptions, StructureType } from "node-opcua-types";
 import { DataType, Variant, VariantArrayType, VariantOptions } from "node-opcua-variant";
 import {
