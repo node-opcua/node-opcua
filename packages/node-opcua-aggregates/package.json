@@ -1,6 +1,6 @@
 {
     "name": "node-opcua-aggregates",
-    "version": "2.53.0",
+    "version": "2.54.0",
     "description": "pure nodejs OPCUA SDK - module -end2end-test",
     "main": "./dist/index.js",
     "types": "./dist/index.d.ts",
@@ -11,18 +11,18 @@
     },
     "dependencies": {
         "@types/async": "^3.2.8",
-        "node-opcua-address-space": "2.53.0",
+        "node-opcua-address-space": "2.54.0",
         "node-opcua-constants": "2.52.0",
-        "node-opcua-data-model": "2.53.0",
-        "node-opcua-data-value": "2.53.0",
-        "node-opcua-nodeid": "2.53.0",
+        "node-opcua-data-model": "2.54.0",
+        "node-opcua-data-value": "2.54.0",
+        "node-opcua-nodeid": "2.54.0",
         "node-opcua-nodesets": "2.51.0",
-        "node-opcua-numeric-range": "2.53.0",
-        "node-opcua-service-history": "2.53.0",
+        "node-opcua-numeric-range": "2.54.0",
+        "node-opcua-service-history": "2.54.0",
         "node-opcua-status-code": "2.52.0",
-        "node-opcua-types": "2.53.0",
-        "node-opcua-utils": "2.52.0",
-        "node-opcua-variant": "2.53.0"
+        "node-opcua-types": "2.54.0",
+        "node-opcua-utils": "2.54.0",
+        "node-opcua-variant": "2.54.0"
     },
     "devDependencies": {
         "delayed": "^2.0.0",
