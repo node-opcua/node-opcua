@@ -11,7 +11,7 @@
         "test": "mocha"
     },
     "dependencies": {
-        "@types/lodash": "4.14.172",
+        "@types/lodash": "4.14.174",
         "chalk": "4.1.2",
         "lodash": "4.17.21",
         "node-opcua-assert": "2.52.0",
@@ -23,7 +23,7 @@
         "node-opcua-benchmarker": "2.52.0",
         "node-opcua-debug": "2.52.0",
         "should": "^13.2.3",
-        "source-map-support": "^0.5.19"
+        "source-map-support": "^0.5.20"
     },
     "author": "Etienne Rossignon",
     "license": "MIT",

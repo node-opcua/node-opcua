@@ -17,7 +17,7 @@
     },
     "dependencies": {
         "@types/underscore": "^1.11.3",
-        "@types/yargs": "17.0.2",
+        "@types/yargs": "17.0.3",
         "easy-table": "^1.1.1",
         "exit": "^0.1.2",
         "node-opcua": "2.53.0",

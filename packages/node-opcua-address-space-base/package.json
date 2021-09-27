@@ -15,7 +15,7 @@
         "c": "mocha --version"
     },
     "dependencies": {
-        "@types/lodash": "4.14.172",
+        "@types/lodash": "4.14.174",
         "async": "^3.2.1",
         "chalk": "4.1.2",
         "dequeue": "^1.0.5",
@@ -64,7 +64,7 @@
         "node-opcua-test-fixtures": "2.52.0",
         "should": "^13.2.3",
         "sinon": "^11.1.2",
-        "source-map-support": "^0.5.19"
+        "source-map-support": "^0.5.20"
     },
     "author": "Etienne Rossignon",
     "license": "MIT",

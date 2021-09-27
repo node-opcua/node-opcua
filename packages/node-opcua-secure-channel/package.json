@@ -35,7 +35,7 @@
         "node-opcua-utils": "2.52.0"
     },
     "devDependencies": {
-        "@types/node": "16.7.10",
+        "@types/node": "16.10.1",
         "node-opcua-buffer-utils": "2.52.0",
         "node-opcua-debug": "2.42.0",
         "node-opcua-enum": "2.42.0",
@@ -57,7 +57,7 @@
         "node-opcua-utils": "2.44.0",
         "should": "^13.2.3",
         "sinon": "^11.1.2",
-        "source-map-support": "^0.5.19",
+        "source-map-support": "^0.5.20",
         "sprintf-js": "^1.1.2",
         "underscore": "1.13.1"
     },

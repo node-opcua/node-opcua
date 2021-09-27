@@ -34,7 +34,7 @@
   },
   "devDependencies": {
     "should": "^13.2.3",
-    "source-map-support": "^0.5.19"
+    "source-map-support": "^0.5.20"
   },
   "author": "Etienne Rossignon",
   "license": "MIT",

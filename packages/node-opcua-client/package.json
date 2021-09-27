@@ -13,7 +13,7 @@
     "types": "./dist/index.d.ts",
     "dependencies": {
         "@ster5/global-mutex": "^1.1.1",
-        "@types/async": "^3.2.7",
+        "@types/async": "^3.2.8",
         "@types/once": "^1.4.0",
         "@types/underscore": "^1.11.3",
         "async": "^3.2.1",
