@@ -1,24 +1,26 @@
 {
-   "name": "node-opcua-nodeset-machine-tool",
-   "version": "2.53.0",
-   "description": "",
-   "main": "dist/index.js",
-   "types": "dist/index.d.ts",
-   "scripts": {
+  "name": "node-opcua-nodeset-machine-tool",
+  "version": "2.53.0",
+  "description": "",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
       "build": "tsc -b"
-   },
-   "author": "etienne.rossignon@sterfive.com",
-   "license": "MIT",
-   "dependencies": {
-      "node-opcua-address-space-base": "2.53.0",
-      "node-opcua-basic-types": "2.53.0",
-      "node-opcua-data-access": "2.53.0",
-      "node-opcua-data-model": "2.53.0",
-      "node-opcua-nodeid": "2.53.0",
-      "node-opcua-nodeset-ia": "2.53.0",
-      "node-opcua-nodeset-machinery": "2.53.0",
-      "node-opcua-nodeset-ua": "2.53.0",
-      "node-opcua-status-code": "2.52.0",
-      "node-opcua-variant": "2.53.0"
-   }
+  },
+  "author": "etienne.rossignon@sterfive.com",
+  "license": "MIT",
+  "dependencies": {
+     "node-opcua-address-space-base": "2.53.0",
+     "node-opcua-basic-types": "2.53.0",
+     "node-opcua-data-access": "2.53.0",
+     "node-opcua-data-model": "2.53.0",
+     "node-opcua-nodeid": "2.53.0",
+     "node-opcua-nodeset-ia": "2.53.0",
+     "node-opcua-nodeset-machinery": "2.53.0",
+     "node-opcua-nodeset-ua": "2.53.0",
+     "node-opcua-status-code": "2.52.0",
+     "node-opcua-variant": "2.53.0"
+  },
+  "devDependencies": {
+  }
 }
