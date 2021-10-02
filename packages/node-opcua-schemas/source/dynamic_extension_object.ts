@@ -706,8 +706,8 @@ export function createDynamicObjectConstructor(
         public static encodingDefaultXml = new ExpandedNodeId(NodeIdType.NUMERIC, 0, 0);
         public static encodingDefaultBinary = new ExpandedNodeId(NodeIdType.NUMERIC, 0, 0);
         public static possibleFields = possibleFields;
-        public static schema = schema;
-
+        public static get schema(): StructuredTypeSchema { return schema; }
+        
         constructor(options?: any, schema2?: StructuredTypeSchema, factory2?: DataTypeFactory) {
             super(options, schema2 ? schema2 : schema, factory2 ? factory2 : dataTypeFactory);
         }

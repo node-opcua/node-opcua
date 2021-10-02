@@ -118,8 +118,6 @@ export * from "./server-stuff";
 // filtering tools
 export * from "node-opcua-service-filter";
 
-export * from "node-opcua-address-space";
-
 // filtering tools
 export * from "node-opcua-transport";
 
