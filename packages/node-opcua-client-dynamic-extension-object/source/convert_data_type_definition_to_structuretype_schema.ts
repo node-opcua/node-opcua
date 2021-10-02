@@ -7,6 +7,7 @@ import { NodeId, makeExpandedNodeId, resolveNodeId } from "node-opcua-nodeid";
 import { browseAll, BrowseDescriptionLike, IBasicSession } from "node-opcua-pseudo-session";
 import { StatusCodes } from "node-opcua-status-code";
 import { EnumDefinition, DataTypeDefinition, StructureDefinition, StructureType } from "node-opcua-types";
+import { ExtensionObject } from "node-opcua-extension-object";
 //
 import { _findEncodings } from "./private/find_encodings";
 
@@ -125,7 +126,15 @@ async function resolveFieldType(
     cache: { [key: string]: CacheForFieldResolution }
 ): Promise<CacheForFieldResolution | null> {
     if (dataTypeNodeId.namespace === 0 && dataTypeNodeId.value === 22) {
-        return null;
+        // ERN   return null;
+        const category: FieldCategory  = FieldCategory.complex;
+        const fieldTypeName = "Structure";
+        const schema = ExtensionObject.schema;
+        return {
+            category,
+            fieldTypeName,
+            schema
+        };
     }
     const key = dataTypeNodeId.toString();
     const v = cache[key];
@@ -172,7 +181,7 @@ async function resolveFieldType(
                 break;
             default:
             case FieldCategory.enumeration:
-            case FieldCategory.complex:
+            case FieldCategory.complex: {
                 const dataTypeDefinitionDataValue = await session.read({
                     attributeId: AttributeIds.DataTypeDefinition,
                     nodeId: dataTypeNodeId
@@ -205,6 +214,7 @@ async function resolveFieldType(
                     );
                 }
                 // xx const schema1 = dataTypeFactory.getStructuredTypeSchema(fieldTypeName);
+            }
                 break;
         }
     }
@@ -278,7 +288,8 @@ export async function convertDataTypeDefinitionToStructureTypeSchema(
         for (const fieldD of definition.fields!) {
             const rt = (await resolveFieldType(session, fieldD.dataType, dataTypeFactory, cache))!;
             if (!rt) {
-                console.log("convertDataTypeDefinitionToStructureTypeSchema cannot handle field", fieldD.name, "in", name);
+                console.log("convertDataTypeDefinitionToStructureTypeSchema cannot handle field", fieldD.name, "in", name,
+                    "because " + fieldD.dataType.toString() + " cannot be resolved");
                 continue;
             }
             const { schema, category, fieldTypeName } = rt;

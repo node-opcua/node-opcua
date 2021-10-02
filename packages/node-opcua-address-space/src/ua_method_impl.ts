@@ -26,12 +26,12 @@ const warningLog = make_warningLog(__filename);
 const debugLog = make_debugLog(__filename);
 const errorLog = make_errorLog(__filename);
 
-function default_check_valid_argument(arg: any) {
-    return arg.constructor.name === "Argument";
+function default_check_valid_argument(arg: unknown): boolean {
+    return (arg as any).constructor.name === "Argument";
 }
 
 export class UAMethodImpl extends BaseNodeImpl implements UAMethod {
-    public static checkValidArgument(args: any) {
+    public static checkValidArgument(args: unknown): boolean {
         return default_check_valid_argument(args);
     }
 

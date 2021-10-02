@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
 <opc:TypeDictionary xmlns:opc="http://opcfoundation.org/BinarySchema/" TargetNamespace="urn:eclipse:milo:opcua:server:demo" DefaultByteOrder="LittleEndian">
     <opc:Import Namespace="http://opcfoundation.org/BinarySchema/"/>
     <opc:EnumeratedType LengthInBits="32" Name="CustomEnumType">
