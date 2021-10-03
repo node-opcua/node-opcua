@@ -2,8 +2,6 @@
  * @module node-opcua-assert
  */
 import * as chalk from "chalk";
-import * as PrettyError from "pretty-error";
-const pe = new PrettyError();
 
 const displayAssert = process.env.DISPLAY_ASSERT ? true : false;
 
@@ -17,10 +15,13 @@ export function assert(cond: boolean | unknown | null | undefined | func, messag
             // tslint:disable:no-console
             console.log(chalk.whiteBright.bgRed("-----------------------------------------------------------"));
             console.log(chalk.whiteBright.bgRed(message!));
-            console.log(pe.render(err));
             console.log(chalk.whiteBright.bgRed("-----------------------------------------------------------"));
         }
         throw err;
     }
 }
 export default assert;
+
+export function renderError(err: unknown): Error {
+    return err as Error;
+}

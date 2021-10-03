@@ -1,10 +1,9 @@
+/* eslint-disable max-statements */
 // tslint:disable: no-console
 /**
  * @module node-opcua-client-dynamic-extension-object
  */
 import * as chalk from "chalk";
-import * as PrettyError from "pretty-error";
-const pe = new PrettyError();
 
 import { assert } from "node-opcua-assert";
 import { AttributeIds, makeNodeClassMask, makeResultMask, QualifiedName } from "node-opcua-data-model";
@@ -448,7 +447,7 @@ async function _exploreDataTypeDefinition(
     }
 }
 
-const regexTargetNamespaceAttribute = /TargetNamespace="([^\"]+)"|TargetNamespace='([^\"]+)'/;
+const regexTargetNamespaceAttribute = /TargetNamespace="([^"]+)"|TargetNamespace='([^"]+)'/;
 function extractTargetNamespaceAttribute(xmlElement: string): string {
     // warning TargetNamespace could have ' or " , Wago PLC for instance uses simple quotes
     const c2 = xmlElement.match(regexTargetNamespaceAttribute);
@@ -573,7 +572,7 @@ export async function populateDataTypeManager103(session: IBasicSession, dataTyp
                 if (doDebug) {
                     console.log("schema", rawSchema);
                 }
-                const matches = rawSchema.match(/<opc:TypeDictionary([^\>]+)>/);
+                const matches = rawSchema.match(/<opc:TypeDictionary([^>]+)>/);
                 if (matches) {
                     // extract xml:NS="namespace" from attribute list
                     // for instance:

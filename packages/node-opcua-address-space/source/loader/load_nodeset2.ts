@@ -14,7 +14,7 @@ import {
     UAVariable,
     UAVariableType
 } from "node-opcua-address-space-base";
-import { assert } from "node-opcua-assert";
+import { assert, renderError } from "node-opcua-assert";
 import { isValidGuid, StatusCodes } from "node-opcua-basic-types";
 import { ExtraDataTypeManager, populateDataTypeManager } from "node-opcua-client-dynamic-extension-object";
 import { EUInformation } from "node-opcua-data-access";
@@ -46,17 +46,13 @@ import {
     ReaderStateParserLike,
     Xml2Json,
     XmlAttributes,
-    Callback,
     SimpleCallback
 } from "node-opcua-xml2json";
-import * as PrettyError from "pretty-error";
 
 import { AddressSpacePrivate } from "../../src/address_space_private";
 import { NamespacePrivate } from "../../src/namespace_private";
 import { PseudoSession } from "../pseudo_session";
 import { promoteObjectsAndVariables } from "./namespace_post_step";
-
-const pe = new PrettyError();
 
 const doDebug = checkDebugFlag(__filename);
 const debugLog = make_debugLog(__filename);
@@ -1561,7 +1557,7 @@ export function makeStuff(addressSpace: IAddressSpace): any {
         finalSteps()
             .then(() => callback!())
             .catch((err1: Error) => {
-                console.log("Error ", pe.render(err1));
+                console.log("Error ", renderError(err1));
                 callback!(err1);
             });
     }

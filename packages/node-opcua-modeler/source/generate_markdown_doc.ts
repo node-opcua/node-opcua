@@ -1,3 +1,4 @@
+/* eslint-disable max-statements */
 import { BaseNode, Namespace, UADataType, UAObjectType, UAReferenceType, UAVariableType } from "node-opcua-address-space";
 import { coerceUInt32 } from "node-opcua-basic-types";
 import { DataTypeDefinition, EnumDefinition, StructureDefinition, StructureField } from "node-opcua-types";
@@ -83,7 +84,7 @@ function dataTypeToMarkdown(dataType: UADataType): string {
     }
     return writer.toString();
 }
-export async function buildDocumentation(namespace: Namespace, writer: IWriter) {
+export async function buildDocumentation(namespace: Namespace, writer: IWriter): Promise<void> {
     const addressSpace = namespace.addressSpace;
 
     const namespaceUri = namespace.namespaceUri;
