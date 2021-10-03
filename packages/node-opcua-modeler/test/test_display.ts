@@ -28,7 +28,7 @@ describe("displayNodeElement", () => {
 
         const str1 = displayNodeElement(addressSpace.rootFolder.objects.server, { format: "cli" });
 
-        console.log(removeDecoration(str1));
+        // console.log(removeDecoration(str1));
 
         removeDecoration(str1).split("\n").should.eql(
 `┌──────────────────────┬──────────────┬──────────────────────────┬───────────────┬─────────────────────────┬───────────────────────────────────────┬──────────────────────────────────────────────────────────────┐
