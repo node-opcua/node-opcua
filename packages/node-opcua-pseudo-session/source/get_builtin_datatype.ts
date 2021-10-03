@@ -11,7 +11,7 @@ export function getBuiltInDataType(
     session: IBasicSession,
     variableNodeId: NodeId,
     callback: (err: Error | null, dataType?: DataType) => void
-) {
+): void  {
 
     if (typeof callback !== "function") {
         throw new Error("Expecting a callback");
