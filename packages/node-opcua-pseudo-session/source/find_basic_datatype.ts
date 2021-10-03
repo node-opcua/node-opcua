@@ -1,9 +1,9 @@
 import { makeNodeId, NodeId, NodeIdType } from "node-opcua-nodeid";
 import { BrowseDescription, BrowseDirection, BrowseResult } from "node-opcua-service-browse";
 import { DataType } from "node-opcua-variant";
-import { IBasicSession } from "./basic_session_interface";
 import { ReferenceTypeIds } from "node-opcua-constants";
 import { makeResultMask } from "node-opcua-data-model";
+import { IBasicSession } from "./basic_session_interface";
 
 const resultMask = makeResultMask("ReferenceType");
 
@@ -11,7 +11,7 @@ export function findBasicDataType(
     session: IBasicSession,
     dataTypeId: NodeId,
     callback: (err: Error | null, dataType?: DataType) => void
-) {
+): void {
     if (dataTypeId.identifierType === NodeIdType.NUMERIC && dataTypeId.value <= 25) {
         // we have a well-known DataType
         const dataTypeName = DataType[dataTypeId.value as number];

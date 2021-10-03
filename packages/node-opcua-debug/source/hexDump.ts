@@ -3,7 +3,7 @@
  */
 // tslint:disable:no-var-requires
 const hexy = require("hexy");
-export function hexDump(buffer: Buffer | null, width: number = 32, maxSize: number = 1024): string {
+export function hexDump(buffer: Buffer | null, width = 32, maxSize = 1024): string {
     if (!buffer) {
         return "<>";
     }

@@ -1,5 +1,6 @@
 import * as path from "path";
 import * as should from "should";
+import { spy } from "sinon";
 import { nodesets } from "node-opcua-nodesets";
 import { getExtensionObjectConstructor } from "node-opcua-client-dynamic-extension-object";
 import { resolveNodeId } from "node-opcua-nodeid";
@@ -7,7 +8,6 @@ import { resolveNodeId } from "node-opcua-nodeid";
 import { AddressSpace, adjustNamespaceArray } from "..";
 import {PseudoSession } from "..";
 import { generateAddressSpace } from "../distNodeJS";
-import  {spy} from "sinon";
 
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("Test Extension Object in pure 1.04 version (only DataTypeDefinition available)", () => {
