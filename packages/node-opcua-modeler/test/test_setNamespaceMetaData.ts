@@ -29,7 +29,7 @@ describe("displayNodeElement", () => {
         setNamespaceMetaData(namespace);
 
         const str1 = displayNodeElement(addressSpace.rootFolder.objects.server.namespaces);
-        // .log(removeDecoration(str1));
+        // console.log(removeDecoration(str1));
         removeDecoration(str1).should
             .eql(`┌──────────────────────┬──────────────┬───────────────────────────────────┬───────────────┬───────────────────────┬──────────┬───────┐
 │ ReferenceType        │ NodeId       │ BrowseName                        │ ModellingRule │ TypeDefinition        │ DataType │ Value │

@@ -4,7 +4,7 @@ import { buildModel } from "../nodeJS";
 
 // tslint:disable-next-line: no-var-requires
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
-describe("buidModel", () => {
+describe("buildModel", () => {
     it("should build a empty model", async () => {
         const { xmlModel, symbols, markdown } = await buildModel({
             createModel: async (addressSpace: AddressSpace) => {

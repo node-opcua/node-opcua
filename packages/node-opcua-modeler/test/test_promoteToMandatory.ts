@@ -1,6 +1,6 @@
 import * as should from "should";
-import { AddressSpace, assert, displayNodeElement, Namespace, NodeClass, nodesets, promoteToMandatory } from "..";
 import { generateAddressSpace } from "node-opcua-address-space/nodeJS";
+import { AddressSpace, assert, displayNodeElement, Namespace, NodeClass, nodesets, promoteToMandatory } from "..";
 
 import { removeDecoration } from "./test_helpers";
 
