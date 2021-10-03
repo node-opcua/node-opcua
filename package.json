@@ -143,7 +143,6 @@
         "node-opcua-pki": "^2.12.0",
         "object.values": "^1.1.4",
         "once": "^1.4.0",
-        "pretty-error": "^3.0.4",
         "pretty-ms": "^7.0.1",
         "progress": "^2.0.3",
         "rimraf": "^3.0.2",
