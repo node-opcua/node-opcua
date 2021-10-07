@@ -5,6 +5,7 @@ describe("AttributeIds", () => {
 
         isValidAttributeId(-1).should.eql(false);
         isValidAttributeId(AttributeIds.LAST).should.eql(true);
+        isValidAttributeId(AttributeIds.LAST+1).should.eql(false);
         isValidAttributeId(AttributeIds.AccessRestrictions).should.eql(true);
 
     })
