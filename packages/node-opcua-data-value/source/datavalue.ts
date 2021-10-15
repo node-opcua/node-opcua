@@ -8,6 +8,7 @@ import {
     BaseUAObject,
     buildStructuredType,
     check_options_correctness_against_schema,
+    DecodeDebugOptions,
     initialize_field,
     parameters,
     registerSpecialVariantEncoder,
@@ -15,9 +16,6 @@ import {
 } from "node-opcua-factory";
 import { coerceStatusCode, StatusCode, StatusCodes } from "node-opcua-status-code";
 import { DataType, sameVariant, Variant, VariantArrayType, VariantOptions, VariantOptionsT, VariantT } from "node-opcua-variant";
-import { DataValueEncodingByte } from "./DataValueEncodingByte_enum";
-import { TimestampsToReturn } from "./TimestampsToReturn_enum";
-
 import {
     DateTime,
     decodeHighAccuracyDateTime,
@@ -31,6 +29,8 @@ import {
     UInt16
 } from "node-opcua-basic-types";
 import { AttributeIds } from "node-opcua-data-model";
+import { DataValueEncodingByte } from "./DataValueEncodingByte_enum";
+import { TimestampsToReturn } from "./TimestampsToReturn_enum";
 
 type NumericalRange = any;
 
@@ -101,12 +101,12 @@ export function encodeDataValue(dataValue: DataValue, stream: OutputBinaryStream
     // write serverPicoseconds
     if (encodingMask & DataValueEncodingByte.ServerPicoseconds) {
         assert(dataValue.serverPicoseconds !== null);
-        const serverPicoseconds = Math.floor((dataValue.serverPicoseconds % 100000) / 10); // we encode 10-pios
+        const serverPicoseconds = Math.floor((dataValue.serverPicoseconds % 100000) / 10); // we encode 10-picoseconds
         encodeUInt16(serverPicoseconds, stream);
     }
 }
 
-function decodeDebugDataValue(dataValue: DataValue, stream: BinaryStream, options: any) {
+function decodeDebugDataValue(dataValue: DataValue, stream: BinaryStream, options: DecodeDebugOptions) {
     const tracer = options.tracer;
 
     let cur = stream.length;
@@ -306,7 +306,7 @@ export class DataValue extends BaseUAObject {
         decodeDataValueInternal(this, stream);
     }
 
-    public decodeDebug(stream: BinaryStream, options: any): void {
+    public decodeDebug(stream: BinaryStream, options: DecodeDebugOptions): void {
         decodeDebugDataValue(this, stream, options);
     }
 
@@ -328,7 +328,7 @@ export class DataValue extends BaseUAObject {
         return str;
     }
 
-    public clone() {
+    public clone(): DataValue {
         return new DataValue({
             serverPicoseconds: this.serverPicoseconds,
             serverTimestamp: this.serverTimestamp,
@@ -445,8 +445,8 @@ export function apply_timestamps_no_copy(
 
 function apply_timestamps2(dataValue: DataValue, timestampsToReturn: TimestampsToReturn, attributeId: AttributeIds): DataValue {
     assert(attributeId > 0);
-    assert(dataValue.hasOwnProperty("serverTimestamp"));
-    assert(dataValue.hasOwnProperty("sourceTimestamp"));
+    assert(Object.prototype.hasOwnProperty.call(dataValue, "serverTimestamp"));
+    assert(Object.prototype.hasOwnProperty.call(dataValue, "sourceTimestamp"));
     const cloneDataValue = new DataValue({});
     cloneDataValue.value = dataValue.value;
     cloneDataValue.statusCode = dataValue.statusCode;
@@ -597,7 +597,7 @@ export function timestampHasChanged(
     }
 }
 
-export function sameStatusCode(statusCode1: StatusCode, statusCode2: StatusCode) {
+export function sameStatusCode(statusCode1: StatusCode, statusCode2: StatusCode): boolean {
     return statusCode1.value === statusCode2.value;
 }
 
@@ -608,7 +608,7 @@ export function sameStatusCode(statusCode1: StatusCode, statusCode2: StatusCode)
  * @param [timestampsToReturn {TimestampsToReturn}]
  * @return {boolean} true if data values are identical
  */
-export function sameDataValue(v1: DataValue, v2: DataValue, timestampsToReturn?: TimestampsToReturn) {
+export function sameDataValue(v1: DataValue, v2: DataValue, timestampsToReturn?: TimestampsToReturn): boolean {
     if (v1 === v2) {
         return true;
     }
@@ -645,10 +645,7 @@ export interface DataValueOptionsT<T, DT extends DataType> extends DataValueOpti
     value: VariantOptionsT<T, DT>;
 }
 
-
 export declare interface DataValueT<T, DT extends DataType> extends DataValue {
     value: VariantT<T, DT>;
 }
-export class DataValueT<T, DT extends DataType> extends DataValue {
-
-}
+export class DataValueT<T, DT extends DataType> extends DataValue {}

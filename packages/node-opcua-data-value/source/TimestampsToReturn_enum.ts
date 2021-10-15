@@ -18,7 +18,7 @@ export const schemaTimestampsToReturn = {
     enumValues: TimestampsToReturn
 };
 
-export function encodeTimestampsToReturn(value: TimestampsToReturn, stream: OutputBinaryStream) {
+export function encodeTimestampsToReturn(value: TimestampsToReturn, stream: OutputBinaryStream): void {
     stream.writeUInt32(value);
 }
 
