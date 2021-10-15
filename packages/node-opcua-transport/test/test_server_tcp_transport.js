@@ -213,7 +213,9 @@ describe("testing ServerTCP_transport", function () {
     it("WXWX1 (issue#504)  server transport accept bufferSize greater than 8192 byes", function (done) {
         const transport = new ServerTCP_transport();
 
-        transport.init(fakeSocket.server, (err) => {});
+        transport.init(fakeSocket.server, (err) => {
+            /** */
+        });
         const helloMessage = new HelloMessage({
             protocolVersion: 0,
             receiveBufferSize: 8192,
@@ -239,7 +241,9 @@ describe("testing ServerTCP_transport", function () {
     it("WXWX2 (issue#504) server transport should not accept bufferSize lower than 8192 byes", function (done) {
         const transport = new ServerTCP_transport();
 
-        transport.init(fakeSocket.server, (err) => {});
+        transport.init(fakeSocket.server, (err) => {
+            /** */
+        });
         const helloMessage = new HelloMessage({
             protocolVersion: 0,
             receiveBufferSize: 512,
@@ -265,7 +269,9 @@ describe("testing ServerTCP_transport", function () {
 
     it("Test CLO message at transport end ", function (done) {
         const transport = new ServerTCP_transport();
-        transport.init(fakeSocket.server, (err) => {});
+        transport.init(fakeSocket.server, (err) => {
+            /** */
+        });
 
         transport.on("message", (messageChunk) => {
             // console.log("message ", messageChunk);

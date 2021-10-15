@@ -11,7 +11,6 @@ export class HalfComChannel extends EventEmitter {
     }
 
     public write(data: string | Buffer): void {
-
         if (typeof data === "string") {
             data = Buffer.from(data);
         }
@@ -29,9 +28,7 @@ export class HalfComChannel extends EventEmitter {
         }
     }
 
-    public destroy(): void {
-    }
+    public destroy(): void {}
 
-    public setTimeout(): void {
-    }
+    public setTimeout(): void {}
 }

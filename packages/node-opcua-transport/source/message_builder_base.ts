@@ -106,7 +106,7 @@ export class MessageBuilderBase extends EventEmitter {
         this._init_new();
     }
 
-    public dispose() {
+    public dispose(): void {
         this.removeAllListeners();
     }
 
@@ -115,7 +115,7 @@ export class MessageBuilderBase extends EventEmitter {
      * @method feed
      * @param data
      */
-    public feed(data: Buffer) {
+    public feed(data: Buffer): void {
         if (!this._securityDefeated && !this._hasReceivedError) {
             this._packetAssembler.feed(data);
         }

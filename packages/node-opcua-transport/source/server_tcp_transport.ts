@@ -3,11 +3,12 @@
  */
 // tslint:disable:class-name
 // system
-import * as chalk from "chalk";
 import { Socket } from "net";
+import * as chalk from "chalk";
 import { assert } from "node-opcua-assert";
 
 // opcua requires
+import * as debug from "node-opcua-debug";
 import { BinaryStream } from "node-opcua-binary-stream";
 import { verify_message_chunk } from "node-opcua-chunkmanager";
 import { StatusCode, StatusCodes } from "node-opcua-status-code";
@@ -19,8 +20,6 @@ import { HelloMessage } from "./HelloMessage";
 import { TCP_transport } from "./tcp_transport";
 import { TCPErrorMessage } from "./TCPErrorMessage";
 import { decodeMessage, packTcpMessage } from "./tools";
-
-import * as debug from "node-opcua-debug";
 import { doTraceHelloAck } from "./utils";
 
 const hexDump = debug.hexDump;
@@ -54,7 +53,7 @@ const minimumBufferSize = 8192;
  *
  */
 export class ServerTCP_transport extends TCP_transport {
-    public static throttleTime: number = 1000;
+    public static throttleTime = 1000;
 
     public receiveBufferSize: number;
     public sendBufferSize: number;
@@ -103,7 +102,7 @@ export class ServerTCP_transport extends TCP_transport {
      *
      *
      */
-    public init(socket: Socket, callback: ErrorCallback) {
+    public init(socket: Socket, callback: ErrorCallback): void {
         if (debugLog) {
             debugLog(chalk.cyan("init socket"));
         }
@@ -113,10 +112,10 @@ export class ServerTCP_transport extends TCP_transport {
         this._install_HEL_message_receiver(callback);
     }
 
-    public abortWithError(statusCode: StatusCode, extraErrorDescription: string, callback: ErrorCallback) {
+    public abortWithError(statusCode: StatusCode, extraErrorDescription: string, callback: ErrorCallback): void {
         return this._abortWithError(statusCode, extraErrorDescription, callback);
     }
-    private _abortWithError(statusCode: StatusCode, extraErrorDescription: string, callback: ErrorCallback) {
+    private _abortWithError(statusCode: StatusCode, extraErrorDescription: string, callback: ErrorCallback): void {
         if (debugLog) {
             debugLog(chalk.cyan("_abortWithError"));
         }
@@ -128,7 +127,7 @@ export class ServerTCP_transport extends TCP_transport {
             this._aborted = 1;
             setTimeout(() => {
                 // send the error message and close the connection
-                assert(StatusCodes.hasOwnProperty(statusCode.name));
+                assert(Object.prototype.hasOwnProperty.call(StatusCodes, statusCode.name));
 
                 /* istanbul ignore next*/
                 if (doDebug) {
@@ -155,7 +154,7 @@ export class ServerTCP_transport extends TCP_transport {
         }
     }
 
-    private _send_ACK_response(helloMessage: HelloMessage) {
+    private _send_ACK_response(helloMessage: HelloMessage): void {
         assert(helloMessage.receiveBufferSize >= minimumBufferSize);
         assert(helloMessage.sendBufferSize >= minimumBufferSize);
 
@@ -198,7 +197,7 @@ export class ServerTCP_transport extends TCP_transport {
         this.write(messageChunk);
     }
 
-    private _install_HEL_message_receiver(callback: ErrorCallback) {
+    private _install_HEL_message_receiver(callback: ErrorCallback): void {
         if (debugLog) {
             debugLog(chalk.cyan("_install_HEL_message_receiver "));
         }
@@ -212,7 +211,7 @@ export class ServerTCP_transport extends TCP_transport {
         });
     }
 
-    private _on_HEL_message(data: Buffer, callback: ErrorCallback) {
+    private _on_HEL_message(data: Buffer, callback: ErrorCallback): void {
         if (debugLog) {
             debugLog(chalk.cyan("_on_HEL_message"));
         }
@@ -269,7 +268,7 @@ export class ServerTCP_transport extends TCP_transport {
                 this._send_ACK_response(helloMessage);
             } catch (err) {
                 // connection rejected because of malformed message
-                return this._abortWithError(StatusCodes.BadConnectionRejected, err instanceof Error  ? err.message: "", callback);
+                return this._abortWithError(StatusCodes.BadConnectionRejected, err instanceof Error ? err.message : "", callback);
             }
             callback(); // no Error
         } else {

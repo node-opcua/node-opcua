@@ -7,6 +7,8 @@
     "scripts": {
         "build": "tsc -b",
         "test": "mocha",
+        "lint": "eslint source test test_helpers test-fixtures",
+        "format": "prettier --write source test test_helpers test-fixtures",
         "clean": "node -e \"require('rimraf').sync('dist');\""
     },
     "dependencies": {

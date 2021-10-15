@@ -8,7 +8,7 @@ export class DirectTransport extends EventEmitter {
     public server: HalfComChannel;
     public url: string;
 
-    private _responses?: any[];
+    private _responses?: ((socket: HalfComChannel, data: Buffer) => void)[];
     constructor() {
         super();
 
@@ -66,7 +66,7 @@ export class DirectTransport extends EventEmitter {
         return this._responses.shift();
     }
 
-    public pushResponse(func: any): void {
+    public pushResponse(func: (socket: HalfComChannel, data: Buffer) => void): void {
         this._responses = this._responses || [];
         this._responses.push(func);
     }

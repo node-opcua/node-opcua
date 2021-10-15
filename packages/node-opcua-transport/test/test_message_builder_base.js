@@ -2,11 +2,7 @@
 const { BinaryStream } = require("node-opcua-binary-stream");
 const { compare_buffers } = require("node-opcua-utils");
 
-const {
-    MessageBuilderBase,
-    writeTCPMessageHeader
- } = require("..");
-
+const { MessageBuilderBase, writeTCPMessageHeader } = require("..");
 
 function wrap_message_in_chunk(slice, isFinal) {
     const total_length = slice.length + 12;
@@ -18,9 +14,7 @@ function wrap_message_in_chunk(slice, isFinal) {
 }
 
 describe("MessageBuilderBase", function () {
-
-    it('should assemble a message body composed of a single chunk ', function (done) {
-
+    it("should assemble a message body composed of a single chunk ", function (done) {
         const message_body = Buffer.from("ABCDEFGHIJKLMNOPQRSTUVWXYZ");
         const original_message_chunk = wrap_message_in_chunk(message_body, "F");
 
@@ -36,11 +30,9 @@ describe("MessageBuilderBase", function () {
         });
 
         builder.feed(original_message_chunk);
-
     });
 
-    it('should assemble a message body composed of a two chunks ', function (done) {
-
+    it("should assemble a message body composed of a two chunks ", function (done) {
         const message_body = Buffer.from("ABCDEFGHIJKLMNOPQRSTUVWXYZ");
 
         const original_message_chunk_1 = wrap_message_in_chunk(message_body.slice(0, 10), "C");
@@ -53,10 +45,7 @@ describe("MessageBuilderBase", function () {
             done();
         });
 
-        const expected = [
-            original_message_chunk_1,
-            original_message_chunk_2
-        ];
+        const expected = [original_message_chunk_1, original_message_chunk_2];
         let expected_count = 0;
         builder.on("chunk", function (message_chunk) {
             const expected_chunk = expected[expected_count];
@@ -66,8 +55,5 @@ describe("MessageBuilderBase", function () {
 
         builder.feed(original_message_chunk_1);
         builder.feed(original_message_chunk_2);
-
     });
 });
-
-
