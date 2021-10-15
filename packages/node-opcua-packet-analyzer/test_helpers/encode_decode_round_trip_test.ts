@@ -1,14 +1,22 @@
+// tslint:disable:no-console
 // @ts-check
 import * as chalk from "chalk";
 import { BinaryStream } from "node-opcua-binary-stream";
 import { hexDump } from "node-opcua-debug";
-import { BaseUAObject, constructObject } from "node-opcua-factory";
+import { ExpandedNodeId } from "node-opcua-nodeid";
+import { BaseUAObject, constructObject, ConstructorFuncWithSchema } from "node-opcua-factory";
 import { assert_arrays_are_equal } from "node-opcua-test-helpers";
 import * as should from "should";
 
 import { analyze_object_binary_encoding, analyzePacket } from "../source";
-// tslint:disable:no-console
 
+export interface IExtensionObject extends BaseUAObject {
+    binaryStoreSize(): number;
+    encode(stream: BinaryStream): void;
+    decode(stream: BinaryStream): void;
+    encodingDefaultBinary: ExpandedNodeId;
+    constructor: new () => BaseUAObject;
+}
 function dump_block_in_debug_mode(buffer: Buffer, id: any, options: any) {
     if (process.env.DEBUG) {
         console.log(hexDump(buffer));
@@ -60,13 +68,13 @@ function redirectToNull(functor: () => void) {
 
     if (!process.env.DEBUG) {
         // tslint:disable:no-empty
-        console.log = (...args: any[]) => {};
+        console.log = (...args: any[]) => {
+            /** */
+        };
     }
 
     try {
         functor();
-    } catch (err) {
-        throw err;
     } finally {
         console.log = old;
     }
@@ -82,12 +90,12 @@ type encode_decode_round_trip_testCallback = (buffer: Buffer, encoding: any, opt
  * @return {*}
  */
 export function encode_decode_round_trip_test(
-    obj: any,
-    options?: any,
+    obj: IExtensionObject,
+    options?: unknown | encode_decode_round_trip_testCallback,
     callback_buffer?: encode_decode_round_trip_testCallback
 ): any {
     if (!callback_buffer && typeof options === "function") {
-        callback_buffer = options;
+        callback_buffer = options as encode_decode_round_trip_testCallback;
         options = {};
     }
 
@@ -95,11 +103,11 @@ export function encode_decode_round_trip_test(
 
     should.exist(obj);
 
-    const size = obj.binaryStoreSize(options);
+    const size = obj.binaryStoreSize();
 
     const stream = new BinaryStream(Buffer.alloc(size));
 
-    obj.encode(stream, options);
+    obj.encode(stream);
 
     callback_buffer(stream.buffer, obj.encodingDefaultBinary, options);
 
@@ -109,14 +117,14 @@ export function encode_decode_round_trip_test(
     const expandedNodeId = obj.encodingDefaultBinary;
     const objReloaded = expandedNodeId ? constructObject(expandedNodeId) : new obj.constructor();
 
-    objReloaded.decode(stream, options);
+    objReloaded.decode(stream);
 
     redirectToNull(() => analyze_object_binary_encoding(obj));
     compare(objReloaded, obj);
     return objReloaded;
 }
 
-export function json_encode_decode_round_trip_test(obj: any, options: any, callbackBuffer?: any) {
+export function json_encode_decode_round_trip_test(obj: unknown, options: unknown, callbackBuffer?: unknown): void {
     if (!callbackBuffer && typeof options === "function") {
         callbackBuffer = options;
         options = {};

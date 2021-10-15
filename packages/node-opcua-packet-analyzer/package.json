@@ -6,6 +6,8 @@
     "types": "./dist/source/index.d.ts",
     "scripts": {
         "build": "tsc -b",
+        "lint": "eslint source test_helpers",
+        "format": "prettier --write source test_helpers",
         "clean": "node -e \"require('rimraf').sync('dist');\"",
         "test": "echo no test"
     },
@@ -17,6 +19,7 @@
         "node-opcua-basic-types": "2.55.0",
         "node-opcua-binary-stream": "2.55.0",
         "node-opcua-debug": "2.55.0",
+        "node-opcua-nodeid": "2.55.0",
         "node-opcua-factory": "2.55.0",
         "node-opcua-utils": "2.55.0"
     },
