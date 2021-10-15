@@ -25,14 +25,14 @@ export enum PermissionFlag {
     ReadRolePermissions = 2,
     /**
      * The Client is allowed to write to Attributes other than the Value,
-     * Historizing or RolePermissions Attribute if the WriteMask indicates that 
+     * Historizing or RolePermissions Attribute if the WriteMask indicates that
      * the Attribute is writeable.
      * This bit affects the value of a UserWriteMask Attribute.
      * This Permission is valid for all NodeClasses.
      */
     WriteAttribute = 4,
     /**
-     * The Client is allowed to write to the RolePermissions Attribute if the WriteMask 
+     * The Client is allowed to write to the RolePermissions Attribute if the WriteMask
      * indicates that the Attribute is writeable.
      * This bit affects the value of the UserWriteMask Attribute.
      * This Permission is valid for all NodeClasses.
@@ -81,14 +81,14 @@ export enum PermissionFlag {
      */
     DeleteHistory = 1024,
     /**
-     * A Client only receives an Event if this bit is set on the Node identified 
+     * A Client only receives an Event if this bit is set on the Node identified
      * by the EventTypeId field and on the Node identified by the SourceNode field.
      * This Permission is only valid for EventType Nodes or SourceNodes.
      */
     ReceiveEvents = 2048,
     /**
-     * The Client is allowed to call the Method if this bit is set on the Object or 
-     * ObjectType Node passed in the Call request and the Method Instance associated 
+     * The Client is allowed to call the Method if this bit is set on the Object or
+     * ObjectType Node passed in the Call request and the Method Instance associated
      * with that Object or ObjectType.
      * This bit affects the UserExecutable Attribute when set on Method Node.
      * This Permission is only valid for Objects, ObjectType or Methods.
@@ -101,7 +101,7 @@ export enum PermissionFlag {
     AddReference = 8192,
     /**
      * The Client is allowed to remove references from the Node.
-     * This Permission is valid for all NodeClasses. 
+     * This Permission is valid for all NodeClasses.
      */
     RemoveReference = 16384,
     /**
@@ -117,7 +117,8 @@ export enum PermissionFlag {
     AddNode = 65536
 }
 
-export const allPermissions = PermissionFlag.Browse |
+export const allPermissions =
+    PermissionFlag.Browse |
     PermissionFlag.Browse |
     PermissionFlag.ReadRolePermissions |
     PermissionFlag.WriteAttribute |
@@ -146,7 +147,6 @@ export function makePermissionFlag(str: string | number | null): number {
 }
 
 export function permissionFlagToString(permissionFlag: PermissionFlag): string {
-
     const retVal = [];
     for (const [key, value] of Object.entries(PermissionFlag)) {
         const numKey = parseInt(key, 10);

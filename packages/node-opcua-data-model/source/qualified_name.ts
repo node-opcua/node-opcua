@@ -98,7 +98,7 @@ export class QualifiedName extends BaseUAObject {
         return this.name || "<null>";
     }
 
-    public isEmpty() {
+    public isEmpty(): boolean {
         return !this.name || this.name.length === 0;
     }
 }
@@ -154,8 +154,8 @@ export function coerceQualifiedName(value: null | QualifiedNameLike): QualifiedN
     } else if (typeof value === "string") {
         return stringToQualifiedName(value);
     } else {
-        assert(value.hasOwnProperty("namespaceIndex"));
-        assert(value.hasOwnProperty("name"));
+        assert(Object.prototype.hasOwnProperty.call(value, "namespaceIndex"));
+        assert(Object.prototype.hasOwnProperty.call(value, "name"));
         return new QualifiedName(value);
     }
 }

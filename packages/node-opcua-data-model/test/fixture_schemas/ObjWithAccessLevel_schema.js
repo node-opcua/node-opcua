@@ -1,15 +1,13 @@
-
-
 const factories = require("node-opcua-factory");
 
 const ObjWithAccessLevel_Schema = {
-
     id: factories.next_available_id(),
     name: "ObjWithAccessLevel",
     fields: [
-        {name: "title", fieldType: "UAString"},
+        { name: "title", fieldType: "UAString" },
         {
-            name: "accessLevel", fieldType: "AccessLevelFlag"
+            name: "accessLevel",
+            fieldType: "AccessLevelFlag"
         }
     ]
 };

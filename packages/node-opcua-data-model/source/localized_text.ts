@@ -8,6 +8,7 @@ import {
     BaseUAObject,
     buildStructuredType,
     check_options_correctness_against_schema,
+    DecodeDebugOptions,
     initialize_field,
     parameters,
     registerSpecialVariantEncoder,
@@ -66,7 +67,7 @@ export class LocalizedText extends BaseUAObject {
 
     public static possibleFields: string[] = ["locale", "text"];
 
-    public static coerce(value: any): LocalizedText | null {
+    public static coerce(value?: null | string | LocalizedTextOptions): LocalizedText | null {
         return coerceLocalizedText(value);
     }
 
@@ -99,7 +100,7 @@ export class LocalizedText extends BaseUAObject {
     }
 
     // OPCUA Part 6 $ 5.2.2.14 : localizedText have a special encoding
-    public encode(stream: OutputBinaryStream) {
+    public encode(stream: OutputBinaryStream): void {
         // tslint:disable:no-bitwise
         const encodingMask = getLocalizeText_EncodingByte(this);
 
@@ -113,7 +114,7 @@ export class LocalizedText extends BaseUAObject {
         }
     }
 
-    public decodeDebug(stream: BinaryStream, options: any) {
+    public decodeDebug(stream: BinaryStream, options: DecodeDebugOptions): void {
         let cursorBefore;
         const tracer = options.tracer;
         tracer.trace("start", options.name + "(" + "LocalizedText" + ")", stream.length, stream.length);

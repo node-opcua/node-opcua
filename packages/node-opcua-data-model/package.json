@@ -5,6 +5,8 @@
     "scripts": {
         "build": "tsc -b",
         "test": "mocha",
+        "lint": "eslint source test",
+        "format": "prettier --write source test",
         "clean": "node -e \"require('rimraf').sync('_generated_');require('rimraf').sync('dist');\"",
         "coverage": "npx nyc node ../../node_modules/mocha/bin/mocha"
     },

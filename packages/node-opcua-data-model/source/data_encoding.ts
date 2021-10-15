@@ -3,8 +3,8 @@
  */
 import { QualifiedName, QualifiedNameLike, QualifiedNameOptions } from "./qualified_name";
 
-export function isDataEncoding(dataEncoding: any): boolean {
-    return dataEncoding && typeof dataEncoding.name === "string";
+export function isDataEncoding(dataEncoding: unknown): boolean {
+    return !!dataEncoding && typeof dataEncoding === "object" && typeof (dataEncoding as any).name === "string";
 }
 
 const validEncoding = ["DefaultBinary", "DefaultXml", "DefaultJson"];
@@ -13,7 +13,7 @@ export function isValidDataEncoding(dataEncoding?: string | null | QualifiedName
         return true;
     }
 
-    if ((dataEncoding as any).hasOwnProperty("name")) {
+    if (Object.prototype.hasOwnProperty.call(dataEncoding as any, "name")) {
         dataEncoding = (dataEncoding as QualifiedNameOptions).name;
     }
     if (!dataEncoding) {

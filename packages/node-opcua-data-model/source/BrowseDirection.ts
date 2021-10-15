@@ -26,7 +26,7 @@ export const schemaBrowseDirection = {
     // }
 };
 
-export function encodeBrowseDirection(value: BrowseDirection, stream: OutputBinaryStream) {
+export function encodeBrowseDirection(value: BrowseDirection, stream: OutputBinaryStream): void {
     stream.writeUInt32(value);
 }
 

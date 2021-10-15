@@ -1,27 +1,18 @@
 const should = require("should");
 const { BinaryStream } = require("node-opcua-binary-stream");
-const {
-    LocalizedText,
-    coerceLocalizedText,
-    decodeLocalizedText,
-    encodeLocalizedText
-} = require("..");
 const { encode_decode_round_trip_test } = require("node-opcua-packet-analyzer/dist/test_helpers");
+const { LocalizedText, coerceLocalizedText, decodeLocalizedText, encodeLocalizedText } = require("..");
 
 describe("LocalizedText", () => {
-
     it("should create a LocalizeText", () => {
-
         const localizedText = new LocalizedText({ text: "HelloWorld", locale: "en-US" });
         localizedText.should.have.property("text");
         localizedText.should.have.property("locale");
         localizedText.text.should.equal("HelloWorld");
         localizedText.locale.should.equal("en-US");
-
     });
 
     it("should encode and decode a LocalizeText that have both text and locale", () => {
-
         const localizedText = new LocalizedText({ text: "HelloWorld", locale: "en-US" });
 
         const stream = new BinaryStream();
@@ -39,12 +30,9 @@ describe("LocalizedText", () => {
         localizedText_check.should.eql(localizedText);
         localizedText_check.text.should.equal("HelloWorld");
         localizedText_check.locale.should.equal("en-US");
-
-
     });
 
     it("should encode and decode a LocalizeText that have text but no locale", () => {
-
         const localizedText = new LocalizedText({ text: "HelloWorld", locale: null });
 
         localizedText.should.have.property("locale");
@@ -64,11 +52,9 @@ describe("LocalizedText", () => {
 
         localizedText_check.text.should.equal("HelloWorld");
         should.not.exist(localizedText_check.locale);
-
     });
 
     it("should encode and decode a LocalizeText that have no text but a locale", () => {
-
         const localizedText = new LocalizedText({ text: null, locale: "en-US" });
 
         localizedText.should.have.property("text");
@@ -90,20 +76,18 @@ describe("LocalizedText", () => {
         localizedText_check.locale.should.equal("en-US");
         localizedText_check.should.have.property("text");
         should.not.exist(localizedText_check.text);
-
     });
 
     it("#coerceLocalizedText - null", () => {
-
         should.not.exist(coerceLocalizedText(null));
     });
     it("#coerceLocalizedText - string", () => {
-
         should(coerceLocalizedText("Hello World")).eql(new LocalizedText({ locale: null, text: "Hello World" }));
     });
     it("#coerceLocalizedText - LocalizedText", () => {
-
-        should(coerceLocalizedText(new LocalizedText({ text: "Hello World" }))).eql(new LocalizedText({ locale: null, text: "Hello World" }));
+        should(coerceLocalizedText(new LocalizedText({ text: "Hello World" }))).eql(
+            new LocalizedText({ locale: null, text: "Hello World" })
+        );
     });
     it("#coerceLocalizedText ", () => {
         should(coerceLocalizedText({ text: "Hello World" })).eql(new LocalizedText({ locale: null, text: "Hello World" }));
@@ -116,7 +100,6 @@ describe("LocalizedText", () => {
         LocalizedText.coerce("A").should.eql(new LocalizedText({ text: "A" }));
     });
     it("LocalizedText#encode/decode", () => {
-
         const stream = new BinaryStream();
         const localizedText = new LocalizedText("A");
         encodeLocalizedText(localizedText, stream);
@@ -125,10 +108,8 @@ describe("LocalizedText", () => {
         const check = new LocalizedText(null);
         decodeLocalizedText(stream, check);
         check.toString().should.eql("locale=null text=A");
-
-    })
+    });
     it("LocalizedText#encode/decode", () => {
-
         const stream = new BinaryStream();
         const localizedText = new LocalizedText("A");
         encodeLocalizedText(null, stream);
@@ -143,7 +124,6 @@ describe("LocalizedText", () => {
         const check = new LocalizedText(null);
         decodeLocalizedText(stream, check);
         check.toString().should.eql("locale=null text=null");
-
     });
     it("encode/decode 1", () => {
         const localizedText1 = new LocalizedText("A");
