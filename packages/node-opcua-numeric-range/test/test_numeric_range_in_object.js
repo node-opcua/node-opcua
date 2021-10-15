@@ -1,42 +1,29 @@
 "use strict";
 const should = require("should");
 
-
-const { 
-    BaseUAObject  
-} = require("node-opcua-factory");
-
-const {
-    NumericRange ,
-    encodeNumericRange,
-    decodeNumericRange 
-} = require("..");
-
+const { BaseUAObject } = require("node-opcua-factory");
 const {
     encode_decode_round_trip_test,
-    json_encode_decode_round_trip_test 
+    json_encode_decode_round_trip_test
 } = require("node-opcua-packet-analyzer/dist/test_helpers");
 
+const { NumericRange, encodeNumericRange, decodeNumericRange } = require("..");
 
 const schemaObjWithNumericRange = {
     name: "ObjWithNumericRange",
     baseType: "BaseUAObject",
-    fields: [
-        {name: "numericRange", fieldType: "NumericRange"}
-    ]
+    fields: [{ name: "numericRange", fieldType: "NumericRange" }]
 };
-class ObjWithNumericRange extends BaseUAObject
-{
-
+class ObjWithNumericRange extends BaseUAObject {
     constructor(options) {
         super();
-        options= options || {};
+        options = options || {};
         this.numericRange = NumericRange.coerce(options.numericRange);
     }
-    encode(stream/*: IBinaryStream*/) {
-        encodeNumericRange(this.numericRange,stream);
+    encode(stream /*: IBinaryStream*/) {
+        encodeNumericRange(this.numericRange, stream);
     }
-    decode(stream/*: BinaryStream*/) {
+    decode(stream /*: BinaryStream*/) {
         this.numericRange = decodeNumericRange(stream);
     }
 }
@@ -44,9 +31,7 @@ ObjWithNumericRange.prototype.schema = schemaObjWithNumericRange;
 ObjWithNumericRange.schema = schemaObjWithNumericRange;
 
 describe(" encoding / decoding", function () {
-
     function _encode_decode_test(prefix, encode_decode_round_trip_test) {
-
         it(prefix + "should persist an object with a numeric range - empty", function () {
             const o = new ObjWithNumericRange({});
             o.numericRange.type.should.equal(NumericRange.NumericRangeType.Empty);
@@ -113,10 +98,7 @@ describe(" encoding / decoding", function () {
             should(o.numericRange.isValid()).eql(false);
             encode_decode_round_trip_test(o);
         });
-
     }
     _encode_decode_test("binary : ", encode_decode_round_trip_test);
     _encode_decode_test("json : ", json_encode_decode_round_trip_test);
-
-
 });
