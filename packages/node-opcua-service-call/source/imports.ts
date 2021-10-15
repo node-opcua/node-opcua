@@ -3,9 +3,7 @@
  */
 import { assert } from "node-opcua-assert";
 import { coerceNodeId, NodeId, resolveNodeId } from "node-opcua-nodeid";
-import {
-    Argument
-} from "node-opcua-types";
+import { Argument } from "node-opcua-types";
 import { DataType } from "node-opcua-variant";
 
 export {
@@ -21,9 +19,8 @@ export {
 } from "node-opcua-types";
 
 ///
-function constructHookArgument(options?: { dataType: any, valueRank?: number, arrayDimensions?: any }): any {
-
-    options = options || {dataType: DataType.Null};
+function constructHookArgument(options?: { dataType: any; valueRank?: number; arrayDimensions?: any }): any {
+    options = options || { dataType: DataType.Null };
 
     let dataType = options.dataType;
     if (dataType) {
@@ -32,7 +29,7 @@ function constructHookArgument(options?: { dataType: any, valueRank?: number, ar
         } else if (dataType instanceof NodeId) {
             // nothing
         } else if (dataType.value) {
-            assert(dataType.hasOwnProperty("namespace"));
+            assert(Object.prototype.hasOwnProperty.call(dataType, "namespace"));
             dataType = coerceNodeId(dataType.value, dataType.namespace);
         } else {
             assert(typeof dataType === "number");
@@ -48,7 +45,6 @@ function constructHookArgument(options?: { dataType: any, valueRank?: number, ar
     }
 
     return options;
-
 }
 
 Argument.schema.constructHook = constructHookArgument;
