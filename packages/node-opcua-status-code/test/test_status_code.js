@@ -1,23 +1,13 @@
 "use strict";
 const should = require("should");
-
-const StatusCodes = require("..").StatusCodes;
-const StatusCode = require("..").StatusCode;
-const encodeStatusCode = require("..").encodeStatusCode;
-const decodeStatusCode = require("..").decodeStatusCode;
-const getStatusCodeFromCode = require("..").getStatusCodeFromCode;
-const coerceStatusCode = require("..").coerceStatusCode;
-
 const { BinaryStream } = require("node-opcua-binary-stream");
 
+const { StatusCodes, StatusCode, encodeStatusCode, decodeStatusCode, getStatusCodeFromCode, coerceStatusCode } = require("..");
+
 describe("testing status code manipulation", () => {
-
     it("should create BadNodeIdExists", () => {
-
         StatusCodes.BadNodeIdExists.value.should.equal(0x805e0000);
         StatusCodes.BadNodeIdExists.name.should.equal("BadNodeIdExists");
-
-
     });
 
     it("should create BadAttributeIdInvalid", () => {
@@ -31,7 +21,6 @@ describe("testing status code manipulation", () => {
     });
 
     it("should encode and decode a status code", () => {
-
         const stream = new BinaryStream(8);
         const statusCode = StatusCodes.BadNodeIdExists;
         encodeStatusCode(statusCode, stream);
@@ -42,20 +31,16 @@ describe("testing status code manipulation", () => {
         statusCode2.description.should.eql("The requested node id is already used by another node.");
 
         statusCode2.toJSON().should.eql({ value: 2153644032 });
-
     });
 
     it("statusCode should implement a special toString", () => {
-
         StatusCodes.BadAttributeIdInvalid.should.be.instanceOf(StatusCode);
         StatusCodes.BadAttributeIdInvalid.toString().should.equal("BadAttributeIdInvalid (0x80350000)");
     });
 
     it("should create Uncertain_InitialValue", () => {
-
         StatusCodes.UncertainInitialValue.value.toString(16).should.equal("40920000");
         StatusCodes.UncertainInitialValue.name.should.equal("UncertainInitialValue");
-
     });
 
     it("GoodWithOverflowBit", () => {
@@ -64,26 +49,20 @@ describe("testing status code manipulation", () => {
     });
 
     it("should be possible to set SemanticChanged bit on a status code", () => {
-
         const statusCode2 = StatusCode.makeStatusCode(StatusCodes.BadNodeIdExists);
         statusCode2.set("SemanticChanged");
         statusCode2.value.should.eql(StatusCodes.BadNodeIdExists.value + 0x4000);
         statusCode2.name.should.eql("BadNodeIdExists#SemanticChanged");
-
     });
     it("should be possible to set the Overflow bit on a status code", () => {
-
         const statusCode2 = StatusCode.makeStatusCode(StatusCodes.BadNodeIdExists);
         statusCode2.set("Overflow");
         statusCode2.value.should.eql(StatusCodes.BadNodeIdExists.value + 0x80);
         statusCode2.name.should.eql("BadNodeIdExists#Overflow");
-
     });
     it("should be possible to set the Overflow and SemanticChanged bits on a status code", () => {
-
         const statusCode = StatusCode.makeStatusCode(StatusCodes.BadNodeIdExists);
         statusCode.set("Overflow | SemanticChanged");
-
 
         statusCode.value.should.eql(StatusCodes.BadNodeIdExists.value + 0x80 + 0x4000);
         statusCode.name.should.eql("BadNodeIdExists#SemanticChanged|Overflow");
@@ -91,9 +70,7 @@ describe("testing status code manipulation", () => {
         statusCode.toString().should.eql("BadNodeIdExists#SemanticChanged|Overflow (0x805e4080)");
     });
 
-
     it("should be possible to encode and decode a statusCode that have a extra information bit", () => {
-
         const statusCode = StatusCode.makeStatusCode(StatusCodes.BadNodeIdExists);
         statusCode.set("Overflow | SemanticChanged");
 
@@ -107,16 +84,13 @@ describe("testing status code manipulation", () => {
         statusCode2.hasSemanticChangedBit.should.equal(true);
         statusCode2.hasStructureChangedBit.should.equal(false);
         statusCode2.should.be.instanceOf(StatusCode);
-
     });
 
     it("should fail to set a extra information bit on a standard StatusCode", () => {
         should(() => {
-
             const statusCode = StatusCodes.Good;
 
             statusCode.set("Overflow"); // << set is not defined !!!
-
         }).throwError();
     });
 
@@ -129,7 +103,9 @@ describe("testing status code manipulation", () => {
 
     it("should coerce a number to a status code", () => {
         coerceStatusCode(0).should.eql(StatusCodes.Good);
-        coerceStatusCode(StatusCodes.BadAggregateConfigurationRejected.value).should.eql(StatusCodes.BadAggregateConfigurationRejected);
+        coerceStatusCode(StatusCodes.BadAggregateConfigurationRejected.value).should.eql(
+            StatusCodes.BadAggregateConfigurationRejected
+        );
     });
 
     it("should coerce a string to a status code", () => {
@@ -162,23 +138,19 @@ describe("testing status code manipulation", () => {
     });
 
     it("equals", () => {
-        StatusCodes.BadAggregateConfigurationRejected
-            .equals(StatusCodes.BadAggregateConfigurationRejected).should.eql(true);
+        StatusCodes.BadAggregateConfigurationRejected.equals(StatusCodes.BadAggregateConfigurationRejected).should.eql(true);
     });
 
     it("equals", () => {
-        StatusCodes.BadAggregateConfigurationRejected
-            .equals(StatusCodes.BadNoData).should.eql(false);
+        StatusCodes.BadAggregateConfigurationRejected.equals(StatusCodes.BadNoData).should.eql(false);
     });
 
     it("isNot", () => {
-        StatusCodes.BadAggregateConfigurationRejected
-            .isNot(StatusCodes.BadAggregateConfigurationRejected).should.eql(false);
+        StatusCodes.BadAggregateConfigurationRejected.isNot(StatusCodes.BadAggregateConfigurationRejected).should.eql(false);
     });
 
     it("isNot", () => {
-        StatusCodes.BadAggregateConfigurationRejected
-            .isNot(StatusCodes.BadNoData).should.eql(true);
+        StatusCodes.BadAggregateConfigurationRejected.isNot(StatusCodes.BadNoData).should.eql(true);
     });
 
     it("valueOf", () => {
@@ -187,9 +159,7 @@ describe("testing status code manipulation", () => {
 });
 
 describe("ModifiableStatusCode", () => {
-
     it("should be possible to create a modifiable StatusCode from a ModifiableStatusCode", () => {
-
         const statusCode = StatusCode.makeStatusCode(StatusCodes.BadNodeIdExists);
 
         statusCode.description.should.eql("The requested node id is already used by another node.");
@@ -207,11 +177,9 @@ describe("ModifiableStatusCode", () => {
 
         statusCode.hasOverflowBit.should.equal(true);
         statusCode.hasSemanticChangedBit.should.equal(false);
-
     });
 
     it("should unset a flag by name", () => {
-
         const statusCode = StatusCode.makeStatusCode(StatusCodes.BadNodeIdExists);
 
         statusCode.set("Overflow");
@@ -220,11 +188,9 @@ describe("ModifiableStatusCode", () => {
 
         statusCode.unset("Overflow");
         statusCode.hasOverflowBit.should.equal(false);
-
     });
 
     it("should set multiple flag by name", () => {
-
         const statusCode = StatusCode.makeStatusCode(StatusCodes.BadNodeIdExists);
 
         statusCode.set("Overflow | SemanticChanged");
@@ -239,7 +205,6 @@ describe("ModifiableStatusCode", () => {
         statusCode.unset("Overflow | SemanticChanged");
         statusCode.hasOverflowBit.should.equal(false);
         statusCode.hasSemanticChangedBit.should.equal(false);
-
     });
     it("test with extra bits 1", () => {
         const statusCode = StatusCode.makeStatusCode(StatusCodes.UncertainDataSubNormal, "HistorianCalculated");
@@ -256,7 +221,7 @@ describe("ModifiableStatusCode", () => {
     });
     it("test with extra bits 4", () => {
         const statusCode = StatusCode.makeStatusCode(StatusCodes.UncertainDataSubNormal, "HistorianCalculated");
-        const mask = 0x0000FFFFFF;
+        const mask = 0x0000ffffff;
         const extraBits = statusCode.value & mask;
         const statusCode2 = StatusCode.makeStatusCode(StatusCodes.UncertainDataSubNormal, extraBits);
         statusCode2.toString().should.eql("UncertainDataSubNormal#HistorianCalculated (0x41480001)");
