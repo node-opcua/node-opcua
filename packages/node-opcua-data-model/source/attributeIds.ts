@@ -1,5 +1,1 @@
-export {
-    isValidAttributeId,
-    attributeNameById,
-    AttributeIds
-} from "node-opcua-basic-types";
+export { isValidAttributeId, attributeNameById, AttributeIds } from "node-opcua-basic-types";

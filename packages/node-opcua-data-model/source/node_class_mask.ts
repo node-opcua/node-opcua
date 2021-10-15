@@ -12,14 +12,14 @@
 //    mask.value.should.eql(1 + (1<<3));
 
 export enum NodeClassMask {
-    Object=  (1 << 0),
-    Variable = (1 << 1),
-    Method=  (1 << 2),
-    ObjectType=  (1 << 3),
-    VariableType=  (1 << 4),
-    ReferenceType=  (1 << 5),
-    DataType= (1 << 6),
-    View= (1 << 7)
+    Object = 1 << 0,
+    Variable = 1 << 1,
+    Method = 1 << 2,
+    ObjectType = 1 << 3,
+    VariableType = 1 << 4,
+    ReferenceType = 1 << 5,
+    DataType = 1 << 6,
+    View = 1 << 7
 }
 
 interface Enum {

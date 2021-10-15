@@ -6,6 +6,7 @@ import { BinaryStream, OutputBinaryStream } from "node-opcua-binary-stream";
 import {
     BaseUAObject,
     buildStructuredType,
+    DecodeDebugOptions,
     parameters,
     registerSpecialVariantEncoder,
     StructuredTypeSchema
@@ -119,13 +120,13 @@ export class DiagnosticInfo extends BaseUAObject {
         if (parameters.debugSchemaHelper) {
             check_options_correctness_against_schema(this, schema, options);
         }
-        this.symbolicId = initialize_field(schema.fields[0], options.symbolicId);
-        this.namespaceURI = initialize_field(schema.fields[1], options.namespaceURI);
-        this.locale = initialize_field(schema.fields[2], options.locale);
-        this.localizedText = initialize_field(schema.fields[3], options.localizedText);
-        this.additionalInfo = initialize_field(schema.fields[4], options.additionalInfo);
-        this.innerStatusCode = initialize_field(schema.fields[5], options.innerStatusCode);
-        this.innerDiagnosticInfo = initialize_field(schema.fields[6], options.innerDiagnosticInfo);
+        this.symbolicId = initialize_field(schema.fields[0], options.symbolicId) as Int32;
+        this.namespaceURI = initialize_field(schema.fields[1], options.namespaceURI) as Int32;
+        this.locale = initialize_field(schema.fields[2], options.locale) as Int32;
+        this.localizedText = initialize_field(schema.fields[3], options.localizedText) as Int32;
+        this.additionalInfo = initialize_field(schema.fields[4], options.additionalInfo) as UAString;
+        this.innerStatusCode = initialize_field(schema.fields[5], options.innerStatusCode) as StatusCode;
+        this.innerDiagnosticInfo = initialize_field(schema.fields[6], options.innerDiagnosticInfo) as DiagnosticInfo;
     }
 
     public encode(stream: OutputBinaryStream): void {
@@ -136,7 +137,7 @@ export class DiagnosticInfo extends BaseUAObject {
         decode_DiagnosticInfo(this, stream);
     }
 
-    public decodeDebug(stream: BinaryStream, options: any): void {
+    public decodeDebug(stream: BinaryStream, options: DecodeDebugOptions): void {
         decodeDebug_DiagnosticInfo(this, stream, options);
     }
 }
@@ -233,7 +234,7 @@ function encode_DiagnosticInfo(diagnosticInfo: DiagnosticInfo, stream: OutputBin
     }
 }
 
-function decodeDebug_DiagnosticInfo(diagnosticInfo: DiagnosticInfo, stream: BinaryStream, options: any): void {
+function decodeDebug_DiagnosticInfo(diagnosticInfo: DiagnosticInfo, stream: BinaryStream, options: DecodeDebugOptions): void {
     const tracer = options.tracer;
 
     tracer.trace("start", options.name + "(" + "DiagnosticInfo" + ")", stream.length, stream.length);

@@ -1,12 +1,11 @@
 import { _make_flag } from "./_make_flag";
 
-
 export enum AccessRestrictionsFlag {
     SigningRequired = 1,
     EncryptionRequired = 2,
     SessionRequired = 4,
     ApplyRestrictionsToBrowse = 8,
-    None = 0x0,
+    None = 0x0
 }
 
 export function makeAccessRestrictionsFlag(str: string | number | null): AccessRestrictionsFlag {
@@ -31,5 +30,4 @@ export function accessRestrictionsFlagToString(flags: AccessRestrictionsFlag): s
         retVal.push("None");
     }
     return retVal.join(" | ");
-
 }
