@@ -5,7 +5,8 @@ import { decodeUInt32, encodeUInt32, UInt32 } from "node-opcua-basic-types";
 import { BinaryStream, OutputBinaryStream } from "node-opcua-binary-stream";
 import {
     BaseUAObject,
-    buildStructuredType, check_options_correctness_against_schema,
+    buildStructuredType,
+    check_options_correctness_against_schema,
     initialize_field,
     parameters,
     StructuredTypeSchema
@@ -46,7 +47,6 @@ interface AcknowledgeMessageOptions {
 }
 
 export class AcknowledgeMessage extends BaseUAObject {
-
     public static possibleFields: string[] = [
         "protocolVersion",
         "receiveBufferSize",
@@ -63,7 +63,6 @@ export class AcknowledgeMessage extends BaseUAObject {
     public maxChunkCount: UInt32;
 
     constructor(options?: AcknowledgeMessageOptions) {
-
         options = options || {};
 
         super();
@@ -81,7 +80,6 @@ export class AcknowledgeMessage extends BaseUAObject {
     }
 
     public encode(stream: OutputBinaryStream): void {
-
         super.encode(stream);
         encodeUInt32(this.protocolVersion, stream);
         encodeUInt32(this.receiveBufferSize, stream);
@@ -102,11 +100,11 @@ export class AcknowledgeMessage extends BaseUAObject {
 
     public toString(): string {
         let str = "";
-        str += 'protocolVersion   = ' + this.protocolVersion +'\n';
-        str += 'receiveBufferSize = ' + this.receiveBufferSize +'\n';
-        str += 'sendBufferSize    = ' + this.sendBufferSize +'\n';
-        str += 'maxMessageSize    = ' + this.maxMessageSize +'\n';
-        str += 'maxChunkCount     = ' + this.maxChunkCount +'\n'; 
+        str += "protocolVersion   = " + this.protocolVersion + "\n";
+        str += "receiveBufferSize = " + this.receiveBufferSize + "\n";
+        str += "sendBufferSize    = " + this.sendBufferSize + "\n";
+        str += "maxMessageSize    = " + this.maxMessageSize + "\n";
+        str += "maxChunkCount     = " + this.maxChunkCount + "\n";
         return str;
     }
 }

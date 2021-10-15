@@ -5,7 +5,8 @@ import { decodeString, encodeString, UAString } from "node-opcua-basic-types";
 import { BinaryStream, OutputBinaryStream } from "node-opcua-binary-stream";
 import {
     BaseUAObject,
-    buildStructuredType, check_options_correctness_against_schema,
+    buildStructuredType,
+    check_options_correctness_against_schema,
     initialize_field,
     parameters
 } from "node-opcua-factory";
@@ -19,8 +20,8 @@ const schemaTCPErrorMessage = buildStructuredType({
     baseType: "BaseUAObject",
 
     fields: [
-        {name: "statusCode", fieldType: "StatusCode"},
-        {name: "reason", fieldType: "String"} // A more verbose description of the error.
+        { name: "statusCode", fieldType: "StatusCode" },
+        { name: "reason", fieldType: "String" } // A more verbose description of the error.
     ]
 });
 
@@ -28,7 +29,7 @@ export class TCPErrorMessage extends BaseUAObject {
     public static possibleFields: string[] = ["statusCode", "reason"];
     public statusCode: StatusCode;
     public reason: UAString;
-    constructor(options?: { statusCode?: StatusCode, reason?: string}) {
+    constructor(options?: { statusCode?: StatusCode; reason?: string }) {
         options = options || {};
         const schema = schemaTCPErrorMessage;
 

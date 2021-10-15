@@ -22,7 +22,7 @@ const errorLog = debug.make_errorLog(__filename);
 
 export interface MockSocket {
     invalid?: boolean;
-    [key:string]: any;
+    [key: string]: any;
 }
 let fakeSocket: MockSocket = { invalid: true };
 

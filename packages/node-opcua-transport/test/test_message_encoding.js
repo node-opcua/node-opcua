@@ -1,14 +1,10 @@
 "use strict";
-const HelloMessage = require("..").HelloMessage;
-const packTcpMessage = require("..").packTcpMessage;
-const decodeMessage = require("..").decodeMessage;
-
 const { BinaryStream } = require("node-opcua-binary-stream");
 
+const { HelloMessage, packTcpMessage, decodeMessage } = require("..");
+
 describe("testing message encoding and decoding", function () {
-
     it("should encode and decode HelloMessage ", function () {
-
         const helloMessage1 = new HelloMessage({});
 
         const message = packTcpMessage("HEL", helloMessage1);
@@ -23,6 +19,5 @@ describe("testing message encoding and decoding", function () {
         helloMessage1.sendBufferSize.should.eql(helloMessage2.sendBufferSize);
         helloMessage1.maxMessageSize.should.eql(helloMessage2.maxMessageSize);
         helloMessage1.endpointUrl.should.eql(helloMessage2.endpointUrl);
-
     });
 });
