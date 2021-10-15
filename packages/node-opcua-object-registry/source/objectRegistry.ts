@@ -61,7 +61,7 @@ export class ObjectRegistry {
 
         if (ObjectRegistry.doDebug) {
             for (const [key, cachedObject] of Object.entries(this._cache) as any[]) {
-                assert(cachedObject.hasOwnProperty("_____trace"));
+                assert(Object.prototype.hasOwnProperty.call(cachedObject, "_____trace"));
                 str += "   " + key + cachedObject._____trace + "\n";
             }
         }
