@@ -1,8 +1,9 @@
 const should = require("should");
 
-const { NumericRange, NumericRangeType } = require("..");
 const { StatusCodes } = require("node-opcua-status-code");
 const { assert_arrays_are_equal } = require("node-opcua-test-helpers/dist/typedarray_helpers");
+
+const { NumericRange, NumericRangeType } = require("..");
 
 describe("Testing numerical range", () => {
     it("should construct an empty NumericRange", () => {

@@ -1,13 +1,13 @@
 /**
  * @module node-opcua-numeric-range
  */
+import { debuglog } from "util";
 import { assert } from "node-opcua-assert";
 
 import { decodeString, encodeString, UAString, UInt8 } from "node-opcua-basic-types";
 import { BinaryStream, OutputBinaryStream } from "node-opcua-binary-stream";
 import { registerBasicType } from "node-opcua-factory";
 import { StatusCode, StatusCodes } from "node-opcua-status-code";
-import { debuglog } from "util";
 
 // OPC.UA Part 4 7.21 Numerical Range
 // The syntax for the string contains one of the following two constructs. The first construct is the string
@@ -44,7 +44,7 @@ export const schemaNumericRange = {
     name: "NumericRange",
     subType: "UAString",
 
-    defaultValue: () => {
+    defaultValue: (): NumericRange => {
         return new NumericRange();
     },
     encode: encodeNumericRange,
@@ -295,7 +295,7 @@ export class NumericRange implements NumericalRange1 {
 
     public static readonly empty = new NumericRange() as NumericalRange0;
 
-    public static overlap(nr1?: NumericalRange0, nr2?: NumericalRange0) {
+    public static overlap(nr1?: NumericalRange0, nr2?: NumericalRange0): boolean {
         nr1 = nr1 || NumericRange.empty;
         nr2 = nr2 || NumericRange.empty;
 
@@ -488,7 +488,10 @@ export class NumericRange implements NumericalRange1 {
         }
     }
 
-    public set_values_matrix(sourceToAlter: { matrix: Buffer | []; dimensions: number[] }, newMatrix: Buffer | []) {
+    public set_values_matrix(
+        sourceToAlter: { matrix: Buffer | []; dimensions: number[] },
+        newMatrix: Buffer | []
+    ): { matrix: Buffer | []; statusCode: StatusCode } {
         const { matrix, dimensions } = sourceToAlter;
         const self = this as NumericalRange0;
         assert(dimensions, "expecting valid dimensions here");
@@ -526,7 +529,7 @@ export class NumericRange implements NumericalRange1 {
             statusCode: StatusCodes.Good
         };
     }
-    public set_values(arrayToAlter: Buffer | [], newValues: Buffer | []) {
+    public set_values(arrayToAlter: Buffer | [], newValues: Buffer | []): { array: Buffer | []; statusCode: StatusCode } {
         assert_array_or_buffer(arrayToAlter);
         assert_array_or_buffer(newValues);
 
@@ -613,9 +616,9 @@ function extract_empty<U, T extends ArrayLike<U>>(array: T, dimensions: any): Ex
 function extract_single_value<U, T extends ArrayLike<U>>(array: T, index: number): ExtractResult<T> {
     if (index >= array.length) {
         if (typeof array === "string") {
-            return { array: ("" as any) as T, statusCode: StatusCodes.BadIndexRangeNoData };
+            return { array: "" as any as T, statusCode: StatusCodes.BadIndexRangeNoData };
         }
-        return { array: ([] as any) as T, statusCode: StatusCodes.BadIndexRangeNoData };
+        return { array: [] as any as T, statusCode: StatusCodes.BadIndexRangeNoData };
     }
     return {
         array: slice(array, index, index + 1),
@@ -629,9 +632,9 @@ function extract_array_range<U, T extends ArrayLike<U>>(array: T, low_index: num
     assert(low_index <= high_index);
     if (low_index >= array.length) {
         if (typeof array === "string") {
-            return { array: ("" as any) as T, statusCode: StatusCodes.BadIndexRangeNoData };
+            return { array: "" as any as T, statusCode: StatusCodes.BadIndexRangeNoData };
         }
-        return { array: ([] as any) as T, statusCode: StatusCodes.BadIndexRangeNoData };
+        return { array: [] as any as T, statusCode: StatusCodes.BadIndexRangeNoData };
     }
     // clamp high index
     high_index = Math.min(high_index, array.length - 1);
@@ -643,7 +646,7 @@ function extract_array_range<U, T extends ArrayLike<U>>(array: T, low_index: num
 }
 
 function isArrayLike(value: any): boolean {
-    return typeof value.length === "number" || value.hasOwnProperty("length");
+    return typeof value.length === "number" || Object.prototype.hasOwnProperty.call(value, "length");
 }
 
 function extract_matrix_range<U, T extends ArrayLike<U>>(
@@ -656,7 +659,7 @@ function extract_matrix_range<U, T extends ArrayLike<U>>(
 
     if (array.length === 0) {
         return {
-            array: ([] as any) as T,
+            array: [] as any as T,
             statusCode: StatusCodes.BadIndexRangeNoData
         };
     }
@@ -671,7 +674,7 @@ function extract_matrix_range<U, T extends ArrayLike<U>>(
     }
     if (!dimension) {
         return {
-            array: ([] as any) as T,
+            array: [] as any as T,
             statusCode: StatusCodes.BadIndexRangeNoData
         };
     }
@@ -722,7 +725,7 @@ function assert_array_or_buffer(array: any) {
 
 function insertInPlaceStandardArray(arrayToAlter: any, low: number, high: number, newValues: any): any {
     const args = [low, high - low + 1].concat(newValues);
-    arrayToAlter.splice.apply(arrayToAlter, args);
+    arrayToAlter.splice(...args);
     return arrayToAlter;
 }
 
@@ -750,7 +753,7 @@ function _overlap(l1: number, h1: number, l2: number, h2: number): boolean {
     return Math.max(l1, l2) <= Math.min(h1, h2);
 }
 
-export function encodeNumericRange(numericRange: NumericRange, stream: OutputBinaryStream) {
+export function encodeNumericRange(numericRange: NumericRange, stream: OutputBinaryStream): void {
     assert(numericRange instanceof NumericRange);
     encodeString(numericRange.toEncodeableString(), stream);
 }
