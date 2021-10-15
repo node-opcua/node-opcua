@@ -9,7 +9,7 @@ import { BinaryStream, OutputBinaryStream } from "node-opcua-binary-stream";
 function warnLog(...args: [any?, ...any[]]) {
     /* istanbul ignore next */
     // tslint:disable-next-line:no-console
-    console.warn.apply(console, args);
+    console.warn(...args);
 }
 
 /**
@@ -237,7 +237,7 @@ Object.defineProperty(ConstantStatusCode.prototype, "value", { enumerable: true 
 Object.defineProperty(ConstantStatusCode.prototype, "description", { enumerable: true });
 Object.defineProperty(ConstantStatusCode.prototype, "name", { enumerable: true });
 
-export function encodeStatusCode(statusCode: StatusCode | ConstantStatusCode, stream: OutputBinaryStream) {
+export function encodeStatusCode(statusCode: StatusCode | ConstantStatusCode, stream: OutputBinaryStream): void {
     stream.writeUInt32(statusCode.value);
 }
 
@@ -249,7 +249,7 @@ const statusCodesReversedMap: any = {};
  * @note: if code is not known , then StatusCodes.Bad will be returned
  * @param code
  */
-export function getStatusCodeFromCode(code: number) {
+export function getStatusCodeFromCode(code: number): StatusCode {
     const codeWithoutInfoBits = (code & 0xffff0000) >>> 0;
     const infoBits = code & 0x0000ffff;
     let sc = statusCodesReversedMap[codeWithoutInfoBits];
@@ -272,7 +272,7 @@ export function getStatusCodeFromCode(code: number) {
     return sc;
 }
 
-export function decodeStatusCode(stream: BinaryStream, _value?: StatusCode) {
+export function decodeStatusCode(stream: BinaryStream, _value?: StatusCode): StatusCode {
     const code = stream.readUInt32();
     return getStatusCodeFromCode(code);
 }
@@ -291,15 +291,15 @@ export class ModifiableStatusCode extends StatusCode {
         }
     }
 
-    public get value() {
+    public get value(): number {
         return this._base.value + this._extraBits;
     }
 
-    public get name() {
+    public get name(): string {
         return this._base.name + this._getExtraName();
     }
 
-    public get description() {
+    public get description(): string {
         return this._base.description;
     }
 
@@ -344,10 +344,9 @@ export class ModifiableStatusCode extends StatusCode {
     }
 
     private _getExtraName() {
-        const self = this;
         const str: string[] = [];
         for (const [key, value] of Object.entries(extraStatusCodeBits)) {
-            if ((self._extraBits & value) === value) {
+            if ((this._extraBits & value) === value) {
                 str.push(key);
             }
         }
@@ -371,7 +370,7 @@ export function coerceStatusCode(statusCode: any): StatusCode {
     if (statusCode instanceof StatusCode) {
         return statusCode;
     }
-    if (statusCode.hasOwnProperty("value")) {
+    if (Object.prototype.hasOwnProperty.call(statusCode, "value")) {
         return getStatusCodeFromCode(statusCode.value);
     }
     if (typeof statusCode === "number") {
