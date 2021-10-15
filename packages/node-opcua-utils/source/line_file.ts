@@ -9,11 +9,11 @@ export class LineFile {
         this._line = [];
     }
 
-    public write(...arg: string[]): void {
+    public write(...args: string[]): void {
         let str = "";
         // tslint:disable:prefer-for-of
-        for (let i = 0; i < arguments.length; i++) {
-            str += arguments[i];
+        for (let i = 0; i < args.length; i++) {
+            str += args[i];
         }
         this._line.push(str);
     }
