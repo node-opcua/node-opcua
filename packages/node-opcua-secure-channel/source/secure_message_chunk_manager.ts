@@ -148,7 +148,7 @@ export class SecureMessageChunkManager extends EventEmitter {
         assert(stream.length === this.headerSize);
     }
 
-    public writeSequenceHeader(buffer: Buffer) {
+    public writeSequenceHeader(buffer: Buffer): void {
         const stream = new BinaryStream(buffer);
         // write Sequence Header -----------------
         this.sequenceHeader.sequenceNumber = this.sequenceNumberGenerator.next();
@@ -156,17 +156,17 @@ export class SecureMessageChunkManager extends EventEmitter {
         assert(stream.length === 8);
     }
 
-    public write(buffer: Buffer, length?: number) {
+    public write(buffer: Buffer, length?: number): void {
         length = length || buffer.length;
         this.chunkManager.write(buffer, length);
     }
 
-    public abort() {
+    public abort(): void {
         this.aborted = true;
         this.end();
     }
 
-    public end() {
+    public end(): void {
         this.chunkManager.end();
         this.emit("finished");
     }

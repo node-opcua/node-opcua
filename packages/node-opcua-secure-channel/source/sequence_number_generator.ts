@@ -43,7 +43,7 @@ export class SequenceNumberGenerator {
         return current;
     }
 
-    public future() {
+    public future(): number {
         return this._counter;
     }
 

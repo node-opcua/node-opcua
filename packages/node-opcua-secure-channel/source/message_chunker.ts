@@ -4,17 +4,16 @@
 // tslint:disable:max-line-length
 
 import { assert } from "node-opcua-assert";
-
 import { encodeExpandedNodeId } from "node-opcua-basic-types";
 import { BinaryStream } from "node-opcua-binary-stream";
 import { DerivedKeys } from "node-opcua-crypto";
 import { BaseUAObject } from "node-opcua-factory";
 import { AsymmetricAlgorithmSecurityHeader, SymmetricAlgorithmSecurityHeader } from "node-opcua-service-secure-channel";
 import { timestamp } from "node-opcua-utils";
+import { make_errorLog} from "node-opcua-debug";
 
 import { SecureMessageChunkManager, SecureMessageChunkManagerOptions, SecurityHeader } from "./secure_message_chunk_manager";
 import { SequenceNumberGenerator } from "./sequence_number_generator";
-import { make_errorLog} from "node-opcua-debug";
 
 const doTraceChunk = process.env.NODEOPCUADEBUG && process.env.NODEOPCUADEBUG.indexOf("CHUNK") >= 0;
 const errorLog = make_errorLog(__dirname);
@@ -53,7 +52,7 @@ export class MessageChunker {
         this.update(options);
     }
 
-    public dispose() {
+    public dispose(): void {
         this.securityHeader = null;
         this.derivedKeys = undefined;
         this._stream = undefined;
@@ -62,7 +61,7 @@ export class MessageChunker {
     /***
      * update security information
      */
-    public update(options?: MessageChunkerOptions) {
+    public update(options?: MessageChunkerOptions): void {
         options = options || {};
         options.securityHeader =
             options.securityHeader ||
@@ -82,7 +81,7 @@ export class MessageChunker {
         options: ChunkMessageOptions,
         message: BaseUAObject,
         messageChunkCallback: MessageCallbackFunc
-    ) {
+    ): void {
         assert(typeof messageChunkCallback === "function");
 
         // calculate message size ( with its  encodingDefaultBinary)

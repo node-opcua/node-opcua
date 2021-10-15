@@ -4,9 +4,9 @@
 // tslint:disable:variable-name
 // tslint:disable:object-literal-shorthand
 // tslint:disable:no-console
-import * as chalk from "chalk";
 import { randomBytes } from "crypto";
 import { EventEmitter } from "events";
+import * as chalk from "chalk";
 import * as async from "async";
 
 import { Certificate, extractPublicKeyFromCertificate, PrivateKeyPEM, PublicKeyPEM, rsa_length } from "node-opcua-crypto";
@@ -45,10 +45,6 @@ import {
     ServiceFault
 } from "../services";
 
-// import * as backoff from "backoff";
-// tslint:disable-next-line: no-var-requires
-const backoff = require("backoff");
-
 const debugLog = make_debugLog(__filename);
 const errorLog = make_errorLog(__filename);
 const doDebug = checkDebugFlag(__filename);
@@ -68,6 +64,9 @@ import {
     traceClientResponseMessage,
     _dump_client_transaction_statistics
 } from "../utils";
+// import * as backoff from "backoff";
+// tslint:disable-next-line: no-var-requires
+const backoff = require("backoff");
 
 export const requestHandleNotSetValue = 0xdeadbeef;
 
@@ -222,11 +221,11 @@ export interface ClientSecureChannelLayerOptions {
  * a ClientSecureChannelLayer represents the client side of the OPCUA secure channel.
  */
 export class ClientSecureChannelLayer extends EventEmitter {
-    private static g_counter: number = 0;
-    private _counter: number = ClientSecureChannelLayer.g_counter++;
-    private _bytesRead: number = 0;
-    private _bytesWritten: number = 0;
-    
+    private static g_counter = 0;
+    private _counter = ClientSecureChannelLayer.g_counter++;
+    private _bytesRead = 0;
+    private _bytesWritten = 0;
+
     public static minTransactionTimeout = 10 * 1000; // 10 sec
     public static defaultTransactionTimeout = 60 * 1000; // 1 minute
 
@@ -262,6 +261,7 @@ export class ClientSecureChannelLayer extends EventEmitter {
     public readonly securityPolicy: SecurityPolicy;
     public endpointUrl: string;
     public channelId: number;
+    public securityToken: SecurityToken | null;
 
     private _lastRequestId: number;
     private _transport?: ClientTCP_transport;
@@ -287,12 +287,11 @@ export class ClientSecureChannelLayer extends EventEmitter {
     private receiverPublicKey: PublicKeyPEM | null;
     private __call: any;
     private _isOpened: boolean;
-    private securityToken: SecurityToken | null;
     private serverNonce: Buffer | null;
     private receiverCertificate: Certificate | null;
     private securityHeader: AsymmetricAlgorithmSecurityHeader | null;
     private lastError?: Error;
-    private _tick2: number = 0;
+    private _tick2 = 0;
     private _isDisconnecting = false;
 
     constructor(options: ClientSecureChannelLayerOptions) {
@@ -321,7 +320,7 @@ export class ClientSecureChannelLayer extends EventEmitter {
         this.protocolVersion = 0;
 
         this.messageChunker = new MessageChunker({
-            derivedKeys: null,
+            derivedKeys: null
             // note maxMessageSize cannot be set at this stage, transport is not kown
         });
 
@@ -457,7 +456,7 @@ export class ClientSecureChannelLayer extends EventEmitter {
      *
      *    ```
      */
-    public create(endpointUrl: string, callback: ErrorCallback) {
+    public create(endpointUrl: string, callback: ErrorCallback): void {
         assert(typeof callback === "function");
 
         if (this.securityMode !== MessageSecurityMode.None) {
@@ -506,7 +505,7 @@ export class ClientSecureChannelLayer extends EventEmitter {
         });
     }
 
-    public dispose() {
+    public dispose(): void {
         this._isDisconnecting = true;
         this.abortConnection(() => {
             /* empty */
@@ -526,8 +525,7 @@ export class ClientSecureChannelLayer extends EventEmitter {
         }
     }
 
-    public abortConnection(callback: ErrorCallback) {
-        const self = this;
+    public abortConnection(callback: ErrorCallback): void {
         this._isDisconnecting = true;
         debugLog("abortConnection ", !!this.__call);
         assert(typeof callback === "function");
@@ -544,18 +542,18 @@ export class ClientSecureChannelLayer extends EventEmitter {
                     }
                 },
                 (inner_callback: ErrorCallback) => {
-                    if (!self._pending_transport) {
+                    if (!this._pending_transport) {
                         return inner_callback();
                     }
-                    self._pending_transport.disconnect(() => {
+                    this._pending_transport.disconnect(() => {
                         inner_callback();
                     });
                 },
                 (inner_callback: ErrorCallback) => {
-                    if (!self._transport) {
+                    if (!this._transport) {
                         return inner_callback();
                     }
-                    self._transport.disconnect(() => {
+                    this._transport.disconnect(() => {
                         inner_callback();
                     });
                 }
@@ -591,7 +589,7 @@ export class ClientSecureChannelLayer extends EventEmitter {
      *    ```
      *
      */
-    public performMessageTransaction(request: Request, callback: PerformTransactionCallback) {
+    public performMessageTransaction(request: Request, callback: PerformTransactionCallback): void {
         assert(typeof callback === "function");
         this._performMessageTransaction("MSG", request, callback);
     }
@@ -746,8 +744,8 @@ export class ClientSecureChannelLayer extends EventEmitter {
             const actual = response.responseHeader.requestHandle;
 
             if (actual !== 0x0) {
-                // note some old OPCUA Server, like siemens with OPCUA 1.2 may send 0x00 as a 
-                // requestHandle, this is not harmful. THis happened with OpenSecureChannelRequest 
+                // note some old OPCUA Server, like siemens with OPCUA 1.2 may send 0x00 as a
+                // requestHandle, this is not harmful. THis happened with OpenSecureChannelRequest
                 // so we only display the warning message if we have a real random discrepancy between the two requestHandle.
                 const moreInfo = "Request= " + request.schema.name + " Response = " + response.schema.name;
 
@@ -845,7 +843,7 @@ export class ClientSecureChannelLayer extends EventEmitter {
         this._requests = {};
     }
 
-    private _on_transport_closed(err?: Error| null) {
+    private _on_transport_closed(err?: Error | null) {
         debugLog(" =>ClientSecureChannelLayer#_on_transport_closed  err=", err ? err.message : "null");
 
         if (this.__in_normal_close_operation) {
@@ -1000,7 +998,7 @@ export class ClientSecureChannelLayer extends EventEmitter {
                     openSecureChannelResponse.securityToken.tokenId > 0 || msgType === "OPN",
                     "_sendSecureOpcUARequest: invalid token Id "
                 );
-                assert(openSecureChannelResponse.hasOwnProperty("serverNonce"));
+                assert(Object.prototype.hasOwnProperty.call(openSecureChannelResponse, "serverNonce"));
                 this.securityToken = openSecureChannelResponse.securityToken;
                 this.serverNonce = openSecureChannelResponse.serverNonce;
 
@@ -1060,7 +1058,7 @@ export class ClientSecureChannelLayer extends EventEmitter {
             this._on_receive_message_chunk(messageChunk);
         });
 
-        this._transport.on("close", (err: Error|null) => this._on_transport_closed(err));
+        this._transport.on("close", (err: Error | null) => this._on_transport_closed(err));
 
         this._transport.on("connection_break", () => {
             debugLog(chalk.red("Client => CONNECTION BREAK  <="));
