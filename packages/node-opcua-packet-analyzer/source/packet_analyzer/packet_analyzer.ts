@@ -1,11 +1,6 @@
-// tslint:disable:no-bitwise
-// tslint:disable:no-console
-// tslint:disable:max-line-length
-// tslint:disable:no-empty-interface
-
+import { inspect } from "util";
 import * as chalk from "chalk";
 import { assert } from "node-opcua-assert";
-import { inspect } from "util";
 
 import { decodeByte, decodeExpandedNodeId, decodeNodeId, decodeUInt32 } from "node-opcua-basic-types";
 import { BinaryStream } from "node-opcua-binary-stream";
@@ -23,7 +18,7 @@ function f(n: number, width: number): string {
 
 function display_encoding_mask(padding: string, encodingMask: any, encodingInfo: any) {
     for (const v in encodingInfo) {
-        if (!encodingInfo.hasOwnProperty(v)) {
+        if (!Object.prototype.hasOwnProperty.call(encodingInfo, v)) {
             continue;
         }
         const enumKey = encodingInfo[v];
@@ -50,7 +45,15 @@ function hex_block(start: number, end: number, buffer: Buffer) {
     );
 }
 
-function make_tracer(buffer: Buffer, padding: number, offset?: number) {
+interface Tracer {
+    name?: string;
+    tracer: {
+        dump: (title: string, value: any) => void;
+        encoding_byte: (encodingMask: any, valueEnum: any, start: number, end: number) => void;
+        trace: (operation: any, name: any, value: any, start: number, end: number, fieldType: string) => void;
+    };
+}
+function make_tracer(buffer: Buffer, padding: number, offset?: number): Tracer {
     padding = !padding ? 0 : padding;
     offset = offset || 0;
 
@@ -157,18 +160,29 @@ function make_tracer(buffer: Buffer, padding: number, offset?: number) {
 
 interface AnalyzePacketOptions {}
 
+export interface ObjectMessage {
+    encode(stream: BinaryStream): void;
+    decode(stream: BinaryStream): void;
+    decodeDebug(stream: BinaryStream, options: any): void;
+}
+
 export function analyzePacket(
     buffer: Buffer,
-    objMessage: any,
+    objMessage: ObjectMessage,
     padding: number,
     offset?: number,
     customOptions?: AnalyzePacketOptions
-) {
+): void {
     const stream = new BinaryStream(buffer);
     _internalAnalyzePacket(buffer, stream, objMessage, padding, customOptions, offset);
 }
 
-export function analyseExtensionObject(buffer: Buffer, padding: number, offset: number, customOptions?: AnalyzePacketOptions) {
+export function analyseExtensionObject(
+    buffer: Buffer,
+    padding: number,
+    offset: number,
+    customOptions?: AnalyzePacketOptions
+): void {
     const stream = new BinaryStream(buffer);
     let id;
     let objMessage;
@@ -186,12 +200,12 @@ export function analyseExtensionObject(buffer: Buffer, padding: number, offset: 
 function _internalAnalyzePacket(
     buffer: Buffer,
     stream: BinaryStream,
-    objMessage: any,
+    objMessage: ObjectMessage | undefined,
     padding: number,
     customOptions?: AnalyzePacketOptions,
     offset?: number
 ) {
-    let options: any = make_tracer(buffer, padding, offset);
+    let options = make_tracer(buffer, padding, offset);
     options.name = "message";
     if (customOptions) options = { ...options, ...customOptions };
     try {
@@ -209,7 +223,7 @@ function _internalAnalyzePacket(
     }
 }
 
-export function analyze_object_binary_encoding(obj: BaseUAObject) {
+export function analyze_object_binary_encoding(obj: BaseUAObject): void {
     assert(obj);
 
     const size = obj.binaryStoreSize();
