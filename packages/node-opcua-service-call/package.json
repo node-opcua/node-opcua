@@ -4,6 +4,8 @@
     "description": "pure nodejs OPCUA SDK - module -service-call",
     "scripts": {
         "test": "mocha",
+        "lint": "eslint source test",
+        "format": "prettier --write source test",
         "clean": "node -e \"require('rimraf').sync('dist');\"",
         "build": "tsc -b"
     },
