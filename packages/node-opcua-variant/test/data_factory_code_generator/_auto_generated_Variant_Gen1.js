@@ -1,10 +1,9 @@
-
 // --------- This code has been automatically generated !!! Sat Mar 21 2015 21:52:41 GMT+0100 (Paris, Madrid)
 /**
  * @module node-opcua-address-space.types
  */
-const { assert } = require("node-opcua-assert");
 const util = require("util");
+const { assert } = require("node-opcua-assert");
 const schema_helpers = require("node-opcua-factory/src/factories_schema_helpers");
 const resolve_schema_field_types = schema_helpers.resolve_schema_field_types;
 const initialize_field = schema_helpers.initialize_field;
@@ -14,8 +13,8 @@ const ec = require("node-opcua-basic-types");
 const { makeExpandedNodeId } = require("node-opcua-nodeid");
 const generate_new_id = require("node-opcua-factory").generate_new_id;
 const _enumerations = require("node-opcua-factory/src/factories_enumerations")._private._enumerations;
-const schema = require("../../schemas/Variant_schema").Variant_Schema;
 const BaseUAObject = require("node-opcua-factory").BaseUAObject;
+const schema = require("../../schemas/Variant_schema").Variant_Schema;
 
 /**
  * @class Variant
@@ -25,6 +24,7 @@ const BaseUAObject = require("node-opcua-factory").BaseUAObject;
 function Variant(options) {
     options = options || {};
     check_options_correctness_against_schema(this, schema, options);
+    // eslint-disable-next-line @typescript-eslint/no-this-alias
     const self = this;
     assert(this instanceof BaseUAObject); //  ' keyword "new" is required for constructor call')
     resolve_schema_field_types(schema);
@@ -41,14 +41,14 @@ function Variant(options) {
      */
     //## Define special behavior for Enumeration
     Object.defineProperties(this, {
-        "dataType": {
+        dataType: {
             hidden: false,
             enumerable: true,
             configurable: true,
-            get: function() {
+            get: function () {
                 return this.__dataType;
             },
-            set: function(value) {
+            set: function (value) {
                 const coercedValue = _enumerations.DataType.typedEnum.get(value);
                 if (coercedValue === undefined || coercedValue === null) {
                     throw new Error("value cannot be coerced to DataType: " + value);
@@ -56,7 +56,7 @@ function Variant(options) {
                 this.__dataType = coercedValue;
             }
         },
-        "__dataType": {
+        __dataType: {
             hidden: true,
             writable: true,
             enumerable: false
@@ -71,14 +71,14 @@ function Variant(options) {
      */
     //## Define special behavior for Enumeration
     Object.defineProperties(this, {
-        "arrayType": {
+        arrayType: {
             hidden: false,
             enumerable: true,
             configurable: true,
-            get: function() {
+            get: function () {
                 return this.__arrayType;
             },
-            set: function(value) {
+            set: function (value) {
                 const coercedValue = _enumerations.VariantArrayType.typedEnum.get(value);
                 if (coercedValue === undefined || coercedValue === null) {
                     throw new Error("value cannot be coerced to VariantArrayType: " + value);
@@ -86,7 +86,7 @@ function Variant(options) {
                 this.__arrayType = coercedValue;
             }
         },
-        "__arrayType": {
+        __arrayType: {
             hidden: true,
             writable: true,
             enumerable: false
@@ -114,7 +114,7 @@ const encode_VariantArrayType = _enumerations.VariantArrayType.encode;
 const decode_VariantArrayType = _enumerations.VariantArrayType.decode;
 const encode_Any = _defaultTypeMap.Any.encode;
 const decode_Any = _defaultTypeMap.Any.decode;
-Variant.prototype.encode = function(stream, options) {
+Variant.prototype.encode = function (stream, options) {
     schema.encode(this, stream, options);
 };
 /**
@@ -124,10 +124,10 @@ Variant.prototype.encode = function(stream, options) {
  * @param stream {BinaryStream}
  * @param [option] {object}
  */
-Variant.prototype.decode = function(stream, options) {
+Variant.prototype.decode = function (stream, options) {
     schema.decode(this, stream, options);
 };
-Variant.prototype.decodeDebug = function(stream, options) {
+Variant.prototype.decodeDebug = function (stream, options) {
     schema.decodeDebug(this, stream, options);
 };
 /**
@@ -136,16 +136,11 @@ Variant.prototype.decodeDebug = function(stream, options) {
  * @method isValid
  * @return {Boolean}
  */
-Variant.prototype.isValid = function() {
+Variant.prototype.isValid = function () {
     return schema.isValid(this);
 };
-Variant.possibleFields = function() {
-    return [
-        "dataType",
-        "arrayType",
-        "value"
-    ];
-}();
-
+Variant.possibleFields = (function () {
+    return ["dataType", "arrayType", "value"];
+})();
 
 exports.Variant = Variant;

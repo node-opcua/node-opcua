@@ -1,7 +1,7 @@
+import assert from "node-opcua-assert";
 import { Variant } from "./variant";
 import { DataType } from "./DataType_enum";
 import { VariantArrayType } from "./VariantArrayType_enum";
-import assert from "node-opcua-assert";
 
 export function adjustVariant(variant: Variant, valueRank: number, targetDataType: DataType): Variant {
     if (targetDataType === DataType.Byte && valueRank === 1 /* Array */) {

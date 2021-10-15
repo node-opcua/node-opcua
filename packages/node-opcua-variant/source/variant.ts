@@ -30,7 +30,8 @@ import {
     initialize_field,
     registerSpecialVariantEncoder,
     StructuredTypeSchema,
-    registerType
+    registerType,
+    DecodeDebugOptions
 } from "node-opcua-factory";
 
 import * as utils from "node-opcua-utils";
@@ -92,7 +93,7 @@ export interface VariantOptions2 {
 export class Variant extends BaseUAObject {
     public static schema = schemaVariant;
     public static coerce = _coerceVariant;
-    public static computer_default_value = () => new Variant({ dataType: DataType.Null });
+    public static computer_default_value = (): Variant => new Variant({ dataType: DataType.Null });
     public dataType: DataType;
     public arrayType: VariantArrayType;
     public value: any;
@@ -141,15 +142,15 @@ export class Variant extends BaseUAObject {
             }
         }
     }
-    public encode(stream: OutputBinaryStream) {
+    public encode(stream: OutputBinaryStream): void {
         encodeVariant(this, stream);
     }
 
-    public decode(stream: BinaryStream) {
+    public decode(stream: BinaryStream): void {
         internalDecodeVariant(this, stream);
     }
 
-    public decodeDebug(stream: BinaryStream, options: any) {
+    public decodeDebug(stream: BinaryStream, options: DecodeDebugOptions): void {
         decodeDebugVariant(this, stream, options);
     }
 
@@ -267,7 +268,7 @@ export function encodeVariant(variant: Variant | undefined | null, stream: Outpu
 /***
  * @private
  */
-function decodeDebugVariant(self: Variant, stream: BinaryStream, options: any): void {
+function decodeDebugVariant(self: Variant, stream: BinaryStream, options: DecodeDebugOptions): void {
     const tracer = options.tracer;
 
     const encodingByte = decodeUInt8(stream);
@@ -720,10 +721,14 @@ function encodeDimension(dimensions: number[], stream: OutputBinaryStream) {
 }
 
 function isEnumerationItem(value: any): boolean {
-    return value instanceof Object && value.hasOwnProperty("value") && value.hasOwnProperty("key");
+    return (
+        value instanceof Object &&
+        Object.prototype.hasOwnProperty.call(value, "value") &&
+        Object.prototype.hasOwnProperty.call(value, "key")
+    );
 }
 
-export function coerceVariantType(dataType: DataType, value: any): any {
+export function coerceVariantType(dataType: DataType, value: undefined | any): any {
     /* eslint max-statements: ["error",1000], complexity: ["error",1000]*/
     if (value === undefined) {
         value = null;
@@ -888,7 +893,7 @@ function isValidMatrixVariant(dataType: DataType, value: any, dimensions: number
     return true;
 }
 
-export function isValidVariant(arrayType: VariantArrayType, dataType: DataType, value: any, dimensions?: number[] | null): boolean {
+export function isValidVariant(arrayType: VariantArrayType, dataType: DataType, value: unknown, dimensions?: number[] | null): boolean {
     switch (arrayType) {
         case VariantArrayType.Scalar:
             return isValidScalarVariant(dataType, value);
@@ -900,7 +905,11 @@ export function isValidVariant(arrayType: VariantArrayType, dataType: DataType, 
     }
 }
 
-export function buildVariantArray(dataType: DataType, nbElements: number, defaultValue: any) {
+export function buildVariantArray(
+    dataType: DataType,
+    nbElements: number,
+    defaultValue: unknown
+): Float32Array | Float64Array | Uint32Array | Int32Array | Uint16Array | Int16Array | Uint8Array | Int8Array | Array<unknown> {
     let value;
     switch (dataType) {
         case DataType.Float:
@@ -953,7 +962,7 @@ function __check_same_object(o1: any, o2: any): boolean {
     switch (t1) {
         case "[object Array]":
             return __check_same_array(o1, o2);
-        case "[object Object]":
+        case "[object Object]": {
             if (o1.constructor?.name !== o2.constructor?.name) {
                 return false;
             }
@@ -969,6 +978,7 @@ function __check_same_object(o1: any, o2: any): boolean {
                 }
             }
             return true;
+        }
         case "[object Float32Array]":
         case "[object Float64Array]":
         case "[object Int32Array]":
@@ -976,10 +986,11 @@ function __check_same_object(o1: any, o2: any): boolean {
         case "[object Int8Array]":
         case "[object Uint32Array]":
         case "[object Uint16Array]":
-        case "[object Uint8Array]":
+        case "[object Uint8Array]": {
             const b1 = Buffer.from(o1.buffer, o1.byteOffset, o1.byteLength);
             const b2 = Buffer.from(o2.buffer, o2.byteOffset, o2.byteLength);
             return b1.equals(b2);
+        }
         default:
             return o1 === o2;
     }
