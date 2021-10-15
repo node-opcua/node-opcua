@@ -1,9 +1,9 @@
-// tslint:disable: no-console
+/* eslint-disable max-statements */
+/* eslint-disable complexity */
 import * as chalk from "chalk";
 import { timestamp } from "node-opcua-utils";
 import { assert } from "node-opcua-assert";
 
-import { Request, Response } from "./common";
 import {
     BrowseNextRequest,
     BrowseNextResponse,
@@ -25,6 +25,7 @@ import {
     StatusChangeNotification
 } from "node-opcua-types";
 import { StatusCode, StatusCodes } from "node-opcua-status-code";
+import { Request, Response } from "./common";
 
 const clientFlag = (process.env?.NODEOPCUADEBUG?.match(/CLIENT{([^}]*)}/) || [])[1] || "";
 const serverFlag = (process.env?.NODEOPCUADEBUG?.match(/SERVER{([^}]*)}/) || [])[1] || "";
@@ -56,7 +57,7 @@ export interface ServerTransactionStatistics {
 }
 
 // istanbul ignore next
-export function _dump_transaction_statistics(stats?: ServerTransactionStatistics) {
+export function _dump_transaction_statistics(stats?: ServerTransactionStatistics): void {
     if (stats) {
         console.log("                Bytes Read : ", stats.bytesRead);
         console.log("             Bytes Written : ", stats.bytesWritten);
@@ -81,7 +82,7 @@ export interface ClientTransactionStatistics {
     lap_processing_response: number;
 }
 
-export function _dump_client_transaction_statistics(stats: ClientTransactionStatistics) {
+export function _dump_client_transaction_statistics(stats: ClientTransactionStatistics): void {
     function w(str: string | number) {
         return ("                  " + str).substr(-12);
     }
@@ -173,10 +174,11 @@ function __get_extraInfo(req: Response | Request): string {
                 t = t.replace(/Notification/g, "Nt°");
             }
         }
-        return " " + t + " seqn=" + req.notificationMessage.sequenceNumber;
+        return " " + t + " seq#=" + req.notificationMessage.sequenceNumber;
     }
     return "";
 }
+
 function _get_extraInfo(req: Response | Request): string {
     return __get_extraInfo(req).padEnd(30);
 }
@@ -202,7 +204,7 @@ function statusCodeToString(s: StatusCode): string {
 }
 
 // istanbul ignore next
-export function traceRequestMessage(request: Request, channelId: number, instance: number) {
+export function traceRequestMessage(request: Request, channelId: number, instance: number): void {
     if (doTraceServerMessage ) {
         const extra = _get_extraInfo(request);
         const size = evaluateBinarySize(request);
@@ -224,7 +226,7 @@ export function traceRequestMessage(request: Request, channelId: number, instanc
 }
 
 // istanbul ignore next
-export function traceResponseMessage(response: Response, channelId: number, instance: number) {
+export function traceResponseMessage(response: Response, channelId: number, instance: number): void {
     assert(response.responseHeader.requestHandle >= 0);
     if (doTraceServerMessage ) {
         const extra = _get_extraInfo(response);
@@ -249,7 +251,7 @@ export function traceResponseMessage(response: Response, channelId: number, inst
 
 // istanbul ignore next
 // istanbul ignore next
-export function traceClientRequestMessage(request: Request, channelId: number, instance: number) {
+export function traceClientRequestMessage(request: Request, channelId: number, instance: number): void {
     const extra = _get_extraInfo(request);
     const size = evaluateBinarySize(request);
     const requestId = request.requestHeader.requestHandle;
@@ -264,7 +266,7 @@ export function traceClientRequestMessage(request: Request, channelId: number, i
     );
 }
 
-export function traceClientResponseMessage(response: Response, channelId: number, instance: number) {
+export function traceClientResponseMessage(response: Response, channelId: number, instance: number): void {
     const extra = _get_extraInfo(response);
     const size = evaluateBinarySize(response);
     const requestId = response.responseHeader.requestHandle;

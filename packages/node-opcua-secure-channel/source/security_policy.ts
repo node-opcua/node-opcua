@@ -35,7 +35,7 @@ import { EncryptBufferFunc, SignBufferFunc } from "node-opcua-chunkmanager";
 
 // tslint:disable:no-empty
 function errorLog(...args: any[]) {
-
+    /** */
 }
 /**
  *
@@ -142,21 +142,30 @@ export function toURI(value: SecurityPolicy | string): string {
     return SecurityPolicy[securityPolicy];
 }
 
-export function coerceSecurityPolicy(value?: any): SecurityPolicy {
-    if (value === undefined) {
+export function coerceSecurityPolicy(value?: string | SecurityPolicy | null): SecurityPolicy {
+    if (value === undefined || value === null) {
         return SecurityPolicy.None;
     }
-    if (value === "Basic128Rsa15" || value === "Basic256" || value === "Basic192Rsa15" || value === "None" || value === "Basic256Sha256" || value === "Basic256Rsa15") {
+    if (
+        value === "Basic128Rsa15" ||
+        value === "Basic256" ||
+        value === "Basic192Rsa15" ||
+        value === "None" ||
+        value === "Basic256Sha256" ||
+        value === "Basic256Rsa15"
+    ) {
         return (SecurityPolicy as any)[value as string] as SecurityPolicy;
     }
-    if (!(
-        value === SecurityPolicy.Basic128Rsa15 ||
-        value === SecurityPolicy.Basic256 ||
-        value === SecurityPolicy.Basic192Rsa15 ||
-        value === SecurityPolicy.Basic256Rsa15 ||
-        value === SecurityPolicy.Basic256Sha256 ||
-        value === SecurityPolicy.None
-    )) {
+    if (
+        !(
+            value === SecurityPolicy.Basic128Rsa15 ||
+            value === SecurityPolicy.Basic256 ||
+            value === SecurityPolicy.Basic192Rsa15 ||
+            value === SecurityPolicy.Basic256Rsa15 ||
+            value === SecurityPolicy.Basic256Sha256 ||
+            value === SecurityPolicy.None
+        )
+    ) {
         errorLog("coerceSecurityPolicy: invalid security policy ", value, SecurityPolicy);
     }
     return value as SecurityPolicy;
@@ -505,7 +514,7 @@ export function getOptionsForSymmetricSignAndEncrypt(
     derivedKeys: DerivedKeys
 ): SecureMessageChunkManagerOptionsPartial {
 
-    assert(derivedKeys.hasOwnProperty("signatureLength"));
+    assert(Object.prototype.hasOwnProperty.call(derivedKeys,"signatureLength"));
     assert(securityMode !== MessageSecurityMode.None && securityMode !== MessageSecurityMode.Invalid);
 
     let options: SecureMessageChunkManagerOptionsPartial = {

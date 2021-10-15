@@ -129,7 +129,7 @@ export class MessageBuilder extends MessageBuilderBase {
         this._tokenStack = [];
     }
 
-    public setSecurity(securityMode: MessageSecurityMode, securityPolicy: SecurityPolicy) {
+    public setSecurity(securityMode: MessageSecurityMode, securityPolicy: SecurityPolicy): void {
         assert(this.securityMode === MessageSecurityMode.Invalid, "security already set");
         this.securityPolicy = coerceSecurityPolicy(securityPolicy);
         this.securityMode = coerceMessageSecurityMode(securityMode);
@@ -137,7 +137,7 @@ export class MessageBuilder extends MessageBuilderBase {
         assert(this.securityMode !== MessageSecurityMode.Invalid);
     }
 
-    public dispose() {
+    public dispose(): void {
         super.dispose();
         // xx this.securityPolicy = undefined;
         // xx this.securityMode = null;
@@ -387,6 +387,7 @@ export class MessageBuilder extends MessageBuilderBase {
         this._previousSequenceNumber = sequenceNumber;
     }
 
+    // eslint-disable-next-line max-statements
     private _decrypt_OPN(binaryStream: BinaryStream): boolean {
         assert(this.securityPolicy !== SecurityPolicy.None);
         assert(this.securityPolicy !== SecurityPolicy.Invalid);
