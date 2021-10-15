@@ -12,7 +12,7 @@ export function set_flag(value: number, mask: number | { value: number }): numbe
     if ((mask as any).value) {
         mask = (mask as any).value;
     }
-    assert(!mask.hasOwnProperty("value"));
+    assert(!Object.prototype.hasOwnProperty.call(mask, "value"));
     assert(mask !== undefined);
     return value | (mask as number);
 }
@@ -24,11 +24,11 @@ export function check_flag(value: number, mask: number | { value: number }): boo
     if ((mask as any).value) {
         mask = (mask as any).value;
     }
-    assert(!mask.hasOwnProperty("value"));
+    assert(!Object.prototype.hasOwnProperty.call(mask, "value"));
     return (value & (mask as number)) === (mask as number);
 }
 
-export function isNullOrUndefined(value: any): boolean {
+export function isNullOrUndefined(value: unknown | undefined): boolean {
     return value === undefined || value === null;
 }
 

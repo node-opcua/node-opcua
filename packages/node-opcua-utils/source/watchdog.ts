@@ -60,7 +60,7 @@ function keepAliveFunc(this: ISubscriber) {
 }
 
 export class WatchDog extends EventEmitter {
-    static emptyKeepAlive = () => {
+    static emptyKeepAlive = (): void => {
         /* */
     };
     /**
@@ -136,7 +136,7 @@ export class WatchDog extends EventEmitter {
         return key;
     }
 
-    public removeSubscriber(subscriber: ISubscriber) {
+    public removeSubscriber(subscriber: ISubscriber): void {
         if (!subscriber._watchDog) {
             return; // already removed !!!
         }
@@ -147,7 +147,7 @@ export class WatchDog extends EventEmitter {
         assert(subscriber._watchDog instanceof WatchDog);
         assert(typeof subscriber._watchDogData.key === "number");
         assert(typeof subscriber.keepAlive === "function");
-        assert(this._watchdogDataMap.hasOwnProperty(subscriber._watchDogData.key));
+        assert(Object.prototype.hasOwnProperty.call(this._watchdogDataMap, subscriber._watchDogData.key));
 
         delete this._watchdogDataMap[subscriber._watchDogData.key];
         delete subscriber._watchDog;

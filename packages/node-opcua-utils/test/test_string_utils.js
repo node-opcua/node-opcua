@@ -1,5 +1,7 @@
-const utils = require("..");
+const { performance, PerformanceObserver } = require("perf_hooks");
 const should = require("should");
+const { countUpperCase, countUpperCaseSlow } = require("../dist/string_utils");
+const utils = require("..");
 
 describe("string_utils", function () {
     describe("capitalizeFirstLetter", function () {
@@ -25,7 +27,7 @@ describe("string_utils", function () {
             lowerFirstLetter("Foo").should.eql("foo");
         });
 
-        it("should keep a lowercased first letter lowercased", function () {
+        it("should keep a lower-cased first letter lower-cased", function () {
             lowerFirstLetter("foo").should.eql("foo");
         });
 
@@ -60,16 +62,11 @@ describe("string_utils", function () {
     });
 });
 
-const { countUpperCase, countUpperCaseSlow } = require("../dist/string_utils");
-
-const { performance, PerformanceObserver } = require("perf_hooks");
-
 describe("benchmark", () => {
     it("countUpperCase should be faster than countUpperCaseSlow", () => {
-        
         let start = process.hrtime();
 
-        function elapsed_time(note){
+        function elapsed_time(note) {
             let precision = 3; // 3 decimal places
             let elapsed = process.hrtime(start)[1] / 1000000; // divide by a million to get nano to milli
             console.log(process.hrtime(start)[0] + " s, " + elapsed.toFixed(precision) + " ms - " + note); // print message + time
@@ -78,20 +75,19 @@ describe("benchmark", () => {
         }
 
         start = process.hrtime();
-        for (let n = 0; n < 100000; n++) {
+        for (let n = 0; n < 200000; n++) {
             countUpperCaseSlow("qkldjqsld lqskdjql skdjlqksd azoirjapzoeazpx oqskQPDKQSD¨QSDPQS¨D kLAEAZJ EL121232");
             countUpperCaseSlow("qkldjqsld");
             countUpperCaseSlow("qkldjqsld");
-            }
+        }
         const d1 = elapsed_time("countUpperCaseSlow");
-        for (let n = 0; n < 100000; n++) {
+        for (let n = 0; n < 200000; n++) {
             countUpperCase("qkldjqsld lqskdjql skdjlqksd azoirjapzoeazpx oqskQPDKQSD¨QSDPQS¨D kLAEAZJ EL121232");
             countUpperCase("qkldjqsld");
             countUpperCase("qkldjqsld");
         }
         const d2 = elapsed_time("countUpperCase");
-        
+
         d2.should.be.lessThan(d1);
-       
     });
 });

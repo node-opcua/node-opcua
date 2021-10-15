@@ -8,7 +8,7 @@
  * @see https://tools.ietf.org/html/rfc4343 : Domain Name System (DNS) Case Insensitivity Clarification
  *
  */
-export function matchUri(endpointUri1: string | null, endpointUri2: string | null) {
+export function matchUri(endpointUri1: string | null, endpointUri2: string | null): boolean {
     if (endpointUri1 === null) {
         return endpointUri2 === null;
     }

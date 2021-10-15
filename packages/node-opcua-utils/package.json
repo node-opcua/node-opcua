@@ -6,6 +6,8 @@
     "types": "./dist/index.d.ts",
     "scripts": {
         "build": "tsc -b",
+        "lint": "eslint source test",
+        "format": "prettier --write source test",
         "test": "mocha",
         "clean": "node -e \"require('rimraf').sync('dist');\""
     },

@@ -31,16 +31,16 @@ export function countAlphaSlow(str: string): number {
 
 export function countUpperCase(str: string): number {
     let count = 0;
-    const n = str.length
-    for (let i=0; i < n ; i++) {
+    const n = str.length;
+    for (let i = 0; i < n; i++) {
         count += isUpperCaseChar(str[i]) ? 1 : 0;
     }
     return count;
 }
 export function countAlpha(str: string): number {
     let count = 0;
-    const n = str.length
-    for (let i=0; i < n ; i++) {
+    const n = str.length;
+    for (let i = 0; i < n; i++) {
         count += isAlpha(str[i]) ? 1 : 0;
     }
     return count;
@@ -54,19 +54,19 @@ export function countAlpha(str: string): number {
  *
  *  OPCUA and Javascript use two different rules to build identifiers.
  *
- *  OPCUA Identifier usually starts with a upper case letter and word are join together, this is known as  
+ *  OPCUA Identifier usually starts with a upper case letter and word are join together, this is known as
  *  the Pascal case, or CapitalizedWords convention.  (for instance HelloWorld)
- *  But sometime, OPCUA indentifiers do not follow this convention strictly and we can find various 
- *  other convention being applied such as underscore between word, or addintion of ACRONYMED prefixes.
- *  On it's own, this causes great confusion and inconsistancy in programming style.
+ *  But sometime, OPCUA identifiers do not follow this convention strictly and we can find various
+ *  other convention being applied such as underscore between word, or addition of ACRONYMIC prefixes.
+ *  On it's own, this causes great confusion and inconsistency in programming style.
  *
- *  Javascritpt uses a slightly different convention called camelCase where word are joined together
- *  and inner words starts with a capital letter whereas first word starts with a lower case letter. 
+ *  Javascript uses a slightly different convention called camelCase where word are joined together
+ *  and inner words starts with a capital letter whereas first word starts with a lower case letter.
  *  (for instance helloWorld)
  *
  *  In node-opcua we have taken the opinionated decision to consistently use camelCase convention for
  *  object properties so that all the code look nice and consistent.
- *  the lowerFirstLetter method can be used to easily convert from the OPCUA  naming convention 
+ *  the lowerFirstLetter method can be used to easily convert from the OPCUA  naming convention
  *  to javascript naming convention by applying the following rules.
  *
  *   * each ascii sequence in a identifier will be converted to lower camel case.
@@ -110,7 +110,7 @@ export function lowerFirstLetter(str: string): string {
         return str;
     }
 
-    if (str.match(/\_/)) {
+    if (str.match(/_/)) {
         return str.split("_").map(lowerFirstLetter).join("_");
     }
     let result = str.substr(0, 1).toLowerCase() + str.substr(1);

@@ -1,22 +1,21 @@
 "use strict";
 
-const sinon = require("sinon");
 const EventEmitter = require("events").EventEmitter;
 const util = require("util");
 const should = require("should");
+const sinon = require("sinon");
 
 const WatchDog = require("..").WatchDog;
 
-function MyObject() { }
-util.inherits(MyObject, EventEmitter);
-
-MyObject.prototype.watchdogReset = function() {
-    this.emit("watchdogReset");
-};
+class MyObject extends EventEmitter {
+    watchdogReset() {
+        this.emit("watchdogReset");
+    };
+}
 
 //xx var describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 // http://sinonjs.org/docs/#clock
-describe("watch dog", function() {
+describe("watch dog", function () {
     this.timeout(10000);
     let watchDog = null;
     beforeEach(() => {
@@ -78,7 +77,7 @@ describe("watch dog", function() {
         watchDog.addSubscriber(obj1, 1000);
         watchDog.removeSubscriber(obj1);
 
-        should.not.exist(watchDog._timer)
+        should.not.exist(watchDog._timer);
     });
 
     it("should fail if the object subscribing to the WatchDog doesn't provide a 'watchdogReset' method", (done) => {
@@ -155,7 +154,7 @@ describe("watch dog", function() {
         const obj1 = new MyObject();
         watchDog.addSubscriber(obj1, 1000);
 
-        watchDog.on("timeout", function(subscribers) {
+        watchDog.on("timeout", function (subscribers) {
             subscribers.length.should.eql(1);
             done();
         });
