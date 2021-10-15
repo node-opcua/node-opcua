@@ -8,17 +8,6 @@ const uu = require("underscore");
 const sameVariantSlow1 = ul.isEqual;
 const sameVariantSlow2 = uu.isEqual;
 
-const {
-    Variant,
-    DataType,
-    VariantArrayType,
-    isValidVariant,
-    buildVariantArray,
-    VARIANT_ARRAY_MASK,
-    coerceVariantType,
-    decodeVariant
-} = require("..");
-
 const ec = require("node-opcua-basic-types");
 const { QualifiedName, LocalizedText } = require("node-opcua-data-model");
 
@@ -530,6 +519,16 @@ describe("Variant", () => {
 
 const analyze_object_binary_encoding = require("node-opcua-packet-analyzer").analyze_object_binary_encoding;
 const makeNodeId = require("node-opcua-nodeid").makeNodeId;
+const {
+    Variant,
+    DataType,
+    VariantArrayType,
+    isValidVariant,
+    buildVariantArray,
+    VARIANT_ARRAY_MASK,
+    coerceVariantType,
+    decodeVariant
+} = require("..");
 
 describe("Variant - Analyser", function () {
     // increase timeout to cope with istanbul
@@ -992,26 +991,8 @@ describe("Variant with Advanced Array", () => {
             arrayType: VariantArrayType.Matrix,
             dimensions: [5, 4],
             value: [
-                0x000,
-                0x001,
-                0x002,
-                0x003,
-                0x100,
-                0x101,
-                0x102,
-                0x103,
-                0x200,
-                0x201,
-                0x202,
-                0x203,
-                0x300,
-                0x301,
-                0x302,
-                0x303,
-                0x400,
-                0x401,
-                0x402,
-                0x403
+                0x000, 0x001, 0x002, 0x003, 0x100, 0x101, 0x102, 0x103, 0x200, 0x201, 0x202, 0x203, 0x300, 0x301, 0x302, 0x303,
+                0x400, 0x401, 0x402, 0x403
             ]
         });
 
