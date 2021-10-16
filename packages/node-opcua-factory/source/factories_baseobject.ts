@@ -23,7 +23,7 @@ function r(str: string, length = 30) {
     return (str + "                                ").substr(0, length);
 }
 
-function _decode_member_(value: any, field: StructuredTypeField, stream: BinaryStream, options: any) {
+function _decode_member_(value: any, field: StructuredTypeField, stream: BinaryStream, options: DecodeDebugOptions) {
     const tracer = options.tracer;
     const cursorBefore = stream.length;
     const fieldType = field.fieldType;

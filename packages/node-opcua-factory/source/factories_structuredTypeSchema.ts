@@ -14,6 +14,7 @@ import { getStructuredTypeSchema, getStructureTypeConstructor, hasStructuredType
 import { parameters } from "./factories_schema_helpers";
 import { DataTypeFactory } from "./datatype_factory";
 import { CommonInterface, FieldCategory, FieldInterfaceOptions, FieldType, StructuredTypeOptions, TypeSchemaBase } from "./types";
+import { BaseUAObject } from "./factories_baseobject";
 
 function figureOutFieldCategory(field: FieldInterfaceOptions): FieldCategory {
     const fieldType = field.fieldType;
@@ -278,8 +279,6 @@ export function check_options_correctness_against_schema(obj: any, schema: Struc
         message += chalk.red(" expecting a ") + chalk.yellow(" Object ");
         message += "\n";
         message += chalk.red(" and got a ") + chalk.yellow(typeof options) + chalk.red(" instead ");
-        // console.log(" Schema  = ", schema);
-        // console.log(" options = ", options);
         throw new Error(message);
     }
 
