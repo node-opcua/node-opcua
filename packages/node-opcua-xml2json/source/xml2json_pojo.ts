@@ -1,7 +1,6 @@
 import { IReaderState, ReaderState, ReaderStateParser, Xml2Json, XmlAttributes } from "./xml2json";
 import { ReaderState2, withPojoLambda } from "./xml2Json_pojo_tools";
 
-
 const json_extractor: ReaderState2 = new ReaderState2();
 export const json_parser: ReaderStateParser = {
     init(this: IReaderState, elementName: string, attrs: XmlAttributes, parent: IReaderState, engine: Xml2Json) {
@@ -12,7 +11,7 @@ export const json_parser: ReaderStateParser = {
     }
 };
 
-export function startPojo(pThis: ReaderState, elementName: string, attrs: XmlAttributes, withPojo: withPojoLambda) {
+export function startPojo(pThis: ReaderState, elementName: string, attrs: XmlAttributes, withPojo: withPojoLambda): void {
     pThis.engine!._promote(json_extractor, pThis.engine!.currentLevel, elementName, attrs);
     json_extractor._withPojo = (name: string, pojo: any) => {
         withPojo(name, pojo);

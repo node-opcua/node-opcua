@@ -34,12 +34,12 @@ export const _definitionParser: ReaderStateParserLike = {
                 Description: {
                     finish(this: any) {
                         this.parent.description = this.text;
-                    },
-                },
+                    }
+                }
             },
             finish(this: any) {
                 const obj: any = {
-                    name: this.attrs.Name,
+                    name: this.attrs.Name
                 };
                 if (this.attrs.DataType !== undefined) {
                     obj.dataType = this.attrs.DataType;
@@ -66,19 +66,19 @@ export const _definitionParser: ReaderStateParserLike = {
                     obj.symbolicName = this.attrs.SymbolicName;
                 }
                 this.parent.array.push(obj);
-            },
-        },
-    },
+            }
+        }
+    }
 };
 export const definitionReaderStateParser: ReaderStateParserLike = {
     parser: {
-        Definition: _definitionParser,
+        Definition: _definitionParser
     },
     endElement(this: any) {
         this._pojo = {
             name: this.definitionName,
 
-            fields: this.definitionFields,
+            fields: this.definitionFields
         };
-    },
+    }
 };

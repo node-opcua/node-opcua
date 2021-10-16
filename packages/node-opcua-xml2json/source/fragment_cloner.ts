@@ -16,7 +16,7 @@ const XMLWriter = require("xml-writer");
 export class InternalFragmentClonerReaderState implements IReaderState {
     private _xw: XmlWriter = new XMLWriter(true);
     public value: any;
-    public initLevel: number = 0;
+    public initLevel = 0;
     public engine?: Xml2Json;
 
     public _on_startElement(level: number, elementName: string, attrs: XmlAttributes): void {
@@ -43,8 +43,15 @@ export class InternalFragmentClonerReaderState implements IReaderState {
             this._xw.writeAttribute(attName, attValue);
         }
     }
-    public _on_finish(): void {}
-    public _on_endElement2(level: number, elementName: string): void {}
+
+    public _on_finish(): void {
+        /** */
+    }
+
+    public _on_endElement2(level: number, elementName: string): void {
+        /** */
+    }
+
     public _on_text(text: string): void {
         this._xw.text(text);
     }

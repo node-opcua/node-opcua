@@ -1,24 +1,16 @@
 // tslint:disable:no-console
 import * as mocha from "mocha";
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
-import * as should  from "should";
-import {
-    makeExtensionObjectReader,
-    Definition,
-    Xml2Json,
-
-} from "..";
+import * as should from "should";
+import { makeExtensionObjectReader, Definition, Xml2Json } from "..";
 
 const doDebug = checkDebugFlag("TEST");
 const debugLog = make_debugLog("TEST");
 
 const _should = should;
 
-
 describe("Test ExtensionObject parsing (with definition)", () => {
-
     it("should parse a definition node and convert it to a parser", async () => {
-
         const s = `
 <Definition Name="1:MyOtherStructureDataType">
     <Field DataType="String" ValueRank="1" Name="Names"/>
@@ -31,7 +23,6 @@ describe("Test ExtensionObject parsing (with definition)", () => {
             fields: [
                 { name: "Names", valueRank: 1, dataType: "String" },
                 { name: "Values", valueRank: 1, dataType: "MyStructureDataType" }
-
             ]
         };
         const s2 = `
@@ -126,13 +117,10 @@ describe("Test ExtensionObject parsing (with definition)", () => {
 
         const a = await parser.parseString(userDefinedExtensionObject);
 
-       //  console.log("return value =", JSON.stringify(a, null, " "));
+        //  console.log("return value =", JSON.stringify(a, null, " "));
 
         a.should.eql({
-            names: [
-                "Hello",
-                "World"
-            ],
+            names: ["Hello", "World"],
             values: [
                 {
                     id: 1,
@@ -145,7 +133,6 @@ describe("Test ExtensionObject parsing (with definition)", () => {
                         displayName: "",
                         description: ""
                     }
-
                 },
                 {
                     id: 2,
@@ -161,9 +148,8 @@ describe("Test ExtensionObject parsing (with definition)", () => {
                         displayName: "Holla",
                         description: ""
                     }
-
                 }
             ]
-        })
+        });
     });
 });

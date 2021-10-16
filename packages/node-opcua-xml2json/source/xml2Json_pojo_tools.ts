@@ -1,5 +1,5 @@
-import { IReaderState, ReaderState, ReaderStateBase, ReaderStateParser, Xml2Json, XmlAttributes } from "./xml2json";
 import { lowerFirstLetter } from "node-opcua-utils";
+import { IReaderState, ReaderStateBase, Xml2Json, XmlAttributes } from "./xml2json";
 export type withPojoLambda = (name: string, pojo: any) => void;
 
 export class ReaderState2 extends ReaderStateBase {
@@ -12,7 +12,7 @@ export class ReaderState2 extends ReaderStateBase {
 
     private parent?: IReaderState;
     private engine?: Xml2Json;
-    private initLevel: number = 0;
+    private initLevel = 0;
 
     constructor() {
         super();
@@ -36,7 +36,7 @@ export class ReaderState2 extends ReaderStateBase {
         }
     }
 
-    public _on_finish() {
+    public _on_finish(): void {
         /* empy */
     }
 

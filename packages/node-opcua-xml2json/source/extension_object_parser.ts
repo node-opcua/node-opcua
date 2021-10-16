@@ -1,5 +1,5 @@
-import { ReaderState, ReaderStateParserLike, ParserLike, XmlAttributes } from "./xml2json";
 import { lowerFirstLetter } from "node-opcua-utils";
+import { ReaderState, ReaderStateParserLike, ParserLike, XmlAttributes } from "./xml2json";
 
 function BasicType_parser(dataType: string, parseFunc: (this: any, text: string) => any): ParserLike {
     const r: ReaderStateParserLike = {
@@ -23,7 +23,9 @@ function ListOf(dataType: string, parseFunc: any) {
 
         parser: BasicType_parser(dataType, parseFunc),
 
-        finish(this: any) {},
+        finish(this: any) {
+            /** empty  */
+        },
         endElement(this: any, elementName: string) {
             this.value.push(this.parser[elementName].value);
         }
@@ -139,7 +141,9 @@ const partials: { [key: string]: ReaderStateParserLike } = {
             this.value = [];
         },
         parser: { LocalizedText: localizedTextReader },
-        finish(this: any) {},
+        finish(this: any) {
+            /** empty  */
+        },
         endElement(this: any /*element*/) {
             this.value.push(this.parser.LocalizedText.value);
         }
@@ -189,9 +193,13 @@ function _clone(a: any): any {
     return { ...a };
 }
 
-function _makeExtensionObjectReader(definitionName: string, definitionMap: DefinitionMap, readerMap: any): ReaderStateParserLike {
+function _makeExtensionObjectReader(
+    definitionName: string,
+    definitionMap: DefinitionMap,
+    readerMap: Record<string, ReaderStateParserLike>
+): ReaderStateParserLike {
     // is it a basic type ?
-    if (partials.hasOwnProperty(definitionName)) {
+    if (Object.prototype.hasOwnProperty.call(partials, definitionName)) {
         return partials[definitionName];
     }
 
@@ -205,7 +213,9 @@ function _makeExtensionObjectReader(definitionName: string, definitionMap: Defin
         throw new Error("cannot find definition for " + definitionName);
     }
     reader = {
-        finish(this: any) {},
+        finish(this: any) {
+            /** empty  */
+        },
         parser: {}
     };
 
@@ -242,10 +252,10 @@ function _makeExtensionObjectReader(definitionName: string, definitionMap: Defin
                     this.parent.value[elName] = this.value;
                     this.value = undefined;
                 },
-                startElement(this: any, name: string, attrs: XmlAttributes) {
+                startElement(name: string, attrs: XmlAttributes) {
                     // empty
                 },
-                endElement(this: any, element: string) {
+                endElement(element: string) {
                     this.value.push(_clone(this.parser[element].value));
                 }
             };
@@ -261,7 +271,11 @@ function _makeExtensionObjectReader(definitionName: string, definitionMap: Defin
     return reader;
 }
 
-export function makeExtensionObjectReader(definitionName: string, definitionMap: DefinitionMap, readerMap: any) {
+export function makeExtensionObjectReader(
+    definitionName: string,
+    definitionMap: DefinitionMap,
+    readerMap: Record<string, ReaderStateParserLike>
+): ReaderState {
     const reader1: ReaderStateParserLike = {
         parser: {},
         endElement(this: any) {
