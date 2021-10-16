@@ -1,18 +1,11 @@
 import { AddressSpace, IHistoricalDataNodeOptions, UAVariable } from "node-opcua-address-space";
 import { StatusCode, StatusCodes } from "node-opcua-status-code";
 
-import { installAggregateConfigurationOptions } from "../..";
+import { AggregateConfigurationOptions, AggregateConfigurationOptionsEx, installAggregateConfigurationOptions } from "../..";
 import { makeDataValue } from "./helpers";
 
-function addHistory(
-  node: UAVariable,
-  time: string,
-  value: number| boolean|null,
-  statusCode: StatusCode
-): void {
-
+function addHistory(node: UAVariable, time: string, value: number | boolean | null, statusCode: StatusCode): void {
     (node as any)._historyPush(makeDataValue(time, value, statusCode));
-
 }
 
 /// Example 1 : Example Aggregate data – Historian 1
@@ -49,22 +42,20 @@ function addHistory(
 // ----------------------------------------------------------------------------
 
 export function createHistorian1(addressSpace: AddressSpace): UAVariable {
-
     const node = addressSpace.getOwnNamespace().addVariable({
         browseName: "History1",
         dataType: "Float"
     });
 
-    const options = {
-
+    const options: AggregateConfigurationOptionsEx & IHistoricalDataNodeOptions = {
         historian: undefined,
         percentDataBad: 100,
-        percentDataGood: 100,  // Therefore if all values are Good then the
+        percentDataGood: 100, // Therefore if all values are Good then the
         // quality will be Good, or if all values are Bad then the quality will be Bad, but if there is
         // some Good and some Bad then the quality will be Uncertain
         stepped: false, // Therefore SlopedInterpolation is used between data points.
         treatUncertainAsBad: false, // Therefore Uncertain values are included in Aggregate calls.
-        useSlopedExtrapolation: false, // Therefore SteppedExtrapolation is used at end boundary conditions.
+        useSlopedExtrapolation: false // Therefore SteppedExtrapolation is used at end boundary conditions.
     };
 
     addressSpace.installHistoricalDataNode(node, options);
@@ -98,11 +89,9 @@ export function createHistorian1(addressSpace: AddressSpace): UAVariable {
     addHistory(node, "12:01:30", 90, StatusCodes.Good);
 
     return node;
-
 }
 
-export function createHistorian2(addressSpace: any ) {
-
+export function createHistorian2(addressSpace: AddressSpace): UAVariable {
     const node = addressSpace.getOwnNamespace().addVariable({
         browseName: "History2",
         dataType: "Double"
@@ -200,20 +189,19 @@ export function createHistorian2(addressSpace: any ) {
 // 4) PercentBad = 50, PercentGood = 50. Therefore data will be either Good or Bad quality.
 //     Uncertain should not happen since a value is either Good or Bad
 //
-export function createHistorian3(addressSpace: any) {
-
+export function createHistorian3(addressSpace: AddressSpace): UAVariable {
     const node = addressSpace.getOwnNamespace().addVariable({
         browseName: "History3",
         dataType: "Double"
     });
 
-    const options = {
+    const options: AggregateConfigurationOptionsEx & IHistoricalDataNodeOptions = {
         percentDataBad: 50,
         percentDataGood: 50,
         stepped: true, // therefore SteppedInterpolation is used between data points
         treatUncertainAsBad: true, // therefore Uncertain values are treated as Bad,
-                                    // and not included in the Aggregate call.
-        useSlopedExtrapolation: false, // therefore SteppedExtrapolation is used at end boundary conditions.
+        // and not included in the Aggregate call.
+        useSlopedExtrapolation: false // therefore SteppedExtrapolation is used at end boundary conditions.
     };
 
     addressSpace.installHistoricalDataNode(node, options);
@@ -247,7 +235,6 @@ export function createHistorian3(addressSpace: any) {
     addHistory(node, "12:01:30", 90, StatusCodes.Good);
     //              -  No Data          No more entries, awaiting next Value
     return node;
-
 }
 
 /// ------------------------------------------------------------------------------
@@ -277,7 +264,7 @@ export function createHistorian3(addressSpace: any) {
 // boundary conditions.
 // 4) PercentGood = 100, PercentBad = 100.
 // For Boolean data interpolation and extrapolation shall always be stepped.
-export function createHistorian4(addressSpace: any) {
+export function createHistorian4(addressSpace: AddressSpace): UAVariable {
     const node = addressSpace.getOwnNamespace().addVariable({
         browseName: "History4",
         dataType: "Boolean"
@@ -313,5 +300,4 @@ export function createHistorian4(addressSpace: any) {
     // 12:01:30 TRUE Raw, Good
     addHistory(node, "12:01:30", true, StatusCodes.Good);
     return node;
-
 }

@@ -1,5 +1,5 @@
 /**
- * @module node-opca-aggregates
+ * @module node-opcua-aggregates
  */
 //  excerpt from OPC Unified Architecture, Part 13 21 Release 1.04
 //
@@ -47,7 +47,8 @@ import {
     _findGoodDataValueBefore,
     adjustProcessingOptions,
     AggregateConfigurationOptionsEx,
-    Interval, isBad,
+    Interval,
+    isBad,
     isGood
 } from "./interval";
 
@@ -62,11 +63,10 @@ import {
  If for an interval neither ratio applies then that interval is Uncertain_DataSubNormal.
   */
 export function interpolatedValue(interval: Interval, options: AggregateConfigurationOptionsEx): DataValue {
-
     options = adjustProcessingOptions(options);
 
-    assert(Object.prototype.hasOwnProperty.call(options,"useSlopedExtrapolation"));
-    assert(Object.prototype.hasOwnProperty.call(options,"treatUncertainAsBad"));
+    assert(Object.prototype.hasOwnProperty.call(options, "useSlopedExtrapolation"));
+    assert(Object.prototype.hasOwnProperty.call(options, "treatUncertainAsBad"));
 
     const bTreatUncertainAsBad = options.treatUncertainAsBad!;
 
@@ -77,10 +77,9 @@ export function interpolatedValue(interval: Interval, options: AggregateConfigur
         const interpValue = new DataValue({
             sourceTimestamp: interval.startTime,
             statusCode: StatusCodes.Bad,
-            value: previousDataValue.value,
+            value: previousDataValue.value
         });
-        interpValue.statusCode =
-            StatusCode.makeStatusCode(StatusCodes.UncertainDataSubNormal, "HistorianInterpolated");
+        interpValue.statusCode = StatusCode.makeStatusCode(StatusCodes.UncertainDataSubNormal, "HistorianInterpolated");
         return interpValue;
     };
 
@@ -93,7 +92,7 @@ export function interpolatedValue(interval: Interval, options: AggregateConfigur
             return new DataValue({
                 sourceTimestamp: interval.startTime,
                 statusCode: StatusCodes.BadNoData,
-                value: undefined,
+                value: undefined
             });
         }
         if (!options.useSlopedExtrapolation) {
@@ -111,13 +110,12 @@ export function interpolatedValue(interval: Interval, options: AggregateConfigur
         // tslint:disable:no-bitwise
         if (prev2.index + 1 < prev1.index || prev1.index < interval.dataValues.length - 1) {
             // some bad data exist in between = change status code
-            const mask = 0x0000FFFFFF;
+            const mask = 0x0000ffffff;
             const extraBits = interpVal.statusCode.value & mask;
             interpVal.statusCode = StatusCode.makeStatusCode(StatusCodes.UncertainDataSubNormal, extraBits);
         }
 
         return interpVal;
-
     }
 
     /* istanbul ignore next */
@@ -166,16 +164,12 @@ export function interpolatedValue(interval: Interval, options: AggregateConfigur
     //   x is a value at ‘x’ and Tx is the timestamp associated with Vx.
     const interpolatedDataValue = interpolateValue(before.dataValue, next.dataValue, interval.startTime);
 
-    if (before.index + 1 < next.index
-        || !isGood(next.dataValue.statusCode)
-        || !isGood(before.dataValue.statusCode)
-    ) {
+    if (before.index + 1 < next.index || !isGood(next.dataValue.statusCode) || !isGood(before.dataValue.statusCode)) {
         // tslint:disable:no-bitwise
         // some bad data exist in between = change status code
-        const mask = 0x0000FFFFFF;
+        const mask = 0x0000ffffff;
         const extraBits = interpolatedDataValue.statusCode.value & mask;
-        interpolatedDataValue.statusCode =
-            StatusCode.makeStatusCode(StatusCodes.UncertainDataSubNormal, extraBits);
+        interpolatedDataValue.statusCode = StatusCode.makeStatusCode(StatusCodes.UncertainDataSubNormal, extraBits);
     }
     // check if uncertain or bad value exist between before/next
     // todo
@@ -196,6 +190,6 @@ export function getInterpolatedData(
     startDate: Date,
     endDate: Date,
     callback: (err: Error | null, dataValues?: DataValue[]) => void
-) {
-    return getAggregateData(node, processingInterval, startDate, endDate, interpolatedValue, callback);
+): void {
+    getAggregateData(node, processingInterval, startDate, endDate, interpolatedValue, callback);
 }

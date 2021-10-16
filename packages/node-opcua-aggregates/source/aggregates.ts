@@ -5,10 +5,17 @@ import { AggregateFunction } from "node-opcua-constants";
 import { makeNodeId } from "node-opcua-nodeid";
 import * as utils from "node-opcua-utils";
 import { DataType } from "node-opcua-variant";
-
-import { AddressSpace, BaseNode, UAHistoryServerCapabilities, UAHistoryServerCapabilities_Base, UAObject, UAServerCapabilities, UAVariable } from "node-opcua-address-space";
-import { AggregateConfigurationOptionsEx } from "./interval";
+import {
+    AddressSpace,
+    BaseNode,
+    UAHistoryServerCapabilities,
+    UAObject,
+    UAServerCapabilities,
+    UAVariable
+} from "node-opcua-address-space";
 import { AddressSpacePrivate } from "node-opcua-address-space/src/address_space_private";
+
+import { AggregateConfigurationOptionsEx } from "./interval";
 import { readProcessedDetails } from "./read_processed_details";
 
 // import { HistoryServerCapabilities } from "node-opcua-server";
@@ -69,7 +76,7 @@ function setHistoricalServerCapabilities(historyServerCapabilities: any, default
         const lowerCase = utils.lowerFirstLetter(propName);
 
         /* istanbul ignore next */
-        if (!defaultProperties.hasOwnProperty(lowerCase)) {
+        if (!Object.prototype.hasOwnProperty.call(defaultProperties, lowerCase)) {
             throw new Error("cannot find " + lowerCase);
         }
         const value = defaultProperties[lowerCase];
@@ -85,7 +92,7 @@ function setHistoricalServerCapabilities(historyServerCapabilities: any, default
     function setUInt32(propName: string) {
         const lowerCase = utils.lowerFirstLetter(propName);
         /* istanbul ignore next */
-        if (!historyServerCapabilities.hasOwnProperty(lowerCase)) {
+        if (!Object.prototype.hasOwnProperty.call(historyServerCapabilities, lowerCase)) {
             throw new Error("cannot find " + lowerCase);
         }
         const value = defaultProperties[lowerCase];
@@ -190,7 +197,7 @@ function addAggregateFunctionSupport(addressSpace: AddressSpace, functionName: n
     });
 }
 
-export function addAggregateSupport(addressSpace: AddressSpace) {
+export function addAggregateSupport(addressSpace: AddressSpace): void {
     const aggregateConfigurationType = addressSpace.getNamespace(0).findObjectType("AggregateConfigurationType");
 
     /* istanbul ignore next */
@@ -230,11 +237,11 @@ export function addAggregateSupport(addressSpace: AddressSpace) {
     addAggregateFunctionSupport(addressSpace, AggregateFunction.Maximum);
     addAggregateFunctionSupport(addressSpace, AggregateFunction.Average);
 
-    const addressSpaceInternal = (addressSpace as unknown) as AddressSpacePrivate;
+    const addressSpaceInternal = addressSpace as unknown as AddressSpacePrivate;
     addressSpaceInternal._readProcessedDetails = readProcessedDetails;
 }
 
-export function installAggregateConfigurationOptions(node: UAVariable, options: AggregateConfigurationOptionsEx) {
+export function installAggregateConfigurationOptions(node: UAVariable, options: AggregateConfigurationOptionsEx): void {
     const nodePriv = node as any;
     const aggregateConfiguration = nodePriv.$historicalDataConfiguration.aggregateConfiguration;
     aggregateConfiguration.percentDataBad.setValueFromSource({ dataType: "Byte", value: options.percentDataBad });
