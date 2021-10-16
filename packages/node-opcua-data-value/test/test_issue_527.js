@@ -35,7 +35,7 @@ describe("DataValue with Limit bits", function () {
         });
 
         debugLog(dataValue.toString());
-        debugLog(" value in hexa = 0x", dataValue.statusCode.value.toString(16));
+        debugLog(" value in hex = 0x", dataValue.statusCode.value.toString(16));
     });
 
     it("should handle a DataValue with statusCode Good + LimitHigh ", function () {
@@ -49,7 +49,7 @@ describe("DataValue with Limit bits", function () {
 
         debugLog(dataValue.toString() + "\n");
         debugLog(dataValue);
-        debugLog(" value in hexa = 0x", dataValue.statusCode.value.toString(16));
+        debugLog(" value in hex = 0x", dataValue.statusCode.value.toString(16));
     });
 
     it("should handle a DataValue with statusCode Good + LimitConstant ", function () {
@@ -61,7 +61,7 @@ describe("DataValue with Limit bits", function () {
         });
 
         debugLog(dataValue.toString());
-        debugLog(" value in hexa = 0x", dataValue.statusCode.value.toString(16));
+        debugLog(" value in hex = 0x", dataValue.statusCode.value.toString(16));
     });
 
     it("should handle a DataValue with statusCode Good + extra bits = 1024 ", function () {
@@ -75,7 +75,7 @@ describe("DataValue with Limit bits", function () {
 
         debugLog(dataValue.toString());
 
-        debugLog(" value in hexa = 0x", dataValue.statusCode.value.toString(16));
+        debugLog(" value in hex = 0x", dataValue.statusCode.value.toString(16));
     });
     it("should handle a DataValue that has a undefined statusCode", function () {
         const dataValue = new DataValue({
