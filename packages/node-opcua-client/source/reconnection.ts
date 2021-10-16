@@ -14,6 +14,7 @@ import { ErrorCallback } from "node-opcua-status-code";
 import { SubscriptionId } from "./client_session";
 import { ClientSessionImpl, Reconnectable } from "./private/client_session_impl";
 import { ClientSubscriptionImpl } from "./private/client_subscription_impl";
+import { IClientBase } from "./private/i_private_client";
 import { OPCUAClientImpl } from "./private/opcua_client_impl";
 
 const debugLog = make_debugLog(__filename);
@@ -124,7 +125,7 @@ function _ask_for_subscription_republish(session: ClientSessionImpl, callback: (
         debugLog(chalk.bgCyan.green.bold("_ask_for_subscription_republish done "), err ? err.message : "OK");
         if (err) {
             debugLog("_ask_for_subscription_republish has :  recreating subscription");
-            return repair_client_session_by_recreating_a_new_session(session._client, session, callback);
+            return repair_client_session_by_recreating_a_new_session(session._client!, session, callback);
         }
         // xx assert(session.getPublishEngine().nbPendingPublishRequests === 0);
         session.resumePublishEngine();
@@ -133,7 +134,7 @@ function _ask_for_subscription_republish(session: ClientSessionImpl, callback: (
 }
 
 function repair_client_session_by_recreating_a_new_session(
-    client: OPCUAClientImpl,
+    client: IClientBase,
     session: ClientSessionImpl,
     callback: (err?: Error) => void
 ) {
@@ -205,13 +206,12 @@ function repair_client_session_by_recreating_a_new_session(
                     return innerCallback(); // no need to transfer subscriptions
                 }
                 debugLog("    => asking server to transfer subscriptions = [", subscriptionsIds.join(", "), "]");
-                
+
                 // Transfer subscriptions - ask for initial values....
                 const subscriptionsToTransfer = new TransferSubscriptionsRequest({
                     sendInitialValues: true,
                     subscriptionIds: subscriptionsIds
                 });
-
 
                 if (newSession.getPublishEngine().nbPendingPublishRequests !== 0) {
                     warningLog("Warning : we should not be publishing here");
@@ -226,7 +226,7 @@ function repair_client_session_by_recreating_a_new_session(
                             // recreate the subscriptions on the server side
                             return innerCallback();
                         }
-                        
+
                         // istanbul ignore next
                         if (!transferSubscriptionsResponse) {
                             return innerCallback(new Error("Internal Error"));
@@ -336,7 +336,7 @@ function repair_client_session_by_recreating_a_new_session(
     );
 }
 
-function _repair_client_session(client: OPCUAClientImpl, session: ClientSessionImpl, callback: (err?: Error) => void): void {
+function _repair_client_session(client: IClientBase, session: ClientSessionImpl, callback: (err?: Error) => void): void {
     const callback2 = (err2?: Error) => {
         debugLog("Session is repaired ", err2 ? err2.message : "<no error>", session.sessionId.toString());
         session.emit("session_repaired");
@@ -365,13 +365,13 @@ function _repair_client_session(client: OPCUAClientImpl, session: ClientSessionI
 
 type EmptyCallback = (err?: Error) => void;
 
-export function repair_client_session(client: OPCUAClientImpl, session: ClientSessionImpl, callback: EmptyCallback): void {
+export function repair_client_session(client: IClientBase, session: ClientSessionImpl, callback: EmptyCallback): void {
     if (!client) {
         debugLog("Aborting reactivation of old session because user requested session to be close");
         return callback();
     }
     debugLog(chalk.yellow("Starting client session repair"));
-    const privateSession = (session as any) as Reconnectable;
+    const privateSession = session as any as Reconnectable;
     privateSession._reconnecting = privateSession._reconnecting || { reconnecting: false, pendingCallbacks: [] };
     if (privateSession._reconnecting.reconnecting) {
         debugLog(chalk.bgCyan("Reconnecting already happening for session"), session.sessionId.toString());
@@ -402,15 +402,15 @@ export function repair_client_session(client: OPCUAClientImpl, session: ClientSe
     });
 }
 
-export function repair_client_sessions(client: OPCUAClientImpl, callback: (err?: Error) => void): void {
+export function repair_client_sessions(client: IClientBase, callback: (err?: Error) => void): void {
     const self = client;
     // repair session
     const sessions = self.getSessions();
     debugLog(chalk.red.bgWhite(" Starting sessions reactivation", sessions.length));
     async.map(
         sessions,
-        (session: ClientSessionImpl, next: (err?: Error) => void) => {
-            repair_client_session(client, session, next);
+        (session, next: (err?: Error) => void) => {
+            repair_client_session(client, session as ClientSessionImpl, next);
         },
         (err) => {
             debugLog(chalk.red.bgWhite("sessions reactivation completed: err ", err ? err.message : "null"));

@@ -3,6 +3,7 @@
  */
 import { EventEmitter } from "events";
 
+import { DataValue } from "node-opcua-data-value";
 import { ExtensionObject } from "node-opcua-extension-object";
 import { ReadValueId, TimestampsToReturn } from "node-opcua-service-read";
 import {
@@ -13,10 +14,9 @@ import {
 } from "node-opcua-service-subscription";
 import { StatusCode } from "node-opcua-status-code";
 import { Callback, ErrorCallback } from "node-opcua-status-code";
-
-import { DataValue } from "node-opcua-data-value";
-import { ClientSubscription } from "./client_subscription";
 import { Variant } from "node-opcua-variant";
+
+import { ClientSubscription } from "./client_subscription";
 
 // tslint:disable:unified-signatures
 export interface ClientMonitoredItemOrGroupAction {

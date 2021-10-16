@@ -7,10 +7,7 @@ import { EventEmitter } from "events";
 import { Byte, Double, UInt32 } from "node-opcua-basic-types";
 
 import { DiagnosticInfo } from "node-opcua-data-model";
-import { 
-    ReadValueIdOptions, 
-    TimestampsToReturn 
-} from "node-opcua-service-read";
+import { ReadValueIdOptions, TimestampsToReturn } from "node-opcua-service-read";
 import {
     MonitoringMode,
     MonitoringParametersOptions,
@@ -41,11 +38,11 @@ export interface ClientMonitoredItemBaseMap {
 }
 
 export interface ModifySubscriptionOptions {
-    requestedPublishingInterval?: Double ;
-    requestedLifetimeCount?: UInt32 ;
-    requestedMaxKeepAliveCount?: UInt32 ;
-    maxNotificationsPerPublish?: UInt32 ;
-    priority?: Byte ;
+    requestedPublishingInterval?: Double;
+    requestedLifetimeCount?: UInt32;
+    requestedMaxKeepAliveCount?: UInt32;
+    maxNotificationsPerPublish?: UInt32;
+    priority?: Byte;
 }
 
 export interface ModifySubscriptionResult {
@@ -312,5 +309,5 @@ export class ClientSubscription {
         /* istanbul ignore next*/
         throw new Error("Not Implemented");
     }
-    public static ignoreNextWarning: boolean = false;
+    public static ignoreNextWarning = false;
 }

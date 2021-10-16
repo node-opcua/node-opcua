@@ -19,7 +19,7 @@ import {
 import { StatusCode, StatusCodes } from "node-opcua-status-code";
 import { Callback, ErrorCallback } from "node-opcua-status-code";
 
-import { MonitoredItemCreateRequestOptions } from "node-opcua-types";
+import { MonitoredItemCreateRequestOptions, MonitoringParametersOptions } from "node-opcua-types";
 import { ClientMonitoredItemBase } from "./client_monitored_item_base";
 import { SetMonitoringModeRequestLike } from "./client_session";
 import { ClientSubscription } from "./client_subscription";
@@ -38,7 +38,7 @@ export class ClientMonitoredItemToolbox {
         timestampsToReturn: TimestampsToReturn,
         monitoredItems: ClientMonitoredItemBase[],
         done: ErrorCallback
-    ) {
+    ): void {
         assert(typeof done === "function");
         const itemsToCreate: MonitoredItemCreateRequestOptions[] = [];
         for (const monitoredItem of monitoredItems) {
@@ -56,18 +56,17 @@ export class ClientMonitoredItemToolbox {
             timestampsToReturn
         });
 
-         for (let i = 0; i < monitoredItems.length; i++) {
-             const monitoredItem = monitoredItems[i] as ClientMonitoredItemImpl;
-             monitoredItem._before_create();
-         }
+        for (let i = 0; i < monitoredItems.length; i++) {
+            const monitoredItem = monitoredItems[i] as ClientMonitoredItemImpl;
+            monitoredItem._before_create();
+        }
         const session = subscription.session as ClientSessionImpl;
         assert(session, "expecting a valid session attached to the subscription ");
         session.createMonitoredItems(createMonitorItemsRequest, (err?: Error | null, response?: CreateMonitoredItemsResponse) => {
             /* istanbul ignore next */
             if (err) {
-                debugLog(chalk.red("ClientMonitoredItemBase#_toolbox_monitor:  ERROR in createMonitoredItems " , err.message));
+                debugLog(chalk.red("ClientMonitoredItemBase#_toolbox_monitor:  ERROR in createMonitoredItems ", err.message));
             } else {
-
                 /* istanbul ignore next */
                 if (!response) {
                     return done(new Error("Internal Error"));
@@ -88,10 +87,10 @@ export class ClientMonitoredItemToolbox {
     public static _toolbox_modify(
         subscription: ClientSubscription,
         monitoredItems: ClientMonitoredItemBase[],
-        parameters: any,
+        parameters: MonitoringParametersOptions,
         timestampsToReturn: TimestampsToReturn,
         callback: Callback<MonitoredItemModifyResult[]>
-    ) {
+    ): void {
         assert(callback === undefined || typeof callback === "function");
 
         const itemsToModify = monitoredItems.map((monitoredItem: ClientMonitoredItemBase) => {
@@ -142,7 +141,7 @@ export class ClientMonitoredItemToolbox {
         monitoredItems: ClientMonitoredItemBase[],
         monitoringMode: MonitoringMode,
         callback: Callback<StatusCode[]>
-    ) {
+    ): void {
         const monitoredItemIds = monitoredItems.map((monitoredItem) => monitoredItem.monitoredItemId);
 
         const setMonitoringModeRequest: SetMonitoringModeRequestLike = {

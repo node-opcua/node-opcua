@@ -20,7 +20,7 @@ const hasPropertyRefId = resolveNodeId("HasProperty");
 function browsePathPropertyRequest(nodeId: NodeIdLike, propertyName: string): BrowsePath {
     return new BrowsePath({
         relativePath: /* RelativePath   */ {
-            elements: /* RelativePathElement */[
+            elements: /* RelativePathElement */ [
                 {
                     includeSubtypes: false,
                     isInverse: false,

@@ -88,9 +88,13 @@ export function callConditionRefresh(subscription: ClientSubscription, callback?
     );
 }
 
-ClientSessionImpl.prototype.disableCondition = () => { };
+ClientSessionImpl.prototype.disableCondition = () => {
+    /** */
+};
 
-ClientSessionImpl.prototype.enableCondition = () => { };
+ClientSessionImpl.prototype.enableCondition = () => {
+    /** */
+};
 
 ClientSessionImpl.prototype.addCommentCondition = function (
     conditionId: NodeIdLike,

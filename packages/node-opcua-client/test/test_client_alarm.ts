@@ -1,14 +1,5 @@
-import * as should  from "should";
-import {
-    ClientAlarm,
-    ClientAlarmList,
-    DataType,
-    EventStuff,
-    NodeId,
-    resolveNodeId,
-    TVariant,
-    Variant
-} from "../source/index";
+import * as should from "should";
+import { ClientAlarm, ClientAlarmList, DataType, EventStuff, NodeId, resolveNodeId, TVariant, Variant } from "../source/index";
 
 class VariantId extends Variant {
     public id: TVariant<boolean>;
@@ -18,10 +9,7 @@ class VariantId extends Variant {
     }
 }
 describe("Testing client alarm", () => {
-
-
     it("should update a client alarm list #CAL", () => {
-
         const clientAlarm = new ClientAlarm({
             ackedState: new VariantId(true, "Acknowledged"),
             activeState: new VariantId(true, "Active"),
@@ -29,7 +17,7 @@ describe("Testing client alarm", () => {
             confirmedState: new VariantId(true, "Confirmed"),
             eventId: new Variant({ value: Buffer.alloc(10) }),
             eventType: new Variant({ value: NodeId.nullNodeId }),
-            retain: new Variant({value: false}),
+            retain: new Variant({ value: false })
         });
 
         const alarmList = new ClientAlarmList();
@@ -46,29 +34,29 @@ describe("Testing client alarm", () => {
         const alarm1_event1: EventStuff = {
             ackedState: new VariantId(false, "Unack"),
             activeState: new VariantId(true, "Active"),
-             conditionId: new Variant({ dataType: "NodeId", value: resolveNodeId("ns=1;s=Condition1")}),
-             confirmedState: new VariantId(false, "Unconfirmed"),
-             eventId: new Variant({ dataType: "ByteString", value: Buffer.from("1")}),
-             eventType: new Variant({ dataType: "NodeId", value: resolveNodeId("ns=1;s=EventType1")}),
-             retain: new Variant({value: false}),
-         };
+            conditionId: new Variant({ dataType: "NodeId", value: resolveNodeId("ns=1;s=Condition1") }),
+            confirmedState: new VariantId(false, "Unconfirmed"),
+            eventId: new Variant({ dataType: "ByteString", value: Buffer.from("1") }),
+            eventType: new Variant({ dataType: "NodeId", value: resolveNodeId("ns=1;s=EventType1") }),
+            retain: new Variant({ value: false })
+        };
         const alarm1_event2: EventStuff = {
             ackedState: new VariantId(true, "Ack"),
             activeState: new VariantId(true, "Active"),
-            conditionId: new Variant({ dataType: "NodeId", value: resolveNodeId("ns=1;s=Condition1")}),
+            conditionId: new Variant({ dataType: "NodeId", value: resolveNodeId("ns=1;s=Condition1") }),
             confirmedState: new VariantId(false, "Unconfirmed"),
-            eventId: new Variant({ dataType: "ByteString", value: Buffer.from("2")}),
-            eventType: new Variant({ dataType: "NodeId", value: resolveNodeId("ns=1;s=EventType1")}),
-            retain: new Variant({value: false}),
+            eventId: new Variant({ dataType: "ByteString", value: Buffer.from("2") }),
+            eventType: new Variant({ dataType: "NodeId", value: resolveNodeId("ns=1;s=EventType1") }),
+            retain: new Variant({ value: false })
         };
         const alarm2_event1: EventStuff = {
             ackedState: new VariantId(false, "Unack"),
             activeState: new VariantId(true, "Active"),
-            conditionId: new Variant({ dataType: "NodeId", value: resolveNodeId("ns=1;s=Condition2")}),
+            conditionId: new Variant({ dataType: "NodeId", value: resolveNodeId("ns=1;s=Condition2") }),
             confirmedState: new VariantId(false, "Unconfirmed"),
-            eventId: new Variant({ dataType: "ByteString", value: Buffer.from("1")}),
-            eventType: new Variant({ dataType: "NodeId", value: resolveNodeId("ns=1;s=EventType1")}),
-            retain: new Variant({value: false}),
+            eventId: new Variant({ dataType: "ByteString", value: Buffer.from("1") }),
+            eventType: new Variant({ dataType: "NodeId", value: resolveNodeId("ns=1;s=EventType1") }),
+            retain: new Variant({ value: false })
         };
 
         alarmList.length.should.eql(0);
@@ -87,6 +75,5 @@ describe("Testing client alarm", () => {
         alarmCreatedCount.should.eql(2);
 
         alarmList.length.should.eql(2);
-
-     });
+    });
 });

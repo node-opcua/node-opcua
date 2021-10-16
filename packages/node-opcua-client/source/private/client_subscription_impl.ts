@@ -2,9 +2,9 @@
  * @module node-opcua-client-private
  */
 // tslint:disable:unified-signatures
+import { EventEmitter } from "events";
 import * as async from "async";
 import * as chalk from "chalk";
-import { EventEmitter } from "events";
 
 import { assert } from "node-opcua-assert";
 import { AttributeIds } from "node-opcua-data-model";
@@ -40,6 +40,7 @@ import { promoteOpaqueStructure } from "node-opcua-client-dynamic-extension-obje
 import { DataType, Variant } from "node-opcua-variant";
 import { createMonitoredItemsLimit, IBasicSession, readOperationLimits } from "node-opcua-pseudo-session";
 
+import { IBasicSessionWithSubscription } from "node-opcua-pseudo-session";
 import { ClientMonitoredItemBase } from "../client_monitored_item_base";
 import { ClientMonitoredItemGroup } from "../client_monitored_item_group";
 import { ClientSession, MonitoredItemData, SubscriptionId } from "../client_session";
@@ -51,13 +52,12 @@ import {
     ModifySubscriptionOptions,
     ModifySubscriptionResult
 } from "../client_subscription";
+import { ClientMonitoredItem } from "../client_monitored_item";
+import { ClientMonitoredItemToolbox } from "../client_monitored_item_toolbox";
 import { ClientMonitoredItemGroupImpl } from "./client_monitored_item_group_impl";
 import { ClientMonitoredItemImpl } from "./client_monitored_item_impl";
 import { ClientSidePublishEngine } from "./client_publish_engine";
 import { ClientSessionImpl } from "./client_session_impl";
-import { ClientMonitoredItem } from "../client_monitored_item";
-import { ClientMonitoredItemToolbox } from "../client_monitored_item_toolbox";
-import { IBasicSessionWithSubscription } from "node-opcua-pseudo-session";
 
 const debugLog = make_debugLog(__filename);
 const doDebug = checkDebugFlag(__filename);
@@ -88,7 +88,9 @@ async function promoteOpaqueStructureInNotificationData(
             if (notification.events) {
                 for (const events of notification.events) {
                     if (events.eventFields) {
+                        // eslint-disable-next-line max-depth
                         for (const eventField of events.eventFields) {
+                            // eslint-disable-next-line max-depth
                             if (eventField.dataType === DataType.ExtensionObject) {
                                 dataValuesToPromote.push({ value: eventField });
                             }
@@ -337,7 +339,7 @@ export class ClientSubscriptionImpl extends EventEmitter implements ClientSubscr
     /**
      * @method nextClientHandle
      */
-    public nextClientHandle() {
+    public nextClientHandle(): number {
         this._nextClientHandle += 1;
         return this._nextClientHandle;
     }
@@ -395,7 +397,7 @@ export class ClientSubscriptionImpl extends EventEmitter implements ClientSubscr
     ): void;
     public monitorItems(...args: any[]): any {
         const itemsToMonitor = args[0] as ReadValueIdOptions[];
-        const requestedParameters = args[1] as ReadValueIdOptions;
+        const requestedParameters = args[1] as MonitoringParametersOptions;
         const timestampsToReturn = args[2] as TimestampsToReturn;
         const done = args[3] as Callback<ClientMonitoredItemGroup>;
 
@@ -414,7 +416,7 @@ export class ClientSubscriptionImpl extends EventEmitter implements ClientSubscr
         });
     }
 
-    public _delete_monitored_items(monitoredItems: ClientMonitoredItemBase[], callback: ErrorCallback) {
+    public _delete_monitored_items(monitoredItems: ClientMonitoredItemBase[], callback: ErrorCallback): void {
         assert(typeof callback === "function");
         assert(Array.isArray(monitoredItems));
 
@@ -562,7 +564,7 @@ export class ClientSubscriptionImpl extends EventEmitter implements ClientSubscr
      *  utility function to recreate new subscription
      *  @method recreateSubscriptionAndMonitoredItem
      */
-    public recreateSubscriptionAndMonitoredItem(callback: ErrorCallback) {
+    public recreateSubscriptionAndMonitoredItem(callback: ErrorCallback): void {
         debugLog("ClientSubscription#recreateSubscriptionAndMonitoredItem");
 
         if (this.subscriptionId === TERMINATED_SUBSCRIPTION_ID) {
@@ -691,7 +693,7 @@ export class ClientSubscriptionImpl extends EventEmitter implements ClientSubscr
         return Math.max(0, expiryTime - now);
     }
 
-    public _add_monitored_item(clientHandle: ClientHandle, monitoredItem: ClientMonitoredItemBase) {
+    public _add_monitored_item(clientHandle: ClientHandle, monitoredItem: ClientMonitoredItemBase): void {
         assert(this.isActive, "subscription must be active and not terminated");
         assert(monitoredItem.monitoringParameters.clientHandle === clientHandle);
         this.monitoredItems[clientHandle] = monitoredItem;
@@ -704,11 +706,11 @@ export class ClientSubscriptionImpl extends EventEmitter implements ClientSubscr
         this.emit("item_added", monitoredItem);
     }
 
-    public _add_monitored_items_group(monitoredItemGroup: ClientMonitoredItemGroupImpl) {
+    public _add_monitored_items_group(monitoredItemGroup: ClientMonitoredItemGroupImpl): void {
         this.monitoredItemGroups.push(monitoredItemGroup);
     }
 
-    public _wait_for_subscription_to_be_ready(done: ErrorCallback) {
+    public _wait_for_subscription_to_be_ready(done: ErrorCallback): void {
         let _watchDogCount = 0;
 
         const waitForSubscriptionAndMonitor = () => {
@@ -894,8 +896,8 @@ export class ClientSubscriptionImpl extends EventEmitter implements ClientSubscr
         }
     }
 
-    public onNotificationMessage(notificationMessage: NotificationMessage) {
-        assert(notificationMessage.hasOwnProperty("sequenceNumber"));
+    public onNotificationMessage(notificationMessage: NotificationMessage): void {
+        assert(Object.prototype.hasOwnProperty.call(notificationMessage, "sequenceNumber"));
 
         this.lastSequenceNumber = notificationMessage.sequenceNumber;
 
@@ -975,17 +977,16 @@ export class ClientSubscriptionImpl extends EventEmitter implements ClientSubscr
     private _remove(monitoredItem: ClientMonitoredItemBase) {
         const clientHandle = monitoredItem.monitoringParameters.clientHandle;
         assert(clientHandle > 0);
-        if (!this.monitoredItems.hasOwnProperty(clientHandle)) {
+        if (!Object.prototype.hasOwnProperty.call(this.monitoredItems, clientHandle)) {
             return; // may be monitoredItem failed to be created  ....
         }
-        assert(this.monitoredItems.hasOwnProperty(clientHandle));
+        assert(Object.prototype.hasOwnProperty.call(this.monitoredItems, clientHandle));
 
         const priv = monitoredItem as ClientMonitoredItemImpl;
         priv._terminate_and_emit();
- 
     }
 
-    public _removeGroup(monitoredItemGroup: ClientMonitoredItemGroup) {
+    public _removeGroup(monitoredItemGroup: ClientMonitoredItemGroup): void {
         (monitoredItemGroup as any)._terminate_and_emit();
         this.monitoredItemGroups = this.monitoredItemGroups.filter((obj) => obj !== monitoredItemGroup);
     }

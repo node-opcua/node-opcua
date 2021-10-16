@@ -1,5 +1,9 @@
 // tslint:disable:no-console
 // tslint:disable:only-arrow-functions
+import { promisify } from "util";
+import * as path from "path";
+import * as fs from "fs";
+import * as should from "should";
 import "mocha";
 import { assert } from "node-opcua-assert";
 import { decodeExpandedNodeId } from "node-opcua-basic-types";
@@ -7,9 +11,6 @@ import { BinaryStream } from "node-opcua-binary-stream";
 import { Certificate, PrivateKeyPEM, readCertificate, readPrivateKeyPEM, split_der } from "node-opcua-crypto";
 import { makeBufferFromTrace } from "node-opcua-debug";
 import { constructObject } from "node-opcua-factory";
-import * as path from "path";
-
-import * as fs from "fs";
 import {
     computeSignature,
     getCryptoFactory,
@@ -27,8 +28,6 @@ import {
     UserIdentityToken,
     X509IdentityToken
 } from "node-opcua-types";
-import * as should  from "should";
-import { promisify } from "util";
 
 const doDebug = false;
 

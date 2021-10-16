@@ -41,7 +41,7 @@ export class ClientMonitoredItemGroupImpl extends EventEmitter implements Client
     constructor(
         subscription: ClientSubscription,
         itemsToMonitor: any[],
-        monitoringParameters: any,
+        monitoringParameters: MonitoringParametersOptions,
         timestampsToReturn: TimestampsToReturn,
         monitoringMode: MonitoringMode = MonitoringMode.Reporting
     ) {
@@ -60,14 +60,15 @@ export class ClientMonitoredItemGroupImpl extends EventEmitter implements Client
         this.timestampsToReturn = timestampsToReturn;
         this.monitoringMode = monitoringMode;
 
-        this.monitoredItems = itemsToMonitor.map((itemToMonitor) => 
-             new ClientMonitoredItemImpl(
-                subscription,
-                itemToMonitor,
-                monitoringParameters,
-                TimestampsToReturn.Both,
-                this.monitoringMode
-            )
+        this.monitoredItems = itemsToMonitor.map(
+            (itemToMonitor) =>
+                new ClientMonitoredItemImpl(
+                    subscription,
+                    itemToMonitor,
+                    monitoringParameters,
+                    TimestampsToReturn.Both,
+                    this.monitoringMode
+                )
         );
     }
 
@@ -75,10 +76,13 @@ export class ClientMonitoredItemGroupImpl extends EventEmitter implements Client
         let ret = "ClientMonitoredItemGroup : \n";
         ret +=
             "itemsToMonitor:       = [\n " +
-            this.monitoredItems.slice(0,10).map(
-                (monitoredItem: ClientMonitoredItemBase) => 
-                  //  monitoredItem.itemToMonitor.toString() + 
-                  monitoredItem.toString()).join("\n") +
+            this.monitoredItems
+                .slice(0, 10)
+                .map((monitoredItem: ClientMonitoredItemBase) =>
+                    //  monitoredItem.itemToMonitor.toString() +
+                    monitoredItem.toString()
+                )
+                .join("\n") +
             "\n];\n";
         ret += "timestampsToReturn:   " + TimestampsToReturn[this.timestampsToReturn] + "\n";
         ret += "monitoringMode        " + MonitoringMode[this.monitoringMode];
@@ -158,11 +162,10 @@ export class ClientMonitoredItemGroupImpl extends EventEmitter implements Client
      * Creates the monitor item (monitoring mode = Reporting)
      * @private
      */
-    public _monitor(done: ErrorCallback) {
+    public _monitor(done: ErrorCallback): void {
         assert(done === undefined || typeof done === "function");
 
         this.monitoredItems.forEach((monitoredItem: ClientMonitoredItemBase, index: number) => {
-           
             monitoredItem.on("changed", (dataValue: DataValue) => {
                 /**
                  * Notify the observers that a group MonitoredItem value has changed on the server side.
@@ -202,7 +205,7 @@ Please investigate the code of the event handler function to fix the error.`
             }
         );
     }
-    public _terminate_and_emit(err?: Error) {
+    public _terminate_and_emit(err?: Error): void {
         assert(!(this as any)._terminated);
         (this as any)._terminated = true;
         if (err) {
@@ -240,7 +243,9 @@ ClientMonitoredItemGroup.create = (
         if (err) {
             return;
         }
-        monitoredItemGroup._monitor((err1?: Error) => {});
+        monitoredItemGroup._monitor((err1?: Error) => {
+            /** */
+        });
     });
     return monitoredItemGroup;
 };
