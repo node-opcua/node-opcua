@@ -1,20 +1,15 @@
 import { assert } from "node-opcua-assert";
-import { 
-    QualifiedName, 
-    ReferenceDescription, 
-    BrowseResult, 
-    NodeId 
-} from "node-opcua-client";
+import { QualifiedName, ReferenceDescription, BrowseResult, NodeId } from "node-opcua-client";
 import { debugLog } from "node-opcua-pki";
 import { CacheNode } from "./cache_node";
-import { UserData } from "./node_crawler_base";
+import { Pojo, UserData } from "./node_crawler_base";
 
 export type EmptyCallback = () => void;
 
 export const pendingBrowseName = new QualifiedName({ name: "pending" });
 
-export function dedup_reference(references: ReferenceDescription[]) {
-    const results = [];
+export function dedup_reference(references: ReferenceDescription[]): ReferenceDescription[] {
+    const results: ReferenceDescription[] = [];
     const dedup: any = {};
     for (const reference of references) {
         const key = reference.referenceTypeId.toString() + reference.nodeId.toString();
@@ -88,7 +83,7 @@ export interface TaskReconstruction extends TaskBase {
 
 export type Task = TaskCrawl | Task2 | TaskProcessBrowseResponse | TaskExtraReference;
 
-export function remove_cycle(object: any, innerCallback: (err: Error | null, object?: any) => void) {
+export function removeCycle(object: Pojo, innerCallback: (err: Error | null, object?: any) => void): void {
     const visitedNodeIds: any = {};
 
     function hasBeenVisited(e: any) {
