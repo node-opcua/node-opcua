@@ -27,19 +27,7 @@ function newIsUserReadable(this: BaseNode, context: ISessionContext): boolean {
     }
     return false;
 }
-function replaceMethod(obj: any, method: string, func: any) {
-    const oldMethod = obj[method];
-    if (!oldMethod) {
-        throw new Error("I cannot find method " + method + " on object " + obj.browseName.toString());
-    }
-    obj[method] = function (this: any, ...args: any[]) {
-        const ret = func.apply(this, args);
-        if (!ret) {
-            return false;
-        }
-        return oldMethod.apply(this, args);
-    };
-}
+
 /**
  * make sure that the given ia node can only be read
  * by Administrator user on a encrypted channel

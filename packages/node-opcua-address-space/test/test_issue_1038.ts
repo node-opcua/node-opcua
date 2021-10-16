@@ -37,23 +37,15 @@ describe("testing github issue #1038", () => {
     it("should be possible to create an object with a PseudoSession", async () => {
         const pseudoSession = new PseudoSession(addressSpace);
 
-        
         const correctVariant = new Variant({
             dataType: DataType.Double,
             arrayType: VariantArrayType.Matrix,
             dimensions: [3, 4, 2],
             value: new Float64Array([
-                1, 2, 3, 
-                4, 5, 6, 
-                7, 8, 9, 
-                10, 11, 12,
+                1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12,
 
-                1, 2, 3, 
-                4, 5, 6, 
-                7, 8, 9, 
-                10, 11, 12,
-             
-           ])
+                1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12
+            ])
         });
         const statusCode0 = await pseudoSession.write({
             nodeId: coerceNodeId("ns=1;s=Variable"),
@@ -64,7 +56,7 @@ describe("testing github issue #1038", () => {
         });
 
         statusCode0.should.eql(StatusCodes.Good);
-        
+
         const faultyVariant = new Variant({
             dataType: DataType.Double,
             arrayType: VariantArrayType.Matrix,
@@ -84,9 +76,8 @@ describe("testing github issue #1038", () => {
         });
         statusCode1.should.eql(StatusCodes.BadInternalError);
 
-        
         faultyVariant.dimensions = null;
-        
+
         const statusCode2 = await pseudoSession.write({
             nodeId: coerceNodeId("ns=1;s=Variable"),
             attributeId: AttributeIds.Value,
@@ -95,6 +86,5 @@ describe("testing github issue #1038", () => {
             }
         });
         statusCode2.should.eql(StatusCodes.BadInternalError);
-
     });
 });

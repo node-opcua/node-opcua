@@ -11,13 +11,7 @@ import { DataType } from "node-opcua-variant";
 import { VariantArrayType } from "node-opcua-variant";
 
 import { ExtensionObject } from "node-opcua-extension-object";
-import {
-    UADataType,
-    UADynamicVariableArray,
-    UAObject,
-    UAReferenceType,
-    UAVariable
-} from "node-opcua-address-space-base"
+import { UADataType, UADynamicVariableArray, UAObject, UAReferenceType, UAVariable } from "node-opcua-address-space-base";
 import { UAVariableImpl } from "./ua_variable_impl";
 
 const doDebug = checkDebugFlag(__filename);
@@ -172,14 +166,14 @@ export function bindExtObjArrayNode<T extends ExtensionObject>(
     uaArrayVariableNode.$$extensionObjectArray = [];
     uaArrayVariableNode.$$indexPropertyName = indexPropertyName;
 
-    uaArrayVariableNode.$$getElementBrowseName = function (this: any, extObj: ExtensionObject) {
+    uaArrayVariableNode.$$getElementBrowseName = function (this: UADynamicVariableArray<T>, extObj: ExtensionObject) {
         const indexPropertyName1 = this.$$indexPropertyName;
 
-        if (!Object.prototype.hasOwnProperty.call(extObj,indexPropertyName1)) {
+        if (!Object.prototype.hasOwnProperty.call(extObj, indexPropertyName1)) {
             console.log(" extension object do not have ", indexPropertyName1, extObj);
         }
         // assert(extObj.constructor === addressSpace.constructExtensionObject(dataType));
-        assert(Object.prototype.hasOwnProperty.call(extObj,indexPropertyName1));
+        assert(Object.prototype.hasOwnProperty.call(extObj, indexPropertyName1));
         const browseName = (extObj as any)[indexPropertyName1].toString();
         return browseName;
     };

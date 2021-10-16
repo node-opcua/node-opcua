@@ -22,7 +22,7 @@ import { AddReferenceOpts, BaseNode, UAReference } from "..";
  *
  *
  */
-export function assertHasMatchingReference(node: BaseNode, reference: AddReferenceOpts) {
+export function assertHasMatchingReference(node: BaseNode, reference: AddReferenceOpts): void {
     const addressSpace = node.addressSpace;
 
     const normalizedReference = addressSpace.normalizeReferenceType(reference);

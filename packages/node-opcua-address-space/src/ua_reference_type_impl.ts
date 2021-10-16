@@ -17,13 +17,9 @@ import { BaseNodeImpl, InternalBaseNodeOptions } from "./base_node_impl";
 import * as tools from "./tool_isSupertypeOf";
 import { get_subtypeOf, get_subtypeOfObj } from "./tool_isSupertypeOf";
 import { ReferenceImpl } from "./reference_impl";
-import {
-    BaseNode_getCache
-} from "./base_node_private";
-
+import { BaseNode_getCache } from "./base_node_private";
 
 const ReferenceTypeCounter = { count: 0 };
-
 
 function _internal_getAllSubtypes(referenceType: UAReferenceType): UAReferenceTypePublic[] {
     const addressSpace = referenceType.addressSpace;
@@ -45,7 +41,6 @@ function _internal_getAllSubtypes(referenceType: UAReferenceType): UAReferenceTy
 }
 
 function _getAllSubtypes(ref: UAReferenceType) {
-
     const _cache = BaseNode_getCache(ref);
 
     if (!_cache._allSubTypesVersion || _cache._allSubTypesVersion < ReferenceTypeCounter.count) {
@@ -69,9 +64,8 @@ function _internal_getSubtypeIndex(referenceType: UAReferenceType): { [key: stri
 }
 
 function _getSubtypeIndex(referenceType: UAReferenceType): { [key: string]: UAReferenceTypePublic } {
-
     const _cache = BaseNode_getCache(referenceType);
-    if (!_cache._subtype_idx  || _cache._subtype_idxVersion < ReferenceTypeCounter.count) {
+    if (!_cache._subtype_idx || _cache._subtype_idxVersion < ReferenceTypeCounter.count) {
         // the cache need to be invalidated
         _cache._subtype_idx = null;
     }
@@ -81,7 +75,6 @@ function _getSubtypeIndex(referenceType: UAReferenceType): { [key: string]: UARe
     }
     return _cache._subtype_idx;
 }
-
 
 export interface UAReferenceTypeOptions extends InternalBaseNodeOptions {
     isAbstract?: boolean;
@@ -154,7 +147,9 @@ export class UAReferenceTypeImpl extends BaseNodeImpl implements UAReferenceType
         return str;
     }
 
-    public install_extra_properties(): void { /**  */ }
+    public install_extra_properties(): void {
+        /**  */
+    }
 
     /**
      * returns a array of all ReferenceTypes in the addressSpace that are self or a subType of self
@@ -166,9 +161,8 @@ export class UAReferenceTypeImpl extends BaseNodeImpl implements UAReferenceType
 
     public checkHasSubtype(ref: UAReference | NodeId): boolean {
         const _index = _getSubtypeIndex(this);
-        const referenceTypeNodeId = ref instanceof ReferenceImpl ? ref.nodeId : ref as NodeId;
+        const referenceTypeNodeId = ref instanceof ReferenceImpl ? ref.nodeId : (ref as NodeId);
         const _key = referenceTypeNodeId.toString();
         return !!_index[_key];
     }
-
 }

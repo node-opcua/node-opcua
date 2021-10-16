@@ -3,7 +3,7 @@ import { UAConditionImpl } from "./alarms_and_conditions/ua_condition_impl";
 import { BaseNodeImpl } from "./base_node_impl";
 import { UAObjectImpl } from "./ua_object_impl";
 
-export type ConditionRefreshCache = {[key in string]: UAObject};
+export type ConditionRefreshCache = { [key in string]: UAObject };
 export function apply_condition_refresh(this: BaseNodeImpl, _cache?: ConditionRefreshCache): void {
     // visit all notifiers recursively
     _cache = _cache || {};

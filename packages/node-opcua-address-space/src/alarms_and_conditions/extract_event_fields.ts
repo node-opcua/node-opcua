@@ -5,7 +5,6 @@ import { resolveNodeId } from "node-opcua-nodeid";
 import { SimpleAttributeOperand } from "node-opcua-types";
 import { DataType, Variant } from "node-opcua-variant";
 
-
 function assert_valid_event_data(eventData: IEventData) {
     assert(typeof eventData.resolveSelectClause === "function");
     assert(typeof eventData.readValue === "function");

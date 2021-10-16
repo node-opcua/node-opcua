@@ -1507,7 +1507,7 @@ export class UAVariableImpl extends BaseNodeImpl implements UAVariable {
         return this.$extensionObject;
     }
 
-    public updateExtensionObjectPartial(partialExtensionObject?: {[key:string]: any}): ExtensionObject {
+    public updateExtensionObjectPartial(partialExtensionObject?: { [key: string]: any }): ExtensionObject {
         setExtensionObjectValue(this, partialExtensionObject);
         return this.$extensionObject;
     }

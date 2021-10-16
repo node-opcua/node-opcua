@@ -2,7 +2,7 @@
  * @module node-opcua-address-space
  */
 import * as chalk from "chalk";
-import { UAState, UAStateVariable, UATransition, UATransition_Base,  UATransitionVariable } from "node-opcua-nodeset-ua";
+import { UAState, UAStateVariable, UATransition, UATransition_Base, UATransitionVariable } from "node-opcua-nodeset-ua";
 import { assert } from "node-opcua-assert";
 import { ObjectTypeIds } from "node-opcua-constants";
 import { coerceLocalizedText, LocalizedText, NodeClass } from "node-opcua-data-model";
@@ -20,10 +20,8 @@ import { BaseNodeImpl } from "../base_node_impl";
 
 const doDebug = false;
 
-export declare interface UATransitionImpl extends UATransition,  UATransitionEx {
-}
-export class UATransitionImpl implements UATransition,  UATransitionEx  {}
-
+export declare interface UATransitionImpl extends UATransition, UATransitionEx {}
+export class UATransitionImpl implements UATransition, UATransitionEx {}
 
 function getComponentFromTypeAndSubtype(typeDef: UAObjectType): UAObject[] {
     const components_parts: BaseNode[][] = [];
@@ -169,7 +167,7 @@ export class UAStateMachineImpl extends UAObjectImpl implements UAStateMachineEx
         if (comp.length > 1) {
             throw new Error(" More than 1 initial state in stateMachine");
         }
-        return comp.length === 0 ? null : comp[0] as UAState;
+        return comp.length === 0 ? null : (comp[0] as UAState);
     }
 
     /**

@@ -3,11 +3,18 @@ import * as path from "path";
 import * as should from "should";
 
 import { nodesets } from "node-opcua-nodesets";
-
-import { AddressSpace, UAVariable, UAMultiStateValueDiscrete, UAMultiStateDiscrete, UAMultiStateValueDiscreteEx, UAMultiStateDiscreteEx } from "../..";
-import { generateAddressSpace } from "../../nodeJS";
 import { StatusCodes } from "node-opcua-status-code";
 import { DataType } from "node-opcua-variant";
+
+import {
+    AddressSpace,
+    UAVariable,
+    UAMultiStateValueDiscrete,
+    UAMultiStateDiscrete,
+    UAMultiStateValueDiscreteEx,
+    UAMultiStateDiscreteEx
+} from "../..";
+import { generateAddressSpace } from "../../nodeJS";
 
 // tslint:disable-next-line:no-var-requires
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
@@ -40,7 +47,6 @@ describe("MultiStateValueDiscreteType - 2", () => {
 
         const multiStateValueDiscreteVar = variable as UAMultiStateValueDiscreteEx<number, DataType.UInt32>;
         // no need tp promote explicitly anymore promoteToMultiStateValueDiscrete(variable);
-
 
         multiStateValueDiscreteVar.setValue(1);
         multiStateValueDiscreteVar.getValueAsNumber().should.eql(1);

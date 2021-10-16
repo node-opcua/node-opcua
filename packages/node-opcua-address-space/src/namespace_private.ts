@@ -31,7 +31,7 @@ export interface NamespacePrivate extends INamespace {
     _deleteNode(node: BaseNode): void;
 
     internalCreateNode(options: CreateNodeOptions): BaseNode;
-    
+
     _dataTypeIterator(): IterableIterator<UADataType>;
 }
 

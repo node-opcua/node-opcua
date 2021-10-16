@@ -51,19 +51,19 @@ export class UANonExclusiveLimitAlarmImpl extends UALimitAlarmImpl implements UA
 
         options.optionals = options.optionals || [];
 
-        if (Object.prototype.hasOwnProperty.call(options,"lowLowLimit")) {
+        if (Object.prototype.hasOwnProperty.call(options, "lowLowLimit")) {
             options.optionals.push("LowLowLimit");
             options.optionals.push("LowLowState");
         }
-        if (Object.prototype.hasOwnProperty.call(options,"lowLimit")) {
+        if (Object.prototype.hasOwnProperty.call(options, "lowLimit")) {
             options.optionals.push("LowLimit");
             options.optionals.push("LowState");
         }
-        if (Object.prototype.hasOwnProperty.call(options,"highLimit")) {
+        if (Object.prototype.hasOwnProperty.call(options, "highLimit")) {
             options.optionals.push("HighLimit");
             options.optionals.push("HighState");
         }
-        if (Object.prototype.hasOwnProperty.call(options,"highHighLimit")) {
+        if (Object.prototype.hasOwnProperty.call(options, "highHighLimit")) {
             options.optionals.push("HighHighLimit");
             options.optionals.push("HighHighState");
         }
@@ -93,7 +93,7 @@ export class UANonExclusiveLimitAlarmImpl extends UALimitAlarmImpl implements UA
                 trueState: "LowLow active"
             });
             alarm.lowLowState.setValue(false);
-            assert(Object.prototype.hasOwnProperty.call(alarm,"lowLowLimit"));
+            assert(Object.prototype.hasOwnProperty.call(alarm, "lowLowLimit"));
         }
         if (alarm.lowState) {
             _install_TwoStateVariable_machinery(alarm.lowState, {
@@ -101,7 +101,7 @@ export class UANonExclusiveLimitAlarmImpl extends UALimitAlarmImpl implements UA
                 trueState: "Low active"
             });
             alarm.lowState.setValue(false);
-            assert(Object.prototype.hasOwnProperty.call(alarm,"lowLimit"));
+            assert(Object.prototype.hasOwnProperty.call(alarm, "lowLimit"));
         }
         if (alarm.highState) {
             _install_TwoStateVariable_machinery(alarm.highState, {
@@ -109,7 +109,7 @@ export class UANonExclusiveLimitAlarmImpl extends UALimitAlarmImpl implements UA
                 trueState: "High active"
             });
             alarm.highState.setValue(false);
-            assert(Object.prototype.hasOwnProperty.call(alarm,"highLimit"));
+            assert(Object.prototype.hasOwnProperty.call(alarm, "highLimit"));
         }
         if (alarm.highHighState) {
             _install_TwoStateVariable_machinery(alarm.highHighState, {
@@ -117,7 +117,7 @@ export class UANonExclusiveLimitAlarmImpl extends UALimitAlarmImpl implements UA
                 trueState: "HighHigh active"
             });
             alarm.highHighState.setValue(false);
-            assert(Object.prototype.hasOwnProperty.call(alarm,"highHighLimit"));
+            assert(Object.prototype.hasOwnProperty.call(alarm, "highHighLimit"));
         }
 
         alarm.activeState.setValue(false);

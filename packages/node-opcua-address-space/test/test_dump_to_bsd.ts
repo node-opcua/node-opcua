@@ -1,10 +1,9 @@
+import { nodesets } from "node-opcua-nodesets";
+import { StructureDefinition, StructureType } from "node-opcua-types";
+import { DataType } from "node-opcua-variant";
+
 import { AddressSpace, dumpToBSD } from "..";
 import { generateAddressSpace } from "../nodeJS";
-
-import { nodesets } from "node-opcua-nodesets";
-import { StructureDefinition, EnumDefinition, StructureType } from "node-opcua-types";
-import { DataType } from "node-opcua-variant";
-import { NodeId } from "node-opcua-nodeid";
 
 describe("converting DataType to BSD schema files", () => {
     let addressSpace: AddressSpace;

@@ -18,18 +18,18 @@ function dumpEnumeratedType(xw: XmlWriter, e: EnumDefinition, name: string): voi
     for (const f of e.fields || []) {
         xw.startElement("opc:EnumeratedValue");
         xw.writeAttribute("Name", f.name!);
-        assert(f.value[0] === 0, "unsuppor 64 bit value !");
+        assert(f.value[0] === 0, "unsupported 64 bit value !");
         xw.writeAttribute("Value", f.value[1].toString());
         xw.endElement();
     }
     xw.endElement();
 }
-function buildXmlName(addressSpace: AddressSpacePrivate, map: { [key: number]: string }, nodeId: NodeId) {
+function buildXmlName(addressSpace: AddressSpacePrivate, map: { [key: number]: string }, nodeId: NodeId): string {
     if (NodeId.sameNodeId(nodeId, NodeId.nullNodeId)) {
         return "ua:ExtensionObject";
     }
     const node = addressSpace.findNode(nodeId);
-    // istanbull ignore next
+    // istanbul ignore next
     if (!node) {
         throw new Error("Cannot find Node for" + nodeId?.toString());
     }
@@ -37,6 +37,8 @@ function buildXmlName(addressSpace: AddressSpacePrivate, map: { [key: number]: s
     const prefix = node.nodeId.namespace === 0 ? (node.nodeId.value <= 15 ? "opc" : "ua") : map[node.nodeId.namespace];
     return prefix + ":" + (typeName === "Structure" && prefix === "ua" ? "ExtensionObject" : typeName);
 }
+
+// eslint-disable-next-line max-statements
 function dumpDataTypeStructure(
     xw: XmlWriter,
     addressSpace: IAddressSpace,
@@ -44,7 +46,7 @@ function dumpDataTypeStructure(
     structureDefinition: StructureDefinition,
     name: string,
     doc?: string
-) {
+): void {
     xw.startElement("opc:StructuredType");
     xw.writeAttribute("Name", name);
     xw.writeAttribute("BaseType", buildXmlName(addressSpace as AddressSpacePrivate, map, structureDefinition.baseDataType));
@@ -134,7 +136,7 @@ function dumpDataTypeToBSD(xw: XmlWriter, dataType: UADataType, map: { [key: num
 function shortcut(namespace: INamespace) {
     return "n" + namespace.index;
 }
-export function dumpToBSD(namespace: NamespacePrivate) {
+export function dumpToBSD(namespace: NamespacePrivate): void {
     const dependency: INamespace[] = constructNamespaceDependency(namespace);
 
     const addressSpace = namespace.addressSpace;

@@ -1,5 +1,6 @@
-import * as should from "should";
 import * as fs from "fs";
+
+import * as should from "should";
 import sinon = require("sinon");
 
 import { AccessLevelFlag, coerceLocalizedText } from "node-opcua-data-model";
@@ -15,7 +16,7 @@ import { generateAddressSpace } from "../../distNodeJS";
 
 const doDebug = false;
 
-export function subtest_two_state_discrete_type(mainTest: { addressSpace: AddressSpace }) {
+export function subtest_two_state_discrete_type(mainTest: { addressSpace: AddressSpace }): void {
     describe("TwoStateDiscreteType", () => {
         let addressSpace: AddressSpace;
         before(() => {

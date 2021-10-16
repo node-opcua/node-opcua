@@ -1,6 +1,5 @@
-import * as should from "should";
-
 import * as fs from "fs";
+import * as should from "should";
 
 import { nodesets } from "node-opcua-nodesets";
 import { DataType } from "node-opcua-variant";
@@ -69,7 +68,7 @@ describe("Issue 162 : demonstrate how to modify an instantiate object variable",
             organizedBy: "RootFolder"
         }) as MyCustomObject;
 
-        should(myObject).hasOwnProperty("customProperty");
+        should(myObject).have.ownProperty("customProperty");
         // the first method consist of accessing the customProperty and
         // setting the value when ever it change from the outside.
         myObject.customProperty.setValueFromSource({ dataType: DataType.Double, value: -32 });

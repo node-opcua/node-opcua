@@ -65,7 +65,7 @@ export class NodeIdManager {
         this.addressSpace = addressSpace;
     }
 
-    public setCache(cache: NodeEntry[]) {
+    public setCache(cache: NodeEntry[]): void {
         this._cache = {};
         this._reverseCache = {};
         for (const [key, value, nodeClass] of cache) {
@@ -114,10 +114,7 @@ export class NodeIdManager {
     public constructNodeId(options: ConstructNodeIdOptions): NodeId {
         function prepareName(browseName: QualifiedName): string {
             assert(browseName instanceof QualifiedName);
-            const m = browseName
-                .name!.toString()
-                .replace(/[ ]/g, "")
-                .replace(/(<|>)/g, "");
+            const m = browseName.name!.toString().replace(/[ ]/g, "").replace(/(<|>)/g, "");
             return m;
         }
         let nodeId = options.nodeId;

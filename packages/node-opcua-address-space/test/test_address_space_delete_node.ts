@@ -1,11 +1,11 @@
 import * as should from "should";
 
+import { DataType } from "node-opcua-variant";
+import { nodesets } from "node-opcua-nodesets";
+
 import { AddressSpace, Namespace, UAObject, UAObjectType, UADiscreteAlarm, ensureDatatypeExtracted } from "..";
 import { generateAddressSpace } from "../nodeJS";
 import { getMiniAddressSpace } from "../testHelpers";
-
-import { DataType } from "node-opcua-variant";
-import { nodesets } from "node-opcua-nodesets";
 
 describe("AddressSpace#delete", () => {
     let addressSpace: AddressSpace;

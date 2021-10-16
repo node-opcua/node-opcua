@@ -5,6 +5,7 @@ import { makeNodeId, NodeId, resolveNodeId } from "node-opcua-nodeid";
 import { StatusCodes } from "node-opcua-status-code";
 import { ReferenceDescription, BrowseDescription } from "node-opcua-types";
 import { DataType } from "node-opcua-variant";
+import { Benchmarker } from "node-opcua-benchmarker";
 
 import {
     AddressSpace,
@@ -17,7 +18,6 @@ import {
     UAReferenceType
 } from "..";
 import { getMiniAddressSpace } from "../testHelpers";
-import { Benchmarker } from "node-opcua-benchmarker";
 
 const context = SessionContext.defaultContext;
 
@@ -111,13 +111,15 @@ describe("testing ReferenceType", () => {
     });
 
     it("should return 1 refs for browseNode on RootFolder ,  NonHierarchicalReferences, includeSubtypes  ", () => {
-        const references = rootFolder.browseNode(new BrowseDescription({
-            browseDirection: BrowseDirection.Forward,
-            includeSubtypes: true,
-            nodeClassMask: 0, // 0 = all nodes
-            referenceTypeId: resolveNodeId("NonHierarchicalReferences"),
-            resultMask: 0x3f
-        }));
+        const references = rootFolder.browseNode(
+            new BrowseDescription({
+                browseDirection: BrowseDirection.Forward,
+                includeSubtypes: true,
+                nodeClassMask: 0, // 0 = all nodes
+                referenceTypeId: resolveNodeId("NonHierarchicalReferences"),
+                resultMask: 0x3f
+            })
+        );
         references.length.should.equal(1);
     });
 

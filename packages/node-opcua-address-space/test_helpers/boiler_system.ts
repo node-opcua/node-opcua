@@ -1,20 +1,19 @@
+/* eslint-disable max-statements */
 /**
  * @module node-opcua-address-space
  */
-// tslint:disable:no-empty-interface
 import { assert } from "node-opcua-assert";
 import { NodeClass } from "node-opcua-data-model";
 import { StatusCodes } from "node-opcua-status-code";
 import { CallMethodResultOptions } from "node-opcua-types";
 import { lowerFirstLetter } from "node-opcua-utils";
-import { VariantLike, Variant, DataType } from "node-opcua-variant";
+import { VariantLike, DataType } from "node-opcua-variant";
+import { UAFolder, UAAnalogItem } from "node-opcua-nodeset-ua";
 import {
     AddressSpace,
     BaseNode,
     InstantiateObjectOptions,
     Namespace,
-    SessionContext,
-    UAStateMachineEx,
     UATransitionEventType,
     UAMethod,
     UAObject,
@@ -25,11 +24,7 @@ import {
     ISessionContext,
     UAProgramStateMachineEx
 } from "..";
-import {
-    UAFolder,
-    UAProgramStateMachine,
-     UAAnalogItem,
-} from "node-opcua-nodeset-ua";
+
 import { UAStateMachineImpl } from "../src/state_machine/finite_state_machine";
 
 export interface FlowToReference extends UAReferenceType {}
@@ -220,7 +215,6 @@ function addRelation(srcNode: BaseNode, referenceType: UAReferenceType | string,
     srcNode.addReference({ referenceType: referenceType.nodeId, nodeId: targetNode });
 }
 
-// tslint:disable:no-console
 export function createBoilerType(namespace: Namespace): BoilerType {
     // istanbul ignore next
     if (namespace.findObjectType("BoilerType")) {
@@ -467,9 +461,7 @@ export function createBoilerType(namespace: Namespace): BoilerType {
         notifierOf: boilerDrumType
     }) as LevelIndicator;
 
-    const programFiniteStateMachineType = addressSpace.findObjectType(
-        "ProgramStateMachineType"
-    )!;
+    const programFiniteStateMachineType = addressSpace.findObjectType("ProgramStateMachineType")!;
 
     // --------------------------------------------------------
     // define boiler State Machine
@@ -609,10 +601,10 @@ export function makeBoiler(
     }) as Boiler;
 
     promoteToStateMachine(boiler1.simulation);
-    
+
     const boilerStateMachine = boiler1.simulation;
     const readyState = boilerStateMachine.getStateByName("Ready")!;
     boilerStateMachine.setState(readyState);
-    
+
     return boiler1;
 }

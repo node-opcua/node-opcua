@@ -22,14 +22,23 @@ import { promoteToStateMachine, UAStateMachineImpl } from "./finite_state_machin
 const debugLog = make_debugLog(__filename);
 const doDebug = checkDebugFlag(__filename);
 
-export interface UAShelvedStateMachineHelper  {
+export interface UAShelvedStateMachineHelper {
     _timer: NodeJS.Timer | null;
     _sheveldTime: Date;
     _unshelvedTime: Date;
     _duration: number;
 }
-export interface UAShelvedStateMachineEx extends 
-    Omit<UAShelvedStateMachine_Base, "oneShotShelvedToUnshelved" | "unshelvedToTimedShelved" |"unshelvedToOneShotShelved" | "timedShelvedToUnshelved" | "timedShelvedToOneShotShelved" | "oneShotShelvedToTimedShelved" >, UAShelvedStateMachineHelper{
+export interface UAShelvedStateMachineEx
+    extends Omit<
+            UAShelvedStateMachine_Base,
+            | "oneShotShelvedToUnshelved"
+            | "unshelvedToTimedShelved"
+            | "unshelvedToOneShotShelved"
+            | "timedShelvedToUnshelved"
+            | "timedShelvedToOneShotShelved"
+            | "oneShotShelvedToTimedShelved"
+        >,
+        UAShelvedStateMachineHelper {
     unshelveTime: UAProperty<number, DataType.Double>;
     unshelved: UAState;
     timedShelved: UAState;
@@ -115,7 +124,7 @@ function _unshelve_method(inputArguments: VariantLike[], context: ISessionContex
     });
 }
 
-export function _clear_timer_if_any(shelvingState: UAShelvedStateMachineEx) {
+export function _clear_timer_if_any(shelvingState: UAShelvedStateMachineEx): void {
     if (shelvingState._timer) {
         clearTimeout(shelvingState._timer);
         // xx console.log("_clear_timer_if_any shelvingState = ",shelvingState._timer,shelvingState.constructor.name);

@@ -24,14 +24,7 @@ import { coerceNodeId, makeNodeId, NodeId, resolveNodeId, sameNodeId } from "nod
 import { StatusCode, StatusCodes } from "node-opcua-status-code";
 import { TimeZoneDataType } from "node-opcua-types";
 import { DataType, Variant, VariantLike } from "node-opcua-variant";
-import {
-    UAVariable,
-    INamespace,
-    ISessionContext,
-    UAEventType,
-    BaseNode,
-    UAObject
-} from "node-opcua-address-space-base";
+import { UAVariable, INamespace, ISessionContext, UAEventType, BaseNode, UAObject } from "node-opcua-address-space-base";
 import { UACondition_Base, UAConditionVariable, UACondition } from "node-opcua-nodeset-ua";
 
 import { ConditionInfoOptions } from "../../source/interfaces/alarms_and_conditions/condition_info_i";
@@ -61,12 +54,12 @@ export interface UAConditionHelper extends UABaseEventHelper {
     getBranchIds(): NodeId[];
     createBranch(): ConditionSnapshot;
     deleteBranch(branch: ConditionSnapshot): void;
-    getEnabledState(): boolean ;
-    getEnabledStateAsString(): string ;
+    getEnabledState(): boolean;
+    getEnabledStateAsString(): string;
     setEnabledState(requestedEnabledState: boolean): StatusCode;
     setReceiveTime(time: Date): void;
-    setLocalTime(time: TimeZoneDataType):void;
-    setTime(time: Date):void;
+    setLocalTime(time: TimeZoneDataType): void;
+    setTime(time: Date): void;
     conditionOfNode(): UAObject | UAVariable | null;
     raiseConditionEvent(branch: ConditionSnapshot, renewEventId: boolean): void;
     raiseNewCondition(conditionInfo: ConditionInfoOptions): void;
@@ -94,7 +87,6 @@ export interface UAConditionEx extends UAObject, UACondition_Base, UAConditionHe
     // addComment: UAMethod;
     // conditionRefresh: UAMethod;
     // conditionRefresh2: UAMethod;
-
 }
 export declare interface UAConditionImpl extends UAConditionEx, UABaseEventImpl {
     on(eventName: string, eventHandler: any): this;
@@ -121,7 +113,7 @@ export declare interface UAConditionImpl extends UAConditionEx, UABaseEventImpl 
  *             │  └─ TripAlarmType
  *
  */
-export class UAConditionImpl extends UABaseEventImpl implements UAConditionEx  {
+export class UAConditionImpl extends UABaseEventImpl implements UAConditionEx {
     public static defaultSeverity = 250;
     public static typeDefinition = resolveNodeId("ConditionType");
 
@@ -293,7 +285,7 @@ export class UAConditionImpl extends UABaseEventImpl implements UAConditionEx  {
     public deleteBranch(branch: ConditionSnapshot): void {
         const key = branch.getBranchId().toString();
         assert(branch.getBranchId() !== NodeId.nullNodeId, "cannot delete branch zero");
-        assert(Object.prototype.hasOwnProperty.call(this._branches,key));
+        assert(Object.prototype.hasOwnProperty.call(this._branches, key));
         delete this._branches[key];
         this.emit("branch_deleted", key);
     }
@@ -363,7 +355,7 @@ export class UAConditionImpl extends UABaseEventImpl implements UAConditionEx  {
             // conditionNode.evaluateBranches();
 
             // restore retain flag
-            if (Object.prototype.hasOwnProperty.call(this,"_previousRetainFlag")) {
+            if (Object.prototype.hasOwnProperty.call(this, "_previousRetainFlag")) {
                 this.currentBranch().setRetain(this._previousRetainFlag);
             }
 
@@ -433,8 +425,6 @@ export class UAConditionImpl extends UABaseEventImpl implements UAConditionEx  {
         // note localTime has been made optional in 1.04
         assert(!this.localTime || this.localTime.readValue().value.dataType === DataType.ExtensionObject);
     }
-
-
 
     /**
      * @method conditionOfNode
@@ -514,7 +504,7 @@ export class UAConditionImpl extends UABaseEventImpl implements UAConditionEx  {
 
         conditionInfo = conditionInfo || {};
 
-        conditionInfo.severity = Object.prototype.hasOwnProperty.call(conditionInfo,"severity")
+        conditionInfo.severity = Object.prototype.hasOwnProperty.call(conditionInfo, "severity")
             ? conditionInfo.severity
             : UAConditionImpl.defaultSeverity;
 
@@ -536,7 +526,7 @@ export class UAConditionImpl extends UABaseEventImpl implements UAConditionEx  {
         branch.setReceiveTime(now);
 
         // note : in 1.04 LocalTime property is optional
-        if (Object.prototype.hasOwnProperty.call(this,"localTime")) {
+        if (Object.prototype.hasOwnProperty.call(this, "localTime")) {
             branch.setLocalTime(
                 new TimeZoneDataType({
                     daylightSavingInOffset: false,
@@ -545,21 +535,21 @@ export class UAConditionImpl extends UABaseEventImpl implements UAConditionEx  {
             );
         }
 
-        if (Object.prototype.hasOwnProperty.call(conditionInfo,"message") && conditionInfo.message) {
+        if (Object.prototype.hasOwnProperty.call(conditionInfo, "message") && conditionInfo.message) {
             branch.setMessage(conditionInfo.message);
         }
         // todo receive time : when the server received the event from the underlying system.
         // self.receiveTime.setValueFromSource();
 
-        if (Object.prototype.hasOwnProperty.call(conditionInfo,"severity") && conditionInfo.severity !== null) {
+        if (Object.prototype.hasOwnProperty.call(conditionInfo, "severity") && conditionInfo.severity !== null) {
             assert(isFinite(conditionInfo.severity!));
             branch.setSeverity(conditionInfo.severity!);
         }
-        if (Object.prototype.hasOwnProperty.call(conditionInfo,"quality") && conditionInfo.quality !== null) {
+        if (Object.prototype.hasOwnProperty.call(conditionInfo, "quality") && conditionInfo.quality !== null) {
             assert(conditionInfo.quality instanceof StatusCode);
             branch.setQuality(conditionInfo.quality!);
         }
-        if (Object.prototype.hasOwnProperty.call(conditionInfo,"retain") && conditionInfo.retain !== null) {
+        if (Object.prototype.hasOwnProperty.call(conditionInfo, "retain") && conditionInfo.retain !== null) {
             assert(typeof conditionInfo.retain === "boolean");
             branch.setRetain(!!conditionInfo.retain!);
         }
@@ -585,7 +575,7 @@ export class UAConditionImpl extends UABaseEventImpl implements UAConditionEx  {
         return this._branch0;
     }
 
-    public _resend_conditionEvents(): 0|1 {
+    public _resend_conditionEvents(): 0 | 1 {
         // for the time being , only current branch
         const currentBranch = this.currentBranch();
         if (currentBranch.getRetain()) {
@@ -676,9 +666,7 @@ export class UAConditionImpl extends UABaseEventImpl implements UAConditionEx  {
         if (sameBuffer(this.eventId!.readValue().value.value, eventId)) {
             return this.currentBranch();
         }
-        const e = Object.values(this._branches).filter((branch: ConditionSnapshot) =>
-            sameBuffer(branch.getEventId(), eventId)
-        );
+        const e = Object.values(this._branches).filter((branch: ConditionSnapshot) => sameBuffer(branch.getEventId(), eventId));
         if (e.length === 1) {
             return e[0];
         }
@@ -769,12 +757,15 @@ function UACondition_instantiate(
     Object.setPrototypeOf(conditionNode, UAConditionImpl.prototype);
     conditionNode.initialize();
 
-    assert(Object.prototype.hasOwnProperty.call(options,"conditionSource"), "must specify a condition source either as null or as a UAObject");
+    assert(
+        Object.prototype.hasOwnProperty.call(options, "conditionSource"),
+        "must specify a condition source either as null or as a UAObject"
+    );
     if (!options.conditionOf) {
         options.conditionOf = options.conditionSource;
     }
     if (options.conditionOf) {
-        assert(Object.prototype.hasOwnProperty.call(options,"conditionOf")); // must provide a conditionOf
+        assert(Object.prototype.hasOwnProperty.call(options, "conditionOf")); // must provide a conditionOf
         options.conditionOf = addressSpace._coerceNode(options.conditionOf);
 
         // HasCondition References can be used in the Type definition of an Object or a Variable.
@@ -1277,7 +1268,7 @@ function _getCompositeKey(node: BaseNode, key: string): UAVariableImpl {
     const elements = key.split(".");
     for (const e of elements) {
         // istanbul ignore next
-        if (!Object.prototype.hasOwnProperty.call(cur,e)) {
+        if (!Object.prototype.hasOwnProperty.call(cur, e)) {
             throw new Error(" cannot extract '" + key + "' from " + node.browseName.toString());
         }
         cur = (cur as any)[e];

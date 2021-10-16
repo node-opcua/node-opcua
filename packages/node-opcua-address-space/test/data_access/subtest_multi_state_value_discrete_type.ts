@@ -1,5 +1,6 @@
 // tslint:disable:no-bitwise
 import * as should from "should";
+import * as sinon from "sinon";
 
 import { AccessLevelFlag } from "node-opcua-data-model";
 import { DataValue, DataValueOptionsT, DataValueT } from "node-opcua-data-value";
@@ -8,15 +9,14 @@ import { Variant } from "node-opcua-variant";
 import { DataType } from "node-opcua-variant";
 import { VariantArrayType } from "node-opcua-variant";
 import { getCurrentClock } from "node-opcua-date-time";
-import * as sinon from "sinon";
+import { EnumValueType } from "node-opcua-types";
 
 import { AddressSpace, Namespace, SessionContext, UAObject, UAObjectType } from "../..";
 import { UAMultiStateValueDiscreteEx } from "../..";
-import { EnumValueType } from "node-opcua-types";
 
 const context = new SessionContext();
 
-export function subtest_multi_state_value_discrete_type(mainTest: { addressSpace: AddressSpace }) {
+export function subtest_multi_state_value_discrete_type(mainTest: { addressSpace: AddressSpace }): void {
     describe("MultiStateValueDiscreteType", () => {
         let addressSpace: AddressSpace;
         let namespace: Namespace;
@@ -218,7 +218,7 @@ export function subtest_multi_state_value_discrete_type(mainTest: { addressSpace
             });
 
             it("changing MultiStateVariable value shall change valueAsText accordingly", async () => {
-                const dataValue0 = new DataValueT<number, DataType.UInt32> ({
+                const dataValue0 = new DataValueT<number, DataType.UInt32>({
                     value: { dataType: DataType.UInt32, value: 0x0000ff } // OK
                 });
 
@@ -288,7 +288,7 @@ export function subtest_multi_state_value_discrete_type(mainTest: { addressSpace
             obj.color.valueAsText.readValue().value.value.text!.should.eql("Red");
             obj.color.readValue().value.value.should.eql(0xff0000);
 
-           // console.log("obj.color.enumValues.readValue().value.value ", obj.color.enumValues.readValue().value.value);
+            // console.log("obj.color.enumValues.readValue().value.value ", obj.color.enumValues.readValue().value.value);
 
             const arr = obj.color.enumValues.readValue().value.value as unknown as EnumValueType[];
             arr[0].displayName.text!.should.eql("Red");

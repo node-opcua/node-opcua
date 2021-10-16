@@ -196,7 +196,7 @@ describe("testing address space", () => {
         object.getComponentByName("MyComponent")!.browseName.toString().should.eql("1:MyComponent");
 
         addressSpace.deleteNode(component);
-        should.not.exist( object.getChildByName("MyComponent"));
+        should.not.exist(object.getChildByName("MyComponent"));
     });
 
     it("AddressSpace#findCorrespondingBasicDataType i=13 => DataType.String", () => {

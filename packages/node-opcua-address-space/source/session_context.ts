@@ -15,14 +15,7 @@ import {
     UserNameIdentityToken,
     X509IdentityToken
 } from "node-opcua-types";
-import {
-    ISessionContext,
-    UAObject,
-    UAObjectType,
-    UAVariable,
-    BaseNode,
-    ISessionBase
-} from "node-opcua-address-space-base";
+import { ISessionContext, UAObject, UAObjectType, UAVariable, BaseNode, ISessionBase } from "node-opcua-address-space-base";
 import { ObjectIds } from "node-opcua-constants";
 import { StatusCodes } from "node-opcua-status-code";
 import { NamespacePrivate } from "../src/namespace_private";

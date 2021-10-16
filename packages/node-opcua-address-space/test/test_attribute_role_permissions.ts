@@ -1,23 +1,16 @@
 // tslint:disable:no-bitwise
 import "should";
 
-import {
-    AccessRestrictionsFlag,
-    allPermissions,
-    AttributeIds,
-    makePermissionFlag,
-} from "node-opcua-data-model";
-import { AddressSpace, Namespace, WellKnownRoles } from "..";
-import { getMiniAddressSpace } from "../testHelpers";
+import { AccessRestrictionsFlag, allPermissions, AttributeIds, makePermissionFlag } from "node-opcua-data-model";
 import { StatusCodes } from "node-opcua-status-code";
 import { DataType, VariantArrayType } from "node-opcua-variant";
 import { PermissionType, RolePermissionType } from "node-opcua-types";
 import { resolveNodeId } from "node-opcua-nodeid";
+import { AddressSpace, Namespace, WellKnownRoles } from "..";
+import { getMiniAddressSpace } from "../testHelpers";
 
-// tslint:disable-next-line:no-var-requires
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("testing RolePermission Attribute ", () => {
-
     let addressSpace: AddressSpace;
     let namespace: Namespace;
 
@@ -75,6 +68,5 @@ describe("testing RolePermission Attribute ", () => {
         rp2.permissions.should.eql(PermissionType.ReadRolePermissions);
 
         // dataValue.value.value.should.eql(AccessRestrictionsFlag.SessionRequired + AccessRestrictionsFlag.SigningRequired)
-
     });
 });

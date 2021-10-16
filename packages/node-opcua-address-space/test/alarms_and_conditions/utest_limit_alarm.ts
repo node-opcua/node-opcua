@@ -7,52 +7,63 @@ import * as sinon from "sinon";
 import { NodeId } from "node-opcua-nodeid";
 import { StatusCodes } from "node-opcua-status-code";
 import { DataType } from "node-opcua-variant";
+import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
+
 import { AddressSpace, UAObject, UAVariable } from "../..";
 
-import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 const debugLog = make_debugLog("TEST");
 const doDebug = checkDebugFlag("TEST");
 
 const fields = [
-    "eventId", "eventType", "enabledState",
-    "activeState", "ackedState",
-    "lowLowLimit", "comment", "branchId",
-    "quality", "message"
+    "eventId",
+    "eventType",
+    "enabledState",
+    "activeState",
+    "ackedState",
+    "lowLowLimit",
+    "comment",
+    "branchId",
+    "quality",
+    "message"
 ];
 
-function dumpEvent(
-    addressSpace: AddressSpace, eventFields: string[], eventData: any) {
-
+function dumpEvent(addressSpace: AddressSpace, eventFields: string[], eventData: any) {
     function w(str: string, l: number): string {
         return (str + "                               ").substring(0, l);
     }
 
     debugLog("-----------------------");
     eventFields.map((key: string) => {
-
         const variant = eventData[key];
         if (!variant || variant.dataType === DataType.Null) {
             return;
         }
         if (variant.dataType === DataType.ByteString) {
-            debugLog(w("", 20), chalk.yellow(w(key, 15)),
+            debugLog(
+                w("", 20),
+                chalk.yellow(w(key, 15)),
                 chalk.cyan(w(DataType[variant.dataType], 10).toString()),
-                variant.value.toString("hex"));
-
+                variant.value.toString("hex")
+            );
         } else if (variant.dataType === DataType.NodeId) {
-
             const node = addressSpace.findNode(variant.value);
             const name = node ? node.browseName.toString() : variant.value.toString();
 
-            debugLog(chalk.yellow(w(name, 20), w(key, 15)),
+            debugLog(
+                chalk.yellow(w(name, 20), w(key, 15)),
                 chalk.cyan(w(DataType[variant.dataType], 10).toString()),
-                chalk.cyan.bold(name), "(", w(variant.value, 20), ")");
-
+                chalk.cyan.bold(name),
+                "(",
+                w(variant.value, 20),
+                ")"
+            );
         } else {
-            debugLog(w("", 20),
+            debugLog(
+                w("", 20),
                 chalk.yellow(w(key, 15)),
                 chalk.cyan(w(DataType[variant.dataType], 10).toString()),
-                variant.value.toString());
+                variant.value.toString()
+            );
         }
     });
 }
@@ -69,13 +80,10 @@ function dumpSpy(spyOnEvent: any) {
         debugLog("  message   ", ellipsis(spyOnEvent.getCalls()[i].args[0].message.toString()));
         debugLog("  acked     ", spyOnEvent.getCalls()[i].args[0].ackedState.toString());
     }
-
 }
 
-export function utest_limit_alarm(test: any) {
-
+export function utest_limit_alarm(test: any): void {
     describe("Limit Alarms ", () => {
-
         let addressSpace: AddressSpace;
         let source: UAObject;
         let engine: UAObject;
@@ -94,6 +102,7 @@ export function utest_limit_alarm(test: any) {
             });
         }
 
+        // eslint-disable-next-line max-statements
         it("should instantiate a ExclusiveLimitAlarm", () => {
             /* eslint max-statements: ["error", 60] */
             const alarm = addressSpace.getOwnNamespace().instantiateExclusiveLimitAlarm("ExclusiveLimitAlarmType", {
@@ -133,8 +142,7 @@ export function utest_limit_alarm(test: any) {
             alarm.activeState.getValue().should.eql(true);
 
             spyOnEvent.callCount.should.eql(1);
-            spyOnEvent.getCalls()[0].args[0].message.value.text
-                .should.eql("Condition value is -100 and state is LowLow");
+            spyOnEvent.getCalls()[0].args[0].message.value.text.should.eql("Condition value is -100 and state is LowLow");
             spyOnEvent.getCalls()[0].args[0].branchId.value.should.eql(NodeId.nullNodeId);
             const call0_eventId = spyOnEvent.getCalls()[0].args[0].eventId.toString();
 
@@ -196,8 +204,7 @@ export function utest_limit_alarm(test: any) {
             alarm.limitState.currentState.readValue().statusCode.should.eql(StatusCodes.Good);
             alarm.activeState.getValue().should.eql(true);
             spyOnEvent.callCount.should.eql(6);
-            spyOnEvent.getCalls()[5].args[0].message.value.text
-                .should.eql("Condition value is 200 and state is HighHigh");
+            spyOnEvent.getCalls()[5].args[0].message.value.text.should.eql("Condition value is 200 and state is HighHigh");
             spyOnEvent.getCalls()[5].args[0].branchId.value.should.eql(NodeId.nullNodeId);
 
             setVariableValue(11);
@@ -205,15 +212,12 @@ export function utest_limit_alarm(test: any) {
             setVariableValue(0);
 
             alarm.removeListener("on", spyOnEvent);
-
         });
 
         it("should instantiate a NonExclusiveLimitAlarm", () => {
-
             setVariableValue(0);
 
-            const alarm = addressSpace.getOwnNamespace().instantiateNonExclusiveLimitAlarm(
-                "NonExclusiveLimitAlarmType", {
+            const alarm = addressSpace.getOwnNamespace().instantiateNonExclusiveLimitAlarm("NonExclusiveLimitAlarmType", {
                 browseName: "MyNonExclusiveAlarm",
                 conditionSource: source,
                 highHighLimit: 100.0,
@@ -280,11 +284,9 @@ export function utest_limit_alarm(test: any) {
         });
 
         it("Alarm should not trigger event if state change but enableState is false", () => {
-
             setVariableValue(0);
 
-            const alarm = addressSpace.getOwnNamespace().instantiateNonExclusiveLimitAlarm(
-                "NonExclusiveLimitAlarmType", {
+            const alarm = addressSpace.getOwnNamespace().instantiateNonExclusiveLimitAlarm("NonExclusiveLimitAlarmType", {
                 browseName: "MyNonExclusiveAlarmDisabledTest",
                 conditionSource: source,
                 highHighLimit: 100.0,
@@ -342,37 +344,40 @@ export function utest_limit_alarm(test: any) {
             // there should be two events here because the alarm reraised the pending branches ...
 
             // xx debugLog(spyOnEvent.getCall(4).args[0]);
-            spyOnEvent.getCall(4).args[0].message.value.text
-                .should.eql("Condition value is -100 and state is " +
-                    "{\"highHigh\":false,\"high\":false,\"low\":true,\"lowLow\":true}");
+            spyOnEvent
+                .getCall(4)
+                .args[0].message.value.text.should.eql(
+                    "Condition value is -100 and state is " + '{"highHigh":false,"high":false,"low":true,"lowLow":true}'
+                );
 
             setVariableValue(0);
             // a new event should be raised because back to normal, a new branch has also be created
             spyOnEvent.callCount.should.eql(8);
 
             // the branch
-            spyOnEvent.getCall(6).args[0].message.value.text
-                .should.eql("Condition value is -100 and state is" +
-                    " {\"highHigh\":false,\"high\":false,\"low\":true,\"lowLow\":true}");
+            spyOnEvent
+                .getCall(6)
+                .args[0].message.value.text.should.eql(
+                    "Condition value is -100 and state is" + ' {"highHigh":false,"high":false,"low":true,"lowLow":true}'
+                );
 
-            spyOnEvent.getCall(7).args[0].message.value.text
-                .should.eql("Back to normal");
+            spyOnEvent.getCall(7).args[0].message.value.text.should.eql("Back to normal");
 
             source.removeListener("on", spyOnEvent);
         });
 
-        it("should be possible to temporarily disable the alarm (this should trigger" +
-            "* an event with custom severity and retain flag) ", () => {
+        it(
+            "should be possible to temporarily disable the alarm (this should trigger" +
+                "* an event with custom severity and retain flag) ",
+            () => {
                 // TO DO
-
-            });
+            }
+        );
 
         it("should be possible to automatically trigger the new status event when limit values are updated", () => {
-
             setVariableValue(0);
 
-            const alarm = addressSpace.getOwnNamespace().instantiateNonExclusiveLimitAlarm(
-                "NonExclusiveLimitAlarmType", {
+            const alarm = addressSpace.getOwnNamespace().instantiateNonExclusiveLimitAlarm("NonExclusiveLimitAlarmType", {
                 browseName: "MyNonExclusiveAlarm2",
                 conditionSource: source,
                 highHighLimit: 100.0,
@@ -420,10 +425,8 @@ export function utest_limit_alarm(test: any) {
         });
 
         it("should not raise an event twice if the value changes without changing the state", () => {
-
             setVariableValue(0);
-            const alarm = addressSpace.getOwnNamespace().instantiateNonExclusiveLimitAlarm(
-                "NonExclusiveLimitAlarmType", {
+            const alarm = addressSpace.getOwnNamespace().instantiateNonExclusiveLimitAlarm("NonExclusiveLimitAlarmType", {
                 browseName: "MyNonExclusiveAlarm3",
                 conditionSource: source,
                 highHighLimit: 100.0,
@@ -458,13 +461,10 @@ export function utest_limit_alarm(test: any) {
         });
 
         describe("Testing alarms with enabledState false", () => {
-
             it("should not raise alarm if the alarm is not enabled", () => {
-
                 setVariableValue(0);
 
-                const alarm = addressSpace.getOwnNamespace().instantiateNonExclusiveLimitAlarm(
-                    "NonExclusiveLimitAlarmType", {
+                const alarm = addressSpace.getOwnNamespace().instantiateNonExclusiveLimitAlarm("NonExclusiveLimitAlarmType", {
                     browseName: "MyNonExclusiveAlarm4",
                     conditionSource: source,
                     highHighLimit: 100.0,
@@ -474,10 +474,12 @@ export function utest_limit_alarm(test: any) {
                     lowLowLimit: -10.0
                 });
             });
-            it("it should retain state and fire an event reflecting the actual state" +
-                " when alarms is set back to enabled=true", () => {
+            it(
+                "it should retain state and fire an event reflecting the actual state" + " when alarms is set back to enabled=true",
+                () => {
                     /* */
-                });
+                }
+            );
         });
     });
 }

@@ -10,12 +10,7 @@ import { StatusCodes } from "node-opcua-status-code";
 import { SimpleAttributeOperand } from "node-opcua-types";
 import { DataType, Variant, VariantLike } from "node-opcua-variant";
 
-import {
-    ISessionContext,
-    BaseNode,
-    IEventData,
-    UAVariable
-} from "node-opcua-address-space-base";
+import { ISessionContext, BaseNode, IEventData, UAVariable } from "node-opcua-address-space-base";
 
 /**
  * @class EventData
@@ -23,7 +18,6 @@ import {
  * @constructor
  */
 export class EventData implements IEventData {
-
     public eventId: NodeId;
     public $eventDataSource: BaseNode;
 

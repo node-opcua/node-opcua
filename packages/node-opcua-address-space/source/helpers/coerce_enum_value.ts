@@ -7,12 +7,12 @@ import { coerceLocalizedText } from "node-opcua-data-model";
 import { EnumValueType } from "node-opcua-types";
 import { EnumValueTypeOptionsLike } from "../address_space_ts";
 
-export function coerceEnumValues(enumValues: EnumValueTypeOptionsLike[] | { [key: string]: number| Int64 }): EnumValueType[] {
+export function coerceEnumValues(enumValues: EnumValueTypeOptionsLike[] | { [key: string]: number | Int64 }): EnumValueType[] {
     if (Array.isArray(enumValues)) {
         //
         return enumValues.map((en: any) => {
-            assert(Object.prototype.hasOwnProperty.call(en,"value"));
-            assert(Object.prototype.hasOwnProperty.call(en,"displayName"));
+            assert(Object.prototype.hasOwnProperty.call(en, "value"));
+            assert(Object.prototype.hasOwnProperty.call(en, "displayName"));
             return new EnumValueType({
                 displayName: coerceLocalizedText(en.displayName),
                 value: en.value

@@ -2,7 +2,7 @@ import "should";
 
 import { Double } from "node-opcua-basic-types";
 import { DataType, Variant } from "node-opcua-variant";
-import { AddressSpace , InstantiateObjectOptions, UAObject , UAObjectType, UAVariableT} from "..";
+import { AddressSpace, InstantiateObjectOptions, UAObject, UAObjectType, UAVariableT } from "..";
 
 export interface TemperatureSensor extends UAObject {
     temperature: UAVariableT<Double, DataType.Double>;
@@ -14,7 +14,6 @@ export interface TemperatureSensorType extends UAObjectType {
 }
 
 export function createTemperatureSensorType(addressSpace: AddressSpace): TemperatureSensorType {
-
     const namespace = addressSpace.getOwnNamespace();
 
     // TemperatureSensorType
@@ -32,5 +31,4 @@ export function createTemperatureSensorType(addressSpace: AddressSpace): Tempera
     });
 
     return temperatureSensorTypeNode;
-
 }

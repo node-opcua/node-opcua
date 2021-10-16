@@ -1,14 +1,14 @@
 import * as path from "path";
 import "should";
 
-import { AddressSpace, UAObject, SessionContext } from "..";
-import { generateAddressSpace } from "../nodeJS";
 import { nodesets } from "node-opcua-nodesets";
-import { UAVariable } from "..";
 import { DataType, Variant, VariantArrayType } from "node-opcua-variant";
 import { AttributeIds } from "node-opcua-data-model";
 
-// tslint:disable-next-line:no-var-requires
+import { AddressSpace, UAObject, SessionContext } from "..";
+import { generateAddressSpace } from "../nodeJS";
+import { UAVariable } from "..";
+
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("#899 Variable with NodeId Value in nodeset2.xml", () => {
     let addressSpace: AddressSpace;
@@ -194,7 +194,9 @@ describe("#846 Various Variable Value in nodeset2.xml", () => {
         v1.readValue().value.toString().should.eql("Variant(Scalar<UInt32>, value: 1023)");
     });
     // see https://reference.opcfoundation.org/v104/Core/docs/Part6/5.2.4/
-    it("should never be null EnumTypePropertyData1 #849-1", async () => {});
+    it("should never be null EnumTypePropertyData1 #849-1", async () => {
+        /** empty */
+    });
     it("should write a EnumTypePropertyData1 #849-2", async () => {
         const v1 = propertySet.getPropertyByName("EnumTypePropertyData1") as UAVariable;
         v1.setValueFromSource({

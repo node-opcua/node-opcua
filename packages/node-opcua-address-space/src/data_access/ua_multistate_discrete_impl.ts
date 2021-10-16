@@ -109,10 +109,13 @@ export function promoteToMultiStateDiscrete<T, DT extends DataType>(node: UAVari
 }
 registerNodePromoter(VariableTypeIds.MultiStateDiscreteType, promoteToMultiStateDiscrete);
 
-export function _addMultiStateDiscrete<T,DT extends DataType>(namespace: INamespace, options: AddMultiStateDiscreteOptions): UAMultiStateDiscreteImpl<T,DT> {
+export function _addMultiStateDiscrete<T, DT extends DataType>(
+    namespace: INamespace,
+    options: AddMultiStateDiscreteOptions
+): UAMultiStateDiscreteImpl<T, DT> {
     const addressSpace = namespace.addressSpace;
-    assert(Object.prototype.hasOwnProperty.call(options,"enumStrings"));
-    assert(!Object.prototype.hasOwnProperty.call(options,"ValuePrecision"));
+    assert(Object.prototype.hasOwnProperty.call(options, "enumStrings"));
+    assert(!Object.prototype.hasOwnProperty.call(options, "ValuePrecision"));
 
     const multiStateDiscreteType = addressSpace.findVariableType("MultiStateDiscreteType");
     if (!multiStateDiscreteType) {

@@ -1,4 +1,3 @@
-
 export interface XmlWriter {
     translationTable: any;
     visitedNode: any;

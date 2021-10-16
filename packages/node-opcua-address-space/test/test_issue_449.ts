@@ -1,10 +1,12 @@
 import * as should from "should";
-import { getMiniAddressSpace } from "../testHelpers";
 
 import { DataValue } from "node-opcua-data-value";
 import { StatusCodes } from "node-opcua-status-code";
 import { DataType } from "node-opcua-variant";
 import { Variant } from "node-opcua-variant";
+
+import { getMiniAddressSpace } from "../testHelpers";
+
 import { AddressSpace, AddVariableOptions, BindVariableOptionsVariation1, SessionContext, UAVariable } from "..";
 
 // tslint:disable-next-line:no-var-requires
@@ -20,9 +22,7 @@ describe("testing github issue https://github.com/node-opcua/node-opcua/issues/4
 
     it("#449 should be possible to access this in UAVariable get/set value accessor", async () => {
         const namespace = addressSpace.getOwnNamespace();
-        let node: UAVariable;
 
-        // tslint:disable:object-literal-shorthand
         const counterVar: AddVariableOptions = {
             browseName: "TEST",
             dataType: "String",
@@ -43,7 +43,7 @@ describe("testing github issue https://github.com/node-opcua/node-opcua/issues/4
             } as BindVariableOptionsVariation1
         };
 
-        node = namespace.addVariable(counterVar);
+        const node = namespace.addVariable(counterVar);
 
         const dataValue = new DataValue({
             value: {

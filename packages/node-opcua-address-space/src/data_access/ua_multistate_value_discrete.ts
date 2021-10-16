@@ -167,7 +167,7 @@ export class UAMultiStateValueDiscreteImpl<T, DT extends DataType>
      *
      * @private
      */
-    public _post_initialize():void {
+    public _post_initialize(): void {
         // MultiStateValueDiscrete Variables can have any numeric Data Type;
         // this includes signed and unsigned integers from 8 to 64 Bit length.
 

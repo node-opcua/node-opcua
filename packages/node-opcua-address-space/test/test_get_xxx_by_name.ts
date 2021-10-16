@@ -1,6 +1,6 @@
+import * as should from "should";
 import { AddressSpace, UAObject } from "..";
 import { getMiniAddressSpace } from "../testHelpers";
-import * as should from "should";
 
 describe("test component/property/method and method accessors", () => {
     let addressSpace: AddressSpace;

@@ -1,10 +1,9 @@
-import { resolveNodeId } from "node-opcua-nodeid";
 import "should";
-import * as sinon from "sinon";
+import { resolveNodeId } from "node-opcua-nodeid";
+import { coerceQualifiedName, NodeClass } from "node-opcua-data-model";
+
 import { AddressSpace, ConstructNodeIdOptions, NodeIdManager } from "..";
 import { generateAddressSpace } from "../nodeJS";
-
-import { coerceQualifiedName, NodeClass } from "node-opcua-data-model";
 
 // tslint:disable-next-line: no-var-requires
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;

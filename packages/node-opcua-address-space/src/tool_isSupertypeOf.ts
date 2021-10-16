@@ -10,10 +10,6 @@ import { BaseNode, UADataType, UAObjectType, UAReference, UAReferenceType, UAVar
 import { BaseNode_getCache } from "./base_node_private";
 import { ReferenceImpl } from "./reference_impl";
 import { BaseNodeImpl } from "./base_node_impl";
-import { UAReferenceTypeImpl } from "./ua_reference_type_impl";
-import { UADataTypeImpl } from "./ua_data_type_impl";
-import { UAObjectTypeImpl } from "./ua_object_type_impl";
-import { UAVariableTypeImpl } from "./ua_variable_type_impl";
 
 const HasSubTypeNodeId = resolveNodeId("HasSubtype");
 
@@ -38,7 +34,7 @@ function _slow_isSupertypeOf<T extends UAType>(this: T, Class: typeof BaseNodeIm
 
     for (const subType1 of subTypes) {
         const subTypeId = subType1.nodeId;
-        const subTypeNode = (this.addressSpace.findNode(subTypeId) as any) as T;
+        const subTypeNode = this.addressSpace.findNode(subTypeId) as any as T;
         // istanbul ignore next
         if (!subTypeNode) {
             throw new Error("Cannot find object with nodeId " + subTypeId.toString());
@@ -101,7 +97,7 @@ export function construct_isSupertypeOf<T extends UAType>(Class: typeof BaseNode
 }
 
 export function construct_slow_isSupertypeOf<T extends UAType>(Class: typeof BaseNodeImpl) {
-    return function (this: T, baseType: T) {
+    return function (this: T, baseType: T): boolean {
         return _slow_isSupertypeOf.call(this, Class, baseType);
     };
 }

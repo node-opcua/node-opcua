@@ -70,7 +70,7 @@ export class UAExclusiveDeviationAlarmImpl extends UAExclusiveLimitAlarmImpl imp
 
         return alarm;
     }
-    
+
     public getSetpointNodeNode(): UAVariable {
         return DeviationAlarmHelper_getSetpointNodeNode.call(this);
     }
@@ -87,7 +87,7 @@ export class UAExclusiveDeviationAlarmImpl extends UAExclusiveLimitAlarmImpl imp
         return DeviationAlarmHelper_install_setpoint.call(this, options);
     }
 
-    public _setStateBasedOnInputValue(value: number):void  {
+    public _setStateBasedOnInputValue(value: number): void {
         const setpointValue = this.getSetpointValue();
         if (setpointValue === null) {
             return;

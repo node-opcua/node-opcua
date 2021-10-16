@@ -13,15 +13,13 @@ import { UAOffNormalAlarmImpl } from "./ua_off_normal_alarm_impl";
  * Subscription.
  *
  */
-export class UASystemOffNormalAlarmImpl extends  UAOffNormalAlarmImpl {
-
+export class UASystemOffNormalAlarmImpl extends UAOffNormalAlarmImpl {
     public static instantiate(
         namespace: INamespace,
         limitAlarmTypeId: string | NodeId,
         options: any,
         data: any
     ): UASystemOffNormalAlarmImpl {
-          return UAOffNormalAlarmImpl.instantiate(
-            namespace, limitAlarmTypeId, options, data) as UASystemOffNormalAlarmImpl;
+        return UAOffNormalAlarmImpl.instantiate(namespace, limitAlarmTypeId, options, data) as UASystemOffNormalAlarmImpl;
     }
 }

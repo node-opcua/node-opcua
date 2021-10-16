@@ -25,7 +25,7 @@ import {
 } from "node-opcua-types";
 import * as utils from "node-opcua-utils";
 import { lowerFirstLetter } from "node-opcua-utils";
-import { DataType, Variant, VariantArrayType, VariantT } from "node-opcua-variant";
+import { DataType, Variant, VariantArrayType, VariantOptions, VariantT } from "node-opcua-variant";
 import {
     AddReferenceOpts,
     IEventData,
@@ -41,7 +41,8 @@ import {
     UAVariableType,
     UAReferenceType,
     UAObject,
-    UAView
+    UAView,
+    RaiseEventData
 } from "node-opcua-address-space-base";
 
 import { adjustBrowseDirection } from "../source/helpers/adjust_browse_direction";
@@ -659,7 +660,7 @@ export class AddressSpace implements AddressSpacePrivate {
      *
      * @private
      */
-    public constructEventData(eventTypeId: UAEventType, data: any): IEventData {
+    public constructEventData(eventTypeId: UAEventType, data: RaiseEventData): IEventData {
         data = data || {};
 
         // construct the reference dataStructure to store event Data
@@ -737,7 +738,7 @@ export class AddressSpace implements AddressSpacePrivate {
 
             visitedProperties[lowerName] = node;
             if (Object.prototype.hasOwnProperty.call(data, lowerName)) {
-                eventData.setValue(lowerName, node, data[lowerName]);
+                eventData.setValue(lowerName, node, data[lowerName] as VariantOptions);
                 // xx eventData[lowerName] = _coerceVariant(data[lowerName]);
             } else {
                 // add a property , but with a null variant
@@ -1019,7 +1020,7 @@ export class AddressSpace implements AddressSpacePrivate {
      * @example
      *
      *             // example 1
-     *             var extObj = addressSpace.constructExtensionObject("BuildInfo",{ productName: "PRODUCTNAME"});
+     *             var extObj = addressSpace.constructExtensionObject("BuildInfo",{ productName: "PRODUCT_NAME"});
      *
      *             // example 2
      *             serverStatusDataType.nodeClass.should.eql(NodeClass.DataType);
@@ -1027,7 +1028,7 @@ export class AddressSpace implements AddressSpacePrivate {
      *             var serverStatus  = addressSpace.constructExtensionObject(serverStatusDataType);
      *             serverStatus.constructor.name.should.eql("ServerStatusDataType");
      */
-    public constructExtensionObject(dataType: UADataType | NodeId, options: any): ExtensionObject {
+    public constructExtensionObject(dataType: UADataType | NodeId, options?: Record<string, unknown>): ExtensionObject {
         const Constructor = this.getExtensionObjectConstructor(dataType);
         return new Constructor(options);
     }
@@ -1147,7 +1148,7 @@ export class AddressSpace implements AddressSpacePrivate {
      * @param modelChange
      * @private
      */
-    public _collectModelChange(view: UAView | null, modelChange: ModelChangeStructureDataType) {
+    public _collectModelChange(view: UAView | null, modelChange: ModelChangeStructureDataType): void {
         // xx console.log("in _collectModelChange", modelChange.verb, verbFlags.get(modelChange.verb).toString());
         this._modelChanges.push(modelChange);
     }
@@ -1194,7 +1195,7 @@ export class AddressSpace implements AddressSpacePrivate {
                     results.push(parent as UAView);
                 } else {
                     const key = parent.nodeId.toString();
-                    if (Object.prototype.hasOwnProperty.call(visitedMap,key)) {
+                    if (Object.prototype.hasOwnProperty.call(visitedMap, key)) {
                         continue;
                     }
                     visitedMap[key] = parent;
@@ -1210,8 +1211,7 @@ export class AddressSpace implements AddressSpacePrivate {
      * @param func
      * @private
      */
-    public modelChangeTransaction(func: any): void {
-    
+    public modelChangeTransaction(func: () => void): void {
         this._modelChangeTransactionCounter = this._modelChangeTransactionCounter || 0;
 
         function beginModelChange(this: AddressSpace) {
@@ -1315,7 +1315,7 @@ export class AddressSpace implements AddressSpacePrivate {
 
         // ----------- now resolve target NodeId;
         if (params.nodeId instanceof BaseNodeImpl) {
-            assert(!Object.prototype.hasOwnProperty.call(params,"node"));
+            assert(!Object.prototype.hasOwnProperty.call(params, "node"));
             params.node = params.nodeId as BaseNode;
             params.nodeId = params.node.nodeId;
         } else {

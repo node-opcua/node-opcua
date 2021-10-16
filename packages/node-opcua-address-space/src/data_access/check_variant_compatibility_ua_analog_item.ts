@@ -16,24 +16,21 @@ function validate_value_range(range: Range, variant: Variant) {
     return true;
 }
 
-
 function checkVariantCompatibilityUAAnalogItem(this: UAVariableImpl, value: Variant): StatusCode {
-
-        assert(value instanceof Variant);
-        // test dataType
-        if (!this._validate_DataType(value.dataType)) {
-            return StatusCodes.BadTypeMismatch;
-        }
-        const analogItem = this as unknown as  UAAnalogItem<any, any>;
-        // AnalogDataItem
-        if (analogItem.instrumentRange) {
-            if (!validate_value_range(analogItem.instrumentRange.readValue().value.value as Range, value)) {
-                return StatusCodes.BadOutOfRange;
-            }
-        }
-        return StatusCodes.Good;
+    assert(value instanceof Variant);
+    // test dataType
+    if (!this._validate_DataType(value.dataType)) {
+        return StatusCodes.BadTypeMismatch;
     }
-
+    const analogItem = this as unknown as UAAnalogItem<any, any>;
+    // AnalogDataItem
+    if (analogItem.instrumentRange) {
+        if (!validate_value_range(analogItem.instrumentRange.readValue().value.value as Range, value)) {
+            return StatusCodes.BadOutOfRange;
+        }
+    }
+    return StatusCodes.Good;
+}
 
 /**
  * extend default checkVariantCompatibility on base class with this one

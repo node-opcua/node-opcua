@@ -1,11 +1,24 @@
 import {
-    ContentFilter, FilterOperator, LiteralOperand, SimpleAttributeOperand, FilterOperand, ElementOperand
+    ContentFilter,
+    FilterOperator,
+    LiteralOperand,
+    SimpleAttributeOperand,
+    FilterOperand,
+    ElementOperand
 } from "node-opcua-types";
 import { DataType } from "node-opcua-variant";
 import { NodeClass } from "node-opcua-data-model";
 import { ExtensionObject } from "node-opcua-extension-object";
 import { NodeId, sameNodeId } from "node-opcua-nodeid";
-import { IAddressSpace, IEventData, ISessionContext, UAObject, UAObjectType, UAReferenceType, UAVariableType } from "node-opcua-address-space-base";
+import {
+    IAddressSpace,
+    IEventData,
+    ISessionContext,
+    UAObject,
+    UAObjectType,
+    UAReferenceType,
+    UAVariableType
+} from "node-opcua-address-space-base";
 
 import { SessionContext } from "../../source/session_context";
 import { extractEventFields } from "./extract_event_fields";
@@ -17,7 +30,6 @@ function checkNot(
     eventData: IEventData,
     filteredOperands: FilterOperand[]
 ): boolean {
-
     if (filteredOperands[0] instanceof ElementOperand) {
         const index = (filteredOperands[0] as ElementOperand).index;
         return !__checkWhereClause(addressSpace, sessionContext, whereClause, index, eventData);
@@ -25,12 +37,7 @@ function checkNot(
     return false;
 }
 
-function checkOfType(
-    addressSpace: IAddressSpace,
-    ofType: LiteralOperand,
-    eventData: IEventData
-): boolean {
-
+function checkOfType(addressSpace: IAddressSpace, ofType: LiteralOperand, eventData: IEventData): boolean {
     // istanbul ignore next
     if (!ofType) {
         throw new Error("invalid operand");
@@ -51,7 +58,7 @@ function checkOfType(
     if (ofTypeNode.nodeClass !== NodeClass.ObjectType) {
         throw new Error("operand should be a ObjectType " + ofTypeNode.nodeId.toString());
     }
-    const node = eventData.$eventDataSource! as (UAObjectType | UAObject | UAReferenceType | UAVariableType);
+    const node = eventData.$eventDataSource! as UAObjectType | UAObject | UAReferenceType | UAVariableType;
     if (!node) {
         throw new Error("cannot find  node " + eventData.$eventDataSource?.toString());
     }
@@ -70,12 +77,7 @@ function _extractValue(operand: SimpleAttributeOperand, eventData: IEventData): 
     return v.value as NodeId;
 }
 
-function checkInList(
-    addressSpace: IAddressSpace,
-    filterOperands: ExtensionObject[],
-    eventData: IEventData
-): boolean {
-
+function checkInList(addressSpace: IAddressSpace, filterOperands: ExtensionObject[], eventData: IEventData): boolean {
     const operand0 = filterOperands[0];
     if (!(operand0 instanceof SimpleAttributeOperand)) {
         // unsupported case
@@ -86,7 +88,6 @@ function checkInList(
         return false;
     }
     function _is(nodeId1: NodeId, operandX: LiteralOperand): boolean {
-
         const operandNode = addressSpace.findNode(operandX.value.value as NodeId);
         if (!operandNode) {
             return false;
@@ -95,7 +96,7 @@ function checkInList(
     }
     for (let i = 1; i < filterOperands.length; i++) {
         const filterOperand = filterOperands[i];
-        if ((filterOperand instanceof LiteralOperand) && _is(nodeId, filterOperand)) {
+        if (filterOperand instanceof LiteralOperand && _is(nodeId, filterOperand)) {
             return true;
         }
     }
@@ -109,7 +110,6 @@ export function __checkWhereClause(
     index: number,
     eventData: IEventData
 ): boolean {
-
     if (!whereClause.elements || whereClause.elements.length === 0) {
         return true;
     }
@@ -130,7 +130,7 @@ export function __checkWhereClause(
             //  OfType_14 FilterOperator from Table 120 is permitted.
             // tslint:disable-next-line: no-console
             console.log("whereClause = ", whereClause.toString());
-            throw new Error("Only OfType operator are allowed in checkWhereClause")
+            throw new Error("Only OfType operator are allowed in checkWhereClause");
     }
 }
 
@@ -140,7 +140,6 @@ export function checkWhereClause(
     whereClause: ContentFilter,
     eventData: IEventData
 ): boolean {
-
     if (!whereClause.elements || whereClause.elements.length === 0) {
         return true;
     }

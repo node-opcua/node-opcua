@@ -3,7 +3,7 @@ import { AddressSpace } from "..";
 
 // tslint:disable-next-line:no-var-requires
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
-describe("#625 automatic string nodeid assignment", ()  => {
+describe("#625 automatic string nodeid assignment", () => {
     let addressSpace: AddressSpace;
     before(async () => {
         addressSpace = AddressSpace.create();
@@ -22,7 +22,6 @@ describe("#625 automatic string nodeid assignment", ()  => {
 
         const b = addressSpace.resolveNodeId("ns=1;s=5cef44f09c31dc004c8ae25a_s[test2]_Meta:O0");
         b.toString().should.eql("ns=1;s=5cef44f09c31dc004c8ae25a_s[test2]_Meta:O0");
-
     });
 
     it("should resolve simple node id strings", () => {

@@ -154,7 +154,11 @@ export class PseudoSession implements IBasicSession {
     public browseNext(continuationPoint: Buffer, releaseContinuationPoints: boolean): Promise<BrowseResult>;
 
     public browseNext(continuationPoints: Buffer[], releaseContinuationPoints: boolean): Promise<BrowseResult[]>;
-    public browseNext(continuationPoints: Buffer | Buffer[], releaseContinuationPoints: boolean, callback?: ResponseCallback<any>): any {
+    public browseNext(
+        continuationPoints: Buffer | Buffer[],
+        releaseContinuationPoints: boolean,
+        callback?: ResponseCallback<any>
+    ): any {
         setImmediate(() => {
             if (continuationPoints instanceof Buffer) {
                 return this.browseNext([continuationPoints], releaseContinuationPoints, (err, _results) => {
@@ -255,7 +259,7 @@ export class PseudoSession implements IBasicSession {
     public write(nodesToWrite: WriteValueOptions[]): Promise<StatusCode[]>;
     public write(nodesToWrite: WriteValueOptions[] | WriteValueOptions, callback?: ResponseCallback<any>): any {
         const isArray = nodesToWrite instanceof Array;
-        const _nodesToWrite: WriteValueOptions[]  = !isArray ? [nodesToWrite]: nodesToWrite;
+        const _nodesToWrite: WriteValueOptions[] = !isArray ? [nodesToWrite] : nodesToWrite;
         const context = this.context;
         setImmediate(() => {
             const statusCodesPromises = _nodesToWrite.map((nodeToWrite: WriteValueOptions) => {
@@ -265,7 +269,7 @@ export class PseudoSession implements IBasicSession {
                 const nodeId = nodeToWrite.nodeId!;
                 const obj = this.addressSpace.findNode(nodeId);
                 if (!obj) {
-                    return  StatusCodes.BadNodeIdUnknown;
+                    return StatusCodes.BadNodeIdUnknown;
                 }
                 return promisify(obj.writeAttribute).call(obj, context, nodeToWrite);
             });

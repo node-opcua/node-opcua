@@ -20,23 +20,28 @@ import {
     UAMethod,
     UAObject,
     UAObjectType,
-    CloneOptions, CloneFilter, CloneExtraInfo, BaseNode, UAEventType
+    CloneOptions,
+    CloneFilter,
+    CloneExtraInfo,
+    BaseNode,
+    UAEventType,
+    IEventData
 } from "node-opcua-address-space-base";
 
-import { BaseNodeImpl } from "./base_node_impl";
+import { BaseNodeImpl, InternalBaseNodeOptions } from "./base_node_impl";
 import { _clone, ToStringBuilder, UAObject_toString } from "./base_node_private";
-import { apply_condition_refresh } from "./apply_condition_refresh";
+import { apply_condition_refresh, ConditionRefreshCache } from "./apply_condition_refresh";
 
 export class UAObjectImpl extends BaseNodeImpl implements UAObject {
     public readonly nodeClass = NodeClass.Object;
     public readonly eventNotifier: number;
-    public readonly symbolicName: string;
+    public readonly symbolicName: string | null;
 
     get typeDefinitionObj(): UAObjectType {
         return super.typeDefinitionObj as UAObjectType;
     }
 
-    constructor(options: any) {
+    constructor(options: InternalBaseNodeOptions & { eventNotifier?: number; symbolicName?: string | null }) {
         super(options);
         this.eventNotifier = options.eventNotifier || 0;
         assert(typeof this.eventNotifier === "number" && isValidByte(this.eventNotifier));
@@ -72,7 +77,7 @@ export class UAObjectImpl extends BaseNodeImpl implements UAObject {
         options = {
             ...options,
             eventNotifier: this.eventNotifier,
-            symbolicName: this.symbolicName
+            symbolicName: this.symbolicName || undefined
         };
 
         const cloneObject = _clone.call(this, UAObjectImpl, options, optionalFilter, extraInfo) as UAObject;
@@ -145,7 +150,7 @@ export class UAObjectImpl extends BaseNodeImpl implements UAObject {
         this._bubble_up_event(eventData1);
     }
 
-    public _bubble_up_event(eventData: any) {
+    public _bubble_up_event(eventData: IEventData): void {
         const addressSpace = this.addressSpace;
 
         const queue: any[] = [];
@@ -191,7 +196,7 @@ export class UAObjectImpl extends BaseNodeImpl implements UAObject {
             elements2.forEach(addInQueue);
         }
     }
-    public _conditionRefresh(_cache?: any) {
+    public _conditionRefresh(_cache?: ConditionRefreshCache): void {
         apply_condition_refresh.call(this, _cache);
     }
 

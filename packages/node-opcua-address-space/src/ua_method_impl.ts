@@ -15,7 +15,18 @@ import { StatusCodes } from "node-opcua-status-code";
 import { CallMethodResultOptions, PermissionType } from "node-opcua-types";
 import { Variant } from "node-opcua-variant";
 import { DataType, VariantLike } from "node-opcua-variant";
-import { MethodFunctor, MethodFunctorCallback, UAMethod, UAObject, CloneExtraInfo, CloneFilter, CloneOptions, UAObjectType, ISessionContext, UAVariable, } from "node-opcua-address-space-base";
+import {
+    MethodFunctor,
+    MethodFunctorCallback,
+    UAMethod,
+    UAObject,
+    CloneExtraInfo,
+    CloneFilter,
+    CloneOptions,
+    UAObjectType,
+    ISessionContext,
+    UAVariable
+} from "node-opcua-address-space-base";
 import { SessionContext } from "../source";
 import { _clone } from "./base_node_private";
 import { _handle_hierarchy_parent } from "./namespace_impl";
@@ -47,7 +58,7 @@ export class UAMethodImpl extends BaseNodeImpl implements UAMethod {
 
     public value?: any;
     public methodDeclarationId: NodeId;
-    public _getExecutableFlag?: (this: UAMethod, context: ISessionContext| null) => boolean;
+    public _getExecutableFlag?: (this: UAMethod, context: ISessionContext | null) => boolean;
 
     public _asyncExecutionFunction?: MethodFunctor;
 
@@ -80,11 +91,10 @@ export class UAMethodImpl extends BaseNodeImpl implements UAMethod {
     }
 
     public readAttribute(
-        context: ISessionContext | null, 
-        attributeId: AttributeIds,      
+        context: ISessionContext | null,
+        attributeId: AttributeIds,
         indexRange?: NumericRange,
         dataEncoding?: QualifiedNameLike | null
- 
     ): DataValue {
         const options: DataValueLike = {};
         switch (attributeId) {

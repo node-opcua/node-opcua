@@ -1,5 +1,3 @@
-// tslint:disable:no-console
-// tslint:disable:max-line-length
 import * as fs from "fs";
 import * as should from "should";
 
@@ -8,16 +6,16 @@ import { DataType, VariantArrayType } from "node-opcua-variant";
 import { Variant } from "node-opcua-variant";
 import { nodesets } from "node-opcua-nodesets";
 import { coerceLocalizedText, coerceQualifiedName, makeAccessLevelFlag } from "node-opcua-data-model";
+import { checkDebugFlag } from "node-opcua-debug";
 
 import { AddressSpace, dumpXml, Namespace, UAVariable, UARootFolder } from "..";
 import { createBoilerType, getMiniAddressSpace } from "../testHelpers";
 import { generateAddressSpace } from "../nodeJS";
-import { checkDebugFlag } from "node-opcua-debug";
-const { createTemperatureSensorType  } = require("./fixture_temperature_sensor_type");
+const { createTemperatureSensorType } = require("./fixture_temperature_sensor_type");
 
 const doDebug = checkDebugFlag("TEST");
 
-// tslint:disable-next-line:no-var-requires
+// eslint-disable-next-line import/order
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("testing nodeset to xml", () => {
     let addressSpace: AddressSpace;
@@ -225,7 +223,7 @@ describe("testing nodeset to xml", () => {
             console.log(str);
         }
 
-        str = str.replace(/LastModified=\".*\" /g, 'LastModified="DATE" ');
+        str = str.replace(/LastModified=".*" /g, 'LastModified="DATE" ');
         str.should.eql(`<?xml version="1.0"?>
 <UANodeSet xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" Version="1.02" LastModified="DATE" xmlns="http://opcfoundation.org/UA/2011/03/UANodeSet.xsd">
     <Aliases>
@@ -607,10 +605,7 @@ describe("nodeset2.xml with more than one referenced namespace", function (this:
             value: {
                 dataType: DataType.LocalizedText,
                 arrayType: VariantArrayType.Array,
-                value: [
-                    coerceLocalizedText("Hello"),
-                    coerceLocalizedText("World"),
-                ]
+                value: [coerceLocalizedText("Hello"), coerceLocalizedText("World")]
             }
         });
 
@@ -627,7 +622,6 @@ describe("nodeset2.xml with more than one referenced namespace", function (this:
         r_xml2.should.match(/<ListOfLocalizedText.*>/);
         r_xml2.should.match(/<\/LocalizedText>/);
         r_xml2.should.match(/<\/ListOfLocalizedText>/);
-
     });
     it("NSXML3 should output an XML file - with Variant XmlElement", async () => {
         const v1 = namespace.addVariable({
@@ -648,10 +642,7 @@ describe("nodeset2.xml with more than one referenced namespace", function (this:
             value: {
                 dataType: DataType.XmlElement,
                 arrayType: VariantArrayType.Array,
-                value: [
-                    "<tag>Hello</tag>",
-                    "<tag>World</tag>"
-                ]
+                value: ["<tag>Hello</tag>", "<tag>World</tag>"]
             }
         });
 
@@ -668,10 +659,8 @@ describe("nodeset2.xml with more than one referenced namespace", function (this:
         r_xml2.should.match(/<ListOfXmlElement.*>/);
         r_xml2.should.match(/<\/XmlElement>/);
         r_xml2.should.match(/<\/ListOfXmlElement>/);
-
     });
     it("NSXML4 should output an XML file - with Variant QualifiedName", async () => {
-
         const v1 = namespace.addVariable({
             browseName: "TestQualifiedName",
             dataType: DataType.QualifiedName,
@@ -702,7 +691,7 @@ describe("nodeset2.xml with more than one referenced namespace", function (this:
                 dataType: DataType.QualifiedName,
                 value: [
                     coerceQualifiedName({ name: "Hello", namespaceIndex: 1 }),
-                    coerceQualifiedName({ name: "World", namespaceIndex: 1 }),
+                    coerceQualifiedName({ name: "World", namespaceIndex: 1 })
                 ]
             }
         });
@@ -721,7 +710,6 @@ describe("nodeset2.xml with more than one referenced namespace", function (this:
         r_xml2.should.match(/<ListOfQualifiedName.*>/);
         r_xml2.should.match(/<\/QualifiedName>/);
         r_xml2.should.match(/<\/ListOfQualifiedName>/);
-
     });
     it("NSXML5 should output an XML file - with Variant Matrix UAVariable", async () => {
         const v = namespace.addVariable({
@@ -748,8 +736,8 @@ describe("nodeset2.xml with more than one referenced namespace", function (this:
         const r_xml2 = await reloadedNodeSet(tmpFilename);
         r_xml2.split("\n").should.eql(xml2.split("\n"));
 
-        r_xml2.should.match(/ValueRank=\"2\"/);
-        r_xml2.should.match(/ArrayDimensions=\"1,4\"/);
+        r_xml2.should.match(/ValueRank="2"/);
+        r_xml2.should.match(/ArrayDimensions="1,4"/);
 
         // console.log(xml);
     });
@@ -766,7 +754,7 @@ describe("nodeset2.xml with more than one referenced namespace", function (this:
                 arrayType: VariantArrayType.Matrix,
                 dataType: DataType.UInt32,
                 dimensions: [2, 3],
-                value: [1, 2, 3, 4,5,6]
+                value: [1, 2, 3, 4, 5, 6]
             }
         });
 
@@ -778,8 +766,8 @@ describe("nodeset2.xml with more than one referenced namespace", function (this:
         const r_xml2 = await reloadedNodeSet(tmpFilename);
         r_xml2.split("\n").should.eql(xml2.split("\n"));
 
-        r_xml2.should.match(/ValueRank=\"2\"/);
-        r_xml2.should.match(/ArrayDimensions=\"2,3"/);
+        r_xml2.should.match(/ValueRank="2"/);
+        r_xml2.should.match(/ArrayDimensions="2,3"/);
 
         // console.log(xml);
     });

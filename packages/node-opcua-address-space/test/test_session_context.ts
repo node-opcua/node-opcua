@@ -1,18 +1,19 @@
 import * as path from "path";
 import * as fs from "fs";
+import * as should from "should";
 
 import { readCertificate } from "node-opcua-crypto";
 import { PermissionType, X509IdentityToken } from "node-opcua-types";
 import { DataType } from "node-opcua-variant";
-import * as should from "should";
-import { AddressSpace, BaseNode, Namespace, SessionContext, UAObject , makeRoles} from "..";
+import { NodeId } from "node-opcua-nodeid";
+import { AttributeIds, makeAccessLevelFlag } from "node-opcua-data-model";
+
+import { AddressSpace, BaseNode, Namespace, SessionContext, UAObject, makeRoles } from "..";
 
 // let's make sure should don't get removed by typescript optimizer
 const keep_should = should;
 
 import { getMiniAddressSpace } from "../testHelpers";
-import { NodeId } from "node-opcua-nodeid";
-import { AttributeIds, makeAccessLevelFlag } from "node-opcua-data-model";
 
 const certificateFolder = path.join(__dirname, "../../node-opcua-samples/certificates");
 fs.existsSync(certificateFolder).should.eql(true, "expecting certificate store at " + certificateFolder);
@@ -50,7 +51,6 @@ describe("SessionContext", () => {
         dataValue.value.value.should.eql(makeAccessLevelFlag("CurrentRead"));
         someVariableNode.isUserWritable(context).should.eql(false);
         someVariableNode.isUserReadable(context).should.eql(true);
-
     });
 });
 describe("SessionContext - with  dedicated SessionContext and certificate ", () => {
@@ -104,7 +104,6 @@ describe("SessionContext - with  dedicated SessionContext and certificate ", () 
         userManager: mockUserManager
     };
 
-
     const certificateFilename = path.join(certificateFolder, "client_cert_2048.pem");
 
     const certificate = readCertificate(certificateFilename);
@@ -131,14 +130,15 @@ describe("SessionContext - with  dedicated SessionContext and certificate ", () 
 
     it("should provide a default session context - getCurrentUserRole", () => {
         const context = sessionContext;
-        context.getCurrentUserRoles()
-            .map((s)=>s.toString()).join(";")
+        context
+            .getCurrentUserRoles()
+            .map((s) => s.toString())
+            .join(";")
             .should.eql("ns=0;i=15656;ns=0;i=15704");
     });
 
     ///
     it("should check execute permission on a method", () => {
-
         const context = sessionContext;
 
         const someObject = addressSpace.getOwnNamespace().addObject({
@@ -150,9 +150,8 @@ describe("SessionContext - with  dedicated SessionContext and certificate ", () 
             browseName: "SomeNode",
             nodeId: "i=14",
             executable: true,
-            userExecutable: true,
+            userExecutable: true
         });
         context.checkPermission(someMethod, PermissionType.Call);
-
-    })
+    });
 });

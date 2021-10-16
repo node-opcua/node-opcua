@@ -4,7 +4,6 @@ import { make_debugLog, checkDebugFlag } from "node-opcua-debug";
 import { UAObject, UAVariable, IAddressSpace, INamespace } from "node-opcua-address-space-base";
 import { NamespacePrivate } from "../../src/namespace_private";
 
-
 const debugLog = make_debugLog(__filename);
 const doDebug = checkDebugFlag(__filename);
 
@@ -14,7 +13,7 @@ export async function promoteObjectAndVariablesInNamespace(namespace: INamespace
     const namespaceP = namespace as NamespacePrivate;
     for (const a of namespaceP.nodeIterator()) {
         if (a.nodeClass === NodeClass.Object || a.nodeClass === NodeClass.Variable) {
-            const aa = a as (UAObject | UAVariable);
+            const aa = a as UAObject | UAVariable;
             if (aa.typeDefinition) {
                 const promoter = g_promotableObject[aa.typeDefinition.toString()];
                 if (promoter) {

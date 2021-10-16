@@ -122,8 +122,8 @@ export class UAVariableTypeImpl extends BaseNodeImpl implements UAVariableType {
 
         this.minimumSamplingInterval = 0;
 
-        this.historizing = isNullOrUndefined(options.historizing) ? false : options.historizing as boolean;
-        this.isAbstract = isNullOrUndefined(options.isAbstract) ? false : options.isAbstract as boolean;
+        this.historizing = isNullOrUndefined(options.historizing) ? false : (options.historizing as boolean);
+        this.isAbstract = isNullOrUndefined(options.isAbstract) ? false : (options.isAbstract as boolean);
 
         this.value = options.value; // optional default value for instances of this UAVariableType
 

@@ -17,6 +17,7 @@ import { utest_off_normal_alarm } from "./utest_off_normal_alarm";
 // tslint:disable-next-line:no-var-requires
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("AddressSpace : Conditions 1", function (this: any) {
+    // eslint-disable-next-line @typescript-eslint/no-this-alias
     const test = this;
 
     let addressSpace: AddressSpace;

@@ -30,12 +30,12 @@ export declare interface UAOffNormalAlarmEx
             | "suppressedState"
         >,
         UADiscreteAlarmEx {
-            getNormalStateNode(): UAVariable;
-         
-            getNormalStateValue(): any;
-           
-            setNormalStateValue(value: any): void;
-        }
+    getNormalStateNode(): UAVariable;
+
+    getNormalStateValue(): any;
+
+    setNormalStateValue(value: any): void;
+}
 
 export declare interface UAOffNormalAlarmImpl extends UAOffNormalAlarmEx, UADiscreteAlarmImpl {
     on(eventName: string, eventHandler: any): this;
@@ -65,11 +65,11 @@ export class UAOffNormalAlarmImpl extends UADiscreteAlarmImpl implements UAOffNo
             throw new Error("cannot find offNormalAlarmType");
         }
 
-        assert(Object.prototype.hasOwnProperty.call(options,"inputNode"), "must provide inputNode"); // must provide a inputNode
-        assert(Object.prototype.hasOwnProperty.call(options,"normalState"), "must provide a normalState Node"); // must provide a inputNode
+        assert(Object.prototype.hasOwnProperty.call(options, "inputNode"), "must provide inputNode"); // must provide a inputNode
+        assert(Object.prototype.hasOwnProperty.call(options, "normalState"), "must provide a normalState Node"); // must provide a inputNode
         options.optionals = options.optionals || [];
 
-        assert(Object.prototype.hasOwnProperty.call(options,"inputNode"), "must provide inputNode"); // must provide a inputNode
+        assert(Object.prototype.hasOwnProperty.call(options, "inputNode"), "must provide inputNode"); // must provide a inputNode
         const alarmNode = UADiscreteAlarmImpl.instantiate(namespace, limitAlarmTypeId, options, data) as UAOffNormalAlarmImpl;
         Object.setPrototypeOf(alarmNode, UAOffNormalAlarmImpl.prototype);
 
@@ -139,7 +139,6 @@ export class UAOffNormalAlarmImpl extends UADiscreteAlarmImpl implements UAOffNo
     }
 
     public _updateAlarmState(normalStateValue?: any, inputValue?: any): void {
-
         if (utils.isNullOrUndefined(normalStateValue) || utils.isNullOrUndefined(inputValue)) {
             this.activeState.setValue(false);
             return;
