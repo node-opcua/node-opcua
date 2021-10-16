@@ -36,7 +36,7 @@ export function appendToTimer(monitoredItem: MonitoredItem): string {
             const start = doDebug ? hrtime() : undefined;
             let counter = 0;
             for (const m in _t.monitoredItems) {
-                if (_t.monitoredItems.hasOwnProperty(m)) {
+                if (Object.prototype.hasOwnProperty.call(_t.monitoredItems, m)) {
                     sampleMonitoredItem(_t.monitoredItems[m]);
                     counter++;
                 }
@@ -60,7 +60,7 @@ export function appendToTimer(monitoredItem: MonitoredItem): string {
     return key;
 }
 
-export function removeFromTimer(monitoredItem: MonitoredItem) {
+export function removeFromTimer(monitoredItem: MonitoredItem): void {
     const samplingInterval = monitoredItem.samplingInterval;
     assert(samplingInterval > 0);
     assert(typeof monitoredItem._samplingId === "string");

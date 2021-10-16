@@ -6,7 +6,7 @@ import * as chalk from "chalk";
 
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 
-import { ServerSidePublishEngine } from "./server_publish_engine";
+import { ServerSidePublishEngine, ServerSidePublishEngineOptions } from "./server_publish_engine";
 import { Subscription } from "./server_subscription";
 
 const debugLog = make_debugLog(__filename);
@@ -22,31 +22,31 @@ const doDebug = checkDebugFlag(__filename);
  * @internal
  */
 export class ServerSidePublishEngineForOrphanSubscription extends ServerSidePublishEngine {
-  constructor(options: any) {
-    super(options);
-  }
+    constructor(options: ServerSidePublishEngineOptions) {
+        super(options);
+    }
 
-  public add_subscription(subscription: Subscription): Subscription {
-    debugLog(chalk.bgCyan.yellow.bold(" adding live subscription with id="), subscription.id, " to orphan");
-    super.add_subscription(subscription);
-    // also add an event handler to detected when the subscription has ended
-    // so we can automatically remove it from the orphan table
-    (subscription as any)._expired_func = function (this: Subscription) {
-      debugLog(chalk.bgCyan.yellow(" Removing expired subscription with id="), this.id, " from orphan");
-      // make sure all monitored item have been deleted
-      // Xx subscription.terminate();
-      // xx publish_engine.detach_subscription(subscription);
-      // Xx subscription.dispose();
-    };
-    subscription.on("expired", (subscription as any)._expired_func);
-    return subscription;
-  }
+    public add_subscription(subscription: Subscription): Subscription {
+        debugLog(chalk.bgCyan.yellow.bold(" adding live subscription with id="), subscription.id, " to orphan");
+        super.add_subscription(subscription);
+        // also add an event handler to detected when the subscription has ended
+        // so we can automatically remove it from the orphan table
+        (subscription as any)._expired_func = function (this: Subscription) {
+            debugLog(chalk.bgCyan.yellow(" Removing expired subscription with id="), this.id, " from orphan");
+            // make sure all monitored item have been deleted
+            // Xx subscription.terminate();
+            // xx publish_engine.detach_subscription(subscription);
+            // Xx subscription.dispose();
+        };
+        subscription.on("expired", (subscription as any)._expired_func);
+        return subscription;
+    }
 
-  public detach_subscription(subscription: Subscription) {
-    // un set the event handler
-    super.detach_subscription(subscription);
-    subscription.removeListener("expired", (subscription as any)._expired_func);
-    (subscription as any)._expired_func = null;
-    return subscription;
-  }
+    public detach_subscription(subscription: Subscription): Subscription {
+        // un set the event handler
+        super.detach_subscription(subscription);
+        subscription.removeListener("expired", (subscription as any)._expired_func);
+        (subscription as any)._expired_func = null;
+        return subscription;
+    }
 }

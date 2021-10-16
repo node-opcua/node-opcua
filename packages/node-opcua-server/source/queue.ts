@@ -14,7 +14,7 @@ export class Queue<T> {
         if (this.size === 0) {
             return undefined;
         }
-        return this._d.first() as T;  
+        return this._d.first() as T;
     }
     public shift(): T | undefined {
         if (this.size === 0) {
@@ -29,18 +29,16 @@ export class Queue<T> {
         this._d.push(value);
     }
 
-    public filterOut(predicate: (element: T)=> boolean): number {
-
+    public filterOut(predicate: (element: T) => boolean): number {
         let counter = 0;
         let p = this._d.head.next;
-        while(p != this._d.head) {
-
+        while (p != this._d.head) {
             const shouldRemove = predicate(p.data);
             const pPrev = p;
-            p= p.next;
+            p = p.next;
             if (shouldRemove) {
                 this.size -= 1;
-                counter+=1;
+                counter += 1;
                 pPrev.remove();
             }
         }
@@ -48,6 +46,7 @@ export class Queue<T> {
     }
 
     public values(): Iterable<T> {
+        // eslint-disable-next-line @typescript-eslint/no-this-alias
         const self = this;
         const iteratable = {
             [Symbol.iterator]() {

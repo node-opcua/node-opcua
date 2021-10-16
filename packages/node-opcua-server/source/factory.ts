@@ -7,10 +7,13 @@ import { ExtensionObject } from "node-opcua-extension-object";
 import { constructObject } from "node-opcua-factory";
 import { ExpandedNodeId } from "node-opcua-nodeid";
 
+export interface EngineForFactory {
+    /** */
+}
 export class Factory {
-    public engine: any;
+    public engine: EngineForFactory;
 
-    constructor(engine: any) {
+    constructor(engine: EngineForFactory) {
         assert(engine !== null && typeof engine === "object");
         this.engine = engine;
     }

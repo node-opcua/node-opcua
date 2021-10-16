@@ -4,7 +4,8 @@
     "description": "pure nodejs OPCUA SDK - module -server",
     "scripts": {
         "build": "tsc -b",
-        "lint": "eslint source/**/*.ts",
+        "lint": "eslint source test",
+        "format": "prettier --write source test",
         "clean": "node -e \"require('rimraf').sync('certificates');\" && node -e \"require('rimraf').sync('dist');\"",
         "test": "mocha"
     },

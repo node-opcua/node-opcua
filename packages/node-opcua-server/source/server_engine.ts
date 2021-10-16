@@ -1,10 +1,9 @@
 /**
  * @module node-opcua-server
  */
-// tslint:disable:no-console
+import { EventEmitter } from "events";
 import * as async from "async";
 import * as chalk from "chalk";
-import { EventEmitter } from "events";
 import { assert } from "node-opcua-assert";
 
 import {
@@ -29,13 +28,11 @@ import {
     BindVariableOptions,
     MethodFunctorCallback,
     ISessionContext,
-    DTServerStatus,        
+    DTServerStatus,
+    resolveOpaqueOnAddressSpace
 } from "node-opcua-address-space";
-
 import { generateAddressSpace } from "node-opcua-address-space/nodeJS";
-
 import { DataValue, coerceTimestampsToReturn, apply_timestamps_no_copy } from "node-opcua-data-value";
-
 import {
     ServerDiagnosticsSummaryDataType,
     ServerState,
@@ -54,17 +51,17 @@ import {
 import { coerceNodeId, makeNodeId, NodeId, NodeIdLike, NodeIdType, resolveNodeId } from "node-opcua-nodeid";
 import { BrowseResult } from "node-opcua-service-browse";
 import { ReadRequest, TimestampsToReturn } from "node-opcua-service-read";
-
-import { TransferResult } from "node-opcua-service-subscription";
-
+import { UInt32 } from "node-opcua-basic-types";
 import { CreateSubscriptionRequestLike } from "node-opcua-client";
 import { ExtraDataTypeManager } from "node-opcua-client-dynamic-extension-object";
 import { DataTypeIds, MethodIds, ObjectIds, VariableIds } from "node-opcua-constants";
 import { getCurrentClock, minOPCUADate } from "node-opcua-date-time";
 import { checkDebugFlag, make_debugLog, make_errorLog, make_warningLog, traceFromThisProjectOnly } from "node-opcua-debug";
 import { nodesets } from "node-opcua-nodesets";
+import { NumericRange } from "node-opcua-numeric-range";
 import { ObjectRegistry } from "node-opcua-object-registry";
 import { CallMethodResult } from "node-opcua-service-call";
+import { TransferResult } from "node-opcua-service-subscription";
 import { ApplicationDescription } from "node-opcua-service-endpoints";
 import { HistoryReadDetails, HistoryReadRequest, HistoryReadResult, HistoryReadValueId } from "node-opcua-service-history";
 import { StatusCode, StatusCodes, CallbackT, StatusCodeCallback } from "node-opcua-status-code";
@@ -74,7 +71,6 @@ import {
     BrowsePathResult,
     BuildInfo,
     BuildInfoOptions,
-    ProgramDiagnostic2DataType,
     ReadAtTimeDetails,
     ReadEventDetails,
     ReadProcessedDetails,
@@ -84,10 +80,9 @@ import {
     WriteValue,
     ReadValueId,
     TimeZoneDataType,
-    ProgramDiagnosticDataType,
-    CallMethodResultOptions
+    ProgramDiagnosticDataType
 } from "node-opcua-types";
-import { DataType, isValidVariant, Variant, VariantArrayType, VariantLike } from "node-opcua-variant";
+import { DataType, isValidVariant, Variant, VariantArrayType } from "node-opcua-variant";
 
 import { HistoryServerCapabilities, HistoryServerCapabilitiesOptions } from "./history_server_capabilities";
 import { MonitoredItem } from "./monitored_item";
@@ -97,9 +92,7 @@ import { ServerSidePublishEngineForOrphanSubscription } from "./server_publish_e
 import { ServerSession } from "./server_session";
 import { Subscription } from "./server_subscription";
 import { sessionsCompatibleForTransfer } from "./sessions_compatible_for_transfer";
-import { NumericRange } from "node-opcua-numeric-range";
-import { UInt32 } from "node-opcua-basic-types";
-import { resolveOpaqueOnAddressSpace } from "node-opcua-address-space";
+import { OPCUAServerOptions } from "./opcua_server";
 
 const debugLog = make_debugLog(__filename);
 const errorLog = make_errorLog(__filename);
@@ -128,7 +121,7 @@ function setSubscriptionDurable(
     // https://reference.opcfoundation.org/v104/Core/docs/Part4/6.8/
     assert(Array.isArray(inputArguments));
     assert(typeof callback === "function");
-    assert(context.hasOwnProperty("session"), " expecting a session id in the context object");
+    assert(Object.prototype.hasOwnProperty.call(context, "session"), " expecting a session id in the context object");
     const session = context.session as ServerSession;
     if (!session) {
         return callback(null, { statusCode: StatusCodes.BadInternalError });
@@ -211,7 +204,7 @@ function getMonitoredItemsId(
 ) {
     assert(Array.isArray(inputArguments));
     assert(typeof callback === "function");
-    assert(context.hasOwnProperty("session"), " expecting a session id in the context object");
+    assert(Object.prototype.hasOwnProperty.call(context, "session"), " expecting a session id in the context object");
 
     const session = context.session as ServerSession;
     if (!session) {
@@ -315,7 +308,7 @@ export class ServerEngine extends EventEmitter {
     private _sessions: { [key: string]: ServerSession };
     private _closedSessions: { [key: string]: ServerSession };
     private _orphanPublishEngine?: ServerSidePublishEngineForOrphanSubscription;
-    private _shutdownTask: any[];
+    private _shutdownTasks: ((this: ServerEngine) => void)[];
     private _applicationUri: string;
     private _expectedShutdownTime!: Date;
     private _serverStatus: ServerStatusDataType;
@@ -373,11 +366,11 @@ export class ServerEngine extends EventEmitter {
 
         // --------------------------------------------------- serverDiagnosticsSummary extension Object
         this.serverDiagnosticsSummary = new ServerDiagnosticsSummaryDataType();
-        assert(this.serverDiagnosticsSummary.hasOwnProperty("currentSessionCount"));
+        assert(Object.prototype.hasOwnProperty.call(this.serverDiagnosticsSummary, "currentSessionCount"));
 
         // note spelling is different for serverDiagnosticsSummary.currentSubscriptionCount
         //      and sessionDiagnostics.currentSubscriptionsCount ( with an s)
-        assert(this.serverDiagnosticsSummary.hasOwnProperty("currentSubscriptionCount"));
+        assert(Object.prototype.hasOwnProperty.call(this.serverDiagnosticsSummary, "currentSubscriptionCount"));
 
         (this.serverDiagnosticsSummary as any).__defineGetter__("currentSubscriptionCount", () => {
             // currentSubscriptionCount returns the total number of subscriptions
@@ -395,7 +388,7 @@ export class ServerEngine extends EventEmitter {
 
         this.addressSpace = null;
 
-        this._shutdownTask = [];
+        this._shutdownTasks = [];
 
         this._applicationUri = "";
         if (typeof options.applicationUri === "function") {
@@ -404,7 +397,7 @@ export class ServerEngine extends EventEmitter {
             this._applicationUri = options.applicationUri || "<unset _applicationUri>";
         }
 
-        options.serverDiagnosticsEnabled = Object.prototype.hasOwnProperty.call(options,"serverDiagnosticsEnable")
+        options.serverDiagnosticsEnabled = Object.prototype.hasOwnProperty.call(options, "serverDiagnosticsEnable")
             ? options.serverDiagnosticsEnabled
             : true;
 
@@ -414,7 +407,7 @@ export class ServerEngine extends EventEmitter {
         return !!this._serverStatus!;
     }
 
-    public dispose() {
+    public dispose(): void {
         this.addressSpace = null;
 
         assert(Object.keys(this._sessions).length === 0, "ServerEngine#_sessions not empty");
@@ -430,7 +423,7 @@ export class ServerEngine extends EventEmitter {
             this._orphanPublishEngine = undefined;
         }
 
-        this._shutdownTask = [];
+        this._shutdownTasks = [];
         this._serverStatus = null as any as ServerStatusDataType;
         this._internalState = "disposed";
         this.removeAllListeners();
@@ -454,9 +447,9 @@ export class ServerEngine extends EventEmitter {
      * register a function that will be called when the server will perform its shut down.
      * @method registerShutdownTask
      */
-    public registerShutdownTask(task: any) {
+    public registerShutdownTask(task: (this: ServerEngine) => void): void {
         assert(typeof task === "function");
-        this._shutdownTask.push(task);
+        this._shutdownTasks.push(task);
     }
 
     /**
@@ -491,10 +484,10 @@ export class ServerEngine extends EventEmitter {
         // all subscriptions must have been terminated
         assert(this.currentSubscriptionCount === 0, "all subscriptions must have been terminated");
 
-        this._shutdownTask.push(shutdownAndDisposeAddressSpace);
+        this._shutdownTasks.push(shutdownAndDisposeAddressSpace);
 
         // perform registerShutdownTask
-        for (const task of this._shutdownTask) {
+        for (const task of this._shutdownTasks) {
             task.call(this);
         }
 
@@ -504,21 +497,21 @@ export class ServerEngine extends EventEmitter {
     /**
      * the number of active sessions
      */
-    public get currentSessionCount() {
+    public get currentSessionCount(): number {
         return this.serverDiagnosticsSummary.currentSessionCount;
     }
 
     /**
      * the cumulated number of sessions that have been opened since this object exists
      */
-    public get cumulatedSessionCount() {
+    public get cumulatedSessionCount(): number {
         return this.serverDiagnosticsSummary.cumulatedSessionCount;
     }
 
     /**
      * the number of active subscriptions.
      */
-    public get currentSubscriptionCount() {
+    public get currentSubscriptionCount(): number {
         return this.serverDiagnosticsSummary.currentSubscriptionCount;
     }
 
@@ -598,7 +591,7 @@ export class ServerEngine extends EventEmitter {
         this.incrementSecurityRejectedRequestsCount();
     }
 
-    public setShutdownTime(date: Date) {
+    public setShutdownTime(date: Date): void {
         this._expectedShutdownTime = date;
     }
     public setShutdownReason(reason: LocalizedTextLike): void {
@@ -631,21 +624,21 @@ export class ServerEngine extends EventEmitter {
     /**
      * the server urn
      */
-    public get serverNameUrn() {
+    public get serverNameUrn(): string {
         return this._applicationUri;
     }
 
     /**
      * the urn of the server namespace
      */
-    public get serverNamespaceUrn() {
+    public get serverNamespaceUrn(): string {
         return this._applicationUri; // "urn:" + engine.serverName;
     }
-    public get serverStatus() {
+    public get serverStatus(): ServerStatusDataType {
         return this._serverStatus;
     }
 
-    public setServerState(serverState: ServerState) {
+    public setServerState(serverState: ServerState): void {
         assert(serverState !== null && serverState !== undefined);
         this.addressSpace?.rootFolder?.objects?.server?.serverStatus?.state?.setValueFromSource({
             dataType: DataType.UInt32,
@@ -670,7 +663,7 @@ export class ServerEngine extends EventEmitter {
      * @param options.nodeset_filename {String} - [option](default : 'mini.Node.Set2.xml' )
      * @param callback
      */
-    public initialize(options: any, callback: any) {
+    public initialize(options: OPCUAServerOptions, callback: () => void): void {
         assert(!this.addressSpace); // check that 'initialize' has not been already called
 
         this._internalState = "initializing";
@@ -690,6 +683,7 @@ export class ServerEngine extends EventEmitter {
         const serverNamespace = this.addressSpace.registerNamespace(this.serverNamespaceUrn);
         assert(serverNamespace.index === 1);
 
+        // eslint-disable-next-line max-statements
         generateAddressSpace(this.addressSpace, options.nodeset_filename, () => {
             /* istanbul ignore next */
             if (!this.addressSpace) {
@@ -840,6 +834,7 @@ export class ServerEngine extends EventEmitter {
                 return this.isAuditing;
             });
 
+            // eslint-disable-next-line @typescript-eslint/no-this-alias
             const engine = this;
             const makeNotReadableIfEnabledFlagIsFalse = (variable: UAVariable) => {
                 const originalIsReadable = variable.isReadable;
@@ -867,7 +862,9 @@ export class ServerEngine extends EventEmitter {
                     }
                 );
                 const nodeId = makeNodeId(VariableIds.Server_ServerDiagnostics_ServerDiagnosticsSummary);
-                const serverDiagnosticsSummaryNode = addressSpace.findNode(nodeId) as UAServerDiagnosticsSummary<ServerDiagnosticsSummaryDataType>;
+                const serverDiagnosticsSummaryNode = addressSpace.findNode(
+                    nodeId
+                ) as UAServerDiagnosticsSummary<ServerDiagnosticsSummaryDataType>;
 
                 if (serverDiagnosticsSummaryNode) {
                     serverDiagnosticsSummaryNode.bindExtensionObject(this.serverDiagnosticsSummary);
@@ -877,7 +874,9 @@ export class ServerEngine extends EventEmitter {
             };
 
             const bindServerStatus = () => {
-                const serverStatusNode = addressSpace.findNode(makeNodeId(VariableIds.Server_ServerStatus)) as UAServerStatus<DTServerStatus>;
+                const serverStatusNode = addressSpace.findNode(
+                    makeNodeId(VariableIds.Server_ServerStatus)
+                ) as UAServerStatus<DTServerStatus>;
 
                 if (!serverStatusNode) {
                     return;
@@ -1199,7 +1198,7 @@ export class ServerEngine extends EventEmitter {
 
             this._internalState = "initialized";
             this.setServerState(ServerState.Running);
-            setImmediate(callback);
+            setImmediate(() => callback());
         });
     }
 
@@ -1218,7 +1217,10 @@ export class ServerEngine extends EventEmitter {
         return addressSpace.browseSingleNode(nodeId, browseDescription, context);
     }
 
-    public async browseWithAutomaticExpansion(nodesToBrowse: BrowseDescription[], context?: ISessionContext) {
+    public async browseWithAutomaticExpansion(
+        nodesToBrowse: BrowseDescription[],
+        context?: ISessionContext
+    ): Promise<BrowseResult[]> {
         // do expansion first
         for (const browseDescription of nodesToBrowse) {
             const nodeId = resolveNodeId(browseDescription.nodeId);
@@ -1347,7 +1349,7 @@ export class ServerEngine extends EventEmitter {
         context: ISessionContext,
         writeValue: WriteValue,
         callback: (err: Error | null, statusCode?: StatusCode) => void
-    ) {
+    ): void {
         assert(context instanceof SessionContext);
         assert(typeof callback === "function");
         assert(writeValue.schema.name === "WriteValue");
@@ -1383,7 +1385,7 @@ export class ServerEngine extends EventEmitter {
         context: ISessionContext,
         nodesToWrite: WriteValue[],
         callback: (err: Error | null, statusCodes?: StatusCode[]) => void
-    ) {
+    ): void {
         assert(context instanceof SessionContext);
         assert(typeof callback === "function");
 
@@ -1461,7 +1463,7 @@ export class ServerEngine extends EventEmitter {
         context: ISessionContext,
         historyReadRequest: HistoryReadRequest,
         callback: (err: Error | null, results: HistoryReadResult[]) => void
-    ) {
+    ): void {
         assert(context instanceof SessionContext);
         assert(historyReadRequest instanceof HistoryReadRequest);
         assert(typeof callback === "function");
@@ -1677,7 +1679,7 @@ export class ServerEngine extends EventEmitter {
      * against data loss in the case of a Session termination. In these cases, the Subscription can be reassigned to
      * another Client before its lifetime expires.
      */
-    public closeSession(authenticationToken: NodeId, deleteSubscriptions: boolean, reason: ClosingReason) {
+    public closeSession(authenticationToken: NodeId, deleteSubscriptions: boolean, reason: ClosingReason): void {
         reason = reason || "CloseSession";
         assert(typeof reason === "string");
         assert(reason === "Timeout" || reason === "Terminated" || reason === "CloseSession" || reason === "Forcing");
@@ -1945,7 +1947,7 @@ export class ServerEngine extends EventEmitter {
         }
     }
 
-    private _unexposeSubscriptionDiagnostics(subscription: Subscription) {
+    protected _unexposeSubscriptionDiagnostics(subscription: Subscription): void {
         const subscriptionDiagnosticsArray = this._getServerSubscriptionDiagnosticsArrayNode();
         const subscriptionDiagnostics = subscription.subscriptionDiagnostics;
         assert(subscriptionDiagnostics instanceof SubscriptionDiagnosticsDataType);
@@ -1965,13 +1967,13 @@ export class ServerEngine extends EventEmitter {
      * create a new subscription
      * @return {Subscription}
      */
-    public _createSubscriptionOnSession(session: ServerSession, request: CreateSubscriptionRequestLike) {
-        assert(request.hasOwnProperty("requestedPublishingInterval")); // Duration
-        assert(request.hasOwnProperty("requestedLifetimeCount")); // Counter
-        assert(request.hasOwnProperty("requestedMaxKeepAliveCount")); // Counter
-        assert(request.hasOwnProperty("maxNotificationsPerPublish")); // Counter
-        assert(request.hasOwnProperty("publishingEnabled")); // Boolean
-        assert(request.hasOwnProperty("priority")); // Byte
+    public _createSubscriptionOnSession(session: ServerSession, request: CreateSubscriptionRequestLike): Subscription {
+        assert(Object.prototype.hasOwnProperty.call(request, "requestedPublishingInterval")); // Duration
+        assert(Object.prototype.hasOwnProperty.call(request, "requestedLifetimeCount")); // Counter
+        assert(Object.prototype.hasOwnProperty.call(request, "requestedMaxKeepAliveCount")); // Counter
+        assert(Object.prototype.hasOwnProperty.call(request, "maxNotificationsPerPublish")); // Counter
+        assert(Object.prototype.hasOwnProperty.call(request, "publishingEnabled")); // Boolean
+        assert(Object.prototype.hasOwnProperty.call(request, "priority")); // Byte
 
         // adjust publishing parameters
         const publishingInterval = request.requestedPublishingInterval || 0;
@@ -1997,6 +1999,7 @@ export class ServerEngine extends EventEmitter {
         assert((subscription.publishEngine as any) === session.publishEngine);
         session.publishEngine.add_subscription(subscription);
 
+        // eslint-disable-next-line @typescript-eslint/no-this-alias
         const engine = this;
         subscription.once("terminated", function (this: Subscription) {
             engine._unexposeSubscriptionDiagnostics(this);
@@ -2009,7 +2012,7 @@ export class ServerEngine extends EventEmitter {
         if (nodeId.namespace >= (this.addressSpace?.getNamespaceArray().length || 0)) {
             return null;
         }
-        const namespace = this.addressSpace?.getNamespace(nodeId.namespace)!;
+        const namespace = this.addressSpace!.getNamespace(nodeId.namespace)!;
         return namespace.findNode2(nodeId)!;
     }
 

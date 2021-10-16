@@ -11,7 +11,7 @@ export interface HistoryServerCapabilitiesOptions {
     insertDataCapability?: boolean;
     replaceDataCapability?: boolean;
     updateDataCapability?: boolean;
-    deleteRawCapability ?: boolean;
+    deleteRawCapability?: boolean;
     deleteAtTimeCapability?: boolean;
     insertEventCapability?: boolean;
     replaceEventCapability?: boolean;
@@ -22,7 +22,6 @@ export interface HistoryServerCapabilitiesOptions {
 /**
  */
 export class HistoryServerCapabilities {
-
     public accessHistoryDataCapability: boolean;
     public accessHistoryEventsCapability: boolean;
     public maxReturnDataValues: number;
@@ -41,7 +40,7 @@ export class HistoryServerCapabilities {
     constructor(options?: HistoryServerCapabilitiesOptions) {
         options = options || {};
 
-        function coerceBool(value: boolean | undefined , defaultValue: boolean): boolean {
+        function coerceBool(value: boolean | undefined, defaultValue: boolean): boolean {
             if (undefined === value) {
                 return defaultValue;
             }
@@ -49,7 +48,7 @@ export class HistoryServerCapabilities {
             return value as boolean;
         }
 
-        function coerceUInt32(value: number| undefined, defaultValue: number): number {
+        function coerceUInt32(value: number | undefined, defaultValue: number): number {
             if (undefined === value) {
                 return defaultValue;
             }

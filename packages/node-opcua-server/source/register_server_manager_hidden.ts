@@ -8,26 +8,24 @@ import { IRegisterServerManager } from "./i_register_server_manager";
  * a IRegisterServerManager that hides the server from any local discover server
  *
  */
-export class RegisterServerManagerHidden
-  extends EventEmitter
-  implements IRegisterServerManager {
+export class RegisterServerManagerHidden extends EventEmitter implements IRegisterServerManager {
+    public discoveryServerEndpointUrl = "";
 
-    public discoveryServerEndpointUrl: string = "";
-
-    constructor(options?: any) {
+    constructor(options?: {
+        /** */
+    }) {
         super();
     }
 
-    public stop(callback: () => void) {
+    public stop(callback: () => void): void {
         setImmediate(callback);
     }
 
-    public start(callback: () => void) {
+    public start(callback: () => void): void {
         setImmediate(callback);
     }
 
-    public dispose() {
+    public dispose(): void {
         //
     }
-
 }

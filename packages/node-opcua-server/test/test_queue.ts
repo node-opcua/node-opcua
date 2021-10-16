@@ -1,5 +1,5 @@
-import { Queue } from "../source/queue";
 import * as should from "should";
+import { Queue } from "../source/queue";
 const doDebug = false;
 
 describe("Queue", () => {
@@ -25,7 +25,7 @@ describe("Queue", () => {
         const c = [...q.values()];
         c.should.eql([3]);
     });
-    it("dequeue filtering", ()=>{
+    it("dequeue filtering", () => {
         const q = new Queue<number>();
         q.push(1);
         q.push(2);
@@ -34,13 +34,11 @@ describe("Queue", () => {
 
         q.size.should.eql(4);
 
-
-        const removed = q.filterOut((n)=>n%2===0);
+        const removed = q.filterOut((n) => n % 2 === 0);
         removed.should.eql(2);
 
         const b = [...q.values()];
         b.should.eql([1, 3]);
         q.size.should.eql(2);
-        
-    })
+    });
 });

@@ -1,8 +1,11 @@
+/* eslint-disable max-statements */
 "use strict";
+
+const util = require("util");
+const { EventEmitter } = require("events");
+
 const sinon = require("sinon");
 const should = require("should");
-const util = require("util");
-const EventEmitter = require("events").EventEmitter;
 
 const { StatusCodes } = require("node-opcua-status-code");
 const {
@@ -18,12 +21,12 @@ const { TimestampsToReturn } = require("node-opcua-service-read");
 
 const { DataType, Variant } = require("node-opcua-variant");
 const { DataValue } = require("node-opcua-data-value");
-
-const { MonitoredItem } = require("..");
 const { Range } = require("node-opcua-types");
 
+const { MonitoredItem } = require("..");
+
 function q(monitoredItem) {
-    return monitoredItem.queue.map(function(a) {
+    return monitoredItem.queue.map(function (a) {
         return a.value.value.value;
     });
 }
@@ -31,12 +34,11 @@ const o = false;
 const X = true;
 
 function f(monitoredItem) {
-    return monitoredItem.queue.map(function(a) {
+    return monitoredItem.queue.map(function (a) {
         return !!(a.value.statusCode.value != StatusCodes.Good.value);
     });
 }
 class FakeNode {
-
     constructor() {
         this.nodeId = makeNodeId(32);
         this.browseName = { name: "toto" };
@@ -64,9 +66,9 @@ class FakeNode {
 util.inherits(FakeNode, EventEmitter);
 const fakeNode = new FakeNode();
 
+// eslint-disable-next-line import/order
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("Server Side MonitoredItem", () => {
-
     beforeEach(() => {
         this.clock = sinon.useFakeTimers();
     });
@@ -76,7 +78,6 @@ describe("Server Side MonitoredItem", () => {
     });
 
     it("should create a MonitoredItem", (done) => {
-
         const monitoredItem = new MonitoredItem({
             clientHandle: 1,
             discardOldest: true,
@@ -84,8 +85,7 @@ describe("Server Side MonitoredItem", () => {
             samplingInterval: 1000,
 
             // added by the server:
-            monitoredItemId: 50,
-
+            monitoredItemId: 50
         });
 
         monitoredItem.setNode(fakeNode);
@@ -105,7 +105,6 @@ describe("Server Side MonitoredItem", () => {
     });
 
     it("MI1 - a MonitoredItem should trigger a read event according to sampling interval in Reporting mode", (done) => {
-
         const monitoredItem = new MonitoredItem({
             clientHandle: 1,
             discardOldest: true,
@@ -121,7 +120,7 @@ describe("Server Side MonitoredItem", () => {
         monitoredItem.isSampling.should.eql(false);
 
         // set up a spying samplingFunc
-        const spy_samplingEventCall = sinon.spy(function(oldValue, callback) {
+        const spy_samplingEventCall = sinon.spy(function (oldValue, callback) {
             callback(null, new DataValue({ value: {} }));
         });
         monitoredItem.samplingFunc = spy_samplingEventCall;
@@ -142,7 +141,6 @@ describe("Server Side MonitoredItem", () => {
     });
 
     it("MI2 - a MonitoredItem should enqueue a new value and store it in a queue", (done) => {
-
         const monitoredItem = new MonitoredItem({
             clientHandle: 1,
             discardOldest: true,
@@ -165,18 +163,16 @@ describe("Server Side MonitoredItem", () => {
         monitoredItem.terminate();
         monitoredItem.dispose();
         done();
-
     });
 
     it("a MonitoredItem should discard old value from the queue when discardOldest is true", (done) => {
-
         const monitoredItem = new MonitoredItem({
             clientHandle: 1,
             discardOldest: true, // <= discard oldest !
-            queueSize: 2,         // <=== only 2 values in queue
+            queueSize: 2, // <=== only 2 values in queue
             samplingInterval: 100,
             // added by the server:
-            monitoredItemId: 50,
+            monitoredItemId: 50
         });
         monitoredItem.setNode(fakeNode);
 
@@ -206,14 +202,13 @@ describe("Server Side MonitoredItem", () => {
     });
 
     it("a MonitoredItem should discard last value when queue is full when discardOldest is false , and set the overflow bit", (done) => {
-
         const monitoredItem = new MonitoredItem({
             clientHandle: 1,
             samplingInterval: 100,
             discardOldest: false, // <= discard oldest !
-            queueSize: 2,         // <=== only 2 values in queue
+            queueSize: 2, // <=== only 2 values in queue
             // added by the server:
-            monitoredItemId: 50,
+            monitoredItemId: 50
         });
         monitoredItem.setNode(fakeNode);
 
@@ -245,12 +240,11 @@ describe("Server Side MonitoredItem", () => {
     });
 
     it("should set timestamp to the recorded value without timestamp (variation 1)", (done) => {
-
         const monitoredItem = new MonitoredItem({
             clientHandle: 1,
             samplingInterval: 100,
             discardOldest: true,
-            queueSize: 2,  // <=== only 2 values in queue
+            queueSize: 2, // <=== only 2 values in queue
             // added by the server:
             monitoredItemId: 50,
             timestampsToReturn: TimestampsToReturn.Both
@@ -259,11 +253,13 @@ describe("Server Side MonitoredItem", () => {
 
         const now = new Date();
 
-        monitoredItem._enqueue_value(new DataValue({
-            value: { dataType: DataType.UInt32, value: 1000 },
-            serverTimestamp: now,
-            sourceTimestamp: now
-        }));
+        monitoredItem._enqueue_value(
+            new DataValue({
+                value: { dataType: DataType.UInt32, value: 1000 },
+                serverTimestamp: now,
+                sourceTimestamp: now
+            })
+        );
 
         monitoredItem.queue.length.should.eql(1);
         monitoredItem.queue[0].value.serverTimestamp.should.eql(now);
@@ -276,12 +272,11 @@ describe("Server Side MonitoredItem", () => {
 
     // #21
     it("should set timestamp to the recorded value with a given sourceTimestamp (variation 2)", (done) => {
-
         const monitoredItem = new MonitoredItem({
             clientHandle: 1,
             samplingInterval: 100,
             discardOldest: true,
-            queueSize: 2,  // <=== only 2 values in queue
+            queueSize: 2, // <=== only 2 values in queue
             // added by the server:
             monitoredItemId: 50,
             timestampsToReturn: TimestampsToReturn.Both
@@ -295,12 +290,14 @@ describe("Server Side MonitoredItem", () => {
         sourceTimestamp.setMilliseconds(100);
         const picoseconds = 456;
 
-        monitoredItem._enqueue_value(new DataValue({
-            value: { dataType: DataType.UInt32, value: 1000 },
-            sourceTimestamp: sourceTimestamp,
-            sourcePicoseconds: picoseconds,
-            serverTimestamp: now
-        }));
+        monitoredItem._enqueue_value(
+            new DataValue({
+                value: { dataType: DataType.UInt32, value: 1000 },
+                sourceTimestamp: sourceTimestamp,
+                sourcePicoseconds: picoseconds,
+                serverTimestamp: now
+            })
+        );
 
         monitoredItem.queue.length.should.eql(1);
         monitoredItem.queue[0].value.serverTimestamp.should.eql(now);
@@ -311,12 +308,11 @@ describe("Server Side MonitoredItem", () => {
         monitoredItem.terminate();
         monitoredItem.dispose();
         done();
-
     });
 
     function install_spying_samplingFunc() {
         let sample_value = 0;
-        const spy_samplingEventCall = sinon.spy(function(oldValue, callback) {
+        const spy_samplingEventCall = sinon.spy(function (oldValue, callback) {
             sample_value++;
             const dataValue = new DataValue({ value: { dataType: DataType.UInt32, value: sample_value } });
             callback(null, dataValue);
@@ -325,7 +321,6 @@ describe("Server Side MonitoredItem", () => {
     }
 
     it("a MonitoredItem should trigger a read event according to sampling interval", (done) => {
-
         const monitoredItem = new MonitoredItem({
             clientHandle: 1,
             samplingInterval: 100,
@@ -352,11 +347,9 @@ describe("Server Side MonitoredItem", () => {
         monitoredItem.terminate();
         monitoredItem.dispose();
         done();
-
     });
 
     it("a MonitoredItem should not trigger any read event after terminate has been called", (done) => {
-
         const monitoredItem = new MonitoredItem({
             clientHandle: 1,
             samplingInterval: 100,
@@ -381,14 +374,11 @@ describe("Server Side MonitoredItem", () => {
         this.clock.tick(2000);
         monitoredItem.samplingFunc.callCount.should.eql(nbCalls);
 
-
         monitoredItem.dispose();
         done();
     });
 
     it("MonitoredItem#modify should cap queue size", (done) => {
-
-
         const monitoredItem = new MonitoredItem({
             clientHandle: 1,
             samplingInterval: 100,
@@ -400,15 +390,18 @@ describe("Server Side MonitoredItem", () => {
         monitoredItem.setNode(fakeNode);
 
         let result; // MonitoredItemModifyResult
-        result = monitoredItem.modify(null, new MonitoringParameters({
-            clientHandle: 1,
-            samplingInterval: 100,
-            discardOldest: true,
-            queueSize: 0xFFFFF
-        }));
+        result = monitoredItem.modify(
+            null,
+            new MonitoringParameters({
+                clientHandle: 1,
+                samplingInterval: 100,
+                discardOldest: true,
+                queueSize: 0xfffff
+            })
+        );
 
         result.revisedSamplingInterval.should.eql(100);
-        result.revisedQueueSize.should.not.eql(0xFFFFF);
+        result.revisedQueueSize.should.not.eql(0xfffff);
 
         monitoredItem.terminate();
         monitoredItem.dispose();
@@ -416,7 +409,6 @@ describe("Server Side MonitoredItem", () => {
     });
 
     it("MonitoredItem#modify should cap samplingInterval", (done) => {
-
         const monitoredItem = new MonitoredItem({
             clientHandle: 1,
             discardOldest: true,
@@ -428,22 +420,28 @@ describe("Server Side MonitoredItem", () => {
         monitoredItem.setNode(fakeNode);
 
         let result; // MonitoredItemModifyResult
-        result = monitoredItem.modify(null, new MonitoringParameters({
-            clientHandle: 1,
-            discardOldest: true,
-            queueSize: 10,
-            samplingInterval: 0
-        }));
+        result = monitoredItem.modify(
+            null,
+            new MonitoringParameters({
+                clientHandle: 1,
+                discardOldest: true,
+                queueSize: 10,
+                samplingInterval: 0
+            })
+        );
 
         // setting
         result.revisedSamplingInterval.should.eql(50);
 
-        result = monitoredItem.modify(null, new MonitoringParameters({
-            clientHandle: 1,
-            discardOldest: true,
-            queueSize: 10,
-            samplingInterval: 1
-        }));
+        result = monitoredItem.modify(
+            null,
+            new MonitoringParameters({
+                clientHandle: 1,
+                discardOldest: true,
+                queueSize: 10,
+                samplingInterval: 1
+            })
+        );
 
         result.revisedSamplingInterval.should.not.eql(1);
 
@@ -453,7 +451,6 @@ describe("Server Side MonitoredItem", () => {
     });
 
     it("MonitoredItem#modify : changing queue size from 2 to 1 when queue is full, should trim queue (discardOldest=true)", (done) => {
-
         const monitoredItem = new MonitoredItem({
             clientHandle: 1,
             discardOldest: true,
@@ -471,44 +468,55 @@ describe("Server Side MonitoredItem", () => {
         monitoredItem._enqueue_value(new DataValue({ value: { dataType: DataType.UInt32, value: 1000 } }));
         monitoredItem.overflow.should.eql(false);
         monitoredItem.queue.length.should.eql(1);
-        monitoredItem.queue.map(function(a) {
-            return a.value.value.value;
-        }).should.eql([1000]);
+        monitoredItem.queue
+            .map(function (a) {
+                return a.value.value.value;
+            })
+            .should.eql([1000]);
         monitoredItem.queue[0].value.statusCode.should.eql(StatusCodes.Good);
 
         monitoredItem._enqueue_value(new DataValue({ value: { dataType: DataType.UInt32, value: 1001 } }));
         monitoredItem.overflow.should.eql(false);
         monitoredItem.queue.length.should.eql(2);
-        monitoredItem.queue.map(function(a) {
-            return a.value.value.value;
-        }).should.eql([1000, 1001]);
+        monitoredItem.queue
+            .map(function (a) {
+                return a.value.value.value;
+            })
+            .should.eql([1000, 1001]);
         monitoredItem.queue[0].value.statusCode.should.eql(StatusCodes.Good);
         monitoredItem.queue[1].value.statusCode.should.eql(StatusCodes.Good);
 
         monitoredItem._enqueue_value(new DataValue({ value: { dataType: DataType.UInt32, value: 1002 } }));
         monitoredItem.overflow.should.eql(true);
         monitoredItem.queue.length.should.eql(2);
-        monitoredItem.queue.map(function(a) {
-            return a.value.value.value;
-        }).should.eql([1001, 1002]);
+        monitoredItem.queue
+            .map(function (a) {
+                return a.value.value.value;
+            })
+            .should.eql([1001, 1002]);
         monitoredItem.queue[0].value.statusCode.should.eql(StatusCodes.GoodWithOverflowBit);
         monitoredItem.queue[1].value.statusCode.should.eql(StatusCodes.Good);
 
         let result; // MonitoredItemModifyResult
-        result = monitoredItem.modify(null, new MonitoringParameters({
-            clientHandle: 1,
-            discardOldest: true,
-            queueSize: 1,
-            samplingInterval: 0,
-        }));
+        result = monitoredItem.modify(
+            null,
+            new MonitoringParameters({
+                clientHandle: 1,
+                discardOldest: true,
+                queueSize: 1,
+                samplingInterval: 0
+            })
+        );
         result.statusCode.should.eql(StatusCodes.Good);
         monitoredItem.queueSize.should.eql(1);
 
         monitoredItem.overflow.should.eql(false);
         monitoredItem.queue.length.should.eql(1);
-        monitoredItem.queue.map(function(a) {
-            return a.value.value.value;
-        }).should.eql([1002]);
+        monitoredItem.queue
+            .map(function (a) {
+                return a.value.value.value;
+            })
+            .should.eql([1002]);
         monitoredItem.queue[0].value.statusCode.should.eql(StatusCodes.Good);
 
         monitoredItem.terminate();
@@ -517,7 +525,6 @@ describe("Server Side MonitoredItem", () => {
     });
 
     it("MonitoredItem#modify : changing queue size from 2 to 1 when queue is full, should trim queue (discardOldest=false)", (done) => {
-
         const monitoredItem = new MonitoredItem({
             clientHandle: 1,
             samplingInterval: 10,
@@ -536,43 +543,53 @@ describe("Server Side MonitoredItem", () => {
 
         monitoredItem.overflow.should.eql(false);
         monitoredItem.queue.length.should.eql(1);
-        monitoredItem.queue.map(function(a) {
-            return a.value.value.value;
-        }).should.eql([1000]);
-
+        monitoredItem.queue
+            .map(function (a) {
+                return a.value.value.value;
+            })
+            .should.eql([1000]);
 
         monitoredItem._enqueue_value(new DataValue({ value: { dataType: DataType.UInt32, value: 1001 } }));
         monitoredItem.overflow.should.eql(false);
         monitoredItem.queue.length.should.eql(2);
-        monitoredItem.queue.map(function(a) {
-            return a.value.value.value;
-        }).should.eql([1000, 1001]);
+        monitoredItem.queue
+            .map(function (a) {
+                return a.value.value.value;
+            })
+            .should.eql([1000, 1001]);
 
         monitoredItem._enqueue_value(new DataValue({ value: { dataType: DataType.UInt32, value: 1002 } }));
         monitoredItem.overflow.should.eql(true);
         monitoredItem.queue.length.should.eql(2);
-        monitoredItem.queue.map(function(a) {
-            return a.value.value.value;
-        }).should.eql([1000, 1002]);
+        monitoredItem.queue
+            .map(function (a) {
+                return a.value.value.value;
+            })
+            .should.eql([1000, 1002]);
 
         monitoredItem.queue[0].value.statusCode.should.eql(StatusCodes.Good);
         monitoredItem.queue[1].value.statusCode.hasOverflowBit.should.equal(true);
 
         let result; // MonitoredItemModifyResult
-        result = monitoredItem.modify(null, new MonitoringParameters({
-            clientHandle: 1,
-            samplingInterval: 0,
-            discardOldest: false,
-            queueSize: 1
-        }));
+        result = monitoredItem.modify(
+            null,
+            new MonitoringParameters({
+                clientHandle: 1,
+                samplingInterval: 0,
+                discardOldest: false,
+                queueSize: 1
+            })
+        );
         result.statusCode.should.eql(StatusCodes.Good);
         monitoredItem.queueSize.should.eql(1);
 
         monitoredItem.overflow.should.eql(false);
         monitoredItem.queue.length.should.eql(1);
-        monitoredItem.queue.map(function(a) {
-            return a.value.value.value;
-        }).should.eql([1002]);
+        monitoredItem.queue
+            .map(function (a) {
+                return a.value.value.value;
+            })
+            .should.eql([1002]);
         monitoredItem.queue[0].value.statusCode.hasOverflowBit.should.equal(false);
         //xx        monitoredItem.queue[0].value.statusCode.should.eql(StatusCodes.Good);
 
@@ -582,7 +599,6 @@ describe("Server Side MonitoredItem", () => {
     });
 
     it("MonitoredItem#modify : changing queue size from 4 to 2 when queue is full, should trim queue (discardOldest=false)", (done) => {
-
         const monitoredItem = new MonitoredItem({
             clientHandle: 1,
             samplingInterval: 10,
@@ -600,24 +616,29 @@ describe("Server Side MonitoredItem", () => {
         monitoredItem._enqueue_value(new DataValue({ value: { dataType: DataType.UInt32, value: 1000 } }));
         monitoredItem.overflow.should.eql(false);
         monitoredItem.queue.length.should.eql(1);
-        monitoredItem.queue.map(function(a) {
-            return a.value.value.value;
-        }).should.eql([1000]);
-
+        monitoredItem.queue
+            .map(function (a) {
+                return a.value.value.value;
+            })
+            .should.eql([1000]);
 
         monitoredItem._enqueue_value(new DataValue({ value: { dataType: DataType.UInt32, value: 1001 } }));
         monitoredItem.overflow.should.eql(false);
         monitoredItem.queue.length.should.eql(2);
-        monitoredItem.queue.map(function(a) {
-            return a.value.value.value;
-        }).should.eql([1000, 1001]);
+        monitoredItem.queue
+            .map(function (a) {
+                return a.value.value.value;
+            })
+            .should.eql([1000, 1001]);
 
         monitoredItem._enqueue_value(new DataValue({ value: { dataType: DataType.UInt32, value: 1002 } }));
         monitoredItem.overflow.should.eql(false);
         monitoredItem.queue.length.should.eql(3);
-        monitoredItem.queue.map(function(a) {
-            return a.value.value.value;
-        }).should.eql([1000, 1001, 1002]);
+        monitoredItem.queue
+            .map(function (a) {
+                return a.value.value.value;
+            })
+            .should.eql([1000, 1001, 1002]);
         monitoredItem.queue[0].value.statusCode.should.eql(StatusCodes.Good);
         monitoredItem.queue[1].value.statusCode.should.eql(StatusCodes.Good);
         monitoredItem.queue[2].value.statusCode.should.eql(StatusCodes.Good);
@@ -625,29 +646,36 @@ describe("Server Side MonitoredItem", () => {
         monitoredItem._enqueue_value(new DataValue({ value: { dataType: DataType.UInt32, value: 1003 } }));
         monitoredItem.overflow.should.eql(false);
         monitoredItem.queue.length.should.eql(4);
-        monitoredItem.queue.map(function(a) {
-            return a.value.value.value;
-        }).should.eql([1000, 1001, 1002, 1003]);
+        monitoredItem.queue
+            .map(function (a) {
+                return a.value.value.value;
+            })
+            .should.eql([1000, 1001, 1002, 1003]);
         monitoredItem.queue[0].value.statusCode.should.eql(StatusCodes.Good);
         monitoredItem.queue[1].value.statusCode.should.eql(StatusCodes.Good);
         monitoredItem.queue[2].value.statusCode.should.eql(StatusCodes.Good);
         monitoredItem.queue[3].value.statusCode.should.eql(StatusCodes.Good);
 
         let result; // MonitoredItemModifyResult
-        result = monitoredItem.modify(null, new MonitoringParameters({
-            clientHandle: 1,
-            samplingInterval: 0,
-            discardOldest: false,
-            queueSize: 2
-        }));
+        result = monitoredItem.modify(
+            null,
+            new MonitoringParameters({
+                clientHandle: 1,
+                samplingInterval: 0,
+                discardOldest: false,
+                queueSize: 2
+            })
+        );
         result.statusCode.should.eql(StatusCodes.Good);
         monitoredItem.queueSize.should.eql(2);
 
         monitoredItem.overflow.should.eql(false);
         monitoredItem.queue.length.should.eql(2);
-        monitoredItem.queue.map(function(a) {
-            return a.value.value.value;
-        }).should.eql([1000, 1003]);
+        monitoredItem.queue
+            .map(function (a) {
+                return a.value.value.value;
+            })
+            .should.eql([1000, 1003]);
         monitoredItem.queue[0].value.statusCode.should.eql(StatusCodes.Good);
 
         monitoredItem.terminate();
@@ -655,8 +683,7 @@ describe("Server Side MonitoredItem", () => {
         done();
     });
 
-    it("MonitoringItem#setMonitoringMode : setting the mode to DISABLED should cause all queued Notifications to be deleted", function() {
-
+    it("MonitoringItem#setMonitoringMode : setting the mode to DISABLED should cause all queued Notifications to be deleted", function () {
         // OPCUA 1.03 part 4 : $5.12.4
         const monitoredItem = new MonitoredItem({
             clientHandle: 1,
@@ -668,7 +695,8 @@ describe("Server Side MonitoredItem", () => {
         });
         monitoredItem.setNode(fakeNode);
 
-        monitoredItem.samplingFunc = function(oldvalue, callback) {
+        monitoredItem.samplingFunc = function (oldvalue, callback) {
+            /** */
         };
 
         monitoredItem.setMonitoringMode(MonitoringMode.Reporting);
@@ -678,9 +706,11 @@ describe("Server Side MonitoredItem", () => {
         monitoredItem._enqueue_value(new DataValue({ value: { dataType: DataType.UInt32, value: 1002 } }));
         monitoredItem.overflow.should.eql(true);
         monitoredItem.queue.length.should.eql(2);
-        monitoredItem.queue.map(function(a) {
-            return a.value.value.value;
-        }).should.eql([1001, 1002]);
+        monitoredItem.queue
+            .map(function (a) {
+                return a.value.value.value;
+            })
+            .should.eql([1001, 1002]);
 
         monitoredItem.setMonitoringMode(MonitoringMode.Disabled);
         monitoredItem.overflow.should.eql(false);
@@ -690,7 +720,7 @@ describe("Server Side MonitoredItem", () => {
         monitoredItem.dispose();
     });
 
-    it("should set the OverflowBit as specified in the example in specification - Fig 17 Queue overflow handling    ", function() {
+    it("should set the OverflowBit as specified in the example in specification - Fig 17 Queue overflow handling    ", function () {
         // OPC Specification 1.03 part 4 page 60 - Figure 17
         const monitoredItemT = new MonitoredItem({
             clientHandle: 1,
@@ -701,7 +731,6 @@ describe("Server Side MonitoredItem", () => {
             monitoredItemId: 50
         });
         monitoredItemT.setNode(fakeNode);
-
 
         monitoredItemT._enqueue_value(new DataValue({ value: { dataType: DataType.UInt32, value: 1 } }));
         q(monitoredItemT).should.eql([1]);
@@ -737,7 +766,6 @@ describe("Server Side MonitoredItem", () => {
         });
         monitoredItemF.setNode(fakeNode);
 
-
         monitoredItemF._enqueue_value(new DataValue({ value: { dataType: DataType.UInt32, value: 1 } }));
         q(monitoredItemF).should.eql([1]);
         f(monitoredItemF).should.eql([o]);
@@ -762,11 +790,9 @@ describe("Server Side MonitoredItem", () => {
 
         monitoredItemT.terminate();
         monitoredItemT.dispose();
-
     });
 
     it("StatusCode.Overflow bit should not be set when queuesize is 1. (discardOldest === true)", (done) => {
-
         const monitoredItem = new MonitoredItem({
             clientHandle: 1,
             samplingInterval: 10,
@@ -784,26 +810,31 @@ describe("Server Side MonitoredItem", () => {
         monitoredItem._enqueue_value(new DataValue({ value: { dataType: DataType.UInt32, value: 1000 } }));
         monitoredItem.overflow.should.eql(false);
         monitoredItem.queue.length.should.eql(1);
-        monitoredItem.queue.map(function(a) {
-            return a.value.value.value;
-        }).should.eql([1000]);
+        monitoredItem.queue
+            .map(function (a) {
+                return a.value.value.value;
+            })
+            .should.eql([1000]);
         monitoredItem.queue[0].value.statusCode.should.eql(StatusCodes.Good);
-
 
         monitoredItem._enqueue_value(new DataValue({ value: { dataType: DataType.UInt32, value: 1001 } }));
         monitoredItem.overflow.should.eql(false);
         monitoredItem.queue.length.should.eql(1);
-        monitoredItem.queue.map(function(a) {
-            return a.value.value.value;
-        }).should.eql([1001]);
+        monitoredItem.queue
+            .map(function (a) {
+                return a.value.value.value;
+            })
+            .should.eql([1001]);
         monitoredItem.queue[0].value.statusCode.should.eql(StatusCodes.Good);
 
         monitoredItem._enqueue_value(new DataValue({ value: { dataType: DataType.UInt32, value: 1002 } }));
         monitoredItem.overflow.should.eql(false);
         monitoredItem.queue.length.should.eql(1);
-        monitoredItem.queue.map(function(a) {
-            return a.value.value.value;
-        }).should.eql([1002]);
+        monitoredItem.queue
+            .map(function (a) {
+                return a.value.value.value;
+            })
+            .should.eql([1002]);
         monitoredItem.queue[0].value.statusCode.should.eql(StatusCodes.Good);
 
         monitoredItem.terminate();
@@ -812,14 +843,13 @@ describe("Server Side MonitoredItem", () => {
     });
 
     it("StatusCode.Overflow bit should not be set when queuesize is 1. (discardOldest === false)", (done) => {
-
         const monitoredItem = new MonitoredItem({
             clientHandle: 1,
             discardOldest: false,
             queueSize: 1,
             samplingInterval: 10,
             // added by the server:
-            monitoredItemId: 50,
+            monitoredItemId: 50
         });
         monitoredItem.setNode(fakeNode);
 
@@ -830,44 +860,46 @@ describe("Server Side MonitoredItem", () => {
         monitoredItem._enqueue_value(new DataValue({ value: { dataType: DataType.UInt32, value: 1000 } }));
         monitoredItem.overflow.should.eql(false);
         monitoredItem.queue.length.should.eql(1);
-        monitoredItem.queue.map(function(a) {
-            return a.value.value.value;
-        }).should.eql([1000]);
+        monitoredItem.queue
+            .map(function (a) {
+                return a.value.value.value;
+            })
+            .should.eql([1000]);
         monitoredItem.queue[0].value.statusCode.should.eql(StatusCodes.Good);
-
 
         monitoredItem._enqueue_value(new DataValue({ value: { dataType: DataType.UInt32, value: 1001 } }));
         monitoredItem.overflow.should.eql(false);
         monitoredItem.queue.length.should.eql(1);
-        monitoredItem.queue.map(function(a) {
-            return a.value.value.value;
-        }).should.eql([1001]);
+        monitoredItem.queue
+            .map(function (a) {
+                return a.value.value.value;
+            })
+            .should.eql([1001]);
         monitoredItem.queue[0].value.statusCode.should.eql(StatusCodes.Good);
 
         monitoredItem._enqueue_value(new DataValue({ value: { dataType: DataType.UInt32, value: 1002 } }));
         monitoredItem.overflow.should.eql(false);
         monitoredItem.queue.length.should.eql(1);
-        monitoredItem.queue.map(function(a) {
-            return a.value.value.value;
-        }).should.eql([1002]);
+        monitoredItem.queue
+            .map(function (a) {
+                return a.value.value.value;
+            })
+            .should.eql([1002]);
         monitoredItem.queue[0].value.statusCode.should.eql(StatusCodes.Good);
 
         monitoredItem.terminate();
         monitoredItem.dispose();
         done();
     });
-
-
 });
-describe("MonitoredItem with DataChangeFilter", function() {
-
+describe("MonitoredItem with DataChangeFilter", function () {
     let monitoredItem;
     afterEach(() => {
         monitoredItem.terminate();
         monitoredItem.dispose();
-        monitoredItem = null
+        monitoredItem = null;
     });
-    function writeValue(value /*: number*/, statusCode/*?: StatusCode*/) {
+    function writeValue(value /*: number*/, statusCode /*?: StatusCode*/) {
         const dataValue = new DataValue({
             statusCode: statusCode ? statusCode : StatusCodes.Good,
             value: { dataType: "Int16", value }
@@ -887,8 +919,6 @@ describe("MonitoredItem with DataChangeFilter", function() {
     }
 
     it("DeadbandType.None - should only detect status change when dataChangeFilter trigger is DataChangeTrigger.Status", () => {
-
-
         const dataChangeFilter = new DataChangeFilter({
             trigger: DataChangeTrigger.Status,
             deadbandType: DeadbandType.None
@@ -925,7 +955,6 @@ describe("MonitoredItem with DataChangeFilter", function() {
     });
 
     it("DeadbandType.None - should detect status change & value change when dataChangeFilter trigger is DataChangeTrigger.StatusValue", () => {
-
         const dataChangeFilter = new DataChangeFilter({
             trigger: DataChangeTrigger.StatusValue,
             deadbandType: DeadbandType.None
@@ -944,7 +973,7 @@ describe("MonitoredItem with DataChangeFilter", function() {
 
         monitoredItem.queue.length.should.eql(0);
 
-        writeValue(48);;
+        writeValue(48);
         monitoredItem.queue.length.should.eql(1);
         q(monitoredItem).should.eql([48]);
         f(monitoredItem).should.eql([o]);
@@ -968,8 +997,7 @@ describe("MonitoredItem with DataChangeFilter", function() {
         f(monitoredItem).should.eql([o, o, X, o]);
     });
 
-    it("DeadbandType.Absolute - should detect status change & value change when dataChangeFilter trigger is DataChangeTrigger.StatusValue and deadband is 8", function() {
-
+    it("DeadbandType.Absolute - should detect status change & value change when dataChangeFilter trigger is DataChangeTrigger.StatusValue and deadband is 8", function () {
         const dataChangeFilter = new DataChangeFilter({
             trigger: DataChangeTrigger.StatusValue,
             deadbandType: DeadbandType.Absolute,
@@ -988,7 +1016,7 @@ describe("MonitoredItem with DataChangeFilter", function() {
         monitoredItem.setNode(fakeNode);
         monitoredItem.queue.length.should.eql(0);
 
-        writeValue(48);;
+        writeValue(48);
         monitoredItem.queue.length.should.eql(1);
         q(monitoredItem).should.eql([48]);
 
@@ -1033,7 +1061,6 @@ describe("MonitoredItem with DataChangeFilter", function() {
     });
 
     it("DeadbandType.Percent - should detect status change & value change when dataChangeFilter trigger is DataChangeTrigger.StatusValue and deadband is 20%", () => {
-
         const dataChangeFilter = new DataChangeFilter({
             trigger: DataChangeTrigger.StatusValue,
             deadbandType: DeadbandType.Percent, // percentage of the EURange
@@ -1056,7 +1083,7 @@ describe("MonitoredItem with DataChangeFilter", function() {
         fakeNode.getChildByName("EURange").readValue().value.value.low.should.eql(-100);
         fakeNode.getChildByName("EURange").readValue().value.value.high.should.eql(100);
         {
-            // 20 percent = 40 
+            // 20 percent = 40
             monitoredItem.queue.length.should.eql(0);
 
             writeValue(48);
@@ -1082,7 +1109,6 @@ describe("MonitoredItem with DataChangeFilter", function() {
             q(monitoredItem).should.eql([48, 49, 49]);
             f(monitoredItem).should.eql([o, X, o]);
 
-
             // 49-> 49  + no statusChange => No Record
             writeValue(49);
             q(monitoredItem).should.eql([48, 49, 49]);
@@ -1102,11 +1128,9 @@ describe("MonitoredItem with DataChangeFilter", function() {
             writeValue(0);
             q(monitoredItem).should.eql([48, 49, 49, 0]);
             f(monitoredItem).should.eql([o, X, o, o]);
-
         }
     });
     it("DeadbandType.Percent - changing filter in the middle", () => {
-
         const dataChangeFilter1 = new DataChangeFilter({
             trigger: DataChangeTrigger.StatusValue,
             deadbandType: DeadbandType.Percent, // percentage of the EURange
@@ -1132,16 +1156,15 @@ describe("MonitoredItem with DataChangeFilter", function() {
             deadbandValue: 50
         });
 
-
         // node must provide a EURange property that expose a Range for DeadbandType.Percent to work
         const range = fakeNode.getChildByName("EURange").readValue().value.value;
         range.low.should.eql(-100);
         range.high.should.eql(100);
         const band = range.high - range.low;
-        const step2 = band * dataChangeFilter2.deadbandValue / 100;
-        const step1 = band * dataChangeFilter1.deadbandValue / 100;
+        const step2 = (band * dataChangeFilter2.deadbandValue) / 100;
+        const step1 = (band * dataChangeFilter1.deadbandValue) / 100;
         {
-            // 20 percent = 40 
+            // 20 percent = 40
             monitoredItem.queue.length.should.eql(0);
 
             writeValue(48);
@@ -1167,7 +1190,6 @@ describe("MonitoredItem with DataChangeFilter", function() {
             q(monitoredItem).should.eql([48, 49, 49]);
             f(monitoredItem).should.eql([o, X, o]);
 
-
             // 49-> 49  + no statusChange => No Record
             writeValue(49);
             q(monitoredItem).should.eql([48, 49, 49]);
@@ -1188,13 +1210,12 @@ describe("MonitoredItem with DataChangeFilter", function() {
             q(monitoredItem).should.eql([48, 49, 49, 0]);
             f(monitoredItem).should.eql([o, X, o, o]);
 
-
             const monitoringParameters2 = new MonitoringParameters({
                 clientHandle: 1,
                 samplingInterval: 100,
                 discardOldest: true,
                 queueSize: 100,
-                filter: dataChangeFilter2,
+                filter: dataChangeFilter2
             });
             monitoredItem.modify(TimestampsToReturn.Both, monitoringParameters2);
             writeValue(10);
@@ -1362,12 +1383,10 @@ describe("MonitoredItem with DataChangeFilter", function() {
             f(monitoredItem).should.eql([o, X, o]);
 
             // f.Repeat the last step, but also specify a timestamp that is * now *.Call Publish().
-            // f.All service / operation results are Good.The Publish() call yields a KeepAlive. 
+            // f.All service / operation results are Good.The Publish() call yields a KeepAlive.
             writeVQT(-100, StatusCodes.Good, date2);
             q(monitoredItem).should.eql([-100, -100, -100, -100]);
             f(monitoredItem).should.eql([o, X, o, o]);
-
         }
-
     });
 });

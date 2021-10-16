@@ -23,7 +23,6 @@ export interface OperationLimitsOptions {
 }
 
 export class OperationLimits {
-
     public maxNodesPerRead: number;
     public maxNodesPerBrowse: number;
     public maxNodesPerWrite: number;
@@ -38,7 +37,6 @@ export class OperationLimits {
     public maxNodesPerTranslateBrowsePathsToNodeIds: number;
 
     constructor(options: OperationLimitsOptions) {
-
         /**
          * @property maxNodesPerRead
          * @default 0
@@ -98,7 +96,6 @@ export class OperationLimits {
          * @default 0
          */
         this.maxNodesPerTranslateBrowsePathsToNodeIds = options.maxNodesPerTranslateBrowsePathsToNodeIds || 0;
-
     }
 }
 
@@ -120,7 +117,6 @@ export interface ServerCapabilitiesOptions {
 /**
  */
 export class ServerCapabilities {
-
     public maxBrowseContinuationPoints: number;
     public maxHistoryContinuationPoints: number;
     public maxStringLength: number;
@@ -135,7 +131,6 @@ export class ServerCapabilities {
     public softwareCertificates: SignedSoftwareCertificate[];
 
     constructor(options: ServerCapabilitiesOptions) {
-
         options = options || {};
         options.operationLimits = options.operationLimits || {};
 

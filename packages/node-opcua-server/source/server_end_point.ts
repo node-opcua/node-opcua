@@ -2,11 +2,11 @@
  * @module node-opcua-server
  */
 // tslint:disable:no-console
-import * as async from "async";
-import * as chalk from "chalk";
 import { EventEmitter } from "events";
 import * as net from "net";
 import { Server, Socket } from "net";
+import * as chalk from "chalk";
+import * as async from "async";
 
 import { assert } from "node-opcua-assert";
 import { ICertificateManager, OPCUACertificateManager } from "node-opcua-certificate-manager";
@@ -213,16 +213,16 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
     private _channels: { [key: string]: ServerSecureChannelLayer };
     private _server?: Server;
     private _endpoints: EndpointDescription[];
-    private _listen_callback: any;
-    private _started: boolean = false;
+    private _listen_callback?: (err?: Error) => void;
+    private _started = false;
     private _counter = OPCUAServerEndPointCounter++;
     private _policy_deduplicator: { [key: string]: number } = {};
     constructor(options: OPCUAServerEndPointOptions) {
         super();
 
-        assert(!Object.prototype.hasOwnProperty.call(options,"certificate"), "expecting a certificateChain instead");
-        assert(Object.prototype.hasOwnProperty.call(options,"certificateChain"), "expecting a certificateChain");
-        assert(Object.prototype.hasOwnProperty.call(options,"privateKey"));
+        assert(!Object.prototype.hasOwnProperty.call(options, "certificate"), "expecting a certificateChain instead");
+        assert(Object.prototype.hasOwnProperty.call(options, "certificateChain"), "expecting a certificateChain");
+        assert(Object.prototype.hasOwnProperty.call(options, "privateKey"));
 
         this.certificateManager = options.certificateManager;
 
@@ -259,7 +259,7 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
         assert(this.serverInfo !== null && typeof this.serverInfo === "object");
     }
 
-    public dispose() {
+    public dispose(): void {
         this._certificateChain = emptyCertificate;
         this._privateKey = emptyPrivateKeyPEM;
 
@@ -272,7 +272,7 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
         this._endpoints = [];
 
         this._server = undefined;
-        this._listen_callback = null;
+        this._listen_callback = undefined;
 
         this.removeAllListeners();
     }
@@ -353,7 +353,7 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
         securityMode: MessageSecurityMode,
         securityPolicy: SecurityPolicy,
         options?: EndpointDescriptionParams
-    ) {
+    ): void {
         if (!options) {
             options = {
                 hostname: getFullyQualifiedDomainName(),
@@ -414,13 +414,13 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
         );
     }
 
-    public addRestrictedEndpointDescription(options: EndpointDescriptionParams) {
+    public addRestrictedEndpointDescription(options: EndpointDescriptionParams): void {
         options = { ...options };
         options.restricted = true;
         return this.addEndpointDescription(MessageSecurityMode.None, SecurityPolicy.None, options);
     }
 
-    public addStandardEndpointDescriptions(options?: AddStandardEndpointDescriptionsParam) {
+    public addStandardEndpointDescriptions(options?: AddStandardEndpointDescriptionsParam): void {
         options = options || {};
 
         options.securityModes = options.securityModes || defaultSecurityModes;
@@ -473,7 +473,7 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
      * @method listen
      * @async
      */
-    public listen(callback: (err?: Error) => void) {
+    public listen(callback: (err?: Error) => void): void {
         assert(typeof callback === "function");
         assert(!this._started, "OPCUAServerEndPoint is already listening");
 
@@ -499,7 +499,7 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
         );
     }
 
-    public killClientSockets(callback: (err?: Error) => void) {
+    public killClientSockets(callback: (err?: Error) => void): void {
         for (const channel of this.getChannels()) {
             const hacked_channel = channel as any;
             if (hacked_channel.transport && hacked_channel.transport._socket) {
@@ -511,7 +511,7 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
         callback();
     }
 
-    public suspendConnection(callback: (err?: Error) => void) {
+    public suspendConnection(callback: (err?: Error) => void): void {
         if (!this._started) {
             return callback(new Error("Connection already suspended !!"));
         }
@@ -530,11 +530,11 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
         callback();
     }
 
-    public restoreConnection(callback: (err?: Error) => void) {
+    public restoreConnection(callback: (err?: Error) => void): void {
         this.listen(callback);
     }
 
-    public abruptlyInterruptChannels() {
+    public abruptlyInterruptChannels(): void {
         for (const channel of Object.values(this._channels)) {
             channel.abruptlyInterrupt();
         }
@@ -544,7 +544,7 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
      * @method shutdown
      * @async
      */
-    public shutdown(callback: (err?: Error) => void) {
+    public shutdown(callback: (err?: Error) => void): void {
         debugLog("OPCUAServerEndPoint#shutdown ");
 
         if (this._started) {
@@ -627,12 +627,10 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
     }
 
     private _dump_statistics() {
-        const self = this;
-
-        self._server!.getConnections((err: Error | null, count: number) => {
+        this._server!.getConnections((err: Error | null, count: number) => {
             debugLog(chalk.cyan("CONCURRENT CONNECTION = "), count);
         });
-        debugLog(chalk.cyan("MAX CONNECTIONS = "), self._server!.maxConnections);
+        debugLog(chalk.cyan("MAX CONNECTIONS = "), this._server!.maxConnections);
     }
 
     private _setup_server() {
@@ -642,7 +640,7 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
         // xx console.log(" Server with max connections ", self.maxConnections);
         this._server.maxConnections = this.maxConnections + 1; // plus one extra
 
-        this._listen_callback = null;
+        this._listen_callback = undefined;
         this._server
             .on("connection", (socket: NodeJS.Socket) => {
                 // istanbul ignore next
@@ -750,7 +748,7 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
         // as they will need to be interrupted when OPCUAServerEndPoint is closed
         assert(this._started, "OPCUAServerEndPoint must be started");
 
-        assert(!this._channels.hasOwnProperty(channel.hashKey), " channel already preregistered!");
+        assert(!Object.prototype.hasOwnProperty.call(this._channels, channel.hashKey), " channel already preregistered!");
 
         this._channels[channel.hashKey] = channel;
 
@@ -810,11 +808,11 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
      */
     private _unregisterChannel(channel: ServerSecureChannelLayer): void {
         debugLog("_un-registerChannel channel.hashKey", channel.hashKey);
-        if (!this._channels.hasOwnProperty(channel.hashKey)) {
+        if (!Object.prototype.hasOwnProperty.call(this._channels, channel.hashKey)) {
             return;
         }
 
-        assert(this._channels.hasOwnProperty(channel.hashKey), "channel is not registered");
+        assert(Object.prototype.hasOwnProperty.call(this._channels, channel.hashKey), "channel is not registered");
 
         /**
          * @event closeChannel
@@ -839,8 +837,8 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
 
     private _end_listen(err?: Error) {
         assert(typeof this._listen_callback === "function");
-        this._listen_callback(err);
-        this._listen_callback = null;
+        this._listen_callback!(err);
+        this._listen_callback = undefined;
     }
 
     /**
@@ -999,8 +997,8 @@ function estimateSecurityLevel(securityMode: MessageSecurityMode, securityPolicy
  */
 function _makeEndpointDescription(options: MakeEndpointDescriptionOptions): EndpointDescriptionEx {
     assert(isFinite(options.port), "expecting a valid port number");
-    assert(Object.prototype.hasOwnProperty.call(options,"serverCertificateChain"));
-    assert(!Object.prototype.hasOwnProperty.call(options,"serverCertificate"));
+    assert(Object.prototype.hasOwnProperty.call(options, "serverCertificateChain"));
+    assert(!Object.prototype.hasOwnProperty.call(options, "serverCertificate"));
     assert(!!options.securityMode); // s.MessageSecurityMode
     assert(!!options.securityPolicy);
     assert(options.server !== null && typeof options.server === "object");

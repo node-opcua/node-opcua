@@ -13,31 +13,21 @@ const {
 const { StatusCodes } = require("node-opcua-status-code");
 const { TimestampsToReturn } = require("node-opcua-service-read");
 
-
 const { DataType, VariantArrayType, Variant } = require("node-opcua-variant");
 const { DataValue } = require("node-opcua-data-value");
 const { AttributeIds } = require("node-opcua-data-model");
-const {
-    NodeId,
-    coerceNodeId
-} = require("node-opcua-nodeid");
-const {
-    SessionContext
-} = require("node-opcua-address-space");
-
-
-const {
-    MonitoredItem,
-    Subscription,
-    ServerEngine
-} = require("..");
+const { NodeId, coerceNodeId } = require("node-opcua-nodeid");
+const { SessionContext } = require("node-opcua-address-space");
 
 const { get_mini_nodeset_filename } = require("node-opcua-address-space/testHelpers");
+
+const { MonitoredItem, Subscription, ServerEngine } = require("..");
+
 const mini_nodeset_filename = get_mini_nodeset_filename();
 
 const context = SessionContext.defaultContext;
 
-const now = (new Date()).getTime();
+const now = new Date().getTime();
 const { getFakePublishEngine } = require("./helper_fake_publish_engine");
 
 const fake_publish_engine = getFakePublishEngine();
@@ -55,7 +45,7 @@ function unfreeze_data_source() {
 function install_spying_samplingFunc() {
     unfreeze_data_source();
     let sample_value = 0;
-    const spy_samplingEventCall = sinon.spy(function(oldValue, callback) {
+    const spy_samplingEventCall = sinon.spy(function (oldValue, callback) {
         if (!dataSourceFrozen) {
             sample_value++;
         }
@@ -65,21 +55,21 @@ function install_spying_samplingFunc() {
     return spy_samplingEventCall;
 }
 
+// eslint-disable-next-line import/order
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
-describe("Subscriptions and MonitoredItems", function() {
-
+describe("Subscriptions and MonitoredItems", function () {
     this.timeout(Math.max(300000, this._timeout));
 
     let addressSpace, namespace;
 
     let engine;
+    // eslint-disable-next-line @typescript-eslint/no-this-alias
     const test = this;
 
-    before(function(done) {
-
+    before(function (done) {
         engine = new ServerEngine();
 
-        engine.initialize({ nodeset_filename: mini_nodeset_filename }, function() {
+        engine.initialize({ nodeset_filename: mini_nodeset_filename }, function () {
             addressSpace = engine.addressSpace;
             namespace = addressSpace.getOwnNamespace();
 
@@ -120,22 +110,20 @@ describe("Subscriptions and MonitoredItems", function() {
         }
     });
 
-    beforeEach(function() {
+    beforeEach(function () {
         this.clock = sinon.useFakeTimers(now);
     });
-    afterEach(function() {
+    afterEach(function () {
         this.clock.restore();
     });
 
-    it("should return Good if DeadBandFilter is NOT specified on boolean value monitored item", function() {
-
-
+    it("should return Good if DeadBandFilter is NOT specified on boolean value monitored item", function () {
         const subscription = new Subscription({
             publishingInterval: 1000,
             maxKeepAliveCount: 20,
             publishEngine: fake_publish_engine
         });
-        subscription.on("monitoredItem", function(monitoredItem) {
+        subscription.on("monitoredItem", function (monitoredItem) {
             monitoredItem.samplingFunc = install_spying_samplingFunc();
         });
 
@@ -151,14 +139,17 @@ describe("Subscriptions and MonitoredItems", function() {
                     samplingInterval: 100,
                     filter: new DataChangeFilter({
                         trigger: DataChangeTrigger.Status,
-                        deadbandType: DeadbandType.None,
+                        deadbandType: DeadbandType.None
                     })
                 }
             });
-            const createResult = subscription.createMonitoredItem(addressSpace, TimestampsToReturn.Both, monitoredItemCreateRequest);
+            const createResult = subscription.createMonitoredItem(
+                addressSpace,
+                TimestampsToReturn.Both,
+                monitoredItemCreateRequest
+            );
             return createResult.statusCode;
         }
-
 
         const namespaceSimulationIndex = 1;
         const nodeIdBoolean = coerceNodeId("s=Static_Boolean", namespaceSimulationIndex);
@@ -166,17 +157,14 @@ describe("Subscriptions and MonitoredItems", function() {
 
         subscription.terminate();
         subscription.dispose();
-
     });
-    it("should return Good if DeadBandFilter is NOT specified on String value monitored item", function() {
-
-
+    it("should return Good if DeadBandFilter is NOT specified on String value monitored item", function () {
         const subscription = new Subscription({
             publishingInterval: 1000,
             maxKeepAliveCount: 20,
             publishEngine: fake_publish_engine
         });
-        subscription.on("monitoredItem", function(monitoredItem) {
+        subscription.on("monitoredItem", function (monitoredItem) {
             monitoredItem.samplingFunc = install_spying_samplingFunc();
         });
 
@@ -192,30 +180,30 @@ describe("Subscriptions and MonitoredItems", function() {
                     samplingInterval: 100,
                     filter: new DataChangeFilter({
                         trigger: DataChangeTrigger.Status,
-                        deadbandType: DeadbandType.None,
+                        deadbandType: DeadbandType.None
                     })
                 }
             });
-            const createResult = subscription.createMonitoredItem(addressSpace, TimestampsToReturn.Both, monitoredItemCreateRequest);
+            const createResult = subscription.createMonitoredItem(
+                addressSpace,
+                TimestampsToReturn.Both,
+                monitoredItemCreateRequest
+            );
             return createResult.statusCode;
         }
-
 
         test_with_nodeId("ns=1;s=Static_String").should.eql(StatusCodes.Good);
 
         subscription.terminate();
         subscription.dispose();
-
     });
-    it("should return Good if DeadBandFilter is NOT specified on ByteString value monitored item", function() {
-
-
+    it("should return Good if DeadBandFilter is NOT specified on ByteString value monitored item", function () {
         const subscription = new Subscription({
             publishingInterval: 1000,
             maxKeepAliveCount: 20,
             publishEngine: fake_publish_engine
         });
-        subscription.on("monitoredItem", function(monitoredItem) {
+        subscription.on("monitoredItem", function (monitoredItem) {
             monitoredItem.samplingFunc = install_spying_samplingFunc();
         });
 
@@ -231,31 +219,31 @@ describe("Subscriptions and MonitoredItems", function() {
                     samplingInterval: 100,
                     filter: new DataChangeFilter({
                         trigger: DataChangeTrigger.Status,
-                        deadbandType: DeadbandType.None,
+                        deadbandType: DeadbandType.None
                     })
                 }
             });
-            const createResult = subscription.createMonitoredItem(addressSpace, TimestampsToReturn.Both, monitoredItemCreateRequest);
+            const createResult = subscription.createMonitoredItem(
+                addressSpace,
+                TimestampsToReturn.Both,
+                monitoredItemCreateRequest
+            );
             return createResult.statusCode;
         }
-
 
         test_with_nodeId("ns=1;s=Static_ByteString").should.eql(StatusCodes.Good);
 
         subscription.terminate();
         subscription.dispose();
-
     });
 
-    it("should return Good if DeadBandFilter is NOT specified on LocalizedText value monitored item", function() {
-
-
+    it("should return Good if DeadBandFilter is NOT specified on LocalizedText value monitored item", function () {
         const subscription = new Subscription({
             publishingInterval: 1000,
             maxKeepAliveCount: 20,
             publishEngine: fake_publish_engine
         });
-        subscription.on("monitoredItem", function(monitoredItem) {
+        subscription.on("monitoredItem", function (monitoredItem) {
             monitoredItem.samplingFunc = install_spying_samplingFunc();
         });
 
@@ -271,31 +259,31 @@ describe("Subscriptions and MonitoredItems", function() {
                     samplingInterval: 100,
                     filter: new DataChangeFilter({
                         trigger: DataChangeTrigger.Status,
-                        deadbandType: DeadbandType.None,
+                        deadbandType: DeadbandType.None
                     })
                 }
             });
-            const createResult = subscription.createMonitoredItem(addressSpace, TimestampsToReturn.Both, monitoredItemCreateRequest);
+            const createResult = subscription.createMonitoredItem(
+                addressSpace,
+                TimestampsToReturn.Both,
+                monitoredItemCreateRequest
+            );
             return createResult.statusCode;
         }
-
 
         test_with_nodeId("ns=1;s=Static_LocalizedText").should.eql(StatusCodes.Good);
 
         subscription.terminate();
         subscription.dispose();
-
     });
 
-    it("should return BadFilterNotAllowed if DeadBandFilter is specified on boolean value monitored item", function() {
-
-
+    it("should return BadFilterNotAllowed if DeadBandFilter is specified on boolean value monitored item", function () {
         const subscription = new Subscription({
             publishingInterval: 1000,
             maxKeepAliveCount: 20,
             publishEngine: fake_publish_engine
         });
-        subscription.on("monitoredItem", function(monitoredItem) {
+        subscription.on("monitoredItem", function (monitoredItem) {
             monitoredItem.samplingFunc = install_spying_samplingFunc();
         });
 
@@ -316,26 +304,26 @@ describe("Subscriptions and MonitoredItems", function() {
                     })
                 }
             });
-            const createResult = subscription.createMonitoredItem(addressSpace, TimestampsToReturn.Both, monitoredItemCreateRequest);
+            const createResult = subscription.createMonitoredItem(
+                addressSpace,
+                TimestampsToReturn.Both,
+                monitoredItemCreateRequest
+            );
             return createResult.statusCode;
         }
-
 
         test_with_nodeId("ns=1;s=Static_Boolean").should.eql(StatusCodes.BadFilterNotAllowed);
 
         subscription.terminate();
         subscription.dispose();
-
     });
-    it("should return BadFilterNotAllowed if DeadBandFilter is specified on String value monitored item", function() {
-
-
+    it("should return BadFilterNotAllowed if DeadBandFilter is specified on String value monitored item", function () {
         const subscription = new Subscription({
             publishingInterval: 1000,
             maxKeepAliveCount: 20,
             publishEngine: fake_publish_engine
         });
-        subscription.on("monitoredItem", function(monitoredItem) {
+        subscription.on("monitoredItem", function (monitoredItem) {
             monitoredItem.samplingFunc = install_spying_samplingFunc();
         });
 
@@ -356,26 +344,26 @@ describe("Subscriptions and MonitoredItems", function() {
                     })
                 }
             });
-            const createResult = subscription.createMonitoredItem(addressSpace, TimestampsToReturn.Both, monitoredItemCreateRequest);
+            const createResult = subscription.createMonitoredItem(
+                addressSpace,
+                TimestampsToReturn.Both,
+                monitoredItemCreateRequest
+            );
             return createResult.statusCode;
         }
-
 
         test_with_nodeId("ns=1;s=Static_String").should.eql(StatusCodes.BadFilterNotAllowed);
 
         subscription.terminate();
         subscription.dispose();
-
     });
-    it("should return BadFilterNotAllowed if DeadBandFilter is specified on ByteString value monitored item", function() {
-
-
+    it("should return BadFilterNotAllowed if DeadBandFilter is specified on ByteString value monitored item", function () {
         const subscription = new Subscription({
             publishingInterval: 1000,
             maxKeepAliveCount: 20,
             publishEngine: fake_publish_engine
         });
-        subscription.on("monitoredItem", function(monitoredItem) {
+        subscription.on("monitoredItem", function (monitoredItem) {
             monitoredItem.samplingFunc = install_spying_samplingFunc();
         });
 
@@ -396,27 +384,27 @@ describe("Subscriptions and MonitoredItems", function() {
                     })
                 }
             });
-            const createResult = subscription.createMonitoredItem(addressSpace, TimestampsToReturn.Both, monitoredItemCreateRequest);
+            const createResult = subscription.createMonitoredItem(
+                addressSpace,
+                TimestampsToReturn.Both,
+                monitoredItemCreateRequest
+            );
             return createResult.statusCode;
         }
-
 
         test_with_nodeId("ns=1;s=Static_ByteString").should.eql(StatusCodes.BadFilterNotAllowed);
 
         subscription.terminate();
         subscription.dispose();
-
     });
 
-    it("should return BadFilterNotAllowed if DeadBandFilter is specified on LocalizedText value monitored item", function() {
-
-
+    it("should return BadFilterNotAllowed if DeadBandFilter is specified on LocalizedText value monitored item", function () {
         const subscription = new Subscription({
             publishingInterval: 1000,
             maxKeepAliveCount: 20,
             publishEngine: fake_publish_engine
         });
-        subscription.on("monitoredItem", function(monitoredItem) {
+        subscription.on("monitoredItem", function (monitoredItem) {
             monitoredItem.samplingFunc = install_spying_samplingFunc();
         });
 
@@ -437,16 +425,17 @@ describe("Subscriptions and MonitoredItems", function() {
                     })
                 }
             });
-            const createResult = subscription.createMonitoredItem(addressSpace, TimestampsToReturn.Both, monitoredItemCreateRequest);
+            const createResult = subscription.createMonitoredItem(
+                addressSpace,
+                TimestampsToReturn.Both,
+                monitoredItemCreateRequest
+            );
             return createResult.statusCode;
         }
-
 
         test_with_nodeId("ns=1;s=Static_LocalizedText").should.eql(StatusCodes.BadFilterNotAllowed);
 
         subscription.terminate();
         subscription.dispose();
-
     });
 });
-

@@ -1,7 +1,7 @@
-import * as path from "path";
-import { OPCUAServer } from "..";
-import * as should from "should";
 import * as fs from "fs";
+import * as path from "path";
+import * as should from "should";
+import { OPCUAServer } from "..";
 
 const certificateFolder = path.join(__dirname, "../../node-opcua-samples/certificates");
 fs.existsSync(certificateFolder).should.eql(true, "expecting certificate store at " + certificateFolder);
