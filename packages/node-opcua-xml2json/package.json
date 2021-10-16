@@ -3,7 +3,7 @@
   "version": "2.55.0",
   "description": "pure nodejs OPCUA SDK - module -xml2json",
   "main": "dist/source/index.js",
-  "type": "dist/source/index.d.ts",
+  "types": "dist/source/index.d.ts",
   "scripts": {
     "build": "tsc -b",
     "lint": "eslint source test",
