@@ -18,19 +18,11 @@ export interface UAVariableT<T, DT extends DataType> extends UAVariable {
 
     writeValue(
         context: ISessionContext,
-        dataValue:DataValueT<T, DT>,
+        dataValue: DataValueT<T, DT>,
         indexRange: NumericRange | null,
         callback: StatusCodeCallback
     ): void;
 
-    writeValue(
-        context: ISessionContext,
-        dataValue:DataValueT<T, DT>,
-        callback: StatusCodeCallback
-    ): void;
-    writeValue(
-        context: ISessionContext,
-        dataValue: DataValueT<T, DT>,
-        indexRange?: NumericRange | null
-    ): Promise<StatusCode>;
+    writeValue(context: ISessionContext, dataValue: DataValueT<T, DT>, callback: StatusCodeCallback): void;
+    writeValue(context: ISessionContext, dataValue: DataValueT<T, DT>, indexRange?: NumericRange | null): Promise<StatusCode>;
 }

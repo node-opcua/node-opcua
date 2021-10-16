@@ -7,7 +7,7 @@ import { BaseNode } from "./base_node";
 
 export interface UADataType extends BaseNode {
     readonly nodeClass: NodeClass.DataType;
-    
+
     readonly subtypeOfObj: UADataType | null;
     readonly subtypeOf: NodeId | null;
 
@@ -37,6 +37,3 @@ export interface UADataType extends BaseNode {
      */
     getDefinition(): DataTypeDefinition;
 }
-
-
-

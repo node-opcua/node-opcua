@@ -4,7 +4,15 @@ import { NodeId } from "node-opcua-nodeid";
 import { DataValue, DataValueOptions } from "node-opcua-data-value";
 import { ExtensionObject } from "node-opcua-extension-object";
 import { NumericRange } from "node-opcua-numeric-range";
-import { WriteValueOptions, HistoryReadDetails, HistoryReadResult, ReadRawModifiedDetails, ReadEventDetails, ReadProcessedDetails, ReadAtTimeDetails } from "node-opcua-types";
+import {
+    WriteValueOptions,
+    HistoryReadDetails,
+    HistoryReadResult,
+    ReadRawModifiedDetails,
+    ReadEventDetails,
+    ReadProcessedDetails,
+    ReadAtTimeDetails
+} from "node-opcua-types";
 import { VariantLike } from "node-opcua-variant";
 
 //
@@ -15,9 +23,6 @@ import { ISessionContext } from "./session_context";
 import { UADataType } from "./ua_data_type";
 import { UAVariableType } from "./ua_variable_type";
 import { BindVariableOptions, DataValueCallback } from "./namespace";
-
-
-
 
 export interface IVariableHistorian {
     /**
@@ -58,7 +63,6 @@ export interface IVariableHistorianOptions {
     historian?: IVariableHistorian;
 }
 export type IHistoricalDataNodeOptions = IVariableHistorianOptions | { historian: IVariableHistorian };
-
 
 export interface VariableAttributes {
     dataType: NodeId;
@@ -225,8 +229,8 @@ export interface UAVariable extends BaseNode, VariableAttributes, IPropertyAndCo
      *  |BadNotReadable              | The access level does not allow reading or subscribing to the Node.|
      *  |BadUserAccessDenied         | User does not have permission to perform the requested operation. (table 165)|
      *  | BadSecurityModeInsufficient | The operation is not permitted over the current secure channel. |
-     *  | BadInsufficientPrivileges   | The user does not have enough privileges to perform the requested operation.  
-    */
+     *  | BadInsufficientPrivileges   | The user does not have enough privileges to perform the requested operation.
+     */
     readValue(context?: ISessionContext | null, indexRange?: NumericRange, dataEncoding?: QualifiedNameLike | null): DataValue;
 
     readValueAsync(context: ISessionContext | null): Promise<DataValue>;
@@ -263,17 +267,9 @@ export interface UAVariable extends BaseNode, VariableAttributes, IPropertyAndCo
         callback: StatusCodeCallback
     ): void;
 
-    writeValue(
-        context: ISessionContext, 
-        dataValue: DataValue, 
-        callback: StatusCodeCallback
-    ): void;
+    writeValue(context: ISessionContext, dataValue: DataValue, callback: StatusCodeCallback): void;
 
-    writeValue(
-        context: ISessionContext,
-        dataValue:DataValue,
-        indexRange?: string | NumericRange | null
-    ): Promise<StatusCode>;
+    writeValue(context: ISessionContext, dataValue: DataValue, indexRange?: string | NumericRange | null): Promise<StatusCode>;
 
     asyncRefresh(oldestDate: Date, callback: DataValueCallback): void;
 
@@ -333,7 +329,7 @@ export interface UAVariable extends BaseNode, VariableAttributes, IPropertyAndCo
      *  ```
      *
      */
-    writeAttribute(context: ISessionContext| null, writeValue: WriteValueOptions): Promise<StatusCode>;
+    writeAttribute(context: ISessionContext | null, writeValue: WriteValueOptions): Promise<StatusCode>;
 
     // advanced
     touchValue(updateNow?: PreciseClock): void;
@@ -344,7 +340,12 @@ export interface UAVariable extends BaseNode, VariableAttributes, IPropertyAndCo
 
     historyRead(
         context: ISessionContext,
-        historyReadDetails: HistoryReadDetails| ReadRawModifiedDetails | ReadEventDetails | ReadProcessedDetails | ReadAtTimeDetails,
+        historyReadDetails:
+            | HistoryReadDetails
+            | ReadRawModifiedDetails
+            | ReadEventDetails
+            | ReadProcessedDetails
+            | ReadAtTimeDetails,
         indexRange: NumericRange | null,
         dataEncoding: QualifiedNameLike | null,
         continuationPoint?: ContinuationPoint
@@ -352,8 +353,13 @@ export interface UAVariable extends BaseNode, VariableAttributes, IPropertyAndCo
 
     historyRead(
         context: ISessionContext,
-        historyReadDetails: HistoryReadDetails|ReadRawModifiedDetails | ReadEventDetails | ReadProcessedDetails | ReadAtTimeDetails,
-        indexRange: NumericRange  | null,
+        historyReadDetails:
+            | HistoryReadDetails
+            | ReadRawModifiedDetails
+            | ReadEventDetails
+            | ReadProcessedDetails
+            | ReadAtTimeDetails,
+        indexRange: NumericRange | null,
         dataEncoding: QualifiedNameLike | null,
         continuationPoint: ContinuationPoint | null,
         callback: CallbackT<HistoryReadResult>

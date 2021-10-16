@@ -12,4 +12,3 @@ export interface UADynamicVariableArray<T extends ExtensionObject> extends UAVar
     $$getElementBrowseName: (obj: T) => QualifiedName;
     $$indexPropertyName: string;
 }
-

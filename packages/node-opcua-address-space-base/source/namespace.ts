@@ -288,7 +288,6 @@ export interface AddYArrayItemOptions extends AddVariableOptions {
 
 export type CreateNodeOptions = any;
 
-
 export declare interface INamespace {
     version: number;
     publicationDate: Date;
@@ -337,7 +336,6 @@ export declare interface INamespace {
 
     createNode(options: CreateNodeOptions): BaseNode;
     internalCreateNode(options: CreateNodeOptions): BaseNode;
-
 
     // -------------------------------------------------------------------------
 
@@ -388,4 +386,3 @@ export declare interface INamespace {
     setDefaultAccessRestrictions(accessRestrictions: AccessRestrictionsFlag): void;
     getDefaultAccessRestrictions(): AccessRestrictionsFlag;
 }
-

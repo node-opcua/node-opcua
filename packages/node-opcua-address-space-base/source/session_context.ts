@@ -21,8 +21,8 @@ export interface ISessionBase {
     getSessionId(): NodeId; // session NodeID
 }
 export interface ContinuationPointData {
-    dataValues: DataValue[]
-};
+    dataValues: DataValue[];
+}
 export interface ISessionContext {
     session?: ISessionBase;
     getCurrentUserRoles(): NodeId[];
@@ -31,7 +31,7 @@ export interface ISessionContext {
     currentUserHasRole(role: NodeIdLike): boolean;
     isAccessRestricted(node: BaseNode): boolean;
     object?: UAObject | UAObjectType;
-    continuationPoints?: { [key:string]: ContinuationPointData|null};
+    continuationPoints?: { [key: string]: ContinuationPointData | null };
     currentTime?: PreciseClock;
     userIdentity?: string;
 }

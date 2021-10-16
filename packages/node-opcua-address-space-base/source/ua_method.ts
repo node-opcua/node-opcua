@@ -1,5 +1,3 @@
-
-
 import { NodeClass } from "node-opcua-data-model";
 import { NodeId } from "node-opcua-nodeid";
 import { Argument, CallMethodResultOptions } from "node-opcua-types";
