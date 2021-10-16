@@ -95,13 +95,13 @@ interface SessionSecurityDiagnosticsDataTypeEx extends SessionSecurityDiagnostic
  */
 export class ServerSession extends EventEmitter implements ISubscriber, ISessionBase, IServerSession {
     public static registry = new ObjectRegistry();
-    public static maxPublishRequestInQueue: number = 100;
+    public static maxPublishRequestInQueue = 100;
 
-    public __status: string = "";
+    public __status = "";
     public parent: ServerEngine;
     public authenticationToken: NodeId;
     public nodeId: NodeId;
-    public sessionName: string = "";
+    public sessionName = "";
 
     public publishEngine: ServerSidePublishEngine;
     public sessionObject: any;
@@ -190,12 +190,12 @@ export class ServerSession extends EventEmitter implements ISubscriber, ISession
         return this.endpoint!;
     }
 
-    public dispose() {
+    public dispose(): void {
         debugLog("ServerSession#dispose()");
 
         assert(!this.sessionObject, " sessionObject has not been cleared !");
 
-        this.parent = (null as any) as ServerEngine;
+        this.parent = null as any as ServerEngine;
         this.authenticationToken = NodeId.nullNodeId;
 
         if (this.publishEngine) {
@@ -215,11 +215,11 @@ export class ServerSession extends EventEmitter implements ISubscriber, ISession
         ServerSession.registry.unregister(this);
     }
 
-    public get clientConnectionTime() {
+    public get clientConnectionTime(): Date {
         return this.creationDate;
     }
 
-    public get clientLastContactTime() {
+    public get clientLastContactTime(): number {
         return this._watchDogData!.lastSeen;
     }
 
@@ -245,13 +245,12 @@ export class ServerSession extends EventEmitter implements ISubscriber, ISession
         return this.publishEngine ? this.publishEngine.pendingPublishRequestCount : 0;
     }
 
-    public updateClientLastContactTime() {
-        const session = this;
-        if (session._sessionDiagnostics && session._sessionDiagnostics.clientLastContactTime) {
+    public updateClientLastContactTime(): void {
+        if (this._sessionDiagnostics && this._sessionDiagnostics.clientLastContactTime) {
             const currentTime = new Date();
             // do not record all ticks as this may be overwhelming,
-            if (currentTime.getTime() - 250 >= session._sessionDiagnostics.clientLastContactTime.getTime()) {
-                session._sessionDiagnostics.clientLastContactTime = currentTime;
+            if (currentTime.getTime() - 250 >= this._sessionDiagnostics.clientLastContactTime.getTime()) {
+                this._sessionDiagnostics.clientLastContactTime = currentTime;
             }
         }
     }
@@ -262,14 +261,14 @@ export class ServerSession extends EventEmitter implements ISubscriber, ISession
      * @param currentTime {DateTime}
      * @private
      */
-    public onClientSeen() {
+    public onClientSeen(): void {
         this.updateClientLastContactTime();
 
         if (this._sessionDiagnostics) {
             // see https://opcfoundation-onlineapplications.org/mantis/view.php?id=4111
-            assert(this._sessionDiagnostics.hasOwnProperty("currentMonitoredItemsCount"));
-            assert(this._sessionDiagnostics.hasOwnProperty("currentSubscriptionsCount"));
-            assert(this._sessionDiagnostics.hasOwnProperty("currentPublishRequestsInQueue"));
+            assert(Object.prototype.hasOwnProperty.call(this._sessionDiagnostics, "currentMonitoredItemsCount"));
+            assert(Object.prototype.hasOwnProperty.call(this._sessionDiagnostics, "currentSubscriptionsCount"));
+            assert(Object.prototype.hasOwnProperty.call(this._sessionDiagnostics, "currentPublishRequestsInQueue"));
 
             // note : https://opcfoundation-onlineapplications.org/mantis/view.php?id=4111
             // sessionDiagnostics extension object uses a different spelling
@@ -286,16 +285,16 @@ export class ServerSession extends EventEmitter implements ISubscriber, ISession
         }
     }
 
-    public incrementTotalRequestCount() {
+    public incrementTotalRequestCount(): void {
         if (this._sessionDiagnostics && this._sessionDiagnostics.totalRequestCount) {
             this._sessionDiagnostics.totalRequestCount.totalCount += 1;
         }
     }
 
-    public incrementRequestTotalCounter(counterName: string) {
+    public incrementRequestTotalCounter(counterName: string): void {
         if (this._sessionDiagnostics) {
             const propName = lowerFirstLetter(counterName + "Count");
-            if (!this._sessionDiagnostics.hasOwnProperty(propName)) {
+            if (!Object.prototype.hasOwnProperty.call(this._sessionDiagnostics, propName)) {
                 console.log(" cannot find", propName);
                 // xx return;
             } else {
@@ -305,11 +304,11 @@ export class ServerSession extends EventEmitter implements ISubscriber, ISession
         }
     }
 
-    public incrementRequestErrorCounter(counterName: string) {
+    public incrementRequestErrorCounter(counterName: string): void {
         this.parent?.incrementRejectedRequestsCount();
         if (this._sessionDiagnostics) {
             const propName = lowerFirstLetter(counterName + "Count");
-            if (!this._sessionDiagnostics.hasOwnProperty(propName)) {
+            if (!Object.prototype.hasOwnProperty.call(this._sessionDiagnostics, propName)) {
                 console.log(" cannot find", propName);
                 // xx  return;
             } else {
@@ -352,8 +351,7 @@ export class ServerSession extends EventEmitter implements ISubscriber, ISession
      * number of monitored items
      */
     public get currentMonitoredItemCount(): number {
-        const self = this;
-        return self.publishEngine ? self.publishEngine.currentMonitoredItemCount : 0;
+        return this.publishEngine ? this.publishEngine.currentMonitoredItemCount : 0;
     }
 
     /**
@@ -382,8 +380,7 @@ export class ServerSession extends EventEmitter implements ISubscriber, ISession
      * @return {StatusCode}
      */
     public deleteSubscription(subscriptionId: number): StatusCode {
-        const session = this;
-        const subscription = session.getSubscription(subscriptionId);
+        const subscription = this.getSubscription(subscriptionId);
         if (!subscription) {
             return StatusCodes.BadSubscriptionIdInvalid;
         }
@@ -391,8 +388,8 @@ export class ServerSession extends EventEmitter implements ISubscriber, ISession
         // xx this.publishEngine.remove_subscription(subscription);
         subscription.terminate();
 
-        if (session.currentSubscriptionCount === 0) {
-            const local_publishEngine = session.publishEngine;
+        if (this.currentSubscriptionCount === 0) {
+            const local_publishEngine = this.publishEngine;
             local_publishEngine.cancelPendingPublishRequest();
         }
         return StatusCodes.Good;
@@ -452,7 +449,7 @@ export class ServerSession extends EventEmitter implements ISubscriber, ISession
 
             assert(this.publishEngine.subscriptionCount === 0);
             this.publishEngine.dispose();
-            this.publishEngine = (null as any) as ServerSidePublishEngine;
+            this.publishEngine = null as any as ServerSidePublishEngine;
         }
 
         this._removeSessionObjectFromAddressSpace();
@@ -461,9 +458,8 @@ export class ServerSession extends EventEmitter implements ISubscriber, ISession
         assert(!this.sessionObject, "ServerSession#_removeSessionObjectFromAddressSpace must be called");
     }
 
-    public registerNode(nodeId: NodeId) {
+    public registerNode(nodeId: NodeId): NodeId {
         assert(nodeId instanceof NodeId);
-        const session = this;
 
         if (nodeId.namespace === 0 && nodeId.identifierType === NodeIdType.NUMERIC) {
             return nodeId;
@@ -471,22 +467,22 @@ export class ServerSession extends EventEmitter implements ISubscriber, ISession
 
         const key = nodeId.toString();
 
-        const registeredNode = session._registeredNodes[key];
+        const registeredNode = this._registeredNodes[key];
         if (registeredNode) {
             // already registered
             return registeredNode;
         }
 
-        const node = session.addressSpace!.findNode(nodeId);
+        const node = this.addressSpace!.findNode(nodeId);
         if (!node) {
             return nodeId;
         }
 
-        session._registeredNodesCounter += 1;
+        this._registeredNodesCounter += 1;
 
-        const aliasNodeId = makeNodeId(session._registeredNodesCounter, registeredNodeNameSpace);
-        session._registeredNodes[key] = aliasNodeId;
-        session._registeredNodesInv[aliasNodeId.toString()] = node;
+        const aliasNodeId = makeNodeId(this._registeredNodesCounter, registeredNodeNameSpace);
+        this._registeredNodes[key] = aliasNodeId;
+        this._registeredNodesInv[aliasNodeId.toString()] = node;
         return aliasNodeId;
     }
 
@@ -495,14 +491,13 @@ export class ServerSession extends EventEmitter implements ISubscriber, ISession
         if (aliasNodeId.namespace !== registeredNodeNameSpace) {
             return; // not a registered Node
         }
-        const session = this;
 
-        const node = session._registeredNodesInv[aliasNodeId.toString()];
+        const node = this._registeredNodesInv[aliasNodeId.toString()];
         if (!node) {
             return;
         }
-        session._registeredNodesInv[aliasNodeId.toString()] = null;
-        session._registeredNodes[node.nodeId.toString()] = null;
+        this._registeredNodesInv[aliasNodeId.toString()] = null;
+        this._registeredNodes[node.nodeId.toString()] = null;
     }
 
     public resolveRegisteredNode(aliasNodeId: NodeId): NodeId {
@@ -519,7 +514,7 @@ export class ServerSession extends EventEmitter implements ISubscriber, ISession
     /**
      * true if the underlying channel has been closed or aborted...
      */
-    public get aborted() {
+    public get aborted(): boolean {
         if (!this.channel) {
             return true;
         }
@@ -528,7 +523,7 @@ export class ServerSession extends EventEmitter implements ISubscriber, ISession
 
     public createSubscription(parameters: CreateSubscriptionRequestOptions): Subscription {
         const subscription = this.parent._createSubscriptionOnSession(this, parameters);
-        assert(!parameters.hasOwnProperty("id"));
+        assert(!Object.prototype.hasOwnProperty.call(parameters, "id"));
         this.assignSubscription(subscription);
         assert(subscription.$session === this);
         assert(subscription.sessionId instanceof NodeId);
@@ -536,12 +531,12 @@ export class ServerSession extends EventEmitter implements ISubscriber, ISession
         return subscription;
     }
 
-    public _attach_channel(channel: ServerSecureChannelLayer) {
+    public _attach_channel(channel: ServerSecureChannelLayer): void {
         assert(this.nonce && this.nonce instanceof Buffer);
         this.channel = channel;
         this.channelId = channel.channelId;
         const key = this.authenticationToken.toString();
-        assert(!channel.sessionTokens.hasOwnProperty(key), "channel has already a session");
+        assert(!Object.prototype.hasOwnProperty.call(channel.sessionTokens, key), "channel has already a session");
 
         channel.sessionTokens[key] = this;
 
@@ -550,7 +545,7 @@ export class ServerSession extends EventEmitter implements ISubscriber, ISession
         channel.on("abort", this.channel_abort_event_handler);
     }
 
-    public _detach_channel() {
+    public _detach_channel(): void {
         const channel = this.channel;
         if (!channel) {
             throw new Error("expecting a valid channel");
@@ -558,7 +553,7 @@ export class ServerSession extends EventEmitter implements ISubscriber, ISession
         assert(this.nonce && this.nonce instanceof Buffer);
         assert(this.authenticationToken);
         const key = this.authenticationToken.toString();
-        assert(channel.sessionTokens.hasOwnProperty(key));
+        assert(Object.prototype.hasOwnProperty.call(channel.sessionTokens, key));
         assert(this.channel);
         assert(typeof this.channel_abort_event_handler === "function");
         channel.removeListener("abort", this.channel_abort_event_handler);
@@ -568,7 +563,7 @@ export class ServerSession extends EventEmitter implements ISubscriber, ISession
         this.channelId = undefined;
     }
 
-    public _exposeSubscriptionDiagnostics(subscription: Subscription) {
+    public _exposeSubscriptionDiagnostics(subscription: Subscription): void {
         debugLog("ServerSession#_exposeSubscriptionDiagnostics");
         assert(subscription.$session === this);
         const subscriptionDiagnosticsArray = this._getSubscriptionDiagnosticsArray();
@@ -581,7 +576,7 @@ export class ServerSession extends EventEmitter implements ISubscriber, ISession
         }
     }
 
-    public _unexposeSubscriptionDiagnostics(subscription: Subscription) {
+    public _unexposeSubscriptionDiagnostics(subscription: Subscription): void {
         const subscriptionDiagnosticsArray = this._getSubscriptionDiagnosticsArray();
         const subscriptionDiagnostics = subscription.subscriptionDiagnostics;
         assert(subscriptionDiagnostics instanceof SubscriptionDiagnosticsDataType);
@@ -597,7 +592,7 @@ export class ServerSession extends EventEmitter implements ISubscriber, ISession
      * used as a callback for the Watchdog
      * @private
      */
-    public watchdogReset() {
+    public watchdogReset(): void {
         debugLog("Session#watchdogReset: the server session has expired and must be removed from the server");
         // the server session has expired and must be removed from the server
         this.emit("timeout");

@@ -18,10 +18,11 @@ function add_mock_monitored_item(subscription) {
         },
 
         terminate() {
+            /**  empty */
         },
 
         dispose() {
-
+            /**  empty */
         },
         async resendInitialValues() {
             this.simulateMonitoredItemAddingNotification();
@@ -36,19 +37,19 @@ function add_mock_monitored_item(subscription) {
     let counter = 1;
 
     monitoredItem.simulateMonitoredItemAddingNotification = function simulateMonitoredItemAddingNotification() {
-
-        monitoredItem.queue.push(new MonitoredItemNotification({
-            clientHandle: 1,
-            value: {
-                statusCode: StatusCodes.Good,
+        monitoredItem.queue.push(
+            new MonitoredItemNotification({
+                clientHandle: 1,
                 value: {
-                    dataType: "Int32",
-                    value: counter++
+                    statusCode: StatusCodes.Good,
+                    value: {
+                        dataType: "Int32",
+                        value: counter++
+                    }
                 }
-            }
-        }));
+            })
+        );
     };
-
 
     setImmediate(() => {
         // initial value !
@@ -57,6 +58,5 @@ function add_mock_monitored_item(subscription) {
 
     return monitoredItem;
 }
-
 
 exports.add_mock_monitored_item = add_mock_monitored_item;

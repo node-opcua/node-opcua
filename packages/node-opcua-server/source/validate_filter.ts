@@ -3,7 +3,7 @@
  */
 import { assert } from "node-opcua-assert";
 
-import {BaseNode, UAVariable} from "node-opcua-address-space";
+import { BaseNode, UAVariable } from "node-opcua-address-space";
 import { AttributeIds } from "node-opcua-data-model";
 import { NodeClass } from "node-opcua-data-model";
 import { ExtensionObject } from "node-opcua-extension-object";
@@ -11,18 +11,12 @@ import { NodeId } from "node-opcua-nodeid";
 import { DataChangeFilter, EventFilter } from "node-opcua-service-filter";
 import { DeadbandType } from "node-opcua-service-subscription";
 import { StatusCode, StatusCodes } from "node-opcua-status-code";
-import {ReadValueIdOptions} from "node-opcua-types";
-import {BaseNode2} from "./monitored_item";
+import { ReadValueIdOptions } from "node-opcua-types";
 
-function __validateDataChangeFilter(
-  filter: DataChangeFilter,
-  itemToMonitor: ReadValueIdOptions,
-  node: UAVariable
-): StatusCode {
-
+function __validateDataChangeFilter(filter: DataChangeFilter, itemToMonitor: ReadValueIdOptions, node: UAVariable): StatusCode {
     assert(itemToMonitor.attributeId === AttributeIds.Value);
 
-    if ((node.nodeClass !== NodeClass.Variable)) {
+    if (node.nodeClass !== NodeClass.Variable) {
         return StatusCodes.BadNodeIdInvalid;
     }
 
@@ -54,27 +48,19 @@ function __validateDataChangeFilter(
     return StatusCodes.Good;
 }
 
-export function validateFilter(
-  filter: ExtensionObject | null,
-  itemToMonitor: ReadValueIdOptions,
-  node: BaseNode
-) {
-
+export function validateFilter(filter: ExtensionObject | null, itemToMonitor: ReadValueIdOptions, node: BaseNode): StatusCode {
     // handle filter information
-    if (filter && filter instanceof EventFilter
-      && itemToMonitor.attributeId !== AttributeIds.EventNotifier) {
+    if (filter && filter instanceof EventFilter && itemToMonitor.attributeId !== AttributeIds.EventNotifier) {
         // invalid filter on Event
         return StatusCodes.BadFilterNotAllowed;
     }
 
-    if (filter && filter instanceof DataChangeFilter
-      && itemToMonitor.attributeId !== AttributeIds.Value) {
+    if (filter && filter instanceof DataChangeFilter && itemToMonitor.attributeId !== AttributeIds.Value) {
         // invalid DataChange filter on non Value Attribute
         return StatusCodes.BadFilterNotAllowed;
     }
 
-    if (filter && itemToMonitor.attributeId !== AttributeIds.EventNotifier
-      && itemToMonitor.attributeId !== AttributeIds.Value) {
+    if (filter && itemToMonitor.attributeId !== AttributeIds.EventNotifier && itemToMonitor.attributeId !== AttributeIds.Value) {
         return StatusCodes.BadFilterNotAllowed;
     }
 

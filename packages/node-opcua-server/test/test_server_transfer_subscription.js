@@ -1,14 +1,15 @@
+/* eslint-disable @typescript-eslint/no-this-alias */
 /* eslint-disable max-statements */
-/// reference 
+/// reference
 const should = require("should");
 const sinon = require("sinon");
 
 const { PublishRequest } = require("node-opcua-service-subscription");
 const { StatusCodes } = require("node-opcua-status-code");
+const { get_mini_nodeset_filename } = require("node-opcua-address-space/testHelpers");
+
 const { ServerEngine, ServerSession } = require("..");
 
-
-const { get_mini_nodeset_filename } = require("node-opcua-address-space/testHelpers");
 const mini_nodeset_filename = get_mini_nodeset_filename();
 
 const { add_mock_monitored_item } = require("./helper");
@@ -16,14 +17,9 @@ const { with_fake_timer } = require("./helper_with_fake_timer");
 
 const doDebug = !!process.env.TESTDEBUG;
 
-
-
-
-
+// eslint-disable-next-line import/order
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("ServerEngine Subscriptions Transfer", function () {
-
-
     const test = this;
     /**
      * @type {ServerEngine}
@@ -58,26 +54,24 @@ describe("ServerEngine Subscriptions Transfer", function () {
     });
 
     let requestHandle = 1;
-    function sendPublishRequest(session/* : ServerSession */, publishHandler/* : () => void */) {
+    function sendPublishRequest(session /* : ServerSession */, publishHandler /* : () => void */) {
         session.publishEngine._on_PublishRequest(new PublishRequest({ requestHeader: { requestHandle: 101 } }), publishHandler);
         requestHandle++;
         test.clock.tick(0);
     }
-
 
     it("ST01 - should send keep alive when starving and no notification exists", async () => {
         session1 = engine.createSession({ sessionTimeout: 10000 });
         const publishSpy = sinon.spy();
 
         await with_fake_timer.call(test, async (test) => {
-
             const subscription = session1.createSubscription({
-                requestedPublishingInterval: 1000,  // Duration
-                requestedLifetimeCount: 10,         // Counter
-                requestedMaxKeepAliveCount: 10,     // Counter
-                maxNotificationsPerPublish: 10,     // Counter
-                publishingEnabled: true,            // Boolean
-                priority: 14                        // Byte
+                requestedPublishingInterval: 1000, // Duration
+                requestedLifetimeCount: 10, // Counter
+                requestedMaxKeepAliveCount: 10, // Counter
+                maxNotificationsPerPublish: 10, // Counter
+                publishingEnabled: true, // Boolean
+                priority: 14 // Byte
             });
 
             // Given there is no Publish Request
@@ -109,8 +103,6 @@ describe("ServerEngine Subscriptions Transfer", function () {
             }
 
             subscription.terminate();
-
-
         });
     });
 
@@ -119,14 +111,13 @@ describe("ServerEngine Subscriptions Transfer", function () {
         const publishSpy = sinon.spy();
 
         await with_fake_timer.call(test, async () => {
-
             const subscription = session1.createSubscription({
-                requestedPublishingInterval: 1000,  // Duration
-                requestedLifetimeCount: 10,         // Counter
-                requestedMaxKeepAliveCount: 10,     // Counter
-                maxNotificationsPerPublish: 10,     // Counter
-                publishingEnabled: true,            // Boolean
-                priority: 14                        // Byte
+                requestedPublishingInterval: 1000, // Duration
+                requestedLifetimeCount: 10, // Counter
+                requestedMaxKeepAliveCount: 10, // Counter
+                maxNotificationsPerPublish: 10, // Counter
+                publishingEnabled: true, // Boolean
+                priority: 14 // Byte
             });
 
             // ===> some data arrive ( initnal value  )!!!
@@ -145,7 +136,6 @@ describe("ServerEngine Subscriptions Transfer", function () {
                 publishResponse.notificationMessage.notificationData.length.should.eql(1);
                 publishResponse.notificationMessage.sequenceNumber.should.eql(1);
                 publishResponse.notificationMessage.notificationData[0].monitoredItems.length.should.eql(1);
-
             }
 
             publishSpy.resetHistory();
@@ -163,7 +153,6 @@ describe("ServerEngine Subscriptions Transfer", function () {
             }
 
             subscription.terminate();
-
         });
     });
 
@@ -172,28 +161,24 @@ describe("ServerEngine Subscriptions Transfer", function () {
         const publishSpy = sinon.spy();
 
         await with_fake_timer.call(test, async () => {
-
             const subscription = session1.createSubscription({
-                requestedPublishingInterval: 1000,  // Duration
-                requestedLifetimeCount: 10,         // Counter
-                requestedMaxKeepAliveCount: 10,     // Counter
-                maxNotificationsPerPublish: 10,     // Counter
-                publishingEnabled: true,            // Boolean
-                priority: 14                        // Byte
+                requestedPublishingInterval: 1000, // Duration
+                requestedLifetimeCount: 10, // Counter
+                requestedMaxKeepAliveCount: 10, // Counter
+                maxNotificationsPerPublish: 10, // Counter
+                publishingEnabled: true, // Boolean
+                priority: 14 // Byte
             });
-
 
             subscription.maxNotificationsPerPublish.should.eql(10);
             // Given there is no Publish Request
             // when wait a very long time , longer than maxKeepAlive ,
             test.clock.tick(subscription.publishingInterval * subscription.maxKeepAliveCount * 2);
 
-
             session2 = engine.createSession({ sessionTimeout: 10000 });
             const transferResult = await engine.transferSubscription(session2, subscription.id, true);
             transferResult.statusCode.should.eql(StatusCodes.Good);
             transferResult.availableSequenceNumbers.should.eql([]);
-
 
             test.clock.tick(subscription.publishingInterval * subscription.maxKeepAliveCount * 2);
             sendPublishRequest(session1, publishSpy);
@@ -229,24 +214,20 @@ describe("ServerEngine Subscriptions Transfer", function () {
             }
 
             subscription.terminate();
-
         });
     });
 
     it("ST04 - should transfer a subscription - with no monitored items", async () => {
-
         session1 = engine.createSession({ sessionTimeout: 10000 });
 
         await with_fake_timer.call(test, async () => {
-
-   
             const subscription = session1.createSubscription({
-                requestedPublishingInterval: 1000,  // Duration
-                requestedLifetimeCount: 10,         // Counter
-                requestedMaxKeepAliveCount: 10,     // Counter
-                maxNotificationsPerPublish: 10,     // Counter
-                publishingEnabled: true,            // Boolean
-                priority: 14                        // Byte
+                requestedPublishingInterval: 1000, // Duration
+                requestedLifetimeCount: 10, // Counter
+                requestedMaxKeepAliveCount: 10, // Counter
+                maxNotificationsPerPublish: 10, // Counter
+                publishingEnabled: true, // Boolean
+                priority: 14 // Byte
             });
 
             session2 = engine.createSession();
@@ -264,37 +245,36 @@ describe("ServerEngine Subscriptions Transfer", function () {
             sendPublishRequest(session1, publishSpy);
             sendPublishRequest(session1, publishSpy);
 
-
             publishSpy.callCount.should.eql(4);
             //xx console.log(publishSpy.getCall(0).args[1].toString());
 
             publishSpy.getCall(0).args[1].subscriptionId.should.eql(subscription.subscriptionId);
             publishSpy.getCall(0).args[1].responseHeader.serviceResult.should.eql(StatusCodes.Good);
             publishSpy.getCall(0).args[1].notificationMessage.sequenceNumber.should.eql(1);
-            publishSpy.getCall(0).args[1].notificationMessage.notificationData[0].constructor.name.should.eql("StatusChangeNotification");
-            publishSpy.getCall(0).args[1].notificationMessage.notificationData[0].status.should.eql(StatusCodes.GoodSubscriptionTransferred);
-
+            publishSpy
+                .getCall(0)
+                .args[1].notificationMessage.notificationData[0].constructor.name.should.eql("StatusChangeNotification");
+            publishSpy
+                .getCall(0)
+                .args[1].notificationMessage.notificationData[0].status.should.eql(StatusCodes.GoodSubscriptionTransferred);
 
             subscription.terminate();
         });
     });
 
     it("ST05 - should transfer a subscription 2: with monitored items", async () => {
-
         session1 = engine.createSession({ sessionTimeout: 10000 });
         session2 = engine.createSession({ sessionTimeout: 10000 });
 
         await with_fake_timer.call(test, async () => {
-
-
             // A/ Create a subscription
             const subscription = session1.createSubscription({
-                requestedPublishingInterval: 1000,  // Duration
-                requestedLifetimeCount: 10,         // Counter
-                requestedMaxKeepAliveCount: 10,     // Counter
-                maxNotificationsPerPublish: 10,     // Counter
-                publishingEnabled: true,            // Boolean
-                priority: 14                        // Byte
+                requestedPublishingInterval: 1000, // Duration
+                requestedLifetimeCount: 10, // Counter
+                requestedMaxKeepAliveCount: 10, // Counter
+                maxNotificationsPerPublish: 10, // Counter
+                publishingEnabled: true, // Boolean
+                priority: 14 // Byte
             });
 
             const monitoredItem1 = add_mock_monitored_item(subscription);
@@ -322,15 +302,14 @@ describe("ServerEngine Subscriptions Transfer", function () {
             publishSpy1.callCount.should.eql(1);
             publishSpy1.resetHistory();
 
-
-            // ------------------------------------------------------------- 
+            // -------------------------------------------------------------
             const transferResult = await engine.transferSubscription(session2, subscription.id, /* sendInitialValue =*/ true);
 
             if (doDebug) {
                 console.log("transferResult", transferResult.toString());
             }
 
-            // the transertResult.availbeSequenceNumber shall be One at this point because 
+            // the transertResult.availbeSequenceNumber shall be One at this point because
             // there was an unacknowledge sequence in session1 that can be republished in the context of session2
             transferResult.statusCode.should.eql(StatusCodes.Good);
             transferResult.availableSequenceNumbers.length.should.eql(1);
@@ -347,19 +326,21 @@ describe("ServerEngine Subscriptions Transfer", function () {
                 console.log("---------------------------------------------------- 2");
                 console.log(publishSpy1.getCall(0).args[1].toString());
                 console.log(publishSpy1.getCall(1).args[1].toString());
-
             }
 
             publishSpy1.getCall(0).args[1].subscriptionId.should.eql(subscription.subscriptionId);
             publishSpy1.getCall(0).args[1].responseHeader.serviceResult.should.eql(StatusCodes.Good);
             publishSpy1.getCall(0).args[1].notificationMessage.sequenceNumber.should.eql(2);
 
-            // as subscription has been transfered, previously available sequenceNumber shall not be 
+            // as subscription has been transfered, previously available sequenceNumber shall not be
             // available anymore
             publishSpy1.getCall(0).args[1].availableSequenceNumbers.length.should.eql(1, "");
-            publishSpy1.getCall(0).args[1].notificationMessage.notificationData[0].constructor.name.should.eql("StatusChangeNotification");
-            publishSpy1.getCall(0).args[1].notificationMessage.notificationData[0].status.should.eql(StatusCodes.GoodSubscriptionTransferred);
-
+            publishSpy1
+                .getCall(0)
+                .args[1].notificationMessage.notificationData[0].constructor.name.should.eql("StatusChangeNotification");
+            publishSpy1
+                .getCall(0)
+                .args[1].notificationMessage.notificationData[0].status.should.eql(StatusCodes.GoodSubscriptionTransferred);
 
             // --------------------------------------------
             const publishSpy2 = sinon.spy();
@@ -381,13 +362,10 @@ describe("ServerEngine Subscriptions Transfer", function () {
             should(msgSequence).not.eql(null);
 
             subscription.terminate();
-
-
         });
     });
 
     it("ST06 - CTT 007 republish5105002 - republish after the subscriptions had been transferred to a different session", async () => {
-
         await with_fake_timer.call(test, async () => {
             // create session1
             session1 = engine.createSession({ sessionTimeout: 100000 });
@@ -397,12 +375,12 @@ describe("ServerEngine Subscriptions Transfer", function () {
             // xx console.log("session2 = ", session2.authenticationToken.toString());
             // create subscription
             const subscription = session1.createSubscription({
-                requestedPublishingInterval: 10,  // Duration
-                requestedLifetimeCount: 10,         // Counter
-                requestedMaxKeepAliveCount: 10,     // Counter
-                maxNotificationsPerPublish: 10,     // Counter
-                publishingEnabled: true,            // Boolean
-                priority: 14                        // Byte
+                requestedPublishingInterval: 10, // Duration
+                requestedLifetimeCount: 10, // Counter
+                requestedMaxKeepAliveCount: 10, // Counter
+                maxNotificationsPerPublish: 10, // Counter
+                publishingEnabled: true, // Boolean
+                priority: 14 // Byte
             });
             const publishSpy1 = sinon.spy();
 
@@ -423,7 +401,7 @@ describe("ServerEngine Subscriptions Transfer", function () {
 
             // transfer subscription
             const transferResult = await engine.transferSubscription(session2, subscription.id, true);
-            // the transfer result available SequenceNumber shall be ZERO at this point because 
+            // the transfer result available SequenceNumber shall be ZERO at this point because
             // we cannot validate in session2 notification that have been sent to session1
             transferResult.statusCode.should.eql(StatusCodes.Good);
             if (doDebug) {
@@ -432,15 +410,20 @@ describe("ServerEngine Subscriptions Transfer", function () {
             //   transferResult.availableSequenceNumbers.length.should.eql(4);
 
             //  make sure the OLD session  a StatusChange notification
-            session1.publishEngine._on_PublishRequest(new PublishRequest({
-                requestHeader: {
-                    requestHandle: 100,
-                },
-                subscriptionAcknowledgements: [{
-                    sequenceNumber: asn0[0],
-                    subscriptionId: subscription.id
-                }]
-            }), publishSpy1);
+            session1.publishEngine._on_PublishRequest(
+                new PublishRequest({
+                    requestHeader: {
+                        requestHandle: 100
+                    },
+                    subscriptionAcknowledgements: [
+                        {
+                            sequenceNumber: asn0[0],
+                            subscriptionId: subscription.id
+                        }
+                    ]
+                }),
+                publishSpy1
+            );
 
             test.clock.tick(subscription.publishingInterval);
 
@@ -449,9 +432,11 @@ describe("ServerEngine Subscriptions Transfer", function () {
                 console.log(publishSpy1.getCall(0).args[1].toString());
             }
             publishSpy1.getCall(0).args[1].notificationMessage.notificationData.length.should.eql(1);
-            publishSpy1.getCall(0).args[1].notificationMessage.notificationData[0].constructor.name.should.eql("StatusChangeNotification");
+            publishSpy1
+                .getCall(0)
+                .args[1].notificationMessage.notificationData[0].constructor.name.should.eql("StatusChangeNotification");
             publishSpy1.resetHistory();
-            // 
+            //
 
             //  // call republish with the sequence number received above (on the first session)
             const receivedSequenceNumbers = transferResult.availableSequenceNumbers;
@@ -460,17 +445,15 @@ describe("ServerEngine Subscriptions Transfer", function () {
             }
             let retransmitSequenceNumber = receivedSequenceNumbers[0];
             if (doDebug) {
-                console.log("asking republish of sequence n° : ", retransmitSequenceNumber)
+                console.log("asking republish of sequence n° : ", retransmitSequenceNumber);
             }
             let msgSequence = subscription.getMessageForSequenceNumber(retransmitSequenceNumber);
             should(msgSequence).not.eql(null);
 
             await engine.closeSession(session1.authenticationToken, /*deleteSubscriptions=*/ true, /* reason =*/ "Terminated");
             await engine.closeSession(session2.authenticationToken, /*deleteSubscriptions=*/ true, /* reason =*/ "Terminated");
-
         });
-
-    })
+    });
 
     it("ST07 - CTT 008 Test for transfer subscription", async () => {
         /* 
@@ -484,18 +467,17 @@ describe("ServerEngine Subscriptions Transfer", function () {
          */
 
         await with_fake_timer.call(test, async () => {
-
             session1 = engine.createSession({ sessionTimeout: 100000 });
             // xx console.log("Session1 = ", session1.authenticationToken.toString());
 
-            // A/ Create a subscription, 
+            // A/ Create a subscription,
             const subscription = session1.createSubscription({
-                requestedPublishingInterval: 10,  // Duration
-                requestedLifetimeCount: 10,         // Counter
-                requestedMaxKeepAliveCount: 10,     // Counter
-                maxNotificationsPerPublish: 10,     // Counter
-                publishingEnabled: true,            // Boolean
-                priority: 14                        // Byte
+                requestedPublishingInterval: 10, // Duration
+                requestedLifetimeCount: 10, // Counter
+                requestedMaxKeepAliveCount: 10, // Counter
+                maxNotificationsPerPublish: 10, // Counter
+                publishingEnabled: true, // Boolean
+                priority: 14 // Byte
             });
             const publishSpy1 = sinon.spy();
 
@@ -514,7 +496,6 @@ describe("ServerEngine Subscriptions Transfer", function () {
             monitoredItem1.simulateMonitoredItemAddingNotification();
             sendPublishRequest(session1, publishSpy1);
             test.clock.tick(subscription.publishingInterval);
-
 
             // wait for initital data to be received
             // server has now some notification ready and send them to the client
@@ -550,15 +531,15 @@ describe("ServerEngine Subscriptions Transfer", function () {
             // D/ Close the session but do not delete subscription.
             await engine.closeSession(session1.authenticationToken, /*deleteSubscriptions=*/ false, /* reason =*/ "Terminated");
 
-            // ------------------------------------------------------------- 
-            // E/ Create a new session, 
+            // -------------------------------------------------------------
+            // E/ Create a new session,
             session2 = engine.createSession({ sessionTimeout: 100000 });
             // xx console.log("session2 = ", session2.authenticationToken.toString());
 
-            // F/  transfer the subscription, 
+            // F/  transfer the subscription,
             const transferResult = await engine.transferSubscription(session2, subscription.id, true);
 
-            // the transfer result.available sequence number shall be ZERO at this point because 
+            // the transfer result.available sequence number shall be ZERO at this point because
             // we cannot validate in session2 notification that have been sent to session1
             transferResult.statusCode.should.eql(StatusCodes.Good);
             transferResult.availableSequenceNumbers.length.should.eql(4);
@@ -593,13 +574,12 @@ describe("ServerEngine Subscriptions Transfer", function () {
             should(notificationMessage).not.eql(null);
             notificationMessage.sequenceNumber.should.eql(3);
 
-            retransmitSequenceNumber = 4
+            retransmitSequenceNumber = 4;
             notificationMessage = subscription.getMessageForSequenceNumber(retransmitSequenceNumber);
             should(notificationMessage).not.eql(null);
             notificationMessage.sequenceNumber.should.eql(4);
 
             await engine.closeSession(session2.authenticationToken, /*deleteSubscriptions=*/ true, /* reason =*/ "Terminated");
-
 
             await engine.shutdown();
             engine = null;
@@ -607,7 +587,6 @@ describe("ServerEngine Subscriptions Transfer", function () {
     });
 
     it("ST08 - Err-004.js (transferSubscription5106Err009)  delete multiple sessions where some have been transferred to other sessions", async () => {
-
         await with_fake_timer.call(test, async () => {
             // create session1
             session1 = engine.createSession({ sessionTimeout: 100000 });
@@ -616,18 +595,17 @@ describe("ServerEngine Subscriptions Transfer", function () {
             session2 = engine.createSession({ sessionTimeout: 100000 });
             //  xx console.log("session2 = ", session2.authenticationToken.toString());
 
-
             function createSubscription() {
                 const subscription = session1.createSubscription({
-                    requestedPublishingInterval: 10,  // Duration
-                    requestedLifetimeCount: 10,         // Counter
-                    requestedMaxKeepAliveCount: 10,     // Counter
-                    maxNotificationsPerPublish: 10,     // Counter
-                    publishingEnabled: true,            // Boolean
-                    priority: 14                        // Byte
+                    requestedPublishingInterval: 10, // Duration
+                    requestedLifetimeCount: 10, // Counter
+                    requestedMaxKeepAliveCount: 10, // Counter
+                    maxNotificationsPerPublish: 10, // Counter
+                    publishingEnabled: true, // Boolean
+                    priority: 14 // Byte
                 });
                 if (doDebug) {
-                    console.log("subscriptionId = ", subscription.id)
+                    console.log("subscriptionId = ", subscription.id);
                 }
                 return subscription;
             }
@@ -642,8 +620,6 @@ describe("ServerEngine Subscriptions Transfer", function () {
             const transferResult2 = await engine.transferSubscription(session2, subscriptions[2].id, true);
             const transferResult3 = await engine.transferSubscription(session2, subscriptions[4].id, true);
 
-
-
             // we don't care about dataChanges, we just need to make sure a StatusChange was received.
             const publishSpy1 = sinon.spy();
             sendPublishRequest(session1, publishSpy1);
@@ -654,14 +630,19 @@ describe("ServerEngine Subscriptions Transfer", function () {
             test.clock.tick(subscriptions[0].publishingInterval);
 
             publishSpy1.getCall(0).args[1].subscriptionId.should.eql(subscriptions[0].id);
-            publishSpy1.getCall(0).args[1].notificationMessage.notificationData[0].constructor.name.should.eql("StatusChangeNotification");
+            publishSpy1
+                .getCall(0)
+                .args[1].notificationMessage.notificationData[0].constructor.name.should.eql("StatusChangeNotification");
             publishSpy1.getCall(1).args[1].subscriptionId.should.eql(subscriptions[2].id);
-            publishSpy1.getCall(1).args[1].notificationMessage.notificationData[0].constructor.name.should.eql("StatusChangeNotification");
+            publishSpy1
+                .getCall(1)
+                .args[1].notificationMessage.notificationData[0].constructor.name.should.eql("StatusChangeNotification");
             publishSpy1.getCall(2).args[1].subscriptionId.should.eql(subscriptions[4].id);
-            publishSpy1.getCall(2).args[1].notificationMessage.notificationData[0].constructor.name.should.eql("StatusChangeNotification");
+            publishSpy1
+                .getCall(2)
+                .args[1].notificationMessage.notificationData[0].constructor.name.should.eql("StatusChangeNotification");
 
             if (doDebug) {
-
                 console.log(publishSpy1.getCall(0).args[1].toString());
                 console.log(publishSpy1.getCall(1).args[1].toString());
                 console.log(publishSpy1.getCall(2).args[1].toString());
@@ -673,12 +654,9 @@ describe("ServerEngine Subscriptions Transfer", function () {
             (await session1.deleteSubscription(subscriptions[3].id)).should.eql(StatusCodes.Good);
             (await session1.deleteSubscription(subscriptions[4].id)).should.eql(StatusCodes.BadSubscriptionIdInvalid);
 
-
             await engine.closeSession(session1.authenticationToken, /*deleteSubscriptions=*/ true, /* reason =*/ "Terminated");
             await engine.closeSession(session2.authenticationToken, /*deleteSubscriptions=*/ true, /* reason =*/ "Terminated");
-
         });
-
     });
 
     it("ST09 - 0115.js (subscriptionTransfer015) Transfer to session 2 then back to session 1", async () => {
@@ -709,12 +687,12 @@ describe("ServerEngine Subscriptions Transfer", function () {
 
             // Create 1 subscription monitoring 1 or more items.
             const subscription = session1.createSubscription({
-                requestedPublishingInterval: 10,  // Duration
-                requestedLifetimeCount: 10,         // Counter
-                requestedMaxKeepAliveCount: 10,     // Counter
-                maxNotificationsPerPublish: 10,     // Counter
-                publishingEnabled: true,            // Boolean
-                priority: 14                        // Byte
+                requestedPublishingInterval: 10, // Duration
+                requestedLifetimeCount: 10, // Counter
+                requestedMaxKeepAliveCount: 10, // Counter
+                maxNotificationsPerPublish: 10, // Counter
+                publishingEnabled: true, // Boolean
+                priority: 14 // Byte
             });
             const monitoredItem1 = add_mock_monitored_item(subscription);
 
@@ -726,11 +704,11 @@ describe("ServerEngine Subscriptions Transfer", function () {
             publishSpy1.callCount.should.eql(1);
             const publishResponse1 = publishSpy1.getCall(0).args[1];
             publishResponse1.notificationMessage.notificationData.length.should.eql(1);
-            publishResponse1.notificationMessage.notificationData[0].constructor.name.should.eql("DataChangeNotification")
+            publishResponse1.notificationMessage.notificationData[0].constructor.name.should.eql("DataChangeNotification");
             publishSpy1.resetHistory();
 
             // Transfer the subscription to the other session(SendInitialValues = TRUE).
-            // F/  transfer the subscription, 
+            // F/  transfer the subscription,
             const transferResult1 = await engine.transferSubscription(session2, subscription.id, true);
             transferResult1.statusCode.should.eql(StatusCodes.Good);
 
@@ -742,7 +720,7 @@ describe("ServerEngine Subscriptions Transfer", function () {
             publishSpy2.callCount.should.eql(1);
             const publishResponse2 = publishSpy2.getCall(0).args[1];
             publishResponse2.notificationMessage.notificationData.length.should.eql(1);
-            publishResponse2.notificationMessage.notificationData[0].constructor.name.should.eql("DataChangeNotification")
+            publishResponse2.notificationMessage.notificationData[0].constructor.name.should.eql("DataChangeNotification");
             publishSpy2.resetHistory();
 
             // Transfer the subscription to the other session(SendInitialValues = TRUE).
@@ -757,16 +735,12 @@ describe("ServerEngine Subscriptions Transfer", function () {
             const publishResponse3 = publishSpy1.getCall(0).args[1];
             publishResponse3.notificationMessage.notificationData.length.should.eql(1);
             if (doDebug) {
-
                 console.log(publishResponse3.toString());
             }
-            publishResponse3.notificationMessage.notificationData[0].constructor.name.should.eql("DataChangeNotification")
+            publishResponse3.notificationMessage.notificationData[0].constructor.name.should.eql("DataChangeNotification");
 
             await engine.closeSession(session1.authenticationToken, /*deleteSubscriptions=*/ true, /* reason =*/ "Terminated");
             await engine.closeSession(session2.authenticationToken, /*deleteSubscriptions=*/ true, /* reason =*/ "Terminated");
-
         });
-
-    })
-
+    });
 });

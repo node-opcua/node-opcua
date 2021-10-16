@@ -1,21 +1,18 @@
+import "should";
 import { nodesets } from "node-opcua-nodesets";
 import { getFullyQualifiedDomainName } from "node-opcua-hostname";
 import { OPCUAServer } from "..";
-import "should";
 
-// tslint:disable:no-var-requires
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("OPCUAServerEndpoint#addEndpointDescription multiple hostname", () => {
-
     it("should be possible to create endpoints on multiple host names", async () => {
-        
         // Given a server with two host names
         const server = new OPCUAServer({
             port: 2011,
 
-            nodeset_filename: [ nodesets.standard ],
+            nodeset_filename: [nodesets.standard],
 
-            alternateHostname: [ "1.2.3.4" , "MyName"]
+            alternateHostname: ["1.2.3.4", "MyName"]
         });
 
         await server.start();
@@ -44,21 +41,18 @@ describe("OPCUAServerEndpoint#addEndpointDescription multiple hostname", () => {
     });
 });
 describe("OPCUAServerEndpoint#addEndpointDescription default hostname", () => {
-
     it("should default to using the machine hostname as the hostname", async () => {
-        
         // Given a server with no explicit hostname
         const server = new OPCUAServer({
             port: 2011,
 
-            nodeset_filename: [ nodesets.standard ],
-
+            nodeset_filename: [nodesets.standard]
         });
 
         await server.start();
 
-	    let defaultHostname = getFullyQualifiedDomainName();
-		let defaultHostnameRegex = RegExp(defaultHostname);
+        const defaultHostname = getFullyQualifiedDomainName();
+        const defaultHostnameRegex = RegExp(defaultHostname);
 
         // When we count the exposed endpoint
         let matchingDefault = 0;
@@ -79,18 +73,15 @@ describe("OPCUAServerEndpoint#addEndpointDescription default hostname", () => {
     });
 });
 describe("OPCUAServerEndpoint#addEndpointDescription custom hostname", () => {
-
     it("should be possible to create endpoints on multiple host names", async () => {
-		
-		let myHostname = 'my.test.website';
-        
+        const myHostname = "my.test.website";
+
         // Given a server with two host names
-        let server = new OPCUAServer({
-			hostname: myHostname,
+        const server = new OPCUAServer({
+            hostname: myHostname,
             port: 2011,
 
-            nodeset_filename: [ nodesets.standard ],
-
+            nodeset_filename: [nodesets.standard]
         });
 
         await server.start();

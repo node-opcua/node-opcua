@@ -6,16 +6,15 @@ const mini_nodeset_filename = get_mini_nodeset_filename();
 const ServerEngine = require("..").ServerEngine;
 const SubscriptionState = require("..").SubscriptionState;
 
-
 const doDebug = false;
 
+// eslint-disable-next-line import/order
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
-describe("Testing the server  engine - View related ", function() {
-
+describe("Testing the server  engine - View related ", function () {
     let engine;
-    beforeEach(function(done) {
+    beforeEach(function (done) {
         engine = new ServerEngine();
-        engine.initialize({ nodeset_filename: mini_nodeset_filename }, function() {
+        engine.initialize({ nodeset_filename: mini_nodeset_filename }, function () {
             const FolderTypeId = engine.addressSpace.findNode("FolderType").nodeId;
             const BaseDataVariableTypeId = engine.addressSpace.findNode("BaseDataVariableType").nodeId;
             done();
@@ -27,8 +26,7 @@ describe("Testing the server  engine - View related ", function() {
         engine = null;
     });
 
-    it("should create a view in the address space", function() {
-
+    it("should create a view in the address space", function () {
         const viewsFolder = engine.addressSpace.findNode("ViewsFolder");
 
         const namespace = engine.addressSpace.getOwnNamespace();

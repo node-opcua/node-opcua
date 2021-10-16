@@ -1,7 +1,6 @@
-import { Subscription, InternalNotification } from "./server_subscription";
 import { PublishResponseOptions, PublishResponse, StatusChangeNotification } from "node-opcua-types";
 import assert from "node-opcua-assert";
-import { Queue } from "./queue";
+import { Subscription } from "./server_subscription";
 
 export interface INotifMsg {
     subscriptionId: number;
@@ -38,7 +37,7 @@ export class TransferredSubscription implements IClosedOrTransferredSubscription
         return !!this._pending_notification;
     }
     dispose(): void {
-        this._pending_notification= undefined;
+        this._pending_notification = undefined;
         this.publishEngine = null;
     }
     _publish_pending_notifications(): void {
@@ -51,13 +50,13 @@ export class TransferredSubscription implements IClosedOrTransferredSubscription
         const response = new PublishResponse({
             moreNotifications,
             notificationMessage: {
-                notificationData: [notificationMessage ],
+                notificationData: [notificationMessage],
                 publishTime: new Date(),
-                sequenceNumber: 0xFFFFFFFF
+                sequenceNumber: 0xffffffff
             },
             subscriptionId
         });
-        
+
         // apply sequence number and store in sent_notifications queue
         assert(response.notificationMessage.sequenceNumber === 0xffffffff);
         response.notificationMessage.sequenceNumber = this._get_next_sequence_number();

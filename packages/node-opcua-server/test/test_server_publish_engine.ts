@@ -1,3 +1,4 @@
+/* eslint-disable import/order */
 /**
  *
  *  OPCUA protocol defines a long-pooling mechanism for sending server-triggered events back to the client.
@@ -46,6 +47,7 @@ const { add_mock_monitored_item } = require("./helper");
 // tslint:disable-next-line: no-var-requires
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("Testing the server publish engine", function (this: any) {
+    // eslint-disable-next-line @typescript-eslint/no-this-alias
     const test = this;
 
     beforeEach(() => {
@@ -56,7 +58,7 @@ describe("Testing the server publish engine", function (this: any) {
         test.clock.restore();
     });
     function flushPending() {
-        test.clock.tick(0)
+        test.clock.tick(0);
     }
     it("ZDZ-3 a server should send keep alive notifications", () => {
         function pulse(nbInterval: number) {
@@ -139,7 +141,7 @@ describe("Testing the server publish engine", function (this: any) {
         // client sends a PublishRequest to the server
         const fakeRequest1 = new PublishRequest({ subscriptionAcknowledgements: [] });
         serverSidePublishEngine._on_PublishRequest(fakeRequest1);
-        
+
         test.clock.tick(subscription.publishingInterval);
         send_response_for_request_spy.callCount.should.equal(1); // initial still
 
@@ -148,7 +150,7 @@ describe("Testing the server publish engine", function (this: any) {
         // server should send a response for the first publish request with the above notification
         // in this response, there should be  one element in the availableSequenceNumbers.
         send_response_for_request_spy.callCount.should.equal(1);
-        
+
         // console.log( send_response_for_request_spy.getCall(0).args[1].toString());
 
         send_response_for_request_spy.getCall(0).args[1].schema.name.should.equal("PublishResponse");
@@ -192,7 +194,6 @@ describe("Testing the server publish engine", function (this: any) {
         publish_server._on_PublishRequest(fakeRequest1);
         flushPending();
 
-     
         send_response_for_request_spy.callCount.should.equal(1);
         send_response_for_request_spy.getCall(0).args[1].schema.name.should.equal("PublishResponse");
         send_response_for_request_spy.getCall(0).args[1].responseHeader.serviceResult.should.eql(StatusCodes.BadNoSubscription);
@@ -369,7 +370,6 @@ describe("Testing the server publish engine", function (this: any) {
         publish_server._on_PublishRequest(new PublishRequest());
         flushPending();
 
-        
         monitoredItem.simulateMonitoredItemAddingNotification();
 
         test.clock.tick(subscription.publishingInterval);
@@ -452,7 +452,6 @@ describe("Testing the server publish engine", function (this: any) {
             })
         );
         flushPending();
-
 
         // server send a notification to the client
         monitoredItem.simulateMonitoredItemAddingNotification();
@@ -774,7 +773,7 @@ describe("Testing the server publish engine", function (this: any) {
 
         publish_server._on_PublishRequest(new PublishRequest());
         test.clock.tick(0);
-        
+
         publish_server.pendingPublishRequestCount.should.eql(
             0,
             "starving subscription should have consumed this Request immediately"

@@ -1,3 +1,4 @@
+/* eslint-disable max-statements */
 import "should";
 import * as sinon from "sinon";
 
@@ -19,10 +20,10 @@ import { DataValue } from "node-opcua-data-value";
 import { AttributeIds } from "node-opcua-data-model";
 import { NodeId, coerceNodeId } from "node-opcua-nodeid";
 import { AddressSpace, Namespace, SessionContext, UAVariable } from "node-opcua-address-space";
+import { get_mini_nodeset_filename } from "node-opcua-address-space/testHelpers";
 
 import { MonitoredItem, Subscription, ServerEngine, ServerSidePublishEngine, SubscriptionState } from "..";
 
-import { get_mini_nodeset_filename } from "node-opcua-address-space/testHelpers";
 // tslint:disable-next-line: no-var-requires
 const { getFakePublishEngine } = require("./helper_fake_publish_engine");
 const mini_nodeset_filename = get_mini_nodeset_filename();
@@ -40,7 +41,7 @@ function freeze_data_source() {
 function unfreeze_data_source() {
     dataSourceFrozen = false;
 }
-// tslint:disable-next-line: no-var-requires
+// eslint-disable-next-line import/order
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("Subscriptions and MonitoredItems and triggering", function (this: any) {
     /***
@@ -83,13 +84,14 @@ describe("Subscriptions and MonitoredItems and triggering", function (this: any)
     let namespace: Namespace;
     let engine: ServerEngine;
 
+    // eslint-disable-next-line @typescript-eslint/no-this-alias
     const test = this;
 
     before(async () => {
         engine = new ServerEngine({ applicationUri: "uri" });
 
         await new Promise<void>((resolve) => {
-            engine.initialize({ nodeset_filename: mini_nodeset_filename }, (err: Error) => {
+            engine.initialize({ nodeset_filename: mini_nodeset_filename }, () => {
                 resolve();
             });
         });

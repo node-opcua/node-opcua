@@ -36,7 +36,9 @@ import {
     UAObject,
     UAVariable,
     ISessionContext,
-    UAView
+    UAView,
+    EventTypeLike,
+    UAObjectType
 } from "node-opcua-address-space";
 import { getDefaultCertificateManager, OPCUACertificateManager } from "node-opcua-certificate-manager";
 import { ServerState } from "node-opcua-common";
@@ -144,6 +146,7 @@ import { DataType } from "node-opcua-variant";
 import { VariantArrayType } from "node-opcua-variant";
 import { matchUri } from "node-opcua-utils";
 
+import { UAString } from "node-opcua-basic-types";
 import { OPCUABaseServer, OPCUABaseServerOptions } from "./base_server";
 import { Factory } from "./factory";
 import { IRegisterServerManager } from "./i_register_server_manager";
@@ -153,7 +156,7 @@ import { RegisterServerManagerHidden } from "./register_server_manager_hidden";
 import { RegisterServerManagerMDNSONLY } from "./register_server_manager_mdns_only";
 import { ServerCapabilitiesOptions } from "./server_capabilities";
 import { OPCUAServerEndPoint } from "./server_end_point";
-import { ClosingReason, ServerEngine } from "./server_engine";
+import { ClosingReason, CreateSessionOption, ServerEngine } from "./server_engine";
 import { ServerSession } from "./server_session";
 import { CreateMonitoredItemHook, DeleteMonitoredItemHook, Subscription } from "./server_subscription";
 import { ISocketData } from "./i_socket_data";
@@ -178,6 +181,8 @@ export interface UserManagerOptions extends IUserManager {
     isValidUserAsync?: ValidUserAsyncFunc;
 }
 
+// tslint:disable-next-line:no-var-requires
+const thenify = require("thenify");
 // tslint:disable-next-line:no-var-requires
 const package_info = require("../package.json");
 const debugLog = make_debugLog(__filename);
@@ -208,6 +213,26 @@ const minSessionTimeout = 100; // 100 milliseconds
 const defaultSessionTimeout = 1000 * 30; // 30 seconds
 const maxSessionTimeout = 1000 * 60 * 50; // 50 minutes
 
+type ResponseClassType =
+    | typeof BrowseResponse
+    | typeof BrowseNextResponse
+    | typeof CallResponse
+    | typeof CreateMonitoredItemsResponse
+    | typeof CreateSubscriptionResponse
+    | typeof DeleteSubscriptionsResponse
+    | typeof HistoryReadResponse
+    | typeof ModifyMonitoredItemsResponse
+    | typeof ModifySubscriptionResponse
+    | typeof ReadResponse
+    | typeof RegisterNodesResponse
+    | typeof RepublishResponse
+    | typeof SetPublishingModeResponse
+    | typeof SetTriggeringResponse
+    | typeof TransferSubscriptionsResponse
+    | typeof TranslateBrowsePathsToNodeIdsResponse
+    | typeof UnregisterNodesResponse
+    | typeof WriteResponse;
+
 function _adjust_session_timeout(sessionTimeout: number) {
     let revisedSessionTimeout = sessionTimeout || defaultSessionTimeout;
     revisedSessionTimeout = Math.min(revisedSessionTimeout, maxSessionTimeout);
@@ -217,7 +242,7 @@ function _adjust_session_timeout(sessionTimeout: number) {
 
 function channel_has_session(channel: ServerSecureChannelLayer, session: ServerSession): boolean {
     if (session.channel === channel) {
-        assert(channel.sessionTokens.hasOwnProperty(session.authenticationToken.toString()));
+        assert(Object.prototype.hasOwnProperty.call(channel.sessionTokens, session.authenticationToken.toString()));
         return true;
     }
     return false;
@@ -292,10 +317,7 @@ function _serverEndpointsForCreateSessionResponse(server: OPCUAServer, endpointU
         .map(getRequiredEndpointInfo);
 }
 
-function adjustSecurityPolicy(
-    channel: ServerSecureChannelLayer,
-    userTokenPolicy_securityPolicyUri: SecurityPolicy
-): SecurityPolicy {
+function adjustSecurityPolicy(channel: ServerSecureChannelLayer, userTokenPolicy_securityPolicyUri: UAString): SecurityPolicy {
     // check that userIdentityToken
     let securityPolicy = fromURI(userTokenPolicy_securityPolicyUri);
 
@@ -489,8 +511,7 @@ function build_scanning_node_function(
             oldDataValue: DataValue,
             callback: (err: Error | null, dataValue?: DataValue) => void
         ) {
-            const self = this;
-            assert(self instanceof MonitoredItem);
+            assert(this instanceof MonitoredItem);
             assert(oldDataValue instanceof DataValue);
             assert(typeof callback === "function");
             const newDataValue = node.readAttribute(null, itemToMonitor.attributeId);
@@ -578,6 +599,83 @@ function _installRegisterServerManager(self: OPCUAServer) {
          */
         self.emit("serverUnregistered");
     });
+}
+
+function validate_applicationUri(channel: ServerSecureChannelLayer, request: CreateSessionRequest): boolean {
+    const applicationUri = request.clientDescription.applicationUri!;
+    const clientCertificate = request.clientCertificate;
+    // if session is insecure there is no need to check certificate information
+    if (channel.securityMode === MessageSecurityMode.None) {
+        return true; // assume correct
+    }
+    if (!clientCertificate || clientCertificate.length === 0) {
+        return true; // can't check
+    }
+    const e = exploreCertificate(clientCertificate);
+    const applicationUriFromCert = e.tbsCertificate.extensions!.subjectAltName.uniformResourceIdentifier[0];
+
+    /* istanbul ignore next */
+    if (applicationUriFromCert !== applicationUri) {
+        errorLog("BadCertificateUriInvalid!");
+        errorLog("applicationUri           = ", applicationUri);
+        errorLog("applicationUriFromCert   = ", applicationUriFromCert);
+    }
+
+    return applicationUriFromCert === applicationUri;
+}
+
+function validate_security_endpoint(
+    server: OPCUAServer,
+    request: CreateSessionRequest,
+    channel: ServerSecureChannelLayer
+): {
+    errCode: StatusCode;
+    endpoint?: EndpointDescription;
+} {
+    debugLog("validate_security_endpoint = ", request.endpointUrl);
+    let endpoints = server._get_endpoints(request.endpointUrl);
+    // endpointUrl String The network address that the Client used to access the Session Endpoint.
+    //             The HostName portion of the URL should be one of the HostNames for the application that are
+    //             specified in the Server’s ApplicationInstanceCertificate (see 7.2). The Server shall raise an
+    //             AuditUrlMismatchEventType event if the URL does not match the Server’s HostNames.
+    //             AuditUrlMismatchEventType event type is defined in Part 5.
+    //             The Server uses this information for diagnostics and to determine the set of
+    //             EndpointDescriptions to return in the response.
+    // ToDo: check endpointUrl validity and emit an AuditUrlMismatchEventType event if not
+    if (endpoints.length === 0) {
+        // we have a UrlMismatch here
+        const ua_server = server.engine.addressSpace!.rootFolder.objects.server;
+        ua_server.raiseEvent("AuditUrlMismatchEventType", {
+            endpointUrl: { dataType: DataType.String, value: request.endpointUrl }
+        });
+        debugLog("Cannot find endpoint  in available endpoints with endpointUri", request.endpointUrl);
+        if (OPCUAServer.requestExactEndpointUrl) {
+            return { errCode: StatusCodes.BadServiceUnsupported };
+        } else {
+            endpoints = server._get_endpoints(null);
+        }
+    }
+    // ignore restricted endpoints
+    endpoints = endpoints.filter((e: EndpointDescription) => !(e as any).restricted);
+
+    const endpoints_matching_security_mode = endpoints.filter((e: EndpointDescription) => {
+        return e.securityMode === channel.securityMode;
+    });
+
+    if (endpoints_matching_security_mode.length === 0) {
+        return { errCode: StatusCodes.BadSecurityModeRejected };
+    }
+    const endpoints_matching_security_policy = endpoints_matching_security_mode.filter((e: EndpointDescription) => {
+        return e.securityPolicyUri === channel.securityHeader!.securityPolicyUri;
+    });
+
+    if (endpoints_matching_security_policy.length === 0) {
+        return { errCode: StatusCodes.BadSecurityPolicyRejected };
+    }
+    if (endpoints_matching_security_policy.length !== 1) {
+        debugLog("endpoints_matching_security_policy= ", endpoints_matching_security_policy.length);
+    }
+    return { errCode: StatusCodes.Good, endpoint: endpoints_matching_security_policy[0] };
 }
 
 export enum RegisterServerMethod {
@@ -797,12 +895,12 @@ export interface OPCUAServer {
     userCertificateManager: OPCUACertificateManager;
 }
 
-const g_requestExactEndpointUrl: boolean = !!process.env.NODEOPCUA_SERVER_REQUEST_EXACT_ENDPOINT_URL;
+const g_requestExactEndpointUrl = !!process.env.NODEOPCUA_SERVER_REQUEST_EXACT_ENDPOINT_URL;
 /**
  *
  */
 export class OPCUAServer extends OPCUABaseServer {
-    static defaultShutdownTimeout: number = 100; // 250 ms
+    static defaultShutdownTimeout = 100; // 250 ms
     /**
      * if requestExactEndpointUrl is set to true the server will only accept createSession that have a endpointUrl that strictly matches
      * one of the provided endpoint.
@@ -851,8 +949,7 @@ export class OPCUAServer extends OPCUABaseServer {
      */
     public get currentChannelCount(): number {
         // TODO : move to base
-        const self = this;
-        return self.endpoints.reduce((currentValue: number, endPoint: OPCUAServerEndPoint) => {
+        return this.endpoints.reduce((currentValue: number, endPoint: OPCUAServerEndPoint) => {
             return currentValue + endPoint.currentChannelCount;
         }, 0);
     }
@@ -932,7 +1029,7 @@ export class OPCUAServer extends OPCUABaseServer {
     /**
      * false if anonymous connection are not allowed
      */
-    public allowAnonymous: boolean = false;
+    public allowAnonymous = false;
 
     /**
      * the user manager
@@ -947,6 +1044,7 @@ export class OPCUAServer extends OPCUABaseServer {
     constructor(options?: OPCUAServerOptions) {
         super(options);
 
+        this.allowAnonymous = false;
         options = options || {};
 
         this.options = options;
@@ -1208,7 +1306,7 @@ export class OPCUAServer extends OPCUABaseServer {
         });
     }
 
-    public dispose() {
+    public dispose(): void {
         for (const endpoint of this.endpoints) {
             endpoint.dispose();
         }
@@ -1228,7 +1326,7 @@ export class OPCUAServer extends OPCUABaseServer {
         }
     }
 
-    public raiseEvent(eventType: any, options: any): void {
+    public raiseEvent(eventType: EventTypeLike | UAObjectType, options: RaiseEventData): void {
         /* istanbul ignore next */
         if (!this.engine.addressSpace) {
             errorLog("addressSpace missing");
@@ -1243,16 +1341,16 @@ export class OPCUAServer extends OPCUABaseServer {
             return;
         }
 
-        let eventTypeNode = eventType;
+        let eventTypeNode: EventTypeLike | UAObjectType | null = eventType;
         if (typeof eventType === "string") {
             eventTypeNode = this.engine.addressSpace.findEventType(eventType);
-        }
-
-        /* istanbul ignore else */
-        if (eventTypeNode) {
-            return server.raiseEvent(eventTypeNode, options);
+            if (eventTypeNode) {
+                return server.raiseEvent(eventTypeNode, options);
+            } else {
+                console.warn(" cannot find event type ", eventType);
+            }
         } else {
-            console.warn(" cannot find event type ", eventType);
+            return server.raiseEvent(eventTypeNode, options);
         }
     }
 
@@ -1260,7 +1358,7 @@ export class OPCUAServer extends OPCUABaseServer {
      * create and register a new session
      * @internal
      */
-    protected createSession(options: any): ServerSession {
+    protected createSession(options: CreateSessionOption): ServerSession {
         /* istanbul ignore next */
         if (!this.engine) {
             throw new Error("Internal Error");
@@ -1315,11 +1413,11 @@ export class OPCUAServer extends OPCUABaseServer {
     protected isValidUserNameIdentityToken(
         channel: ServerSecureChannelLayer,
         session: ServerSession,
-        userTokenPolicy: any,
+        userTokenPolicy: UserTokenPolicy,
         userIdentityToken: UserNameIdentityToken,
-        userTokenSignature: any,
+        userTokenSignature: SignatureData,
         callback: (err: Error | null, statusCode?: StatusCode) => void
-    ) {
+    ): void {
         assert(userIdentityToken instanceof UserNameIdentityToken);
 
         const securityPolicy = adjustSecurityPolicy(channel, userTokenPolicy.securityPolicyUri);
@@ -1351,11 +1449,11 @@ export class OPCUAServer extends OPCUABaseServer {
     protected isValidX509IdentityToken(
         channel: ServerSecureChannelLayer,
         session: ServerSession,
-        userTokenPolicy: any,
+        userTokenPolicy: UserTokenPolicy,
         userIdentityToken: X509IdentityToken,
-        userTokenSignature: any,
+        userTokenSignature: SignatureData,
         callback: (err: Error | null, statusCode?: StatusCode) => void
-    ) {
+    ): void {
         assert(userIdentityToken instanceof X509IdentityToken);
         assert(callback instanceof Function);
 
@@ -1433,7 +1531,7 @@ export class OPCUAServer extends OPCUABaseServer {
     protected userNameIdentityTokenAuthenticateUser(
         channel: ServerSecureChannelLayer,
         session: ServerSession,
-        userTokenPolicy: any,
+        userTokenPolicy: UserTokenPolicy,
         userIdentityToken: UserNameIdentityToken,
         callback: (err: Error | null, isAuthorized?: boolean) => void
     ): void {
@@ -1488,7 +1586,7 @@ export class OPCUAServer extends OPCUABaseServer {
         channel: ServerSecureChannelLayer,
         session: ServerSession,
         userIdentityToken: UserIdentityToken,
-        userTokenSignature: any,
+        userTokenSignature: SignatureData,
         endpointDescription: EndpointDescription,
         callback: (err: Error | null, statusCode?: StatusCode) => void
     ): void {
@@ -1544,13 +1642,16 @@ export class OPCUAServer extends OPCUABaseServer {
         session: ServerSession,
         userIdentityToken: UserIdentityToken,
         callback: (err: Error | null, isAuthorized?: boolean) => void
-    ) {
+    ): void {
         assert(userIdentityToken);
         assert(typeof callback === "function");
 
         const userTokenType = getTokenType(userIdentityToken);
         const userTokenPolicy = findUserTokenByPolicy(session.getEndpointDescription(), userTokenType, userIdentityToken.policyId!);
-        assert(userTokenPolicy);
+        /** istanbul ignore next */
+        if (!userTokenPolicy) {
+            return callback(null, false);
+        }
         // find if a userToken exists
         if (userIdentityToken instanceof UserNameIdentityToken) {
             return this.userNameIdentityTokenAuthenticateUser(channel, session, userTokenPolicy, userIdentityToken, callback);
@@ -1563,12 +1664,12 @@ export class OPCUAServer extends OPCUABaseServer {
     }
 
     // session services
-    protected async _on_CreateSessionRequest(message: Message, channel: ServerSecureChannelLayer) {
-        const server = this;
+    // eslint-disable-next-line max-statements
+    protected async _on_CreateSessionRequest(message: Message, channel: ServerSecureChannelLayer): Promise<void> {
         const request = message.request as CreateSessionRequest;
         assert(request instanceof CreateSessionRequest);
 
-        function rejectConnection(statusCode: StatusCode): void {
+        function rejectConnection(server: OPCUAServer, statusCode: StatusCode): void {
             server.engine.incrementSecurityRejectedSessionCount();
 
             const response1 = new CreateSessionResponse({
@@ -1582,13 +1683,13 @@ export class OPCUAServer extends OPCUABaseServer {
         // A Server application should limit the number of Sessions. To protect against misbehaving Clients and denial
         // of service attacks, the Server shall close the oldest Session that is not activated before reaching the
         // maximum number of supported Sessions
-        if (server.currentSessionCount >= server.maxAllowedSessionNumber) {
-            await _attempt_to_close_some_old_unactivated_session(server);
+        if (this.currentSessionCount >= this.maxAllowedSessionNumber) {
+            await _attempt_to_close_some_old_unactivated_session(this);
         }
 
         // check if session count hasn't reach the maximum allowed sessions
-        if (server.currentSessionCount >= server.maxAllowedSessionNumber) {
-            return rejectConnection(StatusCodes.BadTooManySessions);
+        if (this.currentSessionCount >= this.maxAllowedSessionNumber) {
+            return rejectConnection(this, StatusCodes.BadTooManySessions);
         }
 
         // Release 1.03 OPC Unified Architecture, Part 4 page 24 - CreateSession Parameters
@@ -1626,7 +1727,7 @@ export class OPCUAServer extends OPCUABaseServer {
                     request.clientNonce && request.clientNonce.toString("hex")
                 );
 
-                return rejectConnection(StatusCodes.BadNonceInvalid);
+                return rejectConnection(this, StatusCodes.BadNonceInvalid);
             }
         }
         if (nonceAlreadyBeenUsed(request.clientNonce)) {
@@ -1635,93 +1736,21 @@ export class OPCUAServer extends OPCUABaseServer {
                 request.clientNonce && request.clientNonce.toString("hex")
             );
 
-            return rejectConnection(StatusCodes.BadNonceInvalid);
+            return rejectConnection(this, StatusCodes.BadNonceInvalid);
         }
-
-        function validate_applicationUri(applicationUri: string, clientCertificate: Certificate): boolean {
-            // if session is insecure there is no need to check certificate information
-            if (channel.securityMode === MessageSecurityMode.None) {
-                return true; // assume correct
-            }
-            if (!clientCertificate || clientCertificate.length === 0) {
-                return true; // can't check
-            }
-            const e = exploreCertificate(clientCertificate);
-            const applicationUriFromCert = e.tbsCertificate.extensions!.subjectAltName.uniformResourceIdentifier[0];
-
-            /* istanbul ignore next */
-            if (applicationUriFromCert !== applicationUri) {
-                errorLog("BadCertificateUriInvalid!");
-                errorLog("applicationUri           = ", applicationUri);
-                errorLog("applicationUriFromCert   = ", applicationUriFromCert);
-            }
-
-            return applicationUriFromCert === applicationUri;
-        }
-
         // check application spoofing
         // check if applicationUri in createSessionRequest matches applicationUri in client Certificate
-        if (!validate_applicationUri(request.clientDescription.applicationUri!, request.clientCertificate)) {
-            return rejectConnection(StatusCodes.BadCertificateUriInvalid);
+        if (!validate_applicationUri(channel, request)) {
+            return rejectConnection(this, StatusCodes.BadCertificateUriInvalid);
         }
 
-        function validate_security_endpoint(channel1: ServerSecureChannelLayer): {
-            errCode: StatusCode;
-            endpoint?: EndpointDescription;
-        } {
-            debugLog("validate_security_endpoint = ", request.endpointUrl);
-            let endpoints = server._get_endpoints(request.endpointUrl);
-            // endpointUrl String The network address that the Client used to access the Session Endpoint.
-            //             The HostName portion of the URL should be one of the HostNames for the application that are
-            //             specified in the Server’s ApplicationInstanceCertificate (see 7.2). The Server shall raise an
-            //             AuditUrlMismatchEventType event if the URL does not match the Server’s HostNames.
-            //             AuditUrlMismatchEventType event type is defined in Part 5.
-            //             The Server uses this information for diagnostics and to determine the set of
-            //             EndpointDescriptions to return in the response.
-            // ToDo: check endpointUrl validity and emit an AuditUrlMismatchEventType event if not
-            if (endpoints.length === 0) {
-                // we have a UrlMismatch here
-                const ua_server = server.engine.addressSpace!.rootFolder.objects.server;
-                ua_server.raiseEvent("AuditUrlMismatchEventType", {
-                    endpointUrl: { dataType: DataType.String, value: request.endpointUrl }
-                });
-                debugLog("Cannot find endpoint  in available endpoints with endpointUri", request.endpointUrl);
-                if (OPCUAServer.requestExactEndpointUrl) {
-                    return { errCode: StatusCodes.BadServiceUnsupported };
-                } else {
-                    endpoints = server._get_endpoints(null);
-                }
-            }
-            // ignore restricted endpoints
-            endpoints = endpoints.filter((e: EndpointDescription) => !(e as any).restricted);
-
-            const endpoints_matching_security_mode = endpoints.filter((e: EndpointDescription) => {
-                return e.securityMode === channel1.securityMode;
-            });
-
-            if (endpoints_matching_security_mode.length === 0) {
-                return { errCode: StatusCodes.BadSecurityModeRejected };
-            }
-            const endpoints_matching_security_policy = endpoints_matching_security_mode.filter((e: EndpointDescription) => {
-                return e.securityPolicyUri === channel1.securityHeader!.securityPolicyUri;
-            });
-
-            if (endpoints_matching_security_policy.length === 0) {
-                return { errCode: StatusCodes.BadSecurityPolicyRejected };
-            }
-            if (endpoints_matching_security_policy.length !== 1) {
-                debugLog("endpoints_matching_security_policy= ", endpoints_matching_security_policy.length);
-            }
-            return { errCode: StatusCodes.Good, endpoint: endpoints_matching_security_policy[0] };
-        }
-
-        const { errCode, endpoint } = validate_security_endpoint(channel);
+        const { errCode, endpoint } = validate_security_endpoint(this, request, channel);
         if (errCode !== StatusCodes.Good) {
-            return rejectConnection(errCode);
+            return rejectConnection(this, errCode);
         }
 
         // see Release 1.02  27  OPC Unified Architecture, Part 4
-        const session = server.createSession({
+        const session = this.createSession({
             clientDescription: request.clientDescription,
             sessionTimeout: revisedSessionTimeout
         });
@@ -1747,12 +1776,12 @@ export class OPCUAServer extends OPCUABaseServer {
         //
         // ( this serverNonce will only be used up to the _on_ActivateSessionRequest
         //   where a new nonce will be created)
-        session.nonce = server.makeServerNonce();
+        session.nonce = this.makeServerNonce();
         session.channelId = channel.channelId;
 
         session._attach_channel(channel);
 
-        const serverCertificateChain = server.getCertificateChain();
+        const serverCertificateChain = this.getCertificateChain();
 
         const hasEncryption = true;
         // If the securityPolicyUri is None and none of the UserTokenPolicies requires encryption
@@ -1793,7 +1822,7 @@ export class OPCUAServer extends OPCUABaseServer {
             // securityPolicyUri, userIdentityTokens, transportProfileUri and securityLevel with all
             // other parameters set to null. Only the recommended parameters shall be verified by
             // the client.
-            serverEndpoints: _serverEndpointsForCreateSessionResponse(server, session.endpoint!.endpointUrl, request.serverUri),
+            serverEndpoints: _serverEndpointsForCreateSessionResponse(this, session.endpoint!.endpointUrl, request.serverUri),
 
             // This parameter is deprecated and the array shall be empty.
             serverSoftwareCertificates: null,
@@ -1804,7 +1833,7 @@ export class OPCUAServer extends OPCUABaseServer {
             // The SignatureAlgorithm shall be the AsymmetricSignatureAlgorithm specified in the
             // SecurityPolicy for the Endpoint.
             // The SignatureData type is defined in 7.30.
-            serverSignature: server.computeServerSignature(channel, request.clientCertificate, request.clientNonce),
+            serverSignature: this.computeServerSignature(channel, request.clientCertificate, request.clientNonce),
 
             // The maximum message size accepted by the server
             // The Client Communication Stack should return a Bad_RequestTooLarge error to the
@@ -1813,15 +1842,15 @@ export class OPCUAServer extends OPCUABaseServer {
             maxRequestMessageSize: 0x4000000
         });
 
-        server.emit("create_session", session);
+        this.emit("create_session", session);
 
         session.on("session_closed", (session1: ServerSession, deleteSubscriptions: boolean, reason: string) => {
             assert(typeof reason === "string");
-            if (server.isAuditing) {
+            if (this.isAuditing) {
                 assert(reason === "Timeout" || reason === "Terminated" || reason === "CloseSession" || reason === "Forcing");
                 const sourceName = "Session/" + reason;
 
-                server.raiseEvent("AuditSessionEventType", {
+                this.raiseEvent("AuditSessionEventType", {
                     /* part 5 -  6.4.3 AuditEventType */
                     actionTimeStamp: { dataType: "DateTime", value: new Date() },
                     status: { dataType: "Boolean", value: true },
@@ -1842,12 +1871,12 @@ export class OPCUAServer extends OPCUABaseServer {
                 });
             }
 
-            server.emit("session_closed", session1, deleteSubscriptions);
+            this.emit("session_closed", session1, deleteSubscriptions);
         });
 
-        if (server.isAuditing) {
+        if (this.isAuditing) {
             // ------------------------------------------------------------------------------------------------------
-            server.raiseEvent("AuditCreateSessionEventType", {
+            this.raiseEvent("AuditCreateSessionEventType", {
                 /* part 5 -  6.4.3 AuditEventType */
                 actionTimeStamp: { dataType: "DateTime", value: new Date() },
                 status: { dataType: "Boolean", value: true },
@@ -1881,7 +1910,7 @@ export class OPCUAServer extends OPCUABaseServer {
 
                 // clientCertificateThumbprint
                 clientCertificateThumbprint: {
-                    dataType: "ByteString",
+                    dataType: "String",
                     value: thumbprint(session.channel!.clientCertificate!)
                 }
             });
@@ -1909,17 +1938,16 @@ export class OPCUAServer extends OPCUABaseServer {
      *
      *
      */
-    protected _on_ActivateSessionRequest(message: Message, channel: ServerSecureChannelLayer) {
-        const server = this;
+    protected _on_ActivateSessionRequest(message: Message, channel: ServerSecureChannelLayer): void {
         const request = message.request as ActivateSessionRequest;
         assert(request instanceof ActivateSessionRequest);
 
         // get session from authenticationToken
         const authenticationToken = request.requestHeader.authenticationToken;
 
-        const session = server.getSession(authenticationToken);
+        const session = this.getSession(authenticationToken);
 
-        function rejectConnection(statusCode: StatusCode): void {
+        function rejectConnection(server: OPCUAServer, statusCode: StatusCode): void {
             if (statusCode === StatusCodes.BadSessionIdInvalid) {
                 server.engine.incrementRejectedSessionCount();
             } else {
@@ -1941,7 +1969,7 @@ export class OPCUAServer extends OPCUABaseServer {
             // that the previous session may still be active
             debugLog(chalk.yellow.bold(" Bad Session in  _on_ActivateSessionRequest"), authenticationToken.toString());
 
-            return rejectConnection(StatusCodes.BadSessionIdInvalid);
+            return rejectConnection(this, StatusCodes.BadSessionIdInvalid);
         }
 
         // tslint:disable-next-line: no-unused-expression
@@ -1956,7 +1984,7 @@ export class OPCUAServer extends OPCUABaseServer {
                 // it looks like session activation is being using a channel that is not the
                 // one that have been used to create the session
                 errorLog(" channel.sessionTokens === " + Object.keys(channel.sessionTokens).join(" "));
-                return rejectConnection(StatusCodes.BadSessionNotActivated);
+                return rejectConnection(this, StatusCodes.BadSessionNotActivated);
             }
         }
 
@@ -1983,35 +2011,35 @@ export class OPCUAServer extends OPCUABaseServer {
                 const new_channel_cert_thumbprint = thumbprint(channel.clientCertificate!);
 
                 if (old_channel_cert_thumbprint !== new_channel_cert_thumbprint) {
-                    return rejectConnection(StatusCodes.BadNoValidCertificates); // not sure about this code !
+                    return rejectConnection(this, StatusCodes.BadNoValidCertificates); // not sure about this code !
                 }
 
                 // ... In addition the Server shall verify that the  Client  supplied a  UserIdentityToken  that is
                 // identical to the token currently associated with the  Session reassign session to new channel.
                 if (!sameIdentityToken(session.userIdentityToken!, request.userIdentityToken as UserIdentityToken)) {
-                    return rejectConnection(StatusCodes.BadIdentityChangeNotSupported); // not sure about this code !
+                    return rejectConnection(this, StatusCodes.BadIdentityChangeNotSupported); // not sure about this code !
                 }
             }
 
             moveSessionToChannel(session, channel);
         } else if (session.status === "screwed") {
             // session has been used before being activated => this should be detected and session should be dismissed.
-            return rejectConnection(StatusCodes.BadSessionClosed);
+            return rejectConnection(this, StatusCodes.BadSessionClosed);
         } else if (session.status === "closed") {
             warningLog(chalk.yellow.bold(" Bad Session Closed in  _on_ActivateSessionRequest"), authenticationToken.toString());
-            return rejectConnection(StatusCodes.BadSessionClosed);
+            return rejectConnection(this, StatusCodes.BadSessionClosed);
         }
 
         // verify clientSignature provided by the client
-        if (!server.verifyClientSignature(session, channel, request.clientSignature)) {
-            return rejectConnection(StatusCodes.BadApplicationSignatureInvalid);
+        if (!this.verifyClientSignature(session, channel, request.clientSignature)) {
+            return rejectConnection(this, StatusCodes.BadApplicationSignatureInvalid);
         }
 
         // userIdentityToken may be missing , assume anonymous access then
         request.userIdentityToken = request.userIdentityToken || createAnonymousIdentityToken(session.endpoint!);
 
         // check request.userIdentityToken is correct ( expected type and correctly formed)
-        server.isValidUserIdentityToken(
+        this.isValidUserIdentityToken(
             channel,
             session,
             request.userIdentityToken as UserIdentityToken,
@@ -2024,28 +2052,28 @@ export class OPCUAServer extends OPCUABaseServer {
                         const a = 23;
                     }
                     assert(statusCode && statusCode instanceof StatusCode, "expecting statusCode");
-                    return rejectConnection(statusCode!);
+                    return rejectConnection(this, statusCode!);
                 }
                 session.userIdentityToken = request.userIdentityToken as UserIdentityToken;
 
                 // check if user access is granted
-                server.isUserAuthorized(
+                this.isUserAuthorized(
                     channel,
                     session,
                     request.userIdentityToken as UserIdentityToken,
                     (err1: Error | null, authorized?: boolean) => {
                         /* istanbul ignore next */
                         if (err1) {
-                            return rejectConnection(StatusCodes.BadInternalError);
+                            return rejectConnection(this, StatusCodes.BadInternalError);
                         }
 
                         if (!authorized) {
-                            return rejectConnection(StatusCodes.BadUserAccessDenied);
+                            return rejectConnection(this, StatusCodes.BadUserAccessDenied);
                         } else {
                             // extract : OPC UA part 4 - 5.6.3
                             // Once used, a serverNonce cannot be used again. For that reason, the Server returns a new
                             // serverNonce each time the ActivateSession Service is called.
-                            session.nonce = server.makeServerNonce();
+                            session.nonce = this.makeServerNonce();
 
                             session.status = "active";
 
@@ -2067,8 +2095,8 @@ export class OPCUAServer extends OPCUABaseServer {
                             // xx assert(session.channel.clientCertificate instanceof Buffer);
                             assert(session.sessionTimeout > 0);
 
-                            if (server.isAuditing) {
-                                server.raiseEvent("AuditActivateSessionEventType", {
+                            if (this.isAuditing) {
+                                this.raiseEvent("AuditActivateSessionEventType", {
                                     /* part 5 -  6.4.3 AuditEventType */
                                     actionTimeStamp: { dataType: "DateTime", value: new Date() },
                                     status: { dataType: "Boolean", value: true },
@@ -2109,7 +2137,7 @@ export class OPCUAServer extends OPCUABaseServer {
                                     secureChannelId: { dataType: "String", value: session.channel!.channelId!.toString() }
                                 });
                             }
-                            server.emit("session_activated", session, userIdentityTokenPasswordRemoved);
+                            this.emit("session_activated", session, userIdentityTokenPasswordRemoved);
                         }
                     }
                 );
@@ -2117,13 +2145,12 @@ export class OPCUAServer extends OPCUABaseServer {
         );
     }
 
-    protected prepare(message: Message, channel: ServerSecureChannelLayer) {
-        const server = this;
+    protected prepare(message: Message, channel: ServerSecureChannelLayer): void {
         const request = message.request;
 
         // --- check that session is correct
         const authenticationToken = request.requestHeader.authenticationToken;
-        const session = server.getSession(authenticationToken, /*activeOnly*/ true);
+        const session = this.getSession(authenticationToken, /*activeOnly*/ true);
         if (!session) {
             message.session_statusCode = StatusCodes.BadSessionIdInvalid;
             return;
@@ -2150,27 +2177,27 @@ export class OPCUAServer extends OPCUABaseServer {
      * @param ResponseClass the constructor of the response Class
      * @param message
      * @param channel
-     * @param action_to_perform
-     * @param action_to_perform.session {ServerSession}
-     * @param action_to_perform.sendResponse
-     * @param action_to_perform.sendResponse.response
-     * @param action_to_perform.sendError
-     * @param action_to_perform.sendError.statusCode
-     * @param action_to_perform.sendError.diagnostics
+     * @param actionToPerform
+     * @param actionToPerform.session {ServerSession}
+     * @param actionToPerform.sendResponse
+     * @param actionToPerform.sendResponse.response
+     * @param actionToPerform.sendError
+     * @param actionToPerform.sendError.statusCode
+     * @param actionToPerform.sendError.diagnostics
      *
      * @private
      */
     protected async _apply_on_SessionObject(
-        ResponseClass: any,
+        ResponseClass: ResponseClassType,
         message: Message,
         channel: ServerSecureChannelLayer,
-        action_to_perform: (
+        actionToPerform: (
             session: ServerSession,
             sendResponse: (response: Response) => void,
             sendError: (statusCode: StatusCode) => void
         ) => void | Promise<void>
-    ) {
-        assert(typeof action_to_perform === "function");
+    ): Promise<void> {
+        assert(typeof actionToPerform === "function");
 
         function sendResponse(response1: Response) {
             try {
@@ -2247,31 +2274,23 @@ export class OPCUAServer extends OPCUABaseServer {
             message.session.keepAlive();
         }
         message.session.incrementTotalRequestCount();
-        await action_to_perform(message.session as ServerSession, sendResponse, sendError);
+        await actionToPerform(message.session as ServerSession, sendResponse, sendError);
     }
 
-    /**
-     * @method _apply_on_Subscription
-     * @param ResponseClass
-     * @param message
-     * @param channel
-     * @param action_to_perform
-     * @private
-     */
     protected async _apply_on_Subscription(
-        ResponseClass: any,
+        ResponseClass: ResponseClassType,
         message: Message,
         channel: ServerSecureChannelLayer,
-        action_to_perform: (
+        actionToPerform: (
             session: ServerSession,
             subscription: Subscription,
             sendResponse: (response: Response) => void,
             sendError: (statusCode: StatusCode) => void
         ) => Promise<void>
-    ) {
-        assert(typeof action_to_perform === "function");
+    ): Promise<void> {
+        assert(typeof actionToPerform === "function");
         const request = message.request as unknown as { subscriptionId: number };
-        assert(request.hasOwnProperty("subscriptionId"));
+        assert(Object.prototype.hasOwnProperty.call(request, "subscriptionId"));
 
         this._apply_on_SessionObject(
             ResponseClass,
@@ -2287,28 +2306,20 @@ export class OPCUAServer extends OPCUABaseServer {
                     return sendError(StatusCodes.BadSubscriptionIdInvalid);
                 }
                 subscription.resetLifeTimeAndKeepAliveCounters();
-                await action_to_perform(session, subscription, sendResponse, sendError);
+                await actionToPerform(session, subscription, sendResponse, sendError);
             }
         );
     }
 
-    /**
-     * @method _apply_on_SubscriptionIds
-     * @param ResponseClass
-     * @param message
-     * @param channel
-     * @param action_to_perform
-     * @private
-     */
     protected _apply_on_SubscriptionIds<T>(
         ResponseClass: typeof SetPublishingModeResponse | typeof TransferSubscriptionsResponse | typeof DeleteSubscriptionsResponse,
         message: Message,
         channel: ServerSecureChannelLayer,
-        action_to_perform: (session: ServerSession, subscriptionId: number) => Promise<T>
-    ) {
-        assert(typeof action_to_perform === "function");
+        actionToPerform: (session: ServerSession, subscriptionId: number) => Promise<T>
+    ): void {
+        assert(typeof actionToPerform === "function");
         const request = message.request as unknown as { subscriptionIds: number[] };
-        assert(request.hasOwnProperty("subscriptionIds"));
+        assert(Object.prototype.hasOwnProperty.call(request, "subscriptionIds"));
 
         this._apply_on_SessionObject(
             ResponseClass,
@@ -2329,7 +2340,7 @@ export class OPCUAServer extends OPCUABaseServer {
                 //    return sendError(StatusCodes.BadTooManyOperations);
                 //  }
 
-                const results: any[] = subscriptionIds.map((subscriptionId: number) => action_to_perform(session, subscriptionId));
+                const results: any[] = subscriptionIds.map((subscriptionId: number) => actionToPerform(session, subscriptionId));
 
                 // resolve potential pending promises ....
                 for (let i = 0; i < results.length; i++) {
@@ -2352,20 +2363,12 @@ export class OPCUAServer extends OPCUABaseServer {
         );
     }
 
-    /**
-     * @method _apply_on_Subscriptions
-     * @param ResponseClass
-     * @param message
-     * @param channel
-     * @param action_to_perform
-     * @private
-     */
     protected _apply_on_Subscriptions(
-        ResponseClass: typeof SetPublishingModeResponse,
+        ResponseClass: typeof SetPublishingModeResponse | typeof TransferSubscriptionsResponse | typeof DeleteSubscriptionsResponse,
         message: Message,
         channel: ServerSecureChannelLayer,
-        action_to_perform: (session: ServerSession, subscription: Subscription) => Promise<StatusCode>
-    ) {
+        actionToPerform: (session: ServerSession, subscription: Subscription) => Promise<StatusCode>
+    ): void {
         this._apply_on_SubscriptionIds<StatusCode>(
             ResponseClass,
             message,
@@ -2379,15 +2382,12 @@ export class OPCUAServer extends OPCUABaseServer {
                 if (!subscription) {
                     return StatusCodes.BadSubscriptionIdInvalid;
                 }
-                return action_to_perform(session, subscription);
+                return actionToPerform(session, subscription);
             }
         );
     }
 
-    private async _closeSession(authenticationToken: NodeId, deleteSubscriptions: boolean, reason: ClosingReason) {
-        const server = this;
-
-        //
+    private async _closeSession(authenticationToken: NodeId, deleteSubscriptions: boolean, reason: ClosingReason): Promise<void> {
         if (deleteSubscriptions && this.options.onDeleteMonitoredItem) {
             const session = this.getSession(authenticationToken);
             if (session) {
@@ -2397,7 +2397,7 @@ export class OPCUAServer extends OPCUABaseServer {
                 }
             }
         }
-        await server.engine.closeSession(authenticationToken, deleteSubscriptions, reason);
+        await this.engine.closeSession(authenticationToken, deleteSubscriptions, reason);
     }
     /**
      * @method _on_CloseSessionRequest
@@ -2405,9 +2405,7 @@ export class OPCUAServer extends OPCUABaseServer {
      * @param channel
      * @private
      */
-    protected _on_CloseSessionRequest(message: Message, channel: ServerSecureChannelLayer) {
-        const server = this;
-
+    protected _on_CloseSessionRequest(message: Message, channel: ServerSecureChannelLayer): void {
         const request = message.request as CloseSessionRequest;
         assert(request instanceof CloseSessionRequest);
 
@@ -2454,8 +2452,7 @@ export class OPCUAServer extends OPCUABaseServer {
      * @param channel
      * @private
      */
-    protected _on_BrowseRequest(message: Message, channel: ServerSecureChannelLayer) {
-        const server = this;
+    protected _on_BrowseRequest(message: Message, channel: ServerSecureChannelLayer): void {
         const request = message.request as BrowseRequest;
         assert(request instanceof BrowseRequest);
         const diagnostic: any = {};
@@ -2468,7 +2465,7 @@ export class OPCUAServer extends OPCUABaseServer {
                 let response: BrowseResponse;
                 // test view
                 if (request.view && !request.view.viewId.isEmpty()) {
-                    let theView: UAView | null = server.engine!.addressSpace!.findNode(request.view.viewId) as UAView;
+                    let theView: UAView | null = this.engine!.addressSpace!.findNode(request.view.viewId) as UAView;
                     if (theView && theView.nodeClass !== NodeClass.View) {
                         // Error: theView is not a View
                         diagnostic.localizedText = { text: "Expecting a view here" };
@@ -2483,8 +2480,8 @@ export class OPCUAServer extends OPCUABaseServer {
                     return sendError(StatusCodes.BadNothingToDo);
                 }
 
-                if (server.engine.serverCapabilities.operationLimits.maxNodesPerBrowse > 0) {
-                    if (request.nodesToBrowse.length > server.engine.serverCapabilities.operationLimits.maxNodesPerBrowse) {
+                if (this.engine.serverCapabilities.operationLimits.maxNodesPerBrowse > 0) {
+                    if (request.nodesToBrowse.length > this.engine.serverCapabilities.operationLimits.maxNodesPerBrowse) {
                         return sendError(StatusCodes.BadTooManyOperations);
                     }
                 }
@@ -2493,9 +2490,9 @@ export class OPCUAServer extends OPCUABaseServer {
                 const requestedMaxReferencesPerNode = Math.min(9876, request.requestedMaxReferencesPerNode);
                 assert(request.nodesToBrowse[0].schema.name === "BrowseDescription");
 
-                const context = new SessionContext({ session, server });
+                const context = new SessionContext({ session, server: this });
 
-                const f = callbackify(server.engine.browseWithAutomaticExpansion).bind(server.engine);
+                const f = callbackify(this.engine.browseWithAutomaticExpansion).bind(this.engine);
                 (f as any)(request.nodesToBrowse, context, (err?: Error | null, results?: BrowseResult[]) => {
                     // istanbul ignore next
                     if (!results) {
@@ -2505,7 +2502,7 @@ export class OPCUAServer extends OPCUABaseServer {
                     assert(results[0].schema.name === "BrowseResult");
 
                     // handle continuation point and requestedMaxReferencesPerNode
-                    const maxBrowseContinuationPoints = server.engine.serverCapabilities.maxBrowseContinuationPoints;
+                    const maxBrowseContinuationPoints = this.engine.serverCapabilities.maxBrowseContinuationPoints;
                     results = results.map((result: BrowseResult) => {
                         assert(!result.continuationPoint);
 
@@ -2542,7 +2539,7 @@ export class OPCUAServer extends OPCUABaseServer {
      * @param channel
      * @private
      */
-    protected _on_BrowseNextRequest(message: Message, channel: ServerSecureChannelLayer) {
+    protected _on_BrowseNextRequest(message: Message, channel: ServerSecureChannelLayer): void {
         const request = message.request as BrowseNextRequest;
         assert(request instanceof BrowseNextRequest);
         this._apply_on_SessionObject(
@@ -2550,8 +2547,6 @@ export class OPCUAServer extends OPCUABaseServer {
             message,
             channel,
             (session: ServerSession, sendResponse: (response: Response) => void, sendError: (statusCode: StatusCode) => void) => {
-                let response;
-
                 if (!request.continuationPoints || request.continuationPoints.length === 0) {
                     return sendError(StatusCodes.BadNothingToDo);
                 }
@@ -2578,7 +2573,7 @@ export class OPCUAServer extends OPCUABaseServer {
                     });
                 }
 
-                response = new BrowseNextResponse({
+                const response = new BrowseNextResponse({
                     diagnosticInfos: undefined,
                     results
                 });
@@ -2588,8 +2583,7 @@ export class OPCUAServer extends OPCUABaseServer {
     }
 
     // read services
-    protected _on_ReadRequest(message: Message, channel: ServerSecureChannelLayer) {
-        const server = this;
+    protected _on_ReadRequest(message: Message, channel: ServerSecureChannelLayer): void {
         const request = message.request as ReadRequest;
         assert(request instanceof ReadRequest);
 
@@ -2598,7 +2592,7 @@ export class OPCUAServer extends OPCUABaseServer {
             message,
             channel,
             (session: ServerSession, sendResponse: (response: Response) => void, sendError: (statusCode: StatusCode) => void) => {
-                const context = new SessionContext({ session, server });
+                const context = new SessionContext({ session, server: this });
 
                 let response;
 
@@ -2623,8 +2617,8 @@ export class OPCUAServer extends OPCUABaseServer {
                 assert(request.nodesToRead[0].schema.name === "ReadValueId");
 
                 // limit size of nodesToRead array to maxNodesPerRead
-                if (server.engine.serverCapabilities.operationLimits.maxNodesPerRead > 0) {
-                    if (request.nodesToRead.length > server.engine.serverCapabilities.operationLimits.maxNodesPerRead) {
+                if (this.engine.serverCapabilities.operationLimits.maxNodesPerRead > 0) {
+                    if (request.nodesToRead.length > this.engine.serverCapabilities.operationLimits.maxNodesPerRead) {
                         return sendError(StatusCodes.BadTooManyOperations);
                     }
                 }
@@ -2635,10 +2629,10 @@ export class OPCUAServer extends OPCUABaseServer {
                 }
 
                 // ask for a refresh of asynchronous variables
-                server.engine.refreshValues(request.nodesToRead, request.maxAge, (err?: Error | null) => {
+                this.engine.refreshValues(request.nodesToRead, request.maxAge, (err?: Error | null) => {
                     assert(!err, " error not handled here , fix me");
 
-                    results = server.engine.read(context, request);
+                    results = this.engine.read(context, request);
 
                     assert(results[0].schema.name === "DataValue");
                     assert(results.length === request.nodesToRead!.length);
@@ -2657,8 +2651,7 @@ export class OPCUAServer extends OPCUABaseServer {
     }
 
     // read services
-    protected _on_HistoryReadRequest(message: Message, channel: ServerSecureChannelLayer) {
-        const server = this;
+    protected _on_HistoryReadRequest(message: Message, channel: ServerSecureChannelLayer): void {
         const request = message.request as HistoryReadRequest;
 
         assert(request instanceof HistoryReadRequest);
@@ -2685,32 +2678,30 @@ export class OPCUAServer extends OPCUABaseServer {
                 assert(request.nodesToRead[0].schema.name === "HistoryReadValueId");
 
                 // limit size of nodesToRead array to maxNodesPerRead
-                if (server.engine.serverCapabilities.operationLimits.maxNodesPerRead > 0) {
-                    if (request.nodesToRead.length > server.engine.serverCapabilities.operationLimits.maxNodesPerRead) {
+                if (this.engine.serverCapabilities.operationLimits.maxNodesPerRead > 0) {
+                    if (request.nodesToRead.length > this.engine.serverCapabilities.operationLimits.maxNodesPerRead) {
                         return sendError(StatusCodes.BadTooManyOperations);
                     }
                 }
                 // todo : handle
-                if (server.engine.serverCapabilities.operationLimits.maxNodesPerHistoryReadData > 0) {
-                    if (request.nodesToRead.length > server.engine.serverCapabilities.operationLimits.maxNodesPerHistoryReadData) {
+                if (this.engine.serverCapabilities.operationLimits.maxNodesPerHistoryReadData > 0) {
+                    if (request.nodesToRead.length > this.engine.serverCapabilities.operationLimits.maxNodesPerHistoryReadData) {
                         return sendError(StatusCodes.BadTooManyOperations);
                     }
                 }
-                if (server.engine.serverCapabilities.operationLimits.maxNodesPerHistoryReadEvents > 0) {
-                    if (
-                        request.nodesToRead.length > server.engine.serverCapabilities.operationLimits.maxNodesPerHistoryReadEvents
-                    ) {
+                if (this.engine.serverCapabilities.operationLimits.maxNodesPerHistoryReadEvents > 0) {
+                    if (request.nodesToRead.length > this.engine.serverCapabilities.operationLimits.maxNodesPerHistoryReadEvents) {
                         return sendError(StatusCodes.BadTooManyOperations);
                     }
                 }
 
-                const context = new SessionContext({ session, server });
+                const context = new SessionContext({ session, server: this });
 
                 // ask for a refresh of asynchronous variables
-                server.engine.refreshValues(request.nodesToRead, 0, (err?: Error | null) => {
+                this.engine.refreshValues(request.nodesToRead, 0, (err?: Error | null) => {
                     assert(!err, " error not handled here , fix me"); // TODO
 
-                    server.engine.historyRead(context, request, (err1: Error | null, results?: HistoryReadResult[]) => {
+                    this.engine.historyRead(context, request, (err1: Error | null, results?: HistoryReadResult[]) => {
                         if (err1) {
                             return sendError(StatusCodes.BadHistoryOperationInvalid);
                         }
@@ -2748,8 +2739,7 @@ export class OPCUAServer extends OPCUABaseServer {
    // In the cases where the Server is able to verify that it has successfully written to the data source,
    // it reports an unconditional success.
    */
-    protected _on_WriteRequest(message: Message, channel: ServerSecureChannelLayer) {
-        const server = this;
+    protected _on_WriteRequest(message: Message, channel: ServerSecureChannelLayer): void {
         const request = message.request as WriteRequest;
         assert(request instanceof WriteRequest);
         assert(!request.nodesToWrite || Array.isArray(request.nodesToWrite));
@@ -2765,8 +2755,8 @@ export class OPCUAServer extends OPCUABaseServer {
                     return sendError(StatusCodes.BadNothingToDo);
                 }
 
-                if (server.engine.serverCapabilities.operationLimits.maxNodesPerWrite > 0) {
-                    if (request.nodesToWrite.length > server.engine.serverCapabilities.operationLimits.maxNodesPerWrite) {
+                if (this.engine.serverCapabilities.operationLimits.maxNodesPerWrite > 0) {
+                    if (request.nodesToWrite.length > this.engine.serverCapabilities.operationLimits.maxNodesPerWrite) {
                         return sendError(StatusCodes.BadTooManyOperations);
                     }
                 }
@@ -2776,10 +2766,10 @@ export class OPCUAServer extends OPCUABaseServer {
                     nodeToWrite.nodeId = session.resolveRegisteredNode(nodeToWrite.nodeId);
                 }
 
-                const context = new SessionContext({ session, server });
+                const context = new SessionContext({ session, server: this });
 
                 assert(request.nodesToWrite[0].schema.name === "WriteValue");
-                server.engine.write(context, request.nodesToWrite, (err: Error | null, results?: StatusCode[]) => {
+                this.engine.write(context, request.nodesToWrite, (err: Error | null, results?: StatusCode[]) => {
                     assert(!err);
                     assert(Array.isArray(results));
                     assert(results!.length === request.nodesToWrite!.length);
@@ -2794,9 +2784,8 @@ export class OPCUAServer extends OPCUABaseServer {
     }
 
     // subscription services
-    protected _on_CreateSubscriptionRequest(message: Message, channel: ServerSecureChannelLayer) {
-        const server = this;
-        const engine = server.engine;
+    protected _on_CreateSubscriptionRequest(message: Message, channel: ServerSecureChannelLayer): void {
+        const engine = this.engine;
         const addressSpace = engine.addressSpace!;
 
         const request = message.request as CreateSubscriptionRequest;
@@ -2807,7 +2796,7 @@ export class OPCUAServer extends OPCUABaseServer {
             message,
             channel,
             (session: ServerSession, sendResponse: (response: Response) => void, sendError: (statusCode: StatusCode) => void) => {
-                const context = new SessionContext({ session, server });
+                const context = new SessionContext({ session, server: this });
 
                 if (session.currentSubscriptionCount >= OPCUAServer.MAX_SUBSCRIPTION) {
                     return sendError(StatusCodes.BadTooManySubscriptions);
@@ -2830,8 +2819,7 @@ export class OPCUAServer extends OPCUABaseServer {
         );
     }
 
-    protected _on_DeleteSubscriptionsRequest(message: Message, channel: ServerSecureChannelLayer) {
-        const server = this;
+    protected _on_DeleteSubscriptionsRequest(message: Message, channel: ServerSecureChannelLayer): void {
         const request = message.request as DeleteSubscriptionsRequest;
         assert(request instanceof DeleteSubscriptionsRequest);
         this._apply_on_SubscriptionIds(
@@ -2839,13 +2827,13 @@ export class OPCUAServer extends OPCUABaseServer {
             message,
             channel,
             async (session: ServerSession, subscriptionId: number) => {
-                let subscription = server.engine.findOrphanSubscription(subscriptionId);
+                let subscription = this.engine.findOrphanSubscription(subscriptionId);
                 // istanbul ignore next
                 if (subscription) {
                     warningLog("Deleting an orphan subscription", subscriptionId);
 
                     await this._beforeDeleteSubscription(subscription);
-                    return server.engine.deleteOrphanSubscription(subscription);
+                    return this.engine.deleteOrphanSubscription(subscription);
                 }
 
                 subscription = session.getSubscription(subscriptionId);
@@ -2858,7 +2846,7 @@ export class OPCUAServer extends OPCUABaseServer {
         );
     }
 
-    protected _on_TransferSubscriptionsRequest(message: Message, channel: ServerSecureChannelLayer) {
+    protected _on_TransferSubscriptionsRequest(message: Message, channel: ServerSecureChannelLayer): void {
         //
         // sendInitialValue Boolean
         //    A Boolean parameter with the following values:
@@ -2870,8 +2858,7 @@ export class OPCUAServer extends OPCUABaseServer {
         //    This parameter only applies to MonitoredItems used for monitoring Attribute changes.
         //
 
-        const server = this;
-        const engine = server.engine;
+        const engine = this.engine;
 
         const request = message.request as TransferSubscriptionsRequest;
         assert(request instanceof TransferSubscriptionsRequest);
@@ -2884,9 +2871,8 @@ export class OPCUAServer extends OPCUABaseServer {
         );
     }
 
-    protected _on_CreateMonitoredItemsRequest(message: Message, channel: ServerSecureChannelLayer) {
-        const server = this;
-        const engine = server.engine;
+    protected _on_CreateMonitoredItemsRequest(message: Message, channel: ServerSecureChannelLayer): void {
+        const engine = this.engine;
         const addressSpace = engine.addressSpace!;
 
         const request = message.request as CreateMonitoredItemsRequest;
@@ -2910,8 +2896,8 @@ export class OPCUAServer extends OPCUABaseServer {
                 if (!request.itemsToCreate || request.itemsToCreate.length === 0) {
                     return sendError(StatusCodes.BadNothingToDo);
                 }
-                if (server.engine.serverCapabilities.operationLimits.maxMonitoredItemsPerCall > 0) {
-                    if (request.itemsToCreate.length > server.engine.serverCapabilities.operationLimits.maxMonitoredItemsPerCall) {
+                if (this.engine.serverCapabilities.operationLimits.maxMonitoredItemsPerCall > 0) {
+                    if (request.itemsToCreate.length > this.engine.serverCapabilities.operationLimits.maxMonitoredItemsPerCall) {
                         return sendError(StatusCodes.BadTooManyOperations);
                     }
                 }
@@ -2955,7 +2941,7 @@ export class OPCUAServer extends OPCUABaseServer {
         );
     }
 
-    protected _on_ModifySubscriptionRequest(message: Message, channel: ServerSecureChannelLayer) {
+    protected _on_ModifySubscriptionRequest(message: Message, channel: ServerSecureChannelLayer): void {
         const request = message.request as ModifySubscriptionRequest;
         assert(request instanceof ModifySubscriptionRequest);
 
@@ -2982,8 +2968,7 @@ export class OPCUAServer extends OPCUABaseServer {
         );
     }
 
-    protected _on_ModifyMonitoredItemsRequest(message: Message, channel: ServerSecureChannelLayer) {
-        const server = this;
+    protected _on_ModifyMonitoredItemsRequest(message: Message, channel: ServerSecureChannelLayer): void {
         const request = message.request as ModifyMonitoredItemsRequest;
 
         assert(request instanceof ModifyMonitoredItemsRequest);
@@ -3007,8 +2992,8 @@ export class OPCUAServer extends OPCUABaseServer {
                 }
 
                 /* istanbul ignore next */
-                if (server.engine.serverCapabilities.operationLimits.maxMonitoredItemsPerCall > 0) {
-                    if (request.itemsToModify.length > server.engine.serverCapabilities.operationLimits.maxMonitoredItemsPerCall) {
+                if (this.engine.serverCapabilities.operationLimits.maxMonitoredItemsPerCall > 0) {
+                    if (request.itemsToModify.length > this.engine.serverCapabilities.operationLimits.maxMonitoredItemsPerCall) {
                         return sendError(StatusCodes.BadTooManyOperations);
                     }
                 }
@@ -3039,7 +3024,7 @@ export class OPCUAServer extends OPCUABaseServer {
         );
     }
 
-    protected _on_PublishRequest(message: Message, channel: ServerSecureChannelLayer) {
+    protected _on_PublishRequest(message: Message, channel: ServerSecureChannelLayer): void {
         const request = message.request as PublishRequest;
         assert(request instanceof PublishRequest);
 
@@ -3050,14 +3035,14 @@ export class OPCUAServer extends OPCUABaseServer {
             (session: ServerSession, sendResponse: (response: Response) => void, sendError: (statusCode: StatusCode) => void) => {
                 assert(session);
                 assert(session.publishEngine); // server.publishEngine doesn't exists, OPCUAServer has probably shut down already
-                session.publishEngine._on_PublishRequest(request, (request1: any, response: any) => {
+                session.publishEngine._on_PublishRequest(request, (request1: PublishRequest, response: PublishResponse) => {
                     sendResponse(response);
                 });
             }
         );
     }
 
-    protected _on_SetPublishingModeRequest(message: Message, channel: ServerSecureChannelLayer) {
+    protected _on_SetPublishingModeRequest(message: Message, channel: ServerSecureChannelLayer): void {
         const request = message.request as SetPublishingModeRequest;
         assert(request instanceof SetPublishingModeRequest);
         const publishingEnabled = request.publishingEnabled;
@@ -3071,8 +3056,7 @@ export class OPCUAServer extends OPCUABaseServer {
         );
     }
 
-    protected _on_DeleteMonitoredItemsRequest(message: Message, channel: ServerSecureChannelLayer) {
-        const server = this;
+    protected _on_DeleteMonitoredItemsRequest(message: Message, channel: ServerSecureChannelLayer): void {
         const request = message.request as DeleteMonitoredItemsRequest;
         assert(request instanceof DeleteMonitoredItemsRequest);
 
@@ -3092,10 +3076,8 @@ export class OPCUAServer extends OPCUABaseServer {
                 }
 
                 /* istanbul ignore next */
-                if (server.engine.serverCapabilities.operationLimits.maxMonitoredItemsPerCall > 0) {
-                    if (
-                        request.monitoredItemIds.length > server.engine.serverCapabilities.operationLimits.maxMonitoredItemsPerCall
-                    ) {
+                if (this.engine.serverCapabilities.operationLimits.maxMonitoredItemsPerCall > 0) {
+                    if (request.monitoredItemIds.length > this.engine.serverCapabilities.operationLimits.maxMonitoredItemsPerCall) {
                         return sendError(StatusCodes.BadTooManyOperations);
                     }
                 }
@@ -3126,8 +3108,7 @@ export class OPCUAServer extends OPCUABaseServer {
             }
         );
     }
-    protected _on_SetTriggeringRequest(message: Message, channel: ServerSecureChannelLayer) {
-        const server = this;
+    protected _on_SetTriggeringRequest(message: Message, channel: ServerSecureChannelLayer): void {
         const request = message.request as SetTriggeringRequest;
         assert(request instanceof SetTriggeringRequest);
 
@@ -3152,8 +3133,8 @@ export class OPCUAServer extends OPCUABaseServer {
                  *
                  */
                 const maxElements = (linksToAdd ? linksToAdd.length : 0) + (linksToRemove ? linksToRemove.length : 0);
-                if (server.engine.serverCapabilities.operationLimits.maxMonitoredItemsPerCall > 0) {
-                    if (maxElements > server.engine.serverCapabilities.operationLimits.maxMonitoredItemsPerCall) {
+                if (this.engine.serverCapabilities.operationLimits.maxMonitoredItemsPerCall > 0) {
+                    if (maxElements > this.engine.serverCapabilities.operationLimits.maxMonitoredItemsPerCall) {
                         return sendError(StatusCodes.BadTooManyOperations);
                     }
                 }
@@ -3177,13 +3158,13 @@ export class OPCUAServer extends OPCUABaseServer {
         );
     }
 
-    protected async _beforeDeleteSubscription(subscription: Subscription) {
+    protected async _beforeDeleteSubscription(subscription: Subscription): Promise<void> {
         if (!this.options.onDeleteMonitoredItem) {
             return;
         }
         await subscription.applyOnMonitoredItem(this.options.onDeleteMonitoredItem.bind(null, subscription) as any);
     }
-    protected _on_RepublishRequest(message: Message, channel: ServerSecureChannelLayer) {
+    protected _on_RepublishRequest(message: Message, channel: ServerSecureChannelLayer): void {
         const request = message.request as RepublishRequest;
         assert(request instanceof RepublishRequest);
 
@@ -3225,8 +3206,7 @@ export class OPCUAServer extends OPCUABaseServer {
     // Bad_TooManyOperations
     // Bad_SubscriptionIdInvalid
     // Bad_MonitoringModeInvalid
-    protected _on_SetMonitoringModeRequest(message: Message, channel: ServerSecureChannelLayer) {
-        const server = this;
+    protected _on_SetMonitoringModeRequest(message: Message, channel: ServerSecureChannelLayer): void {
         const request = message.request as SetMonitoringModeRequest;
         assert(request instanceof SetMonitoringModeRequest);
 
@@ -3246,10 +3226,8 @@ export class OPCUAServer extends OPCUABaseServer {
                 }
 
                 /* istanbul ignore next */
-                if (server.engine.serverCapabilities.operationLimits.maxMonitoredItemsPerCall > 0) {
-                    if (
-                        request.monitoredItemIds.length > server.engine.serverCapabilities.operationLimits.maxMonitoredItemsPerCall
-                    ) {
+                if (this.engine.serverCapabilities.operationLimits.maxMonitoredItemsPerCall > 0) {
+                    if (request.monitoredItemIds.length > this.engine.serverCapabilities.operationLimits.maxMonitoredItemsPerCall) {
                         return sendError(StatusCodes.BadTooManyOperations);
                     }
                 }
@@ -3277,10 +3255,9 @@ export class OPCUAServer extends OPCUABaseServer {
     }
 
     // _on_TranslateBrowsePathsToNodeIds service
-    protected _on_TranslateBrowsePathsToNodeIdsRequest(message: Message, channel: ServerSecureChannelLayer) {
+    protected _on_TranslateBrowsePathsToNodeIdsRequest(message: Message, channel: ServerSecureChannelLayer): void {
         const request = message.request as TranslateBrowsePathsToNodeIdsRequest;
         assert(request instanceof TranslateBrowsePathsToNodeIdsRequest);
-        const server = this;
 
         this._apply_on_SessionObject(
             TranslateBrowsePathsToNodeIdsResponse,
@@ -3294,16 +3271,16 @@ export class OPCUAServer extends OPCUABaseServer {
                 if (!request.browsePaths || request.browsePaths.length === 0) {
                     return sendError(StatusCodes.BadNothingToDo);
                 }
-                if (server.engine.serverCapabilities.operationLimits.maxNodesPerTranslateBrowsePathsToNodeIds > 0) {
+                if (this.engine.serverCapabilities.operationLimits.maxNodesPerTranslateBrowsePathsToNodeIds > 0) {
                     if (
                         request.browsePaths.length >
-                        server.engine.serverCapabilities.operationLimits.maxNodesPerTranslateBrowsePathsToNodeIds
+                        this.engine.serverCapabilities.operationLimits.maxNodesPerTranslateBrowsePathsToNodeIds
                     ) {
                         return sendError(StatusCodes.BadTooManyOperations);
                     }
                 }
 
-                const browsePathsResults = request.browsePaths.map((browsePath) => server.engine.browsePath(browsePath));
+                const browsePathsResults = request.browsePaths.map((browsePath) => this.engine.browsePath(browsePath));
 
                 const response = new TranslateBrowsePathsToNodeIdsResponse({
                     diagnosticInfos: null,
@@ -3320,8 +3297,7 @@ export class OPCUAServer extends OPCUABaseServer {
     // Bad_NothingToDo       See Table 165 for the description of this result code.
     // Bad_TooManyOperations See Table 165 for the description of this result code.
     //
-    protected _on_CallRequest(message: Message, channel: ServerSecureChannelLayer) {
-        const server = this;
+    protected _on_CallRequest(message: Message, channel: ServerSecureChannelLayer): void {
         const request = message.request as CallRequest;
         assert(request instanceof CallRequest);
 
@@ -3338,16 +3314,16 @@ export class OPCUAServer extends OPCUABaseServer {
 
                 // the MaxNodesPerMethodCall Property indicates the maximum size of the methodsToCall array when
                 // a Client calls the Call Service.
-                let maxNodesPerMethodCall = server.engine.serverCapabilities.operationLimits.maxNodesPerMethodCall;
+                let maxNodesPerMethodCall = this.engine.serverCapabilities.operationLimits.maxNodesPerMethodCall;
                 maxNodesPerMethodCall = maxNodesPerMethodCall <= 0 ? 1000 : maxNodesPerMethodCall;
                 if (request.methodsToCall.length > maxNodesPerMethodCall) {
                     return sendError(StatusCodes.BadTooManyOperations);
                 }
 
                 /* jshint validthis: true */
-                const addressSpace = server.engine.addressSpace!;
+                const addressSpace = this.engine.addressSpace!;
 
-                const context = new SessionContext({ session, server });
+                const context = new SessionContext({ session, server: this });
 
                 async.map(
                     request.methodsToCall,
@@ -3368,8 +3344,7 @@ export class OPCUAServer extends OPCUABaseServer {
         );
     }
 
-    protected _on_RegisterNodesRequest(message: Message, channel: ServerSecureChannelLayer) {
-        const server = this;
+    protected _on_RegisterNodesRequest(message: Message, channel: ServerSecureChannelLayer): void {
         const request = message.request as RegisterNodesRequest;
         assert(request instanceof RegisterNodesRequest);
 
@@ -3384,10 +3359,8 @@ export class OPCUAServer extends OPCUABaseServer {
                     response = new RegisterNodesResponse({ responseHeader: { serviceResult: StatusCodes.BadNothingToDo } });
                     return sendResponse(response);
                 }
-                if (server.engine.serverCapabilities.operationLimits.maxNodesPerRegisterNodes > 0) {
-                    if (
-                        request.nodesToRegister.length > server.engine.serverCapabilities.operationLimits.maxNodesPerRegisterNodes
-                    ) {
+                if (this.engine.serverCapabilities.operationLimits.maxNodesPerRegisterNodes > 0) {
+                    if (request.nodesToRegister.length > this.engine.serverCapabilities.operationLimits.maxNodesPerRegisterNodes) {
                         return sendError(StatusCodes.BadTooManyOperations);
                     }
                 }
@@ -3408,8 +3381,7 @@ export class OPCUAServer extends OPCUABaseServer {
         );
     }
 
-    protected _on_UnregisterNodesRequest(message: Message, channel: ServerSecureChannelLayer) {
-        const server = this;
+    protected _on_UnregisterNodesRequest(message: Message, channel: ServerSecureChannelLayer): void {
         const request = message.request as UnregisterNodesRequest;
         assert(request instanceof UnregisterNodesRequest);
 
@@ -3427,9 +3399,9 @@ export class OPCUAServer extends OPCUABaseServer {
                     return sendResponse(response);
                 }
 
-                if (server.engine.serverCapabilities.operationLimits.maxNodesPerRegisterNodes > 0) {
+                if (this.engine.serverCapabilities.operationLimits.maxNodesPerRegisterNodes > 0) {
                     if (
-                        request.nodesToUnregister.length > server.engine.serverCapabilities.operationLimits.maxNodesPerRegisterNodes
+                        request.nodesToUnregister.length > this.engine.serverCapabilities.operationLimits.maxNodesPerRegisterNodes
                     ) {
                         return sendError(StatusCodes.BadTooManyOperations);
                     }
@@ -3444,7 +3416,7 @@ export class OPCUAServer extends OPCUABaseServer {
     }
 
     /* istanbul ignore next */
-    protected _on_Cancel(message: Message, channel: ServerSecureChannelLayer) {
+    protected _on_Cancel(message: Message, channel: ServerSecureChannelLayer): void {
         return g_sendError(channel, message, CancelResponse, StatusCodes.BadServiceUnsupported);
     }
 
@@ -3453,38 +3425,38 @@ export class OPCUAServer extends OPCUABaseServer {
     // Nodes continue to exist in the AddressSpace even if the Client that created them disconnects from the Server.
     //
     /* istanbul ignore next */
-    protected _on_AddNodes(message: Message, channel: ServerSecureChannelLayer) {
+    protected _on_AddNodes(message: Message, channel: ServerSecureChannelLayer): void {
         return g_sendError(channel, message, AddNodesResponse, StatusCodes.BadServiceUnsupported);
     }
 
     /* istanbul ignore next */
-    protected _on_AddReferences(message: Message, channel: ServerSecureChannelLayer) {
+    protected _on_AddReferences(message: Message, channel: ServerSecureChannelLayer): void {
         return g_sendError(channel, message, AddReferencesResponse, StatusCodes.BadServiceUnsupported);
     }
 
     /* istanbul ignore next */
-    protected _on_DeleteNodes(message: Message, channel: ServerSecureChannelLayer) {
+    protected _on_DeleteNodes(message: Message, channel: ServerSecureChannelLayer): void {
         return g_sendError(channel, message, DeleteNodesResponse, StatusCodes.BadServiceUnsupported);
     }
 
     /* istanbul ignore next */
-    protected _on_DeleteReferences(message: Message, channel: ServerSecureChannelLayer) {
+    protected _on_DeleteReferences(message: Message, channel: ServerSecureChannelLayer): void {
         return g_sendError(channel, message, DeleteReferencesResponse, StatusCodes.BadServiceUnsupported);
     }
 
     // Query Service
     /* istanbul ignore next */
-    protected _on_QueryFirst(message: Message, channel: ServerSecureChannelLayer) {
+    protected _on_QueryFirst(message: Message, channel: ServerSecureChannelLayer): void {
         return g_sendError(channel, message, QueryFirstResponse, StatusCodes.BadServiceUnsupported);
     }
 
     /* istanbul ignore next */
-    protected _on_QueryNext(message: Message, channel: ServerSecureChannelLayer) {
+    protected _on_QueryNext(message: Message, channel: ServerSecureChannelLayer): void {
         return g_sendError(channel, message, QueryNextResponse, StatusCodes.BadServiceUnsupported);
     }
 
     /* istanbul ignore next */
-    protected _on_HistoryUpdate(message: Message, channel: ServerSecureChannelLayer) {
+    protected _on_HistoryUpdate(message: Message, channel: ServerSecureChannelLayer): void {
         return g_sendError(channel, message, HistoryUpdateResponse, StatusCodes.BadServiceUnsupported);
     }
 
@@ -3522,7 +3494,7 @@ export class OPCUAServer extends OPCUABaseServer {
 
         /* istanbul ignore next */
         if (
-            !Object.prototype.hasOwnProperty.call(endpointOptions,"port") ||
+            !Object.prototype.hasOwnProperty.call(endpointOptions, "port") ||
             !isFinite(endpointOptions.port!) ||
             typeof endpointOptions.port !== "number"
         ) {
@@ -3606,7 +3578,7 @@ export interface RaiseEventAuditCreateSessionEventData extends RaiseEventAuditSe
     secureChannelId: PseudoVariantString;
     revisedSessionTimeout: PseudoVariantDuration;
     clientCertificate: PseudoVariantByteString;
-    clientCertificateThumbprint: PseudoVariantByteString;
+    clientCertificateThumbprint: PseudoVariantString;
 }
 
 export interface RaiseEventAuditActivateSessionEventData extends RaiseEventAuditSessionEventData {
@@ -3734,8 +3706,6 @@ export interface OPCUAServer extends EventEmitter {
     on(event: string, eventHandler: (...args: [any?, ...any[]]) => void): this;
 }
 
-// tslint:disable:no-var-requires
-const thenify = require("thenify");
 const opts = { multiArgs: false };
 OPCUAServer.prototype.start = thenify.withCallback(OPCUAServer.prototype.start, opts);
 OPCUAServer.prototype.initialize = thenify.withCallback(OPCUAServer.prototype.initialize, opts);
