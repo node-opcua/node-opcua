@@ -6,7 +6,7 @@
 // tslint:disable:no-console
 import * as fs from "fs";
 // node 14 onward : import { mkdir } from "fs/promises";
-const { mkdir }= fs.promises;
+const { mkdir } = fs.promises;
 
 import * as path from "path";
 import * as ts from "typescript";
@@ -80,7 +80,7 @@ function get_caller_source_filename() {
     return schemaFile;
 }
 
-export async function generateCode(schemaName: string, localSchemaFile: string, generatedCodeFolder?: string) {
+export async function generateCode(schemaName: string, localSchemaFile: string, generatedCodeFolder?: string): Promise<void> {
     const schemaTypescriptFile = schemaName + "_Schema.ts";
 
     const currentFolder = process.cwd();
@@ -143,7 +143,7 @@ export async function generateCode(schemaName: string, localSchemaFile: string, 
     }
 }
 
-export async function generateTypeScriptCodeFromSchema(schemaName: string) {
+export async function generateTypeScriptCodeFromSchema(schemaName: string): Promise<void> {
     const currentFolder = process.cwd();
     const schemaFilename = path.join(currentFolder, "schemas", schemaName + "_schema.ts");
     const generatedCodeFolder = path.join(process.cwd(), "_generated_");
@@ -182,7 +182,7 @@ export async function registerObject(schema: string, generateCodeFolder?: string
     return null;
 }
 
-export function unregisterObject(schema: any, folder: string) {
+export function unregisterObject(schema: { name: string }, folder: string): void {
     const generateTypeScriptSource = get_class_TScript_filename(schema.name, folder);
     if (fs.existsSync(generateTypeScriptSource)) {
         fs.unlinkSync(generateTypeScriptSource);

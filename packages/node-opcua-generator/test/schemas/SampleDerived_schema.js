@@ -7,8 +7,6 @@ exports.SampleDerived_Schema = {
     baseType: "SampleBase",
     documentation: "A FOOBAR Derived Object.",
     id: node_opcua_factory_1.next_available_id(),
-    fields: [
-        { name: "otherName", fieldType: "String", documentation: "The name." }
-    ]
+    fields: [{ name: "otherName", fieldType: "String", documentation: "The name." }]
 };
 //# sourceMappingURL=SampleDerived_schema.js.map

@@ -8,7 +8,8 @@ exports.ObjWithIntegerId_Schema = {
     fields: [
         { name: "title", fieldType: "UAString" },
         {
-            name: "requestHandle", fieldType: "IntegerId"
+            name: "requestHandle",
+            fieldType: "IntegerId"
         }
     ]
 };

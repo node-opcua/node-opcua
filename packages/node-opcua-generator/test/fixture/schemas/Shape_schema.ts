@@ -2,13 +2,13 @@
 import { registerEnumeration, StructuredTypeOptions } from "node-opcua-factory";
 
 export enum Color {
-    RED=   100,
-    BLUE=  200,
-    GREEN= 300,
+    RED = 100,
+    BLUE = 200,
+    GREEN = 300
 }
 const schema_EnumColor = registerEnumeration({
     enumValues: Color,
-    name: "EnumColor",
+    name: "EnumColor"
 });
 
 export const schema_Shape: StructuredTypeOptions = {
@@ -18,21 +18,21 @@ export const schema_Shape: StructuredTypeOptions = {
         {
             defaultValue: () => "my shape",
             fieldType: "String",
-            name: "name",
+            name: "name"
         },
         {
             fieldType: "EnumShapeType",
-            name: "shapeType",
+            name: "shapeType"
         },
         {
             defaultValue: Color.GREEN,
             fieldType: "EnumColor",
-            name: "color",
+            name: "color"
         },
         {
             defaultValue: () => Color.BLUE,
             fieldType: "EnumColor",
-            name: "inner_color",
+            name: "inner_color"
         }
     ]
 };

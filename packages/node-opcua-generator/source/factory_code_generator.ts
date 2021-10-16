@@ -6,7 +6,10 @@
 // tslint:disable:max-line-length
 // tslint:disable:max-depth
 
+import * as os from "os";
+import * as path from "path";
 import * as fs from "fs";
+
 import { assert } from "node-opcua-assert";
 import {
     check_schema_correctness,
@@ -16,8 +19,6 @@ import {
     getStructuredTypeSchema,
     StructuredTypeSchema
 } from "node-opcua-factory";
-import * as os from "os";
-import * as path from "path";
 
 import { DataTypeIds, ObjectIds } from "node-opcua-constants";
 import { make_debugLog } from "node-opcua-debug";
@@ -58,6 +59,7 @@ function convertToJavascriptCode(obj: any): string {
 
         // tslint:disable:no-empty
     } else if (typeof obj === "function") {
+        /** */
     } else {
         lines.push(JSON.stringify(obj));
     }
@@ -147,7 +149,7 @@ function write_complex_fast_init(write: WriteFunc, schema: StructuredTypeSchema,
 
 function write_complex(write: WriteFunc, schema: StructuredTypeSchema, field: FieldType, member: string /*, i*/) {
     if (field.isArray) {
-        if (field.hasOwnProperty("defaultValue")) {
+        if (Object.prototype.hasOwnProperty.call(field, "defaultValue")) {
             // todo: fix me => should call field defaultValue in the live version
             write(`        this.${member} = []; // should default`);
         } else {
@@ -674,7 +676,7 @@ function write_expose_encoder_decoder(write: WriteFunc, schema: StructuredTypeSc
     }
 }
 
-export function writeStructuredType(write: WriteFunc, schema: StructuredTypeSchema) {
+export function writeStructuredType(write: WriteFunc, schema: StructuredTypeSchema): void {
     const className = schema.name;
     const baseClass = schema.baseType;
 
@@ -782,7 +784,11 @@ function getEncodingJsonId(schema: StructuredTypeSchema): NodeId {
 }
 
 /* eslint complexity:[0,50],  max-statements: [1, 254]*/
-export function produce_TScript_code(schema: StructuredTypeSchema, localSchemaFile: string, generatedTypescriptFilename: string) {
+export function produce_TScript_code(
+    schema: StructuredTypeSchema,
+    localSchemaFile: string,
+    generatedTypescriptFilename: string
+): void {
     const className = schema.name;
 
     generatedObjectSchema[className] = generatedTypescriptFilename;
@@ -841,7 +847,7 @@ export function produce_TScript_code(schema: StructuredTypeSchema, localSchemaFi
     // -------------------------------------------------------------------------
     const tmpMap: any = {};
     for (const field of complexTypes) {
-        if (tmpMap.hasOwnProperty(field.fieldType)) {
+        if (Object.prototype.hasOwnProperty.call(tmpMap, field.fieldType)) {
             continue;
         }
         tmpMap[field.fieldType] = 1;

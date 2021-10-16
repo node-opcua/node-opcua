@@ -1,12 +1,10 @@
 require("node-opcua-basic-types");
-const registerObject = require("../..").registerObject;
-const registerEnumeration = require("node-opcua-factory").registerEnumeration;
-const next_available_id = require("node-opcua-factory").next_available_id;
 
+const { registerEnumeration, next_available_id } = require("node-opcua-factory");
+
+const { registerObject } = require("../..");
 
 function initialize() {
-
-
     const SomeEnumeration = registerEnumeration({
         name: "SomeEnumeration",
         enumValues: {
@@ -18,15 +16,13 @@ function initialize() {
     });
     exports.SomeEnumeration = SomeEnumeration;
 
-// -----------------------------------------------------
+    // -----------------------------------------------------
     const FooBar_Schema = {
         name: "FooBar",
         documentation: "A FOOBAR Object.",
 
         id: next_available_id(),
-        fields: [
-            { name: "name", fieldType: "String", documentation: "The name." }
-        ]
+        fields: [{ name: "name", fieldType: "String", documentation: "The name." }]
     };
 
     const path = require("path");
@@ -40,13 +36,10 @@ function initialize() {
         documentation: "A FOOBAR Derived Object.",
         baseType: "FooBar",
         id: next_available_id(),
-        fields: [
-            { name: "name2", fieldType: "String", documentation: "The second name." }
-        ]
+        fields: [{ name: "name2", fieldType: "String", documentation: "The second name." }]
     };
     exports.FooBarDerived_Schema = FooBarDerived_Schema;
     exports.FooBarDerived = registerObject(FooBarDerived_Schema, temporary_folder);
-
 
     const DummyObject_Schema = {
         name: "DummyObject",
