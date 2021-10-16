@@ -88,7 +88,7 @@ describe("[CLIENT] monitoredItem group when NotificationChange arrive before Cre
         client.on("after_reconnection", () => console.log("after reconnection"));
         client.on("connection_lost", () => console.log("connection lost"));
 
-        client.on("send_request", (request) => {});
+        client.on("send_request", (request) => {/** */});
 
         await client.connect(endpointUrl);
 
