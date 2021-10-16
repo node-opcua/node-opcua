@@ -1,10 +1,10 @@
 // tslint:disable:no-console
 import * as mocha from "mocha";
+import * as should from "should";
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
-import * as should  from "should";
+import { nodesets } from "node-opcua-nodesets";
 import { ParserLike, ReaderStateParserLike, Xml2Json, XmlAttributes } from "..";
 import { Xml2JsonFs } from "../source/nodejs/xml2json_fs";
-import { nodesets } from "node-opcua-nodesets";
 
 const doDebug = checkDebugFlag("TEST");
 const debugLog = make_debugLog("TEST");
