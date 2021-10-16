@@ -1,13 +1,8 @@
-import {
-    AccessRestrictionsFlag,
-    AttributeIds,
-    makeAccessLevelFlag,
-    makePermissionFlag
-} from "node-opcua-data-model";
+import * as should from "should";
+import { AccessRestrictionsFlag, AttributeIds, makeAccessLevelFlag, makePermissionFlag } from "node-opcua-data-model";
 import { resolveNodeId } from "node-opcua-nodeid";
 import { PermissionType, RolePermissionTypeOptions } from "node-opcua-types";
 import { DataType } from "node-opcua-variant";
-import * as should from "should";
 import { AddressSpace, UAObject, Namespace, SessionContext, WellKnownRoles, makeRoles, setNamespaceMetaData } from "..";
 
 // let's make sure should don't get removed by typescript optimizer
@@ -102,7 +97,9 @@ describe("Variable#setPermissions & checkPermission", () => {
     });
 });
 
-function defaultMethod(): any {}
+function defaultMethod(): any {
+    /** empty */
+}
 describe("Method#setPermissions & checkPermission", () => {
     let addressSpace: AddressSpace;
     let namespace: Namespace;
@@ -191,7 +188,6 @@ describe("Namespace Permission", () => {
     });
 
     it("a variable without permissions should expose the default permission of its parent namespace", () => {
-  
         const namespace1 = addressSpace.getOwnNamespace();
 
         const rolePermissions: RolePermissionTypeOptions[] = [
@@ -207,13 +203,14 @@ describe("Namespace Permission", () => {
         namespace1.setDefaultRolePermissions(rolePermissions);
 
         const someObject = namespace1.addObject({
-            browseName: "SomeName",
+            browseName: "SomeName"
         });
         someObject.nodeId.namespace.should.eql(namespace1.index);
 
         should(someObject.getRolePermissions(false)).eql(null);
-        should(
-            someObject.getRolePermissions(true)!?.map(({ roleId, permissions }) => ({ roleId: roleId.value, permissions }))).eql(rolePermissions);
+        should(someObject.getRolePermissions(true)!.map(({ roleId, permissions }) => ({ roleId: roleId.value, permissions }))).eql(
+            rolePermissions
+        );
 
         const contextAuthenticated = new SessionContext();
         contextAuthenticated.getCurrentUserRoles = () => makeRoles([WellKnownRoles.AuthenticatedUser, WellKnownRoles.Engineer]);

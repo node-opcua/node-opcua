@@ -1,4 +1,3 @@
-import * as mocha from "mocha";
 import * as path from "path";
 import * as should from "should";
 import * as sinon from "sinon";
@@ -28,13 +27,13 @@ import {
 import { generateAddressSpace } from "../nodeJS";
 
 import { create_minimalist_address_space_nodeset } from "../testHelpers";
-import { assert } from "sinon";
 
 const context = SessionContext.defaultContext;
 
 // tslint:disable-next-line:no-var-requires
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("testing Variables ", () => {
+    // eslint-disable-next-line max-statements
     it("ZZ1- a variable should return attributes with  the expected data type ", () => {
         const addressSpace = AddressSpace.create();
         create_minimalist_address_space_nodeset(addressSpace);
@@ -60,7 +59,6 @@ describe("testing Variables ", () => {
         value.value.dataType.should.eql(DataType.UInt32);
         value.value.value.should.eql(makeAccessLevelFlag("CurrentRead"));
         value.statusCode.should.eql(StatusCodes.Good);
-
 
         value = v.readAttribute(context, AttributeIds.UserAccessLevel);
         value.value.dataType.should.eql(DataType.Byte);
@@ -111,10 +109,10 @@ describe("testing Variables ", () => {
 
         value = v.readAttribute(context, AttributeIds.RolePermissions);
         value.statusCode.name.should.eql("BadAttributeIdInvalid");
- 
+
         value = v.readAttribute(context, AttributeIds.UserRolePermissions);
         value.statusCode.name.should.eql("BadAttributeIdInvalid");
-        
+
         addressSpace.dispose();
     });
 });
@@ -1181,7 +1179,7 @@ describe("testing UAVariable ", () => {
         variableInteger.readValue().value.dataType.should.eql(DataType.Int32);
         variableInteger.readValue().value.value.should.eql(1);
 
-        const variableIntegerClone = variableInteger.clone({namespace: variableInteger.namespace!});
+        const variableIntegerClone = variableInteger.clone({ namespace: variableInteger.namespace! });
         variableIntegerClone.nodeId.toString().should.not.eql(variableInteger.nodeId.toString());
 
         variableIntegerClone.browseName.toString().should.eql("1:some INTEGER Variable");
@@ -1406,7 +1404,7 @@ describe("testing UAVariable ", () => {
                 }
             },
             nodeId
-        }
+        };
         const statusCode1 = await temperatureVar.writeAttribute(context, writeValue);
         statusCode1.should.eql(StatusCodes.Good);
     });

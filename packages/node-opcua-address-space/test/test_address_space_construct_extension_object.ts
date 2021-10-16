@@ -11,16 +11,15 @@
 //
 
 import * as fs from "fs";
+import * as path from "path";
 import * as mocha from "mocha";
-import * as utils from "node-opcua-utils";
+import * as should from "should";
 
+import * as utils from "node-opcua-utils";
 import { assert } from "node-opcua-assert";
 import { ExtensionObject } from "node-opcua-extension-object";
 import { makeNodeId } from "node-opcua-nodeid";
 import { StatusCodes } from "node-opcua-status-code";
-import * as path from "path";
-import * as should from "should";
-
 import { ServerState } from "node-opcua-types";
 import { AccessLevelFlag, NodeClass, makeAccessLevelFlag } from "node-opcua-data-model";
 import { AttributeIds } from "node-opcua-data-model";
@@ -28,14 +27,14 @@ import { DataType } from "node-opcua-variant";
 import { Variant } from "node-opcua-variant";
 import { VariableIds } from "node-opcua-constants";
 import { nodesets } from "node-opcua-nodesets";
-import { AddressSpace, BaseNode, Namespace, SessionContext, UAServerStatus, DTServerStatus } from "..";
-import { generateAddressSpace } from "../nodeJS";
 import { WriteValue } from "node-opcua-service-write";
 import { make_debugLog, checkDebugFlag } from "node-opcua-debug";
 
+import { AddressSpace, BaseNode, Namespace, SessionContext, UAServerStatus, DTServerStatus } from "..";
+import { generateAddressSpace } from "../nodeJS";
+
 const debugLog = make_debugLog("TEST");
 const doDebug = checkDebugFlag("TEST");
-
 
 // tslint:disable-next-line:no-var-requires
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;

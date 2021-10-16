@@ -2,8 +2,8 @@
  * @module node-opcua-address-space
  */
 import { assert } from "node-opcua-assert";
-import { AddressSpace, UAExclusiveLimitAlarmImpl, UAObject, UAVariable} from "..";
-import { UANonExclusiveLimitAlarmEx , UAExclusiveLimitAlarmEx } from "..";
+import { AddressSpace, UAExclusiveLimitAlarmImpl, UAObject, UAVariable } from "..";
+import { UANonExclusiveLimitAlarmEx, UAExclusiveLimitAlarmEx } from "..";
 
 export interface IAlarmTestData {
     tankLevel: UAVariable;
@@ -13,8 +13,7 @@ export interface IAlarmTestData {
     tankTripCondition: null;
 }
 
-export function construct_demo_alarm_in_address_space(test: IAlarmTestData, addressSpace: AddressSpace) {
-    
+export function construct_demo_alarm_in_address_space(test: IAlarmTestData, addressSpace: AddressSpace): void {
     const a = addressSpace as any;
     if (a.construct_demo_alarm_in_address_space_called) {
         return;
@@ -72,20 +71,22 @@ export function construct_demo_alarm_in_address_space(test: IAlarmTestData, addr
             "Confirm" // confirm state and confirm Method
         ]
     }) as UAExclusiveLimitAlarmImpl;
-    
+
     assert(tankLevelCondition.browseName.toString() === "1:TankLevelCondition");
 
     assert(tankLevel.findReferences("HasCondition").length === 1);
     assert(tankLevel.findReferencesAsObject("HasCondition", true).length === 1);
-      
+
     const conditionName = tankLevel.findReferencesAsObject("HasCondition", true)[0].browseName.toString();
-    const conditionTypeDefinition =  (tankLevel.findReferencesAsObject("HasCondition", true)[0] as UAObject).typeDefinitionObj.browseName.toString();
+    const conditionTypeDefinition = (
+        tankLevel.findReferencesAsObject("HasCondition", true)[0] as UAObject
+    ).typeDefinitionObj.browseName.toString();
     const conditionJavascriptClass = tankLevel.findReferencesAsObject("HasCondition", true)[0].constructor.name.toString();
     if (false) {
         console.log(conditionName, conditionTypeDefinition, conditionJavascriptClass);
     }
     assert("1:TankLevelCondition" === conditionName);
-    assert("ExclusiveLimitAlarmType" === conditionTypeDefinition)
+    assert("ExclusiveLimitAlarmType" === conditionTypeDefinition);
     assert("UAExclusiveLimitAlarmImpl" === conditionJavascriptClass);
 
     // ----------------------------------------------------------------

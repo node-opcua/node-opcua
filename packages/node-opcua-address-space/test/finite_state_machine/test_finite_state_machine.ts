@@ -5,21 +5,21 @@ import { LocalizedText } from "node-opcua-data-model";
 import { StatusCodes } from "node-opcua-status-code";
 import { DataType } from "node-opcua-variant";
 
+import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
+import { nodesets } from "node-opcua-nodesets";
+import * as sinon from "sinon";
 import {
     AddressSpace,
     promoteToStateMachine,
     UAStateMachineEx,
     UAObject,
-    UATransition,
     UAStateMachineType,
     UAFiniteStateMachineType
 } from "../..";
 import { generateAddressSpace } from "../../nodeJS";
 
-import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
-let debugLog = make_debugLog("TEST");
+const debugLog = make_debugLog("TEST");
 const doDebug = checkDebugFlag("TEST");
-
 
 // make sure extra error checking is made on object constructions
 // tslint:disable-next-line:no-var-requires
@@ -71,7 +71,7 @@ describe("Testing Finite State Machine", () => {
         stateMachine.currentState.browseName.toString().should.eql("CurrentState");
         stateMachine.currentState.id.browseName.toString().should.eql("Id");
 
-        stateMachine.hasOwnProperty("lastTransition").should.eql(false);
+        Object.prototype.hasOwnProperty.call(stateMachine, "lastTransition").should.eql(false);
     });
 
     it("should instantiate a finite state machine with lastTransition", async () => {
@@ -131,9 +131,7 @@ describe("Testing Finite State Machine", () => {
     });
 
     it("should handle a FiniteStateMachine Type defined in a nodeset.xml file", () => {
-        const exclusiveLimitStateMachineType = addressSpace.findObjectType(
-            "ExclusiveLimitStateMachineType"
-        )!;
+        const exclusiveLimitStateMachineType = addressSpace.findObjectType("ExclusiveLimitStateMachineType")!;
 
         exclusiveLimitStateMachineType.browseName.toString().should.eql("ExclusiveLimitStateMachineType");
 
@@ -268,9 +266,6 @@ describe("Testing Finite State Machine", () => {
         namespace.addTransition(myFiniteStateMachine, "Maintenance", "Shutdown", 10);
     });
 });
-
-import { nodesets } from "node-opcua-nodesets";
-import * as sinon from "sinon";
 
 describe("FiniteStateMachine with Multiple transition from one state to an other", () => {
     // some state machine may have multiple transition from one state to the other

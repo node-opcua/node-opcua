@@ -3,10 +3,8 @@ import "should";
 import { DataType } from "node-opcua-variant";
 import { AddressSpace, UAObject } from "../..";
 
-export function utest_issue_316(test: any) {
-
+export function utest_issue_316(test: any): void {
     describe("Alarm&Condition ConditionClassName and ConditionName ", () => {
-
         let addressSpace: AddressSpace;
         let source: UAObject;
         before(() => {
@@ -14,7 +12,6 @@ export function utest_issue_316(test: any) {
             source = test.source;
         });
         it("CC1 - should be possible to set the ConditionName and ConditionClassName of an alarm", () => {
-
             const condition = addressSpace.getOwnNamespace().instantiateCondition("AlarmConditionType", {
                 browseName: "AlarmCondition1",
                 componentOf: source,
@@ -47,13 +44,14 @@ export function utest_issue_316(test: any) {
             // more concrete class.
             const processConditionClassType = addressSpace.findObjectType("ProcessConditionClassType")!;
             condition.conditionClassId.readValue().value.dataType.should.equal(DataType.NodeId);
-            condition.conditionClassId.readValue().value.value.toString().should.equal(
-                processConditionClassType.nodeId.toString());
+            condition.conditionClassId.readValue().value.value.toString().should.equal(processConditionClassType.nodeId.toString());
 
             // ConditionClassName provides the display name of the ConditionClassType.
             condition.conditionClassName.readValue().value.dataType.should.equal(DataType.LocalizedText);
-            condition.conditionClassName.readValue().value.value.text!.toString().should.equal(
-                processConditionClassType.displayName[0].text);
+            condition.conditionClassName
+                .readValue()
+                .value.value.text!.toString()
+                .should.equal(processConditionClassType.displayName[0].text);
 
             // ConditionName identifies the Condition instance that the Event originated from. It can be used
             // together with the SourceName in a user display to distinguish between different Condition
@@ -61,7 +59,6 @@ export function utest_issue_316(test: any) {
             // no instance name, the Server shall supply the ConditionType browse name.
             condition.conditionName.readValue().value.dataType.should.eql(DataType.String);
             condition.conditionName.readValue().value.value.should.eql("MyConditionName");
-
         });
     });
 }

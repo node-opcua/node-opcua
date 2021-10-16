@@ -129,7 +129,6 @@ describe("testing Variables ", () => {
 
         v.accessLevel.should.eql(AccessLevelFlag.CurrentRead);
         should.not.exist(v.userAccessLevel);
-
     });
 
     // accessLevel CurrentWrite

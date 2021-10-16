@@ -2,18 +2,10 @@ import * as should from "should";
 
 import { StatusCodes } from "node-opcua-status-code";
 import { Variant } from "node-opcua-variant";
-import {
-    AddressSpace,
-    UAExclusiveDeviationAlarm,
-    UAExclusiveDeviationAlarmEx,
-    UAObject,
-    UAVariable
-} from "../..";
+import { AddressSpace, UAExclusiveDeviationAlarm, UAExclusiveDeviationAlarmEx, UAObject, UAVariable } from "../..";
 
-export function utest_exclusive_deviation_alarm(test: any) {
-
+export function utest_exclusive_deviation_alarm(test: any): void {
     describe("Deviation Alarms : ExclusiveDeviation Alarms ", () => {
-
         let addressSpace: AddressSpace;
         let source: UAObject;
         let engine: UAObject;
@@ -36,10 +28,8 @@ export function utest_exclusive_deviation_alarm(test: any) {
         }
 
         describe("ExclusiveDeviationAlarm", () => {
-
             let alarm: UAExclusiveDeviationAlarmEx;
             before(() => {
-
                 setpointNodeNode.setValueFromSource({ dataType: "Double", value: 0 });
                 variableWithAlarm.setValueFromSource({ dataType: "Double", value: 0 });
 
@@ -56,17 +46,17 @@ export function utest_exclusive_deviation_alarm(test: any) {
                 });
 
                 alarm.setEnabledState(true);
-
             });
             it("should provide correct properties", () => {
-
                 alarm.getInputNodeValue().should.eql(0);
 
                 alarm.getSetpointNodeNode().should.eql(setpointNodeNode);
-                setpointNodeNode.readValue().value.should.eql(new Variant({
-                    dataType: "Double",
-                    value: 0
-                }));
+                setpointNodeNode.readValue().value.should.eql(
+                    new Variant({
+                        dataType: "Double",
+                        value: 0
+                    })
+                );
                 alarm.getSetpointValue().should.eql(0);
 
                 setpointNodeNode.setValueFromSource({ dataType: "Double", value: 10 });
@@ -77,7 +67,6 @@ export function utest_exclusive_deviation_alarm(test: any) {
             });
 
             it("ExclusiveDeviationAlarm - setpointNode Value is zero", () => {
-
                 setpointNodeNode.setValueFromSource({ dataType: "Double", value: 0 });
                 //
                 should(alarm.limitState.getCurrentState()).eql(null); // not alarmed !
@@ -108,7 +97,6 @@ export function utest_exclusive_deviation_alarm(test: any) {
                 alarm.limitState.getCurrentState()!.should.eql("HighHigh");
                 alarm.limitState.currentState.readValue().statusCode.should.eql(StatusCodes.Good);
                 alarm.activeState.getValue().should.eql(true);
-
             });
             it("ExclusiveDeviationAlarm - setPointValue is not zero", () => {
                 // ----------------------------------------------------------------------- shifting by 100
@@ -143,7 +131,6 @@ export function utest_exclusive_deviation_alarm(test: any) {
                 alarm.limitState.getCurrentState()!.should.eql("HighHigh");
                 alarm.limitState.currentState.readValue().statusCode.should.eql(StatusCodes.Good);
                 alarm.activeState.getValue().should.eql(true);
-
             });
         });
     });

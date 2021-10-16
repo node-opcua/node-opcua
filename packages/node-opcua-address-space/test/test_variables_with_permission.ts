@@ -1,4 +1,4 @@
-// tslint:disable:no-bitwise
+import "should";
 
 import {
     accessLevelFlagToString,
@@ -14,13 +14,21 @@ import {
 } from "node-opcua-data-model";
 import { ObjectIds } from "node-opcua-constants";
 import { StatusCodes } from "node-opcua-status-code";
+import { NodeId, resolveNodeId } from "node-opcua-nodeid";
+import { nodesets } from "node-opcua-nodesets";
+import { DataType, VariantArrayType } from "node-opcua-variant";
+import {
+    AnonymousIdentityToken,
+    MessageSecurityMode,
+    PermissionType,
+    RolePermissionType,
+    UserNameIdentityToken
+} from "node-opcua-types";
 
 import { UAObject, Namespace, PseudoSession, SessionContext, setNamespaceMetaData, UAVariable, AddressSpace } from "..";
+import { generateAddressSpace } from "../distNodeJS";
 import { getMiniAddressSpace } from "../testHelpers";
-import { NodeId, resolveNodeId } from "node-opcua-nodeid";
 import { WellKnownRoles, makeRoles } from "..";
-
-import "should";
 
 // tslint:disable-next-line:no-var-requires
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
@@ -122,17 +130,6 @@ describe("AddressSpace : Variable.setPermissions", () => {
         dataValue2.value.value.should.eql(AccessLevelFlag.CurrentRead | AccessLevelFlag.CurrentWrite);
     });
 });
-
-import { generateAddressSpace } from "../distNodeJS";
-import { nodesets } from "node-opcua-nodesets";
-import { DataType, VariantArrayType } from "node-opcua-variant";
-import {
-    AnonymousIdentityToken,
-    MessageSecurityMode,
-    PermissionType,
-    RolePermissionType,
-    UserNameIdentityToken
-} from "node-opcua-types";
 
 describe("SPP1 AddressSpace: RoleAndPermissions resolving to Namespace Metadata", () => {
     let addressSpace: AddressSpace;

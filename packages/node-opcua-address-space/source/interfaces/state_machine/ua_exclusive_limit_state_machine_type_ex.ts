@@ -6,7 +6,11 @@ import { UAExclusiveLimitStateMachine, UAExclusiveLimitStateMachine_Base } from 
 
 import { UAStateMachineEx, UAStateMachineHelper, UAStateMachineType } from "./ua_state_machine_type";
 
-export interface UAExclusiveLimitStateMachineEx extends  UAObject, UAExclusiveLimitStateMachine_Base , UAStateMachineHelper, UAStateMachineEx {}
+export interface UAExclusiveLimitStateMachineEx
+    extends UAObject,
+        UAExclusiveLimitStateMachine_Base,
+        UAStateMachineHelper,
+        UAStateMachineEx {}
 
 export interface UAExclusiveLimitStateMachineType extends UAStateMachineType {
     isAbstract: false;

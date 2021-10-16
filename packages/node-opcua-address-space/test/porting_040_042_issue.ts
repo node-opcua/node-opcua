@@ -3,7 +3,6 @@ import * as should from "should";
 import { AddressSpace, Namespace } from "..";
 import { getMiniAddressSpace } from "../testHelpers";
 
-// tslint:disable-next-line:no-var-requires
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("#513 Testing issue porting from 0.4.0 0.4.2", () => {
     let addressSpace: AddressSpace;

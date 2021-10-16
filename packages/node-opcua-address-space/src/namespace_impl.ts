@@ -2067,7 +2067,7 @@ function _handle_event_hierarchy_parent(
     }
 }
 
-export function _handle_hierarchy_parent(addressSpace: AddressSpacePrivate, references: AddReferenceOpts[], options: any) {
+export function _handle_hierarchy_parent(addressSpace: AddressSpacePrivate, references: AddReferenceOpts[], options: any): void {
     options.componentOf = _coerce_parent(addressSpace, options.componentOf, addressSpace._coerceNode);
     options.propertyOf = _coerce_parent(addressSpace, options.propertyOf, addressSpace._coerceNode);
     options.organizedBy = _coerce_parent(addressSpace, options.organizedBy, addressSpace._coerceFolder);

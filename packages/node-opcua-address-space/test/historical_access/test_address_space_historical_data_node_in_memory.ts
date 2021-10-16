@@ -1,14 +1,14 @@
 import * as fs from "fs";
 import * as should from "should";
 
+import { nodesets } from "node-opcua-nodesets";
+import { HistoryData, ReadRawModifiedDetails } from "node-opcua-service-history";
+import { StatusCodes } from "node-opcua-status-code";
+
 import { AddressSpace, SessionContext } from "../..";
 import { generateAddressSpace } from "../../nodeJS";
 
 const context = SessionContext.defaultContext;
-
-import { nodesets } from "node-opcua-nodesets";
-import { HistoryData, ReadRawModifiedDetails } from "node-opcua-service-history";
-import { StatusCodes } from "node-opcua-status-code";
 
 // tslint:disable-next-line:no-var-requires
 require("date-utils");
@@ -38,6 +38,7 @@ describe("Testing Historical Data Node", () => {
         addressSpace.dispose();
     });
 
+    // eslint-disable-next-line max-statements
     it("HHH3- should keep values up to options.maxOnlineValues to provide historical reads", async () => {
         const node = addressSpace.getOwnNamespace().addVariable({
             browseName: "MyVar2",

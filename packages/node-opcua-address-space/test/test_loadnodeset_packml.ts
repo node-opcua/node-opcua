@@ -4,11 +4,11 @@ import * as should from "should";
 import { BinaryStream } from "node-opcua-binary-stream";
 import { nodesets } from "node-opcua-nodesets";
 import { DataType, Variant } from "node-opcua-variant";
+import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 
 import { AddressSpace, ensureDatatypeExtracted, resolveOpaqueOnAddressSpace } from "..";
 import { generateAddressSpace } from "../nodeJS";
 
-import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 const debugLog = make_debugLog("TEST");
 const doDebug = checkDebugFlag("TEST");
 

@@ -1162,14 +1162,14 @@ export class BaseNodeImpl extends EventEmitter implements BaseNode {
         }
     }
 
-    public installPostInstallFunc(f: ()=>void): void {
+    public installPostInstallFunc(f: () => void): void {
         if (!f) {
             // nothing to do
             return;
         }
 
         function chain(f1: any, f2: any) {
-            return function chaiFunc(this: BaseNode, ... args: any[]) {
+            return function chaiFunc(this: BaseNode, ...args: any[]) {
                 if (f1) {
                     f1.apply(this, args);
                 }

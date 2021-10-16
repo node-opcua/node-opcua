@@ -12,10 +12,8 @@ import { DataType } from "node-opcua-variant";
 
 import { AddressSpace, Namespace, SessionContext } from "../..";
 
-export function subtest_analog_item_type(maintest: any) {
-
+export function subtest_analog_item_type(maintest: any): void {
     describe("AnalogDataItem", () => {
-
         let addressSpace: AddressSpace;
         let namespace: Namespace;
         before(() => {
@@ -27,14 +25,12 @@ export function subtest_analog_item_type(maintest: any) {
         const context = SessionContext.defaultContext;
 
         it("should add an analog data item in the addresss_space", async () => {
-
             const objectsFolder = addressSpace.findNode("ObjectsFolder")!;
             objectsFolder.browseName.toString().should.eql("Objects");
 
             let fakeValue = 1;
 
             const analogItem = namespace.addAnalogDataItem({
-
                 organizedBy: objectsFolder,
 
                 browseName: "TemperatureSensor",
@@ -55,7 +51,6 @@ export function subtest_analog_item_type(maintest: any) {
                         });
                     }
                 }
-
             });
 
             analogItem.accessLevel.should.eql(makeAccessLevelFlag("CurrentRead | CurrentWrite"));
@@ -81,7 +76,7 @@ export function subtest_analog_item_type(maintest: any) {
                 browseDirection: BrowseDirection.Forward,
                 nodeClassMask: 0, // 0 = all nodes
                 referenceTypeId: 0,
-                resultMask: 0x3F
+                resultMask: 0x3f
             });
             // xx var browseResult = engine.browseSingleNode(analogItem.nodeId, browseDescription);
             const references = analogItem.browseNode(browseDescription);
@@ -109,7 +104,6 @@ export function subtest_analog_item_type(maintest: any) {
         });
 
         it("Writing a value exceeding InstrumentRange shall return BadOutOfRange", async () => {
-
             const objectsFolder = addressSpace.rootFolder.objects;
 
             const analogItem = namespace.addAnalogDataItem({
@@ -121,20 +115,18 @@ export function subtest_analog_item_type(maintest: any) {
                 instrumentRange: { low: -100, high: 200 },
                 organizedBy: objectsFolder,
                 value: new Variant({ dataType: DataType.Double, value: 10.0 }),
-                valuePrecision: 0.5,
+                valuePrecision: 0.5
             });
 
             const dataValue = new DataValue({
-                value: new Variant({ dataType: DataType.Double, value: -1000.0 })// out of range
+                value: new Variant({ dataType: DataType.Double, value: -1000.0 }) // out of range
             });
 
             const statusCode = await analogItem.writeValue(context, dataValue);
             statusCode.should.eql(StatusCodes.BadOutOfRange);
-
         });
 
         it("Writing a value within InstrumentRange shall return Good", async () => {
-
             const objectsFolder = addressSpace.findNode("ObjectsFolder")!;
 
             const analogItem = namespace.addAnalogDataItem({
@@ -146,16 +138,15 @@ export function subtest_analog_item_type(maintest: any) {
                 instrumentRange: { low: -100, high: 200 },
                 organizedBy: objectsFolder,
                 value: new Variant({ dataType: DataType.Double, value: 10.0 }),
-                valuePrecision: 0.5,
+                valuePrecision: 0.5
             });
 
             const dataValue = new DataValue({
-                value: new Variant({ dataType: DataType.Double, value: 150 })// in range
+                value: new Variant({ dataType: DataType.Double, value: 150 }) // in range
             });
 
             const statusCode = await analogItem.writeValue(context, dataValue);
             statusCode.should.eql(StatusCodes.Good);
-
         });
     });
 }

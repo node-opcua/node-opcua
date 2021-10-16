@@ -9,10 +9,8 @@ import { DataType } from "node-opcua-variant";
 
 import { AddressSpace, Namespace, SessionContext } from "../..";
 
-export function subtest_data_item_PercentDeadband(maintest: any) {
-
+export function subtest_data_item_PercentDeadband(maintest: any): void {
     describe("PercentDeadband", () => {
-
         let addressSpace: AddressSpace;
         let namespace: Namespace;
         before(() => {
@@ -22,7 +20,6 @@ export function subtest_data_item_PercentDeadband(maintest: any) {
         });
 
         it("should provide a mechanism to operate PercentDeadband ", async () => {
-
             const objectsFolder = addressSpace.findNode("ObjectsFolder")!;
 
             const analogItem = namespace.addAnalogDataItem({
@@ -41,8 +38,6 @@ export function subtest_data_item_PercentDeadband(maintest: any) {
 
             const statusCode = await analogItem.writeValue(SessionContext.defaultContext, dataValue);
             statusCode.should.eql(StatusCodes.BadOutOfRange);
-
         });
     });
-
 }

@@ -1,10 +1,10 @@
 import * as should from "should";
 
 import { BrowseDirection } from "node-opcua-data-model";
+import { sameNodeId } from "node-opcua-nodeid";
 
 import { AddressSpace, UAObject, UAObjectType, UAReferenceType, UAVariable } from "..";
 import { getMiniAddressSpace } from "../testHelpers";
-import { sameNodeId } from "node-opcua-nodeid";
 
 // tslint:disable-next-line:no-var-requires
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
@@ -219,7 +219,5 @@ describe("testing add new ObjectType ", () => {
         should(obj1.getComponentByName("SubObj")).not.eql(null);
 
         should(obj1.subObj.modellingRule).eql(null);
-
-
     });
 });

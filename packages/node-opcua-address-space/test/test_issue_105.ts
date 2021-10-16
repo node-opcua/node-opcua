@@ -4,7 +4,7 @@ import { assertHasMatchingReference, getMiniAddressSpace } from "../testHelpers"
 
 const createTemperatureSensorType = require("./fixture_temperature_sensor_type").createTemperatureSensorType;
 
-// tslint:disable-next-line:no-var-requires
+// eslint-disable-next-line import/order
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("testing github issue https://github.com/node-opcua/node-opcua/issues/105", () => {
     let addressSpace: AddressSpace;
@@ -15,13 +15,13 @@ describe("testing github issue https://github.com/node-opcua/node-opcua/issues/1
 
         namespace = addressSpace.getOwnNamespace();
 
-        // lets declare a custom folder Type
+        // let's declare a custom folder Type
         const myFolderType = namespace.addObjectType({ browseName: "MyFolderType", subtypeOf: "FolderType" });
         myFolderType.browseName.toString().should.eql("1:MyFolderType");
         myFolderType.subtypeOfObj!.browseName.toString().should.eql("FolderType");
     });
     after(async () => {
-        addressSpace.dispose();
+        addressSpace?.dispose();
     });
 
     it("should be possible to create an object organized by a folder whose type is a subtype of FolderType", () => {
@@ -40,7 +40,7 @@ describe("testing github issue https://github.com/node-opcua/node-opcua/issues/1
         });
         myObject.browseName.toString().should.eql("1:Obj1");
 
-        // now create a simple var isnide the new folder (method 2)
+        // now create a simple var inside the new folder (method 2)
         const myObject2 = temperatureSensorType.instantiate({ browseName: "Obj2", organizedBy: myFolder });
 
         myObject2.browseName.toString().should.eql("1:Obj2");

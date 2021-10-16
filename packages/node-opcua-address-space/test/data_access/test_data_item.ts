@@ -6,6 +6,10 @@ import * as should from "should";
 import { standardUnits } from "node-opcua-data-access";
 import { nodesets } from "node-opcua-nodesets";
 import { encode_decode_round_trip_test } from "node-opcua-packet-analyzer/dist/test_helpers";
+
+import { AddressSpace } from "../..";
+import { generateAddressSpace } from "../../nodeJS";
+
 import { subtest_analog_item_semantic_changed } from "./subtest_analog_item_semantic_changed";
 import { subtest_analog_item_type } from "./subtest_analog_item_type";
 import { subtest_data_item_PercentDeadband } from "./subtest_data_item_PercentDeadband";
@@ -13,9 +17,6 @@ import { subtest_multi_state_discrete_type } from "./subtest_multi_state_discret
 import { subtest_multi_state_value_discrete_type } from "./subtest_multi_state_value_discrete_type";
 import { subtest_two_state_discrete_type } from "./subtest_two_state_discrete_type";
 import { subtest_Y_array_item_type } from "./subtest_Y_array_item_type";
-
-import { AddressSpace } from "../..";
-import { generateAddressSpace } from "../../nodeJS";
 
 // tslint:disable-next-line:no-var-requires
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
@@ -146,7 +147,7 @@ describe("DataAccess", () => {
 // Part 8 5.3.2
 // The  StatusCode SemanticsChanged  bit shall be set if any of the  EURange  ( could change the
 // behaviour of a  Subscription  if a  PercentDeadband  filter is used)   or  EngineeringUnits  (could create
-// problems if the client uses the value to perform calcul ations)  Properties  are changed (see section
+// problems if the client uses the value to perform calculations)  Properties  are changed (see section
 // 5.2  for additional information).
 
 // todo:

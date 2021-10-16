@@ -23,7 +23,11 @@ import { BaseNodeImpl } from "./base_node_impl";
 import { ToStringBuilder, UAObjectType_toString } from "./base_node_private";
 import { get_subtypeOf, get_subtypeOfObj } from "./tool_isSupertypeOf";
 import * as tools from "./tool_isSupertypeOf";
-import { assertUnusedChildBrowseName, initialize_properties_and_components, topMostParentIsObjectTypeOrVariableType } from "./ua_variable_type_impl";
+import {
+    assertUnusedChildBrowseName,
+    initialize_properties_and_components,
+    topMostParentIsObjectTypeOrVariableType
+} from "./ua_variable_type_impl";
 import { AddressSpacePrivate } from "./address_space_private";
 
 export class UAObjectTypeImpl extends BaseNodeImpl implements UAObjectType {
@@ -101,8 +105,8 @@ export class UAObjectTypeImpl extends BaseNodeImpl implements UAObjectType {
             "expecting a browse name"
         );
 
-        assert(!Object.prototype.hasOwnProperty.call(options,"propertyOf"), "an Object shall not be a PropertyOf an other object");
-        assert(!Object.prototype.hasOwnProperty.call(options,"optional"), "do you mean optionals ?");
+        assert(!Object.prototype.hasOwnProperty.call(options, "propertyOf"), "an Object shall not be a PropertyOf an other object");
+        assert(!Object.prototype.hasOwnProperty.call(options, "optional"), "do you mean optionals ?");
 
         assertUnusedChildBrowseName(addressSpace, options);
 
@@ -113,7 +117,6 @@ export class UAObjectTypeImpl extends BaseNodeImpl implements UAObjectType {
 
         const copyAlsoModellingRules = topMostParentIsObjectTypeOrVariableType(addressSpace, options);
 
-                
         const opts: AddObjectOptions = {
             browseName: options.browseName,
             componentOf: options.componentOf,

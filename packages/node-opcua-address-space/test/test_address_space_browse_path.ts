@@ -5,11 +5,12 @@ import { coerceQualifiedName } from "node-opcua-data-model";
 import { nodesets } from "node-opcua-nodesets";
 import { BrowsePath, makeBrowsePath } from "node-opcua-service-translate-browse-path";
 import { StatusCodes } from "node-opcua-status-code";
+import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
+
 import { AddressSpace, Namespace } from "..";
 import { generateAddressSpace } from "../nodeJS";
 import { getMiniAddressSpace, add_eventGeneratorObject } from "../testHelpers";
 
-import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 const debugLog = make_debugLog("TEST");
 const doDebug = checkDebugFlag("TEST");
 

@@ -4,9 +4,9 @@
 import { StatusCodes } from "node-opcua-status-code";
 import { DataType, Variant } from "node-opcua-variant";
 import { INamespace, UAObject, ISessionContext, MethodFunctorCallback } from "node-opcua-address-space-base";
-import { UAFolder   } from "node-opcua-nodeset-ua";
+import { UAFolder } from "node-opcua-nodeset-ua";
 
-export function add_eventGeneratorObject(namespace: INamespace, parentFolder: UAFolder | string) {
+export function add_eventGeneratorObject(namespace: INamespace, parentFolder: UAFolder | string): void {
     const myEvtType = namespace.addEventType({
         browseName: "MyEventType",
         subtypeOf: "BaseEventType" // should be implicit

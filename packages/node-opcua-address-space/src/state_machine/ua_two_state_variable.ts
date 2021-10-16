@@ -8,14 +8,13 @@ import { BrowseDirection, coerceLocalizedText, LocalizedText, LocalizedTextLike 
 import { DataValueT, DataValueOptionsT } from "node-opcua-data-value";
 import { NodeId, resolveNodeId } from "node-opcua-nodeid";
 import { sameNodeId } from "node-opcua-nodeid";
-import { StatusCodes,StatusCode,  StatusCodeCallback } from "node-opcua-status-code";
+import { StatusCodes, StatusCode, StatusCodeCallback } from "node-opcua-status-code";
 import { Variant, VariantLike, VariantT } from "node-opcua-variant";
 import { DataType } from "node-opcua-variant";
 import { BaseNode, BindVariableOptions, INamespace, UAReference, UAVariable, ISessionContext } from "node-opcua-address-space-base";
 import { UATwoStateVariable } from "node-opcua-nodeset-ua";
 import { NumericRange } from "node-opcua-numeric-range";
 import { QualifiedNameLike } from "node-opcua-data-model";
-
 
 // public interfaces
 import { registerNodePromoter } from "../../source/loader/register_node_promoter";
@@ -130,7 +129,7 @@ export function _install_TwoStateVariable_machinery(
     assert(node.minimumSamplingInterval === 0);
     assert(node.typeDefinitionObj.browseName.toString() === "TwoStateVariableType");
     assert(node.dataTypeObj.browseName.toString() === "LocalizedText");
-    assert(Object.prototype.hasOwnProperty.call(node,"valueRank") && (node.valueRank === -1 || node.valueRank === 0));
+    assert(Object.prototype.hasOwnProperty.call(node, "valueRank") && (node.valueRank === -1 || node.valueRank === 0));
 
     // promote node into a UATwoStateVariable
     const _node = promoteToTwoStateVariable(node);
@@ -161,8 +160,8 @@ export interface TwoStateVariableInitializeOptions {
 }
 
 export declare interface UATwoStateVariableImpl extends UATwoStateVariableEx {
-    on():this;
-    once():this;
+    on(): this;
+    once(): this;
     readValue(
         context?: ISessionContext | null,
         indexRange?: NumericRange,
@@ -207,7 +206,6 @@ export class UATwoStateVariableImpl extends UAVariableImplT<LocalizedText, DataT
     }
 
     public initialize(options: TwoStateVariableInitializeOptions): void {
-
         if (options.trueState) {
             assert(!!options.falseState);
             assert(typeof options.trueState === "string");
@@ -264,7 +262,7 @@ export class UATwoStateVariableImpl extends UAVariableImplT<LocalizedText, DataT
                 },
                 StatusCodes.Good
             );
-        } else if (Object.prototype.hasOwnProperty.call(options.value,"dataType")) {
+        } else if (Object.prototype.hasOwnProperty.call(options.value, "dataType")) {
             assert((options.value as VariantLike).dataType === DataType.Boolean);
             this.id.setValueFromSource(options.value as VariantLike, StatusCodes.Good);
         } else {

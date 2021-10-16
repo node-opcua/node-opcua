@@ -30,7 +30,6 @@ import { resolveOpaqueOnAddressSpace } from "./resolve_opaque_on_address_space";
 // BadNoCommunication
 type ResponseCallback<T> = (err: Error | null, result?: T) => void;
 
-
 export function callMethodHelper(
     context: ISessionContext,
     addressSpace: IAddressSpace,

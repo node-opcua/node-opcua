@@ -24,7 +24,7 @@ function myfindBuiltInType(dataType: DataType): any {
     return factories.findBuiltInType(DataType[dataType]);
 }
 export interface ArgumentDef {
-    dataType: DataType
+    dataType: DataType;
     valueRank?: undefined | number;
 }
 export function encode_ArgumentList(definition: ArgumentDef[], args: any[], stream: OutputBinaryStream): void {

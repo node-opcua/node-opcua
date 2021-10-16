@@ -8,9 +8,8 @@ import { getCurrentClock } from "node-opcua-date-time";
 import * as sinon from "sinon";
 
 import { AddressSpace, SessionContext, UAMultiStateDiscrete, UAMultiStateDiscreteEx } from "../..";
-import { number } from "yargs";
 
-export function subtest_multi_state_discrete_type(mainTest: { addressSpace: AddressSpace }) {
+export function subtest_multi_state_discrete_type(mainTest: { addressSpace: AddressSpace }): void {
     describe("MultiStateDiscreteType", () => {
         let addressSpace: AddressSpace;
         before(() => {
@@ -173,20 +172,23 @@ export function subtest_multi_state_discrete_type(mainTest: { addressSpace: Addr
             });
 
             it("writing a value within EnumString length shall return Good", async () => {
-                const dataValue= new  DataValueT<number, DataType.UInt32>({
+                const dataValue = new DataValueT<number, DataType.UInt32>({
                     value: { dataType: DataType.UInt32, value: 2 } // OK
                 });
                 const statusCode = await multiStateDiscreteVariable.writeValue(SessionContext.defaultContext, dataValue);
                 statusCode.should.eql(StatusCodes.Good);
             });
             it("writing a value which has not the correct type shall return BadTypeMismatch", async () => {
-                const dataValue=  new DataValueT<string,DataType.String>({
-                    value:{
+                const dataValue = new DataValueT<string, DataType.String>({
+                    value: {
                         dataType: DataType.String,
                         value: "2"
                     } // OK
                 });
-                const statusCode = await multiStateDiscreteVariable.writeValue(SessionContext.defaultContext, dataValue as any /* to force wrong value to be sent */);
+                const statusCode = await multiStateDiscreteVariable.writeValue(
+                    SessionContext.defaultContext,
+                    dataValue as any /* to force wrong value to be sent */
+                );
                 statusCode.should.eql(StatusCodes.BadTypeMismatch);
             });
 

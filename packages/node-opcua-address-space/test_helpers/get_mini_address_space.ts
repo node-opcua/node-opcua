@@ -11,8 +11,8 @@ import { getAddressSpaceFixture } from "./get_address_space_fixture";
 export const mini_nodeset = "mini.Node.Set2.xml";
 export const empty_nodeset = "fixture_empty_nodeset2.xml";
 
-export const get_mini_nodeset_filename = () => getAddressSpaceFixture(mini_nodeset);
-export const get_empty_nodeset_filename = () => getAddressSpaceFixture(empty_nodeset);
+export const get_mini_nodeset_filename = (): string => getAddressSpaceFixture(mini_nodeset);
+export const get_empty_nodeset_filename = (): string => getAddressSpaceFixture(empty_nodeset);
 
 // tslint:disable:no-var-requires
 // tslint:disable:max-line-length

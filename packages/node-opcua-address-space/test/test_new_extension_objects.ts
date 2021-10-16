@@ -6,7 +6,7 @@ import { getExtensionObjectConstructor } from "node-opcua-client-dynamic-extensi
 import { resolveNodeId } from "node-opcua-nodeid";
 //
 import { AddressSpace, adjustNamespaceArray } from "..";
-import {PseudoSession } from "..";
+import { PseudoSession } from "..";
 import { generateAddressSpace } from "../distNodeJS";
 
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
@@ -20,7 +20,7 @@ describe("Test Extension Object in pure 1.04 version (only DataTypeDefinition av
         ]);
         adjustNamespaceArray(addressSpace);
     });
-    after(()=>{
+    after(() => {
         addressSpace.dispose();
     });
 
@@ -38,11 +38,11 @@ describe("Test Extension Object in pure 1.04 version (only DataTypeDefinition av
 
         const dataTypeNodeId = resolveNodeId("ns=1;i=3001");
         const F = await getExtensionObjectConstructor(session, dataTypeNodeId);
-        should.exist(F)
+        should.exist(F);
         F.should.be.a.Function;
         const o = new F({});
         console.log(o.toJSON());
-        console.log("browseSpy =  ", browseSpy.callCount,"browseNextSpy =  ", browseNextSpy.callCount);
+        console.log("browseSpy =  ", browseSpy.callCount, "browseNextSpy =  ", browseNextSpy.callCount);
     });
     it("WY3- PseudoSession & getExtensionObjectConstructor with requestedMaxReferencesPerNode", async () => {
         const session = new PseudoSession(addressSpace);
@@ -55,12 +55,11 @@ describe("Test Extension Object in pure 1.04 version (only DataTypeDefinition av
 
         const dataTypeNodeId = resolveNodeId("ns=1;i=3001");
         const F = await getExtensionObjectConstructor(session, dataTypeNodeId);
-        should.exist(F)
+        should.exist(F);
         F.should.be.a.Function;
         const o = new F({});
-        console.log(o.toJSON());   
-        console.log("browseSpy =  ", browseSpy.callCount,"browseNextSpy =  ", browseNextSpy.callCount); 
-
+        console.log(o.toJSON());
+        console.log("browseSpy =  ", browseSpy.callCount, "browseNextSpy =  ", browseNextSpy.callCount);
     });
 });
 
@@ -73,7 +72,7 @@ describe("Test Extension Object in pure 1.04 version - DataType deriving from Da
             path.join(__dirname, "../test_helpers/test_fixtures/dataType_issue.xml")
         ]);
     });
-    after(()=>{
+    after(() => {
         addressSpace.dispose();
     });
 
@@ -91,13 +90,13 @@ describe("Test Extension Object in pure 1.04 version - DataType deriving from Da
         const browseNextSpy = spy(session, "browseNext");
 
         const d = addressSpace.findDataType("DatagramConnectionTransport2DataType");
-     
+
         const dataTypeNodeId = resolveNodeId("ns=1;i=3011");
         const F = await getExtensionObjectConstructor(session, dataTypeNodeId);
-        should.exist(F)
+        should.exist(F);
         F.should.be.a.Function;
         const o = new F({});
-        console.log(o.toJSON());  
-        console.log("browseSpy =  ", browseSpy.callCount,"browseNextSpy =  ", browseNextSpy.callCount);
+        console.log(o.toJSON());
+        console.log("browseSpy =  ", browseSpy.callCount, "browseNextSpy =  ", browseNextSpy.callCount);
     });
 });

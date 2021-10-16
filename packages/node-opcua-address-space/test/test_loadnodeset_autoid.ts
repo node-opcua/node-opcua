@@ -5,15 +5,14 @@ import { BinaryStream } from "node-opcua-binary-stream";
 import { ExtensionObject, OpaqueStructure } from "node-opcua-extension-object";
 import { nodesets } from "node-opcua-nodesets";
 import { DataType, Variant } from "node-opcua-variant";
-
-import { AddressSpace, adjustNamespaceArray, ensureDatatypeExtracted, PseudoSession, resolveOpaqueOnAddressSpace } from "..";
-import { generateAddressSpace } from "../nodeJS";
-
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 import { AttributeIds } from "node-opcua-data-model";
 import { StatusCodes } from "node-opcua-status-code";
 import { CallMethodResult, DataTypeDefinition, StructureDefinition } from "node-opcua-types";
 import { getExtraDataTypeManager, promoteOpaqueStructure } from "node-opcua-client-dynamic-extension-object";
+
+import { AddressSpace, adjustNamespaceArray, ensureDatatypeExtracted, PseudoSession, resolveOpaqueOnAddressSpace } from "..";
+import { generateAddressSpace } from "../nodeJS";
 
 const debugLog = make_debugLog("TEST");
 const doDebug = checkDebugFlag("TEST");
@@ -26,7 +25,6 @@ describe("Testing AutoID custom types", async function (this: any) {
         addressSpace = AddressSpace.create();
         const namespace0 = addressSpace.getDefaultNamespace();
 
-        
         await generateAddressSpace(addressSpace, [nodesets.standard, nodesets.di, nodesets.autoId]);
         await ensureDatatypeExtracted(addressSpace);
     });
@@ -262,10 +260,13 @@ describe("Testing AutoID custom types", async function (this: any) {
         callbackResult2.outputArguments[0].value.length.should.eql(2);
         callbackResult2.outputArguments[0].value[0].should.be.instanceOf(OpaqueStructure);
         callbackResult2.outputArguments[0].value[1].should.be.instanceOf(OpaqueStructure);
-        
+
         const session = new PseudoSession(addressSpace);
         const extraDataTypeManager = await getExtraDataTypeManager(session);
-        await promoteOpaqueStructure(session, callbackResult2.outputArguments.map((a)=>({value: a})));
+        await promoteOpaqueStructure(
+            session,
+            callbackResult2.outputArguments.map((a) => ({ value: a }))
+        );
 
         callbackResult2.outputArguments[0].value[0].should.not.be.instanceOf(OpaqueStructure);
         callbackResult2.outputArguments[0].value[1].should.not.be.instanceOf(OpaqueStructure);

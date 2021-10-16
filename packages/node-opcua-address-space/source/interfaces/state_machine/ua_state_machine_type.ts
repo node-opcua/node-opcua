@@ -20,7 +20,8 @@ import {
     UAState_Base,
     UAStateMachine_Base,
     UATransition_Base,
-    UATransitionEvent_Base} from "node-opcua-nodeset-ua";
+    UATransitionEvent_Base
+} from "node-opcua-nodeset-ua";
 
 import { UATransitionEx } from "./ua_transition_ex";
 
@@ -205,7 +206,6 @@ export interface UAStateMachineHelper {
     readonly states: UAState[];
     readonly transitions: UATransitionEx[];
     currentStateNode: UAState | null;
-    
 
     /**
      * return all state nodes associated with this state machine

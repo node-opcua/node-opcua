@@ -1,8 +1,8 @@
 /**
  * @module node-opcua-address-space.AlarmsAndConditions
  */
- import { UAAcknowledgeableCondition_Base,  UAAcknowledgeableCondition, UACondition } from "node-opcua-nodeset-ua";
- import { assert } from "node-opcua-assert";
+import { UAAcknowledgeableCondition_Base, UAAcknowledgeableCondition, UACondition } from "node-opcua-nodeset-ua";
+import { assert } from "node-opcua-assert";
 import { LocalizedText, LocalizedTextLike } from "node-opcua-data-model";
 import { NodeId } from "node-opcua-nodeid";
 import { StatusCode, StatusCodes } from "node-opcua-status-code";
@@ -11,7 +11,7 @@ import { INamespace, RaiseEventData, ISessionContext, UAEventType, UAMethod } fr
 
 import { UATwoStateVariableEx } from "../../source/ua_two_state_variable_ex";
 import { AddressSpacePrivate } from "../address_space_private";
-import { _install_TwoStateVariable_machinery  } from "../state_machine/ua_two_state_variable";
+import { _install_TwoStateVariable_machinery } from "../state_machine/ua_two_state_variable";
 import { _setAckedState } from "./condition";
 import { ConditionSnapshot } from "./condition_snapshot";
 import { UAConditionHelper, UAConditionImpl, UAConditionEx } from "./ua_condition_impl";
@@ -29,7 +29,10 @@ export interface UAAcknowledgeableConditionHelper {
     autoConfirmBranch(branch: ConditionSnapshot, comment: LocalizedTextLike): void;
     acknowledgeAndAutoConfirmBranch(branch: ConditionSnapshot, comment: string | LocalizedTextLike | LocalizedText): void;
 }
-export interface UAAcknowledgeableConditionEx extends UAAcknowledgeableCondition_Base, UAAcknowledgeableConditionHelper , UAConditionEx {
+export interface UAAcknowledgeableConditionEx
+    extends UAAcknowledgeableCondition_Base,
+        UAAcknowledgeableConditionHelper,
+        UAConditionEx {
     on(eventName: string, eventHandler: any): this;
 
     enabledState: UATwoStateVariableEx;

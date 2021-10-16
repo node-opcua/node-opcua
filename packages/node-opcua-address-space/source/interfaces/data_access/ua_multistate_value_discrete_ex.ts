@@ -30,5 +30,4 @@ export interface UAMultiStateValueDiscreteEx<T, DT extends DataType>
     setValue(value: string | number | Int64): void;
 
     findValueAsText(value: number | UInt64): Variant;
-
 }

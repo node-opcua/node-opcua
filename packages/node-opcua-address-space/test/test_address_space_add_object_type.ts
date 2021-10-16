@@ -174,17 +174,16 @@ describe("testing add new ObjectType ", () => {
             .getMethodByName("Trigger")!
             .methodDeclarationId.toString()
             .should.eql(cameraType.getMethodByName("Trigger")!.nodeId.toString());
- 
+
         camera1.trigger.nodeId.namespace.should.eql(1);
         camera1.pictureTakenCount.nodeId.namespace.should.eql(1);
- 
     });
 
     it("should be possible to instantiate a type in a custom namespace", async () => {
         const namespace = addressSpace.registerNamespace("CustomNameSpace");
 
         namespace.index.should.not.eql(1);
-        
+
         const camera = cameraType.instantiate({
             namespace,
 

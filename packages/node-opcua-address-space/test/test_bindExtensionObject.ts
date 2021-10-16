@@ -393,7 +393,7 @@ describe("Extension Object binding and sub  components\n", () => {
 
         it(
             "ZA3- updateExtensionObjectPartial: it should be possible to cascade changes " +
-            "by acting on the whole ExtensionObject",
+                "by acting on the whole ExtensionObject",
             () => {
                 spy_on_sessionDiagnostics_clientDescription_value_changed.callCount.should.eql(0);
 
@@ -426,7 +426,7 @@ describe("Extension Object binding and sub  components\n", () => {
 
         it(
             "ZA4- updateExtensionObjectPartial: it should be possible to cascade changes " +
-            "by acting on the whole ExtensionObject - middle",
+                "by acting on the whole ExtensionObject - middle",
             () => {
                 spy_on_sessionDiagnostics_totalRequestCount_value_changed.callCount.should.eql(0);
                 spy_on_sessionDiagnostics_totalRequestCount_errorCount_value_changed.callCount.should.eql(0);
@@ -457,7 +457,7 @@ describe("Extension Object binding and sub  components\n", () => {
 
         it(
             "ZA5- incrementExtensionObjectPartial: it should be possible to cascade changes " +
-            "by increasing a value on ExtensionObject",
+                "by increasing a value on ExtensionObject",
             () => {
                 sessionDiagnostics.totalRequestCount.totalCount.readValue().value.value.should.eql(0);
                 sessionDiagnostics.totalRequestCount.readValue().value.value.totalCount.should.eql(0);
@@ -490,7 +490,7 @@ describe("Extension Object binding and sub  components\n", () => {
 
         it(
             "ZA6- changing property values in extension object directly should propagates changes and notification " +
-            "to NodeVariables",
+                "to NodeVariables",
             () => {
                 _sessionDiagnostics.clientDescription.applicationUri = "applicationUri-1";
 
@@ -503,7 +503,7 @@ describe("Extension Object binding and sub  components\n", () => {
 });
 
 // tslint:disable-next-line: no-empty-interface
-interface UAMeasIdDataType extends UAVariable { }
+interface UAMeasIdDataType extends UAVariable {}
 // tslint:disable-next-line: no-empty-interface
 interface UAPartIdDataType extends UAVariable {
     id: UAVariableT<string, DataType.String>;
@@ -542,7 +542,7 @@ describe("Extension Object binding and sub  components On MachineVision", () => 
         addressSpace.dispose();
     });
 
-    let nsMV: number = 0;
+    let nsMV = 0;
     let resultDataType: UADataType;
     let resultType: UAVariableType;
     beforeEach(() => {
@@ -584,7 +584,6 @@ describe("Extension Object binding and sub  components On MachineVision", () => 
         should.exist((<any>rr).hash);
         (<any>rr).hash.toString("hex").should.eql("deadbeef");
 
-
         const recipeIdExternalD = addressSpace.findDataType("RecipeIdExternalDataType", nsMV)!;
 
         const a = addressSpace.constructExtensionObject(recipeIdExternalD, {});
@@ -619,7 +618,6 @@ describe("Extension Object binding and sub  components On MachineVision", () => 
         const verif = result.readValue().value.value as any;
         should.exist(verif.internalConfigurationId.hash);
         verif.internalConfigurationId.hash.toString("hex").should.eql("deadbeef");
-
 
         if (doDebug) {
             console.log(result.readValue().value.value.toString());

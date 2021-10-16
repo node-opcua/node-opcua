@@ -1,10 +1,11 @@
 import * as fs from "fs";
-import { StatusCodes } from "node-opcua-status-code";
 import * as should from "should";
 import * as sinon from "sinon";
 
-import { AddressSpace, BaseNode, Namespace } from "..";
 import { nodesets } from "node-opcua-nodesets";
+import { StatusCodes } from "node-opcua-status-code";
+
+import { AddressSpace, BaseNode, Namespace } from "..";
 import { generateAddressSpace } from "../nodeJS";
 
 let clock: any = null;

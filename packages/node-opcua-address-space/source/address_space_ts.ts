@@ -37,7 +37,6 @@ import { MinimalistAddressSpace } from "../src/reference_impl";
 import { Namespace } from "./namespace";
 import { UARootFolder } from "./ua_root_folder";
 
-
 export declare function resolveReferenceType(addressSpace: MinimalistAddressSpace, reference: UAReference): UAReferenceType;
 
 export declare function resolveReferenceNode(addressSpace: MinimalistAddressSpace, reference: UAReference): BaseNode;
@@ -125,7 +124,6 @@ export interface XAxisDefinitionVariable extends UAVariable {
     euRange: RangeVariable;
 }
 
-
 export declare const NamespaceOptions: { nodeIdNameSeparator: string };
 
 export interface UATypesFolder extends UAFolder {
@@ -186,7 +184,6 @@ export declare class VariableHistorian implements IVariableHistorian {
 }
 
 export type UAClonable = UAObject | UAVariable | UAMethod;
-
 
 export interface Enumeration extends UAVariable {}
 export declare function createExtObjArrayNode<T extends ExtensionObject>(

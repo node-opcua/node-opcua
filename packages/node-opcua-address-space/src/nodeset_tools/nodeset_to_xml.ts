@@ -697,15 +697,15 @@ function dumpCommonAttributes(xw: XmlWriter, node: BaseNode) {
     xw.writeAttribute("NodeId", n(xw, node.nodeId));
     xw.writeAttribute("BrowseName", b(xw, node.browseName));
 
-    if (Object.prototype.hasOwnProperty.call(node,"symbolicName")) {
+    if (Object.prototype.hasOwnProperty.call(node, "symbolicName")) {
         xw.writeAttribute("SymbolicName", (node as any).symbolicName);
     }
-    if (Object.prototype.hasOwnProperty.call(node,"isAbstract")) {
+    if (Object.prototype.hasOwnProperty.call(node, "isAbstract")) {
         if ((node as any).isAbstract) {
             xw.writeAttribute("IsAbstract", (node as any).isAbstract ? "true" : "false");
         }
     }
-    if (Object.prototype.hasOwnProperty.call(node,"accessLevel")) {
+    if (Object.prototype.hasOwnProperty.call(node, "accessLevel")) {
         // CurrentRead is by default
         if ((node as UAVariable).accessLevel !== currentReadFlag) {
             xw.writeAttribute("AccessLevel", (node as UAVariable).accessLevel.toString());

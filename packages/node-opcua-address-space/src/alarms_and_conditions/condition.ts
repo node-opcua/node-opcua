@@ -17,7 +17,6 @@ export function _setAckedState(
     conditionEventId?: Buffer,
     comment?: string | LocalizedText | LocalizedTextLike
 ): StatusCode {
-
     assert(self instanceof ConditionSnapshot);
 
     const ackedState = self.getAckedState();

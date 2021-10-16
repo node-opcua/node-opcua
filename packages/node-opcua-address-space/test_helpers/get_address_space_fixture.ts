@@ -4,7 +4,7 @@
 import * as fs from "fs";
 import * as path from "path";
 
-export function getAddressSpaceFixture(pathname: string) {
+export function getAddressSpaceFixture(pathname: string): string {
     // find test_fixtures
 
     let folder = path.join(__dirname, "./test_fixtures");

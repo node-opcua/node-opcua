@@ -2,10 +2,10 @@
 import * as fs from "fs";
 import * as path from "path";
 import * as should from "should";
+import * as async from "async";
+
 import { AddressSpace } from "..";
 import { generateAddressSpace } from "../nodeJS";
-
-import * as async from "async";
 
 function dumpMemoryUse() {
     if (process.memoryUsage) {

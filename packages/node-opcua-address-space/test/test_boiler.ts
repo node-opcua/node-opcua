@@ -71,6 +71,7 @@ describe("Testing Boiler System", () => {
             ]);
     });
 
+    // eslint-disable-next-line max-statements
     it("should create a boiler system", async () => {
         const context = SessionContext.defaultContext;
 
@@ -139,7 +140,7 @@ describe("Testing Boiler System", () => {
         startMethod.getExecutableFlag(context).should.eql(true);
         suspendMethod.getExecutableFlag(context).should.eql(false);
 
-        const callMethodResponse2 = await startMethod.execute(null,[], context);
+        const callMethodResponse2 = await startMethod.execute(null, [], context);
 
         if (doDebug) {
             console.log(chalk.bgWhite.cyan(" startMethod has been called"), callMethodResponse2.statusCode!.toString());
@@ -149,7 +150,7 @@ describe("Testing Boiler System", () => {
         startMethod.getExecutableFlag(context).should.eql(false);
         suspendMethod.getExecutableFlag(context).should.eql(true);
 
-        const callMethodResponse3 = await suspendMethod.execute(null,[], context);
+        const callMethodResponse3 = await suspendMethod.execute(null, [], context);
 
         if (doDebug) {
             console.log(chalk.bgWhite.cyan("suspendMethod has been called"), callMethodResponse3.statusCode!.toString());
@@ -160,7 +161,7 @@ describe("Testing Boiler System", () => {
         suspendMethod.getExecutableFlag(context).should.eql(false);
     });
 
-    it("boiler test", async ()=>{
+    it("boiler test", async () => {
         const context = SessionContext.defaultContext;
 
         const boilerType = createBoilerType(namespace);
@@ -195,6 +196,5 @@ describe("Testing Boiler System", () => {
         // when state is "Reset" , the Halt method becomes executable
         boilerStateMachine.setState(readyState);
         haltMethod.getExecutableFlag(context).should.eql(true);
-
     });
 });

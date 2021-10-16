@@ -27,10 +27,9 @@ import { UARootFolder } from "../source/ua_root_folder";
 
 import { NamespacePrivate } from "./namespace_private";
 import { ExtensionObjectConstructorFuncWithSchema } from "./ua_data_type_impl";
-import { UANamespace} from "./namespace_impl";
+import { UANamespace } from "./namespace_impl";
 
 export interface AddressSpacePrivate extends IAddressSpace {
-
     rootFolder: UARootFolder;
 
     isFrugal: boolean;
@@ -44,11 +43,7 @@ export interface AddressSpacePrivate extends IAddressSpace {
 
     _coerce_DataType(dataType: NodeIdLike | BaseNode): NodeId;
 
-    _coerceType(
-        baseType: string | NodeId | BaseNode,
-        topMostBaseType: string,
-        nodeClass: NodeClass
-    ): UAVariableType | UAObjectType;
+    _coerceType(baseType: string | NodeId | BaseNode, topMostBaseType: string, nodeClass: NodeClass): UAVariableType | UAObjectType;
     _coerceTypeDefinition(typeDefinition: string | NodeId): NodeId;
 
     _coerce_VariableTypeIds(dataType: NodeId | string | BaseNode): NodeId;

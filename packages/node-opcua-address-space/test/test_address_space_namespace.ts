@@ -1,12 +1,13 @@
 import * as fs from "fs";
-import { nodesets } from "node-opcua-nodesets";
-import { getFixture } from "node-opcua-test-fixtures";
 import * as path from "path";
 import * as should from "should";
+
+import { nodesets } from "node-opcua-nodesets";
+import { getFixture } from "node-opcua-test-fixtures";
+
 import { AddressSpace } from "..";
 import { generateAddressSpace } from "../nodeJS";
 
-// tslint:disable-next-line:no-var-requires
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("testing address space namespace", () => {
     it("#getNamespaceUri : should have namespace 0", () => {

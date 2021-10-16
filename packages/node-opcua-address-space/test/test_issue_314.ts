@@ -1,9 +1,9 @@
+import * as path from "path";
+import * as fs from "fs";
 import * as should from "should";
 
-import * as fs from "fs";
 import { nodesets } from "node-opcua-nodesets";
 import { DataType } from "node-opcua-variant";
-import * as path from "path";
 
 import { AddressSpace, UAVariable } from "..";
 import { generateAddressSpace } from "../nodeJS";

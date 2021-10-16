@@ -20,7 +20,7 @@
  */
 import { BaseNode, UAState, UAStateMachineEx, UATransition, UAObject, UATransitionEx } from "..";
 
-export function dumpStateMachineToPlantUML(stateMachineType: UAStateMachineEx) {
+export function dumpStateMachineToPlantUML(stateMachineType: UAStateMachineEx): void {
     function w(str: string) {
         console.log(str);
     }
@@ -110,7 +110,7 @@ export function dumpStateMachineToPlantUML(stateMachineType: UAStateMachineEx) {
 export function dumpStateMachineToGraphViz(
     /*StateMachineProxy*/
     stateMachineType: UAStateMachineEx
-) {
+): void {
     function w(str: string) {
         console.log(str);
     }

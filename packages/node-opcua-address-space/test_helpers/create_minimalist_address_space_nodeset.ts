@@ -1,3 +1,4 @@
+/* eslint-disable max-statements */
 /**
  * @module node-opcua-address-space
  */
@@ -42,11 +43,10 @@ function dumpReferencesHierarchy(_addressSpace: AddressSpace) {
     _dump(references, " ");
 }
 
-export function create_minimalist_address_space_nodeset(addressSpace: AddressSpace) {
-
+export function create_minimalist_address_space_nodeset(addressSpace: AddressSpace): void {
     const _addressSpace = addressSpace;
 
-    const namespace0 = addressSpace.registerNamespace("http://opcfoundation.org/UA/") as unknown as  NamespacePrivate;
+    const namespace0 = addressSpace.registerNamespace("http://opcfoundation.org/UA/") as unknown as NamespacePrivate;
 
     assert(namespace0.index === 0);
 
@@ -140,45 +140,45 @@ export function create_minimalist_address_space_nodeset(addressSpace: AddressSpa
         nodeId: resolveNodeId(ObjectTypeIds.BaseObjectType)
     });
 
-    const baseVariableType = (namespace0.internalCreateNode({
+    const baseVariableType = namespace0.internalCreateNode({
         browseName: "BaseVariableType",
         isAbstract: true,
         nodeClass: NodeClass.VariableType,
         nodeId: resolveNodeId(VariableTypeIds.BaseVariableType)
-    }) as any) as UAVariableType;
+    }) as any as UAVariableType;
 
     const propertyType = namespace0.addVariableType({
         browseName: "PropertyType",
         subtypeOf: baseVariableType
     });
 
-    const baseDataVariableType = (namespace0.internalCreateNode({
+    const baseDataVariableType = namespace0.internalCreateNode({
         browseName: "BaseDataVariableType",
         isAbstract: true,
         nodeClass: NodeClass.VariableType,
         nodeId: resolveNodeId(VariableTypeIds.BaseDataVariableType),
         subtypeOf: baseVariableType.nodeId
-    }) as any) as UAVariableType;
+    }) as any as UAVariableType;
 
-    const modellingRule_Optional = (namespace0.internalCreateNode({
+    const modellingRule_Optional = namespace0.internalCreateNode({
         browseName: "Optional",
         nodeClass: NodeClass.Object,
         nodeId: resolveNodeId(ObjectIds.ModellingRule_Optional)
-    }) as any) as UAObject;
+    }) as any as UAObject;
 
-    const modellingRule_Mandatory = (namespace0.internalCreateNode({
+    const modellingRule_Mandatory = namespace0.internalCreateNode({
         browseName: "Mandatory",
         nodeClass: NodeClass.Object,
         nodeId: resolveNodeId(ObjectIds.ModellingRule_Mandatory)
-    }) as any) as UAObject;
+    }) as any as UAObject;
 
     // add the root folder
     {
-        const rootFolder = (namespace0.internalCreateNode({
+        const rootFolder = namespace0.internalCreateNode({
             browseName: "RootFolder",
             nodeClass: NodeClass.Object,
             nodeId: resolveNodeId(ObjectIds.RootFolder)
-        }) as any) as UAObject;
+        }) as any as UAObject;
 
         {
             const objectsFolder = namespace0.addObject({

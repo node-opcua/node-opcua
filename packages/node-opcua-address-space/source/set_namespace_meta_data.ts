@@ -50,19 +50,25 @@ export function setNamespaceMetaData(namespace: INamespace): void {
     const namespaceVersion = metaData.namespaceVersion;
     namespaceVersion.setValueFromSource({ dataType: DataType.String, value: "1.0.0" });
 
-    metaData.defaultAccessRestrictions?.bindVariable({
-        get: () =>
-            new Variant({
-                dataType: DataType.UInt32,
-                value: namespace.getDefaultAccessRestrictions()
-            })
-    }, true);
-    metaData.defaultRolePermissions?.bindVariable({
-        get: () =>
-            new Variant({
-                dataType: DataType.ExtensionObject,
-                arrayType: VariantArrayType.Array,
-                value: namespace.getDefaultRolePermissions()
-            })
-    }, true);
+    metaData.defaultAccessRestrictions?.bindVariable(
+        {
+            get: () =>
+                new Variant({
+                    dataType: DataType.UInt32,
+                    value: namespace.getDefaultAccessRestrictions()
+                })
+        },
+        true
+    );
+    metaData.defaultRolePermissions?.bindVariable(
+        {
+            get: () =>
+                new Variant({
+                    dataType: DataType.ExtensionObject,
+                    arrayType: VariantArrayType.Array,
+                    value: namespace.getDefaultRolePermissions()
+                })
+        },
+        true
+    );
 }
