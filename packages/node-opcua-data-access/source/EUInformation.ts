@@ -70,7 +70,7 @@ export function commonCodeToUInt(code: string): number {
     return unitId;
 }
 
-export function makeEUInformation(symbol: string, shortName: string, longName: string) {
+export function makeEUInformation(symbol: string, shortName: string, longName: string): EUInformation {
     return new EUInformation({
         description: { text: longName },
         displayName: { text: shortName },
@@ -219,7 +219,11 @@ export const standardUnits: StandardUnits = {
     millipascal: makeEUInformation("74", "mPa", "1 millipascal = 10⁻³ Pa"),
     kilobecquerel: makeEUInformation("2Q", "kBq", "kilo becquerel = 1E3 Bq"),
     mega_electron_volt: makeEUInformation("B71", "MeV", "mega electron volt"),
-    megawatt_per_minute: makeEUInformation("Q35", "MW/min", "A unit of power defining the total amount of bulk energy transferred or consumer per minute."),
+    megawatt_per_minute: makeEUInformation(
+        "Q35",
+        "MW/min",
+        "A unit of power defining the total amount of bulk energy transferred or consumer per minute."
+    ),
     percent: makeEUInformation("P1", "%", "Percent, a unit of proportion equal to 0.01. "),
     pixel: makeEUInformation("E37", "", "pixel:  unit of count defining the number of pixels (pixel: picture element)"),
     volt: makeEUInformation("VLT", "V", "Volt"),
@@ -231,6 +235,6 @@ export const standardUnits: StandardUnits = {
     terabyte: makeEUInformation("E35", "Tbyte", "terabyte = A unit of information equal to 10¹² bytes."),
     minute: makeEUInformation("MIN", "min", " minute (unit of time) 1min = 60 s"),
     minute_angle: makeEUInformation("D61", "'", "minute [unit of angle]"),
-    part_per_million: makeEUInformation("59", "ppm", "A unit of proportion equal to 10⁻⁶."),
+    part_per_million: makeEUInformation("59", "ppm", "A unit of proportion equal to 10⁻⁶.")
     // to be continued
 };

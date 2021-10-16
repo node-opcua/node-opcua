@@ -8,7 +8,8 @@
     "build": "tsc -b",
     "test": "mocha",
     "clean": "node -e \"require('rimraf').sync('dist');\"",
-    "lint": "eslint source/**/*.ts"
+    "lint": "eslint source test",
+    "format": "prettier --write source test"
   },
   "dependencies": {
     "node-opcua-assert": "2.55.0",
