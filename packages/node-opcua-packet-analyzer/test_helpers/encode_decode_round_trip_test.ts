@@ -14,8 +14,8 @@ export interface IExtensionObject extends BaseUAObject {
     binaryStoreSize(): number;
     encode(stream: BinaryStream): void;
     decode(stream: BinaryStream): void;
-    encodingDefaultBinary: ExpandedNodeId;
-    constructor: new () => BaseUAObject;
+    encodingDefaultBinary?: ExpandedNodeId;
+    constructor: any;
 }
 function dump_block_in_debug_mode(buffer: Buffer, id: any, options: any) {
     if (process.env.DEBUG) {
