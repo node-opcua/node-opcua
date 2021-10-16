@@ -7,10 +7,7 @@
 import * as chalk from "chalk";
 
 import assert from "node-opcua-assert";
-import {
-    checkDebugFlag,
-    make_debugLog
-} from "node-opcua-debug";
+import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 import {
     EnumerationDefinitionSchema,
     FieldInterfaceOptions,
@@ -21,11 +18,8 @@ import {
 import { DataTypeFactory } from "node-opcua-factory";
 import { NodeId } from "node-opcua-nodeid";
 import { Xml2Json } from "node-opcua-xml2json";
-import { Z_UNKNOWN } from "zlib";
 
-import {
-    getOrCreateStructuredTypeSchema,
-} from "./tools";
+import { getOrCreateStructuredTypeSchema } from "./tools";
 
 const doDebug = checkDebugFlag(__filename);
 const debugLog = make_debugLog(__filename);
@@ -76,7 +70,6 @@ const predefinedType: any = {
 const found: any = {};
 
 function resolveType(typeDictionary: string, typeName: string) {
-
     const namespace = typeName.split(":")[0];
     if (predefinedType[typeName]) {
         return;
@@ -85,6 +78,7 @@ function resolveType(typeDictionary: string, typeName: string) {
         found[typeName] = typeName;
     }
     if (namespace === "ua") {
+        /** */
     }
 }
 
@@ -110,14 +104,15 @@ export interface ITypeDictionary {
 }
 
 export class TypeDictionary implements ITypeDictionary {
-    public targetNamespace: string = "";
+    public targetNamespace = "";
     public imports: string[] = [];
     public structuredTypesRaw: StructureTypeRaw[] = [];
     public enumeratedTypesRaw: EnumeratedType[] = [];
     private structuredTypesRawMap: any = {};
     constructor() {
+        /**  */
     }
-    public addRaw(structuredType: StructureTypeRaw) {
+    public addRaw(structuredType: StructureTypeRaw): void {
         this.structuredTypesRaw.push(structuredType);
         this.structuredTypesRawMap[structuredType.name] = structuredType;
     }
@@ -134,11 +129,9 @@ const state0: any = {
     parser: {
         TypeDictionary: {
             init: function (this: any, name: string, attributes: any) {
-
                 this.typeDictionary = this.engine.typeDictionary as DataTypeFactory;
                 this.typeDictionary.defaultByteOrder = attributes.DefaultByteOrder;
                 this.typeDictionary.targetNamespace = attributes.TargetNamespace;
-
             },
             parser: {
                 Import: {
@@ -149,20 +142,22 @@ const state0: any = {
                         // _register_namespace_uri(this.text);
                         // istanbul ignore next
                         if (doDebug) {
-                            debugLog("Import NameSpace = ", this.attrs.Namespace,
-                                " Location", this.attrs.Location);
+                            debugLog("Import NameSpace = ", this.attrs.Namespace, " Location", this.attrs.Location);
                         }
                     }
                 },
 
                 EnumeratedType: {
                     init: function (this: any) {
-
                         this.typescriptDefinition = "";
                         // istanbul ignore next
                         if (doDebug) {
-                            debugLog(chalk.cyan("EnumeratedType Name="),
-                                w(this.attrs.Name, 40), "LengthInBits=", this.attrs.LengthInBits);
+                            debugLog(
+                                chalk.cyan("EnumeratedType Name="),
+                                w(this.attrs.Name, 40),
+                                "LengthInBits=",
+                                this.attrs.LengthInBits
+                            );
                         }
 
                         this.enumeratedType = {
@@ -183,13 +178,12 @@ const state0: any = {
                             finish: function (this: any) {
                                 // istanbul ignore next
                                 if (doDebug) {
-                                    debugLog(" EnumeratedValue Name=",
-                                        w(this.attrs.Name, 40), " Value=", this.attrs.Value);
+                                    debugLog(" EnumeratedValue Name=", w(this.attrs.Name, 40), " Value=", this.attrs.Value);
                                 }
                                 const key = this.attrs.Name;
                                 const value = parseInt(this.attrs.Value, 10);
                                 const _enum = this.parent.enumeratedType.enumeratedValues;
-                                _enum[_enum[key] = value] = key;
+                                _enum[(_enum[key] = value)] = key;
                                 this.parent.typescriptDefinition += `\n  ${key} = ${value},`;
                             }
                         }
@@ -207,8 +201,12 @@ const state0: any = {
                     init: function (this: any) {
                         // istanbul ignore next
                         if (doDebug) {
-                            debugLog(chalk.cyan("StructureType Name="),
-                                chalk.green(this.attrs.Name), " BaseType=", this.attrs.BaseType);
+                            debugLog(
+                                chalk.cyan("StructureType Name="),
+                                chalk.green(this.attrs.Name),
+                                " BaseType=",
+                                this.attrs.BaseType
+                            );
                         }
 
                         const baseType = this.attrs.BaseType;
@@ -228,7 +226,6 @@ const state0: any = {
                     parser: {
                         Field: {
                             finish: function (this: any) {
-
                                 if (this.attrs.SourceType) {
                                     // ignore  this field, This is a repetition of the base type field with same name
                                     return;
@@ -236,11 +233,19 @@ const state0: any = {
                                 // istanbul ignore next
                                 if (doDebug) {
                                     debugLog(
-                                        chalk.yellow(" field Name="), w(this.attrs.Name, 40),
-                                        chalk.yellow(" typeName="), w(this.attrs.TypeName, 40),
-                                        this.attrs.LengthField ? chalk.yellow(" lengthField= ") + w(this.attrs.LengthField, 40) : "",
-                                        this.attrs.SwitchField ? chalk.yellow(" SwitchField= ") + w(this.attrs.SwitchField, 40) : "",
-                                        this.attrs.SwitchValue !== undefined ? chalk.yellow(" SwitchValue= ") + w(this.attrs.SwitchValue, 40) : "",
+                                        chalk.yellow(" field Name="),
+                                        w(this.attrs.Name, 40),
+                                        chalk.yellow(" typeName="),
+                                        w(this.attrs.TypeName, 40),
+                                        this.attrs.LengthField
+                                            ? chalk.yellow(" lengthField= ") + w(this.attrs.LengthField, 40)
+                                            : "",
+                                        this.attrs.SwitchField
+                                            ? chalk.yellow(" SwitchField= ") + w(this.attrs.SwitchField, 40)
+                                            : "",
+                                        this.attrs.SwitchValue !== undefined
+                                            ? chalk.yellow(" SwitchValue= ") + w(this.attrs.SwitchValue, 40)
+                                            : ""
                                         // chalk.yellow(" lengthField="), w(this.attrs.LengthField, 40)
                                     );
                                 }
@@ -268,7 +273,6 @@ const state0: any = {
                                     structuredType.fields.push(field);
                                 }
                                 if (this.attrs.SwitchField) {
-
                                     // field is optional and can be omitted
                                     const switchField = this.attrs.SwitchField;
 
@@ -277,7 +281,14 @@ const state0: any = {
                                         field.switchValue = parseInt(this.attrs.SwitchValue, 10);
                                         // istanbul ignore next
                                         if (doDebug) {
-                                            debugLog("field", field.name, " is part of a union  => ", switchField, " value #", field.switchValue);
+                                            debugLog(
+                                                "field",
+                                                field.name,
+                                                " is part of a union  => ",
+                                                switchField,
+                                                " value #",
+                                                field.switchValue
+                                            );
                                         }
                                         // sometimes (like in Milo, baseType attribute is not specified)
                                         if (!this.parent.attrs.baseType) {
@@ -285,11 +296,19 @@ const state0: any = {
                                             this.parent.structuredType.baseType = "Union";
                                         }
                                     } else {
-                                        field.switchBit = structuredType.bitFields ?
-                                            structuredType.bitFields!.findIndex((x) => x.name === switchField) : -2;
+                                        field.switchBit = structuredType.bitFields
+                                            ? structuredType.bitFields!.findIndex((x) => x.name === switchField)
+                                            : -2;
                                         // istanbul ignore next
                                         if (doDebug) {
-                                            debugLog("field", field.name, " is optional => ", switchField, "bit #", field.switchBit);
+                                            debugLog(
+                                                "field",
+                                                field.name,
+                                                " is optional => ",
+                                                switchField,
+                                                "bit #",
+                                                field.switchBit
+                                            );
                                         }
                                     }
                                 }
@@ -322,17 +341,15 @@ export function parseBinaryXSD(
     idProvider: MapDataTypeAndEncodingIdProvider,
     dataTypeFactory: DataTypeFactory,
     callback: (err?: Error | null) => void
-) {
-
+): void {
     const parser = new Xml2Json(state0);
     const typeDictionary = new TypeDictionary();
     (parser as any).typeDictionary = typeDictionary;
 
     parser.parseString(xmlString, (err?: Error | null) => {
-
         // resolve and prepare enumerations
         for (const key in typeDictionary.enumeratedTypesRaw) {
-            if (!typeDictionary.enumeratedTypesRaw.hasOwnProperty(key)) {
+            if (!Object.prototype.hasOwnProperty.call(typeDictionary.enumeratedTypesRaw, key)) {
                 continue;
             }
             const enumeratedType = typeDictionary.enumeratedTypesRaw[key];
@@ -403,7 +420,6 @@ export async function parseBinaryXSDAsync(
     idProvider: MapDataTypeAndEncodingIdProvider,
     dataTypeFactory: DataTypeFactory
 ): Promise<void> {
-
     debugLog("parseBinaryXSDAsync");
     return new Promise((resolve, reject) => {
         parseBinaryXSD(xmlString, idProvider, dataTypeFactory, (err?: Error | null) => {

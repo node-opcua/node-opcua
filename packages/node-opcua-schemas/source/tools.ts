@@ -1,3 +1,5 @@
+/* eslint-disable max-depth */
+/* eslint-disable max-statements */
 import {
     buildStructuredType,
     ConstructorFuncWithSchema,
@@ -8,16 +10,12 @@ import {
     hasBuiltInType,
     hasStructuredType,
     StructuredTypeOptions,
-    StructuredTypeSchema,
+    StructuredTypeSchema
 } from "node-opcua-factory";
-import {
-    createDynamicObjectConstructor
-} from "./dynamic_extension_object";
-import {
-    MapDataTypeAndEncodingIdProvider,
-    TypeDictionary,
-} from "./parse_binary_xsd";
 import { ExpandedNodeId } from "node-opcua-nodeid";
+
+import { createDynamicObjectConstructor } from "./dynamic_extension_object";
+import { MapDataTypeAndEncodingIdProvider, TypeDictionary } from "./parse_binary_xsd";
 
 function _removeNamespacePart(str?: string): string | undefined {
     if (!str) {
@@ -49,11 +47,8 @@ export function getOrCreateStructuredTypeSchema(
     dataTypeFactory: DataTypeFactory,
     idProvider: MapDataTypeAndEncodingIdProvider
 ): StructuredTypeSchema {
-
-    function _getOrCreateStructuredTypeSchema(
-        _name: string,
-    ): StructuredTypeSchema {
-
+    // eslint-disable-next-line complexity
+    function _getOrCreateStructuredTypeSchema(_name: string): StructuredTypeSchema {
         if (dataTypeFactory.hasStructuredType(_name)) {
             return dataTypeFactory.getStructuredTypeSchema(_name);
         }
@@ -74,13 +69,19 @@ export function getOrCreateStructuredTypeSchema(
         //       but they belongs to the base class and shall be remove/
         //       For instance DataTypeSchemaHeader => UABinaryFileDataType
         if (baseSchema && baseSchema.fields && baseSchema.name !== "ExtensionObject") {
-            structuredType.fields = structuredType.fields.filter((field)=> {
+            structuredType.fields = structuredType.fields.filter((field) => {
                 const name = field.name;
-                const index = baseSchema.fields.findIndex((f)=> f.name === name);
-                if(index>=0) {
+                const index = baseSchema.fields.findIndex((f) => f.name === name);
+                if (index >= 0) {
                     // tslint:disable-next-line: no-console
-                    console.log("Warning : find duplicated field from base structure : field name ", name, 
-                            "baseSchema = ",baseSchema.name, "schema =", structuredType.name);
+                    console.log(
+                        "Warning : find duplicated field from base structure : field name ",
+                        name,
+                        "baseSchema = ",
+                        baseSchema.name,
+                        "schema =",
+                        structuredType.name
+                    );
                 }
                 return index < 0;
             });
@@ -88,13 +89,11 @@ export function getOrCreateStructuredTypeSchema(
         for (const field of structuredType.fields) {
             const fieldType = field.fieldType;
             if (!field.schema) {
-
                 const prefix = _getNamespacePart(fieldType);
                 const fieldTypeName = _adjustFieldTypeName(_removeNamespacePart(fieldType)!);
 
                 switch (prefix) {
                     case "tns":
-
                         field.fieldType = fieldTypeName;
                         if (dataTypeFactory.hasEnumeration(fieldTypeName)) {
                             const enumeratedType = dataTypeFactory.getEnumeration(fieldTypeName);
@@ -120,7 +119,6 @@ export function getOrCreateStructuredTypeSchema(
                         } else if (dataTypeFactory.hasStructuredType(fieldTypeName)) {
                             field.category = FieldCategory.complex;
                             field.schema = dataTypeFactory.getStructuredTypeSchema(fieldTypeName);
-
                         } else {
                             field.category = FieldCategory.basic;
                             // try in this
@@ -168,7 +166,7 @@ export function getOrCreateStructuredTypeSchema(
         const ids = idProvider.getDataTypeAndEncodingId(schema.name);
         if (!ids) {
             // this may happen if the type is abstract or if the type referes to a internal ExtnsionObject
-            // that can only exists inside an other extension object.this Type of extension object cannot 
+            // that can only exists inside an other extension object.this Type of extension object cannot
             // instantiated as standalone object and do not have encoding nodeIds...
             const Constructor = createDynamicObjectConstructor(schema, dataTypeFactory) as ConstructorFuncWithSchema;
             return schema;

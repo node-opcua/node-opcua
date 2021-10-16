@@ -28,7 +28,6 @@ export function getOrCreateConstructor(
     encodingDefaultBinary?: ExpandedNodeId,
     encodingDefaultXml?: ExpandedNodeId
 ): AnyConstructorFunc {
-
     if (dataTypeFactory.hasStructuredType(dataTypeName)) {
         return dataTypeFactory.getStructureTypeConstructor(dataTypeName);
     }
@@ -70,7 +69,7 @@ function encodeArrayOrElement(
     if (field.isArray) {
         const array = obj[field.name];
         if (!array) {
-            stream.writeUInt32(0xFFFFFFFF);
+            stream.writeUInt32(0xffffffff);
         } else {
             stream.writeUInt32(array.length);
             for (const e of array) {
@@ -88,8 +87,9 @@ function encodeArrayOrElement(
             if (!obj[field.name].encode) {
                 // tslint:disable:no-console
                 console.log(obj.schema.fields, field);
-                throw new Error("encodeArrayOrElement: object field "
-                    + field.name + " has no encode method and encodeFunc is missing");
+                throw new Error(
+                    "encodeArrayOrElement: object field " + field.name + " has no encode method and encodeFunc is missing"
+                );
             }
             obj[field.name].encode(stream);
         }
@@ -106,14 +106,13 @@ function decodeArrayOrElement(
     if (field.isArray) {
         const array = [];
         const nbElements = stream.readUInt32();
-        if (nbElements === 0xFFFFFFFF) {
+        if (nbElements === 0xffffffff) {
             obj[field.name] = null;
         } else {
             for (let i = 0; i < nbElements; i++) {
                 if (decodeFunc) {
                     array.push(decodeFunc(stream));
                 } else {
-
                     // construct an instance
                     const constructor = factory.getStructureTypeConstructor(field.fieldType);
                     const element = new constructor({});
@@ -136,14 +135,7 @@ function decodeArrayOrElement(
     }
 }
 
-function initializeField(
-    field: FieldType,
-    thisAny: any,
-    options: any,
-    schema: StructuredTypeSchema,
-    factory: DataTypeFactory
-) {
-
+function initializeField(field: FieldType, thisAny: any, options: any, schema: StructuredTypeSchema, factory: DataTypeFactory) {
     const name = field.name;
 
     switch (field.category) {
@@ -155,11 +147,9 @@ function initializeField(
                 if (!arr.map) {
                     console.log("Error", options);
                 }
-                (thisAny)[name] = arr.map((x: any) =>
-                    constructor ? new constructor(x) : null
-                );
+                thisAny[name] = arr.map((x: any) => (constructor ? new constructor(x) : null));
             } else {
-                (thisAny)[name] = constructor ? new constructor(options[name]) : null;
+                thisAny[name] = constructor ? new constructor(options[name]) : null;
             }
             // xx processStructuredType(fieldSchema);
             break;
@@ -167,9 +157,9 @@ function initializeField(
         case FieldCategory.enumeration:
         case FieldCategory.basic:
             if (field.isArray) {
-                (thisAny)[name] = initialize_field_array(field, options[name]);
+                thisAny[name] = initialize_field_array(field, options[name]);
             } else {
-                (thisAny)[name] = initialize_field(field, options[name]);
+                thisAny[name] = initialize_field(field, options[name]);
             }
             break;
     }
@@ -182,19 +172,17 @@ function initializeField(
  * @param factory
  */
 function initializeFields(thisAny: any, options: any, schema: StructuredTypeSchema, factory: DataTypeFactory) {
-
     // initialize base class first
     if (schema._baseSchema && schema._baseSchema.fields.length) {
         initializeFields(thisAny, options, schema._baseSchema!, factory);
     }
     // finding fields that are in options but not in schema!
     for (const field of schema.fields) {
-
         const name = field.name;
 
         // dealing with optional fields
         if (field.switchBit !== undefined && options[field.name] === undefined) {
-            (thisAny)[name] = undefined;
+            thisAny[name] = undefined;
             continue;
         }
         initializeField(field, thisAny, options, schema, factory);
@@ -205,7 +193,7 @@ function hasOptionalFieldsF(schema: StructuredTypeSchema): boolean {
     if (schema.bitFields && schema.bitFields.length > 0) {
         return true;
     }
-    return (schema._baseSchema ? hasOptionalFieldsF(schema._baseSchema) : false);
+    return schema._baseSchema ? hasOptionalFieldsF(schema._baseSchema) : false;
 }
 
 function _internal_encodeFields(thisAny: any, schema: StructuredTypeSchema, stream: OutputBinaryStream) {
@@ -214,9 +202,8 @@ function _internal_encodeFields(thisAny: any, schema: StructuredTypeSchema, stre
         _internal_encodeFields(thisAny, schema._baseSchema!, stream);
     }
     for (const field of schema.fields) {
-
         // ignore
-        if (field.switchBit !== undefined && (thisAny)[field.name] === undefined) {
+        if (field.switchBit !== undefined && thisAny[field.name] === undefined) {
             continue;
         }
 
@@ -240,9 +227,10 @@ interface BitfieldOffset {
     allOptional: boolean;
 }
 function makeBitField(thisAny: any, schema: StructuredTypeSchema, bo: BitfieldOffset): BitfieldOffset {
+    const data = schema._baseSchema ? makeBitField(thisAny, schema._baseSchema, bo) : bo;
+    let { bitField, allOptional } = data;
+    const { offset } = data;
 
-    // tslint:disable-next-line: prefer-const
-    let { bitField, offset, allOptional } = schema._baseSchema ? makeBitField(thisAny, schema._baseSchema, bo) : bo;
     let nbOptionalFields = 0;
     for (const field of schema.fields) {
         if (field.switchBit === undefined) {
@@ -250,17 +238,15 @@ function makeBitField(thisAny: any, schema: StructuredTypeSchema, bo: BitfieldOf
             continue;
         }
         nbOptionalFields += 1;
-        if ((thisAny)[field.name] === undefined) {
+        if (thisAny[field.name] === undefined) {
             continue;
         }
         // tslint:disable-next-line:no-bitwise
-        bitField |= (1 << (field.switchBit + offset));
-
+        bitField |= 1 << (field.switchBit + offset);
     }
     return { bitField, offset: nbOptionalFields + offset, allOptional };
 }
 function encodeFields(thisAny: any, schema: StructuredTypeSchema, stream: OutputBinaryStream) {
-
     const hasOptionalFields = hasOptionalFieldsF(schema);
     // ============ Deal with switchBits
     if (hasOptionalFields) {
@@ -286,15 +272,14 @@ function internal_decodeFields(
         internal_decodeFields(thisAny, bitField, hasOptionalFields, schema._baseSchema, stream, factory);
     }
     for (const field of schema.fields) {
-
         // ignore fields that have a switch bit when bit is not set
         if (hasOptionalFields && field.switchBit !== undefined) {
             // tslint:disable-next-line:no-bitwise
             if ((bitField & (1 << field.switchBit)) === 0) {
-                (thisAny)[field.name] = undefined;
+                thisAny[field.name] = undefined;
                 continue;
             } else {
-                if (field.category === FieldCategory.complex && (thisAny)[field.name] === undefined) {
+                if (field.category === FieldCategory.complex && thisAny[field.name] === undefined) {
                     // need to create empty structure for deserialisation
                     initializeField(field, thisAny, {}, schema, factory);
                 }
@@ -314,20 +299,13 @@ function internal_decodeFields(
                 throw new Error("Invalid category " + field.category + " " + FieldCategory[field.category]);
         }
     }
-
 }
 
-function decodeFields(
-    thisAny: any,
-    schema: StructuredTypeSchema,
-    stream: BinaryStream,
-    factory: DataTypeFactory
-) {
-
+function decodeFields(thisAny: any, schema: StructuredTypeSchema, stream: BinaryStream, factory: DataTypeFactory) {
     // ============ Deal with switchBits
     const hasOptionalFields = hasOptionalFieldsF(schema);
     let bitField = 0;
-    if (hasOptionalFields && (stream.buffer.length - stream.length) > 0) {
+    if (hasOptionalFields && stream.buffer.length - stream.length > 0) {
         bitField = stream.readUInt32();
     }
 
@@ -340,7 +318,7 @@ function ___fieldToJson(field: FieldType, value: any): any {
             return value ? value?.toJSON() : null;
         case FieldCategory.enumeration:
         case FieldCategory.basic:
-            return value instanceof Date ? new Date(value.getTime()) : (value?.toJSON ? value?.toJSON() : value);
+            return value instanceof Date ? new Date(value.getTime()) : value?.toJSON ? value?.toJSON() : value;
         default:
             /* istanbul ignore next*/
             throw new Error("Invalid category " + field.category + " " + FieldCategory[field.category]);
@@ -355,11 +333,7 @@ function fieldToJSON(field: FieldType, value: any): any {
         return ___fieldToJson(field, value);
     }
 }
-function encodeToJson(
-    thisAny: any,
-    schema: StructuredTypeSchema,
-    pojo: any) {
-
+function encodeToJson(thisAny: any, schema: StructuredTypeSchema, pojo: any) {
     if (schema._baseSchema && schema._baseSchema.fields.length) {
         encodeToJson(thisAny, schema._baseSchema!, pojo);
     }
@@ -379,7 +353,6 @@ interface T {
 const _private = new WeakMap<T>();
 
 export class DynamicExtensionObject extends ExtensionObject {
-
     public static schema: StructuredTypeSchema = ExtensionObject.schema;
     public static possibleFields: string[] = [];
 
@@ -421,21 +394,19 @@ export class DynamicExtensionObject extends ExtensionObject {
         encodeToJson(this, this.schema, pojo);
         return pojo;
     }
-
 }
 
 // tslint:disable:callable-types
 interface AnyConstructable {
     schema: StructuredTypeSchema;
     possibleFields: string[];
-    new(options?: any, schema?: StructuredTypeSchema, factory?: DataTypeFactory): any;
+    new (options?: any, schema?: StructuredTypeSchema, factory?: DataTypeFactory): any;
 }
 
 export type AnyConstructorFunc = AnyConstructable;
 
 // tslint:disable-next-line:max-classes-per-file
 class UnionBaseClass extends BaseUAObject {
-
     constructor(options: any, schema: StructuredTypeSchema, factory: DataTypeFactory) {
         super();
 
@@ -451,7 +422,6 @@ class UnionBaseClass extends BaseUAObject {
         let switchFieldName = "";
         // finding fields that are in options but not in schema!
         for (const field of this.schema.fields) {
-
             const name = field.name;
             if (field.switchValue === undefined) {
                 // this is the switch value field
@@ -467,9 +437,14 @@ class UnionBaseClass extends BaseUAObject {
             if (uniqueFieldHasBeenFound && options[field.name] !== undefined) {
                 // let try to be helpful for the developper by providing some hint
                 debugLog(this.schema);
-                throw new Error("union must have only one choice in " + JSON.stringify(options) +
-                    "\n found while investigating " + field.name +
-                    "\n switchFieldName = " + switchFieldName);
+                throw new Error(
+                    "union must have only one choice in " +
+                        JSON.stringify(options) +
+                        "\n found while investigating " +
+                        field.name +
+                        "\n switchFieldName = " +
+                        switchFieldName
+                );
             }
 
             if (options[switchFieldName] !== undefined) {
@@ -491,9 +466,7 @@ class UnionBaseClass extends BaseUAObject {
                     const constuctor = factory.getStructureTypeConstructor(field.fieldType);
                     // getOrCreateConstructor(field.fieldType, factory) || BaseUAObject;
                     if (field.isArray) {
-                        (this as any)[name] = (options[name] || []).map((x: any) =>
-                            constuctor ? new constuctor(x) : null
-                        );
+                        (this as any)[name] = (options[name] || []).map((x: any) => (constuctor ? new constuctor(x) : null));
                     } else {
                         (this as any)[name] = constuctor ? new constuctor(options[name]) : null;
                     }
@@ -508,7 +481,6 @@ class UnionBaseClass extends BaseUAObject {
                         (this as any)[name] = initialize_field(field, options[name]);
                     }
                     break;
-
             }
         }
         if (!uniqueFieldHasBeenFound) {
@@ -516,22 +488,27 @@ class UnionBaseClass extends BaseUAObject {
                 (this as any)[switchFieldName] = 0x00;
                 return;
             }
-            const r = schema.fields.filter((f) => f.switchValue !== undefined).map((f) => f.name).join(" , ");
+            const r = schema.fields
+                .filter((f) => f.switchValue !== undefined)
+                .map((f) => f.name)
+                .join(" , ");
             // it is possible also that the switchfield value do not correspond to a valid field
-            const foundFieldForSwitchValue = schema.fields.findIndex((f) =>
-                f.switchValue !== undefined && f.switchValue === options[switchFieldName]);
+            const foundFieldForSwitchValue = schema.fields.findIndex(
+                (f) => f.switchValue !== undefined && f.switchValue === options[switchFieldName]
+            );
             if (foundFieldForSwitchValue) {
                 // throw new Error(this.schema.name + ": cannot find field with value "
                 // +  options[switchFieldName]);
             } else {
                 console.log(this.schema);
-                throw new Error(this.schema.name + ": At least one of [ " + r + " ] must be specified in " + JSON.stringify(options));
+                throw new Error(
+                    this.schema.name + ": At least one of [ " + r + " ] must be specified in " + JSON.stringify(options)
+                );
             }
         }
     }
 
     public encode(stream: OutputBinaryStream): void {
-
         const switchFieldName = this.schema.fields[0].name;
         const switchValue = (this as any)[switchFieldName];
         if (typeof switchValue !== "number") {
@@ -568,7 +545,6 @@ class UnionBaseClass extends BaseUAObject {
         (this as any)[switchFieldName] = switchValue;
 
         for (const field of this.schema.fields) {
-
             if (field.switchValue === undefined || field.switchValue !== switchValue) {
                 continue;
             }
@@ -598,7 +574,6 @@ class UnionBaseClass extends BaseUAObject {
     }
 
     public toJSON(): any {
-
         const pojo: any = {};
         const switchFieldName = this.schema.fields[0].name;
         const switchValue = (this as any)[switchFieldName];
@@ -621,14 +596,9 @@ class UnionBaseClass extends BaseUAObject {
         }
         return pojo;
     }
-
 }
 
-function _createDynamicUnionConstructor(
-    schema: StructuredTypeSchema,
-    factory: DataTypeFactory
-): AnyConstructorFunc {
-
+function _createDynamicUnionConstructor(schema: StructuredTypeSchema, factory: DataTypeFactory): AnyConstructorFunc {
     const possibleFields = schema.fields.map((x: FieldType) => x.name);
 
     // tslint:disable-next-line:max-classes-per-file
@@ -640,21 +610,15 @@ function _createDynamicUnionConstructor(
             super(options, schema, factory);
             assert(this.schema === schema);
         }
-
     }
 
     // to do : may be remove DataType suffix here ?
     Object.defineProperty(UNION, "name", { value: schema.name });
 
     return UNION;
-
 }
 
-export function createDynamicObjectConstructor(
-    schema: StructuredTypeSchema,
-    dataTypeFactory: DataTypeFactory
-): AnyConstructorFunc {
-
+export function createDynamicObjectConstructor(schema: StructuredTypeSchema, dataTypeFactory: DataTypeFactory): AnyConstructorFunc {
     const schemaPriv = schema as any;
 
     if (schemaPriv.$Constructor) {
@@ -673,13 +637,13 @@ export function createDynamicObjectConstructor(
 
     let BaseClass: AnyConstructorFunc = DynamicExtensionObject as AnyConstructorFunc;
 
-    if (schema.baseType !== "ExtensionObject"
-        && schema.baseType !== "OptionSet"
-        && schema.baseType !== "DataTypeDescription"
-        && schema.baseType !== "DataTypeDefinition"
-        && schema.baseType !== "EnumValueType"
+    if (
+        schema.baseType !== "ExtensionObject" &&
+        schema.baseType !== "OptionSet" &&
+        schema.baseType !== "DataTypeDescription" &&
+        schema.baseType !== "DataTypeDefinition" &&
+        schema.baseType !== "EnumValueType"
     ) {
-
         try {
             const baseSchema = dataTypeFactory.getStructuredTypeSchema(schema.baseType);
             schema._baseSchema = baseSchema;
@@ -695,7 +659,6 @@ export function createDynamicObjectConstructor(
                 }
                 schema._baseSchema = BaseClass.schema;
             }
-
         } catch (err) {
             // xx console.log("createDynamicObjectConstructor err= ", err.message);
         }
@@ -706,8 +669,10 @@ export function createDynamicObjectConstructor(
         public static encodingDefaultXml = new ExpandedNodeId(NodeIdType.NUMERIC, 0, 0);
         public static encodingDefaultBinary = new ExpandedNodeId(NodeIdType.NUMERIC, 0, 0);
         public static possibleFields = possibleFields;
-        public static get schema(): StructuredTypeSchema { return schema; }
-        
+        public static get schema(): StructuredTypeSchema {
+            return schema;
+        }
+
         constructor(options?: any, schema2?: StructuredTypeSchema, factory2?: DataTypeFactory) {
             super(options, schema2 ? schema2 : schema, factory2 ? factory2 : dataTypeFactory);
         }

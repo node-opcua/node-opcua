@@ -1,14 +1,9 @@
-import {
-    DataTypeAndEncodingId,
-    MapDataTypeAndEncodingIdProvider
-} from "../source";
-
 import { NodeId } from "node-opcua-nodeid";
+import { DataTypeAndEncodingId, MapDataTypeAndEncodingIdProvider } from "../source";
 
 export class MockProvider implements MapDataTypeAndEncodingIdProvider {
-
     private _map: { [key: string]: DataTypeAndEncodingId } = {};
-    private i: number = 1;
+    private i = 1;
     constructor() {
         //
     }
@@ -23,7 +18,7 @@ export class MockProvider implements MapDataTypeAndEncodingIdProvider {
                 binaryEncodingNodeId,
                 dataTypeNodeId,
                 jsonEncodingNodeId,
-                xmlEncodingNodeId,
+                xmlEncodingNodeId
             };
         }
         return this._map[key] || null;
