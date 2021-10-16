@@ -13,7 +13,6 @@ import { UAVariableT } from "./ua_variable_t";
 import { BindVariableOptions } from "./namespace";
 import { UAMethod } from "./ua_method";
 
-
 export interface InstantiateVariableOptions extends InstantiateOptions {
     arrayDimensions?: number[] | null;
     dataType?: string | NodeIdLike;

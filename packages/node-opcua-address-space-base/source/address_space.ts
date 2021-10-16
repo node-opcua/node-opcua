@@ -22,7 +22,7 @@ interface UARootFolder_Objects extends UAObject {
     server: UAObject;
 }
 export interface IAddressSpace {
-    rootFolder: { objects:  UARootFolder_Objects, views: UAObject, types: UAObject };
+    rootFolder: { objects: UARootFolder_Objects; views: UAObject; types: UAObject };
 
     historizingNodes?: { [key: string]: UAVariable };
 

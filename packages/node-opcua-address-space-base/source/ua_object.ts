@@ -3,12 +3,12 @@ import { DataType, Variant, VariantArrayType } from "node-opcua-variant";
 import { Byte, DateTime, Int16, Int32, SByte, StatusCode, UAString, UInt16, UInt32 } from "node-opcua-basic-types";
 import { LocalizedTextLike, NodeClass, QualifiedNameOptions } from "node-opcua-data-model";
 
+import { ExtensionObject } from "node-opcua-extension-object";
 import { CloneOptions, CloneFilter, CloneExtraInfo } from "./clone_options";
 import { BaseNode, IPropertyAndComponentHolder } from "./base_node";
 import { UAObjectType } from "./ua_object_type";
 import { IEventData, UAEventType } from "./ua_event_type";
 import { UAMethod } from "./ua_method";
-import { ExtensionObject } from "node-opcua-extension-object";
 
 export type EventTypeLike = string | NodeId | UAEventType;
 
@@ -87,7 +87,7 @@ export interface PseudoVariantStatusCode {
 
 export interface PseudoVariantByteString {
     dataType: "ByteString" | DataType.ByteString;
-    value: Buffer;
+    value: Buffer | null;
 }
 
 export interface PseudoVariantExtensionObject {
@@ -124,6 +124,7 @@ export type PseudoVariant =
     | PseudoVariantNull
     | PseudoVariantString
     | PseudoVariantBoolean
+    | PseudoVariantByteString
     | PseudoVariantNodeId
     | PseudoVariantDateTime
     | PseudoVariantByteString
@@ -138,6 +139,7 @@ export type PseudoVariant =
 export interface RaiseEventData {
     $eventDataSource?: UAEventType;
 
+    sourceNode?: PseudoVariantNodeId | Variant;
     [key: string]: PseudoVariant | Variant | UAEventType | undefined;
 }
 
@@ -162,7 +164,7 @@ export interface UAObject extends BaseNode, EventRaiser, IPropertyAndComponentHo
 
     getMethodByName(methodName: QualifiedNameOptions): UAMethod | null;
     getMethodByName(methodName: string, namespaceIndex?: number): UAMethod | null;
-   
+
     getMethods(): UAMethod[];
 
     raiseEvent(eventType: EventTypeLike | BaseNode, eventData: RaiseEventData): void;

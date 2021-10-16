@@ -10,7 +10,6 @@ import { UAObjectType } from "./ua_object_type";
 import { UAReference } from "./ua_reference";
 import { UAVariable } from "./ua_variable";
 
-
 export type CloneExtraInfo = any;
 
 export interface CloneFilter {
