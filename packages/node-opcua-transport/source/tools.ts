@@ -47,18 +47,18 @@ export function decodeMessage(stream: BinaryStream, classNameConstructor: Constr
     }
 }
 
-export function packTcpMessage(msgType: string, encodableObject: BaseUAObject): Buffer {
+export function packTcpMessage(msgType: string, encodeableObject: BaseUAObject): Buffer {
     assert(is_valid_msg_type(msgType));
 
-    const messageChunk = createFastUninitializedBuffer(encodableObject.binaryStoreSize() + 8);
+    const messageChunk = createFastUninitializedBuffer(encodeableObject.binaryStoreSize() + 8);
     // encode encodeableObject in a packet
     const stream = new BinaryStream(messageChunk);
-    encodeMessage(msgType, encodableObject, stream);
+    encodeMessage(msgType, encodeableObject, stream);
 
     return messageChunk;
 }
 
-// opc.tcp://xleuri11022:51210/UA/SampleServer
+// opc.tcp://hostname:51210/UA/SampleServer
 export function parseEndpointUrl(endpointUrl: string): url.Url {
     const _url = url.parse(endpointUrl);
     if (!_url.protocol || !_url.hostname) {
