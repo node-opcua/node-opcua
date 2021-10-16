@@ -5,7 +5,10 @@
 	"main": "dist/index.js",
 	"types": "dist/index.d.ts",
 	"scripts": {
-		"build": "tsc -b"
+		"build": "tsc -b",
+		"lint": "eslint src",
+		"format": "prettier --write src",
+		"test": "mocha"
 	},
 	"dependencies": {
 		"node-opcua-address-space": "2.55.0",

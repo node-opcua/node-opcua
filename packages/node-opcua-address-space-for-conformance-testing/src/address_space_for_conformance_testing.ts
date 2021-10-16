@@ -120,6 +120,7 @@ function makeVariant(dataTypeName: string, arrayType: VariantArrayType, dimensio
     return variant;
 }
 
+// eslint-disable-next-line max-params
 function _add_variable(
     namespace: Namespace,
     parent: UAObject,
@@ -1461,7 +1462,7 @@ function add_sampleView(namespace: Namespace): void {
         nodeId: "s=SampleView"
     });
     view1.addReference({
-        nodeId: "i=2256",  // Server_Status
+        nodeId: "i=2256", // Server_Status
         referenceType: "Organizes"
     });
     view1.addReference({
@@ -1476,7 +1477,7 @@ function add_sampleView(namespace: Namespace): void {
     });
 }
 
-export function build_address_space_for_conformance_testing(addressSpace: AddressSpace, options: any) {
+export function build_address_space_for_conformance_testing(addressSpace: AddressSpace, options: any): void {
     const namespace = addressSpace.registerNamespace("urn://node-opcua-simulator");
 
     options = options || {};
