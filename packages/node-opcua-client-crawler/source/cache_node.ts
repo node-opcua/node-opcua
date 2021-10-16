@@ -52,7 +52,7 @@ export class CacheNode {
         str += " nodeClass : " + w(NodeClass[this.nodeClass], 12);
         return str;
     }
-    public dispose() {
+    public dispose(): void {
         this.parent = undefined;
         this.referenceToParent = undefined;
         this.references.length = 0;
@@ -73,7 +73,7 @@ export class CacheNodeVariable extends CacheNode {
     constructor(nodeId: NodeId) {
         super(nodeId);
     }
-    public dispose() {
+    public dispose(): void {
         super.dispose();
         if (this.dataValue) {
             this.dataValue = undefined;
@@ -97,7 +97,7 @@ export class CacheNodeVariableType extends CacheNode {
     constructor(nodeId: NodeId) {
         super(nodeId);
     }
-    public dispose() {
+    public dispose(): void {
         super.dispose();
         if (this.dataValue) {
             this.dataValue = undefined;

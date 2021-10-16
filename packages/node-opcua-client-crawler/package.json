@@ -5,7 +5,8 @@
 	"types": "./dist/index.d.ts",
 	"description": "pure nodejs OPCUA SDK - module -client-crawler",
 	"scripts": {
-		"lint": "eslint source/**/*.ts",
+		"lint": "eslint source test",
+		"format": "prettier --write source test",
 		"build": "tsc -b",
 		"clean": "node -e \"require('rimraf').sync('dist');\"",
 		"test": "mocha "

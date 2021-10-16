@@ -1,8 +1,8 @@
 /**
  * @module node-opcua-client-crawler
  */
-import * as async from "async";
 import { EventEmitter } from "events";
+import * as async from "async";
 import { zip } from "underscore";
 
 import { UAReferenceType } from "node-opcua-address-space";
@@ -153,10 +153,10 @@ function getReferenceTypeId(referenceType: undefined | string | NodeId | UARefer
     } else {
         throw new Error("Invalid reference Type" + referenceType.toString());
     }
-    return NodeId.nullNodeId;
 }
 
-export type ObjectMap = { [key: string]: object };
+export type Pojo = Record<string, unknown>;
+export type ObjectMap = { [key: string]: Pojo };
 
 // tslint:disable:max-classes-per-file
 /**
@@ -171,7 +171,7 @@ export class NodeCrawlerBase extends EventEmitter implements NodeCrawlerEvents {
         userData: UserData,
         referenceType?: string | UAReferenceType,
         browseDirection?: BrowseDirection
-    ) {
+    ): void {
         const referenceTypeNodeId = getReferenceTypeId(referenceType);
 
         for (const reference of cacheNode.references) {
@@ -192,13 +192,13 @@ export class NodeCrawlerBase extends EventEmitter implements NodeCrawlerEvents {
         }
     }
 
-    public maxNodesPerRead: number = 0;
-    public maxNodesPerBrowse: number = 0;
+    public maxNodesPerRead = 0;
+    public maxNodesPerBrowse = 0;
     public startTime: Date = new Date();
-    public readCounter: number = 0;
-    public browseCounter: number = 0;
-    public browseNextCounter: number = 0;
-    public transactionCounter: number = 0;
+    public readCounter = 0;
+    public browseCounter = 0;
+    public browseNextCounter = 0;
+    public transactionCounter = 0;
     private readonly session: NodeCrawlerClientSession;
     private readonly browseNameMap: ObjectMap;
     private readonly taskQueue: async.QueueObject<Task>;
@@ -265,7 +265,7 @@ export class NodeCrawlerBase extends EventEmitter implements NodeCrawlerEvents {
         this.transactionCounter = 0;
     }
 
-    public dispose() {
+    public dispose(): void {
         assert(this.pendingReadTasks.length === 0);
         assert(this.pendingBrowseTasks.length === 0);
         assert(this.pendingBrowseNextTasks.length === 0);
@@ -325,7 +325,7 @@ export class NodeCrawlerBase extends EventEmitter implements NodeCrawlerEvents {
     private _inner_crawl(nodeId: NodeId, userData: UserData, endCallback: ErrorCallback) {
         assert(userData !== null && typeof userData === "object");
         assert(typeof endCallback === "function");
-     
+
         let hasEnded = false;
 
         this.taskQueue.drain(() => {
@@ -431,25 +431,23 @@ export class NodeCrawlerBase extends EventEmitter implements NodeCrawlerEvents {
         this._push_task("_crawl task", task);
     }
 
-    public followReference(parentNode: CacheNode, reference: ReferenceDescription, userData: UserData) {
+    public followReference(parentNode: CacheNode, reference: ReferenceDescription, userData: UserData): void {
         assert(reference instanceof ReferenceDescription);
 
-        const crawler = this;
-
-        let referenceTypeIdCacheNode = crawler._getCacheNode(reference.referenceTypeId);
+        let referenceTypeIdCacheNode = this._getCacheNode(reference.referenceTypeId);
         if (this._prePopulatedSet.has(referenceTypeIdCacheNode)) {
             this._prePopulatedSet.delete(referenceTypeIdCacheNode);
             this._add_crawl_task(referenceTypeIdCacheNode, userData);
         }
         if (!referenceTypeIdCacheNode) {
-            referenceTypeIdCacheNode = crawler._createCacheNode(reference.referenceTypeId);
+            referenceTypeIdCacheNode = this._createCacheNode(reference.referenceTypeId);
             referenceTypeIdCacheNode.nodeClass = NodeClass.ReferenceType;
             this._add_crawl_task(referenceTypeIdCacheNode, userData);
         }
 
-        let childCacheNode = crawler._getCacheNode(reference.nodeId);
+        let childCacheNode = this._getCacheNode(reference.nodeId);
         if (!childCacheNode) {
-            childCacheNode = crawler._createCacheNode(reference.nodeId, parentNode, reference);
+            childCacheNode = this._createCacheNode(reference.nodeId, parentNode, reference);
             childCacheNode.browseName = reference.browseName;
             childCacheNode.displayName = reference.displayName;
             childCacheNode.typeDefinition = reference.typeDefinition;
@@ -506,7 +504,7 @@ export class NodeCrawlerBase extends EventEmitter implements NodeCrawlerEvents {
             for (const pair of zip(selectedPendingReadTasks, dataValues!)) {
                 const readTask: TaskReadNode = pair[0];
                 const dataValue: DataValue = pair[1];
-                assert(dataValue.hasOwnProperty("statusCode"));
+                assert(Object.prototype.hasOwnProperty.call(dataValue, "statusCode"));
                 if (dataValue.statusCode.equals(StatusCodes.Good)) {
                     /* istanbul ignore else */
                     if (dataValue.value === null) {
@@ -533,7 +531,7 @@ export class NodeCrawlerBase extends EventEmitter implements NodeCrawlerEvents {
         const objectsToBrowse: TaskBrowseNode[] = _fetch_elements(this.pendingBrowseTasks, this.maxNodesPerBrowse);
 
         const nodesToBrowse = objectsToBrowse.map((e: TaskBrowseNode) => {
-            assert(e.hasOwnProperty("referenceTypeId"));
+            assert(Object.prototype.hasOwnProperty.call(e, "referenceTypeId"));
 
             return new BrowseDescription({
                 browseDirection: BrowseDirection.Forward,
@@ -776,7 +774,7 @@ export class NodeCrawlerBase extends EventEmitter implements NodeCrawlerEvents {
 
     private has_cache_NodeAttribute(nodeId: NodeId, attributeId: AttributeIds) {
         const key = make_node_attribute_key(nodeId, attributeId);
-        return this.browseNameMap.hasOwnProperty(key);
+        return Object.prototype.hasOwnProperty.call(this.browseNameMap, key);
     }
 
     private get_cache_NodeAttribute(nodeId: NodeId, attributeId: AttributeIds) {
@@ -945,7 +943,7 @@ export class NodeCrawlerBase extends EventEmitter implements NodeCrawlerEvents {
         }
         cacheNode.parent = parentNode;
         cacheNode.referenceToParent = referenceToParent;
-        assert(!this._objectCache.hasOwnProperty(key));
+        assert(!Object.prototype.hasOwnProperty.call(this._objectCache, key));
         this._objectCache[key] = cacheNode;
         return cacheNode;
     }
@@ -1115,7 +1113,7 @@ export class NodeCrawlerBase extends EventEmitter implements NodeCrawlerEvents {
                                 cache.arrayDimensions = standardArray;
                                 // xxx console.log("arrayDimensions  XXXX ", cache.arrayDimensions);
                             } else {
-                                cache.arrayDimensions = undefined; // set explicitaly
+                                cache.arrayDimensions = undefined; // set explicitly
                             }
                             callback();
                         }

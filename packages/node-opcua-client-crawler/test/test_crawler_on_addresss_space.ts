@@ -1,17 +1,16 @@
-import * as should  from "should";
+import * as should from "should";
 import * as sinon from "sinon";
 
 import { AddressSpace, PseudoSession, UAVariable } from "node-opcua-address-space";
 import { getMiniAddressSpace } from "node-opcua-address-space/testHelpers";
-
 import { ObjectIds, DataTypeIds } from "node-opcua-constants";
 import { BrowseDirection, NodeClass } from "node-opcua-data-model";
 import { makeNodeId, NodeId } from "node-opcua-nodeid";
-
 import { DataType } from "node-opcua-client";
+import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
+
 import { CacheNode, NodeCrawlerBase, UserData } from "..";
 
-import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 const debugLog = make_debugLog("TEST");
 const doDebug = checkDebugFlag("TEST");
 

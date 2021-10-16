@@ -7,17 +7,16 @@ import { ReferenceDescription } from "node-opcua-service-browse";
 import { ErrorCallback } from "node-opcua-status-code";
 import { checkDebugFlag, make_debugLog, make_warningLog } from "node-opcua-debug";
 
-import { NodeCrawlerBase, ObjectMap, UserData } from "./node_crawler_base";
-import { CacheNode, CacheNodeVariable, CacheNodeVariableType } from "./cache_node";
-import { TaskReconstruction, EmptyCallback, remove_cycle } from "./private";
 import { lowerFirstLetter } from "node-opcua-utils";
+import { NodeCrawlerBase, ObjectMap, Pojo, UserData } from "./node_crawler_base";
+import { CacheNode, CacheNodeVariable, CacheNodeVariableType } from "./cache_node";
+import { TaskReconstruction, EmptyCallback, removeCycle } from "./private";
 
 const debugLog = make_debugLog(__filename);
 const warningLog = make_warningLog(__filename);
 const doDebug = checkDebugFlag(__filename);
 
 type Queue = async.QueueObject<TaskReconstruction>;
-type Pojo = object;
 
 export class NodeCrawler extends NodeCrawlerBase {
     /**
@@ -34,14 +33,14 @@ export class NodeCrawler extends NodeCrawlerBase {
         try {
             nodeId = resolveNodeId(nodeId);
         } /* istanbul ignore next */ catch (err) {
-             callback(err as Error);
-             return;
+            callback(err as Error);
+            return;
         }
 
         const key = nodeId.toString();
 
         // check if object has already been crawled
-        if (this._objMap.hasOwnProperty(key)) {
+        if (Object.prototype.hasOwnProperty.call(this._objMap, key)) {
             const object = this._objMap[key];
             return callback(null, object);
         }
@@ -57,7 +56,7 @@ export class NodeCrawler extends NodeCrawlerBase {
             }
 
             /* istanbul ignore else */
-            if (this._objectCache.hasOwnProperty(key)) {
+            if (Object.prototype.hasOwnProperty.call(this._objectCache, key)) {
                 const cacheNode = this._objectCache[key];
                 assert(cacheNode.browseName.name !== "pending");
 
@@ -79,12 +78,14 @@ export class NodeCrawler extends NodeCrawlerBase {
         }, 1);
 
         // tslint:disable:no-empty
-        this._add_for_reconstruction(queue, objMap, object, () => {});
+        this._add_for_reconstruction(queue, objMap, object, () => {
+            /* */
+        });
 
         const key1 = object.nodeId.toString();
         queue.drain(() => {
             const object1: Pojo = this._objMap[key1];
-            remove_cycle(object1, finalCallback);
+            removeCycle(object1, finalCallback);
         });
     }
 
@@ -120,7 +121,7 @@ export class NodeCrawler extends NodeCrawlerBase {
         assert(object.nodeId);
 
         const key2 = object.nodeId.toString();
-        if (objMap.hasOwnProperty(key2)) {
+        if (Object.prototype.hasOwnProperty.call(objMap, key2)) {
             return callback(null, objMap[key2]);
         }
         /* reconstruct a more manageable object
@@ -193,7 +194,7 @@ export class NodeCrawler extends NodeCrawlerBase {
                 reference.nodeClass = (ref as any).$nodeClass;
             }
             if (referenceType) {
-                const refName = lowerFirstLetter(referenceType?.browseName?.name|| "");
+                const refName = lowerFirstLetter(referenceType?.browseName?.name || "");
 
                 if (refName === "hasTypeDefinition") {
                     obj.typeDefinition = reference.browseName.name;
@@ -201,7 +202,7 @@ export class NodeCrawler extends NodeCrawlerBase {
                     if (!referenceMap[refName]) {
                         referenceMap[refName] = [];
                     }
-                    this._add_for_reconstruction(queue, objMap, reference, (err: Error | null, mObject?: object) => {
+                    this._add_for_reconstruction(queue, objMap, reference, (err: Error | null, mObject?: Pojo) => {
                         if (!err) {
                             referenceMap[refName].push(mObject);
                         }
