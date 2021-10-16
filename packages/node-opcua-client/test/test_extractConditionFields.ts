@@ -4,12 +4,12 @@ import { construct_demo_alarm_in_address_space, IAlarmTestData } from "node-opcu
 import { generateAddressSpace } from "node-opcua-address-space/nodeJS";
 import { PseudoSession } from "node-opcua-address-space";
 import { nodesets } from "node-opcua-nodesets";
+import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
+
 import { extractConditionFields, resolveNodeId } from "..";
 
-import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 const debugLog = make_debugLog("TEST");
 const doDebug = checkDebugFlag("TEST");
-
 
 describe("extractConditionFields", () => {
     let addressSpace: AddressSpace;

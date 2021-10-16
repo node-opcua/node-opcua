@@ -147,7 +147,6 @@ export interface GetEndpointsOptions {
 }
 
 export interface OPCUAClientBase extends OPCUASecureObject {
-
     /**
      * certificate Manager
      */

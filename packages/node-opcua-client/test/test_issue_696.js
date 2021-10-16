@@ -1,5 +1,5 @@
-const { OPCUAClient } = require("..");
 const { checkDebugFlag } = require("node-opcua-debug");
+const { OPCUAClient } = require("..");
 
 let setIntervalCalls = 0;
 let clearIntervalCalls = 0;
@@ -8,6 +8,7 @@ let realClearInterval;
 
 const doDebug = checkDebugFlag("TEST");
 
+// eslint-disable-next-line import/order
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("issue 696", function () {
     before(() => {
@@ -36,8 +37,7 @@ describe("issue 696", function () {
                     console.log(err.message);
                 }
                 throw err;
-            }
-            finally {
+            } finally {
                 await client.disconnect();
             }
         }

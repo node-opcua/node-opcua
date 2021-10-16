@@ -7,7 +7,6 @@ import { EventEmitter } from "events";
 import { DateTime, UInt8 } from "node-opcua-basic-types";
 import { ServerState } from "node-opcua-common";
 import { Certificate, Nonce } from "node-opcua-crypto";
-
 import { LocalizedTextLike } from "node-opcua-data-model";
 import { DataValue } from "node-opcua-data-value";
 import { NodeId, NodeIdLike } from "node-opcua-nodeid";
@@ -57,6 +56,14 @@ import { WriteValue, WriteValueOptions } from "node-opcua-service-write";
 import { StatusCode } from "node-opcua-status-code";
 import { DataType, Variant } from "node-opcua-variant";
 import { Callback } from "node-opcua-status-code";
+import { ExtraDataTypeManager } from "node-opcua-client-dynamic-extension-object";
+import { ExtensionObject } from "node-opcua-extension-object";
+import { ArgumentDefinition, CallMethodRequestLike, MethodId } from "node-opcua-pseudo-session";
+import { AggregateFunction } from "node-opcua-constants";
+import { HistoryReadValueIdOptions } from "node-opcua-types";
+export { ExtraDataTypeManager } from "node-opcua-client-dynamic-extension-object";
+export { ExtensionObject } from "node-opcua-extension-object";
+export { ArgumentDefinition, CallMethodRequestLike, MethodId } from "node-opcua-pseudo-session";
 
 import { ClientSubscription } from "./client_subscription";
 
@@ -95,15 +102,6 @@ export type SetMonitoringModeRequestLike = SetMonitoringModeRequestOptions;
 export type QueryFirstRequestLike = QueryFirstRequestOptions;
 
 export type SubscriptionId = number;
-
-import { ExtraDataTypeManager } from "node-opcua-client-dynamic-extension-object";
-import { ExtensionObject } from "node-opcua-extension-object";
-import { ArgumentDefinition, CallMethodRequestLike, MethodId } from "node-opcua-pseudo-session";
-import { AggregateFunction } from "node-opcua-constants";
-import { HistoryReadValueIdOptions } from "node-opcua-types";
-export { ExtraDataTypeManager } from "node-opcua-client-dynamic-extension-object";
-export { ExtensionObject } from "node-opcua-extension-object";
-export { ArgumentDefinition, CallMethodRequestLike, MethodId } from "node-opcua-pseudo-session";
 
 export interface ClientSessionBase {
     // properties

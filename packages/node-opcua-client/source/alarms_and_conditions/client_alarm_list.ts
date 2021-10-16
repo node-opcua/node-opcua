@@ -10,7 +10,6 @@ export interface ClientAlarmList {
 }
 // maintain a set of alarm list for a client
 export class ClientAlarmList extends EventEmitter implements Iterable<ClientAlarm> {
-
     private _map: { [key: string]: ClientAlarm } = {};
 
     public constructor() {
@@ -41,8 +40,7 @@ export class ClientAlarmList extends EventEmitter implements Iterable<ClientAlar
         return Object.values(this._map);
     }
 
-    public update(eventField: EventStuff) {
-
+    public update(eventField: EventStuff): void {
         // Spec says:
         // Clients shall check for multiple Event Notifications for a ConditionBranch to avoid
         // overwriting a new state delivered together with an older state from the Refresh
@@ -63,7 +61,7 @@ export class ClientAlarmList extends EventEmitter implements Iterable<ClientAlar
             this.emit("alarmChanged", alarm);
         }
     }
-    public removeAlarm(eventField: EventStuff) {
+    public removeAlarm(eventField: EventStuff): void {
         const { conditionId, eventType } = eventField;
         const alarm = this.findAlarm(conditionId.value, eventType.value);
         if (alarm) {
@@ -72,10 +70,10 @@ export class ClientAlarmList extends EventEmitter implements Iterable<ClientAlar
         }
     }
 
-    public get length() {
+    public get length(): number {
         return Object.keys(this._map).length;
     }
-    public purgeUnusedAlarms() {
+    public purgeUnusedAlarms(): void {
         const alarms = this.alarms();
         for (const alarm of alarms) {
             if (!alarm.getRetain()) {
@@ -105,6 +103,5 @@ export class ClientAlarmList extends EventEmitter implements Iterable<ClientAlar
             return true;
         }
         return false;
-
     }
 }

@@ -1,10 +1,8 @@
 /**
  * @module node-opcua-client
  */
-
-// tslint:disable:no-empty
-import * as chalk from "chalk";
 import { EventEmitter } from "events";
+import * as chalk from "chalk";
 import { assert } from "node-opcua-assert";
 import { ServerState } from "node-opcua-common";
 import { VariableIds } from "node-opcua-constants";
@@ -20,8 +18,6 @@ const debugLog = make_debugLog(__filename);
 const doDebug = checkDebugFlag(__filename);
 const warningLog = make_warningLog(__filename);
 
-const emptyCallback = (err?: Error) => { };
-
 export interface ClientSessionKeepAliveManagerEvents {
     on(event: "keepalive", eventHandler: (lastKnownServerState: ServerState, count: number) => void): this;
     on(event: "failure", eventHandler: () => void): this;
@@ -33,8 +29,8 @@ export class ClientSessionKeepAliveManager extends EventEmitter implements Clien
     private pingTimeout: number;
     private lastKnownState?: ServerState;
     private checkInterval: number;
-    private transactionInProgress: boolean = false;
-    public count: number = 0;
+    private transactionInProgress = false;
+    public count = 0;
 
     constructor(session: ClientSessionImpl) {
         super();
@@ -45,7 +41,7 @@ export class ClientSessionKeepAliveManager extends EventEmitter implements Clien
         this.count = 0;
     }
 
-    public start() {
+    public start(): void {
         assert(!this.timerId);
         /* istanbul ignore next*/
         if (this.session.timeout < 600) {
@@ -67,7 +63,7 @@ export class ClientSessionKeepAliveManager extends EventEmitter implements Clien
         this.timerId = setTimeout(() => this.ping_server(), this.pingTimeout);
     }
 
-    public stop() {
+    public stop(): void {
         if (this.timerId) {
             debugLog("ClientSessionKeepAliveManager#stop");
             clearTimeout(this.timerId);
@@ -80,7 +76,7 @@ export class ClientSessionKeepAliveManager extends EventEmitter implements Clien
     private ping_server() {
         this._ping_server().then((delta) => {
             if (!this.session || this.session.hasBeenClosed()) {
-                return; // stop here 
+                return; // stop here
             }
             if (this.timerId) {
                 const timeout = Math.max(1, this.checkInterval - delta);
@@ -105,7 +101,7 @@ export class ClientSessionKeepAliveManager extends EventEmitter implements Clien
         }
 
         if (!this.timerId) {
-            return 0; // keep-alive has been canceled .... 
+            return 0; // keep-alive has been canceled ....
         }
         const now = Date.now(); // getCurrentClock().timestamp.getTime();
 
@@ -145,7 +141,6 @@ export class ClientSessionKeepAliveManager extends EventEmitter implements Clien
         // Server_ServerStatus_State
 
         return new Promise((resolve) => {
-
             session.readVariableValue(serverStatusStateNodeId, (err: Error | null, dataValue?: DataValue) => {
                 this.transactionInProgress = false;
 

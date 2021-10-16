@@ -23,20 +23,17 @@ export interface EventStuff {
 }
 
 export interface ClientAlarm {
-
     conditionId: NodeId;
     eventType: NodeId;
     fields: EventStuff;
     on(eventName: "changed", eventHandler: () => void): this;
     acknowledge(session: ClientSession, comment: string): Promise<StatusCode>;
-
 }
 
 /**
  * describes a OPCUA Alarm as seen in the client side
  */
 export class ClientAlarm extends EventEmitter {
-
     public conditionId: NodeId;
     public eventType: NodeId;
     public eventId: Buffer;
@@ -56,7 +53,7 @@ export class ClientAlarm extends EventEmitter {
     public async confirm(session: ClientSession, comment: string): Promise<StatusCode> {
         return await session.confirmCondition(this.conditionId, this.eventId, comment);
     }
-    public update(eventFields: EventStuff) {
+    public update(eventFields: EventStuff): void {
         assert(this.conditionId.toString() === resolveNodeId(eventFields.conditionId.value).toString());
         assert(this.eventType.toString() === resolveNodeId(eventFields.eventType.value).toString());
         this.eventId = eventFields.eventId.value;

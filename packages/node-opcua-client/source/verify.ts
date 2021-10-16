@@ -20,7 +20,7 @@ export function verifyIsOPCUAValidCertificate(
     certificateFile: string,
     type: "client" | "server",
     applicationUri: string
-) {
+): void {
     const certificateInfo = exploreCertificate(certificate);
     const now = new Date();
 

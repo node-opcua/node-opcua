@@ -8,10 +8,7 @@ import { BrowseDescriptionOptions } from "node-opcua-service-browse";
  * @param session
  * @param conditionNodeId
  */
-export async function extractConditionFields(
-    session: IBasicSession,
-    conditionNodeId: NodeIdLike
-): Promise<string[]> {
+export async function extractConditionFields(session: IBasicSession, conditionNodeId: NodeIdLike): Promise<string[]> {
     // conditionNodeId could be a Object of type ConditionType
     // or it could be directly a ObhectType which is a  subType of ConditionType
 
@@ -23,7 +20,6 @@ export async function extractConditionFields(
             fields1.push(name);
             _duplicateMap[name] = name;
         }
-
     }
     interface S {
         browseName: QualifiedName;
@@ -33,11 +29,10 @@ export async function extractConditionFields(
     function deferObjectOrVariableInvestigation(objectId: NodeId, browseName: string) {
         stack.push({
             browseName,
-            nodeId: objectId,
+            nodeId: objectId
         });
     }
     async function _investigateObjectOrVariable() {
-
         if (stack.length === 0) {
             return;
         }
@@ -59,7 +54,6 @@ export async function extractConditionFields(
 
         let i = 0;
         for (const result of results) {
-
             const name = extracted[i].browseName.toString();
             i++;
 
@@ -78,7 +72,6 @@ export async function extractConditionFields(
 
     // tslint:disable-next-line: no-shadowed-variable
     async function _investigateLevel(conditionNodeId: NodeIdLike) {
-
         const nodeToBrowse1: BrowseDescriptionOptions = {
             browseDirection: BrowseDirection.Inverse,
             includeSubtypes: true,
@@ -123,5 +116,4 @@ export async function extractConditionFields(
     // add this field which will always be added
     addField("ConditionId");
     return fields1;
-
 }

@@ -23,55 +23,52 @@ export function findServers(
     discoveryServerEndpointUri: string,
     callback: (err: Error | null, result?: FindServerResults) => void
 ): void;
-export async function findServers(
-    discoveryServerEndpointUri: string,
-): Promise<FindServerResults>;
+export async function findServers(discoveryServerEndpointUri: string): Promise<FindServerResults>;
 export function findServers(
     discoveryServerEndpointUri: string,
     callback?: (err: Error | null, result?: FindServerResults) => void
 ): any {
-
     const client = new ClientBaseImpl({});
 
     let servers: ApplicationDescription[] = [];
     let endpoints: EndpointDescription[] = [];
 
-    async.series([
-        (innerCallback: ErrorCallback) => {
-            client.connect(discoveryServerEndpointUri, innerCallback);
-        },
+    async.series(
+        [
+            (innerCallback: ErrorCallback) => {
+                client.connect(discoveryServerEndpointUri, innerCallback);
+            },
 
-        (innerCallback: ErrorCallback) => {
-            client.findServers((err: Error | null, _servers?: ApplicationDescription[]) => {
-                if (_servers) {
-                    servers = _servers;
-                }
-                innerCallback(err ? err : undefined);
+            (innerCallback: ErrorCallback) => {
+                client.findServers((err: Error | null, _servers?: ApplicationDescription[]) => {
+                    if (_servers) {
+                        servers = _servers;
+                    }
+                    innerCallback(err ? err : undefined);
+                });
+            },
+
+            (innerCallback: ErrorCallback) => {
+                client.getEndpoints({ endpointUrl: undefined }, (err: Error | null, _endpoints?: EndpointDescription[]) => {
+                    if (_endpoints) {
+                        endpoints = _endpoints;
+                    }
+                    innerCallback(err ? err : undefined);
+                });
+            }
+        ],
+        (err) => {
+            client.disconnect(() => {
+                callback!(err ? err : null, { servers, endpoints });
             });
-        },
-
-        (innerCallback: ErrorCallback) => {
-            client.getEndpoints({ endpointUrl: undefined }, (err: Error | null, _endpoints?: EndpointDescription[]) => {
-                if (_endpoints) {
-                    endpoints = _endpoints;
-                }
-                innerCallback(err ? err : undefined);
-            });
-        },
-
-    ], (err) => {
-        client.disconnect(() => {
-            callback!(err ? err : null, { servers, endpoints });
-        });
-    });
+        }
+    );
 }
 
 /**
  * extract the server endpoints exposed by a discovery server
  */
-export async function findServersOnNetwork(
-    discoveryServerEndpointUri: string
-): Promise<ServerOnNetwork[]>;
+export async function findServersOnNetwork(discoveryServerEndpointUri: string): Promise<ServerOnNetwork[]>;
 export function findServersOnNetwork(
     discoveryServerEndpointUri: string,
     callback: (err: Error | null, servers?: ServerOnNetwork[]) => void
@@ -80,7 +77,6 @@ export function findServersOnNetwork(
     discoveryServerEndpointUri: string,
     callback?: (err: Error | null, servers?: ServerOnNetwork[]) => void
 ): any {
-
     const client = new ClientBaseImpl({});
 
     client.connect(discoveryServerEndpointUri, (err?: Error) => {
@@ -100,7 +96,5 @@ export function findServersOnNetwork(
 
 // tslint:disable:no-var-requires
 const thenify = require("thenify");
-(module.exports as any).findServersOnNetwork =
-    thenify.withCallback((module.exports as any).findServersOnNetwork);
-(module.exports as any).findServers =
-    thenify.withCallback((module.exports as any).findServers);
+(module.exports as any).findServersOnNetwork = thenify.withCallback((module.exports as any).findServersOnNetwork);
+(module.exports as any).findServers = thenify.withCallback((module.exports as any).findServers);
