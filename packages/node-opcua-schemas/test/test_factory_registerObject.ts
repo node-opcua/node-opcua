@@ -5,13 +5,10 @@ import { redirectToFile } from "node-opcua-debug/nodeJS";
 import { BaseUAObject, DataTypeFactory } from "node-opcua-factory";
 import { makeExpandedNodeId } from "node-opcua-nodeid";
 import { getObjectClassName } from "node-opcua-utils";
-import { MockProvider } from "./mock_id_provider";
-
 import { compare_obj_by_encoding, encode_decode_round_trip_test } from "node-opcua-packet-analyzer/dist/test_helpers";
-const a = BaseUAObject;
-
 import { BinaryStream } from "node-opcua-binary-stream";
 import { analyze_object_binary_encoding } from "node-opcua-packet-analyzer";
+
 import {
     AnyConstructorFunc,
     createDynamicObjectConstructor,
@@ -20,6 +17,8 @@ import {
     StructureTypeRaw,
     TypeDictionary
 } from "../source";
+import { MockProvider } from "./mock_id_provider";
+const a = BaseUAObject;
 
 const typeDictionary = new TypeDictionary();
 

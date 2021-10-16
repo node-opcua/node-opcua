@@ -1,23 +1,14 @@
 import * as fs from "fs";
 import * as path from "path";
 import * as should from "should";
-import {
-    getOrCreateConstructor,
-    parseBinaryXSDAsync
-} from "..";
 
-import {
-    DataTypeFactory,
-    parameters
-} from "node-opcua-factory";
+import { DataTypeFactory, parameters } from "node-opcua-factory";
+import { encode_decode_round_trip_test } from "node-opcua-packet-analyzer/dist/test_helpers";
+
+import { getOrCreateConstructor, parseBinaryXSDAsync } from "..";
 import { MockProvider } from "./mock_id_provider";
-import {
-    encode_decode_round_trip_test
-} from "node-opcua-packet-analyzer/dist/test_helpers";
-
 
 class MockProvider2 extends MockProvider {
-
     public getDataTypeAndEncodingId(key: string) {
         if (key === "Rep_BMD_ProcStepCtrl") {
             return null;
@@ -28,7 +19,6 @@ class MockProvider2 extends MockProvider {
 const idProvider = new MockProvider2();
 
 describe("BSHA - Binary Schemas Helper 1", () => {
-
     let dataTypeFactory: DataTypeFactory;
     let old_schema_helpers_doDebug = false;
     let sample: string;
@@ -46,7 +36,6 @@ describe("BSHA - Binary Schemas Helper 1", () => {
     });
 
     it("should XCVB", async () => {
-
         await parseBinaryXSDAsync(sample, idProvider, dataTypeFactory);
 
         const Recipe_BMD_Rep = dataTypeFactory.getStructureTypeConstructor("Recipe_BMD_Rep");
@@ -55,14 +44,12 @@ describe("BSHA - Binary Schemas Helper 1", () => {
             STN1: { value: 1 },
             STN2: { value: 2 },
             STN3: { value: 3 },
-            STN4: { value: 4 },
+            STN4: { value: 4 }
         }) as any;
 
         // console.log(a.toString());
         a.STN3.value.should.eql(3);
 
         encode_decode_round_trip_test(a);
-
     });
-
 });
