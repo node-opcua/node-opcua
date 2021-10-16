@@ -3,6 +3,7 @@
  */
 import { assert } from "node-opcua-assert";
 import { make_debugLog } from "node-opcua-debug";
+import { StructuredTypeSchema } from "./factories_structuredTypeSchema";
 import { CommonInterface, FieldCategory, FieldType, StructuredTypeField } from "./types";
 
 const debugLog = make_debugLog(__filename);
@@ -18,7 +19,7 @@ export const parameters = {
  * @param schema
  *
  */
-export function check_schema_correctness(schema: any) {
+export function check_schema_correctness(schema: StructuredTypeSchema): void {
     assert(typeof schema.name === "string", " expecting schema to have a name");
     assert(schema.fields instanceof Array, " expecting schema to provide a set of fields " + schema.name);
     assert(schema.baseType === undefined || typeof schema.baseType === "string");
@@ -30,7 +31,7 @@ export function check_schema_correctness(schema: any) {
  * @param defaultValue
  * @return {*}
  */
-export function initialize_field(field: StructuredTypeField, value: any): any {
+export function initialize_field(field: StructuredTypeField, value: unknown): any  {
     const _t = field.schema;
     if (!(_t !== null && typeof _t === "object")) {
         throw new Error(
@@ -91,7 +92,8 @@ function initialize_value(value: any, defaultValue: any, _t: CommonInterface) {
  * @param valueArray
  * @return
  */
-export function initialize_field_array(field: FieldType, valueArray: any) {
+// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
+export function initialize_field_array(field: FieldType, valueArray: any): any {
     const _t = field.schema;
 
     let value;
@@ -109,7 +111,7 @@ export function initialize_field_array(field: FieldType, valueArray: any) {
     if (_t.computer_default_value) {
         defaultValue = _t.computer_default_value(field.defaultValue);
     }
-    const arr = [];
+    const arr: unknown[] = [];
     for (i = 0; i < valueArray.length; i++) {
         value = initialize_value(valueArray[i], defaultValue, _t);
         arr.push(value);

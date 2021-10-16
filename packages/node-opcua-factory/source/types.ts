@@ -149,7 +149,7 @@ export class TypeSchemaBase implements CommonInterface {
         this.name = options.name;
 
         for (const prop in options) {
-            if (Object.prototype.hasOwnProperty.call(options,prop)) {
+            if (Object.prototype.hasOwnProperty.call(options, prop)) {
                 (this as any)[prop] = (options as any)[prop];
             }
         }
