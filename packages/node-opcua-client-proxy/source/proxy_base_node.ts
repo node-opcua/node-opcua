@@ -12,7 +12,6 @@ import { Variant } from "node-opcua-variant";
 import { UAProxyManager } from "./proxy_manager";
 
 export class ProxyBaseNode extends EventEmitter {
-
     /**
      * the object nodeId
      * @property nodeId
@@ -64,12 +63,7 @@ export class ProxyBaseNode extends EventEmitter {
 
     private readonly proxyManager: UAProxyManager;
 
-    constructor(
-        proxyManager: UAProxyManager,
-        nodeId: NodeId,
-        nodeClass: NodeClass
-    ) {
-
+    constructor(proxyManager: UAProxyManager, nodeId: NodeId, nodeClass: NodeClass) {
         super();
 
         this.nodeId = nodeId;
@@ -93,8 +87,7 @@ export class ProxyBaseNode extends EventEmitter {
     /**
      * get a updated Value of the Variable , by using a ReadRequest
      */
-    public readValue(callback: (err: Error | null, variant?: Variant) => void) {
-
+    public readValue(callback: (err: Error | null, variant?: Variant) => void): void {
         assert(this.proxyManager);
 
         const session = this.proxyManager.session;
@@ -102,10 +95,9 @@ export class ProxyBaseNode extends EventEmitter {
 
         const nodeToRead = {
             attributeId: AttributeIds.Value,
-            nodeId: this.nodeId,
+            nodeId: this.nodeId
         };
-        this.proxyManager.session.read(nodeToRead, (err: Error|null, dataValue?: DataValue) => {
-
+        this.proxyManager.session.read(nodeToRead, (err: Error | null, dataValue?: DataValue) => {
             // istanbul ignore next
             if (err) {
                 return callback(err);
@@ -118,7 +110,7 @@ export class ProxyBaseNode extends EventEmitter {
     /**
      * set the Value of the Variable, by using a WriteRequest
      */
-    public writeValue(dataValue: DataValue, callback: (err?: Error) => void) {
+    public writeValue(dataValue: DataValue, callback: (err?: Error) => void): void {
         assert(this.proxyManager);
 
         const session = this.proxyManager.session;
@@ -129,7 +121,7 @@ export class ProxyBaseNode extends EventEmitter {
             nodeId: this.nodeId,
             value: dataValue
         };
-        this.proxyManager.session.write(nodeToWrite, (err: Error|null, statusCode?: StatusCode) => {
+        this.proxyManager.session.write(nodeToWrite, (err: Error | null, statusCode?: StatusCode) => {
             // istanbul ignore next
             if (err) {
                 return callback(err);
@@ -143,7 +135,6 @@ export class ProxyBaseNode extends EventEmitter {
     }
 
     public toString(): string {
-
         const str = [];
         str.push(" ProxyObject ");
         str.push("   browseName     : " + this.browseName.toString());

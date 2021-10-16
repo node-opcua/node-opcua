@@ -14,6 +14,7 @@ import { CallMethodRequest, CallMethodResult } from "node-opcua-service-call";
 import { StatusCodes } from "node-opcua-status-code";
 import { lowerFirstLetter } from "node-opcua-utils";
 import { DataType, Variant, VariantArrayType } from "node-opcua-variant";
+
 import { makeRefId } from "./proxy";
 import { UAProxyManager } from "./proxy_manager";
 import { ProxyVariable } from "./proxy_variable";
@@ -373,7 +374,7 @@ export class ObjectExplorer {
         this.parent = options.parent;
     }
 
-    public $resolve(callback: (err?: Error) => void) {
+    public $resolve(callback: (err?: Error) => void): void {
         this.proxyManager.getObject(this.nodeId, (err: Error | null, childObj: any) => {
             // istanbul ignore next
             if (err) {
@@ -388,7 +389,7 @@ export class ObjectExplorer {
     }
 }
 
-export function readUAStructure(proxyManager: UAProxyManager, obj: any, callback: ErrorCallback) {
+export function readUAStructure(proxyManager: UAProxyManager, obj: { nodeId: NodeId }, callback: ErrorCallback): void {
     const session = proxyManager.session;
 
     //   0   Object
