@@ -1,20 +1,18 @@
+/* eslint-disable no-undef */
+const path = require("path");
 const should = require("should");
-
 
 const { BinaryStream } = require("node-opcua-binary-stream");
 const ec = require("node-opcua-basic-types");
 const { makeExpandedNodeId } = require("node-opcua-nodeid");
+const factories = require("node-opcua-factory");
+const { analyseExtensionObject } = require("node-opcua-packet-analyzer");
 
 const generator = require("../..");
-const factories = require("node-opcua-factory");
 
-const analyseExtensionObject = require("node-opcua-packet-analyzer").analyseExtensionObject;
+const temporary_folder = path.join(__dirname, "../..", "_test_generated");
 
-
-const path = require("path");
-const temporary_folder = path.join(__dirname,"../..","_test_generated");
-
-function initiliaze() {
+function initialize() {
     const Person2_Schema = {
         id: factories.next_available_id(),
         name: "Person2",
@@ -28,9 +26,7 @@ function initiliaze() {
     const Person2 = generator.registerObject(Person2_Schema, temporary_folder);
 }
 xdescribe("testing package_analyser", function () {
-
     it("should analyse a packet ", function () {
-
         const obj = new Person2({
             lastName: "John",
             address: "Miami"
@@ -46,4 +42,3 @@ xdescribe("testing package_analyser", function () {
         analyseExtensionObject(stream.buffer);
     });
 });
-

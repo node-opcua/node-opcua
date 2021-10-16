@@ -6,8 +6,8 @@ export interface WriteFunc {
     pop(): void;
 }
 
-export const makeWrite = (f: LineFile1) => {
-    const _f: any = (...args: string[]) => f.write.apply(f, args);
+export const makeWrite = (f: LineFile1): WriteFunc => {
+    const _f: WriteFunc = (...args: string[]) => f.write(...args);
     _f.indent = () => {
         /** */
     };

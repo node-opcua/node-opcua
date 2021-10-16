@@ -1,24 +1,19 @@
-/*global describe, require, it*/
+/* eslint-disable no-undef */
+const path = require("path");
 const should = require("should");
 
 const factories = require("node-opcua-factory");
-const generator = require("../..");
 
 const { BinaryStream } = require("node-opcua-binary-stream");
 const { makeExpandedNodeId } = require("node-opcua-nodeid");
+const { encode_decode_round_trip_test } = require("node-opcua-packet-analyzer/dist/test_helpers");
+const { ExtensionObject } = require("node-opcua-extension-object");
 
-const { encode_decode_round_trip_test  } = require("node-opcua-packet-analyzer/dist/test_helpers");
-
-
-const path = require("path");
-const temporary_folder = path.join(__dirname,"../..","_test_generated");
-
-const ExtensionObject = require("node-opcua-extension-object").ExtensionObject;
+const generator = require("../..");
+const temporary_folder = path.join(__dirname, "../..", "_test_generated");
 
 xdescribe("ExtensionObject", function () {
-
-    function initiliaze() {
-
+    function initialize() {
         exports.MetaShapeForUnitTest_Schema = {
             name: "MetaShapeForUnitTest",
             id: factories.next_available_id(),
@@ -31,21 +26,19 @@ xdescribe("ExtensionObject", function () {
 
         const MetaShape = generator.registerObject(exports.MetaShapeForUnitTest_Schema, temporary_folder);
 
-        const Potato_Schema_Id = 0xF00001;
+        const Potato_Schema_Id = 0xf00001;
         exports.Potato_Schema = {
             name: "Potato",
             id: Potato_Schema_Id,
             fields: [
                 { name: "length", fieldType: "Double" },
                 { name: "radius", fieldType: "Double" }
-
             ]
         };
         const Potato = generator.registerObject(exports.Potato_Schema, temporary_folder);
     }
 
     it("should encode an object with an embedded ExtensionObject set to null ", function () {
-
         const shape = new MetaShape({
             name: "MyPotato",
             shape: null,
@@ -59,10 +52,9 @@ xdescribe("ExtensionObject", function () {
     });
 
     it("should encode an object with a valid embedded ExtensionObject", function () {
-
         const shape = new MetaShape({
             name: "Potato",
-            shape: new Potato({length: 10.0, radius: 5.0}),
+            shape: new Potato({ length: 10.0, radius: 5.0 }),
             comment: "this is a comment"
         });
         shape.encodingDefaultBinary.should.eql(makeExpandedNodeId(exports.MetaShapeForUnitTest_Schema.id));
@@ -71,6 +63,5 @@ xdescribe("ExtensionObject", function () {
         shape.encode(stream);
 
         encode_decode_round_trip_test(shape);
-
     });
 });

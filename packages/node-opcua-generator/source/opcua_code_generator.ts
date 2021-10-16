@@ -12,6 +12,4 @@ async function main() {
     generateTypeScriptCodeFromSchema(className);
 }
 
-main()
-    .then()
-    .catch();
+main().then().catch();

@@ -1,20 +1,20 @@
+/* eslint-disable no-undef */
 "use strict";
+const fs = require("fs");
 const should = require("should");
 const _ = require("underscore");
-const fs = require("fs");
-
-const generator = require("..");
-
 const utils = require("node-opcua-utils");
 const factories = require("node-opcua-factory");
 
-const compare_obj_by_encoding = require("node-opcua-packet-analyzer/dist/test_helpers").compare_obj_by_encoding;
-
 const ec = require("node-opcua-basic-types");
 
-const { encode_decode_round_trip_test  } = require("node-opcua-packet-analyzer/dist/test_helpers");
+const { compare_obj_by_encoding, encode_decode_round_trip_test } = require("node-opcua-packet-analyzer/dist/test_helpers");
+
+const generator = require("..");
+
 require("../../node-opcua-data-model");
 
+let temporary_folder = "";
 
 function initialize() {
     const ShapeType = factories.registerEnumeration({
@@ -41,14 +41,18 @@ function initialize() {
         name: "Shape",
         fields: [
             {
-                name: "name", fieldType: "String", defaultValue: function() {
+                name: "name",
+                fieldType: "String",
+                defaultValue: function () {
                     return "my shape";
                 }
             },
             { name: "shapeType", fieldType: "EnumShapeType" },
             { name: "color", fieldType: "EnumColor", defaultValue: Color.GREEN },
             {
-                name: "inner_color", fieldType: "EnumColor", defaultValue: function() {
+                name: "inner_color",
+                fieldType: "EnumColor",
+                defaultValue: function () {
                     return Color.BLUE;
                 }
             }
@@ -66,18 +70,14 @@ function initialize() {
         defaultValue: 0
     });
 }
-xdescribe("Factories: testing object factory", function() {
-
-    it("should handle subtype properly", function() {
-
+xdescribe("Factories: testing object factory", function () {
+    it("should handle subtype properly", function () {
         should.exist(factories.findSimpleType("MyInteger"));
 
         exports.MyStruct_Schema = {
             name: "MyStruct",
             id: factories.next_available_id(),
-            fields: [
-                { name: "value", fieldType: "MyInteger" }
-            ]
+            fields: [{ name: "value", fieldType: "MyInteger" }]
         };
         generator.unregisterObject(exports.MyStruct_Schema, temporary_folder);
         const MyStruct = generator.registerObject(exports.MyStruct_Schema, temporary_folder);
@@ -87,11 +87,9 @@ xdescribe("Factories: testing object factory", function() {
         s.value.should.equal(0);
 
         generator.unregisterObject(exports.MyStruct_Schema, temporary_folder);
-
     });
 
-    it("should handle StatusCode ", function() {
-
+    it("should handle StatusCode ", function () {
         const StatusCodes = require("node-opcua-status-code").StatusCodes;
 
         exports.MyStruct2_Schema = {
@@ -114,11 +112,9 @@ xdescribe("Factories: testing object factory", function() {
         s.statusCode.should.eql(StatusCodes.Good);
         // should.eql(StatusCodes.Good);
         generator.unregisterObject(exports.MyStruct2_Schema, temporary_folder);
-
     });
 
-    it("should handle enumeration properly", function() {
-
+    it("should handle enumeration properly", function () {
         const shape = new Shape();
 
         shape.shapeType.should.eql(ShapeType.CIRCLE);
@@ -130,14 +126,12 @@ xdescribe("Factories: testing object factory", function() {
         shape.shapeType = ShapeType.RECTANGLE;
         shape.shapeType.should.equal(ShapeType.RECTANGLE);
 
-        (function() {
+        (function () {
             shape.setShapeType(34);
-        }).should.throw();
-
+        }.should.throw());
     });
 
-    it("should allow enumeration value to be passed in options during construction", function() {
-
+    it("should allow enumeration value to be passed in options during construction", function () {
         const shape1 = new Shape({ shapeType: ShapeType.HEXAGON });
         shape1.shapeType.should.eql(ShapeType.HEXAGON);
 
@@ -145,15 +139,12 @@ xdescribe("Factories: testing object factory", function() {
         shape2.shapeType.should.eql(ShapeType.RECTANGLE);
     });
 
-    it("should encode and decode a structure containing a enumeration properly", function() {
-
+    it("should encode and decode a structure containing a enumeration properly", function () {
         const shape = new Shape({ name: "yo", shapeType: ShapeType.HEXAGON, color: Color.BLUE });
         encode_decode_round_trip_test(shape);
-
     });
 
-    it("should raise an exception when trying to pass an invalid field to constructor", function() {
-
+    it("should raise an exception when trying to pass an invalid field to constructor", function () {
         const schema_helpers = require("node-opcua-factory").parameters;
 
         const old_schema_helpers_doDebug = schema_helpers.debugSchemaHelper;
@@ -164,73 +155,56 @@ xdescribe("Factories: testing object factory", function() {
 
         (function test_constructor_with_invalid_args() {
             const a = new Shape({
-
                 this_invalid_field_should_cause_Shape_Constructor_to_raise_an_exception: "**bingo**",
 
                 name: "yo",
                 shapeType: ShapeType.HEXAGON,
                 color: Color.BLUE
             });
-
-        }).should.throw();
+        }.should.throw());
 
         schema_helpers.debugSchemaHelper = old_schema_helpers_doDebug;
     });
-
 });
 
-xdescribe("Factories: testing strong typed enums", function() {
-
-    it("should throw if a invalid argument is passed for an enum", function() {
-
+xdescribe("Factories: testing strong typed enums", function () {
+    it("should throw if a invalid argument is passed for an enum", function () {
         ShapeType.CIRCLE.key.should.equal("CIRCLE");
         const value = ShapeType.CIRCLE;
         value.should.equal(ShapeType.CIRCLE);
 
         const shape = new Shape({ name: "yo", shapeType: ShapeType.HEXAGON, inner_color: Color.RED, color: Color.BLUE });
 
-        (function() {
+        (function () {
             shape.setShapeType("toto");
-        }).should.throw();
-
-
+        }.should.throw());
     });
 
-    it("should be possible to initialize enumeration with string values", function() {
-
+    it("should be possible to initialize enumeration with string values", function () {
         const shape = new Shape({ name: "yo", shapeType: ShapeType.HEXAGON, inner_color: Color.RED, color: Color.BLUE });
         const shape2 = new Shape({ name: "yo", shapeType: "HEXAGON", inner_color: "RED", color: "BLUE" });
 
         shape.should.eql(shape2);
-
     });
 
-    it("should be possible to initialize enumeration with integer values as well", function() {
-
+    it("should be possible to initialize enumeration with integer values as well", function () {
         const shape = new Shape({ name: "yo", shapeType: ShapeType.HEXAGON, inner_color: Color.RED, color: Color.BLUE });
         const shape2 = new Shape({ name: "yo", shapeType: 6, inner_color: 100, color: 200 });
 
         shape.should.eql(shape2);
-
     });
 });
 
-xdescribe("Factories: testing binaryStoreSize", function() {
-
-    it("should implement binaryStoreSize", function() {
-
+xdescribe("Factories: testing binaryStoreSize", function () {
+    it("should implement binaryStoreSize", function () {
         const shape = new Shape();
 
         shape.binaryStoreSize().should.be.greaterThan(10);
-
     });
 });
 
-xdescribe("Testing that objects created by factory can be persisted as JSON string", function() {
-
-
-    it("should persist and restore a object in JSON ", function() {
-
+xdescribe("Testing that objects created by factory can be persisted as JSON string", function () {
+    it("should persist and restore a object in JSON ", function () {
         const shape = new Shape({ name: "yo", shapeType: ShapeType.HEXAGON, inner_color: Color.RED, color: Color.BLUE });
 
         const str = JSON.stringify(shape);
@@ -238,11 +212,9 @@ xdescribe("Testing that objects created by factory can be persisted as JSON stri
         const obj = new Shape(JSON.parse(str));
 
         obj.should.eql(shape);
-
     });
 
-    it("should persist and restore a object in JSON when field has a special toJSON behavior", function() {
-
+    it("should persist and restore a object in JSON when field has a special toJSON behavior", function () {
         exports.FakeBlob2_Schema = {
             id: factories.next_available_id(),
             name: "FakeBlob2",
@@ -268,8 +240,7 @@ xdescribe("Testing that objects created by factory can be persisted as JSON stri
         generator.unregisterObject(exports.FakeBlob2_Schema, temporary_folder);
     });
 
-    it("should persist and restore a object in JSON when field is a array of value with special toJSON behavior", function() {
-
+    it("should persist and restore a object in JSON when field is a array of value with special toJSON behavior", function () {
         exports.FakeBlob3_Schema = {
             id: factories.next_available_id(),
             name: "FakeBlob3",
@@ -301,32 +272,31 @@ xdescribe("Testing that objects created by factory can be persisted as JSON stri
         obj.should.eql(blob);
 
         generator.unregisterObject(exports.FakeBlob3_Schema, temporary_folder);
-
     });
 
-
-    it("should persist and restore a object in JSON when field has a null value", function() {
-
+    it("should persist and restore a object in JSON when field has a null value", function () {
         exports.FakeQualifiedName_Schema = {
             name: "FakeQualifiedName",
             id: factories.next_available_id(),
             fields: [
                 { name: "namespaceIndex", fieldType: "UInt16", documentation: "The namespace index" },
                 {
-                    name: "name", fieldType: "String", defaultValue: function() {
+                    name: "name",
+                    fieldType: "String",
+                    defaultValue: function () {
                         return null;
-                    }, documentation: "The name"
+                    },
+                    documentation: "The name"
                 }
             ],
 
-            toString: function() {
+            toString: function () {
                 return "ns=" + this.namespaceIndex + " name=" + this.name;
             }
         };
         generator.unregisterObject(exports.FakeQualifiedName_Schema, temporary_folder);
 
         const QualifiedName = generator.registerObject(exports.FakeQualifiedName_Schema, temporary_folder);
-
 
         const qname = new QualifiedName({
             namespaceIndex: 0
@@ -338,7 +308,7 @@ xdescribe("Testing that objects created by factory can be persisted as JSON stri
         qname.namespaceIndex.should.equal(0);
 
         const str = JSON.stringify(qname);
-        str.should.eql("{\"namespaceIndex\":0}");
+        str.should.eql('{"namespaceIndex":0}');
 
         const obj = new QualifiedName(JSON.parse(str));
         obj.namespaceIndex.should.equal(0);
@@ -352,16 +322,12 @@ xdescribe("Testing that objects created by factory can be persisted as JSON stri
     });
 });
 
-xdescribe("factories testing advanced cases", function() {
-
-    it("should set a field to null when default value is specifically null and no value has been provided", function() {
-
+xdescribe("factories testing advanced cases", function () {
+    it("should set a field to null when default value is specifically null and no value has been provided", function () {
         exports.Blob4_Schema = {
             name: "Blob4",
             id: factories.next_available_id(),
-            fields: [
-                { name: "createdOn", fieldType: "DateTime", defaultValue: null }
-            ]
+            fields: [{ name: "createdOn", fieldType: "DateTime", defaultValue: null }]
         };
         generator.unregisterObject(exports.Blob4_Schema, temporary_folder);
         const Blob4 = generator.registerObject(exports.Blob4_Schema, temporary_folder);
@@ -371,11 +337,9 @@ xdescribe("factories testing advanced cases", function() {
         });
         should(blob4.createdOn).be.eql(null);
         generator.unregisterObject(exports.Blob4_Schema, temporary_folder);
-
     });
 
-    it("should accept all basic types as field scalar or field arrays", function() {
-
+    it("should accept all basic types as field scalar or field arrays", function () {
         const ExtensionObject = require("node-opcua-status-code").ExtensionObject;
 
         exports.Blob6_Schema = {
@@ -386,16 +350,19 @@ xdescribe("factories testing advanced cases", function() {
 
         const _defaultTypeMap = require("node-opcua-factory").getTypeMap();
 
-        _defaultTypeMap.forEach(function(value, key, map) {
-            if (key === "Any") { return; }
+        _defaultTypeMap.forEach(function (value, key, map) {
+            if (key === "Any") {
+                return;
+            }
             exports.Blob6_Schema.fields.push({ name: "value_" + key, fieldType: key });
             exports.Blob6_Schema.fields.push({ name: "array_" + key, fieldType: key, isArray: true });
         });
 
-
         const options = {};
-        _defaultTypeMap.forEach(function(value, key) {
-            if (key === "Any" || key === "Null" || key === "AccessLevelFlag") { return; }
+        _defaultTypeMap.forEach(function (value, key) {
+            if (key === "Any" || key === "Null" || key === "AccessLevelFlag") {
+                return;
+            }
             const type = value;
 
             const random = type.random || ec["random" + type.name];
@@ -406,7 +373,6 @@ xdescribe("factories testing advanced cases", function() {
             } else {
                 options["value_" + key] = undefined;
                 options["array_" + key] = [undefined, undefined];
-
             }
         });
 
@@ -418,16 +384,12 @@ xdescribe("factories testing advanced cases", function() {
 
         generator.unregisterObject(exports.Blob6_Schema, temporary_folder);
     });
-
-
 });
 
-xdescribe("BaseUAObject#clone ", function() {
-
-    it("should clone a Shape", function() {
+xdescribe("BaseUAObject#clone ", function () {
+    it("should clone a Shape", function () {
         const shape = new Shape({ name: "yo", shapeType: ShapeType.HEXAGON, inner_color: Color.RED, color: Color.BLUE });
         const shape_clone = shape.clone();
         compare_obj_by_encoding(shape, shape_clone);
     });
-
 });

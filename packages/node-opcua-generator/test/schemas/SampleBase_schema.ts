@@ -6,7 +6,5 @@ export const SampleBase_Schema = {
     documentation: "A FOOBAR Object.",
 
     id: next_available_id(),
-    fields: [
-        {name: "name", fieldType: "String", documentation: "The name."}
-    ]
+    fields: [{ name: "name", fieldType: "String", documentation: "The name." }]
 };

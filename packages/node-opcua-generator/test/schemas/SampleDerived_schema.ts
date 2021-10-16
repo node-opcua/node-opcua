@@ -6,7 +6,5 @@ export const SampleDerived_Schema = {
     documentation: "A FOOBAR Derived Object.",
 
     id: next_available_id(),
-    fields: [
-        {name: "otherName", fieldType: "String", documentation: "The name."}
-    ]
+    fields: [{ name: "otherName", fieldType: "String", documentation: "The name." }]
 };
