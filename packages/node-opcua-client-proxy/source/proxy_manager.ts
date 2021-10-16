@@ -2,6 +2,7 @@
  * @module node-opcua-client-proxy
  */
 // tslint:disable:no-shadowed-variable
+import { EventEmitter } from "stream";
 import * as async from "async";
 import { assert } from "node-opcua-assert";
 
@@ -21,8 +22,16 @@ import { makeRefId } from "./proxy";
 import { ProxyBaseNode } from "./proxy_base_node";
 import { ProxyObject } from "./proxy_object";
 import { ProxyStateMachineType } from "./state_machine_proxy";
-import { WriteValueOptions } from "node-opcua-service-write";
 
+export interface IProxy1 {
+    nodeId: NodeId;
+    executableFlag?: boolean;
+    __monitoredItem_execution_flag?: EventEmitter;
+    __monitoredItem?: EventEmitter;
+}
+export interface IProxy extends EventEmitter, IProxy1 {
+    dataValue: DataValue;
+}
 function getObject(proxyManager: UAProxyManager, nodeId: NodeIdLike | NodeId, options: any, callback: any) {
     const session = proxyManager.session;
 
@@ -238,7 +247,7 @@ export class UAProxyManager {
 
             const key = nodeId.toString();
             // the object already exist in the map ?
-            if (this._map.hasOwnProperty(key)) {
+            if (Object.prototype.hasOwnProperty.call(this._map, key)) {
                 return callback(null, this._map[key]);
             }
 
@@ -251,7 +260,7 @@ export class UAProxyManager {
         });
     }
 
-    public _monitor_value(proxyObject: any, callback: ErrorCallback) {
+    public _monitor_value(proxyObject: IProxy, callback: ErrorCallback): void {
         if (!this.subscription) {
             // debugLog("cannot monitor _monitor_value: no subscription");
             // some server do not provide subscription support, do not treat this as an error.
@@ -278,11 +287,11 @@ export class UAProxyManager {
 
             (err: Error | null, monitoredItem?: IClientMonitoredItemBase) => {
                 Object.defineProperty(proxyObject, "__monitoredItem", { value: monitoredItem, enumerable: false });
-                proxyObject.__monitoredItem.on("changed", (dataValue: DataValue) => {
+                proxyObject.__monitoredItem!.on("changed", (dataValue: DataValue) => {
                     proxyObject.dataValue = dataValue;
                     proxyObject.emit("value_changed", dataValue);
                 });
-                proxyObject.__monitoredItem.on("err", (err: Error) => {
+                proxyObject.__monitoredItem!.on("err", (err: Error) => {
                     // tslint:disable-next-line: no-console
                     console.log("Proxy: cannot monitor variable ", itemToMonitor.nodeId?.toString(), err.message);
                 });
@@ -291,7 +300,7 @@ export class UAProxyManager {
         );
     }
 
-    public _monitor_execution_flag(proxyObject: any, callback: (err?: Error) => void) {
+    public _monitor_execution_flag(proxyObject: IProxy1, callback: (err?: Error) => void): void {
         // note : proxyObject must wrap a method
         assert(proxyObject.nodeId instanceof NodeId);
 
@@ -324,8 +333,7 @@ export class UAProxyManager {
 
                     enumerable: false
                 });
-
-                proxyObject.__monitoredItem_execution_flag.on("changed", (dataValue: DataValue) => {
+                proxyObject.__monitoredItem_execution_flag!.on("changed", (dataValue: DataValue) => {
                     proxyObject.executableFlag = dataValue.value.value;
                 });
 
@@ -337,7 +345,7 @@ export class UAProxyManager {
     public getStateMachineType(
         nodeId: NodeIdLike,
         callback: (err: Error | null, stateMachineType?: ProxyStateMachineType) => void
-    ) {
+    ): void {
         if (typeof nodeId === "string") {
             const org_nodeId = nodeId;
             nodeId = makeRefId(nodeId);

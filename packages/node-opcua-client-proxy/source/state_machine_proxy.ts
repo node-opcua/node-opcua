@@ -3,16 +3,14 @@
  */
 import { assert } from "node-opcua-assert";
 import { makeProxyState, ProxyState } from "./proxy_state";
-import { makeProxyTransition, ProxyTransition } from "./proxy_transition";
+import { makeProxyTransition, ProxyNode, ProxyTransition } from "./proxy_transition";
 
 export class ProxyStateMachineType {
-
     public initialState: ProxyState | undefined;
     public states: ProxyState[];
     public transitions: ProxyTransition[];
 
-    constructor(obj: any) {
-
+    constructor(obj: ProxyNode) {
         const localInitialState = obj.$components.filter((component: any) => {
             if (!component.typeDefinition) {
                 return false;
@@ -27,19 +25,23 @@ export class ProxyStateMachineType {
             this.initialState = undefined;
         }
 
-        this.states = obj.$components.filter((component: any) => {
-            if (!component.typeDefinition) {
-                return false;
-            }
-            return component.typeDefinition.toString() === "StateType";
-        }).map(makeProxyState);
+        this.states = obj.$components
+            .filter((component: any) => {
+                if (!component.typeDefinition) {
+                    return false;
+                }
+                return component.typeDefinition.toString() === "StateType";
+            })
+            .map(makeProxyState);
 
-        this.transitions = obj.$components.filter((component: any) => {
-            if (!component.typeDefinition) {
-                return false;
-            }
-            return component.typeDefinition.toString() === "TransitionType";
-        }).map(makeProxyTransition);
+        this.transitions = obj.$components
+            .filter((component: ProxyNode) => {
+                if (!component.typeDefinition) {
+                    return false;
+                }
+                return component.typeDefinition.toString() === "TransitionType";
+            })
+            .map(makeProxyTransition);
     }
 
     // var initialStateTypeId = makeRefId("InitialStateType");

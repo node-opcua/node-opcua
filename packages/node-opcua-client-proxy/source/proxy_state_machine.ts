@@ -7,12 +7,10 @@ import { NodeId } from "node-opcua-nodeid";
 import { UAProxyManager } from "./proxy_manager";
 
 export class StateMachineProxy extends EventEmitter {
-
     public nodeId: NodeId;
     private proxyManager: UAProxyManager;
 
     constructor(proxyManager: UAProxyManager, nodeId: NodeId) {
-
         super();
         this.nodeId = nodeId;
         this.proxyManager = proxyManager;
