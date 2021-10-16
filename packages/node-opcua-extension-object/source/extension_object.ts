@@ -20,7 +20,7 @@ export class ExtensionObject extends BaseUAObject {
         name: "ExtensionObject"
     });
 
-    constructor(options: any) {
+    constructor(options?: null | Record<string, any>) {
         super();
     }
 }
@@ -110,14 +110,13 @@ export function encodeExtensionObject(object: BaseUAObject | null, stream: Outpu
 
 // tslint:disable:max-classes-per-file
 export class OpaqueStructure extends ExtensionObject {
-
     // the nodeId is the same as the encodingDefaultBinary
     public nodeId: NodeId;
-    
+
     public buffer: Buffer;
 
     constructor(nodeId: NodeId, buffer: Buffer) {
-        super({});
+        super();
         this.nodeId = nodeId;
         this.buffer = buffer;
     }
