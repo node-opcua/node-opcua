@@ -3,19 +3,17 @@ import * as should from "should";
 import { AddressSpace, UAVariable } from "node-opcua-address-space";
 import { DataValue } from "node-opcua-data-value";
 import { nodesets } from "node-opcua-nodesets";
+import { generateAddressSpace } from "node-opcua-address-space/nodeJS";
 
 import { getInterpolatedData } from "..";
 import { addAggregateSupport, getAggregateConfiguration } from "..";
 import { getMaxData, getMinData } from "..";
-
-const _should = should;
+import { getAverageData } from "../source/average";
 
 import { createHistorian1, createHistorian2, createHistorian3, createHistorian4 } from "./helpers/create_historizing_variables";
 import { makeDate } from "./helpers/helpers";
-import { getAverageData } from "../source/average";
-import { generateAddressSpace } from "node-opcua-address-space/nodeJS";
+const _should = should;
 
-// tslint:disable-next-line:no-var-requires
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 
 describe("Aggregates ", () => {

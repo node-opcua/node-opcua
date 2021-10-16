@@ -1,7 +1,7 @@
 /**
  * @module node-opca-aggregates
  */
-//  excert from OPC Unified Architecture, Part 13 21 Release 1.04
+//  excerpt from OPC Unified Architecture, Part 13 21 Release 1.04
 // 5.4.3.10 Minimum
 // The Minimum Aggregate defined in Table 21 retrieves the minimum Good raw value within the
 // interval, and returns that value with the timestamp at the start of the interval. Note that if the
@@ -60,12 +60,12 @@ import { Variant } from "node-opcua-variant";
 import { getAggregateData } from "./common";
 import { AggregateConfigurationOptions, Interval, isGood } from "./interval";
 
+// eslint-disable-next-line max-statements
 function calculateIntervalMinOrMaxValue(
     interval: Interval,
     options: AggregateConfigurationOptions,
     predicate: (a: Variant, b: Variant) => "equal" | "select" | "reject"
 ): DataValue {
-
     //   console.log(interval.toString());
 
     const indexStart = interval.index;
@@ -143,15 +143,15 @@ function calculateIntervalMinOrMaxValue(
 }
 
 export function calculateIntervalMinValue(interval: Interval, options: AggregateConfigurationOptions): DataValue {
-    return calculateIntervalMinOrMaxValue(interval, options,
-        (a: Variant, b: Variant) =>
-            a.value > b.value ? "select" : (a.value === b.value ? "equal" : "reject"));
+    return calculateIntervalMinOrMaxValue(interval, options, (a: Variant, b: Variant) =>
+        a.value > b.value ? "select" : a.value === b.value ? "equal" : "reject"
+    );
 }
 
 export function calculateIntervalMaxValue(interval: Interval, options: AggregateConfigurationOptions): DataValue {
-    return calculateIntervalMinOrMaxValue(interval, options,
-        (a: Variant, b: Variant) =>
-            a.value < b.value ? "select" : (a.value === b.value ? "equal" : "reject"));
+    return calculateIntervalMinOrMaxValue(interval, options, (a: Variant, b: Variant) =>
+        a.value < b.value ? "select" : a.value === b.value ? "equal" : "reject"
+    );
 }
 
 // From OPC Unified Architecture, Part 13 26 Release 1.04
@@ -216,7 +216,7 @@ export function getMinData(
     startDate: Date,
     endDate: Date,
     callback: (err: Error | null, dataValues?: DataValue[]) => void
-) {
+): void {
     return getAggregateData(node, processingInterval, startDate, endDate, calculateIntervalMinValue, callback);
 }
 
@@ -226,6 +226,6 @@ export function getMaxData(
     startDate: Date,
     endDate: Date,
     callback: (err: Error | null, dataValues?: DataValue[]) => void
-) {
+): void {
     return getAggregateData(node, processingInterval, startDate, endDate, calculateIntervalMaxValue, callback);
 }

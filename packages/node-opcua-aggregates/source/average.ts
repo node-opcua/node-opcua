@@ -1,26 +1,22 @@
 import { UAVariable } from "node-opcua-address-space";
 import { DataValue } from "node-opcua-data-value";
 import { Variant, DataType } from "node-opcua-variant";
-import { getAggregateData } from "./common";
-import { Interval, AggregateConfigurationOptions, isGood } from "./interval";
 import { StatusCode, StatusCodes } from "node-opcua-status-code";
 
-function calculateIntervalAverageValue(
-    interval: Interval,
-    options: AggregateConfigurationOptions
-): DataValue {
+import { getAggregateData } from "./common";
+import { Interval, AggregateConfigurationOptions, isGood } from "./interval";
 
+function calculateIntervalAverageValue(interval: Interval, options: AggregateConfigurationOptions): DataValue {
     const indexStart = interval.index;
     let statusCode: StatusCode;
     let isPartial = interval.isPartial;
 
-    let isRaw = false;
+    const isRaw = false;
     let hasBad = false;
 
     const values: number[] = [];
 
     for (let i = indexStart; i < indexStart + interval.count; i++) {
-
         const dataValue = interval.dataValues[i];
 
         if (dataValue.statusCode === StatusCodes.BadNoData) {
@@ -49,7 +45,7 @@ function calculateIntervalAverageValue(
     if (values.length === 0) {
         return new DataValue({
             sourceTimestamp: interval.startTime,
-            statusCode: StatusCodes.BadNoData,
+            statusCode: StatusCodes.BadNoData
         });
     }
     const mean = values.reduce((p, c) => p + c, 0) / values.length;
@@ -58,7 +54,8 @@ function calculateIntervalAverageValue(
         sourceTimestamp: interval.startTime,
         statusCode: statusCode as StatusCode,
         value: {
-            dataType: DataType.Double, value: mean
+            dataType: DataType.Double,
+            value: mean
         }
     });
 }
@@ -69,6 +66,6 @@ export function getAverageData(
     startDate: Date,
     endDate: Date,
     callback: (err: Error | null, dataValues?: DataValue[]) => void
-) {
-    return getAggregateData(node, processingInterval, startDate, endDate, calculateIntervalAverageValue, callback);
+): void {
+    getAggregateData(node, processingInterval, startDate, endDate, calculateIntervalAverageValue, callback);
 }

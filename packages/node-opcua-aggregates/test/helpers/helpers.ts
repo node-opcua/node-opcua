@@ -11,34 +11,27 @@ export function makeDate(time: string): Date {
     return new Date(Date.UTC(year, month, day, hours, minutes, seconds));
 }
 
-export function makeDataValue(
-    time: string,
-    value: number | boolean | null,
-    statusCode: StatusCode
-): DataValue {
+export function makeDataValue(time: string, value: number | boolean | null, statusCode: StatusCode): DataValue {
     // setup data
     const sourceTimestamp = makeDate(time);
 
     if (value === undefined || value === null) {
-
         return new DataValue({
             sourceTimestamp,
             statusCode,
-            value: undefined,
+            value: undefined
         });
-
     } else if (typeof value === "boolean") {
         return new DataValue({
             sourceTimestamp,
             statusCode,
-            value: {dataType: DataType.Boolean, value},
+            value: { dataType: DataType.Boolean, value }
         });
-
     } else {
         return new DataValue({
             sourceTimestamp,
             statusCode,
-            value: {dataType: DataType.Float, value},
+            value: { dataType: DataType.Float, value }
         });
     }
 }

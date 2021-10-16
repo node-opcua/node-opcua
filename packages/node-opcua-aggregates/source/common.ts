@@ -56,7 +56,6 @@ function processAggregateData(
     setImmediate(() => {
         callback(null, results);
     });
-
 }
 
 export function getAggregateData(
@@ -66,8 +65,7 @@ export function getAggregateData(
     endDate: Date,
     lambda: (interval: Interval, aggregateConfiguration: AggregateConfigurationOptionsEx) => DataValue,
     callback: (err: Error | null, dataValues?: DataValue[]) => void
-) {
-
+): void {
     /* istanbul ignore next */
     if (node.nodeClass !== NodeClass.Variable) {
         throw new Error("node must be UAVariable");
@@ -81,14 +79,18 @@ export function getAggregateData(
     const context = new SessionContext();
     const historyReadDetails = new ReadRawModifiedDetails({
         endTime: endDate,
-        startTime: startDate,
+        startTime: startDate
     });
     const indexRange = null;
     const dataEncoding = null;
     const continuationPoint = null;
-    node.historyRead(context, historyReadDetails, indexRange, dataEncoding, continuationPoint,
+    node.historyRead(
+        context,
+        historyReadDetails,
+        indexRange,
+        dataEncoding,
+        continuationPoint,
         (err: Error | null, result?: HistoryReadResult) => {
-
             /* istanbul ignore next */
             if (err) {
                 return callback(err);
@@ -98,10 +100,11 @@ export function getAggregateData(
             const dataValues = historyData.dataValues || [];
 
             processAggregateData(node, processingInterval, startDate, endDate, dataValues, lambda, callback);
-        });
+        }
+    );
 }
 
-export function interpolateValue(dataValue1: DataValue, dataValue2: DataValue, date: Date) {
+export function interpolateValue(dataValue1: DataValue, dataValue2: DataValue, date: Date): DataValue {
     const t0 = dataValue1.sourceTimestamp!.getTime();
     const t = date.getTime();
     const t1 = dataValue2.sourceTimestamp!.getTime();

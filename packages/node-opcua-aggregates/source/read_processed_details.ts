@@ -7,7 +7,6 @@ import { CallbackT, StatusCodes } from "node-opcua-status-code";
 import { DataValue } from "node-opcua-data-value";
 import { ObjectIds } from "node-opcua-constants";
 import { NodeId } from "node-opcua-nodeid";
-import { getMinData, getMaxData } from "./minmax";
 import {
     HistoryData,
     HistoryReadResult,
@@ -16,6 +15,8 @@ import {
     ReadProcessedDetails,
     ReadRawModifiedDetails
 } from "node-opcua-service-history";
+
+import { getMinData, getMaxData } from "./minmax";
 
 import { getInterpolatedData } from "./interpolate";
 import { getAverageData } from "./average";
@@ -28,7 +29,7 @@ export function readProcessedDetails(
     dataEncoding: QualifiedNameLike | null,
     continuationPoint: ContinuationPoint | null,
     callback: CallbackT<HistoryReadResult>
-) {
+): void {
     // OPC Unified Architecture, Part 11 27 Release 1.03
     //
     // This structure is used to compute Aggregate values, qualities, and timestamps from data in
