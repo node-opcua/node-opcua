@@ -1,7 +1,7 @@
 import * as path from "path";
 import * as fs from "fs";
 
-import { AddressSpace, IServerBase, ISessionBase, PseudoSession, SessionContext, WellKnownRoles, makeRoles, UAServer, UAServerConfiguration } from "node-opcua-address-space";
+import { AddressSpace, IServerBase, ISessionBase, PseudoSession, SessionContext, WellKnownRoles, makeRoles, UAServer, UAServerConfiguration, ContinuationPointManager } from "node-opcua-address-space";
 import { generateAddressSpace } from "node-opcua-address-space/nodeJS";
 import { NodeClass } from "node-opcua-data-model";
 import { nodesets } from "node-opcua-nodesets";
@@ -43,7 +43,8 @@ describe("ServerConfiguration", () => {
         },
         getSessionId() {
             return NodeId.nullNodeId;
-        }
+        },
+        continuationPointManager: new ContinuationPointManager()
     };
     const _tempFolder = path.join(__dirname, "../temp");
 

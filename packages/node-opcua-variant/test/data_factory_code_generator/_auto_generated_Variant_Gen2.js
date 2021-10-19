@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-this-alias */
-// --------- This code has been automatically generated !!! Wed Apr 29 2015 20:52:17 GMT+0200 
+// --------- This code has been automatically generated !!! Wed Apr 29 2015 20:52:17 GMT+0200
 /**
  * @module node-opcua-address-space.types
  */

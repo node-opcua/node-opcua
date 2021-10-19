@@ -53,8 +53,6 @@
         "xml-writer": "^1.7.0"
     },
     "devDependencies": {
-        "date-utils": "^1.2.21",
-        "humanize": "0.0.9",
         "node-opcua-benchmarker": "2.55.0",
         "node-opcua-binary-stream": "2.55.0",
         "node-opcua-extension-object": "2.55.0",

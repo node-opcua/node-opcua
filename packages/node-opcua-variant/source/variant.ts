@@ -893,7 +893,12 @@ function isValidMatrixVariant(dataType: DataType, value: any, dimensions: number
     return true;
 }
 
-export function isValidVariant(arrayType: VariantArrayType, dataType: DataType, value: unknown, dimensions?: number[] | null): boolean {
+export function isValidVariant(
+    arrayType: VariantArrayType,
+    dataType: DataType,
+    value: unknown,
+    dimensions?: number[] | null
+): boolean {
     switch (arrayType) {
         case VariantArrayType.Scalar:
             return isValidScalarVariant(dataType, value);

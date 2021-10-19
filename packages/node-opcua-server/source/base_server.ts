@@ -175,7 +175,7 @@ export class OPCUABaseServer extends OPCUASecureObject {
 
         const __applicationUri = serverInfo.applicationUri || "";
 
-        (this.serverInfo as any).__defineGetter__("applicationUri", ()=> resolveFullyQualifiedDomainName(__applicationUri));
+        (this.serverInfo as any).__defineGetter__("applicationUri", () => resolveFullyQualifiedDomainName(__applicationUri));
 
         this._preInitTask.push(async () => {
             const fqdn = await extractFullyQualifiedDomainName();

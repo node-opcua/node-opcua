@@ -199,11 +199,13 @@ function _exploreObject(self: BaseUAObject, field: StructuredTypeField, data: Ex
         let str = "";
         if (value instanceof Buffer) {
             data.lines.push(fieldNameF + " " + fieldTypeF);
-            if (process.env?.FULLBUFFER) {
-                const _hexDump = hexDump(value);
-                data.lines.push("BUFFER{" + _hexDump + "}");
+            if (process.env?.FULLBUFFER || value.length <= 32) {
+                const _hexDump = value.length <= 32 ? "Ox" + value.toString("hex") : "\n" + hexDump(value);
+                data.lines.push("Buffer: " + _hexDump);
             } else {
-                data.lines.push("BUFFER");
+                const _hexDump1 = value.slice(0, 16).toString("hex");
+                const _hexDump2 = value.slice(-16).toString("hex");
+                data.lines.push("Buffer: ", _hexDump1 + "..." + _hexDump2);
             }
         } else {
             if (field.isArray) {

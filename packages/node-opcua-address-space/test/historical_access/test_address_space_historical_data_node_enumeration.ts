@@ -5,13 +5,7 @@ import * as should from "should";
 import { AddressSpace, SessionContext } from "../..";
 import { generateAddressSpace } from "../../nodeJS";
 
-const context = SessionContext.defaultContext;
-
-// tslint:disable-next-line:no-var-requires
-require("date-utils");
-
 // make sure extra error checking is made on object constructions
-// tslint:disable-next-line:no-var-requires
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("Testing Historical Data Node Enumeration", () => {
     let addressSpace: AddressSpace;

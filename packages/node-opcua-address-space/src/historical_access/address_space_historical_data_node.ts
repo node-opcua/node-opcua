@@ -29,7 +29,8 @@ import {
     ContinuationPointData,
     IVariableHistorian,
     IVariableHistorianOptions,
-    UAVariable
+    UAVariable,
+    ContinuationStuff
 } from "node-opcua-address-space-base";
 import { ISessionContext } from "node-opcua-address-space-base";
 
@@ -249,18 +250,13 @@ function _historyPush(this: UAVariableImpl, newDataValue: DataValue) {
     this.varHistorian.push(newDataValue);
 }
 
-function createContinuationPoint(): ContinuationPoint {
-    // todo: improve
-    return Buffer.from("ABCDEF");
-}
-
 function _historyReadModify(
     this: UAVariable,
     context: ISessionContext,
-    historyReadRawModifiedDetails: any,
+    historyReadRawModifiedDetails: ReadRawModifiedDetails,
     indexRange: NumericRange | null,
     dataEncoding: QualifiedNameLike | null,
-    continuationPoint: ContinuationPoint | null,
+    continuationData: ContinuationStuff,
     callback: CallbackT<HistoryReadResult>
 ) {
     //
@@ -338,7 +334,7 @@ function _historyReadRaw(
     historyReadRawModifiedDetails: ReadRawModifiedDetails,
     indexRange: NumericRange | null,
     dataEncoding: QualifiedNameLike | null,
-    continuationPoint: ContinuationPoint | null,
+    continuationData: ContinuationStuff,
     callback: CallbackT<HistoryReadResult>
 ): void {
     assert(historyReadRawModifiedDetails instanceof ReadRawModifiedDetails);
@@ -423,29 +419,20 @@ function _historyReadRaw(
     // If the requested TimestampsToReturn is not supported for a Node, the operation shall return
     // the Bad_TimestampNotSupported StatusCode.
 
-    if (continuationPoint) {
-        const cnt: ContinuationPointData | null = context.continuationPoints
-            ? context.continuationPoints[continuationPoint.toString("hex")]
-            : null;
-        if (!cnt) {
-            // invalid continuation point
-            const result1 = new HistoryReadResult({
-                historyData: new HistoryData({ dataValues: [] }),
-                statusCode: StatusCodes.BadContinuationPointInvalid
-            });
-            return callback(null, result1);
-        }
-        const dataValues = cnt.dataValues.splice(0, historyReadRawModifiedDetails.numValuesPerNode);
-        if (cnt.dataValues.length > 0) {
-            //
-        } else {
-            context.continuationPoints![continuationPoint.toString("hex")] = null;
-            continuationPoint = null;
-        }
+    const session = context.session;
+    if (!session) {
+        throw new Error("Internal Error: context.session not defined");
+    }
+    if (continuationData.continuationPoint) {
+        const cnt = session.continuationPointManager.getNextHistoryReadRaw(
+            historyReadRawModifiedDetails.numValuesPerNode,
+            continuationData
+        );
+        const { statusCode, dataValues } = cnt;
         const result2 = new HistoryReadResult({
-            continuationPoint: continuationPoint || undefined,
+            continuationPoint: cnt.continuationPoint,
             historyData: new HistoryData({ dataValues }),
-            statusCode: StatusCodes.Good
+            statusCode
         });
         return callback(null, result2);
     }
@@ -502,32 +489,15 @@ function _historyReadRaw(
             if (err || !dataValues) {
                 return callback(err);
             }
-
-            // now make sure that only the requested number of value is returned
-            if (historyReadRawModifiedDetails.numValuesPerNode >= 1) {
-                if (dataValues.length === 0) {
-                    const result1 = new HistoryReadResult({
-                        historyData: new HistoryData({ dataValues: [] }),
-                        statusCode: StatusCodes.GoodNoData
-                    });
-                    return callback(null, result1);
-                } else {
-                    const remaining = dataValues;
-                    dataValues = remaining.splice(0, historyReadRawModifiedDetails.numValuesPerNode);
-
-                    if (remaining.length > 0 && !isMinDate(historyReadRawModifiedDetails.endTime)) {
-                        continuationPoint = createContinuationPoint();
-                        context.continuationPoints = context.continuationPoints || {};
-                        context.continuationPoints[continuationPoint.toString("hex")] = {
-                            dataValues: remaining
-                        };
-                    }
-                }
-            }
+            const cnt = session.continuationPointManager.registerHistoryReadRaw(
+                historyReadRawModifiedDetails.numValuesPerNode,
+                dataValues,
+                continuationData
+            );
             const result = new HistoryReadResult({
-                continuationPoint: continuationPoint || undefined,
-                historyData: new HistoryData({ dataValues }),
-                statusCode: StatusCodes.Good
+                continuationPoint: cnt.continuationPoint,
+                historyData: new HistoryData({ dataValues: cnt.dataValues }),
+                statusCode: cnt.statusCode
             });
             callback(null, result);
         }
@@ -540,7 +510,7 @@ function _historyReadRawModify(
     historyReadRawModifiedDetails: ReadRawModifiedDetails,
     indexRange: NumericRange | null,
     dataEncoding: QualifiedNameLike | null,
-    continuationPoint: ContinuationPoint | null,
+    continuationData: ContinuationStuff,
     callback: CallbackT<HistoryReadResult>
 ) {
     const node = this as UAVariableImpl;
@@ -548,14 +518,14 @@ function _historyReadRawModify(
     assert(historyReadRawModifiedDetails instanceof ReadRawModifiedDetails);
 
     if (!historyReadRawModifiedDetails.isReadModified) {
-        return node._historyReadRaw(context, historyReadRawModifiedDetails, indexRange, dataEncoding, continuationPoint, callback);
+        return node._historyReadRaw(context, historyReadRawModifiedDetails, indexRange, dataEncoding, continuationData, callback);
     } else {
         return node._historyReadModify(
             context,
             historyReadRawModifiedDetails,
             indexRange,
             dataEncoding,
-            continuationPoint,
+            continuationData,
             callback
         );
     }
@@ -567,13 +537,13 @@ function _historyRead(
     historyReadDetails: ReadRawModifiedDetails | ReadEventDetails | ReadProcessedDetails | ReadAtTimeDetails,
     indexRange: NumericRange | null,
     dataEncoding: QualifiedNameLike | null,
-    continuationPoint: ContinuationPoint | null,
+    continuationData: ContinuationStuff,
     callback: CallbackT<HistoryReadResult>
 ) {
     assert(callback instanceof Function);
     if (historyReadDetails instanceof ReadRawModifiedDetails) {
         // note: only ReadRawModifiedDetails supported at this time
-        return this._historyReadRawModify(context, historyReadDetails, indexRange, dataEncoding, continuationPoint, callback);
+        return this._historyReadRawModify(context, historyReadDetails, indexRange, dataEncoding, continuationData, callback);
     } else if (historyReadDetails instanceof ReadEventDetails) {
         // The ReadEventDetails structure is used to read the Events from the history database for the
         // specified time domain for one or more HistoricalEventNodes. The Events are filtered based on
@@ -634,7 +604,7 @@ function _historyRead(
                 historyReadDetails,
                 indexRange,
                 dataEncoding,
-                continuationPoint,
+                continuationData,
                 callback
             );
         }

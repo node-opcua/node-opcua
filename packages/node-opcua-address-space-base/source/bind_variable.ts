@@ -11,7 +11,7 @@ import { NumericRange } from "node-opcua-numeric-range";
 import { QualifiedNameLike } from "node-opcua-data-model";
 
 import { UAVariable } from "./ua_variable";
-import { ISessionContext } from "./session_context";
+import { ContinuationStuff, ISessionContext } from "./session_context";
 import { ContinuationPoint } from "./continuation_point";
 
 export type VariableSetterVariation1 = (this: UAVariable, value: Variant) => StatusCode;
@@ -29,7 +29,7 @@ export type HistoryReadFunc = (
     historyReadDetails: ReadRawModifiedDetails | ReadEventDetails | ReadProcessedDetails | ReadAtTimeDetails,
     indexRange: NumericRange | null,
     dataEncoding: QualifiedNameLike | null,
-    continuationPoint: ContinuationPoint | null,
+    continuationData: ContinuationStuff,
     callback: CallbackT<HistoryReadResult>
 ) => void;
 

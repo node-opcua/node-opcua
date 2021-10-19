@@ -366,12 +366,12 @@ Object.defineProperty(ModifiableStatusCode.prototype, "_extraBits", { enumerable
 import { StatusCodes } from "./_generated_status_codes";
 export { StatusCodes } from "./_generated_status_codes";
 
-export function coerceStatusCode(statusCode: StatusCode | number | string | { value: number}): StatusCode {
+export function coerceStatusCode(statusCode: StatusCode | number | string | { value: number }): StatusCode {
     if (statusCode instanceof StatusCode) {
         return statusCode;
     }
     if (Object.prototype.hasOwnProperty.call(statusCode, "value")) {
-        return getStatusCodeFromCode((statusCode as  { value: number}).value);
+        return getStatusCodeFromCode((statusCode as { value: number }).value);
     }
     if (typeof statusCode === "number") {
         return getStatusCodeFromCode(statusCode);
