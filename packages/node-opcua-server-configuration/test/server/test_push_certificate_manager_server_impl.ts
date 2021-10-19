@@ -226,7 +226,7 @@ describe("Testing Server Side PushCertificateManager", () => {
 
     it("XDC-1 createSigningRequest should reuse existing certificate subjectAltName if none is provided", async () => {
         // Given a push manager with an existing certificate
-        let existingSubject : string ="";
+        let existingSubject  ="";
         {
             const resultCSR = await pushManager.createSigningRequest(
                 "DefaultApplicationGroup",

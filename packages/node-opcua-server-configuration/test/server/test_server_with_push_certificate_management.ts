@@ -1,12 +1,12 @@
 // tslint:disable:no-console
-import * as chalk from "chalk";
-import * as fs from "fs";
-const { readFile, writeFile } = fs.promises;
-import { randomBytes } from "crypto";
 import * as os from "os";
+import { randomBytes } from "crypto";
 import * as path from "path";
-import * as should from "should";
+import * as fs from "fs";
 import { hostname } from "os";
+import * as chalk from "chalk";
+const { readFile, writeFile } = fs.promises;
+import * as should from "should";
 import { OPCUACertificateManager } from "node-opcua-certificate-manager";
 import { ClientSession, makeApplicationUrn, OPCUAClient, UserIdentityInfoUserName } from "node-opcua-client";
 import { makeRoles } from "node-opcua-address-space";
@@ -30,6 +30,8 @@ import { MessageSecurityMode, SecurityPolicy } from "node-opcua-secure-channel";
 import { OPCUAServer, OPCUAServerEndPoint } from "node-opcua-server";
 import { StatusCodes } from "node-opcua-status-code";
 import { UserTokenType } from "node-opcua-types";
+import { dumpCertificate } from "node-opcua-pki";
+import { randomByteString } from "node-opcua-basic-types";
 
 import {
     _tempFolder,
@@ -43,8 +45,6 @@ import { installPushCertificateManagementOnServer } from "../..";
 import { ClientPushCertificateManagement } from "../..";
 import { certificateMatchesPrivateKey } from "../..";
 import { OPCUAServerPartial } from "../../source";
-import { dumpCertificate } from "node-opcua-pki";
-import { randomByteString } from "node-opcua-basic-types";
 
 const port = 20101;
 

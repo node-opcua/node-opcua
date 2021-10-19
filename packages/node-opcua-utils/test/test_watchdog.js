@@ -10,7 +10,7 @@ const WatchDog = require("..").WatchDog;
 class MyObject extends EventEmitter {
     watchdogReset() {
         this.emit("watchdogReset");
-    };
+    }
 }
 
 //xx var describe = require("node-opcua-leak-detector").describeWithLeakDetector;

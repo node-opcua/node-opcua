@@ -81,7 +81,7 @@ import {
     TranslateBrowsePathsToNodeIdsResponse
 } from "node-opcua-service-translate-browse-path";
 import { WriteRequest, WriteResponse, WriteValue } from "node-opcua-service-write";
-import { StatusCode, StatusCodes, Callback } from "node-opcua-status-code";
+import { StatusCode, StatusCodes, Callback, CallbackT } from "node-opcua-status-code";
 import { ErrorCallback } from "node-opcua-status-code";
 import { BrowseNextRequest, BrowseNextResponse, HistoryReadValueIdOptions, WriteValueOptions } from "node-opcua-types";
 import { buffer_ellipsis, getFunctionParameterNames, isNullOrUndefined, lowerFirstLetter } from "node-opcua-utils";
@@ -105,7 +105,8 @@ import {
     SetMonitoringModeRequestLike,
     SubscriptionId,
     TransferSubscriptionsRequestLike,
-    HistoryReadValueIdOptions2
+    HistoryReadValueIdOptions2,
+    ExtraReadHistoryValueParameters
 } from "../client_session";
 import { ClientSessionKeepAliveManager } from "../client_session_keepalive_manager";
 import { ClientSubscription } from "../client_subscription";
@@ -597,10 +598,18 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession {
         end: DateTime,
         callback: (err: Error | null, results?: HistoryReadResult[]) => void
     ): void;
+    public readHistoryValue(
+        nodesToRead: NodeIdLike[] | HistoryReadValueIdOptions2[],
+        start: DateTime,
+        end: DateTime,
+        options: ExtraReadHistoryValueParameters | undefined,
+        callback: (err: Error | null, results?: HistoryReadResult[]) => void
+    ): void;
     public async readHistoryValue(
         nodesToRead: NodeIdLike[] | HistoryReadValueIdOptions2[],
         start: DateTime,
-        end: DateTime
+        end: DateTime,
+        options?: ExtraReadHistoryValueParameters
     ): Promise<HistoryReadResult[]>;
     public readHistoryValue(
         nodeToRead: NodeIdLike | HistoryReadValueIdOptions2,
@@ -608,16 +617,36 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession {
         end: DateTime,
         callback: (err: Error | null, results?: HistoryReadResult) => void
     ): void;
+    public readHistoryValue(
+        nodeToRead: NodeIdLike | HistoryReadValueIdOptions2,
+        start: DateTime,
+        end: DateTime,
+        options: ExtraReadHistoryValueParameters | undefined,
+        callback: (err: Error | null, results?: HistoryReadResult) => void
+    ): void;
     public async readHistoryValue(
         nodeToRead: NodeIdLike | HistoryReadValueIdOptions2,
         start: DateTime,
-        end: DateTime
+        end: DateTime,
+        parameters: ExtraReadHistoryValueParameters
     ): Promise<HistoryReadResult>;
     public readHistoryValue(...args: any[]): any {
-        const start = args[1];
-        const end = args[2];
-        const callback = args[3];
+        const startTime = args[1];
+        const endTime = args[2];
+
+        let options: ExtraReadHistoryValueParameters = {};
+        let callback = args[3];
+        if (typeof callback !== "function") {
+            options = args[3];
+            callback = args[4];
+        }
         assert(typeof callback === "function");
+
+        // adjust parameters
+        options.numValuesPerNode = options.numValuesPerNode || 0;
+        options.returnBounds = options.returnBounds || options.returnBounds === undefined ? true : false;
+        options.isReadModified = options.isReadModified || false;
+        options.timestampsToReturn = options.timestampsToReturn || TimestampsToReturn.Both;
 
         const arg0 = args[0];
         const isArray = Array.isArray(arg0);
@@ -640,23 +669,46 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession {
         }
 
         const readRawModifiedDetails = new ReadRawModifiedDetails({
-            endTime: end,
+            endTime,
             isReadModified: false,
-            numValuesPerNode: 0,
-            returnBounds: true,
-            startTime: start
+            numValuesPerNode: options.numValuesPerNode,
+            returnBounds: options.returnBounds,
+            startTime
         });
 
         const request = new HistoryReadRequest({
             historyReadDetails: readRawModifiedDetails,
             nodesToRead,
             releaseContinuationPoints: false,
-            timestampsToReturn: TimestampsToReturn.Both
+            timestampsToReturn: options.timestampsToReturn
         });
 
         request.nodesToRead = request.nodesToRead || [];
 
         assert(nodes.length === request.nodesToRead.length);
+        this.historyRead(request, (err: Error | null, response?: HistoryReadResponse) => {
+            /* istanbul ignore next */
+            if (err) {
+                return callback(err);
+            }
+            /* istanbul ignore next */
+            if (!response || !(response instanceof HistoryReadResponse)) {
+                return callback(new Error("Internal Error"));
+            }
+            response.results = response.results || [];
+            assert(nodes.length === response.results.length);
+            callback(null, isArray ? response.results : response.results[0]);
+        });
+    }
+
+    public historyRead(request: HistoryReadRequest, callback: Callback<HistoryReadResponse>): void;
+    public historyRead(request: HistoryReadRequest): Promise<HistoryReadResponse>;
+    public historyRead(request: HistoryReadRequest, callback?: CallbackT<HistoryReadResponse>): any {
+        /* istanbul ignore next */
+        if (!callback) {
+            throw new Error("expecting a callback");
+        }
+
         this.performMessageTransaction(request, (err: Error | null, response) => {
             /* istanbul ignore next */
             if (err) {
@@ -673,10 +725,7 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession {
             }
 
             response.results = response.results || /* istanbul ignore next */ [];
-
-            assert(nodes.length === response.results.length);
-
-            callback(null, isArray ? response.results : response.results[0]);
+            callback(null, response);
         });
     }
 
@@ -2188,6 +2237,7 @@ ClientSessionImpl.prototype.browseNext = thenify.withCallback(ClientSessionImpl.
 ClientSessionImpl.prototype.readVariableValue = thenify.withCallback(ClientSessionImpl.prototype.readVariableValue, opts);
 ClientSessionImpl.prototype.readHistoryValue = thenify.withCallback(ClientSessionImpl.prototype.readHistoryValue, opts);
 ClientSessionImpl.prototype.readAggregateValue = thenify.withCallback(ClientSessionImpl.prototype.readAggregateValue, opts);
+ClientSessionImpl.prototype.historyRead = thenify.withCallback(ClientSessionImpl.prototype.historyRead, opts);
 ClientSessionImpl.prototype.write = thenify.withCallback(ClientSessionImpl.prototype.write, opts);
 ClientSessionImpl.prototype.writeSingleNode = thenify.withCallback(ClientSessionImpl.prototype.writeSingleNode, opts);
 ClientSessionImpl.prototype.readAllAttributes = thenify.withCallback(ClientSessionImpl.prototype.readAllAttributes, opts);

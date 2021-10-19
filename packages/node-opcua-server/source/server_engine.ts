@@ -29,7 +29,8 @@ import {
     MethodFunctorCallback,
     ISessionContext,
     DTServerStatus,
-    resolveOpaqueOnAddressSpace
+    resolveOpaqueOnAddressSpace,
+    ContinuationStuff
 } from "node-opcua-address-space";
 import { generateAddressSpace } from "node-opcua-address-space/nodeJS";
 import { DataValue, coerceTimestampsToReturn, apply_timestamps_no_copy } from "node-opcua-data-value";
@@ -1422,6 +1423,7 @@ export class ServerEngine extends EventEmitter {
         attributeId: AttributeIds,
         historyReadDetails: ReadRawModifiedDetails | ReadEventDetails | ReadProcessedDetails | ReadAtTimeDetails,
         timestampsToReturn: TimestampsToReturn,
+        continuationData: ContinuationStuff,
         callback: (err: Error | null, results?: HistoryReadResult) => void
     ): void {
         if (timestampsToReturn === TimestampsToReturn.Invalid) {
@@ -1441,6 +1443,7 @@ export class ServerEngine extends EventEmitter {
             }),
             historyReadDetails,
             timestampsToReturn,
+            continuationData,
             callback
         );
     }
@@ -1470,97 +1473,87 @@ export class ServerEngine extends EventEmitter {
 
         const timestampsToReturn = historyReadRequest.timestampsToReturn;
         const historyReadDetails = historyReadRequest.historyReadDetails! as HistoryReadDetails;
+        const releaseContinuationPoints = historyReadRequest.releaseContinuationPoints;
+        assert(historyReadDetails instanceof HistoryReadDetails);
+        //  ReadAnnotationDataDetails | ReadAtTimeDetails | ReadEventDetails | ReadProcessedDetails | ReadRawModifiedDetails;
 
         const nodesToRead = historyReadRequest.nodesToRead || ([] as HistoryReadValueId[]);
-
-        assert(historyReadDetails instanceof HistoryReadDetails);
         assert(Array.isArray(nodesToRead));
 
         // special cases with ReadProcessedDetails
-        const historyData: HistoryReadResult[] = [];
+        interface M {
+            nodeToRead: HistoryReadValueId;
+            processDetail: ReadProcessedDetails;
+            index: number;
+        }
+
+        const _q = async (m: M): Promise<HistoryReadResult> => {
+            return new Promise((resolve) => {
+                const continuationPoint = m.nodeToRead.continuationPoint;
+                this._historyReadSingleNode(
+                    context,
+                    m.nodeToRead,
+                    m.processDetail,
+                    timestampsToReturn,
+                    { continuationPoint, releaseContinuationPoints /**, index = ??? */ },
+                    (err: Error | null, result?: any) => {
+                        if (err && !result) {
+                            errorLog("Internal error", err.message);
+                            result = new HistoryReadResult({ statusCode: StatusCodes.BadInternalError });
+                        }
+                        resolve(result);
+                    }
+                );
+            });
+        };
+
         if (historyReadDetails instanceof ReadProcessedDetails) {
             //
             if (!historyReadDetails.aggregateType || historyReadDetails.aggregateType.length !== nodesToRead.length) {
                 return callback(null, [new HistoryReadResult({ statusCode: StatusCodes.BadInvalidArgument })]);
             }
-            interface M {
-                nodeToRead: HistoryReadValueId;
-                processDetail: ReadProcessedDetails;
-                indexes: number[];
+            const promises: Promise<HistoryReadResult>[] = [];
+            let index = 0;
+            for (const nodeToRead of nodesToRead) {
+                const aggregateType = historyReadDetails.aggregateType[index];
+                const processDetail = new ReadProcessedDetails({ ...historyReadDetails, aggregateType: [aggregateType] });
+                promises.push(_q({ nodeToRead, processDetail, index }));
+                index++;
             }
-            // const map: Map<string, M> = new Map();
-            // for (let i = 0; i < nodesToRead.length; i++) {
-            //     const nodeToRead = nodesToRead[i];
-            //     const aggregateType = historyReadDetails.aggregateType[i];
-            //     const key = nodesToRead.toString();
-            //     if (!map.has(key)) {
-            //         map.set(key, {
-            //             nodeToRead,
-            //             indexes: [],
-            //             processDetail: new ReadProcessedDetails({ ...historyReadDetails, aggregateType: [] })
-            //         });
-            //     }
-            //     map.get(key)!.processDetail.aggregateType?.push(aggregateType);
-            //     map.get(key)!.indexes.push(i);
-            // }
-            // const m = [...map.values()];
-            const elements: M[] = [];
-            for (let i = 0; i < nodesToRead.length; i++) {
-                const nodeToRead = nodesToRead[i];
-                const aggregateType = historyReadDetails.aggregateType[i];
-                elements.push({
-                    indexes: [i],
-                    nodeToRead,
-                    processDetail: new ReadProcessedDetails({ ...historyReadDetails, aggregateType: [aggregateType] })
-                });
-            }
-
-            async.forEach(
-                elements,
-                (m: M, _local_callback: (err: Error | null) => void) => {
-                    this._historyReadSingleNode(
-                        context,
-                        m.nodeToRead,
-                        m.processDetail,
-                        timestampsToReturn,
-                        (err: Error | null, result?: any) => {
-                            if (err && !result) {
-                                result = new HistoryReadResult({ statusCode: StatusCodes.BadInternalError });
-                            }
-                            historyData.push(result);
-                            _local_callback(null);
-                        }
-                    );
-                },
-                (err?: Error | null) => {
-                    callback(err!, historyData);
-                }
-            );
+            Promise.all(promises).then((results: HistoryReadResult[]) => {
+                callback(null, results);
+            });
             return;
         }
-        async.eachSeries(
-            nodesToRead,
-            (nodeToRead: HistoryReadValueId, cbNode: () => void) => {
+
+        const _r = async (nodeToRead: HistoryReadValueId, index: number) => {
+            const continuationPoint = nodeToRead.continuationPoint;
+            return new Promise<HistoryReadResult>((resolve, reject) => {
                 this._historyReadSingleNode(
                     context,
                     nodeToRead,
                     historyReadDetails,
                     timestampsToReturn,
+                    { continuationPoint, releaseContinuationPoints, index },
                     (err: Error | null, result?: any) => {
                         if (err && !result) {
                             result = new HistoryReadResult({ statusCode: StatusCodes.BadInternalError });
                         }
-                        historyData.push(result);
-                        cbNode();
+                        resolve(result);
                         // it's not guaranteed that the historical read process is really asynchronous
                     }
                 );
-            },
-            (err?: Error | null) => {
-                assert(historyData.length === nodesToRead.length);
-                callback(err || null, historyData);
-            }
-        );
+            });
+        };
+        const promises: Promise<HistoryReadResult>[] = [];
+        let index = 0;
+        for (const nodeToRead of nodesToRead) {
+            promises.push(_r(nodeToRead, index));
+            index++;
+        }
+        Promise.all(promises).then((results: HistoryReadResult[]) => {
+            callback(null, results);
+        });
     }
 
     public getOldestUnactivatedSession(): ServerSession | null {
@@ -2054,6 +2047,7 @@ export class ServerEngine extends EventEmitter {
         nodeToRead: HistoryReadValueId,
         historyReadDetails: HistoryReadDetails,
         timestampsToReturn: TimestampsToReturn,
+        continuationData: ContinuationStuff,
         callback: CallbackT<HistoryReadResult>
     ): void {
         assert(context instanceof SessionContext);
@@ -2065,6 +2059,9 @@ export class ServerEngine extends EventEmitter {
         const continuationPoint = nodeToRead.continuationPoint;
 
         timestampsToReturn = coerceTimestampsToReturn(timestampsToReturn);
+        if (timestampsToReturn === TimestampsToReturn.Invalid) {
+            return callback(null, new HistoryReadResult({ statusCode: StatusCodes.BadTimestampsToReturnInvalid }));
+        }
 
         const obj = this.__findNode(nodeId) as UAVariable;
 
@@ -2107,7 +2104,7 @@ export class ServerEngine extends EventEmitter {
                 historyReadDetails,
                 indexRange,
                 dataEncoding,
-                continuationPoint,
+                continuationData,
                 (err: Error | null, result?: HistoryReadResult) => {
                     if (err || !result) {
                         return callback(err);

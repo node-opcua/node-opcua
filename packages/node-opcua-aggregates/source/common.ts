@@ -1,11 +1,12 @@
 /**
  * @module node-opca-aggregates
  */
-import { SessionContext, UAVariable } from "node-opcua-address-space";
+import { SessionContext, UAVariable, ContinuationPointManager, ContinuationPoint } from "node-opcua-address-space";
 import { NodeClass } from "node-opcua-data-model";
 import { DataValue } from "node-opcua-data-value";
 import { HistoryData, HistoryReadResult, ReadRawModifiedDetails } from "node-opcua-service-history";
 import { StatusCode } from "node-opcua-status-code";
+import { coerceNodeId } from "node-opcua-nodeid";
 
 import { getAggregateConfiguration } from "./aggregates";
 import { getInterval, Interval, AggregateConfigurationOptionsEx } from "./interval";
@@ -76,20 +77,29 @@ export function getAggregateData(
         throw new Error("Invalid processing interval, shall be greater than 0");
     }
 
-    const context = new SessionContext();
+    const continuationPointManager = new ContinuationPointManager();
+    const context = new SessionContext({
+        session: {
+            continuationPointManager,
+            getSessionId: () => coerceNodeId("i=0")
+        }
+    });
     const historyReadDetails = new ReadRawModifiedDetails({
         endTime: endDate,
-        startTime: startDate
+        startTime: startDate,
+        isReadModified: false,
+        numValuesPerNode: 0
+        // returnBounds: true,
     });
     const indexRange = null;
     const dataEncoding = null;
-    const continuationPoint = null;
+    const continuationPoint: ContinuationPoint | null = null;
     node.historyRead(
         context,
         historyReadDetails,
         indexRange,
         dataEncoding,
-        continuationPoint,
+        { continuationPoint },
         (err: Error | null, result?: HistoryReadResult) => {
             /* istanbul ignore next */
             if (err) {

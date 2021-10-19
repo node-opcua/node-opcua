@@ -8,7 +8,7 @@ import { DateTime, UInt8 } from "node-opcua-basic-types";
 import { ServerState } from "node-opcua-common";
 import { Certificate, Nonce } from "node-opcua-crypto";
 import { LocalizedTextLike } from "node-opcua-data-model";
-import { DataValue } from "node-opcua-data-value";
+import { DataValue, TimestampsToReturn } from "node-opcua-data-value";
 import { NodeId, NodeIdLike } from "node-opcua-nodeid";
 import { IBasicSession } from "node-opcua-pseudo-session";
 import { ErrorCallback } from "node-opcua-status-code";
@@ -60,7 +60,7 @@ import { ExtraDataTypeManager } from "node-opcua-client-dynamic-extension-object
 import { ExtensionObject } from "node-opcua-extension-object";
 import { ArgumentDefinition, CallMethodRequestLike, MethodId } from "node-opcua-pseudo-session";
 import { AggregateFunction } from "node-opcua-constants";
-import { HistoryReadValueIdOptions } from "node-opcua-types";
+import { HistoryReadRequest, HistoryReadResponse, HistoryReadValueIdOptions } from "node-opcua-types";
 export { ExtraDataTypeManager } from "node-opcua-client-dynamic-extension-object";
 export { ExtensionObject } from "node-opcua-extension-object";
 export { ArgumentDefinition, CallMethodRequestLike, MethodId } from "node-opcua-pseudo-session";
@@ -420,6 +420,14 @@ export interface HistoryReadValueIdOptions2 extends HistoryReadValueIdOptions {
     nodeId: NodeIdLike; // nodeId is mandatory here
 }
 
+export interface ExtraReadHistoryValueParameters {
+    numValuesPerNode?: number;
+    returnBounds?: boolean;
+    isReadModified?: boolean;
+    //
+    timestampsToReturn?: TimestampsToReturn;
+}
+
 // history services
 export interface ClientSessionReadHistoryService {
     readHistoryValue(
@@ -428,11 +436,19 @@ export interface ClientSessionReadHistoryService {
         end: DateTime,
         callback: (err: Error | null, results?: HistoryReadResult[]) => void
     ): void;
+    readHistoryValue(
+        nodesToRead: NodeIdLike[] | HistoryReadValueIdOptions2[],
+        start: DateTime,
+        end: DateTime,
+        options: ExtraReadHistoryValueParameters | undefined,
+        callback: (err: Error | null, results?: HistoryReadResult[]) => void
+    ): void;
 
     readHistoryValue(
         nodesToRead: NodeIdLike[] | HistoryReadValueIdOptions2[],
         start: DateTime,
-        end: DateTime
+        end: DateTime,
+        options?: ExtraReadHistoryValueParameters
     ): Promise<HistoryReadResult[]>;
 
     readHistoryValue(
@@ -441,11 +457,19 @@ export interface ClientSessionReadHistoryService {
         end: DateTime,
         callback: (err: Error | null, result?: HistoryReadResult) => void
     ): void;
+    readHistoryValue(
+        nodeToRead: NodeIdLike | HistoryReadValueIdOptions2,
+        start: DateTime,
+        end: DateTime,
+        options: ExtraReadHistoryValueParameters | undefined,
+        callback: (err: Error | null, result?: HistoryReadResult) => void
+    ): void;
 
     readHistoryValue(
         nodeToRead: NodeIdLike | HistoryReadValueIdOptions2,
         start: DateTime,
-        end: DateTime
+        end: DateTime,
+        options?: ExtraReadHistoryValueParameters
     ): Promise<HistoryReadResult>;
 
     /**
@@ -510,6 +534,9 @@ export interface ClientSessionReadHistoryService {
         aggregateFn: AggregateFunction,
         processingInterval: number
     ): Promise<HistoryReadResult>;
+
+    historyRead(request: HistoryReadRequest, callback: Callback<HistoryReadResponse>): void;
+    historyRead(request: HistoryReadRequest): Promise<HistoryReadResponse>;
 }
 
 export interface ClientSessionDataTypeService {

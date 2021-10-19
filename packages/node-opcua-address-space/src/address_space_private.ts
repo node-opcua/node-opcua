@@ -20,7 +20,8 @@ import {
     UAVariableType,
     UAObjectType,
     UAReference,
-    UAVariable
+    UAVariable,
+    ContinuationStuff
 } from "node-opcua-address-space-base";
 
 import { UARootFolder } from "../source/ua_root_folder";
@@ -85,7 +86,7 @@ export interface AddressSpacePrivate extends IAddressSpace {
         historyReadDetails: ReadProcessedDetails,
         indexRange: NumericRange | null,
         dataEncoding: QualifiedNameLike | null,
-        continuationPoint: ContinuationPoint | null,
+        continuationData: ContinuationStuff,
         callback: CallbackT<HistoryReadResult>
     ) => void;
 

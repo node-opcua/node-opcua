@@ -13,7 +13,7 @@ import { AddressSpace, BaseNode, Namespace, SessionContext, UAObject, makeRoles 
 // let's make sure should don't get removed by typescript optimizer
 const keep_should = should;
 
-import { getMiniAddressSpace } from "../testHelpers";
+import { getMiniAddressSpace, MockContinuationPointManager } from "../testHelpers";
 
 const certificateFolder = path.join(__dirname, "../../node-opcua-samples/certificates");
 fs.existsSync(certificateFolder).should.eql(true, "expecting certificate store at " + certificateFolder);
@@ -111,6 +111,7 @@ describe("SessionContext - with  dedicated SessionContext and certificate ", () 
         userIdentityToken: new X509IdentityToken({
             certificateData: certificate
         }),
+        continuationPointManager: new MockContinuationPointManager(),
         getSessionId() {
             return NodeId.nullNodeId;
         }

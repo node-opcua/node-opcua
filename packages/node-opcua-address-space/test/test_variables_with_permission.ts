@@ -27,7 +27,7 @@ import {
 
 import { UAObject, Namespace, PseudoSession, SessionContext, setNamespaceMetaData, UAVariable, AddressSpace } from "..";
 import { generateAddressSpace } from "../distNodeJS";
-import { getMiniAddressSpace } from "../testHelpers";
+import { getMiniAddressSpace, MockContinuationPointManager, mockSession } from "../testHelpers";
 import { WellKnownRoles, makeRoles } from "..";
 
 // tslint:disable-next-line:no-var-requires
@@ -92,11 +92,7 @@ describe("AddressSpace : Variable.setPermissions", () => {
     });
     it("should adjust userAccessLevel based on session Context permission", () => {
         const context = new SessionContext({
-            session: {
-                getSessionId() {
-                    return NodeId.nullNodeId;
-                }
-            }
+            session: mockSession
         });
         context.getCurrentUserRoles = () => makeRoles([WellKnownRoles.AuthenticatedUser, WellKnownRoles.Operator]);
 
@@ -168,6 +164,7 @@ describe("SPP1 AddressSpace: RoleAndPermissions resolving to Namespace Metadata"
             getSessionId() {
                 return NodeId.nullNodeId;
             },
+            continuationPointManager: new MockContinuationPointManager(),
             userIdentityToken: new AnonymousIdentityToken()
         }
     });
@@ -178,6 +175,7 @@ describe("SPP1 AddressSpace: RoleAndPermissions resolving to Namespace Metadata"
             getSessionId() {
                 return NodeId.nullNodeId;
             },
+            continuationPointManager: new MockContinuationPointManager(),
             userIdentityToken: new UserNameIdentityToken({
                 userName: "user1"
             })
@@ -190,6 +188,7 @@ describe("SPP1 AddressSpace: RoleAndPermissions resolving to Namespace Metadata"
             getSessionId() {
                 return NodeId.nullNodeId;
             },
+            continuationPointManager: new MockContinuationPointManager(),
             userIdentityToken: new UserNameIdentityToken({
                 userName: "admin"
             })
@@ -205,6 +204,7 @@ describe("SPP1 AddressSpace: RoleAndPermissions resolving to Namespace Metadata"
             userIdentityToken: new UserNameIdentityToken({
                 userName: "admin"
             }),
+            continuationPointManager: new MockContinuationPointManager(),
             channel: {
                 securityMode: MessageSecurityMode.None,
                 securityPolicy: "",
@@ -221,6 +221,7 @@ describe("SPP1 AddressSpace: RoleAndPermissions resolving to Namespace Metadata"
             userIdentityToken: new UserNameIdentityToken({
                 userName: "admin"
             }),
+            continuationPointManager: new MockContinuationPointManager(),
             channel: {
                 securityMode: MessageSecurityMode.Sign,
                 securityPolicy: "",
@@ -237,6 +238,7 @@ describe("SPP1 AddressSpace: RoleAndPermissions resolving to Namespace Metadata"
             userIdentityToken: new UserNameIdentityToken({
                 userName: "admin"
             }),
+            continuationPointManager: new MockContinuationPointManager(),
             channel: {
                 securityMode: MessageSecurityMode.SignAndEncrypt,
                 securityPolicy: "",
