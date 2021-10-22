@@ -1,19 +1,20 @@
 /**
  * @module node-opcua-server
  */
-import { assert } from "node-opcua-assert";
 import { StatusCode, StatusCodes } from "node-opcua-status-code";
 import { BrowseResultOptions, ReferenceDescription } from "node-opcua-types";
 import {
     ContinuationPoint,
     IContinuationPointManager,
     IContinuationPointInfo,
-    IContinuationPointInfo2,
-    ContinuationStuff
+    ContinuationData
 } from "node-opcua-address-space-base";
 import { DataValue } from "node-opcua-data-value";
+import { runInThisContext } from "vm";
 
-/***
+/**
+ * from https://reference.opcfoundation.org/v104/Core/docs/Part4/7.6/
+ *
  * A ContinuationPoint is used to pause a Browse, QueryFirst or HistoryRead operation and allow it to be restarted later by calling BrowseNext,
  * QueryNext or HistoryRead.
  * - Operations are paused when the number of results found exceeds the limits set by either the Client or the Server.
@@ -38,6 +39,34 @@ import { DataValue } from "node-opcua-data-value";
  *   A Client restarts an operation by passing the ContinuationPoint back to the Server. Server should always be able to reuse the ContinuationPoint
  *   provided so Servers shall never return Bad_NoContinuationPoints error when continuing a previously halted operation.
  *   A ContinuationPoint is a subtype of the ByteString data type.
+ *
+ *
+ * for historical access: https://reference.opcfoundation.org/v104/Core/docs/Part11/6.3/
+ *
+ * The continuationPoint parameter in the HistoryRead Service is used to mark a point from which to continue
+ * the read if not all values could be returned in one response. The value is opaque for the Client and is
+ * only used to maintain the state information for the Server to continue from. *
+ *
+ * For HistoricalDataNode requests, a Server may use the timestamp of the last returned data item if the timestamp
+ * is unique. This can reduce the need in the Server to store state information for the continuation point.
+ * The Client specifies the maximum number of results per operation in the request Message. A Server shall
+ * not return more than this number of results but it may return fewer results. The Server allocates a
+ * ContinuationPoint if there are more results to return. The Server may return fewer results due to buffer issues
+ * or other internal constraints. It may also be required to return a continuationPoint due to HistoryRead
+ * parameter constraints. If a request is taking a long time to calculate and is approaching the timeout time, the
+ * Server may return partial results with a continuation point. This may be done if the calculation is going to
+ * take more time than the Client timeout. In some cases it may take longer than the Client timeout to calculate
+ * even one result. Then the Server may return zero results with a continuation point that allows the Server to
+ * resume the calculation on the next Client read call. For additional discussions regarding ContinuationPoints
+ * and HistoryRead please see the individual extensible HistoryReadDetails parameter in 6.4.
+ * If the Client specifies a ContinuationPoint, then the HistoryReadDetails parameter and the TimestampsToReturn
+ * parameter are ignored, because it does not make sense to request different parameters when continuing from a
+ * previous call. It is permissible to change the dataEncoding parameter with each request.
+ * If the Client specifies a ContinuationPoint that is no longer valid, then the Server shall return a
+ * Bad_ContinuationPointInvalid error.
+ * If the releaseContinuationPoints parameter is set in the request the Server shall not return any data and shall
+ * release all ContinuationPoints passed in the request. If the ContinuationPoint for an operation is missing or
+ * invalid then the StatusCode for the operation shall be Bad_ContinuationPointInvalid.
  */
 let counter = 0;
 
@@ -47,190 +76,159 @@ function make_key() {
     return Buffer.from(counter.toString(), "ascii");
 }
 
-export interface ContinuationPointInfo extends BrowseResultOptions, IContinuationPointInfo {
-    references?: ReferenceDescription[];
-    statusCode: StatusCode;
+interface Data {
+    maxElements: number;
+    values: ReferenceDescription[] | DataValue[];
 }
-
 export class ContinuationPointManager implements IContinuationPointManager {
-    private _map: any;
+    private _map: Map<string, Data>;
+
     constructor() {
-        this._map = {};
+        this._map = new Map();
     }
 
     /**
-     * returns true if the current number of active continuation point has reach the limit
-     * specified in maxBrowseContinuationPoint
+     * returns true if the current number of active continuation point has reached the limit
+     * specified in maxContinuationPoint
      * @param maxBrowseContinuationPoint
      */
-    public hasReachMaximum(maxBrowseContinuationPoint: number): boolean {
-        if (maxBrowseContinuationPoint === 0) {
+    public hasReachedMaximum(maxContinuationPoint: number): boolean {
+        if (maxContinuationPoint === 0) {
             return false;
         }
-        const nbContinuationPoints = Object.keys(this._map).length;
-        return nbContinuationPoints >= maxBrowseContinuationPoint;
+        const nbContinuationPoints = this._map.size;
+        return nbContinuationPoints >= maxContinuationPoint;
     }
 
     public clearContinuationPoints() {
         // call when a new request to the server is received
-        this._map = {};
+        this._map.clear();
     }
 
     public registerHistoryReadRaw(
         numValuesPerNode: number,
         dataValues: DataValue[],
-        continuationData: ContinuationStuff
-    ): IContinuationPointInfo2 {
-        if (continuationData.releaseContinuationPoints || (!continuationData.continuationPoint && continuationData.index === 0)) {
+        continuationData: ContinuationData
+    ): IContinuationPointInfo<DataValue> {
+        return this._register(numValuesPerNode, dataValues, continuationData);
+    }
+    public getNextHistoryReadRaw(numValues: number, continuationData: ContinuationData): IContinuationPointInfo<DataValue> {
+        return this._getNext(numValues, continuationData);
+    }
+
+    registerReferences(
+        maxElements: number,
+        values: ReferenceDescription[],
+        continuationData: ContinuationData
+    ): IContinuationPointInfo<ReferenceDescription> {
+        return this._register(maxElements, values, continuationData);
+    }
+    /**
+     * - releaseContinuationPoints = TRUE
+     *
+     *  passed continuationPoints shall be reset to free resources in
+     *  the Server. The continuation points are released and the results
+     *  and diagnosticInfos arrays are empty.
+     *
+     * - releaseContinuationPoints = FALSE
+     *
+     *   passed continuationPoints shall be used to get the next set of
+     *   browse information
+     */
+    getNextReferences(numValues: number, continuationData: ContinuationData): IContinuationPointInfo<ReferenceDescription> {
+        return this._getNext(numValues, continuationData);
+    }
+
+    private _register<T extends DataValue | ReferenceDescription>(
+        maxValues: number,
+        values: T[],
+        continuationData: ContinuationData
+    ): IContinuationPointInfo<T> {
+        if (continuationData.releaseContinuationPoints) {
+            this.clearContinuationPoints();
+            return {
+                continuationPoint: undefined,
+                values: [],
+                statusCode: StatusCodes.Good
+            };
+        }
+        if (!continuationData.continuationPoint && !continuationData.index) {
             this.clearContinuationPoints();
         }
-        // now make sure that only the requested number of value is returned
-        if (numValuesPerNode >= 1) {
-            if (dataValues.length === 0) {
+
+        if (maxValues >= 1) {
+            // now make sure that only the requested number of value is returned
+            if (values.length === 0) {
                 return {
                     continuationPoint: undefined,
-                    dataValues: undefined,
+                    values: null,
                     statusCode: StatusCodes.GoodNoData
                 };
             }
         }
 
-        numValuesPerNode = numValuesPerNode || dataValues.length;
-        if (numValuesPerNode >= dataValues.length) {
+        maxValues = maxValues || values.length;
+        if (maxValues >= values.length) {
             return {
                 continuationPoint: undefined,
-                dataValues,
+                values,
                 statusCode: StatusCodes.Good
             };
         }
         // split the array in two ( values)
-        const current_block = dataValues.splice(0, numValuesPerNode);
+        const current_block = values.splice(0, maxValues);
 
-        if (continuationData.releaseContinuationPoints) {
-            return {
-                continuationPoint: undefined,
-                dataValues: current_block,
-                statusCode: StatusCodes.Good
-            };
-        }
         const key = make_key();
         const keyHash = key.toString("ascii");
 
         const result = {
             continuationPoint: key,
-            dataValues: current_block,
+            values: current_block,
             statusCode: StatusCodes.Good
         };
 
         // create
-        const data = {
-            maxElements: numValuesPerNode,
-            dataValues
+        const data: Data = {
+            maxElements: maxValues,
+            values: values as DataValue[] | ReferenceDescription[]
         };
-        this._map[keyHash] = data;
+        this._map.set(keyHash, data);
 
         return result;
     }
-    public getNextHistoryReadRaw(numValues: number, continuationData: ContinuationStuff): IContinuationPointInfo2 {
+
+    private _getNext<T extends DataValue | ReferenceDescription>(
+        numValues: number,
+        continuationData: ContinuationData
+    ): IContinuationPointInfo<T> {
         if (!continuationData.continuationPoint) {
-            return { statusCode: StatusCodes.BadContinuationPointInvalid };
+            return {
+                continuationPoint: undefined,
+                values: null,
+                statusCode: StatusCodes.BadContinuationPointInvalid
+            };
         }
         const keyHash = continuationData.continuationPoint.toString("ascii");
-        const data = this._map[keyHash];
+        const data = this._map.get(keyHash);
         if (!data) {
-            return { statusCode: StatusCodes.BadContinuationPointInvalid };
+            return {
+                continuationPoint: undefined,
+                values: null,
+                statusCode: StatusCodes.BadContinuationPointInvalid
+            };
         }
-        const cnt = data;
-        const dataValues = cnt.dataValues.splice(0, numValues);
+
+        const values = data.values.splice(0, numValues || data.maxElements) as T[];
 
         let continuationPoint: ContinuationPoint | undefined = continuationData.continuationPoint;
-        if (cnt.dataValues.length === 0 || continuationData.releaseContinuationPoints) {
+        if (data.values.length === 0 || continuationData.releaseContinuationPoints) {
             // no more data available for next call
-            delete this._map[keyHash];
+            this._map.delete(keyHash);
             continuationPoint = undefined;
         }
         return {
             continuationPoint,
-            dataValues,
-            statusCode: StatusCodes.Good
-        };
-    }
-    //////
-    public register(maxElements: number, values: ReferenceDescription[]): ContinuationPointInfo {
-        maxElements = maxElements || values.length;
-        if (maxElements >= values.length) {
-            return {
-                continuationPoint: undefined,
-                references: values,
-                statusCode: StatusCodes.Good
-            };
-        }
-
-        const key = make_key();
-        const keyHash = key.toString("ascii");
-
-        // split the array in two ( values)
-        const current_block = values.splice(0, maxElements);
-
-        const result = {
-            continuationPoint: key,
-            references: current_block,
-            statusCode: StatusCodes.Good
-        };
-
-        // create
-        const data = {
-            maxElements,
-            remainingElements: values
-        };
-        this._map[keyHash] = data;
-
-        return result;
-    }
-
-    public getNext(continuationPoint: ContinuationPoint): ContinuationPointInfo {
-        if (!continuationPoint) {
-            return { statusCode: StatusCodes.BadContinuationPointInvalid };
-        }
-        const keyHash = continuationPoint.toString("ascii");
-
-        const data = this._map[keyHash];
-        if (!data) {
-            return { statusCode: StatusCodes.BadContinuationPointInvalid };
-        }
-        assert(data.maxElements > 0);
-        // split the array in two ( values)
-        const current_block = data.remainingElements.splice(0, data.maxElements);
-
-        const result = {
-            continuationPoint: data.remainingElements.length ? continuationPoint : undefined,
-            references: current_block,
-            statusCode: StatusCodes.Good
-        };
-        if (data.remainingElements.length === 0) {
-            // we are done
-            delete this._map[keyHash];
-        }
-        return result;
-    }
-
-    public cancel(continuationPoint: ContinuationPoint): ContinuationPointInfo {
-        if (!continuationPoint) {
-            return { statusCode: StatusCodes.BadContinuationPointInvalid };
-        }
-
-        const keyHash = continuationPoint.toString("ascii");
-
-        const data = this._map[keyHash];
-        if (!data) {
-            return {
-                continuationPoint: undefined, // nullBuffer,
-                references: [],
-                statusCode: StatusCodes.BadContinuationPointInvalid
-            };
-        }
-        delete this._map[keyHash];
-        return {
+            values,
             statusCode: StatusCodes.Good
         };
     }

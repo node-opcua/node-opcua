@@ -30,7 +30,7 @@ import {
     ISessionContext,
     DTServerStatus,
     resolveOpaqueOnAddressSpace,
-    ContinuationStuff
+    ContinuationData
 } from "node-opcua-address-space";
 import { generateAddressSpace } from "node-opcua-address-space/nodeJS";
 import { DataValue, coerceTimestampsToReturn, apply_timestamps_no_copy } from "node-opcua-data-value";
@@ -1423,7 +1423,7 @@ export class ServerEngine extends EventEmitter {
         attributeId: AttributeIds,
         historyReadDetails: ReadRawModifiedDetails | ReadEventDetails | ReadProcessedDetails | ReadAtTimeDetails,
         timestampsToReturn: TimestampsToReturn,
-        continuationData: ContinuationStuff,
+        continuationData: ContinuationData,
         callback: (err: Error | null, results?: HistoryReadResult) => void
     ): void {
         if (timestampsToReturn === TimestampsToReturn.Invalid) {
@@ -2047,7 +2047,7 @@ export class ServerEngine extends EventEmitter {
         nodeToRead: HistoryReadValueId,
         historyReadDetails: HistoryReadDetails,
         timestampsToReturn: TimestampsToReturn,
-        continuationData: ContinuationStuff,
+        continuationData: ContinuationData,
         callback: CallbackT<HistoryReadResult>
     ): void {
         assert(context instanceof SessionContext);

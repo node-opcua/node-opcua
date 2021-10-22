@@ -1,27 +1,16 @@
 // tslint:disable:max-line-length
 import * as should from "should";
 
-import * as async from "async";
 import * as sinon from "sinon";
 
 import { NodeId } from "node-opcua-nodeid";
 import { StatusCodes } from "node-opcua-status-code";
-import { CallMethodResult, CallMethodResultOptions, NodeClass, ReferenceDescription } from "node-opcua-types";
+import { CallMethodResultOptions, NodeClass } from "node-opcua-types";
 import { DataType } from "node-opcua-variant";
 import { Variant } from "node-opcua-variant";
 
 import { coerceLocalizedText } from "node-opcua-data-model";
-import {
-    AddressSpace,
-    ConditionInfo,
-    IContinuationPointInfo,
-    IContinuationPointInfo2,
-    IContinuationPointManager,
-    SessionContext,
-    UAConditionEx,
-    UAEventType,
-    UAObject
-} from "../..";
+import { AddressSpace, ConditionInfo, SessionContext, UAConditionEx, UAEventType, UAObject } from "../..";
 import { mockSession } from "../../testHelpers";
 
 export function utest_condition(test: any): void {

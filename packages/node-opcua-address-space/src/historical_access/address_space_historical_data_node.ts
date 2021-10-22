@@ -25,12 +25,10 @@ import { CallbackT } from "node-opcua-status-code";
 import { DataType } from "node-opcua-variant";
 import {
     IAddressSpace,
-    ContinuationPoint,
-    ContinuationPointData,
     IVariableHistorian,
     IVariableHistorianOptions,
     UAVariable,
-    ContinuationStuff
+    ContinuationData
 } from "node-opcua-address-space-base";
 import { ISessionContext } from "node-opcua-address-space-base";
 
@@ -256,7 +254,7 @@ function _historyReadModify(
     historyReadRawModifiedDetails: ReadRawModifiedDetails,
     indexRange: NumericRange | null,
     dataEncoding: QualifiedNameLike | null,
-    continuationData: ContinuationStuff,
+    continuationData: ContinuationData,
     callback: CallbackT<HistoryReadResult>
 ) {
     //
@@ -334,7 +332,7 @@ function _historyReadRaw(
     historyReadRawModifiedDetails: ReadRawModifiedDetails,
     indexRange: NumericRange | null,
     dataEncoding: QualifiedNameLike | null,
-    continuationData: ContinuationStuff,
+    continuationData: ContinuationData,
     callback: CallbackT<HistoryReadResult>
 ): void {
     assert(historyReadRawModifiedDetails instanceof ReadRawModifiedDetails);
@@ -428,10 +426,10 @@ function _historyReadRaw(
             historyReadRawModifiedDetails.numValuesPerNode,
             continuationData
         );
-        const { statusCode, dataValues } = cnt;
+        const { statusCode, values } = cnt;
         const result2 = new HistoryReadResult({
             continuationPoint: cnt.continuationPoint,
-            historyData: new HistoryData({ dataValues }),
+            historyData: new HistoryData({ dataValues: values }),
             statusCode
         });
         return callback(null, result2);
@@ -480,6 +478,13 @@ function _historyReadRaw(
         }
     }
 
+    /*
+    const maxHistoryContinuationPoints = this.engine.serverCapabilities.maxHistoryContinuationPoints;
+    if (session.continuationPointManager.hasReachedMaximum(maxHistoryContinuationPoints)) {
+        return new HistoryReadResult({ statusCode: StatusCodes.BadNoContinuationPoints });
+    }
+    */
+
     (this as UAVariableImpl)._historyReadRawAsync(
         historyReadRawModifiedDetails,
         maxNumberToExtract,
@@ -489,6 +494,7 @@ function _historyReadRaw(
             if (err || !dataValues) {
                 return callback(err);
             }
+
             const cnt = session.continuationPointManager.registerHistoryReadRaw(
                 historyReadRawModifiedDetails.numValuesPerNode,
                 dataValues,
@@ -496,7 +502,7 @@ function _historyReadRaw(
             );
             const result = new HistoryReadResult({
                 continuationPoint: cnt.continuationPoint,
-                historyData: new HistoryData({ dataValues: cnt.dataValues }),
+                historyData: new HistoryData({ dataValues: cnt.values }),
                 statusCode: cnt.statusCode
             });
             callback(null, result);
@@ -510,7 +516,7 @@ function _historyReadRawModify(
     historyReadRawModifiedDetails: ReadRawModifiedDetails,
     indexRange: NumericRange | null,
     dataEncoding: QualifiedNameLike | null,
-    continuationData: ContinuationStuff,
+    continuationData: ContinuationData,
     callback: CallbackT<HistoryReadResult>
 ) {
     const node = this as UAVariableImpl;
@@ -537,7 +543,7 @@ function _historyRead(
     historyReadDetails: ReadRawModifiedDetails | ReadEventDetails | ReadProcessedDetails | ReadAtTimeDetails,
     indexRange: NumericRange | null,
     dataEncoding: QualifiedNameLike | null,
-    continuationData: ContinuationStuff,
+    continuationData: ContinuationData,
     callback: CallbackT<HistoryReadResult>
 ) {
     assert(callback instanceof Function);

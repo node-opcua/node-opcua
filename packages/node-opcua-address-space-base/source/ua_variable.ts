@@ -23,7 +23,7 @@ import { ISessionContext } from "./session_context";
 import { UADataType } from "./ua_data_type";
 import { UAVariableType } from "./ua_variable_type";
 import { BindVariableOptions, DataValueCallback } from "./namespace";
-import { ContinuationStuff } from ".";
+import { ContinuationData } from ".";
 
 export interface IVariableHistorian {
     /**
@@ -349,7 +349,7 @@ export interface UAVariable extends BaseNode, VariableAttributes, IPropertyAndCo
             | ReadAtTimeDetails,
         indexRange: NumericRange | null,
         dataEncoding: QualifiedNameLike | null,
-        continuationData: ContinuationStuff
+        continuationData: ContinuationData
     ): Promise<HistoryReadResult>;
 
     historyRead(
@@ -362,7 +362,7 @@ export interface UAVariable extends BaseNode, VariableAttributes, IPropertyAndCo
             | ReadAtTimeDetails,
         indexRange: NumericRange | null,
         dataEncoding: QualifiedNameLike | null,
-        continuationData: ContinuationStuff,
+        continuationData: ContinuationData,
         callback: CallbackT<HistoryReadResult>
     ): void;
 

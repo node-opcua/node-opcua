@@ -17,16 +17,12 @@ export interface IChannelBase {
     securityPolicy: string;
 }
 
-export interface IContinuationPointInfo {
-    continuationPoint?: ContinuationPoint;
-}
-export interface IContinuationPointInfo2 extends IContinuationPointInfo {
-    dataValues?: DataValue[];
-    continuationPoint?: ContinuationPoint;
+export interface IContinuationPointInfo<T> {
+    values: T[] | null;
+    continuationPoint: ContinuationPoint | undefined;
     statusCode: StatusCode;
 }
-
-export interface ContinuationStuff {
+export interface ContinuationData {
     continuationPoint: ContinuationPoint | null;
     releaseContinuationPoints?: boolean;
     index?: number;
@@ -35,14 +31,17 @@ export interface IContinuationPointManager {
     //
     registerHistoryReadRaw(
         maxElements: number,
-        dataValues: DataValue[],
-        continuationData: ContinuationStuff
-    ): IContinuationPointInfo2;
-    getNextHistoryReadRaw(numValues: number, continuationData: ContinuationStuff): IContinuationPointInfo2;
+        values: DataValue[],
+        continuationData: ContinuationData
+    ): IContinuationPointInfo<DataValue>;
+    getNextHistoryReadRaw(numValues: number, continuationData: ContinuationData): IContinuationPointInfo<DataValue>;
     //
-    register(maxElements: number, values: ReferenceDescription[]): IContinuationPointInfo;
-    getNext(continuationPoint: ContinuationPoint): IContinuationPointInfo;
-    cancel(continuationPoint: ContinuationPoint): IContinuationPointInfo;
+    registerReferences(
+        maxElements: number,
+        values: ReferenceDescription[],
+        continuationData: ContinuationData
+    ): IContinuationPointInfo<ReferenceDescription>;
+    getNextReferences(numValues: number, continuationData: ContinuationData): IContinuationPointInfo<ReferenceDescription>;
 }
 
 export interface ISessionBase {
