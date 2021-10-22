@@ -114,7 +114,6 @@ import {
     SetMonitoringModeResponse,
     SetPublishingModeRequest,
     SetPublishingModeResponse,
-    SetTriggeringRequestOptions,
     SetTriggeringRequest,
     SetTriggeringResponse,
     TransferSubscriptionsRequest,
@@ -137,10 +136,10 @@ import {
     MonitoringMode,
     UserIdentityToken,
     UserTokenPolicy,
-    BrowseDescription,
     BuildInfoOptions,
     MonitoredItemCreateResult,
-    IssuedIdentityToken
+    IssuedIdentityToken,
+    BrowseResultOptions
 } from "node-opcua-types";
 import { DataType } from "node-opcua-variant";
 import { VariantArrayType } from "node-opcua-variant";
@@ -2511,16 +2510,22 @@ export class OPCUAServer extends OPCUABaseServer {
                             return new BrowseResult({ statusCode: StatusCodes.BadNoContinuationPoints });
                         }
 
-                        if (session.continuationPointManager.hasReachMaximum(maxBrowseContinuationPoints)) {
+                        if (session.continuationPointManager.hasReachedMaximum(maxBrowseContinuationPoints)) {
                             return new BrowseResult({ statusCode: StatusCodes.BadNoContinuationPoints });
                         }
-                        const truncatedResult = session.continuationPointManager.register(
+                        const truncatedResult = session.continuationPointManager.registerReferences(
                             requestedMaxReferencesPerNode,
-                            result.references || []
+                            result.references || [],
+                            { continuationPoint: null }
                         );
-                        assert(truncatedResult.statusCode === StatusCodes.Good);
-                        truncatedResult.statusCode = result.statusCode;
-                        return new BrowseResult(truncatedResult);
+                        let { statusCode } = truncatedResult;
+                        const { continuationPoint, values } = truncatedResult;
+                        statusCode = result.statusCode;
+                        return new BrowseResult({
+                            statusCode,
+                            continuationPoint,
+                            references: values
+                        });
                     });
 
                     response = new BrowseResponse({
@@ -2550,28 +2555,22 @@ export class OPCUAServer extends OPCUABaseServer {
                 if (!request.continuationPoints || request.continuationPoints.length === 0) {
                     return sendError(StatusCodes.BadNothingToDo);
                 }
-
-                // A Boolean parameter with the following values:
-
-                let results;
-                if (request.releaseContinuationPoints) {
-                    // releaseContinuationPoints = TRUE
-                    //   passed continuationPoints shall be reset to free resources in
-                    //   the Server. The continuation points are released and the results
-                    //   and diagnosticInfos arrays are empty.
-                    results = request.continuationPoints.map((continuationPoint: ContinuationPoint) => {
-                        return session.continuationPointManager.cancel(continuationPoint);
-                    });
-                } else {
-                    // let extract data from continuation points
-
-                    // releaseContinuationPoints = FALSE
-                    //   passed continuationPoints shall be used to get the next set of
-                    //   browse information.
-                    results = request.continuationPoints.map((continuationPoint: ContinuationPoint) => {
-                        return session.continuationPointManager.getNext(continuationPoint);
-                    });
-                }
+                const results = request.continuationPoints
+                    .map((continuationPoint: ContinuationPoint, index: number) =>
+                        session.continuationPointManager.getNextReferences(0, {
+                            continuationPoint,
+                            index,
+                            releaseContinuationPoints: request.releaseContinuationPoints
+                        })
+                    )
+                    .map(
+                        (r) =>
+                            <BrowseResultOptions>{
+                                continuationPoint: r.continuationPoint,
+                                references: r.values,
+                                statusCode: r.statusCode
+                            }
+                    );
 
                 const response = new BrowseNextResponse({
                     diagnosticInfos: undefined,

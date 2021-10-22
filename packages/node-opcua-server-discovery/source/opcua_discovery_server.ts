@@ -190,7 +190,7 @@ export class OPCUADiscoveryServer extends OPCUABaseServer {
                     this.mDnsResponder.dispose();
                     this.mDnsResponder = undefined;
                 }
-                setTimeout(() => done!(), 200);
+                setTimeout(() => done!(), 10);
             });
         });
     }

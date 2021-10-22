@@ -478,7 +478,7 @@ export class RegisterServerManager extends EventEmitter implements IRegisterServ
                 },
                 // function wait_a_little_bit
                 (callback: ErrorCallback) => {
-                    setTimeout(callback, 100);
+                    setTimeout(callback, 10);
                 }
             ],
             (err?: Error | null) => {

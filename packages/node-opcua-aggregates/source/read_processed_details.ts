@@ -1,6 +1,6 @@
 import * as async from "async";
 import { AggregateFunction } from "node-opcua-constants";
-import { ISessionContext, ContinuationPoint, UAVariable, ContinuationStuff } from "node-opcua-address-space";
+import { ISessionContext, ContinuationPoint, UAVariable, ContinuationData } from "node-opcua-address-space";
 import { NumericRange } from "node-opcua-numeric-range";
 import { QualifiedNameLike } from "node-opcua-data-model";
 import { CallbackT, StatusCodes } from "node-opcua-status-code";
@@ -73,7 +73,7 @@ export function readProcessedDetails(
     historyReadDetails: ReadProcessedDetails,
     indexRange: NumericRange | null,
     dataEncoding: QualifiedNameLike | null,
-    continuationData: ContinuationStuff,
+    continuationData: ContinuationData,
     callback: CallbackT<HistoryReadResult>
 ): void {
     // OPC Unified Architecture, Part 11 27 Release 1.03

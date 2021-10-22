@@ -25,7 +25,7 @@ import { NodeClass, AttributeIds } from "node-opcua-data-model";
 import { WriteValueOptions, ReadValueIdOptions, BrowseDescriptionOptions } from "node-opcua-types";
 import { randomGuid } from "node-opcua-basic-types";
 
-import { IAddressSpace, UAVariable, ISessionContext } from "node-opcua-address-space-base";
+import { IAddressSpace, UAVariable, ISessionContext, ContinuationPoint } from "node-opcua-address-space-base";
 
 import { ContinuationPointManager } from "./continuation_points/continuation_point_manager";
 import { callMethodHelper } from "./helpers/call_helpers";
@@ -79,15 +79,22 @@ export class PseudoSession implements IBasicSession {
             }
 
             // handle continuation points
-            results = results.map((result: BrowseResult) => {
+            results = results.map((result: BrowseResult, index) => {
                 assert(!result.continuationPoint);
-                const truncatedResult = this.continuationPointManager.register(
+                const r = this.continuationPointManager.registerReferences(
                     this.requestedMaxReferencesPerNode,
-                    result.references || []
+                    result.references || [],
+                    { continuationPoint: null, index }
                 );
-                assert(truncatedResult.statusCode === StatusCodes.Good);
-                truncatedResult.statusCode = result.statusCode;
-                return new BrowseResult(truncatedResult);
+                let { statusCode } = r;
+                const { continuationPoint, values } = r;
+                assert(statusCode === StatusCodes.Good || statusCode === StatusCodes.GoodNoData);
+                statusCode = result.statusCode;
+                return new BrowseResult({
+                    statusCode,
+                    continuationPoint,
+                    references: values
+                });
             });
             callback!(null, isArray ? results : results[0]);
         });
@@ -168,26 +175,23 @@ export class PseudoSession implements IBasicSession {
                     callback!(null, _results![0]);
                 });
             }
-            let results: any;
-            if (releaseContinuationPoints) {
-                // releaseContinuationPoints = TRUE
-                //   passed continuationPoints shall be reset to free resources in
-                //   the Server. The continuation points are released and the results
-                //   and diagnosticInfos arrays are empty.
-                results = continuationPoints.map((continuationPoint: any) => {
-                    return this.continuationPointManager.cancel(continuationPoint);
-                });
-            } else {
-                // let extract data from continuation points
 
-                // releaseContinuationPoints = FALSE
-                //   passed continuationPoints shall be used to get the next set of
-                //   browse information.
-                results = continuationPoints.map((continuationPoint: any) => {
-                    return this.continuationPointManager.getNext(continuationPoint);
-                });
-            }
-            results = results.map((r: any) => new BrowseResult(r));
+            const results = continuationPoints
+                .map((continuationPoint: ContinuationPoint, index: number) => {
+                    return this.continuationPointManager.getNextReferences(0, {
+                        continuationPoint,
+                        index,
+                        releaseContinuationPoints
+                    });
+                })
+                .map(
+                    (r) =>
+                        new BrowseResult({
+                            statusCode: r.statusCode,
+                            continuationPoint: r.continuationPoint,
+                            references: r.values
+                        })
+                );
 
             callback!(null, results);
         });

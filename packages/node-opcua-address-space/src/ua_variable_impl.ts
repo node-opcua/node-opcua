@@ -8,7 +8,7 @@
 // tslint:disable:max-line-length
 import * as chalk from "chalk";
 
-import { ContinuationStuff, GetFunc, SetFunc } from "node-opcua-address-space-base";
+import { ContinuationData, GetFunc, SetFunc } from "node-opcua-address-space-base";
 import { assert } from "node-opcua-assert";
 import {
     isValidDataEncoding,
@@ -1571,7 +1571,7 @@ export class UAVariableImpl extends BaseNodeImpl implements UAVariable {
             | ReadAtTimeDetails,
         indexRange: NumericRange | null,
         dataEncoding: QualifiedNameLike | null,
-        continuationData: ContinuationStuff
+        continuationData: ContinuationData
     ): Promise<HistoryReadResult>;
 
     public historyRead(
@@ -1584,7 +1584,7 @@ export class UAVariableImpl extends BaseNodeImpl implements UAVariable {
             | ReadAtTimeDetails,
         indexRange: NumericRange | null,
         dataEncoding: QualifiedNameLike | null,
-        continuationData: ContinuationStuff,
+        continuationData: ContinuationData,
         callback: CallbackT<HistoryReadResult>
     ): void;
     public historyRead(
@@ -1597,7 +1597,7 @@ export class UAVariableImpl extends BaseNodeImpl implements UAVariable {
             | ReadAtTimeDetails,
         indexRange: NumericRange | null,
         dataEncoding: QualifiedNameLike | null,
-        continuationData: ContinuationStuff,
+        continuationData: ContinuationData,
         callback?: CallbackT<HistoryReadResult>
     ): any {
         assert(context instanceof SessionContext);
@@ -1613,7 +1613,7 @@ export class UAVariableImpl extends BaseNodeImpl implements UAVariable {
         historyReadRawModifiedDetails: ReadRawModifiedDetails,
         indexRange: NumericRange | null,
         dataEncoding: QualifiedNameLike | null,
-        continuationData: ContinuationStuff,
+        continuationData: ContinuationData,
         callback: CallbackT<HistoryReadResult>
     ): void {
         throw new Error("");
@@ -1624,7 +1624,7 @@ export class UAVariableImpl extends BaseNodeImpl implements UAVariable {
         historyReadRawModifiedDetails: ReadRawModifiedDetails,
         indexRange: NumericRange | null,
         dataEncoding: QualifiedNameLike | null,
-        continuationData: ContinuationStuff,
+        continuationData: ContinuationData,
         callback?: CallbackT<HistoryReadResult>
     ): any {
         throw new Error("");
@@ -1640,7 +1640,7 @@ export class UAVariableImpl extends BaseNodeImpl implements UAVariable {
             | ReadAtTimeDetails,
         indexRange: NumericRange | null,
         dataEncoding: QualifiedNameLike | null,
-        continuationData: ContinuationStuff,
+        continuationData: ContinuationData,
         callback: CallbackT<HistoryReadResult>
     ): void {
         const result = new HistoryReadResult({
@@ -1668,7 +1668,7 @@ export class UAVariableImpl extends BaseNodeImpl implements UAVariable {
         historyReadRawModifiedDetails: ReadRawModifiedDetails,
         indexRange: NumericRange | null,
         dataEncoding: QualifiedNameLike | null,
-        continuationData: ContinuationStuff,
+        continuationData: ContinuationData,
         callback: CallbackT<HistoryReadResult>
     ): any {
         throw new Error("");
