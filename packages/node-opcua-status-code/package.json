@@ -1,6 +1,6 @@
 {
     "name": "node-opcua-status-code",
-    "version": "2.55.0",
+    "version": "2.56.0",
     "description": "pure nodejs OPCUA SDK - module -status-code",
     "main": "./dist/index.js",
     "types": "./dist/index.d.ts",

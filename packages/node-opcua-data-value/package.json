@@ -2,7 +2,7 @@
     "name": "node-opcua-data-value",
     "main": "./dist/index.js",
     "types": "./dist/index.d.ts",
-    "version": "2.55.0",
+    "version": "2.56.0",
     "description": "pure nodejs OPCUA SDK - module -data-value",
     "scripts": {
         "build": "tsc -b",
@@ -13,22 +13,22 @@
     },
     "dependencies": {
         "node-opcua-assert": "2.55.0",
-        "node-opcua-basic-types": "2.55.0",
+        "node-opcua-basic-types": "2.56.0",
         "node-opcua-binary-stream": "2.55.0",
-        "node-opcua-data-model": "2.55.0",
+        "node-opcua-data-model": "2.56.0",
         "node-opcua-date-time": "2.55.0",
         "node-opcua-enum": "2.55.0",
-        "node-opcua-extension-object": "2.55.0",
-        "node-opcua-factory": "2.55.0",
+        "node-opcua-extension-object": "2.56.0",
+        "node-opcua-factory": "2.56.0",
         "node-opcua-nodeid": "2.55.0",
-        "node-opcua-status-code": "2.55.0",
-        "node-opcua-utils": "2.55.0",
-        "node-opcua-variant": "2.55.0"
+        "node-opcua-status-code": "2.56.0",
+        "node-opcua-utils": "2.56.0",
+        "node-opcua-variant": "2.56.0"
     },
     "devDependencies": {
         "node-opcua-debug": "2.55.0",
-        "node-opcua-numeric-range": "2.55.0",
-        "node-opcua-packet-analyzer": "2.55.0",
+        "node-opcua-numeric-range": "2.56.0",
+        "node-opcua-packet-analyzer": "2.56.0",
         "should": "^13.2.3"
     },
     "author": "Etienne Rossignon",
