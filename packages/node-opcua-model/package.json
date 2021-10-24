@@ -1,6 +1,6 @@
 {
   "name": "node-opcua-model",
-  "version": "2.56.0",
+  "version": "2.56.1",
   "description": "pure nodejs OPCUA SDK - module - model",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -16,7 +16,7 @@
     "node-opcua-address-space": "2.56.0",
     "node-opcua-assert": "2.55.0",
     "node-opcua-basic-types": "2.56.0",
-    "node-opcua-client": "2.56.0",
+    "node-opcua-client": "2.56.1",
     "node-opcua-client-dynamic-extension-object": "2.56.0",
     "node-opcua-enum": "2.55.0",
     "node-opcua-factory": "2.56.0",
