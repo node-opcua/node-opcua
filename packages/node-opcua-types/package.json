@@ -8,6 +8,7 @@
     "generate": "tsc -b tsconfig.pre.json && ts-node source/generate && tsc -b",
     "build": "pnpm run generate",
     "test": "mocha",
+    "format": "prettier --write source test",
     "clean": "node -e \"require('rimraf').sync('dist');\""
   },
   "dependencies": {
