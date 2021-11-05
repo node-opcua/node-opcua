@@ -5,13 +5,20 @@
  * |-----------|--------------------------------------------------|
  * | namespace |http://opcfoundation.org/UA/                      |
  * | nodeClass |DataType                                          |
- * | name      |StructureType                                     |
+ * | name      |TsnTalkerStatus                                   |
  * | isAbstract|false                                             |
  */
-export enum EnumStructure  {
-  Structure = 0,
-  StructureWithOptionalFields = 1,
-  Union = 2,
-  StructureWithSubtypedValues = 3,
-  UnionWithSubtypedValues = 4,
+export enum EnumTsnTalkerStatus  {
+  /**
+   * No Talker detected.
+   */
+  None = 0,
+  /**
+   * Talker ready (configured).
+   */
+  Ready = 1,
+  /**
+   * Talker failed.
+   */
+  Failed = 2,
 }

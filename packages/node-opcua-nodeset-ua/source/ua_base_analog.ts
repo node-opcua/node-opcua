@@ -2,8 +2,8 @@
 import { UAProperty } from "node-opcua-address-space-base"
 import { DataType, Variant } from "node-opcua-variant"
 import { EUInformation } from "node-opcua-data-access"
-import { DTRange } from "./dt_range"
 import { UADataItem, UADataItem_Base } from "./ua_data_item"
+import { DTRange } from "./dt_range"
 /**
  * |                |                                                  |
  * |----------------|--------------------------------------------------|

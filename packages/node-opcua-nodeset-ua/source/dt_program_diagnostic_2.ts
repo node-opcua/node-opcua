@@ -1,9 +1,9 @@
 // ----- this file has been automatically generated - do not edit
 import { NodeId } from "node-opcua-nodeid"
+import { StatusCode } from "node-opcua-status-code"
 import { UAString } from "node-opcua-basic-types"
 import { DTStructure } from "./dt_structure"
 import { DTArgument } from "./dt_argument"
-import { DTStatusResult } from "./dt_status_result"
 /**
  * |           |                                                  |
  * |-----------|--------------------------------------------------|
@@ -24,5 +24,5 @@ export interface DTProgramDiagnostic2 extends DTStructure  {
   lastMethodInputValues: undefined[]; // Null ns=0;i=0
   lastMethodOutputValues: undefined[]; // Null ns=0;i=0
   lastMethodCallTime: Date; // DateTime ns=0;i=294
-  lastMethodReturnStatus: DTStatusResult; // ExtensionObject ns=0;i=299
+  lastMethodReturnStatus: StatusCode; // StatusCode ns=0;i=19
 }

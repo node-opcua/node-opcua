@@ -13,4 +13,5 @@ export enum EnumPubSubState  {
   Paused = 1,
   Operational = 2,
   Error = 3,
+  PreOperational = 4,
 }

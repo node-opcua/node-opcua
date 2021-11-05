@@ -5,13 +5,25 @@
  * |-----------|--------------------------------------------------|
  * | namespace |http://opcfoundation.org/UA/                      |
  * | nodeClass |DataType                                          |
- * | name      |StructureType                                     |
+ * | name      |TsnListenerStatus                                 |
  * | isAbstract|false                                             |
  */
-export enum EnumStructure  {
-  Structure = 0,
-  StructureWithOptionalFields = 1,
-  Union = 2,
-  StructureWithSubtypedValues = 3,
-  UnionWithSubtypedValues = 4,
+export enum EnumTsnListenerStatus  {
+  /**
+   * No Listener detected.
+   */
+  None = 0,
+  /**
+   * Listener ready (configured).
+   */
+  Ready = 1,
+  /**
+   * One or more Listeners ready, and one or more
+   * Listeners failed.
+   */
+  PartialFailed = 2,
+  /**
+   * Listener failed.
+   */
+  Failed = 3,
 }

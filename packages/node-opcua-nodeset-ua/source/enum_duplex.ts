@@ -5,13 +5,20 @@
  * |-----------|--------------------------------------------------|
  * | namespace |http://opcfoundation.org/UA/                      |
  * | nodeClass |DataType                                          |
- * | name      |StructureType                                     |
+ * | name      |Duplex                                            |
  * | isAbstract|false                                             |
  */
-export enum EnumStructure  {
-  Structure = 0,
-  StructureWithOptionalFields = 1,
-  Union = 2,
-  StructureWithSubtypedValues = 3,
-  UnionWithSubtypedValues = 4,
+export enum EnumDuplex  {
+  /**
+   * Full duplex.
+   */
+  Full = 0,
+  /**
+   * Half duplex.
+   */
+  Half = 1,
+  /**
+   * Link is currently disconnected or initializing.
+   */
+  Unknown = 2,
 }

@@ -4,7 +4,8 @@ import { UInt32, UInt16, Byte, UAString } from "node-opcua-basic-types"
 import { DTPubSubGroup } from "./dt_pub_sub_group"
 import { DTEndpointDescription } from "./dt_endpoint_description"
 import { DTKeyValuePair } from "./dt_key_value_pair"
-import { DTStructure } from "./dt_structure"
+import { DTWriterGroupTransport } from "./dt_writer_group_transport"
+import { DTWriterGroupMessage } from "./dt_writer_group_message"
 import { DTDataSetWriter } from "./dt_data_set_writer"
 /**
  * |           |                                                  |
@@ -28,7 +29,7 @@ export interface DTWriterGroup extends DTPubSubGroup  {
   priority: Byte; // Byte ns=0;i=3
   localeIds: UAString[]; // String ns=0;i=295
   headerLayoutUri: UAString; // String ns=0;i=12
-  transportSettings: DTStructure; // ExtensionObject ns=0;i=22
-  messageSettings: DTStructure; // ExtensionObject ns=0;i=22
+  transportSettings: DTWriterGroupTransport; // ExtensionObject ns=0;i=15611
+  messageSettings: DTWriterGroupMessage; // ExtensionObject ns=0;i=15616
   dataSetWriters: DTDataSetWriter[]; // ExtensionObject ns=0;i=15597
 }

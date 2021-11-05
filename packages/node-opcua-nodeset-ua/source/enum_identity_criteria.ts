@@ -15,4 +15,5 @@ export enum EnumIdentityCriteria  {
   GroupId = 4,
   Anonymous = 5,
   AuthenticatedUser = 6,
+  Application = 7,
 }

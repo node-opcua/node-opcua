@@ -6,7 +6,7 @@ import { DTStructure } from "./dt_structure"
  * | namespace |http://opcfoundation.org/UA/                      |
  * | nodeClass |DataType                                          |
  * | name      |OptionSet                                         |
- * | isAbstract|false                                             |
+ * | isAbstract|true                                              |
  */
 export interface DTOptionSet extends DTStructure  {
   value: Buffer; // ByteString ns=0;i=15
