@@ -1,8 +1,9 @@
 {
-    "out": "../node-opcua.github.io/api_doc/2.32.0",
+    "out": "../node-opcua.github.io/api_doc/2.56.0",
     "exclude": [
         "**/node_modules/**",
-        "**/*.spec.ts"
+        "**/*.spec.ts",
+        "**/tests/**.ts"
     ],
     "name": "NodeOPCUA reference documentation - public API",
     "excludePrivate": true,

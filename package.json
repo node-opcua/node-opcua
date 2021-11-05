@@ -86,8 +86,7 @@
         "tmp": "^0.2.1",
         "tracer": "^1.1.5",
         "ts-node": "^10.2.1",
-        "typedoc": "0.22.4",
-        "typedoc-plugin-lerna-packages": "^0.3.1",
+        "typedoc": "0.22",
         "typescript": "4.4.3"
     },
     "typings": "./packages/node-opcua/node-opcua.d.ts",
@@ -156,7 +155,6 @@
         "thenify": "^3.3.1",
         "treeify": "^1.1.0",
         "tslib": "^2.3.1",
-        "typedoc-plugin-external-module-name": "^4.0.6",
         "typedocs": "^0.6.7",
         "underscore": "1.13.1",
         "unirest": "^0.6.0",
