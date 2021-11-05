@@ -3,7 +3,7 @@
     "version": "2.55.0",
     "description": "pure nodejs OPCUA SDK - module -test-fixtures",
     "main": "./dist/index.js",
-    "type": "./dist/index.d.ts",
+    "types": "./dist/index.d.ts",
     "private": true,
     "scripts": {
         "build": "tsc -b",

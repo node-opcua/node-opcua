@@ -3,7 +3,7 @@
     "version": "2.56.2",
     "description": "pure nodejs OPCUA SDK - module -service-endpoints",
     "main": "./dist/index.js",
-    "type": "./dist/index.d.ts",
+    "types": "./dist/index.d.ts",
     "scripts": {
         "test": "mocha",
         "clean": "node -e \"require('rimraf').sync('dist');\"",
