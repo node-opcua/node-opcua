@@ -28,7 +28,7 @@ describe("displayNodeElement", () => {
         namespace.namespaceUri.should.eql("urn://myNamespace");
         setNamespaceMetaData(namespace);
 
-        const str1 = displayNodeElement(addressSpace.rootFolder.objects.server.namespaces);
+        const str1 = displayNodeElement(addressSpace.rootFolder.objects.server.namespaces!);
         // console.log(removeDecoration(str1));
         removeDecoration(str1).should
             .eql(`┌──────────────────────┬──────────────┬───────────────────────────────────┬───────────────┬───────────────────────┬──────────┬───────┐
