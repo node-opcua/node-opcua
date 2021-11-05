@@ -7,7 +7,6 @@ import {
     UAVariableT,
     UAVariableType,
     dumpToBSD,
-    UADataTypeDictionary,
     DTDataTypeDefinition,
     UAProperty
 } from "node-opcua-address-space";
@@ -36,78 +35,6 @@ export function getOrCreateDataTypeSystem(namespace: Namespace): UAObject {
     assert(opcBinaryTypeSystem.browseName.toString() === "OPC Binary");
 
     return opcBinaryTypeSystem;
-}
-
-export function getDataTypeDictionary(namespace: Namespace): UADataTypeDictionary<Buffer> {
-    const addressSpace = namespace.addressSpace;
-
-    const opcBinaryTypeSystem = getOrCreateDataTypeSystem(namespace);
-    assert(opcBinaryTypeSystem.nodeId.toString() === "ns=0;i=93");
-
-    const name = namespace.namespaceUri.replace(/.*:/, "");
-
-    const node: UAVariable = opcBinaryTypeSystem.getComponentByName(name) as UAVariable;
-    if (node) {
-        assert(node.nodeClass === NodeClass.Variable);
-        // already exits ....
-        return node as UADataTypeDictionary<Buffer>;
-    }
-
-    const dataTypeDictionaryType = addressSpace.findVariableType("DataTypeDictionaryType");
-    /* istanbul ignore next */
-    if (!dataTypeDictionaryType) {
-        throw new Error("Cannot find DataTypeDictionaryType");
-    }
-    const dataTypeDictionary = dataTypeDictionaryType.instantiate({
-        browseName: name!,
-        description: `Collects the data type descriptions of ${namespace.namespaceUri}`,
-
-        componentOf: opcBinaryTypeSystem,
-
-        optionals: ["Deprecated", "DataTypeVersion", "NamespaceUri"]
-    }) as UADataTypeDictionary<Buffer>;
-
-    dataTypeDictionary.bindVariable({
-        get: () => {
-            const bsd = dumpToBSD(namespace);
-            return new Variant({
-                dataType: DataType.ByteString,
-                value: Buffer.from(bsd, "utf-8")
-            });
-        }
-    });
-
-    const namespaceUriProp = dataTypeDictionary.getPropertyByName("NamespaceUri");
-    if (namespaceUriProp) {
-        namespaceUriProp.setValueFromSource({ dataType: DataType.String, value: namespace.namespaceUri });
-    }
-    const deprecatedProp = dataTypeDictionary.getPropertyByName("Deprecated");
-    if (deprecatedProp) {
-        deprecatedProp.setValueFromSource({ dataType: DataType.Boolean, value: true });
-    }
-    return dataTypeDictionary;
-}
-
-export function addDataTypeDescription(namespace: Namespace, dataType: UADataType) {
-    const addressSpace = namespace.addressSpace;
-
-    const dataTypeDictionary = getDataTypeDictionary(namespace);
-
-    const dataTypeDescriptionType = addressSpace.findVariableType("DataTypeDescriptionType");
-    if (!dataTypeDescriptionType) {
-        throw new Error("Cannot find DataTypeDescriptionType");
-    }
-
-    const dataTypeDescription = dataTypeDescriptionType.instantiate({
-        browseName: dataType.browseName.name!,
-        componentOf: dataTypeDictionary
-    });
-    dataTypeDescription.setValueFromSource({
-        dataType: DataType.String,
-        value: dataType.browseName.name!
-    });
-
-    return dataTypeDescription;
 }
 export interface ExtensionObjectDefinition {
     browseName: QualifiedNameLike;
@@ -162,15 +89,6 @@ export async function addExtensionObjectDataType(namespace: Namespace, options: 
     (dataType as any).$definition = new StructureDefinition(structureDefinition);
     assert(!NodeId.sameNodeId((dataType as any).$definition.baseDataType, NodeId.nullNodeId));
 
-    const dataTypeDescription = addDataTypeDescription(namespace, dataType);
-    defaultBinary.addReference({
-        isForward: true,
-        nodeId: dataTypeDescription,
-        referenceType: "HasDescription"
-    });
-    const v = dataType.getEncodingNode("Default Binary")!;
-    assert(v?.browseName.toString() === "Default Binary");
-
     /// --------------- Create constructor
     const dataTypeManager = (addressSpace as any).$$extraDataTypeManager as ExtraDataTypeManager;
     const dataTypeFactory = dataTypeManager.getDataTypeFactory(namespace.index);
@@ -200,9 +118,9 @@ export function addVariableTypeForDataType(namespace: Namespace, dataType: UADat
         throw new Error("dataType is not a structure");
     }
 
-    const variableTypeName = dataType.browseName.name?.replace("DataType", "Type")!;
+    const variableTypeName = dataType.browseName.name?.replace("DataType", "Type");
     const variableType = namespace.addVariableType({
-        browseName: variableTypeName,
+        browseName: variableTypeName!,
         dataType: dataType.nodeId
     });
 

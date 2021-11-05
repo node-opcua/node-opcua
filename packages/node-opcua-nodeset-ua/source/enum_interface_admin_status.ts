@@ -5,13 +5,21 @@
  * |-----------|--------------------------------------------------|
  * | namespace |http://opcfoundation.org/UA/                      |
  * | nodeClass |DataType                                          |
- * | name      |StructureType                                     |
+ * | name      |InterfaceAdminStatus                              |
  * | isAbstract|false                                             |
  */
-export enum EnumStructure  {
-  Structure = 0,
-  StructureWithOptionalFields = 1,
-  Union = 2,
-  StructureWithSubtypedValues = 3,
-  UnionWithSubtypedValues = 4,
+export enum EnumInterfaceAdminStatus  {
+  /**
+   * Ready to pass packets.
+   */
+  Up = 0,
+  /**
+   * Not ready to pass packets and not in some test
+   * mode.
+   */
+  Down = 1,
+  /**
+   * In some test mode.
+   */
+  Testing = 2,
 }

@@ -14,7 +14,7 @@ import { DTArgument } from "./dt_argument"
  * |nodeClass       |VariableType                                      |
  * |typedDefinition |ProgramDiagnostic2Type ns=0;i=15383               |
  * |dataType        |ExtensionObject                                   |
- * |dataType Name   |DTProgramDiagnostic2 ns=0;i=15396                 |
+ * |dataType Name   |DTProgramDiagnostic2 ns=0;i=24033                 |
  * |isAbstract      |false                                             |
  */
 export interface UAProgramDiagnostic2_Base<T extends DTProgramDiagnostic2/*j*/>  extends UABaseDataVariable_Base<T, /*e*/DataType.ExtensionObject> {

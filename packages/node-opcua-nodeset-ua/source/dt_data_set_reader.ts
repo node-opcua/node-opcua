@@ -5,6 +5,9 @@ import { DTStructure } from "./dt_structure"
 import { DTDataSetMeta } from "./dt_data_set_meta"
 import { DTEndpointDescription } from "./dt_endpoint_description"
 import { DTKeyValuePair } from "./dt_key_value_pair"
+import { DTDataSetReaderTransport } from "./dt_data_set_reader_transport"
+import { DTDataSetReaderMessage } from "./dt_data_set_reader_message"
+import { DTSubscribedDataSet } from "./dt_subscribed_data_set"
 /**
  * |           |                                                  |
  * |-----------|--------------------------------------------------|
@@ -28,7 +31,7 @@ export interface DTDataSetReader extends DTStructure  {
   securityGroupId: UAString; // String ns=0;i=12
   securityKeyServices: DTEndpointDescription[]; // ExtensionObject ns=0;i=312
   dataSetReaderProperties: DTKeyValuePair[]; // ExtensionObject ns=0;i=14533
-  transportSettings: DTStructure; // ExtensionObject ns=0;i=22
-  messageSettings: DTStructure; // ExtensionObject ns=0;i=22
-  subscribedDataSet: DTStructure; // ExtensionObject ns=0;i=22
+  transportSettings: DTDataSetReaderTransport; // ExtensionObject ns=0;i=15628
+  messageSettings: DTDataSetReaderMessage; // ExtensionObject ns=0;i=15629
+  subscribedDataSet: DTSubscribedDataSet; // ExtensionObject ns=0;i=15630
 }

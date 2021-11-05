@@ -3,6 +3,7 @@ import { UAString } from "node-opcua-basic-types"
 import { DTStructure } from "./dt_structure"
 import { DTDataSetMeta } from "./dt_data_set_meta"
 import { DTKeyValuePair } from "./dt_key_value_pair"
+import { DTPublishedDataSetSource } from "./dt_published_data_set_source"
 /**
  * |           |                                                  |
  * |-----------|--------------------------------------------------|
@@ -16,5 +17,5 @@ export interface DTPublishedDataSet extends DTStructure  {
   dataSetFolder: UAString[]; // String ns=0;i=12
   dataSetMetaData: DTDataSetMeta; // ExtensionObject ns=0;i=14523
   extensionFields: DTKeyValuePair[]; // ExtensionObject ns=0;i=14533
-  dataSetSource: DTStructure; // ExtensionObject ns=0;i=22
+  dataSetSource: DTPublishedDataSetSource; // ExtensionObject ns=0;i=15580
 }
