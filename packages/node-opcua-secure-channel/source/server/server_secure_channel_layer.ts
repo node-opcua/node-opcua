@@ -1,12 +1,6 @@
 /**
  * @module node-opcua-secure-channel
  */
-// tslint:disable:variable-name
-// tslint:disable:no-empty
-// tslint:disable:max-line-length
-// tslint:disable:no-shadowed-variable
-// tslint:disable:no-var-requires
-
 import * as crypto from "crypto";
 import { EventEmitter } from "events";
 import { Socket } from "net";
@@ -164,6 +158,13 @@ export function nonceAlreadyBeenUsed(nonce?: Buffer): boolean {
     return false;
 }
 
+export interface IServerSessionBase {
+    sessionTimeout: number;
+    sessionName: string;
+    clientLastContactTime: number;
+    status: string;
+}
+
 /**
  * @class ServerSecureChannelLayer
  * @extends EventEmitter
@@ -243,7 +244,7 @@ export class ServerSecureChannelLayer extends EventEmitter {
 
     public static registry = new ObjectRegistry({});
     public _on_response: ((msgType: string, response: Response, message: Message) => void) | null;
-    public sessionTokens: any;
+    public sessionTokens: {[key: string]: IServerSessionBase};
     public channelId: number | null;
     public timeout: number;
     public readonly messageBuilder: MessageBuilder;
@@ -421,7 +422,7 @@ export class ServerSecureChannelLayer extends EventEmitter {
         }
         this.channelId = 0xdeadbeef;
         this.timeoutId = null;
-        this.sessionTokens = null;
+        this.sessionTokens = {};
         this.removeAllListeners();
     }
 

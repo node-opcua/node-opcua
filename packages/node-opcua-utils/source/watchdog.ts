@@ -60,6 +60,11 @@ function keepAliveFunc(this: ISubscriber) {
 }
 
 export class WatchDog extends EventEmitter {
+
+    static lastSeenToDuration(lastSeen: number): number {
+        return _getCurrentSystemTick() - lastSeen;
+    }
+
     static emptyKeepAlive = (): void => {
         /* */
     };
@@ -151,7 +156,7 @@ export class WatchDog extends EventEmitter {
 
         delete this._watchdogDataMap[subscriber._watchDogData.key];
         delete subscriber._watchDog;
-        delete subscriber._watchDogData;
+        // leave it as it might be usefull, delete subscriber._watchDogData;
         subscriber.keepAlive = WatchDog.emptyKeepAlive;
 
         // delete timer when the last subscriber comes out

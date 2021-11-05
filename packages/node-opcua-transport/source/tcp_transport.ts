@@ -330,9 +330,9 @@ export class TCP_transport extends EventEmitter {
     }
 
     private _on_message_received(messageChunk: Buffer) {
-        const hasCallback = this._fulfill_pending_promises(null, messageChunk);
+        const hadCallback = this._fulfill_pending_promises(null, messageChunk);
         this.chunkReadCount++;
-        if (!hasCallback) {
+        if (!hadCallback) {
             /**
              * notify the observers that a message chunk has been received
              * @event message
