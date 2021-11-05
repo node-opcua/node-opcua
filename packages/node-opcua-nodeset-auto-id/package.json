@@ -1,6 +1,6 @@
 {
     "name": "node-opcua-nodeset-auto-id",
-    "version": "2.56.2",
+    "version": "2.57.0",
     "description": "",
     "main": "dist/index.js",
     "types": "dist/index.d.ts",
@@ -10,14 +10,13 @@
     "author": "etienne.rossignon@sterfive.com",
     "license": "MIT",
     "dependencies": {
-        "node-opcua-address-space-base": "2.56.2",
-        "node-opcua-basic-types": "2.56.0",
-        "node-opcua-data-access": "2.56.2",
-        "node-opcua-data-model": "2.56.0",
+        "node-opcua-address-space-base": "2.57.0",
+        "node-opcua-basic-types": "2.57.0",
+        "node-opcua-data-access": "2.57.0",
+        "node-opcua-data-model": "2.57.0",
         "node-opcua-nodeid": "2.55.0",
-        "node-opcua-nodeset-di": "2.56.2",
-        "node-opcua-nodeset-ua": "2.56.2",
-        "node-opcua-variant": "2.56.0"
-    },
-    "devDependencies": {}
+        "node-opcua-nodeset-di": "2.57.0",
+        "node-opcua-nodeset-ua": "2.57.0",
+        "node-opcua-variant": "2.57.0"
+    }
 }
