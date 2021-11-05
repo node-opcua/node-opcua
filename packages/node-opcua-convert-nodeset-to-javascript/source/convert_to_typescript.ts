@@ -29,6 +29,7 @@ import { Cache, constructCache, Import, makeTypeNameNew, referenceExtensionObjec
 import { Options } from "./options";
 import { toFilename } from "./private/to_filename";
 
+const doDebug = false;
 const wrapText = wrap(0, 50);
 const f2 = (str: string) => str.padEnd(50, "-");
 const f1 = (str: string) => str.padEnd(50, " ");
@@ -939,7 +940,7 @@ function getBaseClassWithOmit2(classMember: ClassMember) {
     const conflictingMembers = members.filter((m) => allMembers.indexOf(m.name) !== -1);
     //console.log(allMembers.join(" "));
     if (conflictingMembers.length) {
-        console.log("conflictingMembers = ", conflictingMembers.map((a) => a.name).join(" "));
+        doDebug &&  console.log("conflictingMembers = ", conflictingMembers.map((a) => a.name).join(" "));
     }
     const childBase = classMember.childBase;
     

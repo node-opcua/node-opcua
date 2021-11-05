@@ -96,17 +96,17 @@ async function _output_package_json(info: Info): Promise<void> {
 
     const content2: string[] = [];
     content2.push(`{`);
-    content2.push(`  "name": "${info.module}",`);
-    content2.push(`  "version": "${version}",`);
-    content2.push(`  "description": "",`);
-    content2.push(`  "main": "dist/index.js",`);
-    content2.push(`  "types": "dist/index.d.ts",`);
-    content2.push(`  "scripts": {`);
-    content2.push(`      "build": "tsc -b"`);
-    content2.push(`  },`);
-    content2.push(`  "author": "etienne.rossignon@sterfive.com",`);
-    content2.push(`  "license": "MIT",`);
-    content2.push(`  "dependencies": {`);
+    content2.push(`    "name": "${info.module}",`);
+    content2.push(`    "version": "${version}",`);
+    content2.push(`    "description": "",`);
+    content2.push(`    "main": "dist/index.js",`);
+    content2.push(`    "types": "dist/index.d.ts",`);
+    content2.push(`    "scripts": {`);
+    content2.push(`        "build": "tsc -b"`);
+    content2.push(`    },`);
+    content2.push(`    "author": "etienne.rossignon@sterfive.com",`);
+    content2.push(`    "license": "MIT",`);
+    content2.push(`    "dependencies": {`);
 
     // find versions
 
@@ -118,14 +118,14 @@ async function _output_package_json(info: Info): Promise<void> {
     content2.push(
         info.dependencies
             .sort()
-            .map((d) => `     "${d}": "${versions[d]}"`)
+            .map((d) => `        "${d}": "${versions[d]}"`)
             .join(",\n")
     );
 
-    content2.push(`  },`);
-    content2.push(`  "devDependencies": {`);
-    content2.push(`  }`);
+    content2.push(`    },`);
+    content2.push(`    "devDependencies": {}`);
     content2.push(`}`);
+    content2.push(``);
 
     fs.writeFileSync(packagejson, content2.join("\n"));
 }
