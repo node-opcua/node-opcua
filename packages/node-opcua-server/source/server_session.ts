@@ -23,7 +23,7 @@ import {
 } from "node-opcua-address-space";
 
 import { assert } from "node-opcua-assert";
-import { randomGuid } from "node-opcua-basic-types";
+import { minOPCUADate, randomGuid } from "node-opcua-basic-types";
 import { SessionDiagnosticsDataType, SessionSecurityDiagnosticsDataType, SubscriptionDiagnosticsDataType } from "node-opcua-common";
 import { QualifiedName, NodeClass } from "node-opcua-data-model";
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
@@ -34,7 +34,7 @@ import { WatchDog } from "node-opcua-utils";
 import { lowerFirstLetter } from "node-opcua-utils";
 import { ISubscriber, IWatchdogData2 } from "node-opcua-utils";
 
-import { IServerSession, ServerSecureChannelLayer } from "node-opcua-secure-channel";
+import { IServerSession, IServerSessionBase, ServerSecureChannelLayer } from "node-opcua-secure-channel";
 import { ApplicationDescription, UserIdentityToken, CreateSubscriptionRequestOptions, EndpointDescription } from "node-opcua-types";
 
 import { ServerSidePublishEngine } from "./server_publish_engine";
@@ -93,7 +93,7 @@ interface SessionSecurityDiagnosticsDataTypeEx extends SessionSecurityDiagnostic
  *   SessionDiagnosticsArray Variable and notifies any other Clients who were subscribed to this entry.
  *
  */
-export class ServerSession extends EventEmitter implements ISubscriber, ISessionBase, IServerSession {
+export class ServerSession extends EventEmitter implements ISubscriber, ISessionBase, IServerSession, IServerSessionBase {
     public static registry = new ObjectRegistry();
     public static maxPublishRequestInQueue = 100;
 
@@ -219,8 +219,13 @@ export class ServerSession extends EventEmitter implements ISubscriber, ISession
         return this.creationDate;
     }
 
+    /**
+     * return the number of milisecond since last session transaction occurs from client
+     * the first transaction is the creation of the session
+     */
     public get clientLastContactTime(): number {
-        return this._watchDogData!.lastSeen;
+        const lastSeen =  this._watchDogData ? this._watchDogData.lastSeen : minOPCUADate.getTime();
+        return WatchDog.lastSeenToDuration(lastSeen);
     }
 
     public get status(): string {
@@ -435,6 +440,9 @@ export class ServerSession extends EventEmitter implements ISubscriber, ISession
         assert(this.currentSubscriptionCount === 0);
 
         this.status = "closed";
+        
+        this._detach_channel();
+
         /**
          * @event session_closed
          * @param deleteSubscriptions {Boolean}
@@ -547,8 +555,12 @@ export class ServerSession extends EventEmitter implements ISubscriber, ISession
 
     public _detach_channel(): void {
         const channel = this.channel;
+        
+        // istanbul ignore next
         if (!channel) {
-            throw new Error("expecting a valid channel");
+            return; 
+            // already detached !
+            // throw new Error("expecting a valid channel");
         }
         assert(this.nonce && this.nonce instanceof Buffer);
         assert(this.authenticationToken);
