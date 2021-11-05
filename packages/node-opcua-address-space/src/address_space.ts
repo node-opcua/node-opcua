@@ -47,12 +47,13 @@ import {
 
 import { adjustBrowseDirection } from "../source/helpers/adjust_browse_direction";
 import { UARootFolder } from "../source/ua_root_folder";
+import { Namespace } from "../source/namespace";
 
 import { AddressSpacePrivate } from "./address_space_private";
 import { UAAcknowledgeableConditionImpl, UAConditionImpl } from "./alarms_and_conditions";
 import { EventData } from "./event_data";
 import { AddressSpace_installHistoricalDataNode } from "./historical_access/address_space_historical_data_node";
-import { UANamespace } from "./namespace_impl";
+import { NamespaceImpl } from "./namespace_impl";
 import { isNonEmptyQualifiedName } from "./namespace_impl";
 import { NamespacePrivate } from "./namespace_private";
 import { ExtensionObjectConstructorFuncWithSchema, UADataTypeImpl } from "./ua_data_type_impl";
@@ -153,7 +154,7 @@ export class AddressSpace implements AddressSpacePrivate {
 
     public readonly isNodeIdString = isNodeIdString;
     private readonly _private_namespaceIndex: number;
-    private readonly _namespaceArray: UANamespace[];
+    private readonly _namespaceArray: NamespacePrivate[];
     private _shutdownTask: ShutdownTask[] = [];
     private _modelChangeTransactionCounter = 0;
     private _modelChanges: ModelChangeStructureDataType[] = [];
@@ -186,7 +187,7 @@ export class AddressSpace implements AddressSpacePrivate {
      * @param {string|number} namespace index or namespace uri.
      * @return {NameSpace} the namespace
      */
-    public getNamespace(namespaceIndexOrName: string | number): UANamespace {
+    public getNamespace(namespaceIndexOrName: string | number): NamespacePrivate {
         if (typeof namespaceIndexOrName === "number") {
             const namespaceIndex = namespaceIndexOrName;
             assert(namespaceIndex >= 0 && namespaceIndex < this._namespaceArray.length, "invalid namespace index ( out of bound)");
@@ -241,7 +242,7 @@ export class AddressSpace implements AddressSpacePrivate {
      * @param namespaceUri {string}
      * @returns {Namespace}
      */
-    public registerNamespace(namespaceUri: string): UANamespace {
+    public registerNamespace(namespaceUri: string): NamespacePrivate {
         let index = this._namespaceArray.findIndex((ns) => ns.namespaceUri === namespaceUri);
         if (index !== -1) {
             assert((this._namespaceArray[index].addressSpace as any) === (this as any));
@@ -249,7 +250,7 @@ export class AddressSpace implements AddressSpacePrivate {
         }
         index = this._namespaceArray.length;
         this._namespaceArray.push(
-            new UANamespace({
+            new NamespaceImpl({
                 addressSpace: this,
                 index,
                 namespaceUri,

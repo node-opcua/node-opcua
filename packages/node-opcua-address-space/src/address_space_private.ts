@@ -27,7 +27,7 @@ import { UARootFolder } from "../source/ua_root_folder";
 
 import { NamespacePrivate } from "./namespace_private";
 import { ExtensionObjectConstructorFuncWithSchema } from "./ua_data_type_impl";
-import { UANamespace } from "./namespace_impl";
+import { NamespaceImpl } from "./namespace_impl";
 
 export interface AddressSpacePrivate extends IAddressSpace {
     rootFolder: UARootFolder;
@@ -52,9 +52,9 @@ export interface AddressSpacePrivate extends IAddressSpace {
 
     getOwnNamespace(): NamespacePrivate;
 
-    getNamespace(indexOrName: number | string): UANamespace;
+    getNamespace(indexOrName: number | string): NamespacePrivate;
 
-    registerNamespace(namespaceUri: string): UANamespace;
+    registerNamespace(namespaceUri: string): NamespacePrivate;
 
     getNamespaceArray(): NamespacePrivate[];
 
