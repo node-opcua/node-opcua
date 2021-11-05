@@ -1,9 +1,11 @@
 // luanch with mocha -r ts-node/register test/*.ts
 // or compile with  tsc  -t es2017 -m commonjs test\test_security.ts  --outdir toto
-import * as async from "async";
 import * as fs from "fs";
 import * as path from "path";
 import { Socket } from "net";
+
+import * as async from "async";
+
 import { OPCUACertificateManager } from "node-opcua-certificate-manager";
 import {
     Certificate,
@@ -142,7 +144,7 @@ describe("Testing secure client and server connection", () => {
             transportTimeout: 0
         });
 
-        serverSChannel.init(transportServer, (err?: Error) => {});
+        serverSChannel.init(transportServer, (err?: Error) => { /* */});
 
         async.series(
             [

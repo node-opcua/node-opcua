@@ -4,16 +4,10 @@ import "should";
 import { ExtraDataTypeManager, populateDataTypeManager } from "node-opcua-client-dynamic-extension-object";
 import { NodeId } from "node-opcua-nodeid";
 import { nodesets } from "node-opcua-nodesets";
-import { AddressSpace, adjustNamespaceArray, PseudoSession, UAVariable } from "node-opcua-address-space";
+import { AddressSpace, adjustNamespaceArray, PseudoSession } from "node-opcua-address-space";
 import { generateAddressSpace } from "node-opcua-address-space/nodeJS";
 
-import {
-    addExtensionObjectDataType,
-    DataType,
-    ExtensionObjectDefinition,
-    StructureDefinitionOptions
-} from "..";
-
+import { addExtensionObjectDataType, DataType, ExtensionObjectDefinition, StructureDefinitionOptions } from "..";
 
 describe("loading very large DataType Definitions ", function (this: any) {
     this.timeout(10000);
@@ -78,7 +72,7 @@ describe("loading very large DataType Definitions ", function (this: any) {
         session.requestedMaxReferencesPerNode = 2;
 
         const dataTypeManager = new ExtraDataTypeManager();
-        await populateDataTypeManager(session, dataTypeManager, false);
+        await populateDataTypeManager(session, dataTypeManager as any, false);
 
         browseSpy.callCount.should.eql(26); // was 26
         browseNextSpy.callCount.should.eql(36); // was 36

@@ -1,3 +1,4 @@
+import * as should from "should";
 import { coerceQualifiedName, NodeClass } from "node-opcua-data-model";
 import { AddressSpace, PseudoSession, UAObjectType, UAVariable } from "node-opcua-address-space";
 import { coerceNodeId, NodeId} from "node-opcua-nodeid";
@@ -7,11 +8,10 @@ import { ObjectIds, VariableIds, ObjectTypeIds } from "node-opcua-constants";
 import { make_debugLog} from "node-opcua-debug";
 import { nodesets } from "node-opcua-nodesets";
 import { DataTypeDefinition } from "node-opcua-types";
+import { IBasicSession } from "node-opcua-pseudo-session";
 
 import { makeTypeNameNew, constructCache, Cache2 } from "../dist/private-stuff";
 import { extractClassMemberDef, extractClassDefinition } from "..";
-import * as should from "should";
-import { IBasicSession } from "node-opcua-pseudo-session";
 const debugLog = make_debugLog("TEST");
 
 describe("Test low level routine for typescript d.ts creation", () => {
