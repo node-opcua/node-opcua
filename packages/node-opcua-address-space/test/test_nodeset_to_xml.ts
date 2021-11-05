@@ -543,7 +543,7 @@ describe("nodeset2.xml with more than one referenced namespace", function (this:
         await generateAddressSpace(reloadedAddressSpace, theNodesets);
 
         const r_namespace = reloadedAddressSpace.getNamespace(namespace.namespaceUri);
-        r_namespace.constructor.name.should.eql("UANamespace");
+        r_namespace.constructor.name.should.eql("NamespaceImpl");
 
         const r_xml = r_namespace.toNodeset2XML();
         const r_xml2 = r_xml.replace(/LastModified="([^"]*)"/g, 'LastModified="YYYY-MM-DD"');

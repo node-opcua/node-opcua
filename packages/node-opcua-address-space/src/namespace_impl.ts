@@ -194,7 +194,7 @@ function detachNode(node: BaseNode) {
  * @params options.publicationDate="" {Date}
  *
  */
-export class UANamespace implements NamespacePrivate {
+export class NamespaceImpl implements NamespacePrivate {
     public static _handle_hierarchy_parent = _handle_hierarchy_parent;
     public static isNonEmptyQualifiedName = isNonEmptyQualifiedName;
 
@@ -237,8 +237,8 @@ export class UANamespace implements NamespacePrivate {
         this._nodeIdManager = new NodeIdManager(this.index, this.addressSpace);
     }
 
-    public getDefaultNamespace(): UANamespace {
-        return this.index === 0 ? this : (this.addressSpace.getDefaultNamespace() as UANamespace);
+    public getDefaultNamespace(): NamespacePrivate {
+        return this.index === 0 ? this : (this.addressSpace.getDefaultNamespace());
     }
 
     public dispose(): void {
@@ -1814,7 +1814,7 @@ export class UANamespace implements NamespacePrivate {
         }
         const references: UAReference[] = [];
 
-        function process_subtypeOf_options(this: UANamespace, options2: any, references1: AddReferenceOpts[]) {
+        function process_subtypeOf_options(this: NamespaceImpl, options2: any, references1: AddReferenceOpts[]) {
             // check common misspelling mistake
             assert(!options2.subTypeOf, "misspell error : it should be 'subtypeOf' instead");
             if (Object.prototype.hasOwnProperty.call(options2, "hasTypeDefinition")) {

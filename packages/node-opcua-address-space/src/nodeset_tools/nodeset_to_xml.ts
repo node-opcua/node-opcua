@@ -51,7 +51,7 @@ import { UAReferenceTypeImpl } from "../ua_reference_type_impl";
 import { UAObjectTypeImpl } from "../ua_object_type_impl";
 import { UAVariableImpl } from "../ua_variable_impl";
 import { UAObjectImpl } from "../ua_object_impl";
-import { UANamespace } from "../namespace_impl";
+import { NamespaceImpl } from "../namespace_impl";
 import { UAMethodImpl } from "../ua_method_impl";
 import { UADataTypeImpl } from "../ua_data_type_impl";
 import { UAVariableTypeImpl } from "../ua_variable_type_impl";
@@ -1199,7 +1199,7 @@ UADataTypeImpl.prototype.dumpXML = function (xw: XmlWriter) {
     dumpUADataType(xw, this);
 };
 
-UANamespace.prototype.toNodeset2XML = function (this: UANamespace) {
+NamespaceImpl.prototype.toNodeset2XML = function (this: NamespaceImpl) {
     const dependency = constructNamespaceDependency(this);
     const translationTable = constructNamespaceTranslationTable(dependency);
 
