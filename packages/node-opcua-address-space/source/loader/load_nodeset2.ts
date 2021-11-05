@@ -442,8 +442,17 @@ export function makeStuff(addressSpace: IAddressSpace): any {
             this.obj.browseName = convertQualifiedName(attrs.BrowseName);
             this.obj.eventNotifier = ec.coerceByte(attrs.EventNotifier) || 0;
             this.obj.symbolicName = attrs.SymbolicName || null;
+
+            this.isDraft = attrs.ReleaseStatus === "Draft";
+            this.obj.isDeprecated = attrs.ReleaseStatus === "Deprecated";
+
         },
         finish(this: any) {
+            if (this.isDraft || this.isDeprecated) {
+                // ignore Draft or Deprecated element
+                debugLog("Ignoring Draft/Deprecated UAObject =", this.obj.browseName.toString());
+                return;
+            }
             _internal_createNode(this.obj);
         },
         parser: {
@@ -537,13 +546,16 @@ export function makeStuff(addressSpace: IAddressSpace): any {
             this.obj.displayName = "";
             this.obj.description = "";
             this.obj.symbolicName = attrs.SymbolicName;
+
             this.isDraft = attrs.ReleaseStatus === "Draft";
+            this.isDeprecated = attrs.ReleaseStatus === "Deprecated";
+
             this.definitionFields = [];
         },
         finish(this: any) {
-            if (this.isDraft) {
-                // ignore Draft element
-                debugLog("Ignoring Draft dataType =", this.obj.browseName.toString());
+            if (this.isDraft || this.isDeprecated) {
+                // ignore Draft or Deprecated element
+                debugLog("Ignoring Draft/Deprecated dataType =", this.obj.browseName.toString());
                 return;
             }
             let definitionFields = this.definitionFields;
@@ -1274,8 +1286,16 @@ export function makeStuff(addressSpace: IAddressSpace): any {
 
             this.obj.accessLevel = convertAccessLevel(attrs.AccessLevel);
             this.obj.userAccessLevel = this.obj.accessLevel; // convertAccessLevel(attrs.UserAccessLevel || attrs.AccessLevel);
+
+            this.isDraft = attrs.ReleaseStatus === "Draft";
+            this.isDeprecated = attrs.ReleaseStatus === "Deprecated";
+            
         },
         finish(this: any) {
+            if (this.isDraft || this.isDeprecated) {
+                debugLog("Ignoring Draft/Deprecated UAVariable =", this.obj.browseName.toString());
+                return;
+            }
             /*
             // set default value based on obj data Type
             if (this.obj.value === undefined) {
@@ -1351,8 +1371,16 @@ export function makeStuff(addressSpace: IAddressSpace): any {
 
             this.obj.historizing = false;
             this.obj.nodeId = convertToNodeId(attrs.NodeId) || null;
+
+            this.isDraft = attrs.ReleaseStatus === "Draft";
+            this.isDeprecated = attrs.ReleaseStatus === "Deprecated";
+
         },
         finish(this: any) {
+            if (this.isDraft || this.isDeprecated) {
+                debugLog("Ignoring Draft/Deprecated UAVariableType =", this.obj.browseName.toString());
+                return;
+            }
             try {
                 _internal_createNode(this.obj);
             } /* istanbul ignore next */ catch (err) {
@@ -1389,8 +1417,16 @@ export function makeStuff(addressSpace: IAddressSpace): any {
             this.obj.parentNodeId = attrs.ParentNodeId || null;
             this.obj.nodeId = convertToNodeId(attrs.NodeId) || null;
             this.obj.methodDeclarationId = attrs.MethodDeclarationId ? _translateNodeId(attrs.MethodDeclarationId) : null;
+
+            this.isDraft = attrs.ReleaseStatus === "Draft";
+            this.isDeprecated = attrs.ReleaseStatus === "Deprecated";
+
         },
         finish(this: any) {
+            if (this.isDraft || this.isDeprecated) {
+                debugLog("Ignoring Draft/Deprecated UAMethod =", this.obj.browseName.toString());
+                return;
+            }
             _internal_createNode(this.obj);
         },
         parser: {
