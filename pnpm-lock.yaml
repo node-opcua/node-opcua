@@ -94,9 +94,7 @@ specifiers:
   treeify: ^1.1.0
   ts-node: ^10.2.1
   tslib: ^2.3.1
-  typedoc: 0.22.4
-  typedoc-plugin-external-module-name: ^4.0.6
-  typedoc-plugin-lerna-packages: ^0.3.1
+  typedoc: '0.22'
   typedocs: ^0.6.7
   typescript: 4.4.3
   underscore: 1.13.1
@@ -173,7 +171,6 @@ dependencies:
   thenify: 3.3.1
   treeify: 1.1.0
   tslib: 2.3.1
-  typedoc-plugin-external-module-name: 4.0.6_typedoc@0.22.4
   typedocs: 0.6.7
   underscore: 1.13.1
   unirest: 0.6.0
@@ -215,7 +212,6 @@ devDependencies:
   tracer: 1.1.5
   ts-node: 10.2.1_e0bf20b7c5ed5b194f21284475beb32f
   typedoc: 0.22.4_typescript@4.4.3
-  typedoc-plugin-lerna-packages: 0.3.1_typedoc@0.22.4
   typescript: 4.4.3
 
 packages:
@@ -8612,24 +8608,6 @@ packages:
   /typedarray/0.0.6:
     resolution: {integrity: sha1-hnrHTjhkGHsdPUfZlqeOxciDB3c=}
     dev: false
-
-  /typedoc-plugin-external-module-name/4.0.6_typedoc@0.22.4:
-    resolution: {integrity: sha512-WqJW5gbfeQD7VA96p5eRFkVlPPGXfpaAo7M/sNOeBwSBTRylKYX15kAVaGP6iM/VhXtDagTMyKhwG97sENfKHA==}
-    peerDependencies:
-      typedoc: '>=0.7.0 <0.20.0'
-    dependencies:
-      lodash: 4.17.21
-      semver: 7.3.4
-      typedoc: 0.22.4_typescript@4.4.3
-    dev: false
-
-  /typedoc-plugin-lerna-packages/0.3.1_typedoc@0.22.4:
-    resolution: {integrity: sha512-azeP5DVv4Me+C32RoGbMAzXo7JeYmeEstMAx4mdtVGHLtrXjitlaf0pS562vogofwyIcyVnjL6BlZWvbPQ3hmw==}
-    peerDependencies:
-      typedoc: ^0.17.0
-    dependencies:
-      typedoc: 0.22.4_typescript@4.4.3
-    dev: true
 
   /typedoc/0.22.4_typescript@4.4.3:
     resolution: {integrity: sha512-M/a8NnPxq3/iZNNVjzFCK5gu4m//HTJIPbSS0JQVbkHJPP9wyepR12agylWTSqeVZe0xsbidVtO26+PP7iD/jw==}
