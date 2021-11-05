@@ -3,7 +3,7 @@
  */
 
 import { assert } from "node-opcua-assert";
-import { CertificateInternals, exploreCertificate } from "node-opcua-crypto/dist/source/crypto_explore_certificate";
+import { CertificateInternals, exploreCertificate } from "node-opcua-crypto";
 import { AccessRestrictionsFlag, allPermissions, AttributeIds, PermissionFlag } from "node-opcua-data-model";
 import { PreciseClock } from "node-opcua-date-time";
 import { NodeId, NodeIdLike, resolveNodeId, sameNodeId } from "node-opcua-nodeid";
