@@ -177,7 +177,7 @@ export class FileTypeData {
     }
 }
 
-export function getFileData(opcuaFile2: UAFileType): FileTypeData {
+export function getFileData(opcuaFile2: UAFile): FileTypeData {
     return (opcuaFile2 as any).$fileData as FileTypeData;
 }
 
@@ -603,7 +603,7 @@ function install_method_handle_on_type(addressSpace: IAddressSpace): void {
 }
 
 /**
- * bind all methods of a UAFileType OPCUA node
+ * bind all methods of a UAFile OPCUA node
  * @param file the OPCUA Node that has a typeDefinition of FileType
  * @param options the options
  */
