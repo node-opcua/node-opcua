@@ -407,6 +407,7 @@ export type AnyConstructorFunc = AnyConstructable;
 
 // tslint:disable-next-line:max-classes-per-file
 class UnionBaseClass extends BaseUAObject {
+    // eslint-disable-next-line max-statements
     constructor(options: any, schema: StructuredTypeSchema, factory: DataTypeFactory) {
         super();
 
