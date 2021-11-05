@@ -6,8 +6,8 @@ module.exports = {
    bail: true,
    timeout: 20000,
    require: [
-      "../../node_modules/should",
-      "../../node_modules/ts-node/register",
-      "../../node_modules/source-map-support/register"
+      "should",
+      "ts-node/register",
+      "source-map-support/register"
    ]
 };

@@ -74,7 +74,8 @@ describe("loading very large DataType Definitions ", function (this: any) {
         const dataTypeManager = new ExtraDataTypeManager();
         await populateDataTypeManager(session, dataTypeManager as any, false);
 
-        browseSpy.callCount.should.eql(26); // was 26
-        browseNextSpy.callCount.should.eql(36); // was 36
+        // since 1.04 (september 2021) 1.04 datatype is in force
+        browseSpy.callCount.should.eql(1); // was 26
+        browseNextSpy.callCount.should.eql(0); // was 36
     });
 });
