@@ -385,6 +385,23 @@ describe("DataValue", () => {
         install_test("clone", clone);
     });
 
+    it("toJSON issue#1074", () => {
+        const dataValue = new DataValue({
+            statusCode: StatusCodes.BadAggregateListMismatch,
+            serverTimestamp: new Date(Date.UTC(1789, 6, 14)),
+            value: {
+                dataType: DataType.Int16,
+                arrayType: VariantArrayType.Array,
+                value: [12, 13, 14]
+            }
+        });
+        console.log(dataValue.toJSON());
+        console.log(JSON.stringify(dataValue.toJSON()));
+    
+        console.log(JSON.stringify(dataValue, (k, v) => ArrayBuffer.isView(v) ? Array.from(v) : v));
+        
+    });
+
     it("should convert a DataValue to a JSON Object", () => {
         const dataValue = new DataValue({
             statusCode: StatusCodes.BadAggregateListMismatch,
@@ -397,7 +414,7 @@ describe("DataValue", () => {
         });
 
         // it should be possible to convert a DataValue to a JSON object
-        // console.log(dataValue.toJSON());
+        console.log(dataValue.toJSON());
 
         const json = dataValue.toJSON();
         json.should.eql({
