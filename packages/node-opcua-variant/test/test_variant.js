@@ -515,6 +515,25 @@ describe("Variant", () => {
             stream.length.should.equal(137);
         });
     });
+    it("AAA Variant and status Code", () => {
+        const variant = new Variant({
+            dataType: DataType.StatusCode,
+            arrayType: VariantArrayType.Array,
+            value: [StatusCodes.Good, StatusCodes.BadConditionDisabled]
+        });
+
+        const binaryStream = new BinaryStream(1000);
+        variant.encode(binaryStream);
+
+        binaryStream.rewind();
+
+        const v = new Variant();
+        v.decode(binaryStream);
+
+        console.log(v.toString());
+        v.value[0].should.eql(StatusCodes.Good);
+        v.value[1].should.eql(StatusCodes.BadConditionDisabled);
+    });
 });
 
 const analyze_object_binary_encoding = require("node-opcua-packet-analyzer").analyze_object_binary_encoding;
@@ -588,6 +607,11 @@ describe("Variant - Analyser", function () {
             arrayType: VariantArrayType.Matrix,
             value: [1, 2, 3, 4, 5, 6],
             dimensions: [3, 2]
+        }),
+        new Variant({
+            dataType: DataType.StatusCode,
+            arrayType: VariantArrayType.Array,
+            value: [StatusCodes.Good, StatusCodes.BadConditionDisabled]
         })
     ];
 
