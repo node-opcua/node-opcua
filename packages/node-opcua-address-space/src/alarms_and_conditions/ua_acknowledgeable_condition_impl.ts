@@ -5,9 +5,10 @@ import { UAAcknowledgeableCondition_Base, UAAcknowledgeableCondition, UAConditio
 import { assert } from "node-opcua-assert";
 import { LocalizedText, LocalizedTextLike } from "node-opcua-data-model";
 import { NodeId } from "node-opcua-nodeid";
-import { StatusCode, StatusCodes } from "node-opcua-status-code";
+import { CallbackT, StatusCode, StatusCodes } from "node-opcua-status-code";
 import { DataType, VariantLike } from "node-opcua-variant";
 import { INamespace, RaiseEventData, ISessionContext, UAEventType, UAMethod } from "node-opcua-address-space-base";
+import { CallMethodResultOptions } from "node-opcua-service-call";
 
 import { UATwoStateVariableEx } from "../../source/ua_two_state_variable_ex";
 import { AddressSpacePrivate } from "../address_space_private";
@@ -106,10 +107,10 @@ export class UAAcknowledgeableConditionImpl extends UAConditionImpl implements U
     }
 
     public static install_method_handle_on_type(addressSpace: AddressSpacePrivate): void {
-        const acknowledgeableConditionType = addressSpace.findEventType("AcknowledgeableConditionType");
+        const acknowledgeableConditionType = addressSpace.findEventType("AcknowledgeableConditionType") as unknown as UAAcknowledgeableCondition_Base;
         assert(acknowledgeableConditionType !== null);
-        (acknowledgeableConditionType as any).acknowledge.bindMethod(_acknowledge_method);
-        (acknowledgeableConditionType as any).confirm.bindMethod(_confirm_method);
+        acknowledgeableConditionType.acknowledge.bindMethod(_acknowledge_method);
+        acknowledgeableConditionType.confirm?.bindMethod(_confirm_method);
     }
 
     public _raiseAuditConditionAcknowledgeEvent(branch: ConditionSnapshot): void {
@@ -296,7 +297,7 @@ export class UAAcknowledgeableConditionImpl extends UAConditionImpl implements U
     }
 }
 
-function _acknowledge_method(inputArguments: VariantLike[], context: ISessionContext, callback: any) {
+function _acknowledge_method(inputArguments: VariantLike[], context: ISessionContext, callback: CallbackT<CallMethodResultOptions>) {
     UAConditionImpl.with_condition_method(
         inputArguments,
         context,
@@ -321,7 +322,7 @@ function _acknowledge_method(inputArguments: VariantLike[], context: ISessionCon
  *
  * @private
  */
-function _confirm_method(inputArguments: VariantLike[], context: ISessionContext, callback: any) {
+function _confirm_method(inputArguments: VariantLike[], context: ISessionContext,  callback: CallbackT<CallMethodResultOptions>) {
     UAConditionImpl.with_condition_method(
         inputArguments,
         context,

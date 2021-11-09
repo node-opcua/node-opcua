@@ -91,8 +91,7 @@ server.on("post_initialize", function() {
     });
 
     async function simulateNetworkOutageFunc(
-        /*this: UAMethod,*/ inputArguments/*: Variant[]*/, context/*: SessionContext*/, callback/*: MethodFunctorCallback*/
-    ) {
+        /*this: UAMethod,*/ inputArguments/*: Variant[]*/, context/*: SessionContext*/) {
         const outageDuration = inputArguments[0].value;
         console.log("Simulating Server Outage for ", outageDuration, "ms");
         await server.suspendEndPoints();
@@ -103,7 +102,7 @@ server.on("post_initialize", function() {
         const statusCode = opcua.StatusCodes.Good;
         return { statusCode };
     }
-    simulateNetworkOutage.bindMethod(callbackify(simulateNetworkOutageFunc));
+    simulateNetworkOutage.bindMethod(simulateNetworkOutageFunc);
 
     const method = namespace.addMethod(obj, {
         browseName: "ScrapSession",
@@ -115,7 +114,7 @@ server.on("post_initialize", function() {
     });
 
     function scrapSession(
-        /*this: UAMethod,*/ inputArguments/*: Variant[]*/, context/*: SessionContext*/, callback/*: MethodFunctorCallback*/
+        /*this: UAMethod,*/ inputArguments/*: Variant[]*/, context/*: SessionContext*/
     ) {
         const session = context.session;
         // do nothing
@@ -127,7 +126,7 @@ server.on("post_initialize", function() {
             // session._watchDogData.timeout = old;
         }, 100);
         const statusCode = opcua.StatusCodes.Good;
-        callback(null, { statusCode });
+        return{ statusCode };
     }
 
     method.bindMethod(scrapSession);

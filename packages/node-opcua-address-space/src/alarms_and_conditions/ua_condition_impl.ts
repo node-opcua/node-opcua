@@ -21,8 +21,8 @@ import { DataValue } from "node-opcua-data-value";
 import { checkDebugFlag, make_debugLog, make_errorLog } from "node-opcua-debug";
 import { minDate } from "node-opcua-factory";
 import { coerceNodeId, makeNodeId, NodeId, resolveNodeId, sameNodeId } from "node-opcua-nodeid";
-import { StatusCode, StatusCodes } from "node-opcua-status-code";
-import { TimeZoneDataType } from "node-opcua-types";
+import { CallbackT, StatusCode, StatusCodes } from "node-opcua-status-code";
+import { CallMethodResultOptions, TimeZoneDataType } from "node-opcua-types";
 import { DataType, Variant, VariantLike } from "node-opcua-variant";
 import { UAVariable, INamespace, ISessionContext, UAEventType, BaseNode, UAObject } from "node-opcua-address-space-base";
 import { UACondition_Base, UAConditionVariable, UACondition } from "node-opcua-nodeset-ua";
@@ -258,13 +258,13 @@ export class UAConditionImpl extends UABaseEventImpl implements UAConditionEx {
     }
 
     public getBranches(): ConditionSnapshot[] {
-        return Object.keys(this._branches).map((x: any) => {
+        return Object.keys(this._branches).map((x) => {
             return this._branches[x];
         });
     }
 
     public getBranchIds(): NodeId[] {
-        return this.getBranches().map((b: any) => b.getBranchId());
+        return this.getBranches().map((b) => b.getBranchId());
     }
 
     /**
@@ -1028,7 +1028,7 @@ function UACondition_instantiate(
     return conditionNode;
 }
 
-function _disable_method(inputArguments: VariantLike[], context: ISessionContext, callback: any) {
+function _disable_method(inputArguments: VariantLike[], context: ISessionContext, callback: CallbackT<CallMethodResultOptions>) {
     assert(inputArguments.length === 0);
 
     const conditionNode = context.object;
@@ -1047,7 +1047,7 @@ function _disable_method(inputArguments: VariantLike[], context: ISessionContext
     });
 }
 
-function _enable_method(inputArguments: VariantLike[], context: ISessionContext, callback: any) {
+function _enable_method(inputArguments: VariantLike[], context: ISessionContext, callback: CallbackT<CallMethodResultOptions>) {
     assert(inputArguments.length === 0);
     const conditionNode = context.object;
     assert(conditionNode);
@@ -1063,7 +1063,11 @@ function _enable_method(inputArguments: VariantLike[], context: ISessionContext,
     });
 }
 
-function _condition_refresh_method(inputArguments: VariantLike[], context: ISessionContext, callback: any) {
+function _condition_refresh_method(
+    inputArguments: VariantLike[],
+    context: ISessionContext,
+    callback: CallbackT<CallMethodResultOptions>
+) {
     // arguments : IntegerId SubscriptionId
     assert(inputArguments.length === 1);
     const addressSpace = context.object!.addressSpace as AddressSpacePrivate;
@@ -1119,7 +1123,7 @@ function _perform_condition_refresh(addressSpace: AddressSpacePrivate, inputArgu
     return StatusCodes.Good;
 }
 
-function _condition_refresh2_method(inputArguments: VariantLike[], context: ISessionContext, callback: any) {
+function _condition_refresh2_method(inputArguments: VariantLike[], context: ISessionContext, callback: CallbackT<CallMethodResultOptions>) {
     // arguments : IntegerId SubscriptionId
     // arguments : IntegerId MonitoredItemId
     assert(inputArguments.length === 2);
@@ -1142,7 +1146,7 @@ function _condition_refresh2_method(inputArguments: VariantLike[], context: ISes
     });
 }
 
-function _add_comment_method(inputArguments: VariantLike[], context: ISessionContext, callback: any) {
+function _add_comment_method(inputArguments: VariantLike[], context: ISessionContext, callback: CallbackT<CallMethodResultOptions>) {
     //
     // The AddComment Method is used to apply a comment to a specific state of a Condition
     // instance. Normally, the NodeId of the object instance as the ObjectId is passed to the Call

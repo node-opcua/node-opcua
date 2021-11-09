@@ -7,12 +7,13 @@
 // --------------------------------------------------------------------------------------------------
 
 import { assert } from "node-opcua-assert";
-import { StatusCodes } from "node-opcua-status-code";
+import { CallbackT, StatusCodes } from "node-opcua-status-code";
 import { DataType, Variant, VariantLike } from "node-opcua-variant";
 
-import { UAProperty, MethodFunctorCallback, ISessionContext, UAMethod, UAObject } from "node-opcua-address-space-base";
+import { UAProperty, ISessionContext, UAMethod, UAObject } from "node-opcua-address-space-base";
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 import { UAShelvedStateMachine_Base, UAState } from "node-opcua-nodeset-ua";
+import { CallMethodResultOptions } from "node-opcua-service-call";
 
 import { UAAlarmConditionImpl } from "../alarms_and_conditions/ua_alarm_condition_impl";
 import { UATransitionEx } from "../../source/interfaces/state_machine/ua_transition_ex";
@@ -93,7 +94,7 @@ export class UAShelvedStateMachineEx extends UAStateMachineImpl implements UAShe
 // specifying ConditionId as the ObjectId. The Method cannot be called with an ObjectId of the
 // ShelvedStateMachineType Node.
 // output => BadConditionNotShelved
-function _unshelve_method(inputArguments: VariantLike[], context: ISessionContext, callback: any) {
+function _unshelve_method(inputArguments: VariantLike[], context: ISessionContext, callback: CallbackT<CallMethodResultOptions>) {
     assert(inputArguments.length === 0);
     // var alarmNode = context.object.parent;
     // if (!(alarmNode instanceof UAAlarmConditionImpl)) {
@@ -188,7 +189,7 @@ function _start_timer_for_automatic_unshelve(shelvingState: UAShelvedStateMachin
 //                                           a reset of the shelved timer.
 //               BadShelvingTimeOutOfRange
 
-function _timedShelve_method(inputArguments: VariantLike[], context: ISessionContext, callback: any) {
+function _timedShelve_method(inputArguments: VariantLike[], context: ISessionContext, callback: CallbackT<CallMethodResultOptions>) {
     assert(inputArguments.length === 1);
     if (!context.object) {
         return;
@@ -250,7 +251,7 @@ function _oneShotShelve_method(
     this: UAMethod,
     inputArguments: Variant[],
     context: ISessionContext,
-    callback: MethodFunctorCallback
+    callback: CallbackT<CallMethodResultOptions>
 ) {
     assert(inputArguments.length === 0);
     const shelvingState = context.object! as UAShelvedStateMachineEx;

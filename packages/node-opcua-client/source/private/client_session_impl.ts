@@ -382,7 +382,7 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession {
     public browse(...args: any[]): any {
         const arg0 = args[0];
         const isArray = Array.isArray(arg0);
-        const callback: any = args[1];
+        const callback: ResponseCallback<BrowseResult[]| BrowseResult> = args[1];
         assert(typeof callback === "function");
 
         assert(isFinite(this.requestedMaxReferencesPerNode));
