@@ -1,6 +1,7 @@
 /**
  * @module node-opcua-address-space
  */
+import { callbackify } from "util";
 import * as chalk from "chalk";
 import { assert } from "node-opcua-assert";
 
@@ -11,13 +12,14 @@ import { make_debugLog, make_errorLog, make_warningLog } from "node-opcua-debug"
 import { NodeId } from "node-opcua-nodeid";
 import { NumericRange } from "node-opcua-numeric-range";
 import { Argument } from "node-opcua-service-call";
-import { StatusCodes } from "node-opcua-status-code";
+import { CallbackT, StatusCodes } from "node-opcua-status-code";
 import { CallMethodResultOptions, PermissionType } from "node-opcua-types";
 import { Variant } from "node-opcua-variant";
 import { DataType, VariantLike } from "node-opcua-variant";
 import {
     MethodFunctor,
-    MethodFunctorCallback,
+    MethodFunctorA,
+    MethodFunctorC,
     UAMethod,
     UAObject,
     CloneExtraInfo,
@@ -122,6 +124,10 @@ export class UAMethodImpl extends BaseNodeImpl implements UAMethod {
 
     public bindMethod(async_func: MethodFunctor): void {
         assert(typeof async_func === "function");
+        if (async_func.length === 2) {
+            async_func = callbackify(async_func as MethodFunctorA) as MethodFunctorC;
+        }
+        assert(async_func.length === 3);
         this._asyncExecutionFunction = async_func;
     }
     public execute(
@@ -133,13 +139,13 @@ export class UAMethodImpl extends BaseNodeImpl implements UAMethod {
         object: UAObject | UAObjectType | null,
         inputArguments: null | VariantLike[],
         context: ISessionContext,
-        callback: MethodFunctorCallback
+        callback: CallbackT<CallMethodResultOptions>
     ): void;
     public execute(
         object: UAObject | UAObjectType | null,
         inputArguments: VariantLike[] | null,
         context: ISessionContext,
-        callback?: MethodFunctorCallback
+        callback?: CallbackT<CallMethodResultOptions>
     ): any {
         // istanbul ignore next
         if (!callback) {
@@ -200,7 +206,7 @@ export class UAMethodImpl extends BaseNodeImpl implements UAMethod {
                 this as UAMethodImpl,
                 inputArguments as Variant[],
                 context,
-                (err: Error | null, callMethodResult: CallMethodResultOptions) => {
+                (err: Error | null, callMethodResult?: CallMethodResultOptions) => {
                     if (err) {
                         debugLog(err.message);
                         debugLog(err);

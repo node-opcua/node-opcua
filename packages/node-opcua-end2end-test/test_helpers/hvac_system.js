@@ -158,11 +158,8 @@ exports.createHVACSystem = function(addressSpace) {
     myHVAC.targetTemperature.setValueFromSource({ dataType: DataType.Double, value: 16 });
 
     // bind the method
-    myHVAC.enable.bindMethod(function(inputArguments, context, callback) {
-        const myResult = {
-            statusCode: StatusCodes.Good
-        };
-        callback(null, myResult);
+    myHVAC.enable.bindMethod(async (inputArguments, context) => {
+        return {statusCode: StatusCodes.Good }
     });
 
     function updateInteriorTemperature() {
@@ -187,7 +184,7 @@ exports.createHVACSystem = function(addressSpace) {
     //xx console.log(" => ",myHVAC.setTargetTemperature.inputArguments.readValue().toString());
 
     // bind the method
-    myHVAC.setTargetTemperature.bindMethod(function(inputArguments, context, callback) {
+    myHVAC.setTargetTemperature.bindMethod(async function(inputArguments, context) {
 
         if (doDebug) {
             console.log(chalk.cyan.bold(" In SetTargetTemperature"));
@@ -206,13 +203,12 @@ exports.createHVACSystem = function(addressSpace) {
         const s = variable.checkVariantCompatibility(targetTemperature);
         if (s.isNot(StatusCodes.Good)) {
             console.log(chalk.red.bold(" Invalid Value specified for targetTemperature"));
-            return callback(null, { statusCode: s });
+            return  { statusCode: s };
         }
 
 
         variable.setValueFromSource(targetTemperature, StatusCodes.Good);
-
-        callback();
+        return { statusCode: StatusCodes.Good}
 
     });
 

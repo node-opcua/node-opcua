@@ -26,7 +26,6 @@ import {
     UAVariable,
     UAServerDiagnostics,
     BindVariableOptions,
-    MethodFunctorCallback,
     ISessionContext,
     DTServerStatus,
     resolveOpaqueOnAddressSpace,
@@ -81,7 +80,8 @@ import {
     WriteValue,
     ReadValueId,
     TimeZoneDataType,
-    ProgramDiagnosticDataType
+    ProgramDiagnosticDataType,
+    CallMethodResultOptions
 } from "node-opcua-types";
 import { DataType, isValidVariant, Variant, VariantArrayType } from "node-opcua-variant";
 
@@ -116,7 +116,7 @@ function setSubscriptionDurable(
     this: ServerEngine,
     inputArguments: Variant[],
     context: ISessionContext,
-    callback: MethodFunctorCallback
+    callback: CallbackT<CallMethodResultOptions>
 ) {
     // see https://reference.opcfoundation.org/v104/Core/docs/Part5/9.3/
     // https://reference.opcfoundation.org/v104/Core/docs/Part4/6.8/
@@ -201,7 +201,7 @@ function getMonitoredItemsId(
     this: ServerEngine,
     inputArguments: Variant[],
     context: ISessionContext,
-    callback: MethodFunctorCallback
+    callback: CallbackT<CallMethodResultOptions>
 ) {
     assert(Array.isArray(inputArguments));
     assert(typeof callback === "function");

@@ -2,7 +2,7 @@
 import {
     AddressSpace,
     DataType,
-    MethodFunctorCallback,
+    CallMethodResultOptions,
     NodeIdLike,
     nodesets,
     OPCUAServer,
@@ -11,7 +11,8 @@ import {
     UAMethod,
     UAObject,
     Variant,
-    ISessionContext
+    ISessionContext,
+    CallbackT
 } from "node-opcua";
 
 function installObjectWithMethod(addressSpace: AddressSpace): UAObject {
@@ -52,12 +53,11 @@ function installObjectWithMethod(addressSpace: AddressSpace): UAObject {
         ]
     });
 
-    methodI.bindMethod(function (
+    methodI.bindMethod(async function(
         this: UAMethod,
         inputArguments: Variant[],
         context: ISessionContext,
-        callback: MethodFunctorCallback
-    ) {
+    ): Promise<CallMethodResultOptions> {
         const callMethodResult = {
             outputArguments: [
                 new Variant({
@@ -67,7 +67,7 @@ function installObjectWithMethod(addressSpace: AddressSpace): UAObject {
             ],
             statusCode: StatusCodes.Good
         };
-        callback(null, callMethodResult);
+        return callMethodResult;
     });
 
     return myObject;

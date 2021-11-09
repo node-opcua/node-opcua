@@ -83,7 +83,7 @@ describe("ServerEngine - addMethod", function () {
         const methodOutputArguments = objectMethod.getOutputArguments();
         Array.isArray(methodOutputArguments).should.eql(true);
 
-        method.bindMethod(function (inputArguments, context, callback) {
+        method.bindMethod(async function (inputArguments, context) {
             const nbBarks = inputArguments[0].value;
             const barks = [];
             for (let i = 0; i < nbBarks; i++) {
@@ -99,7 +99,7 @@ describe("ServerEngine - addMethod", function () {
                     }
                 ]
             };
-            callback(null, callMethodResult);
+            return callMethodResult;
         });
         // now call it
         const inputArguments = [{ dataType: DataType.UInt32, value: 3 }];

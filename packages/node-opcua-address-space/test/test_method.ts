@@ -1,11 +1,11 @@
 import * as should from "should";
 
 import { AttributeIds, LocalizedText } from "node-opcua-data-model";
-import { StatusCodes } from "node-opcua-status-code";
+import { CallbackT, StatusCodes } from "node-opcua-status-code";
 import { DataType, Variant, VariantLike } from "node-opcua-variant";
 
-import { NodeClass } from "node-opcua-types";
-import { AddressSpace, Namespace, UARootFolder, UAMethod } from "..";
+import { CallMethodResultOptions, NodeClass } from "node-opcua-types";
+import { AddressSpace, Namespace, UARootFolder, UAMethod, ISessionContext } from "..";
 import { SessionContext } from "..";
 import { getMiniAddressSpace } from "../testHelpers";
 
@@ -61,8 +61,9 @@ describe("testing Method -  Attribute UserExecutable & Executable on Method ", (
             userExecutable: false
         });
 
-        function fakeMethod() {
+        async function fakeMethod(this: UAMethod, inputArguments: VariantLike[], context: ISessionContext): Promise<CallMethodResultOptions> {
             // do nothing
+            return { statusCode: StatusCodes.Good };
         }
 
         method.bindMethod(fakeMethod);
@@ -144,7 +145,7 @@ describe("testing Method binding", () => {
         addressSpace.dispose();
     });
 
-    function fake_getMonitoredItemId(this: any, inputArguments: Variant[], context1: SessionContext, callback: any) {
+    function fake_getMonitoredItemId(this: UAMethod, inputArguments: Variant[], context1: ISessionContext, callback: CallbackT<CallMethodResultOptions>) {
         should(Array.isArray(inputArguments)).eql(true);
         should(typeof callback === "function").eql(true);
 
@@ -161,13 +162,42 @@ describe("testing Method binding", () => {
         callback(null, myResult);
     }
 
-    it("should bind a method  ", async () => {
+    it("should bind a method with a method - MethodFunctorC ", async () => {
         const server = rootFolder.objects.server;
 
-        server.getMonitoredItems.bindMethod(fake_getMonitoredItemId.bind(rootFolder.objects.server));
+        server.getMonitoredItems.bindMethod(fake_getMonitoredItemId);
 
         const inputArguments = [{ dataType: DataType.UInt32, value: 5 }];
 
         const result = await server.getMonitoredItems.execute(null, inputArguments, context);
+    });
+
+    it("should bind a method with a method - MethodFunctorA ", async () => {
+        const server = rootFolder.objects.server;
+
+        async function method(this: UAMethod, inputArguments: Variant[], context1: ISessionContext): Promise<CallMethodResultOptions> {
+            should(Array.isArray(inputArguments)).eql(true);
+        
+            inputArguments[0].dataType.should.eql(DataType.UInt32);
+            inputArguments[0].value.should.eql(5);
+    
+            const myResult = {
+                outputArguments: [
+                    { dataType: DataType.UInt32, value: [1, 2, 3] },
+                    { dataType: DataType.UInt32, value: [4, 5, 6] }
+                ],
+                statusCode: StatusCodes.BadBoundNotFound
+            };
+            await new Promise((resolve) => setImmediate(resolve));
+            return myResult;
+        }
+    
+        server.getMonitoredItems.bindMethod(method);
+
+        const inputArguments = [{ dataType: DataType.UInt32, value: 5 }];
+        const result = await server.getMonitoredItems.execute(null, inputArguments, context);
+        result.outputArguments[0].dataType.should.eql(DataType.UInt32);
+        result.outputArguments[1].dataType.should.eql(DataType.UInt32);
+        result.statusCode.should.eql(StatusCodes.BadBoundNotFound);
     });
 });

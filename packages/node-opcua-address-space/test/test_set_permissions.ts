@@ -1,14 +1,25 @@
 import * as should from "should";
 import { AccessRestrictionsFlag, AttributeIds, makeAccessLevelFlag, makePermissionFlag } from "node-opcua-data-model";
 import { resolveNodeId } from "node-opcua-nodeid";
-import { PermissionType, RolePermissionTypeOptions } from "node-opcua-types";
-import { DataType } from "node-opcua-variant";
-import { AddressSpace, UAObject, Namespace, SessionContext, WellKnownRoles, makeRoles, setNamespaceMetaData } from "..";
+import { CallMethodResultOptions, PermissionType, RolePermissionTypeOptions } from "node-opcua-types";
+import { DataType, Variant } from "node-opcua-variant";
+import {
+    AddressSpace,
+    UAObject,
+    Namespace,
+    SessionContext,
+    WellKnownRoles,
+    makeRoles,
+    setNamespaceMetaData,
+    UAMethod,
+    ISessionContext
+} from "..";
 
 // let's make sure should don't get removed by typescript optimizer
 const keep_should = should;
 
 import { getMiniAddressSpace } from "../testHelpers";
+import { StatusCodes } from "node-opcua-status-code";
 
 // tslint:disable-next-line:no-var-requires
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
@@ -97,8 +108,9 @@ describe("Variable#setPermissions & checkPermission", () => {
     });
 });
 
-function defaultMethod(): any {
+async function defaultMethod(this: UAMethod, inputArguments: Variant[], context: ISessionContext): Promise<CallMethodResultOptions> {
     /** empty */
+    return { statusCode: StatusCodes.Good };
 }
 describe("Method#setPermissions & checkPermission", () => {
     let addressSpace: AddressSpace;

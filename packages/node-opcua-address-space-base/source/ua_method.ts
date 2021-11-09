@@ -2,6 +2,7 @@ import { NodeClass } from "node-opcua-data-model";
 import { NodeId } from "node-opcua-nodeid";
 import { Argument, CallMethodResultOptions } from "node-opcua-types";
 import { Variant, VariantLike } from "node-opcua-variant";
+import { CallbackT } from "node-opcua-status-code";
 //
 import { BaseNode } from "./base_node";
 import { ISessionContext } from "./session_context";
@@ -10,13 +11,19 @@ import { UAObjectType } from "./ua_object_type";
 import { UAVariable } from "./ua_variable";
 import { CloneExtraInfo, CloneFilter, CloneOptions } from "./clone_options";
 
-export declare type MethodFunctor = (
+export declare type MethodFunctorC = (
     this: UAMethod,
     inputArguments: Variant[],
     context: ISessionContext,
-    callback: MethodFunctorCallback
+    callback: CallbackT<CallMethodResultOptions>
 ) => void;
-export declare type MethodFunctorCallback = (err: Error | null, callMethodResult: CallMethodResultOptions) => void;
+export declare type MethodFunctorA = (
+    this: UAMethod,
+    inputArguments: Variant[],
+    context: ISessionContext,
+) => Promise<CallMethodResultOptions>;
+
+export type MethodFunctor = MethodFunctorC | MethodFunctorA;
 
 export declare class UAMethod extends BaseNode {
     public readonly nodeClass: NodeClass.Method;
@@ -53,7 +60,7 @@ export declare class UAMethod extends BaseNode {
         object: UAObject | UAObjectType | null,
         inputArguments: VariantLike[] | null,
         context: ISessionContext,
-        callback: MethodFunctorCallback
+        callback: CallbackT<CallMethodResultOptions>
     ): void;
     public execute(
         object: UAObject | UAObjectType | null,
