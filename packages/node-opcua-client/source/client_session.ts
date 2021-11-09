@@ -554,12 +554,12 @@ export interface ClientSessionDataTypeService {
      * ```javascript
      * const session = ...; // ClientSession
      * const nodeId = opcua.VariableIds.Server_ServerStatus_CurrentTime;
-     * session.getBuildInDataType(nodeId,function(err,dataType) {
+     * session.getBuiltInDataType(nodeId,function(err,dataType) {
      *   assert(dataType === opcua.DataType.DateTime);
      * });
      * // or
      * nodeId = opcua.coerceNodeId("ns=2;s=Static_Scalar_ImagePNG");
-     * const dataType: await session.getBuildInDataType(nodeId);
+     * const dataType: await session.getBuiltInDataType(nodeId);
      * assert(dataType === opcua.DataType.ByteString);
      * ```
      */
