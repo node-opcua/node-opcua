@@ -1,11 +1,13 @@
 import { makeNodeId, NodeId, NodeIdType } from "node-opcua-nodeid";
 import { BrowseDescription, BrowseDirection, BrowseResult } from "node-opcua-service-browse";
 import { DataType } from "node-opcua-variant";
-import { ReferenceTypeIds } from "node-opcua-constants";
+import { ReferenceTypeIds, DataTypeIds } from "node-opcua-constants";
 import { makeResultMask } from "node-opcua-data-model";
 import { IBasicSession } from "./basic_session_interface";
 
 const resultMask = makeResultMask("ReferenceType");
+
+const hasSubtypeNodeId = makeNodeId(ReferenceTypeIds.HasSubtype);
 
 export function findBasicDataType(
     session: IBasicSession,
@@ -21,7 +23,13 @@ export function findBasicDataType(
     dataTypeId: NodeId,
     callback?: (err: Error | null, dataType?: DataType) => void
 ): any {
-    if (dataTypeId.identifierType === NodeIdType.NUMERIC && dataTypeId.value <= 25) {
+
+    if (dataTypeId.identifierType === NodeIdType.NUMERIC && dataTypeId.value === DataTypeIds.Enumeration) {
+        // see https://reference.opcfoundation.org/v104/Core/docs/Part3/8.40/
+        return callback!(null, DataType.Int32);
+    }
+    
+    if (dataTypeId.identifierType === NodeIdType.NUMERIC && dataTypeId.value <= DataType.DiagnosticInfo) {
         // we have a well-known DataType
         const dataTypeName = DataType[dataTypeId.value as number];
         callback!(null, dataTypeId.value as DataType);
@@ -31,7 +39,7 @@ export function findBasicDataType(
             browseDirection: BrowseDirection.Inverse,
             includeSubtypes: false,
             nodeId: dataTypeId,
-            referenceTypeId: makeNodeId(ReferenceTypeIds.HasSubtype),
+            referenceTypeId: hasSubtypeNodeId,
             resultMask
         });
 
