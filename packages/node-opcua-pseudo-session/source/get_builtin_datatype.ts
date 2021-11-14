@@ -8,10 +8,19 @@ import { IBasicSession } from "./basic_session_interface";
 import { findBasicDataType } from "./find_basic_datatype";
 
 export function getBuiltInDataType(
+    session: IBasicSession, 
+    variableNodeId: NodeId
+): Promise<DataType>;
+export function getBuiltInDataType(
     session: IBasicSession,
     variableNodeId: NodeId,
     callback: (err: Error | null, dataType?: DataType) => void
-): void  {
+): void;
+export function getBuiltInDataType(
+    session: IBasicSession,
+    variableNodeId: NodeId,
+    callback?: (err: Error | null, dataType?: DataType) => void
+): any  {
 
     if (typeof callback !== "function") {
         throw new Error("Expecting a callback");
@@ -37,4 +46,5 @@ export function getBuiltInDataType(
         findBasicDataType(session, dataTypeId, callback);
     });
 }
-
+const thenify = require("thenify");
+exports.getBuiltInDataType = thenify.withCallback(exports.getBuiltInDataType);
