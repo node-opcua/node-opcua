@@ -29,6 +29,8 @@ import {
 } from "node-opcua-types";
 
 import { UAString, UInt32 } from "node-opcua-basic-types";
+import { ReferenceTypeIds } from "node-opcua-constants";
+
 import { INamespace } from "./namespace";
 import { IAddressSpace } from "./address_space";
 import { ModellingRuleType } from "./modelling_rule_type";
@@ -40,8 +42,8 @@ import { UAVariableT } from "./ua_variable_t";
 import { UAReference } from "./ua_reference";
 
 export declare interface AddReferenceOpts {
-    referenceType: string | NodeId | UAReferenceType;
-    nodeId: NodeId | string | BaseNode;
+    referenceType: keyof ReferenceTypeIds | NodeIdLike | UAReferenceType;
+    nodeId: NodeIdLike | BaseNode;
     /**
      * default = true
      */
@@ -51,7 +53,7 @@ export declare interface AddReferenceOpts {
 }
 
 export interface ConstructNodeIdOptions {
-    nodeId?: string | NodeIdLike | null;
+    nodeId?: NodeIdLike | null;
     browseName: QualifiedName;
     nodeClass: NodeClass;
     references?: UAReference[];
