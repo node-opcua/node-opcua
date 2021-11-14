@@ -1,5 +1,5 @@
 export * from "./symbol_cvs";
 export * from "./build_model";
 export * from "./build_documentation_to_file";
-export * from "../source";
+export * from "../source/index";
 export { generateAddressSpace } from "node-opcua-address-space/nodeJS"
