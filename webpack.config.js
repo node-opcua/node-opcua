@@ -1,5 +1,5 @@
-const webpack = require("webpack");
 const path = require("path");
+const webpack = require("webpack");
 const nodeExternals = require("webpack-node-externals");
 const babiliWebpackPlugin = require("babili-webpack-plugin");
 const MinifyPlugin = require("babel-minify-webpack-plugin");
