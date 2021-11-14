@@ -1,6 +1,6 @@
 {
   "name": "node-opcua-modeler",
-  "version": "2.59.0",
+  "version": "2.59.1",
   "description": "pure nodejs OPCUA SDK - module - model",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
