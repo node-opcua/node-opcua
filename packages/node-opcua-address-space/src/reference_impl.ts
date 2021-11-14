@@ -53,9 +53,9 @@ function _w(str: string, width: number): string {
     return (str + "                                         ").substr(0, width);
 }
 
-function _localCoerceToNodeID(nodeIdLike: string | NodeId | BaseNode) {
-    if ((nodeIdLike as any).nodeId) {
-        return (nodeIdLike as BaseNode).nodeId;
+function _localCoerceToNodeID(nodeIdLike: string | NodeIdLike | { nodeId: NodeId }): NodeId {
+    if (Object.prototype.hasOwnProperty.call(nodeIdLike, "nodeId")) {
+        return (nodeIdLike as { nodeId: NodeId }).nodeId;
     }
     return coerceNodeId(nodeIdLike);
 }
