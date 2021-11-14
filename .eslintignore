@@ -1,1 +1,4 @@
 **/*{.,-}min.js
+**/dist/**/*.{css,js}
+**/distNodeJS/**/*.{css,js}
+
