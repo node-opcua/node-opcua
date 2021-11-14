@@ -1,6 +1,6 @@
 {
     "name": "node-opcua-service-discovery",
-    "version": "2.57.0",
+    "version": "2.59.0",
     "description": "pure nodejs OPCUA SDK - module -service-discovery",
     "scripts": {
         "build": "tsc -b",
@@ -21,9 +21,9 @@
         "node-opcua-factory": "2.57.0",
         "node-opcua-nodeid": "2.55.0",
         "node-opcua-object-registry": "2.56.0",
-        "node-opcua-service-endpoints": "2.57.0",
-        "node-opcua-service-secure-channel": "2.57.0",
-        "node-opcua-types": "2.57.0"
+        "node-opcua-service-endpoints": "2.59.0",
+        "node-opcua-service-secure-channel": "2.59.0",
+        "node-opcua-types": "2.59.0"
     },
     "author": "Etienne Rossignon",
     "license": "MIT",
