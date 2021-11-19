@@ -7,10 +7,7 @@ import { DataType } from "node-opcua-variant";
 import { IBasicSession } from "./basic_session_interface";
 import { findBasicDataType } from "./find_basic_datatype";
 
-export function getBuiltInDataType(
-    session: IBasicSession, 
-    variableNodeId: NodeId
-): Promise<DataType>;
+export function getBuiltInDataType(session: IBasicSession, variableNodeId: NodeId): Promise<DataType>;
 export function getBuiltInDataType(
     session: IBasicSession,
     variableNodeId: NodeId,
@@ -20,8 +17,7 @@ export function getBuiltInDataType(
     session: IBasicSession,
     variableNodeId: NodeId,
     callback?: (err: Error | null, dataType?: DataType) => void
-): any  {
-
+): any {
     if (typeof callback !== "function") {
         throw new Error("Expecting a callback");
     }
@@ -30,7 +26,7 @@ export function getBuiltInDataType(
         attributeId: AttributeIds.DataType,
         nodeId: variableNodeId
     };
-    session.read(nodeToRead,(err: Error | null, dataValue?: DataValue) => {
+    session.read(nodeToRead, (err: Error | null, dataValue?: DataValue) => {
         if (err) {
             return callback(err);
         }

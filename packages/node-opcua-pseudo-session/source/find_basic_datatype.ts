@@ -9,10 +9,7 @@ const resultMask = makeResultMask("ReferenceType");
 
 const hasSubtypeNodeId = makeNodeId(ReferenceTypeIds.HasSubtype);
 
-export function findBasicDataType(
-    session: IBasicSession,
-    dataTypeId: NodeId
-): Promise<DataType>;
+export function findBasicDataType(session: IBasicSession, dataTypeId: NodeId): Promise<DataType>;
 export function findBasicDataType(
     session: IBasicSession,
     dataTypeId: NodeId,
@@ -23,12 +20,11 @@ export function findBasicDataType(
     dataTypeId: NodeId,
     callback?: (err: Error | null, dataType?: DataType) => void
 ): any {
-
     if (dataTypeId.identifierType === NodeIdType.NUMERIC && dataTypeId.value === DataTypeIds.Enumeration) {
         // see https://reference.opcfoundation.org/v104/Core/docs/Part3/8.40/
         return callback!(null, DataType.Int32);
     }
-    
+
     if (dataTypeId.identifierType === NodeIdType.NUMERIC && dataTypeId.value <= DataType.DiagnosticInfo) {
         // we have a well-known DataType
         const dataTypeName = DataType[dataTypeId.value as number];
@@ -54,7 +50,7 @@ export function findBasicDataType(
                 return callback!(new Error("Internal Error"));
             }
 
-            browseResult.references = browseResult.references || /* istanbul ignore next */[];
+            browseResult.references = browseResult.references || /* istanbul ignore next */ [];
             const baseDataType = browseResult.references[0].nodeId;
             return findBasicDataType(session, baseDataType, callback!);
         });
