@@ -10,8 +10,8 @@ const {
     makeBrowsePath, 
     periodicClockAdjustment
 } = require("node-opcua");
-const { build_server_with_temperature_device } = require("../../test_helpers/build_server_with_temperature_device");
 const { build_address_space_for_conformance_testing } = require("node-opcua-address-space-for-conformance-testing");
+const { build_server_with_temperature_device } = require("../../test_helpers/build_server_with_temperature_device");
 const { start_simple_server, stop_simple_server } = require("../../test_helpers/external_server_fixture");
 
 

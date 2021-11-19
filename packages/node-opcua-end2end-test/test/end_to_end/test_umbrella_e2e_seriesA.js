@@ -1,13 +1,10 @@
-/* eslint-disable max-statements */
 "use strict";
-/* global: describe, require */
 const should = require("should");
-
-
 const port = 2234;
 
 const { beforeTest, afterTest, beforeEachTest, afterEachTest } = require("./_helper_umbrella");
 
+// eslint-disable-next-line import/order
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("testing Client - Umbrella-A ", function() {
     // this test could be particularly slow on RaspberryPi or BeagleBoneBlack
@@ -16,6 +13,7 @@ describe("testing Client - Umbrella-A ", function() {
     this.timeout(process.arch === "arm" ? 400000 : 30000);
     this.timeout(Math.max(200000, this.timeout()));
 
+    // eslint-disable-next-line @typescript-eslint/no-this-alias
     const test = this;
     test.port = port;
 

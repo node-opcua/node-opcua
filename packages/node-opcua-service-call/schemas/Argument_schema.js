@@ -26,37 +26,13 @@
  </UADataType>
  */
 
-const { assert } = require("node-opcua-assert");
-const { NodeId, coerceNodeId, resolveNodeId } = require("node-opcua-nodeid");
-const { DataType } = require("node-opcua-variant");
+const { constructHookArgument } = require("node-opcua-service-call");
 
 // OPC Unified Architecture, Part 4 $7.1 page 106
 const Argument_Schema = {
     name: "Argument",
     documentation: "An argument for a method.",
-    construct_hook: function(options) {
-
-        let dataType = options.dataType;
-        if (dataType) {
-            if (typeof dataType === "string") {
-                dataType = resolveNodeId(dataType);
-            } else if (dataType instanceof NodeId) {
-                // nothing
-            } else {
-                assert(dataType.hasOwnProperty("value"));
-                dataType = coerceNodeId(dataType.value, dataType.namespace);
-            }
-            options.dataType = dataType;
-        }
-
-        // fix missing ArrayDimension (The value is an array with one dimension.)
-        if (!options.valueRank === 1 || !options.arrayDimensions) {
-            options.arrayDimensions = [0];
-        }
-
-        return options;
-
-    },
+    construct_hook: constructHookArgument,
     fields: [
         { name: "name", fieldType: "String", documentation: "The name of the argument." },
         { name: "dataType", fieldType: "NodeId", documentation: "The nodeId of the Data type of the argument." },
@@ -108,10 +84,10 @@ const Argument_Schema = {
             fieldType: "UInt32",
             isArray: true,
             defaultValue: null,
-            documentation: "The number of dimensions if the argument is an array type and one or more dimensions have a fixed length."
+            documentation:
+                "The number of dimensions if the argument is an array type and one or more dimensions have a fixed length."
         },
         { name: "description", fieldType: "LocalizedText", documentation: "The description for the argument." }
-
     ]
 };
 exports.Argument_Schema = Argument_Schema;

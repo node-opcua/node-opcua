@@ -592,7 +592,7 @@ function _dumpValue(xw: XmlWriter, node: UAVariable | UAVariableType, value: Var
 
 function _dumpArrayDimensionsAttribute(xw: XmlWriter, node: UAVariableType | UAVariable) {
     if (node.arrayDimensions) {
-        if (node.arrayDimensions.length === 1 && node.arrayDimensions[0] === 0) {
+        if (node.valueRank === -1 || (node.arrayDimensions.length === 1 && node.arrayDimensions[0] === 0)) {
             return;
         }
         xw.writeAttribute("ArrayDimensions", node.arrayDimensions.join(","));

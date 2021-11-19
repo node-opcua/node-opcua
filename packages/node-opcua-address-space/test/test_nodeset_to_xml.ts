@@ -269,7 +269,7 @@ describe("testing nodeset to xml", () => {
                                 <Identifier>ns=0;i=7</Identifier>
                             </DataType>
                             <ValueRank>-1</ValueRank>
-                            <ArrayDimensions>0</ArrayDimensions>
+                            <ArrayDimensions></ArrayDimensions>
                             <Description>
                                 <Locale/>
                                 <Text>specifies the number of seconds to wait before the picture is taken </Text>
@@ -300,7 +300,7 @@ describe("testing nodeset to xml", () => {
                                 <Identifier>ns=0;i=30</Identifier>
                             </DataType>
                             <ValueRank>-1</ValueRank>
-                            <ArrayDimensions>0</ArrayDimensions>
+                            <ArrayDimensions></ArrayDimensions>
                             <Description>
                                 <Locale/>
                                 <Text>the generated image</Text>

@@ -3,12 +3,9 @@ const chalk = require("chalk");
 const should = require("should");
 const { assert } = require("node-opcua-assert");
 const async = require("async");
-const util = require("util");
 
 
-const opcua = require("node-opcua");
-const OPCUAClient = opcua.OPCUAClient;
-const NodeCrawler = opcua.NodeCrawler;
+const { ObjectIds, OPCUAClient, NodeCrawler, AttributeIds} = require("node-opcua");
 
 
 const { redirectToFile } = require("node-opcua-debug/nodeJS");
@@ -22,8 +19,8 @@ function xredirectToFile(file, fun, callback) {
 
 const { perform_operation_on_client_session } = require("../../test_helpers/perform_operation_on_client_session");
 
-const nodeToCrawl = opcua.makeNodeId(opcua.ObjectIds.Server);
 
+// eslint-disable-next-line import/order
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 module.exports = function(test) {
 
@@ -31,6 +28,9 @@ module.exports = function(test) {
 
         let client, endpointUrl;
 
+       // const nodeToCrawl = "ns=1;s=SimulationFolder";
+        // makeNodeId(ObjectIds.Server);
+        const nodeToCrawl  = ObjectIds.PublishSubscribe;
 
         beforeEach(function(done) {
             client = OPCUAClient.create({});
@@ -42,8 +42,6 @@ module.exports = function(test) {
             client = null;
             done();
         });
-
-
 
         function MyDumpReference(reference) {
             function f(text, width) {
@@ -123,10 +121,10 @@ module.exports = function(test) {
 
                 let browsed_node1 = 0;
                 let browsed_node2 = 0;
-                crawler1.on("browsed", function(nodeElement, data) {
+                crawler1.on("browsed", (nodeElement, data) => {
                     browsed_node1++;
                 });
-                crawler2.on("browsed", function(nodeElement, data) {
+                crawler2.on("browsed", (nodeElement, data) => {
                     browsed_node2++;
                 });
                 const data1 = { onBrowse: NodeCrawler.follow };
@@ -157,14 +155,14 @@ module.exports = function(test) {
 
         it("CRAWL3- should crawl one at a time", function(done) {
 
-            perform_operation_on_client_session(client, endpointUrl, function(session, done) {
+            perform_operation_on_client_session(client, endpointUrl, (session, done) => {
 
-                assert(typeof done === "function");
-
+         
                 const crawler = new NodeCrawler(session);
-
+                
                 const nodeId = "RootFolder";
-                crawler.read(nodeId, function(err, obj) {
+
+                crawler.read(nodeId, (err, obj) => {
 
                     if (!err) {
 
@@ -198,7 +196,7 @@ module.exports = function(test) {
 
                 const startTime = Date.now();
 
-                crawler.read(nodeId, function(err, obj) {
+                crawler.read(nodeId, (err, obj) => {
 
                     if (err) {
                         return done(err);
@@ -208,7 +206,7 @@ module.exports = function(test) {
                     const duration1 = intermediateTime1 - startTime;
 
 
-                    crawler.read(nodeId, function(err, obj) {
+                    crawler.read(nodeId, (err, obj) => {
                         const intermediateTime2 = Date.now();
                         const duration2 = intermediateTime2 - intermediateTime1;
 
@@ -253,5 +251,23 @@ module.exports = function(test) {
 
         });
 
+        it("CRAWL6 - ServerStatusType_ShutdownReason", async ()=>{
+
+            const client = OPCUAClient.create();
+            await client.withSessionAsync(endpointUrl, async (session)=>{
+
+                const nodeId = "ns=0;i=2753";
+                // ServerStatusType_ShutdownReason;
+                const dataValues = await session.read([
+                    { nodeId, attributeId: AttributeIds.ValueRank },
+                    { nodeId, attributeId: AttributeIds.ArrayDimensions },
+                    { nodeId, attributeId: AttributeIds.Value }
+                ]);
+                console.log(dataValues[0].toString());
+                console.log(dataValues[1].toString());
+                console.log(dataValues[2].toString());
+            });
+
+        })
     });
 };
