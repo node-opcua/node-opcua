@@ -452,13 +452,13 @@ export class ClientSidePublishEngine {
         setImmediate(() => {
             assert(typeof callback === "function");
             async.whilst(
-                (cb: (err: null, truth: boolean) => boolean) => cb(null, !isDone),
+                (cb: (err: null, truth: boolean) => void) => cb(null, !isDone),
                 sendRepublishFunc,
-                (err?: Error | null) => {
+                ((err?: Error | null): void => {
                     debugLog("nbPendingPublishRequest = ", this.nbPendingPublishRequests);
                     debugLog(" _republish ends with ", err ? err.message : "null");
                     callback(err!);
-                }
+                }) as any // Wait for @type/async bug to be fixed !
             );
         });
     }

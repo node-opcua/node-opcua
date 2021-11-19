@@ -20,5 +20,6 @@
         "node-opcua-nodeset-ua": "2.59.0",
         "node-opcua-status-code": "2.56.0",
         "node-opcua-variant": "2.59.0"
-    }
+    },
+    "devDependencies": {}
 }

@@ -20,7 +20,7 @@
         "node-opcua-types": "2.59.0"
     },
     "devDependencies": {
-        "node-opcua-binary-stream": "2.42.0",
+        "node-opcua-binary-stream": "2.55.0",
         "node-opcua-buffer-utils": "2.55.0",
         "node-opcua-debug": "2.55.0",
         "node-opcua-packet-analyzer": "2.57.0",

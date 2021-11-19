@@ -1,7 +1,7 @@
 // ----- this file has been automatically generated - do not edit
 import { UAMethod } from "node-opcua-address-space-base"
 import { DataType } from "node-opcua-variant"
-import { UInt64, UInt16, UAString } from "node-opcua-basic-types"
+import { UInt64, UInt32, UInt16, UAString } from "node-opcua-basic-types"
 import { DTArgument } from "node-opcua-nodeset-ua/source/dt_argument"
 import { UAFileDirectory } from "node-opcua-nodeset-ua/source/ua_file_directory"
 import { UASoftwareLoading, UASoftwareLoading_Base } from "./ua_software_loading"

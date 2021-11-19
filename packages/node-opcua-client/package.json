@@ -14,10 +14,10 @@
     "types": "./dist/index.d.ts",
     "dependencies": {
         "@ster5/global-mutex": "^1.1.1",
-        "@types/async": "^3.2.8",
+        "@types/async": "^3.2.10",
         "@types/once": "^1.4.0",
         "@types/underscore": "^1.11.3",
-        "async": "^3.2.1",
+        "async": "^3.2.2",
         "callbackify": "^1.1.0",
         "chalk": "4.1.2",
         "delayed": "^2.0.0",
@@ -37,7 +37,7 @@
         "node-opcua-hostname": "2.55.0",
         "node-opcua-nodeid": "2.55.0",
         "node-opcua-object-registry": "2.56.0",
-        "node-opcua-pki": "^2.12.0",
+        "node-opcua-pki": "^2.12.1",
         "node-opcua-pseudo-session": "2.59.0",
         "node-opcua-schemas": "2.59.0",
         "node-opcua-secure-channel": "2.59.0",
@@ -71,7 +71,7 @@
         "node-opcua-leak-detector": "2.56.0",
         "node-opcua-nodesets": "2.57.0",
         "should": "^13.2.3",
-        "sinon": "^11.1.2"
+        "sinon": "^12.0.1"
     },
     "eslintConfig": {
         "env": {

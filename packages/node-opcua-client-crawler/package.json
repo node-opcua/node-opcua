@@ -13,7 +13,7 @@
 	},
 	"dependencies": {
 		"@types/underscore": "^1.11.3",
-		"async": "^3.2.1",
+		"async": "^3.2.2",
 		"node-opcua-assert": "2.55.0",
 		"node-opcua-constants": "2.52.0",
 		"node-opcua-data-model": "2.57.0",
