@@ -419,6 +419,42 @@ export class OPCUAClientImpl extends ClientBaseImpl implements OPCUAClient {
     }
 
     /**
+     * createSession2 create a session with persistance
+     *
+     * - if the server returns BadTooManySession, the method will make an other attempt
+     *   unitl create session succeed or connection is closed.
+     *
+     * @experiemental
+     * @param userIdentityInfo
+     */
+    public async createSession2(userIdentityInfo?: UserIdentityInfo): Promise<ClientSession>;
+    public createSession2(userIdentityInfo: UserIdentityInfo, callback: Callback<ClientSession>): void;
+    public createSession2(callback: Callback<ClientSession>): void;
+    public createSession2(...args: any[]): any {
+        if (args.length === 1) {
+            return this.createSession2({ type: UserTokenType.Anonymous }, args[0]);
+        }
+        const userIdentityInfo = args[0] as UserIdentityInfo;
+        const callback = args[1] as Callback<ClientSession>;
+        if (!this._secureChannel) {
+            // we do not have a connection anymore
+            return callback(new Error("Connection is closed"));
+        }
+        return this.createSession(args[0], (err: Error | null, session?: ClientSession) => {
+            if (err && err.message.match(/BadTooManySessions/)) {
+                const delayToRetry = 5; // seconds
+                errorLog(`TooManySession .... we need to retry later  ... in  ${delayToRetry} secondes`);
+                const retryCreateSessionTimer = setTimeout(() => {
+                    errorLog("TooManySession .... now retrying");
+                    this.createSession2(userIdentityInfo, callback);
+                }, delayToRetry * 1000);
+                return;
+            }
+            callback(err, session);
+        });
+    }
+
+    /**
      * @method changeSessionIdentity
      * @param session
      * @param userIdentityInfo
@@ -472,6 +508,44 @@ export class OPCUAClientImpl extends ClientBaseImpl implements OPCUAClient {
     }
 
     /**
+     *
+     * @example
+     *
+     * ```javascript
+     *
+     * const session = await OPCUAClient.createSession(endpointUrl);
+     * const dataValue = await session.read({ nodeId, attributeId: AttributeIds.Value });
+     * await session.close();
+     *
+     * ```
+     * @stability experimental
+     *
+     * @param endpointUrl
+     * @param userIdentity
+     * @returns session
+     *
+     *
+     * const create
+     */
+    public static async createSession(
+        endpointUrl: string,
+        userIdentity?: UserIdentityInfo,
+        clientOptions?: OPCUAClientOptions
+    ): Promise<ClientSession> {
+        const client = OPCUAClient.create(clientOptions || {});
+
+        await client.connect(endpointUrl);
+        const session = await client.createSession2(userIdentity);
+
+        const oldClose = session.close;
+        (session as any).close = (...args: any[]): any => {
+            session.close = oldClose;
+            oldClose.call(session, ...args);
+            client.disconnect();
+        };
+        return session;
+    }
+    /**
      * @method withSession
      */
     public withSession<T>(
@@ -484,7 +558,6 @@ export class OPCUAClientImpl extends ClientBaseImpl implements OPCUAClient {
         inner_func: (session: ClientSession, done: (err?: Error) => void) => void,
         callback: (err?: Error) => void
     ): void;
-
     /**
      * @internal
      * @param args
@@ -522,7 +595,7 @@ export class OPCUAClientImpl extends ClientBaseImpl implements OPCUAClient {
 
                 // step 2 : createSession
                 (innerCallback: ErrorCallback) => {
-                    this.createSession(userIdentity, (err: Error | null, session?: ClientSession) => {
+                    this.createSession2(userIdentity, (err: Error | null, session?: ClientSession) => {
                         if (err) {
                             return innerCallback(err);
                         }
@@ -570,7 +643,7 @@ export class OPCUAClientImpl extends ClientBaseImpl implements OPCUAClient {
             ],
             (err1) => {
                 if (err1) {
-                    console.log("err", err1);
+                    console.log("err", err1.message);
                 }
                 if (need_disconnect) {
                     errorLog("Disconnecting client after failure");
@@ -624,7 +697,7 @@ export class OPCUAClientImpl extends ClientBaseImpl implements OPCUAClient {
             typeof connectionPoint === "string" ? { type: UserTokenType.Anonymous } : connectionPoint.userIdentity;
 
         await this.connect(endpointUrl);
-        const session = await this.createSession(userIdentity);
+        const session = await this.createSession2(userIdentity);
 
         let result;
         try {
@@ -673,7 +746,7 @@ export class OPCUAClientImpl extends ClientBaseImpl implements OPCUAClient {
 
         assert(typeof callback === "function");
         if (!this._secureChannel) {
-            throw new Error(" client must be connected first");
+            return callback!(new Error(" client must be connected first"));
         }
         // istanbul ignore next
         if (!this.__resolveEndPoint() || !this.endpoint) {
@@ -737,12 +810,14 @@ export class OPCUAClientImpl extends ClientBaseImpl implements OPCUAClient {
         callback: (err: Error | null, session?: ClientSessionImpl) => void
     ): void {
         assert(typeof callback === "function");
-        if (!this._secureChannel) {
-            throw new Error("Invalid channel");
-        }
         assert(this.serverUri !== undefined, " must have a valid server URI " + this.serverUri);
         assert(this.endpointUrl !== undefined, " must have a valid server endpointUrl");
         assert(this.endpoint);
+
+        // istanbul ignore next
+        if (!this._secureChannel) {
+            return callback(new Error("Invalid channel"));
+        }
 
         const applicationUri = this._getApplicationUri();
 
@@ -777,7 +852,13 @@ export class OPCUAClientImpl extends ClientBaseImpl implements OPCUAClient {
         this.performMessageTransaction(request, (err: Error | null, response?: Response) => {
             /* istanbul ignore next */
             if (err) {
-                return callback(err);
+                // we could have an invalid state here or a connection error
+                errorLog("error: ", err.message, " retrying in ... 5 secondes");
+                setTimeout(() => {
+                    errorLog(" .... now retrying");
+                    this.__createSession_step3(session, callback);
+                }, 5 * 1000);
+                return;
             }
 
             /* istanbul ignore next */
@@ -786,7 +867,7 @@ export class OPCUAClientImpl extends ClientBaseImpl implements OPCUAClient {
             }
 
             if (response.responseHeader.serviceResult === StatusCodes.BadTooManySessions) {
-                return callback(new Error("Too Many Sessions : " + response.responseHeader.serviceResult.toString()));
+                return callback(new Error(response.responseHeader.serviceResult.toString()));
             }
 
             if (response.responseHeader.serviceResult !== StatusCodes.Good) {
@@ -848,6 +929,7 @@ export class OPCUAClientImpl extends ClientBaseImpl implements OPCUAClient {
     public _activateSession(session: ClientSessionImpl, callback: (err: Error | null, session?: ClientSessionImpl) => void): void {
         // see OPCUA Part 4 - $7.35
         assert(typeof callback === "function");
+
         // istanbul ignore next
         if (!this._secureChannel) {
             return callback(new Error(" No secure channel"));
@@ -1169,6 +1251,7 @@ const thenify = require("thenify");
  *
  */
 OPCUAClientImpl.prototype.createSession = thenify.withCallback(OPCUAClientImpl.prototype.createSession);
+OPCUAClientImpl.prototype.createSession2 = thenify.withCallback(OPCUAClientImpl.prototype.createSession2);
 /**
  * @method changeSessionIdentity
  * @async
