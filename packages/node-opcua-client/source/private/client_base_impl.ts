@@ -64,6 +64,7 @@ import {
 import { performCertificateSanityCheck } from "../verify";
 import { ClientSessionImpl } from "./client_session_impl";
 import { IClientBase } from "./i_private_client";
+import { UserIdentityInfo } from "..";
 
 // tslint:disable-next-line:no-var-requires
 const once = require("once");
@@ -673,6 +674,7 @@ export class ClientBaseImpl extends OPCUASecureObject implements OPCUAClientBase
             ],
             (err) => {
                 if (err) {
+                    debugLog("Inner create secure channel has failed", err.message);
                     this._secureChannel = null;
                     callback(err);
                 } else {
@@ -743,6 +745,9 @@ export class ClientBaseImpl extends OPCUASecureObject implements OPCUAClientBase
     }
 
     protected async initializeCM(): Promise<void> {
+        if (!this.clientCertificateManager) {
+            return;
+        }
         await this.clientCertificateManager.initialize();
         await this.createDefaultCertificate();
         // istanbul ignore next
@@ -1152,6 +1157,7 @@ export class ClientBaseImpl extends OPCUASecureObject implements OPCUAClientBase
 
     public disconnect(): Promise<void>;
     public disconnect(callback: ErrorCallback): void;
+    // eslint-disable-next-line max-statements
     public disconnect(...args: any[]): any {
         const callback = args[0];
         assert(typeof callback === "function", "expecting a callback function here");
@@ -1192,7 +1198,9 @@ export class ClientBaseImpl extends OPCUASecureObject implements OPCUAClientBase
         }
 
         if (this.clientCertificateManager) {
-            this.clientCertificateManager.dispose();
+            const tmp = this.clientCertificateManager;
+            (this as any).clientCertificateManager = null;
+            tmp.dispose();
         }
         if (this._internalState === "disconnected" || this._internalState === "disconnecting") {
             return callback();
@@ -1516,7 +1524,7 @@ export class ClientBaseImpl extends OPCUASecureObject implements OPCUAClientBase
                 /**
                  * @event connection_lost
                  */
-                this.emit("connection_lost"); // instead of "close"
+                this.emit("connection_lost", err?.message); // instead of "close"
                 this._repairConnection();
             }
         });
@@ -1547,12 +1555,16 @@ export class ClientBaseImpl extends OPCUASecureObject implements OPCUAClientBase
                 } else {
                     this._finalReconnectionStep((err2?: Error | null) => {
                         if (err2) {
+                            // istanbul ignore next
                             if (doDebug) {
                                 debugLog("connection_reestablished has failed");
                                 debugLog("err= ", err2);
                             }
                             this.disconnect(() => {
+                                // we still need to retry connecting here !!!
                                 warningLog("Disconnected following reconnection failure", err2.message);
+                                warningLog("I will retry OPCUA client reconnection in 5 seconds");
+                                setTimeout(() => this._repairConnection(), 5000);
                             });
                             return;
                         } else {

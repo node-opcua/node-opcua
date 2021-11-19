@@ -8,7 +8,7 @@ import * as chalk from "chalk";
 import { assert } from "node-opcua-assert";
 import { checkDebugFlag, make_debugLog, make_errorLog, make_warningLog } from "node-opcua-debug";
 import { TransferSubscriptionsRequest, TransferSubscriptionsResponse } from "node-opcua-service-subscription";
-import { StatusCodes } from "node-opcua-status-code";
+import { CallbackT, StatusCodes } from "node-opcua-status-code";
 import { ErrorCallback } from "node-opcua-status-code";
 
 import { SubscriptionId } from "./client_session";
@@ -133,6 +133,33 @@ function _ask_for_subscription_republish(session: ClientSessionImpl, callback: (
     });
 }
 
+function create_session_and_repeat_if_failed(
+    client: IClientBase,
+    session: ClientSessionImpl,
+    callback: CallbackT<ClientSessionImpl>
+) {
+    if (session.hasBeenClosed()) {
+        return callback(new Error("Cannot complete subscription republish due to session termination"));
+    }
+    debugLog(chalk.bgWhite.red("    => creating a new session ...."));
+    // create new session, based on old session,
+    // so we can reuse subscriptions data
+    client.__createSession_step2(session, (err: Error | null, session1?: ClientSessionImpl) => {
+        debugLog(chalk.bgWhite.cyan("    => creating a new session (based on old session data).... Done"));
+        if (!err && session1) {
+            const newSession = session1;
+            assert(session === session1, "session should have been recycled");
+            callback(err, newSession);
+            return;
+        } else {
+            setTimeout(() => {
+                create_session_and_repeat_if_failed(client, session, callback);
+            }, 1000);
+            return;
+        }
+        callback(err);
+    });
+}
 function repair_client_session_by_recreating_a_new_session(
     client: IClientBase,
     session: ClientSessionImpl,
@@ -164,20 +191,11 @@ function repair_client_session_by_recreating_a_new_session(
             },
 
             function create_new_session(innerCallback: ErrorCallback) {
-                if (session.hasBeenClosed()) {
-                    return innerCallback(new Error("Cannot complete subscription republish due to session termination"));
-                }
-
-                debugLog(chalk.bgWhite.red("    => creating a new session ...."));
-                // create new session, based on old session,
-                // so we can reuse subscriptions data
-                client.__createSession_step2(session, (err: Error | null, session1?: ClientSessionImpl) => {
-                    debugLog(chalk.bgWhite.cyan("    => creating a new session (based on old session data).... Done"));
-                    if (!err && session1) {
-                        newSession = session1;
-                        assert(session === session1, "session should have been recycled");
+                create_session_and_repeat_if_failed(client, session, (err?: Error | null, _newSession?: ClientSessionImpl) => {
+                    if (_newSession) {
+                        newSession = _newSession;
                     }
-                    innerCallback(err ? err : undefined);
+                    innerCallback(err || undefined);
                 });
             },
 
@@ -386,8 +404,8 @@ export function repair_client_session(client: IClientBase, session: ClientSessio
     _repair_client_session(client, session, (err) => {
         privateSession._reconnecting.reconnecting = false;
         if (err) {
-            debugLog(chalk.red("SESSION RESTORED HAS FAILED! retrying"), err.message, session.sessionId.toString());
-            // xx return repair_client_session(client, session, callback);
+            errorLog(chalk.red("SESSION RESTORED HAS FAILED! retrying"), err.message, session.sessionId.toString());
+            return _repair_client_session(client, session, callback);
         }
         debugLog(chalk.yellow("SESSION RESTORED"), session.sessionId.toString());
         session.emit("session_restored");
@@ -413,7 +431,7 @@ export function repair_client_sessions(client: IClientBase, callback: (err?: Err
             repair_client_session(client, session as ClientSessionImpl, next);
         },
         (err) => {
-            debugLog(chalk.red.bgWhite("sessions reactivation completed: err ", err ? err.message : "null"));
+            err && errorLog("sessions reactivation completed: err ", err ? err.message : "null");
             return callback(err!);
         }
     );

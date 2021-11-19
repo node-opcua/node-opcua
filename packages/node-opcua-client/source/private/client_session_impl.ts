@@ -382,7 +382,7 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession {
     public browse(...args: any[]): any {
         const arg0 = args[0];
         const isArray = Array.isArray(arg0);
-        const callback: ResponseCallback<BrowseResult[]| BrowseResult> = args[1];
+        const callback: ResponseCallback<BrowseResult[] | BrowseResult> = args[1];
         assert(typeof callback === "function");
 
         assert(isFinite(this.requestedMaxReferencesPerNode));
@@ -1504,13 +1504,11 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession {
             if (this._reconnecting.pendingTransactions.length > 10) {
                 if (!pendingTransactionMessageDisplayed) {
                     pendingTransactionMessageDisplayed = true;
-                    // tslint:disable-next-line: no-console
                     warningLog(
                         "[NODE-OPCUA-W21]",
                         "Pending transactions: ",
                         this._reconnecting.pendingTransactions.map((a: any) => a.request.constructor.name).join(" ")
                     );
-                    // tslint:disable-next-line: no-console
                     warningLog(
                         "[NODE-OPCUA-W22]",
                         chalk.yellow(

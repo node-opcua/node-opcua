@@ -132,6 +132,12 @@ export interface OPCUAClient extends OPCUAClientBase {
 
     createSession(callback: (err: Error | null, session?: ClientSession) => void): void;
 
+    createSession2(userIdentityInfo?: UserIdentityInfo): Promise<ClientSession>;
+
+    createSession2(userIdentityInfo: UserIdentityInfo, callback: (err: Error | null, session?: ClientSession) => void): void;
+
+    createSession2(callback: (err: Error | null, session?: ClientSession) => void): void;
+
     changeSessionIdentity(session: ClientSession, userIdentityInfo: UserIdentityInfo): Promise<void>;
 
     changeSessionIdentity(session: ClientSession, userIdentityInfo: UserIdentityInfo, callback: (err?: Error) => void): void;
@@ -173,6 +179,13 @@ export interface OPCUAClient {
 export class OPCUAClient {
     public static create(options: OPCUAClientOptions): OPCUAClient {
         return new OPCUAClientImpl(options);
+    }
+    public static async createSession(
+        endpointUrl: string,
+        userIdentity?: UserIdentityInfo,
+        clientOptions?: OPCUAClientOptions
+    ): Promise<ClientSession> {
+        return OPCUAClientImpl.createSession(endpointUrl, userIdentity, clientOptions);
     }
     public static set minimumRevisedSessionTimeout(minimumRevisedSessionTimeout: number) {
         OPCUAClientImpl.minimumRevisedSessionTimeout = minimumRevisedSessionTimeout;

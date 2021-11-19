@@ -344,7 +344,11 @@ export class ClientSidePublishEngine {
 
             // feed the server with a new publish Request to the server
             if (!this.isSuspended && active && this.activeSubscriptionCount > 0) {
-                this.send_publish_request();
+                if (err && err.message.match(/Connection Break/)) {
+                    // do not renew when connection is broken
+                } else {
+                    this.send_publish_request();
+                }
             }
         });
     }
@@ -428,9 +432,12 @@ export class ClientSidePublishEngine {
                 return callback2();
             }
             session.republish(request, (err: Error | null, response?: RepublishResponse) => {
-                if (!err && response!.responseHeader.serviceResult.equals(StatusCodes.Good)) {
+                const statusCode = err ? StatusCodes.Bad : response!.responseHeader.serviceResult;
+                if (!err && (statusCode.equals(StatusCodes.Good) || statusCode.equals(StatusCodes.BadMessageNotAvailable))) {
                     // reprocess notification message  and keep going
-                    subscription.onNotificationMessage(response!.notificationMessage);
+                    if (statusCode.equals(StatusCodes.Good)) {
+                        subscription.onNotificationMessage(response!.notificationMessage);
+                    }
                 } else {
                     if (!err) {
                         err = new Error(response!.responseHeader.serviceResult.toString());
