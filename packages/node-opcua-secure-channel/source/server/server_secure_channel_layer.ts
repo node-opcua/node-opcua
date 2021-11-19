@@ -58,7 +58,6 @@ import {
     ServiceFault
 } from "../services";
 
-
 import {
     doPerfMonitoring,
     doTraceServerMessage,
@@ -95,7 +94,7 @@ export interface ServerSecureChannelParent extends ICertificateKeyPairProvider {
     ): EndpointDescription | null;
 }
 
-export interface SeverSecureChannelLayerOptions {
+export interface ServerSecureChannelLayerOptions {
     parent: ServerSecureChannelParent;
     /**
      * timeout in milliseconds [default = 30000]
@@ -244,7 +243,7 @@ export class ServerSecureChannelLayer extends EventEmitter {
 
     public static registry = new ObjectRegistry({});
     public _on_response: ((msgType: string, response: Response, message: Message) => void) | null;
-    public sessionTokens: {[key: string]: IServerSessionBase};
+    public sessionTokens: { [key: string]: IServerSessionBase };
     public channelId: number | null;
     public timeout: number;
     public readonly messageBuilder: MessageBuilder;
@@ -296,7 +295,7 @@ export class ServerSecureChannelLayer extends EventEmitter {
     private __verifId: any;
     private _transport_socket_close_listener?: any;
 
-    public constructor(options: SeverSecureChannelLayerOptions) {
+    public constructor(options: ServerSecureChannelLayerOptions) {
         super();
 
         this._on_response = null;
@@ -620,7 +619,12 @@ export class ServerSecureChannelLayer extends EventEmitter {
         );
     }
 
-    public send_fatal_error_and_abort(statusCode: StatusCode, description: string, message: Message, callback: ErrorCallback): void {
+    public send_fatal_error_and_abort(
+        statusCode: StatusCode,
+        description: string,
+        message: Message,
+        callback: ErrorCallback
+    ): void {
         this.transport.abortWithError(statusCode, description, () => {
             this.close(() => {
                 callback(new Error(description + " statusCode = " + statusCode.toString()));
@@ -631,9 +635,11 @@ export class ServerSecureChannelLayer extends EventEmitter {
     public getRemoteIPAddress(): string {
         return (this.transport?._socket as Socket)?.remoteAddress || "";
     }
+
     public getRemotePort(): number {
         return (this.transport?._socket as Socket)?.remotePort || 0;
     }
+
     public getRemoteFamily(): string {
         return (this.transport?._socket as Socket)?.remoteFamily || "";
     }
@@ -1321,7 +1327,9 @@ export class ServerSecureChannelLayer extends EventEmitter {
             this.close();
         } else if (msgType === "OPN" && request.schema.name === "OpenSecureChannelRequest") {
             // intercept client request to renew security Token
-            this._handle_OpenSecureChannelRequest(StatusCodes.Good, message, (/* err?: Error*/) => {/** */});
+            this._handle_OpenSecureChannelRequest(StatusCodes.Good, message, (/* err?: Error*/) => {
+                /** */
+            });
         } else {
             if (request.schema.name === "CloseSecureChannelRequest") {
                 warningLog("WARNING : RECEIVED a CloseSecureChannelRequest with msgType=", msgType);
@@ -1339,7 +1347,9 @@ export class ServerSecureChannelLayer extends EventEmitter {
                         StatusCodes.BadCommunicationError,
                         "Invalid Channel Id specified " + this.securityToken.channelId,
                         message,
-                        () => {/** */}
+                        () => {
+                            /** */
+                        }
                     );
                 }
 

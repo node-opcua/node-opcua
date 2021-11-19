@@ -22,15 +22,26 @@ import {
     PublishResponse,
     DataChangeNotification,
     EventNotificationList,
-    StatusChangeNotification
+    StatusChangeNotification,
+    OpenSecureChannelRequest,
+    SecurityTokenRequestType,
+    MessageSecurityMode,
+    CreateSessionRequest,
+    CreateSessionResponse,
+    ActivateSessionRequest,
+    AnonymousIdentityToken,
+    UserNameIdentityToken,
+    X509IdentityToken,
+    ActivateSessionResponse,
+    PublishRequest
 } from "node-opcua-types";
 import { StatusCode, StatusCodes } from "node-opcua-status-code";
 import { Request, Response } from "./common";
+import { SecurityPolicy } from ".";
 
 const clientFlag = (process.env?.NODEOPCUADEBUG?.match(/CLIENT{([^}]*)}/) || [])[1] || "";
 const serverFlag = (process.env?.NODEOPCUADEBUG?.match(/SERVER{([^}]*)}/) || [])[1] || "";
 const filter = new RegExp((process.env?.NODEOPCUADEBUG?.match(/FILTER{([^}]*)}/) || [])[1] || ".*");
-
 
 // console.log("serverFlag", serverFlag);
 // console.log("clientFlag", clientFlag);
@@ -138,6 +149,24 @@ function __get_extraInfo(req: Response | Request): string {
     if (req instanceof BrowseNextResponse) {
         return " results.length        =" + req.results?.length;
     }
+    if (req instanceof CreateSessionRequest) {
+        return " " + req.sessionName + " to:" + req.requestedSessionTimeout + "ms";
+    }
+    if (req instanceof CreateSessionResponse) {
+        return " " + req.sessionId + " to:" + req.revisedSessionTimeout + "ms";
+    }
+    if (req instanceof ActivateSessionRequest) {
+        if (req.userIdentityToken instanceof AnonymousIdentityToken) {
+            return " Anonymous";
+        } else if (req.userIdentityToken instanceof UserNameIdentityToken) {
+            return " UserName";
+        } else if (req.userIdentityToken instanceof X509IdentityToken) {
+            return " X509";
+        }
+    }
+    if (req instanceof ActivateSessionResponse) {
+        return (req.results || []).map((p) => p.toString()).join(" ");
+    }
     if (req instanceof CreateMonitoredItemsRequest) {
         return " itemsToCreate.length  =" + req.itemsToCreate?.length;
     }
@@ -153,8 +182,22 @@ function __get_extraInfo(req: Response | Request): string {
     if (req instanceof RegisterNodesRequest) {
         return " nodesToRegister.length=" + req.nodesToRegister?.length;
     }
+    if (req instanceof OpenSecureChannelRequest) {
+        return (
+            " " +
+            SecurityTokenRequestType[req.requestType] +
+            " " +
+            MessageSecurityMode[req.securityMode] +
+            " lt:" +
+            req.requestedLifetime +
+            "ms"
+        );
+    }
     if (req instanceof RegisterNodesResponse) {
         return " nodesToRegister.length=" + req.registeredNodeIds?.length;
+    }
+    if (req instanceof PublishRequest) {
+        return " " + req.requestHeader.timeoutHint + "ms";
     }
     if (req instanceof PublishResponse) {
         let t = "";
@@ -205,7 +248,7 @@ function statusCodeToString(s: StatusCode): string {
 
 // istanbul ignore next
 export function traceRequestMessage(request: Request, channelId: number, instance: number): void {
-    if (doTraceServerMessage ) {
+    if (doTraceServerMessage) {
         const extra = _get_extraInfo(request);
         const size = evaluateBinarySize(request);
         const requestId = request.requestHeader.requestHandle;
@@ -228,7 +271,7 @@ export function traceRequestMessage(request: Request, channelId: number, instanc
 // istanbul ignore next
 export function traceResponseMessage(response: Response, channelId: number, instance: number): void {
     assert(response.responseHeader.requestHandle >= 0);
-    if (doTraceServerMessage ) {
+    if (doTraceServerMessage) {
         const extra = _get_extraInfo(response);
         const size = evaluateBinarySize(response);
         const requestId = response.responseHeader.requestHandle;
