@@ -120,6 +120,9 @@ export class Variant extends BaseUAObject {
         this.value = initialize_field(schema.fields[2], options2.value);
         this.dimensions = options2.dimensions || null;
 
+        if (this.dataType === undefined) {
+            throw new Error("dataType is not specified");
+        }
         if (this.dataType === DataType.ExtensionObject) {
             if (this.arrayType === VariantArrayType.Scalar) {
                 /* istanbul ignore next */
@@ -238,30 +241,36 @@ const nullVariant = new Variant({ dataType: DataType.Null });
  * @private
  */
 export function encodeVariant(variant: Variant | undefined | null, stream: OutputBinaryStream): void {
-    if (!variant) {
-        variant = nullVariant;
-    }
-    let encodingByte = variant.dataType;
+    try {
+        if (!variant) {
+            variant = nullVariant;
+        }
+        let encodingByte = variant.dataType;
 
-    if (variant.arrayType === VariantArrayType.Array || variant.arrayType === VariantArrayType.Matrix) {
-        encodingByte |= VARIANT_ARRAY_MASK;
-    }
-    if (variant.dimensions) {
-        assert(variant.arrayType === VariantArrayType.Matrix);
-        assert(variant.dimensions.length >= 0);
-        encodingByte |= VARIANT_ARRAY_DIMENSIONS_MASK;
-    }
-    encodeUInt8(encodingByte, stream);
+        if (variant.arrayType === VariantArrayType.Array || variant.arrayType === VariantArrayType.Matrix) {
+            encodingByte |= VARIANT_ARRAY_MASK;
+        }
+        if (variant.dimensions) {
+            assert(variant.arrayType === VariantArrayType.Matrix);
+            assert(variant.dimensions.length >= 0);
+            encodingByte |= VARIANT_ARRAY_DIMENSIONS_MASK;
+        }
+        encodeUInt8(encodingByte, stream);
 
-    if (variant.arrayType === VariantArrayType.Array || variant.arrayType === VariantArrayType.Matrix) {
-        encodeVariantArray(variant.dataType, stream, variant.value);
-    } else {
-        const encode = get_encoder(variant.dataType);
-        encode(variant.value, stream);
-    }
+        if (variant.arrayType === VariantArrayType.Array || variant.arrayType === VariantArrayType.Matrix) {
+            encodeVariantArray(variant.dataType, stream, variant.value);
+        } else {
+            const encode = get_encoder(variant.dataType || DataType.Null);
+            encode(variant.value, stream);
+        }
 
-    if ((encodingByte & VARIANT_ARRAY_DIMENSIONS_MASK) === VARIANT_ARRAY_DIMENSIONS_MASK && variant.dimensions) {
-        encodeDimension(variant.dimensions, stream);
+        if ((encodingByte & VARIANT_ARRAY_DIMENSIONS_MASK) === VARIANT_ARRAY_DIMENSIONS_MASK && variant.dimensions) {
+            encodeDimension(variant.dimensions, stream);
+        }
+    } catch (err) {
+        console.log("Error encoding variant", err);
+        console.log(variant?.toString());
+        throw err;
     }
 }
 
@@ -489,6 +498,9 @@ function calculate_product(array: number[] | null): number {
 
 function get_encoder(dataType: DataType) {
     const dataTypeAsString = typeof dataType === "string" ? dataType : DataType[dataType];
+    if (!dataTypeAsString) {
+        throw new Error("invalid dataType " + dataType);
+    }
     const encode = findBuiltInType(dataTypeAsString).encode;
     /* istanbul ignore next */
     if (!encode) {

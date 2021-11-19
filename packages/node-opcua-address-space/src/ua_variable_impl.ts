@@ -41,7 +41,7 @@ import {
 } from "node-opcua-types";
 import * as utils from "node-opcua-utils";
 import { lowerFirstLetter } from "node-opcua-utils";
-import { Variant, VariantLike, DataType, sameVariant, VariantArrayType, adjustVariant } from "node-opcua-variant";
+import { Variant, VariantLike, DataType, sameVariant, VariantArrayType, adjustVariant, verifyRankAndDimensions } from "node-opcua-variant";
 import { StatusCodeCallback } from "node-opcua-status-code";
 import {
     IAddressSpace,
@@ -227,36 +227,6 @@ interface UAVariableOptions extends InternalBaseNodeOptions {
     historizing?: number;
 }
 
-export function verifyRankAndDimensions(options: { valueRank?: number; arrayDimensions?: number[] | null }): void {
-    // evaluate valueRank arrayDimensions is specified but valueRank is null
-    if (options.arrayDimensions && options.valueRank === undefined) {
-        options.valueRank = options.arrayDimensions.length;
-    }
-    options.valueRank = options.valueRank === undefined ? -1 : options.valueRank || 0; // UInt32
-    assert(typeof options.valueRank === "number");
-
-    options.arrayDimensions = options.arrayDimensions || null;
-    assert(options.arrayDimensions === null || Array.isArray(options.arrayDimensions));
-
-    if (options.arrayDimensions && options.valueRank <= 0) {
-        throw new Error("[CONFORMANCE] arrayDimensions must be null if valueRank <=0");
-    }
-    // specify default arrayDimension if not provided
-    if (options.valueRank > 0 && !options.arrayDimensions) {
-        options.arrayDimensions = new Array(options.valueRank).fill(0);
-    }
-    if (!options.arrayDimensions && options.valueRank > 0) {
-        throw new Error("[CONFORMANCE] arrayDimension must be specified  if valueRank >0 " + options.valueRank);
-    }
-    if (options.valueRank > 0 && options.arrayDimensions!.length !== options.valueRank) {
-        throw new Error(
-            "[CONFORMANCE] when valueRank> 0, arrayDimensions must have valueRank elements, this.valueRank =" +
-                options.valueRank +
-                "  whereas arrayDimensions.length =" +
-                options.arrayDimensions!.length
-        );
-    }
-}
 
 type TimestampGetFunction1 = () => DataValue | Promise<DataValue>;
 type TimestampGetFunction2 = (callback: (err: Error | null, dataValue?: DataValue) => void) => void;

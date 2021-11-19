@@ -28,7 +28,7 @@ import {
     RolePermissionTypeOptions
 } from "node-opcua-types";
 import * as utils from "node-opcua-utils";
-import { DataType, Variant, VariantArrayType } from "node-opcua-variant";
+import { DataType, Variant, VariantArrayType, verifyRankAndDimensions } from "node-opcua-variant";
 import {
     AddBaseNodeOptions,
     AddEnumerationTypeOptions,
@@ -100,7 +100,7 @@ import { _install_TwoStateVariable_machinery, _addTwoStateVariable } from "./sta
 //
 import { NamespacePrivate, UANamespace_process_modelling_rule } from "./namespace_private";
 import { BaseNodeImpl } from "./base_node_impl";
-import { UAVariableImpl, verifyRankAndDimensions } from "./ua_variable_impl";
+import { UAVariableImpl } from "./ua_variable_impl";
 
 import { ConstructNodeIdOptions, NodeIdManager } from "./nodeid_manager";
 import { _addTwoStateDiscrete } from "./data_access/ua_two_state_discrete";

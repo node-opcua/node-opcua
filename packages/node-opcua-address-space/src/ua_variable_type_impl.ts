@@ -6,20 +6,6 @@
 import * as chalk from "chalk";
 
 import { assert } from "node-opcua-assert";
-import { UInt32 } from "node-opcua-basic-types";
-import { ReferenceTypeIds } from "node-opcua-constants";
-import { coerceQualifiedName, NodeClass, QualifiedName } from "node-opcua-data-model";
-import { BrowseDirection } from "node-opcua-data-model";
-import { AttributeIds } from "node-opcua-data-model";
-import { DataValue, DataValueLike } from "node-opcua-data-value";
-import { checkDebugFlag, make_debugLog, make_warningLog } from "node-opcua-debug";
-import { coerceNodeId, makeNodeId, NodeId, NodeIdLike, sameNodeId } from "node-opcua-nodeid";
-import { StatusCodes } from "node-opcua-status-code";
-import { isNullOrUndefined } from "node-opcua-utils";
-import { DataType } from "node-opcua-variant";
-import { Variant } from "node-opcua-variant";
-import { VariantArrayType } from "node-opcua-variant";
-
 import {
     IAddressSpace,
     AddVariableOptions,
@@ -35,6 +21,15 @@ import {
     UAVariableType,
     CloneFilter
 } from "node-opcua-address-space-base";
+import { ReferenceTypeIds } from "node-opcua-constants";
+import { coerceQualifiedName, NodeClass, QualifiedName, BrowseDirection, AttributeIds } from "node-opcua-data-model";
+import { DataValue, DataValueLike } from "node-opcua-data-value";
+import { checkDebugFlag, make_debugLog, make_warningLog } from "node-opcua-debug";
+import { coerceNodeId, makeNodeId, NodeId, NodeIdLike, sameNodeId } from "node-opcua-nodeid";
+import { StatusCodes } from "node-opcua-status-code";
+import { UInt32 } from "node-opcua-basic-types";
+import { isNullOrUndefined } from "node-opcua-utils";
+import { DataType, Variant, VariantArrayType, verifyRankAndDimensions } from "node-opcua-variant";
 
 import { SessionContext } from "../source/session_context";
 import { makeOptionalsMap, OptionalMap } from "../source/helpers/make_optionals_map";
@@ -45,7 +40,6 @@ import { _clone_children_references, ToStringBuilder, UAVariableType_toString } 
 import * as tools from "./tool_isSupertypeOf";
 import { get_subtypeOfObj } from "./tool_isSupertypeOf";
 import { get_subtypeOf } from "./tool_isSupertypeOf";
-import { verifyRankAndDimensions } from "./ua_variable_impl";
 
 const debugLog = make_debugLog(__filename);
 const doDebug = checkDebugFlag(__filename);
