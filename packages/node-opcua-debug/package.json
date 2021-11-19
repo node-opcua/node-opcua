@@ -8,7 +8,7 @@
         "test": "mocha"
     },
     "dependencies": {
-        "hexy": "^0.3.2",
+        "hexy": "^0.3.3",
         "node-opcua-assert": "2.55.0",
         "node-opcua-buffer-utils": "2.55.0"
     },

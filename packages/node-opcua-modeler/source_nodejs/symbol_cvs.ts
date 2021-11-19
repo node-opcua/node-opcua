@@ -1,7 +1,5 @@
 import * as fs from "fs";
-import { promisify } from "util";
-import * as parse from "csv-parse";
-import { Parser } from "csv-parse";
+import { Parser, parse } from "csv-parse";
 
 import { Symbols } from "..";
 import { toCSV } from "..";

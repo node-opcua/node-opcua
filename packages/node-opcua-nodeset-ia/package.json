@@ -17,5 +17,6 @@
         "node-opcua-nodeset-di": "2.59.0",
         "node-opcua-nodeset-ua": "2.59.0",
         "node-opcua-variant": "2.59.0"
-    }
+    },
+    "devDependencies": {}
 }
