@@ -6,13 +6,13 @@ import * as ec from "node-opcua-basic-types";
 import { BinaryStream, BinaryStreamSizeCalculator, OutputBinaryStream } from "node-opcua-binary-stream";
 import { checkDebugFlag, make_debugLog, make_warningLog } from "node-opcua-debug";
 import * as factories from "node-opcua-factory";
-import { NodeId, resolveNodeId } from "node-opcua-nodeid";
+import { coerceNodeId, NodeId, resolveNodeId } from "node-opcua-nodeid";
 import { Argument } from "node-opcua-service-call";
 import { StatusCode, StatusCodes } from "node-opcua-status-code";
 import { Variant } from "node-opcua-variant";
 import { DataType } from "node-opcua-variant";
 import { VariantArrayType } from "node-opcua-variant";
-
+import { DataTypeIds } from "node-opcua-constants";
 import { NodeClass } from "node-opcua-data-model";
 import { IAddressSpace, UAMethod, UAObject } from "node-opcua-address-space-base";
 
@@ -181,7 +181,17 @@ function isArgumentValid(addressSpace: IAddressSpace, argDefinition: Argument, a
     }
 
     // check that dataType is of the same type (derived )
-    return argDefDataType.isSupertypeOf(argDataType);
+    if (argDefDataType.isSupertypeOf(argDataType)) {
+        return true;
+    }
+    // special case for Enumeration
+    if (arg.dataType === DataType.Int32) {
+        const enumDataType = addressSpace.findDataType(coerceNodeId(DataTypeIds.Enumeration))!;
+        if (argDefDataType.isSupertypeOf(enumDataType)) {
+            return true;
+        }
+    }
+    return false;
 }
 
 /**

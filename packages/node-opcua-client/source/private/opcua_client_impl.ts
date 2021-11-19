@@ -537,12 +537,20 @@ export class OPCUAClientImpl extends ClientBaseImpl implements OPCUAClient {
         await client.connect(endpointUrl);
         const session = await client.createSession2(userIdentity);
 
-        const oldClose = session.close;
-        (session as any).close = (...args: any[]): any => {
+        const oldClose = session.close as any;
+        (session as any).close = thenify.withCallback((...args: any[]): any => {
+            if (args.length === 1) {
+                return session.close(true, args[0]);
+            }
+            const deleteSubscriptions = args[0] as boolean;
+            const callback = args[1] as Callback<void>;
             session.close = oldClose;
-            oldClose.call(session, ...args);
-            client.disconnect();
-        };
+            oldClose.call(session, deleteSubscriptions, (err?: Error) => {
+                client.disconnect((err?: Error | null) => {
+                    callback(err!);
+                });
+            });
+        });
         return session;
     }
     /**
