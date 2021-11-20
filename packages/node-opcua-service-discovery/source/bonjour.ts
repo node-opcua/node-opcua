@@ -2,13 +2,12 @@
  * @module node-opcua-service-discovery
  */
 // tslint:disable:no-console
-import * as bonjour from "bonjour";
-import { callbackify } from "util";
-import { promisify } from "util";
+import { callbackify, promisify } from "util";
 
 import { assert } from "node-opcua-assert";
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 import { ObjectRegistry } from "node-opcua-object-registry";
+import * as bonjour from "bonjour";
 
 const debugLog = make_debugLog(__filename);
 const doDebug = checkDebugFlag(__filename);
@@ -32,10 +31,14 @@ export function releaseBonjour() {
     gBonjourRefCount--;
     assert(gBonjourRefCount >= 0);
     if (gBonjourRefCount === 0) {
-        // will start the Bonjour service
-        registry.unregister(gBonjour);
-        gBonjour!.destroy();
+        if (!gBonjour) {
+            throw new Error("internal error");
+        }
+        const tmp = gBonjour;
         gBonjour = undefined;
+        // will stop the Bonjour service
+        tmp!.destroy();
+        registry.unregister(tmp);
     }
 }
 
@@ -133,7 +136,7 @@ export class BonjourHolder {
     public isStarted(): boolean {
         return !!this._multicastDNS;
     }
-    
+
     public _announcedOnMulticastSubnetWithCallback(options: Announcement, callback: (err: Error | null, result?: boolean) => void) {
         callback(new Error("Internal Error"));
     }
@@ -144,9 +147,11 @@ export class BonjourHolder {
         if (this._service) {
             // due to a wrong declaration of Service.stop in the d.ts file we
             // need to use a workaround here
-            const this_service = (this._service as any) as ServiceFixed;
+            const this_service = this._service as any as ServiceFixed;
             this._service = undefined;
             this._multicastDNS = undefined;
+            releaseBonjour();
+          
             this.announcement = undefined;
             const proxy = (callback: (err?: Error) => void) => {
                 this_service.stop(() => {
@@ -155,8 +160,7 @@ export class BonjourHolder {
             };
             const stop = promisify(proxy);
             await stop.call(this);
-            releaseBonjour();
-            await new Promise(resolve => setTimeout(resolve, 20));
+            //xx await new Promise((resolve) => setTimeout(resolve, 20));
             debugLog("stop announcement completed");
         }
     }
