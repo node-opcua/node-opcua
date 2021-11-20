@@ -407,12 +407,12 @@ export interface GetMonitoredItemsResult {
      * array of serverHandles for all MonitoredItems of the subscription
      * identified by subscriptionId.
      */
-    serverHandles: number[];
+    serverHandles: Uint32Array;
     /**
      *  array of clientHandles for all MonitoredItems of the subscription
      *  identified by subscriptionId.
      */
-    clientHandles: number[];
+    clientHandles: Uint32Array;
     statusCode: StatusCode;
 }
 
@@ -1143,19 +1143,23 @@ export class Subscription extends EventEmitter {
      *
      */
     public getMonitoredItems(): GetMonitoredItemsResult {
+        const monitoredItems = Object.keys(this.monitoredItems);
+        const monitoredItemCount = monitoredItems.length;
         const result: GetMonitoredItemsResult = {
-            clientHandles: [] as number[],
-            serverHandles: [] as number[],
+            clientHandles: new Uint32Array(monitoredItemCount),
+            serverHandles: new Uint32Array(monitoredItemCount),
             statusCode: StatusCodes.Good
         };
-        for (const monitoredItemId of Object.keys(this.monitoredItems)) {
-            const monitoredItem = this.getMonitoredItem(parseInt(monitoredItemId, 10))!;
-            result.clientHandles.push(monitoredItem.clientHandle!);
+        for (let index = 0; index < monitoredItemCount; index++) {
+            const monitoredItemId = monitoredItems[index];
+            const serverHandle = parseInt(monitoredItemId, 10);
+            const monitoredItem = this.getMonitoredItem(serverHandle)!;
+            result.clientHandles[index] = monitoredItem.clientHandle;
             // TODO:  serverHandle is defined anywhere in the OPCUA Specification 1.02
             //        I am not sure what shall be reported for serverHandle...
             //        using monitoredItem.monitoredItemId instead...
             //        May be a clarification in the OPCUA Spec is required.
-            result.serverHandles.push(parseInt(monitoredItemId, 10));
+            result.serverHandles[index] = serverHandle;
         }
         return result;
     }
