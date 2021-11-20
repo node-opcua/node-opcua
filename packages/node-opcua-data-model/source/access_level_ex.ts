@@ -31,7 +31,7 @@ export enum AccessLevelExFlag {
     // new in 1.5.1
     NonVolatile = 0x800, // bit 12 Indicates if the Variable is non-volatile (0 means it is volatile or not known to be, 1 means non-volatile
     Constant = 0x1000, // bit 13   Indicates if the Value of the Variable can be considered constant (0 means the Value is not constant, 1 means the Value is constant)
-    
+
     // Reserved for future use. Shall always be zero.
     None = 0x800
 }

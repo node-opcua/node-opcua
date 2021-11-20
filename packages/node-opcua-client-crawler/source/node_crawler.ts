@@ -187,7 +187,7 @@ export class NodeCrawler extends NodeCrawlerBase {
                     ref.browseName.toString(),
                     "class =",
                     NodeClass[ref.nodeClass],
-                    ref.typeDefinition.toString(),
+                    ref.typeDefinition.toString()
                 );
                 warningLog("Crawler: Cannot find reference", ref.nodeId.toString(), "in cache");
                 warningLog("contact Sterfive's professional support for help to resolve");

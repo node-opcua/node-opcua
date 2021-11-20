@@ -49,9 +49,7 @@ const doDebug = false;
  * @param addressSpace
  * @return {*}
  */
-exports.createHVACSystem = function(addressSpace) {
-
-
+exports.createHVACSystem = function (addressSpace) {
     const namespace = addressSpace.getOwnNamespace();
 
     const HVACEnabledEventType = namespace.addEventType({
@@ -65,7 +63,6 @@ exports.createHVACSystem = function(addressSpace) {
     const HVACModuleType = namespace.addObjectType({
         browseName: "HVACModuleType"
     });
-
 
     namespace.addAnalogDataItem({
         componentOf: HVACModuleType,
@@ -94,7 +91,6 @@ exports.createHVACSystem = function(addressSpace) {
         dataType: "Double",
         modellingRule: "Mandatory"
     });
-
 
     // EURange (10,+27)
     namespace.addAnalogDataItem({
@@ -147,7 +143,6 @@ exports.createHVACSystem = function(addressSpace) {
         value: false
     });
 
-
     const myHVAC = HVACModuleType.instantiate({
         browseName: "MyHVAC1"
     });
@@ -159,11 +154,10 @@ exports.createHVACSystem = function(addressSpace) {
 
     // bind the method
     myHVAC.enable.bindMethod(async (inputArguments, context) => {
-        return {statusCode: StatusCodes.Good }
+        return { statusCode: StatusCodes.Good };
     });
 
     function updateInteriorTemperature() {
-
         const currentTemp = myHVAC.interiorTemperature.readValue().value.value;
 
         const targetTemp = myHVAC.targetTemperature.readValue().value.value;
@@ -177,15 +171,14 @@ exports.createHVACSystem = function(addressSpace) {
 
     const timerId = setInterval(updateInteriorTemperature, 60);
 
-    myHVAC.on("dispose", function() {
+    myHVAC.on("dispose", function () {
         clearInterval(timerId);
     });
 
     //xx console.log(" => ",myHVAC.setTargetTemperature.inputArguments.readValue().toString());
 
     // bind the method
-    myHVAC.setTargetTemperature.bindMethod(async function(inputArguments, context) {
-
+    myHVAC.setTargetTemperature.bindMethod(async function (inputArguments, context) {
         if (doDebug) {
             console.log(chalk.cyan.bold(" In SetTargetTemperature"));
             console.log("inputArguments", inputArguments[0].toString());
@@ -203,13 +196,11 @@ exports.createHVACSystem = function(addressSpace) {
         const s = variable.checkVariantCompatibility(targetTemperature);
         if (s.isNot(StatusCodes.Good)) {
             console.log(chalk.red.bold(" Invalid Value specified for targetTemperature " + s.toString()));
-            return  { statusCode: s };
+            return { statusCode: s };
         }
 
-
         variable.setValueFromSource(targetTemperature, StatusCodes.Good);
-        return { statusCode: StatusCodes.Good}
-
+        return { statusCode: StatusCodes.Good };
     });
 
     return myHVAC.nodeId.toString();

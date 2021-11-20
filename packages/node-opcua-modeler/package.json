@@ -1,53 +1,53 @@
 {
-  "name": "node-opcua-modeler",
-  "version": "2.59.1",
-  "description": "pure nodejs OPCUA SDK - module - model",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
-  "scripts": {
-    "build": "tsc -b",
-    "clean": "node -e \"require('rimraf').sync('dist');\"",
-    "test": "mocha"
-  },
-  "author": "Etienne Rossignon",
-  "license": "MIT",
-  "dependencies": {
-    "chalk": "4.1.2",
-    "cli-table3": "^0.6.0",
-    "csv-parse": "5.0.3",
-    "node-opcua-address-space": "2.59.0",
-    "node-opcua-assert": "2.55.0",
-    "node-opcua-basic-types": "2.57.0",
-    "node-opcua-client-dynamic-extension-object": "2.59.0",
-    "node-opcua-constants": "2.52.0",
-    "node-opcua-data-model": "2.57.0",
-    "node-opcua-factory": "2.57.0",
-    "node-opcua-nodeid": "2.55.0",
-    "node-opcua-nodesets": "2.57.0",
-    "node-opcua-numeric-range": "2.57.0",
-    "node-opcua-schemas": "2.59.0",
-    "node-opcua-service-translate-browse-path": "2.59.0",
-    "node-opcua-status-code": "2.56.0",
-    "node-opcua-types": "2.59.0",
-    "node-opcua-variant": "2.59.0",
-    "node-opcua-xml2json": "2.57.0"
-  },
-  "devDependencies": {
-    "node-opcua-leak-detector": "2.56.0",
-    "should": "^13.2.3"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git://github.com/node-opcua/node-opcua.git"
-  },
-  "keywords": [
-    "OPCUA",
-    "opcua",
-    "m2m",
-    "iot",
-    "opc ua",
-    "internet of things"
-  ],
-  "homepage": "http://node-opcua.github.io/",
-  "gitHead": "07dcdd8e8c7f2b55544c6e23023093e35674829c"
+    "name": "node-opcua-modeler",
+    "version": "2.59.1",
+    "description": "pure nodejs OPCUA SDK - module - model",
+    "main": "dist/index.js",
+    "types": "dist/index.d.ts",
+    "scripts": {
+        "build": "tsc -b",
+        "clean": "node -e \"require('rimraf').sync('dist');\"",
+        "test": "mocha"
+    },
+    "author": "Etienne Rossignon",
+    "license": "MIT",
+    "dependencies": {
+        "chalk": "4.1.2",
+        "cli-table3": "^0.6.0",
+        "csv-parse": "5.0.3",
+        "node-opcua-address-space": "2.59.0",
+        "node-opcua-assert": "2.55.0",
+        "node-opcua-basic-types": "2.57.0",
+        "node-opcua-client-dynamic-extension-object": "2.59.0",
+        "node-opcua-constants": "2.52.0",
+        "node-opcua-data-model": "2.57.0",
+        "node-opcua-factory": "2.57.0",
+        "node-opcua-nodeid": "2.55.0",
+        "node-opcua-nodesets": "2.57.0",
+        "node-opcua-numeric-range": "2.57.0",
+        "node-opcua-schemas": "2.59.0",
+        "node-opcua-service-translate-browse-path": "2.59.0",
+        "node-opcua-status-code": "2.56.0",
+        "node-opcua-types": "2.59.0",
+        "node-opcua-variant": "2.59.0",
+        "node-opcua-xml2json": "2.57.0"
+    },
+    "devDependencies": {
+        "node-opcua-leak-detector": "2.56.0",
+        "should": "^13.2.3"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git://github.com/node-opcua/node-opcua.git"
+    },
+    "keywords": [
+        "OPCUA",
+        "opcua",
+        "m2m",
+        "iot",
+        "opc ua",
+        "internet of things"
+    ],
+    "homepage": "http://node-opcua.github.io/",
+    "gitHead": "07dcdd8e8c7f2b55544c6e23023093e35674829c"
 }

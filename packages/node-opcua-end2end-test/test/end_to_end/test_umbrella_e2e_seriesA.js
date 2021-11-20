@@ -6,7 +6,7 @@ const { beforeTest, afterTest, beforeEachTest, afterEachTest } = require("./_hel
 
 // eslint-disable-next-line import/order
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
-describe("testing Client - Umbrella-A ", function() {
+describe("testing Client - Umbrella-A ", function () {
     // this test could be particularly slow on RaspberryPi or BeagleBoneBlack
     // so we set a big enough timeout
     // execution time could also be affected by code running under profiling/coverage tools (istanbul)
@@ -17,17 +17,14 @@ describe("testing Client - Umbrella-A ", function() {
     const test = this;
     test.port = port;
 
-    before((done)     => beforeTest(test,done));
-    beforeEach((done) => beforeEachTest(test,done));
-    afterEach((done)  => afterEachTest(test,done));
-    after((done)      => afterTest(test,done));
-    
+    before((done) => beforeTest(test, done));
+    beforeEach((done) => beforeEachTest(test, done));
+    afterEach((done) => afterEachTest(test, done));
+    after((done) => afterTest(test, done));
+
     require("./u_test_e2e_client")(test);
- 
+
     require("./u_test_e2e_call_service")(test);
     require("./u_test_e2e_ClientSession_readVariableValue")(test);
     require("./u_test_e2e_client_node_crawler")(test);
-
-
-    
- });
+});
