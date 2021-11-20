@@ -1485,7 +1485,10 @@ export function build_address_space_for_conformance_testing(addressSpace: Addres
 
     const objectsFolder = addressSpace.findNode("ObjectsFolder") as UAObject;
 
-    const simulationFolder = namespace.addFolder(objectsFolder, "Simulation");
+    const simulationFolder = namespace.addFolder(objectsFolder, {
+        browseName: "Simulation",
+        nodeId: "s=SimulationFolder"
+    });
 
     add_access_right_variables(namespace, simulationFolder);
 

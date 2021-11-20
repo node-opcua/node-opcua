@@ -6,8 +6,9 @@ import { assert } from "node-opcua-assert";
 import { ReferenceDescription } from "node-opcua-service-browse";
 import { ErrorCallback } from "node-opcua-status-code";
 import { checkDebugFlag, make_debugLog, make_warningLog } from "node-opcua-debug";
-
+import { NodeClass } from "node-opcua-data-model";
 import { lowerFirstLetter } from "node-opcua-utils";
+
 import { NodeCrawlerBase, ObjectMap, Pojo, UserData } from "./node_crawler_base";
 import { CacheNode, CacheNodeVariable, CacheNodeVariableType } from "./cache_node";
 import { TaskReconstruction, EmptyCallback, removeCycle } from "./private";
@@ -95,6 +96,9 @@ export class NodeCrawler extends NodeCrawlerBase {
         object: CacheNode,
         extraFunc: (err: Error | null, obj?: Pojo) => void
     ) {
+        if (!object || !object.nodeId) {
+            return;
+        }
         assert(typeof extraFunc === "function");
         assert(typeof object.nodeId.toString() === "string");
 
@@ -182,8 +186,8 @@ export class NodeCrawler extends NodeCrawlerBase {
                     "bn=",
                     ref.browseName.toString(),
                     "class =",
-                    ref.nodeClass.toString(),
-                    ref.typeDefinition.toString()
+                    NodeClass[ref.nodeClass],
+                    ref.typeDefinition.toString(),
                 );
                 warningLog("Crawler: Cannot find reference", ref.nodeId.toString(), "in cache");
                 warningLog("contact Sterfive's professional support for help to resolve");
