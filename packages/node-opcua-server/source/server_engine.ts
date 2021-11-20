@@ -229,8 +229,8 @@ function getMonitoredItemsId(
     const callMethodResult = new CallMethodResult({
         statusCode: result.statusCode,
         outputArguments: [
-            { dataType: DataType.UInt32, arrayType: VariantArrayType.Array, value: new Uint32Array(result.serverHandles) },
-            { dataType: DataType.UInt32, arrayType: VariantArrayType.Array, value: new Uint32Array(result.clientHandles) }
+            { dataType: DataType.UInt32, arrayType: VariantArrayType.Array, value: result.serverHandles },
+            { dataType: DataType.UInt32, arrayType: VariantArrayType.Array, value: result.clientHandles }
         ]
     });
     callback(null, callMethodResult);
