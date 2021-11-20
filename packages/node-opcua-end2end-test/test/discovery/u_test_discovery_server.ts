@@ -1,10 +1,10 @@
-    // tslint:disable: no-console
-
-import * as should from "should";
-import * as async from "async";
+// tslint:disable: no-console
 import * as fs from "fs";
 import * as os from "os";
 import * as path from "path";
+import * as should from "should";
+import * as async from "async";
+
 import { assert } from "node-opcua-assert";
 
 import {
@@ -23,11 +23,12 @@ import {
     OPCUADiscoveryServer
 } from "node-opcua";
 import { readCertificate, exploreCertificate } from "node-opcua-crypto";
+import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
+
 import { createServerThatRegistersItselfToTheDiscoveryServer, ep, startDiscovery } from "./_helper";
 
 const configFolder = path.join(__dirname, "../../tmp");
 
-import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 const debugLog = make_debugLog("TEST");
 const doDebug = checkDebugFlag("TEST");
 
@@ -40,7 +41,7 @@ const port5 = 2505;
 const port_discovery = 1235;
 // add the tcp/ip endpoint with no security
 
-process.on("uncaughtException",  (err) => {
+process.on("uncaughtException", (err) => {
     console.log(err);
 });
 

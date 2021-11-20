@@ -202,7 +202,7 @@ exports.createHVACSystem = function(addressSpace) {
         }
         const s = variable.checkVariantCompatibility(targetTemperature);
         if (s.isNot(StatusCodes.Good)) {
-            console.log(chalk.red.bold(" Invalid Value specified for targetTemperature"));
+            console.log(chalk.red.bold(" Invalid Value specified for targetTemperature " + s.toString()));
             return  { statusCode: s };
         }
 

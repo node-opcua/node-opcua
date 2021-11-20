@@ -1,5 +1,4 @@
 "use strict";
-const createHVACSystem = require("../../test_helpers/hvac_system").createHVACSystem;
 
 
 const should = require("should");
@@ -7,17 +6,20 @@ const async = require("async");
 
 
 const opcua = require("node-opcua");
+const { UAProxyManager } = require("node-opcua-client-proxy");
+
 const OPCUAClient = opcua.OPCUAClient;
 
 const { build_server_with_temperature_device } = require("../../test_helpers/build_server_with_temperature_device");
 const { perform_operation_on_client_session } = require("../../test_helpers/perform_operation_on_client_session");
+const createHVACSystem = require("../../test_helpers/hvac_system").createHVACSystem;
 
 const DataType = opcua.DataType;
 
-const { UAProxyManager } = require("node-opcua-client-proxy");
 
 const port = 2229;
 
+// eslint-disable-next-line import/order
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("testing client Proxy", function() {
 
@@ -150,28 +152,28 @@ describe("testing client Proxy", function() {
 
                 function(callback) {
 
-                    serverObject.serverStatus.currentTime.readValue(function(err, dataValue) {
+                    serverObject.serverStatus.currentTime.readValue((err, dataValue) => {
                         //xx console.log("currentTime = ",dataValue.toString());
                         callback(err);
                     });
                 },
                 function(callback) {
 
-                    serverObject.serverArray.readValue(function(err, dataValue) {
+                    serverObject.serverArray.readValue((err, dataValue) => {
                         //xx console.log("ServerArray = ",dataValue.toString());
                         callback(err);
                     });
                 },
                 function(callback) {
 
-                    serverObject.serverStatus.readValue(function(err, dataValue) {
+                    serverObject.serverStatus.readValue((err, dataValue) => {
                         //xx console.log("serverStatus = ",dataValue.toString());
                         callback(err);
                     });
                 },
                 function(callback) {
 
-                    serverObject.serverStatus.buildInfo.readValue(function(err, dataValue) {
+                    serverObject.serverStatus.buildInfo.readValue((err, dataValue) => {
                         //xx console.log("serverStatus = ",dataValue.toString());
                         callback(err);
                     });
@@ -183,7 +185,7 @@ describe("testing client Proxy", function() {
 
                 function(callback) {
 
-                    serverObject.serverStatus.currentTime.readValue(function(err, dataValue) {
+                    serverObject.serverStatus.currentTime.readValue((err, dataValue) => {
                         //xx console.log("currentTime = ",dataValue.toString());
                         callback(err);
                     });
@@ -194,7 +196,7 @@ describe("testing client Proxy", function() {
                     // now call getMonitoredItems
                     //xx console.log(" SubscriptionID= ", subscriptionId);
 
-                    serverObject.getMonitoredItems({ subscriptionId: subscriptionId }, function(err, outputArgs) {
+                    serverObject.getMonitoredItems({ subscriptionId }, (err, outputArgs) => {
                         //xx console.log("err = ", err);
                         if (!err && outputArgs) {
                             //xx console.log("outputArgs.clientHandles = ", outputArgs.clientHandles);
@@ -291,7 +293,7 @@ describe("testing client Proxy", function() {
                 function(callback) {
 
 
-                    hvac.setTargetTemperature({ targetTemperature: 10000 }, function(err, results) {
+                    hvac.setTargetTemperature({ targetTemperature: 10000 }, (err, results) => {
                         should.exist(err);
                         //xx console.log("result",err,results);
                         callback();
@@ -299,7 +301,7 @@ describe("testing client Proxy", function() {
 
                 },
                 function(callback) {
-                    hvac.setTargetTemperature({ targetTemperature: 37 }, function(err, results) {
+                    hvac.setTargetTemperature({ targetTemperature: 37 }, (err, results) => {
                         //xx console.log("result",results);
                         callback();
                     });
@@ -311,7 +313,7 @@ describe("testing client Proxy", function() {
                 },
                 function(callback) {
 
-                    hvac.setTargetTemperature({ targetTemperature: 18 }, function(err, results) {
+                    hvac.setTargetTemperature({ targetTemperature: 18 }, (err, results) => {
                         callback();
                     });
 
@@ -351,7 +353,7 @@ describe("testing client Proxy", function() {
                 },
                 function(callback) {
 
-                    proxyManager.getObject(makeNodeId(opcua.VariableIds.Server_ServerDiagnostics_SubscriptionDiagnosticsArray), function(err, data) {
+                    proxyManager.getObject(makeNodeId(opcua.VariableIds.Server_ServerDiagnostics_SubscriptionDiagnosticsArray), (err, data) => {
 
                         if (!err) {
                             subscriptionDiagnosticsArray = data;
