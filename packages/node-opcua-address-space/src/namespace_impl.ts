@@ -238,7 +238,7 @@ export class NamespaceImpl implements NamespacePrivate {
     }
 
     public getDefaultNamespace(): NamespacePrivate {
-        return this.index === 0 ? this : (this.addressSpace.getDefaultNamespace());
+        return this.index === 0 ? this : this.addressSpace.getDefaultNamespace();
     }
 
     public dispose(): void {

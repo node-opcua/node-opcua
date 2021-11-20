@@ -2,26 +2,17 @@ const async = require("async");
 const chalk = require("chalk");
 const { assert } = require("node-opcua-assert");
 
-const { 
-    OPCUAClient,
-    StatusCodes,
-    nodesets,
-    AddressSpace,
-    makeBrowsePath, 
-    periodicClockAdjustment
-} = require("node-opcua");
+const { OPCUAClient, StatusCodes, nodesets, AddressSpace, makeBrowsePath, periodicClockAdjustment } = require("node-opcua");
 const { build_address_space_for_conformance_testing } = require("node-opcua-address-space-for-conformance-testing");
 const { build_server_with_temperature_device } = require("../../test_helpers/build_server_with_temperature_device");
 const { start_simple_server, stop_simple_server } = require("../../test_helpers/external_server_fixture");
 
-
 function start_external_server(test, options, done) {
-
     assert(typeof test.port === "number");
-    
+
     options.silent = true;
 
-    start_simple_server(options, function(err, data) {
+    start_simple_server(options, function (err, data) {
         if (err) {
             return done(err, null);
         }
@@ -36,10 +27,9 @@ function start_external_server(test, options, done) {
 }
 
 function start_internal_server(test, options, done) {
-
     console.log(options);
 
-    test.server = build_server_with_temperature_device(options, function(err) {
+    test.server = build_server_with_temperature_device(options, function (err) {
         if (err) {
             return done(err);
         }
@@ -50,11 +40,8 @@ function start_internal_server(test, options, done) {
         test.endpointUrl = test.server.getEndpointUrl();
         test.temperatureVariableId = test.server.temperatureVariableId;
 
-        setTimeout(function() {
-            test.server.engine.currentSessionCount.should.eql(
-                0,
-                " expecting ZERO session on server when test is starting !"
-            );
+        setTimeout(function () {
+            test.server.engine.currentSessionCount.should.eql(0, " expecting ZERO session on server when test is starting !");
             console.log(" ..... done ");
             console.log("server started at ", test.endpointUrl);
             done(err);
@@ -62,22 +49,21 @@ function start_internal_server(test, options, done) {
     });
 }
 
-const { perform_operation_on_client_session  } = require("../../test_helpers/perform_operation_on_client_session");
+const { perform_operation_on_client_session } = require("../../test_helpers/perform_operation_on_client_session");
 function dumpStatistics(endpointUrl, done) {
-
     const client = OPCUAClient.create();
     perform_operation_on_client_session(
         client,
         endpointUrl,
-        function(session, inner_done) {
+        function (session, inner_done) {
             const relativePath = "/Objects/Server.ServerDiagnostics.ServerDiagnosticsSummary";
             const browsePath = [makeBrowsePath("RootFolder", relativePath)];
 
             let sessionDiagnosticsSummaryNodeId;
             async.series(
                 [
-                    function(callback) {
-                        session.translateBrowsePath(browsePath, function(err, result) {
+                    function (callback) {
+                        session.translateBrowsePath(browsePath, function (err, result) {
                             if (!err) {
                                 if (result[0].statusCode === StatusCodes.Good) {
                                     //xx console.log(result[0].toString());
@@ -89,14 +75,14 @@ function dumpStatistics(endpointUrl, done) {
                             callback(err);
                         });
                     },
-                    function(callback) {
-                        session.readVariableValue(sessionDiagnosticsSummaryNodeId, function(err, dataValue) {
+                    function (callback) {
+                        session.readVariableValue(sessionDiagnosticsSummaryNodeId, function (err, dataValue) {
                             //xx console.log("\n\n-----------------------------------------------------------------------------------------------------------");
                             //xx console.log(dataValue.value.value.toString());
                             //xx console.log("-----------------------------------------------------------------------------------------------------------");
                             callback(err);
                         });
-                    },
+                    }
                 ],
                 inner_done
             );
@@ -105,13 +91,13 @@ function dumpStatistics(endpointUrl, done) {
     );
 }
 
-exports.afterTest=  function afterTest(test,done){
+exports.afterTest = function afterTest(test, done) {
     if (test.data) {
         stop_simple_server(test.data, done);
     } else if (test.server) {
         test.server.shutdown(() => {
-            if (periodicClockAdjustment.timerInstallationCount !==0) {
-                console.log("!!!!!!!!!!!!!!!!!!! -- "+ "periodicClockAdjustment call are not matching....");
+            if (periodicClockAdjustment.timerInstallationCount !== 0) {
+                console.log("!!!!!!!!!!!!!!!!!!! -- " + "periodicClockAdjustment call are not matching....");
                 // periodicClockAdjustment.timerInstallationCount.should.eql(0, "periodicClockAdjustment call are not matching....");
             }
             done();
@@ -119,31 +105,36 @@ exports.afterTest=  function afterTest(test,done){
     } else {
         done();
     }
+};
 
-}
-
-exports.beforeTest =  function beforeTest(test,done) {
+exports.beforeTest = function beforeTest(test, done) {
     test.nb_backgroundsession = 0;
 
     const options = {
         port: test.port,
         maxConnectionsPerEndpoint: 500,
         silent: true,
-        nodeset_filename: [nodesets.standard],
+        nodeset_filename: [nodesets.standard]
     };
 
-    console.log(chalk.bgWhite.red(" ..... starting server " + test.port.toString() + "                                                                                                        ."));
+    console.log(
+        chalk.bgWhite.red(
+            " ..... starting server " +
+                test.port.toString() +
+                "                                                                                                        ."
+        )
+    );
     if (process.env.TESTENDPOINT === "EXTERNAL") {
-        start_external_server(test,options, done);
+        start_external_server(test, options, done);
     } else if (process.env.TESTENDPOINT) {
         test.endpointUrl = process.env.TESTENDPOINT;
         done();
     } else {
         start_internal_server(test, options, done);
     }
-}
+};
 
-exports.beforeEachTest = function beforeEachTest(test,done) {
+exports.beforeEachTest = function beforeEachTest(test, done) {
     // make sure that test has closed all sessions
     if (test.server) {
         // test.nb_backgroundsession = test.server.engine.currentSessionCount;
@@ -153,9 +144,9 @@ exports.beforeEachTest = function beforeEachTest(test,done) {
         );
     }
     done();
-}
+};
 
-exports.afterEachTest =  function afterEachTest(test,done) {
+exports.afterEachTest = function afterEachTest(test, done) {
     const extraSessionCount = test.server.engine.currentSessionCount !== test.nb_backgroundsession;
 
     if (extraSessionCount && test.server) {
@@ -176,18 +167,12 @@ exports.afterEachTest =  function afterEachTest(test,done) {
         const rootFolder = addressSpace.findNode("RootFolder");
         rootFolder
             .getFolderElements()
-            .length.should.eql(
-                3,
-                "Test should not pollute the root folder: expecting 3 folders in RootFolder only"
-            );
+            .length.should.eql(3, "Test should not pollute the root folder: expecting 3 folders in RootFolder only");
 
         dumpStatistics(test.endpointUrl, done);
     }
 
     // make sure that test has closed all sessions
-    test.server.engine.currentSessionCount.should.eql(
-        test.nb_backgroundsession,
-        " Test must have deleted all created session"
-    );
+    test.server.engine.currentSessionCount.should.eql(test.nb_backgroundsession, " Test must have deleted all created session");
     return done();
-}
+};

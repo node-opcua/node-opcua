@@ -41,7 +41,15 @@ import {
 } from "node-opcua-types";
 import * as utils from "node-opcua-utils";
 import { lowerFirstLetter } from "node-opcua-utils";
-import { Variant, VariantLike, DataType, sameVariant, VariantArrayType, adjustVariant, verifyRankAndDimensions } from "node-opcua-variant";
+import {
+    Variant,
+    VariantLike,
+    DataType,
+    sameVariant,
+    VariantArrayType,
+    adjustVariant,
+    verifyRankAndDimensions
+} from "node-opcua-variant";
 import { StatusCodeCallback } from "node-opcua-status-code";
 import {
     IAddressSpace,
@@ -226,7 +234,6 @@ interface UAVariableOptions extends InternalBaseNodeOptions {
     minimumSamplingInterval?: number; // default -1
     historizing?: number;
 }
-
 
 type TimestampGetFunction1 = () => DataValue | Promise<DataValue>;
 type TimestampGetFunction2 = (callback: (err: Error | null, dataValue?: DataValue) => void) => void;
