@@ -164,8 +164,7 @@ exports.createHVACSystem = function (addressSpace) {
 
         const newInteriorTemp = currentTemp + (targetTemp - currentTemp) / 100.0;
 
-        myHVAC.interiorTemperature.setValueFromSource({ dataType: DataType.Float, value: newInteriorTemp });
-
+        myHVAC.interiorTemperature.setValueFromSource({ dataType: DataType.Double, value: newInteriorTemp });
         //xx console.log("Tick = target temp = ",targetTemp," current =",currentTemp," new= ",newInteriorTemp);
     }
 
