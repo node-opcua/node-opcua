@@ -34,8 +34,8 @@ export function installCertificateExpirationAlarm(addressSpace: AddressSpace) {
         browseName: "ServerCertificateAlarm",
         conditionSource: null,
         eventSourceOf: server,
-        inputNode: NodeId.nullNodeId,
-        normalState: NodeId.nullNodeId
+        inputNode: new NodeId(),
+        normalState: new NodeId()
     };
     const data = {};
     const alarm = UACertificateExpirationAlarmImpl.instantiate(namespace, options, data);

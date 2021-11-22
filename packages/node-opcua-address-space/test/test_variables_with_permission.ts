@@ -162,7 +162,7 @@ describe("SPP1 AddressSpace: RoleAndPermissions resolving to Namespace Metadata"
         server,
         session: {
             getSessionId() {
-                return NodeId.nullNodeId;
+                return new NodeId();
             },
             continuationPointManager: new MockContinuationPointManager(),
             userIdentityToken: new AnonymousIdentityToken()
@@ -173,7 +173,7 @@ describe("SPP1 AddressSpace: RoleAndPermissions resolving to Namespace Metadata"
         server,
         session: {
             getSessionId() {
-                return NodeId.nullNodeId;
+                return new NodeId();
             },
             continuationPointManager: new MockContinuationPointManager(),
             userIdentityToken: new UserNameIdentityToken({
@@ -186,7 +186,7 @@ describe("SPP1 AddressSpace: RoleAndPermissions resolving to Namespace Metadata"
         server,
         session: {
             getSessionId() {
-                return NodeId.nullNodeId;
+                return new NodeId();
             },
             continuationPointManager: new MockContinuationPointManager(),
             userIdentityToken: new UserNameIdentityToken({
@@ -199,7 +199,7 @@ describe("SPP1 AddressSpace: RoleAndPermissions resolving to Namespace Metadata"
         server,
         session: {
             getSessionId() {
-                return NodeId.nullNodeId;
+                return new NodeId();
             },
             userIdentityToken: new UserNameIdentityToken({
                 userName: "admin"

@@ -196,7 +196,7 @@ export class ServerSession extends EventEmitter implements ISubscriber, ISession
         assert(!this.sessionObject, " sessionObject has not been cleared !");
 
         this.parent = null as any as ServerEngine;
-        this.authenticationToken = NodeId.nullNodeId;
+        this.authenticationToken = new NodeId();
 
         if (this.publishEngine) {
             this.publishEngine.dispose();

@@ -13,10 +13,10 @@ describe("Testing client alarm", () => {
         const clientAlarm = new ClientAlarm({
             ackedState: new VariantId(true, "Acknowledged"),
             activeState: new VariantId(true, "Active"),
-            conditionId: new Variant({ value: NodeId.nullNodeId }),
+            conditionId: new Variant({ value: new NodeId() }),
             confirmedState: new VariantId(true, "Confirmed"),
             eventId: new Variant({ value: Buffer.alloc(10) }),
-            eventType: new Variant({ value: NodeId.nullNodeId }),
+            eventType: new Variant({ value: new NodeId() }),
             retain: new Variant({ value: false })
         });
 

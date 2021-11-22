@@ -263,7 +263,7 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession {
 
         this.serverCertificate = Buffer.alloc(0);
 
-        this.sessionId = NodeId.nullNodeId;
+        this.sessionId = new NodeId();
 
         this._closeEventHasBeenEmitted = false;
         this._client = client;

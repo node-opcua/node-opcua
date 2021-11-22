@@ -25,7 +25,7 @@ export class EventData implements IEventData {
 
     constructor(eventTypeNode: BaseNode) {
         this.__nodes = {};
-        this.eventId = NodeId.nullNodeId;
+        this.eventId = new NodeId();
         this.$eventDataSource = eventTypeNode;
     }
 

@@ -113,7 +113,7 @@ describe("SessionContext - with  dedicated SessionContext and certificate ", () 
         }),
         continuationPointManager: new MockContinuationPointManager(),
         getSessionId() {
-            return NodeId.nullNodeId;
+            return new NodeId();
         }
     };
 

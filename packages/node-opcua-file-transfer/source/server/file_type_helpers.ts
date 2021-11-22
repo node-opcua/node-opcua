@@ -204,10 +204,10 @@ function _prepare(addressSpace: IAddressSpace, context: ISessionContext): FileTy
 }
 function _getSessionId(context: ISessionContext) {
     if (!context.session) {
-        return NodeId.nullNodeId;
+        return new NodeId();
     }
     assert(context.session && context.session.getSessionId);
-    return context.session?.getSessionId() || NodeId.nullNodeId;
+    return context.session?.getSessionId() || new NodeId();
 }
 function _addFile(addressSpace: IAddressSpace, context: ISessionContext, openMode: OpenFileMode): UInt32 {
     const _context = _prepare(addressSpace, context);

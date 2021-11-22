@@ -6,7 +6,7 @@ import { isEqual } from "lodash";
 import { assert } from "node-opcua-assert";
 import { NodeClass } from "node-opcua-data-model";
 import { DataValue } from "node-opcua-data-value";
-import { NodeId } from "node-opcua-nodeid";
+import { NodeId, sameNodeId } from "node-opcua-nodeid";
 import { StatusCodes } from "node-opcua-status-code";
 import { DataType } from "node-opcua-variant";
 import { UAAlarmCondition_Base } from "node-opcua-nodeset-ua";
@@ -498,7 +498,7 @@ export class UAAlarmConditionImpl extends UAAcknowledgeableConditionImpl impleme
                 if (this.currentBranch().getRetain()) {
                     // we need to create a new branch so the previous state could be acknowledged
                     const newBranch = this.createBranch();
-                    assert(newBranch.getBranchId() !== NodeId.nullNodeId);
+                    assert(!sameNodeId(newBranch.getBranchId(), NodeId.nullNodeId));
                     // also raised a new Event for the new branch as branchId has changed
                     this.raiseNewBranchState(newBranch);
                 }

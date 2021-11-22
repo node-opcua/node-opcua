@@ -28,7 +28,7 @@ export class MockContinuationPointManager implements IContinuationPointManager {
 
 export const mockSession = {
     getSessionId() {
-        return NodeId.nullNodeId;
+        return new NodeId();
     },
     continuationPointManager: new MockContinuationPointManager()
 };

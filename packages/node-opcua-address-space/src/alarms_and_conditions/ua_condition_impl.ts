@@ -238,7 +238,7 @@ export class UAConditionImpl extends UABaseEventImpl implements UAConditionEx {
      */
     public post_initialize(): void {
         assert(!this._branch0);
-        this._branch0 = new ConditionSnapshot(this, NodeId.nullNodeId);
+        this._branch0 = new ConditionSnapshot(this, new NodeId());
 
         // the condition OPCUA object alway reflects the default branch states
         // so we set a mechanism that automatically keeps self in sync
@@ -284,7 +284,7 @@ export class UAConditionImpl extends UABaseEventImpl implements UAConditionEx {
      */
     public deleteBranch(branch: ConditionSnapshot): void {
         const key = branch.getBranchId().toString();
-        assert(branch.getBranchId() !== NodeId.nullNodeId, "cannot delete branch zero");
+        assert(!sameNodeId(branch.getBranchId(), NodeId.nullNodeId), "cannot delete branch zero");
         assert(Object.prototype.hasOwnProperty.call(this._branches, key));
         delete this._branches[key];
         this.emit("branch_deleted", key);
@@ -560,7 +560,7 @@ export class UAConditionImpl extends UABaseEventImpl implements UAConditionEx {
     public raiseNewBranchState(branch: ConditionSnapshot): void {
         this.raiseConditionEvent(branch, true);
 
-        if (branch.getBranchId() !== NodeId.nullNodeId && !branch.getRetain()) {
+        if (!sameNodeId(branch.getBranchId(), NodeId.nullNodeId) && !branch.getRetain()) {
             // xx console.log(" Deleting not longer needed branch ", branch.getBranchId().toString());
             // branch can be deleted
             this.deleteBranch(branch);
@@ -789,7 +789,7 @@ function UACondition_instantiate(
     // install initial branch ID (null NodeId);
     conditionNode.branchId.setValueFromSource({
         dataType: DataType.NodeId,
-        value: NodeId.nullNodeId
+        value: new NodeId()
     });
 
     // install 'Comment' condition variable
@@ -920,7 +920,9 @@ function UACondition_instantiate(
             conditionNode.sourceNode.setValueFromSource(conditionSourceNode.readAttribute(null, AttributeIds.NodeId).value);
 
             // set source Name (defined in UABaseEventType)
-            conditionNode.sourceName.setValueFromSource(conditionSourceNode.readAttribute(null, AttributeIds.DisplayName).value);
+            const displayName: LocalizedText = conditionSourceNode.readAttribute(null, AttributeIds.DisplayName).value
+                .value as LocalizedText;
+            conditionNode.sourceName.setValueFromSource({ dataType: DataType.String, value: displayName.text });
         }
     }
 
@@ -953,7 +955,7 @@ function UACondition_instantiate(
      */
     const baseConditionClassType = addressSpace.findObjectType("ProcessConditionClassType");
     // assert(baseConditionClassType,"Expecting BaseConditionClassType to be in addressSpace");
-    let conditionClassId = baseConditionClassType ? baseConditionClassType.nodeId : NodeId.nullNodeId;
+    let conditionClassId = baseConditionClassType ? baseConditionClassType.nodeId : new NodeId();
     let conditionClassName = baseConditionClassType ? baseConditionClassType.displayName[0] : "";
     if (options.conditionClass) {
         if (typeof options.conditionClass === "string") {
@@ -1123,7 +1125,11 @@ function _perform_condition_refresh(addressSpace: AddressSpacePrivate, inputArgu
     return StatusCodes.Good;
 }
 
-function _condition_refresh2_method(inputArguments: VariantLike[], context: ISessionContext, callback: CallbackT<CallMethodResultOptions>) {
+function _condition_refresh2_method(
+    inputArguments: VariantLike[],
+    context: ISessionContext,
+    callback: CallbackT<CallMethodResultOptions>
+) {
     // arguments : IntegerId SubscriptionId
     // arguments : IntegerId MonitoredItemId
     assert(inputArguments.length === 2);
@@ -1146,7 +1152,11 @@ function _condition_refresh2_method(inputArguments: VariantLike[], context: ISes
     });
 }
 
-function _add_comment_method(inputArguments: VariantLike[], context: ISessionContext, callback: CallbackT<CallMethodResultOptions>) {
+function _add_comment_method(
+    inputArguments: VariantLike[],
+    context: ISessionContext,
+    callback: CallbackT<CallMethodResultOptions>
+) {
     //
     // The AddComment Method is used to apply a comment to a specific state of a Condition
     // instance. Normally, the NodeId of the object instance as the ObjectId is passed to the Call
