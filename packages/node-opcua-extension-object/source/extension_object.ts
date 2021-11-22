@@ -3,11 +3,12 @@
  */
 import { decodeNodeId, encodeNodeId } from "node-opcua-basic-types";
 import { BinaryStream, OutputBinaryStream } from "node-opcua-binary-stream";
-import { checkDebugFlag, hexDump, make_debugLog } from "node-opcua-debug";
+import { checkDebugFlag, hexDump, make_debugLog, make_warningLog } from "node-opcua-debug";
 import { BaseUAObject, constructObject, is_internal_id, registerBuiltInType, StructuredTypeSchema } from "node-opcua-factory";
 import { ExpandedNodeId, makeNodeId, NodeId } from "node-opcua-nodeid";
 
 const debugLog = make_debugLog(__filename);
+const warningLog = make_warningLog(__filename);
 
 import * as chalk from "chalk";
 
@@ -186,7 +187,7 @@ export function decodeExtensionObject(stream: BinaryStream, _value?: ExtensionOb
         debugLog(chalk.bgWhiteBright.red("========================================="));
 
         // tslint:disable-next-line:no-console
-        console.warn(
+        warningLog(
             "WARNING => Extension object decoding error on ",
             object.constructor.name,
             " expected size was",
