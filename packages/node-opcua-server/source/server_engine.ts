@@ -473,8 +473,7 @@ export class ServerEngine extends EventEmitter {
             this._orphanPublishEngine.shutdown();
         }
 
-        // xx console.log("xxxxxxxxx ServerEngine.shutdown must terminate "+ tokens.length," sessions");
-
+      
         for (const token of tokens) {
             this.closeSession(token, true, "Terminated");
         }
@@ -642,7 +641,7 @@ export class ServerEngine extends EventEmitter {
     public setServerState(serverState: ServerState): void {
         assert(serverState !== null && serverState !== undefined);
         this.addressSpace?.rootFolder?.objects?.server?.serverStatus?.state?.setValueFromSource({
-            dataType: DataType.UInt32,
+            dataType: DataType.Int32,
             value: serverState
         });
     }
@@ -817,8 +816,7 @@ export class ServerEngine extends EventEmitter {
 
             // TimeZoneDataType
             const timeZoneDataType = addressSpace.findDataType(resolveNodeId(DataTypeIds.TimeZoneDataType))!;
-            // xx console.log(timeZoneDataType.toString());
-
+        
             const timeZone = new TimeZoneDataType({
                 daylightSavingInOffset: /* boolean*/ false,
                 offset: /* int16 */ 0
@@ -1076,36 +1074,36 @@ export class ServerEngine extends EventEmitter {
                 // mainly for compliance
 
                 // The version number for the data type description. i=104
-                bindStandardScalar(VariableIds.DataTypeDescriptionType_DataTypeVersion, DataType.UInt16, () => {
-                    return 0.0;
+                bindStandardScalar(VariableIds.DataTypeDescriptionType_DataTypeVersion, DataType.String, () => {
+                    return "0";
                 });
 
                 const namingRuleDataTypeNode = addressSpace.findDataType(resolveNodeId(DataTypeIds.NamingRuleType))! as UADataType;
-                // xx console.log(nrt.toString());
+           
                 if (namingRuleDataTypeNode) {
                     const namingRuleType = (namingRuleDataTypeNode as any)._getEnumerationInfo().nameIndex; // getEnumeration("NamingRuleType");
                     if (!namingRuleType) {
                         throw new Error("Cannot find Enumeration definition for NamingRuleType");
                     }
                     // i=111
-                    bindStandardScalar(VariableIds.ModellingRuleType_NamingRule, DataType.UInt16, () => {
+                    bindStandardScalar(VariableIds.ModellingRuleType_NamingRule, DataType.Int32, () => {
                         return 0;
                     });
 
                     // i=112
-                    bindStandardScalar(VariableIds.ModellingRule_Mandatory_NamingRule, DataType.UInt16, () => {
+                    bindStandardScalar(VariableIds.ModellingRule_Mandatory_NamingRule, DataType.Int32, () => {
                         return namingRuleType.Mandatory ? namingRuleType.Mandatory.value : 0;
                     });
 
                     // i=113
-                    bindStandardScalar(VariableIds.ModellingRule_Optional_NamingRule, DataType.UInt16, () => {
+                    bindStandardScalar(VariableIds.ModellingRule_Optional_NamingRule, DataType.Int32, () => {
                         return namingRuleType.Optional ? namingRuleType.Optional.value : 0;
                     });
                     // i=114
-                    bindStandardScalar(VariableIds.ModellingRule_ExposesItsArray_NamingRule, DataType.UInt16, () => {
+                    bindStandardScalar(VariableIds.ModellingRule_ExposesItsArray_NamingRule, DataType.Int32, () => {
                         return namingRuleType.ExposesItsArray ? namingRuleType.ExposesItsArray.value : 0;
                     });
-                    bindStandardScalar(VariableIds.ModellingRule_MandatoryPlaceholder_NamingRule, DataType.UInt16, () => {
+                    bindStandardScalar(VariableIds.ModellingRule_MandatoryPlaceholder_NamingRule, DataType.Int32, () => {
                         return namingRuleType.MandatoryPlaceholder ? namingRuleType.MandatoryPlaceholder.value : 0;
                     });
                 }
@@ -1162,7 +1160,6 @@ export class ServerEngine extends EventEmitter {
                 if (samplingIntervalDiagnosticsArray) {
                     addressSpace.deleteNode(samplingIntervalDiagnosticsArray);
                     const s = serverDiagnosticsNode.getComponents();
-                    // xx console.log(s.map((x) => x.browseName.toString()).join(" "));
                 }
 
                 const subscriptionDiagnosticsArrayNode = serverDiagnosticsNode.getComponentByName(
@@ -1233,9 +1230,9 @@ export class ServerEngine extends EventEmitter {
                         node.onFirstBrowseAction = undefined;
                     } catch (err) {
                         if (err instanceof Error) {
-                            console.log("onFirstBrowseAction method has failed", err.message);
+                            errorLog("onFirstBrowseAction method has failed", err.message);
                         }
-                        console.log(err);
+                        errorLog(err);
                     }
                     assert(node.onFirstBrowseAction === undefined, "expansion can only be made once");
                 }
@@ -1720,7 +1717,6 @@ export class ServerEngine extends EventEmitter {
             }
             const subscription = session.publishEngine.getSubscriptionById(subscriptionId);
             if (subscription) {
-                // xx console.log("foundSubscription  ", subscriptionId, " in session", session.sessionName);
                 subscriptions.push(subscription);
             }
         });
@@ -1880,7 +1876,7 @@ export class ServerEngine extends EventEmitter {
         const referenceTime = new Date(Date.now() - maxAge);
 
         assert(callback instanceof Function);
-        const objectMap: any = {};
+        const objectMap: Record<string, BaseNode> = {};
         for (const nodeToRefresh of nodesToRefresh) {
             // only consider node  for which the caller wants to read the Value attribute
             // assuming that Value is requested if attributeId is missing,
@@ -1903,13 +1899,15 @@ export class ServerEngine extends EventEmitter {
 
             objectMap[key] = obj;
         }
-        if (Object.keys(objectMap).length === 0) {
+
+        const objectArray = Object.values(objectMap);
+        if (objectArray.length === 0) {
             // nothing to do
             return callback(null, []);
         }
         // perform all asyncRefresh in parallel
         async.map(
-            objectMap,
+            objectArray,
             (obj: BaseNode, inner_callback: DataValueCallback) => {
                 if (obj.nodeClass !== NodeClass.Variable) {
                     inner_callback(
@@ -1920,7 +1918,19 @@ export class ServerEngine extends EventEmitter {
                     );
                     return;
                 }
-                (obj as UAVariable).asyncRefresh(referenceTime, inner_callback);
+                try {
+                    (obj as UAVariable).asyncRefresh(referenceTime, (err, dataValue) => {
+                        inner_callback(err, dataValue);
+                    });
+                } catch (err) {
+
+                    // istanbul ignore next
+                    if (!(err instanceof Error)) {
+                        throw new Error("internal error");
+                    }
+                    errorLog("asyncRefresh internal error", err);
+                    inner_callback(err);
+                }
             },
             (err?: Error | null, arrResult?: (DataValue | undefined)[]) => {
                 callback(err || null, arrResult as DataValue[]);
@@ -2087,7 +2097,7 @@ export class ServerEngine extends EventEmitter {
                     "HistoryReadDetails " +
                     historyReadDetails.toString();
                 if (doDebug) {
-                    console.log(chalk.cyan("ServerEngine#_historyReadSingleNode "), chalk.white.bold(msg));
+                    debugLog(chalk.cyan("ServerEngine#_historyReadSingleNode "), chalk.white.bold(msg));
                 }
                 const err = new Error(msg);
                 // object has no historyRead method
@@ -2132,13 +2142,12 @@ export class ServerEngine extends EventEmitter {
         if (methodNode && methodNode.bindMethod) {
             methodNode.bindMethod(func);
         } else {
-            console.log(
+            warningLog(
                 chalk.yellow("WARNING:  cannot bind a method with id ") +
                     chalk.cyan(nodeId.toString()) +
                     chalk.yellow(". please check your nodeset.xml file or add this node programmatically")
             );
-
-            console.log(traceFromThisProjectOnly());
+            warningLog(traceFromThisProjectOnly());
         }
     }
 
