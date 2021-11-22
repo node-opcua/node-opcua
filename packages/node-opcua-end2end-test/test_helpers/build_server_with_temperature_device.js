@@ -221,12 +221,12 @@ function _build_server_with_temperature_device(server, options, done) {
                     // simulate a asynchronous behaviour
                     setTimeout(function () {
                         callback(null, dataValue);
-                    }, 100);
+                    }, 10);
                 },
                 set: function (variant) {
                     setTimeout(function () {
                         asyncValue = variant.value;
-                    }, 1000);
+                    }, 100);
                     return StatusCodes.GoodCompletesAsynchronously;
                 }
             }
@@ -250,7 +250,7 @@ function _build_server_with_temperature_device(server, options, done) {
                     assert(typeof callback === "function", "callback must be a function");
                     setTimeout(function () {
                         callback(null, asyncWriteFull_dataValue);
-                    }, 100);
+                    }, 10);
                 },
                 // asynchronous write
                 // in this case, we are using timestamped_set and not set
@@ -262,7 +262,7 @@ function _build_server_with_temperature_device(server, options, done) {
                     setTimeout(function () {
                         asyncWriteFull_dataValue = new DataValue(dataValue);
                         callback();
-                    }, 500);
+                    }, 250);
                 }
             }
         });
@@ -272,6 +272,15 @@ function _build_server_with_temperature_device(server, options, done) {
 
     function start(done) {
         server.start(function (err) {
+            
+            const shutdownReason =server.engine.addressSpace.rootFolder.objects.server.serverStatus.shutdownReason;
+            const dataValue = shutdownReason.readValue();
+            console.log(dataValue.toString());
+            shutdownReason.setValueFromSource({
+                dataType: DataType.LocalizedText,
+                value: { text: "No Shutdown in progress" }
+            });
+
             if (err) {
                 return done(err);
             }
