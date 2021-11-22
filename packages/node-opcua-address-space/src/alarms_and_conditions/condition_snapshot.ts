@@ -182,7 +182,7 @@ export class ConditionSnapshot extends EventEmitter {
     }
 
     public _constructEventData(): IEventData {
-        if (sameNodeId(this.branchId!, NodeId.nullNodeId)) {
+        if (this.branchId && sameNodeId(this.branchId, NodeId.nullNodeId)) {
             _ensure_condition_values_correctness(this, this.condition!, "", []);
         }
         const c = this.condition as UAConditionImpl;
