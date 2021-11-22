@@ -54,7 +54,7 @@ export function setNamespaceMetaData(namespace: INamespace): void {
         {
             get: () =>
                 new Variant({
-                    dataType: DataType.UInt32,
+                    dataType: DataType.UInt16,
                     value: namespace.getDefaultAccessRestrictions()
                 })
         },
