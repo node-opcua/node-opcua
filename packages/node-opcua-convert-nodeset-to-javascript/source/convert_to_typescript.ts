@@ -432,9 +432,7 @@ async function _extractLocalMembers(session: IBasicSession, classMember: ClassMe
         const nodeId = child.nodeId;
         const browseName = await getBrowseName(session, nodeId);
         const name = toJavascritPropertyName(browseName.name!);
-        if (name === "cartesianCoordinates") {
-            //    debugger;
-        }
+
         const description = await getDescription(session, nodeId);
         const modellingRule = await getModellingRule(session, nodeId);
         const isOptional = modellingRule === "Optional";
