@@ -91,7 +91,7 @@ export function readHistoryServerCapabilities(
             const nodeIds = results.map((innerResult: BrowsePathResult) =>
                 innerResult.statusCode === StatusCodes.Good && innerResult.targets
                     ? innerResult.targets[0].targetId
-                    : NodeId.nullNodeId
+                    : new NodeId()
             );
 
             const nodesToRead: ReadValueIdOptions[] = nodeIds.map((nodeId: NodeId) => ({

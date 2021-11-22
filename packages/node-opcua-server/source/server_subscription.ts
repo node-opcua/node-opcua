@@ -790,7 +790,7 @@ export class Subscription extends EventEmitter {
         this._pending_notifications.clear();
         this._sent_notification_messages = [];
 
-        this.sessionId = NodeId.nullNodeId;
+        this.sessionId = new NodeId();
 
         this.$session = undefined;
         this.removeAllListeners();

@@ -160,7 +160,7 @@ describe("ServerConfiguration", () => {
             const clientPullCertificateManager = new ClientPushCertificateManagement(pseudoSession);
 
             const certificateGroupId = await clientPullCertificateManager.getCertificateGroupId("DefaultApplicationGroup");
-            const certificateTypeId = NodeId.nullNodeId;
+            const certificateTypeId = new NodeId();
             const subjectName = "/O=NodeOPCUA/CN=urn:NodeOPCUA-Server";
             const regeneratePrivateKey = false;
             const nonce = Buffer.alloc(0);
@@ -182,8 +182,8 @@ describe("ServerConfiguration", () => {
 
             const clientPushCertificateManager = new ClientPushCertificateManagement(pseudoSession);
 
-            const certificateGroupId = NodeId.nullNodeId;
-            const certificateTypeId = NodeId.nullNodeId;
+            const certificateGroupId = new NodeId();
+            const certificateTypeId = new NodeId();
             const certificate = Buffer.from("SomeCertificate");
             const issuerCertificates = [Buffer.from("Issuer1"), Buffer.from("Issuer2")];
             const privateKeyFormat = "PEM";

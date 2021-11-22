@@ -98,7 +98,7 @@ export function utest_acknowledgeable_condition(test: any): void {
                     browseName: "AlarmConditionType",
                     componentOf: source,
                     conditionSource: source,
-                    inputNode: NodeId.nullNodeId,
+                    inputNode: new NodeId(),
                     optionals: ["SuppressedState", "ShelvingState", "ConfirmedState", "Confirm"]
                 },
                 {

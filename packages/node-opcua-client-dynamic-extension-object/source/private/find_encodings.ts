@@ -3,7 +3,6 @@ import { NodeId, resolveNodeId } from "node-opcua-nodeid";
 import { IBasicSession, BrowseDescriptionLike, browseAll } from "node-opcua-pseudo-session";
 import { DataTypeAndEncodingId } from "node-opcua-schemas";
 
-
 export async function _findEncodings(session: IBasicSession, dataTypeNodeId: NodeId): Promise<DataTypeAndEncodingId> {
     const nodeToBrowse: BrowseDescriptionLike = {
         browseDirection: BrowseDirection.Forward,
@@ -21,9 +20,9 @@ export async function _findEncodings(session: IBasicSession, dataTypeNodeId: Nod
     const encodings: DataTypeAndEncodingId = {
         dataTypeNodeId,
 
-        binaryEncodingNodeId: NodeId.nullNodeId,
-        jsonEncodingNodeId: NodeId.nullNodeId,
-        xmlEncodingNodeId: NodeId.nullNodeId
+        binaryEncodingNodeId: new NodeId(),
+        jsonEncodingNodeId: new NodeId(),
+        xmlEncodingNodeId: new NodeId()
     };
     for (const ref of references) {
         switch (ref.browseName.name) {

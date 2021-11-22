@@ -1256,7 +1256,7 @@ export class OPCUAServer extends OPCUABaseServer {
      * ```
      * ```javascript
      *    // shutdown within 10 seconds
-     *    server.engine .shutdownReason = coerceLocalizedText("Shutdown for maintenance");
+     *    server.engine.shutdownReason = coerceLocalizedText("Shutdown for maintenance");
      *    server.shutdown(10000,function(err) {
      *    });
      *   ```
@@ -2631,7 +2631,6 @@ export class OPCUAServer extends OPCUABaseServer {
                 // ask for a refresh of asynchronous variables
                 this.engine.refreshValues(request.nodesToRead, request.maxAge, (err?: Error | null) => {
                     assert(!err, " error not handled here , fix me");
-
                     results = this.engine.read(context, request);
 
                     assert(results[0].schema.name === "DataValue");

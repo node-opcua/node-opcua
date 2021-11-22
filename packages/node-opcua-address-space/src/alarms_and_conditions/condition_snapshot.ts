@@ -9,7 +9,7 @@ import { UInt16 } from "node-opcua-basic-types";
 import { coerceLocalizedText, LocalizedText, LocalizedTextLike, NodeClass } from "node-opcua-data-model";
 import { DataValue } from "node-opcua-data-value";
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
-import { NodeId } from "node-opcua-nodeid";
+import { NodeId, sameNodeId } from "node-opcua-nodeid";
 import { UAAcknowledgeableCondition } from "node-opcua-nodeset-ua";
 import { StatusCode, StatusCodes } from "node-opcua-status-code";
 import { SimpleAttributeOperand, TimeZoneDataType } from "node-opcua-types";
@@ -175,14 +175,14 @@ export class ConditionSnapshot extends EventEmitter {
         // a nodeId/Variant map
         _record_condition_state(this, condition);
 
-        if (branchId === NodeId.nullNodeId) {
+        if (sameNodeId(branchId, NodeId.nullNodeId)) {
             _installOnChangeEventHandlers(this, condition, "");
         }
         this._set_var("branchId", DataType.NodeId, branchId);
     }
 
     public _constructEventData(): IEventData {
-        if (this.branchId === NodeId.nullNodeId) {
+        if (sameNodeId(this.branchId!, NodeId.nullNodeId)) {
             _ensure_condition_values_correctness(this, this.condition!, "", []);
         }
         const c = this.condition as UAConditionImpl;
@@ -594,7 +594,7 @@ export class ConditionSnapshot extends EventEmitter {
     }
 
     public isCurrentBranch(): boolean {
-        return this._get_var("branchId") === NodeId.nullNodeId;
+        return sameNodeId(this._get_var("branchId"), NodeId.nullNodeId);
     }
 
     // -- ACKNOWLEDGEABLE -------------------------------------------------------------------

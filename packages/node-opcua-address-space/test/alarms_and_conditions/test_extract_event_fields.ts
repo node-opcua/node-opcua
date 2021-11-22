@@ -198,7 +198,7 @@ describe("Testing extract EventField", function (this: Mocha.Suite) {
                         new SimpleAttributeOperand({
                             attributeId: AttributeIds.Value,
                             browsePath: [coerceQualifiedName("EventType")],
-                            typeDefinitionId: NodeId.nullNodeId
+                            typeDefinitionId: new NodeId(),
                         }),
                         new LiteralOperand({
                             value: new Variant({
@@ -220,7 +220,7 @@ describe("Testing extract EventField", function (this: Mocha.Suite) {
         const op = new SimpleAttributeOperand({
             attributeId: AttributeIds.Value,
             browsePath: [coerceQualifiedName("EventType")],
-            typeDefinitionId: NodeId.nullNodeId
+            typeDefinitionId:new NodeId(),
         });
 
         {

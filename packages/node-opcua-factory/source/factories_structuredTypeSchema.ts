@@ -160,8 +160,8 @@ export class StructuredTypeSchema extends TypeSchemaBase {
             this.category = FieldCategory.basic;
         }
         this.fields = options.fields.map(buildField.bind(null, this));
-        this.id = NodeId.nullNodeId;
-        this.dataTypeNodeId = NodeId.nullNodeId;
+        this.id = new NodeId();
+        this.dataTypeNodeId = new NodeId();
 
         this._possibleFields = this.fields.map((field) => field.name);
         this._baseSchema = null;

@@ -79,7 +79,7 @@ export class UAOffNormalAlarmImpl extends UADiscreteAlarmImpl implements UAOffNo
         const normalState = addressSpace._coerceNode(options.normalState)! as UAVariable;
         //       assert(normalState, "Expecting a valid normalState node");
 
-        const normalStateNodeId = normalState ? normalState.nodeId : NodeId.nullNodeId;
+        const normalStateNodeId = normalState ? normalState.nodeId : new NodeId();
         alarmNode.normalState.setValueFromSource({ dataType: DataType.NodeId, value: normalStateNodeId });
 
         if (inputNode) {

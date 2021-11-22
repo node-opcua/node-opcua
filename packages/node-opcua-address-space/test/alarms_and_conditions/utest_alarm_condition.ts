@@ -78,7 +78,7 @@ export function utest_alarm_condition(test: any): void {
                 browseName: "AlarmCondition3",
                 componentOf: source,
                 conditionSource: source,
-                inputNode: NodeId.nullNodeId
+                inputNode: new NodeId(),
             });
             alarm.inputNode.readValue().value.value.should.eql(NodeId.nullNodeId);
 
@@ -93,7 +93,7 @@ export function utest_alarm_condition(test: any): void {
                 browseName: "AlarmConditionWithMaxTimeShelved",
                 componentOf: source,
                 conditionSource: source,
-                inputNode: NodeId.nullNodeId,
+                inputNode: new NodeId(),
                 maxTimeShelved: 10 * 1000 // 10 minutes
             });
             should.exist(alarm.maxTimeShelved);
@@ -377,7 +377,7 @@ export function utest_alarm_condition(test: any): void {
                 browseName: "AcknowledgeableCondition4",
                 componentOf: source,
                 conditionSource: source,
-                inputNode: NodeId.nullNodeId,
+                inputNode: new NodeId(),
                 optionals: ["ConfirmedState", "Confirm"]
             }) as UAAlarmConditionImpl;
 
