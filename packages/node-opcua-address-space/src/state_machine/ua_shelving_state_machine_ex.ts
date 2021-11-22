@@ -7,13 +7,14 @@
 // --------------------------------------------------------------------------------------------------
 
 import { assert } from "node-opcua-assert";
-import { CallbackT, StatusCodes } from "node-opcua-status-code";
+import { Callback, CallbackT, StatusCodes } from "node-opcua-status-code";
 import { DataType, Variant, VariantLike } from "node-opcua-variant";
 
 import { UAProperty, ISessionContext, UAMethod, UAObject } from "node-opcua-address-space-base";
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 import { UAShelvedStateMachine_Base, UAState } from "node-opcua-nodeset-ua";
 import { CallMethodResultOptions } from "node-opcua-service-call";
+import { DataValue } from "node-opcua-data-value";
 
 import { UAAlarmConditionImpl } from "../alarms_and_conditions/ua_alarm_condition_impl";
 import { UATransitionEx } from "../../source/interfaces/state_machine/ua_transition_ex";
@@ -76,7 +77,7 @@ export class UAShelvedStateMachineEx extends UAStateMachineImpl implements UAShe
             shelvingState.unshelveTime.minimumSamplingInterval = 500;
             shelvingState.unshelveTime.bindVariable(
                 {
-                    get: _unShelveTimeFunc.bind(null, shelvingState)
+                    timestamped_get: _unShelveTimeFunc.bind(null, shelvingState)
                 },
                 true
             );
@@ -189,7 +190,11 @@ function _start_timer_for_automatic_unshelve(shelvingState: UAShelvedStateMachin
 //                                           a reset of the shelved timer.
 //               BadShelvingTimeOutOfRange
 
-function _timedShelve_method(inputArguments: VariantLike[], context: ISessionContext, callback: CallbackT<CallMethodResultOptions>) {
+function _timedShelve_method(
+    inputArguments: VariantLike[],
+    context: ISessionContext,
+    callback: CallbackT<CallMethodResultOptions>
+) {
     assert(inputArguments.length === 1);
     if (!context.object) {
         return;
@@ -291,24 +296,27 @@ function _oneShotShelve_method(
 //   TimedShelve Method call.
 // * For the OneShotShelved state the UnshelveTime will be a constant set to the maximum Duration
 //   except if a MaxTimeShelved Property is provided.
-function _unShelveTimeFunc(shelvingState: UAShelvedStateMachineEx) {
+function _unShelveTimeFunc(shelvingState: UAShelvedStateMachineEx): DataValue {
     if (shelvingState.getCurrentState() === "Unshelved") {
-        return new Variant({
-            dataType: DataType.StatusCode,
-            value: StatusCodes.BadConditionNotShelved
+        return new DataValue({
+            statusCode: StatusCodes.BadConditionNotShelved,
+            value: { dataType: DataType.Double, value: 0 }
         });
     }
 
     if (!shelvingState._sheveldTime) {
-        return new Variant({
-            dataType: DataType.StatusCode,
-            value: StatusCodes.BadConditionNotShelved
+        return new DataValue({
+            statusCode: StatusCodes.BadConditionNotShelved,
+            value: { dataType: DataType.Double, value: 0 }
         });
     }
     if (shelvingState.getCurrentState() === "OneShotShelved" && shelvingState._duration === UAAlarmConditionImpl.MaxDuration) {
-        return new Variant({
-            dataType: DataType.Double,
-            value: UAAlarmConditionImpl.MaxDuration
+        return new DataValue({
+            statusCode: StatusCodes.Good,
+            value: {
+                dataType: DataType.Double,
+                value: UAAlarmConditionImpl.MaxDuration
+            }
         });
     }
     const now = new Date();
@@ -317,8 +325,12 @@ function _unShelveTimeFunc(shelvingState: UAShelvedStateMachineEx) {
 
     // timeToAutomaticUnshelvedState should always be greater than (or equal) zero
     timeToAutomaticUnshelvedState = Math.max(timeToAutomaticUnshelvedState, 0);
-    return new Variant({
-        dataType: DataType.Double, // duration
-        value: timeToAutomaticUnshelvedState
+    return new DataValue({
+        statusCode: StatusCodes.Good,
+        value: {
+            dataType: DataType.Double, // duration
+            value: timeToAutomaticUnshelvedState
+        }
     });
 }
+
