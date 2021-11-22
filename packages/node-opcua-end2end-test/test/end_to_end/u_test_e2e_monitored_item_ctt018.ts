@@ -182,7 +182,7 @@ export function t(test: any) {
 
             const { session, subscription, publishEngine } = s;
 
-            let itemToMonitorsAll: ReadValueIdOptions[] = items.map((nodeId) => ({ nodeId, attributeId: AttributeIds.Value }));
+            const itemToMonitorsAll: ReadValueIdOptions[] = items.map((nodeId) => ({ nodeId, attributeId: AttributeIds.Value }));
 
             const itemToMonitors1 = itemToMonitorsAll.slice(0, 5);
 
@@ -209,7 +209,7 @@ export function t(test: any) {
             await new Promise((resolve) => setTimeout(resolve, 20));
 
             // get a partial notification , but do not go to completion
-            let dataChangeNotification = await waitForDataChangeNotification();
+            const dataChangeNotification = await waitForDataChangeNotification();
             dataChangeNotification?.monitoredItems!.length.should.eql(2);
 
             await group.terminate();
@@ -229,13 +229,12 @@ export function t(test: any) {
 
             const itemsValues: { [key: number]: DataValue } = {};
 
-            let counter = 0;
-
+        
             // The 10 items used for this test. The test can use the same NodeIds,
 
             await increaseVariables(session);
 
-            let itemToMonitors: ReadValueIdOptions[] = items.map((nodeId) => ({ nodeId, attributeId: AttributeIds.Value }));
+            const itemToMonitors: ReadValueIdOptions[] = items.map((nodeId) => ({ nodeId, attributeId: AttributeIds.Value }));
 
             const requesterParameters: MonitoringParametersOptions = {
                 discardOldest: true,
@@ -371,7 +370,7 @@ export function t(test: any) {
 
             const nodeId = `ns=${namespaceSimulationIndex};s=Static_Array_UInt32`;
 
-            let valueRankDataValue = await session.read({ nodeId, attributeId: AttributeIds.ValueRank });
+            const valueRankDataValue = await session.read({ nodeId, attributeId: AttributeIds.ValueRank });
             const valueRank = valueRankDataValue.value.value as number;
             valueRank.should.eql(1);
             let dataValue = await session.read({ nodeId, attributeId: AttributeIds.Value });
@@ -389,7 +388,7 @@ export function t(test: any) {
                 value: dataValue
             });
 
-            let itemsToMonitor: ReadValueIdOptions[] = [
+            const itemsToMonitor: ReadValueIdOptions[] = [
                 {
                     nodeId,
                     attributeId: AttributeIds.Value,
