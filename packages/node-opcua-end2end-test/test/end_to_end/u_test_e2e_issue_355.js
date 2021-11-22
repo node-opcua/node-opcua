@@ -55,10 +55,9 @@ module.exports = function(test) {
 
                     timerId = setInterval(function() {
                         const node = test.server.engine.addressSpace.findNode("ns=1;s=FanSpeed");
-                        console.log("Set");
                         node.setValueFromSource(new opcua.Variant({
                             value: Math.random(),
-                            dataType: "Float"
+                            dataType: opcua.DataType.Double
                         }));
                     }, 100);
 
