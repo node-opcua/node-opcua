@@ -1,10 +1,10 @@
 #!node
 "use strict";
 
-const Mocha = require("mocha");
 const fs = require("fs");
 const path = require("path");
 const chalk = require("chalk");
+const Mocha = require("mocha");
 
 require("source-map-support").install();
 require("ts-node").register({
@@ -12,7 +12,6 @@ require("ts-node").register({
 });
 
 Error.stackTraceLimit = 20;
-
 
 require("mocha-clean");
 
@@ -40,7 +39,7 @@ let mocha = new Mocha({
     bail: true,
     fullTrace: true,
     grep: filterOpts,
-  
+
     /*
     fullTrace: true,
     parallel: true,
@@ -50,23 +49,18 @@ let mocha = new Mocha({
     // checkLeaks: true,
 
     reporter: process.env.REPORTER || "spec", //"nyan", //"tap"
-    slow: 6000,
+    slow: 6000
 });
-
 
 let testFiles = [];
 
 function collect_files(testFolder) {
-
     for (const file of fs.readdirSync(testFolder)) {
-
         let f = path.join(testFolder, file);
         if (fs.lstatSync(f).isDirectory()) {
             collect_files(f);
         } else {
-
             if (file.match(/^test_.*\.ts/) && !file.match(/^test_.*\.d\.ts/)) {
-
                 testFiles.push(f);
             } else if (file.match(/^test_.*\.js/)) {
                 // make sure that there is not a TS file along side
@@ -83,7 +77,6 @@ function collect_files(testFolder) {
 }
 
 for (const file of fs.readdirSync(__dirname)) {
-
     const testFolder = path.join(__dirname, file, "test");
     if (fs.existsSync(testFolder)) {
         collect_files(testFolder);
@@ -95,20 +88,18 @@ testFiles = testFiles.sort();
 // -------------------------------------------------
 // portion
 if (process.env.TESTPAGE) {
-
     console.log("nb files with tests : ", testFiles.length);
 
+    const nbPages = parseInt(process.env.PAGECOUNT||"0")|| 1;
     const pageSize = 10;
     const testPage = parseInt(process.env.TESTPAGE);
     if (testPage == -1) {
-
         // display test page
         let i = 0;
         while (testFiles) {
-
             console.log("\n --------------------------------- Page ", i);
 
-            const a = testFiles.slice(i * pageSize, (i + 1) * pageSize);
+            const a = testFiles.slice(i * pageSize, (i + nbPages) * pageSize);
             if (a.length === 0) {
                 return;
             }
@@ -116,10 +107,10 @@ if (process.env.TESTPAGE) {
                 console.log("        " + f);
             }
 
-            i++
+            i++;
         }
 
-        exit(0);
+        process.exit(0);
     }
     testFiles = testFiles.slice(testPage * pageSize, (testPage + 1) * pageSize);
 
@@ -129,17 +120,15 @@ if (process.env.TESTPAGE) {
 }
 
 const suite = mocha.suite;
-suite.on('pre-require', (global, file, self) => {
+suite.on("pre-require", (global, file, self) => {
     //console.log("pre-require", file);
 });
-suite.on('require', (script, file, self) => {
-
+suite.on("require", (script, file, self) => {
+    /* */
 });
-suite.on('post-require', (global, file, self) => {
+suite.on("post-require", (global, file, self) => {
     //  console.log("post   -require", file);
-
 });
-
 
 // Add each .js file to the mocha instance
 const selectedFiles = testFiles.filter((file) => {
@@ -150,24 +139,23 @@ const selectedFiles = testFiles.filter((file) => {
 
 const skipped = process.env.SKIPPED ? parseInt(process.env.SKIPPED) : 0;
 
-let count = 0;
-for (const file of selectedFiles) {
-
-    function test_no_leak() {
-        let t = fs.readFileSync(file, "ascii");
-        if (t.match("OPCUAClient")) {
-            if (!t.match("Leak")) {
-                console.log(chalk.yellow(" OPCUAClient without leak detection mechanism  !!!"), file);
-            }
+function test_no_leak(file) {
+    let t = fs.readFileSync(file, "ascii");
+    if (t.match("OPCUAClient")) {
+        if (!t.match("Leak")) {
+            console.log(chalk.yellow(" OPCUAClient without leak detection mechanism  !!!"), file);
         }
     }
-    test_no_leak();
+}
+let count = 0;
+for (const file of selectedFiles) {
+    test_no_leak(file);
     if (count >= skipped) {
         mocha.addFile(file);
     }
     count++;
 }
-console.log("")
+console.log("");
 mocha.timeout(200000);
 mocha.bail(true);
 
@@ -181,42 +169,37 @@ function forceGC() {
 
 const doHeapSnapshot = !!process.env["HEAPSNAPSHOT"];
 const doHeapSnapshotGlobal = true;
-var heapdump = null;
+let heapdump = null;
 try {
     heapdump = require("heapdump");
-}
-catch (err) {
-
+} catch (err) {
+    /** */
 }
 
 function checkMemoryConsumption() {
     forceGC();
     const used = process.memoryUsage().heapUsed / 1024 / 1024;
     return used;
-    //  console.log(`The script uses approximately ${Math.round(used * 100) / 100} MB`);
 }
-
-
 
 Mocha.reporters.Base.color;
 
 const heapsnapshot = Date.now().toString();
 const oldConsole = console.log;
 function myConsoleLog() {
-
-
+    /**  */
 }
 const symbols = {
-    ok: '✓',
-    err: '✖',
-    dot: '․',
-    comma: ',',
-    bang: '!'
-}
-if (process.platform === 'win32') {
-    symbols.ok = '\u221A';
-    symbols.err = '\u00D7';
-    symbols.dot = '.';
+    ok: "✓",
+    err: "✖",
+    dot: "․",
+    comma: ",",
+    bang: "!"
+};
+if (process.platform === "win32") {
+    symbols.ok = "\u221A";
+    symbols.err = "\u00D7";
+    symbols.dot = ".";
 }
 
 class MyReporter {
@@ -229,27 +212,27 @@ class MyReporter {
         this.total = runner.total;
         runner
             .once(EVENT_RUN_BEGIN, () => {
-                console.log('start');
+                console.log("start");
 
-                if (doHeapSnapshotGlobal && heapdump)
-                    heapdump.writeSnapshot('./' + heapsnapshot + '.start.heapsnapshot');
+                if (doHeapSnapshotGlobal && heapdump) heapdump.writeSnapshot("./" + heapsnapshot + ".start.heapsnapshot");
             })
-            .on(EVENT_SUITE_BEGIN, test => {
+            .on(EVENT_SUITE_BEGIN, (test) => {
                 if (process.stdout.cursorTo && process.stdout.clearLine) {
-                    process.stdout.clearLine();  // clear current text
-                    process.stdout.cursorTo(0);  // move cursor to beginning of line
+                    process.stdout.clearLine(); // clear current text
+                    process.stdout.cursorTo(0); // move cursor to beginning of line
                 }
                 console.log("                  " + this.indent() + chalk.yellow(test.title));
                 this.increaseIndent();
             })
-            .on(EVENT_TEST_BEGIN, test => {
+            .on(EVENT_TEST_BEGIN, (test) => {
                 this.counter++;
                 const mem = checkMemoryConsumption();
+                console.log(`The script uses approximately ${Math.round(mem * 100) / 100} MB`);
                 this.memBefore = mem;
                 let memInfo = mem.toPrecision(5);
                 this.displayStatus(test, chalk.cyan(symbols.dot), chalk.grey(memInfo), "", "\r");
                 if (doHeapSnapshot && heapdump)
-                    heapdump.writeSnapshot('./' + Date.now() + '.start.' + this.counter + '.heapsnapshot');
+                    heapdump.writeSnapshot("./" + Date.now() + ".start." + this.counter + ".heapsnapshot");
 
                 this.old_console = console.log;
                 console.log = myConsoleLog;
@@ -257,11 +240,10 @@ class MyReporter {
             .on(EVENT_SUITE_END, () => {
                 this.decreaseIndent();
             })
-            .on(EVENT_TEST_PASS, test => {
-
+            .on(EVENT_TEST_PASS, (test) => {
                 console.log = oldConsole;
 
-                var color = Mocha.reporters.Base.color;
+                const color = Mocha.reporters.Base.color;
                 const extra = test.duration > 500 ? chalk.greenBright(` (${test.duration}ms)`) : "";
                 const mem = checkMemoryConsumption();
                 if (mem > this.maxMem) {
@@ -277,49 +259,45 @@ class MyReporter {
                 }
                 this.displayStatus(test, chalk.greenBright(symbols.ok), memInfo, extra, "\n");
                 if (doHeapSnapshot && heapdump)
-                    heapdump.writeSnapshot('./' + Date.now() + '.end.' + this.counter + '.heapsnapshot');
+                    heapdump.writeSnapshot("./" + Date.now() + ".end." + this.counter + ".heapsnapshot");
             })
             .on(EVENT_TEST_SKIPPED, (test) => {
                 console.log = oldConsole;
                 this.displayStatus(test, chalk.red(symbols.bang), "     ", "", "\n");
             })
             .on(EVENT_TEST_FAIL, (test, err) => {
-
                 console.log = oldConsole;
 
                 this.displayStatus(test, chalk.red(symbols.err), "     ", "", "\n");
                 console.log(err);
             })
             .once(EVENT_RUN_END, () => {
-
                 const mem = checkMemoryConsumption();
                 let memInfo = mem.toPrecision(5);
                 console.log(`end: ${stats.passes} / ${stats.passes + stats.failures} ok   (mem = ${memInfo} MB)`);
                 console.log(`total test: ${this.total}`);
                 console.log("max mem =", this.maxMem.toPrecision(5), "MB");
-                if (doHeapSnapshotGlobal && heapdump)
-                    heapdump.writeSnapshot('./' + heapsnapshot + '.end.heapsnapshot');
+                if (doHeapSnapshotGlobal && heapdump) heapdump.writeSnapshot("./" + heapsnapshot + ".end.heapsnapshot");
             });
     }
     displayStatus(test, status, mem, extra, ending) {
         extra = extra || "";
         try {
             if (process.stdout.cursorTo && process.stdout.clearLine) {
-                process.stdout.cursorTo(0);  // move cursor to beginning of line
-                process.stdout.clearLine();  // clear current text
-                process.stdout.cursorTo(0);  // move cursor to beginning of line
+                process.stdout.cursorTo(0); // move cursor to beginning of line
+                process.stdout.clearLine(); // clear current text
+                process.stdout.cursorTo(0); // move cursor to beginning of line
             }
             const title = this.indent() + status + " " + test.title;
             const progress = this.counter.toString().padStart(4, " ") + "/" + this.total;
             process.stdout.write(mem + " " + progress + " " + title + extra + ending);
             return mem;
-        }
-        catch (err) {
+        } catch (err) {
             console.log(err);
         }
     }
     indent() {
-        return Array(this._indents).join('  ');
+        return Array(this._indents).join("  ");
     }
 
     increaseIndent() {
@@ -338,11 +316,9 @@ if (process.env.NODEOPCUATESTREPORTER) {
 try {
     // Run the tests.
     mocha.run((failures) => {
-        process.exit(failures);  // exit with non-zero status if there were failures
+        process.exit(failures); // exit with non-zero status if there were failures
     });
-}
-catch(err) {
-
+} catch (err) {
     console.log("---------------------------------- mocha run error");
     console.log(err);
     process.exit(-1);
