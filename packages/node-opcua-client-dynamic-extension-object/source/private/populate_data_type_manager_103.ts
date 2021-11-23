@@ -7,7 +7,7 @@ import * as chalk from "chalk";
 
 import { assert } from "node-opcua-assert";
 import { AttributeIds, makeNodeClassMask, makeResultMask, QualifiedName } from "node-opcua-data-model";
-import { checkDebugFlag, make_debugLog, make_errorLog } from "node-opcua-debug";
+import { checkDebugFlag, make_debugLog, make_errorLog, make_warningLog} from "node-opcua-debug";
 import { ConstructorFuncWithSchema, DataTypeFactory, getStandardDataTypeFactory } from "node-opcua-factory";
 import { ExpandedNodeId, NodeId, resolveNodeId, sameNodeId } from "node-opcua-nodeid";
 import { browseAll, BrowseDescriptionLike, IBasicSession } from "node-opcua-pseudo-session";
@@ -31,6 +31,7 @@ import {
 const doDebug = checkDebugFlag(__filename);
 const debugLog = make_debugLog(__filename);
 const errorLog = make_errorLog(__filename);
+const warningLog = make_warningLog(__filename);
 
 // DataType
 //    | 1
@@ -126,7 +127,10 @@ async function _enrichWithDescriptionOf(session: IBasicSession, dataTypeDescript
         const dataTypeDescription = dataTypeDescriptions[i++];
 
         result3.references = result3.references || [];
-        assert(result3.references.length === 1);
+        if (result3.references.length !== 1) {
+            warningLog("_enrichWithDescriptionOf : expecting 1 reference for ", dataTypeDescription.browseName.toString());
+            continue;
+        }
         for (const ref of result3.references) {
             const binaryEncodingNodeId = ref.nodeId;
             dataTypeDescription.encodings = dataTypeDescription.encodings || {
@@ -353,7 +357,7 @@ async function _extractDataTypeDictionary(
         );
         debugLog("let's use the new way (1.04) and let's crawl all dataTypes exposed by this name space");
 
-        // dataType definition in store directly in UADataType under the $definition property
+        // dataType definition in store directly in UADataType under the definition attribute
         const dataTypeFactory2 = dataTypeManager.getDataTypeFactory(dataTypeDictionaryNodeId.namespace);
         if (!dataTypeFactory2) {
             throw new Error("cannot find dataTypeFactory for namespace " + dataTypeDictionaryNodeId.namespace);
