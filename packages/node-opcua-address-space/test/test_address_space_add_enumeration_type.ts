@@ -186,7 +186,7 @@ describe("AddressSpace : testing add enumeration type", () => {
             SessionContext.defaultContext,
             new DataValue({
                 value: {
-                    dataType: DataType.UInt32,
+                    dataType: DataType.Int32,
                     value: 2
                 }
             })
