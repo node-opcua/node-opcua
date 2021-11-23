@@ -185,7 +185,6 @@ export declare class VariableHistorian implements IVariableHistorian {
 
 export type UAClonable = UAObject | UAVariable | UAMethod;
 
-export interface Enumeration extends UAVariable {}
 export declare function createExtObjArrayNode<T extends ExtensionObject>(
     parentFolder: UAObject,
     options: any

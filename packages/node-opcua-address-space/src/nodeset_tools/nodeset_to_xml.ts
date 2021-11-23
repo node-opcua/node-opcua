@@ -749,7 +749,11 @@ function _dumpEnumDefinition(xw: XmlWriter, enumDefinition: EnumDefinition) {
         xw.endElement();
     }
 }
-function _dumpStructureDefinition(xw: XmlWriter, structureDefinition: StructureDefinition) {
+function _dumpStructureDefinition(
+    xw: XmlWriter,
+    structureDefinition: StructureDefinition,
+    baseStructureDefinition: StructureDefinition | null | undefined
+) {
     /*
      * note: baseDataType and defaultEncodingId are implicit and not stored in the XML file ??
      *
@@ -757,8 +761,12 @@ function _dumpStructureDefinition(xw: XmlWriter, structureDefinition: StructureD
     const baseDataType = structureDefinition.baseDataType;
     const defaultEncodingId = structureDefinition.defaultEncodingId;
 
-    structureDefinition.fields = structureDefinition.fields || [];
-    for (const defItem /*: StructureField*/ of structureDefinition.fields) {
+    // do not repeat elements that are already defined in base structure in the xml ouput!
+    const fields = structureDefinition.fields || [];
+    const nbFieldsInBase: number = baseStructureDefinition ? baseStructureDefinition.fields?.length || 0  : 0;
+
+    for(let index = nbFieldsInBase; index <fields.length; index++ ) {
+       const  defItem = fields[index];
         xw.startElement("Field");
         xw.writeAttribute("Name", defItem.name!);
 
@@ -788,27 +796,29 @@ function _dumpStructureDefinition(xw: XmlWriter, structureDefinition: StructureD
         xw.endElement();
     }
 }
-function _dumpUADataTypeDefinition(xw: XmlWriter, node: UADataType) {
+function _dumpUADataTypeDefinition(xw: XmlWriter, uaDataType: UADataType) {
     // to do remove DataType from base class
-
-    const definition = node.getDefinition();
+    const uaDataTypeBase = uaDataType.subtypeOfObj;
+    const definition = uaDataType.getDefinition();
     if (!definition) {
         return;
     }
     if (definition instanceof EnumDefinition) {
         xw.startElement("Definition");
-        xw.writeAttribute("Name", node.browseName.name!);
+        xw.writeAttribute("Name", uaDataType.browseName.name!);
         _dumpEnumDefinition(xw, definition);
         xw.endElement();
         return;
     }
     if (definition instanceof StructureDefinition) {
+        const baseDefinition = uaDataTypeBase ? (uaDataTypeBase.getDefinition() as StructureDefinition | null) : null;
+
         xw.startElement("Definition");
-        xw.writeAttribute("Name", node.browseName.name!);
+        xw.writeAttribute("Name", uaDataType.browseName.name!);
         if (definition.structureType === StructureType.Union) {
             xw.writeAttribute("IsUnion", "true");
         }
-        _dumpStructureDefinition(xw, definition);
+        _dumpStructureDefinition(xw, definition, baseDefinition);
         xw.endElement();
         return;
     }

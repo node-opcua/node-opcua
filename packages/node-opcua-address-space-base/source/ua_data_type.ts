@@ -1,7 +1,7 @@
 import { NodeClass } from "node-opcua-data-model";
 import { ExpandedNodeId, NodeId, NodeIdLike } from "node-opcua-nodeid";
 import { DataType } from "node-opcua-variant";
-import { DataTypeDefinition } from "node-opcua-types";
+import { DataTypeDefinition, EnumDefinition, StructureDefinition } from "node-opcua-types";
 
 import { BaseNode } from "./base_node";
 
@@ -36,4 +36,12 @@ export interface UADataType extends BaseNode {
      *
      */
     getDefinition(): DataTypeDefinition;
+
+    isStructure(): boolean;
+    getStructureDefinition(): StructureDefinition;
+    
+    isEnumeration(): boolean; 
+    getEnumDefinition(): EnumDefinition;
+
+    getBasicDataType(): DataType;
 }

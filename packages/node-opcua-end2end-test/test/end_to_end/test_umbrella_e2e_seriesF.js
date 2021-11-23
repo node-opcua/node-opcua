@@ -7,6 +7,7 @@ const port = 1995;
 
 const { beforeTest, afterTest, beforeEachTest, afterEachTest } = require("./_helper_umbrella");
 
+// eslint-disable-next-line import/order
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("testing Client - Umbrella-F", function () {
     // this test could be particularly slow on RaspberryPi or BeagleBoneBlack
@@ -15,6 +16,7 @@ describe("testing Client - Umbrella-F", function () {
     this.timeout(process.arch === "arm" ? 400000 : 30000);
     this.timeout(Math.max(200000, this.timeout()));
 
+    // eslint-disable-next-line @typescript-eslint/no-this-alias
     const test = this;
     test.port = port;
 
@@ -48,7 +50,5 @@ describe("testing Client - Umbrella-F", function () {
     require("./u_test_e2e_issue_957")(test);
 
     require("./u_test_e2e_monitored_item_ctt018").t(test);
-    require("./u_test_e2e_1086").t(test);
-
     // require("./u_test_e2e_modifyMonitoredItem_onEvent")(test);
 });

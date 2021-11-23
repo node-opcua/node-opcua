@@ -24,7 +24,7 @@ describe("Argument.schema.ConstructHook - issue#1084", () => {
         const argument: ArgumentOptions = {
             name: "InputB",
             dataType: DataType.String,
-            valueRank: -1,
+            valueRank: -1
         };
 
         const arg = Argument.schema.constructHook!(argument);

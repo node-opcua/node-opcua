@@ -1189,10 +1189,13 @@ describe("testing UAVariable ", () => {
         variableIntegerClone.readValue().value.should.eql(variableInteger.readValue().value);
     });
 
+    interface UAVariablePrivate extends UAVariable {
+        $dataValue: DataValue;
+    }
     it("UAVariable#readValue should return an error if value is not readable", () => {
-        (notReadableVariable as any)._dataValue.value.dataType.should.eql(DataType.Int32);
-        (notReadableVariable as any)._dataValue.value.value.should.eql(2);
-        (notReadableVariable as any)._dataValue.statusCode.should.eql(StatusCodes.Good);
+        (notReadableVariable as UAVariablePrivate).$dataValue.value.dataType.should.eql(DataType.Int32);
+        (notReadableVariable as UAVariablePrivate).$dataValue.value.value.should.eql(2);
+        (notReadableVariable as UAVariablePrivate).$dataValue.statusCode.should.eql(StatusCodes.Good);
 
         const dataValue = notReadableVariable.readValue();
 
@@ -1205,9 +1208,9 @@ describe("testing UAVariable ", () => {
     });
 
     it("UAVariable#readValueAsync should return an error if value is not readable", async () => {
-        (notReadableVariable as any)._dataValue.value.dataType.should.eql(DataType.Int32);
-        (notReadableVariable as any)._dataValue.value.value.should.eql(2);
-        (notReadableVariable as any)._dataValue.statusCode.should.eql(StatusCodes.Good);
+        (notReadableVariable as UAVariablePrivate).$dataValue.value.dataType.should.eql(DataType.Int32);
+        (notReadableVariable as UAVariablePrivate).$dataValue.value.value.should.eql(2);
+        (notReadableVariable as UAVariablePrivate).$dataValue.statusCode.should.eql(StatusCodes.Good);
 
         const dataValue = await notReadableVariable.readValueAsync(context);
 

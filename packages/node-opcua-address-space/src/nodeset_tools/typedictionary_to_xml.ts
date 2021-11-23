@@ -44,6 +44,7 @@ function dumpDataTypeStructure(
     addressSpace: IAddressSpace,
     map: { [key: number]: string },
     structureDefinition: StructureDefinition,
+    structureDefinitionBase: StructureDefinition | undefined| null,
     name: string,
     doc?: string
 ): void {
@@ -56,8 +57,14 @@ function dumpDataTypeStructure(
         xw.text(doc);
         xw.endElement();
     }
+
+    const fields = structureDefinition.fields || [];
+    // get base class
+    const nbFieldsInBase = structureDefinitionBase? structureDefinitionBase.fields?.length || 0 : 0;
+
     let optionalsCount = 0;
-    for (const f of structureDefinition.fields || []) {
+    for (let index = nbFieldsInBase; index < fields.length; index ++) {
+        const f=  fields [index];
         if (f.isOptional) {
             xw.startElement("opc:Field");
             xw.writeAttribute("Name", f.name + "Specified");
@@ -90,7 +97,9 @@ function dumpDataTypeStructure(
             xw.endElement();
         }
     }
-    for (const f of structureDefinition.fields || []) {
+    for (let index = nbFieldsInBase; index < fields.length; index ++) {
+        const f=  fields [index];
+   
         const isArray = f.valueRank > 0 && f.arrayDimensions?.length;
 
         if (isArray) {
@@ -124,12 +133,13 @@ function dumpDataTypeToBSD(xw: XmlWriter, dataType: UADataType, map: { [key: num
 
     const name: string = dataType.browseName.name!;
 
-    const def = (<UADataTypeImpl>dataType)._getDefinition(false);
-    if (def instanceof StructureDefinition) {
-        dumpDataTypeStructure(xw, addressSpace, map, def, name);
+    const definition = dataType.getDefinition();
+    if (definition instanceof StructureDefinition) {
+        const structureDefinitionBase = dataType.subtypeOfObj?.getStructureDefinition();
+        dumpDataTypeStructure(xw, addressSpace, map, definition, structureDefinitionBase, name);
     }
-    if (def instanceof EnumDefinition) {
-        dumpEnumeratedType(xw, def, name);
+    if (definition instanceof EnumDefinition) {
+        dumpEnumeratedType(xw, definition, name);
     }
 }
 

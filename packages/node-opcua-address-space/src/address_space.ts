@@ -10,7 +10,7 @@ import { ExtraDataTypeManager } from "node-opcua-client-dynamic-extension-object
 import { DataTypeIds, VariableTypeIds } from "node-opcua-constants";
 import { BrowseDirection, NodeClass, QualifiedName } from "node-opcua-data-model";
 import { ExtensionObject } from "node-opcua-extension-object";
-import { coerceExpandedNodeId, makeNodeId, NodeId, NodeIdLike, resolveNodeId, sameNodeId } from "node-opcua-nodeid";
+import { coerceExpandedNodeId, coerceNodeId, makeNodeId, NodeId, NodeIdLike, resolveNodeId, sameNodeId } from "node-opcua-nodeid";
 import { ObjectRegistry } from "node-opcua-object-registry";
 import { BrowseResult } from "node-opcua-service-browse";
 import { StatusCodes } from "node-opcua-status-code";
@@ -69,7 +69,8 @@ const doDebug = false;
 const Dequeue = require("dequeue");
 
 const regexNumberColumnString = /^([0-9]+):(.*)/;
-
+const enumerationTypeNodeId = coerceNodeId(DataTypeIds.Enumeration);
+ 
 function _extract_namespace_and_browse_name_as_string(
     addressSpace: AddressSpace,
     browseName: NodeIdLike | QualifiedName,
@@ -472,10 +473,8 @@ export class AddressSpace implements AddressSpacePrivate {
                     dataTypeNode.constructor.name
             );
         }
-        dataTypeNode = dataTypeNode as UADataType;
-
-        const enumerationType = this.findDataType("Enumeration")!;
-        if (sameNodeId(enumerationType.nodeId, dataTypeNode!.nodeId)) {
+        
+        if (sameNodeId(enumerationTypeNodeId, dataTypeNode!.nodeId)) {
             return DataType.Int32;
         }
 
@@ -483,11 +482,18 @@ export class AddressSpace implements AddressSpacePrivate {
             // Number
             return DataType.Null; //which one ?
         }
-
-        if (dataTypeNode.nodeId.namespace === 0 && DataType[dataTypeNode.nodeId.value as number]) {
+ 
+        if (dataTypeNode.nodeId.namespace === 0 && dataTypeNode.nodeId.value === 0) {
+            return DataType.Null;
+        }
+ 
+        if (dataTypeNode.nodeId.namespace === 0 && dataTypeNode.nodeId.value <= 25) {
             return dataTypeNode.nodeId.value as DataType;
         }
-        return this.findCorrespondingBasicDataType(dataTypeNode.subtypeOfObj as UADataType);
+ 
+        const result =  this.findCorrespondingBasicDataType(dataTypeNode.subtypeOfObj as UADataType);
+ 
+        return result;
     }
 
     /**
