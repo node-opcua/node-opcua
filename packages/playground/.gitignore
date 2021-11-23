@@ -1,2 +1,5 @@
-./tmp_*.js
-./tmp_*.ts
+tmp_*.js
+tmp_*.ts
+_private_*.*
+_private_*.(js|mjs|ts)
+
