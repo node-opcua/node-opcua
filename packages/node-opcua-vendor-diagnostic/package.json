@@ -1,6 +1,6 @@
 {
     "name": "node-opcua-vendor-diagnostic",
-    "version": "2.60.1",
+    "version": "2.60.2",
     "description": "pure nodejs OPCUA SDK - module -vendor-diagnostic",
     "main": "./dist/index.js",
     "types": "./dist/index.d.ts",

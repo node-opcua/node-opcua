@@ -1,6 +1,6 @@
 {
     "name": "node-opcua-end2end-test",
-    "version": "2.60.1",
+    "version": "2.60.2",
     "description": "pure nodejs OPCUA SDK - module -end2end-test",
     "private": true,
     "scripts": {
@@ -14,7 +14,7 @@
         "@types/underscore": "^1.11.3",
         "async": "^3.2.2",
         "delayed": "^2.0.0",
-        "node-opcua": "2.60.1",
+        "node-opcua": "2.60.2",
         "node-opcua-address-space": "2.60.0",
         "node-opcua-address-space-for-conformance-testing": "2.60.0",
         "node-opcua-aggregates": "2.60.0",
