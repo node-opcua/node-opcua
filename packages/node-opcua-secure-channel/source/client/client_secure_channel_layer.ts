@@ -52,6 +52,9 @@ const warningLog = make_warningLog(__filename);
 const checkChunks = doDebug && false;
 const doDebug1 = false;
 
+// set checkTimeout to true to enable timeout trace checking
+const checkTimeout = false;
+
 import { extractFirstCertificateInChain, getThumbprint, ICertificateKeyPairProvider, Request, Response } from "../common";
 import {
     ClientTransactionStatistics,
@@ -1343,12 +1346,18 @@ export class ClientSecureChannelLayer extends EventEmitter {
             }
         };
 
+        const optionalTrace = !checkTimeout || new Error().stack;
+
         timerId = setTimeout(() => {
             timerId = null;
             debugLog(" Timeout .... waiting for response for ", request.constructor.name, request.requestHeader.toString());
             debugLog(" Timeout was ", timeout, "ms");
             hasTimedOut = true;
-            modified_callback(new Error("Transaction has timed out ( timeout = " + timeout + " ms)"));
+            if (checkTimeout) {
+                errorLog(request.toString());
+                errorLog(optionalTrace);
+            }
+            modified_callback(new Error("Transaction has timed out ( timeout = " + timeout + " ms , request = " + request.constructor.name + ")"));
             this._timeout_request_count += 1;
             /**
              * notify the observer that the response from the request has not been
