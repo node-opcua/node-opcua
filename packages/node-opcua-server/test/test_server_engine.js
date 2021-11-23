@@ -84,11 +84,11 @@ describe("testing ServerEngine", () => {
                 organizedBy: engine.addressSpace.findNode("ObjectsFolder"),
                 browseName: "WriteableInt32",
                 nodeId: "s=WriteableInt32",
-                dataType: "Int32",
+                dataType: DataType.Int32,
                 value: {
                     get: function () {
                         return new Variant({
-                            dataType: DataType.Double,
+                            dataType: DataType.Int32,
                             arrayType: VariantArrayType.Array,
                             value: testArray
                         });
@@ -101,7 +101,7 @@ describe("testing ServerEngine", () => {
                 }
             });
 
-            // add a writable Int32
+            // add a writable UInt32
             namespace.addVariable({
                 organizedBy: engine.addressSpace.findNode("ObjectsFolder"),
                 browseName: "WriteableUInt32Async",
@@ -110,7 +110,7 @@ describe("testing ServerEngine", () => {
                 value: {
                     get: function () {
                         return new Variant({
-                            dataType: DataType.Double,
+                            dataType: DataType.UInt32,
                             arrayType: VariantArrayType.Array,
                             value: testArray
                         });
