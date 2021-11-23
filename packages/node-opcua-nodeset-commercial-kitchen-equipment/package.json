@@ -1,6 +1,6 @@
 {
     "name": "node-opcua-nodeset-commercial-kitchen-equipment",
-    "version": "2.59.0",
+    "version": "2.60.0",
     "description": "",
     "main": "dist/index.js",
     "types": "dist/index.d.ts",
@@ -10,13 +10,12 @@
     "author": "etienne.rossignon@sterfive.com",
     "license": "MIT",
     "dependencies": {
-        "node-opcua-address-space-base": "2.59.0",
-        "node-opcua-basic-types": "2.57.0",
-        "node-opcua-data-access": "2.59.0",
-        "node-opcua-data-model": "2.57.0",
-        "node-opcua-nodeset-di": "2.59.0",
-        "node-opcua-nodeset-ua": "2.59.0",
-        "node-opcua-variant": "2.59.0"
-    },
-    "devDependencies": {}
+        "node-opcua-address-space-base": "2.60.0",
+        "node-opcua-basic-types": "2.60.0",
+        "node-opcua-data-access": "2.60.0",
+        "node-opcua-data-model": "2.60.0",
+        "node-opcua-nodeset-di": "2.60.0",
+        "node-opcua-nodeset-ua": "2.60.0",
+        "node-opcua-variant": "2.60.0"
+    }
 }
