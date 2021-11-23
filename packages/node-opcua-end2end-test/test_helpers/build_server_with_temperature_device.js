@@ -1,11 +1,13 @@
 "use strict";
 
+const os = require("os");
+const { callbackify } = require("util");
+
 const { assert } = require("node-opcua-assert");
 require("should");
 const chalk = require("chalk");
-const os = require("os");
+
 const { prepareFQDN, getFullyQualifiedDomainName } = require("node-opcua-hostname");
-const { callbackify } = require("util");
 const { checkDebugFlag, make_debugLog } = require("node-opcua-debug");
 const {
     nodesets,
