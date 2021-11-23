@@ -13,6 +13,7 @@
         <Alias Alias="HasTypeDefinition">i=40</Alias>
         <Alias Alias="HasProperty">i=46</Alias>
         <Alias Alias="HasNotifier">i=48</Alias>
+        <Alias Alias="HasEncoding">i=38</Alias>
         <Alias Alias="LocalizedText">i=21</Alias>
     </Aliases>
     <UADataType NodeId="i=6" BrowseName="Int32">
@@ -230,6 +231,14 @@
             <Reference ReferenceType="HasSubtype" IsForward="false">i=32</Reference>
         </References>
         <InverseName>MayBeEffectedBy</InverseName>
+    </UAReferenceType>
+    <UAReferenceType NodeId="i=38" BrowseName="HasEncoding">
+        <DisplayName>HasEncoding</DisplayName>
+        <Description>The type for references from data type nodes to to data type encoding nodes.</Description>
+        <References>
+            <Reference ReferenceType="HasSubtype" IsForward="false">i=32</Reference>
+        </References>
+        <InverseName>EncodingOf</InverseName>
     </UAReferenceType>
     <UAObjectType NodeId="i=58" BrowseName="BaseObjectType">
         <DisplayName>BaseObjectType</DisplayName>

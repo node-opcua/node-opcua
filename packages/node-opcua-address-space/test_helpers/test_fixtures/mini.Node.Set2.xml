@@ -4505,4 +4505,18 @@
             <Reference ReferenceType="HasProperty" IsForward="false">i=11646</Reference>
         </References>
     </UAVariable>
+    <UADataType NodeId="i=256" BrowseName="IdType">
+        <DisplayName>IdType</DisplayName>
+        <Documentation>https://reference.opcfoundation.org/v104/Core/docs/Part3/8.2.3</Documentation>
+        <References>
+          <Reference ReferenceType="HasProperty">i=7591</Reference>
+          <Reference ReferenceType="HasSubtype" IsForward="false">i=29</Reference>
+        </References>
+        <Definition Name="IdType">
+          <Field Name="Numeric" Value="0" />
+          <Field Name="String" Value="1" />
+          <Field Name="Guid" Value="2" />
+          <Field Name="Opaque" Value="3" />
+        </Definition>
+      </UADataType>
 </UANodeSet>
