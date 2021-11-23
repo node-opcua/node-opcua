@@ -2,9 +2,10 @@ import * as path from "path";
 import * as fs from "fs";
 
 import { IBasicSession } from "node-opcua-pseudo-session";
+import { DataTypeIds } from "node-opcua-constants";
 import { ReferenceDescriptionEx, walkThroughDataTypes, walkThroughObjectTypes, walkThroughVariableTypes } from "./walk_through";
 import { convertTypeToTypescript } from "./convert_to_typescript";
-import { Cache2, constructCache } from "./private/cache";
+import { constructCache } from "./private/cache";
 import { Options } from "./options";
 
 function getPackageInfo(dependency: string) {
@@ -42,6 +43,9 @@ export async function convertNamespaceTypeToTypescript(
 
             cache!.resetRequire();
 
+            if (reference.nodeId.namespace === 0 && reference.nodeId.value === DataTypeIds.Enumeration) {
+                return; // ignore enumeration
+            }
             const { type, content, folder, module, filename, dependencies } = await convertTypeToTypescript(
                 session,
                 reference.nodeId,
@@ -83,6 +87,9 @@ async function _output_index_ts_file(info: Info): Promise<void> {
     const content: string[] = [];
     for (const file of info.files.sort()) {
         if (file.match(/^ua_property/)) {
+            continue;
+        }
+        if (file.match(/^enum_eration/)) {
             continue;
         }
         content.push(`export * from "./${file.replace(".ts", "")}";`);

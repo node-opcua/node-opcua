@@ -136,7 +136,6 @@ export * from "./enum_broker_transport_quality_of_service";
 export * from "./enum_data_set_ordering";
 export * from "./enum_diagnostics_level";
 export * from "./enum_duplex";
-export * from "./enum_eration";
 export * from "./enum_exception_deviation_format";
 export * from "./enum_filter_operator";
 export * from "./enum_history_update";

@@ -174,7 +174,7 @@ describe("testing client Proxy", function () {
 
                         function (callback) {
                             // now call getMonitoredItems
-                            const subscriptionId = proxyManager.subscription?.subscriptionId || 1;
+                            const subscriptionId = proxyManager.subscription ? proxyManager.subscription.subscriptionId || 1 : 1;
                             console.log(" SubscriptionID= ", subscriptionId);
                             serverObject.getMonitoredItems({ subscriptionId }, (err, outputArgs) => {
                                 console.log("err = ", err);
