@@ -195,7 +195,17 @@ export class NodeId {
     }
 }
 
-NodeId.nullNodeId = new NodeId();
+NodeId.nullNodeId = new Proxy(
+    new NodeId(NodeIdType.NUMERIC, 0, 0),
+    {
+        get: (target: NodeId, prop: string) => {
+            return (target as any)[prop];
+        },
+        set: () => {
+            throw new Error("Cannot assign a value to  constant NodeId.nullNodeId");
+        }
+    });
+
 
 export type NodeIdLike = string | NodeId | number;
 
@@ -382,5 +392,5 @@ export function sameNodeId(n1: NodeId, n2: NodeId): boolean {
             return isEqual(n1.value, n2.value);
     }
 }
-
 NodeId.sameNodeId = sameNodeId;
+
