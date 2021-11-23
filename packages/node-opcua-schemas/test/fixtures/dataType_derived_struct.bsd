@@ -1,0 +1,15 @@
+<opc:TypeDictionary xmlns:opc="http://opcfoundation.org/BinarySchema/" TargetNamespace="urn:eclipse:milo:opcua:server:demo" DefaultByteOrder="LittleEndian">
+  <opc:Import Namespace="http://opcfoundation.org/BinarySchema/"/>
+  <opc:StructuredType Name="ConnectionTransportDataType" BaseType="ua:ExtensionObject">
+  </opc:StructuredType>
+  <opc:StructuredType Name="DatagramConnectionTransportDataType" BaseType="tns:ConnectionTransportDataType">
+    <opc:Field Name="DiscoveryAddress" TypeName="ua:ExtensionObject" />
+  </opc:StructuredType>
+  <opc:StructuredType BaseType="ua:DatagramConnectionTransportDataType" Name="DatagramConnectionTransport2DataType">
+    <opc:Field SourceType="ua:DatagramConnectionTransportDataType" TypeName="ua:ExtensionObject" Name="DiscoveryAddress"/>
+    <opc:Field TypeName="opc:UInt32" Name="DiscoveryAnnounceRate"/>
+    <opc:Field TypeName="opc:UInt32" Name="DiscoveryMaxMessageSize"/>
+    <opc:Field TypeName="opc:Int32" Name="NoOfDatagramQoS"/>
+    <opc:Field LengthField="NoOfDatagramQoS" TypeName="ua:ExtensionObject" Name="DatagramQoS"/>
+  </opc:StructuredType>
+</opc:TypeDictionary>
