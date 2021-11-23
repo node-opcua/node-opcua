@@ -201,7 +201,7 @@ export class NodeCrawler extends NodeCrawlerBase {
                 const refName = lowerFirstLetter(referenceType?.browseName?.name || "");
 
                 if (refName === "hasTypeDefinition") {
-                    obj.typeDefinition = reference.browseName.name;
+                    obj.typeDefinition = reference?.browseName.name;
                 } else {
                     if (!referenceMap[refName]) {
                         referenceMap[refName] = [];
