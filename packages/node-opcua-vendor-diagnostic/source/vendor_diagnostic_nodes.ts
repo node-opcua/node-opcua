@@ -34,11 +34,7 @@ function addVariableWithHumanizeText(namespace: Namespace, options: any) {
         value: {
             get() {
                 const v = options.value.get();
-                if (v instanceof Variant) {
-                    return v;
-                } else {
-                    return new Variant({ dataType: DataType.String, value: humanize.filesize(v.value) });
-                }
+                return new Variant({ dataType: DataType.String, value: humanize.filesize(v.value) });
             }
         }
     });
