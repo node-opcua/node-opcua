@@ -221,7 +221,7 @@ describe("testing address space", () => {
         addressSpace.findCorrespondingBasicDataType(makeNodeId(DataTypeIds.BuildInfo)).should.eql(DataType.ExtensionObject);
     });
 
-    it("AddressSpace#findCorrespondingBasicDataType i=852 (Enumeration ServerState) => UInt32", () => {
+    it("AddressSpace#findCorrespondingBasicDataType i=852 (Enumeration ServerState) => Int32", () => {
         addressSpace.findCorrespondingBasicDataType(makeNodeId(DataTypeIds.ServerState)).should.eql(DataType.Int32);
     });
 
