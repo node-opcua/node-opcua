@@ -39,6 +39,7 @@ const {
     Variant,
     Subscription
 } = require("node-opcua");
+const { make_debugLog, checkDebugFlag } = require("node-opcua-debug");
 
 const {
     perform_operation_on_client_session,
@@ -48,7 +49,6 @@ const {
     perform_operation_on_subscription_async
 } = require("../../test_helpers/perform_operation_on_client_session");
 
-const { make_debugLog, checkDebugFlag } = require("node-opcua-debug");
 const debugLog = make_debugLog("TEST");
 const doDebug = checkDebugFlag("TEST");
 
@@ -65,7 +65,7 @@ function trace_console_log() {
     };
 }
 
-//xx trace_console_log();
+// eslint-disable-next-line import/order
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 
 module.exports = function (test) {
@@ -187,7 +187,9 @@ module.exports = function (test) {
                         priority: 6
                     });
 
-                    subscription.on("started", function () {});
+                    subscription.on("started",  ()=> {
+                        debugLog("subscription started")
+                    });
 
                     const monitoredItem = ClientMonitoredItem.create(
                         subscription,
@@ -1531,10 +1533,10 @@ module.exports = function (test) {
                     );
 
                     monitoredItem.on("initialized", function () {
-                        //xx console.log("Initialized");
+                        debugLog("Initialized");
                     });
                     monitoredItem.on("terminated", function () {
-                        // xx console.log("monitored item terminated");
+                        debugLog("monitored item terminated");
                     });
 
                     monitoredItem.on("changed", function (dataValue) {
@@ -1573,7 +1575,7 @@ module.exports = function (test) {
                     // subscription.on("item_added",function(monitoredItem){
                     monitoredItem.on("initialized", () => {
                         // eslint-disable-next-line no-debugger
-                        debugger;
+                        // debugger;
                     });
 
                     monitoredItem.on("changed", (dataValue) => {
@@ -2133,7 +2135,9 @@ module.exports = function (test) {
 
                     const subscription = ClientSubscription.create(session, parameters);
 
-                    subscription.on("terminated", function () {});
+                    subscription.on("terminated", function () {
+                        debugLog("subscription terminated")
+                    });
 
                     const itemToMonitor = {
                         nodeId: resolveNodeId("ns=0;i=2258"),
@@ -2220,7 +2224,9 @@ module.exports = function (test) {
                         priority: 6
                     });
 
-                    subscription.on("terminated", function () {});
+                    subscription.on("terminated", function () {
+                        debugLog("subscription terminated");
+                    });
                     const monitoredItem = ClientMonitoredItem.create(
                         subscription,
                         {
