@@ -462,8 +462,8 @@ describe("SM1 - Subscriptions and MonitoredItems", function () {
 
         const result = subscription.getMonitoredItems({});
         result.statusCode.should.eql(StatusCodes.Good);
-        result.serverHandles.map((a) => parseInt(a, 10)).should.eql([monitoredItem.monitoredItemId]);
-        result.clientHandles.map((a) => parseInt(a, 10)).should.eql([monitoredItem.clientHandle]);
+        Array.from(result.serverHandles.map((a) => parseInt(a, 10))).should.eql([monitoredItem.monitoredItemId]);
+        Array.from(result.clientHandles.map((a) => parseInt(a, 10))).should.eql([monitoredItem.clientHandle]);
 
         subscription.terminate();
         subscription.dispose();
