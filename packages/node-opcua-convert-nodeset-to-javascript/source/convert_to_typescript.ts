@@ -922,7 +922,7 @@ function getBaseClassWithOmit(classDef: ClassDefinition) {
     const conflictingMembers = members.filter((m) => allMembers.indexOf(m.name) !== -1);
     //console.log(allMembers.join(" "));
     if (conflictingMembers.length) {
-      //  console.log("conflictingMembers = ", conflictingMembers.map((a) => a.name).join(" "));
+        //  console.log("conflictingMembers = ", conflictingMembers.map((a) => a.name).join(" "));
     }
     const chBase = calculateChevrons(classDef.baseClassDef!, classDef);
 
@@ -938,10 +938,10 @@ function getBaseClassWithOmit2(classMember: ClassMember) {
     const conflictingMembers = members.filter((m) => allMembers.indexOf(m.name) !== -1);
     //console.log(allMembers.join(" "));
     if (conflictingMembers.length) {
-        doDebug &&  console.log("conflictingMembers = ", conflictingMembers.map((a) => a.name).join(" "));
+        doDebug && console.log("conflictingMembers = ", conflictingMembers.map((a) => a.name).join(" "));
     }
     const childBase = classMember.childBase;
-    
+
     let baseStuff = `${childBase?.name}${classMember.suffix3}`;
     if (conflictingMembers.length) {
         baseStuff = `Omit<${baseStuff}, ${conflictingMembers.map((a) => `"${a.name}"`).join("|")}>`;
