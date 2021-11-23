@@ -15,7 +15,7 @@ import {
     UAVariableType
 } from "node-opcua-address-space-base";
 import { assert, renderError } from "node-opcua-assert";
-import { isValidGuid, StatusCodes } from "node-opcua-basic-types";
+import { Int64, isValidGuid, StatusCodes } from "node-opcua-basic-types";
 import { ExtraDataTypeManager, populateDataTypeManager } from "node-opcua-client-dynamic-extension-object";
 import { EUInformation } from "node-opcua-data-access";
 import {
@@ -27,13 +27,21 @@ import {
     QualifiedNameOptions,
     stringToQualifiedName
 } from "node-opcua-data-model";
-import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
+import { checkDebugFlag, make_debugLog, make_errorLog } from "node-opcua-debug";
 import { ExtensionObject } from "node-opcua-extension-object";
 import { DataTypeFactory, findSimpleType, getStandardDataTypeFactory } from "node-opcua-factory";
 import { NodeId, resolveNodeId } from "node-opcua-nodeid";
 import { Argument } from "node-opcua-service-call";
 import { CallbackT, ErrorCallback } from "node-opcua-status-code";
-import { EnumDefinition, EnumValueType, Range, StructureDefinition, StructureFieldOptions, StructureType } from "node-opcua-types";
+import {
+    EnumDefinition,
+    EnumFieldOptions,
+    EnumValueType,
+    Range,
+    StructureDefinition,
+    StructureFieldOptions,
+    StructureType
+} from "node-opcua-types";
 import { DataType, Variant, VariantArrayType, VariantOptions } from "node-opcua-variant";
 import {
     _definitionParser,
@@ -56,6 +64,7 @@ import { promoteObjectsAndVariables } from "./namespace_post_step";
 
 const doDebug = checkDebugFlag(__filename);
 const debugLog = make_debugLog(__filename);
+const errorLog = make_errorLog(__filename);
 
 export async function ensureDatatypeExtracted(addressSpace: IAddressSpace): Promise<ExtraDataTypeManager> {
     const addressSpacePriv: any = addressSpace as AddressSpacePrivate;
@@ -151,39 +160,6 @@ async function decodeXmlObject(
     return userDefinedExtensionObject;
 }
 
-function makeEnumDefinition(definitionFields: any[]) {
-    return new EnumDefinition({
-        fields: definitionFields.map((x) => ({
-            description: {
-                text: x.description
-            },
-            name: x.name,
-            value: x.value
-        }))
-    });
-}
-function makeStructureDefinition(name: string, definitionFields: StructureFieldOptions[], isUnion: boolean): StructureDefinition {
-    // Structure = 0,
-    // StructureWithOptionalFields = 1,
-    // Union = 2,
-    const hasOptionalFields = definitionFields.filter((field) => field.isOptional).length > 0;
-
-    const structureType = isUnion
-        ? StructureType.Union
-        : hasOptionalFields
-        ? StructureType.StructureWithOptionalFields
-        : StructureType.Structure;
-
-    const sd = new StructureDefinition({
-        baseDataType: undefined,
-        defaultEncodingId: undefined,
-        fields: definitionFields,
-        structureType
-    });
-
-    return sd;
-}
-
 function __make_back_references(namespace: INamespace) {
     const namespaceP = namespace as NamespacePrivate;
     for (const node of namespaceP.nodeIterator()) {
@@ -219,14 +195,21 @@ function makeDefaultVariant2(addressSpace: IAddressSpace, dataTypeNode: NodeId, 
 function makeDefaultVariant(addressSpace: IAddressSpace, dataTypeNode: NodeId, valueRank: number): VariantOptions | undefined {
     let variant: VariantOptions = { dataType: DataType.Null };
 
-    const nodeDataType = addressSpace.findNode(dataTypeNode);
+    const nodeDataType = addressSpace.findNode(dataTypeNode) as UADataType;
     if (nodeDataType) {
-        const dataType = addressSpace.findCorrespondingBasicDataType(dataTypeNode);
-        if (dataType === DataType.ExtensionObject) {
+    
+        const basicDataType = nodeDataType.basicDataType;
+        if (basicDataType === DataType.Variant) {
+            /// we don't now what is the variant
+            return undefined
+        }
+
+        //  addressSpace.findCorrespondingBasicDataType(dataTypeNode);
+        if (basicDataType === DataType.ExtensionObject) {
             // console.log("xxxxxxxxxx ", dataTypeNode.toString(addressSpace as any));
             return { dataType: DataType.ExtensionObject, value: null };
         }
-        const dv = findSimpleType(DataType[dataType]).defaultValue;
+        const dv = findSimpleType(DataType[basicDataType]).defaultValue;
         if (dv === undefined || dv === null) {
             // return
             return { dataType: DataType.Null };
@@ -247,16 +230,16 @@ function makeDefaultVariant(addressSpace: IAddressSpace, dataTypeNode: NodeId, v
             case -2: // any
             case -1:
                 arrayType = VariantArrayType.Scalar;
-                variant = { dataType, value, arrayType };
+                variant = { dataType: basicDataType, value, arrayType };
                 break;
             case 0: // one or more dimension
             case 1: // one dimension
                 arrayType = VariantArrayType.Array;
-                variant = { dataType, value: [], arrayType };
+                variant = { dataType: basicDataType, value: [], arrayType };
                 break;
             default:
                 arrayType = VariantArrayType.Matrix;
-                variant = { dataType, value: [], arrayType, dimensions: [] };
+                variant = { dataType: basicDataType, value: [], arrayType, dimensions: [] };
                 break;
         }
         // console.log(variant, DataType[dataType], valueRank);
@@ -445,7 +428,6 @@ export function makeStuff(addressSpace: IAddressSpace): any {
 
             this.isDraft = attrs.ReleaseStatus === "Draft";
             this.obj.isDeprecated = attrs.ReleaseStatus === "Deprecated";
-
         },
         finish(this: any) {
             if (this.isDraft || this.isDeprecated) {
@@ -558,49 +540,52 @@ export function makeStuff(addressSpace: IAddressSpace): any {
                 debugLog("Ignoring Draft/Deprecated dataType =", this.obj.browseName.toString());
                 return;
             }
-            let definitionFields = this.definitionFields;
-            // replace DataType with nodeId
-            definitionFields = definitionFields.map((x: any) => {
+            /*
+            export interface StructureFieldOptions {
+                name?: UAString ; // **
+                description?: (LocalizedTextLike | null); // **
+                dataType?: (NodeIdLike | null);
+                valueRank?: Int32 ;
+                arrayDimensions?: UInt32 [] | null;
+                maxStringLength?: UInt32 ;
+                isOptional?: UABoolean ;
+            }
+            export interface EnumValueTypeOptions {
+                value?: Int64 ;
+                displayName?: (LocalizedTextLike | null);
+                description?: (LocalizedTextLike | null); // **
+            }
+            export interface EnumFieldOptions extends EnumValueTypeOptions {
+                name?: UAString ; // **
+            }
+            */
+
+            const definitionFields = this.definitionFields as StructureFieldOptions[] | EnumFieldOptions[];
+
+            // replace DataType with nodeId, and description to LocalizedText
+            definitionFields.map((x: any) => {
+                if (x.description) {
+                    x.description = { text: x.description };
+                }
+                if (x.displayName) {
+                    x.displayName = { text: x.displayName };
+                }
                 if (x.dataType) {
                     x.dataType = convertToNodeId(x.dataType);
                 }
                 return x;
             });
-
+            this.obj.partialDefinition = definitionFields;
+         
             const dataTypeNode = _internal_createNode(this.obj) as UADataType;
             assert(addressSpace1.findNode(this.obj.nodeId));
             const definitionName = dataTypeNode.browseName.name!;
 
-            let alreadyCalled = false;
             const processBasicDataType = async (addressSpace2: IAddressSpace) => {
-                assert(!alreadyCalled);
-                alreadyCalled = true;
-
-                const enumeration = addressSpace2.findDataType("Enumeration");
-                const structure = addressSpace2.findDataType("Structure");
-                const union = addressSpace2.findDataType("Union");
-
-                // we have a data type from a companion specification
-                // let's see if this data type need to be registered
-                const isEnumeration = enumeration && dataTypeNode.isSupertypeOf(enumeration);
-                const isStructure = structure && dataTypeNode.isSupertypeOf(structure);
-                const isUnion = !!(structure && union && dataTypeNode.isSupertypeOf(union!));
-
-                if (definitionFields.length) {
-                    // remove <namespace>:
-                    const nameWithoutNamespace = definitionName.split(":").slice(-1)[0];
-
-                    if (isStructure /*&& dataTypeNode.nodeId.namespace !== 0*/) {
-                        // note: at this stage, structure definition will be incomplete as we do not know
-                        //       what is the subType yet, encodings are also unknown...
-                        //       structureType may also be inaccurate
-                        debugLog("setting structure $definition for ", definitionName, nameWithoutNamespace);
-                        (dataTypeNode as any).$definition = makeStructureDefinition(definitionName, definitionFields, isUnion);
-                    } else if (isEnumeration /* && dataTypeNode.nodeId.namespace !== 0 */) {
-                        (dataTypeNode as any).$definition = makeEnumDefinition(definitionFields);
-                    }
-                }
-                if (!isEnumeration && !isStructure && this.obj.nodeId.namespace !== 0) {
+                const isStructure = dataTypeNode.isStructure();
+                const isEnumeration = dataTypeNode.isEnumeration();
+                if (!isEnumeration && !isStructure && dataTypeNode.nodeId.namespace !== 0) {
+                    // add a custom basic type that is not a structure nor a enumeration
                     pendingSimpleTypeToRegister.push({ name: definitionName, dataTypeNodeId: dataTypeNode.nodeId });
                 }
             };
@@ -1289,7 +1274,6 @@ export function makeStuff(addressSpace: IAddressSpace): any {
 
             this.isDraft = attrs.ReleaseStatus === "Draft";
             this.isDeprecated = attrs.ReleaseStatus === "Deprecated";
-            
         },
         finish(this: any) {
             if (this.isDraft || this.isDeprecated) {
@@ -1316,6 +1300,8 @@ export function makeStuff(addressSpace: IAddressSpace): any {
                 };
                 postTaskInitializeVariable.push(task);
             } else {
+                const captureName = this.obj.browseName.toString();
+                const captureNodeId = this.obj.nodeId;
                 const task = async (addressSpace2: IAddressSpace) => {
                     const dataTypeNode = variable.dataType;
                     const valueRank = variable.valueRank;
@@ -1374,7 +1360,6 @@ export function makeStuff(addressSpace: IAddressSpace): any {
 
             this.isDraft = attrs.ReleaseStatus === "Draft";
             this.isDeprecated = attrs.ReleaseStatus === "Deprecated";
-
         },
         finish(this: any) {
             if (this.isDraft || this.isDeprecated) {
@@ -1420,7 +1405,6 @@ export function makeStuff(addressSpace: IAddressSpace): any {
 
             this.isDraft = attrs.ReleaseStatus === "Draft";
             this.isDeprecated = attrs.ReleaseStatus === "Deprecated";
-
         },
         finish(this: any) {
             if (this.isDraft || this.isDeprecated) {

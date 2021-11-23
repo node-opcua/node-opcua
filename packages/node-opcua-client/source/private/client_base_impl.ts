@@ -64,7 +64,6 @@ import {
 import { performCertificateSanityCheck } from "../verify";
 import { ClientSessionImpl } from "./client_session_impl";
 import { IClientBase } from "./i_private_client";
-import { UserIdentityInfo } from "..";
 
 // tslint:disable-next-line:no-var-requires
 const once = require("once");

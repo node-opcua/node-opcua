@@ -4,11 +4,13 @@ import {
     ArgumentOptions,
     AxisInformationOptions,
     AxisScaleEnumeration,
+    EnumFieldOptions,
     EUInformation,
     EUInformationOptions,
     RangeOptions,
     RolePermissionType,
-    RolePermissionTypeOptions
+    RolePermissionTypeOptions,
+    StructureFieldOptions
 } from "node-opcua-types";
 import { DataType, VariantArrayType, VariantLike } from "node-opcua-variant";
 import { StatusCode, StatusCodeCallback, UInt32 } from "node-opcua-basic-types";
@@ -247,6 +249,7 @@ export type BindVariableOptions =
 export interface CreateDataTypeOptions extends AddBaseNodeOptions {
     isAbstract: boolean;
     subtypeOf?: string | NodeId | UADataType;
+    partialDefinition?: StructureFieldOptions[] | EnumFieldOptions[];
 }
 
 // -

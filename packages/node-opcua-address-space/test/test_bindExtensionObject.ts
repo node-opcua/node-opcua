@@ -336,7 +336,8 @@ describe("Extension Object binding and sub  components\n", () => {
             const structure = addressSpace.findDataType("Structure");
             dataTypeNode.isSupertypeOf(structure).should.eql(true);
 
-            dataTypeNode.$definition.fields
+            const definition = dataTypeNode.getStructureDefinition();
+            definition.fields
                 .map((x: any) => x.name)
                 .sort()
                 .should.eql([

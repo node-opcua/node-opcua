@@ -8,16 +8,22 @@ import { Callback, ErrorCallback } from "node-opcua-status-code";
 import { AttributeIds, BrowseDirection, makeNodeClassMask, makeResultMask } from "node-opcua-data-model";
 import { DataValue } from "node-opcua-data-value";
 import { NodeId } from "node-opcua-nodeid";
-import { IBasicSession } from "node-opcua-pseudo-session";
+import { IBasicSession, ArgumentDefinition } from "node-opcua-pseudo-session";
 import { BrowseResult, ReferenceDescription } from "node-opcua-service-browse";
-import { CallMethodRequest, CallMethodResult } from "node-opcua-service-call";
+import { CallMethodRequest, CallMethodResult, Argument } from "node-opcua-service-call";
 import { StatusCodes } from "node-opcua-status-code";
 import { lowerFirstLetter } from "node-opcua-utils";
-import { DataType, Variant, VariantArrayType } from "node-opcua-variant";
+import { DataType, Variant, VariantArrayType, VariantLike } from "node-opcua-variant";
+import { make_errorLog, make_debugLog } from "node-opcua-debug";
 
 import { makeRefId } from "./proxy";
 import { UAProxyManager } from "./proxy_manager";
 import { ProxyVariable } from "./proxy_variable";
+import { MethodDescription, ArgumentEx } from "./proxy_base_node";
+
+const doDebug = false;
+const errorLog = make_errorLog("Proxy");
+const debugLog = make_debugLog("Proxy");
 
 export interface ObjectExplorerOptions {
     proxyManager: UAProxyManager;
@@ -27,10 +33,6 @@ export interface ObjectExplorerOptions {
 }
 
 const resultMask = makeResultMask("ReferenceType | IsForward | BrowseName | NodeClass | TypeDefinition");
-
-function convertNodeIdToDataType(dataTypeId: NodeId): DataType {
-    return (dataTypeId as any)._dataType as DataType;
-}
 
 /**
  * @method convertNodeIdToDataTypeAsync
@@ -121,43 +123,50 @@ function convertNodeIdToDataTypeAsync(session: IBasicSession, dataTypeId: NodeId
     });
 }
 
-/**
- * @method add_method
- * @private
- */
-function add_method(proxyManager: UAProxyManager, obj: any, reference: ReferenceDescription, outerCallback: (err?: Error) => void) {
-    const session = proxyManager.session;
+function convertToVariant(value: unknown, arg: ArgumentEx, propName: string): Variant {
+    const dataType = arg._basicDataType || DataType.Null;
+    const arrayType =
+        arg.valueRank === 1 ? VariantArrayType.Array : arg.valueRank === -1 ? VariantArrayType.Scalar : VariantArrayType.Matrix;
 
-    const name = lowerFirstLetter(reference.browseName.name!);
+    if (value === undefined) {
+        throw new Error("expecting input argument ");
+    }
+    if (arrayType === VariantArrayType.Array) {
+        if (!Array.isArray(value)) {
+            throw new Error("expecting value to be an Array or a TypedArray");
+        }
+    }
+    return new Variant({ arrayType, dataType, value });
+}
 
-    obj[name] = function functionCaller(inputArgs: any, callback: (err: Error | null, args?: any[]) => void) {
+function convertToVariantArray(inputArgsDef: ArgumentEx[], inputArgs: Record<string, unknown>): Variant[] {
+    const inputArguments: Variant[] = inputArgsDef.map((arg: ArgumentEx) => {
+        const propName = lowerFirstLetter(arg.name || "");
+        const value = inputArgs[propName];
+        return convertToVariant(value, arg, propName);
+    });
+    return inputArguments;
+}
+
+function makeFunction(obj: any, methodName: string) {
+    return function functionCaller(
+        this: any,
+        inputArgs: Record<string, unknown>,
+        callback: (err: Error | null, output?: Record<string, unknown>) => void
+    ) {
+        const session = this.proxyManager.session;
+
         assert(typeof callback === "function");
+
+        const methodDef = this.$methods[methodName];
         // convert input arguments into Variants
-        const inputArgsDef = obj[name].inputArguments || [];
+        const inputArgsDef = methodDef.inputArguments || [];
 
-        const inputArguments: Variant[] = inputArgsDef.map((arg: any) => {
-            const dataType = convertNodeIdToDataType(arg.dataType);
-
-            const arrayType = arg.valueRank === 1 ? VariantArrayType.Array : VariantArrayType.Scalar;
-
-            // xx console.log("xxx ",arg.toString());
-            const propName = lowerFirstLetter(arg.name);
-
-            const value = inputArgs[propName];
-            if (value === undefined) {
-                throw new Error("expecting input argument " + propName);
-            }
-            if (arrayType === VariantArrayType.Array) {
-                if (!Array.isArray(value)) {
-                    throw new Error("expecting value to be an Array or a TypedArray");
-                }
-            }
-            return new Variant({ arrayType, dataType, value });
-        });
+        const inputArguments: Variant[] = convertToVariantArray(inputArgsDef, inputArgs);
 
         const methodToCall = new CallMethodRequest({
             inputArguments,
-            methodId: reference.nodeId,
+            methodId: methodDef.nodeId,
             objectId: obj.nodeId
         });
 
@@ -175,80 +184,75 @@ function add_method(proxyManager: UAProxyManager, obj: any, reference: Reference
 
             callResult.outputArguments = callResult.outputArguments || [];
 
-            obj[name].outputArguments = obj[name].outputArguments || [];
-
-            if (callResult.outputArguments.length !== obj[name].outputArguments.length) {
+            if (callResult.outputArguments.length !== methodDef.outputArguments.length) {
                 return callback(
                     new Error(
                         "Internal error callResult.outputArguments.length " +
                             callResult.outputArguments.length +
                             " " +
-                            obj[name].outputArguments.length
+                            obj[methodName].outputArguments.length
                     )
                 );
             }
-
-            const outputArgs: any = {};
-
-            const outputArgsDef = obj[name].outputArguments;
-            outputArgsDef.map((arg: any, index: number) => {
+            const output: Record<string, unknown> = {};
+            methodDef.outputArguments.map((arg: Argument, index: number) => {
                 const variant = callResult!.outputArguments![index];
-                const propName = lowerFirstLetter(arg.name);
-                outputArgs[propName] = variant.value;
+                const propName = lowerFirstLetter(arg.name!);
+                output[propName] = variant.value;
             });
 
-            callback(err, outputArgs);
+            callback(err, output);
         });
     };
+}
 
-    function extractDataType(arg: any, callback: any): void {
-        if (arg.dataType && arg.dataType._dataType) {
-            setImmediate(callback); // already converted
-            return;
-        }
-
-        convertNodeIdToDataTypeAsync(session, arg.dataType, (err: Error | null, dataType?: DataType) => {
-            if (!err) {
-                arg.dataType._dataType = dataType;
-            }
-            callback(err);
-        });
+function extractDataType(session: IBasicSession, arg: ArgumentEx, callback: ErrorCallback): void {
+    if (arg.dataType && arg._basicDataType) {
+        setImmediate(callback); // already converted
+        return;
     }
 
-    const methodObj = {
-        browseName: name,
-        executableFlag: false,
-        func: obj[name],
-        nodeId: reference.nodeId
-    };
-    obj.$methods[name] = methodObj;
+    convertNodeIdToDataTypeAsync(session, arg.dataType, (err?: Error | null, dataType?: DataType) => {
+        if (!err) {
+            arg._basicDataType = dataType!;
+        }
+        callback(err || undefined);
+    });
+}
+/**
+ * @method add_method
+ * @private
+ */
+function add_method(proxyManager: UAProxyManager, obj: any, reference: ReferenceDescription, outerCallback: (err?: Error) => void) {
+    const session = proxyManager.session;
+
+    const methodName = lowerFirstLetter(reference.browseName.name!);
+
+    let inputArguments: ArgumentEx[] = [];
+    let outputArguments: ArgumentEx[] = [];
 
     // tslint:disable:no-shadowed-variable
     async.series(
         [
             (callback: ErrorCallback) => {
-                session.getArgumentDefinition(reference.nodeId, (err: Error | null, args?: any) => {
+                session.getArgumentDefinition(reference.nodeId, (err, argumentDefinition) => {
                     // istanbul ignore next
                     if (err) {
-                        setImmediate(() => {
-                            callback(err);
-                        });
-                        return;
+                        errorLog("getArgumentDefinition failed ", err);
+                        return callback(err);
                     }
-                    const inputArguments = args.inputArguments;
-                    const outputArguments = args.outputArguments;
+                    // istanbul ignore next
+                    if (!argumentDefinition) {
+                        return callback(new Error("Internal Error"));
+                    }
+                    inputArguments = (argumentDefinition.inputArguments as ArgumentEx[]) || [];
+                    outputArguments = (argumentDefinition.outputArguments as ArgumentEx[]) || [];
 
-                    obj[name].inputArguments = inputArguments;
-                    obj[name].outputArguments = outputArguments;
-
+                    const _extractDataType = extractDataType.bind(null, session);
                     async.series(
                         [
-                            (callback: ErrorCallback) => {
-                                async.eachSeries(obj[name].inputArguments, extractDataType, (err) => callback(err!));
-                            },
-                            (callback: ErrorCallback) => {
-                                async.eachSeries(obj[name].outputArguments, extractDataType, (err) => callback(err!));
-                            }
+                            (innerCallback) => async.eachSeries(inputArguments, _extractDataType, innerCallback),
+                            (innerCallback) => async.eachSeries(outputArguments, _extractDataType, innerCallback)
                         ],
                         (err) => callback(err!)
                     );
@@ -256,12 +260,33 @@ function add_method(proxyManager: UAProxyManager, obj: any, reference: Reference
             },
 
             (callback: ErrorCallback) => {
+                
+                const methodObj: MethodDescription = {
+                    browseName: methodName,
+                    executableFlag: false,
+                    func: makeFunction(obj, methodName),
+                    nodeId: reference.nodeId,
+                    inputArguments,
+                    outputArguments
+                };
+                obj.$methods[methodName] = methodObj;
+                obj[methodName] = methodObj.func;
+
+                obj[methodName].inputArguments = inputArguments;
+                obj[methodName].outputArguments = outputArguments;
+
+                doDebug && debugLog("installing method name", methodName);
                 proxyManager._monitor_execution_flag(methodObj, () => {
                     callback();
                 });
             }
         ],
-        (err) => outerCallback(err!)
+        (err) => {
+            if (err) {
+                errorLog("Error =>",err);
+            }
+            outerCallback(err!)
+        }
     );
 }
 
@@ -331,7 +356,6 @@ function add_typeDefinition(
     const session = proxyManager.session;
     references = references || [];
     if (references.length !== 1) {
-        // xx console.log(" cannot find type definition", references.length);
         setImmediate(callback);
         return;
     }
@@ -387,6 +411,10 @@ export class ObjectExplorer {
             callback();
         });
     }
+}
+function t(references: ReferenceDescription[] | null) {
+    if (!references) return "";
+    return references.map((r: ReferenceDescription) => r.browseName.name + " " + r.nodeId.toString());
 }
 
 export function readUAStructure(proxyManager: UAProxyManager, obj: { nodeId: NodeId }, callback: ErrorCallback): void {
@@ -466,10 +494,6 @@ export function readUAStructure(proxyManager: UAProxyManager, obj: { nodeId: Nod
         }
     ];
     session.browse(nodesToBrowse, (err: Error | null, browseResults?: BrowseResult[]) => {
-        function t(references: ReferenceDescription[]) {
-            return references.map((r: ReferenceDescription) => r.browseName.name + " " + r.nodeId.toString());
-        }
-
         browseResults = browseResults || [];
 
         // istanbul ignore next
@@ -477,16 +501,17 @@ export function readUAStructure(proxyManager: UAProxyManager, obj: { nodeId: Nod
             return callback(err);
         }
 
-        // xx console.log("Components", t(results[0].references));
-        // xx console.log("Properties", t(results[1].references));
-        // xx console.log("Methods", t(results[2].references));
+        if (doDebug) {
+            debugLog("Components", t(browseResults[0].references));
+            debugLog("Properties", t(browseResults[1].references));
+            debugLog("Methods", t(browseResults[2].references));
+        }
         async.series(
             [
                 (callback: ErrorCallback) => {
                     async.mapSeries(
                         browseResults![0].references!,
-                        (reference: ReferenceDescription, callback: ErrorCallback) =>
-                            add_component(proxyManager, obj, reference, callback),
+                        (reference, innerCallback) => add_component(proxyManager, obj, reference, innerCallback),
                         (err) => callback(err!)
                     );
                 },
@@ -494,8 +519,7 @@ export function readUAStructure(proxyManager: UAProxyManager, obj: { nodeId: Nod
                 (callback: ErrorCallback) => {
                     async.mapSeries(
                         browseResults![1].references!,
-                        (reference: ReferenceDescription, callback: ErrorCallback) =>
-                            add_property(proxyManager, obj, reference, callback),
+                        (reference, innerCallback) => add_property(proxyManager, obj, reference, innerCallback),
                         (err) => callback(err!)
                     );
                 },
@@ -504,8 +528,7 @@ export function readUAStructure(proxyManager: UAProxyManager, obj: { nodeId: Nod
                 (callback: ErrorCallback) => {
                     async.mapSeries(
                         browseResults![2].references!,
-                        (reference: ReferenceDescription, callback: ErrorCallback) =>
-                            add_method(proxyManager, obj, reference, callback),
+                        (reference, innerCallback) => add_method(proxyManager, obj, reference, innerCallback),
                         (err) => callback(err!)
                     );
                 },

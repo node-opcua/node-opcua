@@ -656,7 +656,7 @@ export class NamespaceImpl implements NamespacePrivate {
      */
     public deleteNode(nodeOrNodeId: NodeId | BaseNode): void {
         let node: BaseNode | null = null;
-        let nodeId: NodeId = NodeId.nullNodeId;
+        let nodeId: NodeId = new NodeId();
         if (nodeOrNodeId instanceof NodeId) {
             nodeId = nodeOrNodeId;
             node = this.findNode(nodeId);
@@ -1337,7 +1337,7 @@ export class NamespaceImpl implements NamespacePrivate {
             //   or OptionSet DataType. It is derived from the DataType EnumValueType. If used for an
             //   OptionSet, the corresponding Value in the base type contains the number of the bit associated
             //   with the field. The EnumField is formally defined in Table 37.
-            (enumType as any).$definition = new EnumDefinition({
+            (enumType as any).$fullDefinition = new EnumDefinition({
                 fields: enumeration.map(
                     (x: string, index: number) =>
                         new EnumField({
@@ -1376,7 +1376,7 @@ export class NamespaceImpl implements NamespacePrivate {
             });
             assert(enumValues.browseName.toString() === "EnumValues");
 
-            (enumType as any).$definition = new EnumDefinition({
+            (enumType as any).$fullDefinition = new EnumDefinition({
                 fields: enumeration.map(
                     (x: EnumerationItem, index: number) =>
                         new EnumField({

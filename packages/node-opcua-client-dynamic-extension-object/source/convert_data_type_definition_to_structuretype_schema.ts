@@ -1,8 +1,16 @@
 import { assert } from "node-opcua-assert";
 import { AttributeIds, BrowseDirection, makeResultMask, NodeClassMask } from "node-opcua-data-model";
 import { DataValue } from "node-opcua-data-value";
-import { make_debugLog } from "node-opcua-debug";
-import { DataTypeFactory, EnumerationDefinitionSchema, FieldCategory, FieldInterfaceOptions, getBuildInType, StructuredTypeSchema, TypeDefinition } from "node-opcua-factory";
+import { make_debugLog, make_errorLog } from "node-opcua-debug";
+import {
+    DataTypeFactory,
+    EnumerationDefinitionSchema,
+    FieldCategory,
+    FieldInterfaceOptions,
+    getBuildInType,
+    StructuredTypeSchema,
+    TypeDefinition
+} from "node-opcua-factory";
 import { NodeId, makeExpandedNodeId, resolveNodeId } from "node-opcua-nodeid";
 import { browseAll, BrowseDescriptionLike, IBasicSession } from "node-opcua-pseudo-session";
 import { StatusCodes } from "node-opcua-status-code";
@@ -11,8 +19,8 @@ import { ExtensionObject } from "node-opcua-extension-object";
 //
 import { _findEncodings } from "./private/find_encodings";
 
-
 const debugLog = make_debugLog(__filename);
+const errorLog = make_errorLog(__filename);
 
 async function findSuperType(session: IBasicSession, dataTypeNodeId: NodeId): Promise<NodeId> {
     const nodeToBrowse3: BrowseDescriptionLike = {
@@ -101,7 +109,6 @@ async function findDataTypeBasicType(
     return await findDataTypeBasicType(session, cache, subTypeNodeId);
 }
 
-
 export interface CacheForFieldResolution {
     fieldTypeName: string;
     schema: TypeDefinition;
@@ -119,6 +126,67 @@ async function readBrowseName(session: IBasicSession, nodeId: NodeId): Promise<s
     return dataValue.value!.value.name;
 }
 
+async function resolve2(
+    session: IBasicSession,
+    dataTypeNodeId: NodeId,
+    dataTypeFactory: DataTypeFactory,
+    fieldTypeName: string,
+    cache: { [key: string]: CacheForFieldResolution }
+): Promise<{ schema: TypeDefinition| undefined, category: FieldCategory}> {
+    const category = await findDataTypeCategory(session, cache, dataTypeNodeId);
+    debugLog(" type " + fieldTypeName + " has not been seen yet, let resolve it => (category = ", category, " )");
+
+    let schema: TypeDefinition|undefined = undefined;
+    switch (category) {
+        case FieldCategory.basic:
+            schema = await findDataTypeBasicType(session, cache, dataTypeNodeId);
+            /* istanbul ignore next */
+            if (!schema) {
+                errorLog("Cannot find basic type " + fieldTypeName);
+            }
+            break;
+        default:
+        case FieldCategory.enumeration:
+        case FieldCategory.complex:
+            {
+                const dataTypeDefinitionDataValue = await session.read({
+                    attributeId: AttributeIds.DataTypeDefinition,
+                    nodeId: dataTypeNodeId
+                });
+
+                /* istanbul ignore next */
+                if (dataTypeDefinitionDataValue.statusCode !== StatusCodes.Good) {
+                    throw new Error(" Cannot find dataType Definition ! with nodeId =" + dataTypeNodeId.toString());
+                }
+                const definition = dataTypeDefinitionDataValue.value.value;
+
+                if (category === FieldCategory.enumeration) {
+                    if (definition instanceof EnumDefinition) {
+                        const e = new EnumerationDefinitionSchema({
+                            enumValues: definition.fields,
+                            name: fieldTypeName
+                        });
+                        dataTypeFactory.registerEnumeration(e);
+
+                        schema = e;
+                    }
+                } else {
+                    schema = await convertDataTypeDefinitionToStructureTypeSchema(
+                        session,
+                        dataTypeNodeId,
+                        fieldTypeName,
+                        definition,
+                        dataTypeFactory,
+                        cache
+                    );
+                }
+                // xx const schema1 = dataTypeFactory.getStructuredTypeSchema(fieldTypeName);
+            }
+            break;
+    }
+    return { schema, category };
+}
+// eslint-disable-next-line max-statements
 async function resolveFieldType(
     session: IBasicSession,
     dataTypeNodeId: NodeId,
@@ -127,7 +195,7 @@ async function resolveFieldType(
 ): Promise<CacheForFieldResolution | null> {
     if (dataTypeNodeId.namespace === 0 && dataTypeNodeId.value === 22) {
         // ERN   return null;
-        const category: FieldCategory  = FieldCategory.complex;
+        const category: FieldCategory = FieldCategory.complex;
         const fieldTypeName = "Structure";
         const schema = ExtensionObject.schema;
         return {
@@ -168,55 +236,9 @@ async function resolveFieldType(
         schema = dataTypeFactory.getEnumeration(fieldTypeName!)!;
     } else {
         debugLog(" type " + fieldTypeName + " has not been seen yet, let resolve it");
-        category = await findDataTypeCategory(session, cache, dataTypeNodeId);
-        debugLog(" type " + fieldTypeName + " has not been seen yet, let resolve it => (category = ", category, " )");
-
-        switch (category) {
-            case FieldCategory.basic:
-                schema = await findDataTypeBasicType(session, cache, dataTypeNodeId);
-                /* istanbul ignore next */
-                if (!schema) {
-                    console.log("Cannot find basic type " + fieldTypeName);
-                }
-                break;
-            default:
-            case FieldCategory.enumeration:
-            case FieldCategory.complex: {
-                const dataTypeDefinitionDataValue = await session.read({
-                    attributeId: AttributeIds.DataTypeDefinition,
-                    nodeId: dataTypeNodeId
-                });
-
-                /* istanbul ignore next */
-                if (dataTypeDefinitionDataValue.statusCode !== StatusCodes.Good) {
-                    throw new Error(" Cannot find dataType Definition ! with nodeId =" + dataTypeNodeId.toString());
-                }
-                const definition = dataTypeDefinitionDataValue.value.value;
-
-                if (category === FieldCategory.enumeration) {
-                    if (definition instanceof EnumDefinition) {
-                        const e = new EnumerationDefinitionSchema({
-                            enumValues: definition.fields,
-                            name: fieldTypeName
-                        });
-                        dataTypeFactory.registerEnumeration(e);
-
-                        schema = e;
-                    }
-                } else {
-                    schema = await convertDataTypeDefinitionToStructureTypeSchema(
-                        session,
-                        dataTypeNodeId,
-                        fieldTypeName,
-                        definition,
-                        dataTypeFactory,
-                        cache
-                    );
-                }
-                // xx const schema1 = dataTypeFactory.getStructuredTypeSchema(fieldTypeName);
-            }
-                break;
-        }
+        const res = await resolve2(session, dataTypeNodeId, dataTypeFactory, fieldTypeName, cache);
+        schema = res.schema;
+        category = res.category;
     }
 
     /* istanbul ignore next */
@@ -288,8 +310,13 @@ export async function convertDataTypeDefinitionToStructureTypeSchema(
         for (const fieldD of definition.fields!) {
             const rt = (await resolveFieldType(session, fieldD.dataType, dataTypeFactory, cache))!;
             if (!rt) {
-                console.log("convertDataTypeDefinitionToStructureTypeSchema cannot handle field", fieldD.name, "in", name,
-                    "because " + fieldD.dataType.toString() + " cannot be resolved");
+                console.log(
+                    "convertDataTypeDefinitionToStructureTypeSchema cannot handle field",
+                    fieldD.name,
+                    "in",
+                    name,
+                    "because " + fieldD.dataType.toString() + " cannot be resolved"
+                );
                 continue;
             }
             const { schema, category, fieldTypeName } = rt;

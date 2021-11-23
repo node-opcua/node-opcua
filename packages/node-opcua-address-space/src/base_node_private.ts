@@ -343,6 +343,10 @@ function AccessLevelFlags_toString(this: UAVariable, options: ToStringOption) {
         );
     }
 }
+
+interface WithDataValue {
+    $dataValue?: DataValue;
+}
 export function VariableOrVariableType_toString(this: UAVariableType | UAVariable, options: ToStringOption): void {
     assert(options);
     if (this.dataType) {
@@ -352,7 +356,7 @@ export function VariableOrVariableType_toString(this: UAVariableType | UAVariabl
         options.add(options.padding + chalk.yellow("          dataType            : ") + this.dataType + "  " + n);
     }
     if (this.nodeClass === NodeClass.Variable) {
-        const _dataValue = (<any>this)._dataValue as DataValue | undefined;
+        const _dataValue = (<WithDataValue>this).$dataValue as DataValue | undefined;
         if (_dataValue) {
             options.add(
                 options.padding +
@@ -622,7 +626,7 @@ function _makeReferenceDescription(addressSpace: IAddressSpace, reference: UARef
         };
     }
     if (data.typeDefinition === null) {
-        data.typeDefinition = NodeId.nullNodeId;
+        data.typeDefinition = new NodeId();
     }
     const referenceDescription = new ReferenceDescription(data);
     return referenceDescription;

@@ -37,6 +37,7 @@ import {
     ReadProcessedDetails,
     ReadRawModifiedDetails,
     StructureDefinition,
+    StructureField,
     WriteValueOptions
 } from "node-opcua-types";
 import * as utils from "node-opcua-utils";
@@ -170,16 +171,16 @@ function validateDataType(
     if (variantDataType === DataType.Null && !allowNulls) {
         return false;
     }
-    let builtInType: string;
+    let builtInType: DataType;
     let builtInUADataType: UADataType;
 
-    const destUADataType = addressSpace.findNode(dataTypeNodeId) as UADataType;
+    const destUADataType = addressSpace.findDataType(dataTypeNodeId)!;
     assert(destUADataType instanceof UADataTypeImpl);
 
     if (destUADataType.isAbstract || destUADataType.nodeId.namespace !== 0) {
         builtInUADataType = destUADataType;
     } else {
-        builtInType = DataType[addressSpace.findCorrespondingBasicDataType(destUADataType)];
+        builtInType = addressSpace.findCorrespondingBasicDataType(destUADataType);
         builtInUADataType = addressSpace.findDataType(builtInType)!;
     }
     assert(builtInUADataType instanceof UADataTypeImpl);
@@ -191,8 +192,8 @@ function validateDataType(
     if (destUADataType.isSupertypeOf(enumerationUADataType)) {
         // istanbul ignore next
         if (doDebug) {
-            console.log("destUADataType.", destUADataType.browseName.toString(), destUADataType.nodeId.toString());
-            console.log(
+            debugLog("destUADataType.", destUADataType.browseName.toString(), destUADataType.nodeId.toString());
+            debugLog(
                 "enumerationUADataType.",
                 enumerationUADataType.browseName.toString(),
                 enumerationUADataType.nodeId.toString()
@@ -211,14 +212,14 @@ function validateDataType(
     if (doDebug) {
         if (dest_isSuperTypeOf_variant) {
             /* istanbul ignore next*/
-            console.log(chalk.green(" ---------- Type match !!! "), " on ", nodeId.toString());
+            debugLog(chalk.green(" ---------- Type match !!! "), " on ", nodeId.toString());
         } else {
             /* istanbul ignore next*/
-            console.log(chalk.red(" ---------- Type mismatch "), " on ", nodeId.toString());
+            debugLog(chalk.red(" ---------- Type mismatch "), " on ", nodeId.toString());
         }
-        console.log(chalk.cyan(" Variable data Type is    = "), destUADataType.browseName.toString());
-        console.log(chalk.cyan(" which matches basic Type = "), builtInUADataType.browseName.toString());
-        console.log(chalk.yellow("        Actual   dataType = "), variantUADataType.browseName.toString());
+        debugLog(chalk.cyan(" Variable data Type is    = "), destUADataType.browseName.toString());
+        debugLog(chalk.cyan(" which matches basic Type = "), builtInUADataType.browseName.toString());
+        debugLog(chalk.yellow("        Actual   dataType = "), variantUADataType.browseName.toString());
     }
 
     return dest_isSuperTypeOf_variant;
@@ -276,7 +277,9 @@ type TimestampSetFunction = TimestampSetFunction1 | TimestampSetFunction2;
  */
 export class UAVariableImpl extends BaseNodeImpl implements UAVariable {
     public readonly nodeClass = NodeClass.Variable;
+
     public dataType: NodeId;
+    private _basicDataType?: DataType;
 
     public $extensionObject?: any;
 
@@ -284,9 +287,9 @@ export class UAVariableImpl extends BaseNodeImpl implements UAVariable {
     public varHistorian?: IVariableHistorian;
 
     /**
-     * @internal
+     * @internal @private
      */
-    public _dataValue: DataValue;
+    public $dataValue: DataValue;
     public accessLevel: number;
     public userAccessLevel?: number;
     public valueRank: number;
@@ -323,11 +326,9 @@ export class UAVariableImpl extends BaseNodeImpl implements UAVariable {
 
         this.minimumSamplingInterval = adjust_samplingInterval(options.minimumSamplingInterval || 0);
 
-        this.historizing = !!options.historizing; // coerced to boolean
+        this.historizing = !!options.historizing; // coerced to boolean"
 
-        this._dataValue = new DataValue({ statusCode: StatusCodes.UncertainInitialValue, value: {} });
-
-        // xx options.value = options.value || { dataType: DataType.Null };
+        this.$dataValue = new DataValue({ statusCode: StatusCodes.UncertainInitialValue, value: { dataType: DataType.Null } });
 
         if (options.value) {
             this.bindVariable(options.value);
@@ -430,11 +431,12 @@ export class UAVariableImpl extends BaseNodeImpl implements UAVariable {
 
         if (this._timestamped_get_func) {
             if (this._timestamped_get_func.length === 0) {
-                this._dataValue = (this._timestamped_get_func as TimestampGetFunction1)() as DataValue;
+                this.$dataValue = (this._timestamped_get_func as TimestampGetFunction1)() as DataValue;
+                this.verifyVariantCompatibility(this.$dataValue.value);
             }
         }
 
-        let dataValue = this._dataValue;
+        let dataValue = this.$dataValue;
 
         if (isGoodish(dataValue.statusCode)) {
             // note : extractRange will clone the dataValue
@@ -484,6 +486,8 @@ export class UAVariableImpl extends BaseNodeImpl implements UAVariable {
     public asyncRefresh(oldestDate: Date, callback: DataValueCallback): void;
     public asyncRefresh(oldestDate: Date): Promise<DataValue>;
     public asyncRefresh(...args: any[]): any {
+        this.verifyVariantCompatibility(this.$dataValue.value);
+
         const oldestDate = args[0] as Date;
         assert(oldestDate instanceof Date);
         const callback = args[1] as DataValueCallback;
@@ -501,22 +505,36 @@ export class UAVariableImpl extends BaseNodeImpl implements UAVariable {
             }
         }
 
-        if (this._dataValue.serverTimestamp && oldestDate.getTime() <= this._dataValue.serverTimestamp!.getTime()) {
+        if (this.$dataValue.serverTimestamp && oldestDate.getTime() <= this.$dataValue.serverTimestamp!.getTime()) {
             const dataValue = this.readValue();
             dataValue.serverTimestamp = oldestDate;
             dataValue.serverPicoseconds = 0;
             return callback(null, dataValue);
         }
-
-        this.refreshFunc.call(this, (err: Error | null, dataValue?: DataValueLike) => {
-            if (err || !dataValue) {
-                dataValue = { statusCode: StatusCodes.BadNoDataAvailable };
-            }
-            if (dataValue !== this._dataValue) {
-                this._internal_set_dataValue(coerceDataValue(dataValue), null);
-            }
-            callback(err, this._dataValue);
-        });
+     
+        try {
+            this.refreshFunc.call(this, (err: Error | null, dataValue?: DataValueLike) => {
+                if (err || !dataValue) {
+                    errorLog(
+                        "-------------- refresh call failed",
+                        this.browseName.toString(),
+                        this.nodeId.toString(),
+                        err?.message
+                    );
+                    dataValue = { statusCode: StatusCodes.BadNoDataAvailable };
+                }
+                if (dataValue !== this.$dataValue) {
+                    this._internal_set_dataValue(coerceDataValue(dataValue), null);
+                }
+                callback(err, this.$dataValue);
+            });
+        } catch (err) {
+            errorLog("-------------- refresh call failed 2", this.browseName.toString(), this.nodeId.toString());
+            errorLog(err);
+            const dataValue = new DataValue({ statusCode: StatusCodes.BadInternalError });
+            this._internal_set_dataValue(dataValue, null);
+            callback(err as Error, this.$dataValue);
+        }
     }
 
     public readEnumValue(): IEnumItem {
@@ -606,10 +624,76 @@ export class UAVariableImpl extends BaseNodeImpl implements UAVariable {
         }
     }
 
-    public adjustVariant(variant: Variant): Variant {
+    public getBasicDataType(): DataType {
+        if (this._basicDataType) {
+            return this._basicDataType;
+        }
+        if (this.dataType.namespace === 0 && this.dataType.value === 0) {
+            return DataType.Null;
+        }
         const addressSpace = this.addressSpace;
-        const dataTypeNodeId = addressSpace.findCorrespondingBasicDataType(this.dataType);
-        return adjustVariant(variant, this.valueRank, dataTypeNodeId);
+        const dataTypeNode = addressSpace.findDataType(this.dataType)!;
+        const basicDataType = dataTypeNode ? dataTypeNode.getBasicDataType() : DataType.Null;
+        // const basicDataType = addressSpace.findCorrespondingBasicDataType(this.dataType);
+        this._basicDataType = basicDataType;
+        return basicDataType;
+    }
+    public adjustVariant(variant: Variant): Variant {
+        return adjustVariant(variant, this.valueRank, this.getBasicDataType());
+    }
+    public verifyVariantCompatibility(variant: Variant): void {
+        try {
+            // istanbul ignore next
+            if (Object.prototype.hasOwnProperty.call(variant, "value")) {
+                if (variant.dataType === null || variant.dataType === undefined) {
+                    throw new Error("Variant must provide a valid dataType" + variant.toString());
+                }
+                if (
+                    variant.dataType === DataType.Boolean &&
+                    (this.dataType.namespace !== 0 || this.dataType.value !== DataType.Boolean)
+                ) {
+                    throw new Error("Variant must provide a valid Boolean" + variant.toString());
+                }
+                if (
+                    this.dataType.namespace === 0 &&
+                    this.dataType.value === DataType.LocalizedText &&
+                    variant.dataType !== DataType.LocalizedText
+                ) {
+                    throw new Error("Variant must provide a valid LocalizedText" + variant.toString());
+                }
+            }
+            const basicType = this.getBasicDataType();
+            if (
+                basicType !== DataType.Null &&
+                basicType !== DataType.Variant &&
+                variant.dataType !== DataType.Null &&
+                variant.dataType !== basicType
+            ) {
+                const message =
+                    "UAVariable.setValueFromSource " +
+                    this.browseName.toString() +
+                    " nodeId:" +
+                    this.nodeId.toString() +
+                    " dataType:" +
+                    this.dataType.toString() +
+                    ":\n" +
+                    "the provided variant must have the expected dataType!\n" +
+                    "   - the expected dataType is " +
+                    chalk.cyan(DataType[basicType]) +
+                    "\n" +
+                    "   - the actual dataType   is " +
+                    chalk.magenta(DataType[variant.dataType]) +
+                    "\n" +
+                    "   - " +
+                    variant.toString();
+                throw new Error(message);
+            }
+        } catch (err) {
+            errorLog("UAVariable  ", (err as Error)?.message, this.browseName.toString(), this.nodeId.toString());
+            errorLog((err as Error).message);
+            errorLog((err as Error).stack);
+            throw err;
+        }
     }
     /**
      * setValueFromSource is used to let the device sets the variable values
@@ -623,39 +707,24 @@ export class UAVariableImpl extends BaseNodeImpl implements UAVariable {
      * @param [sourceTimestamp= Now]
      */
     public setValueFromSource(variant: VariantLike, statusCode?: StatusCode, sourceTimestamp?: Date): void {
-        statusCode = statusCode || StatusCodes.Good;
-        // istanbul ignore next
-        if (Object.prototype.hasOwnProperty.call(variant, "value")) {
-            if (variant.dataType === null || variant.dataType === undefined) {
-                throw new Error("Variant must provide a valid dataType" + variant.toString());
-            }
-            if (
-                variant.dataType === DataType.Boolean &&
-                (this.dataType.namespace !== 0 || this.dataType.value !== DataType.Boolean)
-            ) {
-                throw new Error("Variant must provide a valid Boolean" + variant.toString());
-            }
-            if (
-                this.dataType.namespace === 0 &&
-                this.dataType.value === DataType.LocalizedText &&
-                variant.dataType !== DataType.LocalizedText
-            ) {
-                throw new Error("Variant must provide a valid LocalizedText" + variant.toString());
-            }
+        try {
+            statusCode = statusCode || StatusCodes.Good;
+            const variant1 = Variant.coerce(variant);
+            this.verifyVariantCompatibility(variant1);
+            const now = coerceClock(sourceTimestamp, 0);
+
+            const dataValue = new DataValue(null);
+            dataValue.serverPicoseconds = now.picoseconds;
+            dataValue.serverTimestamp = now.timestamp;
+            dataValue.sourcePicoseconds = now.picoseconds;
+            dataValue.sourceTimestamp = now.timestamp;
+            dataValue.statusCode = statusCode;
+            dataValue.value = variant1;
+            this._internal_set_dataValue(dataValue);
+        } catch (err) {
+            errorLog("UAVariable#setValueFromString Error : ", this.browseName.toString(), this.nodeId.toString());
+            throw err;
         }
-
-        const variant1 = Variant.coerce(variant);
-
-        const now = coerceClock(sourceTimestamp, 0);
-
-        const dataValue = new DataValue(null);
-        dataValue.serverPicoseconds = now.picoseconds;
-        dataValue.serverTimestamp = now.timestamp;
-        dataValue.sourcePicoseconds = now.picoseconds;
-        dataValue.sourceTimestamp = now.timestamp;
-        dataValue.statusCode = statusCode;
-        dataValue.value = variant1;
-        this._internal_set_dataValue(dataValue);
     }
 
     public writeValue(
@@ -752,6 +821,7 @@ export class UAVariableImpl extends BaseNodeImpl implements UAVariable {
                 if (!err) {
                     correctedDataValue = correctedDataValue || dataValue;
                     assert(correctedDataValue instanceof DataValue);
+                    correctedDataValue && this.verifyVariantCompatibility(correctedDataValue.value);
                     // xx assert(correctedDataValue.serverTimestamp);
 
                     if (indexRange && !indexRange.isEmpty()) {
@@ -762,12 +832,12 @@ export class UAVariableImpl extends BaseNodeImpl implements UAVariable {
                         const newArrayOrMatrix = correctedDataValue.value.value;
 
                         if (correctedDataValue.value.arrayType === VariantArrayType.Array) {
-                            if (this._dataValue.value.arrayType !== VariantArrayType.Array) {
+                            if (this.$dataValue.value.arrayType !== VariantArrayType.Array) {
                                 return callback(null, StatusCodes.BadTypeMismatch);
                             }
                             // check that destination data is also an array
-                            assert(check_valid_array(this._dataValue.value.dataType, this._dataValue.value.value));
-                            const destArr = this._dataValue.value.value;
+                            assert(check_valid_array(this.$dataValue.value.dataType, this.$dataValue.value.value));
+                            const destArr = this.$dataValue.value.value;
                             const result = indexRange.set_values(destArr, newArrayOrMatrix);
 
                             if (result.statusCode.isNot(StatusCodes.Good)) {
@@ -776,14 +846,14 @@ export class UAVariableImpl extends BaseNodeImpl implements UAVariable {
                             correctedDataValue.value.value = result.array;
 
                             // scrap original array so we detect range
-                            this._dataValue.value.value = null;
+                            this.$dataValue.value.value = null;
                         } else if (correctedDataValue.value.arrayType === VariantArrayType.Matrix) {
-                            const dimensions = this._dataValue.value.dimensions;
-                            if (this._dataValue.value.arrayType !== VariantArrayType.Matrix || !dimensions) {
+                            const dimensions = this.$dataValue.value.dimensions;
+                            if (this.$dataValue.value.arrayType !== VariantArrayType.Matrix || !dimensions) {
                                 // not a matrix !
                                 return callback!(null, StatusCodes.BadTypeMismatch);
                             }
-                            const matrix = this._dataValue.value.value;
+                            const matrix = this.$dataValue.value.value;
                             const result = indexRange.set_values_matrix(
                                 {
                                     matrix,
@@ -794,11 +864,11 @@ export class UAVariableImpl extends BaseNodeImpl implements UAVariable {
                             if (result.statusCode.isNot(StatusCodes.Good)) {
                                 return callback!(null, result.statusCode);
                             }
-                            correctedDataValue.value.dimensions = this._dataValue.value.dimensions;
+                            correctedDataValue.value.dimensions = this.$dataValue.value.dimensions;
                             correctedDataValue.value.value = result.matrix;
 
                             // scrap original array so we detect range
-                            this._dataValue.value.value = null;
+                            this.$dataValue.value.value = null;
                         } else {
                             return callback!(null, StatusCodes.BadTypeMismatch);
                         }
@@ -880,6 +950,11 @@ export class UAVariableImpl extends BaseNodeImpl implements UAVariable {
         if (!this._validate_DataType(value.dataType)) {
             return StatusCodes.BadTypeMismatch;
         }
+        try {
+            this.verifyVariantCompatibility(value);
+        } catch(err) {
+            return StatusCodes.BadTypeMismatch;
+        }
         return StatusCodes.Good;
     }
 
@@ -894,12 +969,12 @@ export class UAVariableImpl extends BaseNodeImpl implements UAVariable {
      */
     public touchValue(optionalNow?: PreciseClock): void {
         const now = optionalNow || getCurrentClock();
-        this._dataValue.sourceTimestamp = now.timestamp;
-        this._dataValue.sourcePicoseconds = now.picoseconds;
-        this._dataValue.serverTimestamp = now.timestamp;
-        this._dataValue.serverPicoseconds = now.picoseconds;
+        this.$dataValue.sourceTimestamp = now.timestamp;
+        this.$dataValue.sourcePicoseconds = now.picoseconds;
+        this.$dataValue.serverTimestamp = now.timestamp;
+        this.$dataValue.serverPicoseconds = now.picoseconds;
 
-        this._dataValue.statusCode = StatusCodes.Good;
+        this.$dataValue.statusCode = StatusCodes.Good;
 
         if (this.minimumSamplingInterval === 0) {
             if (this.listenerCount("value_changed") > 0) {
@@ -1083,7 +1158,7 @@ export class UAVariableImpl extends BaseNodeImpl implements UAVariable {
         }
 
         const readImmediate = (innerCallback: (err: Error | null, dataValue: DataValue) => void) => {
-            assert(this._dataValue instanceof DataValue);
+            assert(this.$dataValue instanceof DataValue);
             const dataValue = this.readValue();
             innerCallback(null, dataValue);
         };
@@ -1158,7 +1233,7 @@ export class UAVariableImpl extends BaseNodeImpl implements UAVariable {
         assert(typeof newVariable._timestamped_set_func === "function");
 
         assert(newVariable.dataType === this.dataType);
-        newVariable._dataValue = this._dataValue.clone();
+        newVariable.$dataValue = this.$dataValue.clone();
         return newVariable;
     }
 
@@ -1181,8 +1256,10 @@ export class UAVariableImpl extends BaseNodeImpl implements UAVariable {
             return true;
         }
         const addressSpace = this.addressSpace;
+
+        // istanbul ignore next
         if (!(extObj && extObj.constructor)) {
-            console.log(extObj);
+            errorLog(extObj);
             throw new Error("expecting an valid extension object");
         }
         const dataType = addressSpace.findDataType(this.dataType);
@@ -1208,7 +1285,7 @@ export class UAVariableImpl extends BaseNodeImpl implements UAVariable {
                 return extObj.constructor.name === Constructor.name;
             }
         } catch (err) {
-            console.log(err);
+            errorLog(err);
             return false;
         }
     }
@@ -1229,7 +1306,7 @@ export class UAVariableImpl extends BaseNodeImpl implements UAVariable {
 
         // istanbul ignore next
         if (doDebug) {
-            console.log(" ------------------------------ binding ", this.browseName.toString(), this.nodeId.toString());
+            debugLog(" ------------------------------ binding ", this.browseName.toString(), this.nodeId.toString());
         }
         assert(structure && structure.browseName.toString() === "Structure", "expecting DataType Structure to be in IAddressSpace");
 
@@ -1254,14 +1331,14 @@ export class UAVariableImpl extends BaseNodeImpl implements UAVariable {
             // }
             // istanbul ignore next
             if (!this.checkExtensionObjectIsCorrect(this.$extensionObject!)) {
-                console.log(
+                warningLog(
                     "on node : ",
                     this.browseName.toString(),
                     this.nodeId.toString(),
                     "dataType=",
                     this.dataType.toString({ addressSpace: this.addressSpace })
                 );
-                console.log(this.$extensionObject?.toString());
+                warningLog(this.$extensionObject?.toString());
                 throw new Error(
                     "bindExtensionObject: $extensionObject is incorrect: we are expecting a " +
                         this.dataType.toString({ addressSpace: this.addressSpace }) +
@@ -1276,45 +1353,33 @@ export class UAVariableImpl extends BaseNodeImpl implements UAVariable {
 
         // ------------------------------------------------------------------
 
-        function prepareVariantValue(dataType: DataType | string, value: VariantLike): VariantLike {
-            if (typeof dataType === "string") {
-                dataType = (DataType as any)[dataType];
-            }
+        function prepareVariantValue(dataType: DataType, value: VariantLike): VariantLike {
             if ((dataType === DataType.Int32 || dataType === DataType.UInt32) && value && (value as any).key) {
                 value = value.value;
             }
             return value;
         }
 
-        const bindProperty = (propertyNode: UAVariableImpl, name: any, extensionObject: any, dataTypeNodeId: any) => {
-            const dataTypeAsString = DataType[dataTypeNodeId];
-
-            /*
-            property.setValueFromSource(new Variant({
-                dataType: dataType,
-                value: prepareVariantValue(dataType, this.$extensionObject[name])
-            }));
-             */
-
-            assert(propertyNode.readValue().statusCode.equals(StatusCodes.Good));
+        const bindProperty = (propertyNode: UAVariableImpl, name: string, extensionObject: ExtensionObject, dataType: DataType) => {
 
             // eslint-disable-next-line @typescript-eslint/no-this-alias
             const self = this;
             propertyNode.bindVariable(
                 {
                     timestamped_get: () => {
-                        const prop = self.$extensionObject[name];
+                        const propertyValue = self.$extensionObject[name];
 
-                        if (prop === undefined) {
-                            propertyNode._dataValue.value.dataType = DataType.Null;
-                            propertyNode._dataValue.statusCode = StatusCodes.Good;
-                            propertyNode._dataValue.value.value = null;
-                            return new DataValue(propertyNode._dataValue);
+                        if (propertyValue === undefined) {
+                            propertyNode.$dataValue.value.dataType = DataType.Null;
+                            propertyNode.$dataValue.statusCode = StatusCodes.Good;
+                            propertyNode.$dataValue.value.value = null;
+                            return new DataValue(propertyNode.$dataValue);
                         }
-                        const value = prepareVariantValue(dataTypeNodeId, prop);
-                        propertyNode._dataValue.statusCode = StatusCodes.Good;
-                        propertyNode._dataValue.value.value = value;
-                        return new DataValue(propertyNode._dataValue);
+                        const value = prepareVariantValue(dataType, propertyValue);
+                        propertyNode.$dataValue.statusCode = StatusCodes.Good;
+                        propertyNode.$dataValue.value.dataType = dataType;
+                        propertyNode.$dataValue.value.value = value;
+                      return new DataValue(propertyNode.$dataValue);
                     },
                     timestamped_set: (dataValue: DataValue, callback: CallbackT<StatusCode>) => {
                         dataValue;
@@ -1332,8 +1397,8 @@ export class UAVariableImpl extends BaseNodeImpl implements UAVariable {
         const s = this.readValue();
         // istanbul ignore next
         if (this.dataTypeObj.isAbstract) {
-            console.log("Warning the DataType associated with this Variable is abstract ", this.dataTypeObj.browseName.toString());
-            console.log("You need to provide a extension object yourself ");
+            warningLog("Warning the DataType associated with this Variable is abstract ", this.dataTypeObj.browseName.toString());
+            warningLog("You need to provide a extension object yourself ");
             throw new Error("bindExtensionObject requires a extensionObject as associated dataType is only abstract");
         }
         if (s.value && (s.value.dataType === DataType.Null || (s.value.dataType === DataType.ExtensionObject && !s.value.value))) {
@@ -1353,8 +1418,8 @@ export class UAVariableImpl extends BaseNodeImpl implements UAVariable {
             this.bindVariable(
                 {
                     timestamped_get() {
-                        self._dataValue.value.value = self.$extensionObject;
-                        const d = new DataValue(self._dataValue);
+                        self.$dataValue.value.value = self.$extensionObject;
+                        const d = new DataValue(self.$dataValue);
                         d.value = new Variant(d.value);
                         return d;
                     },
@@ -1363,7 +1428,6 @@ export class UAVariableImpl extends BaseNodeImpl implements UAVariable {
                         if (!self.checkExtensionObjectIsCorrect(ext)) {
                             return callback(null, StatusCodes.BadInvalidArgument);
                         }
-
                         self.$extensionObject = new Proxy(ext, makeHandler(self));
                         self.touchValue();
                         callback(null, StatusCodes.Good);
@@ -1379,51 +1443,66 @@ export class UAVariableImpl extends BaseNodeImpl implements UAVariable {
             assert(s.statusCode.equals(StatusCodes.Good));
         }
 
-        let property: any;
-        let camelCaseName: any;
         // ------------------------------------------------------
         // now bind each member
         // ------------------------------------------------------
-        const definition = dt._getDefinition(false) as StructureDefinition | null;
+        const definition = dt._getDefinition() as StructureDefinition | null;
 
         // istanbul ignore next
         if (!definition) {
             throw new Error("xx definition missing in " + dt.toString());
         }
-        for (const field of definition.fields || []) {
-            camelCaseName = lowerFirstLetter(field.name!);
-            const component = components.filter((f) => f.browseName.name!.toString() === field.name);
-            if (component.length === 1) {
-                property = component[0];
+
+        const getOrCreateProperty = (field: StructureField): UAVariableImpl => {
+            let property: UAVariableImpl;
+            const selectedComponents = components.filter(
+                (f) => f instanceof UAVariableImpl && f.browseName.name!.toString() === field.name
+            );
+
+            if (field.dataType.value === DataType.Variant) {
+                warningLog("Warning : variant is not supported in ExtensionObject");
+            }
+            if (selectedComponents.length === 1) {
+                property = selectedComponents[0] as UAVariableImpl;
                 /* istanbul ignore next */
             } else {
+                debugLog("adding missing array variable", field.name, this.browseName.toString(), this.nodeId.toString());
                 // todo: Handle array appropriately...
-                assert(component.length === 0);
+                assert(selectedComponents.length === 0);
                 // create a variable (Note we may use ns=1;s=parentName/0:PropertyName)
                 property = this.namespace.addVariable({
                     browseName: { namespaceIndex: structureNamespace, name: field.name!.toString() },
                     componentOf: this,
                     dataType: field.dataType,
                     minimumSamplingInterval: this.minimumSamplingInterval
-                });
+                }) as UAVariableImpl;
                 assert(property.minimumSamplingInterval === this.minimumSamplingInterval);
             }
+            return property;
+        };
 
-            property._dataValue.statusCode = StatusCodes.Good;
-            property.touchValue();
-
+        for (const field of definition.fields || []) {
+          
             if (NodeId.sameNodeId(NodeId.nullNodeId, field.dataType)) {
-                debugLog("field.dataType is null ! " + field.name + " " + field.description?.text);
-                debugLog(" dataType replaced with BaseDataType ");
+                warningLog("field.dataType is null ! ", field.toString(), NodeId.nullNodeId.toString());
+                warningLog(" dataType replaced with BaseDataType ");
+                warningLog(definition.toString());
                 field.dataType = this.resolveNodeId("BaseDataType");
             }
-            const dataTypeNodeId = addressSpace.findCorrespondingBasicDataType(field.dataType);
+
+            const camelCaseName = lowerFirstLetter(field.name!);
             assert(Object.prototype.hasOwnProperty.call(this.$extensionObject, camelCaseName));
+
+            const propertyNode = getOrCreateProperty(field);
+
+            propertyNode.$dataValue.statusCode = StatusCodes.Good;
+            propertyNode.touchValue();
+
+            const basicDataType = addressSpace.findCorrespondingBasicDataType(field.dataType);
 
             // istanbul ignore next
             if (doDebug) {
                 const x = addressSpace.findNode(field.dataType)!.browseName.toString();
-                const basicType = addressSpace.findCorrespondingBasicDataType(field.dataType);
                 debugLog(
                     chalk.cyan("xxx"),
                     " dataType",
@@ -1433,52 +1512,56 @@ export class UAVariableImpl extends BaseNodeImpl implements UAVariable {
                     chalk.cyan(w(valueRankToString(field.valueRank), 10)),
                     chalk.green(w(x, 25)),
                     "basicType = ",
-                    chalk.yellow(w(basicType.toString(), 20)),
-                    property.nodeId.toString(),
-                    property.readValue().statusCode.toString()
+                    chalk.yellow(w(basicDataType.toString(), 20)),
+                    propertyNode.nodeId.toString(),
+                    propertyNode.readValue().statusCode.toString()
                 );
             }
-            if (this.$extensionObject[camelCaseName] !== undefined && dataTypeNodeId === DataType.ExtensionObject) {
+            if (this.$extensionObject[camelCaseName] !== undefined && basicDataType === DataType.ExtensionObject) {
                 assert(this.$extensionObject[camelCaseName] instanceof Object);
-                this.$extensionObject[camelCaseName] = new Proxy(this.$extensionObject[camelCaseName], makeHandler(property));
-                property._dataValue.value = new Variant({
-                    dataType: DataType.ExtensionObject,
-                    value: this.$extensionObject[camelCaseName]
-                });
-                property.bindExtensionObject();
-                property.$extensionObject = this.$extensionObject[camelCaseName];
-            } else {
-                const dataTypeAsString = DataType[dataTypeNodeId];
-                assert(typeof dataTypeAsString === "string");
-                const prop = this.$extensionObject[camelCaseName];
+                this.$extensionObject[camelCaseName] = new Proxy(this.$extensionObject[camelCaseName], makeHandler(propertyNode));
 
+                propertyNode._internal_set_value(
+                    new Variant({
+                        dataType: DataType.ExtensionObject,
+                        value: this.$extensionObject[camelCaseName]
+                    })
+                );
+
+                propertyNode.bindExtensionObject();
+                propertyNode.$extensionObject = this.$extensionObject[camelCaseName];
+            } else {
+                const prop = this.$extensionObject[camelCaseName];
                 if (prop === undefined) {
-                    property._dataValue.value = new Variant({
-                        dataType: DataType.Null
-                    });
+                    propertyNode._internal_set_value(
+                        new Variant({
+                            dataType: DataType.Null
+                        })
+                    );
                 } else {
-                    const preparedValue = prepareVariantValue(dataTypeNodeId, prop);
-                    property._dataValue.value = new Variant({
-                        dataType: dataTypeAsString,
-                        value: preparedValue
-                    });
+                    const preparedValue = prepareVariantValue(basicDataType, prop);
+                    propertyNode._internal_set_value(
+                        new Variant({
+                            dataType: basicDataType,
+                            value: preparedValue
+                        })
+                    );
                 }
 
                 // eslint-disable-next-line @typescript-eslint/no-this-alias
                 const self = this;
-                property.camelCaseName = camelCaseName;
-                property.setValueFromSource = function (this: any, variant: VariantLike) {
+                //  property.camelCaseName = camelCaseName;
+                propertyNode.setValueFromSource = function (this: UAVariableImpl, variant: VariantLike) {
                     // eslint-disable-next-line @typescript-eslint/no-this-alias
                     const inner_this = this;
-                    variant = Variant.coerce(variant);
-                    // xx console.log("PropertySetValueFromSource this", inner_this.nodeId.toString(), inner_this.browseName.toString(), variant.toString(), inner_this.dataType.toString());
-                    // xx assert(variant.dataType === this.dataType);
-                    self.$extensionObject[inner_this.camelCaseName] = variant.value;
+                    const variant1 = Variant.coerce(variant);
+                    inner_this.verifyVariantCompatibility(variant1);
+                    self.$extensionObject[camelCaseName] = variant1.value;
                     self.touchValue();
                 };
             }
-            assert(property.readValue().statusCode.equals(StatusCodes.Good));
-            bindProperty(property, camelCaseName, this.$extensionObject, dataTypeNodeId);
+            assert(propertyNode.readValue().statusCode.equals(StatusCodes.Good));
+            bindProperty(propertyNode, camelCaseName, this.$extensionObject, basicDataType);
         }
         assert(this.$extensionObject instanceof Object);
         return this.$extensionObject;
@@ -1520,7 +1603,6 @@ export class UAVariableImpl extends BaseNodeImpl implements UAVariable {
         c1[name] = c2[name];
         c1[name] += 1;
 
-        // xx console.log(partialData);
         setExtensionObjectValue(this, partialData);
     }
 
@@ -1664,10 +1746,16 @@ export class UAVariableImpl extends BaseNodeImpl implements UAVariable {
         return validateDataType(this.addressSpace, this.dataType, variantDataType, this.nodeId, /* allow Nulls */ false);
     }
 
+    public _internal_set_value(value: Variant): void {
+        if (value.dataType !== DataType.Null) {
+            this.verifyVariantCompatibility(value);
+        }
+        this.$dataValue.value = value;
+    }
     public _internal_set_dataValue(dataValue: DataValue, indexRange?: NumericRange | null): void {
         assert(dataValue, "expecting a dataValue");
         assert(dataValue instanceof DataValue, "expecting dataValue to be a DataValue");
-        assert(dataValue !== this._dataValue, "expecting dataValue to be different from previous DataValue instance");
+        assert(dataValue !== this.$dataValue, "expecting dataValue to be different from previous DataValue instance");
 
         if (dataValue.value.arrayType === VariantArrayType.Matrix) {
             if (!dataValue.value.dimensions) {
@@ -1691,27 +1779,31 @@ export class UAVariableImpl extends BaseNodeImpl implements UAVariable {
         // istanbul ignore next
         if (this.dataType.namespace === 0) {
             if (this.dataType.value === DataType.LocalizedText && dataValue.value.dataType !== DataType.LocalizedText) {
-                throw new Error("Invalid dataValue provided (expecting a LocalizedText) but got " + dataValue.toString());
+                const message = "Invalid dataValue provided (expecting a LocalizedText) but got " + dataValue.toString();
+                errorLog(message);
+                throw new Error(message);
             }
         }
 
-        const old_dataValue = this._dataValue;
+        this.verifyVariantCompatibility(dataValue.value);
 
-        this._dataValue = dataValue;
-        this._dataValue.statusCode = this._dataValue.statusCode || StatusCodes.Good;
+        const old_dataValue = this.$dataValue;
+
+        this.$dataValue = dataValue;
+        this.$dataValue.statusCode = this.$dataValue.statusCode || StatusCodes.Good;
 
         // repair missing timestamps
         if (!dataValue.serverTimestamp) {
-            this._dataValue.serverTimestamp = old_dataValue.serverTimestamp;
-            this._dataValue.serverPicoseconds = old_dataValue.serverPicoseconds;
+            this.$dataValue.serverTimestamp = old_dataValue.serverTimestamp;
+            this.$dataValue.serverPicoseconds = old_dataValue.serverPicoseconds;
         }
         if (!dataValue.sourceTimestamp) {
-            this._dataValue.sourceTimestamp = old_dataValue.sourceTimestamp;
-            this._dataValue.sourcePicoseconds = old_dataValue.sourcePicoseconds;
+            this.$dataValue.sourceTimestamp = old_dataValue.sourceTimestamp;
+            this.$dataValue.sourcePicoseconds = old_dataValue.sourcePicoseconds;
         }
 
         if (!sameDataValue(old_dataValue, dataValue)) {
-            this.emit("value_changed", this._dataValue, indexRange);
+            this.emit("value_changed", this.$dataValue, indexRange);
         }
     }
 
@@ -1907,10 +1999,10 @@ function _calculateEffectiveUserAccessLevelFromPermission(
     }
 }
 
-function adjustVariant2(this: UAVariable, variant: Variant): Variant {
+function adjustVariant2(this: UAVariableImpl, variant: Variant): Variant {
     // convert Variant( Scalar|ByteString) =>  Variant(Array|ByteArray)
     const addressSpace = this.addressSpace;
-    const basicType = addressSpace.findCorrespondingBasicDataType(this.dataType);
+    const basicType = this.getBasicDataType();
     variant = adjustVariant(variant, this.valueRank, basicType);
     return variant;
 }
@@ -1969,7 +2061,7 @@ function _Variable_bind_with_async_refresh(this: UAVariableImpl, options: any) {
     this.refreshFunc = options.refreshFunc;
 
     // assert(this.readValue().statusCode === StatusCodes.BadNodeIdUnknown);
-    this._dataValue.statusCode = StatusCodes.UncertainInitialValue;
+    this.$dataValue.statusCode = StatusCodes.UncertainInitialValue;
 
     // TO DO : REVISIT THIS ASSUMPTION
     if (false && this.minimumSamplingInterval === 0) {
@@ -1991,7 +2083,10 @@ function _Variable_bind_with_timestamped_get(this: UAVariableImpl, options: any)
     const async_refresh_func = (callback: (err: Error | null, dataValue?: DataValue) => void) => {
         Promise.resolve((this._timestamped_get_func! as TimestampGetFunction1).call(this))
             .then((dataValue) => callback(null, dataValue))
-            .catch((err) => callback(err as Error));
+            .catch((err) => {
+                errorLog("asyncRefresh error: Variable is  ", this.nodeId.toString(), this.browseName.toString());
+                callback(err as Error);
+            });
     };
 
     if (options.timestamped_get.length === 0) {
@@ -2022,11 +2117,11 @@ function _Variable_bind_with_timestamped_get(this: UAVariableImpl, options: any)
 }
 
 // variation 1
-function _Variable_bind_with_simple_get(this: UAVariableImpl, options: any) {
+function _Variable_bind_with_simple_get(this: UAVariableImpl, options: GetterOptions) {
     /* jshint validthis: true */
     assert(this instanceof UAVariableImpl);
     assert(typeof options.get === "function", "should specify get function");
-    assert(options.get.length === 0, "get function should not have arguments");
+    assert(options.get!.length === 0, "get function should not have arguments");
     assert(!options.timestamped_get, "should not specify a timestamped_get function when get is specified");
     assert(!this._timestamped_get_func);
     assert(!this._get_func);
@@ -2050,12 +2145,10 @@ function _Variable_bind_with_simple_get(this: UAVariableImpl, options: any) {
         if (is_StatusCode(value)) {
             return new DataValue({ statusCode: value });
         } else {
-            if (!this._dataValue || !isGoodish(this._dataValue.statusCode) || !sameVariant(this._dataValue.value, value)) {
+            if (!this.$dataValue || !isGoodish(this.$dataValue.statusCode) || !sameVariant(this.$dataValue.value, value)) {
                 this.setValueFromSource(value, StatusCodes.Good);
-            } else {
-                // XX console.log("YYYYYYYYYYYYYYYYYYYYYYYYYY",this.browseName.toString());
-            }
-            return this._dataValue;
+            } 
+            return this.$dataValue;
         }
     };
 
@@ -2082,11 +2175,13 @@ function _Variable_bind_with_simple_set(this: UAVariableImpl, options: any) {
     ) => {
         assert(timestamped_value instanceof DataValue);
         this._set_func(timestamped_value.value, (err: Error | null, statusCode: StatusCode) => {
+           
+            // istanbul ignore next
             if (!err && !statusCode) {
-                console.log(
+                errorLog(
                     chalk.red("UAVariable Binding Error _set_func must return a StatusCode, check the bindVariable parameters")
                 );
-                console.log(chalk.yellow("StatusCode.Good is assumed"));
+                errorLog(chalk.yellow("StatusCode.Good is assumed"));
                 return callback(err, StatusCodes.Good, timestamped_value);
             }
             callback(err, statusCode, timestamped_value);

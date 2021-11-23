@@ -39,4 +39,3 @@ describe("testing CallMethodRequest", function () {
         encode_decode_round_trip_test(callMethodResult);
     });
 });
-

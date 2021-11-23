@@ -33,32 +33,33 @@ describe("converting DataType to BSD schema files", () => {
 </opc:TypeDictionary>`);
     });
     it("BSD2- structure 1", async () => {
+
+        const partialDefinition = [
+            {
+                dataType: DataType.String,
+                description: "the name",
+                isOptional: false,
+                name: "Name",
+                valueRank: -1
+            },
+            {
+                arrayDimensions: [1],
+                dataType: DataType.Float,
+                description: "the list of values",
+                name: "Values",
+                valueRank: 1
+            }
+        ];
         const namespace = addressSpace.getOwnNamespace();
         const dataType = namespace.createDataType({
             browseName: "MyDataType",
             isAbstract: true,
-            subtypeOf: "Structure"
+            subtypeOf: "Structure",
+            partialDefinition
         });
 
-        (dataType as any).$definition = new StructureDefinition({
-            baseDataType: "",
-            fields: [
-                {
-                    dataType: DataType.String,
-                    description: "the name",
-                    isOptional: false,
-                    name: "Name",
-                    valueRank: -1
-                },
-                {
-                    arrayDimensions: [1],
-                    dataType: DataType.Float,
-                    description: "the list of values",
-                    name: "Values",
-                    valueRank: 1
-                }
-            ]
-        });
+       //  const definition = namespace.getStructureDefinition();
+
         const xml = dumpToBSD(namespace);
         // tslint:disable-next-line: no-console
         // console.log(xml);
@@ -94,39 +95,36 @@ describe("converting DataType to BSD schema files", () => {
     });
     it("BSD4- structure 2", async () => {
         const namespace = addressSpace.getOwnNamespace();
+
+        
+        const partialDefinition =  [
+            {
+                dataType: DataType.String,
+                description: "the name",
+                isOptional: false,
+                name: "Name",
+                valueRank: -1
+            },
+            {
+                arrayDimensions: [1],
+                dataType: DataType.NodeId,
+                description: "the list of NodeId",
+                name: "Values",
+                valueRank: 1
+            }
+        ];
+        
         const dataType = namespace.createDataType({
             browseName: "MyDataType",
             isAbstract: true,
-            subtypeOf: "Structure"
+            subtypeOf: "Structure",
+            partialDefinition
         });
         const dataTypeEx = namespace.createDataType({
             browseName: "MyDataTypeEx",
             isAbstract: true,
-            subtypeOf: dataType.nodeId
-        });
-
-        (dataType as any).$definition = new StructureDefinition({
-            baseDataType: "",
-            fields: [
-                {
-                    dataType: DataType.String,
-                    description: "the name",
-                    isOptional: false,
-                    name: "Name",
-                    valueRank: -1
-                },
-                {
-                    arrayDimensions: [1],
-                    dataType: DataType.NodeId,
-                    description: "the list of NodeId",
-                    name: "Values",
-                    valueRank: 1
-                }
-            ]
-        });
-        (dataTypeEx as any).$definition = new StructureDefinition({
-            baseDataType: dataType.nodeId,
-            fields: [
+            subtypeOf: dataType.nodeId, 
+            partialDefinition: [
                 {
                     dataType: DataType.LocalizedText,
                     description: "extra prop",
@@ -134,9 +132,11 @@ describe("converting DataType to BSD schema files", () => {
                     name: "Extra",
                     valueRank: -1
                 }
-            ],
-            structureType: StructureType.Structure
+            ]
         });
+
+       
+            
         const xml = dumpToBSD(namespace);
         // tslint:disable-next-line: no-console
         // console.log(xml);
@@ -181,11 +181,8 @@ describe("converting DataType to BSD schema files", () => {
         const dataType = namespace.createDataType({
             browseName: "MyDataWithSwitch",
             isAbstract: true,
-            subtypeOf: "Structure"
-        });
-        (dataType as any).$definition = new StructureDefinition({
-            baseDataType: "",
-            fields: [
+            subtypeOf: "Structure",
+            partialDefinition: [
                 {
                     dataType: DataType.String,
                     description: "OptionalName",
@@ -203,6 +200,7 @@ describe("converting DataType to BSD schema files", () => {
                 }
             ]
         });
+
         const xml = dumpToBSD(namespace);
         // tslint:disable-next-line: no-console
         // console.log(xml);

@@ -86,8 +86,10 @@ export async function addExtensionObjectDataType(namespace: Namespace, options: 
     })!;
     assert(defaultBinary.browseName.toString() === "Default Binary");
 
-    (dataType as any).$definition = new StructureDefinition(structureDefinition);
-    assert(!NodeId.sameNodeId((dataType as any).$definition.baseDataType, NodeId.nullNodeId));
+    (dataType as any).$fullDefinition = new StructureDefinition(structureDefinition);
+
+    const d = dataType.getStructureDefinition();
+    assert(!NodeId.sameNodeId(d.baseDataType, NodeId.nullNodeId));
 
     /// --------------- Create constructor
     const dataTypeManager = (addressSpace as any).$$extraDataTypeManager as ExtraDataTypeManager;
@@ -100,7 +102,7 @@ export async function addExtensionObjectDataType(namespace: Namespace, options: 
         session,
         dataType.nodeId,
         className,
-        (dataType as any).$definition,
+        dataType.getStructureDefinition(),
         dataTypeFactory,
         cache
     );
@@ -113,7 +115,8 @@ export function addVariableTypeForDataType(namespace: Namespace, dataType: UADat
     const addressSpace = namespace.addressSpace;
 
     // get Definition
-    const definition = (dataType as any).$definition as StructureDefinition;
+    const definition = dataType.getStructureDefinition();
+    // istanbul ignore next
     if (!definition || !(definition instanceof StructureDefinition)) {
         throw new Error("dataType is not a structure");
     }

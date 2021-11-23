@@ -2,20 +2,21 @@
 
 const async = require("async");
 require("should");
-
-const { build_client_server_session } = require("../../test_helpers/build_client_server_session");
 const { UAProxyManager } = require("node-opcua-client-proxy");
-
 const { getAddressSpaceFixture } = require("node-opcua-address-space/testHelpers");
 
+const { build_client_server_session } = require("../../test_helpers/build_client_server_session");
 
+
+
+// eslint-disable-next-line import/order
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("testing client Proxy State Machine", function() {
 
     this.timeout(Math.max(200000, this.timeout()));
 
     const port = 2245;
-    const server_options = {
+    const serverOptions = {
         port,
         nodeset_filename: [
             getAddressSpaceFixture("fixture_simple_statemachine_nodeset2.xml"),
@@ -27,7 +28,7 @@ describe("testing client Proxy State Machine", function() {
 
     before(function(done) {
 
-        client_server = build_client_server_session(server_options, function(err) {
+        client_server = build_client_server_session(serverOptions, function(err) {
             if (!err) {
                 g_session = client_server.g_session;
 
@@ -101,6 +102,7 @@ describe("testing client Proxy State Machine", function() {
             }
         ], done);
     });
+
     it("Z1b should read a state machine", function(done) {
 
 

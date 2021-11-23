@@ -6,10 +6,23 @@ import { assert } from "node-opcua-assert";
 import { AttributeIds, NodeClass } from "node-opcua-data-model";
 import { DataValue } from "node-opcua-data-value";
 import { NodeId } from "node-opcua-nodeid";
+import { Argument } from "node-opcua-service-call";
 import { WriteValueOptions } from "node-opcua-service-write";
 import { StatusCode, StatusCodes } from "node-opcua-status-code";
-import { Variant } from "node-opcua-variant";
+import { DataType, Variant } from "node-opcua-variant";
 import { UAProxyManager } from "./proxy_manager";
+
+export interface ArgumentEx extends Argument {
+    _basicDataType: DataType;
+}
+export interface MethodDescription {
+    browseName: string;
+    executableFlag: boolean;
+    func: (input: Record<string, unknown>, callback: (err: Error | null, output?: Record<string, unknown>) => void) => void;
+    nodeId: NodeId; // the method NodeId
+    inputArguments: ArgumentEx[];
+    outputArguments: ArgumentEx[];
+}
 
 export class ProxyBaseNode extends EventEmitter {
     /**
@@ -35,7 +48,7 @@ export class ProxyBaseNode extends EventEmitter {
      * @property $methods
      * @type {Array<ProxyBaseNode>}
      */
-    public $methods: any[];
+    public $methods: MethodDescription[];
     /**
      * the Folder's elements
      * @property $organizes

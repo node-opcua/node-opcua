@@ -16,6 +16,7 @@
         "node-opcua-address-space": "2.59.0",
         "node-opcua-assert": "2.55.0",
         "node-opcua-constants": "2.52.0",
+        "node-opcua-debug": "2.55.0",
         "node-opcua-data-model": "2.57.0",
         "node-opcua-data-value": "2.59.0",
         "node-opcua-nodeid": "2.55.0",
