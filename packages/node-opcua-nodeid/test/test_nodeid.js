@@ -1,3 +1,9 @@
+
+const should = require("should");
+const { assert } = require("node-opcua-assert");
+const { Benchmarker } = require("node-opcua-benchmarker");
+const { removeDecoration } = require("node-opcua-debug");
+
 const {
     coerceNodeId,
     resolveNodeId,
@@ -6,11 +12,6 @@ const {
     NodeId,
     sameNodeId
 } = require("..");
-
-const should = require("should");
-const { assert } = require("node-opcua-assert");
-const { Benchmarker } = require("node-opcua-benchmarker");
-const { removeDecoration } = require("node-opcua-debug");
 
 describe("testing NodeIds", function() {
     it("should create a NUMERIC nodeID", function() {
@@ -405,4 +406,32 @@ describe("issue#372 coercing & making nodeid string containing semi-column", fun
         nodeId.identifierType.should.eql(NodeIdType.STRING);
         nodeId.value.should.be.eql("my;nodeid;with;semicolum");
     });
+});
+
+describe("nullId constness", ()=>{
+
+    it("should throw an exception if one try to modify the NodeId.nullNodeId property: namespace", ()=>{
+
+        should.throws(()=>{
+            NodeId.nullNodeId.namespace = 1;
+        }, "should not be able assign to read only property 'namespace' of object '#<NodeId>'");
+        NodeId.nullNodeId.namespace.should.eql(0)
+
+    })
+    it("should throw an exception if one try to modify the NodeId.nullNodeId property: value", ()=>{
+
+        should.throws(()=>{
+            NodeId.nullNodeId.value = 1;
+        }, "should not be able assign to read only property 'namespace' of object '#<NodeId>'");
+        NodeId.nullNodeId.value.should.eql(0)
+
+    })
+    it("should throw an exception if one try to modify the NodeId.nullNodeId property: type", ()=>{
+
+        should.throws(()=>{
+            NodeId.nullNodeId.identifierType = NodeIdType.GUID;
+        }, "should not be able assign to read only property 'namespace' of object '#<NodeId>'");
+        NodeId.nullNodeId.identifierType.should.eql(NodeIdType.NUMERIC)
+
+    })
 });
