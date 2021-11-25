@@ -312,7 +312,7 @@ describe("testing address space", () => {
         views[0].should.eql(view1);
         views[1].should.eql(view4);
 
-        view1.readAttribute(null, AttributeIds.EventNotifier).value.toString().should.eql("Variant(Scalar<UInt32>, value: 0)");
+        view1.readAttribute(null, AttributeIds.EventNotifier).value.toString().should.eql("Variant(Scalar<Byte>, value: 0)");
         view1
             .readAttribute(null, AttributeIds.ContainsNoLoops)
             .value.toString()
