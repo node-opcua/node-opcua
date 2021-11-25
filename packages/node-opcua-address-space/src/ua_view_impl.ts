@@ -34,7 +34,7 @@ export class UAViewImpl extends BaseNodeImpl implements UAView {
 
         switch (attributeId) {
             case AttributeIds.EventNotifier:
-                options.value = { dataType: DataType.UInt32, value: this.eventNotifier };
+                options.value = { dataType: DataType.Byte, value: this.eventNotifier };
                 options.statusCode = StatusCodes.Good;
                 break;
 
