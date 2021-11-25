@@ -321,7 +321,18 @@ class MandatoryChildOrRequestedOptionalFilter implements CloneFilter {
         switch (modellingRule) {
             case null:
             case undefined:
-                return false; // skip
+                debugLog("node ", node.browseName.toString(), node.nodeId.toString(), " has no modellingRule ", node.parentNodeId?.toString());
+                /**
+                 * in some badly generated NodeSet2.xml file, the modellingRule is not specified
+                 * 
+                 * but in some other NodeSet2.xml, this means that the data are only attached to the Type node and shall not be
+                 * instantiate in the corresponding instance (example is the state variable of a finite state machine that are only 
+                 * defined in the Type node)
+                 * 
+                 * we should not consider it as an error, and treat it as not present
+                 */
+                return false;
+
             case "Mandatory":
                 return true; // keep;
             case "Optional":
