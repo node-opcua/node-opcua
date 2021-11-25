@@ -357,6 +357,14 @@
             <Reference ReferenceType="HasSubtype" IsForward="false">i=58</Reference>
         </References>
     </UAObjectType>
-
+    
+    <UAReferenceType NodeId="i=38" BrowseName="HasEncoding">
+        <DisplayName>HasEncoding</DisplayName>
+        <Documentation>https://reference.opcfoundation.org/v104/Core/docs/Part5/11.13</Documentation>
+        <References>
+          <Reference ReferenceType="HasSubtype" IsForward="false">i=32</Reference>
+        </References>
+        <InverseName>EncodingOf</InverseName>
+      </UAReferenceType>
 
 </UANodeSet>
