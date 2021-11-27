@@ -9,7 +9,7 @@ import { AddressSpace, BaseNode, UAReference } from "..";
 
 // tslint:disable-next-line:no-var-requires
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
-describe("testing findReferenceEx", () => {
+describe("testing findReferencesEx", () => {
     const nodesetFilename = nodesets.standard;
 
     const my_nodesets = [nodesets.standard, nodesets.di];
@@ -24,7 +24,7 @@ describe("testing findReferenceEx", () => {
     after(async () => {
         addressSpace.dispose();
     });
-    it("should findReferenceEx", () => {
+    it("should findReferencesEx", () => {
         const nsDI = addressSpace.getNamespaceIndex("http://opcfoundation.org/UA/DI/");
         const topologyElementType = addressSpace.findObjectType("TopologyElementType", nsDI)!;
 
