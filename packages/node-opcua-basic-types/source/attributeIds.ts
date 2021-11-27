@@ -32,9 +32,9 @@ export enum AttributeIds {
     UserRolePermissions = 25,
     AccessRestrictions = 26,
     AccessLevelEx = 27,
-    LAST = 27,
     INVALID = 999
 }
+const AttributeIds_LAST = AttributeIds.AccessLevelEx;
 
 // see https://github.com/you-dont-need/You-Dont-Need-Lodash-Underscore/issues/296
 function invert(a: { [key: string]: string | number }) {
@@ -46,5 +46,5 @@ function invert(a: { [key: string]: string | number }) {
 export const attributeNameById = invert(AttributeIds);
 
 export function isValidAttributeId(attributeId: number): boolean {
-    return attributeId >= 1 && attributeId <= AttributeIds.LAST;
+    return attributeId >= 1 && attributeId <= AttributeIds_LAST;
 }
