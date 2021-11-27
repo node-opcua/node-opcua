@@ -277,7 +277,7 @@ function _build_server_with_temperature_device(server, options, done) {
             
             const shutdownReason =server.engine.addressSpace.rootFolder.objects.server.serverStatus.shutdownReason;
             const dataValue = shutdownReason.readValue();
-            console.log(dataValue.toString());
+            // console.log("shutdown reason", dataValue.toString());
             shutdownReason.setValueFromSource({
                 dataType: DataType.LocalizedText,
                 value: { text: "No Shutdown in progress" }
