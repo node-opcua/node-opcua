@@ -154,14 +154,19 @@ describe("AddressSpace : add event type ", () => {
         let counter = 0;
         bench
             .add("test", () => {
-                const condition = namespace.instantiateCondition(eventType, {
-                    browseName: "MyCondition" + counter,
-                    conditionSource: undefined,
-                    receiveTime: { dataType: "DateTime", value: new Date(1789, 6, 14) },
-                    sourceName: { dataType: "String", value: "HelloWorld" }
-                });
-                condition.browseName.toString().should.eql("1:MyCondition" + counter);
-                counter++;
+                try {
+                    const condition = namespace.instantiateCondition(eventType, {
+                        browseName: "MyCondition" + counter,
+                        conditionSource: undefined,
+                        receiveTime: { dataType: "DateTime", value: new Date(1789, 6, 14) },
+                        sourceName: { dataType: "String", value: "HelloWorld" }
+                    });
+                    condition.browseName.toString().should.eql("1:MyCondition" + counter);
+                } catch (err) {
+                    console.log((err as Error).message);
+                } finally {
+                    counter += 1;
+                }
             })
 
             .on("cycle", (message: string) => {
@@ -169,7 +174,7 @@ describe("AddressSpace : add event type ", () => {
             })
             .on("complete", function (this: any) {
                 console.log("    Fastest is ", this.fastest.name);
-                // xx console.log(" count    :  ", this.fastest.count);
+                console.log(" count    :  ", this.fastest.count);
                 done();
             })
             .run({ max_time: 0.1 });

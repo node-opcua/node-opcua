@@ -10,12 +10,32 @@ import { UAObjectType } from "./ua_object_type";
 import { UAReference } from "./ua_reference";
 import { UAVariable } from "./ua_variable";
 
-export type CloneExtraInfo = any;
-
 export interface CloneFilter {
     shouldKeep(node: BaseNode): boolean;
     filterFor(childInstance: UAVariable | UAObject | UAMethod): CloneFilter;
 }
+export const defaultCloneFilter: CloneFilter = {
+    shouldKeep: () => true,
+    filterFor(node: BaseNode) {
+        return this;
+    }
+};
+
+export interface CloneExtraInfo {
+    /* */
+    level: number;
+    pad(): string;
+    registerClonedObject(clonedObject: BaseNode, originalObject: BaseNode): void;
+}
+export const defaultCloneExtraInfo: CloneExtraInfo = {
+    level: 0,
+    pad(this: CloneExtraInfo) {
+        return " ".padEnd(this.level * 2);
+    },
+    registerClonedObject(clonedObject: BaseNode, originalObject: BaseNode): void {
+        // nothing to do
+    }
+};
 
 export interface CloneOptions /* extends ConstructNodeIdOptions */ {
     namespace: INamespace;
