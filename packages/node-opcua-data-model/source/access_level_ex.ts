@@ -61,6 +61,12 @@ export function accessLevelExFlagToString(accessLevelFlag: AccessLevelExFlag): s
     if (accessLevelFlag & AccessLevelExFlag.NoSubDataTypes) {
         retVal.push("NoSubDataTypes");
     }
+    if (accessLevelFlag & AccessLevelExFlag.NonVolatile) {
+        retVal.push("NonVolatile");
+    }
+    if (accessLevelFlag & AccessLevelExFlag.Constant) {
+        retVal.push("Constant");
+    }
 
     if (retVal.length === 0) {
         retVal.push("None");
