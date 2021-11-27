@@ -8,7 +8,19 @@
 // tslint:disable:max-line-length
 import * as chalk from "chalk";
 
-import { ContinuationData, GetFunc, SetFunc } from "node-opcua-address-space-base";
+import {
+    CloneExtraInfo,
+    ContinuationData,
+    defaultCloneExtraInfo,
+    defaultCloneFilter,
+    GetFunc,
+    SetFunc,
+    VariableDataValueGetterCallback,
+    VariableDataValueGetterPromise,
+    VariableDataValueGetterSync,
+    VariableDataValueSetterWithCallback,
+    VariableDataValueSetterWithPromise
+} from "node-opcua-address-space-base";
 import { assert } from "node-opcua-assert";
 import {
     isValidDataEncoding,
@@ -56,7 +68,6 @@ import {
     IAddressSpace,
     BindVariableOptions,
     ContinuationPoint,
-    DataValueCallback,
     IVariableHistorian,
     TimestampGetFunc,
     TimestampSetFunc,
@@ -65,7 +76,6 @@ import {
     UAVariableType,
     CloneOptions,
     CloneFilter,
-    CloneExtraInfo,
     ISessionContext,
     BaseNode,
     UAVariableT
@@ -73,6 +83,7 @@ import {
 import { UAHistoricalDataConfiguration } from "node-opcua-nodeset-ua";
 
 import { SessionContext } from "../source/session_context";
+import { convertToCallbackFunction1 } from "../source/helpers/multiform_func";
 import { BaseNodeImpl, InternalBaseNodeOptions } from "./base_node_impl";
 import { _clone, ToStringBuilder, UAVariable_toString, valueRankToString } from "./base_node_private";
 import { EnumerationInfo, IEnumItem, UADataTypeImpl } from "./ua_data_type_impl";
@@ -225,6 +236,10 @@ function validateDataType(
     return dest_isSuperTypeOf_variant;
 }
 
+function default_func(this: UAVariable, dataValue1: DataValue, callback1: CallbackT<StatusCode>) {
+    return _default_writable_timestamped_set_func.call(this, dataValue1, callback1);
+}
+
 interface UAVariableOptions extends InternalBaseNodeOptions {
     value?: any;
     dataType: NodeId | string;
@@ -235,19 +250,6 @@ interface UAVariableOptions extends InternalBaseNodeOptions {
     minimumSamplingInterval?: number; // default -1
     historizing?: number;
 }
-
-type TimestampGetFunction1 = () => DataValue | Promise<DataValue>;
-type TimestampGetFunction2 = (callback: (err: Error | null, dataValue?: DataValue) => void) => void;
-type TimestampGetFunction = TimestampGetFunction1 | TimestampGetFunction2;
-
-type TimestampSetFunction1 = (this: UAVariable, dataValue: DataValue, indexRange: NumericRange) => void | Promise<void>;
-type TimestampSetFunction2 = (
-    this: UAVariable,
-    dataValue: DataValue,
-    indexRange: NumericRange,
-    callback: (err: Error | null, StatusCode: StatusCode) => void
-) => void;
-type TimestampSetFunction = TimestampSetFunction1 | TimestampSetFunction2;
 
 /**
  * A OPCUA Variable Node
@@ -298,11 +300,11 @@ export class UAVariableImpl extends BaseNodeImpl implements UAVariable {
     public semantic_version: number;
     public arrayDimensions: null | number[];
 
-    public _timestamped_get_func?: TimestampGetFunction | null;
-    public _timestamped_set_func?: TimestampSetFunction | null;
+    public _timestamped_get_func?: TimestampGetFunc | null;
+    public _timestamped_set_func?: VariableDataValueSetterWithCallback | null;
     public _get_func: any;
     public _set_func: any;
-    public refreshFunc?: (callback: DataValueCallback) => void;
+    public refreshFunc?: (callback: CallbackT<DataValue>) => void;
     public __waiting_callbacks?: any[];
 
     get typeDefinitionObj(): UAVariableType {
@@ -431,8 +433,13 @@ export class UAVariableImpl extends BaseNodeImpl implements UAVariable {
 
         if (this._timestamped_get_func) {
             if (this._timestamped_get_func.length === 0) {
-                this.$dataValue = (this._timestamped_get_func as TimestampGetFunction1)() as DataValue;
-                this.verifyVariantCompatibility(this.$dataValue.value);
+                const dataValueOrPromise = (this._timestamped_get_func as VariableDataValueGetterSync)();
+                if (!Object.prototype.hasOwnProperty.call(dataValueOrPromise, "then")) {
+                    this.$dataValue = dataValueOrPromise as DataValue;
+                    this.verifyVariantCompatibility(this.$dataValue.value);
+                } else {
+                    errorLog("Unsupported: _timestamped_get_func returns a Promise !");
+                }
             }
         }
 
@@ -483,14 +490,14 @@ export class UAVariableImpl extends BaseNodeImpl implements UAVariable {
         return dataTypeNode._getEnumerationInfo();
     }
 
-    public asyncRefresh(oldestDate: Date, callback: DataValueCallback): void;
+    public asyncRefresh(oldestDate: Date, callback: CallbackT<DataValue>): void;
     public asyncRefresh(oldestDate: Date): Promise<DataValue>;
     public asyncRefresh(...args: any[]): any {
         this.verifyVariantCompatibility(this.$dataValue.value);
 
         const oldestDate = args[0] as Date;
         assert(oldestDate instanceof Date);
-        const callback = args[1] as DataValueCallback;
+        const callback = args[1] as CallbackT<DataValue>;
 
         if (!this.refreshFunc) {
             // no refresh func
@@ -511,7 +518,7 @@ export class UAVariableImpl extends BaseNodeImpl implements UAVariable {
             dataValue.serverPicoseconds = 0;
             return callback(null, dataValue);
         }
-     
+
         try {
             this.refreshFunc.call(this, (err: Error | null, dataValue?: DataValueLike) => {
                 if (err || !dataValue) {
@@ -646,20 +653,35 @@ export class UAVariableImpl extends BaseNodeImpl implements UAVariable {
             // istanbul ignore next
             if (Object.prototype.hasOwnProperty.call(variant, "value")) {
                 if (variant.dataType === null || variant.dataType === undefined) {
-                    throw new Error("Variant must provide a valid dataType" + variant.toString());
+                    throw new Error(
+                        "Variant must provide a valid dataType : variant = " +
+                            variant.toString() +
+                            " this.dataType= " +
+                            this.dataType.toString()
+                    );
                 }
                 if (
                     variant.dataType === DataType.Boolean &&
                     (this.dataType.namespace !== 0 || this.dataType.value !== DataType.Boolean)
                 ) {
-                    throw new Error("Variant must provide a valid Boolean" + variant.toString());
+                    throw new Error(
+                        "Variant must provide a valid Boolean : variant = " +
+                            variant.toString() +
+                            " this.dataType= " +
+                            this.dataType.toString()
+                    );
                 }
                 if (
                     this.dataType.namespace === 0 &&
                     this.dataType.value === DataType.LocalizedText &&
                     variant.dataType !== DataType.LocalizedText
                 ) {
-                    throw new Error("Variant must provide a valid LocalizedText" + variant.toString());
+                    throw new Error(
+                        "Variant must provide a valid LocalizedText : variant = " +
+                            variant.toString() +
+                            " this.dataType= " +
+                            this.dataType.toString()
+                    );
                 }
             }
             const basicType = this.getBasicDataType();
@@ -689,7 +711,7 @@ export class UAVariableImpl extends BaseNodeImpl implements UAVariable {
                 throw new Error(message);
             }
         } catch (err) {
-            errorLog("UAVariable  ", (err as Error)?.message, this.browseName.toString(), this.nodeId.toString());
+            errorLog("UAVariable  ", (err as Error)?.message, this.browseName.toString(), " nodeId=", this.nodeId.toString());
             errorLog((err as Error).message);
             errorLog((err as Error).stack);
             throw err;
@@ -723,6 +745,8 @@ export class UAVariableImpl extends BaseNodeImpl implements UAVariable {
             this._internal_set_dataValue(dataValue);
         } catch (err) {
             errorLog("UAVariable#setValueFromString Error : ", this.browseName.toString(), this.nodeId.toString());
+            errorLog((err as Error).message);
+            errorLog(this.parent?.toString());
             throw err;
         }
     }
@@ -795,16 +819,7 @@ export class UAVariableImpl extends BaseNodeImpl implements UAVariable {
             return callback!(null, statusCode);
         }
 
-        function default_func(
-            this: UAVariable,
-            dataValue1: DataValue,
-            indexRange1: NumericRange,
-            callback1: (err: Error | null, statusCode: StatusCode, dataValue?: DataValue | null | undefined) => void
-        ) {
-            // xx assert(!indexRange,"indexRange Not Implemented");
-            return _default_writable_timestamped_set_func.call(this, dataValue1, callback1);
-        }
-        const write_func = (this._timestamped_set_func || default_func) as any;
+        const write_func = this._timestamped_set_func || default_func;
 
         if (!write_func) {
             warningLog(" warning " + this.nodeId.toString() + " " + this.browseName.toString() + " has no setter. \n");
@@ -813,78 +828,70 @@ export class UAVariableImpl extends BaseNodeImpl implements UAVariable {
         }
         assert(write_func);
 
-        write_func.call(
-            this,
-            dataValue,
-            indexRange,
-            (err: Error | null, statusCode1?: StatusCode, correctedDataValue?: DataValue) => {
-                if (!err) {
-                    correctedDataValue = correctedDataValue || dataValue;
-                    assert(correctedDataValue instanceof DataValue);
-                    correctedDataValue && this.verifyVariantCompatibility(correctedDataValue.value);
-                    // xx assert(correctedDataValue.serverTimestamp);
+        write_func.call(this, dataValue, (err?: Error | null, statusCode1?: StatusCode) => {
+            if (!err) {
+                dataValue && this.verifyVariantCompatibility(dataValue.value);
 
-                    if (indexRange && !indexRange.isEmpty()) {
-                        if (!indexRange.isValid()) {
-                            return callback!(null, StatusCodes.BadIndexRangeInvalid);
+                if (indexRange && !indexRange.isEmpty()) {
+                    if (!indexRange.isValid()) {
+                        return callback!(null, StatusCodes.BadIndexRangeInvalid);
+                    }
+
+                    const newArrayOrMatrix = dataValue.value.value;
+
+                    if (dataValue.value.arrayType === VariantArrayType.Array) {
+                        if (this.$dataValue.value.arrayType !== VariantArrayType.Array) {
+                            return callback(null, StatusCodes.BadTypeMismatch);
                         }
+                        // check that destination data is also an array
+                        assert(check_valid_array(this.$dataValue.value.dataType, this.$dataValue.value.value));
+                        const destArr = this.$dataValue.value.value;
+                        const result = indexRange.set_values(destArr, newArrayOrMatrix);
 
-                        const newArrayOrMatrix = correctedDataValue.value.value;
+                        if (result.statusCode.isNot(StatusCodes.Good)) {
+                            return callback!(null, result.statusCode);
+                        }
+                        dataValue.value.value = result.array;
 
-                        if (correctedDataValue.value.arrayType === VariantArrayType.Array) {
-                            if (this.$dataValue.value.arrayType !== VariantArrayType.Array) {
-                                return callback(null, StatusCodes.BadTypeMismatch);
-                            }
-                            // check that destination data is also an array
-                            assert(check_valid_array(this.$dataValue.value.dataType, this.$dataValue.value.value));
-                            const destArr = this.$dataValue.value.value;
-                            const result = indexRange.set_values(destArr, newArrayOrMatrix);
-
-                            if (result.statusCode.isNot(StatusCodes.Good)) {
-                                return callback!(null, result.statusCode);
-                            }
-                            correctedDataValue.value.value = result.array;
-
-                            // scrap original array so we detect range
-                            this.$dataValue.value.value = null;
-                        } else if (correctedDataValue.value.arrayType === VariantArrayType.Matrix) {
-                            const dimensions = this.$dataValue.value.dimensions;
-                            if (this.$dataValue.value.arrayType !== VariantArrayType.Matrix || !dimensions) {
-                                // not a matrix !
-                                return callback!(null, StatusCodes.BadTypeMismatch);
-                            }
-                            const matrix = this.$dataValue.value.value;
-                            const result = indexRange.set_values_matrix(
-                                {
-                                    matrix,
-                                    dimensions
-                                },
-                                newArrayOrMatrix
-                            );
-                            if (result.statusCode.isNot(StatusCodes.Good)) {
-                                return callback!(null, result.statusCode);
-                            }
-                            correctedDataValue.value.dimensions = this.$dataValue.value.dimensions;
-                            correctedDataValue.value.value = result.matrix;
-
-                            // scrap original array so we detect range
-                            this.$dataValue.value.value = null;
-                        } else {
+                        // scrap original array so we detect range
+                        this.$dataValue.value.value = null;
+                    } else if (dataValue.value.arrayType === VariantArrayType.Matrix) {
+                        const dimensions = this.$dataValue.value.dimensions;
+                        if (this.$dataValue.value.arrayType !== VariantArrayType.Matrix || !dimensions) {
+                            // not a matrix !
                             return callback!(null, StatusCodes.BadTypeMismatch);
                         }
-                    }
-                    try {
-                        this._internal_set_dataValue(correctedDataValue, indexRange);
-                    } catch (err) {
-                        if (err instanceof Error) {
-                            warningLog(err.message);
+                        const matrix = this.$dataValue.value.value;
+                        const result = indexRange.set_values_matrix(
+                            {
+                                matrix,
+                                dimensions
+                            },
+                            newArrayOrMatrix
+                        );
+                        if (result.statusCode.isNot(StatusCodes.Good)) {
+                            return callback!(null, result.statusCode);
                         }
-                        return callback!(null, StatusCodes.BadInternalError);
+                        dataValue.value.dimensions = this.$dataValue.value.dimensions;
+                        dataValue.value.value = result.matrix;
+
+                        // scrap original array so we detect range
+                        this.$dataValue.value.value = null;
+                    } else {
+                        return callback!(null, StatusCodes.BadTypeMismatch);
                     }
                 }
-                callback!(err, statusCode1);
+                try {
+                    this._internal_set_dataValue(dataValue, indexRange);
+                } catch (err) {
+                    if (err instanceof Error) {
+                        warningLog(err.message);
+                    }
+                    return callback!(null, StatusCodes.BadInternalError);
+                }
             }
-        );
+            callback!(err || null, statusCode1);
+        });
     }
 
     public writeAttribute(context: ISessionContext | null, writeValue: WriteValueOptions, callback: StatusCodeCallback): void;
@@ -952,7 +959,7 @@ export class UAVariableImpl extends BaseNodeImpl implements UAVariable {
         }
         try {
             this.verifyVariantCompatibility(value);
-        } catch(err) {
+        } catch (err) {
             return StatusCodes.BadTypeMismatch;
         }
         return StatusCodes.Good;
@@ -1122,6 +1129,7 @@ export class UAVariableImpl extends BaseNodeImpl implements UAVariable {
 
         assert(typeof this._timestamped_set_func !== "function", "UAVariable already bound");
         assert(typeof this._timestamped_get_func !== "function", "UAVariable already bound");
+
         bind_getter.call(this, options);
         bind_setter.call(this, options);
 
@@ -1133,9 +1141,9 @@ export class UAVariableImpl extends BaseNodeImpl implements UAVariable {
             this._historyRead = _historyRead;
             assert(this._historyRead.length === 6);
         }
-
+        // post conditions
         assert(typeof this._timestamped_set_func === "function");
-        assert(this._timestamped_set_func!.length === 3);
+        assert(this._timestamped_set_func!.length === 2, "expecting 2 parameters");
     }
 
     /**
@@ -1226,7 +1234,13 @@ export class UAVariableImpl extends BaseNodeImpl implements UAVariable {
             valueRank: this.valueRank
         };
 
-        const newVariable = _clone.call(this, UAVariableImpl, options, optionalFilter, extraInfo) as UAVariableImpl;
+        const newVariable = _clone.call(
+            this,
+            UAVariableImpl,
+            options,
+            optionalFilter || defaultCloneFilter,
+            extraInfo || defaultCloneExtraInfo
+        ) as UAVariableImpl;
 
         newVariable.bindVariable();
 
@@ -1361,7 +1375,6 @@ export class UAVariableImpl extends BaseNodeImpl implements UAVariable {
         }
 
         const bindProperty = (propertyNode: UAVariableImpl, name: string, extensionObject: ExtensionObject, dataType: DataType) => {
-
             // eslint-disable-next-line @typescript-eslint/no-this-alias
             const self = this;
             propertyNode.bindVariable(
@@ -1379,7 +1392,7 @@ export class UAVariableImpl extends BaseNodeImpl implements UAVariable {
                         propertyNode.$dataValue.statusCode = StatusCodes.Good;
                         propertyNode.$dataValue.value.dataType = dataType;
                         propertyNode.$dataValue.value.value = value;
-                      return new DataValue(propertyNode.$dataValue);
+                        return new DataValue(propertyNode.$dataValue);
                     },
                     timestamped_set: (dataValue: DataValue, callback: CallbackT<StatusCode>) => {
                         dataValue;
@@ -1482,7 +1495,6 @@ export class UAVariableImpl extends BaseNodeImpl implements UAVariable {
         };
 
         for (const field of definition.fields || []) {
-          
             if (NodeId.sameNodeId(NodeId.nullNodeId, field.dataType)) {
                 warningLog("field.dataType is null ! ", field.toString(), NodeId.nullNodeId.toString());
                 warningLog(" dataType replaced with BaseDataType ");
@@ -2019,7 +2031,6 @@ function _default_writable_timestamped_set_func(
     dataValue: DataValue,
     callback: (err: Error | null, statusCode: StatusCode, dataValue?: DataValue | null) => void
 ) {
-    /* jshint validthis: true */
     assert(dataValue instanceof DataValue);
     callback(null, StatusCodes.Good, dataValue);
 }
@@ -2073,7 +2084,13 @@ function _Variable_bind_with_async_refresh(this: UAVariableImpl, options: any) {
 }
 
 // variation 2
-function _Variable_bind_with_timestamped_get(this: UAVariableImpl, options: any) {
+function _Variable_bind_with_timestamped_get(
+    this: UAVariableImpl,
+    options: {
+        get: undefined;
+        timestamped_get: TimestampGetFunc;
+    }
+) {
     /* jshint validthis: true */
     assert(this instanceof UAVariableImpl);
     assert(typeof options.timestamped_get === "function");
@@ -2081,20 +2098,20 @@ function _Variable_bind_with_timestamped_get(this: UAVariableImpl, options: any)
     assert(!this._timestamped_get_func);
 
     const async_refresh_func = (callback: (err: Error | null, dataValue?: DataValue) => void) => {
-        Promise.resolve((this._timestamped_get_func! as TimestampGetFunction1).call(this))
+        Promise.resolve((this._timestamped_get_func! as VariableDataValueGetterSync).call(this))
             .then((dataValue) => callback(null, dataValue))
             .catch((err) => {
                 errorLog("asyncRefresh error: Variable is  ", this.nodeId.toString(), this.browseName.toString());
                 callback(err as Error);
             });
     };
-
+    const pThis = this as UAVariable;
     if (options.timestamped_get.length === 0) {
-        const timestamped_get = options.timestamped_get as TimestampGetFunction1;
+        const timestamped_get = options.timestamped_get as (this: UAVariable) => DataValue | Promise<DataValue>;
         // sync version | Promise version
         this._timestamped_get_func = timestamped_get;
 
-        const dataValue_verify = timestamped_get!.call(this);
+        const dataValue_verify = timestamped_get.call(pThis);
         // dataValue_verify should be a DataValue or a Promise
         /* istanbul ignore next */
         if (!(dataValue_verify instanceof DataValue) && typeof dataValue_verify.then !== "function") {
@@ -2147,12 +2164,13 @@ function _Variable_bind_with_simple_get(this: UAVariableImpl, options: GetterOpt
         } else {
             if (!this.$dataValue || !isGoodish(this.$dataValue.statusCode) || !sameVariant(this.$dataValue.value, value)) {
                 this.setValueFromSource(value, StatusCodes.Good);
-            } 
+            }
             return this.$dataValue;
         }
     };
 
     _Variable_bind_with_timestamped_get.call(this, {
+        get: undefined,
         timestamped_get: timestamped_get_func_from__Variable_bind_with_simple_get
     });
 }
@@ -2170,12 +2188,10 @@ function _Variable_bind_with_simple_set(this: UAVariableImpl, options: any) {
 
     this._timestamped_set_func = (
         timestamped_value: DataValue,
-        indexRange: NumericRange,
         callback: (err: Error | null, statusCode: StatusCode, dataValue: DataValue) => void
     ) => {
         assert(timestamped_value instanceof DataValue);
         this._set_func(timestamped_value.value, (err: Error | null, statusCode: StatusCode) => {
-           
             // istanbul ignore next
             if (!err && !statusCode) {
                 errorLog(
@@ -2189,22 +2205,20 @@ function _Variable_bind_with_simple_set(this: UAVariableImpl, options: any) {
     };
 }
 
-function _Variable_bind_with_timestamped_set(this: UAVariableImpl, options: any) {
-    assert(this instanceof UAVariableImpl);
+function _Variable_bind_with_timestamped_set(
+    this: UAVariableImpl,
+    options: {
+        timestamped_set: TimestampSetFunc;
+        set: undefined;
+    }
+) {
     assert(typeof options.timestamped_set === "function");
     assert(
         options.timestamped_set.length === 2,
         "timestamped_set must have 2 parameters  timestamped_set: function(dataValue,callback){}"
     );
     assert(!options.set, "should not specify set when timestamped_set_func exists ");
-    this._timestamped_set_func = (
-        dataValue: DataValue,
-        indexRange: NumericRange,
-        callback: (err: Error | null, statusCode: StatusCode, dataValue: DataValue) => void
-    ) => {
-        // xx assert(!indexRange,"indexRange Not Implemented");
-        return options.timestamped_set.call(this, dataValue, callback);
-    };
+    this._timestamped_set_func = convertToCallbackFunction1<StatusCode, DataValue, UAVariable>(options.timestamped_set);
 }
 
 interface SetterOptions {
@@ -2219,15 +2233,20 @@ function bind_setter(this: UAVariableImpl, options: SetterOptions) {
     } else if (typeof options.timestamped_set === "function") {
         // variation 2
         assert(typeof options.timestamped_get === "function", "timestamped_set must be used with timestamped_get ");
-        _Variable_bind_with_timestamped_set.call(this, options);
+        _Variable_bind_with_timestamped_set.call(this, {
+            set: undefined,
+            timestamped_set: options.timestamped_set
+        });
     } else if (typeof options.timestamped_get === "function") {
         // timestamped_get is  specified but timestamped_set is not
         // => Value is read-only
         _Variable_bind_with_timestamped_set.call(this, {
+            set: undefined,
             timestamped_set: _not_writable_timestamped_set_func
         });
     } else {
         _Variable_bind_with_timestamped_set.call(this, {
+            set: undefined,
             timestamped_set: _default_writable_timestamped_set_func
         });
     }
@@ -2236,7 +2255,7 @@ function bind_setter(this: UAVariableImpl, options: SetterOptions) {
 interface GetterOptions {
     get?: GetFunc;
     timestamped_get?: TimestampGetFunc;
-    refreshFunc?: any;
+    refreshFunc?: (callback: CallbackT<DataValue>) => void;
     dataType?: DataType | string;
     value?: any;
 }
@@ -2246,7 +2265,10 @@ function bind_getter(this: UAVariableImpl, options: GetterOptions) {
         _Variable_bind_with_simple_get.call(this, options);
     } else if (typeof options.timestamped_get === "function") {
         // variation 2
-        _Variable_bind_with_timestamped_get.call(this, options);
+        _Variable_bind_with_timestamped_get.call(this, {
+            get: undefined,
+            timestamped_get: options.timestamped_get
+        });
     } else if (typeof options.refreshFunc === "function") {
         // variation 3
         _Variable_bind_with_async_refresh.call(this, options);

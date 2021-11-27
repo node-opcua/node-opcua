@@ -10,7 +10,7 @@ import { UAObject } from "./ua_object";
 import { UAObjectType } from "./ua_object_type";
 import { UAVariable, VariableAttributes } from "./ua_variable";
 import { UAVariableT } from "./ua_variable_t";
-import { BindVariableOptions } from "./namespace";
+import { BindVariableOptions } from "./bind_variable";
 import { UAMethod } from "./ua_method";
 
 export interface InstantiateVariableOptions extends InstantiateOptions {
