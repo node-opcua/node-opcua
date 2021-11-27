@@ -38,7 +38,7 @@ import {
     AccessRestrictionsFlag
 } from "node-opcua-data-model";
 import { DataValue } from "node-opcua-data-value";
-import { dumpIf, make_warningLog } from "node-opcua-debug";
+import { dumpIf, make_warningLog, make_errorLog } from "node-opcua-debug";
 import { coerceNodeId, makeNodeId, NodeId, NodeIdLike, resolveNodeId, sameNodeId } from "node-opcua-nodeid";
 import { NumericRange } from "node-opcua-numeric-range";
 import { ReferenceDescription } from "node-opcua-service-browse";
@@ -83,6 +83,7 @@ import { coerceRolePermissions } from "./role_permissions";
 
 const doDebug = false;
 const warningLog = make_warningLog(__filename);
+const errorLog = make_errorLog(__filename);
 
 function defaultBrowseFilterFunc(context?: ISessionContext): boolean {
     return true;
@@ -1205,6 +1206,7 @@ export class BaseNodeImpl extends EventEmitter implements BaseNode {
             result = this.addressSpace.findReferenceType(referenceType)!;
             /* istanbul ignore next */
             if (!result) {
+                errorLog("referenceType ", referenceType, " cannot be found");
                 throw new Error("Cannot coerce reference with name " + referenceType);
             }
         } else if (referenceType instanceof NodeId) {

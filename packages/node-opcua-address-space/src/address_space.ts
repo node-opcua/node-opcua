@@ -44,6 +44,7 @@ import {
     UAView,
     RaiseEventData
 } from "node-opcua-address-space-base";
+import { make_errorLog } from "node-opcua-debug";
 
 import { adjustBrowseDirection } from "../source/helpers/adjust_browse_direction";
 import { UARootFolder } from "../source/ua_root_folder";
@@ -65,12 +66,14 @@ import { UAReferenceTypeImpl } from "./ua_reference_type_impl";
 import { BaseNodeImpl } from "./base_node_impl";
 
 const doDebug = false;
+const errorLog = make_errorLog(__filename);
+
 // tslint:disable-next-line:no-var-requires
 const Dequeue = require("dequeue");
 
 const regexNumberColumnString = /^([0-9]+):(.*)/;
 const enumerationTypeNodeId = coerceNodeId(DataTypeIds.Enumeration);
- 
+
 function _extract_namespace_and_browse_name_as_string(
     addressSpace: AddressSpace,
     browseName: NodeIdLike | QualifiedName,
@@ -473,7 +476,7 @@ export class AddressSpace implements AddressSpacePrivate {
                     dataTypeNode.constructor.name
             );
         }
-        
+
         if (sameNodeId(enumerationTypeNodeId, dataTypeNode!.nodeId)) {
             return DataType.Int32;
         }
@@ -482,17 +485,17 @@ export class AddressSpace implements AddressSpacePrivate {
             // Number
             return DataType.Null; //which one ?
         }
- 
+
         if (dataTypeNode.nodeId.namespace === 0 && dataTypeNode.nodeId.value === 0) {
             return DataType.Null;
         }
- 
+
         if (dataTypeNode.nodeId.namespace === 0 && dataTypeNode.nodeId.value <= 25) {
             return dataTypeNode.nodeId.value as DataType;
         }
- 
-        const result =  this.findCorrespondingBasicDataType(dataTypeNode.subtypeOfObj as UADataType);
- 
+
+        const result = this.findCorrespondingBasicDataType(dataTypeNode.subtypeOfObj as UADataType);
+
         return result;
     }
 
@@ -1273,7 +1276,7 @@ export class AddressSpace implements AddressSpacePrivate {
         try {
             func();
         } catch (err) {
-            console.log("err");
+            errorLog("modelChangeTransaction", (err as Error)?.message);
             throw err;
         } finally {
             endModelChange.call(this);
