@@ -240,6 +240,15 @@
         </References>
         <InverseName>EncodingOf</InverseName>
     </UAReferenceType>
+    <UAReferenceType NodeId="i=17603" BrowseName="HasInterface">
+        <DisplayName>HasInterface</DisplayName>
+        <Documentation>https://reference.opcfoundation.org/v104/Core/docs/Amendment7/11.20</Documentation>
+        <References>
+          <Reference ReferenceType="HasSubtype" IsForward="false">i=32</Reference>
+        </References>
+        <InverseName>InterfaceOf</InverseName>
+     </UAReferenceType>
+
     <UAObjectType NodeId="i=58" BrowseName="BaseObjectType">
         <DisplayName>BaseObjectType</DisplayName>
         <Description>The base type for all object nodes.</Description>
