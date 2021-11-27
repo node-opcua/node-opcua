@@ -25,7 +25,7 @@ import { UAObjectType } from "./ua_object_type";
 import { UAReferenceType } from "./ua_reference_type";
 import { UAVariable } from "./ua_variable";
 import { UAVariableType } from "./ua_variable_type";
-import { BindVariableOptionsVariation1, HistoryReadFunc } from "./bind_variable";
+import { BindVariableOptions, BindVariableOptionsVariation1, HistoryReadFunc } from "./bind_variable";
 import { UAView } from "./ua_view";
 import { UAEventType } from "./ua_event_type";
 import { UAMethod } from "./ua_method";
@@ -204,47 +204,6 @@ export interface AddVariableOptions extends AddVariableOptionsWithoutValue {
     value?: BindVariableOptions;
     postInstantiateFunc?: (node: UAVariable) => void;
 }
-
-export type DataValueCallback = (err: Error | null, dataValue?: DataValue) => void;
-
-export type VariableDataValueGetterSync = () => DataValue;
-export type VariableDataValueGetterAsync = (callback: DataValueCallback) => void;
-
-export type VariableDataValueSetterWithCallback = (dataValue: DataValue, callback: StatusCodeCallback) => void;
-export type VariableDataValueSetterWithPromise = (dataValue: DataValue) => Promise<StatusCode>;
-
-export type TimestampGetFunc = VariableDataValueGetterSync | VariableDataValueGetterAsync;
-export type TimestampSetFunc = VariableDataValueSetterWithCallback | VariableDataValueSetterWithPromise;
-export interface BindVariableOptionsVariation2 {
-    set?: undefined;
-    get?: undefined;
-    timestamped_get: TimestampGetFunc;
-    timestamped_set?: TimestampSetFunc;
-    historyRead?: HistoryReadFunc;
-}
-
-export interface BindVariableOptionsVariation3 {
-    set?: undefined;
-    get?: undefined;
-    timestamped_get?: undefined;
-    timestamp_set?: undefined;
-    refreshFunc?: (callback: DataValueCallback) => void;
-    historyRead?: HistoryReadFunc;
-}
-export interface BindVariableOptionsVariation4 extends VariantLike {
-    set?: undefined;
-    get?: undefined;
-    timestamped_get?: undefined;
-    timestamp_set?: undefined;
-    refreshFunc?: (callback: DataValueCallback) => void;
-    historyRead?: HistoryReadFunc;
-}
-
-export type BindVariableOptions =
-    | BindVariableOptionsVariation1
-    | BindVariableOptionsVariation2
-    | BindVariableOptionsVariation3
-    | BindVariableOptionsVariation4;
 
 export interface CreateDataTypeOptions extends AddBaseNodeOptions {
     isAbstract: boolean;

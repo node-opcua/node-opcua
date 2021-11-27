@@ -4,6 +4,7 @@ import { NodeId } from "node-opcua-nodeid";
 import { DataValue, DataValueOptions } from "node-opcua-data-value";
 import { ExtensionObject } from "node-opcua-extension-object";
 import { NumericRange } from "node-opcua-numeric-range";
+
 import {
     WriteValueOptions,
     HistoryReadDetails,
@@ -18,12 +19,10 @@ import { VariantLike } from "node-opcua-variant";
 //
 import { CloneOptions, CloneFilter, CloneExtraInfo } from "./clone_options";
 import { BaseNode, IPropertyAndComponentHolder } from "./base_node";
-import { ContinuationPoint } from "./continuation_point";
-import { ISessionContext } from "./session_context";
+import { ISessionContext, ContinuationData } from "./session_context";
 import { UADataType } from "./ua_data_type";
 import { UAVariableType } from "./ua_variable_type";
-import { BindVariableOptions, DataValueCallback } from "./namespace";
-import { ContinuationData } from ".";
+import { BindVariableOptions } from "./bind_variable";
 
 export interface IVariableHistorian {
     /**
@@ -272,7 +271,7 @@ export interface UAVariable extends BaseNode, VariableAttributes, IPropertyAndCo
 
     writeValue(context: ISessionContext, dataValue: DataValue, indexRange?: string | NumericRange | null): Promise<StatusCode>;
 
-    asyncRefresh(oldestDate: Date, callback: DataValueCallback): void;
+    asyncRefresh(oldestDate: Date, callback: CallbackT<DataValue>): void;
 
     asyncRefresh(oldestDate: Date): Promise<DataValue>;
 
