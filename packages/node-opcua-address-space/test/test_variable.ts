@@ -6,7 +6,7 @@ import { DataTypeIds } from "node-opcua-constants";
 import { AttributeIds, makeAccessLevelFlag, NodeClass } from "node-opcua-data-model";
 import { DataValue, sameDataValue } from "node-opcua-data-value";
 import { NodeId, makeNodeId } from "node-opcua-nodeid";
-import { StatusCode, StatusCodes } from "node-opcua-status-code";
+import { CallbackT, StatusCode, StatusCodes } from "node-opcua-status-code";
 import { DataType, Variant, VariantArrayType } from "node-opcua-variant";
 import { NumericRange } from "node-opcua-numeric-range";
 import { WriteValue, WriteValueOptions } from "node-opcua-types";
@@ -17,7 +17,6 @@ const nodeset_filename = path.join(__dirname, "../test_helpers/test_fixtures/min
 import {
     AddressSpace,
     BindVariableOptionsVariation2,
-    DataValueCallback,
     Namespace,
     PseudoSession,
     UARootFolder,
@@ -614,7 +613,7 @@ describe("testing Variable#bindVariable", () => {
             timestamped_get() {
                 return value_with_timestamp;
             },
-            timestamped_set(dataValue1: DataValue, callback: (err: Error | null, statusCode: StatusCode) => void) {
+            timestamped_set(dataValue1: DataValue, callback: CallbackT<StatusCode>) {
                 value_with_timestamp.value = dataValue1.value;
                 value_with_timestamp.sourceTimestamp = dataValue1.sourceTimestamp;
                 value_with_timestamp.sourcePicoseconds = dataValue1.sourcePicoseconds;
@@ -653,7 +652,7 @@ describe("testing Variable#bindVariable", () => {
             });
 
             const value_options: BindVariableOptionsVariation2 = {
-                timestamped_get(callback: DataValueCallback) {
+                timestamped_get(callback: CallbackT<DataValue>) {
                     setTimeout(() => {
                         callback(null, value_with_timestamp);
                     }, 100);
@@ -1261,7 +1260,7 @@ describe("testing UAVariable ", () => {
             nodeId: "ns=1;s=BadVar2",
             organizedBy: rootFolder,
             value: {
-                refreshFunc(callback: DataValueCallback) {
+                refreshFunc(callback: CallbackT<DataValue>) {
                     throw new Error("Something goes wrong here");
                 }
             }
