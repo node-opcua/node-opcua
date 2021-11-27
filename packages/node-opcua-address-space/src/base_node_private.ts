@@ -34,12 +34,16 @@ import {
     CloneOptions
 } from "node-opcua-address-space-base";
 import { DataValue } from "node-opcua-data-value";
+import { ObjectTypeIds, VariableTypeIds } from "node-opcua-constants";
 
 import { UANamespace_process_modelling_rule } from "./namespace_private";
 import { ReferenceImpl } from "./reference_impl";
 import { BaseNodeImpl, getReferenceType } from "./base_node_impl";
 import { AddressSpacePrivate } from "./address_space_private";
-import { UAObjectImpl } from "./ua_object_impl";
+
+// eslint-disable-next-line prefer-const
+let dotrace = false;
+const traceLog = console.log.bind(console);
 
 const g_weakMap = new WeakMap();
 
@@ -184,7 +188,10 @@ export function BaseNode_References_toString(this: BaseNode, options: ToStringOp
     const addressSpace = this.addressSpace;
 
     options.add(
-        options.padding + chalk.yellow("          references    : ") + "  length =" + Object.keys(_private._referenceIdx).length
+        options.padding +
+            chalk.yellow("    references                : ") +
+            "  length =" +
+            Object.keys(_private._referenceIdx).length
     );
 
     function dump_reference(follow: boolean, reference: UAReference | null) {
@@ -193,8 +200,37 @@ export function BaseNode_References_toString(this: BaseNode, options: ToStringOp
         }
         const o = ReferenceImpl.resolveReferenceNode(addressSpace, reference);
         const name = o ? o.browseName.toString() : "<???>";
+        const extra =
+            (o.modellingRule || " ")[0] +
+            (() => {
+                switch (o.nodeClass) {
+                    case NodeClass.Object:
+                        return "[O] ";
+                    case NodeClass.Variable:
+                        return "[V] " + (o as UAVariable).dataType.toString(displayOptions).padEnd(10);
+                    case NodeClass.Method:
+                        return "[M] ";
+                    case NodeClass.DataType:
+                        return "[DT]";
+                    case NodeClass.ReferenceType:
+                        return "[RT]";
+                    case NodeClass.ObjectType:
+                        return "[OT]";
+                    case NodeClass.VariableType:
+                        return "[VT]";
+                    case NodeClass.View:
+                        return "[V] ";
+                }
+                return "";
+            })();
         options.add(
-            options.padding + chalk.yellow("               +-> ") + reference.toString(displayOptions) + " " + chalk.cyan(name)
+            options.padding +
+                chalk.yellow("      +-> ") +
+                reference.toString(displayOptions) +
+                " " +
+                chalk.cyan(name.padEnd(25, " ")) +
+                " " +
+                chalk.magentaBright(extra)
         );
 
         // ignore HasTypeDefinition as it has been already handled
@@ -223,7 +259,7 @@ export function BaseNode_References_toString(this: BaseNode, options: ToStringOp
 
     options.add(
         options.padding +
-            chalk.yellow("          back_references     : ") +
+            chalk.yellow("    back_references                 : ") +
             chalk.cyan("  length =") +
             br.length +
             chalk.grey(" ( references held by other nodes involving this node)")
@@ -396,6 +432,16 @@ export function VariableOrVariableType_toString(this: UAVariableType | UAVariabl
     }
 }
 
+const defaultExtraInfo = {
+    level: 0,
+    pad(): string {
+        return "";
+    },
+    registerClonedObject(node: BaseNode, node1: BaseNode): void {
+        /** */
+    }
+};
+
 /**
  * clone properties and methods
  * @private
@@ -404,17 +450,17 @@ function _clone_collection_new(
     newParent: BaseNode,
     collectionRef: UAReference[],
     copyAlsoModellingRules: boolean,
-    optionalFilter?: CloneFilter,
-    extraInfo?: CloneExtraInfo
+    optionalFilter: CloneFilter,
+    extraInfo: CloneExtraInfo,
+    browseNameMap: Set<string>
 ): void {
     const namespace = newParent.namespace;
-
+    extraInfo = extraInfo || defaultExtraInfo;
     const addressSpace = newParent.addressSpace;
     assert(!optionalFilter || (typeof optionalFilter.shouldKeep === "function" && typeof optionalFilter.filterFor === "function"));
 
     for (const reference of collectionRef) {
-        const node: BaseNode = ReferenceImpl.resolveReferenceNode(addressSpace, reference);
-
+        const node = ReferenceImpl.resolveReferenceNode(addressSpace, reference) as UAVariable | UAObject | UAMethod;
         // ensure node is of the correct type,
         // it may happen that the xml nodeset2 file was malformed
 
@@ -433,18 +479,41 @@ function _clone_collection_new(
         }
 
         if (optionalFilter && node && !optionalFilter.shouldKeep(node)) {
+            dotrace && traceLog(extraInfo.pad(), "skipping ", node.browseName.toString());
             continue; // skip this node
         }
+        const key = node.browseName.toString();
+        if (browseNameMap?.has(key)) {
+            continue; // skipping node with same browseName
+        }
+        browseNameMap?.add(key);
 
-        assert(reference.isForward);
-        assert(reference.referenceType instanceof NodeId, "" + reference.referenceType.toString());
+        // assert(reference.isForward);
+        // assert(reference.referenceType instanceof NodeId, "" + reference.referenceType.toString());
         const options = {
             namespace,
             references: [new ReferenceImpl({ referenceType: reference.referenceType, isForward: false, nodeId: newParent.nodeId })],
             copyAlsoModellingRules
         };
 
+        dotrace &&
+            traceLog(
+                extraInfo.pad(),
+                "cloning => ",
+                reference.referenceType.toString({ addressSpace }),
+                "=>",
+                node.browseName.toString(),
+                chalk.magentaBright(node.typeDefinitionObj?.browseName.toString())
+            );
+
+        extraInfo.level += 4;
         const clone = (node as UAVariable | UAMethod | UAObject).clone(options, optionalFilter, extraInfo);
+        extraInfo.level -= 4;
+
+        // also clone or instantiate interface members that may be required in the optionals
+        extraInfo.level++;
+        _cloneInterface(newParent, node, optionalFilter, extraInfo, browseNameMap);
+        extraInfo.level--;
 
         if (extraInfo) {
             extraInfo.registerClonedObject(node, clone);
@@ -452,24 +521,179 @@ function _clone_collection_new(
     }
 }
 
-export function _clone_children_references(
-    node: BaseNode,
+type UAInterface = UAObjectType;
+function _extractInterfaces2(typeDefinitionNode: UAObjectType | UAVariableType, extraInfo: CloneExtraInfo): UAInterface[] {
+    if (
+        !typeDefinitionNode ||
+        (typeDefinitionNode.nodeId.namespace === 0 &&
+            (typeDefinitionNode.nodeId.value === ObjectTypeIds.BaseObjectType ||
+                typeDefinitionNode.nodeId.value === VariableTypeIds.BaseVariableType))
+    ) {
+        return [];
+    }
+
+    const addressSpace = typeDefinitionNode.addressSpace;
+    // example:
+    // FolderType
+    //   FunctionalGroupType
+    //     MachineryItemIdentificationType     : IMachineryItemVendorNameplateType
+    //       MachineIdentificationType         : IMachineTagNameplateType, IMachineVendorNamePlateType
+    //         MachineToolIdentificationType
+    //
+    //
+    // IMachineTagNameplateType            -subTypeOf-> ITagNameplateType
+    // IMachineVendorNamePlateType         -subTypeOf-> IMachineryItemVendorNamePlateType
+    // IMachineryItemVendorNamePlateType   -subTypeOf-> IVendorNameplateType
+    const interfacesRef = typeDefinitionNode.findReferencesEx("HasInterface", BrowseDirection.Forward);
+    const interfaces = interfacesRef.map((r) => addressSpace.findNode(r.nodeId) as UAInterface);
+
+    const baseInterfaces: UAInterface[] = [];
+    for (const iface of interfaces) {
+        dotrace &&
+            traceLog(
+                extraInfo.pad(),
+                typeDefinitionNode.browseName.toString(),
+                " - has interface -> ",
+                iface.browseName.toString()
+            );
+        baseInterfaces.push(iface);
+        if (iface.subtypeOfObj) {
+            extraInfo.level++;
+            baseInterfaces.push(..._extractInterfaces2(iface.subtypeOfObj, extraInfo));
+            extraInfo.level--;
+        }
+    }
+    interfaces.push(...baseInterfaces);
+    if (typeDefinitionNode.subtypeOfObj) {
+        dotrace &&
+            traceLog(
+                extraInfo.pad(),
+                typeDefinitionNode.browseName.toString(),
+                " - subtypef  -> ",
+                typeDefinitionNode.subtypeOfObj.browseName.toString()
+            );
+        extraInfo.level++;
+        interfaces.push(..._extractInterfaces2(typeDefinitionNode.subtypeOfObj, extraInfo));
+        extraInfo.level--;
+    }
+    const dedupedInterfaces = [...new Set(interfaces)];
+
+    dotrace &&
+        traceLog(
+            extraInfo.pad(),
+            chalk.yellow("Interface for ", typeDefinitionNode.browseName.toString()),
+            "=",
+            dedupedInterfaces.map((x) => x.browseName.toString()).join(" ")
+        );
+    return dedupedInterfaces;
+}
+
+/*
+
+    // also find all related interfaces
+    if (false && typeDefinitionNode) {
+        dotrace && tracelog("typeDefinitionNode = ", typeDefinitionNode.browseName.toString());
+        const interfaces = _extractInterfaces(typeDefinitionNode);
+        for (const interfaceNode of interfaces) {
+            dotrace && tracelog("   adding member of interface ", interfaceNode.browseName.toString());
+            const fromInterface = interfaceNode.findReferencesEx("Aggregates", BrowseDirection.Forward);
+            dotrace && tracelog(
+                "             B   ",
+                fromInterface.map((r) => r.toString({ addressSpace }) + " " + r.node!.browseName.toString()).join("\n")
+            );
+            add(fromInterface);
+        }
+    }
+    */
+
+function _crap_extractInterfaces(typeDefinitionNode: UAObjectType | UAVariableType, extraInfo: CloneExtraInfo): UAInterface[] {
+    if (
+        typeDefinitionNode.nodeId.namespace === 0 &&
+        (typeDefinitionNode.nodeId.value === ObjectTypeIds.BaseObjectType ||
+            typeDefinitionNode.nodeId.value === VariableTypeIds.BaseVariableType)
+    ) {
+        return [];
+    }
+
+    const addressSpace = typeDefinitionNode.addressSpace;
+    // example:
+    // FolderType
+    //   FunctionalGroupType
+    //     MachineryItemIdentificationType     : IMachineryItemVendorNameplateType
+    //       MachineIdentificationType         : IMachineTagNameplateType, IMachineVendorNamePlateType
+    //         MachineToolIdentificationType
+    //
+    //
+    // IMachineTagNameplateType            -subTypeOf-> ITagNameplateType
+    // IMachineVendorNamePlateType         -subTypeOf-> IMachineryItemVendorNamePlateType
+    // IMachineryItemVendorNamePlateType   -subTypeOf-> IVendorNameplateType
+    const interfacesRef = typeDefinitionNode.findReferencesEx("HasInterface", BrowseDirection.Forward);
+    const interfaces = interfacesRef.map((r) => r.node! as UAInterface);
+    for (const iface of interfaces) {
+        dotrace && traceLog(extraInfo.pad(), "   interface ", iface.browseName.toString());
+    }
+
+    return interfaces;
+}
+
+function _cloneInterface(
     newParent: BaseNode,
+    node: UAObject | UAVariable | UAMethod,
+    optionalFilter: CloneFilter,
+    extraInfo: CloneExtraInfo,
+    browseNameMap: Set<string>
+): void {
+    dotrace &&
+        traceLog(
+            extraInfo?.pad(),
+            chalk.green("-------------------- now cloning interfaces of ", node.browseName.toString(), node.nodeId.toString())
+        );
+
+    extraInfo = extraInfo || defaultExtraInfo;
+    const addressSpace = node.addressSpace;
+    const typeDefinitionNode = node.typeDefinitionObj;
+    if (!typeDefinitionNode) {
+        return;
+    }
+    dotrace && traceLog(extraInfo.pad(), "  --- {");
+    const interfaces = _extractInterfaces2(typeDefinitionNode, extraInfo);
+    dotrace && traceLog(extraInfo.pad(), "  --- }");
+    dotrace && traceLog(extraInfo?.pad(), chalk.green("-------------------- interfaces are  ", interfaces.length));
+
+    const localFilter = optionalFilter.filterFor(node);
+
+    for (const iface of interfaces) {
+        const aggregates = iface.findReferencesEx("Aggregates", BrowseDirection.Forward);
+        dotrace &&
+            traceLog(
+                extraInfo.pad(),
+                chalk.magentaBright("   interface ", iface.browseName.toString()),
+                "\n" + extraInfo?.pad(),
+                aggregates.map((r) => r.toString({ addressSpace })).join("\n" + extraInfo?.pad())
+            );
+        _clone_collection_new(newParent, aggregates, false, localFilter, extraInfo, browseNameMap);
+    }
+}
+export function _clone_children_references(
+    node: UAObject | UAVariable | UAMethod | UAObjectType | UAVariableType,
+    newParent: UAObject | UAVariable | UAMethod,
     copyAlsoModellingRules: boolean,
-    optionalFilter?: CloneFilter,
-    extraInfo?: CloneExtraInfo
+    optionalFilter: CloneFilter,
+    extraInfo: CloneExtraInfo,
+    browseNameMap: Set<string>
 ): void {
     // find all reference that derives from the Aggregates
     const aggregatesRef = node.findReferencesEx("Aggregates", BrowseDirection.Forward);
-    _clone_collection_new(newParent, aggregatesRef, copyAlsoModellingRules, optionalFilter, extraInfo);
+    _clone_collection_new(newParent, aggregatesRef, copyAlsoModellingRules, optionalFilter, extraInfo, browseNameMap);
 }
 
 export function _clone_non_hierarchical_references(
     node: BaseNode,
     newParent: BaseNode,
     copyAlsoModellingRules: boolean,
-    optionalFilter?: CloneFilter,
-    extraInfo?: CloneExtraInfo
+    optionalFilter: CloneFilter,
+    extraInfo: CloneExtraInfo,
+    browseNameMap: Set<string>
 ): void {
     // clone only some non hierarchical_references that we do want to clone
     // such as:
@@ -478,7 +702,7 @@ export function _clone_non_hierarchical_references(
     assert(newParent instanceof BaseNodeImpl);
     // find all reference that derives from the HasSubStateMachine
     const references = node.findReferencesEx("HasSubStateMachine", BrowseDirection.Forward);
-    _clone_collection_new(newParent, references, copyAlsoModellingRules, optionalFilter, extraInfo);
+    _clone_collection_new(newParent, references, copyAlsoModellingRules, optionalFilter, extraInfo, browseNameMap);
 }
 
 /**
@@ -489,8 +713,8 @@ export function _clone<T extends UAObject | UAVariable | UAMethod>(
     this: T,
     Constructor: new (options: any) => T,
     options: CloneOptions,
-    optionalFilter?: CloneFilter,
-    extraInfo?: CloneExtraInfo
+    optionalFilter: CloneFilter,
+    extraInfo: CloneExtraInfo
 ): T {
     assert(typeof Constructor === "function");
     assert(options !== null && typeof options === "object");
@@ -548,9 +772,31 @@ export function _clone<T extends UAObject | UAVariable | UAMethod>(
 
     options.copyAlsoModellingRules = options.copyAlsoModellingRules || false;
 
-    const newFilter = optionalFilter ? optionalFilter.filterFor(cloneObj) : undefined;
-    _clone_children_references(this, cloneObj, options.copyAlsoModellingRules, newFilter, extraInfo);
-    _clone_non_hierarchical_references(this, cloneObj, options.copyAlsoModellingRules, newFilter, extraInfo);
+    const newFilter = optionalFilter.filterFor(cloneObj);
+
+    const browseNameMap = new Set<string>();
+    _clone_children_references(this, cloneObj, options.copyAlsoModellingRules, newFilter!, extraInfo, browseNameMap);
+
+    //
+    let typeDefinitionNode: UAVariableType | UAObjectType | null = this.typeDefinitionObj;
+    while (typeDefinitionNode) {
+        dotrace &&
+            traceLog(
+                extraInfo?.pad(),
+                chalk.blueBright("---------------------- Exploring ", typeDefinitionNode.browseName.toString())
+            );
+        _clone_children_references(
+            typeDefinitionNode,
+            cloneObj,
+            options.copyAlsoModellingRules,
+            newFilter,
+            extraInfo,
+            browseNameMap
+        );
+        typeDefinitionNode = typeDefinitionNode.subtypeOfObj;
+    }
+
+    _clone_non_hierarchical_references(this, cloneObj, options.copyAlsoModellingRules, newFilter, extraInfo, browseNameMap);
 
     cloneObj.propagate_back_references();
 
@@ -588,7 +834,7 @@ function _remove_HierarchicalReference(node: BaseNode, reference: UAReference) {
             if (referenceType.isSupertypeOf(HierarchicalReferencesType!)) {
                 assert(reference.isForward);
                 const targetNode = ReferenceImpl.resolveReferenceNode(addressSpace, reference);
-                // Xx console.log(" adding object to map");
+                // Xx dotrace && tracelog(" adding object to map");
                 delete _cache._childByNameMap[targetNode.browseName!.name!.toString()];
             }
         }
@@ -669,18 +915,14 @@ export function BaseNode_add_backward_reference(this: BaseNode, reference: UARef
     // istanbul ignore next
     if (_private._back_referenceIdx[h]) {
         const opts = { addressSpace: this.addressSpace };
-        // tslint:disable-next-line:no-console
-        console.warn(" Warning !", this.browseName.toString());
-        // tslint:disable-next-line:no-console
-        console.warn("    ", reference.toString(opts));
-        // tslint:disable-next-line:no-console
-        console.warn(" already found in ===>");
-        // tslint:disable-next-line:no-console
-        console.warn(
+        warningLog(" Warning !", this.browseName.toString());
+        warningLog("    ", reference.toString(opts));
+        warningLog(" already found in ===>");
+        warningLog(
             (Object.values(_private._back_referenceIdx) as UAReference[]).map((c: UAReference) => c.toString(opts)).join("\n")
         );
         // tslint:disable-next-line:no-console
-        console.warn("===>");
+        warningLog("===>");
         throw new Error("reference exists already in _back_references");
     }
 

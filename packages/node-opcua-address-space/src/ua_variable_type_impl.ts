@@ -21,10 +21,10 @@ import {
     UAVariableType,
     CloneFilter
 } from "node-opcua-address-space-base";
-import { ReferenceTypeIds } from "node-opcua-constants";
+import { ObjectTypeIds, ReferenceTypeIds, VariableTypeIds } from "node-opcua-constants";
 import { coerceQualifiedName, NodeClass, QualifiedName, BrowseDirection, AttributeIds } from "node-opcua-data-model";
 import { DataValue, DataValueLike } from "node-opcua-data-value";
-import { checkDebugFlag, make_debugLog, make_warningLog } from "node-opcua-debug";
+import { checkDebugFlag, make_debugLog, make_warningLog, make_errorLog } from "node-opcua-debug";
 import { coerceNodeId, makeNodeId, NodeId, NodeIdLike, sameNodeId } from "node-opcua-nodeid";
 import { StatusCodes } from "node-opcua-status-code";
 import { UInt32 } from "node-opcua-basic-types";
@@ -40,10 +40,16 @@ import { _clone_children_references, ToStringBuilder, UAVariableType_toString } 
 import * as tools from "./tool_isSupertypeOf";
 import { get_subtypeOfObj } from "./tool_isSupertypeOf";
 import { get_subtypeOf } from "./tool_isSupertypeOf";
+import { resolveReferenceNode } from "./reference_impl";
 
 const debugLog = make_debugLog(__filename);
 const doDebug = checkDebugFlag(__filename);
 const warningLog = make_warningLog(__filename);
+const errorLog = make_errorLog(__filename);
+
+// eslint-disable-next-line prefer-const
+let doTrace = false;
+const traceLog = errorLog;
 
 interface InstantiateS {
     propertyOf?: any;
@@ -125,7 +131,6 @@ export class UAVariableTypeImpl extends BaseNodeImpl implements UAVariableType {
 
         if (options.value) {
             this.value = new Variant(options.value);
-            // xx console.log("setting ",this.value.toString());
         }
     }
 
@@ -303,7 +308,7 @@ class MandatoryChildOrRequestedOptionalFilter implements CloneFilter {
             const n = addressSpace.findNode(r.nodeId)!;
             // istanbul ignore next
             if (!n) {
-                console.log(" cannot find node ", r.nodeId.toString());
+                warningLog(" cannot find node ", r.nodeId.toString());
                 return false;
             }
             return n.browseName!.name!.toString() === node.browseName!.name!.toString();
@@ -321,14 +326,20 @@ class MandatoryChildOrRequestedOptionalFilter implements CloneFilter {
         switch (modellingRule) {
             case null:
             case undefined:
-                debugLog("node ", node.browseName.toString(), node.nodeId.toString(), " has no modellingRule ", node.parentNodeId?.toString());
+                debugLog(
+                    "node ",
+                    node.browseName.toString(),
+                    node.nodeId.toString(),
+                    " has no modellingRule ",
+                    node.parentNodeId?.toString()
+                );
                 /**
                  * in some badly generated NodeSet2.xml file, the modellingRule is not specified
-                 * 
+                 *
                  * but in some other NodeSet2.xml, this means that the data are only attached to the Type node and shall not be
-                 * instantiate in the corresponding instance (example is the state variable of a finite state machine that are only 
+                 * instantiate in the corresponding instance (example is the state variable of a finite state machine that are only
                  * defined in the Type node)
-                 * 
+                 *
                  * we should not consider it as an error, and treat it as not present
                  */
                 return false;
@@ -375,11 +386,11 @@ function _get_parent_as_VariableOrObjectType(originalObject: BaseNode): UAVariab
 
     // istanbul ignore next
     if (parents.length > 1) {
-        console.warn(" object ", originalObject.browseName.toString(), " has more than one parent !");
-        console.warn(originalObject.toString());
-        console.warn(" parents : ");
+        warningLog(" object ", originalObject.browseName.toString(), " has more than one parent !");
+        warningLog(originalObject.toString());
+        warningLog(" parents : ");
         for (const parent of parents) {
-            console.log("     ", parent.toString(), addressSpace.findNode(parent.nodeId)!.browseName.toString());
+            warningLog("     ", parent.toString(), addressSpace.findNode(parent.nodeId)!.browseName.toString());
         }
         return null;
     }
@@ -400,8 +411,12 @@ interface CloneInfo {
     original: UAVariableType | UAObjectType;
 }
 class CloneHelper {
+    public level = 0;
     private readonly mapOrgToClone: Map<string, CloneInfo> = new Map();
 
+    public pad(): string {
+        return " ".padEnd(this.level * 2, " ");
+    }
     public registerClonedObject<TT extends UAVariableType | UAObjectType, T extends UAObject | UAVariable | UAMethod>(
         objInType: TT,
         clonedObj: T
@@ -444,7 +459,6 @@ class CloneHelper {
         // find subTypeOf
     }
 }
-
 // install properties and components on a instantiated Object
 //
 // based on their ModelingRule
@@ -457,39 +471,66 @@ class CloneHelper {
 function _initialize_properties_and_components<B extends UAObject | UAVariable | UAMethod, T extends UAObjectType | UAVariableType>(
     instance: B,
     topMostType: T,
-    typeNode: T,
+    typeDefinitionNode: T,
     copyAlsoModellingRules: boolean,
     optionalsMap: OptionalMap,
     extraInfo: CloneHelper
 ) {
     if (doDebug) {
-        console.log("instance browseName =", instance.browseName.toString());
-        console.log("typeNode         =", typeNode.browseName.toString());
-        console.log("optionalsMap     =", Object.keys(optionalsMap).join(" "));
+        debugLog("instance browseName =", instance.browseName.toString());
+        debugLog("typeNode         =", typeDefinitionNode.browseName.toString());
+        debugLog("optionalsMap     =", Object.keys(optionalsMap).join(" "));
 
-        const c = typeNode.findReferencesEx("Aggregates");
-        console.log("type possibilities      =", c.map((x) => x.node!.browseName.toString()).join(" "));
+        const c = typeDefinitionNode.findReferencesEx("Aggregates");
+        debugLog("typeDefinition aggregates      =", c.map((x) => x.node!.browseName.toString()).join(" "));
     }
     optionalsMap = optionalsMap || {};
 
-    if (sameNodeId(topMostType.nodeId, typeNode.nodeId)) {
+    if (sameNodeId(topMostType.nodeId, typeDefinitionNode.nodeId)) {
         return; // nothing to do
-    }
-
-    const baseTypeNodeId = typeNode.subtypeOf;
-    const baseType = typeNode.subtypeOfObj;
-
-    // istanbul ignore next
-    if (!baseType) {
-        throw new Error(chalk.red("Cannot find object with nodeId ") + baseTypeNodeId);
     }
 
     const filter = new MandatoryChildOrRequestedOptionalFilter(instance, optionalsMap);
 
-    _clone_children_references(typeNode, instance, copyAlsoModellingRules, filter, extraInfo);
+    doTrace &&
+        traceLog(
+            chalk.cyan(extraInfo.pad(), "cloning relevant member of typeDefinition class"),
+            typeDefinitionNode.browseName.toString()
+        );
 
-    // get properties and components from base class
-    _initialize_properties_and_components(instance, topMostType, baseType, copyAlsoModellingRules, optionalsMap, extraInfo);
+    const browseNameMap = new Set<string>();
+
+    _clone_children_references(typeDefinitionNode, instance, copyAlsoModellingRules, filter, extraInfo, browseNameMap);
+
+    // now apply recursion on baseTypeDefinition  to get properties and components from base class
+
+    const baseTypeDefinitionNodeId = typeDefinitionNode.subtypeOf;
+    const baseTypeDefinition = typeDefinitionNode.subtypeOfObj!;
+
+    doTrace &&
+        traceLog(
+            chalk.cyan(
+                extraInfo.pad(),
+                "now apply recursion on baseTypeDefinition  to get properties and components from base class"
+            ),
+            baseTypeDefinition.browseName.toString()
+        );
+
+    // istanbul ignore next
+    if (!baseTypeDefinition) {
+        throw new Error(chalk.red("Cannot find object with nodeId ") + baseTypeDefinitionNodeId);
+    }
+    extraInfo.level++;
+    _initialize_properties_and_components(
+        instance,
+        topMostType,
+        baseTypeDefinition,
+        copyAlsoModellingRules,
+        optionalsMap,
+        extraInfo
+    );
+    extraInfo.level--;
+
 }
 
 /**
@@ -600,8 +641,6 @@ function findNonHierarchicalReferences(originalObject: BaseNode): UAReference[] 
 
         if (child) {
             const baseRef = findNonHierarchicalReferences(child);
-            // xx console.log("  ... ",originalObject.browseName.toString(),
-            // parent.browseName.toString(), references.length, baseRef.length);
             references = ([] as UAReference[]).concat(references, baseRef);
         }
     }
@@ -696,15 +735,6 @@ function reconstructFunctionalGroupType(extraInfo: any) {
     for (const { original, cloned } of extraInfo.mapOrgToClone.values()) {
         const organizedByArray = original.findReferencesEx("Organizes", BrowseDirection.Inverse);
 
-        // function dumpRef(r) {
-        //    var referenceTd = addressSpace.findNode(r.referenceTypeId);
-        //    var obj = addressSpace.findNode(r.nodeId);
-        //    return "<-- " + referenceTd.browseName.toString() + " -- " + obj.browseName.toString();
-        // }
-        //
-        // console.log("xxxxx ========================================================",
-        //    originalObject.browseName.toString(),
-        //    organizedByArray.map(dumpRef).join("\n"));
         for (const ref of organizedByArray) {
             const info = extraInfo.mapOrgToClone.get(ref.nodeId.toString());
             if (!info) continue;
@@ -723,7 +753,6 @@ function reconstructFunctionalGroupType(extraInfo: any) {
                 nodeId: cloned.nodeId,
                 referenceType: ref.referenceType
             });
-            // xx console.log("xxx ============> adding reference ",ref.browse )
         }
     }
 }

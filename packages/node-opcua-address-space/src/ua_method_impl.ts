@@ -27,7 +27,9 @@ import {
     CloneOptions,
     UAObjectType,
     ISessionContext,
-    UAVariable
+    UAVariable,
+    defaultCloneFilter,
+    defaultCloneExtraInfo
 } from "node-opcua-address-space-base";
 import { SessionContext } from "../source";
 import { _clone } from "./base_node_private";
@@ -256,7 +258,13 @@ export class UAMethodImpl extends BaseNodeImpl implements UAMethod {
 
         _handle_hierarchy_parent(addressSpace, options.references, options);
 
-        const clonedMethod = _clone.call(this, UAMethodImpl, options, optionalFilter, extraInfo) as UAMethodImpl;
+        const clonedMethod = _clone.call(
+            this,
+            UAMethodImpl,
+            options,
+            optionalFilter || defaultCloneFilter,
+            extraInfo || defaultCloneExtraInfo
+        ) as UAMethodImpl;
 
         clonedMethod._asyncExecutionFunction = this._asyncExecutionFunction;
         clonedMethod._getExecutableFlag = this._getExecutableFlag;

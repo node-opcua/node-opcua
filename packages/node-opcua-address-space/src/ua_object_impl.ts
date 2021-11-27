@@ -25,7 +25,9 @@ import {
     CloneExtraInfo,
     BaseNode,
     UAEventType,
-    IEventData
+    IEventData,
+    defaultCloneFilter,
+    defaultCloneExtraInfo
 } from "node-opcua-address-space-base";
 
 import { BaseNodeImpl, InternalBaseNodeOptions } from "./base_node_impl";
@@ -80,7 +82,13 @@ export class UAObjectImpl extends BaseNodeImpl implements UAObject {
             symbolicName: this.symbolicName || undefined
         };
 
-        const cloneObject = _clone.call(this, UAObjectImpl, options, optionalFilter, extraInfo) as UAObject;
+        const cloneObject = _clone.call(
+            this,
+            UAObjectImpl,
+            options,
+            optionalFilter || defaultCloneFilter,
+            extraInfo || defaultCloneExtraInfo
+        ) as UAObject;
         // xx  newObject.propagate_back_references();
         // xx newObject.install_extra_properties();
         return cloneObject;
