@@ -100,7 +100,7 @@ function dump(mode: "E" | "D" | "W", args1: [any?, ...any[]]) {
         a1 = [continuation];
         i = i + 1;
         if (i > maxLines) {
-            const a3 = a1.concat([" .... TRUNCATED ....."]);
+            const a3 = a1.concat([` .... TRUNCATED ..... (NODEOPCUA_DEBUG_MAXLINE_PER_MESSAGE=${maxLines}`]);
             console.log(...(a3 as [string, ...string[]]));
             break;
         }
