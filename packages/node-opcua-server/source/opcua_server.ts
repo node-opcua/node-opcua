@@ -2769,7 +2769,10 @@ export class OPCUAServer extends OPCUABaseServer {
 
                 assert(request.nodesToWrite[0].schema.name === "WriteValue");
                 this.engine.write(context, request.nodesToWrite, (err: Error | null, results?: StatusCode[]) => {
-                    assert(!err);
+                    if (err) {
+                        errorLog(err);
+                        return sendError(StatusCodes.BadInternalError);
+                    }
                     assert(Array.isArray(results));
                     assert(results!.length === request.nodesToWrite!.length);
                     response = new WriteResponse({
