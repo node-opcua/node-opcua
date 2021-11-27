@@ -11,7 +11,6 @@ import {
     AddressSpace,
     BaseNode,
     bindExtObjArrayNode,
-    DataValueCallback,
     ensureDatatypeExtractedWithCallback,
     ensureObjectIsSecure,
     MethodFunctor,
@@ -473,7 +472,6 @@ export class ServerEngine extends EventEmitter {
             this._orphanPublishEngine.shutdown();
         }
 
-      
         for (const token of tokens) {
             this.closeSession(token, true, "Terminated");
         }
@@ -816,7 +814,7 @@ export class ServerEngine extends EventEmitter {
 
             // TimeZoneDataType
             const timeZoneDataType = addressSpace.findDataType(resolveNodeId(DataTypeIds.TimeZoneDataType))!;
-        
+
             const timeZone = new TimeZoneDataType({
                 daylightSavingInOffset: /* boolean*/ false,
                 offset: /* int16 */ 0
@@ -1079,7 +1077,7 @@ export class ServerEngine extends EventEmitter {
                 });
 
                 const namingRuleDataTypeNode = addressSpace.findDataType(resolveNodeId(DataTypeIds.NamingRuleType))! as UADataType;
-           
+
                 if (namingRuleDataTypeNode) {
                     const namingRuleType = (namingRuleDataTypeNode as any)._getEnumerationInfo().nameIndex; // getEnumeration("NamingRuleType");
                     if (!namingRuleType) {
@@ -1908,7 +1906,7 @@ export class ServerEngine extends EventEmitter {
         // perform all asyncRefresh in parallel
         async.map(
             objectArray,
-            (obj: BaseNode, inner_callback: DataValueCallback) => {
+            (obj: BaseNode, inner_callback: CallbackT<DataValue>) => {
                 if (obj.nodeClass !== NodeClass.Variable) {
                     inner_callback(
                         null,
@@ -1923,7 +1921,6 @@ export class ServerEngine extends EventEmitter {
                         inner_callback(err, dataValue);
                     });
                 } catch (err) {
-
                     // istanbul ignore next
                     if (!(err instanceof Error)) {
                         throw new Error("internal error");
