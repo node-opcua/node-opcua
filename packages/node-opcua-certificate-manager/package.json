@@ -1,6 +1,6 @@
 {
     "name": "node-opcua-certificate-manager",
-    "version": "2.60.0",
+    "version": "2.61.0",
     "description": "pure nodejs OPCUA SDK - module -client",
     "scripts": {
         "clean": "node -e \"require('rimraf').sync('certificates');\"  && node -e \"require('rimraf').sync('dist');\"",
@@ -18,12 +18,12 @@
         "env-paths": "2.2.1",
         "mkdirp": "1.0.4",
         "node-opcua-assert": "2.55.0",
-        "node-opcua-basic-types": "2.60.0",
+        "node-opcua-basic-types": "2.61.0",
         "node-opcua-buffer-utils": "2.55.0",
         "node-opcua-constants": "2.52.0",
         "node-opcua-crypto": "^1.7.4",
-        "node-opcua-debug": "2.60.0",
-        "node-opcua-object-registry": "2.60.0",
+        "node-opcua-debug": "2.61.0",
+        "node-opcua-object-registry": "2.61.0",
         "node-opcua-pki": "^2.12.1",
         "node-opcua-status-code": "2.56.0",
         "node-opcua-utils": "2.60.0",
@@ -33,7 +33,7 @@
     "devDependencies": {
         "@types/async": "^3.2.10",
         "dequeue": "^1.0.5",
-        "node-opcua-leak-detector": "2.60.0",
+        "node-opcua-leak-detector": "2.61.0",
         "should": "^13.2.3",
         "sinon": "^12.0.1"
     },
