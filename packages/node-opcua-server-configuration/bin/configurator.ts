@@ -27,10 +27,10 @@ import {
 } from "node-opcua-crypto";
 import { CertificateAuthority } from "node-opcua-pki";
 import { OPCUACertificateManager } from "node-opcua-certificate-manager";
+import { TrustListDataType } from "node-opcua-types";
 
 import { CertificateType } from "../source";
 import { ClientPushCertificateManagement } from "../source/clientTools";
-import { TrustListDataType } from "node-opcua-types";
 
 const endpointUrl = "opc.tcp://localhost:48010";
 
@@ -39,13 +39,13 @@ function dumpCertificateInfo(certificate: Certificate) {
     const i = exploreCertificate(certificate);
     console.log(" serial number       : ", i.tbsCertificate.serialNumber);
     console.log(" subject             : ");
-    for (let [k, v] of Object.entries(i.tbsCertificate.subject)) {
+    for (const [k, v] of Object.entries(i.tbsCertificate.subject)) {
         console.log(`   ${k.padEnd(18)}: ${v}`);
     }
     console.log(" notBefore           : ", i.tbsCertificate.validity.notBefore);
     console.log(" notAfter            : ", i.tbsCertificate.validity.notAfter);
     console.log(" issuer              : ");
-    for (let [k, v] of Object.entries(i.tbsCertificate.issuer)) {
+    for (const [k, v] of Object.entries(i.tbsCertificate.issuer)) {
         console.log(`   ${k.padEnd(18)}: ${v}`);
     }
     console.log(" signature algo      : ", i.signatureAlgorithm);
@@ -143,7 +143,10 @@ async function addApplicationCertificate(session: IBasicSession) {
     await trustList.addCertificate(certificate, true);
 }
 
-async function addApplicationIssuerCertificateAndCRL(session: IBasicSession) {}
+async function addApplicationIssuerCertificateAndCRL(session: IBasicSession) {
+    /**
+     */
+}
 async function replaceServerCertificate(session: IBasicSession, caAuthority: CertificateAuthority) {
     const certificateAutorityhPath = path.join(caAuthority.location);
     const caCertificate = await readCertificate(caAuthority.caCertificate);

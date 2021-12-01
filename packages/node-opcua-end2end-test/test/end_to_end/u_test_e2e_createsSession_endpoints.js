@@ -1,10 +1,6 @@
 "use strict";
-
-const { assert } = require("node-opcua-assert");
 const should = require("should");
 const {OPCUAClient} = require("node-opcua");
-const { promises } = require("fs");
-const { reject } = require("underscore");
 
 async function testCreateSessionResponse(endpointUrl) {
 
@@ -64,19 +60,19 @@ module.exports = function(test) {
             //xx console.log("e=", endpointUrl);
             const { createSessionResponse, err }= await testCreateSessionResponse(endpointUrl);
             should.not.exist(err);
-            createSessionResponse.serverEndpoints.length.should.eql(7);
+            createSessionResponse.serverEndpoints.length.should.eql(9);
             createSessionResponse.serverEndpoints[0].endpointUrl.should.eql(test.endpointUrl);
 
         });
         it("should receive server endpoint in CreateSessionResponse when endpointUrl used by the client doesn't match a valid endpoint", async () => {
 
-            const match = test.endpointUrl.match(/\:([0-9]*)$/);
+            const match = test.endpointUrl.match(/:([0-9]*)$/);
             const port = parseInt(match[1],10);
             const endpointUrl = `opc.tcp://localhost:${port}`;
             // console.log(endpointUrl);
             const { createSessionResponse, err }= await testCreateSessionResponse(endpointUrl);
             should.not.exist(err);
-            createSessionResponse.serverEndpoints.length.should.eql(7);
+            createSessionResponse.serverEndpoints.length.should.eql(9);
             createSessionResponse.serverEndpoints[0].endpointUrl.should.eql(test.endpointUrl);
         });
 

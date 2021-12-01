@@ -1,16 +1,16 @@
-const { MessageBuilder } = require("..");
-
-const {
-    MockServerTransport,
-    fakeAcknowledgeMessage
-} = require("../dist/test_helpers");
 const {
     CloseSecureChannelRequest
 } = require("node-opcua-service-secure-channel");
 
 
-const { openSecureChannelResponse1 } = require("node-opcua-transport/dist/test-fixtures");
+const { MessageBuilder } = require("..");
+const {
+    MockServerTransport,
+    fakeAcknowledgeMessage
+} = require("../dist/test_helpers");
 
+// eslint-disable-next-line import/order
+const { openSecureChannelResponse1 } = require("node-opcua-transport/dist/test-fixtures");
 describe("test issue with final CLO message", () => {
 
     it("dealing with CLO message to CloseSecureChannel ", function(done) {

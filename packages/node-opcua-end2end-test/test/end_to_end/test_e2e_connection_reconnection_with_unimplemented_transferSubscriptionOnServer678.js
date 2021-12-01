@@ -1,12 +1,14 @@
+const path = require("path");
 const async = require("async");
 const chalk = require("chalk");
-const path = require("path");
+const { make_debugLog, checkDebugFlag } = require("node-opcua-debug");
+
 const {
     start_simple_server,
     stop_simple_server
+// eslint-disable-next-line import/order
 } = require("../../test_helpers/external_server_fixture");
 
-const { make_debugLog, checkDebugFlag } = require("node-opcua-debug");
 const debugLog = make_debugLog("TEST");
 const doDebug = checkDebugFlag("TEST");
 

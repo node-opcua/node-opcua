@@ -8,11 +8,11 @@ const { MessageSecurityMode } = require("node-opcua-service-secure-channel");
 const crypto_utils = require("node-opcua-crypto");
 
 const { make_lorem_ipsum_buffer } = require("node-opcua-test-helpers");
+const { getFixture } = require("node-opcua-test-fixtures");
 
 const fake_message_chunk_factory = require("../dist/test_helpers/fake_message_chunk_factory");
 
 const { MessageBuilder, SecurityPolicy } = require("..");
-const { getFixture } = require("node-opcua-test-fixtures");
 
 const private_key_filename = getFixture("certs/server_key_1024.pem");
 
@@ -37,7 +37,7 @@ describe("MessageBuilder with SIGN support", function () {
             .on("full_message_body", (message) => {
                 done();
             })
-            .on("message", (message) => {})
+            .on("message", (message) => {/** */})
             .on("error", (error) => {
                 done(error);
             });
@@ -129,7 +129,7 @@ describe("MessageBuilder with SIGN & ENCRYPT support (OPN) ", function () {
                 message.toString().should.eql(lorem_ipsum_buffer.toString());
                 done();
             })
-            .on("message", (message) => {})
+            .on("message", (message) => {/** */})
             .on("error", (error) => {
                 done(error);
             });
@@ -165,7 +165,7 @@ describe("MessageBuilder with SIGN & ENCRYPT support (MSG) ", function () {
                 message.toString().should.eql(lorem_ipsum_buffer.toString());
                 done();
             })
-            .on("message", (message) => {})
+            .on("message", (message) => {/** */})
             .on("error", (error) => {
                 done(error);
             });

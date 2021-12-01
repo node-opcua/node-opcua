@@ -3,5 +3,6 @@ require:
  - ../../node_modules/ts-node/register
  - ../../node_modules/should
 timeout: 30000
-spec:
-   *.ts
+extension: 
+  - .ts
+  - .js

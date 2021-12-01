@@ -60,9 +60,12 @@ function securityPolicyLevel(securityPolicy: UAString): number {
             return 5;
         case SecurityPolicy.Basic256Rsa15:
             return 6;
-        case SecurityPolicy.Basic256Sha256:
-            return 7;
         case SecurityPolicy.Aes128_Sha256_RsaOaep:
+            return 7;
+        case SecurityPolicy.Basic256Sha256:
+            return 8;
+        case SecurityPolicy.Aes256_Sha256_RsaPss:
+            return 9;
         default:
             return 0;
     }

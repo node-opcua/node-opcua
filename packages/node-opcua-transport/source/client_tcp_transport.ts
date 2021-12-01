@@ -1,8 +1,6 @@
 /**
  * @module node-opcua-transport
  */
-// tslint:disable:class-name
-// system
 import * as os from "os";
 import { createConnection, Socket } from "net";
 import * as chalk from "chalk";
@@ -23,6 +21,7 @@ import { doTraceHelloAck } from "./utils";
 
 const doDebug = debug.checkDebugFlag(__filename);
 const debugLog = debug.make_debugLog(__filename);
+const warningLog = debug.make_warningLog(__filename);
 const errorLog = debug.make_errorLog(__filename);
 const gHostname = os.hostname();
 
@@ -274,7 +273,7 @@ export class ClientTCP_transport extends TCP_transport {
             (err as any).statusCode = response.statusCode;
             // istanbul ignore next
             if (doTraceHelloAck) {
-                console.log("receiving ERR instead of Ack", response.toString());
+                warningLog("receiving ERR instead of Ack", response.toString());
             }
             callback(err);
         } else {
@@ -285,7 +284,7 @@ export class ClientTCP_transport extends TCP_transport {
 
             // istanbul ignore next
             if (doTraceHelloAck) {
-                console.log("receiving Ack\n", response.toString());
+                warningLog("receiving Ack\n", response.toString());
             }
 
             callback();
@@ -314,7 +313,7 @@ export class ClientTCP_transport extends TCP_transport {
         });
         // istanbul ignore next
         if (doTraceHelloAck) {
-            console.log(`sending Hello\n ${helloMessage.toString()}`);
+            warningLog(`sending Hello\n ${helloMessage.toString()}`);
         }
 
         const messageChunk = packTcpMessage("HEL", helloMessage);

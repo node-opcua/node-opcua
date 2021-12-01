@@ -129,6 +129,8 @@ function isValidSecurityPolicy(securityPolicy: SecurityPolicy) {
         case SecurityPolicy.Basic128Rsa15:
         case SecurityPolicy.Basic256:
         case SecurityPolicy.Basic256Sha256:
+        case SecurityPolicy.Aes128_Sha256_RsaOaep:
+        case SecurityPolicy.Aes256_Sha256_RsaPss:
             return StatusCodes.Good;
         default:
             return StatusCodes.BadSecurityPolicyRejected;
@@ -845,6 +847,7 @@ export class ServerSecureChannelLayer extends EventEmitter {
         const securityPolicyStatus: StatusCode = isValidSecurityPolicy(securityPolicy);
         if (securityPolicyStatus !== StatusCodes.Good) {
             description = " Unsupported securityPolicyUri " + asymmetricSecurityHeader.securityPolicyUri;
+            warningLog("BadSecurityPolicyRejected: Unsupported securityPolicyUri", securityPolicy);
             return this._on_OpenSecureChannelRequestError(securityPolicyStatus, description, message, callback);
         }
         // check certificate

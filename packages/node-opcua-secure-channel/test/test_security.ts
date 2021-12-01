@@ -3,34 +3,37 @@
 import * as fs from "fs";
 import * as path from "path";
 import { Socket } from "net";
-
+import "should";
 import * as async from "async";
+import * as chalk from "chalk";
 
 import { OPCUACertificateManager } from "node-opcua-certificate-manager";
 import {
     Certificate,
-    PrivateKey,
     PrivateKeyPEM,
     readCertificate,
     readKeyPem,
-    readPrivateKey,
     split_der,
     readCertificateRevocationList
 } from "node-opcua-crypto";
 import { EndpointDescription } from "node-opcua-service-endpoints";
-import { StatusCode } from "node-opcua-status-code";
 import { DirectTransport } from "node-opcua-transport/dist/test_helpers";
-import * as should from "should";
+import { FindServersRequest, FindServersResponse } from "node-opcua-types";
+import { hexDump } from "node-opcua-debug";
+
 import {
     ClientSecureChannelLayer,
     ClientSecureChannelParent,
+    Message,
     MessageSecurityMode,
     SecurityPolicy,
     ServerSecureChannelLayer,
     ServerSecureChannelParent
 } from "../source";
 
-type SimpleCallback = (err?: Error) => void;
+const doDebug = false;
+
+type SimpleCallback = (err?: Error | null) => void;
 
 interface TestParam {
     securityMode: MessageSecurityMode;
@@ -111,7 +114,40 @@ describe("Testing secure client and server connection", () => {
             timeout: 0
         });
 
-        const transportServer = (directTransport.server as any) as Socket;
+        function simulateOpenSecureChannel(callback: SimpleCallback) {
+            clientChannel.create("fake://foobar:123", (err?: Error) => {
+                if (param.shouldFailAtClientConnection) {
+                    if (!err) {
+                        return callback(new Error(" Should have failed here !"));
+                    }
+                    callback();
+                } else {
+                    if (err) {
+                        return callback(err);
+                    }
+                    callback();
+                }
+            });
+        }
+        function simulateTransation(request: FindServersRequest, response: FindServersResponse, callback: SimpleCallback) {
+            serverSChannel.once("message", (message: Message) => {
+                // response.responseHeader.requestHandle = request.requestHeader.requestHandle;
+                serverSChannel.send_response("MSG", response, message, () => {
+                    /** */
+                    console.log("server message sent");
+                });
+            });
+
+            console.log(" now sending a request");
+
+            clientChannel.performMessageTransaction(request, (err, response) => {
+                console.log("client received a response");
+                console.log(response?.toString());
+                callback(err || undefined);
+            });
+        }
+
+        const transportServer = directTransport.server as any as Socket;
 
         const parentC: ClientSecureChannelParent = {
             // tslint:disable-next-line:object-literal-shorthand
@@ -140,14 +176,36 @@ describe("Testing secure client and server connection", () => {
             securityMode: param.securityMode,
             securityPolicy: param.securityPolicy,
             serverCertificate: param.serverCertificate,
-            tokenRenewalInterval: 0,
+            tokenRenewalInterval: 50, // very short ! but not zero
             transportTimeout: 0
         });
+        clientChannel.on("receive_chunk", (chunk: Buffer) => {
+            doDebug && console.log(chalk.green(hexDump(chunk, 32, 20000)));
+        });
+        clientChannel.on("send_chunk", (chunk: Buffer) => {
+            doDebug && console.log(chalk.cyan(hexDump(chunk,  32, 20000)));
+        });
 
-        serverSChannel.init(transportServer, (err?: Error) => { /* */});
+        // function renewToken(callback: SimpleCallback) {
+        //     const isInitial = false;
+        //     (clientChannel as any)._open_secure_channel_request(isInitial, (err?: Error | null) => {
+        //         /* istanbul ignore else */
+        //         callback(err!);
+        //     });
+        // }
 
         async.series(
             [
+                (callback: SimpleCallback) => {
+
+                    serverSChannel.init(transportServer, (err?: Error) => {
+                        /* */
+                        /// callback(err);
+                        console.log("server secure channel initialized");
+                    });
+                  //  clientChannel.connect("")
+                    callback();
+                },
                 (callback: SimpleCallback) => {
                     serverSChannel.setSecurity(param.securityMode, param.securityPolicy);
                     if (param.clientCertificate) {
@@ -161,21 +219,31 @@ describe("Testing secure client and server connection", () => {
                 },
 
                 (callback: SimpleCallback) => {
-                    clientChannel.create("fake://foobar:123", (err?: Error) => {
-                        if (param.shouldFailAtClientConnection) {
-                            if (!err) {
-                                return callback(new Error(" Should have failed here !"));
-                            }
-                            callback();
-                        } else {
-                            if (err) {
-                                return callback(err);
-                            }
-                            callback();
-                        }
-                    });
+                    simulateOpenSecureChannel(callback);
                 },
 
+                (callback: SimpleCallback) => {
+                    if (param.shouldFailAtClientConnection) {
+                        return callback();
+                    }
+                    const request = new FindServersRequest({});
+                    const response = new FindServersResponse({});
+                    simulateTransation(request, response, callback);
+                },
+
+                (callback: SimpleCallback) => {
+                    if (param.shouldFailAtClientConnection) {
+                        return callback();
+                    }
+                    clientChannel.once("security_token_renewed", () => {
+                        console.log("security_token_renewed");
+                        callback();
+                    });
+                    /** */
+                    // renew token
+
+                    /// renewToken(callback)
+                },
                 (callback: SimpleCallback) => {
                     if (param.shouldFailAtClientConnection) {
                         return callback();
@@ -253,6 +321,8 @@ describe("Testing secure client and server connection", () => {
                 // Xx SecurityPolicy.Basic192,
                 // Xs SecurityPolicy.Basic192Rsa15,
                 SecurityPolicy.Basic256Sha256,
+                SecurityPolicy.Aes128_Sha256_RsaOaep,
+                SecurityPolicy.Aes256_Sha256_RsaPss,
                 SecurityPolicy.Basic256
             ]) {
                 it("client & server channel  - " + sizeC + " " + sizeS + " " + policy, (done) => {

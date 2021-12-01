@@ -32,8 +32,8 @@ describe("OPCUAServerEndpoint#addEndpointDescription multiple hostname", () => {
             }
         }
 
-        matching1234Count.should.eql(7, "we should have 7 endpoints matches the IP address");
-        matchingMyName.should.eql(7, "we should have 7 endpoints matches the Hostname");
+        matching1234Count.should.eql(9, "we should have 9 endpoints matches the IP address");
+        matchingMyName.should.eql(9, "we should have 9 endpoints matches the Hostname");
 
         await server.shutdown();
 
@@ -65,7 +65,7 @@ describe("OPCUAServerEndpoint#addEndpointDescription default hostname", () => {
             }
         }
 
-        matchingDefault.should.eql(7, "we should have 7 endpoints matching the machine hostname");
+        matchingDefault.should.eql(9, "we should have 9 endpoints matching the machine hostname");
 
         await server.shutdown();
 
@@ -97,7 +97,7 @@ describe("OPCUAServerEndpoint#addEndpointDescription custom hostname", () => {
             }
         }
 
-        matchingHostname.should.eql(7, "we should have 7 endpoints matches the custom hostname");
+        matchingHostname.should.eql(9, "we should have 9 endpoints matches the custom hostname");
 
         await server.shutdown();
 

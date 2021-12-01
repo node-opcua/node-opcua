@@ -1,6 +1,9 @@
 "use strict";
 const path = "../bin/node-opcua";
 require(path+"test_compliance/helpers");
+const chalk = require("chalk");
+
+const { OPCUAClient} = require(path);
 
 const { build_server_with_temperature_device } = require("../../test_helpers/build_server_with_temperature_device");
 
@@ -8,6 +11,7 @@ function include_test(filename, options) {
     const  test = require("./" + filename);
     test.register_test(options);
 }
+// eslint-disable-next-line import/order
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 
 describe("COMPLIANCE TESTING", function () {
@@ -27,7 +31,7 @@ describe("COMPLIANCE TESTING", function () {
             options.endpointUrl = options.server.endpoints[0].endpointDescriptions()[0].endpointUrl;
             options.temperatureVariableId = options.server.temperatureVariableId;
 
-            options.client = opcua.OPCUAClient.create({});
+            options.client = OPCUAClient.create({});
 
             done(err);
         });
