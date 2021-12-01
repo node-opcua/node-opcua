@@ -2,7 +2,9 @@
     "extends": "../tsconfig.json",
     "compilerOptions": {
         "composite": true,
-        "incremental": true
+        "incremental": true,
+        "rootDir": ".",
+        "outDir": "./dist",
     },
     "references": [
         {
