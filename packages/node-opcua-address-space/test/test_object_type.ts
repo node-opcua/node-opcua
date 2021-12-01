@@ -108,4 +108,33 @@ describe("testing UAObjectType", () => {
         debugLog(objType.toString());
         debugLog(variable.toString());
     });
+
+    it("ObjectType#instantiate and display name", () => {
+        const namespace = addressSpace.getOwnNamespace();
+        const objType = namespace.addObjectType({
+            browseName: "MyObject6",
+            displayName: "Some DisplayName",
+            isAbstract: false,
+            subtypeOf: "BaseObjectType"
+        });
+        
+        objType.displayName.toString().should.eql("locale=null text=Some DisplayName");
+
+
+        const instance1 =objType.instantiate({
+            browseName: "Instance1",
+        });
+        instance1.displayName.toString().should.eql("locale=null text=Some DisplayName");
+
+        const instance2 =objType.instantiate({
+            browseName: "Instance2",
+            displayName: "Instance2 DisplayName"
+        });
+        instance2.displayName.toString().should.eql("locale=null text=Instance2 DisplayName");
+
+
+        // tslint:disable:no-console
+        debugLog(objType.toString());
+        
+    }); 
 });

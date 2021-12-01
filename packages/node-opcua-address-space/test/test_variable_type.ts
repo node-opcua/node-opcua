@@ -217,4 +217,33 @@ describe("testing UAVariableType", () => {
         doubleDataType.toString();
         debugLog(doubleDataType.toString());
     });
+
+    it("UAVariableType#instantiate and display name", () => {
+        const namespace = addressSpace.getOwnNamespace();
+        const varType = namespace.addVariableType({
+            browseName: "MyVariableType",
+            displayName: "Some DisplayName",
+            isAbstract: false,
+            subtypeOf: "BaseVariableType"
+        });
+        
+        varType.displayName.toString().should.eql("locale=null text=Some DisplayName");
+
+        const instance1 =varType.instantiate({
+            browseName: "Instance1",
+        });
+        instance1.displayName.toString().should.eql("locale=null text=Some DisplayName");
+
+        const instance2 =varType.instantiate({
+            browseName: "Instance2",
+            displayName: "Instance2 DisplayName"
+        });
+        instance2.displayName.toString().should.eql("locale=null text=Instance2 DisplayName");
+
+
+        // tslint:disable:no-console
+        debugLog(varType.toString());
+;
+    }); 
+
 });
