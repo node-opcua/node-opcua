@@ -736,7 +736,8 @@ function isEnumerationItem(value: any): boolean {
     return (
         value instanceof Object &&
         Object.prototype.hasOwnProperty.call(value, "value") &&
-        Object.prototype.hasOwnProperty.call(value, "key")
+        Object.prototype.hasOwnProperty.call(value, "key")  &&
+        value.constructor.name === "EnumValueType"
     );
 }
 
