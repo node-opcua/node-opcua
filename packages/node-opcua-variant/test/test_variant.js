@@ -1461,10 +1461,6 @@ describe("miscellaneous Variant tests", () => {
         var2.toString().should.eql("Variant(Scalar<ByteString>, value: <null>)");
     });
 
-    it("coerceVariantType on EnumerationItem", () => {
-        coerceVariantType(DataType.Int32, { value: 26, key: "foo" }).should.eql(26);
-    });
-
     it("decodeVariant", () => {
         const stream = new BinaryStream(1000);
         const var1 = new Variant();
