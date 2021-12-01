@@ -1,6 +1,6 @@
 {
     "name": "node-opcua-common",
-    "version": "2.61.0",
+    "version": "2.62.0",
     "description": "pure nodejs OPCUA SDK - module -common",
     "scripts": {
         "test": "mocha",
@@ -17,9 +17,9 @@
         "node-opcua-data-model": "2.61.0",
         "node-opcua-factory": "2.61.0",
         "node-opcua-nodeid": "2.61.0",
-        "node-opcua-service-endpoints": "2.61.0",
-        "node-opcua-service-secure-channel": "2.61.0",
-        "node-opcua-types": "2.61.0"
+        "node-opcua-service-endpoints": "2.62.0",
+        "node-opcua-service-secure-channel": "2.62.0",
+        "node-opcua-types": "2.62.0"
     },
     "devDependencies": {
         "@types/node": "16.11.9",
