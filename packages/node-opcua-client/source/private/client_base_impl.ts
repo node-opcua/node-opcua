@@ -141,11 +141,11 @@ function __findEndpoint(this: OPCUAClientBase, endpointUrl: string, params: Find
                     err.message =
                         "Fail to connect to server at " +
                         endpointUrl +
-                        " to collect certificate server (in findEndpoint) \n" +
+                        " to collect server's certificate (in findEndpoint) \n" +
                         " (err =" +
                         err.message +
                         ")";
-                    debugLog("Fail to connect to server ", endpointUrl, " to collect certificate server");
+                    debugLog(err.message);
                 }
                 return innerCallback(err);
             });
@@ -185,7 +185,10 @@ function __findEndpoint(this: OPCUAClientBase, endpointUrl: string, params: Find
 
     async.series(tasks, (err) => {
         if (err) {
-            return callback(err);
+            client.disconnect(()=>{
+                callback(err);
+            });
+            return ;
         }
 
         if (!selectedEndpoint) {
