@@ -697,7 +697,7 @@ export interface OPCUAServerEndpointOptions {
     port?: number;
     /**
      * the possible security policies that the server will expose
-     * @default  [SecurityPolicy.None, SecurityPolicy.Basic128Rsa15, SecurityPolicy.Basic256Sha256]
+     * @default  [SecurityPolicy.None, SecurityPolicy.Basic128Rsa15, SecurityPolicy.Basic256Sha256, SecurityPolicy.Aes128_Sha256_RsaOaep, SecurityPolicy.Aes256_Sha256_RsaPss  ]
      */
     securityPolicies?: SecurityPolicy[];
     /**

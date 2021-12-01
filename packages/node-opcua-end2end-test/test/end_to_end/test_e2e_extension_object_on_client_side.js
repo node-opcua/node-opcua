@@ -1,10 +1,11 @@
 "use strict";
 const os = require("os");
+const fs = require("fs");
+const path = require("path");
+
 const opcua = require("node-opcua");
 const async = require("async");
-const fs = require("fs");
 const should = require("should");
-const path = require("path");
 
 const { start_simple_server, stop_simple_server } = require("../../test_helpers/external_server_fixture");
 const { perform_operation_on_client_session } = require("../../test_helpers/perform_operation_on_client_session");
@@ -15,6 +16,7 @@ const OPCUAClient = opcua.OPCUAClient;
 
 const port = 2018;
 
+// eslint-disable-next-line import/order
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("testing extension object with client residing on a different process than the server process", function () {
     this.timeout(Math.max(600000, this.timeout()));

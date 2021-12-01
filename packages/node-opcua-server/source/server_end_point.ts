@@ -21,7 +21,8 @@ import {
     ServerSecureChannelParent,
     toURI,
     AsymmetricAlgorithmSecurityHeader,
-    IServerSessionBase
+    IServerSessionBase,
+    Message
 } from "node-opcua-secure-channel";
 import { UserTokenType } from "node-opcua-service-endpoints";
 import { EndpointDescription } from "node-opcua-service-endpoints";
@@ -747,7 +748,7 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
                 }
             });
 
-            channel.on("message", (message: any) => {
+            channel.on("message", (message: Message) => {
                 // forward
                 this.emit("message", message, channel, this);
             });
@@ -1001,10 +1002,12 @@ function estimateSecurityLevel(securityMode: MessageSecurityMode, securityPolicy
             return 4; // deprecated => low
         case SecurityPolicy.Basic256Rsa15:
             return 4 + offset;
+        case SecurityPolicy.Aes128_Sha256_RsaOaep:
+            return 5 + offset;
         case SecurityPolicy.Basic256Sha256:
             return 6 + offset;
-        case SecurityPolicy.Aes128_Sha256_RsaOaep:
-            return 1;
+        case SecurityPolicy.Aes256_Sha256_RsaPss:
+            return 7 + offset;
 
         default:
         case SecurityPolicy.None:
@@ -1047,65 +1050,31 @@ function _makeEndpointDescription(options: MakeEndpointDescriptionOptions): Endp
             });
         }
 
+        const a = (tokenType: UserTokenType, securityPolicy: SecurityPolicy, name: string) => {
+            if (options.securityPolicies.indexOf(securityPolicy) >= 0) {
+                userIdentityTokens.push({
+                    policyId: u(name),
+                    tokenType,
+                    issuedTokenType: null,
+                    issuerEndpointUrl: null,
+                    securityPolicyUri: securityPolicy
+                });
+            }
+        };
         const onlyCertificateLessConnection =
             options.onlyCertificateLessConnection === undefined ? false : options.onlyCertificateLessConnection;
 
         if (!onlyCertificateLessConnection) {
-            if (options.securityPolicies.indexOf(SecurityPolicy.Basic256) >= 0) {
-                userIdentityTokens.push({
-                    policyId: u("username_basic256"),
-                    tokenType: UserTokenType.UserName,
-
-                    issuedTokenType: null,
-                    issuerEndpointUrl: null,
-                    securityPolicyUri: SecurityPolicy.Basic256
-                });
-            }
-
-            if (options.securityPolicies.indexOf(SecurityPolicy.Basic128Rsa15) >= 0) {
-                userIdentityTokens.push({
-                    policyId: u("username_basic128Rsa15"),
-                    tokenType: UserTokenType.UserName,
-
-                    issuedTokenType: null,
-                    issuerEndpointUrl: null,
-                    securityPolicyUri: SecurityPolicy.Basic128Rsa15
-                });
-            }
-
-            if (options.securityPolicies.indexOf(SecurityPolicy.Basic256Sha256) >= 0) {
-                userIdentityTokens.push({
-                    policyId: u("username_basic256Sha256"),
-                    tokenType: UserTokenType.UserName,
-
-                    issuedTokenType: null,
-                    issuerEndpointUrl: null,
-                    securityPolicyUri: SecurityPolicy.Basic256Sha256
-                });
-            }
+            a(UserTokenType.UserName, SecurityPolicy.Basic256, "username_basic256");
+            a(UserTokenType.UserName, SecurityPolicy.Basic128Rsa15, "username_basic128Rsa15");
+            a(UserTokenType.UserName, SecurityPolicy.Basic256Sha256, "username_basic256Sha256");
+            a(UserTokenType.UserName, SecurityPolicy.Aes128_Sha256_RsaOaep, "username_aes128Sha256RsaOaep");
 
             // X509
-            if (options.securityPolicies.indexOf(SecurityPolicy.Basic256) >= 0) {
-                userIdentityTokens.push({
-                    policyId: u("certificate_basic256"),
-                    tokenType: UserTokenType.UserName,
-
-                    issuedTokenType: null,
-                    issuerEndpointUrl: null,
-                    securityPolicyUri: SecurityPolicy.Basic256
-                });
-            }
-            // Certificate
-            if (options.securityPolicies.indexOf(SecurityPolicy.Basic256Sha256) >= 0) {
-                userIdentityTokens.push({
-                    policyId: u("certificate_basic256Sha256"),
-                    tokenType: UserTokenType.Certificate,
-
-                    issuedTokenType: null,
-                    issuerEndpointUrl: null,
-                    securityPolicyUri: SecurityPolicy.Basic256Sha256
-                });
-            }
+            a(UserTokenType.Certificate, SecurityPolicy.Basic256, "certificate_basic256");
+            a(UserTokenType.Certificate, SecurityPolicy.Basic128Rsa15, "certificate_basic128Rsa15");
+            a(UserTokenType.Certificate, SecurityPolicy.Basic256Sha256, "certificate_basic256Sha256");
+            a(UserTokenType.Certificate, SecurityPolicy.Aes128_Sha256_RsaOaep, "certificate_aes128Sha256RsaOaep");
         }
     } else {
         // note:
@@ -1195,5 +1164,7 @@ const defaultSecurityPolicies = [
     SecurityPolicy.Basic128Rsa15,
     SecurityPolicy.Basic256,
     // xx UNUSED!!    SecurityPolicy.Basic256Rsa15,
-    SecurityPolicy.Basic256Sha256
+    SecurityPolicy.Basic256Sha256,
+    SecurityPolicy.Aes128_Sha256_RsaOaep
+    // NO USED YET SecurityPolicy.Aes256_Sha256_RsaPss
 ];

@@ -50,10 +50,13 @@ export const doTraceRequest = serverFlag.match(/REQUEST/);
 export const doTraceResponse = serverFlag.match(/RESPONSE/);
 export const doPerfMonitoring = serverFlag.match(/PERF/);
 
-///
-export const doTraceClientMessage = clientFlag.match(/TRACE/);
-export const doTraceClientRequestContent = clientFlag.match(/REQUEST/);
-export const doTraceClientResponseContent = clientFlag.match(/RESPONSE/);
+
+// eslint-disable-next-line prefer-const
+export let doTraceClientMessage = clientFlag.match(/TRACE/);
+// eslint-disable-next-line prefer-const
+export let doTraceClientRequestContent = clientFlag.match(/REQUEST/);
+// eslint-disable-next-line prefer-const
+export let doTraceClientResponseContent = clientFlag.match(/RESPONSE/);
 
 export const doTraceStatistics = process.env.NODEOPCUADEBUG && !!process.env.NODEOPCUADEBUG.match("STATS");
 // const doPerfMonitoring = process.env.NODEOPCUADEBUG && process.env.NODEOPCUADEBUG.indexOf("PERF") >= 0;

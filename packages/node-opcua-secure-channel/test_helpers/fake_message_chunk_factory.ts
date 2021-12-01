@@ -13,7 +13,7 @@ import {
     RSA_PKCS1_PADDING
 } from "node-opcua-crypto";
 import { AsymmetricAlgorithmSecurityHeader, SymmetricAlgorithmSecurityHeader } from "node-opcua-service-secure-channel";
-import { SecureMessageChunkManager, SequenceNumberGenerator } from "../source";
+import { SecureMessageChunkManager, SecureMessageChunkManagerOptions, SequenceNumberGenerator } from "../source";
 
 // tslint:disable:no-var-requires
 const { getFixture } = require("node-opcua-test-fixtures");
@@ -93,13 +93,9 @@ const secret = Buffer.from("My Little Secret");
 const seed = Buffer.from("My Little Seed");
 const globalOptions = {
     signingKeyLength: 16,
-
     encryptingKeyLength: 16,
-
     encryptingBlockSize: 16,
-
     signatureLength: 20,
-
     algorithm: "aes-128-cbc"
 };
 
@@ -107,21 +103,17 @@ export const derivedKeys: DerivedKeys = computeDerivedKeys(secret, seed, globalO
 
 export function iterateOnSymmetricEncryptedChunk(buffer: Buffer, callback: ChunkVisitorFunc) {
 
-    const options: any = {
+    const options: SecureMessageChunkManagerOptions = {
         chunkSize: 1024,
-        encryptBufferFunc: null,
-        plainBlockSize: 0,
+        encryptBufferFunc:  (chunk: Buffer) => encryptBufferWithDerivedKeys(chunk, derivedKeys),
+        plainBlockSize: derivedKeys.encryptingBlockSize,
+        cipherBlockSize: derivedKeys.encryptingBlockSize,
         requestId: 10,
-        signBufferFunc: null,
-        signatureLength: 0,
+        signBufferFunc:  (chunk: Buffer) => makeMessageChunkSignatureWithDerivedKeys(chunk, derivedKeys),
+        signatureLength: derivedKeys.signatureLength,
+        sequenceHeaderSize: 0,
     };
 
-    options.signatureLength = derivedKeys.signatureLength;
-    options.signBufferFunc = (chunk: Buffer) => makeMessageChunkSignatureWithDerivedKeys(chunk, derivedKeys);
-
-    options.plainBlockSize = derivedKeys.encryptingBlockSize;
-    options.cipherBlockSize = derivedKeys.encryptingBlockSize;
-    options.encryptBufferFunc = (chunk: Buffer) => encryptBufferWithDerivedKeys(chunk, derivedKeys);
 
     const securityHeader = new SymmetricAlgorithmSecurityHeader({
         tokenId: 10

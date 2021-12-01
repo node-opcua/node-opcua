@@ -2,7 +2,6 @@
  * @module node-opcua-secure-channel
  */
 // tslint:disable:variable-name
-// tslint:disable:no-console
 // tslint:disable:max-line-length
 
 import * as chalk from "chalk";
@@ -193,7 +192,7 @@ export class MessageBuilder extends MessageBuilderBase {
                     debugLog(hexDump(binaryStream.buffer));
                 }
                 if (doTraceChunk) {
-                    console.log(
+                    warningLog(
                         timestamp(),
                         chalk.red("   >$$ "),
                         chalk.red(this.messageHeader.msgType),
@@ -228,7 +227,7 @@ export class MessageBuilder extends MessageBuilderBase {
                     debugLog(" Sequence Header", this.sequenceHeader);
                 }
                 if (doTraceChunk) {
-                    console.log(
+                    warningLog(
                         timestamp(),
                         chalk.green("   >$$ "),
                         chalk.green(this.messageHeader.msgType),
@@ -340,7 +339,7 @@ export class MessageBuilder extends MessageBuilderBase {
                     if (doDebug) {
                         debugLog(err);
                     }
-                    debugLog(chalk.red("MessageBuilder : ERROR DETECTED IN event handler"));
+                    warningLog(chalk.red("MessageBuilder : ERROR DETECTED IN 'message' event handler"));
                     if (err instanceof Error) {
                         debugLog(err.stack);
                     }
@@ -427,7 +426,7 @@ export class MessageBuilder extends MessageBuilderBase {
         }
         if (doTraceChunk) {
             const thumb = makeSHA1Thumbprint(asymmetricAlgorithmSecurityHeader.senderCertificate).toString("hex");
-            console.log(timestamp(), ` >$$ securityPolicyId:  ${asymmetricAlgorithmSecurityHeader.securityPolicyUri} ${thumb} `);
+            warningLog(timestamp(), ` >$$ securityPolicyId:  ${asymmetricAlgorithmSecurityHeader.securityPolicyUri} ${thumb} `);
         }
 
         if (!this.cryptoFactory) {
@@ -552,13 +551,16 @@ export class MessageBuilder extends MessageBuilderBase {
     }
 
     private _decrypt_MSG(binaryStream: BinaryStream): boolean {
-        assert(this.securityHeader instanceof SymmetricAlgorithmSecurityHeader);
+        // istanbul ignore next
+        if (!(this.securityHeader instanceof SymmetricAlgorithmSecurityHeader)) {
+            throw new Error("Internal error : expecting a SymmetricAlgorithmSecurityHeader");
+        }
         assert(this.securityMode !== MessageSecurityMode.None);
         assert(this.securityMode !== MessageSecurityMode.Invalid);
         assert(this.securityPolicy !== SecurityPolicy.None);
         assert(this.securityPolicy !== SecurityPolicy.Invalid);
 
-        const symmetricAlgorithmSecurityHeader = this.securityHeader as SymmetricAlgorithmSecurityHeader;
+        const symmetricAlgorithmSecurityHeader = this.securityHeader;
         // Check  security token
         // securityToken may have been renewed
         const securityTokenData = this._select_matching_token(symmetricAlgorithmSecurityHeader.tokenId);

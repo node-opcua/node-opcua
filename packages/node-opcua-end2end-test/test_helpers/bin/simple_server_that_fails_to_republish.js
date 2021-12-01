@@ -1,10 +1,11 @@
 /* eslint no-process-exit: 0 */
 "use strict";
 
-// simulate kepware server that sometime shutdown session too early
-const chalk = require("chalk");
 const path = require("path");
 const fs = require("fs");
+// simulate kepware server that sometime shutdown session too early
+const chalk = require("chalk");
+
 const opcua = require("node-opcua");
 const {
     UAMethod,
@@ -12,7 +13,7 @@ const {
     SessionContext,
     MethodFunctorCallback
 } = require("node-opcua");
-const { callbackify } = require("util");
+
 
 Error.stackTraceLimit = Infinity;
 

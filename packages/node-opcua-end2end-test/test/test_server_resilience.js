@@ -1,3 +1,4 @@
+
 "use strict";
 const should = require("should");
 const async = require("async");
@@ -15,10 +16,11 @@ const doDebug = checkDebugFlag("TEST");
 const empty_nodeset_filename = get_empty_nodeset_filename();
 
 
-const port = 1999;
+const port = 1990;
 
 const ServerSideUnimplementedRequest = require("../test_helpers/unimplementedRequest").ServerSideUnimplementedRequest;
 
+// eslint-disable-next-line import/order
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 
 describe("testing Server resilience to unsupported request", function() {

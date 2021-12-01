@@ -1,9 +1,10 @@
 /* eslint no-process-exit: 0 */
 "use strict";
 
-const chalk = require("chalk");
+
 const path = require("path");
 const fs = require("fs");
+const chalk = require("chalk");
 const opcua = require("node-opcua");
 
 

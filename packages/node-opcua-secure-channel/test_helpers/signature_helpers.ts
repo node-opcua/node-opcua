@@ -2,7 +2,7 @@ import * as  fs from "fs";
 import { assert } from "node-opcua-assert";
 import { makeMessageChunkSignature, verifyChunkSignature } from "node-opcua-crypto";
 import { SymmetricAlgorithmSecurityHeader } from "node-opcua-service-secure-channel";
-import * as should from "should";
+import  "should";
 import { SecureMessageChunkManager, SecureMessageChunkManagerOptions, SequenceNumberGenerator } from "../source";
 
 // tslint:disable:no-var-requires

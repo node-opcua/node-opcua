@@ -23,8 +23,20 @@ const errorLog = debug.make_errorLog(__filename);
 export interface MockSocket {
     invalid?: boolean;
     [key: string]: any;
+    destroy(): void;
+    end(): void;
 }
-let fakeSocket: MockSocket = { invalid: true };
+let fakeSocket: MockSocket = {
+    invalid: true,
+    
+    destroy() {
+        errorLog("MockSocket.destroy");
+    },
+
+    end() {
+        errorLog("MockSocket.end");
+    }
+};
 
 export function setFakeTransport(mockSocket: MockSocket): void {
     fakeSocket = mockSocket;
@@ -202,7 +214,7 @@ export class TCP_transport extends EventEmitter {
 
         if (this._socket) {
             this._socket.end();
-            this._socket.destroy();
+            this._socket && this._socket.destroy();
             // xx this._socket.removeAllListeners();
             this._socket = null;
         }

@@ -10,12 +10,14 @@ const sinon = require("sinon");
 
 const { build_server_with_temperature_device } = require("../../test_helpers/build_server_with_temperature_device");
 
+const port = 2238;
+
+// eslint-disable-next-line import/order
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("testing server with restricted securityModes - Given a server with a single end point SignAndEncrypt/Basic128Rsa15 (and no discovery service on secure channel)", function() {
 
     let server, client, endpointUrl, serverCertificate;
 
-    const port = 2238;
     before(function(done) {
         // we use a different port for each tests to make sure that there is
         // no left over in the tcp pipe that could generate an error
@@ -110,7 +112,6 @@ describe("testing server with restricted securityModes -#933", function() {
 
     let server, client, endpointUrl, serverCertificate;
 
-    const port = 2238;
     before(function(done) {
         // we use a different port for each tests to make sure that there is
         // no left over in the tcp pipe that could generate an error

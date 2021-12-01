@@ -278,7 +278,7 @@ function createUserNameIdentityToken(
 
     // istanbul ignore next
     if (!cryptoFactory) {
-        throw new Error(" Unsupported security Policy");
+        throw new Error(" Unsupported security Policy "+  securityPolicy.toString());
     }
 
     identityToken = new UserNameIdentityToken({

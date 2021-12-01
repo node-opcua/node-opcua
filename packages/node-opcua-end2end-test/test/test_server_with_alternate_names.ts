@@ -1,8 +1,9 @@
 // tslint:disable:no-console
-import * as chalk from "chalk";
 import * as path from "path";
-import "should";
 import * as os from "os";
+
+import "should";
+import * as chalk from "chalk";
 
 import {
     EndpointDescription,
@@ -165,7 +166,7 @@ describe("Testing server with alternate names", () => {
         const endpointUrl = `opc.tcp://localhost:${port1}`;
         const endpoints = await extractEndpoints(endpointUrl);
         dumpEndpoints(endpoints);
-        endpoints.length.should.eql(3 * 7);
+        endpoints.length.should.eql(3 * 9);
     });
 });
 
