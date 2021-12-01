@@ -595,6 +595,7 @@ export class OPCUAClientImpl extends ClientBaseImpl implements OPCUAClient {
                     this.connect(endpointUrl, (err?: Error) => {
                         need_disconnect = true;
                         if (err) {
+                            warningLog(err.message);
                             errorLog(" cannot connect to endpoint :", endpointUrl);
                         }
                         innerCallback(err);
