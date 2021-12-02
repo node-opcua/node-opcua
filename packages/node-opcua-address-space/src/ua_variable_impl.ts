@@ -493,7 +493,9 @@ export class UAVariableImpl extends BaseNodeImpl implements UAVariable {
     public asyncRefresh(oldestDate: Date, callback: CallbackT<DataValue>): void;
     public asyncRefresh(oldestDate: Date): Promise<DataValue>;
     public asyncRefresh(...args: any[]): any {
-        this.verifyVariantCompatibility(this.$dataValue.value);
+        if (isGoodish(this.$dataValue.statusCode)) {
+            this.verifyVariantCompatibility(this.$dataValue.value);
+        }
 
         const oldestDate = args[0] as Date;
         assert(oldestDate instanceof Date);
