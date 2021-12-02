@@ -197,9 +197,9 @@ export async function promoteTrustList(trustList: UATrustList) {
     // The OpenWithMasks Method allows a Client to read only the portion of the Trust List.
     // This Method can only be used to read the Trust List.
     openWithMasks.bindMethod(_openWithMaskCallback);
-    addCertificate.bindMethod(callbackify(_addCertificate));
-    removeCertificate.bindMethod(callbackify(_removeCertificate));
-    closeAndUpdate?.bindMethod(callbackify(_closeAndUpdate));
+    addCertificate.bindMethod(_addCertificate);
+    removeCertificate.bindMethod(_removeCertificate);
+    closeAndUpdate?.bindMethod(_closeAndUpdate);
 
     function install_method_handle_on_TrustListType(addressSpace: IAddressSpace): void {
         const fileType = addressSpace.findObjectType("TrustListType") as any;
@@ -207,10 +207,10 @@ export async function promoteTrustList(trustList: UATrustList) {
             return;
         }
         fileType.open && fileType.open.bindMethod(_openCallback);
-        fileType.addCertificate.bindMethod(callbackify(_addCertificate));
-        fileType.removeCertificate.bindMethod(callbackify(_removeCertificate));
+        fileType.addCertificate.bindMethod(_addCertificate);
+        fileType.removeCertificate.bindMethod(_removeCertificate);
         fileType.openWithMasks && fileType.openWithMasks.bindMethod(_openWithMaskCallback);
-        fileType.closeAndUpdate && fileType.closeAndUpdate.bindMethod(callbackify(_closeAndUpdate));
+        fileType.closeAndUpdate && fileType.closeAndUpdate.bindMethod(_closeAndUpdate);
     }
     install_method_handle_on_TrustListType(trustList.addressSpace);
 }
