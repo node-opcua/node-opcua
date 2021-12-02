@@ -7,7 +7,15 @@ import { Stats, PathLike, OpenMode, NoParamCallback, WriteFileOptions } from "fs
 import { callbackify, promisify } from "util";
 
 import { assert } from "node-opcua-assert";
-import { AddressSpace, IAddressSpace, ISessionContext, UAFile, UAFile_Base, UAMethod, UAObjectType } from "node-opcua-address-space";
+import {
+    AddressSpace,
+    IAddressSpace,
+    ISessionContext,
+    UAFile,
+    UAFile_Base,
+    UAMethod,
+    UAObjectType
+} from "node-opcua-address-space";
 import { Byte, Int32, UInt32, UInt64 } from "node-opcua-basic-types";
 import { checkDebugFlag, make_debugLog, make_errorLog, make_warningLog } from "node-opcua-debug";
 import { NodeId, sameNodeId } from "node-opcua-nodeid";
@@ -21,7 +29,6 @@ const debugLog = make_debugLog("FileType");
 const errorLog = make_errorLog("FileType");
 const warningLog = make_warningLog("FileType");
 const doDebug = checkDebugFlag("FileType");
-
 
 export interface AbstractFs {
     stat(path: PathLike, callback: (err: NodeJS.ErrnoException | null, stats: Stats) => void): void;
@@ -85,15 +92,13 @@ export interface FileOptions {
     fileSystem?: AbstractFs;
 }
 
-export interface UAFileType extends UAObjectType, UAFile_Base {
-    
-}
+export interface UAFileType extends UAObjectType, UAFile_Base {}
 /**
  *
  */
 export class FileTypeData {
     public _fs: AbstractFs;
-    public filename= "";
+    public filename = "";
     public maxSize = 0;
     public mimeType = "";
 
@@ -594,12 +599,12 @@ function install_method_handle_on_type(addressSpace: IAddressSpace): void {
     if (fileType.open.isBound()) {
         return;
     }
-    fileType.open.bindMethod(callbackify(_openFile));
-    fileType.close.bindMethod(callbackify(_closeFile));
-    fileType.read.bindMethod(callbackify(_readFile));
-    fileType.write.bindMethod(callbackify(_writeFile));
-    fileType.setPosition.bindMethod(callbackify(_setPositionFile));
-    fileType.getPosition.bindMethod(callbackify(_getPositionFile));
+    fileType.open.bindMethod(_openFile);
+    fileType.close.bindMethod(_closeFile);
+    fileType.read.bindMethod(_readFile);
+    fileType.write.bindMethod(_writeFile);
+    fileType.setPosition.bindMethod(_setPositionFile);
+    fileType.getPosition.bindMethod(_getPositionFile);
 }
 
 /**
@@ -634,10 +639,10 @@ export function installFileType(file: UAFile, options: FileOptions): void {
         }
     }
 
-    file.open.bindMethod(callbackify(_openFile));
-    file.close.bindMethod(callbackify(_closeFile));
-    file.read.bindMethod(callbackify(_readFile));
-    file.write.bindMethod(callbackify(_writeFile));
-    file.setPosition.bindMethod(callbackify(_setPositionFile));
-    file.getPosition.bindMethod(callbackify(_getPositionFile));
+    file.open.bindMethod(_openFile);
+    file.close.bindMethod(_closeFile);
+    file.read.bindMethod(_readFile);
+    file.write.bindMethod(_writeFile);
+    file.setPosition.bindMethod(_setPositionFile);
+    file.getPosition.bindMethod(_getPositionFile);
 }
