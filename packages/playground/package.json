@@ -1,6 +1,6 @@
 {
   "name": "playground",
-  "version": "2.62.1",
+  "version": "2.62.2",
   "description": "",
   "main": "sample1.js",
   "private": true,
@@ -8,10 +8,10 @@
     "test": "echo \"Error: no test specified\" && exit 0"
   },
   "dependencies": {
-    "node-opcua": "2.62.1",
+    "node-opcua": "2.62.2",
     "node-opcua-assert": "2.55.0",
-    "node-opcua-client": "2.62.1",
-    "node-opcua-modeler": "2.62.1",
+    "node-opcua-client": "2.62.2",
+    "node-opcua-modeler": "2.62.2",
     "node-opcua-utils": "2.60.0"
   },
   "author": "Etienne Rossignon",
