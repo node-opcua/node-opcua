@@ -642,7 +642,8 @@ export class UAVariableImpl extends BaseNodeImpl implements UAVariable {
         }
         const addressSpace = this.addressSpace;
         const dataTypeNode = addressSpace.findDataType(this.dataType)!;
-        const basicDataType = dataTypeNode ? dataTypeNode.getBasicDataType() : DataType.Null;
+        const basicDataType =
+            dataTypeNode && dataTypeNode.nodeClass === NodeClass.DataType ? dataTypeNode.getBasicDataType() : DataType.Null;
         // const basicDataType = addressSpace.findCorrespondingBasicDataType(this.dataType);
         this._basicDataType = basicDataType;
         return basicDataType;
