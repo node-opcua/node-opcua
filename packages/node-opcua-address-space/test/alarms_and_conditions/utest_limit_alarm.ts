@@ -481,5 +481,81 @@ export function utest_limit_alarm(test: any): void {
                 }
             );
         });
+
+        [
+            DataType.Double,
+            DataType.Float,
+            DataType.Byte,
+            DataType.SByte,
+            DataType.Int16,
+            DataType.Int32,
+            DataType.UInt16,
+            DataType.UInt32
+        ].forEach((dataType) => {
+            it(
+                "VM1 it should be possible to have a limit alarm that monitor a input node which is a variable of type " +
+                    DataType[dataType],
+                () => {
+                    const namespace = addressSpace.getOwnNamespace();
+
+                    const inputNode = namespace.addVariable({
+                        browseName: "InputVariable" + DataType[dataType],
+                        dataType
+                    });
+                    inputNode.setValueFromSource({ dataType, value: 0 });
+
+                    const alarm = namespace.instantiateExclusiveLimitAlarm("ExclusiveLimitAlarmType", {
+                        browseName: "MyExclusiveAlarm",
+                        conditionSource: source,
+                        highHighLimit: 100.0,
+                        highLimit: 10.0,
+                        inputNode,
+                        lowLimit: 1.0,
+                        lowLowLimit: -10.0
+                    });
+                    alarm.constructor.name.should.eql("UAExclusiveLimitAlarmImpl");
+
+                    alarm.setHighHighLimit(101);
+                    alarm.setHighLimit(90);
+                    alarm.setLowLimit(2);
+                    alarm.setLowLowLimit(-20);
+
+                    inputNode.setValueFromSource({ dataType, value: 0 });
+                    inputNode.setValueFromSource({ dataType, value: 10 });
+                    inputNode.setValueFromSource({ dataType, value: 30 });
+                }
+            );
+        });
+        [
+            DataType.String,
+            DataType.ExpandedNodeId,
+            DataType.LocalizedText,
+            DataType.ExpandedNodeId,
+            DataType.Int64,
+            DataType.UInt64,
+            DataType.String,
+            DataType.StatusCode
+        ].forEach((dataType) => {
+            it("VM1 it should raise an exception if the input node has an invalid dataType : " + DataType[dataType], () => {
+                const namespace = addressSpace.getOwnNamespace();
+
+                const inputNode = namespace.addVariable({
+                    browseName: "InputVariable" + DataType[dataType],
+                    dataType
+                });
+
+               (function instantiateExclusiveLimitAlarm() {
+                    const alarm = namespace.instantiateExclusiveLimitAlarm("ExclusiveLimitAlarmType", {
+                        browseName: "MyExclusiveAlarm",
+                        conditionSource: source,
+                        highHighLimit: 100.0,
+                        highLimit: 10.0,
+                        inputNode,
+                        lowLimit: 1.0,
+                        lowLowLimit: -10.0
+                    });
+                }).should.throw(Error, /inputNode must be of type /);
+            });
+        });
     });
 }

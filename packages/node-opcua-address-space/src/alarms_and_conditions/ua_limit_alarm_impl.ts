@@ -2,10 +2,11 @@
 /**
  * @module node-opcua-address-space.AlarmsAndConditions
  */
-import { UAEventType } from "node-opcua-address-space-base";
+import { UAEventType, UAVariable } from "node-opcua-address-space-base";
 import { assert } from "node-opcua-assert";
 import { NodeClass } from "node-opcua-data-model";
 import { DataValue } from "node-opcua-data-value";
+import { make_warningLog } from "node-opcua-debug";
 import { NodeId } from "node-opcua-nodeid";
 import { UALimitAlarm_Base, UALimitAlarm } from "node-opcua-nodeset-ua";
 import { StatusCodes } from "node-opcua-status-code";
@@ -16,6 +17,7 @@ import { NamespacePrivate } from "../namespace_private";
 import { UAShelvedStateMachineEx } from "../state_machine/ua_shelving_state_machine_ex";
 import { UAAlarmConditionEx, UAAlarmConditionHelper, UAAlarmConditionImpl } from "./ua_alarm_condition_impl";
 
+const warningLog = make_warningLog("AlarmsAndConditions");
 export interface UALimitAlarmHelper extends UAAlarmConditionHelper {
     setLowLowLimit(value: number): void;
     setLowLimit(value: number): void;
@@ -43,6 +45,18 @@ export interface UALimitAlarmEx extends UALimitAlarm_Base, UAAlarmConditionEx, U
 export declare interface UALimitAlarmImpl extends UALimitAlarmEx, UAAlarmConditionImpl {
     on(eventName: string, eventHandler: any): this;
 }
+
+const uaLimitAlarmInputSupportedDataType: DataType[] = [
+    DataType.Double,
+    DataType.Float,
+    DataType.Byte,
+    DataType.SByte,
+    DataType.Int16,
+    DataType.Int32,
+    DataType.UInt16,
+    DataType.UInt32
+];
+
 export class UALimitAlarmImpl extends UAAlarmConditionImpl implements UALimitAlarmEx {
     /**
      * @method (static)UALimitAlarm.instantiate
@@ -102,7 +116,7 @@ export class UALimitAlarmImpl extends UAAlarmConditionImpl implements UALimitAla
 
         assert(alarmNode.conditionOfNode() !== null);
 
-        const inputNode = addressSpace._coerceNode(options.inputNode);
+        const inputNode = addressSpace._coerceNode(options.inputNode) as UAVariable;
         if (!inputNode) {
             throw new Error("Expecting a valid input node");
         }
@@ -124,7 +138,15 @@ export class UALimitAlarmImpl extends UAAlarmConditionImpl implements UALimitAla
 
         const dataType = addressSpace.findCorrespondingBasicDataType(options.inputNode.dataType);
 
-        alarmNode._dataType = dataType;
+        if (-1 === uaLimitAlarmInputSupportedDataType.indexOf(dataType)) {
+            const message =(
+                `UALimitAlarm.instantiate: inputNode must be of type ${uaLimitAlarmInputSupportedDataType
+                    .map((a) => DataType[a])
+                    .join("|")}, got ${DataType[dataType]}`
+            );
+            warningLog(message);
+            throw(new Error(message));
+        }
 
         if (Object.prototype.hasOwnProperty.call(options, "highHighLimit")) {
             alarmNode.setHighHighLimit(options.highHighLimit);
@@ -154,8 +176,6 @@ export class UALimitAlarmImpl extends UAAlarmConditionImpl implements UALimitAla
 
         return alarmNode;
     }
-
-    public _dataType: any;
 
     /**
      * @method getHighHighLimit
@@ -209,7 +229,7 @@ export class UALimitAlarmImpl extends UAAlarmConditionImpl implements UALimitAla
         if (!this.highHighLimit) {
             throw new Error("LimitAlarm instance must expose the optional HighHighLimit property");
         }
-        this.highHighLimit.setValueFromSource({ dataType: this._dataType, value });
+        this.highHighLimit.setValueFromSource({ dataType: DataType.Double, value });
     }
 
     /**
@@ -220,7 +240,7 @@ export class UALimitAlarmImpl extends UAAlarmConditionImpl implements UALimitAla
         if (!this.highLimit) {
             throw new Error("LimitAlarm instance must expose the optional HighLimit property");
         }
-        this.highLimit.setValueFromSource({ dataType: this._dataType, value });
+        this.highLimit.setValueFromSource({ dataType: DataType.Double, value });
     }
 
     /**
@@ -231,7 +251,7 @@ export class UALimitAlarmImpl extends UAAlarmConditionImpl implements UALimitAla
         if (!this.lowLimit) {
             throw new Error("LimitAlarm instance must expose the optional LowLimit property");
         }
-        this.lowLimit.setValueFromSource({ dataType: this._dataType, value });
+        this.lowLimit.setValueFromSource({ dataType: DataType.Double, value });
     }
 
     /**
@@ -242,7 +262,7 @@ export class UALimitAlarmImpl extends UAAlarmConditionImpl implements UALimitAla
         if (!this.lowLowLimit) {
             throw new Error("LimitAlarm instance must expose the optional LowLowLimit property");
         }
-        this.lowLowLimit.setValueFromSource({ dataType: this._dataType, value });
+        this.lowLowLimit.setValueFromSource({ dataType: DataType.Double, value });
     }
 
     public _onInputDataValueChange(dataValue: DataValue): void {
