@@ -1,6 +1,6 @@
 {
     "name": "node-opcua-modeler",
-    "version": "2.62.2",
+    "version": "2.62.3",
     "description": "pure nodejs OPCUA SDK - module - model",
     "main": "dist/index.js",
     "types": "dist/index.d.ts",
@@ -15,7 +15,7 @@
         "chalk": "4.1.2",
         "cli-table3": "^0.6.0",
         "csv-parse": "5.0.3",
-        "node-opcua-address-space": "2.62.2",
+        "node-opcua-address-space": "2.62.3",
         "node-opcua-assert": "2.55.0",
         "node-opcua-basic-types": "2.61.0",
         "node-opcua-client-dynamic-extension-object": "2.62.0",
