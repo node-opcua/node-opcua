@@ -259,7 +259,7 @@ export class UADataTypeImpl extends BaseNodeImpl implements UADataType {
 
     isStructure(): boolean {
         const definition = this._getDefinition();
-        return definition instanceof StructureDefinition;
+        return !!definition && definition instanceof StructureDefinition;
     }
     getStructureDefinition(): StructureDefinition {
         const definition = this._getDefinition();
@@ -269,7 +269,7 @@ export class UADataTypeImpl extends BaseNodeImpl implements UADataType {
 
     isEnumeration(): boolean {
         const definition = this._getDefinition();
-        return definition instanceof EnumDefinition;
+        return !!definition && definition instanceof EnumDefinition;
     }
     getEnumDefinition(): EnumDefinition {
         const definition = this._getDefinition();
