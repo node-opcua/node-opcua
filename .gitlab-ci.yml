@@ -14,10 +14,10 @@ build_and_test:
   stage: build
   before_script:
     - curl -L https://unpkg.com/@pnpm/self-installer | node
-    - pnpm config set store-dir ~/.pnpm-store
-    - pnpm install --frozen-lockfile=false
+    - pnpm config set store-dir `pwd`/.pnpm-store
     - pnpm recursive install --frozen-lockfile=false
   script:
-    - pnpm build
-    - pnpm test
-
+    - pnpm run build --if-present
+    - pnpm run pretest
+    - pnpm run test
+ 
