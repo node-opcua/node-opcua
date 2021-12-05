@@ -26,7 +26,7 @@ const doDebug = checkDebugFlag("TEST");
 
 const port2 = 1240;
 const port1 = 1241;
-const port_discovery = 1244;
+const discovery_port = 1244;
 
 module.exports = () => {
     const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
@@ -40,12 +40,12 @@ module.exports = () => {
 
         let g_server: OPCUAServer;
 
-        let discoveryServer: OPCUADiscoveryServer| undefined = undefined;
+        let discoveryServer: OPCUADiscoveryServer | undefined = undefined;
         let discoveryServerEndpointUrl: string;
 
         const startDiscoveryServer = f(function start_the_discovery_server(callback: ErrorCallback) {
             // note : only one discovery server shall be run per machine
-            startDiscovery(port_discovery)
+            startDiscovery(discovery_port)
                 .then((_discoveryServer: OPCUADiscoveryServer) => {
                     discoveryServer = _discoveryServer;
                     discoveryServerEndpointUrl = discoveryServer.getEndpointUrl();
@@ -92,7 +92,7 @@ module.exports = () => {
             subscription: ClientSubscription;
             monitoredItem: ClientMonitoredItem;
         }
-        let clients: ClientData[] = [];
+        const clients: ClientData[] = [];
 
         const connectManyClient = f(function connect_many_opcua_clients(callback: ErrorCallback) {
             let clientCount = 0;
@@ -100,7 +100,7 @@ module.exports = () => {
                 if (doDebug) {
                     debugLog(" creating client");
                 }
-                let client = OPCUAClient.create({
+                const client = OPCUAClient.create({
                     requestedSessionTimeout: 10000,
                     clientName: "Client-" + clientCount
                 });
@@ -148,7 +148,7 @@ module.exports = () => {
                             .on("keepalive", function () {
                                 debugLog("keepalive");
                             })
-                            .on("terminated", function () { });
+                            .on("terminated", function () {/** */});
                         const monitoredItem = ClientMonitoredItem.create(
                             subscription,
                             {
@@ -179,6 +179,7 @@ module.exports = () => {
 
         const shutdownClients = f(function disconnect_the_opcua_clients(callback: ErrorCallback) {
             function removeClient(callback: ErrorCallback) {
+                if (!clients) { return callback();}
                 const { client, session, subscription, monitoredItem } = clients.pop()!;
 
                 subscription.terminate((err?: Error) => {
@@ -228,9 +229,8 @@ module.exports = () => {
         });
 
         it("T0c0 - disposing  cerficiation manager during initialization ", function (done) {
-
             const cm = new OPCUACertificateManager({
-                // rootFolder: 
+                // rootFolder:
             });
 
             async.series(
@@ -238,19 +238,20 @@ module.exports = () => {
                     f(function when_creating_a_opcua_certificate_manager(callback: ErrorCallback) {
                         cm.initialize((err) => {
                             done();
-                        })
+                        });
                         callback();
                     }),
                     f(function disposing(callback: ErrorCallback) {
                         cm.dispose();
-                    }),
+                    })
                 ],
                 () => {
-
-                });
-        })
+                    /* empty */
+                }
+            );
+        });
         it("T0c- should cancel a client that is attempting a connection on an existing server", function (done) {
-            let client = OPCUAClient.create({});
+            const client = OPCUAClient.create({});
             const endpoint = discoveryServerEndpointUrl;
             async.series(
                 [
@@ -277,7 +278,7 @@ module.exports = () => {
         });
 
         it("T0d- should cancel a client that cannot connect - on standard LocalDiscoveryServer", function (done) {
-            let server = new OPCUAServer({
+            const server = new OPCUAServer({
                 port: port1,
                 registerServerMethod: RegisterServerMethod.LDS,
                 discoveryServerEndpointUrl: "opc.tcp://localhost:4840" //<< standard server
@@ -349,7 +350,9 @@ module.exports = () => {
             async.series(
                 [
                     function (callback: ErrorCallback) {
-                        registrationManager.start(function () { });
+                        registrationManager.start(function () {
+                            /**/
+                        });
                         callback(); // setImmediate(callback);
                     },
                     function (callback: ErrorCallback) {
@@ -384,7 +387,9 @@ module.exports = () => {
             async.series(
                 [
                     function (callback: ErrorCallback) {
-                        registrationManager.start(function () { });
+                        registrationManager.start(function () {
+                            /** */
+                        });
                         callback(); // setImmediate(callback);
                     },
                     function (callback: ErrorCallback) {
