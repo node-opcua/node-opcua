@@ -5,8 +5,8 @@ module.exports = {
     spec: ["test/*.ts"],
     bail: true,
     require: [
-        "../../node_modules/should",
-        "../../node_modules/ts-node/register",
-        "../../node_modules/source-map-support/register"
+        "should",
+        "ts-node/register",
+        "source-map-support/register"
     ]
 };
