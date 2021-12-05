@@ -19,6 +19,7 @@ const port = 2009;
 
 const { build_server_with_temperature_device } = require("../../test_helpers/build_server_with_temperature_device");
 
+// eslint-disable-next-line import/order
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("testing AnalogItem on client side", function() {
 

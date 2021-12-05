@@ -1,12 +1,13 @@
 "use strict";
 
 const os = require("os");
+const path = require("path");
 const { callbackify } = require("util");
 
 const { assert } = require("node-opcua-assert");
 require("should");
 const chalk = require("chalk");
-
+const envPaths = require("env-paths");
 const { prepareFQDN, getFullyQualifiedDomainName } = require("node-opcua-hostname");
 const { checkDebugFlag, make_debugLog } = require("node-opcua-debug");
 const {
@@ -19,7 +20,8 @@ const {
     DataType,
     DataValue,
     is_valid_endpointUrl,
-    makeRoles
+    makeRoles,
+    OPCUACertificateManager
 } = require("node-opcua");
 
 const doDebug = checkDebugFlag(__filename);
@@ -34,7 +36,6 @@ const { build_address_space_for_conformance_testing } = require("node-opcua-addr
  * @param parentNode
  */
 function addTestUAAnalogItem(parentNode) {
-
     const addressSpace = parentNode.addressSpace;
     const namespace = addressSpace.getOwnNamespace();
 
@@ -81,6 +82,14 @@ const userManager = {
     }
 };
 
+function getDefaultCertificateManager(port) {
+    const config = envPaths("node-opcua-default" + port).config;
+    const pkiFolder = path.join(config, "PKI");
+    return new OPCUACertificateManager({
+        rootFolder: pkiFolder,
+        automaticallyAcceptUnknownCertificate: true
+    });
+}
 /**
  * @method build_server_with_temperature_device
  *
@@ -102,15 +111,18 @@ function build_server_with_temperature_device(options, done) {
     assert(typeof done, "expecting a callback function" === "function");
     assert(typeof nodesets.standard === "string");
 
+    const serverCertificateManager = getDefaultCertificateManager(options.port);
+
     // use mini_nodeset_filename for speed up if not otherwise specified
     options.nodeset_filename = options.nodeset_filename || [nodesets.standard];
 
     options.userManager = options.userManager || userManager;
 
-    options.serverInfo = options.serverInfo ||
-        {
-            applicationUri: makeApplicationUrn(os.hostname(), "NodeOPCUA-Server")
-        };
+    options.serverInfo = options.serverInfo || {
+        applicationUri: makeApplicationUrn(os.hostname(), "NodeOPCUA-Server" + options.port)
+    };
+
+    options.serverCertificateManager = serverCertificateManager;
 
     const server = new OPCUAServer(options);
     // we will connect to first server end point
@@ -274,8 +286,7 @@ function _build_server_with_temperature_device(server, options, done) {
 
     function start(done) {
         server.start(function (err) {
-            
-            const shutdownReason =server.engine.addressSpace.rootFolder.objects.server.serverStatus.shutdownReason;
+            const shutdownReason = server.engine.addressSpace.rootFolder.objects.server.serverStatus.shutdownReason;
             const dataValue = shutdownReason.readValue();
             // console.log("shutdown reason", dataValue.toString());
             shutdownReason.setValueFromSource({

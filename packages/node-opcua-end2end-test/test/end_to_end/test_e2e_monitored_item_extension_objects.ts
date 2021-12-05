@@ -16,7 +16,8 @@ import {
     resolveNodeId,
     Variant,
     constructEventFilter,
-    ClientSession
+    ClientSession,
+    OPCUACertificateManager
 } from "node-opcua";
 import * as should from "should";
 import * as sinon from "sinon";
@@ -35,11 +36,17 @@ const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("AZA1- testing Client-Server subscription use case, on a fake server exposing the temperature device", () => {
     let nodeId: NodeId;
     let scanResultNode: UAVariable;
+    let server: OPCUAServer;
+    before(async () => {
 
-    const server = new OPCUAServer({
-        port,
-
-        nodeset_filename: [nodesets.standard, nodesets.di, nodesets.autoId]
+        const serverCertificateManager = new OPCUACertificateManager({
+            rootFolder: 
+        })
+        server = new OPCUAServer({
+            port,
+            serverCertificateManager,
+            nodeset_filename: [nodesets.standard, nodesets.di, nodesets.autoId]
+        });
     });
 
     function raiseRfidScanEvent() {
