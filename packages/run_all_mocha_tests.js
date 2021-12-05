@@ -274,6 +274,7 @@ async function runtests({ selectedTests, reporter,dryRun,  filterOpts, skipped }
         fullTrace: true,
         grep: filterOpts,
         dryRun,
+        timeout: 30000,
         /*
         fullTrace: true,
         parallel: true,

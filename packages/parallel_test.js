@@ -35,11 +35,19 @@ const colorWheel = [
     chalk.bgGray
 ];
 const pageCount = 1;
-const pageSize = 6;
+const pageSize = 1;
 
 const runningPages = new Set();
 
 const failingTestFilename = [];
+const durationsPerTestFile = {};
+function collectDuration(test) {
+    const { file } = test;
+    if (!durationsPerTestFile[file]) {
+        durationsPerTestFile[file] = test.duration || 0;
+    }
+    durationsPerTestFile[file] = durationsPerTestFile[file] + test.duration;
+}
 async function runTest({ page, selectedTests }) {
     function prefix() {
         const a = [...runningPages].join(", ").padEnd(40);
@@ -58,18 +66,33 @@ async function runTest({ page, selectedTests }) {
             const { type, test, args } = message;
             // args && console.log(prefix(), ...args);
             switch (type) {
+                case EVENT_TEST_BEGIN:
                 case EVENT_TEST_SKIPPED:
+                    collectDuration(test);
                     break;
                 case EVENT_TEST_FAIL:
                     {
-                        const { duration, title, file, error, timedOut, state, stats } = test;
+                        collectDuration(test);
+                        const { duration, title, file, error, timedOut, state, stats, output } = test;
                         failingTestFilename.push(file.replace(__dirname, ""));
                         const d = durationToString(duration);
+
                         console.log(prefix(), d, chalk.red(title)); // JSON.stringify(test, null, ""));
+                        console.log(prefix(), file);
+                        console.log(error);
+
+                        console.log("-----------------------------------------------------------------------------");
+                        for (const l of output) {
+                            console.log(prefix(), ...l);
+                        }
+                        console.log("-----------------------------------------------------------------------------");
+                        epilogue();
+                        process.exit(1);
                     }
                     break;
                 case EVENT_TEST_PASS:
                     {
+                        collectDuration(test);
                         const { duration, title, file, error, timedOut, state, stats } = test;
 
                         const d = durationToString(duration);
@@ -113,6 +136,7 @@ class ParallelMochaReporter {
         this.maxDeltaTest = "";
         const stats = runner.stats;
         this.total = runner.total;
+        const outputLines = [];
         runner
             .once(EVENT_RUN_BEGIN, () => {
                 // console.log("start");
@@ -122,11 +146,13 @@ class ParallelMochaReporter {
                 this.increaseIndent();
             })
             .on(EVENT_TEST_BEGIN, (test) => {
-                // console.log("  " + this.indent() + chalk.cyan(test.title) , chalk.magenta(test.file));
                 this.oldConsoleLog = console.log;
+                this.outputLines = [];
                 console.log = (...args) => {
                     /** */
+                    this.outputLines.push(args);
                 };
+                console.log("  " + this.indent() + chalk.cyan(test.title), chalk.magenta(test.file));
 
                 this.counter++;
             })
@@ -139,16 +165,22 @@ class ParallelMochaReporter {
                 console.log("  " + chalk.yellow(test.fullTitle()));
                 // console.log("  " + this.indent() + chalk.green(test.title));
                 const { duration, file, error, timedOut, state, stats, title } = test;
-                parentPort.postMessage({ type: EVENT_TEST_PASS, test: { duration, file, error, timedOut, state, stats, title } });
+                const output = this.outputLines;
+                parentPort.postMessage({
+                    type: EVENT_TEST_PASS,
+                    test: { duration, file, error, timedOut, state, stats, title, output }
+                });
             })
             .on(EVENT_TEST_SKIPPED, (test) => {
-                console.log = this.oldConsoleLog;
-                /** */
                 console.log("  " + chalk.yellow(test.fullTitle()));
+                console.log = this.oldConsoleLog;
+                console.log("  " + chalk.yellow(test.fullTitle()));
+                /** */
                 const { duration, file, error, timedOut, state, stats, title } = test;
+                const output = this.outputLines;
                 parentPort.postMessage({
                     type: EVENT_TEST_SKIPPED,
-                    test: { duration, file, error, timedOut, state, stats, title }
+                    test: { duration, file, error, timedOut, state, stats, title, output }
                 });
                 // console.log("  " + this.indent() + chalk.yellow(test.title));
             })
@@ -158,8 +190,12 @@ class ParallelMochaReporter {
                 console.log("  " + chalk.red(test.fullTitle()));
                 console.log(test.file);
                 const { duration, file, error, timedOut, state, stats, title } = test;
-                parentPort.postMessage({ type: EVENT_TEST_FAIL, test: { duration, file, error, timedOut, state, stats, title } });
-                process.exit(1);
+                const output = this.outputLines;
+                parentPort.postMessage({
+                    type: EVENT_TEST_FAIL,
+                    test: { duration, file, error: err, timedOut, state, stats, title, output }
+                });
+                //xx                process.exit(1);
                 /** */
             })
             .once(EVENT_RUN_END, () => {
@@ -199,8 +235,27 @@ async function runTestAndContinue(data) {
     }
     await runTestAndContinue(data);
 }
+
+const t1 = Date.now();
+function epilogue() {
+    const t2 = Date.now();
+    console.log("Duration: ", durationToString(t2 - t1));
+
+    console.log("Failing tests:");
+    console.log(failingTestFilename.join("\n"));
+    const testByDuration = [...Object.entries(durationsPerTestFile)].sort(
+        ([file1, duration1], [file2, duration2]) => duration2 - duration1
+    );
+    console.log("Longest tests:");
+    console.log(
+        testByDuration
+            .slice(0, 10)
+            .map(([file, duration]) => `${durationToString(duration)}: ${file}`)
+            .join("\n")
+    );
+}
+
 if (isMainThread) {
-    const t1 = Date.now();
     (async () => {
         const testFiles = await extractAllTestFiles();
         const data = {
@@ -209,16 +264,13 @@ if (isMainThread) {
             testFiles
         };
         const promises = [];
-        const cpuCount = Math.max(os.cpus().length - 1, 1);
+        const cpuCount = Math.max(os.cpus().length - 2, 1);
         for (let i = 0; i < cpuCount; i++) {
             promises.push(runTestAndContinue(data));
         }
         await Promise.all(promises);
-        const t2 = Date.now();
-        console.log("Duration: ", durationToString(t2 - t1));
 
-        console.log("Failing tests:");
-        console.log(failingTestFilename.join("\n"));
+        epilogue();
     })();
 } else {
     const { page, selectedTests } = workerData;
@@ -230,11 +282,8 @@ if (isMainThread) {
         parentPort.postMessage({ type: "LOG", page, args });
     };
     (async () => {
-        console.log("Worker started", page, selectedTests.length);
-        // parentPort?.postMessage("hello from " + page);
-        // await new Promise((resolve)=>setTimeout(resolve, Math.random()*1000));
+        // console.log("Worker started", page, selectedTests.length);
         const reporter = ParallelMochaReporter;
         const failures = await runtests({ reporter, dryRun: false, filterOpts: "", selectedTests });
-        // process.exit(failures);
     })();
 }
