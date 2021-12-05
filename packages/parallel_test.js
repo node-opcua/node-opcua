@@ -264,7 +264,7 @@ if (isMainThread) {
             testFiles
         };
         const promises = [];
-        const cpuCount = Math.max(os.cpus().length - 2, 1);
+        const cpuCount = Math.max(os.cpus().length + 1, 1);
         for (let i = 0; i < cpuCount; i++) {
             promises.push(runTestAndContinue(data));
         }
