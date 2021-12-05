@@ -19,5 +19,5 @@ build_and_test:
   script:
     - pnpm run build --if-present
     - pnpm run pretest
-    - pnpm run test
+    - node packages/parallel_test.js
  
