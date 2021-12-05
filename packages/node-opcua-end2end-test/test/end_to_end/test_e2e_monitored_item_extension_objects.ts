@@ -39,12 +39,8 @@ describe("AZA1- testing Client-Server subscription use case, on a fake server ex
     let server: OPCUAServer;
     before(async () => {
 
-        const serverCertificateManager = new OPCUACertificateManager({
-            rootFolder: 
-        })
         server = new OPCUAServer({
             port,
-            serverCertificateManager,
             nodeset_filename: [nodesets.standard, nodesets.di, nodesets.autoId]
         });
     });
