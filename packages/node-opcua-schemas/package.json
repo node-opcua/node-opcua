@@ -1,6 +1,6 @@
 {
     "name": "node-opcua-schemas",
-    "version": "2.62.0",
+    "version": "2.62.4",
     "description": "pure nodejs OPCUA SDK - module -schemas",
     "main": "dist/source/index.js",
     "types": "dist/source/index.d.ts",
@@ -14,19 +14,19 @@
     "dependencies": {
         "node-opcua-assert": "2.55.0",
         "node-opcua-binary-stream": "2.55.0",
-        "node-opcua-data-model": "2.61.0",
-        "node-opcua-debug": "2.61.0",
+        "node-opcua-data-model": "2.62.4",
+        "node-opcua-debug": "2.62.4",
         "node-opcua-enum": "2.55.0",
-        "node-opcua-extension-object": "2.61.0",
-        "node-opcua-factory": "2.61.0",
-        "node-opcua-nodeid": "2.61.0",
+        "node-opcua-extension-object": "2.62.4",
+        "node-opcua-factory": "2.62.4",
+        "node-opcua-nodeid": "2.62.4",
         "node-opcua-utils": "2.60.0",
-        "node-opcua-variant": "2.62.0",
-        "node-opcua-xml2json": "2.61.0",
+        "node-opcua-variant": "2.62.4",
+        "node-opcua-xml2json": "2.62.4",
         "thenify": "^3.3.1"
     },
     "devDependencies": {
-        "node-opcua-packet-analyzer": "2.61.0"
+        "node-opcua-packet-analyzer": "2.62.4"
     },
     "author": "Etienne Rossignon",
     "license": "MIT",
