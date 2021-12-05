@@ -22,7 +22,7 @@
     },
     "devDependencies": {
         "node-opcua-data-model": "2.62.4",
-        "node-opcua-service-endpoints": "2.59.0",
+        "node-opcua-service-endpoints": "2.62.4",
         "should": "^13.2.3"
     },
     "author": "Etienne Rossignon",

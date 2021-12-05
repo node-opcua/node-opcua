@@ -23,7 +23,7 @@
     },
     "devDependencies": {
         "@types/lodash": "4.14.177",
-        "@types/underscore": "^1.11.3",
+        "@types/underscore": "^1.11.4",
         "lodash": "4.17.21",
         "node-opcua-benchmarker": "2.55.0",
         "node-opcua-binary-stream": "2.55.0",
