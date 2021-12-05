@@ -110,6 +110,7 @@ function getDefaultCertificateManager(port) {
 function build_server_with_temperature_device(options, done) {
     assert(typeof done, "expecting a callback function" === "function");
     assert(typeof nodesets.standard === "string");
+    assert(options.port , "expecting a port number");
 
     const serverCertificateManager = getDefaultCertificateManager(options.port);
 
@@ -137,6 +138,7 @@ function build_server_with_temperature_device(options, done) {
 }
 
 function _build_server_with_temperature_device(server, options, done) {
+    assert(options.port , "expecting a port number");
     //xx console.log("xxx building server with temperature device");
 
     server.on("session_closed", function (session, reason) {

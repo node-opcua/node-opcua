@@ -27,6 +27,7 @@ const maxAllowedSessionNumber = 50;
 
 const { build_server_with_temperature_device }= require("../test_helpers/build_server_with_temperature_device");
 
+// eslint-disable-next-line import/order
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("Functional test : one server with many concurrent clients", function () {
     let server, temperatureVariableId, endpointUrl;

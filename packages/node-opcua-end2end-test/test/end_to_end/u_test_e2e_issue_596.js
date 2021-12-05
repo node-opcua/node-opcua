@@ -1,10 +1,10 @@
-/*global describe, it, require*/
-const should = require("should");
 const os = require("os");
+const should = require("should");
 
 const { OPCUAClient, makeApplicationUrn } = require("node-opcua");
 const { perform_operation_on_client_session } = require("../../test_helpers/perform_operation_on_client_session");
 const doDebug = true;
+// eslint-disable-next-line import/order
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 
 module.exports = function (test) {
@@ -18,15 +18,22 @@ module.exports = function (test) {
                 client,
                 endpointUrl,
                 function (session, inner_done) {
-                    session.readNamespaceArray(function () {
+                    session.readNamespaceArray((err, namespaceArray) => {
+                        if (err) {
+                            return inner_done(err);
+                        }
                         if (doDebug) {
                             console.log("hostname = ", hostname);
                             console.log(" _namespaceArray =", session._namespaceArray);
                         }
-                        session.getNamespaceIndex("http://opcfoundation.org/UA/").should.eql(0);
-                        session.getNamespaceIndex(makeApplicationUrn(hostname,"NodeOPCUA-Server")).should.eql(1);
-                        session.getNamespaceIndex("urn://node-opcua-simulator").should.eql(2);
-                        inner_done();
+                        try {
+                            session.getNamespaceIndex("http://opcfoundation.org/UA/").should.eql(0);
+                            namespaceArray[1].should.match(new RegExp(makeApplicationUrn(hostname, "NodeOPCUA-Server")));
+                            session.getNamespaceIndex("urn://node-opcua-simulator").should.eql(2);
+                            inner_done();
+                        } catch (err) {
+                            inner_done(err);
+                        }
                     });
                 },
                 done
