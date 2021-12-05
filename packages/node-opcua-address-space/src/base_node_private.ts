@@ -199,9 +199,14 @@ export function BaseNode_References_toString(this: BaseNode, options: ToStringOp
             return;
         }
         const o = ReferenceImpl.resolveReferenceNode(addressSpace, reference);
-        const name = o ? o.browseName.toString() : "<???>";
+        if (!o) {
+            warningLog("cannot find referece", reference.toString());
+            return;
+        }
+        const name = o.browseName.toString();
+        const modellingRule = o.modellingRule || " ";
         const extra =
-            (o.modellingRule || " ")[0] +
+            modellingRule[0] +
             (() => {
                 switch (o.nodeClass) {
                     case NodeClass.Object:

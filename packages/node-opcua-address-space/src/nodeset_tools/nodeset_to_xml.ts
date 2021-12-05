@@ -568,7 +568,7 @@ function _dumpValue(xw: XmlWriter, node: UAVariable | UAVariableType, value: Var
     } else {
         const encodeXml = _dumpVariantValue.bind(null, xw, value.dataType);
         if (value.arrayType === VariantArrayType.Matrix) {
-            console.log("Warning _dumpValue : Matrix not supported yet");
+            // console.log("Warning _dumpValue : Matrix not supported yet");
             xw.startElement("ListOf" + dataTypeName);
             xw.writeAttribute("xmlns", "http://opcfoundation.org/UA/2008/02/Types.xsd");
             value.value.forEach(encodeXml);
