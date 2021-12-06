@@ -1,14 +1,12 @@
 import * as fs from "fs";
 import * as path from "path";
-import { promisify } from "util";
+import "should";
+
 const { readFile, writeFile } = fs.promises;
 
-import { Certificate, convertPEMtoDER, exploreCertificate, makeSHA1Thumbprint, split_der, toPem } from "node-opcua-crypto";
-import { compactDirectoryName } from "node-opcua-crypto/dist/source/asn1";
+import { Certificate, convertPEMtoDER, exploreCertificate, makeSHA1Thumbprint, split_der } from "node-opcua-crypto";
 import { CertificateManager, g_config } from "node-opcua-certificate-manager";
-import { StatusCode, StatusCodes } from "node-opcua-status-code";
-
-import * as should from "should";
+import { StatusCodes } from "node-opcua-status-code";
 
 import { subjectToString, UpdateCertificateResult } from "../..";
 import { PushCertificateManagerServerImpl } from "../..";
@@ -39,6 +37,9 @@ async function getCertificateDER(manager: CertificateManager): Promise<Certifica
     const certificate = convertPEMtoDER(certificatePEM);
     return certificate;
 }
+
+const prefix = "BB";
+const _folder = path.join(_tempFolder, prefix);
 // make sure extra error checking is made on object constructions
 // tslint:disable-next-line:no-var-requires
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
@@ -49,21 +50,21 @@ describe("Testing Server Side PushCertificateManager", () => {
     let cert2: Buffer;
 
     before(async () => {
-        await initializeHelpers();
-        cert1 = await createSomeCertificate("cert1.pem");
-        cert2 = await createSomeCertificate("cert2.pem");
+        await initializeHelpers(_folder);
+        cert1 = await createSomeCertificate(_folder, "cert1.pem");
+        cert2 = await createSomeCertificate(_folder, "cert2.pem");
     });
     before(async () => {
         const applicationGroup = new CertificateManager({
-            location: path.join(_tempFolder, "application")
+            location: path.join(_folder, "application")
         });
         const userTokenGroup = new CertificateManager({
-            location: path.join(_tempFolder, "user")
+            location: path.join(_folder, "user")
         });
         pushManager = new PushCertificateManagerServerImpl({
             applicationGroup,
             userTokenGroup,
-            applicationUri: "--missing--applicationUri--",
+            applicationUri: "--missing--applicationUri--"
         });
 
         await pushManager.initialize();
@@ -112,7 +113,7 @@ describe("Testing Server Side PushCertificateManager", () => {
     it("updateCertificate should return BadSecurityChecksFailed if certificate doesn't match private key ", async () => {
         // Given a certificate created for a different Private keuy
         const wrongCertificateManager = new CertificateManager({
-            location: path.join(_tempFolder, "wrong")
+            location: path.join(_folder, "wrong")
         });
         await wrongCertificateManager.initialize();
         const filename = await wrongCertificateManager.createCertificateRequest({
@@ -121,7 +122,7 @@ describe("Testing Server Side PushCertificateManager", () => {
         });
         const certificateSigningRequestPEM = await readFile(filename, "ascii");
         const certificateSigningRequest = convertPEMtoDER(certificateSigningRequestPEM);
-        const wrongCertificate = await produceCertificate(certificateSigningRequest);
+        const wrongCertificate = await produceCertificate(_folder, certificateSigningRequest);
 
         // When I call updateCertificate with a certificate that do not match the private key
         const certificateChain = split_der(wrongCertificate);
@@ -147,7 +148,7 @@ describe("Testing Server Side PushCertificateManager", () => {
         resultCSR.certificateSigningRequest!.should.be.instanceOf(Buffer);
 
         // and Given a certificate emitted by the Certificate Authority, which already outdated
-        const certificateFull = await produceOutdatedCertificate(resultCSR.certificateSigningRequest!);
+        const certificateFull = await produceOutdatedCertificate(_folder, resultCSR.certificateSigningRequest!);
 
         // When I call updateCertificate with a certificate that do not match the private key
         const certificateChain = split_der(certificateFull);
@@ -173,7 +174,7 @@ describe("Testing Server Side PushCertificateManager", () => {
         resultCSR.certificateSigningRequest!.should.be.instanceOf(Buffer);
 
         // and Given a certificate emitted by the Certificate Authority
-        const certificateFull = await produceCertificate(resultCSR.certificateSigningRequest!);
+        const certificateFull = await produceCertificate(_folder, resultCSR.certificateSigningRequest!);
 
         const certificateChain = split_der(certificateFull);
         const certificate = certificateChain[0];
@@ -199,7 +200,7 @@ describe("Testing Server Side PushCertificateManager", () => {
         );
         resultCSR.certificateSigningRequest!.should.be.instanceOf(Buffer);
 
-        const certificateFull = await produceCertificate(resultCSR.certificateSigningRequest!);
+        const certificateFull = await produceCertificate(_folder, resultCSR.certificateSigningRequest!);
         const certificateChain = split_der(certificateFull);
         const certificate = certificateChain[0];
         const issuerCertificates = certificateChain.slice(1);
@@ -221,25 +222,22 @@ describe("Testing Server Side PushCertificateManager", () => {
         existingCertificateAfterApplyChange.toString("hex").should.not.eql(existingCertificate1.toString("hex"));
     });
 
-
-
-
     it("XDC-1 createSigningRequest should reuse existing certificate subjectAltName if none is provided", async () => {
         // Given a push manager with an existing certificate
-        let existingSubject  ="";
+        let existingSubject = "";
         {
             const resultCSR = await pushManager.createSigningRequest(
                 "DefaultApplicationGroup",
                 "",
                 "/ST=FRANCE/O=SomeOrganisation/CN=urn:SomeCommonName"
             );
-            const certificateFull = await produceCertificate(resultCSR.certificateSigningRequest!);
+            const certificateFull = await produceCertificate(_folder, resultCSR.certificateSigningRequest!);
             const certificateChain = split_der(certificateFull);
             const certificate = certificateChain[0];
             const issuerCertificates = certificateChain.slice(1);
 
             const e = exploreCertificate(certificateFull);
-            existingSubject =subjectToString(e.tbsCertificate.subject);
+            existingSubject = subjectToString(e.tbsCertificate.subject);
             console.log("existingSubject = ", existingSubject, e.tbsCertificate.subject);
             const result: UpdateCertificateResult = await pushManager.updateCertificate(
                 "DefaultApplicationGroup",
@@ -252,18 +250,14 @@ describe("Testing Server Side PushCertificateManager", () => {
         }
 
         // Given a certificate request generated by the pushManager
-        const resultCSR = await pushManager.createSigningRequest(
-            "DefaultApplicationGroup",
-            "",
-            null
-        );
+        const resultCSR = await pushManager.createSigningRequest("DefaultApplicationGroup", "", null);
 
         resultCSR.statusCode.should.eql(StatusCodes.Good);
 
         resultCSR.certificateSigningRequest!.should.be.instanceOf(Buffer);
 
         // and Given a certificate emitted by the Certificate Authority
-        const certificateFull = await produceCertificate(resultCSR.certificateSigningRequest!);
+        const certificateFull = await produceCertificate(_folder, resultCSR.certificateSigningRequest!);
 
         const e = exploreCertificate(certificateFull);
         const newCertificateSubject = subjectToString(e.tbsCertificate.subject);
@@ -283,9 +277,6 @@ describe("Testing Server Side PushCertificateManager", () => {
         // then the updateCertificate shall return Good
         result.statusCode.should.eql(StatusCodes.Good);
 
-        
         newCertificateSubject.should.eql(existingSubject);
-
     });
- 
 });

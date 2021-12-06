@@ -1,7 +1,18 @@
 import * as path from "path";
 import * as fs from "fs";
 
-import { AddressSpace, IServerBase, ISessionBase, PseudoSession, SessionContext, WellKnownRoles, makeRoles, UAServer, UAServerConfiguration, ContinuationPointManager } from "node-opcua-address-space";
+import {
+    AddressSpace,
+    IServerBase,
+    ISessionBase,
+    PseudoSession,
+    SessionContext,
+    WellKnownRoles,
+    makeRoles,
+    UAServer,
+    UAServerConfiguration,
+    ContinuationPointManager
+} from "node-opcua-address-space";
 import { generateAddressSpace } from "node-opcua-address-space/nodeJS";
 import { NodeClass } from "node-opcua-data-model";
 import { nodesets } from "node-opcua-nodesets";
@@ -16,7 +27,10 @@ import { SecurityPolicy } from "node-opcua-secure-channel";
 import { ClientPushCertificateManagement, installPushCertificateManagement } from "..";
 import { TrustListMasks } from "../source/server/trust_list_server";
 
-import { initializeHelpers } from "./helpers/fake_certificate_authority";
+import { initializeHelpers, _tempFolder } from "./helpers/fake_certificate_authority";
+
+const prefix = "AA";
+const _folder = path.join(_tempFolder, prefix);
 
 const doDebug = false;
 // make sure extra error checking is made on object constructions
@@ -46,7 +60,6 @@ describe("ServerConfiguration", () => {
         },
         continuationPointManager: new ContinuationPointManager()
     };
-    const _tempFolder = path.join(__dirname, "../temp");
 
     let applicationGroup: CertificateManager;
     let userTokenGroup: CertificateManager;
@@ -54,13 +67,13 @@ describe("ServerConfiguration", () => {
     const xmlFiles = [nodesets.standard];
     beforeEach(async () => {
         try {
-            await initializeHelpers();
+            await initializeHelpers(_folder);
 
             applicationGroup = new CertificateManager({
-                location: path.join(_tempFolder, "application")
+                location: path.join(_folder, "application")
             });
             userTokenGroup = new CertificateManager({
-                location: path.join(_tempFolder, "user")
+                location: path.join(_folder, "user")
             });
 
             await applicationGroup.initialize();
@@ -78,7 +91,6 @@ describe("ServerConfiguration", () => {
         addressSpace.dispose();
         applicationGroup.dispose();
         userTokenGroup.dispose();
-
     });
 
     it("should expose a server configuration object", async () => {
@@ -200,7 +212,6 @@ describe("ServerConfiguration", () => {
             //            result.applyChangesRequired!.should.eql(true);
         });
 
-
         async function give_a_address_space_with_server_configuration_and_default_application_group() {
             const rootFolder = path.join(__dirname, "../temp/pkipki");
             const certificateManager = new OPCUACertificateManager({
@@ -208,15 +219,12 @@ describe("ServerConfiguration", () => {
             });
             await certificateManager.initialize();
             const server = addressSpace.rootFolder.objects.server as UAServerWithConfiguration;
-            const defaultApplicationGroup = server .serverConfiguration.certificateGroups.defaultApplicationGroup;
+            const defaultApplicationGroup = server.serverConfiguration.certificateGroups.defaultApplicationGroup;
             (defaultApplicationGroup.trustList as any).$$certificateManager = certificateManager;
-
         }
         it("should provide trust list", async () => {
-
             //------------------
-            await installPushCertificateManagement(
-                addressSpace, { applicationGroup, userTokenGroup, applicationUri: "SomeUri" });
+            await installPushCertificateManagement(addressSpace, { applicationGroup, userTokenGroup, applicationUri: "SomeUri" });
 
             const context = new SessionContext({ server: opcuaServer, session });
             const pseudoSession = new PseudoSession(addressSpace, context);
@@ -229,7 +237,7 @@ describe("ServerConfiguration", () => {
             let a = await trustList.readTrustedCertificateList();
             console.log(a.toString());
 
-            // now add a certificate 
+            // now add a certificate
             const certificateFile = path.join(__dirname, "../../node-opcua-samples/certificates/client_cert_2048.pem");
             assert(fs.existsSync(certificateFile));
 
@@ -246,10 +254,8 @@ describe("ServerConfiguration", () => {
         });
 
         it("should provide trust list with masks - issuer certificates", async () => {
-
             //------------------
-            await installPushCertificateManagement(
-                addressSpace, { applicationGroup, userTokenGroup, applicationUri: "SomeUri" });
+            await installPushCertificateManagement(addressSpace, { applicationGroup, userTokenGroup, applicationUri: "SomeUri" });
 
             const context = new SessionContext({ server: opcuaServer, session });
             const pseudoSession = new PseudoSession(addressSpace, context);
@@ -266,26 +272,27 @@ describe("ServerConfiguration", () => {
             a.issuerCrls!.length.should.eql(0);
             a.trustedCrls!.length.should.eql(0);
 
-            // now add a certificate 
+            // now add a certificate
             {
                 const certificateFile = path.join(__dirname, "../../node-opcua-samples/certificates/client_cert_2048.pem");
                 assert(fs.existsSync(certificateFile));
                 const certificate = await readCertificate(certificateFile);
-                const sc = await trustList.addCertificate(certificate, /*isTrustedCertificate =*/false);
+                const sc = await trustList.addCertificate(certificate, /*isTrustedCertificate =*/ false);
                 sc.should.eql(StatusCodes.Good);
             }
             {
-                const selfSignedCertificateFile = path.join(__dirname, "../../node-opcua-samples/certificates/client_selfsigned_cert_2048.pem");
+                const selfSignedCertificateFile = path.join(
+                    __dirname,
+                    "../../node-opcua-samples/certificates/client_selfsigned_cert_2048.pem"
+                );
                 assert(fs.existsSync(selfSignedCertificateFile));
                 const certificate = await readCertificate(selfSignedCertificateFile);
-                const sc = await trustList.addCertificate(certificate, /*isTrustedCertificate =*/true);
+                const sc = await trustList.addCertificate(certificate, /*isTrustedCertificate =*/ true);
                 sc.should.eql(StatusCodes.Good);
-
             }
 
-
             a = await trustList.readTrustedCertificateListWithMasks(TrustListMasks.IssuerCertificates);
-            doDebug &&  console.log(a.toString());
+            doDebug && console.log(a.toString());
             a.specifiedLists.should.eql(TrustListMasks.IssuerCertificates);
             a.trustedCertificates!.length.should.eql(0);
             a.issuerCertificates!.length.should.eql(2);
@@ -299,8 +306,6 @@ describe("ServerConfiguration", () => {
             a.issuerCertificates!.length.should.eql(0);
             a.issuerCrls!.length.should.eql(0);
             a.trustedCrls!.length.should.eql(0);
-
         });
-
     });
 });

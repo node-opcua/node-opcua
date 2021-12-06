@@ -6,7 +6,6 @@ import * as path from "path";
 import { promisify } from "util";
 
 import * as rimraf from "rimraf";
-import * as should  from "should";
 
 import {
     Certificate,
@@ -20,30 +19,32 @@ import {
     toPem
 } from "node-opcua-crypto";
 import { getFullyQualifiedDomainName } from "node-opcua-hostname";
-import { 
-    CertificateAuthority, 
-    CertificateManager, 
-    g_config 
-} from "node-opcua-certificate-manager";
+import { CertificateAuthority, CertificateManager, g_config } from "node-opcua-certificate-manager";
 
 export const _tempFolder = path.join(__dirname, "../../temp");
 
-export async function initializeHelpers() {
-    await promisify(rimraf)(path.join(_tempFolder, "*"));
+export async function initializeHelpers(subfolder: string): Promise<void> {
+    await promisify(rimraf)(path.join(subfolder, "/*"));
     try {
-        await fs.promises.mkdir(_tempFolder);
+        await fs.promises.mkdir(path.basename(subfolder));
+    } catch (err) {}
+    try {
+        await fs.promises.mkdir(subfolder);
     } catch (err) {}
 }
 
-export async function produceCertificateAndPrivateKey(): Promise<{ certificate: Certificate; privateKey: PrivateKey }> {
+export async function produceCertificateAndPrivateKey(
+    subfolder: string
+): Promise<{ certificate: Certificate; privateKey: PrivateKey }> {
+  
     // Given a Certificate Authority
     const certificateManager = new CertificateManager({
         keySize: 2048,
-        location: path.join(_tempFolder, "tmpPKI")
+        location: path.join(subfolder, "tmpPKI")
     });
     await certificateManager.initialize();
 
-    const certFile = path.join(_tempFolder, "tmpPKI/certificate.pem");
+    const certFile = path.join(subfolder, "tmpPKI/certificate.pem");
     const fileExists: boolean = fs.existsSync(certFile);
 
     await certificateManager.createSelfSignedCertificate({
@@ -68,10 +69,13 @@ export async function produceCertificateAndPrivateKey(): Promise<{ certificate: 
     return { certificate, privateKey };
 }
 
-export async function _getFakeAuthorityCertificate(): Promise<{ certificate: Certificate; crl: CertificateRevocationList }> {
+export async function _getFakeAuthorityCertificate(
+    subfolder: string
+): Promise<{ certificate: Certificate; crl: CertificateRevocationList }> {
+   
     const certificateAuthority = new CertificateAuthority({
         keySize: 2048,
-        location: path.join(_tempFolder, "CA")
+        location: path.join(subfolder, "CA")
     });
     await certificateAuthority.initialize();
     const certificate = readCertificate(certificateAuthority.caCertificate);
@@ -79,11 +83,16 @@ export async function _getFakeAuthorityCertificate(): Promise<{ certificate: Cer
     return { certificate, crl };
 }
 
-async function _produceCertificate(certificateSigningRequest: Buffer, startDate: Date, validity: number): Promise<Buffer> {
+async function _produceCertificate(
+    subfolder: string,
+    certificateSigningRequest: Buffer,
+    startDate: Date,
+    validity: number
+): Promise<Buffer> {
     // Given a Certificate Authority
     const certificateAuthority = new CertificateAuthority({
         keySize: 2048,
-        location: path.join(_tempFolder, "CA")
+        location: path.join(subfolder, "CA")
     });
     await certificateAuthority.initialize();
 
@@ -112,16 +121,16 @@ async function _produceCertificate(certificateSigningRequest: Buffer, startDate:
     return convertPEMtoDER(certificatePEM);
 }
 
-export async function produceOutdatedCertificate(certificateSigningRequest: Buffer): Promise<Buffer> {
+export async function produceOutdatedCertificate(subfolder: string, certificateSigningRequest: Buffer): Promise<Buffer> {
     const startDate = new Date(2010, 1, 1);
     const validity = 10; //
-    return _produceCertificate(certificateSigningRequest, startDate, validity);
+    return _produceCertificate(subfolder, certificateSigningRequest, startDate, validity);
 }
 
-export async function produceCertificate(certificateSigningRequest: Buffer): Promise<Buffer> {
+export async function produceCertificate(subfolder: string, certificateSigningRequest: Buffer): Promise<Buffer> {
     const startDate = new Date(Date.now() - 3600 * 5 * 1000);
     const validity = 365 * 10;
-    return _produceCertificate(certificateSigningRequest, startDate, validity);
+    return _produceCertificate(subfolder, certificateSigningRequest, startDate, validity);
 }
 
 let tmpGroup: CertificateManager;
@@ -130,14 +139,14 @@ let tmpGroup: CertificateManager;
  * createSomeCertificate create a certificate from a private key
  * @param certName
  */
-export async function createSomeCertificate(certName: string): Promise<Buffer> {
+export async function createSomeCertificate(subfolder: string, certName: string): Promise<Buffer> {
     if (!tmpGroup) {
         tmpGroup = new CertificateManager({
-            location: path.join(_tempFolder, "tmp")
+            location: path.join(subfolder, "tmp")
         });
         await tmpGroup.initialize();
     }
-    const certFile = path.join(_tempFolder, certName);
+    const certFile = path.join(subfolder, certName);
 
     const fileExists: boolean = fs.existsSync(certFile);
     if (!fileExists) {
