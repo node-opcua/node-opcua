@@ -6,7 +6,7 @@ const { OPCUAClient } = require("node-opcua");
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 module.exports = function(test) {
     describe("Testing Client Connection ", function() {
-        this.timeout(23456);
+        this.timeout(2000);
         it("it should raise an error if connect is called with an empty endpoint", async () => {
             const client = OPCUAClient.create({});
 

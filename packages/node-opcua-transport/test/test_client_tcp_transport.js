@@ -19,7 +19,7 @@ const { FakeServer } = require("../dist/test_helpers");
 const { AcknowledgeMessage, TCPErrorMessage, ClientTCP_transport, packTcpMessage } = require("..");
 
 describe("testing ClientTCP_transport", function () {
-    this.timeout(15000);
+    this.timeout(5000);
 
     let transport;
     let spyOnClose, spyOnConnect, spyOnConnectionBreak;

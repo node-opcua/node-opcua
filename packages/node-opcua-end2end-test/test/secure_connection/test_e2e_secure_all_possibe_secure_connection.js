@@ -11,6 +11,7 @@ const chalk = require("chalk");
 const should = require("should");
 const sinon = require("sinon");
 
+
 const {
     ClientSubscription,
     coerceMessageSecurityMode,
@@ -74,14 +75,6 @@ async function makeServerCertificateManager() {
     return certificateManager;
 }
 
-async function getOrCreateCLientCertificateManager() {
-    const certificateManager = new OPCUACertificateManager({
-        automaticallyAcceptUnknownCertificate: true,
-        rootFolder: path.join(_tmpFolder, "clientPKI-all-possible_secure_connection")
-    });
-    await certificateManager.initialize();
-    return certificateManager;
-}
 function start_inner_server_local(options, callback) {
     // Given a server that have a signed end point
 
@@ -306,9 +299,7 @@ function keep_monitoring_some_variable(client, session, security_token_renewed_l
         debugLog(chalk.red("xxx internal error in ClientSubscription"), err.message);
         the_error = err;
     });
-    subscription.on("terminated", function () {
-        /* */
-    });
+    subscription.on("terminated", function () {/* */});
     subscription.on("keepalive", function () {
         debugLog(chalk.red("keep alive"));
         //        console.log(".")
@@ -331,7 +322,7 @@ function common_test(securityPolicy, securityMode, options, done) {
         securityPolicy: coerceSecurityPolicy(securityPolicy),
         //xx serverCertificate: serverCertificate,
         connectionStrategy: no_reconnect_connectivity_strategy,
-        requestedSessionTimeout: 120 * 60 * 1000,
+        requestedSessionTimeout: 120 * 60 * 1000
     };
 
     options.defaultSecureTokenLifetime = options.defaultSecureTokenLifetime || g_defaultSecureTokenLifetime;
@@ -529,24 +520,14 @@ function perform_collection_of_test_with_client_configuration(message, options) 
     it("should succeed with Aes128_Sha256_RsaOaep with SignAndEncrypt " + message, function (done) {
         common_test("Aes128_Sha256_RsaOaep", "SignAndEncrypt", options, done);
     });
-
+    
     xit("should succeed with Aes256_Sha256_RsaPss with SignAndEncrypt " + message, function (done) {
         common_test("Aes256_Sha256_RsaPss", "SignAndEncrypt", options, done);
     });
 }
 
-function perform_collection_of_test_with_various_client_configuration(prefix, certificateManager) {
+function perform_collection_of_test_with_various_client_configuration(prefix) {
     prefix = prefix || "";
-    
-    let certifcateManager;
-    before(async ()=>{
-        certifcateManager = await getOrCreateCLientCertificateManager();
-        certifcateManager.referenceCounter++;
-    });
-    after(async ()=>{
-        certifcateManager.referenceCounter--;
-        certifcateManager.dispose();
-    });
 
     function build_options(keySize) {
         const client_certificate_pem_file = path.join(certificateFolder, "client_cert_" + keySize + ".pem");
@@ -554,7 +535,6 @@ function perform_collection_of_test_with_various_client_configuration(prefix, ce
         fs.existsSync(client_certificate_pem_file).should.eql(true, client_certificate_pem_file + " must exist");
         fs.existsSync(client_certificate_privatekey_file).should.eql(true, client_certificate_privatekey_file + " must exist");
         const options = {
-            certifcateManager,
             certificateFile: client_certificate_pem_file,
             privateKeyFile: client_certificate_privatekey_file
         };
@@ -842,9 +822,7 @@ describe("ZZB- testing server behavior on secure connection ", function () {
                         //
                         // this request will fail as we haven't renewed the securityToken
                         // Server will close the connection when receiving this request
-                        session.read([], function () {
-                            /**/
-                        });
+                    session.read([], function () {/**/});
                     }, 5000);
                 },
                 function (err) {
@@ -881,6 +859,7 @@ describe("ZZC- testing Security Policy with a valid 1024 bit certificate on serv
             done();
         });
     });
+
     perform_collection_of_test_with_various_client_configuration(" (1024 bits certificate on server)");
 
     it("connection should fail if security mode requested by client is not supported by server", function (done) {
