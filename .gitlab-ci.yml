@@ -14,8 +14,8 @@ build_and_test:
   variables:
      KUBERNETES_CPU_REQUEST: 4
      KUBERNETES_CPU_LIMIT: 4
-     KUBERNETES_MEMORY_REQUEST: 2Gi
-     KUBERNETES_MEMORY_LIMIT: 2Gi
+     KUBERNETES_MEMORY_REQUEST: 4Gi
+     KUBERNETES_MEMORY_LIMIT: 4Gi
   stage: build
   before_script:
     - curl -L https://unpkg.com/@pnpm/self-installer | node
