@@ -15,8 +15,6 @@ Error.stackTraceLimit = 20;
 
 require("mocha-clean");
 
-
-
 async function collect_files(testFiles, testFolder) {
     for (const file of fs.readdirSync(testFolder)) {
         let f = path.join(testFolder, file);
@@ -39,7 +37,7 @@ async function collect_files(testFiles, testFolder) {
     }
 }
 
- async function extractAllTestFiles() {
+async function extractAllTestFiles() {
     let testFiles = [];
 
     const promises = [];
@@ -52,16 +50,14 @@ async function collect_files(testFiles, testFolder) {
     await Promise.all(promises);
 
     testFiles = testFiles.sort();
-    return testFiles
+    return testFiles;
 }
 exports.extractAllTestFiles = extractAllTestFiles;
 
- async function extractPageTest(testFiles, { page, pageCount, pageSize }) {
+async function extractPageTest(testFiles, { page, pageCount, pageSize }) {
     // -------------------------------------------------
     // portion
     if (page !== undefined) {
-        // console.log("nb files with tests : ", testFiles.length);
-
         if (page === -1) {
             // display test page
             let i = 0;
@@ -93,7 +89,6 @@ exports.extractPageTest = extractPageTest;
 async function extractTestFiles({ page, pageCount, pageSize }) {
     let testFiles = await extractAllTestFiles();
     return await extractPageTest(testFiles, { page, pageCount, pageSize });
-
 }
 
 function test_no_leak(file) {
@@ -183,7 +178,7 @@ class MyReporter {
             .on(EVENT_TEST_BEGIN, (test) => {
                 this.counter++;
                 const mem = checkMemoryConsumption();
-               // console.log(`The script uses approximately ${Math.round(mem * 100) / 100} MB`);
+                // console.log(`The script uses approximately ${Math.round(mem * 100) / 100} MB`);
                 this.memBefore = mem;
                 let memInfo = mem.toPrecision(5);
                 this.displayStatus(test, chalk.cyan(symbols.dot), chalk.grey(memInfo), "", "\r");
@@ -265,16 +260,14 @@ class MyReporter {
     }
 }
 
-async function runtests({ selectedTests, reporter,dryRun,  filterOpts, skipped }) {
-   
-   
+async function runtests({ selectedTests, reporter, dryRun, filterOpts, skipped }) {
     // Instantiate a Mocha instance.
     let mocha = new Mocha({
         bail: true,
         fullTrace: true,
         grep: filterOpts,
         dryRun,
-        timeout: 30000,
+        timeout: 80000,
         /*
         fullTrace: true,
         parallel: true,
@@ -288,7 +281,7 @@ async function runtests({ selectedTests, reporter,dryRun,  filterOpts, skipped }
 
     const suite = mocha.suite;
     suite.on("pre-require", (global, file, self) => {
-        //console.log("pre-require", file);
+        console.log("pre-require", file);
     });
     suite.on("require", (script, file, self) => {
         /* */
@@ -305,7 +298,6 @@ async function runtests({ selectedTests, reporter,dryRun,  filterOpts, skipped }
         }
         count++;
     }
-    console.log("");
     mocha.timeout(200000);
     mocha.bail(true);
 
@@ -332,14 +324,14 @@ if (require.main === module) {
     const pageSize = parseInt(process.env.PAGESIZE || "0") || 1;
     const page = process.env.TESTPAGE ? parseInt(process.env.TESTPAGE) : undefined;
 
-    let reporter = process.env.REPORTER || "spec";//"nyan", //"tap"
+    let reporter = process.env.REPORTER || "spec"; //"nyan", //"tap"
     if (process.env.NODEOPCUATESTREPORTER) {
         reporter = MyReporter;
     }
     (async () => {
         try {
             const selectedTests = await extractTestFiles({ page, pageSize, pageCount });
-            const failures = await runtests({ selectedTests,  reporter, skipped, filterOpts });
+            const failures = await runtests({ selectedTests, reporter, skipped, filterOpts });
             process.exit(failures);
         } catch (err) {
             console.log("---------------------------------- mocha run error");
