@@ -24,13 +24,13 @@ import { CertificateAuthority, CertificateManager, g_config } from "node-opcua-c
 export const _tempFolder = path.join(__dirname, "../../temp");
 
 export async function initializeHelpers(subfolder: string): Promise<void> {
-    await promisify(rimraf)(path.join(subfolder, "/*"));
+    await promisify(rimraf)(path.join(subfolder, "*"));
     try {
-        await fs.promises.mkdir(path.basename(subfolder));
-    } catch (err) {}
+        await fs.promises.mkdir(path.dirname(subfolder));
+    } catch (err) {/** */}
     try {
         await fs.promises.mkdir(subfolder);
-    } catch (err) {}
+    } catch (err) {/** */}
 }
 
 export async function produceCertificateAndPrivateKey(

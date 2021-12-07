@@ -13,8 +13,8 @@ describe("testing Client - Umbrella-F", function () {
     // this test could be particularly slow on RaspberryPi or BeagleBoneBlack
     // so we set a big enough timeout
     // execution time could also be affected by code running under profiling/coverage tools (istanbul)
-    this.timeout(process.arch === "arm" ? 400000 : 30000);
-    this.timeout(Math.max(200000, this.timeout()));
+    this.timeout(process.arch === "arm" ? 400*1000 : 20*1000);
+    this.timeout(Math.max(20*10000, this.timeout()));
 
     // eslint-disable-next-line @typescript-eslint/no-this-alias
     const test = this;

@@ -1,14 +1,14 @@
 const should = require("should");
 const { assert } = require("node-opcua-assert");
-const DirectTransport = require("../dist/test_helpers").DirectTransport;
-const SocketTransport = require("../dist/test_helpers").SocketTransport;
+const { DirectTransport, SocketTransport } = require("../dist/test_helpers");
 
+const port = 5879;
 function installTestFor(Transport) {
     describe("Testing behavior of  " + Transport.name + "  to emulate client/server communication in tests", function () {
         let transport = null;
 
         beforeEach(function (done) {
-            transport = new Transport();
+            transport = new Transport({ port });
             transport.initialize(() => {
                 assert(transport.client);
                 assert(transport.server);

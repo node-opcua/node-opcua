@@ -1,10 +1,10 @@
+import * as os from "os";
 import "should";
 import * as async from "async";
-import * as os from "os";
-
-import { OPCUAServer, OPCUADiscoveryServer, RegisterServerMethod, makeApplicationUrn } from "node-opcua";
-import { createDiscovery, createServerThatRegistersItselfToTheDiscoveryServer, f, fa, pause } from "./_helper";
 import { make_debugLog } from "node-opcua-debug";
+import { OPCUAServer, OPCUADiscoveryServer, RegisterServerMethod, makeApplicationUrn } from "node-opcua";
+
+import { createDiscovery, createServerThatRegistersItselfToTheDiscoveryServer, f, fa, pause } from "./_helper";
 const debugLog = make_debugLog("TEST");
 
 const port = 1435;
@@ -15,7 +15,7 @@ export function t() {
     describe("DS6- Discovery server", function (this: any) {
         this.timeout(50000);
 
-        let discoveryServerEndpointUrl: string = `opc.tcp://localhost:${port_discovery}`;
+        let discoveryServerEndpointUrl = `opc.tcp://localhost:${port_discovery}`;
 
         let discoveryServer: OPCUADiscoveryServer | undefined;
 
@@ -54,7 +54,7 @@ export function t() {
             let server: OPCUAServer;
 
             await fa("given a server that has started before the discovery server is online", async () => {
-                server = await createServerThatRegistersItselfToTheDiscoveryServer(discoveryServerEndpointUrl, port, "AA");
+                server = await createServerThatRegistersItselfToTheDiscoveryServer(discoveryServerEndpointUrl, port, "FF");
 
                 await server.start();
                 (server.registerServerManager as any).timeout = 100;
@@ -101,7 +101,7 @@ export function t() {
 
             let server: OPCUAServer;
             await fa("given a server that registers itself to the local discovery server", async () => {
-                server = await createServerThatRegistersItselfToTheDiscoveryServer(discoveryServerEndpointUrl, port, "B");
+                server = await createServerThatRegistersItselfToTheDiscoveryServer(discoveryServerEndpointUrl, port, "GG");
                 (server.registerServerManager as any).timeout = 100;
             });
 

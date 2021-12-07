@@ -1,9 +1,7 @@
 import { EventEmitter } from "events";
 import * as net from "net";
 import { assert } from "node-opcua-assert";
-import { HalfComChannel } from "./half_com_channel";
 
-const port = 5678;
 
 export class FakeServer extends EventEmitter {
     public port: number;
@@ -12,7 +10,7 @@ export class FakeServer extends EventEmitter {
     protected _serverSocket?: net.Socket;
     private _responses?: any[];
 
-    constructor() {
+    constructor({ port }: { port: number }) {
         super();
         this.port = port;
 

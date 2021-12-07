@@ -1,3 +1,4 @@
+import { once } from "events";
 import * as path from "path";
 import * as os from "os";
 import * as fs from "fs";
@@ -15,7 +16,6 @@ import {
     RegisterServerMethod
 } from "node-opcua";
 import { make_debugLog, checkDebugFlag } from "node-opcua-debug";
-import { once } from "events";
 
 const debugLog = make_debugLog("TEST");
 const doDebug = checkDebugFlag("TEST");
@@ -54,7 +54,7 @@ export async function createServerThatRegistersItselfToTheDiscoveryServer(
     await serverCertificateManager.initialize();
     const certificateFile = path.join(serverCertificateManager.rootDir, "certificate_server" + name + ".pem");
 
-    assert(!name.match(/urn\:/));
+    assert(!name.match(/urn:/));
     const applicationName = name;
     const applicationUri = makeApplicationUrn(os.hostname(), name);
 

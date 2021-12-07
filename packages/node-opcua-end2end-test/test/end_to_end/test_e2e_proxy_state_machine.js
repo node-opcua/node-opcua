@@ -23,19 +23,12 @@ describe("testing client Proxy State Machine", function() {
         ]
     };
 
-    let g_session;
+    let session;
     let client_server;
 
-    before(function(done) {
-
-        client_server = build_client_server_session(serverOptions, function(err) {
-            if (!err) {
-                g_session = client_server.g_session;
-
-            }
-            done(err);
-        });
-
+    before(async () => {
+        client_server = await build_client_server_session(serverOptions);
+        session = client_server.g_session;
     });
 
     function dumpStats() {
@@ -45,9 +38,9 @@ describe("testing client Proxy State Machine", function() {
         console.log("transactionsPerformed  ", client.transactionsPerformed, " ");
 
     }
-    after(function(done) {
+    after( async () => {
         dumpStats();
-        client_server.shutdown(done);
+        await client_server.shutdown();
     });
 
 
@@ -69,7 +62,7 @@ describe("testing client Proxy State Machine", function() {
 
         dumpStats();
 
-        const proxyManager = new UAProxyManager(g_session);
+        const proxyManager = new UAProxyManager(session);
 
         async.series([
             function(callback) {
@@ -106,7 +99,7 @@ describe("testing client Proxy State Machine", function() {
     it("Z1b should read a state machine", function(done) {
 
 
-        const proxyManager = new UAProxyManager(g_session);
+        const proxyManager = new UAProxyManager(session);
 
         async.series([
             function(callback) {

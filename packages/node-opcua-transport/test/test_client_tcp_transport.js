@@ -16,6 +16,8 @@ const errorLog = make_errorLog("TEST");
 
 const { FakeServer } = require("../dist/test_helpers");
 
+const port = 5678;
+
 const { AcknowledgeMessage, TCPErrorMessage, ClientTCP_transport, packTcpMessage } = require("..");
 
 describe("testing ClientTCP_transport", function () {
@@ -39,7 +41,7 @@ describe("testing ClientTCP_transport", function () {
         spyOnConnectionBreak = sinon.spy();
         transport.on("connection_break", spyOnConnectionBreak);
 
-        fakeServer = new FakeServer();
+        fakeServer = new FakeServer({ port });
         fakeServer.initialize((err) => {
             endpointUrl = fakeServer.url;
             done(err);

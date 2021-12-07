@@ -57,7 +57,8 @@ export function t(test: any) {
 
         before(() => {
             server = new OPCUAServer({
-                port: port0
+                port: port0,
+                serverCertificateManager: this.serverCertificateManager,
             });
         });
 
@@ -67,14 +68,10 @@ export function t(test: any) {
         });
 
         beforeEach(async () => {
-            const serverCertificateManager = new OPCUACertificateManager({
-                rootFolder: path.join(configFolder, "PKI-Discovery")
-            });
-            await serverCertificateManager.initialize();
 
             discovery_server = new OPCUADiscoveryServer({
                 port: port_discovery,
-                serverCertificateManager
+                serverCertificateManager: this.discoveryServerCertificateManager
             });
             await discovery_server.start();
             discoveryServerEndpointUrl = discovery_server.getEndpointUrl();
@@ -218,13 +215,10 @@ export function t(test: any) {
             OPCUAServer.registry.count().should.eql(0);
         });
         beforeEach(async () => {
-            const serverCertificateManager = new OPCUACertificateManager({
-                rootFolder: path.join(configFolder, "PKI-Discovery")
-            });
-            await serverCertificateManager.initialize();
+
             discoveryServer = new OPCUADiscoveryServer({
                 port: port_discovery,
-                serverCertificateManager
+                serverCertificateManager: this.discoveryServerCertificateManager
             });
             await discoveryServer.start();
             discoveryServerEndpointUrl = discoveryServer.getEndpointUrl()!;

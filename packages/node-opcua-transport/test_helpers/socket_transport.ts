@@ -6,8 +6,8 @@ export class SocketTransport extends FakeServer {
     private client: net.Socket;
     private server?: net.Socket;
 
-    constructor() {
-        super();
+    constructor({ port }: { port: number }) {
+        super({ port });
 
         this.client = new net.Socket();
         this.client.connect(this.port, (err?: Error): void => {

@@ -321,6 +321,12 @@ export class RegisterServerManager extends EventEmitter implements IRegisterServ
         this.server = null;
         debugLog("RegisterServerManager#dispose", this.state.toString());
         assert(this.state === RegisterServerManagerStatus.INACTIVE);
+
+        if (this._registrationTimerId) {
+            clearTimeout(this._registrationTimerId);
+            this._registrationTimerId = null;
+        }
+        
         assert(this._registrationTimerId === null, "stop has not been called");
         this.removeAllListeners();
     }

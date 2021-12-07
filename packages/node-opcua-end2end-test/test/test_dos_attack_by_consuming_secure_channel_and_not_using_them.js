@@ -177,7 +177,8 @@ describe("testing Server resilience to DDOS attacks", function() {
                     if (err) {
                         nbError++;
                     }
-                    callback();
+                    callback && callback();
+                    callback = null;
                 });
             }, callback);
         }
