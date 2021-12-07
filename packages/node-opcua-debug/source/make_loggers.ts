@@ -34,6 +34,9 @@ const maxLines =
         : 25;
 
 function extractBasename(name: string): string {
+    if (!name) {
+        return "";
+    }
     // return basename(name).replace(/\.(js|ts)$/, "");
     return name.replace(/(.*[\\|/])?/g, "").replace(/\.(js|ts)$/, "");
 }
