@@ -1,6 +1,6 @@
 {
     "name": "node-opcua-service-browse",
-    "version": "2.62.4",
+    "version": "2.62.5",
     "description": "pure nodejs OPCUA SDK - module -service-browse",
     "scripts": {
         "build": "tsc -b",
@@ -11,20 +11,20 @@
     "types": "./dist/index.d.ts",
     "dependencies": {
         "node-opcua-assert": "2.55.0",
-        "node-opcua-basic-types": "2.62.4",
-        "node-opcua-binary-stream": "2.55.0",
-        "node-opcua-data-model": "2.62.4",
-        "node-opcua-factory": "2.62.4",
-        "node-opcua-nodeid": "2.62.4",
-        "node-opcua-service-secure-channel": "2.62.4",
-        "node-opcua-types": "2.62.4"
+        "node-opcua-basic-types": "2.62.5",
+        "node-opcua-binary-stream": "2.62.5",
+        "node-opcua-data-model": "2.62.5",
+        "node-opcua-factory": "2.62.5",
+        "node-opcua-nodeid": "2.62.5",
+        "node-opcua-service-secure-channel": "2.62.5",
+        "node-opcua-types": "2.62.5"
     },
     "devDependencies": {
-        "node-opcua-date-time": "2.62.4",
-        "node-opcua-debug": "2.62.4",
-        "node-opcua-packet-analyzer": "2.62.4",
-        "node-opcua-status-code": "2.56.0",
-        "node-opcua-variant": "2.62.4",
+        "node-opcua-date-time": "2.62.5",
+        "node-opcua-debug": "2.62.5",
+        "node-opcua-packet-analyzer": "2.62.5",
+        "node-opcua-status-code": "2.62.5",
+        "node-opcua-variant": "2.62.5",
         "should": "^13.2.3"
     },
     "author": "Etienne Rossignon",
