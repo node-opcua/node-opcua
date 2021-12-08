@@ -140,6 +140,27 @@ export class DiagnosticInfo extends BaseUAObject {
     public decodeDebug(stream: BinaryStream, options: DecodeDebugOptions): void {
         decodeDebug_DiagnosticInfo(this, stream, options);
     }
+
+    public filterForResponse(fields: number): void {
+        const schema = schemaDiagnosticInfo;
+        if (!(fields & DiagnosticInfo_ResponseDiagnostics.SymbolicId)) {
+            this.symbolicId = initialize_field(schema.fields[0], undefined) as Int32;
+        }
+        if (!(fields & DiagnosticInfo_ResponseDiagnostics.LocalizedText)) {
+            this.localizedText = initialize_field(schema.fields[3], undefined) as Int32;
+        }
+        if (!(fields & DiagnosticInfo_ResponseDiagnostics.AdditionalInfo)) {
+            this.additionalInfo = initialize_field(schema.fields[4], undefined) as UAString;
+        }
+        if (!(fields & DiagnosticInfo_ResponseDiagnostics.InnerStatusCode)) {
+            this.innerStatusCode = initialize_field(schema.fields[5], undefined) as StatusCode;
+        }
+        if (!(fields & DiagnosticInfo_ResponseDiagnostics.InnerDiagnostics)) {
+            this.innerDiagnosticInfo = initialize_field(schema.fields[6], undefined) as DiagnosticInfo;
+        } else if (this.innerDiagnosticInfo) {
+            this.innerDiagnosticInfo.filterForResponse(fields);
+        }
+    }
 }
 
 DiagnosticInfo.prototype.schema = DiagnosticInfo.schema;
@@ -153,6 +174,33 @@ export interface DiagnosticInfoOptions {
     additionalInfo?: UAString;
     innerStatusCode?: StatusCode;
     innerDiagnosticInfo?: DiagnosticInfo;
+}
+
+export enum DiagnosticInfo_ResponseDiagnosticsLevel {
+    Service = 0x01,
+    Operation = 0x20
+}
+
+export enum DiagnosticInfo_ResponseDiagnostics {
+    SymbolicId = 0x01,
+    LocalizedText = 0x02,
+    AdditionalInfo = 0x04,
+    InnerStatusCode = 0x08,
+    InnerDiagnostics = 0x10
+}
+
+export const RESPONSE_DIAGNOSTICS_MASK_ALL =
+    DiagnosticInfo_ResponseDiagnostics.SymbolicId | DiagnosticInfo_ResponseDiagnostics.LocalizedText | DiagnosticInfo_ResponseDiagnostics.AdditionalInfo |
+    DiagnosticInfo_ResponseDiagnostics.InnerStatusCode | DiagnosticInfo_ResponseDiagnostics.InnerDiagnostics;
+
+export function filterDiagnosticInfoLevel(returnDiagnostics: number, diagnosticInfo: DiagnosticInfo | (DiagnosticInfo | null)[] | null): void {
+    const items = Array.isArray(diagnosticInfo) ? diagnosticInfo : [diagnosticInfo];
+    for (const entry of items) {
+        if (!entry) {
+            continue;
+        }
+        entry.filterForResponse(returnDiagnostics);
+    }
 }
 
 export enum DiagnosticInfo_EncodingByte {

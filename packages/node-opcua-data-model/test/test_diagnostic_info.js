@@ -6,7 +6,7 @@ const { encode_decode_round_trip_test } = require("node-opcua-packet-analyzer/di
 const { BinaryStream } = require("node-opcua-binary-stream");
 const { StatusCodes } = require("node-opcua-status-code");
 
-const { DiagnosticInfo, encodeDiagnosticInfo, decodeDiagnosticInfo } = require("..");
+const { DiagnosticInfo, encodeDiagnosticInfo, decodeDiagnosticInfo, DiagnosticInfo_ResponseDiagnostics } = require("..");
 
 describe("DiagnosticInfo", function () {
     //xx it("should have encodingDefaultBinary = 25",function(){
@@ -119,6 +119,63 @@ describe("DiagnosticInfo", function () {
         encode_decode_round_trip_test(diag, function (buffer) {
             buffer.length.should.equal(1 + 4 + 4 + 4);
         });
+    });
+
+    it("should strip away details if not requested", function () {
+        const diag = new DiagnosticInfo({
+            localizedText: 2345,
+            symbolicId: 3456,
+            additionalInfo: "test",
+            innerStatusCode: StatusCodes.Bad,
+            innerDiagnosticInfo: new DiagnosticInfo({ additionalInfo: "test 2" })
+        });
+        diag.filterForResponse(0);
+        diag.localizedText.should.equal(-1);
+        diag.symbolicId.should.equal(-1);
+        should(diag.additionalInfo).equal(null);
+        diag.innerStatusCode.should.equal(StatusCodes.Good); // 'StatusCodes.Good' is the default value for 'innerStatusCode'
+        should(diag.innerDiagnosticInfo).equal(null);
+    });
+
+    it("should strip away unrequested details", function () {
+        const diag = new DiagnosticInfo({
+            localizedText: 2345,
+            symbolicId: 3456,
+            additionalInfo: "test",
+            innerStatusCode: StatusCodes.Bad,
+            innerDiagnosticInfo: new DiagnosticInfo({ additionalInfo: "test 2" })
+        });
+        const fields = DiagnosticInfo_ResponseDiagnostics.LocalizedText
+            | DiagnosticInfo_ResponseDiagnostics.AdditionalInfo
+            | DiagnosticInfo_ResponseDiagnostics.InnerStatusCode;
+        diag.filterForResponse(fields);
+        diag.localizedText.should.equal(2345);
+        diag.symbolicId.should.equal(-1);
+        diag.additionalInfo.should.equal("test");
+        diag.innerStatusCode.should.equal(StatusCodes.Bad);
+        should(diag.innerDiagnosticInfo).equal(null);
+    });
+
+    it("should not strip away diagnostic information if requested", function () {
+        const diag = new DiagnosticInfo({
+            localizedText: 2345,
+            symbolicId: 3456,
+            additionalInfo: "test",
+            innerStatusCode: StatusCodes.Bad,
+            innerDiagnosticInfo: new DiagnosticInfo({ additionalInfo: "test 2" })
+        });
+        const fields = DiagnosticInfo_ResponseDiagnostics.SymbolicId
+            | DiagnosticInfo_ResponseDiagnostics.LocalizedText
+            | DiagnosticInfo_ResponseDiagnostics.AdditionalInfo
+            | DiagnosticInfo_ResponseDiagnostics.InnerStatusCode
+            | DiagnosticInfo_ResponseDiagnostics.InnerDiagnostics;
+        diag.filterForResponse(fields);
+        diag.localizedText.should.equal(2345);
+        diag.symbolicId.should.equal(3456);
+        diag.additionalInfo.should.equal("test");
+        diag.innerStatusCode.should.equal(StatusCodes.Bad);
+        should(diag.innerDiagnosticInfo).not.equal(null);
+        diag.innerDiagnosticInfo.additionalInfo.should.equal("test 2");
     });
 
     it("encodeDiagnosticInfo/decodeDiagnosticInfo1", () => {

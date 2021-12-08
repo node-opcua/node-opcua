@@ -43,7 +43,9 @@ import {
 import { getDefaultCertificateManager, OPCUACertificateManager } from "node-opcua-certificate-manager";
 import { ServerState } from "node-opcua-common";
 import { Certificate, exploreCertificate, makeSHA1Thumbprint, Nonce, toPem } from "node-opcua-crypto";
-import { AttributeIds, LocalizedText, NodeClass } from "node-opcua-data-model";
+import {
+    AttributeIds, filterDiagnosticInfoLevel, LocalizedText, NodeClass, RESPONSE_DIAGNOSTICS_MASK_ALL, DiagnosticInfo_ResponseDiagnosticsLevel
+} from "node-opcua-data-model";
 import { DataValue } from "node-opcua-data-value";
 import { dump, make_debugLog, make_errorLog, make_warningLog } from "node-opcua-debug";
 import { NodeId } from "node-opcua-nodeid";
@@ -3339,11 +3341,40 @@ export class OPCUAServer extends OPCUABaseServer {
                         response = new CallResponse({
                             results: results as CallMethodResultOptions[]
                         });
+                        this._filterDiagnosticInfo(request.requestHeader.returnDiagnostics, response);
                         sendResponse(response);
                     }
                 );
             }
         );
+    }
+
+    private _filterDiagnosticInfo(returnDiagnostics: number, response: CallResponse): void {
+        if ((RESPONSE_DIAGNOSTICS_MASK_ALL * DiagnosticInfo_ResponseDiagnosticsLevel.Service & returnDiagnostics) && response.responseHeader.serviceDiagnostics) {
+            filterDiagnosticInfoLevel(
+                returnDiagnostics / DiagnosticInfo_ResponseDiagnosticsLevel.Service, response.responseHeader.serviceDiagnostics
+            );
+        } else {
+            response.responseHeader.serviceDiagnostics = null;
+        }
+
+        if (RESPONSE_DIAGNOSTICS_MASK_ALL * DiagnosticInfo_ResponseDiagnosticsLevel.Operation & returnDiagnostics) {
+            if (response.diagnosticInfos && response.diagnosticInfos.length > 0) {
+                filterDiagnosticInfoLevel(returnDiagnostics / DiagnosticInfo_ResponseDiagnosticsLevel.Operation, response.diagnosticInfos);
+            } else {
+                response.diagnosticInfos = [];
+            }
+
+            if (response.results) {
+                for (const entry of response.results) {
+                    if (entry.inputArgumentDiagnosticInfos) {
+                        filterDiagnosticInfoLevel(returnDiagnostics / DiagnosticInfo_ResponseDiagnosticsLevel.Operation, entry.inputArgumentDiagnosticInfos);
+                    } else {
+                        entry.inputArgumentDiagnosticInfos = [];
+                    }
+                }
+            }
+        }
     }
 
     protected _on_RegisterNodesRequest(message: Message, channel: ServerSecureChannelLayer): void {
