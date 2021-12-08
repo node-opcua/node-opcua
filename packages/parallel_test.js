@@ -47,7 +47,7 @@ const runningPages = new Set();
 
 const failingTestFilename = [];
 const durationsPerTestFile = {};
-let testFiles =[];
+let testFiles = [];
 
 let testCounter = 0;
 let fileStarted = 0;
@@ -288,50 +288,51 @@ function epilogue() {
             .map(([file, duration]) => `${durationToString(duration)}: ${file}`)
             .join("\n")
     );
-    console.log("-------------------------------------------------------------------------------")
+    console.log("-------------------------------------------------------------------------------");
     const runningTests = [...runningPages].map((i) => testFiles[i]);
     console.log(`running tests: ${runningTests.length}`);
     console.log(runningTests.join("\n"));
-
 }
 
 if (isMainThread) {
     (async () => {
         testFiles = await extractAllTestFiles();
 
-        const rl = readline.createInterface({
-            input: process.stdin,
-            output: process.stdout
-        });
+        if (process.stdin && process.stdin.setRawMode) {
+            const rl = readline.createInterface({
+                input: process.stdin,
+                output: process.stdout
+            });
 
-        rl.prompt(true);
+            rl.prompt(true);
 
-        rl.setPrompt(`
-          
-            help:
-            -----
-        
-            CTRL+C : gracefully shutdown the client    
-            l      : list running tests
-        
-            press a key to continue:
-        
-        `);
+            rl.setPrompt(`
+              
+                help:
+                -----
+            
+                CTRL+C : gracefully shutdown the client    
+                l      : list running tests
+            
+                press a key to continue:
+            
+            `);
 
-        readline.emitKeypressEvents(process.stdin, rl);
-        process.stdin.setRawMode(true);
-        process.stdin.on("keypress", async (str, key) => {
-            console.log(`You pressed the "${str}" key`);
+            readline.emitKeypressEvents(process.stdin, rl);
+            process.stdin.setRawMode(true);
+            process.stdin.on("keypress", async (str, key) => {
+                console.log(`You pressed the "${str}" key`);
 
-            if (key.ctrl && key.name === "C") {
-                process.exit(0);
-            }
-            if (key.name === "l") {
-                const runningTests = [...runningPages].map((i) => testFiles[i]);
-                console.log(`running tests: ${runningTests.length}`);
-                console.log(runningTests.join("\n"));
-            }
-        });
+                if (key.ctrl && key.name === "C") {
+                    process.exit(0);
+                }
+                if (key.name === "l") {
+                    const runningTests = [...runningPages].map((i) => testFiles[i]);
+                    console.log(`running tests: ${runningTests.length}`);
+                    console.log(runningTests.join("\n"));
+                }
+            });
+        }
 
         const data = {
             index: 0,
