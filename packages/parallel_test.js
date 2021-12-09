@@ -341,7 +341,7 @@ if (isMainThread) {
         };
         fileMax = testFiles.length;
         const promises = [];
-        const cpuCount = Math.max(os.cpus().length - 1, 2);
+        const cpuCount = Math.max(os.cpus().length * 0.8, 2);
         for (let i = 0; i < cpuCount; i++) {
             promises.push(runTestAndContinue(data));
         }
@@ -354,10 +354,18 @@ if (isMainThread) {
     const { page, selectedTests } = workerData;
 
     console.log = (...args) => {
-        parentPort.postMessage({ type: "LOG", page, args });
+        try {
+            parentPort.postMessage({ type: "LOG", page, args });
+        } catch (err) {
+            console.log(err);
+        }
     };
     console.warn = (...args) => {
-        parentPort.postMessage({ type: "LOG", page, args });
+        try {
+            parentPort.postMessage({ type: "LOG", page, args });
+        } catch (err) {
+            console.log(err);
+        }
     };
     (async () => {
         // console.log("Worker started", page, selectedTests.length);

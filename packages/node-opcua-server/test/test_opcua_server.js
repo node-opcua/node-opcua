@@ -12,13 +12,14 @@ const mini_nodeset_filename = get_mini_nodeset_filename();
 
 fs.existsSync(mini_nodeset_filename).should.eql(true, " expecting " + mini_nodeset_filename + " to exist");
 
+const port = 2022;
 // eslint-disable-next-line import/order
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("OPCUAServer", () => {
     let server;
     beforeEach((done) => {
         const options = {
-            port: 2000,
+            port,
             nodeset_filename: [mini_nodeset_filename]
         };
 
@@ -91,7 +92,7 @@ describe("OPCUAServer-2", () => {
         fs.existsSync(mini_nodeset_filename).should.eql(true);
 
         const options = {
-            port: 2000,
+            port,
             nodeset_filename: [mini_nodeset_filename]
         };
         server = new OPCUAServer(options);

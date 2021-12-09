@@ -15,6 +15,7 @@ const resolveNodeId = opcua.resolveNodeId;
 const doDebug = false;
 
 
+// eslint-disable-next-line import/order
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 module.exports = function(test) {
 

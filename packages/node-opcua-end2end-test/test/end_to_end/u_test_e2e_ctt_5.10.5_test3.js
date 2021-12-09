@@ -42,6 +42,7 @@ function f(func) {
     }
     return fct;
 }
+// eslint-disable-next-line import/order
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 
 module.exports = function(test) {
@@ -130,7 +131,7 @@ module.exports = function(test) {
                 const timeoutId = setTimeout(() => {
                     console.log("monitoredItem1 changed notification not recevied in time !");
                     reject(new Error("monitoredItem1 changed notification not recevied in time !"));
-                }, 1000);
+                }, 2000);
                 monitoredItem1.once("changed", (dataValue) => {
                     clearTimeout(timeoutId);
                     //xx console.log(chalk.cyan("write_value_and_wait_for_change ! Changed !!!!"),dataValue.toString());

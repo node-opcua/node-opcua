@@ -23,7 +23,7 @@ const {
 
 const { build_client_server_session } = require("../test_helpers/build_client_server_session");
 
-const port = 2000;
+const port = 2020;
 // eslint-disable-next-line import/order
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("testing basic Client Server dealing with subscription at low level", function () {

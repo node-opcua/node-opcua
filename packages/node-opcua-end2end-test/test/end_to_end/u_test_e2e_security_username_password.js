@@ -21,6 +21,7 @@ module.exports = function(test) {
 
         it("C1 - testing with username === null ", function(done) {
             let client1;
+            let the_session;
             async.series(
                 [
                     function(callback) {

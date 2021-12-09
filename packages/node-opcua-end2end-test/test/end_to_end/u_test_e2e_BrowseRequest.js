@@ -314,7 +314,7 @@ module.exports = function(test) {
                 //  Given one node to browse
                 nodeId = resolveNodeId(nodeId);
                 //     And the node exists
-                const obj = server.engine.addressSpace.findNode(nodeId, BrowseDirection.Forward);
+                const obj = test.server.engine.addressSpace.findNode(nodeId, BrowseDirection.Forward);
                 should.exist(obj);
 
                 const browseDesc = new BrowseDescription({
