@@ -183,6 +183,9 @@ export interface IAddressSpace {
     // -------------- Historizing support
     installHistoricalDataNode(variableNode: UAVariable, options?: IHistoricalDataNodeOptions): void;
 
+    // -------------- Shutdown helpers
+    registerShutdownTask(task: (this: IAddressSpace) => void): void;
+
     shutdown(): void;
 
     dispose(): void;
