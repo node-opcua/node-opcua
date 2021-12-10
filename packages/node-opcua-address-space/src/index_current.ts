@@ -13,8 +13,13 @@ export * from "../source/helpers/call_helpers";
 export * from "../source/helpers/ensure_secure_access";
 export * from "../source/helpers/resolve_opaque_on_address_space";
 export * from "../source/interfaces/alarms_and_conditions/condition_info_i";
+
+
 export * from "../source/set_namespace_meta_data";
 export * from "../source/namespace";
+export * from "../source/namespace_data_access";
+export * from "../source/namespace_machine_state"
+export * from "../source/namespace_alarm_and_condition";
 
 export { UACertificateExpirationAlarmImpl } from "./alarms_and_conditions";
 
