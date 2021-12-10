@@ -120,7 +120,7 @@ export class UAObjectTypeImpl extends BaseNodeImpl implements UAObjectType {
         const opts: AddObjectOptions = {
             browseName: options.browseName,
             componentOf: options.componentOf,
-            displayName: options.displayName || this.displayName,
+            displayName: options.displayName || "",
             description: options.description || this.description,
             encodingOf: options.encodingOf,
             eventSourceOf: options.eventSourceOf,

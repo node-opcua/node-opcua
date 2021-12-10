@@ -245,7 +245,7 @@ export class UAVariableTypeImpl extends BaseNodeImpl implements UAVariableType {
             componentOf: options.componentOf,
             dataType,
             description: options.description || this.description,
-            displayName: options.displayName || this.displayName,
+            displayName: options.displayName || "",
             eventSourceOf: options.eventSourceOf,
             minimumSamplingInterval: options.minimumSamplingInterval,
             modellingRule: options.modellingRule,
