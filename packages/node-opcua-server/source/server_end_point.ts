@@ -893,10 +893,12 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
             });
             if (unused_channels.length === 0) {
                 // all channels are in used , we cannot get any
-                errorLog("All Channel are in used ! let cancel this one");
+                errorLog("All channels are in used ! let cancel some");
                 // istanbul ignore next
-                console.log("  - all channel are used !!!!");
-                dumpChannelInfo(this.getChannels());
+                if (doDebug) {
+                    console.log("  - all channels are used !!!!");
+                    dumpChannelInfo(this.getChannels());
+                }
                 setTimeout(deny_connection, 10);
                 return;
             }

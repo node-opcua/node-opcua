@@ -34,7 +34,6 @@ import { dumpCertificate } from "node-opcua-pki";
 import { randomByteString } from "node-opcua-basic-types";
 
 import {
-    _tempFolder,
     initializeHelpers,
     produceCertificate,
     produceCertificateAndPrivateKey,
@@ -53,42 +52,47 @@ const doDebug = checkDebugFlag("ServerConfiguration");
 const debugLog = make_debugLog("ServerConfiguration");
 const errorLog = make_errorLog("ServerConfiguration");
 
-const prefix = "CC";
-const _folder = path.join(_tempFolder, prefix);
-
 // make sure extra error checking is made on object constructions
 // tslint:disable-next-line:no-var-requires
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("Testing server configured with push certificate management", () => {
-    const fakePKI = path.join(_folder, "FakePKI");
+    
+    let _folder: string;
 
-    const certificateManager = new OPCUACertificateManager({
-        rootFolder: fakePKI
-    });
-
-    const fakeClientPKI = path.join(_folder, "FakeClientPKI");
-    const clientCertificateManager = new OPCUACertificateManager({
-        automaticallyAcceptUnknownCertificate: true,
-        rootFolder: fakeClientPKI
-    });
+    
     let clientCertificateFile = "";
     let clientPrivateKeyFile = "";
 
+    let certificateManager: OPCUACertificateManager;
+    let clientCertificateManager: OPCUACertificateManager;
+
     before(async () => {
-        //
-        await initializeHelpers(_folder);
+
+         _folder = await initializeHelpers("CC", 2);
+
+        const fakeClientPKI = path.join(_folder, "FakeClientPKI");
+        if (!fs.existsSync(fakeClientPKI)) {
+            fs.mkdirSync(fakeClientPKI);
+        
+        }
+        clientCertificateManager = new OPCUACertificateManager({
+            automaticallyAcceptUnknownCertificate: true,
+            rootFolder: fakeClientPKI
+        });
+        
+        await clientCertificateManager.initialize();
+
+
+        const fakePKI = path.join(_folder, "FakePKI");
         if (!fs.existsSync(fakePKI)) {
             fs.mkdirSync(fakePKI);
         }
-        if (!fs.existsSync(fakeClientPKI)) {
-            fs.mkdirSync(fakeClientPKI);
-        }
-
+        certificateManager = new OPCUACertificateManager({
+            rootFolder: fakePKI
+        });
         await certificateManager.initialize();
 
-        //
-        await clientCertificateManager.initialize();
-
+        
         clientCertificateFile = path.join(clientCertificateManager.rootDir, "own/certs/certificate.pem");
         // recreate certificate every time ! ( short date)
         await clientCertificateManager.createSelfSignedCertificate({
@@ -113,12 +117,13 @@ describe("Testing server configured with push certificate management", () => {
             clientCertificateManager.addRevocationList(crl);
         }
     });
+
     after(async () => {
         await certificateManager.dispose();
         await clientCertificateManager.dispose();
     });
+    
     it("SCT-1 should modify a server to support push certificate management", async () => {
-
         const server = new OPCUAServer({
             port,
             serverCertificateManager: certificateManager,
@@ -347,6 +352,7 @@ describe("Testing server configured with push certificate management", () => {
             return { certificate };
         });
     }
+    
     async function constructServerWithPushCertificate(): Promise<OPCUAServer> {
         // given that the server user manager is able to identify a  system administrator
         const mockUserManager = {

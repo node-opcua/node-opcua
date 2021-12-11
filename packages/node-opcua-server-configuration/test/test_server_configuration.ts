@@ -27,10 +27,7 @@ import { SecurityPolicy } from "node-opcua-secure-channel";
 import { ClientPushCertificateManagement, installPushCertificateManagement } from "..";
 import { TrustListMasks } from "../source/server/trust_list_server";
 
-import { initializeHelpers, _tempFolder } from "./helpers/fake_certificate_authority";
-
-const prefix = "AA";
-const _folder = path.join(_tempFolder, prefix);
+import { initializeHelpers } from "./helpers/fake_certificate_authority";
 
 const doDebug = false;
 // make sure extra error checking is made on object constructions
@@ -67,7 +64,7 @@ describe("ServerConfiguration", () => {
     const xmlFiles = [nodesets.standard];
     beforeEach(async () => {
         try {
-            await initializeHelpers(_folder);
+            const _folder = await initializeHelpers("AA", 0);
 
             applicationGroup = new CertificateManager({
                 location: path.join(_folder, "application")
@@ -87,10 +84,10 @@ describe("ServerConfiguration", () => {
             throw err;
         }
     });
-    afterEach(() => {
+    afterEach(async () => {
         addressSpace.dispose();
-        applicationGroup.dispose();
-        userTokenGroup.dispose();
+        await applicationGroup.dispose();
+        await userTokenGroup.dispose();
     });
 
     it("should expose a server configuration object", async () => {
@@ -125,6 +122,7 @@ describe("ServerConfiguration", () => {
         // users who can access the Server Object.
         // todo
     });
+
     it("server configuration should hide children of certificate groups to non admin user", () => {
         // The children of the CertificateGroups Object should
         // only be visible to authorized administrators.
@@ -135,6 +133,7 @@ describe("ServerConfiguration", () => {
         const server = addressSpace.rootFolder.objects.server as UAServerWithConfiguration;
         server.serverConfiguration.should.have.ownProperty("keyCredentialConfiguration");
     });
+
     it("should expose a server configuration object - Authorization Management", async () => {
         const server = addressSpace.rootFolder.objects.server as UAServerWithConfiguration;
         server.serverConfiguration.should.have.ownProperty("authorizationServices");
@@ -186,6 +185,7 @@ describe("ServerConfiguration", () => {
             );
             result.statusCode.should.eql(StatusCodes.Good);
         });
+
         xit("should implement UpdateCertificate", async () => {
             await installPushCertificateManagement(addressSpace, { applicationUri: "SomeUri" });
 
@@ -266,6 +266,7 @@ describe("ServerConfiguration", () => {
 
             const trustList = await defaultApplicationGroup.getTrustList();
             let a = await trustList.readTrustedCertificateListWithMasks(TrustListMasks.IssuerCertificates);
+
             doDebug && console.log(a.toString());
             a.trustedCertificates!.length.should.eql(0);
             a.issuerCertificates!.length.should.eql(0);

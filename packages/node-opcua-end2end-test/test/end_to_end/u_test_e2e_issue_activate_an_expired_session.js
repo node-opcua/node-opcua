@@ -1,4 +1,5 @@
-/*global describe, it, require*/
+"use strict";
+
 const async = require("async");
 const should = require("should");
 const opcua = require("node-opcua");

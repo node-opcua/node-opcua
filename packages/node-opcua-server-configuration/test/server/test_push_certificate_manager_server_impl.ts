@@ -2,7 +2,7 @@ import * as fs from "fs";
 import * as path from "path";
 import "should";
 
-const { readFile, writeFile } = fs.promises;
+const { readFile } = fs.promises;
 
 import { Certificate, convertPEMtoDER, exploreCertificate, makeSHA1Thumbprint, split_der } from "node-opcua-crypto";
 import { CertificateManager, g_config } from "node-opcua-certificate-manager";
@@ -11,7 +11,6 @@ import { StatusCodes } from "node-opcua-status-code";
 import { subjectToString, UpdateCertificateResult } from "../..";
 import { PushCertificateManagerServerImpl } from "../..";
 import {
-    _tempFolder,
     createSomeCertificate,
     initializeHelpers,
     produceCertificate,
@@ -38,8 +37,6 @@ async function getCertificateDER(manager: CertificateManager): Promise<Certifica
     return certificate;
 }
 
-const prefix = "BB";
-const _folder = path.join(_tempFolder, prefix);
 // make sure extra error checking is made on object constructions
 // tslint:disable-next-line:no-var-requires
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
@@ -49,8 +46,9 @@ describe("Testing Server Side PushCertificateManager", () => {
     let cert1: Buffer;
     let cert2: Buffer;
 
+    let _folder: string;
     before(async () => {
-        await initializeHelpers(_folder);
+         _folder = await initializeHelpers("BB", 1);
         cert1 = await createSomeCertificate(_folder, "cert1.pem");
         cert2 = await createSomeCertificate(_folder, "cert2.pem");
     });

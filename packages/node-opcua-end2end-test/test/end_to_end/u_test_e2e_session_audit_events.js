@@ -1,5 +1,5 @@
 "use strict";
-/*global describe, it, require*/
+
 const async = require("async");
 const should = require("should");
 

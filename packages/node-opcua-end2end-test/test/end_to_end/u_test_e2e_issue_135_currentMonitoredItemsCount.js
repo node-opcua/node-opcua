@@ -1,34 +1,15 @@
-/*global describe, it, require*/
 "use strict";
-const should = require("should");
 
-const {
-    OPCUAClient,
-    AttributeIds,
-    ClientMonitoredItem,
-    ClientSubscription,
-    DataValue,
-    makeBrowsePath,
-    StatusCodes,
-    TimestampsToReturn
-} = require("node-opcua");
+const { OPCUAClient, AttributeIds, DataValue, makeBrowsePath, StatusCodes, TimestampsToReturn } = require("node-opcua");
 
-const { make_debugLog, checkDebugFlag } = require("node-opcua-debug");
+const { make_debugLog } = require("node-opcua-debug");
 const debugLog = make_debugLog("TEST");
-const doDebug = checkDebugFlag("TEST");
-
 
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 
-
-module.exports = function(test) {
-
-
-    describe("Testing #135 - a server should expose currentMonitoredItemsCount", function() {
-
-
+module.exports = function (test) {
+    describe("Testing #135 - a server should expose currentMonitoredItemsCount", function () {
         it("should expose currentMonitoredItemsCount", async () => {
-
             const server = test.server;
 
             const refreshRate = 500;
@@ -39,7 +20,7 @@ module.exports = function(test) {
                 browseName: "SlowVariable",
                 dataType: "UInt32",
                 value: {
-                    refreshFunc: function(callback) {
+                    refreshFunc: function (callback) {
                         // simulate a asynchronous behaviour
                         setTimeout(() => {
                             counter += 1;
@@ -51,7 +32,6 @@ module.exports = function(test) {
 
             const endpointUrl = test.endpointUrl;
 
- 
             const client = OPCUAClient.create({
                 clientName: "SomeFancyClientName",
                 requestedSessionTimeout: 60000
@@ -68,13 +48,12 @@ module.exports = function(test) {
                 publishingEnabled: true,
                 priority: 6
             });
-       
-            debugLog("publishingInterval", subscription.publishingInterval);
- 
-            const nodesToMonitor = [
-                slowVar.nodeId, "i=2254",
-            ];
 
+            debugLog("publishingInterval", subscription.publishingInterval);
+
+            const nodesToMonitor = [slowVar.nodeId, "i=2254"];
+
+            const monitoredItems = [];
             for (const nodeId of nodesToMonitor) {
                 const monitoredItem = await subscription.monitor(
                     { nodeId: nodeId, attributeId: AttributeIds.Value },
@@ -82,10 +61,12 @@ module.exports = function(test) {
                         samplingInterval: refreshRate / 2, // sampling twice as fast as variable refresh rate
                         discardOldest: true,
                         queueSize: 100
-                    }, 
-                    TimestampsToReturn.Both);
-            }
+                    },
+                    TimestampsToReturn.Both
+                );
 
+                monitoredItems.push(monitoredItem);
+            }
 
             const sessionId = session.sessionId;
             debugLog("session nodeId = ", sessionId.toString());
@@ -96,7 +77,7 @@ module.exports = function(test) {
                 makeBrowsePath(sessionId, ".SessionDiagnostics")
             ];
 
-            const browsePathResults =  await session.translateBrowsePath(browsePath);
+            const browsePathResults = await session.translateBrowsePath(browsePath);
             // debugLog(" browsePathResults",browsePathResults[0].toString());
             browsePathResults[0].statusCode.should.eql(StatusCodes.Good);
             browsePathResults[1].statusCode.should.eql(StatusCodes.Good);
@@ -117,7 +98,7 @@ module.exports = function(test) {
                 attributeId: AttributeIds.Value
             });
 
-            const dataValues = await  session.read(nodesToRead);
+            const dataValues = await session.read(nodesToRead);
             //xx debugLog(chalk.bgWhite.red("-----------------------------------------------"),err);
             //xx debugLog("results = ",results);
             dataValues.length.should.eql(3);
@@ -139,8 +120,5 @@ module.exports = function(test) {
             await session.close();
             await client.disconnect();
         });
-
     });
-
 };
-

@@ -1,27 +1,16 @@
-/*global describe, it, require*/
 "use strict";
 const async = require("async");
 const should = require("should");
 
-const opcua = require("node-opcua");
-
-const OPCUAClient = opcua.OPCUAClient;
-const AttributeIds = opcua.AttributeIds;
-const ClientSubscription = opcua.ClientSubscription;
-
+const { OPCUAClient, DataValue, AttributeIds, ClientSubscription, ClientMonitoredItem } = require("node-opcua");
 
 const doDebug = false;
 
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 
-module.exports = function(test) {
-
-
-    describe("Testing bug #123 - monitoring multiple variables on same subscription", function() {
-
-
-        it("test", function(done) {
-
+module.exports = function (test) {
+    describe("Testing bug #123 - monitoring multiple variables on same subscription", function () {
+        it("test", function (done) {
             const server = test.server;
 
             const refreshRate = 100;
@@ -34,11 +23,11 @@ module.exports = function(test) {
                 browseName: "SlowVariable",
                 dataType: "UInt32",
                 value: {
-                    refreshFunc: function(callback) {
+                    refreshFunc: function (callback) {
                         // simulate a asynchronous behaviour
-                        setTimeout(function() {
+                        setTimeout(function () {
                             counter += 1;
-                            callback(null, new opcua.DataValue({ value: { dataType: "UInt32", value: counter } }));
+                            callback(null, new DataValue({ value: { dataType: "UInt32", value: counter } }));
                         }, refreshRate);
                     }
                 }
@@ -49,104 +38,98 @@ module.exports = function(test) {
 
             let the_session;
 
-            async.series([
+            async.series(
+                [
+                    function (callback) {
+                        client1.connect(endpointUrl, callback);
+                    },
 
-                function(callback) {
-                    client1.connect(endpointUrl, callback);
-                },
+                    // create a session using client1
+                    function (callback) {
+                        client1.createSession(function (err, session) {
+                            if (err) {
+                                return callback(err);
+                            }
+                            the_session = session;
+                            callback();
+                        });
+                    },
 
-                // create a session using client1
-                function(callback) {
-                    client1.createSession(function(err, session) {
-                        if (err) {
-                            return callback(err);
-                        }
-                        the_session = session;
-                        callback();
-                    });
-                },
-
-
-                function(callback) {
-
-                    const subscription = ClientSubscription.create(the_session, {
-                        requestedPublishingInterval: 150,
-                        requestedLifetimeCount: 10 * 60 * 10,
-                        requestedMaxKeepAliveCount: 10,
-                        maxNotificationsPerPublish: 2,
-                        publishingEnabled: true,
-                        priority: 6
-                    });
-
-                    subscription.once("terminated", function() {
-                        if (doDebug) {
-                            console.log("subscription terminated");
-                        }
-                    });
-                    subscription.once("started", function() {
-                        if (doDebug) {
-                            console.log("publishingInterval", subscription.publishingInterval);
-                        }
-
-                    });
-
-
-                    // monitor 1
-
-                    const monitoredItem1 = opcua.ClientMonitoredItem.create(subscription,
-                        { nodeId: variableToMonitor.nodeId, attributeId: AttributeIds.Value },
-                        {
-                            samplingInterval: refreshRate, // sampling twice as fast as variable refresh rate
-                            discardOldest: true,
-                            queueSize: 100
+                    function (callback) {
+                        const subscription = ClientSubscription.create(the_session, {
+                            requestedPublishingInterval: 150,
+                            requestedLifetimeCount: 10 * 60 * 10,
+                            requestedMaxKeepAliveCount: 10,
+                            maxNotificationsPerPublish: 2,
+                            publishingEnabled: true,
+                            priority: 6
                         });
 
-                    monitoredItem1.on("changed", function(dataValue) {
-                        if (doDebug) {
-                            console.log("DataValue1 = ", dataValue.value.toString());
-                        }
-                    });
-
-
-                    // monitor 2
-
-                    const monitoredItem2 = opcua.ClientMonitoredItem.create(subscription,
-                        { nodeId: variableToMonitor.nodeId, attributeId: AttributeIds.Value },
-                        {
-                            samplingInterval: refreshRate, // sampling twice as fast as variable refresh rate
-                            discardOldest: true,
-                            queueSize: 100
+                        subscription.once("terminated", function () {
+                            if (doDebug) {
+                                console.log("subscription terminated");
+                            }
+                        });
+                        subscription.once("started", function () {
+                            if (doDebug) {
+                                console.log("publishingInterval", subscription.publishingInterval);
+                            }
                         });
 
-                    monitoredItem2.on("changed", function(dataValue) {
-                        if (doDebug) {
-                            console.log("DataValue2 = ", dataValue.value.toString());
-                        }
-                    });
+                        // monitor 1
 
+                        const monitoredItem1 = ClientMonitoredItem.create(
+                            subscription,
+                            { nodeId: variableToMonitor.nodeId, attributeId: AttributeIds.Value },
+                            {
+                                samplingInterval: refreshRate, // sampling twice as fast as variable refresh rate
+                                discardOldest: true,
+                                queueSize: 100
+                            }
+                        );
 
-                    setTimeout(function() {
-                        subscription.terminate(callback);
-                    }, 1000);
-                },
+                        monitoredItem1.on("changed", function (dataValue) {
+                            if (doDebug) {
+                                console.log("DataValue1 = ", dataValue.value.toString());
+                            }
+                        });
 
-                function(callback) {
-                    the_session.close(callback);
-                }
+                        // monitor 2
 
-            ], function final(err) {
-                client1.disconnect(function() {
+                        const monitoredItem2 = ClientMonitoredItem.create(
+                            subscription,
+                            { nodeId: variableToMonitor.nodeId, attributeId: AttributeIds.Value },
+                            {
+                                samplingInterval: refreshRate, // sampling twice as fast as variable refresh rate
+                                discardOldest: true,
+                                queueSize: 100
+                            }
+                        );
 
-                    if (doDebug) {
-                        console.log(" Client disconnected ", (err ? err.message : "null"));
+                        monitoredItem2.on("changed", function (dataValue) {
+                            if (doDebug) {
+                                console.log("DataValue2 = ", dataValue.value.toString());
+                            }
+                        });
+
+                        setTimeout(function () {
+                            subscription.terminate(callback);
+                        }, 1000);
+                    },
+
+                    function (callback) {
+                        the_session.close(callback);
                     }
-                    done(err);
-                });
-            });
-
+                ],
+                function final(err) {
+                    client1.disconnect(function () {
+                        if (doDebug) {
+                            console.log(" Client disconnected ", err ? err.message : "null");
+                        }
+                        done(err);
+                    });
+                }
+            );
         });
-
     });
-
 };
-

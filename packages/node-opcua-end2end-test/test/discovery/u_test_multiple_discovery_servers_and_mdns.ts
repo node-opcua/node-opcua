@@ -7,11 +7,11 @@ import {
     findServersOnNetwork,
     makeApplicationUrn
 } from "node-opcua";
+import { make_debugLog, checkDebugFlag } from "node-opcua-debug";
 
 import { OPCUADiscoveryServer } from "node-opcua-server-discovery";
 import { createAndStartServer, ep, startDiscovery, pause } from "./_helper";
 
-import { make_debugLog, checkDebugFlag } from "node-opcua-debug";
 const debugLog = make_debugLog("TEST");
 const doDebug = checkDebugFlag("TEST");
 
@@ -63,15 +63,13 @@ export function t(test: any) {
             await discoveryServer3.shutdown();
         });
 
+        // eslint-disable-next-line max-statements
         it("should register server to the discover server 1", async () => {
             // there should be no endpoint exposed by an blank discovery server
             discoveryServer1.registeredServerCount.should.equal(0);
             discoveryServer2.registeredServerCount.should.equal(0);
             discoveryServer3.registeredServerCount.should.equal(0);
 
-            let server1: OPCUAServer;
-            let server2: OPCUAServer;
-            let server3: OPCUAServer;
 
             if (doDebug) {
                 debugLog("discoveryServerEndpointUrl1", discoveryServerEndpointUrl1);
@@ -86,19 +84,19 @@ export function t(test: any) {
                 initialServerCount = servers.length;
                 servers[0].discoveryUrls!.length.should.eql(1);
             }
-            server1 = await createAndStartServer(discoveryServerEndpointUrl1, port1, "A1");
+            const server1 = await createAndStartServer(discoveryServerEndpointUrl1, port1, "A1");
 
             discoveryServer1.registeredServerCount.should.equal(1);
             discoveryServer2.registeredServerCount.should.equal(0);
             discoveryServer3.registeredServerCount.should.equal(0);
 
-            server2 = await createAndStartServer(discoveryServerEndpointUrl2, port2, "A2");
+            const server2 = await createAndStartServer(discoveryServerEndpointUrl2, port2, "A2");
 
             discoveryServer1.registeredServerCount.should.equal(1);
             discoveryServer2.registeredServerCount.should.equal(1);
             discoveryServer3.registeredServerCount.should.equal(0);
 
-            server3 = await createAndStartServer(discoveryServerEndpointUrl3, port3, "A3");
+            const server3 = await createAndStartServer(discoveryServerEndpointUrl3, port3, "A3");
 
             discoveryServer1.registeredServerCount.should.equal(1);
             discoveryServer2.registeredServerCount.should.equal(1);

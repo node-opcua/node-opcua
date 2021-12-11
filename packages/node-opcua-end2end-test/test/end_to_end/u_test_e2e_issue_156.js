@@ -1,31 +1,15 @@
-/*global describe, it, require*/
-
-const { assert } = require("node-opcua-assert");
+"use strict";
 const async = require("async");
 const should = require("should");
 
-const opcua = require("node-opcua");
+const { DataValue, ClientMonitoredItem, OPCUAClient, AttributeIds, ClientSubscription } = require("node-opcua");
 
-const OPCUAClient = opcua.OPCUAClient;
-const AttributeIds = opcua.AttributeIds;
-const resolveNodeId = opcua.resolveNodeId;
-const StatusCodes = opcua.StatusCodes;
-const DataType = opcua.DataType;
-const ClientSubscription = opcua.ClientSubscription;
-
-const { perform_operation_on_client_session } = require("../../test_helpers/perform_operation_on_client_session");
-
+// eslint-disable-next-line import/order
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 
-
-module.exports = function(test) {
-
-
-    describe("Testing bug #156 - monitoring a variable with a sampling rate which is faster that the time taken to acquire the variable value", function() {
-
-
-        it("test", function(done) {
-
+module.exports = function (test) {
+    describe("Testing bug #156 - monitoring a variable with a sampling rate which is faster that the time taken to acquire the variable value", function () {
+        it("test", function (done) {
             const server = test.server;
 
             const refreshRate = 500;
@@ -38,11 +22,11 @@ module.exports = function(test) {
                 browseName: "SlowVariable",
                 dataType: "UInt32",
                 value: {
-                    refreshFunc: function(callback) {
+                    refreshFunc: function (callback) {
                         // simulate a asynchronous behaviour
-                        setTimeout(function() {
+                        setTimeout(function () {
                             counter += 1;
-                            callback(null, new opcua.DataValue({ value: { dataType: "UInt32", value: counter } }));
+                            callback(null, new DataValue({ value: { dataType: "UInt32", value: counter } }));
                         }, refreshRate);
                     }
                 }
@@ -53,77 +37,70 @@ module.exports = function(test) {
 
             let the_session;
 
-            async.series([
+            async.series(
+                [
+                    function (callback) {
+                        client1.connect(endpointUrl, callback);
+                    },
 
-                function(callback) {
-                    client1.connect(endpointUrl, callback);
-                },
+                    // create a session using client1
+                    function (callback) {
+                        client1.createSession(function (err, session) {
+                            if (err) {
+                                return callback(err);
+                            }
+                            the_session = session;
+                            callback();
+                        });
+                    },
 
-                // create a session using client1
-                function(callback) {
-                    client1.createSession(function(err, session) {
-                        if (err) {
-                            return callback(err);
-                        }
-                        the_session = session;
-                        callback();
-                    });
-                },
-
-
-                function(callback) {
-
-                    const subscription = ClientSubscription.create(the_session, {
-                        requestedPublishingInterval: 150,
-                        requestedLifetimeCount: 10 * 60 * 10,
-                        requestedMaxKeepAliveCount: 10,
-                        maxNotificationsPerPublish: 2,
-                        publishingEnabled: true,
-                        priority: 6
-                    });
-
-                    subscription.once("terminated", function() {
-                        //xx console.log("subscription terminated");
-                    });
-                    subscription.once("started", function() {
-                        //xx console.log("publishingInterval",subscription.publishingInterval);
-
-                    });
-
-
-                    const monitoredItem = opcua.ClientMonitoredItem.create(
-                        subscription,
-                        { nodeId: slowVar.nodeId, attributeId: AttributeIds.Value },
-                        {
-                            samplingInterval: refreshRate / 2, // sampling twice as fast as variable refresh rate
-                            discardOldest: true,
-                            queueSize: 100
+                    function (callback) {
+                        const subscription = ClientSubscription.create(the_session, {
+                            requestedPublishingInterval: 150,
+                            requestedLifetimeCount: 10 * 60 * 10,
+                            requestedMaxKeepAliveCount: 10,
+                            maxNotificationsPerPublish: 2,
+                            publishingEnabled: true,
+                            priority: 6
                         });
 
-                    monitoredItem.on("changed", function(dataValue) {
-                        //xx console.log("DataValue = ",dataValue.value.toString());
+                        subscription.once("terminated", function () {
+                            //xx console.log("subscription terminated");
+                        });
+                        subscription.once("started", function () {
+                            //xx console.log("publishingInterval",subscription.publishingInterval);
+                        });
+
+                        const monitoredItem = ClientMonitoredItem.create(
+                            subscription,
+                            { nodeId: slowVar.nodeId, attributeId: AttributeIds.Value },
+                            {
+                                samplingInterval: refreshRate / 2, // sampling twice as fast as variable refresh rate
+                                discardOldest: true,
+                                queueSize: 100
+                            }
+                        );
+
+                        monitoredItem.on("changed", function (dataValue) {
+                            //xx console.log("DataValue = ",dataValue.value.toString());
+                        });
+
+                        setTimeout(function () {
+                            subscription.terminate(callback);
+                        }, 3000);
+                    },
+
+                    function (callback) {
+                        the_session.close(callback);
+                    }
+                ],
+                function final(err) {
+                    client1.disconnect(function () {
+                        //xx console.log(" Client disconnected ",(err ? err.message : "null"));
+                        done(err);
                     });
-
-
-                    setTimeout(function() {
-                        subscription.terminate(callback);
-                    }, 3000);
-                },
-
-                function(callback) {
-                    the_session.close(callback);
                 }
-
-            ], function final(err) {
-                client1.disconnect(function() {
-                    //xx console.log(" Client disconnected ",(err ? err.message : "null"));
-                    done(err);
-                });
-            });
-
+            );
         });
-
     });
-
 };
-

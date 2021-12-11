@@ -21,22 +21,30 @@ import {
 import { getFullyQualifiedDomainName } from "node-opcua-hostname";
 import { CertificateAuthority, CertificateManager, g_config } from "node-opcua-certificate-manager";
 
-export const _tempFolder = path.join(__dirname, "../../temp");
-
-export async function initializeHelpers(subfolder: string): Promise<void> {
-    await promisify(rimraf)(path.join(subfolder, "*"));
+export async function initializeHelpers(prefix: string, n: number): Promise<string> {
+    const _tempFolder = path.join(os.tmpdir(), "node-opcua2");
+    const subfolder = path.join(_tempFolder, prefix);
     try {
+        await promisify(rimraf)(path.join(subfolder, "*"));
+    } catch (err) {
+        /** */
+    }
+        try {
         await fs.promises.mkdir(path.dirname(subfolder));
-    } catch (err) {/** */}
+    } catch (err) {
+        /** */
+    }
     try {
         await fs.promises.mkdir(subfolder);
-    } catch (err) {/** */}
+    } catch (err) {
+        /** */
+    }
+    return subfolder;
 }
 
 export async function produceCertificateAndPrivateKey(
     subfolder: string
 ): Promise<{ certificate: Certificate; privateKey: PrivateKey }> {
-  
     // Given a Certificate Authority
     const certificateManager = new CertificateManager({
         keySize: 2048,
@@ -72,7 +80,6 @@ export async function produceCertificateAndPrivateKey(
 export async function _getFakeAuthorityCertificate(
     subfolder: string
 ): Promise<{ certificate: Certificate; crl: CertificateRevocationList }> {
-   
     const certificateAuthority = new CertificateAuthority({
         keySize: 2048,
         location: path.join(subfolder, "CA")

@@ -1,11 +1,13 @@
 /**
  * @module node-opcua-server-discovery
  */
-import * as chalk from "chalk";
+
 import * as os from "os";
 import * as path from "path";
 import * as url from "url";
 import { callbackify } from "util";
+
+import * as chalk from "chalk";
 import envPaths = require("env-paths");
 
 import { assert } from "node-opcua-assert";
@@ -30,12 +32,12 @@ import {
     sameAnnouncement,
     ServerOnNetwork
 } from "node-opcua-service-discovery";
+import { OPCUACertificateManager } from "node-opcua-certificate-manager";
 import { ApplicationDescription } from "node-opcua-service-endpoints";
 import { ApplicationDescriptionOptions, ApplicationType } from "node-opcua-service-endpoints";
 import { ErrorCallback, StatusCode, StatusCodes } from "node-opcua-status-code";
 
 import { MDNSResponder } from "./mdns_responder";
-import { OPCUACertificateManager } from "node-opcua-certificate-manager";
 
 const debugLog = make_debugLog(__filename);
 const doDebug = checkDebugFlag(__filename);

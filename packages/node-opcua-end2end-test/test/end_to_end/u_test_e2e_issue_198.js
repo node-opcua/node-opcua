@@ -1,10 +1,9 @@
-/*global describe, it, require*/
+"use strict";
+
 "use strict";
 const async = require("async");
 const should = require("should");
-const opcua = require("node-opcua");
-const OPCUAClient = opcua.OPCUAClient;
-
+const { OPCUAClient } = require("node-opcua");
 
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 

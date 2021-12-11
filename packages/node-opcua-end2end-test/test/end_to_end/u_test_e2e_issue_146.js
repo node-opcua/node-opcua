@@ -1,16 +1,9 @@
-/*global describe, it, require*/
+"use strict";
 
-const { assert } = require("node-opcua-assert");
 const async = require("async");
 const should = require("should");
 
-const opcua = require("node-opcua");
-
-const OPCUAClient = opcua.OPCUAClient;
-const AttributeIds = opcua.AttributeIds;
-const resolveNodeId = opcua.resolveNodeId;
-const StatusCodes = opcua.StatusCodes;
-const DataType = opcua.DataType;
+const {OPCUAClient} = require("node-opcua");
 
 const { perform_operation_on_client_session } = require("../../test_helpers/perform_operation_on_client_session");
 

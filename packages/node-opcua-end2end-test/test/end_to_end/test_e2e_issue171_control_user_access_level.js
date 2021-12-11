@@ -52,8 +52,6 @@ const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 const { createServerCertificateManager } = require("../../test_helpers/createServerCertificateManager");
 describe("issue171- testing Client-Server with UserName/Password identity token", function () {
 
-    this.timeout(5000);
-
     let server,  endpointUrl;
     let node1;
 

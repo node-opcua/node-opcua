@@ -1,10 +1,11 @@
 "use strict";
-const chalk = require("chalk");
-const crypto_utils = require("node-opcua-crypto");
 const fs = require("fs");
 const path = require("path");
 const { spawn } = require("child_process");
 const os = require("os");
+
+const chalk = require("chalk");
+const crypto_utils = require("node-opcua-crypto");
 
 /**
  * @method start_simple_server

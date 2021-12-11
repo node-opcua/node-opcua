@@ -10,32 +10,29 @@ const {
     ClientMonitoredItem,
     coerceNodeId,
     ClientSubscription,
-    DataType
+    DataType,
+    MonitoringMode
 } = require("node-opcua");
-const { make_debugLog, checkDebugFlag } = require("node-opcua-debug");
-const {
-    start_simple_server,
-} = require("../../test_helpers/external_server_fixture");
+const { make_debugLog, checkDebugFlag, make_errorLog } = require("node-opcua-debug");
+const { start_simple_server } = require("../../test_helpers/external_server_fixture");
 const debugLog = make_debugLog("TEST");
 const doDebug = checkDebugFlag("TEST");
-
+const errorLog = make_errorLog("TEST");
 
 let server_data = null;
 
-const port = 2017;
-
+const port = 4850;
 let serverScript = "simple_server_that_terminate_session_too_early.js";
-async function start_external_opcua_server() {
 
+async function start_external_opcua_server() {
     const options = {
         silent: !doDebug,
-        server_sourcefile: path.join(__dirname,
-            "../../test_helpers/bin/", serverScript),
+        server_sourcefile: path.join(__dirname, "../../test_helpers/bin/", serverScript),
         port
     };
 
     await new Promise((resolve, reject) => {
-        start_simple_server(options, function(err, data) {
+        start_simple_server(options, function (err, data) {
             if (err) {
                 return reject(err);
             }
@@ -55,12 +52,11 @@ async function start_external_opcua_server() {
 }
 
 async function crash_external_opcua_server() {
-
     if (!server_data) {
         return;
     }
     const promise = new Promise((resolve) => {
-        server_data.process.once("exit", function() {
+        server_data.process.once("exit", function () {
             debugLog("process killed");
             resolve();
         });
@@ -70,21 +66,20 @@ async function crash_external_opcua_server() {
     await promise;
 }
 
-
 // ---------------------------------------------------------------------------------------------------------------------
 let client, session, subscription, intervalId, monitoredItem;
 
-
 async function break_connection(client, socketError) {
-
-    const inputArguments = [{
-        dataType: DataType.UInt32,
-        value: 10000
-    }];
+    const inputArguments = [
+        {
+            dataType: DataType.UInt32,
+            value: 10000
+        }
+    ];
     const methodToCall = {
         inputArguments,
         methodId: "ns=1;s=SimulateNetworkOutage",
-        objectId: "ns=1;s=MyObject",
+        objectId: "ns=1;s=MyObject"
     };
     const r = await session.call(methodToCall);
     debugLog(r.toString());
@@ -101,7 +96,7 @@ async function provoke_server_session_early_termination() {
     const methodToCall = {
         inputArguments,
         methodId: "ns=1;s=ScrapSession",
-        objectId: "ns=1;s=MyObject",
+        objectId: "ns=1;s=MyObject"
     };
     const r = await session.call(methodToCall);
     debugLog(r.toString());
@@ -109,40 +104,31 @@ async function provoke_server_session_early_termination() {
 }
 
 async function start_active_client_no_subscription(connectionStrategy) {
-
     const endpointUrl = server_data.endpointUrl;
 
     client = OPCUAClient.create({
         connectionStrategy,
         endpointMustExist: false,
         keepSessionAlive: true,
-        requestedSessionTimeout: 5000, // !very small value => only for this test
+        requestedSessionTimeout: 5000 // !very small value => only for this test
     });
-
 
     await client.connect(endpointUrl);
-    client.on("connection_reestablished", function() {
+    client.on("connection_reestablished", function () {
         debugLog(chalk.bgWhite.red(" !!!!!!!!!!!!!!!!!!!!!!!!  CONNECTION RE-ESTABLISHED !!!!!!!!!!!!!!!!!!!"));
     });
-    client.on("backoff", function(number, delay) {
+    client.on("backoff", function (number, delay) {
         debugLog(chalk.bgWhite.yellow("backoff  attempt #"), number, " retrying in ", delay, " milliseconds");
     });
 
     session = await client.createSession();
     debugLog("session timeout = ", session.timeout);
-    session.on("keepalive", (state) => {
-        if (doDebug) {
-            debugLog(chalk.yellow("KeepAlive state="),
-                state.toString(), " pending request on server = ",
-                subscription.publish_engine.nbPendingPublishRequests);
-        }
-    });
+
     session.on("session_closed", (statusCode) => {
         debugLog(chalk.yellow("Session has closed : statusCode = "), statusCode ? statusCode.toString() : "????");
     });
 }
 async function start_active_client(connectionStrategy) {
-
     await start_active_client_no_subscription(connectionStrategy);
 
     const nodeId = coerceNodeId("ns=1;s=MyCounter");
@@ -161,71 +147,106 @@ async function start_active_client(connectionStrategy) {
     subscription.on("initialized", () => {
         debugLog("started subscription :", subscription.subscriptionId);
         debugLog(" revised parameters ");
-        debugLog("  revised maxKeepAliveCount  ", subscription.maxKeepAliveCount, " ( requested ", parameters.requestedMaxKeepAliveCount + ")");
-        debugLog("  revised lifetimeCount      ", subscription.lifetimeCount, " ( requested ", parameters.requestedLifetimeCount + ")");
-        debugLog("  revised publishingInterval ", subscription.publishingInterval, " ( requested ", parameters.requestedPublishingInterval + ")");
+        debugLog(
+            "  revised maxKeepAliveCount  ",
+            subscription.maxKeepAliveCount,
+            " ( requested ",
+            parameters.requestedMaxKeepAliveCount + ")"
+        );
+        debugLog(
+            "  revised lifetimeCount      ",
+            subscription.lifetimeCount,
+            " ( requested ",
+            parameters.requestedLifetimeCount + ")"
+        );
+        debugLog(
+            "  revised publishingInterval ",
+            subscription.publishingInterval,
+            " ( requested ",
+            parameters.requestedPublishingInterval + ")"
+        );
         debugLog("  suggested timeout hint     ", subscription.publish_engine.timeoutHint);
     });
 
-    subscription.on("internal_error", function(err) {
-        debugLog(" received internal error", err.message);
-    }).on("keepalive", function() {
-
-        debugLog(chalk.cyan("keepalive "),
-            chalk.cyan(" pending request on server = "),
-            subscription.publish_engine.nbPendingPublishRequests);
-
-    }).on("terminated", function(err) {
-        debugLog("Session Terminated", err ? err.message : "null");
+    session.on("keepalive", (state) => {
+        if (doDebug) {
+            debugLog(
+                chalk.yellow("KeepAlive state="),
+                state.toString(),
+                " pending request on server = ",
+                subscription.publish_engine.nbPendingPublishRequests
+            );
+        }
     });
 
+    subscription
+        .on("internal_error", function (err) {
+            debugLog(" received internal error", err.message);
+        })
+        .on("keepalive", function () {
+            debugLog(
+                chalk.cyan("keepalive "),
+                chalk.cyan(" pending request on server = "),
+                subscription.publish_engine.nbPendingPublishRequests
+            );
+        })
+        .on("terminated", function (err) {
+            debugLog("Session Terminated", err ? err.message : "null");
+        });
 
     const requestedParameters = {
         samplingInterval: 250,
         queueSize: 1,
         discardOldest: true
     };
-    const item = { nodeId: nodeId, attributeId: AttributeIds.Value };
+    const item = { nodeId, attributeId: AttributeIds.Value };
 
-    monitoredItem = ClientMonitoredItem.create(subscription, item, requestedParameters, TimestampsToReturn.Both);
-    monitoredItem.on("err", function(errMessage) {
-        throw new Error(errMessage);
+    monitoredItem = await subscription.monitor(item, requestedParameters, TimestampsToReturn.Both, MonitoringMode.Reporting);
+
+    monitoredItem.on("err", function (errMessage) {
+        errorLog(errMessage);
     });
-    monitoredItem.on("changed", function(dataValue) {
+    monitoredItem.on("changed", function (dataValue) {
         if (doDebug) {
             debugLog(chalk.cyan(" ||||||||||| VALUE CHANGED !!!!"), dataValue.statusCode.toString(), dataValue.value.toString());
         }
     });
-    monitoredItem.on("initialized", function() {
+    monitoredItem.on("initialized", function () {
         if (doDebug) {
             debugLog(" MonitoredItem initialized");
         }
     });
 
-
     let counter = 0;
-    intervalId = setInterval(function() {
+    intervalId = setInterval(function () {
         if (doDebug) {
-
-            debugLog(" Session OK ? ", session.isChannelValid(),
-                "session will expired in ", session.evaluateRemainingLifetime() / 1000, " seconds",
-                chalk.red("subscription will expire in "), subscription.evaluateRemainingLifetime() / 1000, " seconds",
-                chalk.red("subscription?"), session.subscriptionCount);
+            debugLog(
+                " Session OK ? ",
+                session.isChannelValid(),
+                "session will expired in ",
+                session.evaluateRemainingLifetime() / 1000,
+                " seconds",
+                chalk.red("subscription will expire in "),
+                subscription.evaluateRemainingLifetime() / 1000,
+                " seconds",
+                chalk.red("subscription?"),
+                session.subscriptionCount
+            );
         }
 
         let nodeToWrite = {
             nodeId: nodeId,
             attributeId: AttributeIds.Value,
-            value: /* DataValue */{
+            value: /* DataValue */ {
                 statusCode: StatusCodes.Good,
                 sourceTimestamp: new Date(),
-                value: /* Variant */{
+                value: /* Variant */ {
                     dataType: DataType.Int32,
                     value: counter
                 }
             }
         };
-        session.write(nodeToWrite, function(err, statusCode) {
+        session.write(nodeToWrite, function (err, statusCode) {
             if (err) {
                 if (doDebug) {
                     debugLog(chalk.red("       writing Failed "), err.message);
@@ -238,14 +259,11 @@ async function start_active_client(connectionStrategy) {
             }
             //xx statusCode && statusCode.length===1) ? statusCode[0].toString():"");
         });
-
     }, 250);
     await new Promise((resolve) => setTimeout(resolve, 1000));
-
 }
 
 async function terminate_active_client() {
-
     if (!client) {
         return;
     }
@@ -258,18 +276,16 @@ async function terminate_active_client() {
     client = null;
 }
 async function f(func) {
-    const debugWrapper = async function() {
+    const debugWrapper = async function () {
         debugLog("       * " + func.name.replace(/_/g, " ").replace(/(given|when|then)/, chalk.green("**$1**")));
         await func();
         debugLog("       ! " + func.name.replace(/_/g, " ").replace(/(given|when|then)/, chalk.green("**$1**")));
-
     };
     await debugWrapper();
 }
 // eslint-disable-next-line import/order
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
-describe("GHGL1 - Testing client reconnection with a crashing server that closes the session too early (such as KepwareServerEx6)", function() {
-
+describe("GHGL1 - Testing client reconnection with a crashing server that closes the session too early (such as KepwareServerEx6)", function () {
     this.timeout(100000);
 
     afterEach(async () => {
@@ -306,14 +322,12 @@ describe("GHGL1 - Testing client reconnection with a crashing server that closes
         await start_active_client_no_subscription({ maxRetry: -1, initialDelay: 100, maxDelay: 200 });
     }
 
-
     async function given_a_active_client_with_subscription_and_monitored_items_AND_short_retry_strategy() {
         // this client starts with fail fast connection strategy
         await start_active_client({ maxRetry: 2, initialDelay: 100, maxDelay: 200 });
     }
 
     async function then_client_should_detect_failure_and_enter_reconnection_mode() {
-
         let backoff_counter = 0;
         await new Promise((resolve) => {
             function backoff_detector() {
@@ -328,7 +342,6 @@ describe("GHGL1 - Testing client reconnection with a crashing server that closes
             }
             client.on("backoff", backoff_detector);
         });
-
     }
 
     async function then_client_should_reconnect() {
@@ -349,10 +362,8 @@ describe("GHGL1 - Testing client reconnection with a crashing server that closes
             }
             session.on("session_restored", on_session_restored);
         });
-
     }
     async function then_client_should_reconnect_and_restore_subscription() {
-
         let change_counter = 0;
 
         await new Promise((resolve) => {
@@ -368,7 +379,6 @@ describe("GHGL1 - Testing client reconnection with a crashing server that closes
             }
             monitoredItem.on("changed", on_value_changed);
         });
-
     }
 
     it("GZZE1 should reconnection and restore subscriptions when server becomes available again", async () => {
@@ -380,7 +390,6 @@ describe("GHGL1 - Testing client reconnection with a crashing server that closes
         await f(then_client_should_reconnect_and_restore_subscription);
     });
     it("GZZE2 testing reconnection with failFastReconnection strategy #606", async () => {
-
         // rationale:
         //  even if the OPCUAClient  uses a fail fast reconnection strategy, a lost of connection
         //  should cause an infinite retry to connect again
@@ -433,5 +442,4 @@ describe("GHGL1 - Testing client reconnection with a crashing server that closes
         await f(when_client_detects_a_sessionIdInvalid);
         await f(then_it_should_succeed_to_recover);
     });
-
 });

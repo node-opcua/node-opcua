@@ -4,6 +4,8 @@
 Error.stackTraceLimit = Infinity;
 const path = require("path");
 const fs = require("fs");
+const os = require("os");
+
 const { randomBytes } = require("crypto");
 
 const chalk = require("chalk");
@@ -73,11 +75,19 @@ async function makeServerCertificateManager(port) {
 
     return certificateManager;
 }
+
 async function getClientCertificateManager() {
-    const certificateManager = getDefaultCertificateManager("PKI");
+
+    const tmpFolder = path.join(os.tmpdir(), "node-opcua-3");
+    const rootFolder = path.join(tmpFolder, "clientPKI");
+    const certificateManager = new OPCUACertificateManager({
+        rootFolder
+    });
     await certificateManager.initialize();
     return certificateManager;
 }
+
+
 async function start_inner_server_local(options) {
     options = options || {};
     if (options.serverCertificateManager) {
@@ -244,7 +254,7 @@ async function keep_monitoring_some_variable(client, session, security_token_ren
     });
 
     const m = await subscription.monitor(
-        { nodeId: "i=2253", attributeId: AttributeIds.Value },
+        { nodeId: "i=2258", attributeId: AttributeIds.Value },
         {
             samplingInterval: 100
         },
@@ -276,7 +286,7 @@ async function common_test(securityPolicy, securityMode, options) {
         connectionStrategy: no_reconnect_connectivity_strategy,
         requestedSessionTimeout: 120 * 60 * 1000,
 
-        certificateManager: await getClientCertificateManager()
+        clientCertificateManager: await getClientCertificateManager()
     };
 
     options.defaultSecureTokenLifetime = options.defaultSecureTokenLifetime || g_defaultSecureTokenLifetime;
@@ -462,10 +472,13 @@ function perform_collection_of_test_with_various_client_configuration(prefix) {
     prefix = prefix || "";
 
     function build_options(keySize) {
+        
         const client_certificate_pem_file = path.join(sampleCertificateFolder, "client_cert_" + keySize + ".pem");
         const client_certificate_privatekey_file = path.join(sampleCertificateFolder, "client_key_" + keySize + ".pem");
+
         fs.existsSync(client_certificate_pem_file).should.eql(true, client_certificate_pem_file + " must exist");
         fs.existsSync(client_certificate_privatekey_file).should.eql(true, client_certificate_privatekey_file + " must exist");
+        
         const options = {
             certificateFile: client_certificate_pem_file,
             privateKeyFile: client_certificate_privatekey_file

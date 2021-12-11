@@ -1,11 +1,12 @@
 "use strict";
-/*global describe, it, require*/
+
+const path = require("path");
+const fs = require("fs");
+
 
 const async = require("async");
 const should = require("should");
 const chalk = require("chalk");
-const path = require("path");
-const fs = require("fs");
 
 const {
     getDefaultCertificateManager, 

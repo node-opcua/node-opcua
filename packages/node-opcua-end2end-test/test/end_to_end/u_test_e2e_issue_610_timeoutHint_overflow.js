@@ -1,10 +1,12 @@
-/*global describe, it, require*/
+"use strict";
+
 const should = require("should");
 const opcua = require("node-opcua");
 const OPCUAClient = opcua.OPCUAClient;
 const ClientSubscription = opcua.ClientSubscription;
 const { perform_operation_on_client_session } = require("../../test_helpers/perform_operation_on_client_session");
 
+// eslint-disable-next-line import/order
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 
 module.exports = function (test) {

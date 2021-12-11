@@ -21,7 +21,7 @@ const port = 5678;
 const { AcknowledgeMessage, TCPErrorMessage, ClientTCP_transport, packTcpMessage } = require("..");
 
 describe("testing ClientTCP_transport", function () {
-    this.timeout(5000);
+    this.timeout(15000);
 
     let transport;
     let spyOnClose, spyOnConnect, spyOnConnectionBreak;

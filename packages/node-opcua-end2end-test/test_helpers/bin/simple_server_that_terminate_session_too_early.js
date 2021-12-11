@@ -1,170 +1,158 @@
 /* eslint no-process-exit: 0 */
 "use strict";
+
 const path = require("path");
 const fs = require("fs");
+
 // simulate kepware server that sometime shutdown session too early
 const chalk = require("chalk");
-
-const opcua = require("node-opcua");
-const {
-    UAMethod,
-    Variant,
-    SessionContext,
-    MethodFunctorCallback
-} = require("node-opcua");
-
+const yargs = require("yargs");
+const { OPCUAServer, nodesets, StatusCodes, DataType } = require("node-opcua");
 
 Error.stackTraceLimit = Infinity;
 const doDebug = !!process.env.DEBUG;
 
-const argv = require("yargs")
-    .wrap(132)
-    .string("port")
-    .describe("port")
-    .alias('p', 'port')
-    .argv;
+const argv = yargs.wrap(132).string("port").describe("port").alias("p", "port").argv;
 
-const rootFolder = path.join(__dirname, "../");
-
-const OPCUAServer = opcua.OPCUAServer;
-const nodesets = opcua.nodesets;
-
+const packageFolder = path.join(__dirname, "../");
 
 const port = parseInt(argv.port) || 26555;
 
-const server_options = {
-    port,
-    nodeset_filename: [
-        nodesets.standard,
-        path.join(rootFolder, "modeling/my_data_type.xml")
-    ]
-};
-if (!fs.existsSync(server_options.nodeset_filename[0])) {
-    throw new Error(" cannot find standard nodeset");
-}
-if (!fs.existsSync(server_options.nodeset_filename[1])) {
-    throw new Error(" cannot find custom nodeset");
-}
-process.title = "Node OPCUA Server on port : " + server_options.port;
+(async () => {
+    try {
+        const server_options = {
+            port,
+            nodeset_filename: [nodesets.standard, path.join(packageFolder, "modeling/my_data_type.xml")]
+        };
 
-const server = new OPCUAServer(server_options);
+        process.title = "Node OPCUA Server on port : " + server_options.port;
 
-console.log("Server that terminates session too early");
-server.on("post_initialize", function() {
+        if (!fs.existsSync(server_options.nodeset_filename[0])) {
+            throw new Error(" cannot find standard nodeset");
+        }
+        if (!fs.existsSync(server_options.nodeset_filename[1])) {
+            throw new Error(" cannot find custom nodeset");
+        }
 
-    const addressSpace = server.engine.addressSpace;
+        const server = new OPCUAServer(server_options);
 
-    const rootFolder = addressSpace.findNode("RootFolder");
+        await server.initialize();
 
-    const namespace = addressSpace.getOwnNamespace();
+        const addressSpace = server.engine.addressSpace;
 
-    const myDevices = namespace.addFolder(rootFolder.objects, { browseName: "MyDevices" });
+        const rootFolder = addressSpace.findNode("RootFolder");
 
-    const variable0 = namespace.addVariable({
-        organizedBy: myDevices,
-        browseName: "Counter",
-        nodeId: "ns=1;s=MyCounter",
-        dataType: "Int32",
-        value: new opcua.Variant({ dataType: opcua.DataType.Int32, value: 1000.0 })
-    });
+        const namespace = addressSpace.getOwnNamespace();
 
-    // Add a mechanism to dismiss session early
-    const obj = namespace.addObject({
-        nodeId: "ns=1;s=MyObject",
-        browseName: "MyObject",
-        organizedBy: myDevices,
-    });
+        const myDevices = namespace.addFolder(rootFolder.objects, { browseName: "MyDevices" });
 
-    const simulateNetworkOutage = namespace.addMethod(obj, {
-        browseName: "SimulateNetworkOutage",
-        executable: true,
-        inputArguments: [
-            {
-                name: "outageDuration",
-                description: { text: "specifies the number of milliseconds the Outage should be" },
-                dataType: opcua.DataType.UInt32
-            }
-        ],
-        nodeId: "ns=1;s=SimulateNetworkOutage",
-        outputArguments: [],
-        userExecutable: true,
-    });
+        // Add a mechanism to dismiss session early
+        const obj = namespace.addObject({
+            nodeId: "ns=1;s=MyObject",
+            browseName: "MyObject",
+            organizedBy: myDevices
+        });
 
-    async function simulateNetworkOutageFunc(
-        /*this: UAMethod,*/ inputArguments/*: Variant[]*/, context/*: SessionContext*/) {
-        const outageDuration = inputArguments[0].value;
-        console.log("Simulating Server Outage for ", outageDuration, "ms");
-        await server.suspendEndPoints();
-        setTimeout(async () => {
-            await server.resumeEndPoints();
-            console.log("Server Outage is now resolved ");
-        }, outageDuration);
-        const statusCode = opcua.StatusCodes.Good;
-        return { statusCode };
-    }
-    simulateNetworkOutage.bindMethod(simulateNetworkOutageFunc);
+        const myCounter = namespace.addVariable({
+            componentOf: obj,
+            browseName: "MyCounter",
+            nodeId: "s=MyCounter",
+            dataType: DataType.Int32
+        });
 
-    const method = namespace.addMethod(obj, {
-        browseName: "ScrapSession",
-        executable: true,
-        inputArguments: [],
-        nodeId: "ns=1;s=ScrapSession",
-        outputArguments: [],
-        userExecutable: false,
-    });
+        const simulateNetworkOutage = namespace.addMethod(obj, {
+            browseName: "SimulateNetworkOutage",
+            executable: true,
+            inputArguments: [
+                {
+                    name: "outageDuration",
+                    description: { text: "specifies the number of milliseconds the Outage should be" },
+                    dataType: DataType.UInt32
+                }
+            ],
+            nodeId: "ns=1;s=SimulateNetworkOutage",
+            outputArguments: [],
+            userExecutable: true
+        });
 
-    function scrapSession(
-        /*this: UAMethod,*/ inputArguments/*: Variant[]*/, context/*: SessionContext*/
-    ) {
-        const session = context.session;
-        // do nothing
-        setTimeout(() => {
+        const simulateNetworkOutageFunc = async function simulateNetworkOutageFunc(
+            /*this: UAMethod,*/ inputArguments /*: Variant[]*/,
+            context /*: SessionContext*/
+        ) {
+            const outageDuration = inputArguments[0].value;
+            console.log("Simulating Server Outage for ", outageDuration, "ms");
+            await server.suspendEndPoints();
+            (async () => {
+                await new Promise((resolve) => {
+                    setTimeout(() => {
+                        console.log("Server Outage is now resolved ");
+                        resolve();
+                    }, outageDuration);
+                });
+                await server.resumeEndPoints();
+            })();
+            const statusCode = StatusCodes.Good;
+            return { statusCode };
+        };
+        simulateNetworkOutage.bindMethod(simulateNetworkOutageFunc);
+
+        const method = namespace.addMethod(obj, {
+            browseName: "ScrapSession",
+            executable: true,
+            inputArguments: [],
+            nodeId: "ns=1;s=ScrapSession",
+            outputArguments: [],
+            userExecutable: false
+        });
+
+        const scrapSession = async function scrapSession(
+            /*this: UAMethod,*/ inputArguments /*: Variant[]*/,
+            context /*: SessionContext*/
+        ) {
+            const session = context.session;
+            // do nothing
+            await new Promise((resolve) => setTimeout(() => resolve(), 100));
+
             console.log("timeout", session._watchDogData.timeout);
-            const old = session._watchDogData.timeout;
             session._watchDogData.timeout = 10;
             session._watchDog._visit_subscriber();
-            // session._watchDogData.timeout = old;
-        }, 100);
-        const statusCode = opcua.StatusCodes.Good;
-        return{ statusCode };
+            const statusCode = StatusCodes.Good;
+            return { statusCode };
+        };
+
+        method.bindMethod(scrapSession);
+
+        server.on("create_session", (session) => {
+            // scrap
+            if (doDebug) {
+                console.log("timeout", session._watchDogData.timeout);
+            }
+            session._watchDogData.timeout = 10000;
+            if (doDebug) {
+                console.log("timeout", session._watchDogData.timeout);
+            }
+        });
+        server.on("response", (response) => {
+            // istanbul ignore next
+            console.log(response.constructor.name.toString(), response.responseHeader.serviceResult.toString());
+        });
+
+        await server.start();
+
+        const endpointUrl = server.getEndpointUrl();
+
+        console.log(chalk.yellow("  server on port      :"), chalk.cyan(server.endpoints[0].port.toString()));
+        console.log(chalk.yellow("  endpointUrl         :"), chalk.cyan(endpointUrl));
+        console.log(chalk.yellow("\n  server now waiting for connections. CTRL+C to stop"));
+
+        process.once("SIGINT", async () => {
+            // only work on linux apparently
+            await server.shutdown(1000);
+            console.log(chalk.red.bold(" shutting down completed "));
+            process.exit(1);
+        });
+    } catch (err) {
+        console.log("server failed to start ", err.message);
+        process.exit(3);
     }
-
-    method.bindMethod(scrapSession);
-
-
-    server.on("create_session", (session) => {
-        // scrap 
-        if (doDebug) {
-            console.log("timeout", session._watchDogData.timeout);
-        }
-        session._watchDogData.timeout = 10000;
-        if (doDebug) {
-            console.log("timeout", session._watchDogData.timeout);
-        }
-
-    });
-    server.on("response", (response, channel) => {
-        // istanbul ignore next
-        console.log(response.constructor.name.toString(), response.responseHeader.serviceResult.toString());
-    })
-});
-
-server.start(function(err) {
-    if (err) {
-        console.log("server failed to start ... exiting");
-        process.exit(-3);
-    }
-    const endpointUrl = server.getEndpointUrl();
-
-    console.log(chalk.yellow("  server on port      :"), chalk.cyan(server.endpoints[0].port.toString()));
-    console.log(chalk.yellow("  endpointUrl         :"), chalk.cyan(endpointUrl));
-    console.log(chalk.yellow("\n  server now waiting for connections. CTRL+C to stop"));
-});
-
-process.on('SIGINT', () => {
-    // only work on linux apparently
-    server.shutdown(1000, () => {
-        console.log(chalk.red.bold(" shutting down completed "));
-        process.exit(-1);
-    });
-});
+})();

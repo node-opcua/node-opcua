@@ -1,4 +1,5 @@
-/*global describe, it, require*/
+"use strict";
+
 import * as should from "should";
 
 import { Range } from "node-opcua-types";

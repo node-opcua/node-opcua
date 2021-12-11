@@ -1,46 +1,30 @@
-
 const path = require("path");
 const fs = require("fs");
 const chalk = require("chalk");
-const {
-    OPCUAServer,
-    nodesets,
-    Variant,
-    DataType,
-    MessageSecurityMode
-} = require("node-opcua");
+const { OPCUAServer, nodesets, Variant, DataType, MessageSecurityMode } = require("node-opcua");
 
 Error.stackTraceLimit = Infinity;
 
-const argv = require("yargs")
-    .wrap(132)
-    .string("port")
-    .describe("port")
-    .alias('p', 'port')
-    .argv;
+const argv = require("yargs").wrap(132).string("port").describe("port").alias("p", "port").argv;
 
-const rootFolder = path.join(__dirname, "../");
+const packageFolder = path.join(__dirname, "../");
 
 const doDebug = process.env.doDebug;
 const port = parseInt(argv.port) || 26555;
 
-const server_options = {
-    port,
-    nodeset_filename: [
-        nodesets.standard,
-        path.join(rootFolder, "modeling/my_data_type.xml")
-    ]
-};
-if (!fs.existsSync(server_options.nodeset_filename[0])) {
-    throw new Error(" cannot find standard nodeset");
-}
-if (!fs.existsSync(server_options.nodeset_filename[1])) {
-    throw new Error(" cannot find custom nodeset");
-}
-process.title = "Node OPCUA Server on port : " + server_options.port;
-
 (async () => {
     try {
+        const server_options = {
+            port,
+            nodeset_filename: [nodesets.standard, path.join(packageFolder, "modeling/my_data_type.xml")]
+        };
+        if (!fs.existsSync(server_options.nodeset_filename[0])) {
+            throw new Error(" cannot find standard nodeset");
+        }
+        if (!fs.existsSync(server_options.nodeset_filename[1])) {
+            throw new Error(" cannot find custom nodeset");
+        }
+        process.title = "Node OPCUA Server on port : " + server_options.port;
 
         const server = new OPCUAServer(server_options);
 
@@ -48,8 +32,6 @@ process.title = "Node OPCUA Server on port : " + server_options.port;
         console.log(chalk.yellow("  server PID          :"), process.pid);
 
         await server.initialize();
-
-
 
         const addressSpace = server.engine.addressSpace;
 
@@ -79,19 +61,16 @@ process.title = "Node OPCUA Server on port : " + server_options.port;
                 for (const ed of e.endpointDescriptions()) {
                     console.log(ed.endpointUrl, MessageSecurityMode[ed.securityMode], ed.securityPolicyUri);
                 }
-
             }
         }
-        process.on('SIGINT', function() {
+        process.once("SIGINT", async () => {
             // only work on linux apparently
-            server.shutdown(1000, function() {
-                console.log(chalk.red.bold(" shutting down completed "));
-                process.exit(-1);
-            });
+            await server.shutdown(1000);
+            console.log(chalk.red.bold(" shutting down completed "));
+            process.exit(1);
         });
     } catch (err) {
-        console.log(err);
+        console.log(chalk.red(err.message));
+        process.exit(3);
     }
-
 })();
-
