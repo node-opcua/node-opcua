@@ -22,10 +22,12 @@ const {
     makeRoles
 } = require("node-opcua");
 
+const { build_address_space_for_conformance_testing } = require("node-opcua-address-space-for-conformance-testing");
+const { createServerCertificateManager } = require("./createServerCertificateManager");
+
 const doDebug = checkDebugFlag(__filename);
 const debugLog = make_debugLog(__filename);
 
-const { build_address_space_for_conformance_testing } = require("node-opcua-address-space-for-conformance-testing");
 
 /**
  * add a fake analog data item for testing
@@ -34,7 +36,6 @@ const { build_address_space_for_conformance_testing } = require("node-opcua-addr
  * @param parentNode
  */
 function addTestUAAnalogItem(parentNode) {
-
     const addressSpace = parentNode.addressSpace;
     const namespace = addressSpace.getOwnNamespace();
 
@@ -98,35 +99,32 @@ const userManager = {
  * @param done {callback}
  * @return {OPCUAServer}
  */
-function build_server_with_temperature_device(options, done) {
+async function build_server_with_temperature_device(options) {
     assert(typeof done, "expecting a callback function" === "function");
     assert(typeof nodesets.standard === "string");
-    assert(options.port , "expecting a port number");
+    assert(options.port, "expecting a port number");
 
     // use mini_nodeset_filename for speed up if not otherwise specified
     options.nodeset_filename = options.nodeset_filename || [nodesets.standard];
 
     options.userManager = options.userManager || userManager;
 
-    options.serverInfo = options.serverInfo ||
-        {
-            applicationUri: makeApplicationUrn(os.hostname(), "NodeOPCUA-Server")
-        };
+    options.serverInfo = options.serverInfo || {
+        applicationUri: makeApplicationUrn(os.hostname(), "NodeOPCUA-Server")
+    };
+
+    options.serverCertificateManager = options.serverCertificateManager || (await createServerCertificateManager(options.port));
 
     const server = new OPCUAServer(options);
     // we will connect to first server end point
 
-    callbackify(prepareFQDN)((err) => {
-        if (err) {
-            console.log(err);
-        }
-        _build_server_with_temperature_device(server, options, done);
-    });
+    await prepareFQDN();
+    await _build_server_with_temperature_device(server, options);
     return server;
 }
 
-function _build_server_with_temperature_device(server, options, done) {
-    assert(options.port , "expecting a port number");
+async function _build_server_with_temperature_device(server, options, done) {
+    assert(options.port, "expecting a port number");
     //xx console.log("xxx building server with temperature device");
 
     server.on("session_closed", function (session, reason) {
@@ -274,26 +272,16 @@ function _build_server_with_temperature_device(server, options, done) {
 
     server.set_point_temperature = 20.0;
 
-    function start(done) {
-        server.start(function (err) {
-            
-            const shutdownReason =server.engine.addressSpace.rootFolder.objects.server.serverStatus.shutdownReason;
-            const dataValue = shutdownReason.readValue();
-            // console.log("shutdown reason", dataValue.toString());
-            shutdownReason.setValueFromSource({
-                dataType: DataType.LocalizedText,
-                value: { text: "No Shutdown in progress" }
-            });
+  
+    await server.start();
 
-            if (err) {
-                return done(err);
-            }
-
-            done();
-        });
-    }
-
-    start(done);
+    const shutdownReason = server.engine.addressSpace.rootFolder.objects.server.serverStatus.shutdownReason;
+    const dataValue = shutdownReason.readValue();
+    // console.log("shutdown reason", dataValue.toString());
+    shutdownReason.setValueFromSource({
+        dataType: DataType.LocalizedText,
+        value: { text: "No Shutdown in progress" }
+    });
     return server;
 }
 

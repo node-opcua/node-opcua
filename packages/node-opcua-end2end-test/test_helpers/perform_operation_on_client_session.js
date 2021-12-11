@@ -1,7 +1,7 @@
 "use strict";
 
-const async = require("async");
 const { promisify, callbackify } = require("util");
+const async = require("async");
 const opcua = require("node-opcua");
 
 const { ClientSubscription, resolveNodeId, AttributeIds } = opcua;
@@ -151,7 +151,7 @@ function perform_operation_on_raw_subscription(client, endpointUrl, f, done) {
                 session.createSubscription({
                     requestedPublishingInterval: 100, // Duration
                     requestedLifetimeCount: 600,  // Counter
-                    requestedMaxKeepAliveCount: 100, // Counter
+                    requestedMaxKeepAliveCount: 200, // Counter
                     maxNotificationsPerPublish: 10, // Counter
                     publishingEnabled: true,   // Boolean
                     priority: 14 // Byte

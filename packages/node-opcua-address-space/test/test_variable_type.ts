@@ -232,7 +232,7 @@ describe("testing UAVariableType", () => {
         const instance1 =varType.instantiate({
             browseName: "Instance1",
         });
-        instance1.displayName.toString().should.eql("locale=null text=Some DisplayName");
+        instance1.displayName.toString().should.eql("locale=null text=Instance1");
 
         const instance2 =varType.instantiate({
             browseName: "Instance2",

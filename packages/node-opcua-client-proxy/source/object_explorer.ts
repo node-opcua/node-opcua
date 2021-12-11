@@ -148,8 +148,10 @@ function convertToVariantArray(inputArgsDef: ArgumentEx[], inputArgs: Record<str
     return inputArguments;
 }
 
+const thenify =require("thenify");
+ 
 function makeFunction(obj: any, methodName: string) {
-    return function functionCaller(
+    return thenify.withCallback(function functionCaller(
         this: any,
         inputArgs: Record<string, unknown>,
         callback: (err: Error | null, output?: Record<string, unknown>) => void
@@ -203,7 +205,7 @@ function makeFunction(obj: any, methodName: string) {
 
             callback(err, output);
         });
-    };
+    });
 }
 
 function extractDataType(session: IBasicSession, arg: ArgumentEx, callback: ErrorCallback): void {

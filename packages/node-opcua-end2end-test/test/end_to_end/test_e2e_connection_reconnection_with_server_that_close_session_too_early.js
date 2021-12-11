@@ -1,7 +1,7 @@
 "use strict";
 
-const chalk = require("chalk");
 const path = require("path");
+const chalk = require("chalk");
 const {
     TimestampsToReturn,
     AttributeIds,
@@ -12,10 +12,10 @@ const {
     ClientSubscription,
     DataType
 } = require("node-opcua");
+const { make_debugLog, checkDebugFlag } = require("node-opcua-debug");
 const {
     start_simple_server,
 } = require("../../test_helpers/external_server_fixture");
-const { make_debugLog, checkDebugFlag } = require("node-opcua-debug");
 const debugLog = make_debugLog("TEST");
 const doDebug = checkDebugFlag("TEST");
 
@@ -266,6 +266,7 @@ async function f(func) {
     };
     await debugWrapper();
 }
+// eslint-disable-next-line import/order
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("GHGL1 - Testing client reconnection with a crashing server that closes the session too early (such as KepwareServerEx6)", function() {
 
@@ -420,7 +421,7 @@ describe("GHGL1 - Testing client reconnection with a crashing server that closes
         }
     }
     async function then_it_should_succeed_to_recover() {
-
+        /** */
     }
     it("GZZE3 should reconnect when network is broken", async () => {
         await f(given_a_running_opcua_server);

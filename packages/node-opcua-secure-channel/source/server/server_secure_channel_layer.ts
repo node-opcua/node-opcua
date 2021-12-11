@@ -175,6 +175,7 @@ export interface IServerSessionBase {
 export class ServerSecureChannelLayer extends EventEmitter {
     public static throttleTime = 100;
 
+    private static g_MinimumSecureTokenLifetime = 2500;
     private static g_counter = 0;
     private _counter: number = ServerSecureChannelLayer.g_counter++;
 
@@ -751,7 +752,7 @@ export class ServerSecureChannelLayer extends EventEmitter {
             this.revisedLifetime = this.defaultSecureTokenLifetime;
         } else {
             this.revisedLifetime = Math.min(this.defaultSecureTokenLifetime, this.revisedLifetime);
-            this.revisedLifetime = Math.max(500, this.revisedLifetime);
+            this.revisedLifetime = Math.max(ServerSecureChannelLayer.g_MinimumSecureTokenLifetime, this.revisedLifetime);
         }
 
         // xx console.log('requestedLifetime,self.defaultSecureTokenLifetime, self.revisedLifetime',requestedLifetime,self.defaultSecureTokenLifetime, self.revisedLifetime);

@@ -2,14 +2,19 @@ import "should";
 import { nodesets } from "node-opcua-nodesets";
 import { getFullyQualifiedDomainName } from "node-opcua-hostname";
 import { OPCUAServer } from "..";
+import { createServerCertificateManager } from "../../node-opcua-end2end-test/test_helpers/createServerCertificateManager";
+
+const port = 2011;
 
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("OPCUAServerEndpoint#addEndpointDescription multiple hostname", () => {
     it("should be possible to create endpoints on multiple host names", async () => {
+        const serverCertificateManager = await createServerCertificateManager(port);
+
         // Given a server with two host names
         const server = new OPCUAServer({
-            port: 2011,
-
+            port,
+            serverCertificateManager,
             nodeset_filename: [nodesets.standard],
 
             alternateHostname: ["1.2.3.4", "MyName"]
@@ -43,9 +48,11 @@ describe("OPCUAServerEndpoint#addEndpointDescription multiple hostname", () => {
 describe("OPCUAServerEndpoint#addEndpointDescription default hostname", () => {
     it("should default to using the machine hostname as the hostname", async () => {
         // Given a server with no explicit hostname
-        const server = new OPCUAServer({
-            port: 2011,
 
+        const serverCertificateManager = await createServerCertificateManager(port);
+        const server = new OPCUAServer({
+            port,
+            serverCertificateManager,
             nodeset_filename: [nodesets.standard]
         });
 
@@ -72,15 +79,19 @@ describe("OPCUAServerEndpoint#addEndpointDescription default hostname", () => {
         server.dispose();
     });
 });
+
 describe("OPCUAServerEndpoint#addEndpointDescription custom hostname", () => {
     it("should be possible to create endpoints on multiple host names", async () => {
         const myHostname = "my.test.website";
 
+        const serverCertificateManager = await createServerCertificateManager(port);
+
         // Given a server with two host names
         const server = new OPCUAServer({
             hostname: myHostname,
-            port: 2011,
+            port,
 
+            serverCertificateManager,
             nodeset_filename: [nodesets.standard]
         });
 

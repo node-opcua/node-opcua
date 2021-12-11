@@ -6,20 +6,15 @@ const { build_server_with_temperature_device } = require("../../test_helpers/bui
 
 const port = 2005;
 
+// eslint-disable-next-line import/order
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 module.exports = () => {
     describe("DS5- testing OPCUA-Service Discovery Endpoint", function () {
-       
         let server, endpointUrl;
 
-        before((done) => {
-            server = build_server_with_temperature_device({ port },  (err) => {
-                if (err) {
-                    return done(err);
-                }
-                endpointUrl = server.getEndpointUrl();
-                done(err);
-            });
+        before(async () => {
+            server = await build_server_with_temperature_device({ port });
+            endpointUrl = server.getEndpointUrl();
         });
         after(async () => {
             await server.shutdown();

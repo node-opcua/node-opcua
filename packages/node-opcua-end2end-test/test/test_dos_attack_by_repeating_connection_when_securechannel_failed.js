@@ -26,6 +26,7 @@ const {
     OPCUACertificateManager,
     AttributeIds
 } = require("node-opcua");
+const { createServerCertificateManager } = require("../test_helpers/createServerCertificateManager");
 
 const fail_fast_connectionStrategy = {
     maxRetry: 0 // << NO RETRY !!
@@ -35,7 +36,9 @@ const certificateFolder = path.join(__dirname, "../../node-opcua-samples/certifi
 
 const port = 2019;
 
+// eslint-disable-next-line import/order
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
+
 describe("testing Server resilience to DDOS attacks 2", function () {
     const invalidCertificateFile = path.join(certificateFolder, "client_cert_2048_outofdate.pem");
     const validCertificate = path.join(certificateFolder, "client_cert_2048.pem");
@@ -73,11 +76,8 @@ describe("testing Server resilience to DDOS attacks 2", function () {
         sessions = [];
         rejected_connections = 0;
 
-        const serverCertificateManager = new OPCUACertificateManager({
-            rootFolder: path.join(certificateFolder, "tmp_pki")
-        });
-        await serverCertificateManager.initialize();
-
+        const serverCertificateManager = await createServerCertificateManager(port);
+        
         const cert = await readCertificate(validCertificate);
         await serverCertificateManager.trustCertificate(cert);
 

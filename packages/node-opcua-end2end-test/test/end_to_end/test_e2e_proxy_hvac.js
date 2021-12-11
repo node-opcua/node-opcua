@@ -25,38 +25,31 @@ describe("testing client Proxy", function () {
 
     let hvacNodeId = null;
 
-    before(function (done) {
+    before(async () => {
         global.gc && global.gc();
 
-        server = build_server_with_temperature_device({ port }, function (err) {
-            if (err) {
-                return done(err);
-            }
-            endpointUrl = server.getEndpointUrl();
-            temperatureVariableId = server.temperatureVariableId;
+        server = await build_server_with_temperature_device({ port });
 
-            hvacNodeId = createHVACSystem(server.engine.addressSpace);
+        endpointUrl = server.getEndpointUrl();
+        temperatureVariableId = server.temperatureVariableId;
 
-            const shutdownReason = server.engine.addressSpace.rootFolder.objects.server.serverStatus.shutdownReason;
+        hvacNodeId = createHVACSystem(server.engine.addressSpace);
 
-            console.log("shutdownReason", shutdownReason.readValue().toString());
+        const shutdownReason = server.engine.addressSpace.rootFolder.objects.server.serverStatus.shutdownReason;
 
-            done(err);
-        });
+        console.log("shutdownReason", shutdownReason.readValue().toString());
     });
 
-    beforeEach(function (done) {
+    beforeEach(() => {
         client = OPCUAClient.create();
-        done();
     });
 
-    afterEach(function (done) {
+    afterEach(() => {
         client = null;
-        done();
     });
 
-    after(function (done) {
-        server.shutdown(done);
+    after(async () => {
+        await server.shutdown();
     });
 
     it("Proxy1 - client should expose a nice little handy javascript object that proxies the HVAC UAObject", function (done) {
@@ -100,97 +93,38 @@ describe("testing client Proxy", function () {
         );
     });
 
-    it("Proxy2 - client should expose a nice little handy javascript object that proxies the server UAObject", function (done) {
-        let proxyManager;
-        perform_operation_on_client_session(
-            client,
-            endpointUrl,
-            function (session, inner_done) {
-                proxyManager = new UAProxyManager(session);
+    it("Proxy2 - client should expose a nice little handy javascript object that proxies the server UAObject", async () => {
+        await client.withSessionAsync(endpointUrl, async (session) => {
+            const proxyManager = new UAProxyManager(session);
+            await proxyManager.start();
 
-                const serverNodeId = opcua.coerceNodeId("i=2253");
+            const serverNodeId = opcua.coerceNodeId("i=2253");
+            
+            const serverObject = await proxyManager.getObject(serverNodeId);
 
-                let serverObject = null;
 
-           
-                async.series(
-                    [
-                        function (callback) {
-                            proxyManager.start(callback);
-                        },
+            if (!(typeof serverObject.getMonitoredItems === "function")) {
+                throw new Error("Cannot find serverObject.getMonitoredItems");
+            }
 
-                        function (callback) {
-                            console.log("serverNodeId", serverNodeId);
+            let dataValue = await serverObject.serverStatus.currentTime.readValue();
+            console.log("currentTime = ", dataValue.toString());
 
-                            proxyManager.getObject(serverNodeId, (err, object) => {
-                                if (err) {
-                                    console.log(err);
-                                } else {
-                                    //xx console.log(object);
-                                    serverObject = object;
-                                    if (!(typeof serverObject.getMonitoredItems === "function")) {
-                                        return callback(new Error("Cannot find serverObject.getMonitoredItems"));
-                                    }
-                                }
-                                callback(err);
-                            });
-                        },
+            dataValue = await serverObject.serverArray.readValue();
+            console.log("ServerArray = ", dataValue.toString());
 
-                        function (callback) {
-                            serverObject.serverStatus.currentTime.readValue((err, dataValue) => {
-                                console.log("currentTime = ",dataValue.toString());
-                                callback(err);
-                            });
-                        },
-                        function (callback) {
-                            serverObject.serverArray.readValue((err, dataValue) => {
-                                 console.log("ServerArray = ",dataValue.toString());
-                                callback(err);
-                            });
-                        },
-                        function (callback) {
-                            serverObject.serverStatus.readValue((err, dataValue) => {
-                                console.log("serverStatus = ",dataValue.toString());
-                                callback(err);
-                            });
-                        },
-                        function (callback) {
-                            serverObject.serverStatus.buildInfo.readValue((err, dataValue) => {
-                                console.log("serverStatus = ",dataValue.toString());
-                                callback(err);
-                            });
-                        },
+            dataValue = await serverObject.serverStatus.readValue();
+            console.log("serverStatus = ", dataValue.toString());
 
-                        function (callback) {
-                            setTimeout(callback, 500);
-                        },
-
-                        function (callback) {
-                            serverObject.serverStatus.currentTime.readValue((err, dataValue) => {
-                                //xx console.log("currentTime = ",dataValue.toString());
-                                callback(err);
-                            });
-                        },
-
-                        function (callback) {
-                            // now call getMonitoredItems
-                            const subscriptionId = proxyManager.subscription ? proxyManager.subscription.subscriptionId || 1 : 1;
-                            console.log(" SubscriptionID= ", subscriptionId);
-                            serverObject.getMonitoredItems({ subscriptionId }, (err, outputArgs) => {
-                                console.log("err = ", err);
-                                if (!err && outputArgs) {
-                                    //xx console.log("outputArgs.clientHandles = ", outputArgs.clientHandles);
-                                    //xx console.log("outputArgs.serverHandles = ", outputArgs.serverHandles);
-                                }
-                                callback();
-                            });
-                        }
-                    ],
-                    inner_done
-                );
-            },
-            done
-        );
+            dataValue = await serverObject.serverStatus.buildInfo.readValue();
+            console.log("serverStatus.buildInfo = ", dataValue.toString());
+            dataValue = await serverObject.serverStatus.currentTime.readValue();
+            // now call getMonitoredItems
+            const subscriptionId = proxyManager.subscription ? proxyManager.subscription.subscriptionId || 1 : 1;
+            console.log(" SubscriptionID= ", subscriptionId);
+            
+            const outputArgs = await serverObject.getMonitoredItems({ subscriptionId });
+        });
     });
 
     it("Proxy3 - one can subscribe to proxy object property change", function (done) {
@@ -391,7 +325,7 @@ describe("testing client Proxy", function () {
         );
     });
 
-    it("Proxy5", async () =>{
+    it("Proxy5", async () => {
         await client.withSessionAsync(endpointUrl, async (session) => {
             const dataValue = await session.read({
                 nodeId: opcua.VariableIds.Server_ServerStatus_ShutdownReason

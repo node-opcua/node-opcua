@@ -1,12 +1,10 @@
-// tslint:disable:no-console
-import * as chalk from "chalk";
-import * as path from "path";
 import "should";
-import * as os from "os";
+import * as chalk from "chalk";
 
 import { ClientSession, CreateSessionResponse, OPCUAClient, OPCUAServer, OPCUAServerOptions } from "node-opcua";
 
 import { checkDebugFlag, make_debugLog, make_errorLog, make_warningLog } from "node-opcua-debug";
+import { createServerCertificateManager } from "../test_helpers/createServerCertificateManager";
 const debugLog = make_debugLog("TEST");
 const warningLog = make_warningLog("TEST");
 const errorLog = make_errorLog("TEST");
@@ -17,8 +15,10 @@ const port = 3019;
 let server: OPCUAServer;
 let weirdRevisedSessionTimeout = 0;
 async function startServer() {
+    const serverCertificateManager = await createServerCertificateManager(port);
     const serverOptions: OPCUAServerOptions = {
         port,
+        serverCertificateManager,
         isAuditing: false
     };
     server = new OPCUAServer(serverOptions);

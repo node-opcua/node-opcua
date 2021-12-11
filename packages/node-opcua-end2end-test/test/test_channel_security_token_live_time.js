@@ -1,12 +1,10 @@
 "use strict";
 
-const should = require("should");
-const os = require("os");
 const path = require("path");
 const fs = require("fs");
-const opcua = require("node-opcua");
-const OPCUAServer = opcua.OPCUAServer;
-const OPCUAClient = opcua.OPCUAClient;
+
+const should = require("should");
+const { is_valid_endpointUrl, OPCUAServer, OPCUAClient, ServerSecureChannelLayer } = require("node-opcua");
 
 function getFixture(file) {
     file = path.join(__dirname, "../../node-opcua-address-space/test_helpers/test_fixtures", file);
@@ -21,67 +19,64 @@ const doDebug = checkDebugFlag("TEST");
 
 const port = 2041;
 
+const { createServerCertificateManager } = require("../test_helpers/createServerCertificateManager");
+
+// eslint-disable-next-line import/order
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
-describe("Testing ChannelSecurityToken lifetime", function() {
+describe("Testing ChannelSecurityToken lifetime", function () {
     this.timeout(Math.max(100000, this.timeout()));
 
     let server, client;
     let endpointUrl;
+    let backup = 9;
+    before(async () => {
+        backup = ServerSecureChannelLayer.g_MinimumSecureTokenLifetime;
+        ServerSecureChannelLayer.g_MinimumSecureTokenLifetime = 250;
 
-    beforeEach(function(done) {
-        server = new OPCUAServer({ port, nodeset_filename: empty_nodeset_filename });
+        const serverCertificateManager = await createServerCertificateManager(port);
+        server = new OPCUAServer({ port, serverCertificateManager, nodeset_filename: empty_nodeset_filename });
+        await server.start();
+        // we will connect to first server end point
+        endpointUrl = server.getEndpointUrl();
+        debugLog("endpointUrl", endpointUrl);
+        is_valid_endpointUrl(endpointUrl).should.equal(true);
+    });
 
+    after(async () => {
+        ServerSecureChannelLayer.g_MinimumSecureTokenLifetime = backup;
+        await server.shutdown();
+        OPCUAServer.registry.count().should.eql(0);
+    });
+
+    beforeEach(async () => {
         client = OPCUAClient.create({
             defaultSecureTokenLifetime: 100 // very short live time !
         });
-
-        server.start(function() {
-            // we will connect to first server end point
-            endpointUrl = server.getEndpointUrl();
-            debugLog("endpointUrl", endpointUrl);
-            opcua.is_valid_endpointUrl(endpointUrl).should.equal(true);
-
-            setImmediate(done);
-        });
     });
 
-    afterEach(function(done) {
-        setImmediate(function() {
-            client.disconnect(function() {
-                server.shutdown(function() {
-                    OPCUAServer.registry.count().should.eql(0);
-
-                    done();
-                });
-            });
-        });
+    afterEach(async () => {
+        await client.disconnect();
     });
 
-    it("A secure channel should raise a event to notify its client that its token is at 75% of its lifetime", function(done) {
-        client.connect(endpointUrl, function(err) {
-            should(!!err).equal(false);
-            client._secureChannel.once("lifetime_75", function() {
-                debugLog(" received lifetime_75");
-                client.disconnect(function() {
-                    done();
-                });
-            });
+    it("A secure channel should raise a event to notify its client that its token is at 75% of its lifetime", async () => {
+        await client.connect(endpointUrl);
+
+        await new Promise((resolve) => {
+            client._secureChannel.once("lifetime_75", resolve);
         });
+        await client.disconnect();
     });
 
-    it("A secure channel should raise a event to notify its client that a token about to expired has been renewed", function(done) {
-        client.connect(endpointUrl, function(err) {
-            if (err) {
-                done(err);
-                return;
-            }
-            client._secureChannel.on("security_token_renewed", function() {
+    it("A secure channel should raise a event to notify its client that a token about to expired has been renewed", async () => {
+        await client.connect(endpointUrl);
+
+        await new Promise((resolve) => {
+            client._secureChannel.on("security_token_renewed", function () {
                 debugLog(" received security_token_renewed");
-                client.disconnect(function() {
-                    done();
-                });
+                resolve();
             });
         });
+        await client.disconnect();
     });
 
     it("A client should periodically renew the expiring security token", async () => {
@@ -94,7 +89,7 @@ describe("Testing ChannelSecurityToken lifetime", function() {
         await new Promise((resolve, reject) => {
             const id = setTimeout(() => reject(new Error("security token not renewed")), waitingTime);
 
-            client._secureChannel.on("security_token_renewed", function() {
+            client._secureChannel.on("security_token_renewed", function () {
                 debugLog(" received security_token_renewed");
                 security_token_renewed_counter += 1;
                 if (security_token_renewed_counter > 3) {

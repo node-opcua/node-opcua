@@ -13,26 +13,23 @@ const {
     makeRoles
 } = require("node-opcua");
 
-const {
-    build_server_with_temperature_device
-} = require("../../test_helpers/build_server_with_temperature_device");
+const { build_server_with_temperature_device } = require("../../test_helpers/build_server_with_temperature_device");
 
 const users = [
     {
         username: "user1",
         password: "1",
-        roles: makeRoles([WellKnownRoles.AuthenticatedUser, WellKnownRoles.Operator]),
+        roles: makeRoles([WellKnownRoles.AuthenticatedUser, WellKnownRoles.Operator])
     },
     {
         username: "user2",
         password: "2",
         roles: makeRoles([WellKnownRoles.AuthenticatedUser, WellKnownRoles.ConfigureAdmin])
-    },
+    }
 ];
 
 // simplistic user manager for test purpose only ( do not use in production !)
 const userManager = {
-
     isValidUser: function (username, password) {
         const uIndex = users.findIndex(function (u) {
             return u.username === username;
@@ -46,7 +43,7 @@ const userManager = {
         return true;
     },
 
-    getUserRoles: function (username)/*: NodeId[] */{
+    getUserRoles: function (username) /*: NodeId[] */ {
         const uIndex = users.findIndex(function (x) {
             return x.username === username;
         });
@@ -56,68 +53,54 @@ const userManager = {
         const userRole = users[uIndex].roles;
         return userRole;
     }
-
 };
 
 const port = 2225;
 
+// eslint-disable-next-line import/order
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("testing Client-Server with UserName/Password identity token", function () {
-
-    let server, client, endpointUrl;
+    let server, endpointUrl;
     let node1;
 
-
-    before(function (done) {
-
+    before(async () => {
         const options = {
-            port,
+            port
             //xx            allowAnonymous: false
         };
-        server = build_server_with_temperature_device(options, function (err) {
+        server = await build_server_with_temperature_device(options);
 
-            const rolePermissions = [
-                {
-                    roleId: WellKnownRoles.Anonymous,
-                    permissions: allPermissions & ~PermissionType.Read & ~PermissionType.Write
-                },
-                {
-                    roleId: WellKnownRoles.AuthenticatedUser,
-                    permissions: allPermissions & ~PermissionType.Write
-                },
-                {
-                    roleId: WellKnownRoles.ConfigureAdmin,
-                    permissions: allPermissions
-                }
-            ];
+        const rolePermissions = [
+            {
+                roleId: WellKnownRoles.Anonymous,
+                permissions: allPermissions & ~PermissionType.Read & ~PermissionType.Write
+            },
+            {
+                roleId: WellKnownRoles.AuthenticatedUser,
+                permissions: allPermissions & ~PermissionType.Write
+            },
+            {
+                roleId: WellKnownRoles.ConfigureAdmin,
+                permissions: allPermissions
+            }
+        ];
 
-            endpointUrl = server.getEndpointUrl();
-            // replace user manager with our custom one
-            server.userManager = userManager;
+        endpointUrl = server.getEndpointUrl();
+        // replace user manager with our custom one
+        server.userManager = userManager;
 
-            const addressSpace = server.engine.addressSpace;
-            const namespace = addressSpace.getOwnNamespace();
-            // create a variable that can  be read and written by admins
-            // and read/nowrite by operators
-            // and noRead/noWrite by guests
-            node1 = namespace.addVariable({
-                browseName: "v1",
-                organizedBy: addressSpace.rootFolder.objects,
-                dataType: "Double",
-                value: { dataType: "Double", value: 3.14 },
-                rolePermissions
-            });
- 
-            done(err);
+        const addressSpace = server.engine.addressSpace;
+        const namespace = addressSpace.getOwnNamespace();
+        // create a variable that can  be read and written by admins
+        // and read/nowrite by operators
+        // and noRead/noWrite by guests
+        node1 = namespace.addVariable({
+            browseName: "v1",
+            organizedBy: addressSpace.rootFolder.objects,
+            dataType: "Double",
+            value: { dataType: "Double", value: 3.14 },
+            rolePermissions
         });
-    });
-
-    beforeEach(() => {
-        client = null;
-    });
-
-    afterEach(() => {
-        client = null;
     });
 
     after(async () => {
@@ -127,7 +110,7 @@ describe("testing Client-Server with UserName/Password identity token", function
     async function read(session) {
         const nodeToRead = {
             nodeId: node1.nodeId.toString(),
-            attributeId: AttributeIds.Value,
+            attributeId: AttributeIds.Value
         };
         const dataValue = await session.read(nodeToRead);
         return dataValue.statusCode;
@@ -141,19 +124,19 @@ describe("testing Client-Server with UserName/Password identity token", function
             {
                 nodeId: node1.nodeId.toString(),
                 attributeId: AttributeIds.Value,
-                value: /*new DataValue(*/{
-                    value: {/* Variant */dataType: DataType.Double, value: _the_value }
+                value: /*new DataValue(*/ {
+                    value: { /* Variant */ dataType: DataType.Double, value: _the_value }
                 }
             }
         ];
         const statusCodes = await session.write(nodesToWrite);
         return statusCodes[0];
     }
-    it("Operator user should be able to read but not to write V1 node value", async () => {
 
+    
+    it("Operator user should be able to read but not to write V1 node value", async () => {
         const client = OPCUAClient.create({});
         await client.withSessionAsync(endpointUrl, async (session) => {
-
             // ---------------------------------------------------------------------------------
             // As anonymous user
             // ---------------------------------------------------------------------------------

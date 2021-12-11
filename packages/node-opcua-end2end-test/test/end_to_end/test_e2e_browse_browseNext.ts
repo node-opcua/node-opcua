@@ -16,6 +16,7 @@ import {
 } from "node-opcua";
 import { spy } from "sinon";
 import * as should from "should";
+import { createServerCertificateManager } from "../../test_helpers/createServerCertificateManager";
 const doDebug = false;
 
 // #519_NodeCrawler is not browsing some nodes
@@ -25,12 +26,13 @@ describe("testing browse & browseNext", () => {
     let server: OPCUAServer;
     let endpointUrl: any;
 
-    const port = 2011;
+    const port = 1975;
     let groupNodeId: NodeId;
 
     before(async () => {
  
-        const options = { port };
+        const serverCertificateManager = await createServerCertificateManager(port);
+        const options = { port, serverCertificateManager };
         server = new OPCUAServer(options);
 
         await server.initialize();

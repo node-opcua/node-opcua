@@ -16,6 +16,7 @@ import {
     RegisterServerMethod
 } from "node-opcua";
 import { make_debugLog, checkDebugFlag } from "node-opcua-debug";
+import { createServerCertificateManager } from "../../test_helpers/createServerCertificateManager";
 
 const debugLog = make_debugLog("TEST");
 const doDebug = checkDebugFlag("TEST");
@@ -44,14 +45,9 @@ export async function createServerThatRegistersItselfToTheDiscoveryServer(
     port: number,
     name: string
 ): Promise<OPCUAServer> {
-    const pkiFolder = path.join(configFolder, "pki" + name);
-    const serverCertificateManager = new OPCUACertificateManager({
-        // keySize: 4096,
-        automaticallyAcceptUnknownCertificate: true,
-        name: "pki" + name,
-        rootFolder: pkiFolder
-    });
-    await serverCertificateManager.initialize();
+
+    const serverCertificateManager = await createServerCertificateManager(port);
+
     const certificateFile = path.join(serverCertificateManager.rootDir, "certificate_server" + name + ".pem");
 
     assert(!name.match(/urn:/));

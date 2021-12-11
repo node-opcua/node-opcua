@@ -41,7 +41,7 @@ module.exports = function(test) {
                 value: {
                     refreshFunc: function(callback) {
                         // simulate a asynchronous behaviour
-                        setTimeout(function() {
+                        setTimeout(() => {
                             counter += 1;
                             callback(null, new DataValue({ value: { dataType: "UInt32", value: counter } }));
                         }, refreshRate);

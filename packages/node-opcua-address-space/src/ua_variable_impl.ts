@@ -641,6 +641,10 @@ export class UAVariableImpl extends BaseNodeImpl implements UAVariable {
             return DataType.Null;
         }
         const addressSpace = this.addressSpace;
+        if (!addressSpace) {
+            // may be node has been deleted already
+            return DataType.Null;
+        }
         const dataTypeNode = addressSpace.findDataType(this.dataType)!;
         const basicDataType =
             dataTypeNode && dataTypeNode.nodeClass === NodeClass.DataType ? dataTypeNode.getBasicDataType() : DataType.Null;
@@ -1771,7 +1775,13 @@ export class UAVariableImpl extends BaseNodeImpl implements UAVariable {
         assert(dataValue, "expecting a dataValue");
         assert(dataValue instanceof DataValue, "expecting dataValue to be a DataValue");
         assert(dataValue !== this.$dataValue, "expecting dataValue to be different from previous DataValue instance");
+        
 
+        const addressSpace = this.addressSpace;
+        if(!addressSpace) {
+            warningLog("UAVariable#_internal_set_dataValue : no addressSpace ! may be node has already been deleted ?");
+            return;
+        }
         if (dataValue.value.arrayType === VariantArrayType.Matrix) {
             if (!dataValue.value.dimensions) {
                 throw new Error("missing dimensions: a Matrix Variant needs a dimension");

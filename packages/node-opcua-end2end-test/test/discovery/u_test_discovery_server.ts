@@ -25,6 +25,7 @@ import {
 import { readCertificate, exploreCertificate } from "node-opcua-crypto";
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 
+import { createServerCertificateManager } from "../../test_helpers/createServerCertificateManager";
 import { createServerThatRegistersItselfToTheDiscoveryServer, ep, startDiscovery } from "./_helper";
 
 const configFolder = path.join(__dirname, "../../tmp");
@@ -55,7 +56,7 @@ export function t(test: any) {
         let discoveryServerEndpointUrl: string;
         let server: OPCUAServer | undefined;
 
-        before(() => {
+        before(async () => {
             server = new OPCUAServer({
                 port: port0,
                 serverCertificateManager: this.serverCertificateManager,

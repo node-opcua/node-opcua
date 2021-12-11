@@ -1,8 +1,8 @@
 /* eslint-disable max-statements */
 "use strict";
+const fs = require("fs");
 const should = require("should");
 const async = require("async");
-const fs = require("fs");
 const {
     DataType,
     MessageSecurityMode,
@@ -18,9 +18,9 @@ const chalk = require("chalk");
 
 const { readCertificate } = require("node-opcua-crypto");
 
-const { make_debugLog, checkDebugFlag, make_errorLog} = require("node-opcua-debug");
+const { make_debugLog, checkDebugFlag, make_errorLog } = require("node-opcua-debug");
 const debugLog = make_debugLog("TEST");
-const errorLog = make_errorLog("TEST")
+const errorLog = make_errorLog("TEST");
 const doDebug = checkDebugFlag("TEST");
 
 const port = 2014;
@@ -55,21 +55,20 @@ const infinite_connectivity_strategy = {
 
 const f = require("../../test_helpers/display_function_name").f.bind(null, doDebug);
 
+// eslint-disable-next-line import/order
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("KJH1 testing basic Client-Server communication", function () {
     let server, client, temperatureVariableId, endpointUrl;
 
     this.timeout(Math.max(20000, this.timeout()));
 
-    before(function (done) {
-        server = build_server_with_temperature_device({ port }, function (err) {
-            endpointUrl = server.getEndpointUrl();
-            temperatureVariableId = server.temperatureVariableId;
-            done(err);
-        });
+    before(async () => {
+        server = await build_server_with_temperature_device({ port });
+        endpointUrl = server.getEndpointUrl();
+        temperatureVariableId = server.temperatureVariableId;
     });
 
-    beforeEach(function (done) {
+    beforeEach(async () => {
         // use fail fast connectionStrategy
         const options = {
             connectionStrategy: fail_fast_connectivity_strategy,
@@ -85,21 +84,16 @@ describe("KJH1 testing basic Client-Server communication", function () {
         client.on("start_reconnection", function () {
             debugLog(chalk.bgWhite.black(" !!!!!!!!!!!!!!!!!!!!!!!!  Starting Reconnection !!!!!!!!!!!!!!!!!!!"));
         });
-        done();
     });
 
-    afterEach(function (done) {
-        client.disconnect(function (err) {
-            client = null;
-            done(err);
-        });
+    afterEach(async () => {
+        await client.disconnect();
+        client = null;
     });
 
-    after(function (done) {
+    after(async () => {
         should.not.exist(client, "client still running");
-        server.shutdown(function (err) {
-            done(err);
-        });
+        await server.shutdown();
     });
 
     it("TR01 - a client should connect to a server and disconnect ", function (done) {
@@ -146,9 +140,9 @@ describe("KJH1 testing basic Client-Server communication", function () {
                 if (err) {
                     return done(err);
                 }
-                setTimeout(()=>{
+                setTimeout(() => {
                     server.currentChannelCount.should.equal(0);
-                    done(err);    
+                    done(err);
                 }, 10);
             }
         );
@@ -368,46 +362,45 @@ describe("KJH2 testing ability for client to reconnect when server close connect
         server.serverCertificateManager.trustCertificate(certificate, callback);
     }
 
-    function start_demo_server(done) {
-        server = build_server_with_temperature_device({ port }, function (err) {
-            if (err) {
-                debugLog(err.message);
-            }
-            endpointUrl = server.getEndpointUrl();
-            temperatureVariableId = server.temperatureVariableId;
+    async function start_demo_server_async() {
+        server = await build_server_with_temperature_device({ port });
 
-            const namespace = server.engine.addressSpace.getOwnNamespace();
+        endpointUrl = server.getEndpointUrl();
+        temperatureVariableId = server.temperatureVariableId;
 
-            if (!err) {
-                let c = 0;
+        const namespace = server.engine.addressSpace.getOwnNamespace();
 
-                counterNode = namespace.addVariable({
-                    browseName: "Counter",
-                    organizedBy: server.engine.addressSpace.rootFolder.objects,
-                    dataType: "UInt32",
-                    value: new Variant({ dataType: DataType.UInt32, value: c })
-                });
-                timerId = setInterval(function () {
-                    c = c + 1;
-                    counterNode.setValueFromSource(new Variant({ dataType: "UInt32", value: c }), StatusCodes.Good);
-                }, 100);
-            }
-            done(err);
+        let c = 0;
+
+        counterNode = namespace.addVariable({
+            browseName: "Counter",
+            organizedBy: server.engine.addressSpace.rootFolder.objects,
+            dataType: "UInt32",
+            value: new Variant({ dataType: DataType.UInt32, value: c })
         });
+        timerId = setInterval(function () {
+            c = c + 1;
+            counterNode.setValueFromSource(new Variant({ dataType: "UInt32", value: c }), StatusCodes.Good);
+        }, 100);
     }
 
-    function shutdown_server(done) {
+    async function shutdown_server_async() {
         should(server).not.eql(null, "server not started ?");
         if (timerId) {
             clearInterval(timerId);
             timerId = null;
         }
-        server.shutdown(function (err) {
-            server = null;
-            done(err);
-        });
+        await server.shutdown();
+        server = null;
+    }
+    function start_demo_server(callback) {
+        start_demo_server_async().then(callback).catch(callback);
+    }
+    function shutdown_server(callback) {
+        shutdown_server_async().then(callback).catch(callback);
     }
 
+    // -----------------------------------------------------------------------------------------------------------------
     function suspend_demo_server(callback) {
         server.suspendEndPoints(callback);
     }
@@ -416,9 +409,9 @@ describe("KJH2 testing ability for client to reconnect when server close connect
         server.resumeEndPoints(callback);
     }
 
-    function restart_server(done) {
+    function restart_server(callback) {
         should(server).eql(null, "server already started ?");
-        start_demo_server(done);
+        start_demo_server_async().then(callback);
     }
 
     function verify_that_server_has_no_active_channel(callback) {

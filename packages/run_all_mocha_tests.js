@@ -281,7 +281,7 @@ async function runtests({ selectedTests, reporter, dryRun, filterOpts, skipped }
 
     const suite = mocha.suite;
     suite.on("pre-require", (global, file, self) => {
-        console.log("pre-require", file);
+     //   console.log("pre-require", file);
     });
     suite.on("require", (script, file, self) => {
         /* */

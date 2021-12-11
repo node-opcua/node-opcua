@@ -26,25 +26,25 @@ const {
 
 const conditionTypeId = resolveNodeId("ConditionType");
 
-const { perform_operation_on_subscription } = require("../../../test_helpers/perform_operation_on_client_session");
 
 const { constructEventFilter } = require("node-opcua-service-filter");
 
 
 const { make_debugLog, checkDebugFlag } = require("node-opcua-debug");
-const debugLog = make_debugLog("TEST");
-const doDebug = checkDebugFlag("TEST");
 
 const { construct_demo_alarm_in_address_space } = require("node-opcua-address-space/testHelpers");
+const { perform_operation_on_subscription } = require("../../../test_helpers/perform_operation_on_client_session");
 const { f } = require("../../discovery/_helper");
 
+const debugLog = make_debugLog("TEST");
+const doDebug = checkDebugFlag("TEST");
 
 function wait_a_little_bit_to_let_events_to_be_processed(callback) {
   setTimeout(callback, 400);
 }
 
+// eslint-disable-next-line import/order
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
-
 module.exports = function (test) {
 
   describe("A&C monitoring conditions", function () {
@@ -135,6 +135,7 @@ module.exports = function (test) {
     const eventFilter = constructEventFilter(fields, conditionTypeId);
 
     function given_an_installed_event_monitored_item(subscription, callback) {
+      // eslint-disable-next-line @typescript-eslint/no-this-alias
       const test = this;
       // A spy to detect event when they are raised by the sever
       test.spy_monitored_item1_changes = sinon.spy();

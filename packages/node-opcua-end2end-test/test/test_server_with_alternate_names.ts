@@ -29,16 +29,15 @@ const port2 = 3018;
 
 Error.stackTraceLimit = Infinity;
 
-import envPaths = require("env-paths");
-const config = envPaths("MiniNodeOPCUA-Server").config;
-const pkiFolder = path.join(config, "pki");
+import { createServerCertificateManager } from "../test_helpers/createServerCertificateManager";
 
 let server: OPCUAServer;
 
 async function startServer() {
-    const serverOptions: OPCUAServerOptions = {
-        serverCertificateManager: new OPCUACertificateManager({ rootFolder: pkiFolder }),
+    const serverCertificateManager = await createServerCertificateManager(port1);
 
+    const serverOptions: OPCUAServerOptions = {
+        serverCertificateManager,
         port: port1,
 
         nodeset_filename: [nodesets.standard],
@@ -103,8 +102,12 @@ async function extractEndpoints(endpointUrl: string): Promise<EndpointDescriptio
 }
 
 async function startMultiHeadServer() {
+
+    const serverCertificateManager = await createServerCertificateManager(port1);
+    //  new OPCUACertificateManager({ rootFolder: pkiFolder }),
+
     const serverOptions: OPCUAServerOptions = {
-        serverCertificateManager: new OPCUACertificateManager({ rootFolder: pkiFolder }),
+        serverCertificateManager,
         isAuditing: false,
         nodeset_filename: [nodesets.standard],
         serverInfo: {

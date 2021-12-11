@@ -30,6 +30,7 @@ import {
 } from "node-opcua";
 import { readCertificate, readPrivateKey, readPrivateKeyPEM } from "node-opcua-crypto";
 import should = require("should");
+import { createServerCertificateManager } from "../../test_helpers/createServerCertificateManager";
 const warningLog =make_warningLog("TEST");
 
 
@@ -102,14 +103,8 @@ describe("test reconnection when server stops and change it privateKey and certi
     const port = 2565;
 
     async function startServer() {
-        const randomSeed = crypto.randomBytes(16).toString("hex");
-        const rootFolder = path.join(os.tmpdir(), randomSeed);
-        const serverCertificateManager = new OPCUACertificateManager({
-            automaticallyAcceptUnknownCertificate: true,
-            rootFolder
-        });
 
-        await serverCertificateManager.initialize();
+        const serverCertificateManager = await createServerCertificateManager(port);
 
         const server = new OPCUAServer({
             port,

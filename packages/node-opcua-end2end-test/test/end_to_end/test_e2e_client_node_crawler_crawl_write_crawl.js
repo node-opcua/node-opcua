@@ -6,14 +6,15 @@ const async = require("async");
 const { OPCUAClient, DataType, NodeCrawler, StatusCodes, AttributeIds } = require("node-opcua");
 
 const { make_debugLog, checkDebugFlag } = require("node-opcua-debug");
-const debugLog = make_debugLog("TEST");
-const doDebug = checkDebugFlag("TEST");
+const { build_address_space_for_conformance_testing } = require("node-opcua-address-space-for-conformance-testing");
 
 const { build_server_with_temperature_device } = require("../../test_helpers/build_server_with_temperature_device");
 const { perform_operation_on_client_session } = require("../../test_helpers/perform_operation_on_client_session");
 
-const { build_address_space_for_conformance_testing } = require("node-opcua-address-space-for-conformance-testing");
+const debugLog = make_debugLog("TEST");
+const doDebug = checkDebugFlag("TEST");
 
+// eslint-disable-next-line import/order
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("NodeCrawlerBase after write", function () {
     const port = 2012;
@@ -24,27 +25,25 @@ describe("NodeCrawlerBase after write", function () {
 
     let server, client, temperatureVariableId, endpointUrl;
 
-    before(function (done) {
+    before(async () => {
         // we use a different port for each tests to make sure that there is
         // no left over in the tcp pipe that could generate an error
         //port+=1;
-        server = build_server_with_temperature_device({ port }, function (err) {
-            build_address_space_for_conformance_testing(server.engine.addressSpace, { mass_variables: false });
+        server = await build_server_with_temperature_device({ port });
 
-            endpointUrl = server.getEndpointUrl();
-            temperatureVariableId = server.temperatureVariableId;
-            done(err);
-        });
+        build_address_space_for_conformance_testing(server.engine.addressSpace, { mass_variables: false });
+
+        endpointUrl = server.getEndpointUrl();
+        temperatureVariableId = server.temperatureVariableId;
     });
 
-    beforeEach(function (done) {
+    beforeEach(async () => {
         client = OPCUAClient.create({
             requestedSessionTimeout: 60 * 1000 * 4 // 4 minutes
         });
         client.on("backoff", (count, delay) => {
             console.log("Backoff ", endpointUrl);
         });
-        done();
     });
 
     afterEach(function (done) {
@@ -52,8 +51,8 @@ describe("NodeCrawlerBase after write", function () {
         done();
     });
 
-    after(function (done) {
-        server.shutdown(done);
+    after(async () => {
+        await server.shutdown();
     });
 
     it("should crawl, write to node, and crawl again", function (done) {

@@ -11,12 +11,13 @@ const {
     dumpEvent
 } = require("node-opcua-client");
 const { construct_demo_alarm_in_address_space } = require("node-opcua-address-space/testHelpers");
+
+const Table = require("cli-table3");
+const truncate = require('cli-truncate');
+
 const { perform_operation_on_subscription_async } = require("../../../test_helpers/perform_operation_on_client_session");
 
 const doDebug = false;
-const Table = require("cli-table3");
-
-const truncate = require('cli-truncate');
 
 function ellipsys(a) {
     if (!a) { return ""; }
@@ -55,6 +56,7 @@ function displayAlarms(alarms/*: ClientAlarmList*/) {
 }
 
 
+// eslint-disable-next-line import/order
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 module.exports = function(test) {
 

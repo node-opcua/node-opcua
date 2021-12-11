@@ -20,10 +20,10 @@ describe("testing Client - Umbrella-F", function () {
     const test = this;
     test.port = port;
 
-    before((done) => beforeTest(test, done));
-    beforeEach((done) => beforeEachTest(test, done));
-    afterEach((done) => afterEachTest(test, done));
-    after((done) => afterTest(test, done));
+    before(async () => await beforeTest(test));
+    beforeEach(async () => await beforeEachTest(test));
+    afterEach(async () => await afterEachTest(test));
+    after(async () => await afterTest(test));
     // OPCUA Event Monitoring test Cases
    
     require("./u_test_e2e_issue_144")(test);
@@ -35,22 +35,5 @@ describe("testing Client - Umbrella-F", function () {
 
     require("./u_test_e2e_issue_195")(test);
     require("./u_test_e2e_issue_198")(test);
-    require("./u_test_e2e_issue_205_betterSessionNames")(test);
-    require("./u_test_e2e_issue_214_StatusValueTimestamp")(test);
-    require("./u_test_e2e_translateBrowsePath")(test);
-    require("./u_test_e2e_issue_73")(test);
-    require("./u_test_e2e_issue_119")(test);
-    require("./u_test_e2e_issue_141")(test);
-
-    require("./u_test_e2e_issue_146")(test);
-    require("./u_test_e2e_read_write")(test);
-    require("./u_test_e2e_issue_957")(test);
-
-    /* move to H 
-    require("./u_test_e2e_SubscriptionUseCase_monitoring_events")(test);
-    //xx require("./u_test_e2e_SubscriptionUseCase_monitoring_events_2")(test);
-    require("./u_test_e2e_monitored_item_ctt018").t(test);
-    require("./u_test_e2e_server_with_500_clients")(test);
-    // require("./u_test_e2e_modifyMonitoredItem_onEvent")(test);
-    */
+    
 });

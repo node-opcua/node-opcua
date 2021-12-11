@@ -1,14 +1,16 @@
 import { OPCUAServer, OPCUAClient } from "node-opcua";
 import * as should from "should";
+import { createServerCertificateManager } from "../test_helpers/createServerCertificateManager";
 const _should = should;
 const port = 2004;
 
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("Verifying Server Endpoint", () => {
     let server: OPCUAServer;
-    let endpointUri: string = `opc.tcp://localhost:${port}`;
+    let endpointUri = `opc.tcp://localhost:${port}`;
     before(async () => {
-        server = new OPCUAServer({ port });
+        const serverCertificateManager = await createServerCertificateManager(port);
+        server = new OPCUAServer({ port, serverCertificateManager });
         await server.initialize();
         await server.start();
         endpointUri = server.getEndpointUrl()!;
@@ -45,8 +47,6 @@ describe("Verifying Server Endpoint", () => {
 
                 duplicatedPolicies.should.eql([], "endpoint " + e.securityPolicyUri + " must not exhibit duplicated policies");
             }
-        } catch (err) {
-            throw err;
         } finally {
             await client.disconnect();
         }
@@ -79,8 +79,6 @@ describe("Verifying Server Endpoint", () => {
             }
 
             duplicatedPolicies.should.eql([], "duplicated policies found");
-        } catch (err) {
-            throw err;
         } finally {
             await client.disconnect();
         }

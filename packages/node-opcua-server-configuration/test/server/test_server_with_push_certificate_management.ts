@@ -45,6 +45,7 @@ import { installPushCertificateManagementOnServer } from "../..";
 import { ClientPushCertificateManagement } from "../..";
 import { certificateMatchesPrivateKey } from "../..";
 import { OPCUAServerPartial } from "../../source";
+import { createServerCertificateManager } from "../../../node-opcua-end2end-test/test_helpers/createServerCertificateManager";
 
 const port = 20101;
 
@@ -117,6 +118,7 @@ describe("Testing server configured with push certificate management", () => {
         await clientCertificateManager.dispose();
     });
     it("SCT-1 should modify a server to support push certificate management", async () => {
+
         const server = new OPCUAServer({
             port,
             serverCertificateManager: certificateManager,

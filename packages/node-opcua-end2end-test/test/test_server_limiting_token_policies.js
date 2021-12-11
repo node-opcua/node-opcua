@@ -1,3 +1,4 @@
+"use strict";
 const {
     get_mini_nodeset_filename,
     OPCUAServer,
@@ -7,15 +8,21 @@ const {
     UserTokenType
 } = require("node-opcua");
 require("should");
+const { createServerCertificateManager } = require("../test_helpers/createServerCertificateManager");
 
-// tslint:disable-next-line:no-var-requires
+const port = 1979;
+
+// eslint-disable-next-line import/order
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("Server shall only expose userIdentityTokens that matches securityPolicies", () => {
     it("should ony expose one endpoint if no security ", async () => {
+        const serverCertificateManager = await createServerCertificateManager(port);
         const server = new OPCUAServer({
+            port,
             allowAnonymous: true,
             securityModes: [MessageSecurityMode.None],
             securityPolicies: [SecurityPolicy.None],
+            serverCertificateManager,
             nodeset_filename: [get_mini_nodeset_filename()]
         });
         await server.initialize();
@@ -35,7 +42,10 @@ describe("Server shall only expose userIdentityTokens that matches securityPolic
         await server.shutdown();
     });
     it("should ony expose two endpoint if no security ", async () => {
+        const serverCertificateManager = await createServerCertificateManager(port);
         const server = new OPCUAServer({
+            port,
+            serverCertificateManager,
             allowAnonymous: false,
             securityModes: [MessageSecurityMode.Sign],
             securityPolicies: [SecurityPolicy.Basic256Sha256],

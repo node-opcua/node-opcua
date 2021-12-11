@@ -1,11 +1,10 @@
 "use strict";
-const chalk = require("chalk");
-const should = require("should");
-const { assert } = require("node-opcua-assert");
-const async = require("async");
 const fs = require("fs");
 const path = require("path");
 const os = require("os");
+const chalk = require("chalk");
+const should = require("should");
+const async = require("async");
 
 const {
     OPCUACertificateManager,
@@ -15,9 +14,8 @@ const {
     AttributeIds,
     makeNodeId,
     VariableIds,
-    ClientMonitoredItem,
+    ClientMonitoredItem
 } = require("node-opcua");
-
 
 const debugLog = require("node-opcua-debug").make_debugLog("TEST");
 
@@ -25,7 +23,7 @@ const port = 2003;
 const maxConnectionsPerEndpoint = 100;
 const maxAllowedSessionNumber = 50;
 
-const { build_server_with_temperature_device }= require("../test_helpers/build_server_with_temperature_device");
+const { build_server_with_temperature_device } = require("../test_helpers/build_server_with_temperature_device");
 
 // eslint-disable-next-line import/order
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
@@ -35,26 +33,21 @@ describe("Functional test : one server with many concurrent clients", function (
     this.timeout(Math.max(500000, this.timeout()));
 
     let serverCertificateChain = null;
-    before((done) => {
-        server = build_server_with_temperature_device(
-            {
-                port,
-                maxAllowedSessionNumber: maxAllowedSessionNumber,
-                maxConnectionsPerEndpoint: maxConnectionsPerEndpoint
-            },
-             (err) => {
-                endpointUrl = server.getEndpointUrl();
-                temperatureVariableId = server.temperatureVariableId;
-                serverCertificateChain = server.getCertificateChain();
-                debugLog("server started");
-                done(err);
-            }
-        );
+    before(async () => {
+        server = await build_server_with_temperature_device({
+            port,
+            maxAllowedSessionNumber: maxAllowedSessionNumber,
+            maxConnectionsPerEndpoint: maxConnectionsPerEndpoint
+        });
+
+        endpointUrl = server.getEndpointUrl();
+        temperatureVariableId = server.temperatureVariableId;
+        serverCertificateChain = server.getCertificateChain();
+        debugLog("server started");
     });
 
-    let clientCertificateManager
+    let clientCertificateManager;
     before(async () => {
-
         debugLog("endpointUrl =", endpointUrl);
         const _tmpFolder = fs.mkdtempSync(path.join(os.tmpdir(), "xx"));
         if (!fs.existsSync(_tmpFolder)) {
@@ -65,7 +58,7 @@ describe("Functional test : one server with many concurrent clients", function (
             rootFolder: _tmpFolder
         });
         await clientCertificateManager.initialize();
-    })
+    });
     beforeEach(async () => {
         await clientCertificateManager.dispose();
     });
@@ -78,12 +71,12 @@ describe("Functional test : one server with many concurrent clients", function (
         server.shutdown(() => {
             done();
         });
-    }); 
+    });
 
     const expectedSubscriptionCount = 0;
 
     function wait_randomly(callback) {
-        setImmediate(()=>setTimeout(callback, Math.ceil(100 + Math.random() * 100)));
+        setImmediate(() => setTimeout(callback, Math.ceil(100 + Math.random() * 100)));
     }
 
     function construct_client_scenario(data) {
@@ -116,7 +109,7 @@ describe("Functional test : one server with many concurrent clients", function (
 
             // create the session
             function (callback) {
-                client.createSession( (err, session) => {
+                client.createSession((err, session) => {
                     debugLog(" session created for ", name);
                     data.session = session;
                     debugLog(chalk.yellow.bold(" Error ="), err);
@@ -184,7 +177,7 @@ describe("Functional test : one server with many concurrent clients", function (
 
             // closing  session
             function (callback) {
-                data.session.close( true, (err) => {
+                data.session.close(true, (err) => {
                     debugLog(" closing session for  ", name);
                     callback(err);
                 });
@@ -195,7 +188,7 @@ describe("Functional test : one server with many concurrent clients", function (
             // disconnect the client
             function (callback) {
                 client.disconnect(function (err) {
-                    debugLog(chalk.cyan("Closing ",name, " disconnected"))
+                    debugLog(chalk.cyan("Closing ", name, " disconnected"));
                     callback(err);
                 });
             }
@@ -203,49 +196,41 @@ describe("Functional test : one server with many concurrent clients", function (
         return tasks;
     }
 
-    it(
-        "it should allow " + maxAllowedSessionNumber + " clients to connect and concurrently monitor some nodeId",
-        (done) => {
-            const nb_clients = server.maxAllowedSessionNumber;
+    it("it should allow " + maxAllowedSessionNumber + " clients to connect and concurrently monitor some nodeId", (done) => {
+        const nb_clients = server.maxAllowedSessionNumber;
 
-            const clients = [];
+        const clients = [];
 
-            for (let i = 0; i < nb_clients; i++) {
-                const data = {};
-                data.name = "client " + i;
-                data.tasks = construct_client_scenario(data);
-                clients.push(data);
-            }
-
-            async.mapLimit(
-                clients,
-                maxAllowedSessionNumber,
-                 (data, callback) => {
-                    async.series(data.tasks, (err) => {
-                        if (err) {
-                            console.log(err);
-                        }
-                        setImmediate(()=>
-                            callback(err, data.nb_received_changed_event));
-                    });
-                },
-                (err, results) => {
-                    results.forEach( (nb_received_changed_event, index, array) => {
-                        nb_received_changed_event.should.be.greaterThan(
-                            1,
-                            "client " +
-                            index +
-                            " has received " +
-                            nb_received_changed_event +
-                            " events ( expecting at least 2)"
-                        );
-                    });
-
-                    // also check that server has properly closed all subscriptions
-                    server.currentSubscriptionCount.should.eql(0);
-                    done(err);
-                }
-            );
+        for (let i = 0; i < nb_clients; i++) {
+            const data = {};
+            data.name = "client " + i;
+            data.tasks = construct_client_scenario(data);
+            clients.push(data);
         }
-    );
+
+        async.mapLimit(
+            clients,
+            maxAllowedSessionNumber,
+            (data, callback) => {
+                async.series(data.tasks, (err) => {
+                    if (err) {
+                        console.log(err);
+                    }
+                    setImmediate(() => callback(err, data.nb_received_changed_event));
+                });
+            },
+            (err, results) => {
+                results.forEach((nb_received_changed_event, index, array) => {
+                    nb_received_changed_event.should.be.greaterThan(
+                        1,
+                        "client " + index + " has received " + nb_received_changed_event + " events ( expecting at least 2)"
+                    );
+                });
+
+                // also check that server has properly closed all subscriptions
+                server.currentSubscriptionCount.should.eql(0);
+                done(err);
+            }
+        );
+    });
 });
