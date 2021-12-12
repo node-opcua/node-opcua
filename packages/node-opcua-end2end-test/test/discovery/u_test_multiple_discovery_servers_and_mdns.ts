@@ -20,7 +20,7 @@ const doDebug = checkDebugFlag("TEST");
 // tslint:disable-next-line: no-var-requires
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 export function t(test: any) {
-    describe("DS4 - Many discovery servers sharing ServerOnNetworks list", function (this: any) {
+    describe("DISCO5 - Many discovery servers sharing ServerOnNetworks list", function (this: any) {
         this.timeout(30000);
 
         let discoveryServer1: OPCUADiscoveryServer;
@@ -64,7 +64,7 @@ export function t(test: any) {
         });
 
         // eslint-disable-next-line max-statements
-        it("should register server to the discover server 1", async () => {
+        it("DISCO5-A - should register server to the discover server 1", async () => {
             // there should be no endpoint exposed by an blank discovery server
             discoveryServer1.registeredServerCount.should.equal(0);
             discoveryServer2.registeredServerCount.should.equal(0);

@@ -7,7 +7,7 @@ const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 const port = 2005;
 
 export function t(test: any) {
-    describe("DS5- testing OPCUA-Service Discovery Endpoint", function () {
+    describe("DISCO6 - testing OPCUA-Service Discovery Endpoint", function () {
         let server, endpointUrl;
 
         before(async () => {
@@ -59,7 +59,7 @@ export function t(test: any) {
             });
         }
 
-        it("should answer a FindServers Request - without filters", (done) => {
+        it("DISCO6-A - should answer a FindServers Request - without filters", (done) => {
             // Every  Server  shall provide a  Discovery Endpoint  that supports this  Service;   however, the  Server
             // shall only return a single record that describes itself.  Gateway Servers  shall return a record for each
             // Server  that they provide access to plus (optionally) a record that allows the  Gateway Server  to be
@@ -74,7 +74,7 @@ export function t(test: any) {
             }, done);
         });
 
-        it("should answer a FindServers Request - with filters", (done) => {
+        it("DISCO6-B - should answer a FindServers Request - with filters", (done) => {
             make_on_connected_client((client, callback) => {
                 const filters = {};
                 client.findServers(filters, (err, servers) => {
@@ -84,7 +84,7 @@ export function t(test: any) {
             }, done);
         });
 
-        it("should answer FindServers Request and apply serverUris filter", (done) => {
+        it("DISCO6-C - should answer FindServers Request and apply serverUris filter", (done) => {
             make_on_connected_client((client, callback) => {
                 const filters = {
                     serverUris: ["invalid server uri"]
@@ -97,7 +97,7 @@ export function t(test: any) {
             }, done);
         });
 
-        it("should answer FindServers Request and apply endpointUri filter", (done) => {
+        it("DISCO6-D - should answer FindServers Request and apply endpointUri filter", (done) => {
             make_on_connected_client((client, callback) => {
                 const filters = {
                     serverUris: ["invalid server uri"]

@@ -24,9 +24,9 @@ describe("testing DiscoveryServer - Umbrella ", function () {
         await this.discoveryServerCertificateManager.dispose();
     });
     // typescripts tests starts here...
-    require("./u_test_opcua_ClientServer_findservers").t(this);
-    require("./u_test_frequent_server_restart").t(this);
-    require("./u_test_registration_server_manager").t(this);
     require("./u_test_discovery_server").t(this);
+    require("./u_test_frequent_server_restart").t(this);
     require("./u_test_multiple_discovery_servers_and_mdns").t(this);
+    require("./u_test_opcua_ClientServer_findservers").t(this);
+    require("./u_test_registration_server_manager").t(this);
 });

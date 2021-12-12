@@ -49,7 +49,7 @@ process.on("uncaughtException", (err) => {
 // tslint:disable-next-line: no-var-requires
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 export function t(test: any) {
-    describe("DS1 - DiscoveryServer1", function (this: any) {
+    describe("DISCO1 - DiscoveryServer1", function (this: any) {
         this.timeout(30 * 1000);
 
         let discovery_server: OPCUADiscoveryServer | undefined;
@@ -114,7 +114,7 @@ export function t(test: any) {
             await client.disconnect();
         }
 
-        it("should fail to register server if discovery url is not specified (Bad_DiscoveryUrlMissing)", async () => {
+        it("DISCO1-1 should fail to register server if discovery url is not specified (Bad_DiscoveryUrlMissing)", async () => {
             const request = new RegisterServerRequest({
                 server: {
                     // The globally unique identifier for the Server instance. The serverUri matches
@@ -143,7 +143,7 @@ export function t(test: any) {
             await send_registered_server_request(discoveryServerEndpointUrl, request, check_response);
         });
 
-        it("should fail to register server to the discover server if server type is Client (BadInvalidArgument)", async () => {
+        it("DISCO1-2 should fail to register server to the discover server if server type is Client (BadInvalidArgument)", async () => {
             const request = new RegisterServerRequest({
                 server: {
                     // The globally unique identifier for the Server instance. The serverUri matches
@@ -172,7 +172,7 @@ export function t(test: any) {
             await send_registered_server_request(discoveryServerEndpointUrl, request, check_response);
         });
 
-        it("should fail to register server to the discover server if server name array is empty (BadServerNameMissing)", async () => {
+        it("DISCO1-3 should fail to register server to the discover server if server name array is empty (BadServerNameMissing)", async () => {
             const request = new RegisterServerRequest({
                 server: {
                     // The globally unique identifier for the Server instance. The serverUri matches
@@ -201,7 +201,7 @@ export function t(test: any) {
         });
     });
 
-    describe("DS2 - DiscoveryServer2", function (this: any) {
+    describe("DISCO2 - DiscoveryServer2", function (this: any) {
         this.timeout(20000);
 
         let discoveryServer: OPCUADiscoveryServer;
@@ -239,7 +239,7 @@ export function t(test: any) {
             await discoveryServer.serverCertificateManager.trustCertificate(certificate);
         }
 
-        it("DS2-A should register server to the discover server 2", async () => {
+        it("DISCO2-1 should register server to the discover server 2", async () => {
             const applicationUri = makeApplicationUrn(os.hostname(), "NodeOPCUA-Server");
 
             // there should be no endpoint exposed by an blank discovery server
@@ -304,7 +304,7 @@ export function t(test: any) {
         });
     });
 
-    describe("DS3 - DiscoveryServer3 - many server", function (this: any) {
+    describe("DISCO3 - DiscoveryServer3 - many server", function (this: any) {
         this.timeout(200000);
 
         let discoveryServer: OPCUADiscoveryServer;
@@ -427,14 +427,14 @@ export function t(test: any) {
             );
         }
 
-        it("DS3-0 checking certificates", async () => {
+        it("DISCO3-1 checking certificates", async () => {
             await checkServerCertificateAgainsLDS(server1);
             await checkServerCertificateAgainsLDS(server2);
             await checkServerCertificateAgainsLDS(server3);
             await checkServerCertificateAgainsLDS(server4);
         });
 
-        it("DS3-1 a discovery server shall be able to expose many registered servers", function (done) {
+        it("DISCO3-2 a discovery server shall be able to expose many registered servers", function (done) {
             async.series(
                 [
                     function (callback: () => void) {

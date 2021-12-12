@@ -12,7 +12,7 @@ const port_discovery = 1436;
 
 export function t() {
     const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
-    describe("DS6- Discovery server", function (this: any) {
+    describe("DISCO7 - Discovery server", function (this: any) {
         this.timeout(50000);
 
         let discoveryServerEndpointUrl = `opc.tcp://localhost:${port_discovery}`;
@@ -50,7 +50,7 @@ export function t() {
             OPCUAServer.registry.count().should.eql(0);
         });
 
-        it("DS6-1 a server shall register itself to the LDS when the LDS comes online", async () => {
+        it("DISCO7-A -  a server shall register itself to the LDS when the LDS comes online", async () => {
             let server: OPCUAServer;
 
             await fa("given a server that has started before the discovery server is online", async () => {
@@ -94,7 +94,7 @@ export function t() {
             await fa("stopping discovery server", stop_discovery_server);
         });
 
-        it("DS6-2 a server shall register itself on a regular basic to the LDS", async () => {
+        it("DISCO7-B a server shall register itself on a regular basic to the LDS", async () => {
             await fa("given a running local discovery server", async () => {
                 await start_discovery_server();
             });
@@ -154,7 +154,7 @@ export function t() {
             await stop_discovery_server();
         });
 
-        it("DS6-3 a server shall try to register itself even if discovery server is not available", function (done) {
+        it("DISCO7-C a server shall try to register itself even if discovery server is not available", function (done) {
             let server: OPCUAServer;
 
             async.series(
@@ -230,7 +230,7 @@ export function t() {
             );
         });
 
-        it("DS6-4 a server shall be able not to register itself to the LDS if needed to be hidden", function (done) {
+        it("DISCO7-D a server shall be able not to register itself to the LDS if needed to be hidden", function (done) {
             let server: OPCUAServer;
             async.series(
                 [
@@ -257,7 +257,7 @@ export function t() {
             );
         });
 
-        it("DS6-5 a server (that want to register itself to the LDS) shall be able to start promptly even if the LDS is no available", function (done) {
+        it("DISCO7-E a server (that want to register itself to the LDS) shall be able to start promptly even if the LDS is no available", function (done) {
             let server: OPCUAServer;
 
             async.series(
@@ -286,10 +286,10 @@ export function t() {
         });
     });
 
-    describe("DS7- Discovery Server 2", function (this: any) {
+    describe("DISCO8 - Discovery Server 2", function (this: any) {
         this.timeout(50000);
 
-        it("DS7-1 server shall not struggle to start if discovery server is not available", function (done) {
+        it("DISCO8-A server shall not struggle to start if discovery server is not available", function (done) {
             const discoveryServerEndpointUrl = `opc.tcp://localhost:${port_discovery}`;
             let server: OPCUAServer;
             async.series(
