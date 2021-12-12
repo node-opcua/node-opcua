@@ -14,7 +14,7 @@ const {
     MonitoringMode
 } = require("node-opcua");
 const { make_debugLog, checkDebugFlag, make_errorLog } = require("node-opcua-debug");
-const { start_simple_server } = require("../../test_helpers/external_server_fixture");
+const { start_simple_server, crash_simple_server } = require("../../test_helpers/external_server_fixture");
 const debugLog = make_debugLog("TEST");
 const doDebug = checkDebugFlag("TEST");
 const errorLog = make_errorLog("TEST");
@@ -30,40 +30,13 @@ async function start_external_opcua_server() {
         server_sourcefile: path.join(__dirname, "../../test_helpers/bin/", serverScript),
         port
     };
-
-    await new Promise((resolve, reject) => {
-        start_simple_server(options, function (err, data) {
-            if (err) {
-                return reject(err);
-            }
-            debugLog("data", data.endpointUrl);
-            debugLog("certificate", data.serverCertificate.toString("base64").substring(0, 32) + "...");
-            debugLog("pid", data.pid_collected);
-
-            server_data = data;
-
-            // note: if we use localhost rather than HOSTNAME, net.connect() fails faster if
-            //       server is not listening
-            //xx server_data.endpointUrl = `opc.tcp://localhost:${port}`;
-
-            resolve(err);
-        });
-    });
+    server_data = await start_simple_server(options);
 }
 
 async function crash_external_opcua_server() {
-    if (!server_data) {
-        return;
-    }
-    const promise = new Promise((resolve) => {
-        server_data.process.once("exit", function () {
-            debugLog("process killed");
-            resolve();
-        });
-        server_data.process.kill("SIGTERM");
-        server_data = null;
-    });
-    await promise;
+    await crash_simple_server(server_data);
+    server_data= null;
+
 }
 
 // ---------------------------------------------------------------------------------------------------------------------

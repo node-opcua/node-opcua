@@ -1,6 +1,5 @@
 const path = require("path");
 
-const async = require("async");
 const chalk = require("chalk");
 const { make_debugLog } = require("node-opcua-debug");
 const {
@@ -15,7 +14,7 @@ const {
     MonitoringMode
 } = require("node-opcua");
 
-const { start_simple_server, stop_simple_server } = require("../../test_helpers/external_server_fixture");
+const { start_simple_server, crash_simple_server } = require("../../test_helpers/external_server_fixture");
 
 const doDebug = false;
 const debugLog = make_debugLog("TEST");
@@ -28,25 +27,12 @@ async function start_external_opcua_server() {
         server_sourcefile: path.join(__dirname, "../../test_helpers/bin/simple_server_with_custom_extension_objects.js"),
         port
     };
-
     server_data = await start_simple_server(options);
-    debugLog("data", server_data.endpointUrl);
-    debugLog("certificate", server_data.serverCertificate.toString("base64").substring(0, 32) + "...");
-    debugLog("pid", server_data.pid_collected);
 }
 
 async function crash_external_opcua_server() {
-    if (!server_data) {
-        return;
-    }
-    await new Promise((resolve) => {
-        server_data.process.once("exit", (err) => {
-            debugLog("process killed");
-            resolve();
-        });
-        server_data.process.kill("SIGTERM");
-        server_data = null;
-    });
+    await crash_simple_server(server_data);
+    server_data= null;
 }
 
 // ---------------------------------------------------------------------------------------------------------------------

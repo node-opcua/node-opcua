@@ -30,18 +30,11 @@ describe("testing extension object with client residing on a different process t
     };
     fs.existsSync(options.server_sourcefile).should.eql(true, "cannot find simple_server_with_custom_extension_objects script");
 
-    before(function (done) {
-        start_simple_server(options, function (err, data) {
-            if (!err) {
-                serverHandle = data;
-            }
-            done(err);
-        });
+    before(async () => {
+        serverHandle = await start_simple_server(options);
     });
-    after(function (done) {
-        stop_simple_server(serverHandle, function (err) {
-            done(err);
-        });
+    after(async () => {
+        await stop_simple_server(serverHandle);
     });
 
     it("should read the MyStructureDataType definition", function (done) {
