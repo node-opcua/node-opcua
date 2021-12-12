@@ -1,4 +1,9 @@
+"use strict";
+
+const path = require("path");
+const os = require("os");
 const { checkDebugFlag } = require("node-opcua-debug");
+const { OPCUACertificateManager } = require("node-opcua-certificate-manager");
 const { OPCUAClient } = require("..");
 
 let setIntervalCalls = 0;
@@ -29,7 +34,10 @@ describe("issue 696", function () {
     });
     it("should not leak interval if connection failed", async () => {
         async function test() {
-            const client = OPCUAClient.create({ connectionStrategy: { maxRetry: 0 } });
+            const rootFolder = path.join(os.tmpdir(), "node-opcua-696");
+            const clientCertificateManager = new OPCUACertificateManager({ rootFolder });
+
+            const client = OPCUAClient.create({ clientCertificateManager, connectionStrategy: { maxRetry: 0 } });
             try {
                 await client.connect("invalid-proto://test-host");
             } catch (err) {

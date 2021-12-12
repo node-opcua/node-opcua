@@ -159,11 +159,14 @@ async function trustCertificateOnClient() {
             keySize: 2048,
             location
         });
+        
+        await tmpCA.initialize();
+
         fs.existsSync(tmpCA.caCertificate).should.eql(true, " caCertificate must exist " + tmpCA.caCertificate);
         fs.existsSync(tmpCA.revocationListDER).should.eql(true, " CAcrl must exist " + tmpCA.revocationListDER);
 
         const caCertificate = readCertificate(tmpCA.caCertificate);
-        const CAcrl = readCertificateRevocationList(tmpCA.revocationListDER);
+        const CAcrl = await readCertificateRevocationList(tmpCA.revocationListDER);
 
         const clientCertificateManager = await getClientCertificateManager();
         await clientCertificateManager.trustCertificate(caCertificate);

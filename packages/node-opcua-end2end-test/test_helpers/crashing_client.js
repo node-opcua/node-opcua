@@ -5,19 +5,17 @@ if (process.argv.length !== 3) {
     console.log(" Invalid number of argument, please specify port number");
     return;
 }
-console.log("process.argv.length ",process.argv.length);
+console.log("process.argv.length ", process.argv.length);
 
-/*global require,console,setTimeout */
-var opcua = require("node-opcua"); // node-opcua
-var async = require("async");
+const opcua = require("node-opcua"); // node-opcua
+const async = require("async");
 
-var port = process.argv[2];
+const port = process.argv[2];
 
+const endpointUrl = "opc.tcp://" + require("os").hostname() + ":" + port;
+console.log("endpointUrl = ", endpointUrl);
 
-var endpointUrl = "opc.tcp://" + require("os").hostname() + ":" + port;
-console.log("endpointUrl = ",endpointUrl);
-
-var options = {
+const options = {
     endpointMustExist: false,
     requestedSessionTimeout: 101, // very short
     keepSessionAlive: true,
@@ -26,17 +24,17 @@ var options = {
     }
 };
 
-var client = opcua.OPCUAClient.create(options);
+const client = opcua.OPCUAClient.create(options);
 
-var the_session;
+let the_session;
 
-async.series([
-
+async.series(
+    [
         // step 1 : connect to
-        function(callback)  {
-            client.connect(endpointUrl,function (err) {
-                if(err) {
-                    console.log(" cannot connect to endpoint :" , endpointUrl );
+        function (callback) {
+            client.connect(endpointUrl, function (err) {
+                if (err) {
+                    console.log(" cannot connect to endpoint :", endpointUrl);
                 } else {
                     console.log("connected !");
                 }
@@ -45,9 +43,9 @@ async.series([
         },
 
         // step 2 : createSession
-        function(callback) {
-            client.createSession( function(err,session) {
-                if(!err) {
+        function (callback) {
+            client.createSession(function (err, session) {
+                if (!err) {
                     the_session = session;
                 }
                 callback(err);
@@ -55,18 +53,19 @@ async.series([
         },
 
         // step 3 : browse
-        function(callback) {
+        function (callback) {
             console.log("About to CRASH !!!!");
-            setTimeout(function(){
+            setTimeout(function () {
                 console.log(" CRASHING !!!!");
                 process.exit(-1);
-            },3000);
-        },
+            }, 3000);
+        }
     ],
-    function(err) {
+    function (err) {
         if (err) {
-            console.log(" failure ",err);
+            console.log(" failure ", err);
         } else {
             console.log("done!");
         }
-    }) ;
+    }
+);

@@ -59,7 +59,7 @@ function start_simple_server(options, callback) {
         console.log(" node ", server_script);
     }
     function detect_early_termination(code, signal) {
-        console.log("child process terminated due to receipt of signal " + signal);
+        console.log("child process terminated due to receipt of signal " + signal +  " code = " + code);
         callback(new Error("Process has terminated unexpectedly with code=" + code + " signal=" + signal));
     }
 

@@ -5,7 +5,6 @@ const path = require("path");
 const fs = require("fs");
 const chalk = require("chalk");
 const {
-    OPCUACertificateManager,
     StatusCodes,
     OPCUAServer,
     nodesets,
@@ -24,10 +23,9 @@ const port = parseInt(argv.port) || 26555;
 
 (async () => {
     try {
-        const serverCertificateManager = new OPCUACertificateManager();
+     
 
         const server_options = {
-            serverCertificateManager,
             port,
             nodeset_filename: [nodesets.standard, path.join(packageFolder, "modeling/my_data_type.xml")]
         };
@@ -82,6 +80,9 @@ const port = parseInt(argv.port) || 26555;
             process.exit(1);
         });
     } catch (err) {
+        console.log("--------------------------------------------------------------");
+        console.log(err.message);
+        console.log("--------------------------------------------------------------");
         console.log(err.message);
         process.exit(3);
     }

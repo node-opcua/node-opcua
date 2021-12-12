@@ -1,12 +1,14 @@
+"use strict";
 
 /// issues: #237 #288
+const path = require("path");
+
+const fs = require("fs");
+
 const opcua = require("node-opcua");
 const chalk = require("chalk");
 const async = require("async");
 const  _ = require("underscore");
-const path = require("paths");
-const fs = require("fs");
-
  
 function server_stuff() {
     let server;

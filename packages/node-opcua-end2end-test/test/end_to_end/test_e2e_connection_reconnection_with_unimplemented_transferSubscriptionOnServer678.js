@@ -18,7 +18,7 @@ const serverScript1 = "simple_server_that_fails_to_republish.js";
 const serverScript2 = "simple_server_with_no_transferSubscription.js";
 let serverScript = serverScript1;
 
-const port = 2240;
+const port = 4890;
 
 async function start_external_opcua_server() {
 
