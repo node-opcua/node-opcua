@@ -40,7 +40,7 @@ import {
     GetEndpointsRequest,
     GetEndpointsResponse
 } from "node-opcua-service-endpoints";
-import { coerceMessageSecurityMode, MessageSecurityMode } from "node-opcua-service-secure-channel";
+import { ChannelSecurityToken, coerceMessageSecurityMode, MessageSecurityMode } from "node-opcua-service-secure-channel";
 import { ErrorCallback, StatusCode, StatusCodes } from "node-opcua-status-code";
 import { matchUri } from "node-opcua-utils";
 
@@ -1494,7 +1494,7 @@ export class ClientBaseImpl extends OPCUASecureObject implements OPCUAClientBase
             this.emit("receive_response", message);
         });
 
-        secureChannel.on("lifetime_75", (token: SecurityToken) => {
+        secureChannel.on("lifetime_75", (token: ChannelSecurityToken) => {
             // secureChannel requests a new token
             debugLog(
                 "SecureChannel Security Token ",

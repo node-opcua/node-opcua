@@ -1,26 +1,17 @@
 "use strict";
 
-const should = require("should");
 const sinon = require("sinon");
 
 const {
-    assert,
     OPCUAClient,
-    ClientSession,
     ClientSubscription,
     AttributeIds,
     resolveNodeId,
-    MonitoringParameters,
-    MonitoringMode,
-    ReadValueId,
-    TimestampsToReturn,
-    CreateMonitoredItemsRequest,
     ClientMonitoredItem,
     ClientMonitoredItemGroup,
 } = require("node-opcua");
 
-const { perform_operation_on_client_session } = require("../../test_helpers/perform_operation_on_client_session");
-
+// eslint-disable-next-line import/order
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 
 module.exports = function (test) {
@@ -39,7 +30,7 @@ module.exports = function (test) {
             });
             endpointUrl = test.endpointUrl;
 
-            client.on("lifetime_75", () => console.log("token about to expire"));
+            client.on("lifetime_75", (token) => console.log("token about to expire", token?.toString()));
             if (false) {
                 client.on("send_chunk", (buf) => console.log("chunk =>", buf.length));
                 client.on("receive_chunk", (buf) => console.log("chunk <= ", buf.length));

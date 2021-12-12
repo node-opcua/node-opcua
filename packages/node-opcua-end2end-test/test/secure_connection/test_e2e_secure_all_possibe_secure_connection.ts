@@ -2,17 +2,17 @@
 
 // http://opcfoundation.org/UA/SecurityPolicy#Basic256
 Error.stackTraceLimit = Infinity;
-const path = require("path");
-const fs = require("fs");
-const os = require("os");
+import * as path from "path";
+import * as fs from "fs";
+import * as os from "os";
 
-const { randomBytes } = require("crypto");
+import { randomBytes } from "crypto";
 
-const chalk = require("chalk");
-const should = require("should");
-const sinon = require("sinon");
+import * as chalk from "chalk";
+import * as should from "should";
+import * as sinon from "sinon";
 
-const {
+import {
     ClientSubscription,
     coerceMessageSecurityMode,
     MessageSecurityMode,
@@ -24,12 +24,18 @@ const {
     getDefaultCertificateManager,
     TimestampsToReturn,
     MonitoringMode,
-    AttributeIds
-} = require("node-opcua");
-const { CertificateAuthority, dumpCertificate } = require("node-opcua-pki");
-const { readCertificateRevocationList, readCertificate } = require("node-opcua-crypto");
+    AttributeIds,
+    NodeId,
+    OPCUAServer,
+    OPCUAServerOptions,
+    ClientSession,
+    SecurityToken,
+    ChannelSecurityToken
+} from "node-opcua";
+import { CertificateAuthority, dumpCertificate } from "node-opcua-pki";
+import { readCertificateRevocationList, readCertificate } from "node-opcua-crypto";
 
-const { make_debugLog, checkDebugFlag } = require("node-opcua-debug");
+import { make_debugLog, checkDebugFlag } from "node-opcua-debug";
 const debugLog = make_debugLog("TEST");
 const doDebug = checkDebugFlag("TEST");
 
@@ -57,7 +63,7 @@ if (!fs.existsSync(_tmpFolder)) {
     fs.mkdirSync(_tmpFolder);
 }
 
-async function makeServerCertificateManager(port) {
+async function makeServerCertificateManager(port): Promise<OPCUACertificateManager> {
     const certificateManager = new OPCUACertificateManager({
         automaticallyAcceptUnknownCertificate: true,
         rootFolder: path.join(_tmpFolder, "serverPKI-all-possible_secure_connection")
@@ -76,8 +82,7 @@ async function makeServerCertificateManager(port) {
     return certificateManager;
 }
 
-async function getClientCertificateManager() {
-
+async function getClientCertificateManager(): Promise<OPCUACertificateManager> {
     const tmpFolder = path.join(os.tmpdir(), "node-opcua-3");
     const rootFolder = path.join(tmpFolder, "clientPKI");
     const certificateManager = new OPCUACertificateManager({
@@ -87,8 +92,13 @@ async function getClientCertificateManager() {
     return certificateManager;
 }
 
-
-async function start_inner_server_local(options) {
+interface InnerServer {
+    endpointUrl: string;
+    serverCertificate: Buffer;
+    temperatureVariableId: NodeId;
+    server: OPCUAServer;
+}
+async function start_inner_server_local(options: OPCUAServerOptions): Promise<InnerServer> {
     options = options || {};
     if (options.serverCertificateManager) {
         throw new Error("start_inner_server_local: serverCertificateManager should not be defined");
@@ -102,15 +112,16 @@ async function start_inner_server_local(options) {
     options.serverCertificateManager = await makeServerCertificateManager(port);
 
     server = await build_server_with_temperature_device(options);
-    const data = {};
-    data.endpointUrl = server.getEndpointUrl();
-    data.serverCertificate = server.endpoints[0].endpointDescriptions()[0].serverCertificate;
-    data.temperatureVariableId = server.temperatureVariableId;
-    data.server = server;
+    const data = {
+        endpointUrl: server.getEndpointUrl(),
+        serverCertificate: server.endpoints[0].endpointDescriptions()[0].serverCertificate,
+        temperatureVariableId: server.temperatureVariableId,
+        server: server
+    };
     return data;
 }
 
-async function stop_inner_server_local(data) {
+async function stop_inner_server_local(data: InnerServer): Promise<void> {
     if (data) {
         const server = data.server;
 
@@ -142,7 +153,7 @@ function get_server_channel_security_token_change_count(server) {
     return count;
 }
 
-async function trustClientCertificateOnServer(certificateFile) {
+async function trustClientCertificateOnServer(certificateFile: string): Promise<void> {
     if (!certificateFile) {
         return;
     }
@@ -151,7 +162,7 @@ async function trustClientCertificateOnServer(certificateFile) {
     await server.serverCertificateManager.trustCertificate(certificate);
 }
 
-async function trustCertificateOnClient() {
+async function trustCertificateOnClient(): Promise<void> {
     try {
         const location = path.join(sampleCertificateFolder, "CA");
         fs.existsSync(location).should.eql(true);
@@ -159,7 +170,7 @@ async function trustCertificateOnClient() {
             keySize: 2048,
             location
         });
-        
+
         await tmpCA.initialize();
 
         fs.existsSync(tmpCA.caCertificate).should.eql(true, " caCertificate must exist " + tmpCA.caCertificate);
@@ -177,7 +188,7 @@ async function trustCertificateOnClient() {
     }
 }
 
-async function start_server(options) {
+async function start_server(options: OPCUAServerOptions): Promise<InnerServer> {
     // Given a server that have a signed end point
     const data = await start_inner_server_local(options);
 
@@ -189,48 +200,47 @@ async function start_server(options) {
     return data;
 }
 
-async function start_server_with_1024bits_certificate() {
+async function start_server_with_1024bits_certificate(): Promise<InnerServer> {
     const certificateFile = path.join(sampleCertificateFolder, "server_cert_1024.pem");
     const privateKeyFile = path.join(sampleCertificateFolder, "server_key_1024.pem");
     return await start_server({ certificateFile, privateKeyFile });
 }
 
-async function start_server_with_2048bits_certificate() {
+async function start_server_with_2048bits_certificate(): Promise<InnerServer> {
     const certificateFile = path.join(sampleCertificateFolder, "server_cert_2048.pem");
     const privateKeyFile = path.join(sampleCertificateFolder, "server_key_2048.pem");
     return await start_server({ certificateFile, privateKeyFile });
 }
 
-async function start_server_with_4096bits_certificate() {
+async function start_server_with_4096bits_certificate(): Promise<InnerServer> {
     const certificateFile = path.join(sampleCertificateFolder, "server_cert_4096.pem");
     const privateKeyFile = path.join(sampleCertificateFolder, "server_key_4096.pem");
     return await start_server({ certificateFile, privateKeyFile });
 }
 
-async function stop_server(data) {
+async function stop_server(data: InnerServer): Promise<void> {
     await stop_inner_server_local(data);
     temperatureVariableId = null;
     endpointUrl = null;
     serverCertificate = null;
 }
 
-async function waitUntilTokenRenewed(client, security_token_renewed_limit) {
-    let security_token_renewed_counter = 0;
-    await new Promise((resolve) => {
+async function waitUntilTokenRenewed(client, security_token_renewed_limit): Promise<number> {
+    return await new Promise<number>((resolve) => {
+        let security_token_renewed_counter = 0;
         client.on("security_token_renewed", function () {
             debugLog(" Security token has been renewed");
 
             security_token_renewed_counter += 1;
             if (resolve && security_token_renewed_counter >= security_token_renewed_limit) {
-                resolve();
+                resolve(security_token_renewed_counter);
                 resolve = null;
             }
         });
     });
-    return security_token_renewed_counter;
 }
 
-async function keep_monitoring_some_variable(client, session, security_token_renewed_limit) {
+async function keep_monitoring_some_variable(client, session, security_token_renewed_limit): Promise<number> {
     const nbTokenId_before_server_side = get_server_channel_security_token_change_count(server);
     debugLog("nbTokenId_before_server_side=", nbTokenId_before_server_side);
 
@@ -271,9 +281,9 @@ async function keep_monitoring_some_variable(client, session, security_token_ren
     return security_token_renewed_counter;
 }
 
-async function common_test(securityPolicy, securityMode, options) {
+async function common_test(securityPolicy, securityMode, options): Promise<void> {
     if (global.gc) {
-        global.gc(true);
+        global.gc();
     }
 
     //xx debugLog("securityPolicy = ", securityPolicy,"securityMode = ",securityMode);
@@ -301,7 +311,7 @@ async function common_test(securityPolicy, securityMode, options) {
     let token_change = 0;
     const client = OPCUAClient.create(options);
 
-    client.on("lifetime_75", function (token) {
+    client.on("lifetime_75", function (token: ChannelSecurityToken) {
         // check if we are late!
         //
         const expectedExpiryTick = token.createdAt.getTime() + token.revisedLifetime;
@@ -309,7 +319,7 @@ async function common_test(securityPolicy, securityMode, options) {
         if (delay <= 100) {
             debugLog(chalk.red("WARNING : token renewal is happening too late !!"), delay);
         }
-        debugLog("received lifetime_75", JSON.stringify(token), delay);
+        debugLog("received lifetime_75", token.toString(), delay);
     });
     client.on("security_token_renewed", function () {
         token_change += 1;
@@ -327,7 +337,7 @@ async function common_test(securityPolicy, securityMode, options) {
     tokenChangeRecorded.should.be.aboveOrEqual(2);
 }
 
-async function check_open_secure_channel_fails(securityPolicy, securityMode, options) {
+async function check_open_secure_channel_fails(securityPolicy, securityMode, options): Promise<void> {
     options = options || {};
     options = {
         ...options,
@@ -336,14 +346,14 @@ async function check_open_secure_channel_fails(securityPolicy, securityMode, opt
         serverCertificate,
         connectionStrategy: no_reconnect_connectivity_strategy,
 
-        certificateManager: await getClientCertificateManager()
+        clientCertificateManager: await getClientCertificateManager()
     };
     const client = OPCUAClient.create(options);
     client.on("backoff", function (number, delay) {
         debugLog(" backoff attempt#", number, " retry in ", delay);
     });
 
-    await trustClientCertificateOnServer(client.clientCertificate);
+    await trustClientCertificateOnServer(client.certificateFile);
 
     try {
         await client.connect(endpointUrl);
@@ -387,18 +397,22 @@ async function common_test_expected_server_initiated_disconnection(securityPolic
 
         connectionStrategy: fail_fast_connectivity_strategy,
 
-        certificateManager: await getClientCertificateManager()
+        clientCertificateManager: await getClientCertificateManager()
     };
 
     let token_change = 0;
     const client = OPCUAClient.create(options);
+
+    const after_reconnection_spy = sinon.spy();
+    const start_reconnection_spy = sinon.spy();
+
     client.on("start_reconnection", start_reconnection_spy);
     client.on("after_reconnection", after_reconnection_spy);
     client.on("backoff", function (number, delay) {
         debugLog(chalk.bgWhite.yellow("backoff  attempt #"), number, " retrying in ", delay / 1000.0, " seconds");
     });
     client.on("lifetime_75", function (token) {
-        debugLog("            received lifetime_75", JSON.stringify(token));
+        debugLog("            received lifetime_75", token.toString());
     });
     client.on("security_token_renewed", function () {
         token_change += 1;
@@ -410,13 +424,10 @@ async function common_test_expected_server_initiated_disconnection(securityPolic
         debugLog("            connection has been closed");
     });
 
-    await trustClientCertificateOnServer(client.clientCertificate);
-
-    const after_reconnection_spy = new sinon.spy();
-    const start_reconnection_spy = new sinon.spy();
+    await trustClientCertificateOnServer(client.certificateFile);
 
     try {
-        await client.withSessionAsync(async (session) => {
+        await client.withSessionAsync(endpointUrl, async (session) => {
             return await keep_monitoring_some_variable(client, session, g_numberOfTokenRenewal);
         });
     } catch (err) {
@@ -425,7 +436,7 @@ async function common_test_expected_server_initiated_disconnection(securityPolic
     }
 }
 
-function perform_collection_of_test_with_client_configuration(message, options) {
+function perform_collection_of_test_with_client_configuration(message, options): void {
     it("should succeed with Basic128Rsa15  with Sign           " + message, async () => {
         await common_test("Basic128Rsa15", "Sign", options);
     });
@@ -471,17 +482,16 @@ function perform_collection_of_test_with_client_configuration(message, options) 
     });
 }
 
-function perform_collection_of_test_with_various_client_configuration(prefix) {
+function perform_collection_of_test_with_various_client_configuration(prefix?: string): void {
     prefix = prefix || "";
 
     function build_options(keySize) {
-        
         const client_certificate_pem_file = path.join(sampleCertificateFolder, "client_cert_" + keySize + ".pem");
         const client_certificate_privatekey_file = path.join(sampleCertificateFolder, "client_key_" + keySize + ".pem");
 
         fs.existsSync(client_certificate_pem_file).should.eql(true, client_certificate_pem_file + " must exist");
         fs.existsSync(client_certificate_privatekey_file).should.eql(true, client_certificate_privatekey_file + " must exist");
-        
+
         const options = {
             certificateFile: client_certificate_pem_file,
             privateKeyFile: client_certificate_privatekey_file
@@ -508,7 +518,7 @@ describe("ZZB- testing Secure Client-Server communication", function () {
     let serverHandle;
 
     before(async () => {
-        serverHandle = await start_server();
+        serverHandle = await start_server({});
     });
     after(async () => {
         await stop_server(serverHandle);
@@ -524,10 +534,10 @@ describe("ZZB- testing Secure Client-Server communication", function () {
             serverCertificate: serverCertificate,
             connectionStrategy: no_reconnect_connectivity_strategy,
 
-            certificateManager: await getClientCertificateManager()
+            clientCertificateManager: await getClientCertificateManager()
         };
         const client = OPCUAClient.create(options);
-        await trustClientCertificateOnServer(client.clientCertificate);
+        await trustClientCertificateOnServer(client.certificateFile);
 
         await client.withSessionAsync(endpointUrl, async (session) => {
             /** */
@@ -546,7 +556,7 @@ describe("ZZB- testing Secure Client-Server communication", function () {
             serverCertificate: serverCertificate,
             connectionStrategy: no_reconnect_connectivity_strategy,
 
-            certificateManager: await getClientCertificateManager()
+            clientCertificateManager: await getClientCertificateManager()
         };
         const client = OPCUAClient.create(options);
 
@@ -591,7 +601,7 @@ describe("ZZB- testing Secure Client-Server communication", function () {
 
             connectionStrategy: no_reconnect_connectivity_strategy,
 
-            certificateManager: await getClientCertificateManager()
+            clientCertificateManager: await getClientCertificateManager()
         };
         const client = OPCUAClient.create(options);
         await trustClientCertificateOnServer(client.certificateFile);
@@ -613,33 +623,34 @@ describe("ZZB- testing Secure Client-Server communication", function () {
 
             connectionStrategy: no_reconnect_connectivity_strategy,
 
-            certificateManager: await getClientCertificateManager()
+            clientCertificateManager: await getClientCertificateManager()
         };
         const client = OPCUAClient.create(options);
         await trustClientCertificateOnServer(client.certificateFile);
 
-        const old_performMessageTransaction = ClientSecureChannelLayer.prototype._performMessageTransaction;
-        ClientSecureChannelLayer.prototype._performMessageTransaction = function (msgType, requestMessage, callback) {
+        const prototype =  ClientSecureChannelLayer.prototype as any;
+        const old_performMessageTransaction = prototype._performMessageTransaction;
+        prototype._performMessageTransaction = function (msgType, requestMessage, callback) {
             // let's alter the client Nonce,
             if (requestMessage.constructor.name === "OpenSecureChannelRequest") {
                 requestMessage.clientNonce.length.should.eql(16);
                 this.clientNonce = requestMessage.clientNonce = randomBytes(32);
-                ClientSecureChannelLayer.prototype._performMessageTransaction = old_performMessageTransaction;
+                prototype._performMessageTransaction = old_performMessageTransaction;
             }
             old_performMessageTransaction.call(this, msgType, requestMessage, callback);
         };
 
         let _err;
         try {
-            await client.withSessionAsync(endpointUrl, (session) => {
+            await client.withSessionAsync(endpointUrl, async (session: ClientSession) => {
                 session; /** */
             });
         } catch (err) {
             _err = err;
             debugLog(err.message);
-            ClientSecureChannelLayer.prototype._performMessageTransaction = old_performMessageTransaction;
+            prototype._performMessageTransaction = old_performMessageTransaction;
         }
-        ClientSecureChannelLayer.prototype._performMessageTransaction.should.eql(old_performMessageTransaction);
+        prototype._performMessageTransaction.should.eql(old_performMessageTransaction);
         _err.message.should.match(/BadSecurityModeRejected/);
     });
 
@@ -651,13 +662,13 @@ describe("ZZB- testing Secure Client-Server communication", function () {
             defaultSecureTokenLifetime: g_defaultSecureTokenLifetime,
             tokenRenewalInterval: g_tokenRenewalInterval,
             connectionStrategy: no_reconnect_connectivity_strategy,
-            certificateManager: await getClientCertificateManager()
+            clientCertificateManager: await getClientCertificateManager()
         };
 
         let token_change = 0;
         const client = OPCUAClient.create(options);
         client.on("lifetime_75", function (token) {
-            debugLog("received lifetime_75", JSON.stringify(token));
+            debugLog("received lifetime_75", token.toString());
         });
 
         client.on("security_token_renewed", function () {
@@ -681,12 +692,14 @@ describe("ZZB- testing server behavior on secure connection ", function () {
     let old_method;
     let timerId = null;
     before(async () => {
-        ClientSecureChannelLayer.prototype._renew_security_token.should.be.instanceOf(Function);
+
+        const prototype =  ClientSecureChannelLayer.prototype as any
+        prototype._renew_security_token.should.be.instanceOf(Function);
         // let modify the client behavior so that _renew_security_token call is delayed by an amount of time
         // that should cause the server to worry about the token not to be renewed.
-        old_method = ClientSecureChannelLayer.prototype._renew_security_token;
+        old_method = prototype._renew_security_token;
 
-        ClientSecureChannelLayer.prototype._renew_security_token = function () {
+        prototype._renew_security_token = function () {
             if (timerId) {
                 return;
             }
@@ -700,7 +713,7 @@ describe("ZZB- testing server behavior on secure connection ", function () {
             }, g_defaultSecureTokenLifetime * 4);
         };
 
-        serverHandle = await start_server();
+        serverHandle = await start_server({});
     });
     after(async () => {
         //Xx should(timerId).eql(null);
@@ -710,7 +723,8 @@ describe("ZZB- testing server behavior on secure connection ", function () {
         }
 
         // restoring _renew_security_token
-        ClientSecureChannelLayer.prototype._renew_security_token = old_method;
+        const prototype =  ClientSecureChannelLayer.prototype as any
+        prototype._renew_security_token = old_method;
         debugLog(" Disconnecting server");
 
         await stop_server(serverHandle);
@@ -725,13 +739,13 @@ describe("ZZB- testing server behavior on secure connection ", function () {
             defaultSecureTokenLifetime: 2000,
             tokenRenewalInterval: 30000,
             connectionStrategy: no_reconnect_connectivity_strategy,
-            certificateManager: await getClientCertificateManager()
+            clientCertificateManager: await getClientCertificateManager()
         };
 
         let token_change = 0;
         const client = OPCUAClient.create(options);
         client.on("lifetime_75", function (token) {
-            debugLog("received lifetime_75", JSON.stringify(token));
+            debugLog("received lifetime_75", token.toString());
         });
         client.on("security_token_renewed", function () {
             token_change += 1;
@@ -745,7 +759,7 @@ describe("ZZB- testing server behavior on secure connection ", function () {
         await trustClientCertificateOnServer(client.certificateFile);
 
         await client.withSessionAsync(endpointUrl, async (session) => {
-            await new Promise((resolve) => {
+            await new Promise<void>((resolve) => {
                 setTimeout(() => {
                     // security token has now expired
                     // this request will fail as we haven't renewed the securityToken

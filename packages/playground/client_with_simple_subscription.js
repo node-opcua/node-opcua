@@ -65,8 +65,8 @@ const endpointUri = "opc.tcp://localhost:48010";
             console.log("security_token_renewed =>");
             console.log(client.toString());
         })
-        client.on("lifetime_75", () => {
-            console.log("lifetime_75 =>");
+        client.on("lifetime_75", (token) => {
+            console.log("lifetime_75 =>", token.toString());
         })
 
         await client.connect(endpointUri);

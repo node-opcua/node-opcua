@@ -6,29 +6,22 @@ import { EventEmitter } from "events";
 import { LocaleId } from "node-opcua-basic-types";
 import { OPCUACertificateManager } from "node-opcua-certificate-manager";
 import { OPCUASecureObject } from "node-opcua-common";
-import { Certificate, makeSHA1Thumbprint, Nonce, toPem } from "node-opcua-crypto";
+import { Certificate } from "node-opcua-crypto";
 import { ObjectRegistry } from "node-opcua-object-registry";
 import {
     ClientSecureChannelLayer,
     ConnectionStrategy,
     ConnectionStrategyOptions,
-    SecurityPolicy,
-    SecurityToken
-} from "node-opcua-secure-channel";
+    SecurityPolicy} from "node-opcua-secure-channel";
 import {
-    FindServersOnNetworkRequest,
     FindServersOnNetworkRequestOptions,
-    FindServersRequest,
     FindServersRequestOptions,
     ServerOnNetwork
 } from "node-opcua-service-discovery";
 import {
     ApplicationDescription,
-    EndpointDescription,
-    GetEndpointsRequest,
-    GetEndpointsResponse
-} from "node-opcua-service-endpoints";
-import { MessageSecurityMode } from "node-opcua-service-secure-channel";
+    EndpointDescription} from "node-opcua-service-endpoints";
+import { ChannelSecurityToken, MessageSecurityMode } from "node-opcua-service-secure-channel";
 import { ErrorCallback } from "node-opcua-status-code";
 
 import { ResponseCallback } from "./client_session";
@@ -283,7 +276,7 @@ export interface OPCUAClientBase extends EventEmitter {
      * @param event
      * @param eventHandler
      */
-    on(event: "lifetime_75", eventHandler: (token: SecurityToken) => void): this;
+    on(event: "lifetime_75", eventHandler: (token: ChannelSecurityToken) => void): this;
 
     /**
      * this event is raised after the (about ) security token as been renewed

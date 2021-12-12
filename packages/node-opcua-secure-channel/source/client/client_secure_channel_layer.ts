@@ -18,7 +18,7 @@ import { get_clock_tick, timestamp } from "node-opcua-utils";
 
 import { readMessageHeader, verify_message_chunk } from "node-opcua-chunkmanager";
 import { checkDebugFlag, hexDump, make_debugLog, make_errorLog, make_warningLog } from "node-opcua-debug";
-import { coerceMessageSecurityMode, MessageSecurityMode } from "node-opcua-service-secure-channel";
+import { ChannelSecurityToken, coerceMessageSecurityMode, MessageSecurityMode } from "node-opcua-service-secure-channel";
 import { StatusCodes } from "node-opcua-status-code";
 import { ClientTCP_transport } from "node-opcua-transport";
 import { ErrorCallback } from "node-opcua-status-code";
@@ -264,7 +264,7 @@ export class ClientSecureChannelLayer extends EventEmitter {
     public readonly securityPolicy: SecurityPolicy;
     public endpointUrl: string;
     public channelId: number;
-    public securityToken: SecurityToken | null;
+    public securityToken: ChannelSecurityToken | null;
 
     private _lastRequestId: number;
     private _transport?: ClientTCP_transport;

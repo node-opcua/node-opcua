@@ -1,12 +1,9 @@
 "use strict";
 
-const should = require("should");
 const sinon = require("sinon");
 
 const {
-    assert,
     OPCUAClient,
-    ClientSession,
     ClientSubscription,
     AttributeIds,
     resolveNodeId,
@@ -21,10 +18,10 @@ const {
 } = require("node-opcua");
 
 const {
-    perform_operation_on_subscription_async,
     perform_operation_on_client_session
 } = require("../../test_helpers/perform_operation_on_client_session");
 
+// eslint-disable-next-line import/order
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 module.exports = function (test) {
     describe("Testing client with many monitored items", function () {
@@ -58,7 +55,7 @@ module.exports = function (test) {
 
             function make_callback(_nodeId) {
                 const nodeId = _nodeId;
-                return function (dataValue) {
+                return function () {
                     //Xx console.log(nodeId.toString() , "\t value : ",dataValue.value.value.toString());
                     const idx = nodeId.toString();
                     changeByNodes[idx] = changeByNodes[idx] ? changeByNodes[idx] + 1 : 1;
@@ -78,7 +75,6 @@ module.exports = function (test) {
                         priority: 6
                     });
 
-                    const monitoredItems = [];
 
                     const ids = [
                         "Scalar_Simulation_Double",
@@ -99,7 +95,7 @@ module.exports = function (test) {
                         monitoredItem.on("changed", make_callback(nodeId));
                     });
 
-                    subscription.once("started", function (subscriptionId) {
+                    subscription.once("started", function () {
                         setTimeout(() => {
                             subscription.terminate(inner_done);
                             Object.keys(changeByNodes).length.should.eql(ids.length);
@@ -183,7 +179,7 @@ module.exports = function (test) {
 
                     subscription.on("raw_notification", notificationMessageSpy);
 
-                    subscription.once("started", (subscriptionId) => {
+                    subscription.once("started", () => {
                         const timestampsToReturn = TimestampsToReturn.Neither;
 
                         const itemsToCreate = make5000Items();
@@ -194,7 +190,7 @@ module.exports = function (test) {
                         });
 
                         //xx console.log(createMonitorItemsRequest.toString());
-                        session.createMonitoredItems(createMonitorItemsRequest, function (err, response) {
+                        session.createMonitoredItems(createMonitorItemsRequest, function (err) {
                             if (err) {
                                 subscription.terminate(inner_done);
                                 return;
@@ -237,7 +233,6 @@ module.exports = function (test) {
                 };
 
                 //xx console.log(createMonitorItemsRequest.toString());
-                const group = await subscription.monitorItems(itemsToCreate, requesterParameters, timestampsToReturn);
 
                 await new Promise((resolve) => setTimeout(resolve, 1000));
 
