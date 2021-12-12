@@ -1,14 +1,12 @@
-"use strict";
-const async = require("async");
-const { OPCUAClient } = require("node-opcua");
-
-const { build_server_with_temperature_device } = require("../../test_helpers/build_server_with_temperature_device");
+import async from "async";
+import { OPCUAClient }from "node-opcua";
+import { build_server_with_temperature_device }from "../../test_helpers/build_server_with_temperature_device";
+// eslint-disable-next-line import/order
+const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 
 const port = 2005;
 
-// eslint-disable-next-line import/order
-const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
-module.exports = () => {
+export function t(test: any) {
     describe("DS5- testing OPCUA-Service Discovery Endpoint", function () {
         let server, endpointUrl;
 

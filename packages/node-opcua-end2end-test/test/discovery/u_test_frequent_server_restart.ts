@@ -28,7 +28,7 @@ const port2 = 1240;
 const port1 = 1241;
 const discovery_port = 1244;
 
-module.exports = () => {
+export function t(test: any) {
     const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
     describe("NodeRed -  testing frequent server restart within same process", function () {
         /**
