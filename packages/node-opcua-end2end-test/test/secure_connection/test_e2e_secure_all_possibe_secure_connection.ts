@@ -50,7 +50,10 @@ const g_defaultSecureTokenLifetime = 30 * 1000; // ms
 const g_tokenRenewalInterval = 200; // renew token as fast as possible
 const g_numberOfTokenRenewal = 2;
 
-let server, endpointUrl, serverCertificate, temperatureVariableId;
+let server: OPCUAServer;
+let endpointUrl: string;
+let serverCertificate: string;
+let temperatureVariableId: NodeId;
 
 const no_reconnect_connectivity_strategy = {
     maxRetry: 0, // NO RETRY !!!
