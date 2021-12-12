@@ -85,11 +85,21 @@ async function makeServerCertificateManager(port): Promise<OPCUACertificateManag
 async function getClientCertificateManager(): Promise<OPCUACertificateManager> {
     const tmpFolder = path.join(os.tmpdir(), "node-opcua-3");
     const rootFolder = path.join(tmpFolder, "clientPKI");
-    const certificateManager = new OPCUACertificateManager({
+    const clientCertificateManager = new OPCUACertificateManager({
         rootFolder
     });
-    await certificateManager.initialize();
-    return certificateManager;
+    await clientCertificateManager.initialize();
+
+    const fakeClient = OPCUAClient.create({
+        clientCertificateManager
+    });
+    try {
+        await (fakeClient as any).createDefaultCertificate();
+    } catch(err) {
+        debugLog("getClientCertificateManager: cannot connect to server");
+    }
+    // create default certificate
+    return clientCertificateManager;
 }
 
 interface InnerServer {
@@ -153,7 +163,12 @@ function get_server_channel_security_token_change_count(server) {
     return count;
 }
 
-async function trustClientCertificateOnServer(certificateFile: string): Promise<void> {
+async function trustClientCertificateOnServer(client: OPCUAClient): Promise<void> {
+
+    await client.createDefaultCertificate();
+
+    const certificateFile = client.certificateFile;
+
     if (!certificateFile) {
         return;
     }
@@ -310,6 +325,7 @@ async function common_test(securityPolicy, securityMode, options): Promise<void>
 
     let token_change = 0;
     const client = OPCUAClient.create(options);
+    
 
     client.on("lifetime_75", function (token: ChannelSecurityToken) {
         // check if we are late!
@@ -329,7 +345,7 @@ async function common_test(securityPolicy, securityMode, options): Promise<void>
         debugLog(" connection has been closed");
     });
 
-    await trustClientCertificateOnServer(client.certificateFile);
+    await trustClientCertificateOnServer(client);
 
     const tokenChangeRecorded = await client.withSessionAsync(endpointUrl, async (session) => {
         return await keep_monitoring_some_variable(client, session, g_numberOfTokenRenewal);
@@ -353,7 +369,7 @@ async function check_open_secure_channel_fails(securityPolicy, securityMode, opt
         debugLog(" backoff attempt#", number, " retry in ", delay);
     });
 
-    await trustClientCertificateOnServer(client.certificateFile);
+    await trustClientCertificateOnServer(client);
 
     try {
         await client.connect(endpointUrl);
@@ -424,7 +440,7 @@ async function common_test_expected_server_initiated_disconnection(securityPolic
         debugLog("            connection has been closed");
     });
 
-    await trustClientCertificateOnServer(client.certificateFile);
+    await trustClientCertificateOnServer(client);
 
     try {
         await client.withSessionAsync(endpointUrl, async (session) => {
@@ -537,7 +553,7 @@ describe("ZZB- testing Secure Client-Server communication", function () {
             clientCertificateManager: await getClientCertificateManager()
         };
         const client = OPCUAClient.create(options);
-        await trustClientCertificateOnServer(client.certificateFile);
+        await trustClientCertificateOnServer(client);
 
         await client.withSessionAsync(endpointUrl, async (session) => {
             /** */
@@ -560,7 +576,7 @@ describe("ZZB- testing Secure Client-Server communication", function () {
         };
         const client = OPCUAClient.create(options);
 
-        await trustClientCertificateOnServer(client.certificateFile);
+        await trustClientCertificateOnServer(client);
 
         await client.withSessionAsync(endpointUrl, async (session) => {
             /** */
@@ -583,7 +599,7 @@ describe("ZZB- testing Secure Client-Server communication", function () {
             certificateManager: await getClientCertificateManager()
         };
         const client = OPCUAClient.create(options);
-        await trustClientCertificateOnServer(client.certificateFile);
+        await trustClientCertificateOnServer(client);
         await client.withSessionAsync(endpointUrl, async (session) => {
             /** */
         });
@@ -604,7 +620,7 @@ describe("ZZB- testing Secure Client-Server communication", function () {
             clientCertificateManager: await getClientCertificateManager()
         };
         const client = OPCUAClient.create(options);
-        await trustClientCertificateOnServer(client.certificateFile);
+        await trustClientCertificateOnServer(client);
         await client.withSessionAsync(endpointUrl, async (session) => {
             /** */
         });
@@ -626,7 +642,7 @@ describe("ZZB- testing Secure Client-Server communication", function () {
             clientCertificateManager: await getClientCertificateManager()
         };
         const client = OPCUAClient.create(options);
-        await trustClientCertificateOnServer(client.certificateFile);
+        await trustClientCertificateOnServer(client);
 
         const prototype =  ClientSecureChannelLayer.prototype as any;
         const old_performMessageTransaction = prototype._performMessageTransaction;
@@ -676,7 +692,7 @@ describe("ZZB- testing Secure Client-Server communication", function () {
             debugLog("security_token_renewed");
         });
 
-        await trustClientCertificateOnServer(client.certificateFile);
+        await trustClientCertificateOnServer(client);
 
         await client.withSessionAsync(endpointUrl, async (session) => {
             await keep_monitoring_some_variable(client, session, g_numberOfTokenRenewal + 3);
@@ -756,7 +772,7 @@ describe("ZZB- testing server behavior on secure connection ", function () {
             token_change.should.be.eql(0);
         });
 
-        await trustClientCertificateOnServer(client.certificateFile);
+        await trustClientCertificateOnServer(client);
 
         await client.withSessionAsync(endpointUrl, async (session) => {
             await new Promise<void>((resolve) => {

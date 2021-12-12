@@ -711,7 +711,8 @@ export class ClientBaseImpl extends OPCUASecureObject implements OPCUAClientBase
             throw new Error(" cannot locate certificate file " + certificateFile);
         }
     }
-    protected async createDefaultCertificate(): Promise<void> {
+    
+    public async createDefaultCertificate(): Promise<void> {
         // istanbul ignore next
         if ((this as any)._inCreateDefaultCertificate) {
             errorLog("Internal error : re-entrancy in createDefaultCertificate!");
