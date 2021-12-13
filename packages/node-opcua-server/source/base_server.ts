@@ -209,7 +209,8 @@ export class OPCUABaseServer extends OPCUASecureObject {
             }
         });
     }
-    protected async initializeCM(): Promise<void> {
+    
+    public async initializeCM(): Promise<void> {
         await this.serverCertificateManager.initialize();
         await this.createDefaultCertificate();
         debugLog("privateKey      = ", this.privateKeyFile, this.serverCertificateManager.privateKey);

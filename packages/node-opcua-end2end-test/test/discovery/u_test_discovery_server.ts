@@ -23,6 +23,7 @@ import {
 import { readCertificate, exploreCertificate } from "node-opcua-crypto";
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 
+import { createServerCertificateManager } from "../../test_helpers/createServerCertificateManager";
 import { createServerThatRegistersItselfToTheDiscoveryServer, ep, startDiscovery } from "./_helper";
 
 const debugLog = make_debugLog("TEST");
@@ -52,10 +53,15 @@ export function t(test: any) {
         let server: OPCUAServer | undefined;
 
         before(async () => {
+
             server = new OPCUAServer({
                 port: port0,
                 serverCertificateManager: this.serverCertificateManager,
             });
+
+            await server.initialize();
+            await server.initializeCM();
+
         });
 
         after(async () => {
@@ -229,7 +235,7 @@ export function t(test: any) {
 
         async function addServerCertificateToTrustedCertificateInDiscoveryServer(server: OPCUAServer) {
             const filename = server.certificateFile;
-            fs.existsSync(filename).should.eql(true);
+            fs.existsSync(filename).should.eql(true, " the server certficate file "+ filename + " should exist");
             const certificate = readCertificate(filename);
             await discoveryServer.serverCertificateManager.trustCertificate(certificate);
         }
@@ -251,11 +257,13 @@ export function t(test: any) {
             debugLog(" initialServerCount = ", initialServerCount);
             debugLog("servers[0].discoveryUrls", servers[0].discoveryUrls!.join("\n"));
 
+            const serverCertificateManager = await createServerCertificateManager(port1);
             // ----------------------------------------------------------------------------
             server = new OPCUAServer({
                 port: port1,
                 registerServerMethod: RegisterServerMethod.LDS,
                 discoveryServerEndpointUrl,
+                serverCertificateManager,
                 serverInfo: {
                     applicationName: { text: "NodeOPCUA", locale: "en" },
                     applicationUri,
@@ -266,6 +274,9 @@ export function t(test: any) {
                 }
             });
 
+            await server.initialize();
+            await server.initializeCM();
+            
             await addServerCertificateToTrustedCertificateInDiscoveryServer(server);
 
             await server.start();

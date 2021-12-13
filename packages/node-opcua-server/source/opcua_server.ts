@@ -3530,7 +3530,7 @@ export class OPCUAServer extends OPCUABaseServer {
         return endPoint;
     }
 
-    protected async initializeCM(): Promise<void> {
+    public async initializeCM(): Promise<void> {
         await super.initializeCM();
         await this.userCertificateManager.initialize();
     }
