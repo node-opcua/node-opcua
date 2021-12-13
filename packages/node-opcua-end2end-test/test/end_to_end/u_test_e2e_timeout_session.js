@@ -12,6 +12,7 @@ async function pause(ms) {
 }
 
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
+const { wait_until_condition } = require("../../test_helpers/utils");
 module.exports = function(test) {
 
 
@@ -40,10 +41,8 @@ module.exports = function(test) {
 
             await client.disconnect();
 
-            await pause(100);
-            
             if (test.server) {
-                test.server.engine.currentSessionCount.should.eql(0);
+                await wait_until_condition(()=>test.server.engine.currentSessionCount === 0, 10* 1000);
             }
 
         });
