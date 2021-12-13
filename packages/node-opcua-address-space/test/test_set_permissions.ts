@@ -2,6 +2,7 @@ import * as should from "should";
 import { AccessRestrictionsFlag, AttributeIds, makeAccessLevelFlag, makePermissionFlag } from "node-opcua-data-model";
 import { resolveNodeId } from "node-opcua-nodeid";
 import { CallMethodResultOptions, PermissionType, RolePermissionTypeOptions } from "node-opcua-types";
+import { StatusCodes } from "node-opcua-status-code";
 import { DataType, Variant } from "node-opcua-variant";
 import {
     AddressSpace,
@@ -19,7 +20,6 @@ import {
 const keep_should = should;
 
 import { getMiniAddressSpace } from "../testHelpers";
-import { StatusCodes } from "node-opcua-status-code";
 
 // tslint:disable-next-line:no-var-requires
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;

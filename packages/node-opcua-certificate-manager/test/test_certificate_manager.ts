@@ -1,9 +1,9 @@
 // tslint:disable:no-console
 
+import * as path from "path";
 import * as fs from "fs";
 import "mocha";
 import { StatusCodes } from "node-opcua-status-code";
-import * as path from "path";
 import * as rimraf from "rimraf";
 import * as should from "should";
 
@@ -57,7 +57,6 @@ async function initializeDemoCertificates() {
         });
     }
     if (!fs.existsSync(certificateIssuedByCAFilename)) {
-
         const certificateSigningRequestFilename = await tmpPKI.createCertificateRequest({
             applicationUri: "SomeURI",
             dns: [],
@@ -97,7 +96,7 @@ describe("Testing OPCUA Client Certificate Manager", function (this: any) {
     let certificateSelfSigned: Certificate;
 
     before(async () => await initializeDemoCertificates());
-    after(async () => {});
+    after(async () => {/** */});
     beforeEach(async () => {
         // create a PKI with no issuer certificate
         const temporaryFolder2 = path.join(_tmpFolder, "testing_certificates");
@@ -148,9 +147,8 @@ describe("Testing OPCUA Client Certificate Manager", function (this: any) {
             statusCode.should.eql(StatusCodes.BadCertificateUntrusted);
             const statusCode2 = await certificateMgr.checkCertificate(certificateSelfSigned);
             statusCode2.should.eql(StatusCodes.BadCertificateUntrusted);
- 
-            await certificateMgr.trustCertificate(certificateSelfSigned);
 
+            await certificateMgr.trustCertificate(certificateSelfSigned);
         });
         it("AQS03- should accept a valid self-signed certificate that appears in the trusted certificate folder", async () => {
             await certificateMgr.trustCertificate(certificateSelfSigned);

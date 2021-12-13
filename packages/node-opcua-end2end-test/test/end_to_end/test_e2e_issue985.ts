@@ -21,7 +21,10 @@ import {
     ActivateSessionRequest,
     UserNameIdentityToken,
     UserIdentityInfo,
-    UserIdentityInfoX509
+    UserIdentityInfoX509,
+    makeRoles,
+    NodeId,
+    UserManagerOptions
 } from "node-opcua";
 import { readCertificate, readPrivateKey, readPrivateKeyPEM } from "node-opcua-crypto";
 import should = require("should");
@@ -42,15 +45,15 @@ async function pause(duration: number): Promise<void> {
 }
 
 const users = [
-    { username: "user1", password: "1", role: [WellKnownRoles.AuthenticatedUser, WellKnownRoles.ConfigureAdmin].join(";") },
-    { username: "user2", password: "2", role: [WellKnownRoles.AuthenticatedUser, WellKnownRoles.Operator].join(";") }
+    { username: "user1", password: "1", role: makeRoles([WellKnownRoles.AuthenticatedUser, WellKnownRoles.ConfigureAdmin]) },
+    { username: "user2", password: "2", role: makeRoles([WellKnownRoles.AuthenticatedUser, WellKnownRoles.Operator]) }
 ];
 
 const certificateFolder = path.join(__dirname, "../../../node-opcua-samples/certificates");
 fs.existsSync(certificateFolder).should.eql(true, "expecting certificate store at " + certificateFolder);
 
 // simplistic user manager for test purpose only ( do not use in production !)
-const userManager = {
+const userManager: UserManagerOptions = {
     isValidUser: function (username: string, password: string) {
         const uIndex = users.findIndex(function (u) {
             return u.username === username;
@@ -64,10 +67,10 @@ const userManager = {
         return true;
     },
 
-    getUserRole: function (username: string) {
+    getUserRoles: function (username: string): NodeId[] {
         const uIndex = users.findIndex((x) => x.username === username);
         if (uIndex < 0) {
-            return "";
+            return [];
         }
         const userRole = users[uIndex].role;
         return userRole;

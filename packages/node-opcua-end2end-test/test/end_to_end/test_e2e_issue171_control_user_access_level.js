@@ -35,7 +35,7 @@ const userManager = {
         return true;
     },
 
-    getUserRoles: (username) => {
+    getUserRoles: (username)/*: NodeId[] */ => {
         const uIndex = users.findIndex(function (x) {
             return x.username === username;
         });

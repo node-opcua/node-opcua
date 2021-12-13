@@ -66,7 +66,7 @@ describe("Issue #896: Check Authorization for UAMethods", () => {
     beforeEach(() => wasExecuted = false);
 
     it("should allow Gandalf to execute the method", async () => {
-        let clientSession = await client.createSession({
+        const clientSession = await client.createSession({
             type: UserTokenType.UserName,
             userName: "Gandalf",
             password: "g"
@@ -82,7 +82,7 @@ describe("Issue #896: Check Authorization for UAMethods", () => {
     });
 
     it("should deny Frodo to execute the method", async () => {
-        let clientSession = await client.createSession({
+        const clientSession = await client.createSession({
             type: UserTokenType.UserName,
             userName: "Frodo",
             password: "f"
