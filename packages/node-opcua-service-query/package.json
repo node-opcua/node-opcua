@@ -1,6 +1,6 @@
 {
     "name": "node-opcua-service-query",
-    "version": "2.62.5",
+    "version": "2.62.6",
     "description": "pure nodejs OPCUA SDK - module -service-query",
     "scripts": {
         "build": "tsc -b",
@@ -12,18 +12,18 @@
     "types": "./dist/index.d.ts",
     "dependencies": {
         "node-opcua-assert": "2.55.0",
-        "node-opcua-basic-types": "2.62.5",
+        "node-opcua-basic-types": "2.62.6",
         "node-opcua-binary-stream": "2.62.5",
-        "node-opcua-data-model": "2.62.5",
-        "node-opcua-factory": "2.62.5",
-        "node-opcua-nodeid": "2.62.5",
-        "node-opcua-numeric-range": "2.62.5",
-        "node-opcua-service-browse": "2.62.5",
-        "node-opcua-service-filter": "2.62.5",
-        "node-opcua-service-secure-channel": "2.62.5",
-        "node-opcua-service-subscription": "2.62.5",
-        "node-opcua-service-translate-browse-path": "2.62.5",
-        "node-opcua-types": "2.62.5"
+        "node-opcua-data-model": "2.62.6",
+        "node-opcua-factory": "2.62.6",
+        "node-opcua-nodeid": "2.62.6",
+        "node-opcua-numeric-range": "2.62.6",
+        "node-opcua-service-browse": "2.62.6",
+        "node-opcua-service-filter": "2.62.6",
+        "node-opcua-service-secure-channel": "2.62.6",
+        "node-opcua-service-subscription": "2.62.6",
+        "node-opcua-service-translate-browse-path": "2.62.6",
+        "node-opcua-types": "2.62.6"
     },
     "author": "Etienne Rossignon",
     "license": "MIT",

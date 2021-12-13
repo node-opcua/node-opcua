@@ -1,6 +1,6 @@
 {
     "name": "node-opcua-debug",
-    "version": "2.62.5",
+    "version": "2.62.6",
     "description": "pure nodejs OPCUA SDK - module -debug",
     "scripts": {
         "build": "tsc -b",
