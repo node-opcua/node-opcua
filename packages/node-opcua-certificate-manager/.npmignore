@@ -5,5 +5,7 @@ certificates/
 tsconfig.json
 *.tsbuildinfo
 pnpm-lock.yaml
+.mocharc.yml
+.mocharc.json
 temp/
 tmp/

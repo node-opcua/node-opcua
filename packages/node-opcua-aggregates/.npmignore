@@ -2,4 +2,5 @@ test/
 test_helpers/
 tsconfig.json
 *.tsbuildinfo
+.mocharc.yaml
 pnpm-lock.yaml

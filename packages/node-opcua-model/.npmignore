@@ -11,7 +11,10 @@ _test_generated/
 schemas/
 pki/
 tmp/
+test/
 tsconfig.json
 *.tsbuildinfo
 pnpm-lock.yaml
 tslint.*
+.mocharc.*
+

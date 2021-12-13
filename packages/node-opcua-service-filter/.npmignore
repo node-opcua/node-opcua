@@ -12,10 +12,9 @@ schemas/
 pki/
 tmp/
 deprecated_*
+test/
 tsconfig.json
 *.tsbuildinfo
 pnpm-lock.yaml
 tslint.*
-.mocharc.yaml
-
-
+.mocharc.*

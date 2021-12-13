@@ -1,4 +1,7 @@
+out/
+test/
 tsconfig.json
+tsconfig_*.json
 *.tsbuildinfo
+.mocharc.yaml
 pnpm-lock.yaml
-.mocharc.*

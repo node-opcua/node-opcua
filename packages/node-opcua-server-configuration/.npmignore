@@ -1,5 +1,7 @@
 temp/
 test/
+tsconfig.json
 *.tsbuildinfo
 pnpm-lock.yaml
-tsconfig.json
+tslint.*
+.mocharc.*

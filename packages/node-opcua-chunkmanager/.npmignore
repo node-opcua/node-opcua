@@ -3,4 +3,6 @@ test/
 test_to_fix/
 certificates/
 tsconfig.json
+*.tsbuildinfo
+.mocharc.*
 pnpm-lock.yaml
