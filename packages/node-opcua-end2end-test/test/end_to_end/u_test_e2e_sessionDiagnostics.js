@@ -224,21 +224,24 @@ module.exports = function (test) {
                                     callback();
                                 });
                             },
-                            function verify_that_session_diagnostics_has_reported_a_new_writeCounter_value(callback) {
+                            function wait_a_little(callback) {
                                 setTimeout(function () {
-                                    // extract DataChangeNotification that matches writeCounter
-                                    const args = monitoredItemGroupChangeSpy.args.filter(function (arg) {
-                                        return arg[0].itemToMonitor.nodeId.toString() === writeCountTotalCountNodeId.toString();
-                                    });
-                                    args.length.should.eql(2);
-
-                                    args[0][1].value.value.should.eql(0, "first  WriteCounter value should eql 0");
-                                    args[1][1].value.value.should.eql(1, "second WriteCounter value should eql 1");
-
-                                    const writeCounterValue = args[1][1].value.value;
-                                    writeCounterValue.should.eql(1);
                                     callback();
-                                }, 2000);
+                                }, 3000);
+                            },
+                            function verify_that_session_diagnostics_has_reported_a_new_writeCounter_value(callback) {
+                                // extract DataChangeNotification that matches writeCounter
+                                const args = monitoredItemGroupChangeSpy.args.filter(function (arg) {
+                                    return arg[0].itemToMonitor.nodeId.toString() === writeCountTotalCountNodeId.toString();
+                                });
+                                args.length.should.eql(2);
+
+                                args[0][1].value.value.should.eql(0, "first  WriteCounter value should eql 0");
+                                args[1][1].value.value.should.eql(1, "second WriteCounter value should eql 1");
+
+                                const writeCounterValue = args[1][1].value.value;
+                                writeCounterValue.should.eql(1);
+                                callback();
                             },
                             function verify_that_clientLastContactTime_has_changed_in_monitored_item(callback) {
                                 const nodeToRead = {

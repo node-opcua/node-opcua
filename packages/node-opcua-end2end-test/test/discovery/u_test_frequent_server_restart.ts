@@ -10,7 +10,6 @@ import {
     ClientMonitoredItem,
     resolveNodeId,
     AttributeIds,
-    makeApplicationUrn,
     TimestampsToReturn,
     ErrorCallback,
     ApplicationType,
@@ -205,11 +204,11 @@ export function t(test: any) {
         });
 
         const wait_a_few_seconds = f(function wait_a_few_seconds(callback: ErrorCallback) {
-            setTimeout(callback, 1200);
+            setTimeout(callback, 1100);
         });
 
         const wait_a_minute = f(function wait_a_minute(callback: ErrorCallback) {
-            setTimeout(callback, 12000);
+            setTimeout(callback, 10* 1000);
         });
 
         before((done) => {
@@ -250,6 +249,7 @@ export function t(test: any) {
                 }
             );
         });
+
         it("DISCO4-D - should cancel a client that is attempting a connection on an existing server", function (done) {
             const client = OPCUAClient.create({});
             const endpoint = discoveryServerEndpointUrl;

@@ -1,7 +1,6 @@
 // tslint:disable: no-console
 import * as fs from "fs";
 import * as os from "os";
-import * as path from "path";
 import * as should from "should";
 import * as async from "async";
 
@@ -18,17 +17,13 @@ import {
     StatusCodes,
     RegisterServerMethod,
     makeApplicationUrn,
-    OPCUACertificateManager,
     FindServerResults,
     OPCUADiscoveryServer
 } from "node-opcua";
 import { readCertificate, exploreCertificate } from "node-opcua-crypto";
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 
-import { createServerCertificateManager } from "../../test_helpers/createServerCertificateManager";
 import { createServerThatRegistersItselfToTheDiscoveryServer, ep, startDiscovery } from "./_helper";
-
-const configFolder = path.join(__dirname, "../../tmp");
 
 const debugLog = make_debugLog("TEST");
 const doDebug = checkDebugFlag("TEST");
@@ -39,7 +34,7 @@ const port2 = 2502;
 const port3 = 2503;
 const port4 = 2504;
 const port5 = 2505;
-const port_discovery = 1235;
+const port_discovery = 2516;
 // add the tcp/ip endpoint with no security
 
 process.on("uncaughtException", (err) => {
