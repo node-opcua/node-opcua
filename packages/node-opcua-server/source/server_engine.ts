@@ -340,11 +340,28 @@ export class ServerEngine extends EventEmitter {
 
         // --------------------------------------------------- ServerCapabilities
         options.serverCapabilities = options.serverCapabilities || {};
+
+        // https://profiles.opcfoundation.org/profile
         options.serverCapabilities.serverProfileArray = options.serverCapabilities.serverProfileArray || [
-            "Standard UA Server Profile",
-            "Embedded UA Server Profile",
-            "Micro Embedded Device Server Profile",
-            "Nano Embedded Device Server Profile"
+            "http://opcfoundation.org/UA-Profile/Server/Standard", // Standard UA Server Profile",
+            "http://opcfoundation.org/UA-Profile/Server/DataAccess",
+            "http://opcfoundation.org/UA-Profile/Server/Events",
+            "http://opcfoundation.org/UA-Profile/Client/HistoricalAccess",
+            "http://opcfoundation.org/UA-Profile/Server/Methods",
+            "http://opcfoundation.org/UA-Profile/Server/StandardEventSubscription",
+            "http://opcfoundation.org/UA-Profile/Transport/uatcp-uasc-uabinary",
+            "http://opcfoundation.org/UA-Profile/Server/FileAccess",
+            "http://opcfoundation.org/UA-Profile/Server/StateMachine"
+            // "http://opcfoundation.org/UA-Profile/Transport/wss-uajson",
+            // "http://opcfoundation.org/UA-Profile/Transport/wss-uasc-uabinary"
+            // "http://opcfoundation.org/UA-Profile/Server/DurableSubscription"
+
+            // "http://opcfoundation.org/UA-Profile/Server/ReverseConnect",
+            // "http://opcfoundation.org/UAProfile/Server/NodeManagement",
+            
+            //  "Embedded UA Server Profile",
+            // "Micro Embedded Device Server Profile",
+            // "Nano Embedded Device Server Profile"
         ];
         options.serverCapabilities.localeIdArray = options.serverCapabilities.localeIdArray || ["en-EN", "fr-FR"];
 
