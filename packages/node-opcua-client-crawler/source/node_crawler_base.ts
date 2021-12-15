@@ -20,7 +20,7 @@ import {
     QualifiedName
 } from "node-opcua-data-model";
 import { DataValue } from "node-opcua-data-value";
-import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
+import { checkDebugFlag, make_debugLog, make_warningLog } from "node-opcua-debug";
 import { makeNodeId, NodeId, NodeIdLike, resolveNodeId, sameNodeId } from "node-opcua-nodeid";
 import { BrowseDescription, BrowseResult, ReferenceDescription } from "node-opcua-service-browse";
 import { StatusCodes } from "node-opcua-status-code";
@@ -47,11 +47,13 @@ import {
 
 const debugLog = make_debugLog(__filename);
 const doDebug = checkDebugFlag(__filename);
+const warningLog = make_warningLog(__filename);
+
 //                         "ReferenceType | IsForward | BrowseName | NodeClass | DisplayName | TypeDefinition"
 const resultMask = makeResultMask("ReferenceType | IsForward | BrowseName | DisplayName | NodeClass | TypeDefinition");
 
 function make_node_attribute_key(nodeId: NodeId, attributeId: AttributeIds): string {
-    return nodeId.toString() + "_" + attributeId.toString();
+    return nodeId.toString() + "_" + AttributeIds[attributeId];
 }
 function convertToStandardArray(a: number[] | Uint32Array | undefined): number[] | undefined {
     if (a === undefined || a === null) {
@@ -60,11 +62,20 @@ function convertToStandardArray(a: number[] | Uint32Array | undefined): number[]
     if (a instanceof Array) {
         return a;
     }
-    const b: number[] = [];
-    for (const x of a) {
-        b.push(x);
+    if (a instanceof Buffer) {
+        return a;
     }
-    return b;
+    try {
+        const b: number[] = [];
+        for (const x of a) {
+            b.push(x);
+        }
+        return b;
+    } catch (err) {
+        warningLog(a);
+        warningLog("convertToStandardArray error", (err as Error).message);
+        return a as unknown as number[];
+    }
 }
 
 //
@@ -844,12 +855,23 @@ export class NodeCrawlerBase extends EventEmitter implements NodeCrawlerEvents {
         if (this.has_cache_NodeAttribute(nodeId, attributeId)) {
             callback(null, this.get_cache_NodeAttribute(nodeId, attributeId));
         } else {
-            this.browseNameMap[key] = { "?": 1 };
+            //   this.browseNameMap[key] = { "?": 1 };
             this.pendingReadTasks.push({
                 action: (value: any, dataValue: DataValue) => {
                     if (attributeId === AttributeIds.Value) {
                         this.set_cache_NodeAttribute(nodeId, attributeId, dataValue);
                         callback(null, dataValue);
+                        return;
+                    }
+                    if (attributeId === AttributeIds.ArrayDimensions) {
+                        value = dataValue.statusCode !== StatusCodes.Good ? null : value;
+                        this.set_cache_NodeAttribute(nodeId, attributeId, value);
+                        callback(null, value);
+                        return;
+                    }
+                    if (dataValue.statusCode !== StatusCodes.Good) {
+                        this.set_cache_NodeAttribute(nodeId, attributeId, dataValue);
+                        callback(null, null);
                         return;
                     }
                     if (dataValue.statusCode === StatusCodes.Good) {

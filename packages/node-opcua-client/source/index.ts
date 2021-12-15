@@ -71,5 +71,5 @@ export * from "node-opcua-service-subscription";
 export * from "node-opcua-service-translate-browse-path";
 export * from "node-opcua-service-write";
 export * from "node-opcua-service-filter";
-export { IBasicSession, browseAll } from "node-opcua-pseudo-session";
+export { IBasicSession, browseAll, readNamespaceArray } from "node-opcua-pseudo-session";
 export * from "node-opcua-client-dynamic-extension-object";

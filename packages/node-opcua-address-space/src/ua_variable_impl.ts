@@ -681,7 +681,7 @@ export class UAVariableImpl extends BaseNodeImpl implements UAVariable {
                 if (
                     this.dataType.namespace === 0 &&
                     this.dataType.value === DataType.LocalizedText &&
-                    variant.dataType !== DataType.LocalizedText
+                    variant.dataType !== DataType.LocalizedText &&  variant.dataType !== DataType.Null
                 ) {
                     throw new Error(
                         "Variant must provide a valid LocalizedText : variant = " +
@@ -692,6 +692,14 @@ export class UAVariableImpl extends BaseNodeImpl implements UAVariable {
                 }
             }
             const basicType = this.getBasicDataType();
+
+            if (basicType === DataType.String && variant.dataType === DataType.ByteString) {
+                return; // this is allowed
+            }
+            if (basicType === DataType.ByteString && variant.dataType === DataType.String) {
+                return; // this is allowed
+            }
+            
             if (
                 basicType !== DataType.Null &&
                 basicType !== DataType.Variant &&
@@ -1801,14 +1809,14 @@ export class UAVariableImpl extends BaseNodeImpl implements UAVariable {
                 throw new Error("Invalid Extension Object on nodeId =" + this.nodeId.toString());
             }
         }
-        // istanbul ignore next
-        if (this.dataType.namespace === 0) {
-            if (this.dataType.value === DataType.LocalizedText && dataValue.value.dataType !== DataType.LocalizedText) {
-                const message = "Invalid dataValue provided (expecting a LocalizedText) but got " + dataValue.toString();
-                errorLog(message);
-                throw new Error(message);
-            }
-        }
+        // // istanbul ignore next
+        // if (this.dataType.namespace === 0) {
+        //     if (this.dataType.value === DataType.LocalizedText && dataValue.value.dataType !== DataType.LocalizedText) {
+        //         const message = "Invalid dataValue provided (expecting a LocalizedText) but got " + dataValue.toString();
+        //         errorLog(message);
+        //         // throw new Error(message);
+        //     }
+        // }
 
         this.verifyVariantCompatibility(dataValue.value);
 

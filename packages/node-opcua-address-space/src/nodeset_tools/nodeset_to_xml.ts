@@ -763,10 +763,10 @@ function _dumpStructureDefinition(
 
     // do not repeat elements that are already defined in base structure in the xml ouput!
     const fields = structureDefinition.fields || [];
-    const nbFieldsInBase: number = baseStructureDefinition ? baseStructureDefinition.fields?.length || 0  : 0;
+    const nbFieldsInBase: number = baseStructureDefinition ? baseStructureDefinition.fields?.length || 0 : 0;
 
-    for(let index = nbFieldsInBase; index <fields.length; index++ ) {
-       const  defItem = fields[index];
+    for (let index = nbFieldsInBase; index < fields.length; index++) {
+        const defItem = fields[index];
         xw.startElement("Field");
         xw.writeAttribute("Name", defItem.name!);
 
@@ -808,7 +808,7 @@ function _dumpUADataTypeDefinition(xw: XmlWriter, uaDataType: UADataType) {
     }
     if (uaDataType.isStructure()) {
         const definition = uaDataType.getStructureDefinition();
-        const baseDefinition = uaDataTypeBase ? (uaDataTypeBase.getStructureDefinition()) : null;
+        const baseDefinition = uaDataTypeBase ? uaDataTypeBase.getStructureDefinition() : null;
         xw.startElement("Definition");
         xw.writeAttribute("Name", uaDataType.browseName.name!);
         if (definition.structureType === StructureType.Union) {
@@ -1034,7 +1034,8 @@ function resolveDataTypeName(addressSpace: IAddressSpace, dataType: string | Nod
         dataTypeNode = o ? o : null;
     }
     if (!dataTypeNode) {
-        throw new Error("Cannot find dataTypeName " + dataType);
+        errorLog("warning cannot find DataType " + dataType.toString());
+        return new QualifiedName({ name: "", namespaceIndex: 0 });
     }
     return dataTypeNode.browseName;
 }
