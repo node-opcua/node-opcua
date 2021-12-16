@@ -1,6 +1,6 @@
 {
     "name": "node-opcua-numeric-range",
-    "version": "2.62.6",
+    "version": "2.62.7",
     "description": "pure nodejs OPCUA SDK - module -numeric-range",
     "main": "./dist/index.js",
     "types": "./dist/index.d.ts",
@@ -15,14 +15,14 @@
     "license": "MIT",
     "dependencies": {
         "node-opcua-assert": "2.55.0",
-        "node-opcua-basic-types": "2.62.6",
-        "node-opcua-binary-stream": "2.62.5",
-        "node-opcua-factory": "2.62.6",
-        "node-opcua-status-code": "2.62.5"
+        "node-opcua-basic-types": "2.62.7",
+        "node-opcua-binary-stream": "2.62.7",
+        "node-opcua-factory": "2.62.7",
+        "node-opcua-status-code": "2.62.7"
     },
     "devDependencies": {
-        "node-opcua-nodeid": "2.62.6",
-        "node-opcua-packet-analyzer": "2.62.6",
+        "node-opcua-nodeid": "2.62.7",
+        "node-opcua-packet-analyzer": "2.62.7",
         "node-opcua-test-helpers": "2.42.0",
         "should": "^13.2.3"
     },
