@@ -44,10 +44,11 @@ const userManager = {
 
 };
 
+const port = 1243;
 async function createServer() {
 
     const server = new OPCUAServer({
-        port: 1234,
+        port,
         userManager
     });
     await server.initialize();
