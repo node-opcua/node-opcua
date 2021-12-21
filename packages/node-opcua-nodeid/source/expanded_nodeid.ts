@@ -2,7 +2,7 @@
  * @module node-opcua-nodeid
  */
 import { Guid } from "node-opcua-guid";
-import { coerceNodeId, NodeId, NodeIdType } from "./nodeid";
+import { NodeId, NodeIdType } from "./nodeid";
 
 /**
  * An ExpandedNodeId extends the NodeId structure.
@@ -76,10 +76,10 @@ export class ExpandedNodeId extends NodeId {
     public toString(): string {
         let str = NodeId.prototype.toString.call(this);
         if (this.namespaceUri) {
-            str += ";namespaceUri:" + this.namespaceUri;
+            str += ";nsu:" + this.namespaceUri;
         }
         if (this.serverIndex) {
-            str += ";serverIndex:" + this.serverIndex;
+            str += ";svr:" + this.serverIndex;
         }
         return str;
     }
@@ -95,8 +95,68 @@ export class ExpandedNodeId extends NodeId {
 }
 
 export function coerceExpandedNodeId(value: unknown): ExpandedNodeId {
-    const n = coerceNodeId(value);
-    return new ExpandedNodeId(n.identifierType, n.value, n.namespace, /*namespaceUri*/ null, /*serverIndex*/ 0);
+    if (value === undefined) {
+        return new ExpandedNodeId(NodeIdType.NUMERIC, 0, 0, null, 0);
+    }
+
+    let serverIndex: number = 0;
+    let namespaceUri = null;
+    let namespaceIndex: number = 0;
+    let identifierType: NodeIdType = NodeIdType.NUMERIC;
+    let identifier: string | number | Buffer = "";
+
+    if (typeof value === "string") {
+        /*
+            https://reference.opcfoundation.org/Core/docs/Part6/5.3.1/#5.3.1.11
+
+            svr=<serverindex>;ns=<namespaceindex>;<type>=<value>
+            or
+            svr=<serverindex>;nsu=<uri>;<type>=<value>
+        */
+        const stringElements: string[] = value.split(";");
+        stringElements.forEach(function (element: string) {
+        
+            let [k, v] = element.split("="); // key, value
+    
+            switch (k) {
+                case "ns":
+                    // namespace
+                    namespaceIndex = Number(v);
+                    break;
+                case "i":
+                    // numeric identifier
+                    identifierType = NodeIdType.NUMERIC;
+                    identifier = Number(v)
+                    break;
+                case "s":
+                    // string identifier
+                    identifierType = NodeIdType.STRING;
+                    identifier = v
+                    break;
+                case "g":
+                    // guid identifier
+                    identifierType = NodeIdType.GUID;
+                    identifier = v
+                    break;
+                case "b":
+                    // bytestring identifier
+                    identifierType = NodeIdType.BYTESTRING;
+                    identifier = Buffer.from(v);
+                    break;
+                case "srv":
+                    serverIndex = Number(v);
+                    // serverindex
+                case "nsu":
+                    // namespaceuri
+                    namespaceUri = v;
+                default: 
+                    break;
+            }
+        });
+        return new ExpandedNodeId(identifierType, identifier, namespaceIndex, namespaceUri, serverIndex)
+    } else {
+        return new ExpandedNodeId(NodeIdType.NUMERIC, 0, 0, null, 0);
+    }
 }
 
 /**
