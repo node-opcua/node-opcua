@@ -1,6 +1,7 @@
 /**
  * @module node-opcua-nodeid
  */
+import { assert } from "console";
 import { Guid } from "node-opcua-guid";
 import { NodeId, NodeIdType } from "./nodeid";
 
@@ -74,12 +75,12 @@ export class ExpandedNodeId extends NodeId {
      * @return {string}
      */
     public toString(): string {
-        let str = NodeId.prototype.toString.call(this);
-        if (this.namespaceUri) {
-            str += ";nsu=" + this.namespaceUri;
-        }
+        let str = "";
         if (this.serverIndex) {
-            str += ";svr=" + this.serverIndex;
+            str += "svr=" + this.serverIndex + ";";
+        }
+        if (this.namespaceUri) {
+            str += "nsu=" + this.namespaceUri + ";" + NodeId.prototype.toString.call(this).replace("ns=0;", "");
         }
         return str;
     }
