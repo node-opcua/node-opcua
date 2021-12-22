@@ -18,7 +18,7 @@ describe("testing ExpandedNodeId", function() {
         exnodeId.namespace.should.eql(0);
         should(exnodeId.namespaceUri).eql(null);
         should(exnodeId.serverIndex).eql(0);
-        exnodeId.toString().should.eql("ns=0;i=1");
+        exnodeId.toString().should.eql("i=1");
     });
 
     it("should create a ExpandedNodeId from a integer", function() {
@@ -45,7 +45,7 @@ describe("testing ExpandedNodeId", function() {
         should(exnodeId.namespace).eql(2);
         should(exnodeId.namespaceUri).eql("namespaceURI");
         should(exnodeId.serverIndex).eql(3);
-        should(exnodeId.toString()).eql("ns=2;i=1;namespaceUri:namespaceURI;serverIndex:3");
+        should(exnodeId.toString()).eql("svr=3;nsu=namespaceURI;i=1");
     });
 
 
@@ -67,14 +67,14 @@ describe("testing ExpandedNodeId", function() {
     it("coerceExpandedNodeId should coerce 'i=10'", function() {
 
         const exNodeId = coerceExpandedNodeId("ns=0;i=10");
-        exNodeId.toString().should.eql("ns=0;i=10");
+        exNodeId.toString().should.eql("i=10");
 
     });
     it("coerceExpandedNodeId should coerce an ExpandedNodeId", function() {
 
         const exNodeId = coerceExpandedNodeId("ns=0;i=10");
         const exNodeId2 = coerceExpandedNodeId(exNodeId);
-        exNodeId2.toString().should.eql("ns=0;i=10");
+        exNodeId2.toString().should.eql("i=10");
 
     });
 
@@ -85,13 +85,13 @@ describe("testing ExpandedNodeId", function() {
         const serverIndex = 3;
         const nodeId = coerceNodeId("ns=1;s=ABC");
         const expandedNodeId = ExpandedNodeId.fromNodeId(nodeId, "URI", serverIndex);
-        expandedNodeId.toString().should.eql("ns=1;s=ABC;namespaceUri:URI;serverIndex:3");
+        expandedNodeId.toString().should.eql("svr=3;nsu=URI;s=ABC");
     });
     it("ExpandedNodeId#toJSON", () => {
         const exNodeId = coerceExpandedNodeId("ns=0;i=10");
         exNodeId.toJSON().should.eql(exNodeId.toString());
     });
     it("makeExpandedNodeId()", () => {
-        makeExpandedNodeId().toString().should.eql("ns=0;i=0");
+        makeExpandedNodeId().toString().should.eql("i=0");
     })
 });
