@@ -306,7 +306,7 @@ export function makeNodeId(value: string | Buffer | number, namespace?: number):
     let identifierType = NodeIdType.NUMERIC;
     if (typeof value === "string") {
         if (value.match(regEx1)) {
-            throw new Error("please use coercedNodeId instead");
+            throw new Error("please use coerceNodeId instead");
         }
         //            1         2         3
         //  012345678901234567890123456789012345
