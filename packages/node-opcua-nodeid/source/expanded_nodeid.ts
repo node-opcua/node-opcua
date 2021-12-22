@@ -76,10 +76,10 @@ export class ExpandedNodeId extends NodeId {
     public toString(): string {
         let str = NodeId.prototype.toString.call(this);
         if (this.namespaceUri) {
-            str += ";nsu:" + this.namespaceUri;
+            str += ";nsu=" + this.namespaceUri;
         }
         if (this.serverIndex) {
-            str += ";svr:" + this.serverIndex;
+            str += ";svr=" + this.serverIndex;
         }
         return str;
     }
