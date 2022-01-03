@@ -81,9 +81,8 @@ export class ExpandedNodeId extends NodeId {
         }
         if (this.namespaceUri) {
             str += "nsu=" + this.namespaceUri + ";" + NodeId.prototype.toString.call(this).replace("ns=0;", "");
-            return str;
         }
-        return str += NodeId.prototype.toString.call(this).replace("ns=0;", "");
+        return str;
     }
 
     /**
