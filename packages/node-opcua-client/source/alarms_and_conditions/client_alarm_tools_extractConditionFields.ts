@@ -10,7 +10,7 @@ import { BrowseDescriptionOptions } from "node-opcua-service-browse";
  */
 export async function extractConditionFields(session: IBasicSession, conditionNodeId: NodeIdLike): Promise<string[]> {
     // conditionNodeId could be a Object of type ConditionType
-    // or it could be directly a ObhectType which is a  subType of ConditionType
+    // or it could be directly a ObhjectType which is a  subType of ConditionType
 
     const _duplicateMap: any = {};
     const fields1: string[] = [];
