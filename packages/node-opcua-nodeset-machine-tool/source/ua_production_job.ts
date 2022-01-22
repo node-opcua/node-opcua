@@ -21,7 +21,9 @@ export interface UAProductionJob_Base {
     identifier: UAProperty<UAString, /*z*/DataType.String>;
     numberInList: UAProperty<UInt16, /*z*/DataType.UInt16>;
     orderIdentifier?: UAProperty<UAString, /*z*/DataType.String>;
+    partsCompleted?: UABaseDataVariable<UInt32, /*z*/DataType.UInt32>;
     partSets?: UAObject;
+    partsGood?: UABaseDataVariable<UInt32, /*z*/DataType.UInt32>;
     productionPrograms: UAOrderedList;
     runsCompleted: UABaseDataVariable<UInt32, /*z*/DataType.UInt32>;
     runsPlanned: UAProductionJob_runsPlanned<UInt32, /*z*/DataType.UInt32>;

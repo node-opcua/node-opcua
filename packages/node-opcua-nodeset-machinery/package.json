@@ -13,7 +13,9 @@
         "node-opcua-address-space-base": "2.62.7",
         "node-opcua-basic-types": "2.62.7",
         "node-opcua-data-model": "2.62.7",
+        "node-opcua-nodeid": "2.62.7",
         "node-opcua-nodeset-di": "2.62.7",
+        "node-opcua-nodeset-ua": "2.62.7",
         "node-opcua-variant": "2.62.7"
     }
 }

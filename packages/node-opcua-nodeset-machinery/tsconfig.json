@@ -12,7 +12,9 @@
      { "path": "../node-opcua-address-space-base" },
      { "path": "../node-opcua-basic-types" },
      { "path": "../node-opcua-data-model" },
+     { "path": "../node-opcua-nodeid" },
      { "path": "../node-opcua-nodeset-di" },
+     { "path": "../node-opcua-nodeset-ua" },
      { "path": "../node-opcua-variant" }
    ],
    "exclude": [

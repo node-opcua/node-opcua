@@ -12,22 +12,21 @@ export enum EnumLaserState  {
   /**
    * The laser state cannot be indicated, for example
    * because the device does not provide this
-   * information
-   * or because it is currently unavailable. This can
-   * be e.g. during the startup phase.
+   * information or because it is currently
+   * unavailable. This can be e.g. during the startup
+   * phase.
    */
   Undefined = 0,
   /**
    * The laser is ready and laser programs can be
    * started. No error state is active. In this state,
-   * laser
-   * emission is prohibited.
+   * laser emission is prohibited.
    */
   Ready = 1,
   /**
    * In this state, safety clearances have to be set
-   * for processing and emission can be activated.
-   * For devices that can run programs themselves it
+   * for processing and emission can be activated. For
+   * devices that can run programs themselves it
    * indicates that a program is running on the laser
    * device.
    */
