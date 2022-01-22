@@ -219,6 +219,7 @@ describe("test reconnection when server stops and change it privateKey and certi
                 await client.disconnect();
                 await server.shutdown();
             }
+            return "";
         })();
 
         should.not.exist(_err);
