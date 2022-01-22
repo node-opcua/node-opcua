@@ -113,10 +113,9 @@ async function _output_package_json(info: Info): Promise<void> {
     content2.push(`    },`);
     content2.push(`    "author": "etienne.rossignon@sterfive.com",`);
     content2.push(`    "license": "MIT",`);
+
     content2.push(`    "dependencies": {`);
-
     // find versions
-
     const versions: { [key: string]: string } = {};
     for (const dependency of info.dependencies) {
         const p = await getPackageInfo(dependency);
@@ -129,8 +128,8 @@ async function _output_package_json(info: Info): Promise<void> {
             .join(",\n")
     );
 
-    content2.push(`    },`);
-    content2.push(`    "devDependencies": {}`);
+    content2.push(`    }`);
+
     content2.push(`}`);
     content2.push(``);
 

@@ -1,3 +1,4 @@
+import * as chalk from "chalk";
 import * as wrap from "wordwrap";
 import { LocalizedText, NodeClass, QualifiedName } from "node-opcua-data-model";
 import { NodeId } from "node-opcua-nodeid";
@@ -7,7 +8,7 @@ import { LineFile, lowerFirstLetter } from "node-opcua-utils";
 import { DataType } from "node-opcua-variant";
 import assert from "node-opcua-assert";
 import { ModellingRuleType } from "node-opcua-address-space-base";
-import * as chalk from "chalk";
+import { make_warningLog } from "node-opcua-debug";
 import {
     convertNodeIdToDataTypeAsync,
     getBrowseName,
@@ -28,7 +29,7 @@ import {
 import { Cache, constructCache, Import, makeTypeNameNew, referenceExtensionObject, RequestedSubSymbol } from "./private/cache";
 import { Options } from "./options";
 import { toFilename } from "./private/to_filename";
-
+const warningLog = make_warningLog("typescript");
 const doDebug = false;
 const wrapText = wrap(0, 50);
 const f2 = (str: string) => str.padEnd(50, "-");
@@ -558,8 +559,9 @@ export async function extractClassMemberDef(
 
     const typeDefinition = await getTypeDefOrBaseType(session, nodeId);
 
-    if (!typeDefinition.browseName) {
-        console.log("cannot find typeDefinition for ", browseName.toString(), "( is the namespace loaded ?)");
+    if (nodeClass!== NodeClass.Method && (!typeDefinition.browseName || !typeDefinition.browseName.name)) {
+        warningLog(typeDefinition.toString());
+        warningLog("cannot find typeDefinition for ", browseName.toString(), "( is the namespace loaded ?)");
     }
     let childType = makeTypeName2(nodeClass, typeDefinition.browseName);
 
