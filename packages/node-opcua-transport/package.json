@@ -28,8 +28,8 @@
         "node-opcua-utils": "2.62.7"
     },
     "devDependencies": {
-        "@types/node": "16.11.11",
-        "node-opcua-debug": "2.62.4",
+        "@types/node": "17.0.10",
+        "node-opcua-debug": "2.62.7",
         "should": "^13.2.3",
         "sinon": "^12.0.1"
     },

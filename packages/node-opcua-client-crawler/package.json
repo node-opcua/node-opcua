@@ -13,7 +13,7 @@
     },
     "dependencies": {
         "@types/underscore": "^1.11.4",
-        "async": "^3.2.2",
+        "async": "^3.2.3",
         "node-opcua-assert": "2.55.0",
         "node-opcua-constants": "2.62.7",
         "node-opcua-data-model": "2.62.7",
@@ -26,7 +26,7 @@
         "node-opcua-types": "2.62.7",
         "node-opcua-utils": "2.62.7",
         "node-opcua-variant": "2.62.7",
-        "underscore": "^1.13.1"
+        "underscore": "^1.13.2"
     },
     "devDependencies": {
         "node-opcua-address-space": "2.62.7",

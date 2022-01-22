@@ -14,10 +14,10 @@
     "types": "./dist/index.d.ts",
     "dependencies": {
         "@ster5/global-mutex": "^1.2.0",
-        "@types/async": "^3.2.10",
+        "@types/async": "^3.2.12",
         "@types/once": "^1.4.0",
         "@types/underscore": "^1.11.4",
-        "async": "^3.2.2",
+        "async": "^3.2.3",
         "callbackify": "^1.1.0",
         "chalk": "4.1.2",
         "delayed": "^2.0.0",
@@ -61,7 +61,7 @@
         "node-opcua-variant": "2.62.7",
         "once": "^1.4.0",
         "thenify": "^3.3.1",
-        "underscore": "^1.13.1"
+        "underscore": "^1.13.2"
     },
     "devDependencies": {
         "dequeue": "^1.0.5",

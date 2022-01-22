@@ -32,7 +32,7 @@
         "node-opcua-variant": "2.62.7"
     },
     "devDependencies": {
-        "memfs": "^3.4.0",
+        "memfs": "^3.4.1",
         "node-opcua-binary-stream": "2.62.7",
         "node-opcua-data-value": "2.62.7",
         "node-opcua-leak-detector": "2.62.7",

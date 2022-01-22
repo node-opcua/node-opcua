@@ -11,7 +11,7 @@
     "main": "./dist/index.js",
     "types": "./dist/index.d.ts",
     "dependencies": {
-        "memfs": "^3.4.0",
+        "memfs": "^3.4.1",
         "node-opcua-address-space": "2.62.7",
         "node-opcua-assert": "2.55.0",
         "node-opcua-basic-types": "2.62.7",

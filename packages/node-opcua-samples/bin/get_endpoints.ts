@@ -21,6 +21,7 @@ import { Certificate, toPem } from "node-opcua-crypto";
 const Table = require("easy-table");
 const treeify = require("treeify");
 
+// eslint-disable-next-line max-statements
 async function main() {
     // ts-node bin/simple_client.ts --endpoint  opc.tcp://localhost:53530/OPCUA/SimulationServer --node "ns=5;s=Sinusoid1"
     const argv = await yargs(process.argv)

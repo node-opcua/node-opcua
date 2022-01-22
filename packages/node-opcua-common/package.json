@@ -22,7 +22,7 @@
         "node-opcua-types": "2.62.7"
     },
     "devDependencies": {
-        "@types/node": "16.11.11",
+        "@types/node": "17.0.10",
         "should": "^13.2.3"
     },
     "author": "Etienne Rossignon",
