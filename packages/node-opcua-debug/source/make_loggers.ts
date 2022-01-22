@@ -8,14 +8,15 @@ import * as chalk from "chalk";
 
 const debugFlags: { [id: string]: boolean } = {};
 
-const sTraceFlag = process.env && (process.env.DEBUG as string);
+const _process = (typeof process === "object") ? process : { env: {} as Record<string, string> };
+const sTraceFlag = _process.env && (_process.env.DEBUG as string);
 
 // istanbul ignore next
-if (process.env && false) {
+if (_process.env && false) {
     // this code can be activated to help detecting
     // when a external module overwrite one of the
     // environment variable that we may be using as well.
-    const old = { ...process.env };
+    const old = { ..._process.env };
     const handler = {
         get: function (obj: any, prop: string) {
             return old[prop];
@@ -26,11 +27,11 @@ if (process.env && false) {
             return true;
         }
     };
-    process.env = new Proxy(old, handler);
+    _process.env = new Proxy(old, handler);
 }
 const maxLines =
-    process.env && process.env.NODEOPCUA_DEBUG_MAXLINE_PER_MESSAGE
-        ? parseInt(process.env.NODEOPCUA_DEBUG_MAXLINE_PER_MESSAGE, 10)
+    _process.env && _process.env.NODEOPCUA_DEBUG_MAXLINE_PER_MESSAGE
+        ? parseInt(_process.env.NODEOPCUA_DEBUG_MAXLINE_PER_MESSAGE, 10)
         : 25;
 
 function extractBasename(name: string): string {
