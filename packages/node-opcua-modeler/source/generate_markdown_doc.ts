@@ -3,8 +3,10 @@ import { BaseNode, Namespace, UADataType, UAObjectType, UAReferenceType, UAVaria
 import { coerceUInt32 } from "node-opcua-basic-types";
 import { DataTypeDefinition, EnumDefinition, StructureDefinition, StructureField } from "node-opcua-types";
 import { DataType } from "node-opcua-variant";
+import { object } from "underscore";
 import { displayNodeElement } from "./displayNodeElement";
 import { TableHelper } from "./tableHelper";
+import { dumpClassHierachry, opcuaToDot } from "./to_graphivz";
 
 interface NamespacePriv2 {
     nodeIterator(): IterableIterator<BaseNode>;
@@ -123,6 +125,11 @@ export async function buildDocumentation(namespace: Namespace, writer: IWriter):
     for (const objectType of namespacePriv._objectTypeIterator()) {
         writer.writeLine("\n\n### " + objectType.browseName.name!.toString());
         writer.writeLine(d(objectType));
+
+        writer.writeLine(graphVizToPlantUml(dumpClassHierachry(objectType, {showBaseType: true, depth: 2})));
+
+        writer.writeLine(graphVizToPlantUml(opcuaToDot(objectType)));
+
         // enumerate components
         writer.writeLine(displayNodeElement(objectType, { format: "markdown" }));
 
@@ -145,6 +152,12 @@ export async function buildDocumentation(namespace: Namespace, writer: IWriter):
         writer.writeLine("\n\n### " + variableType.browseName.name!.toString());
         writer.writeLine(d(variableType));
         writer.writeLine("");
+
+        writer.writeLine(graphVizToPlantUml(dumpClassHierachry(variableType, {showBaseType: true, depth: 2})));
+
+        writer.writeLine(graphVizToPlantUml(opcuaToDot(variableType)));
+
+
         // enumerate components
         writer.writeLine(displayNodeElement(variableType, { format: "markdown" }));
         for (const reference of variableType.allReferences()) {
@@ -155,3 +168,7 @@ export async function buildDocumentation(namespace: Namespace, writer: IWriter):
         }
     }
 }
+function graphVizToPlantUml(arg0: string): any {
+    throw new Error("Function not implemented.");
+}
+
