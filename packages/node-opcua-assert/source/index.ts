@@ -3,7 +3,7 @@
  */
 import * as chalk from "chalk";
 
-const displayAssert = process.env.DISPLAY_ASSERT ? true : false;
+const displayAssert = typeof process === "object" ? (process.env.DISPLAY_ASSERT ? true : false) : false;
 
 type func = (...args: any[]) => any;
 

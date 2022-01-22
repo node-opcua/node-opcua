@@ -12,7 +12,6 @@
         "clean": "node -e \"require('rimraf').sync('dist');\""
     },
     "dependencies": {
-        "browser-process-hrtime": "^1.0.0",
         "chalk": "4.1.2",
         "node-opcua-assert": "2.55.0"
     },

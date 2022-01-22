@@ -73,7 +73,8 @@ function applyOnAllSchemaFields(self: BaseUAObject, schema: StructuredTypeSchema
     }
 }
 
-const _nbElements = process.env.ARRAYLENGTH ? parseInt(process.env.ARRAYLENGTH, 10) : 10;
+const _nbElements = (typeof process === "object") ? (process.env.ARRAYLENGTH ? parseInt(process.env.ARRAYLENGTH, 10) : 10) : 10;
+const fullBuffer = (typeof process === "object") ? !!(process.env?.FULLBUFFER) : false;
 
 function _arrayEllipsis(value: any[] | null, data: ExploreParams): string {
     if (!value) {
@@ -199,7 +200,7 @@ function _exploreObject(self: BaseUAObject, field: StructuredTypeField, data: Ex
         let str = "";
         if (value instanceof Buffer) {
             data.lines.push(fieldNameF + " " + fieldTypeF);
-            if (process.env?.FULLBUFFER || value.length <= 32) {
+            if (fullBuffer || value.length <= 32) {
                 const _hexDump = value.length <= 32 ? "Ox" + value.toString("hex") : "\n" + hexDump(value);
                 data.lines.push("Buffer: " + _hexDump);
             } else {

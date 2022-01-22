@@ -3,7 +3,7 @@
  */
 import * as long from "long";
 import { assert } from "node-opcua-assert";
-import hrtime = require("browser-process-hrtime");
+import { hrtime } from "node-opcua-utils";
 
 export interface DateWithPicoseconds extends Date {
     picoseconds: number;
@@ -166,8 +166,8 @@ export const periodicClockAdjustment = {
 // any system time adjustment here such as a NTP clock event
 // see #651
 let timerId: NodeJS.Timeout | null;
-const g_setInterval = global.setInterval;
-const g_clearInterval = global.clearInterval;
+const g_setInterval = (typeof global === "object") ? global.setInterval : setInterval;
+const g_clearInterval = (typeof global === "object") ? global.clearInterval: clearInterval;
 export function installPeriodicClockAdjustment() {
     periodicClockAdjustment.timerInstallationCount++;
     if (timerId) {

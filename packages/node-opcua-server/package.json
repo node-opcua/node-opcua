@@ -16,7 +16,6 @@
         "@types/underscore": "^1.11.4",
         "async": "^3.2.2",
         "bonjour": "^3.5.0",
-        "browser-process-hrtime": "^1.0.0",
         "dequeue": "^1.0.5",
         "lodash": "4.17.21",
         "node-opcua-address-space": "2.62.7",

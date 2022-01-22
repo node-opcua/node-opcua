@@ -10,8 +10,8 @@
         "lint": "eslint source/**/*.ts"
     },
     "dependencies": {
-        "browser-process-hrtime": "^1.0.0",
-        "node-opcua-assert": "2.55.0"
+        "node-opcua-assert": "2.55.0",
+        "node-opcua-utils": "2.62.7"
     },
     "author": "Etienne Rossignon",
     "license": "MIT",

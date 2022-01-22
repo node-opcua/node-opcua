@@ -110,7 +110,6 @@
         "better-assert": "^1.0.2",
         "bomstrip": "^0.1.4",
         "bonjour": "^3.5.0",
-        "browser-process-hrtime": "^1.0.0",
         "byline": "^5.0.0",
         "callbackify": "^1.1.0",
         "chalk": "4.1.2",

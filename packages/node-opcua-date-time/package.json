@@ -10,9 +10,9 @@
         "test": "mocha"
     },
     "dependencies": {
-        "browser-process-hrtime": "^1.0.0",
         "long": "^4.0.0",
-        "node-opcua-assert": "2.55.0"
+        "node-opcua-assert": "2.55.0",
+        "node-opcua-utils": "2.62.7"
     },
     "devDependencies": {
         "bignumber.js": "^9.0.1",

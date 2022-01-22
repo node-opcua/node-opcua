@@ -10,6 +10,9 @@
     "references": [
         {
             "path": "../node-opcua-assert"
+        },
+        {
+            "path": "../node-opcua-utils"
         }
     ],
     "exclude": ["node_modules", "dist"]

@@ -3,26 +3,11 @@
  */
 import { EventEmitter } from "events";
 import { assert } from "node-opcua-assert";
+import { get_clock_tick } from "./get_clock_tick";
 
 type ArbitraryClockTick = number; // in millisecond
 type DurationInMillisecond = number;
 
-/**
- * a arbitrary clock which is system dependant and
- * insensible to clock drifts ....
- *
- */
-function _getCurrentSystemTick(): ArbitraryClockTick {
-    if (process && process.hrtime) {
-        const h = process.hrtime();
-        const n = h[1] / 1000000;
-        assert(n <= 1000);
-        return h[0] * 1000 + n;
-    } else {
-        // fallback to Date as process.hrtime doesn't exit
-        return Date.now();
-    }
-}
 
 export interface IWatchdogData2 {
     key: number;
@@ -60,9 +45,8 @@ function keepAliveFunc(this: ISubscriber) {
 }
 
 export class WatchDog extends EventEmitter {
-
     static lastSeenToDuration(lastSeen: number): number {
-        return _getCurrentSystemTick() - lastSeen;
+        return get_clock_tick() - lastSeen;
     }
 
     static emptyKeepAlive = (): void => {
@@ -170,7 +154,7 @@ export class WatchDog extends EventEmitter {
     }
 
     public getCurrentSystemTick(): ArbitraryClockTick {
-        return _getCurrentSystemTick();
+        return get_clock_tick();
     }
 
     private _visit_subscriber() {

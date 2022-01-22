@@ -4,9 +4,7 @@
 // tslint:disable:object-literal-shorthand
 /// <reference types="node" />
 import { EventEmitter } from "events";
-import { isFunction } from "util";
-import { assert } from "node-opcua-assert";
-import hrtime = require("browser-process-hrtime");
+import { hrtime } from "node-opcua-utils";
 
 export interface IPerformanceData {
     message: string;
@@ -91,7 +89,6 @@ export class Benchmarker extends EventEmitter implements IBenchmarkerEvent {
      * @param func the code that need to be stress
      */
     public add(name: string, func: TestFunction): Benchmarker {
-        assert(isFunction(func));
         this.suites[name] = {
             functor: func,
             name: name,

@@ -3,7 +3,7 @@
  */
 import { assert } from "node-opcua-assert";
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
-import hrtime = require("browser-process-hrtime");
+import { hrtime } from "node-opcua-utils";
 
 const debugLog = make_debugLog(__filename);
 const doDebug = checkDebugFlag(__filename);
