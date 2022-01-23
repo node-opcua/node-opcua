@@ -31,8 +31,8 @@ describe("toDot", () => {
         console.log(dot);
         dot.should.eql(
             `digraph G {
-  { rank=same r0 -> P [arrowhead = noneteetree] }
-  A -> r0 [arrowhead=none];
+  { rank=same r0 -> _A_P [arrowhead = noneteetree] }
+  _A -> r0 [arrowhead=none];
 }`
         );
     });
@@ -54,10 +54,10 @@ describe("toDot", () => {
         console.log(dot);
         dot.should.eql(
             `digraph G {
-  { rank=same r0_0 -> N [arrowhead = noneteetree] }
-  P -> r0_0 [arrowhead=none];
-  { rank=same r0 -> P [arrowhead = noneteetree] }
-  A -> r0 [arrowhead=none];
+  { rank=same r0_0 -> _A_P_N [arrowhead = noneteetree] }
+  _A_P -> r0_0 [arrowhead=none];
+  { rank=same r0 -> _A_P [arrowhead = noneteetree] }
+  _A -> r0 [arrowhead=none];
 }`
         );
     });
@@ -87,17 +87,63 @@ describe("toDot", () => {
         console.log(dot);
         dot.should.eql(
             `digraph G {
-  { rank=same r0_0 -> N1 [arrowhead = noneteetree] }
-  P1 -> r0_0 [arrowhead=none];
-  { rank=same r2_0 -> N2 [arrowhead = noneteetree] }
-  P2 -> r2_0 [arrowhead=none];
-  { rank=same r0 -> P1 [arrowhead = noneteetree] }
-  { rank=same r2 -> P2 [arrowhead = noneteetree] }
-  A -> r0 -> r1 -> r2 [arrowhead=none];
+  { rank=same r0_0 -> _A_P1_N1 [arrowhead = noneteetree] }
+  _A_P1 -> r0_0 [arrowhead=none];
+  { rank=same r2_0 -> _A_P2_N2 [arrowhead = noneteetree] }
+  _A_P2 -> r2_0 [arrowhead=none];
+  { rank=same r0 -> _A_P1 [arrowhead = noneteetree] }
+  { rank=same r2 -> _A_P2 [arrowhead = noneteetree] }
+  _A -> r0 -> r1 -> r2 [arrowhead=none];
+}`);
+    });
+    it("todot-4 simple ObjectType with 2 AnalogDataItem Property ", () => {
+        const analogDataItemType = ns.addVariableType({
+            browseName: " AnalogDataItem"
+        });
+        const euRange = ns.addVariable({
+            browseName: "EURange",
+            dataType: "String",
+            propertyOf: analogDataItemType,
+            modellingRule: "Mandatory"
+        });
+        const units = ns.addVariable({
+            browseName: "EngineeringUnit",
+            dataType: "String",
+            propertyOf: analogDataItemType,
+            modellingRule: "Mandatory"
+        });
+
+        const objectType = ns.addObjectType({
+            browseName: "A"
+        });
+        const prop1 = analogDataItemType.instantiate({
+            browseName: "P1",
+            componentOf: objectType
+        });
+        const prop2 = analogDataItemType.instantiate({
+            browseName: "P2",
+            componentOf: objectType
+        });
+
+        //
+        const dot = opcuaToDot(objectType, { naked: true });
+        // console.log(dot);
+        dot.should.eql(
+            `digraph G {
+  { rank=same r0_0 -> _A_P1_EURange [arrowhead = nonetee] }
+  { rank=same r0_1 -> _A_P1_EngineeringUnit [arrowhead = nonetee] }
+  _A_P1 -> r0_0 -> r0_1 [arrowhead=none];
+  { rank=same r3_0 -> _A_P2_EURange [arrowhead = nonetee] }
+  { rank=same r3_1 -> _A_P2_EngineeringUnit [arrowhead = nonetee] }
+  _A_P2 -> r3_0 -> r3_1 [arrowhead=none];
+  { rank=same r0 -> _A_P1 [arrowhead = noneteetree] }
+  { rank=same r3 -> _A_P2 [arrowhead = noneteetree] }
+  _A -> r0 -> r1 -> r2 -> r3 [arrowhead=none];
 }`
         );
     });
-    it("todot-4 - dumpClassHierachry", () => {
+
+    it("todot-5 - dumpClassHierachry", () => {
         const animal = ns.addObjectType({
             browseName: "Animal"
         });
@@ -107,7 +153,7 @@ describe("toDot", () => {
         });
         const vertebate = ns.addObjectType({
             browseName: "Vertebate",
-           subtypeOf: animal
+            subtypeOf: animal
         });
         const reptile = ns.addObjectType({
             browseName: "Reptile",
@@ -125,7 +171,7 @@ describe("toDot", () => {
             browseName: "Mamal",
             subtypeOf: vertebate
         });
-  
+
         const dog = ns.addObjectType({
             browseName: "Dog",
             subtypeOf: mammal
@@ -141,6 +187,8 @@ describe("toDot", () => {
 
         const dot = dumpClassHierachry(animal, { naked: false, depth: 2, showSubType: true });
         console.log(dot);
-        
+
+        const dot1 = dumpClassHierachry(dolphin, { naked: false, depth: 10, showBaseType: true });
+        console.log(dot1);
     });
 });

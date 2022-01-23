@@ -12,14 +12,17 @@ import {
 import { ReferenceTypeIds } from "node-opcua-constants";
 import { BrowseDirection, NodeClass } from "node-opcua-data-model";
 
+function e(str: string): string {
+    return str.replace(/</g,"&lt;").replace(/>/g,"&gt;");
+}
 function innerText(node: UAObject | UAVariable) {
     const browseName = node.browseName.name;
     const typeDefinition = node.typeDefinitionObj?.browseName?.name;
 
     if (typeDefinition) {
-        return `[ label =< <FONT point-size="8" ><I>${typeDefinition}</I></FONT><BR/>${browseName} >]`;
+        return `[ label =< <FONT point-size="8" ><I>${typeDefinition}</I></FONT><BR/>${e(browseName!)} >]`;
     } else {
-        return `[label =< ${browseName} >]`;
+        return `[label =< ${e(browseName!)} >]`;
     }
 }
 function arrowHeadAttribute(reference: UAReference): string {
@@ -62,12 +65,19 @@ interface Options {
 }
 
 class NodeRegistry {
-    m: Record<string, BaseNode[]> = {};
+    m: Record<string, { name: string; node: BaseNode }[]> = {};
     invisibleNodes: string[] = [];
-    add(node: BaseNode) {
+    duplicated: { [key: string]: string } = {};
+    add(name: string, node: BaseNode) {
+        
+        if (this.duplicated[name]) {
+            return;//throw new Error("Already included");
+        }
+        this.duplicated[name]= name;
         const nodeClass = NodeClass[node.nodeClass];
         this.m[nodeClass] = this.m[nodeClass] || [];
-        this.m[nodeClass].push(node);
+        this.m[nodeClass].push({ name, node });
+
     }
     addInvisibleNode(name: string) {
         this.invisibleNodes.push(name);
@@ -80,22 +90,22 @@ function dumpNodeByNodeClass(str: string[], nodeRegistry: NodeRegistry) {
         }
         str.push(`  ## -> ${className}`);
 
-        const mandatoryNodes = listNode.filter((node) => !node.modellingRule || node.modellingRule.match(/Mandatory/));
-        const optionalNodes = listNode.filter((node) => node.modellingRule && node.modellingRule.match(/Optional/));
+        const mandatoryNodes = listNode.filter(({ name, node }) => !node.modellingRule || node.modellingRule.match(/Mandatory/));
+        const optionalNodes = listNode.filter(({ name, node }) => node.modellingRule && node.modellingRule.match(/Optional/));
         if (mandatoryNodes.length > 0) {
             str.push(`  node [];`);
             const decoration = regularShapes[className] as string;
             str.push(`  node ${decoration};`);
-            for (const node of mandatoryNodes) {
-                str.push(`  ${node.browseName.name} ${innerText(node as UAVariable | UAObject)}`);
+            for (const { name, node } of mandatoryNodes) {
+                str.push(`  ${name} ${innerText(node as UAVariable | UAObject)}`);
             }
         }
         if (optionalNodes.length > 0) {
             const decoration2 = regularShapesOptionals[className] as string;
             str.push(`  node [];`);
             str.push(`  node ${decoration2};`);
-            for (const node of listNode) {
-                str.push(`  ${node.browseName.name} ${innerText(node as UAVariable | UAObject)}`);
+            for (const { name, node } of listNode) {
+                str.push(`  ${name} ${innerText(node as UAVariable | UAObject)}`);
             }
         }
     }
@@ -109,7 +119,6 @@ function dumpNodeByNodeClass(str: string[], nodeRegistry: NodeRegistry) {
 export function opcuaToDot(node: UAObjectType | UAVariableType, options?: Options): string {
     options = options || { naked: false };
     const nodeRegistry = new NodeRegistry();
-    nodeRegistry.add(node);
 
     const str: string[] = [];
     const str2: string[] = [];
@@ -120,14 +129,20 @@ export function opcuaToDot(node: UAObjectType | UAVariableType, options?: Option
         str.push("  node [];");
     }
 
+    function makeId(p: string, c: string) {
+        return `${p}_${c}`.replace(" ", "_").replace(/<|>/g, "_");	
+    }
+    // eslint-disable-next-line max-params
     // eslint-disable-next-line max-statements
     function typeMemberAndSubTypeMember(
         str: string[],
+        parentNode: string,
         node: UAObjectType | UAVariableType | UAMethod | UAVariable | UAObject,
         parent: UAObjectType | UAVariableType | UAMethod | UAVariable | UAObject | null,
         offset: number,
         prefix: string,
-        joinWithCaller: boolean
+        joinWithCaller: boolean,
+        visitorMap: Record<string, any>
     ): [number, string[]] {
         let innerDepth = 0;
         const browseName = (parent || node).browseName.name!.toString();
@@ -136,38 +151,66 @@ export function opcuaToDot(node: UAObjectType | UAVariableType, options?: Option
         const references = node.findReferencesEx("Aggregates", BrowseDirection.Forward);
         const folderElements = node.findReferencesEx("Organizes", BrowseDirection.Forward);
         const childReferences = [...references, ...folderElements];
+        const id = makeId(parentNode,browseName);
+        nodeRegistry.add(id, node);
+
+        function addInvisibleNode(prefix: string, index: number) {
+            const breakNode = `${prefix}${index}`;
+            r2.push(breakNode);
+            nodeRegistry.addInvisibleNode(breakNode);
+            return breakNode;
+        }
         for (let i = 0; i < childReferences.length; i++) {
             const isLast = i === childReferences.length - 1;
-            innerDepth++;
             const reference = childReferences[i];
 
             const childNode = reference.node! as UAVariable | UAObject | UAMethod;
             const childName = childNode.browseName.name!.toString();
-            nodeRegistry.add(childNode);
+
+            const fullChildName = makeId(id,childName);
+            // avoid member duplication
+            if (visitorMap[fullChildName]) {
+                continue;
+            } else {
+                visitorMap[fullChildName] = 1;
+            }
+
+            innerDepth++;
+
+            nodeRegistry.add(fullChildName, childNode);
             const edgeAttributes = arrowHead(reference);
 
-            const breakNode = `${prefix}${i + offset}`;
-            r2.push(breakNode);
-            nodeRegistry.addInvisibleNode(breakNode);
-            const horizontalPart = `{ rank=same ${breakNode} -> ${childName} ${edgeAttributes} }`;
+            const breakNode = addInvisibleNode(prefix, i + offset);
+            const horizontalPart = `{ rank=same ${breakNode} -> ${fullChildName} ${edgeAttributes} }`;
             r.push(horizontalPart);
 
             // push children  on same level
-            const [depth] = typeMemberAndSubTypeMember(str, childNode, null, 0, `${prefix}${i + offset}_`, false);
-            for (let d = 0; d < depth; d++) {
-                offset++;
-                if (!isLast) {
-                    const breakNode = `${prefix}${i + offset}`;
-                    r2.push(breakNode);
-                    nodeRegistry.addInvisibleNode(breakNode);
+            const [depth] = typeMemberAndSubTypeMember(str, id, childNode, null, 0, `${prefix}${i + offset}_`, false, visitorMap);
+
+            // add invisible nodes
+            {
+                for (let d = 0; d < depth; d++) {
+                    offset++;
+                    if (!isLast) {
+                        addInvisibleNode(prefix, i + offset);
+                    }
                 }
+                innerDepth += depth;
             }
-            innerDepth += depth;
         }
 
         if (node.nodeClass == NodeClass.ObjectType || node.nodeClass === NodeClass.VariableType) {
             if (node.subtypeOfObj && node.subtypeOfObj.nodeId.namespace === node.nodeId.namespace) {
-                const [depth, rr2] = typeMemberAndSubTypeMember(str, node.subtypeOfObj, node, r.length, prefix, true);
+                const [depth, rr2] = typeMemberAndSubTypeMember(
+                    str,
+                    parentNode,
+                    node.subtypeOfObj,
+                    node,
+                    r.length,
+                    prefix,
+                    true,
+                    visitorMap
+                );
                 innerDepth += depth;
                 r2.push(...rr2);
             }
@@ -175,16 +218,18 @@ export function opcuaToDot(node: UAObjectType | UAVariableType, options?: Option
         if (r.length) {
             str.push(...r.map((x) => "  " + x));
         }
+
         if (!joinWithCaller) {
             if (r2.length) {
-                str.push(`  ${browseName} -> ${r2.join(" -> ")} [arrowhead=none];`);
+                str.push(`  ${id} -> ${r2.join(" -> ")} [arrowhead=none];`);
             }
         }
 
         return [innerDepth, r2];
     }
 
-    typeMemberAndSubTypeMember(str2, node, null, 0, "r", false);
+    const visitorMap = {};
+    typeMemberAndSubTypeMember(str2, "", node, null, 0, "r", false, visitorMap);
 
     if (!options.naked) {
         dumpNodeByNodeClass(str, nodeRegistry);
@@ -206,7 +251,7 @@ export function dumpClassHierachry(
 
     const str: string[] = [];
     const nodeRegistry = new NodeRegistry();
-    nodeRegistry.add(typeNode);
+    nodeRegistry.add(typeNode.browseName.name!, typeNode);
     str.push("digraph G {");
     if (!options.naked) {
         // str.push("  splines=ortho;");
@@ -219,10 +264,10 @@ export function dumpClassHierachry(
         const references = typeNode.findReferencesEx("HasSubtype", BrowseDirection.Forward);
         for (let i = 0; i < references.length; i++) {
             const reference = references[i];
-            const childNode = reference.node! as UAVariable | UAObject | UAMethod;
+            const childNode = reference.node! as UAVariableType | UAObjectType;
             const nodeClass = NodeClass[childNode.nodeClass];
             const childName = childNode.browseName.name!.toString();
-            nodeRegistry.add(typeNode);
+            nodeRegistry.add(childName, childNode);
             const edgeAttributes = arrowHead(reference);
             str.push(`  ${childName}  -> ${parentName} ${edgeAttributes};`);
 
@@ -231,8 +276,27 @@ export function dumpClassHierachry(
             }
         }
     }
-    /** */
+    function dumpBaseTypes(str: string[], typeNode: BaseNode, level: number) {
+        const parentName = typeNode.browseName.name!.toString();
+        const references = typeNode.findReferencesEx("HasSubtype", BrowseDirection.Inverse);
+        for (let i = 0; i < references.length; i++) {
+            const reference = references[i];
+            const childNode = reference.node! as UAVariableType | UAObjectType;
+            const nodeClass = NodeClass[childNode.nodeClass];
+            const childName = childNode.browseName.name!.toString();
+            nodeRegistry.add(childName, childNode);
+            const edgeAttributes = arrowHead(reference);
+            str.push(`  ${parentName}  -> ${childName} ${edgeAttributes};`);
+            if (level > 0) {
+                dumpBaseTypes(str, childNode, level - 1);
+            }
+        }
+    }
     const str2: string[] = [];
+    if (options.showBaseType) {
+        dumpBaseTypes(str2, typeNode, level);
+    }
+    /** */
     if (options.showSubType) {
         dumpSubtypes(str2, typeNode, level);
     }
@@ -243,9 +307,10 @@ export function dumpClassHierachry(
     str.push("}");
     return str.join("\n");
 }
-function graphVizToPlantUml(str: string[]): string {
+
+export function graphVizToPlantUml(str: string): string {
     const ttt = "```";
-    return `${ttt}plantuml\n@startuml\n${str.join("\n")}\n@enduml\n${ttt}`;
+    return `${ttt}plantuml\n@startuml\n${str}\n@enduml\n${ttt}`;
 }
 export function dumpTypeDiagram(namespace: any) {
     const objectTypes = [...namespace._objectTypeIterator()];
@@ -257,14 +322,14 @@ export function dumpTypeDiagram(namespace: any) {
     const str: string[] = [];
     for (const type of [...objectTypes, ...variableTypes]) {
         const d = opcuaToDot(type);
-        str.push(graphVizToPlantUml([d]));
+        str.push(graphVizToPlantUml(d));
 
         const d2 = dumpClassHierachry(type);
-        str.push(graphVizToPlantUml([d2]));
+        str.push(graphVizToPlantUml(d2));
     }
     for (const dataType of dataTypes) {
         const d = opcuaToDot(dataType);
-        str.push(graphVizToPlantUml([d]));
+        str.push(graphVizToPlantUml(d));
     }
     return str.join("\n");
 }

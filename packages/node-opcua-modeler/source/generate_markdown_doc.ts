@@ -6,7 +6,7 @@ import { DataType } from "node-opcua-variant";
 import { object } from "underscore";
 import { displayNodeElement } from "./displayNodeElement";
 import { TableHelper } from "./tableHelper";
-import { dumpClassHierachry, opcuaToDot } from "./to_graphivz";
+import { dumpClassHierachry, graphVizToPlantUml, opcuaToDot } from "./to_graphivz";
 
 interface NamespacePriv2 {
     nodeIterator(): IterableIterator<BaseNode>;
@@ -76,7 +76,7 @@ function dataTypeToMarkdown(dataType: UADataType): string {
                 f.valueRank ? f.valueRank : "",
                 f.maxStringLength ? f.maxStringLength : "",
                 f.arrayDimensions ? f.arrayDimensions : "",
-                f.description.text || ""
+                (f.description.text || "").replace(/\n/g, "<br>"),
             ]);
         }
         writer.writeLine(table.toMarkdownTable());
@@ -168,7 +168,5 @@ export async function buildDocumentation(namespace: Namespace, writer: IWriter):
         }
     }
 }
-function graphVizToPlantUml(arg0: string): any {
-    throw new Error("Function not implemented.");
-}
+
 
