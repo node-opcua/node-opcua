@@ -14,10 +14,6 @@ const performanceNow =
 // see http://nodejs.org/api/process.html#process_process_hrtime
 function hrtime_for_browser(previousTimestamp?: [number, number]): [number, number] {
    
-    if (typeof process === "object" ) {
-        console.log("SHould not use hrtime_for_browser in a node js app");
-        process.exit(1)
-    }
     previousTimestamp = previousTimestamp || [0, 0];
 
     const clocktime = performanceNow.call(performance) * 1e-3;
