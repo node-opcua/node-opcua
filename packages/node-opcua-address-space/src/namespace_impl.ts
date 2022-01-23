@@ -11,7 +11,7 @@ import { AccessRestrictionsFlag, coerceLocalizedText, QualifiedNameLike } from "
 import { QualifiedName } from "node-opcua-data-model";
 import { BrowseDirection } from "node-opcua-data-model";
 import { LocalizedText, NodeClass } from "node-opcua-data-model";
-import { dumpIf } from "node-opcua-debug";
+import { dumpIf, make_errorLog } from "node-opcua-debug";
 import { NodeIdLike, NodeIdType, resolveNodeId } from "node-opcua-nodeid";
 import { NodeId } from "node-opcua-nodeid";
 import { StatusCodes } from "node-opcua-status-code";
@@ -131,6 +131,7 @@ function _makeHashKey(nodeId: NodeId): string | number {
     }
 }
 const doDebug = false;
+const errorLog = make_errorLog("AddressSpace");
 
 const regExp1 = /^(s|i|b|g)=/;
 const regExpNamespaceDotBrowseName = /^[0-9]+:(.*)/;
@@ -1709,7 +1710,7 @@ export class NamespaceImpl implements NamespacePrivate {
 
                 const indexVerif = parseInt(match[0], 10);
                 if (indexVerif !== this.index) {
-                    console.log(
+                    errorLog(
                         chalk.red.bold(
                             "Error: namespace index used at the front of the browseName " +
                                 indexVerif +
@@ -1718,7 +1719,7 @@ export class NamespaceImpl implements NamespacePrivate {
                                 ")"
                         )
                     );
-                    console.log(
+                    errorLog(
                         " Please fix your code so that the created node is inserted in the correct namespace," +
                             " please refer to the NodeOPCUA documentation"
                     );
