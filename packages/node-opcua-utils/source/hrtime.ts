@@ -34,4 +34,4 @@ function hrtime_for_browser(previousTimestamp?: [number, number]): [number, numb
     return [seconds, nanoseconds];
 }
 export type HRTimeFunc = (time?: [number, number]) => [number, number];
-export const hrtime: HRTimeFunc = typeof process === "object" ? (process.hrtime as HRTimeFunc) : hrtime_for_browser;
+export const hrtime: HRTimeFunc = typeof process === "object" ? (process.hrtime as HRTimeFunc || hrtime_for_browser) : hrtime_for_browser;
