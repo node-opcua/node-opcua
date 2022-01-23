@@ -1,6 +1,6 @@
 {
     "name": "node-opcua-transport",
-    "version": "2.63.0",
+    "version": "2.63.1",
     "description": "pure nodejs OPCUA SDK - module -transport",
     "main": "./dist/source/index.js",
     "types": "./dist/source/index.d.ts",
@@ -14,18 +14,18 @@
     "dependencies": {
         "chalk": "4.1.2",
         "node-opcua-assert": "2.63.0",
-        "node-opcua-basic-types": "2.63.0",
-        "node-opcua-binary-stream": "2.63.0",
-        "node-opcua-buffer-utils": "2.63.0",
-        "node-opcua-chunkmanager": "2.63.0",
-        "node-opcua-debug": "2.63.0",
-        "node-opcua-factory": "2.63.0",
-        "node-opcua-nodeid": "2.63.0",
-        "node-opcua-object-registry": "2.63.0",
+        "node-opcua-basic-types": "2.63.1",
+        "node-opcua-binary-stream": "2.63.1",
+        "node-opcua-buffer-utils": "2.63.1",
+        "node-opcua-chunkmanager": "2.63.1",
+        "node-opcua-debug": "2.63.1",
+        "node-opcua-factory": "2.63.1",
+        "node-opcua-nodeid": "2.63.1",
+        "node-opcua-object-registry": "2.63.1",
         "node-opcua-packet-assembler": "2.63.0",
-        "node-opcua-status-code": "2.63.0",
-        "node-opcua-types": "2.63.0",
-        "node-opcua-utils": "2.63.0"
+        "node-opcua-status-code": "2.63.1",
+        "node-opcua-types": "2.63.1",
+        "node-opcua-utils": "2.63.1"
     },
     "devDependencies": {
         "@types/node": "17.0.10",
