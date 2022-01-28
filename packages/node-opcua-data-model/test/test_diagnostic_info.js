@@ -122,7 +122,7 @@ describe("DiagnosticInfo", function () {
     });
 
     it("should not strip away diagnostic information if requested", function () {
-        const diag = new DiagnosticInfo({
+        let diag = new DiagnosticInfo({
             localizedText: 2345,
             symbolicId: 3456,
             additionalInfo: "test",
@@ -134,48 +134,62 @@ describe("DiagnosticInfo", function () {
             | DiagnosticInfo_ResponseDiagnostics.AdditionalInfo
             | DiagnosticInfo_ResponseDiagnostics.InnerStatusCode
             | DiagnosticInfo_ResponseDiagnostics.InnerDiagnostics;
-        diag.filterForResponse(fields);
+
+        diag = DiagnosticInfo.filterForResponse(diag, fields);
         diag.localizedText.should.equal(2345);
         diag.symbolicId.should.equal(3456);
         diag.additionalInfo.should.equal("test");
         diag.innerStatusCode.should.equal(StatusCodes.Bad);
+
         should(diag.innerDiagnosticInfo).not.equal(null);
         diag.innerDiagnosticInfo.additionalInfo.should.equal("test 2");
     });
 
     it("should not return any diagnostic info if not specifically requested", function () {
-        const diag = new DiagnosticInfo({
+        let diag = new DiagnosticInfo({
             localizedText: 2345,
             symbolicId: 3456,
             additionalInfo: "test",
             innerStatusCode: StatusCodes.Bad,
             innerDiagnosticInfo: new DiagnosticInfo({ additionalInfo: "test 2" })
         });
-        diag.filterForResponse(DiagnosticInfo_ResponseDiagnostics.None);
+
+        diag = DiagnosticInfo.filterForResponse(diag, DiagnosticInfo_ResponseDiagnostics.None);
         diag.localizedText.should.equal(-1);
         diag.symbolicId.should.equal(-1);
         should(diag.additionalInfo).equal(null);
         diag.innerStatusCode.should.equal(StatusCodes.Good); // 'StatusCodes.Good' is the default value for 'innerStatusCode'
-        should(diag.innerDiagnosticInfo).equal(null);
+
+        diag.innerDiagnosticInfo.localizedText.should.equal(-1);
+        diag.innerDiagnosticInfo.symbolicId.should.equal(-1);
+        should(diag.innerDiagnosticInfo.additionalInfo).equal(null);
+        diag.innerDiagnosticInfo.innerStatusCode.should.equal(StatusCodes.Good); // 'StatusCodes.Good' is the default value for 'innerStatusCode'
+        should(diag.innerDiagnosticInfo.innerDiagnosticInfo).equal(null);
     });
 
     it("should strip away unrequested details", function () {
-        const diag = new DiagnosticInfo({
+        let diag = new DiagnosticInfo({
             localizedText: 2345,
             symbolicId: 3456,
             additionalInfo: "test",
             innerStatusCode: StatusCodes.Bad,
-            innerDiagnosticInfo: new DiagnosticInfo({ additionalInfo: "test 2" })
+            innerDiagnosticInfo: new DiagnosticInfo({ additionalInfo: "test 2", innerStatusCode: StatusCodes.Bad, symbolicId: 34567 })
         });
         const fields = DiagnosticInfo_ResponseDiagnostics.LocalizedText
             | DiagnosticInfo_ResponseDiagnostics.AdditionalInfo
-            | DiagnosticInfo_ResponseDiagnostics.InnerStatusCode;
-        diag.filterForResponse(fields);
+            | DiagnosticInfo_ResponseDiagnostics.SymbolicId;
+
+        diag = DiagnosticInfo.filterForResponse(diag, fields);
         diag.localizedText.should.equal(2345);
-        diag.symbolicId.should.equal(-1);
+        diag.symbolicId.should.equal(3456);
         diag.additionalInfo.should.equal("test");
-        diag.innerStatusCode.should.equal(StatusCodes.Bad);
-        should(diag.innerDiagnosticInfo).equal(null);
+        diag.innerStatusCode.should.equal(StatusCodes.Good); // 'StatusCodes.Good' is the default value for 'innerStatusCode'
+
+        diag.innerDiagnosticInfo.localizedText.should.equal(-1);
+        diag.innerDiagnosticInfo.symbolicId.should.equal(34567);
+        should(diag.innerDiagnosticInfo.additionalInfo).equal("test 2");
+        diag.innerDiagnosticInfo.innerStatusCode.should.equal(StatusCodes.Good); // 'StatusCodes.Good' is the default value for 'innerStatusCode'
+        should(diag.innerDiagnosticInfo.innerDiagnosticInfo).equal(null);
     });
 
     it("encodeDiagnosticInfo/decodeDiagnosticInfo1", () => {

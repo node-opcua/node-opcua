@@ -44,7 +44,8 @@ import { getDefaultCertificateManager, OPCUACertificateManager } from "node-opcu
 import { ServerState } from "node-opcua-common";
 import { Certificate, exploreCertificate, makeSHA1Thumbprint, Nonce, toPem } from "node-opcua-crypto";
 import {
-    AttributeIds, filterDiagnosticInfoLevel, LocalizedText, NodeClass, RESPONSE_DIAGNOSTICS_MASK_ALL, DiagnosticInfo_ResponseDiagnosticsLevel
+    AttributeIds, filterDiagnosticInfoLevel, LocalizedText, NodeClass, RESPONSE_DIAGNOSTICS_MASK_ALL, DiagnosticInfo_ResponseDiagnosticsLevel,
+    OPERATION_DIAGNOSTICS_BITS_TO_SHIFT
 } from "node-opcua-data-model";
 import { DataValue } from "node-opcua-data-value";
 import { dump, make_debugLog, make_errorLog, make_warningLog } from "node-opcua-debug";
@@ -3351,16 +3352,14 @@ export class OPCUAServer extends OPCUABaseServer {
 
     private _filterDiagnosticInfo(returnDiagnostics: number, response: CallResponse): void {
         if ((RESPONSE_DIAGNOSTICS_MASK_ALL * DiagnosticInfo_ResponseDiagnosticsLevel.Service & returnDiagnostics) && response.responseHeader.serviceDiagnostics) {
-            filterDiagnosticInfoLevel(
-                returnDiagnostics / DiagnosticInfo_ResponseDiagnosticsLevel.Service, response.responseHeader.serviceDiagnostics
-            );
+            filterDiagnosticInfoLevel(returnDiagnostics, response.responseHeader.serviceDiagnostics);
         } else {
             response.responseHeader.serviceDiagnostics = null;
         }
 
         if (RESPONSE_DIAGNOSTICS_MASK_ALL * DiagnosticInfo_ResponseDiagnosticsLevel.Operation & returnDiagnostics) {
             if (response.diagnosticInfos && response.diagnosticInfos.length > 0) {
-                filterDiagnosticInfoLevel(returnDiagnostics / DiagnosticInfo_ResponseDiagnosticsLevel.Operation, response.diagnosticInfos);
+                filterDiagnosticInfoLevel(returnDiagnostics >> OPERATION_DIAGNOSTICS_BITS_TO_SHIFT, response.diagnosticInfos);
             } else {
                 response.diagnosticInfos = [];
             }
@@ -3368,7 +3367,7 @@ export class OPCUAServer extends OPCUABaseServer {
             if (response.results) {
                 for (const entry of response.results) {
                     if (entry.inputArgumentDiagnosticInfos) {
-                        filterDiagnosticInfoLevel(returnDiagnostics / DiagnosticInfo_ResponseDiagnosticsLevel.Operation, entry.inputArgumentDiagnosticInfos);
+                        filterDiagnosticInfoLevel(returnDiagnostics >> OPERATION_DIAGNOSTICS_BITS_TO_SHIFT, entry.inputArgumentDiagnosticInfos);
                     } else {
                         entry.inputArgumentDiagnosticInfos = [];
                     }

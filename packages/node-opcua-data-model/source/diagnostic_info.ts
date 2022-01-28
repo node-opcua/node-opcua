@@ -141,25 +141,17 @@ export class DiagnosticInfo extends BaseUAObject {
         decodeDebug_DiagnosticInfo(this, stream, options);
     }
 
-    public filterForResponse(fields: number): void {
-        const schema = schemaDiagnosticInfo;
-        if (!(fields & DiagnosticInfo_ResponseDiagnostics.SymbolicId)) {
-            this.symbolicId = initialize_field(schema.fields[0], undefined) as Int32;
+    public static filterForResponse(diagnosticInfo: DiagnosticInfo, mask: number): DiagnosticInfo {
+        const options: DiagnosticInfoOptions = {
+            symbolicId: (mask & DiagnosticInfo_ResponseDiagnostics.SymbolicId) ? diagnosticInfo.symbolicId : undefined,
+            localizedText: (mask & DiagnosticInfo_ResponseDiagnostics.LocalizedText) ? diagnosticInfo.localizedText : undefined,
+            additionalInfo: (mask & DiagnosticInfo_ResponseDiagnostics.AdditionalInfo) ? diagnosticInfo.additionalInfo : undefined,
+            innerStatusCode: (mask & DiagnosticInfo_ResponseDiagnostics.InnerStatusCode) ? diagnosticInfo.innerStatusCode : undefined,
+            innerDiagnosticInfo: (mask & DiagnosticInfo_ResponseDiagnostics.InnerDiagnostics)
+                ? diagnosticInfo.innerDiagnosticInfo
+                : (diagnosticInfo.innerDiagnosticInfo ? DiagnosticInfo.filterForResponse(diagnosticInfo.innerDiagnosticInfo, mask) : undefined),
         }
-        if (!(fields & DiagnosticInfo_ResponseDiagnostics.LocalizedText)) {
-            this.localizedText = initialize_field(schema.fields[3], undefined) as Int32;
-        }
-        if (!(fields & DiagnosticInfo_ResponseDiagnostics.AdditionalInfo)) {
-            this.additionalInfo = initialize_field(schema.fields[4], undefined) as UAString;
-        }
-        if (!(fields & DiagnosticInfo_ResponseDiagnostics.InnerStatusCode)) {
-            this.innerStatusCode = initialize_field(schema.fields[5], undefined) as StatusCode;
-        }
-        if (!(fields & DiagnosticInfo_ResponseDiagnostics.InnerDiagnostics)) {
-            this.innerDiagnosticInfo = initialize_field(schema.fields[6], undefined) as DiagnosticInfo;
-        } else if (this.innerDiagnosticInfo) {
-            this.innerDiagnosticInfo.filterForResponse(fields);
-        }
+        return new DiagnosticInfo(options);
     }
 }
 
@@ -190,17 +182,26 @@ export enum DiagnosticInfo_ResponseDiagnostics {
     InnerDiagnostics = 0x10
 }
 
+// in the case of operation diagnostics being requested, we need to determine how many bits we need to shift to the right
+// we do this in order to prevent code duplication which would've been introduced by creating another enum
+const enumNumberValues = Object.values(DiagnosticInfo_ResponseDiagnostics).filter((value) => typeof value === "number" && value !== 0);
+// the number of bits we need to shift is calculated by counting the non-zero elements in the enumeration
+export const OPERATION_DIAGNOSTICS_BITS_TO_SHIFT: number = enumNumberValues.length;
+
 export const RESPONSE_DIAGNOSTICS_MASK_ALL =
     DiagnosticInfo_ResponseDiagnostics.SymbolicId | DiagnosticInfo_ResponseDiagnostics.LocalizedText | DiagnosticInfo_ResponseDiagnostics.AdditionalInfo |
     DiagnosticInfo_ResponseDiagnostics.InnerStatusCode | DiagnosticInfo_ResponseDiagnostics.InnerDiagnostics;
 
 export function filterDiagnosticInfoLevel(returnDiagnostics: number, diagnosticInfo: DiagnosticInfo | (DiagnosticInfo | null)[] | null): void {
+    if (!diagnosticInfo) {
+        return;
+    }
     const items = Array.isArray(diagnosticInfo) ? diagnosticInfo : [diagnosticInfo];
-    for (const entry of items) {
+    for (let entry of items) {
         if (!entry) {
             continue;
         }
-        entry.filterForResponse(returnDiagnostics);
+        entry = DiagnosticInfo.filterForResponse(entry, returnDiagnostics);
     }
 }
 
