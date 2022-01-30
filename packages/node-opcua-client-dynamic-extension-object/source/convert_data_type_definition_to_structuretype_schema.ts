@@ -14,7 +14,7 @@ import {
 import { NodeId, makeExpandedNodeId, resolveNodeId } from "node-opcua-nodeid";
 import { browseAll, BrowseDescriptionLike, IBasicSession } from "node-opcua-pseudo-session";
 import { StatusCodes } from "node-opcua-status-code";
-import { EnumDefinition, DataTypeDefinition, StructureDefinition, StructureType } from "node-opcua-types";
+import { EnumDefinition, DataTypeDefinition, StructureDefinition, StructureType, StructureField } from "node-opcua-types";
 import { ExtensionObject } from "node-opcua-extension-object";
 //
 import { _findEncodings } from "./private/find_encodings";
@@ -276,6 +276,7 @@ async function _setupEncodings(
     return schema;
 }
 
+// eslint-disable-next-line max-statements
 export async function convertDataTypeDefinitionToStructureTypeSchema(
     session: IBasicSession,
     dataTypeNodeId: NodeId,
@@ -307,10 +308,29 @@ export async function convertDataTypeDefinitionToStructureTypeSchema(
 
         const bitFields: { name: string; length?: number }[] | undefined = isUnion ? undefined : [];
 
+        const postActions: ((schema: StructuredTypeSchema ) => void)[] = [];
+
         for (const fieldD of definition.fields!) {
+
+            let field: FieldInterfaceOptions | undefined;
+            ({ field, switchBit, switchValue } = createField(fieldD, switchBit, bitFields, isUnion, switchValue));
+
+            if (fieldD.dataType.value === dataTypeNodeId.value &&  fieldD.dataType.namespace === dataTypeNodeId.namespace ) {
+                // this is a structure with a field of the same type
+                // push an empty placeholder that we will fill later
+                const fieldTypeName = await readBrowseName(session, dataTypeNodeId);
+                field.fieldType= fieldTypeName!,
+                field.category = FieldCategory.complex;
+                fields.push(field);
+                const capturedField = field;
+                postActions.push( (schema: StructuredTypeSchema )=> {
+                    capturedField.schema = schema;
+                });
+                continue;
+            }
             const rt = (await resolveFieldType(session, fieldD.dataType, dataTypeFactory, cache))!;
             if (!rt) {
-                console.log(
+                errorLog(
                     "convertDataTypeDefinitionToStructureTypeSchema cannot handle field",
                     fieldD.name,
                     "in",
@@ -321,27 +341,7 @@ export async function convertDataTypeDefinitionToStructureTypeSchema(
             }
             const { schema, category, fieldTypeName } = rt;
 
-            const field: FieldInterfaceOptions = {
-                fieldType: fieldTypeName!,
-                name: fieldD.name!,
-                schema
-            };
-
-            if (fieldD.isOptional) {
-                field.switchBit = switchBit++;
-                bitFields?.push({ name: fieldD.name! + "Specified", length: 1 });
-            }
-            if (isUnion) {
-                field.switchValue = switchValue;
-                switchValue += 1;
-            }
-
-            assert(fieldD.valueRank === -1 || fieldD.valueRank === 1 || fieldD.valueRank === 0);
-            if (fieldD.valueRank === 1) {
-                field.isArray = true;
-            } else {
-                field.isArray = false;
-            }
+            field.fieldType= fieldTypeName!,
             field.category = category;
             field.schema = schema;
             fields.push(field);
@@ -358,7 +358,35 @@ export async function convertDataTypeDefinitionToStructureTypeSchema(
             name
         });
         const structuredTypeSchema = await _setupEncodings(session, dataTypeNodeId, os);
+
+        postActions.forEach((action)=>action(structuredTypeSchema));
+
         return structuredTypeSchema;
     }
     throw new Error("Not Implemented");
+
+    function createField(fieldD: StructureField, switchBit: number, bitFields: { name: string; length?: number | undefined; }[] | undefined, isUnion: boolean, switchValue: number) {
+        const field: FieldInterfaceOptions = {
+            fieldType: "",
+            name: fieldD.name!,
+            schema: null
+        };
+
+        if (fieldD.isOptional) {
+            field.switchBit = switchBit++;
+            bitFields?.push({ name: fieldD.name! + "Specified", length: 1 });
+        }
+        if (isUnion) {
+            field.switchValue = switchValue;
+            switchValue += 1;
+        }
+
+        assert(fieldD.valueRank === -1 || fieldD.valueRank === 1 || fieldD.valueRank === 0);
+        if (fieldD.valueRank === 1) {
+            field.isArray = true;
+        } else {
+            field.isArray = false;
+        }
+        return { field, switchBit, switchValue };
+    }
 }

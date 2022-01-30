@@ -1,0 +1,155 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!--
+ * Copyright (c) 2005-2021 The OPC Foundation, Inc. All rights reserved.
+ *
+ * OPC Foundation MIT License 1.00
+ * 
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ * 
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ *
+ * The complete license agreement can be found here:
+ * http://opcfoundation.org/License/MIT/1.00/
+-->
+
+<UANodeSet xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://opcfoundation.org/UA/2011/03/UANodeSet.xsd">
+  <NamespaceUris>
+    <Uri>http://acme</Uri>
+  </NamespaceUris>
+  <Aliases>
+    <Alias Alias="Boolean">i=1</Alias>
+    <Alias Alias="SByte">i=2</Alias>
+    <Alias Alias="Byte">i=3</Alias>
+    <Alias Alias="Int16">i=4</Alias>
+    <Alias Alias="UInt16">i=5</Alias>
+    <Alias Alias="Int32">i=6</Alias>
+    <Alias Alias="UInt32">i=7</Alias>
+    <Alias Alias="Int64">i=8</Alias>
+    <Alias Alias="UInt64">i=9</Alias>
+    <Alias Alias="Float">i=10</Alias>
+    <Alias Alias="Double">i=11</Alias>
+    <Alias Alias="String">i=12</Alias>
+    <Alias Alias="DateTime">i=13</Alias>
+    <Alias Alias="Guid">i=14</Alias>
+    <Alias Alias="ByteString">i=15</Alias>
+    <Alias Alias="LocalizedText">i=21</Alias>
+    <Alias Alias="HasModellingRule">i=37</Alias>
+    <Alias Alias="HasEncoding">i=38</Alias>
+    <Alias Alias="HasDescription">i=39</Alias>
+    <Alias Alias="HasTypeDefinition">i=40</Alias>
+    <Alias Alias="GeneratesEvent">i=41</Alias>
+    <Alias Alias="HasSubtype">i=45</Alias>
+    <Alias Alias="HasProperty">i=46</Alias>
+    <Alias Alias="HasComponent">i=47</Alias>
+    <Alias Alias="IdType">i=256</Alias>
+    <Alias Alias="NumericRange">i=291</Alias>
+    <Alias Alias="Range">i=884</Alias>
+    <Alias Alias="EUInformation">i=887</Alias>
+    <Alias Alias="EnumValueType">i=7594</Alias>
+    <Alias Alias="HasInterface">i=17603</Alias>
+    <Alias Alias="HasAddIn">i=17604</Alias>
+    <Alias Alias="WwUnitModeEnumeration">ns=1;i=20</Alias>
+    <Alias Alias="WwUnitStateEnumeration">ns=1;i=21</Alias>
+    <Alias Alias="WwMessageArgumentValueDataType">ns=1;i=3002</Alias>
+    <Alias Alias="WwMessageArgumentDataType">ns=1;i=3003</Alias>
+    <Alias Alias="WwEventCategoryEnumeration">ns=1;i=3004</Alias>
+  </Aliases>
+
+  <UADataType NodeId="ns=1;i=3003" BrowseName="1:WwMessageArgumentDataType">
+    <DisplayName>WwMessageArgumentDataType</DisplayName>
+    <Description Locale="en">The WwArgumentDataType definition extends the argument structure with an argument value.</Description>
+    <Documentation>https://reference.opcfoundation.org/v104/Woodworking/v100/docs/7.14</Documentation>
+    <References>
+      <Reference ReferenceType="HasEncoding">ns=1;i=5013</Reference>
+      <Reference ReferenceType="HasEncoding">ns=1;i=5015</Reference>
+      <Reference ReferenceType="HasEncoding">ns=1;i=5014</Reference>
+      <Reference ReferenceType="HasSubtype" IsForward="false">i=296</Reference>
+    </References>
+    <Definition Name="1:WwMessageArgumentDataType">
+      <Field Name="Value" DataType="WwMessageArgumentValueDataType">
+        <Description>The variable contains the value of the argument</Description>
+      </Field>
+    </Definition>
+  </UADataType>
+
+  <UADataType NodeId="ns=1;i=3002" BrowseName="1:WwMessageArgumentValueDataType">
+    <DisplayName>WwMessageArgumentValueDataType</DisplayName>
+    <Description Locale="en">The WwArgumentValueDataType definition defines the possible types of an argument value.</Description>
+    <Documentation>https://reference.opcfoundation.org/v104/Woodworking/v100/docs/7.15</Documentation>
+    <References>
+      <Reference ReferenceType="HasEncoding">ns=1;i=5010</Reference>
+      <Reference ReferenceType="HasEncoding">ns=1;i=5012</Reference>
+      <Reference ReferenceType="HasEncoding">ns=1;i=5011</Reference>
+      <Reference ReferenceType="HasSubtype" IsForward="false">i=12756</Reference>
+    </References>
+    <Definition Name="1:WwMessageArgumentValueDataType" IsUnion="true">
+      <Field Name="Array" DataType="WwMessageArgumentValueDataType" ValueRank="1" ArrayDimensions="1">
+        <Description>The content of the value as an array of the own type</Description>
+      </Field>
+      <Field Name="Boolean" DataType="Boolean">
+        <Description>The content of the value as a boolean</Description>
+      </Field>
+      <Field Name="Int16" DataType="Int16">
+        <Description>The content of the value as a 16 bit integer</Description>
+      </Field>
+      <Field Name="Int32" DataType="Int32">
+        <Description>The content of the value as a 32 bit integer</Description>
+      </Field>
+      <Field Name="Int64" DataType="Int64">
+        <Description>The content of the value as a 64 bit integer</Description>
+      </Field>
+      <Field Name="SByte" DataType="SByte">
+        <Description>The content of the value as a 8 bit integer</Description>
+      </Field>
+      <Field Name="UInt16" DataType="UInt16">
+        <Description>The content of the value as a 16 bit unsigned integer</Description>
+      </Field>
+      <Field Name="UInt32" DataType="UInt32">
+        <Description>The content of the value as a 32 bit unsigned integer</Description>
+      </Field>
+      <Field Name="UInt64" DataType="UInt64">
+        <Description>The content of the value as a 64 bit unsigned integer</Description>
+      </Field>
+      <Field Name="Byte" DataType="Byte">
+        <Description>The content of the value as a 8 bit unsigned integer</Description>
+      </Field>
+      <Field Name="DateTime" DataType="DateTime">
+        <Description>The content of the value as a datetime</Description>
+      </Field>
+      <Field Name="Guid" DataType="Guid">
+        <Description>The content of the value as a GUID</Description>
+      </Field>
+      <Field Name="LocalizedText" DataType="LocalizedText">
+        <Description>The content of the value as a localized text</Description>
+      </Field>
+      <Field Name="Double" DataType="Double">
+        <Description>The content of the value as a double</Description>
+      </Field>
+      <Field Name="Float" DataType="Float">
+        <Description>The content of the value as a float</Description>
+      </Field>
+      <Field Name="String" DataType="String">
+        <Description>The content of the value as a string</Description>
+      </Field>
+      <Field Name="Other" DataType="String">
+        <Description>The content of the value has no standard format and is instantiated as a string</Description>
+      </Field>
+    </Definition>
+  </UADataType>
+</UANodeSet>
