@@ -198,6 +198,7 @@ function sortStructure(dataTypeDefinitions: DataTypeDefinitions) {
         if (_visited[hash]) {
             return;
         }
+        _visited[hash] = d;
         const bbb = _map[d.dataTypeDefinition.baseDataType.toString()];
         if (bbb) {
             _visit(bbb);
@@ -210,7 +211,7 @@ function sortStructure(dataTypeDefinitions: DataTypeDefinitions) {
             }
             _visit(ddd);
         }
-        _visited[hash] = d;
+       
         dataTypeDefinitionsSorted.push(d);
     }
     for (const d of dataTypeDefinitions) {
