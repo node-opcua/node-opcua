@@ -7,8 +7,8 @@ import { UAAnalogUnit } from "node-opcua-nodeset-ua/source/ua_analog_unit"
 import { UABaseMaterial } from "./ua_base_material"
 import { UAGlass } from "./ua_glass"
 import { UAProductionJob, UAProductionJob_Base } from "./ua_production_job"
-export interface UACuttingJob_$InputMaterial$ extends Omit<UABaseMaterial, "description"|"identifier"|"location"|"materialIdentifier"|"weight"|"x"|"y"|"z"> { // Object
-      description?: UAProperty<LocalizedText, /*z*/DataType.LocalizedText>;
+export interface UACuttingJob_$InputMaterial$ extends Omit<UABaseMaterial, "$description"|"identifier"|"location"|"materialIdentifier"|"weight"|"x"|"y"|"z"> { // Object
+      "$description"?: UAProperty<LocalizedText, /*z*/DataType.LocalizedText>;
       identifier: UAProperty<UAString, /*z*/DataType.String>;
       location: UAProperty<UAString, /*z*/DataType.String>;
       materialIdentifier: UAProperty<UAString, /*z*/DataType.String>;
@@ -17,11 +17,11 @@ export interface UACuttingJob_$InputMaterial$ extends Omit<UABaseMaterial, "desc
       y?: UAAnalogUnit<number, /*z*/DataType.Double>;
       z?: UAAnalogUnit<number, /*z*/DataType.Double>;
 }
-export interface UACuttingJob_$OutputMaterial$ extends Omit<UAGlass, "absorption"|"coatingClass"|"coatingEmessivity"|"description"|"electricalConductivity"|"identifier"|"location"|"materialIdentifier"|"orientation"|"reflection"|"significantSide"|"structureAlignment"|"structureClass"|"transmission"|"weight"|"x"|"y"|"z"> { // Object
+export interface UACuttingJob_$OutputMaterial$ extends Omit<UAGlass, "absorption"|"coatingClass"|"coatingEmessivity"|"$description"|"electricalConductivity"|"identifier"|"location"|"materialIdentifier"|"orientation"|"reflection"|"significantSide"|"structureAlignment"|"structureClass"|"transmission"|"weight"|"x"|"y"|"z"> { // Object
       absorption: UAAnalogUnit<any, any>;
       coatingClass: UAProperty<any, any>;
       coatingEmessivity: UAAnalogUnit<any, any>;
-      description?: UAProperty<LocalizedText, /*z*/DataType.LocalizedText>;
+      "$description"?: UAProperty<LocalizedText, /*z*/DataType.LocalizedText>;
       electricalConductivity: UAAnalogUnit<any, any>;
       identifier: UAProperty<UAString, /*z*/DataType.String>;
       location: UAProperty<UAString, /*z*/DataType.String>;

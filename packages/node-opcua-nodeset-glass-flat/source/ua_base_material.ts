@@ -13,7 +13,7 @@ import { UAAnalogUnit } from "node-opcua-nodeset-ua/source/ua_analog_unit"
  * |isAbstract      |false                                             |
  */
 export interface UABaseMaterial_Base {
-    description?: UAProperty<LocalizedText, /*z*/DataType.LocalizedText>;
+    "$description"?: UAProperty<LocalizedText, /*z*/DataType.LocalizedText>;
     identifier?: UAProperty<UAString, /*z*/DataType.String>;
     location: UAProperty<UAString, /*z*/DataType.String>;
     materialIdentifier: UAProperty<UAString, /*z*/DataType.String>;

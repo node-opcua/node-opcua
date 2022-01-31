@@ -12,6 +12,6 @@ import { DTStructure } from "./dt_structure"
  */
 export interface DTEnumValue extends DTStructure  {
   value: Int64; // Int64 ns=0;i=8
-  "$displayName": LocalizedText; // LocalizedText ns=0;i=21
+  displayName: LocalizedText; // LocalizedText ns=0;i=21
   description: LocalizedText; // LocalizedText ns=0;i=21
 }

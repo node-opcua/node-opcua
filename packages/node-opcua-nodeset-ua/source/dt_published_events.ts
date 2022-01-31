@@ -12,7 +12,7 @@ import { DTContentFilter } from "./dt_content_filter"
  * | isAbstract|false                                             |
  */
 export interface DTPublishedEvents extends DTPublishedDataSetSource  {
-  "$eventNotifier": NodeId; // NodeId ns=0;i=17
+  eventNotifier: NodeId; // NodeId ns=0;i=17
   selectedFields: DTSimpleAttributeOperand[]; // ExtensionObject ns=0;i=601
   filter: DTContentFilter; // ExtensionObject ns=0;i=586
 }
