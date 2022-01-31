@@ -18,9 +18,10 @@ async function main() {
         nodesets.machinery,
         nodesets.ia,
         nodesets.machineTool,
-        nodesets.cnc
+        nodesets.cnc,
+        nodesets.woodWorking,
+        nodesets.glass
     ]);
-
 
     const nsUA = 0;
     const nsDI = addressSpace.getNamespaceIndex("http://opcfoundation.org/UA/DI/");
@@ -34,23 +35,31 @@ async function main() {
     const nsMachineTool = addressSpace.getNamespaceIndex("http://opcfoundation.org/UA/MachineTool/");
     const ncCNC = addressSpace.getNamespaceIndex("http://opcfoundation.org/UA/CNC");
     const nsCommercialKitchenEquipment = addressSpace.getNamespaceIndex("http://opcfoundation.org/UA/CommercialKitchenEquipment/");
+    const nsWW = addressSpace.getNamespaceIndex("http://opcfoundation.org/UA/Woodworking/");
+    const nsGlass = addressSpace.getNamespaceIndex("http://opcfoundation.org/UA/Glass/Flat/");
 
     const session = new PseudoSession(addressSpace);
     const options = {
         baseFolder: path.join(__dirname, "../../"),
         prefix: "node-opcua-nodeset-"
     };
-    await convertNamespaceTypeToTypescript(session, nsUA, options);
-    await convertNamespaceTypeToTypescript(session, nsDI, options);
-    await convertNamespaceTypeToTypescript(session, nsADI, options);
-    await convertNamespaceTypeToTypescript(session, nsMachineVision, options);
-    await convertNamespaceTypeToTypescript(session, nsAutoId, options);
-    await convertNamespaceTypeToTypescript(session, nsGds, options);
-    await convertNamespaceTypeToTypescript(session, nsRobotics, options);
-    await convertNamespaceTypeToTypescript(session, nsMachinery, options);
-    await convertNamespaceTypeToTypescript(session, nsIA, options);
-    await convertNamespaceTypeToTypescript(session, nsMachineTool, options);
-    await convertNamespaceTypeToTypescript(session, ncCNC, options);
-    await convertNamespaceTypeToTypescript(session, nsCommercialKitchenEquipment, options);
+
+    const promises = [
+        convertNamespaceTypeToTypescript(session, nsUA, options),
+        convertNamespaceTypeToTypescript(session, nsDI, options),
+        convertNamespaceTypeToTypescript(session, nsADI, options),
+        convertNamespaceTypeToTypescript(session, nsMachineVision, options),
+        convertNamespaceTypeToTypescript(session, nsAutoId, options),
+        convertNamespaceTypeToTypescript(session, nsGds, options),
+        convertNamespaceTypeToTypescript(session, nsRobotics, options),
+        convertNamespaceTypeToTypescript(session, nsMachinery, options),
+        convertNamespaceTypeToTypescript(session, nsIA, options),
+        convertNamespaceTypeToTypescript(session, nsMachineTool, options),
+        convertNamespaceTypeToTypescript(session, ncCNC, options),
+        convertNamespaceTypeToTypescript(session, nsCommercialKitchenEquipment, options),
+        convertNamespaceTypeToTypescript(session, nsWW, options),
+        convertNamespaceTypeToTypescript(session, nsGlass, options)
+    ];
+    await Promise.all(promises);
 }
 main();

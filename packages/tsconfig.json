@@ -40,12 +40,14 @@
         { "path": "node-opcua-nodeset-commercial-kitchen-equipment" },
         { "path": "node-opcua-nodeset-di" },
         { "path": "node-opcua-nodeset-gds" },
+        { "path": "node-opcua-nodeset-glass-flat" },
         { "path": "node-opcua-nodeset-ia" },
         { "path": "node-opcua-nodeset-machine-tool" },
         { "path": "node-opcua-nodeset-machine-vision" },
         { "path": "node-opcua-nodeset-machinery" },
         { "path": "node-opcua-nodeset-robotics" },
         { "path": "node-opcua-nodeset-ua" },
+        { "path": "node-opcua-nodeset-woodworking" },
    
     ]
 }
