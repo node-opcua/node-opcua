@@ -47,7 +47,7 @@ const cncNodeSetFilename = constructNodesetFilename("Opc.Ua.CNC.NodeSet.xml");
 const commercialKitchenEquipmentNodeSetFilename = constructNodesetFilename("Opc.Ua.CommercialKitchenEquipment.NodeSet2.xml");
 const machineToolNodeSetFilename = constructNodesetFilename("Opc.Ua.MachineTool.NodeSet2.xml");
 const iaNodeSetFilename = constructNodesetFilename("Opc.Ua.IA.NodeSet2.xml");
-const woodWorkingNodeSetFilename = constructNodesetFilename("Opc.Ua.WoodWorking.NodeSet2.xml");
+const woodWorkingNodeSetFilename = constructNodesetFilename("Opc.Ua.Woodworking.NodeSet2.xml");
 const eumaboisNodeSetFilename = constructNodesetFilename("Opc.Ua.Eumabois.NodeSet2.xml");
 const glassNodeSetFilename = constructNodesetFilename("Opc.Ua.Glass.NodeSet2.xml");
 
