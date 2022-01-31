@@ -44,8 +44,7 @@ import { getDefaultCertificateManager, OPCUACertificateManager } from "node-opcu
 import { ServerState } from "node-opcua-common";
 import { Certificate, exploreCertificate, makeSHA1Thumbprint, Nonce, toPem } from "node-opcua-crypto";
 import {
-    AttributeIds, filterDiagnosticInfoLevel, LocalizedText, NodeClass, RESPONSE_DIAGNOSTICS_MASK_ALL, DiagnosticInfo_ResponseDiagnosticsLevel,
-    OPERATION_DIAGNOSTICS_BITS_TO_SHIFT
+    AttributeIds, DiagnosticInfo, filterDiagnosticInfoLevel, LocalizedText, NodeClass, RESPONSE_DIAGNOSTICS_MASK_ALL
 } from "node-opcua-data-model";
 import { DataValue } from "node-opcua-data-value";
 import { dump, make_debugLog, make_errorLog, make_warningLog } from "node-opcua-debug";
@@ -678,6 +677,34 @@ function validate_security_endpoint(
         debugLog("endpoints_matching_security_policy= ", endpoints_matching_security_policy.length);
     }
     return { errCode: StatusCodes.Good, endpoint: endpoints_matching_security_policy[0] };
+}
+
+function filterDiagnosticInfo(returnDiagnostics: number, response: CallResponse): void {
+    if (RESPONSE_DIAGNOSTICS_MASK_ALL & returnDiagnostics) {
+        response.responseHeader.serviceDiagnostics = filterDiagnosticInfoLevel(returnDiagnostics, response.responseHeader.serviceDiagnostics);
+
+        if (response.diagnosticInfos && response.diagnosticInfos.length > 0) {
+            response.diagnosticInfos.forEach(
+                (diagnostic: DiagnosticInfo | null, index: number, array: (DiagnosticInfo | null)[]) =>
+                    array[index] = filterDiagnosticInfoLevel(returnDiagnostics, diagnostic)
+            );
+        } else {
+            response.diagnosticInfos = [];
+        }
+
+        if (response.results) {
+            for (const entry of response.results) {
+                if (entry.inputArgumentDiagnosticInfos && entry.inputArgumentDiagnosticInfos.length > 0) {
+                    entry.inputArgumentDiagnosticInfos.forEach(
+                        (diagnostic: DiagnosticInfo | null, index: number, array: (DiagnosticInfo | null)[]) =>
+                            array[index] = filterDiagnosticInfoLevel(returnDiagnostics, diagnostic)
+                    );
+                } else {
+                    entry.inputArgumentDiagnosticInfos = [];
+                }
+            }
+        }
+    }
 }
 
 export enum RegisterServerMethod {
@@ -3342,38 +3369,12 @@ export class OPCUAServer extends OPCUABaseServer {
                         response = new CallResponse({
                             results: results as CallMethodResultOptions[]
                         });
-                        this._filterDiagnosticInfo(request.requestHeader.returnDiagnostics, response);
+                        filterDiagnosticInfo(request.requestHeader.returnDiagnostics, response);
                         sendResponse(response);
                     }
                 );
             }
         );
-    }
-
-    private _filterDiagnosticInfo(returnDiagnostics: number, response: CallResponse): void {
-        if ((RESPONSE_DIAGNOSTICS_MASK_ALL * DiagnosticInfo_ResponseDiagnosticsLevel.Service & returnDiagnostics) && response.responseHeader.serviceDiagnostics) {
-            filterDiagnosticInfoLevel(returnDiagnostics, response.responseHeader.serviceDiagnostics);
-        } else {
-            response.responseHeader.serviceDiagnostics = null;
-        }
-
-        if (RESPONSE_DIAGNOSTICS_MASK_ALL * DiagnosticInfo_ResponseDiagnosticsLevel.Operation & returnDiagnostics) {
-            if (response.diagnosticInfos && response.diagnosticInfos.length > 0) {
-                filterDiagnosticInfoLevel(returnDiagnostics >> OPERATION_DIAGNOSTICS_BITS_TO_SHIFT, response.diagnosticInfos);
-            } else {
-                response.diagnosticInfos = [];
-            }
-
-            if (response.results) {
-                for (const entry of response.results) {
-                    if (entry.inputArgumentDiagnosticInfos) {
-                        filterDiagnosticInfoLevel(returnDiagnostics >> OPERATION_DIAGNOSTICS_BITS_TO_SHIFT, entry.inputArgumentDiagnosticInfos);
-                    } else {
-                        entry.inputArgumentDiagnosticInfos = [];
-                    }
-                }
-            }
-        }
     }
 
     protected _on_RegisterNodesRequest(message: Message, channel: ServerSecureChannelLayer): void {

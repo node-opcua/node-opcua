@@ -141,15 +141,23 @@ export class DiagnosticInfo extends BaseUAObject {
         decodeDebug_DiagnosticInfo(this, stream, options);
     }
 
-    public static filterForResponse(diagnosticInfo: DiagnosticInfo, mask: number): DiagnosticInfo {
+    public static filterForResponse(diagnostic: DiagnosticInfo, mask: number): DiagnosticInfo {
         const options: DiagnosticInfoOptions = {
-            symbolicId: (mask & DiagnosticInfo_ResponseDiagnostics.SymbolicId) ? diagnosticInfo.symbolicId : undefined,
-            localizedText: (mask & DiagnosticInfo_ResponseDiagnostics.LocalizedText) ? diagnosticInfo.localizedText : undefined,
-            additionalInfo: (mask & DiagnosticInfo_ResponseDiagnostics.AdditionalInfo) ? diagnosticInfo.additionalInfo : undefined,
-            innerStatusCode: (mask & DiagnosticInfo_ResponseDiagnostics.InnerStatusCode) ? diagnosticInfo.innerStatusCode : undefined,
-            innerDiagnosticInfo: (mask & DiagnosticInfo_ResponseDiagnostics.InnerDiagnostics)
-                ? diagnosticInfo.innerDiagnosticInfo
-                : (diagnosticInfo.innerDiagnosticInfo ? DiagnosticInfo.filterForResponse(diagnosticInfo.innerDiagnosticInfo, mask) : undefined),
+            symbolicId: (mask & DiagnosticInfo_ServiceLevelMask.SymbolicId || mask & DiagnosticInfo_OperationLevelMask.SymbolicId)
+                ? diagnostic.symbolicId
+                : undefined,
+            localizedText: (mask & DiagnosticInfo_ServiceLevelMask.LocalizedText || mask & DiagnosticInfo_OperationLevelMask.LocalizedText)
+                ? diagnostic.localizedText
+                : undefined,
+            additionalInfo: (mask & DiagnosticInfo_ServiceLevelMask.AdditionalInfo || mask & DiagnosticInfo_OperationLevelMask.AdditionalInfo)
+                ? diagnostic.additionalInfo
+                : undefined,
+            innerStatusCode: (mask & DiagnosticInfo_ServiceLevelMask.InnerStatusCode || mask & DiagnosticInfo_OperationLevelMask.InnerStatusCode)
+                ? diagnostic.innerStatusCode
+                : undefined,
+            innerDiagnosticInfo: (mask & DiagnosticInfo_ServiceLevelMask.InnerDiagnostics || mask & DiagnosticInfo_OperationLevelMask.InnerDiagnostics)
+                ? diagnostic.innerDiagnosticInfo
+                : (diagnostic.innerDiagnosticInfo ? DiagnosticInfo.filterForResponse(diagnostic.innerDiagnosticInfo, mask) : undefined),
         }
         return new DiagnosticInfo(options);
     }
@@ -168,12 +176,7 @@ export interface DiagnosticInfoOptions {
     innerDiagnosticInfo?: DiagnosticInfo;
 }
 
-export enum DiagnosticInfo_ResponseDiagnosticsLevel {
-    Service = 0x01,
-    Operation = 0x20
-}
-
-export enum DiagnosticInfo_ResponseDiagnostics {
+export enum DiagnosticInfo_ServiceLevelMask {
     None = 0x00,
     SymbolicId = 0x01,
     LocalizedText = 0x02,
@@ -182,27 +185,22 @@ export enum DiagnosticInfo_ResponseDiagnostics {
     InnerDiagnostics = 0x10
 }
 
-// in the case of operation diagnostics being requested, we need to determine how many bits we need to shift to the right
-// we do this in order to prevent code duplication which would've been introduced by creating another enum
-const enumNumberValues = Object.values(DiagnosticInfo_ResponseDiagnostics).filter((value) => typeof value === "number" && value !== 0);
-// the number of bits we need to shift is calculated by counting the non-zero elements in the enumeration
-export const OPERATION_DIAGNOSTICS_BITS_TO_SHIFT: number = enumNumberValues.length;
+export enum DiagnosticInfo_OperationLevelMask {
+    SymbolicId = 0x020,
+    LocalizedText = 0x040,
+    AdditionalInfo = 0x080,
+    InnerStatusCode = 0x0100,
+    InnerDiagnostics = 0x0200
+}
 
-export const RESPONSE_DIAGNOSTICS_MASK_ALL =
-    DiagnosticInfo_ResponseDiagnostics.SymbolicId | DiagnosticInfo_ResponseDiagnostics.LocalizedText | DiagnosticInfo_ResponseDiagnostics.AdditionalInfo |
-    DiagnosticInfo_ResponseDiagnostics.InnerStatusCode | DiagnosticInfo_ResponseDiagnostics.InnerDiagnostics;
+export const RESPONSE_DIAGNOSTICS_MASK_ALL = 0x3FF;
 
-export function filterDiagnosticInfoLevel(returnDiagnostics: number, diagnosticInfo: DiagnosticInfo | (DiagnosticInfo | null)[] | null): void {
-    if (!diagnosticInfo) {
-        return;
+export function filterDiagnosticInfoLevel(returnDiagnostics: number, diagnostic: DiagnosticInfo | null): DiagnosticInfo | null {
+    if (!diagnostic) {
+        return null;
     }
-    const items = Array.isArray(diagnosticInfo) ? diagnosticInfo : [diagnosticInfo];
-    for (let entry of items) {
-        if (!entry) {
-            continue;
-        }
-        entry = DiagnosticInfo.filterForResponse(entry, returnDiagnostics);
-    }
+
+    return DiagnosticInfo.filterForResponse(diagnostic, returnDiagnostics);
 }
 
 export enum DiagnosticInfo_EncodingByte {
