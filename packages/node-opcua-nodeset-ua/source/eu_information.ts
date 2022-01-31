@@ -11,8 +11,8 @@ import { DTStructure } from "./dt_structure"
  * | isAbstract|false                                             |
  */
 export interface EUInformation extends DTStructure  {
-  "$namespaceUri": UAString; // String ns=0;i=12
+  namespaceUri: UAString; // String ns=0;i=12
   unitId: Int32; // Int32 ns=0;i=6
-  "$displayName": LocalizedText; // LocalizedText ns=0;i=21
+  displayName: LocalizedText; // LocalizedText ns=0;i=21
   description: LocalizedText; // LocalizedText ns=0;i=21
 }

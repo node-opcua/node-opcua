@@ -12,5 +12,5 @@ import { DTRolePermission } from "./dt_role_permission"
  */
 export interface DTSubscribedDataSetMirror extends DTSubscribedDataSet  {
   parentNodeName: UAString; // String ns=0;i=12
-  "$rolePermissions": DTRolePermission[]; // ExtensionObject ns=0;i=96
+  rolePermissions: DTRolePermission[]; // ExtensionObject ns=0;i=96
 }

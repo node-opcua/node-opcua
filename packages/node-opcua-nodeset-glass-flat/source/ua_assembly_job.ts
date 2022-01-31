@@ -7,8 +7,8 @@ import { UAAnalogUnit } from "node-opcua-nodeset-ua/source/ua_analog_unit"
 import { UABaseMaterial } from "./ua_base_material"
 import { UAAssembly } from "./ua_assembly"
 import { UAProductionJob, UAProductionJob_Base } from "./ua_production_job"
-export interface UAAssemblyJob_$InputMaterial$ extends Omit<UABaseMaterial, "description"|"identifier"|"location"|"materialIdentifier"|"weight"|"x"|"y"|"z"> { // Object
-      description?: UAProperty<LocalizedText, /*z*/DataType.LocalizedText>;
+export interface UAAssemblyJob_$InputMaterial$ extends Omit<UABaseMaterial, "$description"|"identifier"|"location"|"materialIdentifier"|"weight"|"x"|"y"|"z"> { // Object
+      "$description"?: UAProperty<LocalizedText, /*z*/DataType.LocalizedText>;
       identifier: UAProperty<UAString, /*z*/DataType.String>;
       location: UAProperty<UAString, /*z*/DataType.String>;
       materialIdentifier: UAProperty<UAString, /*z*/DataType.String>;
