@@ -170,11 +170,11 @@ function _dumpReferences(xw: XmlWriter, node: BaseNode) {
     xw.endElement();
 }
 function _dumpLocalizedText(xw: XmlWriter, v: LocalizedText) {
-    xw.startElement("Locale");
-    if (v.locale) {
+    if (v.locale && v.locale.length) {
+        xw.startElement("Locale");
         xw.text(v.locale);
+        xw.endElement();
     }
-    xw.endElement();
     xw.startElement("Text");
     if (v.text) {
         xw.text(v.text);
@@ -802,7 +802,7 @@ function _dumpUADataTypeDefinition(xw: XmlWriter, uaDataType: UADataType) {
         const definition = uaDataType.getStructureDefinition();
         const baseDefinition = uaDataTypeBase ? uaDataTypeBase.getStructureDefinition() : null;
         xw.startElement("Definition");
-        xw.writeAttribute("Name", uaDataType.browseName.name!);
+        xw.writeAttribute("Name", b(xw,uaDataType.browseName));
         if (definition.structureType === StructureType.Union) {
             xw.writeAttribute("IsUnion", "true");
         }

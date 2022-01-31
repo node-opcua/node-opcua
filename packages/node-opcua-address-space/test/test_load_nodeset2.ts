@@ -336,23 +336,18 @@ describe("testing NodeSet XML file loading", function (this: any) {
         <Value>
             <ListOfLocalizedText xmlns="http://opcfoundation.org/UA/2008/02/Types.xsd">
                 <LocalizedText>
-                    <Locale/>
                     <Text>NORMAL</Text>
                 </LocalizedText>
                 <LocalizedText>
-                    <Locale/>
                     <Text>FAILURE</Text>
                 </LocalizedText>
                 <LocalizedText>
-                    <Locale/>
                     <Text>CHECK_FUNCTION</Text>
                 </LocalizedText>
                 <LocalizedText>
-                    <Locale/>
                     <Text>OFF_SPEC</Text>
                 </LocalizedText>
                 <LocalizedText>
-                    <Locale/>
                     <Text>MAINTENANCE_REQUIRED</Text>
                 </LocalizedText>
             </ListOfLocalizedText>
