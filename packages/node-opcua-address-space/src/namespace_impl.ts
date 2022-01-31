@@ -1838,6 +1838,7 @@ export class NamespaceImpl implements NamespacePrivate {
         const objectType = this.internalCreateNode({
             browseName: options.browseName,
             displayName: options.displayName,
+            description: options.description,
             eventNotifier: +options.eventNotifier,
             isAbstract: !!options.isAbstract,
             nodeClass,
