@@ -4,6 +4,7 @@
 import { assert } from "console";
 import { Guid } from "node-opcua-guid";
 import { NodeId, NodeIdType } from "./nodeid";
+import { Namespace } from "node-opcua-address-space"
 
 /**
  * An ExpandedNodeId extends the NodeId structure.
@@ -95,7 +96,7 @@ export class ExpandedNodeId extends NodeId {
     }
 }
 
-export function coerceExpandedNodeId(value: unknown): ExpandedNodeId {
+export function coerceExpandedNodeId(value: unknown, namespaceArray?: Namespace[]): ExpandedNodeId {
     if (value === undefined) {
         return new ExpandedNodeId(NodeIdType.NUMERIC, 0, 0, null, 0);
     }
@@ -155,7 +156,18 @@ export function coerceExpandedNodeId(value: unknown): ExpandedNodeId {
             }
         });
         return new ExpandedNodeId(identifierType, identifier, namespaceIndex, namespaceUri, serverIndex)
-    } else {
+    } else if (value instanceof NodeId) {
+        let n;
+        n = value;
+        if (namespaceArray) {
+            namespaceUri = namespaceArray[n.namespace].namespaceUri;
+        }
+        namespaceIndex = n.namespace;
+        identifierType = n.identifierType;
+        identifier = n.value;
+        return new ExpandedNodeId(identifierType, identifier, namespaceIndex, namespaceUri, serverIndex);
+    }
+    else {
         return new ExpandedNodeId(NodeIdType.NUMERIC, 0, 0, null, 0);
     }
 }
