@@ -141,23 +141,15 @@ export class DiagnosticInfo extends BaseUAObject {
         decodeDebug_DiagnosticInfo(this, stream, options);
     }
 
-    public static filterForResponse(diagnostic: DiagnosticInfo, mask: number): DiagnosticInfo {
+    public static filterForResponse(diagnostic: DiagnosticInfo, mask: number, enumeration: DiagnosticInfo_Mask): DiagnosticInfo {
         const options: DiagnosticInfoOptions = {
-            symbolicId: (mask & DiagnosticInfo_ServiceLevelMask.SymbolicId || mask & DiagnosticInfo_OperationLevelMask.SymbolicId)
-                ? diagnostic.symbolicId
-                : undefined,
-            localizedText: (mask & DiagnosticInfo_ServiceLevelMask.LocalizedText || mask & DiagnosticInfo_OperationLevelMask.LocalizedText)
-                ? diagnostic.localizedText
-                : undefined,
-            additionalInfo: (mask & DiagnosticInfo_ServiceLevelMask.AdditionalInfo || mask & DiagnosticInfo_OperationLevelMask.AdditionalInfo)
-                ? diagnostic.additionalInfo
-                : undefined,
-            innerStatusCode: (mask & DiagnosticInfo_ServiceLevelMask.InnerStatusCode || mask & DiagnosticInfo_OperationLevelMask.InnerStatusCode)
-                ? diagnostic.innerStatusCode
-                : undefined,
-            innerDiagnosticInfo: (mask & DiagnosticInfo_ServiceLevelMask.InnerDiagnostics || mask & DiagnosticInfo_OperationLevelMask.InnerDiagnostics)
-                ? diagnostic.innerDiagnosticInfo
-                : (diagnostic.innerDiagnosticInfo ? DiagnosticInfo.filterForResponse(diagnostic.innerDiagnosticInfo, mask) : undefined),
+            symbolicId: (mask & enumeration.SymbolicId) ? diagnostic.symbolicId: undefined,
+            localizedText: (mask & enumeration.LocalizedText) ? diagnostic.localizedText: undefined,
+            additionalInfo: (mask & enumeration.AdditionalInfo) ? diagnostic.additionalInfo: undefined,
+            innerStatusCode: (mask & enumeration.InnerStatusCode) ? diagnostic.innerStatusCode: undefined,
+            innerDiagnosticInfo: (mask & enumeration.InnerDiagnostics) ? diagnostic.innerDiagnosticInfo : (
+                diagnostic.innerDiagnosticInfo ? DiagnosticInfo.filterForResponse(diagnostic.innerDiagnosticInfo, mask, enumeration) : undefined
+            ),
         }
         return new DiagnosticInfo(options);
     }
@@ -193,14 +185,17 @@ export enum DiagnosticInfo_OperationLevelMask {
     InnerDiagnostics = 0x0200
 }
 
+type DiagnosticInfo_Mask = typeof DiagnosticInfo_ServiceLevelMask | typeof DiagnosticInfo_OperationLevelMask;
+
 export const RESPONSE_DIAGNOSTICS_MASK_ALL = 0x3FF;
 
-export function filterDiagnosticInfoLevel(returnDiagnostics: number, diagnostic: DiagnosticInfo | null): DiagnosticInfo | null {
+export function filterDiagnosticInfoLevel(returnDiagnostics: number, diagnostic: DiagnosticInfo | null, level: "service" | "operation"): DiagnosticInfo | null {
     if (!diagnostic) {
         return null;
     }
 
-    return DiagnosticInfo.filterForResponse(diagnostic, returnDiagnostics);
+    const enumeration = level === "service" ? DiagnosticInfo_ServiceLevelMask : DiagnosticInfo_OperationLevelMask;
+    return DiagnosticInfo.filterForResponse(diagnostic, returnDiagnostics, enumeration);
 }
 
 export enum DiagnosticInfo_EncodingByte {

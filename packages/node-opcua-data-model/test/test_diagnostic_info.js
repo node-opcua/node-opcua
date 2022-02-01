@@ -137,7 +137,7 @@ describe("DiagnosticInfo", function () {
             | DiagnosticInfo_ServiceLevelMask.InnerStatusCode
             | DiagnosticInfo_ServiceLevelMask.InnerDiagnostics;
 
-        diag = DiagnosticInfo.filterForResponse(diag, serviceLevelMask);
+        diag = DiagnosticInfo.filterForResponse(diag, serviceLevelMask, DiagnosticInfo_ServiceLevelMask);
         diag.localizedText.should.equal(2345);
         diag.symbolicId.should.equal(3456);
         diag.additionalInfo.should.equal("test");
@@ -156,7 +156,7 @@ describe("DiagnosticInfo", function () {
             innerDiagnosticInfo: new DiagnosticInfo({ additionalInfo: "test 2" })
         });
 
-        diag = DiagnosticInfo.filterForResponse(diag, DiagnosticInfo_ServiceLevelMask.None);
+        diag = DiagnosticInfo.filterForResponse(diag, DiagnosticInfo_ServiceLevelMask.None, DiagnosticInfo_ServiceLevelMask);
         diag.localizedText.should.equal(-1);
         diag.symbolicId.should.equal(-1);
         should(diag.additionalInfo).equal(null);
@@ -181,7 +181,7 @@ describe("DiagnosticInfo", function () {
             | DiagnosticInfo_ServiceLevelMask.AdditionalInfo
             | DiagnosticInfo_ServiceLevelMask.SymbolicId;
 
-        diag = DiagnosticInfo.filterForResponse(diag, serviceLevelMask);
+        diag = DiagnosticInfo.filterForResponse(diag, serviceLevelMask, DiagnosticInfo_ServiceLevelMask);
         diag.localizedText.should.equal(2345);
         diag.symbolicId.should.equal(3456);
         diag.additionalInfo.should.equal("test");
@@ -205,7 +205,7 @@ describe("DiagnosticInfo", function () {
             innerStatusCode: StatusCodes.Bad,
             innerDiagnosticInfo: new DiagnosticInfo({ additionalInfo: "test 2", innerStatusCode: StatusCodes.Bad, symbolicId: 34567 })
         });
-        const filtered = filterDiagnosticInfoLevel(serviceLevelMask, diagnostic);
+        const filtered = filterDiagnosticInfoLevel(serviceLevelMask, diagnostic, "service");
 
         filtered.localizedText.should.equal(diagnostic.localizedText);
         filtered.symbolicId.should.equal(diagnostic.symbolicId);
