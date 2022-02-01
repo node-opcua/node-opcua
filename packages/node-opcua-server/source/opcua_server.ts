@@ -679,14 +679,14 @@ function validate_security_endpoint(
     return { errCode: StatusCodes.Good, endpoint: endpoints_matching_security_policy[0] };
 }
 
-function filterDiagnosticInfo(returnDiagnostics: number, response: CallResponse): void {
+export function filterDiagnosticInfo(returnDiagnostics: number, response: CallResponse): void {
     if (RESPONSE_DIAGNOSTICS_MASK_ALL & returnDiagnostics) {
-        response.responseHeader.serviceDiagnostics = filterDiagnosticInfoLevel(returnDiagnostics, response.responseHeader.serviceDiagnostics);
+        response.responseHeader.serviceDiagnostics = filterDiagnosticInfoLevel(returnDiagnostics, response.responseHeader.serviceDiagnostics, "service");
 
         if (response.diagnosticInfos && response.diagnosticInfos.length > 0) {
             response.diagnosticInfos.forEach(
                 (diagnostic: DiagnosticInfo | null, index: number, array: (DiagnosticInfo | null)[]) =>
-                    array[index] = filterDiagnosticInfoLevel(returnDiagnostics, diagnostic)
+                    array[index] = filterDiagnosticInfoLevel(returnDiagnostics, diagnostic, "operation")
             );
         } else {
             response.diagnosticInfos = [];
@@ -697,7 +697,7 @@ function filterDiagnosticInfo(returnDiagnostics: number, response: CallResponse)
                 if (entry.inputArgumentDiagnosticInfos && entry.inputArgumentDiagnosticInfos.length > 0) {
                     entry.inputArgumentDiagnosticInfos.forEach(
                         (diagnostic: DiagnosticInfo | null, index: number, array: (DiagnosticInfo | null)[]) =>
-                            array[index] = filterDiagnosticInfoLevel(returnDiagnostics, diagnostic)
+                            array[index] = filterDiagnosticInfoLevel(returnDiagnostics, diagnostic, "operation")
                     );
                 } else {
                     entry.inputArgumentDiagnosticInfos = [];
