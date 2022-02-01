@@ -793,7 +793,7 @@ function _dumpUADataTypeDefinition(xw: XmlWriter, uaDataType: UADataType) {
 
     if (uaDataType.isEnumeration()) {
         xw.startElement("Definition");
-        xw.writeAttribute("Name", uaDataType.browseName.name!);
+        xw.writeAttribute("Name", b(xw, uaDataType.browseName));
         _dumpEnumDefinition(xw, uaDataType.getEnumDefinition());
         xw.endElement();
         return;
@@ -802,7 +802,7 @@ function _dumpUADataTypeDefinition(xw: XmlWriter, uaDataType: UADataType) {
         const definition = uaDataType.getStructureDefinition();
         const baseDefinition = uaDataTypeBase ? uaDataTypeBase.getStructureDefinition() : null;
         xw.startElement("Definition");
-        xw.writeAttribute("Name", b(xw,uaDataType.browseName));
+        xw.writeAttribute("Name", b(xw, uaDataType.browseName));
         if (definition.structureType === StructureType.Union) {
             xw.writeAttribute("IsUnion", "true");
         }

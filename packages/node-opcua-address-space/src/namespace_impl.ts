@@ -1140,11 +1140,7 @@ export class NamespaceImpl implements NamespacePrivate {
             parentObject !== null && typeof parentObject === "object" && parentObject instanceof BaseNodeImpl,
             "expecting a valid parent object"
         );
-
         assert(Object.prototype.hasOwnProperty.call(options, "browseName"));
-        assert(!Object.prototype.hasOwnProperty.call(options, "inputArguments") || Array.isArray(options.inputArguments));
-        assert(!Object.prototype.hasOwnProperty.call(options, "outputArguments") || Array.isArray(options.outputArguments));
-
         options.componentOf = parentObject;
 
         const method = this._addMethod(options);

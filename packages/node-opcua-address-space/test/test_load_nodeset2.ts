@@ -309,7 +309,7 @@ describe("testing NodeSet XML file loading", function (this: any) {
             <Reference ReferenceType="HasSubtype" IsForward="false">i=29</Reference>
             <Reference ReferenceType="HasProperty">ns=1;i=6450</Reference>
         </References>
-        <Definition Name="DeviceHealthEnumeration">
+        <Definition Name="1:DeviceHealthEnumeration">
             <Field Name="NORMAL" Value="0">
                 <Description>This device functions normally.</Description>
             </Field>

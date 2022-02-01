@@ -1,9 +1,8 @@
 /* eslint-disable max-statements */
 import { BaseNode, Namespace, UADataType, UAObjectType, UAReferenceType, UAVariableType } from "node-opcua-address-space";
 import { coerceUInt32 } from "node-opcua-basic-types";
-import { DataTypeDefinition, EnumDefinition, StructureDefinition, StructureField } from "node-opcua-types";
 import { DataType } from "node-opcua-variant";
-import { object } from "underscore";
+
 import { displayNodeElement } from "./displayNodeElement";
 import { TableHelper } from "./tableHelper";
 import { dumpClassHierachry, graphVizToPlantUml, opcuaToDot } from "./to_graphivz";
@@ -46,7 +45,6 @@ function dataTypeToMarkdown(dataType: UADataType): string {
     const addressSpace = dataType.addressSpace;
 
     const writer = new Writer();
-    const definition: DataTypeDefinition = dataType.getDefinition();
 
     writer.writeLine("\nisAbstract: " + (dataType.isAbstract ? "Yes" : "No"));
     if (dataType.subtypeOfObj) {
@@ -54,7 +52,8 @@ function dataTypeToMarkdown(dataType: UADataType): string {
     }
     writer.writeLine("");
 
-    if (definition instanceof EnumDefinition) {
+    if (dataType.isEnumeration()) {
+        const definition = dataType.getEnumDefinition();
         writer.writeLine("\nBasic Type: " + (DataType as any)[DataType.UInt32]);
         writer.writeLine("");
 
@@ -63,7 +62,8 @@ function dataTypeToMarkdown(dataType: UADataType): string {
             table.push([f.name, coerceUInt32(f.value[1]), f.description.text || ""]);
         }
         writer.writeLine(table.toMarkdownTable());
-    } else if (definition instanceof StructureDefinition) {
+    } else if (dataType.isStructure()) {
+        const definition = dataType.getStructureDefinition();
         writer.writeLine("\nBasic Type: " + (DataType as any)[dataType.basicDataType]);
 
         const table = new TableHelper(["Name", "data type", "value rank", "maxStringLength", "Dimensions", "Description"]);
@@ -76,7 +76,7 @@ function dataTypeToMarkdown(dataType: UADataType): string {
                 f.valueRank ? f.valueRank : "",
                 f.maxStringLength ? f.maxStringLength : "",
                 f.arrayDimensions ? f.arrayDimensions : "",
-                (f.description.text || "").replace(/\n/g, "<br>"),
+                (f.description.text || "").replace(/\n/g, "<br>")
             ]);
         }
         writer.writeLine(table.toMarkdownTable());
@@ -98,7 +98,7 @@ export async function buildDocumentation(namespace: Namespace, writer: IWriter):
     writer.writeLine("# Namespace " + namespaceUri);
     writer.writeLine("");
     // -------------- writeReferences
-    const namespacePriv = (namespace as unknown) as NamespacePriv2;
+    const namespacePriv = namespace as unknown as NamespacePriv2;
     writer.writeLine("");
     writer.writeLine("##  References ");
     writer.writeLine("");
@@ -126,7 +126,7 @@ export async function buildDocumentation(namespace: Namespace, writer: IWriter):
         writer.writeLine("\n\n### " + objectType.browseName.name!.toString());
         writer.writeLine(d(objectType));
 
-        writer.writeLine(graphVizToPlantUml(dumpClassHierachry(objectType, {showBaseType: true, depth: 2})));
+        writer.writeLine(graphVizToPlantUml(dumpClassHierachry(objectType, { showBaseType: true, depth: 2 })));
 
         writer.writeLine(graphVizToPlantUml(opcuaToDot(objectType)));
 
@@ -153,10 +153,9 @@ export async function buildDocumentation(namespace: Namespace, writer: IWriter):
         writer.writeLine(d(variableType));
         writer.writeLine("");
 
-        writer.writeLine(graphVizToPlantUml(dumpClassHierachry(variableType, {showBaseType: true, depth: 2})));
+        writer.writeLine(graphVizToPlantUml(dumpClassHierachry(variableType, { showBaseType: true, depth: 2 })));
 
         writer.writeLine(graphVizToPlantUml(opcuaToDot(variableType)));
-
 
         // enumerate components
         writer.writeLine(displayNodeElement(variableType, { format: "markdown" }));
@@ -168,5 +167,3 @@ export async function buildDocumentation(namespace: Namespace, writer: IWriter):
         }
     }
 }
-
-
