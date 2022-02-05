@@ -7,13 +7,17 @@ import {
     UADataType,
     UAObjectType,
     UAVariableType,
-    UAMethod
+    UAMethod,
+    UAStateMachineEx,
+    promoteToStateMachine
 } from "node-opcua-address-space";
+import { UAStateMachineImpl } from "node-opcua-address-space/src/state_machine/finite_state_machine";
 import { ReferenceTypeIds } from "node-opcua-constants";
 import { BrowseDirection, NodeClass } from "node-opcua-data-model";
+import { resolveNodeId } from "node-opcua-nodeid";
 
 function e(str: string): string {
-    return str.replace(/</g,"&lt;").replace(/>/g,"&gt;");
+    return str.replace(/</g, "&lt;").replace(/>/g, "&gt;");
 }
 function innerText(node: UAObject | UAVariable) {
     const browseName = node.browseName.name;
@@ -30,7 +34,7 @@ function arrowHeadAttribute(reference: UAReference): string {
         case ReferenceTypeIds.HasTypeDefinition:
             return "normalnormal";
         case ReferenceTypeIds.HasComponent:
-            return "noneteetree";
+            return "noneteetee";
         case ReferenceTypeIds.HasProperty:
             return "nonetee";
         case ReferenceTypeIds.HasSubtype:
@@ -48,16 +52,16 @@ function arrowHead(reference: UAReference): string {
 const regularShapes: Record<string, string> = {
     ObjectType: '[shape=rectangle, style="filled" fillcolor="#e8edf7;0.75:#d2def0" gradientangle=275]',
     VariableType: '[shape=rectangle, style="rounded,filled" fillcolor="#e8edf7;0.75:#d2def0" gradientangle=275]',
-    Object: ' [shape=rectangle, style="rounded,filled" fillcolor="#e8edf7"]',
+    Object: ' [shape=rectangle, style="filled" fillcolor="#e8edf7"]',
     Variable: '[shape=rectangle, style="filled,rounded" fillcolor="#e8edf7"]',
-    Method: '[shape=circle, style="filled" fillcolor="#e8edf7"]'
+    Method: '[shape=oval, style="filled" fillcolor="#e8edf7"]'
 };
 const regularShapesOptionals: Record<string, string> = {
     ObjectType: '[shape=rectangle, style="filled,dashed" fillcolor="#e8edf7;0.75:#d2def0" gradientangle=275]',
     VariableType: '[shape=rectangle, style="rounded,filled,dashed" fillcolor="#e8edf7;0.75:#d2def0" gradientangle=275]',
-    Object: ' [shape=rectangle, style="rounded,filled,dashed" fillcolor="#e8edf7"]',
+    Object: ' [shape=rectangle, style="filled,dashed" fillcolor="#e8edf7"]',
     Variable: '[shape=rectangle, style="filled,rounded,dashed" fillcolor="#e8edf7"]',
-    Method: '[shape=circle, style="filled,dashed" fillcolor="#e8edf7"]'
+    Method: '[shape=oval, style="filled,dashed" fillcolor="#e8edf7"]'
 };
 
 interface Options {
@@ -69,15 +73,13 @@ class NodeRegistry {
     invisibleNodes: string[] = [];
     duplicated: { [key: string]: string } = {};
     add(name: string, node: BaseNode) {
-        
         if (this.duplicated[name]) {
-            return;//throw new Error("Already included");
+            return; //throw new Error("Already included");
         }
-        this.duplicated[name]= name;
+        this.duplicated[name] = name;
         const nodeClass = NodeClass[node.nodeClass];
         this.m[nodeClass] = this.m[nodeClass] || [];
         this.m[nodeClass].push({ name, node });
-
     }
     addInvisibleNode(name: string) {
         this.invisibleNodes.push(name);
@@ -116,7 +118,20 @@ function dumpNodeByNodeClass(str: string[], nodeRegistry: NodeRegistry) {
         str.push(`  ${nodeRegistry.invisibleNodes.join("\n  ")};`);
     }
 }
+
+import { dumpStateMachineToPlantUML } from "./dump_state_machine_to_graphviz";
+
 export function opcuaToDot(node: UAObjectType | UAVariableType, options?: Options): string {
+    if (node.nodeClass === NodeClass.ObjectType) {
+        const finitieStateMachineType = node.addressSpace.findObjectType("FiniteStateMachineType");
+        if (finitieStateMachineType) {
+            if ((node as UAObjectType).isSupertypeOf(finitieStateMachineType)) {
+                const stateMachine = node.instantiate({ browseName: "StateMachine" }) as UAObject;
+                promoteToStateMachine(stateMachine);
+                return dumpStateMachineToPlantUML(stateMachine as UAStateMachineEx);
+            }
+        }
+    }
     options = options || { naked: false };
     const nodeRegistry = new NodeRegistry();
 
@@ -130,7 +145,7 @@ export function opcuaToDot(node: UAObjectType | UAVariableType, options?: Option
     }
 
     function makeId(p: string, c: string) {
-        return `${p}_${c}`.replace(" ", "_").replace(/<|>/g, "_");	
+        return `${p}_${c}`.replace(" ", "_").replace(/<|>/g, "_");
     }
     // eslint-disable-next-line max-params
     // eslint-disable-next-line max-statements
@@ -148,10 +163,11 @@ export function opcuaToDot(node: UAObjectType | UAVariableType, options?: Option
         const browseName = (parent || node).browseName.name!.toString();
         const r: string[] = [];
         const r2: string[] = [];
-        const references = node.findReferencesEx("Aggregates", BrowseDirection.Forward);
-        const folderElements = node.findReferencesEx("Organizes", BrowseDirection.Forward);
+
+        const references = (parent || node).findReferencesEx("Aggregates", BrowseDirection.Forward);
+        const folderElements = (parent || node).findReferencesEx("Organizes", BrowseDirection.Forward);
         const childReferences = [...references, ...folderElements];
-        const id = makeId(parentNode,browseName);
+        const id = makeId(parentNode, browseName);
         nodeRegistry.add(id, node);
 
         function addInvisibleNode(prefix: string, index: number) {
@@ -167,7 +183,7 @@ export function opcuaToDot(node: UAObjectType | UAVariableType, options?: Option
             const childNode = reference.node! as UAVariable | UAObject | UAMethod;
             const childName = childNode.browseName.name!.toString();
 
-            const fullChildName = makeId(id,childName);
+            const fullChildName = makeId(id, childName);
             // avoid member duplication
             if (visitorMap[fullChildName]) {
                 continue;
@@ -206,12 +222,12 @@ export function opcuaToDot(node: UAObjectType | UAVariableType, options?: Option
                     parentNode,
                     node.subtypeOfObj,
                     node,
-                    r.length,
+                    r.length + offset + 1,
                     prefix,
                     true,
                     visitorMap
                 );
-                innerDepth += depth;
+                innerDepth += depth + 1;
                 r2.push(...rr2);
             }
         }

@@ -31,7 +31,7 @@ describe("toDot", () => {
         console.log(dot);
         dot.should.eql(
             `digraph G {
-  { rank=same r0 -> _A_P [arrowhead = noneteetree] }
+  { rank=same r0 -> _A_P [arrowhead = noneteetee] }
   _A -> r0 [arrowhead=none];
 }`
         );
@@ -54,9 +54,9 @@ describe("toDot", () => {
         console.log(dot);
         dot.should.eql(
             `digraph G {
-  { rank=same r0_0 -> _A_P_N [arrowhead = noneteetree] }
+  { rank=same r0_0 -> _A_P_N [arrowhead = noneteetee] }
   _A_P -> r0_0 [arrowhead=none];
-  { rank=same r0 -> _A_P [arrowhead = noneteetree] }
+  { rank=same r0 -> _A_P [arrowhead = noneteetee] }
   _A -> r0 [arrowhead=none];
 }`
         );
@@ -87,12 +87,12 @@ describe("toDot", () => {
         console.log(dot);
         dot.should.eql(
             `digraph G {
-  { rank=same r0_0 -> _A_P1_N1 [arrowhead = noneteetree] }
+  { rank=same r0_0 -> _A_P1_N1 [arrowhead = noneteetee] }
   _A_P1 -> r0_0 [arrowhead=none];
-  { rank=same r2_0 -> _A_P2_N2 [arrowhead = noneteetree] }
+  { rank=same r2_0 -> _A_P2_N2 [arrowhead = noneteetee] }
   _A_P2 -> r2_0 [arrowhead=none];
-  { rank=same r0 -> _A_P1 [arrowhead = noneteetree] }
-  { rank=same r2 -> _A_P2 [arrowhead = noneteetree] }
+  { rank=same r0 -> _A_P1 [arrowhead = noneteetee] }
+  { rank=same r2 -> _A_P2 [arrowhead = noneteetee] }
   _A -> r0 -> r1 -> r2 [arrowhead=none];
 }`);
     });
@@ -136,8 +136,8 @@ describe("toDot", () => {
   { rank=same r3_0 -> _A_P2_EURange [arrowhead = nonetee] }
   { rank=same r3_1 -> _A_P2_EngineeringUnit [arrowhead = nonetee] }
   _A_P2 -> r3_0 -> r3_1 [arrowhead=none];
-  { rank=same r0 -> _A_P1 [arrowhead = noneteetree] }
-  { rank=same r3 -> _A_P2 [arrowhead = noneteetree] }
+  { rank=same r0 -> _A_P1 [arrowhead = noneteetee] }
+  { rank=same r3 -> _A_P2 [arrowhead = noneteetee] }
   _A -> r0 -> r1 -> r2 -> r3 [arrowhead=none];
 }`
         );
