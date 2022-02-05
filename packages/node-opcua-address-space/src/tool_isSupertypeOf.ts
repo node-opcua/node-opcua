@@ -3,7 +3,7 @@
  */
 
 import { assert } from "node-opcua-assert";
-import { NodeId, resolveNodeId } from "node-opcua-nodeid";
+import { NodeId, NodeIdLike, resolveNodeId } from "node-opcua-nodeid";
 import { sameNodeId } from "node-opcua-nodeid";
 import { BaseNode, UADataType, UAObjectType, UAReference, UAReferenceType, UAVariableType } from "node-opcua-address-space-base";
 
@@ -19,7 +19,14 @@ function _filterSubType(reference: UAReference) {
 
 export type BaseNodeConstructor<T extends BaseNode> = new () => T;
 
-function _slow_isSupertypeOf<T extends UAType>(this: T, Class: typeof BaseNodeImpl, baseType: T): boolean {
+function _slow_isSupertypeOf<T extends UAType>(this: T, Class: typeof BaseNodeImpl, baseType: T | NodeIdLike): boolean {
+    if (!(baseType instanceof Class)) {
+        const node = this.addressSpace.findNode(baseType as NodeIdLike);
+        if (!node || !(node instanceof Class)) {
+            throw new Error("Invalid argument");
+        }
+        return _slow_isSupertypeOf.call(this, Class, node as unknown as T);
+    }
     assert(this instanceof Class);
     assert(baseType instanceof Class, " Object must have same type");
     assert(this.addressSpace);
@@ -88,16 +95,15 @@ export type IsSupertypeOfFunc<T extends UAType> = (this: T, baseType: T) => bool
 export type UAType = UAReferenceType | UADataType | UAObjectType | UAVariableType;
 
 export function construct_isSupertypeOf<T extends UAType>(Class: typeof BaseNodeImpl): IsSupertypeOfFunc<T> {
-    assert(typeof Class === "function");
-    return wrap_memoize(function (this: T, baseType: T): boolean {
+    return wrap_memoize(function (this: T, baseType: T | NodeIdLike): boolean {
         assert(baseType instanceof Class);
         assert(this instanceof Class);
-        return _slow_isSupertypeOf.call(this, Class, baseType);
+        return _slow_isSupertypeOf.call(this, Class, baseType as T);
     }, hashBaseNode);
 }
 
 export function construct_slow_isSupertypeOf<T extends UAType>(Class: typeof BaseNodeImpl) {
-    return function (this: T, baseType: T): boolean {
+    return function (this: T, baseType: T | NodeIdLike): boolean {
         return _slow_isSupertypeOf.call(this, Class, baseType);
     };
 }

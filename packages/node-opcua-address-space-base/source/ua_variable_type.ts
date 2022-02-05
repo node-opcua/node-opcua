@@ -36,7 +36,7 @@ export declare class UAVariableType extends BaseNode implements VariableAttribut
 
     public isAbstract: boolean;
 
-    public isSupertypeOf(type: UAVariableType): boolean;
+    public isSupertypeOf(type:  UAVariableType | NodeIdLike): boolean;
 
     public instantiate(options: InstantiateVariableOptions): UAVariable;
 }
