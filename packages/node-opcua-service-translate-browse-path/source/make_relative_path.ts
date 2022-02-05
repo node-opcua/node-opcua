@@ -113,11 +113,11 @@ export function makeRelativePath(str: string, addressSpace?: any): RelativePath 
     let r: any = {
         elements: []
     };
-
+    const originalStr = str;
     while (str.length > 0) {
         const matches = str.match(regRelativePath);
         if (!matches) {
-            throw new Error("Malformed relative path  :'" + str + "'");
+            throw new Error("Malformed relative path  :'" + str + "'" + " in " + originalStr);
         }
         // console.log(mm);
 
