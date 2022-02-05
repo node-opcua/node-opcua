@@ -95,7 +95,7 @@ export class ClientSessionKeepAliveManager extends EventEmitter implements Clien
      */
     private async _ping_server(): Promise<number> {
         const session = this.session;
-        if (!session) {
+        if (!session || session.isReconnecting) {
             debugLog("ClientSessionKeepAliveManager#ping_server => no session available");
             return 0;
         }
