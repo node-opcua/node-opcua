@@ -411,7 +411,7 @@ export class OPCUAClientImpl extends ClientBaseImpl implements OPCUAClient {
 
                 this._addSession(session as ClientSessionImpl);
 
-                this._activateSession(session as ClientSessionImpl, (err1: Error | null, session2?: ClientSessionImpl) => {
+                this._activateSession(session as ClientSessionImpl, (err1: Error | null, session2?: ClientSessionImpl) => {                  
                     callback(err1, session2);
                 });
             }
@@ -1037,6 +1037,9 @@ export class OPCUAClientImpl extends ClientBaseImpl implements OPCUAClient {
                     session._client = this;
                     session.serverNonce = response.serverNonce;
                     session.lastResponseReceivedTime = new Date();
+                    if (this.keepSessionAlive) {
+                        session.startKeepAliveManager();
+                    }            
                     return callback(null, session);
                 } else {
                     // restore client
