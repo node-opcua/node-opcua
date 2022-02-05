@@ -38,7 +38,9 @@ const hasSubtypeNodeId = resolveNodeId("HasSubtype");
 export interface DisplayNodeOptions {
     format: "cli" | "markdown";
 }
-
+function encodeXML(s: string) {
+    return s.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;");
+}
 interface Data {
     table: TableHelper;
     node: BaseNode;
@@ -70,11 +72,12 @@ function dumpReference(data: Data, ref: UAReference, filter?: string) {
 
     const refType = resolveReferenceType(data.node.addressSpace, ref);
     if (filter) {
-        if (refType.browseName.toString() !== filter) {
+        if (refType.browseName.name !== filter) {
             return;
         }
     }
-    if (data.alreadyDumped[refNode.nodeId.toString()]) {
+    const key = ref.nodeId.toString() + ref.referenceType.toString();
+    if (data.alreadyDumped[key]) {
         return;
     }
     // xx const r = refNode.findReferencesAsObject("HasModellingRule", true);
@@ -108,7 +111,7 @@ function dumpReference(data: Data, ref: UAReference, filter?: string) {
     const row = [
         refType.browseName.toString() + dir + symbol(refNode.nodeClass),
         refNode.nodeId.toString(),
-        refNode.browseName.toString(),
+        encodeXML(refNode.browseName.toString()),
         modelingRule,
         (refNode as any).typeDefinitionObj ? (refNode as any).typeDefinitionObj.browseName.toString() : "",
         dataType,
@@ -118,11 +121,11 @@ function dumpReference(data: Data, ref: UAReference, filter?: string) {
     data.table.push(row);
 
     data.descriptions.push({
-        description: refNode.description ? refNode.description.toString() : "",
+        description: refNode.description ? refNode.description.text || "" : "",
         name: refNode.browseName.name!,
         type: dataType
     });
-    data.alreadyDumped[refNode.nodeId.toString()] = 1;
+    data.alreadyDumped[key] = 1;
 }
 function dumpReferences(data: Data, _references: UAReference[]) {
     // xx for (const ref of references) {
@@ -143,6 +146,14 @@ function dumpReferences(data: Data, _references: UAReference[]) {
     for (const ref of _references) {
         dumpReference(data, ref, "Organizes");
     }
+    for (const ref of _references) {
+        console.log(data.node!.addressSpace!.findReferenceType(ref.referenceType)!.toString());
+        dumpReference(data, ref, undefined);
+    }
+}
+
+function shortDescription(d: string) {
+    return d.split(/\.|\n/)[0];
 }
 export function displayNodeElement(node: BaseNode, options?: DisplayNodeOptions): string {
     const head: string[] = ["ReferenceType", "NodeId", "BrowseName", "ModellingRule", "TypeDefinition", "DataType", "Value"];
@@ -157,7 +168,7 @@ export function displayNodeElement(node: BaseNode, options?: DisplayNodeOptions)
         }
 
         if (node.description) {
-            table.push(["Description", node.description.toString(), { colSpan: 6, content: node.browseName.toString() }]);
+            table.push(["Description", { colspan: 6, content: shortDescription(node.description.text! || "") }]);
         }
         return table;
     }
@@ -186,6 +197,11 @@ export function displayNodeElement(node: BaseNode, options?: DisplayNodeOptions)
     const str: string[] = [];
     const tables: TableHelper[] = [];
     tables.push(table);
+
+    if (node.description) {
+        str.push(node.description.text! || "");
+        str.push("");
+    }
     str.push(toText(table));
 
     const str2: string[] = [];
@@ -197,14 +213,14 @@ export function displayNodeElement(node: BaseNode, options?: DisplayNodeOptions)
         let subtypeOf = (curNode as UAObjectType | UAVariableType).subtypeOfObj;
         while (subtypeOf) {
             data.table = createTable();
-            table.push([subtypeOf.browseName.toString() + ":", "--", "--", "--"]);
+            data.table.push([subtypeOf.browseName.toString() + ":", "--", "--", "--"]);
             const references2 = subtypeOf.allReferences();
             dumpReferences(data, references2);
 
             str.push("<details>");
             str.push("<summary>Base type: " + subtypeOf.browseName.toString() + "</summary>");
             str.push("");
-            str.push(toText(table));
+            str.push(toText(data.table));
             str.push("");
             str2.push("</details>");
 

@@ -1,6 +1,10 @@
 // tslint:disable:no-console
 import * as fs from "fs";
 import { promisify } from "util";
+
+
+import { generateAddressSpace } from "node-opcua-address-space/nodeJS";
+import { createBoilerType } from "node-opcua-address-space/testHelpers";
 import {
     AddressSpace,
     DataType,
@@ -15,9 +19,6 @@ import {
 } from "..";
 
 import { getPresetSymbolsFromCSV, saveSymbolsToCSV, buildModel } from "../nodeJS";
-import { generateAddressSpace } from "node-opcua-address-space/nodeJS";
-
-import { createBoilerType } from "node-opcua-address-space/testHelpers";
 
 // node 14 onward : import { writeFile } from "fs/promises";
 const { writeFile } = fs.promises;
