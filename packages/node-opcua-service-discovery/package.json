@@ -17,7 +17,7 @@
         "node-opcua-basic-types": "2.63.2",
         "node-opcua-binary-stream": "2.63.2",
         "node-opcua-data-model": "2.63.2",
-        "node-opcua-debug": "2.63.2",
+        "node-opcua-debug": "2.63.3",
         "node-opcua-factory": "2.63.2",
         "node-opcua-nodeid": "2.63.2",
         "node-opcua-object-registry": "2.63.2",

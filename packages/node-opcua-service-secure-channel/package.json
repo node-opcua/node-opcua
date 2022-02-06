@@ -20,9 +20,9 @@
         "node-opcua-types": "2.63.2"
     },
     "devDependencies": {
-        "node-opcua-binary-stream": "2.62.7",
+        "node-opcua-binary-stream": "2.63.2",
         "node-opcua-buffer-utils": "2.63.2",
-        "node-opcua-debug": "2.63.2",
+        "node-opcua-debug": "2.63.3",
         "node-opcua-packet-analyzer": "2.63.2",
         "node-opcua-status-code": "2.63.2",
         "should": "^13.2.3"

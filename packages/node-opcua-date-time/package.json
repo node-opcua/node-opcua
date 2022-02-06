@@ -18,7 +18,7 @@
         "bignumber.js": "^9.0.2",
         "node-opcua-benchmarker": "2.63.2",
         "node-opcua-binary-stream": "2.63.2",
-        "node-opcua-debug": "2.63.2",
+        "node-opcua-debug": "2.63.3",
         "should": "^13.2.3"
     },
     "author": "Etienne Rossignon",

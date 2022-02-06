@@ -26,7 +26,7 @@
         "node-opcua-client-proxy": "2.63.2",
         "node-opcua-constants": "2.62.7",
         "node-opcua-crypto": "^1.7.5",
-        "node-opcua-debug": "2.63.2",
+        "node-opcua-debug": "2.63.3",
         "node-opcua-extension-object": "2.63.2",
         "node-opcua-factory": "2.63.2",
         "node-opcua-hostname": "2.63.0",
@@ -41,7 +41,7 @@
         "node-opcua-service-secure-channel": "2.63.2",
         "node-opcua-variant": "2.63.2",
         "should": "^13.2.3",
-        "sinon": "^12.0.1",
+        "sinon": "^13.0.1",
         "underscore": "^1.13.2",
         "yargs": "15.4.1"
     },

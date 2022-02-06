@@ -32,7 +32,7 @@
         "node-opcua-data-model": "2.63.2",
         "node-opcua-data-value": "2.63.2",
         "node-opcua-date-time": "2.63.2",
-        "node-opcua-debug": "2.63.2",
+        "node-opcua-debug": "2.63.3",
         "node-opcua-extension-object": "2.63.2",
         "node-opcua-hostname": "2.63.0",
         "node-opcua-nodeid": "2.63.2",
@@ -71,7 +71,7 @@
         "node-opcua-leak-detector": "2.63.2",
         "node-opcua-nodesets": "2.63.0",
         "should": "^13.2.3",
-        "sinon": "^12.0.1"
+        "sinon": "^13.0.1"
     },
     "eslintConfig": {
         "env": {

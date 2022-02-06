@@ -14,7 +14,7 @@
     "license": "MIT",
     "dependencies": {
         "node-opcua-assert": "2.63.0",
-        "node-opcua-debug": "2.63.2"
+        "node-opcua-debug": "2.63.3"
     },
     "devDependencies": {
         "should": "^13.2.3"

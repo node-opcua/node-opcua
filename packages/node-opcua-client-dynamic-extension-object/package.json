@@ -16,7 +16,7 @@
         "node-opcua-constants": "2.62.7",
         "node-opcua-data-model": "2.63.2",
         "node-opcua-data-value": "2.63.2",
-        "node-opcua-debug": "2.63.2",
+        "node-opcua-debug": "2.63.3",
         "node-opcua-extension-object": "2.63.2",
         "node-opcua-factory": "2.63.2",
         "node-opcua-nodeid": "2.63.2",
