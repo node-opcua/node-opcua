@@ -14,7 +14,7 @@ $ npm install node-opcua-file-transfer
 ## exposing a File node in the addressSpace
 
 ```javascript
-import { OPCUAServer, UAFileType } from "node-opcua";
+import { OPCUAServer, UAFile } from "node-opcua";
 import { installFileType } from "node-opcua-file-transfer";
 
 ```
@@ -44,7 +44,7 @@ const myFile = fileType.instantiate({
     nodeId: "s=MyFile",
     browseName: "MyFile",
     organizedBy: addressSpace.rootFolder.objects
-}) as UAFileType;
+}) as UAFile;
 
 // now bind the opcuaFile object with our file
 installFileType(opcuaFile, { 
