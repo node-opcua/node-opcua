@@ -85,7 +85,7 @@ specifiers:
   eslint-plugin-prettier: ^4.0.0
   exit: ^0.1.2
   fqdn: ^0.0.3
-  hexy: 0.3.2
+  hexy: 0.3.4
   humanize: 0.0.9
   js2xmlparser: ^4.0.2
   lerna: 4.0.0
@@ -165,7 +165,7 @@ dependencies:
   eslint: 8.8.0
   exit: 0.1.2
   fqdn: 0.0.3
-  hexy: 0.3.2
+  hexy: 0.3.4
   humanize: 0.0.9
   js2xmlparser: 4.0.2
   lerna: 4.0.0
@@ -4210,13 +4210,8 @@ packages:
     hasBin: true
     dev: true
 
-  /hexy/0.3.2:
-    resolution: {integrity: sha512-0LwOkUcdzIX58YzjuyXGu9kdG+reRcOJqPBeRH8i1Fy/kxEZkw9RvFs/Smc5Dw/401dDIWBoNMeriJPv4BNygg==}
-    hasBin: true
-    dev: false
-
-  /hexy/0.3.3:
-    resolution: {integrity: sha512-g8+Inn/xJSRwjlXqp5ckTIuxsdgd+G73ceAwG0Pmx9/tLmGUnitXOyyI3npNjMcOiEvpiXvrbgD5b41hFeghKQ==}
+  /hexy/0.3.4:
+    resolution: {integrity: sha512-P2V2yx+XhEJRjXCe9IlRzbcL33plTaIjn+OSvgWu0Z9+2WkL71d+eC4jQ91rooM+F0JNERnENH6mpHlpcT+qlA==}
     engines: {node: '>=10.4'}
     hasBin: true
     dev: false
@@ -5759,7 +5754,7 @@ packages:
     dependencies:
       better-assert: 1.0.2
       chalk: 4.1.2
-      hexy: 0.3.3
+      hexy: 0.3.4
       jsrsasign: 10.4.0
       sshpk: 1.16.1
     dev: false
