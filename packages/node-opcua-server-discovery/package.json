@@ -16,7 +16,7 @@
         "node-opcua-basic-types": "2.63.2",
         "node-opcua-certificate-manager": "2.63.2",
         "node-opcua-common": "2.63.2",
-        "node-opcua-debug": "2.63.2",
+        "node-opcua-debug": "2.63.3",
         "node-opcua-hostname": "2.63.0",
         "node-opcua-object-registry": "2.63.2",
         "node-opcua-pki": "^2.13.0",

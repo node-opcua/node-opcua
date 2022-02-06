@@ -29,7 +29,7 @@
         "node-opcua-data-model": "2.63.2",
         "node-opcua-data-value": "2.63.2",
         "node-opcua-date-time": "2.63.2",
-        "node-opcua-debug": "2.63.2",
+        "node-opcua-debug": "2.63.3",
         "node-opcua-enum": "2.63.2",
         "node-opcua-factory": "2.63.2",
         "node-opcua-nodeid": "2.63.2",
@@ -61,7 +61,7 @@
         "node-opcua-packet-analyzer": "2.63.2",
         "node-opcua-test-fixtures": "2.63.2",
         "should": "^13.2.3",
-        "sinon": "^12.0.1",
+        "sinon": "^13.0.1",
         "source-map-support": "^0.5.21"
     },
     "author": "Etienne Rossignon",

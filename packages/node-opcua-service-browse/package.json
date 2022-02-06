@@ -21,7 +21,7 @@
     },
     "devDependencies": {
         "node-opcua-date-time": "2.63.2",
-        "node-opcua-debug": "2.63.2",
+        "node-opcua-debug": "2.63.3",
         "node-opcua-packet-analyzer": "2.63.2",
         "node-opcua-status-code": "2.63.2",
         "node-opcua-variant": "2.63.2",

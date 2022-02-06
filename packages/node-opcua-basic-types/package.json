@@ -22,9 +22,9 @@
         "node-opcua-utils": "2.63.2"
     },
     "devDependencies": {
-        "@types/node": "17.0.10",
+        "@types/node": "17.0.15",
         "node-opcua-benchmarker": "2.63.2",
-        "node-opcua-debug": "2.63.2",
+        "node-opcua-debug": "2.63.3",
         "should": "^13.2.3"
     },
     "author": "Etienne Rossignon",

@@ -15,7 +15,7 @@
         "node-opcua-assert": "2.63.0",
         "node-opcua-binary-stream": "2.63.2",
         "node-opcua-data-model": "2.63.2",
-        "node-opcua-debug": "2.63.2",
+        "node-opcua-debug": "2.63.3",
         "node-opcua-enum": "2.63.2",
         "node-opcua-extension-object": "2.63.2",
         "node-opcua-factory": "2.63.2",

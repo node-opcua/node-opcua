@@ -15,7 +15,7 @@
     "bomstrip": "^0.1.4",
     "ltx": "^3.0.0",
     "node-opcua-assert": "2.63.0",
-    "node-opcua-debug": "2.63.2",
+    "node-opcua-debug": "2.63.3",
     "node-opcua-utils": "2.63.2",
     "xml-writer": "^1.7.0"
   },

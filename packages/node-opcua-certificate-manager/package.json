@@ -22,7 +22,7 @@
         "node-opcua-buffer-utils": "2.63.2",
         "node-opcua-constants": "2.62.7",
         "node-opcua-crypto": "^1.7.5",
-        "node-opcua-debug": "2.63.2",
+        "node-opcua-debug": "2.63.3",
         "node-opcua-object-registry": "2.63.2",
         "node-opcua-pki": "^2.13.0",
         "node-opcua-status-code": "2.63.2",
@@ -35,7 +35,7 @@
         "dequeue": "^1.0.5",
         "node-opcua-leak-detector": "2.63.2",
         "should": "^13.2.3",
-        "sinon": "^12.0.1"
+        "sinon": "^13.0.1"
     },
     "eslintConfig": {
         "env": {

@@ -30,7 +30,7 @@
         "node-opcua-data-model": "2.63.2",
         "node-opcua-data-value": "2.63.2",
         "node-opcua-date-time": "2.63.2",
-        "node-opcua-debug": "2.63.2",
+        "node-opcua-debug": "2.63.3",
         "node-opcua-enum": "2.63.2",
         "node-opcua-extension-object": "2.63.2",
         "node-opcua-factory": "2.63.2",
@@ -67,7 +67,7 @@
         "node-opcua-test-helpers": "2.42.0",
         "node-opcua-transport": "2.63.2",
         "should": "^13.2.3",
-        "sinon": "^12.0.1"
+        "sinon": "^13.0.1"
     },
     "author": "Etienne Rossignon",
     "license": "MIT",
