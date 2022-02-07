@@ -205,7 +205,7 @@ describe("DiagnosticInfo", function () {
             innerStatusCode: StatusCodes.Bad,
             innerDiagnosticInfo: new DiagnosticInfo({ additionalInfo: "test 2", innerStatusCode: StatusCodes.Bad, symbolicId: 34567 })
         });
-        const filtered = filterDiagnosticInfoLevel(serviceLevelMask, diagnostic, "service");
+        const filtered = filterDiagnosticInfoLevel(serviceLevelMask, diagnostic, DiagnosticInfo_ServiceLevelMask);
 
         filtered.localizedText.should.equal(diagnostic.localizedText);
         filtered.symbolicId.should.equal(diagnostic.symbolicId);

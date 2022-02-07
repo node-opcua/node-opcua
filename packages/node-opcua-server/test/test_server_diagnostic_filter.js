@@ -29,7 +29,7 @@ describe("filterDiagnosticInfo", function () {
     });
 
     it("should filter diagnostic information", function () {
-        const serviceLevelMask = DiagnosticInfo_ServiceLevelMask.SymbolicId
+        const levelMask = DiagnosticInfo_ServiceLevelMask.SymbolicId
             | DiagnosticInfo_ServiceLevelMask.LocalizedText
             | DiagnosticInfo_ServiceLevelMask.InnerStatusCode
             | DiagnosticInfo_ServiceLevelMask.InnerDiagnostics
@@ -38,7 +38,7 @@ describe("filterDiagnosticInfo", function () {
             | DiagnosticInfo_OperationLevelMask.InnerStatusCode
             | DiagnosticInfo_OperationLevelMask.AdditionalInfo
             | DiagnosticInfo_OperationLevelMask.InnerDiagnostics;
-        filterDiagnosticInfo(serviceLevelMask, response);
+        filterDiagnosticInfo(levelMask, response);
 
         response.responseHeader.serviceDiagnostics.localizedText.should.equal(2345);
         response.responseHeader.serviceDiagnostics.symbolicId.should.equal(3456);
