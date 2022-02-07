@@ -44,7 +44,7 @@ import { getDefaultCertificateManager, OPCUACertificateManager } from "node-opcu
 import { ServerState } from "node-opcua-common";
 import { Certificate, exploreCertificate, makeSHA1Thumbprint, Nonce, toPem } from "node-opcua-crypto";
 import {
-    AttributeIds, DiagnosticInfo, filterDiagnosticInfoLevel, LocalizedText, NodeClass, RESPONSE_DIAGNOSTICS_MASK_ALL
+    AttributeIds, DiagnosticInfo, filterDiagnosticInfoLevel, filterDiagnosticOperationLevel, filterDiagnosticServiceLevel, LocalizedText, NodeClass, RESPONSE_DIAGNOSTICS_MASK_ALL
 } from "node-opcua-data-model";
 import { DataValue } from "node-opcua-data-value";
 import { dump, make_debugLog, make_errorLog, make_warningLog } from "node-opcua-debug";
@@ -681,13 +681,10 @@ function validate_security_endpoint(
 
 export function filterDiagnosticInfo(returnDiagnostics: number, response: CallResponse): void {
     if (RESPONSE_DIAGNOSTICS_MASK_ALL & returnDiagnostics) {
-        response.responseHeader.serviceDiagnostics = filterDiagnosticInfoLevel(returnDiagnostics, response.responseHeader.serviceDiagnostics, "service");
+        response.responseHeader.serviceDiagnostics = filterDiagnosticServiceLevel(returnDiagnostics, response.responseHeader.serviceDiagnostics);
 
         if (response.diagnosticInfos && response.diagnosticInfos.length > 0) {
-            response.diagnosticInfos.forEach(
-                (diagnostic: DiagnosticInfo | null, index: number, array: (DiagnosticInfo | null)[]) =>
-                    array[index] = filterDiagnosticInfoLevel(returnDiagnostics, diagnostic, "operation")
-            );
+            response.diagnosticInfos = response.diagnosticInfos.map((d) => filterDiagnosticOperationLevel(returnDiagnostics, d));
         } else {
             response.diagnosticInfos = [];
         }
@@ -695,9 +692,8 @@ export function filterDiagnosticInfo(returnDiagnostics: number, response: CallRe
         if (response.results) {
             for (const entry of response.results) {
                 if (entry.inputArgumentDiagnosticInfos && entry.inputArgumentDiagnosticInfos.length > 0) {
-                    entry.inputArgumentDiagnosticInfos.forEach(
-                        (diagnostic: DiagnosticInfo | null, index: number, array: (DiagnosticInfo | null)[]) =>
-                            array[index] = filterDiagnosticInfoLevel(returnDiagnostics, diagnostic, "operation")
+                    entry.inputArgumentDiagnosticInfos = entry.inputArgumentDiagnosticInfos.map(
+                        (d) => filterDiagnosticOperationLevel(returnDiagnostics, d)
                     );
                 } else {
                     entry.inputArgumentDiagnosticInfos = [];
