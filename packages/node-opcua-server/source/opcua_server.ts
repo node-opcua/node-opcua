@@ -2185,7 +2185,7 @@ export class OPCUAServer extends OPCUABaseServer {
         // --- check that provided session matches session attached to channel
         if (channel.channelId !== session.channelId) {
             if (!(request instanceof ActivateSessionRequest)) {
-                errorLog(chalk.red.bgWhite("ERROR: channel.channelId !== session.channelId"), channel.channelId, session.channelId);
+                errorLog(chalk.red.bgWhite("ERROR: channel.channelId !== session.channelId  on processing request " + request.constructor.name), channel.channelId, session.channelId);
             }
             message.session_statusCode = StatusCodes.BadSecureChannelIdInvalid;
         } else if (channel_has_session(channel, session)) {
