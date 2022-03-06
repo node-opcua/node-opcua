@@ -184,6 +184,13 @@ function detachNode(node: BaseNode) {
     (<BaseNodeImpl>node).unpropagate_back_references();
 }
 
+interface NamespaceConstructorOptions {
+    addressSpace: AddressSpacePrivate;
+    index: number;
+    namespaceUri: string;
+    publicationDate: Date;
+    version: string;
+}
 /**
  *
  * @constructor
@@ -203,8 +210,8 @@ export class NamespaceImpl implements NamespacePrivate {
     public addressSpace: AddressSpacePrivate;
     public readonly index: number;
 
-    public version = 0;
-    public publicationDate: Date = new Date(1900, 0, 1);
+    public version = "0.0.0";
+    public publicationDate: Date = new Date(Date.UTC(1900, 0, 1));
 
     private _objectTypeMap: Map<string, UAObjectType>;
     private _variableTypeMap: Map<string, UAVariableType>;
@@ -217,15 +224,22 @@ export class NamespaceImpl implements NamespacePrivate {
     private defaultAccessRestrictions?: AccessRestrictionsFlag;
     private defaultRolePermissions?: RolePermissionType[];
 
-    constructor(options: any) {
-        assert(typeof options.namespaceUri === "string");
-        assert(typeof options.index === "number");
+    constructor(options: NamespaceConstructorOptions) {
+        // istanbul ignore next
+        if (!(typeof options.namespaceUri === "string")) {
+            throw new Error("NamespaceImpl constructor: namespaceUri must exists and be a string : got " + options.namespaceUri);
+        }
+        // istanbul ignore next
+        if (typeof options.index !== "number") {
+            throw new Error("NamespaceImpl constructor: index must be a number");
+        }
+        // istanbul ignore next
+        if (!options.addressSpace) {
+            throw new Error("NamespaceImpl constructor: Must specify a valid address space");
+        }
 
         this.namespaceUri = options.namespaceUri;
         this.addressSpace = options.addressSpace;
-        if (!this.addressSpace) {
-            throw new Error("Must specify a valid address space");
-        }
 
         this.index = options.index;
         this._nodeid_index = new Map();

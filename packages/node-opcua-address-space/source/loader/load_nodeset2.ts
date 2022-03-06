@@ -2,7 +2,9 @@
 /**
  * @module node-opcua-address-space
  */
+import { promisify } from "util";
 import * as chalk from "chalk";
+
 import * as ec from "node-opcua-basic-types";
 import {
     AddReferenceTypeOptions,
@@ -15,7 +17,7 @@ import {
     UAVariableType
 } from "node-opcua-address-space-base";
 import { assert, renderError } from "node-opcua-assert";
-import { Int64, isValidGuid, StatusCodes } from "node-opcua-basic-types";
+import { isValidGuid, StatusCodes } from "node-opcua-basic-types";
 import { ExtraDataTypeManager, populateDataTypeManager } from "node-opcua-client-dynamic-extension-object";
 import { EUInformation } from "node-opcua-data-access";
 import {
@@ -33,15 +35,7 @@ import { DataTypeFactory, findSimpleType, getStandardDataTypeFactory } from "nod
 import { NodeId, resolveNodeId } from "node-opcua-nodeid";
 import { Argument } from "node-opcua-service-call";
 import { CallbackT, ErrorCallback } from "node-opcua-status-code";
-import {
-    EnumDefinition,
-    EnumFieldOptions,
-    EnumValueType,
-    Range,
-    StructureDefinition,
-    StructureFieldOptions,
-    StructureType
-} from "node-opcua-types";
+import { EnumFieldOptions, EnumValueType, Range, StructureFieldOptions } from "node-opcua-types";
 import { DataType, Variant, VariantArrayType, VariantOptions } from "node-opcua-variant";
 import {
     _definitionParser,
@@ -56,6 +50,7 @@ import {
     XmlAttributes,
     SimpleCallback
 } from "node-opcua-xml2json";
+import * as semver from "semver";
 
 import { AddressSpacePrivate } from "../../src/address_space_private";
 import { NamespacePrivate } from "../../src/namespace_private";
@@ -197,11 +192,10 @@ function makeDefaultVariant(addressSpace: IAddressSpace, dataTypeNode: NodeId, v
 
     const nodeDataType = addressSpace.findNode(dataTypeNode) as UADataType;
     if (nodeDataType) {
-    
         const basicDataType = nodeDataType.basicDataType;
         if (basicDataType === DataType.Variant) {
             /// we don't now what is the variant
-            return undefined
+            return undefined;
         }
 
         //  addressSpace.findCorrespondingBasicDataType(dataTypeNode);
@@ -246,8 +240,12 @@ function makeDefaultVariant(addressSpace: IAddressSpace, dataTypeNode: NodeId, v
     }
     return variant;
 }
+export interface NodeSet2ParserEngine {
+    addNodeSet: (xmlData: string, callback1: SimpleCallback) => void;
+    terminate: (callback: SimpleCallback) => void;
+}
 
-export function makeStuff(addressSpace: IAddressSpace): any {
+export function makeNodeSetParserEngine(addressSpace: IAddressSpace): NodeSet2ParserEngine {
     const addressSpace1 = addressSpace as AddressSpacePrivate;
     addressSpace1.suspendBackReference = true;
 
@@ -272,14 +270,15 @@ export function makeStuff(addressSpace: IAddressSpace): any {
     let namespace_uri_translation: { [key: number]: number } = {};
     let namespaceCounter = 0;
     let found_namespace_in_uri: { [key: string]: NamespacePrivate } = {};
+    let models: Model[] = [];
 
     function _reset_namespace_translation() {
         debugLog("_reset_namespace_translation");
         namespace_uri_translation = {};
         found_namespace_in_uri = {};
         namespaceCounter = 0;
-        _register_namespace_uri("http://opcfoundation.org/UA/");
         alias_map = {};
+        models = [];
     }
 
     function _translateNamespaceIndex(innerIndex: number) {
@@ -314,33 +313,104 @@ export function makeStuff(addressSpace: IAddressSpace): any {
         return namespace.internalCreateNode(params) as BaseNode;
     }
 
-    function _register_namespace_uri(namespaceUri: string): NamespacePrivate {
+    function _register_namespace_uri_in_translation_table(namespaceUri: string): NamespacePrivate {
         if (found_namespace_in_uri[namespaceUri]) {
             return found_namespace_in_uri[namespaceUri];
         }
-
-        const namespace = addressSpace1.registerNamespace(namespaceUri);
+        const namespace = addressSpace1.getNamespace(namespaceUri);
+        if (!namespace) {
+            throw new Error(
+                "cannot find namespace for " +
+                    namespaceUri +
+                    "\nplease make sure to initialize your address space with the corresponding nodeset files"
+            );
+        }
         found_namespace_in_uri[namespaceUri] = namespace;
 
         const index_in_xml = namespaceCounter;
         namespaceCounter++;
         namespace_uri_translation[index_in_xml] = namespace.index;
 
-        debugLog(
-            " _register_namespace_uri = ",
-            namespaceUri,
-            "index in Xml=",
-            index_in_xml,
-            " index in addressSpace",
-            namespace.index
-        );
+        doDebug &&
+            debugLog(
+                " _register_namespace_uri = ",
+                namespaceUri,
+                "index in Xml=",
+                index_in_xml,
+                " index in addressSpace",
+                namespace.index
+            );
         return namespace;
     }
 
-    function _register_namespace_uri_model(model: any) {
-        const namespace = _register_namespace_uri(model.modelUri);
+    /**
+     * take a OPCUA version string and make it compliant with the semver specification
+     * @param version
+     * @returns
+     */
+    function makeSemverCompatible(version?: string): string {
+        version = version || "0.0.0";
+        const version_array = version.split(".").map((a) => parseInt(a, 10));
+
+        if (version_array.length === 2) {
+            version_array.push(0);
+        }
+        return version_array.map((a) => a.toString()).join(".");
+    }
+    function _add_namespace(model: Model) {
+        if (model.requiredModels.length > 0) {
+            // check that required models exist already in the address space
+            for (const requiredModel of model.requiredModels) {
+                const existingNamespace = addressSpace1.getNamespace(requiredModel.modelUri);
+                if (!existingNamespace) {
+                    errorLog(
+                        "Please ensure that the required namespace ",
+                        requiredModel.modelUri,
+                        "is loaded firs when loading ",
+                        model.modelUri
+                    );
+                    throw new Error("LoadNodeSet : Cannot find namespace for " + requiredModel.modelUri);
+                }
+
+                if (semver.lt(makeSemverCompatible(existingNamespace.version), makeSemverCompatible(requiredModel.version))) {
+                    errorLog(
+                        "Expecting ",
+                        requiredModel.modelUri,
+                        " with version to be at least",
+                        requiredModel.version,
+                        " but namespace version is ",
+                        existingNamespace.version
+                    );
+                }
+                if (existingNamespace.publicationDate.getTime() < requiredModel.publicationDate.getTime()) {
+                    errorLog(
+                        "Expecting ",
+                        requiredModel.modelUri,
+                        " with publicationDatea at least ",
+                        requiredModel.publicationDate.toUTCString(),
+                        " but namespace publicationDate is ",
+                        existingNamespace.publicationDate.toUTCString()
+                    );
+                }
+            }
+        }
+
+        let namespace: NamespacePrivate;
+        // Model must not be already registered
+        const existingNamespace = addressSpace1.getNamespace(model.modelUri);
+        if (existingNamespace) {
+            // special treatment for namespace 0
+            if (model.modelUri === "http://opcfoundation.org/UA/") {
+                namespace = existingNamespace;
+            } else {
+                throw new Error(" namespace already registered " + model.modelUri);
+            }
+        } else {
+            namespace = addressSpace1.registerNamespace(model.modelUri);
+        }
+
         namespace.version = model.version;
-        namespace.publicationDate = model.publicationDate;
+        namespace.publicationDate = model.publicationDate || namespace.publicationDate;
         return namespace;
     }
 
@@ -576,7 +646,7 @@ export function makeStuff(addressSpace: IAddressSpace): any {
                 return x;
             });
             this.obj.partialDefinition = definitionFields;
-         
+
             const dataTypeNode = _internal_createNode(this.obj) as UADataType;
             assert(addressSpace1.findNode(this.obj.nodeId));
             const definitionName = dataTypeNode.browseName.name!;
@@ -1423,65 +1493,123 @@ export function makeStuff(addressSpace: IAddressSpace): any {
         }
     };
 
+    interface RequiredModel {
+        modelUri: string;
+        version: string;
+        publicationDate: Date;
+    }
+    interface Model {
+        modelUri: string;
+        version: string;
+        publicationDate?: Date;
+        requiredModels: RequiredModel[];
+        accessRestrictions?: string;
+        symbolicName?: string;
+    }
+
     const state_ModelTableEntry = new ReaderState({
         // ModelTableEntry
 
         init(this: any) {
-            this._requiredModels = [];
+            this._requiredModels = [] as RequiredModel[];
         },
         parser: {
-            // xx  "RequiredModel":  null
+            RequiredModel: {
+                init(this: any, name: string, attrs: XmlAttributes) {
+                    const modelUri = attrs.ModelUri;
+                    const version = attrs.Version;
+                    const publicationDate = new Date(Date.parse(attrs.PublicationDate));
+
+                    this.parent._requiredModels.push({ modelUri, version, publicationDate });
+                },
+                finish(this: any) {
+                    /** */
+                }
+            }
         },
         finish(this: any) {
             const modelUri = this.attrs.ModelUri; // //"http://opcfoundation.org/UA/"
             const version = this.attrs.Version; // 1.04
-            const publicationDate = this.attrs.PublicationDate; // "2018-05-15T00:00:00Z" "
+            const publicationDate = this.attrs.PublicationDate ? new Date(Date.parse(this.attrs.PublicationDate)) : undefined; // "2018-05-15T00:00:00Z" "
             // optional,
             const symbolicName = this.attrs.SymbolicName;
             const accessRestrictions = this.attrs.AccessRestrictions;
 
-            const namespace = _register_namespace_uri_model({
+            const model = {
                 accessRestrictions,
                 modelUri,
                 publicationDate,
                 requiredModels: this._requiredModels,
                 symbolicName,
                 version
-            });
-            this._requiredModels.push(namespace);
+            };
+            const namespace = _add_namespace(model);
+            models.push(model);
         }
     });
-    // state_ModelTableEntry.parser["RequiredModel"] = state_ModelTableEntry;
 
+    function _perform() {
+        /**special case for old nodeset file version 1.02 where no models exists */
+        if (models.length === 0) {
+            for (const namespaceuri of _namespaceUris) {
+                const existingNamespace = addressSpace1.getNamespace(namespaceuri);
+                if (existingNamespace) {
+                    continue;
+                }
+
+                _add_namespace({
+                    modelUri: namespaceuri,
+                    version: "1.0.0",
+                    requiredModels: []
+                });
+            }
+        }
+
+        doDebug && debugLog("xxx models =", JSON.stringify(models, null, " "));
+        doDebug && debugLog("xxx _namespaceUris =", _namespaceUris);
+        _register_namespace_uri_in_translation_table("http://opcfoundation.org/UA/");
+        for (const namespaceUri of _namespaceUris) {
+            _register_namespace_uri_in_translation_table(namespaceUri);
+        }
+    }
+    // state_ModelTableEntry.parser["RequiredModel"] = state_ModelTableEntry;
+    let _namespaceUris: string[] = [];
     const state_0: ReaderStateParserLike = {
         parser: {
-            Aliases: { parser: { Alias: state_Alias } },
+            Aliases: {
+                init(this: any) {
+                    _perform();
+                },
+                parser: { Alias: state_Alias }
+            },
 
             NamespaceUris: {
                 init(this: any) {
                     //
+                    _namespaceUris = [];
                 },
                 parser: {
                     Uri: {
                         finish(this: any) {
-                            _register_namespace_uri(this.text);
+                            _namespaceUris.push(this.text);
                         }
                     }
+                },
+                finish(this: any) {
+                    // verify that requested namespaces are already loaded or abort with a message
                 }
             },
 
             Models: {
                 // ModelTable
-                init(this: any) {
-                    //
+                init(this: any, name: string, attrs: XmlAttributes) {
+                    /* */
                 },
                 parser: {
                     Model: state_ModelTableEntry
                 },
 
-                finish(this: any) {
-                    //
-                }
+                finish(this: any) {}
             },
 
             UADataType: state_UADataType,
@@ -1515,9 +1643,11 @@ export function makeStuff(addressSpace: IAddressSpace): any {
                 );
             }
         }
-        debugLog(
-            chalk.bgGreenBright("Performing post loading tasks -------------------------------------------") + chalk.green("DONE")
-        );
+        doDebug &&
+            debugLog(
+                chalk.bgGreenBright("Performing post loading tasks -------------------------------------------") +
+                    chalk.green("DONE")
+            );
 
         async function performPostLoadingTasks(tasks: Task[]): Promise<void> {
             for (const task of tasks) {
@@ -1536,16 +1666,16 @@ export function makeStuff(addressSpace: IAddressSpace): any {
         async function finalSteps(): Promise<void> {
             /// ----------------------------------------------------------------------------------------
             // perform post task
-            debugLog(chalk.bgGreenBright("Performing post loading tasks -------------------------------------------"));
+            doDebug && debugLog(chalk.bgGreenBright("Performing post loading tasks -------------------------------------------"));
             await performPostLoadingTasks(postTasks);
             postTasks = [];
 
-            debugLog(chalk.bgGreenBright("Performing DataType extraction -------------------------------------------"));
+            doDebug && debugLog(chalk.bgGreenBright("Performing DataType extraction -------------------------------------------"));
             assert(!addressSpace1.suspendBackReference);
             await ensureDatatypeExtracted(addressSpace);
 
             /// ----------------------------------------------------------------------------------------
-            debugLog(chalk.bgGreenBright("DataType extraction done ") + chalk.green("DONE"));
+            doDebug && debugLog(chalk.bgGreenBright("DataType extraction done ") + chalk.green("DONE"));
 
             for (const { name, dataTypeNodeId } of pendingSimpleTypeToRegister) {
                 if (dataTypeNodeId.namespace === 0) {
@@ -1556,19 +1686,20 @@ export function makeStuff(addressSpace: IAddressSpace): any {
             }
             pendingSimpleTypeToRegister.splice(0);
 
-            debugLog(chalk.bgGreenBright("Performing post loading tasks 2 (parsing XML objects) ---------------------"));
+            doDebug && debugLog(chalk.bgGreenBright("Performing post loading tasks 2 (parsing XML objects) ---------------------"));
             await performPostLoadingTasks(postTasks2);
             postTasks2 = [];
 
-            debugLog(chalk.bgGreenBright("Performing post variable initialization ---------------------"));
+            doDebug && debugLog(chalk.bgGreenBright("Performing post variable initialization ---------------------"));
             await performPostLoadingTasks(postTaskInitializeVariable);
             postTaskInitializeVariable = [];
 
-            debugLog(
-                chalk.bgGreenBright(
-                    "Performing post loading tasks 3 (assigning Extension Object to Variables) ---------------------"
-                )
-            );
+            doDebug &&
+                debugLog(
+                    chalk.bgGreenBright(
+                        "Performing post loading tasks 3 (assigning Extension Object to Variables) ---------------------"
+                    )
+                );
             await performPostLoadingTasks(postTasks3);
             postTasks3 = [];
 
@@ -1594,8 +1725,9 @@ export function makeStuff(addressSpace: IAddressSpace): any {
 export class NodeSetLoader {
     _s: any;
     constructor(addressSpace: IAddressSpace) {
-        this._s = makeStuff(addressSpace);
+        this._s = makeNodeSetParserEngine(addressSpace);
     }
+
     addNodeSet(xmlData: string, callback: ErrorCallback): void {
         if (!callback) {
             throw new Error("Expecting callback function");
@@ -1604,14 +1736,14 @@ export class NodeSetLoader {
     }
 
     async addNodeSetAsync(xmlData: string): Promise<void> {
-        return await new Promise((resolve) => {
-            this.addNodeSet(xmlData, (err?: Error) => {
-                resolve();
-            });
-        });
+        return promisify(this.addNodeSet).call(this, xmlData);
     }
 
     terminate(callback: ErrorCallback): void {
         this._s.terminate(callback);
+    }
+
+    async terminateAsync(): Promise<void> {
+        return promisify(this.terminate).call(this);
     }
 }

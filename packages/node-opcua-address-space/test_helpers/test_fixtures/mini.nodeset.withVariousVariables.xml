@@ -1,10 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
-<UANodeSet Version="1.02" LastModified="2013-03-06T05:36:44.0862658Z" 
+<UANodeSet Version="1.02" LastModified="2013-03-06T05:36:44.0862658Z"
+    xmlns:uax="http://opcfoundation.org/UA/2008/02/Types.xsd"
     xmlns="http://opcfoundation.org/UA/2011/03/UANodeSet.xsd">
     <NamespaceUris>
         <Uri>mydemo/</Uri>
     </NamespaceUris>
-
+    <Models>
+        <Model ModelUri="mydemo/" Version="1.0.0" PublicationDate="2021-01-01T00:00:00Z"/>
+    </Models>
     <Aliases>
         <Alias Alias="Boolean">i=1</Alias>
         <Alias Alias="String">i=12</Alias>
@@ -191,4 +194,3 @@
     </UAVariable>
 
 </UANodeSet>
-

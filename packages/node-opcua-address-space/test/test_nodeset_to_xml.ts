@@ -346,7 +346,11 @@ describe("Namespace to NodeSet2.xml", () => {
     <NamespaceUris>
         <Uri>http://MYNAMESPACE</Uri>
     </NamespaceUris>
-    <Models/>
+    <Models>
+        <Model ModelUri="http://MYNAMESPACE" Version="0.0.0" PublicationDate="1900-01-01T00:00:00.000Z">
+            <RequiredModel ModelUri="http://opcfoundation.org/UA/" Version="1.04" PublicationDate="2018-05-15T00:00:00.000Z"/>
+        </Model>
+    </Models>
     <Aliases>
         <Alias Alias="HasSubtype">i=45</Alias>
     </Aliases>
@@ -383,7 +387,11 @@ describe("Namespace to NodeSet2.xml", () => {
     <NamespaceUris>
         <Uri>http://MYNAMESPACE</Uri>
     </NamespaceUris>
-    <Models/>
+    <Models>
+        <Model ModelUri="http://MYNAMESPACE" Version="0.0.0" PublicationDate="1900-01-01T00:00:00.000Z">
+            <RequiredModel ModelUri="http://opcfoundation.org/UA/" Version="1.04" PublicationDate="2018-05-15T00:00:00.000Z"/>
+        </Model>
+    </Models>
     <Aliases>
         <Alias Alias="HasSubtype">i=45</Alias>
     </Aliases>
@@ -428,7 +436,11 @@ describe("Namespace to NodeSet2.xml", () => {
     <NamespaceUris>
         <Uri>http://MYNAMESPACE</Uri>
     </NamespaceUris>
-    <Models/>
+    <Models>
+        <Model ModelUri="http://MYNAMESPACE" Version="0.0.0" PublicationDate="1900-01-01T00:00:00.000Z">
+            <RequiredModel ModelUri="http://opcfoundation.org/UA/" Version="1.04" PublicationDate="2018-05-15T00:00:00.000Z"/>
+        </Model>
+    </Models>
     <Aliases>
         <Alias Alias="HasSubtype">i=45</Alias>
     </Aliases>
@@ -476,7 +488,11 @@ describe("Namespace to NodeSet2.xml", () => {
     <NamespaceUris>
         <Uri>http://MYNAMESPACE</Uri>
     </NamespaceUris>
-    <Models/>
+    <Models>
+        <Model ModelUri="http://MYNAMESPACE" Version="0.0.0" PublicationDate="1900-01-01T00:00:00.000Z">
+            <RequiredModel ModelUri="http://opcfoundation.org/UA/" Version="1.04" PublicationDate="2018-05-15T00:00:00.000Z"/>
+        </Model>
+    </Models>
     <Aliases>
         <Alias Alias="Double">i=11</Alias>
         <Alias Alias="HasTypeDefinition">i=40</Alias>

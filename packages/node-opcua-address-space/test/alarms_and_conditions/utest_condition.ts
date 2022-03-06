@@ -40,6 +40,9 @@ export function utest_condition(test: any): void {
                 const namespace = addressSpace.getOwnNamespace();
 
                 const conditionType = addressSpace.findEventType("ConditionType")!;
+                if (!conditionType) {
+                    throw new Error("Cannot find ConditionType");
+                }
                 // create a custom conditionType
                 myCustomConditionType = namespace.addObjectType({
                     browseName: "MyConditionType",
