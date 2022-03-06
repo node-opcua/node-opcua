@@ -673,7 +673,7 @@ export class BaseNodeImpl extends EventEmitter implements BaseNode {
         if (
             writeValue.attributeId === undefined ||
             writeValue.attributeId <= 0 ||
-            writeValue.attributeId > AttributeIds.UserExecutable
+            writeValue.attributeId > AttributeIds.AccessLevelEx
         ) {
             return callback(null, StatusCodes.BadAttributeIdInvalid);
         }
