@@ -147,7 +147,10 @@ function dumpReferences(data: Data, _references: UAReference[]) {
         dumpReference(data, ref, "Organizes");
     }
     for (const ref of _references) {
-        console.log(data.node!.addressSpace!.findReferenceType(ref.referenceType)!.toString());
+        dumpReference(data, ref, "HasInterface");
+    }
+    for (const ref of _references) {
+        // xx console.log(data.node!.addressSpace!.findReferenceType(ref.referenceType)!.toString());
         dumpReference(data, ref, undefined);
     }
 }
