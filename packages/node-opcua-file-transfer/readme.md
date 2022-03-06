@@ -112,13 +112,12 @@ await clientFile.open(mode);
 
 | Mode | Description |
 |------|-------------|
-| Read  |The file is opened for reading. the Write method cannot be executed. |
-| Write|The file is opened for writing. the Read cannot be executed. |
-| ReadWrite| The file is opened for reading an writing |
-| WriteEraseExisting | File is opened for writing only. The existing content of the file is erased and an empty file is provided. |
-| ReadWriteEraseExisting | File is opened for reading and writing.  The existing content of the file is erased and an empty file is provided.|
-| WriteAppend | File is opened for writing only and position is set at the end of the file |
-| ReadWriteAppend | File is opened for reading and writing and position is set at the end of the file |
+| Read  |The file is opened for reading. The Write method cannot be executed. |
+| Write|The file is opened for writing. The Read cannot be executed. |
+| ReadWrite| The file is opened for reading and writing |
+| WriteEraseExisting | File is open for writing only. The existing content of the file is erased and an empty file is provided. |
+| WriteAppend | File is open for writing only and the position is set at the end of the file |
+| ReadWriteAppend | File is opened for reading and writing and the position is set at the end of the file |
 }
 #### ClientFile#close() : close a file
 
@@ -181,9 +180,9 @@ await clientFile.write(dataToWrite);
 
 #### ClientFile#read(): Promise<Buffer> :reading data to the file
 
-Data can be writing to the file at the current cursor position.
+Data can be written to the file at the current cursor position.
 Data must be passed in a buffer.
-* read will throw an exception if file is not opened
+* read will throw an exception if the file is not opened
 
 ```javascript
 
@@ -198,7 +197,7 @@ const data: Buffer = await clientFile.read(200);
 ### notes
 
 UInt64
-* At this time BigInt, is not supported by all version of nodeJs that are targeted by node-opcua.
-UInt64 values are currently stored into a array of 2 32bits numbers : [ High,Low]
+* At this time BigInt, is not supported by all versions of nodeJs that are targeted by node-opcua.
+UInt64 values are currently stored into an array of 2 32bits numbers : [ High,Low]
 
 
