@@ -23,7 +23,11 @@ describe("buildModel", () => {
     <NamespaceUris>
         <Uri>urn:namespace</Uri>
     </NamespaceUris>
-    <Models/>
+    <Models>
+        <Model ModelUri="urn:namespace" Version="0.0.0" PublicationDate="1900-01-01T00:00:00.000Z">
+            <RequiredModel ModelUri="http://opcfoundation.org/UA/" Version="0.0.0" PublicationDate="1900-01-01T00:00:00.000Z"/>
+        </Model>
+    </Models>
     <Aliases/>
 <!--ReferenceTypes-->
 <!--ObjectTypes-->

@@ -1,8 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
-<UANodeSet
-    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+<UANodeSet xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xmlns:xsd="http://www.w3.org/2001/XMLSchema" Version="1.02" LastModified="2013-03-06T05:36:44.0862658Z"
     xmlns="http://opcfoundation.org/UA/2011/03/UANodeSet.xsd">
+    <Models>
+        <Model ModelUri="http://opcfoundation.org/UA/" Version="1.04.10" PublicationDate="2021-09-15T00:00:00Z" />
+    </Models>
     <Aliases>
         <Alias Alias="Organizes">i=35</Alias>
         <Alias Alias="UInt32">i=7</Alias>
@@ -244,10 +246,10 @@
         <DisplayName>HasInterface</DisplayName>
         <Documentation>https://reference.opcfoundation.org/v104/Core/docs/Amendment7/11.20</Documentation>
         <References>
-          <Reference ReferenceType="HasSubtype" IsForward="false">i=32</Reference>
+            <Reference ReferenceType="HasSubtype" IsForward="false">i=32</Reference>
         </References>
         <InverseName>InterfaceOf</InverseName>
-     </UAReferenceType>
+    </UAReferenceType>
 
     <UAObjectType NodeId="i=58" BrowseName="BaseObjectType">
         <DisplayName>BaseObjectType</DisplayName>
@@ -312,8 +314,7 @@
             <Reference ReferenceType="HasProperty" IsForward="false">i=78</Reference>
         </References>
         <Value>
-            <Int32
-                xmlns="http://opcfoundation.org/UA/2008/02/Types.xsd">1
+            <Int32 xmlns="http://opcfoundation.org/UA/2008/02/Types.xsd">1
             
             
             
@@ -359,15 +360,7 @@
             <Reference ReferenceType="HasProperty" IsForward="false">i=77</Reference>
         </References>
         <Value>
-            <Int32
-                xmlns="http://opcfoundation.org/UA/2008/02/Types.xsd">1
-            
-            
-            
-            
-            
-            
-            </Int32>
+            <Int32 xmlns="http://opcfoundation.org/UA/2008/02/Types.xsd">1</Int32>
         </Value>
     </UAVariable>
     <UAObject NodeId="i=80" BrowseName="Optional" SymbolicName="ModellingRule_Optional">
@@ -386,15 +379,7 @@
             <Reference ReferenceType="HasProperty" IsForward="false">i=80</Reference>
         </References>
         <Value>
-            <Int32
-                xmlns="http://opcfoundation.org/UA/2008/02/Types.xsd">2
-            
-            
-            
-            
-            
-            
-            </Int32>
+            <Int32 xmlns="http://opcfoundation.org/UA/2008/02/Types.xsd">2</Int32>
         </Value>
     </UAVariable>
     <UAReferenceType NodeId="i=3065" BrowseName="AlwaysGeneratesEvent">
@@ -1279,8 +1264,7 @@
             <Reference ReferenceType="HasProperty" IsForward="false">i=2949</Reference>
         </References>
         <Value>
-            <ListOfExtensionObject
-                xmlns="http://opcfoundation.org/UA/2008/02/Types.xsd">
+            <ListOfExtensionObject xmlns="http://opcfoundation.org/UA/2008/02/Types.xsd">
                 <ExtensionObject>
                     <TypeId>
                         <Identifier>i=297</Identifier>

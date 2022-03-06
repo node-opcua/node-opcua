@@ -107,12 +107,12 @@ describe("addExtensionObjectDataType", function (this: any) {
         // xx fix me await test_back(tmpFile);
         async function testReloadGeneratedNodeset() {
             const addressSpace2 = AddressSpace.create();
-            const namespace = addressSpace2.registerNamespace(namespaceUri);
+            const namespace = addressSpace2.registerNamespace("MyDemo");
             const nodesetsXML = [nodesets.standard, tmpFile];
             await generateAddressSpace(addressSpace2, nodesetsXML);
 
             const nsIndex = addressSpace2.getNamespaceIndex(namespaceUri);
-            nsIndex.should.eql(1);
+            nsIndex.should.eql(2);
             const personDataType = addressSpace2.findDataType("PersonDataType", nsIndex)!;
             const v = namespace.addVariable({
                 browseName: "Var1",

@@ -41,7 +41,7 @@ describe("MultiStateValueDiscreteType - 2", () => {
 
     it("ZYZ-1 it should promoteToMultiStateValueDiscrete from an existing nodeset", async () => {
         const ns = addressSpace.getNamespaceIndex("mydemo/");
-
+        ns.should.eql(2, "expecting namespace to have index 2");
         const variable = addressSpace.findNode("ns=2;i=16003") as UAVariable;
         variable.browseName.toString().should.eql("2:VariableMultiStateValueDiscrete");
 

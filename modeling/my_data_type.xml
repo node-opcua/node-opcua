@@ -1,8 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
-<UANodeSet xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:uax="http://opcfoundation.org/UA/2008/02/Types.xsd" xmlns="http://opcfoundation.org/UA/2011/03/UANodeSet.xsd" xmlns:s1="http://yourorganisation.org/my_data_type/Types.xsd" xmlns:ua="http://unifiedautomation.com/Configuration/NodeSet.xsd" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+<UANodeSet xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:uax="http://opcfoundation.org/UA/2008/02/Types.xsd"
+    xmlns="http://opcfoundation.org/UA/2011/03/UANodeSet.xsd"
+    xmlns:s1="http://yourorganisation.org/my_data_type/Types.xsd"
+    xmlns:ua="http://unifiedautomation.com/Configuration/NodeSet.xsd"
+    xmlns:xsd="http://www.w3.org/2001/XMLSchema">
     <NamespaceUris>
         <Uri>http://yourorganisation.org/my_data_type/</Uri>
     </NamespaceUris>
+    <Models>
+        <Model ModelUri="http://yourorganisation.org/my_data_type/"></Model>
+    </Models>
     <Aliases>
         <Alias Alias="Int32">i=6</Alias>
         <Alias Alias="Double">i=11</Alias>
@@ -127,8 +135,7 @@
         z4KICA8b3BjOkZpZWxkIFR5cGVOYW1lPSJvcGM6RG91YmxlIiBOYW1lPSJMb3dWYWx1ZSIvP
         gogIDxvcGM6RmllbGQgVHlwZU5hbWU9InVhOkxvY2FsaXplZFRleHQiIE5hbWU9IkNvbW1lb
         nRzIi8+CiAgPG9wYzpGaWVsZCBUeXBlTmFtZT0idWE6RVVJbmZvcm1hdGlvbiIgTmFtZT0iR
-        W5naW5lZXJpbmdVbml0cyIvPgogPC9vcGM6U3RydWN0dXJlZFR5cGU+Cjwvb3BjOlR5cGVEa
-        WN0aW9uYXJ5Pgo=</uax:ByteString>
+        W5naW5lZXJpbmdVbml0cyIvPgogPC9vcGM6U3RydWN0dXJlZFR5cGU+Cjwvb3BjOlR5cGVEa WN0aW9uYXJ5Pgo=</uax:ByteString>
         </Value>
     </UAVariable>
     <UAVariable DataType="String" ParentNodeId="ns=1;i=10" NodeId="ns=1;i=11" BrowseName="NamespaceUri">
@@ -187,8 +194,7 @@
         iBtYXhPY2N1cnM9InVuYm91bmRlZCIgdHlwZT0idG5zOk15U3RydWN0dXJlRGF0YVR5cGUiI
         G5hbWU9Ik15U3RydWN0dXJlRGF0YVR5cGUiIG5pbGxhYmxlPSJ0cnVlIi8+CiAgPC94czpzZ
         XF1ZW5jZT4KIDwveHM6Y29tcGxleFR5cGU+CiA8eHM6ZWxlbWVudCB0eXBlPSJ0bnM6TGlzd
-        E9mTXlTdHJ1Y3R1cmVEYXRhVHlwZSIgbmFtZT0iTGlzdE9mTXlTdHJ1Y3R1cmVEYXRhVHlwZ
-        SIgbmlsbGFibGU9InRydWUiLz4KPC94czpzY2hlbWE+Cg==</uax:ByteString>
+        E9mTXlTdHJ1Y3R1cmVEYXRhVHlwZSIgbmFtZT0iTGlzdE9mTXlTdHJ1Y3R1cmVEYXRhVHlwZ SIgbmlsbGFibGU9InRydWUiLz4KPC94czpzY2hlbWE+Cg==</uax:ByteString>
         </Value>
     </UAVariable>
     <UAVariable DataType="String" ParentNodeId="ns=1;i=12" NodeId="ns=1;i=13" BrowseName="NamespaceUri">

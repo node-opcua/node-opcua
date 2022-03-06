@@ -115,7 +115,7 @@ specifiers:
   sprintf-js: ^1.1.2
   thenify: ^3.3.1
   treeify: ^1.1.0
-  ts-node: ^10.6.0
+  ts-node: ^10.7.0
   tslib: ^2.3.1
   typedoc: '0.22'
   typedocs: ^0.6.7

@@ -166,7 +166,8 @@ export class AddressSpace implements AddressSpacePrivate {
     constructor() {
         this._private_namespaceIndex = 1;
         this._namespaceArray = [];
-        this._constructNamespaceArray();
+        // special namespace 0 is reserved for the UA namespace
+        this.registerNamespace("http://opcfoundation.org/UA/");     
         AddressSpace.registry.register(this);
     }
     /**
@@ -1533,11 +1534,7 @@ export class AddressSpace implements AddressSpacePrivate {
         return nodeId;
     }
 
-    private _constructNamespaceArray() {
-        if (this._namespaceArray.length === 0) {
-            this.registerNamespace("http://opcfoundation.org/UA/");
-        }
-    }
+
 
     private _findReferenceType(refType: NodeId | string, namespaceIndex?: number): UAReferenceType | null {
         if (refType instanceof NodeId) {

@@ -1241,6 +1241,23 @@ NamespaceImpl.prototype.toNodeset2XML = function (this: NamespaceImpl) {
 
     // ------------- INamespace Uris
     xw.startElement("Models");
+    {
+        xw.startElement("Model");
+        xw.writeAttribute("ModelUri", this.namespaceUri);
+        xw.writeAttribute("Version", this.version);
+        xw.writeAttribute("PublicationDate", this.publicationDate.toISOString());
+        for (const depend of dependency) {
+            if (depend.index === this.index) {
+                continue; // ignore our namespace 0
+            }
+            xw.startElement("RequiredModel");
+            xw.writeAttribute("ModelUri", depend.namespaceUri);
+            xw.writeAttribute("Version", depend.version);
+            xw.writeAttribute("PublicationDate", depend.publicationDate.toISOString());
+            xw.endElement();
+        }
+        xw.endElement();
+    }
     xw.endElement();
 
     const s: any = {};
