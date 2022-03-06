@@ -51,10 +51,12 @@
         "node-opcua-variant": "2.64.1",
         "node-opcua-xml2json": "2.64.1",
         "set-prototype-of": "^1.0.0",
+        "semver": "7.3.5",
         "thenify": "^3.3.1",
         "xml-writer": "^1.7.0"
     },
     "devDependencies": {
+        "@types/semver": "7.3.9",
         "humanize": "0.0.9",
         "node-opcua-benchmarker": "2.64.1",
         "node-opcua-binary-stream": "2.64.1",

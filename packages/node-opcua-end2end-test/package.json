@@ -8,7 +8,7 @@
         "test": "mocha"
     },
     "dependencies": {
-        "node-opcua-pki": "^2.14.0"
+        "node-opcua-pki": "^2.14.1"
     },
     "devDependencies": {
         "@types/underscore": "^1.11.4",
