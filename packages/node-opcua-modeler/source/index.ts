@@ -6,8 +6,9 @@ export * from "./build_model_inner";
 export * from "./addExtensionObjectDataType";
 export * from "./symbol";
 export * from "./to_cvs";
-export * from "./to_graphivz";
 export * from "./generate_markdown_doc";
+export * from "./tableHelper";
+
 //
 export * from "node-opcua-address-space";
 export * from "node-opcua-nodesets";

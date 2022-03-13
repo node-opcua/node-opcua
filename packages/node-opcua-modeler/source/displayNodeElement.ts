@@ -150,7 +150,6 @@ function dumpReferences(data: Data, _references: UAReference[]) {
         dumpReference(data, ref, "HasInterface");
     }
     for (const ref of _references) {
-        // xx console.log(data.node!.addressSpace!.findReferenceType(ref.referenceType)!.toString());
         dumpReference(data, ref, undefined);
     }
 }
@@ -183,8 +182,6 @@ export function displayNodeElement(node: BaseNode, options?: DisplayNodeOptions)
     const descriptions: Description[] = [];
 
     const references = node.allReferences();
-
-    const m = {};
 
     const data = { table, node, alreadyDumped, descriptions };
     dumpReferences(data, references);

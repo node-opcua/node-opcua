@@ -1,8 +1,7 @@
 /* eslint-disable max-statements */
 import {
     BaseNode,
-    dumpReferenceDescription,
-    Namespace,
+    INamespace,
     UADataType,
     UAObject,
     UAObjectType,
@@ -12,15 +11,13 @@ import {
 } from "node-opcua-address-space";
 import { coerceUInt32 } from "node-opcua-basic-types";
 import { NodeClass } from "node-opcua-data-model";
-import { NodeId } from "node-opcua-nodeid";
 import { StructureField } from "node-opcua-types";
 import { DataType } from "node-opcua-variant";
 
 import { displayNodeElement } from "./displayNodeElement";
 import { TableHelper } from "./tableHelper";
-import { dumpClassHierachry, graphVizToPlantUml, opcuaToDot } from "./to_graphivz";
 
-interface NamespacePriv2 {
+interface NamespacePriv2 extends INamespace {
     nodeIterator(): IterableIterator<BaseNode>;
     _objectTypeIterator(): IterableIterator<UAObjectType>;
     _objectTypeCount(): number;
@@ -33,14 +30,16 @@ interface NamespacePriv2 {
     _aliasCount(): number;
 }
 export interface IWriter {
-    writeLine(...args: any[]): void;
+    // eslint-disable-next-line no-unused-vars
+    writeLine(_str: string): void;
 }
-class Writer implements IWriter {
+
+export class Writer implements IWriter {
     private readonly stream: string[] = [];
     constructor() {
         /* empty */
     }
-    public writeLine(str: string) {
+    public writeLine(str: string): void {
         this.stream.push(str);
     }
     public toString(): string {
@@ -48,17 +47,18 @@ class Writer implements IWriter {
     }
 }
 
-export async function buildDocumentationToString(namespace: Namespace): Promise<string> {
+export interface BuildDocumentationOptions {
+    node?: BaseNode;
+
+    dumpGraphics? :(writer: IWriter, type: UAObjectType | UAVariableType)=>void;
+}
+
+export async function buildDocumentationToString(namespace: INamespace, options?: BuildDocumentationOptions): Promise<string> {
     const writer = new Writer();
-    await buildDocumentation(namespace, writer);
+    await buildDocumentation(namespace, writer, options);
     return writer.toString();
 }
 
-interface V {
-    valueRank?: number;
-    arrayDimensions?: number[];
-    dataType: NodeId;
-}
 const toDataTypeStr = (p: BaseNode): string => {
     if (p.nodeClass === NodeClass.Variable) {
         const v = p as UAVariable;
@@ -74,7 +74,6 @@ const toDataTypeStr = (p: BaseNode): string => {
     return "";
 };
 function dataTypeEnumerationToMarkdown(dataType: UADataType): string {
-    const addressSpace = dataType.addressSpace;
     const writer = new Writer();
 
     writer.writeLine("");
@@ -217,19 +216,73 @@ function dumpReferenceType(referenceType: UAReferenceType): string {
     writer.writeLine(str);
     return writer.toString();
 }
-export async function buildDocumentation(namespace: Namespace, writer: IWriter): Promise<void> {
-    const addressSpace = namespace.addressSpace;
+
+export function extractTypes(namespace: INamespace, options?: BuildDocumentationOptions) {
+    const namespacePriv = namespace as unknown as NamespacePriv2;
+    if (!options || !options.node) {
+        const dataTypes = [...namespacePriv._dataTypeIterator()];
+        const objectTypes = [...namespacePriv._objectTypeIterator()];
+        const variableTypes = [...namespacePriv._variableTypeIterator()];
+        const referenceTypes = [...namespacePriv._referenceTypeIterator()];
+        return { dataTypes, variableTypes, objectTypes, referenceTypes };
+    }
+    const node = options.node;
+
+    if (node.nodeClass === NodeClass.DataType) {
+        const dataTypes: UADataType[] = [];
+        let dataType = node as UADataType;
+        dataTypes.push(dataType);
+        while (dataType.subtypeOfObj && dataType.subtypeOfObj.nodeId.namespace === namespace.index) {
+            dataType = dataType.subtypeOfObj;
+            dataTypes.push(dataType);
+        }
+        return { dataTypes, variableTypes: [], objectTypes: [], dataTypeNode: [], referenceTypes: [] };
+    } else if (node.nodeClass === NodeClass.ObjectType) {
+        const objectTypes: UAObjectType[] = [];
+        let objectType = node as UAObjectType;
+        objectTypes.push(objectType);
+        while (objectType.subtypeOfObj && objectType.subtypeOfObj.nodeId.namespace === namespace.index) {
+            objectType = objectType.subtypeOfObj;
+            objectTypes.push(objectType);
+        }
+        return { dataTypes: [], variableTypes: [], objectTypes, dataTypeNode: [], referenceTypes: [] };
+    } else if (node.nodeClass === NodeClass.VariableType) {
+        const variableTypes: UAVariableType[] = [];
+        let variableType = node as UAVariableType;
+        variableTypes.push(variableType);
+        while (variableType.subtypeOfObj && variableType.subtypeOfObj.nodeId.namespace === namespace.index) {
+            variableType = variableType.subtypeOfObj;
+            variableTypes.push(variableType);
+        }
+        return { dataTypes: [], variableTypes, objectTypes: [], dataTypeNode: [], referenceTypes: [] };
+    }
+
+    const dataTypes = [...namespacePriv._dataTypeIterator()];
+    const objectTypes = [...namespacePriv._objectTypeIterator()];
+    const variableTypes = [...namespacePriv._variableTypeIterator()];
+    const referenceTypes = [...namespacePriv._referenceTypeIterator()];
+    return { dataTypes, variableTypes, objectTypes, referenceTypes };
+}
+
+export async function buildDocumentation(
+    namespace: INamespace,
+    writer: IWriter,
+    options?: BuildDocumentationOptions
+): Promise<void> {
+
+    options = options || {};
+    
+    const namespacePriv = namespace as unknown as NamespacePriv2;
 
     const namespaceUri = namespace.namespaceUri;
     // -------- Documentation
 
-    const nsIndex = addressSpace.getNamespaceIndex(namespaceUri);
+    const { dataTypes, objectTypes, variableTypes } = extractTypes(namespace, options);
 
     writer.writeLine("");
     writer.writeLine("# Namespace " + namespaceUri);
     writer.writeLine("");
 
-    const namespacePriv = namespace as unknown as NamespacePriv2;
     // -------------- writeReferences
     if (namespacePriv._referenceTypeCount() > 0) {
         writer.writeLine("");
@@ -240,32 +293,34 @@ export async function buildDocumentation(namespace: Namespace, writer: IWriter):
             dumpReferenceType(referenceType);
         }
     }
+
     function d(node: BaseNode): string {
         return node.description ? node.description!.text!.toString() : "";
     }
+
     // -------------- writeDataType
-    if (namespacePriv._dataTypeCount() > 0) {
+    if (dataTypes.length > 0) {
         writer.writeLine("");
         writer.writeLine("## DataTypes");
         writer.writeLine("");
-        for (const dataType of namespacePriv._dataTypeIterator()) {
+        for (const dataType of dataTypes) {
             writer.writeLine("\n\n### " + dataType.browseName.name!.toString());
             writer.writeLine("");
             writer.writeLine(dataTypeToMarkdown(dataType));
         }
     }
     // -------------- writeObjectType
-    if (namespacePriv._objectTypeCount() > 0) {
+    if (objectTypes.length > 0) {
         writer.writeLine("");
         writer.writeLine("## ObjectTypes");
         writer.writeLine("");
-        for (const objectType of namespacePriv._objectTypeIterator()) {
+        for (const objectType of objectTypes) {
             writer.writeLine("\n\n### " + objectType.browseName.name!.toString());
             writer.writeLine(d(objectType));
 
-            writer.writeLine(graphVizToPlantUml(dumpClassHierachry(objectType, { showBaseType: true, depth: 2 })));
-
-            writer.writeLine(graphVizToPlantUml(opcuaToDot(objectType)));
+            if (options.dumpGraphics) {
+                await options.dumpGraphics(writer, objectType);
+            }
 
             // enumerate components
             writer.writeLine(displayNodeElement(objectType, { format: "markdown" }));
@@ -283,19 +338,18 @@ export async function buildDocumentation(namespace: Namespace, writer: IWriter):
         }
     }
     // -------------- writeVariableType
-    if (namespacePriv._variableTypeCount() > 0) {
+    if (variableTypes.length > 0) {
         writer.writeLine("");
         writer.writeLine("## VariableTypes");
         writer.writeLine("");
-        for (const variableType of namespacePriv._variableTypeIterator()) {
+        for (const variableType of variableTypes) {
             writer.writeLine("\n\n### " + variableType.browseName.name!.toString());
             writer.writeLine(d(variableType));
             writer.writeLine("");
 
-            writer.writeLine(graphVizToPlantUml(dumpClassHierachry(variableType, { showBaseType: true, depth: 2 })));
-
-            writer.writeLine(graphVizToPlantUml(opcuaToDot(variableType)));
-
+            if (options.dumpGraphics) {
+                await options.dumpGraphics(writer, variableType);
+            }
             // enumerate components
             writer.writeLine(displayNodeElement(variableType, { format: "markdown" }));
             for (const reference of variableType.allReferences()) {
@@ -307,3 +361,4 @@ export async function buildDocumentation(namespace: Namespace, writer: IWriter):
         }
     }
 }
+

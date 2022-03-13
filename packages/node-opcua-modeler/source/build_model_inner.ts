@@ -31,7 +31,7 @@ export async function buildModelInner(data: BuildModelOptions): Promise<{ markdo
 
         const xmlModel = ns.toNodeset2XML();
         const symbols = nodeIdManager.getSymbols();
-        const doc = await buildDocumentationToString(ns);
+        const doc = await buildDocumentationToString(ns, {});
         addressSpace.dispose();
 
         return { xmlModel, symbols, markdown: doc };
