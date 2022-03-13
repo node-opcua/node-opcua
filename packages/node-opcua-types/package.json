@@ -1,6 +1,6 @@
 {
     "name": "node-opcua-types",
-    "version": "2.64.1",
+    "version": "2.65.0",
     "description": "pure nodejs OPCUA SDK - module -generator",
     "main": "./dist/index.js",
     "types": "./dist/index.d.ts",
@@ -23,7 +23,7 @@
         "node-opcua-enum": "2.64.1",
         "node-opcua-extension-object": "2.64.1",
         "node-opcua-factory": "2.64.1",
-        "node-opcua-generator": "2.64.1",
+        "node-opcua-generator": "2.65.0",
         "node-opcua-guid": "2.64.1",
         "node-opcua-nodeid": "2.64.1",
         "node-opcua-numeric-range": "2.64.1",

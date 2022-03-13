@@ -1,6 +1,6 @@
 {
     "name": "node-opcua-pseudo-session",
-    "version": "2.64.1",
+    "version": "2.65.0",
     "description": "pure nodejs OPCUA SDK - module -client-proxy",
     "scripts": {
         "clean": "node -e \"require('rimraf').sync('dist');\"",
@@ -16,12 +16,12 @@
         "node-opcua-data-model": "2.64.1",
         "node-opcua-data-value": "2.64.1",
         "node-opcua-nodeid": "2.64.1",
-        "node-opcua-service-browse": "2.64.1",
-        "node-opcua-service-call": "2.64.1",
-        "node-opcua-service-read": "2.64.1",
-        "node-opcua-service-subscription": "2.64.1",
-        "node-opcua-service-translate-browse-path": "2.64.1",
-        "node-opcua-service-write": "2.64.1",
+        "node-opcua-service-browse": "2.65.0",
+        "node-opcua-service-call": "2.65.0",
+        "node-opcua-service-read": "2.65.0",
+        "node-opcua-service-subscription": "2.65.0",
+        "node-opcua-service-translate-browse-path": "2.65.0",
+        "node-opcua-service-write": "2.65.0",
         "node-opcua-status-code": "2.64.1",
         "node-opcua-utils": "2.64.1",
         "node-opcua-variant": "2.64.1"
