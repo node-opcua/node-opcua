@@ -1,9 +1,12 @@
 import { assert } from "node-opcua-assert";
 import { NodeClass, QualifiedName } from "node-opcua-data-model";
 import { makeNodeId, NodeId, NodeIdLike, NodeIdType, resolveNodeId, sameNodeId } from "node-opcua-nodeid";
+import { make_debugLog } from "node-opcua-debug";
 
 import { BaseNode, UAReference, UAReferenceType } from "node-opcua-address-space-base";
 import { getReferenceType } from "./base_node_impl";
+
+const debugLog = make_debugLog(__filename);
 
 export const NamespaceOptions = {
     nodeIdNameSeparator: "-"
@@ -213,6 +216,9 @@ export class NodeIdManager {
 
     private _getOrCreateFromName(aliasName: string, nodeClass: NodeClass): NodeId {
         assert(isValidNodeClass(nodeClass), "invalid node class " + nodeClass);
+        if (aliasName.includes(":")) {
+            debugLog("alias name should not contain special characters");
+        }
         assert(!aliasName.includes(":"), "Alias name should not contain special characters");
         if (this._cache[aliasName]) {
             return new NodeId(NodeIdType.NUMERIC, this._cache[aliasName], this.namespaceIndex);

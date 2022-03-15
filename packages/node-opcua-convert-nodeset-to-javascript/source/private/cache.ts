@@ -137,7 +137,7 @@ export class Cache implements CacheInterface {
 function getSourceFolderForNamespace(browseName: QualifiedName, options: Options, cache: Cache2) {
     const ns = browseName.namespaceIndex;
     const n = cache.namespaceArray[ns].split("/").filter((s: string) => s.length !== 0);
-    const nn = n[n.length - 1];
+    const nn =  (n[n.length - 1] !== "UA" && n[n.length - 2] !== "UA" ? n[n.length - 2] : "") + n[n.length - 1];
     const module = options.prefix + kebabCase(nn);
     const namespaceFolder = path.join(options.baseFolder, module);
     const sourceFolder = path.join(namespaceFolder);

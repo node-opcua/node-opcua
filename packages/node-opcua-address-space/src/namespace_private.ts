@@ -38,8 +38,14 @@ export interface NamespacePrivate extends INamespace {
 export declare const NamespacePrivate: new (options: any) => NamespacePrivate;
 
 function isValidModellingRule(ruleName: string) {
-    // let restrict to Mandatory or Optional for the time being
-    return ruleName === null || ruleName === "Mandatory" || ruleName === "Optional";
+    return (
+        ruleName === null ||
+        ruleName === "Mandatory" ||
+        ruleName === "Optional" ||
+        ruleName === "OptionalPlaceholder" ||
+        ruleName === "MandatoryPlaceholder" ||
+        ruleName === "ExposesItsArray"
+    );
 }
 
 /**

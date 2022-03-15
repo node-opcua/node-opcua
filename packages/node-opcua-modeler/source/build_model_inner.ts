@@ -1,6 +1,4 @@
-import { 
-    AddressSpace, 
-    Namespace, NodeIdManager, XmlLoaderFunc, generateAddressSpaceRaw } from "node-opcua-address-space";
+import { AddressSpace, NodeIdManager, XmlLoaderAsyncFunc, generateAddressSpaceRaw } from "node-opcua-address-space";
 import { buildDocumentationToString } from "./generate_markdown_doc";
 import { Symbols } from "./symbol";
 
@@ -12,7 +10,7 @@ export interface BuildModelOptionsBase {
     presetSymbols?: Symbols;
 }
 export interface BuildModelOptions extends BuildModelOptionsBase {
-    xmlLoader: XmlLoaderFunc;
+    xmlLoader: XmlLoaderAsyncFunc;
 }
 
 export async function buildModelInner(data: BuildModelOptions): Promise<{ markdown: string; xmlModel: string; symbols: Symbols }> {
@@ -33,7 +31,7 @@ export async function buildModelInner(data: BuildModelOptions): Promise<{ markdo
 
         const xmlModel = ns.toNodeset2XML();
         const symbols = nodeIdManager.getSymbols();
-        const doc = await buildDocumentationToString(ns);
+        const doc = await buildDocumentationToString(ns, {});
         addressSpace.dispose();
 
         return { xmlModel, symbols, markdown: doc };

@@ -966,7 +966,7 @@ export function buildVariantArray(
 }
 
 // old version of nodejs do not provide a Buffer#equals test
-const oldNodeVersion = process.versions.node && process.versions.node.substring(0, 1) === "0";
+const oldNodeVersion = typeof process === "object" && process.versions && process.versions.node && process.versions.node.substring(0, 1) === "0";
 
 function __type(a: any): string {
     return Object.prototype.toString.call(a);

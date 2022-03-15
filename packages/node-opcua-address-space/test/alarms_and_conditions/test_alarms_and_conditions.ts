@@ -27,8 +27,8 @@ describe("AddressSpace : Conditions 1", function (this: any) {
     let source;
     before(async () => {
         addressSpace = AddressSpace.create();
-        addressSpace.registerNamespace("PRIVATE_NAMESPACE");
-
+        const ownNamespace = addressSpace.registerNamespace("PRIVATE_NAMESPACE");
+        ownNamespace.index.should.eql(1);
         const xml_file = nodesets.standard;
 
         fs.existsSync(xml_file).should.be.eql(true);

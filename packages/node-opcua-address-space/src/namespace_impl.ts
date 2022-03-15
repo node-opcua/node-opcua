@@ -11,7 +11,7 @@ import { AccessRestrictionsFlag, coerceLocalizedText, QualifiedNameLike } from "
 import { QualifiedName } from "node-opcua-data-model";
 import { BrowseDirection } from "node-opcua-data-model";
 import { LocalizedText, NodeClass } from "node-opcua-data-model";
-import { dumpIf } from "node-opcua-debug";
+import { dumpIf, make_errorLog } from "node-opcua-debug";
 import { NodeIdLike, NodeIdType, resolveNodeId } from "node-opcua-nodeid";
 import { NodeId } from "node-opcua-nodeid";
 import { StatusCodes } from "node-opcua-status-code";
@@ -131,6 +131,7 @@ function _makeHashKey(nodeId: NodeId): string | number {
     }
 }
 const doDebug = false;
+const errorLog = make_errorLog("AddressSpace");
 
 const regExp1 = /^(s|i|b|g)=/;
 const regExpNamespaceDotBrowseName = /^[0-9]+:(.*)/;
@@ -183,6 +184,13 @@ function detachNode(node: BaseNode) {
     (<BaseNodeImpl>node).unpropagate_back_references();
 }
 
+interface NamespaceConstructorOptions {
+    addressSpace: AddressSpacePrivate;
+    index: number;
+    namespaceUri: string;
+    publicationDate: Date;
+    version: string;
+}
 /**
  *
  * @constructor
@@ -202,8 +210,8 @@ export class NamespaceImpl implements NamespacePrivate {
     public addressSpace: AddressSpacePrivate;
     public readonly index: number;
 
-    public version = 0;
-    public publicationDate: Date = new Date(1900, 0, 1);
+    public version = "0.0.0";
+    public publicationDate: Date = new Date(Date.UTC(1900, 0, 1));
 
     private _objectTypeMap: Map<string, UAObjectType>;
     private _variableTypeMap: Map<string, UAVariableType>;
@@ -216,15 +224,22 @@ export class NamespaceImpl implements NamespacePrivate {
     private defaultAccessRestrictions?: AccessRestrictionsFlag;
     private defaultRolePermissions?: RolePermissionType[];
 
-    constructor(options: any) {
-        assert(typeof options.namespaceUri === "string");
-        assert(typeof options.index === "number");
+    constructor(options: NamespaceConstructorOptions) {
+        // istanbul ignore next
+        if (!(typeof options.namespaceUri === "string")) {
+            throw new Error("NamespaceImpl constructor: namespaceUri must exists and be a string : got " + options.namespaceUri);
+        }
+        // istanbul ignore next
+        if (typeof options.index !== "number") {
+            throw new Error("NamespaceImpl constructor: index must be a number");
+        }
+        // istanbul ignore next
+        if (!options.addressSpace) {
+            throw new Error("NamespaceImpl constructor: Must specify a valid address space");
+        }
 
         this.namespaceUri = options.namespaceUri;
         this.addressSpace = options.addressSpace;
-        if (!this.addressSpace) {
-            throw new Error("Must specify a valid address space");
-        }
 
         this.index = options.index;
         this._nodeid_index = new Map();
@@ -1139,11 +1154,7 @@ export class NamespaceImpl implements NamespacePrivate {
             parentObject !== null && typeof parentObject === "object" && parentObject instanceof BaseNodeImpl,
             "expecting a valid parent object"
         );
-
         assert(Object.prototype.hasOwnProperty.call(options, "browseName"));
-        assert(!Object.prototype.hasOwnProperty.call(options, "inputArguments") || Array.isArray(options.inputArguments));
-        assert(!Object.prototype.hasOwnProperty.call(options, "outputArguments") || Array.isArray(options.outputArguments));
-
         options.componentOf = parentObject;
 
         const method = this._addMethod(options);
@@ -1709,7 +1720,7 @@ export class NamespaceImpl implements NamespacePrivate {
 
                 const indexVerif = parseInt(match[0], 10);
                 if (indexVerif !== this.index) {
-                    console.log(
+                    errorLog(
                         chalk.red.bold(
                             "Error: namespace index used at the front of the browseName " +
                                 indexVerif +
@@ -1718,7 +1729,7 @@ export class NamespaceImpl implements NamespacePrivate {
                                 ")"
                         )
                     );
-                    console.log(
+                    errorLog(
                         " Please fix your code so that the created node is inserted in the correct namespace," +
                             " please refer to the NodeOPCUA documentation"
                     );
@@ -1837,6 +1848,7 @@ export class NamespaceImpl implements NamespacePrivate {
         const objectType = this.internalCreateNode({
             browseName: options.browseName,
             displayName: options.displayName,
+            description: options.description,
             eventNotifier: +options.eventNotifier,
             isAbstract: !!options.isAbstract,
             nodeClass,

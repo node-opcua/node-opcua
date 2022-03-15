@@ -1,10 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
-<UANodeSet Version="1.02" LastModified="2013-03-06T05:36:44.0862658Z" xmlns="http://opcfoundation.org/UA/2011/03/UANodeSet.xsd">
+<UANodeSet Version="1.02" LastModified="2013-03-06T05:36:44.0862658Z"
+    xmlns="http://opcfoundation.org/UA/2011/03/UANodeSet.xsd">
     <NamespaceUris>
         <Uri>http://nodeopcua.org/UA/CUSTOM_NAMESPACE3/</Uri>
         <Uri>http://nodeopcua.org/UA/CUSTOM_NAMESPACE1/</Uri>
         <Uri>http://nodeopcua.org/UA/CUSTOM_NAMESPACE2/</Uri>
     </NamespaceUris>
+
+    <Models>
+        <Model ModelUri="http://nodeopcua.org/UA/CUSTOM_NAMESPACE3/" Version="1.0.0">
+            <RequiredModel ModelUri="http://nodeopcua.org/UA/CUSTOM_NAMESPACE1/" Version="1.0.0"/>
+            <RequiredModel ModelUri="http://nodeopcua.org/UA/CUSTOM_NAMESPACE2/" Version="1.0.0"/>
+        </Model>
+    </Models>
+
     <Aliases>
         <Alias Alias="Boolean">i=1</Alias>
         <Alias Alias="NodeId">i=17</Alias>

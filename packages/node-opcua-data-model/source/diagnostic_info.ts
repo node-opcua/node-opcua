@@ -140,6 +140,19 @@ export class DiagnosticInfo extends BaseUAObject {
     public decodeDebug(stream: BinaryStream, options: DecodeDebugOptions): void {
         decodeDebug_DiagnosticInfo(this, stream, options);
     }
+
+    public static filterForResponse(diagnostic: DiagnosticInfo, requestedDiagnostics: number, diagnosticInfoMask: DiagnosticInfo_Mask): DiagnosticInfo {
+        const options: DiagnosticInfoOptions = {
+            symbolicId: (requestedDiagnostics & diagnosticInfoMask.SymbolicId) ? diagnostic.symbolicId: undefined,
+            localizedText: (requestedDiagnostics & diagnosticInfoMask.LocalizedText) ? diagnostic.localizedText: undefined,
+            additionalInfo: (requestedDiagnostics & diagnosticInfoMask.AdditionalInfo) ? diagnostic.additionalInfo: undefined,
+            innerStatusCode: (requestedDiagnostics & diagnosticInfoMask.InnerStatusCode) ? diagnostic.innerStatusCode: undefined,
+            innerDiagnosticInfo: (requestedDiagnostics & diagnosticInfoMask.InnerDiagnostics) ? diagnostic.innerDiagnosticInfo : (
+                diagnostic.innerDiagnosticInfo ? DiagnosticInfo.filterForResponse(diagnostic.innerDiagnosticInfo, requestedDiagnostics, diagnosticInfoMask) : undefined
+            ),
+        }
+        return new DiagnosticInfo(options);
+    }
 }
 
 DiagnosticInfo.prototype.schema = DiagnosticInfo.schema;
@@ -153,6 +166,43 @@ export interface DiagnosticInfoOptions {
     additionalInfo?: UAString;
     innerStatusCode?: StatusCode;
     innerDiagnosticInfo?: DiagnosticInfo;
+}
+
+export enum DiagnosticInfo_ServiceLevelMask {
+    None = 0x00,
+    SymbolicId = 0x01,
+    LocalizedText = 0x02,
+    AdditionalInfo = 0x04,
+    InnerStatusCode = 0x08,
+    InnerDiagnostics = 0x10
+}
+
+export enum DiagnosticInfo_OperationLevelMask {
+    SymbolicId = 0x020,
+    LocalizedText = 0x040,
+    AdditionalInfo = 0x080,
+    InnerStatusCode = 0x0100,
+    InnerDiagnostics = 0x0200
+}
+
+type DiagnosticInfo_Mask = typeof DiagnosticInfo_ServiceLevelMask | typeof DiagnosticInfo_OperationLevelMask;
+
+export const RESPONSE_DIAGNOSTICS_MASK_ALL = 0x3FF;
+
+export function filterDiagnosticInfoLevel(returnDiagnostics: number, diagnostic: DiagnosticInfo | null, diagnosticInfoMask: DiagnosticInfo_Mask): DiagnosticInfo | null {
+    if (!diagnostic) {
+        return null;
+    }
+
+    return DiagnosticInfo.filterForResponse(diagnostic, returnDiagnostics, diagnosticInfoMask);
+}
+
+export function filterDiagnosticOperationLevel(returnDiagnostics: number, diagnostic: DiagnosticInfo | null): DiagnosticInfo | null {
+    return filterDiagnosticInfoLevel(returnDiagnostics, diagnostic, DiagnosticInfo_OperationLevelMask);
+}
+
+export function filterDiagnosticServiceLevel(returnDiagnostics: number, diagnostic: DiagnosticInfo | null): DiagnosticInfo | null {
+    return filterDiagnosticInfoLevel(returnDiagnostics, diagnostic, DiagnosticInfo_ServiceLevelMask);
 }
 
 export enum DiagnosticInfo_EncodingByte {

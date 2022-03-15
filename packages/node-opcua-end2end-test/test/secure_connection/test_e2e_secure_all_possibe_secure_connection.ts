@@ -13,7 +13,6 @@ import * as should from "should";
 import * as sinon from "sinon";
 
 import {
-    ClientSubscription,
     coerceMessageSecurityMode,
     MessageSecurityMode,
     SecurityPolicy,
@@ -21,7 +20,6 @@ import {
     OPCUACertificateManager,
     OPCUAClient,
     ClientSecureChannelLayer,
-    getDefaultCertificateManager,
     TimestampsToReturn,
     MonitoringMode,
     AttributeIds,
@@ -29,11 +27,11 @@ import {
     OPCUAServer,
     OPCUAServerOptions,
     ClientSession,
-    SecurityToken,
-    ChannelSecurityToken
+    ChannelSecurityToken,
+    OPCUAClientOptions
 } from "node-opcua";
 import { CertificateAuthority, dumpCertificate } from "node-opcua-pki";
-import { readCertificateRevocationList, readCertificate } from "node-opcua-crypto";
+import { readCertificateRevocationList, readCertificate, Certificate } from "node-opcua-crypto";
 
 import { make_debugLog, checkDebugFlag } from "node-opcua-debug";
 const debugLog = make_debugLog("TEST");
@@ -52,7 +50,7 @@ const g_numberOfTokenRenewal = 2;
 
 let server: OPCUAServer;
 let endpointUrl: string;
-let serverCertificate: string;
+let serverCertificate: Certificate;
 let temperatureVariableId: NodeId;
 
 const no_reconnect_connectivity_strategy = {
@@ -98,7 +96,7 @@ async function getClientCertificateManager(): Promise<OPCUACertificateManager> {
     });
     try {
         await (fakeClient as any).createDefaultCertificate();
-    } catch(err) {
+    } catch (err) {
         debugLog("getClientCertificateManager: cannot connect to server");
     }
     // create default certificate
@@ -128,7 +126,7 @@ async function start_inner_server_local(options: OPCUAServerOptions): Promise<In
     const data = {
         endpointUrl: server.getEndpointUrl(),
         serverCertificate: server.endpoints[0].endpointDescriptions()[0].serverCertificate,
-        temperatureVariableId: server.temperatureVariableId,
+        temperatureVariableId: (server as any).temperatureVariableId,
         server: server
     };
     return data;
@@ -167,7 +165,7 @@ function get_server_channel_security_token_change_count(server) {
 }
 
 async function trustClientCertificateOnServer(client: OPCUAClient): Promise<void> {
-
+    
     await client.createDefaultCertificate();
 
     const certificateFile = client.certificateFile;
@@ -328,7 +326,6 @@ async function common_test(securityPolicy, securityMode, options): Promise<void>
 
     let token_change = 0;
     const client = OPCUAClient.create(options);
-    
 
     client.on("lifetime_75", function (token: ChannelSecurityToken) {
         // check if we are late!
@@ -647,7 +644,7 @@ describe("ZZB- testing Secure Client-Server communication", function () {
         const client = OPCUAClient.create(options);
         await trustClientCertificateOnServer(client);
 
-        const prototype =  ClientSecureChannelLayer.prototype as any;
+        const prototype = ClientSecureChannelLayer.prototype as any;
         const old_performMessageTransaction = prototype._performMessageTransaction;
         prototype._performMessageTransaction = function (msgType, requestMessage, callback) {
             // let's alter the client Nonce,
@@ -711,8 +708,7 @@ describe("ZZB- testing server behavior on secure connection ", function () {
     let old_method;
     let timerId = null;
     before(async () => {
-
-        const prototype =  ClientSecureChannelLayer.prototype as any
+        const prototype = ClientSecureChannelLayer.prototype as any;
         prototype._renew_security_token.should.be.instanceOf(Function);
         // let modify the client behavior so that _renew_security_token call is delayed by an amount of time
         // that should cause the server to worry about the token not to be renewed.
@@ -742,7 +738,7 @@ describe("ZZB- testing server behavior on secure connection ", function () {
         }
 
         // restoring _renew_security_token
-        const prototype =  ClientSecureChannelLayer.prototype as any
+        const prototype = ClientSecureChannelLayer.prototype as any;
         prototype._renew_security_token = old_method;
         debugLog(" Disconnecting server");
 
@@ -750,7 +746,7 @@ describe("ZZB- testing server behavior on secure connection ", function () {
     });
 
     it("ZZB-1 server shall shutdown the connection if client doesn't renew security token on time", async () => {
-        const options = {
+        const options: OPCUAClientOptions = {
             keepSessionAlive: true,
             securityMode: MessageSecurityMode.SignAndEncrypt,
             securityPolicy: SecurityPolicy.Basic128Rsa15,

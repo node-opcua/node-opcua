@@ -1,4 +1,4 @@
-import async from "async";
+import * as async from "async";
 import { OPCUAClient }from "node-opcua";
 import { build_server_with_temperature_device }from "../../test_helpers/build_server_with_temperature_device";
 // eslint-disable-next-line import/order

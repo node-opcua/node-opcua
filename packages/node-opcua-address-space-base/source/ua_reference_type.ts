@@ -1,5 +1,5 @@
 import { LocalizedText, NodeClass } from "node-opcua-data-model";
-import { NodeId } from "node-opcua-nodeid";
+import { NodeId, NodeIdLike } from "node-opcua-nodeid";
 import { BaseNode } from "./base_node";
 import { UAReference } from "./ua_reference";
 
@@ -10,7 +10,7 @@ export declare class UAReferenceType extends BaseNode {
     public readonly isAbstract: boolean;
     public readonly inverseName: LocalizedText;
 
-    public isSupertypeOf(baseType: UAReferenceType): boolean;
+    public isSupertypeOf(baseType: UAReferenceType | NodeIdLike): boolean;
 
     public getAllSubtypes(): UAReferenceType[];
 

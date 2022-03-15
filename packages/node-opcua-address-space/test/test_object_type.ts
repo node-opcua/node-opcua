@@ -117,24 +117,40 @@ describe("testing UAObjectType", () => {
             isAbstract: false,
             subtypeOf: "BaseObjectType"
         });
-        
+
         objType.displayName.toString().should.eql("locale=null text=Some DisplayName");
 
-
-        const instance1 =objType.instantiate({
-            browseName: "Instance1",
+        const instance1 = objType.instantiate({
+            browseName: "Instance1"
         });
         instance1.displayName.toString().should.eql("locale=null text=Instance1");
 
-        const instance2 =objType.instantiate({
+        const instance2 = objType.instantiate({
             browseName: "Instance2",
             displayName: "Instance2 DisplayName"
         });
         instance2.displayName.toString().should.eql("locale=null text=Instance2 DisplayName");
 
-
         // tslint:disable:no-console
         debugLog(objType.toString());
-        
-    }); 
+    });
+
+    it("UAObjectType: create should handle description - type 1", () => {
+        const namespace = addressSpace.getOwnNamespace();
+        const objectType = namespace.addObjectType({
+            browseName: "MyObjectType4",
+            description: "Some Description"
+        });
+
+        objectType.description.toString().should.eql("locale=null text=Some Description");
+    });
+    it("UAObjectType: create should handle description - type 2", () => {
+        const namespace = addressSpace.getOwnNamespace();
+        const objectType = namespace.addObjectType({
+            browseName: "MyObjectType5",
+            description: { text: "Some Description", locale: "en-US" }
+        });
+
+        objectType.description.toString().should.eql("locale=en-US text=Some Description");
+    });
 });

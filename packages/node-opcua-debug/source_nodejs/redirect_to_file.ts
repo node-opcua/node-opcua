@@ -29,9 +29,9 @@ export function redirectToFile(tmpFile: string, actionFct: Function, callback: (
     const f = fs.createWriteStream(logFile, { flags: "w", encoding: "ascii" });
 
     function _write_to_file(...args: [any, ...any[]]) {
-        const msg = format.apply(null, args);
+        const msg = format.call(null, ...args);
         f.write(msg + "\n");
-        if (process.env.DEBUG) {
+        if (typeof process === "object" && process.env.DEBUG) {
             oldConsoleLog.call(console, msg);
         }
     }

@@ -9,7 +9,13 @@ describe("AddIns", () => {
     let addressSpace: AddressSpace;
     before(async () => {
         addressSpace = AddressSpace.create();
-        await generateAddressSpace(addressSpace, [nodesets.standard, nodesets.di, nodesets.machineTool, nodesets.machinery]);
+        await generateAddressSpace(addressSpace, [
+            nodesets.standard,
+            nodesets.di,
+            nodesets.ia,
+            nodesets.machinery,
+            nodesets.machineTool
+        ]);
     });
     after(() => {
         addressSpace.dispose();

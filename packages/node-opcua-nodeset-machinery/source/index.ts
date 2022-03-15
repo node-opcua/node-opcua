@@ -5,3 +5,5 @@ export * from "./ua_machine_components";
 export * from "./ua_machine_identification";
 export * from "./ua_machinery_component_identification";
 export * from "./ua_machinery_item_identification";
+export * from "./ua_machinery_item_state_state_machine";
+export * from "./ua_machinery_operation_mode_state_machine";

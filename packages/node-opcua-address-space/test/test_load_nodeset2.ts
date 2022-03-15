@@ -268,7 +268,7 @@ describe("testing NodeSet XML file loading", function (this: any) {
 
         dataType.nodeId.toString().should.eql("ns=1;i=6244");
 
-        (dataType as any)._getDefinition(true).should.be.instanceOf(EnumDefinition);
+        dataType.getDefinition().should.be.instanceOf(EnumDefinition);
 
         // must have a EnumString property
         const enumStrings = dataType.getChildByName("EnumStrings")!;
@@ -293,7 +293,11 @@ describe("testing NodeSet XML file loading", function (this: any) {
     <NamespaceUris>
         <Uri>http://opcfoundation.org/UA/DI/</Uri>
     </NamespaceUris>
-    <Models/>
+    <Models>
+        <Model ModelUri="http://opcfoundation.org/UA/DI/" Version="1.02" PublicationDate="2019-01-21T00:00:00.000Z">
+            <RequiredModel ModelUri="http://opcfoundation.org/UA/" Version="1.04.10" PublicationDate="2021-09-15T00:00:00.000Z"/>
+        </Model>
+    </Models>
     <Aliases>
         <Alias Alias="HasModellingRule">i=37</Alias>
         <Alias Alias="HasProperty">i=46</Alias>
@@ -306,10 +310,10 @@ describe("testing NodeSet XML file loading", function (this: any) {
     <UADataType NodeId="ns=1;i=6244" BrowseName="1:DeviceHealthEnumeration">
         <DisplayName>DeviceHealthEnumeration</DisplayName>
         <References>
-            <Reference ReferenceType="HasProperty">ns=1;i=6450</Reference>
             <Reference ReferenceType="HasSubtype" IsForward="false">i=29</Reference>
+            <Reference ReferenceType="HasProperty">ns=1;i=6450</Reference>
         </References>
-        <Definition Name="DeviceHealthEnumeration">
+        <Definition Name="1:DeviceHealthEnumeration">
             <Field Name="NORMAL" Value="0">
                 <Description>This device functions normally.</Description>
             </Field>
@@ -336,23 +340,18 @@ describe("testing NodeSet XML file loading", function (this: any) {
         <Value>
             <ListOfLocalizedText xmlns="http://opcfoundation.org/UA/2008/02/Types.xsd">
                 <LocalizedText>
-                    <Locale/>
                     <Text>NORMAL</Text>
                 </LocalizedText>
                 <LocalizedText>
-                    <Locale/>
                     <Text>FAILURE</Text>
                 </LocalizedText>
                 <LocalizedText>
-                    <Locale/>
                     <Text>CHECK_FUNCTION</Text>
                 </LocalizedText>
                 <LocalizedText>
-                    <Locale/>
                     <Text>OFF_SPEC</Text>
                 </LocalizedText>
                 <LocalizedText>
-                    <Locale/>
                     <Text>MAINTENANCE_REQUIRED</Text>
                 </LocalizedText>
             </ListOfLocalizedText>

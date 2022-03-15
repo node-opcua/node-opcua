@@ -284,14 +284,14 @@ export class TCP_transport extends EventEmitter {
         // let use a large timeout here to make sure that we not conflict with our internal timeout
         this._socket!.setTimeout(this.timeout + 2000, () => {
             debugLog(` _socket ${this.name} has timed out (timeout = ${this.timeout})`);
-            this.prematureTerminate(new Error("INTERNAL_EPIPE timeout=" + this.timeout));
+            this.prematureTerminate(new Error("socket timeout : timeout=" + this.timeout));
         });
     }
 
     public prematureTerminate(err: Error): void {
         debugLog("prematureTerminate", err ? err.message : "");
         if (this._socket) {
-            err.message = "EPIPE_" + err.message;
+            err.message = "socket has timeout: EPIPE: " + err.message;
             // we consider this as an error
             const _s = this._socket;
             _s.end();

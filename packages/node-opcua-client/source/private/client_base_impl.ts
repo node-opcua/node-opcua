@@ -1292,9 +1292,6 @@ export class ClientBaseImpl extends OPCUASecureObject implements OPCUAClientBase
         session._client = this;
         this._sessions.push(session);
 
-        if (this.keepSessionAlive) {
-            session.startKeepAliveManager();
-        }
     }
 
     private fetchServerCertificate(endpointUrl: string, callback: (err: Error | null, adjustedEndpointUrl?: string) => void): void {

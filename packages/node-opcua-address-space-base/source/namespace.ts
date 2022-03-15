@@ -251,12 +251,12 @@ export interface AddYArrayItemOptions extends AddVariableOptions {
 export type CreateNodeOptions = any;
 
 export declare interface INamespace {
-    version: number;
+    version: string;
     publicationDate: Date;
     namespaceUri: string;
     addressSpace: IAddressSpace;
     index: number;
-
+ 
     constructNodeId(options: ConstructNodeIdOptions): NodeId;
 
     // -------------------------------------------------------------------------

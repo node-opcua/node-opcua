@@ -250,6 +250,8 @@ if (false) {
     wget("1.04", "https://opcfoundation.org/UA/schemas/1.04/StatusCodes.csv");
     wget("1.04", "https://opcfoundation.org/UA/schemas/1.04/StatusCode.csv");
 
+
+
 }
 
 
@@ -317,3 +319,9 @@ fetch_from_github(version, "Schema/AttributeIds.csv");
 fetch_from_github(version, "Schema/NodeIds.csv");
 fetch_from_github(version, "Schema/StatusCodes.csv");
 fetch_from_github(version, "Schema/StatusCode.csv");
+
+fetch_from_github(version, "Woodworking/Opc.Ua.Woodworking.NodeSet2.xml");
+fetch_from_github(version, "Woodworking/Opc.Ua.Eumabois.Nodeset2.xml");
+fetch_from_github(version, "Glass/Flat/Opc.Ua.Glass.NodeSet2.xml");
+
+

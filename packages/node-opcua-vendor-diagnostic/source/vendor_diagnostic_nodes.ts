@@ -72,7 +72,7 @@ export function install_optional_cpu_and_memory_usage_node(server: any) {
 
     let usage_result = { memory: 0, cpu: 100 };
 
-    const pid = process.pid;
+    const pid = typeof process === "object" ? process.pid || 0 : 0;
 
     if (usage) {
         const options = { keepHistory: true };

@@ -149,6 +149,9 @@ export interface OPCUAClient extends OPCUAClientBase {
     reactivateSession(session: ClientSession): Promise<void>;
 
     reactivateSession(session: ClientSession, callback: (err?: Error) => void): void;
+
+    // @private
+    createDefaultCertificate(): Promise<void>;
 }
 
 export interface EndpointWithUserIdentity {

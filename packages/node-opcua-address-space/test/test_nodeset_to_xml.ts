@@ -219,11 +219,12 @@ describe("testing nodeset to xml", () => {
         str.should.match(/BrowseName="InputArguments"/);
         str.should.match(/BrowseName="OutputArguments"/);
 
+
+        str = str.replace(/LastModified=".*" /g, 'LastModified="DATE" ');
         if (doDebug) {
             console.log(str);
         }
 
-        str = str.replace(/LastModified=".*" /g, 'LastModified="DATE" ');
         str.should.eql(`<?xml version="1.0"?>
 <UANodeSet xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" Version="1.02" LastModified="DATE" xmlns="http://opcfoundation.org/UA/2011/03/UANodeSet.xsd">
     <Aliases>
@@ -242,7 +243,6 @@ describe("testing nodeset to xml", () => {
     </UAObject>
     <UAMethod NodeId="ns=1;i=1001" BrowseName="1:Trigger">
         <DisplayName>Trigger</DisplayName>
-        <Description></Description>
         <References>
             <Reference ReferenceType="HasModellingRule">i=78</Reference>
             <Reference ReferenceType="HasProperty">ns=1;i=1002</Reference>
@@ -271,7 +271,6 @@ describe("testing nodeset to xml", () => {
                             <ValueRank>-1</ValueRank>
                             <ArrayDimensions></ArrayDimensions>
                             <Description>
-                                <Locale/>
                                 <Text>specifies the number of seconds to wait before the picture is taken </Text>
                             </Description>
                         </Argument>
@@ -302,7 +301,6 @@ describe("testing nodeset to xml", () => {
                             <ValueRank>-1</ValueRank>
                             <ArrayDimensions></ArrayDimensions>
                             <Description>
-                                <Locale/>
                                 <Text>the generated image</Text>
                             </Description>
                         </Argument>
@@ -348,7 +346,11 @@ describe("Namespace to NodeSet2.xml", () => {
     <NamespaceUris>
         <Uri>http://MYNAMESPACE</Uri>
     </NamespaceUris>
-    <Models/>
+    <Models>
+        <Model ModelUri="http://MYNAMESPACE" Version="0.0.0" PublicationDate="1900-01-01T00:00:00.000Z">
+            <RequiredModel ModelUri="http://opcfoundation.org/UA/" Version="1.04" PublicationDate="2018-05-15T00:00:00.000Z"/>
+        </Model>
+    </Models>
     <Aliases>
         <Alias Alias="HasSubtype">i=45</Alias>
     </Aliases>
@@ -385,7 +387,11 @@ describe("Namespace to NodeSet2.xml", () => {
     <NamespaceUris>
         <Uri>http://MYNAMESPACE</Uri>
     </NamespaceUris>
-    <Models/>
+    <Models>
+        <Model ModelUri="http://MYNAMESPACE" Version="0.0.0" PublicationDate="1900-01-01T00:00:00.000Z">
+            <RequiredModel ModelUri="http://opcfoundation.org/UA/" Version="1.04" PublicationDate="2018-05-15T00:00:00.000Z"/>
+        </Model>
+    </Models>
     <Aliases>
         <Alias Alias="HasSubtype">i=45</Alias>
     </Aliases>
@@ -430,13 +436,16 @@ describe("Namespace to NodeSet2.xml", () => {
     <NamespaceUris>
         <Uri>http://MYNAMESPACE</Uri>
     </NamespaceUris>
-    <Models/>
+    <Models>
+        <Model ModelUri="http://MYNAMESPACE" Version="0.0.0" PublicationDate="1900-01-01T00:00:00.000Z">
+            <RequiredModel ModelUri="http://opcfoundation.org/UA/" Version="1.04" PublicationDate="2018-05-15T00:00:00.000Z"/>
+        </Model>
+    </Models>
     <Aliases>
         <Alias Alias="HasSubtype">i=45</Alias>
     </Aliases>
 <!--ReferenceTypes-->
 <!--ObjectTypes-->
-<!--ObjectType - 1:MyObjectType {{{{ -->
 <!--ObjectType - 1:MyObjectBaseType {{{{ -->
     <UAObjectType NodeId="ns=1;i=1000" BrowseName="1:MyObjectBaseType" IsAbstract="true">
         <DisplayName>MyObjectBaseType</DisplayName>
@@ -445,6 +454,7 @@ describe("Namespace to NodeSet2.xml", () => {
         </References>
     </UAObjectType>
 <!--ObjectType - 1:MyObjectBaseType }}}}-->
+<!--ObjectType - 1:MyObjectType {{{{ -->
     <UAObjectType NodeId="ns=1;i=1001" BrowseName="1:MyObjectType">
         <DisplayName>MyObjectType</DisplayName>
         <References>
@@ -478,7 +488,11 @@ describe("Namespace to NodeSet2.xml", () => {
     <NamespaceUris>
         <Uri>http://MYNAMESPACE</Uri>
     </NamespaceUris>
-    <Models/>
+    <Models>
+        <Model ModelUri="http://MYNAMESPACE" Version="0.0.0" PublicationDate="1900-01-01T00:00:00.000Z">
+            <RequiredModel ModelUri="http://opcfoundation.org/UA/" Version="1.04" PublicationDate="2018-05-15T00:00:00.000Z"/>
+        </Model>
+    </Models>
     <Aliases>
         <Alias Alias="Double">i=11</Alias>
         <Alias Alias="HasTypeDefinition">i=40</Alias>

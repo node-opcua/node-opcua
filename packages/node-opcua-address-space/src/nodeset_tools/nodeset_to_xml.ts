@@ -72,8 +72,8 @@ function _dumpDisplayName(xw: XmlWriter, node: BaseNode): void {
         xw.startElement("DisplayName").text(node.displayName[0].text!).endElement();
     }
 }
-function _dumpDescription(xw: XmlWriter, node: BaseNode): void {
-    if (node.description) {
+function _dumpDescription(xw: XmlWriter, node: { description?: LocalizedText }): void {
+    if (node.description && node.description.text && node.description.text.length) {
         let desc = node.description.text;
         desc = desc || "";
         xw.startElement("Description").text(desc).endElement();
@@ -150,7 +150,7 @@ function _dumpReferences(xw: XmlWriter, node: BaseNode) {
 
     const references = node.allReferences().filter(referenceToKeep);
 
-    for (const reference of references) {
+    for (const reference of references.sort(sortByNodeId)) {
         if (getReferenceType(reference).browseName.toString() === "HasSubtype" && reference.isForward) {
             continue;
         }
@@ -170,11 +170,11 @@ function _dumpReferences(xw: XmlWriter, node: BaseNode) {
     xw.endElement();
 }
 function _dumpLocalizedText(xw: XmlWriter, v: LocalizedText) {
-    xw.startElement("Locale");
-    if (v.locale) {
+    if (v.locale && v.locale.length) {
+        xw.startElement("Locale");
         xw.text(v.locale);
+        xw.endElement();
     }
-    xw.endElement();
     xw.startElement("Text");
     if (v.text) {
         xw.text(v.text);
@@ -741,11 +741,7 @@ function _dumpEnumDefinition(xw: XmlWriter, enumDefinition: EnumDefinition) {
         if (!utils.isNullOrUndefined(defItem.value)) {
             xw.writeAttribute("Value", coerceInt64ToInt32(defItem.value));
         }
-        if (defItem.description && defItem.description.text) {
-            xw.startElement("Description");
-            xw.text(defItem.description.text.toString());
-            xw.endElement();
-        }
+        _dumpDescription(xw, defItem);
         xw.endElement();
     }
 }
@@ -788,11 +784,7 @@ function _dumpStructureDefinition(
             // todo : namespace translation !
             xw.writeAttribute("DataType", n(xw, defItem.dataType));
         }
-        if (defItem.description && defItem.description.text) {
-            xw.startElement("Description");
-            xw.text(defItem.description.text.toString());
-            xw.endElement();
-        }
+        _dumpDescription(xw, defItem);
         xw.endElement();
     }
 }
@@ -801,7 +793,7 @@ function _dumpUADataTypeDefinition(xw: XmlWriter, uaDataType: UADataType) {
 
     if (uaDataType.isEnumeration()) {
         xw.startElement("Definition");
-        xw.writeAttribute("Name", uaDataType.browseName.name!);
+        xw.writeAttribute("Name", b(xw, uaDataType.browseName));
         _dumpEnumDefinition(xw, uaDataType.getEnumDefinition());
         xw.endElement();
         return;
@@ -810,7 +802,7 @@ function _dumpUADataTypeDefinition(xw: XmlWriter, uaDataType: UADataType) {
         const definition = uaDataType.getStructureDefinition();
         const baseDefinition = uaDataTypeBase ? uaDataTypeBase.getStructureDefinition() : null;
         xw.startElement("Definition");
-        xw.writeAttribute("Name", uaDataType.browseName.name!);
+        xw.writeAttribute("Name", b(xw, uaDataType.browseName));
         if (definition.structureType === StructureType.Union) {
             xw.writeAttribute("IsUnion", "true");
         }
@@ -880,7 +872,11 @@ function dumpUAVariable(xw: XmlWriter, node: UAVariable) {
     {
         // sub elements
         dumpCommonElements(xw, node);
-        _dumpValue(xw, node, node.readValue().value);
+
+        const value = (node as UAVariableImpl).$dataValue.value;
+        if (value) {
+            _dumpValue(xw, node, value);
+        }
     }
     xw.endElement();
 
@@ -926,7 +922,11 @@ function dumpUAVariableType(xw: XmlWriter, node: UAVariableType) {
 
         // sub elements
         dumpCommonElements(xw, node);
-        _dumpValue(xw, node, (node as any).value);
+
+        const value = (node as UAVariableTypeImpl).value as Variant;
+        if (value) {
+            _dumpValue(xw, node, value);
+        }
     }
 
     xw.endElement();
@@ -961,7 +961,7 @@ function dumpElementInFolder(xw: XmlWriter, node: BaseNodeImpl) {
     const aggregates = node
         .getFolderElements()
         .sort((x: BaseNode, y: BaseNode) => (x.browseName.name!.toString() > y.browseName.name!.toString() ? 1 : -1));
-    for (const aggregate of aggregates) {
+    for (const aggregate of aggregates.sort(sortByNodeId)) {
         // do not export node that do not belong to our namespace
         if (node.nodeId.namespace !== aggregate.nodeId.namespace) {
             return;
@@ -978,7 +978,7 @@ function dumpAggregates(xw: XmlWriter, node: BaseNode) {
     const aggregates = node
         .getAggregates()
         .sort((x: BaseNode, y: BaseNode) => (x.browseName.name!.toString() > y.browseName.name!.toString() ? 1 : -1));
-    for (const aggregate of aggregates) {
+    for (const aggregate of aggregates.sort(sortByNodeId)) {
         // do not export node that do not belong to our namespace
         if (node.nodeId.namespace !== aggregate.nodeId.namespace) {
             return;
@@ -1147,6 +1147,9 @@ function sortByBrowseName(x: BaseNode, y: BaseNode): number {
     }
     return 0;
 }
+function sortByNodeId(a: { nodeId: NodeId }, b: { nodeId: NodeId }) {
+    return a.nodeId.toString() < b.nodeId.toString() ? -1 : 1;
+}
 
 export function dumpXml(node: BaseNode, options: any): void {
     const namespace = node.namespace as NamespacePrivate;
@@ -1238,6 +1241,23 @@ NamespaceImpl.prototype.toNodeset2XML = function (this: NamespaceImpl) {
 
     // ------------- INamespace Uris
     xw.startElement("Models");
+    {
+        xw.startElement("Model");
+        xw.writeAttribute("ModelUri", this.namespaceUri);
+        xw.writeAttribute("Version", this.version);
+        xw.writeAttribute("PublicationDate", this.publicationDate.toISOString());
+        for (const depend of dependency) {
+            if (depend.index === this.index) {
+                continue; // ignore our namespace 0
+            }
+            xw.startElement("RequiredModel");
+            xw.writeAttribute("ModelUri", depend.namespaceUri);
+            xw.writeAttribute("Version", depend.version);
+            xw.writeAttribute("PublicationDate", depend.publicationDate.toISOString());
+            xw.endElement();
+        }
+        xw.endElement();
+    }
     xw.endElement();
 
     const s: any = {};
@@ -1282,7 +1302,7 @@ NamespaceImpl.prototype.toNodeset2XML = function (this: NamespaceImpl) {
     if (dataTypes.length) {
         xw.writeComment("DataTypes");
         // xx xw.writeComment(" "+ objectTypes.map(x=>x.browseName.name.toString()).join(" "));
-        for (const dataType of dataTypes) {
+        for (const dataType of dataTypes.sort(sortByNodeId)) {
             if (!xw.visitedNode[_hash(dataType)]) {
                 dumpNodeInXml(xw, dataType);
             }
@@ -1292,7 +1312,7 @@ NamespaceImpl.prototype.toNodeset2XML = function (this: NamespaceImpl) {
     xw.writeComment("ObjectTypes");
     const objectTypes = [...this._objectTypeIterator()].sort(sortByBrowseName);
     // xx xw.writeComment(" "+ objectTypes.map(x=>x.browseName.name.toString()).join(" "));
-    for (const objectType of objectTypes) {
+    for (const objectType of objectTypes.sort(sortByNodeId)) {
         if (!xw.visitedNode[_hash(objectType)]) {
             dumpNodeInXml(xw, objectType);
         }
@@ -1302,7 +1322,7 @@ NamespaceImpl.prototype.toNodeset2XML = function (this: NamespaceImpl) {
     xw.writeComment("VariableTypes");
     const variableTypes = [...this._variableTypeIterator()].sort(sortByBrowseName);
     // xx xw.writeComment("ObjectTypes "+ variableTypes.map(x=>x.browseName.name.toString()).join(" "));
-    for (const variableType of variableTypes) {
+    for (const variableType of variableTypes.sort(sortByNodeId)) {
         if (!xw.visitedNode[_hash(variableType)]) {
             dumpNodeInXml(xw, variableType);
         }
@@ -1311,7 +1331,7 @@ NamespaceImpl.prototype.toNodeset2XML = function (this: NamespaceImpl) {
     // -------------- Any   thing else
     xw.writeComment("Other Nodes");
     const nodes = [...this.nodeIterator()].sort(sortByBrowseName);
-    for (const node of nodes) {
+    for (const node of nodes.sort(sortByNodeId)) {
         if (!xw.visitedNode[_hash(node)]) {
             dumpNodeInXml(xw, node);
         }

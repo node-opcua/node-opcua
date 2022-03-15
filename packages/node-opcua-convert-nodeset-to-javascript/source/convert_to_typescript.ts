@@ -1,3 +1,4 @@
+import * as chalk from "chalk";
 import * as wrap from "wordwrap";
 import { LocalizedText, NodeClass, QualifiedName } from "node-opcua-data-model";
 import { NodeId } from "node-opcua-nodeid";
@@ -7,7 +8,7 @@ import { LineFile, lowerFirstLetter } from "node-opcua-utils";
 import { DataType } from "node-opcua-variant";
 import assert from "node-opcua-assert";
 import { ModellingRuleType } from "node-opcua-address-space-base";
-import * as chalk from "chalk";
+import { make_warningLog } from "node-opcua-debug";
 import {
     convertNodeIdToDataTypeAsync,
     getBrowseName,
@@ -28,7 +29,7 @@ import {
 import { Cache, constructCache, Import, makeTypeNameNew, referenceExtensionObject, RequestedSubSymbol } from "./private/cache";
 import { Options } from "./options";
 import { toFilename } from "./private/to_filename";
-
+const warningLog = make_warningLog("typescript");
 const doDebug = false;
 const wrapText = wrap(0, 50);
 const f2 = (str: string) => str.padEnd(50, "-");
@@ -51,19 +52,25 @@ export async function convertDataTypeToTypescript(session: IBasicSession, dataTy
 }
 
 // to avoid clashes
-function toJavascritPropertyName(childName: string): string {
+function toJavascritPropertyName(childName: string, { ignoreConflictingName }: { ignoreConflictingName: boolean }): string {
     childName = lowerFirstLetter(childName);
-    if (childName === "namespaceUri") {
-        childName = "$namespaceUri";
-    }
-    if (childName === "rolePermissions") {
-        childName = "$rolePermissions";
-    }
-    if (childName === "displayName") {
-        childName = "$displayName";
-    }
-    if (childName === "eventNotifier") {
-        childName = "$eventNotifier";
+
+    if (ignoreConflictingName) {
+        if (childName === "namespaceUri") {
+            childName = "$namespaceUri";
+        }
+        if (childName === "rolePermissions") {
+            childName = "$rolePermissions";
+        }
+        if (childName === "displayName") {
+            childName = "$displayName";
+        }
+        if (childName === "eventNotifier") {
+            childName = "$eventNotifier";
+        }
+        if (childName === "description") {
+            childName = "$description";
+        }
     }
     return childName.replace(/</g, "$").replace(/>/g, "$").replace(/ |\./g, "_").replace(/#/g, "_");
 }
@@ -431,7 +438,7 @@ async function _extractLocalMembers(session: IBasicSession, classMember: ClassMe
     for (const child of classMember.children) {
         const nodeId = child.nodeId;
         const browseName = await getBrowseName(session, nodeId);
-        const name = toJavascritPropertyName(browseName.name!);
+        const name = toJavascritPropertyName(browseName.name!, { ignoreConflictingName: true });
 
         const description = await getDescription(session, nodeId);
         const modellingRule = await getModellingRule(session, nodeId);
@@ -544,7 +551,7 @@ export async function extractClassMemberDef(
 ): Promise<ClassMember> {
     const nodeClass = await getNodeClass(session, nodeId);
     const browseName = await getBrowseName(session, nodeId);
-    const name = toJavascritPropertyName(browseName.name!);
+    const name = toJavascritPropertyName(browseName.name!, { ignoreConflictingName: true });
 
     if (nodeClass !== NodeClass.Method && nodeClass !== NodeClass.Object && nodeClass !== NodeClass.Variable) {
         throw new Error("Invalid property " + NodeClass[nodeClass] + " " + browseName?.toString() + " " + nodeId.toString());
@@ -558,8 +565,9 @@ export async function extractClassMemberDef(
 
     const typeDefinition = await getTypeDefOrBaseType(session, nodeId);
 
-    if (!typeDefinition.browseName) {
-        console.log("cannot find typeDefinition for ", browseName.toString(), "( is the namespace loaded ?)");
+    if (nodeClass !== NodeClass.Method && (!typeDefinition.browseName || !typeDefinition.browseName.name)) {
+        warningLog(typeDefinition.toString());
+        warningLog("cannot find typeDefinition for ", browseName.toString(), "( is the namespace loaded ?)");
     }
     let childType = makeTypeName2(nodeClass, typeDefinition.browseName);
 
@@ -689,7 +697,7 @@ function dumpChildren(session: IBasicSession, padding: string, children: ClassMe
 
         if (modellingRule === "MandatoryPlaceholder" || modellingRule === "OptionalPlaceholder") continue;
         cache.ensureImported(childType);
-        const adjustedName = toJavascritPropertyName(name);
+        const adjustedName = toJavascritPropertyName(name, { ignoreConflictingName: true });
         if (description.text) {
             f.write(`${padding}/**`);
             f.write(`${padding} * ${name || ""}`);
@@ -844,7 +852,7 @@ export async function _exportDataTypeToTypescript(
             f.write(`export interface ${interfaceName} extends ${baseInterfaceName}  {`);
         }
         for (const field of definition.fields!) {
-            const fieldName = toJavascritPropertyName(field.name!);
+            const fieldName = toJavascritPropertyName(field.name!, { ignoreConflictingName: false });
             // special case ! fieldName=
             if (field.description.text) {
                 f.write(`/** ${field.description.text}*/`);

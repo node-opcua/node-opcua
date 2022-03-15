@@ -69,7 +69,7 @@ export class ObjectRegistry {
     }
 }
 
-ObjectRegistry.doDebug = process?.env?.NODEOPCUA_REGISTRY?.match(/DEBUG/) ? true : false;
+ObjectRegistry.doDebug = typeof process === "object" ? (process?.env?.NODEOPCUA_REGISTRY?.match(/DEBUG/) ? true : false) : false;
 if (ObjectRegistry.doDebug) {
     console.log("ObjectRegistry.doDebug = ", ObjectRegistry.doDebug);
 }

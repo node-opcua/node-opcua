@@ -1,6 +1,6 @@
 {
     "name": "node-opcua-factory",
-    "version": "2.62.7",
+    "version": "2.64.1",
     "description": "pure nodejs OPCUA SDK - module -factory",
     "main": "./dist/index.js",
     "types": "./dist/index.d.ts",
@@ -13,15 +13,15 @@
     },
     "dependencies": {
         "chalk": "4.1.2",
-        "node-opcua-assert": "2.55.0",
-        "node-opcua-basic-types": "2.62.7",
-        "node-opcua-binary-stream": "2.62.7",
-        "node-opcua-debug": "2.62.7",
-        "node-opcua-enum": "2.62.7",
-        "node-opcua-guid": "2.62.7",
-        "node-opcua-nodeid": "2.62.7",
-        "node-opcua-status-code": "2.62.7",
-        "node-opcua-utils": "2.62.7"
+        "node-opcua-assert": "2.64.1",
+        "node-opcua-basic-types": "2.64.1",
+        "node-opcua-binary-stream": "2.64.1",
+        "node-opcua-debug": "2.64.1",
+        "node-opcua-enum": "2.64.1",
+        "node-opcua-guid": "2.64.1",
+        "node-opcua-nodeid": "2.64.1",
+        "node-opcua-status-code": "2.64.1",
+        "node-opcua-utils": "2.64.1"
     },
     "author": "Etienne Rossignon",
     "license": "MIT",

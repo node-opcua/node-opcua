@@ -1,24 +1,25 @@
 import * as fs from "fs";
+import { callbackify, promisify } from "util";
+
 import { checkDebugFlag, make_debugLog, make_errorLog } from "node-opcua-debug";
 import { ErrorCallback } from "node-opcua-status-code";
 import { IAddressSpace } from "node-opcua-address-space-base";
 
-import { generateAddressSpaceRawCallback } from "..";
+import { generateAddressSpaceRaw } from "..";
 const doDebug = checkDebugFlag(__filename);
 const debugLog = make_debugLog(__filename);
 const errorLog = make_errorLog(__filename);
 
-export function readNodeSet2XmlFile(xmlFile: string, callback: (err: Error | null, xmlData?: string) => void): void {
+export async function readNodeSet2XmlFile(xmlFile: string): Promise<string> {
     // istanbul ignore next
     if (!fs.existsSync(xmlFile)) {
         const msg = "[NODE-OPCUA-E02] generateAddressSpace : cannot find nodeset2 xml file at " + xmlFile;
         errorLog(msg);
-        return callback(new Error(msg));
+        throw new Error(msg);
     }
     debugLog(" parsing ", xmlFile);
-    fs.readFile(xmlFile, "ascii", (err, xmlData: string) => {
-        callback(err, xmlData);
-    });
+    const xmlData = await fs.promises.readFile(xmlFile, "ascii");
+    return xmlData;
 }
 export function generateAddressSpace(
     addressSpace: IAddressSpace,
@@ -27,7 +28,7 @@ export function generateAddressSpace(
 ): void;
 export function generateAddressSpace(addressSpace: IAddressSpace, xmlFiles: string | string[]): Promise<void>;
 export function generateAddressSpace(addressSpace: IAddressSpace, xmlFiles: string | string[], callback?: ErrorCallback): any {
-    generateAddressSpaceRawCallback(addressSpace, xmlFiles, readNodeSet2XmlFile, callback);
+    callbackify(generateAddressSpaceRaw)(addressSpace, xmlFiles, readNodeSet2XmlFile, callback!);
 }
 
 // tslint:disable:no-var-requires

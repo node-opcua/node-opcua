@@ -43,7 +43,9 @@ import {
 import { getDefaultCertificateManager, OPCUACertificateManager } from "node-opcua-certificate-manager";
 import { ServerState } from "node-opcua-common";
 import { Certificate, exploreCertificate, makeSHA1Thumbprint, Nonce, toPem } from "node-opcua-crypto";
-import { AttributeIds, LocalizedText, NodeClass } from "node-opcua-data-model";
+import {
+    AttributeIds, DiagnosticInfo, filterDiagnosticInfoLevel, filterDiagnosticOperationLevel, filterDiagnosticServiceLevel, LocalizedText, NodeClass, RESPONSE_DIAGNOSTICS_MASK_ALL
+} from "node-opcua-data-model";
 import { DataValue } from "node-opcua-data-value";
 import { dump, make_debugLog, make_errorLog, make_warningLog } from "node-opcua-debug";
 import { NodeId } from "node-opcua-nodeid";
@@ -675,6 +677,30 @@ function validate_security_endpoint(
         debugLog("endpoints_matching_security_policy= ", endpoints_matching_security_policy.length);
     }
     return { errCode: StatusCodes.Good, endpoint: endpoints_matching_security_policy[0] };
+}
+
+export function filterDiagnosticInfo(returnDiagnostics: number, response: CallResponse): void {
+    if (RESPONSE_DIAGNOSTICS_MASK_ALL & returnDiagnostics) {
+        response.responseHeader.serviceDiagnostics = filterDiagnosticServiceLevel(returnDiagnostics, response.responseHeader.serviceDiagnostics);
+
+        if (response.diagnosticInfos && response.diagnosticInfos.length > 0) {
+            response.diagnosticInfos = response.diagnosticInfos.map((d) => filterDiagnosticOperationLevel(returnDiagnostics, d));
+        } else {
+            response.diagnosticInfos = [];
+        }
+
+        if (response.results) {
+            for (const entry of response.results) {
+                if (entry.inputArgumentDiagnosticInfos && entry.inputArgumentDiagnosticInfos.length > 0) {
+                    entry.inputArgumentDiagnosticInfos = entry.inputArgumentDiagnosticInfos.map(
+                        (d) => filterDiagnosticOperationLevel(returnDiagnostics, d)
+                    );
+                } else {
+                    entry.inputArgumentDiagnosticInfos = [];
+                }
+            }
+        }
+    }
 }
 
 export enum RegisterServerMethod {
@@ -2159,7 +2185,7 @@ export class OPCUAServer extends OPCUABaseServer {
         // --- check that provided session matches session attached to channel
         if (channel.channelId !== session.channelId) {
             if (!(request instanceof ActivateSessionRequest)) {
-                errorLog(chalk.red.bgWhite("ERROR: channel.channelId !== session.channelId"), channel.channelId, session.channelId);
+                errorLog(chalk.red.bgWhite("ERROR: channel.channelId !== session.channelId  on processing request " + request.constructor.name), channel.channelId, session.channelId);
             }
             message.session_statusCode = StatusCodes.BadSecureChannelIdInvalid;
         } else if (channel_has_session(channel, session)) {
@@ -3339,6 +3365,7 @@ export class OPCUAServer extends OPCUABaseServer {
                         response = new CallResponse({
                             results: results as CallMethodResultOptions[]
                         });
+                        filterDiagnosticInfo(request.requestHeader.returnDiagnostics, response);
                         sendResponse(response);
                     }
                 );

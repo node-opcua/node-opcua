@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<UANodeSet xmlns:xsd="http://www.w3.org/2001/XMLSchema" >
+    <NamespaceUris>
+        <Uri>http://A</Uri>
+    </NamespaceUris>
+    <Models>
+        <Model ModelUri="http://A" PublicationDate="2021-01-01T00:00:00Z" Version="1.00">
+            <RequiredModel ModelUri="http://opcfoundation.org/UA/" Version="1.03" PublicationDate="2013-12-02T00:00:00Z" />
+        </Model>
+    </Models>
+    <Aliases/>
+    <UAObject NodeId="ns=1;s=&quot;Systest_Datenaustausch&quot;" BrowseName="1:Systest_Datenaustausch">
+        <DisplayName>Systest_Datenaustausch</DisplayName>
+        <References>
+            <Reference ReferenceType="Organizes" IsForward="false">i=85</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=58</Reference>
+        </References>
+    </UAObject>
+    <UAVariable NodeId="ns=1;s=&quot;Systest_Datenaustausch&quot;.&quot;Systest_Daten&quot;.&quot;Aktueller_Pruefschritt&quot;" BrowseName="1:Aktueller_Pruefschritt" ParentNodeId="ns=1;s=&quot;Systest_Datenaustausch&quot;.&quot;Systest_Daten&quot;" DataType="i=22" AccessLevel="3">
+        <DisplayName>Aktueller_Pruefschritt</DisplayName>
+        <Description Locale="de-DE">Übergabe in welchem Prüfschritt sich der Systest aktuell befindet</Description>
+        <References>
+            <Reference ReferenceType="HasTypeDefinition">i=63</Reference>
+            <Reference ReferenceType="HasComponent" IsForward="false">ns=1;s="Systest_Datenaustausch"."Systest_Daten"</Reference>
+        </References>
+    </UAVariable>
+    <UAVariable NodeId="ns=1;s=&quot;Systest_Datenaustausch&quot;.&quot;Systest_Daten&quot;" BrowseName="1:Systest_Daten" ParentNodeId="ns=1;s=&quot;Systest_Datenaustausch&quot;" DataType="ns=1;s=DT_&quot;Systest_Datenaustausch&quot;.&quot;Systest_Daten&quot;" AccessLevel="771">
+        <DisplayName>Systest_Daten</DisplayName>
+        <References>
+            <Reference ReferenceType="HasComponent" IsForward="false">ns=1;s="Systest_Datenaustausch"</Reference>
+        </References>
+    </UAVariable>
+
+</UANodeSet>

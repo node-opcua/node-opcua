@@ -9,7 +9,7 @@ import { CommonInterface, FieldCategory, FieldType, StructuredTypeField } from "
 const debugLog = make_debugLog(__filename);
 
 export const parameters = {
-    debugSchemaHelper: !!process.env.DEBUG_CLASS
+    debugSchemaHelper: (typeof process === "object" && !!process.env.DEBUG_CLASS)
 };
 
 /**

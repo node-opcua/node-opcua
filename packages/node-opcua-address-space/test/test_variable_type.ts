@@ -245,5 +245,29 @@ describe("testing UAVariableType", () => {
         debugLog(varType.toString());
 ;
     }); 
+    it("UAVariableType: create should handle description - type 1", ()=>{
+        const namespace = addressSpace.getOwnNamespace();
+        const varType = namespace.addVariableType({
+            browseName: "MyVariableType4",
+            description: "Some Description",
+            isAbstract: false,
+            subtypeOf: "BaseVariableType"
+        });
+        
+        varType.description.toString().should.eql("locale=null text=Some Description");
+ 
+    });
+    it("UAVariableType: create should handle description - type 2", ()=>{
+        const namespace = addressSpace.getOwnNamespace();
+        const varType = namespace.addVariableType({
+            browseName: "MyVariableType5",
+            description: { text: "Some Description", locale: "en-US" },
+            isAbstract: false,
+            subtypeOf: "BaseVariableType"
+        });
+        
+        varType.description.toString().should.eql("locale=en-US text=Some Description");
+
+    }); 
 
 });
