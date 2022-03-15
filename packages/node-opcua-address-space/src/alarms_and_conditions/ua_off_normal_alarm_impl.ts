@@ -152,7 +152,7 @@ export class UAOffNormalAlarmImpl extends UADiscreteAlarmImpl implements UAOffNo
 
         const stateName = isActive ? "Active" : "Inactive";
         // also raise the event
-        this._signalNewCondition(stateName, isActive, "");
+        this._signalNewCondition(stateName, isActive, normalStateValue);
     }
 
     public _onInputDataValueChange(dataValue: DataValue): void {
