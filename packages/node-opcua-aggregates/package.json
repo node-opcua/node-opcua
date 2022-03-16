@@ -1,6 +1,6 @@
 {
     "name": "node-opcua-aggregates",
-    "version": "2.65.0",
+    "version": "2.65.1",
     "description": "pure nodejs OPCUA SDK - module -end2end-test",
     "main": "./dist/index.js",
     "types": "./dist/index.d.ts",
@@ -13,16 +13,16 @@
     },
     "dependencies": {
         "@types/async": "^3.2.12",
-        "node-opcua-address-space": "2.65.0",
+        "node-opcua-address-space": "2.65.1",
         "node-opcua-constants": "2.64.1",
         "node-opcua-data-model": "2.64.1",
         "node-opcua-data-value": "2.64.1",
         "node-opcua-nodeid": "2.64.1",
         "node-opcua-nodesets": "2.64.1",
         "node-opcua-numeric-range": "2.64.1",
-        "node-opcua-service-history": "2.65.0",
+        "node-opcua-service-history": "2.65.1",
         "node-opcua-status-code": "2.64.1",
-        "node-opcua-types": "2.65.0",
+        "node-opcua-types": "2.65.1",
         "node-opcua-utils": "2.64.1",
         "node-opcua-variant": "2.64.1"
     },

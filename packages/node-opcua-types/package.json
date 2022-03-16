@@ -1,6 +1,6 @@
 {
     "name": "node-opcua-types",
-    "version": "2.65.0",
+    "version": "2.65.1",
     "description": "pure nodejs OPCUA SDK - module -generator",
     "main": "./dist/index.js",
     "types": "./dist/index.d.ts",

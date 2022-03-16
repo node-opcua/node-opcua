@@ -1,6 +1,6 @@
 {
     "name": "node-opcua-service-endpoints",
-    "version": "2.65.0",
+    "version": "2.65.1",
     "description": "pure nodejs OPCUA SDK - module -service-endpoints",
     "main": "./dist/index.js",
     "types": "./dist/index.d.ts",
@@ -16,8 +16,8 @@
         "node-opcua-data-model": "2.64.1",
         "node-opcua-factory": "2.64.1",
         "node-opcua-nodeid": "2.64.1",
-        "node-opcua-service-secure-channel": "2.65.0",
-        "node-opcua-types": "2.65.0"
+        "node-opcua-service-secure-channel": "2.65.1",
+        "node-opcua-types": "2.65.1"
     },
     "devDependencies": {
         "should": "^13.2.3"
