@@ -8,7 +8,7 @@
         "build": "tsc -b",
         "lint": "eslint source test_helpers",
         "format": "prettier --write source test_helpers",
-        "clean": "node -e \"require('rimraf').sync('dist');\"",
+        "clean": "npx rimraf dist *.tsbuildinfo",
         "test": "echo no test"
     },
     "author": "Etienne Rossignon",

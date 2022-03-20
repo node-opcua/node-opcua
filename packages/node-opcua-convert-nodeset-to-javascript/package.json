@@ -7,8 +7,8 @@
     "bin": "dist/main.js",
     "scripts": {
         "build": "tsc -b",
-        "generate": "pnpm run build && ts-node source/main.ts",
-        "test": "mocha && pnpm run test-generated",
+        "generate": "tsc -b && ts-node source/main.ts",
+        "test": "mocha && npm run test-generated",
         "test-generated": "tsc --build tsconfig-generated.json"
     },
     "dependencies": {

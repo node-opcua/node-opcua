@@ -6,7 +6,7 @@
     "types": "dist/index.d.ts",
     "scripts": {
         "build": "tsc -b",
-        "clean": "node -e \"require('rimraf').sync('dist');\"",
+        "clean": "npx rimraf dist *.tsbuildinfo",
         "test": "mocha"
     },
     "author": "Etienne Rossignon",

@@ -5,7 +5,7 @@
     "scripts": {
         "build": "tsc -b",
         "test": "mocha",
-        "clean": "node -e \"require('rimraf').sync('_generated_');\" && node -e \"require('rimraf').sync('dist');\""
+        "clean": "npx rimraf dist *.tsbuildinfo _generated_"
     },
     "main": "./dist/index.js",
     "types": "./dist/index.d.ts",

@@ -5,7 +5,7 @@
     "main": "index.js",
     "scripts": {
         "lint": "eslint src/**/*.js",
-        "clean": "node -e \"require('rimraf').sync('dist');\"",
+        "clean": "npx rimraf dist *.tsbuildinfo",
         "test": "echo no test"
     },
     "author": "Etienne Rossignon",

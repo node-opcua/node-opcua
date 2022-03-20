@@ -3,7 +3,7 @@
     "version": "2.65.1",
     "description": "pure nodejs OPCUA SDK - module -client",
     "scripts": {
-        "clean": "node -e \"require('rimraf').sync('certificates');\"  && node -e \"require('rimraf').sync('dist');\"",
+        "clean": "npx rimraf dist *.tsbuildinfo certificates",
         "test": "mocha",
         "build": "tsc -b",
         "lint": "eslint source test test_helpers",

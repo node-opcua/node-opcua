@@ -7,7 +7,7 @@
     "scripts": {
         "build": "tsc -b",
         "lint": "eslint source/**/*.ts",
-        "clean": "node -e \"require('rimraf').sync('dist');\"",
+        "clean": "npx rimraf dist *.tsbuildinfo",
         "test": "mocha"
     },
     "dependencies": {

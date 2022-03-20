@@ -13,7 +13,7 @@
         "pretest": "npm run certificate",
         "certificate": "node bin/create_certificates.js demo --dev -s",
         "test": "echo no test",
-        "clean": "node -e \"require('rimraf').sync('certificates');\""
+        "clean": "npx rimraf certificates"
     },
     "dependencies": {
         "@types/underscore": "^1.11.4",

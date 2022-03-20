@@ -4,7 +4,7 @@
     "description": "pure nodejs OPCUA SDK - module -service-translate-browse-path",
     "scripts": {
         "test": "mocha",
-        "clean": "node -e \"require('rimraf').sync('dist');\"",
+        "clean": "npx rimraf dist *.tsbuildinfo",
         "build": "tsc -b"
     },
     "main": "./dist/index.js",

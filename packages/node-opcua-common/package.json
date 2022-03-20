@@ -4,7 +4,7 @@
     "description": "pure nodejs OPCUA SDK - module -common",
     "scripts": {
         "test": "mocha",
-        "clean": "node -e \"require('rimraf').sync('dist');\"",
+        "clean": "npx rimraf dist *.tsbuildinfo",
         "build": "tsc -b",
         "lint": "eslint source/**/*.ts"
     },

@@ -3,7 +3,7 @@
     "version": "2.65.1",
     "description": "pure nodejs OPCUA SDK - module -client-proxy",
     "scripts": {
-        "clean": "node -e \"require('rimraf').sync('dist');\"",
+        "clean": "npx rimraf dist *.tsbuildinfo",
         "build": "tsc -b",
         "lint": "eslint source test",
         "format": "prettier --write source test",

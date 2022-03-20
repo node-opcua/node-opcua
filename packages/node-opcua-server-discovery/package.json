@@ -4,7 +4,7 @@
     "description": "pure nodejs OPCUA SDK - module -server-discovery",
     "scripts": {
         "build": "tsc -b",
-        "clean": "node -e \"require('rimraf').sync('dist');\"",
+        "clean": "npx rimraf dist *.tsbuildinfo",
         "test": "echo no test here  : see node-opcua-end-to-end"
     },
     "main": "./dist/index.js",

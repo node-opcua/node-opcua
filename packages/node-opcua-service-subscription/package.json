@@ -7,7 +7,7 @@
     "scripts": {
         "build": "tsc -b",
         "test": "mocha",
-        "clean": "node -e \"require('rimraf').sync('dist');\" && node -e \"require('rimraf').sync('_generated_');\"",
+        "clean": "npx rimraf dist *.tsbuildinfo _generated_",
         "deprected_generate": "node ./generate"
     },
     "dependencies": {
