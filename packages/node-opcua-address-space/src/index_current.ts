@@ -23,7 +23,7 @@ export * from "../source/namespace_alarm_and_condition";
 
 export { UACertificateExpirationAlarmImpl } from "./alarms_and_conditions";
 
-export { ensureDatatypeExtracted, ensureDatatypeExtractedWithCallback } from "../source/loader/load_nodeset2";
+export { ensureDatatypeExtracted, ensureDatatypeExtractedWithCallback } from "../source/loader/ensure_datatype_extracted";
 export * from "../source/loader/generateAddressSpaceRaw";
 
 export { ContinuationPointManager } from "../source/continuation_points/continuation_point_manager";

@@ -39,10 +39,8 @@ import { EnumFieldOptions, EnumValueType, Range, StructureFieldOptions } from "n
 import { DataType, Variant, VariantArrayType, VariantOptions } from "node-opcua-variant";
 import {
     _definitionParser,
-    Definition,
     FragmentClonerParser,
     InternalFragmentClonerReaderState,
-    makeExtensionObjectReader,
     ParserLike,
     ReaderState,
     ReaderStateParserLike,
@@ -54,106 +52,15 @@ import * as semver from "semver";
 
 import { AddressSpacePrivate } from "../../src/address_space_private";
 import { NamespacePrivate } from "../../src/namespace_private";
-import { PseudoSession } from "../pseudo_session";
 import { promoteObjectsAndVariables } from "./namespace_post_step";
+import { ensureDatatypeExtracted } from "./ensure_datatype_extracted";
+import { decodeXmlExtensionObject } from "./decode_xml_extension_object";
+
 
 const doDebug = checkDebugFlag(__filename);
 const debugLog = make_debugLog(__filename);
 const errorLog = make_errorLog(__filename);
 
-export async function ensureDatatypeExtracted(addressSpace: IAddressSpace): Promise<ExtraDataTypeManager> {
-    const addressSpacePriv: any = addressSpace as AddressSpacePrivate;
-    if (!addressSpacePriv.$$extraDataTypeManager) {
-        const dataTypeManager = new ExtraDataTypeManager();
-
-        const namespaceArray = addressSpace.getNamespaceArray().map((n: INamespace) => n.namespaceUri);
-        debugLog("INamespace Array = ", namespaceArray.join("\n                   "));
-        dataTypeManager.setNamespaceArray(namespaceArray);
-        addressSpacePriv.$$extraDataTypeManager = dataTypeManager;
-
-        for (let namespaceIndex = 1; namespaceIndex < namespaceArray.length; namespaceIndex++) {
-            const dataTypeFactory1 = new DataTypeFactory([getStandardDataTypeFactory()]);
-            dataTypeManager.registerDataTypeFactory(namespaceIndex, dataTypeFactory1);
-        }
-        // inject simple types
-
-        // now extract structure and enumeration from old form if
-        const session = new PseudoSession(addressSpace);
-        await populateDataTypeManager(session, dataTypeManager, true);
-    }
-    return addressSpacePriv.$$extraDataTypeManager;
-}
-
-export function ensureDatatypeExtractedWithCallback(addressSpace: IAddressSpace, callback: CallbackT<ExtraDataTypeManager>): void {
-    ensureDatatypeExtracted(addressSpace)
-        .then((result: ExtraDataTypeManager) => callback(null, result))
-        .catch((err) => callback(err));
-}
-
-function findDataTypeNode(addressSpace: IAddressSpace, encodingNodeId: NodeId): UADataType {
-    const encodingNode = addressSpace.findNode(encodingNodeId)!;
-
-    // istanbul ignore next
-    if (!encodingNode) {
-        throw new Error("findDataTypeNode:  Cannot find " + encodingNodeId.toString());
-    }
-    // xx console.log("encodingNode", encodingNode.toString());
-
-    const refs = encodingNode.findReferences("HasEncoding", false);
-    const dataTypes = refs.map((ref) => addressSpace.findNode(ref.nodeId)).filter((obj: any) => obj !== null);
-
-    // istanbul ignore next
-    if (dataTypes.length !== 1) {
-        throw new Error("Internal Error");
-    }
-
-    const dataTypeNode = dataTypes[0] as UADataType;
-    // istanbul ignore next
-    if (dataTypeNode.nodeClass !== NodeClass.DataType) {
-        throw new Error("internal error: expecting a UADataType node here");
-    }
-    return dataTypeNode;
-}
-
-async function decodeXmlObject(
-    addressSpace2: IAddressSpace,
-    xmlEncodingNodeId: NodeId,
-    xmlBody: string
-): Promise<ExtensionObject | null> {
-    const dataTypeManager = await ensureDatatypeExtracted(addressSpace2);
-    const dataTypeNode = findDataTypeNode(addressSpace2, xmlEncodingNodeId);
-
-    const dataTypeFactory = dataTypeManager.getDataTypeFactory(xmlEncodingNodeId.namespace);
-
-    // istanbul ignore next
-    if (!dataTypeNode) {
-        debugLog(" cannot find ", xmlEncodingNodeId.toString());
-        return null;
-    }
-    const dataTypeName = dataTypeNode.browseName.name!;
-    const definitionMap = {
-        findDefinition(name: string): Definition {
-            debugLog(chalk.magentaBright("xxxxxxxxxxxxx !!!! "), name);
-            if (!name) {
-                return { name: "", fields: [] };
-            }
-            return dataTypeFactory.getStructuredTypeSchema(name) as any as Definition;
-        }
-    };
-    const reader = makeExtensionObjectReader(dataTypeName, definitionMap, {});
-    const parser2 = new Xml2Json(reader);
-    const pojo = await parser2.parseString(xmlBody);
-    // at this time the bsd file containing object definition
-    // must have been found and object can be constructed
-    const userDefinedExtensionObject = addressSpace2.constructExtensionObject(dataTypeNode, pojo);
-
-    // istanbul ignore next
-    if (doDebug) {
-        debugLog("userDefinedExtensionObject", userDefinedExtensionObject.toString());
-    }
-    //
-    return userDefinedExtensionObject;
-}
 
 function __make_back_references(namespace: INamespace) {
     const namespaceP = namespace as NamespacePrivate;
@@ -972,16 +879,31 @@ export function makeNodeSetParserEngine(addressSpace: IAddressSpace): NodeSet2Pa
                         // the "Default Xml" encoding  nodeId
                         const xmlEncodingNodeId = _translateNodeId(self.typeDefinitionId.toString());
                         const xmlBody = this.bodyXML;
+                        if (doDebug) {
+                            debugLog("xxxx ", chalk.yellow(xmlBody));
+                        }
+
+                        /*                       
+                         if (xmlEncodingNodeId.namespace === 0) {
+                            const dataTypeFactory = getStandardDataTypeFactory();
+                            const extensionObject: ExtensionObject | null = decodeXmlObject2(
+                                addressSpace,
+                                dataTypeFactory,
+                                xmlEncodingNodeId,
+                                xmlBody
+                            );
+                            self.extensionObject = extensionObject;
+                            return;
+                        }
+*/
                         // this is a user defined Extension Object
                         debugLog(
                             "load nodeset2: typeDefinitionId in ExtensionObject Default XML = " + xmlEncodingNodeId.toString()
                         );
-                        if (doDebug) {
-                            debugLog("xxxx ", chalk.yellow(xmlBody));
-                        }
+
                         const postTaskData = self.postTaskData;
                         const task = async (addressSpace2: IAddressSpace) => {
-                            const extensionObject: ExtensionObject | null = await decodeXmlObject(
+                            const extensionObject: ExtensionObject | null = await decodeXmlExtensionObject(
                                 addressSpace2,
                                 xmlEncodingNodeId,
                                 xmlBody
@@ -993,6 +915,7 @@ export function makeNodeSetParserEngine(addressSpace: IAddressSpace): NodeSet2Pa
                         postTasks2.push(task);
                         self.extensionObjectPojo = null;
                         assert(!self.extensionObject || self.extensionObject instanceof ExtensionObject);
+
                         break;
                     }
                 }
@@ -1288,39 +1211,43 @@ export function makeNodeSetParserEngine(addressSpace: IAddressSpace): NodeSet2Pa
                     if (this.extensionObject && !(this.extensionObject instanceof ExtensionObject)) {
                         throw new Error("expecting an extension object");
                     }
-
                     this.parent.parent.obj.value = {
                         dataType: DataType.ExtensionObject,
                         value: this.extensionObject
                     };
-
-                    // let's create the mechanism that postpone the creation of the
-                    // extension object
-                    const data = this.postTaskData;
-                    data.variant = this.parent.parent.obj.value;
-                    if (!data.variant) {
-                        data.nodeId = this.parent.parent.obj.nodeId;
-                        this.postTaskData = null;
-                        const task = async (addressSpace2: IAddressSpace) => {
-                            data.variant.value = data.postponedExtensionObject;
-                            assert(data.nodeId, "expecting a nodeid");
-                            const node = addressSpace2.findNode(data.nodeId)!;
-                            if (node.nodeClass === NodeClass.Variable) {
-                                const v = node as UAVariable;
-                                v.setValueFromSource(data.variant);
-                            }
-                            if (node.nodeClass === NodeClass.VariableType) {
-                                const v = node as UAVariableType;
-                                (v as any) /*fix me*/.value.value = data.variant.value;
-                            }
-                        };
-                        postTasks3.push(task);
-                    }
+                    installExtensionObjectInitializationPostTask(this);
                 }
             }
         }
     };
-
+    function installExtensionObjectInitializationPostTask(element: {
+        postTaskData: any;
+        parent: any;
+        extensionObject?: ExtensionObject;
+    }) {
+        if (!element.extensionObject) {
+            // let's create the mechanism that postpone the creation of the
+            // extension object
+            const data = element.postTaskData;
+            data.variant = element.parent.parent.obj.value;
+            data.nodeId = element.parent.parent.obj.nodeId;
+            element.postTaskData = null;
+            const task = async (addressSpace2: IAddressSpace) => {
+                data.variant.value = data.postponedExtensionObject;
+                assert(data.nodeId, "expecting a nodeid");
+                const node = addressSpace2.findNode(data.nodeId)!;
+                if (node.nodeClass === NodeClass.Variable) {
+                    const v = node as UAVariable;
+                    v.setValueFromSource(data.variant);
+                }
+                if (node.nodeClass === NodeClass.VariableType) {
+                    const v = node as UAVariableType;
+                    (v as any) /*fix me*/.value.value = data.variant.value;
+                }
+            };
+            postTasks3.push(task);
+        }
+    }
     const state_UAVariable = {
         init(this: any, name: string, attrs: XmlAttributes) {
             this.obj = {};
@@ -1609,7 +1536,9 @@ export function makeNodeSetParserEngine(addressSpace: IAddressSpace): NodeSet2Pa
                     Model: state_ModelTableEntry
                 },
 
-                finish(this: any) {}
+                finish(this: any) {
+                    /** */
+                }
             },
 
             UADataType: state_UADataType,
