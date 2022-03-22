@@ -17,7 +17,7 @@ describe("Definition Parser", () => {
 </Definition>`;
 
         const parser = new Xml2Json(definitionReaderStateParser);
-        const a = await parser.parseString(xmlDoc);
+        const a = parser.parseStringSync(xmlDoc);
         // console.log(a);
         a.should.eql({
             name: "1:MyStructureDataType",
@@ -66,7 +66,7 @@ describe("Definition Parser", () => {
     <Field DataType="Int16" Name="PrintGain"/>
 </Definition>`;
         const parser = new Xml2Json(definitionReaderStateParser);
-        const a = await parser.parseString(xmlDoc);
+        const a = parser.parseStringSync(xmlDoc);
         // console.log(a);
         a.should.eql({
             name: "1:OpticalVerifierScanResult",
@@ -155,7 +155,7 @@ describe("Definition Parser", () => {
         </Definition>`;
 
         const parser = new Xml2Json(definitionReaderStateParser);
-        const a = await parser.parseString(xmlDoc);
+        const a = parser.parseStringSync(xmlDoc);
         // console.log(a);
         a.should.eql({
             name: "1:ResultDataType",

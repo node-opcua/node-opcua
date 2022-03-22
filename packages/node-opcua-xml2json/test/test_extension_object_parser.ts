@@ -115,7 +115,7 @@ describe("Test ExtensionObject parsing (with definition)", () => {
     </Values>
 </MyOtherStructureDataType>`;
 
-        const a = await parser.parseString(userDefinedExtensionObject);
+        const a =  parser.parseStringSync(userDefinedExtensionObject);
 
         //  console.log("return value =", JSON.stringify(a, null, " "));
 

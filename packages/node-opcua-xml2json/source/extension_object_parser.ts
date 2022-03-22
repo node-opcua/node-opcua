@@ -187,6 +187,9 @@ function _clone(a: any): any {
     if (typeof a === "string" || typeof a === "number" || typeof a === "boolean") {
         return a;
     }
+    if (a instanceof Buffer) {
+        return Buffer.from(a);
+    }
     if (a instanceof Array) {
         return a.map((x) => _clone(x));
     }
@@ -271,6 +274,13 @@ function _makeExtensionObjectReader(
     return reader;
 }
 
+/**
+ * @deprecated ( use makeXmlExtensionObjectReader instead)
+ * @param definitionName 
+ * @param definitionMap 
+ * @param readerMap 
+ * @returns 
+ */
 export function makeExtensionObjectReader(
     definitionName: string,
     definitionMap: DefinitionMap,

@@ -305,7 +305,16 @@ export class Xml2Json {
         this._promote(state, 0);
     }
 
+
+    public parseStringSync(xml_text: string): Record<string, unknown> {
+        let retValue:  Record<string, unknown> = {};
+        const parser = this._prepareParser((err: Error | null | undefined, r:  Record<string, unknown>)=> retValue =r);
+        parser.write(xml_text);
+        parser.end();
+        return retValue;
+    }
     /**
+     * @deprecated
      * @method parseString
      * @async
      */

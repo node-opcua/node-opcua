@@ -4,6 +4,7 @@ import "should";
 import { nodesets } from "node-opcua-nodesets";
 import { DataType, Variant, VariantArrayType } from "node-opcua-variant";
 import { AttributeIds } from "node-opcua-data-model";
+import { EndpointConfiguration, ServerDiagnosticsSummaryDataType, ServiceCounterDataType } from "node-opcua-types";
 
 import { AddressSpace, UAObject, SessionContext } from "..";
 import { generateAddressSpace } from "../nodeJS";
@@ -150,15 +151,18 @@ describe("#846 Various Variable Value in nodeset2.xml", () => {
     });
     it("should read a StructVarTypeData1", async () => {
         const v1 = iotChannelSet.getComponentByName("StructVarTypeData1") as UAVariable;
-        v1.readValue().value.toString().should.eql("Variant(Scalar<ExtensionObject>, value: <null>)");
+        const extObj = new ServerDiagnosticsSummaryDataType({});
+        v1.readValue().value.should.eql(new Variant({ dataType: DataType.ExtensionObject, value: extObj }));
     });
     it("should read a StructNonVarTypeData1", async () => {
         const v1 = iotChannelSet.getComponentByName("StructNonVarTypeData1") as UAVariable;
-        v1.readValue().value.toString().should.eql("Variant(Scalar<ExtensionObject>, value: <null>)");
+        const extObj = new EndpointConfiguration({});
+        v1.readValue().value.should.eql(new Variant({ dataType: DataType.ExtensionObject, value: extObj }));
     });
     it("should read a StructNonVarTypeData2", async () => {
         const v1 = iotChannelSet.getComponentByName("StructNonVarTypeData2") as UAVariable;
-        v1.readValue().value.toString().should.eql("Variant(Scalar<ExtensionObject>, value: <null>)");
+        const extObj = new ServiceCounterDataType({});
+        v1.readValue().value.should.eql(new Variant({ dataType: DataType.ExtensionObject, value: extObj }));
     });
     it("should read an array of UInt16", async () => {
         const v1 = iotChannelSet.getComponentByName("Uint16ArrayTypeData1") as UAVariable;

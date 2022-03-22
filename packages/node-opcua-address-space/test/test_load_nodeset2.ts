@@ -562,3 +562,19 @@ describe("@A@ Testing loading nodeset with custom basic types", function (this: 
         debugLog(struct.toString());
     });
 });
+
+// describe("Testing Simatic namespace loading", function () {
+//     let addressSpace: AddressSpace;
+//     before(async () => {
+//         addressSpace = AddressSpace.create();
+//     });
+//     after(() => {
+//         addressSpace.dispose();
+//     });
+//     it("should load plc_demo.xml", async () => {
+//        // const xml_file = path.join(__dirname, "../test_helpers/test_fixtures/plc_demo.xml");
+//        const xml_file = path.join(__dirname, "../test_helpers/test_fixtures/PLC_1.xml");
+//        fs.existsSync(xml_file).should.be.eql(true, " should find " + xml_file);
+//         await generateAddressSpace(addressSpace, [nodesets.standard, xml_file]);
+//     });
+// });
