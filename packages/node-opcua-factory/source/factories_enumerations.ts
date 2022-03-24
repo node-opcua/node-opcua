@@ -4,7 +4,7 @@
 import { assert } from "node-opcua-assert";
 
 import { BinaryStream, OutputBinaryStream } from "node-opcua-binary-stream";
-import { Enum, EnumItem } from "node-opcua-enum";
+import { Enum, EnumItem, _TypescriptEnum , adaptTypescriptEnum} from "node-opcua-enum";
 import { EnumerationDefinition, TypeSchemaBase, TypeSchemaConstructorOptions } from "./types";
 
 function _encode_enumeration(typedEnum: Enum, value: number, stream: OutputBinaryStream): void {
@@ -23,9 +23,10 @@ function _decode_enumeration(typedEnum: Enum, stream: BinaryStream): number {
     return value;
 }
 
+
 export interface EnumerationDefinitionOptions extends TypeSchemaConstructorOptions {
-    enumValues: any;
-    typedEnum?: any;
+    enumValues: _TypescriptEnum | string[];
+    typedEnum?: Enum;
     lengthInBits?: number;
 
     // specialized methods
@@ -34,8 +35,9 @@ export interface EnumerationDefinitionOptions extends TypeSchemaConstructorOptio
     decode?: (stream: BinaryStream) => EnumItem;
 }
 
+
 export class EnumerationDefinitionSchema extends TypeSchemaBase implements EnumerationDefinition {
-    public enumValues: any;
+    public enumValues: _TypescriptEnum;
     public typedEnum: Enum;
     public lengthInBits: number;
     // xx encode: (value: EnumItem, stream: OutputBinaryStream) => void;
@@ -44,6 +46,7 @@ export class EnumerationDefinitionSchema extends TypeSchemaBase implements Enume
     constructor(options: EnumerationDefinitionOptions) {
         super(options);
         // create a new Enum
+        this.enumValues = adaptTypescriptEnum(options.enumValues);
         const typedEnum = new Enum(options.enumValues);
         options.typedEnum = typedEnum;
 

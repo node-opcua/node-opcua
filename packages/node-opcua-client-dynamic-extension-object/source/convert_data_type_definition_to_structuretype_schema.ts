@@ -14,7 +14,14 @@ import {
 import { NodeId, makeExpandedNodeId, resolveNodeId } from "node-opcua-nodeid";
 import { browseAll, BrowseDescriptionLike, IBasicSession } from "node-opcua-pseudo-session";
 import { StatusCodes } from "node-opcua-status-code";
-import { EnumDefinition, DataTypeDefinition, StructureDefinition, StructureType, StructureField } from "node-opcua-types";
+import {
+    EnumDefinition,
+    DataTypeDefinition,
+    StructureDefinition,
+    StructureType,
+    StructureField,
+    EnumField
+} from "node-opcua-types";
 import { ExtensionObject } from "node-opcua-extension-object";
 //
 import { _findEncodings } from "./private/find_encodings";
@@ -132,11 +139,11 @@ async function resolve2(
     dataTypeFactory: DataTypeFactory,
     fieldTypeName: string,
     cache: { [key: string]: CacheForFieldResolution }
-): Promise<{ schema: TypeDefinition| undefined, category: FieldCategory}> {
+): Promise<{ schema: TypeDefinition | undefined; category: FieldCategory }> {
     const category = await findDataTypeCategory(session, cache, dataTypeNodeId);
     debugLog(" type " + fieldTypeName + " has not been seen yet, let resolve it => (category = ", category, " )");
 
-    let schema: TypeDefinition|undefined = undefined;
+    let schema: TypeDefinition | undefined = undefined;
     switch (category) {
         case FieldCategory.basic:
             schema = await findDataTypeBasicType(session, cache, dataTypeNodeId);
@@ -160,10 +167,17 @@ async function resolve2(
                 }
                 const definition = dataTypeDefinitionDataValue.value.value;
 
+                const convertIn64ToInteger = (a: number[]) => a[1];
+
+                const convert = (fields: EnumField[] | null) => {
+                    const retVal: Record<string, number> = {};
+                    fields && fields.forEach((field: EnumField) => (retVal[field.name || ""] = convertIn64ToInteger(field.value)));
+                    return retVal;
+                };
                 if (category === FieldCategory.enumeration) {
                     if (definition instanceof EnumDefinition) {
                         const e = new EnumerationDefinitionSchema({
-                            enumValues: definition.fields,
+                            enumValues: convert(definition.fields),
                             name: fieldTypeName
                         });
                         dataTypeFactory.registerEnumeration(e);
@@ -308,22 +322,20 @@ export async function convertDataTypeDefinitionToStructureTypeSchema(
 
         const bitFields: { name: string; length?: number }[] | undefined = isUnion ? undefined : [];
 
-        const postActions: ((schema: StructuredTypeSchema ) => void)[] = [];
+        const postActions: ((schema: StructuredTypeSchema) => void)[] = [];
 
         for (const fieldD of definition.fields!) {
-
             let field: FieldInterfaceOptions | undefined;
             ({ field, switchBit, switchValue } = createField(fieldD, switchBit, bitFields, isUnion, switchValue));
 
-            if (fieldD.dataType.value === dataTypeNodeId.value &&  fieldD.dataType.namespace === dataTypeNodeId.namespace ) {
+            if (fieldD.dataType.value === dataTypeNodeId.value && fieldD.dataType.namespace === dataTypeNodeId.namespace) {
                 // this is a structure with a field of the same type
                 // push an empty placeholder that we will fill later
                 const fieldTypeName = await readBrowseName(session, dataTypeNodeId);
-                field.fieldType= fieldTypeName!,
-                field.category = FieldCategory.complex;
+                (field.fieldType = fieldTypeName!), (field.category = FieldCategory.complex);
                 fields.push(field);
                 const capturedField = field;
-                postActions.push( (schema: StructuredTypeSchema )=> {
+                postActions.push((schema: StructuredTypeSchema) => {
                     capturedField.schema = schema;
                 });
                 continue;
@@ -341,8 +353,7 @@ export async function convertDataTypeDefinitionToStructureTypeSchema(
             }
             const { schema, category, fieldTypeName } = rt;
 
-            field.fieldType= fieldTypeName!,
-            field.category = category;
+            (field.fieldType = fieldTypeName!), (field.category = category);
             field.schema = schema;
             fields.push(field);
         }
@@ -359,13 +370,19 @@ export async function convertDataTypeDefinitionToStructureTypeSchema(
         });
         const structuredTypeSchema = await _setupEncodings(session, dataTypeNodeId, os);
 
-        postActions.forEach((action)=>action(structuredTypeSchema));
+        postActions.forEach((action) => action(structuredTypeSchema));
 
         return structuredTypeSchema;
     }
     throw new Error("Not Implemented");
 
-    function createField(fieldD: StructureField, switchBit: number, bitFields: { name: string; length?: number | undefined; }[] | undefined, isUnion: boolean, switchValue: number) {
+    function createField(
+        fieldD: StructureField,
+        switchBit: number,
+        bitFields: { name: string; length?: number | undefined }[] | undefined,
+        isUnion: boolean,
+        switchValue: number
+    ) {
         const field: FieldInterfaceOptions = {
             fieldType: "",
             name: fieldD.name!,

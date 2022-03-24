@@ -30,7 +30,7 @@ export class EnumItem {
      * @param  {EnumItem | String | Number} item The object to check with.
      * @return {Boolean}                          The check result.
      */
-    public is(item: EnumItem|string|number): boolean {
+    public is(item: EnumItem | string | number): boolean {
         if (item instanceof EnumItem) {
             return this.value === item.value;
         } else if (typeof item === "string") {
@@ -86,22 +86,38 @@ export class EnumItem {
     }
 }
 
-function powerOfTwo(n: number): boolean
-{
-    return n && (!(n & (n-1))) ? true: false;
+function powerOfTwo(n: number): boolean {
+    return n && !(n & (n - 1)) ? true : false;
 }
 // check if enum is flaggable
 function checkIsFlaggable(enums: EnumItem[]): boolean {
     for (const e of enums) {
-        const value =  +e.value;
+        const value = +e.value;
         if (isNaN(value)) {
             continue; // skipping none number value
         }
-        if ((value !== 0 && value !==1)  && !powerOfTwo(value)) {
+        if (value !== 0 && value !== 1 && !powerOfTwo(value)) {
             return false;
         }
     }
     return true;
+}
+
+export interface _TypescriptEnum {
+    [key: string | number]: number | string;
+}
+
+export function adaptTypescriptEnum(map: _TypescriptEnum | string[]) {
+    if (Array.isArray(map)) {
+        let mm: _TypescriptEnum | null = null;
+        // create map as flaggable enum
+        mm = {};
+        for (let i = 0; i < map.length; i++) {
+            mm[map[i]] = 1 << i;
+        }
+        return mm;
+    }
+    return map as _TypescriptEnum;
 }
 
 /**
@@ -111,28 +127,25 @@ function checkIsFlaggable(enums: EnumItem[]): boolean {
  * @param {Array || Object}  map     This are the enum items.
  */
 export class Enum {
-
     private readonly enumItems: EnumItem[];
     private readonly _isFlaggable: boolean;
 
-    constructor(map: any) {
-
+    constructor(map: _TypescriptEnum | string[]) {
         this.enumItems = [];
-        let mm: any = null;
+        let mm: _TypescriptEnum | null = null;
         let isFlaggable = null;
         if (Array.isArray(map)) {
-            // create map as flaggable enum
-            mm = {};
-            for (let i = 0; i < map.length; i++) {
-                mm[map[i]] = 1 << i;
-            }
+            mm = adaptTypescriptEnum(map);
             isFlaggable = true;
         } else {
             mm = map;
         }
 
         for (const key of Object.keys(mm)) {
-            const val = mm[key];
+            if (typeof key !== "string") {
+                continue;
+            }
+            const val = mm[key] as number;
             if (undefined === val) {
                 continue;
             }
@@ -150,7 +163,7 @@ export class Enum {
         }
         this._isFlaggable = isFlaggable;
     }
-    
+
     public get isFlaggable(): boolean {
         return this._isFlaggable;
     }
@@ -160,8 +173,7 @@ export class Enum {
      * @param  key The object to get with.
      * @return the get result.
      */
-    public get(key: EnumItem | string | number): (EnumItem | null) {
-
+    public get(key: EnumItem | string | number): EnumItem | null {
         const pThis = this as any;
         if (key instanceof EnumItem) {
             if (!pThis[key.key]) {
@@ -194,8 +206,7 @@ export class Enum {
         return this.enumItems.join(" , ");
     }
 
-    private _getByString(key: string): (EnumItem | null) {
-
+    private _getByString(key: string): EnumItem | null {
         const pThis = this as any;
         const parts = key.split(" | ");
 
@@ -221,8 +232,7 @@ export class Enum {
         return kv;
     }
 
-    private _getByNum(key: number): (EnumItem | null) {
-
+    private _getByNum(key: number): EnumItem | null {
         if (key === 0) {
             return null;
         }
@@ -250,6 +260,4 @@ export class Enum {
         pThis[key] = kv;
         return kv;
     }
-
-
 }
