@@ -73,8 +73,8 @@ function applyOnAllSchemaFields(self: BaseUAObject, schema: StructuredTypeSchema
     }
 }
 
-const _nbElements = (typeof process === "object") ? (process.env.ARRAYLENGTH ? parseInt(process.env.ARRAYLENGTH, 10) : 10) : 10;
-const fullBuffer = (typeof process === "object") ? !!(process.env?.FULLBUFFER) : false;
+const _nbElements = typeof process === "object" ? (process.env.ARRAYLENGTH ? parseInt(process.env.ARRAYLENGTH, 10) : 10) : 10;
+const fullBuffer = typeof process === "object" ? !!process.env?.FULLBUFFER : false;
 
 function _arrayEllipsis(value: any[] | null, data: ExploreParams): string {
     if (!value) {
@@ -188,6 +188,48 @@ function _exploreObject(self: BaseUAObject, field: StructuredTypeField, data: Ex
         str = fieldNameF + " " + fieldTypeF + ": " + chalk.green(value.toString(data));
         data.lines.push(str);
         return;
+    }
+
+    function _dump_enumeration_value(
+        self: BaseUAObject,
+        field: StructuredTypeField,
+        data: ExploreParams,
+        value: any,
+        fieldType: string
+    ) {
+        const s = field.schema as EnumerationDefinition;
+
+        // istanbul ignore next
+        if (!s.typedEnum) {
+            // tslint:disable:no-console
+            console.log("xxxx cannot find typeEnum", s);
+        }
+        const convert = (value: number) => {
+            // istanbul ignore next
+            if (!s.typedEnum.get(value)) {
+                return [value, s.typedEnum.get(value)] as [number, any];
+            } else {
+                return [value, s.typedEnum.get(value)!.key] as [number, any];
+            }
+        };
+        const toS = ([n, s]: [number, any]) => `${n} /*(${s})*/`;
+        if (field.isArray) {
+            str =
+                fieldNameF +
+                " " +
+                fieldTypeF +
+                ": [" +
+                value
+                    .map((c: number) => convert(c))
+                    .map(toS)
+                    .join(", ") +
+                "]";
+            data.lines.push(str);
+        } else {
+            const c = convert(value);
+            str = `${fieldNameF} ${fieldTypeF}: ${toS(c)}`;
+            data.lines.push(str);
+        }
     }
 
     function _dump_simple_value(
@@ -306,26 +348,7 @@ function _exploreObject(self: BaseUAObject, field: StructuredTypeField, data: Ex
 
     switch (category) {
         case FieldCategory.enumeration:
-            {
-                const s = field.schema as EnumerationDefinition;
-
-                // istanbul ignore next
-                if (!s.typedEnum) {
-                    // tslint:disable:no-console
-                    console.log("xxxx cannot find typeEnum", s);
-                }
-                // istanbul ignore next
-                if (!s.typedEnum.get(value)) {
-                    // tslint:disable:no-console
-                    (s.typedEnum as any)._isFlaggable = true;
-                    console.log("xxxx cannot find typeEnum value ", value);
-                    str = fieldNameF + " " + fieldTypeF + ": " + s.name + "." + s.typedEnum.get(value) + " ( " + value + ")";
-                    data.lines.push(str);
-                } else {
-                    str = fieldNameF + " " + fieldTypeF + ": " + s.name + "." + s.typedEnum.get(value)!.key + " ( " + value + ")";
-                    data.lines.push(str);
-                }
-            }
+            _dump_enumeration_value(self, field, data, value, fieldType);
             break;
         case FieldCategory.basic:
             _dump_simple_value(self, field, data, value, fieldType);

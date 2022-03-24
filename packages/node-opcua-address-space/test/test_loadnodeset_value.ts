@@ -11,12 +11,12 @@ describe("Testing loading nodeset with extension objects values in types", () =>
 
     const xml_file1 = path.join(__dirname, "../test_helpers/test_fixtures/variabletype_with_value.xml");
     fs.existsSync(xml_file1).should.be.eql(true, " should find " + xml_file1);
-    
+
     const xml_file2 = path.join(__dirname, "../test_helpers/test_fixtures/variable_with_value.xml");
     fs.existsSync(xml_file2).should.be.eql(true, " should find " + xml_file2);
-    
+
     const context = SessionContext.defaultContext;
-    
+
     beforeEach(async () => {
         addressSpace = AddressSpace.create();
     });
@@ -49,30 +49,44 @@ describe("Testing loading nodeset with extension objects values in types", () =>
 
         const nsSterfive = addressSpace.getNamespaceIndex("http://sterfive.com/Small_model/");
         nsSterfive.should.be.greaterThanOrEqual(0);
-        
+
         const nsSterfiveInstance = addressSpace.getNamespaceIndex("http://sterfive.com/Small_instance/");
         nsSterfiveInstance.should.be.greaterThanOrEqual(0);
-        
+
         const myTestObject = addressSpace.findNode(`ns=${nsSterfiveInstance};i=5002`)! as UAObject;
 
-        const connectionDetailDataType = addressSpace.findDataType("ConnectionDetails",nsSterfive );
+        const connectionDetailDataType = addressSpace.findDataType("ConnectionDetails", nsSterfive);
         console.log(connectionDetailDataType.toString());
-        
+
         console.log(myTestObject.toString());
 
         const primaryConnection = myTestObject.getChildByName("PrimaryConnection")! as UAVariable;
         const otherConnections = myTestObject.getChildByName("OtherConnections")! as UAVariable;
         const connection2WithOptionalFields = myTestObject.getChildByName("Connection2WithOptionalFields")! as UAVariable;
 
-        const c1 = addressSpace.constructExtensionObject(connectionDetailDataType,{
+        const c1 = addressSpace.constructExtensionObject(connectionDetailDataType, {
             certificates: Buffer.from("Hello World"),
-            url: "http://10.0.19.120",
+            url: "http://10.0.19.120"
         });
-
 
         console.log("primaryConnection\n", primaryConnection.toString());
         console.log("otherConnections\n", otherConnections.toString());
         console.log("connection2WithOptionalFields\n", connection2WithOptionalFields.toString());
+    });
+
+    it("LNEX3 - should load an nodeset with a Extension Object Variable containing an enum", async () => {
+        await generateAddressSpace(addressSpace, [nodesets.standard, xml_file1]);
+
+        const nsSterfive = addressSpace.getNamespaceIndex("http://sterfive.com/Small_model/");
+
+        const testVar = addressSpace.findNode("ns=1;i=6009")! as UAVariable;
+
+        const value = testVar.readValue().value;
+        console.log(value.toString());
+
+        value.value.F1.should.eql(200);
+        value.value.F2.should.eql([100,200,300]);
+        
 
     });
 });

@@ -159,34 +159,6 @@ const partials: { [key: string]: ReaderStateParserLike } = {
             /** to do */
         }
     }
-    // ListOfLocalizedText: {
-    //     init(this: any) {
-    //         this.value = [];
-    //     },
-    //     parser: { LocalizedText: localizedTextReader },
-    //     finish(this: any) {
-    //         /** empty  */
-    //     },
-    //     endElement(this: any /*element*/) {
-    //         this.value.push(this.parser.LocalizedText.value);
-    //     }
-    // },
-
-    // ListOfDouble: ListOf("Double", parseFloat),
-
-    // ListOfFloat: ListOf("Float", parseFloat),
-
-    // ListOfInt32: ListOf("Int32", parseInt),
-
-    // ListOfInt16: ListOf("Int16", parseInt),
-
-    // ListOfInt8: ListOf("Int8", parseInt),
-
-    // ListOfUint32: ListOf("Uint32", parseInt),
-
-    // ListOfUint16: ListOf("Uint16", parseInt),
-
-    // ListOfUint8: ListOf("Uint8", parseInt)
 };
 
 interface Field {
@@ -323,8 +295,21 @@ function _makeTypeReader(
         // xx const parser: ParserLike = {};
         // xx parser[definition.name] = reader;
         readerMap[dataTypeName] = reader;
+        return { name, parser: reader };
     } else if (definition instanceof EnumDefinition) {
-        console.log(" enum not handled yet", definition);
+        //  console.log("xxxx enum found !", definition.toString());
+        const turnToInt = (value: any) => {
+            // Green_100
+            return parseInt(value.split("_")[1], 10);
+        };
+        return {
+            name,
+            parser: {
+                finish(this: any) {
+                    this.value = turnToInt(this.text);
+                }
+            }
+        };
     } else {
         // basic datatype
         const typeName = DataType[definition.dataType as number] as string;
@@ -335,7 +320,6 @@ function _makeTypeReader(
         }
         return { name, parser };
     }
-    return { name, parser: reader };
 }
 
 export function makeXmlExtensionObjectReader(
