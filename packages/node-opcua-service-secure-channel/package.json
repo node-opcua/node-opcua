@@ -13,18 +13,17 @@
         "node-opcua-assert": "2.64.1",
         "node-opcua-basic-types": "2.64.1",
         "node-opcua-binary-stream": "2.64.1",
+        "node-opcua-buffer-utils": "2.64.1",
         "node-opcua-data-model": "2.64.1",
         "node-opcua-extension-object": "2.64.1",
         "node-opcua-factory": "2.64.1",
         "node-opcua-nodeid": "2.64.1",
+        "node-opcua-status-code": "2.64.1",
         "node-opcua-types": "2.65.1"
     },
     "devDependencies": {
-        "node-opcua-binary-stream": "2.64.1",
-        "node-opcua-buffer-utils": "2.64.1",
         "node-opcua-debug": "2.64.1",
         "node-opcua-packet-analyzer": "2.64.1",
-        "node-opcua-status-code": "2.64.1",
         "should": "^13.2.3"
     },
     "author": "Etienne Rossignon",
