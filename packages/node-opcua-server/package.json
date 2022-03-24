@@ -29,6 +29,7 @@
         "node-opcua-crypto": "^1.9.0",
         "node-opcua-data-model": "2.64.1",
         "node-opcua-data-value": "2.64.1",
+        "node-opcua-data-access": "2.65.1",
         "node-opcua-date-time": "2.64.1",
         "node-opcua-debug": "2.64.1",
         "node-opcua-enum": "2.64.1",
@@ -58,14 +59,13 @@
         "node-opcua-service-write": "2.65.1",
         "node-opcua-status-code": "2.64.1",
         "node-opcua-types": "2.65.1",
+        "node-opcua-transport": "2.65.1",
         "node-opcua-utils": "2.64.1",
         "node-opcua-variant": "2.64.1"
     },
     "devDependencies": {
-        "node-opcua-data-access": "2.65.1",
         "node-opcua-leak-detector": "2.64.1",
         "node-opcua-test-helpers": "2.64.1",
-        "node-opcua-transport": "2.65.1",
         "should": "^13.2.3",
         "sinon": "^13.0.1"
     },
