@@ -97,8 +97,8 @@ specifiers:
   mocha: ^9.2.2
   mocha-clean: ^1.0.0
   mocha-lcov-reporter: ^1.3.0
-  node-opcua-crypto: ^1.9.0
-  node-opcua-pki: ^2.14.2
+  node-opcua-crypto: ^1.10.0
+  node-opcua-pki: ^2.15.0
   nyc: ^15.1.0
   object.values: ^1.1.5
   once: ^1.4.0
@@ -172,8 +172,8 @@ dependencies:
   memfs: 3.4.1
   mkdirp: 1.0.4
   mocha-clean: 1.0.0
-  node-opcua-crypto: 1.9.0
-  node-opcua-pki: 2.14.2
+  node-opcua-crypto: 1.10.0
+  node-opcua-pki: 2.15.0
   object.values: 1.1.5
   once: 1.4.0
   pretty-ms: 7.0.1
@@ -4683,8 +4683,8 @@ packages:
       json-schema: 0.4.0
       verror: 1.10.0
 
-  /jsrsasign/10.5.8:
-    resolution: {integrity: sha512-ewFUGPZJujIR9j84Q5LEzPTG4D1qQZ4CjJrgHfMEAAiArkC3xfdgNP0ZAXXxXbb+K8Phw15soOIJ8bX3+usEdQ==}
+  /jsrsasign/10.5.13:
+    resolution: {integrity: sha512-f42mXo5ZuOFg+F2orgY+pAdtQIPAfZAscbdqcdQF+Kf4+yLU+IQIXF0kx5PsSN6GSAMq/BeGXpU5Uq4huA/+Wg==}
     dev: false
 
   /jstransformer/1.0.0:
@@ -5499,18 +5499,18 @@ packages:
     engines: {node: '>=0.10'}
     dev: false
 
-  /node-opcua-crypto/1.9.0:
-    resolution: {integrity: sha512-+EweRMhUL6svKM67dGyqOSwQX7E7bswx3Y2nj3vhqkass6LusVssY4PXadboXwN04AClELnBOWvac/QIXVToEA==}
+  /node-opcua-crypto/1.10.0:
+    resolution: {integrity: sha512-W+f6qYff50Zb9f/kCn/5FRFPb8bxObngO8OfPoDxYIt6uGb2RjjUfx6/bLNavBaLvWAewy6AwjPpFR0m9SRKYA==}
     dependencies:
       better-assert: 1.0.2
       chalk: 4.1.2
       hexy: 0.3.4
-      jsrsasign: 10.5.8
+      jsrsasign: 10.5.13
       sshpk: 1.17.0
     dev: false
 
-  /node-opcua-pki/2.14.2:
-    resolution: {integrity: sha512-DZmdnLZk7IZJov8gfdGMPegVcZjOvWsA/iF30CtM0u8cUrGjM/mGiD7Qf4KwH/7E/7Ckx+fWZMRYmt4jcGcsyw==}
+  /node-opcua-pki/2.15.0:
+    resolution: {integrity: sha512-5JrbEis00V9B/DMGleDaXObLGGRYiAlgXUa2zEMZbBaL6WV5C8rn2pRLRXYwJ0BJUA+27JgESD/h4OtZKWRUlw==}
     hasBin: true
     dependencies:
       '@ster5/global-mutex': 1.2.0
@@ -5519,7 +5519,7 @@ packages:
       chalk: 4.1.2
       chokidar: 3.5.3
       cli-table: 0.3.11
-      node-opcua-crypto: 1.9.0
+      node-opcua-crypto: 1.10.0
       progress: 2.0.3
       thenify: 3.3.1
       update-notifier: 5.1.0
