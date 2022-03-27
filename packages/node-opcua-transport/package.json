@@ -28,7 +28,7 @@
         "node-opcua-utils": "2.64.1"
     },
     "devDependencies": {
-        "@types/node": "17.0.21",
+        "@types/node": "17.0.23",
         "node-opcua-debug": "2.64.1",
         "should": "^13.2.3",
         "sinon": "^13.0.1"

@@ -22,7 +22,7 @@
         "node-opcua-utils": "2.64.1"
     },
     "devDependencies": {
-        "@types/node": "17.0.21",
+        "@types/node": "17.0.23",
         "node-opcua-benchmarker": "2.64.1",
         "node-opcua-debug": "2.64.1",
         "should": "^13.2.3"
