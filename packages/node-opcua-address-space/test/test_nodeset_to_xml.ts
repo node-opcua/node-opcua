@@ -260,16 +260,16 @@ describe("testing nodeset to xml", () => {
             <ListOfExtensionObject>
                 <ExtensionObject>
                     <TypeId>
-                        <Identifier>ns=0;i=297</Identifier>
+                        <Identifier>i=297</Identifier>
                     </TypeId>
                     <Body>
                         <Argument>
                             <Name>ShutterLag</Name>
                             <DataType>
-                                <Identifier>ns=0;i=7</Identifier>
+                                <Identifier>i=7</Identifier>
                             </DataType>
                             <ValueRank>-1</ValueRank>
-                            <ArrayDimensions></ArrayDimensions>
+                            <ArrayDimensions/>
                             <Description>
                                 <Text>specifies the number of seconds to wait before the picture is taken </Text>
                             </Description>
@@ -290,16 +290,16 @@ describe("testing nodeset to xml", () => {
             <ListOfExtensionObject>
                 <ExtensionObject>
                     <TypeId>
-                        <Identifier>ns=0;i=297</Identifier>
+                        <Identifier>i=297</Identifier>
                     </TypeId>
                     <Body>
                         <Argument>
                             <Name>Image</Name>
                             <DataType>
-                                <Identifier>ns=0;i=30</Identifier>
+                                <Identifier>i=30</Identifier>
                             </DataType>
                             <ValueRank>-1</ValueRank>
-                            <ArrayDimensions></ArrayDimensions>
+                            <ArrayDimensions/>
                             <Description>
                                 <Text>the generated image</Text>
                             </Description>

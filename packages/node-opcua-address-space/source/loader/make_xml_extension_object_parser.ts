@@ -5,37 +5,6 @@ import { lowerFirstLetter } from "node-opcua-utils";
 import { DataType } from "node-opcua-variant";
 import { ReaderState, ReaderStateParserLike, ParserLike, XmlAttributes } from "node-opcua-xml2json";
 
-function BasicType_parser(dataType: string, parseFunc: (this: any, text: string) => any): ParserLike {
-    const r: ReaderStateParserLike = {
-        init(this: any, elementName: string, attrs: XmlAttributes) {
-            this.value = undefined;
-        },
-        finish(this: any) {
-            this.value = parseFunc.call(this, this.text);
-        }
-    };
-    const _parser: ParserLike = {};
-    _parser[dataType] = r;
-    return _parser;
-}
-
-function ListOf(dataType: string, parseFunc: any) {
-    return {
-        init(this: any) {
-            this.value = [];
-        },
-
-        parser: BasicType_parser(dataType, parseFunc),
-
-        finish(this: any) {
-            /** empty  */
-        },
-        endElement(this: any, elementName: string) {
-            this.value.push(this.parser[elementName].value);
-        }
-    };
-}
-
 const localizedTextReader: ReaderStateParserLike = {
     init(this: any) {
         this.localizedText = {};
@@ -69,7 +38,7 @@ const partials: { [key: string]: ReaderStateParserLike } = {
 
     Boolean: {
         finish(this: any) {
-            this.value = this.text.toLowerCase() === "true";
+            this.value = this.text.toLowerCase() === "true" ? true : false;
         }
     },
 
@@ -138,25 +107,30 @@ const partials: { [key: string]: ReaderStateParserLike } = {
             this.value = parseInt(this.text, 10);
         }
     },
+
     UInt32: {
         finish(this: any) {
             this.value = parseInt(this.text, 10);
         }
     },
+
     UInt64: {
         finish(this: any) {
             this.value = parseInt(this.text, 10);
         }
     },
+
     DateTime: {
         finish(this: any) {
             // to do check Local or GMT
             this.value = new Date(this.text);
         }
     },
+
     Variant: {
         finish(this: any) {
             /** to do */
+            console.log(" Missing  Implemntation contact sterfive.com!");
         }
     }
 };
@@ -194,7 +168,9 @@ function _clone(a: any): any {
     if (a instanceof Buffer) {
         return Buffer.from(a);
     }
-
+    if (a instanceof Date) {
+        return new Date(a);
+    }
     if (a instanceof Array) {
         return a.map((x) => _clone(x));
     }
@@ -240,19 +216,21 @@ function _makeTypeReader(
 
     if (definition instanceof StructureDefinition) {
         for (const field of definition.fields || []) {
-            const a = _makeTypeReader(field.dataType, definitionMap, readerMap);
-            const fieldParser = a.parser;
-            const fieldTypename = a.name;
+            const typeReader = _makeTypeReader(field.dataType, definitionMap, readerMap);
+            const fieldParser = typeReader.parser;
+            const fieldTypename = typeReader.name;
             // istanbul ignore next
             if (!fieldParser) {
                 throw new Error(" Cannot find reader for dataType " + field.dataType + " fieldTypename=" + fieldTypename);
             }
 
             if (field.valueRank === undefined || field.valueRank === -1) {
+                // scalar 
                 const parser = fieldParser;
                 if (!parser) {
                     throw new Error("??? " + field.dataType + "  " + field.name);
                 }
+
                 reader.parser![field.name!] = {
                     parser: fieldParser.parser,
                     // endElement: fieldReader.endElement,
@@ -312,7 +290,7 @@ function _makeTypeReader(
         };
     } else {
         // basic datatype
-        const typeName = DataType[definition.dataType as number] as string;
+        const typeName: string = DataType[definition.dataType];
         const parser = partials[typeName];
         // istanbul ignore next
         if (!parser) {

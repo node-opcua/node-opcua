@@ -1,10 +1,9 @@
 import { IAddressSpace, INamespace, UADataType } from "node-opcua-address-space-base";
 import { assert } from "node-opcua-assert";
-import { StructureDefinition, EnumDefinition, EnumDescription } from "node-opcua-types";
+import { StructureDefinition, EnumDefinition } from "node-opcua-types";
 import { NodeId } from "node-opcua-nodeid";
 import { AddressSpacePrivate } from "../address_space_private";
 import { XmlWriter } from "../../source/xml_writer";
-import { UADataTypeImpl } from "../ua_data_type_impl";
 import { NamespacePrivate } from "../namespace_private";
 import { constructNamespaceDependency } from "./construct_namespace_dependency";
 
