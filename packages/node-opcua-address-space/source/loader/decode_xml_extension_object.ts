@@ -34,7 +34,7 @@ export function makeDefinitionMap(addressSpace: IAddressSpace): DefinitionMap2 {
         findDefinition(dataTypeNodeId: NodeId): TypeInfo {
             const dataTypeNode = addressSpace.findDataType(dataTypeNodeId);
             if (!dataTypeNode) {
-                throw new Error("cannot find dataType " + dataTypeNodeId.toString());
+                throw new Error("findDefinition: cannot find dataType " + dataTypeNodeId.toString());
             }
             if (dataTypeNode.nodeClass !== NodeClass.DataType) {
                 throw new Error("Expecting a DataType node here");

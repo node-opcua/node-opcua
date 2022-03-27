@@ -1,10 +1,12 @@
 #!/usr/bin/env ts-node
+/* eslint-disable complexity */
+/* eslint-disable max-statements */
 // tslint:disable:no-console
-import * as chalk from "chalk";
 import * as fs from "fs";
 import * as path from "path";
 import * as util from "util";
 import * as yargs from "yargs";
+import * as chalk from "chalk";
 
 import {
     ApplicationType,
@@ -108,7 +110,7 @@ async function enumerateAllAlarmAndConditionInstances(session: ClientSession): P
     const found: any = [];
 
     function isConditionEventType(nodeId: NodeId): boolean {
-        return conditions.hasOwnProperty(nodeId.toString());
+        return Object.prototype.hasOwnProperty.call(conditions, nodeId.toString());
     }
 
     async function exploreForObjectOfType(session1: ClientSession, nodeId: NodeId) {
@@ -197,7 +199,7 @@ function getTick() {
     return Date.now();
 }
 
-let the_subscription: ClientSubscription | null;
+let theSubscription: ClientSubscription | null;
 let the_session: ClientSession;
 let client: OPCUAClient;
 
@@ -611,32 +613,32 @@ async function main() {
         requestedPublishingInterval: 2000
     };
 
-    the_subscription = await the_session.createSubscription2(parameters);
+    theSubscription = await the_session.createSubscription2(parameters);
 
     let t = getTick();
 
-    console.log("started subscription :", the_subscription!.subscriptionId);
+    console.log("started subscription :", theSubscription!.subscriptionId);
     console.log(" revised parameters ");
     console.log(
         "  revised maxKeepAliveCount  ",
-        the_subscription!.maxKeepAliveCount,
+        theSubscription!.maxKeepAliveCount,
         " ( requested ",
         parameters.requestedMaxKeepAliveCount + ")"
     );
     console.log(
         "  revised lifetimeCount      ",
-        the_subscription!.lifetimeCount,
+        theSubscription!.lifetimeCount,
         " ( requested ",
         parameters.requestedLifetimeCount + ")"
     );
     console.log(
         "  revised publishingInterval ",
-        the_subscription!.publishingInterval,
+        theSubscription!.publishingInterval,
         " ( requested ",
         parameters.requestedPublishingInterval + ")"
     );
 
-    the_subscription
+    theSubscription
         .on("internal_error", (err: Error) => {
             console.log(" received internal error", err.message);
         })
@@ -649,7 +651,7 @@ async function main() {
                 span / 1000,
                 "sec",
                 " pending request on server = ",
-                (the_subscription as any).getPublishEngine().nbPendingPublishRequests
+                (theSubscription as any).getPublishEngine().nbPendingPublishRequests
             );
         })
         .on("terminated", () => {
@@ -657,7 +659,7 @@ async function main() {
         });
 
     try {
-        const results1 = await the_subscription.getMonitoredItems();
+        const results1 = await theSubscription.getMonitoredItems();
         console.log("MonitoredItems clientHandles", results1.clientHandles);
         console.log("MonitoredItems serverHandles", results1.serverHandles);
     } catch (err) {
@@ -675,7 +677,7 @@ async function main() {
     // ---------------------------------------------------------------
     console.log(" Monitoring node ", monitored_node.toString());
     const monitoredItem = ClientMonitoredItem.create(
-        the_subscription,
+        theSubscription,
         {
             attributeId: AttributeIds.Value,
             nodeId: monitored_node
@@ -697,7 +699,7 @@ async function main() {
         console.log(monitoredItem.itemToMonitor.nodeId.toString(), chalk.red(" ERROR"), err_message);
     });
 
-    const results = await the_subscription.getMonitoredItems();
+    const results = await theSubscription.getMonitoredItems();
     console.log("MonitoredItems clientHandles", results.clientHandles);
     console.log("MonitoredItems serverHandles", results.serverHandles);
 
@@ -752,7 +754,7 @@ async function main() {
     const eventFilter = constructEventFilter(fields, [resolveNodeId("ConditionType")]);
 
     const event_monitoringItem = ClientMonitoredItem.create(
-        the_subscription,
+        theSubscription,
         {
             attributeId: AttributeIds.EventNotifier,
             nodeId: serverObjectId
@@ -777,7 +779,7 @@ async function main() {
 
     console.log("--------------------------------------------- Monitoring alarms");
     const alarmNodeId = coerceNodeId("ns=2;s=1:Colours/EastTank?Green");
-    await monitorAlarm(the_subscription, alarmNodeId);
+    await monitorAlarm(theSubscription, alarmNodeId);
 
     console.log("Starting timer ", timeout);
     if (timeout > 0) {
@@ -796,12 +798,12 @@ async function main() {
         await new Promise<void>((resolve) => {
             setTimeout(async () => {
                 console.log("time out => shutting down ");
-                if (!the_subscription) {
+                if (!theSubscription) {
                     return resolve();
                 }
-                if (the_subscription) {
-                    const s = the_subscription;
-                    the_subscription = null;
+                if (theSubscription) {
+                    const s = theSubscription;
+                    theSubscription = null;
                     await s.terminate();
                     await the_session.close();
                     await client.disconnect();
@@ -824,25 +826,20 @@ async function main() {
     console.log("success !!   ");
 }
 
-let user_interruption_count: number = 0;
-process.on("SIGINT", async () => {
+process.once("SIGINT", async () => {
     console.log(" user interruption ...");
 
-    user_interruption_count += 1;
-    if (user_interruption_count >= 3) {
-        process.exit(1);
-    }
-    if (the_subscription) {
+    if (theSubscription) {
         console.log(chalk.red.bold(" Received client interruption from user "));
         console.log(chalk.red.bold(" shutting down ..."));
-        const subscription = the_subscription;
-        the_subscription = null;
+        const subscription = theSubscription;
+        theSubscription = null;
 
         await subscription.terminate();
-        await the_session.close();
-        await client.disconnect();
-        process.exit(0);
     }
+    await the_session.close();
+    await client.disconnect();
+    process.exit(0);
 });
 
 main();

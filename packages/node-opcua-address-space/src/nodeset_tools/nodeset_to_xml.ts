@@ -3,7 +3,7 @@
  */
 // produce nodeset xml files
 import { assert } from "node-opcua-assert";
-import { make_debugLog, make_errorLog } from "node-opcua-debug";
+import { make_debugLog, make_errorLog, make_warningLog } from "node-opcua-debug";
 import { ExtensionObject } from "node-opcua-extension-object";
 import {
     BrowseDirection,
@@ -14,7 +14,7 @@ import {
     makeAccessLevelFlag,
     QualifiedName
 } from "node-opcua-data-model";
-import { NodeId, resolveNodeId } from "node-opcua-nodeid";
+import { NodeId, NodeIdType, resolveNodeId } from "node-opcua-nodeid";
 import * as utils from "node-opcua-utils";
 import { Variant, VariantArrayType, DataType } from "node-opcua-variant";
 import {
@@ -53,6 +53,7 @@ import { constructNamespaceDependency } from "./construct_namespace_dependency";
 const XMLWriter = require("xml-writer");
 
 const debugLog = make_debugLog(__filename);
+const warningLog = make_warningLog(__filename);
 const errorLog = make_errorLog(__filename);
 
 function _hash(node: BaseNode | UAReference): string {
@@ -237,12 +238,17 @@ function _dumpVariantInnerExtensionObject(
 ) {
     for (const field of definition.fields || []) {
         const dataTypeNodeId = field.dataType;
-        const { name, definition } = definitionMap.findDefinition(dataTypeNodeId);
 
         const fieldName = field.name!;
         const lowerFieldName = utils.lowerFirstLetter(fieldName);
         const v = (value as unknown as Record<string, unknown>)[lowerFieldName];
         if (v !== null && v !== undefined) {
+
+            if (dataTypeNodeId.namespace === 0 && dataTypeNodeId.value ===0 && dataTypeNodeId.identifierType === NodeIdType.NUMERIC) {
+                // to do ?? shall we do a extension Object here ?
+                continue; // ns=0;i=0 is reserved
+            }          
+            const { name, definition } = definitionMap.findDefinition(dataTypeNodeId);
             xw.startElement(fieldName);
 
             let fun: (value: any) => void = (value: any) => {
@@ -621,8 +627,8 @@ function dumpReferencedNodes(xw: XmlWriter, node: BaseNode, forward: boolean) {
                 assert(r.length === 1);
                 const typeDefinitionObj = ReferenceImpl.resolveReferenceNode(addressSpace, r[0])! as BaseNode;
                 if (!typeDefinitionObj) {
-                    console.log(node.toString());
-                    console.log("Warning : " + node.browseName.toString() + " unknown typeDefinition, ", r[0].toString());
+                    warningLog(node.toString());
+                    warningLog("dumpReferencedNodes: Warning : " + node.browseName.toString() + " unknown typeDefinition, ", r[0].toString());
                 } else {
                     assert(typeDefinitionObj instanceof BaseNodeImpl);
                     if (typeDefinitionObj.nodeId.namespace === node.nodeId.namespace) {

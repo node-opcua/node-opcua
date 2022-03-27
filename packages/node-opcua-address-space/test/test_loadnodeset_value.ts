@@ -32,17 +32,17 @@ describe("Testing loading nodeset with extension objects values in types", () =>
         const nsSterfive = addressSpace.getNamespaceIndex("http://sterfive.com/Small_model/");
         const connectionDetailsType = addressSpace.findVariableType("ConnectionDetailsType", nsSterfive)!;
 
-        console.log(connectionDetailsType.toString());
+        // xx console.log(connectionDetailsType.toString());
         const value = connectionDetailsType.readAttribute(context, AttributeIds.Value).value;
-        console.log(value.toString());
+       // xx  console.log(value.toString());
         value.value.constructor.name.should.eql("ConnectionDetails");
 
         //
         const certificateVariable = connectionDetailsType.getChildByName("Certificates")! as UAVariable;
         const urlVariable = connectionDetailsType.getChildByName("Url")! as UAVariable;
 
-        console.log(certificateVariable.toString());
-        console.log(urlVariable.toString());
+        // xx console.log(certificateVariable.toString());
+        // xx  console.log(urlVariable.toString());
     });
 
     it("LNEX2- should load nodeset with array extension objects", async () => {
@@ -58,9 +58,8 @@ describe("Testing loading nodeset with extension objects values in types", () =>
         const myTestObject = addressSpace.findNode(`ns=${nsSterfiveInstance};i=5002`)! as UAObject;
 
         const connectionDetailDataType = addressSpace.findDataType("ConnectionDetails", nsSterfive);
-        console.log(connectionDetailDataType.toString());
-
-        console.log(myTestObject.toString());
+        // xx console.log(connectionDetailDataType.toString());
+        // xx console.log(myTestObject.toString());
 
         const primaryConnection = myTestObject.getChildByName("PrimaryConnection")! as UAVariable;
         const otherConnections = myTestObject.getChildByName("OtherConnections")! as UAVariable;
@@ -84,19 +83,22 @@ describe("Testing loading nodeset with extension objects values in types", () =>
         const testVar = addressSpace.findNode("ns=1;i=6009")! as UAVariable;
 
         const value = testVar.readValue().value;
-        console.log(value.toString());
+        // xx  console.log(value.toString());
 
         value.value.F1.should.eql(200);
         value.value.F2.should.eql([100, 200, 300]);
     });
 
+    const x = (a: string) => a.replace(/^ +/gm,"");
+
     it("LNEX4 - export back a nodeset2.xml file with dataType & enum as values", async () => {
         await generateAddressSpace(addressSpace, [nodesets.standard, xml_file1]);
         const namespace = addressSpace.getNamespace("http://sterfive.com/Small_model/");
         const xml = namespace.toNodeset2XML();
-        console.log(xml);
+       // xx  console.log(xml);
 
-        xml.should.eql(`<?xml version="1.0"?>
+        // prettier-ignore
+        x(xml).should.eql(x(`<?xml version="1.0"?>
 <UANodeSet xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:uax="http://opcfoundation.org/UA/2008/02/Types.xsd" xmlns="http://opcfoundation.org/UA/2011/03/UANodeSet.xsd">
     <NamespaceUris>
         <Uri>http://sterfive.com/Small_model/</Uri>
@@ -123,8 +125,8 @@ describe("Testing loading nodeset with extension objects values in types", () =>
         <Alias Alias="Organizes">i=35</Alias>
         <Alias Alias="String">i=12</Alias>
     </Aliases>
-<!--ReferenceTypes-->
-<!--DataTypes-->
+    <!--ReferenceTypes-->
+    <!--DataTypes-->
     <UADataType NodeId="ns=1;i=3002" BrowseName="1:MyEnum">
         <DisplayName>MyEnum</DisplayName>
         <References>
@@ -250,16 +252,16 @@ describe("Testing loading nodeset with extension objects values in types", () =>
             </ListOfLocalizedText>
         </Value>
     </UAVariable>
-<!--ObjectTypes-->
-<!--ObjectType - 1:Meter {{{{ -->
+    <!--ObjectTypes-->
+    <!--ObjectType - 1:Meter {{{{ -->
     <UAObjectType NodeId="ns=1;i=39" BrowseName="1:Meter">
         <DisplayName>Meter</DisplayName>
         <References>
             <Reference ReferenceType="HasSubtype" IsForward="false">i=58</Reference>
         </References>
     </UAObjectType>
-<!--ObjectType - 1:Meter }}}}-->
-<!--ObjectType - 1:LinearMeter {{{{ -->
+    <!--ObjectType - 1:Meter }}}}-->
+    <!--ObjectType - 1:LinearMeter {{{{ -->
     <UAObjectType NodeId="ns=1;i=40" BrowseName="1:LinearMeter">
         <DisplayName>LinearMeter</DisplayName>
         <References>
@@ -276,8 +278,8 @@ describe("Testing loading nodeset with extension objects values in types", () =>
             <Reference ReferenceType="HasTypeDefinition">ns=1;i=44</Reference>
         </References>
     </UAVariable>
-<!--ObjectType - 1:LinearMeter }}}}-->
-<!--VariableTypes-->
+    <!--ObjectType - 1:LinearMeter }}}}-->
+    <!--VariableTypes-->
     <UAVariableType NodeId="ns=1;i=42" BrowseName="1:ConnectionDetailsType" DataType="1:ConnectionDetails">
         <DisplayName>ConnectionDetailsType</DisplayName>
         <References>
@@ -316,7 +318,7 @@ describe("Testing loading nodeset with extension objects values in types", () =>
             <Reference ReferenceType="HasModellingRule">i=80</Reference>
         </References>
     </UAVariable>
-<!--Other Nodes-->
+    <!--Other Nodes-->
     <UAVariable NodeId="ns=1;i=1195" BrowseName="1:ConnectionDetails" DataType="String">
         <DisplayName>ConnectionDetails</DisplayName>
         <References>
@@ -326,7 +328,7 @@ describe("Testing loading nodeset with extension objects values in types", () =>
             <String>ConnectionDetails</String>
         </Value>
     </UAVariable>
-<!--Object - Default XML {{{{ -->
+    <!--Object - Default XML {{{{ -->
     <UAObject NodeId="ns=1;i=182" BrowseName="Default XML" SymbolicName="DefaultXml">
         <DisplayName>Default XML</DisplayName>
         <References>
@@ -334,16 +336,16 @@ describe("Testing loading nodeset with extension objects values in types", () =>
             <Reference ReferenceType="HasDescription">ns=1;i=1196</Reference>
         </References>
     </UAObject>
-<!--Object - Default XML }}}} -->
-<!--Object - Default JSON {{{{ -->
+    <!--Object - Default XML }}}} -->
+    <!--Object - Default JSON {{{{ -->
     <UAObject NodeId="ns=1;i=183" BrowseName="Default JSON" SymbolicName="DefaultJson">
         <DisplayName>Default JSON</DisplayName>
         <References>
             <Reference ReferenceType="HasTypeDefinition">i=76</Reference>
         </References>
     </UAObject>
-<!--Object - Default JSON }}}} -->
-<!--Object - Default Binary {{{{ -->
+    <!--Object - Default JSON }}}} -->
+    <!--Object - Default Binary {{{{ -->
     <UAObject NodeId="ns=1;i=5001" BrowseName="Default Binary" SymbolicName="DefaultBinary">
         <DisplayName>Default Binary</DisplayName>
         <References>
@@ -351,8 +353,8 @@ describe("Testing loading nodeset with extension objects values in types", () =>
             <Reference ReferenceType="HasDescription">ns=1;i=6006</Reference>
         </References>
     </UAObject>
-<!--Object - Default Binary }}}} -->
-<!--Object - Default XML {{{{ -->
+    <!--Object - Default Binary }}}} -->
+    <!--Object - Default XML {{{{ -->
     <UAObject NodeId="ns=1;i=5002" BrowseName="Default XML" SymbolicName="DefaultXml">
         <DisplayName>Default XML</DisplayName>
         <References>
@@ -360,15 +362,15 @@ describe("Testing loading nodeset with extension objects values in types", () =>
             <Reference ReferenceType="HasDescription">ns=1;i=6007</Reference>
         </References>
     </UAObject>
-<!--Object - Default XML }}}} -->
-<!--Object - Default JSON {{{{ -->
+    <!--Object - Default XML }}}} -->
+    <!--Object - Default JSON {{{{ -->
     <UAObject NodeId="ns=1;i=5003" BrowseName="Default JSON" SymbolicName="DefaultJson">
         <DisplayName>Default JSON</DisplayName>
         <References>
             <Reference ReferenceType="HasTypeDefinition">i=76</Reference>
         </References>
     </UAObject>
-<!--Object - Default JSON }}}} -->
+    <!--Object - Default JSON }}}} -->
     <UAVariable NodeId="ns=1;i=6006" BrowseName="1:MyStruct" DataType="String">
         <DisplayName>MyStruct</DisplayName>
         <References>
@@ -402,7 +404,7 @@ describe("Testing loading nodeset with extension objects values in types", () =>
             </ExtensionObject>
         </Value>
     </UAVariable>
-</UANodeSet>`);
+</UANodeSet>`));
     });
 
     it("LNEX5 - export back a nodeset2.xml file with dataType & enum as values", async () => {
@@ -426,13 +428,13 @@ describe("Testing loading nodeset with extension objects values in types", () =>
                     xpC_W2: 12
                 }
             },
-            timestamp: new Date(2018, 11, 23),
+            timestamp: new Date(Date.UTC(2018, 11, 23, 3, 45, 0)),
             location: {
                 local: {
                     x: 100,
                     y: 200,
                     z: 300,
-                    timestamp: new Date(Date.UTC(2018, 11, 23, 12, 0, 0)),
+                    timestamp: new Date(Date.UTC(2018, 11, 23, 3, 50, 0)),
                     dilutionOfPrecision: 0.01,
                     usefulPrecision: 2
                 }
@@ -447,7 +449,9 @@ describe("Testing loading nodeset with extension objects values in types", () =>
 
         const xml = namespace.toNodeset2XML();
         // console.log(xml);
-        xml.should.eql(`<?xml version="1.0"?>
+
+        // prettier-ignore
+        x(xml).should.eql(x(`<?xml version="1.0"?>
 <UANodeSet xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:uax="http://opcfoundation.org/UA/2008/02/Types.xsd" xmlns="http://opcfoundation.org/UA/2011/03/UANodeSet.xsd">
     <NamespaceUris>
         <Uri>MyNamespace</Uri>
@@ -465,10 +469,10 @@ describe("Testing loading nodeset with extension objects values in types", () =>
         <Alias Alias="2:RfidScanResult">ns=2;i=3007</Alias>
         <Alias Alias="HasTypeDefinition">i=40</Alias>
     </Aliases>
-<!--ReferenceTypes-->
-<!--ObjectTypes-->
-<!--VariableTypes-->
-<!--Other Nodes-->
+    <!--ReferenceTypes-->
+    <!--ObjectTypes-->
+    <!--VariableTypes-->
+    <!--Other Nodes-->
     <UAVariable NodeId="ns=1;i=1000" BrowseName="1:MyVar" AccessLevel="3" DataType="2:RfidScanResult">
         <DisplayName>MyVar</DisplayName>
         <References>
@@ -490,13 +494,13 @@ describe("Testing loading nodeset with extension objects values in types", () =>
                                 <XPC_W2>0</XPC_W2>
                             </Epc>
                         </ScanData>
-                        <Timestamp>2018-12-22T23:00:00.000Z</Timestamp>
+                        <Timestamp>2018-12-23T03:45:00.000Z</Timestamp>
                         <Location>
                             <Local>
                                 <X>100</X>
                                 <Y>200</Y>
                                 <Z>300</Z>
-                                <Timestamp>2018-12-23T12:00:00.000Z</Timestamp>
+                                <Timestamp>2018-12-23T03:50:00.000Z</Timestamp>
                                 <DilutionOfPrecision>0.01</DilutionOfPrecision>
                                 <UsefulPrecision>2</UsefulPrecision>
                             </Local>
@@ -507,7 +511,7 @@ describe("Testing loading nodeset with extension objects values in types", () =>
             </ExtensionObject>
         </Value>
     </UAVariable>
-</UANodeSet>`);
+</UANodeSet>`));
 
         const tmp_nodeset2 = path.join(os.tmpdir(), "temp_nodeset2.xml");
         await fs.promises.writeFile(tmp_nodeset2, xml);
@@ -518,15 +522,14 @@ describe("Testing loading nodeset with extension objects values in types", () =>
             const ns = addressSpace2.getNamespaceIndex("MyNamespace");
 
             const v = addressSpace2.findNode(`ns=${ns};i=1000`)! as UAVariable;
-            
+
             // console.log("v", v.toString());
 
             const exObjReloaded = v.readValue().value.value;
 
-
             addressSpace2.dispose();
 
-            exObjReloaded.toString().should.eql(scanResult.toString())
+            exObjReloaded.toString().should.eql(scanResult.toString());
         }
     });
 });

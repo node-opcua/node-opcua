@@ -1,9 +1,9 @@
 #!/usr/bin/env ts-node
 /* eslint no-process-exit: 0 */
 // tslint:disable:no-console
+import * as path from "path";
 import * as chalk from "chalk";
 import { nodesets, OPCUAServer } from "node-opcua";
-import * as path from "path";
 import * as yargs from "yargs";
 import { Argv } from "yargs";
 
