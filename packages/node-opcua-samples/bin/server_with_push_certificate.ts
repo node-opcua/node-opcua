@@ -1,12 +1,12 @@
 #!/usr/bin/env ts-node
 /* eslint no-process-exit: 0 */
 // tslint:disable:no-console
+import * as path from "path";
 import * as chalk from "chalk";
 
 import { nodesets, OPCUACertificateManager, OPCUAServer } from "node-opcua";
 import { CertificateManager } from "node-opcua-pki";
 import { installPushCertificateManagement } from "node-opcua-server-configuration";
-import * as path from "path";
 import * as yargs from "yargs";
 
 const rootFolder = path.join(__dirname, "../../..");

@@ -1271,7 +1271,7 @@ export class UAVariableImpl extends BaseNodeImpl implements UAVariable {
         const dt = addressSpace.findNode(this.dataType);
         // istanbul ignore next
         if (!dt) {
-            throw new Error("cannot find dataType " + this.dataType.toString());
+            throw new Error("getDataTypeNode: cannot find dataType " + this.dataType.toString());
         }
         return dt as UADataType;
     }
