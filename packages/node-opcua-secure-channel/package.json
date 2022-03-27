@@ -21,7 +21,7 @@
         "node-opcua-certificate-manager": "2.65.0",
         "node-opcua-chunkmanager": "2.64.1",
         "node-opcua-common": "2.65.1",
-        "node-opcua-crypto": "^1.9.0",
+        "node-opcua-crypto": "^1.10.0",
         "node-opcua-debug": "2.64.1",
         "node-opcua-enum": "2.64.1",
         "node-opcua-factory": "2.64.1",
