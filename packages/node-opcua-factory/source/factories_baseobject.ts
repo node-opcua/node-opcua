@@ -264,7 +264,11 @@ function _exploreObject(self: BaseUAObject, field: StructuredTypeField, data: Ex
                         value = "" + value + "               " + extra;
                     }
                 } else if (fieldType === "DateTime" || fieldType === "UtcTime") {
-                    value = value && value.toISOString ? value.toISOString() : value;
+                    try {
+                        value = value && value.toISOString ? value.toISOString() : value;
+                    } catch {
+                        value = chalk.red(value?.toString() + " *** ERROR ***");
+                    }
                 } else if (typeof value === "object" && value !== null && value !== undefined) {
                     // eslint-disable-next-line prefer-spread
                     value = value.toString.apply(value, args);

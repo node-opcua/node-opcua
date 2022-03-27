@@ -4,7 +4,7 @@
 import { assert } from "node-opcua-assert";
 
 import { BrowseDirection, NodeClass } from "node-opcua-data-model";
-import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
+import { checkDebugFlag, make_debugLog, make_errorLog } from "node-opcua-debug";
 import { NodeId } from "node-opcua-nodeid";
 import { Variant } from "node-opcua-variant";
 import { DataType } from "node-opcua-variant";
@@ -16,6 +16,7 @@ import { UAVariableImpl } from "./ua_variable_impl";
 
 const doDebug = checkDebugFlag(__filename);
 const debugLog = make_debugLog(__filename);
+const errorLog = make_errorLog(__filename);
 /*
  * define a complex Variable containing a array of extension objects
  * each element of the array is also accessible as a component variable.
@@ -100,6 +101,7 @@ export function createExtObjArrayNode<T extends ExtensionObject>(parentFolder: U
 
     const dataType = addressSpace.findDataType(variableType.dataType);
     if (!dataType) {
+        errorLog(variableType.toString());
         throw new Error("cannot find Data Type");
     }
 
