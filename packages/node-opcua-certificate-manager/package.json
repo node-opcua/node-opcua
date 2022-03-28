@@ -1,6 +1,6 @@
 {
     "name": "node-opcua-certificate-manager",
-    "version": "2.66.0",
+    "version": "2.66.1",
     "description": "pure nodejs OPCUA SDK - module -client",
     "scripts": {
         "clean": "npx rimraf dist *.tsbuildinfo certificates",

@@ -1,6 +1,6 @@
 {
     "name": "node-opcua-nodeset-adi",
-    "version": "2.66.0",
+    "version": "2.66.1",
     "description": "",
     "main": "dist/index.js",
     "types": "dist/index.d.ts",
@@ -10,13 +10,13 @@
     "author": "etienne.rossignon@sterfive.com",
     "license": "MIT",
     "dependencies": {
-        "node-opcua-address-space-base": "2.66.0",
+        "node-opcua-address-space-base": "2.66.1",
         "node-opcua-basic-types": "2.66.0",
         "node-opcua-data-access": "2.66.0",
         "node-opcua-data-model": "2.66.0",
         "node-opcua-nodeid": "2.66.0",
-        "node-opcua-nodeset-di": "2.66.0",
-        "node-opcua-nodeset-ua": "2.66.0",
+        "node-opcua-nodeset-di": "2.66.1",
+        "node-opcua-nodeset-ua": "2.66.1",
         "node-opcua-variant": "2.66.0"
     }
 }
