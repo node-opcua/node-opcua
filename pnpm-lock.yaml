@@ -98,7 +98,7 @@ specifiers:
   mocha-clean: ^1.0.0
   mocha-lcov-reporter: ^1.3.0
   node-opcua-crypto: ^1.10.0
-  node-opcua-pki: ^2.15.0
+  node-opcua-pki: ^2.15.1
   nyc: ^15.1.0
   object.values: ^1.1.5
   once: ^1.4.0
@@ -173,7 +173,7 @@ dependencies:
   mkdirp: 1.0.4
   mocha-clean: 1.0.0
   node-opcua-crypto: 1.10.0
-  node-opcua-pki: 2.15.0
+  node-opcua-pki: 2.15.1
   object.values: 1.1.5
   once: 1.4.0
   pretty-ms: 7.0.1
@@ -2472,7 +2472,7 @@ packages:
     dependencies:
       entities: 2.0.3
       mdurl: 1.0.1
-      minimist: 1.2.5
+      minimist: 1.2.6
       string.prototype.repeat: 0.2.0
     dev: true
 
@@ -3903,7 +3903,7 @@ packages:
     engines: {node: '>=0.4.7'}
     hasBin: true
     dependencies:
-      minimist: 1.2.5
+      minimist: 1.2.6
       neo-async: 2.6.2
       source-map: 0.6.1
       wordwrap: 1.0.0
@@ -4646,7 +4646,7 @@ packages:
     resolution: {integrity: sha512-aKS4WQjPenRxiQsC93MNfjx+nbF4PAdYzmd/1JIj8HYzqfbu86beTuNgXDzPknWk0n0uARlyewZo4s++ES36Ow==}
     hasBin: true
     dependencies:
-      minimist: 1.2.5
+      minimist: 1.2.6
     dev: true
 
   /json5/2.2.0:
@@ -4654,7 +4654,7 @@ packages:
     engines: {node: '>=6'}
     hasBin: true
     dependencies:
-      minimist: 1.2.5
+      minimist: 1.2.6
     dev: true
 
   /jsonc-parser/3.0.0:
@@ -5139,7 +5139,7 @@ packages:
       decamelize: 1.2.0
       loud-rejection: 1.6.0
       map-obj: 1.0.1
-      minimist: 1.2.5
+      minimist: 1.2.6
       normalize-package-data: 2.5.0
       object-assign: 4.1.1
       read-pkg-up: 1.0.1
@@ -5231,6 +5231,9 @@ packages:
 
   /minimist/1.2.5:
     resolution: {integrity: sha512-FM9nNUYrRBAELZQT3xeZQ7fmMOBg6nWNmJKTcgsJeaLstP/UODVpGsr5OhXhhXg6f+qtJ8uiZ+PUxkDWcgIXLw==}
+
+  /minimist/1.2.6:
+    resolution: {integrity: sha512-Jsjnk4bw3YJqYzbdyBiNsPWHPfO++UGG749Cxs6peCu5Xg4nrena6OVxOYxrQTqww0Jmwt+Ref8rggumkTLz9Q==}
 
   /minipass-collect/1.0.2:
     resolution: {integrity: sha512-6T6lH0H8OG9kITm/Jm6tdooIbogG9e0tLgpY6mphXSm/A9u8Nq1ryBG+Qspiub9LjWlBPsPS3tWQ/Botq4FdxA==}
@@ -5324,7 +5327,7 @@ packages:
     resolution: {integrity: sha512-NKmAlESf6jMGym1++R0Ra7wvhV+wFW63FaSOFPwRahvea0gMUcGUhVeAg/0BC0wiv9ih5NYPB1Wn1UEI1/L+xQ==}
     hasBin: true
     dependencies:
-      minimist: 1.2.5
+      minimist: 1.2.6
 
   /mkdirp/1.0.4:
     resolution: {integrity: sha512-vVqVZQyf3WLx2Shd0qJ9xuvqgAyKPLAiqITEtqW0oIUjzo3PePDd6fW9iFz30ef7Ysp/oiWqbhszeGWW2T6Gzw==}
@@ -5509,8 +5512,8 @@ packages:
       sshpk: 1.17.0
     dev: false
 
-  /node-opcua-pki/2.15.0:
-    resolution: {integrity: sha512-5JrbEis00V9B/DMGleDaXObLGGRYiAlgXUa2zEMZbBaL6WV5C8rn2pRLRXYwJ0BJUA+27JgESD/h4OtZKWRUlw==}
+  /node-opcua-pki/2.15.1:
+    resolution: {integrity: sha512-2RV4VrLmG6u/XEulheJ3k41MvgMPylF+J1LHdivhTlIrNBlnuJc2cCzrYVQ22sznHzh24frGCntA/pgGK0u+/w==}
     hasBin: true
     dependencies:
       '@ster5/global-mutex': 1.2.0
@@ -5519,6 +5522,7 @@ packages:
       chalk: 4.1.2
       chokidar: 3.5.3
       cli-table: 0.3.11
+      minimist: 1.2.6
       node-opcua-crypto: 1.10.0
       progress: 2.0.3
       thenify: 3.3.1
@@ -6441,7 +6445,7 @@ packages:
     dependencies:
       deep-extend: 0.6.0
       ini: 1.3.8
-      minimist: 1.2.5
+      minimist: 1.2.6
       strip-json-comments: 2.0.1
     dev: false
 
@@ -7281,7 +7285,7 @@ packages:
     hasBin: true
     dependencies:
       duplexer: 0.1.2
-      minimist: 1.2.5
+      minimist: 1.2.6
       through: 2.3.8
     dev: false
 
@@ -7496,7 +7500,7 @@ packages:
     dependencies:
       '@types/json5': 0.0.29
       json5: 1.0.1
-      minimist: 1.2.5
+      minimist: 1.2.6
       strip-bom: 3.0.0
     dev: true
 

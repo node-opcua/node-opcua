@@ -38,7 +38,7 @@
         "typedoc": "typedoc  --excludePrivate --excludeProtected --excludeInternal -options typedoc.config.json",
         "legal": "npx legally",
         "legal2": "npx npm-license-crawler",
-        "publish": "pnpm m run clean && npx rimraf packages/node_modules packages/*/dist  packages/*/*.tsbuildinfo && pnpm m i && npx lerna publish"
+        "publish:lerna": "pnpm m run clean && npx rimraf packages/node_modules packages/*/dist  packages/*/*.tsbuildinfo && pnpm m i && npx lerna publish"
     },
     "repository": {
         "type": "git",
@@ -130,7 +130,7 @@
         "mkdirp": "1.0.4",
         "mocha-clean": "^1.0.0",
         "node-opcua-crypto": "^1.10.0",
-        "node-opcua-pki": "^2.15.0",
+        "node-opcua-pki": "^2.15.1",
         "object.values": "^1.1.5",
         "once": "^1.4.0",
         "pretty-ms": "^7.0.1",
