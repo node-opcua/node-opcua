@@ -52,7 +52,7 @@
         "node-opcua-status-code": "2.66.0",
         "node-opcua-test-fixtures": "2.66.0",
         "node-opcua-test-helpers": "2.66.0",
-        "node-opcua-transport": "2.66.0",
+        "node-opcua-transport": "2.66.2",
         "node-opcua-types": "2.66.0",
         "node-opcua-utils": "2.66.0",
         "should": "^13.2.3",

@@ -25,7 +25,7 @@
         "node-opcua-hostname": "2.66.0",
         "node-opcua-nodeid": "2.66.0",
         "node-opcua-nodesets": "2.66.0",
-        "node-opcua-pki": "^2.15.3",
+        "node-opcua-pki": "^2.15.4",
         "node-opcua-pseudo-session": "2.66.2",
         "node-opcua-secure-channel": "2.66.2",
         "node-opcua-server": "2.66.2",
