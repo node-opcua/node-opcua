@@ -1,6 +1,6 @@
 {
     "name": "node-opcua-nodeset-ia",
-    "version": "2.66.2",
+    "version": "2.66.3",
     "description": "",
     "main": "dist/index.js",
     "types": "dist/index.d.ts",
@@ -10,12 +10,12 @@
     "author": "etienne.rossignon@sterfive.com",
     "license": "MIT",
     "dependencies": {
-        "node-opcua-address-space-base": "2.66.2",
+        "node-opcua-address-space-base": "2.66.3",
         "node-opcua-basic-types": "2.66.0",
         "node-opcua-data-access": "2.66.0",
         "node-opcua-data-model": "2.66.0",
-        "node-opcua-nodeset-di": "2.66.2",
-        "node-opcua-nodeset-ua": "2.66.2",
+        "node-opcua-nodeset-di": "2.66.3",
+        "node-opcua-nodeset-ua": "2.66.3",
         "node-opcua-variant": "2.66.0"
     }
 }

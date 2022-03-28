@@ -1,6 +1,6 @@
 {
     "name": "node-opcua-pseudo-session",
-    "version": "2.66.2",
+    "version": "2.66.3",
     "description": "pure nodejs OPCUA SDK - module -client-proxy",
     "scripts": {
         "clean": "npx rimraf dist *.tsbuildinfo",
@@ -19,7 +19,7 @@
         "node-opcua-service-browse": "2.66.0",
         "node-opcua-service-call": "2.66.0",
         "node-opcua-service-read": "2.66.0",
-        "node-opcua-service-subscription": "2.66.2",
+        "node-opcua-service-subscription": "2.66.3",
         "node-opcua-service-translate-browse-path": "2.66.0",
         "node-opcua-service-write": "2.66.0",
         "node-opcua-status-code": "2.66.0",

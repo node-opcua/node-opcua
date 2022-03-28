@@ -1,6 +1,6 @@
 {
     "name": "node-opcua-aggregates",
-    "version": "2.66.2",
+    "version": "2.66.3",
     "description": "pure nodejs OPCUA SDK - module -end2end-test",
     "main": "./dist/index.js",
     "types": "./dist/index.d.ts",
@@ -13,7 +13,7 @@
     },
     "dependencies": {
         "@types/async": "^3.2.12",
-        "node-opcua-address-space": "2.66.2",
+        "node-opcua-address-space": "2.66.3",
         "node-opcua-constants": "2.66.0",
         "node-opcua-data-model": "2.66.0",
         "node-opcua-data-value": "2.66.0",
