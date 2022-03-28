@@ -130,7 +130,7 @@
         "mkdirp": "1.0.4",
         "mocha-clean": "^1.0.0",
         "node-opcua-crypto": "^1.10.0",
-        "node-opcua-pki": "^2.15.1",
+        "node-opcua-pki": "^2.15.3",
         "object.values": "^1.1.5",
         "once": "^1.4.0",
         "pretty-ms": "^7.0.1",

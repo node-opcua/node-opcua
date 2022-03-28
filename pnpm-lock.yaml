@@ -98,7 +98,7 @@ specifiers:
   mocha-clean: ^1.0.0
   mocha-lcov-reporter: ^1.3.0
   node-opcua-crypto: ^1.10.0
-  node-opcua-pki: ^2.15.1
+  node-opcua-pki: ^2.15.3
   nyc: ^15.1.0
   object.values: ^1.1.5
   once: ^1.4.0
@@ -173,7 +173,7 @@ dependencies:
   mkdirp: 1.0.4
   mocha-clean: 1.0.0
   node-opcua-crypto: 1.10.0
-  node-opcua-pki: 2.15.1
+  node-opcua-pki: 2.15.3
   object.values: 1.1.5
   once: 1.4.0
   pretty-ms: 7.0.1
@@ -5225,10 +5225,6 @@ packages:
       kind-of: 6.0.3
     dev: false
 
-  /minimist/1.2.0:
-    resolution: {integrity: sha1-o1AIsg9BOD7sH7kU9M1d95omQoQ=}
-    dev: false
-
   /minimist/1.2.5:
     resolution: {integrity: sha512-FM9nNUYrRBAELZQT3xeZQ7fmMOBg6nWNmJKTcgsJeaLstP/UODVpGsr5OhXhhXg6f+qtJ8uiZ+PUxkDWcgIXLw==}
 
@@ -5512,8 +5508,8 @@ packages:
       sshpk: 1.17.0
     dev: false
 
-  /node-opcua-pki/2.15.1:
-    resolution: {integrity: sha512-2RV4VrLmG6u/XEulheJ3k41MvgMPylF+J1LHdivhTlIrNBlnuJc2cCzrYVQ22sznHzh24frGCntA/pgGK0u+/w==}
+  /node-opcua-pki/2.15.3:
+    resolution: {integrity: sha512-YmEL7mWIbzYvvKeVVR+f2IP2Y7Ji1awPSxHU3TB4mNnFcPpMC+hmoLbM/eMCzC2AOBoPRqRbDNreDA++ubTKXg==}
     hasBin: true
     dependencies:
       '@ster5/global-mutex': 1.2.0
@@ -5527,7 +5523,7 @@ packages:
       progress: 2.0.3
       thenify: 3.3.1
       update-notifier: 5.1.0
-      wget-improved: 1.5.0
+      wget-improved-2: 3.3.0
       yargs: 17.4.0
       yauzl: 2.10.0
     dev: false
@@ -7526,8 +7522,8 @@ packages:
     dependencies:
       safe-buffer: 5.2.1
 
-  /tunnel/0.0.2:
-    resolution: {integrity: sha1-8jvNi3p7ioZCYbIIT2b5MZM5YzQ=}
+  /tunnel/0.0.6:
+    resolution: {integrity: sha512-1h/Lnq9yajKY2PEbBadPXj3VxsDDu844OnaAo52UVmIzIvwwtBPIuNvkjuzBlTWpfJyUbG3ez0KSBibQkj4ojg==}
     engines: {node: '>=0.6.11 <=0.7.0 || >=0.7.3'}
     dev: false
 
@@ -7816,13 +7812,13 @@ packages:
     engines: {node: '>=10.4'}
     dev: false
 
-  /wget-improved/1.5.0:
-    resolution: {integrity: sha512-t+G+g9SQSy2h2+dg7h54r9adllfdI0fHHtshbl1V4jwIIBj1c10SmHwjP8vFx9fn1dr9QuF27uC7xoZr9YwEmg==}
+  /wget-improved-2/3.3.0:
+    resolution: {integrity: sha512-NSPde/8mUqgmznPhO7oB5gS8IVUlR7GOlY857IaAf3PkkHbx/6FwZxUhW+GRP1GQbZDnCMF5fPieWXFng8Z43A==}
     engines: {node: '>= 0.6.18'}
     hasBin: true
     dependencies:
-      minimist: 1.2.0
-      tunnel: 0.0.2
+      minimist: 1.2.6
+      tunnel: 0.0.6
     dev: false
 
   /whatwg-url/5.0.0:
