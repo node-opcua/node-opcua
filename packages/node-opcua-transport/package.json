@@ -1,6 +1,6 @@
 {
     "name": "node-opcua-transport",
-    "version": "2.66.0",
+    "version": "2.66.2",
     "description": "pure nodejs OPCUA SDK - module -transport",
     "main": "./dist/source/index.js",
     "types": "./dist/source/index.d.ts",

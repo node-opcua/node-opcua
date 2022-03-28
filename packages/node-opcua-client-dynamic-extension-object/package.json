@@ -1,6 +1,6 @@
 {
     "name": "node-opcua-client-dynamic-extension-object",
-    "version": "2.66.1",
+    "version": "2.66.2",
     "description": "pure nodejs OPCUA SDK - module client-dynamic-extension-object",
     "main": "./dist/index.js",
     "types": "./dist/index.d.ts",
@@ -20,7 +20,7 @@
         "node-opcua-extension-object": "2.66.0",
         "node-opcua-factory": "2.66.0",
         "node-opcua-nodeid": "2.66.0",
-        "node-opcua-pseudo-session": "2.66.1",
+        "node-opcua-pseudo-session": "2.66.2",
         "node-opcua-schemas": "2.66.0",
         "node-opcua-service-browse": "2.66.0",
         "node-opcua-service-translate-browse-path": "2.66.0",
