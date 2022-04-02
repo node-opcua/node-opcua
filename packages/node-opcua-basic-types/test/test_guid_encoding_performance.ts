@@ -9,21 +9,21 @@ function write_UInt16Old(stream: OutputBinaryStream, guid: string, starts: numbe
     const n = starts.length;
     for (let i = 0; i < n; i++) {
         const start = starts[i];
-        stream.writeUInt16(parseInt(guid.substr(start, 4), 16));
+        stream.writeUInt16(parseInt(guid.substring(start, 4), 16));
     }
 }
 function write_UInt32Old(stream: OutputBinaryStream, guid: string, starts: number[]) {
     const n = starts.length;
     for (let i = 0; i < n; i++) {
         const start = starts[i];
-        stream.writeUInt32(parseInt(guid.substr(start, 8), 16));
+        stream.writeUInt32(parseInt(guid.substring(start, 8), 16));
     }
 }
 function write_UInt8Old(stream: OutputBinaryStream, guid: string, starts: number[]) {
     const n = starts.length;
     for (let i = 0; i < n; i++) {
         const start = starts[i];
-        stream.writeUInt8(parseInt(guid.substr(start, 2), 16));
+        stream.writeUInt8(parseInt(guid.substring(start, 2), 16));
     }
 }
 export function encodeGuidOld(guid: Guid, stream: OutputBinaryStream): void {
