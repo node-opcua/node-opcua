@@ -8,7 +8,7 @@ async function wait_until_condition(condition, timeout, message) {
         await wait(100);
         const t2 = Date.now();
         if (t2 - t > timeout) {
-            throw new Error("Time out " + message ||"");
+            throw new Error(`wait_until_condition: Timeout  reached timeout=${timeout} ${message ||""}`);
         }
     }
 }
