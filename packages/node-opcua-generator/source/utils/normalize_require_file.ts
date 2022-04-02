@@ -12,10 +12,10 @@ import * as path from "path";
 export function normalize_require_file(baseFolder: string, fullPathToFile: string): string {
     let localFile = path.relative(baseFolder, fullPathToFile).replace(/\\/g, "/");
     // append ./ if necessary
-    if (localFile.substr(0, 1) !== ".") {
+    if (localFile.substring(0, 1) !== ".") {
         localFile = "./" + localFile;
     }
     // remove extension
-    localFile = localFile.substr(0, localFile.length - path.extname(localFile).length);
+    localFile = localFile.substring(0, localFile.length - path.extname(localFile).length);
     return localFile;
 }
