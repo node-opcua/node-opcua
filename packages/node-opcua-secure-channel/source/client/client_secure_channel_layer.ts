@@ -19,7 +19,7 @@ import { get_clock_tick, timestamp } from "node-opcua-utils";
 import { readMessageHeader, verify_message_chunk } from "node-opcua-chunkmanager";
 import { checkDebugFlag, hexDump, make_debugLog, make_errorLog, make_warningLog } from "node-opcua-debug";
 import { ChannelSecurityToken, coerceMessageSecurityMode, MessageSecurityMode } from "node-opcua-service-secure-channel";
-import { StatusCodes } from "node-opcua-status-code";
+import { CallbackT, StatusCodes } from "node-opcua-status-code";
 import { ClientTCP_transport } from "node-opcua-transport";
 import { ErrorCallback } from "node-opcua-status-code";
 import { BaseUAObject } from "node-opcua-factory";
@@ -73,7 +73,7 @@ const backoff = require("backoff");
 
 export const requestHandleNotSetValue = 0xdeadbeef;
 
-type PerformTransactionCallback = (err?: Error | null, response?: Response) => void;
+type PerformTransactionCallback = CallbackT<Response>;
 
 interface TransactionData {
     msgType: string;
@@ -130,7 +130,7 @@ function process_request_callback(requestData: RequestData, err?: Error | null, 
     // let set callback to undefined to prevent callback to be called again
     requestData.callback = undefined;
 
-    theCallbackFunction(err, !err && response !== null ? response : undefined);
+    theCallbackFunction(err || null, !err && response !== null ? response : undefined);
 }
 
 export interface ConnectionStrategyOptions {
@@ -1349,10 +1349,10 @@ export class ClientSecureChannelLayer extends EventEmitter {
             delete this._requests[request.requestHeader.requestHandle];
             // invoke user callback if it has not been intercepted first ( by a abrupt disconnection for instance )
             try {
-                localCallback.call(this, err, response);
+                localCallback.call(this, err || null, response);
             } catch (err1) {
                 errorLog("ERROR !!! callback has thrown en error ", err1);
-                callback(err);
+                callback(err || null);
             } finally {
                 localCallback = null;
             }
