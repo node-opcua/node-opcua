@@ -20,7 +20,7 @@ import { get_base_schema, StructuredTypeSchema } from "./factories_structuredTyp
 import { EnumerationDefinition, FieldCategory, StructuredTypeField, BuiltInTypeDefinition, FieldType } from "./types";
 
 function r(str: string, length = 30) {
-    return (str + "                                ").substr(0, length);
+    return (str + "                                ").substring(0, length);
 }
 
 function _decode_member_(value: any, field: StructuredTypeField, stream: BinaryStream, options: DecodeDebugOptions) {
