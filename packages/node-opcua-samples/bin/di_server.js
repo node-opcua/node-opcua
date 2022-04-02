@@ -209,8 +209,7 @@ server.on("post_initialize", function() {
 
 function dumpNode(node) {
     function w(str, width) {
-        const tmp = str + "                                        ";
-        return tmp.substr(0, width);
+        return str.padEnd(width).substring(0, width);
     }
     return Object.entries(node).map((key,value) =>
          "      " + w(key, 30) + "  : " + ((value === null) ? null : value.toString())
@@ -261,7 +260,7 @@ server.on("session_closed", function(session, reason) {
 });
 
 function w(s, w) {
-    return ("000" + s).substr(-w);
+    return s.toString().padStart(w,"0");
 }
 function t(d) {
     return w(d.getHours(), 2) + ":" + w(d.getMinutes(), 2) + ":" + w(d.getSeconds(), 2) + ":" + w(d.getMilliseconds(), 3);

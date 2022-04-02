@@ -50,7 +50,7 @@ const Table = require("easy-table");
 const treeify = require("treeify");
 
 function w(str: string, l: number): string {
-    return (str + "                                      ").substr(0, l);
+    return str.padEnd(l).substring(0, l);
 }
 
 async function enumerateAllConditionTypes(session: ClientSession) {

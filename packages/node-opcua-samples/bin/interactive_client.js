@@ -123,7 +123,7 @@ function save_history(callback) {
 }
 
 function w(str, width) {
-    return (str + "                                                      ").substr(0, width);
+    return str.padEnd(width," ").substring(0, width);
 }
 /**
  * @method toDate
