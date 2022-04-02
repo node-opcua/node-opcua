@@ -123,7 +123,7 @@ function _adjust_maxNotificationsPerPublish(maxNotificationsPerPublish?: number)
 }
 
 function w(s: string | number, length: number): string {
-    return ("000" + s).substr(-length);
+    return ("000" + s).padStart(length);
 }
 
 function t(d: Date): string {

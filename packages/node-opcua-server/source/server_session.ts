@@ -26,7 +26,7 @@ import { assert } from "node-opcua-assert";
 import { minOPCUADate, randomGuid } from "node-opcua-basic-types";
 import { SessionDiagnosticsDataType, SessionSecurityDiagnosticsDataType, SubscriptionDiagnosticsDataType } from "node-opcua-common";
 import { QualifiedName, NodeClass } from "node-opcua-data-model";
-import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
+import { checkDebugFlag, make_debugLog, make_errorLog } from "node-opcua-debug";
 import { makeNodeId, NodeId, NodeIdType, sameNodeId } from "node-opcua-nodeid";
 import { ObjectRegistry } from "node-opcua-object-registry";
 import { StatusCode, StatusCodes } from "node-opcua-status-code";
@@ -43,7 +43,9 @@ import { SubscriptionState } from "./server_subscription";
 import { ServerEngine } from "./server_engine";
 
 const debugLog = make_debugLog(__filename);
+const errorLog = make_errorLog(__filename);
 const doDebug = checkDebugFlag(__filename);
+
 const theWatchDog = new WatchDog();
 
 const registeredNodeNameSpace = 9999;
@@ -299,11 +301,11 @@ export class ServerSession extends EventEmitter implements ISubscriber, ISession
     public incrementRequestTotalCounter(counterName: string): void {
         if (this._sessionDiagnostics) {
             const propName = lowerFirstLetter(counterName + "Count");
+            // istanbul ignore next
             if (!Object.prototype.hasOwnProperty.call(this._sessionDiagnostics, propName)) {
-                console.log(" cannot find", propName);
+               errorLog("incrementRequestTotalCounter: cannot find", propName);
                 // xx return;
             } else {
-                //   console.log(self._sessionDiagnostics.toString());
                 (this._sessionDiagnostics as any)[propName].totalCount += 1;
             }
         }
@@ -313,8 +315,9 @@ export class ServerSession extends EventEmitter implements ISubscriber, ISession
         this.parent?.incrementRejectedRequestsCount();
         if (this._sessionDiagnostics) {
             const propName = lowerFirstLetter(counterName + "Count");
+            // istanbul ignore next
             if (!Object.prototype.hasOwnProperty.call(this._sessionDiagnostics, propName)) {
-                console.log(" cannot find", propName);
+                errorLog("incrementRequestErrorCounter: cannot find", propName);
                 // xx  return;
             } else {
                 (this._sessionDiagnostics as any)[propName].errorCount += 1;
@@ -428,7 +431,7 @@ export class ServerSession extends EventEmitter implements ISubscriber, ISession
 
         if (!deleteSubscriptions && this.currentSubscriptionCount !== 0) {
             // I don't know what to do yet if deleteSubscriptions is false
-            console.log("TO DO : Closing session without deleting subscription not yet implemented");
+            errorLog("TO DO : Closing session without deleting subscription not yet implemented");
             // to do: Put subscriptions in safe place for future transfer if any
         }
 
@@ -593,7 +596,6 @@ export class ServerSession extends EventEmitter implements ISubscriber, ISession
         const subscriptionDiagnostics = subscription.subscriptionDiagnostics;
         assert(subscriptionDiagnostics instanceof SubscriptionDiagnosticsDataType);
         if (subscriptionDiagnostics && subscriptionDiagnosticsArray) {
-            // console.log("GG => ServerSession **Unexposing** subscription diagnostics =>",
             // subscription.id,"on session", session.nodeId.toString());
             removeElement(subscriptionDiagnosticsArray, subscriptionDiagnostics);
         }
