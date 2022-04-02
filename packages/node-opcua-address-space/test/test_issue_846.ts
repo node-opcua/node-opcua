@@ -88,7 +88,7 @@ describe("#846 Various Variable Value in nodeset2.xml", () => {
         });
         it("should read a StatusCode", async () => {
             const v1 = iotChannelSet.getComponentByName("StatusCodeTypeData1") as UAVariable;
-            v1.readValue().value.toString().should.eql("Variant(Scalar<StatusCode>, value: Good (0x00000))");
+            v1.readValue().value.toString().should.eql("Variant(Scalar<StatusCode>, value: Good (0x00000000))");
         });
         it("should read an array of StructNonVarArrayTypeData1", async () => {
             const v1 = iotChannelSet.getComponentByName("StructNonVarTypeWithArrayElementData4") as UAVariable;
