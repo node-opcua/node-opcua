@@ -375,7 +375,7 @@ module.exports = function (test) {
             }
 
             function w(str, l) {
-                return (str + "                                      ").substr(0, l);
+                return (""+str).padStart(l," ").substring(0, l);
             }
             it("TE1 - should monitored Server Event", async () => {
 

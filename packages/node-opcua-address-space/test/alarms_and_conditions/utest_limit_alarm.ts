@@ -68,7 +68,7 @@ function dumpEvent(addressSpace: AddressSpace, eventFields: string[], eventData:
     });
 }
 function ellipsis(a: string): string {
-    return a.substr(0, 10) + "...";
+    return a.substring(0, 10) + "...";
 }
 function dumpSpy(spyOnEvent: any) {
     for (let i = 0; i < spyOnEvent.getCalls().length; i++) {

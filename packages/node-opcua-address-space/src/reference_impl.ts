@@ -50,7 +50,7 @@ function _arrow(text: string, length: number, isForward: boolean): string {
 }
 
 function _w(str: string, width: number): string {
-    return (str + "                                         ").substr(0, width);
+    return str.padEnd(width).substring(0, width);
 }
 
 function _localCoerceToNodeID(nodeIdLike: string | NodeIdLike | { nodeId: NodeId }): NodeId {

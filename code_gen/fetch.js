@@ -16,7 +16,7 @@ function wget(dest_folder, file_url) {
         fs.mkdirSync(dest_folder);
     }
 
-    if (file_url.substr(0, 5) === "https") {
+    if (file_url.substring(0, 5) === "https") {
         http = https;
     }
 

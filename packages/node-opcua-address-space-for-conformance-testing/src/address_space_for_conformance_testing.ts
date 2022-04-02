@@ -275,7 +275,7 @@ function add_mass_variables_of_type(
         organizedBy: parent
     });
     for (let i = 0; i <= 99; i++) {
-        const extra_name = "_" + ("00" + i.toString()).substr(-2);
+        const extra_name = "_" + i.toString().padStart(2, "0");
         const local_defaultValue = typeof default_value === "function" ? default_value() : default_value;
         _add_variable(namespace, scalarMass_Type, dataTypeName, realType, local_defaultValue, -1, null, extra_name);
     }

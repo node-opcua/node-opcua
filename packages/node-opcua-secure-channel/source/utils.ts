@@ -98,7 +98,7 @@ export interface ClientTransactionStatistics {
 
 export function _dump_client_transaction_statistics(stats: ClientTransactionStatistics): void {
     function w(str: string | number) {
-        return ("                  " + str).substr(-12);
+        return str.toString().padStart(12, " ").substring(0, 12);
     }
 
     console.log(chalk.green.bold("--------------------------------------------------------------------->> Stats"));

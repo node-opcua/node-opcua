@@ -101,7 +101,7 @@ describe("ADI - Testing a server that exposes Analyser Devices", function () {
 
     function dumpObjectType(objectType) {
         function w(s, l) {
-            return (s + "                       ").substr(0, l);
+            return (s + "                       ").substring(0, l);
         }
 
         function f(c) {

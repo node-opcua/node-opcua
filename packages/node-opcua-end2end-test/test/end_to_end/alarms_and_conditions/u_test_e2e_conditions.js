@@ -79,7 +79,7 @@ module.exports = function (test) {
           str = node ? node.browseName.toString() : " Unknown Node";
         }
         console.log(
-          chalk.yellow(e + "                             ".substr(0, 25)),
+          chalk.yellow(e + "                             ".substring(0, 25)),
           v.toString() + " " + chalk.white.bold(str));
       });
       console.log("--------------------");
