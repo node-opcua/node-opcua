@@ -25,7 +25,7 @@ const doDebug = checkDebugFlag(__filename);
 const debugLog = make_debugLog(__filename);
 
 function w(s: string, l: number): string {
-    return (s + "                                                    ").substr(0, l);
+    return s.padEnd(l).substring(0, l);
 }
 
 const predefinedType: any = {
