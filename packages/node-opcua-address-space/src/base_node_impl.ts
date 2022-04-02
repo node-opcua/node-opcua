@@ -1514,7 +1514,7 @@ function _propagate_ref(this: BaseNode, addressSpace: MinimalistAddressSpace, re
             }
         }
         // xx ignore this assert(reference.nodeId.toString() !== this.nodeId.toString());
-        // function w(s,l) { return (s+"                                                          ").substr(0,l);}
+        // function w(s,l) { return (s+"                                                          ").substring(0,l);}
         // if (reference.isForward) {
         //    console.log("  CHILD => ",w(related_node.browseName   + " " + related_node.nodeId.toString(),30),
         //    "  PARENT   ",w(this.browseName + " " + this.nodeId.toString(),30) , reference.toString());

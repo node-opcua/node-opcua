@@ -279,7 +279,7 @@ describe("FiniteStateMachine with Multiple transition from one state to an other
         // tslint:disable-next-line: only-arrow-functions
         console.log = function (...args: [any, ...any[]]) {
             const str = args.map((a) => "" + a).join(" ");
-            if (str.substr(0, 3) !== "XXX") {
+            if (str.substring(0, 3) !== "XXX") {
                 _output.push(str);
             }
         };

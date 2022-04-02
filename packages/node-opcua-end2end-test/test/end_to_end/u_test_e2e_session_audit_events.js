@@ -66,7 +66,7 @@ module.exports = function(test) {
         const fields = ["EventType", "SourceName", "EventId", "ReceiveTime", "Severity", "Message", "SessionId"];
 
         function w(str, l) {
-            return (str + Array(30).join(" ")).substr(0, l);
+            return (str + Array(30).join(" ")).substring(0, l);
         }
 
         function recordEvent(eventFields) {
