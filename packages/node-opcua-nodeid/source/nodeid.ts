@@ -242,19 +242,19 @@ export function coerceNodeId(value: unknown, namespace?: number): NodeId {
     if (typeof value === "string") {
         identifierType = NodeIdType.STRING;
 
-        twoFirst = value.substr(0, 2);
+        twoFirst = value.substring(0, 2);
         if (twoFirst === "i=") {
             identifierType = NodeIdType.NUMERIC;
-            value = parseInt(value.substr(2), 10);
+            value = parseInt(value.substring(2), 10);
         } else if (twoFirst === "s=") {
             identifierType = NodeIdType.STRING;
-            value = value.substr(2);
+            value = value.substring(2);
         } else if (twoFirst === "b=") {
             identifierType = NodeIdType.BYTESTRING;
-            value = Buffer.from(value.substr(2), "base64");
+            value = Buffer.from(value.substring(2), "base64");
         } else if (twoFirst === "g=") {
             identifierType = NodeIdType.GUID;
-            value = value.substr(2);
+            value = value.substring(2);
         } else if (isValidGuid(value)) {
             identifierType = NodeIdType.GUID;
         } else if ((matches = regexNamespaceI.exec(value)) !== null) {
