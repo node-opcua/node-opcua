@@ -150,7 +150,7 @@ export abstract class StatusCode {
     }
 
     public toString(): string {
-        return this.name + " (0x" + ("0000" + this.value.toString(16)).substr(-8) + ")";
+        return this.name + " (0x" + (this.value.toString(16)).padStart(8,"0") + ")";
     }
 
     public checkBit(mask: number): boolean {
