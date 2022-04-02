@@ -1,5 +1,5 @@
-/* eslint-disable no-case-declarations */
 #!/usr/bin/env node
+/* eslint-disable no-case-declarations */
 /* eslint no-process-exit: 0 */
 "use strict";
 const chalk = require("chalk");

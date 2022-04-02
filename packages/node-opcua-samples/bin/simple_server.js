@@ -4,6 +4,7 @@
 "use strict";
 const path = require("path");
 const fs = require("fs");
+const os = require('os');
 const assert = require("assert");
 const chalk = require("chalk");
 const yargs = require("yargs/yargs");
@@ -76,7 +77,6 @@ const maxAllowedSubscriptionNumber = argv.maxAllowedSubscriptionNumber || 50;
 OPCUAServer.MAX_SUBSCRIPTION = maxAllowedSubscriptionNumber;
 
 
-const os = require('os');
 
 async function getIpAddresses() {
 
@@ -489,7 +489,7 @@ const paths = envPaths(productUri);
 
   if (argv.silent) {
     console.log(" silent");
-    console.log = function() { };
+    console.log = function() { /** */};
   }
   //  console.log = function(){};
 
