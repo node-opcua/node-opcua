@@ -93,7 +93,7 @@ function makeQualifiedName(mm: RegExpMatchArray): QualifiedName {
     }
     const namespaceIndex = mm[11] ? parseInt(mm[11], 10) : 0;
     const name = unescape(mm[12]);
-    return new QualifiedName({namespaceIndex, name});
+    return new QualifiedName({ namespaceIndex, name });
 }
 
 /**
@@ -162,7 +162,7 @@ export function makeRelativePath(str: string, addressSpace?: any): RelativePath 
 
         r.elements.push({ referenceTypeId, isInverse, includeSubtypes, targetName });
 
-        str = str.substr(matches[0].length);
+        str = str.substring(matches[0].length);
     }
     r = new RelativePath(r);
     return r;
