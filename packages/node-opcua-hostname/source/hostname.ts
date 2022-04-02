@@ -9,7 +9,7 @@ function trim(str: string, length?: number): string {
     if (!length) {
         return str;
     }
-    return str.substr(0, Math.min(str.length, length));
+    return str.substring(0, Math.min(str.length, length));
 }
 
 function fqdn(callback: (err: Error | null, fqdn?: string) => void): void {
