@@ -30,10 +30,10 @@ function hexString(str: string): string {
     for (let line of lines) {
         line = line.trim();
         if (line.length > 80) {
-            line = line.substring(10, 98).trim();
+            line = line.substring(10, 98 + 10 ).trim();
             hexLine = hexLine ? hexLine + " " + line : line;
         } else if (line.length > 60) {
-            line = line.substring(7, 48).trim();
+            line = line.substring(7, 48 + 7).trim();
             hexLine = hexLine ? hexLine + " " + line : line;
         } else if (line.length > prefixLength) {
             line = line.substring(prefixLength, prefixLength + 48).trim();
