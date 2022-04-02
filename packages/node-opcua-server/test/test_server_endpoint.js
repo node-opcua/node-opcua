@@ -10,7 +10,7 @@ const extractFullyQualifiedDomainName = require("node-opcua-hostname").extractFu
 const crypto_utils = require("node-opcua-crypto");
 const it_with_crypto = it;
 
-const default_port = 1234;
+const port = 2042;
 
 const OPCUAServerEndPoint = require("..").OPCUAServerEndPoint;
 
@@ -24,7 +24,7 @@ describe("OPCUAServerEndpoint#addEndpointDescription", function () {
 
     beforeEach(function () {
         server_endpoint = new OPCUAServerEndPoint({
-            port: default_port,
+            port: port,
             serverInfo: {},
             certificateChain: null,
             privateKey: ""
@@ -68,7 +68,7 @@ describe("OPCUAServerEndpoint#addStandardEndpointDescriptions", function () {
     });
     beforeEach(function () {
         server_endpoint = new OPCUAServerEndPoint({
-            port: default_port,
+            port: port,
             serverInfo: {},
             certificateChain: null,
             privateKey: ""
@@ -98,7 +98,7 @@ describe("OPCUAServerEndpoint#addStandardEndpointDescriptions extra secure", fun
     let server_endpoint;
     beforeEach(function () {
         server_endpoint = new OPCUAServerEndPoint({
-            port: default_port,
+            port: port,
             serverInfo: {},
             certificateChain: null,
             privateKey: ""
@@ -132,7 +132,7 @@ describe("OPCUAServerEndpoint#getEndpointDescription", function () {
     let server_endpoint;
     beforeEach(function () {
         server_endpoint = new OPCUAServerEndPoint({
-            port: default_port,
+            port: port,
             serverInfo: {},
             certificateChain: null,
             privateKey: ""
