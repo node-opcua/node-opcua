@@ -346,7 +346,7 @@ registerSpecialVariantEncoder(DataValue);
 export type DataValueLike = DataValueOptions | DataValue;
 
 function w(n: number): string {
-    return n.toString().padStart(n,"0");
+    return n.toString().padStart(3,"0");
 }
 
 function _partial_clone(dataValue: DataValue): DataValue {
