@@ -11,7 +11,7 @@ import { getRandomInt } from "./utils";
 export { isValidGuid, emptyGuid } from "node-opcua-guid";
 
 function toHex(i: number, nb: number): string {
-    return ("000000000000000" + i.toString(16)).substr(-nb);
+    return i.toString(16).padStart(nb, "0");
 }
 
 export type Guid = string;
