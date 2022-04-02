@@ -208,7 +208,7 @@ describe("testing address space namespace loading", function (this: any) {
         // in this test, we verify that we can easily bind the Server_ServerStatus object
         // the process shall automatically bind variables and substructures recursively
 
-        const serverStatus = addressSpace.findNode(makeNodeId(VariableIds.Server_ServerStatus))! as UAServerStatus<DTServerStatus>;
+        const serverStatus = addressSpace.findNode(VariableIds.Server_ServerStatus)! as UAServerStatus<DTServerStatus>;
         serverStatus.browseName.toString().should.eql("ServerStatus");
 
         // before bindExtensionObject is called, startTime property exists but is not bound
