@@ -12,7 +12,7 @@ import { DataTypeDefinition } from "node-opcua-types";
 import { pendingBrowseName } from "./private";
 
 function w(s: string, l: number): string {
-    return (s + "                                                                ").substr(0, l);
+    return s.padEnd(l).substring(0, l);
 }
 export class CacheNode {
     // the reference that links this node to its parent
