@@ -85,11 +85,11 @@ module.exports = function (test) {
                 browseResult.statusCode.should.eql(StatusCodes.Good);
 
                 const browsePath = [
-                    makeBrowsePath(session.sessionId, ".SessionDiagnostics.TotalRequestCount.TotalCount"),
+                    makeBrowsePath(session.sessionId, ".SessionDiagnostics.TotalRequestCount"),
                     makeBrowsePath(session.sessionId, ".SessionDiagnostics.EndpointUrl"),
                     makeBrowsePath(session.sessionId, ".SessionDiagnostics.ClientLastContactTime"),
                     makeBrowsePath(session.sessionId, ".SessionDiagnostics"),
-                    makeBrowsePath(session.sessionId, ".SessionDiagnostics.WriteCount.TotalCount")
+                    makeBrowsePath(session.sessionId, ".SessionDiagnostics.WriteCount")
                 ];
 
                 const browsePathResults = await session.translateBrowsePath(browsePath);
@@ -99,11 +99,14 @@ module.exports = function (test) {
                 browsePathResults[1].statusCode.should.eql(StatusCodes.Good);
                 browsePathResults[2].statusCode.should.eql(StatusCodes.Good);
                 browsePathResults[3].statusCode.should.eql(StatusCodes.Good);
+                browsePathResults[4].statusCode.should.eql(StatusCodes.Good);
 
-                const totalRequestCountTotalCountNodeId = browsePathResults[0].targets[0].targetId;
+                /** prettier-ignore  */
+                const totalRequestCountNodeId = browsePathResults[0].targets[0].targetId;
+                const endpointUrlNodeId = browsePathResults[1].targets[0].targetId;
                 const clientLastContactTimeNodeId = browsePathResults[2].targets[0].targetId;
                 const currentSessionDiagnosticNodeId = browsePathResults[3].targets[0].targetId;
-                const writeCountTotalCountNodeId = browsePathResults[4].targets[0].targetId;
+                const writeCountNodeId = browsePathResults[4].targets[0].targetId;
 
                 {
                     const nodeToRead = {
@@ -119,20 +122,24 @@ module.exports = function (test) {
                 const itemsToMonitor = [
                     {
                         nodeId: currentSessionDiagnosticNodeId,
-                        attributeId: AttributeIds.Value
+                        attributeId: AttributeIds.Value,
+                        name: "currentSessionDiagnosticNodeId"
                     },
 
                     {
                         nodeId: clientLastContactTimeNodeId,
-                        attributeId: AttributeIds.Value
+                        attributeId: AttributeIds.Value,
+                        name: "clientLastContactTimeNodeId"
                     },
                     {
-                        nodeId: totalRequestCountTotalCountNodeId,
-                        attributeId: AttributeIds.Value
+                        nodeId: totalRequestCountNodeId,
+                        attributeId: AttributeIds.Value,
+                        name: "totalRequestCountNodeId"
                     },
                     {
-                        nodeId: writeCountTotalCountNodeId,
-                        attributeId: AttributeIds.Value
+                        nodeId: writeCountNodeId,
+                        attributeId: AttributeIds.Value,
+                        name: "writeCountNodeId"
                     }
                 ];
                 const monitoringParamaters = {
@@ -147,7 +154,12 @@ module.exports = function (test) {
                     TimestampsToReturn.Both
                 );
                 monitoredItemGroup.monitoredItems.length.should.eql(4);
+                monitoredItemGroup.monitoredItems[0].statusCode.should.eql(StatusCodes.Good);
+                monitoredItemGroup.monitoredItems[1].statusCode.should.eql(StatusCodes.Good);
+                monitoredItemGroup.monitoredItems[2].statusCode.should.eql(StatusCodes.Good);
+                monitoredItemGroup.monitoredItems[3].statusCode.should.eql(StatusCodes.Good);
 
+                console.log("itemsToMonitor= ", itemsToMonitor.map((item) => item.nodeId.toString()).join(" "));
                 const monitoredItemGroupChangeSpy = sinon.spy();
                 monitoredItemGroup.on("changed", monitoredItemGroupChangeSpy);
 
@@ -155,6 +167,7 @@ module.exports = function (test) {
                 monitoredItemGroup.on(
                     "changed",
                     (monitoredItem /* : ClientMonitoredItemBase */, dataValue /*: DataValue */, index /*: number */) => {
+                        console.log(` Variable ${index} ${itemsToMonitor[index].name} changed to `, dataValue.value.toString());
                         const nodeId = monitoredItem.itemToMonitor.nodeId.toString();
                         dataValuesMap[nodeId] = dataValuesMap[nodeId] || [];
                         dataValuesMap[nodeId].push(dataValue.value.value);
@@ -162,41 +175,42 @@ module.exports = function (test) {
                     }
                 );
 
-                const nodeId = "ns=2;s=Static_Scalar_Double";
+                async function writeSomeValue(value) {
+                    const nodeId = "ns=2;s=Static_Scalar_Double";
+                    const variantValue = new Variant({
+                        dataType: DataType.Double,
+                        value
+                    });
 
-                const variantValue = new Variant({
-                    dataType: DataType.Double,
-                    value: 42
-                });
+                    const results = await session.write({
+                        nodeId,
+                        attributeId: AttributeIds.Value,
+                        value: { value: variantValue }
+                    });
 
-                const results = await session.write({
-                    nodeId,
-                    attributeId: AttributeIds.Value,
-                    value: { value: variantValue }
-                });
+                    results.should.eql(StatusCodes.Good);
+                }
 
-                results.should.eql(StatusCodes.Good);
+                await writeSomeValue(42);
 
-                await wait_until_condition(() => 
-                    dataValuesMap[writeCountTotalCountNodeId.toString()] && dataValuesMap[writeCountTotalCountNodeId.toString()].length >= 2,
-                 10*1000);
+                //  await writeSomeValue(43);
 
-               //  console.log(dataValuesMap);
+                await wait_until_condition(
+                    () => dataValuesMap[writeCountNodeId.toString()] && dataValuesMap[writeCountNodeId.toString()].length >= 2,
+                    10 * 1000
+                );
+
+                //  console.log(dataValuesMap);
                 // verify_that_session_diagnostics_has_reported_a_new_writeCounter_value;
 
                 // extract DataChangeNotification that matches writeCounter
                 const args = monitoredItemGroupChangeSpy.args.filter(function (arg) {
-                    return arg[0].itemToMonitor.nodeId.toString() === writeCountTotalCountNodeId.toString();
+                    return arg[0].itemToMonitor.nodeId.toString() === writeCountNodeId.toString();
                 });
                 args.length.should.eql(2);
 
-                args[0][1].value.value.should.eql(0, "first  WriteCounter value should eql 0");
-                args[1][1].value.value.should.eql(1, "second WriteCounter value should eql 1");
-
-                const writeCounterValue = args[1][1].value.value;
-                writeCounterValue.should.eql(1);
-
-                //    verify_that_clientLastContactTime_has_changed_in_monitored_item
+                args[0][1].value.value.totalCount.should.eql(0, "first  WriteCounter value should eql 0");
+                args[1][1].value.value.totalCount.should.eql(1, "second WriteCounter value should eql 1");
 
                 {
                     const nodeToRead = {
@@ -211,13 +225,11 @@ module.exports = function (test) {
                     sessionDiagnostic.writeCount.totalCount.should.eql(1);
                     sessionDiagnostic.readCount.totalCount.should.eql(2);
 
-                    
                     //xx console.log(results[0].toString());
                     const args = monitoredItemGroupChangeSpy.args.filter(function (arg) {
                         return arg[0].itemToMonitor.nodeId.toString() === clientLastContactTimeNodeId.toString();
                     });
                     args.length.should.be.greaterThan(0);
-                    
                 }
                 await monitoredItemGroup.terminate();
             });

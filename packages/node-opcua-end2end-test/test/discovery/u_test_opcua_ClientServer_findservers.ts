@@ -1,6 +1,8 @@
 import * as async from "async";
-import { OPCUAClient }from "node-opcua";
-import { build_server_with_temperature_device }from "../../test_helpers/build_server_with_temperature_device";
+import { OPCUAClient, OPCUAServer, ErrorCallback } from "node-opcua";
+
+// declare function build_server_with_temperature_device(...args: any[]): void;
+const { build_server_with_temperature_device } = require("../../test_helpers/build_server_with_temperature_device");
 // eslint-disable-next-line import/order
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 
@@ -8,7 +10,8 @@ const port = 2005;
 
 export function t(test: any) {
     describe("DISCO6 - testing OPCUA-Service Discovery Endpoint", function () {
-        let server, endpointUrl;
+        let server: OPCUAServer;
+        let endpointUrl: string;
 
         before(async () => {
             server = await build_server_with_temperature_device({ port });
@@ -18,26 +21,29 @@ export function t(test: any) {
             await server.shutdown();
         });
 
-        function make_on_connected_client(functor, done) {
+        function make_on_connected_client(
+            functor: (client: OPCUAClient, next: ErrorCallback) => void,
+            done: (err?: Error | null) => void
+        ) {
             let connected = false;
             const client = OPCUAClient.create({});
             const tasks = [
-                function (callback) {
+                function (callback: ErrorCallback) {
                     client.connect(endpointUrl, (err) => {
                         connected = true;
                         callback(err);
                     });
                 },
 
-                function (callback) {
+                function (callback: ErrorCallback) {
                     try {
                         functor(client, callback);
-                    } catch (err) {
-                        callback(err);
+                    } catch (err: unknown) {
+                        callback(err as Error);
                     }
                 },
 
-                function (callback) {
+                function (callback:ErrorCallback) {
                     client.disconnect((err) => {
                         connected = false;
                         callback(err);
@@ -66,10 +72,11 @@ export function t(test: any) {
             // accessed as an ordinary OPC UA  Server.
             make_on_connected_client((client, callback) => {
                 client.findServers((err, servers) => {
-                    if (!err) {
-                        servers.length.should.eql(1);
+                    if (err) {
+                        return callback(err);
                     }
-                    callback(err);
+                    servers!.length.should.eql(1);
+                    callback();
                 });
             }, done);
         });
@@ -78,8 +85,11 @@ export function t(test: any) {
             make_on_connected_client((client, callback) => {
                 const filters = {};
                 client.findServers(filters, (err, servers) => {
-                    servers.length.should.eql(1);
-                    callback(err);
+                    if (err) {
+                        return callback(err);
+                    }
+                    servers!.length.should.eql(1);
+                    callback();
                 });
             }, done);
         });
@@ -90,9 +100,12 @@ export function t(test: any) {
                     serverUris: ["invalid server uri"]
                 };
 
-                client.findServers(filters, function (err, servers) {
-                    servers.length.should.eql(0);
-                    callback(err);
+                client.findServers(filters, (err, servers) => {
+                    if (err) {
+                        return callback(err);
+                    }
+                    servers!.length.should.eql(0);
+                    callback();
                 });
             }, done);
         });
@@ -104,10 +117,13 @@ export function t(test: any) {
                 };
 
                 client.findServers(filters, (err, servers) => {
-                    servers.length.should.eql(0);
-                    callback(err);
+                    if (err) {
+                        return callback(err);
+                    }
+                    servers!.length.should.eql(0);
+                    callback();
                 });
             }, done);
         });
     });
-};
+}
