@@ -23,7 +23,7 @@ const errorLog = make_errorLog(__filename);
  *
  */
 
-function getExtObjArrayNodeValue(this: any) {
+function getExtObjArrayNodeValue<T  extends ExtensionObject>(this: UADynamicVariableArray<T>) {
     return new Variant({
         arrayType: VariantArrayType.Array,
         dataType: DataType.ExtensionObject,
@@ -85,6 +85,7 @@ export function createExtObjArrayNode<T extends ExtensionObject>(parentFolder: U
     const namespace = parentFolder.namespace;
 
     const complexVariableType = addressSpace.findVariableType(options.complexVariableType);
+    // istanbul ignore next
     if (!complexVariableType) {
         throw new Error("cannot find complex variable type");
     }
@@ -100,6 +101,8 @@ export function createExtObjArrayNode<T extends ExtensionObject>(parentFolder: U
     assert(structure, "Structure Type not found: please check your nodeset file");
 
     const dataType = addressSpace.findDataType(variableType.dataType);
+
+    // istanbul ignore next
     if (!dataType) {
         errorLog(variableType.toString());
         throw new Error("cannot find Data Type");
@@ -123,7 +126,17 @@ export function createExtObjArrayNode<T extends ExtensionObject>(parentFolder: U
 
     return uaArrayVariableNode;
 }
+function _getElementBrowseName<T extends ExtensionObject>(this: UADynamicVariableArray<T>, extObj: ExtensionObject) {
+    const indexPropertyName1 = this.$$indexPropertyName;
 
+    if (!Object.prototype.hasOwnProperty.call(extObj, indexPropertyName1)) {
+        console.log(" extension object do not have ", indexPropertyName1, extObj);
+    }
+    // assert(extObj.constructor === addressSpace.constructExtensionObject(dataType));
+    assert(Object.prototype.hasOwnProperty.call(extObj, indexPropertyName1));
+    const browseName = (extObj as any)[indexPropertyName1].toString();
+    return browseName;
+};
 /**
  * @method bindExtObjArrayNode
  * @param uaArrayVariableNode
@@ -136,57 +149,54 @@ export function bindExtObjArrayNode<T extends ExtensionObject>(
     variableTypeNodeId: string | NodeId,
     indexPropertyName: string
 ): UAVariable {
+
+    assert(uaArrayVariableNode.valueRank === 1, "expecting a one dimension array");
+
     const addressSpace = uaArrayVariableNode.addressSpace;
 
     const variableType = addressSpace.findVariableType(variableTypeNodeId);
-    if (!variableType) {
+    
+    // istanbul ignore next
+    if (!variableType || variableType.nodeId.isEmpty()) {
         throw new Error("Cannot find VariableType " + variableTypeNodeId.toString());
     }
-    assert(!variableType.nodeId.isEmpty());
 
-    let structure = addressSpace.findDataType("Structure");
-    assert(structure, "Structure Type not found: please check your nodeset file");
+    const structure = addressSpace.findDataType("Structure");
+
+    // istanbul ignore next
+    if (!structure) {
+        throw new Error("Structure Type not found: please check your nodeset file");
+    }
 
     let dataType = addressSpace.findDataType(variableType.dataType);
+    
+    // istanbul ignore next
     if (!dataType) {
         throw new Error("Cannot find DataType " + variableType.dataType.toString());
     }
-    assert(dataType.isSupertypeOf(structure as any), "expecting a structure (= ExtensionObject) here ");
+    
+    assert(dataType.isSupertypeOf(structure), "expecting a structure (= ExtensionObject) here ");
 
     assert(!uaArrayVariableNode.$$variableType, "uaArrayVariableNode has already been bound !");
 
     uaArrayVariableNode.$$variableType = variableType;
 
-    structure = addressSpace.findDataType("Structure");
-    assert(structure, "Structure Type not found: please check your nodeset file");
-
     // verify that an object with same doesn't already exist
     dataType = addressSpace.findDataType(variableType.dataType)! as UADataType;
-    assert(dataType!.isSupertypeOf(structure as any), "expecting a structure (= ExtensionObject) here ");
+    assert(dataType!.isSupertypeOf(structure), "expecting a structure (= ExtensionObject) here ");
 
     uaArrayVariableNode.$$dataType = dataType;
     uaArrayVariableNode.$$extensionObjectArray = [];
     uaArrayVariableNode.$$indexPropertyName = indexPropertyName;
 
-    uaArrayVariableNode.$$getElementBrowseName = function (this: UADynamicVariableArray<T>, extObj: ExtensionObject) {
-        const indexPropertyName1 = this.$$indexPropertyName;
+    uaArrayVariableNode.$$getElementBrowseName = _getElementBrowseName;
 
-        if (!Object.prototype.hasOwnProperty.call(extObj, indexPropertyName1)) {
-            console.log(" extension object do not have ", indexPropertyName1, extObj);
-        }
-        // assert(extObj.constructor === addressSpace.constructExtensionObject(dataType));
-        assert(Object.prototype.hasOwnProperty.call(extObj, indexPropertyName1));
-        const browseName = (extObj as any)[indexPropertyName1].toString();
-        return browseName;
-    };
-
-    const options = {
+    const bindOptions: any = {
         get: getExtObjArrayNodeValue,
         set: undefined // readonly
     };
-
     // bind the readonly
-    uaArrayVariableNode.bindVariable(options, true);
+    uaArrayVariableNode.bindVariable(bindOptions, true);
 
     return uaArrayVariableNode;
 }
@@ -258,12 +268,12 @@ export function addElement<T extends ExtensionObject>(
             componentOf: uaArrayVariableNode.nodeId,
             value: { dataType: DataType.ExtensionObject, value: extensionObject }
         }) as UAVariableImpl;
-        elVar.bindExtensionObject();
+        elVar.bindExtensionObject(extensionObject,  { force: true });
         elVar.$extensionObject = extensionObject;
     }
 
     // also add the value inside
-    uaArrayVariableNode.$$extensionObjectArray.push(extensionObject);
+    uaArrayVariableNode.$$extensionObjectArray.push(elVar.$extensionObject);
 
     return elVar;
 }
@@ -288,11 +298,14 @@ export function removeElement<T extends ExtensionObject>(
     uaArrayVariableNode: UADynamicVariableArray<T>,
     element: any /* number | UAVariable | (a any) => boolean | ExtensionObject */
 ): void {
-    assert(element, "element must exist");
+    assert(element, "removeElement: element must exist");
     const _array = uaArrayVariableNode.$$extensionObjectArray;
+
+    // istanbul ignore next
     if (_array.length === 0) {
         throw new Error(" cannot remove an element from an empty array ");
     }
+    
     let elementIndex = -1;
 
     if (typeof element === "number") {
@@ -314,8 +327,10 @@ export function removeElement<T extends ExtensionObject>(
         assert(_array[0].constructor.name === (element as any).constructor.name, "element must match");
         elementIndex = _array.findIndex((x: any) => x === element);
     }
+    
+    // istanbul ignore next
     if (elementIndex < 0) {
-        throw new Error(" cannot find element matching " + element.toString());
+        throw new Error("removeElement: cannot find element matching " + element.toString());
     }
     return removeElementByIndex(uaArrayVariableNode, elementIndex);
 }

@@ -1,7 +1,7 @@
 import { AttributeIds, CallbackT, PreciseClock, StatusCode, StatusCodeCallback, UInt32 } from "node-opcua-basic-types";
 import { NodeClass, QualifiedNameLike } from "node-opcua-data-model";
 import { NodeId } from "node-opcua-nodeid";
-import { DataValue, DataValueOptions } from "node-opcua-data-value";
+import { DataValue } from "node-opcua-data-value";
 import { ExtensionObject } from "node-opcua-extension-object";
 import { NumericRange } from "node-opcua-numeric-range";
 
@@ -72,6 +72,10 @@ export interface VariableAttributes {
 export interface EnumValue2 {
     name: string;
     value: number;
+}
+export interface BindExtensionObjectOptions {
+    createMissingProp?: boolean;
+    force?: boolean;
 }
 
 export interface UAVariable extends BaseNode, VariableAttributes, IPropertyAndComponentHolder {
@@ -336,7 +340,10 @@ export interface UAVariable extends BaseNode, VariableAttributes, IPropertyAndCo
 
     bindVariable(options?: BindVariableOptions, overwrite?: boolean): void;
 
-    bindExtensionObject(optionalExtensionObject?: ExtensionObject): ExtensionObject | null;
+
+    bindExtensionObject(optionalExtensionObject?: ExtensionObject, options?: BindExtensionObjectOptions): ExtensionObject | null;
+
+    installExtensionObjectVariables(): void;
 
     historyRead(
         context: ISessionContext,

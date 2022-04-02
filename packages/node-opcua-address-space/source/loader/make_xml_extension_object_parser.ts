@@ -1,9 +1,11 @@
-import { BasicTypeDefinition } from "node-opcua-factory";
+import { make_warningLog } from "node-opcua-debug";
 import { NodeId, NodeIdType } from "node-opcua-nodeid";
 import { EnumDefinition, StructureDefinition } from "node-opcua-types";
 import { lowerFirstLetter } from "node-opcua-utils";
 import { DataType } from "node-opcua-variant";
 import { ReaderState, ReaderStateParserLike, ParserLike, XmlAttributes } from "node-opcua-xml2json";
+
+const warningLog = make_warningLog(__filename);
 
 const localizedTextReader: ReaderStateParserLike = {
     init(this: any) {
@@ -239,7 +241,7 @@ function _makeTypeReader(
                         if (fieldParser.finish) {
                             fieldParser.finish.call(this);
                         } else {
-                            console.log(" check " + fieldTypename);
+                            warningLog("xxx check " + fieldTypename);
                         }
                         this.parent.value = this.parent.value || {};
                         this.parent.value[elName] = _clone(this.value);

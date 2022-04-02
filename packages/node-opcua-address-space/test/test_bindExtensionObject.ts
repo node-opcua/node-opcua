@@ -16,15 +16,30 @@ import {
 import { DataType } from "node-opcua-variant";
 import { nodesets } from "node-opcua-nodesets";
 
-import { AddressSpace, UARootFolder, UAVariable, UAVariableT, Namespace, UADataType, UAVariableType } from "..";
+import {
+    AddressSpace,
+    UARootFolder,
+    UAVariable,
+    UAVariableT,
+    Namespace,
+    UADataType,
+    UAVariableType,
+    UASessionDiagnosticsVariable,
+    DTSessionDiagnostics,
+    DTServiceCounter,
+    UABaseDataVariable
+} from "..";
 import { getMiniAddressSpace } from "../testHelpers";
 import { generateAddressSpace } from "../nodeJS";
 
 const doDebug = false;
 
-interface ServiceCounterVariable extends UAVariable {
+interface UAServiceCounterVariableEx extends UABaseDataVariable<DTServiceCounter, /*z*/ DataType.ExtensionObject> {
     totalCount: UAVariableT<UInt32, DataType.UInt32>;
     errorCount: UAVariableT<UInt32, DataType.UInt32>;
+}
+interface UASessionDiagnosticsVariableEx extends UASessionDiagnosticsVariable<DTSessionDiagnostics> {
+    totalRequestCount: UAServiceCounterVariableEx;
 }
 
 interface ServerStatusVariable extends UAVariable {
@@ -36,53 +51,6 @@ interface ServerStatusVariable extends UAVariable {
     shutdownReason: UAVariableT<LocalizedText, DataType.LocalizedText>;
 }
 
-interface SessionDiagnosticsVariable extends UAVariable {
-    $extensionObject: SessionDiagnosticsDataType;
-
-    sessionId: UAVariableT<NodeIdLike, DataType.NodeId>;
-    sessionName: UAVariableT<UAString, DataType.String>;
-    clientDescription: UAVariableT<ApplicationDescription, DataType.ExtensionObject>;
-    serverUri: UAVariableT<UAString, DataType.String>;
-    endpointUrl: UAVariableT<UAString, DataType.String>;
-    localeIds: UAVariableT<UAString, DataType.String>;
-    actualSessionTimeout: UAVariableT<Double, DataType.Double>;
-    maxResponseMessageSize: UAVariableT<UInt32, DataType.UInt32>;
-    clientConnectionTime: UAVariableT<DateTime, DataType.DateTime>;
-    clientLastContactTime: UAVariableT<DateTime, DataType.DateTime>;
-    currentSubscriptionsCount: UAVariableT<UInt32, DataType.UInt32>;
-    currentMonitoredItemsCount: UAVariableT<UInt32, DataType.UInt32>;
-    currentPublishRequestsInQueue: UAVariableT<UInt32, DataType.UInt32>;
-    totalRequestCount: ServiceCounterVariable;
-    unauthorizedRequestCount: ServiceCounterVariable;
-    readCount: ServiceCounterVariable;
-    historyReadCount: ServiceCounterVariable;
-    writeCount: ServiceCounterVariable;
-    historyUpdateCount: ServiceCounterVariable;
-    callCount: ServiceCounterVariable;
-    createMonitoredItemsCount: ServiceCounterVariable;
-    modifyMonitoredItemsCount: ServiceCounterVariable;
-    setMonitoringModeCount: ServiceCounterVariable;
-    setTriggeringCount: ServiceCounterVariable;
-    deleteMonitoredItemsCount: ServiceCounterVariable;
-    createSubscriptionCount: ServiceCounterVariable;
-    modifySubscriptionCount: ServiceCounterVariable;
-    setPublishingModeCount: ServiceCounterVariable;
-    publishCount: ServiceCounterVariable;
-    republishCount: ServiceCounterVariable;
-    transferSubscriptionsCount: ServiceCounterVariable;
-    deleteSubscriptionsCount: ServiceCounterVariable;
-    addNodesCount: ServiceCounterVariable;
-    addReferencesCount: ServiceCounterVariable;
-    deleteNodesCount: ServiceCounterVariable;
-    deleteReferencesCount: ServiceCounterVariable;
-    browseCount: ServiceCounterVariable;
-    browseNextCount: ServiceCounterVariable;
-    translateBrowsePathsToNodeIdsCount: ServiceCounterVariable;
-    queryFirstCount: ServiceCounterVariable;
-    queryNextCount: ServiceCounterVariable;
-    registerNodesCount: ServiceCounterVariable;
-    unregisterNodesCount: ServiceCounterVariable;
-}
 
 // tslint:disable-next-line:no-var-requires
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
@@ -111,7 +79,9 @@ describe("Extension Object binding and sub  components\n", () => {
                 dataType: serviceCounterDataType.nodeId,
                 minimumSamplingInterval: 0,
                 organizedBy: rootFolder.objects
-            }) as ServiceCounterVariable;
+            }) as UAServiceCounterVariableEx;
+
+            extensionObjectVar.installExtensionObjectVariables();
 
             extensionObjectVar.minimumSamplingInterval.should.eql(0);
 
@@ -210,22 +180,26 @@ describe("Extension Object binding and sub  components\n", () => {
             const sessionDiagnosticsVariableType = addressSpace.findVariableType("SessionDiagnosticsVariableType")!;
             sessionDiagnosticsVariableType.browseName.toString().should.eql("SessionDiagnosticsVariableType");
 
+
             const counter = 1;
             const extensionObjectVar = sessionDiagnosticsVariableType.instantiate({
                 browseName: "SessionDiagnostics" + counter,
                 dataType: sessionDiagnosticsDataType.nodeId,
                 minimumSamplingInterval: 0,
                 organizedBy: rootFolder.objects
-            }) as SessionDiagnosticsVariable;
+            }) as UASessionDiagnosticsVariableEx;
 
-            extensionObjectVar.minimumSamplingInterval.should.eql(0);
+            extensionObjectVar.installExtensionObjectVariables(), extensionObjectVar.minimumSamplingInterval.should.eql(0);
             extensionObjectVar.totalRequestCount.minimumSamplingInterval.should.eql(0);
-            extensionObjectVar.totalRequestCount.totalCount.minimumSamplingInterval.should.eql(0);
+
+            const useTwoLevelsDeep = false;
+         
+            useTwoLevelsDeep && extensionObjectVar.totalRequestCount.totalCount.minimumSamplingInterval.should.eql(0);
 
             extensionObjectVar.readValue().statusCode.should.eql(StatusCodes.Good);
             extensionObjectVar.totalRequestCount.readValue().statusCode.should.eql(StatusCodes.Good);
-            extensionObjectVar.totalRequestCount.totalCount.readValue().statusCode.should.eql(StatusCodes.Good);
-            extensionObjectVar.totalRequestCount.errorCount.readValue().statusCode.should.eql(StatusCodes.Good);
+            useTwoLevelsDeep && extensionObjectVar.totalRequestCount.totalCount.readValue().statusCode.should.eql(StatusCodes.Good);
+            useTwoLevelsDeep && extensionObjectVar.totalRequestCount.errorCount.readValue().statusCode.should.eql(StatusCodes.Good);
 
             const extensionObject = extensionObjectVar.bindExtensionObject() as SessionDiagnosticsDataType;
 
@@ -237,12 +211,12 @@ describe("Extension Object binding and sub  components\n", () => {
 
             extensionObjectVar.on("value_changed", spy_on_SessionDiagnostics_value_changed);
             extensionObjectVar.totalRequestCount.on("value_changed", spy_on_SessionDiagnostics_TotalRequestCount_value_changed);
-            extensionObjectVar.totalRequestCount.totalCount.on(
+            useTwoLevelsDeep && extensionObjectVar.totalRequestCount.totalCount.on(
                 "value_changed",
                 spy_on_SessionDiagnostics_TotalRequestCount_TotalCount_value_changed
             );
 
-            extensionObjectVar.totalRequestCount.totalCount.readValue().value.value.should.eql(0);
+            useTwoLevelsDeep && extensionObjectVar.totalRequestCount.totalCount.readValue().value.value.should.eql(0);
             extensionObjectVar.totalRequestCount.readValue().value.value.totalCount.should.eql(0);
             extensionObjectVar.readValue().value.value.totalRequestCount.totalCount.should.eql(0);
 
@@ -260,8 +234,8 @@ describe("Extension Object binding and sub  components\n", () => {
             spy_on_SessionDiagnostics_TotalRequestCount_value_changed.callCount.should.eql(1);
 
             // xx console.log(extensionObjectVar.totalRequestCount.totalCount.readValue());
-            spy_on_SessionDiagnostics_TotalRequestCount_TotalCount_value_changed.callCount.should.eql(1);
-            extensionObjectVar.totalRequestCount.totalCount.readValue().value.value.should.eql(1);
+            useTwoLevelsDeep && spy_on_SessionDiagnostics_TotalRequestCount_TotalCount_value_changed.callCount.should.eql(1);
+            useTwoLevelsDeep && extensionObjectVar.totalRequestCount.totalCount.readValue().value.value.should.eql(1);
         });
     });
 
@@ -290,9 +264,11 @@ describe("Extension Object binding and sub  components\n", () => {
             sessionDiagnostics = sessionDiagnosticsVariableType.instantiate({
                 browseName: "SessionDiagnostics" + counter,
                 organizedBy: rootFolder.objects
-            }) as SessionDiagnosticsVariable;
+            }) as UASessionDiagnosticsVariable<DTSessionDiagnostics>;
 
             _sessionDiagnostics = sessionDiagnostics.bindExtensionObject();
+
+            sessionDiagnostics.installExtensionObjectVariables();
 
             // xx console.log(_sessionDiagnostics.toString());
 
@@ -418,7 +394,7 @@ describe("Extension Object binding and sub  components\n", () => {
                 spy_on_sessionDiagnostics_totalRequestCount_errorCount_value_changed.callCount.should.eql(0);
                 spy_on_sessionDiagnostics_totalRequestCount_totalCount_value_changed.callCount.should.eql(0);
 
-                const eo = sessionDiagnostics.constructExtensionObjectFromComponents();
+                const eo = sessionDiagnostics.readValue().value.value;
                 eo.clientDescription.applicationUri.should.eql("applicationUri-1");
 
                 // xx console.log(eo.toString());
