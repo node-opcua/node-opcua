@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 "use strict";
-const chalk = require("chalk");
-const opcua = require("node-opcua");
 const path = require("path");
 const os = require("os");
+const chalk = require("chalk");
+const opcua = require("node-opcua");
 
 Error.stackTraceLimit = Infinity;
 
@@ -107,7 +107,7 @@ server_options.alternateHostname = argv.alternateHostname;
 const server = new OPCUAServer(server_options);
 
 
-const hostname = require("os").hostname();
+const hostname = os.hostname();
 
 
 
