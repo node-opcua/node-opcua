@@ -1,5 +1,5 @@
 import { make_warningLog } from "node-opcua-debug";
-import { NodeId, NodeIdType } from "node-opcua-nodeid";
+import { coerceNodeId, NodeId, NodeIdType } from "node-opcua-nodeid";
 import { EnumDefinition, StructureDefinition } from "node-opcua-types";
 import { lowerFirstLetter } from "node-opcua-utils";
 import { DataType } from "node-opcua-variant";
@@ -29,6 +29,19 @@ const localizedTextReader: ReaderStateParserLike = {
         this.value = this.localizedText;
     }
 };
+
+function clamp(value: number, minValue: number, maxValue: number) {
+    /*    if(value < minValue) {
+        warningLog(`invalid value range : ${value} < ${minValue} but should be [${minValue} , ${maxValue}]`);
+        return minValue;
+    }
+    if(value > maxValue) {
+        warningLog(`invalid value range : ${value} > ${maxValue} but should be [${minValue} , ${maxValue}]`);
+        return maxValue;
+    }
+*/
+    return value;
+}
 
 const partials: { [key: string]: ReaderStateParserLike } = {
     LocalizedText: localizedTextReader,
@@ -68,28 +81,28 @@ const partials: { [key: string]: ReaderStateParserLike } = {
     },
     Byte: {
         finish(this: any) {
-            this.value = parseInt(this.text, 10);
+            this.value = clamp(parseInt(this.text, 10), 0, 255);
         }
     },
     SByte: {
         finish(this: any) {
-            this.value = parseInt(this.text, 10);
+            this.value = clamp(parseInt(this.text, 10), -128, 127);
         }
     },
     Int8: {
         finish(this: any) {
-            this.value = parseInt(this.text, 10);
+            this.value = clamp(parseInt(this.text, 10), -128, 127);
         }
     },
 
     Int16: {
         finish(this: any) {
-            this.value = parseInt(this.text, 10);
+            this.value = clamp(parseInt(this.text, 10), -32768, 32767);
         }
     },
     Int32: {
         finish(this: any) {
-            this.value = parseInt(this.text, 10);
+            this.value = clamp(parseInt(this.text, 10), -2147483648, 2147483647);
         }
     },
     Int64: {
@@ -100,19 +113,19 @@ const partials: { [key: string]: ReaderStateParserLike } = {
 
     UInt8: {
         finish(this: any) {
-            this.value = parseInt(this.text, 10);
+            this.value = clamp(parseInt(this.text, 10), 0, 255);
         }
     },
 
     UInt16: {
         finish(this: any) {
-            this.value = parseInt(this.text, 10);
+            this.value = clamp(parseInt(this.text, 10), 0, 65535);
         }
     },
 
     UInt32: {
         finish(this: any) {
-            this.value = parseInt(this.text, 10);
+            this.value = clamp(parseInt(this.text, 10), 0, 4294967295);
         }
     },
 
@@ -133,6 +146,13 @@ const partials: { [key: string]: ReaderStateParserLike } = {
         finish(this: any) {
             /** to do */
             console.log(" Missing  Implemntation contact sterfive.com!");
+        }
+    },
+
+    NodeId: {
+        finish(this: any) {
+            // to do check Local or GMT
+            this.value = coerceNodeId(this.text);
         }
     }
 };
@@ -227,7 +247,7 @@ function _makeTypeReader(
             }
 
             if (field.valueRank === undefined || field.valueRank === -1) {
-                // scalar 
+                // scalar
                 const parser = fieldParser;
                 if (!parser) {
                     throw new Error("??? " + field.dataType + "  " + field.name);
