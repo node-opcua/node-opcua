@@ -31,7 +31,7 @@ const localizedTextReader: ReaderStateParserLike = {
 };
 
 function clamp(value: number, minValue: number, maxValue: number) {
-    /*    if(value < minValue) {
+    if(value < minValue) {
         warningLog(`invalid value range : ${value} < ${minValue} but should be [${minValue} , ${maxValue}]`);
         return minValue;
     }
@@ -39,7 +39,6 @@ function clamp(value: number, minValue: number, maxValue: number) {
         warningLog(`invalid value range : ${value} > ${maxValue} but should be [${minValue} , ${maxValue}]`);
         return maxValue;
     }
-*/
     return value;
 }
 
@@ -247,7 +246,7 @@ function _makeTypeReader(
             }
 
             if (field.valueRank === undefined || field.valueRank === -1) {
-                // scalar
+                // scalar 
                 const parser = fieldParser;
                 if (!parser) {
                     throw new Error("??? " + field.dataType + "  " + field.name);

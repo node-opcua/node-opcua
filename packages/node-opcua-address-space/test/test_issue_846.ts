@@ -5,6 +5,8 @@ import { nodesets } from "node-opcua-nodesets";
 import { DataType, Variant, VariantArrayType } from "node-opcua-variant";
 import { AttributeIds } from "node-opcua-data-model";
 import { EndpointConfiguration, ServerDiagnosticsSummaryDataType, ServiceCounterDataType } from "node-opcua-types";
+import { BinaryStream } from "node-opcua-binary-stream";
+import { ExtensionObject } from "node-opcua-extension-object";
 
 import { AddressSpace, UAObject, SessionContext } from "..";
 import { generateAddressSpace } from "../nodeJS";
@@ -49,10 +51,13 @@ describe("#899 Variable with NodeId Value in nodeset2.xml", () => {
         value.value[1].toString().should.eql(`ns=${ns};i=20`);
     });
 });
+
 describe("#846 Various Variable Value in nodeset2.xml", () => {
     let addressSpace: AddressSpace;
     let iotChannelSet: UAObject;
     let propertySet: UAObject;
+    let propertySet2: UAObject;
+
     before(async () => {
         addressSpace = AddressSpace.create();
 
@@ -63,6 +68,7 @@ describe("#846 Various Variable Value in nodeset2.xml", () => {
 
         iotChannelSet = addressSpace.findNode("ns=1;i=5003") as UAObject;
         propertySet = addressSpace.findNode("ns=1;i=5004") as UAObject;
+        propertySet2 = addressSpace.findNode("ns=1;i=5006") as UAObject;
     });
 
     after(() => {
@@ -244,5 +250,28 @@ describe("#846 Various Variable Value in nodeset2.xml", () => {
             }
         });
         v1.readValue().value.toString().should.eql("Variant(Scalar<Int32>, value: 2)");
+    });
+    it("#1134 should read VendorSpecificStructTypePropertyData1", async () => {
+        const v1 = propertySet2.getPropertyByName("VendorSpecificStructTypePropertyData1") as UAVariable;
+        v1.readValue().value.value.toJSON().should.eql({
+            boolElement: true,
+            byteElement: 255,
+            floatElement: 99.99,
+            int16Element: 32767,
+            int32Element: 2147483647,
+            stringElement: "ABBGermany",
+            stringElement2: "ABBMinden",
+            stringElement3: "ABBIndia",
+            uint16Element: 0, // is "-1" in the XML file ! => Clamped to ZERO
+            uint32Element: 65536
+        });
+        // note taht uint16Element was wrong in the XML -1 is an invalid value for uint16
+        // but our xml parser now does clamp the value.
+
+        const extObj = v1.readValue().value.value as ExtensionObject;
+        const binaryStream = new BinaryStream(100);
+        extObj.encode(binaryStream);
+
+
     });
 });
