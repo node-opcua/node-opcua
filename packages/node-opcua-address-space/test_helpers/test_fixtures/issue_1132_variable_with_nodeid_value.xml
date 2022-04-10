@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<UANodeSet>
+    <NamespaceUris>
+        <Uri>http://mynamespace</Uri>
+    </NamespaceUris>
+    <Aliases>
+        <Alias Alias="NodeId">i=17</Alias>
+    </Aliases>
+    <UAVariable NodeId="ns=1;i=1545" BrowseName="SessionId" DataType="NodeId">
+        <DisplayName>SessionId</DisplayName>
+        <References>
+            <Reference ReferenceType="HasTypeDefinition">i=63</Reference>
+        </References>
+        <Value>
+            <NodeId>
+                <Identifier>ns=1;g=24DCB865-2F12-3048-FC3F-213B8DE57128</Identifier>
+            </NodeId>
+        </Value>
+    </UAVariable>
+    <UAVariable NodeId="ns=1;i=1272" BrowseName="1:869582" AccessLevel="3" DataType="SubscriptionDiagnosticsDataType">
+        <DisplayName>869582</DisplayName>
+        <Value>
+            <ExtensionObject>
+                <TypeId>
+                    <Identifier>i=875</Identifier>
+                </TypeId>
+                <Body>
+                    <SubscriptionDiagnosticsDataType>
+                        <SessionId>
+                            <Identifier>ns=1;g=7BC32991-2103-2344-DE12-84ED18A855B4</Identifier>
+                        </SessionId>
+                        <SubscriptionId>869582</SubscriptionId>
+                        <Priority>0</Priority>
+                        <PublishingInterval>100</PublishingInterval>
+                        <MaxKeepAliveCount>50</MaxKeepAliveCount>
+                        <MaxLifetimeCount>12000</MaxLifetimeCount>
+                        <MaxNotificationsPerPublish>1000</MaxNotificationsPerPublish>
+                        <PublishingEnabled>true</PublishingEnabled>
+                        <ModifyCount>0</ModifyCount>
+                        <EnableCount>0</EnableCount>
+                        <DisableCount>0</DisableCount>
+                        <RepublishRequestCount>1</RepublishRequestCount>
+                        <RepublishMessageRequestCount>1</RepublishMessageRequestCount>
+                        <RepublishMessageCount>0</RepublishMessageCount>
+                        <TransferRequestCount>0</TransferRequestCount>
+                        <TransferredToAltClientCount>0</TransferredToAltClientCount>
+                        <TransferredToSameClientCount>0</TransferredToSameClientCount>
+                        <PublishRequestCount>0</PublishRequestCount>
+                        <DataChangeNotificationsCount>0</DataChangeNotificationsCount>
+                        <EventNotificationsCount>0</EventNotificationsCount>
+                        <NotificationsCount>0</NotificationsCount>
+                        <LatePublishRequestCount>0</LatePublishRequestCount>
+                        <CurrentKeepAliveCount>0</CurrentKeepAliveCount>
+                        <CurrentLifetimeCount>0</CurrentLifetimeCount>
+                        <UnacknowledgedMessageCount>0</UnacknowledgedMessageCount>
+                        <DiscardedMessageCount>0</DiscardedMessageCount>
+                        <MonitoredItemCount>1</MonitoredItemCount>
+                        <DisabledMonitoredItemCount>0</DisabledMonitoredItemCount>
+                        <MonitoringQueueOverflowCount>0</MonitoringQueueOverflowCount>
+                        <NextSequenceNumber>1</NextSequenceNumber>
+                        <EventQueueOverFlowCount>0</EventQueueOverFlowCount>
+                    </SubscriptionDiagnosticsDataType>
+                </Body>
+            </ExtensionObject>
+        </Value>
+    </UAVariable>
+
+</UANodeSet>
