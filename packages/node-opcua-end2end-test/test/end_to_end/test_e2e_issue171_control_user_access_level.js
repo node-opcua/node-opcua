@@ -4,12 +4,10 @@ const should = require("should");
 const {
     allPermissions,
     AttributeIds,
-    RolePermissionType,
     PermissionType,
     DataType,
     OPCUAClient,
     StatusCodes,
-    Permission,
     WellKnownRoles,
     makeRoles
 } = require("node-opcua");
@@ -62,7 +60,8 @@ describe("issue171- testing Client-Server with UserName/Password identity token"
         const serverCertificateManager = await createServerCertificateManager(port);
         const options = {
             port,
-            serverCertificateManager
+            serverCertificateManager,
+            userManager
             //xx            allowAnonymous: false
         };
 
@@ -84,8 +83,7 @@ describe("issue171- testing Client-Server with UserName/Password identity token"
         ];
         endpointUrl = server.getEndpointUrl();
         // replace user manager with our custom one
-        server.userManager = userManager;
-
+      
         const addressSpace = server.engine.addressSpace;
         const namespace = addressSpace.getOwnNamespace();
 

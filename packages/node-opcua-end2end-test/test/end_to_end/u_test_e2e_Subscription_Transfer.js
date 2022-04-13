@@ -196,7 +196,7 @@ module.exports = function (test) {
                 async.series([
                     function (callback) {
 
-                        const timeout = subscription.publishingInterval * 2;
+                        const timeout = subscription.publishingInterval * 3;
                         setTimeout(function () {
                             //xx console.log("StatusChange Count ", spy_status_changed.callCount, " keepAlive count = ", spy_keepalive.callCount);
                             spy_status_changed.callCount.should.eql(0);
