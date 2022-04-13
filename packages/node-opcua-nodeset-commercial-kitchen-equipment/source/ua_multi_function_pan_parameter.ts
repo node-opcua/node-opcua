@@ -1,12 +1,14 @@
 // ----- this file has been automatically generated - do not edit
 import { UAProperty } from "node-opcua-address-space-base"
-import { DataType, Variant } from "node-opcua-variant"
+import { DataType } from "node-opcua-variant"
 import { EUInformation } from "node-opcua-data-access"
 import { Int32 } from "node-opcua-basic-types"
 import { UAAnalogItem } from "node-opcua-nodeset-ua/source/ua_analog_item"
 import { DTRange } from "node-opcua-nodeset-ua/source/dt_range"
 import { UABaseDataVariable } from "node-opcua-nodeset-ua/source/ua_base_data_variable"
 import { UAKitchenDeviceParameter, UAKitchenDeviceParameter_Base } from "./ua_kitchen_device_parameter"
+import { EnumMultiFunctionPanMode } from "./enum_multi_function_pan_mode"
+import { EnumSpecialFunctionMode } from "./enum_special_function_mode"
 export interface UAMultiFunctionPanParameter_actualCoreTemperature<T, DT extends DataType> extends Omit<UAAnalogItem<T, /*b*/DT>, "engineeringUnits"|"euRange"> { // Variable
       engineeringUnits: UAProperty<EUInformation, /*z*/DataType.ExtensionObject>;
       euRange: UAProperty<DTRange, /*z*/DataType.ExtensionObject>;
@@ -75,12 +77,12 @@ export interface UAMultiFunctionPanParameter_Base extends UAKitchenDeviceParamet
     isWithLift?: UABaseDataVariable<boolean, /*z*/DataType.Boolean>;
     isWithPressure?: UABaseDataVariable<boolean, /*z*/DataType.Boolean>;
     isWithTilting?: UABaseDataVariable<boolean, /*z*/DataType.Boolean>;
-    multiFunctionPanMode: UABaseDataVariable<any, any>;
+    multiFunctionPanMode: UABaseDataVariable<EnumMultiFunctionPanMode, /*z*/DataType.Int32>;
     setCoreTemperature: UAMultiFunctionPanParameter_setCoreTemperature<number, /*z*/DataType.Float>;
     setProcessTimeProgram: UAMultiFunctionPanParameter_setProcessTimeProgram<Int32, /*z*/DataType.Int32>;
     setProcessTimeStep?: UAMultiFunctionPanParameter_setProcessTimeStep<Int32, /*z*/DataType.Int32>;
     setTemperature: UAMultiFunctionPanParameter_setTemperature<number, /*z*/DataType.Float>;
-    specialFunctionMode?: UABaseDataVariable<any, any>;
+    specialFunctionMode?: UABaseDataVariable<EnumSpecialFunctionMode, /*z*/DataType.Int32>;
     timeRemainingProgram: UAMultiFunctionPanParameter_timeRemainingProgram<Int32, /*z*/DataType.Int32>;
     timeRemainingStep?: UAMultiFunctionPanParameter_timeRemainingStep<Int32, /*z*/DataType.Int32>;
 }

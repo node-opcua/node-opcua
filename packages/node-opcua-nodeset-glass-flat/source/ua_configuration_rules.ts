@@ -1,8 +1,9 @@
 // ----- this file has been automatically generated - do not edit
 import { UAObject, UAProperty } from "node-opcua-address-space-base"
-import { DataType, Variant } from "node-opcua-variant"
+import { DataType } from "node-opcua-variant"
 import { EUInformation } from "node-opcua-data-access"
 import { DTFileFormat } from "./dt_file_format"
+import { EnumCoordinateSystem } from "./enum_coordinate_system"
 /**
  * |                |                                                  |
  * |----------------|--------------------------------------------------|
@@ -14,7 +15,7 @@ import { DTFileFormat } from "./dt_file_format"
 export interface UAConfigurationRules_Base {
     allowedEngineeringUnits?: UAProperty<EUInformation[], /*z*/DataType.ExtensionObject>;
     allowedFileFormats?: UAProperty<DTFileFormat[], /*z*/DataType.ExtensionObject>;
-    machineProcessingCoordinateSystem: UAProperty<any, any>;
+    machineProcessingCoordinateSystem: UAProperty<EnumCoordinateSystem, /*z*/DataType.Int32>;
 }
 export interface UAConfigurationRules extends UAObject, UAConfigurationRules_Base {
 }

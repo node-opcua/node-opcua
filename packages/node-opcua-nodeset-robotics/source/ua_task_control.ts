@@ -1,10 +1,11 @@
 // ----- this file has been automatically generated - do not edit
 import { UAObject, UAProperty } from "node-opcua-address-space-base"
-import { DataType, Variant } from "node-opcua-variant"
+import { DataType } from "node-opcua-variant"
 import { LocalizedText } from "node-opcua-data-model"
 import { UAString } from "node-opcua-basic-types"
 import { UABaseDataVariable } from "node-opcua-nodeset-ua/source/ua_base_data_variable"
 import { UAComponent, UAComponent_Base } from "node-opcua-nodeset-di/source/ua_component"
+import { EnumExecutionMode } from "./enum_execution_mode"
 export interface UATaskControl_parameterSet extends UAObject { // Object
       /**
        * taskProgramName
@@ -23,7 +24,7 @@ export interface UATaskControl_parameterSet extends UAObject { // Object
        * Execution mode of the task control (continuous or
        * step-wise).
        */
-      executionMode?: UABaseDataVariable<any, any>;
+      executionMode?: UABaseDataVariable<EnumExecutionMode, /*z*/DataType.Int32>;
 }
 /**
  * Represents a specific task control active on the

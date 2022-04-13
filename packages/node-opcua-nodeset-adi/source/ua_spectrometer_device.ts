@@ -1,7 +1,8 @@
 // ----- this file has been automatically generated - do not edit
-import { DataType, Variant } from "node-opcua-variant"
+import { DataType } from "node-opcua-variant"
 import { DTRange } from "node-opcua-nodeset-ua/source/dt_range"
 import { UADataItem } from "node-opcua-nodeset-ua/source/ua_data_item"
+import { EnumDeviceHealth } from "node-opcua-nodeset-di/source/enum_device_health"
 import { UAFunctionalGroup } from "node-opcua-nodeset-di/source/ua_functional_group"
 import { UAAnalyserDevice_parameterSet, UAAnalyserDevice, UAAnalyserDevice_Base } from "./ua_analyser_device"
 export interface UASpectrometerDevice_parameterSet extends UAAnalyserDevice_parameterSet { // Object

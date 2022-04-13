@@ -1,10 +1,11 @@
 // ----- this file has been automatically generated - do not edit
 import { UAObject, UAProperty } from "node-opcua-address-space-base"
-import { DataType, Variant } from "node-opcua-variant"
+import { DataType } from "node-opcua-variant"
 import { LocalizedText, QualifiedName } from "node-opcua-data-model"
 import { Int32, UAString } from "node-opcua-basic-types"
 import { DTArgument } from "node-opcua-nodeset-ua/source/dt_argument"
 import { DTTimeZone } from "node-opcua-nodeset-ua/source/dt_time_zone"
+import { EnumDeviceHealth } from "node-opcua-nodeset-di/source/enum_device_health"
 import { UADevice, UADevice_Base } from "node-opcua-nodeset-di/source/ua_device"
 import { UAFunctionalGroup } from "node-opcua-nodeset-di/source/ua_functional_group"
 import { UABatchInformation } from "./ua_batch_information"

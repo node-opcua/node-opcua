@@ -4,6 +4,8 @@ import { LocalizedText } from "node-opcua-data-model"
 import { EUInformation } from "node-opcua-data-access"
 import { UInt64, UInt32, Int32, UAString, Guid } from "node-opcua-basic-types"
 import { DTRange } from "node-opcua-nodeset-ua/source/dt_range"
+import { EnumBeverageSML } from "./enum_beverage_sml"
+import { EnumCoffeeMachineMode } from "./enum_coffee_machine_mode"
 import { UACommercialKitchenDevice, UACommercialKitchenDevice_Base } from "./ua_commercial_kitchen_device"
 import { UACoffeeMachineParameter } from "./ua_coffee_machine_parameter"
 /**

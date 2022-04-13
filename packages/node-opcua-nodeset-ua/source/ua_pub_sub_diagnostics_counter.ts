@@ -1,8 +1,10 @@
 // ----- this file has been automatically generated - do not edit
 import { UAProperty } from "node-opcua-address-space-base"
-import { DataType, Variant } from "node-opcua-variant"
+import { DataType } from "node-opcua-variant"
 import { UInt32 } from "node-opcua-basic-types"
 import { UABaseDataVariable, UABaseDataVariable_Base } from "./ua_base_data_variable"
+import { EnumPubSubDiagnosticsCounterClassification } from "./enum_pub_sub_diagnostics_counter_classification"
+import { EnumDiagnosticsLevel } from "./enum_diagnostics_level"
 /**
  * |                |                                                  |
  * |----------------|--------------------------------------------------|
@@ -15,8 +17,8 @@ import { UABaseDataVariable, UABaseDataVariable_Base } from "./ua_base_data_vari
  */
 export interface UAPubSubDiagnosticsCounter_Base<T extends UInt32/*j*/>  extends UABaseDataVariable_Base<T, /*e*/DataType.UInt32> {
     active: UAProperty<boolean, /*z*/DataType.Boolean>;
-    classification: UAProperty<any, any>;
-    diagnosticsLevel: UAProperty<any, any>;
+    classification: UAProperty<EnumPubSubDiagnosticsCounterClassification, /*z*/DataType.Int32>;
+    diagnosticsLevel: UAProperty<EnumDiagnosticsLevel, /*z*/DataType.Int32>;
     timeFirstChange?: UAProperty<Date, /*z*/DataType.DateTime>;
 }
 export interface UAPubSubDiagnosticsCounter<T extends UInt32/*j*/> extends UABaseDataVariable<T, /*n*/DataType.UInt32>, UAPubSubDiagnosticsCounter_Base<T /*B*/> {

@@ -1,8 +1,9 @@
 // ----- this file has been automatically generated - do not edit
 import { UAObject, UAMethod, UAProperty } from "node-opcua-address-space-base"
-import { DataType, Variant } from "node-opcua-variant"
+import { DataType } from "node-opcua-variant"
 import { UInt32, UInt16, UAString } from "node-opcua-basic-types"
 import { DTDataSetMeta } from "./dt_data_set_meta"
+import { EnumMessageSecurityMode } from "./enum_message_security_mode"
 import { DTEndpointDescription } from "./dt_endpoint_description"
 import { DTKeyValuePair } from "./dt_key_value_pair"
 import { UADataSetReaderTransport } from "./ua_data_set_reader_transport"
@@ -27,7 +28,7 @@ export interface UADataSetReader_Base {
     messageReceiveTimeout: UAProperty<number, /*z*/DataType.Double>;
     keyFrameCount: UAProperty<UInt32, /*z*/DataType.UInt32>;
     headerLayoutUri: UAProperty<UAString, /*z*/DataType.String>;
-    securityMode?: UAProperty<any, any>;
+    securityMode?: UAProperty<EnumMessageSecurityMode, /*z*/DataType.Int32>;
     securityGroupId?: UAProperty<UAString, /*z*/DataType.String>;
     securityKeyServices?: UAProperty<DTEndpointDescription[], /*z*/DataType.ExtensionObject>;
     dataSetReaderProperties: UAProperty<DTKeyValuePair[], /*z*/DataType.ExtensionObject>;

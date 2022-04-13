@@ -1,7 +1,8 @@
 // ----- this file has been automatically generated - do not edit
 import { UAProperty } from "node-opcua-address-space-base"
-import { DataType, Variant } from "node-opcua-variant"
+import { DataType } from "node-opcua-variant"
 import { UAString } from "node-opcua-basic-types"
+import { EnumBrokerTransportQualityOfService } from "./enum_broker_transport_quality_of_service"
 import { UADataSetReaderTransport, UADataSetReaderTransport_Base } from "./ua_data_set_reader_transport"
 /**
  * |                |                                                  |
@@ -15,7 +16,7 @@ export interface UABrokerDataSetReaderTransport_Base extends UADataSetReaderTran
     queueName: UAProperty<UAString, /*z*/DataType.String>;
     resourceUri: UAProperty<UAString, /*z*/DataType.String>;
     authenticationProfileUri: UAProperty<UAString, /*z*/DataType.String>;
-    requestedDeliveryGuarantee: UAProperty<any, any>;
+    requestedDeliveryGuarantee: UAProperty<EnumBrokerTransportQualityOfService, /*z*/DataType.Int32>;
     metaDataQueueName: UAProperty<UAString, /*z*/DataType.String>;
 }
 export interface UABrokerDataSetReaderTransport extends UADataSetReaderTransport, UABrokerDataSetReaderTransport_Base {

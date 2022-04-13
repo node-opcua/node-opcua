@@ -1,7 +1,9 @@
 // ----- this file has been automatically generated - do not edit
 import { UAProperty } from "node-opcua-address-space-base"
-import { DataType, Variant } from "node-opcua-variant"
+import { DataType } from "node-opcua-variant"
 import { UAString } from "node-opcua-basic-types"
+import { EnumSecurityTokenRequest } from "./enum_security_token_request"
+import { EnumMessageSecurityMode } from "./enum_message_security_mode"
 import { UAAuditChannelEvent, UAAuditChannelEvent_Base } from "./ua_audit_channel_event"
 /**
  * |                |                                                  |
@@ -14,9 +16,9 @@ import { UAAuditChannelEvent, UAAuditChannelEvent_Base } from "./ua_audit_channe
 export interface UAAuditOpenSecureChannelEvent_Base extends UAAuditChannelEvent_Base {
     clientCertificate: UAProperty<Buffer, /*z*/DataType.ByteString>;
     clientCertificateThumbprint: UAProperty<UAString, /*z*/DataType.String>;
-    requestType: UAProperty<any, any>;
+    requestType: UAProperty<EnumSecurityTokenRequest, /*z*/DataType.Int32>;
     securityPolicyUri: UAProperty<UAString, /*z*/DataType.String>;
-    securityMode: UAProperty<any, any>;
+    securityMode: UAProperty<EnumMessageSecurityMode, /*z*/DataType.Int32>;
     requestedLifetime: UAProperty<number, /*z*/DataType.Double>;
 }
 export interface UAAuditOpenSecureChannelEvent extends UAAuditChannelEvent, UAAuditOpenSecureChannelEvent_Base {

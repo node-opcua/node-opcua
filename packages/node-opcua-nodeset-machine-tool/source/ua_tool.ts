@@ -1,11 +1,13 @@
 // ----- this file has been automatically generated - do not edit
 import { UAObject, UAProperty } from "node-opcua-address-space-base"
-import { DataType, Variant } from "node-opcua-variant"
+import { DataType } from "node-opcua-variant"
 import { UInt32 } from "node-opcua-basic-types"
 import { UABaseDataVariable } from "node-opcua-nodeset-ua/source/ua_base_data_variable"
+import { EnumToolLocked } from "./enum_tool_locked"
 import { UABaseTool, UABaseTool_Base } from "./ua_base_tool"
+import { EnumToolManagement } from "./enum_tool_management"
 export interface UATool_locked<T, DT extends DataType> extends UABaseDataVariable<T, /*b*/DT> { // Variable
-      reasonForLocking: UAProperty<any, any>;
+      reasonForLocking: UAProperty<EnumToolLocked, /*z*/DataType.Int32>;
 }
 /**
  * |                |                                                  |
@@ -18,7 +20,7 @@ export interface UATool_locked<T, DT extends DataType> extends UABaseDataVariabl
 export interface UATool_Base extends UABaseTool_Base {
     controlIdentifier1: UABaseDataVariable<UInt32, /*z*/DataType.UInt32>;
     controlIdentifier2?: UABaseDataVariable<UInt32, /*z*/DataType.UInt32>;
-    controlIdentifierInterpretation: UABaseDataVariable<any, any>;
+    controlIdentifierInterpretation: UABaseDataVariable<EnumToolManagement, /*z*/DataType.Int32>;
     lastUsage?: UABaseDataVariable<Date, /*z*/DataType.DateTime>;
     locked: UATool_locked<boolean, /*z*/DataType.Boolean>;
     plannedForOperating?: UABaseDataVariable<boolean, /*z*/DataType.Boolean>;

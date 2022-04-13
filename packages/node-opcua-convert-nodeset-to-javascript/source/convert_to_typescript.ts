@@ -10,7 +10,7 @@ import assert from "node-opcua-assert";
 import { ModellingRuleType } from "node-opcua-address-space-base";
 import { make_warningLog } from "node-opcua-debug";
 import {
-    convertNodeIdToDataTypeAsync,
+    _convertNodeIdToDataTypeAsync,
     getBrowseName,
     getIsAbstract,
     getDefinition,
@@ -26,7 +26,15 @@ import {
     getValueRank
 } from "./private/utils";
 
-import { Cache, constructCache, Import, makeTypeNameNew, referenceExtensionObject, RequestedSubSymbol } from "./private/cache";
+import {
+    Cache,
+    constructCache,
+    Import,
+    makeTypeNameNew,
+    referenceExtensionObject,
+    referenceEnumeration,
+    RequestedSubSymbol
+} from "./private/cache";
 import { Options } from "./options";
 import { toFilename } from "./private/to_filename";
 const warningLog = make_warningLog("typescript");
@@ -103,21 +111,29 @@ async function getCorrepondingJavascriptType(
     dataTypeNodeId: NodeId,
     cache: Cache,
     importCollect?: (t: Import) => void
-): Promise<{ dataType: DataType; jtype: string }> {
-    const dataType = await convertNodeIdToDataTypeAsync(session, dataTypeNodeId);
+): Promise<{ enumerationType?: string; dataType: DataType; jtype: string }> {
+    const { dataType, enumerationType } = await _convertNodeIdToDataTypeAsync(session, dataTypeNodeId);
 
+    if (enumerationType) {
+        // we have a enmeration name here
+        const jtypeImport = await referenceEnumeration(session, dataTypeNodeId);
+        const jtype = jtypeImport.name;
+        importCollect && importCollect(jtypeImport);
+        return { dataType, jtype };
+    }
+
+    if (dataType === DataType.ExtensionObject) {
+        const jtypeImport = await referenceExtensionObject(session, dataTypeNodeId);
+        const jtype = jtypeImport.name;
+        importCollect && importCollect(jtypeImport);
+        return { dataType, jtype };
+    }
     const referenceBasicType = (name: string): string => {
         const t = { name, namespace: -1, module: "BasicType" };
         importCollect && importCollect(t);
         cache.ensureImported(t);
         return t.name;
     };
-    if (dataType === DataType.ExtensionObject) {
-        const jtypeImport = await referenceExtensionObject(session, dataTypeNodeId);
-        const jtype = jtypeImport.name;
-        importCollect && importCollect(jtypeImport);
-        return { dataType, jtype: jtype };
-    }
     switch (dataType) {
         case DataType.Null:
             return { dataType, jtype: "undefined" };
@@ -857,10 +873,7 @@ export async function _exportDataTypeToTypescript(
             if (field.description.text) {
                 f.write(`/** ${field.description.text}*/`);
             }
-            let ar = "";
-            if (field.valueRank >= 1) {
-                ar = "[]";
-            }
+            const ar = field.valueRank >= 1 ? "[]" : "";
             const { dataType, jtype } = await getCorrepondingJavascriptType(session, field.dataType, cache, importCollector);
             f.write(`  ${quotifyIfNecessary(fieldName)}: ${jtype}${ar}; // ${DataType[dataType]} ${field.dataType.toString()}`);
         }

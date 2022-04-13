@@ -1,7 +1,8 @@
 // ----- this file has been automatically generated - do not edit
 import { UAProperty } from "node-opcua-address-space-base"
-import { DataType, Variant } from "node-opcua-variant"
+import { DataType } from "node-opcua-variant"
 import { UAString } from "node-opcua-basic-types"
+import { EnumBrokerTransportQualityOfService } from "./enum_broker_transport_quality_of_service"
 import { UAWriterGroupTransport, UAWriterGroupTransport_Base } from "./ua_writer_group_transport"
 /**
  * |                |                                                  |
@@ -15,7 +16,7 @@ export interface UABrokerWriterGroupTransport_Base extends UAWriterGroupTranspor
     queueName: UAProperty<UAString, /*z*/DataType.String>;
     resourceUri: UAProperty<UAString, /*z*/DataType.String>;
     authenticationProfileUri: UAProperty<UAString, /*z*/DataType.String>;
-    requestedDeliveryGuarantee: UAProperty<any, any>;
+    requestedDeliveryGuarantee: UAProperty<EnumBrokerTransportQualityOfService, /*z*/DataType.Int32>;
 }
 export interface UABrokerWriterGroupTransport extends UAWriterGroupTransport, UABrokerWriterGroupTransport_Base {
 }

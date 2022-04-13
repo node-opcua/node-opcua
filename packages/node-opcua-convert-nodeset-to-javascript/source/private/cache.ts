@@ -151,6 +151,14 @@ export async function referenceExtensionObject(session: IBasicSession, extension
     return dataTypeNameImport;
 }
 
+export async function referenceEnumeration(session: IBasicSession, enumerationDataType: NodeId): Promise<Import> {
+    const browseName = await getBrowseName(session, enumerationDataType);
+    const definition = await getDefinition(session, enumerationDataType);
+    const dataTypeNameImport = makeTypeNameNew(NodeClass.DataType, definition, browseName);
+    return dataTypeNameImport;
+}
+
+
 export class Cache2 extends Cache {
     public namespaceArray: string[] = [];
 }

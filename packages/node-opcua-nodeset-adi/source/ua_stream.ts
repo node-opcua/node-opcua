@@ -5,8 +5,11 @@ import { UInt32, UAString } from "node-opcua-basic-types"
 import { UADataItem } from "node-opcua-nodeset-ua/source/ua_data_item"
 import { UAAnalogItem } from "node-opcua-nodeset-ua/source/ua_analog_item"
 import { UAMultiStateDiscrete } from "node-opcua-nodeset-ua/source/ua_multi_state_discrete"
+import { EnumDeviceHealth } from "node-opcua-nodeset-di/source/enum_device_health"
 import { UAFunctionalGroup } from "node-opcua-nodeset-di/source/ua_functional_group"
 import { UATopologyElement, UATopologyElement_Base } from "node-opcua-nodeset-di/source/ua_topology_element"
+import { EnumExecutionCycle } from "./enum_execution_cycle"
+import { EnumAcquisitionResultStatus } from "./enum_acquisition_result_status"
 export interface UAStream_parameterSet extends UAObject { // Object
       /**
        * isEnabled
@@ -25,7 +28,7 @@ export interface UAStream_parameterSet extends UAObject { // Object
        * diagnosticStatus
        * Stream health status
        */
-      diagnosticStatus: UADataItem<any, any>;
+      diagnosticStatus: UADataItem<EnumDeviceHealth, /*z*/DataType.Int32>;
       /**
        * lastCalibrationTime
        * Time at which the last calibration was run
@@ -57,7 +60,7 @@ export interface UAStream_parameterSet extends UAObject { // Object
        * executionCycle
        * Indicates which Execution cycle is in progress
        */
-      executionCycle: UADataItem<any, any>;
+      executionCycle: UADataItem<EnumExecutionCycle, /*z*/DataType.Int32>;
       /**
        * executionCycleSubcode
        * Indicates which Execution cycle subcode is in
@@ -81,7 +84,7 @@ export interface UAStream_parameterSet extends UAObject { // Object
        * acquisitionResultStatus
        * Quality of the acquisition
        */
-      acquisitionResultStatus: UADataItem<any, any>;
+      acquisitionResultStatus: UADataItem<EnumAcquisitionResultStatus, /*z*/DataType.Int32>;
       /**
        * rawData
        * Raw data produced as a result of data acquisition
@@ -187,7 +190,7 @@ export interface UAStream_status extends UAFunctionalGroup { // Object
        * diagnosticStatus
        * Stream health status
        */
-      diagnosticStatus: UADataItem<any, any>;
+      diagnosticStatus: UADataItem<EnumDeviceHealth, /*z*/DataType.Int32>;
       /**
        * lastCalibrationTime
        * Time at which the last calibration was run
@@ -223,7 +226,7 @@ export interface UAStream_acquisitionStatus extends UAFunctionalGroup { // Objec
        * executionCycle
        * Indicates which Execution cycle is in progress
        */
-      executionCycle: UADataItem<any, any>;
+      executionCycle: UADataItem<EnumExecutionCycle, /*z*/DataType.Int32>;
       /**
        * executionCycleSubcode
        * Indicates which Execution cycle subcode is in
@@ -249,7 +252,7 @@ export interface UAStream_acquisitionData extends UAFunctionalGroup { // Object
        * acquisitionResultStatus
        * Quality of the acquisition
        */
-      acquisitionResultStatus: UADataItem<any, any>;
+      acquisitionResultStatus: UADataItem<EnumAcquisitionResultStatus, /*z*/DataType.Int32>;
       /**
        * rawData
        * Raw data produced as a result of data acquisition

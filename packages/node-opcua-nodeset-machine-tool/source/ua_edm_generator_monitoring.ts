@@ -1,6 +1,7 @@
 // ----- this file has been automatically generated - do not edit
-import { DataType, Variant } from "node-opcua-variant"
+import { DataType } from "node-opcua-variant"
 import { UABaseDataVariable } from "node-opcua-nodeset-ua/source/ua_base_data_variable"
+import { EnumEDMGeneratorState } from "./enum_edm_generator_state"
 import { UAWorkingUnitMonitoring, UAWorkingUnitMonitoring_Base } from "./ua_working_unit_monitoring"
 /**
  * |                |                                                  |
@@ -11,7 +12,7 @@ import { UAWorkingUnitMonitoring, UAWorkingUnitMonitoring_Base } from "./ua_work
  * |isAbstract      |false                                             |
  */
 export interface UAEDMGeneratorMonitoring_Base extends UAWorkingUnitMonitoring_Base {
-    edMGeneratorState: UABaseDataVariable<any, any>;
+    edMGeneratorState: UABaseDataVariable<EnumEDMGeneratorState, /*z*/DataType.Int32>;
     isOn: UABaseDataVariable<boolean, /*z*/DataType.Boolean>;
 }
 export interface UAEDMGeneratorMonitoring extends UAWorkingUnitMonitoring, UAEDMGeneratorMonitoring_Base {

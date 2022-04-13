@@ -1,12 +1,14 @@
 // ----- this file has been automatically generated - do not edit
 import { UAProperty } from "node-opcua-address-space-base"
-import { DataType, Variant } from "node-opcua-variant"
+import { DataType } from "node-opcua-variant"
 import { EUInformation } from "node-opcua-data-access"
 import { UInt32 } from "node-opcua-basic-types"
 import { UAAnalogItem } from "node-opcua-nodeset-ua/source/ua_analog_item"
 import { DTRange } from "node-opcua-nodeset-ua/source/dt_range"
 import { UADataItem } from "node-opcua-nodeset-ua/source/ua_data_item"
 import { UACncDrive, UACncDrive_Base } from "./ua_cnc_drive"
+import { EnumCncSpindleStatus } from "./enum_cnc_spindle_status"
+import { EnumCncSpindleTurnDirection } from "./enum_cnc_spindle_turn_direction"
 import { DTCncPosition } from "./dt_cnc_position"
 import { UACncPositionVariable } from "./ua_cnc_position_variable"
 export interface UACncSpindle_actSpeed<T, DT extends DataType> extends Omit<UAAnalogItem<T, /*b*/DT>, "engineeringUnits"|"euRange"> { // Variable
@@ -47,12 +49,12 @@ export interface UACncSpindle_Base extends UACncDrive_Base {
      * actStatus
      * Actual spindle state.
      */
-    actStatus: UADataItem<any, any>;
+    actStatus: UADataItem<EnumCncSpindleStatus, /*z*/DataType.Int32>;
     /**
      * actTurnDirection
      * Turn direction actual value.
      */
-    actTurnDirection: UADataItem<any, any>;
+    actTurnDirection: UADataItem<EnumCncSpindleTurnDirection, /*z*/DataType.Int32>;
     /**
      * anglePos
      * Spindle angular position values in case of

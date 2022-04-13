@@ -1,9 +1,12 @@
 // ----- this file has been automatically generated - do not edit
 import { UAProperty } from "node-opcua-address-space-base"
-import { DataType, Variant } from "node-opcua-variant"
+import { DataType } from "node-opcua-variant"
 import { EUInformation } from "node-opcua-data-access"
 import { Int32, UAString } from "node-opcua-basic-types"
 import { DTRange } from "node-opcua-nodeset-ua/source/dt_range"
+import { EnumEnergySource } from "./enum_energy_source"
+import { EnumGrillingZoneState } from "./enum_grilling_zone_state"
+import { EnumPlatenPositionState } from "./enum_platen_position_state"
 import { UACommercialKitchenDevice, UACommercialKitchenDevice_Base } from "./ua_commercial_kitchen_device"
 /**
  * |                |                                                  |
@@ -14,7 +17,7 @@ import { UACommercialKitchenDevice, UACommercialKitchenDevice_Base } from "./ua_
  * |isAbstract      |false                                             |
  */
 export interface UAFryingAndGrillingDevice_Base extends UACommercialKitchenDevice_Base {
-    energySource: UAProperty<any, any>;
+    energySource: UAProperty<EnumEnergySource, /*z*/DataType.Int32>;
 }
 export interface UAFryingAndGrillingDevice extends UACommercialKitchenDevice, UAFryingAndGrillingDevice_Base {
 }

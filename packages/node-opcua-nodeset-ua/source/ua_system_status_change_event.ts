@@ -1,6 +1,7 @@
 // ----- this file has been automatically generated - do not edit
 import { UAProperty } from "node-opcua-address-space-base"
-import { DataType, Variant } from "node-opcua-variant"
+import { DataType } from "node-opcua-variant"
+import { EnumServerState } from "./enum_server_state"
 import { UASystemEvent, UASystemEvent_Base } from "./ua_system_event"
 /**
  * |                |                                                  |
@@ -11,7 +12,7 @@ import { UASystemEvent, UASystemEvent_Base } from "./ua_system_event"
  * |isAbstract      |true                                              |
  */
 export interface UASystemStatusChangeEvent_Base extends UASystemEvent_Base {
-    systemState: UAProperty<any, any>;
+    systemState: UAProperty<EnumServerState, /*z*/DataType.Int32>;
 }
 export interface UASystemStatusChangeEvent extends UASystemEvent, UASystemStatusChangeEvent_Base {
 }

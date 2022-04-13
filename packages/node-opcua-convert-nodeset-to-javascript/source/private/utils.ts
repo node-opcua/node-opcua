@@ -1,7 +1,8 @@
 import { AttributeIds, BrowseDirection, LocalizedText, NodeClass, NodeClassMask, QualifiedName } from "node-opcua-data-model";
 import { NodeId, resolveNodeId } from "node-opcua-nodeid";
+import { DataTypeIds } from "node-opcua-constants";
 import { IBasicSession } from "node-opcua-pseudo-session";
-import { BrowseResult, DataTypeDefinition, ReferenceDescription, StructureDefinition } from "node-opcua-types";
+import { BrowseResult, DataTypeDefinition, ReferenceDescription } from "node-opcua-types";
 import { ModellingRuleType } from "node-opcua-address-space-base";
 import { DataType } from "node-opcua-variant";
 import { StatusCodes } from "node-opcua-status-code";
@@ -64,7 +65,7 @@ export async function getModellingRule(session: IBasicSession, nodeId: NodeId): 
         resultMask: 0xffff
     });
     if (!browseResult.references || browseResult.references.length === 0) {
-        return null; 
+        return null;
         /* 
         console.log(nodeId.toString());
         const browseName = await getBrowseName(session, nodeId);
@@ -74,14 +75,25 @@ export async function getModellingRule(session: IBasicSession, nodeId: NodeId): 
     return browseResult.references[0].browseName.name! as ModellingRuleType;
 }
 export async function isExtensionObject(session: IBasicSession, nodeId: NodeId): Promise<boolean> {
-    if (nodeId.namespace === 0 && nodeId.value === 22) {
+    if (nodeId.namespace === 0 && nodeId.value === DataTypeIds.Structure) {
         return true;
     }
-    if (nodeId.namespace === 0 && nodeId.value <= 25) {
+    if (nodeId.namespace === 0 && nodeId.value <= DataTypeIds.DiagnosticInfo) {
         return false;
     }
     const r = await getSubtypeNodeIdIfAny(session, nodeId);
     return await isExtensionObject(session, r!.nodeId);
+}
+
+export async function isEnumeration(session: IBasicSession, nodeId: NodeId): Promise<boolean> {
+    if (nodeId.namespace === 0 && nodeId.value === DataTypeIds.Enumeration) {
+        return true;
+    }
+    if (nodeId.namespace === 0 && nodeId.value <= DataTypeIds.DiagnosticInfo) {
+        return false;
+    }
+    const r = await getSubtypeNodeIdIfAny(session, nodeId);
+    return await isEnumeration(session, r!.nodeId);
 }
 
 export async function extractBasicDataType(session: IBasicSession, dataTypeNodeId: NodeId): Promise<DataType> {
@@ -159,26 +171,40 @@ export async function getTypeDefinition(session: IBasicSession, nodeId: NodeId):
     return browseResult.references[0];
 }
 
-// see also client-proxy
-export async function convertNodeIdToDataTypeAsync(session: IBasicSession, dataTypeId: NodeId): Promise<DataType> {
+async function readBrowseName(session: IBasicSession, nodeId: NodeId): Promise<QualifiedName> {
     const nodeToRead = {
         attributeId: AttributeIds.BrowseName,
-        nodeId: dataTypeId
+        nodeId
     };
-
     const dataValue = await session.read(nodeToRead);
 
-    let dataType: DataType;
     // istanbul ignore next
     if (dataValue.statusCode !== StatusCodes.Good) {
-        return (dataType = DataType.Null);
+        //  throw new Error("Error " + dataValue.statusCode.toString() + " " + nodeId.toString());
+        //  console.log("Error " + dataValue.statusCode.toString() + " " + nodeId.toString());
+        return new QualifiedName({ name: "", namespaceIndex: 0 });
     }
-
     const dataTypeName = dataValue.value.value;
+    return dataTypeName;
+}
 
+interface DataTypeInfo {
+    dataType: DataType;
+    enumerationId?: NodeId;
+    enumerationType?: string;
+}
+// see also client-proxy
+export async function _convertNodeIdToDataTypeAsync(session: IBasicSession, dataTypeId: NodeId): Promise<DataTypeInfo> {
+    const dataTypeName = await readBrowseName(session, dataTypeId);
+
+    let dataType: DataType;
+
+    if (dataTypeId.namespace === 0 && dataTypeId.value === DataTypeIds.Enumeration) {
+        return { dataType: DataType.Int32, enumerationId: dataTypeId };
+    }
     if (dataTypeId.namespace === 0 && DataType[dataTypeId.value as number]) {
         dataType = dataTypeId.value as DataType;
-        return dataType;
+        return { dataType };
     }
 
     /// example => Duration (i=290) => Double (i=11)
@@ -198,7 +224,12 @@ export async function convertNodeIdToDataTypeAsync(session: IBasicSession, dataT
         throw new Error("cannot find SuperType of " + dataTypeName.toString());
     }
     const nodeId = references[0].nodeId;
-    return convertNodeIdToDataTypeAsync(session, nodeId);
+
+    const info = await _convertNodeIdToDataTypeAsync(session, nodeId);
+    if (info.enumerationId) {
+        return { ...info, enumerationId: dataTypeId, enumerationType: dataTypeName.name! };
+    }
+    return info;
 }
 
 export async function getChildrenOrFolderElements(session: IBasicSession, nodeId: NodeId): Promise<ReferenceDescription[]> {

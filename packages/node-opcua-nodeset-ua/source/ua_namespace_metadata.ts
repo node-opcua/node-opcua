@@ -1,7 +1,8 @@
 // ----- this file has been automatically generated - do not edit
 import { UAObject, UAProperty } from "node-opcua-address-space-base"
-import { DataType, Variant } from "node-opcua-variant"
+import { DataType } from "node-opcua-variant"
 import { UInt16, UAString } from "node-opcua-basic-types"
+import { EnumId } from "./enum_id"
 import { UAAddressSpaceFile } from "./ua_address_space_file"
 import { DTRolePermission } from "./dt_role_permission"
 /**
@@ -17,7 +18,7 @@ export interface UANamespaceMetadata_Base {
     namespaceVersion: UAProperty<UAString, /*z*/DataType.String>;
     namespacePublicationDate: UAProperty<Date, /*z*/DataType.DateTime>;
     isNamespaceSubset: UAProperty<boolean, /*z*/DataType.Boolean>;
-    staticNodeIdTypes: UAProperty<any, any>;
+    staticNodeIdTypes: UAProperty<EnumId[], /*z*/DataType.Int32>;
     staticNumericNodeIdRange: UAProperty<UAString[], /*z*/DataType.String>;
     staticStringNodeIdPattern: UAProperty<UAString, /*z*/DataType.String>;
     namespaceFile?: UAAddressSpaceFile;

@@ -2,6 +2,9 @@
 import { DataType, Variant } from "node-opcua-variant"
 import { EUInformation } from "node-opcua-data-access"
 import { UInt32 } from "node-opcua-basic-types"
+import { EnumToolManagement } from "./enum_tool_management"
+import { EnumToolLocked } from "./enum_tool_locked"
+import { EnumToolLifeIndication } from "./enum_tool_life_indication"
 import { UABaseTool, UABaseTool_Base } from "./ua_base_tool"
 /**
  * |                |                                                  |

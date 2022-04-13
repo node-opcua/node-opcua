@@ -4,6 +4,9 @@ import { DataType, Variant } from "node-opcua-variant"
 import { EUInformation } from "node-opcua-data-access"
 import { UAString } from "node-opcua-basic-types"
 import { UAAnalogUnit } from "node-opcua-nodeset-ua/source/ua_analog_unit"
+import { EnumCoatingClass } from "./enum_coating_class"
+import { EnumSignificantSide } from "./enum_significant_side"
+import { EnumStructureAlignment } from "./enum_structure_alignment"
 import { UABaseMaterial, UABaseMaterial_Base } from "./ua_base_material"
 /**
  * |                |                                                  |
@@ -15,14 +18,14 @@ import { UABaseMaterial, UABaseMaterial_Base } from "./ua_base_material"
  */
 export interface UAGlass_Base extends UABaseMaterial_Base {
     absorption?: UAAnalogUnit<any, any>;
-    coatingClass: UAProperty<any, any>;
+    coatingClass: UAProperty<EnumCoatingClass, /*z*/DataType.Int32>;
     coatingEmessivity?: UAAnalogUnit<any, any>;
     coatingSubClass?: UAProperty<UAString, /*z*/DataType.String>;
     electricalConductivity?: UAAnalogUnit<any, any>;
     orientation: UAProperty<any, any>;
     reflection?: UAAnalogUnit<any, any>;
-    significantSide: UAProperty<any, any>;
-    structureAlignment: UAProperty<any, any>;
+    significantSide: UAProperty<EnumSignificantSide, /*z*/DataType.Int32>;
+    structureAlignment: UAProperty<EnumStructureAlignment, /*z*/DataType.Int32>;
     structureClass: UAProperty<UAString, /*z*/DataType.String>;
     transmission?: UAAnalogUnit<any, any>;
     x: UAAnalogUnit<number, /*z*/DataType.Double>;
