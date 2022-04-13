@@ -20,6 +20,7 @@ import { makeRefId } from "./proxy";
 import { UAProxyManager } from "./proxy_manager";
 import { ProxyVariable } from "./proxy_variable";
 import { MethodDescription, ArgumentEx } from "./proxy_base_node";
+import { DataTypeIds } from "node-opcua-constants";
 
 const doDebug = false;
 const errorLog = make_errorLog("Proxy");
@@ -56,13 +57,14 @@ const resultMask = makeResultMask("ReferenceType | IsForward | BrowseName | Node
  *      });
  *
  * see also AddressSpace#findCorrespondingBasicDataType
+ * 
+ * for an enumeration dataType will be DataType.Int32
  */
 function convertNodeIdToDataTypeAsync(session: IBasicSession, dataTypeId: NodeId, callback: Callback<DataType>) {
     const nodeToRead = {
         attributeId: AttributeIds.BrowseName,
         nodeId: dataTypeId
     };
-
     session.read(nodeToRead, (err: Error | null, dataValue?: DataValue) => {
         // istanbul ignore next
         if (err) {
@@ -85,6 +87,14 @@ function convertNodeIdToDataTypeAsync(session: IBasicSession, dataTypeId: NodeId
         }
 
         const dataTypeName = dataValue.value.value;
+
+        if (dataTypeId.namespace === 0 && dataTypeId.value === DataTypeIds.Enumeration) {
+            dataType = DataType.Int32;
+            setImmediate(() => {
+                callback(null, dataType);
+            });
+            return;
+        }
 
         if (dataTypeId.namespace === 0 && DataType[dataTypeId.value as number]) {
             dataType = (DataType as any)[dataTypeId.value as number] as DataType;
