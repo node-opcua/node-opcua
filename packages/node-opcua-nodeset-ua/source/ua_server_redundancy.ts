@@ -1,6 +1,7 @@
 // ----- this file has been automatically generated - do not edit
 import { UAObject, UAProperty } from "node-opcua-address-space-base"
-import { DataType, Variant } from "node-opcua-variant"
+import { DataType } from "node-opcua-variant"
+import { EnumRedundancySupport } from "./enum_redundancy_support"
 /**
  * |                |                                                  |
  * |----------------|--------------------------------------------------|
@@ -10,7 +11,7 @@ import { DataType, Variant } from "node-opcua-variant"
  * |isAbstract      |false                                             |
  */
 export interface UAServerRedundancy_Base {
-    redundancySupport: UAProperty<any, any>;
+    redundancySupport: UAProperty<EnumRedundancySupport, /*z*/DataType.Int32>;
 }
 export interface UAServerRedundancy extends UAObject, UAServerRedundancy_Base {
 }

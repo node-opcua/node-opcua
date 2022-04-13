@@ -1,12 +1,15 @@
 // ----- this file has been automatically generated - do not edit
 import { UAProperty } from "node-opcua-address-space-base"
-import { DataType, Variant } from "node-opcua-variant"
+import { DataType } from "node-opcua-variant"
 import { EUInformation } from "node-opcua-data-access"
 import { UInt32, UInt16, UAString } from "node-opcua-basic-types"
 import { UAAnalogItem } from "node-opcua-nodeset-ua/source/ua_analog_item"
 import { DTRange } from "node-opcua-nodeset-ua/source/dt_range"
 import { UABaseDataVariable } from "node-opcua-nodeset-ua/source/ua_base_data_variable"
 import { UAKitchenDeviceParameter, UAKitchenDeviceParameter_Base } from "./ua_kitchen_device_parameter"
+import { EnumHygieneMode } from "./enum_hygiene_mode"
+import { EnumOperationMode } from "./enum_operation_mode"
+import { EnumProgramMode } from "./enum_program_mode"
 export interface UADishWashingMachineProgramParameter_actualFinalRinseTemperature_$No_$<T, DT extends DataType> extends Omit<UAAnalogItem<T, /*b*/DT>, "engineeringUnits"|"euRange"> { // Variable
       engineeringUnits: UAProperty<EUInformation, /*z*/DataType.ExtensionObject>;
       euRange: UAProperty<DTRange, /*z*/DataType.ExtensionObject>;
@@ -54,14 +57,14 @@ export interface UADishWashingMachineProgramParameter_Base extends UAKitchenDevi
     actualPreTankTemperatureNo: UABaseDataVariable<UInt16, /*z*/DataType.UInt16>;
     actualPumpedFinalRinseTemperatureNo: UABaseDataVariable<UInt16, /*z*/DataType.UInt16>;
     finalRinseTemperatureSetpointNo: UABaseDataVariable<UInt16, /*z*/DataType.UInt16>;
-    hygieneMode?: UABaseDataVariable<any, any>;
+    hygieneMode?: UABaseDataVariable<EnumHygieneMode, /*z*/DataType.Int32>;
     hygieneSetpoint?: UABaseDataVariable<UInt16, /*z*/DataType.UInt16>;
     mainTankTemperatureSetpointNo: UABaseDataVariable<UInt16, /*z*/DataType.UInt16>;
-    operationMode: UABaseDataVariable<any, any>;
+    operationMode: UABaseDataVariable<EnumOperationMode, /*z*/DataType.Int32>;
     preTankTemperatureSetpointNo: UABaseDataVariable<UInt16, /*z*/DataType.UInt16>;
     productGroup?: UAProperty<UAString, /*z*/DataType.String>;
     productType?: UAProperty<UInt32, /*z*/DataType.UInt32>;
-    programMode?: UABaseDataVariable<any, any>;
+    programMode?: UABaseDataVariable<EnumProgramMode, /*z*/DataType.Int32>;
     pumpedFinalRinseTemperatureSetpointNo: UABaseDataVariable<UInt16, /*z*/DataType.UInt16>;
 }
 export interface UADishWashingMachineProgramParameter extends UAKitchenDeviceParameter, UADishWashingMachineProgramParameter_Base {

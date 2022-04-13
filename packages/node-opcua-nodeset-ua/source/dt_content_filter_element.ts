@@ -1,6 +1,6 @@
 // ----- this file has been automatically generated - do not edit
-import { Variant } from "node-opcua-variant"
 import { DTStructure } from "./dt_structure"
+import { EnumFilterOperator } from "./enum_filter_operator"
 /**
  * |           |                                                  |
  * |-----------|--------------------------------------------------|
@@ -10,6 +10,6 @@ import { DTStructure } from "./dt_structure"
  * | isAbstract|false                                             |
  */
 export interface DTContentFilterElement extends DTStructure  {
-  filterOperator: Variant; // Variant ns=0;i=576
+  filterOperator: EnumFilterOperator; // Int32 ns=0;i=576
   filterOperands: DTStructure[]; // ExtensionObject ns=0;i=22
 }

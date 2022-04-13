@@ -1,7 +1,9 @@
 // ----- this file has been automatically generated - do not edit
-import { DataType, Variant } from "node-opcua-variant"
+import { DataType } from "node-opcua-variant"
 import { UABaseInterface, UABaseInterface_Base } from "node-opcua-nodeset-ua/source/ua_base_interface"
 import { UABaseDataVariable } from "node-opcua-nodeset-ua/source/ua_base_data_variable"
+import { EnumWwUnitMode } from "./enum_ww_unit_mode"
+import { EnumWwUnitState } from "./enum_ww_unit_state"
 /**
  * The IWwUnitOverviewType represents the
  * generalized state of a unit
@@ -19,13 +21,13 @@ export interface UAIWwUnitOverview_Base extends UABaseInterface_Base {
      * The CurrentMode Variable provides the generalized
      * mode of the component.
      */
-    currentMode: UABaseDataVariable<any, any>;
+    currentMode: UABaseDataVariable<EnumWwUnitMode, /*z*/DataType.Int32>;
     /**
      * currentState
      * The CurrentState Variable provides the
      * generalized state of the component.
      */
-    currentState: UABaseDataVariable<any, any>;
+    currentState: UABaseDataVariable<EnumWwUnitState, /*z*/DataType.Int32>;
 }
 export interface UAIWwUnitOverview extends UABaseInterface, UAIWwUnitOverview_Base {
 }

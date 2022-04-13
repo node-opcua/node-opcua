@@ -1,6 +1,7 @@
 // ----- this file has been automatically generated - do not edit
 import { UAObject, UAMethod } from "node-opcua-address-space-base"
-import { DataType, Variant } from "node-opcua-variant"
+import { DataType } from "node-opcua-variant"
+import { EnumPubSubState } from "./enum_pub_sub_state"
 import { UABaseDataVariable } from "./ua_base_data_variable"
 /**
  * |                |                                                  |
@@ -11,7 +12,7 @@ import { UABaseDataVariable } from "./ua_base_data_variable"
  * |isAbstract      |false                                             |
  */
 export interface UAPubSubStatus_Base {
-    state: UABaseDataVariable<any, any>;
+    state: UABaseDataVariable<EnumPubSubState, /*z*/DataType.Int32>;
     enable?: UAMethod;
     disable?: UAMethod;
 }

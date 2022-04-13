@@ -16,6 +16,10 @@ import { DTVector } from "node-opcua-nodeset-ua/source/dt_vector"
 import { DTRationalNumber } from "node-opcua-nodeset-ua/source/dt_rational_number"
 import { UAFolder } from "node-opcua-nodeset-ua/source/ua_folder"
 import { UAComponent, UAComponent_Base } from "node-opcua-nodeset-di/source/ua_component"
+import { EnumMotionDeviceCategory } from "./enum_motion_device_category"
+import { EnumAxisMotionProfile } from "./enum_axis_motion_profile"
+import { EnumExecutionMode } from "./enum_execution_mode"
+import { EnumOperationalMode } from "./enum_operational_mode"
 /**
  * Contains the set of controllers and motion
  * devices in a closely-coupled motion device system.

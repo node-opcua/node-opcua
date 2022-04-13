@@ -9,15 +9,18 @@ import { DTArgument } from "node-opcua-nodeset-ua/source/dt_argument"
 import { DTRange } from "node-opcua-nodeset-ua/source/dt_range"
 import { UADataItem } from "node-opcua-nodeset-ua/source/ua_data_item"
 import { UAFile } from "node-opcua-nodeset-ua/source/ua_file"
+import { EnumDeviceHealth } from "node-opcua-nodeset-di/source/enum_device_health"
 import { UAFunctionalGroup } from "node-opcua-nodeset-di/source/ua_functional_group"
 import { UADevice, UADevice_Base } from "node-opcua-nodeset-di/source/ua_device"
+import { EnumExecutionCycle } from "./enum_execution_cycle"
+import { EnumAcquisitionResultStatus } from "./enum_acquisition_result_status"
 import { UAAnalyserDeviceStateMachine } from "./ua_analyser_device_state_machine"
 export interface UAAnalyserDevice_parameterSet extends UAObject { // Object
       /**
        * diagnosticStatus
        * General health status of the analyser
        */
-      diagnosticStatus: UADataItem<any, any>;
+      diagnosticStatus: UADataItem<EnumDeviceHealth, /*z*/DataType.Int32>;
       /**
        * configData
        * Optional analyser device large configuration
@@ -66,7 +69,7 @@ export interface UAAnalyserDevice_status extends UAFunctionalGroup { // Object
        * diagnosticStatus
        * General health status of the analyser
        */
-      diagnosticStatus: UADataItem<any, any>;
+      diagnosticStatus: UADataItem<EnumDeviceHealth, /*z*/DataType.Int32>;
 }
 /**
  * |                |                                                  |

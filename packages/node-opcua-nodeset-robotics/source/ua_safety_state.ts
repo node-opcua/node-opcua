@@ -1,9 +1,10 @@
 // ----- this file has been automatically generated - do not edit
 import { UAObject } from "node-opcua-address-space-base"
-import { DataType, Variant } from "node-opcua-variant"
+import { DataType } from "node-opcua-variant"
 import { UABaseDataVariable } from "node-opcua-nodeset-ua/source/ua_base_data_variable"
 import { UAFolder } from "node-opcua-nodeset-ua/source/ua_folder"
 import { UAComponent, UAComponent_Base } from "node-opcua-nodeset-di/source/ua_component"
+import { EnumOperationalMode } from "./enum_operational_mode"
 export interface UASafetyState_parameterSet extends UAObject { // Object
       /**
        * operationalMode
@@ -13,7 +14,7 @@ export interface UASafetyState_parameterSet extends UAObject { // Object
        * OperationalModeEnumeration, see ISO 10218-1:2011
        * Ch.5.7 Operational Modes.
        */
-      operationalMode: UABaseDataVariable<any, any>;
+      operationalMode: UABaseDataVariable<EnumOperationalMode, /*z*/DataType.Int32>;
       /**
        * emergencyStop
        * The EmergencyStop variable is TRUE if one or more

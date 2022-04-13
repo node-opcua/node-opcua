@@ -1,8 +1,10 @@
 // ----- this file has been automatically generated - do not edit
-import { DataType, Variant } from "node-opcua-variant"
+import { DataType } from "node-opcua-variant"
 import { DTRange } from "node-opcua-nodeset-ua/source/dt_range"
 import { UAAnalogItem } from "node-opcua-nodeset-ua/source/ua_analog_item"
 import { UABaseDataVariable } from "node-opcua-nodeset-ua/source/ua_base_data_variable"
+import { EnumSignalColor } from "./enum_signal_color"
+import { EnumSignalModeLight } from "./enum_signal_mode_light"
 import { UAStackElement, UAStackElement_Base } from "./ua_stack_element"
 /**
  * Represents a lamp element in a stacklight.
@@ -31,13 +33,13 @@ export interface UAStackElementLight_Base extends UAStackElement_Base {
      * Indicates the colour the lamp element has when
      * switched on.
      */
-    signalColor?: UABaseDataVariable<any, any>;
+    signalColor?: UABaseDataVariable<EnumSignalColor, /*z*/DataType.Int32>;
     /**
      * signalMode
      * Shows in what way the lamp is used (continuous
      * light, flashing, blinking) when switched on.
      */
-    signalMode?: UABaseDataVariable<any, any>;
+    signalMode?: UABaseDataVariable<EnumSignalModeLight, /*z*/DataType.Int32>;
 }
 export interface UAStackElementLight extends UAStackElement, UAStackElementLight_Base {
 }

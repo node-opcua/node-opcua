@@ -1,8 +1,8 @@
 // ----- this file has been automatically generated - do not edit
-import { Variant } from "node-opcua-variant"
 import { NodeId } from "node-opcua-nodeid"
 import { UAString } from "node-opcua-basic-types"
 import { DTStructure } from "./dt_structure"
+import { EnumMessageSecurityMode } from "./enum_message_security_mode"
 /**
  * |           |                                                  |
  * |-----------|--------------------------------------------------|
@@ -18,7 +18,7 @@ export interface DTSessionSecurityDiagnostics extends DTStructure  {
   authenticationMechanism: UAString; // String ns=0;i=12
   encoding: UAString; // String ns=0;i=12
   transportProtocol: UAString; // String ns=0;i=12
-  securityMode: Variant; // Variant ns=0;i=302
+  securityMode: EnumMessageSecurityMode; // Int32 ns=0;i=302
   securityPolicyUri: UAString; // String ns=0;i=12
   clientCertificate: Buffer; // ByteString ns=0;i=15
 }

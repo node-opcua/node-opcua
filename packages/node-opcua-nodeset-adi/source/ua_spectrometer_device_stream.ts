@@ -5,9 +5,13 @@ import { LocalizedText } from "node-opcua-data-model"
 import { EUInformation } from "node-opcua-data-access"
 import { UInt32, Int32, UAString } from "node-opcua-basic-types"
 import { DTRange } from "node-opcua-nodeset-ua/source/dt_range"
+import { EnumAxisScale } from "node-opcua-nodeset-ua/source/enum_axis_scale"
 import { DTAxisInformation } from "node-opcua-nodeset-ua/source/dt_axis_information"
 import { UAYArrayItem } from "node-opcua-nodeset-ua/source/ua_y_array_item"
 import { UADataItem } from "node-opcua-nodeset-ua/source/ua_data_item"
+import { EnumDeviceHealth } from "node-opcua-nodeset-di/source/enum_device_health"
+import { EnumExecutionCycle } from "./enum_execution_cycle"
+import { EnumAcquisitionResultStatus } from "./enum_acquisition_result_status"
 import { UAStream_parameterSet, UAStream_configuration, UAStream_acquisitionSettings, UAStream_acquisitionStatus, UAStream_acquisitionData, UAStream, UAStream_Base } from "./ua_stream"
 export interface UASpectrometerDeviceStream_parameterSet extends UAStream_parameterSet { // Object
       activeBackground: UAYArrayItem<number, /*z*/DataType.Float>;

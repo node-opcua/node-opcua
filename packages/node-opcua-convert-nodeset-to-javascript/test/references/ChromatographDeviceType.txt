@@ -6,6 +6,9 @@ import { NodeId } from "node-opcua-nodeid"
 import { UInt64, UInt32, Int32, UInt16, UAString } from "node-opcua-basic-types"
 import { DTArgument } from "node-opcua-nodeset-ua/source/dt_argument"
 import { DTRange } from "node-opcua-nodeset-ua/source/dt_range"
+import { EnumDeviceHealth } from "node-opcua-nodeset-di/source/enum_device_health"
+import { EnumExecutionCycle } from "./enum_execution_cycle"
+import { EnumAcquisitionResultStatus } from "./enum_acquisition_result_status"
 import { UAAnalyserDevice, UAAnalyserDevice_Base } from "./ua_analyser_device"
 /**
  * |                |                                                  |

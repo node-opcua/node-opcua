@@ -7,9 +7,11 @@ import { UInt32, Int32, UInt16, UAString } from "node-opcua-basic-types"
 import { DTArgument } from "node-opcua-nodeset-ua/source/dt_argument"
 import { UABaseDataVariable } from "node-opcua-nodeset-ua/source/ua_base_data_variable"
 import { UAMultiStateDiscrete } from "node-opcua-nodeset-ua/source/ua_multi_state_discrete"
+import { EnumDeviceHealth } from "node-opcua-nodeset-di/source/enum_device_health"
 import { UAFunctionalGroup } from "node-opcua-nodeset-di/source/ua_functional_group"
 import { UADevice, UADevice_Base } from "node-opcua-nodeset-di/source/ua_device"
 import { DTLocation } from "./dt_location"
+import { EnumDeviceStatus } from "./enum_device_status"
 import { UALocationVariable } from "./ua_location_variable"
 export interface UAAutoIdDevice_diagnostics extends UAFunctionalGroup { // Object
       /**
@@ -75,7 +77,7 @@ export interface UAAutoIdDevice_Base extends UADevice_Base {
      * configured for a device.
      */
     deviceName: UAProperty<UAString, /*z*/DataType.String>;
-    deviceStatus: UABaseDataVariable<any, any>;
+    deviceStatus: UABaseDataVariable<EnumDeviceStatus, /*z*/DataType.Int32>;
     /**
      * diagnostics
      * Diagnostic data from AutoID Devices.

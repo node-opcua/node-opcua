@@ -1,7 +1,7 @@
 // ----- this file has been automatically generated - do not edit
-import { Variant } from "node-opcua-variant"
 import { UInt32, UAString } from "node-opcua-basic-types"
 import { DTStructure } from "./dt_structure"
+import { EnumMessageSecurityMode } from "./enum_message_security_mode"
 import { DTEndpointDescription } from "./dt_endpoint_description"
 import { DTKeyValuePair } from "./dt_key_value_pair"
 /**
@@ -15,7 +15,7 @@ import { DTKeyValuePair } from "./dt_key_value_pair"
 export interface DTPubSubGroup extends DTStructure  {
   name: UAString; // String ns=0;i=12
   enabled: boolean; // Boolean ns=0;i=1
-  securityMode: Variant; // Variant ns=0;i=302
+  securityMode: EnumMessageSecurityMode; // Int32 ns=0;i=302
   securityGroupId: UAString; // String ns=0;i=12
   securityKeyServices: DTEndpointDescription[]; // ExtensionObject ns=0;i=312
   maxNetworkMessageSize: UInt32; // UInt32 ns=0;i=7

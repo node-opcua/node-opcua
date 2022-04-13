@@ -3,6 +3,7 @@ import { UAProperty } from "node-opcua-address-space-base"
 import { DataType, Variant } from "node-opcua-variant"
 import { EUInformation } from "node-opcua-data-access"
 import { UABaseDataVariable, UABaseDataVariable_Base } from "node-opcua-nodeset-ua/source/ua_base_data_variable"
+import { EnumToolLifeIndication } from "./enum_tool_life_indication"
 /**
  * |                |                                                  |
  * |----------------|--------------------------------------------------|
@@ -15,7 +16,7 @@ import { UABaseDataVariable, UABaseDataVariable_Base } from "node-opcua-nodeset-
  */
 export interface UAToolLife_Base<T, DT extends DataType>  extends UABaseDataVariable_Base<T/*g*/, DT> {
     engineeringUnits: UAProperty<EUInformation, /*z*/DataType.ExtensionObject>;
-    indication: UAProperty<any, any>;
+    indication: UAProperty<EnumToolLifeIndication, /*z*/DataType.Int32>;
     isCountingUp: UAProperty<boolean, /*z*/DataType.Boolean>;
     limitValue?: UAProperty<any, any>;
     startValue?: UAProperty<any, any>;

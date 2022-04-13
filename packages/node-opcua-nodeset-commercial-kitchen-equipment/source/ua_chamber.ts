@@ -1,12 +1,13 @@
 // ----- this file has been automatically generated - do not edit
 import { UAProperty } from "node-opcua-address-space-base"
-import { DataType, Variant } from "node-opcua-variant"
+import { DataType } from "node-opcua-variant"
 import { EUInformation } from "node-opcua-data-access"
 import { Int32 } from "node-opcua-basic-types"
 import { UAAnalogItem } from "node-opcua-nodeset-ua/source/ua_analog_item"
 import { DTRange } from "node-opcua-nodeset-ua/source/dt_range"
 import { UABaseDataVariable } from "node-opcua-nodeset-ua/source/ua_base_data_variable"
 import { UAKitchenDeviceParameter, UAKitchenDeviceParameter_Base } from "./ua_kitchen_device_parameter"
+import { EnumChamberMode } from "./enum_chamber_mode"
 export interface UAChamber_actualBoilerTemperature_$No_$<T, DT extends DataType> extends Omit<UAAnalogItem<T, /*b*/DT>, "engineeringUnits"|"euRange"> { // Variable
       engineeringUnits: UAProperty<EUInformation, /*z*/DataType.ExtensionObject>;
       euRange: UAProperty<DTRange, /*z*/DataType.ExtensionObject>;
@@ -83,7 +84,7 @@ export interface UAChamber_Base extends UAKitchenDeviceParameter_Base {
     isDoorOpen?: UABaseDataVariable<boolean, /*z*/DataType.Boolean>;
     isProgramEnd?: UABaseDataVariable<boolean, /*z*/DataType.Boolean>;
     isReadyToStart?: UABaseDataVariable<boolean, /*z*/DataType.Boolean>;
-    operationMode: UABaseDataVariable<any, any>;
+    operationMode: UABaseDataVariable<EnumChamberMode, /*z*/DataType.Int32>;
     setBoilerTemperature?: UAChamber_setBoilerTemperature<number, /*z*/DataType.Float>;
     setBottomTemperature?: UAChamber_setBottomTemperature<number, /*z*/DataType.Float>;
     setChamberTemperature?: UAChamber_setChamberTemperature<number, /*z*/DataType.Float>;

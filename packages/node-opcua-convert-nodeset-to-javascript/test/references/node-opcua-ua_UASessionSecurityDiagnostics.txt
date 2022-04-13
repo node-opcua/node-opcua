@@ -1,8 +1,9 @@
 // ----- this file has been automatically generated - do not edit
-import { DataType, Variant } from "node-opcua-variant"
+import { DataType } from "node-opcua-variant"
 import { NodeId } from "node-opcua-nodeid"
 import { UAString } from "node-opcua-basic-types"
 import { DTSessionSecurityDiagnostics } from "./dt_session_security_diagnostics"
+import { EnumMessageSecurityMode } from "./enum_message_security_mode"
 import { UABaseDataVariable, UABaseDataVariable_Base } from "./ua_base_data_variable"
 /**
  * |                |                                                  |
@@ -21,7 +22,7 @@ export interface UASessionSecurityDiagnostics_Base<T extends DTSessionSecurityDi
     authenticationMechanism: UABaseDataVariable<UAString, /*z*/DataType.String>;
     encoding: UABaseDataVariable<UAString, /*z*/DataType.String>;
     transportProtocol: UABaseDataVariable<UAString, /*z*/DataType.String>;
-    securityMode: UABaseDataVariable<any, any>;
+    securityMode: UABaseDataVariable<EnumMessageSecurityMode, /*z*/DataType.Int32>;
     securityPolicyUri: UABaseDataVariable<UAString, /*z*/DataType.String>;
     clientCertificate: UABaseDataVariable<Buffer, /*z*/DataType.ByteString>;
 }

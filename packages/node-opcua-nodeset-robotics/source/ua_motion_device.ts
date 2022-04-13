@@ -1,11 +1,12 @@
 // ----- this file has been automatically generated - do not edit
 import { UAObject, UAProperty } from "node-opcua-address-space-base"
-import { DataType, Variant } from "node-opcua-variant"
+import { DataType } from "node-opcua-variant"
 import { LocalizedText } from "node-opcua-data-model"
 import { UAString } from "node-opcua-basic-types"
 import { UABaseDataVariable } from "node-opcua-nodeset-ua/source/ua_base_data_variable"
 import { UAFolder } from "node-opcua-nodeset-ua/source/ua_folder"
 import { UAComponent, UAComponent_Base } from "node-opcua-nodeset-di/source/ua_component"
+import { EnumMotionDeviceCategory } from "./enum_motion_device_category"
 import { UALoad } from "./ua_load"
 export interface UAMotionDevice_parameterSet extends UAObject { // Object
       /**
@@ -63,7 +64,7 @@ export interface UAMotionDevice_Base extends UAComponent_Base {
      * kind of motion device defined by
      * MotionDeviceCategoryEnumeration based on ISO 8373.
      */
-    motionDeviceCategory: UAProperty<any, any>;
+    motionDeviceCategory: UAProperty<EnumMotionDeviceCategory, /*z*/DataType.Int32>;
     /**
      * axes
      * Axes is a container for one or more instances of
