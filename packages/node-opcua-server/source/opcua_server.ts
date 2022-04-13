@@ -42,9 +42,13 @@ import {
 } from "node-opcua-address-space";
 import { getDefaultCertificateManager, OPCUACertificateManager } from "node-opcua-certificate-manager";
 import { ServerState } from "node-opcua-common";
-import { Certificate, exploreCertificate, makeSHA1Thumbprint, Nonce, toPem } from "node-opcua-crypto";
+import { Certificate, exploreCertificate, Nonce } from "node-opcua-crypto";
 import {
-    AttributeIds, DiagnosticInfo, filterDiagnosticInfoLevel, filterDiagnosticOperationLevel, filterDiagnosticServiceLevel, LocalizedText, NodeClass, RESPONSE_DIAGNOSTICS_MASK_ALL
+    AttributeIds,
+    filterDiagnosticOperationLevel,
+    filterDiagnosticServiceLevel,
+    NodeClass,
+    RESPONSE_DIAGNOSTICS_MASK_ALL
 } from "node-opcua-data-model";
 import { DataValue } from "node-opcua-data-value";
 import { dump, make_debugLog, make_errorLog, make_warningLog } from "node-opcua-debug";
@@ -162,24 +166,12 @@ import { ServerSession } from "./server_session";
 import { CreateMonitoredItemHook, DeleteMonitoredItemHook, Subscription } from "./server_subscription";
 import { ISocketData } from "./i_socket_data";
 import { IChannelData } from "./i_channel_data";
+import { UAUserManagerBase, makeUserManager, UserManagerOptions } from "./user_manager";
+import { bindRoleSet} from "./user_manager_ua";
+
 
 function isSubscriptionIdInvalid(subscriptionId: number): boolean {
     return subscriptionId < 0 || subscriptionId >= 0xffffffff;
-}
-
-export type ValidUserFunc = (this: ServerSession, username: string, password: string) => boolean;
-export type ValidUserAsyncFunc = (
-    this: ServerSession,
-    username: string,
-    password: string,
-    callback: (err: Error | null, isAuthorized?: boolean) => void
-) => void;
-
-export interface UserManagerOptions extends IUserManager {
-    /** synchronous function to check the credentials - can be overruled by isValidUserAsync */
-    isValidUser?: ValidUserFunc;
-    /** asynchronous function to check if the credentials - overrules isValidUser */
-    isValidUserAsync?: ValidUserAsyncFunc;
 }
 
 // tslint:disable-next-line:no-var-requires
@@ -681,7 +673,10 @@ function validate_security_endpoint(
 
 export function filterDiagnosticInfo(returnDiagnostics: number, response: CallResponse): void {
     if (RESPONSE_DIAGNOSTICS_MASK_ALL & returnDiagnostics) {
-        response.responseHeader.serviceDiagnostics = filterDiagnosticServiceLevel(returnDiagnostics, response.responseHeader.serviceDiagnostics);
+        response.responseHeader.serviceDiagnostics = filterDiagnosticServiceLevel(
+            returnDiagnostics,
+            response.responseHeader.serviceDiagnostics
+        );
 
         if (response.diagnosticInfos && response.diagnosticInfos.length > 0) {
             response.diagnosticInfos = response.diagnosticInfos.map((d) => filterDiagnosticOperationLevel(returnDiagnostics, d));
@@ -692,8 +687,8 @@ export function filterDiagnosticInfo(returnDiagnostics: number, response: CallRe
         if (response.results) {
             for (const entry of response.results) {
                 if (entry.inputArgumentDiagnosticInfos && entry.inputArgumentDiagnosticInfos.length > 0) {
-                    entry.inputArgumentDiagnosticInfos = entry.inputArgumentDiagnosticInfos.map(
-                        (d) => filterDiagnosticOperationLevel(returnDiagnostics, d)
+                    entry.inputArgumentDiagnosticInfos = entry.inputArgumentDiagnosticInfos.map((d) =>
+                        filterDiagnosticOperationLevel(returnDiagnostics, d)
                     );
                 } else {
                     entry.inputArgumentDiagnosticInfos = [];
@@ -1059,7 +1054,8 @@ export class OPCUAServer extends OPCUABaseServer {
     /**
      * the user manager
      */
-    public userManager: UserManagerOptions;
+    public userManager: UAUserManagerBase;
+
     public readonly options: OPCUAServerOptions;
 
     private objectFactory?: Factory;
@@ -1093,12 +1089,7 @@ export class OPCUAServer extends OPCUABaseServer {
         buildInfo.productUri = buildInfo.productUri || this.serverInfo.productUri;
         this.serverInfo.productUri = this.serverInfo.productUri || buildInfo.productUri;
 
-        this.userManager = options.userManager || {};
-        if (typeof this.userManager.isValidUser !== "function") {
-            this.userManager.isValidUser = (/*userName,password*/) => {
-                return false;
-            };
-        }
+        this.userManager = makeUserManager(options.userManager);
 
         options.allowAnonymous = options.allowAnonymous === undefined ? true : !!options.allowAnonymous;
         /**
@@ -1212,6 +1203,7 @@ export class OPCUAServer extends OPCUABaseServer {
             .then(() => {
                 OPCUAServer.registry.register(this);
                 this.engine.initialize(this.options, () => {
+                    bindRoleSet(this.userManager, this.engine.addressSpace!);
                     setImmediate(() => {
                         this.emit("post_initialize");
                         done();
@@ -1596,12 +1588,10 @@ export class OPCUAServer extends OPCUABaseServer {
             password = buff.slice(4, 4 + length).toString("utf-8");
         }
 
-        if (typeof this.userManager.isValidUserAsync === "function") {
-            this.userManager.isValidUserAsync.call(session, userName, password, callback);
-        } else {
-            const authorized = this.userManager.isValidUser!.call(session, userName, password);
-            async.setImmediate(() => callback(null, authorized));
-        }
+        this.userManager
+            .isValidUser(session, userName, password)
+            .then((isValid) => callback(null, isValid))
+            .catch((err) => callback(err));
     }
 
     /**
@@ -2185,7 +2175,13 @@ export class OPCUAServer extends OPCUABaseServer {
         // --- check that provided session matches session attached to channel
         if (channel.channelId !== session.channelId) {
             if (!(request instanceof ActivateSessionRequest)) {
-                errorLog(chalk.red.bgWhite("ERROR: channel.channelId !== session.channelId  on processing request " + request.constructor.name), channel.channelId, session.channelId);
+                errorLog(
+                    chalk.red.bgWhite(
+                        "ERROR: channel.channelId !== session.channelId  on processing request " + request.constructor.name
+                    ),
+                    channel.channelId,
+                    session.channelId
+                );
             }
             message.session_statusCode = StatusCodes.BadSecureChannelIdInvalid;
         } else if (channel_has_session(channel, session)) {

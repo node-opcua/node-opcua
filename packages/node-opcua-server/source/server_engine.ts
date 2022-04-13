@@ -28,7 +28,8 @@ import {
     ISessionContext,
     DTServerStatus,
     resolveOpaqueOnAddressSpace,
-    ContinuationData
+    ContinuationData,
+    UARole
 } from "node-opcua-address-space";
 import { generateAddressSpace } from "node-opcua-address-space/nodeJS";
 import { DataValue, coerceTimestampsToReturn, apply_timestamps_no_copy } from "node-opcua-data-value";
@@ -358,7 +359,7 @@ export class ServerEngine extends EventEmitter {
 
             // "http://opcfoundation.org/UA-Profile/Server/ReverseConnect",
             // "http://opcfoundation.org/UAProfile/Server/NodeManagement",
-            
+
             //  "Embedded UA Server Profile",
             // "Micro Embedded Device Server Profile",
             // "Nano Embedded Device Server Profile"
@@ -1076,6 +1077,8 @@ export class ServerEngine extends EventEmitter {
                     return this.historyServerCapabilities.insertAnnotationCapability;
                 });
             };
+
+ 
 
             bindServerDiagnostics();
 

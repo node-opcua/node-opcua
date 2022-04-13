@@ -3,7 +3,7 @@
 
 import * as path from "path";
 import * as fs from "fs";
-import "should";
+import * as should from "should";
 import { make_warningLog } from "node-opcua-debug";
 
 import {
@@ -27,7 +27,6 @@ import {
     UserManagerOptions
 } from "node-opcua";
 import { readCertificate, readPrivateKey, readPrivateKeyPEM } from "node-opcua-crypto";
-import should = require("should");
 import { createServerCertificateManager } from "../../test_helpers/createServerCertificateManager";
 const warningLog = make_warningLog("TEST");
 

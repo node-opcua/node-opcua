@@ -25,6 +25,58 @@ const userManagerAsync = {
     }
 };
 
+function perform_simple_connection(endpointUrl, connectionOption, credentials, done) {
+    connectionOption.securityMode = connectionOption.securityMode || MessageSecurityMode.None;
+    connectionOption.securityPolicy = connectionOption.securityPolicy || SecurityPolicy.None;
+    let the_session;
+
+    let client = OPCUAClient.create(connectionOption);
+
+    async.series(
+        [
+            // connect
+            function (callback) {
+                client.connect(endpointUrl, callback);
+            },
+
+            // create session
+            function (callback) {
+                client.createSession(credentials, function (err, session) {
+                    if (!err) {
+                        the_session = session;
+                    }
+                    callback(err);
+                });
+            },
+
+            // closing session
+            function (callback) {
+                the_session.close(function (err) {
+                    callback(err);
+                });
+            },
+
+            // disconnect
+            function (callback) {
+                client.disconnect(function () {
+                    client = null;
+                    callback();
+                });
+            }
+        ],
+        function (err) {
+            if (err && client) {
+                client.disconnect(function () {
+                    done(err);
+                });
+            } else {
+                done(err);
+            }
+        }
+    );
+}
+
+
 // eslint-disable-next-line import/order
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("testing Client-Server with UserName/Password identity token", function () {
@@ -37,13 +89,12 @@ describe("testing Client-Server with UserName/Password identity token", function
 
         const options = {
             port,
-            allowAnonymous: false
+            allowAnonymous: false,
+            // replace user manager with our custom one
+            userManager
         };
 
         server = await build_server_with_temperature_device(options);
-
-        // replace user manager with our custom one
-        server.userManager = userManager;
 
         endpointUrl = server.getEndpointUrl();
     });
@@ -61,57 +112,6 @@ describe("testing Client-Server with UserName/Password identity token", function
     after(async () => {
         await server.shutdown();
     });
-
-    function perform_simple_connection(endpointUrl, connectionOption, credentials, done) {
-        connectionOption.securityMode = connectionOption.securityMode || MessageSecurityMode.None;
-        connectionOption.securityPolicy = connectionOption.securityPolicy || SecurityPolicy.None;
-        let the_session;
-
-        client = OPCUAClient.create(connectionOption);
-
-        async.series(
-            [
-                // connect
-                function (callback) {
-                    client.connect(endpointUrl, callback);
-                },
-
-                // create session
-                function (callback) {
-                    client.createSession(credentials, function (err, session) {
-                        if (!err) {
-                            the_session = session;
-                        }
-                        callback(err);
-                    });
-                },
-
-                // closing session
-                function (callback) {
-                    the_session.close(function (err) {
-                        callback(err);
-                    });
-                },
-
-                // disconnect
-                function (callback) {
-                    client.disconnect(function () {
-                        client = null;
-                        callback();
-                    });
-                }
-            ],
-            function (err) {
-                if (err && client) {
-                    client.disconnect(function () {
-                        done(err);
-                    });
-                } else {
-                    done(err);
-                }
-            }
-        );
-    }
 
     it("should not anonymously connect to a server that forbids anonymous connection : anonymous connection", function (done) {
         perform_simple_connection(endpointUrl, {}, {}, function (err) {
@@ -185,9 +185,34 @@ describe("testing Client-Server with UserName/Password identity token", function
         perform_simple_connection(endpointUrl_truncated, options, { userName: userName, password: password }, done);
     });
 
-    it("should connect to a server using asynchronous username/password authentication and valid credentials - secure connection - 256 bits ", function (done) {
-        server.userManager = userManagerAsync; //use asynchronous checks
+});
 
+
+describe("testing Client-Server with UserName/Password identity token - Async", function () {
+    let server, endpointUrl;
+
+    const port = 2239;
+    before(async () => {
+        // we use a different port for each tests to make sure that there is
+        // no left over in the tcp pipe that could generate an error
+
+        const options = {
+            port,
+            allowAnonymous: false,
+            // replace user manager with our custom one
+            userManager: userManagerAsync
+        };
+
+        server = await build_server_with_temperature_device(options);
+
+        endpointUrl = server.getEndpointUrl();
+    });
+    after(async () => {
+        await server.shutdown();
+    });
+
+    it("should connect to a server using asynchronous username/password authentication and valid credentials - secure connection - 256 bits ", function (done) {
+       
         const options = {
             securityMode: MessageSecurityMode.Sign,
             securityPolicy: SecurityPolicy.Basic256
