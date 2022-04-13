@@ -1,8 +1,8 @@
 /**
  * @module node-opcua-server
  */
-import { StatusCode, StatusCodes } from "node-opcua-status-code";
-import { BrowseResultOptions, ReferenceDescription } from "node-opcua-types";
+import { StatusCodes } from "node-opcua-status-code";
+import { ReferenceDescription } from "node-opcua-types";
 import {
     ContinuationPoint,
     IContinuationPointManager,
@@ -10,7 +10,6 @@ import {
     ContinuationData
 } from "node-opcua-address-space-base";
 import { DataValue } from "node-opcua-data-value";
-import { runInThisContext } from "vm";
 
 /**
  * from https://reference.opcfoundation.org/v104/Core/docs/Part4/7.6/
@@ -21,9 +20,9 @@ import { runInThisContext } from "vm";
  * - The Client specifies the maximum number of results per operation in the request message.
  * - A Server shall not return more than this number of results but it may return fewer results.
  * - The Server allocates a  ContinuationPoint if there are more results to return.
- * - Servers shall support at least one ContinuationPoint per Session.
+ * - Servers shall support at least one ContinuationPoint per Session. 
  * - Servers specify a maximum number of ContinuationPoints per Session in the ServerCapabilities Object defined in OPC 10000-5.
- * - ContinuationPoints remain active until
+ * - ContinuationPoints remain active until 
  *     a/ the Client retrieves the remaining results,
  *     b/ or, the Client releases the ContinuationPoint
  *     c/ or the Session is closed.
@@ -31,6 +30,9 @@ import { runInThisContext } from "vm";
  *   from this Session.
  * - The Server returns a Bad_ContinuationPointInvalid error if a Client tries to use a ContinuationPoint that has been released.
  * - A Client can avoid this situation by completing paused operations before starting new operations.
+ *   For Session-less Service invocations, the ContinuationPoints are shared across all Session-less Service invocations from all Clients. 
+ *   The Server shall support at least the maximum number of ContinuationPoints it would allow for one Session.
+ * 
  * - Requests will often specify multiple operations that may or may not require a ContinuationPoint.
  * - A Server shall process the operations until it uses the maximum number of continuation points in this response.
  *   Once that happens the Server shall return a Bad_NoContinuationPoints error for any remaining operations. A Client can avoid
@@ -40,7 +42,7 @@ import { runInThisContext } from "vm";
  *   provided so Servers shall never return Bad_NoContinuationPoints error when continuing a previously halted operation.
  *   A ContinuationPoint is a subtype of the ByteString data type.
  *
- *
+ * 
  * for historical access: https://reference.opcfoundation.org/v104/Core/docs/Part11/6.3/
  *
  * The continuationPoint parameter in the HistoryRead Service is used to mark a point from which to continue
