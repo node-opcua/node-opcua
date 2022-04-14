@@ -35,7 +35,7 @@ export function readRawMessageHeader(data: Buffer): PacketInfo {
  *
  */
 export class MessageBuilderBase extends EventEmitter {
-    public readonly signatureLength: number;
+    public readonly signatureLength: number;    
     public readonly options: { signatureLength?: number };
     public readonly _packetAssembler: PacketAssembler;
     public channelId: number;
