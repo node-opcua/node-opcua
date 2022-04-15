@@ -1522,5 +1522,74 @@ export class StatusCodes {
         value: 0x80b70000,
         description: "The operation could not be finished because all available connections are in use."
     });
+    /** The value may not be accurate because the transducer is in manual mode. */
+    static UncertainTransducerInManual: ConstantStatusCode = new ConstantStatusCode({
+        name: "UncertainTransducerInManual",
+        value: 0x42080000,
+        description: "The value may not be accurate because the transducer is in manual mode."
+    });
+    /** The value is simulated. */
+    static UncertainSimulatedValue: ConstantStatusCode = new ConstantStatusCode({
+        name: "UncertainSimulatedValue",
+        value: 0x42090000,
+        description: "The value is simulated."
+    });
+    /** The value may not be accurate due to a sensor calibration fault. */
+    static UncertainSensorCalibration: ConstantStatusCode = new ConstantStatusCode({
+        name: "UncertainSensorCalibration",
+        value: 0x420a0000,
+        description: "The value may not be accurate due to a sensor calibration fault."
+    });
+    /** The value may not be accurate due to a configuration issue. */
+    static UncertainConfigurationError: ConstantStatusCode = new ConstantStatusCode({
+        name: "UncertainConfigurationError",
+        value: 0x420f0000,
+        description: "The value may not be accurate due to a configuration issue."
+    });
+    /** The value source supports cascade handshaking and the value has been Initialized based on an initialization request from a cascade secondary. */
+    static GoodCascadeInitializationAcknowledged: ConstantStatusCode = new ConstantStatusCode({
+        name: "GoodCascadeInitializationAcknowledged",
+        value: 0x4010000,
+        description:
+            "The value source supports cascade handshaking and the value has been Initialized based on an initialization request from a cascade secondary."
+    });
+    /** The value source supports cascade handshaking and is requesting initialization of a cascade primary. */
+    static GoodCascadeInitializationRequest: ConstantStatusCode = new ConstantStatusCode({
+        name: "GoodCascadeInitializationRequest",
+        value: 0x4020000,
+        description: "The value source supports cascade handshaking and is requesting initialization of a cascade primary."
+    });
+    /** The value source supports cascade handshaking, however, the source’s current state does not allow for cascade. */
+    static GoodCascadeNotInvited: ConstantStatusCode = new ConstantStatusCode({
+        name: "GoodCascadeNotInvited",
+        value: 0x4030000,
+        description:
+            "The value source supports cascade handshaking, however, the source’s current state does not allow for cascade."
+    });
+    /** The value source supports cascade handshaking, however, the source has not selected the corresponding cascade primary for use. */
+    static GoodCascadeNotSelected: ConstantStatusCode = new ConstantStatusCode({
+        name: "GoodCascadeNotSelected",
+        value: 0x4040000,
+        description:
+            "The value source supports cascade handshaking, however, the source has not selected the corresponding cascade primary for use."
+    });
+    /** There is a fault state condition active in the value source. */
+    static GoodFaultStateActive: ConstantStatusCode = new ConstantStatusCode({
+        name: "GoodFaultStateActive",
+        value: 0x4070000,
+        description: "There is a fault state condition active in the value source."
+    });
+    /** A fault state condition is being requested of the destination. */
+    static GoodInitiateFaultState: ConstantStatusCode = new ConstantStatusCode({
+        name: "GoodInitiateFaultState",
+        value: 0x4080000,
+        description: "A fault state condition is being requested of the destination."
+    });
+    /** The value is accurate, and the signal source supports cascade handshaking. */
+    static GoodCascade: ConstantStatusCode = new ConstantStatusCode({
+        name: "GoodCascade",
+        value: 0x4090000,
+        description: "The value is accurate, and the signal source supports cascade handshaking."
+    });
     static GoodWithOverflowBit = StatusCode.makeStatusCode(StatusCodes.Good, `Overflow | InfoTypeDataValue`);
 }

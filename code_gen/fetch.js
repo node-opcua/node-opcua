@@ -1,9 +1,9 @@
-const fs = require("fs");
-const ProgressBar = require('progress');
-const _ = require("underscore");
 const url = require("url");
 const https = require('https');
 let http = require('http');
+const fs = require("fs");
+const ProgressBar = require('progress');
+const _ = require("underscore");
 
 
 const force = true;
@@ -287,6 +287,7 @@ fetch_from_github(version, "ADI/Opc.Ua.Adi.Types.bsd");
 fetch_from_github(version, "GDS/Opc.Ua.Gds.NodeSet2.xml");
 fetch_from_github(version, "AutoID/Opc.Ua.AutoID.NodeSet2.xml");
 fetch_from_github(version, "Machinery/Opc.Ua.Machinery.NodeSet2.xml");
+fetch_from_github(version, "IA/Opc.Ua.IA.NodeSet2.xml");
 fetch_from_github(version, "ISA-95/Opc.ISA95.NodeSet2.xml");
 fetch_from_github(version, "PackML/Opc.Ua.PackML.NodeSet2.xml");
 fetch_from_github(version, "Robotics/Opc.Ua.Robotics.NodeSet2.xml");
@@ -312,6 +313,15 @@ fetch_from_github(version, "Schema/Opc.Ua.NodeSet2.Part9.xml");
 fetch_from_github(version, "Schema/Opc.Ua.NodeSet2.Part10.xml");
 fetch_from_github(version, "Schema/Opc.Ua.NodeSet2.Part11.xml");
 fetch_from_github(version, "Schema/Opc.Ua.NodeSet2.Part13.xml");
+fetch_from_github(version, "Schema/Opc.Ua.NodeSet2.Part14.xml");
+fetch_from_github(version, "Schema/Opc.Ua.NodeSet2.Part15.xml");
+fetch_from_github(version, "Schema/Opc.Ua.NodeSet2.Part16.xml");
+fetch_from_github(version, "Schema/Opc.Ua.NodeSet2.Part17.xml");
+fetch_from_github(version, "Schema/Opc.Ua.NodeSet2.Part18.xml");
+fetch_from_github(version, "Schema/Opc.Ua.NodeSet2.Part19.xml");
+fetch_from_github(version, "Schema/Opc.Ua.NodeSet2.Part20.xml");
+fetch_from_github(version, "Schema/Opc.Ua.NodeSet2.Part21.xml");
+fetch_from_github(version, "Schema/Opc.Ua.NodeSet2.Part22.xml");
 
 fetch_from_github(version, "Schema/OPCBinarySchema.xsd");
 fetch_from_github(version, "Schema/Opc.Ua.Types.bsd");
