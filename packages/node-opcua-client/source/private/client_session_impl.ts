@@ -1911,7 +1911,10 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession {
     }
 
     public startKeepAliveManager(): void {
-        assert(!this._keepAliveManager, "keepAliveManger already started");
+        if (this._keepAliveManager) {
+            //  "keepAliveManger already started"
+            return;
+        }
         this._keepAliveManager = new ClientSessionKeepAliveManager(this);
 
         this._keepAliveManager.on("failure", () => {
