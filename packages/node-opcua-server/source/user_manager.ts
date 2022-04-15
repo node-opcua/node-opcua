@@ -1,6 +1,6 @@
-import { IdentityMappingRuleType, IUserManager, UARoleSet } from "node-opcua-address-space";
+import { IUserManager, UARoleSet } from "node-opcua-address-space";
 import { NodeId } from "node-opcua-nodeid";
-
+import { IdentityMappingRuleType } from "node-opcua-types";
 import { ServerSession } from "./server_session";
 
 export type ValidUserFunc = (this: ServerSession, username: string, password: string) => boolean;
@@ -36,7 +36,9 @@ export abstract class UAUserManagerBase implements IUAUserManager {
     getIdentitiesForRole(role: NodeId): IdentityMappingRuleType[] {
         return [];
     }
-    bind(roleSet: UARoleSet): void { /**  */}
+    bind(roleSet: UARoleSet): void {
+        /**  */
+    }
 }
 export class UAUserManager1 extends UAUserManagerBase {
     constructor(private options: IUserManagerEx) {

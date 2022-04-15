@@ -134,8 +134,6 @@ export interface UATypesFolder extends UAFolder {
     variableTypes: UAFolder;
 }
 
-export interface IdentityMappingRuleType {}
-
 type LocaleId = string;
 
 export interface AddressSpace extends IAddressSpace {
