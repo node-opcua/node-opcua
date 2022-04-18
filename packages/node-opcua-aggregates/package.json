@@ -1,6 +1,6 @@
 {
     "name": "node-opcua-aggregates",
-    "version": "2.66.3",
+    "version": "2.67.0",
     "description": "pure nodejs OPCUA SDK - module -end2end-test",
     "main": "./dist/index.js",
     "types": "./dist/index.d.ts",
@@ -13,23 +13,23 @@
     },
     "dependencies": {
         "@types/async": "^3.2.12",
-        "node-opcua-address-space": "2.66.3",
-        "node-opcua-constants": "2.66.0",
-        "node-opcua-data-model": "2.66.0",
-        "node-opcua-data-value": "2.66.0",
-        "node-opcua-nodeid": "2.66.0",
+        "node-opcua-address-space": "2.67.0",
+        "node-opcua-constants": "2.67.0",
+        "node-opcua-data-model": "2.67.0",
+        "node-opcua-data-value": "2.67.0",
+        "node-opcua-nodeid": "2.67.0",
         "node-opcua-nodesets": "2.66.0",
-        "node-opcua-numeric-range": "2.66.0",
-        "node-opcua-service-history": "2.66.0",
-        "node-opcua-status-code": "2.66.0",
-        "node-opcua-types": "2.66.0",
-        "node-opcua-utils": "2.66.0",
-        "node-opcua-variant": "2.66.0"
+        "node-opcua-numeric-range": "2.67.0",
+        "node-opcua-service-history": "2.67.0",
+        "node-opcua-status-code": "2.67.0",
+        "node-opcua-types": "2.67.0",
+        "node-opcua-utils": "2.67.0",
+        "node-opcua-variant": "2.67.0"
     },
     "devDependencies": {
         "delayed": "^2.0.0",
         "node-opcua-assert": "2.66.0",
-        "node-opcua-leak-detector": "2.66.0",
+        "node-opcua-leak-detector": "2.67.0",
         "should": "^13.2.3",
         "sinon": "^13.0.1",
         "yargs": "15.4.1"
