@@ -45,7 +45,7 @@ export class UAUserManager1 extends UAUserManagerBase {
         super();
     }
     getUserRoles(user: string): NodeId[] {
-        return this.options.getUserRoles!(user);
+        return this.options.getUserRoles != null ? this.options.getUserRoles(user) : [];
     }
 
     async isValidUser(session: ServerSession, username: string, password: string): Promise<boolean> {
@@ -56,9 +56,11 @@ export class UAUserManager1 extends UAUserManagerBase {
                     resolve(isAuthorized!);
                 });
             });
-        } else {
+        } else if(typeof this.options.isValidUser === "function") {
             const authorized = this.options.isValidUser!.call(session, username, password);
             return authorized;
+        } else {
+            return false;
         }
     }
     getIdentitiesForRole(role: NodeId): IdentityMappingRuleType[] {
