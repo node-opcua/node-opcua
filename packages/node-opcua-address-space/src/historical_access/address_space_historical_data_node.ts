@@ -172,7 +172,7 @@ export class VariableHistorian implements IVariableHistorian {
         reverseDataValue: boolean,
         callback: CallbackT<DataValue[]>
     ): void {
-        assert(callback instanceof Function);
+        assert(typeof callback === 'function');
 
         let dataValues = filter_dequeue(this._timeline, historyReadRawModifiedDetails, maxNumberToExtract, isReversed);
 
@@ -322,7 +322,7 @@ function _historyReadRawAsync(
     reverseDataValue: boolean,
     callback: CallbackT<DataValue[]>
 ) {
-    assert(callback instanceof Function);
+    assert(typeof callback === 'function');
     this.varHistorian!.extractDataValues(historyReadRawModifiedDetails, maxNumberToExtract, isReversed, reverseDataValue, callback);
 }
 
@@ -546,7 +546,7 @@ function _historyRead(
     continuationData: ContinuationData,
     callback: CallbackT<HistoryReadResult>
 ) {
-    assert(callback instanceof Function);
+    assert(typeof callback === 'function');
     if (historyReadDetails instanceof ReadRawModifiedDetails) {
         // note: only ReadRawModifiedDetails supported at this time
         return this._historyReadRawModify(context, historyReadDetails, indexRange, dataEncoding, continuationData, callback);

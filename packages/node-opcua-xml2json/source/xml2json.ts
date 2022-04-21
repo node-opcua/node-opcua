@@ -359,7 +359,7 @@ export class Xml2Json {
     }
 
     protected _prepareParser(callback: Callback<any> | SimpleCallback): LtxParser {
-        assert(callback instanceof Function);
+        assert(typeof callback === 'function');
         const parser = new LtxParser();
         this.currentLevel = 0;
         parser.on("startElement", (name: string, attrs: XmlAttributes) => {

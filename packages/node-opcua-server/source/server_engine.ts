@@ -1893,7 +1893,7 @@ export class ServerEngine extends EventEmitter {
     ): void {
         const referenceTime = new Date(Date.now() - maxAge);
 
-        assert(callback instanceof Function);
+        assert(typeof callback === 'function');
         const objectMap: Record<string, BaseNode> = {};
         for (const nodeToRefresh of nodesToRefresh) {
             // only consider node  for which the caller wants to read the Value attribute
@@ -2078,7 +2078,7 @@ export class ServerEngine extends EventEmitter {
         callback: CallbackT<HistoryReadResult>
     ): void {
         assert(context instanceof SessionContext);
-        assert(callback instanceof Function);
+        assert(typeof callback === 'function');
 
         const nodeId = nodeToRead.nodeId;
         const indexRange = nodeToRead.indexRange;

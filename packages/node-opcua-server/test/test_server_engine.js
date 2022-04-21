@@ -374,7 +374,7 @@ describe("testing ServerEngine", () => {
                 },
                 historyRead: function (context, historyReadDetails, indexRange, dataEncoding, continuationPoint, callback) {
                     assert(context instanceof SessionContext);
-                    assert(callback instanceof Function);
+                    assert(typeof callback === 'function');
 
                     const results = [];
                     const d = new Date();

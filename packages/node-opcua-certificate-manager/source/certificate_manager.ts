@@ -105,7 +105,7 @@ export class OPCUACertificateManager extends CertificateManager implements ICert
     public initialize(callback: (err?: Error) => void): void;
     public initialize(...args: any[]): any {
         const callback = args[0];
-        assert(callback && callback instanceof Function);
+        assert(callback && typeof callback === 'function');
         return super.initialize(callback);
     }
 

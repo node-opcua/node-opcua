@@ -317,7 +317,7 @@ export class NodeCrawlerBase extends EventEmitter implements NodeCrawlerEvents {
     public crawl(nodeId: NodeIdLike, userData: UserData, endCallback: ErrorCallback): void;
     public crawl(nodeId: NodeIdLike, userData: UserData, ...args: any[]): any {
         const endCallback = args[0] as ErrorCallback;
-        assert(endCallback instanceof Function, "expecting callback");
+        assert(typeof endCallback === 'function', "expecting callback");
         nodeId = resolveNodeId(nodeId) as NodeId;
         assert(typeof endCallback === "function");
         this._readOperationalLimits((err?: Error) => {

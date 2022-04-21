@@ -1472,7 +1472,7 @@ export class OPCUAServer extends OPCUABaseServer {
         callback: (err: Error | null, statusCode?: StatusCode) => void
     ): void {
         assert(userIdentityToken instanceof X509IdentityToken);
-        assert(callback instanceof Function);
+        assert(typeof callback === 'function');
 
         const securityPolicy = adjustSecurityPolicy(channel, userTokenPolicy.securityPolicyUri);
 
@@ -1605,7 +1605,7 @@ export class OPCUAServer extends OPCUABaseServer {
         endpointDescription: EndpointDescription,
         callback: (err: Error | null, statusCode?: StatusCode) => void
     ): void {
-        assert(callback instanceof Function);
+        assert(typeof callback === 'function');
         /* istanbul ignore next */
         if (!userIdentityToken) {
             throw new Error("Invalid token");
