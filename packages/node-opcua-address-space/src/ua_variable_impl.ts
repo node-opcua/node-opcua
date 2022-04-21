@@ -1167,7 +1167,7 @@ export class UAVariableImpl extends BaseNodeImpl implements UAVariable {
         if (!context) {
             context = SessionContext.defaultContext;
         }
-        assert(callback instanceof Function);
+        assert(typeof callback  === 'function');
 
         this.__waiting_callbacks = this.__waiting_callbacks || [];
         this.__waiting_callbacks.push(callback);
@@ -1412,7 +1412,7 @@ export class UAVariableImpl extends BaseNodeImpl implements UAVariable {
         callback?: CallbackT<HistoryReadResult>
     ): any {
         assert(context instanceof SessionContext);
-        assert(callback instanceof Function);
+        assert(typeof callback === 'function');
         if (typeof this._historyRead !== "function") {
             return callback!(null, new HistoryReadResult({ statusCode: StatusCodes.BadNotReadable }));
         }
