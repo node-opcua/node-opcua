@@ -18,7 +18,7 @@ export async function readNodeSet2XmlFile(xmlFile: string): Promise<string> {
         throw new Error(msg);
     }
     debugLog(" parsing ", xmlFile);
-    const xmlData = await fs.promises.readFile(xmlFile, "ascii");
+    const xmlData = await fs.promises.readFile(xmlFile, "utf-8");
     return xmlData;
 }
 export function generateAddressSpace(

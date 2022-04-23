@@ -44,7 +44,7 @@ let curNodeCompletion = [];
 
 function save_endpoint_history(callback) {
     if (endpoints_history.length > 0) {
-        fs.writeFileSync(endpoints_history_file, endpoints_history.join("\n"), "ascii");
+        fs.writeFileSync(endpoints_history_file, endpoints_history.join("\n"), "utf-8");
     }
     if (callback) {
         callback();
@@ -63,7 +63,7 @@ let lines = [];
 
 
 if (fs.existsSync(endpoints_history_file)) {
-    lines = fs.readFileSync(endpoints_history_file, "ascii");
+    lines = fs.readFileSync(endpoints_history_file, "utf-8");
     endpoints_history = lines.split(/\r\n|\n/);
 }
 
@@ -118,7 +118,7 @@ rl.prompt();
 
 function save_history(callback) {
     const history_uniq = _.uniq(rl.history);
-    fs.writeFileSync(history_file, history_uniq.join("\n"), "ascii");
+    fs.writeFileSync(history_file, history_uniq.join("\n"), "utf-8");
     callback();
 }
 
@@ -297,7 +297,7 @@ function colorize(value) {
 if (rl.history) {
 
     if (fs.existsSync(history_file)) {
-        lines = fs.readFileSync(history_file, "ascii");
+        lines = fs.readFileSync(history_file, "utf-8");
         lines = lines.split(/\r\n|\n/);
     }
     if (lines.length === 0) {

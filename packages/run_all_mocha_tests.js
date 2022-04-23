@@ -92,7 +92,7 @@ async function extractTestFiles({ page, pageCount, pageSize }) {
 }
 
 function test_no_leak(file) {
-    let sourceCode = fs.readFileSync(file, "ascii");
+    let sourceCode = fs.readFileSync(file, "utf-8");
     if (sourceCode.match("OPCUAClient")) {
         if (!sourceCode.match("Leak")) {
             console.log(chalk.yellow(" OPCUAClient without leak detection mechanism  !!!"), file);

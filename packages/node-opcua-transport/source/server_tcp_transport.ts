@@ -217,7 +217,7 @@ export class ServerTCP_transport extends TCP_transport {
         }
         assert(!this._helloReceived);
         const stream = new BinaryStream(data);
-        const msgType = data.slice(0, 3).toString("ascii");
+        const msgType = data.slice(0, 3).toString("utf-8");
 
         /* istanbul ignore next*/
         if (doDebug) {

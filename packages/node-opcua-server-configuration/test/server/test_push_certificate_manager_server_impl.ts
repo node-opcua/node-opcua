@@ -118,7 +118,7 @@ describe("Testing Server Side PushCertificateManager", () => {
             startDate: new Date(),
             validity: 365
         });
-        const certificateSigningRequestPEM = await readFile(filename, "ascii");
+        const certificateSigningRequestPEM = await readFile(filename, "utf-8");
         const certificateSigningRequest = convertPEMtoDER(certificateSigningRequestPEM);
         const wrongCertificate = await produceCertificate(_folder, certificateSigningRequest);
 

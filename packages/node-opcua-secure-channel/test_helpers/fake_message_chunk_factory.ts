@@ -24,7 +24,7 @@ const senderPrivateKey = readKeyPem(getFixture("certs/client_key_1024.pem"));
 const receiverCertificate =  readCertificate(getFixture("certs/server_cert_1024.pem"));
 const receiverCertificateThumbprint = makeSHA1Thumbprint(receiverCertificate);
 
-const receiverPublicKey = fs.readFileSync(getFixture("certs/server_public_key_1024.pub", "ascii")).toString();
+const receiverPublicKey = fs.readFileSync(getFixture("certs/server_public_key_1024.pub", "utf-8")).toString();
 
 const sequenceNumberGenerator = new SequenceNumberGenerator();
 

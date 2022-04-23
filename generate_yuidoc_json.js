@@ -17,6 +17,6 @@ module.exports = {
 const fs = require("fs");
 const path =require("path");
 
-fs.writeFile(path.join(__dirname,"yuidoc.json"),JSON.stringify(module.exports,null," "),"ascii",function(err) {
+fs.writeFile(path.join(__dirname,"yuidoc.json"),JSON.stringify(module.exports,null," "),"utf-8",function(err) {
     console.log("done",err);
 });

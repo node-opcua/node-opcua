@@ -33,7 +33,7 @@ const doDebug = false;
 
 function readMessage(name: string): Buffer {
     const filename = path.join(__dirname, "./fixtures", name);
-    const text = fs.readFileSync(filename, "ascii");
+    const text = fs.readFileSync(filename, "utf-8");
     const message = makeBufferFromTrace(text);
     return message;
 }

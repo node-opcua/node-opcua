@@ -60,7 +60,7 @@ describe("Convert to Typescript", function (this: any) {
         const { content , dependencies} = await convertTypeToTypescript(session, deviceDataTypeNodeId, options);
 
         fs.writeFileSync(path.join(actualFolder, filename), content);
-        const expectedContent = fs.readFileSync(path.join(referenceFolder,filename), "ascii");
+        const expectedContent = fs.readFileSync(path.join(referenceFolder,filename), "utf-8");
         content.should.eql(expectedContent);
 
     });
@@ -76,7 +76,7 @@ describe("Convert to Typescript", function (this: any) {
         const { content } = await convertTypeToTypescript(session, chromatographDeviceTypeNodeId, options);
         fs.writeFileSync(path.join(actualFolder, filename), content);
  
-        const expectedContent = fs.readFileSync(path.join(referenceFolder,filename), "ascii");
+        const expectedContent = fs.readFileSync(path.join(referenceFolder,filename), "utf-8");
         content.should.eql(expectedContent);
     
     });
@@ -92,7 +92,7 @@ describe("Convert to Typescript", function (this: any) {
         const { content } = await convertTypeToTypescript(session, chromatographDeviceTypeNodeId, options);
         fs.writeFileSync(path.join(actualFolder, filename), content);
  
-        const expectedContent = fs.readFileSync(path.join(referenceFolder,filename), "ascii");
+        const expectedContent = fs.readFileSync(path.join(referenceFolder,filename), "utf-8");
         content.should.eql(expectedContent);
     });
     it("P4 - should convert UASessionSecurityDiagnostics ", async () => {
@@ -105,7 +105,7 @@ describe("Convert to Typescript", function (this: any) {
         const { content } = await convertTypeToTypescript(session, typeNodeId, options);
         fs.writeFileSync(path.join(actualFolder, filename), content);
  
-        const expectedContent = fs.readFileSync(path.join(referenceFolder,filename), "ascii");
+        const expectedContent = fs.readFileSync(path.join(referenceFolder,filename), "utf-8");
         content.should.eql(expectedContent);
     });
     const colors = [chalk.grey, chalk.yellow, chalk.green, chalk.cyan, chalk.blue, chalk.greenBright, chalk.bgGreenBright];

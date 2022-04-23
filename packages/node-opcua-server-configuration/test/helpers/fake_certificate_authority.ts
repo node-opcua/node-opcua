@@ -67,11 +67,11 @@ export async function produceCertificateAndPrivateKey(
         outputFile: certFile
     });
 
-    const content = await readFile(certFile, "ascii");
+    const content = await readFile(certFile, "utf-8");
     const certificate = convertPEMtoDER(content);
 
     const privateKeyFile = certificateManager.privateKey;
-    const privateKeyPEM = await readFile(privateKeyFile, "ascii");
+    const privateKeyPEM = await readFile(privateKeyFile, "utf-8");
     const privateKey = convertPEMtoDER(privateKeyPEM);
 
     return { certificate, privateKey };
@@ -170,7 +170,7 @@ export async function createSomeCertificate(subfolder: string, certName: string)
         });
     }
 
-    const content = await readFile(certFile, "ascii");
+    const content = await readFile(certFile, "utf-8");
     const certificate = convertPEMtoDER(content);
     return certificate;
 }
