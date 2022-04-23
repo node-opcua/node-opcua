@@ -1,6 +1,6 @@
 {
     "name": "node-opcua-service-read",
-    "version": "2.67.0",
+    "version": "2.68.0",
     "description": "pure nodejs OPCUA SDK - module -service-read",
     "scripts": {
         "build": "tsc -b",
@@ -11,18 +11,18 @@
     "types": "./dist/index.d.ts",
     "dependencies": {
         "node-opcua-assert": "2.66.0",
-        "node-opcua-basic-types": "2.67.0",
+        "node-opcua-basic-types": "2.68.0",
         "node-opcua-binary-stream": "2.67.0",
-        "node-opcua-data-model": "2.67.0",
-        "node-opcua-data-value": "2.67.0",
-        "node-opcua-factory": "2.67.0",
-        "node-opcua-nodeid": "2.67.0",
-        "node-opcua-numeric-range": "2.67.0",
-        "node-opcua-service-secure-channel": "2.67.0",
-        "node-opcua-types": "2.67.0"
+        "node-opcua-data-model": "2.68.0",
+        "node-opcua-data-value": "2.68.0",
+        "node-opcua-factory": "2.68.0",
+        "node-opcua-nodeid": "2.68.0",
+        "node-opcua-numeric-range": "2.68.0",
+        "node-opcua-service-secure-channel": "2.68.0",
+        "node-opcua-types": "2.68.0"
     },
     "devDependencies": {
-        "node-opcua-packet-analyzer": "2.67.0",
+        "node-opcua-packet-analyzer": "2.68.0",
         "should": "^13.2.3"
     },
     "author": "Etienne Rossignon",

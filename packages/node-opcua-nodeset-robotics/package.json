@@ -1,6 +1,6 @@
 {
     "name": "node-opcua-nodeset-robotics",
-    "version": "2.67.0",
+    "version": "2.68.0",
     "description": "",
     "main": "dist/index.js",
     "types": "dist/index.d.ts",
@@ -10,13 +10,13 @@
     "author": "etienne.rossignon@sterfive.com",
     "license": "MIT",
     "dependencies": {
-        "node-opcua-address-space-base": "2.67.0",
-        "node-opcua-basic-types": "2.67.0",
-        "node-opcua-data-access": "2.67.0",
-        "node-opcua-data-model": "2.67.0",
-        "node-opcua-nodeid": "2.67.0",
-        "node-opcua-nodeset-di": "2.67.0",
-        "node-opcua-nodeset-ua": "2.67.0",
-        "node-opcua-variant": "2.67.0"
+        "node-opcua-address-space-base": "2.68.0",
+        "node-opcua-basic-types": "2.68.0",
+        "node-opcua-data-access": "2.68.0",
+        "node-opcua-data-model": "2.68.0",
+        "node-opcua-nodeid": "2.68.0",
+        "node-opcua-nodeset-di": "2.68.0",
+        "node-opcua-nodeset-ua": "2.68.0",
+        "node-opcua-variant": "2.68.0"
     }
 }
