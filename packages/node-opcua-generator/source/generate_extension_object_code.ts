@@ -139,7 +139,7 @@ function writeStructuredTypeWithSchema(structuredType: StructuredTypeSchema) {
 }
 
 export async function generate(filename: string, generatedTypescriptFilename: string): Promise<void> {
-    const content = await readFile(filename, "ascii");
+    const content = await readFile(filename, "utf-8");
 
     const idProvider: MapDataTypeAndEncodingIdProvider = {
         getDataTypeAndEncodingId(name: string): DataTypeAndEncodingId | null {

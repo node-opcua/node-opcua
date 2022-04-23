@@ -30,7 +30,7 @@ describe("testing redirectToFile", function() {
         }, function() {
 
             const filename = getTempFilename("redirectToFile_sync.log");
-            const txt = fs.readFileSync(filename, "ascii");
+            const txt = fs.readFileSync(filename, "utf-8");
             txt.should.eql("Hello World\n");
 
         });
@@ -53,7 +53,7 @@ describe("testing redirectToFile", function() {
         }, function() {
 
             const filename = getTempFilename("redirectToFile_async.log");
-            const txt = fs.readFileSync(filename, "ascii");
+            const txt = fs.readFileSync(filename, "utf-8");
             txt.should.eql("Hello World !!!\n");
             done();
         });

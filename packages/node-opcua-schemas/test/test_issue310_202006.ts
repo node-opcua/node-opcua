@@ -27,7 +27,7 @@ describe("BSHA - Binary Schemas Helper 1", () => {
 
         old_schema_helpers_doDebug = parameters.debugSchemaHelper;
         parameters.debugSchemaHelper = true;
-        sample = fs.readFileSync(sample_file, "ascii");
+        sample = fs.readFileSync(sample_file, "utf-8");
         dataTypeFactory = new DataTypeFactory([]);
     });
 

@@ -127,7 +127,7 @@ const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
             const buf = await clientFile.read(1000);
             await clientFile.close();
 
-            buf.toString("ascii").should.eql("content");
+            buf.toString("utf-8").should.eql("content");
         });
 
         it("should increase openCount when a file is opened and decrease it when it's closed", async () => {

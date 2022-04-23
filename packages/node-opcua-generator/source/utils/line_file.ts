@@ -13,11 +13,11 @@ export class LineFile1 extends LineFile {
         this.write(" */");
     }
     public save(filename: string): void {
-        writeFileSync(filename, this.toString(), "ascii");
+        writeFileSync(filename, this.toString(), "utf-8");
     }
 
     public saveFormat(filename: string, formatter: (code: string) => string): void {
         const code = formatter(this.toString());
-        writeFileSync(filename, code, "ascii");
+        writeFileSync(filename, code, "utf-8");
     }
 }

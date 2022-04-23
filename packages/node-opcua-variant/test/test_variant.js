@@ -1083,7 +1083,7 @@ describe("Variant with enumeration", () => {
             value: Buffer.from("abcd")
         });
         v.dataType.should.eql(DataType.ByteString);
-        v.value.toString("ascii").should.eql("abcd");
+        v.value.toString("utf-8").should.eql("abcd");
     });
     it("should create a variant copy (with it's own array) ", () => {
         const options = {

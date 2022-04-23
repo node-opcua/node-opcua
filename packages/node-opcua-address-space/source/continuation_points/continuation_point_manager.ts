@@ -75,7 +75,7 @@ let counter = 0;
 function make_key() {
     // return crypto.randomBytes(32);
     counter += 1;
-    return Buffer.from(counter.toString(), "ascii");
+    return Buffer.from(counter.toString(), "utf-8");
 }
 
 interface Data {
@@ -181,7 +181,7 @@ export class ContinuationPointManager implements IContinuationPointManager {
         const current_block = values.splice(0, maxValues);
 
         const key = make_key();
-        const keyHash = key.toString("ascii");
+        const keyHash = key.toString("utf-8");
 
         const result = {
             continuationPoint: key,
@@ -210,7 +210,7 @@ export class ContinuationPointManager implements IContinuationPointManager {
                 statusCode: StatusCodes.BadContinuationPointInvalid
             };
         }
-        const keyHash = continuationData.continuationPoint.toString("ascii");
+        const keyHash = continuationData.continuationPoint.toString("utf-8");
         const data = this._map.get(keyHash);
         if (!data) {
             return {

@@ -29,7 +29,7 @@ describe("BSHA - Binary Schemas Helper 1", () => {
 
         old_schema_helpers_doDebug = parameters.debugSchemaHelper;
         parameters.debugSchemaHelper = true;
-        const sample = fs.readFileSync(sample_file, "ascii");
+        const sample = fs.readFileSync(sample_file, "utf-8");
         dataTypeFactory = new DataTypeFactory([]);
         await parseBinaryXSDAsync(sample, idProvider, dataTypeFactory);
     });
@@ -234,7 +234,7 @@ describe("BSHB - Binary Schemas Helper 2", () => {
 
         old_schema_helpers_doDebug = parameters.debugSchemaHelper;
         parameters.debugSchemaHelper = true;
-        const sample = fs.readFileSync(sample_file, "ascii");
+        const sample = fs.readFileSync(sample_file, "utf-8");
         dataTypeFactory = new DataTypeFactory([]);
         await parseBinaryXSDAsync(sample, idProvider, dataTypeFactory);
     });
@@ -310,7 +310,7 @@ describe("BSHC - Binary Schemas Helper 3 (with bit fields)", () => {
 
         old_schema_helpers_doDebug = parameters.debugSchemaHelper;
         parameters.debugSchemaHelper = true;
-        const sample = fs.readFileSync(sample_file, "ascii");
+        const sample = fs.readFileSync(sample_file, "utf-8");
         dataTypeFactory = new DataTypeFactory([]);
         await parseBinaryXSDAsync(sample, idProvider, dataTypeFactory);
     });
@@ -428,7 +428,7 @@ describe("BSHD - Binary Schemas Helper 4", () => {
 
         old_schema_helpers_doDebug = parameters.debugSchemaHelper;
         parameters.debugSchemaHelper = true;
-        const sample = fs.readFileSync(sample_file, "ascii");
+        const sample = fs.readFileSync(sample_file, "utf-8");
         dataTypeFactory = new DataTypeFactory([]);
         await parseBinaryXSDAsync(sample, idProvider, dataTypeFactory);
     });
@@ -454,7 +454,7 @@ describe("BSHE - Binary Schemas Helper 5 (Union)", () => {
 
         old_schema_helpers_doDebug = parameters.debugSchemaHelper;
         parameters.debugSchemaHelper = true;
-        const sample = fs.readFileSync(sample_file, "ascii");
+        const sample = fs.readFileSync(sample_file, "utf-8");
         dataTypeFactory = new DataTypeFactory([]);
         await parseBinaryXSDAsync(sample, idProvider, dataTypeFactory);
     });
@@ -535,7 +535,7 @@ describe("BSSGF - Binary Schemas Helper 5 (DerivedType -1)", () => {
 
         old_schema_helpers_doDebug = parameters.debugSchemaHelper;
         parameters.debugSchemaHelper = true;
-        const sample = fs.readFileSync(sample_file, "ascii");
+        const sample = fs.readFileSync(sample_file, "utf-8");
         dataTypeFactory = new DataTypeFactory([]);
         await parseBinaryXSDAsync(sample, idProvider, dataTypeFactory);
     });
@@ -563,7 +563,7 @@ describe("BSHG - Binary Schema Helper 6 - Milo", () => {
 
         old_schema_helpers_doDebug = parameters.debugSchemaHelper;
         parameters.debugSchemaHelper = true;
-        const sample = fs.readFileSync(sample_file, "ascii");
+        const sample = fs.readFileSync(sample_file, "utf-8");
         dataTypeFactory = new DataTypeFactory([]);
         await parseBinaryXSDAsync(sample, idProvider, dataTypeFactory);
     });

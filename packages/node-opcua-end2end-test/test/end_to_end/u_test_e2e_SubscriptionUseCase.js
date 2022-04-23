@@ -1843,7 +1843,7 @@ module.exports = function (test) {
                 dataType: "ByteString",
                 value: {
                     dataType: DataType.ByteString,
-                    value: Buffer.from("Lorem ipsum", "ascii")
+                    value: Buffer.from("Lorem ipsum", "utf-8")
                 }
             });
             namespace.addVariable({

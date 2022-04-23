@@ -20,7 +20,7 @@ function do_on_folder2(folder,packagejson,callback) {
     async.series([
 
       function(callback) {
-          fs.readFile(packagejson,"ascii",function(err,data){
+          fs.readFile(packagejson,"utf-8",function(err,data){
               local_package = JSON.parse(data);
               callback(err);
           });
@@ -34,12 +34,12 @@ function do_on_folder2(folder,packagejson,callback) {
           local_package.homepage = main_package.homepage;
 
           console.log(" local_package.description= ",local_package.description);
-          fs.writeFile(packagejson,JSON.stringify(local_package,null," "),"ascii",function(err){
+          fs.writeFile(packagejson,JSON.stringify(local_package,null," "),"utf-8",function(err){
               callback(err);
           });
       },
       function write_local_licence(callback) {
-          fs.writeFile(local_license_file,licence_text,"ascii",function(err){
+          fs.writeFile(local_license_file,licence_text,"utf-8",function(err){
               callback(err);
           });
       }
@@ -58,14 +58,14 @@ async.series([
 
   function readLicenceTxt(callback) {
     console.log("licence_file = ",licence_file);
-      fs.readFile(licence_file,"ascii",function(err,data){
+      fs.readFile(licence_file,"utf-8",function(err,data){
           licence_text = data;
           callback(err);
       });
   },
     function read_main_packagejson(callback) {
         console.log("main_packagejson = ",main_packagejson);
-        fs.readFile(main_packagejson,"ascii",function(err,data){
+        fs.readFile(main_packagejson,"utf-8",function(err,data){
             main_package = JSON.parse(data);
             callback(err);
         });

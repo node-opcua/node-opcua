@@ -10,7 +10,7 @@ const { getFixture } = require("node-opcua-test-fixtures");
 
 function construct_makeMessageChunkSignatureForTest() {
 
-    const privateKey = fs.readFileSync(getFixture("certs/server_key_1024.pem")).toString("ascii");
+    const privateKey = fs.readFileSync(getFixture("certs/server_key_1024.pem")).toString("utf-8");
 
     return (chunk: Buffer) => {
         const options = {
@@ -27,7 +27,7 @@ function construct_makeMessageChunkSignatureForTest() {
 export const makeMessageChunkSignatureForTest = construct_makeMessageChunkSignatureForTest();
 
 export function construct_verifyMessageChunkSignatureForTest() {
-    const publicKey = fs.readFileSync(getFixture("certs/server_public_key_1024.pub")).toString("ascii");
+    const publicKey = fs.readFileSync(getFixture("certs/server_public_key_1024.pub")).toString("utf-8");
     return (chunk: Buffer) => {
         assert(chunk instanceof Buffer);
         const options = {

@@ -18,7 +18,7 @@ describe("CTS-1 convert Extension Object definition to Typescript 1", () => {
     let dataTypeFactory: DataTypeFactory;
     before(async () => {
         const sample_file = path.join(__dirname, "fixtures/sample_type.xsd");
-        const sample = fs.readFileSync(sample_file, "ascii");
+        const sample = fs.readFileSync(sample_file, "utf-8");
 
         dataTypeFactory = new DataTypeFactory([]);
         await parseBinaryXSDAsync(sample, idProvider, dataTypeFactory);
@@ -94,7 +94,7 @@ describe("convert Extension Object definition to Typescript 2", () => {
     let dataTypeFactory: DataTypeFactory;
     before(async () => {
         const sample_file = path.join(__dirname, "fixtures/sample_type2.xsd");
-        const sample = fs.readFileSync(sample_file, "ascii");
+        const sample = fs.readFileSync(sample_file, "utf-8");
         dataTypeFactory = new DataTypeFactory([]);
         await parseBinaryXSDAsync(sample, idProvider, dataTypeFactory);
     });
