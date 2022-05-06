@@ -67,4 +67,5 @@ export interface CloneOptions /* extends ConstructNodeIdOptions */ {
     componentOf?: UAObjectType | UAObject;
 
     copyAlsoModellingRules?: boolean;
+    ignoreChildren?: boolean;
 }
