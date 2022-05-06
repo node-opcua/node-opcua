@@ -1,6 +1,16 @@
 import * as should from "should";
 import { generateAddressSpace } from "node-opcua-address-space/nodeJS";
-import { AddressSpace, assert, displayNodeElement, Namespace, NodeClass, nodesets, promoteToMandatory } from "..";
+import {
+    AddressSpace,
+    assert,
+    DataType,
+    displayNodeElement,
+    Namespace,
+    NodeClass,
+    nodesets,
+    promoteChild,
+    promoteToMandatory
+} from "..";
 
 import { removeDecoration } from "./test_helpers";
 
@@ -61,5 +71,51 @@ describe("promoteToMandatory", () => {
 
         // a[2 * 2 + 1].should.eql(`│ HasComponent Ⓥ         │ ns=1;i=1001  │ 2:DeviceHealth         │ Mandatory           │ BaseDataVariableType  │ 2:DeviceHealthEnumeration(Variant) │ null  │`);
         // a[13 * 2 + 1].should.eql(`│ HasComponent Ⓥ         │ ns=2;i=6208  │ 2:DeviceHealth         │ Optional            │ BaseDataVariableType  │ 2:DeviceHealthEnumeration(Variant) │ null  │`);
+    });
+
+    it("when creating a sub type it should be possible to promote a component or property to mandatory, and child node shall not be duplicated", async () => {
+        const deviceType = addressSpace.findObjectType("DeviceType", nsDI);
+        if (!deviceType) {
+            throw new Error("Cannot find DeviceType");
+        }
+
+        const boilerType = ns.addObjectType({
+            browseName: "BoilerType1",
+            subtypeOf: deviceType
+        });
+
+        const parameterSet = promoteToMandatory(boilerType, "ParameterSet", nsDI);
+
+        ns.addVariable({
+            browseName: "Parameter1",
+            dataType: DataType.Int32,
+            componentOf: parameterSet,
+            modellingRule: "Mandatory"
+        });
+        const param1 = parameterSet.getChildByName("Parameter1", ns.index);
+        should.exist(param1);
+        {
+            const specialBoilerType = ns.addObjectType({
+                browseName: "BoilerType2",
+                subtypeOf: boilerType
+            });
+            const parameterSet2 = promoteChild(specialBoilerType, "ParameterSet", nsDI);
+
+            const param2 = parameterSet2.getChildByName("Parameter1", ns.index)!;
+            should.exist(param2);
+            param2.modellingRule!.should.eql("Mandatory");
+
+            const specialBoiler = specialBoilerType.instantiate({
+                browseName: "SpecialBoiler",
+                organizedBy: addressSpace.rootFolder.objects
+            });
+            const parameterSet3 = specialBoiler.getChildByName("ParameterSet", ns.index)!;
+            should.exist(parameterSet3);
+
+            const param3 = parameterSet3.getChildByName("Parameter1", ns.index)!;
+            should.exist(param3);
+            should.not.exist(param3.modellingRule," instance property should not have a modelling rule");
+
+        }
     });
 });

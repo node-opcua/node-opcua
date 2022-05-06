@@ -8,12 +8,15 @@ import {
     UAReferenceType,
     UAVariable,
     UAVariableType,
-    ModellingRuleType,
+    ModellingRuleType
 } from "node-opcua-address-space";
 import { NodeClass } from "node-opcua-data-model";
 import { makeBrowsePath } from "node-opcua-service-translate-browse-path";
+import { make_warningLog } from "node-opcua-debug";
 
 import { displayNodeElement } from "./displayNodeElement";
+
+const warningLog = make_warningLog("promoteToMandatory");
 
 type UAType = UAObjectType | UAVariableType | UAReferenceType | UADataType;
 
@@ -91,30 +94,18 @@ export function promoteToMandatory(node: UAObjectType | UAVariableType, property
     // check mandatory
     /* istanbul ignore next */
     if (propInSuperType.modellingRule === "Mandatory") {
-        // tslint:disable-next-line: no-console
-        console.log("Warning property " + propertyName + " is already Mandatory in super type");
-        return propInSuperType;
+        warningLog("property " + propertyName + " is already Mandatory in super type");
     }
 
-    const newRef = {
-        isForward: false,
-        nodeId: node.nodeId,
-        referenceType: reference.referenceType
-    };
+    return promoteChild(node, propertyName, namespaceIndex, "Mandatory");
 
-    const newProp = (propInSuperType as UAConcrete).clone({
-        namespace: node.namespace,
-        modellingRule: "Mandatory",
-        references: [newRef]
-    });
-    return newProp;
 }
 
 export function promoteChild(
     node: UAObjectType | UAVariableType,
     propertyName: string,
     namespaceIndex: number,
-    modellingRule: ModellingRuleType
+    modellingRule?: ModellingRuleType
 ): UAConcrete {
     const { propInSuperType, reference } = getChildInTypeOrBaseType(node, propertyName, namespaceIndex);
 
@@ -131,7 +122,9 @@ export function promoteChild(
     const newProp = (propInSuperType as UAConcrete).clone({
         namespace: node.namespace,
         modellingRule,
-        references: [{...newRef}]
+        references: [{ ...newRef }],
+        copyAlsoModellingRules: true,
+        ignoreChildren: false
     });
     return newProp;
 }

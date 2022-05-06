@@ -775,36 +775,37 @@ export function _clone<T extends UAObject | UAVariable | UAMethod>(
     const cloneObj = new Constructor(constructorOptions);
     (this.addressSpace as AddressSpacePrivate)._register(cloneObj);
 
-    options.copyAlsoModellingRules = options.copyAlsoModellingRules || false;
+    if (!options.ignoreChildren) {
+        // clone children and the rest ....
+        options.copyAlsoModellingRules = options.copyAlsoModellingRules || false;
 
-    const newFilter = optionalFilter.filterFor(cloneObj);
+        const newFilter = optionalFilter.filterFor(cloneObj);
 
-    const browseNameMap = new Set<string>();
-    _clone_children_references(this, cloneObj, options.copyAlsoModellingRules, newFilter!, extraInfo, browseNameMap);
+        const browseNameMap = new Set<string>();
+        _clone_children_references(this, cloneObj, options.copyAlsoModellingRules, newFilter!, extraInfo, browseNameMap);
 
-    //
-    let typeDefinitionNode: UAVariableType | UAObjectType | null = this.typeDefinitionObj;
-    while (typeDefinitionNode) {
-        dotrace &&
-            traceLog(
-                extraInfo?.pad(),
-                chalk.blueBright("---------------------- Exploring ", typeDefinitionNode.browseName.toString())
+        //
+        let typeDefinitionNode: UAVariableType | UAObjectType | null = this.typeDefinitionObj;
+        while (typeDefinitionNode) {
+            dotrace &&
+                traceLog(
+                    extraInfo?.pad(),
+                    chalk.blueBright("---------------------- Exploring ", typeDefinitionNode.browseName.toString())
+                );
+            _clone_children_references(
+                typeDefinitionNode,
+                cloneObj,
+                options.copyAlsoModellingRules,
+                newFilter,
+                extraInfo,
+                browseNameMap
             );
-        _clone_children_references(
-            typeDefinitionNode,
-            cloneObj,
-            options.copyAlsoModellingRules,
-            newFilter,
-            extraInfo,
-            browseNameMap
-        );
-        typeDefinitionNode = typeDefinitionNode.subtypeOfObj;
+            typeDefinitionNode = typeDefinitionNode.subtypeOfObj;
+        }
+
+        _clone_non_hierarchical_references(this, cloneObj, options.copyAlsoModellingRules, newFilter, extraInfo, browseNameMap);
     }
-
-    _clone_non_hierarchical_references(this, cloneObj, options.copyAlsoModellingRules, newFilter, extraInfo, browseNameMap);
-
     cloneObj.propagate_back_references();
-
     cloneObj.install_extra_properties();
 
     return cloneObj;
