@@ -29,7 +29,7 @@ import {
     QualifiedNameOptions,
     stringToQualifiedName
 } from "node-opcua-data-model";
-import { checkDebugFlag, make_debugLog, make_errorLog } from "node-opcua-debug";
+import { checkDebugFlag, make_debugLog, make_errorLog, make_warningLog } from "node-opcua-debug";
 import { ExtensionObject } from "node-opcua-extension-object";
 import { DataTypeFactory, findSimpleType, getStandardDataTypeFactory } from "node-opcua-factory";
 import { NodeId, resolveNodeId } from "node-opcua-nodeid";
@@ -878,6 +878,11 @@ export function makeNodeSetParserEngine(addressSpace: IAddressSpace): NodeSet2Pa
 
                         // the "Default Xml" encoding  nodeId
                         const xmlEncodingNodeId = _translateNodeId(self.typeDefinitionId.toString());
+
+                        if (xmlEncodingNodeId.isEmpty()) {
+                            debugLog("xmlEncodingNodeId is empty for " + self.typeDefinitionId.toString());
+                            break;
+                        }
                         const xmlBody = this.bodyXML;
                         if (doDebug) {
                             debugLog("xxxx ", chalk.yellow(xmlBody));
