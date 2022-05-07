@@ -7,7 +7,7 @@
         "test": "mocha",
         "build": "tsc -b",
         "lint": "eslint source/**/*.ts",
-        "doc": "typedoc --options typedoc.js"
+        "doc": "npx typedoc@0.21 --options typedoc.js"
     },
     "main": "./dist/index.js",
     "types": "./dist/index.d.ts",
