@@ -475,14 +475,14 @@ export function t(test: any) {
             await pause(2000);
             {
                 const servers = await findServersOnNetwork(discoveryServerEndpointUrl);
-                if (doDebug || servers!.length !== 6) {
+                if (servers!.length !== 6) {
                     for (const s of servers!) {
                         console.log(s.toString());
                     }
                 }
                 servers!.length.should.eql(
                     6,
-                    "may be you have a LDS running on your system. please make sure to shut it down before running the tests"
+                    "found " + servers!.length + " server running instead of 6: may be you have a LDS running on your system. please make sure to shut it down before running the tests"
                 ); // 5 server + 1 discovery server
                 // servers[1].applicationUri.should.eql("urn:NodeOPCUA-Server");
             }
