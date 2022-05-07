@@ -1,7 +1,7 @@
 /***
  *
  */
-import { OPCUAServer } from "node-opcua-server";
+import { OPCUAServer, RegisterServerMethod } from "node-opcua-server";
 import { OPCUAClient } from "node-opcua-client";
 import * as should from "should";
 import { until } from "async";
@@ -17,7 +17,8 @@ describe("OPCUAClient#createSession2 - repeatly  createSession if Server returns
     before(async () => {
         server = new OPCUAServer({
             port,
-            maxAllowedSessionNumber: 1
+            maxAllowedSessionNumber: 1,
+            registerServerMethod: RegisterServerMethod.HIDDEN,
         });
         await server.start();
     });

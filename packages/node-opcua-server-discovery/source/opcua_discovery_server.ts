@@ -325,14 +325,24 @@ export class OPCUADiscoveryServer extends OPCUABaseServer {
 
         if (this.mDnsResponder) {
             for (const server of this.mDnsResponder.registeredServers) {
+                debugLog("Exploring server ", server.serverName);
                 if (server.recordId <= request.startingRecordId) {
                     continue;
                 }
                 if (!hasCapabilities(server.serverCapabilities, serverCapabilityFilter)) {
+                    debugLog(
+                        "   server ",
+                        server.serverName,
+                        server.serverCapabilities ? server.serverCapabilities.join(",") : [],
+                        " does not match serverCapabilities ",
+                        serverCapabilityFilter
+                    );
                     continue;
                 }
+                debugLog("   server ", server.serverName, " found");
                 servers.push(server);
                 if (servers.length === request.maxRecordsToReturn) {
+                    debugLog("max records to return reached", request.maxRecordsToReturn);
                     break;
                 }
             }
@@ -354,6 +364,7 @@ export class OPCUADiscoveryServer extends OPCUABaseServer {
         callback(new Error("internal Error"));
     }
 
+    // eslint-disable-next-line max-statements
     private async __internalRegisterServer(
         RegisterServerXResponse: any /* RegisterServer2Response | RegisterServerResponse */,
         rawServer: RegisteredServer,
