@@ -376,12 +376,14 @@ function constructHook(options: VariantOptions | Variant): VariantOptions2 {
                     opts.value = new opts.value.constructor(opts.value);
                 }
             } else {
-                opts.value = opts.value.map((e: any) => {
-                    if (e && e.constructor) {
-                        return new e.constructor(e);
-                    }
-                    return null;
-                });
+                if (opts.value) {
+                    opts.value = opts.value.map((e: any) => {
+                        if (e && e.constructor) {
+                            return new e.constructor(e);
+                        }
+                        return null;
+                    });
+                }
             }
         } else if (opts.arrayType !== VariantArrayType.Scalar) {
             opts.value = coerceVariantArray(opts.dataType, options.value);
@@ -736,7 +738,7 @@ function isEnumerationItem(value: any): boolean {
     return (
         value instanceof Object &&
         Object.prototype.hasOwnProperty.call(value, "value") &&
-        Object.prototype.hasOwnProperty.call(value, "key")  &&
+        Object.prototype.hasOwnProperty.call(value, "key") &&
         value.constructor.name === "EnumValueType"
     );
 }
@@ -966,7 +968,8 @@ export function buildVariantArray(
 }
 
 // old version of nodejs do not provide a Buffer#equals test
-const oldNodeVersion = typeof process === "object" && process.versions && process.versions.node && process.versions.node.substring(0, 1) === "0";
+const oldNodeVersion =
+    typeof process === "object" && process.versions && process.versions.node && process.versions.node.substring(0, 1) === "0";
 
 function __type(a: any): string {
     return Object.prototype.toString.call(a);
