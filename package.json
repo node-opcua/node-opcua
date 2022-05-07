@@ -35,7 +35,7 @@
         "licences": " npx license-checker --production --summary",
         "alex": "npx alex documentation/*.md",
         "cost-of-modules": "npx cost-of-modules",
-        "typedoc": "typedoc  --excludePrivate --excludeProtected --excludeInternal -options typedoc.config.json",
+        "typedoc": "npx typedoc@0.21  --excludePrivate --excludeProtected --excludeInternal -options typedoc.config.json",
         "legal": "npx legally",
         "legal2": "npx npm-license-crawler",
         "publish:lerna": "pnpm m run clean && npx rimraf packages/node_modules packages/*/dist  packages/*/*.tsbuildinfo && pnpm m i && npx lerna publish"
@@ -81,7 +81,6 @@
         "nyc": "^15.1.0",
         "prettier": "^2.6.1",
         "ts-node": "^10.7.0",
-        "typedoc": "0.22",
         "typescript": "4.6.3"
     },
     "typings": "./packages/node-opcua/node-opcua.d.ts",
@@ -146,7 +145,6 @@
         "thenify": "^3.3.1",
         "treeify": "^1.1.0",
         "tslib": "^2.3.1",
-        "typedocs": "^0.6.7",
         "underscore": "1.13.2",
         "vorpal": "^1.12.0",
         "vorpal-repl": "^1.1.8",
