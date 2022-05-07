@@ -7,9 +7,11 @@ import {
     resolveReferenceType,
     UAVariableType
 } from "node-opcua-address-space";
-import { NodeClass } from "node-opcua-data-model";
+import { BrowseDirection, NodeClass } from "node-opcua-data-model";
 import { NodeId, resolveNodeId } from "node-opcua-nodeid";
+import { UserNameIdentityToken } from "node-opcua-types";
 import { DataType } from "node-opcua-variant";
+import { option } from "yargs";
 import { TableHelper } from "./tableHelper";
 
 const a = "ⓂⓄⓋⓥⓇ❗⟵	⟶⟷";
@@ -36,7 +38,8 @@ function symbol(nodeClass: NodeClass) {
 const hasSubtypeNodeId = resolveNodeId("HasSubtype");
 
 export interface DisplayNodeOptions {
-    format: "cli" | "markdown";
+    format?: "cli" | "markdown";
+    recursive?: boolean; // default true
 }
 function encodeXML(s: string) {
     return s.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;");
@@ -46,13 +49,46 @@ interface Data {
     node: BaseNode;
     alreadyDumped: Record<string, any>;
     descriptions: Description[];
+    subElements?: any[];
 }
 interface Description {
     description: string;
     name: string;
     type: string;
 }
-function dumpReference(data: Data, ref: UAReference, filter?: string) {
+
+interface DumpReferenceOptions {
+    recursive?: boolean;
+    filter?: string;
+    prefix?: string;
+}
+
+function _dumpReferenceVariable(v: UAVariable, value: any, dataType: string): { value: any; dataType: string } {
+    const val = v.readValue().value.value;
+    if (v.dataType.isEmpty()) {
+        return { value, dataType };
+    }
+
+    if (v.isExtensionObject()) {
+        // don't do anything
+    } else if (v.isEnumeration() && val !== null) {
+        const enumValue = v.readEnumValue();
+        value = enumValue.value + " (" + enumValue.name + ")";
+    } else if (val instanceof Date) {
+        value = val ? val.toUTCString() : "";
+    } else {
+        value = val ? val.toString() : "null";
+    }
+    const actualDataType = DataType[v.readValue().value.dataType];
+    const basicDataType = DataType[v.dataTypeObj.basicDataType];
+    dataType = v.dataTypeObj.browseName.toString();
+    if (basicDataType !== dataType) {
+        dataType = dataType + "(" + basicDataType + ")";
+    }
+    return { value, dataType };
+}
+// eslint-disable-next-line complexity
+function dumpReference(data: Data, ref: UAReference, options: DumpReferenceOptions) {
     resolveReferenceNode(data.node.addressSpace, ref);
     if (!ref.isForward) {
         return;
@@ -71,10 +107,8 @@ function dumpReference(data: Data, ref: UAReference, filter?: string) {
     const refNode = ref.node!;
 
     const refType = resolveReferenceType(data.node.addressSpace, ref);
-    if (filter) {
-        if (refType.browseName.name !== filter) {
-            return;
-        }
+    if (options && options.filter && refType.browseName.name !== options.filter) {
+        return;
     }
     const key = ref.nodeId.toString() + ref.referenceType.toString();
     if (data.alreadyDumped[key]) {
@@ -87,31 +121,17 @@ function dumpReference(data: Data, ref: UAReference, filter?: string) {
     let dataType = "";
     if (refNode.nodeClass === NodeClass.Variable) {
         const v = refNode as UAVariable;
-
-        const val = v.readValue().value.value;
-        if (v.isExtensionObject()) {
-            // don't do anything
-        } else if (v.isEnumeration() && val !== null) {
-            const enumValue = v.readEnumValue();
-            value = enumValue.value + " (" + enumValue.name + ")";
-        } else if (val instanceof Date) {
-            value = val ? val.toUTCString() : "";
-        } else {
-            value = val ? val.toString() : "null";
-        }
-        const actualDataType = DataType[v.readValue().value.dataType];
-        const basicDataType = DataType[v.dataTypeObj.basicDataType];
-        dataType = v.dataTypeObj.browseName.toString();
-        if (basicDataType !== dataType) {
-            dataType = dataType + "(" + basicDataType + ")";
-        }
+        const t = _dumpReferenceVariable(v, value, dataType);
+        value = t.value;
+        dataType = t.dataType;
         // findBasicDataType(v.dataTypeObj);
     }
 
+    const prefix = options.prefix ? options.prefix + "." : "";
     const row = [
-        refType.browseName.toString() + dir + symbol(refNode.nodeClass),
+        "".padEnd(prefix.length) + refType.browseName.toString() + dir + symbol(refNode.nodeClass),
         refNode.nodeId.toString(),
-        encodeXML(refNode.browseName.toString()),
+        encodeXML(prefix + refNode.browseName.toString()),
         modelingRule,
         (refNode as any).typeDefinitionObj ? (refNode as any).typeDefinitionObj.browseName.toString() : "",
         dataType,
@@ -125,39 +145,62 @@ function dumpReference(data: Data, ref: UAReference, filter?: string) {
         name: refNode.browseName.name!,
         type: dataType
     });
+
+    // now push all children if there are any
+    if (options.recursive) {
+        const subReferences = refNode.findReferencesEx("HasChild", BrowseDirection.Forward);
+        if (subReferences.length) {
+            // xx console.log("refNode ", refNode.nodeId.toString(), refNode.toString());
+
+            const rowMidHeader = [encodeXML(prefix + refNode.browseName.toString()), "", "", "", "", "", ""];
+            data.table.push(rowMidHeader);
+            for (const subReference of subReferences) {
+                dumpReference(data, subReference, {
+                    ...options,
+                    prefix: prefix + refNode.browseName.toString(),
+                    recursive: false,
+                    filter: undefined
+                });
+            }
+        }
+    }
     data.alreadyDumped[key] = 1;
 }
-function dumpReferences(data: Data, _references: UAReference[]) {
+
+function dumpReferences(data: Data, _references: UAReference[], options: DumpReferenceOptions) {
     // xx for (const ref of references) {
     // xx  dumpReference(ref, "HasSubtype");
     // xx }
     for (const ref of _references) {
-        dumpReference(data, ref, "HasTypeDefinition");
+        dumpReference(data, ref, { filter: "HasTypeDefinition" });
     }
     for (const ref of _references) {
-        dumpReference(data, ref, "HasEncoding");
+        dumpReference(data, ref, { filter: "HasEncoding" });
     }
     for (const ref of _references) {
-        dumpReference(data, ref, "HasComponent");
+        dumpReference(data, ref, { ...options, filter: "HasComponent" });
     }
     for (const ref of _references) {
-        dumpReference(data, ref, "HasProperty");
+        dumpReference(data, ref, { ...options, filter: "HasProperty" });
     }
     for (const ref of _references) {
-        dumpReference(data, ref, "Organizes");
+        dumpReference(data, ref, { ...options, filter: "Organizes" });
     }
     for (const ref of _references) {
-        dumpReference(data, ref, "HasInterface");
+        dumpReference(data, ref, { filter: "HasInterface" });
     }
     for (const ref of _references) {
-        dumpReference(data, ref, undefined);
+        dumpReference(data, ref, {});
     }
+    /// subElements = [];
 }
 
 function shortDescription(d: string) {
     return d.split(/\.|\n/)[0];
 }
 export function displayNodeElement(node: BaseNode, options?: DisplayNodeOptions): string {
+    const recursive = options && options.recursive !== undefined ? !!options.recursive : true;
+
     const head: string[] = ["ReferenceType", "NodeId", "BrowseName", "ModellingRule", "TypeDefinition", "DataType", "Value"];
 
     function createTable() {
@@ -184,7 +227,8 @@ export function displayNodeElement(node: BaseNode, options?: DisplayNodeOptions)
     const references = node.allReferences();
 
     const data = { table, node, alreadyDumped, descriptions };
-    dumpReferences(data, references);
+
+    dumpReferences(data, references, { recursive });
 
     function toText(table: TableHelper) {
         if (options && options.format === "markdown") {
@@ -215,7 +259,8 @@ export function displayNodeElement(node: BaseNode, options?: DisplayNodeOptions)
             data.table = createTable();
             data.table.push([subtypeOf.browseName.toString() + ":", "--", "--", "--"]);
             const references2 = subtypeOf.allReferences();
-            dumpReferences(data, references2);
+
+            dumpReferences(data, references2, { recursive: false });
 
             str.push("<details>");
             str.push("<summary>Base type: " + subtypeOf.browseName.toString() + "</summary>");

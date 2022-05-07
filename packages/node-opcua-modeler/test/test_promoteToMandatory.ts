@@ -86,6 +86,8 @@ describe("promoteToMandatory", () => {
 
         const parameterSet = promoteToMandatory(boilerType, "ParameterSet", nsDI);
 
+        should.exist(boilerType.getComponentByName("ParameterSet", nsDI));
+
         ns.addVariable({
             browseName: "Parameter1",
             dataType: DataType.Int32,
