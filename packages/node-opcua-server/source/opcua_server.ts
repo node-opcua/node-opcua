@@ -848,7 +848,7 @@ export interface OPCUAServerOptions extends OPCUABaseServerOptions, OPCUAServerE
      * - MDNS: the server publish itself to the mDNS Multicast network directly
      * - LDS: the server registers itself to the LDS or LDS-ME (Local Discovery Server)
      *
-     *  @default  RegisterServerMethod.HIDDEN - by default the server
+     *  @default    .HIDDEN - by default the server
      *            will not register itself to the local discovery server
      *
      */

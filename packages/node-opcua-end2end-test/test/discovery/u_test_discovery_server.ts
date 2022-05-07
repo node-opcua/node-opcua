@@ -18,7 +18,6 @@ import {
     StatusCodes,
     RegisterServerMethod,
     makeApplicationUrn,
-    FindServerResults,
     OPCUADiscoveryServer
 } from "node-opcua";
 import { readCertificate, exploreCertificate } from "node-opcua-crypto";
@@ -334,12 +333,12 @@ export function t(test: any) {
             OPCUAServer.registry.count().should.eql(0);
         });
 
-        beforeEach(async () => {
+        before(async () => {
             discoveryServer = await startDiscovery(port_discovery);
             discoveryServerEndpointUrl = ep(discoveryServer);
         });
 
-        afterEach(async () => {
+        after(async () => {
             await discoveryServer.shutdown();
         });
 
@@ -347,14 +346,22 @@ export function t(test: any) {
 
         async function checkServerCertificateAgainsLDS(server: OPCUAServer) {
             const certificate = await server.getCertificate();
-            const certIngo = await exploreCertificate(certificate);
+            const certificateInfo = await exploreCertificate(certificate);
             if (doDebug) {
-                console.log(certIngo);
+                console.log(certificateInfo);
             }
-            const status = await discoveryServer.serverCertificateManager.verifyCertificate(certificate);
+            const statusBefore = await discoveryServer.serverCertificateManager.verifyCertificate(certificate);
             if (doDebug) {
-                console.log(status);
+                console.log("statusBefore = ", statusBefore);
             }
+            
+            await discoveryServer.serverCertificateManager.trustCertificate(certificate);
+
+            const statusAfter = await discoveryServer.serverCertificateManager.verifyCertificate(certificate);
+            if (doDebug) {
+                console.log("statusAfter = ", statusAfter);
+            }
+            statusAfter.should.eql("Good");
         }
 
         function start_all_servers(done: () => void) {
@@ -461,7 +468,7 @@ export function t(test: any) {
 
             discoveryServer.registeredServerCount.should.equal(5);
 
-            await pause(2000);
+            await pause(1000);
 
             const { servers, endpoints } = await findServers(discoveryServerEndpointUrl);
             if (doDebug) {
@@ -472,7 +479,7 @@ export function t(test: any) {
             servers.length.should.eql(6); // 5 server + 1 discovery server
 
             // servers[1].applicationUri.should.eql("urn:NodeOPCUA-Server");
-            await pause(2000);
+            await pause(1000);
             {
                 const servers = await findServersOnNetwork(discoveryServerEndpointUrl);
                 if (servers!.length !== 6) {
@@ -482,7 +489,9 @@ export function t(test: any) {
                 }
                 servers!.length.should.eql(
                     6,
-                    "found " + servers!.length + " server running instead of 6: may be you have a LDS running on your system. please make sure to shut it down before running the tests"
+                    "found " +
+                        servers!.length +
+                        " server running instead of 6: may be you have a LDS running on your system. please make sure to shut it down before running the tests"
                 ); // 5 server + 1 discovery server
                 // servers[1].applicationUri.should.eql("urn:NodeOPCUA-Server");
             }

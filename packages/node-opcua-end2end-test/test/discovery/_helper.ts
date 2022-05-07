@@ -104,11 +104,8 @@ export function ep(server: OPCUABaseServer) {
 }
 
 export async function createDiscovery(port: number): Promise<OPCUADiscoveryServer> {
-    const serverCertificateManager = new OPCUACertificateManager({
-        automaticallyAcceptUnknownCertificate: true,
-        rootFolder: path.join(configFolder, "PKI-Discovery" + port)
-    });
-    await serverCertificateManager.initialize();
+
+    const serverCertificateManager = await createServerCertificateManager(port)
 
     const privateKeyFile = serverCertificateManager.privateKey;
     const certificateFile = path.join(serverCertificateManager.rootDir, "certificate_discovery_server.pem");
