@@ -24,14 +24,16 @@ describe("displayNodeElement", () => {
     });
 
     it("displayNodeElement", () => {
-        const str0 = displayNodeElement(addressSpace.rootFolder);
+        const str0 = displayNodeElement(addressSpace.rootFolder, { recursive: false });
 
-        const str1 = displayNodeElement(addressSpace.rootFolder.objects.server, { format: "cli" });
+        const str1 = displayNodeElement(addressSpace.rootFolder.objects.server, { format: "cli", recursive: false });
 
-        // console.log(removeDecoration(str1));
+      //  console.log(removeDecoration(str1));
 
-        removeDecoration(str1).split("\n").should.eql(
-`┌──────────────────────┬──────────────┬──────────────────────────┬───────────────┬─────────────────────────┬───────────────────────────────────────┬──────────────────────────────────────────────────────────────┐
+        removeDecoration(str1)
+            .split("\n")
+            .should.eql(
+                `┌──────────────────────┬──────────────┬──────────────────────────┬───────────────┬─────────────────────────┬───────────────────────────────────────┬──────────────────────────────────────────────────────────────┐
 │ ReferenceType        │ NodeId       │ BrowseName               │ ModellingRule │ TypeDefinition          │ DataType                              │ Value                                                        │
 ├──────────────────────┼──────────────┴──────────────────────────┴───────────────┴─────────────────────────┴───────────────────────────────────────┴──────────────────────────────────────────────────────────────┤
 │ BrowseName:          │ Server                                                                                                                                                                                   │
@@ -78,8 +80,8 @@ describe("displayNodeElement", () => {
 ├──────────────────────┼──────────────┼──────────────────────────┼───────────────┼─────────────────────────┼───────────────────────────────────────┼──────────────────────────────────────────────────────────────┤
 │ HasProperty Ⓥ        │ ns=0;i=17634 │ LocalTime                │               │ PropertyType            │ TimeZoneDataType(ExtensionObject)     │                                                              │
 └──────────────────────┴──────────────┴──────────────────────────┴───────────────┴─────────────────────────┴───────────────────────────────────────┴──────────────────────────────────────────────────────────────┘`.split(
-    "\n"
-            )
-        );
+                    "\n"
+                )
+            );
     });
 });
