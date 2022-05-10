@@ -89,7 +89,15 @@ import { BaseNodeImpl, InternalBaseNodeOptions } from "./base_node_impl";
 import { _clone, ToStringBuilder, UAVariable_toString, valueRankToString } from "./base_node_private";
 import { EnumerationInfo, IEnumItem, UADataTypeImpl } from "./ua_data_type_impl";
 import { apply_condition_refresh, ConditionRefreshCache } from "./apply_condition_refresh";
-import { extractPartialData, propagateTouchValueUpward, setExtensionObjectValue, _bindExtensionObject, _installExtensionObjectBindingOnProperties, _setExtensionObject, _touchValue } from "./ua_variable_impl_ext_obj";
+import {
+    extractPartialData,
+    propagateTouchValueUpward,
+    setExtensionObjectValue,
+    _bindExtensionObject,
+    _installExtensionObjectBindingOnProperties,
+    _setExtensionObject,
+    _touchValue
+} from "./ua_variable_impl_ext_obj";
 
 const debugLog = make_debugLog(__filename);
 const warningLog = make_warningLog(__filename);
@@ -774,7 +782,6 @@ export class UAVariableImpl extends BaseNodeImpl implements UAVariable {
             } else {
                 this._internal_set_dataValue(dataValue);
             }
-
         } catch (err) {
             errorLog("UAVariable#setValueFromString Error : ", this.browseName.toString(), this.nodeId.toString());
             errorLog((err as Error).message);
@@ -1167,7 +1174,7 @@ export class UAVariableImpl extends BaseNodeImpl implements UAVariable {
         if (!context) {
             context = SessionContext.defaultContext;
         }
-        assert(typeof callback  === 'function');
+        assert(typeof callback === "function");
 
         this.__waiting_callbacks = this.__waiting_callbacks || [];
         this.__waiting_callbacks.push(callback);
@@ -1324,8 +1331,8 @@ export class UAVariableImpl extends BaseNodeImpl implements UAVariable {
 
     /**
      * @private
-     * install UAVariable to exposed th  
-     * 
+     * install UAVariable to exposed th
+     *
      * precondition:
      */
     public installExtensionObjectVariables(): void {
@@ -1347,9 +1354,8 @@ export class UAVariableImpl extends BaseNodeImpl implements UAVariable {
         optionalExtensionObject?: ExtensionObject,
         options?: BindExtensionObjectOptions
     ): ExtensionObject | null {
-       return  _bindExtensionObject(this, optionalExtensionObject, options);
+        return _bindExtensionObject(this, optionalExtensionObject, options);
     }
-
 
     public updateExtensionObjectPartial(partialExtensionObject?: { [key: string]: any }): ExtensionObject {
         setExtensionObjectValue(this, partialExtensionObject);
@@ -1412,7 +1418,7 @@ export class UAVariableImpl extends BaseNodeImpl implements UAVariable {
         callback?: CallbackT<HistoryReadResult>
     ): any {
         assert(context instanceof SessionContext);
-        assert(typeof callback === 'function');
+        assert(typeof callback === "function");
         if (typeof this._historyRead !== "function") {
             return callback!(null, new HistoryReadResult({ statusCode: StatusCodes.BadNotReadable }));
         }
@@ -1504,7 +1510,6 @@ export class UAVariableImpl extends BaseNodeImpl implements UAVariable {
         }
         this.$dataValue.value = value;
     }
-
 
     public _internal_set_dataValue(dataValue: DataValue, indexRange?: NumericRange | null): void {
         assert(dataValue, "expecting a dataValue");
@@ -1685,7 +1690,6 @@ export interface UAVariableImpl {
     $$extensionObjectArray: any;
     $$indexPropertyName: any;
 }
-
 
 function check_valid_array(dataType: DataType, array: any): boolean {
     if (Array.isArray(array)) {

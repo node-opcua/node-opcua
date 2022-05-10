@@ -243,11 +243,14 @@ function _dumpVariantInnerExtensionObject(
         const lowerFieldName = utils.lowerFirstLetter(fieldName);
         const v = (value as unknown as Record<string, unknown>)[lowerFieldName];
         if (v !== null && v !== undefined) {
-
-            if (dataTypeNodeId.namespace === 0 && dataTypeNodeId.value ===0 && dataTypeNodeId.identifierType === NodeIdType.NUMERIC) {
+            if (
+                dataTypeNodeId.namespace === 0 &&
+                dataTypeNodeId.value === 0 &&
+                dataTypeNodeId.identifierType === NodeIdType.NUMERIC
+            ) {
                 // to do ?? shall we do a extension Object here ?
                 continue; // ns=0;i=0 is reserved
-            }          
+            }
             const { name, definition } = definitionMap.findDefinition(dataTypeNodeId);
             xw.startElement(fieldName);
 
@@ -324,6 +327,7 @@ function _dumpVariantInnerValue(
             xw.text(value[1].toString());
             break;
         case DataType.Boolean:
+        case DataType.SByte:
         case DataType.Byte:
         case DataType.Float:
         case DataType.Double:
@@ -628,7 +632,10 @@ function dumpReferencedNodes(xw: XmlWriter, node: BaseNode, forward: boolean) {
                 const typeDefinitionObj = ReferenceImpl.resolveReferenceNode(addressSpace, r[0])! as BaseNode;
                 if (!typeDefinitionObj) {
                     warningLog(node.toString());
-                    warningLog("dumpReferencedNodes: Warning : " + node.browseName.toString() + " unknown typeDefinition, ", r[0].toString());
+                    warningLog(
+                        "dumpReferencedNodes: Warning : " + node.browseName.toString() + " unknown typeDefinition, ",
+                        r[0].toString()
+                    );
                 } else {
                     assert(typeDefinitionObj instanceof BaseNodeImpl);
                     if (typeDefinitionObj.nodeId.namespace === node.nodeId.namespace) {
