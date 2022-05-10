@@ -28,7 +28,7 @@ jobs:
       with:
         path: ~/.pnpm-store
         key: ${{ runner.os }}-pnpm-store
-    - run: npm install -g pnpm
+    - run: npm install -g pnpm@6
     - run: pnpm recursive install
     - run: pnpm run build --if-present
     - run: pnpm run pretest
@@ -49,7 +49,7 @@ jobs:
       with:
         path: ~/.pnpm-store
         key: ${{ runner.os }}-pnpm-store
-    - run: npm install -g pnpm
+    - run: npm install -g pnpm@6
     - run: pnpm recursive install
     - run: pnpm run build
     - run: pnpm run pretest
@@ -71,7 +71,7 @@ jobs:
           key: ${{ runner.os }}-pnpm-store
       - run: npm install -g nyc@14 istanbul coveralls codecov
       - run: npm install -g codeclimate-test-reporter
-      - run: npm install -g pnpm
+      - run: npm install -g pnpm@6
       - run: pnpm recursive install
       - run: pnpm run build 
       - run: pnpm run pretest
