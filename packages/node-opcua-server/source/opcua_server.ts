@@ -605,7 +605,7 @@ function validate_applicationUri(channel: ServerSecureChannelLayer, request: Cre
         return true; // can't check
     }
     const e = exploreCertificate(clientCertificate);
-    const applicationUriFromCert = e.tbsCertificate.extensions!.subjectAltName.uniformResourceIdentifier[0];
+    const applicationUriFromCert = e.tbsCertificate.extensions!.subjectAltName?.uniformResourceIdentifier[0];
 
     /* istanbul ignore next */
     if (applicationUriFromCert !== applicationUri) {
