@@ -263,7 +263,7 @@ describe("BSHB - Binary Schemas Helper 2", () => {
     it("BSHB3 - should construct a dynamic object structure 1", () => {
         const SystemStateDescriptionDataType = getOrCreateConstructor("SystemStateDescriptionDataType", dataTypeFactory);
 
-        const SystemState = dataTypeFactory.getEnumeration("SystemStateDataType")!.enumValues as SystemStateEnum2;
+        const SystemState = dataTypeFactory.getEnumeration("SystemStateDataType")!.enumValues;
 
         const systemStateDescription = new SystemStateDescriptionDataType({
             state: SystemStateEnum2.ENG_3,
