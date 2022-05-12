@@ -22,6 +22,7 @@ import { createServerThatRegistersItselfToTheDiscoveryServer, f, startDiscovery 
 
 const debugLog = make_debugLog("TEST");
 const doDebug = checkDebugFlag("TEST");
+const doDebug1 = false;
 
 const port2 = 1240;
 const port1 = 1241;
@@ -77,9 +78,9 @@ export function t(test: any) {
         });
 
         const shutdownServer = f(function shutdown_the_opcua_server(callback: ErrorCallback) {
-            g_server.shutdown(function () {
+            g_server.shutdown(() => {
                 if (doDebug) {
-                    debugLog("Server has been shot down");
+                    debugLog("Server has been shut down");
                 }
                 callback();
             });
@@ -145,9 +146,11 @@ export function t(test: any) {
                                 }
                             })
                             .on("keepalive", function () {
-                                debugLog("keepalive");
+                                debugLog("subscription keepalive", client.clientName);
                             })
-                            .on("terminated", function () {/** */});
+                            .on("terminated", function () {
+                                /** */
+                            });
                         const monitoredItem = ClientMonitoredItem.create(
                             subscription,
                             {
@@ -162,7 +165,7 @@ export function t(test: any) {
                             TimestampsToReturn.Both
                         );
                         monitoredItem.on("changed", function (dataValue) {
-                            if (doDebug) {
+                            if (doDebug1) {
                                 debugLog(dataValue.toString());
                             }
                         });
@@ -178,7 +181,9 @@ export function t(test: any) {
 
         const shutdownClients = f(function disconnect_the_opcua_clients(callback: ErrorCallback) {
             function removeClient(callback: ErrorCallback) {
-                if (!clients) { return callback();}
+                if (!clients) {
+                    return callback();
+                }
                 const { client, session, subscription, monitoredItem } = clients.pop()!;
 
                 subscription.terminate((err?: Error) => {
@@ -204,11 +209,11 @@ export function t(test: any) {
         });
 
         const wait_a_few_seconds = f(function wait_a_few_seconds(callback: ErrorCallback) {
-            setTimeout(callback, 1100);
+            setTimeout(callback, 500);
         });
 
         const wait_a_minute = f(function wait_a_minute(callback: ErrorCallback) {
-            setTimeout(callback, 10* 1000);
+            setTimeout(callback, 2 * 1000);
         });
 
         before((done) => {
@@ -219,11 +224,15 @@ export function t(test: any) {
             stopDiscoveryServer(done);
         });
 
-        it("DISCO4-A - should perform start/stop cycle efficiently ", function (done) {
+        it("DISCO4-A - should perform start/stop cycle efficiently - wait ", function (done) {
             async.series([createServer, wait_a_few_seconds, shutdownServer], done);
         });
 
-        it("DISCO4-B - should perform start/stop cycle efficiently ", function (done) {
+        it("DISCO4-Z - should perform start/stop cycle efficiently - long wait ", function (done) {
+            async.series([createServer, wait_a_minute, wait_a_minute, wait_a_minute, shutdownServer], done);
+        });
+
+        it("DISCO4-B - should perform start/stop cycle efficiently - no wait ", function (done) {
             async.series([createServer, shutdownServer], done);
         });
 
@@ -581,4 +590,4 @@ export function t(test: any) {
             await server2.shutdown();
         });
     });
-};
+}

@@ -329,6 +329,7 @@ function _dumpVariantInnerValue(
         case DataType.Boolean:
         case DataType.SByte:
         case DataType.Byte:
+        case DataType.SByte:
         case DataType.Float:
         case DataType.Double:
         case DataType.Int16:

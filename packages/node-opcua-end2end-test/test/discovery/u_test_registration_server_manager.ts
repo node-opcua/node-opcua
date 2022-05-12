@@ -70,7 +70,7 @@ export function t() {
                     // waiting for server to be registered
                     debugLog("Waiting for server to be registered");
                     server.once("serverRegistered", () => {
-                        debugLog("server serverRegistered");
+                        debugLog("on serverRegistered event received:  server has registered itself to the LDS");
                         resolve();
                     });
                 });
@@ -83,9 +83,8 @@ export function t() {
                     debugLog("server serverUnregistered");
                     serverUnregisteredCount += 1;
                 });
-
-                //
                 await server.shutdown();
+                debugLog("server has shut down");
             });
             await fa("then server must have unregistered itself from the LDS", async () => {
                 serverUnregisteredCount.should.eql(1);

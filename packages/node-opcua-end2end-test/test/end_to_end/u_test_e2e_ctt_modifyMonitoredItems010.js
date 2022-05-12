@@ -7,7 +7,6 @@ const {
     ClientSidePublishEngine,
     Subscription
 } = require("node-opcua");
-const { perform_operation_on_session_async } = require("../../test_helpers/perform_operation_on_client_session");
 const sinon = require("sinon");
 
 const itemsToMonitor1 = [

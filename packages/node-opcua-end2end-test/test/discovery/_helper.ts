@@ -84,16 +84,16 @@ export async function createServerThatRegistersItselfToTheDiscoveryServer(
     server.discoveryServerEndpointUrl.should.eql(discoveryServerEndpointUrl);
 
     server.on("serverRegistrationPending", () => {
-        debugLog("server serverRegistrationPending");
+        debugLog("on serverRegistrationPending event received on server " + server.getEndpointUrl());
     });
     server.on("serverRegistered", () => {
-        debugLog("server serverRegistered");
+        debugLog("on serverRegistered event received on server " + server.getEndpointUrl());
     });
     server.on("serverRegistrationRenewed", () => {
-        debugLog("server serverRegistrationRenewed");
+        debugLog("on serverRegistrationRenewed event received on server " + server.getEndpointUrl());
     });
     server.on("serverUnregistered", () => {
-        debugLog("server serverUnregistered");
+        debugLog("on serverUnregistered event received on server " + server.getEndpointUrl());
     });
     return server;
 }

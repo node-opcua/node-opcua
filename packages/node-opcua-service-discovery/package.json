@@ -12,7 +12,7 @@
     "types": "./dist/index.d.ts",
     "dependencies": {
         "@types/bonjour": "^3.5.10",
-        "bonjour": "^3.5.0",
+        "sterfive-bonjour-service": "1.1.4",
         "node-opcua-assert": "2.66.0",
         "node-opcua-basic-types": "2.68.0",
         "node-opcua-binary-stream": "2.67.0",
