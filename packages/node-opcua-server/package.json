@@ -15,7 +15,6 @@
         "@ster5/global-mutex": "^1.2.0",
         "@types/underscore": "^1.11.4",
         "async": "^3.2.3",
-        "bonjour": "^3.5.0",
         "dequeue": "^1.0.5",
         "lodash": "4.17.21",
         "node-opcua-address-space": "2.68.1",

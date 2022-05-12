@@ -29,7 +29,9 @@ import {
     RegisterServer2Response,
     RegisterServerRequest,
     RegisterServerResponse,
-    sameAnnouncement,
+    sameService,
+    serviceToString,
+    announcementToServiceConfig,
     ServerOnNetwork
 } from "node-opcua-service-discovery";
 import { OPCUACertificateManager } from "node-opcua-certificate-manager";
@@ -41,11 +43,6 @@ import { MDNSResponder } from "./mdns_responder";
 
 const debugLog = make_debugLog(__filename);
 const doDebug = checkDebugFlag(__filename);
-
-function constructFilename(p: string): string {
-    const filename = path.join(__dirname, "..", p);
-    return filename;
-}
 
 function hasCapabilities(serverCapabilities: UAString[] | null, serverCapabilityFilter: string): boolean {
     if (serverCapabilities == null) {
@@ -148,8 +145,8 @@ export class OPCUADiscoveryServer extends OPCUABaseServer {
     }
 
     public async start(): Promise<void>;
-    public start(done: ErrorCallback): void;
-    public start(done?: ErrorCallback): any {
+    public start(callback: ErrorCallback): void;
+    public start(callback?: ErrorCallback): any {
         assert(!this.mDnsResponder);
         assert(Array.isArray(this.capabilitiesForMDNS));
 
@@ -159,11 +156,11 @@ export class OPCUADiscoveryServer extends OPCUABaseServer {
 
         super.start((err?: Error | null) => {
             if (err) {
-                return done!(err);
+                return callback!(err);
             }
             this.mDnsResponder = new MDNSResponder();
             // declare discovery server in bonjour
-            this.bonjourHolder._announcedOnMulticastSubnetWithCallback(
+            this.bonjourHolder.announcedOnMulticastSubnetWithCallback(
                 {
                     capabilities: this.capabilitiesForMDNS,
                     name: this.serverInfo.applicationUri!,
@@ -171,28 +168,34 @@ export class OPCUADiscoveryServer extends OPCUABaseServer {
                     port: this.endpoints[0].port
                 },
                 (err2: Error | null) => {
-                    done!(err2!);
+                    callback!(err2!);
                 }
             );
         });
     }
 
     public async shutdown(): Promise<void>;
-    public shutdown(done: ErrorCallback): void;
-    public shutdown(done?: ErrorCallback): any {
+    public shutdown(callback: ErrorCallback): void;
+    public shutdown(callback?: ErrorCallback): any {
         debugLog("stopping announcement of LDS on mDNS");
-        this.bonjourHolder._stop_announcedOnMulticastSubnetWithCallback((err?: Error | null) => {
+
+        if (this.mDnsResponder) {
+            this.mDnsResponder.dispose();
+            this.mDnsResponder = undefined;
+        }
+
+        this.bonjourHolder.stopAnnouncedOnMulticastSubnetWithCallback((err?: Error | null) => {
             if (err) {
                 console.log("Error ", err.message);
             }
+
             debugLog("stopping announcement of LDS on mDNS - DONE");
             debugLog("Shutting down Discovery Server");
+
             super.shutdown(() => {
-                if (this.mDnsResponder) {
-                    this.mDnsResponder.dispose();
-                    this.mDnsResponder = undefined;
-                }
-                setTimeout(() => done!(), 10);
+                setTimeout(()=>{
+                    callback!();
+                },100);
             });
         });
     }
@@ -326,17 +329,21 @@ export class OPCUADiscoveryServer extends OPCUABaseServer {
         if (this.mDnsResponder) {
             for (const server of this.mDnsResponder.registeredServers) {
                 debugLog("Exploring server ", server.serverName);
+
                 if (server.recordId <= request.startingRecordId) {
                     continue;
                 }
                 if (!hasCapabilities(server.serverCapabilities, serverCapabilityFilter)) {
-                    debugLog(
-                        "   server ",
-                        server.serverName,
-                        server.serverCapabilities ? server.serverCapabilities.join(",") : [],
-                        " does not match serverCapabilities ",
-                        serverCapabilityFilter
-                    );
+                    // istanbul ignore next
+                    if (doDebug) {
+                        debugLog(
+                            "   server ",
+                            server.serverName,
+                            server.serverCapabilities ? server.serverCapabilities.join(",") : [],
+                            " does not match serverCapabilities ",
+                            serverCapabilityFilter
+                        );
+                    }
                     continue;
                 }
                 debugLog("   server ", server.serverName, " found");
@@ -354,7 +361,7 @@ export class OPCUADiscoveryServer extends OPCUABaseServer {
         channel.send_response("MSG", response, message);
     }
 
-    private async __internalRegisterServerWithCallback(
+    protected async __internalRegisterServerWithCallback(
         RegisterServerXResponse: any /* RegisterServer2Response | RegisterServerResponse */,
         rawServer: RegisteredServer,
         discoveryConfigurations: MdnsDiscoveryConfiguration[] | undefined,
@@ -365,7 +372,7 @@ export class OPCUADiscoveryServer extends OPCUABaseServer {
     }
 
     // eslint-disable-next-line max-statements
-    private async __internalRegisterServer(
+    protected async __internalRegisterServer(
         RegisterServerXResponse: any /* RegisterServer2Response | RegisterServerResponse */,
         rawServer: RegisteredServer,
         discoveryConfigurations?: MdnsDiscoveryConfiguration[]
@@ -391,27 +398,32 @@ export class OPCUADiscoveryServer extends OPCUABaseServer {
 
         async function _stop_announcedOnMulticastSubnet(conf: MdnsDiscoveryConfiguration): Promise<void> {
             const b = (conf as any).bonjourHolder as BonjourHolder;
-            await b._stop_announcedOnMulticastSubnet();
+            await b.stopAnnnouncedOnMulticastSubnet();
             (conf as any).bonjourHolder = undefined;
         }
 
         async function _announcedOnMulticastSubnet(conf: MdnsDiscoveryConfiguration, announcement: Announcement): Promise<void> {
+            const serviceConfig = announcementToServiceConfig(announcement);
+
             let b = (conf as any).bonjourHolder as BonjourHolder;
-            if (b && b.announcement) {
-                if (sameAnnouncement(b.announcement, announcement)) {
+            if (b && b.serviceConfig) {
+                if (sameService(b.serviceConfig, serviceConfig)) {
                     debugLog("Configuration ", conf.mdnsServerName, " has not changed !");
                     // nothing to do
                     return;
                 } else {
-                    debugLog("Configuration ", conf.mdnsServerName, " HAS changed !");
-                    debugLog(" Was ", b.announcement);
-                    debugLog(" is  ", announcement);
+                    // istanbul ignore next
+                    if (doDebug) {
+                        debugLog("Configuration ", conf.mdnsServerName, " HAS changed !");
+                        debugLog(" Was ", serviceToString(b.serviceConfig));
+                        debugLog(" is  ", announcement);
+                    }
                 }
                 await _stop_announcedOnMulticastSubnet(conf);
             }
             b = new BonjourHolder();
             (conf as any).bonjourHolder = b;
-            await b._announcedOnMulticastSubnet(announcement);
+            await b.announcedOnMulticastSubnet(announcement);
         }
 
         async function dealWithDiscoveryConfiguration(

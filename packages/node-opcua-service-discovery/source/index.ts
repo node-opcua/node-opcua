@@ -26,10 +26,10 @@ export {
 
 export { serverCapabilities } from "./server_capabilities";
 export {
-    acquireBonjour,
     Announcement,
-    releaseBonjour,
     BonjourHolder,
-    sameAnnouncement,
-    _announceServerOnMulticastSubnet
+    isSameService as sameService,
+    _announceServerOnMulticastSubnet,
+    announcementToServiceConfig,
+    serviceToString,
 }from "./bonjour";

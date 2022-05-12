@@ -29,12 +29,11 @@ export class RegisterServerManagerMDNSONLY extends EventEmitter implements IRegi
 
     public stop(callback: () => void): void {
         if (this.bonjour) {
-            this.bonjour._stop_announcedOnMulticastSubnet();
+            this.bonjour.stopAnnouncedOnMulticastSubnetWithCallback(()=>{
+                this.emit("serverUnregistered");
+                setImmediate(callback);
+            });
         }
-        setImmediate(() => {
-            this.emit("serverUnregistered");
-            setImmediate(callback);
-        });
     }
 
     public start(callback: () => void): void {
@@ -44,13 +43,12 @@ export class RegisterServerManagerMDNSONLY extends EventEmitter implements IRegi
         }
         assert(this.server instanceof OPCUABaseServer);
 
-        this.bonjour._announcedOnMulticastSubnet({
+        this.bonjour.announcedOnMulticastSubnetWithCallback({
             capabilities: this.server.capabilitiesForMDNS,
             name: this.server.serverInfo.applicationUri!,
             path: "/", // <- to do
             port: this.server.endpoints[0].port
-        });
-        setImmediate(() => {
+        }, ()=>{
             this.emit("serverRegistered");
             setImmediate(callback);
         });
