@@ -1,4 +1,4 @@
-image: node:latest
+image: node:16
 
 stages:
   - build
@@ -24,6 +24,6 @@ build_and_test:
   script:
     - pnpm run build --if-present
     - pnpm run pretest
-    # - node packages/parallel_test.js
-    - node packages/run_all_mocha_tests.js DISCO3
+    - node packages/parallel_test.js
+    # - node packages/run_all_mocha_tests.js DISCO3
  
