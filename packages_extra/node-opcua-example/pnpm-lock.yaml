@@ -1,7 +1,7 @@
-lockfileVersion: 5.3
+lockfileVersion: 5.4
 
 specifiers:
-  node-opcua: 2.68.0
+  node-opcua: 2.68.1
   should: ^13.2.3
 
 dependencies:
