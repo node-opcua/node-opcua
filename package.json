@@ -1,6 +1,6 @@
 {
     "name": "node-opcua-mono-repo",
-    "version": "2.9.1",
+    "version": "2.68.0",
     "private": true,
     "description": "pure nodejs OPCUA SDK",
     "homepage": "http://node-opcua.github.io/",
@@ -10,6 +10,7 @@
         "test": "test"
     },
     "scripts": {
+        "version:check": "npx -y @ster5/check-version-consistency",
         "preinstall": "node prevent_npm_install.js",
         "postinstall": "pnpm build",
         "_x_preinstall": "npm i browserify -g",
@@ -95,7 +96,7 @@
         "@types/once": "^1.4.0",
         "@types/rimraf": "^3.0.2",
         "@types/sinon": "10.0.11",
-        "@types/underscore": "1.11.4",
+        "@types/underscore": "^1.11.4",
         "@types/wordwrap": "^1.0.1",
         "@types/yargs": "17.0.10",
         "async": "^3.2.3",
@@ -145,13 +146,13 @@
         "thenify": "^3.3.1",
         "treeify": "^1.1.0",
         "tslib": "^2.3.1",
-        "underscore": "1.13.2",
+        "underscore": "^1.13.2",
         "vorpal": "^1.12.0",
         "vorpal-repl": "^1.1.8",
         "wordwrap": "^1.0.0",
         "wrap-text": "^1.0.9",
         "xml-writer": "^1.7.0",
-        "yargs": "16.2.0"
+        "yargs": "15.4.1"
     },
     "funding": {
         "url": "https://github.com/sponsors/erossignon"
