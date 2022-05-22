@@ -1,5 +1,5 @@
 "use strict";
-/* global describe,it*/
+const util = require("util");
 const should = require("should");
 const async = require("async");
 
@@ -13,8 +13,7 @@ const { hexDump } = require("node-opcua-debug");
 
 const debugLog = require("node-opcua-debug").make_debugLog(__filename);
 
-const MessageBuilder = require("..").MessageBuilder;
-const MessageChunker = require("..").MessageChunker;
+const { MessageBuilder, MessageChunker } = require("..");
 
 describe("SecureMessageChunkManager", function() {
     it("should reconstruct a valid message when message is received in multiple chunks", function(done) {
@@ -51,10 +50,10 @@ describe("SecureMessageChunkManager", function() {
                     chunk_stack.length.should.be.greaterThan(0);
 
                     // let verify that each intermediate chunk is marked with "C" and final chunk is marked with "F"
-                    for (var i = 0; i < chunk_stack.length - 1; i++) {
+                    for (let i = 0; i < chunk_stack.length - 1; i++) {
                         String.fromCharCode(chunk_stack[i].readUInt8(3)).should.equal("C");
                     }
-                    String.fromCharCode(chunk_stack[i].readUInt8(3)).should.equal("F");
+                    String.fromCharCode(chunk_stack[chunk_stack.length-1].readUInt8(3)).should.equal("F");
                     callback();
                 },
 
@@ -77,7 +76,7 @@ describe("SecureMessageChunkManager", function() {
                             //xx console.log("message = ", util.inspect(reconstructed_message, {colors: true,depth: 10}));
                             //xx console.log("origianm= ",  util.inspect(endPointResponse, {colors: true,depth: 10}));
 
-                            reconstructed_message.should.eql(endPointResponse);
+                            reconstructed_message.toString().should.eql(endPointResponse.toString());
                             // check also that requestId has been properly installed by chunkSecureMessage
 
                             callback();
