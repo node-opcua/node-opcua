@@ -23,7 +23,7 @@ build_and_test:
     - pnpm recursive install --frozen-lockfile=false
   script:
     - pnpm run version:check
-    - pnpm run build --if-present
+    - pnpm run build
     - pnpm run pretest
     - node packages/parallel_test.js
     # - node packages/run_all_mocha_tests.js DISCO3

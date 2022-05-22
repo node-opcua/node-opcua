@@ -31,7 +31,7 @@ jobs:
     - run: npm install -g pnpm
     - run: npm run "version:check"
     - run: pnpm recursive install
-    - run: pnpm run build --if-present
+    - run: pnpm run build
     - run: pnpm run pretest
     - run: pnpm test
   build:
