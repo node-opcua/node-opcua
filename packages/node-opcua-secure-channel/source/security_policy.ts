@@ -592,7 +592,7 @@ export function verifySignature(
         return cryptoFactory.asymmetricVerify(dataToVerify, signature.signature, senderCertificate);
     } catch (e) {
         if (doTraceChunk) {
-            warningLog(`Error when verifying signature of certificate: `, e);
+            warningLog(`Error when verifying signature of certificate: ${e}`);
         }
         return false;
     }
