@@ -1503,11 +1503,7 @@ export class OPCUAServer extends OPCUABaseServer {
         assert(userTokenSignature.signature instanceof Buffer, "expecting userTokenSignature to be a Buffer");
 
         // verify proof of possession by checking certificate signature & server nonce correctness
-        try {
-            if (!verifySignature(serverCertificate, nonce, userTokenSignature, certificate, securityPolicy)) {
-                return callback(null, StatusCodes.BadUserSignatureInvalid);
-            }
-        } catch {
+        if (!verifySignature(serverCertificate, nonce, userTokenSignature, certificate, securityPolicy)) {
             return callback(null, StatusCodes.BadUserSignatureInvalid);
         }
 
