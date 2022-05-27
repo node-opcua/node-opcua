@@ -13,7 +13,7 @@ import {
     NodeClass,
     ResultMask
 } from "node-opcua-data-model";
-import { make_warningLog } from "node-opcua-debug";
+import { checkDebugFlag, make_warningLog } from "node-opcua-debug";
 import { NodeId, resolveNodeId, sameNodeId } from "node-opcua-nodeid";
 import { ReferenceDescription } from "node-opcua-types";
 import {
@@ -42,7 +42,7 @@ import { BaseNodeImpl, getReferenceType } from "./base_node_impl";
 import { AddressSpacePrivate } from "./address_space_private";
 
 // eslint-disable-next-line prefer-const
-let dotrace = false;
+let doTrace = checkDebugFlag("INSTANTIATE");
 const traceLog = console.log.bind(console);
 
 const g_weakMap = new WeakMap();
@@ -484,7 +484,7 @@ function _clone_collection_new(
         }
 
         if (optionalFilter && node && !optionalFilter.shouldKeep(node)) {
-            dotrace && traceLog(extraInfo.pad(), "skipping ", node.browseName.toString());
+            doTrace && traceLog(extraInfo.pad(), "skipping optional ", node.browseName.toString(), "that doesn't appear in the filter");
             continue; // skip this node
         }
         const key = node.browseName.toString();
@@ -501,7 +501,7 @@ function _clone_collection_new(
             copyAlsoModellingRules
         };
 
-        dotrace &&
+        doTrace &&
             traceLog(
                 extraInfo.pad(),
                 "cloning => ",
@@ -554,7 +554,7 @@ function _extractInterfaces2(typeDefinitionNode: UAObjectType | UAVariableType, 
 
     const baseInterfaces: UAInterface[] = [];
     for (const iface of interfaces) {
-        dotrace &&
+        doTrace &&
             traceLog(
                 extraInfo.pad(),
                 typeDefinitionNode.browseName.toString(),
@@ -570,7 +570,7 @@ function _extractInterfaces2(typeDefinitionNode: UAObjectType | UAVariableType, 
     }
     interfaces.push(...baseInterfaces);
     if (typeDefinitionNode.subtypeOfObj) {
-        dotrace &&
+        doTrace &&
             traceLog(
                 extraInfo.pad(),
                 typeDefinitionNode.browseName.toString(),
@@ -583,7 +583,7 @@ function _extractInterfaces2(typeDefinitionNode: UAObjectType | UAVariableType, 
     }
     const dedupedInterfaces = [...new Set(interfaces)];
 
-    dotrace &&
+    doTrace &&
         traceLog(
             extraInfo.pad(),
             chalk.yellow("Interface for ", typeDefinitionNode.browseName.toString()),
@@ -635,7 +635,7 @@ function _crap_extractInterfaces(typeDefinitionNode: UAObjectType | UAVariableTy
     const interfacesRef = typeDefinitionNode.findReferencesEx("HasInterface", BrowseDirection.Forward);
     const interfaces = interfacesRef.map((r) => r.node! as UAInterface);
     for (const iface of interfaces) {
-        dotrace && traceLog(extraInfo.pad(), "   interface ", iface.browseName.toString());
+        doTrace && traceLog(extraInfo.pad(), "   interface ", iface.browseName.toString());
     }
 
     return interfaces;
@@ -648,7 +648,7 @@ function _cloneInterface(
     extraInfo: CloneExtraInfo,
     browseNameMap: Set<string>
 ): void {
-    dotrace &&
+    doTrace &&
         traceLog(
             extraInfo?.pad(),
             chalk.green("-------------------- now cloning interfaces of ", node.browseName.toString(), node.nodeId.toString())
@@ -660,23 +660,30 @@ function _cloneInterface(
     if (!typeDefinitionNode) {
         return;
     }
-    dotrace && traceLog(extraInfo.pad(), "  --- {");
     const interfaces = _extractInterfaces2(typeDefinitionNode, extraInfo);
-    dotrace && traceLog(extraInfo.pad(), "  --- }");
-    dotrace && traceLog(extraInfo?.pad(), chalk.green("-------------------- interfaces are  ", interfaces.length));
+    if (interfaces.length === 0) {
+        if (doTrace) {
+            traceLog(
+                extraInfo.pad(),
+                chalk.yellow("No interface for ", node.browseName.toString(), node.nodeId.toString())
+            );
+        }
+        return;
+    }
+    doTrace && traceLog(extraInfo?.pad(), chalk.green("-------------------- interfaces are  ", interfaces.length));
 
     const localFilter = optionalFilter.filterFor(node);
 
     for (const iface of interfaces) {
         const aggregates = iface.findReferencesEx("Aggregates", BrowseDirection.Forward);
-        dotrace &&
+        doTrace &&
             traceLog(
                 extraInfo.pad(),
                 chalk.magentaBright("   interface ", iface.browseName.toString()),
                 "\n" + extraInfo?.pad(),
                 aggregates.map((r) => r.toString({ addressSpace })).join("\n" + extraInfo?.pad())
             );
-        _clone_collection_new(newParent, aggregates, false, localFilter, extraInfo, browseNameMap);
+        _clone_collection_new(node, aggregates, false, localFilter, extraInfo, browseNameMap);
     }
 }
 export function _clone_children_references(
@@ -787,7 +794,7 @@ export function _clone<T extends UAObject | UAVariable | UAMethod>(
         //
         let typeDefinitionNode: UAVariableType | UAObjectType | null = this.typeDefinitionObj;
         while (typeDefinitionNode) {
-            dotrace &&
+            doTrace &&
                 traceLog(
                     extraInfo?.pad(),
                     chalk.blueBright("---------------------- Exploring ", typeDefinitionNode.browseName.toString())
