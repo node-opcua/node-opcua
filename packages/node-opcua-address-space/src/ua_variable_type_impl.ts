@@ -21,7 +21,7 @@ import {
     UAVariableType,
     CloneFilter
 } from "node-opcua-address-space-base";
-import { ObjectTypeIds, ReferenceTypeIds, VariableTypeIds } from "node-opcua-constants";
+import { ReferenceTypeIds } from "node-opcua-constants";
 import { coerceQualifiedName, NodeClass, QualifiedName, BrowseDirection, AttributeIds } from "node-opcua-data-model";
 import { DataValue, DataValueLike } from "node-opcua-data-value";
 import { checkDebugFlag, make_debugLog, make_warningLog, make_errorLog } from "node-opcua-debug";
@@ -40,7 +40,6 @@ import { _clone_children_references, ToStringBuilder, UAVariableType_toString } 
 import * as tools from "./tool_isSupertypeOf";
 import { get_subtypeOfObj } from "./tool_isSupertypeOf";
 import { get_subtypeOf } from "./tool_isSupertypeOf";
-import { resolveReferenceNode } from "./reference_impl";
 
 const debugLog = make_debugLog(__filename);
 const doDebug = checkDebugFlag(__filename);
@@ -48,7 +47,7 @@ const warningLog = make_warningLog(__filename);
 const errorLog = make_errorLog(__filename);
 
 // eslint-disable-next-line prefer-const
-let doTrace = false;
+let doTrace = checkDebugFlag("INSTANTIATE");
 const traceLog = errorLog;
 
 interface InstantiateS {
