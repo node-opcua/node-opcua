@@ -1,11 +1,12 @@
 /* eslint no-process-exit: 0 */
 "use strict";
+const net = require("net");
+
+const chalk = require("chalk");
+
 const argv = require("yargs")
     .usage("Usage: $0 --portServer [num] --port [num]  --hostname <hostname> -block")
     .argv;
-const net = require("net");
-
-
 
 const opcua = require("node-opcua");
 
@@ -17,8 +18,6 @@ const analyseExtensionObject = require("../lib/misc/analyzePacket").analyseExten
 const messageHeaderToString = require("../lib/misc/message_header").messageHeaderToString;
 
 const s = require("../lib/datamodel/structures");
-
-const chalk = require("chalk");
 
 const remote_port = parseInt(argv.port, 10) || 4841;
 const hostname = argv.hostname || "localhost";
@@ -42,7 +41,7 @@ TrafficAnalyser.prototype.add = function (data) {
 
     if (messageHeader.msgType === "ERR") {
 
-        var err = new s.TCPErrorMessage();
+        const err = new s.TCPErrorMessage();
         err.decode(stream);
         console.log(" Error 0x" + err.statusCode.toString() + " reason:" + err.reason);
         console.log(hexDump(data));
@@ -112,6 +111,7 @@ require("net").createServer(function (socket) {
         try {
             socket.write(data);
         } catch (err) {
+            /** */
         }
     });
 

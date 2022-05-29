@@ -10,7 +10,7 @@ import { DerivedKeys } from "node-opcua-crypto";
 import { BaseUAObject } from "node-opcua-factory";
 import { AsymmetricAlgorithmSecurityHeader, SymmetricAlgorithmSecurityHeader } from "node-opcua-service-secure-channel";
 import { timestamp } from "node-opcua-utils";
-import { make_errorLog, make_warningLog} from "node-opcua-debug";
+import { make_errorLog, make_warningLog } from "node-opcua-debug";
 
 import { SecureMessageChunkManager, SecureMessageChunkManagerOptions, SecurityHeader } from "./secure_message_chunk_manager";
 import { SequenceNumberGenerator } from "./sequence_number_generator";
@@ -39,6 +39,8 @@ export interface ChunkMessageOptions extends SecureMessageChunkManagerOptions {
  * @constructor
  */
 export class MessageChunker {
+    public static defaultMaxMessageSize: number = 16 * 1024 * 1024;
+
     public securityHeader?: any;
 
     private readonly sequenceNumberGenerator: SequenceNumberGenerator;
@@ -49,7 +51,7 @@ export class MessageChunker {
     constructor(options?: MessageChunkerOptions) {
         options = options || {};
         this.sequenceNumberGenerator = new SequenceNumberGenerator();
-        this.maxMessageSize = options.maxMessageSize || 16 *1024*1024;
+        this.maxMessageSize = options.maxMessageSize || MessageChunker.defaultMaxMessageSize;
         this.update(options);
     }
 
@@ -124,7 +126,9 @@ export class MessageChunker {
                     );
                 }
                 if (totalSize > this.maxMessageSize) {
-                    errorLog(`[NODE-OPCUA-E55] message size ${totalSize} exceeds the negotiated message size ${this.maxMessageSize} nb chunks ${nbChunks}`);
+                    errorLog(
+                        `[NODE-OPCUA-E55] message size ${totalSize} exceeds the negotiated message size ${this.maxMessageSize} nb chunks ${nbChunks}`
+                    );
                 }
                 messageChunkCallback(null);
             });

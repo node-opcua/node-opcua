@@ -101,7 +101,7 @@ const globalOptions = {
 
 export const derivedKeys: DerivedKeys = computeDerivedKeys(secret, seed, globalOptions);
 
-export function iterateOnSymmetricEncryptedChunk(buffer: Buffer, callback: ChunkVisitorFunc) {
+export function iterateOnSymmetricEncryptedChunk(buffer: Buffer, onChunkFunc: ChunkVisitorFunc) {
 
     const options: SecureMessageChunkManagerOptions = {
         chunkSize: 1024,
@@ -120,7 +120,7 @@ export function iterateOnSymmetricEncryptedChunk(buffer: Buffer, callback: Chunk
     });
 
     const msgChunkManager = new SecureMessageChunkManager("MSG", options, securityHeader, sequenceNumberGenerator);
-    msgChunkManager.on("chunk", (chunk, final) => callback(null, chunk));
+    msgChunkManager.on("chunk", (chunk, final) => onChunkFunc(null, chunk));
     msgChunkManager.write(buffer, buffer.length);
     msgChunkManager.end();
 }

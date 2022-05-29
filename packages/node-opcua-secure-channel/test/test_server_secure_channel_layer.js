@@ -1,14 +1,20 @@
 const should = require("should");
 
 const { StatusCodes } = require("node-opcua-status-code");
-
-const { ServerSecureChannelLayer, MessageSecurityMode, SecurityPolicy } = require("..");
+const { HelloMessage } = require("node-opcua-transport");
+const { OpenSecureChannelRequest, SecurityTokenRequestType, ReadRequest } = require("node-opcua-types");
+const { hexDump } = require("node-opcua-crypto");
 
 const debugLog = require("node-opcua-debug").make_debugLog(__filename);
 const { DirectTransport } = require("node-opcua-transport/dist/test_helpers");
 const { GetEndpointsResponse } = require("node-opcua-service-endpoints");
 const fixtures = require("node-opcua-transport/dist/test-fixtures");
+const { BinaryStream } = require("node-opcua-binary-stream");
 
+const { ServerSecureChannelLayer, MessageSecurityMode, SecurityPolicy, MessageChunker } = require("..");
+const { pause } = require("../../node-opcua-end2end-test/test/discovery/_helper");
+
+// eslint-disable-next-line import/order
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("testing ServerSecureChannelLayer ", function () {
     this.timeout(10000);
@@ -143,7 +149,7 @@ describe("testing ServerSecureChannelLayer ", function () {
                 node.client.write(getEndpointsRequest1);
             });
         });
-        serverSecureChannel.on("message", function (message) {
+        serverSecureChannel.on("message", (message) => {
             message.request.schema.name.should.equal("GetEndpointsRequest");
             setImmediate(() => {
                 serverSecureChannel.close(() => {
@@ -177,17 +183,16 @@ describe("testing ServerSecureChannelLayer ", function () {
         });
 
         let nb_on_message_calls = 0;
-        serverSecureChannel.on("message", function (message) {
+        serverSecureChannel.on("message", (message) => {
             console.log("message ", message.request.toString());
             message.request.schema.name.should.not.equal("CloseSecureChannelRequest");
             nb_on_message_calls.should.equal(0);
             nb_on_message_calls += 1;
 
             message.request.schema.name.should.equal("GetEndpointsRequest");
-            serverSecureChannel.send_response("MSG", new GetEndpointsResponse(), message, () => {});
+            serverSecureChannel.send_response("MSG", new GetEndpointsResponse(), message, () => {/** */ });
         });
 
-        let isDone = false;
         serverSecureChannel.on("abort", () => {
             console.log("Receive Abort");
         });
@@ -226,7 +231,7 @@ describe("testing ServerSecureChannelLayer ", function () {
         serverSecureChannel = null;
 
         node.shutdown(() => {
-            isDone = true;
+            /** */
         });
     });
 
@@ -235,6 +240,7 @@ describe("testing ServerSecureChannelLayer ", function () {
 
         let server_has_emitted_the_abort_message = false;
         let serverSecureChannel = new ServerSecureChannelLayer({});
+
         serverSecureChannel.setSecurity(MessageSecurityMode.None, SecurityPolicy.None);
 
         serverSecureChannel.timeout = 1000;
@@ -264,14 +270,17 @@ describe("testing ServerSecureChannelLayer ", function () {
         const { helloMessage1, getEndpointsRequest1 } = fixtures;
         fuzzTest([helloMessage1, getEndpointsRequest1], done);
     });
+
     it("FUZZ5- should not crash with a corrupted openChannelRequest message", (done) => {
         const { helloMessage1, altered_openChannelRequest1 } = fixtures; // HEL
         fuzzTest([helloMessage1, altered_openChannelRequest1], done);
     });
+
     it("FUZZ6- should not crash with a corrupted openChannelRequest message", (done) => {
         const { helloMessage1, altered_openChannelRequest2 } = fixtures; // HEL
         fuzzTest([helloMessage1, altered_openChannelRequest2], done);
     });
+
     it("FUZZ7- should not crash with a corrupted request message", (done) => {
         function test(messages, done) {
             const node = new DirectTransport();
@@ -319,4 +328,134 @@ describe("testing ServerSecureChannelLayer ", function () {
         const { helloMessage1, openChannelRequest1, altered_getEndpointsRequest1 } = fixtures; // HEL
         test([helloMessage1, openChannelRequest1, altered_getEndpointsRequest1], done);
     });
+
+    it("KK8 should not accept message with too large chunk", async () => {
+        const node = new DirectTransport();
+
+        let serverSecureChannel = new ServerSecureChannelLayer({
+        });
+
+        serverSecureChannel.setSecurity(MessageSecurityMode.None, SecurityPolicy.None);
+        serverSecureChannel.timeout = 100000;
+
+
+        let initialized = false;
+        serverSecureChannel.init(node.server, (err) => {
+            initialized = true;
+            should.not.exist(err);
+        });
+
+        async function send(chunk) {
+            return await new Promise((resolve) => {
+                node.client.once("data", (data) => {
+                    resolve(data);
+                });
+                node.client.write(chunk);
+            });
+        }
+
+        async function send1(msg, request) {
+
+            const l = request.binaryStoreSize();
+
+            // craft a HELLO Message        
+            const b = new BinaryStream(l + 8);
+            b.writeInt8(msg[0].charCodeAt(0));
+            b.writeInt8(msg[1].charCodeAt(0));
+            b.writeInt8(msg[2].charCodeAt(0));
+            b.writeInt8("F".charCodeAt(0));
+            b.writeUInt32(0);
+            request.encode(b);
+            b.buffer.writeInt32LE(b.length, 4);
+
+            console.log(`sending\n${hexDump(b.buffer)}`)
+
+            const rep = await send(b.buffer);
+            console.log(`receiving\n${hexDump(rep)}`);
+            return rep;
+        }
+        async function sendHello() {
+            // eslint-disable-next-line no-undef
+            const helloMessage = new HelloMessage({
+                protocolVersion: 0,// UInt32;
+                receiveBufferSize: 8 * 1024,// UInt32;
+                sendBufferSize: 8 * 1024,
+                maxMessageSize: 16 * 1024,
+                maxChunkCount: 2,
+                endpointUrl: "opc.tcp://localhost:1234/SomeEndpoint"
+            });
+            await send1("HEL", helloMessage);
+
+        }
+
+        let requestId = 1;
+        async function send2(msg, request, tweakerFunc) {
+            const messageChunker = new MessageChunker();
+
+            return await new Promise((resolve,reject) => {
+                node.client.once("data", (chunk) => {
+                    requestId += 1;
+                    console.log(`receiving\n${hexDump(chunk)}`);
+                    resolve(chunk);
+                    resolve();
+                });
+                node.client.once("error", (err) => {
+                    reject(err);
+                })
+                messageChunker.chunkSecureMessage(msg, {
+                    requestId,
+                    securityMode: MessageSecurityMode.None,
+                }, request, (chunk) => {
+                    if (chunk) {
+                        if (tweakerFunc) {
+                            chunk = tweakerFunc(chunk);
+                        }
+                        console.log(`sending\n${hexDump(chunk)}`);
+                        node.client.write(chunk)
+                    } else {
+                        console.log("done.");
+                    }
+                });
+            });
+
+        }
+
+        async function sendOpenChannel() {
+
+            const openChannelRequest = new OpenSecureChannelRequest({
+                clientNonce: null,
+                clientProtocolVersion: 0,
+                requestHeader: {
+                },
+                requestType: SecurityTokenRequestType.Init,
+                requestedLifetime: 100000,
+                securityMode: MessageSecurityMode.None,
+            });
+            return await send2("OPN", openChannelRequest);
+
+        }
+
+        async function sendTooLargeChunkMessage() {
+            return await send2("MSG", new ReadRequest({}), (chunk)=>{
+                chunk.writeUInt32LE(0xFFFF,4);
+                return chunk;
+            });
+        }
+
+        await sendHello();
+        await sendOpenChannel();
+        await sendTooLargeChunkMessage();
+
+        // console.log(serverSecureChannel.transport);
+
+        await new Promise((resolve) => {
+            serverSecureChannel.close(() => {
+                serverSecureChannel.dispose();
+                resolve();
+            });
+        });
+        node.shutdown(() => {/** */ });
+
+    });
+
 });

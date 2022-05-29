@@ -1,10 +1,5 @@
-/*global xit,it,describe,before,after,beforeEach,afterEach*/
 "use strict";
 
-
-
-
-const { assert } = require("node-opcua-assert");
 const async = require("async");
 const should = require("should");
 const sinon = require("sinon");

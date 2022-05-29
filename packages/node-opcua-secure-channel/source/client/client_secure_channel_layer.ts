@@ -19,14 +19,16 @@ import { get_clock_tick, timestamp } from "node-opcua-utils";
 import { readMessageHeader, verify_message_chunk } from "node-opcua-chunkmanager";
 import { checkDebugFlag, hexDump, make_debugLog, make_errorLog, make_warningLog } from "node-opcua-debug";
 import { ChannelSecurityToken, coerceMessageSecurityMode, MessageSecurityMode } from "node-opcua-service-secure-channel";
-import { CallbackT, StatusCodes } from "node-opcua-status-code";
+import { CallbackT, StatusCode, StatusCodes } from "node-opcua-status-code";
 import { ClientTCP_transport } from "node-opcua-transport";
+import { StatusCodes2 } from "node-opcua-transport";
 import { ErrorCallback } from "node-opcua-status-code";
 import { BaseUAObject } from "node-opcua-factory";
 
 import { MessageBuilder, SecurityToken } from "../message_builder";
 import { ChunkMessageOptions, MessageChunker } from "../message_chunker";
 import { messageHeaderToString } from "../message_header_to_string";
+
 import {
     coerceSecurityPolicy,
     computeDerivedKeys,
@@ -276,7 +278,7 @@ export class ClientSecureChannelLayer extends EventEmitter {
     private readonly defaultSecureTokenLifetime: number;
     private readonly tokenRenewalInterval: number;
     private readonly serverCertificate: Certificate | null;
-    private readonly messageBuilder: MessageBuilder;
+    private messageBuilder?: MessageBuilder;
 
     private _requests: { [key: string]: RequestData };
 
@@ -345,25 +347,50 @@ export class ClientSecureChannelLayer extends EventEmitter {
             // make sure that we do not have a chain here ...
         }
 
+        this._requests = {};
+
+        this.__in_normal_close_operation = false;
+
+        this._timeout_request_count = 0;
+
+        this._securityTokenTimeoutId = null;
+
+        this.transportTimeout = options.transportTimeout || ClientSecureChannelLayer.defaultTransportTimeout;
+
+        this.channelId = 0;
+
+        this.connectionStrategy = coerceConnectionStrategy(options.connectionStrategy);
+    }
+
+    private _install_message_builder() {
+        // istanbul ignore next
+        if (!this._transport || !this._transport.parameters) {
+            throw new Error("internal error");
+        }
         this.messageBuilder = new MessageBuilder({
             name: "client",
             privateKey: this.getPrivateKey() || undefined,
-            securityMode: this.securityMode
+            securityMode: this.securityMode,
+            maxChunkSize: this._transport.receiveBufferSize || 0,
+            maxChunkCount: this._transport.maxChunkCount || 0,
+            maxMessageSize: this._transport.maxMessageSize || 0
         });
-        this._requests = {};
 
         this.messageBuilder
-            .on("message", (response: Response, msgType: string, requestId: number) => {
-                this._on_message_received(response, msgType, requestId);
+            .on("message", (response: BaseUAObject, msgType: string, requestId: number, channelId: number) => {
+                this._on_message_received(response as Response, msgType, requestId);
             })
-            .on("start_chunk", () => {
+            .on("startChunk", () => {
                 //
                 if (doPerfMonitoring) {
                     this._tick2 = get_clock_tick();
                 }
             })
-            .on("error", (err, requestId) => {
-                //
+            .on("error", (err: Error, statusCode: StatusCode, requestId: number | null) => {
+                if (!requestId) {
+                    return;
+                }
+
                 let requestData = this._requests[requestId];
 
                 if (doDebug) {
@@ -379,20 +406,7 @@ export class ClientSecureChannelLayer extends EventEmitter {
                     }
                 }
             });
-
-        this.__in_normal_close_operation = false;
-
-        this._timeout_request_count = 0;
-
-        this._securityTokenTimeoutId = null;
-
-        this.transportTimeout = options.transportTimeout || ClientSecureChannelLayer.defaultTransportTimeout;
-
-        this.channelId = 0;
-
-        this.connectionStrategy = coerceConnectionStrategy(options.connectionStrategy);
     }
-
     public getPrivateKey(): PrivateKeyPEM | null {
         return this.parent ? this.parent.getPrivateKey() : null;
     }
@@ -682,9 +696,9 @@ export class ClientSecureChannelLayer extends EventEmitter {
         });
     }
 
-    public closeWithError(err: Error, callback: ErrorCallback): void {
+    public closeWithError(err: Error, statusCode: StatusCode, callback: ErrorCallback): void {
         if (this._transport) {
-            this._transport.prematureTerminate(err);
+            this._transport.prematureTerminate(err, statusCode);
         }
         callback();
     }
@@ -776,9 +790,9 @@ export class ClientSecureChannelLayer extends EventEmitter {
 
         if (doPerfMonitoring) {
             // record tick2 : after response message has been received, before message processing
-            requestData._tick2 = this.messageBuilder._tick1;
+            requestData._tick2 = this.messageBuilder!._tick1;
         }
-        requestData.bytesRead = this.messageBuilder.totalMessageSize;
+        requestData.bytesRead = this.messageBuilder!.totalMessageSize;
 
         if (doPerfMonitoring) {
             // record tick3 : after response message has been received, before message processing
@@ -1027,7 +1041,7 @@ export class ClientSecureChannelLayer extends EventEmitter {
                     }
                 }
 
-                const cryptoFactory = this.messageBuilder.cryptoFactory;
+                const cryptoFactory = this.messageBuilder!.cryptoFactory;
                 if (cryptoFactory) {
                     assert(this.serverNonce instanceof Buffer);
                     /* istanbul ignore next */
@@ -1044,7 +1058,7 @@ export class ClientSecureChannelLayer extends EventEmitter {
                     debugLog("Server has send a new security Token");
                 }
 
-                this.messageBuilder.pushNewToken(this.securityToken, derivedServerKeys);
+                this.messageBuilder!.pushNewToken(this.securityToken, derivedServerKeys);
 
                 this._install_security_token_watchdog();
 
@@ -1059,7 +1073,9 @@ export class ClientSecureChannelLayer extends EventEmitter {
         this._pending_transport = undefined;
         this._transport = transport;
 
-        this._transport.on("message", (messageChunk: Buffer) => {
+        this._install_message_builder();
+
+        this._transport.on("chunk", (messageChunk: Buffer) => {
             /**
              * notify the observers that ClientSecureChannelLayer has received a message chunk
              * @event receive_chunk
@@ -1240,9 +1256,13 @@ export class ClientSecureChannelLayer extends EventEmitter {
                     debugLog("ClientSecureChannelLayer: Warning: securityToken hasn't been renewed -> err ", err);
                 }
                 // XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX CHECK ME !!!
-                this.closeWithError(new Error("Restarting because Request has timed out during OpenSecureChannel"), () => {
-                    /* */
-                });
+                this.closeWithError(
+                    new Error("Restarting because Request has timed out during OpenSecureChannel"),
+                    StatusCodes2.BadRequestTimeout,
+                    () => {
+                        /* */
+                    }
+                );
             }
         });
     }
@@ -1256,7 +1276,7 @@ export class ClientSecureChannelLayer extends EventEmitter {
             debugLog("\n" + hexDump(messageChunk));
             debugLog(messageHeaderToString(messageChunk));
         }
-        this.messageBuilder.feed(messageChunk);
+        this.messageBuilder!.feed(messageChunk);
     }
 
     /**

@@ -126,9 +126,7 @@ describe("Testing secure client and server connection", () => {
         };
 
         function simulateOpenSecureChannel(callback: SimpleCallback) {
-           
             clientChannel.create("fake://foobar:123", (err?: Error) => {
-                
                 if (param.shouldFailAtClientConnection) {
                     if (!err) {
                         return callback(new Error(" Should have failed here !"));
@@ -155,8 +153,8 @@ describe("Testing secure client and server connection", () => {
             doDebug && console.log(" now sending a request " + request.constructor.name);
 
             clientChannel.performMessageTransaction(request, (err, response) => {
-                doDebug &&  console.log("client received a response ", response?.constructor.name);
-                doDebug &&  console.log(response?.toString());
+                doDebug && console.log("client received a response ", response?.constructor.name);
+                doDebug && console.log(response?.toString());
                 callback(err || undefined);
             });
         }
@@ -220,6 +218,9 @@ describe("Testing secure client and server connection", () => {
                     callback();
                 },
                 (callback: SimpleCallback) => {
+
+                    (serverSChannel as any)._build_message_builder();
+
                     serverSChannel.setSecurity(param.securityMode, param.securityPolicy);
                     if (param.clientCertificate) {
                         const certMan = serverSChannel.certificateManager;
@@ -318,9 +319,10 @@ describe("Testing secure client and server connection", () => {
         );
     }
 
-    it("client & server channel  - with security ", (done) => {
+    it("RR-client & server channel  - with security ", (done) => {
         performTest1(2048, 2048, SecurityPolicy.Basic128Rsa15, done);
     });
+
 
     it("client & server channel  - A", (done) => {
         performTest1(2048, 2048, SecurityPolicy.Basic128Rsa15, done);

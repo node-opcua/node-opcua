@@ -5,12 +5,17 @@ const chalk = require("chalk");
 const debugLog = require("node-opcua-debug").make_debugLog("TEST");
 const { hexDump } = require("node-opcua-debug");
 const { MessageSecurityMode } = require("node-opcua-service-secure-channel");
-const crypto_utils = require("node-opcua-crypto");
+const { readPrivateRsaKey } = require("node-opcua-crypto");
 
 const { make_lorem_ipsum_buffer } = require("node-opcua-test-helpers");
 const { getFixture } = require("node-opcua-test-fixtures");
 
-const fake_message_chunk_factory = require("../dist/test_helpers/fake_message_chunk_factory");
+const {
+    iterateOnSymmetricEncryptedChunk,
+    iterateOnSignedAndEncryptedMessageChunks,
+    iterateOnSignedMessageChunks,
+    derivedKeys
+} = require("../dist/test_helpers/fake_message_chunk_factory");
 
 const { MessageBuilder, SecurityPolicy } = require("..");
 
@@ -26,10 +31,13 @@ describe("MessageBuilder with SIGN support", function () {
     const someBuffer = Buffer.from(data, data.length);
 
     it("should not emit an error event if chunks have valid signature", function (done) {
-        const options = {};
 
-        const messageBuilder = new MessageBuilder(options);
-        messageBuilder.privateKey = crypto_utils.readPrivateRsaKey(private_key_filename);
+        const messageBuilder = new MessageBuilder({
+            maxChunkCount: 10,
+            maxMessageSize: someBuffer.length * 10,
+            maxChunkSize: someBuffer.length  + 1000 ,
+        });
+        messageBuilder.privateKey = readPrivateRsaKey(private_key_filename);
 
         messageBuilder._decodeMessageBody = fake_decodeMessageBody;
 
@@ -37,12 +45,13 @@ describe("MessageBuilder with SIGN support", function () {
             .on("full_message_body", (message) => {
                 done();
             })
-            .on("message", (message) => {/** */})
+            .on("message", (message) => {/** */ })
             .on("error", (error) => {
+                console.log("ERROR", error);
                 done(error);
             });
 
-        fake_message_chunk_factory.iterateOnSignedMessageChunks(someBuffer, function (err, chunk) {
+        iterateOnSignedMessageChunks(someBuffer, (err, chunk) => {
             should.not.exist(err);
             messageBuilder.feed(chunk.slice(0, 20));
             messageBuilder.feed(chunk.slice(20));
@@ -73,7 +82,7 @@ describe("MessageBuilder with SIGN support", function () {
                 done(new Error(" we are not expecting a error event in this case" + err));
             });
 
-        fake_message_chunk_factory.iterateOnSignedMessageChunks(someBuffer, function (err, chunk) {
+        iterateOnSignedMessageChunks(someBuffer, function (err, chunk) {
             should.not.exist(err);
             messageBuilder.feed(chunk.slice(0, 20));
             messageBuilder.feed(chunk.slice(20));
@@ -100,7 +109,7 @@ describe("MessageBuilder with SIGN support", function () {
                 done();
             });
 
-        fake_message_chunk_factory.iterateOnSignedMessageChunks(someBuffer, function (err, chunk) {
+        iterateOnSignedMessageChunks(someBuffer, function (err, chunk) {
             should.not.exist(err);
 
             // alter artificially the chunk
@@ -120,7 +129,7 @@ describe("MessageBuilder with SIGN & ENCRYPT support (OPN) ", function () {
         const options = {};
 
         const messageBuilder = new MessageBuilder(options);
-        messageBuilder.privateKey = crypto_utils.readPrivateRsaKey(private_key_filename);
+        messageBuilder.privateKey = readPrivateRsaKey(private_key_filename);
 
         messageBuilder._decodeMessageBody = fake_decodeMessageBody;
 
@@ -129,12 +138,12 @@ describe("MessageBuilder with SIGN & ENCRYPT support (OPN) ", function () {
                 message.toString().should.eql(lorem_ipsum_buffer.toString());
                 done();
             })
-            .on("message", (message) => {/** */})
+            .on("message", (message) => {/** */ })
             .on("error", (error) => {
                 done(error);
             });
 
-        fake_message_chunk_factory.iterateOnSignedAndEncryptedMessageChunks(lorem_ipsum_buffer, function (err, chunk) {
+        iterateOnSignedAndEncryptedMessageChunks(lorem_ipsum_buffer, function (err, chunk) {
             should.not.exist(err);
             //xx console.log(hexDump(chunk));
             messageBuilder.feed(chunk.slice(0, 20));
@@ -147,30 +156,35 @@ describe("MessageBuilder with SIGN & ENCRYPT support (MSG) ", function () {
     const lorem_ipsum_buffer = make_lorem_ipsum_buffer();
 
     it("should process a signed and encrypted message", function (done) {
-        const options = {};
-        const messageBuilder = new MessageBuilder(options);
+        const messageBuilder = new MessageBuilder({
+            maxMessageSize: 1000000,
+            maxChunkSize: 2048,
+            maxChunkCount: 5
+        });
         messageBuilder._decodeMessageBody = fake_decodeMessageBody;
 
         messageBuilder.securityPolicy = SecurityPolicy.Basic128Rsa15;
 
-        messageBuilder.privateKey = crypto_utils.readPrivateRsaKey(private_key_filename);
+        messageBuilder.privateKey = readPrivateRsaKey(private_key_filename);
 
         messageBuilder.securityMode = MessageSecurityMode.SignAndEncrypt;
 
-        messageBuilder.pushNewToken({ tokenId: 10 }, fake_message_chunk_factory.derivedKeys);
+        messageBuilder.pushNewToken({ tokenId: 10 }, derivedKeys);
 
+        let _err;
         messageBuilder
             .on("full_message_body", (message) => {
                 //xx console.log(hexDump(message));
                 message.toString().should.eql(lorem_ipsum_buffer.toString());
                 done();
             })
-            .on("message", (message) => {/** */})
+            .on("message", (message) => {/** */ })
             .on("error", (error) => {
+                console.log("err ", error.message);
                 done(error);
             });
 
-        fake_message_chunk_factory.iterateOnSymmetricEncryptedChunk(lorem_ipsum_buffer, function (err, chunk) {
+        iterateOnSymmetricEncryptedChunk(lorem_ipsum_buffer, function (err, chunk) {
             should.not.exist(err);
             messageBuilder.feed(chunk);
         });

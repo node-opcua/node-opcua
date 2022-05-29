@@ -34,7 +34,7 @@ module.exports = function (test) {
 
         beforeEach(function (done) {
             client = OPCUAClient.create({
-                requestedSessionTimeout: 600 * 1000 // use long session time out
+                requestedSessionTimeout: 600 * 1000, // use long session time out
             });
             endpointUrl = test.endpointUrl;
             done();
@@ -270,7 +270,7 @@ module.exports = function (test) {
         });
 
         it("Q3-5 should return BadTooManyOperations when CallRequest has too many methods to call", function (done) {
-            const too_many = 50000;
+            const too_many = 5000;
             const methodToCalls = [];
             for (let i = 0; i < too_many; i++) {
                 methodToCalls.push({
