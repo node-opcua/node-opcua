@@ -1,4 +1,3 @@
-const async = require("async");
 const should = require("should");
 const chalk = require("chalk");
 const {
@@ -6,13 +5,12 @@ const {
     VariableIds,
     OPCUAClient,
     resolveNodeId,
-    ClientMonitoredItem,
-    StatusCodes,
     TimestampsToReturn,
     MonitoringMode
 } = require("node-opcua");
-const { make_debugLog, make_errorLog, checkDebugFlag } = require("node-opcua-debug");
+const { make_debugLog, checkDebugFlag } = require("node-opcua-debug");
 const { perform_operation_on_subscription_async } = require("../../test_helpers/perform_operation_on_client_session");
+const { pause } = require("../discovery/_helper");
 
 function f(func) {
     return function (callback) {
@@ -27,6 +25,9 @@ const doDebug = checkDebugFlag("TEST");
 
 let sessionCounter = 0;
 async function connectAndCreateSession(endpointUrl) {
+
+    await pause(100);
+
     const client = OPCUAClient.create({
         name: "client" + sessionCounter++,
     });
@@ -36,6 +37,7 @@ async function connectAndCreateSession(endpointUrl) {
 }
 
 async function closeSessionAndDisconnect({ client, session }) {
+    await pause(100);
     await session.close();
     await client.disconnect();
 }
@@ -65,8 +67,9 @@ async function installMonitoredItem(subscription, nodeId) {
     });
     return await new Promise((resolve, reject) => {
         const timer = setTimeout(() => {
+            console.log(monitoredItem);
             reject(new Error("Never received changedx for id" + nodeId.toString()));
-        }, 5000);
+        }, 15000);
 
         monitoredItem.once("changed", function (dataValue) {
             clearTimeout(timer);
@@ -85,10 +88,11 @@ async function installCumulatedSessionCounter(subscription) {
 
 async function waitSessionCountChange(currentSessionCountMonitoredItem) {
 
-    return await new Promise((resolve,reject) => {
+    return await new Promise((resolve, reject) => {
         const timer = setTimeout(() => {
+            console.log(currentSessionCountMonitoredItem);
             reject(new Error("Never received ", currentSessionCountMonitoredItem.toString()));
-        }, 5000);
+        }, 15000);
 
         currentSessionCountMonitoredItem.once("changed", function (dataValue) {
             clearTimeout(timer);
@@ -96,6 +100,7 @@ async function waitSessionCountChange(currentSessionCountMonitoredItem) {
             debugLog("new currentSessionCount=", dataValue.toString());
             resolve(new_currentSessionCount);
         });
+
     });
 }
 
@@ -106,7 +111,7 @@ module.exports = function (test) {
 
             const client = OPCUAClient.create({});
 
-            await perform_operation_on_subscription_async(client, endpointUrl, async function (session, subscription) {
+            await perform_operation_on_subscription_async(client, endpointUrl, async (session, subscription) => {
                 const [recordedCurrentSessionCountValues, currentSessionCountMonitoredItem] = await installCurrentSessionCounter(
                     subscription
                 );
@@ -124,6 +129,7 @@ module.exports = function (test) {
                     const promises = [waitSessionCountChange(currentSessionCountMonitoredItem), connectAndCreateSession(endpointUrl)];
                     return await Promise.all(promises);
                 }
+
                 async function disconnectAndWaitCurrentSessionCountChange({ client, session }) {
                     debugLog("disconnecting", session.name);
 

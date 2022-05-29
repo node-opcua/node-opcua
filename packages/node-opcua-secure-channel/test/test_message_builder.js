@@ -1,12 +1,12 @@
 const should = require("should");
 
-const { MessageBuilder } = require("..");
-const { SecurityPolicy, MessageSecurityMode} = require("..");
 
 const packets = require("node-opcua-transport/dist/test-fixtures");
 
 const { redirectToFile } = require("node-opcua-debug/nodeJS");
 const debugLog = require("node-opcua-debug").make_debugLog(__filename);
+const { MessageBuilder } = require("..");
+const { SecurityPolicy, MessageSecurityMode } = require("..");
 
 describe("MessageBuilder", function () {
     it("should raise a error event if a HEL or ACK packet is fed instead of a MSG packet ", function (done) {
@@ -69,7 +69,7 @@ describe("MessageBuilder", function () {
 
                 messageBuilder.feed(bad_packet); // OpenSecureChannel message
             },
-            function () {}
+            function () {/** */ }
         );
     }
 
@@ -101,7 +101,7 @@ describe("MessageBuilder", function () {
         const messageBuilder = new MessageBuilder();
 
         messageBuilder
-            .on("message", (message) => {})
+            .on("message", (message) => { /** */})
             .on("error", (err) => {
                 console.log(err);
                 done(Error("should not get there"));
@@ -121,7 +121,7 @@ describe("MessageBuilder", function () {
         });
         messageBuilder.setSecurity(MessageSecurityMode.Sign, SecurityPolicy.Basic256);
         messageBuilder
-            .on("message", (message) => {})
+            .on("message", (message) => { /** */})
             .on("error", (err) => {
                 console.log(err);
                 done();

@@ -55,12 +55,6 @@ const minimumBufferSize = 8192;
 export class ServerTCP_transport extends TCP_transport {
     public static throttleTime = 1000;
 
-    public receiveBufferSize: number;
-    public sendBufferSize: number;
-    public maxMessageSize: number;
-    public maxChunkCount: number;
-    public protocolVersion: number;
-
     private _aborted: number;
     private _helloReceived: boolean;
 
@@ -68,14 +62,16 @@ export class ServerTCP_transport extends TCP_transport {
         super();
         this._aborted = 0;
         this._helloReceived = false;
-        this.receiveBufferSize = 0;
-        this.sendBufferSize = 0;
-        this.maxMessageSize = 0;
-        this.maxChunkCount = 0;
-        this.protocolVersion = 0;
+
+        // before HEL/ACK
+        this.maxChunkCount = 1;
+        this.maxMessageSize = 4 * 1024;
+        this.receiveBufferSize = 4 * 1024;
     }
 
     protected _write_chunk(messageChunk: Buffer): void {
+
+        // istanbul ignore next
         if (this.sendBufferSize > 0 && messageChunk.length > this.sendBufferSize) {
             errorLog(
                 "write chunk exceed sendBufferSize messageChunk length = ",
@@ -84,6 +80,7 @@ export class ServerTCP_transport extends TCP_transport {
                 this.sendBufferSize
             );
         }
+        
         super._write_chunk(messageChunk);
     }
     /**
@@ -115,57 +112,63 @@ export class ServerTCP_transport extends TCP_transport {
     public abortWithError(statusCode: StatusCode, extraErrorDescription: string, callback: ErrorCallback): void {
         return this._abortWithError(statusCode, extraErrorDescription, callback);
     }
+
     private _abortWithError(statusCode: StatusCode, extraErrorDescription: string, callback: ErrorCallback): void {
-        if (debugLog) {
-            debugLog(chalk.cyan("_abortWithError"));
+        // When a fatal error occurs, the Server shall send an Error Message to the Client and
+        // closes the TransportConnection gracefully.
+        doDebug && debugLog(chalk.cyan("_abortWithError"));
+        
+        /* istanbul ignore next */
+        if (this._aborted) {
+            // already called
+            return callback(new Error(statusCode.name));
         }
+        this._aborted = 1;
 
-        assert(typeof callback === "function", "expecting a callback");
+        setTimeout(() => {
+            // send the error message and close the connection
+            this.sendErrorMessage(statusCode, statusCode.description);
 
-        /* istanbul ignore else */
-        if (!this._aborted) {
-            this._aborted = 1;
-            setTimeout(() => {
-                // send the error message and close the connection
-                assert(Object.prototype.hasOwnProperty.call(StatusCodes, statusCode.name));
-
-                /* istanbul ignore next*/
-                if (doDebug) {
-                    debugLog(chalk.red(" Server aborting because ") + chalk.cyan(statusCode.name));
-                    debugLog(chalk.red(" extraErrorDescription   ") + chalk.cyan(extraErrorDescription));
-                }
-
-                const errorResponse = new TCPErrorMessage({
-                    reason: statusCode.description,
-                    statusCode
-                });
-
-                const messageChunk = packTcpMessage("ERR", errorResponse);
-
-                this.write(messageChunk);
-
-                this.disconnect(() => {
-                    this._aborted = 2;
-                    callback(new Error(extraErrorDescription + " StatusCode = " + statusCode.name));
-                });
-            }, ServerTCP_transport.throttleTime);
-        } else {
-            callback(new Error(statusCode.name));
-        }
+            this.disconnect(() => {
+                this._aborted = 2;
+                callback(new Error(extraErrorDescription + " StatusCode = " + statusCode.name));
+            });
+        }, ServerTCP_transport.throttleTime);
     }
 
     private _send_ACK_response(helloMessage: HelloMessage): void {
         assert(helloMessage.receiveBufferSize >= minimumBufferSize);
         assert(helloMessage.sendBufferSize >= minimumBufferSize);
 
-        this.receiveBufferSize = clamp_value(helloMessage.receiveBufferSize, 8192, 512 * 1024);
-        this.sendBufferSize = clamp_value(helloMessage.sendBufferSize, 8192, 512 * 1024);
-        this.maxMessageSize = clamp_value(helloMessage.maxMessageSize, 100000, 64 * 1024 * 1024);
-        this.maxChunkCount = clamp_value(helloMessage.maxChunkCount, 0, 65535);
+        const minBufferSize = 8192;
+        const maxBufferSize = 64 * 1024;
+
+        const minMaxMessageSize = 128 * 1024;
+        const defaultMaxMessageSize = 16 * 1024 * 1024;
+        const maxMaxMessageSize = 128 * 1024 * 1024;
+
+        const minMaxChunkCount = 1;
+        const defaultMaxChunkCount = defaultMaxMessageSize / maxBufferSize;
+        const maxMaxChunkCount = 9000;
+
+        const receiveBufferSize = 32 * 1024;
+        const sendBufferSize = 32 * 1024;
+
+        if (!helloMessage.maxChunkCount && helloMessage.sendBufferSize) {
+            helloMessage.maxChunkCount = helloMessage.maxMessageSize / helloMessage.sendBufferSize;
+        }
+
+        this.setLimits({
+            receiveBufferSize: clamp_value(helloMessage.receiveBufferSize || receiveBufferSize, minBufferSize, maxBufferSize),
+            sendBufferSize: clamp_value(helloMessage.sendBufferSize || sendBufferSize, minBufferSize, maxBufferSize),
+            maxMessageSize: clamp_value(helloMessage.maxMessageSize || defaultMaxMessageSize, minMaxMessageSize, maxMaxMessageSize),
+            maxChunkCount: clamp_value(helloMessage.maxChunkCount || defaultMaxChunkCount, minMaxChunkCount, maxMaxChunkCount)
+        });
 
         // istanbul ignore next
         if (doTraceHelloAck) {
             console.log(`received Hello \n${helloMessage.toString()}`);
+            console.log("Client accepts only message of size => ", this.maxMessageSize);
         }
 
         debugLog("Client accepts only message of size => ", this.maxMessageSize);

@@ -31,10 +31,14 @@ export interface PacketAssemblerOptions {
     maxChunkSize: number;
 }
 
+export enum PacketAssemblerErrorCode {
+    ChunkSizeExceeded = 1,
+    ChunkTooSmall = 2
+}
 export interface PacketAssembler {
     on(eventName: "startChunk", eventHandler: (packetInfo: PacketInfo, partial: Buffer) => void): this;
     on(eventName: "chunk", eventHandler: (chunk: Buffer) => void): this;
-    on(eventName: "error", eventHandler: (err: Error) => void): this;
+    on(eventName: "error", eventHandler: (err: Error, errCode: PacketAssemblerErrorCode) => void): this;
 }
 /**
  * this class is used to assemble partial data from the tranport layer
@@ -86,14 +90,14 @@ export class PacketAssembler extends EventEmitter {
 
             assert(this.currentLength === 0);
             if (this.packetInfo.length < this.minimumSizeInBytes) {
-                this.emit("error", new Error("maximum message size exceeded"));
+                this.emit("error", new Error("chunk is too small "), PacketAssemblerErrorCode.ChunkTooSmall);
                 return;
             }
 
             if (this.packetInfo.length > this.maxChunkSize) {
                 const message = `maximum chunk size exceeded (maxChunkSize=${this.maxChunkSize} current chunk size = ${this.packetInfo.length})`;
                 warningLog(message);
-                this.emit("error", new Error(message));
+                this.emit("error", new Error(message), PacketAssemblerErrorCode.ChunkSizeExceeded);
                 return;
             }
             // we can now emit an event to signal the start of a new packet

@@ -69,7 +69,7 @@ describe("SecureMessageChunkManager", function() {
                         .on("full_message_body", function(full_message_body) {
                             compare_buffers(fullBufferForVerif, full_message_body, 40);
                         })
-                        .on("message", function(reconstructed_message) {
+                        .on("message", (reconstructed_message) => {
                             // message has been fully reconstructed here :
                             // check that the reconstructed message equal the original_message
 
@@ -113,7 +113,7 @@ describe("SecureMessageChunkManager", function() {
                 debugLog(" On raw Buffer \n");
                 debugLog(hexDump(full_message_body));
             })
-            .on("message", function(message) {
+            .on("message", (message) => {
                 debugLog(" message ", message);
 
                 message.responseHeader.serviceResult.value.should.eql(0x80820000);

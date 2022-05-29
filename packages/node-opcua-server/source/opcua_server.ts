@@ -167,8 +167,7 @@ import { CreateMonitoredItemHook, DeleteMonitoredItemHook, Subscription } from "
 import { ISocketData } from "./i_socket_data";
 import { IChannelData } from "./i_channel_data";
 import { UAUserManagerBase, makeUserManager, UserManagerOptions } from "./user_manager";
-import { bindRoleSet} from "./user_manager_ua";
-
+import { bindRoleSet } from "./user_manager_ua";
 
 function isSubscriptionIdInvalid(subscriptionId: number): boolean {
     return subscriptionId < 0 || subscriptionId >= 0xffffffff;
@@ -1403,7 +1402,7 @@ export class OPCUAServer extends OPCUABaseServer {
         clientCertificate: Certificate,
         clientNonce: Nonce
     ): SignatureData | undefined {
-        return computeSignature(clientCertificate, clientNonce, this.getPrivateKey(), channel.messageBuilder.securityPolicy);
+        return computeSignature(clientCertificate, clientNonce, this.getPrivateKey(), channel.messageBuilder!.securityPolicy);
     }
 
     /**
@@ -1419,7 +1418,7 @@ export class OPCUAServer extends OPCUABaseServer {
         clientSignature: SignatureData
     ): boolean {
         const clientCertificate = channel.receiverCertificate!;
-        const securityPolicy = channel.messageBuilder.securityPolicy;
+        const securityPolicy = channel.messageBuilder!.securityPolicy;
         const serverCertificate = this.getCertificate();
 
         const result = verifySignature(serverCertificate, session.nonce!, clientSignature, clientCertificate, securityPolicy);
@@ -1472,7 +1471,7 @@ export class OPCUAServer extends OPCUABaseServer {
         callback: (err: Error | null, statusCode?: StatusCode) => void
     ): void {
         assert(userIdentityToken instanceof X509IdentityToken);
-        assert(typeof callback === 'function');
+        assert(typeof callback === "function");
 
         const securityPolicy = adjustSecurityPolicy(channel, userTokenPolicy.securityPolicyUri);
 
@@ -1605,7 +1604,7 @@ export class OPCUAServer extends OPCUABaseServer {
         endpointDescription: EndpointDescription,
         callback: (err: Error | null, statusCode?: StatusCode) => void
     ): void {
-        assert(typeof callback === 'function');
+        assert(typeof callback === "function");
         /* istanbul ignore next */
         if (!userIdentityToken) {
             throw new Error("Invalid token");

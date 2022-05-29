@@ -1,29 +1,29 @@
-import {allPermissions, OPCUAClient, OPCUAServer, StatusCodes, UserTokenType, WellKnownRoles, makeRoles} from "node-opcua";
+import { allPermissions, OPCUAClient, OPCUAServer, StatusCodes, UserTokenType, WellKnownRoles, makeRoles } from "node-opcua";
 import "should";
 
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("Issue #896: Check Authorization for UAMethods", () => {
     const users = [
-        {username: "Gandalf", password: "g", roles: makeRoles([WellKnownRoles.AuthenticatedUser,WellKnownRoles.ConfigureAdmin])},
-        {username: "Frodo", password: "f", roles:  makeRoles([WellKnownRoles.AuthenticatedUser])},
+        { username: "Gandalf", password: "g", roles: makeRoles([WellKnownRoles.AuthenticatedUser, WellKnownRoles.ConfigureAdmin]) },
+        { username: "Frodo", password: "f", roles: makeRoles([WellKnownRoles.AuthenticatedUser]) }
     ];
 
     const port = 2226;
     const server = new OPCUAServer({
         port,
         userManager: {
-            getUserRoles: username => users.find(user => user.username === username)!.roles,
-            
-            isValidUser(username, password) {
-                const user = users.find(user => user.username === username);
+            getUserRoles: (username) => users.find((user) => user.username === username)!.roles,
+
+            isValidUser: (username: string, password: string) => {
+                const user = users.find((user) => user.username === username);
                 if (!user) return false;
                 return user.password === password;
             }
         }
-    })
+    });
 
     const client = OPCUAClient.create({
-        endpointMustExist: false,
+        endpointMustExist: false
     });
 
     let wasExecuted: boolean;
@@ -36,24 +36,26 @@ describe("Issue #896: Check Authorization for UAMethods", () => {
             browseName: "e2e",
             nodeId: "ns=1;s=e2e"
         });
-        namespace.addMethod(folder, {
-            browseName: "doIt",
-            nodeId: "ns=1;s=doIt",
-            rolePermissions: [
-                { 
-                    roleId:  WellKnownRoles.ConfigureAdmin,
-                    permissions: allPermissions
-                }
-            ]
-            /*
+        namespace
+            .addMethod(folder, {
+                browseName: "doIt",
+                nodeId: "ns=1;s=doIt",
+                rolePermissions: [
+                    {
+                        roleId: WellKnownRoles.ConfigureAdmin,
+                        permissions: allPermissions
+                    }
+                ]
+                /*
             permissions: {
                  [Permission.Call]: ["!*", WellKnownRoles.ConfigureAdmin]
             }
             */
-        }).bindMethod((inputArguments, context, callback) => {
-            wasExecuted = true;
-            callback(null, {statusCode: StatusCodes.Good})
-        });
+            })
+            .bindMethod((inputArguments, context, callback) => {
+                wasExecuted = true;
+                callback(null, { statusCode: StatusCodes.Good });
+            });
         await server.start();
         return client.connect(`opc.tcp://localhost:${port}/UA/NodeOPCUA`);
     });
@@ -63,7 +65,7 @@ describe("Issue #896: Check Authorization for UAMethods", () => {
         await server.shutdown();
     });
 
-    beforeEach(() => wasExecuted = false);
+    beforeEach(() => (wasExecuted = false));
 
     it("should allow Gandalf to execute the method", async () => {
         const clientSession = await client.createSession({
@@ -74,7 +76,7 @@ describe("Issue #896: Check Authorization for UAMethods", () => {
         const result = await clientSession.call({
             methodId: "ns=1;s=doIt",
             objectId: "ns=1;s=e2e",
-            inputArguments: [],
+            inputArguments: []
         });
         await clientSession.close();
         result.statusCode.should.eql(StatusCodes.Good);
@@ -90,7 +92,7 @@ describe("Issue #896: Check Authorization for UAMethods", () => {
         const result = await clientSession.call({
             methodId: "ns=1;s=doIt",
             objectId: "ns=1;s=e2e",
-            inputArguments: [],
+            inputArguments: []
         });
         await clientSession.close();
         result.statusCode.should.eql(StatusCodes.BadUserAccessDenied);

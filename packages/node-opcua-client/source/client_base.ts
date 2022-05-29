@@ -8,19 +8,9 @@ import { OPCUACertificateManager } from "node-opcua-certificate-manager";
 import { OPCUASecureObject } from "node-opcua-common";
 import { Certificate } from "node-opcua-crypto";
 import { ObjectRegistry } from "node-opcua-object-registry";
-import {
-    ClientSecureChannelLayer,
-    ConnectionStrategy,
-    ConnectionStrategyOptions,
-    SecurityPolicy} from "node-opcua-secure-channel";
-import {
-    FindServersOnNetworkRequestOptions,
-    FindServersRequestOptions,
-    ServerOnNetwork
-} from "node-opcua-service-discovery";
-import {
-    ApplicationDescription,
-    EndpointDescription} from "node-opcua-service-endpoints";
+import { ClientSecureChannelLayer, ConnectionStrategy, ConnectionStrategyOptions, SecurityPolicy } from "node-opcua-secure-channel";
+import { FindServersOnNetworkRequestOptions, FindServersRequestOptions, ServerOnNetwork } from "node-opcua-service-discovery";
+import { ApplicationDescription, EndpointDescription } from "node-opcua-service-endpoints";
 import { ChannelSecurityToken, MessageSecurityMode } from "node-opcua-service-secure-channel";
 import { ErrorCallback } from "node-opcua-status-code";
 
@@ -48,6 +38,22 @@ export interface FindEndpointResult {
 }
 
 export type FindEndpointCallback = (err: Error | null, result?: FindEndpointResult) => void;
+
+export interface TransportSettings {
+    maxChunkCount?: number;
+    /**
+     * @advanced
+     */
+    maxMessageSize?: number;
+    /**
+     * @advanced
+     */
+    sendBufferSize?: number;
+    /**
+     * @advanced
+     */
+    receiveBufferSize?: number;
+}
 
 export interface OPCUAClientBaseOptions {
     /**
@@ -131,6 +137,10 @@ export interface OPCUAClientBaseOptions {
      * discovery url:
      */
     discoveryUrl?: string;
+    /**
+     * @advanced
+     */
+    transportSetting?: TransportSettings
 }
 
 export interface GetEndpointsOptions {

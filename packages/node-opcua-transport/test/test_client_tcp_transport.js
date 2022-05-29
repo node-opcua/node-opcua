@@ -1,16 +1,15 @@
 "use strict";
 const should = require("should");
-const { assert } = require("node-opcua-assert");
 const chalk = require("chalk");
 const sinon = require("sinon");
 
-const { StatusCodes, StatusCode } = require("node-opcua-status-code");
-
+const { assert } = require("node-opcua-assert");
 const { hexDump } = require("node-opcua-debug");
-
+const { make_debugLog, make_errorLog } = require("node-opcua-debug");
+const { StatusCodes, StatusCode } = require("node-opcua-status-code");
 const { compare_buffers } = require("node-opcua-utils");
 
-const { make_debugLog, make_errorLog } = require("node-opcua-debug");
+
 const debugLog = make_debugLog("TEST");
 const errorLog = make_errorLog("TEST");
 
@@ -19,6 +18,7 @@ const { FakeServer } = require("../dist/test_helpers");
 const port = 5678;
 
 const { AcknowledgeMessage, TCPErrorMessage, ClientTCP_transport, packTcpMessage } = require("..");
+const { MessageBuilderBase, writeTCPMessageHeader } = require("..");
 
 describe("testing ClientTCP_transport", function () {
     this.timeout(15000);
@@ -215,7 +215,7 @@ describe("testing ClientTCP_transport", function () {
 
         transport.timeout = 1000; // very short timeout;
 
-        transport.on("message", function (message_chunk) {
+        transport.on("chunk", function (message_chunk) {
             debugLog(chalk.cyan.bold(hexDump(message_chunk)));
             compare_buffers(message_chunk.slice(8), message1);
 
@@ -228,12 +228,34 @@ describe("testing ClientTCP_transport", function () {
             done();
         });
 
-        transport.connect(endpointUrl, function (err) {
+
+        /**
+         * ```createChunk``` is used to construct a pre-allocated chunk to store up to ```length``` bytes of data.
+         * The created chunk includes a prepended header for ```chunk_type``` of size ```self.headerSize```.
+         *
+         * @method createChunk
+         * @param msgType
+         * @param chunkType {String} chunk type. should be 'F' 'C' or 'A'
+         * @param length
+         * @return a buffer object with the required length representing the chunk.
+         *
+         * Note:
+         *  - only one chunk can be created at a time.
+         *  - a created chunk should be committed using the ```write``` method before an other one is created.
+         */
+        function createChunk(msgType, chunkType, headerSize, length) {
+            assert(msgType === "MSG");
+            const totalLength = length + headerSize;
+            const buffer = Buffer.alloc(totalLength);
+            writeTCPMessageHeader("MSG", chunkType, totalLength, buffer);
+            return buffer;
+        }
+        transport.connect(endpointUrl, (err) => {
             if (err) {
                 errorLog(chalk.bgWhite.red(" err = "), err.message);
             }
             assert(!err);
-            const buf = transport.createChunk("MSG", "F", message1.length);
+            const buf = createChunk("MSG", "F", transport.headerSize, message1.length);
             message1.copy(buf, transport.headerSize, 0, message1.length);
             transport.write(buf);
         });

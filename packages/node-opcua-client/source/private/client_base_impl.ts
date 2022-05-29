@@ -622,7 +622,10 @@ export class ClientBaseImpl extends OPCUASecureObject implements OPCUAClientBase
             securityMode: this.securityMode,
             securityPolicy: this.securityPolicy,
             serverCertificate: this.serverCertificate,
-            tokenRenewalInterval: this.tokenRenewalInterval
+            tokenRenewalInterval: this.tokenRenewalInterval,
+            
+            // transportTimeout:
+
         });
         secureChannel.protocolVersion = this.protocolVersion;
 
