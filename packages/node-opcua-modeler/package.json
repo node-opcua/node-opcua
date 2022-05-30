@@ -13,8 +13,8 @@
     "license": "MIT",
     "dependencies": {
         "chalk": "4.1.2",
-        "cli-table3": "^0.6.1",
-        "csv-parse": "5.0.4",
+        "cli-table3": "^0.6.2",
+        "csv-parse": "5.1.0",
         "node-opcua-address-space": "2.68.1",
         "node-opcua-assert": "2.66.0",
         "node-opcua-basic-types": "2.68.0",
