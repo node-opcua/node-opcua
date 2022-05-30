@@ -31,11 +31,11 @@
         "thenify": "^3.3.1"
     },
     "devDependencies": {
-        "@types/async": "^3.2.12",
+        "@types/async": "^3.2.13",
         "dequeue": "^1.0.5",
         "node-opcua-leak-detector": "2.68.0",
         "should": "^13.2.3",
-        "sinon": "^13.0.1"
+        "sinon": "^14.0.0"
     },
     "eslintConfig": {
         "env": {

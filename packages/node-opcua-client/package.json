@@ -14,7 +14,7 @@
     "types": "./dist/index.d.ts",
     "dependencies": {
         "@ster5/global-mutex": "^1.2.0",
-        "@types/async": "^3.2.12",
+        "@types/async": "^3.2.13",
         "@types/once": "^1.4.0",
         "@types/underscore": "^1.11.4",
         "async": "^3.2.3",
@@ -61,7 +61,7 @@
         "node-opcua-variant": "2.68.0",
         "once": "^1.4.0",
         "thenify": "^3.3.1",
-        "underscore": "^1.13.2"
+        "underscore": "^1.13.3"
     },
     "devDependencies": {
         "dequeue": "^1.0.5",
@@ -71,7 +71,7 @@
         "node-opcua-leak-detector": "2.68.0",
         "node-opcua-nodesets": "2.66.0",
         "should": "^13.2.3",
-        "sinon": "^13.0.1"
+        "sinon": "^14.0.0"
     },
     "eslintConfig": {
         "env": {
