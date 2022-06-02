@@ -22,7 +22,7 @@ build_and_test:
     - pnpm config set store-dir `pwd`/.pnpm-store
     - pnpm recursive install --frozen-lockfile=false
   script:
-    - pnpm run version:check
+    - pnpm run consistency
     - pnpm run build
     - pnpm run pretest
     - node packages/parallel_test.js

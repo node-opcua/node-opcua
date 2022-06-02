@@ -9,7 +9,7 @@
         "test": "test"
     },
     "scripts": {
-        "version:check": "npx -y @ster5/check-version-consistency",
+        "consistency": "npx -y @ster5/check-version-consistency",
         "preinstall": "node prevent_npm_install.js",
         "postinstall": "pnpm build",
         "_x_preinstall": "npm i browserify -g",
