@@ -1308,8 +1308,8 @@ export class OPCUAServer extends OPCUABaseServer {
         debugLog("OPCUAServer is now unregistering itself from  the discovery server " + this.buildInfo);
         this.registerServerManager!.stop((err?: Error | null) => {
             debugLog("OPCUAServer unregistered from discovery server", err);
-            setTimeout(() => {
-                this.engine.shutdown();
+            setTimeout(async () => {
+                await this.engine.shutdown();
 
                 debugLog("OPCUAServer#shutdown: started");
                 OPCUABaseServer.prototype.shutdown.call(this, (err1?: Error) => {

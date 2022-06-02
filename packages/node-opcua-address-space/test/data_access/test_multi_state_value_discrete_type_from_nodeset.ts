@@ -34,8 +34,8 @@ describe("MultiStateValueDiscreteType - 2", () => {
         await generateAddressSpace(addressSpace, xmlFiles);
     });
 
-    after(() => {
-        addressSpace.shutdown();
+    after(async () => {
+        await addressSpace.shutdown();
         addressSpace.dispose();
     });
 
