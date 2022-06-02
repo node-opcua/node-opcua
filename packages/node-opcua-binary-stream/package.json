@@ -1,6 +1,6 @@
 {
     "name": "node-opcua-binary-stream",
-    "version": "2.67.0",
+    "version": "2.69.0",
     "description": "pure nodejs OPCUA SDK - module -binary-stream",
     "main": "./dist/index.js",
     "types": "./dist/index.d.ts",
@@ -12,10 +12,10 @@
     },
     "dependencies": {
         "node-opcua-assert": "2.66.0",
-        "node-opcua-buffer-utils": "2.67.0"
+        "node-opcua-buffer-utils": "2.69.0"
     },
     "devDependencies": {
-        "node-opcua-benchmarker": "2.67.0",
+        "node-opcua-benchmarker": "2.69.0",
         "should": "^13.2.3"
     },
     "author": "Etienne Rossignon",

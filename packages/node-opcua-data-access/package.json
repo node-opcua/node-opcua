@@ -2,7 +2,7 @@
   "name": "node-opcua-data-access",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
-  "version": "2.68.1",
+  "version": "2.69.0",
   "description": "pure nodejs OPCUA SDK - module -data-access",
   "scripts": {
     "build": "tsc -b",
@@ -13,12 +13,12 @@
   },
   "dependencies": {
     "node-opcua-assert": "2.66.0",
-    "node-opcua-basic-types": "2.68.0",
-    "node-opcua-binary-stream": "2.67.0",
-    "node-opcua-data-model": "2.68.0",
-    "node-opcua-factory": "2.68.0",
-    "node-opcua-nodeid": "2.68.0",
-    "node-opcua-types": "2.68.1"
+    "node-opcua-basic-types": "2.69.0",
+    "node-opcua-binary-stream": "2.69.0",
+    "node-opcua-data-model": "2.69.0",
+    "node-opcua-factory": "2.69.0",
+    "node-opcua-nodeid": "2.69.0",
+    "node-opcua-types": "2.69.0"
   },
   "devDependencies": {
     "should": "^13.2.3"
