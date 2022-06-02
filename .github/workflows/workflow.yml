@@ -29,7 +29,7 @@ jobs:
         path: ~/.pnpm-store
         key: ${{ runner.os }}-pnpm-store
     - run: npm install -g pnpm
-    - run: npm run "version:check"
+    - run: pnpm run consistency
     - run: pnpm recursive install
     - run: pnpm run build
     - run: pnpm run pretest
@@ -51,7 +51,7 @@ jobs:
         path: ~/.pnpm-store
         key: ${{ runner.os }}-pnpm-store
     - run: npm install -g pnpm
-    - run: npm run "version:check"
+    - run: pnpm run consistency
     - run: pnpm recursive install
     - run: pnpm run build
     - run: pnpm run pretest
