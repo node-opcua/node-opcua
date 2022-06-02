@@ -186,7 +186,7 @@ export interface IAddressSpace {
     // -------------- Shutdown helpers
     registerShutdownTask(task: (this: IAddressSpace) => void): void;
 
-    shutdown(): void;
+    shutdown(): Promise<void>;
 
     dispose(): void;
 

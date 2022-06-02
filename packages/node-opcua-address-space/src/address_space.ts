@@ -121,7 +121,7 @@ function isNodeIdString(str: unknown): boolean {
     return str.substring(0, 2) === "i=" || str.substring(0, 3) === "ns=";
 }
 
-type ShutdownTask = (this: AddressSpace) => void;
+type ShutdownTask = ((this: AddressSpace) => void) | ((this: AddressSpace) => Promise<void>);
 
 /**
  * `AddressSpace` is a collection of UA nodes.
@@ -167,7 +167,7 @@ export class AddressSpace implements AddressSpacePrivate {
         this._private_namespaceIndex = 1;
         this._namespaceArray = [];
         // special namespace 0 is reserved for the UA namespace
-        this.registerNamespace("http://opcfoundation.org/UA/");     
+        this.registerNamespace("http://opcfoundation.org/UA/");
         AddressSpace.registry.register(this);
     }
     /**
@@ -1061,21 +1061,22 @@ export class AddressSpace implements AddressSpacePrivate {
      * register a function that will be called when the server will perform its shut down.
      * @method registerShutdownTask
      */
-    public registerShutdownTask(task: (this: AddressSpace) => void): void {
+    public registerShutdownTask(task: ShutdownTask): void {
         this._shutdownTask = this._shutdownTask || [];
         assert(typeof task === "function");
         this._shutdownTask.push(task);
     }
 
-    public shutdown(): void {
+    public async shutdown(): Promise<void> {
         if (!this._shutdownTask) {
             return;
         }
-        // perform registerShutdownTask
-        this._shutdownTask.forEach((task: any) => {
-            task.call(this);
-        });
+        const tasks = this._shutdownTask;
         this._shutdownTask = [];
+        // perform registerShutdownTask
+        for (const task of tasks) {
+            await task.call(this);
+        }
     }
 
     /**
@@ -1533,8 +1534,6 @@ export class AddressSpace implements AddressSpacePrivate {
         }
         return nodeId;
     }
-
-
 
     private _findReferenceType(refType: NodeId | string, namespaceIndex?: number): UAReferenceType | null {
         if (refType instanceof NodeId) {

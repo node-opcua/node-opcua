@@ -104,9 +104,9 @@ function upperCaseFirst(str: string) {
     return str.slice(0, 1).toUpperCase() + str.slice(1);
 }
 
-function shutdownAndDisposeAddressSpace(this: ServerEngine) {
+async function shutdownAndDisposeAddressSpace(this: ServerEngine) {
     if (this.addressSpace) {
-        this.addressSpace.shutdown();
+        await this.addressSpace.shutdown();
         this.addressSpace.dispose();
         delete (this as any).addressSpace;
     }
@@ -288,6 +288,7 @@ export interface CreateSessionOption {
 
 export type ClosingReason = "Timeout" | "Terminated" | "CloseSession" | "Forcing";
 
+export type ShutdownTask = ((this: ServerEngine) => void|Promise<void>);
 /**
  *
  */
@@ -309,7 +310,7 @@ export class ServerEngine extends EventEmitter {
     private _sessions: { [key: string]: ServerSession };
     private _closedSessions: { [key: string]: ServerSession };
     private _orphanPublishEngine?: ServerSidePublishEngineForOrphanSubscription;
-    private _shutdownTasks: ((this: ServerEngine) => void)[];
+    private _shutdownTasks: ShutdownTask[];
     private _applicationUri: string;
     private _expectedShutdownTime!: Date;
     private _serverStatus: ServerStatusDataType;
@@ -473,7 +474,7 @@ export class ServerEngine extends EventEmitter {
     /**
      * @method shutdown
      */
-    public shutdown(): void {
+    public async shutdown(): Promise<void> {
         debugLog("ServerEngine#shutdown");
 
         this._internalState = "shutdown";
@@ -504,7 +505,7 @@ export class ServerEngine extends EventEmitter {
 
         // perform registerShutdownTask
         for (const task of this._shutdownTasks) {
-            task.call(this);
+            await task.call(this);
         }
 
         this.dispose();

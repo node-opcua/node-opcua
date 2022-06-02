@@ -140,7 +140,7 @@ export interface OPCUAClientBaseOptions {
     /**
      * @advanced
      */
-    transportSetting?: TransportSettings
+    transportSettings?: TransportSettings
 }
 
 export interface GetEndpointsOptions {
