@@ -8,15 +8,13 @@ import { NodeIdLike, resolveNodeId } from "node-opcua-nodeid";
 import {
     BrowseDescription,
     BrowseDescriptionOptions,
-    BrowseRequest,
-    BrowseResponse,
     BrowseResult
 } from "node-opcua-service-browse";
-import { Argument, CallMethodRequest, CallMethodRequestOptions, CallMethodResult } from "node-opcua-service-call";
-import { ReadValueId, ReadValueIdOptions } from "node-opcua-service-read";
+import { Argument, CallMethodRequestOptions, CallMethodResult } from "node-opcua-service-call";
+import { ReadValueIdOptions } from "node-opcua-service-read";
 import { WriteValueOptions } from "node-opcua-service-write";
 import { BrowsePath, BrowsePathResult } from "node-opcua-service-translate-browse-path";
-import { DataType, Variant, VariantArrayType } from "node-opcua-variant";
+import { DataType, VariantArrayType } from "node-opcua-variant";
 import { StatusCode, StatusCodes } from "node-opcua-status-code";
 import { VariableIds } from "node-opcua-constants";
 
