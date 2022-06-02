@@ -1,6 +1,6 @@
 {
     "name": "node-opcua-pseudo-session",
-    "version": "2.69.0",
+    "version": "2.69.1",
     "description": "pure nodejs OPCUA SDK - module -client-proxy",
     "scripts": {
         "clean": "npx rimraf dist *.tsbuildinfo",
