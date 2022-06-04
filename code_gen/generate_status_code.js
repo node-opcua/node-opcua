@@ -15,7 +15,7 @@ const codeMap = {};
 const code_list = [];
 
 
-const dataFolder = path.join(__dirname, "1.04");
+const dataFolder = path.join(__dirname, "latest");
 
 
 const parser = csv.parse({
@@ -90,7 +90,7 @@ function parseStatusCodeXML2() {
  * @module node-opcua-status-codes
  */
 // this file has been automatically generated
-import { ConstantStatusCode, StatusCode } from \"./opcua_status_code\";\n`);
+import { ConstantStatusCode, StatusCode } from "./opcua_status_code";\n`);
 
     outFile.write(" export class StatusCodes  { \n");
 

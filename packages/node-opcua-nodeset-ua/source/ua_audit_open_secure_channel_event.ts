@@ -20,6 +20,7 @@ export interface UAAuditOpenSecureChannelEvent_Base extends UAAuditChannelEvent_
     securityPolicyUri: UAProperty<UAString, /*z*/DataType.String>;
     securityMode: UAProperty<EnumMessageSecurityMode, /*z*/DataType.Int32>;
     requestedLifetime: UAProperty<number, /*z*/DataType.Double>;
+    certificateErrorEventId?: UAProperty<UAString, /*z*/DataType.String>;
 }
 export interface UAAuditOpenSecureChannelEvent extends UAAuditChannelEvent, UAAuditOpenSecureChannelEvent_Base {
 }

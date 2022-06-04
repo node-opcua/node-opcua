@@ -18,14 +18,14 @@ export enum EnumToolLifeIndication  {
   /**
    * The tool life indicates the total number of parts
    * that have been produced or can still be produced
-   * using the tool. The unit shall be „one“.
+   * using the tool. The unit shall be “one”.
    */
   NumberOfParts = 1,
   /**
    * The tool life indicates counting the process
    * steps this tool has been used or can still be
    * used (for example usages of a punching tool). The
-   * unit shall be „one“.
+   * unit shall be “one”.
    */
   NumberOfUsages = 2,
   /**

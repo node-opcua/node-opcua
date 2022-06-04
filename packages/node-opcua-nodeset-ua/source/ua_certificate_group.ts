@@ -16,9 +16,9 @@ import { UATrustListOutOfDateAlarm } from "./ua_trust_list_out_of_date_alarm"
 export interface UACertificateGroup_Base {
     trustList: UATrustList;
     certificateTypes: UAProperty<NodeId[], /*z*/DataType.NodeId>;
+    getRejectedList?: UAMethod;
     certificateExpired?: UACertificateExpirationAlarm;
     trustListOutOfDate?: UATrustListOutOfDateAlarm;
-    getRejectedList?: UAMethod;
 }
 export interface UACertificateGroup extends UAObject, UACertificateGroup_Base {
 }

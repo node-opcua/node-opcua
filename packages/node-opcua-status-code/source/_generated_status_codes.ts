@@ -114,11 +114,11 @@ export class StatusCodes {
         value: 0x800e0000,
         description: "The server has stopped and cannot process any requests."
     });
-    /** There was nothing to do because the client passed a list of operations with no elements. */
+    /** No processing could be done because there was nothing to do. */
     static BadNothingToDo: ConstantStatusCode = new ConstantStatusCode({
         name: "BadNothingToDo",
         value: 0x800f0000,
-        description: "There was nothing to do because the client passed a list of operations with no elements."
+        description: "No processing could be done because there was nothing to do."
     });
     /** The request could not be processed because it specified too many operations. */
     static BadTooManyOperations: ConstantStatusCode = new ConstantStatusCode({
@@ -1590,6 +1590,12 @@ export class StatusCodes {
         name: "GoodCascade",
         value: 0x4090000,
         description: "The value is accurate, and the signal source supports cascade handshaking."
+    });
+    /** The DataSet specified for the DataSetWriter creation is invalid. */
+    static BadDataSetIdInvalid: ConstantStatusCode = new ConstantStatusCode({
+        name: "BadDataSetIdInvalid",
+        value: 0x80e70000,
+        description: "The DataSet specified for the DataSetWriter creation is invalid."
     });
     static GoodWithOverflowBit = StatusCode.makeStatusCode(StatusCodes.Good, `Overflow | InfoTypeDataValue`);
 }

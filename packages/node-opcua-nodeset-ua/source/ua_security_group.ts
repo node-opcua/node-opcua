@@ -1,5 +1,5 @@
 // ----- this file has been automatically generated - do not edit
-import { UAObject, UAProperty } from "node-opcua-address-space-base"
+import { UAObject, UAMethod, UAProperty } from "node-opcua-address-space-base"
 import { DataType } from "node-opcua-variant"
 import { UInt32, UAString } from "node-opcua-basic-types"
 /**
@@ -16,6 +16,8 @@ export interface UASecurityGroup_Base {
     securityPolicyUri: UAProperty<UAString, /*z*/DataType.String>;
     maxFutureKeyCount: UAProperty<UInt32, /*z*/DataType.UInt32>;
     maxPastKeyCount: UAProperty<UInt32, /*z*/DataType.UInt32>;
+    invalidateKeys?: UAMethod;
+    forceKeyRotation?: UAMethod;
 }
 export interface UASecurityGroup extends UAObject, UASecurityGroup_Base {
 }

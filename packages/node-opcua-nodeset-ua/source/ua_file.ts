@@ -17,6 +17,7 @@ export interface UAFile_Base {
     openCount: UAProperty<UInt16, /*z*/DataType.UInt16>;
     mimeType?: UAProperty<UAString, /*z*/DataType.String>;
     maxByteStringLength?: UAProperty<UInt32, /*z*/DataType.UInt32>;
+    lastModifiedTime?: UAProperty<Date, /*z*/DataType.DateTime>;
     open: UAMethod;
     close: UAMethod;
     read: UAMethod;

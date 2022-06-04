@@ -28,6 +28,8 @@ code_gen/*.wsdl
 code_gen/*.bsd
 code_gen/*.xls
 code_gen/*.xml
+code_gen/1.05
+code_gen/latest
 documentation/worldweatheronline.key
 *.tgz
 npm-debug.log

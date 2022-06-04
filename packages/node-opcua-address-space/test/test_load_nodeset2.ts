@@ -295,7 +295,7 @@ describe("testing NodeSet XML file loading", function (this: any) {
     </NamespaceUris>
     <Models>
         <Model ModelUri="http://opcfoundation.org/UA/DI/" Version="1.02" PublicationDate="2019-01-21T00:00:00.000Z">
-            <RequiredModel ModelUri="http://opcfoundation.org/UA/" Version="1.04.10" PublicationDate="2021-09-15T00:00:00.000Z"/>
+            <RequiredModel ModelUri="http://opcfoundation.org/UA/" Version="1.05.01" PublicationDate="2022-02-24T00:00:00.000Z"/>
         </Model>
     </Models>
     <Aliases>

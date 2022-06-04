@@ -1,7 +1,5 @@
 // ----- this file has been automatically generated - do not edit
-import { UAObject, UAProperty } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { EnumNamingRule } from "./enum_naming_rule"
+import { UAObject } from "node-opcua-address-space-base"
 /**
  * |                |                                                  |
  * |----------------|--------------------------------------------------|
@@ -11,7 +9,6 @@ import { EnumNamingRule } from "./enum_naming_rule"
  * |isAbstract      |false                                             |
  */
 export interface UAModellingRule_Base {
-    namingRule: UAProperty<EnumNamingRule, /*z*/DataType.Int32>;
 }
 export interface UAModellingRule extends UAObject, UAModellingRule_Base {
 }

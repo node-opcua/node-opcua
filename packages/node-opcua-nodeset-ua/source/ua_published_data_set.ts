@@ -17,6 +17,7 @@ export interface UAPublishedDataSet_Base {
     configurationVersion: UAProperty<DTConfigurationVersion, /*z*/DataType.ExtensionObject>;
     dataSetMetaData: UAProperty<DTDataSetMeta, /*z*/DataType.ExtensionObject>;
     dataSetClassId?: UAProperty<Guid, /*z*/DataType.Guid>;
+    cyclicDataSet?: UAProperty<boolean, /*z*/DataType.Boolean>;
     extensionFields?: UAExtensionFields;
 }
 export interface UAPublishedDataSet extends UAObject, UAPublishedDataSet_Base {

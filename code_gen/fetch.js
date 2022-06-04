@@ -1,4 +1,5 @@
 const url = require("url");
+const path = require("path");
 const https = require('https');
 let http = require('http');
 const fs = require("fs");
@@ -36,7 +37,7 @@ function wget(dest_folder, file_url) {
     request_options.headers = { 'user-agent': 'Mozilla/5.0' };
 
     // Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/38.0.2125.101 Safari/537.36
-    const req = http.get(request_options, function(response) {
+    const req = http.get(request_options, function (response) {
         // handle the response
         let res_data = '';
         // console.log(response);
@@ -51,7 +52,7 @@ function wget(dest_folder, file_url) {
             total: fileBytes
         });
 
-        response.on('data', function(chunk) {
+        response.on('data', function (chunk) {
             res_data += chunk;
 
             if (chunk.length) {
@@ -64,11 +65,11 @@ function wget(dest_folder, file_url) {
             stream.write(chunk, "binary");
 
         });
-        response.on('end', function() {
+        response.on('end', function () {
             stream.end();
         });
     });
-    req.on('error', function(err) {
+    req.on('error', function (err) {
         console.log("Request error: " + err.message);
     });
 }
@@ -259,57 +260,46 @@ if (false) {
 
 function fetch_from_github(version, file) {
 
-    wget("1.04", "https://raw.githubusercontent.com/OPCFoundation/UA-Nodeset/v" + version + "/" + file);
+    const destFolder = path.join(__dirname, version);
+    wget(destFolder, `https://raw.githubusercontent.com/OPCFoundation/UA-Nodeset/${version}/${file}`);
 
 }
-const version = "1.04";
-fetch_from_github(version, "Schema/StatusCode.csv");
-fetch_from_github(version, "Schema/NodeIds.csv");
-fetch_from_github(version, "Schema/Opc.Ua.NodeSet2.xml");
-fetch_from_github(version, "Schema/Opc.Ua.Types.bsd.xml");
-fetch_from_github(version, "Schema/Opc.Ua.Endpoints.wsdl");
-fetch_from_github(version, "Schema/SecuredApplication.xsd");
-fetch_from_github(version, "Schema/UANodeSet.xsd");
-fetch_from_github(version, "Schema/Types.xsd");
-fetch_from_github(version, "Schema/Opc.Ua.Types.bsd.xml");
-fetch_from_github(version, "Schema/Opc.Ua.NodeSet2.Part8.xml");
-fetch_from_github(version, "Schema/Opc.Ua.NodeSet2.xml");
-fetch_from_github(version, "Schema/Opc.Ua.Types.xsd");
+const version = "latest";
 
-fetch_from_github(version, "DI/Opc.Ua.Di.NodeSet2.xml");
-fetch_from_github(version, "DI/Opc.Ua.Di.Types.xsd");
-fetch_from_github(version, "DI/Opc.Ua.Di.Types.bsd");
 
 fetch_from_github(version, "ADI/Opc.Ua.Adi.NodeSet2.xml");
 fetch_from_github(version, "ADI/Opc.Ua.Adi.Types.xsd");
-fetch_from_github(version, "ADI/Opc.Ua.Adi.Types.bsd");
-
-fetch_from_github(version, "GDS/Opc.Ua.Gds.NodeSet2.xml");
 fetch_from_github(version, "AutoID/Opc.Ua.AutoID.NodeSet2.xml");
-fetch_from_github(version, "Machinery/Opc.Ua.Machinery.NodeSet2.xml");
+fetch_from_github(version, "CNC/Opc.Ua.CNC.NodeSet.xml");
+fetch_from_github(version, "CommercialKitchenEquipment/Opc.Ua.CommercialKitchenEquipment.NodeSet2.xml");
+fetch_from_github(version, "DI/Opc.Ua.Di.NodeSet2.xml");
+fetch_from_github(version, "DI/Opc.Ua.Di.Types.xsd");
+fetch_from_github(version, "GDS/Opc.Ua.Gds.NodeSet2.xml");
+fetch_from_github(version, "Glass/Flat/Opc.Ua.Glass.NodeSet2.xml");
 fetch_from_github(version, "IA/Opc.Ua.IA.NodeSet2.xml");
 fetch_from_github(version, "ISA-95/Opc.ISA95.NodeSet2.xml");
+fetch_from_github(version, "Machinery/Opc.Ua.Machinery.NodeSet2.xml");
+fetch_from_github(version, "MachineTool/Opc.Ua.MachineTool.NodeSet2.xml");
+fetch_from_github(version, "MachineVision/Opc.Ua.MachineVision.NodeSet2.xml");
 fetch_from_github(version, "PackML/Opc.Ua.PackML.NodeSet2.xml");
 fetch_from_github(version, "Robotics/Opc.Ua.Robotics.NodeSet2.xml");
-fetch_from_github(version, "CNC/Opc.Ua.CNC.NodeSet.xml");
-fetch_from_github(version, "MachineVision/Opc.Ua.MachineVision.NodeSet2.xml");
-fetch_from_github(version, "Robotics/Opc.Ua.Robotics.NodeSet2.xml");
-fetch_from_github(version, "MachineTool/Opc.Ua.MachineTool.NodeSet2.xml");
-fetch_from_github(version, "Schema/Opc.Ua.NodeSet2.Part13.xml");
-fetch_from_github(version, "CommercialKitchenEquipment/Opc.Ua.CommercialKitchenEquipment.NodeSet2.xml");
-
-// 
-fetch_from_github(version, "PlasticsRubber/Extrusion/Pelletizer/1.0/Opc.Ua.PlasticsRubber.Extrusion.Pelletizer.NodeSet2.xml");
-
-fetch_from_github(version, "Schema/SecuredApplication.xsd");
-fetch_from_github(version, "Schema/UANodeSet.xsd");
-fetch_from_github(version, "Schema/UAVariant.xsd");
+fetch_from_github(version, "Schema/AttributeIds.csv");
+fetch_from_github(version, "Schema/NodeIds.csv");
+fetch_from_github(version, "Schema/NodeIds.csv");
 fetch_from_github(version, "Schema/Opc.Ua.NodeSet2.xml");
-fetch_from_github(version, "Schema/Opc.Ua.NodeSet2.Part3.xml");
-fetch_from_github(version, "Schema/Opc.Ua.NodeSet2.Part4.xml");
-fetch_from_github(version, "Schema/Opc.Ua.NodeSet2.Part5.xml");
-fetch_from_github(version, "Schema/Opc.Ua.NodeSet2.Part8.xml");
-fetch_from_github(version, "Schema/Opc.Ua.NodeSet2.Part9.xml");
+fetch_from_github(version, "Schema/Opc.Ua.Types.bsd");
+fetch_from_github(version, "Schema/OPCBinarySchema.xsd");
+fetch_from_github(version, "Schema/SecuredApplication.xsd");
+fetch_from_github(version, "Schema/StatusCode.csv");
+fetch_from_github(version, "Schema/StatusCode.csv");
+fetch_from_github(version, "Schema/UANodeSet.xsd");
+fetch_from_github(version, "Woodworking/Opc.Ua.Eumabois.Nodeset2.xml");
+fetch_from_github(version, "Woodworking/Opc.Ua.Woodworking.NodeSet2.xml");
+/*
+fetch_from_github(version, "PlasticsRubber/Extrusion/Pelletizer/1.0/Opc.Ua.PlasticsRubber.Extrusion.Pelletizer.NodeSet2.xml");
+fetch_from_github(version, "ADI/Opc.Ua.Adi.Types.bsd");
+fetch_from_github(version, "DI/Opc.Ua.Di.Types.bsd");
+fetch_from_github(version, "Schema/Opc.Ua.Endpoints.wsdl");
 fetch_from_github(version, "Schema/Opc.Ua.NodeSet2.Part10.xml");
 fetch_from_github(version, "Schema/Opc.Ua.NodeSet2.Part11.xml");
 fetch_from_github(version, "Schema/Opc.Ua.NodeSet2.Part13.xml");
@@ -322,16 +312,18 @@ fetch_from_github(version, "Schema/Opc.Ua.NodeSet2.Part19.xml");
 fetch_from_github(version, "Schema/Opc.Ua.NodeSet2.Part20.xml");
 fetch_from_github(version, "Schema/Opc.Ua.NodeSet2.Part21.xml");
 fetch_from_github(version, "Schema/Opc.Ua.NodeSet2.Part22.xml");
-
-fetch_from_github(version, "Schema/OPCBinarySchema.xsd");
-fetch_from_github(version, "Schema/Opc.Ua.Types.bsd");
-fetch_from_github(version, "Schema/AttributeIds.csv");
-fetch_from_github(version, "Schema/NodeIds.csv");
-fetch_from_github(version, "Schema/StatusCodes.csv");
-fetch_from_github(version, "Schema/StatusCode.csv");
-
-fetch_from_github(version, "Woodworking/Opc.Ua.Woodworking.NodeSet2.xml");
-fetch_from_github(version, "Woodworking/Opc.Ua.Eumabois.Nodeset2.xml");
-fetch_from_github(version, "Glass/Flat/Opc.Ua.Glass.NodeSet2.xml");
+fetch_from_github(version, "Schema/Opc.Ua.NodeSet2.Part3.xml");
+fetch_from_github(version, "Schema/Opc.Ua.NodeSet2.Part4.xml");
+fetch_from_github(version, "Schema/Opc.Ua.NodeSet2.Part5.xml");
+fetch_from_github(version, "Schema/Opc.Ua.NodeSet2.Part8.xml");
+fetch_from_github(version, "Schema/Opc.Ua.NodeSet2.Part8.xml");
+fetch_from_github(version, "Schema/Opc.Ua.NodeSet2.Part9.xml");
+fetch_from_github(version, "Schema/Opc.Ua.Types.bsd.xml");
+fetch_from_github(version, "Schema/Opc.Ua.Types.bsd.xml");
+fetch_from_github(version, "Schema/Opc.Ua.Types.xsd");
+fetch_from_github(version, "Schema/SecuredApplication.xsd");
+fetch_from_github(version, "Schema/Types.xsd");
+fetch_from_github(version, "Schema/UAVariant.xsd");
+*/
 
 

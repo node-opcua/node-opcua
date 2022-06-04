@@ -352,15 +352,19 @@ interface ClassMember extends ClassMemberBasic {
     childBase?: Import | null;
 }
 
-interface Classified {
+interface ClassifiedReferenceDescriptions {
     Mandatory: ReferenceDescription[];
     Optional: ReferenceDescription[];
     MandatoryPlaceholder: ReferenceDescription[];
     OptionalPlaceholder: ReferenceDescription[];
     ExposesItsArray: ReferenceDescription[];
 }
-async function classify(session: IBasicSession, refs: ReferenceDescription[]): Promise<Classified> {
-    const r: Classified = {
+async function classify(
+    session: IBasicSession,
+    refs: ReferenceDescription[],
+    classDef: ClassDefinition
+): Promise<ClassifiedReferenceDescriptions> {
+    const r: ClassifiedReferenceDescriptions = {
         Mandatory: [],
         Optional: [],
         MandatoryPlaceholder: [],
@@ -369,8 +373,24 @@ async function classify(session: IBasicSession, refs: ReferenceDescription[]): P
     };
 
     for (const mm of refs) {
-        const modellingRule = await getModellingRule(session, mm.nodeId);
+        let modellingRule = await getModellingRule(session, mm.nodeId);
+
         if (modellingRule) {
+            // if Optional, check that base class member is also Optional or force to Mandatory
+            if (modellingRule === "Optional" && classDef.baseClassDef) {
+                const sameMember = classDef.baseClassDef.members.find((m) => m.browseName.name === mm.browseName.name);
+                if (sameMember) {
+                    if (!sameMember.isOptional) {
+                        console.log(
+                            chalk.cyan("Warning: ") +
+                                chalk.yellow(classDef.browseName.toString()) +
+                                " ModellingRule is Optional but base class member is Mandatory"
+                        );
+                        modellingRule = "Mandatory";
+                    }
+                }
+            }
+
             r[modellingRule] = r[modellingRule] || [];
             r[modellingRule].push(mm);
         }
@@ -378,7 +398,11 @@ async function classify(session: IBasicSession, refs: ReferenceDescription[]): P
     return r;
 }
 
-async function extractAllMembers(session: IBasicSession, classDef: ClassDefinition, cache: Cache) {
+async function extractAllMembers(
+    session: IBasicSession,
+    classDef: ClassDefinition,
+    cache: Cache
+): Promise<ClassifiedReferenceDescriptions> {
     const m = [...classDef.children];
     let s = classDef;
     while (s.baseClassDef) {
@@ -393,7 +417,7 @@ async function extractAllMembers(session: IBasicSession, classDef: ClassDefiniti
         }
     }
     // now separate mandatory and optionals
-    const members = await classify(session, m);
+    const members = await classify(session, m, classDef);
     return members;
 }
 export async function findClassMember(
@@ -402,8 +426,8 @@ export async function findClassMember(
     baseParentDef: ClassDefinition,
     cache: Cache
 ): Promise<ClassMember | null> {
-    const str = browseName.toString();
-    const r = baseParentDef.children.find((a) => a.browseName.toString() === str);
+    const childBrowseName = browseName.toString();
+    const r = baseParentDef.children.find((a) => a.browseName.toString() === childBrowseName);
     if (r) {
         const d = await extractClassMemberDef(session, r!.nodeId, baseParentDef, cache);
         return d;
@@ -415,7 +439,8 @@ export async function findClassMember(
     }
     return await findClassMember(session, browseName, baseBaseParentDef, cache);
 }
-function hasNewMaterial(referenceMembers: ReferenceDescription[], instanceMembers: ReferenceDescription[]) {
+
+function hasNewMaterial(referenceMembers: ReferenceDescription[], instanceMembers: ReferenceDescription[]): boolean {
     const ref = referenceMembers.map((x) => x.browseName.toString()).sort();
     const instance = instanceMembers.map((x) => x.browseName.toString()).sort();
     for (const n of instance) {
@@ -429,12 +454,15 @@ function hasNewMaterial(referenceMembers: ReferenceDescription[], instanceMember
 // we should expose an inner definition if
 //  - at least one mandatory in instnace doesn't exist in main.Mandatory
 //  - at least one optional in instnace doesn't exist in main.Mandatory
-export function checkIfShouldExposeInnerDefinition(main: Classified, instance: Classified): boolean {
+export function checkIfShouldExposeInnerDefinition(
+    main: ClassifiedReferenceDescriptions,
+    instance: ClassifiedReferenceDescriptions
+): boolean {
     const hasNewStuff = hasNewMaterial(main.Mandatory, instance.Mandatory) || hasNewMaterial(main.Optional, instance.Optional);
     return hasNewStuff;
 }
 
-function dump1(a: Classified) {
+function dump1(a: ClassifiedReferenceDescriptions): void {
     console.log(
         "Mandatory = ",
         a.Mandatory.map((x) => x.browseName.toString())
@@ -449,7 +477,23 @@ function dump1(a: Classified) {
     );
 }
 
-async function _extractLocalMembers(session: IBasicSession, classMember: ClassMember, cache: Cache): Promise<ClassMemberBasic[]> {
+function getSameInBaseClass(parent: ClassDefinitionB | null, browseName: QualifiedName): ClassMember | null {
+    if (!parent || !parent.baseClassDef) return null;
+    const originalClassMember = parent.baseClassDef.members.find((m) => m.browseName.toString() === browseName.toString());
+    return originalClassMember || null;
+}
+function sameInBaseClassIsMandatory(parent: ClassDefinitionB | null, browseName: QualifiedName): boolean {
+    const originalClassMember = getSameInBaseClass(parent, browseName);
+    if (!originalClassMember) return false;
+    return !originalClassMember.isOptional;
+}
+
+async function _extractLocalMembers(
+    session: IBasicSession,
+    parent: ClassDefinition | null,
+    classMember: ClassMember,
+    cache: Cache
+): Promise<ClassMemberBasic[]> {
     const children2: ClassMemberBasic[] = [];
     for (const child of classMember.children) {
         const nodeId = child.nodeId;
@@ -458,7 +502,8 @@ async function _extractLocalMembers(session: IBasicSession, classMember: ClassMe
 
         const description = await getDescription(session, nodeId);
         const modellingRule = await getModellingRule(session, nodeId);
-        const isOptional = modellingRule === "Optional";
+
+        const isOptional = sameInBaseClassIsMandatory(parent, browseName) ? false : modellingRule === "Optional";
 
         const typeDefinition = await getTypeDefOrBaseType(session, nodeId);
 
@@ -557,6 +602,8 @@ interface ClassDefinitionB {
         nodeId: NodeId;
     };
     interfaceName: Import;
+    baseClassDef?: ClassDefinition | null;
+   
 }
 // eslint-disable-next-line max-statements
 export async function extractClassMemberDef(
@@ -565,8 +612,10 @@ export async function extractClassMemberDef(
     parentDef: ClassDefinitionB,
     cache: Cache
 ): Promise<ClassMember> {
+
     const nodeClass = await getNodeClass(session, nodeId);
     const browseName = await getBrowseName(session, nodeId);
+   
     const name = toJavascritPropertyName(browseName.name!, { ignoreConflictingName: true });
 
     if (nodeClass !== NodeClass.Method && nodeClass !== NodeClass.Object && nodeClass !== NodeClass.Variable) {
@@ -577,7 +626,8 @@ export async function extractClassMemberDef(
     const children = await getChildrenOrFolderElements(session, nodeId);
 
     const modellingRule = await getModellingRule(session, nodeId);
-    const isOptional = modellingRule === "Optional";
+    const isOptional = sameInBaseClassIsMandatory(parentDef, browseName) ? false : modellingRule === "Optional";
+
 
     const typeDefinition = await getTypeDefOrBaseType(session, nodeId);
 
@@ -602,7 +652,7 @@ export async function extractClassMemberDef(
         // let's extract the member that are theorically defined in the member
         const membersReference = await extractAllMembers(session, classDef, cache);
         // find member exposed by this member
-        const membersInstance: Classified = await classify(session, children);
+        const membersInstance: ClassifiedReferenceDescriptions = await classify(session, children, classDef);
 
         // if (name==="powerup") {
         //     dump1(membersReference);
@@ -671,7 +721,9 @@ export async function extractClassMemberDef(
         childBase,
         chevrons: null
     };
-    classMember.children2 = await _extractLocalMembers(session, classMember, cache);
+
+    classMember.children2 = await _extractLocalMembers(session, classDef, classMember, cache);
+
     if (nodeClass === NodeClass.Variable) {
         const extra = await extractVariableExtra(session, nodeId, cache, classMember);
         classMember = {
