@@ -1,3 +1,4 @@
+/* eslint-disable complexity */
 /**
  * @module node-opcua-address-space
  */
@@ -130,10 +131,44 @@ export function getMethodDeclaration_ArgumentList(
     return { statusCode: StatusCodes.Good, methodDeclaration };
 }
 
+function checkValueRank(argDefinition: Argument, arg: Variant) {
+    const isArray = arg.arrayType === VariantArrayType.Array;
+    const isMatrix = arg.arrayType === VariantArrayType.Matrix;
+
+    if (argDefinition.valueRank > 0) {
+        if (argDefinition.valueRank === 1) {
+            if (!isArray) {
+                return false;
+            }
+        } else {
+            if (!isMatrix) {
+                return false;
+            }
+        }
+    } else if (argDefinition.valueRank === -1) {
+        // SCALAR
+        if (isArray || isMatrix) {
+            return false;
+        }
+    } else if (argDefinition.valueRank === -2) {
+        // ANY
+    } else if (argDefinition.valueRank === -3) {
+        // Scalar or OneDim
+        if (isMatrix) {
+            return false;
+        }
+    } else if (argDefinition.valueRank === 0) {
+        // array or matrix
+        if (!isArray && !isMatrix) {
+            return false;
+        }
+    }
+    return true;
+}
 /**
  * @private
  */
-function isArgumentValid(addressSpace: IAddressSpace, argDefinition: Argument, arg: Variant): boolean {
+export function isArgumentValid(addressSpace: IAddressSpace, argDefinition: Argument, arg: Variant): boolean {
     assert(Object.prototype.hasOwnProperty.call(argDefinition, "dataType"));
     assert(Object.prototype.hasOwnProperty.call(argDefinition, "valueRank"));
 
@@ -146,9 +181,13 @@ function isArgumentValid(addressSpace: IAddressSpace, argDefinition: Argument, a
         return false;
     }
 
-    if (argDefinition.valueRank > 0 && arg.dataType === DataType.Null) {
+    if (argDefinition.valueRank >= 0 && arg.dataType === DataType.Null) {
         // this is valid to receive an empty array ith DataType.Null;
         return true;
+    }
+
+    if (!checkValueRank(argDefinition, arg)) {
+        return false;
     }
 
     // istanbul ignore next
@@ -165,23 +204,12 @@ function isArgumentValid(addressSpace: IAddressSpace, argDefinition: Argument, a
         debugLog(" checking argDataType ", argDataType.toString());
     }
 
-    const isArray = arg.arrayType === VariantArrayType.Array;
-
-    if (argDefinition.valueRank > 0) {
-        return isArray;
-    } else if (argDefinition.valueRank === -1) {
-        // SCALAR
-        if (isArray) {
-            return false;
-        }
-    }
-
     if (argDataType.nodeId.value === argDefDataType!.nodeId.value) {
         return true;
     }
 
     // check that dataType is of the same type (derived )
-    if (argDefDataType.isSupertypeOf(argDataType)) {
+    if (argDataType.isSupertypeOf(argDefDataType)) {
         return true;
     }
     // special case for Enumeration
