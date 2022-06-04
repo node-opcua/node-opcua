@@ -643,7 +643,8 @@ export function createDynamicObjectConstructor(schema: StructuredTypeSchema, dat
         schema.baseType !== "OptionSet" &&
         schema.baseType !== "DataTypeDescription" &&
         schema.baseType !== "DataTypeDefinition" &&
-        schema.baseType !== "EnumValueType"
+        schema.baseType !== "EnumValueType" && 
+        schema.baseType !== "Structure"
     ) {
         try {
             const baseSchema = dataTypeFactory.getStructuredTypeSchema(schema.baseType);
