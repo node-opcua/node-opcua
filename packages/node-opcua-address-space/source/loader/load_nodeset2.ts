@@ -18,7 +18,6 @@ import {
 } from "node-opcua-address-space-base";
 import { assert, renderError } from "node-opcua-assert";
 import { isValidGuid, StatusCodes } from "node-opcua-basic-types";
-import { ExtraDataTypeManager, populateDataTypeManager } from "node-opcua-client-dynamic-extension-object";
 import { EUInformation } from "node-opcua-data-access";
 import {
     AccessLevelFlag,

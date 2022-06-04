@@ -847,21 +847,7 @@ export class NamespaceImpl implements NamespacePrivate {
      *
      *   });
      *
-     * @param options
-     * @param options.browseName {String}
-     * @param options.definition {String}
-     * @param [options.valuePrecision {Double |null} =null]
-     * @param options.instrumentRange
-     * @param options.instrumentRange.low {Double}
-     * @param options.instrumentRange.high {Double}
-     * @param options.engineeringUnitsRange.low {Double}
-     * @param options.engineeringUnitsRange.high {Double}
-     * @param options.engineeringUnits {String}
-     * @param options.dataType {NodeId} // todo :check
-     * @param [options.accessLevel {AccessLevelFlag} = "CurrentRead | CurrentWrite"]
-     * @param [options.userAccessLevel {AccessLevelFlag} = "CurrentRead | CurrentWrite"]
-     * @param options.value
-     * @param [options.modellingRule]
+  
      * @return {UAVariable}
      */
     public addAnalogDataItem<T, DT extends DataType>(options: AddAnalogDataItemOptions): UAAnalogItem<T, DT> {
@@ -880,20 +866,6 @@ export class NamespaceImpl implements NamespacePrivate {
         const clone_options = { ...options, dataType, typeDefinition: analogItemType.nodeId } as AddVariableOptions;
 
         const variable = this.addVariable(clone_options) as UAVariableImpl;
-
-        // var variable = namespace.addVariable({
-        //    componentOf:     options.componentOf,
-        //    organizedBy:     options.organizedBy,
-        //    browseName:      options.browseName,
-        //    nodeId:          options.nodeId,
-        //    value:           options.value,
-        //    accessLevel:     options.accessLevel,
-        //    userAccessLevel: options.userAccessLevel,
-        //    modellingRule:   options.modellingRule
-        //
-        //    typeDefinition: analogItemType.nodeId,
-        //    dataType:       dataType,
-        // });
 
         add_dataItem_stuff(variable, options);
 

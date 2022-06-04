@@ -1,6 +1,6 @@
 // ----- this file has been automatically generated - do not edit
 import { DTConnectionTransport } from "./dt_connection_transport"
-import { DTStructure } from "./dt_structure"
+import { DTNetworkAddress } from "./dt_network_address"
 /**
  * |           |                                                  |
  * |-----------|--------------------------------------------------|
@@ -10,5 +10,5 @@ import { DTStructure } from "./dt_structure"
  * | isAbstract|false                                             |
  */
 export interface DTDatagramConnectionTransport extends DTConnectionTransport  {
-  discoveryAddress: DTStructure; // ExtensionObject ns=0;i=22
+  discoveryAddress: DTNetworkAddress; // ExtensionObject ns=0;i=15502
 }

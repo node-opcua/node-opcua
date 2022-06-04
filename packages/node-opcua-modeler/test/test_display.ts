@@ -28,7 +28,7 @@ describe("displayNodeElement", () => {
 
         const str1 = displayNodeElement(addressSpace.rootFolder.objects.server, { format: "cli", recursive: false });
 
-      //  console.log(removeDecoration(str1));
+        // xx console.log(removeDecoration(str1));
 
         removeDecoration(str1)
             .split("\n")
@@ -71,6 +71,8 @@ describe("displayNodeElement", () => {
 │ HasProperty Ⓥ        │ ns=0;i=2254  │ ServerArray              │               │ PropertyType            │ String                                │                                                              │
 ├──────────────────────┼──────────────┼──────────────────────────┼───────────────┼─────────────────────────┼───────────────────────────────────────┼──────────────────────────────────────────────────────────────┤
 │ HasProperty Ⓥ        │ ns=0;i=2255  │ NamespaceArray           │               │ PropertyType            │ String                                │ http://opcfoundation.org/UA/,http://opcfoundation.org/UA/DI/ │
+├──────────────────────┼──────────────┼──────────────────────────┼───────────────┼─────────────────────────┼───────────────────────────────────────┼──────────────────────────────────────────────────────────────┤
+│ HasProperty Ⓥ        │ ns=0;i=15004 │ UrisVersion              │               │ PropertyType            │ VersionTime(UInt32)                   │ null                                                         │
 ├──────────────────────┼──────────────┼──────────────────────────┼───────────────┼─────────────────────────┼───────────────────────────────────────┼──────────────────────────────────────────────────────────────┤
 │ HasProperty Ⓥ        │ ns=0;i=2267  │ ServiceLevel             │               │ PropertyType            │ Byte                                  │ null                                                         │
 ├──────────────────────┼──────────────┼──────────────────────────┼───────────────┼─────────────────────────┼───────────────────────────────────────┼──────────────────────────────────────────────────────────────┤

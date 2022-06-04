@@ -39,10 +39,16 @@ export interface UAAlarmCondition_Base extends UAAcknowledgeableCondition_Base {
     reAlarmRepeatCount?: UABaseDataVariable<Int16, /*z*/DataType.Int16>;
     silence?: UAMethod;
     suppress?: UAMethod;
+    suppress2?: UAMethod;
     unsuppress?: UAMethod;
+    unsuppress2?: UAMethod;
     removeFromService?: UAMethod;
+    removeFromService2?: UAMethod;
     placeInService?: UAMethod;
+    placeInService2?: UAMethod;
     reset?: UAMethod;
+    reset2?: UAMethod;
+    getGroupMemberships?: UAMethod;
 }
 export interface UAAlarmCondition extends Omit<UAAcknowledgeableCondition, "enabledState">, UAAlarmCondition_Base {
 }

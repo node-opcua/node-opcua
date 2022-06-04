@@ -20,7 +20,8 @@ export { promoteToMultiStateDiscrete } from "../src/data_access/ua_multistate_di
 export { promoteToMultiStateValueDiscrete } from "../src/data_access/ua_multistate_value_discrete";
 export { promoteToTwoStateDiscrete } from "../src/data_access/ua_two_state_discrete";
 
-export * from "../source/ua_root_folder";
+
+export * from "./ua_root_folder";
 export * from "./session_context";
 export * from "./pseudo_session";
 
@@ -36,11 +37,13 @@ export { resolveOpaqueOnAddressSpace } from "./helpers/resolve_opaque_on_address
 export { ContinuationPointManager } from "./continuation_points/continuation_point_manager";
 export { ensureDatatypeExtracted, ensureDatatypeExtractedWithCallback } from "./loader/ensure_datatype_extracted";
 
-export * from "../source/loader/generateAddressSpaceRaw";
-
+export * from "./loader/generateAddressSpaceRaw";
 export * from "./namespace";
+export * from "./namespace_data_access";
+
 export * from "../src/alarms_and_conditions";
 export * from "../src/namespace_private";
+
 
 export { NodeIdManager, ConstructNodeIdOptions } from "../src/nodeid_manager";
 export * from "../src/event_data";

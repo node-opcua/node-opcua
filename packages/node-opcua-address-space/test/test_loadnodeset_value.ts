@@ -105,7 +105,7 @@ describe("Testing loading nodeset with extension objects values in types", () =>
     </NamespaceUris>
     <Models>
         <Model ModelUri="http://sterfive.com/Small_model/" Version="1.0.0" PublicationDate="2021-11-12T07:45:13.000Z">
-            <RequiredModel ModelUri="http://opcfoundation.org/UA/" Version="1.04.10" PublicationDate="2021-09-15T00:00:00.000Z"/>
+            <RequiredModel ModelUri="http://opcfoundation.org/UA/" Version="1.05.01" PublicationDate="2022-02-24T00:00:00.000Z"/>
         </Model>
     </Models>
     <Aliases>
@@ -460,9 +460,9 @@ describe("Testing loading nodeset with extension objects values in types", () =>
     </NamespaceUris>
     <Models>
         <Model ModelUri="MyNamespace" Version="0.0.0" PublicationDate="1900-01-01T00:00:00.000Z">
-            <RequiredModel ModelUri="http://opcfoundation.org/UA/" Version="1.04.10" PublicationDate="2021-09-15T00:00:00.000Z"/>
+            <RequiredModel ModelUri="http://opcfoundation.org/UA/" Version="1.05.01" PublicationDate="2022-02-24T00:00:00.000Z"/>
             <RequiredModel ModelUri="http://opcfoundation.org/UA/AutoID/" Version="1.01" PublicationDate="2020-06-18T13:52:03.000Z"/>
-            <RequiredModel ModelUri="http://opcfoundation.org/UA/DI/" Version="1.03.0" PublicationDate="2021-03-09T00:00:00.000Z"/>
+            <RequiredModel ModelUri="http://opcfoundation.org/UA/DI/" Version="1.03.1" PublicationDate="2021-09-07T00:00:00.000Z"/>
         </Model>
     </Models>
     <Aliases>

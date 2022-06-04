@@ -353,10 +353,11 @@ describe("testing resolveNodeId", function() {
     });
 
     // Variable
-    it("should resolve ServerType_NamespaceArray to 'ns=0;i=2006' ", function() {
-        resolveNodeId("ServerType_NamespaceArray")
+    it("should resolve ServerType_GetMonitoredItems to 'ns=0;i=11489' ", function() {
+        // ServerType_GetMonitoredItems=   ,
+        resolveNodeId("ServerType_GetMonitoredItems")
             .toString()
-            .should.equal("ns=0;i=2006");
+            .should.equal("ns=0;i=11489");
     });
 
     // ObjectType

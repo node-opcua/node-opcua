@@ -25,6 +25,8 @@ export interface UAIVendorNameplate_Base extends UABaseInterface_Base {
     serialNumber?: UAProperty<UAString, /*z*/DataType.String>;
     productInstanceUri?: UAProperty<UAString, /*z*/DataType.String>;
     revisionCounter?: UAProperty<Int32, /*z*/DataType.Int32>;
+    softwareReleaseDate?: UAProperty<Date, /*z*/DataType.DateTime>;
+    patchIdentifiers?: UAProperty<UAString[], /*z*/DataType.String>;
 }
 export interface UAIVendorNameplate extends UABaseInterface, UAIVendorNameplate_Base {
 }

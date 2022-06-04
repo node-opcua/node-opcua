@@ -4,7 +4,7 @@ const path = require("path");
 const csv = require("csv");
 const sprintf = require("sprintf-js").sprintf;
 
-const datafolder = path.join(__dirname, "1.04");
+const datafolder = path.join(__dirname, "latest");
 
 // see OPC-UA Part 6 , A2
 const codeMap = {};
@@ -26,7 +26,7 @@ function convert(data) {
         value = row[1];
         type = row[2];
 
-        if (!metaMap.hasOwnProperty(type)) {
+        if (!Object.prototype.hasOwnProperty.call(metaMap, type)) {
             metaMap[type] = {};
         }
 
@@ -35,7 +35,7 @@ function convert(data) {
 
 
     });
-    const outFile = fs.createWriteStream(path.join("../packages/node-opcua-constants/source", "opcua_node_ids.ts"));
+    const outFile = fs.createWriteStream(path.join(__dirname, "../packages/node-opcua-constants/source", "opcua_node_ids.ts"));
     outFile.write("// this file has been automatically generated\n");
     outFile.write("// using code_gen/generate_node_ids.js\n");
 
@@ -43,7 +43,7 @@ function convert(data) {
     if (false) {
         outFile.write(" exports.NodeIds = { \n");
         for (let name in codeMap) {
-            if (codeMap.hasOwnProperty(name)) {
+            if (Object.prototype.hasOwnProperty.call(codeMap, name)) {
                 e = codeMap[name];
                 name = e[0];
                 id = parseInt(e[1], 10);
@@ -58,7 +58,7 @@ function convert(data) {
 
     let typeMap;
     for (typeName in metaMap) {
-        if (metaMap.hasOwnProperty(typeName)) {
+        if (Object.prototype.hasOwnProperty.call(metaMap, typeName)) {
             typeMap = metaMap[typeName];
             outFile.write(" export enum " + typeName + "Ids {\n");
 
@@ -67,7 +67,11 @@ function convert(data) {
             for (let i = 0; i < names.length; i++) {
                 name = names[i];
 
-                if (typeMap.hasOwnProperty(name)) {
+                if (name.match(/Type_/) && !name.match(/DataType/)  && !name.match(/Encoding_Default/) && typeName !== "Method" && typeName !== "ReferenceType") {
+                    // ignore members of Types
+                    continue;
+                }
+                if (Object.prototype.hasOwnProperty.call(typeMap, name)) {
                     e = typeMap[name];
                     name = e[0];
                     id = parseInt(e[1], 10);

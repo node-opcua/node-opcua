@@ -9,7 +9,7 @@ import { constructCache } from "./private/cache";
 import { Options } from "./options";
 
 function getPackageInfo(dependency: string, options: Options) {
-    console.log("getPackageInfo", dependency);
+    //xx console.log("getPackageInfo", dependency);
 
     const l = [...(options.lookupFolders || [])];
     l.push(path.join(__dirname, "../../"));

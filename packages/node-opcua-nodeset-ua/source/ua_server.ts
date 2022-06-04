@@ -1,7 +1,7 @@
 // ----- this file has been automatically generated - do not edit
 import { UAObject, UAMethod, UAProperty } from "node-opcua-address-space-base"
 import { DataType } from "node-opcua-variant"
-import { LocalizedText } from "node-opcua-data-model"
+import { LocalizedText, QualifiedName } from "node-opcua-data-model"
 import { NodeId } from "node-opcua-nodeid"
 import { UInt64, UInt32, UInt16, Byte, UAString } from "node-opcua-basic-types"
 import { DTServerStatus } from "./dt_server_status"

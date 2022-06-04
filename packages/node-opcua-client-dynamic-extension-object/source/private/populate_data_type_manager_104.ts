@@ -1,5 +1,6 @@
 import { assert } from "node-opcua-assert";
 import { AttributeIds, BrowseDirection } from "node-opcua-data-model";
+import { make_debugLog, make_errorLog } from "node-opcua-debug";
 import { DataTypeFactory } from "node-opcua-factory";
 import { NodeId, resolveNodeId } from "node-opcua-nodeid";
 import { IBasicSession, BrowseDescriptionLike } from "node-opcua-pseudo-session";
@@ -13,7 +14,6 @@ import {
     CacheForFieldResolution,
     convertDataTypeDefinitionToStructureTypeSchema
 } from "../convert_data_type_definition_to_structuretype_schema";
-import { make_debugLog, make_errorLog } from "node-opcua-debug";
 const errorLog = make_errorLog(__filename);
 const debugLog =make_debugLog(__filename);
 

@@ -1091,7 +1091,7 @@ export class ServerEngine extends EventEmitter {
 
             const bindExtraStuff = () => {
                 // mainly for compliance
-
+/*
                 // The version number for the data type description. i=104
                 bindStandardScalar(VariableIds.DataTypeDescriptionType_DataTypeVersion, DataType.String, () => {
                     return "0";
@@ -1126,6 +1126,7 @@ export class ServerEngine extends EventEmitter {
                         return namingRuleType.MandatoryPlaceholder ? namingRuleType.MandatoryPlaceholder.value : 0;
                     });
                 }
+*/
             };
 
             bindExtraStuff();

@@ -70,13 +70,24 @@ function figureOutSchema(
             break;
         case FieldCategory.basic:
             returnValue = getBuildInType(fieldTypeWithoutNS);
+            if(!returnValue) {
+                returnValue = getStructuredTypeSchema(fieldTypeWithoutNS);
+                if (returnValue) {
+                    console.log("Why ?");
+                }
+            }
             break;
         case FieldCategory.enumeration:
             returnValue = getEnumeration(fieldTypeWithoutNS);
             break;
     }
     if (null === returnValue || undefined === returnValue) {
-        returnValue = getEnumeration(fieldTypeWithoutNS);
+        try {
+            returnValue = getEnumeration(fieldTypeWithoutNS);
+        }
+        catch(err){
+            console.log(err);
+        }
         throw new Error(
             "Cannot find Schema for field with name " +
                 field.name +
