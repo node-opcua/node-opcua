@@ -45,7 +45,7 @@ export function add_dataItem_stuff(variable: UAVariable, options: add_dataItem_s
     const addressSpace = variable.addressSpace;
     const namespace = addressSpace.getNamespace(variable.nodeId.namespace);
 
-    if (Object.prototype.hasOwnProperty.call(options, "definition")) {
+    if (Object.prototype.hasOwnProperty.call(options, "definition") && options.definition !== undefined) {
         namespace.addVariable({
             browseName: { name: "Definition", namespaceIndex: 0 },
             dataType: "String",
@@ -58,7 +58,7 @@ export function add_dataItem_stuff(variable: UAVariable, options: add_dataItem_s
         });
     }
 
-    if (Object.prototype.hasOwnProperty.call(options, "valuePrecision")) {
+    if (Object.prototype.hasOwnProperty.call(options, "valuePrecision") && options.valuePrecision !== undefined) {
         assert(typeof options.valuePrecision === "number");
 
         namespace.addVariable({
