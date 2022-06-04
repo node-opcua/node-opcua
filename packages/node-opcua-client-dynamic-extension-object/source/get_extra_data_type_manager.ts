@@ -33,7 +33,7 @@ export async function getExtraDataTypeManager(session: IBasicSession): Promise<E
             const dataTypeFactory1 = new DataTypeFactory([getStandardDataTypeFactory()]);
             dataTypeManager.registerDataTypeFactory(namespaceIndex, dataTypeFactory1);
         }
-        await populateDataTypeManager(session, dataTypeManager, false);
+        await populateDataTypeManager(session, dataTypeManager, true);
     }
     // istanbul ignore next
     if (sessionPriv.$$extraDataTypeManager.namespaceArray.length === 0) {

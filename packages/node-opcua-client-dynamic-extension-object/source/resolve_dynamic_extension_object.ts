@@ -2,13 +2,13 @@ import { BinaryStream } from "node-opcua-binary-stream";
 import { ExtensionObject, OpaqueStructure } from "node-opcua-extension-object";
 import { DataType, Variant, VariantArrayType } from "node-opcua-variant";
 import { hexDump, make_warningLog } from "node-opcua-debug";
-//
-import { ExtraDataTypeManager } from "./extra_data_type_manager";
 import { IBasicSession } from "node-opcua-pseudo-session";
 import { NodeId } from "node-opcua-nodeid";
 import { ConstructorFunc } from "node-opcua-factory";
 import { BrowseDirection, NodeClassMask, ResultMask } from "node-opcua-data-model";
 import { StatusCodes } from "node-opcua-status-code";
+//
+import { ExtraDataTypeManager } from "./extra_data_type_manager";
 import { readDataTypeDefinitionAndBuildType } from "./private/populate_data_type_manager_104";
 
 const warningLog = make_warningLog(__filename);
