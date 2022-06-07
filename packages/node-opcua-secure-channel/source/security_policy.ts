@@ -38,7 +38,6 @@ function errorLog(...args: any[]) {
     /** */
 }
 const warningLog = make_warningLog(__filename);
-const doTraceChunk = process.env.NODEOPCUADEBUG && process.env.NODEOPCUADEBUG.indexOf("CHUNK") >= 0;
 
 /**
  *
@@ -591,9 +590,7 @@ export function verifySignature(
     try {
         return cryptoFactory.asymmetricVerify(dataToVerify, signature.signature, senderCertificate);
     } catch (e) {
-        if (doTraceChunk) {
-            warningLog(`Error when verifying signature of certificate: ${e}`);
-        }
+        warningLog(`Error when verifying signature of certificate: ${e}`);
         return false;
     }
 }
