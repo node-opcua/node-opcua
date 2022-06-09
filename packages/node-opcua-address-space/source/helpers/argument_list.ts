@@ -209,9 +209,15 @@ export function isArgumentValid(addressSpace: IAddressSpace, argDefinition: Argu
     }
 
     // check that dataType is of the same type (derived )
-    if (argDataType.isSupertypeOf(argDefDataType)) {
+    if (argDefDataType.isSupertypeOf(argDataType)) {
+        // like argDefDataType IntegerId and argDataType Uint32
         return true;
     }
+    if (argDataType.isSupertypeOf(argDefDataType)) {
+        // like argDefDataType BaseDataType and argDataType any Type
+        return true;
+    }
+    
     // special case for Enumeration
     if (arg.dataType === DataType.Int32) {
         const enumDataType = addressSpace.findDataType(coerceNodeId(DataTypeIds.Enumeration))!;
