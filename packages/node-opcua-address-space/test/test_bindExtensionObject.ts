@@ -13,7 +13,7 @@ import {
     ServiceCounterDataType,
     SessionDiagnosticsDataType
 } from "node-opcua-types";
-import { DataType } from "node-opcua-variant";
+import { DataType, VariantArrayType } from "node-opcua-variant";
 import { nodesets } from "node-opcua-nodesets";
 
 import {
@@ -51,7 +51,6 @@ interface ServerStatusVariable extends UAVariable {
     shutdownReason: UAVariableT<LocalizedText, DataType.LocalizedText>;
 }
 
-
 // tslint:disable-next-line:no-var-requires
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("Extension Object binding and sub  components\n", () => {
@@ -64,7 +63,49 @@ describe("Extension Object binding and sub  components\n", () => {
     });
 
     describe("bindObject", () => {
-        it("ZZ1 - should handle a Variable containing a ServiceCounterDataType", () => {
+        it("BEO4 - should handle a Variable containing an array of ServiceCounterDataType", () => {
+            const rootFolder = addressSpace.findNode("RootFolder")! as UARootFolder;
+
+            const serviceCounterDataType = addressSpace.findDataType("ServiceCounterDataType")!;
+            serviceCounterDataType.browseName.toString().should.eql("ServiceCounterDataType");
+
+            const baseVariableType = addressSpace.findVariableType("BaseVariableType")!;
+            baseVariableType.browseName.toString().should.eql("BaseVariableType");
+
+            const namespace = addressSpace.getOwnNamespace();
+
+            const counter = 1;
+            const extensionObjectVar = namespace.addVariable({
+                browseName: "VariableWithExtensionObject" + counter,
+                dataType: serviceCounterDataType.nodeId,
+                valueRank: 1,
+                arrayDimensions: [0],
+                minimumSamplingInterval: 0,
+                organizedBy: rootFolder.objects
+            });
+
+            extensionObjectVar.minimumSamplingInterval.should.eql(0);
+
+            extensionObjectVar.readValue().value.dataType.should.eql(DataType.Null); // Empty array
+            extensionObjectVar.readValue().statusCode.should.eql(StatusCodes.UncertainInitialValue);
+
+            const extensionObjectArray = extensionObjectVar.bindExtensionObjectArray([
+                new ServiceCounterDataType({ errorCount: 1, totalCount: 2 }),
+                new ServiceCounterDataType({ errorCount: 3, totalCount: 4 })
+            ]) as ServiceCounterDataType[];
+            extensionObjectArray.length.should.eql(2);
+            extensionObjectArray[0].constructor.name.should.eql("ServiceCounterDataType");
+            extensionObjectArray[1].constructor.name.should.eql("ServiceCounterDataType");
+
+            extensionObjectVar.readValue().statusCode.should.eql(StatusCodes.Good);
+            extensionObjectVar.readValue().value.dataType.should.eql(DataType.ExtensionObject);
+            extensionObjectVar.readValue().value.arrayType.should.eql(VariantArrayType.Array);
+            extensionObjectVar.readValue().value.value.length.should.eql(2);
+            extensionObjectVar.readValue().value.value[0].constructor.name.should.eql("ServiceCounterDataType");
+            extensionObjectVar.readValue().value.value[1].constructor.name.should.eql("ServiceCounterDataType");
+        });
+
+        it("BEO1 - should handle a Variable containing a ServiceCounterDataType", () => {
             const rootFolder = addressSpace.findNode("RootFolder")! as UARootFolder;
 
             const serviceCounterDataType = addressSpace.findDataType("ServiceCounterDataType")!;
@@ -77,6 +118,7 @@ describe("Extension Object binding and sub  components\n", () => {
             const extensionObjectVar = baseVariableType.instantiate({
                 browseName: "VariableWithExtensionObject" + counter,
                 dataType: serviceCounterDataType.nodeId,
+                valueRank: -1,
                 minimumSamplingInterval: 0,
                 organizedBy: rootFolder.objects
             }) as UAServiceCounterVariableEx;
@@ -118,7 +160,7 @@ describe("Extension Object binding and sub  components\n", () => {
             spy_on_ServerCounter_TotalCount_value_changed.callCount.should.eql(1);
         });
 
-        it("ZZ2 - should handle a Variable containing a ServerStatus", () => {
+        it("BEO2 - should handle a Variable containing a ServerStatus", () => {
             const rootFolder = addressSpace.findNode("RootFolder")! as UARootFolder;
 
             const serverStatusDataType = addressSpace.findDataType("ServerStatusDataType")!;
@@ -171,7 +213,7 @@ describe("Extension Object binding and sub  components\n", () => {
             extensionObjectVar.state.readValue().value.value.should.eql(ServerState.Suspended);
         });
 
-        it("ZZ3 - should handle a Variable containing a SessionDiagnostic", () => {
+        it("BEO3 - should handle a Variable containing a SessionDiagnostic", () => {
             const rootFolder = addressSpace.findNode("RootFolder")! as UARootFolder;
 
             const sessionDiagnosticsDataType = addressSpace.findDataType("SessionDiagnosticsDataType")!;
@@ -179,7 +221,6 @@ describe("Extension Object binding and sub  components\n", () => {
 
             const sessionDiagnosticsVariableType = addressSpace.findVariableType("SessionDiagnosticsVariableType")!;
             sessionDiagnosticsVariableType.browseName.toString().should.eql("SessionDiagnosticsVariableType");
-
 
             const counter = 1;
             const extensionObjectVar = sessionDiagnosticsVariableType.instantiate({
@@ -193,7 +234,7 @@ describe("Extension Object binding and sub  components\n", () => {
             extensionObjectVar.totalRequestCount.minimumSamplingInterval.should.eql(0);
 
             const useTwoLevelsDeep = false;
-         
+
             useTwoLevelsDeep && extensionObjectVar.totalRequestCount.totalCount.minimumSamplingInterval.should.eql(0);
 
             extensionObjectVar.readValue().statusCode.should.eql(StatusCodes.Good);
@@ -211,10 +252,11 @@ describe("Extension Object binding and sub  components\n", () => {
 
             extensionObjectVar.on("value_changed", spy_on_SessionDiagnostics_value_changed);
             extensionObjectVar.totalRequestCount.on("value_changed", spy_on_SessionDiagnostics_TotalRequestCount_value_changed);
-            useTwoLevelsDeep && extensionObjectVar.totalRequestCount.totalCount.on(
-                "value_changed",
-                spy_on_SessionDiagnostics_TotalRequestCount_TotalCount_value_changed
-            );
+            useTwoLevelsDeep &&
+                extensionObjectVar.totalRequestCount.totalCount.on(
+                    "value_changed",
+                    spy_on_SessionDiagnostics_TotalRequestCount_TotalCount_value_changed
+                );
 
             useTwoLevelsDeep && extensionObjectVar.totalRequestCount.totalCount.readValue().value.value.should.eql(0);
             extensionObjectVar.totalRequestCount.readValue().value.value.totalCount.should.eql(0);

@@ -340,8 +340,20 @@ export interface UAVariable extends BaseNode, VariableAttributes, IPropertyAndCo
 
     bindVariable(options?: BindVariableOptions, overwrite?: boolean): void;
 
+    bindExtensionObject(
+        optionalExtensionObject?: ExtensionObject | ExtensionObject[],
+        options?: BindExtensionObjectOptions
+    ): ExtensionObject | ExtensionObject[] | null;
 
-    bindExtensionObject(optionalExtensionObject?: ExtensionObject, options?: BindExtensionObjectOptions): ExtensionObject | null;
+    bindExtensionObjectScalar(
+        optionalExtensionObject: ExtensionObject,
+        options?: BindExtensionObjectOptions
+    ): ExtensionObject | null;
+
+    bindExtensionObjectArray(
+        optionalExtensionObjectArray: ExtensionObject[],
+        options?: BindExtensionObjectOptions
+    ): ExtensionObject[] | null;
 
     installExtensionObjectVariables(): void;
 

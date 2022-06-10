@@ -106,12 +106,13 @@ export async function populateDataTypeManager104(session: IBasicSession, dataTyp
             }
         }
 
-        async function fencedAction(lambda: () => Promise<void>) {
+        async function fencedAction(lambda: () => Promise<void>): Promise<void> {
             busyCount += 1;
             await lambda();
             busyCount -= 1;
             flushBrowse();
         }
+        
         function flushBrowse() {
             assert(busyCount >= 0);
             if (pendingContinuationPoints.length) {

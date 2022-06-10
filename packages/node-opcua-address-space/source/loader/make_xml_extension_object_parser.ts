@@ -1,5 +1,7 @@
+import { Byte, Int16, Int32, Int64, SByte, UAString, UInt16, UInt32 } from "node-opcua-basic-types";
+import { LocalizedTextLike, LocalizedTextOptions } from "node-opcua-data-model";
 import { make_debugLog, make_warningLog } from "node-opcua-debug";
-import { coerceNodeId, NodeId, NodeIdType } from "node-opcua-nodeid";
+import { coerceNodeId, NodeId, NodeIdType, resolveNodeId } from "node-opcua-nodeid";
 import { EnumDefinition, StructureDefinition } from "node-opcua-types";
 import { lowerFirstLetter } from "node-opcua-utils";
 import { DataType } from "node-opcua-variant";
@@ -8,57 +10,110 @@ import { ReaderState, ReaderStateParserLike, ParserLike, XmlAttributes } from "n
 const warningLog = make_warningLog(__filename);
 const debugLog = make_debugLog(__filename);
 
+export interface QualifiedNameOptions {
+    namespaceIndex?: UInt16;
+    name?: UAString;
+}
+interface QualifiedNameParserChild {
+    parent: {
+        qualifiedName: QualifiedNameOptions;
+    };
+    text: string;
+}
+interface QualifiedNameParser {
+    value: QualifiedNameOptions;
+    qualifiedName: QualifiedNameOptions;
+    text: string;
+}
+
+const qualifiedNameReader: ReaderStateParserLike = {
+    init(this: QualifiedNameParser) {
+        this.qualifiedName = {};
+        this.value = {};
+    },
+    parser: {
+        Name: {
+            finish(this: QualifiedNameParserChild) {
+                this.parent.qualifiedName.name = this.text.trim();
+            }
+        },
+        NamespaceIndex: {
+            finish(this: QualifiedNameParserChild) {
+                const ns = parseInt(this.text, 10);
+                this.parent.qualifiedName.namespaceIndex = ns;
+            }
+        }
+    },
+    finish(this: QualifiedNameParser) {
+        this.value = this.qualifiedName;
+        this.value.name = "qdqsdqs";
+    }
+};
+
+interface LocalizedTextParser {
+    localizedText: LocalizedTextOptions;
+    value: LocalizedTextOptions;
+}
+interface LocalizedTextChildParser {
+    parent: LocalizedTextParser;
+    text: string;
+}
 const localizedTextReader: ReaderStateParserLike = {
-    init(this: any) {
+    init(this: LocalizedTextParser) {
         this.localizedText = {};
     },
     parser: {
         Locale: {
-            finish(this: any) {
+            finish(this: LocalizedTextChildParser) {
                 this.parent.localizedText = this.parent.localizedText || {};
                 this.parent.localizedText.locale = this.text.trim();
             }
         },
         Text: {
-            finish(this: any) {
+            finish(this: LocalizedTextChildParser) {
                 this.parent.localizedText = this.parent.localizedText || {};
                 this.parent.localizedText.text = this.text.trim();
             }
         }
     },
-    finish(this: any) {
+    finish(this: LocalizedTextParser) {
         this.value = this.localizedText;
     }
 };
 
 function clamp(value: number, minValue: number, maxValue: number) {
-    if(value < minValue) {
+    if (value < minValue) {
         warningLog(`invalid value range : ${value} < ${minValue} but should be [${minValue} , ${maxValue}]`);
         return minValue;
     }
-    if(value > maxValue) {
+    if (value > maxValue) {
         warningLog(`invalid value range : ${value} > ${maxValue} but should be [${minValue} , ${maxValue}]`);
         return maxValue;
     }
     return value;
 }
 
+interface Parser<T> {
+    value: T | null;
+    text: string;
+}
 const partials: { [key: string]: ReaderStateParserLike } = {
     LocalizedText: localizedTextReader,
+    QualifiedName: qualifiedNameReader,
     String: {
-        finish(this: any) {
+        finish(this: Parser<string>) {
             this.value = this.text;
         }
     },
 
     Boolean: {
-        finish(this: any) {
+        finish(this: Parser<boolean>) {
             this.value = this.text.toLowerCase() === "true" ? true : false;
         }
     },
 
     ByteString: {
-        init(this: any) {
+        init(this: Parser<Buffer>) {
             this.value = null;
         },
         finish(this: any) {
@@ -69,74 +124,74 @@ const partials: { [key: string]: ReaderStateParserLike } = {
     },
 
     Float: {
-        finish(this: any) {
+        finish(this: Parser<number>) {
             this.value = parseFloat(this.text);
         }
     },
 
     Double: {
-        finish(this: any) {
+        finish(this: Parser<number>) {
             this.value = parseFloat(this.text);
         }
     },
     Byte: {
-        finish(this: any) {
+        finish(this: Parser<Byte>) {
             this.value = clamp(parseInt(this.text, 10), 0, 255);
         }
     },
     SByte: {
-        finish(this: any) {
+        finish(this: Parser<SByte>) {
             this.value = clamp(parseInt(this.text, 10), -128, 127);
         }
     },
     Int8: {
-        finish(this: any) {
+        finish(this: Parser<SByte>) {
             this.value = clamp(parseInt(this.text, 10), -128, 127);
         }
     },
 
     Int16: {
-        finish(this: any) {
+        finish(this: Parser<Int16>) {
             this.value = clamp(parseInt(this.text, 10), -32768, 32767);
         }
     },
     Int32: {
-        finish(this: any) {
+        finish(this: Parser<Int32>) {
             this.value = clamp(parseInt(this.text, 10), -2147483648, 2147483647);
         }
     },
     Int64: {
-        finish(this: any) {
+        finish(this: Parser<Int32>) {
             this.value = parseInt(this.text, 10);
         }
     },
 
     UInt8: {
-        finish(this: any) {
+        finish(this: Parser<Byte>) {
             this.value = clamp(parseInt(this.text, 10), 0, 255);
         }
     },
 
     UInt16: {
-        finish(this: any) {
+        finish(this: Parser<UInt16>) {
             this.value = clamp(parseInt(this.text, 10), 0, 65535);
         }
     },
 
     UInt32: {
-        finish(this: any) {
+        finish(this: Parser<UInt32>) {
             this.value = clamp(parseInt(this.text, 10), 0, 4294967295);
         }
     },
 
     UInt64: {
-        finish(this: any) {
+        finish(this: Parser<UInt32>) {
             this.value = parseInt(this.text, 10);
         }
     },
 
     DateTime: {
-        finish(this: any) {
+        finish(this: Parser<Date>) {
             // to do check Local or GMT
             this.value = new Date(this.text);
         }
@@ -150,20 +205,12 @@ const partials: { [key: string]: ReaderStateParserLike } = {
     },
 
     NodeId: {
-        finish(this: any) {
+        finish(this: Parser<NodeId>) {
             // to do check Local or GMT
             this.value = coerceNodeId(this.text);
         }
     }
 };
-
-interface Field {
-    dataType: any;
-    description?: string;
-    name: string;
-    value?: any;
-    valueRank?: number; // default is -1 => scalar
-}
 
 export interface TypeInfo1 {
     name: string;
@@ -247,7 +294,7 @@ function _makeTypeReader(
             }
 
             if (field.valueRank === undefined || field.valueRank === -1) {
-                // scalar 
+                // scalar
                 const parser = fieldParser;
                 if (!parser) {
                     throw new Error("??? " + field.dataType + "  " + field.name);

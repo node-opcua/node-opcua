@@ -769,8 +769,14 @@ export class UAVariableImpl extends BaseNodeImpl implements UAVariable {
             dataValue.value = variant1;
 
             if (dataValue.value.dataType === DataType.ExtensionObject) {
+                const valueIsCorrect = this.checkExtensionObjectIsCorrect(dataValue.value.value);
+                if (!valueIsCorrect) {
+                    errorLog("Invalid value !");
+                    errorLog(this.toString());
+                    errorLog(dataValue.toString());
+                    this.checkExtensionObjectIsCorrect(dataValue.value.value);
+                }
                 this.$dataValue = dataValue;
-                assert(this.checkExtensionObjectIsCorrect(dataValue.value.value));
                 // ----------------------------------
                 if (this.$extensionObject) {
                     // we have an extension object already bound to this node
@@ -1271,7 +1277,18 @@ export class UAVariableImpl extends BaseNodeImpl implements UAVariable {
         // also bind extension object
         const v = newVariable.$dataValue.value;
         if (v.dataType === DataType.ExtensionObject && v.value && v.arrayType === VariantArrayType.Scalar) {
-            newVariable.bindExtensionObject(newVariable.$dataValue.value.value);
+            try {
+                newVariable.bindExtensionObject(newVariable.$dataValue.value.value);
+            } catch (err) {
+                errorLog("Errro binding extension objects");
+                errorLog((err as Error).message);
+                errorLog(this.toString());
+                errorLog("---------------------------------------");
+                errorLog(this.$dataValue.toString());
+                errorLog("---------------------------------------");
+                errorLog(newVariable.$dataValue.toString());
+                throw err;
+            }
         }
         return newVariable;
     }
@@ -1295,22 +1312,68 @@ export class UAVariableImpl extends BaseNodeImpl implements UAVariable {
             return true;
         }
         const addressSpace = this.addressSpace;
-
-        // istanbul ignore next
-        if (!(extObj && extObj.constructor)) {
-            errorLog(extObj);
-            throw new Error("expecting an valid extension object");
-        }
         const dataType = addressSpace.findDataType(this.dataType);
         if (!dataType) {
             // may be we are in the process of loading a xml file and the corresponding dataType
             // has not yet been loaded !
             return true;
         }
-        try {
-            const Constructor = addressSpace.getExtensionObjectConstructor(this.dataType);
+
+        const Constructor = addressSpace.getExtensionObjectConstructor(this.dataType);
+
+        if (this.valueRank === -1) {
+            /** Scalar */
             if (extObj instanceof Array) {
-                for (const e of extObj) {
+                return false;
+            }
+            return checkExtensionObjectIsCorrectScalar.call(this, extObj);
+        } else if (this.valueRank === 1) {
+            /** array */
+            if (!(extObj instanceof Array)) {
+                // let's coerce this scalar into an 1-element array if it is a valid extension object
+                if (checkExtensionObjectIsCorrectScalar.call(this, extObj)) {
+                    warningLog(
+                        `checkExtensionObjectIsCorrect : expecting a array but got a scalar (value rank of ${this.browseName.toString()} is 1)`
+                    );
+                    extObj = [extObj];
+                } else {
+                    return false;
+                }
+            }
+            return checkExtensionObjectIsCorrectArray.call(this, extObj);
+        } else if (this.valueRank === 0) {
+            // Scalar or Array
+            const isCorrectScalar = !Array.isArray(extObj) && checkExtensionObjectIsCorrectScalar.call(this, extObj);
+            const isCorrectArray =
+                Array.isArray(extObj) && checkExtensionObjectIsCorrectArray.call(this, extObj as ExtensionObject[]);
+            return isCorrectArray || isCorrectScalar;
+        } else {
+            throw new Error(
+                `checkExtensionObjectIsCorrect: Not Implemented case, please contact sterfive : this.valueRank =${this.valueRank}`
+            );
+        }
+        function checkExtensionObjectIsCorrectScalar(
+            this: UAVariableImpl,
+            extObj: ExtensionObject | ExtensionObject[] | null
+        ): boolean {
+            // istanbul ignore next
+            if (!(extObj && extObj.constructor)) {
+                errorLog(extObj);
+                throw new Error("expecting an valid extension object");
+            }
+            return extObj.constructor.name === Constructor.name;
+        }
+
+        function checkExtensionObjectIsCorrectArray(this: UAVariableImpl, extObjArray: ExtensionObject[]): boolean {
+            // istanbul ignore next
+            for (const extObj of extObjArray) {
+                if (!(extObj && extObj.constructor)) {
+                    errorLog(extObj);
+                    throw new Error("expecting an valid extension object");
+                }
+            }
+            try {
+                for (const e of extObjArray) {
                     if (!e) {
                         continue;
                     }
@@ -1320,12 +1383,10 @@ export class UAVariableImpl extends BaseNodeImpl implements UAVariable {
                     }
                 }
                 return true;
-            } else {
-                return extObj.constructor.name === Constructor.name;
+            } catch (err) {
+                errorLog(err);
+                return false;
             }
-        } catch (err) {
-            errorLog(err);
-            return false;
         }
     }
 
@@ -1350,10 +1411,24 @@ export class UAVariableImpl extends BaseNodeImpl implements UAVariable {
      * @method bindExtensionObject
      * @return {ExtensionObject}
      */
-    public bindExtensionObject(
-        optionalExtensionObject?: ExtensionObject,
+    public bindExtensionObjectScalar(
+        optionalExtensionObject: ExtensionObject,
         options?: BindExtensionObjectOptions
     ): ExtensionObject | null {
+        return this.bindExtensionObject(optionalExtensionObject, options) as ExtensionObject | null;
+    }
+
+    public bindExtensionObjectArray(
+        optionalExtensionObject: ExtensionObject[],
+        options?: BindExtensionObjectOptions
+    ): ExtensionObject[] | null {
+        return this.bindExtensionObject(optionalExtensionObject, options) as ExtensionObject[] | null;
+    }
+
+    public bindExtensionObject(
+        optionalExtensionObject?: ExtensionObject | ExtensionObject[],
+        options?: BindExtensionObjectOptions
+    ): ExtensionObject | ExtensionObject[] | null {
         return _bindExtensionObject(this, optionalExtensionObject, options);
     }
 
