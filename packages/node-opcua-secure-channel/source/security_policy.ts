@@ -31,11 +31,14 @@ import {
     verifyMessageChunkSignature
 } from "node-opcua-crypto";
 import { EncryptBufferFunc, SignBufferFunc } from "node-opcua-chunkmanager";
+import { make_warningLog } from "node-opcua-debug";
 
 // tslint:disable:no-empty
 function errorLog(...args: any[]) {
     /** */
 }
+const warningLog = make_warningLog(__filename);
+
 /**
  *
  * OPCUA Spec Release 1.02  page 15    OPC Unified Architecture, Part 7
@@ -88,7 +91,7 @@ function errorLog(...args: any[]) {
  *  Polices and use the certificate that is required for a given security endpoint.
  *
  *  * @property Aes128_Sha256_RsaOaep
- * 
+ *
  *  ...
  *   -> DerivedSignatureKeyLength     - 256
  *   -> MinAsymmetricKeyLength        - 2048
@@ -282,7 +285,7 @@ export function computeDerivedKeys(cryptoFactory: CryptoFactory, serverNonce: No
             algorithm: cryptoFactory.symmetricEncryptionAlgorithm,
             encryptingBlockSize: cryptoFactory.encryptingBlockSize,
             encryptingKeyLength: cryptoFactory.derivedEncryptionKeyLength,
-           
+
             sha1or256: cryptoFactory.sha1or256,
             signatureLength: cryptoFactory.signatureLength,
             signingKeyLength: cryptoFactory.derivedSignatureKeyLength
@@ -307,9 +310,9 @@ export interface CryptoFactory {
     signatureLength: number;
 
     /**  for info only */
-    minimumAsymmetricKeyLength: number; 
+    minimumAsymmetricKeyLength: number;
     /**  for info only */
-    maximumAsymmetricKeyLength: number; 
+    maximumAsymmetricKeyLength: number;
 
     asymmetricVerifyChunk: (self: CryptoFactory, chunk: Buffer, certificate: Certificate) => boolean;
     asymmetricSign: (buffer: Buffer, publicKey: PublicKeyPEM) => Buffer;
@@ -322,7 +325,7 @@ export interface CryptoFactory {
     asymmetricSignatureAlgorithm: string;
     /**  for info only */
     asymmetricEncryptionAlgorithm: string;
-  
+
     symmetricEncryptionAlgorithm:  "aes-256-cbc" |  "aes-128-cbc";
 
     blockPaddingSize: number;
@@ -365,7 +368,7 @@ const factoryBasic128Rsa15: CryptoFactory = {
 
 const _Basic256: CryptoFactory = {
     securityPolicy: SecurityPolicy.Basic256,
-  
+
     derivedEncryptionKeyLength: 32,
     derivedSignatureKeyLength: 24,
     encryptingBlockSize: 16,
@@ -584,7 +587,12 @@ export function verifySignature(
     assert(signature.signature instanceof Buffer);
     // This parameter is calculated by appending the clientNonce to the clientCertificate
     const dataToVerify = Buffer.concat([chain[0], receiverNonce]);
-    return cryptoFactory.asymmetricVerify(dataToVerify, signature.signature, senderCertificate);
+    try {
+        return cryptoFactory.asymmetricVerify(dataToVerify, signature.signature, senderCertificate);
+    } catch (e) {
+        warningLog(`Error when verifying signature of certificate: ${e}`);
+        return false;
+    }
 }
 
 export interface SecureMessageChunkManagerOptionsPartial {

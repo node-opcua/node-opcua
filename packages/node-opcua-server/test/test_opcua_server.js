@@ -1,7 +1,10 @@
 "use strict";
 const fs = require("fs");
+const path = require("path");
 const should = require("should");
 
+const { OPCUAClient } = require("node-opcua-client");
+const { UserTokenType } = require("node-opcua-service-endpoints");
 const { NodeId } = require("node-opcua-nodeid");
 
 const { get_mini_nodeset_filename } = require("node-opcua-address-space/testHelpers");
@@ -143,5 +146,48 @@ describe("OPCUAServer-3", () => {
         server.currentSessionCount.should.eql(0);
         server.isAuditing.should.eql(false);
         should(server.getSession(NodeId.nullNodeId, true)).eql(null);
+    });
+});
+describe("OPCUAServer-4", () => {
+    let server;
+    let client;
+    const endpointUrl = `opc.tcp://localhost:${port}`;
+    const privateKeyFile = path.join(__dirname, "utils", "private_key.pem");
+    const privateKey = fs.readFileSync(privateKeyFile, "ascii");
+
+    before(async () => {
+        client = OPCUAClient.create({
+            endpointMustExist: false,
+        });
+        const options = {
+            port,
+        };
+        server = new OPCUAServer(options);
+        await server.start();
+    });
+
+    after(async () => {
+        await client.disconnect();
+        client = null;
+        await server.shutdown();
+        server = null;
+    });
+
+    it("an invalid certificate should not crash the server", async () => {
+        let thrown = false;
+        try {
+            await client.connect(endpointUrl);
+            await client.createSession({
+                type: UserTokenType.Certificate,
+                certificateData: Buffer.from("AZEAZE"),
+                privateKey,
+            });
+            should(true).eql(false); // should never be reached
+        } catch (e) {
+            should(e.message.includes("BadUserSignatureInvalid")).eql(true);
+            should(e.message.includes("0x80570000")).eql(true);
+            thrown = true;
+        }
+        should(thrown).eql(true);
     });
 });
