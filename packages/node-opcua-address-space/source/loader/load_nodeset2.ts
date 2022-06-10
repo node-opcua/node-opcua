@@ -22,6 +22,7 @@ import { EUInformation } from "node-opcua-data-access";
 import {
     AccessLevelFlag,
     coerceLocalizedText,
+    LocalizedTextOptions,
     makeAccessLevelFlag,
     NodeClass,
     QualifiedName,
@@ -31,7 +32,7 @@ import {
 import { checkDebugFlag, make_debugLog, make_errorLog, make_warningLog } from "node-opcua-debug";
 import { ExtensionObject } from "node-opcua-extension-object";
 import { DataTypeFactory, findSimpleType, getStandardDataTypeFactory } from "node-opcua-factory";
-import { NodeId, resolveNodeId } from "node-opcua-nodeid";
+import { NodeId, NodeIdLike, resolveNodeId } from "node-opcua-nodeid";
 import { Argument } from "node-opcua-service-call";
 import { CallbackT, ErrorCallback } from "node-opcua-status-code";
 import { EnumFieldOptions, EnumValueType, Range, StructureFieldOptions } from "node-opcua-types";
@@ -55,11 +56,9 @@ import { promoteObjectsAndVariables } from "./namespace_post_step";
 import { ensureDatatypeExtracted } from "./ensure_datatype_extracted";
 import { decodeXmlExtensionObject } from "./decode_xml_extension_object";
 
-
 const doDebug = checkDebugFlag(__filename);
 const debugLog = make_debugLog(__filename);
 const errorLog = make_errorLog(__filename);
-
 
 function __make_back_references(namespace: INamespace) {
     const namespaceP = namespace as NamespacePrivate;
@@ -155,10 +154,10 @@ export function makeNodeSetParserEngine(addressSpace: IAddressSpace): NodeSet2Pa
     const addressSpace1 = addressSpace as AddressSpacePrivate;
     addressSpace1.suspendBackReference = true;
 
-    let postTasks: Task[] = [];
-    let postTaskInitializeVariable: Task[] = [];
-    let postTasks2: Task[] = [];
-    let postTasks3: Task[] = [];
+    const postTasks: Task[] = [];
+    const postTasks0_DecodePojoString: Task[] = [];
+    const postTasks1_InitializeVariable: Task[] = [];
+    const postTasks2_AssignedExtensionObjectToDataValue: Task[] = [];
 
     let alias_map: { [key: string]: NodeId } = {};
 
@@ -553,17 +552,16 @@ export function makeNodeSetParserEngine(addressSpace: IAddressSpace): NodeSet2Pa
             });
             this.obj.partialDefinition = definitionFields;
 
-            const dataTypeNode = _internal_createNode(this.obj) as UADataType;
-            assert(addressSpace1.findNode(this.obj.nodeId));
-            const definitionName = dataTypeNode.browseName.name!;
-
+            let capturedDataTypeNode = _internal_createNode(this.obj) as UADataType;
             const processBasicDataType = async (addressSpace2: IAddressSpace) => {
-                const isStructure = dataTypeNode.isStructure();
-                const isEnumeration = dataTypeNode.isEnumeration();
-                if (!isEnumeration && !isStructure && dataTypeNode.nodeId.namespace !== 0) {
+                const definitionName = capturedDataTypeNode.browseName.name!;
+                const isStructure = capturedDataTypeNode.isStructure();
+                const isEnumeration = capturedDataTypeNode.isEnumeration();
+                if (!isEnumeration && !isStructure && capturedDataTypeNode.nodeId.namespace !== 0) {
                     // add a custom basic type that is not a structure nor a enumeration
-                    pendingSimpleTypeToRegister.push({ name: definitionName, dataTypeNodeId: dataTypeNode.nodeId });
+                    pendingSimpleTypeToRegister.push({ name: definitionName, dataTypeNodeId: capturedDataTypeNode.nodeId });
                 }
+                (capturedDataTypeNode as any) = undefined;
             };
             postTasks.push(processBasicDataType);
         },
@@ -812,7 +810,7 @@ export function makeNodeSetParserEngine(addressSpace: IAddressSpace): NodeSet2Pa
         TypeId: {
             parser: {
                 Identifier: {
-                    finish(this: any) {
+                    finish(this: ExtensionObjectTypeIdIdentifierParser) {
                         const typeDefinitionId = this.text.trim();
                         const self = this.parent.parent; // ExtensionObject
                         self.typeDefinitionId = resolveNodeId(typeDefinitionId);
@@ -830,7 +828,7 @@ export function makeNodeSetParserEngine(addressSpace: IAddressSpace): NodeSet2Pa
                 EnumValueType: enumValueType_parser.EnumValueType,
                 Range: Range_parser.Range
             },
-            startElement(this: any, elementName: string, attrs: any) {
+            startElement(this: ExtensionObjectBodyParser, elementName: string, attrs: any) {
                 const self = this.parent; // ExtensionObject
                 self.extensionObject = null;
                 self.extensionObjectPojo = null;
@@ -842,7 +840,7 @@ export function makeNodeSetParserEngine(addressSpace: IAddressSpace): NodeSet2Pa
                     this.engine!._promote(this._cloneFragment, this.engine!.currentLevel, elementName, attrs);
                 }
             },
-            finish(this: any) {
+            finish(this: ExtensionObjectBodyParser) {
                 const self = this.parent; // ExtensionObject
 
                 // typeDefinitionId is also the "Default XML" encoding nodeId !
@@ -882,42 +880,30 @@ export function makeNodeSetParserEngine(addressSpace: IAddressSpace): NodeSet2Pa
                             debugLog("xmlEncodingNodeId is empty for " + self.typeDefinitionId.toString());
                             break;
                         }
-                        const xmlBody = this.bodyXML;
+                        let captureXmlBody = this.bodyXML;
                         if (doDebug) {
-                            debugLog("xxxx ", chalk.yellow(xmlBody));
+                            debugLog("xxxx ", chalk.yellow(captureXmlBody));
                         }
-
-                        /*                       
-                         if (xmlEncodingNodeId.namespace === 0) {
-                            const dataTypeFactory = getStandardDataTypeFactory();
-                            const extensionObject: ExtensionObject | null = decodeXmlObject2(
-                                addressSpace,
-                                dataTypeFactory,
-                                xmlEncodingNodeId,
-                                xmlBody
-                            );
-                            self.extensionObject = extensionObject;
-                            return;
-                        }
-*/
                         // this is a user defined Extension Object
                         debugLog(
                             "load nodeset2: typeDefinitionId in ExtensionObject Default XML = " + xmlEncodingNodeId.toString()
                         );
 
-                        const postTaskData = self.postTaskData;
+                        let captured = self.postTaskData;
+                        self.extensionObjectPojo = null;
                         const task = async (addressSpace2: IAddressSpace) => {
                             const extensionObject: ExtensionObject | null = await decodeXmlExtensionObject(
                                 addressSpace2,
                                 xmlEncodingNodeId,
-                                xmlBody
+                                captureXmlBody
                             );
-                            if (postTaskData) {
-                                postTaskData.postponedExtensionObject = extensionObject;
+                            if (captured) {
+                                captured.postponedExtensionObject = extensionObject;
                             }
+                            (captureXmlBody as any) = undefined;
+                            (captured as any) = undefined;
                         };
-                        postTasks2.push(task);
-                        self.extensionObjectPojo = null;
+                        postTasks0_DecodePojoString.push(task);
                         assert(!self.extensionObject || self.extensionObject instanceof ExtensionObject);
 
                         break;
@@ -929,27 +915,28 @@ export function makeNodeSetParserEngine(addressSpace: IAddressSpace): NodeSet2Pa
 
     const extensionObject_parser = {
         ExtensionObject: {
-            init(this: any) {
-                this.typeDefinitionId = "";
+            init(this: ExtensionObjectParser) {
+                this.typeDefinitionId = NodeId.nullNodeId;
                 this.extensionObject = null;
                 this.extensionObjectPojo = null;
+                this.postTaskData = { postponedExtensionObject: null };
             },
             parser: _extensionObject_inner_parser,
-            finish(this: any) {
+            finish(this: ExtensionObjectParser) {
                 /* empty */
             }
         }
     };
 
-    function BasicType_parser(dataType: string, parseFunc: (this: any, text: string) => any): ParserLike {
+    function BasicType_parser<T>(dataType: string, parseFunc: (this: { value: T | undefined }, text: string) => any): ParserLike {
         const _parser: ParserLike = {};
 
         const r: ReaderStateParserLike = {
-            init(this: any, name: string, attrs: XmlAttributes) {
-                this.value = 0;
+            init(this: { value: T | undefined }, name: string, attrs: XmlAttributes) {
+                this.value = undefined;
             },
 
-            finish(this: any) {
+            finish(this: { value: T | undefined; text: string }) {
                 this.value = parseFunc.call(this, this.text);
             }
         };
@@ -957,22 +944,22 @@ export function makeNodeSetParserEngine(addressSpace: IAddressSpace): NodeSet2Pa
         return _parser;
     }
 
-    function ListOf(dataType: string, parseFunc: any) {
+    function ListOf<T>(dataType: string, parseFunc: any) {
         return {
-            init(this: any) {
+            init(this: ListOfTParser<T>) {
                 this.listData = [];
             },
 
-            parser: BasicType_parser(dataType, parseFunc),
+            parser: BasicType_parser<T>(dataType, parseFunc),
 
-            finish(this: any) {
+            finish(this: ListOfTParser<T>) {
                 this.parent.parent.obj.value = {
                     arrayType: VariantArrayType.Array,
                     dataType: (DataType as any)[dataType],
                     value: this.listData
                 };
             },
-            endElement(this: any, element: string) {
+            endElement(this: ListOfTParser<T>, element: string) {
                 this.listData.push(this.parser[dataType].value);
             }
         };
@@ -988,6 +975,58 @@ export function makeNodeSetParserEngine(addressSpace: IAddressSpace): NodeSet2Pa
             }
         };
     }
+
+    interface PostExtensionObjectData {
+        postponedExtensionObject: ExtensionObject | null;
+        // variant: Variant;
+        // nodeId: NodeId;
+    }
+    interface ExtensionObjectParser {
+        parent: any;
+        typeDefinitionId: NodeId;
+        extensionObject: ExtensionObject | null;
+        extensionObjectPojo: any | null;
+        postTaskData?: PostExtensionObjectData;
+        parser: {
+            Body: ExtensionObjectBodyParser;
+        };
+    }
+
+    interface ExtensionObjectTypeIdParser {
+        parent: ExtensionObjectParser;
+    }
+    interface ExtensionObjectTypeIdIdentifierParser {
+        text: string;
+        parent: ExtensionObjectTypeIdParser;
+    }
+
+    interface ExtensionObjectBodyParser {
+        parent: ExtensionObjectParser;
+        _cloneFragment: InternalFragmentClonerReaderState;
+        bodyXML: string;
+        engine: any;
+        NodeSet2ParserEngine: any;
+        parser: any;
+    }
+
+    interface Parser {
+        parent: Parser | any;
+    }
+    interface ListOfTParser<T> extends Parser {
+        listData: T[];
+        parent: Parser;
+        parser: {
+            [key: string]: Parser | any;
+        };
+    }
+
+    interface ListOfExtensionObjectParser extends ListOfTParser<ExtensionObject> {
+        listExtensionObject: (ExtensionObject | null)[];
+        parser: {
+            ExtensionObject: ExtensionObjectParser;
+        };
+    }
+
     const state_Variant = {
         init: () => {
             /* empty */
@@ -1104,113 +1143,128 @@ export function makeNodeSetParserEngine(addressSpace: IAddressSpace): NodeSet2Pa
             },
 
             ListOfExtensionObject: {
-                init(this: any) {
-                    this.listData = [];
+                init(this: ListOfExtensionObjectParser) {
+                    this.listExtensionObject = [];
                 },
                 parser: extensionObject_parser,
-                finish(this: any) {
-                    this.parent.parent.obj.value = {
-                        arrayType: VariantArrayType.Array,
-                        dataType: DataType.ExtensionObject,
-                        value: this.listData
-                    };
+                finish(this: ListOfExtensionObjectParser) {
+                    installExtensionObjectListInitializationPostTask(this);
                 },
-                startElement(this: any, elementName: string) {
+                startElement(this: ListOfExtensionObjectParser, elementName: string) {
                     /* empty */
+                    const extensionObjectParser = this.parser.ExtensionObject;
+                    extensionObjectParser.postTaskData = { postponedExtensionObject: null };
                 },
-                endElement(this: any, elementName: string) {
-                    this.listData.push(this.parser.ExtensionObject.extensionObject);
+                endElement(this: ListOfExtensionObjectParser, elementName: string) {
+                    const extensionObjectParser = this.parser.ExtensionObject;
 
-                    if (this.parser.ExtensionObject.extensionObject) {
-                        // assert(element === "ExtensionObject");
+                    this.listExtensionObject.push(extensionObjectParser.extensionObject);
+                    if (this.parser.ExtensionObject.extensionObject === null) {
+                        // extension object creation will be postponed
+                        const index = this.listExtensionObject.length - 1;
+                        let capturedData = extensionObjectParser.postTaskData;
 
                         // istanbul ignore next
-                        if (!(this.parser.ExtensionObject.extensionObject instanceof ExtensionObject)) {
-                            throw new Error("expecting an extension object");
+                        if (!capturedData) {
+                            throw new Error("Internal Error : postponedExtensionObject not resolved");
                         }
+
+                        let listExtensionObject = this.listExtensionObject;
+                        const task = async (addressSpace2: IAddressSpace) => {
+                            // istanbul ignore next
+                            if (!capturedData!.postponedExtensionObject) {
+                                throw new Error("Internal Error : postponedExtensionObject not resolved");
+                            }
+                            listExtensionObject[index] = capturedData!.postponedExtensionObject!;
+                            capturedData = undefined;
+                            (listExtensionObject as any) = undefined;
+                        };
+                        postTasks2_AssignedExtensionObjectToDataValue.push(task);
                     }
                 }
             },
 
             ListOfLocalizedText: {
-                init(this: any) {
+                init(this: ListOfTParser<LocalizedTextOptions>) {
                     this.listData = [];
                 },
                 parser: localizedText_parser,
-                finish(this: any) {
+                finish(this: ListOfTParser<QualifiedNameOptions>) {
                     this.parent.parent.obj.value = {
                         arrayType: VariantArrayType.Array,
                         dataType: DataType.LocalizedText,
                         value: this.listData
                     };
                 },
-                endElement(this: any /*element*/) {
+                endElement(this: ListOfTParser<QualifiedNameOptions> /*element*/) {
                     this.listData.push(this.parser.LocalizedText.localizedText);
                 }
             },
             ListOfQualifiedName: {
-                init(this: any) {
+                init(this: ListOfTParser<QualifiedNameOptions>) {
                     this.listData = [];
                 },
                 parser: qualifiedName_parser,
-                finish(this: any) {
+                finish(this: ListOfTParser<QualifiedNameOptions>) {
                     this.parent.parent.obj.value = {
                         arrayType: VariantArrayType.Array,
                         dataType: DataType.QualifiedName,
                         value: this.listData
                     };
                 },
-                endElement(this: any /*element*/) {
+                endElement(this: ListOfTParser<QualifiedNameOptions> /*element*/) {
                     this.listData.push(this.parser.QualifiedName.qualifiedName);
                 }
             },
             ListOfNodeId: {
-                init(this: any) {
+                init(this: ListOfTParser<NodeIdLike>) {
                     this.listData = [];
                 },
                 parser: nodeId_parser,
-                finish(this: any) {
+                finish(this: ListOfTParser<NodeIdLike>) {
                     this.parent.parent.obj.value = {
                         arrayType: VariantArrayType.Array,
                         dataType: DataType.NodeId,
                         value: this.listData
                     };
                 },
-                endElement(this: any, elementName: string) {
+                endElement(this: ListOfTParser<NodeIdLike>, elementName: string) {
                     this.listData.push(this.parser.NodeId.nodeId);
                 }
             },
-            ListOfBoolean: ListOf("Boolean", ec.coerceBoolean),
-            ListOfByte: ListOf("Byte", parseInt),
 
-            ListOfDouble: ListOf("Double", parseFloat),
+            ListOfBoolean: ListOf<boolean>("Boolean", ec.coerceBoolean),
 
-            ListOfFloat: ListOf("Float", parseFloat),
+            ListOfByte: ListOf<number>("Byte", parseInt),
 
-            ListOfInt32: ListOf("Int32", parseInt),
+            ListOfDouble: ListOf<number>("Double", parseFloat),
 
-            ListOfInt16: ListOf("Int16", parseInt),
+            ListOfFloat: ListOf<number>("Float", parseFloat),
 
-            ListOfInt8: ListOf("Int8", parseInt),
+            ListOfInt32: ListOf<number>("Int32", parseInt),
 
-            ListOfUInt32: ListOf("UInt32", parseInt),
+            ListOfInt16: ListOf<number>("Int16", parseInt),
 
-            ListOfUInt16: ListOf("UInt16", parseInt),
+            ListOfInt8: ListOf<number>("Int8", parseInt),
 
-            ListOfUInt8: ListOf("UInt8", parseInt),
+            ListOfUInt32: ListOf<number>("UInt32", parseInt),
 
-            ListOfString: ListOf("String", (value: string) => value),
+            ListOfUInt16: ListOf<number>("UInt16", parseInt),
 
-            ListOfXmlElement: ListOf("XmlElement", (value: string) => value),
+            ListOfUInt8: ListOf<number>("UInt8", parseInt),
+
+            ListOfString: ListOf<string>("String", (value: string) => value),
+
+            ListOfXmlElement: ListOf<string>("XmlElement", (value: string) => value),
 
             ExtensionObject: {
-                init(this: any) {
-                    this.typeDefinitionId = {};
+                init(this: ExtensionObjectParser) {
+                    this.typeDefinitionId = NodeId.nullNodeId;
                     this.extensionObject = null;
-                    this.postTaskData = {};
+                    this.postTaskData = { postponedExtensionObject: null };
                 },
                 parser: _extensionObject_inner_parser,
-                finish(this: any) {
+                finish(this: ExtensionObjectParser) {
                     // istanbul ignore next
                     if (this.extensionObject && !(this.extensionObject instanceof ExtensionObject)) {
                         throw new Error("expecting an extension object");
@@ -1219,38 +1273,63 @@ export function makeNodeSetParserEngine(addressSpace: IAddressSpace): NodeSet2Pa
                         dataType: DataType.ExtensionObject,
                         value: this.extensionObject
                     };
-                    installExtensionObjectInitializationPostTask(this);
+                    if (!this.extensionObject) {
+                        installExtensionObjectInitializationPostTask(this);
+                    }
                 }
             }
         }
     };
-    function installExtensionObjectInitializationPostTask(element: {
-        postTaskData: any;
-        parent: any;
-        extensionObject?: ExtensionObject;
-    }) {
-        if (!element.extensionObject) {
-            // let's create the mechanism that postpone the creation of the
-            // extension object
-            const data = element.postTaskData;
-            data.variant = element.parent.parent.obj.value;
-            data.nodeId = element.parent.parent.obj.nodeId;
-            element.postTaskData = null;
-            const task = async (addressSpace2: IAddressSpace) => {
-                data.variant.value = data.postponedExtensionObject;
-                assert(data.nodeId, "expecting a nodeid");
-                const node = addressSpace2.findNode(data.nodeId)!;
-                if (node.nodeClass === NodeClass.Variable) {
-                    const v = node as UAVariable;
-                    v.setValueFromSource(data.variant);
-                }
-                if (node.nodeClass === NodeClass.VariableType) {
-                    const v = node as UAVariableType;
-                    (v as any) /*fix me*/.value.value = data.variant.value;
-                }
-            };
-            postTasks3.push(task);
-        }
+
+    function installExtensionObjectListInitializationPostTask(element: ListOfExtensionObjectParser) {
+        let listExtensionObject = element.listExtensionObject;
+        let nodeId = element.parent.parent.obj.nodeId;
+        assert(nodeId, "expecting a nodeid");
+        const task = async (addressSpace2: IAddressSpace) => {
+            const node = addressSpace2.findNode(nodeId)!;
+            if (!node) {
+                debugLog("Cannot find node with nodeId " + nodeId + ". may be the node was marked as deprecated");
+            } else if (node.nodeClass === NodeClass.Variable) {
+                const v = node as UAVariable;
+                v.setValueFromSource({
+                    dataType: DataType.ExtensionObject,
+                    value: listExtensionObject
+                });
+            } else if (node.nodeClass === NodeClass.VariableType) {
+                const v = node as UAVariableType;
+                (v as any) /*fix me*/.value.value = listExtensionObject;
+            }
+            listExtensionObject.slice(0);
+            (listExtensionObject as any) = undefined;
+            (nodeId as any) = undefined;
+        };
+        postTasks2_AssignedExtensionObjectToDataValue.push(task);
+    }
+
+    function installExtensionObjectInitializationPostTask(element: ExtensionObjectParser) {
+        // let's create the mechanism that postpone the creation of the
+        // extension object
+        let data = element.postTaskData!;
+        let variant = element.parent.parent.obj.value;
+        let nodeId = element.parent.parent.obj.nodeId;
+        const task = async (addressSpace2: IAddressSpace) => {
+            variant.value = data.postponedExtensionObject;
+            assert(nodeId, "expecting a nodeid");
+            const node = addressSpace2.findNode(nodeId)!;
+            if (node.nodeClass === NodeClass.Variable) {
+                const v = node as UAVariable;
+                v.setValueFromSource(variant);
+            } else if (node.nodeClass === NodeClass.VariableType) {
+                const v = node as UAVariableType;
+                (v as any) /*fix me*/.value.value = variant.value;
+            }
+
+            data.postponedExtensionObject = null;
+            (data as any) = undefined;
+            (variant as any) = undefined;
+            (nodeId as any) = undefined;
+        };
+        postTasks2_AssignedExtensionObjectToDataValue.push(task);
     }
     const state_UAVariable = {
         init(this: any, name: string, attrs: XmlAttributes) {
@@ -1290,38 +1369,39 @@ export function makeNodeSetParserEngine(addressSpace: IAddressSpace): NodeSet2Pa
             }
             */
             // eslint-disable-next-line prefer-const
-            let variable: UAVariable;
+            let capturedVariable: UAVariable;
             if (this.obj.value) {
-                const capturedValue = this.obj.value;
+                let capturedValue = this.obj.value;
                 const task = async (addressSpace2: IAddressSpace) => {
                     if (false && doDebug) {
-                        debugLog("1 setting value to ", variable.nodeId.toString(), new Variant(capturedValue).toString());
+                        debugLog("1 setting value to ", capturedVariable.nodeId.toString(), new Variant(capturedValue).toString());
                     }
-                    variable.setValueFromSource(capturedValue);
+                    capturedVariable.setValueFromSource(capturedValue);
+                    capturedValue = undefined;
+                    (capturedVariable as any) = undefined;
                 };
-                postTaskInitializeVariable.push(task);
+                postTasks1_InitializeVariable.push(task);
             } else {
-                const captureName = this.obj.browseName.toString();
-                const captureNodeId = this.obj.nodeId;
                 const task = async (addressSpace2: IAddressSpace) => {
-                    const dataTypeNode = variable.dataType;
-                    const valueRank = variable.valueRank;
+                    const dataTypeNode = capturedVariable.dataType;
+                    const valueRank = capturedVariable.valueRank;
                     const value = makeDefaultVariant(addressSpace, dataTypeNode, valueRank);
                     if (value) {
                         if (false && doDebug) {
-                            debugLog("2 setting value to ", variable.nodeId.toString(), value);
+                            debugLog("2 setting value to ", capturedVariable.nodeId.toString(), value);
                         }
                         if (value.dataType === DataType.Null) {
-                            variable.setValueFromSource(value, StatusCodes.BadWaitingForInitialData);
+                            capturedVariable.setValueFromSource(value, StatusCodes.BadWaitingForInitialData);
                         } else {
-                            variable.setValueFromSource(value, StatusCodes.Good);
+                            capturedVariable.setValueFromSource(value, StatusCodes.Good);
                         }
                     }
+                    (capturedVariable as any) = undefined;
                 };
-                postTaskInitializeVariable.push(task);
+                postTasks1_InitializeVariable.push(task);
             }
             this.obj.value = undefined;
-            variable = _internal_createNode(this.obj) as UAVariable;
+            capturedVariable = _internal_createNode(this.obj) as UAVariable;
         },
         parser: {
             DisplayName: {
@@ -1595,13 +1675,13 @@ export function makeNodeSetParserEngine(addressSpace: IAddressSpace): NodeSet2Pa
                     await task(addressSpace1);
                 }
             }
+            tasks.splice(0);
         }
         async function finalSteps(): Promise<void> {
             /// ----------------------------------------------------------------------------------------
             // perform post task
             doDebug && debugLog(chalk.bgGreenBright("Performing post loading tasks -------------------------------------------"));
             await performPostLoadingTasks(postTasks);
-            postTasks = [];
 
             doDebug && debugLog(chalk.bgGreenBright("Performing DataType extraction -------------------------------------------"));
             assert(!addressSpace1.suspendBackReference);
@@ -1619,23 +1699,16 @@ export function makeNodeSetParserEngine(addressSpace: IAddressSpace): NodeSet2Pa
             }
             pendingSimpleTypeToRegister.splice(0);
 
-            doDebug && debugLog(chalk.bgGreenBright("Performing post loading tasks 2 (parsing XML objects) ---------------------"));
-            await performPostLoadingTasks(postTasks2);
-            postTasks2 = [];
+            doDebug && debugLog(chalk.bgGreenBright("Performing post loading task: Decoding Pojo String (parsing XML objects) -"));
+            await performPostLoadingTasks(postTasks0_DecodePojoString);
+
+            doDebug && debugLog(chalk.bgGreenBright("Performing post loading task: Initializing Variables ---------------------"));
+            await performPostLoadingTasks(postTasks1_InitializeVariable);
+
+            doDebug && debugLog(chalk.bgGreenBright("Performing post loading tasks: (assigning Extension Object to Variables) -"));
+            await performPostLoadingTasks(postTasks2_AssignedExtensionObjectToDataValue);
 
             doDebug && debugLog(chalk.bgGreenBright("Performing post variable initialization ---------------------"));
-            await performPostLoadingTasks(postTaskInitializeVariable);
-            postTaskInitializeVariable = [];
-
-            doDebug &&
-                debugLog(
-                    chalk.bgGreenBright(
-                        "Performing post loading tasks 3 (assigning Extension Object to Variables) ---------------------"
-                    )
-                );
-            await performPostLoadingTasks(postTasks3);
-            postTasks3 = [];
-
             promoteObjectsAndVariables(addressSpace);
         }
         finalSteps()

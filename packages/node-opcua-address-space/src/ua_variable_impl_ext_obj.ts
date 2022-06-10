@@ -10,7 +10,7 @@ import { NodeId } from "node-opcua-nodeid";
 import { StatusCodes, CallbackT, StatusCode } from "node-opcua-status-code";
 import { StructureField } from "node-opcua-types";
 import { lowerFirstLetter } from "node-opcua-utils";
-import { DataType, Variant, VariantLike } from "node-opcua-variant";
+import { DataType, Variant, VariantLike, VariantArrayType } from "node-opcua-variant";
 
 import { valueRankToString } from "./base_node_private";
 import { UAVariableImpl } from "./ua_variable_impl";
@@ -77,7 +77,6 @@ function makeHandler(variable: UAVariable) {
  *
  */
 export function _touchValue(property: UAVariableImpl, now: PreciseClock): void {
-
     property.$dataValue.sourceTimestamp = now.timestamp;
     property.$dataValue.sourcePicoseconds = now.picoseconds;
     property.$dataValue.serverTimestamp = now.timestamp;
@@ -115,13 +114,24 @@ function propagateTouchValueDownward(self: UAVariableImpl, now: PreciseClock): v
     }
 }
 
-export function _setExtensionObject(self: UAVariableImpl, ext: ExtensionObject): void {
+export function _setExtensionObject(self: UAVariableImpl, ext: ExtensionObject | ExtensionObject[]): void {
     // assert(!(ext as any).$isProxy, "internal error ! ExtensionObject has already been proxied !");
-    ext = unProxy(ext);
-    self.$extensionObject = new Proxy(ext, makeHandler(self));
-    self.$dataValue.value.dataType = DataType.ExtensionObject;
-    self.$dataValue.value.value = self.$extensionObject;
-    self.$dataValue.statusCode = StatusCodes.Good;
+    if (Array.isArray(ext)) {
+        assert(self.valueRank === 1, "Only Array is supported for the time being");
+        ext = ext.map((e) => unProxy(e));
+        self.$dataValue.value.arrayType = VariantArrayType.Array;
+        self.$extensionObject = ext.map((e) => new Proxy(e, makeHandler(self)));
+        self.$dataValue.value.dataType = DataType.ExtensionObject;
+        self.$dataValue.value.value = self.$extensionObject;
+        self.$dataValue.statusCode = StatusCodes.Good;
+        return;
+    } else {
+        ext = unProxy(ext);
+        self.$extensionObject = new Proxy(ext, makeHandler(self));
+        self.$dataValue.value.dataType = DataType.ExtensionObject;
+        self.$dataValue.value.value = self.$extensionObject;
+        self.$dataValue.statusCode = StatusCodes.Good;
+    }
 
     const now = getCurrentClock();
     propagateTouchValueUpward(self, now);
@@ -312,12 +322,14 @@ export function _installExtensionObjectBindingOnProperties(
     }
 }
 
+// eslint-disable-next-line complexity
 export function _bindExtensionObject(
     self: UAVariableImpl,
-    optionalExtensionObject?: ExtensionObject,
+    optionalExtensionObject?: ExtensionObject | ExtensionObject[],
     options?: BindExtensionObjectOptions
-) {
+): ExtensionObject | ExtensionObject[] | null {
     options = options || { createMissingProp: false };
+
 
     const addressSpace = self.addressSpace;
     const structure = addressSpace.findDataType("Structure");
@@ -335,6 +347,11 @@ export function _bindExtensionObject(
     if (!dt.isSupertypeOf(structure)) {
         return null;
     }
+
+    if (self.valueRank !== -1 && self.valueRank !==1) {
+        throw new Error("Cannot bind an extension object here, valueRank must be scalar (-1) or one-dimensional (1)");
+    }
+    
     // istanbul ignore next
     if (doDebug) {
         debugLog(" ------------------------------ binding ", self.browseName.toString(), self.nodeId.toString());
@@ -406,28 +423,60 @@ export function _bindExtensionObject(
 
     function innerBindExtensionObject() {
         if (s.value && (s.value.dataType === DataType.Null || (s.value.dataType === DataType.ExtensionObject && !s.value.value))) {
-            // create a structure and bind it
-            extensionObject_ = optionalExtensionObject || addressSpace.constructExtensionObject(self.dataType, {});
-            // eslint-disable-next-line @typescript-eslint/no-this-alias
-            self.bindVariable(
-                {
-                    timestamped_get() {
-                        const d = new DataValue(self.$dataValue);
-                        d.value.value = self.$extensionObject ? self.$extensionObject.clone() : null;
-                        return d;
-                    },
-                    timestamped_set(dataValue: DataValue, callback: CallbackT<StatusCode>) {
-                        const ext = dataValue.value.value;
-                        if (!self.checkExtensionObjectIsCorrect(ext)) {
-                            return callback(null, StatusCodes.BadInvalidArgument);
+            if (self.valueRank === -1 /** Scalar */) {
+                // create a structure and bind it
+                extensionObject_ = optionalExtensionObject || addressSpace.constructExtensionObject(self.dataType, {});
+                // eslint-disable-next-line @typescript-eslint/no-this-alias
+                self.bindVariable(
+                    {
+                        timestamped_get() {
+                            const d = new DataValue(self.$dataValue);
+                            d.value.value = self.$extensionObject ? self.$extensionObject.clone() : null;
+                            return d;
+                        },
+                        timestamped_set(dataValue: DataValue, callback: CallbackT<StatusCode>) {
+                            const ext = dataValue.value.value;
+                            if (!self.checkExtensionObjectIsCorrect(ext)) {
+                                return callback(null, StatusCodes.BadInvalidArgument);
+                            }
+                            _setExtensionObject(self, ext);
+                            callback(null, StatusCodes.Good);
                         }
-                        _setExtensionObject(self, ext);
-                        callback(null, StatusCodes.Good);
-                    }
-                },
-                true
-            );
-            _setExtensionObject(self, extensionObject_);
+                    },
+                    true
+                );
+                _setExtensionObject(self, extensionObject_);
+            } else if (self.valueRank === 1 /** Array */) {
+                // create a structure and bind it
+
+                extensionObject_ = optionalExtensionObject || [];
+                // eslint-disable-next-line @typescript-eslint/no-this-alias
+                self.bindVariable(
+                    {
+                        timestamped_get() {
+                            const d = new DataValue(self.$dataValue);
+
+                            d.value.value = self.$extensionObject
+                                ? self.$extensionObject.map((e: ExtensionObject) => e.clone())
+                                : null;
+                            return d;
+                        },
+                        timestamped_set(dataValue: DataValue, callback: CallbackT<StatusCode>) {
+                            const ext = dataValue.value.value;
+                            if (!self.checkExtensionObjectIsCorrect(ext)) {
+                                return callback(null, StatusCodes.BadInvalidArgument);
+                            }
+                            _setExtensionObject(self, ext);
+                            callback(null, StatusCodes.Good);
+                        }
+                    },
+                    true
+                );
+                _setExtensionObject(self, extensionObject_);
+            } else {
+                errorLog(self.toString());
+                errorLog("Unsupported case ! valueRank= ", self.valueRank);
+            }
         } else {
             // verify that variant has the correct type
             assert(s.value.dataType === DataType.ExtensionObject);

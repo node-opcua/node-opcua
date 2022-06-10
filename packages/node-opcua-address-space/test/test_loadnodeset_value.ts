@@ -34,7 +34,7 @@ describe("Testing loading nodeset with extension objects values in types", () =>
 
         // xx console.log(connectionDetailsType.toString());
         const value = connectionDetailsType.readAttribute(context, AttributeIds.Value).value;
-       // xx  console.log(value.toString());
+        // xx  console.log(value.toString());
         value.value.constructor.name.should.eql("ConnectionDetails");
 
         //
@@ -65,14 +65,22 @@ describe("Testing loading nodeset with extension objects values in types", () =>
         const otherConnections = myTestObject.getChildByName("OtherConnections")! as UAVariable;
         const connection2WithOptionalFields = myTestObject.getChildByName("Connection2WithOptionalFields")! as UAVariable;
 
+        console.log("primaryConnection\n", primaryConnection.toString());
+        console.log("otherConnections\n", otherConnections.toString());
+        console.log("connection2WithOptionalFields\n", connection2WithOptionalFields.toString());
+        console.log(otherConnections.readValue().toString());
+        
+        
+        const otherConnectionsValue = otherConnections.readValue().value.value;
+        otherConnectionsValue.should.be.instanceof(Array);
+        otherConnectionsValue.length.should.eql(2);
+        otherConnectionsValue[0].constructor.name.should.eql("ConnectionDetails");
+        otherConnectionsValue[1].constructor.name.should.eql("ConnectionDetails");
+
         const c1 = addressSpace.constructExtensionObject(connectionDetailDataType, {
             certificates: Buffer.from("Hello World"),
             url: "http://10.0.19.120"
         });
-
-        console.log("primaryConnection\n", primaryConnection.toString());
-        console.log("otherConnections\n", otherConnections.toString());
-        console.log("connection2WithOptionalFields\n", connection2WithOptionalFields.toString());
     });
 
     it("LNEX3 - should load an nodeset with a Extension Object Variable containing an enum", async () => {
@@ -89,13 +97,13 @@ describe("Testing loading nodeset with extension objects values in types", () =>
         value.value.F2.should.eql([100, 200, 300]);
     });
 
-    const x = (a: string) => a.replace(/^ +/gm,"");
+    const x = (a: string) => a.replace(/^ +/gm, "");
 
     it("LNEX4 - export back a nodeset2.xml file with dataType & enum as values", async () => {
         await generateAddressSpace(addressSpace, [nodesets.standard, xml_file1]);
         const namespace = addressSpace.getNamespace("http://sterfive.com/Small_model/");
         const xml = namespace.toNodeset2XML();
-       // xx  console.log(xml);
+        // xx  console.log(xml);
 
         // prettier-ignore
         x(xml).should.eql(x(`<?xml version="1.0"?>

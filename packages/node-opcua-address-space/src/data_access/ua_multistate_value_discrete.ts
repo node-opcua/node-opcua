@@ -264,6 +264,7 @@ export function _addMultiStateValueDiscrete<T, DT extends DataType>(
         accessLevel: "CurrentRead",
         browseName: { name: "EnumValues", namespaceIndex: 0 },
         dataType: "EnumValueType",
+        valueRank: 1,
         minimumSamplingInterval: 0,
         modellingRule: options.modellingRule ? "Mandatory" : undefined,
         propertyOf: variable,

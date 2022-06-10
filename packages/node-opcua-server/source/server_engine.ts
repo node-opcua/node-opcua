@@ -288,7 +288,7 @@ export interface CreateSessionOption {
 
 export type ClosingReason = "Timeout" | "Terminated" | "CloseSession" | "Forcing";
 
-export type ShutdownTask = ((this: ServerEngine) => void|Promise<void>);
+export type ShutdownTask = (this: ServerEngine) => void | Promise<void>;
 /**
  *
  */
@@ -1079,8 +1079,6 @@ export class ServerEngine extends EventEmitter {
                 });
             };
 
- 
-
             bindServerDiagnostics();
 
             bindServerStatus();
@@ -1091,7 +1089,7 @@ export class ServerEngine extends EventEmitter {
 
             const bindExtraStuff = () => {
                 // mainly for compliance
-/*
+                /*
                 // The version number for the data type description. i=104
                 bindStandardScalar(VariableIds.DataTypeDescriptionType_DataTypeVersion, DataType.String, () => {
                     return "0";
@@ -1895,7 +1893,7 @@ export class ServerEngine extends EventEmitter {
     ): void {
         const referenceTime = new Date(Date.now() - maxAge);
 
-        assert(typeof callback === 'function');
+        assert(typeof callback === "function");
         const objectMap: Record<string, BaseNode> = {};
         for (const nodeToRefresh of nodesToRefresh) {
             // only consider node  for which the caller wants to read the Value attribute
@@ -2080,7 +2078,7 @@ export class ServerEngine extends EventEmitter {
         callback: CallbackT<HistoryReadResult>
     ): void {
         assert(context instanceof SessionContext);
-        assert(typeof callback === 'function');
+        assert(typeof callback === "function");
 
         const nodeId = nodeToRead.nodeId;
         const indexRange = nodeToRead.indexRange;
