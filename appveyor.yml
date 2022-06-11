@@ -8,7 +8,7 @@ environment:
     # - nodejs_version: "10" (not supported any mopre -> end of life 2021-04-30)
     # - nodejs_version: "11" (not supported any more)
     - nodejs_version: "12" 
-    - nodejs_version: "14"
+    # - nodejs_version: "14"
     - nodejs_version: "16"
 
 platform:
@@ -32,7 +32,7 @@ install:
   - npm install -g npm pnpm@6 typescript ts-node
   - set path=C:\Users\appveyor\AppData\Roaming\npm\;%path%
   - tsc --version
-  - appveyor-retry pnpm recursive install
+  - appveyor-retry pnpm recursive install --no-frozen-lockfile
 
 # Post-install test scripts.
 test_script:
