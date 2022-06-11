@@ -3,7 +3,7 @@
     "main": "./dist/index.js",
     "types": "./dist/index.d.ts",
     "browser": "./index_web.js",
-    "version": "2.66.0",
+    "version": "2.70.0",
     "description": "pure nodejs OPCUA SDK - module -nodesets",
     "scripts": {
         "build": "tsc -b",
