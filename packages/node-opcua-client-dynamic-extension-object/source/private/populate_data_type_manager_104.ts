@@ -2,11 +2,11 @@ import { assert } from "node-opcua-assert";
 import { AttributeIds, BrowseDirection } from "node-opcua-data-model";
 import { make_debugLog, make_errorLog } from "node-opcua-debug";
 import { DataTypeFactory } from "node-opcua-factory";
-import { NodeId, resolveNodeId } from "node-opcua-nodeid";
+import { NodeId, NodeIdLike, resolveNodeId } from "node-opcua-nodeid";
 import { IBasicSession, BrowseDescriptionLike } from "node-opcua-pseudo-session";
 import { createDynamicObjectConstructor } from "node-opcua-schemas";
 import { StatusCodes } from "node-opcua-status-code";
-import { ReferenceDescription, BrowseResult } from "node-opcua-types";
+import { ReferenceDescription, BrowseResult, BrowseDescriptionOptions } from "node-opcua-types";
 
 //
 import { ExtraDataTypeManager } from "../extra_data_type_manager";
@@ -15,14 +15,14 @@ import {
     convertDataTypeDefinitionToStructureTypeSchema
 } from "../convert_data_type_definition_to_structuretype_schema";
 const errorLog = make_errorLog(__filename);
-const debugLog =make_debugLog(__filename);
+const debugLog = make_debugLog(__filename);
 
 export async function readDataTypeDefinitionAndBuildType(
     session: IBasicSession,
     dataTypeNodeId: NodeId,
     name: string,
     dataTypeFactory: DataTypeFactory,
-    cache: { [key: string]: CacheForFieldResolution } 
+    cache: { [key: string]: CacheForFieldResolution }
 ) {
     try {
         const dataTypeDefinitionDataValue = await session.read({
@@ -50,11 +50,113 @@ export async function readDataTypeDefinitionAndBuildType(
     }
 }
 
-export async function populateDataTypeManager104(session: IBasicSession, dataTypeManager: ExtraDataTypeManager): Promise<void> {
+class TaskMan {
+    private readonly taskList: (() => Promise<void>)[] = [];
+    private _runningTask = false;
+    private _resolve: (() => void) | undefined = undefined;
 
+    async flushTaskList() {
+        const firstTask = this.taskList.shift()!;
+        this._runningTask = true;
+        await firstTask();
+        this._runningTask = false;
+        if (this.taskList.length > 0) {
+            setImmediate(async () => {
+                await this.flushTaskList();
+            });
+        } else {
+            if (this._resolve) {
+                const tmpResolve = this._resolve;
+                this._resolve = undefined;
+                tmpResolve();
+            }
+        }
+    }
+    /**
+     *
+     * a little async task queue that gets executed sequentially
+     * outside the main loop
+     */
+    public registerTask(taskFunc: () => Promise<void>) {
+        this.taskList.push(taskFunc);
+        if (this.taskList.length === 1 && !this._runningTask) {
+            this.flushTaskList();
+        }
+    }
+    public async waitForCompletion() {
+        if (this._resolve !== undefined) {
+            throw new Error("already waiting");
+        }
+        await new Promise<void>((resolve) => {
+            this._resolve = resolve;
+        });
+    }
+}
+
+async function applyOnReferenceRecursively(
+    session: IBasicSession,
+    nodeId: NodeId,
+    browseDescriptionTemplate: BrowseDescriptionOptions,
+    action: (ref: ReferenceDescription) => Promise<void>
+): Promise<void> {
+    const taskMan = new TaskMan();
+
+    let pendingNodesToBrowse: BrowseDescriptionLike[] = [];
+    let pendingContinuationPoints: Buffer[] = [];
+
+    function processBrowseResult(browseResults: BrowseResult[]) {
+        for (const result of browseResults) {
+            if (result.statusCode === StatusCodes.Good) {
+                if (result.continuationPoint) {
+                    pendingContinuationPoints.push(result.continuationPoint);
+                    taskMan.registerTask(flushBrowse);
+                }
+                for (const r of result.references || []) {
+                    taskMan.registerTask(async () => {
+                        await action(r);
+                    });
+                    // also explore sub types
+                    browseSubDataTypeRecursively(r.nodeId);
+                }
+            }
+        }
+    }
+    async function flushBrowse() {
+        if (pendingContinuationPoints.length) {
+            const continuationPoints = pendingContinuationPoints;
+            pendingContinuationPoints = [];
+            taskMan.registerTask(async () => {
+                const browseResults = await session.browseNext(continuationPoints, false);
+                processBrowseResult(browseResults);
+            });
+        } else if (pendingNodesToBrowse.length) {
+            const nodesToBrowse = pendingNodesToBrowse;
+            pendingNodesToBrowse = [];
+            taskMan.registerTask(async () => {
+                const browseResults = await session.browse(nodesToBrowse);
+                processBrowseResult(browseResults);
+            });
+        }
+    }
+
+    function browseSubDataTypeRecursively(nodeId: NodeId): void {
+        const nodeToBrowse: BrowseDescriptionOptions = {
+            ...browseDescriptionTemplate,
+            nodeId
+        };
+        pendingNodesToBrowse.push(nodeToBrowse);
+        taskMan.registerTask(async () => {
+            flushBrowse();
+        });
+    }
+    browseSubDataTypeRecursively(nodeId);
+    await taskMan.waitForCompletion();
+}
+export async function populateDataTypeManager104(session: IBasicSession, dataTypeManager: ExtraDataTypeManager): Promise<void> {
     const cache: { [key: string]: CacheForFieldResolution } = {};
-    
-    async function withDataType(dataTypeNodeId: NodeId, r: ReferenceDescription): Promise<void> {
+
+    async function withDataType(r: ReferenceDescription): Promise<void> {
+        const dataTypeNodeId = r.nodeId;
         try {
             const dataTypeFactory = dataTypeManager.getDataTypeFactory(dataTypeNodeId.namespace);
             if (dataTypeNodeId.namespace === 0) {
@@ -75,80 +177,13 @@ export async function populateDataTypeManager104(session: IBasicSession, dataTyp
         }
     }
 
-    function performAction(done: () => void) {
-        let pendingNodesToBrowse: BrowseDescriptionLike[] = [];
-        let pendingContinuationPoints: Buffer[] = [];
-        function triggerFutureBrowse() {
-            if (pendingNodesToBrowse.length + pendingContinuationPoints.length === 1) {
-                fencedAction(async ()=>{
-                    flushBrowse();
-                });
-            }
-        }
-        let busyCount = 0;
-        function processBrowseResult(browseResults: BrowseResult[]) {
-        
-            for (const result of browseResults) {
-                if (result.statusCode === StatusCodes.Good) {
-                    if (result.continuationPoint) {
-                        pendingContinuationPoints.push(result.continuationPoint);
-                        triggerFutureBrowse();
-                    }
-                    for (const r of result.references || []) {
-                        const dataTypeNodeId = r.nodeId;
-                        fencedAction(async ()=>{
-                            await withDataType(dataTypeNodeId, r);
-                        });
-                        // also explore sub types
-                        browseSubDataTypeRecursively(dataTypeNodeId);
-                    }
-                }
-            }
-        }
-
-        async function fencedAction(lambda: () => Promise<void>): Promise<void> {
-            busyCount += 1;
-            await lambda();
-            busyCount -= 1;
-            flushBrowse();
-        }
-        
-        function flushBrowse() {
-            assert(busyCount >= 0);
-            if (pendingContinuationPoints.length) {
-                const continuationPoints = pendingContinuationPoints;
-                pendingContinuationPoints = [];
-                fencedAction(async () => {
-                    const browseResults = await session.browseNext(continuationPoints, false);
-                    processBrowseResult(browseResults);
-                });
-            } else if (pendingNodesToBrowse.length) {
-                const nodesToBrowse = pendingNodesToBrowse;
-                pendingNodesToBrowse = [];
-
-                fencedAction(async () => {
-                    const browseResults = await session.browse(nodesToBrowse);
-                    processBrowseResult(browseResults);
-                });
-            } else if (pendingContinuationPoints.length + pendingNodesToBrowse.length === 0 && busyCount === 0) {
-                done();
-            }
-        }
-
-        function browseSubDataTypeRecursively(nodeId: NodeId): void {
-            const nodeToBrowse: BrowseDescriptionLike = {
-                nodeId,
-                includeSubtypes: true,
-                browseDirection: BrowseDirection.Forward,
-                nodeClassMask: 0xff,
-                referenceTypeId: resolveNodeId("HasSubtype"),
-                resultMask: 0xff
-            };
-            pendingNodesToBrowse.push(nodeToBrowse);
-            triggerFutureBrowse();
-        }
-
-        browseSubDataTypeRecursively(resolveNodeId("Structure"));
-    }
-    await new Promise<void>((resolve) => performAction(resolve));
+    const nodeToBrowse: BrowseDescriptionOptions = {
+        nodeId: NodeId.nullNodeId, // to be replaced
+        includeSubtypes: true,
+        browseDirection: BrowseDirection.Forward,
+        nodeClassMask: 0xff,
+        referenceTypeId: resolveNodeId("HasSubtype"),
+        resultMask: 0xff
+    };
+    await applyOnReferenceRecursively(session, resolveNodeId("Structure"), nodeToBrowse, withDataType);
 }
