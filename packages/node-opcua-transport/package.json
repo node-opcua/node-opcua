@@ -1,6 +1,6 @@
 {
     "name": "node-opcua-transport",
-    "version": "2.70.0",
+    "version": "2.70.2",
     "description": "pure nodejs OPCUA SDK - module -transport",
     "main": "./dist/source/index.js",
     "types": "./dist/source/index.d.ts",
@@ -24,7 +24,7 @@
         "node-opcua-object-registry": "2.69.0",
         "node-opcua-packet-assembler": "2.69.0",
         "node-opcua-status-code": "2.70.0",
-        "node-opcua-types": "2.70.0",
+        "node-opcua-types": "2.70.2",
         "node-opcua-utils": "2.69.0"
     },
     "devDependencies": {

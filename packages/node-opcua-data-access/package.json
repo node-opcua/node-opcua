@@ -2,7 +2,7 @@
   "name": "node-opcua-data-access",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
-  "version": "2.70.0",
+  "version": "2.70.2",
   "description": "pure nodejs OPCUA SDK - module -data-access",
   "scripts": {
     "build": "tsc -b",
@@ -18,7 +18,7 @@
     "node-opcua-data-model": "2.70.0",
     "node-opcua-factory": "2.70.0",
     "node-opcua-nodeid": "2.70.0",
-    "node-opcua-types": "2.70.0"
+    "node-opcua-types": "2.70.2"
   },
   "devDependencies": {
     "should": "^13.2.3"
