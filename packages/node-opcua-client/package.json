@@ -1,6 +1,6 @@
 {
     "name": "node-opcua-client",
-    "version": "2.70.0",
+    "version": "2.70.1",
     "description": "pure nodejs OPCUA SDK - module -client",
     "scripts": {
         "clean": "npx rimraf dist *.tsbuildinfo certificates",
@@ -25,7 +25,7 @@
         "node-opcua-basic-types": "2.70.0",
         "node-opcua-buffer-utils": "2.69.0",
         "node-opcua-certificate-manager": "2.70.0",
-        "node-opcua-client-dynamic-extension-object": "2.70.0",
+        "node-opcua-client-dynamic-extension-object": "2.70.1",
         "node-opcua-common": "2.70.0",
         "node-opcua-constants": "2.70.0",
         "node-opcua-crypto": "^1.10.0",
@@ -65,7 +65,7 @@
     },
     "devDependencies": {
         "dequeue": "^1.0.5",
-        "node-opcua-address-space": "2.70.0",
+        "node-opcua-address-space": "2.70.1",
         "node-opcua-binary-stream": "2.69.0",
         "node-opcua-factory": "2.70.0",
         "node-opcua-leak-detector": "2.69.0",
