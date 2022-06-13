@@ -8,12 +8,12 @@
         "test": "mocha"
     },
     "dependencies": {
+        "chalk": "4.1.2",
         "hexy": "0.3.4",
         "node-opcua-assert": "2.66.0",
         "node-opcua-buffer-utils": "2.69.0"
     },
     "devDependencies": {
-        "chalk": "4.1.2",
         "should": "^13.2.3"
     },
     "main": "./dist/index.js",
