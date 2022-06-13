@@ -1,6 +1,6 @@
 {
     "name": "node-opcua-service-write",
-    "version": "2.70.2",
+    "version": "2.70.3",
     "description": "pure nodejs OPCUA SDK - module -service-write",
     "scripts": {
         "test": "mocha",
@@ -18,8 +18,8 @@
         "node-opcua-factory": "2.70.0",
         "node-opcua-nodeid": "2.70.0",
         "node-opcua-numeric-range": "2.70.0",
-        "node-opcua-service-secure-channel": "2.70.2",
-        "node-opcua-types": "2.70.2"
+        "node-opcua-service-secure-channel": "2.70.3",
+        "node-opcua-types": "2.70.3"
     },
     "devDependencies": {
         "node-opcua-data-model": "2.70.0",

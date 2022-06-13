@@ -1,6 +1,6 @@
 {
     "name": "node-opcua-service-secure-channel",
-    "version": "2.70.2",
+    "version": "2.70.3",
     "description": "pure nodejs OPCUA SDK - module -service-secure-channel",
     "main": "./dist/index.js",
     "types": "./dist/index.d.ts",
@@ -19,7 +19,7 @@
         "node-opcua-factory": "2.70.0",
         "node-opcua-nodeid": "2.70.0",
         "node-opcua-status-code": "2.70.0",
-        "node-opcua-types": "2.70.2"
+        "node-opcua-types": "2.70.3"
     },
     "devDependencies": {
         "node-opcua-debug": "2.69.0",
