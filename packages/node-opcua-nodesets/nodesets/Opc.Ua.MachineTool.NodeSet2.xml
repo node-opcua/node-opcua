@@ -5972,7 +5972,6 @@
     <Category>MachineTool Production InterruptionConditionType</Category>
     <Documentation>https://reference.opcfoundation.org/v105/MachineTool/v101/docs/8.4.9</Documentation>
     <References>
-      <Reference ReferenceType="HasComponent">ns=1;i=5013</Reference>
       <Reference ReferenceType="HasComponent">ns=1;i=150</Reference>
       <Reference ReferenceType="HasComponent">ns=1;i=149</Reference>
       <Reference ReferenceType="HasComponent">ns=1;i=132</Reference>
@@ -5987,25 +5986,6 @@
       <Reference ReferenceType="HasComponent">ns=1;i=151</Reference>
     </References>
   </UAObjectType>
-  <UAObject NodeId="ns=1;i=5013" BrowseName="1:Aborted" ParentNodeId="ns=1;i=28">
-    <DisplayName>Aborted</DisplayName>
-    <References>
-      <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=28</Reference>
-      <Reference ReferenceType="HasProperty">ns=1;i=6048</Reference>
-      <Reference ReferenceType="HasTypeDefinition">i=2307</Reference>
-    </References>
-  </UAObject>
-  <UAVariable NodeId="ns=1;i=6048" BrowseName="StateNumber" ParentNodeId="ns=1;i=5013" DataType="UInt32">
-    <DisplayName>StateNumber</DisplayName>
-    <References>
-      <Reference ReferenceType="HasModellingRule">i=78</Reference>
-      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
-      <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=5013</Reference>
-    </References>
-    <Value>
-      <uax:UInt32 xmlns:uax="http://opcfoundation.org/UA/2008/02/Types.xsd">4</uax:UInt32>
-    </Value>
-  </UAVariable>
   <UAObject NodeId="ns=1;i=150" BrowseName="1:AbortedToInitializing" ParentNodeId="ns=1;i=28">
     <DisplayName>AbortedToInitializing</DisplayName>
     <References>
@@ -6231,43 +6211,19 @@
     <Category>MachineTool Production ProductionPartStateMachineType</Category>
     <Documentation>https://reference.opcfoundation.org/v105/MachineTool/v101/docs/8.4.11</Documentation>
     <References>
-      <Reference ReferenceType="HasComponent">ns=1;i=5018</Reference>
       <Reference ReferenceType="HasComponent">ns=1;i=114</Reference>
-      <Reference ReferenceType="HasComponent">ns=1;i=5019</Reference>
       <Reference ReferenceType="HasComponent">ns=1;i=115</Reference>
-      <Reference ReferenceType="HasComponent">ns=1;i=5020</Reference>
       <Reference ReferenceType="HasComponent">ns=1;i=159</Reference>
       <Reference ReferenceType="HasComponent">ns=1;i=158</Reference>
-      <Reference ReferenceType="HasComponent">ns=1;i=5021</Reference>
       <Reference ReferenceType="HasComponent">ns=1;i=124</Reference>
       <Reference ReferenceType="HasComponent">ns=1;i=125</Reference>
       <Reference ReferenceType="HasSubtype" IsForward="false">ns=1;i=24</Reference>
-      <Reference ReferenceType="HasComponent">ns=1;i=5036</Reference>
       <Reference ReferenceType="HasComponent">ns=1;i=160</Reference>
       <Reference ReferenceType="HasComponent">ns=1;i=157</Reference>
       <Reference ReferenceType="HasComponent">ns=1;i=127</Reference>
       <Reference ReferenceType="HasComponent">ns=1;i=161</Reference>
     </References>
   </UAObjectType>
-  <UAObject NodeId="ns=1;i=5018" BrowseName="1:Aborted" ParentNodeId="ns=1;i=40">
-    <DisplayName>Aborted</DisplayName>
-    <References>
-      <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=40</Reference>
-      <Reference ReferenceType="HasProperty">ns=1;i=6053</Reference>
-      <Reference ReferenceType="HasTypeDefinition">i=2307</Reference>
-    </References>
-  </UAObject>
-  <UAVariable NodeId="ns=1;i=6053" BrowseName="StateNumber" ParentNodeId="ns=1;i=5018" DataType="UInt32">
-    <DisplayName>StateNumber</DisplayName>
-    <References>
-      <Reference ReferenceType="HasModellingRule">i=78</Reference>
-      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
-      <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=5018</Reference>
-    </References>
-    <Value>
-      <uax:UInt32 xmlns:uax="http://opcfoundation.org/UA/2008/02/Types.xsd">4</uax:UInt32>
-    </Value>
-  </UAVariable>
   <UAObject NodeId="ns=1;i=114" BrowseName="1:AbortedToInitializing" ParentNodeId="ns=1;i=40">
     <DisplayName>AbortedToInitializing</DisplayName>
     <References>
@@ -6290,25 +6246,6 @@
       <uax:UInt32 xmlns:uax="http://opcfoundation.org/UA/2008/02/Types.xsd">8</uax:UInt32>
     </Value>
   </UAVariable>
-  <UAObject NodeId="ns=1;i=5019" BrowseName="1:Ended" ParentNodeId="ns=1;i=40">
-    <DisplayName>Ended</DisplayName>
-    <References>
-      <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=40</Reference>
-      <Reference ReferenceType="HasProperty">ns=1;i=6054</Reference>
-      <Reference ReferenceType="HasTypeDefinition">i=2307</Reference>
-    </References>
-  </UAObject>
-  <UAVariable NodeId="ns=1;i=6054" BrowseName="StateNumber" ParentNodeId="ns=1;i=5019" DataType="UInt32">
-    <DisplayName>StateNumber</DisplayName>
-    <References>
-      <Reference ReferenceType="HasModellingRule">i=78</Reference>
-      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
-      <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=5019</Reference>
-    </References>
-    <Value>
-      <uax:UInt32 xmlns:uax="http://opcfoundation.org/UA/2008/02/Types.xsd">2</uax:UInt32>
-    </Value>
-  </UAVariable>
   <UAObject NodeId="ns=1;i=115" BrowseName="1:EndedToInitializing" ParentNodeId="ns=1;i=40">
     <DisplayName>EndedToInitializing</DisplayName>
     <References>
@@ -6329,25 +6266,6 @@
     </References>
     <Value>
       <uax:UInt32 xmlns:uax="http://opcfoundation.org/UA/2008/02/Types.xsd">2</uax:UInt32>
-    </Value>
-  </UAVariable>
-  <UAObject NodeId="ns=1;i=5020" BrowseName="1:Initializing" ParentNodeId="ns=1;i=40">
-    <DisplayName>Initializing</DisplayName>
-    <References>
-      <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=40</Reference>
-      <Reference ReferenceType="HasTypeDefinition">i=2309</Reference>
-      <Reference ReferenceType="HasProperty">ns=1;i=6055</Reference>
-    </References>
-  </UAObject>
-  <UAVariable NodeId="ns=1;i=6055" BrowseName="StateNumber" ParentNodeId="ns=1;i=5020" DataType="UInt32">
-    <DisplayName>StateNumber</DisplayName>
-    <References>
-      <Reference ReferenceType="HasModellingRule">i=78</Reference>
-      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
-      <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=5020</Reference>
-    </References>
-    <Value>
-      <uax:UInt32 xmlns:uax="http://opcfoundation.org/UA/2008/02/Types.xsd">0</uax:UInt32>
     </Value>
   </UAVariable>
   <UAObject NodeId="ns=1;i=159" BrowseName="1:InitializingToAborted" ParentNodeId="ns=1;i=40">
@@ -6394,25 +6312,6 @@
       <uax:UInt32 xmlns:uax="http://opcfoundation.org/UA/2008/02/Types.xsd">0</uax:UInt32>
     </Value>
   </UAVariable>
-  <UAObject NodeId="ns=1;i=5021" BrowseName="1:Interrupted" ParentNodeId="ns=1;i=40">
-    <DisplayName>Interrupted</DisplayName>
-    <References>
-      <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=40</Reference>
-      <Reference ReferenceType="HasProperty">ns=1;i=6056</Reference>
-      <Reference ReferenceType="HasTypeDefinition">i=2307</Reference>
-    </References>
-  </UAObject>
-  <UAVariable NodeId="ns=1;i=6056" BrowseName="StateNumber" ParentNodeId="ns=1;i=5021" DataType="UInt32">
-    <DisplayName>StateNumber</DisplayName>
-    <References>
-      <Reference ReferenceType="HasModellingRule">i=78</Reference>
-      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
-      <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=5021</Reference>
-    </References>
-    <Value>
-      <uax:UInt32 xmlns:uax="http://opcfoundation.org/UA/2008/02/Types.xsd">3</uax:UInt32>
-    </Value>
-  </UAVariable>
   <UAObject NodeId="ns=1;i=124" BrowseName="1:InterruptedToAborted" ParentNodeId="ns=1;i=40">
     <DisplayName>InterruptedToAborted</DisplayName>
     <References>
@@ -6455,25 +6354,6 @@
     </References>
     <Value>
       <uax:UInt32 xmlns:uax="http://opcfoundation.org/UA/2008/02/Types.xsd">5</uax:UInt32>
-    </Value>
-  </UAVariable>
-  <UAObject NodeId="ns=1;i=5036" BrowseName="1:Running" ParentNodeId="ns=1;i=40">
-    <DisplayName>Running</DisplayName>
-    <References>
-      <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=40</Reference>
-      <Reference ReferenceType="HasProperty">ns=1;i=6057</Reference>
-      <Reference ReferenceType="HasTypeDefinition">i=2307</Reference>
-    </References>
-  </UAObject>
-  <UAVariable NodeId="ns=1;i=6057" BrowseName="StateNumber" ParentNodeId="ns=1;i=5036" DataType="UInt32">
-    <DisplayName>StateNumber</DisplayName>
-    <References>
-      <Reference ReferenceType="HasModellingRule">i=78</Reference>
-      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
-      <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=5036</Reference>
-    </References>
-    <Value>
-      <uax:UInt32 xmlns:uax="http://opcfoundation.org/UA/2008/02/Types.xsd">1</uax:UInt32>
     </Value>
   </UAVariable>
   <UAObject NodeId="ns=1;i=160" BrowseName="1:RunningToAborted" ParentNodeId="ns=1;i=40">
@@ -6569,17 +6449,12 @@
     <Category>MachineTool Production ProductionProgramStateMachineType</Category>
     <Documentation>https://reference.opcfoundation.org/v105/MachineTool/v101/docs/8.4.10</Documentation>
     <References>
-      <Reference ReferenceType="HasComponent">ns=1;i=5037</Reference>
       <Reference ReferenceType="HasComponent">ns=1;i=102</Reference>
-      <Reference ReferenceType="HasComponent">ns=1;i=5038</Reference>
       <Reference ReferenceType="HasComponent">ns=1;i=106</Reference>
-      <Reference ReferenceType="HasComponent">ns=1;i=5039</Reference>
       <Reference ReferenceType="HasComponent">ns=1;i=104</Reference>
       <Reference ReferenceType="HasComponent">ns=1;i=91</Reference>
-      <Reference ReferenceType="HasComponent">ns=1;i=5040</Reference>
       <Reference ReferenceType="HasComponent">ns=1;i=105</Reference>
       <Reference ReferenceType="HasComponent">ns=1;i=107</Reference>
-      <Reference ReferenceType="HasComponent">ns=1;i=5041</Reference>
       <Reference ReferenceType="HasComponent">ns=1;i=108</Reference>
       <Reference ReferenceType="HasComponent">ns=1;i=92</Reference>
       <Reference ReferenceType="HasComponent">ns=1;i=109</Reference>
@@ -6587,25 +6462,6 @@
       <Reference ReferenceType="HasSubtype" IsForward="false">ns=1;i=24</Reference>
     </References>
   </UAObjectType>
-  <UAObject NodeId="ns=1;i=5037" BrowseName="1:Aborted" ParentNodeId="ns=1;i=15">
-    <DisplayName>Aborted</DisplayName>
-    <References>
-      <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=15</Reference>
-      <Reference ReferenceType="HasProperty">ns=1;i=6058</Reference>
-      <Reference ReferenceType="HasTypeDefinition">i=2307</Reference>
-    </References>
-  </UAObject>
-  <UAVariable NodeId="ns=1;i=6058" BrowseName="StateNumber" ParentNodeId="ns=1;i=5037" DataType="UInt32">
-    <DisplayName>StateNumber</DisplayName>
-    <References>
-      <Reference ReferenceType="HasModellingRule">i=78</Reference>
-      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
-      <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=5037</Reference>
-    </References>
-    <Value>
-      <uax:UInt32 xmlns:uax="http://opcfoundation.org/UA/2008/02/Types.xsd">4</uax:UInt32>
-    </Value>
-  </UAVariable>
   <UAObject NodeId="ns=1;i=102" BrowseName="1:AbortedToInitializing" ParentNodeId="ns=1;i=15">
     <DisplayName>AbortedToInitializing</DisplayName>
     <References>
@@ -6628,25 +6484,6 @@
       <uax:UInt32 xmlns:uax="http://opcfoundation.org/UA/2008/02/Types.xsd">8</uax:UInt32>
     </Value>
   </UAVariable>
-  <UAObject NodeId="ns=1;i=5038" BrowseName="1:Ended" ParentNodeId="ns=1;i=15">
-    <DisplayName>Ended</DisplayName>
-    <References>
-      <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=15</Reference>
-      <Reference ReferenceType="HasProperty">ns=1;i=6059</Reference>
-      <Reference ReferenceType="HasTypeDefinition">i=2307</Reference>
-    </References>
-  </UAObject>
-  <UAVariable NodeId="ns=1;i=6059" BrowseName="StateNumber" ParentNodeId="ns=1;i=5038" DataType="UInt32">
-    <DisplayName>StateNumber</DisplayName>
-    <References>
-      <Reference ReferenceType="HasModellingRule">i=78</Reference>
-      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
-      <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=5038</Reference>
-    </References>
-    <Value>
-      <uax:UInt32 xmlns:uax="http://opcfoundation.org/UA/2008/02/Types.xsd">2</uax:UInt32>
-    </Value>
-  </UAVariable>
   <UAObject NodeId="ns=1;i=106" BrowseName="1:EndedToInitializing" ParentNodeId="ns=1;i=15">
     <DisplayName>EndedToInitializing</DisplayName>
     <References>
@@ -6667,25 +6504,6 @@
     </References>
     <Value>
       <uax:UInt32 xmlns:uax="http://opcfoundation.org/UA/2008/02/Types.xsd">2</uax:UInt32>
-    </Value>
-  </UAVariable>
-  <UAObject NodeId="ns=1;i=5039" BrowseName="1:Initializing" ParentNodeId="ns=1;i=15">
-    <DisplayName>Initializing</DisplayName>
-    <References>
-      <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=15</Reference>
-      <Reference ReferenceType="HasTypeDefinition">i=2309</Reference>
-      <Reference ReferenceType="HasProperty">ns=1;i=6060</Reference>
-    </References>
-  </UAObject>
-  <UAVariable NodeId="ns=1;i=6060" BrowseName="StateNumber" ParentNodeId="ns=1;i=5039" DataType="UInt32">
-    <DisplayName>StateNumber</DisplayName>
-    <References>
-      <Reference ReferenceType="HasModellingRule">i=78</Reference>
-      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
-      <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=5039</Reference>
-    </References>
-    <Value>
-      <uax:UInt32 xmlns:uax="http://opcfoundation.org/UA/2008/02/Types.xsd">0</uax:UInt32>
     </Value>
   </UAVariable>
   <UAObject NodeId="ns=1;i=104" BrowseName="1:InitializingToAborted" ParentNodeId="ns=1;i=15">
@@ -6732,25 +6550,6 @@
       <uax:UInt32 xmlns:uax="http://opcfoundation.org/UA/2008/02/Types.xsd">0</uax:UInt32>
     </Value>
   </UAVariable>
-  <UAObject NodeId="ns=1;i=5040" BrowseName="1:Interrupted" ParentNodeId="ns=1;i=15">
-    <DisplayName>Interrupted</DisplayName>
-    <References>
-      <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=15</Reference>
-      <Reference ReferenceType="HasProperty">ns=1;i=6061</Reference>
-      <Reference ReferenceType="HasTypeDefinition">i=2307</Reference>
-    </References>
-  </UAObject>
-  <UAVariable NodeId="ns=1;i=6061" BrowseName="StateNumber" ParentNodeId="ns=1;i=5040" DataType="UInt32">
-    <DisplayName>StateNumber</DisplayName>
-    <References>
-      <Reference ReferenceType="HasModellingRule">i=78</Reference>
-      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
-      <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=5040</Reference>
-    </References>
-    <Value>
-      <uax:UInt32 xmlns:uax="http://opcfoundation.org/UA/2008/02/Types.xsd">3</uax:UInt32>
-    </Value>
-  </UAVariable>
   <UAObject NodeId="ns=1;i=105" BrowseName="1:InterruptedToAborted" ParentNodeId="ns=1;i=15">
     <DisplayName>InterruptedToAborted</DisplayName>
     <References>
@@ -6793,25 +6592,6 @@
     </References>
     <Value>
       <uax:UInt32 xmlns:uax="http://opcfoundation.org/UA/2008/02/Types.xsd">5</uax:UInt32>
-    </Value>
-  </UAVariable>
-  <UAObject NodeId="ns=1;i=5041" BrowseName="1:Running" ParentNodeId="ns=1;i=15">
-    <DisplayName>Running</DisplayName>
-    <References>
-      <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=15</Reference>
-      <Reference ReferenceType="HasProperty">ns=1;i=6062</Reference>
-      <Reference ReferenceType="HasTypeDefinition">i=2307</Reference>
-    </References>
-  </UAObject>
-  <UAVariable NodeId="ns=1;i=6062" BrowseName="StateNumber" ParentNodeId="ns=1;i=5041" DataType="UInt32">
-    <DisplayName>StateNumber</DisplayName>
-    <References>
-      <Reference ReferenceType="HasModellingRule">i=78</Reference>
-      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
-      <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=5041</Reference>
-    </References>
-    <Value>
-      <uax:UInt32 xmlns:uax="http://opcfoundation.org/UA/2008/02/Types.xsd">1</uax:UInt32>
     </Value>
   </UAVariable>
   <UAObject NodeId="ns=1;i=108" BrowseName="1:RunningToAborted" ParentNodeId="ns=1;i=15">
