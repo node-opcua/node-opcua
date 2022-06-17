@@ -52,6 +52,8 @@ export function subtest_Y_array_item_type(maintest: any): void {
                     title: coerceLocalizedText("the X axis legend")
                 },
 
+                dataType: DataType.Float,
+
                 value: new Variant({
                     arrayType: VariantArrayType.Array,
                     dataType: DataType.Float,
@@ -124,8 +126,8 @@ export function subtest_Y_array_item_type(maintest: any): void {
 
             prop.dataType.should.eql(resolveNodeId("Float"));
 
-            prop.instrumentRange.readValue().value.value.low.should.eql(-100);
-            prop.instrumentRange.readValue().value.value.high.should.eql(200);
+            prop.instrumentRange!.readValue().value.value.low.should.eql(-100);
+            prop.instrumentRange!.readValue().value.value.high.should.eql(200);
         });
     });
 }

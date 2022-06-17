@@ -26,7 +26,7 @@ import { coerceQualifiedName, NodeClass, QualifiedName, BrowseDirection, Attribu
 import { DataValue, DataValueLike } from "node-opcua-data-value";
 import { checkDebugFlag, make_debugLog, make_warningLog, make_errorLog } from "node-opcua-debug";
 import { coerceNodeId, makeNodeId, NodeId, NodeIdLike, sameNodeId } from "node-opcua-nodeid";
-import { StatusCodes } from "node-opcua-status-code";
+import { StatusCode, StatusCodes } from "node-opcua-status-code";
 import { UInt32 } from "node-opcua-basic-types";
 import { isNullOrUndefined } from "node-opcua-utils";
 import { DataType, Variant, VariantArrayType, verifyRankAndDimensions } from "node-opcua-variant";
@@ -149,7 +149,7 @@ export class UAVariableTypeImpl extends BaseNodeImpl implements UAVariableType {
                     options.statusCode = StatusCodes.Good;
                 } else {
                     debugLog(" warning Value not implemented");
-                    options.value = { dataType: DataType.UInt32, value: 0 };
+                    options.value = { dataType: DataType.Null };
                     options.statusCode = StatusCodes.BadAttributeIdInvalid;
                 }
                 break;
@@ -238,7 +238,13 @@ export class UAVariableTypeImpl extends BaseNodeImpl implements UAVariableType {
 
         const copyAlsoModellingRules = topMostParentIsObjectTypeOrVariableType(addressSpace, options);
 
-        const defaultValue = this.readAttribute(null, AttributeIds.Value);
+        const defaultDataType = this.dataType;
+        // BadAttributeIdInvalid
+        const defaultDataValue = this.readAttribute(null, AttributeIds.Value);
+        const defaultValue =
+            (defaultDataType.namespace === 0 && defaultDataType.value == 0) || defaultDataValue.statusCode !== StatusCodes.Good
+                ? undefined
+                : defaultDataValue.value;
 
         const opts: AddVariableOptions = {
             arrayDimensions,
@@ -254,7 +260,7 @@ export class UAVariableTypeImpl extends BaseNodeImpl implements UAVariableType {
             notifierOf: options.notifierOf,
             organizedBy: options.organizedBy,
             typeDefinition: this.nodeId,
-            value: options.value || defaultValue.value,
+            value: options.value || defaultValue,
             valueRank
         };
 
@@ -532,7 +538,6 @@ function _initialize_properties_and_components<B extends UAObject | UAVariable |
         extraInfo
     );
     extraInfo.level--;
-
 }
 
 /**
