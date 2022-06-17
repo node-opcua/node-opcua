@@ -238,6 +238,8 @@ export class UAVariableTypeImpl extends BaseNodeImpl implements UAVariableType {
 
         const copyAlsoModellingRules = topMostParentIsObjectTypeOrVariableType(addressSpace, options);
 
+        const defaultValue = this.readAttribute(null, AttributeIds.Value);
+
         const opts: AddVariableOptions = {
             arrayDimensions,
             browseName: options.browseName,
@@ -252,7 +254,7 @@ export class UAVariableTypeImpl extends BaseNodeImpl implements UAVariableType {
             notifierOf: options.notifierOf,
             organizedBy: options.organizedBy,
             typeDefinition: this.nodeId,
-            value: options.value,
+            value: options.value || defaultValue.value,
             valueRank
         };
 
