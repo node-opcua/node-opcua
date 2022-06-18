@@ -964,6 +964,32 @@ export class ServerEngine extends EventEmitter {
                     return this.serverCapabilities.maxHistoryContinuationPoints;
                 });
 
+                // new in 1.05
+                bindStandardScalar(VariableIds.Server_ServerCapabilities_MaxSessions, DataType.UInt32, () => {
+                    return this.serverCapabilities.maxSessions;
+                });
+                bindStandardScalar(VariableIds.Server_ServerCapabilities_MaxSubscriptions, DataType.UInt32, () => {
+                    return this.serverCapabilities.maxSubscriptions;
+                });
+                bindStandardScalar(VariableIds.Server_ServerCapabilities_MaxMonitoredItems, DataType.UInt32, () => {
+                    return this.serverCapabilities.maxMonitoredItems;
+                });
+                bindStandardScalar(VariableIds.Server_ServerCapabilities_MaxSubscriptionsPerSession, DataType.UInt32, () => {
+                    return this.serverCapabilities.maxSubscriptionPerSession;
+                });
+                bindStandardScalar(VariableIds.Server_ServerCapabilities_MaxSelectClauseParameters, DataType.UInt32, () => {
+                    return this.serverCapabilities.maxSelectClauseParameters;
+                });
+                bindStandardScalar(VariableIds.Server_ServerCapabilities_MaxWhereClauseParameters, DataType.UInt32, () => {
+                    return this.serverCapabilities.maxWhereClauseParameters;
+                });
+                //bindStandardArray(VariableIds.Server_ServerCapabilities_ConformanceUnits, DataType.QualifiedName, () => {
+                //    return this.serverCapabilities.conformanceUnits;
+                //});
+                bindStandardScalar(VariableIds.Server_ServerCapabilities_MaxMonitoredItemsPerSubscription, DataType.UInt32, () => {
+                    return this.serverCapabilities.maxMonitoredItemsPerSubscription;
+                });
+
                 // added by DI : Server-specific period of time in milliseconds until the Server will revoke a lock.
                 // TODO bindStandardScalar(VariableIds.Server_ServerCapabilities_MaxInactiveLockTime,
                 // TODO     DataType.UInt16, function () {

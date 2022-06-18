@@ -45,6 +45,11 @@ describe("testing server with low maxNodesPerRead and maxNodesPerBrowse", functi
                 maxBrowseContinuationPoints: 0,
                 maxQueryContinuationPoints: 0,
                 maxHistoryContinuationPoints: 0,
+                
+                // new in 1.05
+                maxSubscriptions: 10,
+                maxSubscriptionsPerSession: 3,
+                
                 operationLimits: {
                     maxNodesPerRead: 10,
                     maxNodesPerWrite: 10,
