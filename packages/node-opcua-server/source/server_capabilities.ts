@@ -2,7 +2,9 @@
  * @module node-opcua-server
  */
 // tslint:disable:max-classes-per-file
+import { UInt32 } from "node-opcua-basic-types";
 import { Certificate } from "node-opcua-crypto";
+import { QualifiedName } from "node-opcua-data-model";
 import { SignedSoftwareCertificate } from "node-opcua-types";
 
 /**
@@ -130,41 +132,93 @@ export class ServerCapabilities {
     public localeIdArray: string[];
     public softwareCertificates: SignedSoftwareCertificate[];
 
+    // new in 1.05
+    /**
+     * MaxSessions is an integer specifying the maximum number of concurrent
+     * Sessions the Server can support. The value specifies the
+     * maximum the Server can support under normal circumstances,
+     * therefore there is no guarantee the Server can always support
+     * the maximum.
+     */
+    public maxSessions: UInt32 = 0;
+    /**
+     * MaxSubscriptions is an integer specifying the maximum number of
+     * Subscriptions the Server can support. The value specifies the
+     * maximum the Server can support under normal circumstances,
+     * therefore there is no guarantee the Server can always support
+     * the maximum.
+     */
+    public maxSubscriptions: UInt32 = 0;
+    /**
+     * MaxMonitoredItems is an integer specifying the maximum number of
+     * MonitoredItems the Server can support. The value specifies the
+     * maximum the Server can support under normal circumstances,
+     * therefore there is no guarantee the Server can always support
+     * the maximum.
+     */
+    public maxMonitoredItems: UInt32 = 0;
+    /**
+     * MaxSubscriptionsPerSession is an integer specifying the maximum number of
+     * Subscriptions per Session the Server can support. The value specifies the
+     * maximum the Server can support under normal circumstances,
+     * therefore there is no guarantee the Server can always support
+     * the maximum.
+     */
+    public maxSubscriptionPerSession: UInt32 = 0;
+    /**
+     * MaxMonitoredItemsPerSubscription is an integer specifying the maximum number of
+     * MonitoredItems per Subscription the Server can support. The value specifies the
+     * maximum the Server can support under normal circumstances,
+     * therefore there is no guarantee the Server can always support
+     * the maximum
+     */
+    public maxMonitoredItemsPerSubscription: UInt32 = 0;
+    /**
+     * MaxSelectClauseParameters is an integer specifying the maximum number of
+     * EventField SelectClause Parameters the Server can support for an EventFilter.
+     * The value specifies the maximum the Server can support under normal circumstances,
+     * therefore there is no guarantee the Server can always support
+     * the maximum.
+     */
+    public maxSelectClauseParameters: UInt32 = 0;
+    /**
+     * MaxWhereClauseParameters is an integer specifying the maximum number of
+     * EventField WhereClause Parameters the Server can support for an EventFilter.
+     * The value specifies the maximum the Server can support under normal circumstances,
+     * therefore there is no guarantee the Server can always support the maximum
+     */
+    public maxWhereClauseParameters: UInt32 = 0;
+
+    /**
+     * (draft)
+     * MaxMonitoredItemsQueueSize is an integer specifying the maximum size of MonitoredItem
+     * queues. The value specifies the maximum the Server can support under normal circumstances,
+     * therefore there is no guarantee the Server can always support the maximum.
+     *
+     */
+    public maxMonitoredItemsQueueSize: UInt32 = 0;
+
+    /**
+     *
+     * ConformanceUnits is a QualifiedName array specifying the set of conformance units 
+     * the Server supports. This list should be limited to the ConformanceUnits the Server 
+     * supports in its current configuration.
+     *
+     */
+    public conformanceUnits: QualifiedName[] = [];
+
     constructor(options: ServerCapabilitiesOptions) {
         options = options || {};
         options.operationLimits = options.operationLimits || {};
-
         this.serverProfileArray = options.serverProfileArray || [];
         this.localeIdArray = options.localeIdArray || [];
         this.softwareCertificates = options.softwareCertificates || [];
-        /**
-         * @property maxArrayLength
-         */
         this.maxArrayLength = options.maxArrayLength || 0;
-        /**
-         * @property maxStringLength
-         */
         this.maxStringLength = options.maxStringLength || 0;
-        /**
-         * @property maxByteStringLength
-         */
         this.maxByteStringLength = options.maxByteStringLength || 0;
-        /**
-         * @property maxBrowseContinuationPoints
-         */
         this.maxBrowseContinuationPoints = options.maxBrowseContinuationPoints || 0;
-        /**
-         * @property maxQueryContinuationPoints
-         */
         this.maxQueryContinuationPoints = options.maxQueryContinuationPoints || 0;
-        /**
-         * @property maxHistoryContinuationPoints
-         */
         this.maxHistoryContinuationPoints = options.maxHistoryContinuationPoints || 0;
-
-        /**
-         * @property operationLimits
-         */
         this.operationLimits = new OperationLimits(options.operationLimits);
 
         this.minSupportedSampleRate = 100; // to do adjust me
