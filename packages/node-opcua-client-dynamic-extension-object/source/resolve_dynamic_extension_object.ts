@@ -13,15 +13,18 @@ import { readDataTypeDefinitionAndBuildType } from "./private/populate_data_type
 
 const warningLog = make_warningLog(__filename);
 
-async function getOrExtractConstructor(session: IBasicSession, binaryEncodingNodeId: NodeId, dataTypeManager: ExtraDataTypeManager): Promise<ConstructorFunc>
-{
+async function getOrExtractConstructor(
+    session: IBasicSession,
+    binaryEncodingNodeId: NodeId,
+    dataTypeManager: ExtraDataTypeManager
+): Promise<ConstructorFunc> {
     const dataTypeFactory = dataTypeManager.getDataTypeFactoryForNamespace(binaryEncodingNodeId.namespace);
     const Constructor = dataTypeFactory.getConstructor(binaryEncodingNodeId);
     if (Constructor) {
         return Constructor;
     }
-    if (binaryEncodingNodeId.namespace ===0) {
-        throw new Error("Internal Error"); 
+    if (binaryEncodingNodeId.namespace === 0) {
+        throw new Error("Internal Error");
     }
     // need to extract it
     const browseResult = await session.browse({
@@ -35,14 +38,14 @@ async function getOrExtractConstructor(session: IBasicSession, binaryEncodingNod
     if (browseResult.statusCode !== StatusCodes.Good || browseResult.references!.length !== 1) {
         throw new Error("browse failed");
     }
-    const r =  browseResult.references![0];
-    const dataTypeNodeId =r.nodeId;
+    const r = browseResult.references![0];
+    const dataTypeNodeId = r.nodeId;
 
     if (dataTypeFactory.getConstructorForDataType(dataTypeNodeId)) {
-        throw new Error("Internal Error: we are not expecting this dataType to be processed already"); 
+        throw new Error("Internal Error: we are not expecting this dataType to be processed already");
     }
     await readDataTypeDefinitionAndBuildType(session, dataTypeNodeId, r.browseName.name!, dataTypeFactory, {});
-    
+
     return dataTypeFactory.getConstructorForDataType(dataTypeNodeId)!;
 }
 
@@ -100,5 +103,5 @@ export async function resolveDynamicExtensionObject(
     if (!(variant.value instanceof OpaqueStructure)) {
         return;
     }
-    variant.value = await resolveDynamicExtensionObjectV(session, variant.value as OpaqueStructure, dataTypeManager);
+    variant.value = await resolveDynamicExtensionObjectV(session, variant.value, dataTypeManager);
 }

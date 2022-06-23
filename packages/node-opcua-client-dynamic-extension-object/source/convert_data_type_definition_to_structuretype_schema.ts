@@ -24,6 +24,7 @@ import {
 } from "node-opcua-types";
 import { ExtensionObject } from "node-opcua-extension-object";
 //
+import { DataType } from "node-opcua-variant";
 import { _findEncodings } from "./private/find_encodings";
 
 const debugLog = make_debugLog(__filename);
@@ -300,6 +301,14 @@ export async function convertDataTypeDefinitionToStructureTypeSchema(
     cache: { [key: string]: CacheForFieldResolution }
 ): Promise<StructuredTypeSchema> {
     if (definition instanceof StructureDefinition) {
+
+        let fieldCountToIgnore = 0;
+        let base: undefined | any = dataTypeFactory.getConstructorForDataType(definition.baseDataType)?.schema;
+        while (base && !(base.dataTypeNodeId.value === DataType.ExtensionObject && base.dataTypeNodeId.namespace === 0)) {
+            fieldCountToIgnore += base._possibleFields.length;
+            base = base._baseSchema;
+        }
+
         const fields: FieldInterfaceOptions[] = [];
 
         const isUnion = definition.structureType === StructureType.Union;
@@ -324,40 +333,44 @@ export async function convertDataTypeDefinitionToStructureTypeSchema(
 
         const postActions: ((schema: StructuredTypeSchema) => void)[] = [];
 
-        for (const fieldD of definition.fields!) {
-            let field: FieldInterfaceOptions | undefined;
-            ({ field, switchBit, switchValue } = createField(fieldD, switchBit, bitFields, isUnion, switchValue));
+        if (definition.fields) {
+            for (let i = fieldCountToIgnore; i < definition.fields.length; i++) {
+                const fieldD = definition.fields[i];
+                // we need to skip fields that have already been handled in base class
 
-            if (fieldD.dataType.value === dataTypeNodeId.value && fieldD.dataType.namespace === dataTypeNodeId.namespace) {
-                // this is a structure with a field of the same type
-                // push an empty placeholder that we will fill later
-                const fieldTypeName = await readBrowseName(session, dataTypeNodeId);
-                (field.fieldType = fieldTypeName!), (field.category = FieldCategory.complex);
+                let field: FieldInterfaceOptions | undefined;
+                ({ field, switchBit, switchValue } = createField(fieldD, switchBit, bitFields, isUnion, switchValue));
+
+                if (fieldD.dataType.value === dataTypeNodeId.value && fieldD.dataType.namespace === dataTypeNodeId.namespace) {
+                    // this is a structure with a field of the same type
+                    // push an empty placeholder that we will fill later
+                    const fieldTypeName = await readBrowseName(session, dataTypeNodeId);
+                    (field.fieldType = fieldTypeName!), (field.category = FieldCategory.complex);
+                    fields.push(field);
+                    const capturedField = field;
+                    postActions.push((schema: StructuredTypeSchema) => {
+                        capturedField.schema = schema;
+                    });
+                    continue;
+                }
+                const rt = (await resolveFieldType(session, fieldD.dataType, dataTypeFactory, cache))!;
+                if (!rt) {
+                    errorLog(
+                        "convertDataTypeDefinitionToStructureTypeSchema cannot handle field",
+                        fieldD.name,
+                        "in",
+                        name,
+                        "because " + fieldD.dataType.toString() + " cannot be resolved"
+                    );
+                    continue;
+                }
+                const { schema, category, fieldTypeName } = rt;
+
+                (field.fieldType = fieldTypeName!), (field.category = category);
+                field.schema = schema;
                 fields.push(field);
-                const capturedField = field;
-                postActions.push((schema: StructuredTypeSchema) => {
-                    capturedField.schema = schema;
-                });
-                continue;
             }
-            const rt = (await resolveFieldType(session, fieldD.dataType, dataTypeFactory, cache))!;
-            if (!rt) {
-                errorLog(
-                    "convertDataTypeDefinitionToStructureTypeSchema cannot handle field",
-                    fieldD.name,
-                    "in",
-                    name,
-                    "because " + fieldD.dataType.toString() + " cannot be resolved"
-                );
-                continue;
-            }
-            const { schema, category, fieldTypeName } = rt;
-
-            (field.fieldType = fieldTypeName!), (field.category = category);
-            field.schema = schema;
-            fields.push(field);
         }
-
         const a = await resolveFieldType(session, definition.baseDataType, dataTypeFactory, cache);
         const baseType = a ? a.fieldTypeName : "ExtensionObject";
 
