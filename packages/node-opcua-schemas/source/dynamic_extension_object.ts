@@ -382,10 +382,6 @@ export class DynamicExtensionObject extends ExtensionObject {
 
     public get schema(): StructuredTypeSchema {
         const r = _private.get(this);
-        if (!r) {
-            console.log("cannot find private stuff for", this.constructor.name);
-            console.log(new Error());
-        }
         return r.schema!;
     }
 
@@ -400,7 +396,7 @@ export class DynamicExtensionObject extends ExtensionObject {
 interface AnyConstructable {
     schema: StructuredTypeSchema;
     possibleFields: string[];
-    new (options?: any, schema?: StructuredTypeSchema, factory?: DataTypeFactory): any;
+    new(options?: any, schema?: StructuredTypeSchema, factory?: DataTypeFactory): any;
 }
 
 export type AnyConstructorFunc = AnyConstructable;
@@ -440,11 +436,11 @@ class UnionBaseClass extends BaseUAObject {
                 debugLog(this.schema);
                 throw new Error(
                     "union must have only one choice in " +
-                        JSON.stringify(options) +
-                        "\n found while investigating " +
-                        field.name +
-                        "\n switchFieldName = " +
-                        switchFieldName
+                    JSON.stringify(options) +
+                    "\n found while investigating " +
+                    field.name +
+                    "\n switchFieldName = " +
+                    switchFieldName
                 );
             }
 
@@ -643,7 +639,7 @@ export function createDynamicObjectConstructor(schema: StructuredTypeSchema, dat
         schema.baseType !== "OptionSet" &&
         schema.baseType !== "DataTypeDescription" &&
         schema.baseType !== "DataTypeDefinition" &&
-        schema.baseType !== "EnumValueType" && 
+        schema.baseType !== "EnumValueType" &&
         schema.baseType !== "Structure"
     ) {
         try {

@@ -5,13 +5,22 @@ import { BinaryStream } from "node-opcua-binary-stream";
 import { ExtensionObject, OpaqueStructure } from "node-opcua-extension-object";
 import { nodesets } from "node-opcua-nodesets";
 import { DataType, Variant } from "node-opcua-variant";
-import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
+import { checkDebugFlag, hexDump, make_debugLog } from "node-opcua-debug";
 import { AttributeIds } from "node-opcua-data-model";
 import { StatusCodes } from "node-opcua-status-code";
 import { CallMethodResult, DataTypeDefinition, StructureDefinition } from "node-opcua-types";
 import { getExtraDataTypeManager, promoteOpaqueStructure } from "node-opcua-client-dynamic-extension-object";
 
-import { AddressSpace, adjustNamespaceArray, ensureDatatypeExtracted, PseudoSession, resolveOpaqueOnAddressSpace } from "..";
+import { DataValue } from "node-opcua-data-value";
+import { resolveNodeId } from "node-opcua-nodeid";
+import {
+    AddressSpace,
+    adjustNamespaceArray,
+    ensureDatatypeExtracted,
+    PseudoSession,
+    resolveOpaqueOnAddressSpace,
+    UAVariable
+} from "..";
 import { generateAddressSpace } from "../nodeJS";
 
 const debugLog = make_debugLog("TEST");
@@ -71,7 +80,7 @@ describe("Testing AutoID custom types", async function (this: any) {
     }
 
     it("should construct a ScanResult ", async () => {
-        interface ScanResult extends ExtensionObject {}
+        interface ScanResult extends ExtensionObject { }
 
         const nsAutoId = addressSpace.getNamespaceIndex("http://opcfoundation.org/UA/AutoID/");
         nsAutoId.should.eql(2);
@@ -204,7 +213,7 @@ describe("Testing AutoID custom types", async function (this: any) {
         debugLog(v2.toString());
     });
 
-    it("KX The dataTypeDefinition of RfidScanResult shall contain base dataTypeDefinition ", () => {
+    it("GHU-1 - The dataTypeDefinition of RfidScanResult shall contain base dataTypeDefinition ", () => {
         const nsAutoId = addressSpace.getNamespaceIndex("http://opcfoundation.org/UA/AutoID/");
 
         const scanResultDataTypeNode = addressSpace.findDataType("ScanResult", nsAutoId);
@@ -231,7 +240,7 @@ describe("Testing AutoID custom types", async function (this: any) {
             structureDefinition.fields.length.should.eql(5);
         }
     });
-    it("GHU - should promote the OpaqueStructure of an array of variant containing Extension Object", async () => {
+    it("GHU-2 - should promote the OpaqueStructure of an array of variant containing Extension Object", async () => {
         const nsAutoId = addressSpace.getNamespaceIndex("http://opcfoundation.org/UA/AutoID/");
         const rfidScanResultDataTypeNode = addressSpace.findDataType("RfidScanResult", nsAutoId)!;
         const extObj1 = addressSpace.constructExtensionObject(rfidScanResultDataTypeNode, {});
@@ -272,5 +281,156 @@ describe("Testing AutoID custom types", async function (this: any) {
         callbackResult2.outputArguments[0].value[1].should.not.be.instanceOf(OpaqueStructure);
 
         debugLog(reload_v2.toString());
+    });
+});
+
+function addRfidScanResultVariable(addressSpace: AddressSpace) {
+    const namespace = addressSpace.getOwnNamespace();
+
+    const autoIdDemo = namespace.addObject({
+        browseName: "AutoIdDemo",
+        organizedBy: addressSpace.rootFolder.objects
+    });
+
+    const nsAutoId = addressSpace.getNamespaceIndex("http://opcfoundation.org/UA/AutoID/");
+    if (nsAutoId < 0) {
+        throw new Error("Sorry! I cannot find the AutoId namespace !");
+    }
+    const rfidScanResultDataTypeNode = addressSpace.findDataType("RfidScanResult", nsAutoId)!;
+    if (!rfidScanResultDataTypeNode) {
+        throw new Error("Sorry! I cannot find the RfidScanResult dataType in the AutoId namespace");
+    }
+    // xx console.log(rfidScanResultDataTypeNode.toString());
+    const scanResultDataTypeNode = addressSpace.findDataType("ScanResult", nsAutoId)!;
+
+    // xx console.log(scanResultDataTypeNode.toString());
+
+    const scanResult = addressSpace.constructExtensionObject(rfidScanResultDataTypeNode, {
+        codeType: "Code",
+        scanData: { string: "ScanData" },
+        sighting: [
+            {
+                antenna: 1,
+                strength: 25,
+                currentPowerLevel: 2,
+                timestamp: Date.UTC(2019, 1, 2)
+            },
+            {
+                antenna: 2,
+                strength: 19,
+                currentPowerLevel: 1,
+                timestamp: Date.UTC(2019, 1, 2)
+            }
+        ]
+    });
+    const scanResultNode = namespace.addVariable({
+        nodeId: "s=ScanResult",
+        browseName: "ScanResult",
+        dataType: rfidScanResultDataTypeNode,
+        value: { dataType: DataType.ExtensionObject, value: scanResult },
+        componentOf: autoIdDemo
+    });
+}
+describe("resolving Opaque Structure", function () {
+    this.timeout(200000); // could be slow on appveyor !
+
+    let addressSpace: AddressSpace;
+    before(async () => {
+        addressSpace = AddressSpace.create();
+        const namespace0 = addressSpace.registerNamespace("MyNamespace");
+        await generateAddressSpace(addressSpace, [nodesets.standard, nodesets.di, nodesets.adi, nodesets.autoId]);
+        await ensureDatatypeExtracted(addressSpace);
+
+        addRfidScanResultVariable(addressSpace);
+    });
+    after(() => {
+        addressSpace.dispose();
+    });
+
+    it("GHV-0  simulate extension object encoding from server side", async () => {
+        const v = addressSpace.findNode("ns=1;s=ScanResult")! as UAVariable;
+
+        const dataValue = v.readValue();
+        const binaryStream = new BinaryStream(1000);
+        dataValue.encode(binaryStream);
+        const s1 = binaryStream.buffer.slice(0, binaryStream.length).toString("hex");
+
+        binaryStream.rewind();
+        const reloaded = new DataValue();
+        reloaded.decode(binaryStream);
+        binaryStream.rewind();
+        dataValue.encode(binaryStream);
+        const s2 = binaryStream.buffer.slice(0, binaryStream.length).toString("hex");
+
+        s2.should.eql(s1);
+    });
+
+    it("GHV-2  RfidScanResult DataTypeDefinition should have all fields exposed ", async () => {
+        const session = new PseudoSession(addressSpace);
+        // i=3007 DataType RfidScanResult
+        const browseNameDV = await session.read({ nodeId: "ns=4;i=3007", attributeId: AttributeIds.BrowseName });
+        // console.log(browseNameDV.value.toString());
+        browseNameDV.value.value.name.should.eql("RfidScanResult");
+
+        const dataValue = await session.read({ nodeId: "ns=4;i=3007", attributeId: AttributeIds.DataTypeDefinition });
+        // console.log(dataValue.value.toString());
+        const def = dataValue.value.value as StructureDefinition;
+        def.fields?.length.should.eql(5);
+        def.fields![4].name!.should.eql("Sighting");
+        def.fields![4].valueRank.should.eql(1);
+    });
+
+
+
+    it("GHV-3 should decode this opaque structure", async () => {
+        const session = new PseudoSession(addressSpace);
+        const dataValue = await session.read({ nodeId: "ns=1;s=ScanResult", attributeId: AttributeIds.Value });
+        // console.log(dataValue.value.toString());
+        const binaryStream = new BinaryStream(1000);
+        dataValue.value.encode(binaryStream);
+        const s1 = binaryStream.buffer.slice(0, binaryStream.length).toString("hex");
+        console.log(hexDump(binaryStream.buffer.slice(0, binaryStream.length)));
+
+        s1.should.eql(
+            "16010493130150000000" +
+            "0000000004000000436f646502000000080000005363616e4461746100000000000000000200000001000000190000000040763d8abad4010200000002000000130000000040763d8abad40101000000"
+        );
+    });
+
+    xit("GHV-4 should decode this opaque structure", async () => {
+
+        const buffer = Buffer.from(
+            "0000000004000000436f646502000000080000005363616e44617461000000000000000004000000436f64650200" +
+            "0000080000005363616e4461746100000000000000000200000001000000190000000040763d8abad4010200000002" +
+            "000000130000000040763d8abad40101000000",
+            "hex"
+        );
+        console.log(
+            addressSpace
+                .getNamespaceArray()
+                .map((n) => n.namespaceUri)
+                .join("\n")
+        );
+
+        const nsAutoId = addressSpace.getNamespaceIndex("http://opcfoundation.org/UA/AutoID/");
+        nsAutoId.should.eql(4);
+
+        const opaqueStructure = new OpaqueStructure(resolveNodeId("ns=4;i=5011"), buffer);
+
+        const session = new PseudoSession(addressSpace);
+
+        const array = [
+            new DataValue({
+                value: new Variant({
+                    dataType: DataType.ExtensionObject,
+                    value: null
+                })
+            })
+        ];
+        array[0].value.value = opaqueStructure;
+
+        await promoteOpaqueStructure(session, array);
+
+        console.log(array[0].toString());
     });
 });

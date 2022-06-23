@@ -45,6 +45,7 @@ export async function readDataTypeDefinitionAndBuildType(
         );
 
         createDynamicObjectConstructor(schema, dataTypeFactory);
+
     } catch (err) {
         errorLog("Error", err);
     }
