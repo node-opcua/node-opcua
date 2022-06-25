@@ -33,7 +33,7 @@
         "node-opcua-status-code": "2.70.0",
         "should": "^13.2.3",
         "source-map-support": "^0.5.21",
-        "underscore": "^1.13.3"
+        "underscore": "^1.13.4"
     },
     "author": "Etienne Rossignon",
     "license": "MIT",

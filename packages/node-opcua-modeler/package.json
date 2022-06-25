@@ -14,7 +14,7 @@
     "dependencies": {
         "chalk": "4.1.2",
         "cli-table3": "^0.6.2",
-        "csv-parse": "5.1.0",
+        "csv-parse": "5.2.0",
         "node-opcua-address-space": "2.70.3",
         "node-opcua-assert": "2.66.0",
         "node-opcua-basic-types": "2.70.0",
