@@ -63,7 +63,7 @@ function writeEnumeratedType(enumerationSchema: EnumerationDefinitionSchema): vo
 
     const str = [];
 
-    const values = Object.keys(enumerationSchema.enumValues).filter((a: any) => a.match("[0-9]+"));
+    const values = Object.keys(enumerationSchema.enumValues).filter((a: any) => a.match(/^[0-9]+$/));
 
     for (const value of values) {
         str.push(`    ${enumerationSchema.enumValues[value]} = ${value}`);
@@ -260,13 +260,13 @@ import {
 
     write(``);
 
-    write(`export class DataTypeDefinition extends BaseUAObject {`);
-    write(`    constructor(options: any) {`);
-    write(`        options = options; // do not remove`);
-    write(`        super();`);
-    write(`    }`);
-    write(`}`);
-    write(``);
+    // write(`export class DataTypeDefinition extends BaseUAObject {`);
+    // write(`    constructor(options: any) {`);
+    // write(`        options = options; // do not remove`);
+    // write(`        super();`);
+    // write(`    }`);
+    // write(`}`);
+    // write(``);
 
     const alreadyDone: { [key: string]: any } = {};
     /* tslint:disable:no-string-literal */

@@ -28,7 +28,7 @@ describe("Test Extension Object in pure 1.04 version (only DataTypeDefinition av
         const nsA = addressSpace.getNamespaceIndex("http://A");
         const dataTypeNodeId = addressSpace.findDataType("MyStructure", nsA);
         should.exist(dataTypeNodeId);
-        const o = addressSpace.constructExtensionObject(dataTypeNodeId, {});
+        const o = addressSpace.constructExtensionObject(dataTypeNodeId!, {});
     });
 
     it("WY2- PseudoSession & getExtensionObjectConstructor ", async () => {
@@ -44,6 +44,7 @@ describe("Test Extension Object in pure 1.04 version (only DataTypeDefinition av
         console.log(o.toJSON());
         console.log("browseSpy =  ", browseSpy.callCount, "browseNextSpy =  ", browseNextSpy.callCount);
     });
+
     it("WY3- PseudoSession & getExtensionObjectConstructor with requestedMaxReferencesPerNode", async () => {
         const session = new PseudoSession(addressSpace);
         const browseSpy = spy(session, "browse");
@@ -51,7 +52,7 @@ describe("Test Extension Object in pure 1.04 version (only DataTypeDefinition av
 
         session.requestedMaxReferencesPerNode = 2;
 
-        console.log("§§§§§§§§§§§§§§§§§§§§§§§§§§§§§");
+        // console.log("§§§§§§§§§§§§§§§§§§§§§§§§§§§§§");
 
         const dataTypeNodeId = resolveNodeId("ns=1;i=3001");
         const F = await getExtensionObjectConstructor(session, dataTypeNodeId);
@@ -78,10 +79,10 @@ describe("Test Extension Object in pure 1.04 version - DataType deriving from Da
 
     it("WZ1- should exposed a custom DataType structure and be able to create an instance in addressSpace context", async () => {
         const nsA = addressSpace.getNamespaceIndex("http://A");
-        const dataTypeNodeId = addressSpace.findDataType("DatagramConnectionTransport2DataType", nsA);
+        const dataTypeNodeId = addressSpace.findDataType("MyCustomDataType", nsA);
         should.exist(dataTypeNodeId);
-        dataTypeNodeId.nodeId.toString().should.eql("ns=1;i=3011");
-        const o = addressSpace.constructExtensionObject(dataTypeNodeId, {});
+        dataTypeNodeId!.nodeId.toString().should.eql("ns=1;i=3011");
+        const o = addressSpace.constructExtensionObject(dataTypeNodeId!, {});
     });
 
     it("WZ2- PseudoSession & getExtensionObjectConstructor ", async () => {
@@ -89,7 +90,7 @@ describe("Test Extension Object in pure 1.04 version - DataType deriving from Da
         const browseSpy = spy(session, "browse");
         const browseNextSpy = spy(session, "browseNext");
 
-        const d = addressSpace.findDataType("DatagramConnectionTransport2DataType");
+        const d = addressSpace.findDataType("MyCustomDataType");
 
         const dataTypeNodeId = resolveNodeId("ns=1;i=3011");
         const F = await getExtensionObjectConstructor(session, dataTypeNodeId);

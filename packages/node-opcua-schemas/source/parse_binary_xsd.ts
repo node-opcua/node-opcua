@@ -353,12 +353,14 @@ export function parseBinaryXSD(
                 continue;
             }
             const enumeratedType = typeDictionary.enumeratedTypesRaw[key];
-            const e = new EnumerationDefinitionSchema({
-                lengthInBits: enumeratedType.lengthInBits || 32,
-                enumValues: enumeratedType.enumeratedValues,
-                name: key
-            });
-            dataTypeFactory.registerEnumeration(e);
+            if (Object.keys(enumeratedType.enumeratedValues).length >= 1) {
+                const e = new EnumerationDefinitionSchema({
+                    lengthInBits: enumeratedType.lengthInBits || 32,
+                    enumValues: enumeratedType.enumeratedValues,
+                    name: key
+                });
+                dataTypeFactory.registerEnumeration(e);
+            }
         }
 
         // istanbul ignore next
