@@ -140,7 +140,7 @@ export interface OPCUAClientBaseOptions {
     /**
      * @advanced
      */
-    transportSettings?: TransportSettings
+    transportSettings?: TransportSettings;
 }
 
 export interface GetEndpointsOptions {
@@ -164,10 +164,13 @@ export interface OPCUAClientBase extends OPCUASecureObject {
     connect(endpointUrl: string, callback: ErrorCallback): void;
 
     /***
-     * causes client to close and disconnect the communication with server
+     * causes the client to close and disconnect the communication with server
+     *
+     * ### note
+     * > once the client has disconnected, it cannot reconnect to the server
+     *   you'll need to recreate a new Client object to reconnect to the server.
      */
     disconnect(): Promise<void>;
-
     disconnect(callback: ErrorCallback): void;
 
     findEndpointForSecurity(securityMode: MessageSecurityMode, securityPolicy: SecurityPolicy): EndpointDescription | undefined;

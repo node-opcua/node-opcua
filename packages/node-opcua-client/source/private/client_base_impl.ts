@@ -185,10 +185,10 @@ function __findEndpoint(this: OPCUAClientBase, endpointUrl: string, params: Find
 
     async.series(tasks, (err) => {
         if (err) {
-            client.disconnect(()=>{
+            client.disconnect(() => {
                 callback(err);
             });
-            return ;
+            return;
         }
 
         if (!selectedEndpoint) {
@@ -622,10 +622,9 @@ export class ClientBaseImpl extends OPCUASecureObject implements OPCUAClientBase
             securityMode: this.securityMode,
             securityPolicy: this.securityPolicy,
             serverCertificate: this.serverCertificate,
-            tokenRenewalInterval: this.tokenRenewalInterval,
-            
-            // transportTimeout:
+            tokenRenewalInterval: this.tokenRenewalInterval
 
+            // transportTimeout:
         });
         secureChannel.protocolVersion = this.protocolVersion;
 
@@ -714,7 +713,7 @@ export class ClientBaseImpl extends OPCUASecureObject implements OPCUAClientBase
             throw new Error(" cannot locate certificate file " + certificateFile);
         }
     }
-    
+
     public async createDefaultCertificate(): Promise<void> {
         // istanbul ignore next
         if ((this as any)._inCreateDefaultCertificate) {
@@ -752,6 +751,13 @@ export class ClientBaseImpl extends OPCUASecureObject implements OPCUAClientBase
 
     protected async initializeCM(): Promise<void> {
         if (!this.clientCertificateManager) {
+            // this usually happen when the client  has been already disconnected,
+            // disconnect
+            errorLog(
+                "[NODE-OPCUA-E08] initializeCM: clientCertificateManager is null\n" +
+                    "                 This happen when you disconnected the client, to free resources.\n" +
+                    "                 Please create a new OPCUAClient instance if you want to reconnect"
+            );
             return;
         }
         await this.clientCertificateManager.initialize();
@@ -1168,6 +1174,11 @@ export class ClientBaseImpl extends OPCUASecureObject implements OPCUAClientBase
         const callback = args[0];
         assert(typeof callback === "function", "expecting a callback function here");
 
+        if (this._internalState === "disconnected" || this._internalState === "disconnecting") {
+            warningLog("[NODE-OPCUA-W20] OPCUAClient#disconnect called while already disconnecting or disconnected");
+            return callback();
+        }
+
         this.reconnectionIsCanceled = true;
         this.disconnecting = true;
 
@@ -1203,16 +1214,13 @@ export class ClientBaseImpl extends OPCUASecureObject implements OPCUAClientBase
             return;
         }
 
-        if (this.clientCertificateManager) {
-            const tmp = this.clientCertificateManager;
-            (this as any).clientCertificateManager = null;
-            tmp.dispose();
-        }
-        if (this._internalState === "disconnected" || this._internalState === "disconnecting") {
-            return callback();
-        }
         debugLog("Disconnecting !");
         this._setInternalState("disconnecting");
+        if (this.clientCertificateManager) {
+            const tmp = this.clientCertificateManager;
+            // (this as any).clientCertificateManager = null;
+            tmp.dispose();
+        }
 
         if (this._sessions.length) {
             // transfer active session to  orphan and detach them from channel
@@ -1294,7 +1302,6 @@ export class ClientBaseImpl extends OPCUASecureObject implements OPCUAClientBase
         assert(this._sessions.indexOf(session) === -1, "session already added");
         session._client = this;
         this._sessions.push(session);
-
     }
 
     private fetchServerCertificate(endpointUrl: string, callback: (err: Error | null, adjustedEndpointUrl?: string) => void): void {
