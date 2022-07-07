@@ -127,7 +127,7 @@ export class MessageChunker {
                 }
                 if (totalSize > this.maxMessageSize) {
                     errorLog(
-                        `[NODE-OPCUA-E55] message size ${totalSize} exceeds the negotiated message size ${this.maxMessageSize} nb chunks ${nbChunks}`
+                        `[NODE-OPCUA-E07] message size ${totalSize} exceeds the negotiated message size ${this.maxMessageSize} nb chunks ${nbChunks}`
                     );
                 }
                 messageChunkCallback(null);
