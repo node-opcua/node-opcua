@@ -181,7 +181,6 @@ const debugLog = make_debugLog(__filename);
 const errorLog = make_errorLog(__filename);
 const warningLog = make_warningLog(__filename);
 
-const default_maxAllowedSessionNumber = 10;
 const default_maxConnectionsPerEndpoint = 10;
 
 function g_sendError(channel: ServerSecureChannelLayer, message: Message, ResponseClass: any, statusCode: StatusCode): void {
@@ -605,7 +604,8 @@ function validate_applicationUri(channel: ServerSecureChannelLayer, request: Cre
     }
     const e = exploreCertificate(clientCertificate);
     const uniformResourceIdentifier = e.tbsCertificate.extensions!.subjectAltName?.uniformResourceIdentifier ?? null;
-    const applicationUriFromCert = uniformResourceIdentifier && uniformResourceIdentifier.length > 0 ? uniformResourceIdentifier[0] : null;
+    const applicationUriFromCert =
+        uniformResourceIdentifier && uniformResourceIdentifier.length > 0 ? uniformResourceIdentifier[0] : null;
 
     /* istanbul ignore next */
     if (applicationUriFromCert !== applicationUri) {
@@ -776,6 +776,8 @@ export interface OPCUAServerOptions extends OPCUABaseServerOptions, OPCUAServerE
     /**
      * the maximum number of simultaneous sessions allowed.
      * @default 10
+     * @deprecated use serverCapabilities: { maxSessions: } instead
+    
      */
     maxAllowedSessionNumber?: number;
 
@@ -1037,10 +1039,14 @@ export class OPCUAServer extends OPCUABaseServer {
      * the maximum number of subscription that can be created per server
      */
     public static MAX_SUBSCRIPTION = 50;
+
     /**
      * the maximum number of concurrent sessions allowed on the server
      */
-    public maxAllowedSessionNumber: number;
+    public get maxAllowedSessionNumber(): number {
+        return this.engine.serverCapabilities.maxSessions;
+    }
+
     /**
      * the maximum number for concurrent connection per end point
      */
@@ -1070,10 +1076,14 @@ export class OPCUAServer extends OPCUABaseServer {
 
         this.options = options;
 
-        /**
-         * @property maxAllowedSessionNumber
-         */
-        this.maxAllowedSessionNumber = options.maxAllowedSessionNumber || default_maxAllowedSessionNumber;
+        if (options.maxAllowedSessionNumber !== undefined) {
+            warningLog(
+                "[NODE-OPCUA-W21] maxAllowedSessionNumber property is now deprecated , please use serverCapabilities.maxSessions instead"
+            );
+            options.serverCapabilities = options.serverCapabilities || {};
+            options.serverCapabilities.maxSessions = options.maxAllowedSessionNumber;
+        }
+
         /**
          * @property maxConnectionsPerEndpoint
          */
@@ -1698,12 +1708,12 @@ export class OPCUAServer extends OPCUABaseServer {
         // A Server application should limit the number of Sessions. To protect against misbehaving Clients and denial
         // of service attacks, the Server shall close the oldest Session that is not activated before reaching the
         // maximum number of supported Sessions
-        if (this.currentSessionCount >= this.maxAllowedSessionNumber) {
+        if (this.currentSessionCount >= this.engine.serverCapabilities.maxSessions) {
             await _attempt_to_close_some_old_unactivated_session(this);
         }
 
         // check if session count hasn't reach the maximum allowed sessions
-        if (this.currentSessionCount >= this.maxAllowedSessionNumber) {
+        if (this.currentSessionCount >= this.engine.serverCapabilities.maxSessions) {
             return rejectConnection(this, StatusCodes.BadTooManySessions);
         }
 

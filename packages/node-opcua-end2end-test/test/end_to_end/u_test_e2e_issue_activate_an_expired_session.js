@@ -2,8 +2,7 @@
 
 const async = require("async");
 const should = require("should");
-const opcua = require("node-opcua");
-const OPCUAClient = opcua.OPCUAClient;
+const {OPCUAClient} = require("node-opcua");
 
 
 const sessionLiveTime = 3 * 1000;

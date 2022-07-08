@@ -125,7 +125,7 @@ module.exports = function (test) {
         });
         it("QZQ should be possible to open  many sessions on a single connection", function (done) {
             if (test.server) {
-                test.server.maxAllowedSessionNumber = MAXSESSIONS;
+                test.server.engine.serverCapabilities.maxSessions = MAXSESSIONS;
             }
 
             const nb = MAXSESSIONS + 10;

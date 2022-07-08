@@ -36,10 +36,9 @@ describe("testing server with low maxNodesPerRead and maxNodesPerBrowse", functi
             port,
 
             // xx nodeset_filename: empty_nodeset_filename,
-
-            maxAllowedSessionNumber: 1,
-
             serverCapabilities: {
+                maxSessions: 1,
+
                 maxArrayLength: 0,
                 maxStringLength: 0,
                 maxBrowseContinuationPoints: 0,
