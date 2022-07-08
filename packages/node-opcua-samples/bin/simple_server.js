@@ -39,9 +39,9 @@ const argv = yargs(process.argv)
     .number("port")
     .default("port", 26543)
 
-    .number("maxAllowedSessionNumber")
-    .describe("maxAllowedSessionNumber", "the maximum number of concurrent client session that the server will accept")
-    .default("maxAllowedSessionNumber", 500)
+    .number("maxSessions")
+    .describe("maxSessions", "the maximum number of concurrent client session that the server will accept")
+    .default("maxSessions", 500)
 
     .number("maxAllowedSubscriptionNumber")
     .describe("maxAllowedSubscriptionNumber", "the maximum number of concurrent subscriptions")
@@ -63,15 +63,15 @@ const argv = yargs(process.argv)
     .default("applicationName", "NodeOPCUA-Server")
 
     .alias("a", "alternateHostname")
-    .alias("m", "maxAllowedSessionNumber")
+    .alias("m", "maxSessions")
     .alias("n", "applicationName")
     .alias("p", "port")
 
     .help(true).argv;
 
 const port = argv.port;
-const maxAllowedSessionNumber = argv.maxAllowedSessionNumber;
-const maxConnectionsPerEndpoint = maxAllowedSessionNumber;
+const maxSessions = argv.maxSessions;
+const maxConnectionsPerEndpoint = maxSessions;
 const maxAllowedSubscriptionNumber = argv.maxAllowedSubscriptionNumber || 50;
 OPCUAServer.MAX_SUBSCRIPTION = maxAllowedSubscriptionNumber;
 
@@ -187,7 +187,6 @@ const paths = envPaths(productUri);
 
         port,
 
-        maxAllowedSessionNumber: maxAllowedSessionNumber,
         maxConnectionsPerEndpoint: maxConnectionsPerEndpoint,
 
         nodeset_filename: [nodesets.standard, nodesets.di],
@@ -204,6 +203,7 @@ const paths = envPaths(productUri);
             buildNumber: "1234"
         },
         serverCapabilities: {
+            maxSessions, 
             maxBrowseContinuationPoints: 10,
             maxHistoryContinuationPoints: 10,
             // maxInactiveLockTime

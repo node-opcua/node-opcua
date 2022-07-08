@@ -105,6 +105,7 @@ export class ServerSession extends EventEmitter implements ISubscriber, ISession
     public nodeId: NodeId;
     public sessionName = "";
 
+    
     public publishEngine: ServerSidePublishEngine;
     public sessionObject: any;
     public readonly creationDate: Date;

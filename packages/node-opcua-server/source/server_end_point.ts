@@ -11,7 +11,7 @@ import * as async from "async";
 import { assert } from "node-opcua-assert";
 import { ICertificateManager, OPCUACertificateManager } from "node-opcua-certificate-manager";
 import { Certificate, convertPEMtoDER, makeSHA1Thumbprint, PrivateKeyPEM, split_der } from "node-opcua-crypto";
-import { checkDebugFlag, make_debugLog, make_errorLog } from "node-opcua-debug";
+import { checkDebugFlag, make_debugLog, make_errorLog, make_warningLog } from "node-opcua-debug";
 import { getFullyQualifiedDomainName, resolveFullyQualifiedDomainName } from "node-opcua-hostname";
 import {
     fromURI,
@@ -32,6 +32,7 @@ import { ISocketData } from "./i_socket_data";
 
 const debugLog = make_debugLog(__filename);
 const errorLog = make_errorLog(__filename);
+const warningLog = make_warningLog(__filename);
 const doDebug = checkDebugFlag(__filename);
 
 const default_transportProfileUri = "http://opcfoundation.org/UA-Profile/Transport/uatcp-uasc-uabinary";
@@ -704,14 +705,14 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
 
         const establish_connection = () => {
             const nbConnections = Object.keys(this._channels).length;
-            debugLog(
-                " nbConnections ",
-                nbConnections,
-                " self._server.maxConnections",
-                this._server!.maxConnections,
-                this.maxConnections
-            );
             if (nbConnections >= this.maxConnections) {
+                warningLog(
+                    " nbConnections ",
+                    nbConnections,
+                    " self._server.maxConnections",
+                    this._server!.maxConnections,
+                    this.maxConnections
+                );
                 deny_connection();
                 return;
             }

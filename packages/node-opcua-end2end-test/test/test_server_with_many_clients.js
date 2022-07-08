@@ -21,7 +21,7 @@ const debugLog = require("node-opcua-debug").make_debugLog("TEST");
 
 const port = 2003;
 const maxConnectionsPerEndpoint = 100;
-const maxAllowedSessionNumber = 50;
+const maxSessions = 50;
 
 const { build_server_with_temperature_device } = require("../test_helpers/build_server_with_temperature_device");
 
@@ -36,7 +36,7 @@ describe("Functional test : one server with many concurrent clients", function (
     before(async () => {
         server = await build_server_with_temperature_device({
             port,
-            maxAllowedSessionNumber: maxAllowedSessionNumber,
+            serverCapabilities: {maxSessions},
             maxConnectionsPerEndpoint: maxConnectionsPerEndpoint
         });
 
@@ -196,8 +196,8 @@ describe("Functional test : one server with many concurrent clients", function (
         return tasks;
     }
 
-    it("it should allow " + maxAllowedSessionNumber + " clients to connect and concurrently monitor some nodeId", (done) => {
-        const nb_clients = server.maxAllowedSessionNumber;
+    it("it should allow " + maxSessions + " clients to connect and concurrently monitor some nodeId", (done) => {
+        const nb_clients = server.engine.serverCapabilities.maxSessions;
 
         const clients = [];
 
@@ -210,7 +210,7 @@ describe("Functional test : one server with many concurrent clients", function (
 
         async.mapLimit(
             clients,
-            maxAllowedSessionNumber,
+            maxSessions,
             (data, callback) => {
                 async.series(data.tasks, (err) => {
                     if (err) {

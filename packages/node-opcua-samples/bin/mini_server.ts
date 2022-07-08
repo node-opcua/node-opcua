@@ -1,7 +1,8 @@
 // tslint:disable:no-console
-import * as chalk from "chalk";
 import * as path from "path";
 import * as os from "os";
+
+import * as chalk from "chalk";
 
 import {
     makeApplicationUrn,
@@ -27,7 +28,6 @@ const serverOptions: OPCUAServerOptions = {
 
     port,
 
-    maxAllowedSessionNumber: 2,
     maxConnectionsPerEndpoint: 2,
 
     nodeset_filename: [get_mini_nodeset_filename()],
@@ -49,6 +49,8 @@ const serverOptions: OPCUAServerOptions = {
     },
 
     serverCapabilities: {
+        maxSessions: 10,
+    
         maxBrowseContinuationPoints: 10,
         maxHistoryContinuationPoints: 10,
         // maxInactiveLockTime

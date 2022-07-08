@@ -3,9 +3,9 @@
  */
 // tslint:disable:max-classes-per-file
 import { UInt32 } from "node-opcua-basic-types";
-import { Certificate } from "node-opcua-crypto";
 import { QualifiedName } from "node-opcua-data-model";
 import { SignedSoftwareCertificate } from "node-opcua-types";
+import { OPCUAServer } from "./opcua_server";
 
 /**
  */
@@ -39,64 +39,17 @@ export class OperationLimits {
     public maxNodesPerTranslateBrowsePathsToNodeIds: number;
 
     constructor(options: OperationLimitsOptions) {
-        /**
-         * @property maxNodesPerRead
-         * @default 0
-         */
         this.maxNodesPerRead = options.maxNodesPerRead || 0;
-        /**
-         * @property maxNodesPerWrite
-         * @default 0
-         */
         this.maxNodesPerWrite = options.maxNodesPerWrite || 0;
-        /**
-         * @property maxNodesPerMethodCall
-         * @default 0
-         */
         this.maxNodesPerMethodCall = options.maxNodesPerMethodCall || 0;
-        /**
-         * @property maxNodesPerBrowse
-         * @default 0
-         */
         this.maxNodesPerBrowse = options.maxNodesPerBrowse || 0;
-        /**
-         * @property maxNodesPerRegisterNodes
-         * @default 0
-         */
         this.maxNodesPerRegisterNodes = options.maxNodesPerRegisterNodes || 0;
-        /**
-         * @property maxNodesPerNodeManagement
-         * @default 0
-         */
         this.maxNodesPerNodeManagement = options.maxNodesPerNodeManagement || 0;
-        /**
-         * @property maxMonitoredItemsPerCall
-         * @default 0
-         */
         this.maxMonitoredItemsPerCall = options.maxMonitoredItemsPerCall || 0;
-        /**
-         * @property maxNodesPerHistoryReadData
-         */
         this.maxNodesPerHistoryReadData = options.maxNodesPerHistoryReadData || 0;
-        /**
-         * @property maxNodesPerHistoryReadEvents
-         * @default 0
-         */
         this.maxNodesPerHistoryReadEvents = options.maxNodesPerHistoryReadEvents || 0;
-        /**
-         * @property maxNodesPerHistoryUpdateData
-         * @default 0
-         */
         this.maxNodesPerHistoryUpdateData = options.maxNodesPerHistoryUpdateData || 0;
-        /**
-         * @property maxNodesPerHistoryUpdateEvents
-         * @default 0
-         */
         this.maxNodesPerHistoryUpdateEvents = options.maxNodesPerHistoryUpdateEvents || 0;
-        /**
-         * @property maxNodesPerTranslateBrowsePathsToNodeIds
-         * @default 0
-         */
         this.maxNodesPerTranslateBrowsePathsToNodeIds = options.maxNodesPerTranslateBrowsePathsToNodeIds || 0;
     }
 }
@@ -114,7 +67,21 @@ export interface ServerCapabilitiesOptions {
     serverProfileArray?: string[];
     localeIdArray?: string[];
     softwareCertificates?: SignedSoftwareCertificate[];
+
+    // new in 1.05
+    maxSessions?: UInt32;
+    maxSubscriptions?: UInt32;
+    maxMonitoredItems?: UInt32;
+    maxSubscriptionPerSession?: UInt32;
+    maxMonitoredItemsPerSubscription?: UInt32;
+    maxSelectClauseParameters?: UInt32;
+    maxWhereClauseParameters?: UInt32;
+    maxMonitoredItemsQueueSize?: UInt32;
+    conformanceUnits?: QualifiedName[];
 }
+
+
+const default_maxSessions = 10;
 
 /**
  */
@@ -200,13 +167,14 @@ export class ServerCapabilities {
 
     /**
      *
-     * ConformanceUnits is a QualifiedName array specifying the set of conformance units 
-     * the Server supports. This list should be limited to the ConformanceUnits the Server 
+     * ConformanceUnits is a QualifiedName array specifying the set of conformance units
+     * the Server supports. This list should be limited to the ConformanceUnits the Server
      * supports in its current configuration.
      *
      */
     public conformanceUnits: QualifiedName[] = [];
 
+    // eslint-disable-next-line complexity
     constructor(options: ServerCapabilitiesOptions) {
         options = options || {};
         options.operationLimits = options.operationLimits || {};
@@ -222,5 +190,17 @@ export class ServerCapabilities {
         this.operationLimits = new OperationLimits(options.operationLimits);
 
         this.minSupportedSampleRate = 100; // to do adjust me
+        // new in 1.05
+        this.maxSessions = options.maxSessions || default_maxSessions;
+
+        this.maxSubscriptionPerSession = options.maxSubscriptionPerSession || 10;
+        this.maxSubscriptions = options.maxSessions || OPCUAServer.MAX_SUBSCRIPTION;
+        this.maxMonitoredItems = options.maxMonitoredItems || 1000000;
+        this.maxMonitoredItemsPerSubscription = options.maxMonitoredItemsPerSubscription || 10000;
+        this.maxSelectClauseParameters = options.maxSelectClauseParameters || 100;
+        this.maxWhereClauseParameters = options.maxWhereClauseParameters || 100;
+        this.maxMonitoredItemsQueueSize = options.maxMonitoredItemsQueueSize || 60000;
+        this.conformanceUnits = options.conformanceUnits ||[];
+    
     }
 }

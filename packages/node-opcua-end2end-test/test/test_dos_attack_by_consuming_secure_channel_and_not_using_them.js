@@ -25,7 +25,6 @@ const {
 const { make_debugLog, checkDebugFlag } = require("node-opcua-debug");
 const { createServerCertificateManager } = require("../test_helpers/createServerCertificateManager");
 
-
 const debugLog = make_debugLog("TEST");
 const doDebug = checkDebugFlag("TEST");
 
@@ -39,7 +38,7 @@ describe("testing Server resilience to DDOS attacks", function () {
     let server;
     let endpointUrl;
     const maxConnectionsPerEndpoint = 3;
-    const maxAllowedSessionNumber = 10000; // almost no limits
+    const maxSessions = 10000; // almost no limits
 
     let clients = [];
     let sessions = [];
@@ -61,7 +60,9 @@ describe("testing Server resilience to DDOS attacks", function () {
             port,
             serverCertificateManager,
             maxConnectionsPerEndpoint: maxConnectionsPerEndpoint,
-            maxAllowedSessionNumber: maxAllowedSessionNumber
+            serverCapabilities: {
+                maxSessions
+            }
             //xx nodeset_filename: empty_nodeset_filename
         });
 

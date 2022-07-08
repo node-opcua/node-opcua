@@ -61,15 +61,17 @@ const keySize = argv.keySize;
 const server_certificate_file = constructFilename("certificates/server_selfsigned_cert_" + keySize + ".pem");
 const server_certificate_privatekey_file = constructFilename("certificates/server_key_" + keySize + ".pem");
 
-const server_options = {
+
+
+const server = new OPCUAServer({
+
+    alternateHostname: argv.alternateHostname,
 
     certificateFile: server_certificate_file,
     privateKeyFile: server_certificate_privatekey_file,
 
     port,
     resourcePath: "/UA/Server",
-
-    maxAllowedSessionNumber: 1500,
 
     nodeset_filename: [
         nodesets.standard,
@@ -89,22 +91,20 @@ const server_options = {
         buildNumber: "1234"
     },
     serverCapabilities: {
+        maxSessions: 1500,
         operationLimits: {
             maxNodesPerRead: 1000,
             maxNodesPerBrowse: 2000
         }
     },
+    maxConnectionsPerEndpoint: 1500,
+    
     userManager: userManager,
     registerServerMethod: opcua.RegisterServerMethod.LDS,
     discoveryServerEndpointUrl: argv.discoveryServerEndpointUrl || "opc.tcp://" + require("os").hostname() + ":4840"
+});
 
-};
-
-process.title = "Node OPCUA Server on port : " + server_options.port;
-
-server_options.alternateHostname = argv.alternateHostname;
-
-const server = new OPCUAServer(server_options);
+process.title = "Node OPCUA Server on port : " + port;
 
 
 const hostname = os.hostname();

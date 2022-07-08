@@ -170,8 +170,8 @@ module.exports = function (test) {
         it("AZAZ-A should accept many clients", function (done) {
 
             //xx test.server.maxConnectionsPerEndpoint.should.eql(MAXCONNECTIONS);
-            test.server.maxAllowedSessionNumber = MAXCONNECTIONS;
-            test.server.maxAllowedSessionNumber.should.eql(MAXCONNECTIONS);
+            test.server.engine.serverCapabilities.maxSessions = MAXCONNECTIONS;
+            test.server.engine.serverCapabilities.maxSessions.should.eql(MAXCONNECTIONS);
 
             const nb = MAXCONNECTIONS;
             const q = async.queue(client_session, nb);

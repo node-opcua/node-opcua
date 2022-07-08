@@ -47,7 +47,7 @@ describe("testing Server resilience to DDOS attacks 2", function () {
     let server;
     let endpointUrl;
     const maxConnectionsPerEndpoint = 3;
-    const maxAllowedSessionNumber = 10000; // almost no limits
+    const maxSessions = 10000; // almost no limits
 
     let clients = [];
     let sessions = [];
@@ -84,7 +84,7 @@ describe("testing Server resilience to DDOS attacks 2", function () {
         server = new OPCUAServer({
             port,
             maxConnectionsPerEndpoint: maxConnectionsPerEndpoint,
-            maxAllowedSessionNumber: maxAllowedSessionNumber,
+            serverCapabilities: {maxSessions},
             //xx nodeset_filename: empty_nodeset_filename
             serverCertificateManager
         });
@@ -236,7 +236,7 @@ describe("testing Server resilience to DDOS attacks - ability to recover", funct
         connectionRefusedCount = 0;
         const server = new OPCUAServer({
             port,
-            maxAllowedSessionNumber: 4,
+            serverCapabilities: {maxSessions: 4},
             maxConnectionsPerEndpoint: 3
         });
         await server.start();

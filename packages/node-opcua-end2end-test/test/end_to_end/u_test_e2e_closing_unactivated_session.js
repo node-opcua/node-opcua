@@ -1,4 +1,3 @@
-/*global xit,it,describe,before,after,beforeEach,afterEach,require*/
 "use strict";
 
 const { assert } = require("node-opcua-assert");
@@ -63,10 +62,10 @@ module.exports = function(test) {
     it("QQQQ a server shall close any unactivated sessions before reaching the maximum number of session", function(done) {
 
         const MAX_SESSIONS = 3;
-        let oldMaxAllowedSessionNumber;
+        let oldMaxSessions;
         if (test.server) {
-            oldMaxAllowedSessionNumber = test.server.maxAllowedSessionNumber;
-            test.server.maxAllowedSessionNumber = MAX_SESSIONS;
+            oldMaxSessions = test.server.engine.serverCapabilities.maxSessions;
+            test.server.engine.serverCapabilities.maxSessions = MAX_SESSIONS;
         }
 
         const OPCUAClient = opcua.OPCUAClient;
@@ -165,7 +164,7 @@ module.exports = function(test) {
             },
             function(callback) { setTimeout(callback, 1000); },
             function(callback) {
-                test.server.maxAllowedSessionNumber = oldMaxAllowedSessionNumber;
+                test.server.engine.serverCapabilities.maxSessions = oldMaxSessions;
                 test.server.engine.currentSessionCount.should.eql(0);
                 callback();
             }
