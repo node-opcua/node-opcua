@@ -54,38 +54,147 @@ export class OperationLimits {
     }
 }
 
-export interface ServerCapabilitiesOptions {
-    maxBrowseContinuationPoints?: number;
-    maxHistoryContinuationPoints?: number;
-    maxStringLength?: number;
-    maxArrayLength?: number;
-    maxByteStringLength?: number;
-    maxQueryContinuationPoints?: number;
-    minSupportedSampleRate?: number;
-    operationLimits?: OperationLimitsOptions;
+export interface IServerCapabilities {
+    maxBrowseContinuationPoints: number;
+    maxHistoryContinuationPoints: number;
+    maxStringLength: number;
+    maxArrayLength: number;
+    maxByteStringLength: number;
+    maxQueryContinuationPoints: number;
+    minSupportedSampleRate: number;
+    operationLimits: OperationLimitsOptions;
 
-    serverProfileArray?: string[];
-    localeIdArray?: string[];
-    softwareCertificates?: SignedSoftwareCertificate[];
+    serverProfileArray: string[];
+    localeIdArray: string[];
+    softwareCertificates: SignedSoftwareCertificate[];
 
     // new in 1.05
-    maxSessions?: UInt32;
-    maxSubscriptions?: UInt32;
-    maxMonitoredItems?: UInt32;
-    maxSubscriptionPerSession?: UInt32;
-    maxMonitoredItemsPerSubscription?: UInt32;
-    maxSelectClauseParameters?: UInt32;
-    maxWhereClauseParameters?: UInt32;
-    maxMonitoredItemsQueueSize?: UInt32;
-    conformanceUnits?: QualifiedName[];
+    /**
+     * MaxSessions is an integer specifying the maximum number of concurrent
+     * Sessions the Server can support. The value specifies the
+     * maximum the Server can support under normal circumstances,
+     * therefore there is no guarantee the Server can always support
+     * the maximum.
+     */
+    maxSessions: UInt32;
+
+    /**
+     * MaxSubscriptions is an integer specifying the maximum number of
+     * Subscriptions the Server can support. The value specifies the
+     * maximum the Server can support under normal circumstances,
+     * therefore there is no guarantee the Server can always support
+     * the maximum.
+     */
+    maxSubscriptions: UInt32;
+
+    /**
+     * MaxMonitoredItems is an integer specifying the maximum number of
+     * MonitoredItems the Server can support. The value specifies the
+     * maximum the Server can support under normal circumstances,
+     * therefore there is no guarantee the Server can always support
+     * the maximum.
+     */
+    maxMonitoredItems: UInt32;
+
+    /**
+     * MaxSubscriptionsPerSession is an integer specifying the maximum number of
+     * Subscriptions per Session the Server can support. The value specifies the
+     * maximum the Server can support under normal circumstances,
+     * therefore there is no guarantee the Server can always support
+     * the maximum.
+     */
+    maxSubscriptionsPerSession: UInt32;
+
+    /**
+     * MaxMonitoredItemsPerSubscription is an integer specifying the maximum number of
+     * MonitoredItems per Subscription the Server can support. The value specifies the
+     * maximum the Server can support under normal circumstances,
+     * therefore there is no guarantee the Server can always support
+     * the maximum
+     */
+    maxMonitoredItemsPerSubscription: UInt32;
+
+    /**
+     * MaxSelectClauseParameters is an integer specifying the maximum number of
+     * EventField SelectClause Parameters the Server can support for an EventFilter.
+     * The value specifies the maximum the Server can support under normal circumstances,
+     * therefore there is no guarantee the Server can always support
+     * the maximum.
+     */
+    maxSelectClauseParameters: UInt32;
+
+    /**
+     * MaxWhereClauseParameters is an integer specifying the maximum number of
+     * EventField WhereClause Parameters the Server can support for an EventFilter.
+     * The value specifies the maximum the Server can support under normal circumstances,
+     * therefore there is no guarantee the Server can always support the maximum
+     */
+    maxWhereClauseParameters: UInt32;
+
+    /**
+     * (draft)
+     * MaxMonitoredItemsQueueSize is an integer specifying the maximum size of MonitoredItem
+     * queues. The value specifies the maximum the Server can support under normal circumstances,
+     * therefore there is no guarantee the Server can always support the maximum.
+     *
+     */
+    maxMonitoredItemsQueueSize: UInt32;
+
+    /**
+     *
+     * ConformanceUnits is a QualifiedName array specifying the set of conformance units
+     * the Server supports. This list should be limited to the ConformanceUnits the Server
+     * supports in its current configuration.
+     *
+     */
+    conformanceUnits: QualifiedName[];
 }
+export type ServerCapabilitiesOptions = Partial<IServerCapabilities>;
 
+export const defaultServerCapabilities: IServerCapabilities = {
+    maxBrowseContinuationPoints: 0,
+    maxHistoryContinuationPoints: 0,
+    maxStringLength: 65535,
+    maxArrayLength: 65535,
+    maxByteStringLength: 65535,
+    maxQueryContinuationPoints: 0,
 
-const default_maxSessions = 10;
+    minSupportedSampleRate: 100,
+
+    operationLimits: {
+        maxNodesPerBrowse: 0,
+        maxNodesPerHistoryReadData: 0,
+        maxNodesPerHistoryReadEvents: 0,
+        maxNodesPerHistoryUpdateData: 0,
+        maxNodesPerHistoryUpdateEvents: 0,
+        maxNodesPerMethodCall: 0,
+        maxNodesPerNodeManagement: 0,
+        maxNodesPerRead: 0,
+        maxNodesPerRegisterNodes: 0,
+        maxNodesPerWrite: 0,
+        maxNodesPerTranslateBrowsePathsToNodeIds: 0,
+        maxMonitoredItemsPerCall: 0
+    },
+
+    serverProfileArray: [],
+    localeIdArray: [],
+    softwareCertificates: [],
+
+    maxSessions: 10,
+    maxSubscriptions: 100,
+    maxMonitoredItems: 1000000,
+    maxSubscriptionsPerSession: 10,
+    maxMonitoredItemsPerSubscription: 100000,
+    maxSelectClauseParameters: 100,
+    maxWhereClauseParameters: 100,
+    maxMonitoredItemsQueueSize: 60000,
+
+    conformanceUnits: []
+};
 
 /**
  */
-export class ServerCapabilities {
+export class ServerCapabilities implements IServerCapabilities {
     public maxBrowseContinuationPoints: number;
     public maxHistoryContinuationPoints: number;
     public maxStringLength: number;
@@ -100,107 +209,51 @@ export class ServerCapabilities {
     public softwareCertificates: SignedSoftwareCertificate[];
 
     // new in 1.05
-    /**
-     * MaxSessions is an integer specifying the maximum number of concurrent
-     * Sessions the Server can support. The value specifies the
-     * maximum the Server can support under normal circumstances,
-     * therefore there is no guarantee the Server can always support
-     * the maximum.
-     */
-    public maxSessions: UInt32 = 0;
-    /**
-     * MaxSubscriptions is an integer specifying the maximum number of
-     * Subscriptions the Server can support. The value specifies the
-     * maximum the Server can support under normal circumstances,
-     * therefore there is no guarantee the Server can always support
-     * the maximum.
-     */
-    public maxSubscriptions: UInt32 = 0;
-    /**
-     * MaxMonitoredItems is an integer specifying the maximum number of
-     * MonitoredItems the Server can support. The value specifies the
-     * maximum the Server can support under normal circumstances,
-     * therefore there is no guarantee the Server can always support
-     * the maximum.
-     */
-    public maxMonitoredItems: UInt32 = 0;
-    /**
-     * MaxSubscriptionsPerSession is an integer specifying the maximum number of
-     * Subscriptions per Session the Server can support. The value specifies the
-     * maximum the Server can support under normal circumstances,
-     * therefore there is no guarantee the Server can always support
-     * the maximum.
-     */
-    public maxSubscriptionPerSession: UInt32 = 0;
-    /**
-     * MaxMonitoredItemsPerSubscription is an integer specifying the maximum number of
-     * MonitoredItems per Subscription the Server can support. The value specifies the
-     * maximum the Server can support under normal circumstances,
-     * therefore there is no guarantee the Server can always support
-     * the maximum
-     */
-    public maxMonitoredItemsPerSubscription: UInt32 = 0;
-    /**
-     * MaxSelectClauseParameters is an integer specifying the maximum number of
-     * EventField SelectClause Parameters the Server can support for an EventFilter.
-     * The value specifies the maximum the Server can support under normal circumstances,
-     * therefore there is no guarantee the Server can always support
-     * the maximum.
-     */
-    public maxSelectClauseParameters: UInt32 = 0;
-    /**
-     * MaxWhereClauseParameters is an integer specifying the maximum number of
-     * EventField WhereClause Parameters the Server can support for an EventFilter.
-     * The value specifies the maximum the Server can support under normal circumstances,
-     * therefore there is no guarantee the Server can always support the maximum
-     */
-    public maxWhereClauseParameters: UInt32 = 0;
-
-    /**
-     * (draft)
-     * MaxMonitoredItemsQueueSize is an integer specifying the maximum size of MonitoredItem
-     * queues. The value specifies the maximum the Server can support under normal circumstances,
-     * therefore there is no guarantee the Server can always support the maximum.
-     *
-     */
-    public maxMonitoredItemsQueueSize: UInt32 = 0;
-
-    /**
-     *
-     * ConformanceUnits is a QualifiedName array specifying the set of conformance units
-     * the Server supports. This list should be limited to the ConformanceUnits the Server
-     * supports in its current configuration.
-     *
-     */
-    public conformanceUnits: QualifiedName[] = [];
+    public maxSessions: UInt32;
+    public maxSubscriptions: UInt32;
+    public maxMonitoredItems: UInt32;
+    public maxSubscriptionsPerSession: UInt32;
+    public maxMonitoredItemsPerSubscription: UInt32;
+    public maxSelectClauseParameters: UInt32;
+    public maxWhereClauseParameters: UInt32;
+    public maxMonitoredItemsQueueSize: UInt32;
+    public conformanceUnits: QualifiedName[];
 
     // eslint-disable-next-line complexity
     constructor(options: ServerCapabilitiesOptions) {
         options = options || {};
         options.operationLimits = options.operationLimits || {};
+
         this.serverProfileArray = options.serverProfileArray || [];
         this.localeIdArray = options.localeIdArray || [];
         this.softwareCertificates = options.softwareCertificates || [];
-        this.maxArrayLength = options.maxArrayLength || 0;
-        this.maxStringLength = options.maxStringLength || 0;
-        this.maxByteStringLength = options.maxByteStringLength || 0;
-        this.maxBrowseContinuationPoints = options.maxBrowseContinuationPoints || 0;
-        this.maxQueryContinuationPoints = options.maxQueryContinuationPoints || 0;
-        this.maxHistoryContinuationPoints = options.maxHistoryContinuationPoints || 0;
+
+        this.maxArrayLength = options.maxArrayLength || defaultServerCapabilities.maxArrayLength;
+        this.maxStringLength = options.maxStringLength || defaultServerCapabilities.maxStringLength;
+        this.maxByteStringLength = options.maxByteStringLength || defaultServerCapabilities.maxByteStringLength;
+        this.maxBrowseContinuationPoints =
+            options.maxBrowseContinuationPoints || defaultServerCapabilities.maxBrowseContinuationPoints;
+        this.maxQueryContinuationPoints =
+            options.maxQueryContinuationPoints || defaultServerCapabilities.maxQueryContinuationPoints;
+        this.maxHistoryContinuationPoints =
+            options.maxHistoryContinuationPoints || defaultServerCapabilities.maxHistoryContinuationPoints;
+
         this.operationLimits = new OperationLimits(options.operationLimits);
 
-        this.minSupportedSampleRate = 100; // to do adjust me
-        // new in 1.05
-        this.maxSessions = options.maxSessions || default_maxSessions;
+        this.minSupportedSampleRate = options.minSupportedSampleRate || defaultServerCapabilities.minSupportedSampleRate; // to do adjust me
 
-        this.maxSubscriptionPerSession = options.maxSubscriptionPerSession || 10;
-        this.maxSubscriptions = options.maxSessions || OPCUAServer.MAX_SUBSCRIPTION;
-        this.maxMonitoredItems = options.maxMonitoredItems || 1000000;
-        this.maxMonitoredItemsPerSubscription = options.maxMonitoredItemsPerSubscription || 10000;
-        this.maxSelectClauseParameters = options.maxSelectClauseParameters || 100;
-        this.maxWhereClauseParameters = options.maxWhereClauseParameters || 100;
-        this.maxMonitoredItemsQueueSize = options.maxMonitoredItemsQueueSize || 60000;
-        this.conformanceUnits = options.conformanceUnits ||[];
-    
+        // new in 1.05
+        this.maxSessions = options.maxSessions || defaultServerCapabilities.maxSessions;
+
+        this.maxSubscriptionsPerSession = options.maxSubscriptionsPerSession || defaultServerCapabilities.maxSubscriptionsPerSession;
+        this.maxSubscriptions = options.maxSubscriptions || defaultServerCapabilities.maxSubscriptions;
+        this.maxMonitoredItems = options.maxMonitoredItems || defaultServerCapabilities.maxMonitoredItems;
+        this.maxMonitoredItemsPerSubscription =
+            options.maxMonitoredItemsPerSubscription || defaultServerCapabilities.maxMonitoredItemsPerSubscription;
+        this.maxSelectClauseParameters = options.maxSelectClauseParameters || defaultServerCapabilities.maxSelectClauseParameters;
+        this.maxWhereClauseParameters = options.maxWhereClauseParameters || defaultServerCapabilities.maxWhereClauseParameters;
+        this.maxMonitoredItemsQueueSize =
+            options.maxMonitoredItemsQueueSize || defaultServerCapabilities.maxMonitoredItemsQueueSize;
+        this.conformanceUnits = options.conformanceUnits || defaultServerCapabilities.conformanceUnits;
     }
 }

@@ -1037,8 +1037,9 @@ export class OPCUAServer extends OPCUABaseServer {
     public static fallbackSessionName = "Client didn't provide a meaningful sessionName ...";
     /**
      * the maximum number of subscription that can be created per server
+     * @deprecated
      */
-    public static MAX_SUBSCRIPTION = 50;
+    public static deprectated_MAX_SUBSCRIPTION = 50;
 
     /**
      * the maximum number of concurrent sessions allowed on the server
@@ -2367,10 +2368,6 @@ export class OPCUAServer extends OPCUABaseServer {
                     return sendError(StatusCodes.BadNothingToDo);
                 }
 
-                //  if (request.subscriptionIds.length > OPCUAServer.MAX_SUBSCRIPTION) {
-                //    return sendError(StatusCodes.BadTooManyOperations);
-                //  }
-
                 const results: any[] = subscriptionIds.map((subscriptionId: number) => actionToPerform(session, subscriptionId));
 
                 // resolve potential pending promises ....
@@ -2383,7 +2380,7 @@ export class OPCUAServer extends OPCUABaseServer {
                 const response = new ResponseClass({
                     responseHeader: {
                         serviceResult:
-                            request.subscriptionIds.length > OPCUAServer.MAX_SUBSCRIPTION
+                            request.subscriptionIds.length > this.engine.serverCapabilities.maxSubscriptionsPerSession
                                 ? StatusCodes.BadTooManyOperations
                                 : StatusCodes.Good
                     },
@@ -2831,7 +2828,11 @@ export class OPCUAServer extends OPCUABaseServer {
             (session: ServerSession, sendResponse: (response: Response) => void, sendError: (statusCode: StatusCode) => void) => {
                 const context = new SessionContext({ session, server: this });
 
-                if (session.currentSubscriptionCount >= OPCUAServer.MAX_SUBSCRIPTION) {
+                if (session.currentSubscriptionCount >= this.engine.serverCapabilities.maxSubscriptionsPerSession) {
+                    return sendError(StatusCodes.BadTooManySubscriptions);
+                }
+
+                if (this.currentSubscriptionCount >= this.engine.serverCapabilities.maxSubscriptions) {
                     return sendError(StatusCodes.BadTooManySubscriptions);
                 }
 

@@ -9,7 +9,7 @@ const chalk = require("chalk");
 const doDebug = false;
 
 module.exports = function (test) {
-    const MAXSESSIONS = 50;
+    const maxSessionsForTest = 50;
 
     function getTick() {
         return Date.now() / 1000.0;
@@ -81,7 +81,7 @@ module.exports = function (test) {
         );
     }
 
-    describe("AAAY Testing " + MAXSESSIONS + " sessions on the same  connection ", function () {
+    describe("AAAY Testing " + maxSessionsForTest + " sessions on the same  connection ", function () {
         before(function (done) {
             const options = {
                 connectionStrategy: connectivity_strategy,
@@ -124,17 +124,17 @@ module.exports = function (test) {
             });
         });
         it("QZQ should be possible to open  many sessions on a single connection", function (done) {
-            if (test.server) {
-                test.server.engine.serverCapabilities.maxSessions = MAXSESSIONS;
-            }
+            let maxSessionsBackup = test.server.engine.serverCapabilities.maxSessions;
+            test.server.engine.serverCapabilities.maxSessions = maxSessionsForTest;
 
-            const nb = MAXSESSIONS + 10;
+            const nb = maxSessionsForTest + 10;
             const q = async.queue(client_session, nb);
 
             for (let i = 0; i < nb; i++) {
                 q.push({ index: i });
             }
             q.drain(() => {
+                test.server.engine.serverCapabilities.maxSessions = maxSessionsBackup;
                 //xx console.log("done");
                 done();
             });

@@ -67,7 +67,6 @@ function trace_console_log() {
 
 // eslint-disable-next-line import/order
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
-
 module.exports = function (test) {
     describe("AZA1- testing Client-Server subscription use case, on a fake server exposing the temperature device", function () {
         let server, client, endpointUrl;
@@ -187,8 +186,8 @@ module.exports = function (test) {
                         priority: 6
                     });
 
-                    subscription.on("started",  ()=> {
-                        debugLog("subscription started")
+                    subscription.on("started", () => {
+                        debugLog("subscription started");
                     });
 
                     const monitoredItem = ClientMonitoredItem.create(
@@ -206,7 +205,7 @@ module.exports = function (test) {
 
                     // subscription.on("item_added",function(monitoredItem){
                     monitoredItem.on("initialized", function () {
-                        monitoredItem.terminate(function () {
+                        monitoredItem.terminate(() => {
                             subscription.terminate(done);
                         });
                     });
@@ -271,10 +270,10 @@ module.exports = function (test) {
                         pumpSpeed_changes++;
                     });
 
-                    setTimeout(function () {
+                    setTimeout(() => {
                         pumpSpeed_changes.should.be.greaterThan(1);
                         currentTime_changes.should.be.greaterThan(1);
-                        subscription.terminate(function () {
+                        subscription.terminate(() => {
                             callback();
                         });
                     }, 2000);
@@ -313,7 +312,7 @@ module.exports = function (test) {
                             publishingEnabled: true,
                             priority: 6
                         });
-                        subscription.on("started", function () {
+                        subscription.on("started", () => {
                             const monitoredItem = ClientMonitoredItem.create(
                                 subscription,
                                 {
@@ -331,7 +330,7 @@ module.exports = function (test) {
                     },
                     // wait a little bit
                     function (callback) {
-                        setTimeout(function () {
+                        setTimeout(() => {
                             // client.disconnect(done);
                             callback();
                         }, 100);
@@ -379,7 +378,7 @@ module.exports = function (test) {
                             publishingEnabled: true,
                             priority: 6
                         });
-                        subscription.on("started", function () {
+                        subscription.on("started", () => {
                             // monitor some
                             const monitoredItem = ClientMonitoredItem.create(
                                 subscription,
@@ -404,7 +403,7 @@ module.exports = function (test) {
 
                     // wait a little bit and disconnect client
                     function (callback) {
-                        setTimeout(function () {
+                        setTimeout(() => {
                             client.disconnect(callback);
                         }, 600);
                     },
@@ -437,7 +436,7 @@ module.exports = function (test) {
                             publishingEnabled: true,
                             priority: 6
                         });
-                        subscription.on("started", function () {
+                        subscription.on("started", () => {
                             // monitor some again
                             const monitoredItem = ClientMonitoredItem.create(
                                 subscription,
@@ -459,7 +458,7 @@ module.exports = function (test) {
                     // now disconnect the client, without terminating the subscription &
                     // without closing the session first
                     function (callback) {
-                        setTimeout(function () {
+                        setTimeout(() => {
                             client.disconnect(callback);
                         }, 400);
                     }
@@ -511,8 +510,7 @@ module.exports = function (test) {
         //
         //}
 
-        it("AZA2-A should return BadTooManySubscriptions if too many subscriptions are opened", function (done) {
-            //XX on_freshly_started_server(function (inner_done) {
+        it("AZA2-A0 should return BadTooManySubscriptions if too many subscriptions are opened (maxSubscriptionsPerSession)", function (done) {
 
             const subscriptionIds = [];
 
@@ -538,8 +536,12 @@ module.exports = function (test) {
                 );
             }
 
-            const MAX_SUBSCRIPTION_BACKUP = OPCUAServer.MAX_SUBSCRIPTION;
-            OPCUAServer.MAX_SUBSCRIPTION = 5;
+            const maxSessionBackup = server.engine.serverCapabilities.maxSessions;
+            server.engine.serverCapabilities.maxSessions = 100;
+            const maxSubsriptionsPerSessionBackup = server.engine.serverCapabilities.maxSubscriptionsPerSession;
+            server.engine.serverCapabilities.maxSubscriptionsPerSession = 5;
+            const maxSubsriptionsBackup = server.engine.serverCapabilities.maxSubscriptions;
+            server.engine.serverCapabilities.maxSubscriptions = 100;
 
             perform_operation_on_client_session(
                 client,
@@ -587,14 +589,102 @@ module.exports = function (test) {
                             }
                         ],
                         function (err) {
-                            OPCUAServer.MAX_SUBSCRIPTION = MAX_SUBSCRIPTION_BACKUP;
+                            server.engine.serverCapabilities.maxSubscriptionsPerSession = maxSubsriptionsPerSessionBackup;
+                            server.engine.serverCapabilities.maxSubscriptions = maxSubsriptionsBackup;
+                            server.engine.serverCapabilities.maxSessions = maxSessionBackup;
+
                             done(err);
                         }
                     );
                 },
                 done
             );
-            //XX                 }, inner_done);
+        });
+
+        it("AZA2-A1 should return BadTooManySubscriptions if too many subscriptions are opened (maxSubscriptions)", async () => {
+
+            const subscriptionIds = [];
+            const clients = [];
+            const sessions = [];
+            const statusCodes = [];
+            async function create_client_and_2_subscriptions(expected_error) {
+                const client = OPCUAClient.create();
+
+                await client.connect(endpointUrl);
+                const session = await client.createSession();
+                clients.push(client);
+                sessions.push(session);
+
+                async function tryToCreateSubscription() {
+                    let _err;
+                    try {
+                        const subscription = await session.createSubscription2({
+                            requestedPublishingInterval: 100, // Duration
+                            requestedLifetimeCount: 10, // Counter
+                            requestedMaxKeepAliveCount: 10, // Counter
+                            maxNotificationsPerPublish: 10, // Counter
+                            publishingEnabled: true, // Boolean
+                            priority: 14 // Byte
+                        });
+
+                        subscriptionIds.push(subscription.subscriptionId);
+                        statusCodes.push("Good");
+                    } catch (err) {
+                        console.log("Create subscription has failed")
+                        _err = err;
+                        statusCodes.push("Bad");
+                    }
+                    return _err;
+                }
+                const _err = await tryToCreateSubscription();
+                if (expected_error) {
+                    if (!_err) {
+                        console.log("maxSubscriptionsPerSession=", server.engine.serverCapabilities.maxSubscriptionsPerSession);
+                        console.log("maxSubscriptions          =", server.engine.serverCapabilities.maxSubscriptions);
+                        console.log("serverCapabilities        =", server.engine.serverCapabilities);
+
+                        throw new Error("Expected error " + expected_error + " but got no error instead");
+                    } else {
+                        _err.message.should.match(new RegExp(expected_error));
+                    }
+                } else {
+                    if (_err) {
+                        throw new Error("Expected no error but got " + _err.message);
+                    }
+                }
+                await tryToCreateSubscription();
+                // console.log("------------------------- !");
+            }
+
+            const maxSessionBackup = server.engine.serverCapabilities.maxSessions;
+            server.engine.serverCapabilities.maxSessions = 100;
+            const maxSubsriptionsPerSessionBackup = server.engine.serverCapabilities.maxSubscriptionsPerSession;
+            server.engine.serverCapabilities.maxSubscriptionsPerSession = 10;
+            const maxSubsriptionsBackup = server.engine.serverCapabilities.maxSubscriptions;
+            server.engine.serverCapabilities.maxSubscriptions = 6;
+
+            try {
+                await create_client_and_2_subscriptions(null);
+                await create_client_and_2_subscriptions(null);
+                await create_client_and_2_subscriptions(null);
+                await create_client_and_2_subscriptions("BadTooManySubscriptions");
+                await create_client_and_2_subscriptions("BadTooManySubscriptions");    
+            } 
+            finally {
+                server.engine.serverCapabilities.maxSubscriptionsPerSession = maxSubsriptionsPerSessionBackup;
+                server.engine.serverCapabilities.maxSubscriptions = maxSubsriptionsBackup;
+                server.engine.serverCapabilities.maxSessions = maxSessionBackup;
+                for (const session of sessions) {
+                    await session.close(true);
+                }
+                for (const client of clients) {
+                    await client.disconnect();
+                }
+                process.exit();
+                console.log("here !");
+     
+            }
+ 
         });
 
         it(
@@ -2136,7 +2226,7 @@ module.exports = function (test) {
                     const subscription = ClientSubscription.create(session, parameters);
 
                     subscription.on("terminated", function () {
-                        debugLog("subscription terminated")
+                        debugLog("subscription terminated");
                     });
 
                     const itemToMonitor = {

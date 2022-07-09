@@ -246,6 +246,14 @@ export class ClientSubscriptionImpl extends EventEmitter implements ClientSubscr
                          */
                         this.emit("started", this.subscriptionId);
                     });
+                } else {
+                    setImmediate(() => {
+                        /**
+                         * notify the observers that the subscription has now failed
+                         * @event failed
+                         */
+                        this.emit("error", err);
+                    });
                 }
             });
         });

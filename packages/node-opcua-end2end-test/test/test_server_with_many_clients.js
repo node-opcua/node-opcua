@@ -37,7 +37,7 @@ describe("Functional test : one server with many concurrent clients", function (
         server = await build_server_with_temperature_device({
             port,
             serverCapabilities: {maxSessions},
-            maxConnectionsPerEndpoint: maxConnectionsPerEndpoint
+            maxConnectionsPerEndpoint
         });
 
         endpointUrl = server.getEndpointUrl();

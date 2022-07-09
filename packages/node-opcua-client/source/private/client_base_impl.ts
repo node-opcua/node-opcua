@@ -1175,7 +1175,9 @@ export class ClientBaseImpl extends OPCUASecureObject implements OPCUAClientBase
         assert(typeof callback === "function", "expecting a callback function here");
 
         if (this._internalState === "disconnected" || this._internalState === "disconnecting") {
-            warningLog("[NODE-OPCUA-W20] OPCUAClient#disconnect called while already disconnecting or disconnected");
+            if (this._internalState === "disconnecting") {
+                warningLog("[NODE-OPCUA-W26] OPCUAClient#disconnect called while already disconnecting");
+            }
             return callback();
         }
 
