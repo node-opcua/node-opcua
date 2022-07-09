@@ -33,24 +33,25 @@ module.exports = function (test) {
 
         it("CDC-1 - disconnect, then connect, then disconnect", async () => {
             await client.disconnect();
-            getWarnings().should.match(/\[NODE-OPCUA-W20] OPCUAClient#disconnect called while already disconnecting or disconnected/);
+            getWarnings().should.not.match(/\[NODE-OPCUA-W26]/);
+            // xxgetWarnings().should.match(/\[NODE-OPCUA-W26] OPCUAClient#disconnect called while already disconnecting/);
             await client.connect(endpointUrl);
             await client.disconnect();
-            getWarnings().should.not.match(/\[NODE-OPCUA-W20]/);
+            getWarnings().should.not.match(/\[NODE-OPCUA-W26]/);
         });
         it("CDC-2 - disconnect, then connect, then disconnect, then connect, then disconnect", async () => {
             await client.connect(endpointUrl);
             await client.disconnect();
             await client.connect(endpointUrl);
             await client.disconnect();
-            getWarnings().should.not.match(/\[NODE-OPCUA-W20]/);
+            getWarnings().should.not.match(/\[NODE-OPCUA-W26]/);
         });
         it("CDC-3 - disconnect while disconnecting", async () => {
             await client.connect(endpointUrl);
             const promise = client.disconnect();
             await client.disconnect();
             await promise;
-            getWarnings().should.match(/\[NODE-OPCUA-W20] OPCUAClient#disconnect called while already disconnecting or disconnected/);
+            getWarnings().should.match(/\[NODE-OPCUA-W26] OPCUAClient#disconnect called while already disconnecting/);
         });
     });
 };

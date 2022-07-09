@@ -43,8 +43,8 @@ const argv = yargs(process.argv)
     .describe("maxSessions", "the maximum number of concurrent client session that the server will accept")
     .default("maxSessions", 500)
 
-    .number("maxAllowedSubscriptionNumber")
-    .describe("maxAllowedSubscriptionNumber", "the maximum number of concurrent subscriptions")
+    .number("maxSubscriptionsPerSession")
+    .describe("maxSubscriptionsPerSession", "the maximum number of concurrent subscriptions per session")
 
     .boolean("silent")
     .default("silent", false)
@@ -72,8 +72,7 @@ const argv = yargs(process.argv)
 const port = argv.port;
 const maxSessions = argv.maxSessions;
 const maxConnectionsPerEndpoint = maxSessions;
-const maxAllowedSubscriptionNumber = argv.maxAllowedSubscriptionNumber || 50;
-OPCUAServer.MAX_SUBSCRIPTION = maxAllowedSubscriptionNumber;
+const maxSubscriptionsPerSession = argv.maxSubscriptionsPerSession || 50;
 
 async function getIpAddresses() {
     const ipAddresses = [];
@@ -122,12 +121,12 @@ const userManager = {
         return true;
     },
     getUserRoles(username) {
-      const uIndex = users.findIndex((x) => x.username === username);
-      if (uIndex < 0) {
-          return [];
-      }
-      const userRole = users[uIndex].role;
-      return userRole;
+        const uIndex = users.findIndex((x) => x.username === username);
+        if (uIndex < 0) {
+            return [];
+        }
+        const userRole = users[uIndex].role;
+        return userRole;
     }
 };
 
@@ -203,7 +202,10 @@ const paths = envPaths(productUri);
             buildNumber: "1234"
         },
         serverCapabilities: {
-            maxSessions, 
+            maxSessions,
+            maxSubscriptionsPerSession,
+            maxSubscription: maxSessions * maxSubscriptionsPerSession,
+
             maxBrowseContinuationPoints: 10,
             maxHistoryContinuationPoints: 10,
             // maxInactiveLockTime

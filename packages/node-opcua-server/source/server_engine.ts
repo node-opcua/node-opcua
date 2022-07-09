@@ -975,7 +975,7 @@ export class ServerEngine extends EventEmitter {
                     return this.serverCapabilities.maxMonitoredItems;
                 });
                 bindStandardScalar(VariableIds.Server_ServerCapabilities_MaxSubscriptionsPerSession, DataType.UInt32, () => {
-                    return this.serverCapabilities.maxSubscriptionPerSession;
+                    return this.serverCapabilities.maxSubscriptionsPerSession;
                 });
                 bindStandardScalar(VariableIds.Server_ServerCapabilities_MaxSelectClauseParameters, DataType.UInt32, () => {
                     return this.serverCapabilities.maxSelectClauseParameters;

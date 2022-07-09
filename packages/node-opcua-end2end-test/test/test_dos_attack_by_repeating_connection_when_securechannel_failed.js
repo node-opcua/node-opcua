@@ -83,7 +83,7 @@ describe("testing Server resilience to DDOS attacks 2", function () {
 
         server = new OPCUAServer({
             port,
-            maxConnectionsPerEndpoint: maxConnectionsPerEndpoint,
+            maxConnectionsPerEndpoint,
             serverCapabilities: {maxSessions},
             //xx nodeset_filename: empty_nodeset_filename
             serverCertificateManager
@@ -156,7 +156,7 @@ describe("testing Server resilience to DDOS attacks 2", function () {
         console.log("done");
     });
 
-    it("ZCCC2 should ban client that constantly reconnect", async () => {
+    it("ZCCC2 should ban client that constantly reconnect with an invalid certificate (out of date)", async () => {
         const serverCertificate = readCertificate(server.certificateFile);
 
         const clients = [];
@@ -181,10 +181,10 @@ describe("testing Server resilience to DDOS attacks 2", function () {
 
                 await client.connect(endpointUrl);
 
-                client.disconnect();
+                client.createSession();
                 console.log("-----", i);
             } catch (err) {
-                if (doDebug) {
+                if (true || doDebug) {
                     console.log(err.message);
                 }
             }

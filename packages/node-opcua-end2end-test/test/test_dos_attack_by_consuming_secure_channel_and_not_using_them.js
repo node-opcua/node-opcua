@@ -59,7 +59,7 @@ describe("testing Server resilience to DDOS attacks", function () {
         server = new OPCUAServer({
             port,
             serverCertificateManager,
-            maxConnectionsPerEndpoint: maxConnectionsPerEndpoint,
+            maxConnectionsPerEndpoint,
             serverCapabilities: {
                 maxSessions
             }
