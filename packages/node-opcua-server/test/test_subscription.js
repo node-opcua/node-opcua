@@ -54,7 +54,9 @@ describe("Subscriptions", function () {
                 maxKeepAliveCount: 20,
                 lifeTimeCount: 60, // at least 3 times maxKeepAliveCount
                 //
-                publishEngine: fake_publish_engine
+                publishEngine: fake_publish_engine,
+                globalCounter: { totalMonitoredItemCount: 0 },
+                serverCapabilities: { maxMonitoredItems: 10000, maxMonitoredItemsPerSubscription: 1000 }
             });
             subscription1.maxKeepAliveCount.should.eql(20);
             subscription1.lifeTimeCount.should.eql(
@@ -71,7 +73,9 @@ describe("Subscriptions", function () {
                 maxKeepAliveCount: 20,
                 lifeTimeCount: 1, // IS NOT at least 3 times maxKeepAliveCount
                 //
-                publishEngine: fake_publish_engine
+                publishEngine: fake_publish_engine,
+                globalCounter: { totalMonitoredItemCount: 0 },
+                serverCapabilities: { maxMonitoredItems: 10000, maxMonitoredItemsPerSubscription: 1000 }
             });
             subscription2.maxKeepAliveCount.should.eql(20);
             subscription2.lifeTimeCount.should.eql(60, "lifeTimeCount must be adjusted to be at least 3 times maxKeepAliveCount");
@@ -86,7 +90,9 @@ describe("Subscriptions", function () {
             maxKeepAliveCount: 20,
             lifeTimeCount: 60, // at least 3 times maxKeepAliveCount
             //
-            publishEngine: fake_publish_engine
+            publishEngine: fake_publish_engine,
+            globalCounter: { totalMonitoredItemCount: 0 },
+            serverCapabilities: { maxMonitoredItems: 10000, maxMonitoredItemsPerSubscription: 1000 }
         });
 
         // pretend we have received 10 PublishRequest from client
@@ -140,7 +146,9 @@ describe("Subscriptions", function () {
             publishingInterval: 1000,
             maxKeepAliveCount: 20,
             lifeTimeCount: 60, // at least 3 times maxKeepAliveCount
-            publishEngine: fake_publish_engine
+            publishEngine: fake_publish_engine,
+            globalCounter: { totalMonitoredItemCount: 0 },
+            serverCapabilities: { maxMonitoredItems: 10000, maxMonitoredItemsPerSubscription: 1000 }
         });
         subscription.maxKeepAliveCount.should.eql(20);
 
@@ -197,7 +205,9 @@ describe("Subscriptions", function () {
             maxKeepAliveCount: 20,
             lifeTimeCount: 60, // at least 3 times maxKeepAliveCount
             //
-            publishEngine: fake_publish_engine
+            publishEngine: fake_publish_engine,
+            globalCounter: { totalMonitoredItemCount: 0 },
+            serverCapabilities: { maxMonitoredItems: 10000, maxMonitoredItemsPerSubscription: 1000 }
         });
         // pretend we have received 10 PublishRequest from client
         fake_publish_engine.pendingPublishRequestCount = 10;
@@ -245,7 +255,9 @@ describe("Subscriptions", function () {
             lifeTimeCount: 100000, // very long lifeTimeCount not to be bother by client not pinging us
             maxKeepAliveCount: 4,
             //
-            publishEngine: fake_publish_engine
+            publishEngine: fake_publish_engine,
+            globalCounter: { totalMonitoredItemCount: 0 },
+            serverCapabilities: { maxMonitoredItems: 10000, maxMonitoredItemsPerSubscription: 1000 }
         });
 
         subscription.state.should.eql(SubscriptionState.CREATING);
@@ -395,7 +407,9 @@ describe("Subscriptions", function () {
                 maxKeepAliveCount: 10,
                 lifeTimeCount: 30,
                 publishingEnabled: true,
-                publishEngine: publish_engine
+                publishEngine: publish_engine,
+                globalCounter: { totalMonitoredItemCount: 0 },
+                serverCapabilities: { maxMonitoredItems: 10000, maxMonitoredItemsPerSubscription: 1000 }
             });
             publish_engine.add_subscription(subscription);
 
@@ -569,7 +583,9 @@ describe("Subscriptions", function () {
             publishingInterval: 1000,
             maxKeepAliveCount: 20,
             //
-            publishEngine: fake_publish_engine
+            publishEngine: fake_publish_engine,
+            globalCounter: { totalMonitoredItemCount: 0 },
+            serverCapabilities: { maxMonitoredItems: 10000, maxMonitoredItemsPerSubscription: 1000 }
         });
 
         const expire_event_spy = sinon.spy();
@@ -595,7 +611,9 @@ describe("Subscriptions", function () {
             publishingInterval: 1000,
             maxKeepAliveCount: 20,
             //
-            publishEngine: fake_publish_engine
+            publishEngine: fake_publish_engine,
+            globalCounter: { totalMonitoredItemCount: 0 },
+            serverCapabilities: { maxMonitoredItems: 10000, maxMonitoredItemsPerSubscription: 1000 }
         });
 
         const expire_event_spy = sinon.spy();
@@ -631,7 +649,9 @@ describe("Subscriptions", function () {
             lifeTimeCount: 100000, // very large lifetime not to be bother by client not pinging us
             maxKeepAliveCount: 20,
             //
-            publishEngine: fake_publish_engine
+            publishEngine: fake_publish_engine,
+            globalCounter: { totalMonitoredItemCount: 0 },
+            serverCapabilities: { maxMonitoredItems: 10000, maxMonitoredItemsPerSubscription: 1000 }
         });
 
         const expire_event_spy = sinon.spy();
@@ -676,7 +696,9 @@ describe("Subscriptions", function () {
             maxKeepAliveCount: 20,
             //
             publishEngine: fake_publish_engine,
-            maxNotificationsPerPublish: 2 //
+            maxNotificationsPerPublish: 2, //
+            globalCounter: { totalMonitoredItemCount: 0 },
+            serverCapabilities: { maxMonitoredItems: 10000, maxMonitoredItemsPerSubscription: 1000 }
         });
 
         subscription.maxNotificationsPerPublish.should.eql(2);
@@ -719,7 +741,9 @@ describe("Subscriptions", function () {
             lifeTimeCount: 1000,
             maxKeepAliveCount: 20,
             //
-            publishEngine: fake_publish_engine
+            publishEngine: fake_publish_engine,
+            globalCounter: { totalMonitoredItemCount: 0 },
+            serverCapabilities: { maxMonitoredItems: 10000, maxMonitoredItemsPerSubscription: 1000 }
         });
         fake_publish_engine.pendingPublishRequestCount = 10;
 
@@ -751,7 +775,9 @@ describe("Subscriptions", function () {
                 lifeTimeCount: 1000,
                 maxKeepAliveCount: 20,
                 //
-                publishEngine: fake_publish_engine
+                publishEngine: fake_publish_engine,
+                globalCounter: { totalMonitoredItemCount: 0 },
+                serverCapabilities: { maxMonitoredItems: 10000, maxMonitoredItemsPerSubscription: 1000 }
             });
 
             const _send_response_spy = sinon.spy(fake_publish_engine, "_send_response");
@@ -804,7 +830,9 @@ describe("Subscriptions", function () {
                 lifeTimeCount: 1000,
                 maxKeepAliveCount: 20,
                 //
-                publishEngine: fake_publish_engine
+                publishEngine: fake_publish_engine,
+                globalCounter: { totalMonitoredItemCount: 0 },
+                serverCapabilities: { maxMonitoredItems: 10000, maxMonitoredItemsPerSubscription: 1000 }
             });
 
             const monitoredItem = add_mock_monitored_item(subscription);
@@ -844,7 +872,9 @@ describe("Subscriptions", function () {
                 lifeTimeCount: 1000,
                 maxKeepAliveCount: 20,
                 //
-                publishEngine: fake_publish_engine
+                publishEngine: fake_publish_engine,
+                globalCounter: { totalMonitoredItemCount: 0 },
+                serverCapabilities: { maxMonitoredItems: 10000, maxMonitoredItemsPerSubscription: 1000 }
             });
             // create a notification at t=0
             subscription.addNotificationMessage(fakeNotificationData);
@@ -878,7 +908,9 @@ describe("Subscriptions", function () {
             publishingInterval: 100,
             maxKeepAliveCount: 20,
             lifeTimeCount: 10,
-            publishEngine: fake_publish_engine
+            publishEngine: fake_publish_engine,
+            globalCounter: { totalMonitoredItemCount: 0 },
+            serverCapabilities: { maxMonitoredItems: 10000, maxMonitoredItemsPerSubscription: 1000 }
         });
 
         const notification_event_spy = sinon.spy();
@@ -934,7 +966,9 @@ describe("Subscriptions", function () {
             publishingInterval: 1000,
             maxKeepAliveCount: 20,
             //
-            publishEngine: fake_publish_engine
+            publishEngine: fake_publish_engine,
+            globalCounter: { totalMonitoredItemCount: 0 },
+            serverCapabilities: { maxMonitoredItems: 10000, maxMonitoredItemsPerSubscription: 1000 }
         });
         const monitoredItem = add_mock_monitored_item(subscription);
 
@@ -972,7 +1006,9 @@ describe("Subscriptions", function () {
 
     it("T15 - the first Notification Message sent on a Subscription has a sequence number of 1.", function () {
         const subscription = new Subscription({
-            publishEngine: fake_publish_engine
+            publishEngine: fake_publish_engine,
+            globalCounter: { totalMonitoredItemCount: 0 },
+            serverCapabilities: { maxMonitoredItems: 10000, maxMonitoredItemsPerSubscription: 1000 }
         });
         subscription._get_future_sequence_number().should.equal(1);
         subscription._get_next_sequence_number().should.equal(1);
@@ -986,7 +1022,9 @@ describe("Subscriptions", function () {
 
     it("T16 - should return BadMonitorItemInvalid when trying to remove a monitored item that doesn't exist", function () {
         const subscription = new Subscription({
-            publishEngine: fake_publish_engine
+            publishEngine: fake_publish_engine,
+            globalCounter: { totalMonitoredItemCount: 0 },
+            serverCapabilities: { maxMonitoredItems: 10000, maxMonitoredItemsPerSubscription: 1000 }
         });
         subscription.removeMonitoredItem(26).should.eql(StatusCodes.BadMonitoredItemIdInvalid);
 
@@ -1019,7 +1057,9 @@ describe("Subscription#setPublishingMode", function () {
             maxKeepAliveCount: 5,
             lifeTimeCount: 10,
             publishingEnabled: true, //  PUBLISHING IS ENABLED !!!
-            publishEngine: fake_publish_engine
+            publishEngine: fake_publish_engine,
+            globalCounter: { totalMonitoredItemCount: 0 },
+            serverCapabilities: { maxMonitoredItems: 10000, maxMonitoredItemsPerSubscription: 1000 }
         });
 
         const monitoredItem = add_mock_monitored_item(subscription);
@@ -1084,7 +1124,9 @@ describe("Subscription#setPublishingMode", function () {
 
             publishingEnabled: false, //  PUBLISHING IS DISABLED !!!
 
-            publishEngine: fake_publish_engine
+            publishEngine: fake_publish_engine,
+            globalCounter: { totalMonitoredItemCount: 0 },
+            serverCapabilities: { maxMonitoredItems: 10000, maxMonitoredItemsPerSubscription: 1000 }
         });
         const notification_event_spy = sinon.spy();
         const keepalive_event_spy = sinon.spy();
@@ -1129,7 +1171,9 @@ describe("Subscription#setPublishingMode", function () {
             maxKeepAliveCount: 5,
             lifeTimeCount: 10,
             publishingEnabled: true, //  PUBLISHING IS ENABLED !!!
-            publishEngine: fake_publish_engine
+            publishEngine: fake_publish_engine,
+            globalCounter: { totalMonitoredItemCount: 0 },
+            serverCapabilities: { maxMonitoredItems: 10000, maxMonitoredItemsPerSubscription: 1000 }
         });
 
         const monitoredItem = add_mock_monitored_item(subscription);
@@ -1185,7 +1229,9 @@ describe("Subscription#setPublishingMode", function () {
             maxKeepAliveCount: 5,
             lifeTimeCount: 10,
             publishingEnabled: false, //  PUBLISHING IS DISABLED !!!
-            publishEngine: fake_publish_engine
+            publishEngine: fake_publish_engine,
+            globalCounter: { totalMonitoredItemCount: 0 },
+            serverCapabilities: { maxMonitoredItems: 10000, maxMonitoredItemsPerSubscription: 1000 }
         });
 
         const monitoredItem = add_mock_monitored_item(subscription);
@@ -1247,7 +1293,12 @@ describe("Subscription#adjustSamplingInterval", function () {
     });
 
     it("should adjust sampling interval to subscription publish interval when requested sampling interval === -1", function () {
-        const subscription = new Subscription({ publishingInterval: 1234, publishEngine: fake_publish_engine });
+        const subscription = new Subscription({
+            publishingInterval: 1234,
+            publishEngine: fake_publish_engine,
+            globalCounter: { totalMonitoredItemCount: 0 },
+            serverCapabilities: { maxMonitoredItems: 10000, maxMonitoredItemsPerSubscription: 1000 }
+        });
 
         subscription.adjustSamplingInterval(-1).should.eql(subscription.publishingInterval);
 
@@ -1264,7 +1315,12 @@ describe("Subscription#adjustSamplingInterval", function () {
     };
 
     it("should adjust sampling interval to subscription publish interval when requested sampling interval is a negative value !== -1", function () {
-        const subscription = new Subscription({ publishingInterval: 1234, publishEngine: fake_publish_engine });
+        const subscription = new Subscription({
+            publishingInterval: 1234,
+            publishEngine: fake_publish_engine,
+            globalCounter: { totalMonitoredItemCount: 0 },
+            serverCapabilities: { maxMonitoredItems: 10000, maxMonitoredItemsPerSubscription: 1000 }
+        });
         subscription.adjustSamplingInterval(-2, fake_node).should.eql(subscription.publishingInterval);
         subscription.adjustSamplingInterval(-0.02, fake_node).should.eql(subscription.publishingInterval);
 
@@ -1273,28 +1329,48 @@ describe("Subscription#adjustSamplingInterval", function () {
     });
 
     it("should leave sampling interval to 0 when requested sampling interval === 0 ( 0 means Event Based mode)", function () {
-        const subscription = new Subscription({ publishingInterval: 1234, publishEngine: fake_publish_engine });
+        const subscription = new Subscription({
+            publishingInterval: 1234,
+            publishEngine: fake_publish_engine,
+            globalCounter: { totalMonitoredItemCount: 0 },
+            serverCapabilities: { maxMonitoredItems: 10000, maxMonitoredItemsPerSubscription: 1000 }
+        });
         subscription.adjustSamplingInterval(0, fake_node).should.eql(0);
         subscription.terminate();
         subscription.dispose();
     });
 
     it("should adjust sampling interval to minimum when requested sampling interval === 1", function () {
-        const subscription = new Subscription({ publishingInterval: 1234, publishEngine: fake_publish_engine });
+        const subscription = new Subscription({
+            publishingInterval: 1234,
+            publishEngine: fake_publish_engine,
+            globalCounter: { totalMonitoredItemCount: 0 },
+            serverCapabilities: { maxMonitoredItems: 10000, maxMonitoredItemsPerSubscription: 1000 }
+        });
         subscription.adjustSamplingInterval(1, fake_node).should.eql(MonitoredItem.minimumSamplingInterval);
         subscription.terminate();
         subscription.dispose();
     });
 
     it("should adjust sampling interval to maximum when requested sampling interval is too high", function () {
-        const subscription = new Subscription({ publishingInterval: 1234, publishEngine: fake_publish_engine });
+        const subscription = new Subscription({
+            publishingInterval: 1234,
+            publishEngine: fake_publish_engine,
+            globalCounter: { totalMonitoredItemCount: 0 },
+            serverCapabilities: { maxMonitoredItems: 10000, maxMonitoredItemsPerSubscription: 1000 }
+        });
         subscription.adjustSamplingInterval(1e10, fake_node).should.eql(MonitoredItem.maximumSamplingInterval);
         subscription.terminate();
         subscription.dispose();
     });
 
     it("should return an unmodified sampling interval when requested sampling is in valid range", function () {
-        const subscription = new Subscription({ publishingInterval: 1234, publishEngine: fake_publish_engine });
+        const subscription = new Subscription({
+            publishingInterval: 1234,
+            publishEngine: fake_publish_engine,
+            globalCounter: { totalMonitoredItemCount: 0 },
+            serverCapabilities: { maxMonitoredItems: 10000, maxMonitoredItemsPerSubscription: 1000 }
+        });
         const someValidSamplingInterval = (MonitoredItem.maximumSamplingInterval + MonitoredItem.minimumSamplingInterval) / 2.0;
         subscription.adjustSamplingInterval(someValidSamplingInterval, fake_node).should.eql(someValidSamplingInterval);
         subscription.terminate();
@@ -1302,7 +1378,12 @@ describe("Subscription#adjustSamplingInterval", function () {
     });
 
     it("should adjust sampling interval the minimumSamplingInterval when requested sampling is too low", function () {
-        const subscription = new Subscription({ publishingInterval: 1234, publishEngine: fake_publish_engine });
+        const subscription = new Subscription({
+            publishingInterval: 1234,
+            publishEngine: fake_publish_engine,
+            globalCounter: { totalMonitoredItemCount: 0 },
+            serverCapabilities: { maxMonitoredItems: 10000, maxMonitoredItemsPerSubscription: 1000 }
+        });
         const someVeryLowSamplingInterval = 1;
         subscription
             .adjustSamplingInterval(someVeryLowSamplingInterval, fake_node)

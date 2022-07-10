@@ -75,7 +75,9 @@ describe("Testing the server publish engine", function (this: any) {
             lifeTimeCount: 1000,
             maxKeepAliveCount: 20,
             //
-            publishEngine: publish_server
+            publishEngine: publish_server,
+            globalCounter: {totalMonitoredItemCount: 0},
+            serverCapabilities: { maxMonitoredItems: 10, maxMonitoredItemsPerSubscription: 10 }
         });
 
         publish_server.add_subscription(subscription);
@@ -127,7 +129,9 @@ describe("Testing the server publish engine", function (this: any) {
             lifeTimeCount: 1000,
             maxKeepAliveCount: 20,
             //
-            publishEngine: serverSidePublishEngine
+            publishEngine: serverSidePublishEngine,
+            globalCounter: {totalMonitoredItemCount: 0},
+            serverCapabilities: { maxMonitoredItems: 10000, maxMonitoredItemsPerSubscription: 1000 }
         });
         serverSidePublishEngine.add_subscription(subscription);
         subscription.state.should.equal(SubscriptionState.CREATING);
@@ -212,7 +216,9 @@ describe("Testing the server publish engine", function (this: any) {
             lifeTimeCount: 100,
             maxKeepAliveCount: 20,
             //
-            publishEngine: publish_server
+            publishEngine: publish_server,
+            globalCounter: {totalMonitoredItemCount: 0},
+            serverCapabilities: { maxMonitoredItems: 10000, maxMonitoredItemsPerSubscription: 1000 }
         });
         publish_server.add_subscription(subscription);
         publish_server.subscriptionCount.should.equal(1);
@@ -236,7 +242,10 @@ describe("Testing the server publish engine", function (this: any) {
             lifeTimeCount: 1000,
             maxKeepAliveCount: 20,
             //
-            publishEngine: publish_server
+            publishEngine: publish_server,
+            globalCounter: {totalMonitoredItemCount: 0},
+            serverCapabilities: { maxMonitoredItems: 10000, maxMonitoredItemsPerSubscription: 1000 }
+
         });
         publish_server.add_subscription(subscription);
         publish_server.subscriptionCount.should.equal(1);
@@ -262,7 +271,10 @@ describe("Testing the server publish engine", function (this: any) {
             publishingInterval: 10000,
             maxKeepAliveCount: 500,
             lifeTimeCount: 2000,
-            publishEngine: publish_server
+            publishEngine: publish_server,
+            globalCounter: {totalMonitoredItemCount: 0},
+            serverCapabilities: { maxMonitoredItems: 10000, maxMonitoredItemsPerSubscription: 1000 }
+
         });
         publish_server.add_subscription(subscription);
 
@@ -331,7 +343,10 @@ describe("Testing the server publish engine", function (this: any) {
             lifeTimeCount: 1000,
             maxKeepAliveCount: 20,
             //
-            publishEngine: publish_server
+            publishEngine: publish_server,
+            globalCounter: {totalMonitoredItemCount: 0},
+            serverCapabilities: { maxMonitoredItems: 10000, maxMonitoredItemsPerSubscription: 1000 }
+
         });
         publish_server.add_subscription(subscription);
         const monitoredItem = add_mock_monitored_item(subscription);
@@ -434,7 +449,10 @@ describe("Testing the server publish engine", function (this: any) {
             lifeTimeCount: 1000,
             maxKeepAliveCount: 20,
             //
-            publishEngine: publishServer
+            publishEngine: publishServer,
+            globalCounter: {totalMonitoredItemCount: 0},
+            serverCapabilities: { maxMonitoredItems: 10000, maxMonitoredItemsPerSubscription: 1000 }
+
         });
         publishServer.add_subscription(subscription);
         const monitoredItem = add_mock_monitored_item(subscription);
@@ -482,7 +500,10 @@ describe("Testing the server publish engine", function (this: any) {
             publishingInterval: 1000,
             lifeTimeCount: 4,
             maxKeepAliveCount: 20,
-            publishEngine: publish_server
+            publishEngine: publish_server,
+            globalCounter: {totalMonitoredItemCount: 0},
+            serverCapabilities: { maxMonitoredItems: 10000, maxMonitoredItemsPerSubscription: 1000 }
+
         });
         publish_server.add_subscription(subscription);
 
@@ -537,7 +558,10 @@ describe("Testing the server publish engine", function (this: any) {
             lifeTimeCount: 4,
             maxKeepAliveCount: 20,
             publishEngine: publish_server,
-            maxNotificationsPerPublish: 0 // no limits
+            maxNotificationsPerPublish: 0, // no limits,
+            globalCounter: {totalMonitoredItemCount: 0},
+            serverCapabilities: { maxMonitoredItems: 10000, maxMonitoredItemsPerSubscription: 1000 }
+
         });
         publish_server.add_subscription(subscription);
         const monitoredItem = add_mock_monitored_item(subscription);
@@ -582,7 +606,10 @@ describe("Testing the server publish engine", function (this: any) {
             publishingInterval: 1000,
             lifeTimeCount: 60,
             maxKeepAliveCount: 20,
-            publishEngine: publish_server
+            publishEngine: publish_server,
+            globalCounter: {totalMonitoredItemCount: 0},
+            serverCapabilities: { maxMonitoredItems: 10000, maxMonitoredItemsPerSubscription: 1000 }
+
         });
         publish_server.add_subscription(subscription);
         const monitoredItem = add_mock_monitored_item(subscription);
@@ -612,7 +639,10 @@ describe("Testing the server publish engine", function (this: any) {
             publishingInterval: 1000,
             lifeTimeCount: 60,
             maxKeepAliveCount: 2,
-            publishEngine: publish_server
+            publishEngine: publish_server,
+            globalCounter: {totalMonitoredItemCount: 0},
+            serverCapabilities: { maxMonitoredItems: 10000, maxMonitoredItemsPerSubscription: 1000 }
+
         });
         publish_server.add_subscription(subscription);
         const monitoredItem = add_mock_monitored_item(subscription);
@@ -643,7 +673,10 @@ describe("Testing the server publish engine", function (this: any) {
             lifeTimeCount: 60,
             maxKeepAliveCount: 20,
             publishingEnabled: true,
-            publishEngine: publish_server
+            publishEngine: publish_server,
+            globalCounter: {totalMonitoredItemCount: 0},
+            serverCapabilities: { maxMonitoredItems: 10000, maxMonitoredItemsPerSubscription: 1000 }
+
         });
         subscription1.publishingInterval.should.eql(1000);
         subscription1.lifeTimeCount.should.eql(60);
@@ -670,7 +703,10 @@ describe("Testing the server publish engine", function (this: any) {
             lifeTimeCount: 120,
             maxKeepAliveCount: 20,
             publishingEnabled: true,
-            publishEngine: publish_server
+            publishEngine: publish_server,
+            globalCounter: {totalMonitoredItemCount: 0},
+            serverCapabilities: { maxMonitoredItems: 10000, maxMonitoredItemsPerSubscription: 1000 }
+
         });
         subscription2.publishingInterval.should.eql(100);
         subscription2.lifeTimeCount.should.eql(120);
@@ -683,7 +719,10 @@ describe("Testing the server publish engine", function (this: any) {
             lifeTimeCount: 1000,
             maxKeepAliveCount: 20,
             publishingEnabled: true,
-            publishEngine: publish_server
+            publishEngine: publish_server,
+            globalCounter: {totalMonitoredItemCount: 0},
+            serverCapabilities: { maxMonitoredItems: 10000, maxMonitoredItemsPerSubscription: 1000 }
+
         });
         subscription3.publishingInterval.should.eql(100); // !! Note that publishingInterval has been clamped in constructor
         subscription3.lifeTimeCount.should.eql(1000);
@@ -755,7 +794,10 @@ describe("Testing the server publish engine", function (this: any) {
             publishingInterval: 1000,
             lifeTimeCount: 60,
             maxKeepAliveCount: 20,
-            publishEngine: publish_server
+            publishEngine: publish_server,
+            globalCounter: {totalMonitoredItemCount: 0},
+            serverCapabilities: { maxMonitoredItems: 10000, maxMonitoredItemsPerSubscription: 1000 }
+
         });
         publish_server.add_subscription(subscription);
         const monitoredItem = add_mock_monitored_item(subscription);
@@ -797,7 +839,10 @@ describe("Testing the server publish engine", function (this: any) {
             publishingInterval: 1000,
             lifeTimeCount: 0,
             maxKeepAliveCount: 4,
-            publishEngine: publish_server
+            publishEngine: publish_server,
+            globalCounter: {totalMonitoredItemCount: 0},
+            serverCapabilities: { maxMonitoredItems: 10000, maxMonitoredItemsPerSubscription: 1000 }
+
         });
         subscription.maxKeepAliveCount.should.eql(4);
         subscription.lifeTimeCount.should.eql(12); // should be adjusted
@@ -847,7 +892,10 @@ describe("Testing the server publish engine", function (this: any) {
             publishingInterval: 1000,
             lifeTimeCount: 60,
             maxKeepAliveCount: 20,
-            publishEngine: publish_server
+            publishEngine: publish_server,
+            globalCounter: {totalMonitoredItemCount: 0},
+            serverCapabilities: { maxMonitoredItems: 10000, maxMonitoredItemsPerSubscription: 1000 }
+
         });
         publish_server.add_subscription(subscription);
         const monitoredItem = add_mock_monitored_item(subscription);
@@ -894,7 +942,10 @@ describe("Testing the server publish engine", function (this: any) {
             publishingInterval: 1000,
             lifeTimeCount: 4,
             maxKeepAliveCount: 20,
-            publishEngine: publish_server
+            publishEngine: publish_server,
+            globalCounter: {totalMonitoredItemCount: 0},
+            serverCapabilities: { maxMonitoredItems: 10000, maxMonitoredItemsPerSubscription: 1000 }
+
         });
         publish_server.add_subscription(subscription);
 

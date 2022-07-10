@@ -206,7 +206,10 @@ describe("SM1 - Subscriptions and MonitoredItems", function () {
         const subscription = new Subscription({
             publishingInterval: 1000,
             maxKeepAliveCount: 20,
-            publishEngine: fake_publish_engine
+            publishEngine: fake_publish_engine,
+            globalCounter: {totalMonitoredItemCount: 0},
+            serverCapabilities: { maxMonitoredItems: 10000, maxMonitoredItemsPerSubscription: 1000 }
+
         });
         subscription.on("monitoredItem", function (monitoredItem) {
             monitoredItem.samplingFunc = install_spying_samplingFunc();
@@ -246,7 +249,10 @@ describe("SM1 - Subscriptions and MonitoredItems", function () {
         const subscription = new Subscription({
             publishingInterval: 1000,
             maxKeepAliveCount: 20,
-            publishEngine: fake_publish_engine
+            publishEngine: fake_publish_engine,
+            globalCounter: {totalMonitoredItemCount: 0},
+            serverCapabilities: { maxMonitoredItems: 10000, maxMonitoredItemsPerSubscription: 1000 }
+
         });
         subscription.on("monitoredItem", function (monitoredItem) {
             monitoredItem.samplingFunc = install_spying_samplingFunc();
@@ -281,7 +287,9 @@ describe("SM1 - Subscriptions and MonitoredItems", function () {
         const subscription = new Subscription({
             publishingInterval: 1000,
             maxKeepAliveCount: 20,
-            publishEngine: fake_publish_engine
+            publishEngine: fake_publish_engine,
+            globalCounter: {totalMonitoredItemCount: 0},
+            serverCapabilities: { maxMonitoredItems: 10000, maxMonitoredItemsPerSubscription: 1000 }
         });
 
         subscription.on("monitoredItem", function (monitoredItem) {
@@ -344,7 +352,10 @@ describe("SM1 - Subscriptions and MonitoredItems", function () {
             maxKeepAliveCount: 20,
             publishEngine: publishEngine,
             publishingEnabled: true,
-            id: 1000
+            id: 1000,
+            globalCounter: {totalMonitoredItemCount: 0},
+            serverCapabilities: { maxMonitoredItems: 10000, maxMonitoredItemsPerSubscription: 1000 }
+
         });
         publishEngine.add_subscription(subscription);
 
@@ -439,7 +450,10 @@ describe("SM1 - Subscriptions and MonitoredItems", function () {
         const subscription = new Subscription({
             publishingInterval: 1000,
             maxKeepAliveCount: 20,
-            publishEngine: fake_publish_engine
+            publishEngine: fake_publish_engine,
+            globalCounter: {totalMonitoredItemCount: 0},
+            serverCapabilities: { maxMonitoredItems: 10000, maxMonitoredItemsPerSubscription: 1000 }
+
         });
         subscription.on("monitoredItem", function (monitoredItem) {
             monitoredItem.samplingFunc = install_spying_samplingFunc();
@@ -476,7 +490,10 @@ describe("SM1 - Subscriptions and MonitoredItems", function () {
             id: 42,
             publishingInterval: 1000,
             maxKeepAliveCount: 20,
-            publishEngine: fake_publish_engine
+            publishEngine: fake_publish_engine,
+            globalCounter: {totalMonitoredItemCount: 0},
+            serverCapabilities: { maxMonitoredItems: 10000, maxMonitoredItemsPerSubscription: 1000 }
+
         });
         subscription.on("monitoredItem", function (monitoredItem) {
             monitoredItem.samplingFunc = install_spying_samplingFunc();
@@ -679,7 +696,10 @@ describe("SM1 - Subscriptions and MonitoredItems", function () {
             publishingInterval: 250,
             maxKeepAliveCount: 10,
             id: 10000,
-            publishEngine: publishEngine
+            publishEngine: publishEngine,
+            globalCounter: {totalMonitoredItemCount: 0},
+            serverCapabilities: { maxMonitoredItems: 10000, maxMonitoredItemsPerSubscription: 1000 }
+
         });
         publishEngine.add_subscription(subscription1);
         subscription1.state.should.eql(SubscriptionState.CREATING);
@@ -701,7 +721,9 @@ describe("SM1 - Subscriptions and MonitoredItems", function () {
             id: 20000,
             publishingInterval: 1000,
             maxKeepAliveCount: 20,
-            publishEngine: publishEngine
+            publishEngine: publishEngine,
+            globalCounter: {totalMonitoredItemCount: 0},
+            serverCapabilities: { maxMonitoredItems: 10000, maxMonitoredItemsPerSubscription: 1000 }
         });
         publishEngine.add_subscription(subscription2);
 
@@ -719,7 +741,10 @@ describe("SM1 - Subscriptions and MonitoredItems", function () {
             id: 30000,
             publishingInterval: 5000,
             maxKeepAliveCount: 20,
-            publishEngine: publishEngine
+            publishEngine: publishEngine,
+            globalCounter: {totalMonitoredItemCount: 0},
+            serverCapabilities: { maxMonitoredItems: 10000, maxMonitoredItemsPerSubscription: 1000 }
+
         });
         publishEngine.add_subscription(subscription3);
 
@@ -747,7 +772,10 @@ describe("SM1 - Subscriptions and MonitoredItems", function () {
         const subscription = new Subscription({
             publishingInterval: 1000,
             maxKeepAliveCount: 20,
-            publishEngine: fake_publish_engine
+            publishEngine: fake_publish_engine,
+            globalCounter: {totalMonitoredItemCount: 0},
+            serverCapabilities: { maxMonitoredItems: 10000, maxMonitoredItemsPerSubscription: 1000 }
+
         });
         subscription.on("monitoredItem", function (monitoredItem) {
             monitoredItem.samplingFunc = install_spying_samplingFunc();
@@ -792,7 +820,10 @@ describe("SM1 - Subscriptions and MonitoredItems", function () {
             subscription = new Subscription({
                 publishingInterval: 1000,
                 maxKeepAliveCount: 20,
-                publishEngine: fake_publish_engine
+                publishEngine: fake_publish_engine,
+                globalCounter: {totalMonitoredItemCount: 0},
+                serverCapabilities: { maxMonitoredItems: 10000, maxMonitoredItemsPerSubscription: 1000 }
+    
             });
             subscription.id = 1000;
             //xx publishEngine.add_subscription(subscription);
@@ -972,7 +1003,10 @@ describe("SM1 - Subscriptions and MonitoredItems", function () {
             subscription = new Subscription({
                 publishingInterval: 1000,
                 maxKeepAliveCount: 20,
-                publishEngine: fake_publish_engine
+                publishEngine: fake_publish_engine,
+                globalCounter: {totalMonitoredItemCount: 0},
+                serverCapabilities: { maxMonitoredItems: 10000, maxMonitoredItemsPerSubscription: 1000 }
+    
             });
             subscription.id = 1000;
             //xx publishEngine.add_subscription(subscription);
@@ -1225,7 +1259,10 @@ describe("SM1 - Subscriptions and MonitoredItems", function () {
                 subscription = new Subscription({
                     publishingInterval: 1000,
                     maxKeepAliveCount: 20,
-                    publishEngine: fake_publish_engine
+                    publishEngine: fake_publish_engine,
+                    globalCounter: {totalMonitoredItemCount: 0},
+                    serverCapabilities: { maxMonitoredItems: 10000, maxMonitoredItemsPerSubscription: 1000 }
+        
                 });
                 subscription.on("monitoredItem", function (monitoredItem) {
                     monitoredItem.samplingFunc = install_spying_samplingFunc();
@@ -1296,7 +1333,10 @@ describe("SM1 - Subscriptions and MonitoredItems", function () {
                 subscription = new Subscription({
                     publishingInterval: 1000,
                     maxKeepAliveCount: 20,
-                    publishEngine: fake_publish_engine
+                    publishEngine: fake_publish_engine,
+                    globalCounter: {totalMonitoredItemCount: 0},
+                    serverCapabilities: { maxMonitoredItems: 10000, maxMonitoredItemsPerSubscription: 1000 }
+        
                 });
 
                 subscription.on("monitoredItem", function (monitoredItem) {
@@ -1433,7 +1473,10 @@ describe("SM2 - MonitoredItem advanced", function () {
     describe("SM2A - #maxNotificationsPerPublish", function () {
         it("should have a proper maxNotificationsPerPublish default value", (done) => {
             const subscription = new Subscription({
-                publishEngine: publishEngine
+                publishEngine: publishEngine,
+                globalCounter: {totalMonitoredItemCount: 0},
+                serverCapabilities: { maxMonitoredItems: 10000, maxMonitoredItemsPerSubscription: 1000 }
+    
             });
             subscription.on("monitoredItem", function (monitoredItem) {
                 monitoredItem.samplingFunc = install_spying_samplingFunc();
@@ -1488,7 +1531,9 @@ describe("SM2 - MonitoredItem advanced", function () {
                 maxKeepAliveCount: 20,
                 publishEngine: publishEngine,
                 maxNotificationsPerPublish: 4, // <<<< WE WANT NO MORE THAN 4 Notification per publish
-                id: 2
+                id: 2,
+                globalCounter: {totalMonitoredItemCount: 0},
+                serverCapabilities: { maxMonitoredItems: 10000, maxMonitoredItemsPerSubscription: 1000 }    
             });
             subscription.maxNotificationsPerPublish.should.eql(4);
 
@@ -1603,7 +1648,9 @@ describe("SM2 - MonitoredItem advanced", function () {
                 lifeTimeCount: 67,
                 publishingEnabled: true, //  PUBLISHING IS ENABLED !!!
                 publishEngine: fake_publish_engine,
-                sessionId: coerceNodeId("i=5;s=tmp")
+                sessionId: coerceNodeId("i=5;s=tmp"),
+                globalCounter: {totalMonitoredItemCount: 0},
+                serverCapabilities: { maxMonitoredItems: 10000, maxMonitoredItemsPerSubscription: 1000 }    
             });
 
             subscription.sessionId = 100;

@@ -3,8 +3,9 @@ require:
   - ../../node_modules/ts-node/register
   - ../../node_modules/should
 timeout: 60000
+enable-source-maps: true
 extension:
   - ts
   - js
 bail: true
-parallel: true
+parallel: false

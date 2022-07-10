@@ -10,7 +10,7 @@ import { AddressSpace, BaseNode, Duration, UAObjectType } from "node-opcua-addre
 import { checkSelectClauses } from "node-opcua-address-space";
 import { SessionContext } from "node-opcua-address-space";
 import { assert } from "node-opcua-assert";
-import { Byte } from "node-opcua-basic-types";
+import { Byte, UInt32 } from "node-opcua-basic-types";
 import { SubscriptionDiagnosticsDataType } from "node-opcua-common";
 import { NodeClass, AttributeIds, isValidDataEncoding } from "node-opcua-data-model";
 import { TimestampsToReturn } from "node-opcua-data-value";
@@ -312,6 +312,10 @@ function createSubscriptionDiagnostics(subscription: Subscription): Subscription
     return subscriptionDiagnostics as SubscriptionDiagnosticsDataTypePriv;
 }
 
+interface IGlobalMonitoredItemCounter {
+    totalMonitoredItemCount: number;
+}
+
 export interface SubscriptionOptions {
     sessionId?: NodeId;
     /**
@@ -342,6 +346,9 @@ export interface SubscriptionOptions {
      *  a unique identifier
      */
     id?: number;
+
+    serverCapabilities: ServerCapabilitiesPartial;
+    globalCounter: IGlobalMonitoredItemCounter;
 }
 
 let g_monitoredItemId = Math.ceil(Math.random() * 100000);
@@ -435,6 +442,11 @@ export interface MonitoredItemBase {
 export type CreateMonitoredItemHook = (subscription: Subscription, monitoredItem: MonitoredItemBase) => Promise<StatusCode>;
 export type DeleteMonitoredItemHook = (subscription: Subscription, monitoredItem: MonitoredItemBase) => Promise<StatusCode>;
 
+export interface ServerCapabilitiesPartial {
+    maxMonitoredItems: UInt32;
+    maxMonitoredItemsPerSubscription: UInt32;
+}
+
 /**
  * The Subscription class used in the OPCUA server side.
  */
@@ -443,7 +455,19 @@ export class Subscription extends EventEmitter {
     public static defaultPublishingInterval = 1000; // one second
     public static maximumPublishingInterval: number = 1000 * 60 * 60 * 24 * 15; // 15 days
     public static maxNotificationPerPublishHighLimit = 1000;
-    public static maxMonitoredItemCount = 20000;
+
+    /**
+     * maximum number of monitored item in a subscription to be used
+     * when serverCapacity.maxMonitoredItems and serverCapacity.maxMonitoredItemsPerSubscription are not set.
+     */
+    public static defaultMaxMonitoredItemCount = 20000;
+    
+    /**
+     * @deprecated use serverCapacity.maxMonitoredItems and serverCapacity.maxMonitoredItemsPerSubscription instead
+     */
+    protected static get maxMonitoredItemCount() {
+        return Subscription.defaultMaxMonitoredItemCount;
+    }
 
     public static registry = new ObjectRegistry();
 
@@ -507,6 +531,9 @@ export class Subscription extends EventEmitter {
     private timerId: any;
     private _hasUncollectedMonitoredItemNotifications = false;
 
+    private globalCounter: IGlobalMonitoredItemCounter;
+    private serverCapabilities: ServerCapabilitiesPartial;
+
     constructor(options: SubscriptionOptions) {
         super();
 
@@ -566,6 +593,12 @@ export class Subscription extends EventEmitter {
         this._start_timer();
 
         debugLog(chalk.green(`creating subscription ${this.id}`));
+
+        this.serverCapabilities = options.serverCapabilities;
+        this.serverCapabilities.maxMonitoredItems = this.serverCapabilities.maxMonitoredItems || Subscription.defaultMaxMonitoredItemCount;
+        this.serverCapabilities.maxMonitoredItemsPerSubscription =
+            this.serverCapabilities.maxMonitoredItemsPerSubscription || Subscription.defaultMaxMonitoredItemCount;
+        this.globalCounter = options.globalCounter;
     }
 
     public getSessionId(): NodeId {
@@ -968,12 +1001,16 @@ export class Subscription extends EventEmitter {
         if (statusCodeFilter !== StatusCodes.Good) {
             return handle_error(statusCodeFilter);
         }
-        // xx var monitoringMode      = monitoredItemCreateRequest.monitoringMode; // Disabled, Sampling, Reporting
-        // xx var requestedParameters = monitoredItemCreateRequest.requestedParameters;
+
         // do we have enough room for new monitored items ?
-        if (this.monitoredItemCount >= Subscription.maxMonitoredItemCount) {
+        if (this.monitoredItemCount >= this.serverCapabilities.maxMonitoredItemsPerSubscription) {
             return handle_error(StatusCodes.BadTooManyMonitoredItems);
         }
+
+        if (this.globalCounter.totalMonitoredItemCount >= this.serverCapabilities.maxMonitoredItems) {
+            return handle_error(StatusCodes.BadTooManyMonitoredItems);
+        }
+
         const createResult = this._createMonitoredItemStep2(timestampsToReturn, monitoredItemCreateRequest, node);
 
         assert(createResult.statusCode === StatusCodes.Good);
@@ -1052,6 +1089,7 @@ export class Subscription extends EventEmitter {
         this.emit("removeMonitoredItem", monitoredItem);
 
         delete this.monitoredItems[monitoredItemId];
+        this.globalCounter.totalMonitoredItemCount -= 1;
 
         this._removePendingNotificationsFor(monitoredItemId);
         // flush pending notifications
@@ -1724,7 +1762,10 @@ export class Subscription extends EventEmitter {
         monitoredItem.$subscription = this;
 
         assert(monitoredItem.monitoredItemId === monitoredItemId);
+
         this.monitoredItems[monitoredItemId] = monitoredItem;
+        this.globalCounter.totalMonitoredItemCount += 1;
+
         assert(monitoredItem.clientHandle !== 4294967295);
 
         const filterResult = _process_filter(node, requestedParameters.filter);

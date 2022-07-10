@@ -163,7 +163,10 @@ describe("Subscriptions and MonitoredItems and triggering", function (this: any)
 
             lifeTimeCount: 1000,
 
-            publishEngine: serverSidePublishEngine
+            publishEngine: serverSidePublishEngine,
+            globalCounter: {totalMonitoredItemCount: 0},
+            serverCapabilities: { maxMonitoredItems: 10000, maxMonitoredItemsPerSubscription: 1000 }
+
         });
         serverSidePublishEngine.add_subscription(subscription);
         subscription.state.should.equal(SubscriptionState.CREATING);
