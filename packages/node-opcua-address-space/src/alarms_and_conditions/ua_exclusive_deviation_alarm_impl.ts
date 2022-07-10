@@ -4,10 +4,9 @@
 import { assert } from "node-opcua-assert";
 import { DataValue } from "node-opcua-data-value";
 import { NodeId } from "node-opcua-nodeid";
-import { DataType } from "node-opcua-variant";
+import { DataType, VariantOptions } from "node-opcua-variant";
 import { UAExclusiveDeviationAlarm_Base } from "node-opcua-nodeset-ua";
-
-import { UAVariable, UAVariableT } from "../../source";
+import { UAVariable, UAVariableT } from "node-opcua-address-space-base";
 import { AddressSpace } from "../address_space";
 import { NamespacePrivate } from "../namespace_private";
 import {
@@ -20,7 +19,7 @@ import {
 } from "./deviation_alarm_helper";
 
 import { UAExclusiveLimitAlarmEx, UAExclusiveLimitAlarmImpl } from "./ua_exclusive_limit_alarm_impl";
-import { UALimitAlarmImpl } from "./ua_limit_alarm_impl";
+import { InstantiateLimitAlarmOptions, UALimitAlarmImpl } from "./ua_limit_alarm_impl";
 
 export interface UAExclusiveDeviationAlarmEx
     extends Omit<
@@ -43,12 +42,14 @@ export declare interface UAExclusiveDeviationAlarmImpl extends UAExclusiveDeviat
     on(eventName: string, eventHandler: any): this;
     get addressSpace(): AddressSpace;
 }
+
+export interface InstantiateExclusiveLimitAlarmOptions extends InstantiateLimitAlarmOptions, InstallSetPointOptions {}
 export class UAExclusiveDeviationAlarmImpl extends UAExclusiveLimitAlarmImpl implements UAExclusiveDeviationAlarmEx {
     public static instantiate(
         namespace: NamespacePrivate,
         type: string | NodeId,
-        options: any,
-        data: any
+        options: InstantiateExclusiveLimitAlarmOptions,
+        data?: Record<string, VariantOptions>
     ): UAExclusiveDeviationAlarmImpl {
         const addressSpace = namespace.addressSpace;
 

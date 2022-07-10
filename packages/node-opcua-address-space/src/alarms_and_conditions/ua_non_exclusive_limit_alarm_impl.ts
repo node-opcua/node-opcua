@@ -3,17 +3,16 @@
  * @module node-opcua-address-space.AlarmsAndConditions
  */
 import { assert } from "node-opcua-assert";
-import { LocalizedText } from "node-opcua-data-model";
 import { NodeId } from "node-opcua-nodeid";
-import { UANonExclusiveLimitAlarm_Base, UATwoStateVariable } from "node-opcua-nodeset-ua";
+import { UANonExclusiveLimitAlarm_Base } from "node-opcua-nodeset-ua";
 import { StatusCodes } from "node-opcua-status-code";
-
-import { UAEventType } from "../../source";
+import { VariantOptions } from "node-opcua-variant";
+import { UAEventType } from "node-opcua-address-space-base";
 import { UATwoStateVariableEx } from "../../source/ua_two_state_variable_ex";
 import { NamespacePrivate } from "../namespace_private";
 import { _install_TwoStateVariable_machinery } from "../state_machine/ua_two_state_variable";
 import { ConditionInfo } from "./condition_info";
-import { UALimitAlarmEx, UALimitAlarmImpl } from "./ua_limit_alarm_impl";
+import { InstantiateLimitAlarmOptions, UALimitAlarmEx, UALimitAlarmImpl } from "./ua_limit_alarm_impl";
 
 export interface UANonExclusiveLimitAlarmEx
     extends UALimitAlarmEx,
@@ -44,8 +43,8 @@ export class UANonExclusiveLimitAlarmImpl extends UALimitAlarmImpl implements UA
     public static instantiate(
         namespace: NamespacePrivate,
         type: UAEventType | NodeId | string,
-        options: any,
-        data: any
+        options: InstantiateLimitAlarmOptions,
+        data?: Record<string, VariantOptions>
     ): UANonExclusiveLimitAlarmImpl {
         const addressSpace = namespace.addressSpace;
 

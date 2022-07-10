@@ -4,8 +4,14 @@
 import { assert } from "node-opcua-assert";
 import { NodeId } from "node-opcua-nodeid";
 import { UADiscreteAlarm, UADiscreteAlarm_Base } from "node-opcua-nodeset-ua";
-import { INamespace, UAEventType } from "../../source";
-import { UAAlarmConditionEx, UAAlarmConditionHelper, UAAlarmConditionImpl } from "./ua_alarm_condition_impl";
+import { VariantOptions } from "node-opcua-variant";
+import { INamespace, UAEventType } from "node-opcua-address-space-base";
+import {
+    InstantiateAlarmConditionOptions,
+    UAAlarmConditionEx,
+    UAAlarmConditionHelper,
+    UAAlarmConditionImpl
+} from "./ua_alarm_condition_impl";
 
 export interface UADiscreteAlarmHelper extends UAAlarmConditionHelper {
     on(eventName: string, eventHandle: any): this;
@@ -59,8 +65,8 @@ export class UADiscreteAlarmImpl extends UAAlarmConditionImpl implements UADiscr
     public static instantiate(
         namespace: INamespace,
         discreteAlarmTypeId: UAEventType | NodeId | string,
-        options: any,
-        data: any
+        options: InstantiateAlarmConditionOptions,
+        data?: Record<string, VariantOptions>
     ): UADiscreteAlarmImpl {
         const addressSpace = namespace.addressSpace;
 

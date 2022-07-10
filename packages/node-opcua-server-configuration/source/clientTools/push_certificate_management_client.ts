@@ -535,6 +535,6 @@ export class ClientPushCertificateManagement implements PushCertificateManager {
         return this.getCertificateGroup("DefaultApplicationGroup");
     }
     public async getUserTokenGroup(): Promise<CertificateGroup> {
-        return this.getCertificateGroup("DefaultApplicationGroup");
+        return this.getCertificateGroup("DefaultUserTokenGroup");
     }
 }

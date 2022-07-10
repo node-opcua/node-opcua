@@ -8,10 +8,10 @@ import { NodeClass } from "node-opcua-data-model";
 import { DataValue } from "node-opcua-data-value";
 import { NodeId, sameNodeId } from "node-opcua-nodeid";
 import { StatusCodes } from "node-opcua-status-code";
-import { DataType } from "node-opcua-variant";
+import { DataType, VariantOptions } from "node-opcua-variant";
 import { UAAlarmCondition_Base } from "node-opcua-nodeset-ua";
+import { BaseNode, INamespace,UAEventType, UAVariable } from "node-opcua-address-space-base";
 
-import { BaseNode, INamespace, UAEventType, UAVariable } from "../../source";
 import { _install_TwoStateVariable_machinery } from "../state_machine/ua_two_state_variable";
 import { UAShelvedStateMachineEx, _clear_timer_if_any } from "../state_machine/ua_shelving_state_machine_ex";
 import { UATwoStateVariableEx } from "../../source/ua_two_state_variable_ex";
@@ -23,6 +23,7 @@ import {
     UAAcknowledgeableConditionHelper,
     UAAcknowledgeableConditionImpl
 } from "./ua_acknowledgeable_condition_impl";
+import { InstantiateConditionOptions } from "./ua_condition_impl";
 
 function _update_suppressedOrShelved(alarmNode: UAAlarmConditionImpl) {
     alarmNode.suppressedOrShelved.setValueFromSource({
@@ -65,14 +66,18 @@ export declare interface UAAlarmConditionImpl extends UAAlarmConditionEx, UAAckn
     on(eventName: string, eventHandler: any): this;
 }
 
+export interface InstantiateAlarmConditionOptions extends InstantiateConditionOptions {
+    maxTimeShelved?: number;
+    inputNode: BaseNode | NodeId;
+}
 export class UAAlarmConditionImpl extends UAAcknowledgeableConditionImpl implements UAAlarmConditionEx {
     public static MaxDuration = Math.pow(2, 31);
 
     public static instantiate(
         namespace: INamespace,
         alarmConditionTypeId: UAEventType | string | NodeId,
-        options: any,
-        data: any
+        options: InstantiateAlarmConditionOptions,
+        data?: Record<string, VariantOptions>
     ): UAAlarmConditionImpl {
         const addressSpace = namespace.addressSpace;
         // xx assert(Object.prototype.hasOwnProperty.call(options,"conditionOf")); // must provide a conditionOf
@@ -93,7 +98,7 @@ export class UAAlarmConditionImpl extends UAAcknowledgeableConditionImpl impleme
         options.optionals = options.optionals || [];
         if (Object.prototype.hasOwnProperty.call(options, "maxTimeShelved")) {
             options.optionals.push("MaxTimeShelved");
-            assert(isFinite(options.maxTimeShelved));
+            assert(isFinite(options.maxTimeShelved!));
         }
 
         assert(alarmConditionTypeBase === alarmConditionType || alarmConditionType.isSupertypeOf(alarmConditionTypeBase));
@@ -238,7 +243,7 @@ export class UAAlarmConditionImpl extends UAAcknowledgeableConditionImpl impleme
     /**
      * @deprecated use deactivateAlarm instead (with no s after de-activate)
      */
-    public desactivateAlarm(): void {
+    protected desactivateAlarm(): void {
         this.deactivateAlarm();
     }
 

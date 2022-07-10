@@ -4,14 +4,15 @@
 import { assert } from "node-opcua-assert";
 import { NodeId } from "node-opcua-nodeid";
 import { UAObject } from "node-opcua-address-space-base";
-import { UAExclusiveLimitAlarm, UAExclusiveLimitAlarm_Base } from "node-opcua-nodeset-ua";
-
-import { UAEventType, UAExclusiveLimitStateMachineEx } from "../../source";
+import { UAExclusiveLimitAlarm_Base } from "node-opcua-nodeset-ua";
+import { VariantOptions } from "node-opcua-variant";
+import { UAEventType } from "node-opcua-address-space-base";
 import { UATwoStateVariableEx } from "../../source/ua_two_state_variable_ex";
 import { NamespacePrivate } from "../namespace_private";
 import { promoteToStateMachine } from "../state_machine/finite_state_machine";
 import { UAShelvedStateMachineEx } from "../state_machine/ua_shelving_state_machine_ex";
-import { UALimitAlarmEx, UALimitAlarmHelper, UALimitAlarmImpl } from "./ua_limit_alarm_impl";
+import { UAExclusiveLimitStateMachineEx } from "../../source/interfaces/state_machine/ua_exclusive_limit_state_machine_type_ex";
+import { InstantiateLimitAlarmOptions, UALimitAlarmEx, UALimitAlarmHelper, UALimitAlarmImpl } from "./ua_limit_alarm_impl";
 
 const validState = ["HighHigh", "High", "Low", "LowLow", null];
 
@@ -49,8 +50,8 @@ export class UAExclusiveLimitAlarmImpl extends UALimitAlarmImpl implements UAExc
     public static instantiate(
         namespace: NamespacePrivate,
         type: UAEventType | string | NodeId,
-        options: any,
-        data: any
+        options: InstantiateLimitAlarmOptions,
+        data?: Record<string, VariantOptions>
     ): UAExclusiveLimitAlarmImpl {
         const addressSpace = namespace.addressSpace;
 

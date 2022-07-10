@@ -1,7 +1,7 @@
 /**
  * @module node-opcua-address-space.AlarmsAndConditions
  */
-import { UAExclusiveRateOfChangeAlarm, UAExclusiveRateOfChangeAlarm_Base } from "node-opcua-nodeset-ua";
+import { UAExclusiveRateOfChangeAlarm_Base } from "node-opcua-nodeset-ua";
 import { UAExclusiveLimitAlarmEx, UAExclusiveLimitAlarmImpl } from "./ua_exclusive_limit_alarm_impl";
 
 export interface UAExclusiveRateOfChangeAlarmEx
