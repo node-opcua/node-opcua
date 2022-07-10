@@ -182,9 +182,9 @@ export const defaultServerCapabilities: IServerCapabilities = {
 
     maxSessions: 10,
     maxSubscriptions: 100,
-    maxMonitoredItems: 1000000,
+    maxMonitoredItems: 1000000, // 1 million
     maxSubscriptionsPerSession: 10,
-    maxMonitoredItemsPerSubscription: 100000,
+    maxMonitoredItemsPerSubscription: 100000, // one hundred thousand
     maxSelectClauseParameters: 100,
     maxWhereClauseParameters: 100,
     maxMonitoredItemsQueueSize: 60000,

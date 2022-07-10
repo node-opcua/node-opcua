@@ -314,6 +314,7 @@ export class ServerEngine extends EventEmitter {
     private _applicationUri: string;
     private _expectedShutdownTime!: Date;
     private _serverStatus: ServerStatusDataType;
+    private _globalCounter: { totalMonitoredItemCount: number } = { totalMonitoredItemCount: 0 };
 
     constructor(options: ServerEngineOptions) {
         super();
@@ -2036,7 +2037,9 @@ export class ServerEngine extends EventEmitter {
             publishingEnabled: request.publishingEnabled,
             publishingInterval,
             // -------------------
-            sessionId: NodeId.nullNodeId
+            sessionId: NodeId.nullNodeId,
+            globalCounter: this._globalCounter,
+            serverCapabilities: this.serverCapabilities // shared
         });
 
         // add subscriptionDiagnostics
