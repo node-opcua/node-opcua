@@ -23,17 +23,25 @@ import { minDate } from "node-opcua-factory";
 import { coerceNodeId, makeNodeId, NodeId, resolveNodeId, sameNodeId } from "node-opcua-nodeid";
 import { CallbackT, StatusCode, StatusCodes } from "node-opcua-status-code";
 import { CallMethodResultOptions, TimeZoneDataType } from "node-opcua-types";
-import { DataType, Variant, VariantLike } from "node-opcua-variant";
-import { UAVariable, INamespace, ISessionContext, UAEventType, BaseNode, UAObject } from "node-opcua-address-space-base";
+import { DataType, Variant, VariantLike, VariantOptions } from "node-opcua-variant";
+import {
+    UAVariable,
+    INamespace,
+    ISessionContext,
+    UAEventType,
+    BaseNode,
+    UAObject,
+    InstantiateObjectOptions
+} from "node-opcua-address-space-base";
 import { UACondition_Base, UAConditionVariable, UACondition } from "node-opcua-nodeset-ua";
 
 import { ConditionInfoOptions } from "../../source/interfaces/alarms_and_conditions/condition_info_i";
+import { UATwoStateVariableEx } from "../../source/ua_two_state_variable_ex";
 import { AddressSpacePrivate } from "../address_space_private";
 import { _install_TwoStateVariable_machinery } from "../state_machine/ua_two_state_variable";
 import { UAObjectImpl } from "../ua_object_impl";
 import { UAVariableImpl } from "../ua_variable_impl";
 import { UAConditionType } from "../ua_condition_type";
-import { UATwoStateVariableEx } from "../../source/ua_two_state_variable_ex";
 import { UABaseEventHelper, UABaseEventImpl } from "./ua_base_event_impl";
 import { ConditionSnapshot } from "./condition_snapshot";
 
@@ -680,6 +688,11 @@ export class UAConditionImpl extends UABaseEventImpl implements UAConditionEx {
     }
 }
 
+export interface InstantiateConditionOptions extends InstantiateObjectOptions {
+    conditionOf?: UAObject | BaseNode | NodeId | null;
+    conditionClass?: UAObject | BaseNode | NodeId | null;
+    conditionName?: string;
+}
 /**
  * instantiate a Condition.
  * this will create the unique EventId and will set eventType
@@ -709,8 +722,8 @@ export class UAConditionImpl extends UABaseEventImpl implements UAConditionEx {
 function UACondition_instantiate(
     namespace: INamespace,
     conditionTypeId: UAEventType | NodeId | string,
-    options: any,
-    data: any
+    options: InstantiateConditionOptions,
+    data?: Record<string, VariantOptions>
 ): UAConditionEx {
     /* eslint max-statements: ["error", 100] */
     const addressSpace = namespace.addressSpace as AddressSpacePrivate;
@@ -766,7 +779,7 @@ function UACondition_instantiate(
     }
     if (options.conditionOf) {
         assert(Object.prototype.hasOwnProperty.call(options, "conditionOf")); // must provide a conditionOf
-        options.conditionOf = addressSpace._coerceNode(options.conditionOf);
+        options.conditionOf = addressSpace._coerceNode(options.conditionOf)!;
 
         // HasCondition References can be used in the Type definition of an Object or a Variable.
         assert(options.conditionOf.nodeClass === NodeClass.Object || options.conditionOf.nodeClass === NodeClass.Variable);
@@ -826,11 +839,11 @@ function UACondition_instantiate(
     conditionNode.enabledState.setValue(true);
 
     // set properties to in initial values
-    Object.keys(data).forEach((key: string) => {
+    Object.entries(data).forEach(([key, value]) => {
         const varNode = _getCompositeKey(conditionNode, key);
         assert(varNode.nodeClass === NodeClass.Variable);
 
-        const variant = new Variant(data[key]);
+        const variant = new Variant(value);
 
         // check that Variant DataType is compatible with the UAVariable dataType
         // xx var nodeDataType = addressSpace.findNode(varNode.dataType).browseName;
@@ -839,10 +852,7 @@ function UACondition_instantiate(
         if (!varNode._validate_DataType(variant.dataType)) {
             throw new Error(" Invalid variant dataType " + variant + " " + varNode.browseName.toString());
         }
-
-        const value = new Variant(data[key]);
-
-        varNode.setValueFromSource(value);
+        varNode.setValueFromSource(variant);
     });
 
     // bind condition methods -
@@ -880,7 +890,7 @@ function UACondition_instantiate(
     //    with the motor.
 
     if (options.conditionSource) {
-        options.conditionSource = addressSpace._coerceNode(options.conditionSource);
+        options.conditionSource = addressSpace._coerceNode(options.conditionSource)!;
         if (options.conditionSource.nodeClass !== NodeClass.Object && options.conditionSource.nodeClass !== NodeClass.Variable) {
             // tslint:disable:no-console
             console.log(options.conditionSource);
@@ -960,6 +970,9 @@ function UACondition_instantiate(
     if (options.conditionClass) {
         if (typeof options.conditionClass === "string") {
             options.conditionClass = addressSpace.findObjectType(options.conditionClass);
+            if (!options.conditionClass) {
+                throw new Error("cannot find condition class " + options.conditionClass);
+            }
         }
         const conditionClassNode = addressSpace._coerceNode(options.conditionClass);
         if (!conditionClassNode) {

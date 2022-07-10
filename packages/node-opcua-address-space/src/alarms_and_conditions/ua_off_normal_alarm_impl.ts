@@ -1,15 +1,17 @@
 /**
  * @module node-opcua-address-space.AlarmsAndConditions
  */
+import { INamespace, UAVariable } from "node-opcua-address-space-base";
 import { assert } from "node-opcua-assert";
 import { DataValue } from "node-opcua-data-value";
-import { NodeId } from "node-opcua-nodeid";
+import { NodeId, NodeIdLike } from "node-opcua-nodeid";
 import { UAOffNormalAlarm_Base } from "node-opcua-nodeset-ua";
 import { StatusCodes } from "node-opcua-status-code";
 import * as utils from "node-opcua-utils";
-import { DataType } from "node-opcua-variant";
-import { INamespace, UAVariable } from "../../source";
+import { DataType, VariantOptions } from "node-opcua-variant";
+
 import { AddressSpacePrivate } from "../address_space_private";
+import { InstantiateAlarmConditionOptions } from "./ua_alarm_condition_impl";
 import { UADiscreteAlarmEx, UADiscreteAlarmImpl } from "./ua_discrete_alarm_impl";
 
 function isEqual(value1: any, value2: any) {
@@ -37,6 +39,11 @@ export declare interface UAOffNormalAlarmEx
     setNormalStateValue(value: any): void;
 }
 
+
+export interface InstantiateOffNormalAlarmOptions extends InstantiateAlarmConditionOptions 
+{
+    normalState: NodeIdLike;
+}
 export declare interface UAOffNormalAlarmImpl extends UAOffNormalAlarmEx, UADiscreteAlarmImpl {
     on(eventName: string, eventHandler: any): this;
 }
@@ -54,8 +61,8 @@ export class UAOffNormalAlarmImpl extends UADiscreteAlarmImpl implements UAOffNo
     public static instantiate(
         namespace: INamespace,
         limitAlarmTypeId: string | NodeId,
-        options: any,
-        data: any
+        options: InstantiateOffNormalAlarmOptions,
+        data?: Record<string, VariantOptions>
     ): UAOffNormalAlarmImpl {
         const addressSpace = namespace.addressSpace as AddressSpacePrivate;
 

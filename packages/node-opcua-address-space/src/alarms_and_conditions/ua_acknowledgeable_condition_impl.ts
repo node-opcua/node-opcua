@@ -6,7 +6,7 @@ import { assert } from "node-opcua-assert";
 import { LocalizedText, LocalizedTextLike } from "node-opcua-data-model";
 import { NodeId } from "node-opcua-nodeid";
 import { CallbackT, StatusCode, StatusCodes } from "node-opcua-status-code";
-import { DataType, VariantLike } from "node-opcua-variant";
+import { DataType, VariantLike, VariantOptions } from "node-opcua-variant";
 import { INamespace, RaiseEventData, ISessionContext, UAEventType, UAMethod } from "node-opcua-address-space-base";
 import { CallMethodResultOptions } from "node-opcua-service-call";
 
@@ -16,6 +16,7 @@ import { _install_TwoStateVariable_machinery } from "../state_machine/ua_two_sta
 import { _setAckedState } from "./condition";
 import { ConditionSnapshot } from "./condition_snapshot";
 import { UAConditionHelper, UAConditionImpl, UAConditionEx } from "./ua_condition_impl";
+import { InstantiateAlarmConditionOptions } from "./ua_alarm_condition_impl";
 
 export interface UAAcknowledgeableConditionHelper extends UAConditionHelper {
     ///
@@ -53,8 +54,8 @@ export class UAAcknowledgeableConditionImpl extends UAConditionImpl implements U
     public static instantiate(
         namespace: INamespace,
         conditionTypeId: UAEventType | NodeId | string,
-        options: any,
-        data: any
+        options: InstantiateAlarmConditionOptions,
+        data?: Record<string, VariantOptions>
     ): UAAcknowledgeableConditionImpl {
         const conditionNode = UAConditionImpl.instantiate(
             namespace,
@@ -107,7 +108,9 @@ export class UAAcknowledgeableConditionImpl extends UAConditionImpl implements U
     }
 
     public static install_method_handle_on_type(addressSpace: AddressSpacePrivate): void {
-        const acknowledgeableConditionType = addressSpace.findEventType("AcknowledgeableConditionType") as unknown as UAAcknowledgeableCondition_Base;
+        const acknowledgeableConditionType = addressSpace.findEventType(
+            "AcknowledgeableConditionType"
+        ) as unknown as UAAcknowledgeableCondition_Base;
         assert(acknowledgeableConditionType !== null);
         acknowledgeableConditionType.acknowledge.bindMethod(_acknowledge_method);
         acknowledgeableConditionType.confirm?.bindMethod(_confirm_method);
@@ -297,7 +300,11 @@ export class UAAcknowledgeableConditionImpl extends UAConditionImpl implements U
     }
 }
 
-function _acknowledge_method(inputArguments: VariantLike[], context: ISessionContext, callback: CallbackT<CallMethodResultOptions>) {
+function _acknowledge_method(
+    inputArguments: VariantLike[],
+    context: ISessionContext,
+    callback: CallbackT<CallMethodResultOptions>
+) {
     UAConditionImpl.with_condition_method(
         inputArguments,
         context,
@@ -322,7 +329,7 @@ function _acknowledge_method(inputArguments: VariantLike[], context: ISessionCon
  *
  * @private
  */
-function _confirm_method(inputArguments: VariantLike[], context: ISessionContext,  callback: CallbackT<CallMethodResultOptions>) {
+function _confirm_method(inputArguments: VariantLike[], context: ISessionContext, callback: CallbackT<CallMethodResultOptions>) {
     UAConditionImpl.with_condition_method(
         inputArguments,
         context,

@@ -8,14 +8,18 @@ import { NodeClass } from "node-opcua-data-model";
 import { DataValue } from "node-opcua-data-value";
 import { make_warningLog } from "node-opcua-debug";
 import { NodeId } from "node-opcua-nodeid";
-import { UALimitAlarm_Base, UALimitAlarm } from "node-opcua-nodeset-ua";
+import { UALimitAlarm_Base } from "node-opcua-nodeset-ua";
 import { StatusCodes } from "node-opcua-status-code";
-import { DataType } from "node-opcua-variant";
+import { DataType, VariantOptions } from "node-opcua-variant";
 import { UATwoStateVariableEx } from "../../source/ua_two_state_variable_ex";
-
 import { NamespacePrivate } from "../namespace_private";
 import { UAShelvedStateMachineEx } from "../state_machine/ua_shelving_state_machine_ex";
-import { UAAlarmConditionEx, UAAlarmConditionHelper, UAAlarmConditionImpl } from "./ua_alarm_condition_impl";
+import {
+    InstantiateAlarmConditionOptions,
+    UAAlarmConditionEx,
+    UAAlarmConditionHelper,
+    UAAlarmConditionImpl
+} from "./ua_alarm_condition_impl";
 
 const warningLog = make_warningLog("AlarmsAndConditions");
 export interface UALimitAlarmHelper extends UAAlarmConditionHelper {
@@ -57,6 +61,14 @@ const uaLimitAlarmInputSupportedDataType: DataType[] = [
     DataType.UInt32
 ];
 
+export interface InstantiateLimitAlarmOptions extends InstantiateAlarmConditionOptions {
+    highHighLimit: number;
+    highLimit: number;
+    lowLimit: number;
+    lowLowLimit: number;
+    inputNode: UAVariable;
+}
+
 export class UALimitAlarmImpl extends UAAlarmConditionImpl implements UALimitAlarmEx {
     /**
      * @method (static)UALimitAlarm.instantiate
@@ -75,8 +87,8 @@ export class UALimitAlarmImpl extends UAAlarmConditionImpl implements UALimitAla
     public static instantiate(
         namespace: NamespacePrivate,
         limitAlarmTypeId: UAEventType | NodeId | string,
-        options: any,
-        data: any
+        options: InstantiateLimitAlarmOptions,
+        data?: Record<string, VariantOptions>
     ): UALimitAlarmImpl {
         const addressSpace = namespace.addressSpace;
 
@@ -139,13 +151,11 @@ export class UALimitAlarmImpl extends UAAlarmConditionImpl implements UALimitAla
         const dataType = addressSpace.findCorrespondingBasicDataType(options.inputNode.dataType);
 
         if (-1 === uaLimitAlarmInputSupportedDataType.indexOf(dataType)) {
-            const message =(
-                `UALimitAlarm.instantiate: inputNode must be of type ${uaLimitAlarmInputSupportedDataType
-                    .map((a) => DataType[a])
-                    .join("|")}, got ${DataType[dataType]}`
-            );
+            const message = `UALimitAlarm.instantiate: inputNode must be of type ${uaLimitAlarmInputSupportedDataType
+                .map((a) => DataType[a])
+                .join("|")}, got ${DataType[dataType]}`;
             warningLog(message);
-            throw(new Error(message));
+            throw new Error(message);
         }
 
         if (Object.prototype.hasOwnProperty.call(options, "highHighLimit")) {
