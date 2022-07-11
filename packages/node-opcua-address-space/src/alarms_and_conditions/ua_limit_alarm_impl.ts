@@ -275,7 +275,7 @@ export class UALimitAlarmImpl extends UAAlarmConditionImpl implements UALimitAla
         this.lowLowLimit.setValueFromSource({ dataType: DataType.Double, value });
     }
 
-    public _onInputDataValueChange(dataValue: DataValue): void {
+    protected _onInputDataValueChange(dataValue: DataValue): void {
         assert(dataValue instanceof DataValue);
 
         if (

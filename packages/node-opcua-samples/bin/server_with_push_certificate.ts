@@ -4,7 +4,7 @@
 import * as path from "path";
 import * as chalk from "chalk";
 
-import { nodesets, OPCUACertificateManager, OPCUAServer } from "node-opcua";
+import { makeRoles, nodesets, OPCUACertificateManager, OPCUAServer, OPCUAServerOptions, WellKnownRoles } from "node-opcua";
 import { CertificateManager } from "node-opcua-pki";
 import { installPushCertificateManagement } from "node-opcua-server-configuration";
 import * as yargs from "yargs";
@@ -21,27 +21,57 @@ const certificateManager = new OPCUACertificateManager({
     rootFolder: pkiFolder
 });
 
+const users = [
+    {
+        username: "user1",
+        password: "password1",
+        role: makeRoles([WellKnownRoles.AuthenticatedUser, WellKnownRoles.ConfigureAdmin, WellKnownRoles.SecurityAdmin])
+    },
+    { username: "user2", password: "password2", role: makeRoles([WellKnownRoles.AuthenticatedUser, WellKnownRoles.Operator]) }
+];
+
+const userManager = {
+    isValidUser(username: string, password: string) {
+        const uIndex = users.findIndex((x) => x.username === username);
+        if (uIndex < 0) {
+            return false;
+        }
+        if (users[uIndex].password !== password) {
+            return false;
+        }
+        return true;
+    },
+    getUserRoles(username: string) {
+        const uIndex = users.findIndex((x) => x.username === username);
+        if (uIndex < 0) {
+            return [];
+        }
+        const userRole = users[uIndex].role;
+        return userRole;
+    }
+};
 
 async function main() {
-
     const argv = await yargs.wrap(132).option("port", {
         alias: "p",
         default: "26543",
         describe: "port to listen"
     }).argv;
 
-
     const port = parseInt(argv.port, 10) || 26555;
 
-    const server_options = {
+    const serverOptions: OPCUAServerOptions = {
         port,
 
         nodeset_filename: [nodesets.standard],
 
-        serverCertificateManager: certificateManager
+        serverCertificateManager: certificateManager,
+        userCertificateManager: certificateManager,
+
+        userManager
     };
 
-    process.title = "Node OPCUA Server on port : " + server_options.port;
+    process.title = "Node OPCUA Server on port : " + serverOptions.port;
     const tmpFolder = path.join(__dirname, "../certificates/myApp");
 
     const applicationGroup = new CertificateManager({
@@ -49,26 +79,24 @@ async function main() {
     });
     await applicationGroup.initialize();
 
-    const server = new OPCUAServer(server_options);
+    const server = new OPCUAServer(serverOptions);
 
     console.log(" Configuration rootdir =  ", server.serverCertificateManager.rootDir);
-
     console.log(chalk.yellow("  server PID          :"), process.pid);
 
-    server.on("post_initialize", async () => {
-        const addressSpace = server.engine.addressSpace!;
-        // to do: expose new nodeid here
-        const ns = addressSpace.getNamespaceIndex("http://yourorganisation.org/my_data_type/");
+    await server.initialize();
 
-        await installPushCertificateManagement(addressSpace, {
-            applicationGroup: server.serverCertificateManager,
-            userTokenGroup: server.userCertificateManager,
+    const addressSpace = server.engine.addressSpace!;
+    // to do: expose new nodeid here
+    const ns = addressSpace.getNamespaceIndex("http://yourorganisation.org/my_data_type/");
 
-            applicationUri: server.serverInfo.applicationUri!
-        });
-
-        console.log("Certificate rejected folder ", server.serverCertificateManager.rejectedFolder);
+    await installPushCertificateManagement(addressSpace, {
+        applicationGroup: server.serverCertificateManager,
+        userTokenGroup: server.userCertificateManager,
+        applicationUri: server.serverInfo.applicationUri!
     });
+
+    console.log("Certificate rejected folder ", server.serverCertificateManager.rejectedFolder);
 
     try {
         await server.start();
@@ -83,7 +111,7 @@ async function main() {
     console.log(chalk.yellow("  endpointUrl         :"), chalk.cyan(endpointUrl));
     console.log(chalk.yellow("\n  server now waiting for connections. CTRL+C to stop"));
 
-    process.on("SIGINT", async () => {
+    process.once("SIGINT", async () => {
         // only work on linux apparently
         await server.shutdown(1000);
         console.log(chalk.red.bold(" shutting down completed "));

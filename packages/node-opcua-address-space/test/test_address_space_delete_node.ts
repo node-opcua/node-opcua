@@ -2,6 +2,7 @@ import * as should from "should";
 
 import { DataType } from "node-opcua-variant";
 import { nodesets } from "node-opcua-nodesets";
+import { EventNotifierFlags } from "node-opcua-address-space-base";
 
 import { AddressSpace, Namespace, UAObject, UAObjectType, UADiscreteAlarm, ensureDatatypeExtracted } from "..";
 import { generateAddressSpace } from "../nodeJS";
@@ -90,7 +91,7 @@ describe("AddressSpace#deleteNode-b", () => {
         if (alarmType.isAbstract) {
             throw new Error("Alarm Type cannot be abstract " + alarmType.browseName.toString());
         }
-        (deviceNode as any).eventNotifier = 1;
+        deviceNode.setEventNotifier(EventNotifierFlags.SubscribeToEvents);
 
         const options = {
             browseName,

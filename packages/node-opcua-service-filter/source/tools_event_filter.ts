@@ -98,8 +98,7 @@ export function constructEventFilter(arrayOfNames: string[] | string, conditionT
     }
 
     const filter = new EventFilter({
-        selectClauses: selectClauses,
-
+        selectClauses,
         whereClause: {
             // ContentFilter
             elements: [

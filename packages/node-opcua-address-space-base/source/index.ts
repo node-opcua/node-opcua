@@ -19,3 +19,4 @@ export * from "./ua_variable_type";
 export * from "./ua_view";
 export * from "./clone_options";
 export * from "./ua_property";
+export * from "./event_notifier_flags";

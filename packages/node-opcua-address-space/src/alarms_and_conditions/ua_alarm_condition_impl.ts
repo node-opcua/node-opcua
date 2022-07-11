@@ -330,7 +330,7 @@ export class UAAlarmConditionImpl extends UAAcknowledgeableConditionImpl impleme
         this._onInputDataValueChange(dataValue);
     }
 
-    public _onInputDataValueChange(newValue: DataValue): void {
+    protected _onInputDataValueChange(newValue: DataValue): void {
         // xx console.log("class=",this.constructor.name,this.browseName.toString());
         // xx throw new Error("_onInputDataValueChange must be overridden");
     }
