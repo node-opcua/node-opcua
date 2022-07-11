@@ -7,14 +7,15 @@ import { Variant } from "node-opcua-variant";
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 
 import { ClientMonitoredItem } from "../client_monitored_item";
+import { ClientSubscription } from "../client_subscription";
 import { ClientSession } from "../client_session";
 import { EventStuff, fieldsToJson } from "./client_alarm";
 import { ClientAlarmList } from "./client_alarm_list";
 import { extractConditionFields } from "./client_alarm_tools_extractConditionFields";
 import { callConditionRefresh } from "./client_tools";
 
-const doDebug = checkDebugFlag(__filename);
-const debugLog = make_debugLog(__filename);
+const doDebug = checkDebugFlag("A&E");
+const debugLog = make_debugLog("A&E");
 
 function r(_key: string, o: { dataType?: unknown; value?: unknown }) {
     if (o && o.dataType === "Null") {
@@ -22,10 +23,14 @@ function r(_key: string, o: { dataType?: unknown; value?: unknown }) {
     }
     return o;
 }
-
+interface ClientSessionPriv extends ClientSession {
+    $clientAlarmList: ClientAlarmList | null;
+    $monitoredItemForAlarmList: ClientMonitoredItem | null;
+    $subscriptionforAlarmList: ClientSubscription | null;
+}
 // ------------------------------------------------------------------------------------------------------------------------------
 export async function uninstallAlarmMonitoring(session: ClientSession): Promise<void> {
-    const _sessionPriv = session as any;
+    const _sessionPriv = session as ClientSessionPriv;
     if (!_sessionPriv.$clientAlarmList) {
         return;
     }
@@ -34,7 +39,7 @@ export async function uninstallAlarmMonitoring(session: ClientSession): Promise<
     mi.removeAllListeners();
 
     _sessionPriv.$monitoredItemForAlarmList = null;
-    await _sessionPriv.$subscriptionforAlarmList.terminate();
+    await _sessionPriv.$subscriptionforAlarmList!.terminate();
     _sessionPriv.$clientAlarmList = null;
     return;
 }
@@ -53,7 +58,7 @@ export async function uninstallAlarmMonitoring(session: ClientSession): Promise<
 
 // ------------------------------------------------------------------------------------------------------------------------------
 export async function installAlarmMonitoring(session: ClientSession): Promise<ClientAlarmList> {
-    const _sessionPriv = session as any;
+    const _sessionPriv = session as ClientSessionPriv;
     // create
     if (_sessionPriv.$clientAlarmList) {
         return _sessionPriv.$clientAlarmList;
@@ -89,17 +94,22 @@ export async function installAlarmMonitoring(session: ClientSession): Promise<Cl
     };
 
     // now create a event monitored Item
-    const event_monitoringItem = ClientMonitoredItem.create(
-        subscription,
-        itemToMonitor,
-        monitoringParameters,
-        TimestampsToReturn.Both
-    );
+    const eventMonitoringItem = await subscription.monitor(itemToMonitor, monitoringParameters, TimestampsToReturn.Both);
 
     const RefreshStartEventType = resolveNodeId("RefreshStartEventType").toString();
     const RefreshEndEventType = resolveNodeId("RefreshEndEventType").toString();
 
-    event_monitoringItem.on("changed", (eventFields: Variant[]) => {
+    const queueEvent: EventStuff[] = [];
+    function flushQueue() {
+        const q = [...queueEvent];
+        queueEvent.length = 0;
+        for (const pojo of q) {
+            clientAlarmList.update(pojo);
+        }
+    }
+
+    let inInit = true;
+    eventMonitoringItem.on("changed", (eventFields: Variant[]) => {
         debugLog("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx ---- ALARM RECEIVED");
         const pojo = fieldsToJson(fields, eventFields) as EventStuff;
         try {
@@ -113,7 +123,10 @@ export async function installAlarmMonitoring(session: ClientSession): Promise<Cl
                 // not a acknowledgeable condition
                 return;
             }
-            clientAlarmList.update(pojo);
+            queueEvent.push(pojo);
+            if (queueEvent.length === 1 && !inInit) {
+                setTimeout(() => flushQueue(), 10);
+            }
         } catch (err) {
             // tslint:disable-next-line: no-console
             console.log(JSON.stringify(pojo, r, " "));
@@ -139,7 +152,11 @@ export async function installAlarmMonitoring(session: ClientSession): Promise<Cl
     } catch (err) {
         console.log("Server may not implement condition refresh", (<Error>err).message);
     }
-    _sessionPriv.$monitoredItemForAlarmList = event_monitoringItem;
+    _sessionPriv.$monitoredItemForAlarmList = eventMonitoringItem;
+
+    setTimeout(() => flushQueue(), 10);
+    inInit = false;
+
     // also request updates
     return clientAlarmList;
 }

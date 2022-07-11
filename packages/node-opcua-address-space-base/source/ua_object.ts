@@ -9,6 +9,7 @@ import { BaseNode, IPropertyAndComponentHolder } from "./base_node";
 import { UAObjectType } from "./ua_object_type";
 import { IEventData, UAEventType } from "./ua_event_type";
 import { UAMethod } from "./ua_method";
+import { EventNotifierFlags } from "./event_notifier_flags";
 
 export type EventTypeLike = string | NodeId | UAEventType;
 
@@ -147,12 +148,13 @@ export interface EventRaiser {
     raiseEvent(eventType: EventTypeLike, eventData: RaiseEventData): void;
 }
 
+
 export interface UAObject extends BaseNode, EventRaiser, IPropertyAndComponentHolder {
     readonly nodeClass: NodeClass.Object;
     get parent(): BaseNode | null;
     get typeDefinitionObj(): UAObjectType;
     get typeDefinition(): NodeId;
-    readonly eventNotifier: number;
+    readonly eventNotifier: EventNotifierFlags;
     readonly hasMethods: boolean;
 
     //
@@ -170,6 +172,8 @@ export interface UAObject extends BaseNode, EventRaiser, IPropertyAndComponentHo
     raiseEvent(eventType: EventTypeLike | BaseNode, eventData: RaiseEventData): void;
 
     on(eventName: "event", eventHandler: (eventData: IEventData) => void): this;
+
+    setEventNotifier(eventNotifierFlags: EventNotifierFlags): void;
 
     clone(options: CloneOptions, optionalFilter?: CloneFilter, extraInfo?: CloneExtraInfo): UAObject;
 }

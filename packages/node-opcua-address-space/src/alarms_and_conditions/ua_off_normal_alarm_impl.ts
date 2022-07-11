@@ -32,16 +32,14 @@ export declare interface UAOffNormalAlarmEx
             | "suppressedState"
         >,
         UADiscreteAlarmEx {
-    getNormalStateNode(): UAVariable;
+    getNormalStateNode(): UAVariable | null;
 
     getNormalStateValue(): any;
 
     setNormalStateValue(value: any): void;
 }
 
-
-export interface InstantiateOffNormalAlarmOptions extends InstantiateAlarmConditionOptions 
-{
+export interface InstantiateOffNormalAlarmOptions extends InstantiateAlarmConditionOptions {
     normalState: NodeIdLike;
 }
 export declare interface UAOffNormalAlarmImpl extends UAOffNormalAlarmEx, UADiscreteAlarmImpl {
@@ -80,20 +78,36 @@ export class UAOffNormalAlarmImpl extends UADiscreteAlarmImpl implements UAOffNo
         const alarmNode = UADiscreteAlarmImpl.instantiate(namespace, limitAlarmTypeId, options, data) as UAOffNormalAlarmImpl;
         Object.setPrototypeOf(alarmNode, UAOffNormalAlarmImpl.prototype);
 
-        const inputNode = addressSpace._coerceNode(options.inputNode);
-        //       assert(inputNode, "Expecting a valid input node");
-
-        const normalState = addressSpace._coerceNode(options.normalState)! as UAVariable;
-        //       assert(normalState, "Expecting a valid normalState node");
-
-        const normalStateNodeId = normalState ? normalState.nodeId : new NodeId();
-        alarmNode.normalState.setValueFromSource({ dataType: DataType.NodeId, value: normalStateNodeId });
+        /**
+         * The InputNode Property provides the NodeId of the Variable the Value of which is used as primary input in
+         * the calculation of the Alarm state.
+         *
+         * If this Variable is not in the AddressSpace, a NULL NodeId shall be provided.
+         *
+         * In some systems, an Alarm may be calculated based on multiple Variables Values;
+         * it is up to the system to determine which Variable’s NodeId is used.
+         */
+        const inputNode = addressSpace._coerceNode(options.inputNode) as UAVariable | null;
+        // note: alarmNode.inputNode.readValue() already set by DiscreteAlarmImpl.instantiate
 
         if (inputNode) {
             // install inputNode Node monitoring for change
             alarmNode.installInputNodeMonitoring(options.inputNode);
         }
 
+        /**
+         * The NormalState Property is a Property that points to a Variable which has a value that corresponds to one
+         * of the possible values of the Variable pointed to by the InputNode Property where the NormalState Property
+         * Variable value is the value that is considered to be the normal state of the Variable pointed to by the InputNode
+         * Property. When the value of the Variable referenced by the InputNode Property is not equal to the value of the
+         * NormalState Property the Alarm is Active.
+         *
+         * If this Variable is not in the AddressSpace, a NULL NodeId shall be provided.
+         *
+         */
+        const normalState = addressSpace._coerceNode(options.normalState) as UAVariable | null;
+        const normalStateNodeId = normalState ? normalState.nodeId : new NodeId();
+        alarmNode.normalState.setValueFromSource({ dataType: DataType.NodeId, value: normalStateNodeId });
         alarmNode.normalState.on("value_changed", (newDataValue: DataValue /*, oldDataValue: DataValue*/) => {
             // The node that contains the normalState value has changed.
             //   we must remove the listener on current normalState and replace
@@ -107,7 +121,8 @@ export class UAOffNormalAlarmImpl extends UADiscreteAlarmImpl implements UAOffNo
                 alarmNode._onNormalStateDataValueChange(newDataValue);
             });
         }
-        alarmNode._updateAlarmState();
+
+        alarmNode._mayBe_updateAlarmState();
 
         return alarmNode;
     }
@@ -121,18 +136,23 @@ export class UAOffNormalAlarmImpl extends UADiscreteAlarmImpl implements UAOffNo
     // Property the Alarm is Active. If this Variable is not in the AddressSpace, a Null NodeId shall
     // be provided.
 
-    public getNormalStateNode(): UAVariable {
+    public getNormalStateNode(): UAVariable | null {
         const nodeId = this.normalState.readValue().value.value;
         const node = this.addressSpace.findNode(nodeId) as UAVariable;
-        assert(node, "getNormalStateNode ");
+        if (!node) {
+            return null;
+        }
         return node;
     }
 
     /**
      * @method getNormalStateValue
      */
-    public getNormalStateValue(): any {
+    public getNormalStateValue(): any | null {
         const normalStateNode = this.getNormalStateNode();
+        if (!normalStateNode) {
+            return null;
+        }
         return normalStateNode.readValue().value.value;
     }
 
@@ -145,24 +165,26 @@ export class UAOffNormalAlarmImpl extends UADiscreteAlarmImpl implements UAOffNo
         throw new Error("Not Implemented yet");
     }
 
-    public _updateAlarmState(normalStateValue?: any, inputValue?: any): void {
+    public updateAlarmState(isActive: boolean, message: string) {
+        if (isActive === this.activeState.getValue()) {
+            // no change => ignore !
+            return;
+        }
+        const stateName = isActive ? "Active" : "Inactive";
+        // also raise the event
+        this._signalNewCondition(stateName, isActive, message);
+    }
+
+    private _mayBe_updateAlarmState(normalStateValue?: any, inputValue?: any): void {
         if (utils.isNullOrUndefined(normalStateValue) || utils.isNullOrUndefined(inputValue)) {
             this.activeState.setValue(false);
             return;
         }
         const isActive = !isEqual(normalStateValue, inputValue);
-
-        if (isActive === this.activeState.getValue()) {
-            // no change => ignore !
-            return;
-        }
-
-        const stateName = isActive ? "Active" : "Inactive";
-        // also raise the event
-        this._signalNewCondition(stateName, isActive, "");
+        this.updateAlarmState(isActive, "automatique update");
     }
 
-    public _onInputDataValueChange(dataValue: DataValue): void {
+    protected _onInputDataValueChange(dataValue: DataValue): void {
         if (dataValue.statusCode !== StatusCodes.Good) {
             // what shall we do ?
             return;
@@ -173,7 +195,7 @@ export class UAOffNormalAlarmImpl extends UADiscreteAlarmImpl implements UAOffNo
         }
         const inputValue = dataValue.value.value;
         const normalStateValue = this.getNormalStateValue();
-        this._updateAlarmState(normalStateValue, inputValue);
+        this._mayBe_updateAlarmState(normalStateValue, inputValue);
     }
 
     protected _onNormalStateDataValueChange(dataValue: DataValue): void {
@@ -187,6 +209,6 @@ export class UAOffNormalAlarmImpl extends UADiscreteAlarmImpl implements UAOffNo
         }
         const normalStateValue = dataValue.value.value;
         const inputValue = this.getInputNodeValue();
-        this._updateAlarmState(normalStateValue, inputValue);
+        this._mayBe_updateAlarmState(normalStateValue, inputValue);
     }
 }

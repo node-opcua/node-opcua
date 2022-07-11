@@ -3,7 +3,7 @@ import { assert } from "node-opcua-assert";
 import { NodeId, resolveNodeId } from "node-opcua-nodeid";
 import { StatusCode, StatusCodes } from "node-opcua-status-code";
 import { lowerFirstLetter } from "node-opcua-utils";
-import { Variant } from "node-opcua-variant";
+import { DataType, Variant } from "node-opcua-variant";
 import { ClientSession } from "../client_session";
 
 export interface TVariant<T> extends Variant {
@@ -28,6 +28,7 @@ export interface ClientAlarm {
     fields: EventStuff;
     on(eventName: "changed", eventHandler: () => void): this;
     acknowledge(session: ClientSession, comment: string): Promise<StatusCode>;
+    getField(fieldName: string): Variant | null;
 }
 
 /**
@@ -61,6 +62,25 @@ export class ClientAlarm extends EventEmitter {
     }
     public getRetain(): boolean {
         return this.fields.retain.value;
+    }
+    public toString(): string {
+        return (
+            this.constructor.name +
+            ": " +
+            this.conditionId.toString() +
+            " " +
+            this.eventType.toString() +
+            " " +
+            Object.entries(this.fields)
+                .filter(([key, value]) => value.dataType !== DataType.Null)
+                .map(([key, value]) => key.padEnd(30) + "=" + value.toString())
+                .join("\n") +
+            "\n\n"
+        );
+    }
+
+    public getField(fieldName: string): Variant | null {
+        return (this.fields as any)[fieldName] || null;
     }
 }
 

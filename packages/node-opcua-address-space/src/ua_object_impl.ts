@@ -27,7 +27,8 @@ import {
     UAEventType,
     IEventData,
     defaultCloneFilter,
-    defaultCloneExtraInfo
+    defaultCloneExtraInfo,
+    EventNotifierFlags
 } from "node-opcua-address-space-base";
 
 import { BaseNodeImpl, InternalBaseNodeOptions } from "./base_node_impl";
@@ -35,8 +36,11 @@ import { _clone, ToStringBuilder, UAObject_toString } from "./base_node_private"
 import { apply_condition_refresh, ConditionRefreshCache } from "./apply_condition_refresh";
 
 export class UAObjectImpl extends BaseNodeImpl implements UAObject {
+    private _eventNotifier: EventNotifierFlags;
     public readonly nodeClass = NodeClass.Object;
-    public readonly eventNotifier: number;
+    public get eventNotifier(): EventNotifierFlags {
+        return this._eventNotifier;
+    }
     public readonly symbolicName: string | null;
 
     get typeDefinitionObj(): UAObjectType {
@@ -45,7 +49,7 @@ export class UAObjectImpl extends BaseNodeImpl implements UAObject {
 
     constructor(options: InternalBaseNodeOptions & { eventNotifier?: number; symbolicName?: string | null }) {
         super(options);
-        this.eventNotifier = options.eventNotifier || 0;
+        this._eventNotifier = options.eventNotifier || EventNotifierFlags.None;
         assert(typeof this.eventNotifier === "number" && isValidByte(this.eventNotifier));
         this.symbolicName = options.symbolicName || null;
     }
@@ -109,6 +113,10 @@ export class UAObjectImpl extends BaseNodeImpl implements UAObject {
 
     public getMethods(): UAMethod[] {
         return super.getMethods();
+    }
+
+    public setEventNotifier(eventNotifierFlags: EventNotifierFlags): void {
+        this._eventNotifier = eventNotifierFlags;
     }
 
     /**

@@ -20,9 +20,9 @@ import { ClientSubscription } from "../client_subscription";
 import { ClientSessionImpl } from "../private/client_session_impl";
 import { ClientSubscriptionImpl } from "../private/client_subscription_impl";
 
-const debugLog = make_debugLog(__filename);
-const doDebug = checkDebugFlag(__filename);
-const warningLog = make_warningLog(__filename);
+const debugLog = make_debugLog("A&E");
+const doDebug = checkDebugFlag("A&E");
+const warningLog = make_warningLog("A&E");
 
 
 export async function callConditionRefresh(subscription: ClientSubscription): Promise<void>;
@@ -68,7 +68,7 @@ export function callConditionRefresh(subscription: ClientSubscription, callback?
                     objectId: conditionTypeNodeId
                 };
 
-                doDebug && debugLog("Calling method ", methodToCall.toString());
+                doDebug && debugLog("Calling method ", new CallMethodRequest(methodToCall).toString());
                 theSession.call(methodToCall, (err: Error | null, result?: CallMethodResult) => {
                     if (err) {
                         return innerCallback(err);

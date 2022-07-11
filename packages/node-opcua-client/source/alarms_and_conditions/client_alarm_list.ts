@@ -5,8 +5,12 @@ import { ClientAlarm, EventStuff } from "./client_alarm";
 
 export interface ClientAlarmList {
     on(eventName: "alarmChanged", handler: (alarm: ClientAlarm) => void): this;
-    // tslint:disable-next-line: unified-signatures
+    on(eventName: "alarmDeleted", handler: (alarm: ClientAlarm) => void): this;
     on(eventName: "newAlarm", handler: (alarm: ClientAlarm) => void): this;
+
+    emit(eventName: "alarmChanged", alarm: ClientAlarm): boolean;
+    emit(eventName: "newAlarm", alarm: ClientAlarm): boolean;
+    emit(eventName: "alarmDeleted", alarm: ClientAlarm): boolean;
 }
 // maintain a set of alarm list for a client
 export class ClientAlarmList extends EventEmitter implements Iterable<ClientAlarm> {
@@ -55,7 +59,7 @@ export class ClientAlarmList extends EventEmitter implements Iterable<ClientAlar
             const newAlarm = new ClientAlarm(eventField);
             this._map[key] = newAlarm;
             this.emit("newAlarm", newAlarm);
-            this.emit("alarmChanged", alarm);
+            this.emit("alarmChanged", newAlarm);
         } else {
             alarm.update(eventField);
             this.emit("alarmChanged", alarm);

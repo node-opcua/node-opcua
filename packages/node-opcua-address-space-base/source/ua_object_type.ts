@@ -10,7 +10,7 @@ import { UAMethod } from "./ua_method";
 
 export interface InstantiateObjectOptions extends InstantiateOptions {
     //
-    conditionSource?: NodeId | BaseNode;
+    conditionSource?: NodeId | BaseNode | null;
     eventNotifier?: Byte;
     // for DataTypeEncodingType
     encodingOf?: NodeId | BaseNode;

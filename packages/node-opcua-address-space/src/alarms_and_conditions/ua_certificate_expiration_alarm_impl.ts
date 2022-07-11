@@ -1,13 +1,16 @@
 /**
  * @module node-opcua-address-space.AlarmsAndConditions
  */
-import { Certificate, exploreCertificate } from "node-opcua-crypto";
+import { Certificate, exploreCertificate, makeSHA1Thumbprint } from "node-opcua-crypto";
 import { DateTime, minOPCUADate } from "node-opcua-basic-types";
+import { make_warningLog } from "node-opcua-debug";
 import { DataType, VariantOptions } from "node-opcua-variant";
 import { UACertificateExpirationAlarm_Base } from "node-opcua-nodeset-ua";
 import { INamespace } from "node-opcua-address-space-base";
 import { UASystemOffNormalAlarmImpl } from "./ua_system_off_normal_alarm_impl";
 import { InstantiateOffNormalAlarmOptions } from "./ua_off_normal_alarm_impl";
+
+const warningLog = make_warningLog("AlarmsAndConditions");
 
 export interface UACertificateExpirationAlarmEx
     extends Omit<
@@ -44,12 +47,14 @@ export class UACertificateExpirationAlarmImpl extends UASystemOffNormalAlarmImpl
         options: InstantiateOffNormalAlarmOptions,
         data?: Record<string, VariantOptions>
     ): UACertificateExpirationAlarmImpl {
-        return UASystemOffNormalAlarmImpl.instantiate(
+        const alarm = UASystemOffNormalAlarmImpl.instantiate(
             namespace,
             alarmType || "CertificateExpirationAlarmType",
             options,
             data
         ) as UACertificateExpirationAlarmImpl;
+        Object.setPrototypeOf(alarm, UACertificateExpirationAlarmImpl.prototype);
+        return alarm;
     }
 
     public getExpirationDate(): DateTime {
@@ -61,10 +66,28 @@ export class UACertificateExpirationAlarmImpl extends UASystemOffNormalAlarmImpl
             dataType: DataType.DateTime,
             value
         });
-        if (value.getTime() <= Date.now() - this.getExpirationLimit()) {
-            this.activateAlarm();
+        const now = new Date();
+        const expirationLimit = this.getExpirationLimit();
+        const thumbprint = makeSHA1Thumbprint(this.getCertificate() || Buffer.alloc(0)).toString("hex");
+
+        if (value.getTime() <= now.getTime() - expirationLimit) {
+            if (!this.currentBranch().getActiveState()) {
+                warningLog(`CertificateExpirationAlarm:  becomes active, certificate ${thumbprint} endDate ${value.toUTCString()}`);
+            }
+            // also raise the event
+            if (value.getTime() <= now.getTime()) {
+                this.updateAlarmState(true, `certificate ${thumbprint} has expired : end date is ${value.toUTCString()}`);
+            } else {
+                this.updateAlarmState(true, `certificate ${thumbprint} is about to expire : end date is ${value.toString()}`);
+            }
         } else {
-            this.deactivateAlarm();
+            if (this.currentBranch().getActiveState()) {
+                warningLog(
+                    `CertificateExpirationAlarm:  becomes desactivated, certificate ${thumbprint} endDate ${value.toUTCString()}`
+                );
+            }
+            // also raise the event
+            this.updateAlarmState(false, "");
         }
     }
 

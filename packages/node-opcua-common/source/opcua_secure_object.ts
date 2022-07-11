@@ -12,7 +12,11 @@ export interface ICertificateKeyPairProvider {
     getCertificateChain(): Certificate;
     getPrivateKey(): PrivateKeyPEM;
 }
-
+export interface ICertificateKeyPairProviderPriv extends ICertificateKeyPairProvider {
+    $$certificate: null | Certificate;
+    $$certificateChain: null | Certificate;
+    $$privateKeyPEM: null | PrivateKeyPEM;
+}
 function _load_certificate(certificateFilename: string): Certificate {
     const der = readCertificate(certificateFilename);
     return der;
@@ -39,16 +43,8 @@ export class OPCUASecureObject extends EventEmitter implements ICertificateKeyPa
     public readonly certificateFile: string;
     public readonly privateKeyFile: string;
 
-    private certificate: null | Certificate;
-    private certificateChain: null | Certificate;
-    private privateKeyPEM: null | PrivateKeyPEM;
-
     constructor(options: IOPCUASecureObjectOptions) {
         super();
-        this.certificate = null;
-        this.certificateChain = null;
-        this.privateKeyPEM = null;
-
         assert(typeof options.certificateFile === "string");
         assert(typeof options.privateKeyFile === "string");
 
@@ -57,30 +53,33 @@ export class OPCUASecureObject extends EventEmitter implements ICertificateKeyPa
     }
 
     public getCertificate(): Certificate {
-        if (!this.certificate) {
+        const priv = this as unknown as ICertificateKeyPairProviderPriv;
+        if (!priv.$$certificate) {
             const certChain = this.getCertificateChain();
-            this.certificate = split_der(certChain)[0] as Certificate;
+            priv.$$certificate = split_der(certChain)[0] as Certificate;
         }
-        return this.certificate;
+        return priv.$$certificate;
     }
 
     public getCertificateChain(): Certificate {
-        if (!this.certificateChain) {
+        const priv = this as unknown as ICertificateKeyPairProviderPriv;
+        if (!priv.$$certificateChain) {
             assert(fs.existsSync(this.certificateFile), "Certificate file must exist :" + this.certificateFile);
-            this.certificateChain = _load_certificate(this.certificateFile);
-            if (this.certificateChain && this.certificateChain.length === 0) {
-                this.certificateChain = _load_certificate(this.certificateFile);
+            priv.$$certificateChain = _load_certificate(this.certificateFile);
+            if (priv.$$certificateChain && priv.$$certificateChain.length === 0) {
+                priv.$$certificateChain = _load_certificate(this.certificateFile);
                 throw new Error("Invalid certificate length = 0 " + this.certificateFile);
             }
         }
-        return this.certificateChain;
+        return priv.$$certificateChain;
     }
 
     public getPrivateKey(): PrivateKeyPEM {
-        if (!this.privateKeyPEM) {
+        const priv = this as unknown as ICertificateKeyPairProviderPriv;
+        if (!priv.$$privateKeyPEM) {
             assert(fs.existsSync(this.privateKeyFile), "private file must exist :" + this.privateKeyFile);
-            this.privateKeyPEM = _load_private_key_pem(this.privateKeyFile);
+            priv.$$privateKeyPEM = _load_private_key_pem(this.privateKeyFile);
         }
-        return this.privateKeyPEM;
+        return priv.$$privateKeyPEM;
     }
 }
