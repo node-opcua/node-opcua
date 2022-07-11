@@ -29,7 +29,7 @@ export async function initializeHelpers(prefix: string, n: number): Promise<stri
     } catch (err) {
         /** */
     }
-        try {
+    try {
         await fs.promises.mkdir(path.dirname(subfolder));
     } catch (err) {
         /** */
@@ -140,37 +140,64 @@ export async function produceCertificate(subfolder: string, certificateSigningRe
     return _produceCertificate(subfolder, certificateSigningRequest, startDate, validity);
 }
 
-let tmpGroup: CertificateManager;
-
 /**
  * createSomeCertificate create a certificate from a private key
  * @param certName
  */
-export async function createSomeCertificate(subfolder: string, certName: string): Promise<Buffer> {
-    if (!tmpGroup) {
-        tmpGroup = new CertificateManager({
-            location: path.join(subfolder, "tmp")
-        });
-        await tmpGroup.initialize();
-    }
-    const certFile = path.join(subfolder, certName);
+export async function createSomeCertificate(certificateManager: CertificateManager, certName: string): Promise<Buffer> {
+    const certFile = path.join(certificateManager.rootDir, certName);
 
     const fileExists: boolean = fs.existsSync(certFile);
+
+    const millisecondPerDay = 3600 * 24 * 1000;
+    const validity = 365;
+
     if (!fileExists) {
-        await tmpGroup.createSelfSignedCertificate({
+        await certificateManager.createSelfSignedCertificate({
             applicationUri: "applicationUri",
             subject: "CN=TOTO",
 
             dns: [],
 
             startDate: new Date(),
-            validity: 365,
-
+            validity,
             outputFile: certFile
         });
     }
 
     const content = await readFile(certFile, "utf-8");
     const certificate = convertPEMtoDER(content);
+    return certificate;
+}
+
+export async function createSomeOutdatedCertificate(
+    subfolder: string,
+    certificateManager: CertificateManager,
+    certName: string
+): Promise<Certificate> {
+    const now = Date.now();
+    const startDate = new Date(now - 3600 * 24 * 1000 * 365);
+    const validity = 10;
+
+    const resultCSR = await certificateManager.createCertificateRequest({
+        applicationUri: "applicationUri",
+        subject: "CN=TOTO",
+        dns: [],
+        startDate,
+        validity
+    });
+
+    const certificateAuthority = new CertificateAuthority({
+        keySize: 2048,
+        location: path.join(subfolder, "CA")
+    });
+    await certificateAuthority.initialize();
+    await certificateAuthority.signCertificateRequest(certName, resultCSR, {
+        applicationUri: "applicationUri",
+        startDate,
+        validity
+    });
+
+    const certificate = readCertificate(certName);
     return certificate;
 }

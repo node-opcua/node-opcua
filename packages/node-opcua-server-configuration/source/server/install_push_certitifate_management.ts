@@ -14,6 +14,7 @@ import { Certificate, convertPEMtoDER, makeSHA1Thumbprint, PrivateKeyPEM, split_
 import { checkDebugFlag, make_debugLog, make_errorLog } from "node-opcua-debug";
 import { getFullyQualifiedDomainName } from "node-opcua-hostname";
 import { ICertificateKeyPairProvider } from "node-opcua-secure-channel";
+import { ICertificateKeyPairProviderPriv } from "node-opcua-common";
 import { OPCUAServer, OPCUAServerEndPoint } from "node-opcua-server";
 import { ApplicationDescriptionOptions } from "node-opcua-types";
 import { installPushCertificateManagement } from "./push_certificate_manager_helpers";
@@ -26,16 +27,16 @@ const debugLog = make_debugLog("ServerConfiguration");
 const errorLog = make_errorLog("ServerConfiguration");
 const doDebug = checkDebugFlag("ServerConfiguration");
 
-export interface OPCUAServerPartial extends ICertificateKeyPairProvider {
+export interface OPCUAServerPartial extends ICertificateKeyPairProviderPriv  {
     serverInfo?: ApplicationDescriptionOptions;
     serverCertificateManager: OPCUACertificateManager;
     privateKeyFile: string;
     certificateFile: string;
+    $$certificate: null | Certificate;
+    $$certificateChain: null | Certificate;
+    $$privateKeyPEM: null | PrivateKeyPEM;
 
-    $$privateKeyPEM: PrivateKeyPEM;
-    $$certificate?: Certificate;
-    $$certificateChain: Certificate;
-}
+ }
 
 function getCertificate(this: OPCUAServerPartial): Certificate {
     if (!this.$$certificate) {
@@ -176,7 +177,7 @@ async function onCertificateChange(server: OPCUAServer) {
     _server.$$certificateChain = convertPEMtoDER(certificatePEM);
     _server.$$privateKeyPEM = privateKeyPEM;
     // note : $$certificate will be reconstructed on demand
-    _server.$$certificate = undefined;
+    _server.$$certificate = split_der(_server.$$certificateChain)[0];
 
     setTimeout(async () => {
         try {
@@ -190,7 +191,6 @@ async function onCertificateChange(server: OPCUAServer) {
 
             debugLog(chalk.yellow("channels have been closed -> client should reconnect "));
         } catch (err) {
-            // tslint:disable:no-console
             if (err instanceof Error) {
                 errorLog("Error in CertificateChanged handler ", err.message);
             }

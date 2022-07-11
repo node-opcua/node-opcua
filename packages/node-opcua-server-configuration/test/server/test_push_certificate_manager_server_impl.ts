@@ -4,7 +4,7 @@ import "should";
 
 const { readFile } = fs.promises;
 
-import { Certificate, convertPEMtoDER, exploreCertificate, makeSHA1Thumbprint, split_der } from "node-opcua-crypto";
+import { convertPEMtoDER, exploreCertificate, makeSHA1Thumbprint, split_der } from "node-opcua-crypto";
 import { CertificateManager, g_config } from "node-opcua-certificate-manager";
 import { StatusCodes } from "node-opcua-status-code";
 
@@ -16,26 +16,10 @@ import {
     produceCertificate,
     produceOutdatedCertificate
 } from "../helpers/fake_certificate_authority";
+import { getCertificateDER } from "../helpers/tools";
 
 g_config.silent = true;
 
-async function getCertificateDER(manager: CertificateManager): Promise<Certificate> {
-    const certificateFilename = path.join(manager.rootDir, "own/certs/certificate.pem");
-    const exists = fs.existsSync(certificateFilename);
-    if (!exists) {
-        await manager.createSelfSignedCertificate({
-            applicationUri: "SomeText",
-            dns: ["localhost"],
-            outputFile: certificateFilename,
-            startDate: new Date(),
-            subject: "/CN=fake",
-            validity: 100
-        });
-    }
-    const certificatePEM = await readFile(certificateFilename, "utf8");
-    const certificate = convertPEMtoDER(certificatePEM);
-    return certificate;
-}
 
 // make sure extra error checking is made on object constructions
 // tslint:disable-next-line:no-var-requires
@@ -48,9 +32,16 @@ describe("Testing Server Side PushCertificateManager", () => {
 
     let _folder: string;
     before(async () => {
-         _folder = await initializeHelpers("BB", 1);
-        cert1 = await createSomeCertificate(_folder, "cert1.pem");
-        cert2 = await createSomeCertificate(_folder, "cert2.pem");
+      
+        _folder = await initializeHelpers("BB", 1);
+      
+        const someClientCertificateManager = new CertificateManager({
+            location: path.join(_folder, "tmp")
+        });
+        await someClientCertificateManager.initialize();
+
+        cert1 = await createSomeCertificate(someClientCertificateManager, "cert1.pem");
+        cert2 = await createSomeCertificate(someClientCertificateManager, "cert2.pem");
     });
     before(async () => {
         const applicationGroup = new CertificateManager({

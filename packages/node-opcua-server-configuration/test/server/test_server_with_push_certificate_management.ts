@@ -5,8 +5,7 @@ import * as path from "path";
 import * as fs from "fs";
 import { hostname } from "os";
 import * as chalk from "chalk";
-const { readFile, writeFile } = fs.promises;
-import * as should from "should";
+import "should";
 import { OPCUACertificateManager } from "node-opcua-certificate-manager";
 import { ClientSession, makeApplicationUrn, OPCUAClient, UserIdentityInfoUserName } from "node-opcua-client";
 import { makeRoles } from "node-opcua-address-space";
@@ -27,12 +26,10 @@ import { checkDebugFlag, make_debugLog, make_errorLog } from "node-opcua-debug";
 import { NodeId } from "node-opcua-nodeid";
 import { nodesets } from "node-opcua-nodesets";
 import { MessageSecurityMode, SecurityPolicy } from "node-opcua-secure-channel";
-import { OPCUAServer, OPCUAServerEndPoint } from "node-opcua-server";
+import { OPCUAServer } from "node-opcua-server";
 import { StatusCodes } from "node-opcua-status-code";
 import { UserTokenType } from "node-opcua-types";
 import { dumpCertificate } from "node-opcua-pki";
-import { randomByteString } from "node-opcua-basic-types";
-
 import {
     initializeHelpers,
     produceCertificate,
@@ -44,7 +41,7 @@ import { installPushCertificateManagementOnServer } from "../..";
 import { ClientPushCertificateManagement } from "../..";
 import { certificateMatchesPrivateKey } from "../..";
 import { OPCUAServerPartial } from "../../source";
-import { createServerCertificateManager } from "../../../node-opcua-end2end-test/test_helpers/createServerCertificateManager";
+const { readFile } = fs.promises;
 
 const port = 20101;
 
@@ -588,7 +585,7 @@ describe("Testing server configured with push certificate management", () => {
 
         _server.$$privateKeyPEM = toPem(privateKey, "RSA PRIVATE KEY");
         _server.$$certificateChain = certificate;
-        _server.$$certificate = undefined;
+        _server.$$certificate = split_der(certificate)[0];
         await server.suspendEndPoints();
         await server.shutdownChannels();
         await server.resumeEndPoints();
