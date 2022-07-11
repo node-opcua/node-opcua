@@ -1,9 +1,12 @@
 import * as path from "path";
 import * as fs from "fs";
-import { readFile } from "fs/promises";
 
 import { CertificateManager } from "node-opcua-certificate-manager";
 import { Certificate, convertPEMtoDER } from "node-opcua-crypto";
+
+// node 14 onward:  import {  readFile, writeFile, readdir } from "fs/promises";
+const { readFile } = fs.promises;
+
 
 export async function getCertificateDER(manager: CertificateManager): Promise<Certificate> {
     const certificateFilename = path.join(manager.rootDir, "own/certs/certificate.pem");
