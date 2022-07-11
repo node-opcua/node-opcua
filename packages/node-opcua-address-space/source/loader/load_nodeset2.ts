@@ -55,6 +55,7 @@ import { NamespacePrivate } from "../../src/namespace_private";
 import { promoteObjectsAndVariables } from "./namespace_post_step";
 import { ensureDatatypeExtracted } from "./ensure_datatype_extracted";
 import { decodeXmlExtensionObject } from "./decode_xml_extension_object";
+import { makeSemverCompatible } from "./make_semver_compatible";
 
 const doDebug = checkDebugFlag(__filename);
 const debugLog = make_debugLog(__filename);
@@ -247,21 +248,7 @@ export function makeNodeSetParserEngine(addressSpace: IAddressSpace): NodeSet2Pa
             );
         return namespace;
     }
-
-    /**
-     * take a OPCUA version string and make it compliant with the semver specification
-     * @param version
-     * @returns
-     */
-    function makeSemverCompatible(version?: string): string {
-        version = version || "0.0.0";
-        const version_array = version.split(".").map((a) => parseInt(a, 10));
-
-        if (version_array.length === 2) {
-            version_array.push(0);
-        }
-        return version_array.map((a) => a.toString()).join(".");
-    }
+    
     function _add_namespace(model: Model) {
         if (model.requiredModels.length > 0) {
             // check that required models exist already in the address space
@@ -276,8 +263,18 @@ export function makeNodeSetParserEngine(addressSpace: IAddressSpace): NodeSet2Pa
                     );
                     throw new Error("LoadNodeSet : Cannot find namespace for " + requiredModel.modelUri);
                 }
-
-                if (semver.lt(makeSemverCompatible(existingNamespace.version), makeSemverCompatible(requiredModel.version))) {
+                /**
+                 *  from https://reference.opcfoundation.org/Core/docs/Part6/F.2/
+                 *  The version of the model defined in the UANodeSet.
+                 *  This is a human readable string and not intended for programmatic comparisons.
+                 *
+                 */
+                const isLowerVersion = (existingVersion: string, requiredVersion: string): boolean => {
+                    const existingSemver = makeSemverCompatible(existingVersion);
+                    const requiredSemver = makeSemverCompatible(requiredVersion);
+                    return semver.lt(existingSemver, requiredSemver);
+                };
+                if (isLowerVersion(existingNamespace.version, requiredModel.version)) {
                     errorLog(
                         "Expecting ",
                         requiredModel.modelUri,
