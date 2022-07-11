@@ -7,6 +7,7 @@ import { AttributeIds } from "node-opcua-basic-types";
 import { DataType } from "node-opcua-variant";
 import { AddressSpace, SessionContext, UAObject, UAVariable } from "..";
 import { generateAddressSpace } from "../nodeJS";
+import { DataSetMetaDataType } from "node-opcua-types";
 
 describe("Testing loading nodeset with extension objects values in types", () => {
     let addressSpace: AddressSpace;
@@ -69,8 +70,7 @@ describe("Testing loading nodeset with extension objects values in types", () =>
         console.log("otherConnections\n", otherConnections.toString());
         console.log("connection2WithOptionalFields\n", connection2WithOptionalFields.toString());
         console.log(otherConnections.readValue().toString());
-        
-        
+
         const otherConnectionsValue = otherConnections.readValue().value.value;
         otherConnectionsValue.should.be.instanceof(Array);
         otherConnectionsValue.length.should.eql(2);
@@ -539,5 +539,16 @@ describe("Testing loading nodeset with extension objects values in types", () =>
 
             exObjReloaded.toString().should.eql(scanResult.toString());
         }
+    });
+
+    it("LNEX6- should load nodeset with extension objects and GUID elements", async () => {
+        const doDebug = false;
+        const xml_file = path.join(__dirname, "../test_helpers/test_fixtures/nodeset_with_guid.xml");
+        await generateAddressSpace(addressSpace, [nodesets.standard, xml_file]);
+        const urlVariable = addressSpace.findNode("ns=1;i=6129")! as UAVariable;
+        const dataValue = urlVariable.readValue();
+        doDebug && console.log(dataValue.toString());
+        const ext = dataValue.value.value as DataSetMetaDataType;
+        ext.dataSetClassId.should.eql("f0ade254-0008-4960-bbe6-eaaf6308ada2");
     });
 });
