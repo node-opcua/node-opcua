@@ -95,6 +95,7 @@ function clamp(value: number, minValue: number, maxValue: number) {
 
 interface Parser<T> {
     value: T | null;
+    parent: any;
     text: string;
 }
 const partials: { [key: string]: ReaderStateParserLike } = {
@@ -103,6 +104,15 @@ const partials: { [key: string]: ReaderStateParserLike } = {
     String: {
         finish(this: Parser<string>) {
             this.value = this.text;
+        }
+    },
+    Guid: {
+        parser: {
+            String: {
+                finish(this: Parser<string>) {
+                    this.parent.value = this.text;
+                }
+            }
         }
     },
 
