@@ -1,4 +1,4 @@
-import { Byte, Int16, Int32, Int64, SByte, UAString, UInt16, UInt32 } from "node-opcua-basic-types";
+import { Byte, coerceInt64, coerceUInt64, Int16, Int32, Int64, SByte, UAString, UInt16, UInt32, UInt64 } from "node-opcua-basic-types";
 import { LocalizedTextLike, LocalizedTextOptions } from "node-opcua-data-model";
 import { make_debugLog, make_warningLog } from "node-opcua-debug";
 import { coerceNodeId, NodeId, NodeIdType, resolveNodeId } from "node-opcua-nodeid";
@@ -82,7 +82,7 @@ const localizedTextReader: ReaderStateParserLike = {
 };
 
 function clamp(value: number, minValue: number, maxValue: number) {
-    if (value < minValue) {
+    if (value< minValue) {
         warningLog(`invalid value range : ${value} < ${minValue} but should be [${minValue} , ${maxValue}]`);
         return minValue;
     }
@@ -171,8 +171,8 @@ const partials: { [key: string]: ReaderStateParserLike } = {
         }
     },
     Int64: {
-        finish(this: Parser<Int32>) {
-            this.value = parseInt(this.text, 10);
+        finish(this: Parser<Int64>) {
+            this.value = coerceInt64(parseInt(this.text, 10));
         }
     },
 
@@ -195,8 +195,8 @@ const partials: { [key: string]: ReaderStateParserLike } = {
     },
 
     UInt64: {
-        finish(this: Parser<UInt32>) {
-            this.value = parseInt(this.text, 10);
+        finish(this: Parser<UInt64>) {
+            this.value = coerceUInt64(parseInt(this.text, 10));
         }
     },
 

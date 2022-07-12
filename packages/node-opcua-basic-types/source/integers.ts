@@ -155,7 +155,7 @@ export function randomUInt64(): UInt64 {
     return [getRandomInt(0, 0xffffffff), getRandomInt(0, 0xffffffff)];
 }
 
-export function encodeUInt64(value: UInt64 | number, stream: OutputBinaryStream): void  {
+export function encodeUInt64(value: UInt64 | number, stream: OutputBinaryStream): void {
     if (typeof value === "number") {
         const arr = coerceUInt64(value);
         stream.writeUInt32(arr[1]);
@@ -173,6 +173,10 @@ export function decodeUInt64(stream: BinaryStream, value?: UInt64): UInt64 {
 }
 
 export function constructInt64(high: UInt32, low: UInt32): Int64 {
+    if (high === 0 && low < 0) {
+        high = 0xffffffff;
+        low = 0xffffffff + low + 1;
+    }
     assert(low >= 0 && low <= 0xffffffff);
     assert(high >= 0 && high <= 0xffffffff);
     return [high, low];
@@ -192,14 +196,24 @@ export function coerceUInt64(value: number | UInt64 | Int32 | string | null): UI
     }
     if (typeof value === "string") {
         v = value.split(",");
-        high = parseInt(v[0], 10);
-        low = parseInt(v[1], 10);
+        if (v.length === 1) {
+            // was a single string, good news ! BigInt can be used with nodejs >=12
+            let a = BigInt(value);
+            if (a < BigInt(0)) {
+                const mask = BigInt("0xFFFFFFFFFFFFFFFF");
+                a = (mask + a + BigInt(1)) & mask;
+            }
+            high = Number(a >> BigInt(32));
+            low = Number(a & BigInt(0xffffffff));
+        } else {
+            high = parseInt(v[0], 10);
+            low = parseInt(v[1], 10);
+        }
         return constructInt64(high, low);
     }
     if (value > 0xffffffff) {
         // beware : as per javascript, value is a double here !
         //          our conversion will suffer from some inaccuracy
-
         high = Math.floor(value / 0x100000000);
         low = value - high * 0x100000000;
         return constructInt64(high, low);

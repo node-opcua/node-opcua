@@ -17,7 +17,7 @@ import {
     UAVariableType
 } from "node-opcua-address-space-base";
 import { assert, renderError } from "node-opcua-assert";
-import { isValidGuid, StatusCodes } from "node-opcua-basic-types";
+import { coerceInt64, coerceUInt64, Int64, isValidGuid, StatusCodes, UInt64 } from "node-opcua-basic-types";
 import { EUInformation } from "node-opcua-data-access";
 import {
     AccessLevelFlag,
@@ -248,7 +248,7 @@ export function makeNodeSetParserEngine(addressSpace: IAddressSpace): NodeSet2Pa
             );
         return namespace;
     }
-    
+
     function _add_namespace(model: Model) {
         if (model.requiredModels.length > 0) {
             // check that required models exist already in the address space
@@ -966,6 +966,7 @@ export function makeNodeSetParserEngine(addressSpace: IAddressSpace): NodeSet2Pa
         return {
             finish(this: any) {
                 this.parent.parent.obj.value = {
+                    arrayType: VariantArrayType.Scalar,
                     dataType: (DataType as any)[type],
                     value: p(this.text)
                 };
@@ -1023,6 +1024,9 @@ export function makeNodeSetParserEngine(addressSpace: IAddressSpace): NodeSet2Pa
             ExtensionObject: ExtensionObjectParser;
         };
     }
+
+    const parseUInt64 = (str: string): UInt64 => coerceUInt64(str);
+    const parseInt64 = (str: string): Int64 => coerceInt64(str);
 
     const state_Variant = {
         init: () => {
@@ -1106,6 +1110,9 @@ export function makeNodeSetParserEngine(addressSpace: IAddressSpace): NodeSet2Pa
             UInt16: parser2("UInt16", parseInt),
             UInt32: parser2("UInt32", parseInt),
             UInt8: parser2("UInt8", parseInt),
+
+            UInt64: parser2("UInt64", parseUInt64),
+            Int64: parser2("Int64", parseInt64),
 
             ByteString: {
                 init(this: any) {

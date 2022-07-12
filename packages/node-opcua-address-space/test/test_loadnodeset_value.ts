@@ -3,7 +3,7 @@ import * as path from "path";
 import * as os from "os";
 import "should";
 import { nodesets } from "node-opcua-nodesets";
-import { AttributeIds } from "node-opcua-basic-types";
+import { AttributeIds, UInt64 } from "node-opcua-basic-types";
 import { DataSetMetaDataType } from "node-opcua-types";
 import { DataType } from "node-opcua-variant";
 import { AddressSpace, SessionContext, UAObject, UAVariable } from "..";
@@ -550,5 +550,24 @@ describe("Testing loading nodeset with extension objects values in types", () =>
         doDebug && console.log(dataValue.toString());
         const ext = dataValue.value.value as DataSetMetaDataType;
         ext.dataSetClassId.should.eql("f0ade254-0008-4960-bbe6-eaaf6308ada2");
+    });
+
+    it("LNEX7- should load nodeset with extension objects and Int64/UInt64 elements", async () => {
+        const doDebug = false;
+
+        const xml_file = path.join(__dirname, "../test_helpers/test_fixtures/nodeset_with_int64_values.xml");
+        await generateAddressSpace(addressSpace, [nodesets.standard, xml_file]);
+
+        const uint64Variable = addressSpace.findNode("ns=1;i=1000")! as UAVariable;
+        const dataValue = uint64Variable.readValue();
+        doDebug && console.log(dataValue.toString());
+        const uint64 = dataValue.value.value as UInt64;
+        uint64.should.eql([0, 1234567890]);
+
+        const int64Variable = addressSpace.findNode("ns=1;i=1001")! as UAVariable;
+        const dataValue1 = int64Variable.readValue();
+        console.log(dataValue1.toString());
+        const int64 = dataValue1.value.value as UInt64;
+        int64.should.eql([0xffffffff, 0xffffffff - 1234567890 + 1]);
     });
 });
