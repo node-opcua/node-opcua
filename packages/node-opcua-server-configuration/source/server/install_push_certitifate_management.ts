@@ -7,7 +7,7 @@ import * as path from "path";
 
 import * as chalk from "chalk";
 
-import { UAServerConfiguration } from "node-opcua-address-space";
+import { UAServerConfiguration, AddressSpace } from "node-opcua-address-space";
 import { assert } from "node-opcua-assert";
 import { OPCUACertificateManager } from "node-opcua-certificate-manager";
 import { Certificate, convertPEMtoDER, makeSHA1Thumbprint, PrivateKeyPEM, split_der } from "node-opcua-crypto";
@@ -27,7 +27,7 @@ const debugLog = make_debugLog("ServerConfiguration");
 const errorLog = make_errorLog("ServerConfiguration");
 const doDebug = checkDebugFlag("ServerConfiguration");
 
-export interface OPCUAServerPartial extends ICertificateKeyPairProviderPriv  {
+export interface OPCUAServerPartial extends ICertificateKeyPairProviderPriv {
     serverInfo?: ApplicationDescriptionOptions;
     serverCertificateManager: OPCUACertificateManager;
     privateKeyFile: string;
@@ -35,8 +35,8 @@ export interface OPCUAServerPartial extends ICertificateKeyPairProviderPriv  {
     $$certificate: null | Certificate;
     $$certificateChain: null | Certificate;
     $$privateKeyPEM: null | PrivateKeyPEM;
-
- }
+    engine: { addressSpace?: AddressSpace };
+}
 
 function getCertificate(this: OPCUAServerPartial): Certificate {
     if (!this.$$certificate) {

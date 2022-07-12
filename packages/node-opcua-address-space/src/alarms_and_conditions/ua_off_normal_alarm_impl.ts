@@ -173,6 +173,9 @@ export class UAOffNormalAlarmImpl extends UADiscreteAlarmImpl implements UAOffNo
         const stateName = isActive ? "Active" : "Inactive";
         // also raise the event
         this._signalNewCondition(stateName, isActive, message);
+        if (!isActive) {
+            this.currentBranch().setRetain(false);
+        }
     }
 
     private _mayBe_updateAlarmState(normalStateValue?: any, inputValue?: any): void {

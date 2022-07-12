@@ -170,15 +170,15 @@ export async function createSomeCertificate(certificateManager: CertificateManag
     return certificate;
 }
 
-export async function createSomeOutdatedCertificate(
+const millisecondPerDay = 3600 * 24 * 1000;
+export async function createCertificateWithEndDate(
     subfolder: string,
     certificateManager: CertificateManager,
-    certName: string
+    certName: string,
+    endDate: Date,
+    validity: number
 ): Promise<Certificate> {
-    const now = Date.now();
-    const startDate = new Date(now - 3600 * 24 * 1000 * 365);
-    const validity = 10;
-
+    const startDate = new Date(endDate.getTime() - validity * millisecondPerDay);
     const resultCSR = await certificateManager.createCertificateRequest({
         applicationUri: "applicationUri",
         subject: "CN=TOTO",
@@ -200,4 +200,17 @@ export async function createSomeOutdatedCertificate(
 
     const certificate = readCertificate(certName);
     return certificate;
+}
+
+export async function createSomeOutdatedCertificate(
+    subfolder: string,
+    certificateManager: CertificateManager,
+    certName: string
+): Promise<Certificate> {
+    const now = Date.now();
+    const startDate = new Date(now - 365 * millisecondPerDay);
+    const validity = 10;
+    const endDate = new Date(startDate.getTime() + validity * millisecondPerDay);
+
+    return await createCertificateWithEndDate(subfolder, certificateManager, certName, endDate, validity);
 }

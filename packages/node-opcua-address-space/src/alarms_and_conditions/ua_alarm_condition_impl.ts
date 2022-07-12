@@ -10,7 +10,7 @@ import { NodeId, sameNodeId } from "node-opcua-nodeid";
 import { StatusCodes } from "node-opcua-status-code";
 import { DataType, VariantOptions } from "node-opcua-variant";
 import { UAAlarmCondition_Base } from "node-opcua-nodeset-ua";
-import { BaseNode, INamespace,UAEventType, UAVariable } from "node-opcua-address-space-base";
+import { BaseNode, INamespace, UAEventType, UAVariable } from "node-opcua-address-space-base";
 
 import { _install_TwoStateVariable_machinery } from "../state_machine/ua_two_state_variable";
 import { UAShelvedStateMachineEx, _clear_timer_if_any } from "../state_machine/ua_shelving_state_machine_ex";
@@ -33,7 +33,7 @@ function _update_suppressedOrShelved(alarmNode: UAAlarmConditionImpl) {
 }
 export interface UAAlarmConditionHelper extends UAAcknowledgeableConditionHelper {
     activateAlarm(): void;
-    deactivateAlarm(): void;
+    deactivateAlarm(retain?: boolean): void;
     isSuppressedOrShelved(): boolean;
     getSuppressedOrShelved(): boolean;
     setMaxTimeShelved(duration: number): void;
@@ -234,9 +234,9 @@ export class UAAlarmConditionImpl extends UAAcknowledgeableConditionImpl impleme
         branch.setAckedState(false);
     }
 
-    public deactivateAlarm(): void {
+    public deactivateAlarm(retain?: boolean): void {
         const branch = this.currentBranch();
-        branch.setRetain(true);
+        branch.setRetain(retain === undefined ? true : retain);
         branch.setActiveState(false);
     }
 
