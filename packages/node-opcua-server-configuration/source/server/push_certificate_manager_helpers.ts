@@ -2,7 +2,7 @@
  * @module node-opcua-server-configuration
  */
 import * as path from "path";
-
+import * as fs from "fs";
 import {
     AddressSpace,
     SessionContext,
@@ -36,11 +36,11 @@ import { Certificate, readCertificate } from "node-opcua-crypto";
 
 import { CreateSigningRequestResult, PushCertificateManager } from "../push_certificate_manager";
 
-import { promoteCertificateExpirationAlarm } from "./install_CertificateAlarm";
 import { PushCertificateManagerServerImpl, PushCertificateManagerServerOptions } from "./push_certificate_manager_server_impl";
 import { installAccessRestrictionOnTrustList, promoteTrustList } from "./promote_trust_list";
 import { hasEncryptedChannel, hasExpectedUserAccess } from "./tools";
 import { rolePermissionAdminOnly, rolePermissionRestricted } from "./roles_and_permissions";
+import { installCertificateFileWatcher } from "./install_certificate_file_watcher";
 
 const debugLog = make_debugLog("ServerConfiguration");
 const doDebug = checkDebugFlag("ServerConfiguration");
@@ -258,22 +258,37 @@ async function _applyChanges(
     return { statusCode };
 }
 
+function getCertificateFilename(certificateManager: CertificateManager): string {
+    return path.join(certificateManager.rootDir, "own/certs/certificate.pem"); // to do , find a better way
+}
 async function getCertificate(certificateManager: CertificateManager): Promise<Certificate | null> {
     try {
-        const certificateFile = path.join(certificateManager.rootDir, "own/certs/certificate.pem"); // to do , find a better way
-        const certificate = await readCertificate(certificateFile);
-        return certificate;
+        const certificateFile = getCertificateFilename(certificateManager);
+        if (fs.existsSync(certificateFile)) {
+            const certificate = await readCertificate(certificateFile);
+            return certificate;
+        }
+        return null;
     } catch (err) {
         warningLog("getCertificate Error", (err as Error).message);
         return null;
     }
 }
 
-function bindCertificateGroup(group: UACertificateGroup, certificateManager?: CertificateManager) {
+function bindCertificateGroup(certificateGroup: UACertificateGroup, certificateManager?: CertificateManager) {
+    if (certificateManager) {
+        const certificateFile = getCertificateFilename(certificateManager);
+        const changeDetector = installCertificateFileWatcher(certificateGroup, certificateFile);
+        changeDetector.on("certificateChange", () => {
+            debugLog("detecting certificate change", certificateFile);
+            updateCertificateAlarm();
+        });
+    }
+
     async function updateCertificateAlarm() {
         try {
-            warningLog("updateCertificateAlarm", group.browseName.toString());
-            const certificateExpired = group.getComponentByName("CertificateExpired");
+            debugLog("updateCertificateAlarm", certificateGroup.browseName.toString());
+            const certificateExpired = certificateGroup.getComponentByName("CertificateExpired");
             if (certificateExpired && certificateManager) {
                 const certificateExpiredEx = certificateExpired as unknown as UACertificateExpirationAlarmEx;
                 const certificate = await getCertificate(certificateManager);
@@ -284,15 +299,15 @@ function bindCertificateGroup(group: UACertificateGroup, certificateManager?: Ce
         }
     }
 
-    const addressSpace = group.addressSpace;
+    const addressSpace = certificateGroup.addressSpace;
     if (!certificateManager) {
         return;
     }
-    const trustList = group.getComponentByName("TrustList");
+    const trustList = certificateGroup.getComponentByName("TrustList");
     if (trustList) {
         (trustList as any).$$certificateManager = certificateManager;
     }
-    const certificateExpired = group.getComponentByName("CertificateExpired");
+    const certificateExpired = certificateGroup.getComponentByName("CertificateExpired");
     if (certificateExpired) {
         (certificateExpired as any).$$certificateManager = certificateManager;
         // install alarm handling
@@ -349,9 +364,7 @@ export async function promoteCertificateGroup(certificateGroup: UACertificateGro
     if (trustList) {
         await promoteTrustList(trustList);
     }
-    if (certificateGroup.certificateExpired) {
-        promoteCertificateExpirationAlarm(certificateGroup.certificateExpired);
-    } else {
+    if (!certificateGroup.certificateExpired) {
         const namespace = certificateGroup.addressSpace.getOwnNamespace();
 
         // certificateGroup.
@@ -361,13 +374,12 @@ export async function promoteCertificateGroup(certificateGroup: UACertificateGro
             conditionSource: null,
             conditionOf: certificateGroup,
             inputNode: NodeId.nullNodeId,
-            normalState: NodeId.nullNodeId
+            normalState: NodeId.nullNodeId,
+            optionals: ["ExpirationLimit"]
         });
-
-        certificateGroup.setEventNotifier(EventNotifierFlags.SubscribeToEvents);
-
-        setNotifierOfChain(certificateGroup);
     }
+    certificateGroup.setEventNotifier(EventNotifierFlags.SubscribeToEvents);
+    setNotifierOfChain(certificateGroup);
 }
 
 export async function installPushCertificateManagement(

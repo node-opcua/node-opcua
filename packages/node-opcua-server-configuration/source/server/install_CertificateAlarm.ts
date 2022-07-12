@@ -1,8 +1,15 @@
 /**
  * @module node-opcua-server-configuration-server
  */
-import { AddressSpace, BaseNode, UACertificateExpirationAlarmEx, UACertificateExpirationAlarmImpl, UAObject } from "node-opcua-address-space";
-import { NodeClass } from "node-opcua-data-model";
+import {
+    AddressSpace,
+    BaseNode,
+    UACertificateExpirationAlarmEx,
+    UACertificateExpirationAlarmImpl,
+    UAObject
+} from "node-opcua-address-space";
+import { InstantiateOffNormalAlarmOptions } from "node-opcua-address-space/src/alarms_and_conditions/ua_off_normal_alarm_impl";
+import { coerceQualifiedName, NodeClass } from "node-opcua-data-model";
 import { checkDebugFlag, make_debugLog, make_errorLog } from "node-opcua-debug";
 import { NodeId, sameNodeId } from "node-opcua-nodeid";
 import { DataType } from "node-opcua-variant";
@@ -12,9 +19,9 @@ const errorLog = make_errorLog("ServerConfiguration");
 const doDebug = checkDebugFlag("ServerConfiguration");
 
 /**
- * 
- * @param addressSpace 
- * @returns 
+ *
+ * @param addressSpace
+ * @returns
  * @deprecated
  */
 export function installCertificateExpirationAlarm(addressSpace: AddressSpace): UACertificateExpirationAlarmEx {
@@ -25,19 +32,20 @@ export function installCertificateExpirationAlarm(addressSpace: AddressSpace): U
     const server = addressSpace.rootFolder.objects.server;
     const namespace = addressSpace.getOwnNamespace();
 
-    const options = {
+    const options: InstantiateOffNormalAlarmOptions = {
         browseName: "ServerCertificateAlarm",
         conditionSource: undefined,
         eventSourceOf: server,
         inputNode: new NodeId(),
-        normalState: new NodeId()
+        normalState: new NodeId(),
+        optionals: ["ExpirationLimit"]
     };
     const certificateExpirationAlarm = UACertificateExpirationAlarmImpl.instantiate(
         namespace,
         "CertificateExpirationAlarmType",
         options
     );
-    certificateExpirationAlarm.currentBranch().setRetain(true);
+    certificateExpirationAlarm.currentBranch().setRetain(false);
     certificateExpirationAlarm.activeState.setValue(false);
     certificateExpirationAlarm.ackedState.setValue(false);
     certificateExpirationAlarm.suppressedState?.setValue(false);
@@ -45,18 +53,4 @@ export function installCertificateExpirationAlarm(addressSpace: AddressSpace): U
     certificateExpirationAlarm.eventId.setValueFromSource({ dataType: DataType.ByteString, value: null });
 
     return certificateExpirationAlarm;
-}
-
-export function promoteCertificateExpirationAlarm(certificateExpirationAlarm: UAObject): UACertificateExpirationAlarmEx {
-
-    const addressSpace =certificateExpirationAlarm.addressSpace;
-    const certificateExpirationAlarmType = addressSpace.findEventType("CertificateExpirationAlarmType");
-    if (!certificateExpirationAlarmType) {
-        throw new Error("Cannot find CertificateExpirationAlarmType");
-    }
-    if (!sameNodeId(certificateExpirationAlarm.typeDefinition,certificateExpirationAlarmType.nodeId)) {
-        throw new Error("CertificateExpirationAlarmType is not the type of the certificateExpirationAlarm");
-    }
-    Object.setPrototypeOf(certificateExpirationAlarm, UACertificateExpirationAlarmImpl.prototype);
-    return certificateExpirationAlarm as UACertificateExpirationAlarmImpl;
 }

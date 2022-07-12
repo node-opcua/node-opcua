@@ -6,9 +6,12 @@ import { DateTime, minOPCUADate } from "node-opcua-basic-types";
 import { make_warningLog } from "node-opcua-debug";
 import { DataType, VariantOptions } from "node-opcua-variant";
 import { UACertificateExpirationAlarm_Base } from "node-opcua-nodeset-ua";
-import { INamespace } from "node-opcua-address-space-base";
+import { INamespace, UAObject } from "node-opcua-address-space-base";
+import { ObjectTypeIds } from "node-opcua-constants";
+import { AccessRestrictionsFlag, makeAccessLevelExFlag } from "node-opcua-data-model";
+import { registerNodePromoter } from "../../source/loader/register_node_promoter";
+import { InstantiateOffNormalAlarmOptions, UAOffNormalAlarmImpl } from "./ua_off_normal_alarm_impl";
 import { UASystemOffNormalAlarmImpl } from "./ua_system_off_normal_alarm_impl";
-import { InstantiateOffNormalAlarmOptions } from "./ua_off_normal_alarm_impl";
 
 const warningLog = make_warningLog("AlarmsAndConditions");
 
@@ -54,6 +57,7 @@ export class UACertificateExpirationAlarmImpl extends UASystemOffNormalAlarmImpl
             data
         ) as UACertificateExpirationAlarmImpl;
         Object.setPrototypeOf(alarm, UACertificateExpirationAlarmImpl.prototype);
+        alarm._post_initialize();
         return alarm;
     }
 
@@ -61,33 +65,47 @@ export class UACertificateExpirationAlarmImpl extends UASystemOffNormalAlarmImpl
         return this.expirationDate.readValue().value.value;
     }
 
-    public setExpirationDate(value: Date): void {
+    public setExpirationDate(expirationDate: Date): void {
         this.expirationDate.setValueFromSource({
             dataType: DataType.DateTime,
-            value
+            value: expirationDate
         });
         const now = new Date();
         const expirationLimit = this.getExpirationLimit();
+
+        const checkDate = new Date(now.getTime() + +expirationLimit);
+
         const thumbprint = makeSHA1Thumbprint(this.getCertificate() || Buffer.alloc(0)).toString("hex");
 
-        if (value.getTime() <= now.getTime() - expirationLimit) {
+        if (expirationDate.getTime() <= checkDate.getTime()) {
             if (!this.currentBranch().getActiveState()) {
-                warningLog(`CertificateExpirationAlarm:  becomes active, certificate ${thumbprint} endDate ${value.toUTCString()}`);
+                warningLog(
+                    `CertificateExpirationAlarm:  becomes active, certificate ${thumbprint} endDate ${expirationDate.toUTCString()} checkDate=${checkDate.toUTCString()} expirationLimit=${expirationLimit}`
+                );
             }
             // also raise the event
-            if (value.getTime() <= now.getTime()) {
-                this.updateAlarmState(true, `certificate ${thumbprint} has expired : end date is ${value.toUTCString()}`);
+            if (expirationDate.getTime() <= now.getTime()) {
+                this.updateAlarmState(
+                    true,
+                    `certificate ${thumbprint} has expired : end date is ${expirationDate.toUTCString()} checkDate=${checkDate.toUTCString()}  expirationLimit=${expirationLimit}`
+                );
             } else {
-                this.updateAlarmState(true, `certificate ${thumbprint} is about to expire : end date is ${value.toString()}`);
+                this.updateAlarmState(
+                    true,
+                    `certificate ${thumbprint} is about to expire : end date is ${expirationDate.toString()} checkDate=${checkDate.toUTCString()}  expirationLimit=${expirationLimit}`
+                );
             }
         } else {
             if (this.currentBranch().getActiveState()) {
                 warningLog(
-                    `CertificateExpirationAlarm:  becomes desactivated, certificate ${thumbprint} endDate ${value.toUTCString()}`
+                    `CertificateExpirationAlarm:  becomes desactivated, certificate ${thumbprint} endDate ${expirationDate.toUTCString()} expirationLimit=${expirationLimit}`
                 );
             }
             // also raise the event
-            this.updateAlarmState(false, "");
+            this.updateAlarmState(
+                false,
+                `certificate ${thumbprint} end date is OK: ${expirationDate.toString()} , expirationLimit=${expirationLimit}`
+            );
         }
     }
 
@@ -100,9 +118,6 @@ export class UACertificateExpirationAlarmImpl extends UASystemOffNormalAlarmImpl
             dataType: DataType.Double,
             value
         });
-        // make sure we re-evaluate the certificfate
-        const certificate = this.getCertificate();
-        this.setCertificate(certificate);
     }
 
     public getCertificate(): Certificate | null {
@@ -110,7 +125,7 @@ export class UACertificateExpirationAlarmImpl extends UASystemOffNormalAlarmImpl
     }
 
     public setCertificate(certificate: Certificate | null): void {
-        if (certificate) {
+        if (certificate && certificate.length > 0) {
             const info = exploreCertificate(certificate);
             if (info.tbsCertificate.validity.notAfter instanceof Date) {
                 this.setExpirationDate(info.tbsCertificate.validity.notAfter);
@@ -125,4 +140,27 @@ export class UACertificateExpirationAlarmImpl extends UASystemOffNormalAlarmImpl
             value: certificate
         });
     }
+
+    _post_initialize() {
+        if (this.expirationLimit) {
+            this.expirationLimit.accessLevel = makeAccessLevelExFlag("CurrentRead | CurrentWrite");
+            this.expirationLimit.userAccessLevel = makeAccessLevelExFlag("CurrentRead | CurrentWrite");
+            this.expirationLimit.on("value_changed", (dataValue) => {
+                // make sure we re-evaluate the certificfate
+                const certificate = this.getCertificate();
+                this.setCertificate(certificate);
+            });
+        }
+    }
 }
+
+export function promoteToCertificateExpirationAlarm(node: UAObject): UACertificateExpirationAlarmImpl {
+    if (node instanceof UACertificateExpirationAlarmImpl) {
+        return node; // already promoted
+    }
+    Object.setPrototypeOf(node, UACertificateExpirationAlarmImpl.prototype);
+    const _node = node as unknown as UACertificateExpirationAlarmImpl;
+    _node._post_initialize();
+    return _node;
+}
+registerNodePromoter(ObjectTypeIds.CertificateExpirationAlarmType, promoteToCertificateExpirationAlarm);

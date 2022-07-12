@@ -4,10 +4,10 @@ import * as os from "os";
 import "should";
 import { nodesets } from "node-opcua-nodesets";
 import { AttributeIds } from "node-opcua-basic-types";
+import { DataSetMetaDataType } from "node-opcua-types";
 import { DataType } from "node-opcua-variant";
 import { AddressSpace, SessionContext, UAObject, UAVariable } from "..";
 import { generateAddressSpace } from "../nodeJS";
-import { DataSetMetaDataType } from "node-opcua-types";
 
 describe("Testing loading nodeset with extension objects values in types", () => {
     let addressSpace: AddressSpace;
