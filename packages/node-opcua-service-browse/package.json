@@ -1,6 +1,6 @@
 {
     "name": "node-opcua-service-browse",
-    "version": "2.71.0",
+    "version": "2.72.0",
     "description": "pure nodejs OPCUA SDK - module -service-browse",
     "scripts": {
         "build": "tsc -b",
@@ -16,8 +16,8 @@
         "node-opcua-data-model": "2.71.0",
         "node-opcua-factory": "2.71.0",
         "node-opcua-nodeid": "2.71.0",
-        "node-opcua-service-secure-channel": "2.71.0",
-        "node-opcua-types": "2.71.0"
+        "node-opcua-service-secure-channel": "2.72.0",
+        "node-opcua-types": "2.72.0"
     },
     "devDependencies": {
         "node-opcua-date-time": "2.71.0",

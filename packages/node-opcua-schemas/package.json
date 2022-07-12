@@ -1,6 +1,6 @@
 {
     "name": "node-opcua-schemas",
-    "version": "2.71.0",
+    "version": "2.72.0",
     "description": "pure nodejs OPCUA SDK - module -schemas",
     "main": "dist/source/index.js",
     "types": "dist/source/index.d.ts",
