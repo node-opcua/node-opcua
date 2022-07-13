@@ -597,6 +597,84 @@ describe("Testing numerical range", () => {
         test("Uint8Array", makeBuffer);
     });
 
+    describe("setting range of an buffer", () => {
+        let buffer;
+        beforeEach(() => {
+            buffer = Buffer.from([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
+        });
+
+        it("SB1 - should replace the old array with the provided array when numeric range is empty", () => {
+            const nr = new NumericRange();
+            nr.set_values(buffer, Buffer.from([20, 30, 40])).array.should.eql(Buffer.from([20, 30, 40]));
+            // Buffer should not change in length, but may be scrapped : buffer.should.eql(Buffer.from([20, 30, 40]));
+        });
+
+        it("SB2 - should replace a single element when numeric range is a single value", () => {
+            const nr = new NumericRange("4");
+            nr.set_values(buffer, Buffer.from([40])).array.should.eql(Buffer.from([0, 1, 2, 3, 40, 5, 6, 7, 8, 9, 10]));
+            //  array.should.eql([0, 1, 2, 3, 40, 5, 6, 7, 8, 9, 10]);
+        });
+
+        it("SB3 - should replace a single element when numeric range is a simple range", () => {
+            const nr = new NumericRange("4:6");
+            nr.set_values(buffer, Buffer.from([40, 50, 60])).array.should.eql(Buffer.from([0, 1, 2, 3, 40, 50, 60, 7, 8, 9, 10]));
+            //  array.should.eql([0, 1, 2, 3, 40, 50, 60, 7, 8, 9, 10]);
+        });
+
+        it("SB4 - should replace a single element when numeric range is a pair of values matching the first two elements", () => {
+            const nr = new NumericRange("0:2");
+            // prettier-ignore
+            nr.set_values(buffer, Buffer.from([-3, -2, -1])).array.should.eql(Buffer.from([-3, -2, -1, 3, 4, 5, 6, 7, 8, 9, 10]));
+            // prettier-ignore
+            // array.should.eql([-3, -2, -1, 3, 4, 5, 6, 7, 8, 9, 10]);
+        });
+        it("SB5 - should replace a single element when numeric range is a single value matching the last element", () => {
+            const nr = new NumericRange("10");
+            // prettier-ignore
+            nr.set_values(buffer, Buffer.from([-100])).array.should.eql(Buffer.from([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, -100]));
+            // prettier-ignore
+            // array.should.eql([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, -100]);
+        });
+        it("SB6 - should replace a single element when numeric range is a pair of values matching the last two elements", () => {
+            const nr = new NumericRange("9:10");
+            // prettier-ignore
+            nr.set_values(buffer, Buffer.from([-90, -100])).array.should.eql(Buffer.from([0, 1, 2, 3, 4, 5, 6, 7, 8, -90, -100]));
+            // array.should.eql([0, 1, 2, 3, 4, 5, 6, 7, 8, -90, -100]);
+        });
+        it("SB7 - should replace a single element when numeric range is a pair of values matching the whole array", () => {
+            const nr = new NumericRange("0:10");
+            // prettier-ignore
+            nr.set_values(buffer, Buffer.from([-1, -2, -3, -4, -5, -6, -7, -8, -9, -10, -11])).array.should.eql(Buffer.from([-1, -2, -3, -4, -5, -6, -7, -8, -9, -10, -11]));
+            // array.should.eql([-1, -2, -3, -4, -5, -6, -7, -8, -9, -10, -11]);
+        });
+        
+        it("SB8 - should write the last 3 elements of an array", () => {
+            const nr = new NumericRange("8:10");
+            const r = nr.set_values(buffer, Buffer.from([80, 90, 100]));
+            r.statusCode.should.eql(StatusCodes.Good);
+            // assert_arrays_are_equal(r.array, [0, 1, 2, 3, 4, 5, 6, 7, 80, 90, 100]);
+        });
+
+        it("SB9 - should return BadIndexRangeNoData  if range is outside array boundary", () => {
+            const nr = new NumericRange("1000:1010");
+            const r = nr.set_values(buffer, [80, 90, 100]);
+            should(r.array).eql(null);
+            r.statusCode.should.eql(StatusCodes.BadIndexRangeNoData);
+        });
+        it("SB10 - should return BadIndexRangeInvalid  if range is invalid", () => {
+            const nr = new NumericRange("-1000:1010");
+            const r = nr.set_values(buffer, [80, 90, 100]);
+            should(r.array).eql(null);
+            r.statusCode.should.eql(StatusCodes.BadIndexRangeInvalid);
+        });
+        it("SB11 - should return BadIndexRangeInvalid if range doesn't match new array size", () => {
+            const nr = new NumericRange("2:2");
+            const r = nr.set_values(buffer, [80, 90, 100]);
+            should(r.array).eql(null);
+            r.statusCode.should.eql(StatusCodes.BadIndexRangeInvalid);
+        });
+    });
+
     describe("setting range of an array", () => {
         let array;
         beforeEach(() => {
@@ -656,16 +734,19 @@ describe("Testing numerical range", () => {
         it("S9 - should return BadIndexRangeNoData  if range is outside array boundary", () => {
             const nr = new NumericRange("1000:1010");
             const r = nr.set_values(array, [80, 90, 100]);
+            should(r.array).eql(null);
             r.statusCode.should.eql(StatusCodes.BadIndexRangeNoData);
         });
         it("S10 - should return BadIndexRangeInvalid  if range is invalid", () => {
             const nr = new NumericRange("-1000:1010");
             const r = nr.set_values(array, [80, 90, 100]);
+            should(r.array).eql(null);
             r.statusCode.should.eql(StatusCodes.BadIndexRangeInvalid);
         });
         it("S11 - should return BadIndexRangeInvalid if range doesn't match new array size", () => {
             const nr = new NumericRange("2:2");
             const r = nr.set_values(array, [80, 90, 100]);
+            should(r.array).eql(null);
             r.statusCode.should.eql(StatusCodes.BadIndexRangeInvalid);
         });
     });

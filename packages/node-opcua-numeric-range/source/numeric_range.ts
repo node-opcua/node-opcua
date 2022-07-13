@@ -529,7 +529,7 @@ export class NumericRange implements NumericalRange1 {
             statusCode: StatusCodes.Good
         };
     }
-    public set_values(arrayToAlter: Buffer | [], newValues: Buffer | []): { array: Buffer | []; statusCode: StatusCode } {
+    public set_values(arrayToAlter: Buffer | [], newValues: Buffer | []): { array: Buffer | [] | null; statusCode: StatusCode } {
         assert_array_or_buffer(arrayToAlter);
         assert_array_or_buffer(newValues);
 
@@ -554,15 +554,14 @@ export class NumericRange implements NumericalRange1 {
                 // for the time being MatrixRange is not supported
                 return { array: arrayToAlter, statusCode: StatusCodes.BadIndexRangeNoData };
             default:
-                return { array: [], statusCode: StatusCodes.BadIndexRangeInvalid };
+                return { array: null, statusCode: StatusCodes.BadIndexRangeInvalid };
         }
 
         if (high_index >= arrayToAlter.length || low_index >= arrayToAlter.length) {
-            return { array: [], statusCode: StatusCodes.BadIndexRangeNoData };
+            return { array: null, statusCode: StatusCodes.BadIndexRangeNoData };
         }
-        // istanbul ignore next
         if (this.type !== NumericRangeType.Empty && newValues.length !== high_index - low_index + 1) {
-            return { array: [], statusCode: StatusCodes.BadIndexRangeInvalid };
+            return { array: null, statusCode: StatusCodes.BadIndexRangeInvalid };
         }
         const insertInPlace = Array.isArray(arrayToAlter)
             ? insertInPlaceStandardArray
@@ -738,9 +737,12 @@ function insertInPlaceTypedArray(arrayToAlter: any, low: number, high: number, n
     return arrayToAlter;
 }
 
-function insertInPlaceBuffer(bufferToAlter: any, low: number, high: number, newValues: any): any {
+function insertInPlaceBuffer(bufferToAlter: Buffer | [], low: number, high: number, newValues: any): Buffer {
+    // insertInPlaceBuffer with buffer is not really possible as existing Buffer cannot be resized
+    if (!(bufferToAlter instanceof Buffer)) throw new Error("expecting a buffer");
     if (low === 0 && high === bufferToAlter.length - 1) {
-        return Buffer.from(newValues);
+        bufferToAlter = Buffer.from(newValues);
+        return bufferToAlter;
     }
     assert(newValues.length === high - low + 1);
     for (let i = 0; i < newValues.length; i++) {
