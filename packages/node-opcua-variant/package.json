@@ -1,6 +1,6 @@
 {
     "name": "node-opcua-variant",
-    "version": "2.72.1",
+    "version": "2.72.2",
     "description": "pure nodejs OPCUA SDK - module -variant",
     "main": "./dist/index.js",
     "types": "./dist/index.d.ts",
@@ -28,7 +28,7 @@
         "node-opcua-benchmarker": "2.71.0",
         "node-opcua-binary-stream": "2.71.0",
         "node-opcua-debug": "2.71.0",
-        "node-opcua-numeric-range": "2.72.1",
+        "node-opcua-numeric-range": "2.72.2",
         "node-opcua-packet-analyzer": "2.72.1",
         "node-opcua-status-code": "2.71.0",
         "should": "^13.2.3",

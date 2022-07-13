@@ -1,6 +1,6 @@
 {
     "name": "node-opcua-numeric-range",
-    "version": "2.72.1",
+    "version": "2.72.2",
     "description": "pure nodejs OPCUA SDK - module -numeric-range",
     "main": "./dist/index.js",
     "types": "./dist/index.d.ts",
