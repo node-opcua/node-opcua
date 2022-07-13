@@ -346,7 +346,7 @@ describe("Testing numerical range", () => {
 
             referenceByteString.length.should.eql(11);
             const r = nr.extract_values(referenceByteString);
-
+            should.not.exist(r.array);
             r.statusCode.should.eql(StatusCodes.BadIndexRangeNoData);
             referenceByteString.length.should.eql(11);
         });
@@ -647,7 +647,7 @@ describe("Testing numerical range", () => {
             nr.set_values(buffer, Buffer.from([-1, -2, -3, -4, -5, -6, -7, -8, -9, -10, -11])).array.should.eql(Buffer.from([-1, -2, -3, -4, -5, -6, -7, -8, -9, -10, -11]));
             // array.should.eql([-1, -2, -3, -4, -5, -6, -7, -8, -9, -10, -11]);
         });
-        
+
         it("SB8 - should write the last 3 elements of an array", () => {
             const nr = new NumericRange("8:10");
             const r = nr.set_values(buffer, Buffer.from([80, 90, 100]));

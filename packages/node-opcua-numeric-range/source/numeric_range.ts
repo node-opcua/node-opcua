@@ -599,7 +599,7 @@ function slice<U, T extends ArrayLike<U>>(arr: T, start: number, end: number): T
 }
 
 export interface ExtractResult<T> {
-    array?: T;
+    array?: T | null;
     statusCode: StatusCode;
     dimensions?: number[];
 }
@@ -617,7 +617,7 @@ function extract_single_value<U, T extends ArrayLike<U>>(array: T, index: number
         if (typeof array === "string") {
             return { array: "" as any as T, statusCode: StatusCodes.BadIndexRangeNoData };
         }
-        return { array: [] as any as T, statusCode: StatusCodes.BadIndexRangeNoData };
+        return { array: null as any as T, statusCode: StatusCodes.BadIndexRangeNoData };
     }
     return {
         array: slice(array, index, index + 1),
@@ -633,7 +633,7 @@ function extract_array_range<U, T extends ArrayLike<U>>(array: T, low_index: num
         if (typeof array === "string") {
             return { array: "" as any as T, statusCode: StatusCodes.BadIndexRangeNoData };
         }
-        return { array: [] as any as T, statusCode: StatusCodes.BadIndexRangeNoData };
+        return { array: null as any as T, statusCode: StatusCodes.BadIndexRangeNoData };
     }
     // clamp high index
     high_index = Math.min(high_index, array.length - 1);
@@ -658,7 +658,7 @@ function extract_matrix_range<U, T extends ArrayLike<U>>(
 
     if (array.length === 0) {
         return {
-            array: [] as any as T,
+            array: null,
             statusCode: StatusCodes.BadIndexRangeNoData
         };
     }
@@ -673,7 +673,7 @@ function extract_matrix_range<U, T extends ArrayLike<U>>(
     }
     if (!dimension) {
         return {
-            array: [] as any as T,
+            array: null,
             statusCode: StatusCodes.BadIndexRangeNoData
         };
     }
