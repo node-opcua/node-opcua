@@ -1,6 +1,6 @@
 {
   "name": "node-opcua-extension-object",
-  "version": "2.71.0",
+  "version": "2.72.1",
   "description": "pure nodejs OPCUA SDK - module -extension-object",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -14,10 +14,10 @@
   "dependencies": {
     "chalk": "4.1.2",
     "node-opcua-assert": "2.66.0",
-    "node-opcua-basic-types": "2.71.0",
+    "node-opcua-basic-types": "2.72.1",
     "node-opcua-binary-stream": "2.71.0",
     "node-opcua-debug": "2.71.0",
-    "node-opcua-factory": "2.71.0",
+    "node-opcua-factory": "2.72.1",
     "node-opcua-nodeid": "2.71.0"
   },
   "author": "Etienne Rossignon",
