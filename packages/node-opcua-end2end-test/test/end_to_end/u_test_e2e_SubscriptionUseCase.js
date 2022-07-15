@@ -680,9 +680,6 @@ module.exports = function (test) {
                 for (const client of clients) {
                     await client.disconnect();
                 }
-                process.exit();
-                console.log("here !");
-     
             }
  
         });
