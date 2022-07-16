@@ -25,7 +25,7 @@ import {
     coerceTimestampsToReturn,
     sameStatusCode
 } from "node-opcua-data-value";
-import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
+import { checkDebugFlag, make_debugLog, make_warningLog } from "node-opcua-debug";
 import { ExtensionObject } from "node-opcua-extension-object";
 import { NodeId } from "node-opcua-nodeid";
 import { NumericalRange0, NumericRange } from "node-opcua-numeric-range";
@@ -71,6 +71,7 @@ const defaultItemToMonitor: ReadValueIdOptions = new ReadValueId({
 
 const debugLog = make_debugLog(__filename);
 const doDebug = checkDebugFlag(__filename);
+const warningLog = make_warningLog(__filename);
 
 function _adjust_sampling_interval(samplingInterval: number, node_minimumSamplingInterval: number): number {
     assert(typeof node_minimumSamplingInterval === "number", "expecting a number");
@@ -216,7 +217,7 @@ function apply_dataChange_filter(this: MonitoredItem, newDataValue: DataValue, o
                 debugLog("timestampHasChanged ", timestampHasChanged(newDataValue.sourceTimestamp, oldDataValue.sourceTimestamp));
             }
         } catch (err) {
-            console.log(err);
+            warningLog(err);
         }
     }
     switch (trigger) {

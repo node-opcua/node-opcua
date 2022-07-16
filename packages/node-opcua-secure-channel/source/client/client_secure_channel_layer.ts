@@ -20,12 +20,13 @@ import { readMessageHeader, verify_message_chunk } from "node-opcua-chunkmanager
 import { checkDebugFlag, hexDump, make_debugLog, make_errorLog, make_warningLog } from "node-opcua-debug";
 import { ChannelSecurityToken, coerceMessageSecurityMode, MessageSecurityMode } from "node-opcua-service-secure-channel";
 import { CallbackT, StatusCode, StatusCodes } from "node-opcua-status-code";
-import { ClientTCP_transport } from "node-opcua-transport";
+import { ClientTCP_transport, TransportSettingsOptions } from "node-opcua-transport";
 import { StatusCodes2 } from "node-opcua-transport";
 import { ErrorCallback } from "node-opcua-status-code";
 import { BaseUAObject } from "node-opcua-factory";
+import { doTraceChunk } from "node-opcua-transport";
 
-import { MessageBuilder, SecurityToken } from "../message_builder";
+import { MessageBuilder } from "../message_builder";
 import { ChunkMessageOptions, MessageChunker } from "../message_chunker";
 import { messageHeaderToString } from "../message_header_to_string";
 
@@ -114,8 +115,7 @@ function process_request_callback(requestData: RequestData, err?: Error | null, 
     }
 
     if (response && response instanceof ServiceFault) {
-        response.responseHeader.stringTable = response.responseHeader.stringTable || [];
-        response.responseHeader.stringTable = [response.responseHeader.stringTable.join("\n")];
+        response.responseHeader.stringTable = [...(response.responseHeader.stringTable || [])];
         err = new Error(" serviceResult = " + response.responseHeader.serviceResult.toString());
         //  "  returned by server \n response:" + response.toString() + "\n  request: " + request.toString());
         (err as any).response = response;
@@ -220,6 +220,8 @@ export interface ClientSecureChannelLayerOptions {
      * @param [options.connectionStrategy.maxDelay      = 10000]
      */
     connectionStrategy: ConnectionStrategyOptions;
+
+    transportSettings: TransportSettingsOptions;
 }
 
 /**
@@ -260,6 +262,7 @@ export class ClientSecureChannelLayer extends EventEmitter {
     }
 
     public static defaultTransportTimeout = 60 * 1000; // 1 minute
+    private transportSettings: TransportSettingsOptions;
 
     public protocolVersion: number;
     public readonly securityMode: MessageSecurityMode;
@@ -356,6 +359,7 @@ export class ClientSecureChannelLayer extends EventEmitter {
         this._securityTokenTimeoutId = null;
 
         this.transportTimeout = options.transportTimeout || ClientSecureChannelLayer.defaultTransportTimeout;
+        this.transportSettings = options.transportSettings || {};
 
         this.channelId = 0;
 
@@ -376,6 +380,22 @@ export class ClientSecureChannelLayer extends EventEmitter {
             maxMessageSize: this._transport.maxMessageSize || 0
         });
 
+        if (doTraceChunk) {
+            console.log(
+                chalk.cyan(timestamp()),
+                "   MESSGAE BUILDER LIMITS",
+                "maxMessageSize = ",
+                this.messageBuilder.maxMessageSize,
+                "maxChunkCount = ",
+                this.messageBuilder.maxChunkCount,
+                "maxChunkSize = ",
+                this.messageBuilder.maxChunkSize,
+                "(",
+                this.messageBuilder.maxChunkSize * this.messageBuilder.maxChunkCount,
+                ")"
+            );
+        }
+
         this.messageBuilder
             .on("message", (response: BaseUAObject, msgType: string, requestId: number, channelId: number) => {
                 this._on_message_received(response as Response, msgType, requestId);
@@ -386,7 +406,26 @@ export class ClientSecureChannelLayer extends EventEmitter {
                     this._tick2 = get_clock_tick();
                 }
             })
+            .on("abandon", (requestId: number) => {
+                const requestData = this._requests[requestId];
+
+                if (doDebug) {
+                    debugLog("request id = ", requestId, "message was ", requestData);
+                }
+
+                const err = new ServiceFault({
+                    responseHeader: {
+                        requestHandle: requestId,
+                        serviceResult: StatusCodes.BadOperationAbandoned
+                    }
+                });
+
+                const callback = requestData.callback;
+                delete this._requests[requestId];
+                callback && callback(null, err);
+            })
             .on("error", (err: Error, statusCode: StatusCode, requestId: number | null) => {
+                // istanbul ignore next
                 if (!requestId) {
                     return;
                 }
@@ -394,19 +433,27 @@ export class ClientSecureChannelLayer extends EventEmitter {
                 let requestData = this._requests[requestId];
 
                 if (doDebug) {
-                    debugLog("request id = ", requestId, err);
-                    debugLog(" message was ");
-                    debugLog(requestData);
+                    debugLog("request id = ", requestId, err, "message was ", requestData);
                 }
 
                 if (!requestData) {
-                    requestData = this._requests[requestId + 1];
-                    if (doTraceClientRequestContent) {
-                        errorLog(" message was 2:", requestData ? requestData.request.toString() : "<null>");
-                    }
+                    warningLog("requestData not found for requestId = ", requestId, "try with ", requestId + 1);
+                    requestId = requestId + 1;
+                    requestData = this._requests[requestId];
                 }
+                if (doTraceClientRequestContent) {
+                    errorLog(" message was 2:", requestData ? requestData.request.toString() : "<null>");
+                }
+
+                const callback = requestData.callback;
+                delete this._requests[requestId];
+                callback && callback(err, undefined);
+
+                this._closeWithError(err, statusCode);
+                return;
             });
     }
+
     public getPrivateKey(): PrivateKeyPEM | null {
         return this.parent ? this.parent.getPrivateKey() : null;
     }
@@ -414,6 +461,7 @@ export class ClientSecureChannelLayer extends EventEmitter {
     public getCertificateChain(): Certificate | null {
         return this.parent ? this.parent.getCertificateChain() : null;
     }
+
     public getCertificate(): Certificate | null {
         return this.parent ? this.parent.getCertificate() : null;
     }
@@ -504,7 +552,7 @@ export class ClientSecureChannelLayer extends EventEmitter {
 
         this.endpointUrl = endpointUrl;
 
-        const transport = new ClientTCP_transport();
+        const transport = new ClientTCP_transport(this.transportSettings);
         transport.timeout = this.transportTimeout;
 
         doDebug &&
@@ -514,6 +562,7 @@ export class ClientSecureChannelLayer extends EventEmitter {
         this._establish_connection(transport, endpointUrl, (err?: Error | null) => {
             if (err) {
                 doDebug && debugLog(chalk.red("cannot connect to server"));
+                this._pending_transport = undefined;
                 transport.dispose();
                 return callback(err);
             }
@@ -696,11 +745,12 @@ export class ClientSecureChannelLayer extends EventEmitter {
         });
     }
 
-    public closeWithError(err: Error, statusCode: StatusCode, callback: ErrorCallback): void {
+    private _closeWithError(err: Error, statusCode: StatusCode): void {
         if (this._transport) {
             this._transport.prematureTerminate(err, statusCode);
+            this._transport = undefined;
         }
-        callback();
+        this.dispose();
     }
 
     private on_transaction_completed(transactionStatistics: ClientTransactionStatistics) {
@@ -713,14 +763,16 @@ export class ClientSecureChannelLayer extends EventEmitter {
     }
 
     private _on_message_received(response: Response, msgType: string, requestId: number) {
-        assert(msgType !== "ERR");
+        //      assert(msgType !== "ERR");
 
         /* istanbul ignore next */
         if (response.responseHeader.requestHandle !== requestId) {
+            warningLog(response.toString());
             errorLog(
                 chalk.red.bgWhite.bold("xxxxx  <<<<<< _on_message_received  ERROR"),
                 "requestId=",
                 requestId,
+                this._requests[requestId]?.constructor.name,
                 "response.responseHeader.requestHandle=",
                 response.responseHeader.requestHandle,
                 response.schema.name.padStart(30)
@@ -1073,6 +1125,10 @@ export class ClientSecureChannelLayer extends EventEmitter {
         this._pending_transport = undefined;
         this._transport = transport;
 
+        // install message chunker limits:
+        this.messageChunker.maxMessageSize = this._transport?.maxMessageSize || 0;
+        this.messageChunker.maxChunkCount = this._transport?.maxChunkCount || 0;
+
         this._install_message_builder();
 
         this._transport.on("chunk", (messageChunk: Buffer) => {
@@ -1144,6 +1200,19 @@ export class ClientSecureChannelLayer extends EventEmitter {
                 if (err.message.match(/BadProtocolVersionUnsupported/)) {
                     should_abort = true;
                 }
+                if (err.message.match(/BadTcpInternalError/)) {
+                    should_abort = true;
+                }
+                if (err.message.match(/BadTcpMessageTooLarge/)) {
+                    should_abort = true;
+                }
+                if (err.message.match(/BadTcpEndpointUriInvlid/)) {
+                    should_abort = true;
+                }
+                if (err.message.match(/BadTcpMessageTypeInvalid/)) {
+                    should_abort = true;
+                }
+
                 this.lastError = err;
 
                 if (this.__call) {
@@ -1256,12 +1325,9 @@ export class ClientSecureChannelLayer extends EventEmitter {
                     debugLog("ClientSecureChannelLayer: Warning: securityToken hasn't been renewed -> err ", err);
                 }
                 // XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX CHECK ME !!!
-                this.closeWithError(
+                this._closeWithError(
                     new Error("Restarting because Request has timed out during OpenSecureChannel"),
-                    StatusCodes2.BadRequestTimeout,
-                    () => {
-                        /* */
-                    }
+                    StatusCodes2.BadRequestTimeout
                 );
             }
         });
@@ -1400,7 +1466,6 @@ export class ClientSecureChannelLayer extends EventEmitter {
              * @param message_chunk {Object}  the message chunk
              */
             this.emit("timed_out_request", request);
-
             // xx // XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX CHECK ME !!!
             // xx this.closeWithError(new Error("Restarting because Request has timed out (1)"), () => { });
         }, timeout);
@@ -1486,10 +1551,10 @@ export class ClientSecureChannelLayer extends EventEmitter {
         /* istanbul ignore next */
         if (doPerfMonitoring) {
             const stats = requestData;
-            // record tick0 : before request is being sent to server
+            // record tick0 : befoe request is being sent to server
             stats._tick0 = get_clock_tick();
         }
-
+        // check that limits are OK
         this._sendSecureOpcUARequest(msgType, request, requestHandle);
     }
 
@@ -1706,8 +1771,25 @@ export class ClientSecureChannelLayer extends EventEmitter {
          */
         this.emit("send_request", request);
 
-        this.messageChunker.chunkSecureMessage(msgType, options, request as BaseUAObject, (chunk: Buffer | null) =>
-            this._send_chunk(requestId, chunk)
+        this.messageChunker.chunkSecureMessage(
+            msgType,
+            options,
+            request as BaseUAObject,
+            (err: Error | null, chunk: Buffer | null) => {
+                if (err) {
+                    // the messageChunk has not send anything due to an error detected in the chunker
+                    const response = new ServiceFault({
+                        responseHeader: {
+                            serviceResult: StatusCodes.BadInternalError,
+                            stringTable: [err.message]
+                        }
+                    });
+                    this._send_chunk(requestId, null);
+                    this._on_message_received(response, "ERR", request.requestHeader.requestHandle);
+                } else {
+                    this._send_chunk(requestId, chunk);
+                }
+            }
         );
     }
 }

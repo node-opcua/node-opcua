@@ -15,8 +15,8 @@ const debugLog = require("node-opcua-debug").make_debugLog(__filename);
 
 const { MessageBuilder, MessageChunker } = require("..");
 
-describe("SecureMessageChunkManager", function() {
-    it("should reconstruct a valid message when message is received in multiple chunks", function(done) {
+describe("SecureMessageChunkManager", function () {
+    it("should reconstruct a valid message when message is received in multiple chunks", function (done) {
         // a very large endPointResponse spanning on multiple chunks ...
         const endPointResponse = require("../test_fixtures/fixture_GetEndPointResponse").fixture2;
 
@@ -28,7 +28,7 @@ describe("SecureMessageChunkManager", function() {
 
         async.series(
             [
-                function(callback) {
+                function (callback) {
                     const options = {
                         requestId: requestId,
                         tokenId: 1
@@ -36,7 +36,7 @@ describe("SecureMessageChunkManager", function() {
                     endPointResponse.responseHeader.requestHandle = requestId;
 
                     const chunker = new MessageChunker();
-                    chunker.chunkSecureMessage("MSG", options, endPointResponse, function(messageChunk) {
+                    chunker.chunkSecureMessage("MSG", options, endPointResponse, function (err, messageChunk) {
                         if (messageChunk) {
                             chunk_stack.push(clone_buffer(messageChunk));
                         } else {
@@ -46,18 +46,18 @@ describe("SecureMessageChunkManager", function() {
                     });
                 },
 
-                function(callback) {
+                function (callback) {
                     chunk_stack.length.should.be.greaterThan(0);
 
                     // let verify that each intermediate chunk is marked with "C" and final chunk is marked with "F"
                     for (let i = 0; i < chunk_stack.length - 1; i++) {
                         String.fromCharCode(chunk_stack[i].readUInt8(3)).should.equal("C");
                     }
-                    String.fromCharCode(chunk_stack[chunk_stack.length-1].readUInt8(3)).should.equal("F");
+                    String.fromCharCode(chunk_stack[chunk_stack.length - 1].readUInt8(3)).should.equal("F");
                     callback();
                 },
 
-                function(callback) {
+                function (callback) {
                     chunk_stack.length.should.be.greaterThan(0);
 
                     // now apply the opposite operation by reconstructing the message from chunk and
@@ -66,7 +66,7 @@ describe("SecureMessageChunkManager", function() {
                     // console.log(" message Builder");
                     const messageBuilder = new MessageBuilder();
                     messageBuilder
-                        .on("full_message_body", function(full_message_body) {
+                        .on("full_message_body", function (full_message_body) {
                             compare_buffers(fullBufferForVerif, full_message_body, 40);
                         })
                         .on("message", (reconstructed_message) => {
@@ -81,12 +81,12 @@ describe("SecureMessageChunkManager", function() {
 
                             callback();
                         })
-                        .on("error", function(errCode) {
+                        .on("error", function (errCode) {
                             callback(new Error("Error : code 0x" + errCode.toString(16)));
                         });
 
                     // feed messageBuilder with
-                    chunk_stack.forEach(function(chunk) {
+                    chunk_stack.forEach(function (chunk) {
                         // let simulate a real TCP communication
                         // where our messageChunk would be split into several packages ...
 
@@ -105,11 +105,11 @@ describe("SecureMessageChunkManager", function() {
         );
     });
 
-    it("should receive and handle an ERR message", function(done) {
+    it("should receive and handle an ERR message", function (done) {
         const messageBuilder = new MessageBuilder();
 
         messageBuilder
-            .on("full_message_body", function(full_message_body) {
+            .on("full_message_body", function (full_message_body) {
                 debugLog(" On raw Buffer \n");
                 debugLog(hexDump(full_message_body));
             })
@@ -120,7 +120,7 @@ describe("SecureMessageChunkManager", function() {
 
                 done();
             })
-            .on("error", function(errCode) {
+            .on("error", function (errCode) {
                 debugLog(" errCode ", errCode);
                 should.fail();
                 done(new Error("Unexpected error event received"));
@@ -128,7 +128,7 @@ describe("SecureMessageChunkManager", function() {
 
         const makeBufferFromTrace = require("node-opcua-debug").makeBufferFromTrace;
 
-        const packet = makeBufferFromTrace(function() {
+        const packet = makeBufferFromTrace(function () {
             /*
              00000000: 4d 53 47 46 64 00 00 00 0c 00 00 00 01 00 00 00 04 00 00 00 03 00 00 00 01 00 8d 01 00 00 00 00    MSGFd...........................
              00000020: 00 00 00 00 00 00 00 00 00 00 82 80 24 00 00 00 00 00 00 00 80 01 00 00 00 24 00 00 00 55 6e 65    ............$............$...Une
@@ -138,7 +138,7 @@ describe("SecureMessageChunkManager", function() {
         });
         messageBuilder.feed(packet);
     });
-    it("should test CloseSecureChannelResponse", function() {
+    it("should test CloseSecureChannelResponse", function () {
         const response = new CloseSecureChannelResponse({});
         encode_decode_round_trip_test(response);
     });

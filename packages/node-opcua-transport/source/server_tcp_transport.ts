@@ -70,7 +70,6 @@ export class ServerTCP_transport extends TCP_transport {
     }
 
     protected _write_chunk(messageChunk: Buffer): void {
-
         // istanbul ignore next
         if (this.sendBufferSize > 0 && messageChunk.length > this.sendBufferSize) {
             errorLog(
@@ -80,7 +79,7 @@ export class ServerTCP_transport extends TCP_transport {
                 this.sendBufferSize
             );
         }
-        
+
         super._write_chunk(messageChunk);
     }
     /**
@@ -105,6 +104,7 @@ export class ServerTCP_transport extends TCP_transport {
         }
         assert(!this._socket, "init already called!");
         assert(typeof callback === "function", "expecting a valid callback ");
+
         this._install_socket(socket);
         this._install_HEL_message_receiver(callback);
     }
@@ -117,7 +117,7 @@ export class ServerTCP_transport extends TCP_transport {
         // When a fatal error occurs, the Server shall send an Error Message to the Client and
         // closes the TransportConnection gracefully.
         doDebug && debugLog(chalk.cyan("_abortWithError"));
-        
+
         /* istanbul ignore next */
         if (this._aborted) {
             // already called
@@ -141,7 +141,7 @@ export class ServerTCP_transport extends TCP_transport {
         assert(helloMessage.sendBufferSize >= minimumBufferSize);
 
         const minBufferSize = 8192;
-        const maxBufferSize = 64 * 1024;
+        const maxBufferSize = 8 * 64 * 1024;
 
         const minMaxMessageSize = 128 * 1024;
         const defaultMaxMessageSize = 16 * 1024 * 1024;
@@ -151,16 +151,20 @@ export class ServerTCP_transport extends TCP_transport {
         const defaultMaxChunkCount = defaultMaxMessageSize / maxBufferSize;
         const maxMaxChunkCount = 9000;
 
-        const receiveBufferSize = 32 * 1024;
-        const sendBufferSize = 32 * 1024;
+        const defaultReceiveBufferSize = 64 * 1024;
+        const defaultSendBufferSize = 64 * 1024;
 
         if (!helloMessage.maxChunkCount && helloMessage.sendBufferSize) {
             helloMessage.maxChunkCount = helloMessage.maxMessageSize / helloMessage.sendBufferSize;
         }
 
         this.setLimits({
-            receiveBufferSize: clamp_value(helloMessage.receiveBufferSize || receiveBufferSize, minBufferSize, maxBufferSize),
-            sendBufferSize: clamp_value(helloMessage.sendBufferSize || sendBufferSize, minBufferSize, maxBufferSize),
+            receiveBufferSize: clamp_value(
+                helloMessage.receiveBufferSize || defaultReceiveBufferSize,
+                minBufferSize,
+                maxBufferSize
+            ),
+            sendBufferSize: clamp_value(helloMessage.sendBufferSize || defaultSendBufferSize, minBufferSize, maxBufferSize),
             maxMessageSize: clamp_value(helloMessage.maxMessageSize || defaultMaxMessageSize, minMaxMessageSize, maxMaxMessageSize),
             maxChunkCount: clamp_value(helloMessage.maxChunkCount || defaultMaxChunkCount, minMaxChunkCount, maxMaxChunkCount)
         });

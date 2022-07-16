@@ -511,7 +511,6 @@ module.exports = function (test) {
         //}
 
         it("AZA2-A0 should return BadTooManySubscriptions if too many subscriptions are opened (maxSubscriptionsPerSession)", function (done) {
-
             const subscriptionIds = [];
 
             function create_an_other_subscription(session, expected_error, callback) {
@@ -602,7 +601,6 @@ module.exports = function (test) {
         });
 
         it("AZA2-A1 should return BadTooManySubscriptions if too many subscriptions are opened (maxSubscriptions)", async () => {
-
             const subscriptionIds = [];
             const clients = [];
             const sessions = [];
@@ -630,7 +628,7 @@ module.exports = function (test) {
                         subscriptionIds.push(subscription.subscriptionId);
                         statusCodes.push("Good");
                     } catch (err) {
-                        console.log("Create subscription has failed")
+                        console.log("Create subscription has failed");
                         _err = err;
                         statusCodes.push("Bad");
                     }
@@ -668,9 +666,8 @@ module.exports = function (test) {
                 await create_client_and_2_subscriptions(null);
                 await create_client_and_2_subscriptions(null);
                 await create_client_and_2_subscriptions("BadTooManySubscriptions");
-                await create_client_and_2_subscriptions("BadTooManySubscriptions");    
-            } 
-            finally {
+                await create_client_and_2_subscriptions("BadTooManySubscriptions");
+            } finally {
                 server.engine.serverCapabilities.maxSubscriptionsPerSession = maxSubsriptionsPerSessionBackup;
                 server.engine.serverCapabilities.maxSubscriptions = maxSubsriptionsBackup;
                 server.engine.serverCapabilities.maxSessions = maxSessionBackup;
@@ -681,7 +678,6 @@ module.exports = function (test) {
                     await client.disconnect();
                 }
             }
- 
         });
 
         it(
@@ -3540,7 +3536,7 @@ module.exports = function (test) {
                                     sendPublishRequest(session, function (err, response) {
                                         const notification = response.notificationMessage.notificationData[0].monitoredItems[0];
                                         notification.value.statusCode.should.eql(StatusCodes.BadIndexRangeNoData);
-                                        notification.value.value.value.should.eql(new Int32Array([]));
+                                        should(notification.value.value.value).eql(null);
                                         callback(err);
                                     });
                                 },

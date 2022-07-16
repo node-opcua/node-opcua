@@ -41,17 +41,8 @@ export type FindEndpointCallback = (err: Error | null, result?: FindEndpointResu
 
 export interface TransportSettings {
     maxChunkCount?: number;
-    /**
-     * @advanced
-     */
     maxMessageSize?: number;
-    /**
-     * @advanced
-     */
     sendBufferSize?: number;
-    /**
-     * @advanced
-     */
     receiveBufferSize?: number;
 }
 

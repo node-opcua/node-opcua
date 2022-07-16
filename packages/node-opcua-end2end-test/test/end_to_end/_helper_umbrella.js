@@ -148,7 +148,7 @@ exports.afterEachTest = async function afterEachTest(test) {
         console.log(" rejectedSessionCount         = ", test.server.engine.rejectedSessionCount);
 
         test.server.currentSubscriptionCount.should.eql(0, " verify test clean up : dangling  subscriptions found");
-        test.server.currentSessionCount.should.eql(0, " verify test clean up : dangling  session found");
+        test.server.currentSessionCount.should.eql(0, " verify test clean up : dangling  session found on server");
         // test must not add exta nodes in root => "organizes" ref count => 3
         const addressSpace = test.server.engine.addressSpace;
         const rootFolder = addressSpace.findNode("RootFolder");

@@ -35,7 +35,9 @@ function createClientSocket(endpointUrl: string): Socket {
         case "opc.tcp:":
             socket = createConnection({ host: hostname, port });
 
-            //        // Setting true for noDelay will immediately fire off data each time socket.write() is called.
+            socket.setKeepAlive(true);
+
+            // Setting true for noDelay will immediately fire off data each time socket.write() is called.
             socket.setNoDelay(true);
 
             return socket;
@@ -65,6 +67,13 @@ export interface ClientTCP_transport {
     once(eventName: "socket_closed", eventHandler: (err: Error | null) => void): this;
     once(eventName: "close", eventHandler: (err: Error | null) => void): this;
     once(eventName: "connection_break", eventHandler: () => void): this;
+}
+
+export interface TransportSettingsOptions {
+    maxChunkCount?: number;
+    maxMessageSize?: number;
+    receiveBufferSize?: number;
+    sendBufferSize?: number;
 }
 
 /**
@@ -118,8 +127,13 @@ export class ClientTCP_transport extends TCP_transport {
 
     private connected: boolean;
     private _counter: number;
-
-    constructor() {
+    private _helloSettings: {
+        maxChunkCount: number;
+        maxMessageSize: number;
+        receiveBufferSize: number;
+        sendBufferSize: number;
+    };
+    constructor(transportSettings?: TransportSettingsOptions) {
         super();
         this.connected = false;
         this.endpointUrl = "";
@@ -131,6 +145,14 @@ export class ClientTCP_transport extends TCP_transport {
         this.maxChunkCount = 1;
         this.maxMessageSize = 4 * 1024;
         this.receiveBufferSize = 4 * 1024;
+
+        transportSettings = transportSettings || {};
+        this._helloSettings = {
+            maxChunkCount: transportSettings.maxChunkCount || ClientTCP_transport.defaultMaxChunk,
+            maxMessageSize: transportSettings.maxMessageSize || ClientTCP_transport.defaultMaxMessageSize,
+            receiveBufferSize: transportSettings.receiveBufferSize || ClientTCP_transport.defaultReceiveBufferSize,
+            sendBufferSize: transportSettings.sendBufferSize || ClientTCP_transport.defaultSendBufferSize
+        };
     }
 
     public dispose(): void {
@@ -313,15 +335,17 @@ export class ClientTCP_transport extends TCP_transport {
         assert(isFinite(this.protocolVersion));
         assert(this.endpointUrl.length > 0, " expecting a valid endpoint url");
 
+        const { maxChunkCount, maxMessageSize, receiveBufferSize, sendBufferSize } = this._helloSettings;
+
         // Write a message to the socket as soon as the client is connected,
         // the server will receive it as message from the client
         const helloMessage = new HelloMessage({
             endpointUrl: this.endpointUrl,
             protocolVersion: this.protocolVersion,
-            maxChunkCount: ClientTCP_transport.defaultMaxChunk,
-            maxMessageSize: ClientTCP_transport.defaultMaxMessageSize,
-            receiveBufferSize: ClientTCP_transport.defaultReceiveBufferSize,
-            sendBufferSize: ClientTCP_transport.defaultSendBufferSize
+            maxChunkCount,
+            maxMessageSize,
+            receiveBufferSize,
+            sendBufferSize
         });
         // istanbul ignore next
         if (doTraceHelloAck) {

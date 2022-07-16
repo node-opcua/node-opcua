@@ -118,6 +118,10 @@ export class SecureMessageChunkManager extends EventEmitter {
         });
     }
 
+    public evaluateTotalLengthAndChunks(bodySize: number): { totalLength: number; chunkCount: number } {
+        return this.chunkManager.evaluateTotalLengthAndChunks(bodySize);
+    }
+
     public write_header(finalC: string, buffer: Buffer, length: number): void {
         assert(buffer.length > 12);
         assert(finalC.length === 1);
