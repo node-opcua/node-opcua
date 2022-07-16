@@ -363,7 +363,8 @@ export class ServerSecureChannelLayer extends EventEmitter {
 
         this.messageChunker = new MessageChunker({
             securityHeader: this.securityHeader, // for OPN
-            maxMessageSize: this.transport.maxMessageSize
+            maxMessageSize: this.transport.maxMessageSize,
+            maxChunkCount: this.transport.maxChunkCount
         });
 
         this._tick0 = 0;
@@ -400,9 +401,8 @@ export class ServerSecureChannelLayer extends EventEmitter {
         debugLog(" this.transport.maxMessageSize", this.transport.maxMessageSize);
 
         this.messageBuilder.on("error", (err, statusCode) => {
-
             warningLog("ServerSecureChannel:MessageBuilder: ", err.message);
-            
+
             // istanbul ignore next
             if (doDebug) {
                 debugLog(chalk.red("Error "), err.message, err.stack);
@@ -539,7 +539,10 @@ export class ServerSecureChannelLayer extends EventEmitter {
 
                 this._rememberClientAddressAndPort();
 
+                // adjust sizes;
                 this.messageChunker.maxMessageSize = this.transport.maxMessageSize;
+                this.messageChunker.maxChunkCount  = this.transport.maxChunkCount;
+
 
                 // bind low level TCP transport to messageBuilder
                 this.transport.on("chunk", (messageChunk: Buffer) => {
@@ -646,8 +649,26 @@ export class ServerSecureChannelLayer extends EventEmitter {
             msgType,
             options as ChunkMessageOptions,
             response as any as BaseUAObject,
-            (messageChunk: Buffer | null) => {
-                return this._send_chunk(callback, messageChunk);
+            (err: Error | null, messageChunk: Buffer | null) => {
+                if (err) {
+                    // the response would be too large !!!!
+                    warningLog("Error while chunking response message : ", err.message);
+                    this._send_chunk(callback, messageChunk);
+                   /* this.send_response(
+                        "MSG",
+                        new ServiceFault({
+                            responseHeader: {
+                                requestHandle: request.requestHeader.requestHandle,
+                                serviceResult: StatusCodes.BadTcpMessageTooLarge
+                            }
+                        }),
+                        message,
+                        callback
+                    );
+                    */
+                } else {
+                    this._send_chunk(callback, messageChunk);
+                }
             }
         );
     }

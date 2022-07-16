@@ -154,9 +154,9 @@ export type ServerCapabilitiesOptions = Partial<IServerCapabilities>;
 export const defaultServerCapabilities: IServerCapabilities = {
     maxBrowseContinuationPoints: 0,
     maxHistoryContinuationPoints: 0,
-    maxStringLength: 65535,
-    maxArrayLength: 65535,
-    maxByteStringLength: 65535,
+    maxStringLength: 16 * 1024 * 1024,
+    maxArrayLength: 1024 * 1024,
+    maxByteStringLength: 16 * 1024 * 1024,
     maxQueryContinuationPoints: 0,
 
     minSupportedSampleRate: 100,
@@ -245,7 +245,8 @@ export class ServerCapabilities implements IServerCapabilities {
         // new in 1.05
         this.maxSessions = options.maxSessions || defaultServerCapabilities.maxSessions;
 
-        this.maxSubscriptionsPerSession = options.maxSubscriptionsPerSession || defaultServerCapabilities.maxSubscriptionsPerSession;
+        this.maxSubscriptionsPerSession =
+            options.maxSubscriptionsPerSession || defaultServerCapabilities.maxSubscriptionsPerSession;
         this.maxSubscriptions = options.maxSubscriptions || defaultServerCapabilities.maxSubscriptions;
         this.maxMonitoredItems = options.maxMonitoredItems || defaultServerCapabilities.maxMonitoredItems;
         this.maxMonitoredItemsPerSubscription =

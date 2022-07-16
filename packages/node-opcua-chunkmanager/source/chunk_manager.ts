@@ -154,6 +154,12 @@ export class ChunkManager extends EventEmitter {
         this.pendingChunk = null;
     }
 
+    public evaluateTotalLengthAndChunks(bodySize: number): { totalLength: number; chunkCount: number } {
+        const chunkCount = Math.ceil(bodySize / this.maxBodySize);
+        const totalLength = this.chunkSize + chunkCount;
+        return { totalLength, chunkCount };
+    }
+
     public write(buffer: Buffer, length?: number) {
         length = length || buffer.length;
         assert(buffer instanceof Buffer || buffer === null);

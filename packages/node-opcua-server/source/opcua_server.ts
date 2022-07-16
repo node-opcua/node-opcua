@@ -2239,6 +2239,7 @@ export class OPCUAServer extends OPCUABaseServer {
                 }
                 return channel.send_response("MSG", response1, message);
             } catch (err) {
+                warningLog(err);
                 // istanbul ignore next
                 if (err instanceof Error) {
                     // istanbul ignore next
@@ -3136,7 +3137,7 @@ export class OPCUAServer extends OPCUABaseServer {
 
                     sendResponse(response);
                 } catch (err) {
-                    console.log(err);
+                    warningLog(err);
                     return sendError(StatusCodes.BadInternalError);
                 }
             }

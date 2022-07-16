@@ -190,7 +190,9 @@ describe("testing ServerSecureChannelLayer ", function () {
             nb_on_message_calls += 1;
 
             message.request.schema.name.should.equal("GetEndpointsRequest");
-            serverSecureChannel.send_response("MSG", new GetEndpointsResponse(), message, () => {/** */ });
+            serverSecureChannel.send_response("MSG", new GetEndpointsResponse(), message, () => {
+                /** */
+            });
         });
 
         serverSecureChannel.on("abort", () => {
@@ -332,12 +334,10 @@ describe("testing ServerSecureChannelLayer ", function () {
     it("KK8 should not accept message with too large chunk", async () => {
         const node = new DirectTransport();
 
-        let serverSecureChannel = new ServerSecureChannelLayer({
-        });
+        let serverSecureChannel = new ServerSecureChannelLayer({});
 
         serverSecureChannel.setSecurity(MessageSecurityMode.None, SecurityPolicy.None);
         serverSecureChannel.timeout = 100000;
-
 
         let initialized = false;
         serverSecureChannel.init(node.server, (err) => {
@@ -355,10 +355,9 @@ describe("testing ServerSecureChannelLayer ", function () {
         }
 
         async function send1(msg, request) {
-
             const l = request.binaryStoreSize();
 
-            // craft a HELLO Message        
+            // craft a HELLO Message
             const b = new BinaryStream(l + 8);
             b.writeInt8(msg[0].charCodeAt(0));
             b.writeInt8(msg[1].charCodeAt(0));
@@ -368,7 +367,7 @@ describe("testing ServerSecureChannelLayer ", function () {
             request.encode(b);
             b.buffer.writeInt32LE(b.length, 4);
 
-            console.log(`sending\n${hexDump(b.buffer)}`)
+            console.log(`sending\n${hexDump(b.buffer)}`);
 
             const rep = await send(b.buffer);
             console.log(`receiving\n${hexDump(rep)}`);
@@ -377,22 +376,21 @@ describe("testing ServerSecureChannelLayer ", function () {
         async function sendHello() {
             // eslint-disable-next-line no-undef
             const helloMessage = new HelloMessage({
-                protocolVersion: 0,// UInt32;
-                receiveBufferSize: 8 * 1024,// UInt32;
+                protocolVersion: 0, // UInt32;
+                receiveBufferSize: 8 * 1024, // UInt32;
                 sendBufferSize: 8 * 1024,
                 maxMessageSize: 16 * 1024,
                 maxChunkCount: 2,
                 endpointUrl: "opc.tcp://localhost:1234/SomeEndpoint"
             });
             await send1("HEL", helloMessage);
-
         }
 
         let requestId = 1;
         async function send2(msg, request, tweakerFunc) {
             const messageChunker = new MessageChunker();
 
-            return await new Promise((resolve,reject) => {
+            return await new Promise((resolve, reject) => {
                 node.client.once("data", (chunk) => {
                     requestId += 1;
                     console.log(`receiving\n${hexDump(chunk)}`);
@@ -401,43 +399,44 @@ describe("testing ServerSecureChannelLayer ", function () {
                 });
                 node.client.once("error", (err) => {
                     reject(err);
-                })
-                messageChunker.chunkSecureMessage(msg, {
-                    requestId,
-                    securityMode: MessageSecurityMode.None,
-                }, request, (chunk) => {
-                    if (chunk) {
-                        if (tweakerFunc) {
-                            chunk = tweakerFunc(chunk);
-                        }
-                        console.log(`sending\n${hexDump(chunk)}`);
-                        node.client.write(chunk)
-                    } else {
-                        console.log("done.");
-                    }
                 });
+                messageChunker.chunkSecureMessage(
+                    msg,
+                    {
+                        requestId,
+                        securityMode: MessageSecurityMode.None
+                    },
+                    request,
+                    (err, chunk) => {
+                        if (chunk) {
+                            if (tweakerFunc) {
+                                chunk = tweakerFunc(chunk);
+                            }
+                            console.log(`sending\n${hexDump(chunk)}`);
+                            node.client.write(chunk);
+                        } else {
+                            console.log("done.");
+                        }
+                    }
+                );
             });
-
         }
 
         async function sendOpenChannel() {
-
             const openChannelRequest = new OpenSecureChannelRequest({
                 clientNonce: null,
                 clientProtocolVersion: 0,
-                requestHeader: {
-                },
+                requestHeader: {},
                 requestType: SecurityTokenRequestType.Init,
                 requestedLifetime: 100000,
-                securityMode: MessageSecurityMode.None,
+                securityMode: MessageSecurityMode.None
             });
             return await send2("OPN", openChannelRequest);
-
         }
 
         async function sendTooLargeChunkMessage() {
-            return await send2("MSG", new ReadRequest({}), (chunk)=>{
-                chunk.writeUInt32LE(0xFFFF,4);
+            return await send2("MSG", new ReadRequest({}), (chunk) => {
+                chunk.writeUInt32LE(0xffff, 4);
                 return chunk;
             });
         }
@@ -454,8 +453,8 @@ describe("testing ServerSecureChannelLayer ", function () {
                 resolve();
             });
         });
-        node.shutdown(() => {/** */ });
-
+        node.shutdown(() => {
+            /** */
+        });
     });
-
 });

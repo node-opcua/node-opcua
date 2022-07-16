@@ -302,8 +302,9 @@ describe("Testing ClientSecureChannel with BackOff reconnection strategy", funct
             await promisify(secureChannel.close).call(secureChannel);
         }
 
-        await closeChannel(); // .should.be.rejectedWith(/Transport disconnected/);
-
+        if (false) {
+            await closeChannel(); // .should.be.rejectedWith(/Transport disconnected/);
+        }
         await promisify(stopServer)(holder);
 
         debugLog("DONE! ");
@@ -331,8 +332,7 @@ describe("Testing ClientSecureChannel with BackOff reconnection strategy", funct
         try {
             const endpoint = `opc.tcp://localhost:${port4}/UA/Sample`;
             await promisify(secureChannel.create).call(secureChannel, endpoint);
-
-            await promisify(secureChannel.closeWithError).call(secureChannel, StatusCodes.Bad, new Error("Sabotage"));
+            secureChannel._closeWithError(StatusCodes.Bad, new Error("Sabotage"));
         } catch (err) {
             console.log(err.message);
             throw err;

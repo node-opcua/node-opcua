@@ -33,6 +33,7 @@ import { decodeStatusCode, coerceStatusCode, StatusCodes, StatusCode } from "nod
 import { MessageBuilderBase, MessageBuilderBaseOptions, StatusCodes2 } from "node-opcua-transport";
 import { timestamp } from "node-opcua-utils";
 import { SequenceHeader } from "node-opcua-chunkmanager";
+import { doTraceChunk } from "node-opcua-transport";
 
 import { chooseSecurityHeader, MessageChunker, SymmetricAlgorithmSecurityHeader } from "./secure_channel_service";
 
@@ -50,8 +51,6 @@ import {
 const debugLog = make_debugLog(__filename);
 const doDebug = checkDebugFlag(__filename);
 const warningLog = make_warningLog(__filename);
-
-const doTraceChunk = process.env.NODEOPCUADEBUG && process.env.NODEOPCUADEBUG.indexOf("CHUNK") >= 0;
 
 export interface SecurityToken {
     tokenId: number;
@@ -96,6 +95,7 @@ export interface MessageBuilder extends MessageBuilderBase {
         eventName: "message",
         eventHandler: (obj: BaseUAObject, msgType: string, requestId: number, channelId: number) => void
     ): this;
+    on(eventName: "abandon", eventHandler: (requestId: number) => void): this;
 
     on(eventName: "invalid_message", eventHandler: (obj: BaseUAObject) => void): this;
     on(eventName: "invalid_sequence_number", eventHandler: (expectedSequenceNumber: number, sequenceNumber: number) => void): this;
@@ -109,6 +109,7 @@ export interface MessageBuilder extends MessageBuilderBase {
     emit(eventName: "invalid_message", evobj: BaseUAObject): boolean;
     emit(eventName: "invalid_sequence_number", expectedSequenceNumber: number, sequenceNumber: number): boolean;
     emit(eventName: "new_token", tokenId: number): boolean;
+    emit(eventName: "abandon"): boolean;
 }
 /**
  * @class MessageBuilder
@@ -252,8 +253,8 @@ export class MessageBuilder extends MessageBuilderBase {
                     debugLog(" Sequence Header", this.sequenceHeader);
                 }
                 if (doTraceChunk) {
-                    warningLog(
-                        timestamp(),
+                    console.log(
+                        chalk.cyan(timestamp()),
                         chalk.green("   >$$ "),
                         chalk.green(this.messageHeader.msgType),
                         chalk.green("nbChunk = " + this.messageChunks.length.toString().padStart(3)),
@@ -270,28 +271,8 @@ export class MessageBuilder extends MessageBuilderBase {
             }
             return true;
         } catch (err) {
+            warningLog(chalk.red("Error"), (err as Error).message);
             return false;
-        }
-    }
-
-    protected _reportErrMessage(message: Buffer) {
-        try {
-            const binaryStream = new BinaryStream(message);
-            const msgType = binaryStream.readUInt32();
-            const msgLength = binaryStream.readUInt32();
-            if (message.length === msgLength) {
-                const errorCode = binaryStream.readUInt32();
-                const additionalInfo = decodeString(binaryStream);
-                // invalid message type
-                const m1 = `ERR: ${errorCode} ${additionalInfo}`;
-                warningLog(m1);
-                return this._report_error(coerceStatusCode(errorCode), m1);
-            } else {
-                return this._report_error(StatusCodes.BadTcpInternalError, message.toString("hex"));
-            }
-        } catch (err) {
-            console.log(hexDump(message));
-            return this._report_error(StatusCodes.BadTcpInternalError, message.toString("hex"));
         }
     }
 
@@ -303,12 +284,9 @@ export class MessageBuilder extends MessageBuilderBase {
 
         const msgType = this.messageHeader.msgType;
 
-        if (msgType === "ERR") {
-            return this._reportErrMessage(fullMessageBody);
-        }
-        if (msgType === "HEL" || msgType === "ACK") {
+        if (msgType === "HEL" || msgType === "ACK" || msgType === "ERR") {
             // invalid message type
-            return this._report_error(StatusCodes2.BadTcpMessageTypeInvalid, "Invalid message type ( HEL/ACK )");
+            return this._report_error(StatusCodes2.BadTcpMessageTypeInvalid, "Invalid message type ( HEL/ACK/ERR )");
         }
 
         if (msgType === "CLO" && fullMessageBody.length === 0 && this.sequenceHeader) {

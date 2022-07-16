@@ -59,7 +59,8 @@ import {
     FindServersRequestLike,
     GetEndpointsOptions,
     OPCUAClientBase,
-    OPCUAClientBaseOptions
+    OPCUAClientBaseOptions,
+    TransportSettings
 } from "../client_base";
 import { performCertificateSanityCheck } from "../verify";
 import { ClientSessionImpl } from "./client_session_impl";
@@ -383,6 +384,7 @@ export class ClientBaseImpl extends OPCUASecureObject implements OPCUAClientBase
     private _clockAdjuster?: ClockAdjustment;
     private _tmpClient?: OPCUAClientBase;
     private _instanceNumber: number;
+    private _transportSettings: TransportSettings;
 
     public clientCertificateManager: OPCUACertificateManager;
 
@@ -469,6 +471,8 @@ export class ClientBaseImpl extends OPCUASecureObject implements OPCUAClientBase
         this.discoveryUrl = options.discoveryUrl || "";
 
         this._setInternalState("disconnected");
+
+        this._transportSettings = options.transportSettings || {};
     }
 
     private _cancel_reconnection(callback: ErrorCallback) {
@@ -622,8 +626,8 @@ export class ClientBaseImpl extends OPCUASecureObject implements OPCUAClientBase
             securityMode: this.securityMode,
             securityPolicy: this.securityPolicy,
             serverCertificate: this.serverCertificate,
-            tokenRenewalInterval: this.tokenRenewalInterval
-
+            tokenRenewalInterval: this.tokenRenewalInterval,
+            transportSettings: this._transportSettings
             // transportTimeout:
         });
         secureChannel.protocolVersion = this.protocolVersion;
@@ -679,8 +683,14 @@ export class ClientBaseImpl extends OPCUASecureObject implements OPCUAClientBase
             (err) => {
                 if (err) {
                     debugLog("Inner create secure channel has failed", err.message);
-                    this._secureChannel = null;
-                    callback(err);
+                    if (this._secureChannel) {
+                        this._secureChannel!.abortConnection(() => {
+                            callback(err);
+                        });
+                    } else {
+                        this._secureChannel = null;
+                        callback(err);
+                    }
                 } else {
                     assert(this._secureChannel !== null);
                     callback(null, secureChannel);

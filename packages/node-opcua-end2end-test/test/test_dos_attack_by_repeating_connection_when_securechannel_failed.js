@@ -230,7 +230,7 @@ describe("testing Server resilience to DDOS attacks 2", function () {
 
 describe("testing Server resilience to DDOS attacks - ability to recover", function () {
     let connectionRefusedCount = 0;
-    const requestedSessionTimeout = 2000;
+    const requestedSessionTimeout = 3000;
 
     async function startServer() {
         connectionRefusedCount = 0;
@@ -305,7 +305,7 @@ describe("testing Server resilience to DDOS attacks - ability to recover", funct
         try {
             // now we should be able to connect
             const client = OPCUAClient.create({
-                requestedSessionTimeout: 100, // very short for test
+                requestedSessionTimeout: 500, // very short for test
                 connectionStrategy: {
                     maxRetry: 0
                 },
