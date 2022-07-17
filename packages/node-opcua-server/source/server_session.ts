@@ -72,6 +72,7 @@ interface SessionSecurityDiagnosticsDataTypeEx extends SessionSecurityDiagnostic
     $session: any;
 }
 
+export type SessionStatus = "new" | "active" | "screwed" | "disposed" | "closed";
 /**
  *
  * A Server session object.
@@ -99,13 +100,12 @@ export class ServerSession extends EventEmitter implements ISubscriber, ISession
     public static registry = new ObjectRegistry();
     public static maxPublishRequestInQueue = 100;
 
-    public __status = "";
+    public __status: SessionStatus = "new";
     public parent: ServerEngine;
     public authenticationToken: NodeId;
     public nodeId: NodeId;
     public sessionName = "";
 
-    
     public publishEngine: ServerSidePublishEngine;
     public sessionObject: any;
     public readonly creationDate: Date;
@@ -227,15 +227,15 @@ export class ServerSession extends EventEmitter implements ISubscriber, ISession
      * the first transaction is the creation of the session
      */
     public get clientLastContactTime(): number {
-        const lastSeen =  this._watchDogData ? this._watchDogData.lastSeen : minOPCUADate.getTime();
+        const lastSeen = this._watchDogData ? this._watchDogData.lastSeen : minOPCUADate.getTime();
         return WatchDog.lastSeenToDuration(lastSeen);
     }
 
-    public get status(): string {
+    public get status(): SessionStatus {
         return this.__status;
     }
 
-    public set status(value: string) {
+    public set status(value: SessionStatus) {
         if (value === "active") {
             this._createSessionObjectInAddressSpace();
         }
@@ -304,7 +304,7 @@ export class ServerSession extends EventEmitter implements ISubscriber, ISession
             const propName = lowerFirstLetter(counterName + "Count");
             // istanbul ignore next
             if (!Object.prototype.hasOwnProperty.call(this._sessionDiagnostics, propName)) {
-               errorLog("incrementRequestTotalCounter: cannot find", propName);
+                errorLog("incrementRequestTotalCounter: cannot find", propName);
                 // xx return;
             } else {
                 (this._sessionDiagnostics as any)[propName].totalCount += 1;
@@ -444,7 +444,7 @@ export class ServerSession extends EventEmitter implements ISubscriber, ISession
         assert(this.currentSubscriptionCount === 0);
 
         this.status = "closed";
-        
+
         this._detach_channel();
 
         /**
@@ -559,10 +559,10 @@ export class ServerSession extends EventEmitter implements ISubscriber, ISession
 
     public _detach_channel(): void {
         const channel = this.channel;
-        
+
         // istanbul ignore next
         if (!channel) {
-            return; 
+            return;
             // already detached !
             // throw new Error("expecting a valid channel");
         }

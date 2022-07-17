@@ -1598,13 +1598,17 @@ export class ServerEngine extends EventEmitter {
         });
     }
 
-    public getOldestUnactivatedSession(): ServerSession | null {
-        const tmp = Object.values(this._sessions).filter((session1: ServerSession) => {
-            return session1.status === "new";
-        });
+    public getOldestInactiveSession(): ServerSession | null {
+        // search screwed or closed session first
+        let tmp = Object.values(this._sessions).filter(
+            (session1: ServerSession) =>
+                session1.status === "screwed" || session1.status === "disposed" || session1.status === "closed"
+        );
         if (tmp.length === 0) {
-            return null;
+            // if none available, tap into the session that are not yet activated
+            tmp = Object.values(this._sessions).filter((session1: ServerSession) => session1.status === "new");
         }
+        if (tmp.length === 0) return null;
         let session = tmp[0];
         for (let i = 1; i < tmp.length; i++) {
             const c = tmp[i];

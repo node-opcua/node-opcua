@@ -252,7 +252,7 @@ function moveSessionToChannel(session: ServerSession, channel: ServerSecureChann
 }
 
 async function _attempt_to_close_some_old_unactivated_session(server: OPCUAServer) {
-    const session = server.engine!.getOldestUnactivatedSession();
+    const session = server.engine!.getOldestInactiveSession();
     if (session) {
         await server.engine!.closeSession(session.authenticationToken, false, "Forcing");
     }
