@@ -113,6 +113,7 @@ describe("DataValue", () => {
         dataValue1.value.dataType.should.eql(DataType.Double);
         dataValue1.value.arrayType.should.eql(VariantArrayType.Array);
     });
+
     it("DataValue - extractRange on a String", () => {
         const dataValue = new DataValue({
             value: new Variant({
@@ -128,6 +129,7 @@ describe("DataValue", () => {
         dataValue1.value.dataType.should.eql(DataType.String);
         dataValue1.value.arrayType.should.eql(VariantArrayType.Scalar);
     });
+
     it("DataValue - extractRange on a String with StatusCode != Good - issue #635", () => {
         const dataValue = new DataValue({
             statusCode: StatusCodes.BadAlreadyExists,
@@ -145,6 +147,7 @@ describe("DataValue", () => {
 
         dataValue1.statusCode.should.eql(StatusCodes.BadAlreadyExists);
     });
+    
     it("DataValue - extractRange on a String with StatusCode != Good and invalid range - issue #635", () => {
         const dataValue = new DataValue({
             statusCode: StatusCodes.BadAlreadyExists,
@@ -211,6 +214,7 @@ describe("DataValue", () => {
         dataValue1.value.dataType.should.eql(DataType.ByteString);
         dataValue1.value.arrayType.should.eql(VariantArrayType.Array);
     });
+
     it("DataValue - extractRange on a Matrix of ByteString", () => {
         const dataValue = new DataValue({
             value: new Variant({
@@ -243,6 +247,7 @@ describe("DataValue", () => {
         dataValue1.value.arrayType.should.eql(VariantArrayType.Matrix);
         dataValue1.value.dimensions.should.eql([1, 2]);
     });
+
     it("DataValue - extractRange on invalid range - edge case", () => {
         const dataValue = new DataValue({
             value: new Variant({
@@ -257,6 +262,7 @@ describe("DataValue", () => {
         dataValue1.statusCode.should.eql(StatusCodes.BadIndexRangeInvalid);
         should.equal(null, dataValue1.value.value);
     });
+
     describe("Cloning a DataValue", () => {
         function SomeExtensionObject(options) {
             this.a = options.a;
@@ -397,9 +403,8 @@ describe("DataValue", () => {
         });
         console.log(dataValue.toJSON());
         console.log(JSON.stringify(dataValue.toJSON()));
-    
-        console.log(JSON.stringify(dataValue, (k, v) => ArrayBuffer.isView(v) ? Array.from(v) : v));
-        
+
+        console.log(JSON.stringify(dataValue, (k, v) => (ArrayBuffer.isView(v) ? Array.from(v) : v)));
     });
 
     it("should convert a DataValue to a JSON Object", () => {
@@ -444,6 +449,7 @@ describe("DataValue", () => {
         });
         // console.log(dataValue1.toString());
     });
+
     it("should convert a DataValue with ExtensionObject to JSON", () => {
         class SomeExtensionObject extends ExtensionObject {
             constructor(options /*: { name: string } */) {
