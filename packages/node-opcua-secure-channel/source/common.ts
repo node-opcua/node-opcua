@@ -6,20 +6,20 @@ import { TypeSchemaBase } from "node-opcua-factory";
 import { CloseSecureChannelRequest, MessageSecurityMode, RequestHeader, ResponseHeader } from "node-opcua-service-secure-channel";
 import { ServiceFault } from "./services";
 
-export interface ResponseB {
+export interface IResponseBase {
     responseHeader: ResponseHeader;
     schema: TypeSchemaBase;
 }
 
-export type Response = ResponseB | ServiceFault;
+export type Response = IResponseBase | ServiceFault;
 
-export interface RequestB {
+export interface IRequestBase {
     requestHeader: RequestHeader;
     schema: TypeSchemaBase;
     securityMode: MessageSecurityMode;
 }
 
-export type Request = RequestB | CloseSecureChannelRequest;
+export type Request = IRequestBase | CloseSecureChannelRequest;
 
 export { ICertificateKeyPairProvider } from "node-opcua-common";
 

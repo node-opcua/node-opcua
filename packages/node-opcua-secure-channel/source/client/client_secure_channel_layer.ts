@@ -224,6 +224,74 @@ export interface ClientSecureChannelLayerOptions {
     transportSettings: TransportSettingsOptions;
 }
 
+export interface ClientSecureChannelLayer extends EventEmitter {
+    on(event: "end_transaction", eventHandler: (transactionStatistics: ClientTransactionStatistics) => void): this;
+    on(event: "close", eventHandler: (err?: Error | null) => void): this;
+    on(event: "lifetime_75", eventHandler: (securityToken: ChannelSecurityToken) => void): this;
+    on(event: "receive_chunk", eventHandler: (chunk: Buffer) => void): this;
+    on(event: "send_chunk", eventHandler: (chunk: Buffer) => void): this;
+    on(event: "backoff", eventHandler: (retryCount: number, delay: number) => void): this;
+    on(event: "security_token_renewed", eventHandler: () => void): this;
+    on(event: "send_request", eventHandler: (request: Request) => void): this;
+    on(event: "receive_response", eventHandler: (response: Response) => void): this;
+    on(event: "timed_out_request", eventHandler: (request: Request) => void): this;
+    on(event: "abort", eventHandler: () => void): this;
+
+    emit(event: "end_transaction", transactionStatistics: ClientTransactionStatistics): boolean;
+    /**
+     * notify the observers that the transport connection has ended.
+     * The error object is null or undefined if the disconnection was initiated by the ClientSecureChannelLayer.
+     * A Error object is provided if the disconnection has been initiated by an external cause.
+     *
+     * @event close
+     */
+    emit(event: "close", err?: Error | null): boolean;
+    /**
+     * notify the observer that the secure channel has now reach 75% of its allowed live time and
+     * that a new token is going to be requested.
+     * @event  lifetime_75
+     * @param  securityToken {Object} : the security token that is about to expire.
+     *
+     */
+    emit(event: "lifetime_75", securityToken: ChannelSecurityToken): boolean;
+
+    /**
+     * notify the observers that ClientSecureChannelLayer has received a message chunk
+     * @event receive_chunk
+     */
+    emit(event: "receive_chunk", chunk: Buffer): boolean;
+    /**
+     * notify the observer that a message chunk is about to be sent to the server
+     * @event send_chunk
+     */
+
+    emit(event: "send_chunk", chunk: Buffer): boolean;
+
+    emit(event: "backoff", retryCount: number, delay: number): boolean;
+    /**
+     * notify the observers that the security has been renewed
+     * @event security_token_renewed
+     */
+    emit(event: "security_token_renewed"): boolean;
+
+    /**
+     * notify the observer that a client request is being sent the server
+     * @event send_request
+     */
+    emit(event: "send_request", request: Request): boolean;
+    /**
+     * notify the observers that a server response has been received on the channel
+     * @event receive_response
+     */
+    emit(event: "receive_response", response: Response): boolean;
+    /**
+     * notify the observer that the response from the request has not been
+     * received within the timeoutHint specified
+     * @event timed_out_request
+     */
+    emit(event: "timed_out_request", request: Request): boolean;
+    emit(event: "abort"): boolean;
+}
 /**
  * a ClientSecureChannelLayer represents the client side of the OPCUA secure channel.
  */
@@ -600,9 +668,10 @@ export class ClientSecureChannelLayer extends EventEmitter {
             [
                 (inner_callback: ErrorCallback) => {
                     if (this.__call) {
-                        this.__call.once("abort", () => setTimeout(inner_callback, 20));
+                        this.__call.once("abort", () => inner_callback());
                         this.__call._cancelBackoff = true;
                         this.__call.abort();
+                        this.__call = null;
                     } else {
                         inner_callback();
                     }
@@ -919,14 +988,6 @@ export class ClientSecureChannelLayer extends EventEmitter {
         if (this.__in_normal_close_operation) {
             err = undefined;
         }
-        /**
-         * notify the observers that the transport connection has ended.
-         * The error object is null or undefined if the disconnection was initiated by the ClientSecureChannelLayer.
-         * A Error object is provided if the disconnection has been initiated by an external cause.
-         *
-         * @event close
-         * @param err
-         */
         this.emit("close", err);
 
         //
@@ -952,13 +1013,6 @@ export class ClientSecureChannelLayer extends EventEmitter {
                 " is about to expired, let's raise lifetime_75 event "
             );
 
-        /**
-         * notify the observer that the secure channel has now reach 75% of its allowed live time and
-         * that a new token is going to be requested.
-         * @event  lifetime_75
-         * @param  securityToken {Object} : the security token that is about to expire.
-         *
-         */
         this.emit("lifetime_75", this.securityToken);
         this._renew_security_token();
     }
@@ -1132,11 +1186,6 @@ export class ClientSecureChannelLayer extends EventEmitter {
         this._install_message_builder();
 
         this._transport.on("chunk", (messageChunk: Buffer) => {
-            /**
-             * notify the observers that ClientSecureChannelLayer has received a message chunk
-             * @event receive_chunk
-             * @param message_chunk
-             */
             this.emit("receive_chunk", messageChunk);
             this._on_receive_message_chunk(messageChunk);
         });
@@ -1273,11 +1322,6 @@ export class ClientSecureChannelLayer extends EventEmitter {
                 );
             // Do something when backoff starts, e.g. show to the
             // user the delay before next reconnection attempt.
-            /**
-             * @event backoff
-             * @param retryCount: number
-             * @param delay: number
-             */
             this.emit("backoff", retryCount, delay);
         };
 
@@ -1287,9 +1331,6 @@ export class ClientSecureChannelLayer extends EventEmitter {
             doDebug && debugLog(chalk.bgWhite.cyan(` abort #   after ${this.__call.getNumRetries()} retries.`));
             // Do something when backoff starts, e.g. show to the
             // user the delay before next reconnection attempt.
-            /**
-             * @event backoff
-             */
             this.emit("abort");
             setImmediate(() => {
                 this._backoff_completion(undefined, new Error("Connection abandoned"), transport, callback);
@@ -1315,10 +1356,6 @@ export class ClientSecureChannelLayer extends EventEmitter {
             /* istanbul ignore else */
             if (!err) {
                 doDebug && debugLog(" token renewed");
-                /**
-                 * notify the observers that the security has been renewed
-                 * @event security_token_renewed
-                 */
                 this.emit("security_token_renewed");
             } else {
                 if (doDebug) {
@@ -1376,7 +1413,9 @@ export class ClientSecureChannelLayer extends EventEmitter {
         assert(typeof callback === "function");
 
         if (!this.isValid()) {
-            return callback(new Error("ClientSecureChannelLayer => Socket is closed !"));
+            return callback(
+                new Error("ClientSecureChannelLayer => Socket is closed ! while processing " + request.constructor.name)
+            );
         }
 
         let localCallback: PerformTransactionCallback | null = callback;
@@ -1423,11 +1462,6 @@ export class ClientSecureChannelLayer extends EventEmitter {
             timerId = null;
 
             if (!err && response) {
-                /**
-                 * notify the observers that a server response has been received on the channel
-                 * @event  receive_response
-                 * @param response {Object} the response object
-                 */
                 this.emit("receive_response", response);
             }
             assert(!err || err instanceof Error);
@@ -1459,12 +1493,7 @@ export class ClientSecureChannelLayer extends EventEmitter {
                 new Error("Transaction has timed out ( timeout = " + timeout + " ms , request = " + request.constructor.name + ")")
             );
             this._timeout_request_count += 1;
-            /**
-             * notify the observer that the response from the request has not been
-             * received within the timeoutHint specified
-             * @event timed_out_request
-             * @param message_chunk {Object}  the message chunk
-             */
+
             this.emit("timed_out_request", request);
             // xx // XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX CHECK ME !!!
             // xx this.closeWithError(new Error("Restarting because Request has timed out (1)"), () => { });
@@ -1562,11 +1591,6 @@ export class ClientSecureChannelLayer extends EventEmitter {
         const requestData = this._requests[requestId];
 
         if (chunk) {
-            /**
-             * notify the observer that a message chunk is about to be sent to the server
-             * @event send_chunk
-             * @param message_chunk {Object}  the message chunk
-             */
             this.emit("send_chunk", chunk);
 
             /* istanbul ignore next */
@@ -1764,11 +1788,6 @@ export class ClientSecureChannelLayer extends EventEmitter {
             };
         }
 
-        /**
-         * notify the observer that a client request is being sent the server
-         * @event send_request
-         * @param request {Request}
-         */
         this.emit("send_request", request);
 
         this.messageChunker.chunkSecureMessage(

@@ -189,7 +189,13 @@ describe("Testing secure client and server connection", () => {
             securityPolicy: param.securityPolicy,
             serverCertificate: param.serverCertificate,
             tokenRenewalInterval: 150, // very short ! but not zero
-            transportTimeout: 0
+            transportTimeout: 0,
+            transportSettings: {
+                maxChunkCount: 1000,
+                maxMessageSize: 0,
+                receiveBufferSize: 0,
+                sendBufferSize: 0,
+            }
         });
         clientChannel.on("receive_chunk", (chunk: Buffer) => {
             doDebug && console.log(chalk.green(hexDump(chunk, 32, 20000)));

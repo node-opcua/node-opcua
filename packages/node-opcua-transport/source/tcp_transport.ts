@@ -7,7 +7,7 @@ import * as chalk from "chalk";
 
 import { assert } from "node-opcua-assert";
 import { BinaryStream } from "node-opcua-binary-stream";
-import { make_debugLog, checkDebugFlag, make_errorLog, hexDump } from "node-opcua-debug";
+import { make_debugLog, checkDebugFlag, make_errorLog, hexDump, make_warningLog } from "node-opcua-debug";
 import { ObjectRegistry } from "node-opcua-object-registry";
 import { PacketAssembler, PacketAssemblerErrorCode } from "node-opcua-packet-assembler";
 import { ErrorCallback, CallbackWithData, StatusCode } from "node-opcua-status-code";
@@ -21,6 +21,7 @@ import { packTcpMessage } from "./tools";
 const debugLog = make_debugLog(__filename);
 const doDebug = checkDebugFlag(__filename);
 const errorLog = make_errorLog(__filename);
+const warningLog = make_warningLog(__filename);
 
 export interface MockSocket {
     invalid?: boolean;
@@ -54,13 +55,31 @@ export function getFakeTransport(): any {
 let counter = 0;
 
 export interface TCP_transport {
+    /**
+     * notify the observers that a message chunk has been received
+     * @event chunk
+     * @param message_chunk the message chunk
+     */
     on(eventName: "chunk", eventHandler: (messageChunk: Buffer) => void): this;
+    /**
+     * notify the observers that the transport layer has been disconnected.
+     * @event socket_closed
+     * @param err the Error object or null
+     */
     on(eventName: "socket_closed", eventHandler: (err: Error | null) => void): this;
+    /**
+     * notify the observers that the transport layer has been disconnected.
+     * @event close
+     */
     on(eventName: "close", eventHandler: (err: Error | null) => void): this;
 
     once(eventName: "chunk", eventHandler: (messageChunk: Buffer) => void): this;
     once(eventName: "socket_closed", eventHandler: (err: Error | null) => void): this;
     once(eventName: "close", eventHandler: (err: Error | null) => void): this;
+
+    emit(eventName: "socket_closed", err?: Error | null): boolean;
+    emit(eventName: "close", err?: Error | null): boolean;
+    emit(eventName: "chunk", messageChunk: Buffer): boolean;
 }
 // tslint:disable:class-name
 export class TCP_transport extends EventEmitter {
@@ -237,14 +256,12 @@ export class TCP_transport extends EventEmitter {
     }
 
     protected on_socket_ended(err: Error | null): void {
-        assert(!this._onSocketEndedHasBeenCalled);
-        this._onSocketEndedHasBeenCalled = true; // we don't want to send close event twice ...
-        /**
-         * notify the observers that the transport layer has been disconnected.
-         * @event close
-         * @param err the Error object or null
-         */
-        this.emit("close", err || null);
+        if (!this._onSocketEndedHasBeenCalled) {
+            this._onSocketEndedHasBeenCalled = true; // we don't want to send close event twice ...
+            this.emit("close", err || null);
+        } else {
+            debugLog("on_socket_ended has already been called");
+        }
     }
 
     protected _install_packetAssembler() {
@@ -389,11 +406,6 @@ export class TCP_transport extends EventEmitter {
         const hadCallback = this._fulfill_pending_promises(null, messageChunk);
         this.chunkReadCount++;
         if (!hadCallback) {
-            /**
-             * notify the observers that a message chunk has been received
-             * @event message
-             * @param message_chunk the message chunk
-             */
             this.emit("chunk", messageChunk);
         }
     }
@@ -432,11 +444,6 @@ export class TCP_transport extends EventEmitter {
         }
         assert(!this._onSocketClosedHasBeenCalled);
         this._onSocketClosedHasBeenCalled = true; // we don't want to send close event twice ...
-        /**
-         * notify the observers that the transport layer has been disconnected.
-         * @event socket_closed
-         * @param err the Error object or null
-         */
         this.emit("socket_closed", err || null);
     }
 

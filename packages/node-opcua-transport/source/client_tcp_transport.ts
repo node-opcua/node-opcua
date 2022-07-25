@@ -62,11 +62,19 @@ export interface ClientTCP_transport {
     on(eventName: "socket_closed", eventHandler: (err: Error | null) => void): this;
     on(eventName: "close", eventHandler: (err: Error | null) => void): this;
     on(eventName: "connection_break", eventHandler: () => void): this;
+    on(eventName: "connect", eventHandler: () => void): this;
 
     once(eventName: "chunk", eventHandler: (messageChunk: Buffer) => void): this;
     once(eventName: "socket_closed", eventHandler: (err: Error | null) => void): this;
     once(eventName: "close", eventHandler: (err: Error | null) => void): this;
     once(eventName: "connection_break", eventHandler: () => void): this;
+    once(eventName: "connect", eventHandler: () => void): this;
+
+    emit(eventName: "chunk", messageChunk: Buffer): boolean;
+    emit(eventName: "socket_closed", err?: Error | null): boolean;
+    emit(eventName: "close", err?: Error | null): boolean;
+    emit(eventName: "connection_break"): boolean;
+    emit(eventName: "connect"): boolean;
 }
 
 export interface TransportSettingsOptions {
