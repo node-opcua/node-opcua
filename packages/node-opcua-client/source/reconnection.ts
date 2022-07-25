@@ -10,12 +10,12 @@ import { checkDebugFlag, make_debugLog, make_errorLog, make_warningLog } from "n
 import { TransferSubscriptionsRequest, TransferSubscriptionsResponse } from "node-opcua-service-subscription";
 import { CallbackT, StatusCodes } from "node-opcua-status-code";
 import { ErrorCallback } from "node-opcua-status-code";
+import { CloseSessionRequest } from "node-opcua-types";
 
 import { SubscriptionId } from "./client_session";
 import { ClientSessionImpl, Reconnectable } from "./private/client_session_impl";
 import { ClientSubscriptionImpl } from "./private/client_subscription_impl";
 import { IClientBase } from "./private/i_private_client";
-import { OPCUAClientImpl } from "./private/opcua_client_impl";
 
 const debugLog = make_debugLog(__filename);
 const doDebug = checkDebugFlag(__filename);
@@ -133,7 +133,7 @@ function _ask_for_subscription_republish(session: ClientSessionImpl, callback: (
     });
 }
 
-function create_session_and_repeat_if_failed(
+function create_session_and_repeat_if_failed_Old(
     client: IClientBase,
     session: ClientSessionImpl,
     callback: CallbackT<ClientSessionImpl>
@@ -145,21 +145,53 @@ function create_session_and_repeat_if_failed(
     // create new session, based on old session,
     // so we can reuse subscriptions data
     client.__createSession_step2(session, (err: Error | null, session1?: ClientSessionImpl) => {
-        debugLog(chalk.bgWhite.cyan("    => creating a new session (based on old session data).... Done"));
+        if (err && session.hasBeenClosed()) {
+            return callback(new Error("Cannot complete subscription republish due to session termination"));
+        }
         if (!err && session1) {
             const newSession = session1;
             assert(session === session1, "session should have been recycled");
             callback(err, newSession);
             return;
         } else {
+            debugLog(chalk.bgWhite.cyan("    => creating a new session (based on old session data).... Done"));
             setTimeout(() => {
                 create_session_and_repeat_if_failed(client, session, callback);
             }, 1000);
             return;
         }
-        callback(err);
     });
 }
+
+function create_session_and_repeat_if_failed(
+    client: IClientBase,
+    session: ClientSessionImpl,
+    callback: CallbackT<ClientSessionImpl>
+) {
+    if (session.hasBeenClosed()) {
+        debugLog("Cannot complete subscription republish due to session terminatio");
+        return callback(new Error("Cannot complete subscription republish due to session termination"));
+    }
+    debugLog(chalk.bgWhite.red("    => creating a new session ...."));
+    // create new session, based on old session,
+    // so we can reuse subscriptions data
+    client.__createSession_step2(session, (err: Error | null, session1?: ClientSessionImpl) => {
+        if (err && session.hasBeenClosed()) {
+            debugLog("Cannot complete subscription republish due to session terminatio");
+            return callback(new Error("Cannot complete subscription republish due to session termination"));
+        }
+        if (!err && session1) {
+            const newSession = session1;
+            assert(session === session1, "session should have been recycled");
+            callback(err, newSession);
+            return;
+        } else {
+            debugLog("Cannot complete subscription republish err = ", err?.message);
+            callback(err);
+        }
+    });
+}
+
 function repair_client_session_by_recreating_a_new_session(
     client: IClientBase,
     session: ClientSessionImpl,
@@ -207,7 +239,25 @@ function repair_client_session_by_recreating_a_new_session(
 
                 client._activateSession(newSession, (err: Error | null, session1?: ClientSessionImpl) => {
                     debugLog(chalk.bgWhite.cyan("    =>  activating a new session .... Done err=", err ? err.message : "null"));
-                    innerCallback(err ? err : undefined);
+                    if (err) {
+                        debugLog(
+                            chalk.bgWhite.cyan(
+                                "reactivation of the new session has failed: let be smart and close it before failing this repair attempt"
+                            )
+                        );
+                        // but just on the server side, not on the client side
+                        const closeSessionRequest = new CloseSessionRequest({
+                            deleteSubscriptions: true
+                        });
+                        session.performMessageTransaction(closeSessionRequest, (err2?: Error | null) => {
+                            if (err2) {
+                                warningLog("closing session", err2.message);
+                            }
+                            innerCallback(err);
+                        });
+                    } else {
+                        innerCallback(err ? err : undefined);
+                    }
                 });
             },
 
@@ -238,8 +288,8 @@ function repair_client_session_by_recreating_a_new_session(
                     subscriptionsToTransfer,
                     (err: Error | null, transferSubscriptionsResponse?: TransferSubscriptionsResponse) => {
                         if (err) {
-                            debugLog(chalk.bgCyan("Warning TransferSubscription has failed " + err.message));
-                            debugLog(chalk.bgCyan("May be the server is not supporting this feature"));
+                            warningLog(chalk.bgCyan("Warning TransferSubscription has failed " + err.message));
+                            warningLog(chalk.bgCyan("May be the server is not supporting this feature"));
                             // when transfer subscription has failed, we have no other choice but
                             // recreate the subscriptions on the server side
                             return innerCallback();
@@ -303,7 +353,7 @@ function repair_client_session_by_recreating_a_new_session(
 
                                 (subscription as ClientSubscriptionImpl).recreateSubscriptionAndMonitoredItem((err1?: Error) => {
                                     if (err1) {
-                                        debugLog("_recreateSubscription failed !");
+                                        debugLog("_recreateSubscription failed !" + err1.message);
                                     }
 
                                     debugLog(
@@ -356,7 +406,7 @@ function repair_client_session_by_recreating_a_new_session(
 
 function _repair_client_session(client: IClientBase, session: ClientSessionImpl, callback: (err?: Error) => void): void {
     const callback2 = (err2?: Error) => {
-        debugLog("Session is repaired ", err2 ? err2.message : "<no error>", session.sessionId.toString());
+        debugLog("Session repair completed with err: ", err2 ? err2.message : "<no error>", session.sessionId.toString());
         session.emit("session_repaired");
         callback(err2);
     };
@@ -404,8 +454,11 @@ export function repair_client_session(client: IClientBase, session: ClientSessio
     _repair_client_session(client, session, (err) => {
         privateSession._reconnecting.reconnecting = false;
         if (err) {
-            errorLog(chalk.red("SESSION RESTORED HAS FAILED! retrying"), err.message, session.sessionId.toString());
-            return _repair_client_session(client, session, callback);
+            errorLog(chalk.red("SESSION RESTORED HAS FAILED! err ="), err.message, session.sessionId.toString(), " => Let's retry");
+            setTimeout(() => {
+                _repair_client_session(client, session, callback);
+            }, 2000);
+            return;
         }
         debugLog(chalk.yellow("SESSION RESTORED"), session.sessionId.toString());
         session.emit("session_restored");

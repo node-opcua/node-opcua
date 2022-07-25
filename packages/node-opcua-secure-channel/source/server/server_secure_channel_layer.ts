@@ -589,7 +589,6 @@ export class ServerSecureChannelLayer extends EventEmitter {
 
         // istanbul ignore next
         if (doDebug) {
-            assert(response.schema);
             assert(request.schema);
             assert(requestId > 0);
             // verify that response for a given requestId is only sent once.

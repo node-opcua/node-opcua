@@ -222,7 +222,7 @@ describe("testing Server resilience to DDOS attacks 2", function () {
             client.disconnect();
             console.log("----- Well done!");
         } catch (err) {
-            console.log(err);
+            console.log("error",err.message);
             throw err;
         }
     });

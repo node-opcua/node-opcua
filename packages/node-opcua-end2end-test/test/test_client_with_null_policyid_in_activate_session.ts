@@ -51,7 +51,7 @@ describe("Testing client that have policyId = null in Activate Session for anony
         const endpoint = server.getEndpointUrl();
         await client.connect(endpoint);
 
-        let err = undefined;
+        let err: Error | undefined = undefined;
         try {
             const session = await client.createSession();
             await session.close();

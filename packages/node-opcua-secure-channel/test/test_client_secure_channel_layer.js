@@ -120,7 +120,7 @@ describe("testing ClientSecureChannelLayer ", function() {
 
         secureChannel.performMessageTransaction(message, function(err /*, response*/) {
             // err.message.should.equal("Client not connected");
-            err.message.should.equal("ClientSecureChannelLayer => Socket is closed !");
+            err.message.should.match(/ClientSecureChannelLayer => Socket is closed !/);
             done();
         });
     });
