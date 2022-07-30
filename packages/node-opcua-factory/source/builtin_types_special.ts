@@ -5,8 +5,8 @@
 import { assert } from "node-opcua-assert";
 import { BinaryStream, OutputBinaryStream } from "node-opcua-binary-stream";
 
-import { registerType } from "./factories_builtin_types";
-import { ConstructorFunc } from "./constructor_type";
+import { registerType } from "./builtin_types";
+import { ConstructorFunc } from "./types";
 
 function _self_encode(constructor: any) {
     assert(typeof constructor === "function");

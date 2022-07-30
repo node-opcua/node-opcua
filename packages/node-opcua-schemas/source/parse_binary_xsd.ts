@@ -8,13 +8,7 @@ import * as chalk from "chalk";
 
 import assert from "node-opcua-assert";
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
-import {
-    EnumerationDefinitionSchema,
-    FieldInterfaceOptions,
-    StructuredTypeField,
-    StructuredTypeOptions,
-    StructuredTypeSchema
-} from "node-opcua-factory";
+import { EnumerationDefinitionSchema, FieldInterfaceOptions, StructuredTypeOptions } from "node-opcua-factory";
 import { DataTypeFactory } from "node-opcua-factory";
 import { NodeId } from "node-opcua-nodeid";
 import { Xml2Json } from "node-opcua-xml2json";

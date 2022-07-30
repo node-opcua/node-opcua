@@ -295,7 +295,7 @@ async function _extractDataTypeDictionaryFromDefinition(
             if (doDebug) {
                 debugLog(chalk.red("Registering "), chalk.cyan(className.padEnd(30, " ")), schema.dataTypeNodeId.toString());
             }
-            const Constructor = createDynamicObjectConstructor(schema, dataTypeFactory) as ConstructorFuncWithSchema;
+            const Constructor = createDynamicObjectConstructor(schema, dataTypeFactory) as unknown as ConstructorFuncWithSchema;
             assert(Constructor.schema === schema);
         } catch (err) {
             console.log("Constructor verification err: ", (<Error>err).message);

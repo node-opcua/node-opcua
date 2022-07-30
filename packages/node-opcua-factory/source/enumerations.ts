@@ -5,7 +5,8 @@ import { assert } from "node-opcua-assert";
 
 import { BinaryStream, OutputBinaryStream } from "node-opcua-binary-stream";
 import { Enum, EnumItem, _TypescriptEnum , adaptTypescriptEnum} from "node-opcua-enum";
-import { EnumerationDefinition, TypeSchemaBase, TypeSchemaConstructorOptions } from "./types";
+import { TypeSchemaBase } from "./builtin_types";
+import { EnumerationDefinition, TypeSchemaConstructorOptions } from "./types";
 
 function _encode_enumeration(typedEnum: Enum, value: number, stream: OutputBinaryStream): void {
     assert(typeof value === "number", "Expecting a number here");
@@ -88,13 +89,14 @@ export function registerEnumeration(options: EnumerationDefinitionOptions): Enum
     return enumerationDefinition.typedEnum;
 }
 
-export function hasEnumeration(enumerationName: string): boolean {
+export function hasBuiltInEnumeration(enumerationName: string): boolean {
     return _enumerations.has(enumerationName);
 }
 
-export function getEnumeration(enumerationName: string): EnumerationDefinitionSchema {
-    if (!exports.hasEnumeration(enumerationName)) {
+export function getBuiltInEnumeration(enumerationName: string): EnumerationDefinitionSchema {
+    if (!hasBuiltInEnumeration(enumerationName)) {
         throw new Error("Cannot find enumeration with type " + enumerationName);
     }
     return _enumerations.get(enumerationName) as EnumerationDefinitionSchema;
 }
+

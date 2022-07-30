@@ -6,7 +6,7 @@ exports.ObjWithIntegerId_Schema = {
     id: node_opcua_factory_1.next_available_id(),
     name: "ObjWithIntegerId",
     fields: [
-        { name: "title", fieldType: "UAString" },
+        { name: "title", fieldType: "String" },
         {
             name: "requestHandle",
             fieldType: "IntegerId"

@@ -71,7 +71,6 @@ function getRandomFuncForType(dataType: DataType): () => any {
 
 function _findDataType(dataTypeName: string): DataType {
     const builtInDataTypeName = findBuiltInType(dataTypeName);
-
     const dataType = (DataType as any)[builtInDataTypeName.name];
     // istanbul ignore next
     if (!dataType) {

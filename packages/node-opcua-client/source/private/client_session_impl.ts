@@ -11,7 +11,6 @@ import {
     getExtensionObjectConstructor,
     getExtraDataTypeManager,
     promoteOpaqueStructure,
-    resolveDynamicExtensionObject
 } from "node-opcua-client-dynamic-extension-object";
 import { Certificate, Nonce } from "node-opcua-crypto";
 import { attributeNameById, BrowseDirection, LocalizedTextLike } from "node-opcua-data-model";
@@ -21,7 +20,7 @@ import { ExtensionObject } from "node-opcua-extension-object";
 import { coerceNodeId, NodeId, NodeIdLike, resolveNodeId } from "node-opcua-nodeid";
 import { getBuiltInDataType, getArgumentDefinitionHelper, IBasicSession } from "node-opcua-pseudo-session";
 import { AnyConstructorFunc } from "node-opcua-schemas";
-import { ClientSecureChannelLayer, requestHandleNotSetValue, SignatureData } from "node-opcua-secure-channel";
+import { requestHandleNotSetValue, SignatureData } from "node-opcua-secure-channel";
 import { BrowseDescription, BrowseRequest, BrowseResponse, BrowseResult } from "node-opcua-service-browse";
 import { CallMethodRequest, CallMethodResult, CallRequest, CallResponse } from "node-opcua-service-call";
 import { EndpointDescription } from "node-opcua-service-endpoints";
@@ -115,7 +114,6 @@ import { repair_client_session } from "../reconnection";
 
 import { ClientSidePublishEngine } from "./client_publish_engine";
 import { ClientSubscriptionImpl } from "./client_subscription_impl";
-import { OPCUAClientImpl } from "./opcua_client_impl";
 import { IClientBase } from "./i_private_client";
 
 export type ResponseCallback<T> = (err: Error | null, response?: T) => void;

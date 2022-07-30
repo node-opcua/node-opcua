@@ -42,6 +42,7 @@ export class ExtraDataTypeManager {
         assert(namespaceIndex !== 0, "getTypeDictionaryForNamespace cannot be used for namespace 0");
         return this.dataTypeFactoryMapByNamespace[namespaceIndex];
     }
+
     public getDataTypeFactory(namespaceIndex: number): DataTypeFactory {
         if (namespaceIndex === 0) {
             return getStandardDataTypeFactory();
@@ -70,6 +71,7 @@ export class ExtraDataTypeManager {
         }
         return Constructor;
     }
+    
     public toString(): string {
         const l: string[] = [];
         function write(...args: [any, ...any[]]) {

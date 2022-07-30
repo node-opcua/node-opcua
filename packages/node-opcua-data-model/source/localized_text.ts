@@ -43,7 +43,7 @@ const schemaLocalizedText = buildStructuredType({
         {
             name: "text",
 
-            fieldType: "UAString",
+            fieldType: "String",
 
             defaultValue: null
         }

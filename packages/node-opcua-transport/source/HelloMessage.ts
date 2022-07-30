@@ -50,7 +50,7 @@ const schemaHelloMessage: StructuredTypeSchema = buildStructuredType({
         {
             name: "endpointUrl",
 
-            fieldType: "UAString",
+            fieldType: "String",
 
             documentation: "The URL of the Endpoint which the Client wished to connect to."
         }

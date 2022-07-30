@@ -21,7 +21,8 @@ import {
     FieldCategory,
     getStandardDataTypeFactory,
     StructuredTypeSchema,
-    DataTypeFactory
+    DataTypeFactory,
+    IStructuredTypeSchema
 } from "node-opcua-factory";
 import { NodeId } from "node-opcua-nodeid";
 import { DataTypeAndEncodingId, MapDataTypeAndEncodingIdProvider, parseBinaryXSDAsync } from "node-opcua-schemas";
@@ -113,7 +114,7 @@ function writeEnumeratedType(enumerationSchema: EnumerationDefinitionSchema): vo
     write(`assert(_enumeration${enumerationSchema.name}.isFlaggable ===  ${isFlaggable});`);
 }
 
-function writeStructuredTypeWithSchema(structuredType: StructuredTypeSchema) {
+function writeStructuredTypeWithSchema(structuredType: IStructuredTypeSchema) {
     write(`// --------------------------------------------------------------------------------------------`);
 
     write(`const schema${structuredType.name} = buildStructuredType({`);
@@ -301,7 +302,7 @@ import {
         writeEnumeratedType(enumerationSchema);
     }
 
-    function processStructuredType(structuredType: StructuredTypeSchema): void {
+    function processStructuredType(structuredType: IStructuredTypeSchema): void {
         if (alreadyDone[structuredType.name]) {
             return;
         }

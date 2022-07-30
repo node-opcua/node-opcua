@@ -13,13 +13,11 @@ import {
     coerceInt16,
     coerceInt32,
     coerceInt64,
-    coerceInt8,
     coerceNodeId,
     coerceSByte,
     coerceUInt16,
     coerceUInt32,
     coerceUInt64,
-    coerceUInt8,
     decodeBoolean,
     decodeByte,
     decodeByteString,
@@ -31,14 +29,12 @@ import {
     decodeInt16,
     decodeInt32,
     decodeInt64,
-    decodeInt8,
     decodeNodeId,
     decodeSByte,
     decodeString,
     decodeUInt16,
     decodeUInt32,
     decodeUInt64,
-    decodeUInt8,
     encodeBoolean,
     encodeByte,
     encodeByteString,
@@ -50,70 +46,106 @@ import {
     encodeInt16,
     encodeInt32,
     encodeInt64,
-    encodeInt8,
     encodeNodeId,
     encodeSByte,
     encodeString,
     encodeUInt16,
     encodeUInt32,
     encodeUInt64,
-    encodeUInt8
+    minDate
 } from "node-opcua-basic-types";
 import { BinaryStream, OutputBinaryStream } from "node-opcua-binary-stream";
+import { DataTypeIds } from "node-opcua-constants";
+
 import { emptyGuid } from "node-opcua-guid";
 import { makeExpandedNodeId, makeNodeId } from "node-opcua-nodeid";
 import { coerceStatusCode, decodeStatusCode, encodeStatusCode, StatusCodes } from "node-opcua-status-code";
-import { BasicTypeDefinition, BasicTypeDefinitionOptions, FieldCategory, TypeSchemaBase } from "./types";
+import { defaultEncode, defaultDecode, decodeNull, encodeNull, decodeAny, encodeAny, toJSONGuid } from "./encode_decode";
+import { BasicTypeDefinition, BasicTypeDefinitionOptions, BasicTypeDefinitionOptionsBase, CommonInterface, FieldCategory, TypeSchemaConstructorOptions } from "./types";
 
-// eslint-disable-next-line @typescript-eslint/no-empty-function
-function defaultEncode(value: any, stream: OutputBinaryStream): void {}
 
-function defaultDecode(stream: BinaryStream): any {
-    return null;
+/**
+ * @class TypeSchemaBase
+ * @param options {Object}
+ * @constructor
+ * create a new type Schema
+ */
+ export class TypeSchemaBase implements CommonInterface {
+    public name: string;
+    public defaultValue: any;
+    public encode?: (value: any, stream: OutputBinaryStream) => void;
+    public decode?: (stream: BinaryStream) => any;
+    public coerce?: (value: any) => any;
+    public toJSON?: () => string;
+    public category: FieldCategory;
+    public subType: string;
+    public isAbstract: boolean;
+
+    constructor(options: TypeSchemaConstructorOptions) {
+        assert(options.category !== null);
+        this.encode = options.encode || undefined;
+        this.decode = options.decode || undefined;
+        this.coerce = options.coerce;
+        this.category = options.category || FieldCategory.basic;
+        this.name = options.name;
+        for (const prop in options) {
+            if (Object.prototype.hasOwnProperty.call(options, prop)) {
+                (this as any)[prop] = (options as any)[prop];
+            }
+        }
+        this.subType = options.subType || "";
+        this.isAbstract = options.isAbstract || false;
+    }
+
+    /**
+     * @method  computer_default_value
+     * @param defaultValue {*} the default value
+     * @return {*}
+     */
+    public computer_default_value(defaultValue: unknown): any {
+        if (defaultValue === undefined) {
+            defaultValue = this.defaultValue;
+        }
+        if (typeof defaultValue === "function") {
+            // be careful not to cache this value , it must be call each time to make sure
+            // we do not end up with the same value/instance twice.
+            defaultValue = defaultValue();
+        }
+        return defaultValue;
+    }
+
+    public getBaseType(): CommonInterface | null {
+        if (!this.subType) return null;
+        return getBuiltInType(this.subType) as CommonInterface;
+    }
+
+    public isSubTypeOf(type: CommonInterface): boolean {
+        if (this.name === type.name) {
+            return true;
+        }
+        const baseType = this.getBaseType();
+        if (!baseType) {
+            return false;
+        }
+        return baseType.isSubTypeOf(type);
+    }
 }
 
 export class BasicTypeSchema extends TypeSchemaBase implements BasicTypeDefinition {
     public subType: string;
-
+    public isAbstract: boolean;
     public encode: (value: any, stream: OutputBinaryStream) => void;
     public decode: (stream: BinaryStream) => any;
 
     constructor(options: BasicTypeDefinitionOptions) {
         super(options);
         this.subType = options.subType;
+        this.isAbstract = options.isAbstract || false;
         this.encode = options.encode || defaultEncode;
         this.decode = options.decode || defaultDecode;
     }
 }
 
-export const minDate = new Date(Date.UTC(1601, 0, 1, 0, 0, 0));
-
-function defaultGuidValue(): any {
-    return Buffer.alloc(0);
-}
-
-function toJSONGuid(value: any): any {
-    if (typeof value === "string") {
-        return value;
-    }
-    assert(value instanceof Buffer);
-    return value.toString("base64");
-}
-
-function encodeAny(value: any, stream: OutputBinaryStream) {
-    assert(false, "type 'Any' cannot be encoded");
-}
-
-function decodeAny(stream: BinaryStream) {
-    assert(false, "type 'Any' cannot be decoded");
-}
-
-// eslint-disable-next-line @typescript-eslint/no-empty-function
-function encodeNull(value: any, stream: OutputBinaryStream): void {}
-
-function decodeNull(stream: BinaryStream): any {
-    return null;
-}
 
 // there are 4 types of DataTypes in opcua:
 //   Built-In DataType
@@ -132,8 +164,9 @@ interface T {
     defaultValue?: any;
     toJSON?: any;
 }
+
 // Built-In Type
-const _defaultType: any[] = [
+const _defaultType: BasicTypeDefinitionOptionsBase[] = [
     // Built-in DataTypes ( see OPCUA Part III v1.02 - $5.8.2 )
     {
         name: "Null",
@@ -144,8 +177,8 @@ const _defaultType: any[] = [
         defaultValue: null
     },
     {
+        // special case
         name: "Any",
-
         decode: decodeAny,
         encode: encodeAny
     },
@@ -158,17 +191,19 @@ const _defaultType: any[] = [
         coerce: coerceBoolean,
         defaultValue: false
     },
-    { name: "Int8", encode: encodeInt8, decode: decodeInt8, defaultValue: 0, coerce: coerceInt8 },
-    { name: "UInt8", encode: encodeUInt8, decode: decodeUInt8, defaultValue: 0, coerce: coerceUInt8 },
-    { name: "SByte", encode: encodeSByte, decode: decodeSByte, defaultValue: 0, coerce: coerceSByte },
-    { name: "Byte", encode: encodeByte, decode: decodeByte, defaultValue: 0, coerce: coerceByte },
-    { name: "Int16", encode: encodeInt16, decode: decodeInt16, defaultValue: 0, coerce: coerceInt16 },
-    { name: "UInt16", encode: encodeUInt16, decode: decodeUInt16, defaultValue: 0, coerce: coerceUInt16 },
-    { name: "Int32", encode: encodeInt32, decode: decodeInt32, defaultValue: 0, coerce: coerceInt32 },
-    { name: "UInt32", encode: encodeUInt32, decode: decodeUInt32, defaultValue: 0, coerce: coerceUInt32 },
+
+    { name: "Number", isAbstract: true },
+    { name: "Integer", subType: "Number", isAbstract: true },
+    { name: "UInteger", subType: "Number", isAbstract: true },
+    { name: "SByte", subType: "Integer", encode: encodeSByte, decode: decodeSByte, defaultValue: 0, coerce: coerceSByte },
+    { name: "Byte", subType: "UInteger", encode: encodeByte, decode: decodeByte, defaultValue: 0, coerce: coerceByte },
+    { name: "Int16", subType: "Integer", encode: encodeInt16, decode: decodeInt16, defaultValue: 0, coerce: coerceInt16 },
+    { name: "UInt16", subType: "UInteger", encode: encodeUInt16, decode: decodeUInt16, defaultValue: 0, coerce: coerceUInt16 },
+    { name: "Int32", subType: "Integer", encode: encodeInt32, decode: decodeInt32, defaultValue: 0, coerce: coerceInt32 },
+    { name: "UInt32", subType: "UInteger", encode: encodeUInt32, decode: decodeUInt32, defaultValue: 0, coerce: coerceUInt32 },
     {
         name: "Int64",
-
+        subType: "Integer",
         decode: decodeInt64,
         encode: encodeInt64,
 
@@ -177,7 +212,7 @@ const _defaultType: any[] = [
     },
     {
         name: "UInt64",
-
+        subType: "UInteger",
         decode: decodeUInt64,
         encode: encodeUInt64,
 
@@ -186,6 +221,7 @@ const _defaultType: any[] = [
     },
     {
         name: "Float",
+        subType: "Number",
 
         decode: decodeFloat,
         encode: encodeFloat,
@@ -195,6 +231,7 @@ const _defaultType: any[] = [
     },
     {
         name: "Double",
+        subType: "Number",
 
         decode: decodeDouble,
         encode: encodeDouble,
@@ -218,7 +255,7 @@ const _defaultType: any[] = [
         encode: encodeDateTime,
 
         coerce: coerceDateTime,
-        defaultValue: exports.minDate
+        defaultValue: ()=> minDate
     },
     {
         name: "Guid",
@@ -315,18 +352,20 @@ _defaultType.forEach(registerType);
  * @method registerType
  * @param schema {TypeSchemaBase}
  */
-export function registerType(schema: BasicTypeDefinitionOptions): void {
-    assert(typeof schema.name === "string");
-    if (typeof schema.encode !== "function") {
-        throw new Error("schema " + schema.name + " has no encode function");
+export function registerType(schema: BasicTypeDefinitionOptionsBase): void {
+    if (!schema.isAbstract) {
+        assert(schema.encode);
+        assert(schema.decode);
     }
-    if (typeof schema.decode !== "function") {
-        throw new Error("schema " + schema.name + " has no decode function");
-    }
-
     schema.category = FieldCategory.basic;
-
-    const definition = new BasicTypeSchema(schema);
+    schema.subType = schema.subType || "";
+    if (schema.name !== "Null" && schema.name !== "Any" && schema.name !== "Variant" && schema.name !== "ExtensionObject") {
+        const dataType = DataTypeIds[schema.name as keyof typeof DataTypeIds];
+        if (!dataType) {
+            throw new Error("registerType : dataType " + schema.name + " is not defined");
+        }
+    }
+    const definition = new BasicTypeSchema(schema as BasicTypeDefinitionOptions);
     _defaultTypeMap.set(schema.name, definition);
 }
 
@@ -336,46 +375,29 @@ export function unregisterType(typeName: string): void {
     _defaultTypeMap.delete(typeName);
 }
 
-/**
- * @method findSimpleType
- * @param name
- * @return {TypeSchemaBase|null}
- */
-export function findSimpleType(name: string): BasicTypeDefinition {
+export function getBuiltInType(name: string): TypeSchemaBase {
     const typeSchema = _defaultTypeMap.get(name);
     if (!typeSchema) {
         throw new Error("Cannot find schema for simple type " + name);
     }
-    assert(typeSchema instanceof TypeSchemaBase);
-    return typeSchema as BasicTypeDefinition;
+    return typeSchema;
 }
 
 export function hasBuiltInType(name: string): boolean {
     return _defaultTypeMap.has(name);
 }
 
-export function getBuildInType(name: string): BasicTypeDefinition {
-    return _defaultTypeMap.get(name) as BasicTypeDefinition;
-}
-
-/**
- * @method findBuiltInType
- * find the Builtin Type that this
- * @param dataTypeName
- * @return {*}
- */
+/** */
 export function findBuiltInType(dataTypeName: string): BasicTypeDefinition {
     assert(typeof dataTypeName === "string", "findBuiltInType : expecting a string " + dataTypeName);
-    const t = _defaultTypeMap.get(dataTypeName) as BasicTypeDefinition;
-    if (!t) {
-        throw new Error("datatype " + dataTypeName + " must be registered");
-    }
+    const t = getBuiltInType(dataTypeName);
     if (t.subType && t.subType !== t.name /* avoid infinite recursion */) {
-        return findBuiltInType(t.subType);
+        const st = getBuiltInType(t.subType);
+        if (!st.isAbstract) {
+            return findBuiltInType(t.subType);
+        }
     }
     return t;
 }
 
-export function getTypeMap(): Map<string, BasicTypeSchema> {
-    return _defaultTypeMap;
-}
+

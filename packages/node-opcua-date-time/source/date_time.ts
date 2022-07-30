@@ -224,8 +224,8 @@ export function coerceClock(timestamp: undefined | null | DateWithPicoseconds | 
         return getCurrentClock();
     }
 }
-
-const minDate = new Date(Date.UTC(1601, 0, 1, 0, 0, 0));
+ 
+export const minDate = new Date(Date.UTC(1601, 0, 1, 0, 0, 0));
 
 export const minOPCUADate = minDate;
 

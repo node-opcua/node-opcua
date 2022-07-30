@@ -184,7 +184,7 @@ async function getCorrepondingJavascriptType(
         case DataType.Variant:
             return { dataType, jtype: referenceBasicType("Variant") };
         case DataType.XmlElement:
-            return { dataType, jtype: referenceBasicType("UAString") };
+            return { dataType, jtype: referenceBasicType("String") };
         default:
             throw new Error("Unsupported " + dataType + " " + DataType[dataType]);
     }
@@ -735,7 +735,7 @@ export async function extractClassMemberDef(
     return classMember;
 }
 
-async function preDumpChildren(session: IBasicSession, padding: string, classDef: ClassDefinition, f: LineFile, cache: Cache) {
+async function preDumpChildren(padding: string, classDef: ClassDefinition, f: LineFile, cache: Cache) {
     f = f || new LineFile();
 
     for (const memberDef of classDef.members) {
@@ -751,12 +751,12 @@ async function preDumpChildren(session: IBasicSession, padding: string, classDef
 
         //f.write(`export interface ${innerClass.name}${suffix2} extends ${childBase.name}${suffix3} { // ${NodeClass[nodeClass]}`);
         f.write(`export interface ${innerClass.name}${suffix2} extends ${baseStuff} { // ${NodeClass[nodeClass]}`);
-        await dumpChildren(session, padding + "  ", memberDef.children2, f, cache);
+        await dumpChildren(padding + "  ", memberDef.children2, f, cache);
         f.write("}");
     }
 }
 
-function dumpChildren(session: IBasicSession, padding: string, children: ClassMemberBasic[], f: LineFile, cache: Cache): void {
+function dumpChildren(padding: string, children: ClassMemberBasic[], f: LineFile, cache: Cache): void {
     f = f || new LineFile();
 
     for (const def of children) {
@@ -1054,7 +1054,7 @@ export async function _convertTypeToTypescript(
         members
     } = classDef;
 
-    await preDumpChildren(session, "    ", classDef, f, cache);
+    await preDumpChildren("    ", classDef, f, cache);
 
     //  f.write(superType.toString());
     f.write(`/**`);
@@ -1112,7 +1112,7 @@ export async function _convertTypeToTypescript(
             f.write(`export interface ${classBaseName} extends ${baseName} {`);
         }
     }
-    await dumpChildren(session, "    ", members, f, cache);
+    await dumpChildren( "    ", members, f, cache);
     f.write(`}`);
 
     const baseStuff = getBaseClassWithOmit(classDef);

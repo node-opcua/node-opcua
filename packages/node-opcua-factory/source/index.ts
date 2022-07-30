@@ -1,15 +1,18 @@
 /**
  * @module node-opcua-factory
  */
-export * from "./constructor_type";
+export * from "./base_ua_object";
+export * from "./basic_type";
+export * from "./builtin_types_special";
+export * from "./builtin_types";
 export * from "./datatype_factory";
-export * from "./factories_id_generator";
-export * from "./factories_enumerations";
-export * from "./factories_basic_type";
-export * from "./factories_builtin_types";
-export * from "./factories_builtin_types_special";
-export * from "./factories_baseobject";
+export * from "./enumerations";
+export * from "./get_standard_data_type_factory";
+export * from "./get_structured_type_schema";
+export * from "./id_generator";
+export * from "./nodeid_type";
+export * from "./parameters";
+export * from "./register_class_definition";
+export * from "./schema_helpers";
+export * from "./structured_type_schema";
 export * from "./types";
-export * from "./factories_schema_helpers";
-export * from "./factories_factories";
-export * from "./factories_structuredTypeSchema";

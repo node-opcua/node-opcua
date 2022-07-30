@@ -4,7 +4,7 @@
 import { decodeNodeId, encodeNodeId } from "node-opcua-basic-types";
 import { BinaryStream, OutputBinaryStream } from "node-opcua-binary-stream";
 import { checkDebugFlag, hexDump, make_debugLog, make_warningLog } from "node-opcua-debug";
-import { BaseUAObject, constructObject, is_internal_id, registerBuiltInType, StructuredTypeSchema } from "node-opcua-factory";
+import { BaseUAObject, constructObject, IStructuredTypeSchema, is_internal_id, registerBuiltInType, StructuredTypeSchema } from "node-opcua-factory";
 import { ExpandedNodeId, makeNodeId, NodeId } from "node-opcua-nodeid";
 
 const debugLog = make_debugLog(__filename);
@@ -14,7 +14,7 @@ import * as chalk from "chalk";
 
 /* tslint:disable:no-empty */
 export class ExtensionObject extends BaseUAObject {
-    public static schema: StructuredTypeSchema = new StructuredTypeSchema({
+    public static schema: IStructuredTypeSchema = new StructuredTypeSchema({
         baseType: "",
         documentation: "",
         fields: [],
@@ -29,7 +29,7 @@ export class ExtensionObject extends BaseUAObject {
 ExtensionObject.prototype.schema = ExtensionObject.schema;
 
 function constructEmptyExtensionObject(expandedNodeId: NodeId): ExtensionObject {
-    return constructObject(expandedNodeId as ExpandedNodeId);
+    return constructObject(expandedNodeId as ExpandedNodeId) as ExtensionObject;
 }
 
 // OPC-UA Part 6 - $5.2.2.15 ExtensionObject

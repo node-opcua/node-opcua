@@ -1546,7 +1546,6 @@ export class ClientSecureChannelLayer extends EventEmitter {
             );
             errorLog(Object.keys(this._requests).join(" "));
             errorLog(new Error("Investigate me"));
-            process.exit(6);
         }
 
         request.requestHeader.requestHandle = requestHandle;

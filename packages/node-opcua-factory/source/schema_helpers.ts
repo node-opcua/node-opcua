@@ -3,14 +3,13 @@
  */
 import { assert } from "node-opcua-assert";
 import { make_debugLog } from "node-opcua-debug";
-import { StructuredTypeSchema } from "./factories_structuredTypeSchema";
-import { CommonInterface, FieldCategory, FieldType, StructuredTypeField } from "./types";
+import { DataTypeIds } from "node-opcua-constants";
+import { DataTypeFactory } from "./datatype_factory";
+import { BaseUAObject } from "./base_ua_object";
+import { FieldCategory, FieldType, IStructuredTypeSchema, StructuredTypeField } from "./types";
 
 const debugLog = make_debugLog(__filename);
 
-export const parameters = {
-    debugSchemaHelper: (typeof process === "object" && !!process.env.DEBUG_CLASS)
-};
 
 /**
  * ensure correctness of a schema object.
@@ -19,11 +18,12 @@ export const parameters = {
  * @param schema
  *
  */
-export function check_schema_correctness(schema: StructuredTypeSchema): void {
+export function check_schema_correctness(schema: IStructuredTypeSchema): void {
     assert(typeof schema.name === "string", " expecting schema to have a name");
     assert(schema.fields instanceof Array, " expecting schema to provide a set of fields " + schema.name);
     assert(schema.baseType === undefined || typeof schema.baseType === "string");
 }
+
 
 /**
  * @method initialize_value
@@ -31,8 +31,14 @@ export function check_schema_correctness(schema: StructuredTypeSchema): void {
  * @param defaultValue
  * @return {*}
  */
-export function initialize_field(field: StructuredTypeField, value: unknown): any {
+export function initialize_field(field: StructuredTypeField, value: unknown, factory?: DataTypeFactory): any {
     const _t = field.schema;
+
+    if (field.allowSubType && field.category === "complex") {
+        if (value instanceof BaseUAObject) {
+            value = { dataType: DataTypeIds.Structure, value };
+        }
+    }
     if (!(_t !== null && typeof _t === "object")) {
         throw new Error(
             "initialize_field: expecting field.schema to be set field.name = '" + field.name + "' type = " + field.fieldType
@@ -71,21 +77,6 @@ export function initialize_field(field: StructuredTypeField, value: unknown): an
     return value;
 }
 
-function initialize_value(value: any, defaultValue: any, _t: CommonInterface) {
-    if (value === undefined) {
-        return defaultValue;
-    }
-    if (defaultValue === null) {
-        if (value === null) {
-            return null;
-        }
-    }
-    if (_t.coerce) {
-        value = _t.coerce(value);
-        return value;
-    }
-    return value;
-}
 /**
  * @method initialize_field_array
  * @param field
@@ -93,7 +84,7 @@ function initialize_value(value: any, defaultValue: any, _t: CommonInterface) {
  * @return
  */
 // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
-export function initialize_field_array(field: FieldType, valueArray: any): any {
+export function initialize_field_array(field: FieldType, valueArray: any, factory?: DataTypeFactory): any {
     const _t = field.schema;
 
     let value;
@@ -104,24 +95,11 @@ export function initialize_field_array(field: FieldType, valueArray: any): any {
     if (!valueArray && field.defaultValue === null) {
         return null;
     }
-
     valueArray = valueArray || [];
-
-    let defaultValue: any;
-    if (_t.computer_default_value) {
-        defaultValue = _t.computer_default_value(field.defaultValue);
-    }
     const arr: unknown[] = [];
     for (i = 0; i < valueArray.length; i++) {
-        value = initialize_value(valueArray[i], defaultValue, _t);
+        value = initialize_field(field, valueArray[i], factory);
         arr.push(value);
-    }
-    if (field.validate) {
-        for (i = 0; i < arr.length; i++) {
-            if (!field.validate(arr[i])) {
-                throw Error(" invalid value " + arr[i] + " for field " + field.name + " of type " + field.fieldType);
-            }
-        }
     }
     return arr;
 }

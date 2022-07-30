@@ -15,7 +15,7 @@ export async function getExtensionObjectConstructor(session: IBasicSession, data
     const dataTypeFactory = extraDataTypeManager.getDataTypeFactory(dataTypeNodeId.namespace);
     const Constructor = dataTypeFactory.getConstructorForDataType(dataTypeNodeId);
     if (Constructor) {
-        return Constructor;
+        return Constructor as unknown as AnyConstructorFunc;
     }
     const dataValue = await session.read({
         nodeId: dataTypeNodeId,

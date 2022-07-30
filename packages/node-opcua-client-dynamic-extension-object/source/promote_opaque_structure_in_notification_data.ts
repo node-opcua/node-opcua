@@ -1,6 +1,6 @@
 import { NotificationData, DataChangeNotification, EventNotificationList } from "node-opcua-types";
 import { Variant, DataType } from "node-opcua-variant";
-import { IBasicSession } from "node-opcua-pseudo-session/source/basic_session_interface";
+import { IBasicSession } from "node-opcua-pseudo-session";
 import { promoteOpaqueStructure } from "./promote_opaque_structure";
 
 export async function promoteOpaqueStructureInNotificationData(

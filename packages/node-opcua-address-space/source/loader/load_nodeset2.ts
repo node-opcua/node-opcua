@@ -29,12 +29,12 @@ import {
     QualifiedNameOptions,
     stringToQualifiedName
 } from "node-opcua-data-model";
-import { checkDebugFlag, make_debugLog, make_errorLog, make_warningLog } from "node-opcua-debug";
+import { checkDebugFlag, make_debugLog, make_errorLog } from "node-opcua-debug";
 import { ExtensionObject } from "node-opcua-extension-object";
-import { DataTypeFactory, findSimpleType, getStandardDataTypeFactory } from "node-opcua-factory";
+import { getBuiltInType } from "node-opcua-factory";
 import { NodeId, NodeIdLike, resolveNodeId } from "node-opcua-nodeid";
 import { Argument } from "node-opcua-service-call";
-import { CallbackT, ErrorCallback } from "node-opcua-status-code";
+import { ErrorCallback } from "node-opcua-status-code";
 import { EnumFieldOptions, EnumValueType, Range, StructureFieldOptions } from "node-opcua-types";
 import { DataType, Variant, VariantArrayType, VariantOptions } from "node-opcua-variant";
 import {
@@ -89,10 +89,6 @@ function convertAccessLevel(accessLevel?: string | null): AccessLevelFlag {
 
 type Task = (addressSpace: IAddressSpace) => Promise<void>;
 
-function makeDefaultVariant2(addressSpace: IAddressSpace, dataTypeNode: NodeId, valueRank: number): VariantOptions | undefined {
-    const variant: VariantOptions = { dataType: DataType.Null };
-    return variant;
-}
 function makeDefaultVariant(addressSpace: IAddressSpace, dataTypeNode: NodeId, valueRank: number): VariantOptions | undefined {
     let variant: VariantOptions = { dataType: DataType.Null };
 
@@ -104,19 +100,18 @@ function makeDefaultVariant(addressSpace: IAddressSpace, dataTypeNode: NodeId, v
             return undefined;
         }
 
-        //  addressSpace.findCorrespondingBasicDataType(dataTypeNode);
         if (basicDataType === DataType.ExtensionObject) {
-            // console.log("xxxxxxxxxx ", dataTypeNode.toString(addressSpace as any));
             return { dataType: DataType.ExtensionObject, value: null };
         }
-        const dv = findSimpleType(DataType[basicDataType]).defaultValue;
-        if (dv === undefined || dv === null) {
-            // return
+        const builtInType = getBuiltInType(DataType[basicDataType]);
+        if (builtInType === undefined || builtInType === null) {
+            errorLog("Cannot find builtInType for ", basicDataType);
             return { dataType: DataType.Null };
         }
-        let arrayType: VariantArrayType;
+        const dv = builtInType.defaultValue;
         const value = typeof dv === "function" ? dv() : dv;
-        //  if (dataType === DataType.ByteString ) { value = Buffer.alloc(0) }
+ 
+        let arrayType: VariantArrayType;
         /*
          *  * n > 1                     : the Value is an array with the specified number of dimensions.
          *  * OneDimension (1):           The value is an array with one dimension.
@@ -142,7 +137,6 @@ function makeDefaultVariant(addressSpace: IAddressSpace, dataTypeNode: NodeId, v
                 variant = { dataType: basicDataType, value: [], arrayType, dimensions: [] };
                 break;
         }
-        // console.log(variant, DataType[dataType], valueRank);
     }
     return variant;
 }
@@ -1690,6 +1684,7 @@ export function makeNodeSetParserEngine(addressSpace: IAddressSpace): NodeSet2Pa
             doDebug && debugLog(chalk.bgGreenBright("Performing DataType extraction -------------------------------------------"));
             assert(!addressSpace1.suspendBackReference);
             await ensureDatatypeExtracted(addressSpace);
+            const dataTypeManager = (addressSpace as AddressSpacePrivate).getDataTypeManager();
 
             /// ----------------------------------------------------------------------------------------
             doDebug && debugLog(chalk.bgGreenBright("DataType extraction done ") + chalk.green("DONE"));
@@ -1698,7 +1693,6 @@ export function makeNodeSetParserEngine(addressSpace: IAddressSpace): NodeSet2Pa
                 if (dataTypeNodeId.namespace === 0) {
                     continue;
                 }
-                const dataTypeManager = (addressSpace as AddressSpacePrivate).getDataTypeManager();
                 const dataTypeFactory = dataTypeManager.getDataTypeFactoryForNamespace(dataTypeNodeId.namespace);
             }
             pendingSimpleTypeToRegister.splice(0);

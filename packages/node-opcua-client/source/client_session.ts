@@ -56,11 +56,12 @@ import { WriteValue, WriteValueOptions } from "node-opcua-service-write";
 import { StatusCode } from "node-opcua-status-code";
 import { DataType, Variant } from "node-opcua-variant";
 import { Callback } from "node-opcua-status-code";
-import { ExtraDataTypeManager } from "node-opcua-client-dynamic-extension-object";
 import { ExtensionObject } from "node-opcua-extension-object";
 import { ArgumentDefinition, CallMethodRequestLike, MethodId } from "node-opcua-pseudo-session";
 import { AggregateFunction } from "node-opcua-constants";
 import { HistoryReadRequest, HistoryReadResponse, HistoryReadValueIdOptions } from "node-opcua-types";
+import { ExtraDataTypeManager } from "node-opcua-client-dynamic-extension-object";
+
 export { ExtraDataTypeManager } from "node-opcua-client-dynamic-extension-object";
 export { ExtensionObject } from "node-opcua-extension-object";
 export { ArgumentDefinition, CallMethodRequestLike, MethodId } from "node-opcua-pseudo-session";
@@ -577,7 +578,7 @@ export interface ClientSessionNamespaceService {
 }
 
 export interface ClientSessionExtensionObjectService {
-    constructExtensionObject(dataType: NodeId, pojo: any): Promise<ExtensionObject>;
+    constructExtensionObject(dataType: NodeId, pojo: Record<string, unknown>): Promise<ExtensionObject>;
 
     /**
      * @private

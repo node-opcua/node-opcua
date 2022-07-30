@@ -60,7 +60,7 @@ async function resolveDynamicExtensionObjectV(
         const stream = new BinaryStream(opaque.buffer);
         try {
             object.decode(stream);
-            return object;
+            return object as ExtensionObject;
         } catch (err) {
             warningLog("Constructor = ", Constructor.name);
             warningLog("opaqueStructure = ", opaque?.nodeId?.toString());

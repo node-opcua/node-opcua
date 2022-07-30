@@ -9,10 +9,10 @@ import {
     check_options_correctness_against_schema,
     initialize_field,
     parameters,
-    StructuredTypeSchema
+    IStructuredTypeSchema
 } from "node-opcua-factory";
 
-const schemaSequenceHeader: StructuredTypeSchema = buildStructuredType({
+const schemaSequenceHeader: IStructuredTypeSchema = buildStructuredType({
     baseType: "BaseUAObject",
     fields: [
         // A monotonically increasing sequence number assigned by the sender to each
