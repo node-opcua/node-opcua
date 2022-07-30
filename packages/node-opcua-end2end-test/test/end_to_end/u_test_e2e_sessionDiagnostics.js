@@ -25,8 +25,8 @@ module.exports = function (test) {
         /** @type {ClientSubscriptionOptions} */
         const subscriptionParameters = {
             requestedPublishingInterval: 100,
-            requestedLifetimeCount: 100,
-            requestedMaxKeepAliveCount: 10,
+            requestedLifetimeCount: 1000,
+            requestedMaxKeepAliveCount: 100,
             publishingEnabled: true
         };
         it("SDS1-A server should expose a ServerDiagnostic object", async () => {
@@ -148,6 +148,7 @@ module.exports = function (test) {
                     queueSize: 10
                 };
 
+                const monitoredItemGroupChangeSpy = sinon.spy();
                 const monitoredItemGroup = await subscription.monitorItems(
                     itemsToMonitor,
                     monitoringParamaters,
@@ -159,10 +160,7 @@ module.exports = function (test) {
                 monitoredItemGroup.monitoredItems[2].statusCode.should.eql(StatusCodes.Good);
                 monitoredItemGroup.monitoredItems[3].statusCode.should.eql(StatusCodes.Good);
 
-                console.log("itemsToMonitor= ", itemsToMonitor.map((item) => item.nodeId.toString()).join(" "));
-                const monitoredItemGroupChangeSpy = sinon.spy();
                 monitoredItemGroup.on("changed", monitoredItemGroupChangeSpy);
-
                 const dataValuesMap = {};
                 monitoredItemGroup.on(
                     "changed",
@@ -174,6 +172,8 @@ module.exports = function (test) {
                         //  console.log(monitoredItem.itemToMonitor.nodeId.toString(), dataValue.value.value.toString());
                     }
                 );
+                console.log("itemsToMonitor= ", itemsToMonitor.map((item) => item.nodeId.toString()).join(" "));
+
 
                 async function writeSomeValue(value) {
                     const nodeId = "ns=2;s=Static_Scalar_Double";
