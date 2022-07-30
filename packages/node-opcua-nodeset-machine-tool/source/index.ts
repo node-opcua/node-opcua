@@ -3,7 +3,6 @@ export * from "./enum_channel_state";
 export * from "./enum_edm_generator_state";
 export * from "./enum_laser_state";
 export * from "./enum_machine_operation_mode";
-export * from "./enum_maintenance_mode";
 export * from "./enum_part_quality";
 export * from "./enum_process_irregularity";
 export * from "./enum_tool_life_indication";
