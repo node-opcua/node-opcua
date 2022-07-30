@@ -1,3 +1,7 @@
+const { make_errorLog } = require("node-opcua-debug");
+
+const errorLog = make_errorLog("TEST");
+
 async function wait(duration) {
     return new Promise((resolve) => setTimeout(resolve, duration));
 }
@@ -8,7 +12,9 @@ async function wait_until_condition(condition, timeout, message) {
         await wait(100);
         const t2 = Date.now();
         if (t2 - t > timeout) {
-            throw new Error(`wait_until_condition: Timeout  reached timeout=${timeout} ${message ||""}`);
+            const msg= `wait_until_condition: Timeout  reached timeout=${timeout} ${message ||""}`;
+            errorLog("wait_until_condition", msg);
+            throw new Error(msg);
         }
     }
 }
