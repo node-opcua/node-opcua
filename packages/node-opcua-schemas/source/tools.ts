@@ -10,7 +10,7 @@ import {
     hasBuiltInType,
     hasStructuredType,
     IStructuredTypeSchema,
-    StructuredTypeOptions,
+    StructuredTypeOptions
 } from "node-opcua-factory";
 import { ExpandedNodeId } from "node-opcua-nodeid";
 
@@ -56,6 +56,9 @@ export function getOrCreateStructuredTypeSchema(
         }
         if (dataTypeFactory.hasEnumeration(_name)) {
             return dataTypeFactory.getEnumeration(_name) as unknown as IStructuredTypeSchema;
+        }
+        if (dataTypeFactory.hasBuiltInType(_name)) {
+            return dataTypeFactory.getBuiltInType(_name) as unknown as IStructuredTypeSchema;
         }
         // construct it !
         const structuredType = typeDictionary.getStructuredTypesRawByName(_name);
