@@ -1720,7 +1720,9 @@ export class ClientSecureChannelLayer extends EventEmitter {
 
         // istanbul ignore next
         if (!this.derivedKeys || !this.derivedKeys.derivedClientKeys) {
-            throw new Error("internal error expecting valid derivedKeys");
+            errorLog("derivedKeys not set but security mode = ", MessageSecurityMode[this.securityMode]);
+            return null; // 
+            // throw new Error("internal error expecting valid derivedKeys while security mode is " + MessageSecurityMode[this.securityMode]);
         }
 
         const derivedClientKeys = this.derivedKeys.derivedClientKeys;
