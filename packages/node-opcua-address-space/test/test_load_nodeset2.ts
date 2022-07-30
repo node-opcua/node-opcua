@@ -11,7 +11,12 @@ import { DataType, Variant, VariantArrayType } from "node-opcua-variant";
 import { EnumDefinition } from "node-opcua-types";
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 
-import { AddressSpace, UADataType, UAVariable } from "..";
+import { BinaryStream } from "node-opcua-binary-stream";
+import { ExtensionObject, OpaqueStructure } from "node-opcua-extension-object";
+import { StructuredTypeField } from "node-opcua-factory";
+import { ExtraDataTypeManager, resolveDynamicExtensionObject } from "node-opcua-client-dynamic-extension-object";
+import { IBasicSession } from "node-opcua-pseudo-session";
+import { AddressSpace, ensureDatatypeExtracted, PseudoSession, UADataType, UAVariable } from "..";
 import { generateAddressSpace } from "../nodeJS";
 
 const debugLog = make_debugLog("TEST");
@@ -113,15 +118,15 @@ describe("testing NodeSet XML file loading", function (this: any) {
 
         const someVariable = addressSpace.findNode("ns=1;i=2")! as UAVariable;
         someVariable.browseName.toString().should.eql("1:SomeVariable");
-        someVariable.userAccessLevel.should.eql(AccessLevelFlag.CurrentRead);
+        someVariable.userAccessLevel!.should.eql(AccessLevelFlag.CurrentRead);
 
         const readOnlyVar = addressSpace.findNode("ns=1;i=3")! as UAVariable;
         readOnlyVar.browseName.toString().should.eql("1:SomeReadOnlyVar");
-        readOnlyVar.userAccessLevel.should.eql(AccessLevelFlag.CurrentRead);
+        readOnlyVar.userAccessLevel!.should.eql(AccessLevelFlag.CurrentRead);
 
         const readWriteVar = addressSpace.findNode("ns=1;i=4")! as UAVariable;
         readWriteVar.browseName.toString().should.eql("1:SomeReadWriteVar");
-        readWriteVar.userAccessLevel.should.eql(AccessLevelFlag.CurrentRead | AccessLevelFlag.CurrentWrite);
+        readWriteVar.userAccessLevel!.should.eql(AccessLevelFlag.CurrentRead | AccessLevelFlag.CurrentWrite);
     });
 
     it("should read predefined values for variables", async () => {
@@ -239,13 +244,14 @@ describe("testing NodeSet XML file loading", function (this: any) {
 
     it("VV4 should parse a dataType made of bit sets", async () => {
         /*
-         * <UADataType NodeId="i=95" BrowseName="AccessRestrictionType">
-         *   <Definition Name="AccessRestrictionType" IsOptionSet="true">
-         *     <Field Name="SigningRequired" Value="0" />
-         *     <Field Name="EncryptionRequired" Value="1" />
-         *     <Field Name="SessionRequired" Value="2" />
+         *<UADataType NodeId="i=95" BrowseName="AccessRestrictionType">
+         *    <Definition Name="AccessRestrictionType" IsOptionSet="true">
+         *        <Field Name="SigningRequired" Value="0" />
+         *        <Field Name="EncryptionRequired" Value="1" />
+         *        <Field Name="SessionRequired" Value="2" />
          *   </Definition>
-         * </UADataType>
+         * 
+</UADataType>
          */
         const xml_file1 = path.join(__dirname, "../test_helpers/test_fixtures/dataType_with_isOptionSet.xml");
         const xml_files = [xml_file1];
@@ -455,6 +461,194 @@ describe("testing NodeSet XML file loading", function (this: any) {
             value: { dataType: DataType.ExtensionObject, value: object }
         });
         a.setValueFromSource({ dataType: DataType.ExtensionObject, value: object });
+    });
+
+    async function testEncodeDecode(object: ExtensionObject, constructor: any, session: IBasicSession) {
+        doDebug && console.log("------------ Before");
+        doDebug && console.log(object.toString());
+
+        const dataTypeManager = await ensureDatatypeExtracted(addressSpace);
+
+        const stream = new BinaryStream(10000);
+        object.encode(stream);
+        stream.rewind();
+
+        const object2 = addressSpace.constructExtensionObject(constructor);
+
+        object2.decode(stream);
+        doDebug && console.log("------------ After");
+        doDebug && console.log(object2.toString());
+
+        await resolveOpaqueStructureInExtentionObject(session, dataTypeManager, object2);
+
+        doDebug && console.log("------------ After");
+        doDebug && console.log(object2.toString());
+
+        object2.toString().should.eql(object.toString());
+    }
+
+    async function resolveOpaqueStructureInExtentionObject(
+        session: IBasicSession,
+        dataTypeManager: ExtraDataTypeManager,
+        object: ExtensionObject
+    ) {
+        const schema = object.schema;
+        interface D {
+            dataTypeManager: ExtraDataTypeManager;
+            promises: Promise<void>[];
+        }
+        async function fixOpaqueStructureOnElement(
+            element: Record<string, unknown>,
+            field: StructuredTypeField,
+            data: D,
+            args?: any
+        ): Promise<unknown> {
+            if (!(element instanceof OpaqueStructure)) {
+                return element;
+            }
+            const variant = new Variant({ dataType: DataType.ExtensionObject, value: element });
+            await resolveDynamicExtensionObject(session, variant, dataTypeManager);
+            return variant.value as unknown;
+        }
+        function fixOpaqueStructure(object: any, field: StructuredTypeField, data: D, args?: any) {
+            if (!field.allowSubType) {
+                return;
+            }
+            const a = object[field.name];
+            if (!a) {
+                return;
+            }
+            if (field.isArray) {
+                for (let i = 0; i < a.length; i++) {
+                    const x = a[i];
+                    promises.push(
+                        (async () => {
+                            a[i] = await fixOpaqueStructureOnElement(x, field, data, args);
+                        })()
+                    );
+                }
+            } else {
+                promises.push(
+                    (async () => {
+                        object[field.name] = await fixOpaqueStructureOnElement(a, field, data, args);
+                    })()
+                );
+            }
+        }
+        const promises: Promise<void>[] = [];
+        object.applyOnAllFields<D>(fixOpaqueStructure, { dataTypeManager, promises });
+        await Promise.all(promises);
+    }
+
+    describe("VVA", () => {
+        let session: IBasicSession;
+        let nsIndex: number;
+        beforeEach(async () => {
+            addressSpace.registerNamespace("PRIVATE");
+            const xml_file1 = path.join(__dirname, "../test_helpers/test_fixtures/datatype_with_allow_subtype.xml");
+            const xml_files = [nodesets.standard, xml_file1];
+            await generateAddressSpace(addressSpace, xml_files);
+
+            session = new PseudoSession(addressSpace);
+            nsIndex = addressSpace.getNamespaceIndex("http://acme");
+            nsIndex.should.be.greaterThan(0);
+        });
+
+        it("VVA-1 should expose ConnectionEndpointConfigurationDataType", async () => {
+            const connectionEndpointConfigurationDataType = addressSpace.findDataType(
+                "ConnectionEndpointConfigurationDataType",
+                nsIndex
+            )!;
+            connectionEndpointConfigurationDataType.nodeId.namespace.should.eql(nsIndex);
+            connectionEndpointConfigurationDataType.subtypeOf!.toString().should.eql(`ns=${0};i=22`);
+            connectionEndpointConfigurationDataType.subtypeOfObj!.nodeId.toString().should.eql(`ns=${0};i=22`);
+            connectionEndpointConfigurationDataType.basicDataType.should.eql(DataType.ExtensionObject);
+        });
+
+        it("VVA-2 ----------- load datatype with AllowSubtype", async () => {
+            const pubSubcommunicationLinksDatType = addressSpace.findDataType(
+                "PubSubCommunicationLinkConfigurationDataType",
+                nsIndex
+            )!;
+
+            const communicationLink = addressSpace.constructExtensionObject(pubSubcommunicationLinksDatType, {
+                field1: 1,
+                field2: 2,
+                field3: { dataType: DataType.Int32, value: 3 }
+            });
+            (communicationLink as any).field1.should.eql(1);
+            (communicationLink as any).field2.should.eql(2);
+            (communicationLink as any).field3.dataType.should.eql(DataType.Int32);
+            (communicationLink as any).field3.value.should.eql(3);
+            (communicationLink as any).field3.should.be.instanceOf(Variant);
+
+            await testEncodeDecode(communicationLink, pubSubcommunicationLinksDatType, session);
+        });
+
+        it("VVA-3 ----------- load datatype with AllowSubtype", async () => {
+            const connectionEndpointConfigurationDataType = addressSpace.findDataType(
+                "ConnectionEndpointConfigurationDataType",
+                nsIndex
+            )!;
+            const pubSubcommunicationLinksDatType = addressSpace.findDataType(
+                "PubSubCommunicationLinkConfigurationDataType",
+                nsIndex
+            )!;
+
+            const communicationLink = addressSpace.constructExtensionObject(pubSubcommunicationLinksDatType, {
+                field1: 1,
+                field2: 2,
+                field3: { dataType: DataType.Int32, value: 3 }
+            });
+
+            const object = addressSpace.constructExtensionObject(connectionEndpointConfigurationDataType, {
+                id: "00000000-0000-0000-0000-000000000000",
+                communicationLinks: [communicationLink]
+            });
+
+            console.log(object.toString());
+
+            (object as any).constructor.name.should.eql("ConnectionEndpointConfigurationDataType");
+            (object as any).communicationLinks.length.should.eql(1);
+            (object as any).communicationLinks[0].should.be.instanceOf(ExtensionObject);
+            (object as any).communicationLinks[0].constructor.name.should.eql("PubSubCommunicationLinkConfigurationDataType");
+            (object as any).communicationLinks[0].field1.should.eql(1);
+            (object as any).communicationLinks[0].field2.should.eql(2);
+            (object as any).communicationLinks[0].field3.dataType.should.eql(DataType.Int32);
+
+            await testEncodeDecode(object, connectionEndpointConfigurationDataType, session);
+        });
+
+        it("VVA-4 - should reject invalid combination at construction- Number", async () => {
+            const pubSubcommunicationLinksDatType = addressSpace.findDataType(
+                "PubSubCommunicationLinkConfigurationDataType",
+                nsIndex
+            )!;
+
+            should.throws(() => {
+                addressSpace.constructExtensionObject(pubSubcommunicationLinksDatType, {
+                    field1: 1,
+                    field2: 2,
+                    field3: { dataType: DataType.String, value: "Wrong Type Should Bark !" }
+                });
+            });
+        });
+
+        it("VVA-5 - should reject invalid combination at construction- Complex", async () => {
+            const connectionEndpointConfigurationDataType = addressSpace.findDataType(
+                "ConnectionEndpointConfigurationDataType",
+                nsIndex
+            )!;
+
+            const unexpetecedExtensionObject = addressSpace.constructExtensionObject(connectionEndpointConfigurationDataType, {});
+
+            should.throws(() => {
+                const object = addressSpace.constructExtensionObject(connectionEndpointConfigurationDataType, {
+                    id: "00000000-0000-0000-0000-000000000000",
+                    communicationLinks: [unexpetecedExtensionObject]
+                });
+            });
+        });
     });
 });
 

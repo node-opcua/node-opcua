@@ -1,7 +1,7 @@
 import { Byte, coerceInt64, coerceUInt64, Int16, Int32, Int64, SByte, UAString, UInt16, UInt32, UInt64 } from "node-opcua-basic-types";
-import { LocalizedTextLike, LocalizedTextOptions } from "node-opcua-data-model";
+import { LocalizedTextOptions } from "node-opcua-data-model";
 import { make_debugLog, make_warningLog } from "node-opcua-debug";
-import { coerceNodeId, NodeId, NodeIdType, resolveNodeId } from "node-opcua-nodeid";
+import { coerceNodeId, NodeId, NodeIdType } from "node-opcua-nodeid";
 import { EnumDefinition, StructureDefinition } from "node-opcua-types";
 import { lowerFirstLetter } from "node-opcua-utils";
 import { DataType } from "node-opcua-variant";

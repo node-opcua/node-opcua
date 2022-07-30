@@ -19,7 +19,7 @@ import {
 } from "node-opcua-data-model";
 import { DataValue } from "node-opcua-data-value";
 import { checkDebugFlag, make_debugLog, make_errorLog } from "node-opcua-debug";
-import { minDate } from "node-opcua-factory";
+import { minDate } from "node-opcua-basic-types";
 import { coerceNodeId, makeNodeId, NodeId, resolveNodeId, sameNodeId } from "node-opcua-nodeid";
 import { CallbackT, StatusCode, StatusCodes } from "node-opcua-status-code";
 import { CallMethodResultOptions, TimeZoneDataType } from "node-opcua-types";

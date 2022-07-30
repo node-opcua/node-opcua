@@ -4,10 +4,10 @@
 import { assert } from "node-opcua-assert";
 import { decodeLocaleId, encodeLocaleId, validateLocaleId } from "node-opcua-basic-types";
 import { BinaryStream, OutputBinaryStream } from "node-opcua-binary-stream";
+import { make_errorLog } from "node-opcua-debug";
+import { getBuiltInType, hasBuiltInType, registerType } from "./builtin_types";
 
-import { findSimpleType, hasBuiltInType, registerType } from "./factories_builtin_types";
-import { BasicTypeDefinition, BasicTypeDefinitionOptions } from "./types";
-
+const errorLog = make_errorLog("Factory");
 export interface BasicTypeOptions {
     name: string;
     subType: string;
@@ -51,14 +51,13 @@ export function registerBasicType(schema: BasicTypeOptions): void {
 
     /* istanbul ignore next */
     if (exists) {
-        // tslint:disable-next-line: no-console
-        console.log("registerBasicType:", schema);
+        errorLog("registerBasicType:", schema);
         throw new Error(`Basic Type ${schema.name} already registered`);
     }
 
     const name = schema.name;
 
-    const t: BasicTypeDefinition = findSimpleType(schema.subType);
+    const t = getBuiltInType(schema.subType);
 
     /* istanbul ignore next */
     if (!t) {
@@ -86,8 +85,8 @@ export function registerBasicType(schema: BasicTypeOptions): void {
         subType: schema.subType,
 
         coerce: coerceFunc,
-        decode: decodeFunc,
-        encode: encodeFunc,
+        decode: decodeFunc!,
+        encode: encodeFunc!,
 
         random,
 
@@ -105,15 +104,7 @@ export function registerBasicType(schema: BasicTypeOptions): void {
 registerBasicType({ name: "Counter", subType: "UInt32" });
 // OPC Unified Architecture, part 3.0 $8.13 page 65
 registerBasicType({ name: "Duration", subType: "Double" });
-registerBasicType({ name: "UAString", subType: "String" });
-registerBasicType({ name: "UABoolean", subType: "Boolean" });
 registerBasicType({ name: "UtcTime", subType: "DateTime" });
-// already ? registerBasicType({name: "Int8",     subType: "SByte"});
-// already ? registerBasicType({name: "UInt8",    subType: "Byte"});
-registerBasicType({ name: "Char", subType: "Byte" });
-// xx registerBasicType({name:"XmlElement" ,subType:"String"  });
-// xx registerBasicType({ name: "Time", subType: "String" });
-// string in the form "en-US" or "de-DE" or "fr" etc...
 
 registerBasicType({
     name: "LocaleId",
@@ -128,8 +119,6 @@ registerBasicType({
 
 registerBasicType({ name: "ContinuationPoint", subType: "ByteString" });
 registerBasicType({ name: "Image", subType: "ByteString" });
-registerBasicType({ name: "NodeIdType", subType: "NodeId" });
-
 registerBasicType({ name: "ImageBMP", subType: "Image" });
 registerBasicType({ name: "ImageGIF", subType: "Image" });
 registerBasicType({ name: "ImageJPG", subType: "Image" });
@@ -156,13 +145,3 @@ registerBasicType({ name: "Index", subType: "UInt32" });
 registerBasicType({ name: "VersionTime", subType: "UInt32" });
 registerBasicType({ name: "ApplicationInstanceCertificate", subType: "ByteString" });
 registerBasicType({ name: "AttributeWriteMask", subType: "UInt32" });
-registerBasicType({ name: "Date", subType: "DateTime" });
-
-// registerBasicType({ name: "Counter", subType: "UInt32" });
-// registerBasicType({ name: "IntegerId", subType: "UInt32" });
-// registerBasicType({ name: "UtcTime", subType: "DateTime" });
-// registerBasicType({ name: "Duration", subType: "Double" });
-// registerBasicType({ name: "LocaleId", subType: "String" });
-// registerBasicType({ name: "NumericRange", subType: "String" });
-// registerBasicType({ name: "Time", subType: "String" });
-// registerBasicType({ name: "SessionAuthenticationToken", subType: "NodeId" });

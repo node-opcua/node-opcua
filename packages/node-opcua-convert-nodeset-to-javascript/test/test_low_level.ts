@@ -60,7 +60,7 @@ describe("Test low level routine for typescript d.ts creation", () => {
 
     async function getObjectTypeChild(session: IBasicSession, nodeId: NodeIdLike, name: QualifiedNameLike): Promise<NodeId> {
         const result = await session.translateBrowsePath(makeBrowsePath(nodeId, "/" + name));
-        return result.targets[0].targetId;
+        return result.targets![0].targetId;
     }
 
     it("LL-2 - getTypescriptType ", async () => {

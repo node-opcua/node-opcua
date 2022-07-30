@@ -408,7 +408,7 @@ export class BinaryStream {
             );
         }
         // create a shared memory buffer ! for speed
-        const buf = this.buffer.slice(this.length, this.length + bufLen);
+        const buf = this.buffer.subarray(this.length, this.length + bufLen);
         this.length += bufLen;
         return buf;
     }

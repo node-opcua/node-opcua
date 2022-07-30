@@ -8,13 +8,19 @@ import { BinaryStream } from "node-opcua-binary-stream";
 import { ExpandedNodeId, NodeId } from "node-opcua-nodeid";
 import { lowerFirstLetter } from "node-opcua-utils";
 
-import { getBuildInType, hasBuiltInType } from "./factories_builtin_types";
-import { getEnumeration, hasEnumeration } from "./factories_enumerations";
-import { getStructuredTypeSchema, getStructureTypeConstructor, hasStructuredType } from "./factories_factories";
-import { parameters } from "./factories_schema_helpers";
-import { DataTypeFactory } from "./datatype_factory";
-import { CommonInterface, FieldCategory, FieldInterfaceOptions, FieldType, StructuredTypeOptions, TypeSchemaBase } from "./types";
-import { BaseUAObject } from "./factories_baseobject";
+import { getBuiltInType, hasBuiltInType, TypeSchemaBase } from "./builtin_types";
+import { getBuiltInEnumeration, hasBuiltInEnumeration } from "./enumerations";
+import { parameters } from "./parameters";
+import { getStructureTypeConstructor, hasStructuredType } from "./get_standard_data_type_factory";
+import { getStructuredTypeSchema } from "./get_structured_type_schema";
+import {
+    CommonInterface,
+    FieldCategory,
+    FieldInterfaceOptions,
+    FieldType,
+    IStructuredTypeSchema,
+    StructuredTypeOptions
+} from "./types";
 
 function figureOutFieldCategory(field: FieldInterfaceOptions): FieldCategory {
     const fieldType = field.fieldType;
@@ -23,7 +29,7 @@ function figureOutFieldCategory(field: FieldInterfaceOptions): FieldCategory {
         return field.category;
     }
 
-    if (hasEnumeration(fieldType)) {
+    if (hasBuiltInEnumeration(fieldType)) {
         return FieldCategory.enumeration;
     } else if (hasBuiltInType(fieldType)) {
         return FieldCategory.basic;
@@ -65,12 +71,12 @@ function figureOutSchema(
                 returnValue = getStructuredTypeSchema(fieldTypeWithoutNS);
             } else {
                 // LocalizedText etc ...
-                returnValue = getBuildInType(fieldTypeWithoutNS);
+                returnValue = getBuiltInType(fieldTypeWithoutNS);
             }
             break;
         case FieldCategory.basic:
-            returnValue = getBuildInType(fieldTypeWithoutNS);
-            if(!returnValue) {
+            returnValue = getBuiltInType(fieldTypeWithoutNS);
+            if (!returnValue) {
                 returnValue = getStructuredTypeSchema(fieldTypeWithoutNS);
                 if (returnValue) {
                     console.log("Why ?");
@@ -78,14 +84,13 @@ function figureOutSchema(
             }
             break;
         case FieldCategory.enumeration:
-            returnValue = getEnumeration(fieldTypeWithoutNS);
+            returnValue = getBuiltInEnumeration(fieldTypeWithoutNS);
             break;
     }
     if (null === returnValue || undefined === returnValue) {
         try {
-            returnValue = getEnumeration(fieldTypeWithoutNS);
-        }
-        catch(err){
+            returnValue = getBuiltInEnumeration(fieldTypeWithoutNS);
+        } catch (err) {
             console.log(err);
         }
         throw new Error(
@@ -119,32 +124,31 @@ function buildField(underConstructSchema: StructuredTypeSchema, fieldLight: Fiel
         );
     }
 
+    const { defaultValue, isArray, documentation, fieldType, switchBit, switchValue, allowSubType, dataType, basicDataType } =
+        fieldLight;
     return {
         name: lowerFirstLetter(fieldLight.name),
-
         category,
-        defaultValue: fieldLight.defaultValue,
-        isArray: fieldLight.isArray,
-
-        documentation: fieldLight.documentation,
-        fieldType: fieldLight.fieldType,
-
-        switchBit: fieldLight.switchBit,
-
-        switchValue: fieldLight.switchValue,
-
+        defaultValue,
+        isArray,
+        documentation,
+        fieldType,
+        switchBit,
+        switchValue,
+        allowSubType,
+        dataType,
+        basicDataType,
         schema
     };
 }
-
-export class StructuredTypeSchema extends TypeSchemaBase {
+export class StructuredTypeSchema extends TypeSchemaBase implements IStructuredTypeSchema {
     public fields: FieldType[];
     public id: NodeId;
     public dataTypeNodeId: NodeId;
 
     public baseType: string;
     public _possibleFields: string[];
-    public _baseSchema: StructuredTypeSchema | null;
+    public _baseSchema: IStructuredTypeSchema | null;
 
     public documentation?: string;
 
@@ -211,7 +215,7 @@ export class StructuredTypeSchema extends TypeSchemaBase {
  * @return {*}
  *
  */
-export function get_base_schema(schema: StructuredTypeSchema): StructuredTypeSchema | null {
+export function get_base_schema(schema: IStructuredTypeSchema): IStructuredTypeSchema | null {
     let baseSchema = schema._baseSchema;
     if (baseSchema) {
         return baseSchema;
@@ -248,7 +252,7 @@ export function get_base_schema(schema: StructuredTypeSchema): StructuredTypeSch
  * (by walking up the inheritance chain)
  *
  */
-export function extract_all_fields(schema: StructuredTypeSchema): string[] {
+export function extract_all_fields(schema: IStructuredTypeSchema): string[] {
     // returns cached result if any
     // istanbul ignore next
     if (schema._possibleFields) {
@@ -276,7 +280,7 @@ export function extract_all_fields(schema: StructuredTypeSchema): string[] {
  * @method  check_options_correctness_against_schema
  *
  */
-export function check_options_correctness_against_schema(obj: any, schema: StructuredTypeSchema, options: any): boolean {
+export function check_options_correctness_against_schema(obj: any, schema: IStructuredTypeSchema, options: any): boolean {
     if (!parameters.debugSchemaHelper) {
         return true; // ignoring set
     }
@@ -328,10 +332,6 @@ export function check_options_correctness_against_schema(obj: any, schema: Struc
         throw new Error(" invalid field found in option :" + JSON.stringify(invalidOptionsFields));
     }
     return true;
-}
-
-export function buildStructuredType2(dataTypeFactory: DataTypeFactory, schemaLight: StructuredTypeOptions): StructuredTypeSchema {
-    return new StructuredTypeSchema(schemaLight);
 }
 
 export function buildStructuredType(schemaLight: StructuredTypeOptions): StructuredTypeSchema {

@@ -18,7 +18,6 @@ import * as should from "should";
 import * as utils from "node-opcua-utils";
 import { assert } from "node-opcua-assert";
 import { ExtensionObject } from "node-opcua-extension-object";
-import { makeNodeId } from "node-opcua-nodeid";
 import { StatusCodes } from "node-opcua-status-code";
 import { ServerState } from "node-opcua-types";
 import { AccessLevelFlag, NodeClass, makeAccessLevelFlag } from "node-opcua-data-model";
@@ -30,7 +29,7 @@ import { nodesets } from "node-opcua-nodesets";
 import { WriteValue } from "node-opcua-service-write";
 import { make_debugLog, checkDebugFlag } from "node-opcua-debug";
 
-import { AddressSpace, BaseNode, Namespace, SessionContext, UAServerStatus, DTServerStatus } from "..";
+import { AddressSpace, BaseNode, Namespace, UAServerStatus, DTServerStatus } from "..";
 import { generateAddressSpace } from "../nodeJS";
 
 const debugLog = make_debugLog("TEST");

@@ -103,6 +103,8 @@ async function getFolder(name: string) {
     }
     return fakePKI;
 }
+
+const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("Test CertificateExpiredAlarm", function () {
     let clientCertificateManager: OPCUACertificateManager;
     let serverCertificateManager: OPCUACertificateManager;

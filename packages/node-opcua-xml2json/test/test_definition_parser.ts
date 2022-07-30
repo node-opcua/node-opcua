@@ -27,30 +27,35 @@ describe("Definition Parser", () => {
                     dataType: "Int32",
                     name: "Id",
                     isOptional: false,
+                    allowSubtype: false,
                     valueRank: -1
                 },
                 {
                     dataType: "Double",
                     name: "HighValue",
                     isOptional: false,
+                    allowSubtype: false,
                     valueRank: -1
                 },
                 {
                     dataType: "Double",
                     name: "LowValue",
                     isOptional: false,
+                    allowSubtype: false,
                     valueRank: -1
                 },
                 {
                     dataType: "LocalizedText",
                     name: "Comments",
                     isOptional: false,
+                    allowSubtype: false,
                     valueRank: -1
                 },
                 {
                     dataType: "EUInformation",
                     name: "EngineeringUnits",
                     isOptional: false,
+                    allowSubtype: false,
                     valueRank: -1
                 }
             ]
@@ -76,12 +81,14 @@ describe("Definition Parser", () => {
                     name: "IsoGrade",
                     dataType: "String",
                     isOptional: false,
+                    allowSubtype: false,
                     valueRank: -1
                 },
                 {
                     name: "RMin",
                     dataType: "Int16",
                     isOptional: false,
+                    allowSubtype: false,
                     valueRank: -1
                 },
                 {
@@ -89,12 +96,14 @@ describe("Definition Parser", () => {
                     dataType: "Int16",
                     symbolicName: "Decode_",
                     isOptional: false,
+                    allowSubtype: false,
                     valueRank: -1
                 },
                 {
                     name: "PrintGain",
                     dataType: "Int16",
                     isOptional: false,
+                    allowSubtype: false,
                     valueRank: -1
                 }
             ]
@@ -164,6 +173,7 @@ describe("Definition Parser", () => {
                     dataType: "ResultIdDataType",
                     name: "ResultId",
                     isOptional: false,
+                    allowSubtype: false,
                     valueRank: -1,
                     description:
                         "System-wide unique identifier, which is assigned by the system. This ID can be used for fetching exactly this result using the pertinent result management methods and it is identical to the ResultId of the ResultReadyEventType."
@@ -171,6 +181,7 @@ describe("Definition Parser", () => {
                 {
                     dataType: "Boolean",
                     isOptional: true,
+                    allowSubtype: false,
                     valueRank: -1,
                     name: "HasTransferableDataOnFile",
                     description: "Indicates that additional data for this result can be retrieved by temporary file transfer."
@@ -179,12 +190,14 @@ describe("Definition Parser", () => {
                     dataType: "Boolean",
                     name: "IsPartial",
                     isOptional: false,
+                    allowSubtype: false,
                     valueRank: -1,
                     description: "Indicates whether the result is the partial result of a total result."
                 },
                 {
                     dataType: "Boolean",
                     isOptional: true,
+                    allowSubtype: false,
                     valueRank: -1,
                     name: "IsSimulated",
                     description: "Indicates whether the system was in simulation mode when the result was created."
@@ -193,6 +206,7 @@ describe("Definition Parser", () => {
                     dataType: "ResultStateDataType",
                     name: "ResultState",
                     isOptional: false,
+                    allowSubtype: false,
                     valueRank: -1,
                     description:
                         "ResultState provides information about the current state of a result and the ResultStateDataType is defined in Section 12.18."
@@ -201,6 +215,7 @@ describe("Definition Parser", () => {
                     dataType: "MeasIdDataType",
                     isOptional: true,
                     valueRank: -1,
+                    allowSubtype: false,
                     name: "MeasId",
                     description:
                         "This identifier is given by the client when starting a single job or continuous execution and transmitted to the vision system. It is used to identify the respective result data generated for this job. Although the system-wide unique JobId would be sufficient to identify the job which the result belongs to, this makes for easier filtering on the part of the client without keeping track of JobIds."
@@ -208,6 +223,7 @@ describe("Definition Parser", () => {
                 {
                     dataType: "PartIdDataType",
                     isOptional: true,
+                    allowSubtype: false,
                     valueRank: -1,
                     name: "PartId",
                     description:
@@ -217,6 +233,7 @@ describe("Definition Parser", () => {
                     dataType: "RecipeIdExternalDataType",
                     name: "ExternalRecipeId",
                     isOptional: true,
+                    allowSubtype: false,
                     valueRank: -1,
                     description:
                         "External Id of the recipe in use which produced the result. The ExternalID is only managed by the environment."
@@ -225,6 +242,7 @@ describe("Definition Parser", () => {
                     dataType: "RecipeIdInternalDataType",
                     name: "InternalRecipeId",
                     isOptional: false,
+                    allowSubtype: false,
                     valueRank: -1,
                     description:
                         "Internal Id of the recipe in use which produced the result. This ID is system-wide unique and is assigned by the vision system."
@@ -233,6 +251,7 @@ describe("Definition Parser", () => {
                     dataType: "ProductIdDataType",
                     name: "ProductId",
                     isOptional: true,
+                    allowSubtype: false,
                     valueRank: -1,
                     description: "productId which was used to trigger the job which created the result."
                 },
@@ -240,6 +259,7 @@ describe("Definition Parser", () => {
                     dataType: "ConfigurationIdDataType",
                     name: "ExternalConfigurationId",
                     isOptional: true,
+                    allowSubtype: false,
                     valueRank: -1,
                     description:
                         "External Id of the configuration in use which produced the result. The ExternalID is only managed by the environment."
@@ -248,6 +268,7 @@ describe("Definition Parser", () => {
                     dataType: "ConfigurationIdDataType",
                     name: "InternalConfigurationId",
                     isOptional: false,
+                    allowSubtype: false,
                     valueRank: -1,
                     description:
                         "Internal Id of the configuration in use which produced the result. This ID is system-wide unique and is assigned by the vision system."
@@ -256,6 +277,7 @@ describe("Definition Parser", () => {
                     dataType: "JobIdDataType",
                     name: "JobId",
                     isOptional: false,
+                    allowSubtype: false,
                     valueRank: -1,
                     description:
                         "The ID of the job, created by the transition from state Ready to state SingleExecution or to state ContinuousExecution which produced the result."
@@ -264,6 +286,7 @@ describe("Definition Parser", () => {
                     dataType: "UtcTime",
                     name: "CreationTime",
                     isOptional: false,
+                    allowSubtype: false,
                     valueRank: -1,
                     description: "CreationTime indicates the time when the result was created."
                 },
@@ -271,12 +294,14 @@ describe("Definition Parser", () => {
                     dataType: "ProcessingTimesDataType",
                     name: "ProcessingTimes",
                     isOptional: true,
+                    allowSubtype: false,
                     valueRank: -1,
                     description: "Collection of different processing times that were needed to create the result."
                 },
                 {
                     valueRank: 1,
                     arrayDimensions: [1],
+                    allowSubtype: false,
                     isOptional: true,
                     name: "ResultContent",
                     description: "Abstract data type to be subtyped from to hold result data created by the selected recipe."

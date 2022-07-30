@@ -48,7 +48,7 @@ describe("Variant", () => {
 
         var1.dataType.should.eql(DataType.UInt32);
         var1.arrayType.should.eql(VariantArrayType.Scalar);
-
+        var1.value.should.eql(10);
         encode_decode_round_trip_test(var1, (stream) => {
             stream.length.should.equal(5);
         });

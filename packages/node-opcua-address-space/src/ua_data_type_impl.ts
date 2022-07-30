@@ -5,7 +5,6 @@ import * as chalk from "chalk";
 
 import { assert } from "node-opcua-assert";
 import { NodeClass, QualifiedNameLike } from "node-opcua-data-model";
-import { EnumerationDefinition, StructuredTypeSchema } from "node-opcua-factory";
 import { AttributeIds } from "node-opcua-data-model";
 import { DataValue, DataValueLike } from "node-opcua-data-value";
 import { ExtensionObject } from "node-opcua-extension-object";
@@ -24,6 +23,7 @@ import {
 import { DataType } from "node-opcua-variant";
 import { UAObject, ISessionContext, UADataType, UAVariable, BaseNode, CreateDataTypeOptions } from "node-opcua-address-space-base";
 import { DataTypeIds } from "node-opcua-constants";
+import { IStructuredTypeSchema } from "node-opcua-factory";
 
 import { SessionContext } from "../source/session_context";
 import { BaseNodeImpl, InternalBaseNodeOptions } from "./base_node_impl";
@@ -35,7 +35,7 @@ import { BaseNode_getCache } from "./base_node_private";
 
 export type ExtensionObjectConstructor = new (options: any) => ExtensionObject;
 export interface ExtensionObjectConstructorFuncWithSchema extends ExtensionObjectConstructor {
-    schema: StructuredTypeSchema;
+    schema: IStructuredTypeSchema;
     possibleFields: string[];
     encodingDefaultBinary: ExpandedNodeId;
     encodingDefaultXml: ExpandedNodeId;
@@ -387,7 +387,11 @@ export function DataType_toString(this: UADataTypeImpl, options: ToStringOption)
             chalk.yellow("          xmlEncodingNodeId   : ") +
             (this.xmlEncodingNodeId ? this.xmlEncodingNodeId.toString() : "<none>")
     );
-
+    options.add(
+        options.padding +
+            chalk.yellow("          jsonEncodingNodeId  : ") +
+            (this.jsonEncodingNodeId ? this.jsonEncodingNodeId.toString() : "<none>")
+    );
     if (this.subtypeOfObj) {
         options.add(
             options.padding +

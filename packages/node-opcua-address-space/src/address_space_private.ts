@@ -60,7 +60,7 @@ export interface AddressSpacePrivate extends IAddressSpace {
 
     getExtensionObjectConstructor(dataType: NodeId | UADataType): ExtensionObjectConstructorFuncWithSchema;
 
-    constructExtensionObject(dataType: UADataType | NodeId, options?: any): ExtensionObject;
+    constructExtensionObject(dataType: UADataType | NodeId, options?: Record<string, unknown>): ExtensionObject;
 
     normalizeReferenceType(params: AddReferenceOpts | UAReference): UAReference;
 

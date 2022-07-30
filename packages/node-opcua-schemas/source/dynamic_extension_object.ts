@@ -3,8 +3,10 @@
  */
 import { assert } from "node-opcua-assert";
 import { BinaryStream, OutputBinaryStream } from "node-opcua-binary-stream";
-import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
-import { ExtensionObject } from "node-opcua-extension-object";
+import { checkDebugFlag, make_debugLog, make_errorLog } from "node-opcua-debug";
+import { decodeExtensionObject, encodeExtensionObject, ExtensionObject } from "node-opcua-extension-object";
+import { DataType } from "node-opcua-variant";
+
 import {
     BaseUAObject,
     check_options_correctness_against_schema,
@@ -14,12 +16,15 @@ import {
     FieldType,
     initialize_field,
     initialize_field_array,
+    IStructuredTypeSchema,
+    StructuredTypeField,
     StructuredTypeSchema
 } from "node-opcua-factory";
 
-import { ExpandedNodeId, NodeId, NodeIdType } from "node-opcua-nodeid";
+import { coerceNodeId, ExpandedNodeId, NodeId, NodeIdType } from "node-opcua-nodeid";
 
 const debugLog = make_debugLog(__filename);
+const errorLog = make_errorLog(__filename);
 const doDebug = checkDebugFlag(__filename);
 
 export function getOrCreateConstructor(
@@ -29,7 +34,7 @@ export function getOrCreateConstructor(
     encodingDefaultXml?: ExpandedNodeId
 ): AnyConstructorFunc {
     if (dataTypeFactory.hasStructuredType(dataTypeName)) {
-        return dataTypeFactory.getStructureTypeConstructor(dataTypeName);
+        return dataTypeFactory.getStructureTypeConstructor(dataTypeName) as unknown as AnyConstructorFunc;
     }
     const schema = dataTypeFactory.getStructuredTypeSchema(dataTypeName);
 
@@ -60,6 +65,28 @@ export function getOrCreateConstructor(
     return constructor;
 }
 
+function encodeElement(
+    field: FieldType,
+    element: any,
+    stream: OutputBinaryStream,
+    encodeFunc?: (a: any, stream: OutputBinaryStream) => void
+) {
+    if (encodeFunc) {
+        encodeFunc(element, stream);
+    } else {
+        // istanbul ignore next
+        if (!element.encode) {
+            throw new Error("encodeArrayOrElement: object field " + field.name + " has no encode method and encodeFunc is missing");
+        }
+        if (field.allowSubType) {
+            encodeExtensionObject(element, stream);
+            // new Variant({ dataType: DataType.ExtensionObject, value: element }).encode(stream);
+        } else {
+            (element as any).encode(stream);
+        }
+    }
+}
+
 function encodeArrayOrElement(
     field: FieldType,
     obj: any,
@@ -73,29 +100,35 @@ function encodeArrayOrElement(
         } else {
             stream.writeUInt32(array.length);
             for (const e of array) {
-                if (encodeFunc) {
-                    encodeFunc(e, stream);
-                } else {
-                    (e as any).encode(stream);
-                }
+                encodeElement(field, e, stream, encodeFunc);
             }
         }
     } else {
-        if (encodeFunc) {
-            encodeFunc(obj[field.name], stream);
-        } else {
-            if (!obj[field.name].encode) {
-                // tslint:disable:no-console
-                console.log(obj.schema.fields, field);
-                throw new Error(
-                    "encodeArrayOrElement: object field " + field.name + " has no encode method and encodeFunc is missing"
-                );
-            }
-            obj[field.name].encode(stream);
-        }
+        encodeElement(field, obj[field.name], stream, encodeFunc);
     }
 }
 
+function decodeElement(
+    factory: DataTypeFactory,
+    field: FieldType,
+    stream: BinaryStream,
+    decodeFunc?: (stream: BinaryStream) => any
+): any {
+    if (decodeFunc) {
+        return decodeFunc(stream);
+    } else {
+        if (field.allowSubType) {
+            const element = decodeExtensionObject(stream);
+            return element;
+        } else {
+            // construct an instance
+            const constructor = factory.getStructureTypeConstructor(field.fieldType);
+            const element = new constructor({});
+            element.decode(stream);
+            return element;
+        }
+    }
+}
 function decodeArrayOrElement(
     factory: DataTypeFactory,
     field: FieldType,
@@ -110,56 +143,137 @@ function decodeArrayOrElement(
             obj[field.name] = null;
         } else {
             for (let i = 0; i < nbElements; i++) {
-                if (decodeFunc) {
-                    array.push(decodeFunc(stream));
-                } else {
-                    // construct an instance
-                    const constructor = factory.getStructureTypeConstructor(field.fieldType);
-                    const element = new constructor({});
-                    element.decode(stream);
-                    array.push(element);
-                }
+                const element = decodeElement(factory, field, stream, decodeFunc);
+                array.push(element);
             }
             obj[field.name] = array;
         }
     } else {
-        if (decodeFunc) {
-            obj[field.name] = decodeFunc(stream);
-        } else {
-            if (!obj[field.name]) {
-                const constructor = factory.getStructureTypeConstructor(field.fieldType);
-                obj[field.name] = new constructor({});
-            }
-            obj[field.name].decode(stream);
-        }
+        obj[field.name] = decodeElement(factory, field, stream, decodeFunc);
     }
 }
 
-function initializeField(field: FieldType, thisAny: any, options: any, schema: StructuredTypeSchema, factory: DataTypeFactory) {
+function isSubtype(factory: DataTypeFactory, dataTypeNodeId: NodeId, schema: IStructuredTypeSchema): boolean {
+    if (dataTypeNodeId.toString() === schema.dataTypeNodeId.toString()) {
+        return true;
+    }
+    if (!schema._baseSchema || !schema._baseSchema?.dataTypeNodeId) return false;
+    const c = factory.getConstructorForDataType(schema._baseSchema.dataTypeNodeId);
+    if (!c) {
+        return false;
+    }
+    return isSubtype(factory, dataTypeNodeId, c.schema);
+}
+
+function _validateSubType(factory: DataTypeFactory, field: StructuredTypeField, value: any): void {
+    assert(field.allowSubType);
+    if (!value) {
+        value = { dataType: DataType.Null, value: null };
+        // const msg = "initializeField: field { dataType,value} is required here";
+        // errorLog(msg);
+        // throw new Error(msg);
+        return;
+    }
+    if (field.category === "basic") {
+        if (!Object.prototype.hasOwnProperty.call(value, "dataType")) {
+            const msg = "initializeField: field that allow subtype must be a Variant like and have a dataType property";
+            errorLog(msg);
+            throw new Error(msg);
+        }
+        const c = factory.getBuiltInTypeByDataType(coerceNodeId(`i=${value.dataType}`, 0));
+        const d = factory.getBuiltInType(field.fieldType);
+        if (c && c.isSubTypeOf(d)) {
+            return;
+        }
+
+        const msg =
+            "initializeField: invalid subtype for field " +
+            field.name +
+            " expecting " +
+            field.fieldType +
+            " but got " +
+            DataType[value.dataType];
+        errorLog(msg);
+        throw new Error(msg);
+    } else {
+        if (value !== null && !(value instanceof ExtensionObject)) {
+            errorLog("initializeField: array element is not an ExtensionObject");
+            throw new Error(`${field.name}: array element must be an ExtensionObject`);
+        }
+        const e = value as ExtensionObject;
+        if (!isSubtype(factory, field.dataType!, e.schema)) {
+            const msg =
+                "initializeField: invalid subtype for field " +
+                field.name +
+                " expecting " +
+                field.fieldType +
+                " but got " +
+                e.schema.id.toString() +
+                " " +
+                e.schema.name;
+            errorLog(msg);
+            throw new Error(msg);
+        }
+    }
+}
+function validateSubTypeA(factory: DataTypeFactory, field: FieldType, value: any) {
+    if (field.isArray) {
+        const arr = (value as unknown[]) || [];
+        for (const e of arr) {
+            // now check that element is of the correct type
+            _validateSubType(factory, field, e);
+        }
+    } else {
+        _validateSubType(factory, field, value);
+    }
+}
+
+function initializeField(
+    field: FieldType,
+    thisAny: any,
+    options: Record<string, unknown>,
+    schema: IStructuredTypeSchema,
+    factory: DataTypeFactory
+) {
     const name = field.name;
 
     switch (field.category) {
         case FieldCategory.complex: {
-            const constructor = factory.getStructureTypeConstructor(field.fieldType);
-            // getOrCreateConstructor(field.fieldType, factory) || BaseUAObject;
-            if (field.isArray) {
-                const arr = options[name] || [];
-                if (!arr.map) {
-                    console.log("Error", options);
+            if (field.allowSubType) {
+                validateSubTypeA(factory, field, options[name]);
+                if (field.isArray) {
+                    const arr = (options[name] as unknown[]) || [];
+                    thisAny[name] = arr.map((x: any) => x.clone());
+                } else {
+                    const e = options[name] as ExtensionObject;
+                    if (e !== null && !(e instanceof ExtensionObject)) {
+                        errorLog("initializeField: array element is not an ExtensionObject");
+                    }
+                    // now check that element is of the correct type
+                    thisAny[name] = e.clone();
                 }
-                thisAny[name] = arr.map((x: any) => (constructor ? new constructor(x) : null));
             } else {
-                thisAny[name] = constructor ? new constructor(options[name]) : null;
+                const constructor = factory.getStructureTypeConstructor(field.fieldType);
+                if (field.isArray) {
+                    const arr = (options[name] as unknown[]) || [];
+                    thisAny[name] = arr.map((x: any) => (constructor ? new constructor(x) : null));
+                } else {
+                    thisAny[name] = constructor ? new constructor(options[name]) : null;
+                }
             }
+            // getOrCreateConstructor(field.fieldType, factory) || BaseUAObject;
             // xx processStructuredType(fieldSchema);
             break;
         }
         case FieldCategory.enumeration:
         case FieldCategory.basic:
+            if (field.allowSubType) {
+                validateSubTypeA(factory, field, options[name]);
+            }
             if (field.isArray) {
-                thisAny[name] = initialize_field_array(field, options[name]);
+                thisAny[name] = initialize_field_array(field, options[name], factory);
             } else {
-                thisAny[name] = initialize_field(field, options[name]);
+                thisAny[name] = initialize_field(field, options[name], factory);
             }
             break;
     }
@@ -171,7 +285,7 @@ function initializeField(field: FieldType, thisAny: any, options: any, schema: S
  * @param schema
  * @param factory
  */
-function initializeFields(thisAny: any, options: any, schema: StructuredTypeSchema, factory: DataTypeFactory) {
+function initializeFields(thisAny: any, options: Record<string, unknown>, schema: IStructuredTypeSchema, factory: DataTypeFactory) {
     // initialize base class first
     if (schema._baseSchema && schema._baseSchema.fields.length) {
         initializeFields(thisAny, options, schema._baseSchema!, factory);
@@ -189,14 +303,14 @@ function initializeFields(thisAny: any, options: any, schema: StructuredTypeSche
     }
 }
 
-function hasOptionalFieldsF(schema: StructuredTypeSchema): boolean {
+function hasOptionalFieldsF(schema: IStructuredTypeSchema): boolean {
     if (schema.bitFields && schema.bitFields.length > 0) {
         return true;
     }
     return schema._baseSchema ? hasOptionalFieldsF(schema._baseSchema) : false;
 }
 
-function _internal_encodeFields(thisAny: any, schema: StructuredTypeSchema, stream: OutputBinaryStream) {
+function _internal_encodeFields(thisAny: any, schema: IStructuredTypeSchema, stream: OutputBinaryStream) {
     // encodeFields base class first
     if (schema._baseSchema && schema._baseSchema.fields.length) {
         _internal_encodeFields(thisAny, schema._baseSchema!, stream);
@@ -226,7 +340,7 @@ interface BitfieldOffset {
     offset: number;
     allOptional: boolean;
 }
-function makeBitField(thisAny: any, schema: StructuredTypeSchema, bo: BitfieldOffset): BitfieldOffset {
+function makeBitField(thisAny: any, schema: IStructuredTypeSchema, bo: BitfieldOffset): BitfieldOffset {
     const data = schema._baseSchema ? makeBitField(thisAny, schema._baseSchema, bo) : bo;
     let { bitField, allOptional } = data;
     const { offset } = data;
@@ -246,7 +360,7 @@ function makeBitField(thisAny: any, schema: StructuredTypeSchema, bo: BitfieldOf
     }
     return { bitField, offset: nbOptionalFields + offset, allOptional };
 }
-function encodeFields(thisAny: any, schema: StructuredTypeSchema, stream: OutputBinaryStream) {
+function encodeFields(thisAny: any, schema: IStructuredTypeSchema, stream: OutputBinaryStream) {
     const hasOptionalFields = hasOptionalFieldsF(schema);
     // ============ Deal with switchBits
     if (hasOptionalFields) {
@@ -263,7 +377,7 @@ function internal_decodeFields(
     thisAny: any,
     bitField: number,
     hasOptionalFields: boolean,
-    schema: StructuredTypeSchema,
+    schema: IStructuredTypeSchema,
     stream: BinaryStream,
     factory: DataTypeFactory
 ) {
@@ -301,7 +415,7 @@ function internal_decodeFields(
     }
 }
 
-function decodeFields(thisAny: any, schema: StructuredTypeSchema, stream: BinaryStream, factory: DataTypeFactory) {
+function decodeFields(thisAny: any, schema: IStructuredTypeSchema, stream: BinaryStream, factory: DataTypeFactory) {
     // ============ Deal with switchBits
     const hasOptionalFields = hasOptionalFieldsF(schema);
     let bitField = 0;
@@ -333,7 +447,7 @@ function fieldToJSON(field: FieldType, value: any): any {
         return ___fieldToJson(field, value);
     }
 }
-function encodeToJson(thisAny: any, schema: StructuredTypeSchema, pojo: any) {
+function encodeToJson(thisAny: any, schema: IStructuredTypeSchema, pojo: any) {
     if (schema._baseSchema && schema._baseSchema.fields.length) {
         encodeToJson(thisAny, schema._baseSchema!, pojo);
     }
@@ -353,12 +467,12 @@ interface T {
 const _private = new WeakMap<T>();
 
 export class DynamicExtensionObject extends ExtensionObject {
-    public static schema: StructuredTypeSchema = ExtensionObject.schema;
+    public static schema: IStructuredTypeSchema = ExtensionObject.schema;
     public static possibleFields: string[] = [];
 
-    constructor(options: any, schema: StructuredTypeSchema, factory: DataTypeFactory) {
+    constructor(options: any, schema: IStructuredTypeSchema, factory: DataTypeFactory) {
         assert(schema, "expecting a schema here ");
-        assert(factory, "expecting a typeDic");
+        assert(factory, "expecting a DataTypeFactory");
 
         super(options);
         options = options || {};
@@ -394,9 +508,9 @@ export class DynamicExtensionObject extends ExtensionObject {
 
 // tslint:disable:callable-types
 interface AnyConstructable {
-    schema: StructuredTypeSchema;
+    schema: IStructuredTypeSchema;
     possibleFields: string[];
-    new(options?: any, schema?: StructuredTypeSchema, factory?: DataTypeFactory): any;
+    new (options?: any, schema?: IStructuredTypeSchema, factory?: DataTypeFactory): any;
 }
 
 export type AnyConstructorFunc = AnyConstructable;
@@ -404,7 +518,7 @@ export type AnyConstructorFunc = AnyConstructable;
 // tslint:disable-next-line:max-classes-per-file
 class UnionBaseClass extends BaseUAObject {
     // eslint-disable-next-line max-statements
-    constructor(options: any, schema: StructuredTypeSchema, factory: DataTypeFactory) {
+    constructor(options: any, schema: IStructuredTypeSchema, factory: DataTypeFactory) {
         super();
 
         assert(schema, "expecting a schema here ");
@@ -436,11 +550,11 @@ class UnionBaseClass extends BaseUAObject {
                 debugLog(this.schema);
                 throw new Error(
                     "union must have only one choice in " +
-                    JSON.stringify(options) +
-                    "\n found while investigating " +
-                    field.name +
-                    "\n switchFieldName = " +
-                    switchFieldName
+                        JSON.stringify(options) +
+                        "\n found while investigating " +
+                        field.name +
+                        "\n switchFieldName = " +
+                        switchFieldName
                 );
             }
 
@@ -595,7 +709,7 @@ class UnionBaseClass extends BaseUAObject {
     }
 }
 
-function _createDynamicUnionConstructor(schema: StructuredTypeSchema, factory: DataTypeFactory): AnyConstructorFunc {
+function _createDynamicUnionConstructor(schema: IStructuredTypeSchema, factory: DataTypeFactory): AnyConstructorFunc {
     const possibleFields = schema.fields.map((x: FieldType) => x.name);
 
     // tslint:disable-next-line:max-classes-per-file
@@ -615,7 +729,7 @@ function _createDynamicUnionConstructor(schema: StructuredTypeSchema, factory: D
     return UNION;
 }
 
-export function createDynamicObjectConstructor(schema: StructuredTypeSchema, dataTypeFactory: DataTypeFactory): AnyConstructorFunc {
+export function createDynamicObjectConstructor(schema: IStructuredTypeSchema, dataTypeFactory: DataTypeFactory): AnyConstructorFunc {
     const schemaPriv = schema as any;
 
     if (schemaPriv.$Constructor) {
@@ -667,12 +781,12 @@ export function createDynamicObjectConstructor(schema: StructuredTypeSchema, dat
         public static encodingDefaultXml = new ExpandedNodeId(NodeIdType.NUMERIC, 0, 0);
         public static encodingDefaultBinary = new ExpandedNodeId(NodeIdType.NUMERIC, 0, 0);
         public static possibleFields = possibleFields;
-        public static get schema(): StructuredTypeSchema {
+        public static get schema(): IStructuredTypeSchema {
             return schema;
         }
 
-        constructor(options?: any, schema2?: StructuredTypeSchema, factory2?: DataTypeFactory) {
-            super(options, schema2 ? schema2 : schema, factory2 ? factory2 : dataTypeFactory);
+        constructor(options?: any, schema2?: IStructuredTypeSchema, factory2?: DataTypeFactory) {
+            super(options, schema2 ? schema2 : EXTENSION.schema, factory2 ? factory2 : dataTypeFactory);
         }
 
         public toString(): string {

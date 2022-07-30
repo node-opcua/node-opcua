@@ -42,7 +42,7 @@ const NUMERIC_RANGE_EMPTY_STRING = "NumericRange:<Empty>";
 // tslint:disable:only-arrow-functions
 export const schemaNumericRange = {
     name: "NumericRange",
-    subType: "UAString",
+    subType: "String",
 
     defaultValue: (): NumericRange => {
         return new NumericRange();

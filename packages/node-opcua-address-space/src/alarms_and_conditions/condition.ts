@@ -1,12 +1,10 @@
 /**
  * @module node-opcua-address-space.AlarmsAndConditions
  */
-// tslint:disable:no-console
-// tslint:disable:no-var-requires
 require("set-prototype-of");
 import { assert } from "node-opcua-assert";
 import { LocalizedText, LocalizedTextLike } from "node-opcua-data-model";
-import { minDate } from "node-opcua-factory";
+import { minDate } from "node-opcua-basic-types";
 import { StatusCode, StatusCodes } from "node-opcua-status-code";
 
 import { ConditionSnapshot } from "./condition_snapshot";

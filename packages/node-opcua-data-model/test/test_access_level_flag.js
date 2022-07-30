@@ -40,9 +40,6 @@ describe("Testing AccessLevelFlag", function () {
         (accessLevel & AccessLevelFlag.CurrentRead).should.eql(0);
         (accessLevel & AccessLevelFlag.CurrentWrite).should.eql(0);
     });
-    it("should have a accessLevel Flag Basic Type", function () {
-        (findBuiltInType("AccessLevelFlag") !== null && typeof findBuiltInType("AccessLevelFlag") === "object").should.equal(true);
-    });
 
     it("should provide a easy way to check if a flag is set or not", function () {
         const accessLevel = makeAccessLevelFlag("CurrentWrite | CurrentRead");

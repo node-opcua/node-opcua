@@ -1,4 +1,4 @@
-import { ConstructorFuncWithSchema, DataTypeFactory, EnumerationDefinitionSchema, StructuredTypeSchema } from "node-opcua-factory";
+import { ConstructorFuncWithSchema, DataTypeFactory, EnumerationDefinitionSchema, IStructuredTypeSchema, StructuredTypeSchema } from "node-opcua-factory";
 
 export function toTypeScript(dataTypeFactory: DataTypeFactory): string {
     const enumeratedTypes: Map<string, EnumerationDefinitionSchema> = (dataTypeFactory as any)._enumerations;
@@ -7,6 +7,12 @@ export function toTypeScript(dataTypeFactory: DataTypeFactory): string {
     const declaration: Map<string, string> = new Map();
 
     function adjustType(t: string): string {
+        if (t === "String") {
+            t = "UAString";
+        } else if (t === "Boolean") {
+            t = "UABoolean";
+        }
+      
         if (!enumeratedTypes.has(t) && !structuredTypes.has(t)) {
             declaration.set(t, t);
         }
@@ -27,7 +33,7 @@ export function toTypeScript(dataTypeFactory: DataTypeFactory): string {
         l.push(`}`);
     }
     const alreadyDone: Set<string> = new Set();
-    function dumpType(o: StructuredTypeSchema) {
+    function dumpType(o: IStructuredTypeSchema) {
         // base type first
         const b = o.baseType;
 

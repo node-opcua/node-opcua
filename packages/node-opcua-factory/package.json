@@ -9,13 +9,14 @@
         "lint": "eslint source",
         "format": "prettier --write source",
         "clean": "npx rimraf dist *.tsbuildinfo",
-        "test": "echo no test"
+        "test": "mocha"
     },
     "dependencies": {
         "chalk": "4.1.2",
         "node-opcua-assert": "2.66.0",
         "node-opcua-basic-types": "2.72.1",
         "node-opcua-binary-stream": "2.71.0",
+        "node-opcua-constants": "2.70.0",
         "node-opcua-debug": "2.71.0",
         "node-opcua-enum": "2.71.0",
         "node-opcua-guid": "2.66.0",

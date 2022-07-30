@@ -30,7 +30,7 @@ export const schemaQualifiedName = buildStructuredType({
         {
             name: "name",
 
-            fieldType: "UAString",
+            fieldType: "String",
 
             defaultValue: null
         }

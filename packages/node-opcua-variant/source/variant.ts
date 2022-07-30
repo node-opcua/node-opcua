@@ -397,14 +397,18 @@ function constructHook(options: VariantOptions | Variant): VariantOptions2 {
         const d = findBuiltInType(options.dataType);
         /* istanbul ignore next */
         if (!d) {
-            throw new Error("Cannot find data type buildIn");
+            throw new Error("Cannot find Built-In data type or any DataType resolving to " + options.dataType);
         }
-        const t = _enumerationDataType.get(d.name);
-        /* istanbul ignore next */
-        if (t === null) {
-            throw new Error("DataType: invalid " + options.dataType);
+        if (DataType[d.name as keyof typeof DataType] !== undefined) {
+            options.dataType = DataType[d.name as keyof typeof DataType];
+        } else {
+            const t = _enumerationDataType.get(d.name);
+            /* istanbul ignore next */
+            if (t === null) {
+                throw new Error("DataType: invalid " + options.dataType);
+            }
+            options.dataType = t.value as DataType;
         }
-        options.dataType = t.value as DataType;
     }
 
     // array type could be a string

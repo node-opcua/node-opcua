@@ -1,21 +1,23 @@
 /* eslint-disable max-depth */
 /* eslint-disable max-statements */
+import { make_errorLog } from "node-opcua-debug";
 import {
     buildStructuredType,
     ConstructorFuncWithSchema,
     DataTypeFactory,
     FieldCategory,
-    getBuildInType,
-    getStructuredTypeSchema,
+    getBuiltInType,
     hasBuiltInType,
     hasStructuredType,
+    IStructuredTypeSchema,
     StructuredTypeOptions,
-    StructuredTypeSchema
 } from "node-opcua-factory";
 import { ExpandedNodeId } from "node-opcua-nodeid";
 
 import { createDynamicObjectConstructor } from "./dynamic_extension_object";
 import { MapDataTypeAndEncodingIdProvider, TypeDictionary } from "./parse_binary_xsd";
+
+const errorLog = make_errorLog(__filename);
 
 function _removeNamespacePart(str?: string): string | undefined {
     if (!str) {
@@ -31,11 +33,11 @@ function _getNamespacePart(str: string): string {
 
 function _adjustFieldTypeName(fieldTypeName: string): string {
     // special cases
-    if (fieldTypeName === "String" || fieldTypeName === "CharArray") {
-        fieldTypeName = "UAString";
+    if (fieldTypeName === "UAString" || fieldTypeName === "CharArray") {
+        fieldTypeName = "String";
     }
-    if (fieldTypeName === "Boolean") {
-        fieldTypeName = "UABoolean";
+    if (fieldTypeName === "UABoolean") {
+        fieldTypeName = "Boolean";
     }
 
     return fieldTypeName;
@@ -46,13 +48,15 @@ export function getOrCreateStructuredTypeSchema(
     typeDictionary: TypeDictionary,
     dataTypeFactory: DataTypeFactory,
     idProvider: MapDataTypeAndEncodingIdProvider
-): StructuredTypeSchema {
+): IStructuredTypeSchema {
     // eslint-disable-next-line complexity
-    function _getOrCreateStructuredTypeSchema(_name: string): StructuredTypeSchema {
+    function _getOrCreateStructuredTypeSchema(_name: string): IStructuredTypeSchema {
         if (dataTypeFactory.hasStructuredType(_name)) {
             return dataTypeFactory.getStructuredTypeSchema(_name);
         }
-
+        if (dataTypeFactory.hasEnumeration(_name)) {
+            return dataTypeFactory.getEnumeration(_name) as unknown as IStructuredTypeSchema;
+        }
         // construct it !
         const structuredType = typeDictionary.getStructuredTypesRawByName(_name);
         if (!structuredType) {
@@ -72,9 +76,10 @@ export function getOrCreateStructuredTypeSchema(
             structuredType.fields = structuredType.fields.filter((field) => {
                 const name = field.name;
                 const index = baseSchema.fields.findIndex((f) => f.name === name);
+
+                // istanbul ignore next
                 if (index >= 0) {
-                    // tslint:disable-next-line: no-console
-                    console.log(
+                    errorLog(
                         "Warning : find duplicated field from base structure : field name ",
                         name,
                         "baseSchema = ",
@@ -105,9 +110,10 @@ export function getOrCreateStructuredTypeSchema(
                             const schema1 = dataTypeFactory.getStructuredTypeSchema(fieldTypeName);
                             field.schema = schema1;
                             // _getOrCreateStructuredTypeSchema(fieldTypeName);
+
+                            // istanbul ignore next
                             if (!field.schema) {
-                                // tslint:disable-next-line:no-console
-                                console.log("cannot find schema for ", fieldTypeName);
+                                errorLog("cannot find schema for ", fieldTypeName);
                             }
                         }
                         break;
@@ -115,7 +121,7 @@ export function getOrCreateStructuredTypeSchema(
                         field.fieldType = fieldTypeName;
                         if (hasBuiltInType(fieldTypeName)) {
                             field.category = FieldCategory.basic;
-                            field.schema = getBuildInType(fieldTypeName);
+                            field.schema = getBuiltInType(fieldTypeName);
                         } else if (dataTypeFactory.hasStructuredType(fieldTypeName)) {
                             field.category = FieldCategory.complex;
                             field.schema = dataTypeFactory.getStructuredTypeSchema(fieldTypeName);
@@ -123,9 +129,9 @@ export function getOrCreateStructuredTypeSchema(
                             field.category = FieldCategory.basic;
                             // try in this
                             field.schema = _getOrCreateStructuredTypeSchema(fieldTypeName);
+                            // istanbul ignore next
                             if (!field.schema) {
-                                // tslint:disable-next-line:no-console
-                                console.log("What should I do ??", fieldTypeName, " ", hasStructuredType(fieldTypeName));
+                                errorLog("What should I do ??", fieldTypeName, " ", hasStructuredType(fieldTypeName));
                             } else {
                                 if (hasBuiltInType(fieldTypeName)) {
                                     field.category = FieldCategory.basic;
@@ -138,7 +144,6 @@ export function getOrCreateStructuredTypeSchema(
                     case "opc":
                         if ((fieldTypeName === "UAString" || fieldTypeName === "String") && field.name === "IndexRange") {
                             field.fieldType = "NumericRange";
-                            // xx console.log(" NumericRange detected here !");
                         } else {
                             field.fieldType = fieldTypeName;
                         }
@@ -168,7 +173,7 @@ export function getOrCreateStructuredTypeSchema(
             // this may happen if the type is abstract or if the type referes to a internal ExtnsionObject
             // that can only exists inside an other extension object.this Type of extension object cannot
             // instantiated as standalone object and do not have encoding nodeIds...
-            const Constructor = createDynamicObjectConstructor(schema, dataTypeFactory) as ConstructorFuncWithSchema;
+            const Constructor = createDynamicObjectConstructor(schema, dataTypeFactory) as unknown as ConstructorFuncWithSchema;
             return schema;
         }
         schema.id = ids.dataTypeNodeId;
@@ -180,7 +185,7 @@ export function getOrCreateStructuredTypeSchema(
         schema.encodingDefaultJson = ExpandedNodeId.fromNodeId(ids.jsonEncodingNodeId);
         schema.encodingDefaultBinary = ExpandedNodeId.fromNodeId(ids.binaryEncodingNodeId);
 
-        const Constructor = createDynamicObjectConstructor(schema, dataTypeFactory) as ConstructorFuncWithSchema;
+        const Constructor = createDynamicObjectConstructor(schema, dataTypeFactory) as unknown as ConstructorFuncWithSchema;
         Constructor.encodingDefaultBinary = schema.encodingDefaultBinary;
         Constructor.encodingDefaultXml = schema.encodingDefaultXml;
 

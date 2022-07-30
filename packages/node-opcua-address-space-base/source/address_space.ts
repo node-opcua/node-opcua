@@ -153,7 +153,7 @@ export interface IAddressSpace {
      * construct an extension object constructor from a DataType nodeID or UADataType object
      *
      */
-    constructExtensionObject(dataType: UADataType | NodeId, options?: any): ExtensionObject;
+    constructExtensionObject(dataType: UADataType | NodeId, options?: Record<string, unknown>): ExtensionObject;
 
     // -------------- Event helpers
 
