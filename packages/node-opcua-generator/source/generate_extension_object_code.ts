@@ -325,7 +325,7 @@ import {
         writeStructuredTypeWithSchema(structuredType);
     }
 
-    processStructuredType(dataTypeFactory.getStructuredTypeSchema("LocalizedText"));
+    //xx processStructuredType(dataTypeFactory.getStructuredTypeSchema("LocalizedText"));
     processStructuredType(dataTypeFactory.getStructuredTypeSchema("AxisInformation"));
     //        processStructuredType(dataTypeFactory.getStructuredTypeSchema("DiagnosticInfo"));
     processStructuredType(dataTypeFactory.getStructuredTypeSchema("SimpleAttributeOperand"));

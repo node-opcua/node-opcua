@@ -17,8 +17,7 @@ import {
     FieldCategory,
     FieldType,
     getStructuredTypeSchema,
-    IStructuredTypeSchema,
-    StructuredTypeSchema
+    IStructuredTypeSchema
 } from "node-opcua-factory";
 
 import { DataTypeIds, ObjectIds } from "node-opcua-constants";
@@ -546,14 +545,14 @@ function write_class_constructor_options(write: WriteFunc, schema: IStructuredTy
 
         switch (field.category) {
             case FieldCategory.enumeration: {
-                write(`    ${member}?: ${field.fieldType}${arrayOpt};`);
+                write(`    ${member}?: ${toJavascriptType(field.fieldType)}${arrayOpt};`);
                 break;
             }
             case FieldCategory.basic: {
                 if (field.fieldType === "ExtensionObject") {
-                    write(`    ${member}?: (${field.fieldType} | null)${arrayOpt};`);
+                    write(`    ${member}?: (${toJavascriptType(field.fieldType)} | null)${arrayOpt};`);
                 } else if (field.fieldType === "DiagnosticInfo") {
-                    write(`    ${member}?: (${field.fieldType} | null)${arrayOpt};`);
+                    write(`    ${member}?: (${toJavascriptType(field.fieldType)} | null)${arrayOpt};`);
                 } else if (
                     field.fieldType === "Variant" ||
                     field.fieldType === "DataValue" ||
@@ -561,9 +560,9 @@ function write_class_constructor_options(write: WriteFunc, schema: IStructuredTy
                     field.fieldType === "QualifiedName" ||
                     field.fieldType === "LocalizedText"
                 ) {
-                    write(`    ${member}?: (${field.fieldType}Like | null)${arrayOpt};`);
+                    write(`    ${member}?: (${toJavascriptType(field.fieldType)}Like | null)${arrayOpt};`);
                 } else {
-                    write(`    ${member}?: ${field.fieldType} ${arrayOpt};`);
+                    write(`    ${member}?: ${toJavascriptType(field.fieldType)} ${arrayOpt};`);
                 }
                 break;
             }
@@ -574,7 +573,16 @@ function write_class_constructor_options(write: WriteFunc, schema: IStructuredTy
         }
     }
 }
-
+function toJavascriptType(fieldType: string) {
+    switch (fieldType) {
+        case "String":
+            return "UAString";
+        case "Boolean":
+            return "UABoolean";
+        default:
+            return fieldType;
+    }
+}
 function write_declare_class_member(write: WriteFunc, schema: IStructuredTypeSchema): void {
     const n = schema.fields.length;
     for (let i = 0; i < n; i++) {
@@ -585,21 +593,21 @@ function write_declare_class_member(write: WriteFunc, schema: IStructuredTypeSch
 
         switch (field.category) {
             case FieldCategory.enumeration: {
-                write(`    public ${member}: ${field.fieldType}${arrayOpt};`);
+                write(`    public ${member}: ${toJavascriptType(field.fieldType)}${arrayOpt};`);
                 break;
             }
             case FieldCategory.basic: {
                 if (field.fieldType === "DiagnosticInfo") {
-                    write(`    public ${member}: (${field.fieldType} | null)${arrayOpt};`);
+                    write(`    public ${member}: (${toJavascriptType(field.fieldType)} | null)${arrayOpt};`);
                 } else if (field.fieldType === "ExtensionObject") {
-                    write(`    public ${member}: (${field.fieldType} | null)${arrayOpt};`);
+                    write(`    public ${member}: (${toJavascriptType(field.fieldType)} | null)${arrayOpt};`);
                 } else {
-                    write(`    public ${member}: ${field.fieldType}${arrayOpt};`);
+                    write(`    public ${member}: ${toJavascriptType(field.fieldType)}${arrayOpt};`);
                 }
                 break;
             }
             case FieldCategory.complex: {
-                write(`    public ${member}: ${field.fieldType}${arrayOpt};`);
+                write(`    public ${member}: ${toJavascriptType(field.fieldType)}${arrayOpt};`);
                 break;
             }
         }
