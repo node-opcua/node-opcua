@@ -75,6 +75,7 @@ describe("Testing automatic reconnection to a server when credential have change
     });
     this.afterEach(async () => {
         await server.shutdown();
+        await wait(2000);
     });
 
     let old: number;
