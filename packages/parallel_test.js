@@ -3,6 +3,7 @@ const readline = require("readline");
 const os = require("os");
 const util = require("util");
 
+const CPU = process.env.CPU ? parseInt(process.env.CPU,10) : 0 ;
 require("should");
 
 const chalk = require("chalk");
@@ -302,7 +303,7 @@ if (isMainThread) {
         };
         fileMax = testFiles.length;
         const promises = [];
-        const cpuCount = Math.max(os.cpus().length * 0.8, 2);
+        const cpuCount = Math.max(CPU || os.cpus().length * 0.8, 2);
         for (let i = 0; i < cpuCount; i++) {
             promises.push(runTestAndContinue(data));
         }
