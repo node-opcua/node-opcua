@@ -26,7 +26,7 @@ const doDebug = checkDebugFlag("TEST");
 let sessionCounter = 0;
 async function connectAndCreateSession(endpointUrl) {
 
-    await pause(100);
+    await pause(1000);
 
     const client = OPCUAClient.create({
         name: "client" + sessionCounter++,
@@ -37,7 +37,7 @@ async function connectAndCreateSession(endpointUrl) {
 }
 
 async function closeSessionAndDisconnect({ client, session }) {
-    await pause(100);
+    await pause(1000);
     await session.close();
     await client.disconnect();
 }
@@ -92,7 +92,7 @@ async function waitSessionCountChange(currentSessionCountMonitoredItem) {
         const timer = setTimeout(() => {
             console.log(currentSessionCountMonitoredItem);
             reject(new Error("Never received ", currentSessionCountMonitoredItem.toString()));
-        }, 15000);
+        }, 10000);
 
         currentSessionCountMonitoredItem.once("changed", function (dataValue) {
             clearTimeout(timer);

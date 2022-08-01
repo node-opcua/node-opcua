@@ -437,8 +437,8 @@ describe("BSHD - Binary Schemas Helper 4", () => {
         parameters.debugSchemaHelper = old_schema_helpers_doDebug;
     });
 
-    it("BSHD1 - should parse NodeIdType structure types", async () => {
-        dataTypeFactory.hasStructuredType("NodeId").should.eql(true);
+    it("BSHD1 - should parse NodeId2 structure types", async () => {
+        dataTypeFactory.hasStructuredType("NodeId2").should.eql(true);
     });
 
     it("BSHD2 - should construct a dynamic object structure ProcessingTimesDataType - 1", () => {

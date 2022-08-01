@@ -2,9 +2,9 @@ import { OPCUAClientBase, OPCUAServer, OPCUAClient, UserTokenType, nodesets, mak
 
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("Testing automatic reconnection to a server when credential have changed and client is not aware", function (this: any) {
-    this.timeout(1000000);
+    this.timeout(10 * 60 * 1000);
 
-    const port = 2510;
+    const port = 2511;
     let server: OPCUAServer;
     const users = [
         {
@@ -87,11 +87,15 @@ describe("Testing automatic reconnection to a server when credential have change
     afterEach(() => {
         OPCUAClientBase.retryDelay = old;
     });
+    let clientCounter = 0;
     async function createClient() {
+        const clientName = "Client_1162_" + clientCounter;
         const client: OPCUAClient = OPCUAClient.create({
             requestedSessionTimeout: 120 * 1000,
+            clientName,
             endpointMustExist: false
         });
+        clientCounter++;
 
         client.on("backoff", (count, delay) => {
             console.log("client: backoff: retrying connection", count, delay);
@@ -136,7 +140,6 @@ describe("Testing automatic reconnection to a server when credential have change
 
     async function shutDownServerChangePasswordAndRestart(waitingTIme: number, newPassword = "password1-New") {
         console.log("============================ shuting down server");
-
         await server.shutdown();
         await wait(waitingTIme);
         console.log("============================ changing user password");
