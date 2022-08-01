@@ -156,6 +156,8 @@ describe("Testing automatic reconnection to a server when credential have change
         await wait(3 * 1000);
 
         await client.disconnect();
+
+        await wait(1000);
     });
 
     it("should reconnected automatically - long outage", async () => {
@@ -165,6 +167,7 @@ describe("Testing automatic reconnection to a server when credential have change
         wait(10 * 1000);
 
         await client.disconnect();
+        await wait(1000);
     });
 
     it("should reconnected automatically - back again", async () => {
@@ -176,5 +179,6 @@ describe("Testing automatic reconnection to a server when credential have change
         await wait(5 * 1000);
 
         await client.disconnect();
+        await wait(1000);
     });
 });
