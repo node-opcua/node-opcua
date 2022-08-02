@@ -83,18 +83,20 @@ function _adjust_maxKeepAliveCount(maxKeepAliveCount?: number /*,publishingInter
     return maxKeepAliveCount;
 }
 
-function _adjust_lifeTimeCount(lifeTimeCount: number, maxKeepAliveCount: number, publishingInterval: number): number {
-    lifeTimeCount = lifeTimeCount || 1;
+function _adjust_lifeTimeCount(lifetimeCount: number, maxKeepAliveCount: number, publishingInterval: number): number {
+    lifetimeCount = lifetimeCount || 1;
 
     // let's make sure that lifeTimeCount is at least three time maxKeepAliveCount
     // Note : the specs say ( part 3  - CreateSubscriptionParameter )
     //        "The lifetime count shall be a minimum of three times the keep keep-alive count."
-    lifeTimeCount = Math.max(lifeTimeCount, maxKeepAliveCount * 3);
+    lifetimeCount = Math.max(lifetimeCount, maxKeepAliveCount * 3);
 
-    const minTicks = Math.ceil((5 * 1000) / publishingInterval); // we want 5 seconds min
+    const minTicks = Math.ceil(Subscription.minimumLifetimeDuration / publishingInterval);
+    const maxTicks = Math.floor(Subscription.maximumLifetimeDuration / publishingInterval);
 
-    lifeTimeCount = Math.max(minTicks, lifeTimeCount);
-    return lifeTimeCount;
+    lifetimeCount = Math.max(minTicks, lifetimeCount);
+    lifetimeCount = Math.min(maxTicks, lifetimeCount);
+    return lifetimeCount;
 }
 
 function _adjust_publishingEnable(publishingEnabled?: boolean | null): boolean {
@@ -186,7 +188,7 @@ function createSubscriptionDiagnostics(subscription: Subscription): Subscription
 
     const subscriptionDiagnostics = new SubscriptionDiagnosticsDataType({});
 
-    const subscription_subscriptionDiagnostics = subscriptionDiagnostics as any;
+    const subscription_subscriptionDiagnostics = subscriptionDiagnostics as SubscriptionDiagnosticsDataTypePriv as any;
     subscription_subscriptionDiagnostics.$subscription = subscription;
     // "sessionId"
     subscription_subscriptionDiagnostics.__defineGetter__(
@@ -300,13 +302,29 @@ function createSubscriptionDiagnostics(subscription: Subscription): Subscription
    "transferredToAltClientCount",
    "transferredToSameClientCount",
    "latePublishRequestCount",
-   "currentKeepAliveCount",
-   "currentLifetimeCount",
    "unacknowledgedMessageCount",
    "discardedMessageCount",
    "monitoringQueueOverflowCount",
    "eventQueueOverFlowCount"
    */
+    subscription_subscriptionDiagnostics.__defineGetter__(
+        "currentKeepAliveCount",
+        function (this: SubscriptionDiagnosticsDataTypePriv): number {
+            if (!this.$subscription) {
+                return 0;
+            }
+            return this.$subscription.currentKeepAliveCount;
+        }
+    );
+    subscription_subscriptionDiagnostics.__defineGetter__(
+        "currentLifetimeCount",
+        function (this: SubscriptionDiagnosticsDataTypePriv): number {
+            if (!this.$subscription) {
+                return 0;
+            }
+            return this.$subscription.currentLifetimeCount;
+        }
+    );
     // add object in Variable SubscriptionDiagnosticArray (i=2290) ( Array of SubscriptionDiagnostics)
     // add properties in Variable to reflect
     return subscriptionDiagnostics as SubscriptionDiagnosticsDataTypePriv;
@@ -453,15 +471,17 @@ export interface ServerCapabilitiesPartial {
 export class Subscription extends EventEmitter {
     public static minimumPublishingInterval = 50; // fastest possible
     public static defaultPublishingInterval = 1000; // one second
-    public static maximumPublishingInterval: number = 1000 * 60 * 60 * 24 * 15; // 15 days
+    public static maximumPublishingInterval: number = 1000 * 60; // one minute
     public static maxNotificationPerPublishHighLimit = 1000;
+    public static minimumLifetimeDuration = 5 * 1000; //  // we want 2 seconds minimum lifetime for any subscription
+    public static maximumLifetimeDuration = 60 * 60 * 1000; // 1 hour
 
     /**
      * maximum number of monitored item in a subscription to be used
      * when serverCapacity.maxMonitoredItems and serverCapacity.maxMonitoredItemsPerSubscription are not set.
      */
     public static defaultMaxMonitoredItemCount = 20000;
-    
+
     /**
      * @deprecated use serverCapacity.maxMonitoredItems and serverCapacity.maxMonitoredItemsPerSubscription instead
      */
@@ -471,7 +491,7 @@ export class Subscription extends EventEmitter {
 
     public static registry = new ObjectRegistry();
 
-    public sessionId: NodeId;
+   
     public publishEngine?: IServerSidePublishEngine;
     public id: number;
     public priority: number;
@@ -522,6 +542,17 @@ export class Subscription extends EventEmitter {
     public messageSent: boolean;
     public $session?: ServerSession;
 
+    public get sessionId(): NodeId {
+        return this.$session ? this.$session.nodeId : NodeId.nullNodeId;
+    }
+   
+    public get currentLifetimeCount(): number {
+        return this._life_time_counter;
+    }
+    public get currentKeepAliveCount(): number {
+        return this._keep_alive_counter;
+    }
+    
     private _life_time_counter: number;
     private _keep_alive_counter = 0;
     private _pending_notifications: Queue<InternalNotification>;
@@ -541,7 +572,6 @@ export class Subscription extends EventEmitter {
 
         Subscription.registry.register(this);
 
-        this.sessionId = options.sessionId || NodeId.nullNodeId;
         assert(this.sessionId instanceof NodeId, "expecting a sessionId NodeId");
 
         this.publishEngine = options.publishEngine!;
@@ -595,7 +625,8 @@ export class Subscription extends EventEmitter {
         debugLog(chalk.green(`creating subscription ${this.id}`));
 
         this.serverCapabilities = options.serverCapabilities;
-        this.serverCapabilities.maxMonitoredItems = this.serverCapabilities.maxMonitoredItems || Subscription.defaultMaxMonitoredItemCount;
+        this.serverCapabilities.maxMonitoredItems =
+            this.serverCapabilities.maxMonitoredItems || Subscription.defaultMaxMonitoredItemCount;
         this.serverCapabilities.maxMonitoredItemsPerSubscription =
             this.serverCapabilities.maxMonitoredItemsPerSubscription || Subscription.defaultMaxMonitoredItemCount;
         this.globalCounter = options.globalCounter;
@@ -822,8 +853,6 @@ export class Subscription extends EventEmitter {
         this.publishEngine = undefined;
         this._pending_notifications.clear();
         this._sent_notification_messages = [];
-
-        this.sessionId = new NodeId();
 
         this.$session = undefined;
         this.removeAllListeners();

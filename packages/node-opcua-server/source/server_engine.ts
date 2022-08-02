@@ -399,6 +399,8 @@ export class ServerEngine extends EventEmitter {
             Object.values(this._sessions).forEach((session: ServerSession) => {
                 counter += session.currentSubscriptionCount;
             });
+            // we also need to add the orphan subscriptions
+            counter += this._orphanPublishEngine ? this._orphanPublishEngine .subscriptions.length : 0;
             return counter;
         });
 
@@ -1816,10 +1818,6 @@ export class ServerEngine extends EventEmitter {
         if (!subscription) {
             return new TransferResult({ statusCode: StatusCodes.BadSubscriptionIdInvalid });
         }
-        // istanbul ignore next
-        if (!subscription.$session) {
-            return new TransferResult({ statusCode: StatusCodes.BadInternalError });
-        }
 
         // check that session have same userIdentity
         if (!sessionsCompatibleForTransfer(subscription.$session, session)) {
@@ -1850,9 +1848,11 @@ export class ServerEngine extends EventEmitter {
 
         const nbSubscriptionBefore = session.publishEngine.subscriptionCount;
 
-        subscription.$session._unexposeSubscriptionDiagnostics(subscription);
+        if (subscription.$session) {
+            subscription.$session._unexposeSubscriptionDiagnostics(subscription);
+        }
+        
         await ServerSidePublishEngine.transferSubscription(subscription, session.publishEngine, sendInitialValues);
-
         subscription.$session = session;
 
         session._exposeSubscriptionDiagnostics(subscription);
@@ -1987,7 +1987,7 @@ export class ServerEngine extends EventEmitter {
     }
 
     private _exposeSubscriptionDiagnostics(subscription: Subscription): void {
-        debugLog("ServerEngine#_exposeSubscriptionDiagnostics");
+        debugLog("ServerEngine#_exposeSubscriptionDiagnostics", subscription.subscriptionId);
         const subscriptionDiagnosticsArray = this._getServerSubscriptionDiagnosticsArrayNode();
         const subscriptionDiagnostics = subscription.subscriptionDiagnostics;
         assert((subscriptionDiagnostics as any).$subscription === subscription);
@@ -1999,19 +1999,19 @@ export class ServerEngine extends EventEmitter {
     }
 
     protected _unexposeSubscriptionDiagnostics(subscription: Subscription): void {
-        const subscriptionDiagnosticsArray = this._getServerSubscriptionDiagnosticsArrayNode();
+        const serverSubscriptionDiagnosticsArray = this._getServerSubscriptionDiagnosticsArrayNode();
         const subscriptionDiagnostics = subscription.subscriptionDiagnostics;
         assert(subscriptionDiagnostics instanceof SubscriptionDiagnosticsDataType);
-        if (subscriptionDiagnostics && subscriptionDiagnosticsArray) {
-            const node = (subscriptionDiagnosticsArray as any)[subscription.id];
-            removeElement(subscriptionDiagnosticsArray, subscriptionDiagnostics);
+        if (subscriptionDiagnostics && serverSubscriptionDiagnosticsArray) {
+            const node = (serverSubscriptionDiagnosticsArray as any)[subscription.id];
+            removeElement(serverSubscriptionDiagnosticsArray, subscriptionDiagnostics);
             /*assert(
                 !(subscriptionDiagnosticsArray as any)[subscription.id],
                 " subscription node must have been removed from subscriptionDiagnosticsArray"
             );
             */
         }
-        debugLog("ServerEngine#_unexposeSubscriptionDiagnostics");
+        debugLog("ServerEngine#_unexposeSubscriptionDiagnostics", subscription.subscriptionId);
     }
 
     /**
@@ -2204,16 +2204,14 @@ export class ServerEngine extends EventEmitter {
     private _getServerSubscriptionDiagnosticsArrayNode(): UADynamicVariableArray<SubscriptionDiagnosticsDataType> | null {
         // istanbul ignore next
         if (!this.addressSpace) {
-            if (doDebug) {
-                console.warn("ServerEngine#_getServerSubscriptionDiagnosticsArray : no addressSpace");
-            }
+            doDebug && debugLog("ServerEngine#_getServerSubscriptionDiagnosticsArray : no addressSpace");
+
             return null; // no addressSpace
         }
         const subscriptionDiagnosticsType = this.addressSpace.findVariableType("SubscriptionDiagnosticsType");
         if (!subscriptionDiagnosticsType) {
-            if (doDebug) {
-                console.warn("ServerEngine#_getServerSubscriptionDiagnosticsArray " + ": cannot find SubscriptionDiagnosticsType");
-            }
+            doDebug &&
+                debugLog("ServerEngine#_getServerSubscriptionDiagnosticsArray " + ": cannot find SubscriptionDiagnosticsType");
         }
 
         // SubscriptionDiagnosticsArray = i=2290

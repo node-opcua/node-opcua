@@ -303,7 +303,7 @@ if (isMainThread) {
         };
         fileMax = testFiles.length;
         const promises = [];
-        const cpuCount = Math.max(CPU || os.cpus().length * 0.8, 2);
+        const cpuCount = Math.max(CPU || os.cpus().length * 0.7, 2);
         for (let i = 0; i < cpuCount; i++) {
             promises.push(runTestAndContinue(data));
         }

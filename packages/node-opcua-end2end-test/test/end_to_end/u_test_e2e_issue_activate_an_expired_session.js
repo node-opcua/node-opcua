@@ -2,7 +2,7 @@
 const should = require("should");
 const { OPCUAClient } = require("node-opcua");
 
-const sessionLiveTime = 3 * 1000;
+const sessionLiveTime = 10 * 1000;
 const doDebug = false;
 
 /**
@@ -49,6 +49,7 @@ const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 
 module.exports = function (test) {
     describe("Client and expired session activation", function () {
+
         it("XKL1 it should be possible to re activate an active session which has not closed by a previous connection", async () => {
             const endpointUrl = test.endpointUrl;
             const session = await create_a_pending_session(endpointUrl);
