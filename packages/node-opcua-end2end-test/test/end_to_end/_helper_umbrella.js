@@ -98,6 +98,7 @@ exports.afterTest = async function afterTest(test) {
 
 exports.beforeTest = async function beforeTest(test) {
     test.nb_backgroundsession = 0;
+    test.nb_backgroundsubscription = 0;
 
     const options = {
         port: test.port,
@@ -128,15 +129,22 @@ exports.beforeEachTest = async function beforeEachTest(test) {
         // test.nb_backgroundsession = test.server.engine.currentSessionCount;
         test.server.engine.currentSessionCount.should.eql(
             test.nb_backgroundsession,
-            " expecting ZERO session o server when test is starting !"
+            " expecting ZERO session on server when test is starting ! got " + test.server.engine.currentSessionCount
+        );
+
+        test.server.engine.currentSubscriptionCount.should.eql(
+            test.nb_backgroundsubscription,
+            " expecting ZERO subscription on server when test is starting ! got " + test.server.engine.currentSubscriptionCount
         );
     }
 };
 
 exports.afterEachTest = async function afterEachTest(test) {
     const extraSessionCount = test.server.engine.currentSessionCount !== test.nb_backgroundsession;
+    
+    const extraSubscriptionCount = test.server.engine.currentSubscriptionCount !== test.nb_backgroundsubscription;
 
-    if (extraSessionCount && test.server) {
+    if ((extraSessionCount || extraSubscriptionCount )&& test.server) {
         console.log(" currentChannelCount          = ", test.server.currentChannelCount);
         console.log(" bytesWritten                 = ", test.server.bytesWritten);
         console.log(" bytesRead                    = ", test.server.bytesRead);
@@ -161,4 +169,5 @@ exports.afterEachTest = async function afterEachTest(test) {
 
     // make sure that test has closed all sessions
     test.server.engine.currentSessionCount.should.eql(test.nb_backgroundsession, " Test must have deleted all created session");
+    test.server.engine.currentSubscriptionCount.should.eql(test.nb_backgroundsubscription, " Test must have deleted all created subscriptions");
 };

@@ -19,6 +19,7 @@ const {
 const sinon = require("sinon");
 
 const { wait, wait_until_condition } = require("../../test_helpers/utils");
+const doDebug = false;
 
 module.exports = function (test) {
     describe("SDS1 Testing SessionDiagnostics 1/2", function () {
@@ -71,6 +72,29 @@ module.exports = function (test) {
             const client = OPCUAClient.create({});
             // eslint-disable-next-line max-statements
             await client.withSubscriptionAsync(test.endpointUrl, subscriptionParameters, async (session, subscription) => {
+
+                console.log("subscription.maxKeepAliveCount ", subscription.maxKeepAliveCount);
+                console.log("subscription.publishingInterval", subscription.publishingInterval);
+
+                
+                async function writeSomeValue(value) {
+                    const nodeId = "ns=2;s=Static_Scalar_Double";
+                    const variantValue = new Variant({
+                        dataType: DataType.Double,
+                        value
+                    });
+
+                    const results = await session.write({
+                        nodeId,
+                        attributeId: AttributeIds.Value,
+                        value: { value: variantValue }
+                    });
+
+                    results.should.eql(StatusCodes.Good);
+                }
+
+                await writeSomeValue(1);
+
                 const dataValue = await session.read({
                     nodeId: session.sessionId,
                     attributeId: AttributeIds.BrowseName
@@ -165,31 +189,14 @@ module.exports = function (test) {
                 monitoredItemGroup.on(
                     "changed",
                     (monitoredItem /* : ClientMonitoredItemBase */, dataValue /*: DataValue */, index /*: number */) => {
-                        console.log(` Variable ${index} ${itemsToMonitor[index].name} changed to `, dataValue.value.toString());
+                        doDebug && console.log(` Variable ${index} ${itemsToMonitor[index].name} changed to `, dataValue.value.toString());
                         const nodeId = monitoredItem.itemToMonitor.nodeId.toString();
                         dataValuesMap[nodeId] = dataValuesMap[nodeId] || [];
                         dataValuesMap[nodeId].push(dataValue.value.value);
                         //  console.log(monitoredItem.itemToMonitor.nodeId.toString(), dataValue.value.value.toString());
                     }
                 );
-                console.log("itemsToMonitor= ", itemsToMonitor.map((item) => item.nodeId.toString()).join(" "));
-
-
-                async function writeSomeValue(value) {
-                    const nodeId = "ns=2;s=Static_Scalar_Double";
-                    const variantValue = new Variant({
-                        dataType: DataType.Double,
-                        value
-                    });
-
-                    const results = await session.write({
-                        nodeId,
-                        attributeId: AttributeIds.Value,
-                        value: { value: variantValue }
-                    });
-
-                    results.should.eql(StatusCodes.Good);
-                }
+                doDebug && console.log("itemsToMonitor= ", itemsToMonitor.map((item) => item.nodeId.toString()).join(" "));
 
                 await writeSomeValue(42);
 
@@ -209,8 +216,8 @@ module.exports = function (test) {
                 });
                 args.length.should.eql(2);
 
-                args[0][1].value.value.totalCount.should.eql(0, "first  WriteCounter value should eql 0");
-                args[1][1].value.value.totalCount.should.eql(1, "second WriteCounter value should eql 1");
+                args[0][1].value.value.totalCount.should.eql(1, "first  WriteCounter value should eql 0");
+                args[1][1].value.value.totalCount.should.eql(2, "second WriteCounter value should eql 1");
 
                 {
                     const nodeToRead = {
@@ -222,7 +229,7 @@ module.exports = function (test) {
                     sessionDiagnostic.clientConnectionTime
                         .getTime()
                         .should.be.lessThan(sessionDiagnostic.clientLastContactTime.getTime());
-                    sessionDiagnostic.writeCount.totalCount.should.eql(1);
+                    sessionDiagnostic.writeCount.totalCount.should.eql(2);
                     sessionDiagnostic.readCount.totalCount.should.eql(2);
 
                     //xx console.log(results[0].toString());

@@ -454,13 +454,13 @@ export function repair_client_session(client: IClientBase, session: ClientSessio
     _repair_client_session(client, session, (err) => {
         privateSession._reconnecting.reconnecting = false;
         if (err) {
-            errorLog(chalk.red("SESSION RESTORED HAS FAILED! err ="), err.message, session.sessionId.toString(), " => Let's retry");
+            errorLog(chalk.red("session restoration has failed! err ="), err.message, session.sessionId.toString(), " => Let's retry");
             setTimeout(() => {
                 _repair_client_session(client, session, callback);
             }, 2000);
             return;
         }
-        debugLog(chalk.yellow("SESSION RESTORED"), session.sessionId.toString());
+        debugLog(chalk.yellow("session has been restored"), session.sessionId.toString());
         session.emit("session_restored");
         const otherCallbacks = privateSession._reconnecting.pendingCallbacks;
         privateSession._reconnecting.pendingCallbacks = [];

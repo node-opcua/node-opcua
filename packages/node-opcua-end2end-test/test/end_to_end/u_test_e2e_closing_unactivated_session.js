@@ -1,17 +1,17 @@
 "use strict";
 
-const { assert } = require("node-opcua-assert");
+const { promisify } = require("util");
 const should = require("should");
 const async = require("async");
 
-const opcua = require("node-opcua");
-const OPCUAClient = opcua.OPCUAClient;
+const { assert } = require("node-opcua-assert");
+const { OPCUAClient } = require("node-opcua");
 
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 // bug : server reported to many datavalue changed when client monitored a UAVariable consructed with variation 1");
 module.exports = function (test) {
     describe("Closing an unactivated session ", function () {
-        it("AKQ server shall return BadSessionNotActivated if client attempts to close an unactivated session", function (done) {
+        it("AKQ server shall return BadSessionNotActivated if client attempts to close an unactivated session", async () => {
             const endpointUrl = test.endpointUrl;
 
             const client1 = OPCUAClient.create({
@@ -19,41 +19,17 @@ module.exports = function (test) {
                     maxRetry: 1
                 }
             });
+            await client1.connect(endpointUrl);
 
-            let session = null;
-            async.series(
-                [
-                    function (callback) {
-                        //xx console.log("xxxxx connecting to server ...");
-                        client1.connect(endpointUrl, function (err) {
-                            callback(err);
-                        });
-                    },
+            const session = await new Promise((resolve) => {
+                client1._createSession(function (err, session) {
+                    resolve(session);
+                });
+            });
 
-                    function (callback) {
-                        client1._createSession(function (err, l_session) {
-                            session = l_session;
-                            callback(err);
-                        });
-                    },
-                    function (callback) {
-                        session.close(function (err) {
-                            //  err.message.should.match(/BadSessionNotActivated/);
-                            should.not.exist(err);
+            await session.close();
 
-                            assert(client1._sessions.length === 0, "");
-
-                            callback();
-                        });
-                    },
-                    function (callback) {
-                        client1.disconnect(function (err) {
-                            callback(err);
-                        });
-                    }
-                ],
-                done
-            );
+            await client1.disconnect();
         });
     });
 
@@ -61,8 +37,6 @@ module.exports = function (test) {
         const maxSessionsForTest = 3;
         const maxSessionsBackup = test.server.engine.serverCapabilities.maxSessions;
         test.server.engine.serverCapabilities.maxSessions = maxSessionsForTest;
-
-        const OPCUAClient = opcua.OPCUAClient;
 
         // From OPCUA V1.03 Part 4 5.6.2 CreateSession
         // A Server application should limit the number of Sessions. To protect against misbehaving Clients and denial

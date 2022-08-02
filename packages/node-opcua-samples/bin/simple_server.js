@@ -525,7 +525,7 @@ const paths = envPaths(productUri);
         }
     }
 
-    const servicesToTrace = ["Publish", "TransferSubscriptions", "Republish", "CreateSubscription", "CreateMonitoredItems"];
+    const servicesToTrace = ["CreateSubscription"]; // "Publish", "TransferSubscriptions", "Republish", "CreateSubscription", "CreateMonitoredItems"];
     server.on("response", function (response) {
         if (argv.silent) {
             return;

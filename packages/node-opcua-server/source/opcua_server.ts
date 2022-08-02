@@ -203,6 +203,7 @@ const default_build_info: BuildInfoOptions = {
 const minSessionTimeout = 100; // 100 milliseconds
 const defaultSessionTimeout = 1000 * 30; // 30 seconds
 const maxSessionTimeout = 1000 * 60 * 50; // 50 minutes
+let unnamed_session_count = 0;
 
 type ResponseClassType =
     | typeof BrowseResponse
@@ -1786,7 +1787,7 @@ export class OPCUAServer extends OPCUABaseServer {
         assert(session.sessionTimeout === revisedSessionTimeout);
 
         session.clientDescription = request.clientDescription;
-        session.sessionName = request.sessionName || "<unknown session name>";
+        session.sessionName = request.sessionName || `<unknown session name ${unnamed_session_count++}>`;
 
         // Depending upon on the  SecurityPolicy  and the  SecurityMode  of the  SecureChannel,  the exchange of
         // ApplicationInstanceCertificates   and  Nonces  may be optional and the signatures may be empty. See

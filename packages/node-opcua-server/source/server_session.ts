@@ -682,13 +682,13 @@ export class ServerSession extends EventEmitter implements ISubscriber, ISession
 
                 Object.defineProperty(this._sessionDiagnostics, "sessionId", {
                     get(this: SessionDiagnosticsDataTypeEx) {
-                        return this.$session?.nodeId;
+                        return this.$session ? this.$session.nodeId : NodeId.nullNodeId;
                     }
                 });
 
                 Object.defineProperty(this._sessionDiagnostics, "sessionName", {
                     get(this: SessionDiagnosticsDataTypeEx) {
-                        return this.$session?.sessionName.toString();
+                        return this.$session ? this.$session.sessionName.toString() : "";
                     }
                 });
 
@@ -910,8 +910,7 @@ export class ServerSession extends EventEmitter implements ISubscriber, ISession
         assert(this.nodeId instanceof NodeId);
 
         subscription.$session = this;
-
-        subscription.sessionId = this.nodeId;
+        assert(subscription.sessionId === this.nodeId);
 
         this._cumulatedSubscriptionCount += 1;
 

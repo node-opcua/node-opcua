@@ -8,10 +8,8 @@ const OPCUAClient = opcua.OPCUAClient;
 
 const sinon = require("sinon");
 
-module.exports = function(test) {
-
-    describe("ZZZB Testing AuditSessionEventType", function() {
-
+module.exports = function (test) {
+    describe("ZZZB Testing AuditSessionEventType", function () {
         // Auditing for session Set
 
         // All Services in this Service Set for Servers that support auditing may generate audit entries and shall
@@ -70,13 +68,12 @@ module.exports = function(test) {
         }
 
         function recordEvent(eventFields) {
-
             const e = {};
-            eventFields.forEach(function(eventField, index) {
+            eventFields.forEach(function (eventField, index) {
                 e[fields[index]] = eventField;
             });
 
-            Object.keys(e).forEach(function(key) {
+            Object.keys(e).forEach(function (key) {
                 const value = e[key];
                 //xx console.log(chalk.yellow(w(key,20)),value.toString());
                 //,chalk.yellow(w(eventField.dataType.toString(),15)),eventField.value.toString());
@@ -88,310 +85,207 @@ module.exports = function(test) {
 
         let previous_isAuditing;
 
-        beforeEach(function() {
+        beforeEach(function () {
             resetEventLog();
         });
 
-        before(function(done) {
-
+        before(async () => {
             should.not.exist(auditing_client);
             should.not.exist(auditing_session);
 
             if (test.server) {
                 previous_isAuditing = test.server.engine.isAuditing;
                 test.server.engine.isAuditing = true;
-
                 test.nb_backgroundsession += 1;
+                test.nb_backgroundsubscription += 1;
             }
 
             const endpointUrl = test.endpointUrl;
 
             auditing_client = OPCUAClient.create({ keepSessionAlive: true });
 
-            async.series([
-                function(callback) {
-                    auditing_client.connect(endpointUrl, callback);
-                },
-                function(callback) {
-                    auditing_client.createSession(function(err, session) {
-                        auditing_session = session;
-                        callback(err);
-                    });
-                },
-                // create event subscriptions
-                function(callback) {
-                    auditing_subscription = opcua.ClientSubscription.create(auditing_session, {
-                        requestedPublishingInterval: 50,
-                        requestedLifetimeCount: 10 * 60,
-                        requestedMaxKeepAliveCount: 5,
-                        maxNotificationsPerPublish: 2,
-                        publishingEnabled: true,
-                        priority: 6
-                    });
-                    auditing_subscription.on("started", function() {
-                        callback();
-                    });
-                },
-                // monitor
-                function(callback) {
+            await auditing_client.connect(endpointUrl);
+            const session = await auditing_client.createSession();
+            auditing_session = session;
 
-                    const eventFilter = opcua.constructEventFilter(fields);
+            // create event subscriptions
+            auditing_subscription = await session.createSubscription2({
+                requestedPublishingInterval: 50,
+                requestedLifetimeCount: 10 * 60,
+                requestedMaxKeepAliveCount: 5,
+                maxNotificationsPerPublish: 2,
+                publishingEnabled: true,
+                priority: 6
+            });
 
-                    const itemToMonitor = {
-                        nodeId: opcua.resolveNodeId("Server"),
-                        attributeId: opcua.AttributeIds.EventNotifier // << EventNotifier
-                    };
+            // monitor
+            const eventFilter = opcua.constructEventFilter(fields);
 
-                    const requestedParameters = {
-                        samplingInterval: 50,
-                        discardOldest: true,
-                        queueSize: 10,
-                        filter: eventFilter
-                    };
-                    auditing_subscription.monitor(
-                        itemToMonitor,
-                        requestedParameters,
-                        opcua.TimestampsToReturn.Both,
-                        function(err, _auditing_monitoredItem) {
-                            auditing_monitoredItem = _auditing_monitoredItem;
-                            auditing_monitoredItem.on("changed", function(eventFields) {
-                                recordEvent(eventFields);
-                            });
-                            callback(err);
-                        });
+            const itemToMonitor = {
+                nodeId: opcua.resolveNodeId("Server"),
+                attributeId: opcua.AttributeIds.EventNotifier // << EventNotifier
+            };
 
-                },
-                // attempt to set auditing flag
-                function(callback) {
-                    const nodesToWrite = [
-                        {
-                            nodeId: opcua.VariableIds.Server_Auditing,
-                            attributeId: opcua.AttributeIds.Value,
-                            value: /*new DataValue(*/{
-                                value: {
-                                    /* Variant */
-                                    dataType: opcua.DataType.Boolean,
-                                    value: true
-                                }
-                            }
+            const requestedParameters = {
+                samplingInterval: 50,
+                discardOldest: true,
+                queueSize: 10,
+                filter: eventFilter
+            };
+            auditing_monitoredItem = await auditing_subscription.monitor(
+                itemToMonitor,
+                requestedParameters,
+                opcua.TimestampsToReturn.Both
+            );
+            auditing_monitoredItem.on("changed", function (eventFields) {
+                recordEvent(eventFields);
+            });
+            // attempt to set auditing flag
+            const nodesToWrite = [
+                {
+                    nodeId: opcua.VariableIds.Server_Auditing,
+                    attributeId: opcua.AttributeIds.Value,
+                    value: /*new DataValue(*/ {
+                        value: {
+                            /* Variant */
+                            dataType: opcua.DataType.Boolean,
+                            value: true
                         }
-                    ];
-                    auditing_session.write(nodesToWrite, function(err, results) {
-                        //xx console.log(results);
-                        //xx results[0].should.eql(opcua.StatusCodes.Good);
-                        callback();
-                    });
-                },
-                // read auditing Flag
-                function(callback) {
-                    const nodeToRead = {
-                        nodeId: opcua.VariableIds.Server_Auditing,
-                        attributeId: opcua.AttributeIds.Value
-                    };
-                    auditing_session.read(nodeToRead, function(err, dataValue) {
-                        //xx console.log(" Auditing = ",dataValues[0].toString());
-                        isAuditing = dataValue.value.value;
-                        callback();
-                    });
+                    }
                 }
-            ], done);
+            ];
+            const results = await auditing_session.write(nodesToWrite);
+            // read auditing Flag
+            const nodeToRead = {
+                nodeId: opcua.VariableIds.Server_Auditing,
+                attributeId: opcua.AttributeIds.Value
+            };
+            const dataValue = await auditing_session.read(nodeToRead);
+            //xx console.log(" Auditing = ",dataValues[0].toString());
+            isAuditing = dataValue.value.value;
         });
-        after(function(done) {
-
+        after(async () => {
             // restore server as we found it.
             if (test.server) {
                 test.server.engine.isAuditing = previous_isAuditing;
                 test.nb_backgroundsession -= 1;
+                test.nb_backgroundsubscription -= 1;
             }
             should.exist(auditing_client);
             should.exist(auditing_session);
 
-            async.series([
+            await auditing_subscription.terminate();
+            auditing_subscription = null;
 
-                function(callback) {
-                    auditing_subscription.terminate(callback);
-                    auditing_subscription = null;
-                },
-                function(callback) {
-                    auditing_session.close(callback);
-                    auditing_session = null;
-                },
-                function(callback) {
-                    auditing_client.disconnect(function(err) {
-                        auditing_client = null;
-                        console.log(" shutting down auditing session");
-                        callback(err);
-                    });
-                }
-            ], done);
+            await auditing_session.close();
+            auditing_session = null;
+
+            await auditing_client.disconnect();
+            auditing_client = null;
+
+            console.log(" shutting down auditing session");
         });
 
-        it("EdgeCase Session Timeout: server should raise a Session/CreateSession, Session/ActivateSession , Session/Timeout", function(done) {
-
+        it("EdgeCase Session Timeout: server should raise a Session/CreateSession, Session/ActivateSession , Session/Timeout", async () => {
             const client1 = OPCUAClient.create({
                 keepSessionAlive: false
             });
 
             const endpointUrl = test.endpointUrl;
-            let the_session;
 
-            async.series([
-                function(callback) {
-                    client1.connect(endpointUrl, callback);
-                },
-                // create a session using client1
-                function(callback) {
+            await client1.connect(endpointUrl);
+            // create a session using client1
 
-                    // set a very short sessionTimeout
-                    client1.requestedSessionTimeout = 1000;
+            // set a very short sessionTimeout
+            client1.requestedSessionTimeout = 1000;
 
-                    //xx console.log("requestedSessionTimeout = ", client1.requestedSessionTimeout);
+            //xx console.log("requestedSessionTimeout = ", client1.requestedSessionTimeout);
 
-                    client1.createSession(function(err, session) {
+            const session = await client1.createSession();
+            await new Promise((resolve) => setTimeout(resolve, 2000));
+            await session.close();
+            // // session must have timed out on server side
+            // err.message.should.match(/BadSessionIdInvalid/);
+            await client1.disconnect();
 
-                        //xx console.log("adjusted session timeout =", session.timeout);
-                        if (err) {
-                            return callback(err);
-                        }
-                        the_session = session;
-                        callback();
-                    });
-                },
-                function(callback) {
-                    setTimeout(callback, 2000);
-                },
+            // wait for event to propagate on subscriptions
+            await new Promise((resolve) => setTimeout(resolve, 2000));
 
-                function(callback) {
-                    the_session.close(function(err) {
-                        should.not.exist(err);
-                        // // session must have timed out on server side
-                        // err.message.should.match(/BadSessionIdInvalid/);
-                        callback(null);
-                    });
-                },
-                function(callback) {
-                    client1.disconnect(function(err) {
-                        callback(err);
-                    });
-                }
-                // wait for event to propagate on subscriptions
-                , function(callback) {
-                    setTimeout(callback, 200);
-                }
+            events_received.length.should.eql(3);
 
-            ], function final(err) {
+            // Session/CreateSession, Session/ActivateSession , Session/CloseSession
 
-                //                console.log(events_received);
+            // "AuditCreateSessionEventType"
+            events_received[0].SourceName.value.should.eql("Session/CreateSession");
+            events_received[0].SessionId.value.toString().should.eql(session.sessionId.toString());
+            events_received[0].EventType.value.toString().should.eql(AuditCreateSessionEventTypeNodeIdString);
 
-                events_received.length.should.eql(3);
+            // "AuditActivateSessionEventType"
+            events_received[1].SourceName.value.should.eql("Session/ActivateSession");
+            events_received[1].SessionId.value.toString().should.eql(session.sessionId.toString());
+            events_received[1].EventType.value.toString().should.eql(AuditActivateSessionEventTypeNodeIdString);
 
-                // Session/CreateSession, Session/ActivateSession , Session/CloseSession
+            // "AuditSessionEventType"
+            events_received[2].SourceName.value.should.eql("Session/Timeout");
+            events_received[2].SessionId.value.toString().should.eql(session.sessionId.toString());
+            events_received[2].EventType.value.toString().should.eql(AuditSessionEventTypeNodeIdString);
 
-                // "AuditCreateSessionEventType"
-                events_received[0].SourceName.value.should.eql("Session/CreateSession");
-                events_received[0].SessionId.value.toString().should.eql(the_session.sessionId.toString());
-                events_received[0].EventType.value.toString().should.eql(AuditCreateSessionEventTypeNodeIdString);
+            // "GeneralModelChangeEventType"
+            if (false) {
+                events_received[3].SourceName.value.should.eql("Server");
+                events_received[3].EventType.value.toString().should.eql(GeneralModelChangeEventTypeNodeIdString);
 
-                // "AuditActivateSessionEventType"
-                events_received[1].SourceName.value.should.eql("Session/ActivateSession");
-                events_received[1].SessionId.value.toString().should.eql(the_session.sessionId.toString());
-                events_received[1].EventType.value.toString().should.eql(AuditActivateSessionEventTypeNodeIdString);
+                events_received[4].SourceName.value.should.eql("Server");
+                events_received[4].EventType.value.toString().should.eql(GeneralModelChangeEventTypeNodeIdString);
 
-                // "AuditSessionEventType"
-                events_received[2].SourceName.value.should.eql("Session/Timeout");
-                events_received[2].SessionId.value.toString().should.eql(the_session.sessionId.toString());
-                events_received[2].EventType.value.toString().should.eql(AuditSessionEventTypeNodeIdString);
-
-                // "GeneralModelChangeEventType"
-                if (false) {
-
-                    events_received[3].SourceName.value.should.eql("Server");
-                    events_received[3].EventType.value.toString().should.eql(GeneralModelChangeEventTypeNodeIdString);
-
-                    events_received[4].SourceName.value.should.eql("Server");
-                    events_received[4].EventType.value.toString().should.eql(GeneralModelChangeEventTypeNodeIdString);
-
-                    events_received[5].SourceName.value.should.eql("Server");
-                    events_received[5].EventType.value.toString().should.eql(GeneralModelChangeEventTypeNodeIdString);
-                }
-
-
-                done(err);
-            });
-
+                events_received[5].SourceName.value.should.eql("Server");
+                events_received[5].EventType.value.toString().should.eql(GeneralModelChangeEventTypeNodeIdString);
+            }
         });
-        it("NominalCase: server should raise a Session/CreateSession, Session/ActivateSession , Session/CloseSession", function(done) {
 
+        it("NominalCase: server should raise a Session/CreateSession, Session/ActivateSession , Session/CloseSession", async () => {
             const client1 = OPCUAClient.create({
                 keepSessionAlive: true
             });
 
             const endpointUrl = test.endpointUrl;
 
-            let the_session;
-
             const keepalive_spy = sinon.spy();
+            await client1.connect(endpointUrl);
 
-            async.series([
-                function(callback) {
-                    client1.connect(endpointUrl, callback);
-                },
-                // create a session using client1
-                function(callback) {
+            // create a session using client1
+            // set a very short sessionTimeout
+            client1.requestedSessionTimeout = 2000;
 
-                    // set a very short sessionTimeout
-                    client1.requestedSessionTimeout = 2000;
+            //xx console.log("requestedSessionTimeout = ", client1.requestedSessionTimeout);
 
-                    //xx console.log("requestedSessionTimeout = ", client1.requestedSessionTimeout);
+            const the_session = await client1.createSession();
 
-                    client1.createSession(function(err, session) {
+            await the_session.close();
 
-                        //xx console.log("adjusted session timeout =", session.timeout);
-                        if (err) {
-                            return callback(err);
-                        }
-                        the_session = session;
-                        callback();
-                    });
-                },
-                function(callback) {
-                    the_session.close(function(err) {
-                        callback(err);
-                    });
-                },
-                function(callback) {
-                    client1.disconnect(function(err) {
-                        callback(err);
-                    });
-                }
-                // wait for event to propagate on subscriptions
-                , function(callback) {
-                    setTimeout(callback, 3000);
-                }
+            await client1.disconnect();
 
-            ], function final(err) {
+            // wait for event to propagate on subscriptions
+            await new Promise((callback) => setTimeout(callback, 3000));
 
-                events_received.length.should.eql(3);
-                // Session/CreateSession, Session/ActivateSession , Session/CloseSession
+            events_received.length.should.eql(3);
+            // Session/CreateSession, Session/ActivateSession , Session/CloseSession
 
-                //
-                // "AuditCreateSessionEventType"
-                events_received[0].SourceName.value.should.eql("Session/CreateSession");
-                events_received[0].SessionId.value.toString().should.eql(the_session.sessionId.toString());
-                events_received[0].EventType.value.toString().should.eql(AuditCreateSessionEventTypeNodeIdString);
+            //
+            // "AuditCreateSessionEventType"
+            events_received[0].SourceName.value.should.eql("Session/CreateSession");
+            events_received[0].SessionId.value.toString().should.eql(the_session.sessionId.toString());
+            events_received[0].EventType.value.toString().should.eql(AuditCreateSessionEventTypeNodeIdString);
 
-                // "AuditActivateSessionEventType"
-                events_received[1].SourceName.value.should.eql("Session/ActivateSession");
-                events_received[1].SessionId.value.toString().should.eql(the_session.sessionId.toString());
-                events_received[1].EventType.value.toString().should.eql(AuditActivateSessionEventTypeNodeIdString);
+            // "AuditActivateSessionEventType"
+            events_received[1].SourceName.value.should.eql("Session/ActivateSession");
+            events_received[1].SessionId.value.toString().should.eql(the_session.sessionId.toString());
+            events_received[1].EventType.value.toString().should.eql(AuditActivateSessionEventTypeNodeIdString);
 
-                // "AuditSessionEventType"
-                events_received[2].SourceName.value.should.eql("Session/CloseSession");
-                events_received[2].SessionId.value.toString().should.eql(the_session.sessionId.toString());
-                events_received[2].EventType.value.toString().should.eql(AuditSessionEventTypeNodeIdString);
-
-                done(err);
-            });
+            // "AuditSessionEventType"
+            events_received[2].SourceName.value.should.eql("Session/CloseSession");
+            events_received[2].SessionId.value.toString().should.eql(the_session.sessionId.toString());
+            events_received[2].EventType.value.toString().should.eql(AuditSessionEventTypeNodeIdString);
         });
     });
 };

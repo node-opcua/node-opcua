@@ -116,7 +116,7 @@ export class ServerSidePublishEngine extends EventEmitter implements IServerSide
         subscription: Subscription,
         destPublishEngine: ServerSidePublishEngine,
         sendInitialValues: boolean
-    ): Promise<void> {
+    ): Promise<Subscription> {
         const srcPublishEngine = subscription.publishEngine as any as ServerSidePublishEngine;
 
         assert(!destPublishEngine.getSubscriptionById(subscription.id));
@@ -135,7 +135,9 @@ export class ServerSidePublishEngine extends EventEmitter implements IServerSide
         //  to the old Session.
         subscription.notifyTransfer();
 
-        destPublishEngine.add_subscription(srcPublishEngine.detach_subscription(subscription));
+        const tmp = srcPublishEngine.detach_subscription(subscription);
+        destPublishEngine.add_subscription(tmp);
+        
         subscription.resetLifeTimeCounter();
         if (sendInitialValues) {
             /*  A Boolean parameter with the following values:
@@ -158,6 +160,8 @@ export class ServerSidePublishEngine extends EventEmitter implements IServerSide
 
         assert(destPublishEngine.getSubscriptionById(subscription.id));
         assert(!srcPublishEngine.getSubscriptionById(subscription.id));
+
+        return subscription;
     }
 
     public maxPublishRequestInQueue = 0;
