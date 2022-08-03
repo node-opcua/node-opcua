@@ -18,7 +18,7 @@ assert(openSecureChannelResponse1);
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("testing ClientSecureChannelLayer ", function() {
 
-    this.timeout(100000);
+    this.timeout(Math.max(120*1000,this.timeout()));
 
     it("should create and close a ClientSecureChannelLayer", function(done) {
 

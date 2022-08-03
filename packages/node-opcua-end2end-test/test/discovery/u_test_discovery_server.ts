@@ -200,14 +200,14 @@ export function t(test: any) {
     });
 
     describe("DISCO2 - DiscoveryServer2", function (this: any) {
-        this.timeout(20000);
+        this.timeout(Math.max(40 * 1000, this.timeout()));
 
         let discoveryServer: OPCUADiscoveryServer;
         let discoveryServerEndpointUrl: string;
         let server: OPCUAServer;
 
         before(() => {
-            OPCUAServer.registry.count().should.eql(0);
+            OPCUAServer.registry.count().should.eql(0);1162
         });
 
         after(() => {
@@ -354,7 +354,7 @@ export function t(test: any) {
             if (doDebug) {
                 console.log("statusBefore = ", statusBefore);
             }
-            
+
             await discoveryServer.serverCertificateManager.trustCertificate(certificate);
 
             const statusAfter = await discoveryServer.serverCertificateManager.verifyCertificate(certificate);

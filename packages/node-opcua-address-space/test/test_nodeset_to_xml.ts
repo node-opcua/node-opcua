@@ -513,7 +513,7 @@ describe("Namespace to NodeSet2.xml", () => {
 });
 
 describe("nodeset2.xml with more than one referenced namespace", function (this: any) {
-    this.timeout(20000);
+    this.timeout(Math.max(40000,this.timeout()));
 
     let addressSpace: AddressSpace;
     let namespace: Namespace;

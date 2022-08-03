@@ -7,7 +7,7 @@ const Benchmarker = require("node-opcua-benchmarker").Benchmarker;
 
 describe("Benchmarking javascript clock", function () {
 
-    this.timeout(20000);
+    this.timeout(Math.max(40000,this.timeout()));
     it("should check which of  new Date() or process high is faster", function (done) {
 
         const bench = new Benchmarker();

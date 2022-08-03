@@ -33,6 +33,8 @@ function callGarbageCollector() {
 }
 
 describe("Testing AddressSpace memory Leaks", function (this: any) {
+    this.timeout(Math.max(120*1000,this.timeout()));
+
     const xml_file = path.join(__dirname, "../test_helpers/test_fixtures/mini.Node.Set2.xml");
     fs.existsSync(xml_file).should.be.eql(true, "cannot find mini node set");
 
@@ -42,7 +44,6 @@ describe("Testing AddressSpace memory Leaks", function (this: any) {
         addressSpace.dispose();
     });
 
-    this.timeout(200000);
     it("It should repeatedly load an address_space => no Leak", async () => {
         async function f() {
             const addressSpace = AddressSpace.create();

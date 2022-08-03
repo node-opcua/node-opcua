@@ -21,7 +21,7 @@ const { AcknowledgeMessage, TCPErrorMessage, ClientTCP_transport, packTcpMessage
 const { MessageBuilderBase, writeTCPMessageHeader } = require("..");
 
 describe("testing ClientTCP_transport", function () {
-    this.timeout(15000);
+    this.timeout(Math.max(15*1000,this.timeout()));
 
     let transport;
     let spyOnClose, spyOnConnect, spyOnConnectionBreak;

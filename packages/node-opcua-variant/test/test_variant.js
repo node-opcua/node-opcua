@@ -1148,7 +1148,7 @@ describe("Variant with enumeration", () => {
 const { sameVariant } = require("..");
 
 describe("testing sameVariant Performance", function () {
-    this.timeout(40000);
+    this.timeout(Math.max(50*1000,this.timeout()));
 
     function largeArray(n) {
         const a = new Int32Array(n);

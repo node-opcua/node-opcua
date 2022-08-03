@@ -87,7 +87,7 @@ async function createFreshCertificateManager(options: OPCUACertificateManagerOpt
 // tslint:disable-next-line:no-var-requires
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("Testing OPCUA Client Certificate Manager", function (this: any) {
-    this.timeout(30000);
+    this.timeout(Math.max(40000,this.timeout()));
 
     let certificateMgr: OPCUACertificateManager;
     let certificateMgrWithNoIssuerCert: OPCUACertificateManager;
@@ -264,7 +264,7 @@ describe("Testing OPCUA Client Certificate Manager", function (this: any) {
 });
 
 describe("Testing OPCUA Certificate Manager with automatically acceptance of unknown certificate", function (this: any) {
-    this.timeout(30000);
+    this.timeout(Math.max(40000,this.timeout()));
 
     let acceptingCertificateMgr: OPCUACertificateManager;
     let rejectingCertificateMgr: OPCUACertificateManager;

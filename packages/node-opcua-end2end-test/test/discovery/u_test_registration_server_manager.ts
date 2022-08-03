@@ -13,7 +13,7 @@ const port_discovery = 1436;
 export function t() {
     const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
     describe("DISCO7 - Discovery server", function (this: any) {
-        this.timeout(50000);
+        this.timeout(Math.max(50000,this.timeout()));
 
         let discoveryServerEndpointUrl = `opc.tcp://localhost:${port_discovery}`;
 
@@ -286,7 +286,7 @@ export function t() {
     });
 
     describe("DISCO8 - Discovery Server 2", function (this: any) {
-        this.timeout(50000);
+        this.timeout(Math.max(50000,this.timeout()));
 
         it("DISCO8-A server shall not struggle to start if discovery server is not available", function (done) {
             const discoveryServerEndpointUrl = `opc.tcp://localhost:${port_discovery}`;
