@@ -2,7 +2,7 @@
 const should = require("should");
 const { OPCUAClient } = require("node-opcua");
 
-const sessionLiveTime = 10 * 1000;
+const sessionLiveTime = 20 * 1000;
 const doDebug = false;
 
 /**
@@ -64,7 +64,7 @@ module.exports = function (test) {
             if (doDebug) {
                 console.log("Waiting for session to expire on server side ....");
             }
-            await new Promise((resolve) => setTimeout(resolve, sessionLiveTime * 3));
+            await new Promise((resolve) => setTimeout(resolve, sessionLiveTime * 2));
 
             const client1 = OPCUAClient.create({});
             await client1.connect(endpointUrl);
@@ -72,12 +72,12 @@ module.exports = function (test) {
             let err;
             try {
                 await client1.reactivateSession(session);
+                await session.close();
             } catch (_err) {
                 err = _err;
             }
             should.exist(err, "expeciting session reactivation to fail, because it has timedout");
             // let not close the session here, because it failed to reactivate
-            //xx the_session.close(callback);
             await client1.disconnect();
         });
     });

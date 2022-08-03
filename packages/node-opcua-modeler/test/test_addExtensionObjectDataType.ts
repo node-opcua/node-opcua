@@ -150,7 +150,7 @@ describe("addExtensionObjectDataType", function (this: any) {
     });
 });
 describe("addVariableTypeForDataType", function (this: any) {
-    this.timeout(10000);
+    this.timeout(Math.max(12*1000,this.timeout()));
     const namespaceUri = "urn:name";
 
     let addressSpace: AddressSpace;

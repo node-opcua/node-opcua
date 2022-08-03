@@ -223,7 +223,7 @@ async function f(func) {
 // eslint-disable-next-line import/order
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("Testing client reconnection with a crashing server that does not implement transferSubscription server (such old Siemens S7)", function () {
-    this.timeout(100000);
+    this.timeout(Math.max(120*1000,this.timeout()));
 
     afterEach(async () => {
         await terminate_active_client();

@@ -183,7 +183,7 @@ const Benchmarker = require("node-opcua-benchmarker").Benchmarker;
 
 describe("Benchmarking Date conversion routines", function() {
 
-    this.timeout(20000);
+    this.timeout(Math.max(40000,this.timeout()));
 
     it("should check that slow and fast method produce same result", function() {
 

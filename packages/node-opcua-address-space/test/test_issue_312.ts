@@ -10,7 +10,7 @@ import { AddressSpace } from "..";
 // tslint:disable-next-line:no-var-requires
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("Issue 132", function (this: any) {
-    this.timeout(20000); // could be slow on appveyor !
+    this.timeout(Math.max(40000,this.timeout()));
 
     let addressSpace: AddressSpace;
 
