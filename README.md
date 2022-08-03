@@ -136,7 +136,6 @@ Those are the items we would like to achieve in the next version of the API.
      $ git clone https://github.com/node-opcua/node-opcua.git
      $ cd node-opcua
      $ npm install -g pnpm 
-     $ pnpm install
      $ pnpm recursive install
      $ pnpm build
      $ node packages/node-opcua-samples/bin/simple_server
@@ -146,7 +145,6 @@ Those are the items we would like to achieve in the next version of the API.
      $ git clone https://github.com/node-opcua/node-opcua.git
      $ cd node-opcua
      $ npm install -g pnpm 
-     $ pnpm install
      $ pnpm recursive install
      $ pnpm build
      $ node packages/node-opcua-samples/bin/simple_client.js -e "opc.tcp://opcserver.mAutomation.net:4841" -n="ns=1;s=EVR2.system.RTC_SEC"
