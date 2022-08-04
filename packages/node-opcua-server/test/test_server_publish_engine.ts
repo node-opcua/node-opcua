@@ -76,14 +76,14 @@ describe("Testing the server publish engine", function (this: any) {
             maxKeepAliveCount: 20,
             //
             publishEngine: publish_server,
-            globalCounter: {totalMonitoredItemCount: 0},
+            globalCounter: { totalMonitoredItemCount: 0 },
             serverCapabilities: { maxMonitoredItems: 10, maxMonitoredItemsPerSubscription: 10 }
         });
 
         publish_server.add_subscription(subscription);
         subscription.state.should.equal(SubscriptionState.CREATING);
 
-        test.clock.tick(subscription.publishingInterval);
+        test.clock.tick(subscription.publishingInterval * subscription.maxKeepAliveCount);
         subscription.state.should.equal(SubscriptionState.LATE);
 
         // client sends a PublishRequest to the server
@@ -130,7 +130,7 @@ describe("Testing the server publish engine", function (this: any) {
             maxKeepAliveCount: 20,
             //
             publishEngine: serverSidePublishEngine,
-            globalCounter: {totalMonitoredItemCount: 0},
+            globalCounter: { totalMonitoredItemCount: 0 },
             serverCapabilities: { maxMonitoredItems: 10000, maxMonitoredItemsPerSubscription: 1000 }
         });
         serverSidePublishEngine.add_subscription(subscription);
@@ -185,7 +185,7 @@ describe("Testing the server publish engine", function (this: any) {
         serverSidePublishEngine.dispose();
     });
 
-    it("a server should return BadNoSubscription as a response for a publish Request if there is no subscription available for this session. ", () => {
+    it("ZDZ-5 a server should return BadNoSubscription as a response for a publish Request if there is no subscription available for this session. ", () => {
         // create a server - server has no subscription
         const publish_server = new ServerSidePublishEngine();
 
@@ -206,7 +206,7 @@ describe("Testing the server publish engine", function (this: any) {
         publish_server.dispose();
     });
 
-    it("should be possible to find a subscription by id on a publish_server", () => {
+    it("ZDZ-6 should be possible to find a subscription by id on a publish_server", () => {
         const publish_server = new ServerSidePublishEngine({});
         publish_server.subscriptionCount.should.equal(0);
 
@@ -217,7 +217,7 @@ describe("Testing the server publish engine", function (this: any) {
             maxKeepAliveCount: 20,
             //
             publishEngine: publish_server,
-            globalCounter: {totalMonitoredItemCount: 0},
+            globalCounter: { totalMonitoredItemCount: 0 },
             serverCapabilities: { maxMonitoredItems: 10000, maxMonitoredItemsPerSubscription: 1000 }
         });
         publish_server.add_subscription(subscription);
@@ -232,7 +232,7 @@ describe("Testing the server publish engine", function (this: any) {
         publish_server.dispose();
     });
 
-    it("should be possible to remove a subscription from a publish_server", () => {
+    it("ZDZ-7 should be possible to remove a subscription from a publish_server", () => {
         const publish_server = new ServerSidePublishEngine({});
         publish_server.subscriptionCount.should.equal(0);
 
@@ -243,9 +243,8 @@ describe("Testing the server publish engine", function (this: any) {
             maxKeepAliveCount: 20,
             //
             publishEngine: publish_server,
-            globalCounter: {totalMonitoredItemCount: 0},
+            globalCounter: { totalMonitoredItemCount: 0 },
             serverCapabilities: { maxMonitoredItems: 10000, maxMonitoredItemsPerSubscription: 1000 }
-
         });
         publish_server.add_subscription(subscription);
         publish_server.subscriptionCount.should.equal(1);
@@ -257,7 +256,7 @@ describe("Testing the server publish engine", function (this: any) {
         publish_server.dispose();
     });
 
-    it("when the client send too many publish requests that the server can queue, the server returns a Service result of BadTooManyPublishRequests", () => {
+    it("ZDZ-8 when the client send too many publish requests that the server can queue, the server returns a Service result of BadTooManyPublishRequests", () => {
         // When a Server receives a new Publish request that exceeds its limit it shall de-queue the oldest Publish
         // request and return a response with the result set to Bad_TooManyPublishRequests.
 
@@ -272,9 +271,8 @@ describe("Testing the server publish engine", function (this: any) {
             maxKeepAliveCount: 500,
             lifeTimeCount: 2000,
             publishEngine: publish_server,
-            globalCounter: {totalMonitoredItemCount: 0},
+            globalCounter: { totalMonitoredItemCount: 0 },
             serverCapabilities: { maxMonitoredItems: 10000, maxMonitoredItemsPerSubscription: 1000 }
-
         });
         publish_server.add_subscription(subscription);
 
@@ -283,7 +281,11 @@ describe("Testing the server publish engine", function (this: any) {
         flushPending();
 
         test.clock.tick(subscription.publishingInterval);
+        send_response_for_request_spy.callCount.should.be.equal(0);
+
+        test.clock.tick(subscription.publishingInterval * (subscription.maxKeepAliveCount - 1));
         send_response_for_request_spy.callCount.should.be.equal(1);
+
         send_response_for_request_spy.getCall(0).args[1].schema.name.should.equal("PublishResponse");
         send_response_for_request_spy.getCall(0).args[1].responseHeader.serviceResult.should.eql(StatusCodes.Good);
         send_response_for_request_spy.getCall(0).args[1].responseHeader.requestHandle.should.eql(1);
@@ -333,7 +335,7 @@ describe("Testing the server publish engine", function (this: any) {
     });
 
     // eslint-disable-next-line max-statements
-    it("the server shall process the client acknowledge sequence number", () => {
+    it("ZDZ-9 the server shall process the client acknowledge sequence number", () => {
         const publish_server = new ServerSidePublishEngine();
         const send_response_for_request_spy = sinon.spy(publish_server, "_send_response_for_request");
 
@@ -344,9 +346,8 @@ describe("Testing the server publish engine", function (this: any) {
             maxKeepAliveCount: 20,
             //
             publishEngine: publish_server,
-            globalCounter: {totalMonitoredItemCount: 0},
+            globalCounter: { totalMonitoredItemCount: 0 },
             serverCapabilities: { maxMonitoredItems: 10000, maxMonitoredItemsPerSubscription: 1000 }
-
         });
         publish_server.add_subscription(subscription);
         const monitoredItem = add_mock_monitored_item(subscription);
@@ -402,7 +403,7 @@ describe("Testing the server publish engine", function (this: any) {
         );
         flushPending();
 
-        subscription.getAvailableSequenceNumbers().should.eql([1, 3]);
+        subscription.getAvailableSequenceNumbers().should.eql([1, 3, 4]);
 
         monitoredItem.simulateMonitoredItemAddingNotification();
 
@@ -422,7 +423,7 @@ describe("Testing the server publish engine", function (this: any) {
         );
         flushPending();
 
-        subscription.getAvailableSequenceNumbers().should.eql([4]);
+        subscription.getAvailableSequenceNumbers().should.eql([4, 5]);
 
         monitoredItem.simulateMonitoredItemAddingNotification();
 
@@ -439,7 +440,7 @@ describe("Testing the server publish engine", function (this: any) {
         publish_server.dispose();
     });
 
-    it("the server shall return BadSequenceNumberInvalid if the client attempts to acknowledge a notification that is not in the queue", () => {
+    it("ZDZ-A the server shall return BadSequenceNumberInvalid if the client attempts to acknowledge a notification that is not in the queue", () => {
         const publishServer = new ServerSidePublishEngine();
         const send_response_for_request_spy = sinon.spy(publishServer, "_send_response_for_request");
 
@@ -450,9 +451,8 @@ describe("Testing the server publish engine", function (this: any) {
             maxKeepAliveCount: 20,
             //
             publishEngine: publishServer,
-            globalCounter: {totalMonitoredItemCount: 0},
+            globalCounter: { totalMonitoredItemCount: 0 },
             serverCapabilities: { maxMonitoredItems: 10000, maxMonitoredItemsPerSubscription: 1000 }
-
         });
         publishServer.add_subscription(subscription);
         const monitoredItem = add_mock_monitored_item(subscription);
@@ -489,7 +489,7 @@ describe("Testing the server publish engine", function (this: any) {
         publishServer.dispose();
     });
 
-    it("a subscription shall send a keep-alive message at the end of the first publishing interval, if there are no Notifications ready.", () => {
+    it("ZDZ-B     a subscription shall send a keep-alive message at the end of the first publishing interval, if there are no Notifications ready.", () => {
         const publish_server = new ServerSidePublishEngine();
 
         const send_keep_alive_response_spy = sinon.spy(publish_server, "send_keep_alive_response");
@@ -501,9 +501,8 @@ describe("Testing the server publish engine", function (this: any) {
             lifeTimeCount: 4,
             maxKeepAliveCount: 20,
             publishEngine: publish_server,
-            globalCounter: {totalMonitoredItemCount: 0},
+            globalCounter: { totalMonitoredItemCount: 0 },
             serverCapabilities: { maxMonitoredItems: 10000, maxMonitoredItemsPerSubscription: 1000 }
-
         });
         publish_server.add_subscription(subscription);
 
@@ -518,17 +517,18 @@ describe("Testing the server publish engine", function (this: any) {
         publish_server._on_PublishRequest(new PublishRequest());
         publish_server._on_PublishRequest(new PublishRequest());
 
-        test.clock.tick(subscription.publishingInterval);
+        test.clock.tick(subscription.publishingInterval * subscription.maxKeepAliveCount);
 
         // Immediately  a keep Alive message shall be send
         subscription.state.should.eql(SubscriptionState.KEEPALIVE);
-        subscription.publishIntervalCount.should.eql(1);
+        subscription.publishIntervalCount.should.eql(subscription.maxKeepAliveCount);
         send_keep_alive_response_spy.callCount.should.equal(1);
         send_response_for_request_spy.callCount.should.eql(1);
 
         test.clock.tick(subscription.publishingInterval);
         subscription.state.should.eql(SubscriptionState.KEEPALIVE);
-        subscription.publishIntervalCount.should.eql(2);
+
+        subscription.publishIntervalCount.should.eql(subscription.maxKeepAliveCount+1);
         send_keep_alive_response_spy.callCount.should.equal(1);
         send_response_for_request_spy.callCount.should.eql(1);
 
@@ -536,7 +536,7 @@ describe("Testing the server publish engine", function (this: any) {
         test.clock.tick(subscription.publishingInterval * 20);
 
         subscription.state.should.eql(SubscriptionState.KEEPALIVE);
-        subscription.publishIntervalCount.should.eql(22);
+        subscription.publishIntervalCount.should.eql(subscription.maxKeepAliveCount*2+1);
         send_keep_alive_response_spy.callCount.should.equal(2);
         send_response_for_request_spy.callCount.should.eql(2);
 
@@ -546,7 +546,7 @@ describe("Testing the server publish engine", function (this: any) {
         publish_server.dispose();
     });
 
-    it("a Normal subscription that receives a notification shall wait for the next publish interval to send a PublishResponse ", () => {
+    it("ZDZ-C a Normal subscription that receives a notification shall wait for the next publish interval to send a PublishResponse ", () => {
         const publish_server = new ServerSidePublishEngine();
 
         const send_keep_alive_response_spy = sinon.spy(publish_server, "send_keep_alive_response");
@@ -559,9 +559,8 @@ describe("Testing the server publish engine", function (this: any) {
             maxKeepAliveCount: 20,
             publishEngine: publish_server,
             maxNotificationsPerPublish: 0, // no limits,
-            globalCounter: {totalMonitoredItemCount: 0},
+            globalCounter: { totalMonitoredItemCount: 0 },
             serverCapabilities: { maxMonitoredItems: 10000, maxMonitoredItemsPerSubscription: 1000 }
-
         });
         publish_server.add_subscription(subscription);
         const monitoredItem = add_mock_monitored_item(subscription);
@@ -577,7 +576,7 @@ describe("Testing the server publish engine", function (this: any) {
         publish_server._on_PublishRequest(new PublishRequest());
 
         test.clock.tick(2);
-        publish_server.pendingPublishRequestCount.should.eql(5);
+        publish_server.pendingPublishRequestCount.should.eql(4);
 
         test.clock.tick(subscription.publishingInterval);
         subscription.state.should.eql(SubscriptionState.NORMAL);
@@ -596,7 +595,7 @@ describe("Testing the server publish engine", function (this: any) {
         publish_server.dispose();
     });
 
-    it("the subscription state shall be set to LATE, if it cannot process a notification after Publish Interval has been raised, due to a lack of PublishRequest", () => {
+    it("ZDZ-D the subscription state shall be set to LATE, if it cannot process a notification after Publish Interval has been raised, due to a lack of PublishRequest", () => {
         const publish_server = new ServerSidePublishEngine();
 
         publish_server.maxPublishRequestInQueue.should.be.greaterThan(5);
@@ -607,9 +606,8 @@ describe("Testing the server publish engine", function (this: any) {
             lifeTimeCount: 60,
             maxKeepAliveCount: 20,
             publishEngine: publish_server,
-            globalCounter: {totalMonitoredItemCount: 0},
+            globalCounter: { totalMonitoredItemCount: 0 },
             serverCapabilities: { maxMonitoredItems: 10000, maxMonitoredItemsPerSubscription: 1000 }
-
         });
         publish_server.add_subscription(subscription);
         const monitoredItem = add_mock_monitored_item(subscription);
@@ -632,7 +630,7 @@ describe("Testing the server publish engine", function (this: any) {
         publish_server.dispose();
     });
 
-    it("a subscription should provide its time to expiration so that publish engine could sort late subscriptions by order of priority", () => {
+    it("ZDZ-E a subscription should provide its time to expiration so that publish engine could sort late subscriptions by order of priority", () => {
         const publish_server = new ServerSidePublishEngine();
         const subscription = new Subscription({
             id: 1234,
@@ -640,9 +638,8 @@ describe("Testing the server publish engine", function (this: any) {
             lifeTimeCount: 60,
             maxKeepAliveCount: 2,
             publishEngine: publish_server,
-            globalCounter: {totalMonitoredItemCount: 0},
+            globalCounter: { totalMonitoredItemCount: 0 },
             serverCapabilities: { maxMonitoredItems: 10000, maxMonitoredItemsPerSubscription: 1000 }
-
         });
         publish_server.add_subscription(subscription);
         const monitoredItem = add_mock_monitored_item(subscription);
@@ -650,11 +647,15 @@ describe("Testing the server publish engine", function (this: any) {
         subscription.lifeTimeCount.should.eql(60);
         subscription.timeToExpiration.should.eql(1000 * 60);
 
-        test.clock.tick(subscription.publishingInterval * 1.2);
+        test.clock.tick(subscription.publishingInterval);
+        subscription.timeToExpiration.should.eql(1000 * 60);
+
+        test.clock.tick(subscription.publishingInterval);
         subscription.timeToExpiration.should.eql(1000 * 59);
 
-        test.clock.tick(subscription.publishingInterval * 1.2);
+        test.clock.tick(subscription.publishingInterval);
         subscription.timeToExpiration.should.eql(1000 * 58);
+        subscription.state.should.eql(SubscriptionState.LATE);
 
         subscription.terminate();
         subscription.dispose();
@@ -663,7 +664,7 @@ describe("Testing the server publish engine", function (this: any) {
     });
 
     // eslint-disable-next-line max-statements
-    it("a publish engine should be able to find out which are the most urgent late subscriptions to serve ", () => {
+    it("ZDZ-F a publish engine should be able to find out which are the most urgent late subscriptions to serve ", () => {
         const publish_server = new ServerSidePublishEngine();
         publish_server.pendingPublishRequestCount.should.eql(0, " No PublishRequest in queue");
 
@@ -674,9 +675,8 @@ describe("Testing the server publish engine", function (this: any) {
             maxKeepAliveCount: 20,
             publishingEnabled: true,
             publishEngine: publish_server,
-            globalCounter: {totalMonitoredItemCount: 0},
+            globalCounter: { totalMonitoredItemCount: 0 },
             serverCapabilities: { maxMonitoredItems: 10000, maxMonitoredItemsPerSubscription: 1000 }
-
         });
         subscription1.publishingInterval.should.eql(1000);
         subscription1.lifeTimeCount.should.eql(60);
@@ -704,9 +704,8 @@ describe("Testing the server publish engine", function (this: any) {
             maxKeepAliveCount: 20,
             publishingEnabled: true,
             publishEngine: publish_server,
-            globalCounter: {totalMonitoredItemCount: 0},
+            globalCounter: { totalMonitoredItemCount: 0 },
             serverCapabilities: { maxMonitoredItems: 10000, maxMonitoredItemsPerSubscription: 1000 }
-
         });
         subscription2.publishingInterval.should.eql(100);
         subscription2.lifeTimeCount.should.eql(120);
@@ -720,9 +719,8 @@ describe("Testing the server publish engine", function (this: any) {
             maxKeepAliveCount: 20,
             publishingEnabled: true,
             publishEngine: publish_server,
-            globalCounter: {totalMonitoredItemCount: 0},
+            globalCounter: { totalMonitoredItemCount: 0 },
             serverCapabilities: { maxMonitoredItems: 10000, maxMonitoredItemsPerSubscription: 1000 }
-
         });
         subscription3.publishingInterval.should.eql(100); // !! Note that publishingInterval has been clamped in constructor
         subscription3.lifeTimeCount.should.eql(1000);
@@ -738,9 +736,9 @@ describe("Testing the server publish engine", function (this: any) {
         subscription2.lifeTimeCount.should.eql(120);
         subscription3.lifeTimeCount.should.eql(1000);
 
-        subscription1.timeToExpiration.should.eql(1000 * 60);
-        subscription2.timeToExpiration.should.eql(100 * 120);
-        subscription3.timeToExpiration.should.eql(100 * 1000);
+        subscription1.timeToExpiration.should.eql(1000 * 60  );
+        subscription2.timeToExpiration.should.eql(100  * 120 );
+        subscription3.timeToExpiration.should.eql(100  * 1000);
 
         // add some notification we want to process
         monitoredItem1.simulateMonitoredItemAddingNotification();
@@ -759,14 +757,17 @@ describe("Testing the server publish engine", function (this: any) {
         publish_server.findLateSubscriptionsSortedByAge().should.eql([]);
 
         // let move in time so that all subscriptions get late (without expiring)
-        test.clock.tick(1000 * 20);
-        subscription1.state.should.eql(SubscriptionState.LATE);
+        test.clock.tick(
+            Math.min(subscription1.timeToExpiration, subscription2.timeToExpiration, subscription3.timeToExpiration) - 10
+        );
+       
+        subscription1.state.should.eql(SubscriptionState.NORMAL);
         subscription2.state.should.eql(SubscriptionState.LATE);
         subscription3.state.should.eql(SubscriptionState.LATE);
 
-        publish_server.findLateSubscriptionsSortedByAge().map(property("id")).should.eql([2, 1, 3]);
+        publish_server.findLateSubscriptionsSortedByAge().map(property("id")).should.eql([2, 3]);
 
-        test.clock.tick(1100);
+        test.clock.tick(1000 * 20);
         subscription1.state.should.eql(SubscriptionState.LATE);
         subscription2.state.should.eql(SubscriptionState.CLOSED);
         subscription3.state.should.eql(SubscriptionState.LATE);
@@ -786,7 +787,7 @@ describe("Testing the server publish engine", function (this: any) {
         publish_server.dispose();
     });
 
-    it("a LATE subscription that receives a notification shall send a PublishResponse immediately, without waiting for next publish interval", () => {
+    it("ZDZ-G a LATE subscription that receives a notification shall send a PublishResponse immediately, without waiting for next publish interval", () => {
         const publish_server = new ServerSidePublishEngine();
 
         const subscription = new Subscription({
@@ -795,9 +796,8 @@ describe("Testing the server publish engine", function (this: any) {
             lifeTimeCount: 60,
             maxKeepAliveCount: 20,
             publishEngine: publish_server,
-            globalCounter: {totalMonitoredItemCount: 0},
+            globalCounter: { totalMonitoredItemCount: 0 },
             serverCapabilities: { maxMonitoredItems: 10000, maxMonitoredItemsPerSubscription: 1000 }
-
         });
         publish_server.add_subscription(subscription);
         const monitoredItem = add_mock_monitored_item(subscription);
@@ -830,7 +830,7 @@ describe("Testing the server publish engine", function (this: any) {
         publish_server.dispose();
     });
 
-    it("LifeTimeCount, the server shall terminated the subscription if it has not received any PublishRequest after LifeTimeCount cycles", () => {
+    it("ZDZ-H LifetimeCount, the server shall terminated the subscription if it has not received any PublishRequest after LifeTimeCount cycles", () => {
         const publish_server = new ServerSidePublishEngine();
 
         // given a subscription
@@ -840,9 +840,8 @@ describe("Testing the server publish engine", function (this: any) {
             lifeTimeCount: 0,
             maxKeepAliveCount: 4,
             publishEngine: publish_server,
-            globalCounter: {totalMonitoredItemCount: 0},
+            globalCounter: { totalMonitoredItemCount: 0 },
             serverCapabilities: { maxMonitoredItems: 10000, maxMonitoredItemsPerSubscription: 1000 }
-
         });
         subscription.maxKeepAliveCount.should.eql(4);
         subscription.lifeTimeCount.should.eql(12); // should be adjusted
@@ -874,7 +873,7 @@ describe("Testing the server publish engine", function (this: any) {
         subscription.state.should.eql(SubscriptionState.LATE);
 
         test.clock.tick(subscription.publishingInterval * subscription.lifeTimeCount + 20);
-        subscription.publishIntervalCount.should.eql(subscription.lifeTimeCount + 5);
+        subscription.publishIntervalCount.should.eql(subscription.lifeTimeCount + 6);
         subscription.state.should.eql(SubscriptionState.CLOSED);
 
         subscription.terminate();
@@ -884,7 +883,7 @@ describe("Testing the server publish engine", function (this: any) {
         publish_server.dispose();
     });
 
-    it("LifeTimeCount, the publish engine shall send a StatusChangeNotification to inform that a subscription has been closed because of lifetime timeout ", () => {
+    it("ZDZ-I LifeTimeCount, the publish engine shall send a StatusChangeNotification to inform that a subscription has been closed because of lifetime timeout ", () => {
         const publish_server = new ServerSidePublishEngine();
 
         const subscription = new Subscription({
@@ -893,9 +892,8 @@ describe("Testing the server publish engine", function (this: any) {
             lifeTimeCount: 60,
             maxKeepAliveCount: 20,
             publishEngine: publish_server,
-            globalCounter: {totalMonitoredItemCount: 0},
+            globalCounter: { totalMonitoredItemCount: 0 },
             serverCapabilities: { maxMonitoredItems: 10000, maxMonitoredItemsPerSubscription: 1000 }
-
         });
         publish_server.add_subscription(subscription);
         const monitoredItem = add_mock_monitored_item(subscription);
@@ -934,7 +932,7 @@ describe("Testing the server publish engine", function (this: any) {
         publish_server.dispose();
     });
 
-    it("PublishRequest timeout, the publish engine shall return a publish response with serviceResult = BadTimeout when Publish requests have timed out", () => {
+    it("ZDZ-J PublishRequest timeout, the publish engine shall return a publish response with serviceResult = BadTimeout when Publish requests have timed out", () => {
         const publish_server = new ServerSidePublishEngine();
 
         const subscription = new Subscription({
@@ -943,10 +941,13 @@ describe("Testing the server publish engine", function (this: any) {
             lifeTimeCount: 4,
             maxKeepAliveCount: 20,
             publishEngine: publish_server,
-            globalCounter: {totalMonitoredItemCount: 0},
+            globalCounter: { totalMonitoredItemCount: 0 },
             serverCapabilities: { maxMonitoredItems: 10000, maxMonitoredItemsPerSubscription: 1000 }
-
         });
+        subscription.lifeTimeCount.should.eql(60);
+        subscription.maxKeepAliveCount.should.eql(20);
+        subscription.publishingInterval.should.eql(1000);
+
         publish_server.add_subscription(subscription);
 
         subscription.maxKeepAliveCount.should.eql(20);
@@ -954,23 +955,26 @@ describe("Testing the server publish engine", function (this: any) {
         subscription.state.should.eql(SubscriptionState.CREATING);
         const send_response_for_request_spy = sinon.spy(publish_server, "_send_response_for_request");
 
-        publish_server._on_PublishRequest(new PublishRequest({ requestHeader: { timeoutHint: 1200 } }));
-        publish_server._on_PublishRequest(new PublishRequest({ requestHeader: { timeoutHint: 1200 } }));
-        publish_server._on_PublishRequest(new PublishRequest({ requestHeader: { timeoutHint: 1200 } }));
-        publish_server._on_PublishRequest(new PublishRequest({ requestHeader: { timeoutHint: 1200 } }));
-        publish_server._on_PublishRequest(new PublishRequest({ requestHeader: { timeoutHint: 1200 } }));
+        const timeoutHint = subscription.publishingInterval * (subscription.maxKeepAliveCount + 2);
 
-        test.clock.tick(20);
-        publish_server.pendingPublishRequestCount.should.eql(5); // one should have been consumed by subscription
+        publish_server._on_PublishRequest(new PublishRequest({ requestHeader: { timeoutHint } }));
+        publish_server._on_PublishRequest(new PublishRequest({ requestHeader: { timeoutHint } }));
+        publish_server._on_PublishRequest(new PublishRequest({ requestHeader: { timeoutHint } }));
+        publish_server._on_PublishRequest(new PublishRequest({ requestHeader: { timeoutHint } }));
+        publish_server._on_PublishRequest(new PublishRequest({ requestHeader: { timeoutHint } }));
+        publish_server.pendingPublishRequestCount.should.eql(5);
 
-        test.clock.tick(1000);
+        test.clock.tick(subscription.publishingInterval * subscription.maxKeepAliveCount);
+        publish_server.pendingPublishRequestCount.should.eql(4); // one should have been consumed by subscription
+
+        test.clock.tick(subscription.publishingInterval);
 
         send_response_for_request_spy.callCount.should.equal(1);
         publish_server.pendingPublishRequestCount.should.eql(4);
         send_response_for_request_spy.firstCall.args[1].responseHeader.serviceResult.should.eql(StatusCodes.Good);
-        publish_server._on_PublishRequest(new PublishRequest({ requestHeader: { timeoutHint: 1200 } }));
+        publish_server._on_PublishRequest(new PublishRequest({ requestHeader: { timeoutHint } }));
 
-        test.clock.tick(1000);
+        test.clock.tick(subscription.publishingInterval * 3);
         // all remaining 4 publish request must have been detected a timeout now and answered as such.
         send_response_for_request_spy.callCount.should.equal(5);
         publish_server.pendingPublishRequestCount.should.eql(1);

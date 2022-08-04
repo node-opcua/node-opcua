@@ -106,7 +106,8 @@ describe("Testing ClientSecureChannel 2", function () {
     });
 
     it("should establish a client secure channel ", function (done) {
-        const secureChannel = new ClientSecureChannelLayer({});
+        const secureChannel = new ClientSecureChannelLayer({
+        });
 
         secureChannel.protocolVersion.should.equal(0);
 

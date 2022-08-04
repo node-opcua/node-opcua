@@ -6,7 +6,6 @@ import { Socket } from "net";
 import * as chalk from "chalk";
 
 import { assert } from "node-opcua-assert";
-import { BinaryStream } from "node-opcua-binary-stream";
 import { make_debugLog, checkDebugFlag, make_errorLog, hexDump, make_warningLog } from "node-opcua-debug";
 import { ObjectRegistry } from "node-opcua-object-registry";
 import { PacketAssembler, PacketAssemblerErrorCode } from "node-opcua-packet-assembler";

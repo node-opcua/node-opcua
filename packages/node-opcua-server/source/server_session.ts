@@ -239,6 +239,9 @@ export class ServerSession extends EventEmitter implements ISubscriber, ISession
         if (value === "active") {
             this._createSessionObjectInAddressSpace();
         }
+        if (this.__status !== value) {
+            this.emit("statusChanged", value);
+        }
         this.__status = value;
     }
 

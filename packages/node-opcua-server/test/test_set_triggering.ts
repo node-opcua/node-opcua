@@ -402,6 +402,7 @@ describe("Subscriptions and MonitoredItems and triggering", function (this: any)
 
         const publishedResponse0 = waitInitialNotification();
         {
+            console.log(publishedResponse0.toString()) ;
             publishedResponse0.notificationMessage.notificationData!.length.should.eql(1);
             const notifs0 = (publishedResponse0.notificationMessage.notificationData![0] as DataChangeNotification).monitoredItems!;
             notifs0.length.should.eql(1);

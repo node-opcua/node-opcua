@@ -13,3 +13,4 @@ export * from "./server_engine";
 export * from "./opcua_server";
 export * from "./monitored_item";
 export * from "./user_manager";
+export * from "./helper";

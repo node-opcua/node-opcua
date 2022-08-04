@@ -252,11 +252,11 @@ describe("testing address space namespace loading", function (this: any) {
         // xx debugLog(serverStatus.readValue().value.toString());
 
         serverStatus.$extensionObject.buildInfo.productName = "productName1";
-        serverStatus.readValue().value.value.buildInfo.productName.should.eql("productName1");
+        serverStatus.readValue().value.value.buildInfo.productName!.should.eql("productName1");
         serverStatus.buildInfo.productName.readValue().value.value!.should.eql("productName1");
 
         serverStatus.buildInfo.productName.setValueFromSource({ dataType: DataType.String, value: "productName2" });
-        serverStatus.readValue().value.value.buildInfo.productName.should.eql("productName2");
+        serverStatus.readValue().value.value.buildInfo.productName!.should.eql("productName2");
         serverStatus.buildInfo.productName.readValue().value.value!.should.eql("productName2");
 
         // now use WriteValue instead
@@ -286,7 +286,7 @@ describe("testing address space namespace loading", function (this: any) {
         statusCode.should.eql(StatusCodes.BadNotWritable);
 
         serverStatus.buildInfo.productName.readValue().value.value!.should.not.eql("productName3");
-        serverStatus.readValue().value.value.buildInfo.productName.should.not.eql("productName3");
+        serverStatus.readValue().value.value.buildInfo.productName!.should.not.eql("productName3");
     });
 
     it("should instantiate SessionDiagnostics in a linear time", () => {

@@ -325,16 +325,16 @@ export class ServerSidePublishEngine extends EventEmitter implements IServerSide
     }
 
     public on_close_subscription(subscription: IClosedOrTransferredSubscription): void {
-        debugLog("ServerSidePublishEngine#on_close_subscription", subscription.id);
+        doDebug && debugLog("ServerSidePublishEngine#on_close_subscription", subscription.id);
         if (subscription.hasPendingNotifications) {
-            debugLog(
+            doDebug && debugLog(
                 "ServerSidePublishEngine#on_close_subscription storing subscription",
                 subscription.id,
                 " to _closed_subscriptions because it has pending notification"
             );
             this._closed_subscriptions.push(subscription);
         } else {
-            debugLog("ServerSidePublishEngine#on_close_subscription disposing subscription", subscription.id);
+            doDebug && debugLog("ServerSidePublishEngine#on_close_subscription disposing subscription", subscription.id);
             // subscription is no longer needed
             subscription.dispose();
         }
@@ -361,7 +361,7 @@ export class ServerSidePublishEngine extends EventEmitter implements IServerSide
     public findLateSubscriptions(): Subscription[] {
         const subscriptions = Object.values(this._subscriptions);
         return subscriptions.filter((subscription: Subscription) => {
-            return subscription.state === SubscriptionState.LATE && subscription.publishingEnabled;
+            return (subscription.state === SubscriptionState.LATE || !subscription.messageSent) && subscription.publishingEnabled;
         });
     }
 
@@ -483,6 +483,9 @@ export class ServerSidePublishEngine extends EventEmitter implements IServerSide
                                 s.timeToKeepAlive +
                                 " m?=" +
                                 s.hasUncollectedMonitoredItemNotifications +
+                                " " + 
+                                SubscriptionState[s.state] +
+                                " " + s.messageSent + 
                                 "]"
                         )
                         .join(" \n")
@@ -497,6 +500,7 @@ export class ServerSidePublishEngine extends EventEmitter implements IServerSide
         const starving_subscription = /* this.findSubscriptionWaitingForFirstPublish() || */ findLateSubscriptionSortedByPriority();
         return starving_subscription;
     }
+
     private _feed_late_subscription() {
         setImmediate(() => {
             if (!this.pendingPublishRequestCount) {
@@ -504,7 +508,7 @@ export class ServerSidePublishEngine extends EventEmitter implements IServerSide
             }
             const starving_subscription = this._find_starving_subscription();
             if (starving_subscription) {
-                debugLog(chalk.bgWhite.red("feeding most late subscription subscriptionId  = "), starving_subscription.id);
+                doDebug && debugLog(chalk.bgWhite.red("feeding most late subscription subscriptionId  = "), starving_subscription.id);
                 starving_subscription.process_subscription();
             }
         });

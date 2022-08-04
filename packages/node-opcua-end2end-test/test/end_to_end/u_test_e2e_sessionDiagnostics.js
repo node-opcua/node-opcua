@@ -72,11 +72,10 @@ module.exports = function (test) {
             const client = OPCUAClient.create({});
             // eslint-disable-next-line max-statements
             await client.withSubscriptionAsync(test.endpointUrl, subscriptionParameters, async (session, subscription) => {
-
                 console.log("subscription.maxKeepAliveCount ", subscription.maxKeepAliveCount);
                 console.log("subscription.publishingInterval", subscription.publishingInterval);
+                console.log("subscription.lifetimeCount ", subscription.lifetimeCount);
 
-                
                 async function writeSomeValue(value) {
                     const nodeId = "ns=2;s=Static_Scalar_Double";
                     const variantValue = new Variant({
@@ -211,9 +210,9 @@ module.exports = function (test) {
                 // verify_that_session_diagnostics_has_reported_a_new_writeCounter_value;
 
                 // extract DataChangeNotification that matches writeCounter
-                const args = monitoredItemGroupChangeSpy.args.filter(function (arg) {
-                    return arg[0].itemToMonitor.nodeId.toString() === writeCountNodeId.toString();
-                });
+                const args = monitoredItemGroupChangeSpy.args.filter(
+                    (arg) => arg[0].itemToMonitor.nodeId.toString() === writeCountNodeId.toString()
+                );
                 args.length.should.eql(2);
 
                 args[0][1].value.value.totalCount.should.eql(1, "first  WriteCounter value should eql 0");
@@ -233,9 +232,9 @@ module.exports = function (test) {
                     sessionDiagnostic.readCount.totalCount.should.eql(2);
 
                     //xx console.log(results[0].toString());
-                    const args = monitoredItemGroupChangeSpy.args.filter(function (arg) {
-                        return arg[0].itemToMonitor.nodeId.toString() === clientLastContactTimeNodeId.toString();
-                    });
+                    const args = monitoredItemGroupChangeSpy.args.filter(
+                        (arg) => arg[0].itemToMonitor.nodeId.toString() === clientLastContactTimeNodeId.toString()
+                    );
                     args.length.should.be.greaterThan(0);
                 }
                 await monitoredItemGroup.terminate();

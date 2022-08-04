@@ -19,7 +19,14 @@ const {
 } = require("node-opcua-service-subscription");
 const { get_mini_nodeset_filename } = require("node-opcua-address-space/testHelpers");
 
-const { Subscription, SubscriptionState, MonitoredItem, ServerEngine, ServerSidePublishEngine } = require("..");
+const {
+    Subscription,
+    SubscriptionState,
+    MonitoredItem,
+    ServerEngine,
+    ServerSidePublishEngine,
+    installSubscriptionMonitoring
+} = require("..");
 const add_mock_monitored_item = require("./helper").add_mock_monitored_item;
 
 const { getFakePublishEngine } = require("./helper_fake_publish_engine");
@@ -108,7 +115,7 @@ describe("Subscriptions", function () {
 
         subscription.state.should.eql(SubscriptionState.CREATING);
 
-        test.clock.tick(subscription.publishingInterval);
+        test.clock.tick(subscription.publishingInterval * subscription.maxKeepAliveCount);
         notification_event_spy.callCount.should.be.equal(0);
         keepalive_event_spy.callCount.should.equal(1, " the initial max Keep alive ");
 
@@ -165,9 +172,9 @@ describe("Subscriptions", function () {
         test.clock.tick(subscription.publishingInterval);
         notification_event_spy.callCount.should.be.equal(0);
         keepalive_event_spy.callCount.should.equal(0);
-        subscription.state.should.eql(SubscriptionState.LATE);
+        subscription.state.should.eql(SubscriptionState.CREATING);
 
-        test.clock.tick(subscription.publishingInterval);
+        test.clock.tick(subscription.publishingInterval * subscription.maxKeepAliveCount);
 
         notification_event_spy.callCount.should.be.equal(0);
         keepalive_event_spy.callCount.should.equal(0);
@@ -445,6 +452,10 @@ describe("Subscriptions", function () {
             subscription.state.should.eql(SubscriptionState.CREATING);
 
             test.clock.tick(subscription.publishingInterval);
+            subscription.state.should.eql(SubscriptionState.CREATING);
+            keepalive_event_spy.callCount.should.eql(0);
+
+            test.clock.tick(subscription.publishingInterval * (subscription.maxKeepAliveCount - 1));
             subscription.state.should.eql(SubscriptionState.KEEPALIVE);
             keepalive_event_spy.callCount.should.eql(1);
 
@@ -462,13 +473,18 @@ describe("Subscriptions", function () {
         it(" - case 2 - publish Request arrives late (after first publishInterval is over)", async () => {
             // now simulate some data change
             test.clock.tick((subscription.publishingInterval * subscription.maxKeepAliveCount) / 2);
-            subscription.state.should.eql(SubscriptionState.LATE);
+            subscription.state.should.eql(SubscriptionState.CREATING);
             keepalive_event_spy.callCount.should.eql(0);
 
             simulate_client_adding_publish_request(subscription.publishEngine);
 
-            keepalive_event_spy.callCount.should.eql(1);
+            keepalive_event_spy.callCount.should.eql(0);
+            subscription.state.should.eql(SubscriptionState.CREATING);
+
+            test.clock.tick(subscription.publishingInterval * subscription.maxKeepAliveCount);
             subscription.state.should.eql(SubscriptionState.KEEPALIVE);
+
+            keepalive_event_spy.callCount.should.eql(1);
 
             test.clock.tick(subscription.publishingInterval);
             keepalive_event_spy.callCount.should.eql(1);
@@ -479,7 +495,7 @@ describe("Subscriptions", function () {
 
             test.clock.tick(subscription.publishingInterval);
             keepalive_event_spy.callCount.should.eql(0);
-            subscription.state.should.eql(SubscriptionState.LATE);
+            subscription.state.should.eql(SubscriptionState.CREATING);
 
             // now simulate some data change
             monitoredItem.recordValue(new DataValue({ value: { dataType: DataType.UInt32, value: 1000 } }));
@@ -504,7 +520,7 @@ describe("Subscriptions", function () {
 
             test.clock.tick(subscription.publishingInterval);
             keepalive_event_spy.callCount.should.eql(0);
-            subscription.state.should.eql(SubscriptionState.LATE);
+            subscription.state.should.eql(SubscriptionState.CREATING);
 
             // now simulate some data change
             monitoredItem.recordValue(new DataValue({ value: { dataType: DataType.UInt32, value: 1000 } }));
@@ -529,7 +545,7 @@ describe("Subscriptions", function () {
 
             test.clock.tick(subscription.publishingInterval);
             keepalive_event_spy.callCount.should.eql(0);
-            subscription.state.should.eql(SubscriptionState.LATE);
+            subscription.state.should.eql(SubscriptionState.CREATING);
 
             // now simulate some data change
             monitoredItem.recordValue(new DataValue({ value: { dataType: DataType.UInt32, value: 1000 } }));
@@ -580,27 +596,41 @@ describe("Subscriptions", function () {
 
     it("T7 - a subscription that hasn't been pinged by client within the lifetime interval shall terminate", function () {
         const subscription = new Subscription({
-            publishingInterval: 1000,
-            maxKeepAliveCount: 20,
+            publishingInterval: 250,
+            maxKeepAliveCount: 3,
+            lifeTimeCount: 30,
             //
             publishEngine: fake_publish_engine,
             globalCounter: { totalMonitoredItemCount: 0 },
             serverCapabilities: { maxMonitoredItems: 10000, maxMonitoredItemsPerSubscription: 1000 }
         });
 
+        false && installSubscriptionMonitoring(subscription);
+
+        subscription.publishingInterval.should.eql(250);
+        subscription.maxKeepAliveCount.should.eql(3);
+        subscription.lifeTimeCount.should.eql(30);
+
         const expire_event_spy = sinon.spy();
         subscription.on("expired", expire_event_spy);
         const terminate_spy = sinon.spy(subscription, "terminate");
 
-        test.clock.tick(subscription.publishingInterval * (subscription.lifeTimeCount - 2));
+        subscription.state.should.eql(SubscriptionState.CREATING);
+        subscription.currentLifetimeCount.should.eql(0);
+
+        test.clock.tick(subscription.publishingInterval * (subscription.lifeTimeCount - 3));
+     
+        subscription.state.should.eql(SubscriptionState.LATE);
 
         terminate_spy.callCount.should.equal(0);
         expire_event_spy.callCount.should.equal(0);
 
-        test.clock.tick(subscription.publishingInterval * 2);
+        test.clock.tick(subscription.publishingInterval * 3);
+        test.clock.tick(subscription.publishingInterval * subscription.maxKeepAliveCount);
 
         terminate_spy.callCount.should.equal(1);
         expire_event_spy.callCount.should.equal(1);
+        subscription.state.should.eql(SubscriptionState.CLOSED);
 
         subscription.terminate();
         subscription.dispose();
@@ -668,9 +698,9 @@ describe("Subscriptions", function () {
         terminate_spy.callCount.should.equal(0);
         expire_event_spy.callCount.should.equal(0);
         notification_event_spy.callCount.should.equal(0);
-        keepalive_event_spy.callCount.should.equal(1);
+        keepalive_event_spy.callCount.should.equal(0);
 
-        test.clock.tick(subscription.publishingInterval * 10);
+        test.clock.tick(subscription.publishingInterval * (subscription.maxKeepAliveCount + 5));
 
         terminate_spy.callCount.should.equal(0);
         expire_event_spy.callCount.should.equal(0);
