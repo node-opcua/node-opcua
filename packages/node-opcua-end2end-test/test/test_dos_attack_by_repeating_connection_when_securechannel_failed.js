@@ -345,7 +345,7 @@ describe("testing Server resilience to DDOS attacks - ability to recover", funct
         //xx should(success1).eql(false, "expecting client to fail to connect");
     
         // but server should eventually accept a normal connection, once the DDOS attack is over and all sessions have timed out
-        await new Promise((resolve) => setTimeout(resolve, requestedSessionTimeout * 2));
+        await new Promise((resolve) => setTimeout(resolve, requestedSessionTimeout * 3));
         const success2 = await normalClientConnection();
         should(success2).eql(true, "expecting client to be able to connect again");
     });

@@ -541,8 +541,7 @@ export class ServerSecureChannelLayer extends EventEmitter {
 
                 // adjust sizes;
                 this.messageChunker.maxMessageSize = this.transport.maxMessageSize;
-                this.messageChunker.maxChunkCount  = this.transport.maxChunkCount;
-
+                this.messageChunker.maxChunkCount = this.transport.maxChunkCount;
 
                 // bind low level TCP transport to messageBuilder
                 this.transport.on("chunk", (messageChunk: Buffer) => {
@@ -653,7 +652,7 @@ export class ServerSecureChannelLayer extends EventEmitter {
                     // the response would be too large !!!!
                     warningLog("Error while chunking response message : ", err.message);
                     this._send_chunk(callback, messageChunk);
-                   /* this.send_response(
+                    /* this.send_response(
                         "MSG",
                         new ServiceFault({
                             responseHeader: {
@@ -1117,14 +1116,7 @@ export class ServerSecureChannelLayer extends EventEmitter {
         });
     }
 
-    /**
-     * @method _prepare_security_header
-     * @param request
-     * @param message
-     * @return {AsymmetricAlgorithmSecurityHeader}
-     * @private
-     */
-    private _prepare_security_header(request: OpenSecureChannelRequest, message: Message): AsymmetricAlgorithmSecurityHeader {
+    private _prepare_security_header(request: OpenSecureChannelRequest, message: Message): AsymmetricAlgorithmSecurityHeader | null {
         let securityHeader: AsymmetricAlgorithmSecurityHeader;
         // senderCertificate:
         //    The X509v3 certificate assigned to the sending application instance.
@@ -1148,6 +1140,10 @@ export class ServerSecureChannelLayer extends EventEmitter {
             case MessageSecurityMode.Sign:
             case MessageSecurityMode.SignAndEncrypt:
             default: {
+                if (!this.parent) {
+                    warningLog("Cannot find parent of SecureChannel !!!!!!!! ");
+                    return null;
+                }
                 const receiverCertificateThumbprint = getThumbprint(this.receiverCertificate);
 
                 const asymmClientSecurityHeader = this.clientSecurityHeader as AsymmetricAlgorithmSecurityHeader;
@@ -1211,7 +1207,10 @@ export class ServerSecureChannelLayer extends EventEmitter {
     private _handle_OpenSecureChannelRequest(serviceResult: StatusCode, message: Message, callback: ErrorCallback) {
         const request = message.request as OpenSecureChannelRequest;
         const requestId: number = message.requestId;
-        assert(requestId !== 0 && requestId > 0);
+        if (!(requestId !== 0 && requestId > 0)) {
+            warningLog("OpenSecureChannelRequest: requestId");
+            return this._sendFatalErrorAndAbort(StatusCodes2.BadTcpInternalError, "invalid request", message, callback);
+        }
 
         // let prepare self.securityHeader;
         this.securityHeader = this._prepare_security_header(request, message);
@@ -1221,9 +1220,7 @@ export class ServerSecureChannelLayer extends EventEmitter {
             warningLog("Cannot find SecurityHeader !!!!!!!! ");
             return this._sendFatalErrorAndAbort(StatusCodes2.BadSecurityChecksFailed, "invalid request", message, callback);
         }
-
-        assert(this.securityHeader);
-
+        
         this.clientNonce = request.clientNonce;
 
         if (nonceAlreadyBeenUsed(this.clientNonce)) {

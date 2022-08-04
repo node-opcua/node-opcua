@@ -358,7 +358,7 @@ describe("SM1 - Subscriptions and MonitoredItems", function () {
 
         simulate_client_adding_publish_request(subscription.publishEngine);
 
-        test.clock.tick(subscription.publishingInterval);
+        test.clock.tick(subscription.publishingInterval * subscription.maxKeepAliveCount);
         subscription.state.should.eql(SubscriptionState.KEEPALIVE);
 
         // Monitored item will report a new value every tick => 100 ms
@@ -698,7 +698,7 @@ describe("SM1 - Subscriptions and MonitoredItems", function () {
         publishEngine.add_subscription(subscription1);
         subscription1.state.should.eql(SubscriptionState.CREATING);
 
-        test.clock.tick(subscription1.publishingInterval);
+        test.clock.tick(subscription1.publishingInterval * subscription1.maxKeepAliveCount);
         subscription1.state.should.eql(SubscriptionState.LATE);
 
         subscription1.on("monitoredItem", function (monitoredItem) {
@@ -1530,7 +1530,7 @@ describe("SM2 - MonitoredItem advanced", function () {
                 monitoredItem.samplingFunc = install_spying_samplingFunc();
             });
 
-            test.clock.tick(subscription.publishingInterval);
+            test.clock.tick(subscription.publishingInterval * subscription.maxKeepAliveCount);
             simulate_client_adding_publish_request(publishEngine, spy_callback);
             simulate_client_adding_publish_request(publishEngine, spy_callback);
             simulate_client_adding_publish_request(publishEngine, spy_callback);

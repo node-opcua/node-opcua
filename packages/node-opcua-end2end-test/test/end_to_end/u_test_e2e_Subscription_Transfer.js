@@ -15,7 +15,7 @@ const ClientSubscription = opcua.ClientSubscription;
 
 const { perform_operation_on_client_session } = require("../../test_helpers/perform_operation_on_client_session");
 
-const { perform_operation_on_subscription } = require("../../test_helpers/perform_operation_on_client_session");
+const { perform_operation_on_subscription_with_parameters } = require("../../test_helpers/perform_operation_on_client_session");
 
 module.exports = function (test) {
 
@@ -189,14 +189,22 @@ module.exports = function (test) {
             let the_session2;
             const spy_keepalive = new sinon.spy();
 
-            perform_operation_on_subscription(client, endpointUrl, function (session, subscription, inner_done) {
+            const subscriptionParameters = {
+                requestedPublishingInterval: 100,
+                requestedLifetimeCount: 6000,
+                requestedMaxKeepAliveCount: 10,
+                maxNotificationsPerPublish: 4,
+                publishingEnabled: true,
+                priority: 6
+            };
+            perform_operation_on_subscription_with_parameters(client, endpointUrl, subscriptionParameters,  function (session, subscription, inner_done) {
 
                 subscription.on("status_changed", spy_status_changed);
                 subscription.on("keepalive", spy_keepalive);
                 async.series([
                     function (callback) {
 
-                        const timeout = subscription.publishingInterval * 3;
+                        const timeout = subscription.publishingInterval * (subscription.maxKeepAliveCount + 2);
                         setTimeout(function () {
                             //xx console.log("StatusChange Count ", spy_status_changed.callCount, " keepAlive count = ", spy_keepalive.callCount);
                             spy_status_changed.callCount.should.eql(0);

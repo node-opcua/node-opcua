@@ -16,7 +16,6 @@ const {
     MonitoringMode,
     CreateSubscriptionRequest
 } = require("node-opcua");
-const { pause } = require("../discovery/_helper");
 
 const doDebug = true;
 
@@ -41,8 +40,8 @@ async function readSubscriptionDiagnosticArrayOnClient(endpointUrl) {
     return a;
 }
 /**
- * 
- * @param {string} endpointUrl 
+ *
+ * @param {string} endpointUrl
  * @returns ServerDiagnosticsSummaryDataType
  */
 async function readServerDiagnosticsSummary(endpointUrl) {
@@ -71,7 +70,6 @@ async function stopSubscriptionByTransfer(endpointUrl, subscription) {
 
     const client = OPCUAClient.create();
     await client.withSessionAsync(endpointUrl, async (session) => {
-
         const response = await session.transferSubscriptions({
             subscriptionIds: [subscriptionId]
         });
@@ -79,13 +77,12 @@ async function stopSubscriptionByTransfer(endpointUrl, subscription) {
             console.log(response.toString());
         }
         response.results[0].statusCode.should.eql(StatusCodes.Good);
-        
-        await subscription.terminate();
 
+        await subscription.terminate();
     });
 }
 
-/** 
+/**
  */
 async function createPersistentSubscription(endpointUrl) {
     const client = OPCUAClient.create();
@@ -93,20 +90,22 @@ async function createPersistentSubscription(endpointUrl) {
     const session = await client.createSession();
     const subscription = await session.createSubscription2({
         requestedPublishingInterval: 500,
-        requestedLifetimeCount: 30,
+        requestedLifetimeCount: 50,
         requestedMaxKeepAliveCount: 5,
         maxNotificationsPerPublish: 2,
         publishingEnabled: true,
         priority: 6
     });
-    
-    console.log("subscription created : ", subscription.subscriptionId, subscription.lifetimeCount * subscription.publishingInterval);
-    
+
+    console.log(
+        "subscription created : ",
+        subscription.subscriptionId,
+        subscription.lifetimeCount * subscription.publishingInterval
+    );
+
     await session.close(/* deleteSubscription */ false);
     await client.disconnect();
-    await pause(500);
     return subscription;
-
 }
 
 /**
@@ -337,6 +336,14 @@ module.exports = function (test) {
                 const subscriptionsArray = await readSubscriptionDiagnosticArrayOnClient(endpointUrl);
                 doDebug && console.log("summary", summary.toString());
                 doDebug && console.log("subscriptionsArray", subscriptionsArray.length);
+
+                if (subscriptionsArray.length > 1) {
+                    doDebug && console.log(subscriptionsArray[0].toString());
+                }
+                if (subscriptionsArray.length > 2) {
+                    doDebug && console.log(subscriptionsArray[1].toString());
+                }
+
                 return { summary, subscriptionsArray };
             };
             {
@@ -359,21 +366,25 @@ module.exports = function (test) {
             }
 
             const session2 = await createPersistentSubscription(endpointUrl);
-        
+
             {
                 const { summary, subscriptionsArray } = await collectInfo();
                 summary.currentSubscriptionCount.should.eql(2);
-                subscriptionsArray.length.should.eql(2);
-                if (subscriptionsArray.length) {
-                    doDebug && console.log(subscriptionsArray[0].toString());
-                    subscriptionsArray[0].subscriptionId.should.eql(session1.subscriptionId);
-                    subscriptionsArray[0].sessionId.isEmpty().should.eql(true);
-                    doDebug && console.log(subscriptionsArray[1].toString());
-                    subscriptionsArray[1].subscriptionId.should.eql(session2.subscriptionId);
-                    subscriptionsArray[1].sessionId.isEmpty().should.eql(true);
-                }
 
-                const timeout = subscriptionsArray[1].maxLifetimeCount * subscriptionsArray[1].publishingInterval + 2000;
+                subscriptionsArray[0].subscriptionId.should.eql(session1.subscriptionId);
+
+                // note: whereas node-opcua reset sessionId to NullNodeId, UAExpert returns the
+                //      id of the session that created the subscription
+                subscriptionsArray[0].sessionId.isEmpty().should.eql(true);
+
+                subscriptionsArray[1].subscriptionId.should.eql(session2.subscriptionId);
+                // note: whereas node-opcua reset sessionId to NullNodeId, UAExpert returns the
+                //      id of the session that created the subscription
+                subscriptionsArray[1].sessionId.isEmpty().should.eql(true);
+
+                subscriptionsArray.length.should.eql(2);
+
+                const timeout = subscriptionsArray[1].maxLifetimeCount * subscriptionsArray[1].publishingInterval + 10 * 1000;
                 await wait(timeout);
                 doDebug && console.log("waited ", timeout);
             }
@@ -414,7 +425,6 @@ module.exports = function (test) {
                 summary.currentSubscriptionCount.should.eql(0);
                 subscriptionsArray.length.should.eql(0);
             }
-
         });
     });
 };
