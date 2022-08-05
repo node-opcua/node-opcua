@@ -3,9 +3,9 @@ import { OPCUAClientBase, OPCUAServer, OPCUAClient, UserTokenType, nodesets, mak
 
 const port = 2511;
 
-// const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
+const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("Testing automatic reconnection to a server when credential have changed and client is not aware", function (this: any) {
-    this.timeout(Math.max(10 * 60 * 1000, this.timeout()));
+    this.timeout(15 * 60 * 1000);
     let server: OPCUAServer;
     const users = [
         {

@@ -20,10 +20,10 @@ const {
     EVENT_TEST_SKIPPED
 } = Mocha.Runner.constants;
 
-const t = ()=>{
+const t = () => {
     const d = new Date();
-    return d.toTimeString().split(" ")[0] + ":" + d.getMilliseconds().toString().padStart(3,"0")+" ";
-}
+    return d.toTimeString().split(" ")[0] + ":" + d.getMilliseconds().toString().padStart(3, "0") + " ";
+};
 class ParallelMochaReporter {
     /**
      *
@@ -129,16 +129,16 @@ class ParallelMochaReporter {
 let g_file = "";
 console.log = (...args) => {
     try {
-        args = args.map(util.format);
-        parentPort.postMessage({ type: "LOG", file: g_file, page: undefined, args });
+        const line = util.format.apply(null, ["L       ", t(), ...args]);
+        parentPort.postMessage({ type: "LOG", file: g_file, page: undefined, line });
     } catch (err) {
         console.log(err);
     }
 };
 console.warn = (...args) => {
     try {
-        args = args.map(util.format);
-        parentPort.postMessage({ type: "LOG", file: g_file, page: undefined, args });
+        const line = util.format.apply(null, ["W       ",t(), ...args]);
+        parentPort.postMessage({ type: "LOG", file: g_file, page: undefined, line });
     } catch (err) {
         console.log(err);
     }
