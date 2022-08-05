@@ -2,8 +2,12 @@ const { Worker, isMainThread, parentPort, workerData } = require("worker_threads
 const readline = require("readline");
 const os = require("os");
 const util = require("util");
+const { assert } = require("console");
 
-const CPU = process.env.CPU ? parseInt(process.env.CPU,10) : 0 ;
+const CPU = process.env.CPU ? parseInt(process.env.CPU, 10) : 0;
+
+const testWatchDogTimeout = process.env.PING ? parseInt(process.env.PING) : 10 * 60 * 1000;
+
 require("should");
 
 const chalk = require("chalk");
@@ -93,11 +97,12 @@ async function runTest({ page, selectedTests, g }) {
             }
         });
         worker.on("message", (message) => {
-            const { type, file, test, args } = message;
+            const { type, file, test, line } = message;
             // args && console.log(prefix(), ...args);
             switch (type) {
                 case "LOG":
-                    outputFor[file].push(args);
+                    assert(typeof line === "string");
+                    outputFor[file].push(line); //util.format.apply(args));
                     break;
                 case TEST_FILE_STARTED:
                     outputFor[file] = outputFor[file] || [];
@@ -105,6 +110,7 @@ async function runTest({ page, selectedTests, g }) {
                     break;
                 case TEST_FILE_COMPLETED:
                     fileCounter++;
+                    outputFor[file] = [];
                     break;
                 case TEST_FILE_COMPILATION_ERROR:
                     break;
@@ -231,6 +237,12 @@ function epilogue() {
     console.log(runningTests.join("\n"));
 }
 
+function dumpRunningTests() {
+    const runningTests = [...runningPages].map((i) => testFiles[i]);
+    console.log(`running tests: ${runningTests.length}`);
+    console.log(runningTests.join("\n"));
+}
+
 if (isMainThread) {
     const argv = yargs
         .option("fileFilter", {
@@ -288,9 +300,7 @@ if (isMainThread) {
                     process.exit(0);
                 }
                 if (key.name === "l") {
-                    const runningTests = [...runningPages].map((i) => testFiles[i]);
-                    console.log(`running tests: ${runningTests.length}`);
-                    console.log(runningTests.join("\n"));
+                    dumpRunningTests();
                 }
             });
         }
@@ -301,6 +311,20 @@ if (isMainThread) {
             testFiles,
             g: argv.testFilter
         };
+
+        const infoTimer = setInterval(() => {
+            console.log("----------------------------------------------- RUNNING TESTS ");
+            dumpRunningTests();
+            const runningTests = [...runningPages].map((i) => testFiles[i]);
+            for (let file of runningTests) {
+                const outputs = outputFor[file];
+                if (outputs && outputs.length) {
+                    console.log(chalk.green("log for", file));
+                    console.log(outputs.join("\n"));
+                }
+            }
+        }, testWatchDogTimeout);
+
         fileMax = testFiles.length;
         const promises = [];
         const cpuCount = Math.max(CPU || os.cpus().length * 0.7, 2);
@@ -309,7 +333,9 @@ if (isMainThread) {
         }
         await Promise.all(promises);
 
+        clearInterval(infoTimer);
         epilogue();
+
         process.exit(0);
     })();
 } else {
