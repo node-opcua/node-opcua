@@ -262,7 +262,14 @@ class ClockAdjustment {
     }
 }
 
-type InternalClientState = "uninitialized" | "disconnected" | "connecting" | "connected" | "reconnecting" | "disconnecting";
+type InternalClientState =
+    | "uninitialized"
+    | "disconnected"
+    | "connecting"
+    | "connected"
+    | "reconnecting"
+    | "reconnecting_newchannel_connected"
+    | "disconnecting";
 
 /*
  *    "disconnected"  ---[connect]----------------------> "connecting"
@@ -275,7 +282,9 @@ type InternalClientState = "uninitialized" | "disconnected" | "connecting" | "co
  *
  *    "connecting"    ---[lost of connection]-----------> "reconnecting" ->[reconnection]
  *
- *    "reconnecting"  ---[reconnection successful]------> "connected"
+ *    "reconnecting"  ---[reconnection successful]------> "reconnecting_newchannel_connected"
+ *
+ *    "reconnecting_newchannel_connected" --(session failure) -->"reconnecting"
  *
  *    "reconnecting"  ---[reconnection failure]---------> [reconnection] ---> "reconnecting"
  *
@@ -467,7 +476,9 @@ export class ClientBaseImpl extends OPCUASecureObject implements OPCUAClientBase
     private _cancel_reconnection(callback: ErrorCallback) {
         // _cancel_reconnection is invoked during disconnection
         // when we detect that a reconnection is in progress..
-        assert(this.isReconnecting);
+        if (!this.isReconnecting) {
+            warningLog("internal error : _cancel_reconnection should be used when reconnecting is in progress");
+        }
         debugLog("canceling reconnection");
         this._reconnectionIsCanceled = true;
         // istanbul ignore next
@@ -532,7 +543,7 @@ export class ClientBaseImpl extends OPCUASecureObject implements OPCUAClientBase
             assert(this._secureChannel, "expecting a secureChannel here ");
             // a new channel has be created and a new connection is established
             debugLog(chalk.bgWhite.red("ClientBaseImpl:  RECONNECTED                !!!"));
-            this._setInternalState("connected");
+            this._setInternalState("reconnecting_newchannel_connected");
             return callback();
         };
 
@@ -924,7 +935,12 @@ export class ClientBaseImpl extends OPCUASecureObject implements OPCUAClientBase
                 new Error("performMessageTransaction: No SecureChannel , connection may have been canceled abruptly by server")
             );
         }
-        if (this._internalState !== "connected" && this._internalState !== "connecting" && this._internalState !== "reconnecting") {
+        if (
+            this._internalState !== "connected" &&
+            this._internalState !== "reconnecting_newchannel_connected" &&
+            this._internalState !== "connecting" &&
+            this._internalState !== "reconnecting"
+        ) {
             return callback(
                 new Error(
                     "performMessageTransaction: Invalid client state " +
