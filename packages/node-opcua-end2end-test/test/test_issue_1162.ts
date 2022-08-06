@@ -1,11 +1,13 @@
+import "should";
 import { OPCUAClientBase, OPCUAServer, OPCUAClient, UserTokenType, nodesets, makeRoles, WellKnownRoles, NodeId } from "node-opcua";
-
+const { wait, wait_until_condition } = require("../test_helpers/utils");
 
 const port = 2511;
 
+// eslint-disable-next-line import/order
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("Testing automatic reconnection to a server when credential have changed and client is not aware", function (this: any) {
-    this.timeout(15 * 60 * 1000);
+    this.timeout(5 * 60 * 1000);
     let server: OPCUAServer;
     const users = [
         {
@@ -90,30 +92,32 @@ describe("Testing automatic reconnection to a server when credential have change
         OPCUAClientBase.retryDelay = old;
     });
     let clientCounter = 0;
-    async function createClient() {
+
+    async function createAndConnectClient() {
         const clientName = "Client_1162_" + clientCounter;
+        clientCounter++;
+
         const client: OPCUAClient = OPCUAClient.create({
             requestedSessionTimeout: 120 * 1000,
             clientName,
             endpointMustExist: false
         });
-        clientCounter++;
 
         client.on("backoff", (count, delay) => {
-            console.log("client: backoff: retrying connection", count, delay);
+            console.log(client.clientName, "client: backoff: retrying connection", count, delay);
         });
         client.on("connection_lost", () => {
-            console.log("client: connection_lost");
+            console.log(client.clientName, "client: connection_lost");
         });
         client.on("after_reconnection", () => {
-            console.log("client: after_reconnection");
+            console.log(client.clientName, "client: after_reconnection");
         });
         client.on("connection_failed", () => {
-            console.log("client: connection_failed");
+            console.log(client.clientName, "client: connection_failed");
         });
 
         client.on("connection_reestablished", () => {
-            console.log("client:    connection_reestablished");
+            console.log(client.clientName, "client:    connection_reestablished");
         });
         await client.connect(server.getEndpointUrl());
 
@@ -122,7 +126,7 @@ describe("Testing automatic reconnection to a server when credential have change
             userName: "user1",
             password: "password1-Old"
         });
-        console.log("session timeout = ", session.timeout);
+        console.log(client.clientName, "session timeout = ", session.timeout);
 
         const sub = await session.createSubscription2({
             maxNotificationsPerPublish: 10,
@@ -136,10 +140,6 @@ describe("Testing automatic reconnection to a server when credential have change
         return client;
     }
 
-    async function wait(duration: number) {
-        await new Promise((resolve) => setTimeout(resolve, duration));
-    }
-
     async function shutDownServerChangePasswordAndRestart(waitingTIme: number, newPassword = "password1-New") {
         console.log("============================ shuting down server");
         await server.shutdown();
@@ -151,19 +151,26 @@ describe("Testing automatic reconnection to a server when credential have change
         console.log("============================ server restarteds");
     }
 
-    it("should reconnected automatically - short outage", async () => {
-        const client = await createClient();
+    it("should try to reconnected automatically - but fail to do so", async () => {
+        const client = await createAndConnectClient();
 
-        await shutDownServerChangePasswordAndRestart(1, "password1-New");
-        await wait(3 * 1000);
+        try {
+            await shutDownServerChangePasswordAndRestart(1, "password1-New");
 
-        await client.disconnect();
-
-        await wait(1000);
+            // wait until client is connected
+            await wait_until_condition(() => {
+                return client.isReconnecting;
+            }, 10000);
+            await wait(10*1000);
+            client.isReconnecting.should.eql(true, "client should be trying to reconnect constantly without success");
+        } finally {
+            await client.disconnect();
+        }
+        console.log("done!");
     });
 
     it("should reconnected automatically - long outage", async () => {
-        const client = await createClient();
+        const client = await createAndConnectClient();
 
         await shutDownServerChangePasswordAndRestart(10 * 1000, "password1-New");
         wait(10 * 1000);
@@ -173,7 +180,7 @@ describe("Testing automatic reconnection to a server when credential have change
     });
 
     it("should reconnected automatically - back again", async () => {
-        const client = await createClient();
+        const client = await createAndConnectClient();
 
         await shutDownServerChangePasswordAndRestart(1000, "password1-New");
         await wait(5 * 1000);
