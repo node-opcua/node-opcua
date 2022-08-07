@@ -2,8 +2,8 @@
  * @module node-opcua-address-space
  */
 import { assert } from "node-opcua-assert";
-import { AddressSpace, UAExclusiveLimitAlarmImpl, UAObject, UAVariable } from "..";
-import { UANonExclusiveLimitAlarmEx, UAExclusiveLimitAlarmEx } from "..";
+import { AddressSpace,UANonExclusiveLimitAlarmEx, UAExclusiveLimitAlarmEx, UAObject, UAVariable } from "..";
+
 
 export interface IAlarmTestData {
     tankLevel: UAVariable;
@@ -70,7 +70,7 @@ export function construct_demo_alarm_in_address_space(test: IAlarmTestData, addr
             "ConfirmedState",
             "Confirm" // confirm state and confirm Method
         ]
-    }) as UAExclusiveLimitAlarmImpl;
+    }) as UAExclusiveLimitAlarmEx;
 
     assert(tankLevelCondition.browseName.toString() === "1:TankLevelCondition");
 

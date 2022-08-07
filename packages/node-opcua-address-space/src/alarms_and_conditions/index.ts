@@ -1,8 +1,8 @@
 /**
  * @module node-opcua-address-space.AlarmsAndConditions
  */
-export * from "./condition_info";
-export * from "./condition_snapshot";
+export * from "./condition_info_impl";
+export * from "./condition_snapshot_impl";
 export * from "./ua_condition_impl";
 export * from "./ua_acknowledgeable_condition_impl";
 export * from "./ua_discrete_alarm_impl";

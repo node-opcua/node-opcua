@@ -67,30 +67,35 @@ import {
 } from "../source/address_space_ts";
 import { UAStateMachineEx } from "../source/interfaces/state_machine/ua_state_machine_type";
 import { UATransitionEx } from "../source/interfaces/state_machine/ua_transition_ex";
-import { UAAlarmConditionEx, UAAlarmConditionImpl, UATwoStateDiscreteEx, UAYArrayItemEx } from "../source";
+import { UATwoStateDiscreteEx, UAYArrayItemEx } from "../source";
 import { AddAnalogDataItemOptions, AddDataItemOptions } from "../source/namespace_data_access";
 import { UATwoStateVariableEx } from "../source/ua_two_state_variable_ex";
 import { UAMultiStateValueDiscreteEx } from "../source/interfaces/data_access/ua_multistate_value_discrete_ex";
+import { UAAlarmConditionEx } from "../source/interfaces/alarms_and_conditions/ua_alarm_condition_ex";
+import { UADiscreteAlarmEx } from "../source/interfaces/alarms_and_conditions/ua_discrete_alarm_ex";
+import { UAExclusiveDeviationAlarmEx } from "../source/interfaces/alarms_and_conditions/ua_exclusive_deviation_alarm_ex";
+import { UAExclusiveLimitAlarmEx } from "../source/interfaces/alarms_and_conditions/ua_exclusive_limit_alarm_ex";
+import { UALimitAlarmEx } from "../source/interfaces/alarms_and_conditions/ua_limit_alarm_ex";
+import { UANonExclusiveDeviationAlarmEx } from "../source/interfaces/alarms_and_conditions/ua_non_exclusive_deviation_alarm_ex";
+import { UANonExclusiveLimitAlarmEx } from "../source/interfaces/alarms_and_conditions/ua_non_exclusive_limit_alarm_ex";
+import { UAConditionEx } from "../source/interfaces/alarms_and_conditions/ua_condition_ex";
 
 import { _handle_delete_node_model_change_event, _handle_model_change_event } from "./address_space_change_event_tools";
 import { AddressSpacePrivate } from "./address_space_private";
-import { UAConditionEx, UAConditionImpl } from "./alarms_and_conditions/ua_condition_impl";
-import { UADiscreteAlarmEx, UADiscreteAlarmImpl } from "./alarms_and_conditions/ua_discrete_alarm_impl";
+import { UAConditionImpl } from "./alarms_and_conditions/ua_condition_impl";
+import { UADiscreteAlarmImpl } from "./alarms_and_conditions/ua_discrete_alarm_impl";
 import {
-    UAExclusiveDeviationAlarmEx,
     UAExclusiveDeviationAlarmImpl
 } from "./alarms_and_conditions/ua_exclusive_deviation_alarm_impl";
-import { UAExclusiveLimitAlarmEx, UAExclusiveLimitAlarmImpl } from "./alarms_and_conditions/ua_exclusive_limit_alarm_impl";
-import { UALimitAlarmEx, UALimitAlarmImpl } from "./alarms_and_conditions/ua_limit_alarm_impl";
+import {  UAExclusiveLimitAlarmImpl } from "./alarms_and_conditions/ua_exclusive_limit_alarm_impl";
+import {  UALimitAlarmImpl } from "./alarms_and_conditions/ua_limit_alarm_impl";
 import {
-    UANonExclusiveDeviationAlarmEx,
     UANonExclusiveDeviationAlarmImpl
 } from "./alarms_and_conditions/ua_non_exclusive_deviation_alarm_impl";
 import {
-    UANonExclusiveLimitAlarmEx,
     UANonExclusiveLimitAlarmImpl
 } from "./alarms_and_conditions/ua_non_exclusive_limit_alarm_impl";
-import { UAAcknowledgeableConditionImpl } from "./alarms_and_conditions";
+import { UAAcknowledgeableConditionImpl, UAAlarmConditionImpl } from "./alarms_and_conditions";
 import { UAOffNormalAlarmEx, UAOffNormalAlarmImpl } from "./alarms_and_conditions/ua_off_normal_alarm_impl";
 import { add_dataItem_stuff } from "./data_access/add_dataItem_stuff";
 import { UAMultiStateDiscreteImpl, _addMultiStateDiscrete } from "./data_access/ua_multistate_discrete_impl";
@@ -103,7 +108,7 @@ import { BaseNodeImpl } from "./base_node_impl";
 import { UAVariableImpl } from "./ua_variable_impl";
 
 import { ConstructNodeIdOptions, NodeIdManager } from "./nodeid_manager";
-import { _addTwoStateDiscrete } from "./data_access/ua_two_state_discrete";
+import { _addTwoStateDiscrete } from "./data_access/ua_two_state_discrete_impl";
 import { coerceRolePermissions } from "./role_permissions";
 import { UAObjectImpl } from "./ua_object_impl";
 import { UADataTypeImpl } from "./ua_data_type_impl";
@@ -113,7 +118,7 @@ import { UAVariableTypeImpl } from "./ua_variable_type_impl";
 import { UAReferenceTypeImpl } from "./ua_reference_type_impl";
 import { UAViewImpl } from "./ua_view_impl";
 import { UAStateMachineImpl, UATransitionImpl } from "./state_machine/finite_state_machine";
-import { _addMultiStateValueDiscrete } from "./data_access/ua_multistate_value_discrete";
+import { _addMultiStateValueDiscrete } from "./data_access/ua_multistate_value_discrete_impl";
 
 function _makeHashKey(nodeId: NodeId): string | number {
     switch (nodeId.identifierType) {

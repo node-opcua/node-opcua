@@ -11,7 +11,7 @@ import { DataTypeIds, ObjectIds, ObjectTypeIds, ReferenceTypeIds, VariableTypeId
 import { NodeClass } from "node-opcua-data-model";
 import { NodeId, resolveNodeId } from "node-opcua-nodeid";
 
-import { AddReferenceOpts, AddressSpace, UAFolder, UAObject, UAReferenceType, UAVariableType, NamespacePrivate } from "..";
+import { AddReferenceOpts, AddressSpace, UAFolder, UAObject, UAReferenceType, UAVariableType } from "..";
 
 const doDebug = false;
 
@@ -46,7 +46,7 @@ function dumpReferencesHierarchy(_addressSpace: AddressSpace) {
 export function create_minimalist_address_space_nodeset(addressSpace: AddressSpace): void {
     const _addressSpace = addressSpace;
 
-    const namespace0 = addressSpace.registerNamespace("http://opcfoundation.org/UA/") as unknown as NamespacePrivate;
+    const namespace0 = addressSpace.registerNamespace("http://opcfoundation.org/UA/");
 
     assert(namespace0.index === 0);
 

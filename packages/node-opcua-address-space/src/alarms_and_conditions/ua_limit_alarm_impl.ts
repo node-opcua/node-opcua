@@ -8,43 +8,17 @@ import { NodeClass } from "node-opcua-data-model";
 import { DataValue } from "node-opcua-data-value";
 import { make_warningLog } from "node-opcua-debug";
 import { NodeId } from "node-opcua-nodeid";
-import { UALimitAlarm_Base } from "node-opcua-nodeset-ua";
 import { StatusCodes } from "node-opcua-status-code";
 import { DataType, VariantOptions } from "node-opcua-variant";
-import { UATwoStateVariableEx } from "../../source/ua_two_state_variable_ex";
+import { UAShelvedStateMachineEx } from "../../source";
+import { InstantiateLimitAlarmOptions } from "../../source/interfaces/alarms_and_conditions/instantiate_limit_alarm_options";
+import { UALimitAlarmEx } from "../../source/interfaces/alarms_and_conditions/ua_limit_alarm_ex";
 import { NamespacePrivate } from "../namespace_private";
-import { UAShelvedStateMachineEx } from "../state_machine/ua_shelving_state_machine_ex";
 import {
-    InstantiateAlarmConditionOptions,
-    UAAlarmConditionEx,
-    UAAlarmConditionHelper,
     UAAlarmConditionImpl
 } from "./ua_alarm_condition_impl";
 
 const warningLog = make_warningLog("AlarmsAndConditions");
-export interface UALimitAlarmHelper extends UAAlarmConditionHelper {
-    setLowLowLimit(value: number): void;
-    setLowLimit(value: number): void;
-    setHighLimit(value: number): void;
-    setHighHighLimit(value: number): void;
-    getHighHighLimit(): number;
-    getHighLimit(): number;
-    getLowLimit(): number;
-    getLowLowLimit(): number;
-}
-export interface UALimitAlarmEx extends UALimitAlarm_Base, UAAlarmConditionEx, UALimitAlarmHelper {
-    on(eventName: string, eventHandler: any): this;
-
-    enabledState: UATwoStateVariableEx;
-    ackedState: UATwoStateVariableEx;
-    confirmedState?: UATwoStateVariableEx;
-    activeState: UATwoStateVariableEx;
-    latchedState?: UATwoStateVariableEx;
-    outOfServiceState?: UATwoStateVariableEx;
-    silenceState?: UATwoStateVariableEx;
-    shelvingState?: UAShelvedStateMachineEx;
-    suppressedState?: UATwoStateVariableEx;
-}
 
 export declare interface UALimitAlarmImpl extends UALimitAlarmEx, UAAlarmConditionImpl {
     on(eventName: string, eventHandler: any): this;
@@ -61,16 +35,11 @@ const uaLimitAlarmInputSupportedDataType: DataType[] = [
     DataType.UInt32
 ];
 
-export interface InstantiateLimitAlarmOptions extends InstantiateAlarmConditionOptions {
-    highHighLimit: number;
-    highLimit: number;
-    lowLimit: number;
-    lowLowLimit: number;
-    inputNode: UAVariable;
+export interface UALimitAlarmImpl extends UALimitAlarmEx  {
+    shelvingState?: UAShelvedStateMachineEx;
 }
-
 export class UALimitAlarmImpl extends UAAlarmConditionImpl implements UALimitAlarmEx {
-    /**
+   /**
      * @method (static)UALimitAlarm.instantiate
      * @param namespace {INamespace}
      * @param limitAlarmTypeId

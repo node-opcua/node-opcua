@@ -216,7 +216,7 @@ describe("Testing AutoID custom types", async function (this: any) {
     it("GHU-1 - The dataTypeDefinition of RfidScanResult shall contain base dataTypeDefinition ", () => {
         const nsAutoId = addressSpace.getNamespaceIndex("http://opcfoundation.org/UA/AutoID/");
 
-        const scanResultDataTypeNode = addressSpace.findDataType("ScanResult", nsAutoId);
+        const scanResultDataTypeNode = addressSpace.findDataType("ScanResult", nsAutoId)!;
         {
             const dataValue = scanResultDataTypeNode.readAttribute(null, AttributeIds.DataTypeDefinition);
             dataValue.statusCode.should.eql(StatusCodes.Good);
@@ -225,7 +225,7 @@ describe("Testing AutoID custom types", async function (this: any) {
 
             //Xx console.log(dataTypeDefinition.toString());
             const structureDefinition = dataTypeDefinition as StructureDefinition;
-            structureDefinition.fields.length.should.eql(4);
+            structureDefinition.fields!.length.should.eql(4);
         }
         const rfidScanResultDataTypeNode = addressSpace.findDataType("RfidScanResult", nsAutoId)!;
 
@@ -237,7 +237,7 @@ describe("Testing AutoID custom types", async function (this: any) {
 
             //Xx console.log(dataTypeDefinition.toString());
             const structureDefinition = dataTypeDefinition as StructureDefinition;
-            structureDefinition.fields.length.should.eql(5);
+            structureDefinition.fields!.length.should.eql(5);
         }
     });
     it("GHU-2 - should promote the OpaqueStructure of an array of variant containing Extension Object", async () => {
@@ -264,21 +264,21 @@ describe("Testing AutoID custom types", async function (this: any) {
         const reload_v2 = encode_decode(v);
         reload_v2.value.should.be.instanceOf(CallMethodResult);
         const callbackResult2 = reload_v2.value as CallMethodResult;
-        callbackResult2.outputArguments.length.should.eql(1);
-        callbackResult2.outputArguments[0].dataType.should.eql(DataType.ExtensionObject);
-        callbackResult2.outputArguments[0].value.length.should.eql(2);
-        callbackResult2.outputArguments[0].value[0].should.be.instanceOf(OpaqueStructure);
-        callbackResult2.outputArguments[0].value[1].should.be.instanceOf(OpaqueStructure);
+        callbackResult2.outputArguments!.length.should.eql(1);
+        callbackResult2.outputArguments![0].dataType.should.eql(DataType.ExtensionObject);
+        callbackResult2.outputArguments![0].value.length.should.eql(2);
+        callbackResult2.outputArguments![0].value[0].should.be.instanceOf(OpaqueStructure);
+        callbackResult2.outputArguments![0].value[1].should.be.instanceOf(OpaqueStructure);
 
         const session = new PseudoSession(addressSpace);
         const extraDataTypeManager = await getExtraDataTypeManager(session);
         await promoteOpaqueStructure(
             session,
-            callbackResult2.outputArguments.map((a) => ({ value: a }))
+            callbackResult2.outputArguments!.map((a) => ({ value: a }))
         );
 
-        callbackResult2.outputArguments[0].value[0].should.not.be.instanceOf(OpaqueStructure);
-        callbackResult2.outputArguments[0].value[1].should.not.be.instanceOf(OpaqueStructure);
+        callbackResult2.outputArguments![0].value[0].should.not.be.instanceOf(OpaqueStructure);
+        callbackResult2.outputArguments![0].value[1].should.not.be.instanceOf(OpaqueStructure);
 
         debugLog(reload_v2.toString());
     });

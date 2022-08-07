@@ -15,8 +15,9 @@ import { StatusCode, StatusCodes } from "node-opcua-status-code";
 import { SimpleAttributeOperand, TimeZoneDataType } from "node-opcua-types";
 import * as utils from "node-opcua-utils";
 import { DataType, Variant } from "node-opcua-variant";
-import { UtcTime } from "../../source/interfaces/state_machine/ua_state_machine_type";
 
+import { ConditionSnapshot } from "../../source/interfaces/alarms_and_conditions/condition_snapshot";
+import { UtcTime } from "../../source/interfaces/state_machine/ua_state_machine_type";
 import { EventData } from "../event_data";
 import { UATwoStateVariableImpl } from "../state_machine/ua_two_state_variable";
 import { _setAckedState } from "./condition";
@@ -25,9 +26,6 @@ import { UAConditionImpl } from "./ua_condition_impl";
 const debugLog = make_debugLog(__filename);
 const doDebug = checkDebugFlag(__filename);
 
-export interface ConditionSnapshot {
-    on(eventName: "value_changed", eventHandler: (node: UAVariable, variant: Variant) => void): this;
-}
 
 function normalizeName(str: string): string {
     return str.split(".").map(utils.lowerFirstLetter).join(".");
@@ -149,8 +147,7 @@ const _varTable = {
     sourceNode: 1,
     time: 1
 };
-
-export class ConditionSnapshot extends EventEmitter {
+export class ConditionSnapshotImpl extends EventEmitter implements ConditionSnapshot {
     public static normalizeName = normalizeName;
 
     public condition: BaseNode;
@@ -719,8 +716,8 @@ export class ConditionSnapshot extends EventEmitter {
     public _set_twoStateVariable(varName: string, value: boolean): void {
         value = !!value;
 
-        const hrKey = ConditionSnapshot.normalizeName(varName);
-        const idKey = ConditionSnapshot.normalizeName(varName) + ".id";
+        const hrKey = ConditionSnapshotImpl.normalizeName(varName);
+        const idKey = ConditionSnapshotImpl.normalizeName(varName) + ".id";
 
         const variant = new Variant({ dataType: DataType.Boolean, value });
         this._map[idKey] = variant;
@@ -753,7 +750,7 @@ export class ConditionSnapshot extends EventEmitter {
     }
 
     protected _get_twoStateVariable(varName: string): any {
-        const key = ConditionSnapshot.normalizeName(varName) + ".id";
+        const key = ConditionSnapshotImpl.normalizeName(varName) + ".id";
         const variant = this._map[key];
 
         // istanbul ignore next

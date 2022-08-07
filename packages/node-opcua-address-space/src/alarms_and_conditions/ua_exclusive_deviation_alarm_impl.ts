@@ -9,41 +9,26 @@ import { UAExclusiveDeviationAlarm_Base } from "node-opcua-nodeset-ua";
 import { UAVariable, UAVariableT } from "node-opcua-address-space-base";
 import { AddressSpace } from "../address_space";
 import { NamespacePrivate } from "../namespace_private";
+import { UAExclusiveDeviationAlarmEx } from "../../source/interfaces/alarms_and_conditions/ua_exclusive_deviation_alarm_ex";
+import { InstantiateExclusiveLimitAlarmOptions } from "../../source/interfaces/alarms_and_conditions/instantiate_exclusive_limit_alarm_options";
+import { InstallSetPointOptions } from "../../source/interfaces/alarms_and_conditions/install_setpoint_options";
 import {
     DeviationAlarmHelper_getSetpointNodeNode,
     DeviationAlarmHelper_getSetpointValue,
     DeviationAlarmHelper_install_setpoint,
     DeviationAlarmHelper_onSetpointDataValueChange,
-    DeviationStuff,
-    InstallSetPointOptions
 } from "./deviation_alarm_helper";
 
-import { UAExclusiveLimitAlarmEx, UAExclusiveLimitAlarmImpl } from "./ua_exclusive_limit_alarm_impl";
-import { InstantiateLimitAlarmOptions, UALimitAlarmImpl } from "./ua_limit_alarm_impl";
+import {  UAExclusiveLimitAlarmImpl } from "./ua_exclusive_limit_alarm_impl";
+import {  UALimitAlarmImpl } from "./ua_limit_alarm_impl";
 
-export interface UAExclusiveDeviationAlarmEx
-    extends Omit<
-            UAExclusiveDeviationAlarm_Base,
-            | "ackedState"
-            | "activeState"
-            | "confirmedState"
-            | "enabledState"
-            | "latchedState"
-            | "limitState"
-            | "outOfServiceState"
-            | "shelvingState"
-            | "silenceState"
-            | "suppressedState"
-        >,
-        UAExclusiveLimitAlarmEx,
-        DeviationStuff {}
+
 
 export declare interface UAExclusiveDeviationAlarmImpl extends UAExclusiveDeviationAlarmEx, UAExclusiveLimitAlarmImpl {
     on(eventName: string, eventHandler: any): this;
     get addressSpace(): AddressSpace;
 }
 
-export interface InstantiateExclusiveLimitAlarmOptions extends InstantiateLimitAlarmOptions, InstallSetPointOptions {}
 export class UAExclusiveDeviationAlarmImpl extends UAExclusiveLimitAlarmImpl implements UAExclusiveDeviationAlarmEx {
     public static instantiate(
         namespace: NamespacePrivate,

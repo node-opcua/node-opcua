@@ -8,11 +8,8 @@ import { BaseNode } from "node-opcua-address-space-base";
 import { UABaseEvent_Base, UABaseEvent } from "node-opcua-nodeset-ua";
 
 import { UAObjectImpl } from "../ua_object_impl";
+import { UABaseEventHelper } from "../../source/interfaces/alarms_and_conditions/ua_condition_ex";
 
-export interface UABaseEventHelper {
-    setSourceName(name: string): void;
-    setSourceNode(node: NodeId | BaseNode): void;
-}
 export interface UABaseEventEx extends UABaseEvent_Base, UABaseEventHelper {}
 export declare interface UABaseEventImpl extends UABaseEventEx {}
 

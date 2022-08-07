@@ -12,7 +12,7 @@ import {
     ISessionContext,
     UACertificateGroup,
     UACertificateExpirationAlarmEx,
-    UACertificateExpirationAlarmImpl
+    instantiateCertificateExpirationAlarm,
 } from "node-opcua-address-space";
 import { UAObject, UAVariable, EventNotifierFlags } from "node-opcua-address-space-base";
 
@@ -368,7 +368,7 @@ export async function promoteCertificateGroup(certificateGroup: UACertificateGro
         const namespace = certificateGroup.addressSpace.getOwnNamespace();
 
         // certificateGroup.
-        UACertificateExpirationAlarmImpl.instantiate(namespace, "CertificateExpirationAlarmType", {
+        instantiateCertificateExpirationAlarm(namespace, "CertificateExpirationAlarmType", {
             browseName: coerceQualifiedName("0:CertificateExpired"),
             componentOf: certificateGroup,
             conditionSource: null,
