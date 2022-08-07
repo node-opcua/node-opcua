@@ -16,7 +16,7 @@ import { makeApplicationUrn } from "node-opcua-common";
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 import { extractFullyQualifiedDomainName, resolveFullyQualifiedDomainName } from "node-opcua-hostname";
 import { Message, Response, ServerSecureChannelLayer } from "node-opcua-secure-channel";
-import { OPCUABaseServer, OPCUABaseServerOptions, OPCUAServerEndPoint } from "node-opcua-server";
+import { OPCUABaseServer, OPCUAServerEndpointOptions, OPCUABaseServerOptions, OPCUAServerEndPoint } from "node-opcua-server";
 
 import {
     Announcement,
@@ -54,9 +54,8 @@ function hasCapabilities(serverCapabilities: UAString[] | null, serverCapability
     return !!serverCapabilities.join(" ").match(serverCapabilityFilter);
 }
 
-export interface OPCUADiscoveryServerOptions extends OPCUABaseServerOptions {
+export interface OPCUADiscoveryServerOptions extends OPCUABaseServerOptions, OPCUAServerEndpointOptions {
     certificateFile?: string;
-    port?: number;
 }
 
 interface RegisteredServerExtended extends RegisteredServer {
@@ -85,6 +84,7 @@ function getDefaultCertificateManager(): OPCUACertificateManager {
 export class OPCUADiscoveryServer extends OPCUABaseServer {
     private mDnsResponder?: MDNSResponder;
     private readonly registeredServers: RegisterServerMap;
+    private _primaryEndpoint: OPCUAServerEndpointOptions;
     private bonjourHolder: BonjourHolder;
     private _delayInit?: () => void;
 
@@ -112,6 +112,16 @@ export class OPCUADiscoveryServer extends OPCUABaseServer {
 
         super(options);
 
+        this._primaryEndpoint = {
+            hostname: options.hostname,
+            port: options.port,
+            securityPolicies: options.securityPolicies,
+            securityModes: options.securityModes,
+            allowAnonymous: options.allowAnonymous,
+            alternateHostname: options.alternateHostname,
+            disableDiscovery: options.disableDiscovery
+        };
+
         this.bonjourHolder = new BonjourHolder();
 
         // see OPC UA Spec 1.2 part 6 : 7.4 Well Known Addresses
@@ -134,7 +144,15 @@ export class OPCUADiscoveryServer extends OPCUABaseServer {
                 privateKey: this.getPrivateKey(),
                 serverInfo: this.serverInfo
             });
-            endPoint.addStandardEndpointDescriptions();
+            
+            endPoint.addStandardEndpointDescriptions({
+                securityModes: this._primaryEndpoint.securityModes,
+                securityPolicies: this._primaryEndpoint.securityPolicies,
+                disableDiscovery: this._primaryEndpoint.disableDiscovery,
+
+                allowAnonymous: this._primaryEndpoint.allowAnonymous,
+                hostname: this._primaryEndpoint.hostname
+            });
 
             this.endpoints.push(endPoint);
 
