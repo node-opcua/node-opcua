@@ -5,7 +5,7 @@ describe("test buffer overflow prevention", function () {
     this.timeout(10000);
 
     it("readString - should raise an exception if array buffer is too large", () => {
-        const str = "*".padEnd(BinaryStream.maxAllowedStringSize + 1);
+        const str = "*".padEnd(BinaryStream.maxStringLength + 1);
 
         const binaryStream = new BinaryStream(str.length + 4);
 
@@ -19,7 +19,7 @@ describe("test buffer overflow prevention", function () {
     });
 
     it("readString - should not raise an exception if array buffer is as large as possible", () => {
-        const str = " ".padEnd(BinaryStream.maxAllowedStringSize);
+        const str = " ".padEnd(BinaryStream.maxStringLength);
 
         const binaryStream = new BinaryStream(str.length + 4);
 
@@ -32,7 +32,7 @@ describe("test buffer overflow prevention", function () {
     });
 
     it("readByteStream - should raise an exception if array buffer is too large", () => {
-        const buffer = Buffer.alloc(BinaryStream.maxAllowedBufferSize + 1);
+        const buffer = Buffer.alloc(BinaryStream.maxByteStringLength + 1);
 
         const binaryStream = new BinaryStream(buffer.length + 4);
 
@@ -46,7 +46,7 @@ describe("test buffer overflow prevention", function () {
     });
 
     it("readByteStream - should not raise an exception if array buffer is as large as possible", () => {
-        const buffer = Buffer.alloc(BinaryStream.maxAllowedBufferSize);
+        const buffer = Buffer.alloc(BinaryStream.maxByteStringLength);
 
         const binaryStream = new BinaryStream(buffer.length + 4);
 
@@ -58,9 +58,9 @@ describe("test buffer overflow prevention", function () {
     });
 
     it("readArrayBuffer - should raise an exception if array buffer is too large", () => {
-        const arrayBuffer = new Int32Array(BinaryStream.maxAllowedBufferSize / 4 + 1);
+        const arrayBuffer = new Int32Array(BinaryStream.maxByteStringLength / 4 + 1);
         const byteLength = arrayBuffer.byteLength;
-        byteLength.should.eql(BinaryStream.maxAllowedBufferSize+4);
+        byteLength.should.eql(BinaryStream.maxByteStringLength+4);
         const binaryStream = new BinaryStream(byteLength);
 
         binaryStream.writeArrayBuffer(arrayBuffer);
@@ -73,7 +73,7 @@ describe("test buffer overflow prevention", function () {
     });
 
     it("readArrayBuffer - should not raise an exception if array buffer is as large as possible", () => {
-        const arrayBuffer = new Int32Array(BinaryStream.maxAllowedBufferSize / 4);
+        const arrayBuffer = new Int32Array(BinaryStream.maxByteStringLength / 4);
         const byteLength = arrayBuffer.byteLength;
         const binaryStream = new BinaryStream(byteLength);
 

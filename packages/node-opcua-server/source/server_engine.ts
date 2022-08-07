@@ -5,7 +5,7 @@ import { EventEmitter } from "events";
 import * as async from "async";
 import * as chalk from "chalk";
 import { assert } from "node-opcua-assert";
-
+import { BinaryStream} from "node-opcua-binary-stream";
 import {
     addElement,
     AddressSpace,
@@ -1009,15 +1009,15 @@ export class ServerEngine extends EventEmitter {
                 );
 
                 bindStandardScalar(VariableIds.Server_ServerCapabilities_MaxArrayLength, DataType.UInt32, () => {
-                    return this.serverCapabilities.maxArrayLength;
+                    return Math.min(this.serverCapabilities.maxArrayLength, Variant.maxArrayLength);
                 });
 
                 bindStandardScalar(VariableIds.Server_ServerCapabilities_MaxStringLength, DataType.UInt32, () => {
-                    return this.serverCapabilities.maxStringLength;
+                    return Math.min(this.serverCapabilities.maxStringLength, BinaryStream.maxStringLength);
                 });
 
                 bindStandardScalar(VariableIds.Server_ServerCapabilities_MaxByteStringLength, DataType.UInt32, () => {
-                    return this.serverCapabilities.maxByteStringLength;
+                    return Math.min(this.serverCapabilities.maxByteStringLength, BinaryStream.maxByteStringLength);
                 });
 
                 const bindOperationLimits = (operationLimits: OperationLimits) => {
