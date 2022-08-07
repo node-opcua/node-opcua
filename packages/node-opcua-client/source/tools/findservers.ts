@@ -28,7 +28,7 @@ export function findServers(
     discoveryServerEndpointUri: string,
     callback?: (err: Error | null, result?: FindServerResults) => void
 ): any {
-    const client = new ClientBaseImpl({});
+    const client = new ClientBaseImpl({ connectionStrategy: { maxRetry: 3 } });
 
     let servers: ApplicationDescription[] = [];
     let endpoints: EndpointDescription[] = [];
@@ -77,7 +77,7 @@ export function findServersOnNetwork(
     discoveryServerEndpointUri: string,
     callback?: (err: Error | null, servers?: ServerOnNetwork[]) => void
 ): any {
-    const client = new ClientBaseImpl({});
+    const client = new ClientBaseImpl({ connectionStrategy: { maxRetry: 3 } });
 
     client.connect(discoveryServerEndpointUri, (err?: Error) => {
         if (!err) {
