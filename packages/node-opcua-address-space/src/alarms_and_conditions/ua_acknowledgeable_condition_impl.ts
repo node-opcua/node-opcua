@@ -10,39 +10,16 @@ import { DataType, VariantLike, VariantOptions } from "node-opcua-variant";
 import { INamespace, RaiseEventData, ISessionContext, UAEventType, UAMethod } from "node-opcua-address-space-base";
 import { CallMethodResultOptions } from "node-opcua-service-call";
 
-import { UATwoStateVariableEx } from "../../source/ua_two_state_variable_ex";
 import { AddressSpacePrivate } from "../address_space_private";
 import { _install_TwoStateVariable_machinery } from "../state_machine/ua_two_state_variable";
+import { UAAcknowledgeableConditionEx } from "../../source/interfaces/alarms_and_conditions/ua_acknowledgeable_condition_ex";
+import { ConditionSnapshot } from "../../source/interfaces/alarms_and_conditions/condition_snapshot";
+import { InstantiateAlarmConditionOptions } from "../../source/interfaces/alarms_and_conditions/instantiate_alarm_condition_options";
+
 import { _setAckedState } from "./condition";
-import { ConditionSnapshot } from "./condition_snapshot";
-import { UAConditionHelper, UAConditionImpl, UAConditionEx } from "./ua_condition_impl";
-import { InstantiateAlarmConditionOptions } from "./ua_alarm_condition_impl";
+import { ConditionSnapshotImpl } from "./condition_snapshot_impl";
+import {  UAConditionImpl } from "./ua_condition_impl";
 
-export interface UAAcknowledgeableConditionHelper extends UAConditionHelper {
-    ///
-    on(eventName: string, eventHandler: (...args: any[]) => void): this;
-
-    on(
-        eventName: "acknowledged" | "confirmed",
-        eventHandler: (eventId: Buffer | null, comment: LocalizedText, branch: ConditionSnapshot) => void
-    ): this;
-}
-export interface UAAcknowledgeableConditionHelper {
-    autoConfirmBranch(branch: ConditionSnapshot, comment: LocalizedTextLike): void;
-    acknowledgeAndAutoConfirmBranch(branch: ConditionSnapshot, comment: string | LocalizedTextLike | LocalizedText): void;
-}
-export interface UAAcknowledgeableConditionEx
-    extends UAAcknowledgeableCondition_Base,
-        UAAcknowledgeableConditionHelper,
-        UAConditionEx {
-    on(eventName: string, eventHandler: any): this;
-
-    enabledState: UATwoStateVariableEx;
-    ackedState: UATwoStateVariableEx;
-    confirmedState?: UATwoStateVariableEx;
-    acknowledge: UAMethod;
-    confirm?: UAMethod;
-}
 
 export declare interface UAAcknowledgeableConditionImpl extends UAAcknowledgeableConditionEx, UAConditionImpl {
     on(eventName: string, eventHandler: any): this;
@@ -196,7 +173,7 @@ export class UAAcknowledgeableConditionImpl extends UAConditionImpl implements U
     ): StatusCode {
         assert(typeof message === "string");
 
-        const statusCode = _setAckedState(branch, true, conditionEventId, comment);
+        const statusCode = _setAckedState(branch as ConditionSnapshotImpl, true, conditionEventId, comment);
         if (statusCode !== StatusCodes.Good) {
             return statusCode;
         }
@@ -274,7 +251,7 @@ export class UAAcknowledgeableConditionImpl extends UAConditionImpl implements U
      * @param comment
      */
     public autoConfirmBranch(branch: ConditionSnapshot, comment: LocalizedTextLike): void {
-        assert(branch instanceof ConditionSnapshot);
+        assert(branch instanceof ConditionSnapshotImpl);
         if (!this.confirmedState) {
             // no confirmedState => ignoring
             return;
@@ -309,7 +286,7 @@ function _acknowledge_method(
         inputArguments,
         context,
         callback,
-        (conditionEventId: Buffer, comment: LocalizedText, branch: ConditionSnapshot, conditionNode: UACondition) => {
+        (conditionEventId: Buffer, comment: LocalizedText, branch: ConditionSnapshot, conditionNode: UAConditionImpl) => {
             const ackConditionNode = conditionNode as UAAcknowledgeableConditionImpl;
             // precondition checking
             assert(!conditionEventId || conditionEventId instanceof Buffer, "must have a valid eventId or  null");
@@ -334,7 +311,7 @@ function _confirm_method(inputArguments: VariantLike[], context: ISessionContext
         inputArguments,
         context,
         callback,
-        (eventId: Buffer, comment: LocalizedText, branch: ConditionSnapshot, conditionNode: UACondition) => {
+        (eventId: Buffer, comment: LocalizedText, branch: ConditionSnapshot, conditionNode: UAConditionImpl) => {
             assert(eventId instanceof Buffer);
             assert(branch.getEventId() instanceof Buffer);
             assert(branch.getEventId().toString("hex") === eventId.toString("hex"));

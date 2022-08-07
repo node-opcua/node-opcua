@@ -4,7 +4,8 @@
 import { INamespace } from "node-opcua-address-space-base";
 import { NodeId } from "node-opcua-nodeid";
 import { VariantOptions } from "node-opcua-variant";
-import { InstantiateOffNormalAlarmOptions, UAOffNormalAlarmImpl } from "./ua_off_normal_alarm_impl";
+import { InstantiateOffNormalAlarmOptions } from "../../source/interfaces/alarms_and_conditions/instantiate_off_normal_alarm_options";
+import { UAOffNormalAlarmImpl } from "./ua_off_normal_alarm_impl";
 
 /**
  *

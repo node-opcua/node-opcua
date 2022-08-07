@@ -4,46 +4,43 @@
 import { Certificate, exploreCertificate, makeSHA1Thumbprint } from "node-opcua-crypto";
 import { DateTime, minOPCUADate } from "node-opcua-basic-types";
 import { make_warningLog } from "node-opcua-debug";
+import { NodeId } from "node-opcua-nodeid";
 import { DataType, VariantOptions } from "node-opcua-variant";
-import { UACertificateExpirationAlarm_Base } from "node-opcua-nodeset-ua";
-import { INamespace, UAObject } from "node-opcua-address-space-base";
+import { INamespace, UAObject, UAProperty } from "node-opcua-address-space-base";
 import { ObjectTypeIds } from "node-opcua-constants";
-import { AccessRestrictionsFlag, makeAccessLevelExFlag } from "node-opcua-data-model";
+import { makeAccessLevelExFlag } from "node-opcua-data-model";
+import { UACertificateExpirationAlarmEx } from "../../source/interfaces/alarms_and_conditions/ua_certificate_expiration_alarm_ex";
+import { InstantiateOffNormalAlarmOptions } from "../../source/interfaces/alarms_and_conditions/instantiate_off_normal_alarm_options";
 import { registerNodePromoter } from "../../source/loader/register_node_promoter";
-import { InstantiateOffNormalAlarmOptions, UAOffNormalAlarmImpl } from "./ua_off_normal_alarm_impl";
 import { UASystemOffNormalAlarmImpl } from "./ua_system_off_normal_alarm_impl";
 
 const warningLog = make_warningLog("AlarmsAndConditions");
 
-export interface UACertificateExpirationAlarmEx
-    extends Omit<
-        UACertificateExpirationAlarm_Base,
-        | "ackedState"
-        | "activeState"
-        | "confirmedState"
-        | "enabledState"
-        | "latchedState"
-        | "limitState"
-        | "outOfServiceState"
-        | "shelvingState"
-        | "silenceState"
-        | "suppressedState"
-    > {
-    getExpirationDate(): DateTime;
-    setExpirationDate(value: Date): void;
-    getExpirationLimit(): number;
-    setExpirationLimit(value: number): void;
-    setCertificate(certificate: Certificate | null): void;
-    getCertificate(): Certificate | null;
+export function instantiateCertificateExpirationAlarm(
+    namespace: INamespace,
+    alarmType: "CertificateExpirationAlarmType",
+    options: InstantiateOffNormalAlarmOptions,
+    data?: Record<string, VariantOptions>
+
+): UACertificateExpirationAlarmEx {
+    return UACertificateExpirationAlarmImpl.instantiate(namespace,alarmType, options, data);
 }
 
-export declare interface UACertificateExpirationAlarmImpl extends UACertificateExpirationAlarmEx, UASystemOffNormalAlarmImpl {}
+
+interface UACertificateExpirationAlarmImpl {
+    expirationDate: UAProperty<Date, /*z*/DataType.DateTime>;
+    expirationLimit?: UAProperty<number, /*z*/DataType.Double>;
+    certificateType: UAProperty<NodeId, /*z*/DataType.NodeId>;
+    certificate: UAProperty<Buffer, /*z*/DataType.ByteString>;
+}
 /**
  * This UACertificateExpirationAlarm (SystemOffNormalAlarmType) is raised by the Server when the Server’s
  * Certificate is within the ExpirationLimit
  * of expiration. This alarm automatically returns to normal when the certificate is updated.
  */
-export class UACertificateExpirationAlarmImpl extends UASystemOffNormalAlarmImpl implements UACertificateExpirationAlarmEx {
+class UACertificateExpirationAlarmImpl extends UASystemOffNormalAlarmImpl implements UACertificateExpirationAlarmEx {
+
+
     public static instantiate(
         namespace: INamespace,
         alarmType: "CertificateExpirationAlarmType",

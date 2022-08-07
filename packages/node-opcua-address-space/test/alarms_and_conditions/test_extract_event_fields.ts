@@ -12,12 +12,11 @@ import {
 import { coerceQualifiedName, AttributeIds } from "node-opcua-data-model";
 import { coerceNodeId, resolveNodeId, NodeId } from "node-opcua-nodeid";
 import { Variant, DataType } from "node-opcua-variant";
-
 import {
     AddressSpace,
-    extractEventFields,
     UAObject,
     SessionContext,
+    extractEventFields,
     checkWhereClause,
     RaiseEventData,
     UAEventType,

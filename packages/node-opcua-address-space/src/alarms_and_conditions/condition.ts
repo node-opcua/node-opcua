@@ -6,16 +6,15 @@ import { assert } from "node-opcua-assert";
 import { LocalizedText, LocalizedTextLike } from "node-opcua-data-model";
 import { minDate } from "node-opcua-basic-types";
 import { StatusCode, StatusCodes } from "node-opcua-status-code";
-
-import { ConditionSnapshot } from "./condition_snapshot";
+import { ConditionSnapshotImpl } from "./condition_snapshot_impl";
 
 export function _setAckedState(
-    self: ConditionSnapshot,
+    self: ConditionSnapshotImpl,
     requestedAckedState: boolean,
     conditionEventId?: Buffer,
     comment?: string | LocalizedText | LocalizedTextLike
 ): StatusCode {
-    assert(self instanceof ConditionSnapshot);
+    assert(self instanceof ConditionSnapshotImpl);
 
     const ackedState = self.getAckedState();
 

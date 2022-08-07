@@ -5,15 +5,9 @@ import { assert } from "node-opcua-assert";
 import { UInt16 } from "node-opcua-basic-types";
 import { LocalizedText, LocalizedTextLike } from "node-opcua-data-model";
 import { StatusCode } from "node-opcua-status-code";
-import { ConditionInfoOptions } from "../../source/interfaces/alarms_and_conditions/condition_info_i";
+import { ConditionInfo, ConditionInfoOptions } from "../../source/interfaces/alarms_and_conditions/condition_info_i";
 
-export interface ConditionInfo {
-    message: LocalizedText | null;
-    quality: StatusCode | null;
-    severity: UInt16 | null;
-    retain: boolean | null;
-    isDifferentFrom(otherConditionInfo: ConditionInfo): boolean;
-}
+
 /**
  * @class ConditionInfo
  * @param options  {Object}
@@ -23,7 +17,7 @@ export interface ConditionInfo {
  * @param options.retain   {Boolean} retain flag
  * @constructor
  */
-export class ConditionInfo {
+export class ConditionInfoImpl implements ConditionInfo {
     public message: LocalizedText | null = null;
     public quality: StatusCode | null = null;
     public severity: UInt16 | null = 0;

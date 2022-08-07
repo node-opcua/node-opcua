@@ -14,15 +14,15 @@ const {
 const securityMode = MessageSecurityMode.None;
 const securityPolicy = SecurityPolicy.None;
 
+const { make_debugLog } = require("node-opcua-debug");
 const { perform_operation_on_client_session } = require("../../test_helpers/perform_operation_on_client_session");
 
-const { make_debugLog } = require("node-opcua-debug");
 const debugLog = make_debugLog("TEST");
 
 // bug : server reported to many datavalue changed when client monitored a UAVariable constructed with variation 1");
 
+// eslint-disable-next-line import/order
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
-
 module.exports = function (test) {
 
     describe("Testing bug #141 -  Client should have a appropriated timeoutHint on PublishRequest ", function () {
@@ -92,6 +92,7 @@ module.exports = function (test) {
                     keepaliveCounter++;
 
                 }).on("terminated", function () {
+                    /** */
                 });
 
             }, done);

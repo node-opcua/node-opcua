@@ -467,7 +467,7 @@ describe("testing NodeSet XML file loading", function (this: any) {
         doDebug && console.log("------------ Before");
         doDebug && console.log(object.toString());
 
-        const dataTypeManager = await ensureDatatypeExtracted(addressSpace);
+        const dataTypeManager: ExtraDataTypeManager = await ensureDatatypeExtracted(addressSpace);
 
         const stream = new BinaryStream(10000);
         object.encode(stream);
@@ -507,7 +507,7 @@ describe("testing NodeSet XML file loading", function (this: any) {
                 return element;
             }
             const variant = new Variant({ dataType: DataType.ExtensionObject, value: element });
-            await resolveDynamicExtensionObject(session, variant, dataTypeManager);
+            await resolveDynamicExtensionObject(session, variant, dataTypeManager as any);
             return variant.value as unknown;
         }
         function fixOpaqueStructure(object: any, field: StructuredTypeField, data: D, args?: any) {

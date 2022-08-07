@@ -10,7 +10,7 @@ import { DataType } from "node-opcua-variant";
 import { Variant } from "node-opcua-variant";
 
 import { coerceLocalizedText } from "node-opcua-data-model";
-import { AddressSpace, ConditionInfo, SessionContext, UAConditionEx, UAEventType, UAObject } from "../..";
+import { AddressSpace, SessionContext, UAConditionEx, UAEventType, UAObject } from "../..";
 import { mockSession } from "../../testHelpers";
 
 export function utest_condition(test: any): void {
@@ -95,12 +95,12 @@ export function utest_condition(test: any): void {
                     condition.setEnabledState(true).should.eql(StatusCodes.BadConditionAlreadyEnabled);
 
                     condition.enabledState.id.readValue().value.value.should.eql(true);
-                    condition.enabledState.readValue().value.value.text.should.eql("Enabled");
+                    condition.enabledState.readValue().value.value.text!.should.eql("Enabled");
 
                     condition.setEnabledState(false).should.eql(StatusCodes.Good);
                     condition.setEnabledState(false).should.eql(StatusCodes.BadConditionAlreadyDisabled);
                     condition.enabledState.id.readValue().value.value.should.eql(false);
-                    condition.enabledState.readValue().value.value.text.should.eql("Disabled");
+                    condition.enabledState.readValue().value.value.text!.should.eql("Disabled");
                     condition.getEnabledState().should.eql(false);
 
                     //  calling disable when enable state is false should return BadConditionAlreadyDisabled
@@ -114,21 +114,21 @@ export function utest_condition(test: any): void {
                     condition.enabledState.id.readValue().value.value.should.eql(false);
                     condition.getEnabledState().should.eql(false);
 
-                    condition.enabledState.readValue().value.value.text.should.eql("Disabled");
+                    condition.enabledState.readValue().value.value.text!.should.eql("Disabled");
 
                     // calling enable when enable state is false should return Good
 
                     const callMethodResult2 = await condition.enable.execute(null, [], context);
                     callMethodResult2.statusCode!.should.eql(StatusCodes.Good);
                     condition.enabledState.id.readValue().value.value.should.eql(true);
-                    condition.enabledState.readValue().value.value.text.should.eql("Enabled");
+                    condition.enabledState.readValue().value.value.text!.should.eql("Enabled");
 
                     //  calling enable when enable state is already true should return BadConditionAlreadyEnabled
                     const callMethodResult3 = await condition.enable.execute(null, [], context);
 
                     callMethodResult3.statusCode!.should.eql(StatusCodes.BadConditionAlreadyEnabled);
                     condition.enabledState.id.readValue().value.value.should.eql(true);
-                    condition.enabledState.readValue().value.value.text.should.eql("Enabled");
+                    condition.enabledState.readValue().value.value.text!.should.eql("Enabled");
                 }
             );
 
@@ -254,7 +254,7 @@ export function utest_condition(test: any): void {
                 condition.retain.readValue().value.value.should.eql(true);
 
                 condition.enabledState.readValue().statusCode.should.eql(StatusCodes.Good);
-                condition.enabledState.readValue().value.value.text.should.eql("Enabled");
+                condition.enabledState.readValue().value.value.text!.should.eql("Enabled");
 
                 //  When the Condition instance enters the Disabled state, ...
                 let statusCode = condition.setEnabledState(false);
@@ -271,7 +271,7 @@ export function utest_condition(test: any): void {
                 condition.retain.readValue().value.value.should.eql(false);
                 // lets verify
                 condition.enabledState.readValue().statusCode.should.eql(StatusCodes.Good);
-                condition.enabledState.readValue().value.value.text.should.eql("Disabled");
+                condition.enabledState.readValue().value.value.text!.should.eql("Disabled");
 
                 // An event should have been raised to specify that the condition has entered a Disabled State
                 spyOnEvent.callCount.should.eql(2, "an event should have been raised to signal Disabled State");
@@ -394,7 +394,7 @@ export function utest_condition(test: any): void {
                 });
 
                 // make sure condition is raised once
-                condition.raiseNewCondition(new ConditionInfo({ severity: 100 }));
+                condition.raiseNewCondition({ severity: 100 });
                 const eventId = condition.eventId.readValue().value.value;
                 should(eventId).be.instanceOf(Buffer);
 
@@ -410,8 +410,8 @@ export function utest_condition(test: any): void {
                     null,
                     param,
                     context,
-                    (err: Error | null, callMethodResult: CallMethodResultOptions) => {
-                        callMethodResult.statusCode!.should.equal(StatusCodes.Good);
+                    (err: Error | null, callMethodResult?: CallMethodResultOptions) => {
+                        callMethodResult!.statusCode!.should.equal(StatusCodes.Good);
                     }
                 );
 
@@ -427,7 +427,7 @@ export function utest_condition(test: any): void {
                     organizedBy: addressSpace.rootFolder.objects
                 });
 
-                condition.raiseNewCondition(new ConditionInfo({ severity: 100 }));
+                condition.raiseNewCondition({ severity: 100 });
 
                 const context = new SessionContext({ object: condition });
                 const eventId = condition.eventId.readValue().value.value;
@@ -446,8 +446,8 @@ export function utest_condition(test: any): void {
                     condition,
                     param,
                     context,
-                    (err: Error | null, callMethodResult: CallMethodResultOptions) => {
-                        callMethodResult.statusCode!.should.equal(StatusCodes.Good);
+                    (err: Error | null, callMethodResult?: CallMethodResultOptions) => {
+                        callMethodResult!.statusCode!.should.equal(StatusCodes.Good);
                     }
                 );
 
@@ -465,7 +465,7 @@ export function utest_condition(test: any): void {
                 });
                 condition.sourceNode.readValue().value.value.toString().should.eql(source.nodeId.toString());
                 condition.sourceName.dataType.toString().should.eql("ns=0;i=12"); // string
-                condition.sourceName.readValue().value.value.should.eql(source.browseName.toString());
+                condition.sourceName.readValue().value.value!.should.eql(source.browseName.toString());
             });
 
             it("initial value of lastSeverity should be zero", () => {
@@ -689,7 +689,7 @@ export function utest_condition(test: any): void {
                             condition,
                             [subscriptionIdVar],
                             context,
-                            (err: Error | null, callMethodResult: CallMethodResultOptions) => {
+                            (err: Error | null, callMethodResult?: CallMethodResultOptions) => {
                                 //
                                 // During the process we should receive 3 events
                                 //

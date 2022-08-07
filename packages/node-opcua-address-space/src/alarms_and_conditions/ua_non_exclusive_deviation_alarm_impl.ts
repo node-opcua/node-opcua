@@ -6,46 +6,20 @@ import { assert } from "node-opcua-assert";
 
 import { DataValue } from "node-opcua-data-value";
 import { NodeId } from "node-opcua-nodeid";
-import { DataType, VariantOptions } from "node-opcua-variant";
-import { UANonExclusiveDeviationAlarm_Base } from "node-opcua-nodeset-ua";
-import { UAVariable, UAVariableT } from "node-opcua-address-space-base";
+import { VariantOptions } from "node-opcua-variant";
+import { UAVariable } from "node-opcua-address-space-base";
 import { NamespacePrivate } from "../namespace_private";
 import { AddressSpace } from "../address_space";
+import { InstantiateLimitAlarmOptions } from "../../source/interfaces/alarms_and_conditions/instantiate_limit_alarm_options";
+import { UANonExclusiveDeviationAlarmEx } from "../../source/interfaces/alarms_and_conditions/ua_non_exclusive_deviation_alarm_ex";
 import {
     DeviationAlarmHelper_getSetpointNodeNode,
     DeviationAlarmHelper_getSetpointValue,
     DeviationAlarmHelper_install_setpoint,
-    DeviationAlarmHelper_onSetpointDataValueChange,
-    DeviationStuff
+    DeviationAlarmHelper_onSetpointDataValueChange
 } from "./deviation_alarm_helper";
-import { InstantiateLimitAlarmOptions, UALimitAlarmImpl } from "./ua_limit_alarm_impl";
-import { UANonExclusiveLimitAlarmEx, UANonExclusiveLimitAlarmImpl } from "./ua_non_exclusive_limit_alarm_impl";
-
-export interface UANonExclusiveDeviationAlarmEx
-    extends Omit<
-            UANonExclusiveDeviationAlarm_Base,
-            | "ackedState"
-            | "activeState"
-            | "confirmedState"
-            | "enabledState"
-            | "latchedState"
-            | "limitState"
-            | "outOfServiceState"
-            | "shelvingState"
-            | "silenceState"
-            | "suppressedState"
-            //
-            | "highHighState"
-            | "highState"
-            | "lowState"
-            | "lowLowState"
-        >,
-        UANonExclusiveLimitAlarmEx,
-        DeviationStuff {
-    setpointNode: UAVariableT<NodeId, DataType.NodeId>;
-    setpointNodeNode: UAVariable;
-}
-
+import { UALimitAlarmImpl } from "./ua_limit_alarm_impl";
+import { UANonExclusiveLimitAlarmImpl } from "./ua_non_exclusive_limit_alarm_impl";
 export declare interface UANonExclusiveDeviationAlarmImpl extends UANonExclusiveLimitAlarmImpl, UANonExclusiveDeviationAlarmEx {
     on(eventName: string, eventHandler: any): this;
     get addressSpace(): AddressSpace;

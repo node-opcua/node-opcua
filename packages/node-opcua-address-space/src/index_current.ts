@@ -21,8 +21,6 @@ export * from "../source/namespace_data_access";
 export * from "../source/namespace_machine_state"
 export * from "../source/namespace_alarm_and_condition";
 
-export { UACertificateExpirationAlarmImpl } from "./alarms_and_conditions";
-
 export { ensureDatatypeExtracted, ensureDatatypeExtractedWithCallback } from "../source/loader/ensure_datatype_extracted";
 export * from "../source/loader/generateAddressSpaceRaw";
 
@@ -45,8 +43,8 @@ export { resolveReferenceNode, resolveReferenceType } from "./reference_impl";
 export * from "./data_access/check_variant_compatibility_ua_analog_item";
 export * from "./data_access/add_dataItem_stuff";
 export * from "./data_access/ua_multistate_discrete_impl";
-export * from "./data_access/ua_multistate_value_discrete";
-export * from "./data_access/ua_two_state_discrete";
+export * from "./data_access/ua_multistate_value_discrete_impl";
+export * from "./data_access/ua_two_state_discrete_impl";
 
 export { VariableHistorian } from "./historical_access/address_space_historical_data_node";
 export { NodeIdManager } from "../src/nodeid_manager";

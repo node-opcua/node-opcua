@@ -9,10 +9,10 @@ import { UAOffNormalAlarm_Base } from "node-opcua-nodeset-ua";
 import { StatusCodes } from "node-opcua-status-code";
 import * as utils from "node-opcua-utils";
 import { DataType, VariantOptions } from "node-opcua-variant";
-
+import { InstantiateOffNormalAlarmOptions } from "../../source/interfaces/alarms_and_conditions/instantiate_off_normal_alarm_options";
+import { UADiscreteAlarmEx } from "../../source/interfaces/alarms_and_conditions/ua_discrete_alarm_ex";
 import { AddressSpacePrivate } from "../address_space_private";
-import { InstantiateAlarmConditionOptions } from "./ua_alarm_condition_impl";
-import { UADiscreteAlarmEx, UADiscreteAlarmImpl } from "./ua_discrete_alarm_impl";
+import {  UADiscreteAlarmImpl } from "./ua_discrete_alarm_impl";
 
 function isEqual(value1: any, value2: any) {
     return value1 === value2;
@@ -39,9 +39,7 @@ export declare interface UAOffNormalAlarmEx
     setNormalStateValue(value: any): void;
 }
 
-export interface InstantiateOffNormalAlarmOptions extends InstantiateAlarmConditionOptions {
-    normalState: NodeIdLike;
-}
+
 export declare interface UAOffNormalAlarmImpl extends UAOffNormalAlarmEx, UADiscreteAlarmImpl {
     on(eventName: string, eventHandler: any): this;
 }

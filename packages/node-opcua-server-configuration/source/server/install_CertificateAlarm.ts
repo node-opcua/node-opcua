@@ -4,11 +4,11 @@
 import {
     AddressSpace,
     BaseNode,
+    instantiateCertificateExpirationAlarm,
     UACertificateExpirationAlarmEx,
-    UACertificateExpirationAlarmImpl,
     UAObject
 } from "node-opcua-address-space";
-import { InstantiateOffNormalAlarmOptions } from "node-opcua-address-space/src/alarms_and_conditions/ua_off_normal_alarm_impl";
+import { InstantiateOffNormalAlarmOptions } from "node-opcua-address-space";
 import { coerceQualifiedName, NodeClass } from "node-opcua-data-model";
 import { checkDebugFlag, make_debugLog, make_errorLog } from "node-opcua-debug";
 import { NodeId, sameNodeId } from "node-opcua-nodeid";
@@ -40,7 +40,7 @@ export function installCertificateExpirationAlarm(addressSpace: AddressSpace): U
         normalState: new NodeId(),
         optionals: ["ExpirationLimit"]
     };
-    const certificateExpirationAlarm = UACertificateExpirationAlarmImpl.instantiate(
+    const certificateExpirationAlarm = instantiateCertificateExpirationAlarm(
         namespace,
         "CertificateExpirationAlarmType",
         options

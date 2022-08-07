@@ -4,18 +4,13 @@
 import { format } from "util";
 
 import { assert } from "node-opcua-assert";
-import { 
-    ConstructorFunc, 
-    DataTypeFactory, 
-    getStandardDataTypeFactory 
-} from "node-opcua-factory";
+import { ConstructorFunc, DataTypeFactory, getStandardDataTypeFactory } from "node-opcua-factory";
 import { NodeId } from "node-opcua-nodeid";
 import { AnyConstructorFunc } from "node-opcua-schemas";
 
 export class ExtraDataTypeManager {
     public namespaceArray: string[] = [];
-
-    private readonly dataTypeFactoryMapByNamespace: { [key: number]: DataTypeFactory } = {};
+    private dataTypeFactoryMapByNamespace: { [key: number]: DataTypeFactory } = {};
 
     constructor() {
         /* */
@@ -26,7 +21,7 @@ export class ExtraDataTypeManager {
     }
 
     public hasDataTypeFactory(namespaceIndex: number): boolean {
-        return !!Object.prototype.hasOwnProperty.call(this.dataTypeFactoryMapByNamespace,namespaceIndex);
+        return !!Object.prototype.hasOwnProperty.call(this.dataTypeFactoryMapByNamespace, namespaceIndex);
     }
 
     public registerDataTypeFactory(namespaceIndex: number, dataTypeFactory: DataTypeFactory): void {
@@ -71,7 +66,7 @@ export class ExtraDataTypeManager {
         }
         return Constructor;
     }
-    
+
     public toString(): string {
         const l: string[] = [];
         function write(...args: [any, ...any[]]) {

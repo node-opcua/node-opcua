@@ -9,21 +9,18 @@ import { DataValue } from "node-opcua-data-value";
 import { NodeId, sameNodeId } from "node-opcua-nodeid";
 import { StatusCodes } from "node-opcua-status-code";
 import { DataType, VariantOptions } from "node-opcua-variant";
-import { UAAlarmCondition_Base } from "node-opcua-nodeset-ua";
+import { UAShelvedStateMachine } from "node-opcua-nodeset-ua";
 import { BaseNode, INamespace, UAEventType, UAVariable } from "node-opcua-address-space-base";
 
 import { _install_TwoStateVariable_machinery } from "../state_machine/ua_two_state_variable";
-import { UAShelvedStateMachineEx, _clear_timer_if_any } from "../state_machine/ua_shelving_state_machine_ex";
-import { UATwoStateVariableEx } from "../../source/ua_two_state_variable_ex";
+import { UAShelvedStateMachineExImpl, _clear_timer_if_any } from "../state_machine/ua_shelving_state_machine_ex";
 import { AddressSpacePrivate } from "../address_space_private";
+import { ConditionInfo } from "../../source/interfaces/alarms_and_conditions/condition_info_i";
+import { UAAlarmConditionEx } from "../../source/interfaces/alarms_and_conditions/ua_alarm_condition_ex";
+import { InstantiateAlarmConditionOptions } from "../../source/interfaces/alarms_and_conditions/instantiate_alarm_condition_options";
 
-import { ConditionInfo } from "./condition_info";
-import {
-    UAAcknowledgeableConditionEx,
-    UAAcknowledgeableConditionHelper,
-    UAAcknowledgeableConditionImpl
-} from "./ua_acknowledgeable_condition_impl";
-import { InstantiateConditionOptions } from "./ua_condition_impl";
+import { ConditionInfoImpl } from "./condition_info_impl";
+import { UAAcknowledgeableConditionImpl } from "./ua_acknowledgeable_condition_impl";
 
 function _update_suppressedOrShelved(alarmNode: UAAlarmConditionImpl) {
     alarmNode.suppressedOrShelved.setValueFromSource({
@@ -31,45 +28,10 @@ function _update_suppressedOrShelved(alarmNode: UAAlarmConditionImpl) {
         value: alarmNode.isSuppressedOrShelved()
     });
 }
-export interface UAAlarmConditionHelper extends UAAcknowledgeableConditionHelper {
-    activateAlarm(): void;
-    deactivateAlarm(retain?: boolean): void;
-    isSuppressedOrShelved(): boolean;
-    getSuppressedOrShelved(): boolean;
-    setMaxTimeShelved(duration: number): void;
-    getMaxTimeShelved(): number;
-    getInputNodeNode(): UAVariable | null;
-    getInputNodeValue(): any | null;
-    updateState(): void;
-    getCurrentConditionInfo(): ConditionInfo;
-
-    installInputNodeMonitoring(inputNode: BaseNode | NodeId): void;
-}
-
-export declare interface UAAlarmConditionEx extends UAAlarmConditionHelper, UAAlarmCondition_Base, UAAcknowledgeableConditionEx {
-    on(eventName: string, eventHandler: any): this;
-
-    enabledState: UATwoStateVariableEx;
-    activeState: UATwoStateVariableEx;
-    ackedState: UATwoStateVariableEx;
-    confirmedState?: UATwoStateVariableEx;
-
-    suppressedState?: UATwoStateVariableEx;
-
-    outOfServiceState?: UATwoStateVariableEx;
-    shelvingState?: UAShelvedStateMachineEx;
-    silenceState?: UATwoStateVariableEx;
-    latchedState?: UATwoStateVariableEx;
-}
-
 export declare interface UAAlarmConditionImpl extends UAAlarmConditionEx, UAAcknowledgeableConditionImpl {
     on(eventName: string, eventHandler: any): this;
 }
 
-export interface InstantiateAlarmConditionOptions extends InstantiateConditionOptions {
-    maxTimeShelved?: number;
-    inputNode: BaseNode | NodeId;
-}
 export class UAAlarmConditionImpl extends UAAcknowledgeableConditionImpl implements UAAlarmConditionEx {
     public static MaxDuration = Math.pow(2, 31);
 
@@ -161,7 +123,7 @@ export class UAAlarmConditionImpl extends UAAcknowledgeableConditionImpl impleme
          * @type ShelvingStateMachine
          */
         if (alarmNode.shelvingState) {
-            UAShelvedStateMachineEx.promote(alarmNode.shelvingState);
+            UAShelvedStateMachineExImpl.promote(alarmNode.shelvingState);
         }
 
         // SuppressedOrShelved : Mandatory
@@ -221,7 +183,7 @@ export class UAAlarmConditionImpl extends UAAcknowledgeableConditionImpl impleme
 
     public dispose(): void {
         if (this.shelvingState) {
-            _clear_timer_if_any(this.shelvingState);
+            _clear_timer_if_any(this.shelvingState as any as UAShelvedStateMachineExImpl);
         }
         super.dispose();
     }
@@ -403,7 +365,7 @@ export class UAAlarmConditionImpl extends UAAcknowledgeableConditionImpl impleme
         const oldMessage = this.currentBranch().getMessage();
         const oldRetain = this.currentBranch().getRetain();
 
-        const oldConditionInfo = new ConditionInfo({
+        const oldConditionInfo = new ConditionInfoImpl({
             message: oldMessage,
             quality: oldQuality,
             retain: oldRetain,
@@ -448,14 +410,14 @@ export class UAAlarmConditionImpl extends UAAcknowledgeableConditionImpl impleme
         oldCondition: ConditionInfo
     ): ConditionInfo {
         if (!stateData) {
-            return new ConditionInfo({
+            return new ConditionInfoImpl({
                 message: "Back to normal",
                 quality: StatusCodes.Good,
                 retain: true,
                 severity: 0
             });
         } else {
-            return new ConditionInfo({
+            return new ConditionInfoImpl({
                 message: "Condition value is " + value + " and state is " + stateData,
                 quality: StatusCodes.Good,
                 retain: true,

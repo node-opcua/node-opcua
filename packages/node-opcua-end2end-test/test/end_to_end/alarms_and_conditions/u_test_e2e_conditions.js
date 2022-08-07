@@ -610,7 +610,7 @@ module.exports = function (test) {
             addCommentSpy.callCount.should.eql(1);
             addCommentSpy.getCall(0).args[0].should.be.instanceOf(Buffer); // eventId
             addCommentSpy.getCall(0).args[1].should.be.instanceOf(LocalizedText);
-            addCommentSpy.getCall(0).args[2].constructor.name.should.eql("ConditionSnapshot");
+            addCommentSpy.getCall(0).args[2].constructor.name.should.eql("ConditionSnapshotImpl");
 
             addCommentSpy.getCall(0).args[1].text.should.eql(the_new_comment);
 

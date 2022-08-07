@@ -5,7 +5,8 @@ import { NodeClass } from "node-opcua-data-model";
 import { NodeId } from "node-opcua-nodeid";
 import { StatusCodes } from "node-opcua-status-code";
 import { DataType } from "node-opcua-variant";
-import { AddressSpace, UAAcknowledgeableConditionEx, UAAcknowledgeableConditionImpl, UAObject } from "../..";
+import { AddressSpace, UAObject } from "../..";
+import { UAAcknowledgeableConditionEx } from "../../dist/source/interfaces/alarms_and_conditions/ua_acknowledgeable_condition_ex";
 
 export function utest_acknowledgeable_condition(test: any): void {
     describe("AddressSpace : Acknowledgeable Conditions ", () => {
@@ -42,7 +43,7 @@ export function utest_acknowledgeable_condition(test: any): void {
                 {
                     "enabledState.id": { dataType: DataType.Boolean, value: true }
                 }
-            ) as UAAcknowledgeableConditionImpl;
+            ) as UAAcknowledgeableConditionEx;
 
             // HasTrueSubState and HasFalseSubState relationship must be maintained
             condition.ackedState.isTrueSubStateOf!.should.eql(condition.enabledState);
@@ -61,7 +62,7 @@ export function utest_acknowledgeable_condition(test: any): void {
                 {
                     "enabledState.id": { dataType: DataType.Boolean, value: true }
                 }
-            ) as UAAcknowledgeableConditionImpl;
+            ) as UAAcknowledgeableConditionEx;
 
             // HasTrueSubState and HasFalseSubState relationship must be maintained
             condition.ackedState.isTrueSubStateOf!.should.eql(condition.enabledState);
@@ -82,7 +83,7 @@ export function utest_acknowledgeable_condition(test: any): void {
                 {
                     "enabledState.id": { dataType: DataType.Boolean, value: true }
                 }
-            ) as UAAcknowledgeableConditionImpl;
+            ) as UAAcknowledgeableConditionEx;
 
             condition.confirmedState!.browseName.toString();
             condition.ackedState.isTrueSubStateOf!.should.eql(condition.enabledState);
@@ -117,11 +118,11 @@ export function utest_acknowledgeable_condition(test: any): void {
             condition.activeState.browseName.toString().should.eql("ActiveState");
             condition.activeState.isTrueSubStateOf!.should.eql(condition.enabledState);
 
-            condition.shelvingState.browseName.toString().should.eql("ShelvingState");
-            condition.shelvingState.isTrueSubStateOf!.should.eql(condition.enabledState);
+            condition.shelvingState!.browseName.toString().should.eql("ShelvingState");
+            //condition.shelvingState!.isTrueSubStateOf!.should.eql(condition.enabledState);
 
-            condition.suppressedState.browseName.toString().should.eql("SuppressedState");
-            condition.suppressedState.isTrueSubStateOf!.should.eql(condition.enabledState);
+            condition.suppressedState!.browseName.toString().should.eql("SuppressedState");
+            condition.suppressedState!.isTrueSubStateOf!.should.eql(condition.enabledState);
 
             condition.confirmedState!.browseName.toString().should.eql("ConfirmedState");
             condition.confirmedState!.isTrueSubStateOf!.should.eql(condition.enabledState);
