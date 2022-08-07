@@ -379,6 +379,24 @@ describe("Variant", () => {
             });
         }).throwError();
     });
+    it("should raise an exception when invalid dataType : undefined", () => {
+        should(function construct_matrix_variant_with_invalid_value() {
+            const var1 = new Variant({
+                dataType: undefined,
+                arrayType: VariantArrayType.Matrix,
+                dimensions: [2, 3],
+                value: [0x000] // wrong size !
+            });
+        }).throwError();
+    });
+    it('should raise an exception when invalid dataType : "invalid"', () => {
+        should(function construct_matrix_variant_with_invalid_value() {
+            const var1 = new Variant({
+                dataType: "INVALID DATATYPE",
+                value: 0
+            });
+        }).throwError();
+    });
 
     it("should create a Array of ByteString Variant ", () => {
         const var1 = new Variant({
@@ -778,7 +796,17 @@ const old_encode = function (variant, stream) {
     }
 };
 
-xdescribe("benchmarking variant encode", () => {
+const { encodeVariant } = require("..");
+
+describe("encodeVariant", () => {
+    it("should throw if variant is missing", () => {
+        should.throws(() => {
+            encodeVariant(null);
+        });
+    });
+});
+
+describe("benchmarking variant encode", () => {
     function perform_benchmark(done) {
         const bench = new Benchmarker();
 
@@ -787,9 +815,6 @@ xdescribe("benchmarking variant encode", () => {
             encode.call(this, v, stream);
         }
 
-        const encodeVariant = require("..").encodeVariant;
-
-        const stream = new BinaryStream(4096);
         const variant = new Variant({
             dataType: DataType.UInt32,
             arrayType: VariantArrayType.Array,
@@ -797,6 +822,8 @@ xdescribe("benchmarking variant encode", () => {
         });
 
         variant.value = Array.from(new Array(10000), (_, i) => i);
+        const stream = new BinaryStream(variant.binaryStoreSize());
+   
         bench
             .add("Variant.encode", () => {
                 assert(typeof encodeVariant === "function");
@@ -1148,7 +1175,7 @@ describe("Variant with enumeration", () => {
 const { sameVariant } = require("..");
 
 describe("testing sameVariant Performance", function () {
-    this.timeout(Math.max(50*1000,this.timeout()));
+    this.timeout(Math.max(50 * 1000, this.timeout()));
 
     function largeArray(n) {
         const a = new Int32Array(n);
