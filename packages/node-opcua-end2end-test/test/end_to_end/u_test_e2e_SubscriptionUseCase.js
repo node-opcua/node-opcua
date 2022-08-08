@@ -68,7 +68,7 @@ function trace_console_log() {
         log1.apply(console, arguments);
     };
 }
-const consolelog = (...args) => {
+const tracelog = (...args) => {
     const d = new Date();
     const t = d.toTimeString().split(" ")[0] + "." + d.getMilliseconds().toString().padStart(3, "0");
     console.log.apply(console, [t, ...args]);
@@ -256,7 +256,7 @@ module.exports = function (test) {
                     // subscription.on("item_added",function(monitoredItem){
                     monitoredItemCurrentTime.on("changed", function (dataValue) {
                         should.exist(dataValue);
-                        //xx consolelog("xxxx current time", dataValue.value.value);
+                        //xx tracelog("xxxx current time", dataValue.value.value);
                         currentTime_changes++;
                     });
 
@@ -277,7 +277,7 @@ module.exports = function (test) {
                     let pumpSpeed_changes = 0;
                     monitoredItemPumpSpeed.on("changed", function (dataValue) {
                         should.exist(dataValue);
-                        // consolelog(" pump speed ", dataValue.value.value);
+                        // tracelog(" pump speed ", dataValue.value.value);
                         pumpSpeed_changes++;
                     });
 
@@ -505,12 +505,12 @@ module.exports = function (test) {
         //
         //    async.series([
         //        function (callback) {
-        //            consolelog(" Restarting server;")
+        //            tracelog(" Restarting server;")
         //            server.restart(callback);
         //        },
         //        function (callback) {
         //            try {
-        //                consolelog(chalk.bgWhite.black(" ------------------------------------------------ INNER FUNC"));
+        //                tracelog(chalk.bgWhite.black(" ------------------------------------------------ INNER FUNC"));
         //                inner_func(callback);
         //            }
         //            catch (err) {
@@ -639,7 +639,7 @@ module.exports = function (test) {
                         subscriptionIds.push(subscription.subscriptionId);
                         statusCodes.push("Good");
                     } catch (err) {
-                        consolelog("Create subscription has failed");
+                        tracelog("Create subscription has failed");
                         _err = err;
                         statusCodes.push("Bad");
                     }
@@ -648,9 +648,9 @@ module.exports = function (test) {
                 const _err = await tryToCreateSubscription();
                 if (expected_error) {
                     if (!_err) {
-                        consolelog("maxSubscriptionsPerSession=", server.engine.serverCapabilities.maxSubscriptionsPerSession);
-                        consolelog("maxSubscriptions          =", server.engine.serverCapabilities.maxSubscriptions);
-                        consolelog("serverCapabilities        =", server.engine.serverCapabilities);
+                        tracelog("maxSubscriptionsPerSession=", server.engine.serverCapabilities.maxSubscriptionsPerSession);
+                        tracelog("maxSubscriptions          =", server.engine.serverCapabilities.maxSubscriptions);
+                        tracelog("serverCapabilities        =", server.engine.serverCapabilities);
 
                         throw new Error("Expected error " + expected_error + " but got no error instead");
                     } else {
@@ -662,7 +662,7 @@ module.exports = function (test) {
                     }
                 }
                 await tryToCreateSubscription();
-                // consolelog("------------------------- !");
+                // tracelog("------------------------- !");
             }
 
             const maxSessionBackup = server.engine.serverCapabilities.maxSessions;
@@ -888,7 +888,7 @@ module.exports = function (test) {
                     const monitoredItem = ClientMonitoredItem.create(subscription, itemToMonitor, parameters);
 
                     monitoredItem.on("err", function (statusMessage) {
-                        consolelog(" ERR event received");
+                        tracelog(" ERR event received");
                         statusMessage.should.eql(StatusCodes.BadNodeIdUnknown.toString());
                         callback();
                     });
@@ -923,7 +923,7 @@ module.exports = function (test) {
                     );
 
                     monitoredItem.on("err", function (statusMessage) {
-                        //xx consolelog(" ERR event received");
+                        //xx tracelog(" ERR event received");
 
                         statusMessage.should.eql(StatusCodes.BadAttributeIdInvalid.toString());
                         callback();
@@ -1002,21 +1002,21 @@ module.exports = function (test) {
                     );
 
                     monitoredItem.on("err", function (statusMessage) {
-                        //xx consolelog("Monitored Item error",statusMessage);
+                        //xx tracelog("Monitored Item error",statusMessage);
                         statusMessage.should.eql(StatusCodes.BadIndexRangeInvalid.toString());
                         callback();
                     });
 
                     // subscription.on("item_added",function(monitoredItem){
                     monitoredItem.on("initialized", function () {
-                        //xx consolelog("Monitored Item Initialized")
+                        //xx tracelog("Monitored Item Initialized")
                     });
 
                     const monitoredItemOnChangedSpy = new sinon.spy();
                     monitoredItem.on("changed", monitoredItemOnChangedSpy);
 
                     setTimeout(function () {
-                        //xx consolelog(notificationMessageSpy.getCall(0).args[0].toString());
+                        //xx tracelog(notificationMessageSpy.getCall(0).args[0].toString());
                         monitoredItemOnChangedSpy.getCall(0).args[0].statusCode.should.eql(StatusCodes.BadIndexRangeNoData);
                         monitoredItemOnChangedSpy.callCount.should.eql(1, "Only one reply");
                         callback();
@@ -1085,7 +1085,7 @@ module.exports = function (test) {
                                 function (err, dataValue) {
                                     should.not.exist(err);
                                     should.exist(dataValue);
-                                    //xx consolelog(" written ",dataValue.toString());
+                                    //xx tracelog(" written ",dataValue.toString());
                                     callback(err);
                                 }
                             );
@@ -1131,7 +1131,7 @@ module.exports = function (test) {
                             function (callback) {
                                 monitoredItemOnChangedSpy.callCount.should.eql(1);
                                 monitoredItemOnChangedSpy.getCall(0).args[0].statusCode.should.eql(StatusCodes.Good);
-                                //xx consolelog(monitoredItemOnChangedSpy.getCall(0).args[0].toString());
+                                //xx tracelog(monitoredItemOnChangedSpy.getCall(0).args[0].toString());
                                 monitoredItemOnChangedSpy
                                     .getCall(0)
                                     .args[0].value.value.should.eql(new Int32Array([2, 3, 4, 5, 6, 7, 8, 9]));
@@ -1144,7 +1144,7 @@ module.exports = function (test) {
                             wait.bind(null, 300),
                             function (callback) {
                                 // no change ! there is no overlap
-                                //xx consolelog(monitoredItemOnChangedSpy.getCall(1).args[0].value.toString());
+                                //xx tracelog(monitoredItemOnChangedSpy.getCall(1).args[0].value.toString());
                                 monitoredItemOnChangedSpy.callCount.should.eql(1);
                                 callback();
                             },
@@ -1212,7 +1212,7 @@ module.exports = function (test) {
 
                         // subscription.on("item_added",function(monitoredItem){
                         monitoredItem.on("initialized", function () {
-                            //xxconsolelog("Monitored Item Initialized")
+                            //xxtracelog("Monitored Item Initialized")
                             callback();
                         });
 
@@ -1248,7 +1248,7 @@ module.exports = function (test) {
                                 },
                                 function (err, dataValue) {
                                     should.exist(dataValue);
-                                    ///xx consolelog(" written ",dataValue.value.toString());
+                                    ///xx tracelog(" written ",dataValue.value.toString());
                                     callback(err);
                                 }
                             );
@@ -1269,9 +1269,9 @@ module.exports = function (test) {
                             write.bind(null, [10, 20, 13, 14, 15, 60]),
                             wait.bind(null, 300),
                             function (callback) {
-                                //xx consolelog(monitoredItemOnChangedSpy.getCall(0).args[0].toString());
-                                //xx consolelog(monitoredItemOnChangedSpy.getCall(1).args[0].toString());
-                                //xx consolelog(monitoredItemOnChangedSpy.getCall(2).args[0].toString());
+                                //xx tracelog(monitoredItemOnChangedSpy.getCall(0).args[0].toString());
+                                //xx tracelog(monitoredItemOnChangedSpy.getCall(1).args[0].toString());
+                                //xx tracelog(monitoredItemOnChangedSpy.getCall(2).args[0].toString());
 
                                 monitoredItemOnChangedSpy.getCall(0).args[0].statusCode.should.eql(StatusCodes.Good);
                                 monitoredItemOnChangedSpy.getCall(1).args[0].statusCode.should.eql(StatusCodes.Good);
@@ -1323,7 +1323,7 @@ module.exports = function (test) {
                     const notificationMessageSpy = new sinon.spy();
                     subscription.on("raw_notification", notificationMessageSpy);
                     subscription.on("raw_notification", (notification) => {
-                        // consolelog(notification.toString());
+                        // tracelog(notification.toString());
                     });
 
                     const monitoredItemOnChangedSpy = new sinon.spy();
@@ -1354,7 +1354,7 @@ module.exports = function (test) {
 
                         // subscription.on("item_added",function(monitoredItem){
                         monitoredItem.on("initialized", function () {
-                            //xxconsolelog("Monitored Item Initialized")
+                            //xxtracelog("Monitored Item Initialized")
                             callback();
                         });
 
@@ -1369,7 +1369,7 @@ module.exports = function (test) {
 
                     function write(value, statusCode, callback) {
                         if (doDebug) {
-                            consolelog("monitoredItemOnChanged count    = ", monitoredItemOnChangedSpy.callCount);
+                            tracelog("monitoredItemOnChanged count    = ", monitoredItemOnChangedSpy.callCount);
                         }
                         const nodeToWrite = {
                             nodeId: nodeId,
@@ -1396,7 +1396,7 @@ module.exports = function (test) {
                                 },
                                 function (err, dataValue) {
                                     should.exist(dataValue);
-                                    // xx consolelog(" written ",dataValue.toString());
+                                    // xx tracelog(" written ",dataValue.toString());
                                     callback(err);
                                 }
                             );
@@ -1423,7 +1423,7 @@ module.exports = function (test) {
                                 // wait until next notification received;
                                 const lambda = (response) => {
                                     if (doDebug) {
-                                        consolelog(
+                                        tracelog(
                                             "response: ",
                                             response.constructor.name,
                                             "notificationData.length",
@@ -1432,7 +1432,7 @@ module.exports = function (test) {
                                     }
                                     if (response.constructor.name === "PublishResponse") {
                                         client.removeListener("receive_response", lambda);
-                                        // consolelog(" xxxx ", response.toString());
+                                        // tracelog(" xxxx ", response.toString());
                                         if (response.notificationMessage.notificationData.length !== 0) {
                                             return callback(
                                                 new Error(
@@ -1449,13 +1449,13 @@ module.exports = function (test) {
                             function (callback) {
                                 try {
                                     if (doDebug) {
-                                        consolelog(
+                                        tracelog(
                                             "subscription_raw_notificiationSpy = ",
                                             subscription_raw_notificationSpy.callCount
                                         );
-                                        consolelog("monitoredItemOnChangedSpy         = ", monitoredItemOnChangedSpy.callCount);
+                                        tracelog("monitoredItemOnChangedSpy         = ", monitoredItemOnChangedSpy.callCount);
                                         for (let i = 0; i < monitoredItemOnChangedSpy.callCount; i++) {
-                                            consolelog("    ", monitoredItemOnChangedSpy.getCall(i).args[0].statusCode.toString());
+                                            tracelog("    ", monitoredItemOnChangedSpy.getCall(i).args[0].statusCode.toString());
                                         }
                                     }
                                     monitoredItemOnChangedSpy.callCount.should.eql(2);
@@ -1465,7 +1465,7 @@ module.exports = function (test) {
                                         .args[0].statusCode.should.eql(StatusCodes.GoodWithOverflowBit);
                                     callback();
                                 } catch (err) {
-                                    consolelog(err);
+                                    tracelog(err);
                                     callback(err);
                                 }
                             }
@@ -1678,10 +1678,10 @@ module.exports = function (test) {
                     monitoredItem.on("err", (err) => {
                         should.exist(err);
                         err_counter++;
-                        consolelog("err received => terminated event expected ", err.message);
+                        tracelog("err received => terminated event expected ", err.message);
                     });
                     monitoredItem.on("terminated", () => {
-                        consolelog("terminated event received");
+                        tracelog("terminated event received");
                         err_counter.should.eql(1);
                         callback();
                     });
@@ -1990,7 +1990,7 @@ module.exports = function (test) {
             });
 
             subscription.on("timeout", function () {
-                consolelog("Subscription has timed out");
+                tracelog("Subscription has timed out");
             });
         }
 
@@ -2086,14 +2086,14 @@ module.exports = function (test) {
                                     shortLifeSubscription.publishingInterval *
                                     (shortLifeSubscription.lifetimeCount + shortLifeSubscription.maxKeepAliveCount * 4 + 20);
 
-                                consolelog("timeToWaitBeforeResendingPublishInterval = ", timeToWaitBeforeResendingPublishInterval);
+                                tracelog("timeToWaitBeforeResendingPublishInterval = ", timeToWaitBeforeResendingPublishInterval);
                                 if (doDebug) {
-                                    consolelog(shortLifeSubscription.toString());
-                                    consolelog(
+                                    tracelog(shortLifeSubscription.toString());
+                                    tracelog(
                                         "timetoWaitBeforeResendingPublishInterval  :",
                                         timeToWaitBeforeResendingPublishInterval
                                     );
-                                    consolelog(
+                                    tracelog(
                                         "Count To WaitBeforeResendingPublishInterval  :",
                                         timeToWaitBeforeResendingPublishInterval / shortLifeSubscription.publishingInterval
                                     );
@@ -2101,7 +2101,7 @@ module.exports = function (test) {
 
                                 setTimeout(function () {
                                     if (true || doDebug) {
-                                        consolelog(" Restoring default Publishing behavior");
+                                        tracelog(" Restoring default Publishing behavior");
                                     }
                                     repairUnpublishing(session);
                                 }, timeToWaitBeforeResendingPublishInterval);
@@ -2115,37 +2115,37 @@ module.exports = function (test) {
                                 const timeout =
                                     shortLifeSubscription.publishingInterval * shortLifeSubscription.maxKeepAliveCount * 2;
                                 if (true || doDebug) {
-                                    consolelog("timeout = ", timeout);
+                                    tracelog("timeout = ", timeout);
                                 }
                                 const verif = shortLifeSubscription.nb_keep_alive_received;
                                 // let explicitly close the subscription by calling terminate
                                 // but delay a little bit so we can verify that internalSendPublishRequest
                                 // is not called
                                 setTimeout(function () {
-                                    consolelog("before shortLifeSubscription terminate");
+                                    tracelog("before shortLifeSubscription terminate");
                                     shortLifeSubscription.terminate(function (err) {
-                                        consolelog(" shortLifeSubscription terminated");
+                                        tracelog(" shortLifeSubscription terminated");
                                         shortLifeSubscription.nb_keep_alive_received.should.be.equal(verif);
                                         setImmediate(callback);
                                     });
                                 }, timeout);
                             }),
                             f(function terminate_long_life_subscription(callback) {
-                                consolelog("before longLifeSubscription terminate");
+                                tracelog("before longLifeSubscription terminate");
                                 longLifeSubscription.terminate((err) => {
-                                    consolelog(" longLifeSubscription terminated");
+                                    tracelog(" longLifeSubscription terminated");
                                     setImmediate(callback);
                                 });
                             })
                         ],
                         (err) => {
-                            consolelog("inner", err?.message);
+                            tracelog("inner", err ? err.message: "");
                             inner_done(err);
                         }
                     );
                 },
                 (err) => {
-                    consolelog("done", err?.message);
+                    tracelog("done", err ? err.message: "");
                     done(err);
                 }
             );
@@ -2263,7 +2263,7 @@ module.exports = function (test) {
                     monitoredItem.on("changed", function (dataValue) {
                         change_count += 1;
                         should.exist(dataValue);
-                        //xx consolelog("xxxxxxxxxxxx=> dataValue",dataValue.toString());
+                        //xx tracelog("xxxxxxxxxxxx=> dataValue",dataValue.toString());
                     });
 
                     async.series(
@@ -2468,7 +2468,7 @@ module.exports = function (test) {
                     let change_count = 0;
                     subscription.publishingInterval.should.be.aboveOrEqual(100);
                     monitoredItem.on("changed", function (dataValue) {
-                        //xx consolelog("xx changed",dataValue.value.toString());
+                        //xx tracelog("xx changed",dataValue.value.toString());
                         change_count += 1;
                     });
 
@@ -2593,7 +2593,7 @@ module.exports = function (test) {
                 function (session, subscription, monitoredItem, inner_done) {
                     let change_count = 0;
                     monitoredItem.on("changed", function (dataValue) {
-                        //xx consolelog("xx changed",dataValue.value.toString());
+                        //xx tracelog("xx changed",dataValue.value.toString());
                         dataValue.value.toString().should.eql("Variant(Scalar<QualifiedName>, value: CurrentTime)");
                         change_count += 1;
                     });
@@ -2694,7 +2694,7 @@ module.exports = function (test) {
                     });
 
                     subscription.on("terminated", function () {
-                        //xx consolelog(chalk.yellow(" subscription terminated "));
+                        //xx tracelog(chalk.yellow(" subscription terminated "));
                         inner_done();
                     });
 
@@ -2721,7 +2721,7 @@ module.exports = function (test) {
                     let change_count = 0;
 
                     monitoredItem.on("changed", function (dataValue) {
-                        //xx consolelog("dataValue = ", dataValue.toString());
+                        //xx tracelog("dataValue = ", dataValue.toString());
                         change_count += 1;
                     });
 
@@ -2791,7 +2791,7 @@ module.exports = function (test) {
                                     }
 
                                     if (doDebug) {
-                                        consolelog("response", response.toString());
+                                        tracelog("response", response.toString());
                                     }
 
                                     subscriptionId = response.subscriptionId;
@@ -2822,9 +2822,9 @@ module.exports = function (test) {
             const nodeId = "ns=2;s=Static_Scalar_Int16";
 
             const node = server.engine.addressSpace.findNode(nodeId);
-            //xx consolelog(chalk.cyan("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"),node.toString());
+            //xx tracelog(chalk.cyan("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"),node.toString());
             const server_node = test.server.engine.addressSpace.rootFolder.objects.simulation.static["all Profiles"].scalars.int16;
-            //xx consolelog("server_node.minimumSamplingInterval = ",server_node.minimumSamplingInterval);
+            //xx tracelog("server_node.minimumSamplingInterval = ",server_node.minimumSamplingInterval);
             server_node.minimumSamplingInterval = forcedMinimumInterval;
 
             const itemToMonitor = new ReadValueId({
@@ -2850,7 +2850,7 @@ module.exports = function (test) {
                                     }
                                     dataValue.statusCode.should.eql(StatusCodes.Good);
                                     minimumSamplingIntervalOnNode = dataValue.value.value;
-                                    //xx consolelog("minimumSamplingIntervalOnNode= =",minimumSamplingIntervalOnNode);
+                                    //xx tracelog("minimumSamplingIntervalOnNode= =",minimumSamplingIntervalOnNode);
 
                                     minimumSamplingIntervalOnNode.should.eql(forcedMinimumInterval);
 
@@ -2891,16 +2891,16 @@ module.exports = function (test) {
                                     ]
                                 });
 
-                                //xx consolelog("createMonitoredItemsRequest = ", createMonitoredItemsRequest.toString());
+                                //xx tracelog("createMonitoredItemsRequest = ", createMonitoredItemsRequest.toString());
 
                                 session.performMessageTransaction(createMonitoredItemsRequest, function (err, response) {
                                     if (err) {
                                         return callback(err);
                                     }
-                                    //xx consolelog("ERRR = ", err);
+                                    //xx tracelog("ERRR = ", err);
                                     should.not.exist(err);
                                     response.responseHeader.serviceResult.should.eql(StatusCodes.Good);
-                                    //xx consolelog(response.results[0].toString());
+                                    //xx tracelog(response.results[0].toString());
 
                                     response.results[0].statusCode.should.eql(StatusCodes.Good);
                                     samplingInterval = response.results[0].revisedSamplingInterval;
@@ -2996,7 +2996,7 @@ module.exports = function (test) {
                 try {
                     callback(err, response);
                 } catch (err) {
-                    //xx consolelog('================> error =>'.red,err);
+                    //xx tracelog('================> error =>'.red,err);
                     callback(err, response);
                 }
             });
@@ -3053,7 +3053,7 @@ module.exports = function (test) {
                 response.responseHeader.serviceResult.should.eql(StatusCodes.Good);
 
                 samplingInterval = response.results[0].revisedSamplingInterval;
-                //xx consolelog(" revised Sampling interval ",samplingInterval);
+                //xx tracelog(" revised Sampling interval ",samplingInterval);
                 callback(err);
             });
         }
@@ -3229,12 +3229,12 @@ module.exports = function (test) {
                                         response.notificationMessage.notificationData[0].monitoredItems.length.should.eql(2);
 
                                         let notification = response.notificationMessage.notificationData[0].monitoredItems[0];
-                                        //xx consolelog(notification.value.value.value);
+                                        //xx tracelog(notification.value.value.value);
                                         notification.value.value.value.should.eql(expected_values[0]);
                                         notification.value.statusCode.should.eql(expected_statusCodes[0]);
 
                                         notification = response.notificationMessage.notificationData[0].monitoredItems[1];
-                                        //xx consolelog(notification.value.value.value);
+                                        //xx tracelog(notification.value.value.value);
                                         notification.value.value.value.should.eql(expected_values[1]);
                                         notification.value.statusCode.should.eql(expected_statusCodes[1]);
                                         //xx parameters.queueSize.should.eql(2);
@@ -3312,7 +3312,7 @@ module.exports = function (test) {
                                     if (!err) {
                                         response.notificationMessage.notificationData.length.should.eql(1);
 
-                                        //xx consolelog("xxxx ", response.notificationMessage.notificationData.toString());
+                                        //xx tracelog("xxxx ", response.notificationMessage.notificationData.toString());
 
                                         //Xx var notification = response.notificationMessage.notificationData[0].monitoredItems[0];
                                     }
@@ -3364,7 +3364,7 @@ module.exports = function (test) {
                                 });
                             },
                             function (callback) {
-                                //xx consolelog(" SubscriptionId =",subscriptionId);
+                                //xx tracelog(" SubscriptionId =",subscriptionId);
                                 callback();
                             },
                             function (callback) {
@@ -3375,12 +3375,12 @@ module.exports = function (test) {
                             },
 
                             function (callback) {
-                                //xx consolelog("--------------");
+                                //xx tracelog("--------------");
                                 // we should get notified immediately that the session has timed out
                                 sendPublishRequest(session, function (err, response) {
                                     response.notificationMessage.notificationData.length.should.eql(1);
                                     const notificationData = response.notificationMessage.notificationData[0];
-                                    //xx consolelog(notificationData.toString());
+                                    //xx tracelog(notificationData.toString());
                                     //.monitoredItems[0];
                                     notificationData.constructor.name.should.eql("StatusChangeNotification");
                                     notificationData.status.should.eql(StatusCodes.BadTimeout);
@@ -3429,7 +3429,7 @@ module.exports = function (test) {
                                 function (callback) {
                                     sendPublishRequest(session, function (err, response) {
                                         const notification = response.notificationMessage.notificationData[0].monitoredItems[0];
-                                        //xx consolelog("notification", notification.toString());
+                                        //xx tracelog("notification", notification.toString());
                                         notification.value.value.value.should.eql("EFGHIJK");
                                         callback(err);
                                     });
@@ -3461,7 +3461,7 @@ module.exports = function (test) {
                                 function (callback) {
                                     sendPublishRequest(session, function (err, response) {
                                         const notification = response.notificationMessage.notificationData[0].monitoredItems[0];
-                                        //xx consolelog("notification", notification.toString());
+                                        //xx tracelog("notification", notification.toString());
                                         notification.value.value.value.should.eql("VUTSRQP");
                                         callback(err);
                                     });
@@ -3525,7 +3525,7 @@ module.exports = function (test) {
                                     },
                                     function (err, dataValue) {
                                         should.exist(dataValue);
-                                        //xxconsolelog(" written ",dataValue.value.toString());
+                                        //xxtracelog(" written ",dataValue.value.toString());
                                         callback(err);
                                     }
                                 );
@@ -3653,7 +3653,7 @@ module.exports = function (test) {
                     });
 
                     subscription.on("terminated", function () {
-                        //xx consolelog(chalk.yellow(" subscription terminated "));
+                        //xx tracelog(chalk.yellow(" subscription terminated "));
                     });
                     subscription.on("started", function () {
                         async.series(
@@ -3959,7 +3959,7 @@ module.exports = function (test) {
                 client = OPCUAClient.create();
                 fanSpeed = server.engine.addressSpace.findNode("ns=1;s=FanSpeed");
                 should.exist(fanSpeed);
-                //xxx consolelog(fanSpeed.toString());
+                //xxx tracelog(fanSpeed.toString());
                 done();
             });
 
@@ -4027,7 +4027,7 @@ module.exports = function (test) {
                                     fanSpeed.setValueFromSource(new Variant({ dataType: DataType.Double, value: 1 }));
                                     setTimeout(callback, 50);
                                     fanSpeed.setValueFromSource(new Variant({ dataType: DataType.Double, value: 2 }));
-                                    //consolelog(fanSpeed.toString());
+                                    //tracelog(fanSpeed.toString());
                                 },
 
                                 //publish_republish,
