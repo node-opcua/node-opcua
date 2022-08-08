@@ -238,18 +238,11 @@ export function isArgumentValid(addressSpace: IAddressSpace, argDefinition: Argu
 export function verifyArguments_ArgumentList(
     addressSpace: IAddressSpace,
     methodInputArguments: Argument[],
-    inputArguments?: Variant[]
+    inputArguments: Variant[]
 ): {
     inputArgumentResults?: StatusCode[];
     statusCode: StatusCode;
 } {
-    if (!inputArguments) {
-        // it is possible to not provide inputArguments when method  has no arguments
-        return methodInputArguments.length === 0
-            ? { statusCode: StatusCodes.Good }
-            : { statusCode: StatusCodes.BadArgumentsMissing };
-    }
-
     const inputArgumentResults: StatusCode[] = methodInputArguments.map((methodInputArgument, index) => {
         const argument = inputArguments![index];
         if (!argument) {
@@ -299,32 +292,5 @@ export function verifyArguments_ArgumentList(
             inputArgumentResults.includes(StatusCodes.BadTypeMismatch) || inputArgumentResults.includes(StatusCodes.BadOutOfRange)
                 ? StatusCodes.BadInvalidArgument
                 : StatusCodes.Good
-    };
-}
-
-export function build_retrieveInputArgumentsDefinition(
-    addressSpace: IAddressSpace
-): (objectId: NodeId, methodId: NodeId) => Argument[] {
-    const the_address_space = addressSpace;
-    return (objectId: NodeId, methodId: NodeId) => {
-        const response = getMethodDeclaration_ArgumentList(the_address_space, objectId, methodId);
-
-        /* istanbul ignore next */
-        if (response.statusCode !== StatusCodes.Good) {
-            debugLog(" StatusCode  = " + response.statusCode.toString());
-            throw new Error(
-                "Invalid Method " +
-                    response.statusCode.toString() +
-                    " ObjectId= " +
-                    objectId.toString() +
-                    "Method Id =" +
-                    methodId.toString()
-            );
-        }
-        const methodDeclaration = response.methodDeclaration!;
-        // verify input Parameters
-        const methodInputArguments = methodDeclaration.getInputArguments();
-        assert(Array.isArray(methodInputArguments));
-        return methodInputArguments;
     };
 }
