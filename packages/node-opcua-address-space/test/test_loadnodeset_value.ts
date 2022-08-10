@@ -77,7 +77,7 @@ describe("Testing loading nodeset with extension objects values in types", () =>
         otherConnectionsValue[0].constructor.name.should.eql("ConnectionDetails");
         otherConnectionsValue[1].constructor.name.should.eql("ConnectionDetails");
 
-        const c1 = addressSpace.constructExtensionObject(connectionDetailDataType, {
+        const c1 = addressSpace.constructExtensionObject(connectionDetailDataType!, {
             certificates: Buffer.from("Hello World"),
             url: "http://10.0.19.120"
         });
@@ -103,7 +103,7 @@ describe("Testing loading nodeset with extension objects values in types", () =>
         await generateAddressSpace(addressSpace, [nodesets.standard, xml_file1]);
         const namespace = addressSpace.getNamespace("http://sterfive.com/Small_model/");
         const xml = namespace.toNodeset2XML();
-        // xx  console.log(xml);
+        // console.log(xml);
 
         // prettier-ignore
         x(xml).should.eql(x(`<?xml version="1.0"?>
@@ -119,7 +119,7 @@ describe("Testing loading nodeset with extension objects values in types", () =>
     <Aliases>
         <Alias Alias="1:ConnectionDetails">ns=1;i=47</Alias>
         <Alias Alias="1:FlowDirection">ns=1;i=49</Alias>
-        <Alias Alias="1:MyStruct">ns=1;i=3003</Alias>
+        <Alias Alias="1:MyStructDataType">ns=1;i=3003</Alias>
         <Alias Alias="ByteString">i=15</Alias>
         <Alias Alias="EnumValueType">i=7594</Alias>
         <Alias Alias="HasComponent">i=47</Alias>
@@ -133,8 +133,8 @@ describe("Testing loading nodeset with extension objects values in types", () =>
         <Alias Alias="Organizes">i=35</Alias>
         <Alias Alias="String">i=12</Alias>
     </Aliases>
-    <!--ReferenceTypes-->
-    <!--DataTypes-->
+<!--ReferenceTypes-->
+<!--DataTypes-->
     <UADataType NodeId="ns=1;i=3002" BrowseName="1:MyEnum">
         <DisplayName>MyEnum</DisplayName>
         <References>
@@ -206,19 +206,39 @@ describe("Testing loading nodeset with extension objects values in types", () =>
             </ListOfExtensionObject>
         </Value>
     </UAVariable>
-    <UADataType NodeId="ns=1;i=3003" BrowseName="1:MyStruct">
-        <DisplayName>MyStruct</DisplayName>
+    <UADataType NodeId="ns=1;i=3003" BrowseName="1:MyStructDataType">
+        <DisplayName>MyStructDataType</DisplayName>
         <References>
             <Reference ReferenceType="HasSubtype" IsForward="false">i=22</Reference>
             <Reference ReferenceType="HasEncoding">ns=1;i=5001</Reference>
             <Reference ReferenceType="HasEncoding">ns=1;i=5002</Reference>
             <Reference ReferenceType="HasEncoding">ns=1;i=5003</Reference>
         </References>
-        <Definition Name="1:MyStruct">
+        <Definition Name="1:MyStructDataType">
             <Field Name="F1" DataType="ns=1;i=3002"/>
             <Field Name="F2" ArrayDimensions="0" ValueRank="1" DataType="ns=1;i=3002"/>
         </Definition>
     </UADataType>
+    <UAObject NodeId="ns=1;i=5001" BrowseName="Default Binary" SymbolicName="DefaultBinary">
+        <DisplayName>Default Binary</DisplayName>
+        <References>
+            <Reference ReferenceType="HasTypeDefinition">i=76</Reference>
+            <Reference ReferenceType="HasDescription">ns=1;i=6006</Reference>
+        </References>
+    </UAObject>
+    <UAObject NodeId="ns=1;i=5003" BrowseName="Default JSON" SymbolicName="DefaultJson">
+        <DisplayName>Default JSON</DisplayName>
+        <References>
+            <Reference ReferenceType="HasTypeDefinition">i=76</Reference>
+        </References>
+    </UAObject>
+    <UAObject NodeId="ns=1;i=5002" BrowseName="Default XML" SymbolicName="DefaultXml">
+        <DisplayName>Default XML</DisplayName>
+        <References>
+            <Reference ReferenceType="HasTypeDefinition">i=76</Reference>
+            <Reference ReferenceType="HasDescription">ns=1;i=6007</Reference>
+        </References>
+    </UAObject>
     <UADataType NodeId="ns=1;i=47" BrowseName="1:ConnectionDetails">
         <DisplayName>ConnectionDetails</DisplayName>
         <References>
@@ -232,6 +252,19 @@ describe("Testing loading nodeset with extension objects values in types", () =>
             <Field Name="Url" DataType="i=12"/>
         </Definition>
     </UADataType>
+    <UAObject NodeId="ns=1;i=183" BrowseName="Default JSON" SymbolicName="DefaultJson">
+        <DisplayName>Default JSON</DisplayName>
+        <References>
+            <Reference ReferenceType="HasTypeDefinition">i=76</Reference>
+        </References>
+    </UAObject>
+    <UAObject NodeId="ns=1;i=182" BrowseName="Default XML" SymbolicName="DefaultXml">
+        <DisplayName>Default XML</DisplayName>
+        <References>
+            <Reference ReferenceType="HasTypeDefinition">i=76</Reference>
+            <Reference ReferenceType="HasDescription">ns=1;i=1196</Reference>
+        </References>
+    </UAObject>
     <UADataType NodeId="ns=1;i=49" BrowseName="1:FlowDirection">
         <DisplayName>FlowDirection</DisplayName>
         <References>
@@ -260,16 +293,16 @@ describe("Testing loading nodeset with extension objects values in types", () =>
             </ListOfLocalizedText>
         </Value>
     </UAVariable>
-    <!--ObjectTypes-->
-    <!--ObjectType - 1:Meter {{{{ -->
+<!--ObjectTypes-->
+<!--ObjectType - 1:Meter {{{{ -->
     <UAObjectType NodeId="ns=1;i=39" BrowseName="1:Meter">
         <DisplayName>Meter</DisplayName>
         <References>
             <Reference ReferenceType="HasSubtype" IsForward="false">i=58</Reference>
         </References>
     </UAObjectType>
-    <!--ObjectType - 1:Meter }}}}-->
-    <!--ObjectType - 1:LinearMeter {{{{ -->
+<!--ObjectType - 1:Meter }}}}-->
+<!--ObjectType - 1:LinearMeter {{{{ -->
     <UAObjectType NodeId="ns=1;i=40" BrowseName="1:LinearMeter">
         <DisplayName>LinearMeter</DisplayName>
         <References>
@@ -286,8 +319,8 @@ describe("Testing loading nodeset with extension objects values in types", () =>
             <Reference ReferenceType="HasTypeDefinition">ns=1;i=44</Reference>
         </References>
     </UAVariable>
-    <!--ObjectType - 1:LinearMeter }}}}-->
-    <!--VariableTypes-->
+<!--ObjectType - 1:LinearMeter }}}}-->
+<!--VariableTypes-->
     <UAVariableType NodeId="ns=1;i=42" BrowseName="1:ConnectionDetailsType" DataType="1:ConnectionDetails">
         <DisplayName>ConnectionDetailsType</DisplayName>
         <References>
@@ -326,7 +359,7 @@ describe("Testing loading nodeset with extension objects values in types", () =>
             <Reference ReferenceType="HasModellingRule">i=80</Reference>
         </References>
     </UAVariable>
-    <!--Other Nodes-->
+<!--Other Nodes-->
     <UAVariable NodeId="ns=1;i=1195" BrowseName="1:ConnectionDetails" DataType="String">
         <DisplayName>ConnectionDetails</DisplayName>
         <References>
@@ -336,59 +369,16 @@ describe("Testing loading nodeset with extension objects values in types", () =>
             <String>ConnectionDetails</String>
         </Value>
     </UAVariable>
-    <!--Object - Default XML {{{{ -->
-    <UAObject NodeId="ns=1;i=182" BrowseName="Default XML" SymbolicName="DefaultXml">
-        <DisplayName>Default XML</DisplayName>
-        <References>
-            <Reference ReferenceType="HasTypeDefinition">i=76</Reference>
-            <Reference ReferenceType="HasDescription">ns=1;i=1196</Reference>
-        </References>
-    </UAObject>
-    <!--Object - Default XML }}}} -->
-    <!--Object - Default JSON {{{{ -->
-    <UAObject NodeId="ns=1;i=183" BrowseName="Default JSON" SymbolicName="DefaultJson">
-        <DisplayName>Default JSON</DisplayName>
-        <References>
-            <Reference ReferenceType="HasTypeDefinition">i=76</Reference>
-        </References>
-    </UAObject>
-    <!--Object - Default JSON }}}} -->
-    <!--Object - Default Binary {{{{ -->
-    <UAObject NodeId="ns=1;i=5001" BrowseName="Default Binary" SymbolicName="DefaultBinary">
-        <DisplayName>Default Binary</DisplayName>
-        <References>
-            <Reference ReferenceType="HasTypeDefinition">i=76</Reference>
-            <Reference ReferenceType="HasDescription">ns=1;i=6006</Reference>
-        </References>
-    </UAObject>
-    <!--Object - Default Binary }}}} -->
-    <!--Object - Default XML {{{{ -->
-    <UAObject NodeId="ns=1;i=5002" BrowseName="Default XML" SymbolicName="DefaultXml">
-        <DisplayName>Default XML</DisplayName>
-        <References>
-            <Reference ReferenceType="HasTypeDefinition">i=76</Reference>
-            <Reference ReferenceType="HasDescription">ns=1;i=6007</Reference>
-        </References>
-    </UAObject>
-    <!--Object - Default XML }}}} -->
-    <!--Object - Default JSON {{{{ -->
-    <UAObject NodeId="ns=1;i=5003" BrowseName="Default JSON" SymbolicName="DefaultJson">
-        <DisplayName>Default JSON</DisplayName>
-        <References>
-            <Reference ReferenceType="HasTypeDefinition">i=76</Reference>
-        </References>
-    </UAObject>
-    <!--Object - Default JSON }}}} -->
-    <UAVariable NodeId="ns=1;i=6006" BrowseName="1:MyStruct" DataType="String">
-        <DisplayName>MyStruct</DisplayName>
+    <UAVariable NodeId="ns=1;i=6006" BrowseName="1:MyStructType" DataType="String">
+        <DisplayName>MyStructType</DisplayName>
         <References>
             <Reference ReferenceType="HasTypeDefinition">i=69</Reference>
         </References>
         <Value>
-            <String>MyStruct</String>
+            <String>MyStructDataType</String>
         </Value>
     </UAVariable>
-    <UAVariable NodeId="ns=1;i=6009" BrowseName="1:TestVar" AccessLevel="3" DataType="1:MyStruct">
+    <UAVariable NodeId="ns=1;i=6009" BrowseName="1:TestVar" AccessLevel="3" DataType="1:MyStructDataType">
         <DisplayName>TestVar</DisplayName>
         <References>
             <Reference ReferenceType="Organizes" IsForward="false">i=2253</Reference>
@@ -400,14 +390,14 @@ describe("Testing loading nodeset with extension objects values in types", () =>
                     <Identifier>ns=1;i=5002</Identifier>
                 </TypeId>
                 <Body>
-                    <MyStruct>
+                    <MyStructDataType>
                         <F1>Orange_200</F1>
                         <F2>
                             <MyEnum>Green_100</MyEnum>
                             <MyEnum>Orange_200</MyEnum>
                             <MyEnum>Blue_300</MyEnum>
                         </F2>
-                    </MyStruct>
+                    </MyStructDataType>
                 </Body>
             </ExtensionObject>
         </Value>

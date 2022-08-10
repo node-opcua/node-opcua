@@ -294,8 +294,8 @@ function _dumpVariantInnerValueEnum(xw: XmlWriter, definition: EnumDefinition, v
     if (!definition.fields) {
         return;
     }
-    const field = definition.fields.find((f) => f.value[1] === value);
-    xw.text(`${field?.name}_${value}`);
+    const field = definition.fields.find((f) => f.value[1] === value || f.name === value);
+    xw.text(`${field?.name}_${field?.value[1]}`);
 }
 
 // eslint-disable-next-line complexity
@@ -329,7 +329,6 @@ function _dumpVariantInnerValue(
         case DataType.Boolean:
         case DataType.SByte:
         case DataType.Byte:
-        case DataType.SByte:
         case DataType.Float:
         case DataType.Double:
         case DataType.Int16:
@@ -779,6 +778,16 @@ function _dumpStructureDefinition(
         xw.endElement();
     }
 }
+
+function _dumpEncodings(xw: XmlWriter, uaDataType: UADataType) {
+    const encodings = uaDataType.findReferencesExAsObject("HasEncoding", BrowseDirection.Forward);
+    for (const encoding of encodings) {
+        if (encoding.nodeClass !== NodeClass.Object) {
+            continue;
+        }
+        _dumpUAObject(xw, encoding as UAObject);
+    }
+}
 function _dumpUADataTypeDefinition(xw: XmlWriter, uaDataType: UADataType) {
     const uaDataTypeBase = uaDataType.subtypeOfObj;
 
@@ -823,6 +832,8 @@ function dumpUADataType(xw: XmlWriter, node: UADataType) {
     _dumpUADataTypeDefinition(xw, node);
 
     xw.endElement();
+
+    _dumpEncodings(xw, node);
 
     dumpAggregates(xw, node);
 }
@@ -927,7 +938,10 @@ function dumpUAVariableType(xw: XmlWriter, node: UAVariableType) {
 
 function dumpUAObject(xw: XmlWriter, node: UAObject) {
     xw.writeComment("Object - " + b(xw, node.browseName) + " {{{{ ");
-
+    _dumpUAObject(xw, node);
+    xw.writeComment("Object - " + b(xw, node.browseName) + " }}}} ");
+}
+function _dumpUAObject(xw: XmlWriter, node: UAObject) {
     xw.visitedNode = xw.visitedNode || {};
     assert(!xw.visitedNode[_hash(node)]);
     xw.visitedNode[_hash(node)] = 1;
@@ -945,8 +959,6 @@ function dumpUAObject(xw: XmlWriter, node: UAObject) {
     dumpAggregates(xw, node);
 
     dumpElementInFolder(xw, node as UAObjectImpl);
-
-    xw.writeComment("Object - " + b(xw, node.browseName) + " }}}} ");
 }
 function dumpElementInFolder(xw: XmlWriter, node: BaseNodeImpl) {
     const aggregates = node

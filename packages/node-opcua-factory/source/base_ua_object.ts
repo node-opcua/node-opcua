@@ -418,7 +418,6 @@ function _JSONify(self: BaseUAObject, schema: IStructuredTypeSchema, pojo: any) 
     }
 }
 
-
 export interface BaseUAObject extends IBaseUAObject {
     schema: IStructuredTypeSchema;
 }
@@ -584,7 +583,7 @@ export class BaseUAObject {
                     continue;
                 }
                 if (field.isArray) {
-                    options[field.name] = self[field.name];
+                    options[field.name] = [...self[field.name]];
                 } else {
                     options[field.name] = self[field.name];
                 }

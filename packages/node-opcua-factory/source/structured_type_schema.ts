@@ -128,6 +128,7 @@ function buildField(underConstructSchema: StructuredTypeSchema, fieldLight: Fiel
         fieldLight;
     return {
         name: lowerFirstLetter(fieldLight.name),
+        originalName: fieldLight.name,
         category,
         defaultValue,
         isArray,

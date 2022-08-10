@@ -236,16 +236,17 @@ function initializeField(
     factory: DataTypeFactory
 ) {
     const name = field.name;
+    const value = getFieldValue(field, options);
 
     switch (field.category) {
         case FieldCategory.complex: {
             if (field.allowSubType) {
-                validateSubTypeA(factory, field, options[name]);
+                validateSubTypeA(factory, field, value);
                 if (field.isArray) {
-                    const arr = (options[name] as unknown[]) || [];
+                    const arr = (value as unknown[]) || [];
                     thisAny[name] = arr.map((x: any) => x.clone());
                 } else {
-                    const e = options[name] as ExtensionObject;
+                    const e = value as ExtensionObject;
                     if (e !== null && !(e instanceof ExtensionObject)) {
                         errorLog("initializeField: array element is not an ExtensionObject");
                     }
@@ -255,10 +256,10 @@ function initializeField(
             } else {
                 const constructor = factory.getStructureTypeConstructor(field.fieldType);
                 if (field.isArray) {
-                    const arr = (options[name] as unknown[]) || [];
+                    const arr = (value as unknown[]) || [];
                     thisAny[name] = arr.map((x: any) => (constructor ? new constructor(x) : null));
                 } else {
-                    thisAny[name] = constructor ? new constructor(options[name]) : null;
+                    thisAny[name] = constructor ? new constructor(value) : null;
                 }
             }
             // getOrCreateConstructor(field.fieldType, factory) || BaseUAObject;
@@ -268,34 +269,43 @@ function initializeField(
         case FieldCategory.enumeration:
         case FieldCategory.basic:
             if (field.allowSubType) {
-                validateSubTypeA(factory, field, options[name]);
+                validateSubTypeA(factory, field, value);
             }
             if (field.isArray) {
-                thisAny[name] = initialize_field_array(field, options[name], factory);
+                thisAny[name] = initialize_field_array(field, value, factory);
             } else {
-                thisAny[name] = initialize_field(field, options[name], factory);
+                thisAny[name] = initialize_field(field, value, factory);
             }
             break;
     }
 }
-/**
- * @private
- * @param thisAny
- * @param options
- * @param schema
- * @param factory
- */
-function initializeFields(thisAny: any, options: Record<string, unknown>, schema: IStructuredTypeSchema, factory: DataTypeFactory) {
+
+interface InitializeFieldOptions {
+    caseInsensitive?: boolean;
+}
+
+function getFieldValue(field: FieldType, options: Record<string, unknown>) {
+    return options[field.name] !== undefined ? options[field.name] : options[field.originalName];
+}
+
+function initializeFields(
+    thisAny: any,
+    options: Record<string, unknown>,
+    schema: IStructuredTypeSchema,
+    factory: DataTypeFactory,
+    params: InitializeFieldOptions
+) {
     // initialize base class first
     if (schema._baseSchema && schema._baseSchema.fields.length) {
-        initializeFields(thisAny, options, schema._baseSchema!, factory);
+        initializeFields(thisAny, options, schema._baseSchema!, factory, params);
     }
     // finding fields that are in options but not in schema!
     for (const field of schema.fields) {
         const name = field.name;
+        const value = getFieldValue(field, options);
 
         // dealing with optional fields
-        if (field.switchBit !== undefined && options[field.name] === undefined) {
+        if (field.switchBit !== undefined && value === undefined) {
             thisAny[name] = undefined;
             continue;
         }
@@ -470,7 +480,7 @@ export class DynamicExtensionObject extends ExtensionObject {
     public static schema: IStructuredTypeSchema = ExtensionObject.schema;
     public static possibleFields: string[] = [];
 
-    constructor(options: any, schema: IStructuredTypeSchema, factory: DataTypeFactory) {
+    constructor(options: Record<string, unknown>, schema: IStructuredTypeSchema, factory: DataTypeFactory) {
         assert(schema, "expecting a schema here ");
         assert(factory, "expecting a DataTypeFactory");
 
@@ -481,7 +491,7 @@ export class DynamicExtensionObject extends ExtensionObject {
 
         check_options_correctness_against_schema(this, this.schema, options);
 
-        initializeFields(this as any, options, this.schema, factory);
+        initializeFields(this as any, options, this.schema, factory, { caseInsensitive: true });
     }
 
     public encode(stream: OutputBinaryStream): void {
@@ -544,8 +554,9 @@ class UnionBaseClass extends BaseUAObject {
 
             // dealing with optional fields
 
+            const value = getFieldValue(field, options);
             /* istanbul ignore next */
-            if (uniqueFieldHasBeenFound && options[field.name] !== undefined) {
+            if (uniqueFieldHasBeenFound && value !== undefined) {
                 // let try to be helpful for the developper by providing some hint
                 debugLog(this.schema);
                 throw new Error(
@@ -565,7 +576,7 @@ class UnionBaseClass extends BaseUAObject {
                 }
             } else {
                 // the is no switchFieldName , in this case the i
-                if (options[name] === undefined) {
+                if (value === undefined) {
                     continue;
                 }
             }
@@ -577,9 +588,9 @@ class UnionBaseClass extends BaseUAObject {
                     const constuctor = factory.getStructureTypeConstructor(field.fieldType);
                     // getOrCreateConstructor(field.fieldType, factory) || BaseUAObject;
                     if (field.isArray) {
-                        (this as any)[name] = (options[name] || []).map((x: any) => (constuctor ? new constuctor(x) : null));
+                        (this as any)[name] = ((value as any) || []).map((x: any) => (constuctor ? new constuctor(x) : null));
                     } else {
-                        (this as any)[name] = constuctor ? new constuctor(options[name]) : null;
+                        (this as any)[name] = constuctor ? new constuctor(value) : null;
                     }
                     // xx processStructuredType(fieldSchema);
                     break;
@@ -587,9 +598,9 @@ class UnionBaseClass extends BaseUAObject {
                 case FieldCategory.enumeration:
                 case FieldCategory.basic:
                     if (field.isArray) {
-                        (this as any)[name] = initialize_field_array(field, options[name]);
+                        (this as any)[name] = initialize_field_array(field, value);
                     } else {
-                        (this as any)[name] = initialize_field(field, options[name]);
+                        (this as any)[name] = initialize_field(field, value);
                     }
                     break;
             }
@@ -702,7 +713,7 @@ class UnionBaseClass extends BaseUAObject {
             if (value === undefined) {
                 continue;
             }
-            pojo[field.name] = fieldToJSON(field, value);
+            pojo[field.originalName] = fieldToJSON(field, value);
             break;
         }
         return pojo;
@@ -729,7 +740,10 @@ function _createDynamicUnionConstructor(schema: IStructuredTypeSchema, factory: 
     return UNION;
 }
 
-export function createDynamicObjectConstructor(schema: IStructuredTypeSchema, dataTypeFactory: DataTypeFactory): AnyConstructorFunc {
+export function createDynamicObjectConstructor(
+    schema: IStructuredTypeSchema,
+    dataTypeFactory: DataTypeFactory
+): AnyConstructorFunc {
     const schemaPriv = schema as any;
 
     if (schemaPriv.$Constructor) {

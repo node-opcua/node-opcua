@@ -16,12 +16,8 @@ import {
     defaultCloneFilter,
     GetFunc,
     SetFunc,
-    VariableDataValueGetterCallback,
-    VariableDataValueGetterPromise,
     VariableDataValueGetterSync,
-    VariableDataValueSetterWithCallback,
-    VariableDataValueSetterWithPromise
-} from "node-opcua-address-space-base";
+    VariableDataValueSetterWithCallback} from "node-opcua-address-space-base";
 import { assert } from "node-opcua-assert";
 import {
     isValidDataEncoding,
@@ -49,12 +45,9 @@ import {
     ReadEventDetails,
     ReadProcessedDetails,
     ReadRawModifiedDetails,
-    StructureDefinition,
-    StructureField,
     WriteValueOptions
 } from "node-opcua-types";
 import * as utils from "node-opcua-utils";
-import { lowerFirstLetter } from "node-opcua-utils";
 import {
     Variant,
     VariantLike,
@@ -68,7 +61,6 @@ import { StatusCodeCallback } from "node-opcua-status-code";
 import {
     IAddressSpace,
     BindVariableOptions,
-    ContinuationPoint,
     IVariableHistorian,
     TimestampGetFunc,
     TimestampSetFunc,
@@ -81,12 +73,12 @@ import {
     BaseNode,
     UAVariableT
 } from "node-opcua-address-space-base";
-import { EnumFilterOperator, UAHistoricalDataConfiguration } from "node-opcua-nodeset-ua";
+import { UAHistoricalDataConfiguration } from "node-opcua-nodeset-ua";
 
 import { SessionContext } from "../source/session_context";
 import { convertToCallbackFunction1 } from "../source/helpers/multiform_func";
 import { BaseNodeImpl, InternalBaseNodeOptions } from "./base_node_impl";
-import { _clone, ToStringBuilder, UAVariable_toString, valueRankToString } from "./base_node_private";
+import { _clone, ToStringBuilder, UAVariable_toString } from "./base_node_private";
 import { EnumerationInfo, IEnumItem, UADataTypeImpl } from "./ua_data_type_impl";
 import { apply_condition_refresh, ConditionRefreshCache } from "./apply_condition_refresh";
 import {

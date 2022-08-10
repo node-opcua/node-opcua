@@ -85,7 +85,10 @@ export interface ConstructorFuncWithSchema extends ConstructorFunc {
 }
 
 export interface StructuredTypeField {
-    name: string;
+    
+    name: string;               // the name that may have been lowercased
+    originalName: string;       // the orignal name from the raw OPCUA description
+
     fieldType: string;
     isArray?: boolean;
     documentation?: string;

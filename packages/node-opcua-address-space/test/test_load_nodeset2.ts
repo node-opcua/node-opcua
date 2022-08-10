@@ -746,7 +746,7 @@ describe("@A@ Testing loading nodeset with custom basic types", function (this: 
         const myIdentifierDataType = addressSpace.findDataType("MyIdentifierString", ns)!;
         should.exists(myIdentifierDataType);
 
-        const myStructDataTypeNode = addressSpace.findDataType("MyStruct", ns)!;
+        const myStructDataTypeNode = addressSpace.findDataType("MyStructDataType", ns)!;
         should.exists(myStructDataTypeNode);
 
         const struct = addressSpace.constructExtensionObject(myStructDataTypeNode, {
